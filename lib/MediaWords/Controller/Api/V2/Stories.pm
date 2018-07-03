@@ -142,6 +142,9 @@ sub cliff : Local
     Readonly my $json_pretty => 1;
     my $json = MediaWords::Util::JSON::encode_json( $json_items, $json_pretty );
 
+    # Catalyst expects bytes
+    $json = encode_utf8( $json );
+
     $c->response->content_type( 'application/json; charset=UTF-8' );
     $c->response->content_length( bytes::length( $json ) );
     $c->response->body( $json );
@@ -199,6 +202,9 @@ sub nytlabels : Local
 
     Readonly my $json_pretty => 1;
     my $json = MediaWords::Util::JSON::encode_json( $json_items, $json_pretty );
+
+    # Catalyst expects bytes
+    $json = encode_utf8( $json );
 
     $c->response->content_type( 'application/json; charset=UTF-8' );
     $c->response->content_length( bytes::length( $json ) );

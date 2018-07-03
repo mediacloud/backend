@@ -1,66 +1,133 @@
 ---
 
-- name: Add Erlang Solutions GPG key
-  apt_key:
-    url: "https://packages.erlang-solutions.com/ubuntu/erlang_solutions.asc"
-    state: present
-  become: true
-  become_user: root
+- name: Install RabbitMQ
   tags:
     - system-packages
+  block:
 
-- name: Add RabbitMQ GPG key
-  apt_key:
-    url: "https://dl.bintray.com/rabbitmq/Keys/rabbitmq-release-signing-key.asc"
-    state: present
-  become: true
-  become_user: root
-  tags:
-    - system-packages
+    - name: Add Erlang Solutions GPG key
+      apt_key:
+        url: "https://packages.erlang-solutions.com/ubuntu/erlang_solutions.asc"
+        state: present
+      become: true
+      become_user: root
+      tags:
+        - system-packages
 
-# apt_key doesn't work for whatever reason
-- name: Add Bintray.com GPG key
-  command: apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 379CE192D401AB61
-  changed_when: false
-  become: true
-  become_user: root
-  tags:
-    - system-packages
+    - name: Add RabbitMQ GPG key
+      apt_key:
+        url: "https://dl.bintray.com/rabbitmq/Keys/rabbitmq-release-signing-key.asc"
+        state: present
+      become: true
+      become_user: root
+      tags:
+        - system-packages
 
-# RabbitMQ > 3.7 requires newer Erlang than is provided by Ubuntu 16.04
-- name: Add Erlang Solutions APT repository
-  apt_repository:
-    repo: "deb https://packages.erlang-solutions.com/ubuntu {{ ansible_lsb.codename | lower }} contrib"
-    state: present
-    filename: "erlang-solutions"
-    update_cache: yes
-  become: true
-  become_user: root
-  tags:
-    - system-packages
+    # apt_key doesn't work for whatever reason
+    - name: Add Bintray.com GPG key
+      command: apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 379CE192D401AB61
+      changed_when: false
+      become: true
+      become_user: root
+      tags:
+        - system-packages
 
-# rabbitmq.com APT repository is no longer supported
-- name: Remove obsolete RabbitMQ repository
-  apt_repository:
-    repo: "deb http://www.rabbitmq.com/debian/ testing main"
-    state: absent
-    filename: rabbitmq
-    update_cache: yes
-  become: true
-  become_user: root
-  tags:
-    - system-packages
+    # RabbitMQ > 3.7 requires newer Erlang than is provided by Ubuntu 16.04
+    - name: Add Erlang Solutions APT repository
+      apt_repository:
+        repo: "deb https://packages.erlang-solutions.com/ubuntu {{ ansible_lsb.codename | lower }} contrib"
+        state: present
+        filename: "erlang-solutions"
+        update_cache: yes
+      become: true
+      become_user: root
+      tags:
+        - system-packages
 
-- name: Add RabbitMQ APT repository
-  apt_repository:
-    repo: "deb https://dl.bintray.com/rabbitmq/debian {{ ansible_lsb.codename | lower }} main"
-    state: present
-    filename: "bintray-rabbitmq"
-    update_cache: yes
-  become: true
-  become_user: root
-  tags:
-    - system-packages
+    # rabbitmq.com APT repository is no longer supported
+    - name: Remove obsolete RabbitMQ repository
+      apt_repository:
+        repo: "deb http://www.rabbitmq.com/debian/ testing main"
+        state: absent
+        filename: rabbitmq
+        update_cache: yes
+      become: true
+      become_user: root
+      tags:
+        - system-packages
+
+    - name: Add RabbitMQ APT repository
+      apt_repository:
+        repo: "deb https://dl.bintray.com/rabbitmq/debian {{ ansible_lsb.codename | lower }} main"
+        state: present
+        filename: "bintray-rabbitmq"
+        update_cache: yes
+      become: true
+      become_user: root
+      tags:
+        - system-packages
+
+    - name: Install Erlang
+      apt:
+        name: "{{ item }}={{ erlang_apt_package_version }}"
+        state: present
+        install_recommends: false
+
+        # Workaround to enable --allow-downgrades
+        # (systems that are being deployed to might have a newer version(s) installed)
+        force: true
+        force_apt_get: true
+
+      with_items: "{{ erlang_apt_packages }}"
+      become: true
+      become_user: root
+      tags:
+        - system-packages
+
+    - name: Install RabbitMQ
+      apt:
+        name: "rabbitmq-server={{ rabbitmq_apt_package_version }}"
+        state: present
+        install_recommends: false
+        
+        # Workaround to enable --allow-downgrades
+        # (systems that are being deployed to might have a newer version(s) installed)
+        force: true
+        force_apt_get: true
+
+      become: true
+      become_user: root
+      tags:
+        - system-packages
+
+    - name: Stop and disable system RabbitMQ
+      service:
+        name: rabbitmq-server
+        enabled: no
+        state: stopped
+      become: true
+      become_user: root
+      tags:
+        - system-packages
+
+    - name: Prevent Erlang by being upgraded by APT
+      dpkg_selections:
+        name: "{{ item }}"
+        selection: hold
+      with_items: "{{ erlang_apt_packages }}"
+      become: true
+      become_user: root
+      tags:
+        - system-packages
+
+    - name: Prevent RabbitMQ by being upgraded by APT
+      dpkg_selections:
+        name: rabbitmq-server
+        selection: hold
+      become: true
+      become_user: root
+      tags:
+        - system-packages
 
 - name: Add mecab-ipadic-neologd APT repository
   apt_repository:
@@ -116,11 +183,6 @@
     - python2.7-dev
     - "python{{ python_version }}"
     - "python{{ python_version }}-dev"
-
-    # Some Erlang + RabbitMQ combinations have problems (e.g. OOM with many
-    # messages), so the version is pinned
-    - "rabbitmq-server=3.7.3*"
-
     - unzip
   become: true
   become_user: root
@@ -133,25 +195,6 @@
     name: supervisor
     state: absent
     install_recommends: false
-  become: true
-  become_user: root
-  tags:
-    - system-packages
-
-- name: Prevent rabbitmq-server by being upgraded by APT
-  dpkg_selections:
-    name: rabbitmq-server
-    selection: hold
-  become: true
-  become_user: root
-  tags:
-    - system-packages
-
-- name: Stop and disable system RabbitMQ
-  service:
-    name: rabbitmq-server
-    enabled: no
-    state: stopped
   become: true
   become_user: root
   tags:

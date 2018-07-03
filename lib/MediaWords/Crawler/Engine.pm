@@ -38,7 +38,6 @@ use IO::Socket;
 use Data::Dumper;
 
 use MediaWords::Crawler::Download::Content;
-use MediaWords::Crawler::Download::Feed::Superglue;
 use MediaWords::Crawler::Download::Feed::Syndicated;
 use MediaWords::Crawler::Download::Feed::WebPage;
 use MediaWords::Crawler::Download::Feed::Univision;
@@ -89,7 +88,7 @@ sub handler_for_download($$;$)
     {
         my $feeds_id  = $download->{ feeds_id };
         my $feed      = $db->find_by_id( 'feeds', $feeds_id );
-        my $feed_type = $feed->{ feed_type };
+        my $feed_type = $feed->{ type };
 
         if ( $feed_type eq 'syndicated' )
         {
@@ -102,10 +101,6 @@ sub handler_for_download($$;$)
         elsif ( $feed_type eq 'univision' )
         {
             $handler = MediaWords::Crawler::Download::Feed::Univision->new( $handler_args );
-        }
-        elsif ( $feed_type eq 'superglue' )
-        {
-            $handler = MediaWords::Crawler::Download::Feed::Superglue->new( $handler_args );
         }
         else
         {

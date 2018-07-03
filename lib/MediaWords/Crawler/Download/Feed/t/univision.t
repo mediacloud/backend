@@ -103,19 +103,18 @@ sub test_fetch_handle_download($$)
     my $medium = $db->create(
         'media',
         {
-            name      => "Media for test feed $univision_url",
-            url       => 'http://www.univision.com/',
-            moderated => 't',
+            name => "Media for test feed $univision_url",
+            url  => 'http://www.univision.com/',
         }
     );
 
     my $feed = $db->create(
         'feeds',
         {
-            name      => 'feed',
-            feed_type => 'univision',
-            url       => $univision_url,
-            media_id  => $medium->{ media_id }
+            name     => 'feed',
+            type     => 'univision',
+            url      => $univision_url,
+            media_id => $medium->{ media_id }
         }
     );
 

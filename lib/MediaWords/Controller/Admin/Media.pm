@@ -305,20 +305,8 @@ sub edit_do : Local
             $uri->query_param_append( 'status_msg' => $msg );
             $c->res->redirect( $uri->as_string );
         }
-        elsif ( $medium->{ moderated } )
-        {
-            $c->res->redirect( $c->uri_for( '/admin/feeds/list/' . $medium->{ media_id }, { status_msg => $msg } ) );
-        }
-        else
-        {
-            my $media_tags_id = int( $c->request->param( 'media_tags_id' ) ) || 0;
-            $c->res->redirect(
-                $c->uri_for(
-                    '/admin/media/moderate/' . ( $medium->{ media_id } - 1 ),
-                    { status_msg => $msg, media_tags_id => $media_tags_id }
-                )
-            );
-        }
+
+        $c->res->redirect( $c->uri_for( '/admin/feeds/list/' . $medium->{ media_id }, { status_msg => $msg } ) );
     }
 }
 
@@ -360,26 +348,11 @@ sub delete : Local
         else
         {
             $db->query( "insert into media_tags_map (tags_id, media_id) values (?, ?)", $deleteme_tags_id, $id );
-            $db->query( "update media set moderated = true where media_id = ?", $medium->{ media_id } );
 
             $status_msg = 'Media source marked for deletion.';
         }
 
-        TRACE "moderated: $medium->{ moderated }";
-
-        if ( $medium->{ moderated } )
-        {
-            $c->response->redirect( $c->uri_for( '/admin/media/list', { status_msg => $status_msg } ) );
-        }
-        else
-        {
-            $c->response->redirect(
-                $c->uri_for(
-                    '/admin/media/moderate/' . ( $medium->{ media_id } - 1 ),
-                    { status_msg => $status_msg, media_tags_id => $media_tags_id }
-                )
-            );
-        }
+        $c->response->redirect( $c->uri_for( '/admin/media/list', { status_msg => $status_msg } ) );
     }
 }
 
@@ -434,7 +407,7 @@ END
     {
         my $qph = $db->query_paged_hashes( <<END, $p, $ROWS_PER_PAGE );
 select * from media m
-    where not exists (select 1 from feeds f where f.media_id = m.media_id and feed_status = 'active')
+    where not exists (select 1 from feeds f where f.media_id = m.media_id and active = 't')
     order by media_id
 END
         $media = $qph->list();
@@ -464,7 +437,7 @@ EOF
             $m->{ media_id }
         )->flat;
         ( $m->{ feed_count } ) = $db->query( <<END, $m->{ media_id } )->flat;
-select count(*) from feeds where media_id = ? and feed_status = 'active'
+select count(*) from feeds where media_id = ? and active = 't'
 END
     }
 
@@ -674,7 +647,7 @@ sub find_likely_full_text_rss : Local
     for my $m ( @{ $media } )
     {
         ( $m->{ feed_count } ) = $db->query( <<END, $m->{ media_id } )->flat;
-select count(*) from feeds where media_id = ? and feed_status = 'active'
+select count(*) from feeds where media_id = ? and active = 't'
 END
     }
 

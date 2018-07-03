@@ -20,7 +20,7 @@ elements:
           message: This is not a URL
 
   - type: Select
-    name: feed_type
+    name: type
     label: Feed Type
     constraints:
         - Required
@@ -28,7 +28,6 @@ elements:
         - [ 'syndicated', 'Syndicated - RSS / Atom / RDF feed fetched ~hourly' ]
         - [ 'web_page', 'Web Page - "content" downloads refetched daily' ]
         - [ 'univision', 'Univision - Univision.com API endpoint URL' ]
-        - [ 'superglue', 'Superglue - TV feed' ]
 
   - type: Submit
     name: submit

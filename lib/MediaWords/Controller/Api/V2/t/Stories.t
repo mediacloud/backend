@@ -201,7 +201,7 @@ SQL
         ok( $expected_story,
             "stories feed story $feed_story->{ stories_id } feed $feed->{ feeds_id } matches expected story" );
         is( scalar( @{ $feed_story->{ feeds } } ), 1, "stories feed one feed returned" );
-        for my $field ( qw/name url feeds_id media_id feed_type/ )
+        for my $field ( qw/name url feeds_id media_id type/ )
         {
             is( $feed_story->{ feeds }->[ 0 ]->{ $field }, $feed->{ $field }, "feed story field $field" );
         }

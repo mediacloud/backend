@@ -6,7 +6,7 @@ MediaWords::TM::Snapshot - Snapshot and analyze topic data
 
 =head1 SYNOPSIS
 
-    # generate a new topic snapshot -- this is run via mediawords_snapshot_topic.pl once or each snapshot
+    # generate a new topic snapshot -- this is run via snapshot_topic.pl once or each snapshot
     snapshot_topic( $db, $topics_id );
 
     # the rest of these examples are run each time we want to query topic data
@@ -1873,7 +1873,7 @@ sub _export_stories_to_solr($$)
 
     DEBUG( "queueing stories for solr import ..." );
     $db->query( <<SQL, $cd->{ snapshots_id } );
-insert into solr_import_extra_stories ( stories_id )
+insert into solr_import_stories ( stories_id )
     select distinct stories_id from snap.stories where snapshots_id = ?
 SQL
 

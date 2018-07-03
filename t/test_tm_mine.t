@@ -212,9 +212,8 @@ sub add_site_media
         $site->{ medium } = $db->create(
             'media',
             {
-                url       => $site->{ url },
-                name      => $site->{ title },
-                moderated => 't'
+                url  => $site->{ url },
+                name => $site->{ title },
             }
         );
     }

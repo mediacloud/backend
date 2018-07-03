@@ -25,7 +25,6 @@ DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
     MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4687;
-
 BEGIN
 
     -- Update / set database schema version
@@ -99,115 +98,11 @@ END;
 $$
 LANGUAGE plpgsql;
 
-
- -- Returns true if the date is greater than the latest import date in solr_imports
- CREATE OR REPLACE FUNCTION before_last_solr_import(db_row_last_updated timestamp with time zone) RETURNS boolean AS $$
- BEGIN
-    RETURN ( ( db_row_last_updated is null ) OR
-             ( db_row_last_updated < ( select max( import_date ) from solr_imports ) ) );
-END;
-$$
-LANGUAGE 'plpgsql'
- ;
-
-CREATE OR REPLACE FUNCTION update_media_last_updated () RETURNS trigger AS
-$$
-   DECLARE
-   BEGIN
-
-      IF ( TG_OP = 'UPDATE' ) OR (TG_OP = 'INSERT') THEN
-      	 update media set db_row_last_updated = now()
-             where media_id = NEW.media_id;
-      END IF;
-
-      IF ( TG_OP = 'UPDATE' ) OR (TG_OP = 'DELETE') THEN
-      	 update media set db_row_last_updated = now()
-              where media_id = OLD.media_id;
-      END IF;
-
-      IF ( TG_OP = 'UPDATE' ) OR (TG_OP = 'INSERT') THEN
-        RETURN NEW;
-      ELSE
-        RETURN OLD;
-      END IF;
-   END;
-$$
-LANGUAGE 'plpgsql';
-
-
--- Update "db_row_last_updated" column to trigger Solr (re)imports for given
--- row; no update gets done if "db_row_last_updated" is set explicitly in
--- INSERT / UPDATE (e.g. when copying between tables)
-CREATE OR REPLACE FUNCTION last_updated_trigger() RETURNS trigger AS $$
-
-BEGIN
-
-    IF TG_OP = 'INSERT' THEN
-        IF NEW.db_row_last_updated IS NULL THEN
-            NEW.db_row_last_updated = NOW();
-        END IF;
-
-    ELSIF TG_OP = 'UPDATE' THEN
-        IF NEW.db_row_last_updated = OLD.db_row_last_updated THEN
-            NEW.db_row_last_updated = NOW();
-        END IF;
-    END IF;
-
-    RETURN NEW;
-
-END;
-
-$$ LANGUAGE 'plpgsql';
-
-
-CREATE OR REPLACE FUNCTION update_story_sentences_updated_time_trigger() RETURNS trigger AS $$
-
-BEGIN
-    UPDATE story_sentences
-    SET db_row_last_updated = NOW()
-    WHERE stories_id = NEW.stories_id
-      AND before_last_solr_import( db_row_last_updated );
-
-    RETURN NULL;
-END;
-
-$$ LANGUAGE 'plpgsql';
-
-
-CREATE OR REPLACE FUNCTION update_stories_updated_time_by_stories_id_trigger() RETURNS trigger AS $$
-
-DECLARE
-    reference_stories_id integer default null;
-
-BEGIN
-
-    IF TG_OP = 'INSERT' THEN
-        -- The "old" record doesn't exist
-        reference_stories_id = NEW.stories_id;
-    ELSIF ( TG_OP = 'UPDATE' ) OR (TG_OP = 'DELETE') THEN
-        reference_stories_id = OLD.stories_id;
-    ELSE
-        RAISE EXCEPTION 'Unconfigured operation: %', TG_OP;
-    END IF;
-
-    UPDATE stories
-    SET db_row_last_updated = now()
-    WHERE stories_id = reference_stories_id
-      AND before_last_solr_import( db_row_last_updated );
-
-    RETURN NULL;
-
-END;
-
-$$ LANGUAGE 'plpgsql';
-
-
 create table media (
     media_id            serial          primary key,
     url                 varchar(1024)   not null,
+    normalized_url      varchar(1024)   null,
     name                varchar(128)    not null,
-    moderated           boolean         not null,
-    moderation_notes    text            null,
     full_text_rss       boolean         null,
 
     -- It indicates that the media source includes a substantial number of
@@ -220,10 +115,6 @@ create table media (
 
     -- Delay content downloads for this media source this many hours
     content_delay       int             null,
-
-    db_row_last_updated         timestamp with time zone,
-
-    last_solr_import_date       timestamp with time zone not null default now(),
 
     -- notes for internal media cloud consumption (eg. 'added this for yochai')
     editor_notes                text null,
@@ -239,48 +130,7 @@ create table media (
 
 create unique index media_name on media(name);
 create unique index media_url on media(url);
-create index media_moderated on media(moderated);
-create index media_db_row_last_updated on media( db_row_last_updated );
-
-CREATE INDEX media_name_trgm on media USING gin (name gin_trgm_ops);
-CREATE INDEX media_url_trgm on media USING gin (url gin_trgm_ops);
-
-
--- update media stats table for deleted story sentence
-CREATE FUNCTION update_media_db_row_last_updated() RETURNS trigger AS $$
-BEGIN
-    NEW.db_row_last_updated = now();
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-create trigger update_media_db_row_last_updated before update or insert
-    on media for each row execute procedure update_media_db_row_last_updated();
-
---- allow lookup of media by mediawords.util.url.normalize_url_lossy.
--- the data in this table is accessed and kept up to date by mediawords.tm.media.lookup_medium_by_url
-create table media_normalized_urls (
-    media_normalized_urls_id        serial primary key,
-    media_id                        int not null references media,
-    normalized_url                  varchar(1024) not null,
-    db_row_last_updated             timestamp not null default now(),
-
-    -- assigned the value of mediawords.util.url.normalize_url_lossy_version()
-    normalize_url_lossy_version    int not null
-);
-
-create unique index media_normalized_urls_medium on media_normalized_urls(normalize_url_lossy_version, media_id);
-create index media_normalized_urls_url on media_normalized_urls(normalized_url);
-create index media_normalized_urls_db_row_last_updated on media_normalized_urls(db_row_last_updated);
-
-
--- list of media sources for which the stories should be updated to be at
--- at least db_row_last_updated
-create table media_update_time_queue (
-    media_id                    int         not null references media on delete cascade,
-    db_row_last_updated         timestamp with time zone not null
-);
-
+create index media_normalized_url on media(normalized_url);
 
 -- Media feed rescraping state
 CREATE TABLE media_rescraping (
@@ -311,8 +161,6 @@ CREATE TRIGGER media_rescraping_add_initial_state_trigger
     AFTER INSERT ON media
     FOR EACH ROW EXECUTE PROCEDURE media_rescraping_add_initial_state_trigger();
 
-
-create index media_update_time_queue_updated on media_update_time_queue ( db_row_last_updated );
 
 create table media_stats (
     media_stats_id              serial      primary key,
@@ -347,10 +195,10 @@ BEGIN
         SELECT 1
         FROM feeds
         WHERE media_id = param_media_id
-          AND feed_status = 'active'
+          AND active = 't'
 
           -- Website might introduce RSS feeds later
-          AND feed_type = 'syndicated'
+          AND "type" = 'syndicated'
 
     ) THEN
         RETURN TRUE;
@@ -365,7 +213,7 @@ LANGUAGE 'plpgsql';
 
 create index media_stats_medium on media_stats( media_id );
 
-create type feed_feed_type AS ENUM (
+create type feed_type AS ENUM (
 
     -- Syndicated feed, e.g. RSS or Atom
     'syndicated',
@@ -374,24 +222,8 @@ create type feed_feed_type AS ENUM (
     'web_page',
 
     -- Univision.com XML feed
-    'univision',
+    'univision'
 
-    -- Superglue (TV) feed
-    'superglue'
-
-);
-
--- Feed statuses that determine whether the feed will be fetched
--- or skipped
-CREATE TYPE feed_feed_status AS ENUM (
-    -- Feed is active, being fetched
-    'active',
-    -- Feed is (temporary) disabled (usually by hand), not being fetched
-    'inactive',
-    -- Feed was moderated as the one that shouldn't be fetched, but is still kept around
-    -- to reduce the moderation queue next time the page is being scraped for feeds to find
-    -- new ones
-    'skipped'
 );
 
 create table feeds (
@@ -399,9 +231,13 @@ create table feeds (
     media_id            int                 not null references media on delete cascade,
     name                varchar(512)        not null,
     url                 varchar(1024)       not null,
-    reparse             boolean             null,
-    feed_type           feed_feed_type      not null default 'syndicated',
-    feed_status         feed_feed_status    not null default 'active',
+
+    -- Feed type
+    type                feed_type           NOT NULL DEFAULT 'syndicated',
+
+    -- Whether or not feed is active (should be periodically fetched for new stories)
+    active              BOOLEAN             NOT NULL DEFAULT 't',
+
     last_checksum       text                null,
 
     -- Last time the feed was *attempted* to be downloaded and parsed
@@ -426,7 +262,6 @@ UPDATE feeds SET last_new_story_time = greatest( last_attempted_download_time, l
 create index feeds_media on feeds(media_id);
 create index feeds_name on feeds(name);
 create unique index feeds_url on feeds (url, media_id);
-create index feeds_reparse on feeds(reparse);
 create index feeds_last_attempted_download_time on feeds(last_attempted_download_time);
 create index feeds_last_successful_download_time on feeds(last_successful_download_time);
 
@@ -436,7 +271,7 @@ CREATE TABLE feeds_after_rescraping (
     media_id                    INT             NOT NULL REFERENCES media ON DELETE CASCADE,
     name                        VARCHAR(512)    NOT NULL,
     url                         VARCHAR(1024)   NOT NULL,
-    feed_type                   feed_feed_type  NOT NULL DEFAULT 'syndicated'
+    type                        feed_type       NOT NULL DEFAULT 'syndicated'
 );
 CREATE INDEX feeds_after_rescraping_media_id ON feeds_after_rescraping(media_id);
 CREATE INDEX feeds_after_rescraping_name ON feeds_after_rescraping(name);
@@ -545,102 +380,6 @@ insert into tag_sets ( name, label, description ) values (
     'High level topology for media sources for use across a variety of different topics'
 );
 
-create temporary table media_type_tags ( name text, label text, description text );
-insert into media_type_tags values
-    (
-        'Not Typed',
-        'Not Typed',
-        'The medium has not yet been typed.'
-    ),
-    (
-        'Other',
-        'Other',
-        'The medium does not fit in any listed type.'
-    ),
-    (
-        'Independent Group',
-        'Ind. Group',
-
-        -- Single multiline string
-        'An academic or nonprofit group that is not affiliated with the private sector or government, '
-        'such as the Electronic Frontier Foundation or the Center for Democracy and Technology)'
-    ),
-    (
-        'Social Linking Site',
-        'Social Linking',
-
-        -- Single multiline string
-        'A site that aggregates links based at least partially on user submissions and/or ranking, '
-        'such as Reddit, Digg, Slashdot, MetaFilter, StumbleUpon, and other social news sites'
-    ),
-    (
-        'Blog',
-        'Blog',
-
-        -- Single multiline string
-        'A web log, written by one or more individuals, that is not associated with a professional '
-        'or advocacy organization or institution'
-    ),
-    (
-        'General Online News Media',
-        'General News',
-
-        -- Single multiline string
-        'A site that is a mainstream media outlet, such as The New York Times and The Washington Post; '
-        'an online-only news outlet, such as Slate, Salon, or the Huffington Post; '
-        'or a citizen journalism or non-profit news outlet, such as Global Voices or ProPublica'
-    ),
-    (
-        'Issue Specific Campaign',
-        'Issue',
-        'A site specifically dedicated to campaigning for or against a single issue.'
-    ),
-    (
-        'News Aggregator',
-        'News Agg.',
-
-        -- Single multiline string
-        'A site that contains little to no original content and compiles news from other sites, '
-        'such as Yahoo News or Google News'
-    ),
-    (
-        'Tech Media',
-        'Tech Media',
-
-        -- Single multiline string
-        'A site that focuses on technological news and information produced by a news organization, '
-        'such as Arstechnica, Techdirt, or Wired.com'
-    ),
-    (
-        'Private Sector',
-        'Private Sec.',
-
-        -- Single multiline string
-        'A non-news media for-profit actor, including, for instance, trade organizations, industry '
-        'sites, and domain registrars'
-    ),
-    (
-        'Government',
-        'Government',
-
-        -- Single multiline string
-        'A site associated with and run by a government-affiliated entity, such as the DOJ website, '
-        'White House blog, or a U.S. Senator official website'
-    ),
-    (
-        'User-Generated Content Platform',
-        'User Gen.',
-
-        -- Single multiline string
-        'A general communication and networking platform or tool, like Wikipedia, YouTube, Twitter, '
-        'and Scribd, or a search engine like Google or speech platform like the Daily Kos'
-    );
-
-insert into tags ( tag_sets_id, tag, label, description )
-    select ts.tag_sets_id, mtt.name, mtt.name, mtt.description
-        from tag_sets ts cross join media_type_tags mtt
-        where ts.name = 'media_type';
-
 create table feeds_tags_map (
     feeds_tags_map_id    serial            primary key,
     feeds_id            int                not null references feeds on delete cascade,
@@ -660,10 +399,6 @@ create table media_tags_map (
 create unique index media_tags_map_media on media_tags_map (media_id, tags_id);
 create index media_tags_map_tag on media_tags_map (tags_id);
 
-DROP TRIGGER IF EXISTS mtm_last_updated on media_tags_map CASCADE;
-CREATE TRIGGER mtm_last_updated BEFORE INSERT OR UPDATE OR DELETE
-    ON media_tags_map FOR EACH ROW EXECUTE PROCEDURE update_media_last_updated() ;
-
 create view media_with_media_types as
     select m.*, mtm.tags_id media_type_tags_id, t.label media_type
     from
@@ -673,39 +408,6 @@ create view media_with_media_types as
             join tag_sets ts on ( ts.tag_sets_id = t.tag_sets_id and ts.name = 'media_type' )
             join media_tags_map mtm on ( mtm.tags_id = t.tags_id )
         ) on ( m.media_id = mtm.media_id );
-
-
-create table media_rss_full_text_detection_data (
-    media_id            int references media on delete cascade,
-    max_similarity      real,
-    avg_similarity      double precision,
-    min_similarity      real,
-    avg_expected_length numeric,
-    avg_rss_length      numeric,
-    avg_rss_discription numeric,
-    count               bigint
-);
-
-create index media_rss_full_text_detection_data_media on media_rss_full_text_detection_data (media_id);
-
-
-CREATE VIEW media_with_collections AS
-    SELECT t.tag,
-           m.media_id,
-           m.url,
-           m.name,
-           m.moderated,
-           m.moderation_notes,
-           m.full_text_rss
-    FROM media m,
-         tags t,
-         tag_sets ts,
-         media_tags_map mtm
-    WHERE ts.name::text = 'collection'::text
-      AND ts.tag_sets_id = t.tag_sets_id
-      AND mtm.tags_id = t.tags_id
-      AND mtm.media_id = m.media_id
-    ORDER BY m.media_id;
 
 
 create table color_sets (
@@ -732,7 +434,6 @@ create table stories (
     publish_date                timestamp       not null,
     collect_date                timestamp       not null default now(),
     full_text_rss               boolean         not null default 'f',
-    db_row_last_updated                timestamp with time zone,
     language                    varchar(3)      null   -- 2- or 3-character ISO 690 language code; empty if unknown, NULL if unset
 );
 
@@ -746,15 +447,37 @@ create index stories_language on stories(language);
 create index stories_title_hash on stories( md5( title ) );
 create index stories_publish_day on stories( date_trunc( 'day', publish_date ) );
 
-DROP TRIGGER IF EXISTS stories_last_updated_trigger on stories CASCADE;
-CREATE TRIGGER stories_last_updated_trigger
-    BEFORE INSERT OR UPDATE ON stories
-    FOR EACH ROW EXECUTE PROCEDURE last_updated_trigger();
+create function insert_solr_import_story() returns trigger as $insert_solr_import_story$
+DECLARE
 
-DROP TRIGGER IF EXISTS stories_update_story_sentences_last_updated_trigger on stories CASCADE;
-CREATE TRIGGER stories_update_story_sentences_last_updated_trigger
-    AFTER INSERT OR UPDATE ON stories
-    FOR EACH ROW EXECUTE PROCEDURE update_story_sentences_updated_time_trigger();
+    queue_stories_id INT;
+
+BEGIN
+
+    IF ( TG_OP = 'UPDATE' ) OR (TG_OP = 'INSERT') THEN
+        select NEW.stories_id into queue_stories_id;
+    ELSE
+        select OLD.stories_id into queue_stories_id;
+	END IF;
+
+    insert into solr_import_stories ( stories_id )
+        select queue_stories_id
+            where exists (
+                select 1 from processed_stories where stories_id = queue_stories_id
+         );
+
+    IF ( TG_OP = 'UPDATE' ) OR (TG_OP = 'INSERT') THEN
+		RETURN NEW;
+	ELSE
+		RETURN OLD;
+	END IF;
+
+END;
+
+$insert_solr_import_story$ LANGUAGE plpgsql;
+
+create trigger stories_insert_solr_import_story after insert or update or delete
+    on stories for each row execute procedure insert_solr_import_story();
 
 create table stories_ap_syndicated (
     stories_ap_syndicated_id    serial primary key,
@@ -763,19 +486,6 @@ create table stories_ap_syndicated (
 );
 
 create unique index stories_ap_syndicated_story on stories_ap_syndicated ( stories_id );
-
-
---- Superglue (TV) stories metadata -->
-CREATE TABLE stories_superglue_metadata (
-    stories_superglue_metadata_id   SERIAL    PRIMARY KEY,
-    stories_id                      INT       NOT NULL REFERENCES stories ON DELETE CASCADE,
-    video_url                       VARCHAR   NOT NULL,
-    thumbnail_url                   VARCHAR   NOT NULL,   -- might be an empty string but not NULL
-    segment_duration                NUMERIC   NOT NULL
-);
-
-CREATE UNIQUE INDEX stories_superglue_metadata_stories_id
-    ON stories_superglue_metadata (stories_id);
 
 
 CREATE TYPE download_state AS ENUM (
@@ -870,31 +580,9 @@ CREATE INDEX downloads_extracted_stories on downloads (stories_id) where type='c
 CREATE INDEX downloads_state_queued_or_fetching on downloads(state) where state='queued' or state='fetching';
 CREATE INDEX downloads_state_fetching ON downloads(state, downloads_id) where state = 'fetching';
 
-CREATE INDEX downloads_in_old_format
-    ON downloads USING btree (downloads_id)
-    WHERE state = 'success'::download_state
-      AND path ~~ 'content/%'::text;
-
 create view downloads_media as select d.*, f.media_id as _media_id from downloads d, feeds f where d.feeds_id = f.feeds_id;
 
 create view downloads_non_media as select d.* from downloads d where d.feeds_id is null;
-
-CREATE OR REPLACE FUNCTION site_from_host(host varchar)
-    RETURNS varchar AS
-$$
-BEGIN
-    RETURN regexp_replace(host, E'^(.)*?([^.]+)\\.([^.]+)$' ,E'\\2.\\3');
-END;
-$$
-LANGUAGE 'plpgsql' IMMUTABLE;
-
-CREATE INDEX downloads_sites_pending on downloads ( site_from_host( host ) ) where state='pending';
-
-CREATE UNIQUE INDEX downloads_sites_downloads_id_pending ON downloads ( site_from_host(host), downloads_id ) WHERE (state = 'pending');
-
--- CREATE INDEX downloads_sites_index_downloads_id on downloads (site_from_host( host ), downloads_id);
-
-CREATE VIEW downloads_sites as select site_from_host( host ) as site, * from downloads_media;
 
 
 --
@@ -1054,17 +742,8 @@ CREATE TABLE stories_tags_map (
     stories_tags_map_id     BIGSERIAL   PRIMARY KEY NOT NULL,
 
     stories_id              INT         NOT NULL,
-    tags_id                 INT         NOT NULL,
-    db_row_last_updated     TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+    tags_id                 INT         NOT NULL
 );
-
-CREATE TRIGGER stories_tags_map_last_updated_trigger
-    BEFORE INSERT OR UPDATE ON stories_tags_map
-    FOR EACH ROW EXECUTE PROCEDURE last_updated_trigger();
-
-CREATE TRIGGER stories_tags_map_update_stories_last_updated_trigger
-    AFTER INSERT OR UPDATE OR DELETE ON stories_tags_map
-    FOR EACH ROW EXECUTE PROCEDURE update_stories_updated_time_by_stories_id_trigger();
 
 
 -- Create missing "stories_tags_map" partitions
@@ -1127,6 +806,9 @@ CREATE TRIGGER stories_tags_map_partition_upsert_trigger
     FOR EACH ROW EXECUTE PROCEDURE stories_tags_map_partition_upsert_trigger();
 
 
+create trigger stm_insert_solr_import_story before insert or update or delete
+    on stories_tags_map for each row execute procedure insert_solr_import_story();
+
 
 CREATE TABLE download_texts (
     download_texts_id integer NOT NULL,
@@ -1167,7 +849,6 @@ create table story_sentences_nonpartitioned (
     sentence                            TEXT            NOT NULL,
     media_id                            INT             NOT NULL REFERENCES media (media_id) ON DELETE CASCADE,
     publish_date                        TIMESTAMP       NOT NULL,
-    db_row_last_updated                 TIMESTAMP WITH TIME ZONE,
     language                            VARCHAR(3)      NULL,
     is_dup                              BOOLEAN         NULL
 );
@@ -1175,16 +856,8 @@ create table story_sentences_nonpartitioned (
 CREATE INDEX story_sentences_nonpartitioned_story
     ON story_sentences_nonpartitioned (stories_id, sentence_number);
 
-CREATE INDEX story_sentences_nonpartitioned_db_row_last_updated
-    ON story_sentences_nonpartitioned (db_row_last_updated);
-
 CREATE INDEX story_sentences_nonpartitioned_sentence_half_md5
     ON story_sentences_nonpartitioned (half_md5(sentence));
-
-CREATE TRIGGER story_sentences_nonpartitioned_last_updated_trigger
-    BEFORE INSERT OR UPDATE ON story_sentences_nonpartitioned
-    FOR EACH ROW EXECUTE PROCEDURE last_updated_trigger();
-
 
 -- "Master" table (no indexes, no foreign keys as they'll be ineffective)
 CREATE TABLE story_sentences_partitioned (
@@ -1194,9 +867,6 @@ CREATE TABLE story_sentences_partitioned (
     sentence                            TEXT            NOT NULL,
     media_id                            INT             NOT NULL,
     publish_date                        TIMESTAMP       NOT NULL,
-
-    -- Time this row was last updated
-    db_row_last_updated                 TIMESTAMP WITH TIME ZONE,
 
     -- 2- or 3-character ISO 690 language code; empty if unknown, NULL if unset
     language                            VARCHAR(3)      NULL,
@@ -1215,16 +885,6 @@ CREATE TABLE story_sentences_partitioned (
     -- the dup sentence, and things cleaned up."
     is_dup                              BOOLEAN         NULL
 );
-
-
--- Update db_row_last_updated first, before hitting the partitioned INSERT
--- trigger.
---
--- PostgreSQL runs triggers of the same event in alphabetical order, so this is
--- why this trigger has "00" prefix.
-CREATE TRIGGER story_sentences_partitioned_00_last_updated_trigger
-    BEFORE INSERT OR UPDATE ON story_sentences_partitioned
-    FOR EACH ROW EXECUTE PROCEDURE last_updated_trigger();
 
 
 -- Note: "INSERT ... RETURNING *" doesn't work with the trigger, please use
@@ -1272,9 +932,6 @@ BEGIN
             CREATE UNIQUE INDEX ' || partition || '_stories_id_sentence_number
                 ON ' || partition || ' (stories_id, sentence_number);
 
-            CREATE INDEX ' || partition || '_db_row_last_updated
-                ON ' || partition || ' (db_row_last_updated);
-
             CREATE INDEX ' || partition || '_sentence_media_week
                 ON ' || partition || ' (half_md5(sentence), media_id, week_start_date(publish_date::date));
         ';
@@ -1302,7 +959,6 @@ CREATE OR REPLACE VIEW story_sentences AS
             sentence,
             media_id,
             publish_date,
-            db_row_last_updated,
             language,
             is_dup
         FROM story_sentences_partitioned
@@ -1316,7 +972,6 @@ CREATE OR REPLACE VIEW story_sentences AS
             sentence,
             media_id,
             publish_date,
-            db_row_last_updated,
             language,
             is_dup
         FROM story_sentences_nonpartitioned
@@ -1344,7 +999,7 @@ BEGIN
         -- All new INSERTs go to partitioned table only.
         --
         -- By INSERTing into the master table, we're letting triggers choose
-        -- the correct partition and update db_row_last_updated.
+        -- the correct partition.
         INSERT INTO story_sentences_partitioned SELECT NEW.*;
 
         RETURN NEW;
@@ -1359,7 +1014,6 @@ BEGIN
                 sentence = NEW.sentence,
                 media_id = NEW.media_id,
                 publish_date = NEW.publish_date,
-                db_row_last_updated = NEW.db_row_last_updated,
                 language = NEW.language,
                 is_dup = NEW.is_dup
             WHERE stories_id = OLD.stories_id
@@ -1371,7 +1025,6 @@ BEGIN
                 sentence = NEW.sentence,
                 media_id = NEW.media_id,
                 publish_date = NEW.publish_date,
-                db_row_last_updated = NEW.db_row_last_updated,
                 language = NEW.language,
                 is_dup = NEW.is_dup
             WHERE stories_id = OLD.stories_id
@@ -1416,7 +1069,6 @@ CREATE TRIGGER story_sentences_view_insert_update_delete_trigger
 --   chunks
 -- * Copies directly to partitions to skip (slow) INSERT triggers on
 --   "story_sentences" view
--- * Disables all triggers while copying to skip updating db_row_last_updated
 --
 -- Returns number of rows that were copied.
 --
@@ -1499,7 +1151,6 @@ BEGIN
             sentence,
             media_id,
             publish_date,
-            db_row_last_updated,
             language,
             is_dup
         )
@@ -1510,7 +1161,6 @@ BEGIN
             sentence,
             media_id,
             publish_date,
-            db_row_last_updated,
             language,
             is_dup
         FROM deduplicated_rows;
@@ -1635,11 +1285,11 @@ create table solr_imports (
 
 create index solr_imports_date on solr_imports ( import_date );
 
--- Extra stories to import into Solr, e.g.: for media with updated media.m.db_row_last_updated
-create table solr_import_extra_stories (
+-- Extra stories to import into
+create table solr_import_stories (
     stories_id          int not null references stories on delete cascade
 );
-create index solr_import_extra_stories_story on solr_import_extra_stories ( stories_id );
+create index solr_import_stories_story on solr_import_stories ( stories_id );
 
 -- log of all stories import into solr, with the import date
 create table solr_imported_stories (
@@ -2041,8 +1691,6 @@ create table snap.media (
     media_id                int,
     url                     varchar(1024)   not null,
     name                    varchar(128)    not null,
-    moderated               boolean         not null,
-    moderation_notes        text            null,
     full_text_rss           boolean,
     foreign_rss_links       boolean         not null default( false ),
     dup_media_id            int             null,
@@ -2187,8 +1835,7 @@ create table snap.live_stories (
     publish_date                timestamp       not null,
     collect_date                timestamp       not null,
     full_text_rss               boolean         not null default 'f',
-    language                    varchar(3)      null,   -- 2- or 3-character ISO 690 language code; empty if unknown, NULL if unset
-    db_row_last_updated         timestamp with time zone null
+    language                    varchar(3)      null   -- 2- or 3-character ISO 690 language code; empty if unknown, NULL if unset
 );
 
 create index live_story_topic on snap.live_stories ( topics_id );
@@ -2202,11 +1849,9 @@ create function insert_live_story() returns trigger as $insert_live_story$
 
         insert into snap.live_stories
             ( topics_id, topic_stories_id, stories_id, media_id, url, guid, title, description,
-                publish_date, collect_date, full_text_rss, language,
-                db_row_last_updated )
+                publish_date, collect_date, full_text_rss, language )
             select NEW.topics_id, NEW.topic_stories_id, NEW.stories_id, s.media_id, s.url, s.guid,
-                    s.title, s.description, s.publish_date, s.collect_date, s.full_text_rss, s.language,
-                    s.db_row_last_updated
+                    s.title, s.description, s.publish_date, s.collect_date, s.full_text_rss, s.language
                 from topic_stories cs
                     join stories s on ( cs.stories_id = s.stories_id )
                 where
@@ -2232,8 +1877,7 @@ create or replace function update_live_story() returns trigger as $update_live_s
                 publish_date = NEW.publish_date,
                 collect_date = NEW.collect_date,
                 full_text_rss = NEW.full_text_rss,
-                language = NEW.language,
-                db_row_last_updated = NEW.db_row_last_updated
+                language = NEW.language
             where
                 stories_id = NEW.stories_id;
 
@@ -2243,7 +1887,6 @@ $update_live_story$ LANGUAGE plpgsql;
 
 create trigger stories_update_live_story after update on stories
     for each row execute procedure update_live_story();
-
 
 --
 -- Snapshot word2vec models
@@ -2279,9 +1922,8 @@ create table processed_stories (
 
 create index processed_stories_story on processed_stories ( stories_id );
 
-CREATE TRIGGER processed_stories_update_stories_last_updated_trigger
-    AFTER INSERT OR UPDATE OR DELETE ON processed_stories
-    FOR EACH ROW EXECUTE PROCEDURE update_stories_updated_time_by_stories_id_trigger();
+create trigger ps_insert_solr_import_story after insert or update or delete
+    on processed_stories for each row execute procedure insert_solr_import_story();
 
 -- list of stories that have been scraped and the source
 create table scraped_stories (
@@ -2308,8 +1950,8 @@ create view feedly_unscraped_feeds as
             left join scraped_feeds sf on
                 ( f.feeds_id = sf.feeds_id and sf.import_module = 'MediaWords::ImportStories::Feedly' )
         where
-            f.feed_type = 'syndicated' and
-            f.feed_status = 'active' and
+            f.type = 'syndicated' and
+            f.active = 't' and
             sf.feeds_id is null;
 
 
@@ -2647,84 +2289,14 @@ $$
 LANGUAGE 'plpgsql';
 
 
--- Helper to find corrupted sequences (the ones in which the primary key's sequence value > MAX(primary_key))
-CREATE OR REPLACE FUNCTION find_corrupted_sequences()
-RETURNS TABLE(tablename VARCHAR, maxid BIGINT, sequenceval BIGINT)
-AS $BODY$
-DECLARE
-    r RECORD;
-BEGIN
-
-    SET client_min_messages TO WARNING;
-    DROP TABLE IF EXISTS temp_corrupted_sequences;
-    CREATE TEMPORARY TABLE temp_corrupted_sequences (
-        tablename VARCHAR NOT NULL UNIQUE,
-        maxid BIGINT,
-        sequenceval BIGINT
-    ) ON COMMIT DROP;
-    SET client_min_messages TO NOTICE;
-
-    FOR r IN (
-
-        -- Get all tables, their primary keys and serial sequence names
-        SELECT t.relname AS tablename,
-               primarykey AS idcolumn,
-               pg_get_serial_sequence(t.relname, primarykey) AS serialsequence
-        FROM pg_constraint AS c
-            JOIN pg_class AS t ON c.conrelid = t.oid
-            JOIN pg_namespace nsp ON nsp.oid = t.relnamespace
-            JOIN (
-                SELECT a.attname AS primarykey,
-                       i.indrelid
-                FROM pg_index AS i
-                    JOIN pg_attribute AS a
-                        ON a.attrelid = i.indrelid AND a.attnum = ANY(i.indkey)
-                WHERE i.indisprimary
-            ) AS pkey ON pkey.indrelid = t.relname::regclass
-        WHERE conname LIKE '%_pkey'
-          AND nsp.nspname = CURRENT_SCHEMA()
-          AND t.relname NOT IN (
-            'story_similarities_100_short',
-            'url_discovery_counts'
-          )
-        ORDER BY t.relname
-
-    )
-    LOOP
-
-        -- Filter out the tables that have their max ID bigger than the last
-        -- sequence value
-        EXECUTE '
-            INSERT INTO temp_corrupted_sequences
-                SELECT tablename,
-                       maxid,
-                       sequenceval
-                FROM (
-                    SELECT ''' || r.tablename || ''' AS tablename,
-                           MAX(' || r.idcolumn || ') AS maxid,
-                           ( SELECT last_value FROM ' || r.serialsequence || ') AS sequenceval
-                    FROM ' || r.tablename || '
-                ) AS id_and_sequence
-                WHERE maxid > sequenceval
-        ';
-
-    END LOOP;
-
-    RETURN QUERY SELECT * FROM temp_corrupted_sequences ORDER BY tablename;
-
-END
-$BODY$
-LANGUAGE 'plpgsql';
-
-
 -- Copy of "feeds" table from yesterday; used for generating reports for rescraping efforts
 CREATE TABLE feeds_from_yesterday (
     feeds_id            INT                 NOT NULL,
     media_id            INT                 NOT NULL,
     name                VARCHAR(512)        NOT NULL,
     url                 VARCHAR(1024)       NOT NULL,
-    feed_type           feed_feed_type      NOT NULL,
-    feed_status         feed_feed_status    NOT NULL
+    type                feed_type           NOT NULL,
+    active              BOOLEAN             NOT NULL
 );
 
 CREATE INDEX feeds_from_yesterday_feeds_id ON feeds_from_yesterday(feeds_id);
@@ -2739,8 +2311,8 @@ CREATE OR REPLACE FUNCTION update_feeds_from_yesterday() RETURNS VOID AS $$
 BEGIN
 
     DELETE FROM feeds_from_yesterday;
-    INSERT INTO feeds_from_yesterday (feeds_id, media_id, name, url, feed_type, feed_status)
-        SELECT feeds_id, media_id, name, url, feed_type, feed_status
+    INSERT INTO feeds_from_yesterday (feeds_id, media_id, name, url, type, active)
+        SELECT feeds_id, media_id, name, url, type, active
         FROM feeds;
 
 END;
@@ -2775,13 +2347,13 @@ BEGIN
             FROM (
                 -- Don't compare "name" because it's insignificant
                 (
-                    SELECT feeds_id, media_id, feed_type, feed_status, url FROM feeds_from_yesterday
+                    SELECT feeds_id, media_id, type, active, url FROM feeds_from_yesterday
                     EXCEPT
-                    SELECT feeds_id, media_id, feed_type, feed_status, url FROM feeds
+                    SELECT feeds_id, media_id, type, active, url FROM feeds
                 ) UNION ALL (
-                    SELECT feeds_id, media_id, feed_type, feed_status, url FROM feeds
+                    SELECT feeds_id, media_id, type, active, url FROM feeds
                     EXCEPT
-                    SELECT feeds_id, media_id, feed_type, feed_status, url FROM feeds_from_yesterday
+                    SELECT feeds_id, media_id, type, active, url FROM feeds_from_yesterday
                 )
             ) AS modified_feeds
         );
@@ -2816,13 +2388,13 @@ BEGIN
 
                feeds_before.name AS before_name,
                feeds_before.url AS before_url,
-               feeds_before.feed_type AS before_feed_type,
-               feeds_before.feed_status AS before_feed_status,
+               feeds_before.type AS before_type,
+               feeds_before.active AS before_active,
 
                feeds_after.name AS after_name,
                feeds_after.url AS after_url,
-               feeds_after.feed_type AS after_feed_type,
-               feeds_after.feed_status AS after_feed_status
+               feeds_after.type AS after_type,
+               feeds_after.active AS after_active
 
         FROM feeds_from_yesterday AS feeds_before
             INNER JOIN feeds AS feeds_after ON (
@@ -2830,8 +2402,8 @@ BEGIN
                 AND (
                     -- Don't compare "name" because it's insignificant
                     feeds_before.url != feeds_after.url
-                 OR feeds_before.feed_type != feeds_after.feed_type
-                 OR feeds_before.feed_status != feeds_after.feed_status
+                 OR feeds_before.type != feeds_after.type
+                 OR feeds_before.active != feeds_after.active
                 )
             )
 
@@ -2902,10 +2474,10 @@ BEGIN
             WHERE media_id = r_media.media_id
             ORDER BY feeds_id
         LOOP
-            RAISE NOTICE '    ADDED feed: feeds_id=%, feed_type=%, feed_status=%, name="%", url="%"',
+            RAISE NOTICE '    ADDED feed: feeds_id=%, type=%, active=%, name="%", url="%"',
                 r_feed.feeds_id,
-                r_feed.feed_type,
-                r_feed.feed_status,
+                r_feed.type,
+                r_feed.active,
                 r_feed.name,
                 r_feed.url;
         END LOOP;
@@ -2917,10 +2489,10 @@ BEGIN
             WHERE media_id = r_media.media_id
             ORDER BY feeds_id
         LOOP
-            RAISE NOTICE '    DELETED feed: feeds_id=%, feed_type=%, feed_status=%, name="%", url="%"',
+            RAISE NOTICE '    DELETED feed: feeds_id=%, type=%, active=%, name="%", url="%"',
                 r_feed.feeds_id,
-                r_feed.feed_type,
-                r_feed.feed_status,
+                r_feed.type,
+                r_feed.active,
                 r_feed.name,
                 r_feed.url;
         END LOOP;
@@ -2932,14 +2504,14 @@ BEGIN
             ORDER BY feeds_id
         LOOP
             RAISE NOTICE '    MODIFIED feed: feeds_id=%', r_feed.feeds_id;
-            RAISE NOTICE '        BEFORE: feed_type=%, feed_status=%, name="%", url="%"',
-                r_feed.before_feed_type,
-                r_feed.before_feed_status,
+            RAISE NOTICE '        BEFORE: type=%, active=%, name="%", url="%"',
+                r_feed.before_type,
+                r_feed.before_active,
                 r_feed.before_name,
                 r_feed.before_url;
-            RAISE NOTICE '        AFTER:  feed_type=%, feed_status=%, name="%", url="%"',
-                r_feed.after_feed_type,
-                r_feed.after_feed_status,
+            RAISE NOTICE '        AFTER:  type=%, active=%, name="%", url="%"',
+                r_feed.after_type,
+                r_feed.after_active,
                 r_feed.after_name,
                 r_feed.after_url;
         END LOOP;
