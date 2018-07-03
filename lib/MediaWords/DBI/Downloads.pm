@@ -1,50 +1,12 @@
 package MediaWords::DBI::Downloads;
-use Modern::Perl "2015";
-use MediaWords::CommonLibs;
-
-=head1 NAME
-
-Mediawords::DBI::Downloads - various helper functions for downloads, including
-storing and fetching content
-
-=head1 SYNOPSIS
-
-    my $download = $db->find_by_id( 'downloads', $downloads_id );
-
-    my $content = MediaWords::DBI::Downloads::fetch_content( $db, $download );
-
-    $content =~ s/foo/bar/g;
-
-    Mediawords::DBI::Downloads::story_content( $db, $download, $content );
-
-=head1 DESCRIPTION
-
-This module includes various helper function for dealing with downloads.
-
-Most importantly, this module has the store_content and fetch_content
-functions, which store and fetch content for a download from the pluggable
-content store.
-
-The storage module is configured in mediawords.yml by the
-mediawords.download_storage_locations setting.
-
-The three choices are:
-
-* 'postgresql', which stores the content in a separate postgres table and
-  optionally database;
-* 'amazon_s3', which stores the content in amazon_s3;
-* 'databaseinline', which stores the content in the downloads table; downloads
-  are no longer stored in `databaseinline', only read from.
-
-The default is 'postgresql', and the production system uses Amazon S3.
-
-This module also includes extract and related functions to handle download
-extraction.
-
-=cut
 
 use strict;
 use warnings;
+
+use Modern::Perl "2015";
+use MediaWords::CommonLibs;
+
+import_python_module( __PACKAGE__, 'mediawords.dbi.downloads' );
 
 use Scalar::Defer;
 use Readonly;
