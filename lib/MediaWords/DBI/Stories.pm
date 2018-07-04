@@ -291,43 +291,6 @@ EOF
     return join( ".\n\n", map { $_->{ download_text } } @{ $download_texts } );
 }
 
-=head2 get_extracted_html_from_db( $db, $story )
-
-Get extracted html for the story by using existing text extraction results.
-
-=cut
-
-sub get_extracted_html_from_db
-{
-    my ( $db, $story ) = @_;
-
-    my $download_texts = $db->query(
-        <<SQL,
-        SELECT dt.downloads_id,
-               dt.download_texts_id
-        FROM downloads AS d,
-             download_texts AS dt
-        WHERE dt.downloads_id = d.downloads_id
-          AND d.stories_id = ?
-        ORDER BY d.downloads_id
-SQL
-        $story->{ stories_id }
-    )->hashes;
-
-    my $extracted_htmls = [];
-
-    my $extractor_args = MediaWords::DBI::Stories::ExtractorArguments->new( { use_cache => 1 } );
-
-    foreach my $download_text ( @{ $download_texts } )
-    {
-        my $download = $db->find_by_id( 'downloads', $download_text->{ downloads_id } );
-        my $extract = MediaWords::DBI::Downloads::extract( $db, $download, $extractor_args );
-        push( @{ $extracted_htmls }, $extract->{ extracted_html } );
-    }
-
-    return join( "\n", @{ $extracted_htmls } );
-}
-
 =head2 is_new( $db, $story )
 
 Return true if this story should be considered new for the given media source.
