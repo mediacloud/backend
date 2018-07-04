@@ -1,6 +1,7 @@
 """Various functions for extracting links from stories and for storing them in topics."""
 
 import re
+import traceback
 import typing
 
 from bs4 import BeautifulSoup
@@ -206,8 +207,8 @@ def extract_links_for_topic_story(db: DatabaseHandler, story: dict, topic: dict)
             db.create('topic_links', topic_link)
 
         link_mine_error = ''
-    except Exception as ex:
-        link_mine_error = str(ex)
+    except Exception:
+        link_mine_error = traceback.format_exc()
 
     db.query(
         """
