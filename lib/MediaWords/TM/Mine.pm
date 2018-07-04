@@ -262,7 +262,7 @@ SQL
                 MediaWords::Job::TM::ExtractStoryLinks->add_to_queue(
                     { stories_id => $story->{ stories_id }, topics_id => $topic->{ topics_id } } );
             };
-            ( sleep( 1 ) && DEBUG( 'waiting for rabbit ...' ) ) if ( error_is_amqp( $@ ) );
+            ( sleep( 1 ) && INFO( 'waiting for rabbit ...' ) ) if ( error_is_amqp( $@ ) );
         } until ( !error_is_amqp( $@ ) );
 
         TRACE( "queued link extraction for story $story->{ title } $story->{ url }." );
@@ -2076,7 +2076,13 @@ sub fetch_social_media_data ($$)
 
     my $cid = $topic->{ topics_id };
 
-    MediaWords::Job::Facebook::FetchStoryStats->add_topic_stories_to_queue( $db, $topic );
+    do
+    {
+        eval {
+            MediaWords::Job::Facebook::FetchStoryStats->add_topic_stories_to_queue( $db, $topic );
+        };
+        ( sleep( 5 ) && INFO( 'waiting for rabbit ...' ) ) if ( error_is_amqp( $@ ) );
+    } until ( !error_is_amqp( $@ ) );
 
     my $poll_wait = 30;
     my $retries   = int( $MAX_SOCIAL_MEDIA_FETCH_TIME / $poll_wait ) + 1;

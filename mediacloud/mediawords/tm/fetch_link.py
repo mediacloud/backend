@@ -8,6 +8,7 @@ import traceback
 import typing
 
 from mediawords.db import DatabaseHandler
+import mediawords.tm.domains
 import mediawords.tm.extract_story_links
 import mediawords.tm.stories
 from mediawords.util.log import create_logger
@@ -37,6 +38,7 @@ FETCH_STATE_PYTHON_ERROR = 'python error'
 FETCH_STATE_REQUEUED = 'requeued'
 FETCH_STATE_KILLED = 'killed'
 FETCH_STATE_IGNORE = 'ignored'
+FETCH_STATE_SKIPPED = 'skipped'
 
 
 class McTMFetchLinkException(Exception):
@@ -221,13 +223,16 @@ def _try_fetch_topic_url(
         topic_fetch_url['code'] = 403
         return
 
-    log.warning("PASSED IGNORE")
-
     failed_url = get_failed_url(db, topic_fetch_url['topics_id'], topic_fetch_url['url'])
     if failed_url:
         topic_fetch_url['state'] = failed_url['state']
         topic_fetch_url['code'] = failed_url['code']
         topic_fetch_url['message'] = failed_url['message']
+        return
+
+    if mediawords.tm.domains.skip_self_linked_domain(db, topic_fetch_url):
+        topic_fetch_url['state'] = FETCH_STATE_SKIPPED
+        topic_fetch_url['code'] = 403
         return
 
     topic = db.require_by_id('topics', topic_fetch_url['topics_id'])
