@@ -260,9 +260,7 @@ def store_content(db: DatabaseHandler, download: dict, content: str) -> dict:
         path = _get_store_for_writing().store_content(db, download['downloads_id'], content)
         error = ''
     except Exception as ex:
-        new_state = 'error'
-        error = "error while trying to store download %d: %s" % (download['downloads_id'], str(ex))
-        path = ''
+        raise McDBIDownloadsException("error while trying to store download %d: %s" % (download['downloads_id'], ex))
 
     if new_state == 'success':
         error = ''
