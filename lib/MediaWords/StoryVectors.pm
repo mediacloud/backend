@@ -80,17 +80,11 @@ sub medium_is_locked($$)
 {
     my ( $db, $media_id ) = @_;
 
-    if ( $db->in_transaction() )
-    {
-        LOGCONFESS "medium_is_locked() can't be run from within a transaction.";
-    }
-
-    # begin and commit transaction to make sure we immediately release the lock if we get it.
-    $db->begin;
-
     my ( $got_lock ) = $db->query( "select pg_try_advisory_lock( ? )", $media_id )->flat;
-
-    $db->commit;
+    if ( $got_lock )
+    {
+        $db->query( "SELECT pg_advisory_unlock(?)", $media_id );
+    }
 
     return !$got_lock;
 }
