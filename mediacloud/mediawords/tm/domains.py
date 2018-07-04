@@ -34,7 +34,7 @@ def increment_domain_links(db: DatabaseHandler, topic_link: dict) -> None:
         """
         insert into topic_domains (topics_id, domain, self_links, all_links)
             values(%(topics_id)s, %(domain)s, %(self_link)s, 1)
-            on conflict (topics_id, domain)
+            on conflict (topics_id, md5(domain))
                 do update set
                     self_links = topic_domains.self_links + %(self_link)s,
                     all_links = topic_domains.all_links + 1
@@ -50,9 +50,9 @@ def skip_self_linked_domain(db: DatabaseHandler, topic_fetch_url: dict) -> bool:
     * topic.domains.self_links value for the domain is greater than MAX_SELF_LINKS or
     * the linked url matches SKIP_SELF_LINK_RE.
 
-    Always return false if topic_fetch_url['topic_links_id'] is None.
+    Always return false if topic_fetch_url['topic_links_id'] is None or not in the dict.
     """
-    if 'topic_links_id' not in topic_fetch_url:
+    if 'topic_links_id' not in topic_fetch_url or topic_fetch_url['topic_links_id'] is None:
         return False
 
     topic_link = db.require_by_id('topic_links', topic_fetch_url['topic_links_id'])
@@ -63,6 +63,10 @@ def skip_self_linked_domain(db: DatabaseHandler, topic_fetch_url: dict) -> bool:
     url_domain = mediawords.util.url.get_url_distinctive_domain(topic_link['url'])
 
     redirect_url = topic_link.get('redirect_url', topic_link['url'])
+
+    if redirect_url is None:
+        redirect_url = topic_link['url']
+
     redirect_url_domain = mediawords.util.url.get_url_distinctive_domain(redirect_url)
 
     link_domain = redirect_url_domain if redirect_url_domain else url_domain
@@ -70,8 +74,9 @@ def skip_self_linked_domain(db: DatabaseHandler, topic_fetch_url: dict) -> bool:
     if story_domain not in (url_domain, redirect_url_domain):
         return False
 
-    if re.search(SKIP_SELF_LINK_RE, topic_link['url'] + topic_link['redirect_url'], flags=re.I):
-        return True
+    for url in (topic_link['url'], redirect_url):
+        if re.search(SKIP_SELF_LINK_RE, url, flags=re.I):
+            return True
 
     topic_domain = db.query(
         "select * from topic_domains where topics_id = %(a)s and md5(domain) = md5(%(b)s)",
