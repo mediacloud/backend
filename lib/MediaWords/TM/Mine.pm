@@ -69,9 +69,6 @@ use MediaWords::Util::URL;
 use MediaWords::Util::Web;
 use MediaWords::Util::Web::Cache;
 
-# max number of solely self linked stories to include
-Readonly my $MAX_SELF_LINKED_STORIES => 100;
-
 # total time to wait for fetching of social media metrics
 Readonly my $MAX_SOCIAL_MEDIA_FETCH_TIME => ( 60 * 60 * 24 );
 
@@ -108,9 +105,6 @@ my $_spidered_tag;
 # cache of media by sanitized url
 my $_media_url_lookup;
 
-# lookup of self linked domains, for efficient skipping before adding a story
-my $_skip_self_linked_domain = {};
-
 # cache that indicates whether we should recheck a given url
 my $_no_potential_match_urls = {};
 
@@ -122,7 +116,6 @@ sub init_static_variables
     $_media_cache             = {};
     $_spidered_tag            = undef;
     $_media_url_lookup        = undef;
-    $_skip_self_linked_domain = {};
     $_no_potential_match_urls = {};
 }
 
@@ -262,7 +255,7 @@ SQL
                 MediaWords::Job::TM::ExtractStoryLinks->add_to_queue(
                     { stories_id => $story->{ stories_id }, topics_id => $topic->{ topics_id } } );
             };
-            ( sleep( 1 ) && DEBUG( 'waiting for rabbit ...' ) ) if ( error_is_amqp( $@ ) );
+            ( sleep( 1 ) && INFO( 'waiting for rabbit ...' ) ) if ( error_is_amqp( $@ ) );
         } until ( !error_is_amqp( $@ ) );
 
         TRACE( "queued link extraction for story $story->{ title } $story->{ url }." );
@@ -771,160 +764,6 @@ END
     }
 }
 
-# return true if this story is already a topic story or
-# if the story should be skipped for being a self linked story (see skip_self_linked_story())
-sub skip_topic_story
-{
-    my ( $db, $topic, $story, $link ) = @_;
-
-    return 1 if ( story_is_topic_story( $db, $topic, $story ) );
-
-    return 0 unless ( $link );
-
-    my $spidered_tag = get_spidered_tag( $db );
-
-    # never do a self linked story skip for stories that were not spidered
-    return 0 unless ( $db->query( <<END, $story->{ stories_id }, $spidered_tag->{ tags_id } )->hash );
-select 1 from stories_tags_map where stories_id = ? and tags_id = ?
-END
-
-    # don't skip if the media_id of the link source is different that the media_id of the link target
-    if ( $link->{ stories_id } )
-    {
-        my $ss = $db->find_by_id( 'stories', int( $link->{ stories_id } ) );
-        return 0 if ( $ss->{ media_id } && ( $ss->{ media_id } != $story->{ media_id } ) );
-    }
-
-    return 1 if ( _skip_self_linked_domain( $db, $link ) );
-
-    my $cid = $topic->{ topics_id };
-
-    # these queries can be very slow, so we only try them every once in a while randomly. if they hit true
-    # once the result gets cached.  it's okay to get up to 1000 too many stories from one source -- we're just
-    # trying to make sure we don't get many thousands of stories from the same source
-    return 0 if ( rand( 1000 ) > 1 );
-
-    my ( $num_stories ) = $db->query( <<END, $cid, $story->{ media_id }, $spidered_tag->{ tags_id } )->flat;
-select count(*)
-    from snap.live_stories s
-        join stories_tags_map stm on ( s.stories_id = stm.stories_id )
-    where
-        s.topics_id = ? and
-        s.media_id = ? and
-        stm.tags_id = ?
-END
-
-    return 0 if ( $num_stories <= $MAX_SELF_LINKED_STORIES );
-
-    my ( $num_cross_linked_stories ) = $db->query( <<END, $cid, $story->{ media_id }, $spidered_tag->{ tags_id } )->flat;
-select count( distinct rs.stories_id )
-    from snap.live_stories rs
-        join topic_links cl on ( cl.topics_id = \$1 and rs.stories_id = cl.ref_stories_id )
-        join snap.live_stories ss on ( ss.topics_id = \$1 and cl.stories_id = ss.stories_id )
-        join stories_tags_map sstm on ( sstm.stories_id = ss.stories_id )
-        join stories_tags_map rstm on ( rstm.stories_id = rs.stories_id )
-    where
-        rs.topics_id = \$1 and
-        rs.media_id = \$2 and
-        ss.media_id <> rs.media_id and
-        sstm.tags_id = \$3 and
-        rstm.tags_id = \$3
-    limit ( $num_stories - $MAX_SELF_LINKED_STORIES )
-END
-
-    my ( $num_unlinked_stories ) = $db->query( <<END, $cid, $story->{ media_id } )->flat;
-select count( distinct rs.stories_id )
-from snap.live_stories rs
-    left join topic_links cl on ( cl.topics_id = \$1 and rs.stories_id = cl.ref_stories_id )
-where
-    rs.topics_id = \$1 and
-    rs.media_id = \$2 and
-    cl.ref_stories_id is null
-limit ( $num_stories - $MAX_SELF_LINKED_STORIES )
-END
-
-    my $num_self_linked_stories = $num_stories - $num_cross_linked_stories - $num_unlinked_stories;
-
-    if ( $num_self_linked_stories > $MAX_SELF_LINKED_STORIES )
-    {
-        TRACE "skip self linked story: $story->{ url } [$num_self_linked_stories]";
-
-        my $medium_domain = MediaWords::Util::URL::get_url_distinctive_domain( $link->{ url } );
-        $_skip_self_linked_domain->{ $medium_domain } = 1;
-
-        return 1;
-    }
-
-    return 0;
-}
-
-# given a set of links, add a { source_story_url } field to each that has the url of the story pointed to by
-# $link->{ stories_id }.  we preload this data because it is much faster to do it one big query than lots of little
-# ones.  this field is used by  _skip_self_linked_domain().
-sub _add_source_story_urls_to_links($$)
-{
-    my ( $db, $links ) = @_;
-
-    INFO( "add source story url to links: " . scalar( @{ $links } ) );
-
-    my $stories_ids_lookup = {};
-    for my $link ( @{ $links } )
-    {
-        $link->{ source_story_url } = undef;
-        next unless ( $link->{ stories_id } );
-
-        push( @{ $stories_ids_lookup->{ int( $link->{ stories_id } ) } }, $link );
-    }
-
-    my $ids_table = $db->get_temporary_ids_table( [ map { int( $_ ) } keys( %{ $stories_ids_lookup } ) ] );
-
-    my $source_urls =
-      $db->query( "select stories_id, url from stories where stories_id in ( select id from $ids_table )" )->hashes();
-
-    for my $source_url ( @{ $source_urls } )
-    {
-        my $sourced_links = $stories_ids_lookup->{ $source_url->{ stories_id } } || [];
-        map { $_->{ source_story_url } = $source_url->{ url } } @{ $sourced_links };
-    }
-}
-
-# return true if the domain of the linked url is the same
-# as the domain of the linking story and either the domain is in
-# $_skip_self_linked_domain or the linked url is a /tag or /category page
-sub _skip_self_linked_domain
-{
-    my ( $db, $link ) = @_;
-
-    my $domain = MediaWords::Util::URL::get_url_distinctive_domain( $link->{ url } );
-
-    return 0 unless ( $_skip_self_linked_domain->{ $domain } || ( $link->{ url } =~ /\/(tag|category|author|search)/ ) );
-
-    return 0 unless ( $link->{ stories_id } );
-
-    # only skip if the media source of the linking story is the same as the media source of the linked story.  we can't
-    # know the media source of the linked story without adding it first, though, which we want to skip because it's time
-    # expensive to do so.  so we just compare the url domain as a proxy for media source instead.
-    my $source_story_url = $link->{ source_story_url };
-    if ( !defined( $source_story_url ) )
-    {
-        my $source_story = $db->find_by_id( 'stories', int( $link->{ stories_id } ) );
-        $source_story_url = $source_story->{ url };
-    }
-
-    return unless ( $source_story_url );
-
-    my $source_domain = MediaWords::Util::URL::get_url_distinctive_domain( $source_story_url );
-
-    if ( $source_domain eq $domain )
-    {
-        TRACE "skip self linked domain: $domain";
-        return 1;
-    }
-
-    return 0;
-}
-
-# given a list of stories, add the link to each
 # given a list of stories and a list of links, assign a { link } field to each story based on the
 # { stories_id } field in the link
 sub add_links_to_stories($$)
@@ -1247,31 +1086,7 @@ END
 
         last unless ( @{ $new_links } );
 
-        _add_source_story_urls_to_links( $db, $new_links );
-
-        INFO( "filter for self linked domains" );
-        my ( $filtered_links, $skipped_links ) = ( [], [] );
-        for my $link ( @{ $new_links } )
-        {
-            if ( _skip_self_linked_domain( $db, $link ) )
-            {
-                push( @{ $skipped_links }, $link );
-            }
-            else
-            {
-                push( @{ $filtered_links }, $link );
-            }
-        }
-
-        if ( @{ $skipped_links } )
-        {
-            my $skipped_ids = join( ',', map { $_->{ topic_links_id } } @{ $skipped_links } );
-            $db->query( <<SQL );
-update topic_links set link_spidered  = 't' where topic_links_id in ( $skipped_ids )
-SQL
-        }
-
-        add_new_links( $db, $topic, $iteration, $filtered_links );
+        add_new_links( $db, $topic, $iteration, $new_links );
     }
 }
 
@@ -1766,7 +1581,7 @@ sub add_to_topic_stories_if_match($$$$)
     my $story = $db->require_by_id( 'stories', int( $topic_fetch_url->{ stories_id } ) );
     my $link = $db->find_by_id( 'topic_links', int( $topic_fetch_url->{ topic_links_id } || 0 ) );
 
-    return if ( skip_topic_story( $db, $topic, $story, $link ) );
+    return if ( story_is_topic_story( $db, $topic, $story ) );
 
     if ( $topic_fetch_url->{ assume_match } || story_matches_topic_pattern( $db, $topic, $story ) )
     {
@@ -2076,7 +1891,11 @@ sub fetch_social_media_data ($$)
 
     my $cid = $topic->{ topics_id };
 
-    MediaWords::Job::Facebook::FetchStoryStats->add_topic_stories_to_queue( $db, $topic );
+    do
+    {
+        eval { MediaWords::Job::Facebook::FetchStoryStats->add_topic_stories_to_queue( $db, $topic ); };
+        ( sleep( 5 ) && INFO( 'waiting for rabbit ...' ) ) if ( error_is_amqp( $@ ) );
+    } until ( !error_is_amqp( $@ ) );
 
     my $poll_wait = 30;
     my $retries   = int( $MAX_SOCIAL_MEDIA_FETCH_TIME / $poll_wait ) + 1;
