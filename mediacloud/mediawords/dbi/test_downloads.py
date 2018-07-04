@@ -353,3 +353,17 @@ class TestDownloadsDB(TestDatabaseWithSchemaTestCase):
         # So, in a test, let's just be happy if the download times differ (which might not even be the case depending on
         # server's / database's timezone).
         assert time_difference > 10
+
+    def test_extract_and_create_download_text(self):
+        html = '<script>ignore</script><p>foo</p>'
+        mediawords.dbi.downloads.store_content(self.db(), self.test_download, html)
+
+        download_text = mediawords.dbi.downloads.extract_and_create_download_text(
+            db=self.db(),
+            download=self.test_download,
+            extractor_args=ExtractorArguments(),
+        )
+
+        assert download_text
+        assert download_text['download_text'] == 'foo.'
+        assert download_text['downloads_id'] == self.test_download['downloads_id']

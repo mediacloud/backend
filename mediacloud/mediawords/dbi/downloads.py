@@ -28,6 +28,7 @@ import re
 from typing import Optional
 
 from mediawords.db import DatabaseHandler
+from mediawords.dbi.download_texts import create
 from mediawords.dbi.stories.extractor_arguments import ExtractorArguments
 from mediawords.key_value_store import KeyValueStore
 from mediawords.key_value_store.amazon_s3 import AmazonS3Store
@@ -458,3 +459,27 @@ def create_child_download_for_story(db: DatabaseHandler, story: dict, parent_dow
         download['download_time'] = get_sql_date_from_epoch(download_at_timestamp)
 
     db.create(table='downloads', insert_hash=download)
+
+
+def extract_and_create_download_text(db: DatabaseHandler, download: dict, extractor_args: ExtractorArguments) -> dict:
+    """Extract the download and create a download_text from the extracted download."""
+    download = decode_object_from_bytes_if_needed(download)
+
+    downloads_id = download['downloads_id']
+
+    log.debug("Extracting download {}...".format(downloads_id))
+
+    extraction_result = extract(db=db, download=download, extractor_args=extractor_args)
+
+    download_text = None
+    if extractor_args.use_existing():
+        download_text = db.query("""
+            SELECT *
+            FROM download_texts
+            WHERE downloads_id = %(downloads_id)s
+        """, {'downloads_id': downloads_id}).hash()
+
+    if download_text is None:
+        download_text = create(db=db, download=download, extract=extraction_result)
+
+    return download_text

@@ -9,37 +9,8 @@ use MediaWords::CommonLibs;
 import_python_module( __PACKAGE__, 'mediawords.dbi.downloads' );
 
 use MediaWords::DB;
-use MediaWords::DBI::DownloadTexts;
 use MediaWords::DBI::Stories;
 use MediaWords::DBI::Stories::ExtractorArguments;
-use MediaWords::Util::URL;
-
-=head2 extract_and_create_download_text( $db, $download )
-
-Extract the download and create a download_text from the extracted download.
-
-=cut
-
-sub extract_and_create_download_text($$$)
-{
-    my ( $db, $download, $extractor_args ) = @_;
-
-    my $downloads_id = $download->{ downloads_id };
-
-    TRACE "Extracting download $downloads_id...";
-
-    my $extract = extract( $db, $download, $extractor_args );
-    my $download_text;
-    if ( $extractor_args->use_existing() )
-    {
-        $download_text =
-          $db->query( "select * from download_texts where downloads_id = ?", $download->{ downloads_id } )->hash();
-    }
-
-    $download_text ||= MediaWords::DBI::DownloadTexts::create( $db, $download, $extract );
-
-    return $download_text;
-}
 
 =head2 process_download_for_extractor( $db, $download, $extractor_args )
 
