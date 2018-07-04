@@ -21,7 +21,7 @@ use Readonly;
 
 # Given a list of text sentences, return a list of story_sentences hashrefs
 # with properly escaped values for insertion into the database
-sub _get_db_escaped_story_sentence_refs
+sub _get_db_escaped_story_sentence_hashes
 {
     my ( $db, $story, $sentences ) = @_;
 
@@ -146,7 +146,7 @@ SQL
     }
 
     # Convert to list of hashrefs (values escaped for insertion into database)
-    my $sentence_refs = _get_db_escaped_story_sentence_refs( $db, $story, $sentences );
+    my $sentence_refs = _get_db_escaped_story_sentence_hashes( $db, $story, $sentences );
 
     # Ordered list of columns
     my @story_sentences_columns = sort( keys( %{ $sentence_refs->[ 0 ] } ) );
