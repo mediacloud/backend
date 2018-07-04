@@ -165,13 +165,13 @@ sub get_text_for_word_counts
     return $story_text;
 }
 
-=head2 get_first_download( $db, $download )
+=head2 _get_first_download( $db, $download )
 
 Get the first download linking to this story.
 
 =cut
 
-sub get_first_download
+sub _get_first_download
 {
     my ( $db, $story ) = @_;
 
@@ -204,7 +204,7 @@ EOF
 
 =head2 get_content_for_first_download( $db, $story )
 
-Call fetch_content on the result of get_first_download().  Return undef if the download's state is not null.
+Call fetch_content on the result of _get_first_download().  Return undef if the download's state is not null.
 
 =cut
 
@@ -212,7 +212,7 @@ sub get_content_for_first_download($$)
 {
     my ( $db, $story ) = @_;
 
-    my $first_download = get_first_download( $db, $story );
+    my $first_download = _get_first_download( $db, $story );
 
     if ( $first_download->{ state } ne 'success' )
     {
