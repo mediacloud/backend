@@ -225,34 +225,6 @@ sub get_content_for_first_download($$)
     return $content;
 }
 
-=head2 get_existing_tags( $db, $story, $tag_set_name )
-
-Get tags belonging to the tag set with the given name and associated with this story.
-
-=cut
-
-sub get_existing_tags
-{
-    my ( $db, $story, $tag_set_name ) = @_;
-
-    my $tag_set = $db->find_or_create( 'tag_sets', { name => $tag_set_name } );
-
-    my $ret = $db->query(
-        <<"EOF",
-        SELECT stm.tags_id
-        FROM stories_tags_map AS stm,
-             tags
-        WHERE stories_id = ?
-              AND stm.tags_id = tags.tags_id
-              AND tags.tag_sets_id = ?
-EOF
-        $story->{ stories_id },
-        $tag_set->{ tag_sets_id }
-    )->flat;
-
-    return $ret;
-}
-
 =head2 get_existing_tags_as_string( $db, $stories_id )
 
 Get list of tags associated with the story in 'tag_set_name:tag' format.
