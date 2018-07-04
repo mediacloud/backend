@@ -1,25 +1,15 @@
 package MediaWords::DBI::DownloadTexts;
-use Modern::Perl "2015";
-use MediaWords::CommonLibs;
-
-=head1 NAME
-
-MediaWords::DBI::DownloadTexts - various helper functions for the download_texts table
-
-=cut
 
 use strict;
 use warnings;
 
-use Encode;
+use Modern::Perl "2015";
+use MediaWords::CommonLibs;
 
-use Data::Dumper;
+import_python_module( __PACKAGE__, 'mediawords.dbi.download_texts' );
 
-use MediaWords::Util::Config;
-use MediaWords::Util::HTML;
 use MediaWords::DBI::Downloads;
 use MediaWords::DBI::Stories::ExtractorArguments;
-use Try::Tiny;
 
 =head1 FUNCTIONS
 
@@ -40,30 +30,6 @@ sub get_extracted_html_from_db
     my $extract = MediaWords::DBI::Downloads::extract( $db, $download, $args );
 
     return $extract->{ extracted_html };
-}
-
-=head2 create( $db, $download, $extract )
-
-Create a download_text hash and insert it into the database.  Delete any existing download_text row for the download.
-update downloads.extracted to true.
-
-=cut
-
-sub create
-{
-    my ( $db, $download, $extract ) = @_;
-
-    $db->query( "DELETE FROM download_texts WHERE downloads_id = ?", $download->{ downloads_id } );
-
-    my $download_text = $db->query( <<SQL, $extract->{ extracted_text }, $download->{ downloads_id } )->hash;
-INSERT INTO download_texts ( download_text, downloads_id, download_text_length )
-    VALUES ( \$1, \$2, char_length( \$1 ) )
-    RETURNING *
-SQL
-
-    $db->query( "UPDATE downloads SET extracted = 't' WHERE downloads_id = ?", $download->{ downloads_id } );
-
-    return $download_text;
 }
 
 1;
