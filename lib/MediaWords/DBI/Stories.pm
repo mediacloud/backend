@@ -329,13 +329,31 @@ sub get_extracted_html_from_db
 {
     my ( $db, $story ) = @_;
 
-    my $download_texts = $db->query( <<END, $story->{ stories_id } )->hashes;
-select dt.downloads_id, dt.download_texts_id
-	from downloads d, download_texts dt
-	where dt.downloads_id = d.downloads_id and d.stories_id = ? order by d.downloads_id
-END
+    my $download_texts = $db->query(
+        <<SQL,
+        SELECT dt.downloads_id,
+               dt.download_texts_id
+        FROM downloads AS d,
+             download_texts AS dt
+        WHERE dt.downloads_id = d.downloads_id
+          AND d.stories_id = ?
+        ORDER BY d.downloads_id
+SQL
+        $story->{ stories_id }
+    )->hashes;
 
-    return join( "\n", map { MediaWords::DBI::DownloadTexts::get_extracted_html_from_db( $db, $_ ) } @{ $download_texts } );
+    my $extracted_htmls = [];
+
+    my $extractor_args = MediaWords::DBI::Stories::ExtractorArguments->new( { use_cache => 1 } );
+
+    foreach my $download_text ( @{ $download_texts } )
+    {
+        my $download = $db->find_by_id( 'downloads', $download_text->{ downloads_id } );
+        my $extract = MediaWords::DBI::Downloads::extract( $db, $download, $extractor_args );
+        push( @{ $extracted_htmls }, $extract->{ extracted_html } );
+    }
+
+    return join( "\n", @{ $extracted_htmls } );
 }
 
 =head2 is_new( $db, $story )
