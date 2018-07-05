@@ -1099,6 +1099,7 @@ Standard parameters accepted: snapshots_id, foci_id, timespans_id, limit, link_i
 | outlink_count        | sum of the outlink_count for each story in the medium |
 | facebook_share_count | sum of the facebook for each story in the medium |
 | focus_ids            | list of ids of foci to which this medium belongs |
+| media_source_tags    | list of associated tags |
 
 ### Example
 
@@ -1119,7 +1120,20 @@ Response:
             "inlink_count": 8454,
             "url": "http://twitter.com",
             "outlink_count": 72,
-            "facebook": 123
+            "facebooki_share_count": 123,
+            "media_source_tags":
+                {
+                      "description": "Published in United States",
+                      "label": "United States"
+                      "media_id": 18364,
+                      "show_on_media": true,
+                      "show_on_stories": null,
+                      "tag": "pub_USA",
+                      "tag_set": "pub_country",
+                      "tag_sets_id": 1935,
+                      "tagged_date": null,
+                      "tags_id": 9353663
+                },
         }
     ],
     "link_ids":
