@@ -110,7 +110,9 @@ sub list_GET
     my $timespans_id = $timespan->{ timespans_id };
     my $snapshots_id = $timespan->{ snapshots_id };
 
-    my $limit  = $c->req->params->{ limit };
+    my $limit = $c->req->params->{ limit };
+    $limit = List::Util::min( $limit, 1_000 );
+
     my $offset = $c->req->params->{ offset };
 
     my $extra_clause = _get_extra_where_clause( $c, $timespans_id );
