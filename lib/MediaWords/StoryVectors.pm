@@ -9,6 +9,8 @@ use utf8;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
+import_python_module( __PACKAGE__, 'mediawords.story_vectors' );
+
 use MediaWords::Languages::Language;
 use MediaWords::DBI::Stories;
 use MediaWords::DBI::Stories::AP;
