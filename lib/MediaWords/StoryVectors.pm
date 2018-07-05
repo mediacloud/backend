@@ -243,11 +243,11 @@ sub _clean_sentences
 }
 
 # detect whether the story is syndicated and update stories.ap_syndicated
-sub _update_ap_syndicated
+sub _update_ap_syndicated($$)
 {
     my ( $db, $story ) = @_;
 
-    return unless ( $story->{ language } && $story->{ language } eq 'en' );
+    return $story unless ( $story->{ language } && $story->{ language } eq 'en' );
 
     my $ap_syndicated = MediaWords::DBI::Stories::AP::is_syndicated( $db, $story );
 
@@ -262,6 +262,8 @@ SQL
     );
 
     $story->{ ap_syndicated } = $ap_syndicated;
+
+    return $story;
 }
 
 # delete any existing stories for the given story and also update media_stats to adjust for the deletion
@@ -321,7 +323,7 @@ sub update_story_sentences_and_language($$;$)
 
     _insert_story_sentences( $db, $story, $sentences, $extractor_args->no_dedup_sentences() );
 
-    _update_ap_syndicated( $db, $story );
+    $story = _update_ap_syndicated( $db, $story );
 
     $db->commit if ( $use_transaction );
 }
