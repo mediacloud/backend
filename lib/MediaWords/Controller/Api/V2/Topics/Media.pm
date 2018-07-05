@@ -93,6 +93,29 @@ sub _get_sort_clause
     return "$sort_field desc nulls last, md5( mlc.media_id::text )";
 }
 
+# given a list of media, add associated tags to each using a single postgres query.
+# add the list of tags to each medium using the 'media_source_tags' field.
+sub _add_tags_to_media($$)
+{
+    my ( $db, $media ) = @_;
+
+    my $media_ids_list = join( ',', map { $_->{ media_id } } @{ $media } ) || '-1';
+    my $tags = $db->query( <<END )->hashes;
+select mtm.media_id, t.tags_id, t.tag, t.label, t.description, mtm.tagged_date, ts.tag_sets_id, ts.name as tag_set,
+        ( t.show_on_media or ts.show_on_media ) show_on_media,
+        ( t.show_on_stories or ts.show_on_stories ) show_on_stories
+    from media_tags_map mtm
+        join tags t on ( mtm.tags_id = t.tags_id )
+        join tag_sets ts on ( ts.tag_sets_id = t.tag_sets_id )
+    where mtm.media_id in ( $media_ids_list )
+    order by t.tags_id
+END
+
+    my $tags_lookup = {};
+    map { push( @{ $tags_lookup->{ $_->{ media_id } } }, $_ ) } @{ $tags };
+    map { $_->{ media_source_tags } = $tags_lookup->{ $_->{ media_id } } || [] } @{ $media };
+}
+
 sub list_GET
 {
     my ( $self, $c ) = @_;
@@ -128,6 +151,8 @@ select *
     limit \$3 offset \$4
 
 SQL
+
+    _add_tags_to_media( $db, $media );
 
     my $entity = { media => $media };
 
