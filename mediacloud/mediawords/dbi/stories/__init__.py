@@ -1,4 +1,7 @@
+from typing import List, Optional
+
 from mediawords.db import DatabaseHandler
+from mediawords.util.html import html_strip
 from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_object_from_bytes_if_needed
 
@@ -73,3 +76,20 @@ def is_new(db: DatabaseHandler, story: dict) -> bool:
         return False
 
     return True
+
+
+def combine_story_title_description_text(story_title: Optional[str],
+                                         story_description: Optional[str],
+                                         download_texts: List[str]) -> str:
+    """Get the combined story title, story description, and download text of the story in a consistent way."""
+    story_title = decode_object_from_bytes_if_needed(story_title)
+    story_description = decode_object_from_bytes_if_needed(story_description)
+    download_texts = decode_object_from_bytes_if_needed(download_texts)
+
+    if story_title is None:
+        story_title = ''
+
+    if story_description is None:
+        story_description = ''
+
+    return "\n***\n\n".join([html_strip(story_title), html_strip(story_description)] + download_texts)

@@ -67,24 +67,6 @@ sub _get_full_text_from_rss
     return $ret;
 }
 
-=head2 combine_story_title_description_text( $story_title, $story_description, $download_texts )
-
-Get the combined story title, story description, and download text of the story in a consistent way.
-
-=cut
-
-sub combine_story_title_description_text($$$)
-{
-    my ( $story_title, $story_description, $download_texts ) = @_;
-
-    return join(
-        "\n***\n\n",
-        MediaWords::Util::HTML::html_strip( $story_title       || '' ),    #
-        MediaWords::Util::HTML::html_strip( $story_description || '' ),    #
-        @{ $download_texts }                                               #
-    );
-}
-
 =head2 get_text
 
 Get the concatenation of the story title and description and all of the download_texts associated with the story

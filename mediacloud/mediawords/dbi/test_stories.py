@@ -1,5 +1,5 @@
 from mediawords.db import DatabaseHandler
-from mediawords.dbi.stories import mark_as_processed, is_new
+from mediawords.dbi.stories import mark_as_processed, is_new, combine_story_title_description_text
 from mediawords.test.db import create_test_medium, create_test_feed, create_test_story, create_test_story_stack
 from mediawords.test.test_database import TestDatabaseWithSchemaTestCase
 from mediawords.util.sql import increment_day
@@ -99,3 +99,15 @@ class TestStories(TestDatabaseWithSchemaTestCase):
                 for num in stories:
                     story = media[media_name]['feeds'][feeds_name]['stories'][str(num)]
                     _test_story(db=self.db(), story_=story, num_=num)
+
+
+def test_combine_story_title_description_text():
+    combined = combine_story_title_description_text(
+        story_title='<strong>Title</strong>',
+        story_description='<em>Description</em>',
+        download_texts=[
+            'Text 1',
+            'Text 2',
+        ]
+    )
+    assert combined == "Title\n***\n\nDescription\n***\n\nText 1\n***\n\nText 2"
