@@ -216,3 +216,44 @@ def get_text_for_word_counts(db: DatabaseHandler, story: dict) -> str:
             story_text += html_strip(story['description'])
 
     return story_text
+
+
+def get_text(db: DatabaseHandler, story: dict) -> str:
+    """Get the concatenation of the story title and description and all of the download_texts associated with the story
+    in a consistent way.
+
+    If full_text_rss is True for the medium, just return the concatenation of the story title and description.
+    """
+
+    story = decode_object_from_bytes_if_needed(story)
+
+    if story['full_text_rss']:
+        return __get_full_text_from_rss(story=story)
+
+    download_texts = db.query("""
+        SELECT download_text
+        FROM download_texts AS dt,
+             downloads AS d
+        WHERE d.downloads_id = dt.downloads_id
+          AND d.stories_id = %(stories_id)s
+        ORDER BY d.downloads_id ASC
+    """, {'stories_id': story['stories_id']}).flat()
+
+    pending_downloads = db.query("""
+        SELECT downloads_id
+        FROM downloads
+        WHERE extracted = 'f'
+          AND stories_id = %(stories_id)s
+          AND type = 'content'
+    """, {'stories_id': story['stories_id']}).hashes()
+
+    if len(pending_downloads) > 0:
+        download_texts.append("(downloads pending extraction)")
+
+    story_text = combine_story_title_description_text(
+        story_title=story['title'],
+        story_description=story['description'],
+        download_texts=download_texts,
+    )
+
+    return story_text

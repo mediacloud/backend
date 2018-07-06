@@ -57,65 +57,6 @@ Readonly my $DUP_TITLE_PREFIXES => [
 
 =cut
 
-sub _get_full_text_from_rss
-{
-    my ( $db, $story ) = @_;
-
-    my $ret = MediaWords::Util::HTML::html_strip( $story->{ title } || '' ) .
-      "\n\n" . MediaWords::Util::HTML::html_strip( $story->{ description } || '' );
-
-    return $ret;
-}
-
-=head2 get_text
-
-Get the concatenation of the story title and description and all of the download_texts associated with the story
-in a consistent way.
-
-If full_text_rss is true for the medium, just return the concatenation of the story title and description.
-
-=cut
-
-sub get_text
-{
-    my ( $db, $story ) = @_;
-
-    if ( $story->{ full_text_rss } )
-    {
-        return _get_full_text_from_rss( $db, $story );
-    }
-
-    my $download_texts = $db->query(
-        <<"EOF",
-        SELECT download_text
-        FROM download_texts AS dt,
-             downloads AS d
-        WHERE d.downloads_id = dt.downloads_id
-              AND d.stories_id = ?
-        ORDER BY d.downloads_id ASC
-EOF
-        $story->{ stories_id }
-    )->flat;
-
-    my $pending_download = $db->query(
-        <<"EOF",
-        SELECT downloads_id
-        FROM downloads
-        WHERE extracted = 'f'
-              AND stories_id = ?
-              AND type = 'content'
-EOF
-        $story->{ stories_id }
-    )->hash;
-
-    if ( $pending_download )
-    {
-        push( @{ $download_texts }, "(downloads pending extraction)" );
-    }
-
-    return combine_story_title_description_text( $story->{ title }, $story->{ description }, $download_texts );
-}
-
 =head2 _get_first_download( $db, $download )
 
 Get the first download linking to this story.

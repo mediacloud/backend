@@ -6,6 +6,7 @@ from mediawords.dbi.stories import (
     get_extracted_text,
     add_story,
     get_text_for_word_counts,
+    get_text,
 )
 from mediawords.test.db import (
     create_test_medium,
@@ -19,14 +20,17 @@ from mediawords.util.sql import increment_day
 
 
 class TestStories(TestDatabaseWithSchemaTestCase):
+    TEST_MEDIUM_NAME = 'test medium'
+    TEST_FEED_NAME = 'test feed'
+    TEST_STORY_NAME = 'test story'
 
     def setUp(self) -> None:
         """Set config for tests."""
         super().setUp()
 
-        self.test_medium = create_test_medium(self.db(), 'downloads test')
-        self.test_feed = create_test_feed(self.db(), 'downloads test', self.test_medium)
-        self.test_story = create_test_story(self.db(), label='downloads test', feed=self.test_feed)
+        self.test_medium = create_test_medium(self.db(), self.TEST_MEDIUM_NAME)
+        self.test_feed = create_test_feed(self.db(), self.TEST_FEED_NAME, self.test_medium)
+        self.test_story = create_test_story(self.db(), label=self.TEST_STORY_NAME, feed=self.test_feed)
 
     def test_mark_as_processed(self):
         processed_stories = self.db().query("SELECT * FROM processed_stories").hashes()
@@ -269,6 +273,48 @@ class TestStories(TestDatabaseWithSchemaTestCase):
 
         story_text = get_text_for_word_counts(db=self.db(), story=self.test_story)
         assert story_text == "Not full text 1.\n\nNot full text 2.\n\nNot full text 3"
+
+    def test_get_text(self):
+        """Test get_text()."""
+
+        self.test_story = self.db().update_by_id(
+            table='stories',
+            object_id=self.test_story['stories_id'],
+            update_hash={
+                # We want it to read download_texts
+                'full_text_rss': False,
+            },
+        )
+
+        download_texts = [
+            'Story text 1',
+            'Story text 2',
+            'Story text 3',
+        ]
+
+        for download_text in download_texts:
+            test_download = create_download_for_feed(self.db(), self.test_feed)
+            downloads_id = test_download['downloads_id']
+
+            self.db().update_by_id(
+                table='downloads',
+                object_id=downloads_id,
+                update_hash={
+                    'stories_id': self.test_story['stories_id'],
+                }
+            )
+            self.db().create(
+                table='download_texts',
+                insert_hash={
+                    'downloads_id': downloads_id,
+                    'download_text': download_text,
+                    'download_text_length': len(download_text),
+                })
+
+        story_text = get_text(db=self.db(), story=self.test_story)
+        assert self.TEST_STORY_NAME in story_text
+        for download_text in download_texts:
+            assert download_text in story_text
 
 
 def test_combine_story_title_description_text():
