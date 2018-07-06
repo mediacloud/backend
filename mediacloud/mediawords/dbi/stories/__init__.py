@@ -147,7 +147,7 @@ def add_story(db: DatabaseHandler, story: dict, feeds_id: int, skip_checking_if_
     medium = db.find_by_id(table='media', object_id=story['media_id'])
 
     if story.get('full_text_rss', None) is None:
-        story['full_text_rss'] = medium.get('full_text_rss', False)
+        story['full_text_rss'] = medium.get('full_text_rss', False) or False
         if len(story.get('description', '')) == 0:
             story['full_text_rss'] = False
 
