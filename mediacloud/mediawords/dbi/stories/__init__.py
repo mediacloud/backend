@@ -177,3 +177,42 @@ def add_story(db: DatabaseHandler, story: dict, feeds_id: int, skip_checking_if_
     db.commit()
 
     return story
+
+
+def __get_full_text_from_rss(story: dict) -> str:
+    story = decode_object_from_bytes_if_needed(story)
+
+    story_title = story.get('title', '')
+    story_description = story.get('description', '')
+
+    return "\n\n".join([html_strip(story_title), html_strip(story_description)])
+
+
+def get_text_for_word_counts(db: DatabaseHandler, story: dict) -> str:
+    """Like get_text(), but it doesn't include both title + description and the extracted text.
+
+    This is what is used to fetch text to generate story_sentences, which eventually get imported into Solr.
+
+    If the text of the story ends up being shorter than the description, return the title + description instead of the
+    story text (some times the extractor falls down and we end up with better data just using the title + description.
+    """
+    story = decode_object_from_bytes_if_needed(story)
+
+    if story['full_text_rss']:
+        story_text = __get_full_text_from_rss(story)
+    else:
+        story_text = get_extracted_text(db=db, story=story)
+
+    story_description = story.get('description', None)
+
+    if len(story_text) == 0 or len(story_text) < len(story_description):
+        story_text = html_strip(story['title'])
+        if story['description']:
+
+            story_text = story_text.strip()
+            if not story_text.endswith('.'):
+                story_text += '.'
+
+            story_text += html_strip(story['description'])
+
+    return story_text

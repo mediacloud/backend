@@ -116,37 +116,6 @@ EOF
     return combine_story_title_description_text( $story->{ title }, $story->{ description }, $download_texts );
 }
 
-=head2 get_text_for_word_counts( $db, $story )
-
-Like get_text but it doesn't include both title + description and the extracted text.  This is what is used to fetch
-text to generate story_sentences, which eventually get imported into solr.
-
-If the text of the story ends up being shorter than the description, return the title + description instead of the
-story text (some times the extractor falls down and we end up with better data just using the title + description .
-
-=cut
-
-sub get_text_for_word_counts
-{
-    my ( $db, $story ) = @_;
-
-    my $story_text = $story->{ full_text_rss } ? _get_full_text_from_rss( $db, $story ) : get_extracted_text( $db, $story );
-
-    my $story_description = $story->{ description } || '';
-
-    if ( ( length( $story_text ) == 0 ) || ( length( $story_text ) < length( $story_description ) ) )
-    {
-        $story_text = MediaWords::Util::HTML::html_strip( $story->{ title } );
-        if ( $story->{ description } )
-        {
-            $story_text .= '.' unless ( $story_text =~ /\.\s*$/ );
-            $story_text .= MediaWords::Util::HTML::html_strip( $story->{ description } );
-        }
-    }
-
-    return $story_text;
-}
-
 =head2 _get_first_download( $db, $download )
 
 Get the first download linking to this story.
