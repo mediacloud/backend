@@ -248,31 +248,6 @@ EOF
     return $tags;
 }
 
-=head2 get_extracted_text( $db, $story )
-
-Return the concatenated download_texts associated with the story.
-
-=cut
-
-sub get_extracted_text
-{
-    my ( $db, $story ) = @_;
-
-    my $download_texts = $db->query(
-        <<"EOF",
-        SELECT dt.download_text
-        FROM downloads AS d,
-             download_texts AS dt
-        WHERE dt.downloads_id = d.downloads_id
-              AND d.stories_id = ?
-        ORDER BY d.downloads_id
-EOF
-        $story->{ stories_id }
-    )->hashes;
-
-    return join( ".\n\n", map { $_->{ download_text } } @{ $download_texts } );
-}
-
 # re-extract the story for the given download
 sub _reextract_download
 {

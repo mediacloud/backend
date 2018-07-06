@@ -1,6 +1,7 @@
 from mediawords.db import DatabaseHandler
-from mediawords.dbi.stories import mark_as_processed, is_new, combine_story_title_description_text
-from mediawords.test.db import create_test_medium, create_test_feed, create_test_story, create_test_story_stack
+from mediawords.dbi.stories import mark_as_processed, is_new, combine_story_title_description_text, get_extracted_text
+from mediawords.test.db import create_test_medium, create_test_feed, create_test_story, create_test_story_stack, \
+    create_download_for_feed
 from mediawords.test.test_database import TestDatabaseWithSchemaTestCase
 from mediawords.util.sql import increment_day
 
@@ -99,6 +100,35 @@ class TestStories(TestDatabaseWithSchemaTestCase):
                 for num in stories:
                     story = media[media_name]['feeds'][feeds_name]['stories'][str(num)]
                     _test_story(db=self.db(), story_=story, num_=num)
+
+    def test_get_extracted_text(self):
+        download_texts = [
+            'Text 1',
+            'Text 2',
+            'Text 3',
+        ]
+
+        for download_text in download_texts:
+            test_download = create_download_for_feed(self.db(), self.test_feed)
+            downloads_id = test_download['downloads_id']
+
+            self.db().update_by_id(
+                table='downloads',
+                object_id=downloads_id,
+                update_hash={
+                    'stories_id': self.test_story['stories_id'],
+                }
+            )
+            self.db().create(
+                table='download_texts',
+                insert_hash={
+                    'downloads_id': downloads_id,
+                    'download_text': download_text,
+                    'download_text_length': len(download_text),
+                })
+
+        extracted_text = get_extracted_text(db=self.db(), story=self.test_story)
+        assert extracted_text == "Text 1.\n\nText 2.\n\nText 3"
 
 
 def test_combine_story_title_description_text():

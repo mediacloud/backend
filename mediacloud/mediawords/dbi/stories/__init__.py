@@ -93,3 +93,20 @@ def combine_story_title_description_text(story_title: Optional[str],
         story_description = ''
 
     return "\n***\n\n".join([html_strip(story_title), html_strip(story_description)] + download_texts)
+
+
+def get_extracted_text(db: DatabaseHandler, story: dict) -> str:
+    """Return the concatenated download_texts associated with the story."""
+
+    story = decode_object_from_bytes_if_needed(story)
+
+    download_texts = db.query("""
+        SELECT dt.download_text
+        FROM downloads AS d,
+             download_texts AS dt
+        WHERE dt.downloads_id = d.downloads_id
+          AND d.stories_id = %(stories_id)s
+        ORDER BY d.downloads_id
+    """, {'stories_id': story['stories_id']}).flat()
+
+    return ".\n\n".join(download_texts)
