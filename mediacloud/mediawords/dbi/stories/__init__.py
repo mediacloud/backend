@@ -8,6 +8,11 @@ from mediawords.util.perl import decode_object_from_bytes_if_needed
 log = create_logger(__name__)
 
 
+class McAddStoryException(Exception):
+    """add_story() exception."""
+    pass
+
+
 def mark_as_processed(db: DatabaseHandler, stories_id: int) -> bool:
     """Mark the story as processed by inserting an entry into 'processed_stories'. Return True on success."""
 
@@ -110,3 +115,65 @@ def get_extracted_text(db: DatabaseHandler, story: dict) -> str:
     """, {'stories_id': story['stories_id']}).flat()
 
     return ".\n\n".join(download_texts)
+
+
+def add_story(db: DatabaseHandler, story: dict, feeds_id: int, skip_checking_if_new: bool = False) -> Optional[dict]:
+    """If the story is new, add story to the database with the feed of the download as story feed.
+
+    Returns created story or None if story wasn't created.
+    """
+
+    story = decode_object_from_bytes_if_needed(story)
+    if isinstance(feeds_id, bytes):
+        feeds_id = decode_object_from_bytes_if_needed(feeds_id)
+    feeds_id = int(feeds_id)
+    if isinstance(skip_checking_if_new, bytes):
+        skip_checking_if_new = decode_object_from_bytes_if_needed(skip_checking_if_new)
+    skip_checking_if_new = bool(int(skip_checking_if_new))
+
+    if db.in_transaction():
+        raise McAddStoryException("add_story() can't be run from within transaction.")
+
+    db.begin()
+
+    db.query("LOCK TABLE stories IN ROW EXCLUSIVE MODE")
+
+    if not skip_checking_if_new:
+        if not is_new(db=db, story=story):
+            log.debug("Story '{}' is not new.".format(story['url']))
+            db.commit()
+            return None
+
+    medium = db.find_by_id(table='media', object_id=story['media_id'])
+
+    if story.get('full_text_rss', None) is None:
+        story['full_text_rss'] = medium.get('full_text_rss', False)
+        if len(story.get('description', '')) == 0:
+            story['full_text_rss'] = False
+
+    try:
+        story = db.create(table='stories', insert_hash=story)
+    except Exception as ex:
+        db.rollback()
+
+        # FIXME get rid of this, replace with native upsert on "stories_guid" unique constraint
+        if 'unique constraint \"stories_guid' in str(ex):
+            log.warning(
+                "Failed to add story for '{}' to GUID conflict (guid = '{}')".format(story['url'], story['guid'])
+            )
+            return None
+
+        else:
+            raise McAddStoryException("Error adding story: {}\nStory: {}".format(str(ex), str(story)))
+
+    db.find_or_create(
+        table='feeds_stories_map',
+        insert_hash={
+            'stories_id': story['stories_id'],
+            'feeds_id': feeds_id,
+        }
+    )
+
+    db.commit()
+
+    return story

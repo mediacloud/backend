@@ -1,7 +1,18 @@
 from mediawords.db import DatabaseHandler
-from mediawords.dbi.stories import mark_as_processed, is_new, combine_story_title_description_text, get_extracted_text
-from mediawords.test.db import create_test_medium, create_test_feed, create_test_story, create_test_story_stack, \
-    create_download_for_feed
+from mediawords.dbi.stories import (
+    mark_as_processed,
+    is_new,
+    combine_story_title_description_text,
+    get_extracted_text,
+    add_story,
+)
+from mediawords.test.db import (
+    create_test_medium,
+    create_test_feed,
+    create_test_story,
+    create_test_story_stack,
+    create_download_for_feed,
+)
 from mediawords.test.test_database import TestDatabaseWithSchemaTestCase
 from mediawords.util.sql import increment_day
 
@@ -129,6 +140,75 @@ class TestStories(TestDatabaseWithSchemaTestCase):
 
         extracted_text = get_extracted_text(db=self.db(), story=self.test_story)
         assert extracted_text == "Text 1.\n\nText 2.\n\nText 3"
+
+    def test_add_story(self):
+        """Test add_story()."""
+
+        media_id = self.test_medium['media_id']
+        feeds_id = self.test_feed['feeds_id']
+
+        # Basic story
+        story = {
+            'media_id': media_id,
+            'url': 'http://add.story/',
+            'guid': 'http://add.story/',
+            'title': 'test add story',
+            'description': 'test add story',
+            'publish_date': '2016-10-15 08:00:00',
+            'collect_date': '2016-10-15 10:00:00',
+            'full_text_rss': True,
+        }
+        added_story = add_story(db=self.db(), story=story, feeds_id=feeds_id)
+        assert added_story
+        assert 'stories_id' in added_story
+        assert story['url'] == added_story['url']
+        assert added_story['full_text_rss'] is True
+
+        feeds_stories_tag_mapping = self.db().select(
+            table='feeds_stories_map',
+            what_to_select='*',
+            condition_hash={
+                'stories_id': added_story['stories_id'],
+                'feeds_id': feeds_id,
+            }
+        ).hashes()
+        assert len(feeds_stories_tag_mapping) == 1
+
+        # Try adding a duplicate story
+        added_story = add_story(db=self.db(), story=story, feeds_id=feeds_id)
+        assert added_story is None
+
+        # Try adding a duplicate story with explicit "is new" testing disabled
+        added_story = add_story(db=self.db(), story=story, feeds_id=feeds_id, skip_checking_if_new=True)
+        assert added_story is None
+
+    def test_add_story_full_text_rss(self):
+        """Test add_story() with only parent media's full_text_rss set to True."""
+
+        media_id = self.test_medium['media_id']
+        feeds_id = self.test_feed['feeds_id']
+
+        self.db().update_by_id(
+            table='media',
+            object_id=media_id,
+            update_hash={'full_text_rss': True},
+        )
+
+        story = {
+            'media_id': media_id,
+            'url': 'http://add.story/',
+            'guid': 'http://add.story/',
+            'title': 'test add story',
+            'description': 'test add story',
+            'publish_date': '2016-10-15 08:00:00',
+            'collect_date': '2016-10-15 10:00:00',
+            # 'full_text_rss' to be inferred from parent "media" item
+        }
+        added_story = add_story(db=self.db(), story=story, feeds_id=feeds_id)
+        assert added_story
+        assert 'stories_id' in added_story
+        assert story['url'] == added_story['url']
+        assert added_story['full_text_rss'] is True
 
 
 def test_combine_story_title_description_text():
