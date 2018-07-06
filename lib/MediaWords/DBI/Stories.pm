@@ -534,6 +534,8 @@ is specified, push each the value associate with key in each matching
 stories_id row in story_data field into a list with the name $list_field
 in stories.
 
+Return amended stories hashref.
+
 =cut
 
 sub attach_story_data_to_stories
@@ -571,6 +573,8 @@ sub attach_story_data_to_stories
             TRACE "story matched: " . Dumper( $story );
         }
     }
+
+    return $stories;
 }
 
 =head2 attach_story_meta_data_to_stories( $db, $stories )
@@ -595,7 +599,7 @@ select s.stories_id, s.title, s.publish_date, s.url, s.guid, s.media_id, s.langu
     where s.stories_id in ( select id from $ids_table )
 END
 
-    attach_story_data_to_stories( $stories, $story_data );
+    $stories = attach_story_data_to_stories( $stories, $story_data );
 
     $db->commit if ( $use_transaction );
 

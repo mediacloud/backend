@@ -186,6 +186,8 @@ sub _attach_word_counts_to_stories($$)
 
         }
     }
+
+    return $stories;
 }
 
 sub _add_nested_data
@@ -226,7 +228,7 @@ SQL
             }
         }
 
-        MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $story_text_data );
+        $stories = MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $story_text_data );
 
         my $extracted_data = $db->query(
             <<SQL
@@ -241,7 +243,7 @@ SQL
 SQL
         )->hashes;
 
-        MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $extracted_data );
+        $stories = MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $extracted_data );
     }
 
     if ( $self->{ show_sentences } )
@@ -260,7 +262,7 @@ SQL
             }
         );
 
-        MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $sentences, 'story_sentences' );
+        $stories = MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $sentences, 'story_sentences' );
 
     }
 
@@ -268,7 +270,7 @@ SQL
     {
         my $ap_stories_ids = _get_ap_stories_ids( $db, $ids_table );
 
-        MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $ap_stories_ids );
+        $stories = MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $ap_stories_ids );
     }
 
     my $tag_data = $db->query(
@@ -290,7 +292,7 @@ SQL
 SQL
     )->hashes;
 
-    MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $tag_data, 'story_tags' );
+    $stories = MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $tag_data, 'story_tags' );
 
     if ( $self->{ show_feeds } )
     {
@@ -310,10 +312,10 @@ SQL
 SQL
         )->hashes;
 
-        MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $feed_data, 'feeds' );
+        $stories = MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $feed_data, 'feeds' );
     }
 
-    _attach_word_counts_to_stories( $db, $stories ) if ( $self->{ show_wc } );
+    $stories = _attach_word_counts_to_stories( $db, $stories ) if ( $self->{ show_wc } );
 
     return $stories;
 }
