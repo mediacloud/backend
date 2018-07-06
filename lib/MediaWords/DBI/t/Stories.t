@@ -27,7 +27,7 @@ my $_possible_words = [
 ];
 
 # get random words
-sub add_story_sentences_and_language
+sub _add_story_sentences_and_language
 {
     my ( $db, $story, $num ) = @_;
 
@@ -64,7 +64,7 @@ sub add_story_sentences_and_language
     $story->{ expected_stem_count } = $stem_counts;
 }
 
-sub assign_stem_vectors_from_matrix($$$)
+sub _assign_stem_vectors_from_matrix($$$)
 {
     my ( $stories, $word_matrix, $stem_list ) = @_;
 
@@ -92,7 +92,7 @@ sub assign_stem_vectors_from_matrix($$$)
     ok( !$num_missing_stories, "no missing stories in file: found $num_missing_stories" );
 }
 
-sub test_story($$)
+sub _story_word_matrix_test_story($$)
 {
     my ( $story, $word_list ) = @_;
 
@@ -124,15 +124,15 @@ sub test_get_story_word_matrix
 
     my $stories = [ values( %{ $media->{ A }->{ feeds }->{ B }->{ stories } } ) ];
 
-    map { add_story_sentences_and_language( $db, $_ ) } @{ $stories };
+    map { _add_story_sentences_and_language( $db, $_ ) } @{ $stories };
 
     my $stories_ids = [ map { $_->{ stories_id } } @{ $stories } ];
 
     my ( $word_matrix, $word_list ) = MediaWords::DBI::Stories::get_story_word_matrix( $db, $stories_ids, 0 );
 
-    assign_stem_vectors_from_matrix( $stories, $word_matrix, $word_list );
+    _assign_stem_vectors_from_matrix( $stories, $word_matrix, $word_list );
 
-    map { test_story( $_, $word_list ) } @{ $stories };
+    map { _story_word_matrix_test_story( $_, $word_list ) } @{ $stories };
 }
 
 sub test_get_title_parts
