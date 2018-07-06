@@ -241,7 +241,7 @@ class TestDownloadsDB(TestDatabaseWithSchemaTestCase):
         assert got_content == content
         assert got_download['state'] == 'feed_error'
         assert got_download['path'] == 'postgresql:raw_downloads'
-        assert got_download['error_message'] == ''
+        assert not got_download['error_message']  # NULL or an empty string
 
     def test_extractor_cache(self) -> None:
         """Test set and get for extract cache."""
