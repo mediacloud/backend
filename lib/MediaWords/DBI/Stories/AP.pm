@@ -47,6 +47,9 @@ use warnings;
 
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
+
+import_python_module( __PACKAGE__, 'mediawords.dbi.stories.ap' );
+
 use MediaWords::DBI::Downloads;
 use MediaWords::Util::CSV;
 
@@ -86,11 +89,6 @@ SQL
     $story->{ content } = $content;
 
     return $story->{ content };
-}
-
-sub get_ap_medium_name()
-{
-    return 'Associated Press - Full Feed';
 }
 
 sub _get_ap_media_id($)
