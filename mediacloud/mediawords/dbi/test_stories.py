@@ -7,6 +7,7 @@ from mediawords.dbi.stories import (
     add_story,
     get_text_for_word_counts,
     get_text,
+    create_child_download_for_story,
 )
 from mediawords.test.db import (
     create_test_medium,
@@ -30,7 +31,13 @@ class TestStories(TestDatabaseWithSchemaTestCase):
 
         self.test_medium = create_test_medium(self.db(), self.TEST_MEDIUM_NAME)
         self.test_feed = create_test_feed(self.db(), self.TEST_FEED_NAME, self.test_medium)
+        self.test_download = create_download_for_feed(self.db(), self.test_feed)
         self.test_story = create_test_story(self.db(), label=self.TEST_STORY_NAME, feed=self.test_feed)
+
+        self.test_download['path'] = 'postgresql:foo'
+        self.test_download['state'] = 'success'
+        self.test_download['stories_id'] = self.test_story['stories_id']
+        self.db().update_by_id('downloads', self.test_download['downloads_id'], self.test_download)
 
     def test_mark_as_processed(self):
         processed_stories = self.db().query("SELECT * FROM processed_stories").hashes()
@@ -315,6 +322,76 @@ class TestStories(TestDatabaseWithSchemaTestCase):
         assert self.TEST_STORY_NAME in story_text
         for download_text in download_texts:
             assert download_text in story_text
+
+    def test_create_child_download_for_story(self):
+        downloads = self.db().query('SELECT * FROM downloads').hashes()
+        assert len(downloads) == 1
+
+        create_child_download_for_story(
+            db=self.db(),
+            story=self.test_story,
+            parent_download=self.test_download,
+        )
+
+        downloads = self.db().query('SELECT * FROM downloads').hashes()
+        assert len(downloads) == 2
+
+        child_download = self.db().query("""
+            SELECT *
+            FROM downloads
+            WHERE parent = %(parent_downloads_id)s
+          """, {'parent_downloads_id': self.test_download['downloads_id']}).hash()
+        assert child_download
+
+        assert child_download['feeds_id'] == self.test_feed['feeds_id']
+        assert child_download['stories_id'] == self.test_story['stories_id']
+
+    def test_create_child_download_for_story_content_delay(self):
+        """Test create_child_download_for_story() with media.content_delay set."""
+        downloads = self.db().query('SELECT * FROM downloads').hashes()
+        assert len(downloads) == 1
+
+        content_delay_hours = 3
+
+        self.db().query("""
+            UPDATE media
+            SET content_delay = %(content_delay)s -- Hours
+            WHERE media_id = %(media_id)s
+        """, {
+            'content_delay': content_delay_hours,
+            'media_id': self.test_medium['media_id'],
+        })
+
+        create_child_download_for_story(
+            db=self.db(),
+            story=self.test_story,
+            parent_download=self.test_download,
+        )
+
+        parent_download = self.db().query("""
+            SELECT EXTRACT(EPOCH FROM download_time)::int AS download_timestamp
+            FROM downloads
+            WHERE downloads_id = %(downloads_id)s
+          """, {'downloads_id': self.test_download['downloads_id']}).hash()
+        assert parent_download
+
+        child_download = self.db().query("""
+            SELECT EXTRACT(EPOCH FROM download_time)::int AS download_timestamp
+            FROM downloads
+            WHERE parent = %(parent_downloads_id)s
+          """, {'parent_downloads_id': self.test_download['downloads_id']}).hash()
+        assert child_download
+
+        time_difference = abs(parent_download['download_timestamp'] - child_download['download_timestamp'])
+
+        # 1. I have no idea in which timezone are downloads being stored (it's definitely not UTC, maybe
+        #    America/New_York)
+        # 2. It appears that "downloads.download_time" has dual-use: "download not earlier than" for pending downloads,
+        #    and "downloaded at" for completed downloads, which makes things more confusing
+        #
+        # So, in a test, let's just be happy if the download times differ (which might not even be the case depending on
+        # server's / database's timezone).
+        assert time_difference > 10
 
 
 def test_combine_story_title_description_text():
