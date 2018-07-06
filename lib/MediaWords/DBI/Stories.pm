@@ -778,19 +778,4 @@ sub get_story_word_matrix($$;$)
     return ( $word_matrix, $word_list );
 }
 
-# if the story is new, add it to the database and also add a pending download for the story content
-sub add_story_and_content_download
-{
-    my ( $db, $story, $parent_download ) = @_;
-
-    $story = add_story( $db, $story, $parent_download->{ feeds_id } );
-
-    if ( defined( $story ) )
-    {
-        create_child_download_for_story( $db, $story, $parent_download );
-    }
-
-    return $story;
-}
-
 1;

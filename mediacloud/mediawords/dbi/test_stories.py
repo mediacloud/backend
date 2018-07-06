@@ -1,4 +1,5 @@
 from mediawords.db import DatabaseHandler
+# noinspection PyProtectedMember
 from mediawords.dbi.stories import (
     mark_as_processed,
     is_new,
@@ -7,7 +8,7 @@ from mediawords.dbi.stories import (
     add_story,
     get_text_for_word_counts,
     get_text,
-    create_child_download_for_story,
+    _create_child_download_for_story,
 )
 from mediawords.test.db import (
     create_test_medium,
@@ -327,7 +328,7 @@ class TestStories(TestDatabaseWithSchemaTestCase):
         downloads = self.db().query('SELECT * FROM downloads').hashes()
         assert len(downloads) == 1
 
-        create_child_download_for_story(
+        _create_child_download_for_story(
             db=self.db(),
             story=self.test_story,
             parent_download=self.test_download,
@@ -362,7 +363,7 @@ class TestStories(TestDatabaseWithSchemaTestCase):
             'media_id': self.test_medium['media_id'],
         })
 
-        create_child_download_for_story(
+        _create_child_download_for_story(
             db=self.db(),
             story=self.test_story,
             parent_download=self.test_download,

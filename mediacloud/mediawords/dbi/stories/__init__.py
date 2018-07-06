@@ -262,7 +262,7 @@ def get_text(db: DatabaseHandler, story: dict) -> str:
     return story_text
 
 
-def create_child_download_for_story(db: DatabaseHandler, story: dict, parent_download: dict) -> None:
+def _create_child_download_for_story(db: DatabaseHandler, story: dict, parent_download: dict) -> None:
     """Create a pending download for the story's URL."""
     story = decode_object_from_bytes_if_needed(story)
     parent_download = decode_object_from_bytes_if_needed(parent_download)
@@ -293,3 +293,16 @@ def create_child_download_for_story(db: DatabaseHandler, story: dict, parent_dow
         download['download_time'] = get_sql_date_from_epoch(download_at_timestamp)
 
     db.create(table='downloads', insert_hash=download)
+
+
+def add_story_and_content_download(db: DatabaseHandler, story: dict, parent_download: dict) -> Optional[dict]:
+    """If the story is new, add it to the database and also add a pending download for the story content."""
+    story = decode_object_from_bytes_if_needed(story)
+    parent_download = decode_object_from_bytes_if_needed(parent_download)
+
+    story = add_story(db=db, story=story, feeds_id=parent_download['feeds_id'])
+
+    if story is not None:
+        _create_child_download_for_story(db=db, story=story, parent_download=parent_download)
+
+    return story
