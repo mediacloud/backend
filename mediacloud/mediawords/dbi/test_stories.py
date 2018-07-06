@@ -26,7 +26,7 @@ class TestStories(TestDatabaseWithSchemaTestCase):
 
         self.test_medium = create_test_medium(self.db(), 'downloads test')
         self.test_feed = create_test_feed(self.db(), 'downloads test', self.test_medium)
-        self.test_story = create_test_story(self.db(), label='downloads est', feed=self.test_feed)
+        self.test_story = create_test_story(self.db(), label='downloads test', feed=self.test_feed)
 
     def test_mark_as_processed(self):
         processed_stories = self.db().query("SELECT * FROM processed_stories").hashes()
