@@ -57,21 +57,6 @@ Readonly my $DUP_TITLE_PREFIXES => [
 
 =cut
 
-=head2 _get_first_download( $db, $download )
-
-Get the first download linking to this story.
-
-=cut
-
-sub _get_first_download
-{
-    my ( $db, $story ) = @_;
-
-    return $db->query( <<SQL, $story->{ stories_id } )->hash;
-SELECT * FROM downloads WHERE stories_id = ? ORDER BY sequence ASC LIMIT 1
-SQL
-}
-
 =head2 is_fully_extracted( $db, $story )
 
 Return true if all downloads linking to this story have been extracted.
@@ -92,29 +77,6 @@ EOF
     )->flat();
 
     return ( defined( $bool ) && $bool ) ? 1 : 0;
-}
-
-=head2 get_content_for_first_download( $db, $story )
-
-Call fetch_content on the result of _get_first_download().  Return undef if the download's state is not null.
-
-=cut
-
-sub get_content_for_first_download($$)
-{
-    my ( $db, $story ) = @_;
-
-    my $first_download = _get_first_download( $db, $story );
-
-    if ( $first_download->{ state } ne 'success' )
-    {
-        DEBUG "First download's state is not 'success' for story " . $story->{ stories_id };
-        return;
-    }
-
-    my $content = MediaWords::DBI::Downloads::fetch_content( $db, $first_download );
-
-    return $content;
 }
 
 =head2 get_existing_tags_as_string( $db, $stories_id )

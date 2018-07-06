@@ -647,7 +647,7 @@ sub stories_query_json : Local
     {
         foreach my $story ( @{ $stories } )
         {
-            my $content = MediaWords::DBI::Stories::get_content_for_first_download( $c->dbis, $story );
+            my $content = MediaWords::DBI::Downloads::get_content_for_first_download( $c->dbis, $story );
 
             if ( !defined( $content ) )
             {

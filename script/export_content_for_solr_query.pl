@@ -46,7 +46,7 @@ SQL
     elsif ( $content_type eq 'raw' )
     {
         my $story = $db->require_by_id( 'stories', $stories_id );
-        my $content = MediaWords::DBI::Stories::get_content_for_first_download( $db, $story );
+        my $content = MediaWords::DBI::Downloads::get_content_for_first_download( $db, $story );
         return $content;
     }
     else

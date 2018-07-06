@@ -132,7 +132,7 @@ select dt.*
     order by dt.download_texts_id
     limit 1
 SQL
-        my $content = MediaWords::DBI::Stories::get_content_for_first_download( $db, $story );
+        my $content = MediaWords::DBI::Downloads::get_content_for_first_download( $db, $story );
 
         my $ss_fields = [ qw/is_dup language media_id publish_date sentence sentence_number story_sentences_id/ ];
         rows_match( "$label $sid sentences", $got_story->{ story_sentences }, $sentences, 'story_sentences_id', $ss_fields );

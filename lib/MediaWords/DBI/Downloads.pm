@@ -46,4 +46,42 @@ SQL
     }
 }
 
+=head2 _get_first_download( $db, $download )
+
+Get the first download linking to this story.
+
+=cut
+
+sub _get_first_download
+{
+    my ( $db, $story ) = @_;
+
+    return $db->query( <<SQL, $story->{ stories_id } )->hash;
+SELECT * FROM downloads WHERE stories_id = ? ORDER BY sequence ASC LIMIT 1
+SQL
+}
+
+=head2 get_content_for_first_download( $db, $story )
+
+Call fetch_content on the result of _get_first_download().  Return undef if the download's state is not null.
+
+=cut
+
+sub get_content_for_first_download($$)
+{
+    my ( $db, $story ) = @_;
+
+    my $first_download = _get_first_download( $db, $story );
+
+    if ( $first_download->{ state } ne 'success' )
+    {
+        DEBUG "First download's state is not 'success' for story " . $story->{ stories_id };
+        return;
+    }
+
+    my $content = fetch_content( $db, $first_download );
+
+    return $content;
+}
+
 1;
