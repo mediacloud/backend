@@ -206,7 +206,12 @@ def get_text_for_word_counts(db: DatabaseHandler, story: dict) -> str:
     else:
         story_text = get_extracted_text(db=db, story=story)
 
-    story_description = story.get('description', None)
+    story_description = story.get('description', '')
+
+    if story_text is None:
+        story_text = ''
+    if story_description is None:
+        story_description = ''
 
     if len(story_text) == 0 or len(story_text) < len(story_description):
         story_text = html_strip(story['title'])
@@ -250,7 +255,7 @@ def get_text(db: DatabaseHandler, story: dict) -> str:
           AND type = 'content'
     """, {'stories_id': story['stories_id']}).hashes()
 
-    if len(pending_downloads) > 0:
+    if pending_downloads is not None and len(pending_downloads) > 0:
         download_texts.append("(downloads pending extraction)")
 
     story_text = combine_story_title_description_text(
