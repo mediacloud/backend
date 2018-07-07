@@ -1,8 +1,6 @@
 use strict;
 use warnings;
 
-# test that inserts and updates on stories in topic_stories are correctly mirrored to snap.live_stories
-
 use English '-no_match_vars';
 
 use Data::Dumper;
