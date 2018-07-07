@@ -416,7 +416,10 @@ sub attach_story_data_to_stories
 
     map { $_->{ $list_field } = [] } @{ $stories } if ( $list_field );
 
-    return unless ( scalar @{ $story_data } );
+    unless ( scalar @{ $story_data } )
+    {
+        return $stories;
+    }
 
     TRACE "stories size: " . scalar( @{ $stories } );
     TRACE "story_data size: " . scalar( @{ $story_data } );
