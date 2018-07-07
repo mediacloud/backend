@@ -288,6 +288,16 @@ sub is_syndicated
 {
     my ( $db, $story ) = @_;
 
+    # FIXME MC_REWRITE_TO_PYTHON:
+    #
+    # 1) AP module's test depends on add_content_to_test_story(),
+    # 2) which depends on add_content_to_test_story(),
+    # 3) which depends on extractor,
+    # 4) which depends on AP's module
+    #
+    # So, temporarily disabling AP module here.
+    return 0;
+
     if ( !$story->{ stories_id } && ( defined( $story->{ content } ) && defined( $story->{ language } ) ) )
     {
         die( '$story object must have a title field and either a stories_id field or a content and a language field' );
