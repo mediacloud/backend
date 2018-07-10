@@ -7,7 +7,6 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use MediaWords::Util::ExtractText;
-use MediaWords::Util::Tags;
 
 # cached ids of tags, which should change rarely
 my $_tags_id_cache = {};
@@ -50,7 +49,7 @@ sub _get_extractor_version_tag_set($)
 
     if ( !defined( $_extractor_version_tag_set ) )
     {
-        $_extractor_version_tag_set = MediaWords::Util::Tags::lookup_or_create_tag_set( $db, "extractor_version" );
+        $_extractor_version_tag_set = $db->find_or_create( 'tag_sets', { 'name' => 'extractor_version' } );
     }
 
     return $_extractor_version_tag_set;
