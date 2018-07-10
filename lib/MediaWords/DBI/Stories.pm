@@ -31,6 +31,7 @@ use List::Util;
 use MediaWords::DBI::Downloads;
 use MediaWords::DBI::Stories::ExtractorVersion;
 use MediaWords::DBI::Stories::ExtractorArguments;
+use MediaWords::DBI::Stories::Processed;
 use MediaWords::Job::CLIFF::FetchAnnotation;
 use MediaWords::Job::NYTLabels::FetchAnnotation;
 use MediaWords::Languages::Language;
@@ -223,7 +224,7 @@ sub process_extracted_story($$$)
 
             # If neither of the annotators are enabled, mark the story as processed ourselves
             TRACE "Marking the story as processed...";
-            unless ( mark_as_processed( $db, $stories_id ) )
+            unless ( MediaWords::DBI::Stories::Processed::mark_as_processed( $db, $stories_id ) )
             {
                 die "Unable to mark story ID $stories_id as processed";
             }
