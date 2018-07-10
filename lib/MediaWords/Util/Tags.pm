@@ -1,14 +1,12 @@
 package MediaWords::Util::Tags;
 
-# various functions for editing feed and medium tags
-#
-# FIXME move everything to "Tags" / "Tag sets" models?
-
 use strict;
 use warnings;
 
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
+
+import_python_module( __PACKAGE__, 'mediawords.util.tags' );
 
 use YAML::Syck;
 
@@ -171,24 +169,6 @@ END
             $db->create( "${table}_tags_map", { tags_id => $tag->{ tags_id }, $oid_field => $oid } );
         }
     }
-}
-
-# lookup the tag given the tag_set:tag format
-sub lookup_tag
-{
-    my ( $db, $tag_name ) = @_;
-
-    if ( $tag_name !~ /^([^:]*):(.*)$/ )
-    {
-        WARN "Unable to parse tag name '$tag_name'";
-        return undef;
-    }
-
-    my ( $tag_set_name, $tag ) = ( $1, $2 );
-
-    return $db->query(
-        "select t.* from tags t, tag_sets ts where t.tag_sets_id = ts.tag_sets_id " . "    and t.tag = ? and ts.name = ?",
-        $tag, $tag_set_name )->hash;
 }
 
 # lookup the tag given the tag_set:tag format.  create it if it does not already exist
