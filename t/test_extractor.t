@@ -12,6 +12,7 @@ use Test::More;
 use Test::NoWarnings;
 
 use MediaWords::DBI::Stories;
+use MediaWords::DBI::Stories::Extract;
 use MediaWords::Test::Data;
 use MediaWords::Test::Text;
 
@@ -43,7 +44,7 @@ sub extract_and_compare($$$)
 
     # crawler test squeezes in story title and description into the expected output
     my @download_texts = ( $results->{ extracted_text } );
-    my $combined_text  = MediaWords::DBI::Stories::combine_story_title_description_text(
+    my $combined_text  = MediaWords::DBI::Stories::Extract::combine_story_title_description_text(
         $story->{ title },
         $story->{ description },
         \@download_texts

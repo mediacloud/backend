@@ -19,6 +19,7 @@ use MediaWords::DBI::Activities;
 use MediaWords::DBI::Feeds;
 use MediaWords::DBI::Media;
 use MediaWords::DBI::Stories;
+use MediaWords::DBI::Stories::Extract;
 use MediaWords::Util::HTML;
 use MediaWords::Util::JSON;
 use MediaWords::Util::Tags;
@@ -725,7 +726,7 @@ EOF
 
     foreach my $story ( @{ $recent_stories } )
     {
-        $story->{ extracted_text } = MediaWords::DBI::Stories::get_extracted_text( $db, $story );
+        $story->{ extracted_text } = MediaWords::DBI::Stories::Extract::get_extracted_text( $db, $story );
     }
 
     my $next_media_id = $self->_get_next_media_id( $c, $media_id );

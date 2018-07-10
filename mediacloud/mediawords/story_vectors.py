@@ -2,8 +2,8 @@ import re
 from typing import List, Dict
 
 from mediawords.db import DatabaseHandler
-from mediawords.dbi.stories import get_text_for_word_counts
 from mediawords.dbi.stories.ap import is_syndicated
+from mediawords.dbi.stories.extract import get_text_for_word_counts
 from mediawords.dbi.stories.extractor_arguments import ExtractorArguments
 from mediawords.languages.factory import LanguageFactory
 from mediawords.util.identify_language import language_code_for_text, identification_would_be_reliable

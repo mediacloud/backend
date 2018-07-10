@@ -14,6 +14,7 @@ use Encode;
 
 use MediaWords::DBI::Activities;
 use MediaWords::DBI::Stories;
+use MediaWords::DBI::Stories::Extract;
 use MediaWords::DBI::Stories::GuessDate;
 use MediaWords::DBI::Activities;
 use MediaWords::Util::Annotator::CLIFF;
@@ -151,7 +152,7 @@ END
     $c->stash->{ all_sentences }   = $all_sentences;
     $c->stash->{ story_sentences } = $story_sentences;
 
-    $c->stash->{ storytext } = MediaWords::DBI::Stories::get_text( $c->dbis, $story );
+    $c->stash->{ storytext } = MediaWords::DBI::Stories::Extract::get_text( $c->dbis, $story );
 
     $c->stash->{ stories_id } = $stories_id;
 
@@ -633,7 +634,7 @@ sub stories_query_json : Local
 
     foreach my $story ( @{ $stories } )
     {
-        my $story_text = MediaWords::DBI::Stories::get_text_for_word_counts( $c->dbis, $story );
+        my $story_text = MediaWords::DBI::Stories::Extract::get_text_for_word_counts( $c->dbis, $story );
         $story->{ story_text } = $story_text;
     }
 

@@ -9,8 +9,9 @@ use MediaWords::CommonLibs;
 
 use MediaWords::DBI::Activities;
 use MediaWords::DBI::Media;
-use MediaWords::DBI::Stories::GuessDate;
 use MediaWords::DBI::Stories;
+use MediaWords::DBI::Stories::Extract;
+use MediaWords::DBI::Stories::GuessDate;
 use MediaWords::Job::TM::MineTopic;
 use MediaWords::Solr;
 use MediaWords::Solr::Query;
@@ -1515,7 +1516,7 @@ sub story : Local
         $story = _get_timespan_story_and_links( $db, $timespan, $stories_id );
     }
 
-    $story->{ extracted_text } = MediaWords::DBI::Stories::get_extracted_text( $db, $story );
+    $story->{ extracted_text } = MediaWords::DBI::Stories::Extract::get_extracted_text( $db, $story );
     $story->{ topic_match } = MediaWords::TM::Mine::story_matches_topic_pattern( $db, $topic, $story );
 
     $db->commit;

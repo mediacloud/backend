@@ -2,11 +2,7 @@ from mediawords.db import DatabaseHandler
 # noinspection PyProtectedMember
 from mediawords.dbi.stories import (
     is_new,
-    combine_story_title_description_text,
-    get_extracted_text,
     add_story,
-    get_text_for_word_counts,
-    get_text,
     _create_child_download_for_story,
 )
 from mediawords.test.db import (
@@ -114,35 +110,6 @@ class TestStories(TestDatabaseWithSchemaTestCase):
                     story = media[media_name]['feeds'][feeds_name]['stories'][str(num)]
                     _test_story(db=self.db(), story_=story, num_=num)
 
-    def test_get_extracted_text(self):
-        download_texts = [
-            'Text 1',
-            'Text 2',
-            'Text 3',
-        ]
-
-        for download_text in download_texts:
-            test_download = create_download_for_feed(self.db(), self.test_feed)
-            downloads_id = test_download['downloads_id']
-
-            self.db().update_by_id(
-                table='downloads',
-                object_id=downloads_id,
-                update_hash={
-                    'stories_id': self.test_story['stories_id'],
-                }
-            )
-            self.db().create(
-                table='download_texts',
-                insert_hash={
-                    'downloads_id': downloads_id,
-                    'download_text': download_text,
-                    'download_text_length': len(download_text),
-                })
-
-        extracted_text = get_extracted_text(db=self.db(), story=self.test_story)
-        assert extracted_text == "Text 1.\n\nText 2.\n\nText 3"
-
     def test_add_story(self):
         """Test add_story()."""
 
@@ -211,107 +178,6 @@ class TestStories(TestDatabaseWithSchemaTestCase):
         assert 'stories_id' in added_story
         assert story['url'] == added_story['url']
         assert added_story['full_text_rss'] is True
-
-    def test_get_text_for_word_counts_full_text(self):
-        """Test get_text_for_word_counts() with full text RSS enabled."""
-
-        self.test_story = self.db().update_by_id(
-            table='stories',
-            object_id=self.test_story['stories_id'],
-            update_hash={
-                'title': 'Full text RSS title',
-                'description': 'Full text RSS description',
-                'full_text_rss': True,
-            },
-        )
-
-        story_text = get_text_for_word_counts(db=self.db(), story=self.test_story)
-        assert story_text == "Full text RSS title\n\nFull text RSS description"
-
-    def test_get_text_for_word_counts_not_full_text(self):
-        """Test get_text_for_word_counts() with full text RSS disabled."""
-
-        story_description = 'Not full text RSS description'
-        download_texts = [
-            'Not full text 1',
-            'Not full text 2',
-            'Not full text 3',
-        ]
-        assert len(story_description) < len("\n\n".join(download_texts))
-
-        self.test_story = self.db().update_by_id(
-            table='stories',
-            object_id=self.test_story['stories_id'],
-            update_hash={
-                'title': 'Not full text RSS title',
-                'description': story_description,
-                'full_text_rss': False,
-            },
-        )
-
-        for download_text in download_texts:
-            test_download = create_download_for_feed(self.db(), self.test_feed)
-            downloads_id = test_download['downloads_id']
-
-            self.db().update_by_id(
-                table='downloads',
-                object_id=downloads_id,
-                update_hash={
-                    'stories_id': self.test_story['stories_id'],
-                }
-            )
-            self.db().create(
-                table='download_texts',
-                insert_hash={
-                    'downloads_id': downloads_id,
-                    'download_text': download_text,
-                    'download_text_length': len(download_text),
-                })
-
-        story_text = get_text_for_word_counts(db=self.db(), story=self.test_story)
-        assert story_text == "Not full text 1.\n\nNot full text 2.\n\nNot full text 3"
-
-    def test_get_text(self):
-        """Test get_text()."""
-
-        self.test_story = self.db().update_by_id(
-            table='stories',
-            object_id=self.test_story['stories_id'],
-            update_hash={
-                # We want it to read download_texts
-                'full_text_rss': False,
-            },
-        )
-
-        download_texts = [
-            'Story text 1',
-            'Story text 2',
-            'Story text 3',
-        ]
-
-        for download_text in download_texts:
-            test_download = create_download_for_feed(self.db(), self.test_feed)
-            downloads_id = test_download['downloads_id']
-
-            self.db().update_by_id(
-                table='downloads',
-                object_id=downloads_id,
-                update_hash={
-                    'stories_id': self.test_story['stories_id'],
-                }
-            )
-            self.db().create(
-                table='download_texts',
-                insert_hash={
-                    'downloads_id': downloads_id,
-                    'download_text': download_text,
-                    'download_text_length': len(download_text),
-                })
-
-        story_text = get_text(db=self.db(), story=self.test_story)
-        assert self.TEST_STORY_NAME in story_text
-        for download_text in download_texts:
-            assert download_text in story_text
 
     def test_create_child_download_for_story(self):
         downloads = self.db().query('SELECT * FROM downloads').hashes()
@@ -382,15 +248,3 @@ class TestStories(TestDatabaseWithSchemaTestCase):
         # So, in a test, let's just be happy if the download times differ (which might not even be the case depending on
         # server's / database's timezone).
         assert time_difference > 10
-
-
-def test_combine_story_title_description_text():
-    combined = combine_story_title_description_text(
-        story_title='<strong>Title</strong>',
-        story_description='<em>Description</em>',
-        download_texts=[
-            'Text 1',
-            'Text 2',
-        ]
-    )
-    assert combined == "Title\n***\n\nDescription\n***\n\nText 1\n***\n\nText 2"

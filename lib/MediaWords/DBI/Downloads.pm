@@ -9,13 +9,13 @@ use MediaWords::CommonLibs;
 import_python_module( __PACKAGE__, 'mediawords.dbi.downloads' );
 
 use MediaWords::DB;
-use MediaWords::DBI::Stories;
 use MediaWords::DBI::Stories::ExtractorArguments;
+use MediaWords::DBI::Stories::Process;
 
 =head2 process_download_for_extractor( $db, $download, $extractor_args )
 
 Extract the download create the resulting download_text entry.  If there are no remaining downloads to be extracted
-for the story, call MediaWords::DBI::Stories::process_extracted_story() on the parent story.
+for the story, call MediaWords::DBI::Stories::Process::process_extracted_story() on the parent story.
 
 =cut
 
@@ -42,7 +42,7 @@ SQL
     {
         my $story = $db->find_by_id( 'stories', $stories_id );
 
-        MediaWords::DBI::Stories::process_extracted_story( $db, $story, $extractor_args );
+        MediaWords::DBI::Stories::Process::process_extracted_story( $db, $story, $extractor_args );
     }
 }
 

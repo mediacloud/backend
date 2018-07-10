@@ -1,9 +1,9 @@
-from mediawords.dbi.stories.processed import mark_as_processed
+from mediawords.dbi.stories.postprocess import mark_as_processed
 from mediawords.test.db import create_test_medium, create_test_feed, create_test_story
 from mediawords.test.test_database import TestDatabaseWithSchemaTestCase
 
 
-class TestProcessed(TestDatabaseWithSchemaTestCase):
+class TestPostprocess(TestDatabaseWithSchemaTestCase):
     TEST_MEDIUM_NAME = 'test medium'
     TEST_FEED_NAME = 'test feed'
     TEST_STORY_NAME = 'test story'
