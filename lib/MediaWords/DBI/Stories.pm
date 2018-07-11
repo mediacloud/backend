@@ -144,33 +144,6 @@ sub _reextract_download
     }
 }
 
-=head2 extract_and_process_story( $db, $story, $extractor_args )
-
-Extract all of the downloads for the given story and then call process_extracted_story();
-
-=cut
-
-sub extract_and_process_story($$$)
-{
-    my ( $db, $story, $extractor_args ) = @_;
-
-    my $use_transaction = !$db->in_transaction();
-    $db->begin if ( $use_transaction );
-
-    my $downloads = $db->query( <<SQL, $story->{ stories_id } )->hashes;
-SELECT * FROM downloads WHERE stories_id = ? AND type = 'content' ORDER BY downloads_id ASC
-SQL
-
-    foreach my $download ( @{ $downloads } )
-    {
-        MediaWords::DBI::Downloads::extract_and_create_download_text( $db, $download, $extractor_args );
-    }
-
-    Mediawords::DBI::Stories::Process::process_extracted_story( $db, $story, $extractor_args );
-
-    $db->commit if ( $use_transaction );
-}
-
 =head2 _restore_download_content( $db, $download, $story_content )
 
 Replace the the download with the given content and reextract the download.
