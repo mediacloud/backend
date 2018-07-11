@@ -22,28 +22,16 @@ use MediaWords::CommonLibs;
 
 import_python_module( __PACKAGE__, 'mediawords.dbi.stories' );
 
-use Encode;
-use File::Temp;
 use HTML::Entities;
 use List::Compare;
 use List::Util;
 
 use MediaWords::DBI::Downloads;
-use MediaWords::DBI::Stories::ExtractorVersion;
 use MediaWords::DBI::Stories::ExtractorArguments;
-use MediaWords::DBI::Stories::Postprocess;
-use MediaWords::DBI::Stories::Process;
-use MediaWords::Job::CLIFF::FetchAnnotation;
-use MediaWords::Job::NYTLabels::FetchAnnotation;
 use MediaWords::Languages::Language;
 use MediaWords::Solr::WordCounts;
-use MediaWords::StoryVectors;
-use MediaWords::Util::Annotator::CLIFF;
-use MediaWords::Util::Annotator::NYTLabels;
-use MediaWords::Util::Config;
 use MediaWords::Util::HTML;
 use MediaWords::Util::SQL;
-use MediaWords::Util::Tags;
 use MediaWords::Util::URL;
 use MediaWords::Util::Web;
 use MediaWords::Util::Web::Cache;
