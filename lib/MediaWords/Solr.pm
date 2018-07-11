@@ -687,7 +687,7 @@ sub search_for_stories ($$)
 
     my $stories = [ map { { stories_id => $_ } } @{ $stories_ids } ];
 
-    MediaWords::DBI::Stories::attach_story_meta_data_to_stories( $db, $stories );
+    $stories = MediaWords::DBI::Stories::attach_story_meta_data_to_stories( $db, $stories );
 
     $stories = [ grep { $_->{ url } } @{ $stories } ];
 

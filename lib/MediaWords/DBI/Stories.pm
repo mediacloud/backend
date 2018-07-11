@@ -357,6 +357,8 @@ sub attach_story_data_to_stories
 Call attach_story_data_to_stories_ids with a basic query that includes the fields:
 stories_id, title, publish_date, url, guid, media_id, language, media_name.
 
+Return the updated stories arrayref.
+
 =cut
 
 sub attach_story_meta_data_to_stories
