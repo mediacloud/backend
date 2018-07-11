@@ -15,7 +15,7 @@ use Text::Lorem::More;
 use MediaWords::DB;
 use MediaWords::DBI::Auth;
 use MediaWords::DBI::Downloads;
-use MediaWords::Job::ExtractAndVector;
+use MediaWords::DBI::Stories;
 use MediaWords::DB::Schema;
 use MediaWords::Util::Config;
 use MediaWords::Util::URL;
@@ -187,7 +187,7 @@ sub add_content_to_test_story($$$)
     $story->{ download } = $download;
     $story->{ content }  = $content;
 
-    MediaWords::Job::ExtractAndVector->run( { stories_id => $story->{ stories_id } } );
+    MediaWords::DBI::Stories::extract_and_process_story( $db, $story );
 
     $story->{ download_text } = $db->query( <<SQL, $download->{ downloads_id } )->hash;
 select * from download_texts where downloads_id = ?

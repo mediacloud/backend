@@ -175,7 +175,9 @@ def add_story_and_content_download(db: DatabaseHandler, story: dict, parent_down
     return story
 
 
-def extract_and_process_story(db: DatabaseHandler, story: dict, extractor_args: ExtractorArguments) -> None:
+def extract_and_process_story(db: DatabaseHandler,
+                              story: dict,
+                              extractor_args: ExtractorArguments = ExtractorArguments()) -> None:
     """Extract all of the downloads for the given story and then call process_extracted_story()."""
 
     story = decode_object_from_bytes_if_needed(story)
