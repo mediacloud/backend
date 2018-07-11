@@ -168,12 +168,12 @@ programs = rabbitmq
 
 [% INCLUDE program_config
     program='extract_and_vector'
-    worker_module='ExtractAndVector.pm'
+    command="./script/run_in_env.sh ./mediacloud/mediawords/job/extract_and_vector.py"
     default_stopasgroup='false'
     default_killasgroup='false'
     default_autorestart='false'
     default_autostart='true'
-    default_nice=12
+    default_nice=11
 %]
 
 [% INCLUDE program_config
