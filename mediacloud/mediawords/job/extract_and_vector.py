@@ -3,7 +3,8 @@
 import time
 
 from mediawords.db import connect_to_db
-from mediawords.dbi.stories import ExtractorArguments, extract_and_process_story
+from mediawords.dbi.stories.extractor_arguments import ExtractorArguments
+from mediawords.dbi.stories.stories import extract_and_process_story
 from mediawords.job import AbstractJob, McAbstractJobException, JobBrokerApp
 from mediawords.story_vectors import medium_is_locked
 from mediawords.util.log import create_logger

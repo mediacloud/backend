@@ -1,6 +1,6 @@
 from mediawords.db import DatabaseHandler
 # noinspection PyProtectedMember
-from mediawords.dbi.stories import (
+from mediawords.dbi.stories.stories import (
     is_new,
     add_story,
     _create_child_download_for_story,

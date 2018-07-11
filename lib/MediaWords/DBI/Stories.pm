@@ -20,7 +20,7 @@ use utf8;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-import_python_module( __PACKAGE__, 'mediawords.dbi.stories' );
+import_python_module( __PACKAGE__, 'mediawords.dbi.stories.stories' );
 
 use HTML::Entities;
 use List::Compare;
