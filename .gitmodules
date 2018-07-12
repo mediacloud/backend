@@ -1,16 +1,16 @@
-[submodule "root/script/non-free/amcharts3"]
+[submodule "services/webapp/src/root/script/non-free/amcharts3"]
 	path = services/webapp/src/root/script/non-free/amcharts3
 	url = https://github.com/amcharts/amcharts3.git
-[submodule "root/include/libs/handsontable"]
+[submodule "services/webapp/src/root/include/libs/handsontable"]
 	path = services/webapp/src/root/include/libs/handsontable
 	url = https://github.com/handsontable/handsontable.git
-[submodule "root/include/libs/tag-it"]
+[submodule "services/webapp/src/root/include/libs/tag-it"]
 	path = services/webapp/src/root/include/libs/tag-it
 	url = https://github.com/aehlke/tag-it.git
-[submodule "doc/github-markdown-toc"]
+[submodule "services/webapp/doc/api_2_0_spec/github-markdown-toc"]
 	path = services/webapp/doc/api_2_0_spec/github-markdown-toc
 	url = https://github.com/ekalinin/github-markdown-toc.git
-[submodule "services/predict-news-labels/src"]
+[submodule "services/predict-news-labels/src/MediaCloud-NYT-News-Labeler"]
 	path = services/predict-news-labels/src/MediaCloud-NYT-News-Labeler
 	url = https://github.com/mitmedialab/MediaCloud-NYT-News-Labeler.git
 [submodule "services/common/src/python/mediawords/languages/hi/hindi-hunspell"]
