@@ -1,30 +1,30 @@
-[submodule "services/webapp/src/root/script/non-free/amcharts3"]
-	path = services/webapp/src/root/script/non-free/amcharts3
+[submodule "containers/webapp/src/root/script/non-free/amcharts3"]
+	path = containers/webapp/src/root/script/non-free/amcharts3
 	url = https://github.com/amcharts/amcharts3.git
-[submodule "services/webapp/src/root/include/libs/handsontable"]
-	path = services/webapp/src/root/include/libs/handsontable
+[submodule "containers/webapp/src/root/include/libs/handsontable"]
+	path = containers/webapp/src/root/include/libs/handsontable
 	url = https://github.com/handsontable/handsontable.git
-[submodule "services/webapp/src/root/include/libs/tag-it"]
-	path = services/webapp/src/root/include/libs/tag-it
+[submodule "containers/webapp/src/root/include/libs/tag-it"]
+	path = containers/webapp/src/root/include/libs/tag-it
 	url = https://github.com/aehlke/tag-it.git
-[submodule "services/webapp/doc/api_2_0_spec/github-markdown-toc"]
-	path = services/webapp/doc/api_2_0_spec/github-markdown-toc
+[submodule "containers/webapp/doc/api_2_0_spec/github-markdown-toc"]
+	path = containers/webapp/doc/api_2_0_spec/github-markdown-toc
 	url = https://github.com/ekalinin/github-markdown-toc.git
-[submodule "services/predict-news-labels/src/MediaCloud-NYT-News-Labeler"]
-	path = services/predict-news-labels/src/MediaCloud-NYT-News-Labeler
+[submodule "containers/predict-news-labels/src/MediaCloud-NYT-News-Labeler"]
+	path = containers/predict-news-labels/src/MediaCloud-NYT-News-Labeler
 	url = https://github.com/mitmedialab/MediaCloud-NYT-News-Labeler.git
-[submodule "services/common/src/python/mediawords/languages/hi/hindi-hunspell"]
-	path = services/common/src/python/mediawords/languages/hi/hindi-hunspell
+[submodule "containers/common/src/python/mediawords/languages/hi/hindi-hunspell"]
+	path = containers/common/src/python/mediawords/languages/hi/hindi-hunspell
 	url = https://github.com/Shreeshrii/hindi-hunspell.git
-[submodule "services/common/src/perl/MediaWords/Util/Mail/Message/Templates/email-templates"]
-	path = services/common/src/perl/MediaWords/Util/Mail/Message/Templates/email-templates
+[submodule "containers/common/src/perl/MediaWords/Util/Mail/Message/Templates/email-templates"]
+	path = containers/common/src/perl/MediaWords/Util/Mail/Message/Templates/email-templates
 	url = https://github.com/berkmancenter/mediacloud-email-templates.git
-[submodule "services/common/src/python/mediawords/languages/ca/snowball_stemmer"]
-	path = services/common/src/python/mediawords/languages/ca/snowball_stemmer
+[submodule "containers/common/src/python/mediawords/languages/ca/snowball_stemmer"]
+	path = containers/common/src/python/mediawords/languages/ca/snowball_stemmer
 	url = https://github.com/berkmancenter/mediacloud-catalan-stemmer.git
-[submodule "services/common/src/python/mediawords/languages/lt/snowball_stemmer"]
-	path = services/common/src/python/mediawords/languages/lt/snowball_stemmer
+[submodule "containers/common/src/python/mediawords/languages/lt/snowball_stemmer"]
+	path = containers/common/src/python/mediawords/languages/lt/snowball_stemmer
 	url = https://github.com/berkmancenter/mediacloud-lithuanian-stemmer.git
-[submodule "services/common/src/python/snowball"]
-	path = services/common/src/python/snowball
+[submodule "containers/common/src/python/snowball"]
+	path = containers/common/src/python/snowball
 	url = https://github.com/snowballstem/snowball.git
