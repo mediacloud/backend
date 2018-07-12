@@ -9,6 +9,7 @@ from bs4 import BeautifulSoup
 from mediawords.db import DatabaseHandler
 import mediawords.dbi.downloads
 import mediawords.key_value_store.amazon_s3
+import mediawords.tm.domains
 from mediawords.util.log import create_logger
 
 log = create_logger(__name__)
@@ -204,6 +205,7 @@ def extract_links_for_topic_story(db: DatabaseHandler, story: dict, topic: dict)
             }
 
             db.create('topic_links', topic_link)
+            mediawords.tm.domains.increment_domain_links(db, topic_link)
 
         link_mine_error = ''
     except Exception:

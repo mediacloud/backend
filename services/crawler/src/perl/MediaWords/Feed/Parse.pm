@@ -59,7 +59,7 @@ sub _fix_atom_content_element_encoding
         my @content_node_child_list = $child_nodes->get_nodelist();
 
         # allow white space before CDATA_SECTION
-        if ( any { $_->nodeType == XML_CDATA_SECTION_NODE } @content_node_child_list )
+        if ( any { $_ && $_->nodeType == XML_CDATA_SECTION_NODE } @content_node_child_list )
         {
             my @non_cdata_children = grep { $_->nodeType != XML_CDATA_SECTION_NODE } @content_node_child_list;
 

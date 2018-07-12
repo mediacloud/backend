@@ -11,3 +11,5 @@ crontab_rotate_supervisor_logs_log_path: "{{ mediacloud_root }}/data/logs/rotate
 crontab_rotate_http_request_log_log_path: "{{ mediacloud_root }}/data/logs/rotate_http_request_log.log"
 
 crontab_rescrape_due_media_log_path: "{{ mediacloud_root }}/data/logs/rescrape_media.log"
+
+crontab_rss_dump_path: "{{ mediacloud_root }}/data/rss_dumps"

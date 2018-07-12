@@ -15,9 +15,9 @@ use MediaWords::Test::Solr;
 use MediaWords::Test::Supervisor;
 use MediaWords::Test::Types;
 
-Readonly my $NUM_MEDIA            => 5;
+Readonly my $NUM_MEDIA            => 3;
 Readonly my $NUM_FEEDS_PER_MEDIUM => 2;
-Readonly my $NUM_STORIES_PER_FEED => 10;
+Readonly my $NUM_STORIES_PER_FEED => 4;
 
 # test that a story has the expected content
 sub _test_story_fields($$$)

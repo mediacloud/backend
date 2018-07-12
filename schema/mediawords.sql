@@ -24,7 +24,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4683;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4687;
 BEGIN
 
     -- Update / set database schema version
@@ -115,8 +115,6 @@ create table media (
 
     -- Delay content downloads for this media source this many hours
     content_delay       int             null,
-
-    db_row_last_updated         timestamp with time zone,
 
     -- notes for internal media cloud consumption (eg. 'added this for yochai')
     editor_notes                text null,
@@ -224,10 +222,7 @@ create type feed_type AS ENUM (
     'web_page',
 
     -- Univision.com XML feed
-    'univision',
-
-    -- Superglue (TV) feed
-    'superglue'
+    'univision'
 
 );
 
@@ -491,19 +486,6 @@ create table stories_ap_syndicated (
 );
 
 create unique index stories_ap_syndicated_story on stories_ap_syndicated ( stories_id );
-
-
---- Superglue (TV) stories metadata -->
-CREATE TABLE stories_superglue_metadata (
-    stories_superglue_metadata_id   SERIAL    PRIMARY KEY,
-    stories_id                      INT       NOT NULL REFERENCES stories ON DELETE CASCADE,
-    video_url                       VARCHAR   NOT NULL,
-    thumbnail_url                   VARCHAR   NOT NULL,   -- might be an empty string but not NULL
-    segment_duration                NUMERIC   NOT NULL
-);
-
-CREATE UNIQUE INDEX stories_superglue_metadata_stories_id
-    ON stories_superglue_metadata (stories_id);
 
 
 CREATE TYPE download_state AS ENUM (
@@ -1392,6 +1374,18 @@ create table topic_merged_stories_map (
 
 create index topic_merged_stories_map_source on topic_merged_stories_map ( source_stories_id );
 create index topic_merged_stories_map_story on topic_merged_stories_map ( target_stories_id );
+
+-- track self liks and all links for a given domain within a given topic
+create table topic_domains (
+    topic_domains_id        serial primary key,
+    topics_id               int not null,
+    domain                  text not null,
+    self_links              int not null default 0,
+    all_links               int not null default 0
+);
+
+create unique index topic_domains_domain on topic_domains (topics_id, md5(domain));
+
 
 create table topic_stories (
     topic_stories_id          serial primary key,

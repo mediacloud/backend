@@ -163,7 +163,7 @@ my $_url_transformations = {
     '/api/v2/topics/wc/list'                  => '/api/v2/topics/~topics_id~/wc/list',
 };
 
-# request GET, POST, and PUT methods from the url; return all responses that are not a 405
+# request GET, POST, and PUT methods from the url; return first response that is not a 405
 sub request_all_methods($;$)
 {
     my ( $url, $params ) = @_;
@@ -182,10 +182,10 @@ sub request_all_methods($;$)
 
         # Catalyst::Test::request()
         my $response = request( $request );
-        push( @{ $responses }, $response );
+        return [ $response ] if ( $response->code != 405 );
     }
 
-    return [ grep { $_->code != 405 } @{ $responses } ];
+    return [];
 }
 
 # make sure that the path requires at least a public key

@@ -10,12 +10,7 @@ above describe how we administer our Solr cluster, including scripts we use to c
 Solr shards.
 
 The basic interaction between Solr and the rest of the platform is that we import any updated `story_sentences` into
-Solr from the PostgreSQL server every hour by running an hourly Cron script on the Solr server.  The import script
-knows which sentences to import by keep track of `db_row_last_updated` fields on the `stories`, `media`, and `story_sentences`
-table.  The import script queries `story_sentences` for all distinct stories for which the `db_row_last_updated` value
-is greater than the latest value in `solr_imports`.  Triggers in the PostgreSQL database update the
-`story_sentences.db_row_last_updated` value on `story_sentences` whenever a related story, medium, story tag,
-medium tag, or story sentence tag is updated.
+Solr from the PostgreSQL server every hour by running an hourly Cron script on the Solr server. IDs of the stories to be (re)imported into Solr are to be found in the `solr_import_stories` table.
 
 The list of fields imported by Solr is configured in
 [solr/collections/_base_collection/conf/schema.xml](../solr/collections/_base_collection/conf/schema.xml).  As of this doc, we index the
