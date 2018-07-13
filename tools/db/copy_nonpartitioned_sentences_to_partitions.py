@@ -26,7 +26,7 @@ def copy_nonpartitioned_sentences_to_partitions():
 
     log.info("Max. stories ID: {}".format(max_stories_id))
 
-    for start_stories_id in range(676850000, max_stories_id + 1, stories_chunk_size):
+    for start_stories_id in range(758650000, max_stories_id + 1, stories_chunk_size):
         end_stories_id = start_stories_id + stories_chunk_size - 1
 
         log.info("Copying sentences of stories_id BETWEEN {} AND {} to the partitioned table...".format(
