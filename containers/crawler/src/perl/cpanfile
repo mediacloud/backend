@@ -1,7 +1,8 @@
+requires 'Data::Sorting';
 requires 'Date::Parse';
 requires 'Digest::SHA';
 requires 'Fcntl';
 requires 'File::Path';
 requires 'IO::Select';
 requires 'IO::Socket';
-requires 'Math::Random';
+requires 'XML::LibXML';

@@ -1,0 +1,2 @@
+requires 'Parallel::ForkManager';
+requires 'Sys::RunAlone';

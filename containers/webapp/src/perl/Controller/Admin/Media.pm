@@ -22,6 +22,7 @@ use MediaWords::DBI::Stories;
 use MediaWords::Util::HTML;
 use MediaWords::Util::JSON;
 use MediaWords::Util::Tags;
+use MediaWords::Util::TagForm;
 use MediaWords::Util::Web;
 use Readonly;
 use Regexp::Common qw /URI/;
@@ -503,7 +504,7 @@ sub edit_tags_do : Local
       || die( "Unable to find medium $media_id" );
 
     my $action = $c->uri_for( '/admin/media/edit_tags_do/' ) . $media_id;
-    my $form = MediaWords::Util::Tags::make_edit_tags_form( $c, $action, $media_id, 'media' );
+    my $form = MediaWords::Util::TagForm::make_edit_tags_form( $c, $action, $media_id, 'media' );
 
     if ( !$form->submitted_and_valid )
     {
@@ -512,7 +513,7 @@ sub edit_tags_do : Local
 
     my $tag_names = $c->req->params->{ tags };
 
-    MediaWords::Util::Tags::save_tags_by_name( $db, $media_id, 'media', $tag_names );
+    MediaWords::Util::TagForm::save_tags_by_name( $db, $media_id, 'media', $tag_names );
 
     $c->response->redirect( $c->uri_for( "/admin/feeds/list/" . $media_id, { status_msg => 'Tags updated.' } ) );
 }

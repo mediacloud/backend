@@ -1,0 +1,2 @@
+requires 'Domain::PublicSuffix';
+requires 'HTML::LinkExtractor';

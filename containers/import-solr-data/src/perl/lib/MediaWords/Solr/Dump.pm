@@ -31,8 +31,6 @@ changes you make to the module.
 
 =cut
 
-#use forks;
-
 use strict;
 use warnings;
 

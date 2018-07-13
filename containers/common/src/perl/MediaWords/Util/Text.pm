@@ -13,7 +13,6 @@ import_python_module( __PACKAGE__, 'mediawords.util.text' );
 
 use List::Util qw(min);
 use Memoize;
-use Math::Random::Secure;
 use Encode;
 
 # Encode data into UTF-8; die() on error

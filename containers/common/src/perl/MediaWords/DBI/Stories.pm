@@ -25,7 +25,6 @@ import_python_module( __PACKAGE__, 'mediawords.dbi.stories' );
 use Encode;
 use File::Temp;
 use HTML::Entities;
-use List::Compare;
 use List::Util;
 
 use MediaWords::DBI::Downloads;

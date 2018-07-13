@@ -1,0 +1,9 @@
+requires 'Carp::Always';
+requires 'CHI';
+requires 'Devel::Cover';
+requires 'Devel::Cover::Report::Coveralls';
+requires 'HTML::LinkExtractor';
+requires 'Parallel::ForkManager';
+requires 'Parse::BooleanLogic';
+requires 'Perl::Tidy';
+requires 'Term::Prompt';

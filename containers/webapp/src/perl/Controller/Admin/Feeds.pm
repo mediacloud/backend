@@ -7,11 +7,11 @@ use warnings;
 use base 'Catalyst::Controller';
 
 use MediaWords::Feed::Scrape;
+use MediaWords::Util::TagForm;
 use MediaWords::Util::Tags;
 use MediaWords::Util::Web;
 
 use Data::Dumper;
-use HTML::Entities;
 use XML::FeedPP;
 
 =head1 NAME>
@@ -442,7 +442,7 @@ sub edit_tags : Local
 
     my $action = $c->uri_for( '/admin/feeds/edit_tags_do/' . $feeds_id );
 
-    my $form = MediaWords::Util::Tags::make_edit_tags_form( $c, $action, $feeds_id, 'feeds' );
+    my $form = MediaWords::Util::TagForm::make_edit_tags_form( $c, $action, $feeds_id, 'feeds' );
 
     $c->stash->{ form }     = $form;
     $c->stash->{ medium }   = $medium;
@@ -465,7 +465,7 @@ sub edit_tags_do : Local
     }
 
     my $action = $c->uri_for( '/admin/feeds/edit_tags_do/' ) . $feeds_id;
-    my $form = MediaWords::Util::Tags::make_edit_tags_form( $c, $action, $feeds_id, 'feeds' );
+    my $form = MediaWords::Util::TagForm::make_edit_tags_form( $c, $action, $feeds_id, 'feeds' );
 
     if ( !$form->submitted_and_valid )
     {

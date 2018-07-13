@@ -10,7 +10,6 @@ use base 'Catalyst::Controller';
 use Data::Dumper;
 use DateTime;
 use Encode;
-use HTML::Entities;
 use Readonly;
 
 use MediaWords::Crawler::Engine;
