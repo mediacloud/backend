@@ -35,6 +35,8 @@ RUN \
         bash-completion \
         # Some of the packages might want to use SSL
         ca-certificates \
+        # Crontab jobs (cron has to be run manually though)
+        cron && \
         curl \
         htop \
         less \
@@ -49,6 +51,9 @@ RUN \
         # Editing stuff while debugging
         vim \
     && \
+    # Default Cron jobs don't have to be run
+    rm /etc/cron.d/* && \
+    #
     true
 
 # Copy rsyslog configuration
