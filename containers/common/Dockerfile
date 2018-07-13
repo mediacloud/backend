@@ -4,8 +4,24 @@
 
 FROM mediacloud-perl-python-base:latest
 
-# Install OpenSSL headers for various SSL modules
-RUN apt-get -y --no-install-recommends install libssl-dev
+# Install dependencies
+RUN \
+    apt-add-repository "deb https://dl.bintray.com/pypt/mecab-ipadic-neologd-deb xenial main" && \
+    apt-get -y update && \
+    #
+    # OpenSSL headers for various SSL modules
+    apt-get -y --no-install-recommends install libssl-dev && \
+    #
+    # Japanese language tokenization
+    apt-get -y --no-install-recommends install libmecab-dev && \
+    apt-get -y --no-install-recommends install mecab && \
+    apt-get -y --no-install-recommends install mecab-ipadic-neologd && \
+    #
+    # Hindi stemming with Hunspell
+    apt-get -y --no-install-recommends install hunspell && \
+    apt-get -y --no-install-recommends install libhunspell-dev && \
+    #
+    true
 
 # Copy Perl sources
 COPY src/perl/ /usr/share/perl5/

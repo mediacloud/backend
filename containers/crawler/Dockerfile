@@ -4,6 +4,14 @@
 
 FROM mediacloud-common:latest
 
+# Install dependencies
+RUN \
+    #
+    # Required by XML::LibXML
+    apt-get -y --no-install-recommends install libxml2-dev && \
+    #
+    true
+
 # Copy Perl sources
 COPY src/perl/ /usr/share/perl5/
 
