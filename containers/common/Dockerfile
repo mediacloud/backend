@@ -37,5 +37,3 @@ RUN \
 
 # Move Log::Log4perl configuration
 RUN mv /usr/share/perl5/log4perl.conf /etc/
-
-CMD ["sleep", "100000000"]
