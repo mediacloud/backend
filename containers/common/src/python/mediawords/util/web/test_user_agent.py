@@ -814,38 +814,6 @@ class TestUserAgentTestCase(TestCase):
 
         assert response.content_type() == 'application/xhtml+xml'
 
-    def test_get_http_request_log(self):
-        """HTTP request log."""
-
-        path = '/%s' % random_string(16)
-        pages = {path: path}
-
-        hs = HashServer(port=self.__test_port, pages=pages)
-        hs.start()
-
-        ua = UserAgent()
-        test_url = self.__test_url + path
-        response = ua.get(test_url)
-
-        hs.stop()
-
-        assert response.is_success() is True
-        assert urls_are_equal(url1=response.request().url(), url2=test_url)
-
-        config = py_get_config()
-        http_request_log_file = "%s/logs/http_request.log" % config['mediawords']['data_dir']
-        assert os.path.isfile(http_request_log_file)
-
-        last_non_blank_line = None
-        for line in reversed(list(open(http_request_log_file, mode='r', encoding='utf-8'))):
-            line = line.strip()
-            if len(line) > 0:
-                last_non_blank_line = line
-                break
-
-        assert last_non_blank_line is not None
-        assert test_url in last_non_blank_line
-
     def test_get_blacklisted_url(self):
         """Blacklisted URLs."""
 

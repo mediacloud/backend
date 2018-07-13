@@ -430,38 +430,6 @@ sub test_get_response_content_type()
     is( $response->content_type(), 'application/xhtml+xml' );
 }
 
-sub test_get_http_request_log()
-{
-    my $path = '/' . MediaWords::Util::Text::random_string( 16 );
-    my $pages = { $path => $path };
-
-    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
-    $hs->start();
-
-    my $ua       = MediaWords::Util::Web::UserAgent->new();
-    my $url      = $TEST_HTTP_SERVER_URL . $path;
-    my $response = $ua->get( $url );
-
-    $hs->stop();
-
-    is_urls( $response->request()->url(), $url );
-    ok( $response->is_success() );
-
-    my $config                = MediaWords::Util::Config::get_config();
-    my $http_request_log_file = "$config->{ mediawords }->{ data_dir }/logs/http_request.log";
-    ok( -e $http_request_log_file );
-
-    my $backwards = File::ReadBackwards->new( $http_request_log_file );
-    my $last_non_blank_line;
-    do
-    {
-        $last_non_blank_line = $backwards->readline;
-    } until !defined $last_non_blank_line || $last_non_blank_line =~ /\S/;
-
-    ok( $last_non_blank_line );
-    like( $last_non_blank_line, qr/\Q$url\E/ );
-}
-
 sub test_get_blacklisted_url()
 {
     my $tempdir = tempdir( CLEANUP => 1 );
@@ -1340,7 +1308,6 @@ sub main()
     test_get_response_status();
     test_get_response_headers();
     test_get_response_content_type();
-    test_get_http_request_log();
     test_get_blacklisted_url();
     test_get_http_auth();
     test_get_crawler_authenticated_domains();

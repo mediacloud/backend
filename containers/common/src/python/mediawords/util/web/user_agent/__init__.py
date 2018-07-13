@@ -610,37 +610,8 @@ class UserAgent(object):
         if len(url) == 0:
             raise McRequestException("URL is empty.")
 
-        config = py_get_config()
+        log.debug("HTTP request: %s %s\n" % (sql_now(), url,))
 
-        http_request_log_path = os.path.join(config['mediawords']['data_dir'], 'logs', 'http_request.log')
-
-        with open(http_request_log_path, encoding='utf-8', mode='a') as f:
-
-            while True:
-                try:
-                    fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
-                    break
-                except IOError as e:
-                    # raise on unrelated IOErrors
-                    if e.errno != errno.EAGAIN:
-                        raise
-                    else:
-                        log.warning("Waiting for HTTP request log lock...")
-                        time.sleep(0.1)
-
-            f.write("%s %s\n" % (sql_now(), url,))
-
-            # Doesn't write "invalidating blacklist url <...> because it's apparent from the URL itself
-
-            fcntl.flock(f, fcntl.LOCK_UN)
-
-        # Processes from various users (web service, workers, ...) will want to write to the same file
-        try:
-            os.chmod(http_request_log_path, 0o666)
-        except PermissionError as ex:
-            # Web server process might attempt at chmodding the file without the appropriate permissions
-            log.debug("Failed to chmod %s: %s" % (http_request_log_path, str(ex),))
-            pass
 
     def __prepare_request(self, request: Request) -> requests.PreparedRequest:
         """Create PreparedRequest from UserAgent's Request. Raises if one or more parameters are invalid."""

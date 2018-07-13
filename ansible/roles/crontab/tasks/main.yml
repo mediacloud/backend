@@ -6,12 +6,11 @@
     disabled: true  # Temporarily disabled because it has been started manually on mcquery1
     minute: "57"
     job: >
-      nice -n {{ crontab_import_solr_data_nice }}
+      nice -n 15
       {{ mediacloud_root }}/script/run_in_env.sh
       {{ mediacloud_root }}/script/import_solr_data.pl
       --delta
-      --jobs {{ crontab_import_solr_data_jobs }}
-      &> {{ crontab_import_solr_data_log_path }}
+      --jobs 8
   become: true
   become_user: "{{ mediacloud_user }}"
   when: "'core_services' in group_names"  # only for hosts in 'core_services' group
@@ -32,20 +31,6 @@
   tags:
     - crontab
 
-- name: Add rotate HTTP request log script
-  cron:
-    name: "rotate_http_request_log"
-    minute: "10"
-    hour: "14"
-    job: >
-      {{ mediacloud_root }}/script/run_in_env.sh
-      {{ mediacloud_root }}/tools/web/rotate_http_request_log.py
-      &> {{ crontab_rotate_http_request_log_log_path }}
-  become: true
-  become_user: "{{ mediacloud_user }}"
-  tags:
-    - crontab
-
 # Make sure that the following two commands are being run at more or less
 # opposite times of day because one of them initializes rescraping and the
 # other reports status of the last rescrape:
@@ -58,7 +43,6 @@
     job: >
       {{ mediacloud_root }}/script/run_in_env.sh
       {{ mediacloud_root }}/script/rescrape_due_media.pl
-      &> {{ crontab_rescrape_due_media_log_path }}
   become: true
   become_user: "{{ mediacloud_user }}"
   when: "'core_services' in group_names"  # only for hosts in 'core_services' group
