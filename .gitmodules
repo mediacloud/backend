@@ -7,8 +7,8 @@
 [submodule "containers/webapp/src/root/include/libs/tag-it"]
 	path = containers/webapp/src/root/include/libs/tag-it
 	url = https://github.com/aehlke/tag-it.git
-[submodule "containers/webapp/doc/api_2_0_spec/github-markdown-toc"]
-	path = containers/webapp/doc/api_2_0_spec/github-markdown-toc
+[submodule "doc/api_2_0_spec/github-markdown-toc"]
+	path = doc/api_2_0_spec/github-markdown-toc
 	url = https://github.com/ekalinin/github-markdown-toc.git
 [submodule "containers/predict-news-labels/src/MediaCloud-NYT-News-Labeler"]
 	path = containers/predict-news-labels/src/MediaCloud-NYT-News-Labeler
