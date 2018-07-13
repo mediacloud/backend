@@ -1,55 +1,5 @@
 ---
 
-- name: Add MAILTO environment variable
-  cron:
-    name: MAILTO
-    env: true
-    value: "{{ crontab_mailto | join(',') }}"
-  become: true
-  become_user: "{{ mediacloud_user }}"
-  tags:
-    - crontab
-
-- name: Add HOME environment variable
-  cron:
-    name: HOME
-    env: true
-    value: "{{ mediacloud_home }}"
-  become: true
-  become_user: "{{ mediacloud_user }}"
-  tags:
-    - crontab
-
-- name: Add SHELL environment variable
-  cron:
-    name: SHELL
-    env: true
-    value: "/bin/bash"
-  become: true
-  become_user: "{{ mediacloud_user }}"
-  tags:
-    - crontab
-
-- name: Add PATH environment variable
-  cron:
-    name: PATH
-    env: true
-    value: "/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin"
-  become: true
-  become_user: "{{ mediacloud_user }}"
-  tags:
-    - crontab
-
-- name: Start Supervisor on reboot
-  cron:
-    name: "supervisor"
-    special_time: reboot
-    job: "{{ mediacloud_root }}/supervisor/supervisord.sh"
-  become: true
-  become_user: "{{ mediacloud_user }}"
-  tags:
-    - crontab
-
 - name: Add Solr import script
   cron:
     name: "import_solr_data"
@@ -79,20 +29,6 @@
   become: true
   become_user: "{{ mediacloud_user }}"
   when: "'core_services' in group_names"  # only for hosts in 'core_services' group
-  tags:
-    - crontab
-
-- name: Add rotate Supervisor logs script
-  cron:
-    name: "rotate_supervisor_logs"
-    minute: "58"
-    hour: "14"
-    job: >
-      {{ mediacloud_root }}/script/run_in_env.sh
-      {{ mediacloud_root }}/tools/supervisor/rotate_supervisor_logs.py
-      &> {{ crontab_rotate_supervisor_logs_log_path }}
-  become: true
-  become_user: "{{ mediacloud_user }}"
   tags:
     - crontab
 
