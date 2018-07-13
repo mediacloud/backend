@@ -1,0 +1,11 @@
+# Guessing publication dates of stories
+date_guesser==2.1.1
+
+# Timezone handling
+pytz==2017.2
+
+# Python 3-compatible version of Google re2 library (requires libre2-dev system package)
+sw-re2==0.2.23
+
+# Twitter
+tweepy==3.5.0

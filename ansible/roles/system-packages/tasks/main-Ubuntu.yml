@@ -36,7 +36,6 @@
     - libxslt1-dbg
     - libxslt1-dev
     - libxslt1.1
-    - libyaml-dev
     - make
     - mecab
     - mecab-ipadic-neologd
