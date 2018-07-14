@@ -29,6 +29,9 @@ RUN \
     postconf -e non_smtpd_milters=inet:${MC_MAIL_POSTFIX_OPENDKIM_HOST}:12301 && \
     true
 
+# SMTP port
+EXPOSE 25
+
 # Start OpenDKIM
 COPY bin/postfix.sh /
 CMD ["/postfix.sh"]

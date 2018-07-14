@@ -1,6 +1,8 @@
 #
 # Generate media health Cron job
 #
+# FIXME send out by email
+#
 
 FROM mediacloud-common:latest
 

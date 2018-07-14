@@ -1,0 +1,763 @@
+version: "3"
+
+#
+# Services
+# ========
+#
+services:
+
+    #
+    # CLIFF fetch annotation
+    # ----------------------
+    #
+    cliff_fetch_annotation:
+        build:
+            context: ./cliff-fetch-annotation/
+        image: mc_cliff_fetch_annotation:latest
+        container_name: mc_cliff_fetch_annotation
+        depends_on:
+            - extract_and_vector
+            - postgresql_pgbouncer
+            - rabbitmq_server
+        networks:
+            # Stores fetched raw annotation to PostgreSQL
+            - net_postgresql
+            # Celery worker
+            - net_rabbitmq
+        deploy:
+            # Multiple workers
+            mode: replicated
+            # Worker count
+            replicas: 4
+            # Auto-restart on crashes
+            restart_policy:
+                condition: on-failure
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: 256M
+
+    #
+    # CLIFF update story tags
+    # -----------------------
+    #
+    cliff_update_story_tags:
+        build:
+            context: ./cliff-update-story-tags/
+        image: mc_cliff_update_story_tags:latest
+        container_name: mc_cliff_update_story_tags
+        depends_on:
+            - cliff_fetch_annotation
+            - postgresql_pgbouncer
+            - rabbitmq_server
+        networks:
+            # Fetches raw annotation, stores tags to PostgreSQL
+            - net_postgresql
+            # Celery worker
+            - net_rabbitmq
+        deploy:
+            # Multiple workers
+            mode: replicated
+            # Worker count
+            replicas: 1
+            # Auto-restart on crashes
+            restart_policy:
+                condition: on-failure
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: 256M
+
+    #
+    # Crawler
+    # -------
+    #
+    crawler:
+        build:
+            context: ./crawler/
+        image: mc_crawler:latest
+        container_name: mc_crawler
+        depends_on:
+            - postgresql_pgbouncer
+            - rabbitmq_server
+        networks:
+            # Stores fetched data in PostgreSQL
+            - net_postgresql
+            # Adds extractor jobs
+            - net_rabbitmq
+        deploy:
+            # Only one instance
+            mode: global
+            # Auto-restart on crashes
+            restart_policy:
+                condition: on-failure
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "16"
+                    # RAM limit
+                    memory: 64G
+
+    #
+    # Extractor
+    # ---------
+    #
+    extract_and_vector:
+        build:
+            context: ./extract-and-vector/
+        image: mc_extract_and_vector:latest
+        container_name: mc_extract_and_vector
+        depends_on:
+            - crawler
+            - postgresql_pgbouncer
+            - rabbitmq_server
+        networks:
+            # Fetches / stores extracted data to PostgreSQL
+            - net_postgresql
+            # Celery worker
+            - net_rabbitmq
+        deploy:
+            # Multiple workers
+            mode: replicated
+            # Worker count
+            replicas: 24
+            # Auto-restart on crashes
+            restart_policy:
+                condition: on-failure
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: 2G
+
+    #
+    # Fetch story stats from Facebook
+    # -------------------------------
+    #
+    facebook_fetch_story_stats:
+        build:
+            context: ./facebook-fetch-story-stats/
+        image: mc_facebook_fetch_story_stats:latest
+        container_name: mc_facebook_fetch_story_stats
+        depends_on:
+            - extract_and_vector
+            - postgresql_pgbouncer
+            - rabbitmq_server
+        networks:
+            # Stores Facebook stats in PostgreSQL
+            - net_postgresql
+            # Celery worker
+            - net_rabbitmq
+        deploy:
+            # Multiple workers
+            mode: replicated
+            # Worker count
+            replicas: 4
+            # Auto-restart on crashes
+            restart_policy:
+                condition: on-failure
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: 256M
+
+    #
+    # Generate daily RSS dumps Cron job
+    # ---------------------------------
+    #
+    # FIXME send email
+    generate_daily_rss_dumps:
+        build:
+            context: ./generate-daily-rss-dumps/
+        image: mc_generate_daily_rss_dumps:latest
+        container_name: mc_generate_daily_rss_dumps
+        depends_on:
+            - postgresql_pgbouncer
+        networks:
+            # Generates RSS report using data from PostgreSQL
+            - net_postgresql
+        volumes:
+            - vol_daily_rss_dumps:/var/lib/daily_rss_dumps/
+        deploy:
+            # Only one instance
+            mode: global
+            # Auto-restart on crashes
+            restart_policy:
+                condition: on-failure
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: 1G
+
+    #
+    # Generate media health report Cron job
+    # -------------------------------------
+    #
+    # FIXME send email
+    generate_media_health:
+        build:
+            context: ./generate-media-health/
+        image: mc_generate_media_health:latest
+        container_name: mc_generate_media_health
+        networks:
+            # Generates media health report from PostgreSQL
+            - net_postgresql
+        deploy:
+            # Only one instance
+            mode: global
+            # Auto-restart on crashes
+            restart_policy:
+                condition: on-failure
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: 256M
+
+    #
+    # Generate daily / weekly user summary Cron job
+    # ---------------------------------------------
+    #
+    # FIXME send email
+    generate_user_summary:
+        build:
+            context: ./generate-user-summary/
+        image: mc_generate_user_summary:latest
+        container_name: mc_generate_user_summary
+        depends_on:
+            - postgresql_pgbouncer
+        networks:
+            # Reads users from PostgreSQL
+            - net_postgresql
+        deploy:
+            # Only one instance
+            mode: global
+            # Auto-restart on crashes
+            restart_policy:
+                condition: on-failure
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: 256M
+
+    #
+    # Import stories into Solr
+    # ------------------------
+    #
+    import_solr_data:
+        build:
+            context: ./import-solr-data/
+        image: mc_import_solr_data:latest
+        container_name: mc_import_solr_data
+        depends_on:
+            - postgresql_pgbouncer
+            - solr_shard
+        networks:
+            # Reads stories from PostgreSQL
+            - net_postgresql
+            # Imports stories to Solr
+            - net_solr
+        deploy:
+            # Only one instance
+            mode: global
+            # Auto-restart on crashes
+            restart_policy:
+                condition: on-failure
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "16"
+                    # RAM limit
+                    memory: 4G
+
+    #
+    # OpenDKIM server
+    # ---------------
+    #
+    mail_opendkim_server:
+        build:
+            context: ./main-opendkim-server/
+        image: mc_mail_opendkim_server:latest
+        container_name: mc_mail_opendkim_server
+        networks:
+            # Accessed by Postfix only
+            - net_postfix_opendkim
+        expose:
+            # Expose OpenDKIM to host computer
+            - "12301:12301"
+        deploy:
+            # Only one instance
+            mode: global
+            # Auto-restart on crashes
+            restart_policy:
+                condition: on-failure
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: 128M
+
+    #
+    # Postfix server
+    # ---------------
+    #
+    mail_postfix_server:
+        build:
+            context: ./main-postfix-server/
+        image: mc_mail_postfix_server:latest
+        container_name: mc_mail_postfix_server
+        networks:
+            # Exposed to the rest of the services through this network
+            - net_postfix
+            # Accesses underlying OpenDKIM instance
+            - net_postfix_opendkim
+        expose:
+            # Expose OpenDKIM to host computer
+            - "12301:12301"
+        deploy:
+            # Only one instance
+            mode: global
+            # Auto-restart on crashes
+            restart_policy:
+                condition: on-failure
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: 128M
+
+    #
+    # NYTLabels fetch annotation
+    # ----------------------
+    #
+    nytlabels_fetch_annotation:
+        build:
+            context: ./nytlabels-fetch-annotation/
+        image: mc_nytlabels_fetch_annotation:latest
+        container_name: mc_nytlabels_fetch_annotation
+        depends_on:
+            - extract_and_vector
+            - predict_news_labels
+            - postgresql_pgbouncer
+            - rabbitmq_server
+        networks:
+            # Accesses underlying NYT-Based News Tagger service
+            - net_nytlabels_fetch_annotation_predict_news_labels
+            # Stores fetched raw annotation to PostgreSQL
+            - net_postgresql
+            # Celery worker
+            - net_rabbitmq
+        deploy:
+            # Multiple workers
+            mode: replicated
+            # Worker count
+            replicas: 4
+            # Auto-restart on crashes
+            restart_policy:
+                condition: on-failure
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: 256M
+
+    #
+    # NYTLabels update story tags
+    # -----------------------
+    #
+    nytlabels_update_story_tags:
+        build:
+            context: ./nytlabels-update-story-tags/
+        image: mc_nytlabels_update_story_tags:latest
+        container_name: mc_nytlabels_update_story_tags
+        depends_on:
+            - nytlabels_fetch_annotation
+            - postgresql_pgbouncer
+            - rabbitmq_server
+        networks:
+            # Fetches raw annotation, stores tags to PostgreSQL
+            - net_postgresql
+            # Celery worker
+            - net_rabbitmq
+        deploy:
+            # Multiple workers
+            mode: replicated
+            # Worker count
+            replicas: 1
+            # Auto-restart on crashes
+            restart_policy:
+                condition: on-failure
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: 256M
+
+    #
+    # PgBouncer
+    # ---------
+    #
+    postgresql_pgbouncer:
+        build:
+            context: ./postgresql-pgbouncer/
+        image: mc_postgresql_pgbouncer:latest
+        container_name: mc_postgresql_pgbouncer
+        depends_on:
+            - postgresql_server
+        networks:
+            # Exposed to the rest of the services through this network
+            - net_postgresql
+            # Accesses underlying PostgreSQL instance
+            - net_postgresql_pgbouncer
+        expose:
+            - 6432
+        deploy:
+            # Only one instance
+            mode: global
+            # Auto-restart on crashes
+            restart_policy:
+                condition: on-failure
+
+    #
+    # PostgreSQL server
+    # -----------------
+    #
+    postgresql_server:
+        build:
+            context: ./postgresql-server/
+        image: mc_postgresql_server:latest
+        container_name: mc_postgresql_server
+        networks:
+            # Not in "net_postgresql" because accessed through PgBouncer
+            - net_postgresql_pgbouncer
+        expose:
+            - 5432
+        volumes:
+            - vol_postgresql_data:/var/lib/postgresql/10/main/
+        deploy:
+            # Only one instance
+            mode: global
+            # Auto-restart on crashes
+            restart_policy:
+                condition: on-failure
+
+    #
+    # NYT-Based News Tagger service
+    # -----------------------------
+    #
+    predict_news_labels:
+        build:
+            context: ./predict-news-labels/
+        image: mc_predict_news_labels:latest
+        container_name: mc_predict_news_labels
+        networks:
+            # Accessed by nytlabels_fetch_annotation only
+            - net_nytlabels_fetch_annotation_predict_news_labels
+        expose:
+            - 8080
+        deploy:
+            # Multiple Gunicorn instances
+            mode: replicated
+            # Instance count
+            replicas: 4
+            # Auto-restart on crashes
+            restart_policy:
+                condition: on-failure
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: 8G
+
+    #
+    # RabbitMQ
+    # --------
+    #
+    rabbitmq_server:
+        build:
+            context: ./rabbitmq-server/
+        image: mc_rabbitmq_server:latest
+        container_name: mc_rabbitmq_server
+        networks:
+            # Exposed to the rest of the services through this network
+            - net_rabbitmq
+        expose:
+            - 5672
+            - 15672
+        volumes:
+            - vol_rabbitmq_data:/var/lib/rabbitmq/mnesia/
+        deploy:
+            # Only one instance
+            mode: global
+            # Auto-restart on crashes
+            restart_policy:
+                condition: on-failure
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "4"
+                    # RAM limit
+                    memory: 8G
+
+    #
+    # Refresh stats Cron job
+    # ----------------------
+    #
+    refresh_stats:
+        build:
+            context: ./refresh-stats/
+        image: mc_refresh_stats:latest
+        container_name: mc_refresh_stats
+        networks:
+            # Refreshes stats on PostgreSQL
+            - net_postgresql
+        deploy:
+            # Only one instance
+            mode: global
+            # Auto-restart on crashes
+            restart_policy:
+                condition: on-failure
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: 256M
+
+    #
+    # Add due media to the rescraping queue Cron job
+    # ----------------------------------------------
+    #
+    rescrape_due_media:
+        build:
+            context: ./rescrape-due-media/
+        image: mc_rescrape_due_media:latest
+        container_name: mc_rescrape_due_media
+        networks:
+            # Fetches media to rescrape from PostgreSQL
+            - net_postgresql
+            # Adds rescraping jobs to RabbitMQ
+            - net_rabbitmq
+        deploy:
+            # Only one instance
+            mode: global
+            # Auto-restart on crashes
+            restart_policy:
+                condition: on-failure
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: 256M
+
+    #
+    # (Re)scrape media
+    # ----------------
+    #
+    rescrape_media:
+        build:
+            context: ./rescrape-media/
+        image: mc_rescrape_media:latest
+        container_name: mc_rescrape_media
+        networks:
+            # Fetches media to rescrape from PostgreSQL
+            - net_postgresql
+            # Celery worker
+            - net_rabbitmq
+        deploy:
+            # Multiple workers
+            mode: replicated
+            # Worker count
+            replicas: 2
+            # Auto-restart on crashes
+            restart_policy:
+                condition: on-failure
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: 512M
+
+    #
+    # Report rescraping changes Cron job
+    # ----------------------------------
+    #
+    # FIXME send email
+    #
+    rescraping_changes:
+        build:
+            context: ./rescraping-changes/
+        image: mc_rescraping_changes:latest
+        container_name: mc_rescraping_changes
+        networks:
+            # Fetches media to rescrape from PostgreSQL
+            - net_postgresql
+        deploy:
+            # Only one instance
+            mode: global
+            # Auto-restart on crashes
+            restart_policy:
+                condition: on-failure
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: 256M
+
+    #
+    # Solr shard
+    # ----------
+    #
+    solr_shard:
+        build:
+            context: ./solr-shard/
+        image: mc_solr_shard:latest
+        container_name: mc_solr_shard
+        depends_on:
+            - solr_zookeeper
+        networks:
+            # Exposed to the rest of the services through this network
+            - net_solr
+            # Accesses underlying ZooKeeper instance
+            - net_solr_zookeeper
+        expose:
+            - 8983
+        volumes:
+            - vol_solr_shard_data:/var/lib/solr/
+        deploy:
+            # Multiple shards
+            mode: replicated
+            # Shard count
+            replicas: 24
+            # Auto-restart on crashes
+            restart_policy:
+                condition: on-failure
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "4"
+                    # RAM limit
+                    memory: 24G
+
+    #
+    # Solr ZooKeeper
+    # --------------
+    #
+    solr_zookeeper:
+        build:
+            context: ./solr-zookeeper/
+        image: mc_solr_zookeeper:latest
+        container_name: mc_solr_zookeeper
+        networks:
+            # Not in "net_solr" because only Solr shards use it
+            - net_solr_zookeeper
+        expose:
+            - 2181
+            - 2888
+            - 3888
+        deploy:
+            # Only one instance
+            mode: global
+            # Auto-restart on crashes
+            restart_policy:
+                condition: on-failure
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "2"
+                    # RAM limit
+                    memory: 2G
+
+
+#
+# Networks
+# ========
+#
+networks:
+
+    #
+    # PostgreSQL client network
+    # -------------------------
+    #
+    net_postgresql: {}
+
+    #
+    # Solr client network
+    # -------------------
+    #
+    net_solr: {}
+
+    #
+    # RabbitMQ client network
+    # -----------------------
+    #
+    net_rabbitmq: {}
+
+    #
+    # Postfix client network
+    # ----------------------
+    #
+    net_postfix: {}
+
+    #
+    # PostgreSQL-PgBouncer internal network
+    # -------------------------------------
+    #
+    net_postgresql_pgbouncer: {}
+
+    #
+    # Solr-Zookeeper internal network
+    # -------------------------------
+    #
+    net_solr_zookeeper: {}
+
+    #
+    # Postfix-OpenDKIM internal network
+    # ---------------------------------
+    #
+    net_postfix_opendkim: {}
+
+    #
+    # NYTLabels fetch annotation - NYT-Based News Tagger service internal network
+    # ---------------------------------------------------------------------------
+    #
+    net_nytlabels_fetch_annotation_predict_news_labels: {}
+
+
+#
+# Volumes
+# =======
+#
+volumes:
+
+    # PostgreSQL server's data
+    vol_postgresql_data: {}
+
+    # Solr shard's data
+    vol_solr_shard_data: {}
+
+    # RabbitMQ data
+    vol_rabbitmq_data: {}
+
+    # Daily RSS dumps
+    vol_daily_rss_dumps: {}
