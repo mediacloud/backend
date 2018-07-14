@@ -974,7 +974,7 @@ services:
 
     #
     # Webapp
-    # ----------------
+    # ------
     #
     webapp:
         build:
