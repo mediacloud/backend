@@ -103,6 +103,33 @@ services:
                     memory: 64G
 
     #
+    # Create missing PostgreSQL partitions
+    # ------------------------------------
+    #
+    create_missing_partitions:
+        build:
+            context: ./create-missing-partitions/
+        image: mc_create_missing_partitions:latest
+        container_name: mc_create_missing_partitions
+        depends_on:
+            - postgresql_pgbouncer
+        networks:
+            # Creates partitions on PostgreSQL
+            - net_postgresql
+        deploy:
+            # Only one instance
+            mode: global
+            # Auto-restart on crashes
+            restart_policy:
+                condition: on-failure
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: 256G
+
+    #
     # Extractor
     # ---------
     #
@@ -485,6 +512,33 @@ services:
                     cpus: "1"
                     # RAM limit
                     memory: 8G
+
+    #
+    # Purge PostgreSQL object caches
+    # ------------------------------------
+    #
+    purge_object_caches:
+        build:
+            context: ./purge-object-caches/
+        image: mc_purge_object_caches:latest
+        container_name: mc_purge_object_caches
+        depends_on:
+            - postgresql_pgbouncer
+        networks:
+            # Purges caches on PostgreSQL
+            - net_postgresql
+        deploy:
+            # Only one instance
+            mode: global
+            # Auto-restart on crashes
+            restart_policy:
+                condition: on-failure
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: 256G
 
     #
     # RabbitMQ
