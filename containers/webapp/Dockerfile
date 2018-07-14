@@ -59,5 +59,12 @@ RUN \
     rm -rf /root/.cpanm/ && \
     true
 
+# Session data
+RUN mkdir /var/lib/mediacloud-session/
+VOLUME /var/lib/mediacloud-session/
+
+# Apache's port
+EXPOSE 80
+
 # Run Apache
 CMD ["apachectl", "-d", ".", "-f", "/etc/apache2/apache2.conf", "-e", "info", "-DFOREGROUND"]

@@ -625,6 +625,85 @@ services:
                     memory: 256M
 
     #
+    # Set media primary language Cron job
+    # -----------------------------------
+    #
+    set_media_primary_language:
+        build:
+            context: ./set-media-primary-language/
+        image: mc_set_media_primary_language:latest
+        container_name: mc_set_media_primary_language
+        networks:
+            # Fetches media from PostgreSQL
+            - net_postgresql
+        deploy:
+            # Only one instance
+            mode: global
+            # Auto-restart on crashes
+            restart_policy:
+                condition: on-failure
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: 256M
+
+    #
+    # Set media subject country Cron job
+    # -----------------------------------
+    #
+    set_media_subject_country:
+        build:
+            context: ./set-media-subject-country/
+        image: mc_set_media_subject_country:latest
+        container_name: mc_set_media_subject_country
+        networks:
+            # Fetches media from PostgreSQL
+            - net_postgresql
+        deploy:
+            # Only one instance
+            mode: global
+            # Auto-restart on crashes
+            restart_policy:
+                condition: on-failure
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: 256M
+
+    #
+    # Update SimilarWeb audience data
+    # ----------------------
+    #
+    similarweb_update_audience_data:
+        build:
+            context: ./similarweb-update-audience-data/
+        image: mc_similarweb_update_audience_data:latest
+        container_name: mc_similarweb_update_audience_data
+        networks:
+            # Stores audience data in PostgreSQL
+            - net_postgresql
+            # Celery worker
+            - net_rabbitmq
+        deploy:
+            # Multiple workers
+            mode: replicated
+            # Worker count
+            replicas: 4
+            # Auto-restart on crashes
+            restart_policy:
+                condition: on-failure
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: 512M
+
+    #
     # Solr shard
     # ----------
     #
@@ -688,6 +767,218 @@ services:
                     # RAM limit
                     memory: 2G
 
+    #
+    # Extract story links for a topic
+    # -------------------------------
+    #
+    topics_extract_story_links:
+        build:
+            context: ./topics-extract-story-links/
+        image: mc_topics_extract_story_links:latest
+        container_name: mc_topics_extract_story_links
+        networks:
+            # Fetches / stores topic links in PostgreSQL
+            - net_postgresql
+            # Celery worker
+            - net_rabbitmq
+        deploy:
+            # Multiple workers
+            mode: replicated
+            # Worker count
+            replicas: 32
+            # Auto-restart on crashes
+            restart_policy:
+                condition: on-failure
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: 256M
+
+    #
+    # Fetch link for a topic
+    # -------------------------------
+    #
+    topics_fetch_link:
+        build:
+            context: ./topics-fetch-link/
+        image: mc_topics_fetch_link:latest
+        container_name: mc_topics_fetch_link
+        networks:
+            # Fetches / stores links in PostgreSQL
+            - net_postgresql
+            # Celery worker
+            - net_rabbitmq
+        deploy:
+            # Multiple workers
+            mode: replicated
+            # Worker count
+            replicas: 100
+            # Auto-restart on crashes
+            restart_policy:
+                condition: on-failure
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: 256M
+
+    #
+    # Mine a topic
+    # ------------
+    #
+    topics_mine:
+        build:
+            context: ./topics-mine/
+        image: mc_topics_mine:latest
+        container_name: mc_topics_mine
+        networks:
+            # Fetches / stores links in PostgreSQL
+            - net_postgresql
+            # Uses Solr for seed queries and whatnot
+            - net_solr
+            # Celery worker
+            - net_rabbitmq
+        deploy:
+            # Multiple workers
+            mode: replicated
+            # Worker count
+            replicas: 4
+            # Auto-restart on crashes
+            restart_policy:
+                condition: on-failure
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: 2G
+
+    #
+    # Mine a public topic
+    # -------------------
+    #
+    topics_mine_public:
+        build:
+            context: ./topics-mine-public/
+        image: mc_topics_mine_public:latest
+        container_name: mc_topics_mine_public
+        networks:
+            # Fetches / stores links in PostgreSQL
+            - net_postgresql
+            # Uses Solr for seed queries and whatnot
+            - net_solr
+            # Celery worker
+            - net_rabbitmq
+        deploy:
+            # Multiple workers
+            mode: replicated
+            # Worker count
+            replicas: 4
+            # Auto-restart on crashes
+            restart_policy:
+                condition: on-failure
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: 2G
+
+    #
+    # Snapshot a topic
+    # ----------------
+    #
+    topics_snapshot:
+        build:
+            context: ./topics-snapshot/
+        image: mc_topics_snapshot:latest
+        container_name: mc_topics_snapshot
+        networks:
+            # Fetches / stores links in PostgreSQL
+            - net_postgresql
+            # Uses Solr for story matching
+            - net_solr
+            # Celery worker
+            - net_rabbitmq
+        deploy:
+            # Multiple workers
+            mode: replicated
+            # Worker count
+            replicas: 2
+            # Auto-restart on crashes
+            restart_policy:
+                condition: on-failure
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: 2G
+
+    #
+    # Webapp
+    # ----------------
+    #
+    webapp:
+        build:
+            context: ./webapp/
+        image: mc_webapp:latest
+        container_name: mc_webapp
+        networks:
+            # Uses PostgreSQL to fetch / store data
+            - net_postgresql
+            # Adds Celery jobs
+            - net_rabbitmq
+            # Uses Solr for searching
+            - net_solr
+            # Sends email to new / existing users
+            - net_postfix
+        volumes:
+            - vol_webapp_session_data:/var/lib/mediacloud-session/
+        deploy:
+            # Only one instance
+            mode: global
+            # Auto-restart on crashes
+            restart_policy:
+                condition: on-failure
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "8"
+                    # RAM limit
+                    memory: 16G
+
+    #
+    # Generate word2vec snapshot model
+    # ----------------
+    #
+    word2vec_generate_snapshot_model:
+        build:
+            context: ./word2vec-generate-snapshot-model/
+        image: mc_word2vec_generate_snapshot_model:latest
+        container_name: mc_word2vec_generate_snapshot_model
+        networks:
+            # Fetches sentences / stores model in PostgreSQL
+            - net_postgresql
+            # Celery worker
+            - net_rabbitmq
+        deploy:
+            # Multiple workers
+            mode: replicated
+            # Worker count
+            replicas: 1
+            # Auto-restart on crashes
+            restart_policy:
+                condition: on-failure
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: 2G
 
 #
 # Networks
@@ -758,6 +1049,9 @@ volumes:
 
     # RabbitMQ data
     vol_rabbitmq_data: {}
+
+    # Webapp session data
+    vol_webapp_session_data: {}
 
     # Daily RSS dumps
     vol_daily_rss_dumps: {}
