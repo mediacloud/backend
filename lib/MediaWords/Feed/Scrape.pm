@@ -159,8 +159,11 @@ sub _get_feed_urls_from_html_links($$)
             {
                 my $url = _resolve_relative_url( $base_url, $1 );
 
-                DEBUG "Match link: $url";
-                push( @{ $urls }, $url );
+                if ( MediaWords::Util::URL::is_http_url( $url ) )
+                {
+                    DEBUG "Match link: $url";
+                    push( @{ $urls }, $url );
+                }
             }
         }
     }
@@ -727,11 +730,13 @@ sub get_valid_feeds_from_urls($;$)
     return [ sort { $a->{ name } cmp $b->{ name } } values( %{ $u } ) ];
 }
 
-# Add default feeds for the media by searching for them in the index page, then (if not found)
-# in a couple of child pages
+# Get default feeds for the media by searching for them in the index page, then (if not found)
+# recursively in child pages
 sub get_feed_links($)
 {
     my $medium = shift;
+
+    return [] if ( !MediaWords::Util::URL::is_http_url( $medium->{ url } ) );
 
     # if the website's main URL has been changed to a new one, update the URL to the new one
     # (don't touch the database though)

@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 21;
+use Test::More tests => 22;
 use Test::NoWarnings;
 use Test::Deep;
 
@@ -1591,6 +1591,13 @@ HTML
     cmp_bag( $feed_links, $expected_links, 'test_web_page_feed feed_links' );
 }
 
+# make sure that a bad medium doesn't cause an error
+sub test_bad_medium_url
+{
+    my $feeds = MediaWords::Feed::Scrape::get_feed_links( { url => 'http://bad@url!' } );
+    cmp_bag( $feeds, [] );
+}
+
 sub main
 {
     my $builder = Test::More->builder;
@@ -1616,6 +1623,7 @@ sub main
     test_feeds_with_common_prefix();
     test_feed_aggregator_urls();
     test_web_page_feed();
+    test_bad_medium_url();
 
     Test::NoWarnings::had_no_warnings();
 }
