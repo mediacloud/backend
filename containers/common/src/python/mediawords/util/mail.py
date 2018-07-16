@@ -5,7 +5,7 @@ import smtplib
 from typing import List, Optional, Union
 
 from mediawords.util.perl import decode_object_from_bytes_if_needed
-from mediawords.util.config import get_config as py_get_config
+import mediawords.util.config
 from mediawords.util.log import create_logger
 
 log = create_logger(__name__)
@@ -51,8 +51,7 @@ class Message(object):
                  bcc: Optional[Union[str, List[str]]] = None):
         """Email message constructor."""
 
-        config = py_get_config()
-        self.from_ = config['mail']['from_address']
+        self.from_ = mediawords.util.config.email_from_address()
 
         self.subject = decode_object_from_bytes_if_needed(subject)
         self.text_body = decode_object_from_bytes_if_needed(text_body)
@@ -130,14 +129,10 @@ def send_email(message: Message) -> bool:
         else:
 
             # Connect to SMTP
-            config = py_get_config()
-            smtp_config = config['mail']['smtp']
-
-            smtp = smtplib.SMTP(host=smtp_config['host'], port=smtp_config['port'])
-            if smtp_config['starttls']:
-                smtp.starttls()
-            if smtp_config['username'] and smtp_config['password']:
-                smtp.login(user=smtp_config['username'], password=smtp_config['password'])
+            smtp = smtplib.SMTP(
+                host=mediawords.util.config.mail_smtp_hostname(),
+                port=mediawords.util.config.mail_smtp_port(),
+            )
 
             # Send message
             refused_recipients = smtp.sendmail(mime_message['From'], mime_message['To'], mime_message.as_string())

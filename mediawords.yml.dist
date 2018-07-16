@@ -219,94 +219,14 @@ mediawords:
 # CONTAINERS -- hardcoded; probably used by the webapp
 name: MediaWords
 
-database:
-
-    # CONTAINERS -- hardcoded; database always accessible at the same host
-    - label : "LABEL"
-      type  : "pg"
-      host  : "localhost"
-      port  : 5432
-      db    : "mediacloud"
-      user  : "mediaclouduser"
-      pass  : "mediacloud"
-
-    # CONTAINERS -- removed; one and only database
-    - label : "test"
-      type  : "pg"
-      host  : "localhost"
-      port  : 5432
-      db    : "mediacloud_test"
-      user  : "mediaclouduser"
-      pass  : "mediacloud"
-
-job_manager:
-
-    rabbitmq:
-
-        ## CONTAINERS -- hardcoded; RabbitMQ always accessible at the same host
-        client:
-
-            hostname: "localhost"
-            port: 5673     # not the default 5672
-            username: "mediacloud"
-            password: "mediacloud"
-            vhost: "/mediacloud"
-            timeout: 60
-
-        ## CONTAINERS -- removed; wrapper script reads its own configuration
-        ## (rabbitmq_wrapper.sh will use this for starting up an instance of
-        ## RabbitMQ)
-        server:
-
-            enabled: true
-            listen: "127.0.0.1"
-            port: 5673     # not the default 5672
-            node_name: "mediacloud@localhost"
-            username: "mediacloud"
-            password: "mediacloud"
-            vhost: "/mediacloud"
-
-### CONTAINERS -- removed; Docker Composer + Swarm acts as a process (container) manager
-supervisor:
-    childlogdir: "data/supervisor_logs/"
-    start_no_supervisor_programs: true
-    #programs:
-        #crawler:
-            #numprocs: 1
-            #autostart: true
-            #autorestart: false
-        #extract_and_vector:
-            #numprocs: 1
-            #autostart: true
-            #autorestart: true
-
-        # other configurable supervisor programs
-        #import_solr_data
-        #create_missing_partitions
-        #copy_nonpartitioned_sentences_to_partitions
-        #purge_object_caches
-        #facebook_fetch_story_stats
-        #rabbitmq
-        #rescrape_media
-        #topic_mine
-        #topic_snapshot
-        #solr_cluster_zookeeper
-        #solr_shard
-
 ### CONTAINERS -- removed; Docker Composer + Swarm acts as a process (container) manager
 supervisor_solr:
 
     cluster:
-        zookeeper:
-            listen: "0.0.0.0"
-            port: 9983
 
         shards:
 
             local_shard_count: 2
-
-            zookeeper_host: "localhost"
-            zookeeper_port: 9983
 
 
 cliff:
@@ -325,37 +245,8 @@ facebook:
     enabled: false
 
 
-mail:
-
-    ## CONTAINERS -- hardcoded; DKIM / SPF configured for mediacloud.org, so no need to toggle this
-    from_address: "noreply@mediacloud.org"
-
-    ### CONTAINERS -- hardcoded; SMTP always accessible at the same host
-    smtp:
-
-        host: "localhost"
-        port: 25
-        starttls: false
-        username: ""
-        password: ""
 
 mediawords:
-
-    # CONTAINERS -- split into multiple values in /var
-    #data_dir: "<bindir>/../data"
-
-    # CONTAINERS -- hardcoded; no one ever edited that
-    user_agent: "mediawords bot (http://cyber.law.harvard.edu)"
-    owner: "mediawords@cyber.law.harvard.edu"
-
-    ### CONTAINERS -- hardcoded; no one will ever edit that
-    # temporary_table_tablespace: temporary_tablespace
-
-    # CONTAINERS -- remove altogether, some obsolete stuff
-    # solr_wc_url: http://localhost/api/v2/wc
-
-    # CONTAINERS -- remove altogether, some obsolete stuff
-    # solr_wc_key: FOO
 
     # CONTAINERS -- hardcoded; Solr always accessible at the same host
     solr_url:
@@ -369,6 +260,3 @@ mediawords:
         #- http://127.0.0.1:7986/solr
         #- http://127.0.0.1:7987/solr
         #- http://127.0.0.1:7988/solr
-
-    # CONTAINERS -- remove altogether, make wc cache use PostgreSQL
-    # wc_cache_version: 1

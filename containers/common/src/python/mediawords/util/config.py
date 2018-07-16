@@ -22,6 +22,54 @@ def postgresql_database() -> str:
     return 'mediacloud'
 
 
+def rabbitmq_hostname() -> str:
+    return 'mediacloud-rabbitmq-server'
+
+
+def rabbitmq_port() -> int:
+    return 5672
+
+
+def rabbitmq_username() -> str:
+    return 'mediacloud'
+
+
+def rabbitmq_password() -> str:
+    return 'mediacloud'
+
+
+def rabbitmq_vhost() -> str:
+    return '/mediacloud'
+
+
+def rabbitmq_timeout() -> int:
+    return 60
+
+
+def solr_url() -> str:
+    return "http://mediacloud-solr-shard:8983/solr"
+
+
+def http_user_agent() -> str:
+    return "mediawords bot (http://cyber.law.harvard.edu)"
+
+
+def http_owner() -> str:
+    return "mediawords@cyber.law.harvard.edu"
+
+
+def mail_from_address() -> str:
+    return "noreply@mediacloud.org"
+
+
+def mail_smtp_hostname() -> str:
+    return 'mediacloud-mail-postfix-server'
+
+
+def mail_smtp_port() -> int:
+    return 25
+
+
 def read_all_downloads_from_s3() -> bool:
     """Read all non-inline ("content") downloads from S3."""
     return bool(int(os.environ.get('MC_READ_ALL_DOWNLOADS_FROM_S3', False)))

@@ -134,13 +134,11 @@ sub _get_feedly_json_data_deteremined($$)
 
 sub _get_cache
 {
-    my $mediacloud_data_dir = MediaWords::Util::Config::get_config->{ mediawords }->{ data_dir };
-
     return CHI->new(
         driver           => 'File',
         expires_in       => '3 days',
         expires_variance => '0.1',
-        root_dir         => "${ mediacloud_data_dir }/cache/feedly_feed_stories",
+        root_dir         => "/var/cache/feedly_feed_stories",
         depth            => 4,
         max_size         => 10 * 1024 * 1024 * 1024,
         discard_timeout  => 120

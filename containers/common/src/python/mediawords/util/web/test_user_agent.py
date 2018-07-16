@@ -143,9 +143,8 @@ class TestUserAgentTestCase(TestCase):
         assert response.is_success() is True
         assert urls_are_equal(url1=response.request().url(), url2=test_url)
 
-        config = py_get_config()
-        expected_user_agent = config['mediawords']['user_agent']
-        expected_from = config['mediawords']['owner']
+        expected_user_agent = mediawords.util.config.http_user_agent()
+        expected_from = mediawords.util.config.http_owner()
 
         decoded_json = decode_json(response.decoded_content())
         assert decoded_json == {

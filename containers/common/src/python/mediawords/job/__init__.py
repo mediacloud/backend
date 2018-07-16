@@ -6,7 +6,7 @@ from typing import Type, Any
 from celery import Celery, Task
 from kombu import Exchange, Queue
 
-from mediawords.util.config import get_config as py_get_config
+import mediawords.util.config
 from mediawords.util.log import create_logger
 
 log = create_logger(__name__)
@@ -146,25 +146,18 @@ class JobBrokerApp(Celery):
         if len(queue_name) == 0:
             raise McJobBrokerAppException("Queue name is empty.")
 
-        config = py_get_config()
-        rabbitmq_config = config.get('job_manager', {}).get('rabbitmq', {}).get('client', None)
-        if rabbitmq_config is None:
-            raise McJobBrokerAppException("No supported job broker is configured.")
-
         broker_uri = 'amqp://%(username)s:%(password)s@%(hostname)s:%(port)d/%(vhost)s' % {
-            'username': rabbitmq_config['username'],
-            'password': rabbitmq_config['password'],
-            'hostname': rabbitmq_config['hostname'],
-            'port': int(rabbitmq_config['port']),
-            'vhost': rabbitmq_config['vhost'],
+            'username': mediawords.util.config.rabbitmq_username(),
+            'password': mediawords.util.config.rabbitmq_password(),
+            'hostname': mediawords.util.config.rabbitmq_hostname(),
+            'port': mediawords.util.config.rabbitmq_port(),
+            'vhost': mediawords.util.config.rabbitmq_vhost(),
         }
 
         super().__init__(queue_name, broker=broker_uri)
 
-        self.conf.broker_connection_timeout = int(rabbitmq_config['timeout'])
-
-        worker_concurrency = config.get('celery', {}).get(job_class.__name__, {}).get('worker_concurrency', 1)
-        self.conf.worker_concurrency = worker_concurrency
+        self.conf.broker_connection_timeout = mediawords.util.config.rabbitmq_timeout()
+        self.conf.worker_concurrency = 1
 
         # Fetch only one job at a time
         self.conf.worker_prefetch_multiplier = 1

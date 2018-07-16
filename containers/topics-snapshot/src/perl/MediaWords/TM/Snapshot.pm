@@ -106,9 +106,6 @@ my $_snapshot_tables = [
 # all tables that get stories as snapshot_* for each timespan
 my $_timespan_tables = [ qw/story_link_counts story_links medium_link_counts medium_links timespan_tweets/ ];
 
-# tablespace clause for temporary tables
-my $_temporary_tablespace;
-
 # temporary hack to get around snapshot_period_stories lock
 my $_drop_snapshot_period_stories = 1;
 
@@ -126,17 +123,6 @@ sub get_snapshot_tables
 sub get_timespan_tables
 {
     return [ @{ $_timespan_tables } ];
-}
-
-# if the temporary_table_tablespace config is present, set $_temporary_tablespace
-# to a tablespace clause for the tablespace, otherwise set it to ''
-sub set_temporary_table_tablespace
-{
-    my $config = MediaWords::Util::Config::get_config;
-
-    my $tablespace = $config->{ mediawords }->{ temporary_table_tablespace };
-
-    $_temporary_tablespace = $tablespace ? "tablespace $tablespace" : '';
 }
 
 # create temporary view of all the snapshot_* tables that call into the snap.* tables.
@@ -308,7 +294,7 @@ sub create_twitter_snapshot_period_stories($$)
     my ( $db, $timespan ) = @_;
 
     $db->query( <<SQL, $timespan->{ timespans_id } );
-create temporary table snapshot_period_stories $_temporary_tablespace as
+create temporary table snapshot_period_stories as
     select distinct stories_id
         from snapshot_tweet_stories ts
             join timespans t on ( timespans_id = \$1 )
@@ -341,7 +327,7 @@ END
     my $date_where_clause = get_period_stories_date_where_clause( $timespan );
 
     $db->query( <<"END", $timespan->{ start_date }, $timespan->{ end_date } );
-create temporary table snapshot_period_stories $_temporary_tablespace as
+create temporary table snapshot_period_stories as
 select distinct s.stories_id
     from snapshot_stories s
         left join snapshot_topic_links_cross_media cl on ( cl.ref_stories_id = s.stories_id )
@@ -387,7 +373,7 @@ sub write_period_stories
     if ( !$timespan || ( $timespan->{ period } eq 'overall' ) )
     {
         $db->query( <<END );
-create temporary table snapshot_period_stories $_temporary_tablespace as select stories_id from snapshot_stories
+create temporary table snapshot_period_stories as select stories_id from snapshot_stories
 END
     }
     elsif ( topic_is_twitter_topic( $db, $timespan ) )
@@ -493,7 +479,7 @@ SQL
     else
     {
         $db->query( <<END );
-create temporary table snapshot_story_links $_temporary_tablespace as
+create temporary table snapshot_story_links as
     select distinct cl.stories_id source_stories_id, cl.ref_stories_id
 	    from snapshot_topic_links_cross_media cl
             join snapshot_period_stories sps on ( cl.stories_id = sps.stories_id )
@@ -595,7 +581,7 @@ sub write_story_link_counts_snapshot
     $db->query( "drop table if exists snapshot_story_link_counts" );
 
     $db->query( <<END );
-create temporary table snapshot_story_link_counts $_temporary_tablespace as
+create temporary table snapshot_story_link_counts as
     with  snapshot_story_media_links as (
        select
             s.media_id source_media_id,
@@ -787,7 +773,7 @@ sub write_medium_link_counts_snapshot
     $db->query( "drop table if exists snapshot_medium_link_counts" );
 
     $db->query( <<END );
-create temporary table snapshot_medium_link_counts $_temporary_tablespace as
+create temporary table snapshot_medium_link_counts as
 
     with medium_media_link_counts as (
        select
@@ -855,7 +841,7 @@ sub write_medium_links_snapshot
     $db->query( "drop table if exists snapshot_medium_links" );
 
     $db->query( <<END );
-create temporary table snapshot_medium_links $_temporary_tablespace as
+create temporary table snapshot_medium_links as
     select s.media_id source_media_id, r.media_id ref_media_id, count(*) link_count
         from snapshot_story_links sl, snapshot_stories s, snapshot_stories r
         where sl.source_stories_id = s.stories_id and sl.ref_stories_id = r.stories_id
@@ -890,7 +876,7 @@ sub write_date_counts_snapshot
     my $date_trunc = ( $period eq 'daily' ) ? 'day' : 'week';
 
     $db->query( <<END, $date_trunc, $date_trunc );
-create temporary table snapshot_${ period }_date_counts $_temporary_tablespace as
+create temporary table snapshot_${ period }_date_counts as
     select date_trunc( ?, s.publish_date ) publish_date, t.tags_id, count(*) story_count
         from snapshot_stories s, snapshot_stories_tags_map stm, snapshot_tags t
         where s.stories_id = stm.stories_id and
@@ -1536,7 +1522,7 @@ sub copy_temporary_tables
         my $copy_table     = "_copy_${ snapshot_table }";
 
         $db->query( "drop table if exists $copy_table" );
-        $db->query( "create temporary table $copy_table $_temporary_tablespace as select * from $snapshot_table" );
+        $db->query( "create temporary table $copy_table as select * from $snapshot_table" );
     }
 }
 
@@ -1552,7 +1538,7 @@ sub restore_temporary_tables
         my $copy_table     = "_copy_${ snapshot_table }";
 
         $db->query( "drop table if exists $snapshot_table cascade" );
-        $db->query( "create temporary table $snapshot_table $_temporary_tablespace as select * from $copy_table" );
+        $db->query( "create temporary table $snapshot_table as select * from $copy_table" );
     }
 
     add_media_type_views( $db );
@@ -1610,37 +1596,35 @@ sub write_temporary_snapshot_tables($$$)
 
     my $topics_id = $topic->{ topics_id };
 
-    set_temporary_table_tablespace();
-
     $db->query( <<END, $topics_id );
-create temporary table snapshot_topic_stories $_temporary_tablespace as
+create temporary table snapshot_topic_stories as
     select cs.*
         from topic_stories cs
         where cs.topics_id = ?
 END
 
     $db->query( <<END, $topics_id );
-create temporary table snapshot_topic_media_codes $_temporary_tablespace as
+create temporary table snapshot_topic_media_codes as
     select cmc.*
         from topic_media_codes cmc
         where cmc.topics_id = ?
 END
 
     $db->query( <<END, $topics_id );
-create temporary table snapshot_stories $_temporary_tablespace as
+create temporary table snapshot_stories as
     select s.stories_id, s.media_id, s.url, s.guid, s.title, s.publish_date, s.collect_date, s.full_text_rss, s.language
         from snap.live_stories s
             join snapshot_topic_stories dcs on ( s.stories_id = dcs.stories_id and s.topics_id = ? )
 END
 
     $db->query( <<END );
-create temporary table snapshot_media $_temporary_tablespace as
+create temporary table snapshot_media as
     select m.* from media m
         where m.media_id in ( select media_id from snapshot_stories )
 END
 
     $db->query( <<END, $topics_id );
-create temporary table snapshot_topic_links_cross_media $_temporary_tablespace as
+create temporary table snapshot_topic_links_cross_media as
     select s.stories_id, r.stories_id ref_stories_id, cl.url, cs.topics_id, cl.topic_links_id
         from topic_links cl
             join snapshot_topic_stories cs on ( cs.stories_id = cl.ref_stories_id )
@@ -1652,21 +1636,21 @@ create temporary table snapshot_topic_links_cross_media $_temporary_tablespace a
 END
 
     $db->query( <<END );
-create temporary table snapshot_stories_tags_map $_temporary_tablespace as
+create temporary table snapshot_stories_tags_map as
     select stm.*
     from stories_tags_map stm, snapshot_stories ds
     where stm.stories_id = ds.stories_id
 END
 
     $db->query( <<END );
-create temporary table snapshot_media_tags_map $_temporary_tablespace as
+create temporary table snapshot_media_tags_map as
     select mtm.*
     from media_tags_map mtm, snapshot_media dm
     where mtm.media_id = dm.media_id
 END
 
     $db->query( <<END );
-create temporary table snapshot_tags $_temporary_tablespace as
+create temporary table snapshot_tags as
     select distinct t.* from tags t where t.tags_id in
         ( select a.tags_id
             from tags a
@@ -1682,7 +1666,7 @@ create temporary table snapshot_tags $_temporary_tablespace as
 END
 
     $db->query( <<END );
-create temporary table snapshot_tag_sets $_temporary_tablespace as
+create temporary table snapshot_tag_sets as
     select ts.*
         from tag_sets ts
         where ts.tag_sets_id in ( select tag_sets_id from snapshot_tags )

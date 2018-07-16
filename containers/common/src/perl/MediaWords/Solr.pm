@@ -54,7 +54,7 @@ is a list.
 
 sub get_solr_url
 {
-    my $urls = MediaWords::Util::Config::get_config->{ mediawords }->{ solr_url };
+    my $urls = MediaWords::Util::Config::solr_url();
 
     my $i = int( Time::HiRes::time * 10000 ) % scalar( @{ $urls } );
 

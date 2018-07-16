@@ -36,31 +36,12 @@ sub new
     return $self;
 }
 
-sub _get_download_queue_file_name
-{
-    my ( $self, $media_id ) = @_;
-
-    my $config = MediaWords::Util::Config::get_config;
-
-    my $data_dir = $config->{ mediawords }->{ download_queue_dir } || $config->{ mediawords }->{ data_dir };
-
-    my $queue_dir = "$data_dir/download_queues";
-
-    File::Path::mkpath( $queue_dir );
-    my $ret = "$queue_dir/$media_id";
-    INFO "_get_download_queue_file_name returning: $ret";
-
-    return $ret;
-}
-
 sub _get_media_download_queue
 {
     my ( $self, $media_id ) = @_;
 
     my @array;
 
-    #my $file_name = $self->_get_download_queue_file_name($media_id);
-    #tie @array, 'Tie::File', $file_name , mode => O_RDWR | O_CREAT | O_TRUNC || LOGCONFESS "error tying array: $!";
     my $ret = \@array;
 
     return $ret;

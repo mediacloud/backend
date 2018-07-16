@@ -160,10 +160,9 @@ class UserAgent(object):
         # "requests" session to carry the cookie pool around
         self.__session = requests.Session()
 
-        config = py_get_config()
         self.__session.headers.update({
-            'From': config['mediawords']['owner'],
-            'User-Agent': config['mediawords']['user_agent'],
+            'From': mediawords.util.config.http_owner(),
+            'User-Agent': mediawords.util.config.http_user_agent(),
             'Accept-Charset': 'utf-8',
 
             # MC_REWRITE_TO_PYTHON:

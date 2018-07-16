@@ -45,13 +45,11 @@ has 'content_pattern'   => ( is => 'rw', isa => 'Str', required => 0 );
 # return CHI 1 for word counts
 sub _get_cache
 {
-    my $mediacloud_data_dir = MediaWords::Util::Config::get_config->{ mediawords }->{ data_dir };
-
     return CHI->new(
         driver           => 'File',
         expires_in       => '1 month',
         expires_variance => '0.1',
-        root_dir         => "${ mediacloud_data_dir }/cache/scrape_stories",
+        root_dir         => "/var/cache/scrape_stories",
         cache_size       => '50g'
     );
 }
