@@ -28,15 +28,10 @@ RUN \
     #
     true
 
-# Copy Perl sources
-COPY src/perl/ /usr/share/perl5/
-
-# Copy Python sources
-COPY src/python/ /usr/lib/python3/dist-packages/
-
 # Install Perl dependencies
+COPY src/cpanfile /var/tmp/
 RUN \
-    cd /usr/share/perl5/ && \
+    cd /var/tmp/ && \
     cpanm \
         --mirror "$MEDIACLOUD_PERL_CPAN_MIRROR" \
         --mirror-only \
@@ -49,12 +44,19 @@ RUN \
     true
 
 # Install Python dependencies
+COPY src/requirements.txt /var/tmp/
 RUN \
-    cd /usr/lib/python3/dist-packages/ && \
+    cd /var/tmp/ && \
     pip3 install -r requirements.txt && \
     rm requirements.txt && \
     rm -rf /root/.cache/ && \
     true
+
+# Copy Perl sources
+COPY src/perl/ /usr/share/perl5/
+
+# Copy Python sources
+COPY src/python/ /usr/lib/python3/dist-packages/
 
 # Move Log::Log4perl configuration
 RUN mv /usr/share/perl5/log4perl.conf /etc/
