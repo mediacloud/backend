@@ -1,5 +1,5 @@
 #
-# NYT-Based News Tagger service
+# NYT-based news tagger service
 #
 
 FROM mediacloud-base:latest

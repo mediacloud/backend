@@ -38,16 +38,10 @@ RUN \
 # (optional) URL to redirect /login/forgot page to
 #apache2_redirect_login_forgot_url: https://tools.mediacloud.org/#/user/request-password-reset
 
-# Copy static files
-RUN mkdir /mediacloud/
-COPY src/root/ /mediacloud/root/
-
-# Copy Perl sources
-COPY src/perl/ /usr/share/perl5/
-
 # Install Perl dependencies
+COPY src/cpanfile /var/tmp/
 RUN \
-    cd /usr/share/perl5/ && \
+    cd /var/tmp/ && \
     cpanm \
         --mirror "$MEDIACLOUD_PERL_CPAN_MIRROR" \
         --mirror-only \
@@ -58,6 +52,19 @@ RUN \
     rm cpanfile && \
     rm -rf /root/.cpanm/ && \
     true
+
+# Copy FastCGI helpers
+COPY bin/ /
+
+# Copy static files
+RUN \
+    mkdir -p /var/www/ && \
+    rm -f /var/www/* && \
+    true
+COPY src/root/ /var/www/root/
+
+# Copy Perl sources
+COPY src/perl/ /usr/share/perl5/
 
 # Session data
 RUN mkdir /var/lib/mediacloud-session/

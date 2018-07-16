@@ -11,6 +11,8 @@
 
 FROM mediacloud-common:latest
 
+COPY bin/rescraping_changes.sh /
+
 # Add Cron job
 ADD crontab /etc/cron.d/rescraping_changes
 RUN chmod 0644 /etc/cron.d/rescraping_changes

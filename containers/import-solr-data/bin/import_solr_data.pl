@@ -6,8 +6,6 @@
 use strict;
 use warnings;
 
-use Sys::RunAlone;
-
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
