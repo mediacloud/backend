@@ -1,6 +1,9 @@
 # Amazon S3
 boto3==1.4.7
 
+# HTML parsing and stripping
+beautifulsoup4==4.6.0
+
 # Job broker
 Celery==4.1.1
 
