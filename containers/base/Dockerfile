@@ -26,7 +26,6 @@ RUN \
     apt-get -y --no-install-recommends install acl && \
     apt-get -y --no-install-recommends install sudo && \
     apt-get -y --no-install-recommends install file && \
-    apt-get -y --no-install-recommends install curl && \
     true
 
 # Install common packages
@@ -38,6 +37,7 @@ RUN \
         ca-certificates \
         # Crontab jobs (cron has to be run manually though)
         cron && \
+        curl \
         htop \
         less \
         locales \
