@@ -24,10 +24,10 @@ RUN \
     true
 
 # Configure Apache
-COPY conf/001-mediacloud.conf /etc/apache2/sites-enabled/
+COPY conf/001-mediacloud.conf /etc/apache2/sites-available/
 RUN \
-    a2dissite default && \
-    a2ensite mediacloud && \
+    a2dissite 000-default && \
+    a2ensite 001-mediacloud && \
     true
 
 # FIXME
