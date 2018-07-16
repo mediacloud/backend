@@ -52,7 +52,7 @@ RUN \
         vim \
     && \
     # Default Cron jobs don't have to be run
-    rm /etc/cron.d/* && \
+    rm -f /etc/cron.d/* && \
     #
     true
 
