@@ -11,6 +11,9 @@ RUN \
     apt-add-repository "deb https://dl.bintray.com/pypt/mecab-ipadic-neologd-deb xenial main" && \
     apt-get -y update && \
     #
+    # Required by "cffi" Python module
+    apt-get -y --no-install-recommends install libffi-dev && \
+    #
     # OpenSSL headers for various SSL modules
     apt-get -y --no-install-recommends install libssl-dev && \
     #
