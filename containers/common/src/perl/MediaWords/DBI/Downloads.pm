@@ -25,8 +25,7 @@ Most importantly, this module has the store_content and fetch_content
 functions, which store and fetch content for a download from the pluggable
 content store.
 
-The storage module is configured in mediawords.yml by the
-mediawords.download_storage_locations setting.
+The storage module is configured in 'download_storage_locations' setting.
 
 The three choices are:
 
@@ -86,9 +85,7 @@ my $_store_amazon_s3 = lazy
     require MediaWords::KeyValueStore::AmazonS3;
     require MediaWords::KeyValueStore::CachedAmazonS3;
 
-    my $config = MediaWords::Util::Config::get_config;
-
-    unless ( $config->{ amazon_s3 } )
+    unless ( MediaWords::Util::Config::s3_downloads_access_key_id() )
     {
         INFO "Amazon S3 download store is not configured.";
         return undef;
@@ -96,7 +93,7 @@ my $_store_amazon_s3 = lazy
 
     my $store_package_name = 'MediaWords::KeyValueStore::AmazonS3';
     my $cache_table        = undef;
-    if ( $config->{ mediawords }->{ cache_s3_downloads } + 0 )
+    if ( MediaWords::Util::Config::cache_s3_downloads() )
     {
         $store_package_name = 'MediaWords::KeyValueStore::CachedAmazonS3';
         $cache_table        = 'cache.s3_raw_downloads_cache';
@@ -104,10 +101,10 @@ my $_store_amazon_s3 = lazy
 
     return $store_package_name->new(
         {
-            access_key_id     => $config->{ amazon_s3 }->{ downloads }->{ access_key_id },
-            secret_access_key => $config->{ amazon_s3 }->{ downloads }->{ secret_access_key },
-            bucket_name       => $config->{ amazon_s3 }->{ downloads }->{ bucket_name },
-            directory_name    => $config->{ amazon_s3 }->{ downloads }->{ directory_name },
+            access_key_id     => MediaWords::Util::Config::s3_downloads_access_key_id(),
+            secret_access_key => MediaWords::Util::Config::s3_downloads_secret_access_key(),
+            bucket_name       => MediaWords::Util::Config::s3_downloads_bucket_name(),
+            directory_name    => MediaWords::Util::Config::s3_downloads_directory_name(),
             cache_table       => $cache_table,
         }
     );
@@ -120,14 +117,12 @@ my $_store_postgresql = lazy
     require MediaWords::KeyValueStore::PostgreSQL;
     require MediaWords::KeyValueStore::MultipleStores;
 
-    my $config = MediaWords::Util::Config::get_config;
-
     # Raw downloads table
     my $postgresql_store =
       MediaWords::KeyValueStore::PostgreSQL->new( { table => $RAW_DOWNLOADS_POSTGRESQL_KVS_TABLE_NAME } );
 
     # Add Amazon S3 fallback storage if needed
-    if ( $config->{ mediawords }->{ fallback_postgresql_downloads_to_s3 } + 0 )
+    if ( MediaWords::Util::Config::fallback_postgresql_downloads_to_s3() )
     {
         my $amazon_s3_store = force $_store_amazon_s3;
         unless ( defined $amazon_s3_store )
@@ -154,12 +149,10 @@ my $_store_for_writing = lazy
 {
     require MediaWords::KeyValueStore::MultipleStores;
 
-    my $config = MediaWords::Util::Config::get_config;
-
     my @stores_for_writing;
 
     # Early sanity check on configuration
-    my $download_storage_locations = $config->{ mediawords }->{ download_storage_locations };
+    my $download_storage_locations = MediaWords::Util::Config::download_storage_locations();
     if ( scalar( @{ $download_storage_locations } ) == 0 )
     {
         LOGCROAK "No download stores are configured.";
@@ -267,10 +260,8 @@ sub _download_store_for_reading($)
         LOGCROAK "Download store is undefined for download " . $download->{ downloads_id };
     }
 
-    my $config = MediaWords::Util::Config::get_config;
-
     # All non-inline downloads have to be fetched from S3?
-    if ( $download_store ne force $_store_inline and $config->{ mediawords }->{ read_all_downloads_from_s3 } + 0 )
+    if ( $download_store ne force $_store_inline and MediaWords::Util::Config::read_all_downloads_from_s3() )
     {
         $download_store = force $_store_amazon_s3;
     }
@@ -319,8 +310,7 @@ sub fetch_content($$)
     my $content_ref = \$content;
 
     # horrible hack to fix old content that is not stored in unicode
-    my $config                  = MediaWords::Util::Config::get_config;
-    my $ascii_hack_downloads_id = $config->{ mediawords }->{ ascii_hack_downloads_id };
+    my $ascii_hack_downloads_id = MediaWords::Util::Config::ascii_hack_downloads_id();
     if ( $ascii_hack_downloads_id and ( $download->{ downloads_id } < $ascii_hack_downloads_id ) )
     {
         $$content_ref =~ s/[^[:ascii:]]/ /g;

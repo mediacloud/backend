@@ -192,7 +192,7 @@ sub _generate_media_health_table
 {
     my ( $db ) = @_;
 
-    if ( my $large_work_mem = MediaWords::Util::Config::get_config->{ mediawords }->{ large_work_mem } )
+    if ( my $large_work_mem = MediaWords::Util::Config::large_work_mem() )
     {
         $db->query( 'set work_mem = ?', $large_work_mem );
     }

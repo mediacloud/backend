@@ -1,60 +1,3 @@
-database:
-    ### CONTAINERS -- "common" configuration parameter
-    downloads:
-        access_key_id      : "AKIAIOSFODNN7EXAMPLE"
-        secret_access_key  : "wJalrXUtnFEMI/K7MDENG/bPxRfiCYzEXAMPLEKEY"
-        bucket_name        : "mediacloud-downloads"
-        directory_name     : "downloads"
-
-mediawords:
-    ### CONTAINERS -- "common" configuration parameter (array!)
-    download_storage_locations:
-        ### store downloads in the PostgreSQL database, "raw_downloads" table
-        - postgresql
-        ### store downloads in Amazon S3
-        #- amazon_s3
-
-    ### CONTAINERS -- "common" configuration parameter
-    read_all_downloads_from_s3 : false
-
-    ### CONTAINERS -- "common" configuration parameter
-    fallback_postgresql_downloads_to_s3 : false
-
-    ### CONTAINERS -- "common" configuration parameter
-    cache_s3_downloads : false
-
-    ### CONTAINERS -- "common" configuration parameter
-    #db_statement_timeout: "600000"
-
-    ### CONTAINERS -- "common" configuration parameter
-    # large_work_mem: "3GB"
-
-    ### CONTAINERS -- "common" configuration parameter
-    #ascii_hack_downloads_id: 123456789
-
-    ### CONTAINERS -- "common" configuration parameter
-    web_store_num_parallel: 10
-    web_store_timeout: 90
-    web_store_per_domain_timeout: 1
-
-    ### CONTAINERS -- "common" configuration parameter
-    # blacklist_url_pattern: "^https?://[^/]*some-website.com"
-
-    ### CONTAINERS -- "common" configuration parameter
-    # ignore_schema_version: true
-
-    # CONTAINERS -- "common" configuration parameter (array of dictionaries!)
-    #crawler_authenticated_domains:
-        #- domain: "ap.org"
-        #  user: "username"
-        #  password: "password"
-
-
-
-
-
-
-
 
 
 ### CONTAINERS -- removed; Docker Composer + Swarm acts as a process (container) manager
@@ -295,15 +238,6 @@ database:
       db    : "mediacloud_test"
       user  : "mediaclouduser"
       pass  : "mediacloud"
-
-amazon_s3:
-
-    ### CONTAINERS -- removed; different credentials are to be passed when testing
-    test:
-        access_key_id      : "AKIAIOSFODNN7EXAMPLE"
-        secret_access_key  : "wJalrXUtnFEMI/K7MDENG/bPxRfiCYzEXAMPLEKEY"
-        bucket_name        : "mediacloud_test"
-        directory_name     : "downloads_test"
 
 job_manager:
 

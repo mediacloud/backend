@@ -17,7 +17,7 @@ from mediawords.db.pages.pages import DatabasePages
 from mediawords.db.result.result import DatabaseResult
 from mediawords.db.schema.version import schema_version_from_lines
 
-from mediawords.util.config import get_config as py_get_config  # MC_REWRITE_TO_PYTHON: rename back to get_config()
+import mediawords.util.config
 from mediawords.util.log import create_logger
 from mediawords.util.paths import mc_sql_schema_path
 from mediawords.util.perl import (
@@ -38,9 +38,6 @@ psycopg2.extensions.register_type(psycopg2.extensions.UNICODEARRAY)
 
 class DatabaseHandler(object):
     """PostgreSQL middleware (imitates DBIx::Simple's interface)."""
-
-    # Environment variable which, when set, will make us ignore the schema version
-    __IGNORE_SCHEMA_VERSION_ENV_VARIABLE = 'MEDIACLOUD_IGNORE_DB_SCHEMA_VERSION'
 
     # Min. "deadlock_timeout" to not cause problems under load (in seconds)
     __MIN_DEADLOCK_TIMEOUT = 5
@@ -176,15 +173,12 @@ class DatabaseHandler(object):
         """Schema is outdated / too new; returns 1 if MC should continue nevertheless, 0 otherwise"""
         config = py_get_config()
 
-        config_ignore_schema_version = False
-        if 'ignore_schema_version' in config['mediawords']:
-            config_ignore_schema_version = config["mediawords"]["ignore_schema_version"]
-
-        if config_ignore_schema_version or self.__IGNORE_SCHEMA_VERSION_ENV_VARIABLE in os.environ:
+        config_ignore_schema_version = mediawords.util.config.ignore_schema_version()
+        if config_ignore_schema_version:
             log.warning("""
                 The current Media Cloud database schema is older than the schema present in mediawords.sql,
-                but %s is set so continuing anyway.
-            """ % self.__IGNORE_SCHEMA_VERSION_ENV_VARIABLE)
+                but 'ignore_schema_version' is set so continuing anyway.
+            """)
             return True
         else:
             log.warning("""
@@ -202,20 +196,13 @@ class DatabaseHandler(object):
                 to automatically upgrade the database schema to the latest version.
 
                 If you want to connect to the Media Cloud database anyway (ignoring the schema version),
-                set the %(IGNORE_SCHEMA_VERSION_ENV_VARIABLE)s environment variable as such:
-
-                    %(IGNORE_SCHEMA_VERSION_ENV_VARIABLE)s=1 ./script/your_script.py
-
-                or
-
-                    %(IGNORE_SCHEMA_VERSION_ENV_VARIABLE)s=1 ./script/run_in_env.sh ./script/your_script.pl
+                set 'ignore_schema_version' configuration parameter.
 
                 ################################
 
             """ % {
                 "current_schema_version": current_schema_version,
                 "target_schema_version": target_schema_version,
-                "IGNORE_SCHEMA_VERSION_ENV_VARIABLE": self.__IGNORE_SCHEMA_VERSION_ENV_VARIABLE,
             })
             return False
 
@@ -295,10 +282,8 @@ class DatabaseHandler(object):
         return current_work_mem
 
     def __get_large_work_mem(self) -> str:
-        config = py_get_config()
-        if 'large_work_mem' in config['mediawords']:
-            work_mem = config['mediawords']['large_work_mem']
-        else:
+        work_mem = mediawords.util.config.large_work_mem()
+        if not work_mem:
             work_mem = self.__get_current_work_mem()
         return work_mem
 

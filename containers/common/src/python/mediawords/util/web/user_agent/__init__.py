@@ -18,7 +18,7 @@ from requests.adapters import HTTPAdapter
 from requests.auth import HTTPBasicAuth
 from urllib3 import Retry, HTTPResponse
 
-from mediawords.util.config import get_config as py_get_config
+import mediawords.util.config
 from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_object_from_bytes_if_needed
 from mediawords.util.sql import sql_now
@@ -190,13 +190,9 @@ class UserAgent(object):
     def __get_domain_http_auth_lookup() -> Dict[str, Dict[str, str]]:
         """Read the mediawords.crawler_authenticated_domains list from mediawords.yml and generate a lookup hash with
         the host domain as the key and the user:password credentials as the value."""
-        config = py_get_config()
         domain_http_auth_lookup = {}
 
-        domains = None
-        if 'crawler_authenticated_domains' in config['mediawords']:
-            domains = config['mediawords']['crawler_authenticated_domains']
-
+        domains = mediawords.util.config.crawler_authenticated_domains()
         if domains is not None:
             for domain in domains:
 
@@ -496,19 +492,9 @@ class UserAgent(object):
             if not is_http_url(url):
                 raise McParallelGetException("URL %s is not a valid URL; URLs: %s" % (url, str(urls),))
 
-        config = py_get_config()
-
-        if 'web_store_num_parallel' not in config['mediawords']:
-            raise McParallelGetException('"web_store_num_parallel" is not set.')
-        num_parallel = config['mediawords']['web_store_num_parallel']
-
-        if 'web_store_timeout' not in config['mediawords']:
-            raise McParallelGetException('"web_store_timeout" is not set.')
-        timeout = config['mediawords']['web_store_timeout']
-
-        if 'web_store_per_domain_timeout' not in config['mediawords']:
-            raise McParallelGetException('"web_store_per_domain_timeout" is not set.')
-        per_domain_timeout = config['mediawords']['web_store_per_domain_timeout']
+        num_parallel = mediawords.util.config.web_store_num_parallel()
+        timeout = mediawords.util.config.web_store_timeout()
+        per_domain_timeout = mediawords.util.config.web_store_per_domain_timeout()
 
         url_stack = UserAgent.__get_scheduled_urls(urls_=urls, per_domain_timeout_=per_domain_timeout)
 
@@ -584,13 +570,8 @@ class UserAgent(object):
         if len(url) == 0:
             raise McRequestException("URL is empty.")
 
-        config = py_get_config()
-
-        blacklist_url_pattern = None
-        if 'blacklist_url_pattern' in config['mediawords']:
-            blacklist_url_pattern = config['mediawords']['blacklist_url_pattern']
-
-        if blacklist_url_pattern is not None and len(blacklist_url_pattern) > 0:
+        blacklist_url_pattern = mediawords.util.config.blacklist_url_pattern()
+        if blacklist_url_pattern:
             if re.search(pattern=blacklist_url_pattern, string=url, flags=re.IGNORECASE | re.UNICODE) is not None:
                 request.set_url("http://0.0.0.1/%s" % url)
 
