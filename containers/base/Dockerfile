@@ -36,7 +36,7 @@ RUN \
         # Some of the packages might want to use SSL
         ca-certificates \
         # Crontab jobs (cron has to be run manually though)
-        cron && \
+        cron \
         curl \
         htop \
         less \
