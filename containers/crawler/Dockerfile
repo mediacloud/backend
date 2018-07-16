@@ -12,12 +12,10 @@ RUN \
     #
     true
 
-# Copy Perl sources
-COPY src/perl/ /usr/share/perl5/
-
 # Install Perl dependencies
+COPY src/cpanfile /var/tmp/
 RUN \
-    cd /usr/share/perl5/ && \
+    cd /var/tmp/ && \
     cpanm \
         --mirror "$MEDIACLOUD_PERL_CPAN_MIRROR" \
         --mirror-only \
@@ -28,6 +26,9 @@ RUN \
     rm cpanfile && \
     rm -rf /root/.cpanm/ && \
     true
+
+# Copy Perl sources
+COPY src/perl/ /usr/share/perl5/
 
 # Run crawler
 # (ENTRYPOINT because script expects number of threads as its parameter)
