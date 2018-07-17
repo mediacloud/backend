@@ -27,7 +27,7 @@ while true; do
 done
 
 # Add vhost, set permissions
-rabbitmqctl -n "$RABBITMQ_NODENAME" add_vhost "/mediacloud"
+rabbitmqctl -n "$RABBITMQ_NODENAME" add_vhost "/mediacloud" || echo "Vhost already exists?"
 rabbitmqctl -n "$RABBITMQ_NODENAME" set_user_tags "mediacloud" "administrator"
 rabbitmqctl -n "$RABBITMQ_NODENAME" set_permissions -p "/mediacloud" "mediacloud" ".*" ".*" ".*"
 
