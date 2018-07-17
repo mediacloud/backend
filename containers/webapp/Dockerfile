@@ -59,7 +59,7 @@ COPY bin/ /
 # Copy static files
 RUN \
     mkdir -p /var/www/ && \
-    rm -f /var/www/* && \
+    rm -rf /var/www/* && \
     true
 COPY src/root/ /var/www/root/
 
