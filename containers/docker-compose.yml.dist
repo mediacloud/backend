@@ -315,15 +315,15 @@ services:
     #
     mail_opendkim_server:
         build:
-            context: ./main-opendkim-server/
+            context: ./mail-opendkim-server/
         image: mc_mail_opendkim_server:latest
         container_name: mc_mail_opendkim_server
         networks:
             # Accessed by Postfix only
             - net_postfix_opendkim
-        expose:
-            # Expose OpenDKIM to host computer
-            - "12301:12301"
+        # Expose OpenDKIM to host computer (so "ports" and not "expose")
+        ports:
+            - "12301"
         deploy:
             # Only one instance
             mode: global
@@ -343,7 +343,7 @@ services:
     #
     mail_postfix_server:
         build:
-            context: ./main-postfix-server/
+            context: ./mail-postfix-server/
         image: mc_mail_postfix_server:latest
         container_name: mc_mail_postfix_server
         networks:
@@ -352,8 +352,8 @@ services:
             # Accesses underlying OpenDKIM instance
             - net_postfix_opendkim
         expose:
-            # Expose OpenDKIM to host computer
-            - "12301:12301"
+            # Expose SMTP to mail senders
+            - "25"
         deploy:
             # Only one instance
             mode: global
