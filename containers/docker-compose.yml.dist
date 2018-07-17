@@ -13,7 +13,7 @@ services:
     cliff_fetch_annotation:
         build:
             context: ./cliff-fetch-annotation/
-        image: mc_cliff_fetch_annotation:latest
+        image: mediacloud-cliff-fetch-annotation:latest
         container_name: mc_cliff_fetch_annotation
         depends_on:
             - extract_and_vector
@@ -46,7 +46,7 @@ services:
     cliff_update_story_tags:
         build:
             context: ./cliff-update-story-tags/
-        image: mc_cliff_update_story_tags:latest
+        image: mediacloud-cliff-update-story-tags:latest
         container_name: mc_cliff_update_story_tags
         depends_on:
             - cliff_fetch_annotation
@@ -79,7 +79,7 @@ services:
     crawler:
         build:
             context: ./crawler/
-        image: mc_crawler:latest
+        image: mediacloud-crawler:latest
         container_name: mc_crawler
         depends_on:
             - postgresql_pgbouncer
@@ -109,7 +109,7 @@ services:
     create_missing_partitions:
         build:
             context: ./create-missing-partitions/
-        image: mc_create_missing_partitions:latest
+        image: mediacloud-create-missing-partitions:latest
         container_name: mc_create_missing_partitions
         depends_on:
             - postgresql_pgbouncer
@@ -136,7 +136,7 @@ services:
     extract_and_vector:
         build:
             context: ./extract-and-vector/
-        image: mc_extract_and_vector:latest
+        image: mediacloud-extract-and-vector:latest
         container_name: mc_extract_and_vector
         depends_on:
             - crawler
@@ -169,7 +169,7 @@ services:
     facebook_fetch_story_stats:
         build:
             context: ./facebook-fetch-story-stats/
-        image: mc_facebook_fetch_story_stats:latest
+        image: mediacloud-facebook-fetch-story-stats:latest
         container_name: mc_facebook_fetch_story_stats
         depends_on:
             - extract_and_vector
@@ -203,7 +203,7 @@ services:
     generate_daily_rss_dumps:
         build:
             context: ./generate-daily-rss-dumps/
-        image: mc_generate_daily_rss_dumps:latest
+        image: mediacloud-generate-daily-rss-dumps:latest
         container_name: mc_generate_daily_rss_dumps
         depends_on:
             - postgresql_pgbouncer
@@ -233,7 +233,7 @@ services:
     generate_media_health:
         build:
             context: ./generate-media-health/
-        image: mc_generate_media_health:latest
+        image: mediacloud-generate-media-health:latest
         container_name: mc_generate_media_health
         networks:
             # Generates media health report from PostgreSQL
@@ -259,7 +259,7 @@ services:
     generate_user_summary:
         build:
             context: ./generate-user-summary/
-        image: mc_generate_user_summary:latest
+        image: mediacloud-generate-user-summary:latest
         container_name: mc_generate_user_summary
         depends_on:
             - postgresql_pgbouncer
@@ -286,7 +286,7 @@ services:
     import_solr_data:
         build:
             context: ./import-solr-data/
-        image: mc_import_solr_data:latest
+        image: mediacloud-import-solr-data:latest
         container_name: mc_import_solr_data
         depends_on:
             - postgresql_pgbouncer
@@ -316,7 +316,7 @@ services:
     mail_opendkim_server:
         build:
             context: ./mail-opendkim-server/
-        image: mc_mail_opendkim_server:latest
+        image: mediacloud-mail-opendkim-server:latest
         container_name: mc_mail_opendkim_server
         networks:
             # Accessed by Postfix only
@@ -344,7 +344,7 @@ services:
     mail_postfix_server:
         build:
             context: ./mail-postfix-server/
-        image: mc_mail_postfix_server:latest
+        image: mediacloud-mail-postfix-server:latest
         container_name: mc_mail_postfix_server
         networks:
             # Exposed to the rest of the services through this network
@@ -374,7 +374,7 @@ services:
     nytlabels_fetch_annotation:
         build:
             context: ./nytlabels-fetch-annotation/
-        image: mc_nytlabels_fetch_annotation:latest
+        image: mediacloud-nytlabels-fetch-annotation:latest
         container_name: mc_nytlabels_fetch_annotation
         depends_on:
             - extract_and_vector
@@ -410,7 +410,7 @@ services:
     nytlabels_update_story_tags:
         build:
             context: ./nytlabels-update-story-tags/
-        image: mc_nytlabels_update_story_tags:latest
+        image: mediacloud-nytlabels-update-story-tags:latest
         container_name: mc_nytlabels_update_story_tags
         depends_on:
             - nytlabels_fetch_annotation
@@ -443,7 +443,7 @@ services:
     postgresql_pgbouncer:
         build:
             context: ./postgresql-pgbouncer/
-        image: mc_postgresql_pgbouncer:latest
+        image: mediacloud-postgresql-pgbouncer:latest
         container_name: mc_postgresql_pgbouncer
         depends_on:
             - postgresql_server
@@ -468,7 +468,7 @@ services:
     postgresql_server:
         build:
             context: ./postgresql-server/
-        image: mc_postgresql_server:latest
+        image: mediacloud-postgresql-server:latest
         container_name: mc_postgresql_server
         networks:
             # Not in "net_postgresql" because accessed through PgBouncer
@@ -491,7 +491,7 @@ services:
     predict_news_labels:
         build:
             context: ./predict-news-labels/
-        image: mc_predict_news_labels:latest
+        image: mediacloud-predict-news-labels:latest
         container_name: mc_predict_news_labels
         networks:
             # Accessed by nytlabels_fetch_annotation only
@@ -520,7 +520,7 @@ services:
     purge_object_caches:
         build:
             context: ./purge-object-caches/
-        image: mc_purge_object_caches:latest
+        image: mediacloud-purge-object-caches:latest
         container_name: mc_purge_object_caches
         depends_on:
             - postgresql_pgbouncer
@@ -547,7 +547,7 @@ services:
     rabbitmq_server:
         build:
             context: ./rabbitmq-server/
-        image: mc_rabbitmq_server:latest
+        image: mediacloud-rabbitmq-server:latest
         container_name: mc_rabbitmq_server
         networks:
             # Exposed to the rest of the services through this network
@@ -577,7 +577,7 @@ services:
     refresh_stats:
         build:
             context: ./refresh-stats/
-        image: mc_refresh_stats:latest
+        image: mediacloud-refresh-stats:latest
         container_name: mc_refresh_stats
         networks:
             # Refreshes stats on PostgreSQL
@@ -602,7 +602,7 @@ services:
     rescrape_due_media:
         build:
             context: ./rescrape-due-media/
-        image: mc_rescrape_due_media:latest
+        image: mediacloud-rescrape-due-media:latest
         container_name: mc_rescrape_due_media
         networks:
             # Fetches media to rescrape from PostgreSQL
@@ -629,7 +629,7 @@ services:
     rescrape_media:
         build:
             context: ./rescrape-media/
-        image: mc_rescrape_media:latest
+        image: mediacloud-rescrape-media:latest
         container_name: mc_rescrape_media
         networks:
             # Fetches media to rescrape from PostgreSQL
@@ -660,7 +660,7 @@ services:
     rescraping_changes:
         build:
             context: ./rescraping-changes/
-        image: mc_rescraping_changes:latest
+        image: mediacloud-rescraping-changes:latest
         container_name: mc_rescraping_changes
         networks:
             # Fetches media to rescrape from PostgreSQL
@@ -685,7 +685,7 @@ services:
     set_media_primary_language:
         build:
             context: ./set-media-primary-language/
-        image: mc_set_media_primary_language:latest
+        image: mediacloud-set-media-primary-language:latest
         container_name: mc_set_media_primary_language
         networks:
             # Fetches media from PostgreSQL
@@ -710,7 +710,7 @@ services:
     set_media_subject_country:
         build:
             context: ./set-media-subject-country/
-        image: mc_set_media_subject_country:latest
+        image: mediacloud-set-media-subject-country:latest
         container_name: mc_set_media_subject_country
         networks:
             # Fetches media from PostgreSQL
@@ -735,7 +735,7 @@ services:
     similarweb_update_audience_data:
         build:
             context: ./similarweb-update-audience-data/
-        image: mc_similarweb_update_audience_data:latest
+        image: mediacloud-similarweb-update-audience-data:latest
         container_name: mc_similarweb_update_audience_data
         networks:
             # Stores audience data in PostgreSQL
@@ -764,7 +764,7 @@ services:
     solr_shard:
         build:
             context: ./solr-shard/
-        image: mc_solr_shard:latest
+        image: mediacloud-solr-shard:latest
         container_name: mc_solr_shard
         depends_on:
             - solr_zookeeper
@@ -799,7 +799,7 @@ services:
     solr_zookeeper:
         build:
             context: ./solr-zookeeper/
-        image: mc_solr_zookeeper:latest
+        image: mediacloud-solr-zookeeper:latest
         container_name: mc_solr_zookeeper
         networks:
             # Not in "net_solr" because only Solr shards use it
@@ -828,7 +828,7 @@ services:
     topics_extract_story_links:
         build:
             context: ./topics-extract-story-links/
-        image: mc_topics_extract_story_links:latest
+        image: mediacloud-topics-extract-story-links:latest
         container_name: mc_topics_extract_story_links
         networks:
             # Fetches / stores topic links in PostgreSQL
@@ -857,7 +857,7 @@ services:
     topics_fetch_link:
         build:
             context: ./topics-fetch-link/
-        image: mc_topics_fetch_link:latest
+        image: mediacloud-topics-fetch-link:latest
         container_name: mc_topics_fetch_link
         networks:
             # Fetches / stores links in PostgreSQL
@@ -886,7 +886,7 @@ services:
     topics_mine:
         build:
             context: ./topics-mine/
-        image: mc_topics_mine:latest
+        image: mediacloud-topics-mine:latest
         container_name: mc_topics_mine
         networks:
             # Fetches / stores links in PostgreSQL
@@ -917,7 +917,7 @@ services:
     topics_mine_public:
         build:
             context: ./topics-mine-public/
-        image: mc_topics_mine_public:latest
+        image: mediacloud-topics-mine-public:latest
         container_name: mc_topics_mine_public
         networks:
             # Fetches / stores links in PostgreSQL
@@ -948,7 +948,7 @@ services:
     topics_snapshot:
         build:
             context: ./topics-snapshot/
-        image: mc_topics_snapshot:latest
+        image: mediacloud-topics-snapshot:latest
         container_name: mc_topics_snapshot
         networks:
             # Fetches / stores links in PostgreSQL
@@ -979,7 +979,7 @@ services:
     webapp:
         build:
             context: ./webapp/
-        image: mc_webapp:latest
+        image: mediacloud-webapp:latest
         container_name: mc_webapp
         networks:
             # Uses PostgreSQL to fetch / store data
@@ -1012,7 +1012,7 @@ services:
     word2vec_generate_snapshot_model:
         build:
             context: ./word2vec-generate-snapshot-model/
-        image: mc_word2vec_generate_snapshot_model:latest
+        image: mediacloud-word2vec-generate-snapshot-model:latest
         container_name: mc_word2vec_generate_snapshot_model
         networks:
             # Fetches sentences / stores model in PostgreSQL
