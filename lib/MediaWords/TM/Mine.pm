@@ -858,17 +858,25 @@ sub fetch_links
     my $last_num_pending_urls = 0;
     while ( 1 )
     {
-        my $pending_url_ids = $db->query( <<SQL )->flat();
-select topic_fetch_urls_id
+        my $pending_urls = $db->query( <<SQL )->hashes();
+select *, coalesce( fetch_date::text, 'null' ) fetch_date
     from topic_fetch_urls
     where
         topic_fetch_urls_id in ( select id from $tfu_ids_table ) and
         state in ( 'pending', 'requeued' )
 SQL
 
+        my $pending_url_ids = [ map { $_->{ topic_fetch_urls_id } } @{ $pending_urls } ];
+
         my $num_pending_urls = scalar( @{ $pending_url_ids } );
 
         INFO( "waiting for fetch link queue: $num_pending_urls links remaining ..." );
+
+        # useful in debugging for showing lingering urls
+        if ( ( $num_pending_urls <= 5 ) && ( $last_num_pending_urls != $num_pending_urls ) )
+        {
+            map { INFO( "pending url: $_->{ url } [$_->{ state }: $_->{ fetch_date }]" ) } @{ $pending_urls };
+        }
 
         last if ( $num_pending_urls < 1 );
 
