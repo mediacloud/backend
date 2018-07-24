@@ -430,11 +430,16 @@ class JSONAnnotator(metaclass=abc.ABCMeta):
         # Delete old tags the story might have under a given tag set
         db.query("""
             DELETE FROM stories_tags_map
-                USING tags, tag_sets
-            WHERE stories_tags_map.tags_id = tags.tags_id
-              AND tags.tag_sets_id = tag_sets.tag_sets_id
-              AND stories_tags_map.stories_id = %(stories_id)s
-              AND tag_sets.name = ANY(%(tag_sets_names)s)
+            WHERE stories_id = %(stories_id)s
+              AND tags_id IN (
+                SELECT tags_id
+                FROM tags
+                WHERE tag_sets_id IN (
+                  SELECT tag_sets_id
+                  FROM tag_sets
+                  WHERE name = ANY(%(tag_sets_names)s)
+                )
+              )
         """, {'stories_id': stories_id, 'tag_sets_names': list(unique_tag_sets_names)})
 
         for tag in tags:
