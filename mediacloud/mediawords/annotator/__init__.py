@@ -422,17 +422,20 @@ class JSONAnnotator(metaclass=abc.ABCMeta):
 
         db.begin()
 
-        # Delete old tags the story might have under a given tag set
+        unique_tag_sets_names = set()
         for tag in tags:
             tag_sets_name = self.__strip_linebreaks_and_whitespace(tag.tag_sets_name)
-            db.query("""
-                DELETE FROM stories_tags_map
-                    USING tags, tag_sets
-                WHERE stories_tags_map.tags_id = tags.tags_id
-                  AND tags.tag_sets_id = tag_sets.tag_sets_id
-                  AND stories_tags_map.stories_id = %(stories_id)s
-                  AND tag_sets.name = %(tag_sets_name)s
-            """, {'stories_id': stories_id, 'tag_sets_name': tag_sets_name})
+            unique_tag_sets_names.add(tag_sets_name)
+
+        # Delete old tags the story might have under a given tag set
+        db.query("""
+            DELETE FROM stories_tags_map
+                USING tags, tag_sets
+            WHERE stories_tags_map.tags_id = tags.tags_id
+              AND tags.tag_sets_id = tag_sets.tag_sets_id
+              AND stories_tags_map.stories_id = %(stories_id)s
+              AND tag_sets.name = ANY(%(tag_sets_names)s)
+        """, {'stories_id': stories_id, 'tag_sets_names': list(unique_tag_sets_names)})
 
         for tag in tags:
             tag_sets_name = self.__strip_linebreaks_and_whitespace(tag.tag_sets_name)
@@ -441,7 +444,7 @@ class JSONAnnotator(metaclass=abc.ABCMeta):
             # Not using find_or_create() because tag set / tag might already exist
             # with slightly different label / description
 
-            # Create tag set
+            # Find or create a tag set
             db_tag_set = db.select(table='tag_sets', what_to_select='*', condition_hash={'name': tag_sets_name}).hash()
             if db_tag_set is None:
                 db.query("""
@@ -458,7 +461,7 @@ class JSONAnnotator(metaclass=abc.ABCMeta):
                                        condition_hash={'name': tag_sets_name}).hash()
             tag_sets_id = int(db_tag_set['tag_sets_id'])
 
-            # Create tag
+            # Find or create tag
             db_tag = db.select(table='tags', what_to_select='*', condition_hash={
                 'tag_sets_id': tag_sets_id,
                 'tag': tags_name,
