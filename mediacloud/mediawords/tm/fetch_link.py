@@ -206,6 +206,11 @@ def get_failed_url(db: DatabaseHandler, topics_id: int, url: str) -> typing.Opti
     return failed_url
 
 
+def _update_tfu_message(db: DatabaseHandler, topic_fetch_url: dict, message: str) -> None:
+    """Update the topic_fetch_url.message field in the database."""
+    db.update_by_id('topic_fetch_urls', topic_fetch_url['topic_fetch_urls_id'], {'message': message})
+
+
 def _try_fetch_topic_url(
         db: DatabaseHandler,
         topic_fetch_url: dict,
@@ -218,11 +223,13 @@ def _try_fetch_topic_url(
     if topic_fetch_url['state'] not in (FETCH_STATE_PENDING, FETCH_STATE_REQUEUED):
         return
 
+    _update_tfu_message(db, topic_fetch_url, "checking ignore links")
     if re.search(mediawords.tm.extract_story_links.IGNORE_LINK_PATTERN, topic_fetch_url['url'], flags=re.I) is not None:
         topic_fetch_url['state'] = FETCH_STATE_IGNORE
         topic_fetch_url['code'] = 403
         return
 
+    _update_tfu_message(db, topic_fetch_url, "checking failed url")
     failed_url = get_failed_url(db, topic_fetch_url['topics_id'], topic_fetch_url['url'])
     if failed_url:
         topic_fetch_url['state'] = failed_url['state']
@@ -230,6 +237,7 @@ def _try_fetch_topic_url(
         topic_fetch_url['message'] = failed_url['message']
         return
 
+    _update_tfu_message(db, topic_fetch_url, "checking self linked domain")
     if mediawords.tm.domains.skip_self_linked_domain(db, topic_fetch_url):
         topic_fetch_url['state'] = FETCH_STATE_SKIPPED
         topic_fetch_url['code'] = 403
@@ -242,6 +250,7 @@ def _try_fetch_topic_url(
 
     # this match is relatively expensive, so only do it on the first 'pending' request and not the potentially
     # spammy 'requeued' requests
+    _update_tfu_message(db, topic_fetch_url, "checking story match")
     if topic_fetch_url['state'] == FETCH_STATE_PENDING:
         story_match = mediawords.tm.stories.get_story_match(db=db, url=topic_fetch_url['url'])
 
@@ -253,8 +262,10 @@ def _try_fetch_topic_url(
             return
 
     # get content from either the seed or by fetching it
+    _update_tfu_message(db, topic_fetch_url, "checking seeded content")
     response = get_seeded_content(db, topic_fetch_url)
     if response is None:
+        _update_tfu_message(db, topic_fetch_url, "fetching content")
         response = fetch_url(db, topic_fetch_url['url'], domain_timeout=domain_timeout)
         log.debug("%d response returned for url: %s" % (response.code(), topic_fetch_url['url']))
     else:
@@ -266,10 +277,12 @@ def _try_fetch_topic_url(
     response_url = response.request().url() if response.request() else None
 
     if fetched_url != response_url:
+        _update_tfu_message(db, topic_fetch_url, "checking story match for redirect_url")
         story_match = mediawords.tm.stories.get_story_match(db=db, url=fetched_url, redirect_url=response_url)
 
     topic_fetch_url['code'] = response.code()
 
+    _update_tfu_message(db, topic_fetch_url, "checking content match")
     if not response.is_success():
         topic_fetch_url['state'] = FETCH_STATE_REQUEST_FAILED
         topic_fetch_url['message'] = response.message()
@@ -280,6 +293,7 @@ def _try_fetch_topic_url(
         topic_fetch_url['state'] = FETCH_STATE_CONTENT_MATCH_FAILED
     else:
         try:
+            _update_tfu_message(db, topic_fetch_url, "generating story")
             url = response_url if response_url is not None else fetched_url
             story = mediawords.tm.stories.generate_story(db=db, content=content, url=url)
             topic_fetch_url['state'] = FETCH_STATE_STORY_ADDED
@@ -287,11 +301,14 @@ def _try_fetch_topic_url(
         except mediawords.tm.stories.McTMStoriesDuplicateException:
             # may get a unique constraint error for the story addition within the media source.  that's fine
             # because it means the story is already in the database and we just need to match it again.
+            _update_tfu_message(db, topic_fetch_url, "checking for story match on unique constraint error")
             topic_fetch_url['state'] = FETCH_STATE_STORY_MATCH
             story_match = mediawords.tm.stories.get_story_match(db=db, url=fetched_url, redirect_url=response_url)
             if story_match is None:
                 raise McTMFetchLinkException("Unable to find matching story after unique constraint error.")
             topic_fetch_url['stories_id'] = story_match['stories_id']
+
+    _update_tfu_message(db, topic_fetch_url, "_try_fetch_url done")
 
 
 def fetch_topic_url(db: DatabaseHandler, topic_fetch_urls_id: int, domain_timeout: typing.Optional[int]=None) -> None:
