@@ -73,7 +73,7 @@ use MediaWords::Util::Web::Cache;
 Readonly my $MAX_SOCIAL_MEDIA_FETCH_TIME => ( 60 * 60 * 24 );
 
 # add new links in chunks of this size
-Readonly my $ADD_NEW_LINKS_CHUNK_SIZE => 1000;
+Readonly my $ADD_NEW_LINKS_CHUNK_SIZE => 10_000;
 
 # extract story links in chunks of this size
 Readonly my $EXTRACT_STORY_LINKS_CHUNK_SIZE => 1000;
