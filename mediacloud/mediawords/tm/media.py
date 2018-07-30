@@ -258,7 +258,8 @@ def guess_medium(db: DatabaseHandler, story_url: str) -> dict:
     # a race condition with another thread can cause this to fail sometimes, but after the medium in the
     # other process has been created, all should be fine
     for i in range(_GUESS_MEDIUM_RETRIES):
-        medium = db.find_or_create('media', {'name': medium_name, 'url': medium_url})
+        medium_data = {'name': medium_name, 'url': medium_url, 'normalized_url': normalized_medium_url}
+        medium = db.find_or_create('media', medium_data)
 
         if medium is not None:
             break
