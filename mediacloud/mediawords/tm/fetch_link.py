@@ -20,6 +20,8 @@ from mediawords.util.web.user_agent.throttled import ThrottledUserAgent, McThrot
 
 log = create_logger(__name__)
 
+# set to true to use topic_fetch_urls.message to track current activity of each fetch_link job
+_USE_TFU_DEBUG_MESSAGES = False
 
 # if the network is down, wait this many seconds before retrying the fetch
 DEFAULT_NETWORK_DOWN_TIMEOUT = 30
@@ -208,7 +210,8 @@ def get_failed_url(db: DatabaseHandler, topics_id: int, url: str) -> typing.Opti
 
 def _update_tfu_message(db: DatabaseHandler, topic_fetch_url: dict, message: str) -> None:
     """Update the topic_fetch_url.message field in the database."""
-    db.update_by_id('topic_fetch_urls', topic_fetch_url['topic_fetch_urls_id'], {'message': message})
+    if _USE_TFU_DEBUG_MESSAGES:
+        db.update_by_id('topic_fetch_urls', topic_fetch_url['topic_fetch_urls_id'], {'message': message})
 
 
 def _ignore_link_pattern(url: typing.Optional[str]) -> bool:
