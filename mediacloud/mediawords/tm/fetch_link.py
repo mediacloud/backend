@@ -211,6 +211,17 @@ def _update_tfu_message(db: DatabaseHandler, topic_fetch_url: dict, message: str
     db.update_by_id('topic_fetch_urls', topic_fetch_url['topic_fetch_urls_id'], {'message': message})
 
 
+def _ignore_link_pattern(url: typing.Optional[str]) -> bool:
+    """Return true if the url or redirect_url matches the ignore link pattern."""
+    if url is None:
+        return False
+
+    p = mediawords.tm.extract_story_links.IGNORE_LINK_PATTERN
+    nu = mediawords.util.url.normalize_url_lossy(url)
+
+    return re.search(p, url, flags=re.I) or re.search(p, nu, flags=re.I)
+
+
 def _try_fetch_topic_url(
         db: DatabaseHandler,
         topic_fetch_url: dict,
@@ -224,7 +235,7 @@ def _try_fetch_topic_url(
         return
 
     _update_tfu_message(db, topic_fetch_url, "checking ignore links")
-    if re.search(mediawords.tm.extract_story_links.IGNORE_LINK_PATTERN, topic_fetch_url['url'], flags=re.I) is not None:
+    if _ignore_link_pattern(topic_fetch_url['url']):
         topic_fetch_url['state'] = FETCH_STATE_IGNORE
         topic_fetch_url['code'] = 403
         return
@@ -277,6 +288,11 @@ def _try_fetch_topic_url(
     response_url = response.request().url() if response.request() else None
 
     if fetched_url != response_url:
+        if _ignore_link_pattern(response_url):
+            topic_fetch_url['state'] = FETCH_STATE_IGNORE
+            topic_fetch_url['code'] = 403
+            return
+
         _update_tfu_message(db, topic_fetch_url, "checking story match for redirect_url")
         story_match = mediawords.tm.stories.get_story_match(db=db, url=fetched_url, redirect_url=response_url)
 
