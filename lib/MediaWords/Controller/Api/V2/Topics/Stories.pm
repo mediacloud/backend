@@ -239,7 +239,7 @@ sub list_GET
     my $db = $c->dbis;
 
     $c->req->params->{ sort }  ||= 'inlink';
-    $c->req->params->{ limit } ||= 1000;
+    $c->req->params->{ limit } ||= 20;
 
     my $sort_clause = _get_sort_clause( $c->req->params->{ sort } );
     $sort_clause = "order by slc.timespans_id, $sort_clause, md5( slc.stories_id::text )";
