@@ -6,7 +6,6 @@ Table of Contents
    * [Overview](#overview)
       * [Media Cloud Crawler and Core Data Structures](#media-cloud-crawler-and-core-data-structures)
       * [Topic Data Structures](#topic-data-structures)
-      * [API URLs](#api-urls)
       * [Snapshots, Timespans, and Foci](#snapshots-timespans-and-foci)
       * [Paging](#paging)
       * [Examples](#examples)
@@ -55,96 +54,96 @@ Table of Contents
          * [Output Description](#output-description-6)
          * [Example](#example-9)
    * [Stories](#stories)
-      * [stories/list](#storieslist)
+      * [topics/&lt;topics_id&gt;/stories/list](#topicstopics_idstorieslist)
          * [Query Parameters](#query-parameters-10)
          * [Output Description](#output-description-7)
-      * [stories/facebook](#storiesfacebook)
+      * [topics/&lt;topics_id&gt;/stories/facebook](#topicstopics_idstoriesfacebook)
          * [Query Parameters](#query-parameters-11)
          * [Output Description](#output-description-8)
          * [Example](#example-10)
-      * [stories/count](#storiescount)
+      * [topics/&lt;topics_id&gt;/stories/count](#topicstopics_idstoriescount)
          * [Query Parameters](#query-parameters-12)
          * [Output Description](#output-description-9)
          * [Example](#example-11)
    * [Sentences](#sentences)
-      * [sentences/count](#sentencescount)
+      * [topics/&lt;topics_id&gt;/sentences/count](#topicstopics_idsentencescount)
    * [Media](#media)
-      * [media/list](#medialist)
+      * [topics/&lt;topics_id&gt;/media/list](#topicstopics_idmedialist)
          * [Query Parameters](#query-parameters-13)
          * [Output Description](#output-description-10)
          * [Example](#example-12)
-      * [media/map](#mediamap)
+      * [topics/&lt;topics_id&gt;/media/map](#topicstopics_idmediamap)
          * [Query Parameters](#query-parameters-14)
          * [Output Description](#output-description-11)
          * [Example](#example-13)
    * [Word Counts](#word-counts)
-      * [wc/list](#wclist)
+      * [topics/&lt;topics_id&gt;/wc/list](#topicstopics_idwclist)
    * [Foci](#foci)
       * [Focal Techniques](#focal-techniques)
          * [Focal Technique: Boolean Query](#focal-technique-boolean-query)
-      * [focal_set_definitions/create (POST)](#focal_set_definitionscreate-post)
+      * [topics/&lt;topics_id&gt;/focal_set_definitions/create (POST)](#topicstopics_idfocal_set_definitionscreate-post)
          * [Query Parameters](#query-parameters-15)
          * [Input Description](#input-description-4)
          * [Example](#example-14)
-      * [focal_set_definitions/&lt;focal_set_definitions_id&gt;/update (PUT)](#focal_set_definitionsfocal_set_definitions_idupdate-put)
+      * [topics/&lt;topics_id&gt;/focal_set_definitions/&lt;focal_set_definitions_id&gt;/update (PUT)](#topicstopics_idfocal_set_definitionsfocal_set_definitions_idupdate-put)
          * [Query Parameters](#query-parameters-16)
          * [Input Parameters](#input-parameters)
          * [Example](#example-15)
-      * [focal_set_definitions/&lt;focal_set_definitions_id&gt;/delete (PUT)](#focal_set_definitionsfocal_set_definitions_iddelete-put)
+      * [topics/&lt;topics_id&gt;/focal_set_definitions/&lt;focal_set_definitions_id&gt;/delete (PUT)](#topicstopics_idfocal_set_definitionsfocal_set_definitions_iddelete-put)
          * [Query Parameters](#query-parameters-17)
          * [Output Description](#output-description-12)
          * [Example](#example-16)
-      * [focal_set_definitions/list](#focal_set_definitionslist)
+      * [topics/&lt;topics_id&gt;/focal_set_definitions/list](#topicstopics_idfocal_set_definitionslist)
          * [Query Parameters](#query-parameters-18)
          * [Output Description](#output-description-13)
          * [Example](#example-17)
-      * [focal_sets/list](#focal_setslist)
+      * [topics/&lt;topics_id&gt;/focal_sets/list](#topicstopics_idfocal_setslist)
          * [Query Parameters](#query-parameters-19)
          * [Output Description](#output-description-14)
          * [Example](#example-18)
-      * [focus_definitions/create (POST)](#focus_definitionscreate-post)
+      * [topics/&lt;topics_id&gt;/focus_definitions/create (POST)](#topicstopics_idfocus_definitionscreate-post)
          * [Query Parameters](#query-parameters-20)
          * [Input Description](#input-description-5)
          * [Example](#example-19)
-      * [focus_definitions/&lt;focus_definitions_id&gt;/update (PUT)](#focus_definitionsfocus_definitions_idupdate-put)
+      * [topics/&lt;topics_id&gt;/focus_definitions/&lt;focus_definitions_id&gt;/update (PUT)](#topicstopics_idfocus_definitionsfocus_definitions_idupdate-put)
          * [Query Parameters](#query-parameters-21)
          * [Input Description](#input-description-6)
          * [Example](#example-20)
-      * [focus_definitions/&lt;focus_definitions_id&gt;/delete (PUT)](#focus_definitionsfocus_definitions_iddelete-put)
+      * [topics/&lt;topics_id&gt;/focus_definitions/&lt;focus_definitions_id&gt;/delete (PUT)](#topicstopics_idfocus_definitionsfocus_definitions_iddelete-put)
          * [Query Parameters](#query-parameters-22)
          * [Output Description](#output-description-15)
          * [Example](#example-21)
-      * [focus_definitions/list](#focus_definitionslist)
+      * [topics/&lt;topics_id&gt;/focus_definitions/list](#topicstopics_idfocus_definitionslist)
          * [Query Parameters](#query-parameters-23)
          * [Output Description](#output-description-16)
          * [Example](#example-22)
-      * [foci/list](#focilist)
+      * [topics/&lt;topics_id&gt;/foci/list](#topicstopics_idfocilist)
          * [Query Parameters](#query-parameters-24)
          * [Ouput Description](#ouput-description)
          * [Example](#example-23)
    * [Snapshots](#snapshots)
-      * [snapshots/generate (POST)](#snapshotsgenerate-post)
+      * [topics/&lt;topics_id&gt;/snapshots/generate (POST)](#topicstopics_idsnapshotsgenerate-post)
          * [Query Parameters](#query-parameters-25)
          * [Input Description](#input-description-7)
          * [Output Description](#output-description-17)
          * [Example](#example-24)
-      * [snapshots/generate_status](#snapshotsgenerate_status)
+      * [topics/&lt;topics_id&gt;/snapshots/generate_status](#topicstopics_idsnapshotsgenerate_status)
          * [Query Parameters](#query-parameters-26)
          * [Input Description](#input-description-8)
          * [Output Description](#output-description-18)
          * [Example](#example-25)
-      * [snapshots/list](#snapshotslist)
+      * [topics/&lt;topics_id&gt;/snapshots/list](#topicstopics_idsnapshotslist)
          * [Query Paramaters](#query-paramaters)
          * [Output Description](#output-description-19)
          * [Example](#example-26)
-      * [snapshots/&lt;snapshots_id&gt;/word2vec_model/&lt;models_id&gt; (GET)](#snapshotssnapshots_idword2vec_modelmodels_id-get)
+      * [topics/&lt;topics_id&gt;/snapshots/&lt;snapshots_id&gt;/word2vec_model/&lt;models_id&gt; (GET)](#topicstopics_idsnapshotssnapshots_idword2vec_modelmodels_id-get)
          * [Required role](#required-role)
          * [Output Description](#output-description-20)
             * [Model was fetched](#model-was-fetched)
             * [Failed to fetch the model](#failed-to-fetch-the-model)
          * [Example](#example-27)
    * [Timespans](#timespans)
-      * [timespans/list](#timespanslist)
+      * [topics/&lt;topics_id&gt;/timespans/list](#topicstopics_idtimespanslist)
          * [Query Parameters](#query-parameters-27)
          * [Output Description](#output-description-21)
          * [Example](#example-28)
@@ -190,16 +189,6 @@ After the spidering is complete, a *topic* consists of a set of relevant *storie
 *media* that published those *stories*, and social media metrics about the *stories* and *media*.  The various topics /
 end points provide access to all of this raw data as well as various of various analytical processes applied to this
 data.
-
-## API URLs
-
-All URLs in the topics API are in the form:
-
-`https://api.mediacloud.org/api/v2/topics/<topics_id>/stories/list`
-
-For example, the following will return all stories in the latest snapshot of topic id 1344.
-
-`https://api.mediacloud.org/api/v2/topics/1344/stories/list`
 
 ## Snapshots, Timespans, and Foci
 
@@ -863,7 +852,7 @@ Response:
 
 # Stories
 
-## `stories/list`
+## `topics/<topics_id>/stories/list`
 
 `https://api.mediacloud.org/api/v2/topics/<topics_id>/stories/list`
 
@@ -954,7 +943,7 @@ Response:
 }
 ```
 
-## `stories/facebook`
+## `topics/<topics_id>/stories/facebook`
 
 `https://api.mediacloud.org/api/v2/topics/<topics_id>/stories/facebook`
 
@@ -1012,7 +1001,7 @@ Response:
 }
 ```
 
-## `stories/count`
+## `topics/<topics_id>/stories/count`
 
 `https://api.mediacloud.org/api/v2/topics/<topics_id>/stories/count`
 
@@ -1049,7 +1038,7 @@ Response:
 
 # Sentences
 
-## `sentences/count`
+## `topics/<topics_id>/sentences/count`
 
 `https://api.mediacloud.org/api/v2/topics/<topics_id>/sentences/count`
 
@@ -1064,7 +1053,7 @@ For details about this end point, including parameters, output, and examples, se
 
 # Media
 
-## `media/list`
+## `topics/<topics_id>/media/list`
 
 `https://api.mediacloud.org/api/v2/topics/<topics_id>/media/list`
 
@@ -1144,7 +1133,7 @@ Response:
     }
 }
 ```
-## `media/map`
+## `topics/<topics_id>/media/map`
 
 `https://api.mediacloud.org/api/v2/topics/<topics_id>/media/map`
 
@@ -1177,7 +1166,7 @@ Return the network map for topic id 12:
 
 # Word Counts
 
-## `wc/list`
+## `topics/<topics_id>/wc/list`
 
 `https://api.mediacloud.org/api/v2/topics/<topics_id>/wc/list`
 
@@ -1216,7 +1205,7 @@ Details about each focal technique are below.  Among other properties, each foca
 
 The Boolean Query focal technique associates a focus with a story by matching that story with a Solr boolean query.  *focal sets* generated by the Boolean Query method are not exclusive.
 
-## `focal_set_definitions/create` (POST)
+## `topics/<topics_id>/focal_set_definitions/create` (POST)
 
 `https://api.mediacloud.org/api/topics/<topics_id>/focal_set_definitions/create`
 
@@ -1267,7 +1256,7 @@ Response:
 }
 ```
 
-## `focal_set_definitions/<focal_set_definitions_id>/update` (PUT)
+## `topics/<topics_id>/focal_set_definitions/<focal_set_definitions_id>/update` (PUT)
 
 `https://api.mediacloud.org/api/v2/topics/<topics_id>/focal_set_definitions/<focal_set_definitions_id>/update/`
 
@@ -1314,7 +1303,7 @@ Response:
 }
 ```
 
-## `focal_set_definitions/<focal_set_definitions_id>/delete` (PUT)
+## `topics/<topics_id>/focal_set_definitions/<focal_set_definitions_id>/delete` (PUT)
 
 `https://api.mediacloud.org/api/v2/topics/<topics_id>/focal_set_definitions/<focal_set_definitions_id>/delete`
 
@@ -1342,7 +1331,7 @@ Response:
 { "success": 1 }
 ```
 
-## `focal_set_definitions/list`
+## `topics/<topics_id>/focal_set_definitions/list`
 
 `https://api.mediacloud.org/api/v2/topics/<topics_id>/focal_set_definitions/list`
 
@@ -1397,7 +1386,7 @@ Response:
 }
 ```
 
-## `focal_sets/list`
+## `topics/<topics_id>/focal_sets/list`
 
 `https://api.mediacloud.org/api/v2/topics/<topics_id>/focal_sets/list`
 
@@ -1454,7 +1443,7 @@ Response:
 ```
 
 
-## `focus_definitions/create` (POST)
+## `topics/<topics_id>/focus_definitions/create` (POST)
 
 `https://api.mediacloud.org/api/topics/<topics_id>/focus_definitions/create`
 
@@ -1510,7 +1499,7 @@ Response:
 ```
 
 
-## `focus_definitions/<focus_definitions_id>/update` (PUT)
+## `topics/<topics_id>/focus_definitions/<focus_definitions_id>/update` (PUT)
 
 `https://api.mediacloud.org/api/v2/topics/<topics_id>/focus_definitions/<focus_definitions_id>/update`
 
@@ -1552,7 +1541,7 @@ Response:
 }
 ```
 
-## `focus_definitions/<focus_definitions_id>/delete` (PUT)
+## `topics/<topics_id>/focus_definitions/<focus_definitions_id>/delete` (PUT)
 
 `https://api.mediacloud.org/api/v2/topics/<topics_id>/focus_definitions/<focus_definitions_id>/delete`
 
@@ -1580,7 +1569,7 @@ Response:
 { "success": 1 }
 ```
 
-## `focus_definitions/list`
+## `topics/<topics_id>/focus_definitions/list`
 
 `https://api.mediacloud.org/api/v2/topics/<topics_id>/focus_definitions/<focal_set_definitions_id>/list`
 
@@ -1626,7 +1615,7 @@ Response:
 }
 ```
 
-## `foci/list`
+## `topics/<topics_id>/foci/list`
 
 `https://api.mediacloud.org/api/v2/topics/<topics_id>/foci/list`
 
@@ -1675,7 +1664,7 @@ Response:
 
 Each *snapshot* contains a static copy of all data within a topic at the time the *snapshot* was made.  All data viewable by the Topics API must be viewed through a *snapshot*.
 
-## `snapshots/generate` (POST)
+## `topics/<topics_id>/snapshots/generate` (POST)
 
 `https://api.mediacloud.org/api/v2/topics/<topics_id>/snapshots/generate`
 
@@ -1720,7 +1709,7 @@ Response:
 }    
 ```
 
-## `snapshots/generate_status`
+## `topics/<topics_id>/snapshots/generate_status`
 
 `https://api.mediacloud.org/api/v2/topics/<topics_id>/snapshots/generate_status`
 
@@ -1767,7 +1756,7 @@ Response:
 }    
 ```
 
-## `snapshots/list`
+## `topics/<topics_id>/snapshots/list`
 
 `https://api.mediacloud.org/api/v2/topics/<topics_id>/snapshots/list`
 
@@ -1824,7 +1813,7 @@ Response:
 ```
 
 
-## `snapshots/<snapshots_id>/word2vec_model/<models_id>` (GET)
+## `topics/<topics_id>/snapshots/<snapshots_id>/word2vec_model/<models_id>` (GET)
 
 | URL                                                                      | Function                             |
 | ------------------------------------------------------------------------ | ------------------------------------ |
@@ -1865,7 +1854,7 @@ Each *timespan* is a view of the *topic* that presents the topic as if it consis
 
 A *story* is included within a *timespan* if the publish_date of the story is within the *timespan* date range or if the *story* is linked to by a *story* that whose publish_date is within date range of the *timespan*.
 
-## `timespans/list`
+## `topics/<topics_id>/timespans/list`
 
 `https://api.mediacloud.org/api/v2/topics/<topics_id>/timespans/list`
 
