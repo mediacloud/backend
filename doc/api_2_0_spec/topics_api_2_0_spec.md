@@ -58,96 +58,100 @@ Table of Contents
       * [stories/list](#storieslist)
          * [Query Parameters](#query-parameters-10)
          * [Output Description](#output-description-7)
-      * [stories/facebook](#storiesfacebook)
+      * [stories/links](#storieslinks)
          * [Query Parameters](#query-parameters-11)
          * [Output Description](#output-description-8)
          * [Example](#example-10)
-      * [stories/count](#storiescount)
+      * [stories/facebook](#storiesfacebook)
          * [Query Parameters](#query-parameters-12)
          * [Output Description](#output-description-9)
          * [Example](#example-11)
+      * [stories/count](#storiescount)
+         * [Query Parameters](#query-parameters-13)
+         * [Output Description](#output-description-10)
+         * [Example](#example-12)
    * [Sentences](#sentences)
       * [sentences/count](#sentencescount)
    * [Media](#media)
       * [media/list](#medialist)
-         * [Query Parameters](#query-parameters-13)
-         * [Output Description](#output-description-10)
-         * [Example](#example-12)
-      * [media/map](#mediamap)
          * [Query Parameters](#query-parameters-14)
          * [Output Description](#output-description-11)
          * [Example](#example-13)
+      * [media/map](#mediamap)
+         * [Query Parameters](#query-parameters-15)
+         * [Output Description](#output-description-12)
+         * [Example](#example-14)
    * [Word Counts](#word-counts)
       * [wc/list](#wclist)
    * [Foci](#foci)
       * [Focal Techniques](#focal-techniques)
          * [Focal Technique: Boolean Query](#focal-technique-boolean-query)
       * [focal_set_definitions/create (POST)](#focal_set_definitionscreate-post)
-         * [Query Parameters](#query-parameters-15)
-         * [Input Description](#input-description-4)
-         * [Example](#example-14)
-      * [focal_set_definitions/&lt;focal_set_definitions_id&gt;/update (PUT)](#focal_set_definitionsfocal_set_definitions_idupdate-put)
          * [Query Parameters](#query-parameters-16)
-         * [Input Parameters](#input-parameters)
+         * [Input Description](#input-description-4)
          * [Example](#example-15)
-      * [focal_set_definitions/&lt;focal_set_definitions_id&gt;/delete (PUT)](#focal_set_definitionsfocal_set_definitions_iddelete-put)
+      * [focal_set_definitions/&lt;focal_set_definitions_id&gt;/update (PUT)](#focal_set_definitionsfocal_set_definitions_idupdate-put)
          * [Query Parameters](#query-parameters-17)
-         * [Output Description](#output-description-12)
+         * [Input Parameters](#input-parameters)
          * [Example](#example-16)
-      * [focal_set_definitions/list](#focal_set_definitionslist)
+      * [focal_set_definitions/&lt;focal_set_definitions_id&gt;/delete (PUT)](#focal_set_definitionsfocal_set_definitions_iddelete-put)
          * [Query Parameters](#query-parameters-18)
          * [Output Description](#output-description-13)
          * [Example](#example-17)
-      * [focal_sets/list](#focal_setslist)
+      * [focal_set_definitions/list](#focal_set_definitionslist)
          * [Query Parameters](#query-parameters-19)
          * [Output Description](#output-description-14)
          * [Example](#example-18)
-      * [focus_definitions/create (POST)](#focus_definitionscreate-post)
+      * [focal_sets/list](#focal_setslist)
          * [Query Parameters](#query-parameters-20)
-         * [Input Description](#input-description-5)
-         * [Example](#example-19)
-      * [focus_definitions/&lt;focus_definitions_id&gt;/update (PUT)](#focus_definitionsfocus_definitions_idupdate-put)
-         * [Query Parameters](#query-parameters-21)
-         * [Input Description](#input-description-6)
-         * [Example](#example-20)
-      * [focus_definitions/&lt;focus_definitions_id&gt;/delete (PUT)](#focus_definitionsfocus_definitions_iddelete-put)
-         * [Query Parameters](#query-parameters-22)
          * [Output Description](#output-description-15)
+         * [Example](#example-19)
+      * [focus_definitions/create (POST)](#focus_definitionscreate-post)
+         * [Query Parameters](#query-parameters-21)
+         * [Input Description](#input-description-5)
+         * [Example](#example-20)
+      * [focus_definitions/&lt;focus_definitions_id&gt;/update (PUT)](#focus_definitionsfocus_definitions_idupdate-put)
+         * [Query Parameters](#query-parameters-22)
+         * [Input Description](#input-description-6)
          * [Example](#example-21)
-      * [focus_definitions/list](#focus_definitionslist)
+      * [focus_definitions/&lt;focus_definitions_id&gt;/delete (PUT)](#focus_definitionsfocus_definitions_iddelete-put)
          * [Query Parameters](#query-parameters-23)
          * [Output Description](#output-description-16)
          * [Example](#example-22)
-      * [foci/list](#focilist)
+      * [focus_definitions/list](#focus_definitionslist)
          * [Query Parameters](#query-parameters-24)
-         * [Ouput Description](#ouput-description)
+         * [Output Description](#output-description-17)
          * [Example](#example-23)
+      * [foci/list](#focilist)
+         * [Query Parameters](#query-parameters-25)
+         * [Ouput Description](#ouput-description)
+         * [Example](#example-24)
    * [Snapshots](#snapshots)
       * [snapshots/generate (POST)](#snapshotsgenerate-post)
-         * [Query Parameters](#query-parameters-25)
-         * [Input Description](#input-description-7)
-         * [Output Description](#output-description-17)
-         * [Example](#example-24)
-      * [snapshots/generate_status](#snapshotsgenerate_status)
          * [Query Parameters](#query-parameters-26)
-         * [Input Description](#input-description-8)
+         * [Input Description](#input-description-7)
          * [Output Description](#output-description-18)
          * [Example](#example-25)
-      * [snapshots/list](#snapshotslist)
-         * [Query Paramaters](#query-paramaters)
+      * [snapshots/generate_status](#snapshotsgenerate_status)
+         * [Query Parameters](#query-parameters-27)
+         * [Input Description](#input-description-8)
          * [Output Description](#output-description-19)
          * [Example](#example-26)
+      * [snapshots/list](#snapshotslist)
+         * [Query Paramaters](#query-paramaters)
+         * [Output Description](#output-description-20)
+         * [Example](#example-27)
       * [snapshots/&lt;snapshots_id&gt;/word2vec_model/&lt;models_id&gt; (GET)](#snapshotssnapshots_idword2vec_modelmodels_id-get)
          * [Required role](#required-role)
-         * [Output Description](#output-description-20)
+         * [Output Description](#output-description-21)
             * [Model was fetched](#model-was-fetched)
             * [Failed to fetch the model](#failed-to-fetch-the-model)
-         * [Example](#example-27)
+         * [Example](#example-28)
    * [Timespans](#timespans)
       * [timespans/list](#timespanslist)
-         * [Query Parameters](#query-parameters-27)
-         * [Output Description](#output-description-21)
-         * [Example](#example-28)
+         * [Query Parameters](#query-parameters-28)
+         * [Output Description](#output-description-22)
+         * [Example](#example-29)
 
 ----
 <!-- MEDIACLOUD-TOC-END -->
@@ -163,10 +167,10 @@ A *topic* currently may be created only by the Media Cloud team, though we occas
 
 ## Media Cloud Crawler and Core Data Structures
 
-The core Media Cloud data are stored as *media*, *feeds*, and *stories*.  
+The core Media Cloud data are stored as *media*, *feeds*, and *stories*.
 
 A *medium* (or *media source*) is a publisher, which can be a big mainstream media publisher like the New York Times, an
-activist site like fightforthefuture.org, or even a site that does not publish regular news-like stories, such as Wikipedia.  
+activist site like fightforthefuture.org, or even a site that does not publish regular news-like stories, such as Wikipedia.
 
 A *feed* is a syndicated feed (RSS, RDF, ATOM) from which Media Cloud pulls stories for a given *media source*.  A given
 *media source* may have anywhere from zero *feeds* (in which case we do not regularly crawl the site for new content) up
@@ -251,7 +255,7 @@ For example, the following is a paged response:
 {
     "stories":
     [
-        {   
+        {
             "stories_id": 168326235,
             "media_id": 18047,
             "collect_date": "2013-10-26 09:25:39",
@@ -524,7 +528,7 @@ Response:
             "message": null,
             "state": "queued"
         }
-}    
+}
 ```
 
 
@@ -567,7 +571,7 @@ Response:
             "state": "queued"
         }
     ]
-}    
+}
 ```
 
 
@@ -576,7 +580,7 @@ Response:
 `https://api.mediacloud.org/api/v2/topics/list`
 
 The topics/list call returns a simple list of topics available in Media Cloud.  The call will only return topics for
-which the calling user has read or higher permissions.  
+which the calling user has read or higher permissions.
 
 The topics/list call is is only call that does not include a topics_id in the URL.
 
@@ -923,7 +927,7 @@ Response:
 {
     "stories":
     [
-        {   
+        {
             "stories_id": 168326235,
             "media_id": 18047,
             "collect_date": "2013-10-26 09:25:39",
@@ -951,6 +955,54 @@ Response:
         "previous": 456789,
         "next": 789123
     }
+}
+```
+
+## `stories/links`
+
+`https://api.mediacloud.org/api/v2/topics/<topics_id>/stories/links`
+
+Return all links between individual stories across media within the given topic.
+
+### Query Parameters
+
+Standard parameters accepted : snapshots_id, foci_id, timespans_id, limit.
+
+### Output Description
+
+| Field | Description                |
+| ----- | -------------------------- |
+| source_stories_id | id of the story hosting the link |
+| ref_stories_id | id of the story that is the target of the link|
+
+### Example
+
+Return links for topic 1404:
+
+`https://api.mediacloud.org/api/v2/topics/1404/stories/links?limit=3`
+
+Response:
+
+```json
+{
+  "link_ids": {
+    "current": 93724,
+    "next": 93725
+  },
+  "links": [
+    {
+      "ref_stories_id": 7968288,
+      "source_stories_id": 9387091
+    },
+    {
+      "ref_stories_id": 8847769,
+      "source_stories_id": 9387091
+    },
+    {
+      "ref_stories_id": 169996079,
+      "source_stories_id": 9387091
+    }
+  ]
 }
 ```
 
@@ -1717,7 +1769,7 @@ Response:
             "message": null,
             "state": "queued"
         }
-}    
+}
 ```
 
 ## `snapshots/generate_status`
@@ -1764,7 +1816,7 @@ Response:
             "state": "completed"
         }
     ]
-}    
+}
 ```
 
 ## `snapshots/list`
@@ -1790,7 +1842,7 @@ Return a list of all completed *snapshots* in the given *topic*.
 | word2vec_models | List of word2vec models generated for the snapshot |
 
 The state indicates the state of the current snapshot process, including but not limited to 'completed' for a snapshot
-whose process has successfully completed and 'error' for a snapshot that failed for some reason.  
+whose process has successfully completed and 'error' for a snapshot that failed for some reason.
 
 Each timespan in a snapshot is queued for text indexing when the snapshot is generated.  This process may take a
 few minutes up to a few hours.  The 'searchable' field is set to true once that indexing process is complete.
@@ -1818,7 +1870,7 @@ Response:
                   "creation_date": "2018-01-31 20:59:57.559360"
                }
             ]
-        }  
+        }
     ]
 }
 ```
