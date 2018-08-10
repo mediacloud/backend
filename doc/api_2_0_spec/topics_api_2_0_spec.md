@@ -889,7 +889,7 @@ The stories list call returns stories in the topic.
 | Parameter            | Default | Notes                                    |
 | -------------------- | ------- | ---------------------------------------- |
 | q                    | null    | if specified, return only stories that match the given Solr query |
-| sort                 | inlink  | possible values: `inlink`, `facebook`, `twitter` |
+| sort                 | inlink  | possible values: `inlink`, `facebook`, `twitter`, `random` |
 | stories_id           | null    | return only stories matching these stories_ids |
 | link_to_stories_id   | null    | return only stories from other media that link to the given stories_id |
 | link_from_stories_id | null    | return only stories from other media that are linked from the given stories_id |
