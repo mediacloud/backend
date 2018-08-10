@@ -10,36 +10,36 @@ above describe how we administer our Solr cluster, including scripts we use to c
 Solr shards.
 
 The basic interaction between Solr and the rest of the platform is that we import any updated `story_sentences` into
-Solr from the PostgreSQL server every hour by running an hourly Cron script on the Solr server. IDs of the stories to be (re)imported into Solr are to be found in the `solr_import_stories` table.
+Solr from the PostgreSQL server every minute via the `imoport_solr_data` supervisord daemon.  That script finds which
+stories to import by using the `solr_import_stories` postgres table.  Rows are added to that table by triggers
+associated with the `stories` and `stories_tags_map` tables.
 
 The list of fields imported by Solr is configured in
 [solr/collections/_base_collection/conf/schema.xml](../solr/collections/_base_collection/conf/schema.xml).  As of this doc, we index the
 following fields:
 
-* `story_sentences_id` (stored; must look up the specific returned sentence)
 * `media_id`
-* `stories_id` (stored; must return grouped stories_id to efficiently search for lists of stories)
-* `sentence_number`
-* `processed_stories_id` (stored; must query PostgreSQL for returned `stories_id`s ordered by specific `processed_stories_id`)
-* `sentence` (stored; must get sentence back to efficiently count words without querying `story_sentences`)
-* `title` (stored; must get title back to efficiently count words)
+* `stories_id`
+* `processed_stories_id`
+* `text`
+* `title`
 * `publish_date`
 * `publish_day`
+* `publish_week`
+* `publish_month`
+* `publish_year`
 * `language`
 * `tags_id_stories`
-* `tags_id_media`
-* `tags_id_story_sentences`
+* `timespans_id`
 
-Stored fields mean that they are going to be returned by Solr queries. Storing fields in addition to indexing them
-requires significant extra resources (disk space, import time, query time), so we should not store fields unless
-there is a good reason for not just querying the results from PostgreSQL once we get the `stories_id`s back.
+Additionally, there is code in Solr.pm that converts any `tags_id_media` or `collections_id` clauses into `media_id`
+clauses.  We do this conversion in code because it prevents us from having to reimport millions of stories when we
+redefine collections.
 
-Stories (titles) are stored as separate documents.  So, a story with ten sentences will be imported as 11 documents -- 10 documents
-with the sentence field set and 1 with the title field set.
-
-For the `solr_id`, we use `<stories_id> | <story_sentences_id>` (for example `1234|123456`), which allows Solr to store
-sentences from the same story on the same shard.  Sharding by `stories_id` allows us to run grouping queries on stories
-and get accurate results.
+Other than the text and title fields, all of the above fields are stored in solr as docvalues, because docvalues 
+allow much faster grouping and also gives us stored values without requiring extra storage space.  The `text` and
+`title` fields are not stored because storing the values takes about twice as much space (which also impacts
+performance because it requires more memory use).
 
 For more information about the Solr import process, see [MediaWords::Solr::Dump](lib/MediaWords/Solr/Dump.pm).
 

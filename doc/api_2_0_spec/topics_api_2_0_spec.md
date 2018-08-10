@@ -57,25 +57,29 @@ Table of Contents
       * [topics/&lt;topics_id&gt;/stories/list](#topicstopics_idstorieslist)
          * [Query Parameters](#query-parameters-10)
          * [Output Description](#output-description-7)
-      * [topics/&lt;topics_id&gt;/stories/facebook](#topicstopics_idstoriesfacebook)
+      * [topics/&lt;topics_id&gt;/stories/links](#topicstopics_idstorieslinks)
          * [Query Parameters](#query-parameters-11)
          * [Output Description](#output-description-8)
          * [Example](#example-10)
-      * [topics/&lt;topics_id&gt;/stories/count](#topicstopics_idstoriescount)
+      * [topics/&lt;topics_id&gt;/stories/facebook](#topicstopics_idstoriesfacebook)
          * [Query Parameters](#query-parameters-12)
          * [Output Description](#output-description-9)
          * [Example](#example-11)
+      * [topics/&lt;topics_id&gt;/stories/count](#topicstopics_idstoriescount)
+         * [Query Parameters](#query-parameters-13)
+         * [Output Description](#output-description-10)
+         * [Example](#example-12)
    * [Sentences](#sentences)
       * [topics/&lt;topics_id&gt;/sentences/count](#topicstopics_idsentencescount)
    * [Media](#media)
       * [topics/&lt;topics_id&gt;/media/list](#topicstopics_idmedialist)
-         * [Query Parameters](#query-parameters-13)
-         * [Output Description](#output-description-10)
-         * [Example](#example-12)
-      * [topics/&lt;topics_id&gt;/media/map](#topicstopics_idmediamap)
          * [Query Parameters](#query-parameters-14)
          * [Output Description](#output-description-11)
          * [Example](#example-13)
+      * [topics/&lt;topics_id&gt;/media/map](#topicstopics_idmediamap)
+         * [Query Parameters](#query-parameters-15)
+         * [Output Description](#output-description-12)
+         * [Example](#example-14)
    * [Word Counts](#word-counts)
       * [topics/&lt;topics_id&gt;/wc/list](#topicstopics_idwclist)
    * [Foci](#foci)
@@ -83,92 +87,92 @@ Table of Contents
          * [Focal Technique: Boolean Query](#focal-technique-boolean-query)
          * [Focal Technique: Similar Stories](#focal-technique-similar-stories)
       * [topics/&lt;topics_id&gt;/focal_set_definitions/create (POST)](#topicstopics_idfocal_set_definitionscreate-post)
-         * [Query Parameters](#query-parameters-15)
-         * [Input Description](#input-description-4)
-         * [Example](#example-14)
-      * [topics/&lt;topics_id&gt;/focal_set_definitions/&lt;focal_set_definitions_id&gt;/update (PUT)](#topicstopics_idfocal_set_definitionsfocal_set_definitions_idupdate-put)
          * [Query Parameters](#query-parameters-16)
-         * [Input Parameters](#input-parameters)
+         * [Input Description](#input-description-4)
          * [Example](#example-15)
-      * [topics/&lt;topics_id&gt;/focal_set_definitions/&lt;focal_set_definitions_id&gt;/delete (PUT)](#topicstopics_idfocal_set_definitionsfocal_set_definitions_iddelete-put)
+      * [topics/&lt;topics_id&gt;/focal_set_definitions/&lt;focal_set_definitions_id&gt;/update (PUT)](#topicstopics_idfocal_set_definitionsfocal_set_definitions_idupdate-put)
          * [Query Parameters](#query-parameters-17)
-         * [Output Description](#output-description-12)
+         * [Input Parameters](#input-parameters)
          * [Example](#example-16)
-      * [topics/&lt;topics_id&gt;/focal_set_definitions/list](#topicstopics_idfocal_set_definitionslist)
+      * [topics/&lt;topics_id&gt;/focal_set_definitions/&lt;focal_set_definitions_id&gt;/delete (PUT)](#topicstopics_idfocal_set_definitionsfocal_set_definitions_iddelete-put)
          * [Query Parameters](#query-parameters-18)
          * [Output Description](#output-description-13)
          * [Example](#example-17)
-      * [topics/&lt;topics_id&gt;/focal_sets/list](#topicstopics_idfocal_setslist)
+      * [topics/&lt;topics_id&gt;/focal_set_definitions/list](#topicstopics_idfocal_set_definitionslist)
          * [Query Parameters](#query-parameters-19)
          * [Output Description](#output-description-14)
          * [Example](#example-18)
-      * [topics/&lt;topics_id&gt;/focus_definitions/create (POST)](#topicstopics_idfocus_definitionscreate-post)
+      * [topics/&lt;topics_id&gt;/focal_sets/list](#topicstopics_idfocal_setslist)
          * [Query Parameters](#query-parameters-20)
-         * [Input Description](#input-description-5)
-         * [Example](#example-19)
-      * [topics/&lt;topics_id&gt;/focus_definitions/&lt;focus_definitions_id&gt;/update (PUT)](#topicstopics_idfocus_definitionsfocus_definitions_idupdate-put)
-         * [Query Parameters](#query-parameters-21)
-         * [Input Description](#input-description-6)
-         * [Example](#example-20)
-      * [topics/&lt;topics_id&gt;/focus_definitions/&lt;focus_definitions_id&gt;/delete (PUT)](#topicstopics_idfocus_definitionsfocus_definitions_iddelete-put)
-         * [Query Parameters](#query-parameters-22)
          * [Output Description](#output-description-15)
+         * [Example](#example-19)
+      * [topics/&lt;topics_id&gt;/focus_definitions/create (POST)](#topicstopics_idfocus_definitionscreate-post)
+         * [Query Parameters](#query-parameters-21)
+         * [Input Description](#input-description-5)
+         * [Example](#example-20)
+      * [topics/&lt;topics_id&gt;/focus_definitions/&lt;focus_definitions_id&gt;/update (PUT)](#topicstopics_idfocus_definitionsfocus_definitions_idupdate-put)
+         * [Query Parameters](#query-parameters-22)
+         * [Input Description](#input-description-6)
          * [Example](#example-21)
-      * [topics/&lt;topics_id&gt;/focus_definitions/list](#topicstopics_idfocus_definitionslist)
+      * [topics/&lt;topics_id&gt;/focus_definitions/&lt;focus_definitions_id&gt;/delete (PUT)](#topicstopics_idfocus_definitionsfocus_definitions_iddelete-put)
          * [Query Parameters](#query-parameters-23)
          * [Output Description](#output-description-16)
          * [Example](#example-22)
-      * [topics/&lt;topics_id&gt;/foci/list](#topicstopics_idfocilist)
+      * [topics/&lt;topics_id&gt;/focus_definitions/list](#topicstopics_idfocus_definitionslist)
          * [Query Parameters](#query-parameters-24)
-         * [Ouput Description](#ouput-description)
+         * [Output Description](#output-description-17)
          * [Example](#example-23)
+      * [topics/&lt;topics_id&gt;/foci/list](#topicstopics_idfocilist)
+         * [Query Parameters](#query-parameters-25)
+         * [Ouput Description](#ouput-description)
+         * [Example](#example-24)
       * [Story Similarity Models](#story-similarity-models)
          * [topics/&lt;topics_id&gt;/similarity_models/preview (POST)](#topicstopics_idsimilarity_modelspreview-post)
             * [Required role](#required-role)
             * [Input Description](#input-description-7)
-            * [Output Description](#output-description-17)
+            * [Output Description](#output-description-18)
                * [Sample model was generated and evaluation stories were run against it](#sample-model-was-generated-and-evaluation-stories-were-run-against-it)
                * [An error has occurred](#an-error-has-occurred)
-            * [Example](#example-24)
+            * [Example](#example-25)
          * [topics/&lt;topics_id&gt;/similarity_models/create (POST)](#topicstopics_idsimilarity_modelscreate-post)
             * [Required role](#required-role-1)
             * [Input Description](#input-description-8)
-            * [Output Description](#output-description-18)
+            * [Output Description](#output-description-19)
                * [Model was generated and stored](#model-was-generated-and-stored)
                * [An error has occurred](#an-error-has-occurred-1)
-            * [Example](#example-25)
+            * [Example](#example-26)
          * [topics/&lt;topics_id&gt;/similarity_models/list (GET)](#topicstopics_idsimilarity_modelslist-get)
             * [Required role](#required-role-2)
-            * [Output Description](#output-description-19)
+            * [Output Description](#output-description-20)
                * [Model was generated and stored](#model-was-generated-and-stored-1)
                * [An error has occurred](#an-error-has-occurred-2)
-            * [Example](#example-26)
+            * [Example](#example-27)
    * [Snapshots](#snapshots)
       * [topics/&lt;topics_id&gt;/snapshots/generate (POST)](#topicstopics_idsnapshotsgenerate-post)
-         * [Query Parameters](#query-parameters-25)
-         * [Input Description](#input-description-9)
-         * [Output Description](#output-description-20)
-         * [Example](#example-27)
-      * [topics/&lt;topics_id&gt;/snapshots/generate_status](#topicstopics_idsnapshotsgenerate_status)
          * [Query Parameters](#query-parameters-26)
-         * [Input Description](#input-description-10)
+         * [Input Description](#input-description-9)
          * [Output Description](#output-description-21)
          * [Example](#example-28)
-      * [topics/&lt;topics_id&gt;/snapshots/list](#topicstopics_idsnapshotslist)
-         * [Query Paramaters](#query-paramaters)
+      * [topics/&lt;topics_id&gt;/snapshots/generate_status](#topicstopics_idsnapshotsgenerate_status)
+         * [Query Parameters](#query-parameters-27)
+         * [Input Description](#input-description-10)
          * [Output Description](#output-description-22)
          * [Example](#example-29)
+      * [topics/&lt;topics_id&gt;/snapshots/list](#topicstopics_idsnapshotslist)
+         * [Query Paramaters](#query-paramaters)
+         * [Output Description](#output-description-23)
+         * [Example](#example-30)
       * [topics/&lt;topics_id&gt;/snapshots/&lt;snapshots_id&gt;/word2vec_model/&lt;models_id&gt; (GET)](#topicstopics_idsnapshotssnapshots_idword2vec_modelmodels_id-get)
          * [Required role](#required-role-3)
-         * [Output Description](#output-description-23)
+         * [Output Description](#output-description-24)
             * [Model was fetched](#model-was-fetched)
             * [Failed to fetch the model](#failed-to-fetch-the-model)
-         * [Example](#example-30)
+         * [Example](#example-31)
    * [Timespans](#timespans)
       * [topics/&lt;topics_id&gt;/timespans/list](#topicstopics_idtimespanslist)
-         * [Query Parameters](#query-parameters-27)
-         * [Output Description](#output-description-24)
-         * [Example](#example-31)
+         * [Query Parameters](#query-parameters-28)
+         * [Output Description](#output-description-25)
+         * [Example](#example-32)
 
 ----
 <!-- MEDIACLOUD-TOC-END -->
@@ -184,10 +188,10 @@ A *topic* currently may be created only by the Media Cloud team, though we occas
 
 ## Media Cloud Crawler and Core Data Structures
 
-The core Media Cloud data are stored as *media*, *feeds*, and *stories*.  
+The core Media Cloud data are stored as *media*, *feeds*, and *stories*.
 
 A *medium* (or *media source*) is a publisher, which can be a big mainstream media publisher like the New York Times, an
-activist site like fightforthefuture.org, or even a site that does not publish regular news-like stories, such as Wikipedia.  
+activist site like fightforthefuture.org, or even a site that does not publish regular news-like stories, such as Wikipedia.
 
 A *feed* is a syndicated feed (RSS, RDF, ATOM) from which Media Cloud pulls stories for a given *media source*.  A given
 *media source* may have anywhere from zero *feeds* (in which case we do not regularly crawl the site for new content) up
@@ -262,7 +266,7 @@ For example, the following is a paged response:
 {
     "stories":
     [
-        {   
+        {
             "stories_id": 168326235,
             "media_id": 18047,
             "collect_date": "2013-10-26 09:25:39",
@@ -535,7 +539,7 @@ Response:
             "message": null,
             "state": "queued"
         }
-}    
+}
 ```
 
 
@@ -578,7 +582,7 @@ Response:
             "state": "queued"
         }
     ]
-}    
+}
 ```
 
 
@@ -587,7 +591,7 @@ Response:
 `https://api.mediacloud.org/api/v2/topics/list`
 
 The topics/list call returns a simple list of topics available in Media Cloud.  The call will only return topics for
-which the calling user has read or higher permissions.  
+which the calling user has read or higher permissions.
 
 The topics/list call is is only call that does not include a topics_id in the URL.
 
@@ -934,7 +938,7 @@ Response:
 {
     "stories":
     [
-        {   
+        {
             "stories_id": 168326235,
             "media_id": 18047,
             "collect_date": "2013-10-26 09:25:39",
@@ -962,6 +966,54 @@ Response:
         "previous": 456789,
         "next": 789123
     }
+}
+```
+
+## `topics/<topics_id>/stories/links`
+
+`https://api.mediacloud.org/api/v2/topics/<topics_id>/stories/links`
+
+Return all links between individual stories across media within the given topic.
+
+### Query Parameters
+
+Standard parameters accepted : snapshots_id, foci_id, timespans_id, limit.
+
+### Output Description
+
+| Field | Description                |
+| ----- | -------------------------- |
+| source_stories_id | id of the story hosting the link |
+| ref_stories_id | id of the story that is the target of the link|
+
+### Example
+
+Return links for topic 1404:
+
+`https://api.mediacloud.org/api/v2/topics/1404/stories/links?limit=3`
+
+Response:
+
+```json
+{
+  "link_ids": {
+    "current": 93724,
+    "next": 93725
+  },
+  "links": [
+    {
+      "ref_stories_id": 7968288,
+      "source_stories_id": 9387091
+    },
+    {
+      "ref_stories_id": 8847769,
+      "source_stories_id": 9387091
+    },
+    {
+      "ref_stories_id": 169996079,
+      "source_stories_id": 9387091
+    }
+  ]
 }
 ```
 
@@ -2037,7 +2089,7 @@ Response:
             "message": null,
             "state": "queued"
         }
-}    
+}
 ```
 
 ## `topics/<topics_id>/snapshots/generate_status`
@@ -2084,7 +2136,7 @@ Response:
             "state": "completed"
         }
     ]
-}    
+}
 ```
 
 ## `topics/<topics_id>/snapshots/list`
@@ -2110,7 +2162,7 @@ Return a list of all completed *snapshots* in the given *topic*.
 | word2vec_models | List of word2vec models generated for the snapshot |
 
 The state indicates the state of the current snapshot process, including but not limited to 'completed' for a snapshot
-whose process has successfully completed and 'error' for a snapshot that failed for some reason.  
+whose process has successfully completed and 'error' for a snapshot that failed for some reason.
 
 Each timespan in a snapshot is queued for text indexing when the snapshot is generated.  This process may take a
 few minutes up to a few hours.  The 'searchable' field is set to true once that indexing process is complete.
@@ -2138,7 +2190,7 @@ Response:
                   "creation_date": "2018-01-31 20:59:57.559360"
                }
             ]
-        }  
+        }
     ]
 }
 ```

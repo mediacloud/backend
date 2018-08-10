@@ -717,6 +717,9 @@ def __get_tokens(query: str) -> List[Token]:
     query = query.replace("\n", " ")
     query = query.replace("\r", " ")
 
+    # shlex.split() dies on unclosed single quotes, and solr treats them as spaces any way
+    query = query.replace("'", " ")
+
     # we can't support solr range searches, and they break the tokenizer, so just regexp them away
     query = re.sub('\w+:\[[^\]]*\]', NOOP_PLACEHOLDER, query)
 
