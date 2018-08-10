@@ -1113,7 +1113,7 @@ Response:
             "media_source_tags":
                 {
                       "description": "Published in United States",
-                      "label": "United States"
+                      "label": "United States",
                       "media_id": 18364,
                       "show_on_media": true,
                       "show_on_stories": null,
@@ -1350,7 +1350,7 @@ Return a list of all focal set definitions belonging to the given topic.
 | description              | human readable description of the focal set definition |
 | focal_technique          | focal technique used for foci in this set |
 | is_exclusive             | boolean that indicates whether a given story can only belong to one focus, based on the focal technique |
-| focus_defitions          | list of focus definitions belonging to this focal set definition |
+| focus_definitions        | list of focus definitions belonging to this focal set definition |
 
 ### Example
 
@@ -1370,7 +1370,7 @@ Response:
             "name": "Major Party Candidates",
             "description": "Stories relevant to each major party candidate.",
             "focal_technique": "Boolean Query",
-            "is_exclusive": 0
+            "is_exclusive": 0,
             "focus_definitions":
             [
                 {
