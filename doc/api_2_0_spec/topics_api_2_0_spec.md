@@ -81,6 +81,7 @@ Table of Contents
    * [Foci](#foci)
       * [Focal Techniques](#focal-techniques)
          * [Focal Technique: Boolean Query](#focal-technique-boolean-query)
+         * [Focal Technique: Similar Stories](#focal-technique-similar-stories)
       * [topics/&lt;topics_id&gt;/focal_set_definitions/create (POST)](#topicstopics_idfocal_set_definitionscreate-post)
          * [Query Parameters](#query-parameters-15)
          * [Input Description](#input-description-4)
@@ -121,32 +122,53 @@ Table of Contents
          * [Query Parameters](#query-parameters-24)
          * [Ouput Description](#ouput-description)
          * [Example](#example-23)
+      * [Story Similarity Models](#story-similarity-models)
+         * [topics/&lt;topics_id&gt;/similarity_models/preview (POST)](#topicstopics_idsimilarity_modelspreview-post)
+            * [Required role](#required-role)
+            * [Input Description](#input-description-7)
+            * [Output Description](#output-description-17)
+               * [Sample model was generated and evaluation stories were run against it](#sample-model-was-generated-and-evaluation-stories-were-run-against-it)
+               * [An error has occurred](#an-error-has-occurred)
+            * [Example](#example-24)
+         * [topics/&lt;topics_id&gt;/similarity_models/create (POST)](#topicstopics_idsimilarity_modelscreate-post)
+            * [Required role](#required-role-1)
+            * [Input Description](#input-description-8)
+            * [Output Description](#output-description-18)
+               * [Model was generated and stored](#model-was-generated-and-stored)
+               * [An error has occurred](#an-error-has-occurred-1)
+            * [Example](#example-25)
+         * [topics/&lt;topics_id&gt;/similarity_models/list (GET)](#topicstopics_idsimilarity_modelslist-get)
+            * [Required role](#required-role-2)
+            * [Output Description](#output-description-19)
+               * [Model was generated and stored](#model-was-generated-and-stored-1)
+               * [An error has occurred](#an-error-has-occurred-2)
+            * [Example](#example-26)
    * [Snapshots](#snapshots)
       * [topics/&lt;topics_id&gt;/snapshots/generate (POST)](#topicstopics_idsnapshotsgenerate-post)
          * [Query Parameters](#query-parameters-25)
-         * [Input Description](#input-description-7)
-         * [Output Description](#output-description-17)
-         * [Example](#example-24)
+         * [Input Description](#input-description-9)
+         * [Output Description](#output-description-20)
+         * [Example](#example-27)
       * [topics/&lt;topics_id&gt;/snapshots/generate_status](#topicstopics_idsnapshotsgenerate_status)
          * [Query Parameters](#query-parameters-26)
-         * [Input Description](#input-description-8)
-         * [Output Description](#output-description-18)
-         * [Example](#example-25)
+         * [Input Description](#input-description-10)
+         * [Output Description](#output-description-21)
+         * [Example](#example-28)
       * [topics/&lt;topics_id&gt;/snapshots/list](#topicstopics_idsnapshotslist)
          * [Query Paramaters](#query-paramaters)
-         * [Output Description](#output-description-19)
-         * [Example](#example-26)
+         * [Output Description](#output-description-22)
+         * [Example](#example-29)
       * [topics/&lt;topics_id&gt;/snapshots/&lt;snapshots_id&gt;/word2vec_model/&lt;models_id&gt; (GET)](#topicstopics_idsnapshotssnapshots_idword2vec_modelmodels_id-get)
-         * [Required role](#required-role)
-         * [Output Description](#output-description-20)
+         * [Required role](#required-role-3)
+         * [Output Description](#output-description-23)
             * [Model was fetched](#model-was-fetched)
             * [Failed to fetch the model](#failed-to-fetch-the-model)
-         * [Example](#example-27)
+         * [Example](#example-30)
    * [Timespans](#timespans)
       * [topics/&lt;topics_id&gt;/timespans/list](#topicstopics_idtimespanslist)
          * [Query Parameters](#query-parameters-27)
-         * [Output Description](#output-description-21)
-         * [Example](#example-28)
+         * [Output Description](#output-description-24)
+         * [Example](#example-31)
 
 ----
 <!-- MEDIACLOUD-TOC-END -->
@@ -1193,17 +1215,19 @@ The relationship of these objects is shown below:
         * focus
             * timespan
 
+
 ## Focal Techniques
 
-Media Cloud currently supports the following focal techniques.
-
-* Boolean Query
-
-Details about each focal technique are below.  Among other properties, each focal technique may or not be exclusive.  Exlcusive focal techniques generate *focal sets* in which each story belongs to at most one *focus*.
+Details about each focal technique are below.  Among other properties, each focal technique may or not be exclusive.  Exclusive focal techniques generate *focal sets* in which each story belongs to at most one *focus*.
 
 ### Focal Technique: Boolean Query
 
 The Boolean Query focal technique associates a focus with a story by matching that story with a Solr boolean query.  *focal sets* generated by the Boolean Query method are not exclusive.
+
+### Focal Technique: Similar Stories
+
+The Similar Stories focal technique associates a focus with a story by matching that story with "similar stories" model. *focal sets* generated by the Similar Stories method are not exclusive.
+
 
 ## `topics/<topics_id>/focal_set_definitions/create` (POST)
 
@@ -1377,7 +1401,12 @@ Response:
                     "focus_definitions_id": 234,
                     "name": "Clinton",
                     "description": "stories that mention Hillary Clinton",
-                    "query": "clinton and ( hillary or -bill )"
+                    "args": {
+                        "query": "clinton and ( hillary or -bill )",
+                        // *or*
+                        "similarity_models_id": 12345,
+                        "negate": false
+                    }
                 }
             ]
 
@@ -1433,8 +1462,13 @@ Response:
                     "foci_id": 234,
                     "name": "Clinton",
                     "description": "stories that mention Hillary Clinton",
-                    "query": "clinton and ( hillary or -bill )",
-                    "focal_technique": "Boolean Query"
+                    "focal_technique": "Boolean Query",
+                    "args": {
+                        "query": "clinton and ( hillary or -bill )",
+                        // *or*
+                        "similarity_models_id": 12345,
+                        "negate": false
+                    }
                 }
             ]
         }
@@ -1455,12 +1489,15 @@ Create and return a new *focus definition*  within the given *topic* and *focal 
 
 ### Input Description
 
-| Field                    | Description                              |
-| ------------------------ | ---------------------------------------- |
-| name                     | short human readable label for foci generated by this definition |
-| description              | human readable description for foci generated by this definition |
-| query                    | Boolean Query: query used to generate foci generated by this definition |
-| focus_set_definitions_id | id of parent focus set definition        |
+| Field                    | Description                              | |
+| ------------------------ | ---------------------------------------- | |
+| name                     | short human readable label for foci generated by this definition | |
+| description              | human readable description for foci generated by this definition | |
+| args                     | Arguments for the specific focal technique | |
+| -                        | query                | Boolean Query: query used to generate foci generated by this definition  |
+| -                        | similarity_models_id | Similar Stories: similarity model ID                                     |
+| -                        | negate               | Similar Stories: if true, will match stories which don't match the model |
+| focus_set_definitions_id | id of parent focus set definition        | |
 
 The input for the *focus definition* depends on the focal technique of the parent *focal set definition*.  The focal technique specific input fields are listed last in the table above and are prefixed with the name of applicable focal technique.
 
@@ -1476,7 +1513,12 @@ Input:
 {
     "name": "Clinton",
     "description": "stories that mention Hillary Clinton",
-    "query": "clinton",
+    "args": {
+        "query": "clinton",
+        // *or*
+        "similarity_models_id": 12345,
+        "negate": false
+    },
     "focal_set_definitions_id": 789
 }
 ```
@@ -1491,8 +1533,13 @@ Response:
             "focus_definitions_id": 234,
             "name": "Clinton",
             "description": "stories that mention Hillary Clinton",
-            "query": "clinton",
-            "focal_technique": "Boolean Query"
+            "focal_technique": "Boolean Query",
+            "args": {
+                "query": "clinton",
+                // *or*
+                "similarity_models_id": 12345,
+                "negate": false
+            }
         }
     ]
 }
@@ -1522,7 +1569,14 @@ Update the query for the 'Clinton' focus definition:
 Input:
 
 ```json
-{ "query": "clinton and ( hillary or -bill )" }
+{
+    "args": {
+        "query": "clinton and ( hillary or -bill )",
+        // *or*
+        "similarity_models_id": 12345,
+        "negate": false
+    }
+}
 ```
 
 Response:
@@ -1535,7 +1589,12 @@ Response:
             "focus_definitions_id": 234,
             "name": "Clinton",
             "description": "stories that mention Hillary Clinton",
-            "query": "clinton and ( hillary or -bill )"
+            "args": {
+                "query": "clinton and ( hillary or -bill )",
+                // *or*
+                "similarity_models_id": 12345,
+                "negate": false
+            }
         }
     ]
 }
@@ -1583,12 +1642,15 @@ List all *focus definitions* belonging to the given *focal set definition*.
 
 ### Output Description
 
-| Field                | Description                              |
-| -------------------- | ---------------------------------------- |
-| focus_definitions_id | focus definition id                      |
-| name                 | short human readable label for foci generated by this definition |
-| description          | human readable description for foci generated by this definition |
-| query                | Boolean Query: query used to generate foci generated by this definition |
+| Field                | Description                              | |
+| -------------------- | ---------------------------------------- | |
+| focus_definitions_id | focus definition id                      | |
+| name                 | short human readable label for foci generated by this definition | |
+| description          | human readable description for foci generated by this definition | |
+| args                 | Focal technique-dependent arguments      | |
+| -                    | query                | Boolean Query: query used to generate foci generated by this definition  |
+| -                    | similarity_models_id | Similar Stories: similarity model ID                                     |
+| -                    | negate               | Similar Stories: if true, will match stories which don't match the model |
 
 The output for *focus definition* depends on the focal technique of the parent *focal set definition*.  The framing
 method specific fields are listed last in the table above and are prefixed with the name of applicable focal technique.
@@ -1609,7 +1671,12 @@ Response:
             "focus_definitions_id": 234,
             "name": "Clinton",
             "description": "stories that mention Hillary Clinton",
-            "query": "clinton and ( hillary or -bill )"
+            "args": {
+                "query": "clinton and ( hillary or -bill )",
+                // *or*
+                "similarity_models_id": 12345,
+                "negate": false
+            }
         }
     ]
 }
@@ -1629,12 +1696,15 @@ Return a list of the *foci* belonging to the given *focal set*.
 
 ### Ouput Description
 
-| Field       | Description                              |
-| ----------- | ---------------------------------------- |
-| foci_id     | focus id                                 |
-| name        | short human readable label for the focus |
-| description | human readable description of the focus  |
-| query       | Boolean Query: query used to generate the focus |
+| Field       | Description                              | |
+| ----------- | ---------------------------------------- | |
+| foci_id     | focus id                                 | |
+| name        | short human readable label for the focus | |
+| description | human readable description of the focus  | |
+| args        | Focal technique-dependend arguments      | |
+| -           | query                | Boolean Query: query used to generate the focus                          |
+| -           | similarity_models_id | Similar Stories: similarity model ID                                     |
+| -           | negate               | Similar Stories: if true, will match stories which don't match the model |
 
 The output for *focus* depends on the focal technique of the parent *focus definition*.  The focal technique specific fields are listed last in the table above and are prefixed with the name of applicable focal technique.
 
@@ -1654,11 +1724,272 @@ Response:
             "foci_id": 234,
             "name": "Clinton",
             "description": "stories that mention Hillary Clinton",
-            "query": "clinton and ( hillary or -bill )"
+            "args": {
+                "query": "clinton and ( hillary or -bill )",
+                // *or*
+                "similarity_models_id": 12345,
+                "negate": false
+            }
         }
     ]
 }
 ```
+
+
+## Story Similarity Models
+
+### `topics/<topics_id>/similarity_models/preview` (POST)
+
+| URL                                                   | Function                                                                                                    |
+| ----------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `api/v2/topics/<topics_id>/similarity_models/preview` | Generate a sample similarity model using a list of stories and evaluate it against another list of stories. |
+
+#### Required role
+
+`admin-read`.
+
+#### Input Description
+
+| Parameter            | Notes                                                        | -                                                      |
+| -------------------- | ------------------------------------------------------------ | ------------------------------------------------------ |
+| `training_stories`   | *(list of dictionaries)* Stories to train a sample similarity model with. | -                                                      |
+| -                    | `stories_id`                                                 | *(integer)* Story's ID.                                |
+| -                    | `judgement`                                                  | *(boolean)* Whether or not a story belongs in a focus. |
+| `evaluation_stories` | *(list of integer story IDs)* Stories to evaluate a sample model against. | -                                                      |
+
+#### Output Description
+
+##### Sample model was generated and evaluation stories were run against it
+
+```json
+{
+    "success": 1,
+    "evaluated_stories": {
+        "1": true,
+        "2": true,
+        "3": false
+    }
+}
+```
+
+##### An error has occurred
+
+```json
+{
+    "error": "Unable to generate similarity model: ..."
+}
+```
+
+#### Example
+
+URL: <https://api.mediacloud.org/api/v2/topics/1344/similarity_models/preview>
+
+Input:
+
+```json
+{
+    "training_stories": [
+        {
+            "stories_id": 1,
+            "judgement": true
+        },
+        {
+            "stories_id": 2,
+            "judgement": true
+        },
+        {
+            "stories_id": 3,
+            "judgement": false
+        }
+    ],
+    "evaluation_stories": [
+        4,
+        5,
+        6
+    ]
+}
+```
+
+Output:
+
+```json
+{
+    "success": 1,
+    "evaluated_stories": {
+        "4": true,
+        "5": true,
+        "6": false
+    }
+}
+```
+
+
+### `topics/<topics_id>/similarity_models/create` (POST)
+
+| URL                                                  | Function                                                       |
+| ---------------------------------------------------- | -------------------------------------------------------------- |
+| `api/v2/topics/<topics_id>/similarity_models/create` | Generate and save a similarity model using a list of stories.  |
+
+#### Required role
+
+`admin`.
+
+#### Input Description
+
+| Parameter            | Notes                                                              | |
+| -------------------- | ------------------------------------------------------------------ | |
+| `name`               | *(string)* Model name                                              | |
+| `description`        | *(string)* Model description                                       | |
+| `training_stories`   | *(list of dictionaries)* Stories to train a similarity model with. | |
+| -                    | `stories_id`                                                       | *(integer)* Story's ID.                                |
+| -                    | `judgement`                                                        | *(boolean)* Whether or not a story belongs in a focus. |
+
+#### Output Description
+
+##### Model was generated and stored
+
+```json
+{
+    "success": 1,
+    "similarity_model": {
+        "similarity_models_id": "(integer) ID of the created model to be associated with focal technique",
+        "name": "(string) Model name",
+        "description": "(string) Model description",
+        "created_date": "(ISO 8601 date) of when the model was created.",
+        "training_stories": [
+            {
+                "stories_id": "(integer) Story ID that was used for training.",
+                "judgement": "(boolean) Judgement that was used for training."
+            }
+        ]
+    }
+}
+```
+
+##### An error has occurred
+
+```json
+{
+    "error": "Unable to generate similarity model: ..."
+}
+```
+
+#### Example
+
+URL: <https://api.mediacloud.org/api/v2/topics/1344/similarity_models/create>
+
+Input:
+
+```json
+{
+    "name": "Test model",
+    "description": "This is a test model.",
+    "training_stories": [
+        {
+            "stories_id": 1,
+            "judgement": true
+        },
+        {
+            "stories_id": 2,
+            "judgement": true
+        },
+        {
+            "stories_id": 3,
+            "judgement": false
+        }
+    ]
+}
+```
+
+Output:
+
+```json
+{
+    "success": 1,
+    "similarity_model": {
+        "similarity_models_id": 12345,
+        "name": "Test model",
+        "description": "This is a test model.",
+        "created_date": "2017-03-24T03:23:47+00:00",
+        "training_stories": [
+            {
+                "stories_id": 1,
+                "judgement": true
+            },
+            {
+                "stories_id": 2,
+                "judgement": true
+            },
+            {
+                "stories_id": 3,
+                "judgement": false
+            }
+        ]
+    }
+}
+```
+
+
+### `topics/<topics_id>/similarity_models/list` (GET)
+
+| URL                                                | Function                |
+| -------------------------------------------------- | ----------------------- |
+| `api/v2/topics/<topics_id>/similarity_models/list` | List similarity models. |
+
+#### Required role
+
+`admin-readonly`.
+
+#### Output Description
+
+##### Model was generated and stored
+
+```json
+{
+    "success": 1,
+    "similarity_models_id": 12345
+}
+```
+
+##### An error has occurred
+
+```json
+{
+    "error": "Unable to list similarity models: ..."
+}
+```
+
+#### Example
+
+URL: <https://api.mediacloud.org/api/v2/topics/1344/similarity_models/list>
+
+Output:
+
+```json
+[
+    {
+        "similarity_models_id": 12345,
+        "name": "Test model",
+        "description": "This is a test model.",
+        "created_date": "2017-03-24T03:23:47+00:00",
+        "training_stories": [
+            {
+                "stories_id": 1,
+                "judgement": true
+            },
+            {
+                "stories_id": 2,
+                "judgement": true
+            },
+            {
+                "stories_id": 3,
+                "judgement": false
+            }
+        ]
+    }
+]
+```
+
 
 # Snapshots
 
