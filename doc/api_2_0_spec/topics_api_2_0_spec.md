@@ -1820,7 +1820,9 @@ Response:
         "1": true,
         "2": true,
         "3": false
-    }
+    },
+    "precision": 0.8,
+    "recall": 0.11
 }
 ```
 
@@ -1871,7 +1873,9 @@ Output:
         "4": true,
         "5": true,
         "6": false
-    }
+    },
+    "precision": 0.8,
+    "recall": 0.11
 }
 ```
 
@@ -1913,7 +1917,9 @@ Output:
                 "stories_id": "(integer) Story ID that was used for training.",
                 "judgement": "(boolean) Judgement that was used for training."
             }
-        ]
+        ],
+        "precision": 0.8,
+        "recall": 0.11
     }
 }
 ```
@@ -1976,7 +1982,9 @@ Output:
                 "stories_id": 3,
                 "judgement": false
             }
-        ]
+        ],
+        "precision": 0.8,
+        "recall": 0.11
     }
 }
 ```
@@ -2037,7 +2045,9 @@ Output:
                 "stories_id": 3,
                 "judgement": false
             }
-        ]
+        ],
+        "precision": 0.8,
+        "recall": 0.11
     }
 ]
 ```
