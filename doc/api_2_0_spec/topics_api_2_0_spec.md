@@ -1822,7 +1822,19 @@ Response:
         "3": false
     },
     "precision": 0.8,
-    "recall": 0.11
+    "recall": 0.11,
+    "top_words": {
+        "positive": [
+            "obama",
+            "trump",
+            "bush"
+        ],
+        "negative": [
+            "flowers",
+            "python",
+            "yoga"
+        ]
+    }
 }
 ```
 
@@ -1875,7 +1887,19 @@ Output:
         "6": false
     },
     "precision": 0.8,
-    "recall": 0.11
+    "recall": 0.11,
+    "top_words": {
+        "positive": [
+            "obama",
+            "trump",
+            "bush"
+        ],
+        "negative": [
+            "flowers",
+            "python",
+            "yoga"
+        ]
+    }
 }
 ```
 
@@ -1919,7 +1943,19 @@ Output:
             }
         ],
         "precision": 0.8,
-        "recall": 0.11
+        "recall": 0.11,
+        "top_words": {
+            "positive": [
+                "obama",
+                "trump",
+                "bush"
+            ],
+            "negative": [
+                "flowers",
+                "python",
+                "yoga"
+            ]
+        }
     }
 }
 ```
@@ -1984,7 +2020,19 @@ Output:
             }
         ],
         "precision": 0.8,
-        "recall": 0.11
+        "recall": 0.11,
+        "top_words": {
+            "positive": [
+                "obama",
+                "trump",
+                "bush"
+            ],
+            "negative": [
+                "flowers",
+                "python",
+                "yoga"
+            ]
+        }
     }
 }
 ```
@@ -2047,7 +2095,19 @@ Output:
             }
         ],
         "precision": 0.8,
-        "recall": 0.11
+        "recall": 0.11,
+        "top_words": {
+            "positive": [
+                "obama",
+                "trump",
+                "bush"
+            ],
+            "negative": [
+                "flowers",
+                "python",
+                "yoga"
+            ]
+        }
     }
 ]
 ```
