@@ -2113,6 +2113,76 @@ Output:
 ```
 
 
+### `topics/<topics_id>/similarity_models/<similarity_models_id>/download_model` (GET)
+
+| URL                                                                                 | Function                            |
+| ----------------------------------------------------------------------------------- | ----------------------------------- |
+| `api/v2/topics/<topics_id>/similarity_models/<similarity_models_id>/download_model` | Download a similarity model's data. |
+
+#### Required role
+
+`tm-readonly`.
+
+#### Output Description
+
+#### Model was fetched
+
+Raw, [Pickle](https://docs.python.org/3/library/pickle.html)-serialized model data is returned as `application/octet-stream`, to be later loaded with:
+
+```python
+model = pickle.load(path_to_model_data)
+```
+
+#### Failed to fetch the model
+
+```json
+{
+    "error": "Reason why the model's data can't be fetched."
+}
+```
+
+### Example
+
+URL: <https://api.mediacloud.org/api/v2/topics/6/similarity_models/1/download_model>
+
+Output: `application/octet-stream` model data of topic with `topics_id=6`, similarity model with `similarity_models_id=1`.
+
+
+### `topics/<topics_id>/similarity_models/<similarity_models_id>/download_vectorizer` (GET)
+
+| URL                                                                                      | Function                                       |
+| ---------------------------------------------------------------------------------------- | ---------------------------------------------- |
+| `api/v2/topics/<topics_id>/similarity_models/<similarity_models_id>/download_vectorizer` | Download a similarity model's vectorizer data. |
+
+#### Required role
+
+`tm-readonly`.
+
+#### Output Description
+
+#### Model was fetched
+
+Raw, [Pickle](https://docs.python.org/3/library/pickle.html)-serialized model's vectorizer data is returned as `application/octet-stream`, to be later loaded with:
+
+```python
+vectorizer = pickle.load(path_to_vectorizer_data)
+```
+
+#### Failed to fetch the model
+
+```json
+{
+    "error": "Reason why the model's vectorizer data can't be fetched."
+}
+```
+
+### Example
+
+URL: <https://api.mediacloud.org/api/v2/topics/6/similarity_models/1/download_vectorizer>
+
+Output: `application/octet-stream` model's vectorizer data of topic with `topics_id=6`, similarity model with `similarity_models_id=1`.
+
+
 # Snapshots
 
 Each *snapshot* contains a static copy of all data within a topic at the time the *snapshot* was made.  All data viewable by the Topics API must be viewed through a *snapshot*.
