@@ -150,15 +150,15 @@ Table of Contents
          * [topics/&lt;topics_id&gt;/similarity_models/&lt;similarity_models_id&gt;/download_model (GET)](#topicstopics_idsimilarity_modelssimilarity_models_iddownload_model-get)
             * [Required role](#required-role-3)
             * [Output Description](#output-description-21)
-            * [Model was fetched](#model-was-fetched)
-            * [Failed to fetch the model](#failed-to-fetch-the-model)
-         * [Example](#example-28)
+               * [Model was fetched](#model-was-fetched)
+               * [Failed to fetch the model](#failed-to-fetch-the-model)
+            * [Example](#example-28)
          * [topics/&lt;topics_id&gt;/similarity_models/&lt;similarity_models_id&gt;/download_vectorizer (GET)](#topicstopics_idsimilarity_modelssimilarity_models_iddownload_vectorizer-get)
             * [Required role](#required-role-4)
             * [Output Description](#output-description-22)
-            * [Model was fetched](#model-was-fetched-1)
-            * [Failed to fetch the model](#failed-to-fetch-the-model-1)
-         * [Example](#example-29)
+               * [Model was fetched](#model-was-fetched-1)
+               * [Failed to fetch the model](#failed-to-fetch-the-model-1)
+            * [Example](#example-29)
    * [Snapshots](#snapshots)
       * [topics/&lt;topics_id&gt;/snapshots/generate (POST)](#topicstopics_idsnapshotsgenerate-post)
          * [Query Parameters](#query-parameters-26)
@@ -2139,7 +2139,7 @@ Output:
 
 #### Output Description
 
-#### Model was fetched
+##### Model was fetched
 
 Raw, [Pickle](https://docs.python.org/3/library/pickle.html)-serialized model data is returned as `application/octet-stream`, to be later loaded with:
 
@@ -2147,7 +2147,7 @@ Raw, [Pickle](https://docs.python.org/3/library/pickle.html)-serialized model da
 model = pickle.load(path_to_model_data)
 ```
 
-#### Failed to fetch the model
+##### Failed to fetch the model
 
 ```json
 {
@@ -2155,7 +2155,7 @@ model = pickle.load(path_to_model_data)
 }
 ```
 
-### Example
+#### Example
 
 URL: <https://api.mediacloud.org/api/v2/topics/6/similarity_models/1/download_model>
 
@@ -2174,7 +2174,7 @@ Output: `application/octet-stream` model data of topic with `topics_id=6`, simil
 
 #### Output Description
 
-#### Model was fetched
+##### Model was fetched
 
 Raw, [Pickle](https://docs.python.org/3/library/pickle.html)-serialized model's vectorizer data is returned as `application/octet-stream`, to be later loaded with:
 
@@ -2182,7 +2182,7 @@ Raw, [Pickle](https://docs.python.org/3/library/pickle.html)-serialized model's 
 vectorizer = pickle.load(path_to_vectorizer_data)
 ```
 
-#### Failed to fetch the model
+##### Failed to fetch the model
 
 ```json
 {
@@ -2190,7 +2190,7 @@ vectorizer = pickle.load(path_to_vectorizer_data)
 }
 ```
 
-### Example
+#### Example
 
 URL: <https://api.mediacloud.org/api/v2/topics/6/similarity_models/1/download_vectorizer>
 
