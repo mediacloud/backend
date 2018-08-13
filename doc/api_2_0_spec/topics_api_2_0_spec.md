@@ -1798,7 +1798,7 @@ Response:
 
 #### Required role
 
-`admin-read`.
+`tm-readonly`.
 
 #### Input Description
 
@@ -1884,7 +1884,7 @@ Output:
 
 #### Required role
 
-`admin`.
+`tm`.
 
 #### Input Description
 
@@ -1990,7 +1990,7 @@ Output:
 
 #### Required role
 
-`admin-readonly`.
+`tm-readonly`.
 
 #### Output Description
 
