@@ -163,6 +163,34 @@ sub test_media_list
     }
 }
 
+sub test_media_links
+{
+    my ( $db ) = @_;
+
+    my ( $timespans_id ) = $db->query( <<SQL )->flat();
+select timespans_id from timespans t where period = 'overall' and foci_id is null;
+SQL
+
+    my $limit = 1000;
+
+    my $expected_links = $db->query( <<SQL, $timespans_id, $limit )->hashes();
+select source_media_id, ref_media_id
+    from snap.medium_links sl
+    where
+        timespans_id = ?
+    order by source_media_id, ref_media_id
+    limit ?
+SQL
+
+    ok( scalar( @{ $expected_links } ) > 1, "test_media_links: more than one link" );
+
+    my $r = test_get( '/api/v2/topics/1/media/links', { limit => $limit } );
+
+    my $got_links = $r->{ links };
+
+    is_deeply( $got_links, $expected_links, "media_links: links returned" );
+}
+
 sub test_stories_links
 {
     my ( $db ) = @_;
@@ -604,6 +632,7 @@ sub test_topics_api
 
     test_stories_count( $db );
     test_stories_links( $db );
+    test_media_links( $db );
 }
 
 sub main

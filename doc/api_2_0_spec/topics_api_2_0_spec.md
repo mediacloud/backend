@@ -77,81 +77,85 @@ Table of Contents
          * [Query Parameters](#query-parameters-14)
          * [Output Description](#output-description-11)
          * [Example](#example-13)
-      * [media/map](#mediamap)
+      * [media/links](#medialinks)
          * [Query Parameters](#query-parameters-15)
          * [Output Description](#output-description-12)
          * [Example](#example-14)
+      * [media/map](#mediamap)
+         * [Query Parameters](#query-parameters-16)
+         * [Output Description](#output-description-13)
+         * [Example](#example-15)
    * [Word Counts](#word-counts)
       * [wc/list](#wclist)
    * [Foci](#foci)
       * [Focal Techniques](#focal-techniques)
          * [Focal Technique: Boolean Query](#focal-technique-boolean-query)
       * [focal_set_definitions/create (POST)](#focal_set_definitionscreate-post)
-         * [Query Parameters](#query-parameters-16)
-         * [Input Description](#input-description-4)
-         * [Example](#example-15)
-      * [focal_set_definitions/&lt;focal_set_definitions_id&gt;/update (PUT)](#focal_set_definitionsfocal_set_definitions_idupdate-put)
          * [Query Parameters](#query-parameters-17)
-         * [Input Parameters](#input-parameters)
+         * [Input Description](#input-description-4)
          * [Example](#example-16)
-      * [focal_set_definitions/&lt;focal_set_definitions_id&gt;/delete (PUT)](#focal_set_definitionsfocal_set_definitions_iddelete-put)
+      * [focal_set_definitions/&lt;focal_set_definitions_id&gt;/update (PUT)](#focal_set_definitionsfocal_set_definitions_idupdate-put)
          * [Query Parameters](#query-parameters-18)
-         * [Output Description](#output-description-13)
+         * [Input Parameters](#input-parameters)
          * [Example](#example-17)
-      * [focal_set_definitions/list](#focal_set_definitionslist)
+      * [focal_set_definitions/&lt;focal_set_definitions_id&gt;/delete (PUT)](#focal_set_definitionsfocal_set_definitions_iddelete-put)
          * [Query Parameters](#query-parameters-19)
          * [Output Description](#output-description-14)
          * [Example](#example-18)
-      * [focal_sets/list](#focal_setslist)
+      * [focal_set_definitions/list](#focal_set_definitionslist)
          * [Query Parameters](#query-parameters-20)
          * [Output Description](#output-description-15)
          * [Example](#example-19)
-      * [focus_definitions/create (POST)](#focus_definitionscreate-post)
+      * [focal_sets/list](#focal_setslist)
          * [Query Parameters](#query-parameters-21)
-         * [Input Description](#input-description-5)
-         * [Example](#example-20)
-      * [focus_definitions/&lt;focus_definitions_id&gt;/update (PUT)](#focus_definitionsfocus_definitions_idupdate-put)
-         * [Query Parameters](#query-parameters-22)
-         * [Input Description](#input-description-6)
-         * [Example](#example-21)
-      * [focus_definitions/&lt;focus_definitions_id&gt;/delete (PUT)](#focus_definitionsfocus_definitions_iddelete-put)
-         * [Query Parameters](#query-parameters-23)
          * [Output Description](#output-description-16)
+         * [Example](#example-20)
+      * [focus_definitions/create (POST)](#focus_definitionscreate-post)
+         * [Query Parameters](#query-parameters-22)
+         * [Input Description](#input-description-5)
+         * [Example](#example-21)
+      * [focus_definitions/&lt;focus_definitions_id&gt;/update (PUT)](#focus_definitionsfocus_definitions_idupdate-put)
+         * [Query Parameters](#query-parameters-23)
+         * [Input Description](#input-description-6)
          * [Example](#example-22)
-      * [focus_definitions/list](#focus_definitionslist)
+      * [focus_definitions/&lt;focus_definitions_id&gt;/delete (PUT)](#focus_definitionsfocus_definitions_iddelete-put)
          * [Query Parameters](#query-parameters-24)
          * [Output Description](#output-description-17)
          * [Example](#example-23)
-      * [foci/list](#focilist)
+      * [focus_definitions/list](#focus_definitionslist)
          * [Query Parameters](#query-parameters-25)
-         * [Ouput Description](#ouput-description)
+         * [Output Description](#output-description-18)
          * [Example](#example-24)
+      * [foci/list](#focilist)
+         * [Query Parameters](#query-parameters-26)
+         * [Ouput Description](#ouput-description)
+         * [Example](#example-25)
    * [Snapshots](#snapshots)
       * [snapshots/generate (POST)](#snapshotsgenerate-post)
-         * [Query Parameters](#query-parameters-26)
-         * [Input Description](#input-description-7)
-         * [Output Description](#output-description-18)
-         * [Example](#example-25)
-      * [snapshots/generate_status](#snapshotsgenerate_status)
          * [Query Parameters](#query-parameters-27)
-         * [Input Description](#input-description-8)
+         * [Input Description](#input-description-7)
          * [Output Description](#output-description-19)
          * [Example](#example-26)
-      * [snapshots/list](#snapshotslist)
-         * [Query Paramaters](#query-paramaters)
+      * [snapshots/generate_status](#snapshotsgenerate_status)
+         * [Query Parameters](#query-parameters-28)
+         * [Input Description](#input-description-8)
          * [Output Description](#output-description-20)
          * [Example](#example-27)
+      * [snapshots/list](#snapshotslist)
+         * [Query Paramaters](#query-paramaters)
+         * [Output Description](#output-description-21)
+         * [Example](#example-28)
       * [snapshots/&lt;snapshots_id&gt;/word2vec_model/&lt;models_id&gt; (GET)](#snapshotssnapshots_idword2vec_modelmodels_id-get)
          * [Required role](#required-role)
-         * [Output Description](#output-description-21)
+         * [Output Description](#output-description-22)
             * [Model was fetched](#model-was-fetched)
             * [Failed to fetch the model](#failed-to-fetch-the-model)
-         * [Example](#example-28)
+         * [Example](#example-29)
    * [Timespans](#timespans)
       * [timespans/list](#timespanslist)
-         * [Query Parameters](#query-parameters-28)
-         * [Output Description](#output-description-22)
-         * [Example](#example-29)
+         * [Query Parameters](#query-parameters-29)
+         * [Output Description](#output-description-23)
+         * [Example](#example-30)
 
 ----
 <!-- MEDIACLOUD-TOC-END -->
@@ -1196,6 +1200,56 @@ Response:
     }
 }
 ```
+
+
+## `media/links`
+
+`https://api.mediacloud.org/api/v2/topics/<topics_id>/media/links`
+
+Return all links between individual media within the given topic.
+
+### Query Parameters
+
+Standard parameters accepted : snapshots_id, foci_id, timespans_id, limit.
+
+### Output Description
+
+| Field | Description                |
+| ----- | -------------------------- |
+| source_media_id | id of the medium hosting the link |
+| ref_media_id | id of the medium that is the target of the link|
+
+### Example
+
+Return links for topic 1404:
+
+`https://api.mediacloud.org/api/v2/topics/1404/media/links?limit=3`
+
+Response:
+
+```json
+{
+  "links": [
+    {
+      "ref_media_id": 2,
+      "source_media_id": 1
+    },
+    {
+      "ref_media_id": 3,
+      "source_media_id": 1
+    },
+    {
+      "ref_media_id": 6,
+      "source_media_id": 1
+    }
+  ],
+  "link_ids": {
+    "current": 95189,
+    "next": 95190
+  },
+}
+```
+
 ## `media/map`
 
 `https://api.mediacloud.org/api/v2/topics/<topics_id>/media/map`
