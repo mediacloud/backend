@@ -642,6 +642,9 @@ def test_inclusive_re():
     # proximity as and query
     __validate_inclusive_re('"foo bar"~5', '(?: [[:<:]]foo | [[:<:]]bar )')
 
+    # single quote
+    __validate_inclusive_re("Cote d'Ivoire", "(?: [[:<:]]cote | [[:<:]]d | [[:<:]]ivoire )")
+
     # more complex boolean
     __validate_inclusive_re('foo and ( bar baz )', '(?: [[:<:]]foo | (?: [[:<:]]bar | [[:<:]]baz ) )')
 

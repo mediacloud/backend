@@ -18,8 +18,9 @@ BEGIN { extends 'MediaWords::Controller::Api::V2::MC_Controller_REST' }
 
 __PACKAGE__->config(
     action => {
-        list => { Does => [ qw( ~TopicsReadAuthenticated ~Throttled ~Logged ) ] },
-        map  => { Does => [ qw( ~TopicsReadAuthenticated ~Throttled ~Logged ) ] },
+        links => { Does => [ qw( ~TopicsReadAuthenticated ~Throttled ~Logged ) ] },
+        list  => { Does => [ qw( ~TopicsReadAuthenticated ~Throttled ~Logged ) ] },
+        map   => { Does => [ qw( ~TopicsReadAuthenticated ~Throttled ~Logged ) ] },
     }
 );
 
@@ -157,6 +158,42 @@ SQL
     my $entity = { media => $media };
 
     MediaWords::DBI::ApiLinks::add_links_to_entity( $c, $entity, 'media' );
+
+    $self->status_ok( $c, entity => $entity );
+}
+
+sub links : Chained('media') : Args(0) : ActionClass('MC_REST')
+{
+}
+
+sub links_GET
+{
+    my ( $self, $c ) = @_;
+
+    my $timespan = MediaWords::TM::set_timespans_id_param( $c );
+
+    MediaWords::DBI::ApiLinks::process_and_stash_link( $c );
+
+    my $db = $c->dbis;
+
+    my $limit = $c->req->params->{ limit } || 1_000;
+    $limit = List::Util::min( $limit, 1_000_000 );
+
+    my $offset = $c->req->params->{ offset } || 0;
+
+    my $timespans_id = $timespan->{ timespans_id };
+    my $snapshots_id = $timespan->{ snapshots_id };
+
+    my $links = $db->query( <<SQL, $timespans_id, $limit, $offset )->hashes;
+select source_media_id, ref_media_id from snap.medium_links
+    where timespans_id = ?
+    order by source_media_id, ref_media_id
+    limit ? offset ?
+SQL
+
+    my $entity = { links => $links };
+
+    MediaWords::DBI::ApiLinks::add_links_to_entity( $c, $entity, 'links' );
 
     $self->status_ok( $c, entity => $entity );
 }
