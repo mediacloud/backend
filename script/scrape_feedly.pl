@@ -49,7 +49,7 @@ sub get_unscraped_medium
     my ( $db ) = @_;
 
     my $medium = $db->query( <<SQL )->hash;
-select m.* from media m join feedly_unscraped_feeds fuf on ( fuf.media_id = m.media_id );
+select m.* from media m join feedly_unscraped_feeds fuf on ( fuf.media_id = m.media_id ) limit 1
 SQL
 }
 
@@ -87,10 +87,17 @@ sub main
     if ( $opt->{ all } )
     {
         DEBUG( "importing ALL" );
-        while ( my $medium = get_unscraped_medium( $db ) )
+        while ( 1 )
         {
-            feedly_import( $db, { media_id => $medium->{ media_id } } );
-            return;
+            if ( my $medium = get_unscraped_medium( $db ) )
+            {
+                feedly_import( $db, { media_id => $medium->{ media_id } } );
+            }
+            else
+            {
+                DEBUG( "no unscraped media found.  sleeping." );
+                sleep( 60 );
+            }
         }
     }
 
