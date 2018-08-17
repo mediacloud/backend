@@ -1810,7 +1810,7 @@ Response:
 
 #### Required role
 
-`tm-readonly`.
+`read` permission to the specific topic.
 
 #### Input Description
 
@@ -1924,7 +1924,7 @@ Output:
 
 #### Required role
 
-`tm`.
+`write` permission to the specific topic.
 
 #### Input Description
 
@@ -2059,7 +2059,7 @@ Output:
 
 #### Required role
 
-`tm-readonly`.
+`read` permission to the specific topic.
 
 #### Output Description
 
@@ -2135,7 +2135,7 @@ Output:
 
 #### Required role
 
-`tm-readonly`.
+`read` permission to the specific topic.
 
 #### Output Description
 
@@ -2170,7 +2170,7 @@ Output: `application/octet-stream` model data of topic with `topics_id=6`, simil
 
 #### Required role
 
-`tm-readonly`.
+`read` permission to the specific topic.
 
 #### Output Description
 
