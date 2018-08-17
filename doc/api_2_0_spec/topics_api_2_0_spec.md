@@ -2017,7 +2017,11 @@ Output:
         "name": "Test model",
         "description": "This is a test model.",
         "created_date": "2017-03-24T03:23:47+00:00",
-        "auth_users_id": 1,
+        "owner": {
+            "auth_users_id": 1,
+            "email": "hroberts@cyber.law.harvard.edu",
+            "full_name": "Hal Roberts"
+        },
         "training_stories": [
             {
                 "stories_id": 1,
@@ -2093,7 +2097,11 @@ Output:
         "name": "Test model",
         "description": "This is a test model.",
         "created_date": "2017-03-24T03:23:47+00:00",
-        "auth_users_id": 1,
+        "owner": {
+            "auth_users_id": 1,
+            "email": "hroberts@cyber.law.harvard.edu",
+            "full_name": "Hal Roberts"
+        },
         "training_stories": [
             {
                 "stories_id": 1,
