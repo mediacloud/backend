@@ -23,7 +23,7 @@ sub test_media_health
 
     my $test_media = [ grep { $_->{ name } && $_->{ name } =~ /^media/ } values( %{ $test_stack } ) ];
 
-    MediaWords::Test::DB::add_content_to_test_story_stack( $db, $test_stack );
+    $test_stack = MediaWords::Test::DB::add_content_to_test_story_stack( $db, $test_stack );
 
     # move all stories to yesterday so that they get included in today's media_health stats
     $db->query( "update stories set publish_date = now() - interval '1 day'" );

@@ -390,7 +390,7 @@ sub test_stories($)
     my $media = MediaWords::Test::DB::create_test_story_stack_numerated( $db, $NUM_MEDIA, $NUM_FEEDS_PER_MEDIUM,
         $NUM_STORIES_PER_FEED );
 
-    MediaWords::Test::DB::add_content_to_test_story_stack( $db, $media );
+    $media = MediaWords::Test::DB::add_content_to_test_story_stack( $db, $media );
 
     MediaWords::Test::Solr::setup_test_index( $db );
 

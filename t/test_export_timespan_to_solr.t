@@ -31,7 +31,7 @@ sub test_timespan_export
             medium_3 => { feed_3 => [ map { "story_$_" } ( 21 .. 30 ) ] },
         }
     );
-    MediaWords::Test::DB::add_content_to_test_story_stack( $db, $media );
+    $media = MediaWords::Test::DB::add_content_to_test_story_stack( $db, $media );
 
     my $topic = MediaWords::Test::DB::create_test_topic( $db, 'foo' );
 

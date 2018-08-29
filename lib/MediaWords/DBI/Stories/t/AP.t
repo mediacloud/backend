@@ -36,7 +36,7 @@ sub test_story($$$$)
 
     $story->{ content } = $content;
 
-    MediaWords::Test::DB::add_content_to_test_story( $db, $story, $test_feed );
+    $story = MediaWords::Test::DB::add_content_to_test_story( $db, $story, $test_feed );
 
     my $got = MediaWords::DBI::Stories::AP::is_syndicated( $db, $story );
 
@@ -77,7 +77,7 @@ sub add_ap_content($)
 
     $story->{ content } = join( "\n", @{ get_ap_sentences() } );
 
-    MediaWords::Test::DB::add_content_to_test_story( $db, $story, $feed );
+    $story = MediaWords::Test::DB::add_content_to_test_story( $db, $story, $feed );
 }
 
 sub test_ap_calls($)

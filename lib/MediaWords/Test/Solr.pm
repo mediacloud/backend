@@ -137,7 +137,7 @@ sub create_indexed_test_story_stack($$)
 
     my $media = MediaWords::Test::DB::create_test_story_stack( $db, $data );
 
-    MediaWords::Test::DB::add_content_to_test_story_stack( $db, $media );
+    $media = MediaWords::Test::DB::add_content_to_test_story_stack( $db, $media );
 
     my $test_stories = $db->query( "select * from stories order by md5( stories_id::text )" )->hashes;
 

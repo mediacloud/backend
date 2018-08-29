@@ -126,7 +126,7 @@ sub create_test_data
         }
     }
 
-    MediaWords::Test::DB::add_content_to_test_story_stack( $test_db, $topic_media_sources );
+    $topic_media_sources = MediaWords::Test::DB::add_content_to_test_story_stack( $test_db, $topic_media_sources );
 
     MediaWords::Job::TM::SnapshotTopic->run_locally( { topics_id => $topic->{ topics_id } } );
 

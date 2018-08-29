@@ -194,6 +194,8 @@ select * from download_texts where downloads_id = ?
 SQL
 
     die( "Unable to find download_text" ) unless ( $story->{ download_text } );
+
+    return $story;
 }
 
 # add a download and store its content for each story in the test story stack as returned from create_test_story_stack.
@@ -207,16 +209,19 @@ sub add_content_to_test_story_stack($$)
     # we pseudo-randomly generate test content, but we want repeatable tests
     srand( 3 );
 
-    for my $medium ( values( %{ $story_stack } ) )
+    while ( my ( $medium_key, $medium ) = each %{ $story_stack } )
     {
-        for my $feed ( values( %{ $medium->{ feeds } } ) )
+        while ( my ( $feed_key, $feed ) = each %{ $medium->{ feeds } } )
         {
-            for my $story ( values( %{ $feed->{ stories } } ) )
+            while ( my ( $story_key, $story ) = each %{ $feed->{ stories } } )
             {
-                add_content_to_test_story( $db, $story, $feed );
+                $story = add_content_to_test_story( $db, $story, $feed );
+                $story_stack->{ $medium_key }->{ feeds }->{ $feed_key }->{ stories }->{ $story_key } = $story;
             }
         }
     }
+
+    return $story_stack;
 }
 
 # Create a user for temporary databases
