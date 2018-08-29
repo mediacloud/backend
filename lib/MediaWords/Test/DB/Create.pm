@@ -100,97 +100,20 @@ sub create_test_topic($$)
     return python_deep_copy( $return_value );
 }
 
-# generated 1 - 10 paragraphs of 1 - 5 sentences of ipsem lorem.
-sub _get_test_content
-{
-    my $lorem = Text::Lorem::More->new();
-
-    my $num_paragraphs = int( rand( 10 ) + 1 );
-
-    my $paragraphs = [];
-
-    for my $i ( 1 .. $num_paragraphs )
-    {
-        my $text = $lorem->sentences( int( rand( 5 ) + 1 ) );
-        push( @{ $paragraphs }, $text );
-    }
-
-    my $content = join( "\n\n", map { "<p>\n$_\n</p>" } @{ $paragraphs } );
-
-    return $content;
-}
-
-# adds a 'download' and a 'content' field to each story in the test story stack.  stores the content in the download
-# store.  uses the story->{ content } field if present or otherwise generates the content using _get_test_content()
 sub add_content_to_test_story($$$)
 {
     my ( $db, $story, $feed ) = @_;
 
-    my $content = defined( $story->{ content } ) ? $story->{ content } : _get_test_content();
-
-    if ( $story->{ full_text_rss } )
-    {
-        $story->{ full_text_rss } = 0;
-        $db->update_by_id( 'stories', $story->{ stories_id }, { full_text_rss => 'f' } );
-    }
-
-    my $host     = MediaWords::Util::URL::get_url_host( $feed->{ url } );
-    my $download = $db->create(
-        'downloads',
-        {
-            feeds_id      => $feed->{ feeds_id },
-            url           => $story->{ url },
-            host          => $host,
-            type          => 'content',
-            sequence      => 1,
-            state         => 'fetching',
-            priority      => 1,
-            download_time => 'now()',
-            extracted     => 'f',
-            stories_id    => $story->{ stories_id }
-        }
-    );
-
-    $download = MediaWords::DBI::Downloads::store_content( $db, $download, $content );
-
-    $story->{ download } = $download;
-    $story->{ content }  = $content;
-
-    MediaWords::DBI::Stories::extract_and_process_story( $db, $story );
-
-    $story->{ download_text } = $db->query( <<SQL, $download->{ downloads_id } )->hash;
-select * from download_texts where downloads_id = ?
-SQL
-
-    die( "Unable to find download_text" ) unless ( $story->{ download_text } );
-
-    return $story;
+    my $return_value = MediaWords::Test::DB::Create::PythonProxy::add_content_to_test_story( $db, $story, $feed );
+    return python_deep_copy( $return_value );
 }
 
-# add a download and store its content for each story in the test story stack as returned from create_test_story_stack.
-# also extract and vector each download.
 sub add_content_to_test_story_stack($$)
 {
     my ( $db, $story_stack ) = @_;
 
-    DEBUG( "adding content to test story stack ..." );
-
-    # we pseudo-randomly generate test content, but we want repeatable tests
-    srand( 3 );
-
-    while ( my ( $medium_key, $medium ) = each %{ $story_stack } )
-    {
-        while ( my ( $feed_key, $feed ) = each %{ $medium->{ feeds } } )
-        {
-            while ( my ( $story_key, $story ) = each %{ $feed->{ stories } } )
-            {
-                $story = add_content_to_test_story( $db, $story, $feed );
-                $story_stack->{ $medium_key }->{ feeds }->{ $feed_key }->{ stories }->{ $story_key } = $story;
-            }
-        }
-    }
-
-    return $story_stack;
+    my $return_value = MediaWords::Test::DB::Create::PythonProxy::add_content_to_test_story_stack( $db, $story_stack );
+    return python_deep_copy( $return_value );
 }
 
 # Create a user for temporary databases

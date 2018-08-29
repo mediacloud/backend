@@ -1,6 +1,13 @@
+import random
+
 from mediawords.db.handler import DatabaseHandler
+from mediawords.dbi.downloads import store_content
+from mediawords.dbi.stories.stories import extract_and_process_story
+from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_object_from_bytes_if_needed, decode_str_from_bytes_if_needed
 from mediawords.util.url import get_url_host
+
+log = create_logger(__name__)
 
 
 def create_download_for_feed(db: DatabaseHandler, feed: dict) -> dict:
@@ -255,3 +262,105 @@ def create_test_topic(db: DatabaseHandler, label: str) -> dict:
             'max_stories': 100000,
         }
     )
+
+
+def _get_test_content() -> str:
+    """Generated 1 - 10 paragraphs of 1 - 5 sentences of random text."""
+    # No need to install, import and use Lipsum for that
+
+    test_sentence = 'The quick brown fox jumps over the lazy dog. '
+
+    text = ""
+    for _ in range(random.randint(1, 10)):
+        text += "<p>\n{}\n</p>\n\n".format((test_sentence * random.randint(1, 5)).strip())
+
+    text = text.strip()
+
+    return text
+
+
+class McAddContentToTestStoryException(Exception):
+    """add_content_to_test_story() exception."""
+    pass
+
+
+def add_content_to_test_story(db: DatabaseHandler, story: dict, feed: dict) -> dict:
+    """Adds a 'download' and a 'content' field to each story in the test story stack. Stores the content in the download
+    store. Uses the story->{ content } field if present or otherwise generates the content using _get_test_content()."""
+
+    story = decode_object_from_bytes_if_needed(story)
+    feed = decode_object_from_bytes_if_needed(feed)
+
+    if 'content' in story:
+        content = story['content']
+    else:
+        content = _get_test_content()
+
+    if story.get('full_text_rss', None):
+        story['full_text_rss'] = False
+        db.update_by_id(
+            table='stories',
+            object_id=story['stories_id'],
+            update_hash={'full_text_rss': False},
+        )
+
+    host = get_url_host(feed['url'])
+
+    download = db.create(
+        table='downloads',
+        insert_hash={
+            'feeds_id': feed['feeds_id'],
+            'url': story['url'],
+            'host': host,
+            'type': 'content',
+            'sequence': 1,
+            'state': 'fetching',
+            'priority': 1,
+            'extracted': False,
+            'stories_id': story['stories_id'],
+        }
+    )
+
+    download = store_content(db=db, download=download, content=content)
+
+    story['download'] = download
+    story['content'] = content
+
+    extract_and_process_story(db=db, story=story)
+
+    story['download_text'] = db.query("""
+        SELECT *
+        FROM download_texts
+        WHERE downloads_id = %(downloads_id)s
+    """, {'downloads_id': download['downloads_id']}).hash()
+
+    if not story['download_text']:
+        raise McAddContentToTestStoryException("Unable to find download_text")
+
+    return story
+
+
+def add_content_to_test_story_stack(db: DatabaseHandler, story_stack: dict) -> dict:
+    """Add a download and store its content for each story in the test story stack as returned from
+    create_test_story_stack(). Also extract and vector each download."""
+
+    story_stack = decode_object_from_bytes_if_needed(story_stack)
+
+    log.debug("Adding content to test story stack ...")
+
+    # We pseudo-randomly generate test content, but we want repeatable tests
+    #
+    # FIXME not sure if this works in Python when done like that (probably random.Random object would have to be passed
+    # around), and is a weird idea anyway
+    # srand( 3 );
+
+    for medium_key, medium in story_stack.items():
+        for feed_key, feed in medium['feeds']:
+            for story_key, story in feed['stories']:
+                story = add_content_to_test_story(db=db, story=story, feed=feed)
+
+                # MC_REWRITE_TO_PYTHON: remove type checker comment after rewrite to Python
+                # noinspection PyTypeChecker
+                story_stack[medium_key]['feeds'][feed_key]['stories'][story_key] = story
+
+    return story_stack
