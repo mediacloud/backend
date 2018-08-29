@@ -372,7 +372,7 @@ sub _fetch_list($$$$$$)
     $self->{ show_feeds }         = $c->req->params->{ show_feeds };
 
     $rows //= 20;
-    $rows = List::Util::min( $rows, 10_000 );
+    $rows = List::Util::min( $rows, 1_000 );
 
     my $ps_ids = $self->_get_object_ids( $c, $last_id, $rows );
 

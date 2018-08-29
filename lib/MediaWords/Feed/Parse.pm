@@ -56,22 +56,6 @@ sub _fix_atom_content_element_encoding
             next if ( $first_child->nodeType == XML_TEXT_NODE );
         }
 
-        my @content_node_child_list = $child_nodes->get_nodelist();
-
-        # allow white space before CDATA_SECTION
-        if ( any { $_->nodeType == XML_CDATA_SECTION_NODE } @content_node_child_list )
-        {
-            my @non_cdata_children = grep { $_->nodeType != XML_CDATA_SECTION_NODE } @content_node_child_list;
-
-            if ( all { $_->nodeType == XML_TEXT_NODE } @non_cdata_children )
-            {
-                if ( all { $_->data =~ /\s+/ } @non_cdata_children )
-                {
-                    next;
-                }
-            }
-        }
-
         $fixed_content_element = 1;
 
         my $child_nodes_string = join '', ( map { $_->toString() } ( $child_nodes->get_nodelist() ) );

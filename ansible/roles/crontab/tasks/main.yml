@@ -40,6 +40,16 @@
   tags:
     - crontab
 
+- name: Add MC_LOGGING_LEVEL environment variable
+  cron:
+    name: MC_LOGGING_LEVEL
+    env: true
+    value: "WARNING"
+  become: true
+  become_user: "{{ mediacloud_user }}"
+  tags:
+    - crontab
+
 - name: Start Supervisor on reboot
   cron:
     name: "supervisor"

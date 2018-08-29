@@ -88,25 +88,23 @@ def _update_media_normalized_urls(db: DatabaseHandler) -> None:
     Set the normalized_url field of any row in media for which it is null.  Take care to lock the process
     so that only one process is doing this work at a time.
     """
-    if not _normalized_urls_out_of_date(db):
-        return
-
     # put a lock on this because the process of generating all media urls will take a couple hours, and we don't
     # want all workers to do the work
     locked = False
     while not locked:
+        if not _normalized_urls_out_of_date(db):
+            return
+
         db.begin()
+
         # poll instead of block so that we can releae the transaction and see whether someone else has already
         # updated all of the media
         locked = get_session_lock(db, 'MediaWords::TM::Media::media_normalized_urls', 1, wait=False)
+
         if not locked:
             db.commit()
             log.info("sleeping for media_normalized_urls lock...")
             time.sleep(1)
-
-    if not _normalized_urls_out_of_date(db):
-        db.commit()
-        return
 
     log.warning("updating media_normalized_urls ...")
 
@@ -260,7 +258,8 @@ def guess_medium(db: DatabaseHandler, story_url: str) -> dict:
     # a race condition with another thread can cause this to fail sometimes, but after the medium in the
     # other process has been created, all should be fine
     for i in range(_GUESS_MEDIUM_RETRIES):
-        medium = db.find_or_create('media', {'name': medium_name, 'url': medium_url})
+        medium_data = {'name': medium_name, 'url': medium_url, 'normalized_url': normalized_medium_url}
+        medium = db.find_or_create('media', medium_data)
 
         if medium is not None:
             break

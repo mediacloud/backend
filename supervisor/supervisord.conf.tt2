@@ -107,19 +107,19 @@ programs = crawler
 %]
 
 [% INCLUDE program_config
-    program='create_missing_partitions'
-    command="./script/run_in_env.sh ./tools/db/create_missing_partitions.py"
-    default_stopasgroup='true'
-    default_killasgroup='true'
+    program='scrape_feedly'
+    command="./script/run_in_env.sh script/scrape_feedly.pl --all"
+    default_stopasgroup='false'
+    default_killasgroup='false'
     default_autorestart='false'
-    default_autostart='true'
-    priority=5
+    default_autostart='false'
+    skip_numprocs=1
     default_nice=12
 %]
 
 [% INCLUDE program_config
-    program='copy_nonpartitioned_sentences_to_partitions'
-    command="./script/run_in_env.sh ./tools/db/copy_nonpartitioned_sentences_to_partitions.py"
+    program='create_missing_partitions'
+    command="./script/run_in_env.sh ./tools/db/create_missing_partitions.py"
     default_stopasgroup='true'
     default_killasgroup='true'
     default_autorestart='false'

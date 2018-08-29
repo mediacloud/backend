@@ -17,7 +17,7 @@ cld2-cffi==0.1.4
 coverage==4.4.2
 
 # some modules require latest version of this
-cryptography==2.2.2
+cryptography==2.3
 
 # Hindi stemming
 CyHunspell==1.2.1

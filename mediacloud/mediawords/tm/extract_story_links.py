@@ -10,6 +10,7 @@ from mediawords.db import DatabaseHandler
 import mediawords.dbi.downloads
 import mediawords.key_value_store.amazon_s3
 from mediawords.dbi.stories.extractor_arguments import ExtractorArguments
+import mediawords.tm.domains
 from mediawords.util.log import create_logger
 from mediawords.util.url import is_http_url
 
@@ -26,7 +27,7 @@ IGNORE_LINK_PATTERN = (
     r'(?:unz.com)|(?:answers.com)|(?:downwithtyranny.com\/search)|(?:scoop\.?it)|(?:sco\.lt)|'
     r'(?:pronk.*\.wordpress\.com\/(?:tag|category))|(?:wn\.com)|(?:pinterest\.com\/pin\/create)|(?:feedblitz\.com)|'
     r'(?:atomz.com)|(?:unionpedia.org)|(?:http://politicalgraveyard.com)|(?:https?://api\.[^\/]+)|'
-    r'(?:www.rumormillnews.com)|(tvtropes.org/pmwiki)')
+    r'(?:www.rumormillnews.com)|(?:tvtropes.org/pmwiki)|(?:twitter.com/account/suspended)')
 
 
 def get_links_from_html(html: str) -> typing.List[str]:
@@ -205,6 +206,7 @@ def extract_links_for_topic_story(db: DatabaseHandler, story: dict, topic: dict)
             }
 
             db.create('topic_links', topic_link)
+            mediawords.tm.domains.increment_domain_links(db, topic_link)
 
         link_mine_error = ''
     except Exception:

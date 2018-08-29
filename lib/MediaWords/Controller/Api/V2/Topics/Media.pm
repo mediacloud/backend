@@ -18,8 +18,9 @@ BEGIN { extends 'MediaWords::Controller::Api::V2::MC_Controller_REST' }
 
 __PACKAGE__->config(
     action => {
-        list => { Does => [ qw( ~TopicsReadAuthenticated ~Throttled ~Logged ) ] },
-        map  => { Does => [ qw( ~TopicsReadAuthenticated ~Throttled ~Logged ) ] },
+        links => { Does => [ qw( ~TopicsReadAuthenticated ~Throttled ~Logged ) ] },
+        list  => { Does => [ qw( ~TopicsReadAuthenticated ~Throttled ~Logged ) ] },
+        map   => { Does => [ qw( ~TopicsReadAuthenticated ~Throttled ~Logged ) ] },
     }
 );
 
@@ -93,6 +94,29 @@ sub _get_sort_clause
     return "$sort_field desc nulls last, md5( mlc.media_id::text )";
 }
 
+# given a list of media, add associated tags to each using a single postgres query.
+# add the list of tags to each medium using the 'media_source_tags' field.
+sub _add_tags_to_media($$)
+{
+    my ( $db, $media ) = @_;
+
+    my $media_ids_list = join( ',', map { $_->{ media_id } } @{ $media } ) || '-1';
+    my $tags = $db->query( <<END )->hashes;
+select mtm.media_id, t.tags_id, t.tag, t.label, t.description, mtm.tagged_date, ts.tag_sets_id, ts.name as tag_set,
+        ( t.show_on_media or ts.show_on_media ) show_on_media,
+        ( t.show_on_stories or ts.show_on_stories ) show_on_stories
+    from media_tags_map mtm
+        join tags t on ( mtm.tags_id = t.tags_id )
+        join tag_sets ts on ( ts.tag_sets_id = t.tag_sets_id )
+    where mtm.media_id in ( $media_ids_list )
+    order by t.tags_id
+END
+
+    my $tags_lookup = {};
+    map { push( @{ $tags_lookup->{ $_->{ media_id } } }, $_ ) } @{ $tags };
+    map { $_->{ media_source_tags } = $tags_lookup->{ $_->{ media_id } } || [] } @{ $media };
+}
+
 sub list_GET
 {
     my ( $self, $c ) = @_;
@@ -110,7 +134,9 @@ sub list_GET
     my $timespans_id = $timespan->{ timespans_id };
     my $snapshots_id = $timespan->{ snapshots_id };
 
-    my $limit  = $c->req->params->{ limit };
+    my $limit = $c->req->params->{ limit };
+    $limit = List::Util::min( $limit, 1_000 );
+
     my $offset = $c->req->params->{ offset };
 
     my $extra_clause = _get_extra_where_clause( $c, $timespans_id );
@@ -127,9 +153,47 @@ select *
 
 SQL
 
+    _add_tags_to_media( $db, $media );
+
     my $entity = { media => $media };
 
     MediaWords::DBI::ApiLinks::add_links_to_entity( $c, $entity, 'media' );
+
+    $self->status_ok( $c, entity => $entity );
+}
+
+sub links : Chained('media') : Args(0) : ActionClass('MC_REST')
+{
+}
+
+sub links_GET
+{
+    my ( $self, $c ) = @_;
+
+    my $timespan = MediaWords::TM::set_timespans_id_param( $c );
+
+    MediaWords::DBI::ApiLinks::process_and_stash_link( $c );
+
+    my $db = $c->dbis;
+
+    my $limit = $c->req->params->{ limit } || 1_000;
+    $limit = List::Util::min( $limit, 1_000_000 );
+
+    my $offset = $c->req->params->{ offset } || 0;
+
+    my $timespans_id = $timespan->{ timespans_id };
+    my $snapshots_id = $timespan->{ snapshots_id };
+
+    my $links = $db->query( <<SQL, $timespans_id, $limit, $offset )->hashes;
+select source_media_id, ref_media_id from snap.medium_links
+    where timespans_id = ?
+    order by source_media_id, ref_media_id
+    limit ? offset ?
+SQL
+
+    my $entity = { links => $links };
+
+    MediaWords::DBI::ApiLinks::add_links_to_entity( $c, $entity, 'links' );
 
     $self->status_ok( $c, entity => $entity );
 }
