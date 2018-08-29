@@ -85,7 +85,8 @@ sub test_medium_country($$$)
 
     my $stories = [ 1 .. $num_stories ];
 
-    my $test_stack = MediaWords::Test::DB::create_test_story_stack( $db, { "$label medium" => { "feed" => $stories } } );
+    my $test_stack =
+      MediaWords::Test::DB::Create::create_test_story_stack( $db, { "$label medium" => { "feed" => $stories } } );
 
     my $medium = $test_stack->{ "$label medium" };
 

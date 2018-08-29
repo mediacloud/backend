@@ -309,10 +309,10 @@ sub test_tags($)
 {
     my ( $db ) = @_;
 
-    my $media = MediaWords::Test::DB::create_test_story_stack_numerated( $db, $NUM_MEDIA, $NUM_FEEDS_PER_MEDIUM,
+    my $media = MediaWords::Test::DB::Create::create_test_story_stack_numerated( $db, $NUM_MEDIA, $NUM_FEEDS_PER_MEDIUM,
         $NUM_STORIES_PER_FEED );
 
-    $media = MediaWords::Test::DB::add_content_to_test_story_stack( $db, $media );
+    $media = MediaWords::Test::DB::Create::add_content_to_test_story_stack( $db, $media );
 
     MediaWords::Test::Solr::setup_test_index( $db );
 

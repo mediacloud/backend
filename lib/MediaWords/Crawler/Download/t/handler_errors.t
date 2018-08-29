@@ -76,7 +76,7 @@ sub test_errors
 
     $hs->start;
 
-    my $media = MediaWords::Test::DB::create_test_story_stack( $db, { A => { B => [ 1 ] } } );
+    my $media = MediaWords::Test::DB::Create::create_test_story_stack( $db, { A => { B => [ 1 ] } } );
     my $feed = $media->{ A }->{ feeds }->{ B };
 
     my $download_foo = _fetch_and_handle_response( $db, $port, $feed, '/foo' );

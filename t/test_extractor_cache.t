@@ -52,8 +52,10 @@ sub test_extractor_cache
 {
     my ( $db ) = @_;
 
-    my $data =
-      MediaWords::Test::DB::create_test_story_stack( $db, { medium => { feed => [ qw/story_1 story_2 story_3/ ] } } );
+    my $data = MediaWords::Test::DB::Create::create_test_story_stack(
+        $db,    #
+        { medium => { feed => [ qw/story_1 story_2 story_3/ ] } },    #
+    );
 
     my $medium  = $data->{ medium };
     my $feed    = $medium->{ feeds }->{ feed };

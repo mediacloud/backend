@@ -16,7 +16,7 @@ class TestFetchLinJobkDB(mediawords.test.test_database.TestDatabaseWithSchemaTes
             '/throttle': '<title>throttle</title>'})
         hs.start()
 
-        topic = mediawords.test.db.create_test_topic(db, 'foo')
+        topic = mediawords.test.db.create.create_test_topic(db, 'foo')
         topic['pattern'] = '.'
         topic = db.update_by_id('topics', topic['topics_id'], topic)
 

@@ -86,7 +86,7 @@ class TestTMFetchLinkDB(mediawords.test.test_database.TestDatabaseWithSchemaTest
         """Test get_seeded_content()."""
         db = self.db()
 
-        topic = mediawords.test.db.create_test_topic(db, 'foo')
+        topic = mediawords.test.db.create.create_test_topic(db, 'foo')
         tfu = db.create('topic_fetch_urls', {
             'topics_id': topic['topics_id'],
             'url': 'http://0.0.0.1/foo',
@@ -133,13 +133,13 @@ class TestTMFetchLinkDB(mediawords.test.test_database.TestDatabaseWithSchemaTest
             })
         hs.start()
 
-        topic = mediawords.test.db.create_test_topic(db, 'foo')
+        topic = mediawords.test.db.create.create_test_topic(db, 'foo')
         topic['pattern'] = '.'
         topic = db.update_by_id('topics', topic['topics_id'], topic)
 
-        medium = mediawords.test.db.create_test_medium(db, 'fetch')
-        feed = mediawords.test.db.create_test_feed(db, label='fetch', medium=medium)
-        source_story = mediawords.test.db.create_test_story(db, label='source story', feed=feed)
+        medium = mediawords.test.db.create.create_test_medium(db, 'fetch')
+        feed = mediawords.test.db.create.create_test_feed(db, label='fetch', medium=medium)
+        source_story = mediawords.test.db.create.create_test_story(db, label='source story', feed=feed)
         db.create('topic_stories', {'topics_id': topic['topics_id'], 'stories_id': source_story['stories_id']})
 
         before_fetch_date = datetime.datetime.now().isoformat()
@@ -318,7 +318,7 @@ class TestTMFetchLinkDB(mediawords.test.test_database.TestDatabaseWithSchemaTest
         """Test get_failed_url()."""
         db = self.db()
 
-        topic = mediawords.test.db.create_test_topic(db, 'foo')
+        topic = mediawords.test.db.create.create_test_topic(db, 'foo')
         topics_id = topic['topics_id']
 
         tfus = [
@@ -350,12 +350,12 @@ class TestTMFetchLinkDB(mediawords.test.test_database.TestDatabaseWithSchemaTest
         """Test try_update_topic_link_ref_stories_id()."""
         db = self.db()
 
-        medium = mediawords.test.db.create_test_medium(db, 'foo')
-        feed = mediawords.test.db.create_test_feed(db, label='foo', medium=medium)
-        source_story = mediawords.test.db.create_test_story(db, label='source story', feed=feed)
-        target_story = mediawords.test.db.create_test_story(db, label='target story a', feed=feed)
+        medium = mediawords.test.db.create.create_test_medium(db, 'foo')
+        feed = mediawords.test.db.create.create_test_feed(db, label='foo', medium=medium)
+        source_story = mediawords.test.db.create.create_test_story(db, label='source story', feed=feed)
+        target_story = mediawords.test.db.create.create_test_story(db, label='target story a', feed=feed)
 
-        topic = mediawords.test.db.create_test_topic(db, 'foo')
+        topic = mediawords.test.db.create.create_test_topic(db, 'foo')
 
         db.create('topic_stories', {
             'topics_id': topic['topics_id'],

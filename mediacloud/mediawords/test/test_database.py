@@ -4,7 +4,7 @@ import re
 from mediawords.db import connect_to_db
 from mediawords.db.handler import DatabaseHandler
 from mediawords.db.schema.schema import recreate_db
-from mediawords.test.db.env import force_using_test_database
+from mediawords.test.db.environment import force_using_test_database
 from mediawords.util.config import (
     get_config as py_get_config,  # MC_REWRITE_TO_PYTHON: rename back to get_config()
 )

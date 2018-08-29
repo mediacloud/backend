@@ -18,12 +18,16 @@ sub test_media_health
 {
     my ( $db ) = @_;
 
-    my $test_stack = MediaWords::Test::DB::create_test_story_stack_numerated( $db, $NUM_MEDIA, $NUM_FEEDS_PER_MEDIUM,
-        $NUM_STORIES_PER_FEED );
+    my $test_stack = MediaWords::Test::DB::Create::create_test_story_stack_numerated(
+        $db,                      #
+        $NUM_MEDIA,               #
+        $NUM_FEEDS_PER_MEDIUM,    #
+        $NUM_STORIES_PER_FEED,    #
+    );
 
     my $test_media = [ grep { $_->{ name } && $_->{ name } =~ /^media/ } values( %{ $test_stack } ) ];
 
-    $test_stack = MediaWords::Test::DB::add_content_to_test_story_stack( $db, $test_stack );
+    $test_stack = MediaWords::Test::DB::Create::add_content_to_test_story_stack( $db, $test_stack );
 
     # move all stories to yesterday so that they get included in today's media_health stats
     $db->query( "update stories set publish_date = now() - interval '1 day'" );

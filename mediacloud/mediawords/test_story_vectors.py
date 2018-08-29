@@ -11,7 +11,7 @@ from mediawords.story_vectors import (
     _get_db_escaped_story_sentence_dicts,
     _insert_story_sentences,
 )
-from mediawords.test.db import (
+from mediawords.test.db.create import (
     create_test_medium,
     create_test_feed,
     create_download_for_feed,

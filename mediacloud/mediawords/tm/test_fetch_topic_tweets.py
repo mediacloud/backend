@@ -233,7 +233,7 @@ class TestFetchTopicTweets(TestDatabaseWithSchemaTestCase):
     def test_fetch_topic_tweets(self) -> None:
         """Run fetch_topic_tweet tests with test database."""
         db = self.db()
-        topic = mediawords.test.db.create_test_topic(db, 'test')
+        topic = mediawords.test.db.create.create_test_topic(db, 'test')
 
         test_dates = get_test_date_range()
         topic['start_date'] = test_dates[0]
@@ -265,7 +265,7 @@ class TestFetchTopicTweets(TestDatabaseWithSchemaTestCase):
         db = self.db()
         config = mediawords.util.config.get_config()
 
-        topic = mediawords.test.db.create_test_topic(db, "test_remote_integration")
+        topic = mediawords.test.db.create.create_test_topic(db, "test_remote_integration")
         topic['ch_monitor_id'] = config['crimson_hexagon']['test_monitor_id']
         db.update_by_id('topics', topic['topics_id'], topic)
 

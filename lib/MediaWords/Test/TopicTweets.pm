@@ -500,7 +500,7 @@ sub test_fetch_topic_tweets($)
     # seed random number generator so that we get consistent results
     srand( 123456 );
 
-    my $topic = MediaWords::Test::DB::create_test_topic( $db, 'tweet topic' );
+    my $topic = MediaWords::Test::DB::Create::create_test_topic( $db, 'tweet topic' );
 
     $topic->{ ch_monitor_id } = $CH_MONITOR_ID;
     $db->update_by_id( 'topics', $topic->{ topics_id }, $topic );

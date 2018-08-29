@@ -64,7 +64,7 @@ sub test_invalid_feed($)
 
     $hs->start;
 
-    my $media = MediaWords::Test::DB::create_test_story_stack( $db, { A => { B => [ 1 ] } } );
+    my $media = MediaWords::Test::DB::Create::create_test_story_stack( $db, { A => { B => [ 1 ] } } );
     my $feed = $media->{ A }->{ feeds }->{ B };
 
     my $download = _fetch_and_handle_response( $db, $HTTP_PORT, $feed, '/foo' );

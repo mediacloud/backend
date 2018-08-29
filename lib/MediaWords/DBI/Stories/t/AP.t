@@ -8,6 +8,7 @@ use MediaWords::CommonLibs;
 
 use Data::Dumper;
 use MediaWords::Test::DB;
+use MediaWords::Test::DB::Create;
 use MediaWords::DBI::Stories::AP;
 
 my $_test_feed;
@@ -18,8 +19,8 @@ sub _get_test_feed($)
 
     if ( !$_test_feed )
     {
-        my $test_medium = MediaWords::Test::DB::create_test_medium( $db, 'test' );
-        $_test_feed = MediaWords::Test::DB::create_test_feed( $db, 'test', $test_medium );
+        my $test_medium = MediaWords::Test::DB::Create::create_test_medium( $db, 'test' );
+        $_test_feed = MediaWords::Test::DB::Create::create_test_feed( $db, 'test', $test_medium );
     }
 
     return $_test_feed;
@@ -32,11 +33,11 @@ sub test_story($$$$)
 
     my $test_feed = _get_test_feed( $db );
 
-    my $story = MediaWords::Test::DB::create_test_story( $db, $label, $test_feed );
+    my $story = MediaWords::Test::DB::Create::create_test_story( $db, $label, $test_feed );
 
     $story->{ content } = $content;
 
-    $story = MediaWords::Test::DB::add_content_to_test_story( $db, $story, $test_feed );
+    $story = MediaWords::Test::DB::Create::add_content_to_test_story( $db, $story, $test_feed );
 
     my $got = MediaWords::DBI::Stories::AP::is_syndicated( $db, $story );
 
@@ -69,15 +70,16 @@ sub add_ap_content($)
 {
     my ( $db ) = @_;
 
-    my $ap_medium = MediaWords::Test::DB::create_test_medium( $db, MediaWords::DBI::Stories::AP::get_ap_medium_name() );
+    my $ap_medium =
+      MediaWords::Test::DB::Create::create_test_medium( $db, MediaWords::DBI::Stories::AP::get_ap_medium_name() );
 
-    my $feed = MediaWords::Test::DB::create_test_feed( $db, 'feed', $ap_medium );
+    my $feed = MediaWords::Test::DB::Create::create_test_feed( $db, 'feed', $ap_medium );
 
-    my $story = MediaWords::Test::DB::create_test_story( $db, 'story', $feed );
+    my $story = MediaWords::Test::DB::Create::create_test_story( $db, 'story', $feed );
 
     $story->{ content } = join( "\n", @{ get_ap_sentences() } );
 
-    $story = MediaWords::Test::DB::add_content_to_test_story( $db, $story, $feed );
+    $story = MediaWords::Test::DB::Create::add_content_to_test_story( $db, $story, $feed );
 }
 
 sub test_ap_calls($)

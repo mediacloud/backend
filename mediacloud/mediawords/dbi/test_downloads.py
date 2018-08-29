@@ -5,7 +5,7 @@ import unittest
 
 import mediawords.dbi.downloads
 from mediawords.dbi.stories.extractor_arguments import ExtractorArguments
-from mediawords.test.db import create_download_for_feed, create_test_feed, create_test_medium, create_test_story
+from mediawords.test.db.create import create_download_for_feed, create_test_feed, create_test_medium, create_test_story
 from mediawords.test.test_database import TestDatabaseWithSchemaTestCase
 from mediawords.key_value_store.amazon_s3 import AmazonS3Store
 from mediawords.key_value_store.cached_amazon_s3 import CachedAmazonS3Store

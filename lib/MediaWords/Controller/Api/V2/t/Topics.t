@@ -16,6 +16,7 @@ use MediaWords::Controller::Api::V2::Topics;
 use MediaWords::DBI::Auth::Roles;
 use MediaWords::Test::API;
 use MediaWords::Test::DB;
+use MediaWords::Test::DB::Create;
 
 Readonly my $NUM_MEDIA            => 5;
 Readonly my $NUM_FEEDS_PER_MEDIUM => 2;
@@ -27,7 +28,7 @@ sub test_validate_max_stories($)
 
     my $label = "test_validate_max_stories";
 
-    my $auth_user_api_key = MediaWords::Test::DB::create_test_user( $db, $label );
+    my $auth_user_api_key = MediaWords::Test::DB::Create::create_test_user( $db, $label );
     my $auth_user = $db->query(
         <<SQL,
         SELECT auth_users_id
@@ -70,7 +71,7 @@ sub test_is_mc_queue_user($)
 
     my $label = "test_is_mc_queue_user";
 
-    my $auth_user_api_key = MediaWords::Test::DB::create_test_user( $db, $label );
+    my $auth_user_api_key = MediaWords::Test::DB::Create::create_test_user( $db, $label );
     my $auth_user = $db->query(
         <<SQL,
         SELECT auth_users_id
@@ -105,7 +106,7 @@ sub test_get_user_public_queued_job($)
 
     my $label = "test_get_user_public_queued_job";
 
-    my $auth_user_api_key = MediaWords::Test::DB::create_test_user( $db, $label );
+    my $auth_user_api_key = MediaWords::Test::DB::Create::create_test_user( $db, $label );
     my $auth_user = $db->query(
         <<SQL,
         SELECT auth_users_id
@@ -119,7 +120,7 @@ SQL
     my $got_job_state = MediaWords::Controller::Api::V2::Topics::_get_user_public_queued_job( $db, $auth_users_id );
     ok( !$got_job_state, "$label empty job queue" );
 
-    my $topic = MediaWords::Test::DB::create_test_topic( $db, $label );
+    my $topic = MediaWords::Test::DB::Create::create_test_topic( $db, $label );
     my $job_state = $db->create(
         'job_states',
         {
@@ -190,7 +191,7 @@ sub test_controversies($)
 
     my $label = "controversies/list";
 
-    map { MediaWords::Test::DB::create_test_topic( $db, "$label $_" ) } ( 1 .. 10 );
+    map { MediaWords::Test::DB::Create::create_test_topic( $db, "$label $_" ) } ( 1 .. 10 );
 
     my $expected_topics = $db->query( "select *, topics_id controversies_id from topics" )->hashes;
 
@@ -214,7 +215,7 @@ sub test_controversy_dumps($)
 
     my $label = "controversy_dumps/list";
 
-    my $topic = MediaWords::Test::DB::create_test_topic( $db, $label );
+    my $topic = MediaWords::Test::DB::Create::create_test_topic( $db, $label );
 
     for my $i ( 1 .. 10 )
     {
@@ -256,7 +257,7 @@ sub test_controversy_dump_time_slices($)
 
     my $label = "controversy_dump_time_slices/list";
 
-    my $topic = MediaWords::Test::DB::create_test_topic( $db, $label );
+    my $topic = MediaWords::Test::DB::Create::create_test_topic( $db, $label );
     my $snapshot = $db->create(
         'snapshots',
         {
@@ -308,7 +309,7 @@ sub test_update_query_scope($)
 {
     my ( $db ) = @_;
 
-    my $topic = MediaWords::Test::DB::create_test_topic( $db, 'query scope' );
+    my $topic = MediaWords::Test::DB::Create::create_test_topic( $db, 'query scope' );
 
     # for each call, just test whether or not an error is generated
 
@@ -316,7 +317,7 @@ sub test_update_query_scope($)
     test_put( "/api/v2/topics/$topic->{ topics_id }/update", { start_date => '2010-01-01' } );
 
     # insert some spidered stories so that we can check for the date and media conditions
-    my $story_stack = MediaWords::Test::DB::create_test_story_stack_numerated( $db, 1, 1, 1, 'query_scope' );
+    my $story_stack = MediaWords::Test::DB::Create::create_test_story_stack_numerated( $db, 1, 1, 1, 'query_scope' );
     $db->query( <<SQL, $topic->{ topics_id }, $story_stack->{ media_query_scope_0 }->{ media_id } );
 insert into topic_stories ( topics_id, stories_id, iteration )
     select \$1, stories_id, 2 from stories where media_id = \$2
@@ -338,8 +339,8 @@ SQL
     }
 
     {
-        my $medium_a = MediaWords::Test::DB::create_test_medium( $db, 'query scope a' );
-        my $medium_b = MediaWords::Test::DB::create_test_medium( $db, 'query scope b' );
+        my $medium_a = MediaWords::Test::DB::Create::create_test_medium( $db, 'query scope a' );
+        my $medium_b = MediaWords::Test::DB::Create::create_test_medium( $db, 'query scope b' );
         my $media_ids = [ map { $_->{ media_id } } ( $medium_a, $medium_b ) ];
 
         test_put( "/api/v2/topics/$topic->{ topics_id }/update", { media_ids => $media_ids } );
@@ -376,11 +377,11 @@ sub test_set_stories_respidering($)
 {
     my ( $db ) = @_;
 
-    my $topic = MediaWords::Test::DB::create_test_topic( $db, 'respider' );
+    my $topic = MediaWords::Test::DB::Create::create_test_topic( $db, 'respider' );
 
     my $num_stories = 10;
 
-    my $media = MediaWords::Test::DB::create_test_story_stack_numerated( $db, 1, 1, $num_stories, 'respider' );
+    my $media = MediaWords::Test::DB::Create::create_test_story_stack_numerated( $db, 1, 1, $num_stories, 'respider' );
 
     my $medium = $media->{ media_respider_0 };
 
@@ -437,11 +438,11 @@ sub test_topics_reset
 {
     my ( $db ) = @_;
 
-    my $topic = MediaWords::Test::DB::create_test_topic( $db, 'reset' );
+    my $topic = MediaWords::Test::DB::Create::create_test_topic( $db, 'reset' );
     my $topics_id = $topic->{ topics_id };
 
     my $num_stories = 10;
-    my $story_stack = MediaWords::Test::DB::create_test_story_stack_numerated( $db, 1, 1, $num_stories, 'reset' );
+    my $story_stack = MediaWords::Test::DB::Create::create_test_story_stack_numerated( $db, 1, 1, $num_stories, 'reset' );
 
     $db->query( "update topics set solr_seed_query_run = 't' where topics_id = ?", $topics_id );
 

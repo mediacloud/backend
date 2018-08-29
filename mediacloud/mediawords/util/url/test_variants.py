@@ -1,6 +1,6 @@
 import pytest
 
-from mediawords.test.db import create_test_story_stack, create_test_topic
+from mediawords.test.db.create import create_test_story_stack, create_test_topic
 from mediawords.test.http.hash_server import HashServer
 from mediawords.test.test_database import TestDatabaseWithSchemaTestCase
 from mediawords.util.network import random_unused_port

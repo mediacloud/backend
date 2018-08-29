@@ -31,6 +31,7 @@ use MediaWords::DBI::DownloadTexts;
 use MediaWords::DBI::Stories;
 use MediaWords::Test::Data;
 use MediaWords::Test::DB;
+use MediaWords::Test::DB::Create;
 use MediaWords::Test::LocalServer;
 use MediaWords::Util::DateTime;
 
@@ -198,7 +199,7 @@ sub main
 
             my $feed = add_test_feed( $db, $url_to_crawl );
 
-            my $download = MediaWords::Test::DB::create_download_for_feed( $db, $feed );
+            my $download = MediaWords::Test::DB::Create::create_download_for_feed( $db, $feed );
 
             my $crawler = MediaWords::Crawler::Engine->new();
             $crawler->fetcher_number( 1 );
@@ -207,7 +208,7 @@ sub main
 
             $crawler->fetch_and_handle_single_download( $download );
 
-            my $redundant_feed_download = MediaWords::Test::DB::create_download_for_feed( $db, $feed );
+            my $redundant_feed_download = MediaWords::Test::DB::Create::create_download_for_feed( $db, $feed );
 
             $crawler->fetch_and_handle_single_download( $redundant_feed_download );
 

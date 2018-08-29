@@ -11,6 +11,7 @@ use Test::Deep;
 
 use MediaWords::Test::API;
 use MediaWords::Test::DB;
+use MediaWords::Test::DB::Create;
 use MediaWords::Test::Solr;
 use MediaWords::Test::Supervisor;
 
@@ -25,9 +26,9 @@ sub test_feeds_list($)
 
     my $label = "feeds/list";
 
-    my $medium = MediaWords::Test::DB::create_test_medium( $db, $label );
+    my $medium = MediaWords::Test::DB::Create::create_test_medium( $db, $label );
 
-    map { MediaWords::Test::DB::create_test_feed( $db, "$label $_", $medium ) } ( 1 .. 10 );
+    map { MediaWords::Test::DB::Create::create_test_feed( $db, "$label $_", $medium ) } ( 1 .. 10 );
 
     my $expected_feeds = $db->query( "select * from feeds where media_id = ?", $medium->{ media_id } )->hashes;
 
@@ -48,10 +49,10 @@ sub test_feeds($)
 {
     my ( $db ) = @_;
 
-    my $media = MediaWords::Test::DB::create_test_story_stack_numerated( $db, $NUM_MEDIA, $NUM_FEEDS_PER_MEDIUM,
+    my $media = MediaWords::Test::DB::Create::create_test_story_stack_numerated( $db, $NUM_MEDIA, $NUM_FEEDS_PER_MEDIUM,
         $NUM_STORIES_PER_FEED );
 
-    $media = MediaWords::Test::DB::add_content_to_test_story_stack( $db, $media );
+    $media = MediaWords::Test::DB::Create::add_content_to_test_story_stack( $db, $media );
 
     # MediaWords::Test::Solr::setup_test_index( $db );
 

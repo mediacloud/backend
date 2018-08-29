@@ -10,6 +10,7 @@ use Test::Deep;
 
 use MediaWords::StoryVectors;
 use MediaWords::Test::DB;
+use MediaWords::Test::DB::Create;
 use MediaWords::Util::SQL;
 
 BEGIN
@@ -97,10 +98,10 @@ sub test_delete_story_sentences($)
     my ( $db ) = @_;
 
     my $label  = 'delete_story_sentences';
-    my $medium = MediaWords::Test::DB::create_test_medium( $db, $label );
-    my $feed   = MediaWords::Test::DB::create_test_feed( $db, $label, $medium );
+    my $medium = MediaWords::Test::DB::Create::create_test_medium( $db, $label );
+    my $feed   = MediaWords::Test::DB::Create::create_test_feed( $db, $label, $medium );
 
-    my $stories = [ map { MediaWords::Test::DB::create_test_story( $db, "$label $_", $feed ) } ( 1 .. 10 ) ];
+    my $stories = [ map { MediaWords::Test::DB::Create::create_test_story( $db, "$label $_", $feed ) } ( 1 .. 10 ) ];
 
     # make sure nothing breaks when there are not sentences for a story
     MediaWords::StoryVectors::_delete_story_sentences( $db, $stories->[ 0 ] );

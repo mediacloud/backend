@@ -122,7 +122,7 @@ sub test_get_story_word_matrix
 
     my $data = { A => { B => [ ( 1 .. 10 ) ] }, };
 
-    my $media = MediaWords::Test::DB::create_test_story_stack( $db, $data );
+    my $media = MediaWords::Test::DB::Create::create_test_story_stack( $db, $data );
 
     my $stories = [ values( %{ $media->{ A }->{ feeds }->{ B }->{ stories } } ) ];
 
@@ -202,7 +202,7 @@ sub test_is_new($)
         D => { E => [ 7, 8, 9 ] }
     };
 
-    my $media = MediaWords::Test::DB::create_test_story_stack( $db, $data );
+    my $media = MediaWords::Test::DB::Create::create_test_story_stack( $db, $data );
 
     my $stories = {};
     for my $m ( values( %{ $media } ) )

@@ -5,7 +5,7 @@ from mediawords.dbi.stories.stories import (
     add_story,
     _create_child_download_for_story,
 )
-from mediawords.test.db import (
+from mediawords.test.db.create import (
     create_test_medium,
     create_test_feed,
     create_test_story,

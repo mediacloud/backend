@@ -8,7 +8,7 @@ from mediawords.dbi.stories.extractor_version import (
     update_extractor_version_tag,
     _purge_extractor_version_caches,
 )
-from mediawords.test.db import create_test_medium, create_test_feed, create_test_story
+from mediawords.test.db.create import create_test_medium, create_test_feed, create_test_story
 from mediawords.test.test_database import TestDatabaseWithSchemaTestCase
 
 

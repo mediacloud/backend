@@ -140,7 +140,7 @@ sub test_get_topic_url_variants
         D => { E => [ 7, 8, 9 ] }
     };
 
-    my $media = MediaWords::Test::DB::create_test_story_stack( $db, $data );
+    my $media = MediaWords::Test::DB::Create::create_test_story_stack( $db, $data );
 
     my $story_1 = $media->{ A }->{ feeds }->{ B }->{ stories }->{ 1 };
     my $story_2 = $media->{ A }->{ feeds }->{ B }->{ stories }->{ 2 };
@@ -156,7 +156,7 @@ END
 
     my $tag_set = $db->create( 'tag_sets', { name => 'foo' } );
 
-    my $topic = MediaWords::Test::DB::create_test_topic( $db, 'foo' );
+    my $topic = MediaWords::Test::DB::Create::create_test_topic( $db, 'foo' );
 
     $db->create(
         'topic_stories',

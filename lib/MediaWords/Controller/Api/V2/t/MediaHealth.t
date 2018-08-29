@@ -11,6 +11,7 @@ use Test::Deep;
 
 use MediaWords::Test::API;
 use MediaWords::Test::DB;
+use MediaWords::Test::DB::Create;
 
 use MediaWords::DBI::Downloads;
 
@@ -29,7 +30,7 @@ sub test_mediahealth($)
     ];
     for my $i ( 1 .. 10 )
     {
-        my $medium = MediaWords::Test::DB::create_test_medium( $db, "$label $i" );
+        my $medium = MediaWords::Test::DB::Create::create_test_medium( $db, "$label $i" );
         my $mh = {
             media_id        => $medium->{ media_id },
             is_healthy      => ( $medium->{ media_id } % 2 ) ? 't' : 'f',
