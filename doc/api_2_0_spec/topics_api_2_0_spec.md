@@ -1136,6 +1136,8 @@ The media list call returns the list of media in the topic.
 | limit     | 20      | return the given number of media         |
 | link_id   | null    | return media using the paging link       |
 
+The media\_id field can be specified multiple times to return a list of matching media sources.
+
 If the `name` parameter is specified, the call returns only media sources that match a case insensitive search specified value. If the specified value is less than 3 characters long, the call returns an empty list.
 
 The `sort` parameter will determine the order in which the stories are returned.  The `twitter` sort parameter
