@@ -196,7 +196,7 @@ def extract_and_process_story(db: DatabaseHandler,
 
     # MC_REWRITE_TO_PYTHON: Perlism
     if downloads is None:
-        downloads = {}
+        downloads = []
 
     for download in downloads:
         extract_and_create_download_text(db=db, download=download, extractor_args=extractor_args)
