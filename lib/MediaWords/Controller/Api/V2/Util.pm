@@ -7,6 +7,7 @@ use strict;
 use warnings;
 
 use MediaWords::Controller::Api::V2::MC_Controller_REST;
+use MediaWords::DBI::Stories::AP;
 
 use Moose;
 use namespace::autoclean;
