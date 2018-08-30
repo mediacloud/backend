@@ -5,6 +5,7 @@ from mediawords.dbi.downloads import store_content
 from mediawords.dbi.stories.stories import extract_and_process_story
 from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_object_from_bytes_if_needed, decode_str_from_bytes_if_needed
+from mediawords.util.text import random_string
 from mediawords.util.url import get_url_host
 
 log = create_logger(__name__)
@@ -267,12 +268,21 @@ def create_test_topic(db: DatabaseHandler, label: str) -> dict:
 def _get_test_content() -> str:
     """Generated 1 - 10 paragraphs of 1 - 5 sentences of random text."""
     # No need to install, import and use Lipsum for that
+    # FIXME maybe move to .util.text?
 
-    test_sentence = 'The quick brown fox jumps over the lazy dog. '
+    dictionary = [random_string(16) for _ in range(128)]
 
     text = ""
-    for _ in range(random.randint(1, 10)):
-        text += "<p>\n{}\n</p>\n\n".format((test_sentence * random.randint(1, 5)).strip())
+    for paragraph_count in range(random.randint(1, 10)):
+
+        sentences_in_paragraph = []
+
+        for sentence_in_paragraph_count in range(random.randint(1, 5)):
+            sentence = ' '.join(random.sample(dictionary, k=random.randint(1, 10))) + random.choice(['.', '?', '!'])
+            sentence = sentence.capitalize()
+            sentences_in_paragraph.append(sentence)
+
+        text += "<p>\n{}\n</p>\n\n".format(' '.join(sentences_in_paragraph))
 
     text = text.strip()
 
