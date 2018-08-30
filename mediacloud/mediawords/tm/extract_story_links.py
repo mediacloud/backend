@@ -9,7 +9,7 @@ from bs4 import BeautifulSoup
 from mediawords.db import DatabaseHandler
 import mediawords.dbi.downloads
 import mediawords.key_value_store.amazon_s3
-from mediawords.dbi.stories.extractor_arguments import ExtractorArguments
+from mediawords.dbi.stories.extractor_arguments import PyExtractorArguments
 import mediawords.tm.domains
 from mediawords.util.log import create_logger
 from mediawords.util.url import is_http_url
@@ -117,7 +117,7 @@ def get_extracted_html(db: DatabaseHandler, story: dict) -> str:
         "select * from downloads where stories_id = %(a)s order by downloads_id limit 1",
         {'a': story['stories_id']}).hash()
 
-    extractor_results = mediawords.dbi.downloads.extract(db, download, ExtractorArguments(use_cache=True))
+    extractor_results = mediawords.dbi.downloads.extract(db, download, PyExtractorArguments(use_cache=True))
     return extractor_results['extracted_html']
 
 

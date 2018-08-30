@@ -1,7 +1,7 @@
 from mediawords.annotator.cliff import CLIFFAnnotator
 from mediawords.annotator.nyt_labels import NYTLabelsAnnotator
 from mediawords.db import DatabaseHandler
-from mediawords.dbi.stories.extractor_arguments import ExtractorArguments
+from mediawords.dbi.stories.extractor_arguments import PyExtractorArguments
 from mediawords.dbi.stories.extractor_version import update_extractor_version_tag
 from mediawords.dbi.stories.postprocess import mark_as_processed
 from mediawords.job.cliff.fetch_annotation import CLIFFFetchAnnotationJob
@@ -18,7 +18,7 @@ class McProcessExtractedStoryException(Exception):
     pass
 
 
-def process_extracted_story(db: DatabaseHandler, story: dict, extractor_args: ExtractorArguments) -> None:
+def process_extracted_story(db: DatabaseHandler, story: dict, extractor_args: PyExtractorArguments) -> None:
     """Do post extraction story processing work by calling update_story_sentences_and_language()."""
     story = decode_object_from_bytes_if_needed(story)
 

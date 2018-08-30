@@ -3,7 +3,7 @@ from typing import Optional
 
 from mediawords.db import DatabaseHandler
 from mediawords.dbi.downloads import extract_and_create_download_text
-from mediawords.dbi.stories.extractor_arguments import ExtractorArguments
+from mediawords.dbi.stories.extractor_arguments import PyExtractorArguments
 from mediawords.dbi.stories.process import process_extracted_story
 from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_object_from_bytes_if_needed
@@ -177,7 +177,7 @@ def add_story_and_content_download(db: DatabaseHandler, story: dict, parent_down
 
 def extract_and_process_story(db: DatabaseHandler,
                               story: dict,
-                              extractor_args: ExtractorArguments = ExtractorArguments()) -> None:
+                              extractor_args: PyExtractorArguments = PyExtractorArguments()) -> None:
     """Extract all of the downloads for the given story and then call process_extracted_story()."""
 
     story = decode_object_from_bytes_if_needed(story)

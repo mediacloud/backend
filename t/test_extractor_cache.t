@@ -65,7 +65,12 @@ sub test_extractor_cache
 
     map { add_download_to_story( $db, $feed, $_ ) } ( $story_1, $story_2, $story_3 );
 
-    my $xargs_nocache  = MediaWords::DBI::Stories::ExtractorArguments->new( { use_cache => 0 } );
+    say STDERR "HELLO";
+
+    my $xargs_nocache = MediaWords::DBI::Stories::ExtractorArguments->new( { use_cache => 0 } );
+
+    say STDERR "HELLO 3";
+
     my $xargs_usecache = MediaWords::DBI::Stories::ExtractorArguments->new( { use_cache => 1 } );
 
     my $res = MediaWords::DBI::Downloads::extract( $db, $story_1->{ download }, $xargs_nocache );

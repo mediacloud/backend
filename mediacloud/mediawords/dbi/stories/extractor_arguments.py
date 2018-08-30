@@ -1,7 +1,8 @@
 from mediawords.util.perl import decode_object_from_bytes_if_needed
 
 
-class ExtractorArguments(object):
+# MC_REWRITE_TO_PYTHON: rename back to ExtractorArguments after rewrite
+class PyExtractorArguments(object):
     """Arguments to process_extracted_story() that define how story is to be extracted."""
 
     # MC_REWRITE_TO_PYTHON: remake into data class / properties after Python rewrite

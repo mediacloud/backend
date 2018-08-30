@@ -28,7 +28,7 @@ from typing import Optional
 
 from mediawords.db import DatabaseHandler
 from mediawords.dbi.download_texts import create
-from mediawords.dbi.stories.extractor_arguments import ExtractorArguments
+from mediawords.dbi.stories.extractor_arguments import PyExtractorArguments
 from mediawords.key_value_store import KeyValueStore
 from mediawords.key_value_store.amazon_s3 import AmazonS3Store
 from mediawords.key_value_store.cached_amazon_s3 import CachedAmazonS3Store
@@ -327,7 +327,7 @@ def _set_cached_extractor_results(db, download: dict, results: dict) -> None:
     db.create('cached_extractor_results', cache)
 
 
-def extract(db: DatabaseHandler, download: dict, extractor_args: ExtractorArguments = ExtractorArguments()) -> dict:
+def extract(db: DatabaseHandler, download: dict, extractor_args: PyExtractorArguments = PyExtractorArguments()) -> dict:
     """Extract the content for the given download.
 
     Arguments:
@@ -426,7 +426,7 @@ def get_medium(db: DatabaseHandler, download: dict) -> dict:
     """, {'feeds_id': download['feeds_id']}).hash()
 
 
-def extract_and_create_download_text(db: DatabaseHandler, download: dict, extractor_args: ExtractorArguments) -> dict:
+def extract_and_create_download_text(db: DatabaseHandler, download: dict, extractor_args: PyExtractorArguments) -> dict:
     """Extract the download and create a download_text from the extracted download."""
     download = decode_object_from_bytes_if_needed(download)
 

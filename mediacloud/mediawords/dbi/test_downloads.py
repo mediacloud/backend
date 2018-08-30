@@ -4,7 +4,7 @@ import copy
 import unittest
 
 import mediawords.dbi.downloads
-from mediawords.dbi.stories.extractor_arguments import ExtractorArguments
+from mediawords.dbi.stories.extractor_arguments import PyExtractorArguments
 from mediawords.test.db.create import create_download_for_feed, create_test_feed, create_test_medium, create_test_story
 from mediawords.test.test_database import TestDatabaseWithSchemaTestCase
 from mediawords.key_value_store.amazon_s3 import AmazonS3Store
@@ -265,13 +265,13 @@ class TestDownloadsDB(TestDatabaseWithSchemaTestCase):
         mediawords.dbi.downloads.extract(
             db=db,
             download=self.test_download,
-            extractor_args=ExtractorArguments(use_cache=True),
+            extractor_args=PyExtractorArguments(use_cache=True),
         )
         mediawords.dbi.downloads.store_content(db, self.test_download, 'bar')
         result = mediawords.dbi.downloads.extract(
             db=db,
             download=self.test_download,
-            extractor_args=ExtractorArguments(use_cache=True),
+            extractor_args=PyExtractorArguments(use_cache=True),
         )
         assert result['extracted_html'].strip() == '<body id="readabilityBody"><p>foo</p></body>'
         assert result['extracted_text'].strip() == 'foo.'
@@ -291,7 +291,7 @@ class TestDownloadsDB(TestDatabaseWithSchemaTestCase):
         download_text = mediawords.dbi.downloads.extract_and_create_download_text(
             db=self.db(),
             download=self.test_download,
-            extractor_args=ExtractorArguments(),
+            extractor_args=PyExtractorArguments(),
         )
 
         assert download_text

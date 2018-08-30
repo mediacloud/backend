@@ -3,7 +3,7 @@
 import time
 
 from mediawords.db import connect_to_db
-from mediawords.dbi.stories.extractor_arguments import ExtractorArguments
+from mediawords.dbi.stories.extractor_arguments import PyExtractorArguments
 from mediawords.dbi.stories.stories import extract_and_process_story
 from mediawords.job import AbstractJob, McAbstractJobException, JobBrokerApp
 from mediawords.story_vectors import medium_is_locked
@@ -69,7 +69,7 @@ class ExtractAndVectorJob(AbstractJob):
         db.begin()
 
         try:
-            extractor_args = ExtractorArguments(use_cache=use_cache)
+            extractor_args = PyExtractorArguments(use_cache=use_cache)
             extract_and_process_story(db=db, story=story, extractor_args=extractor_args)
 
         except Exception as ex:

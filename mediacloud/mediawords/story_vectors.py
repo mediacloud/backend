@@ -4,7 +4,7 @@ from typing import List, Dict
 from mediawords.db import DatabaseHandler
 from mediawords.dbi.stories.ap import is_syndicated
 from mediawords.dbi.stories.extract import get_text_for_word_counts
-from mediawords.dbi.stories.extractor_arguments import ExtractorArguments
+from mediawords.dbi.stories.extractor_arguments import PyExtractorArguments
 from mediawords.languages.factory import LanguageFactory
 from mediawords.util.identify_language import language_code_for_text, identification_would_be_reliable
 from mediawords.util.log import create_logger
@@ -302,7 +302,7 @@ def _delete_story_sentences(db: DatabaseHandler, story: dict) -> None:
 
 def update_story_sentences_and_language(db: DatabaseHandler,
                                         story: dict,
-                                        extractor_args: ExtractorArguments = ExtractorArguments()) -> None:
+                                        extractor_args: PyExtractorArguments = PyExtractorArguments()) -> None:
     """Update story vectors for the given story, updating "story_sentences".
 
     If extractor_args.no_delete() is True, do not try to delete existing entries in the above table before creating new

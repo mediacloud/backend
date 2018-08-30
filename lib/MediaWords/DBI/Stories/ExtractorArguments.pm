@@ -33,7 +33,7 @@ sub new($;$)
         $args = {};
     }
 
-    $self->{ _python_object } = MediaWords::DBI::Stories::ExtractorArguments::PythonProxy::ExtractorArguments->new(
+    $self->{ _python_object } = MediaWords::DBI::Stories::ExtractorArguments::PythonProxy::PyExtractorArguments->new(
         int( $args->{ no_dedup_sentences }       // 0 ),
         int( $args->{ no_delete }                // 0 ),
         int( $args->{ no_tag_extractor_version } // 0 ),
