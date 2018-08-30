@@ -25,6 +25,7 @@ use warnings;
 use Modern::Perl '2015';
 use MediaWords::CommonLibs;
 
+use MediaCloud::JobManager::Broker::RabbitMQ;
 use Readonly;
 
 use MediaWords::Solr;
