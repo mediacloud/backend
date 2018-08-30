@@ -34,6 +34,7 @@ use MediaWords::Test::DB;
 use MediaWords::Test::DB::Create;
 use MediaWords::Test::LocalServer;
 use MediaWords::Util::DateTime;
+use MediaWords::Util::Paths;
 
 use Data::Dumper;
 use Data::Sorting qw( :basics :arrays :extras );
@@ -159,17 +160,7 @@ sub test_stories
 
 sub get_crawler_data_directory
 {
-    my $crawler_data_location;
-
-    {
-        my $bin = $FindBin::Bin;
-        INFO "Bin = '$bin' ";
-        $crawler_data_location = "$FindBin::Bin/data/crawler";
-    }
-
-    INFO "crawler data '$crawler_data_location'";
-
-    return $crawler_data_location;
+    return MediaWords::Util::Paths::mc_root_path() . "/t/data/crawler/";
 }
 
 sub main

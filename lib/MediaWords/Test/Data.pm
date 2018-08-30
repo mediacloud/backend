@@ -16,6 +16,7 @@ use FindBin;
 use MediaWords::Util::DateTime;
 use MediaWords::Util::SQL;
 use MediaWords::Util::JSON;
+use MediaWords::Util::Paths;
 
 # get path to where data file(s) should be stored
 sub get_path_to_data_files(;$)
@@ -24,7 +25,7 @@ sub get_path_to_data_files(;$)
 
     $subdirectory //= '';
 
-    my $path = "$FindBin::Bin/../t/data/$subdirectory/";
+    my $path = MediaWords::Util::Paths::mc_root_path() . "/t/data/$subdirectory/";
 
     # try to create just the base directory
     unless ( -d $path )
