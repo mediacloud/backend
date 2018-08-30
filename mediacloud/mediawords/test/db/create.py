@@ -355,11 +355,21 @@ def add_content_to_test_story_stack(db: DatabaseHandler, story_stack: dict) -> d
     # srand( 3 );
 
     for medium_key, medium in story_stack.items():
-        for feed_key, feed in medium['feeds']:
-            for story_key, story in feed['stories']:
+
+        # A feed or a story?
+        if 'feeds' not in medium:
+            continue
+
+        for feed_key, feed in medium['feeds'].items():
+
+            for story_key, story in feed['stories'].items():
                 story = add_content_to_test_story(db=db, story=story, feed=feed)
 
                 # MC_REWRITE_TO_PYTHON: remove type checker comment after rewrite to Python
+                # noinspection PyTypeChecker
+                story_stack[story_key] = story
+                # noinspection PyTypeChecker
+                story_stack[feed_key]['stories'][story_key] = story
                 # noinspection PyTypeChecker
                 story_stack[medium_key]['feeds'][feed_key]['stories'][story_key] = story
 
