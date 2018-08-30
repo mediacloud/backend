@@ -20,7 +20,7 @@ use Data::Dumper;
 use File::Slurp;
 use Readonly;
 
-sub extract_and_compare($$$)
+sub test_extract_content($$$)
 {
     my ( $test_dataset, $file, $title ) = @_;
 
@@ -69,7 +69,7 @@ sub main
 
     plan tests => 3;
 
-    extract_and_compare( 'gv', 'index_1.html', 'Brazil: Amplified conversations to fight the Digital Crimes Bill' );
+    test_extract_content( 'gv', 'index_1.html', 'Brazil: Amplified conversations to fight the Digital Crimes Bill' );
 
     Test::NoWarnings::had_no_warnings();
 }
