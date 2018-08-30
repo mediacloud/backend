@@ -30,6 +30,7 @@ use MediaWords::Crawler::Engine;
 use MediaWords::DBI::Downloads;
 use MediaWords::DBI::DownloadTexts;
 use MediaWords::DBI::Stories;
+use MediaWords::DBI::Stories::Extract;
 use MediaWords::StoryVectors;
 use MediaWords::Test::Data;
 use MediaWords::Test::DB;
@@ -159,7 +160,7 @@ EOF
     for my $story ( @{ $stories } )
     {
         $story->{ content } = _fetch_content( $db, $story );
-        $story->{ extracted_text } = MediaWords::DBI::Stories::get_text( $db, $story );
+        $story->{ extracted_text } = MediaWords::DBI::Stories::Extract::get_text( $db, $story );
         $story->{ tags } = _get_db_module_tags( $db, $story, 'NYTTopics' );
 
         $story->{ story_sentences } = $db->query(
