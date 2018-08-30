@@ -20,6 +20,7 @@ use Test::More;
 use MediaWords::Solr;
 use MediaWords::Solr::Dump;
 use MediaWords::Test::DB::Environment;
+use MediaWords::Util::Tags;
 
 # remember that we already swapped the solr live collection
 my $_swapped_live_collection;
