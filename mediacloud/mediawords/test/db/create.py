@@ -1,10 +1,11 @@
-from random import Random
+import random
 
 from mediawords.db.handler import DatabaseHandler
 from mediawords.dbi.downloads import store_content
 from mediawords.dbi.stories.stories import extract_and_process_story
 from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_object_from_bytes_if_needed, decode_str_from_bytes_if_needed
+from mediawords.util.text import random_string
 from mediawords.util.url import get_url_host
 
 log = create_logger(__name__)
@@ -265,38 +266,19 @@ def create_test_topic(db: DatabaseHandler, label: str) -> dict:
 
 
 def _get_test_content() -> str:
-    """Generate 1 - 10 paragraphs of 1 - 5 sentences of random text that looks like a human language.
-
-    Generated text has to be identified as being of a certain language by the CLD."""
-    # No need to install, import and use Lipsum for that (most of the available lipsum packages are barely maintained)
+    """Generated 1 - 10 paragraphs of 1 - 5 sentences of random text."""
+    # No need to install, import and use Lipsum for that
     # FIXME maybe move to .util.text?
 
-    # We pseudo-randomly generate test content, but we want repeatable tests
-    #
-    # FIXME this is no longer random text then, just a weird way to hardcode it?
-    randomizer = Random(3)
-
-    dictionary = """
-        lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore
-        magna aliqua in vitae turpis massa sed mattis pellentesque id nibh tortor id aliquet lectus. Sagittis aliquam
-        malesuada bibendum arcu vitae elementum curabitur feugiat sed lectus vestibulum mattis ullamcorper sagittis
-        purus sit amet volutpat in mollis nunc sed id semper risus in hendrerit gravida convallis convallis tellus id
-        interdum velit laoreet eu non diam phasellus vestibulum lorem sed risus ultricies tristique rutrum tellus
-        pellentesque eu tincidunt commodo viverra maecenas accumsan lacus vel facilisis volutpat est Iaculis eu non diam
-        phasellus vestibulum lorem sed risus feugiat sed lectus vestibulum mattis commodo odio aenean sed adipiscing
-        diam donec adipiscing tristique risus cursus sit amet dictum sit tristique et egestas quis ipsum suspendisse
-        ultrices gravida dictum habitant morbi tristique senectus et netus ut tortor pretium viverra suspendisse potenti
-        lacus sed viverra tellus in hac habitasse platea dictumst eu ultrices vitae auctor eu augue
-    """.split()
+    dictionary = [random_string(16) for _ in range(128)]
 
     text = ""
-    for paragraph_count in range(randomizer.randint(1, 10)):
+    for paragraph_count in range(random.randint(1, 10)):
 
         sentences_in_paragraph = []
 
-        for sentence_in_paragraph_count in range(randomizer.randint(1, 5)):
-            sentence = ' '.join(randomizer.sample(dictionary, k=randomizer.randint(1, 10)))
-            sentence += randomizer.choice(['.', '?', '!'])
+        for sentence_in_paragraph_count in range(random.randint(1, 5)):
+            sentence = ' '.join(random.sample(dictionary, k=random.randint(1, 10))) + random.choice(['.', '?', '!'])
             sentence = sentence.capitalize()
             sentences_in_paragraph.append(sentence)
 
@@ -375,6 +357,12 @@ def add_content_to_test_story_stack(db: DatabaseHandler, story_stack: dict) -> d
     story_stack = decode_object_from_bytes_if_needed(story_stack)
 
     log.debug("Adding content to test story stack ...")
+
+    # We pseudo-randomly generate test content, but we want repeatable tests
+    #
+    # FIXME not sure if this works in Python when done like that (probably random.Random object would have to be passed
+    # around), and is a weird idea anyway
+    # srand( 3 );
 
     for medium_key, medium in story_stack.items():
 
