@@ -244,7 +244,7 @@
     # Report will be sent to MAILTO
     job: >
       {{ mediacloud_root }}/script/run_in_env.sh
-      {{ mediacloud_root }}/tools/data/print_long_running_job_states.py"
+      {{ mediacloud_root }}/tools/data/print_long_running_job_states.py
       {{ crontab_rss_dump_path }}
   become: true
   become_user: "{{ mediacloud_user }}"
