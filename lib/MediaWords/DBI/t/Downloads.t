@@ -28,9 +28,7 @@ sub test_extract_content($$$)
 {
     my ( $test_dataset, $file, $title ) = @_;
 
-    my $test_stories =
-      MediaWords::Test::Data::stories_arrayref_from_hashref(
-        MediaWords::Test::Data::fetch_test_data_from_individual_files( "crawler_stories/$test_dataset" ) );
+    my $test_stories = MediaWords::Test::Data::fetch_test_data_from_individual_files( "crawler_stories/$test_dataset" );
 
     my $test_story_hash;
     map { $test_story_hash->{ $_->{ title } } = $_ } @{ $test_stories };

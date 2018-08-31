@@ -73,19 +73,31 @@ sub store_test_data($$;$)
 }
 
 # Write the given data to disk under the given basename; split the data
-# (hashref) into individual files (indexed by hashref's key).
-# The subroutine expects hashref instead of arrayref because:
-# 1. Indices (e.g. stories_id) should be unique, and the caller should be aware
-#    of that.
-# 2. Data will be later returned as a set, i.e. the keys (indices) will be
-#    unordered; the caller should expect that too.
+# (arrayref) into individual files
 sub store_test_data_to_individual_files($$)
 {
-    my ( $basename, $data_hashref ) = @_;
+    my ( $basename, $data_arrayref ) = @_;
 
-    unless ( ref( $data_hashref ) eq ref( {} ) )
+    unless ( ref( $data_arrayref ) eq ref( [] ) )
     {
-        die "Data for basename $basename is not an hashref.";
+        die "Data for basename $basename is not an arrayref.";
+    }
+
+    my $data_hashref = {};
+    foreach my $story ( @{ $data_arrayref } )
+    {
+        my $stories_id = $story->{ stories_id };
+        unless ( $stories_id )
+        {
+            die "Story ID is unset for story " . Dumper( $story );
+        }
+
+        if ( exists $data_hashref->{ $stories_id } )
+        {
+            die "Story ID $stories_id is not unique (such story already exists in a hashref) for story " . Dumper( $story );
+        }
+
+        $data_hashref->{ $stories_id } = $story;
     }
 
     # Remove all files before overwriting them (in case the new unit test
@@ -126,12 +138,7 @@ sub fetch_test_data($;$)
 }
 
 # Fetch the given data from disk under the given basename; join the data from
-# individual files into a hashref (indexed by each test data file's filename).
-# The subroutine returns hashref instead of arrayref because:
-# 1. Indices (e.g. stories_id) should be unique, and the caller should be aware
-#    of that.
-# 2. Data is returned as a set, i.e. the keys (indices) are unordered; the
-# caller should expect that too.
+# individual files into an arrayref.
 sub fetch_test_data_from_individual_files($)
 {
     my $basename = shift;
@@ -139,7 +146,7 @@ sub fetch_test_data_from_individual_files($)
     my $glob_path_to_data_files = get_path_to_data_files( $basename ) . '/*' . _get_data_file_extension();
     my @data_files              = glob( $glob_path_to_data_files );
 
-    my %data_hash;
+    my $data_hash = {};
 
     foreach my $data_file ( @data_files )
     {
@@ -149,47 +156,13 @@ sub fetch_test_data_from_individual_files($)
             die "Index is null for data file $data_file";
         }
 
-        $data_hash{ $index } = fetch_test_data( $index, $basename );
+        $data_hash->{ $index } = fetch_test_data( $index, $basename );
     }
 
-    return \%data_hash;
-}
+    my $array = [];
+    map { push( @{ $array }, $data_hash->{ $_ } ) } keys %{ $data_hash };
 
-# Creates a hashref of stories from an arrayref of stories (indexed by stories_id)
-sub stories_hashref_from_arrayref($)
-{
-    my $arrayref = shift;
-
-    my %hash;
-    foreach my $story ( @{ $arrayref } )
-    {
-
-        my $stories_id = $story->{ stories_id };
-        unless ( $stories_id )
-        {
-            die "Story ID is unset for story " . Dumper( $story );
-        }
-
-        if ( exists $hash{ $stories_id } )
-        {
-            die "Story ID $stories_id is not unique (such story already exists in a hashref) for story " . Dumper( $story );
-        }
-
-        $hash{ $stories_id } = $story;
-    }
-
-    return \%hash;
-}
-
-# Creates an arrayref of stories from a hashref of stories (array of stories in any order)
-sub stories_arrayref_from_hashref($)
-{
-    my $hashref = shift;
-
-    my @array;
-    map { push( @array, $hashref->{ $_ } ) } keys %{ $hashref };
-
-    return \@array;
+    return $array;
 }
 
 # adjust the publish_date of each story to be in the local time zone
