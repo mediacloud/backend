@@ -273,7 +273,7 @@ def _get_test_content() -> str:
 
     dictionary = """
         lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore
-        magna aliqua in vitae turpis massa sed mattis pellentesque id nibh tortor id aliquet lectus. Sagittis aliquam
+        magna aliqua in vitae turpis massa sed mattis pellentesque id nibh tortor id aliquet lectus Sagittis aliquam
         malesuada bibendum arcu vitae elementum curabitur feugiat sed lectus vestibulum mattis ullamcorper sagittis
         purus sit amet volutpat in mollis nunc sed id semper risus in hendrerit gravida convallis convallis tellus id
         interdum velit laoreet eu non diam phasellus vestibulum lorem sed risus ultricies tristique rutrum tellus
