@@ -240,7 +240,7 @@ sub _test_stories($$$$)
 
     my $test_stories = MediaWords::Test::Data::fetch_test_data_from_individual_files( "crawler_stories/$test_prefix" );
 
-    MediaWords::Test::Data::adjust_test_timezone( $test_stories, $test_stories->[ 0 ]->{ timezone } );
+    $test_stories = MediaWords::Test::Data::adjust_test_timezone( $test_stories, $test_stories->[ 0 ]->{ timezone } );
 
     # replace stories_id with urls so that the order of stories
     # doesn't matter
@@ -299,7 +299,8 @@ sub _test_stories($$$$)
                   ( @{ $story->{ story_sentences } }, @{ $test_story->{ story_sentences } } );
             }
 
-            MediaWords::Test::Data::adjust_test_timezone( $test_story->{ story_sentences }, $test_story->{ timezone } );
+            $test_story->{ story_sentences } =
+              MediaWords::Test::Data::adjust_test_timezone( $test_story->{ story_sentences }, $test_story->{ timezone } );
 
             cmp_deeply(
                 $story->{ story_sentences },

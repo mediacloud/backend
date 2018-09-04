@@ -185,6 +185,7 @@ sub adjust_test_timezone
         $story->{ publish_date } = MediaWords::Util::SQL::get_sql_date_from_epoch( $epoch_date );
     }
 
+    return $test_stories;
 }
 
 1;
