@@ -329,18 +329,18 @@ sub _get_words_from_solr_server($)
     my @word_list;
     while ( my ( $stem, $count ) = each( %{ $words } ) )
     {
-        push( @word_list, [ $stem, $count->{ count } ] );
+        push( @word_list, { stem => $stem, count => $count->{ count } } );
     }
 
     @word_list = sort {
-        $b->[ 1 ] <=> $a->[ 1 ] or    #
-          $b->[ 0 ] cmp $a->[ 0 ]     #
+        $b->{ count } <=> $a->{ count } or    #
+          $b->{ stem } cmp $a->{ stem }       #
     } @word_list;
 
     my $counts = [];
     for my $w ( @word_list )
     {
-        my $terms = $words->{ $w->[ 0 ] }->{ terms };
+        my $terms = $words->{ $w->{ stem } }->{ terms };
         my ( $max_term, $max_term_count );
         while ( my ( $term, $term_count ) = each( %{ $terms } ) )
         {
@@ -351,13 +351,13 @@ sub _get_words_from_solr_server($)
             }
         }
 
-        if ( !MediaWords::Util::Text::is_valid_utf8( $w->[ 0 ] ) || !MediaWords::Util::Text::is_valid_utf8( $max_term ) )
+        if ( !MediaWords::Util::Text::is_valid_utf8( $w->{ stem } ) || !MediaWords::Util::Text::is_valid_utf8( $max_term ) )
         {
-            WARN "invalid utf8: $w->[ 0 ] / $max_term";
+            WARN "invalid utf8: $w->{ stem } / $max_term";
             next;
         }
 
-        push( @{ $counts }, { stem => $w->[ 0 ], count => $w->[ 1 ], term => $max_term } );
+        push( @{ $counts }, { stem => $w->{ stem }, count => $w->{ count }, term => $max_term } );
     }
 
     splice( @{ $counts }, $self->num_words );
