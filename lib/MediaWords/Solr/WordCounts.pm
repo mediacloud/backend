@@ -332,7 +332,10 @@ sub _get_words_from_solr_server($)
         push( @word_list, [ $stem, $count->{ count } ] );
     }
 
-    @word_list = sort { $b->[ 1 ] <=> $a->[ 1 ] } @word_list;
+    @word_list = sort {
+        $b->[ 1 ] <=> $a->[ 1 ] or    #
+          $b->[ 0 ] cmp $a->[ 0 ]     #
+    } @word_list;
 
     my $counts = [];
     for my $w ( @word_list )
