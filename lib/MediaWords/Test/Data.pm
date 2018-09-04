@@ -187,14 +187,4 @@ sub adjust_test_timezone
 
 }
 
-# read and return data from test file. die on read error.
-sub read_test_file($$)
-{
-    my ( $dir, $file ) = @_;
-
-    my $data_file = MediaWords::Test::Data::get_path_to_data_files( $dir ) . "/$file";
-
-    return read_file( $data_file ) || LOGDIE( "Unable to read file '$data_file'" );
-}
-
 1;

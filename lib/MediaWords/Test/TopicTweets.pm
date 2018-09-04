@@ -17,6 +17,7 @@ use MediaWords::CommonLibs;
 use MediaWords::Test::HTTP::HashServer;
 use Readonly;
 use Test::More;
+use File::Slurp;
 
 use MediaWords::TM;
 use MediaWords::Job::TM::MineTopic;
@@ -98,7 +99,8 @@ sub get_test_data
 
     my $file_date = $file_dates->[ $epoch_day % scalar( @{ $file_dates } ) ];
 
-    my $json = MediaWords::Test::Data::read_test_file( "ch", "ch-posts-$file_date.json" );
+    my $json_data_file = MediaWords::Test::Data::get_path_to_data_files( 'ch' ) . "/ch-posts-$file_date.json";
+    my $json           = read_file( $json_data_file );
 
     my $data = MediaWords::Util::JSON::decode_json( $json );
 
