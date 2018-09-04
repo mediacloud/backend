@@ -1,4 +1,5 @@
 import random
+import re
 
 from mediawords.db.handler import DatabaseHandler
 from mediawords.dbi.downloads import store_content
@@ -271,18 +272,47 @@ def _get_test_content() -> str:
     # No need to install, import and use Lipsum for that (most of the available lipsum packages are barely maintained)
     # FIXME maybe move to .util.text?
 
-    dictionary = """
-        lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore
-        magna aliqua in vitae turpis massa sed mattis pellentesque id nibh tortor id aliquet lectus Sagittis aliquam
-        malesuada bibendum arcu vitae elementum curabitur feugiat sed lectus vestibulum mattis ullamcorper sagittis
-        purus sit amet volutpat in mollis nunc sed id semper risus in hendrerit gravida convallis convallis tellus id
-        interdum velit laoreet eu non diam phasellus vestibulum lorem sed risus ultricies tristique rutrum tellus
-        pellentesque eu tincidunt commodo viverra maecenas accumsan lacus vel facilisis volutpat est Iaculis eu non diam
-        phasellus vestibulum lorem sed risus feugiat sed lectus vestibulum mattis commodo odio aenean sed adipiscing
-        diam donec adipiscing tristique risus cursus sit amet dictum sit tristique et egestas quis ipsum suspendisse
-        ultrices gravida dictum habitant morbi tristique senectus et netus ut tortor pretium viverra suspendisse potenti
-        lacus sed viverra tellus in hac habitasse platea dictumst eu ultrices vitae auctor eu augue
-    """.split()
+    lipsum_text = """
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus quis lacus vel leo egestas cursus ut vel leo.
+        Aenean mollis nunc sed venenatis pretium. Proin auctor vehicula magna, nec venenatis ligula pellentesque at. Sed
+        in imperdiet est. Cras consectetur enim vitae mattis tristique. Nam in turpis dapibus, porttitor ex eget,
+        scelerisque ante. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Morbi
+        enim orci, facilisis at magna auctor, pharetra dapibus ante. Quisque iaculis eros suscipit nibh malesuada
+        placerat. Maecenas blandit et nulla ac placerat. Ut vel turpis nec lacus finibus feugiat. Maecenas ut eros
+        feugiat, rutrum dui ac, imperdiet eros. Aenean sollicitudin, orci nec facilisis maximus, sem erat venenatis
+        tortor, ac malesuada ligula ante vitae elit. Mauris et posuere ipsum. Vivamus ac pulvinar enim. Integer vitae
+        ipsum nec sapien viverra molestie dignissim quis lacus.
+
+        Nulla fringilla nunc vitae euismod ultricies. Suspendisse sodales nulla nunc, in sagittis est faucibus in. Sed
+        vestibulum, lacus non convallis accumsan, nisi nisi tempus ipsum, a ornare ligula neque sit amet quam. Fusce
+        sagittis sed libero id luctus. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus
+        mus. Nulla diam erat, dictum non turpis a, rutrum scelerisque sapien. Vivamus ornare lorem et ex cursus ornare.
+        Nunc tincidunt lorem quam, imperdiet finibus erat venenatis at. Fusce ligula turpis, gravida ut nisl pulvinar,
+        tempor pharetra augue. Nulla ipsum nisl, fermentum ac dignissim vel, rhoncus sed dui.
+
+        Nam sed risus interdum, sollicitudin ipsum id, sollicitudin lectus. Phasellus quam tortor, pellentesque at
+        posuere in, ultricies non nisl. Morbi et aliquam dui. Ut a quam ac nisl pretium vulputate quis at arcu. Integer
+        ultricies ultricies cursus. Fusce erat lorem, pellentesque vel augue viverra, pulvinar faucibus justo. Curabitur
+        ut leo eu sem mollis scelerisque.
+
+        Nulla volutpat facilisis est, non lacinia sapien ultrices aliquet. Lorem ipsum dolor sit amet, consectetur
+        adipiscing elit. Vestibulum cursus enim turpis, eget egestas nulla aliquet hendrerit. Fusce gravida imperdiet
+        ipsum et volutpat. Nullam convallis volutpat purus ut commodo. Suspendisse viverra ante sit amet condimentum
+        interdum. Donec faucibus odio ex, eu maximus risus faucibus et. Nulla eget mollis odio. Donec finibus ante ex.
+        Pellentesque ex lacus, sodales a est a, tempor tincidunt dolor. Mauris faucibus at enim sed tristique. Nullam
+        posuere velit quis tristique convallis. Ut mattis, dolor quis semper laoreet, mi justo euismod diam, at tempus
+        turpis nisl id felis. Nam rutrum, libero sodales cursus consequat, nulla ipsum viverra odio, vel volutpat eros
+        nisl quis odio. Aliquam molestie, massa id semper imperdiet, diam massa ullamcorper massa, vel blandit arcu
+        ligula in risus.
+
+        Phasellus eros ipsum, tempor sed sapien id, sagittis egestas tortor. Sed posuere nunc vitae augue efficitur,
+        eget pulvinar erat tempus. Curabitur non sollicitudin magna. Nunc efficitur placerat lorem, sit amet pulvinar
+        nulla aliquam ac. Quisque mattis purus ornare neque interdum rhoncus. Suspendisse eget odio ultrices,
+        sollicitudin eros a, luctus justo. Morbi ac fringilla lacus, quis placerat eros. Mauris efficitur massa risus,
+        id blandit elit dignissim et.
+    """
+
+    dictionary = set([word.lower() for word in re.findall(pattern='\w+', string=lipsum_text)])
 
     text = ""
     for paragraph_count in range(random.randint(1, 10)):
@@ -290,7 +320,7 @@ def _get_test_content() -> str:
         sentences_in_paragraph = []
 
         for sentence_in_paragraph_count in range(random.randint(1, 5)):
-            sentence = ' '.join(random.sample(dictionary, k=random.randint(1, 10)))
+            sentence = ' '.join(random.sample(dictionary, k=random.randint(5, 20)))
             sentence += random.choice(['.', '?', '!'])
             sentence = sentence.capitalize()
             sentences_in_paragraph.append(sentence)
