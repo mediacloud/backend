@@ -1,6 +1,9 @@
 # Deployments
 ansible==2.4.1.0
 
+# Saner date / time management
+arrow==0.12.1
+
 # retry http requests
 backoff==1.4.3
 
