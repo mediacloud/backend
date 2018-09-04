@@ -1,4 +1,4 @@
-from random import Random
+import random
 
 from mediawords.db.handler import DatabaseHandler
 from mediawords.dbi.downloads import store_content
@@ -271,11 +271,6 @@ def _get_test_content() -> str:
     # No need to install, import and use Lipsum for that (most of the available lipsum packages are barely maintained)
     # FIXME maybe move to .util.text?
 
-    # We pseudo-randomly generate test content, but we want repeatable tests
-    #
-    # FIXME this is no longer random text then, just a weird way to hardcode it?
-    randomizer = Random(3)
-
     dictionary = """
         lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore
         magna aliqua in vitae turpis massa sed mattis pellentesque id nibh tortor id aliquet lectus. Sagittis aliquam
@@ -290,13 +285,13 @@ def _get_test_content() -> str:
     """.split()
 
     text = ""
-    for paragraph_count in range(randomizer.randint(1, 10)):
+    for paragraph_count in range(random.randint(1, 10)):
 
         sentences_in_paragraph = []
 
-        for sentence_in_paragraph_count in range(randomizer.randint(1, 5)):
-            sentence = ' '.join(randomizer.sample(dictionary, k=randomizer.randint(1, 10)))
-            sentence += randomizer.choice(['.', '?', '!'])
+        for sentence_in_paragraph_count in range(random.randint(1, 5)):
+            sentence = ' '.join(random.sample(dictionary, k=random.randint(1, 10)))
+            sentence += random.choice(['.', '?', '!'])
             sentence = sentence.capitalize()
             sentences_in_paragraph.append(sentence)
 
