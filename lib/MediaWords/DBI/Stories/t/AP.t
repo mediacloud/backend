@@ -39,7 +39,7 @@ sub test_story($$$$)
 
     $story = MediaWords::Test::DB::Create::add_content_to_test_story( $db, $story, $test_feed );
 
-    my $got = MediaWords::DBI::Stories::AP::is_syndicated( $db, $story );
+    my $got = MediaWords::DBI::Stories::AP::is_syndicated( $db, $content, $story->{ title }, $story->{ language } );
 
     is( $got, $expected, "story is syndicated: $label" );
 }
@@ -120,14 +120,12 @@ STORY
 
     test_story( $db, join( ' ', @{ $ap_sentences } ), 1, 'all ap sentences' );
 
-    my $no_db_story = { content => 'foo' };
-    is( MediaWords::DBI::Stories::AP::is_syndicated( $db, $no_db_story ), 0, 'no db story: simple story' );
+    is( MediaWords::DBI::Stories::AP::is_syndicated( $db, 'foo' ), 0, 'no db story: simple story' );
 
-    my $no_db_ap_story = { content => '(ap)' };
-    is( MediaWords::DBI::Stories::AP::is_syndicated( $db, $no_db_ap_story ), 1, 'no db story: (ap) story' );
+    is( MediaWords::DBI::Stories::AP::is_syndicated( $db, '(ap)' ), 1, 'no db story: (ap) story' );
 
-    my $no_db_ap_sentences_story = { content => join( ' ', @{ $ap_sentences } ) };
-    is( MediaWords::DBI::Stories::AP::is_syndicated( $db, $no_db_ap_sentences_story ), 1, 'no db story: ap sentences' );
+    is( MediaWords::DBI::Stories::AP::is_syndicated( $db, join( ' ', @{ $ap_sentences } ) ), 1,
+        'no db story: ap sentences' );
 }
 
 sub main()

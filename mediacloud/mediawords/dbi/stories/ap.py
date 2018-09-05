@@ -43,64 +43,23 @@ The algorithm used in this module was developed using a decision tree algorithm:
                         '2' => '1'
 """
 
-import copy
 import hashlib
 import re
 from typing import List, Pattern, Optional
 
 from mediawords.db import DatabaseHandler
-from mediawords.dbi.downloads import extract_content, fetch_content
-from mediawords.dbi.stories.extract import get_text
 from mediawords.languages.factory import LanguageFactory
 from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_object_from_bytes_if_needed
 
 log = create_logger(__name__)
 
-
-class McIsSyndicatedException(Exception):
-    """is_syndicated() exception."""
-    pass
+# All AP stories are expected to be written in English
+__AP_LANGUAGE_CODE = 'en'
 
 
 def get_ap_medium_name() -> str:
     return 'Associated Press - Full Feed'
-
-
-def _get_story_content(db: DatabaseHandler, story: dict) -> str:
-    story = decode_object_from_bytes_if_needed(story)
-
-    if story.get('content', None):
-        return story['content']
-
-    download = story.get('download', None)
-    if not download:
-        download = db.query("""
-            SELECT *
-            FROM downloads
-            WHERE stories_id = %(stories_id)s
-            ORDER BY downloads_id
-            LIMIT 1
-        """, {'stories_id': story['stories_id']}).hash()
-
-    # There might be no download at all for full text RSS story
-    if not download:
-        return ''
-
-    if download['state'] != 'success':
-        return ''
-
-    try:
-        content = fetch_content(db=db, download=download)
-    except Exception as ex:
-        log.warning("Error fetching content: {}".format(ex))
-        return ''
-
-    if content is None:
-        log.warning("Fetched content is undefined.")
-        return ''
-
-    return content
 
 
 def _get_ap_media_id(db: DatabaseHandler) -> Optional[int]:
@@ -121,73 +80,25 @@ def _get_ap_media_id(db: DatabaseHandler) -> Optional[int]:
         return None
 
 
-def _get_ap_dup_sentence_lengths_from_db(db: DatabaseHandler, story: dict) -> List[int]:
-    story = decode_object_from_bytes_if_needed(story)
-
-    ap_media_id = _get_ap_media_id(db=db)
-    if ap_media_id is None:
-        return []
-
-    sentences = db.query("""
-
-        WITH sentence_md5s AS (
-            SELECT md5(ss.sentence) AS md5_sentence
-            FROM story_sentences AS ss
-            WHERE ss.stories_id = %(stories_id)s
-              AND ss.media_id != %(ap_media_id)s
-        )
-        SELECT *
-        FROM story_sentences
-        WHERE media_id = %(ap_media_id)s
-
-          -- FIXME this probably doesn't work because the index is half_md5(), not md5()
-          AND md5(sentence) IN (
-              SELECT md5_sentence
-              FROM sentence_md5s
-          )
-
-    """, {
-        'stories_id': story['stories_id'],
-        'ap_media_id': ap_media_id,
-    }).hashes()
-
-    # MC_REWRITE_TO_PYTHON: Perlism
-    if sentences is None:
-        sentences = []
-
-    sentence_lengths = []
-    for sentence in sentences:
-        sentence_lengths.append(len(sentence['sentence']))
-
-    return sentence_lengths
-
-
-def _get_sentences_from_content(story: dict) -> List[str]:
+def _get_sentences_from_content(story_text: str) -> List[str]:
     """Given raw HML content, extract the content and parse it into sentences."""
-    story = decode_object_from_bytes_if_needed(story)
+    story_text = decode_object_from_bytes_if_needed(story_text)
 
-    content = story['content']
-
-    text = extract_content(content=content)['extracted_text']
-
-    lang = LanguageFactory.language_for_code(story.get('language', ''))
-    if not lang:
-        lang = LanguageFactory.default_language()
-
-    sentences = lang.split_text_to_sentences(text=text)
+    lang = LanguageFactory.language_for_code(__AP_LANGUAGE_CODE)
+    sentences = lang.split_text_to_sentences(text=story_text)
 
     return sentences
 
 
-def _get_ap_dup_sentence_lengths_from_content(db: DatabaseHandler, story: dict) -> List[int]:
-    story = decode_object_from_bytes_if_needed(story)
+def _get_ap_dup_sentence_lengths(db: DatabaseHandler, story_text: str) -> List[int]:
+    story_text = decode_object_from_bytes_if_needed(story_text)
 
     ap_media_id = _get_ap_media_id(db=db)
 
     if ap_media_id is None:
         return []
 
-    sentences = _get_sentences_from_content(story=story)
+    sentences = _get_sentences_from_content(story_text=story_text)
 
     md5s = []
     for sentence in sentences:
@@ -199,7 +110,7 @@ def _get_ap_dup_sentence_lengths_from_content(db: DatabaseHandler, story: dict) 
         FROM story_sentences
         WHERE media_id = %(ap_media_id)s
 
-          -- FIXME this probably doesn't work because the index is half_md5(), not md5()
+          -- FIXME this probably never worked because the index is half_md5(), not md5()
           AND md5(sentence) = ANY(%(md5s)s)
     """, {
         'ap_media_id': ap_media_id,
@@ -213,64 +124,18 @@ def _get_ap_dup_sentence_lengths_from_content(db: DatabaseHandler, story: dict) 
     return sentence_lengths
 
 
-def _get_ap_dup_sentence_lengths(db: DatabaseHandler, story: dict) -> List[int]:
-    story = decode_object_from_bytes_if_needed(story)
-
-    if story.get('stories_id', None):
-        return _get_ap_dup_sentence_lengths_from_db(db=db, story=story)
-
-    return _get_ap_dup_sentence_lengths_from_content(db=db, story=story)
-
-
-def _get_content_pattern_matches(db: DatabaseHandler,
-                                 story: dict,
+def _get_content_pattern_matches(story_text: str,
                                  pattern: Pattern[str],
                                  restrict_to_first: int = 0) -> int:
-    story = decode_object_from_bytes_if_needed(story)
+    story_text = decode_object_from_bytes_if_needed(story_text)
     if isinstance(restrict_to_first, bytes):
         restrict_to_first = decode_object_from_bytes_if_needed(restrict_to_first)
     restrict_to_first = bool(int(restrict_to_first))
 
-    content = _get_story_content(db=db, story=story)
-
     if restrict_to_first:
-        content = content[0:int(len(content) * restrict_to_first)]
+        story_text = story_text[0:int(len(story_text) * restrict_to_first)]
 
-    matches = re.findall(pattern=pattern, string=content)
-
-    return len(matches)
-
-
-def _get_text_pattern_matches(db: DatabaseHandler, story: dict, pattern: Pattern[str]) -> int:
-    story = decode_object_from_bytes_if_needed(story)
-
-    text = get_text(db=db, story=story)
-
-    matches = re.findall(pattern=pattern, string=text)
-
-    return len(matches)
-
-
-def _get_sentence_pattern_matches(db: DatabaseHandler, story: dict, pattern: Pattern[str]) -> int:
-    story = decode_object_from_bytes_if_needed(story)
-
-    if story.get('stories_id', None):
-        sentences = db.query("""
-            SELECT sentence
-            FROM story_sentences
-            WHERE stories_id = %(stories_id)s
-        """, {'stories_id': story['stories_id']}).flat()
-
-        # MC_REWRITE_TO_PYTHON: Perlism
-        if sentences is None:
-            sentences = []
-
-    else:
-        sentences = story.get('sentences', [])
-
-    text = ' '.join(sentences)
-
-    matches = re.findall(pattern=pattern, string=text)
+    matches = re.findall(pattern=pattern, string=story_text)
 
     return len(matches)
 
@@ -287,14 +152,16 @@ def _get_all_string_match_positions(haystack: str, needle: str) -> List[int]:
     return positions
 
 
-def _get_associated_press_near_title(db: DatabaseHandler, story: dict) -> bool:
-    story = decode_object_from_bytes_if_needed(story)
+def _get_associated_press_near_title(story_title: str, story_text: str) -> bool:
+    story_title = decode_object_from_bytes_if_needed(story_title)
+    story_text = decode_object_from_bytes_if_needed(story_text)
 
-    content = _get_story_content(db=db, story=story).lower()
+    story_title = story_title.lower()
+    story_text = story_text.lower()
 
-    content = re.sub(pattern='\s+', repl=' ', string=content, flags=re.MULTILINE)
+    content = re.sub(pattern='\s+', repl=' ', string=story_text, flags=re.MULTILINE)
 
-    title_positions = _get_all_string_match_positions(haystack=content, needle=story['title'].lower())
+    title_positions = _get_all_string_match_positions(haystack=content, needle=story_title)
     ap_positions = _get_all_string_match_positions(haystack=content, needle='associated press')
 
     for title_p in title_positions:
@@ -305,12 +172,12 @@ def _get_associated_press_near_title(db: DatabaseHandler, story: dict) -> bool:
     return False
 
 
-def _get_dup_sentences_32(db: DatabaseHandler, story: dict) -> int:
+def _get_dup_sentences_32(db: DatabaseHandler, story_text: str) -> int:
     """Return the number of sentences in the story that are least 32 characters long and are a duplicate of a sentence
     in the associated press media source."""
-    story = decode_object_from_bytes_if_needed(story)
+    story_text = decode_object_from_bytes_if_needed(story_text)
 
-    sentence_lengths = _get_ap_dup_sentence_lengths(db=db, story=story)
+    sentence_lengths = _get_ap_dup_sentence_lengths(db=db, story_text=story_text)
 
     num_sentences = 0
     for sentence_length in sentence_lengths:
@@ -325,32 +192,33 @@ def _get_dup_sentences_32(db: DatabaseHandler, story: dict) -> int:
         return 1
 
 
-def is_syndicated(db: DatabaseHandler, story: dict) -> bool:
+def is_syndicated(db: DatabaseHandler,
+                  story_text: str,
+                  story_title: str = '',
+                  story_language: str = '') -> bool:
     """Return True if the stories is syndicated by the Associated Press, False otherwise.
 
     Uses the decision tree at the top of the module.
     """
-    story = decode_object_from_bytes_if_needed(story)
 
-    if not story:
-        raise McIsSyndicatedException("Story is not set.")
+    story_title = decode_object_from_bytes_if_needed(story_title)
+    story_text = decode_object_from_bytes_if_needed(story_text)
+    story_language = decode_object_from_bytes_if_needed(story_language)
 
-    if not story.get('stories_id', None) and story.get('content', None) is None and story.get('language', None) is None:
-        raise McIsSyndicatedException(
-            '{} object must have a title field and either a stories_id field or a content and a language field.'.format(
-                story
-            ))
+    # If the language code is unset, we're assuming that the story is in English
+    if not story_language:
+        story_language = __AP_LANGUAGE_CODE
 
-    # Copy story so that we can cache data in the object with introducing side effects
-    story = copy.deepcopy(story)
+    if not story_text:
+        log.warning("Story text is unset.")
+        return False
 
-    # Add a sentences field if this is an external story. Do this here so that we don't have to do it repeatedly below
-    if not story.get('stories_id', None):
-        story['sentences'] = _get_sentences_from_content(story=story)
+    if story_language != __AP_LANGUAGE_CODE:
+        log.debug("Story is not in English.")
+        return False
 
-    ap_mentions_sentences = _get_sentence_pattern_matches(
-        db=db,
-        story=story,
+    ap_mentions_sentences = _get_content_pattern_matches(
+        story_text=story_text,
         pattern=re.compile(pattern='\(ap\)', flags=re.IGNORECASE),
     )
     if ap_mentions_sentences:
@@ -358,36 +226,36 @@ def is_syndicated(db: DatabaseHandler, story: dict) -> bool:
         return True
 
     associated_press_mentions = _get_content_pattern_matches(
-        db=db,
-        story=story,
+        story_text=story_text,
         pattern=re.compile(pattern='associated press', flags=re.IGNORECASE),
     )
     if associated_press_mentions:
 
         quoted_associated_press_mentions = _get_content_pattern_matches(
-            db=db,
-            story=story,
+            story_text=story_text,
             pattern=re.compile(pattern='["\'\|].{0,8}associated press.{0,8}["\'\|]', flags=re.IGNORECASE),
         )
         if quoted_associated_press_mentions:
             log.debug('ap: quoted_associated_press')
             return True
 
-        dup_sentences_32 = _get_dup_sentences_32(db=db, story=story)
+        dup_sentences_32 = _get_dup_sentences_32(db=db, story_text=story_text)
         if dup_sentences_32 == 1:
             log.debug('ap: assoc press -> dup_sentences_32')
             return True
 
         elif dup_sentences_32 == 0:
 
-            associated_press_near_title = _get_associated_press_near_title(db=db, story=story)
+            associated_press_near_title = _get_associated_press_near_title(
+                story_title=story_title,
+                story_text=story_text,
+            )
             if associated_press_near_title:
                 log.debug('ap: assoc press -> near title')
                 return True
 
             ap_news_mentions = _get_content_pattern_matches(
-                db=db,
-                story=story,
+                story_text=story_text,
                 pattern=re.compile('ap news', flags=re.IGNORECASE),
             )
             if ap_news_mentions:
@@ -399,7 +267,10 @@ def is_syndicated(db: DatabaseHandler, story: dict) -> bool:
                 return False
 
         else:  # dup_sentences_32 == 2
-            associated_press_near_title = _get_associated_press_near_title(db=db, story=story)
+            associated_press_near_title = _get_associated_press_near_title(
+                story_title=story_title,
+                story_text=story_text,
+            )
 
             if associated_press_near_title:
                 log.debug('ap: assoc press near title')
@@ -408,8 +279,7 @@ def is_syndicated(db: DatabaseHandler, story: dict) -> bool:
             else:
 
                 associated_press_tag_mentions = _get_content_pattern_matches(
-                    db=db,
-                    story=story,
+                    story_text=story_text,
                     pattern=re.compile(pattern='<[^<>]*associated press[^<>]*>', flags=re.IGNORECASE)
                 )
 
@@ -423,12 +293,11 @@ def is_syndicated(db: DatabaseHandler, story: dict) -> bool:
 
     else:
 
-        dup_sentences_32 = _get_dup_sentences_32(db=db, story=story)
+        dup_sentences_32 = _get_dup_sentences_32(db=db, story_text=story_text)
 
         if dup_sentences_32 == 1:
-            ap_mentions_uppercase_location = _get_text_pattern_matches(
-                db=db,
-                story=story,
+            ap_mentions_uppercase_location = _get_content_pattern_matches(
+                story_text=story_text,
                 pattern=re.compile(pattern='[A-Z]+\s*\(AP\)'),  # do not ignore case
             )
             if ap_mentions_uppercase_location:

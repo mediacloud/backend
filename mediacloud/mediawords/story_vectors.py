@@ -252,30 +252,35 @@ def _clean_sentences(sentences: List[str]) -> List[str]:
     return cleaned_sentences
 
 
-def _update_ap_syndicated(db: DatabaseHandler, story: dict) -> dict:
-    """Detect whether the story is syndicated and update stories.ap_syndicated."""
+def _update_ap_syndicated(db: DatabaseHandler,
+                          stories_id: int,
+                          story_title: str,
+                          story_text: str,
+                          story_language: str) -> bool:
+    """Detect whether the story is syndicated, update stories.ap_syndicated and return the decision."""
     # FIXME write a test once AP gets reenabled
 
-    story = decode_object_from_bytes_if_needed(story)
+    if isinstance(stories_id, bytes):
+        stories_id = decode_object_from_bytes_if_needed(stories_id)
+    stories_id = int(stories_id)
 
-    if story.get('language', '') != 'en':
-        return story
+    story_title = decode_object_from_bytes_if_needed(story_title)
+    story_text = decode_object_from_bytes_if_needed(story_text)
+    story_language = decode_object_from_bytes_if_needed(story_language)
 
-    ap_syndicated = is_syndicated(db=db, story=story)
+    ap_syndicated = is_syndicated(db=db, story_title=story_title, story_text=story_text, story_language=story_language)
 
     db.query("""
         DELETE FROM stories_ap_syndicated
         WHERE stories_id = %(stories_id)s
-    """, {'stories_id': story['stories_id']})
+    """, {'stories_id': stories_id})
 
     db.query("""
         INSERT INTO stories_ap_syndicated (stories_id, ap_syndicated)
         VALUES (%(stories_id)s, %(ap_syndicated)s)
-    """, {'stories_id': story['stories_id'], 'ap_syndicated': ap_syndicated})
+    """, {'stories_id': stories_id, 'ap_syndicated': ap_syndicated})
 
-    story['ap_syndicated'] = ap_syndicated
-
-    return story
+    return ap_syndicated
 
 
 def _delete_story_sentences(db: DatabaseHandler, story: dict) -> None:
@@ -358,7 +363,13 @@ def update_story_sentences_and_language(db: DatabaseHandler,
         no_dedup_sentences=extractor_args.no_dedup_sentences(),
     )
 
-    _update_ap_syndicated(db=db, story=story)
+    story['ap_syndicated'] = _update_ap_syndicated(
+        db=db,
+        stories_id=stories_id,
+        story_title=story['title'],
+        story_text=story_text,
+        story_language=story_lang,
+    )
 
     if use_transaction:
         db.commit()

@@ -35,7 +35,7 @@ sub is_syndicated_ap_PUT
         die( "json input must include content field" );
     }
 
-    my $is_syndicated = MediaWords::DBI::Stories::AP::is_syndicated( $c->dbis, { content => $content } );
+    my $is_syndicated = MediaWords::DBI::Stories::AP::is_syndicated( $c->dbis, $content );
 
     $self->status_ok( $c, entity => { is_syndicated => $is_syndicated ? 1 : 0 } );
 }

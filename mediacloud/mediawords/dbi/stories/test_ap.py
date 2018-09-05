@@ -51,7 +51,7 @@ class TestAP(TestDatabaseWithSchemaTestCase):
 
         story = add_content_to_test_story(db=self.db(), story=story, feed=feed)
 
-        return is_syndicated(db=self.db(), story=story)
+        return is_syndicated(db=self.db(), story_title=story['title'], story_text=content)
 
     def test_ap_calls(self):
 
@@ -98,11 +98,11 @@ class TestAP(TestDatabaseWithSchemaTestCase):
             content=' '.join(ap_sentences)
         ) is True, 'All AP sentences'
 
-        assert is_syndicated(db=self.db(), story={'content': 'foo'}) is False, "No DB story: simple story"
+        assert is_syndicated(db=self.db(), story_text='foo') is False, "No DB story: simple story"
 
-        assert is_syndicated(db=self.db(), story={'content': '(ap)'}) is True, "No DB story: ('ap') story"
+        assert is_syndicated(db=self.db(), story_text='(ap)') is True, "No DB story: ('ap') story"
 
         assert is_syndicated(
             db=self.db(),
-            story={'content': ' '.join(self.__get_ap_sentences())},
+            story_text=' '.join(self.__get_ap_sentences()),
         ) is True, "No DB story: AP sentences"
