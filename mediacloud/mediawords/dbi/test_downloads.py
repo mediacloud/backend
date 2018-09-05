@@ -135,7 +135,10 @@ class TestDownloads(unittest.TestCase):
 
         for path in path_lookup:
             store = mediawords.dbi.downloads._get_store_for_reading({'path': (path + ':')})
-            assert isinstance(store, path_lookup[path])
+            expected_class = path_lookup[path]
+
+            # isinstance() emits a warning in PyCharm
+            assert type(store) == expected_class
 
         store = mediawords.dbi.downloads._get_store_for_reading({})
         assert isinstance(store, AmazonS3Store)
