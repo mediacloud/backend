@@ -47,10 +47,11 @@ sub _get_extra_where_clause($$)
 
     my $clauses = [];
 
-    if ( my $media_id = $c->req->params->{ media_id } )
+    if ( my $media_ids = $c->req->params->{ media_id } )
     {
-        $media_id += 0;
-        push( @{ $clauses }, "m.media_id = $media_id" );
+        $media_ids = [ $media_ids ] unless ( ref( $media_ids ) eq ref( [] ) );
+        my $media_ids_list = join( ',', map { int( $_ ) } @{ $media_ids } );
+        push( @{ $clauses }, "m.media_id in ( $media_ids_list )" );
     }
 
     if ( my $name = $c->req->params->{ name } )

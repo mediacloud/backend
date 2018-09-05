@@ -234,3 +234,19 @@
   when: "'core_services' in group_names"  # only for hosts in 'core_services' group
   tags:
     - crontab
+
+- name: Print long running job_states 
+  cron:
+    name: "print_long_running_job_states"
+    minute: "06"
+    hour: "19"
+
+    # Report will be sent to MAILTO
+    job: >
+      {{ mediacloud_root }}/script/run_in_env.sh
+      {{ mediacloud_root }}/tools/data/print_long_running_job_states.py
+  become: true
+  become_user: "{{ mediacloud_user }}"
+  when: "'core_services' in group_names"  # only for hosts in 'core_services' group
+  tags:
+    - crontab
