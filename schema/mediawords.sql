@@ -24,7 +24,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4689;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4690;
 BEGIN
 
     -- Update / set database schema version
@@ -953,10 +953,6 @@ ALTER VIEW story_sentences
 
 -- Trigger that implements INSERT / UPDATE / DELETE behavior on "story_sentences" view
 CREATE OR REPLACE FUNCTION story_sentences_view_insert_update_delete() RETURNS trigger AS $$
-
-DECLARE
-    target_table_name TEXT;       -- partition table name (e.g. "story_sentences_01")
-
 BEGIN
 
     IF (TG_OP = 'INSERT') THEN
