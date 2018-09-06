@@ -560,6 +560,80 @@ class TestDatabaseHandler(TestDatabaseTestCase):
         with pytest.raises(McUniqueConstraintException):
             self.db().create('kardashians', insert_hash)
 
+    def test_create_updatable_view(self):
+        """Test create() against an updatable view that's in front of a partitioned table."""
+
+        self.db().query("""
+            CREATE OR REPLACE VIEW celebrities AS
+                SELECT *
+                FROM kardashians;
+
+            -- Make RETURNING work with partitioned tables
+            -- (https://wiki.postgresql.org/wiki/INSERT_RETURNING_vs_Partitioning)
+            ALTER VIEW celebrities
+                ALTER COLUMN id
+                SET DEFAULT nextval(pg_get_serial_sequence('kardashians', 'id')) + 1;
+
+            -- Trigger that implements INSERT / UPDATE / DELETE behavior on "celebrities" view
+            CREATE OR REPLACE FUNCTION celebrities_view_insert_update_delete() RETURNS trigger AS $$
+            BEGIN
+
+                IF (TG_OP = 'INSERT') THEN
+                    INSERT INTO kardashians SELECT NEW.*;
+                    RETURN NEW;
+
+                ELSIF (TG_OP = 'UPDATE') THEN
+                    UPDATE kardashians
+                    SET name = NEW.name,
+                        surname = NEW.surname,
+                        dob = NEW.dob,
+                        married_to_kanye = NEW.married_to_kanye
+                    WHERE id = OLD.id;
+                    RETURN NEW;
+
+                ELSIF (TG_OP = 'DELETE') THEN
+                    DELETE FROM kardashians
+                        WHERE id = OLD.id;
+                    RETURN OLD;
+
+                ELSE
+                    RAISE EXCEPTION 'Unconfigured operation: %', TG_OP;
+
+                END IF;
+
+            END;
+            $$ LANGUAGE plpgsql;
+
+            CREATE TRIGGER celebrities_view_insert_update_delete_trigger
+                INSTEAD OF INSERT OR UPDATE OR DELETE ON celebrities
+                FOR EACH ROW EXECUTE PROCEDURE celebrities_view_insert_update_delete();
+        """)
+
+        insert_hash = {
+            'name': 'Lamar',
+            'surname': 'Odom',
+            'dob': '1979-11-06',
+            'married_to_kanye': False,
+        }
+        row = self.db().create(table='celebrities', insert_hash=insert_hash)
+        assert row['surname'] == 'Odom'
+        assert str(row['dob']) == '1979-11-06'
+
+        # Nonexistent column
+        with pytest.raises(McCreateException):
+            self.db().create('celebrities', {
+                'does_not': 'exist',
+
+                'name': 'Lamar2',
+                'surname': 'Odom2',
+                'dob': '1979-12-06',
+                'married_to_kanye': False,
+            })
+
+        # unique constraint
+        with pytest.raises(McUniqueConstraintException):
+            self.db().create('celebrities', insert_hash)
+
     def test_select(self):
         # One condition
         row = self.db().select(table='kardashians', what_to_select='*', condition_hash={
