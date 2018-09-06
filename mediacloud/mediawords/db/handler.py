@@ -659,6 +659,8 @@ class DatabaseHandler(object):
         """Select a single row from the database matching the hash or insert a row with the hash values and return the
         inserted row as a hash."""
 
+        # FIXME probably do this in a serialized transaction?
+
         table = decode_object_from_bytes_if_needed(table)
         insert_hash = decode_object_from_bytes_if_needed(insert_hash)
 
