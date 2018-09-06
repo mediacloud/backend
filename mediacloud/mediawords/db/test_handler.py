@@ -456,33 +456,33 @@ class TestDatabaseHandler(TestDatabaseTestCase):
         """Test primary_key_column() against a view (in front of a partitioned table)."""
 
         self.db().query("""
-            CREATE OR REPLACE VIEW celebrities AS
-                SELECT id AS celebrities_id, name, surname
+            CREATE OR REPLACE VIEW primary_key_column_view_celebrities AS
+                SELECT id AS primary_key_column_view_celebrities_id, name, surname
                 FROM kardashians
         """)
-        primary_key = self.db().primary_key_column('celebrities')
-        assert primary_key == 'celebrities_id'
+        primary_key = self.db().primary_key_column('primary_key_column_view_celebrities')
+        assert primary_key == 'primary_key_column_view_celebrities_id'
 
         self.db().query("""
-            CREATE OR REPLACE VIEW celebrities_2 AS
+            CREATE OR REPLACE VIEW primary_key_column_view_celebrities_2 AS
                 SELECT id, name, surname
                 FROM kardashians
         """)
-        primary_key = self.db().primary_key_column('celebrities_2')
+        primary_key = self.db().primary_key_column('primary_key_column_view_celebrities_2')
         assert primary_key == 'id'
 
         # Test caching
-        primary_key = self.db().primary_key_column('celebrities')
-        assert primary_key == 'celebrities_id'
+        primary_key = self.db().primary_key_column('primary_key_column_view_celebrities')
+        assert primary_key == 'primary_key_column_view_celebrities_id'
 
         # Different schema
         self.db().query("CREATE SCHEMA IF NOT EXISTS test")
         self.db().query("""
-            CREATE OR REPLACE VIEW test.celebrities_3 AS
+            CREATE OR REPLACE VIEW test.primary_key_column_view_celebrities_2 AS
                 SELECT id, name, surname
                 FROM public.kardashians
         """)
-        primary_key = self.db().primary_key_column('test.celebrities_3')
+        primary_key = self.db().primary_key_column('test.primary_key_column_view_celebrities_2')
         assert primary_key == 'id'
 
         # Nonexistent view
@@ -491,12 +491,12 @@ class TestDatabaseHandler(TestDatabaseTestCase):
 
         # No primary key
         self.db().query("""
-            CREATE OR REPLACE VIEW celebrities_no_pk AS
+            CREATE OR REPLACE VIEW primary_key_column_view_celebrities_no_pk AS
                 SELECT name, surname
                 FROM kardashians
         """)
         with pytest.raises(McPrimaryKeyColumnException):
-            self.db().primary_key_column('celebrities_no_pk')
+            self.db().primary_key_column('primary_key_column_view_celebrities_no_pk')
 
     def test_find_by_id(self):
         row_hash = self.db().find_by_id(table='kardashians', object_id=4)
@@ -564,18 +564,20 @@ class TestDatabaseHandler(TestDatabaseTestCase):
         """Test create() against an updatable view that's in front of a partitioned table."""
 
         self.db().query("""
-            CREATE OR REPLACE VIEW celebrities AS
+            CREATE OR REPLACE VIEW create_updatable_view_celebrities AS
                 SELECT *
                 FROM kardashians;
 
             -- Make RETURNING work with partitioned tables
             -- (https://wiki.postgresql.org/wiki/INSERT_RETURNING_vs_Partitioning)
-            ALTER VIEW celebrities
+            ALTER VIEW create_updatable_view_celebrities
                 ALTER COLUMN id
                 SET DEFAULT nextval(pg_get_serial_sequence('kardashians', 'id')) + 1;
 
-            -- Trigger that implements INSERT / UPDATE / DELETE behavior on "celebrities" view
-            CREATE OR REPLACE FUNCTION celebrities_view_insert_update_delete() RETURNS trigger AS $$
+            -- Trigger that implements INSERT / UPDATE / DELETE behavior on "create_updatable_view_celebrities" view
+            CREATE OR REPLACE FUNCTION create_updatable_view_celebrities_view_insert_update_delete()
+            RETURNS TRIGGER
+            AS $$
             BEGIN
 
                 IF (TG_OP = 'INSERT') THEN
@@ -604,9 +606,9 @@ class TestDatabaseHandler(TestDatabaseTestCase):
             END;
             $$ LANGUAGE plpgsql;
 
-            CREATE TRIGGER celebrities_view_insert_update_delete_trigger
-                INSTEAD OF INSERT OR UPDATE OR DELETE ON celebrities
-                FOR EACH ROW EXECUTE PROCEDURE celebrities_view_insert_update_delete();
+            CREATE TRIGGER create_updatable_view_celebrities_view_insert_update_delete_trigger
+                INSTEAD OF INSERT OR UPDATE OR DELETE ON create_updatable_view_celebrities
+                FOR EACH ROW EXECUTE PROCEDURE create_updatable_view_celebrities_view_insert_update_delete();
         """)
 
         insert_hash = {
@@ -615,13 +617,13 @@ class TestDatabaseHandler(TestDatabaseTestCase):
             'dob': '1979-11-06',
             'married_to_kanye': False,
         }
-        row = self.db().create(table='celebrities', insert_hash=insert_hash)
+        row = self.db().create(table='create_updatable_view_celebrities', insert_hash=insert_hash)
         assert row['surname'] == 'Odom'
         assert str(row['dob']) == '1979-11-06'
 
         # Nonexistent column
         with pytest.raises(McCreateException):
-            self.db().create('celebrities', {
+            self.db().create('create_updatable_view_celebrities', {
                 'does_not': 'exist',
 
                 'name': 'Lamar2',
@@ -632,7 +634,7 @@ class TestDatabaseHandler(TestDatabaseTestCase):
 
         # unique constraint
         with pytest.raises(McUniqueConstraintException):
-            self.db().create('celebrities', insert_hash)
+            self.db().create('create_updatable_view_celebrities', insert_hash)
 
     def test_select(self):
         # One condition
