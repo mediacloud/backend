@@ -65,7 +65,7 @@ class AbstractDatabaseModelStore(AbstractModelStore, metaclass=abc.ABCMeta):
     def store_model(self, model_data: bytes) -> int:
         self.__db.begin()
 
-        primary_key_column = self.__db.primary_key_column(table=self.model_table())
+        primary_key_column = self.__db.primary_key_column(object_name=self.model_table())
 
         # Write model record
         model_metadata = self.__db.create(table=self.model_table(), insert_hash={'object_id': self.__object_id})
@@ -81,7 +81,7 @@ class AbstractDatabaseModelStore(AbstractModelStore, metaclass=abc.ABCMeta):
     def read_model(self, models_id: int) -> bytes:
         self.__db.begin()
 
-        primary_key_column = self.__db.primary_key_column(table=self.model_table())
+        primary_key_column = self.__db.primary_key_column(object_name=self.model_table())
 
         model_metadata = self.__db.select(
             table=self.model_table(),

@@ -2,9 +2,11 @@ import re
 
 import pytest
 
+from mediawords.db.exceptions.handler import McPrimaryKeyColumnException
 from mediawords.db.exceptions.result import McDatabaseResultException
 from mediawords.db.handler import (
-    McUpdateByIDException, McCreateException, McRequireByIDException, McUniqueConstraintException)
+    McUpdateByIDException, McCreateException, McRequireByIDException, McUniqueConstraintException,
+)
 from mediawords.test.test_database import TestDatabaseTestCase
 from mediawords.util.config import (
     get_config as py_get_config,
@@ -22,7 +24,7 @@ class TestDatabaseHandler(TestDatabaseTestCase):
         super().setUp()
 
         log.info("Preparing test table 'kardashians'...")
-        self.db().query("DROP TABLE IF EXISTS kardashians")
+        self.db().query("DROP TABLE IF EXISTS kardashians CASCADE")
         self.db().query("""
             CREATE TABLE kardashians (
                 id SERIAL PRIMARY KEY NOT NULL,
@@ -46,7 +48,7 @@ class TestDatabaseHandler(TestDatabaseTestCase):
 
     def tearDown(self):
         log.info("Tearing down...")
-        self.db().query("DROP TABLE IF EXISTS kardashians")
+        self.db().query("DROP TABLE IF EXISTS kardashians CASCADE")
 
         # Test disconnect() too
         super().tearDown()
@@ -436,6 +438,65 @@ class TestDatabaseHandler(TestDatabaseTestCase):
         """)
         primary_key = self.db().primary_key_column('test.table_with_primary_key')
         assert primary_key == 'primary_key_column'
+
+        # Nonexistent table
+        with pytest.raises(McPrimaryKeyColumnException):
+            self.db().primary_key_column('nonexistent_table')
+
+        # No primary key
+        self.db().query("""
+            CREATE TABLE IF NOT EXISTS no_primary_key (
+                foo TEXT NOT NULL
+            )
+        """)
+        with pytest.raises(McPrimaryKeyColumnException):
+            self.db().primary_key_column('no_primary_key')
+
+    def test_primary_key_column_view(self):
+        """Test primary_key_column() against a view (in front of a partitioned table)."""
+
+        self.db().query("""
+            CREATE OR REPLACE VIEW celebrities AS
+                SELECT id AS celebrities_id, name, surname
+                FROM kardashians
+        """)
+        primary_key = self.db().primary_key_column('celebrities')
+        assert primary_key == 'celebrities_id'
+
+        self.db().query("""
+            CREATE OR REPLACE VIEW celebrities_2 AS
+                SELECT id, name, surname
+                FROM kardashians
+        """)
+        primary_key = self.db().primary_key_column('celebrities_2')
+        assert primary_key == 'id'
+
+        # Test caching
+        primary_key = self.db().primary_key_column('celebrities')
+        assert primary_key == 'celebrities_id'
+
+        # Different schema
+        self.db().query("CREATE SCHEMA IF NOT EXISTS test")
+        self.db().query("""
+            CREATE OR REPLACE VIEW test.celebrities_3 AS
+                SELECT id, name, surname
+                FROM public.kardashians
+        """)
+        primary_key = self.db().primary_key_column('test.celebrities_3')
+        assert primary_key == 'id'
+
+        # Nonexistent view
+        with pytest.raises(McPrimaryKeyColumnException):
+            self.db().primary_key_column('nonexistent_view')
+
+        # No primary key
+        self.db().query("""
+            CREATE OR REPLACE VIEW celebrities_no_pk AS
+                SELECT name, surname
+                FROM kardashians
+        """)
+        with pytest.raises(McPrimaryKeyColumnException):
+            self.db().primary_key_column('celebrities_no_pk')
 
     def test_find_by_id(self):
         row_hash = self.db().find_by_id(table='kardashians', object_id=4)

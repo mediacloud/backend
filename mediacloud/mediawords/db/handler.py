@@ -348,61 +348,87 @@ class DatabaseHandler(object):
         if exception is not None:
             raise exception  # pass further
 
-    def primary_key_column(self, table: str) -> str:
-        """Get the primary key column for the table."""
+    def primary_key_column(self, object_name: str) -> str:
+        """Get the primary key column for a table or a view."""
 
-        table = decode_object_from_bytes_if_needed(table)
+        object_name = decode_object_from_bytes_if_needed(object_name)
 
-        if '.' in table:
-            schema, table = table.split('.', maxsplit=1)
+        if '.' in object_name:
+            schema_name, object_name = object_name.split('.', maxsplit=1)
         else:
-            schema = 'public'
+            schema_name = 'public'
 
-        if schema not in self.__primary_key_columns:
-            self.__primary_key_columns[schema] = {}
+        if schema_name not in self.__primary_key_columns:
+            self.__primary_key_columns[schema_name] = {}
 
-        if table not in self.__primary_key_columns[schema]:
+        if object_name not in self.__primary_key_columns[schema_name]:
 
-            if table.lower() == 'story_sentences':
-                # FIXME temporary exception for a intermediary "story_sentences" view while the actual underlying table
-                # is being partitioned
-                return 'story_sentences_id'
+            # noinspection SpellCheckingInspection,SqlResolve
+            columns = self.query("""
+                SELECT
+                    n.nspname AS schema_name,
+                    c.relname AS object_name,
+                    c.relkind AS object_type,
+                    a.attname AS column_name,
+                    i.indisprimary AS is_primary_index
 
-            # noinspection SqlResolve,SqlCheckUsingColumns
-            primary_key_column = self.query("""
-                SELECT column_name
-                FROM information_schema.table_constraints
-                     JOIN information_schema.key_column_usage
-                         USING (constraint_catalog, constraint_schema, constraint_name,
-                                table_catalog, table_schema, table_name)
-                WHERE constraint_type = 'PRIMARY KEY'
-                  AND table_schema = %(table_schema)s
-                  AND table_name = %(table_name)s
-                ORDER BY ordinal_position
+                FROM pg_namespace AS n
+                    INNER JOIN pg_class AS c
+                        ON n.oid = c.relnamespace
+                    INNER JOIN pg_attribute AS a
+                        ON a.attrelid = c.oid
+                        AND NOT a.attisdropped
+
+                    -- Object might be a view, so LEFT JOIN
+                    LEFT JOIN pg_index AS i
+                        ON c.oid = i.indrelid
+                        AND a.attnum = ANY(i.indkey)
+
+                WHERE
+
+                  -- No xid, cid, ...
+                  a.attnum > 0
+
+                  -- Live column
+                  AND NOT attisdropped
+
+                  AND n.nspname = %(schema_name)s
+                  AND c.relname = %(object_name)s
             """, {
-                'table_schema': schema,
-                'table_name': table,
-            }).flat()
-            if primary_key_column is None or len(primary_key_column) == 0:
+                'schema_name': schema_name,
+                'object_name': object_name,
+            }).hashes()
+            if not columns:
                 raise McPrimaryKeyColumnException(
-                    "Primary key for schema '%s', table '%s' was not found" % (schema, table,)
+                    "Object '{}' in schema '{} was not found.".format(schema_name, object_name)
                 )
 
-            if len(primary_key_column) > 1:
+            primary_key_column = None
+
+            for column in columns:
+
+                column_name = column['column_name']
+
+                if column['object_type'] == 'r':
+                    # Table
+                    if column['is_primary_index']:
+                        primary_key_column = column_name
+                        break
+
+                elif column['object_type'] in ['v', 'm']:
+                    # (Materialized) view
+                    if column['column_name'] == 'id' or column['column_name'] == '{}_id'.format(object_name):
+                        primary_key_column = column_name
+                        break
+
+            if not primary_key_column:
                 raise McPrimaryKeyColumnException(
-                    (
-                        "Multiple primary key column were found for schema '%(schema)s', "
-                        "table '%(table)s': %(primary_key_columns)s"
-                    ) % {
-                        'schema': schema,
-                        'table': table,
-                        'primary_key_columns': str(primary_key_column)
-                    })
-            primary_key_column = primary_key_column[0]
+                    "Primary key for schema '%s', object '%s' was not found" % (schema_name, object_name,)
+                )
 
-            self.__primary_key_columns[schema][table] = primary_key_column
+            self.__primary_key_columns[schema_name][object_name] = primary_key_column
 
-        return self.__primary_key_columns[schema][table]
+        return self.__primary_key_columns[schema_name][object_name]
 
     def find_by_id(self, table: str, object_id: int) -> Union[Dict[str, Any], None]:
         """Do an ID lookup on the table and return a single row match if found."""
