@@ -64,7 +64,7 @@ Readonly my $STALE_FEED_CHECK_INTERVAL => 60 * 30;
 Readonly my $STALE_DOWNLOAD_INTERVAL => 60 * 5;
 
 # how many downloads to store in memory queue
-Readonly my $MAX_QUEUED_DOWNLOADS => 10_000_000;
+Readonly my $MAX_QUEUED_DOWNLOADS => 100_000;
 
 # how often to check the database for new pending downloads (seconds)
 Readonly my $DEFAULT_PENDING_CHECK_INTERVAL => 60 * 10;

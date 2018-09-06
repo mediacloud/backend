@@ -244,8 +244,7 @@
     # Report will be sent to MAILTO
     job: >
       {{ mediacloud_root }}/script/run_in_env.sh
-      {{ mediacloud_root }}/tools/data/print_long_running_job_states.py"
-      {{ crontab_rss_dump_path }}
+      {{ mediacloud_root }}/tools/data/print_long_running_job_states.py
   become: true
   become_user: "{{ mediacloud_user }}"
   when: "'core_services' in group_names"  # only for hosts in 'core_services' group
