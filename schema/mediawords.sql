@@ -24,7 +24,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4691;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4692;
 BEGIN
 
     -- Update / set database schema version
@@ -808,7 +808,10 @@ CREATE OR REPLACE VIEW feeds_stories_map AS
 -- (https://wiki.postgresql.org/wiki/INSERT_RETURNING_vs_Partitioning)
 ALTER VIEW feeds_stories_map
     ALTER COLUMN feeds_stories_map_id
-    SET DEFAULT nextval(pg_get_serial_sequence('feeds_stories_map_partitioned', 'feeds_stories_map_partitioned_id')) + 1;
+    SET DEFAULT nextval(pg_get_serial_sequence('feeds_stories_map_partitioned', 'feeds_stories_map_partitioned_id'));
+
+-- Prevent the next INSERT from failing
+SELECT nextval(pg_get_serial_sequence('feeds_stories_map_partitioned', 'feeds_stories_map_partitioned_id'));
 
 
 -- Trigger that implements INSERT / UPDATE / DELETE behavior on "feeds_stories_map" view
@@ -1072,7 +1075,10 @@ CREATE OR REPLACE VIEW story_sentences AS
 -- (https://wiki.postgresql.org/wiki/INSERT_RETURNING_vs_Partitioning)
 ALTER VIEW story_sentences
     ALTER COLUMN story_sentences_id
-    SET DEFAULT nextval(pg_get_serial_sequence('story_sentences_partitioned', 'story_sentences_partitioned_id')) + 1;
+    SET DEFAULT nextval(pg_get_serial_sequence('story_sentences_partitioned', 'story_sentences_partitioned_id'));
+
+-- Prevent the next INSERT from failing
+SELECT nextval(pg_get_serial_sequence('story_sentences_partitioned', 'story_sentences_partitioned_id'));
 
 
 -- Trigger that implements INSERT / UPDATE / DELETE behavior on "story_sentences" view
