@@ -64,7 +64,7 @@ Readonly my $STALE_FEED_CHECK_INTERVAL => 60 * 30;
 Readonly my $STALE_DOWNLOAD_INTERVAL => 60 * 5;
 
 # how many downloads to store in memory queue
-Readonly my $MAX_QUEUED_DOWNLOADS => 100_000;
+Readonly my $MAX_QUEUED_DOWNLOADS => 1_000_000;
 
 # how often to check the database for new pending downloads (seconds)
 Readonly my $DEFAULT_PENDING_CHECK_INTERVAL => 60 * 10;
@@ -234,51 +234,6 @@ SQL
     $dbs->query( "drop table feeds_to_queue" );
 
     DEBUG "end _add_stale_feeds";
-
-}
-
-#TODO combine _queue_download_list & _queue_download_list_per_site_limit
-sub _queue_download_list
-{
-    my ( $self, $downloads ) = @_;
-
-    # my $downloads_id_list = join( ',', map { $_->{ downloads_id } } @{ $downloads } );
-    # $self->engine->dbs->query( "update downloads set state = 'queued' where downloads_id in ($downloads_id_list)" );
-
-    map { $self->{ downloads }->_queue_download( $_ ) } @{ $downloads };
-
-    return;
-}
-
-# TODO combine _queue_download_list & _queue_download_list_per_site_limit
-sub _queue_download_list_with_per_site_limit
-{
-    my ( $self, $downloads, $site_limit ) = @_;
-
-    # temp fix to improve throughput for single media sources with large queues:
-    # hard coding site limit to about the max we can handle per $DEFAULT_PENDING_CHECK_INTERVAL
-    $site_limit = 25 * $DEFAULT_PENDING_CHECK_INTERVAL;
-
-    DEBUG "queue " . scalar( @{ $downloads } ) . " downloads (site limit $site_limit)";
-
-    my $queued_downloads = [];
-
-    for my $download ( @{ $downloads } )
-    {
-        my $site = MediaWords::Crawler::Downloads_Queue::get_download_site_from_hostname( $download->{ host } );
-
-        my $site_queued_download_count = $self->{ downloads }->_get_queued_downloads_count( $site, 1 );
-
-        next if ( $site_queued_download_count > $site_limit );
-
-        push( @{ $queued_downloads }, $download );
-
-        $self->{ downloads }->_queue_download( $download );
-    }
-
-    DEBUG "queued " . scalar( @{ $queued_downloads } ) . " downloads";
-
-    return;
 }
 
 # add all pending downloads to the $_downloads list
@@ -300,34 +255,30 @@ sub _add_pending_downloads
 
     my $db = $self->engine->dbs;
 
-    my $downloads = $db->query( <<END, $MAX_QUEUED_DOWNLOADS )->hashes;
-select
+    $db->query( <<END );
+create temporary table _ranked_downloads as
+    select
         d.*,
-        f.media_id _media_id,
-        coalesce( d.host , 'non-media' ) site
+        coalesce( d.host , 'non-media' ) site,
+        rank() over ( partition by d.host order by priority asc, d.downloads_id desc ) as site_rank
     from downloads d
-        join feeds f on ( d.feeds_id = f.feeds_id )
     where
         d.state = 'pending' and
         ( d.download_time < now() or d.download_time is null )
-    order by priority asc
+END
+
+    my $downloads = $db->query( <<END, $MAX_QUEUED_DOWNLOADS )->hashes;
+select rd.*, 
+        f.media_id _media_id
+    from _ranked_downloads rd
+        join feeds f using ( feeds_id )
+    order by priority asc, site_rank asc, downloads_id desc
     limit ?
 END
 
-    my $sites = [ List::MoreUtils::uniq( map { $_->{ site } } @{ $downloads } ) ];
+    $db->query( "drop table _ranked_downloads" );
 
-    my $site_downloads = {};
-    map { push( @{ $site_downloads->{ $_->{ site } } }, $_ ) } @{ $downloads };
-
-    if ( @{ $sites } )
-    {
-        my $site_download_queue_limit = int( $MAX_QUEUED_DOWNLOADS / scalar( @{ $sites } ) ) + 1;
-
-        for my $site ( @{ $sites } )
-        {
-            $self->_queue_download_list_with_per_site_limit( $site_downloads->{ $site }, $site_download_queue_limit );
-        }
-    }
+    map { $self->{ downloads }->_queue_download( $_ ) } @{ $downloads };
 }
 
 =head2 provide_downloads
@@ -393,7 +344,7 @@ sub provide_downloads
     {
 
         # we just slept for 1 so only bother calling time() if throttle is greater than 1
-        if ( ( $self->engine->throttle > 1 ) && ( $media_id->{ time } > ( time() - $self->engine->throttle ) ) )
+        if ( ( $self->engine->throttle >= 1 ) && ( $media_id->{ time } > ( time() - $self->engine->throttle ) ) )
         {
 
             TRACE "provide downloads: skipping media id $media_id->{media_id} because of throttling";
