@@ -6,8 +6,8 @@ pip_system_install_become: true
 # consult the compatibility table in https://www.rabbitmq.com/which-erlang.html
 # and check "apt-cache policy erlang-nox | rabbitmq-server" for available
 # versions)
-erlang_apt_package_version: "1:20.3-1"
-rabbitmq_apt_package_version: "3.7.3-1"
+erlang_apt_package_version: "1:21.0.6-1"
+rabbitmq_apt_package_version: "3.7.7-1"
 
 # APT packages that make up Erlang
 # (installing a specific version of just "erlang-nox" fails in some instances)
