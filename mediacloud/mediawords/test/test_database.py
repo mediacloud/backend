@@ -113,8 +113,6 @@ class TestDatabaseWithSchemaTestCase(TestCase):
         # mediacloud_test should already exist, so we have to connect to it to create the template database
         db = connect_to_db(label=cls.TEST_DB_LABEL, do_not_check_schema_version=True)
 
-        # If multiple Python test files get run in a sequence and one of them fails, the test apparently doesn't call
-        # tearDown() and the the connection to the test database persists (apparently)
         cls.__kill_connections_to_database(db=db, database_name=cls.template_db_name)
 
         db.query("DROP DATABASE IF EXISTS {}".format(cls.template_db_name))
@@ -134,8 +132,6 @@ class TestDatabaseWithSchemaTestCase(TestCase):
 
         db = connect_to_db(label=self.TEST_DB_LABEL, is_template=True)
 
-        # If multiple Python test files get run in a sequence and one of them fails, the test apparently doesn't call
-        # tearDown() and the the connection to the test database persists (apparently)
         self.__kill_connections_to_database(db=db, database_name=self.db_name)
 
         db.query("DROP DATABASE IF EXISTS {}".format(self.db_name))
