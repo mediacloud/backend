@@ -2,9 +2,11 @@ import re
 
 import pytest
 
+from mediawords.db.exceptions.handler import McPrimaryKeyColumnException
 from mediawords.db.exceptions.result import McDatabaseResultException
 from mediawords.db.handler import (
-    McUpdateByIDException, McCreateException, McRequireByIDException, McUniqueConstraintException)
+    McUpdateByIDException, McCreateException, McRequireByIDException, McUniqueConstraintException,
+)
 from mediawords.test.test_database import TestDatabaseTestCase
 from mediawords.util.config import (
     get_config as py_get_config,
@@ -22,7 +24,7 @@ class TestDatabaseHandler(TestDatabaseTestCase):
         super().setUp()
 
         log.info("Preparing test table 'kardashians'...")
-        self.db().query("DROP TABLE IF EXISTS kardashians")
+        self.db().query("DROP TABLE IF EXISTS kardashians CASCADE")
         self.db().query("""
             CREATE TABLE kardashians (
                 id SERIAL PRIMARY KEY NOT NULL,
@@ -46,7 +48,7 @@ class TestDatabaseHandler(TestDatabaseTestCase):
 
     def tearDown(self):
         log.info("Tearing down...")
-        self.db().query("DROP TABLE IF EXISTS kardashians")
+        self.db().query("DROP TABLE IF EXISTS kardashians CASCADE")
 
         # Test disconnect() too
         super().tearDown()
@@ -437,6 +439,65 @@ class TestDatabaseHandler(TestDatabaseTestCase):
         primary_key = self.db().primary_key_column('test.table_with_primary_key')
         assert primary_key == 'primary_key_column'
 
+        # Nonexistent table
+        with pytest.raises(McPrimaryKeyColumnException):
+            self.db().primary_key_column('nonexistent_table')
+
+        # No primary key
+        self.db().query("""
+            CREATE TABLE IF NOT EXISTS no_primary_key (
+                foo TEXT NOT NULL
+            )
+        """)
+        with pytest.raises(McPrimaryKeyColumnException):
+            self.db().primary_key_column('no_primary_key')
+
+    def test_primary_key_column_view(self):
+        """Test primary_key_column() against a view (in front of a partitioned table)."""
+
+        self.db().query("""
+            CREATE OR REPLACE VIEW primary_key_column_view_celebrities AS
+                SELECT id AS primary_key_column_view_celebrities_id, name, surname
+                FROM kardashians
+        """)
+        primary_key = self.db().primary_key_column('primary_key_column_view_celebrities')
+        assert primary_key == 'primary_key_column_view_celebrities_id'
+
+        self.db().query("""
+            CREATE OR REPLACE VIEW primary_key_column_view_celebrities_2 AS
+                SELECT id, name, surname
+                FROM kardashians
+        """)
+        primary_key = self.db().primary_key_column('primary_key_column_view_celebrities_2')
+        assert primary_key == 'id'
+
+        # Test caching
+        primary_key = self.db().primary_key_column('primary_key_column_view_celebrities')
+        assert primary_key == 'primary_key_column_view_celebrities_id'
+
+        # Different schema
+        self.db().query("CREATE SCHEMA IF NOT EXISTS test")
+        self.db().query("""
+            CREATE OR REPLACE VIEW test.primary_key_column_view_celebrities_2 AS
+                SELECT id, name, surname
+                FROM public.kardashians
+        """)
+        primary_key = self.db().primary_key_column('test.primary_key_column_view_celebrities_2')
+        assert primary_key == 'id'
+
+        # Nonexistent view
+        with pytest.raises(McPrimaryKeyColumnException):
+            self.db().primary_key_column('nonexistent_view')
+
+        # No primary key
+        self.db().query("""
+            CREATE OR REPLACE VIEW primary_key_column_view_celebrities_no_pk AS
+                SELECT name, surname
+                FROM kardashians
+        """)
+        with pytest.raises(McPrimaryKeyColumnException):
+            self.db().primary_key_column('primary_key_column_view_celebrities_no_pk')
+
     def test_find_by_id(self):
         row_hash = self.db().find_by_id(table='kardashians', object_id=4)
         assert row_hash['name'] == 'Kim'
@@ -498,6 +559,82 @@ class TestDatabaseHandler(TestDatabaseTestCase):
         # unique constraint
         with pytest.raises(McUniqueConstraintException):
             self.db().create('kardashians', insert_hash)
+
+    def test_create_updatable_view(self):
+        """Test create() against an updatable view that's in front of a partitioned table."""
+
+        self.db().query("""
+            CREATE OR REPLACE VIEW create_updatable_view_celebrities AS
+                SELECT *
+                FROM kardashians;
+
+            -- Make RETURNING work with partitioned tables
+            -- (https://wiki.postgresql.org/wiki/INSERT_RETURNING_vs_Partitioning)
+            ALTER VIEW create_updatable_view_celebrities
+                ALTER COLUMN id
+                SET DEFAULT nextval(pg_get_serial_sequence('kardashians', 'id')) + 1;
+
+            -- Trigger that implements INSERT / UPDATE / DELETE behavior on "create_updatable_view_celebrities" view
+            CREATE OR REPLACE FUNCTION create_updatable_view_celebrities_view_insert_update_delete()
+            RETURNS TRIGGER
+            AS $$
+            BEGIN
+
+                IF (TG_OP = 'INSERT') THEN
+                    INSERT INTO kardashians SELECT NEW.*;
+                    RETURN NEW;
+
+                ELSIF (TG_OP = 'UPDATE') THEN
+                    UPDATE kardashians
+                    SET name = NEW.name,
+                        surname = NEW.surname,
+                        dob = NEW.dob,
+                        married_to_kanye = NEW.married_to_kanye
+                    WHERE id = OLD.id;
+                    RETURN NEW;
+
+                ELSIF (TG_OP = 'DELETE') THEN
+                    DELETE FROM kardashians
+                        WHERE id = OLD.id;
+                    RETURN OLD;
+
+                ELSE
+                    RAISE EXCEPTION 'Unconfigured operation: %', TG_OP;
+
+                END IF;
+
+            END;
+            $$ LANGUAGE plpgsql;
+
+            CREATE TRIGGER create_updatable_view_celebrities_view_insert_update_delete_trigger
+                INSTEAD OF INSERT OR UPDATE OR DELETE ON create_updatable_view_celebrities
+                FOR EACH ROW EXECUTE PROCEDURE create_updatable_view_celebrities_view_insert_update_delete();
+        """)
+
+        insert_hash = {
+            'name': 'Lamar',
+            'surname': 'Odom',
+            'dob': '1979-11-06',
+            'married_to_kanye': False,
+        }
+        row = self.db().create(table='create_updatable_view_celebrities', insert_hash=insert_hash)
+        assert row['surname'] == 'Odom'
+        assert str(row['dob']) == '1979-11-06'
+
+        # Nonexistent column
+        with pytest.raises(McCreateException):
+            self.db().create('create_updatable_view_celebrities', {
+                'does_not': 'exist',
+
+                'name': 'Lamar2',
+                'surname': 'Odom2',
+                'dob': '1979-12-06',
+                'married_to_kanye': False,
+            })
+
+        # unique constraint
+        with pytest.raises(McUniqueConstraintException):
+            self.db().create('create_updatable_view_celebrities', insert_hash)
 
     def test_select(self):
         # One condition
