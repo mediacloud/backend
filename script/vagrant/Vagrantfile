@@ -20,7 +20,7 @@ mediacloud_aws_instance_name = ENV['AWS_INSTANCE_NAME']  || "Media Cloud Vagrant
 # "m3.medium" is just enough to install Media Cloud and run the full unit test
 # suite. However, you might want to run Media Cloud on a bigger instance with
 # more RAM if you are about to use Media Cloud in production environments.
-mediacloud_aws_instance_type = ENV['AWS_AMI']            || "m3.medium"
+mediacloud_aws_instance_type = ENV['AWS_INSTANCE_TYPE']  || "m3.medium"
 
 
 # OS detection (https://stackoverflow.com/questions/26811089/vagrant-how-to-have-host-platform-specific-provisioning-steps)
