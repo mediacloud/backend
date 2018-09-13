@@ -5,24 +5,22 @@
 # For requirements and instructions, please see: FIXME
 #
 
-VAGRANTFILE_API_VERSION = "2"
-
 #
 # AWS defaults
 #
 
 # AMI (see https://cloud-images.ubuntu.com/locator/ec2/)
 # ("us-east-1 xenial 16.04 LTS amd64 hvm:ebs-ssd")
-AWS_AMI           = ENV['AWS_AMI']            || "ami-04169656fea786776"
-AWS_REGION        = ENV['AWS_REGION']         || "us-east-1"
-AWS_INSTANCE_NAME = ENV['AWS_INSTANCE_NAME']  || "Media Cloud Vagrant test box"
+mediacloud_aws_ami           = ENV['AWS_AMI']            || "ami-04169656fea786776"
+mediacloud_aws_region        = ENV['AWS_REGION']         || "us-east-1"
+mediacloud_aws_instance_name = ENV['AWS_INSTANCE_NAME']  || "Media Cloud Vagrant test box"
 
 # "t1.tiny" is not enough to install and run Media Cloud because it doesn't
 # have enough RAM available.
 # "m3.medium" is just enough to install Media Cloud and run the full unit test
 # suite. However, you might want to run Media Cloud on a bigger instance with
 # more RAM if you are about to use Media Cloud in production environments.
-AWS_INSTANCE_TYPE = ENV['AWS_AMI']            || "m3.medium"
+mediacloud_aws_instance_type = ENV['AWS_AMI']            || "m3.medium"
 
 
 # OS detection (https://stackoverflow.com/questions/26811089/vagrant-how-to-have-host-platform-specific-provisioning-steps)
@@ -61,7 +59,7 @@ end
 #
 # Main configuration
 #
-Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+Vagrant.configure("2") do |config|
 
   # Hostname
   config.vm.hostname = "mediacloud.local"
@@ -157,10 +155,10 @@ See doc/README.vagrant.markdown for instructions on how to set those variables.
     aws.keypair_name = ENV["AWS_KEYPAIR_NAME"]
     override.ssh.private_key_path = ENV["AWS_SSH_PRIVKEY"]
 
-    aws.region = AWS_REGION
-    aws.ami    = AWS_AMI
-    aws.instance_type = AWS_INSTANCE_TYPE
-    aws.tags = { 'Name' => AWS_INSTANCE_NAME }
+    aws.region = mediacloud_aws_region
+    aws.ami    = mediacloud_aws_ami
+    aws.instance_type = mediacloud_aws_instance_type
+    aws.tags = { 'Name' => mediacloud_aws_instance_name }
 
     # Media Cloud barely fits into instance's default 8 GB
     aws.block_device_mapping = [{
