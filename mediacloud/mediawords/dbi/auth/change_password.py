@@ -62,7 +62,7 @@ def change_password(db: DatabaseHandler,
 
     if not do_not_inform_via_email:
 
-        message = AuthPasswordChangedMessage(to=email, full_name=user.full_name)
+        message = AuthPasswordChangedMessage(to=email, full_name=user.full_name())
         if not send_email(message):
             raise McAuthChangePasswordException(
                 'The password has been changed, but I was unable to send an email notifying you about the change.'
