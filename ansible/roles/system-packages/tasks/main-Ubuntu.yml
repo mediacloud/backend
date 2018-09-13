@@ -45,7 +45,7 @@
         - system-packages
 
     # rabbitmq.com APT repository is no longer supported
-    - name: Remove obsolete RabbitMQ repository
+    - name: Remove obsolete rabbitmq.com RabbitMQ repository
       apt_repository:
         repo: "deb http://www.rabbitmq.com/debian/ testing main"
         state: absent
@@ -55,6 +55,30 @@
       become_user: root
       tags:
         - system-packages
+
+    # RabbitMQ from packagecloud.io is not used too
+    - name: Remove obsolete packagecloud.io RabbitMQ repository
+      apt_repository:
+        repo: "{{ item }}"
+        state: absent
+        filename: rabbitmq_rabbitmq-server
+        update_cache: yes
+      with_items:
+        - "deb https://packagecloud.io/rabbitmq/rabbitmq-server/ubuntu/ xenial main"
+        - "deb-src https://packagecloud.io/rabbitmq/rabbitmq-server/ubuntu/ xenial main"
+      become: true
+      become_user: root
+      tags:
+        - system-packages
+
+    - name: Remove empty packagecloud.io RabbitMQ repository sources file
+      file:
+        path: /etc/apt/sources.list.d/rabbitmq_rabbitmq-server.list
+        state: absent
+      become: true
+      become_user: root
+      tags:
+        - system-packages        
 
     - name: Add RabbitMQ APT repository
       apt_repository:
