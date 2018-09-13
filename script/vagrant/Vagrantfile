@@ -2,7 +2,7 @@
 # Media Cloud Vagrant configuration
 # ---
 #
-# For requirements and instructions, please see: FIXME
+# For requirements and instructions, please see: doc/vagrant.markdown
 #
 
 #
@@ -131,7 +131,7 @@ Set the following environment variables before continuing:
     export AWS_SSH_PRIVKEY="~/development.pem" # The path to the private key for the named keypair
     export AWS_SECURITY_GROUP="default" # Security group to assign to this EC2 instance
 
-See doc/README.vagrant.markdown for instructions on how to set those variables.
+See doc/vagrant.markdown for instructions on how to set those variables.
         eos
 
         abort(err_message)
