@@ -29,6 +29,7 @@ from typing import Optional
 from mediawords.db import DatabaseHandler
 from mediawords.dbi.download_texts import create
 from mediawords.dbi.stories.extractor_arguments import PyExtractorArguments
+from mediawords.dbi.stories.process import process_extracted_story
 from mediawords.key_value_store import KeyValueStore
 from mediawords.key_value_store.amazon_s3 import AmazonS3Store
 from mediawords.key_value_store.cached_amazon_s3 import CachedAmazonS3Store
@@ -448,3 +449,73 @@ def extract_and_create_download_text(db: DatabaseHandler, download: dict, extrac
         download_text = create(db=db, download=download, extract=extraction_result)
 
     return download_text
+
+
+def process_download_for_extractor(db: DatabaseHandler,
+                                   download: dict,
+                                   extractor_args: PyExtractorArguments = PyExtractorArguments()) -> None:
+    """Extract the download and create the resulting download_text entry. If there are no remaining downloads to be
+    extracted for the story, call process_extracted_story() on the parent story."""
+
+    download = decode_object_from_bytes_if_needed(download)
+
+    stories_id = download['stories_id']
+
+    log.debug("extract: {} {} {}".format(download['downloads_id'], stories_id, download['url']))
+
+    extract_and_create_download_text(db=db, download=download, extractor_args=extractor_args)
+
+    has_remaining_download = db.query("""
+        SELECT downloads_id
+        FROM downloads
+        WHERE stories_id = %(stories_id)s
+          AND extracted = 'f'
+          AND type = 'content'
+    """, {'stories_id': stories_id}).hash()
+
+    # MC_REWRITE_TO_PYTHON: Perlism
+    if has_remaining_download is None:
+        has_remaining_download = {}
+
+    if len(has_remaining_download) > 0:
+        log.info("Pending more downloads...")
+
+    else:
+        story = db.find_by_id(table='stories', object_id=stories_id)
+        process_extracted_story(db=db, story=story, extractor_args=extractor_args)
+
+
+def _get_first_download(db: DatabaseHandler, story: dict) -> dict:
+    """Get the first download linking to this story."""
+
+    story = decode_object_from_bytes_if_needed(story)
+
+    first_download = db.query("""
+        SELECT *
+        FROM downloads
+        WHERE stories_id = %(stories_id)s
+        ORDER BY sequence ASC
+        LIMIT 1
+    """, {'stories_id': story['stories_id']}).hash()
+
+    # MC_REWRITE_TO_PYTHON: Perlism
+    if first_download is None:
+        first_download = {}
+
+    return first_download
+
+
+def get_content_for_first_download(db: DatabaseHandler, story: dict) -> Optional[str]:
+    """Call fetch_content on the result of _get_first_download(). Return None if the download's state is not null."""
+
+    story = decode_object_from_bytes_if_needed(story)
+
+    first_download = _get_first_download(db=db, story=story)
+
+    if first_download.get('state', None) != 'success':
+        log.debug("First download's state is not 'success' for story {}".format(story['stories_id']))
+        return None
+
+    content = fetch_content(db=db, download=first_download)
+
+    return content

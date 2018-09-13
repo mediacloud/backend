@@ -163,6 +163,8 @@ class TestDownloads(unittest.TestCase):
 class TestDownloadsDB(TestDatabaseWithSchemaTestCase):
     """Run tests that require database access."""
 
+    __TEST_CONTENT = '<script>ignore</script><p>foo</p>'
+
     def setUp(self) -> None:
         """Set config for tests."""
         super().setUp()
@@ -178,6 +180,8 @@ class TestDownloadsDB(TestDatabaseWithSchemaTestCase):
         self.test_download['state'] = 'success'
         self.test_download['stories_id'] = self.test_story['stories_id']
         self.db().update_by_id('downloads', self.test_download['downloads_id'], self.test_download)
+
+        mediawords.dbi.downloads.store_content(self.db(), self.test_download, self.__TEST_CONTENT)
 
         self.save_config = copy.deepcopy(self.config)
 
@@ -288,9 +292,6 @@ class TestDownloadsDB(TestDatabaseWithSchemaTestCase):
         assert medium == self.test_medium
 
     def test_extract_and_create_download_text(self):
-        html = '<script>ignore</script><p>foo</p>'
-        mediawords.dbi.downloads.store_content(self.db(), self.test_download, html)
-
         download_text = mediawords.dbi.downloads.extract_and_create_download_text(
             db=self.db(),
             download=self.test_download,
@@ -300,3 +301,37 @@ class TestDownloadsDB(TestDatabaseWithSchemaTestCase):
         assert download_text
         assert download_text['download_text'] == 'foo.'
         assert download_text['downloads_id'] == self.test_download['downloads_id']
+
+    def test_process_download_for_extractor(self):
+        # Make sure nothing's extracted yet and download text is not to be found
+        assert len(self.db().select(
+            table='story_sentences',
+            what_to_select='*',
+            condition_hash={'stories_id': self.test_download['stories_id']},
+        ).hashes()) == 0
+        assert len(self.db().select(
+            table='download_texts',
+            what_to_select='*',
+            condition_hash={'downloads_id': self.test_download['downloads_id']},
+        ).hashes()) == 0
+
+        mediawords.dbi.downloads.process_download_for_extractor(db=self.db(), download=self.test_download)
+
+        # We expect the download to be extracted and the story to be processed
+        assert len(self.db().select(
+            table='story_sentences',
+            what_to_select='*',
+            condition_hash={'stories_id': self.test_download['stories_id']},
+        ).hashes()) > 0
+        assert len(self.db().select(
+            table='download_texts',
+            what_to_select='*',
+            condition_hash={'downloads_id': self.test_download['downloads_id']},
+        ).hashes()) > 0
+
+    def test_get_content_for_first_download(self):
+        content = mediawords.dbi.downloads.get_content_for_first_download(
+            db=self.db(),
+            story=self.test_story,
+        )
+        assert content == self.__TEST_CONTENT
