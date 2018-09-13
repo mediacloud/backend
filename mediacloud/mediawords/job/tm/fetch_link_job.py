@@ -18,7 +18,7 @@ log = create_logger(__name__)
 
 
 # after requeueing this many times in a rows, start sleeping one second before each requeue
-REQUEUES_UNTIL_SLEEP = 20
+REQUEUES_UNTIL_SLEEP = 200
 
 
 class McFetchLinkJobException(McAbstractJobException):
