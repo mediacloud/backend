@@ -36,7 +36,6 @@ use List::Compare;
 use Readonly;
 
 use MediaWords::DB;
-use MediaWords::Solr::Query;
 
 # die if the transformed query is bigger than this
 Readonly my $MAX_QUERY_LENGTH => 2_000_000;
