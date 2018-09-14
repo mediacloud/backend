@@ -14,7 +14,6 @@ use List::Compare;
 
 use MediaWords::DBI::Stories;
 use MediaWords::Solr::Query;
-use MediaWords::Solr::TagCounts;
 use MediaWords::Util::HTML;
 use MediaWords::Util::JSON;
 
@@ -503,7 +502,7 @@ sub tag_count_GET
 {
     my ( $self, $c ) = @_;
 
-    my $tag_counts = MediaWords::Solr::TagCounts::query_tag_counts( $c->dbis, $c->req->params );
+    my $tag_counts = MediaWords::Solr::Query::query_tag_counts( $c->dbis, $c->req->params );
 
     $self->status_ok( $c, entity => $tag_counts );
 }

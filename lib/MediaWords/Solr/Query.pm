@@ -42,7 +42,9 @@ use Time::HiRes;
 
 Readonly my $QUERY_HTTP_TIMEOUT => 900;
 
-# numFound from last query() call, accessible get get_last_num_found
+Readonly my $DEFAULT_TAG_COUNT_LIMIT => 1000;
+
+# numFound from last query_solr() call, accessible get get_last_num_found
 my $_last_num_found;
 
 =head1 FUNCTIONS
@@ -388,7 +390,7 @@ sub _query_encoded_json($$;$)
     return $res->decoded_content;
 }
 
-=head2 query( $db, $params, $c )
+=head2 query_solr( $db, $params, $c )
 
 Same as _query_encoded_json() but returns a perl hash of the decoded json.
 
@@ -665,7 +667,7 @@ sub search_for_stories_ids ($$)
 
     $p->{ fl } = 'stories_id';
 
-    my $response = query( $db, $p );
+    my $response = query_solr( $db, $p );
 
     my $stories_ids = [ map { $_->{ stories_id } } @{ $response->{ response }->{ docs } } ];
 
@@ -727,7 +729,7 @@ sub search_for_processed_stories_ids($$$$$;$)
         $params->{ fq } = [ @{ $params->{ fq } }, "processed_stories_id:[$min_ps_id TO *]" ];
     }
 
-    my $response = query( $db, $params );
+    my $response = query_solr( $db, $params );
 
     my $ps_ids = [ map { $_->{ processed_stories_id } } @{ $response->{ response }->{ docs } } ];
 
@@ -747,7 +749,7 @@ sub get_num_found ($$)
     $params = { %{ $params } };
     $params->{ rows } = 0;
 
-    my $res = query( $db, $params );
+    my $res = query_solr( $db, $params );
 
     return $res->{ response }->{ numFound };
 }
@@ -773,7 +775,7 @@ sub search_for_media_ids ($$)
     $p->{ sort }          = 'random_1 asc';
     $p->{ rows }          = 200_000;
 
-    my $response = query( $db, $p );
+    my $response = query_solr( $db, $p );
 
     my $groups = $response->{ grouped }->{ media_id }->{ groups };
     my $media_ids = [ map { $_->{ groupValue } } @{ $groups } ];
@@ -802,6 +804,92 @@ sub search_for_media ($$)
     $db->commit;
 
     return $media;
+}
+
+# Run a query on solr and return a count of tags associate with tags matching the query.
+#
+# The $args parameter should be a hash with some of the following fields:
+#
+# * q - query to run on solr (required)
+# * limit - limit to this number of the most common tags (default = 100)
+# * tag_sets_id - only return tags belonging to the given tag set (default = none)
+#
+# Note that the limit argument is applied before the tag_sets_id, so the number of tags returned will likely
+# be less than the limit argument.
+#
+# Returns the list of tag hashes, with the 'count' field inserted into each tag hash:
+#
+#     my $tag_counts = MediaWords::Solr::Query::query_tag_counts( $db, { q => 'obama' } );
+#
+#     for my $tag_count ( @{ $tag_counts } )
+#     {
+#         print( "$tag_count->{ label }: $tag_count->{ count }\n" );
+#     }
+#
+sub query_tag_counts($$)
+{
+    my ( $db, $args ) = @_;
+
+    my $q           = $args->{ q }           || die( "must specifify 'q' in \$args" );
+    my $fq          = $args->{ fq }          || '';
+    my $limit       = $args->{ limit }       || $DEFAULT_TAG_COUNT_LIMIT;
+    my $tag_sets_id = $args->{ tag_sets_id } || 0;
+
+    $tag_sets_id = int( $tag_sets_id );
+
+    my $solr_params = {};
+    $solr_params->{ q }                = $q;
+    $solr_params->{ fq }               = $fq;
+    $solr_params->{ rows }             = 0;
+    $solr_params->{ facet }            = 'true';
+    $solr_params->{ 'facet.field' }    = 'tags_id_stories';
+    $solr_params->{ 'facet.mincount' } = 1;
+    $solr_params->{ 'facet.limit' }    = int( $limit );
+
+    my $response = query_solr( $db, $solr_params );
+
+    my $tags_id_counts_list = $response->{ facet_counts }->{ facet_fields }->{ tags_id_stories };
+
+    my $tags_id_counts = {};
+    for ( my $i = 0 ; $i < @{ $tags_id_counts_list } ; $i += 2 )
+    {
+        $tags_id_counts->{ $tags_id_counts_list->[ $i ] } = $tags_id_counts_list->[ $i + 1 ];
+    }
+
+    my $tags_ids_list = join( ',', keys( %{ $tags_id_counts } ), -1 );
+
+    my $tag_set_clause = '1=1';
+    if ( $tag_sets_id )
+    {
+        $tag_set_clause = "tag_sets_id = $tag_sets_id";
+    }
+
+    INFO( Dumper( $db->query( <<SQL )->flat ) );
+explain select t.*, ts.name tag_set_name, ts.label tag_set_label
+    from tags t
+        join tag_sets ts using ( tag_sets_id )
+    where
+        t.tags_id in ( $tags_ids_list ) and
+        $tag_set_clause
+SQL
+
+    my $tags = $db->query( <<SQL )->hashes;
+select t.*, ts.name tag_set_name, ts.label tag_set_label
+    from tags t
+        join tag_sets ts using ( tag_sets_id )
+    where
+        t.tags_id in ( $tags_ids_list ) and
+        $tag_set_clause
+SQL
+
+    my $tag_counts = [];
+    for my $tag ( @{ $tags } )
+    {
+        $tag->{ count } = $tags_id_counts->{ $tag->{ tags_id } };
+        push( @{ $tag_counts }, $tag );
+    }
+
+    $tag_counts = [ sort { $b->{ count } <=> $a->{ count } } @{ $tag_counts } ];
 }
 
 1;
