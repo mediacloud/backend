@@ -339,7 +339,7 @@ sub test_tags($)
     };
 
     my $r = MediaWords::Test::API::test_post( '/api/v2/tags/create', $create_input );
-    MediaWords::Test::API::validate_db_row( $db, 'tags', $r->{ tag }, $create_input, 'create tag' );
+    MediaWords::Test::DB::validate_db_row( $db, 'tags', $r->{ tag }, $create_input, 'create tag' );
 
     # error on update non-existent tag
     MediaWords::Test::API::test_put( '/api/v2/tags/update', { tags_id => -1 }, 1 );
@@ -357,7 +357,7 @@ sub test_tags($)
     };
 
     $r = MediaWords::Test::API::test_put( '/api/v2/tags/update', $update_input );
-    MediaWords::Test::API::validate_db_row( $db, 'tags', $r->{ tag }, $update_input, 'update tag' );
+    MediaWords::Test::DB::validate_db_row( $db, 'tags', $r->{ tag }, $update_input, 'update tag' );
 
     # simple tags/list test
     test_tags_list( $db );

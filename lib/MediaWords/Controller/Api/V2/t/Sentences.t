@@ -56,7 +56,7 @@ SQL
     WARN( MediaWords::Util::JSON::encode_json( $got_ss ) );
 
     my $fields = [ qw/stories_id media_id sentence language publish_date/ ];
-    MediaWords::Test::API::rows_match( $label, $got_ss, $expected_ss, 'story_sentences_id', $fields );
+    MediaWords::Test::DB::rows_match( $label, $got_ss, $expected_ss, 'story_sentences_id', $fields );
 }
 
 sub test_sentences($)

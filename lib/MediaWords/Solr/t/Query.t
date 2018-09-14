@@ -13,7 +13,6 @@ use Test::More;
 use Test::Deep;
 
 use MediaWords::Solr::Query;
-use MediaWords::Test::API;
 use MediaWords::Test::DB;
 use MediaWords::Test::DB::Create;
 use MediaWords::Test::Solr;
@@ -222,7 +221,7 @@ SQL
         );
 
         my $fields = [ qw/title publish_date url guid media_id language/ ];
-        MediaWords::Test::API::rows_match( 'search_for_stories', $got_stories, $expected_stories, 'stories_id', $fields );
+        MediaWords::Test::DB::rows_match( 'search_for_stories', $got_stories, $expected_stories, 'stories_id', $fields );
     }
 
     {
@@ -232,7 +231,7 @@ SQL
         my $got_media      = MediaWords::Solr::Query::search_for_media( $db, { q => "media_id:$media_id" } );
 
         my $fields = [ qw/url name/ ];
-        MediaWords::Test::API::rows_match( 'search_for_media', $got_media, $expected_media, 'media_id', $fields );
+        MediaWords::Test::DB::rows_match( 'search_for_media', $got_media, $expected_media, 'media_id', $fields );
     }
 
     {
@@ -250,7 +249,7 @@ SQL
         my $got_sentences      = MediaWords::Solr::Query::query_solr_for_matching_sentences( $db, { q => $query } );
 
         my $fields = [ qw/stories_id sentence_number sentence media_id publish_date language/ ];
-        MediaWords::Test::API::rows_match( "query_matching_sentences '$test_word'",
+        MediaWords::Test::DB::rows_match( "query_matching_sentences '$test_word'",
             $got_sentences, $expected_sentences, 'story_sentences_id', $fields );
     }
 
@@ -264,7 +263,7 @@ SQL
         my $got_sentences = MediaWords::Solr::Query::query_solr_for_matching_sentences( $db, { q => $query } );
 
         my $fields = [ qw/stories_id sentence_number sentence media_id publish_date language/ ];
-        MediaWords::Test::API::rows_match( 'query_matching_sentences empty regex',
+        MediaWords::Test::DB::rows_match( 'query_matching_sentences empty regex',
             $got_sentences, $story_sentences, 'story_sentences_id', $fields );
     }
 

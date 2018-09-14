@@ -35,14 +35,14 @@ sub test_feeds_list($)
     my $got_feeds = MediaWords::Test::API::test_get( '/api/v2/feeds/list', { media_id => $medium->{ media_id } } );
 
     my $fields = [ qw ( name url media_id feeds_id type active ) ];
-    MediaWords::Test::API::rows_match( $label, $got_feeds, $expected_feeds, "feeds_id", $fields );
+    MediaWords::Test::DB::rows_match( $label, $got_feeds, $expected_feeds, "feeds_id", $fields );
 
     $label = "feeds/single";
 
     my $expected_single = $expected_feeds->[ 0 ];
 
     my $got_feed = MediaWords::Test::API::test_get( '/api/v2/feeds/single/' . $expected_single->{ feeds_id }, {} );
-    MediaWords::Test::API::rows_match( $label, $got_feed, [ $expected_single ], 'feeds_id', $fields );
+    MediaWords::Test::DB::rows_match( $label, $got_feed, [ $expected_single ], 'feeds_id', $fields );
 }
 
 sub test_feeds($)
@@ -74,7 +74,7 @@ sub test_feeds($)
     };
 
     my $r = MediaWords::Test::API::test_post( '/api/v2/feeds/create', $create_input );
-    MediaWords::Test::API::validate_db_row( $db, 'feeds', $r->{ feed }, $create_input, 'create feed' );
+    MediaWords::Test::DB::validate_db_row( $db, 'feeds', $r->{ feed }, $create_input, 'create feed' );
 
     # error on update non-existent tag
     MediaWords::Test::API::test_put( '/api/v2/feeds/update', { feeds_id => -1 }, 1 );
@@ -89,7 +89,7 @@ sub test_feeds($)
     };
 
     $r = MediaWords::Test::API::test_put( '/api/v2/feeds/update', $update_input );
-    MediaWords::Test::API::validate_db_row( $db, 'feeds', $r->{ feed }, $update_input, 'update feed' );
+    MediaWords::Test::DB::validate_db_row( $db, 'feeds', $r->{ feed }, $update_input, 'update feed' );
 
     $r = MediaWords::Test::API::test_post( '/api/v2/feeds/scrape', { media_id => $medium->{ media_id } } );
     ok( $r->{ job_state }, "feeds/scrape job state returned" );

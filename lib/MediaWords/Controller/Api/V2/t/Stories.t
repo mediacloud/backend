@@ -113,7 +113,7 @@ SQL
     my $got_stories = MediaWords::Test::API::test_get( '/api/v2/stories/list', $params );
 
     my $fields = [ qw/title description publish_date language collect_date ap_syndicated media_id media_name media_url/ ];
-    MediaWords::Test::API::rows_match( $label, $got_stories, $stories, 'stories_id', $fields );
+    MediaWords::Test::DB::rows_match( $label, $got_stories, $stories, 'stories_id', $fields );
 
     my $got_stories_lookup = {};
     map { $got_stories_lookup->{ $_->{ stories_id } } = $_ } @{ $got_stories };
@@ -135,7 +135,7 @@ SQL
         my $content = MediaWords::DBI::Downloads::get_content_for_first_download( $db, $story );
 
         my $ss_fields = [ qw/is_dup language media_id publish_date sentence sentence_number story_sentences_id/ ];
-        MediaWords::Test::API::rows_match(
+        MediaWords::Test::DB::rows_match(
             "$label $sid sentences",
             $got_story->{ story_sentences },
             $sentences, 'story_sentences_id', $ss_fields
@@ -148,7 +148,7 @@ SQL
     my $story = $stories->[ 0 ];
 
     my $got_story = MediaWords::Test::API::test_get( '/api/v2/stories/single/' . $story->{ stories_id }, {} );
-    MediaWords::Test::API::rows_match( "stories/single", $got_story, [ $story ], 'stories_id',
+    MediaWords::Test::DB::rows_match( "stories/single", $got_story, [ $story ], 'stories_id',
         [ qw/stories_id title publish_date/ ] );
 }
 
@@ -237,7 +237,7 @@ SQL
       MediaWords::Test::API::test_get( '/api/v2/stories/list', { q => "stories_id:$story->{ stories_id }" } );
 
     my $fields = [ qw/title description publish_date language collect_date ap_syndicated media_id media_name media_url/ ];
-    MediaWords::Test::API::rows_match( $label, $got_stories, [ $story ], 'stories_id', $fields );
+    MediaWords::Test::DB::rows_match( $label, $got_stories, [ $story ], 'stories_id', $fields );
 }
 
 sub test_stories_count($)

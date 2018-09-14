@@ -442,7 +442,7 @@ sub test_topics_list($)
         my $r = MediaWords::Test::API::test_get( "/api/v2/topics/list", {} );
         my $expected_topics = $db->query( "select * from topics order by topics_id" )->hashes;
         ok( $r->{ topics }, "$label topics field present" );
-        MediaWords::Test::API::rows_match( $label, $r->{ topics }, $expected_topics, 'topics_id', $match_fields );
+        MediaWords::Test::DB::rows_match( $label, $r->{ topics }, $expected_topics, 'topics_id', $match_fields );
     }
 
     {
@@ -450,7 +450,7 @@ sub test_topics_list($)
         my $r = MediaWords::Test::API::test_get( "/api/v2/topics/list", { name => 'label private a' } );
         my $expected_topics = $db->query( "select * from topics where name = 'label private a'" )->hashes;
         ok( $r->{ topics }, "$label topics field present" );
-        MediaWords::Test::API::rows_match( $label, $r->{ topics }, $expected_topics, 'topics_id', $match_fields );
+        MediaWords::Test::DB::rows_match( $label, $r->{ topics }, $expected_topics, 'topics_id', $match_fields );
     }
 
     {
@@ -458,7 +458,7 @@ sub test_topics_list($)
         my $r = MediaWords::Test::API::test_get( "/api/v2/topics/list", { public => 1 } );
         my $expected_topics = $db->query( "select * from topics where name % 'public ?'" )->hashes;
         ok( $r->{ topics }, "$label topics field present" );
-        MediaWords::Test::API::rows_match( $label, $r->{ topics }, $expected_topics, 'topics_id', $match_fields );
+        MediaWords::Test::DB::rows_match( $label, $r->{ topics }, $expected_topics, 'topics_id', $match_fields );
     }
 
     {
@@ -481,7 +481,7 @@ SQL
         my $expected_topics = $db->query( "select * from topics where name % 'public ?'" )->hashes;
         ok( $r->{ topics }, "$label topics field present" );
 
-        MediaWords::Test::API::rows_match( $label, $r->{ topics }, $expected_topics, 'topics_id', $match_fields );
+        MediaWords::Test::DB::rows_match( $label, $r->{ topics }, $expected_topics, 'topics_id', $match_fields );
 
         $db->query( <<SQL, $auth_users_id, $MediaWords::DBI::Auth::Roles::List::ADMIN );
 insert into auth_users_roles_map ( auth_users_id, auth_roles_id )
@@ -571,7 +571,7 @@ sub test_stories_facebook($)
     ok( $got_ss, "$label counts field present" );
 
     my $fields = [ qw/facebook_share_count facebook_comment_count facebook_api_collect_date/ ];
-    MediaWords::Test::API::rows_match( $label, $got_ss, $expected_ss, 'stories_id', $fields );
+    MediaWords::Test::DB::rows_match( $label, $got_ss, $expected_ss, 'stories_id', $fields );
 }
 
 sub test_stories_count
