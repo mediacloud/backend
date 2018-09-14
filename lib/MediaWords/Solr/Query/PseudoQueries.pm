@@ -1,4 +1,4 @@
-package MediaWords::Solr::PseudoQueries;
+package MediaWords::Solr::Query::PseudoQueries;
 
 use strict;
 use warnings;

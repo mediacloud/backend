@@ -28,7 +28,7 @@ use URI::Escape;
 use MediaWords::DB;
 use MediaWords::DBI::Stories;
 use MediaWords::Languages::Language;
-use MediaWords::Solr::PseudoQueries;
+use MediaWords::Solr::Query::PseudoQueries;
 use MediaWords::Solr::Query::Parser;
 use MediaWords::Util::Config;
 use MediaWords::Util::JSON;
@@ -289,7 +289,7 @@ sub _query_encoded_json($$;$)
 
     _uppercase_boolean_operators( $params->{ fq } );
 
-    $params->{ q } = MediaWords::Solr::PseudoQueries::transform_query( $params->{ q } );
+    $params->{ q } = MediaWords::Solr::Query::PseudoQueries::transform_query( $params->{ q } );
     $params->{ q } = _insert_collection_media_ids( $db, $params->{ q } );
 
     $params->{ fq } = [ map { _insert_collection_media_ids( $db, $_ ) } @{ $params->{ fq } } ];
@@ -582,8 +582,8 @@ sub _get_stories_ids_from_stories_only_params
 {
     my ( $params ) = @_;
 
-    $params->{ q }  = MediaWords::Solr::PseudoQueries::transform_query( $params->{ q } );
-    $params->{ fq } = MediaWords::Solr::PseudoQueries::transform_query( $params->{ fq } );
+    $params->{ q }  = MediaWords::Solr::Query::PseudoQueries::transform_query( $params->{ q } );
+    $params->{ fq } = MediaWords::Solr::Query::PseudoQueries::transform_query( $params->{ fq } );
 
     my $q     = $params->{ q };
     my $fqs   = $params->{ fq };
