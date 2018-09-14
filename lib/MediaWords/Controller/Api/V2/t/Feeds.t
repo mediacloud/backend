@@ -32,17 +32,17 @@ sub test_feeds_list($)
 
     my $expected_feeds = $db->query( "select * from feeds where media_id = ?", $medium->{ media_id } )->hashes;
 
-    my $got_feeds = test_get( '/api/v2/feeds/list', { media_id => $medium->{ media_id } } );
+    my $got_feeds = MediaWords::Test::API::test_get( '/api/v2/feeds/list', { media_id => $medium->{ media_id } } );
 
     my $fields = [ qw ( name url media_id feeds_id type active ) ];
-    rows_match( $label, $got_feeds, $expected_feeds, "feeds_id", $fields );
+    MediaWords::Test::API::rows_match( $label, $got_feeds, $expected_feeds, "feeds_id", $fields );
 
     $label = "feeds/single";
 
     my $expected_single = $expected_feeds->[ 0 ];
 
-    my $got_feed = test_get( '/api/v2/feeds/single/' . $expected_single->{ feeds_id }, {} );
-    rows_match( $label, $got_feed, [ $expected_single ], 'feeds_id', $fields );
+    my $got_feed = MediaWords::Test::API::test_get( '/api/v2/feeds/single/' . $expected_single->{ feeds_id }, {} );
+    MediaWords::Test::API::rows_match( $label, $got_feed, [ $expected_single ], 'feeds_id', $fields );
 }
 
 sub test_feeds($)
@@ -59,8 +59,8 @@ sub test_feeds($)
     MediaWords::Test::API::setup_test_api_key( $db );
 
     # test for required fields errors
-    test_post( '/api/v2/feeds/create', {}, 1 );
-    test_put( '/api/v2/feeds/update', { name => 'foo' }, 1 );
+    MediaWords::Test::API::test_post( '/api/v2/feeds/create', {}, 1 );
+    MediaWords::Test::API::test_put( '/api/v2/feeds/update', { name => 'foo' }, 1 );
 
     my $medium = $db->query( "select * from media limit 1" )->hash;
 
@@ -73,11 +73,11 @@ sub test_feeds($)
         active   => 't',
     };
 
-    my $r = test_post( '/api/v2/feeds/create', $create_input );
-    validate_db_row( $db, 'feeds', $r->{ feed }, $create_input, 'create feed' );
+    my $r = MediaWords::Test::API::test_post( '/api/v2/feeds/create', $create_input );
+    MediaWords::Test::API::validate_db_row( $db, 'feeds', $r->{ feed }, $create_input, 'create feed' );
 
     # error on update non-existent tag
-    test_put( '/api/v2/feeds/update', { feeds_id => -1 }, 1 );
+    MediaWords::Test::API::test_put( '/api/v2/feeds/update', { feeds_id => -1 }, 1 );
 
     # simple update
     my $update_input = {
@@ -88,18 +88,18 @@ sub test_feeds($)
         active   => 'f',
     };
 
-    $r = test_put( '/api/v2/feeds/update', $update_input );
-    validate_db_row( $db, 'feeds', $r->{ feed }, $update_input, 'update feed' );
+    $r = MediaWords::Test::API::test_put( '/api/v2/feeds/update', $update_input );
+    MediaWords::Test::API::validate_db_row( $db, 'feeds', $r->{ feed }, $update_input, 'update feed' );
 
-    $r = test_post( '/api/v2/feeds/scrape', { media_id => $medium->{ media_id } } );
+    $r = MediaWords::Test::API::test_post( '/api/v2/feeds/scrape', { media_id => $medium->{ media_id } } );
     ok( $r->{ job_state }, "feeds/scrape job state returned" );
     is( $r->{ job_state }->{ media_id }, $medium->{ media_id }, "feeds/scrape media_id" );
     ok( $r->{ job_state }->{ state } ne 'error', "feeds/scrape job state is not an error" );
 
-    $r = test_get( '/api/v2/feeds/scrape_status', { media_id => $medium->{ media_id } } );
+    $r = MediaWords::Test::API::test_get( '/api/v2/feeds/scrape_status', { media_id => $medium->{ media_id } } );
     is( $r->{ job_states }->[ 0 ]->{ media_id }, $medium->{ media_id }, "feeds/scrape_status media_id" );
 
-    $r = test_get( '/api/v2/feeds/scrape_status', {} );
+    $r = MediaWords::Test::API::test_get( '/api/v2/feeds/scrape_status', {} );
     is( $r->{ job_states }->[ 0 ]->{ media_id }, $medium->{ media_id }, "feeds/scrape_status all media_id" );
 
     test_feeds_list( $db );

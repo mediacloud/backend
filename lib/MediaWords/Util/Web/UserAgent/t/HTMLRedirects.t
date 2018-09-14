@@ -13,7 +13,7 @@ use MediaWords::Test::URLs;
 
 sub test_target_request_from_meta_refresh_url()
 {
-    is_urls(
+    MediaWords::Test::URLs::is_urls(
         MediaWords::Util::Web::UserAgent::HTMLRedirects::target_request_from_meta_refresh_url(
             <<EOF,
         <HTML>
@@ -36,7 +36,7 @@ EOF
 
 sub test_target_request_from_archive_is_url()
 {
-    is_urls(
+    MediaWords::Test::URLs::is_urls(
         MediaWords::Util::Web::UserAgent::HTMLRedirects::target_request_from_archive_is_url(
             '<link rel="canonical" href="https://archive.is/20170201/https://bar.com/foo/bar">',    #
             'https://archive.is/20170201/https://bar.com/foo/bar'                                   #
@@ -57,7 +57,7 @@ sub test_target_request_from_archive_is_url()
 
 sub test_target_request_from_archive_org_url()
 {
-    is_urls(
+    MediaWords::Test::URLs::is_urls(
         MediaWords::Util::Web::UserAgent::HTMLRedirects::target_request_from_archive_org_url(
             undef,                                                                                     #
             'https://web.archive.org/web/20150204024130/http://www.john-daly.com/hockey/hockey.htm'    #
@@ -78,7 +78,7 @@ sub test_target_request_from_archive_org_url()
 
 sub test_target_request_from_linkis_com_url()
 {
-    is_urls(
+    MediaWords::Test::URLs::is_urls(
         MediaWords::Util::Web::UserAgent::HTMLRedirects::target_request_from_linkis_com_url(
             '<meta property="og:url" content="http://og.url/test"',                                    #
             'https://linkis.com/foo.com/ASDF'                                                          #
@@ -87,7 +87,7 @@ sub test_target_request_from_linkis_com_url()
         'linkis.com <meta>'                                                                            #
     );
 
-    is_urls(
+    MediaWords::Test::URLs::is_urls(
         MediaWords::Util::Web::UserAgent::HTMLRedirects::target_request_from_linkis_com_url(
             '<a class="js-youtube-ln-event" href="http://you.tube/test"',                              #
             'https://linkis.com/foo.com/ASDF'                                                          #
@@ -96,7 +96,7 @@ sub test_target_request_from_linkis_com_url()
         'linkis.com YouTube'                                                                           #
     );
 
-    is_urls(
+    MediaWords::Test::URLs::is_urls(
         MediaWords::Util::Web::UserAgent::HTMLRedirects::target_request_from_linkis_com_url(
             '<iframe id="source_site" src="http://source.site/test"',                                  #
             'https://linkis.com/foo.com/ASDF'                                                          #
@@ -105,7 +105,7 @@ sub test_target_request_from_linkis_com_url()
         'linkis.com <iframe>'                                                                          #
     );
 
-    is_urls(
+    MediaWords::Test::URLs::is_urls(
         MediaWords::Util::Web::UserAgent::HTMLRedirects::target_request_from_linkis_com_url(
             '"longUrl":"http:\/\/java.script\/test"',                                                  #
             'https://linkis.com/foo.com/ASDF'                                                          #
@@ -155,7 +155,7 @@ EOF
     my $test_target_request =
       MediaWords::Util::Web::UserAgent::HTMLRedirects::target_request_from_alarabiya_url( $test_content, $test_url, );
 
-    is_urls( $test_target_request->url(), $test_url );
+    MediaWords::Test::URLs::is_urls( $test_target_request->url(), $test_url );
     is( $test_target_request->header( 'Cookie' ), "$test_cookie_name=$test_cookie_value" );
 
     # Non-Alarabiya URL

@@ -60,7 +60,7 @@ sub main
 
     ok( $hs, 'hashserver object returned' );
 
-    is_urls( $hs->page_url( '/foo' ), "http://localhost:$_port/foo" );
+    MediaWords::Test::URLs::is_urls( $hs->page_url( '/foo' ), "http://localhost:$_port/foo" );
 
     $hs->start();
 

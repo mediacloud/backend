@@ -25,10 +25,6 @@ use MediaWords::Util::Tags;
 # remember that we already swapped the solr live collection
 my $_swapped_live_collection;
 
-require Exporter;
-our @ISA    = qw(Exporter);
-our @EXPORT = qw(test_story_query);
-
 =head2 test_story_query( $db, $q, $expected_story, $label )
 
 Run the given query against solr, adding an 'and stories_id:$expected_story->{ stories_id }' to make it return at

@@ -179,7 +179,8 @@ sub test_media_no_feeds($)
         is( scalar( @{ $feeds } ), 1, 'Only a single feed must have been added' );
         my $webpage_feed = $feeds->[ 0 ];
         is( $webpage_feed->{ type }, 'web_page', "Single feed's type must be 'web_page'" );
-        is_urls( $webpage_feed->{ url }, $TEST_HTTP_SERVER_URL, "Single feed's URL must be test server" );
+        MediaWords::Test::URLs::is_urls( $webpage_feed->{ url },
+            $TEST_HTTP_SERVER_URL, "Single feed's URL must be test server" );
 
         my $feeds_after_rescraping =
           $db->query( 'SELECT * FROM feeds_after_rescraping WHERE media_id = ?', $media_id )->hashes;
@@ -225,7 +226,7 @@ sub test_media_single_feed($)
         is( scalar( @{ $feeds } ), 1, 'Only a single feed must have been added' );
         my $rss_feed = $feeds->[ 0 ];
         is( $rss_feed->{ type }, 'syndicated', "Single feed's type must be 'syndicated'" );
-        is_urls( $rss_feed->{ url }, $PAGES_SINGLE_FEED_URL, "Single feed's URL must match" );
+        MediaWords::Test::URLs::is_urls( $rss_feed->{ url }, $PAGES_SINGLE_FEED_URL, "Single feed's URL must match" );
 
         my $feeds_after_rescraping =
           $db->query( 'SELECT * FROM feeds_after_rescraping WHERE media_id = ?', $media_id )->hashes;
@@ -270,7 +271,8 @@ sub test_media_no_feeds_then_single_feed($)
     is( scalar( @{ $feeds } ), 1, 'Only a single feed must have been added' );
     my $webpage_feed = $feeds->[ 0 ];
     is( $webpage_feed->{ type }, 'web_page', "Single feed's type must be 'web_page'" );
-    is_urls( $webpage_feed->{ url }, $TEST_HTTP_SERVER_URL, "Single feed's URL must be test server" );
+    MediaWords::Test::URLs::is_urls( $webpage_feed->{ url }, $TEST_HTTP_SERVER_URL,
+        "Single feed's URL must be test server" );
 
     my $feeds_after_rescraping = $db->query( 'SELECT * FROM feeds_after_rescraping WHERE media_id = ?', $media_id )->hashes;
 
@@ -296,12 +298,12 @@ sub test_media_no_feeds_then_single_feed($)
         2, 'Two feeds must be present (one for "web_page" feed created previously, another one just added)' );
     $webpage_feed = $feeds->[ 0 ];
     is( $webpage_feed->{ type }, 'web_page', "First feed's type must be 'web_page'" );
-    is_urls( $webpage_feed->{ url }, $TEST_HTTP_SERVER_URL, "First feed's URL must be test server" );
+    MediaWords::Test::URLs::is_urls( $webpage_feed->{ url }, $TEST_HTTP_SERVER_URL, "First feed's URL must be test server" );
     ok( !$webpage_feed->{ active }, "First feed should be deactivated (because we now have RSS feeds)" );
 
     my $rss_feed = $feeds->[ 1 ];
     is( $rss_feed->{ type }, 'syndicated', "Second feed's type must be 'syndicated'" );
-    is_urls( $rss_feed->{ url }, $PAGES_SINGLE_FEED_URL, "Second feed's URL must match" );
+    MediaWords::Test::URLs::is_urls( $rss_feed->{ url }, $PAGES_SINGLE_FEED_URL, "Second feed's URL must match" );
 
     $feeds_after_rescraping = $db->query( 'SELECT * FROM feeds_after_rescraping WHERE media_id = ?', $media_id )->hashes;
 
@@ -344,7 +346,7 @@ sub test_media_single_feed_then_no_feeds_then_single_feed_then_no_feeds_again($)
     is( scalar( @{ $feeds } ), 1, 'Only a single feed must have been added' );
     my $rss_feed = $feeds->[ 0 ];
     is( $rss_feed->{ type }, 'syndicated', "Single feed's type must be 'syndicated'" );
-    is_urls( $rss_feed->{ url }, $PAGES_SINGLE_FEED_URL, "Single feed's URL must match" );
+    MediaWords::Test::URLs::is_urls( $rss_feed->{ url }, $PAGES_SINGLE_FEED_URL, "Single feed's URL must match" );
 
     my $feeds_after_rescraping = $db->query( 'SELECT * FROM feeds_after_rescraping WHERE media_id = ?', $media_id )->hashes;
 
@@ -372,11 +374,12 @@ sub test_media_single_feed_then_no_feeds_then_single_feed_then_no_feeds_again($)
 
     $rss_feed = $feeds->[ 0 ];
     is( $rss_feed->{ type }, 'syndicated', "First feed's type must be 'syndicated'" );
-    is_urls( $rss_feed->{ url }, $PAGES_SINGLE_FEED_URL, "First feed's URL must match" );
+    MediaWords::Test::URLs::is_urls( $rss_feed->{ url }, $PAGES_SINGLE_FEED_URL, "First feed's URL must match" );
 
     my $webpage_feed = $feeds->[ 1 ];
     is( $webpage_feed->{ type }, 'web_page', "Second feed's type must be 'web_page'" );
-    is_urls( $webpage_feed->{ url }, $TEST_HTTP_SERVER_URL, "Second feed's URL must be test server" );
+    MediaWords::Test::URLs::is_urls( $webpage_feed->{ url }, $TEST_HTTP_SERVER_URL,
+        "Second feed's URL must be test server" );
     ok( $webpage_feed->{ active },
         "Second feed should be active (because no syndicated feeds are available at the moment)" );
 
@@ -405,11 +408,12 @@ sub test_media_single_feed_then_no_feeds_then_single_feed_then_no_feeds_again($)
 
     $rss_feed = $feeds->[ 0 ];
     is( $rss_feed->{ type }, 'syndicated', "First feed's type must be 'syndicated'" );
-    is_urls( $rss_feed->{ url }, $PAGES_SINGLE_FEED_URL, "First feed's URL must match" );
+    MediaWords::Test::URLs::is_urls( $rss_feed->{ url }, $PAGES_SINGLE_FEED_URL, "First feed's URL must match" );
 
     $webpage_feed = $feeds->[ 1 ];
     is( $webpage_feed->{ type }, 'web_page', "Second feed's type must be 'web_page'" );
-    is_urls( $webpage_feed->{ url }, $TEST_HTTP_SERVER_URL, "Second feed's URL must be test server" );
+    MediaWords::Test::URLs::is_urls( $webpage_feed->{ url }, $TEST_HTTP_SERVER_URL,
+        "Second feed's URL must be test server" );
     ok( !$webpage_feed->{ active }, "Second feed should be deactivated (because now RSS feeds are alive again)" );
 
     $feeds_after_rescraping = $db->query( 'SELECT * FROM feeds_after_rescraping WHERE media_id = ?', $media_id )->hashes;

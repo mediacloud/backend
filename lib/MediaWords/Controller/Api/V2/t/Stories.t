@@ -42,7 +42,7 @@ sub test_stories_cliff($)
     # end point does not exist instead of triggering a fatal error
     my $stories_id = -1;
 
-    my $r = test_get( '/api/v2/stories/cliff', { stories_id => $stories_id } );
+    my $r = MediaWords::Test::API::test_get( '/api/v2/stories/cliff', { stories_id => $stories_id } );
 
     is( scalar( @{ $r } ),         1,           "$label num stories returned" );
     is( $r->[ 0 ]->{ stories_id }, $stories_id, "$label stories_id" );
@@ -56,10 +56,10 @@ sub test_stories_is_syndicated_ap($)
 
     my $label = "stories/is_syndicated_ap";
 
-    my $r = test_get( '/api/v2/stories_public/is_syndicated_ap', { content => 'foo' } );
+    my $r = MediaWords::Test::API::test_get( '/api/v2/stories_public/is_syndicated_ap', { content => 'foo' } );
     is( $r->{ is_syndicated }, 0, "$label: not syndicated" );
 
-    $r = test_get( '/api/v2/stories_public/is_syndicated_ap', { content => '(ap)' } );
+    $r = MediaWords::Test::API::test_get( '/api/v2/stories_public/is_syndicated_ap', { content => '(ap)' } );
     is( $r->{ is_syndicated }, 1, "$label: syndicated" );
 
 }
@@ -76,7 +76,7 @@ sub test_stories_nytlabels($)
     # end point does not exist instead of triggering a fatal error
     my $stories_id = -1;
 
-    my $r = test_get( '/api/v2/stories/nytlabels', { stories_id => $stories_id } );
+    my $r = MediaWords::Test::API::test_get( '/api/v2/stories/nytlabels', { stories_id => $stories_id } );
 
     is( scalar( @{ $r } ),         1,           "$label num stories returned" );
     is( $r->[ 0 ]->{ stories_id }, $stories_id, "$label stories_id" );
@@ -110,10 +110,10 @@ SQL
         text             => 1,
     };
 
-    my $got_stories = test_get( '/api/v2/stories/list', $params );
+    my $got_stories = MediaWords::Test::API::test_get( '/api/v2/stories/list', $params );
 
     my $fields = [ qw/title description publish_date language collect_date ap_syndicated media_id media_name media_url/ ];
-    rows_match( $label, $got_stories, $stories, 'stories_id', $fields );
+    MediaWords::Test::API::rows_match( $label, $got_stories, $stories, 'stories_id', $fields );
 
     my $got_stories_lookup = {};
     map { $got_stories_lookup->{ $_->{ stories_id } } = $_ } @{ $got_stories };
@@ -135,7 +135,11 @@ SQL
         my $content = MediaWords::DBI::Downloads::get_content_for_first_download( $db, $story );
 
         my $ss_fields = [ qw/is_dup language media_id publish_date sentence sentence_number story_sentences_id/ ];
-        rows_match( "$label $sid sentences", $got_story->{ story_sentences }, $sentences, 'story_sentences_id', $ss_fields );
+        MediaWords::Test::API::rows_match(
+            "$label $sid sentences",
+            $got_story->{ story_sentences },
+            $sentences, 'story_sentences_id', $ss_fields
+        );
 
         is( $got_story->{ raw_first_download_file }, $content, "$label $sid download" );
         is( $got_story->{ story_text }, $download_text->{ download_text }, "$label $sid download_text" );
@@ -143,8 +147,9 @@ SQL
 
     my $story = $stories->[ 0 ];
 
-    my $got_story = test_get( '/api/v2/stories/single/' . $story->{ stories_id }, {} );
-    rows_match( "stories/single", $got_story, [ $story ], 'stories_id', [ qw/stories_id title publish_date/ ] );
+    my $got_story = MediaWords::Test::API::test_get( '/api/v2/stories/single/' . $story->{ stories_id }, {} );
+    MediaWords::Test::API::rows_match( "stories/single", $got_story, [ $story ], 'stories_id',
+        [ qw/stories_id title publish_date/ ] );
 }
 
 # various tests to validate stories_public/list
@@ -152,7 +157,7 @@ sub test_stories_public_list($$)
 {
     my ( $db, $test_media ) = @_;
 
-    my $stories = test_get( '/api/v2/stories_public/list', { q => 'title:story*', rows => 100000 } );
+    my $stories = MediaWords::Test::API::test_get( '/api/v2/stories_public/list', { q => 'title:story*', rows => 100000 } );
 
     my $expected_num_stories = $NUM_MEDIA * $NUM_FEEDS_PER_MEDIUM * $NUM_STORIES_PER_FEED;
     my $got_num_stories      = scalar( @{ $stories } );
@@ -171,12 +176,14 @@ sub test_stories_public_list($$)
     }
 
     my $search_result =
-      test_get( '/api/v2/stories_public/list', { q => 'stories_id:' . $stories->[ 0 ]->{ stories_id } } );
+      MediaWords::Test::API::test_get( '/api/v2/stories_public/list',
+        { q => 'stories_id:' . $stories->[ 0 ]->{ stories_id } } );
     is( scalar( @{ $search_result } ), 1, "stories_public search: count" );
     is( $search_result->[ 0 ]->{ stories_id }, $stories->[ 0 ]->{ stories_id }, "stories_public search: stories_id match" );
     _test_story_fields( $db, $search_result->[ 0 ], "story_public search" );
 
-    my $stories_single = test_get( '/api/v2/stories_public/single/' . $stories->[ 1 ]->{ stories_id } );
+    my $stories_single =
+      MediaWords::Test::API::test_get( '/api/v2/stories_public/single/' . $stories->[ 1 ]->{ stories_id } );
     is( scalar( @{ $stories_single } ), 1, "stories_public/single: count" );
     is( $stories_single->[ 0 ]->{ stories_id }, $stories->[ 1 ]->{ stories_id }, "stories_public/single: stories_id match" );
     _test_story_fields( $db, $search_result->[ 0 ], "stories_public/single" );
@@ -184,12 +191,13 @@ sub test_stories_public_list($$)
     # test feeds_id= param
 
     # expect error when including q= and feeds_id=
-    test_get( '/api/v2/stories_public/list', { q => 'foo', feeds_id => 1 }, 1 );
+    MediaWords::Test::API::test_get( '/api/v2/stories_public/list', { q => 'foo', feeds_id => 1 }, 1 );
 
     my $feed =
       $db->query( "select * from feeds where feeds_id in ( select feeds_id from feeds_stories_map ) limit 1" )->hash;
     my $feed_stories =
-      test_get( '/api/v2/stories_public/list', { rows => 100000, feeds_id => $feed->{ feeds_id }, show_feeds => 1 } );
+      MediaWords::Test::API::test_get( '/api/v2/stories_public/list',
+        { rows => 100000, feeds_id => $feed->{ feeds_id }, show_feeds => 1 } );
     my $expected_feed_stories = $db->query( <<SQL, $feed->{ feeds_id } )->hashes;
 select s.* from stories s join feeds_stories_map fsm using ( stories_id ) where feeds_id = ?
 SQL
@@ -225,10 +233,11 @@ select s.*,
     limit 1
 SQL
 
-    my $got_stories = test_get( '/api/v2/stories/list', { q => "stories_id:$story->{ stories_id }" } );
+    my $got_stories =
+      MediaWords::Test::API::test_get( '/api/v2/stories/list', { q => "stories_id:$story->{ stories_id }" } );
 
     my $fields = [ qw/title description publish_date language collect_date ap_syndicated media_id media_name media_url/ ];
-    rows_match( $label, $got_stories, [ $story ], 'stories_id', $fields );
+    MediaWords::Test::API::rows_match( $label, $got_stories, [ $story ], 'stories_id', $fields );
 }
 
 sub test_stories_count($)
@@ -239,11 +248,11 @@ sub test_stories_count($)
 
     my $stories_ids_list = join( ' ', map { $_->{ stories_id } } @{ $stories } );
 
-    my $r = test_get( '/api/v2/stories/count', { q => "stories_id:($stories_ids_list)" } );
+    my $r = MediaWords::Test::API::test_get( '/api/v2/stories/count', { q => "stories_id:($stories_ids_list)" } );
 
     is( $r->{ count }, scalar( @{ $stories } ), "stories/count count" );
 
-    $r = test_get( '/api/v2/stories_public/count', { q => "stories_id:($stories_ids_list)" } );
+    $r = MediaWords::Test::API::test_get( '/api/v2/stories_public/count', { q => "stories_id:($stories_ids_list)" } );
 
     is( $r->{ count }, scalar( @{ $stories } ), "stories/count count" );
 }
@@ -270,7 +279,7 @@ SQL
         split => 1,
     };
 
-    my $r = test_get( '/api/v2/stories/count', $params );
+    my $r = MediaWords::Test::API::test_get( '/api/v2/stories/count', $params );
 
     my $got_date_counts = $r->{ date_counts };
     for my $got_date_count ( @{ $got_date_counts } )
@@ -302,11 +311,12 @@ sub test_stories_word_matrix($)
     # this functionality is already tested in test_get_story_word_matrix(), so we're just makingn sure no errors
     # are generated and the return format is correct
 
-    my $r = test_get( '/api/v2/stories/word_matrix', { q => "stories_id:( $stories_ids_list )" } );
+    my $r = MediaWords::Test::API::test_get( '/api/v2/stories/word_matrix', { q => "stories_id:( $stories_ids_list )" } );
     ok( $r->{ word_matrix }, "$label word matrix present" );
     ok( $r->{ word_list },   "$label word list present" );
 
-    $r = test_get( '/api/v2/stories_public/word_matrix', { q => "stories_id:( $stories_ids_list )" } );
+    $r =
+      MediaWords::Test::API::test_get( '/api/v2/stories_public/word_matrix', { q => "stories_id:( $stories_ids_list )" } );
     ok( $r->{ word_matrix }, "$label word matrix present" );
     ok( $r->{ word_list },   "$label word list present" );
 }
@@ -316,10 +326,10 @@ sub test_stories_update($$)
     my ( $db ) = @_;
 
     # test that request with no stories_id returns an error
-    test_put( '/api/v2/stories/update', {}, 1 );
+    MediaWords::Test::API::test_put( '/api/v2/stories/update', {}, 1 );
 
     # test that request with list returns an error
-    test_put( '/api/v2/stories/update', { stories_id => 1 }, 1 );
+    MediaWords::Test::API::test_put( '/api/v2/stories/update', { stories_id => 1 }, 1 );
 
     my $media = MediaWords::Test::DB::Create::create_test_story_stack( $db,
         { 'update_m1' => { 'update_f1' => [ 'update_s1', 'update_s2', 'update_s3' ] } } );
@@ -339,7 +349,7 @@ sub test_stories_update($$)
     $story_data->{ confirm_date } = 1;
     $story_data->{ undateable }   = 1;
 
-    my $r = test_put( '/api/v2/stories/update', $story_data );
+    my $r = MediaWords::Test::API::test_put( '/api/v2/stories/update', $story_data );
     is( $r->{ success }, 1, "stories/update all success" );
 
     my $updated_story = $db->require_by_id( 'stories', $story->{ stories_id } );
@@ -373,7 +383,7 @@ SQL
 
     my $tagged_stories_ids = [ map { $_->{ stories_id } } @{ $tagged_stories } ];
 
-    my $r = test_get( '/api/v2/stories/field_count',
+    my $r = MediaWords::Test::API::test_get( '/api/v2/stories/field_count',
         { field => 'tags_id_stories', q => "stories_id:($stories_ids_list)", tag_sets_id => $tag->{ tag_sets_id } } );
 
     is( scalar( @{ $r } ), 1, "$label num of tags" );

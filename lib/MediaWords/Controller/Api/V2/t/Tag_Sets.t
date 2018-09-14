@@ -19,9 +19,9 @@ sub test_tag_sets($)
     MediaWords::Test::API::setup_test_api_key( $db );
 
     # test for required fields errors
-    test_post( '/api/v2/tag_sets/create', { name  => 'foo' }, 1 );    # should require label
-    test_post( '/api/v2/tag_sets/create', { label => 'foo' }, 1 );    # should require name
-    test_put( '/api/v2/tag_sets/update', { name => 'foo' }, 1 );      # should require tag_sets_id
+    MediaWords::Test::API::test_post( '/api/v2/tag_sets/create', { name  => 'foo' }, 1 );    # should require label
+    MediaWords::Test::API::test_post( '/api/v2/tag_sets/create', { label => 'foo' }, 1 );    # should require name
+    MediaWords::Test::API::test_put( '/api/v2/tag_sets/update', { name => 'foo' }, 1 );      # should require tag_sets_id
 
     # simple tag creation
     my $create_input = {
@@ -32,11 +32,11 @@ sub test_tag_sets($)
         show_on_stories => 1,
     };
 
-    my $r = test_post( '/api/v2/tag_sets/create', $create_input );
-    validate_db_row( $db, 'tag_sets', $r->{ tag_set }, $create_input, 'create tag set' );
+    my $r = MediaWords::Test::API::test_post( '/api/v2/tag_sets/create', $create_input );
+    MediaWords::Test::API::validate_db_row( $db, 'tag_sets', $r->{ tag_set }, $create_input, 'create tag set' );
 
     # error on update non-existent tag
-    test_put( '/api/v2/tag_sets/update', { tag_sets_id => -1 }, 1 );
+    MediaWords::Test::API::test_put( '/api/v2/tag_sets/update', { tag_sets_id => -1 }, 1 );
 
     # simple update
     my $update_input = {
@@ -48,17 +48,17 @@ sub test_tag_sets($)
         show_on_stories => 0,
     };
 
-    $r = test_put( '/api/v2/tag_sets/update', $update_input );
-    validate_db_row( $db, 'tag_sets', $r->{ tag_set }, $update_input, 'update tag set' );
+    $r = MediaWords::Test::API::test_put( '/api/v2/tag_sets/update', $update_input );
+    MediaWords::Test::API::validate_db_row( $db, 'tag_sets', $r->{ tag_set }, $update_input, 'update tag set' );
 
     my $tag_sets       = $db->query( "select * from tag_sets" )->hashes;
-    my $got_tag_sets   = test_get( '/api/v2/tag_sets/list' );
+    my $got_tag_sets   = MediaWords::Test::API::test_get( '/api/v2/tag_sets/list' );
     my $tag_set_fields = [ qw/name label description show_on_media show_on_stories/ ];
-    rows_match( "tag_sets/list", $got_tag_sets, $tag_sets, 'tag_sets_id', $tag_set_fields );
+    MediaWords::Test::API::rows_match( "tag_sets/list", $got_tag_sets, $tag_sets, 'tag_sets_id', $tag_set_fields );
 
     my $tag_set = $tag_sets->[ 0 ];
-    $got_tag_sets = test_get( '/api/v2/tag_sets/single/' . $tag_set->{ tag_sets_id }, {} );
-    rows_match( "tag_sets/single", $got_tag_sets, [ $tag_set ], 'tag_sets_id', $tag_set_fields );
+    $got_tag_sets = MediaWords::Test::API::test_get( '/api/v2/tag_sets/single/' . $tag_set->{ tag_sets_id }, {} );
+    MediaWords::Test::API::rows_match( "tag_sets/single", $got_tag_sets, [ $tag_set ], 'tag_sets_id', $tag_set_fields );
 }
 
 sub main

@@ -16,10 +16,10 @@ sub test_is_syndicated_ap($)
 
     my $label = "stories/is_syndicated_ap";
 
-    my $r = test_put( '/api/v2/util/is_syndicated_ap', { content => 'foo' } );
+    my $r = MediaWords::Test::API::test_put( '/api/v2/util/is_syndicated_ap', { content => 'foo' } );
     is( $r->{ is_syndicated }, 0, "$label: not syndicated" );
 
-    $r = test_put( '/api/v2/util/is_syndicated_ap', { content => '(ap)' } );
+    $r = MediaWords::Test::API::test_put( '/api/v2/util/is_syndicated_ap', { content => '(ap)' } );
     is( $r->{ is_syndicated }, 1, "$label: syndicated" );
 
 }

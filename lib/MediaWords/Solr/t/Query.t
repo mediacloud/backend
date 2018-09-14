@@ -177,7 +177,7 @@ sub test_query($)
     {
         # basic query
         my $story = pop( @{ $test_stories } );
-        test_story_query( $db, '*:*', $story, 'simple story' );
+        MediaWords::Test::Solr::test_story_query( $db, '*:*', $story, 'simple story' );
     }
 
     {
@@ -222,7 +222,7 @@ SQL
         );
 
         my $fields = [ qw/title publish_date url guid media_id language/ ];
-        rows_match( 'search_for_stories', $got_stories, $expected_stories, 'stories_id', $fields );
+        MediaWords::Test::API::rows_match( 'search_for_stories', $got_stories, $expected_stories, 'stories_id', $fields );
     }
 
     {
@@ -232,7 +232,7 @@ SQL
         my $got_media      = MediaWords::Solr::Query::search_for_media( $db, { q => "media_id:$media_id" } );
 
         my $fields = [ qw/url name/ ];
-        rows_match( 'search_for_media', $got_media, $expected_media, 'media_id', $fields );
+        MediaWords::Test::API::rows_match( 'search_for_media', $got_media, $expected_media, 'media_id', $fields );
     }
 
     {
@@ -250,7 +250,7 @@ SQL
         my $got_sentences      = MediaWords::Solr::Query::query_solr_for_matching_sentences( $db, { q => $query } );
 
         my $fields = [ qw/stories_id sentence_number sentence media_id publish_date language/ ];
-        rows_match( "query_matching_sentences '$test_word'",
+        MediaWords::Test::API::rows_match( "query_matching_sentences '$test_word'",
             $got_sentences, $expected_sentences, 'story_sentences_id', $fields );
     }
 
@@ -264,8 +264,8 @@ SQL
         my $got_sentences = MediaWords::Solr::Query::query_solr_for_matching_sentences( $db, { q => $query } );
 
         my $fields = [ qw/stories_id sentence_number sentence media_id publish_date language/ ];
-        rows_match( 'query_matching_sentences empty regex', $got_sentences, $story_sentences, 'story_sentences_id',
-            $fields );
+        MediaWords::Test::API::rows_match( 'query_matching_sentences empty regex',
+            $got_sentences, $story_sentences, 'story_sentences_id', $fields );
     }
 
     {
@@ -427,8 +427,8 @@ SQL
 
     my $query_tag_sets_id  = $got_tag_counts->[ -1 ]->{ tag_sets_id };
     my $tag_set_tag_counts = MediaWords::Solr::Query::query_tag_counts(
-        $db,    #
-        { q => "media_id:$query_media_id", tag_sets_id => $query_tag_sets_id }, #
+        $db,                                                #
+        { q => "media_id:$query_media_id", tag_sets_id => $query_tag_sets_id },    #
     );
 
     $expected_tag_counts = [ grep { $_->{ tag_sets_id } == $query_tag_sets_id } @{ $expected_tag_counts } ];

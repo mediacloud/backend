@@ -50,10 +50,10 @@ SQL
 
     my $media_id_params = join( '&', map { "media_id=$_->{ media_id }" } @{ $expected_mhs } );
 
-    my $got_mhs = test_get( '/api/v2/mediahealth/list?' . $media_id_params, {} );
+    my $got_mhs = MediaWords::Test::API::test_get( '/api/v2/mediahealth/list?' . $media_id_params, {} );
 
     my $fields = [ qw/media_id is_healthy has_active_feed start_date end_date/, @{ $metrics } ];
-    rows_match( $label, $got_mhs, $expected_mhs, 'media_id', $fields );
+    MediaWords::Test::API::rows_match( $label, $got_mhs, $expected_mhs, 'media_id', $fields );
 }
 
 sub main

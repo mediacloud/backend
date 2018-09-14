@@ -89,7 +89,7 @@ sub test_add_tags
 
     my $put_tags = _get_put_tag_input_records( $db, $table, $rows, $add_tag_sets, $input_form, 'add' );
 
-    my $r = test_put( _get_put_tag_url( $table, $clear ), $put_tags );
+    my $r = MediaWords::Test::API::test_put( _get_put_tag_url( $table, $clear ), $put_tags );
 
     my $map_table    = $table . "_tags_map";
     my $id_field     = $table . "_id";
@@ -154,7 +154,7 @@ SQL
     map { $_->{ add_tags } = [ $_->{ tags }->[ 0 ] ] } @{ $tag_sets };
 
     my $put_tags = _get_put_tag_input_records( $db, $table, $rows, $tag_sets, $input_form, 'remove' );
-    my $r = test_put( _get_put_tag_url( $table ), $put_tags );
+    my $r = MediaWords::Test::API::test_put( _get_put_tag_url( $table ), $put_tags );
 
     my $expected_map_count =
       scalar( @{ $tag_sets } ) * ( scalar( @{ $tag_sets->[ 0 ]->{ tags } } ) - 1 ) * scalar( @{ $rows } );
@@ -229,10 +229,10 @@ sub test_put_tags($$)
     my $first_row_id = $rows->[ 0 ]->{ "${ table }_id" };
 
     # test that api recognizes various errors
-    test_put( $url, {}, 1 );    # require list
-    test_put( $url, [ [] ], 1 );    # require list of records
-    test_put( $url, [ { tags_id   => $first_tags_id } ], 1 );    # require id
-    test_put( $url, [ { $id_field => $first_row_id } ],  1 );    # require tag
+    MediaWords::Test::API::test_put( $url, {}, 1 );    # require list
+    MediaWords::Test::API::test_put( $url, [ [] ], 1 );    # require list of records
+    MediaWords::Test::API::test_put( $url, [ { tags_id   => $first_tags_id } ], 1 );    # require id
+    MediaWords::Test::API::test_put( $url, [ { $id_field => $first_row_id } ],  1 );    # require tag
 
     test_add_tags( $db, $table, $rows, $tag_sets, 'id' );
     test_add_tags( $db, $table, $rows, $tag_sets, 'name' );
@@ -252,10 +252,10 @@ sub test_tags_list($)
     my $tag_set     = $db->create( 'tag_sets', { name => 'tag list test' } );
     my $tag_sets_id = $tag_set->{ tag_sets_id };
     my $input_tags  = [ map { { tag => "tag $_", label => "tag $_", tag_sets_id => $tag_sets_id } } ( 1 .. $num_tags ) ];
-    map { test_post( '/api/v2/tags/create', $_ ) } @{ $input_tags };
+    map { MediaWords::Test::API::test_post( '/api/v2/tags/create', $_ ) } @{ $input_tags };
 
     # query by tag_sets_id
-    my $got_tags = test_get( '/api/v2/tags/list', { tag_sets_id => $tag_sets_id } );
+    my $got_tags = MediaWords::Test::API::test_get( '/api/v2/tags/list', { tag_sets_id => $tag_sets_id } );
     is( scalar( @{ $got_tags } ), $num_tags, "$label number of tags" );
 
     for my $got_tag ( @{ $got_tags } )
@@ -268,9 +268,10 @@ sub test_tags_list($)
     my ( $t0, $t1, $t2, $t3 ) = @{ $got_tags };
 
     # test public= query
-    test_put( '/api/v2/tags/update', { tags_id => $t0->{ tags_id }, show_on_media   => 1 } );
-    test_put( '/api/v2/tags/update', { tags_id => $t1->{ tags_id }, show_on_stories => 1 } );
-    my $got_public_tags = test_get( '/api/v2/tags/list', { public => 1, tag_sets_id => $tag_sets_id } );
+    MediaWords::Test::API::test_put( '/api/v2/tags/update', { tags_id => $t0->{ tags_id }, show_on_media   => 1 } );
+    MediaWords::Test::API::test_put( '/api/v2/tags/update', { tags_id => $t1->{ tags_id }, show_on_stories => 1 } );
+    my $got_public_tags =
+      MediaWords::Test::API::test_get( '/api/v2/tags/list', { public => 1, tag_sets_id => $tag_sets_id } );
     is( scalar( @{ $got_public_tags } ), 2, "$label show_on_media count" );
     ok( ( grep { $_->{ tags_id } == $t0->{ tags_id } } @{ $got_public_tags } ), "$label public show_on_media" );
     ok( ( grep { $_->{ tags_id } == $t1->{ tags_id } } @{ $got_public_tags } ), "$label public show_on_stories" );
@@ -279,7 +280,7 @@ sub test_tags_list($)
     my $medium = $db->query( "select * from media limit 1" )->hash;
     map { $db->create( 'media_tags_map', { media_id => $medium->{ media_id }, tags_id => $_->{ tags_id } } ) }
       ( $t0, $t1, $t2 );
-    my $got_similar_tags = test_get( '/api/v2/tags/list', { similar_tags_id => $t0->{ tags_id } } );
+    my $got_similar_tags = MediaWords::Test::API::test_get( '/api/v2/tags/list', { similar_tags_id => $t0->{ tags_id } } );
     is( scalar( @{ $got_similar_tags } ), 2, "$label similar count" );
     ok( ( grep { $_->{ tags_id } == $t1->{ tags_id } } @{ $got_similar_tags } ), "$label similar tags_id t1" );
     ok( ( grep { $_->{ tags_id } == $t2->{ tags_id } } @{ $got_similar_tags } ), "$label simlar tags_id t2" );
@@ -294,7 +295,7 @@ sub test_tags_single($)
 
     my $expected_tag = $db->query( "select * from tags order by tags_id limit 1" )->hash;
 
-    my $got_tags = test_get( '/api/v2/tags/single/' . $expected_tag->{ tags_id } );
+    my $got_tags = MediaWords::Test::API::test_get( '/api/v2/tags/single/' . $expected_tag->{ tags_id } );
 
     my $got_tag = $got_tags->[ 0 ];
 
@@ -319,9 +320,9 @@ sub test_tags($)
     MediaWords::Test::API::setup_test_api_key( $db );
 
     # test for required fields errors
-    test_post( '/api/v2/tags/create', { tag   => 'foo' }, 1 );    # should require label
-    test_post( '/api/v2/tags/create', { label => 'foo' }, 1 );    # should require tag
-    test_put( '/api/v2/tags/update', { tag => 'foo' }, 1 );       # should require tags_id
+    MediaWords::Test::API::test_post( '/api/v2/tags/create', { tag   => 'foo' }, 1 );    # should require label
+    MediaWords::Test::API::test_post( '/api/v2/tags/create', { label => 'foo' }, 1 );    # should require tag
+    MediaWords::Test::API::test_put( '/api/v2/tags/update', { tag => 'foo' }, 1 );       # should require tags_id
 
     my $tag_set   = $db->create( 'tag_sets', { name => 'foo tag set' } );
     my $tag_set_b = $db->create( 'tag_sets', { name => 'bar tag set' } );
@@ -337,11 +338,11 @@ sub test_tags($)
         is_static       => 1
     };
 
-    my $r = test_post( '/api/v2/tags/create', $create_input );
-    validate_db_row( $db, 'tags', $r->{ tag }, $create_input, 'create tag' );
+    my $r = MediaWords::Test::API::test_post( '/api/v2/tags/create', $create_input );
+    MediaWords::Test::API::validate_db_row( $db, 'tags', $r->{ tag }, $create_input, 'create tag' );
 
     # error on update non-existent tag
-    test_put( '/api/v2/tags/update', { tags_id => -1 }, 1 );
+    MediaWords::Test::API::test_put( '/api/v2/tags/update', { tags_id => -1 }, 1 );
 
     # simple update
     my $update_input = {
@@ -355,8 +356,8 @@ sub test_tags($)
         is_static       => 0
     };
 
-    $r = test_put( '/api/v2/tags/update', $update_input );
-    validate_db_row( $db, 'tags', $r->{ tag }, $update_input, 'update tag' );
+    $r = MediaWords::Test::API::test_put( '/api/v2/tags/update', $update_input );
+    MediaWords::Test::API::validate_db_row( $db, 'tags', $r->{ tag }, $update_input, 'update tag' );
 
     # simple tags/list test
     test_tags_list( $db );

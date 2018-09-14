@@ -14,10 +14,6 @@ use URI::QueryParam;
 use MediaWords::CommonLibs;
 use MediaWords::Util::Web;
 
-require Exporter;
-our @ISA    = qw(Exporter);
-our @EXPORT = qw(test_request_response test_data_request test_get test_put test_post rows_match validate_db_row);
-
 my $_test_api_key;
 
 # list of api urls requested by this process; used by get_untested_api_urls() to get a list of api urls that have not

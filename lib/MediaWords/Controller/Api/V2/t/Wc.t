@@ -26,7 +26,7 @@ sub test_wc_list($)
 {
     my ( $db ) = @_;
 
-    test_get( '/api/v2/wc/list', { q => 'the' } );
+    MediaWords::Test::API::test_get( '/api/v2/wc/list', { q => 'the' } );
 
     my $label = "wc/list";
 
@@ -58,7 +58,7 @@ SQL
         map { $expected_word_counts->{ $_ }++ } @{ $stems };
     }
 
-    my $got_word_counts = test_get(
+    my $got_word_counts = MediaWords::Test::API::test_get(
         '/api/v2/wc/list',
         {
             q         => "stories_id:$story->{ stories_id }",

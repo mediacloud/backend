@@ -49,17 +49,18 @@ sub test_downloads($)
     my $expected_downloads = $db->query( "select * from downloads where feeds_id = ?", $feed->{ feeds_id } )->hashes;
     map { $_->{ raw_content } = "content $_->{ downloads_id }" } @{ $expected_downloads };
 
-    my $got_downloads = test_get( '/api/v2/downloads/list', { feeds_id => $feed->{ feeds_id } } );
+    my $got_downloads = MediaWords::Test::API::test_get( '/api/v2/downloads/list', { feeds_id => $feed->{ feeds_id } } );
 
     my $fields = [ qw/feeds_id url type state priority sequence download_time host/ ];
-    rows_match( $label, $got_downloads, $expected_downloads, "downloads_id", $fields );
+    MediaWords::Test::API::rows_match( $label, $got_downloads, $expected_downloads, "downloads_id", $fields );
 
     $label = "downloads/single";
 
     my $expected_single = $expected_downloads->[ 0 ];
 
-    my $got_download = test_get( '/api/v2/downloads/single/' . $expected_single->{ downloads_id }, {} );
-    rows_match( $label, $got_download, [ $expected_single ], 'downloads_id', $fields );
+    my $got_download =
+      MediaWords::Test::API::test_get( '/api/v2/downloads/single/' . $expected_single->{ downloads_id }, {} );
+    MediaWords::Test::API::rows_match( $label, $got_download, [ $expected_single ], 'downloads_id', $fields );
 }
 
 sub main

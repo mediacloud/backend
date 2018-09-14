@@ -242,7 +242,11 @@ END
 
     for ( my $i = 0 ; $i < @{ $expected_urls } ; $i++ )
     {
-        is_urls( $url_variants->[ $i ], $expected_urls->[ $i ], 'test_get_topic_url_variants: url variant match $i' );
+        MediaWords::Test::URLs::is_urls(
+            $url_variants->[ $i ],
+            $expected_urls->[ $i ],
+            'test_get_topic_url_variants: url variant match $i'
+        );
     }
 }
 

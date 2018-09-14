@@ -11,10 +11,6 @@ use warnings;
 
 require Test::Builder;
 
-require Exporter;
-our @ISA    = qw( Exporter );
-our @EXPORT = qw(is_urls isnt_urls);
-
 use MediaWords::Util::URL;
 
 # Succeeds if URLs are deemed to be equal

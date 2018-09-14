@@ -83,7 +83,7 @@ sub _test_feed_contents($)
     is( $second_item->guid_if_valid(),           'http://www.example.com/second_item.html' );
     is( $second_item->description(),             'This is a second item.' );
     is( $second_item->get( 'segment:metadata' ), '123.45' );
-    is_urls( $second_item->get( 'segment:metadata@url' ), 'http://www.example.com/second_item.jpg' );
+    MediaWords::Test::URLs::is_urls( $second_item->get( 'segment:metadata@url' ), 'http://www.example.com/second_item.jpg' );
 }
 
 sub test_rss_feed()
