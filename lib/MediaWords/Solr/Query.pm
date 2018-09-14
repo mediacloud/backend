@@ -235,7 +235,7 @@ SQL
     return $q;
 }
 
-=head2 query_encoded_json( $db, $params, $c )
+=head2 _query_encoded_json( $db, $params, $c )
 
 Execute a query on the solr server using the given params.  Return a maximum of 1 million sentences.
 
@@ -254,7 +254,7 @@ https://wiki.apache.org/solr/SolJSON
 
 =cut
 
-sub query_encoded_json($$;$)
+sub _query_encoded_json($$;$)
 {
     my ( $db, $params, $c ) = @_;
 
@@ -390,7 +390,7 @@ sub query_encoded_json($$;$)
 
 =head2 query( $db, $params, $c )
 
-Same as query_encoded_json but returns a perl hash of the decoded json.
+Same as _query_encoded_json() but returns a perl hash of the decoded json.
 
 =cut
 
@@ -398,7 +398,7 @@ sub query($$;$)
 {
     my ( $db, $params, $c ) = @_;
 
-    my $json = query_encoded_json( $db, $params, $c );
+    my $json = _query_encoded_json( $db, $params, $c );
 
     my $data;
     eval { $data = MediaWords::Util::JSON::decode_json( $json ) };
