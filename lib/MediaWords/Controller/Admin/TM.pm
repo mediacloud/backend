@@ -14,7 +14,7 @@ use MediaWords::DBI::Stories::Extract;
 use MediaWords::DBI::Stories::GuessDate;
 use MediaWords::Job::TM::MineTopic;
 use MediaWords::Solr;
-use MediaWords::Solr::Query;
+use MediaWords::Solr::Query::Parser;
 use MediaWords::Solr::WordCounts;
 use MediaWords::TM::Mine;
 use MediaWords::TM::Snapshot;
@@ -111,7 +111,7 @@ sub edit : Local
     }
     else
     {
-        $pattern = eval { MediaWords::Solr::Query::parse( $p->{ solr_seed_query } )->re() };
+        $pattern = eval { MediaWords::Solr::Query::Parser::parse_solr_query( $p->{ solr_seed_query } )->re() };
         die( "unable to translate solr query to topic pattern: $@" ) if ( $@ );
     }
 
@@ -213,7 +213,7 @@ sub create : Local
 
     die( "number of stories from query ($num_stories) is more than the max (500,000)" ) if ( $num_stories > 500000 );
 
-    my $pattern = eval { MediaWords::Solr::Query::parse( $c_solr_seed_query )->re() };
+    my $pattern = eval { MediaWords::Solr::Query::Parser::parse_solr_query( $c_solr_seed_query )->re() };
     die( "unable to translate solr query to topic pattern: $@" ) if ( $@ );
 
     if ( $c->req->params->{ preview } )

@@ -29,7 +29,7 @@ use MediaWords::DB;
 use MediaWords::DBI::Stories;
 use MediaWords::Languages::Language;
 use MediaWords::Solr::PseudoQueries;
-use MediaWords::Solr::Query;
+use MediaWords::Solr::Query::Parser;
 use MediaWords::Util::Config;
 use MediaWords::Util::JSON;
 use MediaWords::Util::Text;
@@ -457,7 +457,7 @@ sub query_matching_sentences($$;$)
 
     my $re_clause = 'true';
 
-    my $re = eval { '(?isx)' . MediaWords::Solr::Query::parse( $params->{ q } )->inclusive_re() };
+    my $re = eval { '(?isx)' . MediaWords::Solr::Query::Parser::parse_solr_query( $params->{ q } )->inclusive_re() };
     if ( $@ )
     {
         if ( $@ !~ /McSolrEmptyQueryException/ )

@@ -2,7 +2,7 @@ import re
 
 import pytest
 
-from mediawords.solr.query import parse, McSolrQueryParseSyntaxException, McSolrEmptyQueryException
+from mediawords.solr.query.parser import parse_solr_query, McSolrQueryParseSyntaxException, McSolrEmptyQueryException
 
 
 def test_tsquery():
@@ -23,19 +23,19 @@ def test_tsquery():
     def __validate_tsquery(solr_query, expected_tsquery):
         """Validate that the tsquery generated from the given solr query matches the expected tsquery."""
 
-        got_tsquery = parse(solr_query=solr_query).tsquery()
+        got_tsquery = parse_solr_query(solr_query=solr_query).tsquery()
 
         assert __normalize_tsquery(got_tsquery) == __normalize_tsquery(expected_tsquery)
 
     # for query in ('and', '( foo bar )*', '*foo'):
     with pytest.raises(McSolrQueryParseSyntaxException):
-        parse('and')
+        parse_solr_query('and')
 
     with pytest.raises(McSolrQueryParseSyntaxException):
-        parse('*foo')
+        parse_solr_query('*foo')
 
     with pytest.raises(McSolrEmptyQueryException):
-        parse(solr_query="media_id:1").tsquery()
+        parse_solr_query(solr_query="media_id:1").tsquery()
 
     # single term
     __validate_tsquery('foo', 'foo')
@@ -252,7 +252,7 @@ def test_re():
     def __validate_re(solr_query, expected_re, is_logogram=False):
         """Validate that the re generated from the given solr query matches the expected re."""
 
-        got_re = parse(solr_query=solr_query).re(is_logogram)
+        got_re = parse_solr_query(solr_query=solr_query).re(is_logogram)
 
         assert __normalize_re(got_re) == __normalize_re(expected_re)
 
@@ -327,7 +327,7 @@ def test_re():
     # not clauses should be filtered out
     # this should raise an error because filtering the not clause leaves an empty query
     with pytest.raises(McSolrEmptyQueryException):
-        parse(solr_query='not ( foo bar )').re()
+        parse_solr_query(solr_query='not ( foo bar )').re()
     __validate_re('foo and !bar', '[[:<:]]foo')
     __validate_re('foo -( bar and bar )', '[[:<:]]foo')
 
@@ -622,7 +622,7 @@ def test_inclusive_re():
     def __validate_inclusive_re(solr_query, expected_re, is_logogram=False):
         """Validate that the re generated from the given solr query matches the expected re."""
 
-        got_re = parse(solr_query=solr_query).inclusive_re(is_logogram)
+        got_re = parse_solr_query(solr_query=solr_query).inclusive_re(is_logogram)
 
         assert __normalize_re(got_re) == __normalize_re(expected_re)
 
@@ -666,7 +666,7 @@ def test_inclusive_re():
     # not clauses should be filtered out
     # this should raise an error because filtering the not clause leaves an empty query
     with pytest.raises(McSolrEmptyQueryException):
-        parse(solr_query='not ( foo bar )').re()
+        parse_solr_query(solr_query='not ( foo bar )').re()
     __validate_inclusive_re('foo and !bar', '(?: [[:<:]]foo )')
     __validate_inclusive_re('foo -( bar and bar )', '(?: [[:<:]]foo )')
 

@@ -1,9 +1,11 @@
-#!/usr/bin/env python
-"""Convert a solr query to a regular expression."""
+#!/usr/bin/env python3
+
+"""Convert a Solr query to a regular expression."""
 
 import sys
 
-import mediawords.solr.query
+from mediawords.solr.query.parser import parse_solr_query
+
 
 def main():
     if len(sys.argv) < 2:
@@ -14,6 +16,7 @@ def main():
     if len(q) == 0:
         return
 
-    print(mediawords.solr.query.parse(q).re())
+    print(parse_solr_query(q).re())
+
 
 main()

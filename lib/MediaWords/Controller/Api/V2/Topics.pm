@@ -14,6 +14,7 @@ use Moose;
 use namespace::autoclean;
 
 use MediaWords::TM::Mine;
+use MediaWords::Solr::Query::Parser;
 
 BEGIN
 {
@@ -307,7 +308,7 @@ sub create_GET
     $topic->{ max_stories } ||= 100_000;
 
     $topic->{ pattern } =
-      eval { MediaWords::Solr::Query::parse( $topic->{ solr_seed_query } )->re( $topic->{ is_logogram } ) };
+      eval { MediaWords::Solr::Query::Parser::parse_solr_query( $topic->{ solr_seed_query } )->re( $topic->{ is_logogram } ) };
     die( "unable to translate solr query to topic pattern: $@" ) if ( $@ );
 
     $topic->{ is_public }            = normalize_boolean_for_db( $topic->{ is_public } );
@@ -459,7 +460,7 @@ sub update_PUT
     if ( $update->{ solr_seed_query } && ( $topic->{ solr_seed_query } ne $update->{ solr_seed_query } ) )
     {
         $update->{ pattern } =
-          eval { MediaWords::Solr::Query::parse( $update->{ solr_seed_query } )->re( $update->{ is_logogram } ) };
+          eval { MediaWords::Solr::Query::Parser::parse_solr_query( $update->{ solr_seed_query } )->re( $update->{ is_logogram } ) };
         die( "unable to translate solr query to topic pattern: $@" ) if ( $@ );
 
         my $full_solr_query = MediaWords::TM::Mine::get_full_solr_query( $db, $topic, $media_ids, $media_tags_ids );
