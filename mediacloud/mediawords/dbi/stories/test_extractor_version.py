@@ -1,44 +1,12 @@
 from typing import List, Dict, Any
 
 # noinspection PyProtectedMember
-from mediawords.dbi.stories.extractor_version import (
-    _get_extractor_version_tag_set,
-    _get_tags_id,
-    extractor_version_tag_sets_name,
-    update_extractor_version_tag,
-    _purge_extractor_version_caches,
-)
+from mediawords.dbi.stories.extractor_version import extractor_version_tag_sets_name, update_extractor_version_tag
 from mediawords.test.db.create import create_test_medium, create_test_feed, create_test_story
 from mediawords.test.test_database import TestDatabaseWithSchemaTestCase
 
 
 class TestExtractorVersion(TestDatabaseWithSchemaTestCase):
-
-    def setUp(self):
-        super().setUp()
-
-        _purge_extractor_version_caches()
-
-    def test_get_tags_id(self):
-        tag_set = _get_extractor_version_tag_set(db=self.db())
-        tag_sets_id = tag_set['tag_sets_id']
-
-        tag_name = 'arbitary tag'
-
-        tags_id = _get_tags_id(db=self.db(), tag_sets_id=tag_sets_id, tag_name=tag_name)
-        assert tags_id
-
-        # See if caching works
-        cached_tags_id = _get_tags_id(db=self.db(), tag_sets_id=tag_sets_id, tag_name=tag_name)
-        assert cached_tags_id == tags_id
-
-    def test_get_extractor_version_tag_set(self):
-        tag_set = _get_extractor_version_tag_set(db=self.db())
-        assert tag_set['name'] == 'extractor_version'
-
-        # See if caching works
-        cached_tag_set = _get_extractor_version_tag_set(db=self.db())
-        assert tag_set == cached_tag_set
 
     def __story_extractor_tags(self, stories_id: int) -> List[Dict[str, Any]]:
         return self.db().query("""
