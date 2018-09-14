@@ -245,6 +245,63 @@ END
     return { stories_ids => $stories_ids };
 }
 
+# given a list of $ids for $field, consolidate them into ranges where possible.
+# so transform this:
+#     stories_id:( 1 2 4 5 6 7 9 )
+# into:
+#    stories_id:( 1 2 9 ) stories_id:[ 4 TO 7 ]
+sub _consolidate_id_query
+{
+    my ( $field, $ids ) = @_;
+
+    die( "ids list" ) unless ( @{ $ids } );
+
+    $ids = [ sort { $a <=> $b } @{ $ids } ];
+
+    my $singletons = [ -10 ];
+    my $ranges = [ [ -10 ] ];
+    for my $id ( @{ $ids } )
+    {
+        if ( $id == ( $ranges->[ -1 ]->[ -1 ] + 1 ) )
+        {
+            push( @{ $ranges->[ -1 ] }, $id );
+        }
+        elsif ( $id == ( $singletons->[ -1 ] + 1 ) )
+        {
+            push( @{ $ranges }, [ pop( @{ $singletons } ), $id ] );
+        }
+        else
+        {
+            push( @{ $singletons }, $id );
+        }
+    }
+
+    shift( @{ $singletons } );
+    shift( @{ $ranges } );
+
+    my $long_ranges = [];
+    for my $range ( @{ $ranges } )
+    {
+        if ( scalar( @{ $range } ) > 2 )
+        {
+            push( @{ $long_ranges }, $range );
+        }
+        else
+        {
+            push( @{ $singletons }, @{ $range } );
+        }
+    }
+
+    my $queries = [];
+
+    push( @{ $queries }, map { "$field:[$_->[ 0 ] TO $_->[ -1 ]]" } @{ $long_ranges } );
+    push( @{ $queries }, "$field:(" . join( ' ', @{ $singletons } ) . ')' ) if ( scalar( @{ $singletons } ) > 0 );
+
+    my $query = join( ' ', @{ $queries } );
+
+    return $query;
+}
+
 # accept a single {~ ... } clause and return a stories_id:(...) clause
 sub _transform_clause
 {
@@ -308,7 +365,7 @@ sub _transform_clause
 
     if ( @{ $stories_ids } > 0 )
     {
-        return MediaWords::Solr::Query::consolidate_id_query( 'stories_id', $stories_ids );
+        return _consolidate_id_query( 'stories_id', $stories_ids );
     }
     else
     {
