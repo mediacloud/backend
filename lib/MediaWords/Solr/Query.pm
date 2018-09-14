@@ -9,7 +9,7 @@ use MediaWords::CommonLibs;
 
 =head1 SYNOPSIS
 
-    my $results = MediaWords::Solr::Query::query( $db, { q => 'obama' } );
+    my $results = MediaWords::Solr::Query::query_solr( $db, { q => 'obama' } );
 
     my $sentences = $results->{ response }->{ docs };
     map { say "found sentence id: $_->{ story_sentences_id }" } @{ $sentencs };
@@ -394,7 +394,7 @@ Same as _query_encoded_json() but returns a perl hash of the decoded json.
 
 =cut
 
-sub query($$;$)
+sub query_solr($$;$)
 {
     my ( $db, $params, $c ) = @_;
 
@@ -443,7 +443,7 @@ If $random_limit is specified, return at most $random_limit stories, randomly so
 
 =cut
 
-sub query_matching_sentences($$;$)
+sub query_solr_for_matching_sentences($$;$)
 {
     my ( $db, $params, $random_limit ) = @_;
 

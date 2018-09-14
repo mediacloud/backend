@@ -65,7 +65,7 @@ sub query_tag_counts($$)
     $solr_params->{ 'facet.mincount' } = 1;
     $solr_params->{ 'facet.limit' }    = int( $limit );
 
-    my $response = MediaWords::Solr::Query::query( $db, $solr_params );
+    my $response = MediaWords::Solr::Query::query_solr( $db, $solr_params );
 
     my $tags_id_counts_list = $response->{ facet_counts }->{ facet_fields }->{ tags_id_stories };
 

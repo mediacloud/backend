@@ -3057,7 +3057,7 @@ sub _create_focus_definition
 {
     my ( $db, $topic, $p ) = @_;
 
-    eval { MediaWords::Solr::Query::query( $db, { q => $p->{ query }, rows => 0 } ) };
+    eval { MediaWords::Solr::Query::query_solr( $db, { q => $p->{ query }, rows => 0 } ) };
     die( "invalid solr query: $@" ) if ( $@ );
 
     my $fsd = $db->query( <<SQL, $topic->{ topics_id } )->hash;

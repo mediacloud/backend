@@ -252,7 +252,7 @@ SQL
 
         my $expected_sentences = [ grep { $_->{ sentence } =~ /$test_word/i } @{ $story_sentences } ];
         my $query              = "$test_word* and stories_id:$story->{ stories_id }";
-        my $got_sentences      = MediaWords::Solr::Query::query_matching_sentences( $db, { q => $query } );
+        my $got_sentences      = MediaWords::Solr::Query::query_solr_for_matching_sentences( $db, { q => $query } );
 
         my $fields = [ qw/stories_id sentence_number sentence media_id publish_date language/ ];
         rows_match( "query_matching_sentences '$test_word'",
@@ -266,7 +266,7 @@ SQL
 select * from story_sentences where stories_id = ?
 SQL
         my $query = "stories_id:$story->{ stories_id }";
-        my $got_sentences = MediaWords::Solr::Query::query_matching_sentences( $db, { q => $query } );
+        my $got_sentences = MediaWords::Solr::Query::query_solr_for_matching_sentences( $db, { q => $query } );
 
         my $fields = [ qw/stories_id sentence_number sentence media_id publish_date language/ ];
         rows_match( 'query_matching_sentences empty regex', $got_sentences, $story_sentences, 'story_sentences_id',
@@ -274,7 +274,7 @@ SQL
     }
 
     {
-        eval { MediaWords::Solr::Query::query( $db, { q => "publish_date:[foo TO bar]" } ) };
+        eval { MediaWords::Solr::Query::query_solr( $db, { q => "publish_date:[foo TO bar]" } ) };
         ok( $@ =~ /range queries are not allowed/, "range queries not allowed: '$@'" );
     }
 }

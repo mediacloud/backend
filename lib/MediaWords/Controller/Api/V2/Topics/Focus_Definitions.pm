@@ -79,7 +79,7 @@ sub create_GET
 
     $self->require_fields( $c, [ qw/name description query focal_set_definitions_id/ ] );
 
-    eval { MediaWords::Solr::Query::query( $db, { q => $data->{ query }, rows => 0 } ) };
+    eval { MediaWords::Solr::Query::query_solr( $db, { q => $data->{ query }, rows => 0 } ) };
     die( "invalid solr query: $@" ) if ( $@ );
 
     my $fd = $db->query(
@@ -126,7 +126,7 @@ sub update_PUT
     my $arguments;
     if ( my $query = $c->req->data->{ query } )
     {
-        eval { MediaWords::Solr::Query::query( $db, { q => $query, rows => 0 } ) };
+        eval { MediaWords::Solr::Query::query_solr( $db, { q => $query, rows => 0 } ) };
         die( "invalid solr query: $@" ) if ( $@ );
 
         $c->req->data->{ arguments } = MediaWords::Util::JSON::encode_json( { query => $query } );

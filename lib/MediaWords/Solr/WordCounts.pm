@@ -320,7 +320,8 @@ sub _get_words_from_solr_server($)
     DEBUG( "executing solr query ..." );
     DEBUG Dumper( $solr_params );
 
-    my $story_sentences = MediaWords::Solr::Query::query_matching_sentences( $self->db, $solr_params, $self->sample_size );
+    my $story_sentences =
+      MediaWords::Solr::Query::query_solr_for_matching_sentences( $self->db, $solr_params, $self->sample_size );
 
     DEBUG( "counting sentences..." );
     my $words = $self->count_stems( $story_sentences );

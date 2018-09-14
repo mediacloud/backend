@@ -156,7 +156,7 @@ sub list_GET
 
     $rows = List::Util::min( $rows, 10000 );
 
-    my $sentences = MediaWords::Solr::Query::query_matching_sentences( $c->dbis, $params );
+    my $sentences = MediaWords::Solr::Query::query_solr_for_matching_sentences( $c->dbis, $params );
 
     # stories are random but sentences are in stories_id, sentence_number order
     if ( $sort && ( $sort eq 'random' ) )

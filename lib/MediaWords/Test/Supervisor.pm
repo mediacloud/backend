@@ -79,7 +79,7 @@ sub _solr_standalone_ready($)
         die( "bad solr status: '$status'" ) unless ( $status =~ /RUNNING/ );
 
         # try to execute a simple solr query; if no error is thrown, it worked and solr is up
-        eval { MediaWords::Solr::Query::query( $db, { q => '*:*', rows => 0 } ) };
+        eval { MediaWords::Solr::Query::query_solr( $db, { q => '*:*', rows => 0 } ) };
         return unless ( $@ );
 
         sleep( $SUPERVISOR_COMMAND_TIMEOUT );

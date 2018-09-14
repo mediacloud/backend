@@ -23,7 +23,7 @@ which would be processed and replaced before sending to solr with something that
 
 sentence:obama and stories_id:( ... )
 
-This module is integrated directly into MediaWords::Solr::Query::query, so it shouldn't need to be called directly by the user
+This module is integrated directly into MediaWords::Solr::Query::query_solr(), so it shouldn't need to be called directly by the user
 to query solr.
 
 Documentation of the specific pseudo queries is in the api spec at doc/api_2_0_spec/api_2_0_spec.md and rendered at
