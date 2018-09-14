@@ -14,7 +14,7 @@ use Getopt::Long;
 
 use MediaWords::DB;
 use MediaWords::DBI::Stories;
-use MediaWords::Solr;
+use MediaWords::Solr::Query;
 
 Readonly my $MAX_ROWS => 10_000_000;
 
@@ -104,7 +104,7 @@ sub main
     {
         DEBUG( "running solr search ..." );
 
-        $stories_ids = MediaWords::Solr::search_for_stories_ids( $db, { q => $query, rows => $MAX_ROWS } );
+        $stories_ids = MediaWords::Solr::Query::search_for_stories_ids( $db, { q => $query, rows => $MAX_ROWS } );
     }
 
     DEBUG( "found " . scalar( @{ $stories_ids } ) . " stories" );

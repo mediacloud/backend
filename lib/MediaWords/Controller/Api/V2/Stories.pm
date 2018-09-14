@@ -14,7 +14,6 @@ use Readonly;
 use Encode;
 
 use MediaWords::DBI::Stories;
-use MediaWords::Solr;
 use MediaWords::Util::Annotator::CLIFF;
 use MediaWords::Util::Annotator::NYTLabels;
 use MediaWords::Util::JSON;

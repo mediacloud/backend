@@ -10,6 +10,7 @@ use MediaWords::CommonLibs;
 
 use Test::More;
 
+use MediaWords::Solr::Query;
 use MediaWords::Solr::Dump;
 use MediaWords::Test::Solr;
 use MediaWords::Test::Supervisor;
@@ -45,7 +46,7 @@ sub test_import
     my $test_stories = $db->query( "select * from stories order by md5( stories_id::text )" )->hashes;
 
     {
-        my $got_num_solr_stories = MediaWords::Solr::get_num_found( $db, { q => '*:*' } );
+        my $got_num_solr_stories = MediaWords::Solr::Query::get_num_found( $db, { q => '*:*' } );
         is( $got_num_solr_stories, scalar( @{ $test_stories } ), "total number of stories in solr" );
 
         my $solr_import = $db->query( "select * from solr_imports" )->hash;
@@ -151,7 +152,7 @@ SQL
     {
         # test delete_all, queue_all_stories, and stories_queue_table option of import_data
         MediaWords::Solr::Dump::delete_all_stories( $db );
-        is( MediaWords::Solr::get_num_found( $db, { q => '*:*' } ), 0, "stories after deleting" );
+        is( MediaWords::Solr::Query::get_num_found( $db, { q => '*:*' } ), 0, "stories after deleting" );
 
         $db->query( "create table test_stories_queue ( stories_id int )" );
 
@@ -174,7 +175,8 @@ SQL
             }
         );
 
-        is( MediaWords::Solr::get_num_found( $db, { q => '*:*' } ), $test_stories_size, "stories after queue import" );
+        is( MediaWords::Solr::Query::get_num_found( $db, { q => '*:*' } ), $test_stories_size,
+            "stories after queue import" );
 
         my ( $post_num_solr_imports )          = $db->query( "select count(*) from solr_imports" )->flat;
         my ( $post_num_solr_imported_stories ) = $db->query( "select count(*) from solr_imported_stories" )->flat;
@@ -190,7 +192,7 @@ SQL
     {
         # test threaded import
         MediaWords::Solr::Dump::delete_all_stories( $db );
-        is( MediaWords::Solr::get_num_found( $db, { q => '*:*' } ), 0, "stories after deleting" );
+        is( MediaWords::Solr::Query::get_num_found( $db, { q => '*:*' } ), 0, "stories after deleting" );
 
         MediaWords::Solr::Dump::queue_all_stories( $db );
 
@@ -199,7 +201,7 @@ SQL
         $db = MediaWords::DB::connect_to_db();
 
         my ( $test_stories_size ) = $db->query( "select count(*) from stories" )->flat;
-        is( MediaWords::Solr::get_num_found( $db, { q => '*:*' } ), $test_stories_size, "stories threaded import" );
+        is( MediaWords::Solr::Query::get_num_found( $db, { q => '*:*' } ), $test_stories_size, "stories threaded import" );
 
         my $story = pop( @{ $test_stories } );
         test_story_query( $db, "*:*", $story );

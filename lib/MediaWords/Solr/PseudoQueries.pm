@@ -23,7 +23,7 @@ which would be processed and replaced before sending to solr with something that
 
 sentence:obama and stories_id:( ... )
 
-This module is integrated directly into MediaWords::Solr::query, so it shouldn't need to be called directly by the user
+This module is integrated directly into MediaWords::Solr::Query::query, so it shouldn't need to be called directly by the user
 to query solr.
 
 Documentation of the specific pseudo queries is in the api spec at doc/api_2_0_spec/api_2_0_spec.md and rendered at
@@ -36,6 +36,7 @@ use List::Compare;
 use Readonly;
 
 use MediaWords::DB;
+use MediaWords::Solr::Query;
 
 # die if the transformed query is bigger than this
 Readonly my $MAX_QUERY_LENGTH => 2_000_000;
@@ -307,7 +308,7 @@ sub _transform_clause
 
     if ( @{ $stories_ids } > 0 )
     {
-        return MediaWords::Solr::consolidate_id_query( 'stories_id', $stories_ids );
+        return MediaWords::Solr::Query::consolidate_id_query( 'stories_id', $stories_ids );
     }
     else
     {

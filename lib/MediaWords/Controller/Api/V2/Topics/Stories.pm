@@ -12,7 +12,7 @@ use List::Compare;
 use Readonly;
 
 use MediaWords::DBI::ApiLinks;
-use MediaWords::Solr;
+use MediaWords::Solr::Query;
 use MediaWords::TM::Snapshot;
 
 Readonly my $DEFAULT_STORY_LIMIT => 10;
@@ -195,7 +195,7 @@ SQL
     {
         $q = "timespans_id:$timespans_id and ( $q )";
 
-        my $solr_stories_id = MediaWords::Solr::search_for_stories_ids( $c->dbis, { q => $q, rows => 10_000_000 } );
+        my $solr_stories_id = MediaWords::Solr::Query::search_for_stories_ids( $c->dbis, { q => $q, rows => 10_000_000 } );
 
         $solr_stories_id = [ map { int( $_ ) } @{ $solr_stories_id } ];
 

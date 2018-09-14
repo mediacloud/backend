@@ -17,7 +17,7 @@ use MediaWords::CommonLibs;
 
 use Test::More;
 
-use MediaWords::Solr;
+use MediaWords::Solr::Query;
 use MediaWords::Solr::Dump;
 use MediaWords::Test::DB::Environment;
 use MediaWords::Util::Tags;
@@ -44,7 +44,7 @@ sub test_story_query($$$;$)
 
     my $expected_stories_id = $expected_story->{ stories_id };
 
-    my $r = MediaWords::Solr::query( $db, { q => "$q and stories_id:$expected_stories_id", rows => 1_000_000 } );
+    my $r = MediaWords::Solr::Query::query( $db, { q => "$q and stories_id:$expected_stories_id", rows => 1_000_000 } );
 
     my $docs = $r->{ response }->{ docs };
 
@@ -180,7 +180,7 @@ sub setup_test_index($)
 
     if ( !$_swapped_live_collection )
     {
-        MediaWords::Solr::swap_live_collection( $db );
+        MediaWords::Solr::Query::swap_live_collection( $db );
         $_swapped_live_collection = 1;
     }
 

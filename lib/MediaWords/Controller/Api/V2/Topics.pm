@@ -14,6 +14,7 @@ use Moose;
 use namespace::autoclean;
 
 use MediaWords::TM::Mine;
+use MediaWords::Solr::Query;
 use MediaWords::Solr::Query::Parser;
 
 BEGIN
@@ -307,8 +308,9 @@ sub create_GET
 
     $topic->{ max_stories } ||= 100_000;
 
-    $topic->{ pattern } =
-      eval { MediaWords::Solr::Query::Parser::parse_solr_query( $topic->{ solr_seed_query } )->re( $topic->{ is_logogram } ) };
+    $topic->{ pattern } = eval {
+        MediaWords::Solr::Query::Parser::parse_solr_query( $topic->{ solr_seed_query } )->re( $topic->{ is_logogram } );
+    };
     die( "unable to translate solr query to topic pattern: $@" ) if ( $@ );
 
     $topic->{ is_public }            = normalize_boolean_for_db( $topic->{ is_public } );
@@ -317,7 +319,7 @@ sub create_GET
     $topic->{ solr_seed_query_run }  = normalize_boolean_for_db( $topic->{ solr_seed_query_run } );
 
     my $full_solr_query = MediaWords::TM::Mine::get_full_solr_query( $db, $topic, $media_ids, $media_tags_ids );
-    my $num_stories = eval { MediaWords::Solr::get_num_found( $db, $full_solr_query ) };
+    my $num_stories = eval { MediaWords::Solr::Query::get_num_found( $db, $full_solr_query ) };
     die( "invalid solr query: $@" ) if ( $@ );
 
     $topic->{ job_queue } = _is_mc_queue_user( $db, $auth_users_id ) ? 'mc' : 'public';
@@ -459,12 +461,15 @@ sub update_PUT
 
     if ( $update->{ solr_seed_query } && ( $topic->{ solr_seed_query } ne $update->{ solr_seed_query } ) )
     {
-        $update->{ pattern } =
-          eval { MediaWords::Solr::Query::Parser::parse_solr_query( $update->{ solr_seed_query } )->re( $update->{ is_logogram } ) };
+        $update->{ pattern } = eval
+        {
+            MediaWords::Solr::Query::Parser::parse_solr_query( $update->{ solr_seed_query } )
+              ->re( $update->{ is_logogram } );
+        };
         die( "unable to translate solr query to topic pattern: $@" ) if ( $@ );
 
         my $full_solr_query = MediaWords::TM::Mine::get_full_solr_query( $db, $topic, $media_ids, $media_tags_ids );
-        my $num_stories = eval { MediaWords::Solr::get_num_found( $db, $full_solr_query ) };
+        my $num_stories = eval { MediaWords::Solr::Query::get_num_found( $db, $full_solr_query ) };
         die( "invalid solr query: $@" ) if ( $@ );
     }
 

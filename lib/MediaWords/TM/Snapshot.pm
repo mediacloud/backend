@@ -54,7 +54,7 @@ use Readonly;
 
 use MediaWords::DBI::Media;
 use MediaWords::Job::TM::SnapshotTopic;
-use MediaWords::Solr;
+use MediaWords::Solr::Query;
 use MediaWords::TM::Model;
 use MediaWords::TM::Snapshot::GraphLayout;
 use MediaWords::Util::CSV;
@@ -257,7 +257,7 @@ sub restrict_period_stories_to_focus
         $solr_q = "( $solr_q ) and stories_id:( $stories_ids_list )";
 
         my $solr_stories_ids =
-          eval { MediaWords::Solr::search_for_stories_ids( $db, { rows => 1000000, q => $solr_q } ) };
+          eval { MediaWords::Solr::Query::search_for_stories_ids( $db, { rows => 1000000, q => $solr_q } ) };
         if ( $@ )
         {
             # sometimes solr throws a NullException error on one of these queries; retrying with smaller

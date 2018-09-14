@@ -11,7 +11,6 @@ use namespace::autoclean;
 use List::Compare;
 
 use MediaWords::DBI::Stories;
-use MediaWords::Solr;
 
 BEGIN
 {

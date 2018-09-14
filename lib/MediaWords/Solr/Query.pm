@@ -1,4 +1,4 @@
-package MediaWords::Solr;
+package MediaWords::Solr::Query;
 
 use strict;
 
@@ -9,7 +9,7 @@ use MediaWords::CommonLibs;
 
 =head1 SYNOPSIS
 
-    my $results = MediaWords::Solr::query( $db, { q => 'obama' } );
+    my $results = MediaWords::Solr::Query::query( $db, { q => 'obama' } );
 
     my $sentences = $results->{ response }->{ docs };
     map { say "found sentence id: $_->{ story_sentences_id }" } @{ $sentencs };

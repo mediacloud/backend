@@ -13,7 +13,7 @@ use namespace::autoclean;
 use List::Compare;
 
 use MediaWords::DBI::Stories;
-use MediaWords::Solr;
+use MediaWords::Solr::Query;
 use MediaWords::Solr::TagCounts;
 use MediaWords::Util::HTML;
 use MediaWords::Util::JSON;
@@ -358,7 +358,7 @@ SQL
 
     my $sort = $c->req->param( 'sort' );
 
-    return MediaWords::Solr::search_for_processed_stories_ids( $db, $q, $fq, $last_id, $rows, $sort );
+    return MediaWords::Solr::Query::search_for_processed_stories_ids( $db, $q, $fq, $last_id, $rows, $sort );
 }
 
 sub _fetch_list($$$$$$)
@@ -448,7 +448,7 @@ sub _get_date_counts
     $params->{ 'facet.mincount' } = 1;
     $params->{ rows }             = 0;
 
-    my $solr_response = MediaWords::Solr::query( $c->dbis, $params, $c );
+    my $solr_response = MediaWords::Solr::Query::query( $c->dbis, $params, $c );
 
     my $facet_counts = $solr_response->{ facet_counts }->{ facet_fields }->{ $facet_field };
 
@@ -488,7 +488,7 @@ sub count_GET
     }
     else
     {
-        my $num_found = MediaWords::Solr::get_num_found( $c->dbis, { q => $q, fq => $fq } );
+        my $num_found = MediaWords::Solr::Query::get_num_found( $c->dbis, { q => $q, fq => $fq } );
         $response = { count => $num_found };
     }
 
@@ -527,8 +527,15 @@ sub word_matrix_GET
 
     $rows = List::Util::min( $rows, 100_000 );
 
-    my $stories_ids =
-      MediaWords::Solr::search_for_stories_ids( $db, { q => $q, fq => $fq, rows => $rows, sort => 'random_1 asc' } );
+    my $stories_ids = MediaWords::Solr::Query::search_for_stories_ids(
+        $db,    #
+        {       #
+            q    => $q,                #
+            fq   => $fq,               #
+            rows => $rows,             #
+            sort => 'random_1 asc',    #
+        }    #
+    );
 
     my ( $word_matrix, $word_list ) = MediaWords::DBI::Stories::get_story_word_matrix( $db, $stories_ids );
 

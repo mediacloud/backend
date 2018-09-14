@@ -13,7 +13,7 @@ use MediaWords::DBI::Stories;
 use MediaWords::DBI::Stories::Extract;
 use MediaWords::DBI::Stories::GuessDate;
 use MediaWords::Job::TM::MineTopic;
-use MediaWords::Solr;
+use MediaWords::Solr::Query;
 use MediaWords::Solr::Query::Parser;
 use MediaWords::Solr::WordCounts;
 use MediaWords::TM::Mine;
@@ -99,7 +99,7 @@ sub edit : Local
 
     my $p = $form->params;
 
-    my $num_stories = eval { MediaWords::Solr::get_num_found( $db, { q => $p->{ solr_seed_query } } ) };
+    my $num_stories = eval { MediaWords::Solr::Query::get_num_found( $db, { q => $p->{ solr_seed_query } } ) };
     die( "invalid solr query: $@" ) if ( $@ );
 
     die( "number of stories from query ($num_stories) is more than the max (500,000)" ) if ( $num_stories > 500000 );
@@ -208,7 +208,7 @@ sub create : Local
     my $c_end_date        = $c->req->params->{ end_date };
     my $c_max_iterations  = $c->req->params->{ max_iterations };
 
-    my $num_stories = eval { MediaWords::Solr::get_num_found( $db, { q => $c_solr_seed_query } ) };
+    my $num_stories = eval { MediaWords::Solr::Query::get_num_found( $db, { q => $c_solr_seed_query } ) };
     die( "invalid solr query: $@" ) if ( $@ );
 
     die( "number of stories from query ($num_stories) is more than the max (500,000)" ) if ( $num_stories > 500000 );
@@ -1589,7 +1589,7 @@ sub _get_stories_id_search_query
 
     my $stories_clause = "stories_id:(" . join( ' ', @{ $period_stories_ids } ) . ")";
 
-    my $stories_ids = MediaWords::Solr::search_for_stories_ids( $db, { q => $q, fq => $stories_clause } );
+    my $stories_ids = MediaWords::Solr::Query::search_for_stories_ids( $db, { q => $q, fq => $stories_clause } );
 
     return @{ $stories_ids } ? join( ',', @{ $stories_ids } ) : -1;
 }
@@ -1615,7 +1615,7 @@ sub _get_story_words ($$$$$;$)
     my ( $db, $topic, $timespan, $q, $sort_by_count, $num_words ) = @_;
 
     my $solr_p = _get_solr_params_for_timespan_query( $timespan, $q );
-    my $stories_ids = MediaWords::Solr::search_for_stories_ids( $db, $solr_p );
+    my $stories_ids = MediaWords::Solr::Query::search_for_stories_ids( $db, $solr_p );
 
     if ( !$num_words )
     {
@@ -1633,7 +1633,7 @@ sub _get_story_words ($$$$$;$)
         {
             my $solr_df_query = "{~ topic:$topic->{ topics_id } }";
 
-            my $df = MediaWords::Solr::get_num_found(
+            my $df = MediaWords::Solr::Query::get_num_found(
                 $db,
                 {
                     q  => "+sentence:" . $story_word->{ term },
@@ -1766,7 +1766,7 @@ END
     if ( $c->req->params->{ missing_solr_stories } )
     {
         my $solr_query       = "{! topic:$topic->{ topics_id } }";
-        my $solr_stories_ids = MediaWords::Solr::search_for_stories_ids( $db, { q => $solr_query } );
+        my $solr_stories_ids = MediaWords::Solr::Query::search_for_stories_ids( $db, { q => $solr_query } );
         my $solr_lookup      = {};
         map { $solr_lookup->{ $_ } = 1 } @{ $solr_stories_ids };
         $stories = [ grep { !$solr_lookup->{ $_->{ stories_id } } } @{ $stories } ];
@@ -3026,7 +3026,7 @@ sub story_stats : Local
 
     my $solr_p = _get_solr_params_for_timespan_query( $timespan, $q );
 
-    my $stories_ids = MediaWords::Solr::search_for_stories_ids( $db, $solr_p );
+    my $stories_ids = MediaWords::Solr::Query::search_for_stories_ids( $db, $solr_p );
 
     my $num_stories = scalar( @{ $stories_ids } );
 
@@ -3057,7 +3057,7 @@ sub _create_focus_definition
 {
     my ( $db, $topic, $p ) = @_;
 
-    eval { MediaWords::Solr::query( $db, { q => $p->{ query }, rows => 0 } ) };
+    eval { MediaWords::Solr::Query::query( $db, { q => $p->{ query }, rows => 0 } ) };
     die( "invalid solr query: $@" ) if ( $@ );
 
     my $fsd = $db->query( <<SQL, $topic->{ topics_id } )->hash;

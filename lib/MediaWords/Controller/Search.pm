@@ -12,7 +12,7 @@ use Encode;
 use Readonly;
 
 use MediaWords::TM::Mine;
-use MediaWords::Solr;
+use MediaWords::Solr::Query;
 use MediaWords::Solr::WordCounts;
 use MediaWords::Util::CSV;
 use MediaWords::ActionRole::Logged;
@@ -271,8 +271,8 @@ sub diff : Local
 
     my ( $stories_a, $stories_b );
     eval {
-        $stories_a = MediaWords::Solr::search_for_stories( $db, { q => $qa, rows => 100_000 } );
-        $stories_b = MediaWords::Solr::search_for_stories( $db, { q => $qb, rows => 100_000 } );
+        $stories_a = MediaWords::Solr::Query::search_for_stories( $db, { q => $qa, rows => 100_000 } );
+        $stories_b = MediaWords::Solr::Query::search_for_stories( $db, { q => $qb, rows => 100_000 } );
     };
     if ( $@ )
     {
@@ -353,7 +353,7 @@ sub index : Path : Args(0)
     }
 
     my $stories;
-    eval { $stories = MediaWords::Solr::search_for_stories( $db, $solr_params ) };
+    eval { $stories = MediaWords::Solr::Query::search_for_stories( $db, $solr_params ) };
 
     _stash_wc_query_params( $c );
 
@@ -364,7 +364,7 @@ sub index : Path : Args(0)
     my $num_stories = @{ $stories };
     if ( @{ $stories } >= ( $NUM_SAMPLED_STORIES - 5 ) )
     {
-        $num_stories = MediaWords::Solr::get_last_num_found();
+        $num_stories = MediaWords::Solr::Query::get_last_num_found();
     }
 
     my $tag_counts;

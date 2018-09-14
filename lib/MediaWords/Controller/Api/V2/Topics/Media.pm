@@ -11,7 +11,6 @@ use namespace::autoclean;
 use List::Compare;
 
 use MediaWords::DBI::ApiLinks;
-use MediaWords::Solr;
 use MediaWords::TM::Snapshot;
 
 BEGIN { extends 'MediaWords::Controller::Api::V2::MC_Controller_REST' }

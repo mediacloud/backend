@@ -28,7 +28,7 @@ use MediaWords::CommonLibs;
 use MediaCloud::JobManager::Broker::RabbitMQ;
 use Readonly;
 
-use MediaWords::Solr;
+use MediaWords::Solr::Query;
 use MediaWords::Test::DB;
 use MediaWords::Util::Paths;
 use MediaWords::Util::Config;
@@ -79,7 +79,7 @@ sub _solr_standalone_ready($)
         die( "bad solr status: '$status'" ) unless ( $status =~ /RUNNING/ );
 
         # try to execute a simple solr query; if no error is thrown, it worked and solr is up
-        eval { MediaWords::Solr::query( $db, { q => '*:*', rows => 0 } ) };
+        eval { MediaWords::Solr::Query::query( $db, { q => '*:*', rows => 0 } ) };
         return unless ( $@ );
 
         sleep( $SUPERVISOR_COMMAND_TIMEOUT );

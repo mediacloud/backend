@@ -13,7 +13,7 @@ use namespace::autoclean;
 use List::Compare;
 
 use MediaWords::DBI::Media::Lookup;
-use MediaWords::Solr;
+use MediaWords::Solr::Query;
 use MediaWords::TM::Snapshot;
 use MediaWords::Util::HTML;
 use MediaWords::Util::Tags;
@@ -203,7 +203,7 @@ sub get_extra_where_clause
     if ( my $q = $c->req->params->{ q } )
     {
         my $solr_params = { q => $q };
-        my $media_ids = MediaWords::Solr::search_for_media_ids( $db, $solr_params );
+        my $media_ids = MediaWords::Solr::Query::search_for_media_ids( $db, $solr_params );
 
         $media_ids = [ map { int( $_ ) } @{ $media_ids } ];
 

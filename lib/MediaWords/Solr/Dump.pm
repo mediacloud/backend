@@ -57,7 +57,7 @@ use MediaWords::DB;
 use MediaWords::Util::Config;
 use MediaWords::Util::Paths;
 use MediaWords::Util::Web;
-use MediaWords::Solr;
+use MediaWords::Solr::Query;
 use MediaWords::Test::DB;
 use MediaWords::Test::DB::Environment;
 
@@ -355,17 +355,19 @@ sub _create_delta_import_stories($$)
     return $stories_ids;
 }
 
-# Send a request to MediaWords::Solr::get_solr_url. Return content on success, die() on error. If $staging is true, use
+# Send a request to MediaWords::Solr::Query::get_solr_url(). Return content on success, die() on error. If $staging is true, use
 # the staging collection; otherwise use the live collection.
 sub _solr_request($$$;$$)
 {
     my ( $db, $path, $params, $content, $content_type ) = @_;
 
-    my $solr_url = MediaWords::Solr::get_solr_url;
+    my $solr_url = MediaWords::Solr::Query::get_solr_url();
     $params //= {};
 
     my $collection =
-      $_solr_use_staging ? MediaWords::Solr::get_staging_collection( $db ) : MediaWords::Solr::get_live_collection( $db );
+      $_solr_use_staging
+      ? MediaWords::Solr::Query::get_staging_collection( $db )
+      : MediaWords::Solr::Query::get_live_collection( $db );
 
     my $abs_uri = URI->new( "$solr_url/$collection/$path" );
     $abs_uri->query_form( $params );
@@ -607,7 +609,7 @@ sub _maybe_production_solr
 {
     my ( $db ) = @_;
 
-    my $num_sentences = MediaWords::Solr::get_num_found( $db, { q => '*:*', rows => 0 } );
+    my $num_sentences = MediaWords::Solr::Query::get_num_found( $db, { q => '*:*', rows => 0 } );
 
     die( "Unable to query solr for number of sentences" ) unless ( defined( $num_sentences ) );
 

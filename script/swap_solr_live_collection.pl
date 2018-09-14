@@ -6,13 +6,13 @@ use strict;
 use warnings;
 
 use MediaWords::DB;
-use MediaWords::Solr;
+use MediaWords::Solr::Query;
 
 sub main
 {
     my $db = MediaWords::DB::connect_to_db;
 
-    MediaWords::Solr::swap_live_collection( $db );
+    MediaWords::Solr::Query::swap_live_collection( $db );
 }
 
 main();
