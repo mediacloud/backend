@@ -80,7 +80,7 @@ pytest-cov==2.5.1
 python-dateutil==2.6.1
 
 # Timezone handling
-pytz==2017.2
+pytz==2018.5
 
 # Configuration file
 pyyaml==3.12
@@ -92,7 +92,7 @@ readability-lxml==0.6.2
 responses==0.8.1
 
 # Making HTTP requests
-requests==2.18.4
+requests==2.19.1
 
 # Asynchronous (parallell / concurrent) HTTP requests
 requests-futures==0.9.7
