@@ -5,7 +5,7 @@
     <content url="file://$MODULE_DIR$" />
     <content url="file://$MODULE_DIR$/../schema" />
     <content url="file://$MODULE_DIR$/../tools" />
-    <orderEntry type="jdk" jdkName="Python 3.5.2 virtualenv at ~/.virtualenvs/mediacloud" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="Python 3.7.0 virtualenv at ~/.virtualenvs/mediacloud" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
   <component name="PackageRequirementsSettings">

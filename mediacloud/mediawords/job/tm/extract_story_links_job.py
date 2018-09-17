@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.5
+#!/usr/bin/env python3
 """Topic Maapper job that extracts links from a single story and inserts them into topic_links."""
 
 import traceback
