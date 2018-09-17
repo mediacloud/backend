@@ -1,7 +1,7 @@
 """This is the code backing the topic_fetch_link job, which fetches links and generates mc stories from them."""
 
 import datetime
-import re2 as re
+import re2
 import socket
 import time
 import traceback
@@ -122,7 +122,7 @@ def content_matches_topic(content: str, topic: dict, assume_match: bool=False) -
 
     content = content[0:1024 * 1024]
 
-    return re.search(topic['pattern'], content, flags=re.I | re.X | re.S) is not None
+    return re2.search(topic['pattern'], content, flags=re2.I | re2.X | re2.S) is not None
 
 
 def get_seeded_content(db: DatabaseHandler, topic_fetch_url: dict) -> typing.Optional[str]:
@@ -222,7 +222,7 @@ def _ignore_link_pattern(url: typing.Optional[str]) -> bool:
     p = mediawords.tm.extract_story_links.IGNORE_LINK_PATTERN
     nu = mediawords.util.url.normalize_url_lossy(url)
 
-    return re.search(p, url, flags=re.I) or re.search(p, nu, flags=re.I)
+    return re2.search(p, url, flags=re2.I) or re2.search(p, nu, flags=re2.I)
 
 
 def _try_fetch_topic_url(

@@ -2,7 +2,7 @@
 
 import datetime
 import operator
-import re2 as re
+import re2
 import traceback
 import typing
 
@@ -50,7 +50,7 @@ class McTMStoriesDuplicateException(Exception):
 #         if download['url'].endswith(ext):
 #             return
 #
-#     if re.search(r'livejournal.com\/(tag|profile)', download['url'], flags=re.I) is not None:
+#     if re2.search(r'livejournal.com\/(tag|profile)', download['url'], flags=re2.I) is not None:
 #         return
 #
 #     dt = db.query("select 1 from download_texts where downloads_id = %(a)s", {'a': download['downloads_id']}).hash()
@@ -287,7 +287,7 @@ def assign_date_guess_tag(
         if guess_method.startswith('Extracted from url'):
             tag = 'guess_by_url'
         elif guess_method.startswith('Extracted from tag'):
-            match = re.search(r'\<(\w+)', guess_method)
+            match = re2.search(r'\<(\w+)', guess_method)
             html_tag = match.group(1) if match is not None else 'unknown'
             tag = 'guess_by_tag_' + str(html_tag)
         else:
@@ -361,7 +361,7 @@ def generate_story(
 
     # postgres refuses to insert text values with the null character
     for field in ('url', 'guid', 'title'):
-        story[field] = re.sub('\x00', '', story[field])
+        story[field] = re2.sub('\x00', '', story[field])
 
     date_guess = guess_date(url, content)
     story['publish_date'] = date_guess.date if date_guess.found else fallback_date
