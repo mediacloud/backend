@@ -85,6 +85,10 @@ pytz==2018.5
 # Configuration file
 pyyaml==3.12
 
+# Python 3 compatible version of Google's re2 library (requires libre2-dev system package)
+# (untagged and unreleased 0.2.23 version which builds on Python 3.7)
+https://github.com/andreasvc/pyre2/archive/3e01eba6ba3eabd1359ef5e16c938c8866deea70.zip
+
 # Extracting text from stories
 readability-lxml==0.6.2
 
@@ -102,9 +106,6 @@ scipy==1.1.0
 
 # Splitting text into sentences using Lingua::Sentence's method
 sentence_splitter==1.2
-
-# python3 compatible version of google re2 library (requires libre2-dev system package)
-sw-re2==0.2.23
 
 # twitter
 tweepy==3.5.0
