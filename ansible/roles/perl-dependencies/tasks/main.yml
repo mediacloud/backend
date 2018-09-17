@@ -43,7 +43,7 @@
     - perl-dependencies
 
 - name: Install Inline::Python variant which die()s with tracebacks (stack traces)
-  command: "cpanm -v https://github.com/berkmancenter/mediacloud-inline-python-pm.git@exception_traceback_memleak"
+  command: "cpanm -v https://github.com/berkmancenter/mediacloud-inline-python-pm.git@v0.52-mediacloud"
   args:
     creates: "{{ perlbrew_home }}/libs/perl-system@mediacloud/man/man3/Inline::Python.3*" # might be ".3" or ".3pm"
   environment: "{{ perlbrew_environment_variables_copy }}"
