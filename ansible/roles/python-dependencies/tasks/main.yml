@@ -30,6 +30,20 @@
   tags:
     - python-dependencies
 
+# Has to be done separately before anything else because pyre2 depends on it,
+# and Pip is unable to figure out that it has to install Cython first from
+# requirements.txt
+- name: "Install Cython {{ cython_version }}"
+  pip:
+    name: Cython
+    version: "{{ cython_version }}"
+    virtualenv: "{{ mediacloud_home }}/.virtualenvs/mediacloud/"
+    virtualenv_python: "python{{ python_version }}"
+  become: true
+  become_user: "{{ mediacloud_user }}"
+  tags:
+    - python-dependencies
+
 - name: Install Media Cloud Python requirements
   pip:
     virtualenv: "{{ mediacloud_home }}/.virtualenvs/mediacloud/"

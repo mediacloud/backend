@@ -22,9 +22,6 @@ cryptography==2.3.1
 # Hindi stemming
 CyHunspell==1.3.0
 
-# gensim parallelization
-Cython==0.28.5
-
 # Guessing publication dates of stories
 date_guesser==2.1.1
 
