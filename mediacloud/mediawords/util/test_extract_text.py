@@ -104,7 +104,6 @@ def test_extract_text_from_html():
             <body.*?>\s*?
                 <nav.*?>Chloe\ Kardashian</nav>\s*?
                 <article.*?><p>Kim\ Kardashian</p></article>\s*?
-                <footer>Some\ other\ Kardashian</footer>\s*?
             </body>
         """,
         extracted_text,

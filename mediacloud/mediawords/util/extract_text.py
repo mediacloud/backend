@@ -65,7 +65,7 @@ def extract_article_from_html(html: str) -> str:
         doc_title = doc.short_title().strip()
         doc_summary = doc.summary().strip()
 
-        extracted_text = "%s\n\n%s" % (doc_title, doc_summary)
+        extracted_text = "{}\n\n{}".format(doc_title, doc_summary)
 
     except Exception as ex:
         log.error('Exception raised while extracting HTML: %s' % str(ex))
