@@ -104,8 +104,9 @@ scipy==1.1.0
 # Splitting text into sentences using Lingua::Sentence's method
 sentence_splitter==1.2
 
-# twitter
-tweepy==3.6.0
+# Twitter API client
+# (at the time of writing, the latest tweepy==3.6.0 doesn't work with Python 3.7.0)
+https://github.com/tweepy/tweepy/archive/2efe385fc69385b57733f747ee62e6be12a1338b.zip
 
 # Normalizing URLs
 url_normalize==1.3.3
