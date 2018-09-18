@@ -4,7 +4,7 @@ from typing import Union
 
 from lxml import etree
 
-from mediawords.util.html import meta_refresh_url_from_html, link_canonical_url_from_html
+from mediawords.util.parse_html import meta_refresh_url_from_html, link_canonical_url_from_html
 from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_object_from_bytes_if_needed
 from mediawords.util.url import is_http_url

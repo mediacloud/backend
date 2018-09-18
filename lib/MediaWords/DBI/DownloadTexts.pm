@@ -16,7 +16,6 @@ use Encode;
 use Data::Dumper;
 
 use MediaWords::Util::Config;
-use MediaWords::Util::HTML;
 use MediaWords::DBI::Downloads;
 use MediaWords::DBI::Stories::ExtractorArguments;
 use Try::Tiny;

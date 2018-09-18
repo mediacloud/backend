@@ -19,7 +19,6 @@ use MediaWords::DBI::Activities;
 use MediaWords::DBI::Feeds;
 use MediaWords::DBI::Media;
 use MediaWords::DBI::Stories;
-use MediaWords::Util::HTML;
 use MediaWords::Util::JSON;
 use MediaWords::Util::Tags;
 use MediaWords::Util::Web;

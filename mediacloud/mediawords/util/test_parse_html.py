@@ -1,9 +1,12 @@
-"""tests for mediawords.util.html"""
-
 import mediawords.languages.en
-from mediawords.util.html import link_canonical_url_from_html, meta_refresh_url_from_html, html_strip, html_title
+from mediawords.util.parse_html import (
+    link_canonical_url_from_html,
+    meta_refresh_url_from_html,
+    html_strip,
+    html_title,
+    _sententize_block_level_tags,
+)
 from mediawords.util.log import create_logger
-import mediawords.util.html
 import mediawords.util.paths
 
 log = create_logger(__name__)
@@ -185,7 +188,7 @@ def test_meta_refresh_url_from_html():
 
 def test_sententize_block_level_tags() -> None:
     """Test _new_lines_around_block_level_tags()."""
-    assert mediawords.util.html._sententize_block_level_tags('<h1>foo</h1>') == '\n\n<h1>foo.</h1>\n\n'
+    assert _sententize_block_level_tags('<h1>foo</h1>') == '\n\n<h1>foo.</h1>\n\n'
 
 
 def test_html_strip() -> None:
@@ -208,7 +211,7 @@ def test_html_strip() -> None:
 
     # just santiy test here to make sure there are no errors without having to use a fixture
     got_text = html_strip(html)
-    assert(len(got_text) > 0.05 * len(html))
+    assert (len(got_text) > 0.05 * len(html))
     assert '<' not in got_text
 
 

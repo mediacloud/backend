@@ -10,7 +10,7 @@ import mediawords.db.exceptions.handler
 import mediawords.dbi.downloads
 from mediawords.tm.guess_date import guess_date, GuessDateResult
 import mediawords.tm.media
-import mediawords.util.html
+import mediawords.util.parse_html
 from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_object_from_bytes_if_needed
 import mediawords.util.url
@@ -348,7 +348,7 @@ def generate_story(
     medium = mediawords.tm.media.guess_medium(db, url)
     feed = get_spider_feed(db, medium)
     spidered_tag = mediawords.tm.media.get_spidered_tag(db)
-    title = mediawords.util.html.html_title(content, url, _MAX_TITLE_LENGTH)
+    title = mediawords.util.parse_html.html_title(content, url, _MAX_TITLE_LENGTH)
 
     story = {
         'url': url,

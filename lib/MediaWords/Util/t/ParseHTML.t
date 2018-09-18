@@ -9,7 +9,7 @@ use Text::Trim;
 use Test::Deep;
 use MediaWords::Languages::en;
 
-use_ok( 'MediaWords::Util::HTML' );
+use_ok( 'MediaWords::Util::ParseHTML' );
 
 sub test_html_strip()
 {
@@ -17,7 +17,7 @@ sub test_html_strip()
         <strong>Hello!</strong>
 EOF
     my $expected_output = 'Hello!';
-    my $actual_output   = trim( MediaWords::Util::HTML::html_strip( $input_html ) );
+    my $actual_output   = trim( MediaWords::Util::ParseHTML::html_strip( $input_html ) );
     is( $actual_output, $expected_output, 'html_strip()' );
 }
 
@@ -29,7 +29,7 @@ sub test_html_title()
 EOF
         my $fallback        = undef;
         my $expected_output = 'This is the title';
-        my $actual_output   = MediaWords::Util::HTML::html_title( $input_html, $fallback );
+        my $actual_output   = MediaWords::Util::ParseHTML::html_title( $input_html, $fallback );
         is( $actual_output, $expected_output, 'html_title() - basic test' )
     }
 
@@ -37,7 +37,7 @@ EOF
         my $input_html      = '';
         my $fallback        = undef;
         my $expected_output = '';
-        my $actual_output   = MediaWords::Util::HTML::html_title( $input_html, $fallback );
+        my $actual_output   = MediaWords::Util::ParseHTML::html_title( $input_html, $fallback );
         is( $actual_output, $expected_output, 'html_title() - empty' )
     }
 
@@ -47,7 +47,7 @@ EOF
 EOF
         my $fallback        = 'Fallback title (e.g. an URL)';
         my $expected_output = $fallback;
-        my $actual_output   = MediaWords::Util::HTML::html_title( $input_html, $fallback );
+        my $actual_output   = MediaWords::Util::ParseHTML::html_title( $input_html, $fallback );
         is( $actual_output, $expected_output, 'html_title() - fallback' )
     }
 
@@ -57,7 +57,7 @@ EOF
 EOF
         my $fallback        = undef;
         my $expected_output = 'Title with HTML tags';
-        my $actual_output   = MediaWords::Util::HTML::html_title( $input_html, $fallback );
+        my $actual_output   = MediaWords::Util::ParseHTML::html_title( $input_html, $fallback );
         is( $actual_output, $expected_output, 'html_title() - strip HTML' )
     }
 
@@ -67,7 +67,7 @@ EOF
 EOF
         my $fallback        = undef;
         my $expected_output = 'Very';
-        my $actual_output   = MediaWords::Util::HTML::html_title( $input_html, $fallback, 4 );
+        my $actual_output   = MediaWords::Util::ParseHTML::html_title( $input_html, $fallback, 4 );
         is( $actual_output, $expected_output, 'html_title() - trimmed title' )
     }
 
@@ -77,7 +77,7 @@ EOF
 EOF
         my $fallback        = undef;
         my $expected_output = 'Title';
-        my $actual_output   = MediaWords::Util::HTML::html_title( $input_html, $fallback );
+        my $actual_output   = MediaWords::Util::ParseHTML::html_title( $input_html, $fallback );
         is( $actual_output, $expected_output, 'html_title() - _get_medium_title_from_response() exception' )
     }
 }

@@ -50,7 +50,7 @@ use Scalar::Defer;
 use Readonly;
 
 use MediaWords::Util::Config;
-use MediaWords::Util::HTML;
+use MediaWords::Util::ParseHTML;
 use MediaWords::Util::ExtractText;
 use MediaWords::DB;
 use MediaWords::DBI::DownloadTexts;
@@ -139,7 +139,7 @@ my $_store_postgresql = lazy
         my $postgresql_then_s3_store = MediaWords::KeyValueStore::MultipleStores->new(
             {
                 stores_for_reading => [ $postgresql_store, $amazon_s3_store ],
-                stores_for_writing => [ $postgresql_store ], # where to write is defined by "download_storage_locations"
+                stores_for_writing => [ $postgresql_store ],    # where to write is defined by "download_storage_locations"
             }
         );
         return $postgresql_then_s3_store;
@@ -492,7 +492,7 @@ sub _call_extractor_on_html($)
     my $content_ref = shift;
 
     my $extracted_html = MediaWords::Util::ExtractText::extract_article_from_html( $$content_ref );
-    my $extracted_text = MediaWords::Util::HTML::html_strip( $extracted_html );
+    my $extracted_text = MediaWords::Util::ParseHTML::html_strip( $extracted_html );
 
     return {
         'extracted_html' => $extracted_html,

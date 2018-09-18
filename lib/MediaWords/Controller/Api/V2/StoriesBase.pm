@@ -15,7 +15,7 @@ use List::Compare;
 use MediaWords::DBI::Stories;
 use MediaWords::Solr;
 use MediaWords::Solr::TagCounts;
-use MediaWords::Util::HTML;
+use MediaWords::Util::ParseHTML;
 use MediaWords::Util::JSON;
 
 =head1 NAME
@@ -222,7 +222,8 @@ SQL
         {
             if ( $story_text_data->{ full_text_rss } )
             {
-                $story_text_data->{ story_text } = MediaWords::Util::HTML::html_strip( $story_text_data->{ story_text } );
+                $story_text_data->{ story_text } =
+                  MediaWords::Util::ParseHTML::html_strip( $story_text_data->{ story_text } );
             }
         }
 
