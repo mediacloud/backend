@@ -1,27 +1,29 @@
 {
-    "collect_date":"2018-02-13 18:12:48.254158",
-    "content":"<p>This is the third item.</p>\n",    "description":"RSS description of the third inline item.",
+    "collect_date":"2018-09-19 06:23:45.213861",
+    "content":"<p>This is the third item.</p>\n",
+    "description":"RSS description of the third inline item.",
     "extracted_text":"Third inline item\n***\n\nRSS description of the third inline item.\n***\n\nThis is the third item.",
     "feed_type":"syndicated",
     "full_text_rss":false,
     "guid":"http://www.example.com/inline_content/item_3.html",
     "language":"en",
     "media_id":1,
-    "publish_date":"2009-06-11 05:57:00",
+    "publish_date":"2009-06-11 13:57:00",
     "stories_id":3,
     "story_sentences":[
-        {            "is_dup":null,
+        {
+            "is_dup":null,
             "language":"en",
             "media_id":1,
-            "publish_date":"2009-06-11 05:57:00",
+            "publish_date":"2009-06-11 13:57:00",
             "sentence":"Third inline item.RSS description of the third inline item.",
             "sentence_number":0,
             "stories_id":3,
-            "story_sentences_id":4
+            "story_sentences_id":3
         }
     ],
     "tags":[],
-    "timezone":"America/Chicago",
+    "timezone":"Europe/Vilnius",
     "title":"Third inline item",
-    "url":"http://namshub:43783/inline_content/item_3.html"
+    "url":"http://tundra.local:57021/inline_content/item_3.html"
 }

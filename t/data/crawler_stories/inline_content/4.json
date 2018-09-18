@@ -1,27 +1,29 @@
 {
-    "collect_date":"2018-02-13 18:12:53.397407",
-    "content":"<p>\n    This RSS feed is used to test whether very short downloads (stored directly\n    in the <code>downloads.path</code> as <code>\"content:...\"</code>) are being\n    stored / extracted / fetched correctly.\n</p>\n",    "description":null,
+    "collect_date":"2018-09-19 06:23:50.356696",
+    "content":"<p>\n    This RSS feed is used to test whether very short downloads (stored directly\n    in the <code>downloads.path</code> as <code>\"content:...\"</code>) are being\n    stored / extracted / fetched correctly.\n</p>\n",
+    "description":null,
     "extracted_text":"(no title)\n***\n\n\n***\n\nThis RSS feed is used to test whether very short downloads (stored directly\n    in the downloads.path as \"content:.\" ) are being\n    stored / extracted / fetched correctly. .",
     "feed_type":"web_page",
     "full_text_rss":false,
-    "guid":"1518567173:http://namshub:43783//inline_content/home.html",
+    "guid":"1537309430:http://tundra.local:57021//inline_content/home.html",
     "language":"en",
     "media_id":1,
-    "publish_date":"2018-02-13 18:12:53",
+    "publish_date":"2018-09-19 01:23:50",
     "stories_id":4,
     "story_sentences":[
-        {            "is_dup":null,
+        {
+            "is_dup":null,
             "language":"en",
             "media_id":1,
-            "publish_date":"2018-02-13 18:12:53",
+            "publish_date":"2018-09-19 01:23:50",
             "sentence":"This RSS feed is used to test whether very short downloads (stored directly in the downloads.path as \"content:.\" ) are being stored / extracted / fetched correctly..",
             "sentence_number":0,
             "stories_id":4,
-            "story_sentences_id":1
+            "story_sentences_id":2
         }
     ],
     "tags":[],
-    "timezone":"America/Chicago",
+    "timezone":"Europe/Vilnius",
     "title":"(no title)",
-    "url":"http://namshub:43783//inline_content/home.html"
+    "url":"http://tundra.local:57021//inline_content/home.html"
 }
