@@ -84,7 +84,7 @@ PyYAML==3.13
 
 # Python 3 compatible version of Google's re2 library (requires libre2-dev system package)
 # (untagged and unreleased 0.2.23 version which builds on Python 3.7)
-https://github.com/andreasvc/pyre2/archive/3e01eba6ba3eabd1359ef5e16c938c8866deea70.zip
+https://github.com/andreasvc/pyre2/archive/3e01eba6ba3eabd1359ef5e16c938c8866deea70.zip --force-reinstall
 
 # Extracting text from stories
 readability-lxml==0.7
