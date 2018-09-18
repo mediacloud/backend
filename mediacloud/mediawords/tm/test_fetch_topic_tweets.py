@@ -11,8 +11,8 @@ from mediawords.test.test_database import TestDatabaseWithSchemaTestCase
 import mediawords.test.db
 import mediawords.tm.fetch_topic_tweets
 import mediawords.util.paths
-
 from mediawords.util.log import create_logger
+from mediawords.util.parse_json import decode_json
 
 logger = create_logger(__name__)
 
@@ -60,7 +60,7 @@ class MockCrimsonHexagon(mediawords.tm.fetch_topic_tweets.AbstractCrimsonHexagon
         with open(filename, 'r', encoding='utf-8') as fh:
             json = fh.read()
 
-        data = dict(mediawords.util.json.decode_json(json))
+        data = dict(decode_json(json))
 
         assert 'posts' in data
         assert len(data['posts']) >= MOCK_TWEETS_PER_DAY
@@ -129,7 +129,7 @@ def validate_topic_tweets(db: DatabaseHandler, topic_tweet_day: dict) -> None:
     assert len(topic_tweets) == topic_tweet_day['num_ch_tweets']
 
     for topic_tweet in topic_tweets:
-        tweet_data = dict(mediawords.util.json.decode_json(topic_tweet['data']))
+        tweet_data = dict(decode_json(topic_tweet['data']))
 
         # random field that should be coming from twitter
         assert 'assignedCategoryId' in tweet_data
@@ -155,7 +155,7 @@ def validate_topic_tweet_urls(db: DatabaseHandler, topic: dict) -> None:
 
     expected_num_urls = 0
     for topic_tweet in topic_tweets:
-        data = dict(mediawords.util.json.decode_json(topic_tweet['data']))
+        data = dict(decode_json(topic_tweet['data']))
         expected_num_urls += len(data['tweet']['entities']['urls'])
 
     # first sanity check to make sure we got some urls
@@ -165,7 +165,7 @@ def validate_topic_tweet_urls(db: DatabaseHandler, topic: dict) -> None:
     total_json_urls = 0
     for topic_tweet in topic_tweets:
 
-        ch_post = dict(mediawords.util.json.decode_json(topic_tweet['data']))
+        ch_post = dict(decode_json(topic_tweet['data']))
         expected_urls = [x['expanded_url'] for x in ch_post['tweet']['entities']['urls']]
         total_json_urls += len(expected_urls)
 

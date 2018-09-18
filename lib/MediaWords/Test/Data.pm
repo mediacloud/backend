@@ -15,7 +15,7 @@ use FindBin;
 
 use MediaWords::Util::DateTime;
 use MediaWords::Util::SQL;
-use MediaWords::Util::JSON;
+use MediaWords::Util::ParseJSON;
 
 # get path to where data file(s) should be stored
 sub get_path_to_data_files(;$)
@@ -67,7 +67,7 @@ sub store_test_data($$;$)
 
     my $file   = _get_data_file( $basename, $subdirectory );
     my $pretty = 1;
-    my $json   = MediaWords::Util::JSON::encode_json( $data, $pretty );
+    my $json   = MediaWords::Util::ParseJSON::encode_json( $data, $pretty );
     write_file( $file, { binmode => ':utf8' }, $json );
 }
 
@@ -119,7 +119,7 @@ sub fetch_test_data($;$)
     my $file = _get_data_file( $basename, $subdirectory );
     my $json = decode( 'utf8', read_file( $file ) );
 
-    my $data = MediaWords::Util::JSON::decode_json( $json );
+    my $data = MediaWords::Util::ParseJSON::decode_json( $json );
 
     return $data;
 }

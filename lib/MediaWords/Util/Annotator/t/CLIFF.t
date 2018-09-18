@@ -14,7 +14,7 @@ use Data::Dumper;
 use Readonly;
 
 use MediaWords::Util::Annotator::CLIFF;
-use MediaWords::Util::JSON;
+use MediaWords::Util::ParseJSON;
 
 use MediaWords::Test::HTTP::HashServer;
 use MediaWords::Test::DB;
@@ -217,7 +217,7 @@ sub test_cliff_annotator($)
         }
     );
 
-    my $encoded_json = MediaWords::Util::JSON::encode_json( _sample_cliff_response() );
+    my $encoded_json = MediaWords::Util::ParseJSON::encode_json( _sample_cliff_response() );
 
     my $pages = {
 

@@ -16,7 +16,6 @@ use MediaWords::DBI::Stories;
 use MediaWords::Solr;
 use MediaWords::Solr::TagCounts;
 use MediaWords::Util::ParseHTML;
-use MediaWords::Util::JSON;
 
 =head1 NAME
 

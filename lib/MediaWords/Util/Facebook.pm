@@ -10,7 +10,7 @@ use warnings;
 use MediaWords::CommonLibs;
 
 use MediaWords::Util::Config;
-use MediaWords::Util::JSON;
+use MediaWords::Util::ParseJSON;
 use MediaWords::Util::Process;
 use MediaWords::Util::URL;
 use MediaWords::Util::Web;
@@ -131,7 +131,7 @@ sub api_request($$)
 
         $decoded_content = $response->decoded_content;
 
-        eval { $data = MediaWords::Util::JSON::decode_json( $decoded_content ); };
+        eval { $data = MediaWords::Util::ParseJSON::decode_json( $decoded_content ); };
 
         if ( $response->is_success )
         {
@@ -252,7 +252,7 @@ sub get_url_share_comment_counts
         LOGDIE "Returned URL ($returned_url) is not the same as requested URL ($url)";
     }
 
-    my $share_count   = $data->{ share }->{ share_count }   // 0;
+    my $share_count   = $data->{ share }->{ share_count } // 0;
     my $comment_count = $data->{ share }->{ comment_count } // 0;
 
     DEBUG "* Share count: $share_count, comment count: $comment_count";

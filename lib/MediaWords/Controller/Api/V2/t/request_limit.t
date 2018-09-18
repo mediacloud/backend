@@ -21,6 +21,7 @@ use MediaWords::Test::DB;
 
 use MediaWords::DBI::Auth;
 use MediaWords::Util::Mail;
+use MediaWords::Util::ParseJSON;
 
 sub test_request_limit($)
 {
@@ -95,7 +96,7 @@ SQL
         my $response = request( '/api/v2/auth/profile?key=' . $limited_user_api_key );
         ok( $response->is_success );
 
-        my $profile = MediaWords::Util::JSON::decode_json( $response->decoded_content );
+        my $profile = MediaWords::Util::ParseJSON::decode_json( $response->decoded_content );
         ok( $profile );
         is( $profile->{ email }, $email );
     }
@@ -107,7 +108,7 @@ SQL
     ok( !$response->is_success );
     is( $response->code(), HTTP_TOO_MANY_REQUESTS );
 
-    my $profile = MediaWords::Util::JSON::decode_json( $response->decoded_content );
+    my $profile = MediaWords::Util::ParseJSON::decode_json( $response->decoded_content );
     ok( $profile->{ error } );
     like( $profile->{ error }, qr/exceeded weekly requests/i );
 }

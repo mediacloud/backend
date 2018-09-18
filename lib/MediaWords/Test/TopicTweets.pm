@@ -24,7 +24,7 @@ use MediaWords::Test::DB;
 use MediaWords::Test::Data;
 use MediaWords::Test::Supervisor;
 use MediaWords::Util::Config;
-use MediaWords::Util::JSON;
+use MediaWords::Util::ParseJSON;
 
 # test port for mock api server
 Readonly my $PORT => 8899;
@@ -100,13 +100,13 @@ sub get_test_data
 
     my $json = MediaWords::Test::Data::read_test_file( "ch", "ch-posts-$file_date.json" );
 
-    my $data = MediaWords::Util::JSON::decode_json( $json );
+    my $data = MediaWords::Util::ParseJSON::decode_json( $json );
 
     die( "no posts found" ) unless ( $data->{ posts } );
 
     splice( @{ $data->{ posts } }, $MOCK_TWEETS_PER_DAY );
 
-    return MediaWords::Util::JSON::encode_json( $data );
+    return MediaWords::Util::ParseJSON::encode_json( $data );
 }
 
 # return a mock ch response to the posts end point.  generate the mock response by sending back data
@@ -129,7 +129,7 @@ sub mock_ch_posts
 
     my $json = get_test_data( $start_date );
 
-    my $data = MediaWords::Util::JSON::decode_json( $json );
+    my $data = MediaWords::Util::ParseJSON::decode_json( $json );
 
     # replace tweets with the epoch of the start date so that we can infer the date of each tweet in
     # mock_twitter_lookup below
@@ -140,7 +140,7 @@ sub mock_ch_posts
         $ch_post->{ url } =~ s/status\/\d+/status\/$new_id/;
     }
 
-    my $new_json = MediaWords::Util::JSON::encode_json( $data );
+    my $new_json = MediaWords::Util::ParseJSON::encode_json( $data );
 
     my $response = "HTTP/1.1 200 OK\r\n";
     $response .= "Content-Type: application/json\r\n";
@@ -231,7 +231,7 @@ sub mock_twitter_lookup
         );
     }
 
-    my $json = MediaWords::Util::JSON::encode_json( $tweets );
+    my $json = MediaWords::Util::ParseJSON::encode_json( $tweets );
 
     my $response = "HTTP/1.1 200 OK\r\n";
     $response .= "Content-Type: application/json\r\n";
@@ -258,7 +258,7 @@ SQL
     my $expected_num_urls = 0;
     for my $topic_tweet ( @{ $topic_tweets } )
     {
-        my $data = MediaWords::Util::JSON::decode_json( $topic_tweet->{ data } );
+        my $data = MediaWords::Util::ParseJSON::decode_json( $topic_tweet->{ data } );
         $expected_num_urls += scalar( @{ $data->{ tweet }->{ entities }->{ urls } } );
     }
 
@@ -269,7 +269,7 @@ SQL
     my $total_json_urls = 0;
     for my $topic_tweet ( @{ $topic_tweets } )
     {
-        my $ch_post = MediaWords::Util::JSON::decode_json( $topic_tweet->{ data } );
+        my $ch_post = MediaWords::Util::ParseJSON::decode_json( $topic_tweet->{ data } );
         my $expected_urls = [ map { $_->{ expanded_url } } @{ $ch_post->{ tweet }->{ entities }->{ urls } } ];
         $total_json_urls += scalar( @{ $expected_urls } );
 
@@ -308,7 +308,7 @@ SQL
     my $user_stories_lookup        = {};
     for my $topic_tweet ( @{ $topic_tweets } )
     {
-        my $data = MediaWords::Util::JSON::decode_json( $topic_tweet->{ data } );
+        my $data = MediaWords::Util::ParseJSON::decode_json( $topic_tweet->{ data } );
         ok( $data->{ url }, "topic tweet data has url" );
 
         my $tweet = $data->{ tweet } || next;

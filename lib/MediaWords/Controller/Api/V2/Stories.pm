@@ -17,7 +17,7 @@ use MediaWords::DBI::Stories;
 use MediaWords::Solr;
 use MediaWords::Util::Annotator::CLIFF;
 use MediaWords::Util::Annotator::NYTLabels;
-use MediaWords::Util::JSON;
+use MediaWords::Util::ParseJSON;
 
 =head1 NAME
 
@@ -140,7 +140,7 @@ sub cliff : Local
     }
 
     Readonly my $json_pretty => 1;
-    my $json = MediaWords::Util::JSON::encode_json( $json_items, $json_pretty );
+    my $json = MediaWords::Util::ParseJSON::encode_json( $json_items, $json_pretty );
 
     # Catalyst expects bytes
     $json = encode_utf8( $json );
@@ -201,7 +201,7 @@ sub nytlabels : Local
     }
 
     Readonly my $json_pretty => 1;
-    my $json = MediaWords::Util::JSON::encode_json( $json_items, $json_pretty );
+    my $json = MediaWords::Util::ParseJSON::encode_json( $json_items, $json_pretty );
 
     # Catalyst expects bytes
     $json = encode_utf8( $json );

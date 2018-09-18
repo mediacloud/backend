@@ -12,7 +12,7 @@ MediaWords::DBI::ApiLinks - various functions related to the api_links table, us
 use strict;
 use warnings;
 
-use MediaWords::Util::JSON;
+use MediaWords::Util::ParseJSON;
 
 use Readonly;
 
@@ -31,7 +31,7 @@ sub find_or_create_link($$)
 
     my $params_copy = { %{ $params } };
     delete( $params_copy->{ key } );
-    my $params_json = MediaWords::Util::JSON::encode_json( $params_copy );
+    my $params_json = MediaWords::Util::ParseJSON::encode_json( $params_copy );
 
     my $path = $c->req->path;
 
@@ -51,7 +51,7 @@ sub set_paging_links($$$$)
 {
     my ( $c, $link, $entity, $entity_data_key ) = @_;
 
-    my $link_params = MediaWords::Util::JSON::decode_json( $link->{ params_json } );
+    my $link_params = MediaWords::Util::ParseJSON::decode_json( $link->{ params_json } );
 
     if ( $link_params->{ offset } )
     {
@@ -119,7 +119,7 @@ SQL
 
         die( "no such link id exists: $link_id" ) unless ( $link );
 
-        my $link_params = MediaWords::Util::JSON::decode_json( $link->{ params_json } );
+        my $link_params = MediaWords::Util::ParseJSON::decode_json( $link->{ params_json } );
 
         my $key = $c->req->params->{ key };
 

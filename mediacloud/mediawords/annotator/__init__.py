@@ -7,7 +7,7 @@ import re
 from mediawords.db import DatabaseHandler
 from mediawords.key_value_store import KeyValueStore
 from mediawords.key_value_store.postgresql import PostgreSQLStore
-from mediawords.util.json import decode_json, encode_json
+from mediawords.util.parse_json import decode_json, encode_json
 from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_object_from_bytes_if_needed
 from mediawords.util.process import fatal_error

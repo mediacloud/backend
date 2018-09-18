@@ -10,7 +10,7 @@ use Readonly;
 use namespace::autoclean;
 
 use MediaWords::Solr;
-use MediaWords::Util::JSON;
+use MediaWords::Util::ParseJSON;
 
 Readonly my $SQL_FIELD_LIST => "focus_definitions_id, name, description, arguments->>'query' query";
 
@@ -129,7 +129,7 @@ sub update_PUT
         eval { MediaWords::Solr::query( $db, { q => $query, rows => 0 } ) };
         die( "invalid solr query: $@" ) if ( $@ );
 
-        $c->req->data->{ arguments } = MediaWords::Util::JSON::encode_json( { query => $query } );
+        $c->req->data->{ arguments } = MediaWords::Util::ParseJSON::encode_json( { query => $query } );
     }
 
     my $fd = $self->update_table( $c, 'focus_definitions', $focus_definitions_id, [ qw/name description arguments/ ] );

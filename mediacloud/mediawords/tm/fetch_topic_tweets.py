@@ -8,7 +8,7 @@ import tweepy
 import typing
 
 from mediawords.db import DatabaseHandler
-import mediawords.util.json
+import mediawords.util.parse_json
 from mediawords.util.web.user_agent import UserAgent
 
 from mediawords.util.log import create_logger
@@ -93,7 +93,7 @@ class CrimsonHexagon(AbstractCrimsonHexagon):
 
         decoded_content = response.decoded_content()
 
-        data = dict(mediawords.util.json.decode_json(decoded_content))
+        data = dict(mediawords.util.parse_json.decode_json(decoded_content))
 
         if 'status' not in data or not data['status'] == 'success':
             raise McFetchTopicTweetsDataException("Unknown response status: " + str(data))
@@ -166,7 +166,7 @@ class Twitter(AbstractTwitter):
 
         # it is hard to mock tweepy data directly, and the default tweepy objects are not json serializable,
         # so just return a direct dict decoding of the raw twitter payload
-        return list(mediawords.util.json.decode_json(tweets))
+        return list(mediawords.util.parse_json.decode_json(tweets))
 
 
 def _add_tweets_to_ch_posts(twitter_class: typing.Type[AbstractTwitter], ch_posts: list) -> None:
@@ -238,7 +238,7 @@ def _store_tweet_and_urls(db: DatabaseHandler, topic_tweet_day: dict, ch_post: d
     Return:
     None
     """
-    data_json = mediawords.util.json.encode_json(ch_post)
+    data_json = mediawords.util.parse_json.encode_json(ch_post)
 
     # null characters are not legal in json but for some reason get stuck in these tweets
     data_json = data_json.replace(u'\u0000', '')
