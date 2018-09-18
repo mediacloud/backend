@@ -7,6 +7,9 @@ backoff==1.6.0
 # Amazon S3
 boto3==1.9.5
 
+# HTML parsing
+beautifulsoup4==4.6.3
+
 # Python 3.7 upgrade
 CacheMan==2.1.0
 
