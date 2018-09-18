@@ -7,6 +7,9 @@ backoff==1.6.0
 # Amazon S3
 boto3==1.9.5
 
+# Python 3.7 upgrade
+CacheMan==2.1.0
+
 # Job broker
 Celery==4.2.1
 
@@ -64,6 +67,12 @@ pip==18.0
 # PostgreSQL access
 psycopg2-binary==2.7.5
 
+# Python 3.7 upgrade
+pycodestyle==2.4.0
+
+# Python 3.7 upgrade
+pyflakes==2.4.0
+
 # Snowball stemmer (NLTK's implementation doesn't support Turkish)
 PyStemmer==1.3.0
 
@@ -88,6 +97,9 @@ https://github.com/andreasvc/pyre2/archive/3e01eba6ba3eabd1359ef5e16c938c8866dee
 
 # Extracting text from stories
 readability-lxml==0.7
+
+# Python 3.7 upgrade
+regex==2018.08.29
 
 # Mocking HTTP requests
 responses==0.9.0
