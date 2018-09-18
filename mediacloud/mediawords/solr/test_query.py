@@ -671,10 +671,10 @@ def test_inclusive_re():
     __validate_inclusive_re('foo -( bar and bar )', '(?: [[:<:]]foo )')
 
     # phrase
-    __validate_inclusive_re('"foo bar-baz"', r"(?: [[:<:]]foo | [[:<:]]bar\\\\\\-baz )")
+    __validate_inclusive_re('"foo bar-baz"', r"(?: [[:<:]]foo | [[:<:]]bar\\\-baz )")
     __validate_inclusive_re(
         '1 or 2 or "foo bar-baz"',
-        r'(?: [[:<:]]1 | [[:<:]]2 | (?: [[:<:]]foo | [[:<:]]bar\\\\\\-baz ) )'
+        r'(?: [[:<:]]1 | [[:<:]]2 | (?: [[:<:]]foo | [[:<:]]bar\\\-baz ) )'
     )
 
     __validate_inclusive_re(
@@ -684,7 +684,7 @@ def test_inclusive_re():
 
     __validate_inclusive_re(
         '( 1 or 2 or "foo bar-baz" ) and "foz fot"',
-        r'(?: (?: [[:<:]]1 | [[:<:]]2 | (?: [[:<:]]foo | [[:<:]]bar\\\\\\-baz ) ) | (?: [[:<:]]foz | [[:<:]]fot ) )'
+        r'(?: (?: [[:<:]]1 | [[:<:]]2 | (?: [[:<:]]foo | [[:<:]]bar\\\-baz ) ) | (?: [[:<:]]foz | [[:<:]]fot ) )'
     )
 
     # queries from actual topics
