@@ -1,4 +1,6 @@
-"""Various utility functions for handling html."""
+"""Various utility functions for handling HTML."""
+
+# MC_REWRITE_TO_PYTHON: try renaming back to .util.html
 
 import re
 from urllib.parse import urljoin
