@@ -98,15 +98,15 @@ class TestDatabaseHandler(TestDatabaseTestCase):
 
         date = self.db().query("""SELECT NOW()::DATE AS date""").hash()
         assert isinstance(date['date'], str)
-        assert re.match('^\d\d\d\d-\d\d-\d\d$', date['date'])
+        assert re.match(r'^\d\d\d\d-\d\d-\d\d$', date['date'])
 
         time = self.db().query("""SELECT NOW()::TIME AS time""").hash()
         assert isinstance(time['time'], str)
-        assert re.match('^\d\d:\d\d:\d\d(\.\d+)?$', time['time'])
+        assert re.match(r'^\d\d:\d\d:\d\d(\.\d+)?$', time['time'])
 
         timestamp = self.db().query("""SELECT NOW()::TIMESTAMP AS timestamp""").hash()
         assert isinstance(timestamp['timestamp'], str)
-        assert re.match('^\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d(\.\d+)?$', timestamp['timestamp'])
+        assert re.match(r'^\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d(\.\d+)?$', timestamp['timestamp'])
 
     def test_query_percentage_sign_like(self):
 

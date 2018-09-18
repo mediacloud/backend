@@ -386,8 +386,8 @@ class JSONAnnotator(metaclass=abc.ABCMeta):
     def __strip_linebreaks_and_whitespace(string: str) -> str:
         """Strip linebreaks and whitespaces for tag / tag set name (tag name can't contain linebreaks)."""
 
-        string = re.sub("[\r\n]", " ", string)
-        string = re.sub("\s\s*", " ", string)
+        string = re.sub(r"[\r\n]", " ", string)
+        string = re.sub(r"\s\s*", " ", string)
         string = string.strip()
 
         return string

@@ -4,7 +4,6 @@ import datetime
 import re2
 import socket
 import time
-import traceback
 import typing
 
 from mediawords.db import DatabaseHandler
@@ -45,11 +44,10 @@ FETCH_STATE_SKIPPED = 'skipped'
 
 class McTMFetchLinkException(Exception):
     """Default exception for this package."""
-
     pass
 
 
-def _network_is_down(host: str=DEFAULT_NETWORK_DOWN_HOST, port: int=DEFAULT_NETWORK_DOWN_PORT) -> bool:
+def _network_is_down(host: str = DEFAULT_NETWORK_DOWN_HOST, port: int = DEFAULT_NETWORK_DOWN_PORT) -> bool:
     """Test whether the internet is accessible by trying to connect to prot 80 on the given host."""
     try:
         socket.create_connection((host, port))
@@ -63,10 +61,10 @@ def _network_is_down(host: str=DEFAULT_NETWORK_DOWN_HOST, port: int=DEFAULT_NETW
 def fetch_url(
         db: DatabaseHandler,
         url: str,
-        network_down_host: str=DEFAULT_NETWORK_DOWN_HOST,
-        network_down_port: str=DEFAULT_NETWORK_DOWN_PORT,
-        network_down_timeout: int=DEFAULT_NETWORK_DOWN_TIMEOUT,
-        domain_timeout: typing.Optional[int]=None) -> typing.Optional[Request]:
+        network_down_host: str = DEFAULT_NETWORK_DOWN_HOST,
+        network_down_port: str = DEFAULT_NETWORK_DOWN_PORT,
+        network_down_timeout: int = DEFAULT_NETWORK_DOWN_TIMEOUT,
+        domain_timeout: typing.Optional[int] = None) -> typing.Optional[Request]:
     """Fetch a url and return the content.
 
     If fetching the url results in a 400 error, check whether the network_down_host is accessible.  If so,
@@ -103,7 +101,7 @@ def fetch_url(
             return response
 
 
-def content_matches_topic(content: str, topic: dict, assume_match: bool=False) -> bool:
+def content_matches_topic(content: str, topic: dict, assume_match: bool = False) -> bool:
     """Test whether the content matches the topic['pattern'] regex.
 
     Only check the first megabyte of the string to avoid the occasional very long regex check.
@@ -228,7 +226,7 @@ def _ignore_link_pattern(url: typing.Optional[str]) -> bool:
 def _try_fetch_topic_url(
         db: DatabaseHandler,
         topic_fetch_url: dict,
-        domain_timeout: typing.Optional[int]=None) -> None:
+        domain_timeout: typing.Optional[int] = None) -> None:
     """Implement the logic of fetch_topic_url without the try: or the topic_fetch_url update."""
 
     log.warning("_try_fetch_topic_url: %s" % topic_fetch_url['url'])
@@ -330,7 +328,7 @@ def _try_fetch_topic_url(
     _update_tfu_message(db, topic_fetch_url, "_try_fetch_url done")
 
 
-def fetch_topic_url(db: DatabaseHandler, topic_fetch_urls_id: int, domain_timeout: typing.Optional[int]=None) -> None:
+def fetch_topic_url(db: DatabaseHandler, topic_fetch_urls_id: int, domain_timeout: typing.Optional[int] = None) -> None:
     """Fetch a url for a topic and create a media cloud story from it if its content matches the topic pattern.
 
     Update the following fields in the topic_fetch_urls row:
@@ -361,8 +359,9 @@ def fetch_topic_url(db: DatabaseHandler, topic_fetch_urls_id: int, domain_timeou
     None
 
     """
+    topic_fetch_url = db.require_by_id('topic_fetch_urls', topic_fetch_urls_id)
+
     try:
-        topic_fetch_url = db.require_by_id('topic_fetch_urls', topic_fetch_urls_id)
         log.info("fetch_link: %s" % topic_fetch_url['url'])
         _try_fetch_topic_url(db=db, topic_fetch_url=topic_fetch_url, domain_timeout=domain_timeout)
 
@@ -371,9 +370,9 @@ def fetch_topic_url(db: DatabaseHandler, topic_fetch_urls_id: int, domain_timeou
 
     except McThrottledDomainException as e:
         raise e
-    except Exception as e:
+    except Exception as ex:
         topic_fetch_url['state'] = FETCH_STATE_PYTHON_ERROR
-        topic_fetch_url['message'] = traceback.format_exc()
+        topic_fetch_url['message'] = str(ex)
         log.warning('topic_fetch_url %s failed: %s' % (topic_fetch_url['url'], topic_fetch_url['message']))
 
     db.update_by_id('topic_fetch_urls', topic_fetch_url['topic_fetch_urls_id'], topic_fetch_url)

@@ -1,4 +1,5 @@
 import abc
+from abc import ABC
 from collections.abc import Iterator
 from typing import List
 
@@ -12,7 +13,7 @@ from mediawords.util.word2vec import McWord2vecException
 log = create_logger(__name__)
 
 
-class AbstractSentenceIterator(Iterator, metaclass=abc.ABCMeta):
+class AbstractSentenceIterator(Iterator, ABC, metaclass=abc.ABCMeta):
     """Abstract story sentence iterator."""
     pass
 

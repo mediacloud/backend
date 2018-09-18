@@ -13,6 +13,7 @@ import mediawords.tm.fetch_topic_tweets
 import mediawords.util.paths
 
 from mediawords.util.log import create_logger
+
 logger = create_logger(__name__)
 
 # this is an estimate of the number of tweets per day included in the ch-posts-date.json files
@@ -70,7 +71,7 @@ class MockCrimsonHexagon(mediawords.tm.fetch_topic_tweets.AbstractCrimsonHexagon
         # tweet_urler_lookup below
         i = 0
         for ch_post in data['posts']:
-            ch_post['url'] = re.sub('status/(\d+)/', '/status/' + str(i), ch_post['url'])
+            ch_post['url'] = re.sub(r'status/(\d+)/', '/status/' + str(i), ch_post['url'])
             i += 1
 
         return data
@@ -90,7 +91,6 @@ class MockTwitter(mediawords.tm.fetch_topic_tweets.AbstractTwitter):
 
         tweets = []
         for tweet_id in ids:
-
             # restrict url and user ids to desired number
             # include randomness so that the urls and users are not nearly collated
             url_id = int(random.randint(1, int(tweet_id))) % NUM_MOCK_URLS
@@ -224,7 +224,7 @@ def test_ch_api() -> None:
 
     for post in got_posts:
         assert 'url' in post
-        assert re.search('status/\d+', post['url'])
+        assert re.search(r'status/\d+', post['url'])
 
 
 class TestFetchTopicTweets(TestDatabaseWithSchemaTestCase):

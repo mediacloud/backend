@@ -184,7 +184,7 @@ def _get_store_for_reading(download: dict) -> KeyValueStore:
 
     path = download.get('path', 's3:')
 
-    match = re.search('^([\w]+):', path)
+    match = re.search(r'^([\w]+):', path)
     location = match.group(1) if match else 's3'
     location = location.lower()
 
@@ -305,7 +305,7 @@ def _set_cached_extractor_results(db, download, results) -> None:
     db.create('cached_extractor_results', cache)
 
 
-def extract(db: DatabaseHandler, download: dict, use_cache: bool=False) -> dict:
+def extract(db: DatabaseHandler, download: dict, use_cache: bool = False) -> dict:
     """Extract the content for the given download.
 
     Arguments:

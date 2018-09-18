@@ -556,10 +556,8 @@ def __parse_tokens(tokens: List[Token], want_type: List[TokenType] = None) -> Pa
         elif token.token_type == TokenType.PHRASE:
             want_type = [TokenType.CLOSE, TokenType.AND, TokenType.OR, TokenType.PLUS]
 
-            if ((len(tokens) >= 2) and
-                    (tokens[0].token_type == TokenType.PROXIMITY) and
-                    (tokens[1].token_type == TokenType.TERM) and
-                    (re.search(r'^\d+$', tokens[1].token_value))):
+            if ((len(tokens) >= 2) and (tokens[0].token_type == TokenType.PROXIMITY) and (
+                    tokens[1].token_type == TokenType.TERM) and (re.search(r'^\d+$', tokens[1].token_value))):
                 tokens.pop(0)
                 distance_token = tokens.pop(0)
                 clause = TermNode(token.token_value, phrase=True, proximity=int(distance_token.token_value))

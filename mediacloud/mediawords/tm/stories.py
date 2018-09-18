@@ -3,7 +3,6 @@
 import datetime
 import operator
 import re2
-import traceback
 import typing
 
 from mediawords.db import DatabaseHandler
@@ -176,7 +175,7 @@ def ignore_redirect(db: DatabaseHandler, url: str, redirect_url: typing.Optional
     return match is not None
 
 
-def get_story_match(db: DatabaseHandler, url: str, redirect_url: typing.Optional[str]=None) -> typing.Optional[dict]:
+def get_story_match(db: DatabaseHandler, url: str, redirect_url: typing.Optional[str] = None) -> typing.Optional[dict]:
     """Search for any story within the database that matches the given url.
 
     Searches for any story whose guid or url matches either the url or redirect_url or the
@@ -204,7 +203,7 @@ def get_story_match(db: DatabaseHandler, url: str, redirect_url: typing.Optional
     nu = mediawords.util.url.normalize_url_lossy(u)
     nru = mediawords.util.url.normalize_url_lossy(ru)
 
-    urls = list(set((u, ru, nu, nru)))
+    urls = list({u, ru, nu, nru})
 
     # for some reason some rare urls trigger a seq scan on the below query
     db.query("set enable_seqscan=off")
@@ -330,7 +329,7 @@ def generate_story(
         db: DatabaseHandler,
         url: str,
         content: str,
-        fallback_date: typing.Optional[datetime.datetime]=None) -> dict:
+        fallback_date: typing.Optional[datetime.datetime] = None) -> dict:
     """Add a new story to the database by guessing metadata using the given url and content.
 
     This function guesses the medium, feed, title, and date of the story from the url and content.
@@ -370,10 +369,10 @@ def generate_story(
 
     try:
         story = db.create('stories', story)
-    except mediawords.db.exceptions.handler.McUniqueConstraintException as e:
-        raise McTMStoriesDuplicateException("Attempt to insert duplicate story url %s" % url)
-    except Exception as e:
-        raise McTMStoriesException("Error adding story: %s" % traceback.format_exc())
+    except mediawords.db.exceptions.handler.McUniqueConstraintException as ex:
+        raise McTMStoriesDuplicateException("Attempt to insert duplicate story URL {} failed: {}".format(url, ex))
+    except Exception as ex:
+        raise McTMStoriesException("Error adding story: {}".format(ex))
 
     db.query(
         "insert into stories_tags_map (stories_id, tags_id) values (%(a)s, %(b)s)",
@@ -387,7 +386,7 @@ def generate_story(
 
     download = create_download_for_new_story(db, story, feed)
 
-    download = mediawords.dbi.downloads.store_content(db, download, content)
+    mediawords.dbi.downloads.store_content(db, download, content)
 
     return story
 

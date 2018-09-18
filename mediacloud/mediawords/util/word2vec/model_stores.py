@@ -19,7 +19,7 @@ class AbstractModelStore(object, metaclass=abc.ABCMeta):
         :param model_data: Raw serialized model data to be stored
         :return ID of a model that was just stored
         """
-        raise NotImplemented("Abstract method.")
+        raise NotImplementedError("Abstract method.")
 
     @abc.abstractmethod
     def read_model(self, models_id: int) -> bytes:
@@ -28,7 +28,7 @@ class AbstractModelStore(object, metaclass=abc.ABCMeta):
         :param models_id: Model ID to load
         :return Raw serialized model data that was read from the store
         """
-        raise NotImplemented("Abstract method.")
+        raise NotImplementedError("Abstract method.")
 
 
 class AbstractDatabaseModelStore(AbstractModelStore, metaclass=abc.ABCMeta):
@@ -42,12 +42,12 @@ class AbstractDatabaseModelStore(AbstractModelStore, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def model_table(self) -> str:
         """Return table name for word2vec model metadata."""
-        raise NotImplemented("Abstract method.")
+        raise NotImplementedError("Abstract method.")
 
     @abc.abstractmethod
     def data_table(self) -> str:
         """Return table name for word2vec model raw data."""
-        raise NotImplemented("Abstract method.")
+        raise NotImplementedError("Abstract method.")
 
     def __init__(self, db: DatabaseHandler, object_id: int):
         """Constructor.

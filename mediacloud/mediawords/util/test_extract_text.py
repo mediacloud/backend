@@ -5,7 +5,7 @@ from mediawords.util.extract_text import extractor_name, extract_article_from_ht
 
 def test_extractor_name():
     name = extractor_name()
-    assert re.match('^readability-lxml-[\d.]{3,7}?$', name)
+    assert re.match(r'^readability-lxml-[\d.]{3,7}?$', name)
 
     # Test caching
     cached_name = extractor_name()
@@ -99,7 +99,7 @@ def test_extract_text_from_html():
     extracted_text = extract_article_from_html(input_html)
 
     assert re.match(
-        """
+        r"""
             Kim\ Kardashian\s*?
             <body.*?>\s*?
                 <nav.*?>Chloe\ Kardashian</nav>\s*?

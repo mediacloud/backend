@@ -10,11 +10,11 @@ def test_tsquery():
         """Normalize tsquery by lowercasing and normalizing spaces."""
 
         # make spaces around parentheses not significant
-        tsquery = re.sub('\(', ' ( ', tsquery)
-        tsquery = re.sub('\)', ' ) ', tsquery)
+        tsquery = re.sub(r'\(', ' ( ', tsquery)
+        tsquery = re.sub(r'\)', ' ) ', tsquery)
 
         # make multiple spaces not significant
-        tsquery = re.sub('\s+', ' ', tsquery)
+        tsquery = re.sub(r'\s+', ' ', tsquery)
 
         tsquery = tsquery.lower()
 
@@ -243,13 +243,13 @@ def test_re():
         """Normalize tsquery by lowercasing and normalizing spaces."""
 
         # make multiple spaces not significant
-        s = re.sub('\s+', ' ', s)
+        s = re.sub(r'\s+', ' ', s)
 
         s = s.lower()
 
         return s
 
-    def __validate_re(solr_query, expected_re, is_logogram=False):
+    def __validate_re(solr_query: str, expected_re: str, is_logogram: bool = False):
         """Validate that the re generated from the given solr query matches the expected re."""
 
         got_re = parse(solr_query=solr_query).re(is_logogram)
@@ -257,12 +257,12 @@ def test_re():
         assert __normalize_re(got_re) == __normalize_re(expected_re)
 
     # single term
-    __validate_re('foo', '[[:<:]]foo')
-    __validate_re('( foo )', '[[:<:]]foo')
+    __validate_re('foo', r'[[:<:]]foo')
+    __validate_re('( foo )', r'[[:<:]]foo')
 
     # simple boolean
-    __validate_re('foo and bar', '(?: (?: [[:<:]]foo .* [[:<:]]bar ) | (?: [[:<:]]bar .* [[:<:]]foo ) )')
-    __validate_re('( foo and bar )', '(?: (?: [[:<:]]foo .* [[:<:]]bar ) | (?: [[:<:]]bar .* [[:<:]]foo ) )')
+    __validate_re('foo and bar', r'(?: (?: [[:<:]]foo .* [[:<:]]bar ) | (?: [[:<:]]bar .* [[:<:]]foo ) )')
+    __validate_re('( foo and bar )', r'(?: (?: [[:<:]]foo .* [[:<:]]bar ) | (?: [[:<:]]bar .* [[:<:]]foo ) )')
     __validate_re(
         'foo and bar and baz and bat',
 
@@ -332,8 +332,8 @@ def test_re():
     __validate_re('foo -( bar and bar )', '[[:<:]]foo')
 
     # phrase
-    __validate_re('"foo bar-baz"', "[[:<:]]foo[[:space:]]+bar\-baz")
-    __validate_re('1 or 2 or "foo bar-baz"', "(?: [[:<:]]1 | [[:<:]]2 | [[:<:]]foo[[:space:]]+bar\-baz )")
+    __validate_re('"foo bar-baz"', r"[[:<:]]foo[[:space:]]+bar\-baz")
+    __validate_re('1 or 2 or "foo bar-baz"', r"(?: [[:<:]]1 | [[:<:]]2 | [[:<:]]foo[[:space:]]+bar\-baz )")
     __validate_re(
         '( 1 or 2 or 3 ) and "foz fot"',
 
@@ -343,8 +343,8 @@ def test_re():
     __validate_re(
         '( 1 or 2 or "foo bar-baz" ) and "foz fot"',
 
-        "(?: (?: (?: [[:<:]]1 | [[:<:]]2 | [[:<:]]foo[[:space:]]+bar\-baz ) .* [[:<:]]foz[[:space:]]+fot ) "
-        "| (?: [[:<:]]foz[[:space:]]+fot .* (?: [[:<:]]1 | [[:<:]]2 | [[:<:]]foo[[:space:]]+bar\-baz ) ) )"
+        r"(?: (?: (?: [[:<:]]1 | [[:<:]]2 | [[:<:]]foo[[:space:]]+bar\-baz ) .* [[:<:]]foz[[:space:]]+fot ) "
+        r"| (?: [[:<:]]foz[[:space:]]+fot .* (?: [[:<:]]1 | [[:<:]]2 | [[:<:]]foo[[:space:]]+bar\-baz ) ) )"
     )
 
     # queries from actual topics
@@ -488,7 +488,7 @@ def test_re():
         'OR tags_id_stories:8875027 OR tags_id_stories:2453107 OR tags_id_stories:9139458 OR '
         'tags_id_stories:8877008 or media_id:54174)))',
 
-        '(?: [[:<:]]culture[[:space:]]+of[[:space:]]+health '
+        r'(?: [[:<:]]culture[[:space:]]+of[[:space:]]+health '
         '| [[:<:]]culture[[:space:]]+of[['
         ':space:]]+wellbeing | [[:<:]]culture[['
         ':space:]]+of[[:space:]]+well[[:space:]]+being | [['
@@ -515,7 +515,7 @@ def test_re():
         ':<:]]disparities ) ) | (?: (?: [[:<:]]care .* [['
         ':<:]]underserved ) | (?: [[:<:]]underserved .* [['
         ':<:]]care ) ) | (?: (?: (?: [[:<:]]health | [['
-        ':<:]]wellbeing | [[:<:]]well\-being ) .* (?: [['
+        r':<:]]wellbeing | [[:<:]]well\-being ) .* (?: [['
         ':<:]]personal[[:space:]]+responsibility | [['
         ':<:]]national[[:space:]]+priority | [[:<:]]inequit '
         '| [[:<:]]unequal | [[:<:]]injustice | [[:<:]]zip[['
@@ -539,7 +539,7 @@ def test_re():
         ':space:]]+status | [[:<:]]racist | [[:<:]]racism | '
         '[[:<:]]ethnicity | [[:<:]]minorit ) .* (?: [['
         ':<:]]health | [[:<:]]wellbeing | [['
-        ':<:]]well\-being ) ) ) )'
+        r':<:]]well\-being ) ) ) )'
     )
 
     __validate_re(
@@ -613,7 +613,7 @@ def test_inclusive_re():
         """Normalize tsquery by lowercasing and normalizing spaces."""
 
         # make multiple spaces not significant
-        s = re.sub('\s+', ' ', s)
+        s = re.sub(r'\s+', ' ', s)
 
         s = s.lower()
 
@@ -671,10 +671,10 @@ def test_inclusive_re():
     __validate_inclusive_re('foo -( bar and bar )', '(?: [[:<:]]foo )')
 
     # phrase
-    __validate_inclusive_re('"foo bar-baz"', "(?: [[:<:]]foo | [[:<:]]bar\\\\\\-baz )")
+    __validate_inclusive_re('"foo bar-baz"', r"(?: [[:<:]]foo | [[:<:]]bar\\\\\\-baz )")
     __validate_inclusive_re(
         '1 or 2 or "foo bar-baz"',
-        '(?: [[:<:]]1 | [[:<:]]2 | (?: [[:<:]]foo | [[:<:]]bar\\\\\\-baz ) )'
+        r'(?: [[:<:]]1 | [[:<:]]2 | (?: [[:<:]]foo | [[:<:]]bar\\\\\\-baz ) )'
     )
 
     __validate_inclusive_re(
@@ -684,7 +684,7 @@ def test_inclusive_re():
 
     __validate_inclusive_re(
         '( 1 or 2 or "foo bar-baz" ) and "foz fot"',
-        '(?: (?: [[:<:]]1 | [[:<:]]2 | (?: [[:<:]]foo | [[:<:]]bar\\\\\\-baz ) ) | (?: [[:<:]]foz | [[:<:]]fot ) )'
+        r'(?: (?: [[:<:]]1 | [[:<:]]2 | (?: [[:<:]]foo | [[:<:]]bar\\\\\\-baz ) ) | (?: [[:<:]]foz | [[:<:]]fot ) )'
     )
 
     # queries from actual topics
