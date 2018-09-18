@@ -44,7 +44,7 @@ def target_request_from_archive_org_url(content: Union[str, None], archive_site_
     archive_site_url = decode_object_from_bytes_if_needed(archive_site_url)
 
     matches = re.match(
-        pattern='^https?://web\.archive\.org/web/(?P<date>\d+?/)?(?P<target_url>https?://.+?)$',
+        pattern=r'^https?://web\.archive\.org/web/(?P<date>\d+?/)?(?P<target_url>https?://.+?)$',
         string=archive_site_url,
         flags=re.IGNORECASE
     )
@@ -67,11 +67,11 @@ def target_request_from_archive_is_url(content: str, archive_site_url: str) -> U
     if content is None:
         return None
 
-    if re.match(pattern='^https?://archive\.is/(.+?)$', string=archive_site_url, flags=re.IGNORECASE):
+    if re.match(pattern=r'^https?://archive\.is/(.+?)$', string=archive_site_url, flags=re.IGNORECASE):
         canonical_link = link_canonical_url_from_html(html=content)
         if canonical_link is not None:
             matches = re.match(
-                pattern='^https?://archive\.is/\d+?/(?P<target_url>https?://.+?)$',
+                pattern=r'^https?://archive\.is/\d+?/(?P<target_url>https?://.+?)$',
                 string=canonical_link,
                 flags=re.IGNORECASE
             )
@@ -142,7 +142,7 @@ def target_request_from_linkis_com_url(content: str, archive_site_url: str) -> U
         log.warning("Unable to parse HTML for URL %s: %s" % (archive_site_url, str(ex),))
 
     # As a last resort, look for the longUrl key in a JavaScript array
-    matches = re.search(pattern='"longUrl":\s*"(?P<target_url>[^"]+)"', string=content, flags=re.IGNORECASE)
+    matches = re.search(pattern=r'"longUrl":\s*"(?P<target_url>[^"]+)"', string=content, flags=re.IGNORECASE)
     if matches:
         target_url = matches.group('target_url')
 
@@ -185,7 +185,7 @@ def target_request_from_alarabiya_url(content: str, archive_site_url: str) -> Un
                      flags=re.IGNORECASE):
         return None
 
-    matches = re.search(pattern="setCookie\('(?P<cookie_name>[^']+)', '(?P<cookie_value>[^']+)'",
+    matches = re.search(pattern=r"setCookie\('(?P<cookie_name>[^']+)', '(?P<cookie_value>[^']+)'",
                         string=content,
                         flags=re.IGNORECASE)
     if matches:

@@ -240,7 +240,7 @@ class TermNode(ParseNode):
         if self.phrase:
             dequoted_phrase = shlex.split(self.term)[0]
             operands = []
-            for term in re.split('\W+', dequoted_phrase):
+            for term in re.split(r'\W+', dequoted_phrase):
                 if term:
                     operands.append(TermNode(term))
 
@@ -559,7 +559,7 @@ def __parse_tokens(tokens: List[Token], want_type: List[TokenType] = None) -> Pa
             if ((len(tokens) >= 2) and
                     (tokens[0].token_type == TokenType.PROXIMITY) and
                     (tokens[1].token_type == TokenType.TERM) and
-                    (re.search('^\d+$', tokens[1].token_value))):
+                    (re.search(r'^\d+$', tokens[1].token_value))):
                 tokens.pop(0)
                 distance_token = tokens.pop(0)
                 clause = TermNode(token.token_value, phrase=True, proximity=int(distance_token.token_value))
@@ -692,7 +692,7 @@ def __get_token_type(token: str) -> TokenType:
         return TokenType.NOOP
     elif token.endswith(FIELD_PLACEHOLDER):
         return TokenType.FIELD
-    elif re.match('^\w+$', token):
+    elif re.match(r'^\w+$', token):
         return TokenType.TERM
     else:
         raise McSolrQueryParseSyntaxException("unrecognized token '%s'" % str(token))
@@ -707,7 +707,7 @@ def __get_tokens(query: str) -> List[Token]:
     query = query.lower()
 
     # remove {!complexphrase foo=bar} type solr qualifiers
-    query = re.sub('\{\![^\}]*\}', '', query)
+    query = re.sub(r'{![^\}]*\}', '', query)
 
     # the tokenizer interprets as ! as a special character, which results in the ! and subsequent text disappearing.
     # we just replace it with the equivalent - to avoid this.
@@ -721,7 +721,7 @@ def __get_tokens(query: str) -> List[Token]:
     query = query.replace("'", " ")
 
     # we can't support solr range searches, and they break the tokenizer, so just regexp them away
-    query = re.sub('\w+:\[[^\]]*\]', NOOP_PLACEHOLDER, query)
+    query = re.sub(r'\w+:\[[^\]]*\]', NOOP_PLACEHOLDER, query)
 
     # we want to include ':' at the end of field names, but tokenizer wants to make it a separate token
     query = re.sub(':', FIELD_PLACEHOLDER + ' ', query)

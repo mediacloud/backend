@@ -1,5 +1,5 @@
 import abc
-from collections import Iterator
+from collections.abc import Iterator
 from typing import List
 
 from mediawords.db import DatabaseHandler
