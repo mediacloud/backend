@@ -1,8 +1,9 @@
 from io import StringIO
 import sys
-import pip
 
-# noinspection PyPackageRequirements
+# noinspection PyProtectedMember
+from pip._internal import main as pip_main
+
 import readability.readability
 
 from mediawords.util.log import create_logger
@@ -26,7 +27,7 @@ def __get_pip_module_version(module_name):
 
         f = StringIO()
         sys.stdout = f
-        pip.main(['show', module_name])
+        pip_main(['show', module_name])
         sys.stdout = sys.__stdout__
 
         module_version = None
