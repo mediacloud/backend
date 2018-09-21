@@ -9,7 +9,9 @@ import abc
 import datetime
 import html
 import re
-from typing import Set, List
+import xml.parsers.expat
+from dataclasses import dataclass, field
+from typing import Set, List, Dict, Optional
 
 import dateutil
 from furl import furl
@@ -21,12 +23,6 @@ from mediawords.util.web.user_agent import UserAgent
 
 log = create_logger(__name__)
 
-# Sitemaps might get heavy
-MAX_SITEMAP_SIZE = 100 * 1024 * 1024
-
-# Max. recursion level in iterating over sub-sitemaps
-MAX_SITEMAP_RECURSION_LEVEL = 10
-
 
 class McSitemapURLsFromRobotsTxtException(Exception):
     pass
@@ -36,136 +32,73 @@ class McStoriesFromStoriesSitemapException(Exception):
     pass
 
 
-class SitemapStoryPublication(object):
-    """Publication of the story."""
-
-    __slots__ = [
-        # Name of the news publication
-        '__name',
-
-        # Language of the publication
-        # (it should be an ISO 639 Language Code (either 2 or 3 letters))
-        '__language',
-    ]
-
-    def __init__(self, name: str, language: str):
-        self.__name = name
-        self.__language = language
-
-    def name(self) -> str:
-        return self.__name
-
-    def language(self) -> str:
-        return self.__language
-
-
+@dataclass(frozen=True)
 class SitemapStory(object):
     """Single sitemap-derived story."""
 
-    __slots__ = [
-        # Story URL
-        '__url',
+    url: str
+    """Story URL."""
 
-        # Story title
-        '__title',
+    title: str
+    """Story title."""
 
-        # Story publication date
-        '__date',
+    publish_date: datetime.datetime
+    """Story publication date."""
 
-        # Publication in which the article appears
-        '__publication',
+    publication_name: str
+    """Name of the news publication in which the article appears in."""
 
-        # Accessibility of the article
-        '__access',
+    publication_language: str
+    """Primary language of the news publication in which the article appears in.
 
-        # List of properties characterizing the content of the article, such as "PressRelease" or "UserGenerated"
-        '__genres',
+    It should be an ISO 639 Language Code (either 2 or 3 letters)."""
 
-        # List of keywords describing the topic of the article
-        '__keywords',
+    access: str
+    """Accessibility of the article."""
 
-        # Comma-separated list of up to 5 stock tickers that are the main subject of the article.
-        #
-        # Each ticker must be prefixed by the name of its stock exchange, and must match its entry in Google Finance.
-        # For example, "NASDAQ:AMAT" (but not "NASD:AMAT"), or "BOM:500325" (but not "BOM:RIL").
-        '__stock_tickers',
-    ]
+    genres: List[str] = field(default_factory=list, hash=False)
+    """List of properties characterizing the content of the article, such as "PressRelease" or "UserGenerated"."""
 
-    def __init__(self,
-                 url: str,
-                 title: str,
-                 date: datetime.datetime,
-                 publication: SitemapStoryPublication,
-                 access: str = None,
-                 genres: List[str] = None,
-                 keywords: List[str] = None,
-                 stock_tickers: List[str] = None):
-        self.__url = url
-        self.__title = title
-        self.__date = date
-        self.__publication = publication
-        self.__access = access
-        self.__genres = genres if genres else []
-        self.__keywords = keywords if keywords else []
-        self.__stock_tickers = stock_tickers if stock_tickers else []
+    keywords: List[str] = field(default_factory=list, hash=False)
+    """List of keywords describing the topic of the article."""
 
-    def __hash__(self):
-        return hash(self.__url)
+    stock_tickers: List[str] = field(default_factory=list, hash=False)
+    """Comma-separated list of up to 5 stock tickers that are the main subject of the article.
+
+    Each ticker must be prefixed by the name of its stock exchange, and must match its entry in Google Finance.
+    For example, "NASDAQ:AMAT" (but not "NASD:AMAT"), or "BOM:500325" (but not "BOM:RIL")."""
 
 
+@dataclass(frozen=True)
 class AbstractSitemap(object, metaclass=abc.ABCMeta):
     """Abstract sitemap."""
 
-    __slots__ = [
-        # Sitemap URL
-        '__url',
-    ]
-
-    def __init__(self, url: str):
-        self.__url = url
-
-    def url(self) -> str:
-        return self.__url
-
-    def __hash__(self):
-        return hash(self.__url)
+    url: str
+    """Sitemap URL."""
 
 
+@dataclass(frozen=True)
 class InvalidSitemap(AbstractSitemap):
     """Invalid sitemap, e.g. the one that can't be parsed."""
-    pass
+
+    reason: str
+    """Reason why the sitemap is deemed invalid."""
 
 
+@dataclass(frozen=True)
 class StoriesSitemap(AbstractSitemap):
     """Sitemap with stories."""
 
-    __slots__ = [
-        # Stories found in the sitemap
-        '__stories',
-    ]
-
-    def __init__(self, url: str, stories: List[SitemapStory]):
-        super().__init__(url=url)
-        self.__stories = stories
-
-    def stories(self) -> List[SitemapStory]:
-        return self.__stories
+    stories: List[SitemapStory]
+    """Stories found in the sitemap."""
 
 
+@dataclass(frozen=True)
 class IndexSitemap(AbstractSitemap):
     """Sitemap with URLs to other sitemaps."""
 
-    __slots__ = [
-        # Sub-sitemaps that are linked to from this sitemap
-        '__sub_sitemaps',
-    ]
-
-    def __init__(self, url: str, sub_sitemaps: List[AbstractSitemap]):
-        super().__init__(url=url)
-        self.__sub_sitemaps = sub_sitemaps
-
-    def sub_sitemaps(self) -> List[AbstractSitemap]:
-        return self.__sub_sitemaps
+    sub_sitemaps: List[AbstractSitemap]
+    """Sub-sitemaps that are linked to from this sitemap."""
 
 
 def sitemap_urls_from_robots_txt(homepage_url: str, ua: UserAgent) -> Set[str]:
@@ -313,17 +246,420 @@ class SitemapPublicationDateParser(object):
         return date
 
 
+class AbstractSitemapParser(object, metaclass=abc.ABCMeta):
+    """Abstract sitemap parser."""
+
+    @abc.abstractmethod
+    def __init__(self, sitemap_url: str):
+        pass
+
+    @abc.abstractmethod
+    def parsed_sitemap(self) -> AbstractSitemap:
+        raise NotImplementedError("Abstract method")
+
+    @abc.abstractmethod
+    def xml_start_element(self, name: str, attrs: Dict[str, str]) -> None:
+        raise NotImplementedError("Abstract method")
+
+    @abc.abstractmethod
+    def xml_end_element(self, name: str) -> None:
+        raise NotImplementedError("Abstract method")
+
+    @abc.abstractmethod
+    def xml_char_data(self, data: str) -> None:
+        raise NotImplementedError("Abstract method")
+
+
+def _html_unescape_ignore_none(string: str) -> str:
+    if string:
+        string = html.unescape(string)
+    return string
+
+
+class StoriesSitemapParser(AbstractSitemapParser):
+    """Stories sitemap parser."""
+
+    @dataclass
+    class IncompleteStory(object):
+        url: str = None
+        title: str = None
+        publish_date: str = None
+        publication_name: str = None
+        publication_language: str = None
+        access: str = None
+        genres: str = None
+        keywords: str = None
+        stock_tickers: str = None
+
+        def sitemap_story(self) -> Optional[SitemapStory]:
+
+            # Required
+            url = _html_unescape_ignore_none(self.url)
+            if not url:
+                log.warning("URL is unset")
+                return None
+
+            title = _html_unescape_ignore_none(self.title)
+            if not title:
+                log.warning("Title is unset")
+                return None
+
+            publish_date = _html_unescape_ignore_none(self.publish_date)
+            if not publish_date:
+                log.warning("Publish date is unset")
+                return None
+            publish_date = SitemapPublicationDateParser.parse_sitemap_publication_date(date_string=publish_date)
+
+            publication_name = _html_unescape_ignore_none(self.publication_name)
+            if not publication_name:
+                log.warning("Publication name is unset")
+                return None
+
+            publication_language = _html_unescape_ignore_none(self.publication_language)
+            if not publication_language:
+                log.warning("Publication language is unset")
+                return None
+
+            # Optional
+            access = _html_unescape_ignore_none(self.access)
+
+            genres = _html_unescape_ignore_none(self.genres)
+            if genres:
+                genres = [html.unescape(x.strip()) for x in genres.split(',')]
+
+            keywords = _html_unescape_ignore_none(self.keywords)
+            if keywords:
+                keywords = [html.unescape(x.strip()) for x in keywords.split(',')]
+
+            stock_tickers = _html_unescape_ignore_none(self.stock_tickers)
+            if stock_tickers:
+                stock_tickers = [html.unescape(x.strip()) for x in stock_tickers.split(',')]
+
+            return SitemapStory(
+                url=url,
+                title=title,
+                publish_date=publish_date,
+                publication_name=publication_name,
+                publication_language=publication_language,
+                access=access,
+                genres=genres,
+                keywords=keywords,
+                stock_tickers=stock_tickers,
+            )
+
+    __slots__ = [
+        # Sitemap URL
+        '__sitemap_url',
+
+        # Stories parsed from the sitemap
+        '__stories',
+
+        # Story that is being created while parsing
+        '__incomplete_story',
+
+        # Last encountered character data
+        '__last_char_data',
+    ]
+
+    def __init__(self, sitemap_url: str):
+        super().__init__(sitemap_url=sitemap_url)
+
+        self.__sitemap_url = sitemap_url
+        self.__stories = []
+        self.__incomplete_story = None
+        self.__last_char_data = None
+
+    def parsed_sitemap(self) -> StoriesSitemap:
+        return StoriesSitemap(
+            url=self.__sitemap_url,
+            stories=self.__stories,
+        )
+
+    def xml_start_element(self, name: str, attrs: Dict[str, str]) -> None:
+
+        if name == 'url':
+            if self.__incomplete_story:
+                raise McSitemapParserException("Story is expected to be unset by <url>.")
+            self.__incomplete_story = StoriesSitemapParser.IncompleteStory()
+
+    def xml_end_element(self, name: str) -> None:
+
+        if name == 'url':
+            if not self.__incomplete_story:
+                raise McSitemapParserException("Story is expected to be set by </url>.")
+
+            story = self.__incomplete_story.sitemap_story()
+            if story:
+                self.__stories.append(story)
+
+            self.__incomplete_story = None
+
+        elif name == 'loc':
+            if not self.__incomplete_story:
+                raise McSitemapParserException("Story is expected to be set by </loc>.")
+
+            if not self.__last_char_data:
+                raise McSitemapParserException("Character data should have been encountered by </loc>.")
+
+            self.__incomplete_story.url = self.__last_char_data
+
+        elif name == 'name':  # news/publication/name
+            if not self.__incomplete_story:
+                raise McSitemapParserException("Story is expected to be set by </news:name>.")
+
+            if not self.__last_char_data:
+                raise McSitemapParserException("Character data should have been encountered by </news:name>.")
+
+            self.__incomplete_story.publication_name = self.__last_char_data
+
+        elif name == 'language':  # news/publication/language
+            if not self.__incomplete_story:
+                raise McSitemapParserException("Story is expected to be set by </news:language>.")
+
+            if not self.__last_char_data:
+                raise McSitemapParserException("Character data should have been encountered by </news:language>.")
+
+            self.__incomplete_story.publication_language = self.__last_char_data
+
+        elif name == 'publication_date':
+            if not self.__incomplete_story:
+                raise McSitemapParserException("Story is expected to be set by </news:publication_date>.")
+
+            if not self.__last_char_data:
+                raise McSitemapParserException(
+                    "Character data should have been encountered by </news:publication_date>."
+                )
+
+            self.__incomplete_story.publish_date = self.__last_char_data
+
+        elif name == 'title':
+            if not self.__incomplete_story:
+                raise McSitemapParserException("Story is expected to be set by </news:title>.")
+
+            if not self.__last_char_data:
+                raise McSitemapParserException("Character data should have been encountered by </news:title>.")
+
+            self.__incomplete_story.title = self.__last_char_data
+
+        elif name == 'access':
+            if not self.__incomplete_story:
+                raise McSitemapParserException("Story is expected to be set by </news:access>.")
+
+            if not self.__last_char_data:
+                raise McSitemapParserException("Character data should have been encountered by </news:access>.")
+
+            self.__incomplete_story.access = self.__last_char_data
+
+        elif name == 'keywords':
+            if not self.__incomplete_story:
+                raise McSitemapParserException("Story is expected to be set by </news:keywords>.")
+
+            if not self.__last_char_data:
+                raise McSitemapParserException("Character data should have been encountered by </news:keywords>.")
+
+            self.__incomplete_story.keywords = self.__last_char_data
+
+        elif name == 'stock_tickers':
+            if not self.__incomplete_story:
+                raise McSitemapParserException("Story is expected to be set by </news:stock_tickers>.")
+
+            if not self.__last_char_data:
+                raise McSitemapParserException("Character data should have been encountered by </news:stock_tickers>.")
+
+            self.__incomplete_story.stock_tickers = self.__last_char_data
+
+        else:
+            log.warning("Unknown element: {}".format(name))
+
+        # End of any element always resets last encountered character data
+        self.__last_char_data = None
+
+    def xml_char_data(self, data: str) -> None:
+        self.__last_char_data = data
+
+
+class IndexSitemapParser(AbstractSitemapParser):
+    """Index sitemap parser."""
+
+    @dataclass
+    class IncompleteSubSitemap(object):
+        url: str = None
+        last_modified: str = None
+
+        def sub_sitemap(self) -> Optional[List[AbstractSitemap]]:
+
+            # Required
+            url = _html_unescape_ignore_none(self.url)
+            if not url:
+                log.warning("URL is unset")
+                return None
+
+            title = _html_unescape_ignore_none(self.title)
+            if not title:
+                log.warning("Title is unset")
+                return None
+
+            publish_date = _html_unescape_ignore_none(self.publish_date)
+            if not publish_date:
+                log.warning("Publish date is unset")
+                return None
+            publish_date = SitemapPublicationDateParser.parse_sitemap_publication_date(date_string=publish_date)
+
+            publication_name = _html_unescape_ignore_none(self.publication_name)
+            if not publication_name:
+                log.warning("Publication name is unset")
+                return None
+
+            publication_language = _html_unescape_ignore_none(self.publication_language)
+            if not publication_language:
+                log.warning("Publication language is unset")
+                return None
+
+            # Optional
+            access = _html_unescape_ignore_none(self.access)
+
+            genres = _html_unescape_ignore_none(self.genres)
+            if genres:
+                genres = [html.unescape(x.strip()) for x in genres.split(',')]
+
+            keywords = _html_unescape_ignore_none(self.keywords)
+            if keywords:
+                keywords = [html.unescape(x.strip()) for x in keywords.split(',')]
+
+            stock_tickers = _html_unescape_ignore_none(self.stock_tickers)
+            if stock_tickers:
+                stock_tickers = [html.unescape(x.strip()) for x in stock_tickers.split(',')]
+
+            return SitemapStory(
+                url=url,
+                title=title,
+                publish_date=publish_date,
+                publication_name=publication_name,
+                publication_language=publication_language,
+                access=access,
+                genres=genres,
+                keywords=keywords,
+                stock_tickers=stock_tickers,
+            )
+
+    __slots__ = [
+        # Sitemap URL
+        '__sitemap_url',
+
+        # Sub-sitemaps parsed from a sitemap
+        '__sub_sitemaps',
+
+        # Sub-sitemap that is being created while parsing
+        '__incomplete_sub_sitemap',
+
+        # Last encountered character data
+        '__last_char_data',
+    ]
+
+    def __init__(self, sitemap_url: str):
+        super().__init__(sitemap_url=sitemap_url)
+
+        self.__sitemap_url = sitemap_url
+        self.__sub_sitemaps = []
+        self.__incomplete_sub_sitemap = None
+        self.__last_char_data = None
+
+
+
+class McSitemapParserException(Exception):
+    pass
+
+
+class SitemapFetcherAndParser(AbstractSitemapParser):
+    """Generic sitemap parser which decides which specialized parser (stories or index) to use."""
+
+    __slots__ = [
+        '__sitemap_url',
+        '__sitemap_parser',
+        '__sitemap',
+    ]
+
+    # Sitemaps might get heavy
+    __MAX_SITEMAP_SIZE = 100 * 1024 * 1024
+
+    # Max. recursion level in iterating over sub-sitemaps
+    __MAX_SITEMAP_RECURSION_LEVEL = 10
+
+    def __init__(self, sitemap_url: str, recursion_level: int = 0):
+        super().__init__(sitemap_url=sitemap_url)
+
+        if recursion_level > self.__MAX_SITEMAP_RECURSION_LEVEL:
+            log.error("Reached max. recursion level of {}; returning empty story URLs list for sitemap URL {}".format(
+                self.__MAX_SITEMAP_RECURSION_LEVEL, sitemap_url,
+            ))
+
+        self.__sitemap_url = sitemap_url
+        self.__sitemap_parser = None
+
+        try:
+            sitemap_xml = self.__fetch_sitemap()
+            self.__sitemap = self.__parse_sitemap(sitemap_xml)
+        except Exception as ex:
+            reason = "Unable to fetch / parse sitemap from URL {}: {}".format(sitemap_url, ex)
+            log.error(reason)
+            self.__sitemap = InvalidSitemap(url=self.__sitemap_url, reason=reason)
+
+    def __fetch_sitemap(self) -> str:
+        log.info("Fetching sitemap URL {}...".format(self.__sitemap_url))
+        ua = UserAgent()
+        ua.set_max_size(SitemapFetcherAndParser.__MAX_SITEMAP_SIZE)
+        sitemap_response = ua.get(self.__sitemap_url)
+        if not sitemap_response.is_success():
+            raise McSitemapParserException(
+                "Unable to fetch sitemap from {}: {}".format(self.__sitemap_url, sitemap_response.status_line())
+            )
+        return sitemap_response.decoded_content()
+
+    def __parse_sitemap(self, sitemap_xml) -> AbstractSitemap:
+        parser = xml.parsers.expat.ParserCreate()
+        parser.StartElementHandler = self.xml_start_element
+        parser.EndElementHandler = self.xml_end_element
+        parser.CharacterDataHandler = self.xml_char_data
+
+        log.info("Parsing sitemap from URL {}...".format(self.__sitemap_url))
+        parser.Parse(data=sitemap_xml, isfinal=True)
+
+    def parsed_sitemap(self) -> AbstractSitemap:
+        assert self.__sitemap, "Sitemap should be set at this point."
+        return self.__sitemap
+
+    def xml_start_element(self, name: str, attrs: Dict[str, str]) -> None:
+        if self.__sitemap_parser is None:
+            if name == 'urlset':
+                # Stories sitemap
+                self.__sitemap_parser = StoriesSitemapParser(sitemap_url=self.__sitemap_url)
+            elif name == 'sitemapindex':
+                # Index sitemap
+                self.__sitemap_parser = IndexSitemapParser(sitemap_url=self.__sitemap_url)
+            else:
+                raise McSitemapParserException(
+                    "Sitemap from URL {} has unsupported root element '{}'.".format(self.__sitemap_url, name)
+                )
+
+        assert self.__sitemap_parser, "Sitemap parser should be set at this point."
+
+        self.__sitemap_parser.xml_start_element(name=name, attrs=attrs)
+
+    def xml_end_element(self, name: str) -> None:
+        assert self.__sitemap_parser, "Sitemap parser should be set at this point."
+
+        self.__sitemap_parser.xml_end_element(name=name)
+
+    def xml_char_data(self, data: str) -> None:
+        assert self.__sitemap_parser, "Sitemap parser should be set at this point."
+
+        self.__sitemap_parser.xml_char_data(data=data)
+
+
 def __stories_from_stories_sitemap(xml_root: etree.Element) -> List[SitemapStory]:
     stories = []
 
     for xml_url_element in xml_root:
-
-        xml_url_element_name = __xml_element_name_without_namespace(element=xml_url_element)
-        if xml_url_element_name != 'url':
-            log.warning(
-                "Child element's name is not 'url' but rather '{}', skipping...".format(xml_url_element_name)
-            )
-            continue
 
         story_url = xml_url_element.findtext('{*}loc')
         if story_url is None:
@@ -413,18 +749,6 @@ def __stories_from_stories_sitemap(xml_root: etree.Element) -> List[SitemapStory
 
 
 def sitemap_from_url(sitemap_url: str, ua: UserAgent, recursion_level: int = 0) -> AbstractSitemap:
-    if recursion_level > MAX_SITEMAP_RECURSION_LEVEL:
-        log.error("Reached max. recursion level of {}; returning empty story URLs list for sitemap URL {}".format(
-            MAX_SITEMAP_RECURSION_LEVEL, sitemap_url,
-        ))
-
-    log.info("Fetching sitemap URL {}...".format(sitemap_url))
-    sitemap_response = ua.get(sitemap_url)
-    if not sitemap_response.is_success():
-        raise McStoriesFromStoriesSitemapException(
-            "Unable to fetch sitemap from {}: {}".format(sitemap_url, sitemap_response.status_line())
-        )
-
     # Not testing MIME type because a misconfigured server might return funky stuff; instead, rely on XML parser
 
     log.info("Parsing sitemap URL {}...".format(sitemap_url))
@@ -500,10 +824,10 @@ def __sitemap_useragent() -> UserAgent:
 
 
 if __name__ == "__main__":
-    # retrieved_sitemaps = homepage_sitemaps(homepage_url='https://www.15min.lt///', ua=__sitemap_useragent())
-    # print("Sitemaps: {}".format(retrieved_sitemaps))
-    test_sitemap = sitemap_from_url(
-        sitemap_url='http://localhost:8000/15min_sitemap_sample.xml',
-        ua=__sitemap_useragent(),
-    )
-    print(test_sitemap)
+    retrieved_sitemaps = homepage_sitemaps(homepage_url='https://www.15min.lt///', ua=__sitemap_useragent())
+    print("Sitemaps: {}".format(retrieved_sitemaps))
+    # test_sitemap = sitemap_from_url(
+    #     sitemap_url='http://localhost:8000/15min_sitemap_sample.xml',
+    #     ua=__sitemap_useragent(),
+    # )
+    # print(test_sitemap)
