@@ -1,5 +1,5 @@
 {
-    "collect_date":"2018-09-19 06:23:45.213861",
+    "collect_date":"2018-09-22 04:17:18.258580",
     "content":"<p>This is the third item.</p>\n",
     "description":"RSS description of the third inline item.",
     "extracted_text":"Third inline item\n***\n\nRSS description of the third inline item.\n***\n\nThis is the third item.",
@@ -25,5 +25,5 @@
     "tags":[],
     "timezone":"Europe/Vilnius",
     "title":"Third inline item",
-    "url":"http://tundra.local:57021/inline_content/item_3.html"
+    "url":"http://tundra.lan:64994/inline_content/item_3.html"
 }

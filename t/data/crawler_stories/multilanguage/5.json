@@ -1,21 +1,21 @@
 {
-    "collect_date":"2018-09-19 06:26:15.557568",
+    "collect_date":"2018-09-22 04:19:47.769505",
     "content":"<p>\n    This RSS feed is used to test whether the story language gets identified\n    correctly.\n</p>\n",
     "description":null,
     "extracted_text":"(no title)\n***\n\n\n***\n\nThis RSS feed is used to test whether the story language gets identified\n    correctly. .",
     "feed_type":"web_page",
     "full_text_rss":false,
-    "guid":"1537309575:http://tundra.local:57233//multilanguage/home.html",
+    "guid":"1537561187:http://tundra.lan:65210//multilanguage/home.html",
     "language":"en",
     "media_id":1,
-    "publish_date":"2018-09-19 01:26:15",
+    "publish_date":"2018-09-21 23:19:47",
     "stories_id":5,
     "story_sentences":[
         {
             "is_dup":null,
             "language":"en",
             "media_id":1,
-            "publish_date":"2018-09-19 01:26:15",
+            "publish_date":"2018-09-21 23:19:47",
             "sentence":"This RSS feed is used to test whether the story language gets identified correctly..",
             "sentence_number":0,
             "stories_id":5,
@@ -25,5 +25,5 @@
     "tags":[],
     "timezone":"Europe/Vilnius",
     "title":"(no title)",
-    "url":"http://tundra.local:57233//multilanguage/home.html"
+    "url":"http://tundra.lan:65210//multilanguage/home.html"
 }
