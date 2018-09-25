@@ -3,6 +3,7 @@
 
 import datetime
 import time
+import traceback
 import typing
 
 from mediawords.db import connect_to_db
@@ -89,11 +90,12 @@ class FetchLinkJob(AbstractJob):
 
         except Exception as ex:
             # all non throttled errors should get caught by the try: about, but catch again here just in case
+            log.error("Error while fetching URL with ID {}: {}".format(topic_fetch_urls_id, str(ex)))
             cls._consecutive_requeues = 0
             update = {
                 'state': mediawords.tm.fetch_link.FETCH_STATE_PYTHON_ERROR,
                 'fetch_date': datetime.datetime.now(),
-                'message': str(ex),
+                'message': traceback.format_exc(),
             }
             db.update_by_id('topic_fetch_urls', topic_fetch_urls_id, update)
 

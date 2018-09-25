@@ -4,6 +4,7 @@ import datetime
 import re2
 import socket
 import time
+import traceback
 import typing
 
 from mediawords.db import DatabaseHandler
@@ -368,11 +369,14 @@ def fetch_topic_url(db: DatabaseHandler, topic_fetch_urls_id: int, domain_timeou
         if topic_fetch_url['topic_links_id'] and topic_fetch_url['stories_id']:
             try_update_topic_link_ref_stories_id(db, topic_fetch_url)
 
-    except McThrottledDomainException as e:
-        raise e
+    except McThrottledDomainException as ex:
+        raise ex
+
     except Exception as ex:
+        log.error("Error while fetching URL {}: {}".format(topic_fetch_url, ex))
+
         topic_fetch_url['state'] = FETCH_STATE_PYTHON_ERROR
-        topic_fetch_url['message'] = str(ex)
+        topic_fetch_url['message'] = traceback.format_exc()
         log.warning('topic_fetch_url %s failed: %s' % (topic_fetch_url['url'], topic_fetch_url['message']))
 
     db.update_by_id('topic_fetch_urls', topic_fetch_url['topic_fetch_urls_id'], topic_fetch_url)

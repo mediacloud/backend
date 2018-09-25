@@ -3,6 +3,7 @@
 import datetime
 import operator
 import re2
+import traceback
 import typing
 
 from mediawords.db import DatabaseHandler
@@ -369,10 +370,10 @@ def generate_story(
 
     try:
         story = db.create('stories', story)
-    except mediawords.db.exceptions.handler.McUniqueConstraintException as ex:
-        raise McTMStoriesDuplicateException("Attempt to insert duplicate story URL {} failed: {}".format(url, ex))
-    except Exception as ex:
-        raise McTMStoriesException("Error adding story: {}".format(ex))
+    except mediawords.db.exceptions.handler.McUniqueConstraintException:
+        raise McTMStoriesDuplicateException("Attempt to insert duplicate story url %s" % url)
+    except Exception:
+        raise McTMStoriesException("Error adding story: %s" % traceback.format_exc())
 
     db.query(
         "insert into stories_tags_map (stories_id, tags_id) values (%(a)s, %(b)s)",
