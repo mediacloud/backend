@@ -1,5 +1,7 @@
 import re
 
+import timeout_decorator
+
 from mediawords.util.extract_text import extractor_name, extract_article_from_html
 
 
@@ -110,3 +112,15 @@ def test_extract_text_from_html():
         extracted_text,
         flags=re.X
     )
+
+
+# make sure string with very long space range does not hang the extractor (triggered by a bug in
+# readability for which we added a work around in extract_text.py)
+@timeout_decorator.timeout(seconds=5, use_signals=False)
+def test_long_space():
+    long_space = ' ' * 1000000
+    html = '<html><body><p>foo' + long_space + '</p></body></html>'
+
+    extracted_text = extract_article_from_html(html)
+
+    assert(re.search(r'foo', extracted_text, flags=re.X))
