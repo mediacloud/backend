@@ -119,6 +119,9 @@ scipy==1.1.0
 # Splitting text into sentences using Lingua::Sentence's method
 sentence_splitter==1.2
 
+# Useful for timing out tests for which the failure case is a hard hang that does not respond to signals
+timeout_decorator==0.4.0
+
 # Twitter API client
 # (at the time of writing, the latest tweepy==3.6.0 doesn't work with Python 3.7.0)
 -e git+https://github.com/tweepy/tweepy.git@2efe385fc69385b57733f747ee62e6be12a1338b#egg=tweepy

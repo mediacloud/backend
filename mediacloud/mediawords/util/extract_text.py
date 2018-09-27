@@ -1,4 +1,5 @@
 from io import StringIO
+import re
 import sys
 
 # noinspection PyProtectedMember
@@ -58,6 +59,10 @@ def extract_article_from_html(html: str) -> str:
     html = decode_object_from_bytes_if_needed(html)
     if html is None or html == '':
         return ''
+
+    # this is necessary to avoid a bug in readability.readability.clean() that causes the regular
+    # expression r'\s*\n\s*' to hang for some rare cases of text with many repeated spaces
+    html = re.sub(r'\s{255,}', ' ' * 255, html)
 
     try:
         doc = readability.readability.Document(html)
