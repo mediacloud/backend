@@ -12,7 +12,6 @@ use MediaWords::CommonLibs;
 use MediaWords::Languages::Language;
 use MediaWords::DBI::Stories;
 use MediaWords::DBI::Stories::AP;
-use MediaWords::Util::HTML;
 use MediaWords::Util::IdentifyLanguage;
 use MediaWords::Util::SQL;
 
@@ -209,7 +208,10 @@ EOF
 
     $db->query(
         "update media_stats set num_sentences = num_sentences + ? where media_id = ? and stat_date = ?::date",
-        scalar( @{ $inserted_sentences } ), $story->{ media_id }, $story->{ publish_date } );
+        scalar( @{ $inserted_sentences } ),
+        $story->{ media_id },
+        $story->{ publish_date }
+    );
 
     return $inserted_sentences;
 }

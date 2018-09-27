@@ -61,7 +61,6 @@ use MediaCloud::JobManager::Job;
 use MediaWords::Languages::Language;
 use MediaWords::Solr;
 use MediaWords::Util::Config;
-use MediaWords::Util::HTML;
 use MediaWords::Util::IdentifyLanguage;
 use MediaWords::Util::SQL;
 use MediaWords::Util::Tags;

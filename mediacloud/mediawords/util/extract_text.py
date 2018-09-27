@@ -1,9 +1,10 @@
 from io import StringIO
 import re
 import sys
-import pip
 
-# noinspection PyPackageRequirements
+# noinspection PyProtectedMember
+from pip._internal import main as pip_main
+
 import readability.readability
 
 from mediawords.util.log import create_logger
@@ -27,7 +28,7 @@ def __get_pip_module_version(module_name):
 
         f = StringIO()
         sys.stdout = f
-        pip.main(['show', module_name])
+        pip_main(['show', module_name])
         sys.stdout = sys.__stdout__
 
         module_version = None
@@ -69,7 +70,7 @@ def extract_article_from_html(html: str) -> str:
         doc_title = doc.short_title().strip()
         doc_summary = doc.summary().strip()
 
-        extracted_text = "%s\n\n%s" % (doc_title, doc_summary)
+        extracted_text = "{}\n\n{}".format(doc_title, doc_summary)
 
     except Exception as ex:
         log.error('Exception raised while extracting HTML: %s' % str(ex))

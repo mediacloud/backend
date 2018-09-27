@@ -8,10 +8,11 @@ import tweepy
 import typing
 
 from mediawords.db import DatabaseHandler
-import mediawords.util.json
+import mediawords.util.parse_json
 from mediawords.util.web.user_agent import UserAgent
 
 from mediawords.util.log import create_logger
+
 log = create_logger(__name__)
 
 
@@ -92,7 +93,7 @@ class CrimsonHexagon(AbstractCrimsonHexagon):
 
         decoded_content = response.decoded_content()
 
-        data = dict(mediawords.util.json.decode_json(decoded_content))
+        data = dict(mediawords.util.parse_json.decode_json(decoded_content))
 
         if 'status' not in data or not data['status'] == 'success':
             raise McFetchTopicTweetsDataException("Unknown response status: " + str(data))
@@ -153,7 +154,7 @@ class Twitter(AbstractTwitter):
             try:
                 tweets = api.statuses_lookup(tweet_ids, include_entities=True, trim_user=False)
             except tweepy.TweepError as e:
-                sleep = 2 * (twitter_retries**2)
+                sleep = 2 * (twitter_retries ** 2)
                 log.info("twitter fetch error.  waiting " + str(sleep) + " seconds before retry ...")
                 time.sleep(sleep)
                 last_exception = e
@@ -165,7 +166,7 @@ class Twitter(AbstractTwitter):
 
         # it is hard to mock tweepy data directly, and the default tweepy objects are not json serializable,
         # so just return a direct dict decoding of the raw twitter payload
-        return list(mediawords.util.json.decode_json(tweets))
+        return list(mediawords.util.parse_json.decode_json(tweets))
 
 
 def _add_tweets_to_ch_posts(twitter_class: typing.Type[AbstractTwitter], ch_posts: list) -> None:
@@ -204,7 +205,7 @@ def _add_tweets_to_ch_posts(twitter_class: typing.Type[AbstractTwitter], ch_post
         try:
             tweets = twitter_class.fetch_100_tweets(tweet_ids)
         except tweepy.TweepError as e:
-            sleep = 2 * (twitter_retries**2)
+            sleep = 2 * (twitter_retries ** 2)
             log.debug("twitter fetch error.  waiting sleep seconds before retry ...")
             time.sleep(sleep)
             last_exception = e
@@ -237,7 +238,7 @@ def _store_tweet_and_urls(db: DatabaseHandler, topic_tweet_day: dict, ch_post: d
     Return:
     None
     """
-    data_json = mediawords.util.json.encode_json(ch_post)
+    data_json = mediawords.util.parse_json.encode_json(ch_post)
 
     # null characters are not legal in json but for some reason get stuck in these tweets
     data_json = data_json.replace(u'\u0000', '')
@@ -276,7 +277,7 @@ def _fetch_tweets_for_day(
         twitter_class: typing.Type[AbstractTwitter],
         topic: dict,
         topic_tweet_day: dict,
-        max_tweets: typing.Optional[int]=None) -> None:
+        max_tweets: typing.Optional[int] = None) -> None:
     """
     Fetch tweets for a single day.
 
@@ -411,8 +412,8 @@ def _add_topic_tweet_days(
 def fetch_topic_tweets(
         db: DatabaseHandler,
         topics_id: int,
-        twitter_class: typing.Type[AbstractTwitter]=Twitter,
-        ch_class: typing.Type[AbstractCrimsonHexagon]=CrimsonHexagon) -> None:
+        twitter_class: typing.Type[AbstractTwitter] = Twitter,
+        ch_class: typing.Type[AbstractCrimsonHexagon] = CrimsonHexagon) -> None:
     """
     Fetch list of tweets within a Crimson Hexagon monitor based on the ch_monitor_id of the given topic.
 

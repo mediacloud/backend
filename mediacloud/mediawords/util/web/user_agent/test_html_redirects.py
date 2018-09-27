@@ -99,7 +99,7 @@ def test_target_request_from_linkis_com_url():
     # linkis.com JavaScript
     assert urls_are_equal(
         url1=target_request_from_linkis_com_url(
-            content='"longUrl":"http:\/\/java.script\/test"',
+            content=r'"longUrl":"http:\/\/java.script\/test"',
             archive_site_url='https://linkis.com/foo.com/ASDF'
         ).url(),
         url2='http://java.script/test',

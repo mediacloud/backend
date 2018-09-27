@@ -15,7 +15,7 @@ use List::Compare;
 use MediaWords::DBI::Media::Lookup;
 use MediaWords::Solr;
 use MediaWords::TM::Snapshot;
-use MediaWords::Util::HTML;
+use MediaWords::Util::ParseHTML;
 use MediaWords::Util::Tags;
 use MediaWords::Util::URL;
 use MediaWords::Util::Web;
@@ -348,7 +348,7 @@ sub _attach_media_to_input($$)
         }
 
         my $decoded_url = decode( 'utf8', $response->request->url );
-        my $title = MediaWords::Util::HTML::html_title( $response->decoded_content, $decoded_url, 128 );
+        my $title = MediaWords::Util::ParseHTML::html_title( $response->decoded_content, $decoded_url, 128 );
 
         $input_medium->{ medium } = _find_medium_by_response_chain( $db, $response )
           || $db->query( "select * from media where name in ( ?, ? )", $title, $input_medium->{ name } )->hash;

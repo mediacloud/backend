@@ -15,6 +15,7 @@ use JSON::PP;
 use List::Compare;
 
 use MediaWords::Solr;
+use MediaWords::Util::ParseJSON;
 
 =head1 NAME
 
@@ -164,7 +165,7 @@ sub list_GET
         $sentences = [ List::Util::shuffle( @{ $sentences } ) ];
     }
 
-    MediaWords::Util::JSON::numify_fields( $sentences, [ qw/stories_id story_sentences_id/ ] );
+    MediaWords::Util::ParseJSON::numify_fields( $sentences, [ qw/stories_id story_sentences_id/ ] );
 
     #this uses inline python json, which is very slow for large objects
     #$self->status_ok( $c, entity => $sentences );

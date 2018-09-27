@@ -1,119 +1,133 @@
 # Deployments
-ansible==2.4.1.0
+ansible==2.6.4
 
 # retry http requests
-backoff==1.4.3
+backoff==1.6.0
 
 # Amazon S3
-boto3==1.4.7
+boto3==1.9.5
+
+# HTML parsing
+beautifulsoup4==4.6.3
+
+# Python 3.7 upgrade
+CacheMan==2.1.0
 
 # Job broker
-Celery==4.1.1
+Celery==4.2.1
 
 # Language identification
 cld2-cffi==0.1.4
 
 # Unit test coverage
-coverage==4.4.2
+coverage==4.5.1
 
-# some modules require latest version of this
-cryptography==2.3
+# Some modules require latest version of this
+cryptography==2.3.1
 
 # Hindi stemming
-CyHunspell==1.2.1
-
-# gensim parallelization
-Cython==0.27.3
+CyHunspell==1.3.0
 
 # Guessing publication dates of stories
 date_guesser==2.1.1
 
 # Code conventions
-flake8==3.5.0
+-e git+https://github.com/PyCQA/flake8.git@9631dac52aa6ed8a3de9d0983c3c7b0267ae7d6d#egg=flake8
 
 # URL manipulation
-furl==1.0.1
+furl==1.2.1
 
 # Word2vec topic models
-gensim==3.2.0
+gensim==3.5.0
 
 # Stemming Hausa words
 hausastemmer==1.0
 
 # Chinese language tokenizer, stemmer, etc.
-jieba==0.38
+jieba==0.39
 
 # Parsing email templates
-Jinja2==2.9.6
+Jinja2==2.10
 
 # XML manipulations, HTML parsing
-lxml==4.1.0
+lxml==4.2.5
 
 # Japanese language tokenizer, stemmer, etc.
 mecab-python3==0.7
 
 # network analysis, used for graph layout
-networkx==1.11
+networkx==2.1
 
 # Natural language processing, e.g. tokenization
-nltk==3.2.4
+nltk==3.3
 
 # numerical processing, required by ForceAtlas2
-numpy==1.13.1
+numpy==1.15.1
 
 # Finding out which Readability version we're using
-pip==9.0.1
+pip==18.0
 
-# PostgreSQL
-psycopg2==2.7.3
+# PostgreSQL access
+psycopg2-binary==2.7.5
+
+# Python 3.7 upgrade
+pycodestyle==2.4.0
+
+# Python 3.7 upgrade
+pyflakes==2.0.0
 
 # Snowball stemmer (NLTK's implementation doesn't support Turkish)
 PyStemmer==1.3.0
 
 # Unit tests
-pytest==3.2.2
+pytest==3.8.0
 
 # Test coverage
-pytest-cov==2.5.1
+pytest-cov==2.6.0
 
 # Date parsing
-python-dateutil==2.6.1
+python-dateutil==2.7.3
 
 # Timezone handling
-pytz==2017.2
+pytz==2018.5
 
 # Configuration file
-pyyaml==3.12
+PyYAML==4.2b2
+
+# Python 3 compatible version of Google's re2 library (requires libre2-dev system package)
+# (untagged and unreleased 0.2.23 version which builds on Python 3.7)
+-e git+https://github.com/andreasvc/pyre2.git@3e01eba6ba3eabd1359ef5e16c938c8866deea70#egg=re2
 
 # Extracting text from stories
-readability-lxml==0.6.2
+readability-lxml==0.7
+
+# Python 3.7 upgrade
+regex==2018.08.29
 
 # Mocking HTTP requests
-responses==0.8.1
+responses==0.9.0
 
 # Making HTTP requests
-requests==2.18.4
+requests==2.19.1
 
 # Asynchronous (parallell / concurrent) HTTP requests
 requests-futures==0.9.7
 
 # math package for forceatlas implementation
-scipy==0.19.1
+scipy==1.1.0
 
 # Splitting text into sentences using Lingua::Sentence's method
 sentence_splitter==1.2
 
-# python3 compatible version of google re2 library (requires libre2-dev system package)
-sw-re2==0.2.23
-
-# useful for timing out tests for which the failure case is a hard hang that does not respond to signals
+# Useful for timing out tests for which the failure case is a hard hang that does not respond to signals
 timeout_decorator==0.4.0
 
-# twitter
-tweepy==3.5.0
+# Twitter API client
+# (at the time of writing, the latest tweepy==3.6.0 doesn't work with Python 3.7.0)
+-e git+https://github.com/tweepy/tweepy.git@2efe385fc69385b57733f747ee62e6be12a1338b#egg=tweepy
 
 # Normalizing URLs
 url_normalize==1.3.3
 
 # Low level HTTP requests (with SSL certificate verification)
-urllib3[secure]==1.22
+urllib3[secure]==1.23

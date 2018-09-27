@@ -39,7 +39,7 @@ use MediaWords::StoryVectors;
 use MediaWords::Util::Annotator::CLIFF;
 use MediaWords::Util::Annotator::NYTLabels;
 use MediaWords::Util::Config;
-use MediaWords::Util::HTML;
+use MediaWords::Util::ParseHTML;
 use MediaWords::Util::SQL;
 use MediaWords::Util::Tags;
 use MediaWords::Util::URL;
@@ -47,10 +47,11 @@ use MediaWords::Util::Web;
 use MediaWords::Util::Web::Cache;
 
 # common title prefixes that can be ignored for dup title matching
-Readonly my $DUP_TITLE_PREFIXES =>
-    [ qw/opinion analysis report perspective poll watch exclusive editorial reports breaking nyt/,
-      qw/subject source wapo sources video study photos cartoon cnn today wsj review timeline/,
-      qw/revealed gallup ap read experts op-ed commentary feature letters survey/ ];
+Readonly my $DUP_TITLE_PREFIXES => [
+    qw/opinion analysis report perspective poll watch exclusive editorial reports breaking nyt/,
+    qw/subject source wapo sources video study photos cartoon cnn today wsj review timeline/,
+    qw/revealed gallup ap read experts op-ed commentary feature letters survey/
+];
 
 =head1 FUNCTIONS
 
@@ -60,8 +61,8 @@ sub _get_full_text_from_rss
 {
     my ( $db, $story ) = @_;
 
-    my $ret = MediaWords::Util::HTML::html_strip( $story->{ title } || '' ) .
-      "\n\n" . MediaWords::Util::HTML::html_strip( $story->{ description } || '' );
+    my $ret = MediaWords::Util::ParseHTML::html_strip( $story->{ title } || '' ) .
+      "\n\n" . MediaWords::Util::ParseHTML::html_strip( $story->{ description } || '' );
 
     return $ret;
 }
@@ -78,9 +79,9 @@ sub combine_story_title_description_text($$$)
 
     return join(
         "\n***\n\n",
-        MediaWords::Util::HTML::html_strip( $story_title       || '' ),    #
-        MediaWords::Util::HTML::html_strip( $story_description || '' ),    #
-        @{ $download_texts }                                               #
+        MediaWords::Util::ParseHTML::html_strip( $story_title       || '' ),    #
+        MediaWords::Util::ParseHTML::html_strip( $story_description || '' ),    #
+        @{ $download_texts }                                                    #
     );
 }
 
@@ -153,11 +154,11 @@ sub get_text_for_word_counts
 
     if ( ( length( $story_text ) == 0 ) || ( length( $story_text ) < length( $story_description ) ) )
     {
-        $story_text = MediaWords::Util::HTML::html_strip( $story->{ title } );
+        $story_text = MediaWords::Util::ParseHTML::html_strip( $story->{ title } );
         if ( $story->{ description } )
         {
             $story_text .= '.' unless ( $story_text =~ /\.\s*$/ );
-            $story_text .= MediaWords::Util::HTML::html_strip( $story->{ description } );
+            $story_text .= MediaWords::Util::ParseHTML::html_strip( $story->{ description } );
         }
     }
 
@@ -791,7 +792,7 @@ sub _get_title_parts
 
     $title = lc( $title );
 
-    $title = MediaWords::Util::HTML::html_strip( $title ) if ( $title =~ /\</ );
+    $title = MediaWords::Util::ParseHTML::html_strip( $title ) if ( $title =~ /\</ );
     $title = decode_entities( $title );
 
     my $sep_chars = '\-\:\|';
@@ -817,7 +818,7 @@ sub _get_title_parts
         unshift( @{ $title_parts }, $title );
     }
 
-    map { s/[[:punct:]]//g; s/\s+/ /g; s/^\s+//; s/\s+$//;  } @{ $title_parts };
+    map { s/[[:punct:]]//g; s/\s+/ /g; s/^\s+//; s/\s+$//; } @{ $title_parts };
 
     return $title_parts;
 }

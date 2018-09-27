@@ -2,7 +2,7 @@
 
 ## Python Version
 
-Tests are run on travis using Python 3.5, though improvements to keep up with modern Python are welcome.
+Tests are run on travis using Python 3.5+, though improvements to keep up with modern Python are welcome.
 
 ## Code Style
 
@@ -400,7 +400,6 @@ response_text = response.text()
 # (very likely yourself) a whole week of head bashing!
 
 ```
-
 
 ----
 

@@ -79,7 +79,7 @@ use MediaWords::DB::Locks;
     use Sys::Hostname;
 
     use MediaWords::DB;
-    use MediaWords::Util::JSON;
+    use MediaWords::Util::ParseJSON;
 
     # tag to put into a die() message to make the module not set the final state to 'error' on a die (for testing)
     Readonly our $DIE_WITHOUT_ERROR_TAG => 'dU3A4yUajMLV';
@@ -133,7 +133,7 @@ use MediaWords::DB::Locks;
     {
         my ( $self, $db, $args, $priority ) = @_;
 
-        my $args_json = MediaWords::Util::JSON::encode_json( $args );
+        my $args_json = MediaWords::Util::ParseJSON::encode_json( $args );
         $priority ||= $MediaCloud::JobManager::Job::MJM_JOB_PRIORITY_NORMAL;
 
         my $job_state = {
@@ -206,7 +206,7 @@ use MediaWords::DB::Locks;
 
         my $table_info = $self->get_state_table_info() || return;
 
-        my $args = MediaWords::Util::JSON::decode_json( $job_state->{ args } );
+        my $args = MediaWords::Util::ParseJSON::decode_json( $job_state->{ args } );
 
         my $id_field = $table_info->{ table } . '_id';
         my $id_value = $args->{ $id_field };
@@ -258,11 +258,11 @@ use MediaWords::DB::Locks;
 
         my $job_state = $db->require_by_id( 'job_states', $job_states_id );
 
-        my $args_data = MediaWords::Util::JSON::decode_json( $job_state->{ args } );
+        my $args_data = MediaWords::Util::ParseJSON::decode_json( $job_state->{ args } );
 
         map { $args_data->{ $_ } = $update->{ $_ } } ( keys( %{ $update } ) );
 
-        my $args_json = MediaWords::Util::JSON::encode_json( $args_data );
+        my $args_json = MediaWords::Util::ParseJSON::encode_json( $args_data );
 
         $db->update_by_id( 'job_states', $job_state->{ job_states_id }, { args => $args_json } );
 

@@ -14,7 +14,6 @@ from mediawords.util.log import create_logger
 
 log = create_logger(__name__)
 
-
 # ignore any list that match the below patterns.  the sites below are most social sharing button links of
 # various kinds, along with some content spam sitesand a couple of sites that confuse the spider with too
 # many domain alternatives.

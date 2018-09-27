@@ -1,7 +1,7 @@
 ---
 
 # Python version to install and use
-python_version: 3.5
+python_version: 3.7
 
 # Repository URL
 git_repo_url: https://github.com/berkmancenter/mediacloud.git

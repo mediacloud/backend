@@ -13,9 +13,7 @@ from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_object_from_bytes_if_needed
 from mediawords.util.web.user_agent.throttled import McThrottledDomainException
 
-
 log = create_logger(__name__)
-
 
 # after requeueing this many times in a rows, start sleeping one second before each requeue
 REQUEUES_UNTIL_SLEEP = 200
@@ -45,8 +43,8 @@ class FetchLinkJob(AbstractJob):
     def run_job(
             cls,
             topic_fetch_urls_id: int,
-            dummy_requeue: bool=False,
-            domain_timeout: typing.Optional[int]=None) -> None:
+            dummy_requeue: bool = False,
+            domain_timeout: typing.Optional[int] = None) -> None:
         """Call fetch_topic_url and requeue the job of the request has been domain throttled.
 
         Arguments:
@@ -65,13 +63,15 @@ class FetchLinkJob(AbstractJob):
 
         log.info("Start fetch for topic_fetch_url %d" % topic_fetch_urls_id)
 
+        db = connect_to_db()
+
         try:
-            db = connect_to_db()
             mediawords.tm.fetch_link.fetch_topic_url(
                 db=db,
                 topic_fetch_urls_id=topic_fetch_urls_id,
                 domain_timeout=domain_timeout)
             cls._consecutive_requeues = 0
+
         except McThrottledDomainException:
             # if a domain has been throttled, just add it back to the end of the queue
             log.info("Fetch for topic_fetch_url %d domain throttled.  Requeueing ..." % topic_fetch_urls_id)
@@ -90,11 +90,12 @@ class FetchLinkJob(AbstractJob):
 
         except Exception as ex:
             # all non throttled errors should get caught by the try: about, but catch again here just in case
+            log.error("Error while fetching URL with ID {}: {}".format(topic_fetch_urls_id, str(ex)))
             cls._consecutive_requeues = 0
             update = {
                 'state': mediawords.tm.fetch_link.FETCH_STATE_PYTHON_ERROR,
                 'fetch_date': datetime.datetime.now(),
-                'message': traceback.format_exc()
+                'message': traceback.format_exc(),
             }
             db.update_by_id('topic_fetch_urls', topic_fetch_urls_id, update)
 
