@@ -2,7 +2,7 @@
 
 import datetime
 import operator
-import re2 as re
+import re2
 import traceback
 import typing
 
@@ -11,7 +11,7 @@ import mediawords.db.exceptions.handler
 import mediawords.dbi.downloads
 from mediawords.tm.guess_date import guess_date, GuessDateResult
 import mediawords.tm.media
-import mediawords.util.html
+import mediawords.util.parse_html
 from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_object_from_bytes_if_needed
 import mediawords.util.url
@@ -50,7 +50,7 @@ class McTMStoriesDuplicateException(Exception):
 #         if download['url'].endswith(ext):
 #             return
 #
-#     if re.search(r'livejournal.com\/(tag|profile)', download['url'], flags=re.I) is not None:
+#     if re2.search(r'livejournal.com\/(tag|profile)', download['url'], flags=re2.I) is not None:
 #         return
 #
 #     dt = db.query("select 1 from download_texts where downloads_id = %(a)s", {'a': download['downloads_id']}).hash()
@@ -176,7 +176,7 @@ def ignore_redirect(db: DatabaseHandler, url: str, redirect_url: typing.Optional
     return match is not None
 
 
-def get_story_match(db: DatabaseHandler, url: str, redirect_url: typing.Optional[str]=None) -> typing.Optional[dict]:
+def get_story_match(db: DatabaseHandler, url: str, redirect_url: typing.Optional[str] = None) -> typing.Optional[dict]:
     """Search for any story within the database that matches the given url.
 
     Searches for any story whose guid or url matches either the url or redirect_url or the
@@ -204,7 +204,7 @@ def get_story_match(db: DatabaseHandler, url: str, redirect_url: typing.Optional
     nu = mediawords.util.url.normalize_url_lossy(u)
     nru = mediawords.util.url.normalize_url_lossy(ru)
 
-    urls = list(set((u, ru, nu, nru)))
+    urls = list({u, ru, nu, nru})
 
     # for some reason some rare urls trigger a seq scan on the below query
     db.query("set enable_seqscan=off")
@@ -287,7 +287,7 @@ def assign_date_guess_tag(
         if guess_method.startswith('Extracted from url'):
             tag = 'guess_by_url'
         elif guess_method.startswith('Extracted from tag'):
-            match = re.search(r'\<(\w+)', guess_method)
+            match = re2.search(r'\<(\w+)', guess_method)
             html_tag = match.group(1) if match is not None else 'unknown'
             tag = 'guess_by_tag_' + str(html_tag)
         else:
@@ -330,7 +330,7 @@ def generate_story(
         db: DatabaseHandler,
         url: str,
         content: str,
-        fallback_date: typing.Optional[datetime.datetime]=None) -> dict:
+        fallback_date: typing.Optional[datetime.datetime] = None) -> dict:
     """Add a new story to the database by guessing metadata using the given url and content.
 
     This function guesses the medium, feed, title, and date of the story from the url and content.
@@ -349,7 +349,7 @@ def generate_story(
     medium = mediawords.tm.media.guess_medium(db, url)
     feed = get_spider_feed(db, medium)
     spidered_tag = mediawords.tm.media.get_spidered_tag(db)
-    title = mediawords.util.html.html_title(content, url, _MAX_TITLE_LENGTH)
+    title = mediawords.util.parse_html.html_title(content, url, _MAX_TITLE_LENGTH)
 
     story = {
         'url': url,
@@ -361,7 +361,7 @@ def generate_story(
 
     # postgres refuses to insert text values with the null character
     for field in ('url', 'guid', 'title'):
-        story[field] = re.sub('\x00', '', story[field])
+        story[field] = re2.sub('\x00', '', story[field])
 
     date_guess = guess_date(url, content)
     story['publish_date'] = date_guess.date if date_guess.found else fallback_date
@@ -370,9 +370,9 @@ def generate_story(
 
     try:
         story = db.create('stories', story)
-    except mediawords.db.exceptions.handler.McUniqueConstraintException as e:
+    except mediawords.db.exceptions.handler.McUniqueConstraintException:
         raise McTMStoriesDuplicateException("Attempt to insert duplicate story url %s" % url)
-    except Exception as e:
+    except Exception:
         raise McTMStoriesException("Error adding story: %s" % traceback.format_exc())
 
     db.query(
@@ -387,7 +387,7 @@ def generate_story(
 
     download = create_download_for_new_story(db, story, feed)
 
-    download = mediawords.dbi.downloads.store_content(db, download, content)
+    mediawords.dbi.downloads.store_content(db, download, content)
 
     return story
 

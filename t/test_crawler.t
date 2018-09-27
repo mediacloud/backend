@@ -211,8 +211,10 @@ sub _test_stories($$$$)
 
     for my $story ( @{ $stories } )
     {
+        my $story_url = $story->{ url };
+
         my $test_story = $test_story_hash->{ $story->{ title } };
-        if ( ok( $test_story, "$test_name - story match: " . $story->{ title } ) )
+        if ( ok( $test_story, "$test_name ($story_url) - story match: " . $story->{ title } ) )
         {
             my $fields = [ qw(description extracted_text) ];
 
@@ -231,7 +233,7 @@ sub _test_stories($$$$)
                     MediaWords::Test::Text::eq_or_sentence_diff(
                         $story->{ $field },
                         $test_story->{ $field },
-                        "$test_name - story $field match"
+                        "$test_name ($story_url) - story $field match"
                     );
                 }
             }
@@ -239,14 +241,18 @@ sub _test_stories($$$$)
             MediaWords::Test::Text::eq_or_sentence_diff(
                 $story->{ content },
                 $test_story->{ content },
-                "$test_name - story content matches"
+                "$test_name ($story_url) - story content matches"
             );
 
-            is( scalar( @{ $story->{ tags } } ), scalar( @{ $test_story->{ tags } } ), "$test_name - story tags count" );
+            is(
+                scalar( @{ $story->{ tags } } ),
+                scalar( @{ $test_story->{ tags } } ),
+                "$test_name ($story_url) - story tags count"
+            );
 
             my $expected_sentences = join( "\n", map { $_->{ sentence } } @{ $test_story->{ story_sentences } } );
             my $got_sentences      = join( "\n", map { $_->{ sentence } } @{ $story->{ story_sentences } } );
-            eq_or_diff( $expected_sentences, $got_sentences, "$test_name - sentences match" );
+            eq_or_diff( $expected_sentences, $got_sentences, "$test_name ($story_url) - sentences match" );
 
             _purge_story_sentences_id_field( $story->{ story_sentences } );
             _purge_story_sentences_id_field( $test_story->{ story_sentences } );
@@ -263,7 +269,7 @@ sub _test_stories($$$$)
             cmp_deeply(
                 $story->{ story_sentences },
                 $test_story->{ story_sentences },
-                "$test_name - story sentences " . $story->{ stories_id }
+                "$test_name ($story_url) - story sentences " . $story->{ stories_id }
             );
 
         }

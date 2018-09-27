@@ -35,7 +35,7 @@ from mediawords.key_value_store.database_inline import DatabaseInlineStore
 from mediawords.key_value_store.multiple_stores import MultipleStoresStore
 from mediawords.key_value_store.postgresql import PostgreSQLStore
 import mediawords.util.extract_text
-import mediawords.util.html
+import mediawords.util.parse_html
 from mediawords.util.log import create_logger
 
 log = create_logger(__name__)
@@ -184,7 +184,7 @@ def _get_store_for_reading(download: dict) -> KeyValueStore:
 
     path = download.get('path', 's3:')
 
-    match = re.search('^([\w]+):', path)
+    match = re.search(r'^([\w]+):', path)
     location = match.group(1) if match else 's3'
     location = location.lower()
 
@@ -305,7 +305,7 @@ def _set_cached_extractor_results(db, download, results) -> None:
     db.create('cached_extractor_results', cache)
 
 
-def extract(db: DatabaseHandler, download: dict, use_cache: bool=False) -> dict:
+def extract(db: DatabaseHandler, download: dict, use_cache: bool = False) -> dict:
     """Extract the content for the given download.
 
     Arguments:
@@ -335,7 +335,7 @@ def extract(db: DatabaseHandler, download: dict, use_cache: bool=False) -> dict:
 def _call_extractor_on_html(content: str) -> dict:
     """Call extractor on the content."""
     extracted_html = mediawords.util.extract_text.extract_article_from_html(content)
-    extracted_text = mediawords.util.html.html_strip(extracted_html)
+    extracted_text = mediawords.util.parse_html.html_strip(extracted_html)
 
     return {'extracted_html': extracted_html, 'extracted_text': extracted_text}
 

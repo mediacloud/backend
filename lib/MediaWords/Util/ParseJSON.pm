@@ -1,4 +1,4 @@
-package MediaWords::Util::JSON;
+package MediaWords::Util::ParseJSON;
 
 #
 # Utilities for encoding / decoding JSON
@@ -10,7 +10,7 @@ use warnings;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-import_python_module( __PACKAGE__, 'mediawords.util.json' );
+import_python_module( __PACKAGE__, 'mediawords.util.parse_json' );
 
 # numify the given fields in the given list of hashes so that encode_json() will encode them as
 # numbers rather than strings

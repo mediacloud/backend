@@ -14,7 +14,7 @@ use Data::Dumper;
 use Readonly;
 
 use MediaWords::Util::Annotator::NYTLabels;
-use MediaWords::Util::JSON;
+use MediaWords::Util::ParseJSON;
 
 use MediaWords::Test::HTTP::HashServer;
 use MediaWords::Test::DB;
@@ -120,7 +120,7 @@ sub test_nytlabels_annotator($)
         }
     );
 
-    my $encoded_json = MediaWords::Util::JSON::encode_json( _sample_nytlabels_response() );
+    my $encoded_json = MediaWords::Util::ParseJSON::encode_json( _sample_nytlabels_response() );
 
     my $pages = {
 

@@ -37,21 +37,10 @@
     - { name: openssl, install_options: null }
     - { name: perl, install_options: null }
     - { name: python, install_options: null }
+    - { name: python3, install_options: null }
     - { name: rabbitmq, install_options: null }
     - { name: re2, install_options: null }
     - { name: tidy-html5, install_options: null }
-  tags:
-    - system-packages
-
-- name: Install Python 3.5
-  command: "brew install https://raw.githubusercontent.com/Homebrew/homebrew-core/ec545d45d4512ace3570782283df4ecda6bb0044/Formula/python3.rb"
-  args:
-    creates: "/usr/local/bin/python3.5"
-  tags:
-    - system-packages
-
-- name: Switch to Python 3.5
-  command: brew switch python3 3.5.2_3
   tags:
     - system-packages
 

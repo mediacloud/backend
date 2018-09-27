@@ -5,7 +5,7 @@ from mediawords.annotator.nyt_labels import NYTLabelsAnnotator
 from mediawords.test.http.hash_server import HashServer
 from mediawords.test.test_database import TestDatabaseWithSchemaTestCase
 from mediawords.util.config import get_config as py_get_config, set_config as py_set_config
-from mediawords.util.json import encode_json
+from mediawords.util.parse_json import encode_json
 from mediawords.util.network import random_unused_port
 from mediawords.util.sql import sql_now
 

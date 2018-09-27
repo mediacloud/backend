@@ -302,7 +302,7 @@ class StopWordsFromFileMixIn(AbstractLanguage, metaclass=abc.ABCMeta):
             with open(stop_words_path, 'r', encoding='utf-8') as f:
                 for stop_word in f.readlines():
                     # Remove comments
-                    stop_word = re.sub('\s*?#.*?$', '', stop_word)
+                    stop_word = re.sub(r'\s*?#.*?$', '', stop_word)
 
                     stop_word = stop_word.strip()
 

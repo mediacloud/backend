@@ -658,14 +658,14 @@ class UserAgent(object):
 
         auth_username = request.auth_username()
         auth_password = request.auth_password()
-        if ((auth_username is None and auth_password is not None) or
-                (auth_username is not None and auth_password is None)):
+        if ((auth_username is None and auth_password is not None) or (
+                auth_username is not None and auth_password is None)):
             raise McRequestException("Either both or none of HTTP authentication credentials must be not None.")
 
         auth = None
         if auth_username is not None and auth_password is not None:
-            if ((len(auth_username) == 0 and len(auth_password) > 0) or
-                    (len(auth_username) > 0 and len(auth_password) == 0)):
+            if ((len(auth_username) == 0 and len(auth_password) > 0) or (
+                    len(auth_username) > 0 and len(auth_password) == 0)):
                 raise McRequestException("Either both or none of HTTP authentication credentials must be not Empty.")
 
             auth = HTTPBasicAuth(auth_username, auth_password)

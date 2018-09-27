@@ -13,6 +13,7 @@ use URI::QueryParam;
 
 use MediaWords::CommonLibs;
 use MediaWords::Util::Web;
+use MediaWords::Util::ParseJSON;
 
 require Exporter;
 our @ISA    = qw(Exporter);
@@ -87,7 +88,7 @@ sub test_request_response($$;$)
 
     is( $response->is_success, !$expect_error, "HTTP response status OK for $label:\n" . $response->decoded_content );
 
-    my $data = eval { MediaWords::Util::JSON::decode_json( $response->decoded_content ) };
+    my $data = eval { MediaWords::Util::ParseJSON::decode_json( $response->decoded_content ) };
 
     ok( $data, "decoded JSON for $label (json error: $@)" );
 
@@ -123,7 +124,7 @@ sub test_data_request($$$;$)
     }
     $url = $uri->as_string;
 
-    my $json = MediaWords::Util::JSON::encode_json( $data );
+    my $json = MediaWords::Util::ParseJSON::encode_json( $data );
 
     my $request = HTTP::Request->new( $method, $url );
     $request->header( 'Content-Type' => 'application/json' );
@@ -200,7 +201,7 @@ sub rows_match($$$$$)
 
         for my $field ( @{ $test_fields } )
         {
-            my $got      = $got_row->{ $field }      // '';
+            my $got      = $got_row->{ $field } // '';
             my $expected = $expected_row->{ $field } // '';
 
             ok( exists( $got_row->{ $field } ), "$label field $field exists" );

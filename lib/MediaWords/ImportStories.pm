@@ -37,7 +37,7 @@ use MediaWords::TM::GuessDate;
 use MediaWords::CommonLibs;
 use MediaWords::DBI::Downloads;
 use MediaWords::DBI::Stories;
-use MediaWords::Util::HTML;
+use MediaWords::Util::ParseHTML;
 use MediaWords::Util::SQL;
 use MediaWords::Util::Tags;
 use MediaWords::Util::URL;
@@ -122,7 +122,7 @@ sub generate_story
 
     my $db = $self->db;
 
-    my $title = MediaWords::Util::HTML::html_title( $content, $url, 1024 );
+    my $title = MediaWords::Util::ParseHTML::html_title( $content, $url, 1024 );
 
     my $story = {
         url          => $url,

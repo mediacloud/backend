@@ -1,3 +1,5 @@
+# MC_REWRITE_TO_PYTHON: try renaming back to .util.json
+
 import json
 from typing import Union, Dict, List
 

@@ -4,7 +4,7 @@
 
 - name: Ensure that Ansible itself is up-to-date
   assert:
-    that: "ansible_version.full is version_compare('2.5.1', '>=')"
+    that: "ansible_version.full is version_compare('2.6.4', '>=')"
     msg: "Please upgrade your Ansible to a newer version."
   tags:
     - pre-tasks
