@@ -163,8 +163,8 @@ class JobBrokerApp(Celery):
 
         self.conf.broker_connection_timeout = int(rabbitmq_config['timeout'])
 
-        worker_concurrency = config.get('celery', {}).get(job_class.__name__, {}).get('worker_concurrency', 1)
-        self.conf.worker_concurrency = worker_concurrency
+        # Concurrency is done by Supervisor, not Celery itself
+        self.conf.worker_concurrency = 1
 
         # Fetch only one job at a time
         self.conf.worker_prefetch_multiplier = 1
@@ -198,4 +198,15 @@ class JobBrokerApp(Celery):
             'worker',
             '--loglevel', 'info',
             '--hostname', node_name,
+
+            # Use "solo" pool because:
+            #
+            # 1) We run (want want to run) a single job per process because multithreading is fun until it's not
+            # 2) Celery has concurrency bugs, e.g. sometimes gets "stuck" on a task
+            #
+            #        https://github.com/celery/celery/issues/3759#issuecomment-311763355
+            #
+            #    and a good way to avoid such concurrency bugs is just not to use concurrency.
+            #
+            '--pool', 'solo',
         ])
