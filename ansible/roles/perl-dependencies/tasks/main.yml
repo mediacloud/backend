@@ -44,8 +44,8 @@
 
 - name: Install Inline::Python variant which die()s with tracebacks (stack traces)
   command: "cpanm -v https://github.com/berkmancenter/mediacloud-inline-python-pm.git@v0.56-mediacloud"
-  args:
-    creates: "{{ perlbrew_home }}/libs/perl-system@mediacloud/man/man3/Inline::Python.3*" # might be ".3" or ".3pm"
+  # No "args/creates" because installing from Git tree, so not sure how to
+  # check which particular tag got installed
   environment: "{{ perlbrew_environment_variables_copy }}"
   become: true
   become_user: "{{ mediacloud_user }}"
