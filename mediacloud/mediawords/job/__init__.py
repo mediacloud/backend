@@ -163,8 +163,8 @@ class JobBrokerApp(Celery):
 
         self.conf.broker_connection_timeout = int(rabbitmq_config['timeout'])
 
-        worker_concurrency = config.get('celery', {}).get(job_class.__name__, {}).get('worker_concurrency', 1)
-        self.conf.worker_concurrency = worker_concurrency
+        # Concurrency is done by Supervisor, not Celery itself
+        self.conf.worker_concurrency = 1
 
         # Fetch only one job at a time
         self.conf.worker_prefetch_multiplier = 1
