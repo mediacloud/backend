@@ -11,6 +11,18 @@
   tags:
     - python-dependencies
 
+# Needs to be (re)created instead of just pointing to it via "pip" module in
+# case the Python version changes
+- name: Create Media Cloud virtualenv
+  command: "virtualenv {{ mediacloud_home }}/.virtualenvs/mediacloud/ --python=python{{ python_version }}"
+  args:
+    # Make sure that Python with the correct version gets symlinked
+    creates: "{{ mediacloud_home }}/.virtualenvs/mediacloud/bin/python{{ python_version }}"
+  become: true
+  become_user: "{{ mediacloud_user }}"
+  tags:
+    - python-dependencies
+
 - name: Create temporary directory for requirements.txt
   tempfile:
     state: directory
