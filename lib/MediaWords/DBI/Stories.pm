@@ -27,7 +27,7 @@ use List::Compare;
 use List::Util;
 
 use MediaWords::DBI::Downloads;
-use Mediawords::DBI::Stories::Extract;
+use MediaWords::DBI::Stories::Extract;
 use MediaWords::DBI::Stories::ExtractorArguments;
 use MediaWords::Languages::Language;
 use MediaWords::Solr::WordCounts;
