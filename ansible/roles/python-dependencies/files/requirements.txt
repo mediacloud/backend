@@ -22,6 +22,9 @@ Celery==4.2.1
 # Language identification
 cld2-cffi==0.1.4
 
+# Colorful sentence diffs in unit tests
+colorama==0.3.9
+
 # Unit test coverage
 coverage==4.5.1
 
