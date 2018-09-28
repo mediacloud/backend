@@ -19,7 +19,7 @@ use MediaWords::DBI::Stories::GuessDate;
 use MediaWords::DBI::Activities;
 use MediaWords::Util::Annotator::CLIFF;
 use MediaWords::Util::Annotator::NYTLabels;
-use MediaWords::Util::JSON;
+use MediaWords::Util::ParseJSON;
 
 =head1 NAME
 
@@ -252,7 +252,7 @@ sub cliff_json : Local
 
     # Encode back to JSON, prettifying the result
     my $annotation_json;
-    eval { $annotation_json = MediaWords::Util::JSON::encode_json( $cliff_annotation, 1 ); };
+    eval { $annotation_json = MediaWords::Util::ParseJSON::encode_json( $cliff_annotation, 1 ); };
     if ( $@ or ( !$annotation_json ) )
     {
         die "Unable to encode story and its sentences annotation to JSON for story " .
@@ -301,7 +301,7 @@ sub nytlabels_json : Local
 
     # Encode back to JSON, prettifying the result
     my $annotation_json;
-    eval { $annotation_json = MediaWords::Util::JSON::encode_json( $nytlabels_annotation, 1 ); };
+    eval { $annotation_json = MediaWords::Util::ParseJSON::encode_json( $nytlabels_annotation, 1 ); };
     if ( $@ or ( !$annotation_json ) )
     {
         die "Unable to encode story and its sentences annotation to JSON for story " .
@@ -671,7 +671,7 @@ sub stories_query_json : Local
     DEBUG "finished stories_query_json";
 
     $c->response->content_type( 'application/json; charset=UTF-8' );
-    return $c->res->body( MediaWords::Util::JSON::encode_json( $stories ) );
+    return $c->res->body( MediaWords::Util::ParseJSON::encode_json( $stories ) );
 }
 
 =head1 AUTHOR

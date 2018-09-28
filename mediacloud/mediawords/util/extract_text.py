@@ -1,8 +1,10 @@
 from io import StringIO
+import re
 import sys
-import pip
 
-# noinspection PyPackageRequirements
+# noinspection PyProtectedMember
+from pip._internal import main as pip_main
+
 import readability.readability
 
 from mediawords.util.log import create_logger
@@ -26,7 +28,7 @@ def __get_pip_module_version(module_name):
 
         f = StringIO()
         sys.stdout = f
-        pip.main(['show', module_name])
+        pip_main(['show', module_name])
         sys.stdout = sys.__stdout__
 
         module_version = None
@@ -58,13 +60,17 @@ def extract_article_from_html(html: str) -> str:
     if html is None or html == '':
         return ''
 
+    # this is necessary to avoid a bug in readability.readability.clean() that causes the regular
+    # expression r'\s*\n\s*' to hang for some rare cases of text with many repeated spaces
+    html = re.sub(r'\s{255,}', ' ' * 255, html)
+
     try:
         doc = readability.readability.Document(html)
 
         doc_title = doc.short_title().strip()
         doc_summary = doc.summary().strip()
 
-        extracted_text = "%s\n\n%s" % (doc_title, doc_summary)
+        extracted_text = "{}\n\n{}".format(doc_title, doc_summary)
 
     except Exception as ex:
         log.error('Exception raised while extracting HTML: %s' % str(ex))

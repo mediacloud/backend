@@ -19,7 +19,7 @@ use MediaWords::Solr::WordCounts;
 use MediaWords::TM::Mine;
 use MediaWords::TM::Snapshot;
 use MediaWords::TM;
-use MediaWords::Util::JSON;
+use MediaWords::Util::ParseJSON;
 
 use Digest::MD5;
 use List::Compare;
@@ -313,7 +313,7 @@ sub _get_snapshots($$$)
     my $focus_clause = '';
     if ( $foci_id )
     {
-        $focus_clause = <<SQL
+        $focus_clause = <<SQL;
 and exists (
     select 1 from timespans timespan
     where timespan.foci_id = $foci_id and
@@ -542,7 +542,7 @@ END
 
     my $media_with_timespan_counts = _get_media_with_timespan_counts( $db, $snapshot );
 
-    $c->res->body( MediaWords::Util::JSON::encode_json( $media_with_timespan_counts ) );
+    $c->res->body( MediaWords::Util::ParseJSON::encode_json( $media_with_timespan_counts ) );
 }
 
 # display network viz
@@ -646,7 +646,7 @@ sub nv_config : Local
         }
     };
 
-    my $config_json = MediaWords::Util::JSON::encode_json( $config_data, 1 );
+    my $config_json = MediaWords::Util::ParseJSON::encode_json( $config_data, 1 );
 
     $c->response->content_type( 'application/json; charset=UTF-8' );
     $c->response->content_length( bytes::length( $config_json ) );

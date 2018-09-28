@@ -30,7 +30,11 @@ use MediaWords::DBI::Downloads;
 use MediaWords::DBI::Stories::ExtractorArguments;
 use MediaWords::Languages::Language;
 use MediaWords::Solr::WordCounts;
-use MediaWords::Util::HTML;
+use MediaWords::StoryVectors;
+use MediaWords::Util::Annotator::CLIFF;
+use MediaWords::Util::Annotator::NYTLabels;
+use MediaWords::Util::Config;
+use MediaWords::Util::ParseHTML;
 use MediaWords::Util::SQL;
 use MediaWords::Util::URL;
 use MediaWords::Util::Web;
@@ -392,7 +396,7 @@ sub _get_title_parts
 
     $title = lc( $title );
 
-    $title = MediaWords::Util::HTML::html_strip( $title ) if ( $title =~ /\</ );
+    $title = MediaWords::Util::ParseHTML::html_strip( $title ) if ( $title =~ /\</ );
     $title = decode_entities( $title );
 
     my $sep_chars = '\-\:\|';

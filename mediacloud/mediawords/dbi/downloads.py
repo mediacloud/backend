@@ -38,7 +38,7 @@ from mediawords.key_value_store.multiple_stores import MultipleStoresStore
 from mediawords.key_value_store.postgresql import PostgreSQLStore
 from mediawords.util.config import get_config
 from mediawords.util.extract_text import extract_article_from_html
-from mediawords.util.html import html_strip
+from mediawords.util.parse_html import html_strip
 from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_object_from_bytes_if_needed
 
@@ -192,7 +192,7 @@ def _get_store_for_reading(download: dict) -> KeyValueStore:
 
     path = download.get('path', 's3:')
 
-    match = re.search('^([\w]+):', path)
+    match = re.search(r'^([\w]+):', path)
     location = match.group(1) if match else 's3'
     location = location.lower()
 

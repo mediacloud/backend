@@ -6,7 +6,7 @@ from typing import List
 
 import arrow
 
-from mediawords.util.json import encode_json, decode_json
+from mediawords.util.parse_json import encode_json, decode_json
 from mediawords.util.log import create_logger
 from mediawords.util.paths import mc_root_path
 from mediawords.util.perl import decode_object_from_bytes_if_needed

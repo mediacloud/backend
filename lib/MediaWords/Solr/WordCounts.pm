@@ -30,7 +30,7 @@ use MediaWords::Languages::Language;
 use MediaWords::Solr;
 use MediaWords::Util::Config;
 use MediaWords::Util::IdentifyLanguage;
-use MediaWords::Util::JSON;
+use MediaWords::Util::ParseJSON;
 use MediaWords::Util::Text;
 use MediaWords::Test::DB;
 use MediaWords::Test::DB::Environment;
@@ -416,7 +416,7 @@ sub _get_remote_words
         die( "error retrieving words from solr: " . $res->decoded_content );
     }
 
-    my $words = MediaWords::Util::JSON::decode_json( $res->decoded_content );
+    my $words = MediaWords::Util::ParseJSON::decode_json( $res->decoded_content );
 
     unless ( $words && ref( $words ) )
     {

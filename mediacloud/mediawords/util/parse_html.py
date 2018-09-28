@@ -1,4 +1,6 @@
-"""Various utility functions for handling html."""
+"""Various utility functions for handling HTML."""
+
+# MC_REWRITE_TO_PYTHON: try renaming back to .util.html
 
 import re
 from urllib.parse import urljoin
@@ -110,8 +112,8 @@ def _sententize_block_level_tags(s: str) -> str:
         ('title h1 h2 h3 h4 h5 h6 p div dl dt dd ol ul li dir menu address'
          ' blockquote center div hr ins noscript pre').split()
     _TAG_LIST = '|'.join(_BLOCK_LEVEL_ELEMENT_TAGS)
-    _BLOCK_LEVEL_START_TAG_RE = r'(<(' + _TAG_LIST + ')(>|\s))'
-    _BLOCK_LEVEL_END_TAG_RE = r'(</(' + _TAG_LIST + ')>)'
+    _BLOCK_LEVEL_START_TAG_RE = r'(<(' + _TAG_LIST + r')(>|\s))'
+    _BLOCK_LEVEL_END_TAG_RE = r'(</(' + _TAG_LIST + r')>)'
 
     s = re.sub(_BLOCK_LEVEL_START_TAG_RE, "\n\n\\1", s, flags=re.S | re.I)
     s = re.sub(_BLOCK_LEVEL_END_TAG_RE, ".\\1\n\n", s, flags=re.S | re.I)
@@ -170,7 +172,6 @@ def html_title(html: str, fallback: str, trim_to_length: int = 0) -> Optional[st
     html = str(decode_object_from_bytes_if_needed(html))
     fallback_decode = decode_object_from_bytes_if_needed(fallback)
     fallback = '' if fallback_decode is None else str(fallback_decode)
-    title = None
 
     title_meta_re = r'(?:og:title|hdl|twitter:title|dc.title|dcterms.title|title)'
 

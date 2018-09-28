@@ -20,7 +20,7 @@ use URI;
 use URI::Escape;
 use URI::QueryParam;
 
-use MediaWords::Util::JSON;
+use MediaWords::Util::ParseJSON;
 use MediaWords::Util::Web;
 use MediaWords::Util::Text;
 use MediaWords::Test::HTTP::HashServer;
@@ -71,7 +71,7 @@ sub test_get_user_agent_from_headers()
                 $response .= "HTTP/1.0 200 OK\r\n";
                 $response .= "Content-Type: application/json; charset=UTF-8\r\n";
                 $response .= "\r\n";
-                $response .= MediaWords::Util::JSON::encode_json(
+                $response .= MediaWords::Util::ParseJSON::encode_json(
                     {
                         'user-agent' => $request->header( 'User-Agent' ),
                         'from'       => $request->header( 'From' ),
@@ -97,7 +97,7 @@ sub test_get_user_agent_from_headers()
     my $expected_user_agent = $config->{ mediawords }->{ user_agent };
     my $expected_from       = $config->{ mediawords }->{ owner };
 
-    my $decoded_json = MediaWords::Util::JSON::decode_json( $response->decoded_content() );
+    my $decoded_json = MediaWords::Util::ParseJSON::decode_json( $response->decoded_content() );
     cmp_deeply(
         $decoded_json,
         {
@@ -320,7 +320,7 @@ sub test_get_request_headers()
                 $response .= "Content-Type: application/json; charset=UTF-8\r\n";
                 $response .= "\r\n";
                 $response .=
-                  MediaWords::Util::JSON::encode_json( { 'custom-header' => $request->header( 'X-Custom-Header' ), } );
+                  MediaWords::Util::ParseJSON::encode_json( { 'custom-header' => $request->header( 'X-Custom-Header' ), } );
 
                 return $response;
             }
@@ -340,7 +340,7 @@ sub test_get_request_headers()
     ok( $response->is_success() );
     is_urls( $response->request()->url(), $TEST_HTTP_SERVER_URL . '/test-custom-header' );
 
-    my $decoded_json = MediaWords::Util::JSON::decode_json( $response->decoded_content() );
+    my $decoded_json = MediaWords::Util::ParseJSON::decode_json( $response->decoded_content() );
     cmp_deeply( $decoded_json, { 'custom-header' => 'foo' } );
 
     $hs->stop();
@@ -1244,7 +1244,7 @@ sub test_post()
                 $response .= "HTTP/1.0 200 OK\r\n";
                 $response .= "Content-Type: application/json; charset=UTF-8\r\n";
                 $response .= "\r\n";
-                $response .= MediaWords::Util::JSON::encode_json(
+                $response .= MediaWords::Util::ParseJSON::encode_json(
                     {
                         'method'       => $request->method(),
                         'content-type' => $request->content_type(),
@@ -1273,7 +1273,7 @@ sub test_post()
         ok( $response->is_success() );
         is_urls( $response->request()->url(), $TEST_HTTP_SERVER_URL . '/test-post' );
 
-        my $decoded_json = MediaWords::Util::JSON::decode_json( $response->decoded_content() );
+        my $decoded_json = MediaWords::Util::ParseJSON::decode_json( $response->decoded_content() );
         cmp_deeply(
             $decoded_json,
             {
@@ -1303,7 +1303,7 @@ sub test_post()
         ok( $response->is_success() );
         is_urls( $response->request()->url(), $TEST_HTTP_SERVER_URL . '/test-post' );
 
-        my $decoded_json = MediaWords::Util::JSON::decode_json( $response->decoded_content() );
+        my $decoded_json = MediaWords::Util::ParseJSON::decode_json( $response->decoded_content() );
         cmp_deeply(
             $decoded_json,
             {

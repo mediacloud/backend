@@ -29,7 +29,7 @@ with 'MediaWords::ImportStories';
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-use MediaWords::Util::JSON;
+use MediaWords::Util::ParseJSON;
 use MediaWords::Util::SQL;
 use MediaWords::Util::Web;
 
@@ -84,7 +84,7 @@ sub get_new_stories($)
             LOGCONFESS "Import of '$episode_id' failed: " . Dumper( $res->decoded_content() );
         }
 
-        my $metadata = MediaWords::Util::JSON::decode_json( $res->decoded_content() );
+        my $metadata = MediaWords::Util::ParseJSON::decode_json( $res->decoded_content() );
         if ( length( keys( %{ $metadata } ) ) == 0 )
         {
             LOGCONFESS "Metadata for '$episode_id' is empty.";

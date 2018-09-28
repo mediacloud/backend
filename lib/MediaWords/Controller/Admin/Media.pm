@@ -20,8 +20,7 @@ use MediaWords::DBI::Feeds;
 use MediaWords::DBI::Media;
 use MediaWords::DBI::Stories;
 use MediaWords::DBI::Stories::Extract;
-use MediaWords::Util::HTML;
-use MediaWords::Util::JSON;
+use MediaWords::Util::ParseJSON;
 use MediaWords::Util::Tags;
 use MediaWords::Util::Web;
 use Readonly;
@@ -143,7 +142,7 @@ sub media_tags_search_json : Local
         )->flat;
     }
 
-    $c->res->body( MediaWords::Util::JSON::encode_json( $terms ) );
+    $c->res->body( MediaWords::Util::ParseJSON::encode_json( $terms ) );
 
     return;
 }

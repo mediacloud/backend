@@ -3,7 +3,7 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use MediaWords::DBI::Auth;
-use MediaWords::Util::JSON;
+use MediaWords::Util::ParseJSON;
 
 use strict;
 use warnings;
@@ -40,7 +40,7 @@ BEGIN { extends 'Catalyst::Controller::REST' }
 sub _encode_json($$$)
 {
     my ( $object, $controller, $c ) = @_;
-    my $json = MediaWords::Util::JSON::encode_json( $object );
+    my $json = MediaWords::Util::ParseJSON::encode_json( $object );
 
     # Catalyst expects bytes
     $json = encode_utf8( $json );
@@ -51,7 +51,7 @@ sub _encode_json($$$)
 sub _decode_json($$$)
 {
     my ( $json, $controller, $c ) = @_;
-    return MediaWords::Util::JSON::decode_json( $json );
+    return MediaWords::Util::ParseJSON::decode_json( $json );
 }
 
 __PACKAGE__->config(
@@ -107,7 +107,7 @@ sub end : Private
         map { $_ =~ s/Caught exception.*"(.*)at \/.*/$1/ } @{ $c->stash->{ errors } };
 
         my $message = 'Error(s): ' . join( '; ', @{ $c->stash->{ errors } } );
-        my $body = MediaWords::Util::JSON::encode_json( { 'error' => $message } );
+        my $body = MediaWords::Util::ParseJSON::encode_json( { 'error' => $message } );
 
         if ( $c->response->status =~ /^[23]\d\d$/ )
         {
@@ -124,7 +124,7 @@ sub end : Private
     }
     elsif ( $c->stash->{ quit_after_auth } )
     {
-        my $body = MediaWords::Util::JSON::encode_json( { 'success' => 1 } );
+        my $body = MediaWords::Util::ParseJSON::encode_json( { 'success' => 1 } );
 
         $c->response->content_type( 'application/json; charset=UTF-8' );
         $c->response->body( $body );

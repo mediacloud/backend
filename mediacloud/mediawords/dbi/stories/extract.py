@@ -1,7 +1,7 @@
 from typing import Optional, List
 
 from mediawords.db import DatabaseHandler
-from mediawords.util.html import html_strip
+from mediawords.util.parse_html import html_strip
 from mediawords.util.perl import decode_object_from_bytes_if_needed
 
 

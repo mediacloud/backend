@@ -243,10 +243,10 @@ def _clean_sentences(sentences: List[str]) -> List[str]:
     cleaned_sentences = []
 
     for sentence in sentences:
-        if not re.match(pattern="(\[.*\{){5,}", string=sentence):
+        if not re.match(pattern=r"(\[.*\{){5,}", string=sentence):
             # Drop sentences that are all ASCII and 5 characters or less (keep non-ASCII because those are sometimes
             # logograms)
-            if not re.match(pattern="^[\x00-\x7F]{0,5}$", string=sentence):
+            if not re.match(pattern=r"^[\x00-\x7F]{0,5}$", string=sentence):
                 cleaned_sentences.append(sentence)
 
     return cleaned_sentences

@@ -8,7 +8,7 @@ use Test::More tests => 8;
 use Test::Deep;
 use Data::Dumper;
 
-use_ok( 'MediaWords::Util::JSON' );
+use_ok( 'MediaWords::Util::ParseJSON' );
 
 sub test_encode_decode_json()
 {
@@ -24,20 +24,20 @@ sub test_encode_decode_json()
     my $pretty = 0;
     my ( $encoded_json, $decoded_json );
 
-    $encoded_json = MediaWords::Util::JSON::encode_json( $object, $pretty );
+    $encoded_json = MediaWords::Util::ParseJSON::encode_json( $object, $pretty );
     is( $encoded_json, $expected_json, 'encode_json()' );
-    $decoded_json = MediaWords::Util::JSON::decode_json( $encoded_json );
+    $decoded_json = MediaWords::Util::ParseJSON::decode_json( $encoded_json );
     cmp_deeply( $decoded_json, $object, 'decode_json()' );
 
     # Encoding errors
-    eval { MediaWords::Util::JSON::encode_json( undef ); };
+    eval { MediaWords::Util::ParseJSON::encode_json( undef ); };
     ok( $@, 'Trying to encode undefined JSON' );
-    eval { MediaWords::Util::JSON::encode_json( "strings can't be encoded" ); };
+    eval { MediaWords::Util::ParseJSON::encode_json( "strings can't be encoded" ); };
     ok( $@, 'Trying to encode a string' );
 
-    eval { MediaWords::Util::JSON::decode_json( undef ); };
+    eval { MediaWords::Util::ParseJSON::decode_json( undef ); };
     ok( $@, 'Trying to decode undefined JSON' );
-    eval { MediaWords::Util::JSON::decode_json( 'not JSON' ); };
+    eval { MediaWords::Util::ParseJSON::decode_json( 'not JSON' ); };
     ok( $@, 'Trying to decode invalid JSON' );
 }
 
