@@ -11,7 +11,7 @@ from urllib.parse import quote, parse_qs
 import pytest
 from furl import furl
 
-from mediawords.test.http.hash_server import HashServer
+from mediawords.test.hash_server import HashServer
 from mediawords.util.config import get_config as py_get_config, set_config as py_set_config
 from mediawords.util.parse_json import encode_json, decode_json
 from mediawords.util.log import create_logger

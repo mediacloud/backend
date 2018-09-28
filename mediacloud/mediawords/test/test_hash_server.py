@@ -8,8 +8,8 @@ import time
 
 from mediawords.util.network import random_unused_port
 from mediawords.util.url import urls_are_equal
-from mediawords.test.http.hash_server import (HashServer, tcp_port_is_open, HTTPStatus,
-                                              McHashServerException, START_RANDOM_PORT)
+from mediawords.test.hash_server import (HashServer, tcp_port_is_open, HTTPStatus,
+                                         McHashServerException, START_RANDOM_PORT)
 
 
 def test_http_hash_server():

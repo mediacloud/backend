@@ -159,7 +159,8 @@ SQL
         if ( $self->_extract_in_process() )
         {
             DEBUG "Extracting story $stories_id for download $downloads_id in process...";
-            MediaWords::Job::ExtractAndVector->run( $args );
+            my $story = $db->find_by_id( 'stories', $stories_id );
+            MediaWords::DBI::Stories::extract_and_process_story( $db, $story );
         }
         else
         {

@@ -14,7 +14,7 @@ use English '-no_match_vars';
 
 use Data::Dumper;
 use Digest::MD5 qw(md5_hex);
-use MediaWords::Test::HTTP::HashServer;
+use MediaWords::Test::HashServer;
 use Readonly;
 use Test::More;
 use Text::Lorem::More;
@@ -233,7 +233,7 @@ sub start_hash_servers
 
         map { $site_hash->{ $_->{ path } } = $_->{ content } } @{ $site->{ pages } };
 
-        my $hs = MediaWords::Test::HTTP::HashServer->new( $site->{ port }, $site_hash );
+        my $hs = MediaWords::Test::HashServer->new( $site->{ port }, $site_hash );
 
         DEBUG "starting hash server $site->{ id }";
 
@@ -502,14 +502,14 @@ sub test_full_solr_query($)
 
     WARN( "BEGIN test_full_solr_query" );
 
-    MediaWords::Test::DB::create_test_story_stack_numerated( $db, 10, 2, 2 );
+    MediaWords::Test::DB::Create::create_test_story_stack_numerated( $db, 10, 2, 2 );
 
     # just need some randomly named tags, so copying media names works as well as anything
     $db->query( "insert into tag_sets( name ) values ('foo' )" );
 
     $db->query( "insert into tags ( tag, tag_sets_id ) select media.name, tag_sets_id from media, tag_sets" );
 
-    my $topic = MediaWords::Test::DB::create_test_topic( $db, 'full solr query' );
+    my $topic = MediaWords::Test::DB::Create::create_test_topic( $db, 'full solr query' );
     my $topics_id = $topic->{ topics_id };
 
     $db->query( "insert into topics_media_map ( topics_id, media_id ) select ?, media_id from media limit 5",   $topics_id );

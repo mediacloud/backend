@@ -187,8 +187,8 @@ sub _get_stories_from_univision_feed($$$)
             next;
         }
 
-        my $guid        = $item->{ 'uid' } or die "Item does not have its 'uid' set.";
-        my $title       = $item->{ 'title' } // '(no title)';
+        my $guid = $item->{ 'uid' } or die "Item does not have its 'uid' set.";
+        my $title       = $item->{ 'title' }       // '(no title)';
         my $description = $item->{ 'description' } // '';
 
         my $str_publish_date = $item->{ 'publishDate' } or die "Item does not have its 'publishDate' set.";

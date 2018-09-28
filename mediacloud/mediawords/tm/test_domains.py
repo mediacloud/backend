@@ -37,10 +37,10 @@ class TestTMDomainsDB(mediawords.test.test_database.TestDatabaseWithSchemaTestCa
         """Test incremeber_domain_links9()."""
         db = self.db()
 
-        topic = mediawords.test.db.create_test_topic(db, 'foo')
-        medium = mediawords.test.db.create_test_medium(db, 'bar')
-        feed = mediawords.test.db.create_test_feed(db, 'baz', medium)
-        story = mediawords.test.db.create_test_story(db, 'bat', feed)
+        topic = mediawords.test.db.create.create_test_topic(db, 'foo')
+        medium = mediawords.test.db.create.create_test_medium(db, 'bar')
+        feed = mediawords.test.db.create.create_test_feed(db, 'baz', medium)
+        story = mediawords.test.db.create.create_test_story(db, 'bat', feed)
 
         db.create('topic_stories', {'topics_id': topic['topics_id'], 'stories_id': story['stories_id']})
 
@@ -79,10 +79,10 @@ class TestTMDomainsDB(mediawords.test.test_database.TestDatabaseWithSchemaTestCa
 
         db = self.db()
 
-        topic = mediawords.test.db.create_test_topic(db, 'foo')
-        medium = mediawords.test.db.create_test_medium(db, 'bar')
-        feed = mediawords.test.db.create_test_feed(db, 'baz', medium)
-        story = mediawords.test.db.create_test_story(db, 'bat', feed)
+        topic = mediawords.test.db.create.create_test_topic(db, 'foo')
+        medium = mediawords.test.db.create.create_test_medium(db, 'bar')
+        feed = mediawords.test.db.create.create_test_feed(db, 'baz', medium)
+        story = mediawords.test.db.create.create_test_story(db, 'bat', feed)
 
         db.create('topic_stories', {'topics_id': topic['topics_id'], 'stories_id': story['stories_id']})
 

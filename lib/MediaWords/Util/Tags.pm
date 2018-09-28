@@ -1,14 +1,12 @@
 package MediaWords::Util::Tags;
 
-# various functions for editing feed and medium tags
-#
-# FIXME move everything to "Tags" / "Tag sets" models?
-
 use strict;
 use warnings;
 
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
+
+import_python_module( __PACKAGE__, 'mediawords.util.tags' );
 
 use YAML::Syck;
 
@@ -173,24 +171,6 @@ END
     }
 }
 
-# lookup the tag given the tag_set:tag format
-sub lookup_tag
-{
-    my ( $db, $tag_name ) = @_;
-
-    if ( $tag_name !~ /^([^:]*):(.*)$/ )
-    {
-        WARN "Unable to parse tag name '$tag_name'";
-        return undef;
-    }
-
-    my ( $tag_set_name, $tag ) = ( $1, $2 );
-
-    return $db->query(
-        "select t.* from tags t, tag_sets ts where t.tag_sets_id = ts.tag_sets_id " . "    and t.tag = ? and ts.name = ?",
-        $tag, $tag_set_name )->hash;
-}
-
 # lookup the tag given the tag_set:tag format.  create it if it does not already exist
 sub lookup_or_create_tag
 {
@@ -204,20 +184,10 @@ sub lookup_or_create_tag
 
     my ( $tag_set_name, $tag_tag ) = ( $1, $2 );
 
-    my $tag_set = lookup_or_create_tag_set( $db, $tag_set_name );
+    my $tag_set = $db->find_or_create( 'tag_sets', { 'name' => $tag_set_name } );
     my $tag = $db->find_or_create( 'tags', { tag => $tag_tag, tag_sets_id => $tag_set->{ tag_sets_id } } );
 
     return $tag;
-}
-
-# lookup the tag_set given.  create it if it does not already exist
-sub lookup_or_create_tag_set
-{
-    my ( $db, $tag_set_name ) = @_;
-
-    my $tag_set = $db->find_or_create( 'tag_sets', { name => $tag_set_name } );
-
-    return $tag_set;
 }
 
 # assign the given tag in the given tag_set to the given medium.  if the tag or tag_set does not exist, create it.

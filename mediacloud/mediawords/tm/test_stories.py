@@ -35,13 +35,13 @@ class TestTMStoriesDB(mediawords.test.test_database.TestDatabaseWithSchemaTestCa
         """Test _get_story_with_most_senences()."""
         db = self.db()
 
-        medium = mediawords.test.db.create_test_medium(db, "foo")
-        feed = mediawords.test.db.create_test_feed(db=db, label="foo", medium=medium)
+        medium = mediawords.test.db.create.create_test_medium(db, "foo")
+        feed = mediawords.test.db.create.create_test_feed(db=db, label="foo", medium=medium)
 
         num_filled_stories = 5
         stories = []
         for i in range(num_filled_stories):
-            story = mediawords.test.db.create_test_story(db=db, label="foo" + str(i), feed=feed)
+            story = mediawords.test.db.create.create_test_story(db=db, label="foo" + str(i), feed=feed)
             stories.append(story)
             for n in range(1, i + 1):
                 db.create('story_sentences', {
@@ -53,7 +53,7 @@ class TestTMStoriesDB(mediawords.test.test_database.TestDatabaseWithSchemaTestCa
 
         empty_stories = []
         for i in range(2):
-            story = mediawords.test.db.create_test_story(db=db, label="foo empty" + str(i), feed=feed)
+            story = mediawords.test.db.create.create_test_story(db=db, label="foo empty" + str(i), feed=feed)
             empty_stories.append(story)
             stories.append(story)
 
@@ -70,9 +70,9 @@ class TestTMStoriesDB(mediawords.test.test_database.TestDatabaseWithSchemaTestCa
         media = []
         stories = []
         for i in range(num_media):
-            medium = mediawords.test.db.create_test_medium(db, "foo " + str(i))
-            feed = mediawords.test.db.create_test_feed(db=db, label="foo", medium=medium)
-            story = mediawords.test.db.create_test_story(db=db, label="foo", feed=feed)
+            medium = mediawords.test.db.create.create_test_medium(db, "foo " + str(i))
+            feed = mediawords.test.db.create.create_test_feed(db=db, label="foo", medium=medium)
+            story = mediawords.test.db.create.create_test_story(db=db, label="foo", feed=feed)
             medium['story'] = story
             media.append(medium)
 
@@ -145,7 +145,7 @@ class TestTMStoriesDB(mediawords.test.test_database.TestDatabaseWithSchemaTestCa
         """Test get_story_match()."""
         db = self.db()
 
-        medium = mediawords.test.db.create_test_medium(db, 'foo')
+        medium = mediawords.test.db.create.create_test_medium(db, 'foo')
         num_stories = 10
         stories = []
         for i in range(num_stories):
@@ -182,9 +182,9 @@ class TestTMStoriesDB(mediawords.test.test_database.TestDatabaseWithSchemaTestCa
         """Test create_download_for_new_story()."""
         db = self.db()
 
-        medium = mediawords.test.db.create_test_medium(db, 'foo')
-        feed = mediawords.test.db.create_test_feed(db=db, label='foo', medium=medium)
-        story = mediawords.test.db.create_test_story(db=db, label='foo', feed=feed)
+        medium = mediawords.test.db.create.create_test_medium(db, 'foo')
+        feed = mediawords.test.db.create.create_test_feed(db=db, label='foo', medium=medium)
+        story = mediawords.test.db.create.create_test_story(db=db, label='foo', feed=feed)
 
         returned_download = mediawords.tm.stories.create_download_for_new_story(db, story, feed)
 
@@ -234,9 +234,9 @@ class TestTMStoriesDB(mediawords.test.test_database.TestDatabaseWithSchemaTestCa
         db = self.db()
 
         # def __init__(self, found: bool, guess_method: str = None, timestamp: int = None):
-        medium = mediawords.test.db.create_test_medium(db, 'foo')
-        feed = mediawords.test.db.create_test_feed(db=db, label='foo', medium=medium)
-        story = mediawords.test.db.create_test_story(db=db, label='foo', feed=feed)
+        medium = mediawords.test.db.create.create_test_medium(db, 'foo')
+        feed = mediawords.test.db.create.create_test_feed(db=db, label='foo', medium=medium)
+        story = mediawords.test.db.create.create_test_story(db=db, label='foo', feed=feed)
 
         result = GuessDateResult(found=True, guess_method='Extracted from url')
         mediawords.tm.stories.assign_date_guess_tag(db, story, result, None)
@@ -274,7 +274,7 @@ class TestTMStoriesDB(mediawords.test.test_database.TestDatabaseWithSchemaTestCa
         """Test get_spider_feed()."""
         db = self.db()
 
-        medium = mediawords.test.db.create_test_medium(db, 'foo')
+        medium = mediawords.test.db.create.create_test_medium(db, 'foo')
 
         feed = mediawords.tm.stories.get_spider_feed(self.db(), medium)
 
@@ -344,22 +344,25 @@ class TestTMStoriesDB(mediawords.test.test_database.TestDatabaseWithSchemaTestCa
         """Test merge_foreign_rss_stories()."""
         db = self.db()
 
-        topic = mediawords.test.db.create_test_topic(db, 'foo')
+        topic = mediawords.test.db.create.create_test_topic(db, 'foo')
 
-        medium = mediawords.test.db.create_test_medium(db, 'norss')
-        feed = mediawords.test.db.create_test_feed(db=db, label='norss', medium=medium)
+        medium = mediawords.test.db.create.create_test_medium(db, 'norss')
+        feed = mediawords.test.db.create.create_test_feed(db=db, label='norss', medium=medium)
         num_stories = 10
-        stories = [mediawords.test.db.create_test_story(db=db, label=str(i), feed=feed) for i in range(num_stories)]
+        stories = [
+            mediawords.test.db.create.create_test_story(db=db, label=str(i), feed=feed)
+            for i in range(num_stories)
+        ]
 
-        rss_medium = mediawords.test.db.create_test_medium(db, 'rss')
+        rss_medium = mediawords.test.db.create.create_test_medium(db, 'rss')
         rss_medium = db.query(
             "update media set foreign_rss_links = 't' where media_id = %(a)s returning *",
             {'a': rss_medium['media_id']}).hash()
-        rss_feed = mediawords.test.db.create_test_feed(db=db, label='rss', medium=rss_medium)
+        rss_feed = mediawords.test.db.create.create_test_feed(db=db, label='rss', medium=rss_medium)
         num_rss_stories = 10
         rss_stories = []
         for i in range(num_rss_stories):
-            story = mediawords.test.db.create_test_story(db=db, label=i, feed=rss_feed)
+            story = mediawords.test.db.create.create_test_story(db=db, label=i, feed=rss_feed)
             download = db.create('downloads', {
                 'stories_id': story['stories_id'],
                 'feeds_id': rss_feed['feeds_id'],

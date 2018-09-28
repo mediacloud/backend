@@ -4,7 +4,6 @@ use warnings;
 use Modern::Perl '2015';
 use MediaWords::CommonLibs;
 
-use MediaWords::Test::HTTP::HashServer;
 use Readonly;
 use Test::More;
 use Test::Deep;
@@ -132,12 +131,12 @@ select dt.*
     order by dt.download_texts_id
     limit 1
 SQL
-        my $content_ref = MediaWords::DBI::Stories::get_content_for_first_download( $db, $story );
+        my $content = MediaWords::DBI::Downloads::get_content_for_first_download( $db, $story );
 
         my $ss_fields = [ qw/is_dup language media_id publish_date sentence sentence_number story_sentences_id/ ];
         rows_match( "$label $sid sentences", $got_story->{ story_sentences }, $sentences, 'story_sentences_id', $ss_fields );
 
-        is( $got_story->{ raw_first_download_file }, $$content_ref, "$label $sid download" );
+        is( $got_story->{ raw_first_download_file }, $content, "$label $sid download" );
         is( $got_story->{ story_text }, $download_text->{ download_text }, "$label $sid download_text" );
     }
 
@@ -321,7 +320,7 @@ sub test_stories_update($$)
     # test that request with list returns an error
     test_put( '/api/v2/stories/update', { stories_id => 1 }, 1 );
 
-    my $media = MediaWords::Test::DB::create_test_story_stack( $db,
+    my $media = MediaWords::Test::DB::Create::create_test_story_stack( $db,
         { 'update_m1' => { 'update_f1' => [ 'update_s1', 'update_s2', 'update_s3' ] } } );
 
     my $story = $media->{ update_s1 };
@@ -387,10 +386,10 @@ sub test_stories($)
 {
     my ( $db ) = @_;
 
-    my $media = MediaWords::Test::DB::create_test_story_stack_numerated( $db, $NUM_MEDIA, $NUM_FEEDS_PER_MEDIUM,
+    my $media = MediaWords::Test::DB::Create::create_test_story_stack_numerated( $db, $NUM_MEDIA, $NUM_FEEDS_PER_MEDIUM,
         $NUM_STORIES_PER_FEED );
 
-    MediaWords::Test::DB::add_content_to_test_story_stack( $db, $media );
+    $media = MediaWords::Test::DB::Create::add_content_to_test_story_stack( $db, $media );
 
     MediaWords::Test::Solr::setup_test_index( $db );
 

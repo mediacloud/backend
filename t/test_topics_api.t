@@ -64,7 +64,7 @@ sub create_stories
 {
     my ( $db, $stories, $topics ) = @_;
 
-    my $media = MediaWords::Test::DB::create_test_story_stack( $db, $stories );
+    my $media = MediaWords::Test::DB::Create::create_test_story_stack( $db, $stories );
 }
 
 sub create_test_data
@@ -126,7 +126,7 @@ sub create_test_data
         }
     }
 
-    MediaWords::Test::DB::add_content_to_test_story_stack( $test_db, $topic_media_sources );
+    $topic_media_sources = MediaWords::Test::DB::Create::add_content_to_test_story_stack( $test_db, $topic_media_sources );
 
     MediaWords::Job::TM::SnapshotTopic->run_locally( { topics_id => $topic->{ topics_id } } );
 
@@ -305,7 +305,7 @@ sub test_topics_crud($)
 
     my $label = "create topic";
 
-    MediaWords::Test::DB::create_test_story_stack_numerated( $db, 10, 2, 2, $label );
+    MediaWords::Test::DB::Create::create_test_story_stack_numerated( $db, 10, 2, 2, $label );
     $db->query( "insert into tag_sets ( name ) values ( 'create topic' )" );
     $db->query( "insert into tags ( tag, tag_sets_id ) select m.name, ts.tag_sets_id from media m, tag_sets ts" );
 
@@ -399,7 +399,7 @@ sub test_topics_spider($)
 {
     my ( $db ) = @_;
 
-    my $topic = MediaWords::Test::DB::create_test_topic( $db, 'spider test' );
+    my $topic = MediaWords::Test::DB::Create::create_test_topic( $db, 'spider test' );
 
     $topic = $db->update_by_id( 'topics', $topic->{ topics_id }, { solr_seed_query => 'BOGUSQUERYTORETURNOSTORIES' } );
     my $topics_id = $topic->{ topics_id };
@@ -431,10 +431,10 @@ sub test_topics_list($)
           message job_queue max_stories is_logogram is_story_index_ready/
     ];
 
-    my $topic_private_a = MediaWords::Test::DB::create_test_topic( $db, "label private a" );
-    my $topic_private_b = MediaWords::Test::DB::create_test_topic( $db, "label private b" );
-    my $topic_public_a  = MediaWords::Test::DB::create_test_topic( $db, "label public a" );
-    my $topic_public_b  = MediaWords::Test::DB::create_test_topic( $db, "label public b" );
+    my $topic_private_a = MediaWords::Test::DB::Create::create_test_topic( $db, "label private a" );
+    my $topic_private_b = MediaWords::Test::DB::Create::create_test_topic( $db, "label private b" );
+    my $topic_public_a  = MediaWords::Test::DB::Create::create_test_topic( $db, "label public a" );
+    my $topic_public_b  = MediaWords::Test::DB::Create::create_test_topic( $db, "label public b" );
 
     map { $db->update_by_id( 'topics', $_->{ topics_id }, { is_public => 't' } ) } ( $topic_public_a, $topic_public_b );
 
@@ -508,7 +508,7 @@ sub test_snapshots_generate($)
 
     my $label = 'snapshot generate';
 
-    my $topic = MediaWords::Test::DB::create_test_topic( $db, $label );
+    my $topic = MediaWords::Test::DB::Create::create_test_topic( $db, $label );
 
     $topic = $db->update_by_id( 'topics', $topic->{ topics_id }, { solr_seed_query => 'BOGUSQUERYTORETURNOSTORIES' } );
     my $topics_id = $topic->{ topics_id };
