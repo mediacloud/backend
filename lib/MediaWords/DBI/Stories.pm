@@ -27,6 +27,7 @@ use List::Compare;
 use List::Util;
 
 use MediaWords::DBI::Downloads;
+use Mediawords::DBI::Stories::Extract;
 use MediaWords::DBI::Stories::ExtractorArguments;
 use MediaWords::Languages::Language;
 use MediaWords::Solr::WordCounts;
@@ -265,7 +266,7 @@ sub get_all_sentences
     my $lang = MediaWords::Languages::Language::language_for_code( $story->{ language } )
       || MediaWords::Languages::Language::default_language();
 
-    my $text = get_text( $db, $story );
+    my $text = Mediawords::DBI::Stories::Extract::get_text( $db, $story );
     unless ( defined $text )
     {
         WARN "Text for story " . $story->{ stories_id } . " is undefined.";
