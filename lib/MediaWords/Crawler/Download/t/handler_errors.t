@@ -8,7 +8,7 @@ use English '-no_match_vars';
 use Data::Dumper;
 use Test::More tests => 32;
 
-use MediaWords::Test::HTTP::HashServer;
+use MediaWords::Test::HashServer;
 
 use MediaWords::Crawler::Engine;
 
@@ -72,7 +72,7 @@ sub test_errors
         '/503' => { content => 'service unavailable', http_status_code => 503 },
     };
 
-    my $hs = MediaWords::Test::HTTP::HashServer->new( $port, $pages );
+    my $hs = MediaWords::Test::HashServer->new( $port, $pages );
 
     $hs->start;
 

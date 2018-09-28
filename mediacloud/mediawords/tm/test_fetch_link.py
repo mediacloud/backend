@@ -2,7 +2,7 @@
 
 import datetime
 
-import mediawords.test.http.hash_server
+import mediawords.test.hash_server
 import mediawords.test.test_database
 import mediawords.tm.fetch_link
 from mediawords.util.web.user_agent.throttled import McThrottledDomainException
@@ -10,7 +10,7 @@ from mediawords.util.web.user_agent.throttled import McThrottledDomainException
 
 def test_network_is_down() -> None:
     """Test network_is_down()."""
-    hs = mediawords.test.http.hash_server.HashServer(port=0, pages={'/foo': 'bar'})
+    hs = mediawords.test.hash_server.HashServer(port=0, pages={'/foo': 'bar'})
     port = hs.port()
     hs.start()
     assert not mediawords.tm.fetch_link._network_is_down(host='localhost', port=port)
@@ -41,7 +41,7 @@ class TestTMFetchLinkDB(mediawords.test.test_database.TestDatabaseWithSchemaTest
                 'Content-Type: text/html\r\n\r\n'
                 '<meta http-equiv="refresh" content="0; url=%s-foo">\n' % r.url())
 
-        hs = mediawords.test.http.hash_server.HashServer(
+        hs = mediawords.test.hash_server.HashServer(
             port=0,
             pages={
                 '/foo': 'bar',
@@ -120,7 +120,7 @@ class TestTMFetchLinkDB(mediawords.test.test_database.TestDatabaseWithSchemaTest
         """Test fetch_topic_url()."""
         db = self.db()
 
-        hs = mediawords.test.http.hash_server.HashServer(
+        hs = mediawords.test.hash_server.HashServer(
             port=0,
             pages={
                 '/foo': '<title>foo</title>',

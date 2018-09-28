@@ -4,7 +4,6 @@ use warnings;
 use Modern::Perl '2015';
 use MediaWords::CommonLibs;
 
-use MediaWords::Test::HTTP::HashServer;
 use Readonly;
 use Test::More tests => 150;
 use Test::Deep;

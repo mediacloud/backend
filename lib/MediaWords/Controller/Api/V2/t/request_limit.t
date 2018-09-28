@@ -6,7 +6,6 @@ use MediaWords::CommonLibs;
 
 use Catalyst::Test 'MediaWords';
 
-use MediaWords::Test::HTTP::HashServer;
 use Readonly;
 use Test::More tests => 25;
 use Test::Deep;
