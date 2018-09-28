@@ -1,10 +1,13 @@
 """Test mediawords.dbi.downloads."""
 
 import copy
+import os
 import unittest
 
 import mediawords.dbi.downloads
+from mediawords.dbi.stories.extract import combine_story_title_description_text
 from mediawords.dbi.stories.extractor_arguments import PyExtractorArguments
+from mediawords.test.data import fetch_test_data_from_individual_files, get_path_to_data_files
 from mediawords.test.db.create import create_download_for_feed, create_test_feed, create_test_medium, create_test_story
 from mediawords.test.test_database import TestDatabaseWithSchemaTestCase
 from mediawords.key_value_store.amazon_s3 import AmazonS3Store
@@ -12,13 +15,14 @@ from mediawords.key_value_store.cached_amazon_s3 import CachedAmazonS3Store
 from mediawords.key_value_store.database_inline import DatabaseInlineStore
 from mediawords.key_value_store.postgresql import PostgreSQLStore
 from mediawords.key_value_store.multiple_stores import MultipleStoresStore
+from mediawords.test.text import TestCaseTextUtilities
 from mediawords.util.config import get_config
 from mediawords.util.log import create_logger
 
 log = create_logger(__name__)
 
 
-class TestDownloads(unittest.TestCase):
+class TestDownloads(unittest.TestCase, TestCaseTextUtilities):
     """Test case for downloads tests."""
 
     def setUp(self) -> None:
@@ -149,8 +153,8 @@ class TestDownloads(unittest.TestCase):
         with self.assertRaises(mediawords.dbi.downloads.McDBIDownloadsException):
             mediawords.dbi.downloads._get_store_for_reading({'path': 'invalidpath:'})
 
-    def test_extract_content(self) -> None:
-        """Test extract_count()."""
+    def test_extract_content_basic(self) -> None:
+        """Test extract_content()."""
         results = mediawords.dbi.downloads.extract_content("<script>foo<</script><p>bar</p>")
         assert results['extracted_html'].strip() == '<body id="readabilityBody"><p>bar</p></body>'
         assert results['extracted_text'].strip() == 'bar.'
@@ -158,6 +162,42 @@ class TestDownloads(unittest.TestCase):
         results = mediawords.dbi.downloads.extract_content('foo')
         assert results['extracted_html'].strip() == 'foo'
         assert results['extracted_text'].strip() == 'foo'
+
+    def test_extract_content_extended(self):
+
+        test_dataset = 'gv'
+        test_file = 'index_1.html'
+        test_title = 'Brazil: Amplified conversations to fight the Digital Crimes Bill'
+
+        test_stories = fetch_test_data_from_individual_files(basename="crawler_stories/{}".format(test_dataset))
+
+        test_story_hash = {}
+        for story in test_stories:
+            test_story_hash[story['title']] = story
+
+        story = test_story_hash.get(test_title, None)
+        assert story, "Story with title '{}' was not found.".format(test_title)
+
+        data_files_path = get_path_to_data_files(subdirectory='crawler/{}'.format(test_dataset))
+        path = os.path.join(data_files_path, test_file)
+
+        with open(path, mode='r', encoding='utf-8') as f:
+            content = f.read()
+            results = mediawords.dbi.downloads.extract_content(content=content)
+
+            # Crawler test squeezes in story title and description into the expected output
+            combined_text = combine_story_title_description_text(
+                story_title=story['title'],
+                story_description=story['description'],
+                download_texts=[
+                    results['extracted_text'],
+                ],
+            )
+
+            expected_text = story['extracted_text']
+            actual_text = combined_text
+
+            self.assertTextEqual(got_text=actual_text, expected_text=expected_text)
 
 
 class TestDownloadsDB(TestDatabaseWithSchemaTestCase):
