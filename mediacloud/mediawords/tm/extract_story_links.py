@@ -9,8 +9,10 @@ from bs4 import BeautifulSoup
 from mediawords.db import DatabaseHandler
 import mediawords.dbi.downloads
 import mediawords.key_value_store.amazon_s3
+from mediawords.dbi.stories.extractor_arguments import PyExtractorArguments
 import mediawords.tm.domains
 from mediawords.util.log import create_logger
+from mediawords.util.url import is_http_url
 
 log = create_logger(__name__)
 
@@ -52,7 +54,7 @@ def get_links_from_html(html: str) -> typing.List[str]:
         if re.search(IGNORE_LINK_PATTERN, url, flags=re.I) is not None:
             continue
 
-        if not mediawords.util.url.is_http_url(url):
+        if not is_http_url(url):
             continue
 
         url = re.sub(r'(https)?://www[a-z0-9]+.nytimes', r'\1://www.nytimes', url, flags=re.I)
@@ -115,7 +117,7 @@ def get_extracted_html(db: DatabaseHandler, story: dict) -> str:
         "select * from downloads where stories_id = %(a)s order by downloads_id limit 1",
         {'a': story['stories_id']}).hash()
 
-    extractor_results = mediawords.dbi.downloads.extract(db, download, use_cache=True)
+    extractor_results = mediawords.dbi.downloads.extract(db, download, PyExtractorArguments(use_cache=True))
     return extractor_results['extracted_html']
 
 
@@ -170,7 +172,7 @@ def get_links_from_story(db: DatabaseHandler, story: dict) -> typing.List[str]:
         return links
     except mediawords.key_value_store.amazon_s3.McAmazonS3StoreException:
         # we expect the fetch_content() to fail occasionally
-        return ()
+        return []
 
 
 def extract_links_for_topic_story(db: DatabaseHandler, story: dict, topic: dict) -> None:

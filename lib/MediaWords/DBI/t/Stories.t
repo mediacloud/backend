@@ -10,6 +10,8 @@ use Test::Deep;
 use Test::More;
 
 use MediaWords::DBI::Stories;
+use MediaWords::Test::DB;
+use MediaWords::Util::SQL;
 
 BEGIN
 {
@@ -27,7 +29,7 @@ my $_possible_words = [
 ];
 
 # get random words
-sub add_story_sentences_and_language
+sub _add_story_sentences_and_language
 {
     my ( $db, $story, $num ) = @_;
 
@@ -64,7 +66,7 @@ sub add_story_sentences_and_language
     $story->{ expected_stem_count } = $stem_counts;
 }
 
-sub assign_stem_vectors_from_matrix($$$)
+sub _assign_stem_vectors_from_matrix($$$)
 {
     my ( $stories, $word_matrix, $stem_list ) = @_;
 
@@ -92,7 +94,7 @@ sub assign_stem_vectors_from_matrix($$$)
     ok( !$num_missing_stories, "no missing stories in file: found $num_missing_stories" );
 }
 
-sub test_story($$)
+sub _story_word_matrix_test_story($$)
 {
     my ( $story, $word_list ) = @_;
 
@@ -120,19 +122,19 @@ sub test_get_story_word_matrix
 
     my $data = { A => { B => [ ( 1 .. 10 ) ] }, };
 
-    my $media = MediaWords::Test::DB::create_test_story_stack( $db, $data );
+    my $media = MediaWords::Test::DB::Create::create_test_story_stack( $db, $data );
 
     my $stories = [ values( %{ $media->{ A }->{ feeds }->{ B }->{ stories } } ) ];
 
-    map { add_story_sentences_and_language( $db, $_ ) } @{ $stories };
+    map { _add_story_sentences_and_language( $db, $_ ) } @{ $stories };
 
     my $stories_ids = [ map { $_->{ stories_id } } @{ $stories } ];
 
     my ( $word_matrix, $word_list ) = MediaWords::DBI::Stories::get_story_word_matrix( $db, $stories_ids, 0 );
 
-    assign_stem_vectors_from_matrix( $stories, $word_matrix, $word_list );
+    _assign_stem_vectors_from_matrix( $stories, $word_matrix, $word_list );
 
-    map { test_story( $_, $word_list ) } @{ $stories };
+    map { _story_word_matrix_test_story( $_, $word_list ) } @{ $stories };
 }
 
 sub test_get_title_parts
@@ -152,6 +154,69 @@ sub test_get_title_parts
     cmp_deeply( MediaWords::DBI::Stories::_get_title_parts( 'http://foo.com/foo/bar' ), [ 'http://foo.com/foo/bar' ] );
 }
 
+sub _is_new_compare($$$$;$)
+{
+    my ( $db, $label, $expected_is_new, $base_story, $story_changes ) = @_;
+
+    my $story = { %{ $base_story } };
+
+    while ( my ( $k, $v ) = each( %{ $story_changes } ) )
+    {
+        $story->{ $k } = $v;
+    }
+
+    my $is_new = MediaWords::DBI::Stories::is_new( $db, $story );
+
+    ok( $expected_is_new ? $is_new : !$is_new, $label );
+}
+
+sub _is_new_test_story($$$)
+{
+    my ( $db, $story, $num ) = @_;
+
+    my $publish_date   = $story->{ publish_date };
+    my $plus_two_days  = MediaWords::Util::SQL::increment_day( $publish_date, 2 );
+    my $minus_two_days = MediaWords::Util::SQL::increment_day( $publish_date, -2 );
+
+    _is_new_compare( $db, "$num identical", 0, $story );
+
+    _is_new_compare( $db, "$num media_id diff",             1, $story, { media_id => $story->{ media_id } + 1 } );
+    _is_new_compare( $db, "$num url+guid diff, title same", 0, $story, { url      => "diff", guid => "diff" } );
+    _is_new_compare( $db, "$num title+url diff, guid same", 0, $story, { url      => "diff", title => "diff" } );
+    _is_new_compare( $db, "$num title+guid diff, url same", 1, $story, { guid     => "diff", title => "diff" } );
+
+    _is_new_compare( $db, "$num date +2days", 1, $story, { url => "diff", guid => "diff", publish_date => $plus_two_days } );
+    _is_new_compare( $db, "$num date -2days", 1, $story,
+        { url => "diff", guid => "diff", publish_date => $minus_two_days } );
+}
+
+sub test_is_new($)
+{
+    my ( $db ) = @_;
+
+    my $data = {
+        A => {
+            B => [ 1, 2, 3 ],
+            C => [ 4, 5, 6 ]
+        },
+        D => { E => [ 7, 8, 9 ] }
+    };
+
+    my $media = MediaWords::Test::DB::Create::create_test_story_stack( $db, $data );
+
+    my $stories = {};
+    for my $m ( values( %{ $media } ) )
+    {
+        for my $f ( values( %{ $m->{ feeds } } ) )
+        {
+            while ( my ( $num, $story ) = each( %{ $f->{ stories } } ) )
+            {
+                _is_new_test_story( $db, $story, $num );
+            }
+        }
+    }
+}
+
 sub main
 {
     test_get_title_parts();
@@ -162,6 +227,15 @@ sub main
             my ( $db ) = @_;
 
             test_get_story_word_matrix( $db );
+        }
+    );
+
+    MediaWords::Test::DB::test_on_test_database(
+        sub {
+            use Encode;
+            my ( $db ) = @_;
+
+            test_is_new( $db );
         }
     );
 

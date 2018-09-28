@@ -19,6 +19,7 @@ BEGIN
 
 use MediaWords::Test::API;
 use MediaWords::Test::DB;
+use MediaWords::Test::DB::Create;
 use MediaWords::Test::Solr;
 use MediaWords::Test::Supervisor;
 
@@ -334,7 +335,7 @@ sub test_collections_id_queries($)
         $tag->{ media } = [];
         for my $medium_i ( 1 .. $num_media_per_tag )
         {
-            my $medium = MediaWords::Test::DB::create_test_medium( $db, "tag $tag_i medium $medium_i" );
+            my $medium = MediaWords::Test::DB::Create::create_test_medium( $db, "tag $tag_i medium $medium_i" );
             $db->query( <<SQL, $tag->{ tags_id }, $medium->{ media_id } );
 insert into media_tags_map ( tags_id, media_id ) values ( ?, ? )
 SQL

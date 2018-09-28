@@ -238,7 +238,9 @@ select
         a.timespans_id = \$1
 SQL
 
-    MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $foci, 'foci' );
+    $stories = MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $foci, 'foci' );
+
+    return $stories;
 }
 
 # accept sort_param of inlink, facebook, or twitter and
@@ -314,7 +316,7 @@ SQL
 
     $db->query( "drop table _topics_stories_slc" );
 
-    _add_foci_to_stories( $db, $timespan, $stories );
+    $stories = _add_foci_to_stories( $db, $timespan, $stories );
 
     MediaWords::DBI::Stories::GuessDate::add_date_is_reliable_to_stories( $db, $stories );
 

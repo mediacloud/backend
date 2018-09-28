@@ -2,7 +2,7 @@
 
 import datetime
 
-import mediawords.test.http.hash_server
+import mediawords.test.hash_server
 import mediawords.test.test_database
 import mediawords.tm.fetch_link
 from mediawords.util.web.user_agent.throttled import McThrottledDomainException
@@ -10,7 +10,7 @@ from mediawords.util.web.user_agent.throttled import McThrottledDomainException
 
 def test_network_is_down() -> None:
     """Test network_is_down()."""
-    hs = mediawords.test.http.hash_server.HashServer(port=0, pages={'/foo': 'bar'})
+    hs = mediawords.test.hash_server.HashServer(port=0, pages={'/foo': 'bar'})
     port = hs.port()
     hs.start()
     assert not mediawords.tm.fetch_link._network_is_down(host='localhost', port=port)
@@ -41,7 +41,7 @@ class TestTMFetchLinkDB(mediawords.test.test_database.TestDatabaseWithSchemaTest
                 'Content-Type: text/html\r\n\r\n'
                 '<meta http-equiv="refresh" content="0; url=%s-foo">\n' % r.url())
 
-        hs = mediawords.test.http.hash_server.HashServer(
+        hs = mediawords.test.hash_server.HashServer(
             port=0,
             pages={
                 '/foo': 'bar',
@@ -86,7 +86,7 @@ class TestTMFetchLinkDB(mediawords.test.test_database.TestDatabaseWithSchemaTest
         """Test get_seeded_content()."""
         db = self.db()
 
-        topic = mediawords.test.db.create_test_topic(db, 'foo')
+        topic = mediawords.test.db.create.create_test_topic(db, 'foo')
         tfu = db.create('topic_fetch_urls', {
             'topics_id': topic['topics_id'],
             'url': 'http://0.0.0.1/foo',
@@ -120,7 +120,7 @@ class TestTMFetchLinkDB(mediawords.test.test_database.TestDatabaseWithSchemaTest
         """Test fetch_topic_url()."""
         db = self.db()
 
-        hs = mediawords.test.http.hash_server.HashServer(
+        hs = mediawords.test.hash_server.HashServer(
             port=0,
             pages={
                 '/foo': '<title>foo</title>',
@@ -133,13 +133,13 @@ class TestTMFetchLinkDB(mediawords.test.test_database.TestDatabaseWithSchemaTest
             })
         hs.start()
 
-        topic = mediawords.test.db.create_test_topic(db, 'foo')
+        topic = mediawords.test.db.create.create_test_topic(db, 'foo')
         topic['pattern'] = '.'
         topic = db.update_by_id('topics', topic['topics_id'], topic)
 
-        medium = mediawords.test.db.create_test_medium(db, 'fetch')
-        feed = mediawords.test.db.create_test_feed(db, label='fetch', medium=medium)
-        source_story = mediawords.test.db.create_test_story(db, label='source story', feed=feed)
+        medium = mediawords.test.db.create.create_test_medium(db, 'fetch')
+        feed = mediawords.test.db.create.create_test_feed(db, label='fetch', medium=medium)
+        source_story = mediawords.test.db.create.create_test_story(db, label='source story', feed=feed)
         db.create('topic_stories', {'topics_id': topic['topics_id'], 'stories_id': source_story['stories_id']})
 
         before_fetch_date = datetime.datetime.now().isoformat()
@@ -318,7 +318,7 @@ class TestTMFetchLinkDB(mediawords.test.test_database.TestDatabaseWithSchemaTest
         """Test get_failed_url()."""
         db = self.db()
 
-        topic = mediawords.test.db.create_test_topic(db, 'foo')
+        topic = mediawords.test.db.create.create_test_topic(db, 'foo')
         topics_id = topic['topics_id']
 
         tfus = [
@@ -350,12 +350,12 @@ class TestTMFetchLinkDB(mediawords.test.test_database.TestDatabaseWithSchemaTest
         """Test try_update_topic_link_ref_stories_id()."""
         db = self.db()
 
-        medium = mediawords.test.db.create_test_medium(db, 'foo')
-        feed = mediawords.test.db.create_test_feed(db, label='foo', medium=medium)
-        source_story = mediawords.test.db.create_test_story(db, label='source story', feed=feed)
-        target_story = mediawords.test.db.create_test_story(db, label='target story a', feed=feed)
+        medium = mediawords.test.db.create.create_test_medium(db, 'foo')
+        feed = mediawords.test.db.create.create_test_feed(db, label='foo', medium=medium)
+        source_story = mediawords.test.db.create.create_test_story(db, label='source story', feed=feed)
+        target_story = mediawords.test.db.create.create_test_story(db, label='target story a', feed=feed)
 
-        topic = mediawords.test.db.create_test_topic(db, 'foo')
+        topic = mediawords.test.db.create.create_test_topic(db, 'foo')
 
         db.create('topic_stories', {
             'topics_id': topic['topics_id'],

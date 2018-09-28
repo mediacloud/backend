@@ -1,17 +1,25 @@
 package MediaWords::DBI::Stories::ExtractorArguments;
 
-#
-# Arguments to process_extracted_story() that define how story is to be
-# extracted
-#
-
 use strict;
 use warnings;
 
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-use MediaWords::Util::Config;
+{
+    # Proxy to Python's implementation
+    package MediaWords::DBI::Stories::ExtractorArguments::PythonProxy;
+
+    use strict;
+    use warnings;
+
+    use Modern::Perl "2015";
+    use MediaWords::CommonLibs;
+
+    import_python_module( __PACKAGE__, 'mediawords.dbi.stories.extractor_arguments' );
+
+    1;
+}
 
 sub new($;$)
 {
@@ -20,19 +28,18 @@ sub new($;$)
     my $self = {};
     bless $self, $class;
 
-    if ( $args )
+    unless ( $args )
     {
-        unless ( ref $args eq ref {} )
-        {
-            LOGCONFESS "'args' is not a hashref.";
-        }
+        $args = {};
     }
 
-    $self->{ _no_dedup_sentences }       = $args ? $args->{ no_dedup_sentences }       : 0;
-    $self->{ _no_delete }                = $args ? $args->{ no_delete }                : 0;
-    $self->{ _no_tag_extractor_version } = $args ? $args->{ no_tag_extractor_version } : 0;
-    $self->{ _use_cache }                = $args ? $args->{ use_cache }                : undef;
-    $self->{ _use_existing }             = $args ? $args->{ use_existing }             : undef;
+    $self->{ _python_object } = MediaWords::DBI::Stories::ExtractorArguments::PythonProxy::PyExtractorArguments->new(
+        int( $args->{ no_dedup_sentences }       // 0 ),
+        int( $args->{ no_delete }                // 0 ),
+        int( $args->{ no_tag_extractor_version } // 0 ),
+        int( $args->{ use_cache }                // 0 ),
+        int( $args->{ use_existing }             // 0 ),
+    );
 
     return $self;
 }
@@ -40,31 +47,31 @@ sub new($;$)
 sub no_dedup_sentences($)
 {
     my $self = shift;
-    return $self->{ _no_dedup_sentences };
+    return $self->{ _python_object }->no_dedup_sentences();
 }
 
 sub no_delete($)
 {
     my $self = shift;
-    return $self->{ _no_delete };
+    return $self->{ _python_object }->no_delete();
 }
 
 sub no_tag_extractor_version($)
 {
     my $self = shift;
-    return $self->{ _no_tag_extractor_version };
+    return $self->{ _python_object }->no_tag_extractor_version();
 }
 
 sub use_cache($)
 {
     my $self = shift;
-    return $self->{ _use_cache };
+    return $self->{ _python_object }->use_cache();
 }
 
 sub use_existing($)
 {
     my $self = shift;
-    return $self->{ _use_existing };
+    return $self->{ _python_object }->use_existing();
 }
 
 1;

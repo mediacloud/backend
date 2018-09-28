@@ -72,7 +72,7 @@ sub test_store_result($)
 {
     my ( $db ) = @_;
 
-    my $media = MediaWords::Test::DB::create_test_story_stack( $db, { A => { B => [ 1, 2, 3 ] } } );
+    my $media = MediaWords::Test::DB::Create::create_test_story_stack( $db, { A => { B => [ 1, 2, 3 ] } } );
 
     my $story = $media->{ A }->{ feeds }->{ B }->{ stories }->{ 1 };
 

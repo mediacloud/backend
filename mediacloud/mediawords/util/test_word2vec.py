@@ -5,7 +5,7 @@ import pytest
 import shutil
 from gensim.models import KeyedVectors
 
-from mediawords.test.db import create_test_medium, create_test_feed, create_test_story, create_test_topic
+from mediawords.test.db.create import create_test_medium, create_test_feed, create_test_story, create_test_topic
 from mediawords.test.test_database import TestDatabaseWithSchemaTestCase
 from mediawords.util.word2vec import train_word2vec_model, load_word2vec_model
 from mediawords.util.word2vec.exceptions import McWord2vecException

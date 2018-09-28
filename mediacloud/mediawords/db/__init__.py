@@ -1,7 +1,7 @@
 import typing
 
 from mediawords.db.handler import DatabaseHandler
-from mediawords.test.db.env import using_test_database
+from mediawords.test.db.environment import using_test_database
 
 from mediawords.util.config import get_config as py_get_config
 from mediawords.util.log import create_logger

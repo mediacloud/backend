@@ -1,16 +1,64 @@
+#
+# Basic sanity test of extractor functionality
+#
+
 use strict;
 use warnings;
 
-use Test::More;
+use Modern::Perl "2015";
+use MediaWords::CommonLibs;
 
-use Data::Dumper;
+use Test::More tests => 12;
+use Test::NoWarnings;
 
 use MediaWords::DBI::Downloads;
+use MediaWords::DBI::Stories::Extract;
 use MediaWords::DBI::Stories::ExtractorArguments;
+use MediaWords::DBI::Stories;
+use MediaWords::Test::Data;
 use MediaWords::Test::DB;
+use MediaWords::Test::Text;
 use MediaWords::Util::URL;
 
-sub add_download_to_story
+use Data::Dumper;
+use File::Slurp;
+use Readonly;
+
+sub test_extract_content($$$)
+{
+    my ( $test_dataset, $file, $title ) = @_;
+
+    my $test_stories = MediaWords::Test::Data::fetch_test_data_from_individual_files( "crawler_stories/$test_dataset" );
+
+    my $test_story_hash;
+    map { $test_story_hash->{ $_->{ title } } = $_ } @{ $test_stories };
+
+    my $story = $test_story_hash->{ $title };
+
+    die "story '$title' not found " unless $story;
+
+    my $data_files_path = MediaWords::Test::Data::get_path_to_data_files( 'crawler/' . $test_dataset );
+    my $path            = $data_files_path . '/' . $file;
+
+    my $content = MediaWords::Util::Text::decode_from_utf8( read_file( $path ) );
+
+    my $results = MediaWords::DBI::Downloads::extract_content( $content );
+
+    # crawler test squeezes in story title and description into the expected output
+    my @download_texts = ( $results->{ extracted_text } );
+    my $combined_text  = MediaWords::DBI::Stories::Extract::combine_story_title_description_text(
+        $story->{ title },
+        $story->{ description },
+        \@download_texts
+    );
+
+    my $expected_text = $story->{ extracted_text };
+    my $actual_text   = $combined_text;
+
+    MediaWords::Test::Text::eq_or_sentence_diff( $actual_text, $expected_text, "Extracted text comparison for $title" );
+}
+
+sub _add_download_to_story
 {
     my ( $db, $feed, $story ) = @_;
 
@@ -31,13 +79,13 @@ sub add_download_to_story
 
     my $story_content = "$story->{ title }\n\n$story->{ description }";
 
-    $download = MediaWords::DBI::Downloads::store_content( $db, $download, \$story_content );
+    $download = MediaWords::DBI::Downloads::store_content( $db, $download, $story_content );
 
     $story->{ content }  = $story_content;
     $story->{ download } = $download;
 }
 
-sub get_cache_for_story
+sub _get_cache_for_story
 {
     my ( $db, $story ) = @_;
 
@@ -48,12 +96,14 @@ sub get_cache_for_story
     return $c;
 }
 
-sub test_extractor_cache
+sub test_extract($)
 {
     my ( $db ) = @_;
 
-    my $data =
-      MediaWords::Test::DB::create_test_story_stack( $db, { medium => { feed => [ qw/story_1 story_2 story_3/ ] } } );
+    my $data = MediaWords::Test::DB::Create::create_test_story_stack(
+        $db,    #
+        { medium => { feed => [ qw/story_1 story_2 story_3/ ] } },    #
+    );
 
     my $medium  = $data->{ medium };
     my $feed    = $medium->{ feeds }->{ feed };
@@ -61,26 +111,27 @@ sub test_extractor_cache
     my $story_2 = $feed->{ stories }->{ story_1 };
     my $story_3 = $feed->{ stories }->{ story_1 };
 
-    map { add_download_to_story( $db, $feed, $_ ) } ( $story_1, $story_2, $story_3 );
+    map { _add_download_to_story( $db, $feed, $_ ) } ( $story_1, $story_2, $story_3 );
 
-    my $xargs_nocache  = MediaWords::DBI::Stories::ExtractorArguments->new( { use_cache => 0 } );
+    my $xargs_nocache = MediaWords::DBI::Stories::ExtractorArguments->new( { use_cache => 0 } );
+
     my $xargs_usecache = MediaWords::DBI::Stories::ExtractorArguments->new( { use_cache => 1 } );
 
     my $res = MediaWords::DBI::Downloads::extract( $db, $story_1->{ download }, $xargs_nocache );
     is( $res->{ extracted_html }, $story_1->{ content }, "uncached extraction - extractor result" );
 
-    my $c = get_cache_for_story( $db, $story_1 );
+    my $c = _get_cache_for_story( $db, $story_1 );
     ok( !$c, "uncached extraction - no cache entry" );
 
     $res = MediaWords::DBI::Downloads::extract( $db, $story_1->{ download }, $xargs_usecache );
     is( $res->{ extracted_html }, $story_1->{ content }, "cached extraction 1 - extractor result" );
 
-    $c = get_cache_for_story( $db, $story_1 );
+    $c = _get_cache_for_story( $db, $story_1 );
     ok( $c, "cached extraction 1 - cache entry exits" );
     is( $c->{ extracted_html }, $story_1->{ content }, "cached extract 1 - cache result" );
 
     my $new_story_1_content = 'foo bar';
-    $story_1->{ download } = MediaWords::DBI::Downloads::store_content( $db, $story_1->{ download }, \$new_story_1_content );
+    $story_1->{ download } = MediaWords::DBI::Downloads::store_content( $db, $story_1->{ download }, $new_story_1_content );
 
     $res = MediaWords::DBI::Downloads::extract( $db, $story_1->{ download }, $xargs_usecache );
     is( $res->{ extracted_html }, $story_1->{ content }, "cached extraction 2 - extractor result" );
@@ -91,23 +142,31 @@ sub test_extractor_cache
     $res = MediaWords::DBI::Downloads::extract( $db, $story_2->{ download }, $xargs_usecache );
     is( $res->{ extracted_html }, $story_2->{ content }, "cached extraction 3 - extractor result" );
 
-    $c = get_cache_for_story( $db, $story_2 );
+    $c = _get_cache_for_story( $db, $story_2 );
     ok( $c, "cached extraction 3 - cache entry exits" );
     is( $c->{ extracted_html }, $story_2->{ content }, "cached extract 3 - cache result" );
-
 }
 
 sub main
 {
+    # Errors might want to print out UTF-8 characters
+    binmode( STDERR, ':utf8' );
+    binmode( STDOUT, ':utf8' );
+    my $builder = Test::More->builder;
+
+    binmode $builder->output,         ":utf8";
+    binmode $builder->failure_output, ":utf8";
+    binmode $builder->todo_output,    ":utf8";
+
+    test_extract_content( 'gv', 'index_1.html', 'Brazil: Amplified conversations to fight the Digital Crimes Bill' );
+
     MediaWords::Test::DB::test_on_test_database(
         sub {
             my $db = shift;
 
-            test_extractor_cache( $db );
+            test_extract( $db );
         }
     );
-
-    done_testing;
 }
 
 main();

@@ -27,8 +27,10 @@ use MediaWords::CommonLibs;
 use Test::NoWarnings;
 
 use MediaWords::Crawler::Engine;
+use MediaWords::DBI::Downloads;
 use MediaWords::DBI::DownloadTexts;
 use MediaWords::DBI::Stories;
+use MediaWords::DBI::Stories::Extract;
 use MediaWords::StoryVectors;
 use MediaWords::Test::Data;
 use MediaWords::Test::DB;
@@ -97,6 +99,47 @@ sub _run_crawler()
     $crawler->crawl();
 }
 
+sub _get_db_module_tags($$$)
+{
+    my ( $db, $story, $module ) = @_;
+
+    my $tag_set = $db->find_or_create( 'tag_sets', { name => $module } );
+
+    return $db->query(
+        <<"EOF",
+        SELECT t.tags_id AS tags_id,
+               t.tag_sets_id AS tag_sets_id,
+               t.tag AS tag
+        FROM stories_tags_map AS stm,
+             tags AS t,
+             tag_sets AS ts
+        WHERE stm.stories_id = ?
+              AND stm.tags_id = t.tags_id
+              AND t.tag_sets_id = ts.tag_sets_id
+              AND ts.name = ?
+EOF
+        $story->{ stories_id },
+        $module
+    )->hashes;
+}
+
+sub _fetch_content($$)
+{
+    my ( $db, $story ) = @_;
+
+    my $download = $db->query(
+        <<"EOF",
+        SELECT *
+        FROM downloads
+        WHERE stories_id = ?
+        order by downloads_id
+EOF
+        $story->{ stories_id }
+    )->hash;
+
+    return $download ? MediaWords::DBI::Downloads::fetch_content( $db, $download ) : '';
+}
+
 # get stories from database, including content, text, tags, and sentences
 sub _get_expanded_stories($)
 {
@@ -116,9 +159,9 @@ EOF
 
     for my $story ( @{ $stories } )
     {
-        $story->{ content } = ${ MediaWords::DBI::Stories::fetch_content( $db, $story ) };
-        $story->{ extracted_text } = MediaWords::DBI::Stories::get_text( $db, $story );
-        $story->{ tags } = MediaWords::DBI::Stories::get_db_module_tags( $db, $story, 'NYTTopics' );
+        $story->{ content } = _fetch_content( $db, $story );
+        $story->{ extracted_text } = MediaWords::DBI::Stories::Extract::get_text( $db, $story );
+        $story->{ tags } = _get_db_module_tags( $db, $story, 'NYTTopics' );
 
         $story->{ story_sentences } = $db->query(
             <<EOF,
@@ -195,11 +238,9 @@ sub _test_stories($$$$)
 
     is( scalar @{ $stories }, $stories_count, "$test_name - story count" );
 
-    my $test_stories =
-      MediaWords::Test::Data::stories_arrayref_from_hashref(
-        MediaWords::Test::Data::fetch_test_data_from_individual_files( "crawler_stories/$test_prefix" ) );
+    my $test_stories = MediaWords::Test::Data::fetch_test_data_from_individual_files( "crawler_stories/$test_prefix" );
 
-    MediaWords::Test::Data::adjust_test_timezone( $test_stories, $test_stories->[ 0 ]->{ timezone } );
+    $test_stories = MediaWords::Test::Data::adjust_test_timezone( $test_stories, $test_stories->[ 0 ]->{ timezone } );
 
     # replace stories_id with urls so that the order of stories
     # doesn't matter
@@ -264,7 +305,8 @@ sub _test_stories($$$$)
                   ( @{ $story->{ story_sentences } }, @{ $test_story->{ story_sentences } } );
             }
 
-            MediaWords::Test::Data::adjust_test_timezone( $test_story->{ story_sentences }, $test_story->{ timezone } );
+            $test_story->{ story_sentences } =
+              MediaWords::Test::Data::adjust_test_timezone( $test_story->{ story_sentences }, $test_story->{ timezone } );
 
             cmp_deeply(
                 $story->{ story_sentences },
@@ -303,8 +345,7 @@ sub _dump_stories($$$)
 
     map { $_->{ timezone } = $tz } @{ $stories };
 
-    MediaWords::Test::Data::store_test_data_to_individual_files( "crawler_stories/$test_prefix",
-        MediaWords::Test::Data::stories_hashref_from_arrayref( $stories ) );
+    MediaWords::Test::Data::store_test_data_to_individual_files( "crawler_stories/$test_prefix", $stories );
 
     _sanity_test_stories( $stories, $test_name, $test_prefix );
 }

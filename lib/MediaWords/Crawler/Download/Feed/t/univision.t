@@ -20,7 +20,7 @@ use MediaWords::DB;
 use MediaWords::Test::DB;
 use MediaWords::Crawler::Engine;
 use MediaWords::Util::ParseJSON;
-use MediaWords::Test::HTTP::HashServer;
+use MediaWords::Test::HashServer;
 
 sub test_api_request_signature()
 {
@@ -118,7 +118,7 @@ sub test_fetch_handle_download($$)
         }
     );
 
-    my $download = MediaWords::Test::DB::create_download_for_feed( $db, $feed );
+    my $download = MediaWords::Test::DB::Create::create_download_for_feed( $db, $feed );
 
     my $handler = MediaWords::Crawler::Engine::handler_for_download( $db, $download );
 
@@ -245,7 +245,7 @@ EOF
 EOF
     };
 
-    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    my $hs = MediaWords::Test::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
 
     test_univision( $local_univision_url, $local_univision_client_id, $local_univision_client_secret );

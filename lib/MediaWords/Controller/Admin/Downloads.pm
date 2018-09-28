@@ -89,20 +89,19 @@ sub view : Local
         die( "No such download" );
     }
 
-    my $content_ref;
-    eval { $content_ref = MediaWords::DBI::Downloads::fetch_content( $c->dbis, $download ) };
+    my $content;
+    eval { $content = MediaWords::DBI::Downloads::fetch_content( $c->dbis, $download ) };
     if ( $@ )
     {
-        my $content = "Error fetching download:\n" . $@;
-        $content_ref = \$content;
+        $content = "Error fetching download:\n" . $@;
     }
 
-    if ( !$content_ref || !$$content_ref )
+    unless ( defined $content )
     {
-        $content_ref = \"no content available for this download";
+        $content = "no content available for this download";
     }
 
-    my $encoded_content = Encode::encode( 'utf-8', $$content_ref );
+    my $encoded_content = Encode::encode( 'utf-8', $content );
 
     $c->response->content_type( 'text/html; charset=UTF-8' );
     $c->response->content_length( bytes::length( $encoded_content ) );

@@ -16,7 +16,7 @@ use Readonly;
 use MediaWords::Util::Annotator::CLIFF;
 use MediaWords::Util::ParseJSON;
 
-use MediaWords::Test::HTTP::HashServer;
+use MediaWords::Test::HashServer;
 use MediaWords::Test::DB;
 
 Readonly my $HTTP_PORT => 8912;
@@ -237,7 +237,7 @@ sub test_cliff_annotator($)
 
     my $annotator_url = "http://localhost:$HTTP_PORT/cliff/parse/text";
 
-    my $hs = MediaWords::Test::HTTP::HashServer->new( $HTTP_PORT, $pages );
+    my $hs = MediaWords::Test::HashServer->new( $HTTP_PORT, $pages );
 
     $hs->start;
 

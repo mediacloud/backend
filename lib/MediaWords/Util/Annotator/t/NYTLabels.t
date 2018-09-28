@@ -16,7 +16,7 @@ use Readonly;
 use MediaWords::Util::Annotator::NYTLabels;
 use MediaWords::Util::ParseJSON;
 
-use MediaWords::Test::HTTP::HashServer;
+use MediaWords::Test::HashServer;
 use MediaWords::Test::DB;
 
 Readonly my $HTTP_PORT => 8912;
@@ -140,7 +140,7 @@ sub test_nytlabels_annotator($)
 
     my $annotator_url = "http://localhost:$HTTP_PORT/predict.json";
 
-    my $hs = MediaWords::Test::HTTP::HashServer->new( $HTTP_PORT, $pages );
+    my $hs = MediaWords::Test::HashServer->new( $HTTP_PORT, $pages );
 
     $hs->start;
 
