@@ -266,7 +266,7 @@ sub get_all_sentences
     my $lang = MediaWords::Languages::Language::language_for_code( $story->{ language } )
       || MediaWords::Languages::Language::default_language();
 
-    my $text = Mediawords::DBI::Stories::Extract::get_text( $db, $story );
+    my $text = MediaWords::DBI::Stories::Extract::get_text( $db, $story );
     unless ( defined $text )
     {
         WARN "Text for story " . $story->{ stories_id } . " is undefined.";
