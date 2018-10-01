@@ -3,7 +3,8 @@ import socket
 import uuid
 from typing import Type, Any
 
-from celery import Celery, Task
+from celery import Celery
+from celery.task import Task
 from kombu import Exchange, Queue
 
 from mediawords.util.config import get_config as py_get_config
@@ -47,13 +48,13 @@ class AbstractJob(object, metaclass=abc.ABCMeta):
     """Abstract job that concrete jobs should subclass and implement."""
 
     @classmethod
-    @abc.abstractclassmethod
+    @abc.abstractmethod
     def run_job(cls, *args, **kwargs) -> None:
         """Run job, raise on error."""
         raise NotImplementedError("Abstract method.")
 
     @classmethod
-    @abc.abstractclassmethod
+    @abc.abstractmethod
     def queue_name(cls) -> str:
         """Return queue name."""
         raise NotImplementedError("Abstract method.")
@@ -180,7 +181,8 @@ class JobBrokerApp(Celery):
                       })
         self.conf.task_queues = [queue]
 
-        def __route_task(name, args, kwargs, options, task=None, **kw):
+        # noinspection PyUnusedLocal
+        def __route_task(name, args_, kwargs_, options_, task_=None, **kw_):
             return {'queue': name, 'exchange': name, 'routing_key': name}
 
         self.conf.task_routes = (__route_task,)
