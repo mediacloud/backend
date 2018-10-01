@@ -32,20 +32,24 @@ def train_word2vec_model(sentence_iterator: AbstractSentenceIterator,
     word2vec_max_vocab_size = 5000
 
     log.info("Creating model...")
-    model = gensim.models.Word2Vec(sentences=sentence_iterator,
-                                   size=word2vec_size,
-                                   min_count=word2vec_min_count,
-                                   workers=worker_count,
-                                   max_vocab_size=word2vec_max_vocab_size)
+    model = gensim.models.Word2Vec(
+        sentences=sentence_iterator,
+        size=word2vec_size,
+        min_count=word2vec_min_count,
+        workers=worker_count,
+        max_vocab_size=word2vec_max_vocab_size,
+    )
+
+    # No model trimming (by converting it to KeyedVectors) to avoid compatibility issues
+    # (https://github.com/RaRe-Technologies/gensim/issues/2201)
 
     log.info("Trimming model...")
     word_vectors = model.wv
     del model
 
+    # Saving in in the same format used by the original C word2vec-tool, for compatibility
     log.info("Saving model to a temporary path '%s'..." % temp_model_path)
-    # Clients will be loading the model using Python 2.7 which doesn't support protocols >= 3
-    pickle_protocol = 2
-    word_vectors.save(temp_model_path, pickle_protocol=pickle_protocol)
+    word_vectors.save_word2vec_format(temp_model_path, binary=True)
 
     if not os.path.isfile(temp_model_path):
         raise McWord2vecException("word2vec model not found at path: %s" % temp_model_path)
