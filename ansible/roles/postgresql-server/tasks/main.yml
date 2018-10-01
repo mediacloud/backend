@@ -88,6 +88,14 @@
   tags:
     - postgresql-server
 
+# The initial configuration might be preventing PostgreSQL from getting started
+# (e.g., on Travis build the shared_buffers might have been set to a huge value
+# which wouldn't work on a smaller Travis instance), so restart PostgreSQL now
+- name: Restart PostgreSQL if needed
+  meta: flush_handlers
+  tags:
+    - postgresql-server
+
 - name: Include tasks that start PostgreSQL
   include_tasks: start-{{ ansible_distribution }}.yml
   tags:
