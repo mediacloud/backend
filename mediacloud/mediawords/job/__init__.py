@@ -209,4 +209,9 @@ class JobBrokerApp(Celery):
             #    and a good way to avoid such concurrency bugs is just not to use concurrency.
             #
             '--pool', 'solo',
+
+            # Workers aren't expected to interact much, and their heartbeats is just noise (and probably error prone)
+            '--without-gossip',
+            '--without-mingle',
+
         ])
