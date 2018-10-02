@@ -18,6 +18,9 @@
     [%- END %]
 command = [% command %]
 directory = %(here)s/../
+[%- IF environment %]
+environment=[% environment %]
+[%- END %]
 autorestart = [% supervisor.programs.$program.autorestart_b|| default_autorestart  %]
 [% IF supervisor.start_no_supervisor_programs == 1  %]
 autostart = [% supervisor.programs.$program.autostart_b || 'false'  %]
