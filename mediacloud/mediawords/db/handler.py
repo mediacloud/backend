@@ -45,24 +45,28 @@ class DatabaseHandler(object):
     # Min. "deadlock_timeout" to not cause problems under load (in seconds)
     __MIN_DEADLOCK_TIMEOUT = 5
 
-    # cache of table primary key columns ([schema][table])
-    __primary_key_columns = {}
-
-    # PIDs for which the schema version has been checked
-    __schema_version_check_pids = {}
-
-    # Whether or not to print PostgreSQL warnings
-    __print_warnings = True
-
     # "Double percentage sign" marker (see handler's quote() for explanation)
-    __double_percentage_sign_marker = "<DOUBLE PERCENTAGE SIGN: " + random_string(length=16) + ">"
+    __DOUBLE_PERCENTAGE_SIGN_MARKER = "<DOUBLE PERCENTAGE SIGN: " + random_string(length=16) + ">"
 
-    # Debugging variable to test whether we're in a transaction
-    __in_manual_transaction = False
+    __slots__ = [
 
-    # Pyscopg2 instance and cursor
-    __conn = None
-    __db = None
+        # Cache of table primary key columns ([schema][table])
+        '__primary_key_columns',
+
+        # PIDs for which the schema version has been checked
+        '__schema_version_check_pids',
+
+        # Whether or not to print PostgreSQL warnings
+        '__print_warnings',
+
+        # Debugging variable to test whether we're in a transaction
+        '__in_manual_transaction',
+
+        # Pyscopg2 instance and cursor
+        '__conn',
+        '__db',
+
+    ]
 
     def __init__(self,
                  host: str,
@@ -79,6 +83,13 @@ class DatabaseHandler(object):
         username = decode_object_from_bytes_if_needed(username)
         password = decode_object_from_bytes_if_needed(password)
         database = decode_object_from_bytes_if_needed(database)
+
+        self.__primary_key_columns = {}
+        self.__schema_version_check_pids = {}
+        self.__print_warnings = True
+        self.__in_manual_transaction = False
+        self.__conn = None
+        self.__db = None
 
         self.__connect(
             host=host,
@@ -156,9 +167,9 @@ class DatabaseHandler(object):
         deadlock_timeout = int(deadlock_timeout)
         if deadlock_timeout == 0:
             raise McConnectException("'deadlock_timeout' is 0, probably unable to read it")
-        if deadlock_timeout < self.__MIN_DEADLOCK_TIMEOUT:
+        if deadlock_timeout < DatabaseHandler.__MIN_DEADLOCK_TIMEOUT:
             log.warning('"deadlock_timeout" is less than "%ds", expect deadlocks on high extractor load' %
-                        self.__MIN_DEADLOCK_TIMEOUT)
+                        DatabaseHandler.__MIN_DEADLOCK_TIMEOUT)
 
     def disconnect(self) -> None:
         """Disconnect from the database."""
@@ -180,11 +191,11 @@ class DatabaseHandler(object):
         if 'ignore_schema_version' in config['mediawords']:
             config_ignore_schema_version = config["mediawords"]["ignore_schema_version"]
 
-        if config_ignore_schema_version or self.__IGNORE_SCHEMA_VERSION_ENV_VARIABLE in os.environ:
+        if config_ignore_schema_version or DatabaseHandler.__IGNORE_SCHEMA_VERSION_ENV_VARIABLE in os.environ:
             log.warning("""
                 The current Media Cloud database schema is older than the schema present in mediawords.sql,
                 but %s is set so continuing anyway.
-            """ % self.__IGNORE_SCHEMA_VERSION_ENV_VARIABLE)
+            """ % DatabaseHandler.__IGNORE_SCHEMA_VERSION_ENV_VARIABLE)
             return True
         else:
             log.warning("""
@@ -215,7 +226,7 @@ class DatabaseHandler(object):
             """ % {
                 "current_schema_version": current_schema_version,
                 "target_schema_version": target_schema_version,
-                "IGNORE_SCHEMA_VERSION_ENV_VARIABLE": self.__IGNORE_SCHEMA_VERSION_ENV_VARIABLE,
+                "IGNORE_SCHEMA_VERSION_ENV_VARIABLE": DatabaseHandler.__IGNORE_SCHEMA_VERSION_ENV_VARIABLE,
             })
             return False
 
@@ -287,7 +298,7 @@ class DatabaseHandler(object):
 
         return DatabaseResult(cursor=self.__db,
                               query_args=query_params,
-                              double_percentage_sign_marker=self.__double_percentage_sign_marker,
+                              double_percentage_sign_marker=DatabaseHandler.__DOUBLE_PERCENTAGE_SIGN_MARKER,
                               print_warnings=self.__print_warnings)
 
     def __get_current_work_mem(self) -> str:
@@ -783,7 +794,7 @@ class DatabaseHandler(object):
 
         # Replace percentage signs with a randomly generated marker that will be replaced back into '%%' when executing
         # the query.
-        quoted_value = quoted_value.replace('%', self.__double_percentage_sign_marker)
+        quoted_value = quoted_value.replace('%', DatabaseHandler.__DOUBLE_PERCENTAGE_SIGN_MARKER)
 
         return quoted_value
 
@@ -958,4 +969,4 @@ class DatabaseHandler(object):
                              query=query,
                              page=page,
                              rows_per_page=rows_per_page,
-                             double_percentage_sign_marker=self.__double_percentage_sign_marker)
+                             double_percentage_sign_marker=DatabaseHandler.__DOUBLE_PERCENTAGE_SIGN_MARKER)
