@@ -30,10 +30,8 @@ from mediawords.util.text import random_string
 log = create_logger(__name__)
 
 # Set to the module in addition to connection so that adapt() returns what it should
-# noinspection PyUnresolvedReferences
-psycopg2.extensions.register_type(psycopg2.extensions.UNICODE)
-# noinspection PyUnresolvedReferences
-psycopg2.extensions.register_type(psycopg2.extensions.UNICODEARRAY)
+psycopg2.extensions.register_type(psycopg2.extensions.UNICODE, None)
+psycopg2.extensions.register_type(psycopg2.extensions.UNICODEARRAY, None)
 
 
 class DatabaseHandler(object):
@@ -194,7 +192,8 @@ class DatabaseHandler(object):
     def dbh(self) -> None:
         raise McDatabaseHandlerException("Please don't use internal database handler directly")
 
-    def __should_continue_with_outdated_schema(self, current_schema_version: int, target_schema_version: int) -> bool:
+    @staticmethod
+    def __should_continue_with_outdated_schema(current_schema_version: int, target_schema_version: int) -> bool:
         """Schema is outdated / too new; returns 1 if MC should continue nevertheless, 0 otherwise"""
         config = py_get_config()
 
@@ -275,7 +274,7 @@ class DatabaseHandler(object):
 
         # Check if the current schema is up-to-date
         if current_schema_version != target_schema_version:
-            return self.__should_continue_with_outdated_schema(current_schema_version, target_schema_version)
+            return DatabaseHandler.__should_continue_with_outdated_schema(current_schema_version, target_schema_version)
         else:
             # Things are fine at this point.
             return True
@@ -764,6 +763,7 @@ class DatabaseHandler(object):
             self.query('ROLLBACK')
             self.__set_in_transaction(False)
 
+    # noinspection PyMethodMayBeStatic
     def quote(self, value: Union[bool, int, float, str, None]) -> str:
         """Quote a string for being passed as a literal in a query.
 
