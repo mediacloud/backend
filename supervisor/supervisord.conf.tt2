@@ -172,6 +172,7 @@ programs = rabbitmq
 [% INCLUDE program_config
     program='extract_and_vector'
     command="./script/run_in_env.sh ./mediacloud/mediawords/job/extract_and_vector.py"
+    environment="MC_LOGGING_LEVEL=DEBUG"
     default_stopasgroup='false'
     default_killasgroup='false'
     default_autorestart='false'
