@@ -3,7 +3,7 @@ import socket
 import uuid
 from typing import Type, Any
 
-from celery import Celery, Task
+import celery
 from kombu import Exchange, Queue
 
 from mediawords.util.config import get_config as py_get_config
@@ -17,7 +17,7 @@ class McAbstractJobException(Exception):
     pass
 
 
-class _CeleryTask(Task):
+class _CeleryTask(celery.Task):
     """Internal Celery task."""
 
     __slots__ = [
@@ -47,13 +47,13 @@ class AbstractJob(object, metaclass=abc.ABCMeta):
     """Abstract job that concrete jobs should subclass and implement."""
 
     @classmethod
-    @abc.abstractclassmethod
+    @abc.abstractmethod
     def run_job(cls, *args, **kwargs) -> None:
         """Run job, raise on error."""
         raise NotImplementedError("Abstract method.")
 
     @classmethod
-    @abc.abstractclassmethod
+    @abc.abstractmethod
     def queue_name(cls) -> str:
         """Return queue name."""
         raise NotImplementedError("Abstract method.")
@@ -116,7 +116,7 @@ class AbstractJob(object, metaclass=abc.ABCMeta):
         """Constructor."""
         self._task = _CeleryTask(job_class=self.__class__)
 
-    def celery_task(self) -> Task:
+    def celery_task(self) -> celery.Task:
         """(Internal) Return Celery task to be registered."""
         return self._task
 
@@ -126,7 +126,7 @@ class McJobBrokerAppException(Exception):
     pass
 
 
-class JobBrokerApp(Celery):
+class JobBrokerApp(celery.Celery):
     """Job broker class."""
 
     __slots__ = [
@@ -180,7 +180,8 @@ class JobBrokerApp(Celery):
                       })
         self.conf.task_queues = [queue]
 
-        def __route_task(name, args, kwargs, options, task=None, **kw):
+        # noinspection PyUnusedLocal
+        def __route_task(name, args_, kwargs_, options_, task_=None, **kw_):
             return {'queue': name, 'exchange': name, 'routing_key': name}
 
         self.conf.task_routes = (__route_task,)
@@ -209,4 +210,9 @@ class JobBrokerApp(Celery):
             #    and a good way to avoid such concurrency bugs is just not to use concurrency.
             #
             '--pool', 'solo',
+
+            # Workers aren't expected to interact much, and their heartbeats is just noise (and probably error prone)
+            '--without-gossip',
+            '--without-mingle',
+
         ])
