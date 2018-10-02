@@ -48,6 +48,11 @@ class DatabaseHandler(object):
     # "Double percentage sign" marker (see handler's quote() for explanation)
     __DOUBLE_PERCENTAGE_SIGN_MARKER = "<DOUBLE PERCENTAGE SIGN: " + random_string(length=16) + ">"
 
+    # Whether or not "deadlock_timeout" was checked
+    # * lowercase because it's not a constant
+    # * class variable because we don't need to do it on every connect_to_db())
+    __deadlock_timeout_checked = False
+
     __slots__ = [
 
         # Cache of table primary key columns ([schema][table])
@@ -162,14 +167,20 @@ class DatabaseHandler(object):
         self.__schema_version_check_pids[pid] = True
 
         # Check deadlock_timeout
-        (deadlock_timeout,) = self.query("SHOW deadlock_timeout").flat()
-        deadlock_timeout = re.sub(r'\s*s$', '', deadlock_timeout, re.I)
-        deadlock_timeout = int(deadlock_timeout)
-        if deadlock_timeout == 0:
-            raise McConnectException("'deadlock_timeout' is 0, probably unable to read it")
-        if deadlock_timeout < DatabaseHandler.__MIN_DEADLOCK_TIMEOUT:
-            log.warning('"deadlock_timeout" is less than "%ds", expect deadlocks on high extractor load' %
-                        DatabaseHandler.__MIN_DEADLOCK_TIMEOUT)
+        if not DatabaseHandler.__deadlock_timeout_checked:
+            (deadlock_timeout,) = self.query("SHOW deadlock_timeout").flat()
+            deadlock_timeout = re.sub(r'\s*s$', '', deadlock_timeout, re.I)
+            deadlock_timeout = int(deadlock_timeout)
+            if deadlock_timeout == 0:
+                raise McConnectException("'deadlock_timeout' is 0, probably unable to read it")
+            if deadlock_timeout < DatabaseHandler.__MIN_DEADLOCK_TIMEOUT:
+                log.warning(
+                    '"deadlock_timeout" is less than "{}", expect deadlocks on high extractor load.'.format(
+                        DatabaseHandler.__MIN_DEADLOCK_TIMEOUT
+                    )
+                )
+
+            DatabaseHandler.__deadlock_timeout_checked = True
 
     def disconnect(self) -> None:
         """Disconnect from the database."""
