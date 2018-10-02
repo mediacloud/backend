@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import os
 import time
 
 from mediawords.db import connect_to_db
@@ -9,6 +10,9 @@ from mediawords.job import AbstractJob, McAbstractJobException, JobBrokerApp
 from mediawords.story_vectors import medium_is_locked
 from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_object_from_bytes_if_needed
+
+# FIXME remove after figuring out why extractor gets stuck
+os.environ["MC_LOGGING_LEVEL"] = "DEBUG"
 
 log = create_logger(__name__)
 
