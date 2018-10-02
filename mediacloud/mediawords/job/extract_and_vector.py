@@ -58,6 +58,11 @@ class ExtractAndVectorJob(AbstractJob):
 
             # Prevent spamming these requeue events if the locked media source is the only one in the queue
             if ExtractAndVectorJob._consecutive_requeues > ExtractAndVectorJob._SLEEP_AFTER_REQUEUES:
+                log.warning(
+                    "Story extraction job has been requeued more than {} times, waiting before requeueing...".format(
+                        ExtractAndVectorJob._consecutive_requeues
+                    )
+                )
                 time.sleep(1)
 
             ExtractAndVectorJob.add_to_queue(stories_id=stories_id)
@@ -65,6 +70,8 @@ class ExtractAndVectorJob(AbstractJob):
             return
 
         ExtractAndVectorJob._consecutive_requeues = 0
+
+        log.info("Extracting story {}...".format(stories_id))
 
         db.begin()
 
@@ -76,6 +83,8 @@ class ExtractAndVectorJob(AbstractJob):
             raise McExtractAndVectorException("Extractor died while extracting story {}: {}".format(stories_id, ex))
 
         db.commit()
+
+        log.info("Done extracting story {}.".format(stories_id))
 
     @classmethod
     def queue_name(cls) -> str:
