@@ -342,16 +342,24 @@ def extract(db: DatabaseHandler, download: dict, extractor_args: PyExtractorArgu
     """
     download = decode_object_from_bytes_if_needed(download)
 
+    downloads_id = download['downloads_id']
+
     if extractor_args.use_cache():
+        log.debug("Fetching cached extractor results for download {}...".format(downloads_id))
         results = _get_cached_extractor_results(db, download)
         if results is not None:
             return results
 
+    log.debug("Fetching content for download {}...".format(downloads_id))
     content = fetch_content(db, download)
 
+    log.debug("Extracting {} characters of content for download {}...".format(len(content), downloads_id))
     results = extract_content(content)
+    log.debug(
+        "Done extracting {} characters of content for download {}.".format(len(content), downloads_id))
 
     if extractor_args.use_cache():
+        log.debug("Caching extractor results for download {}...".format(downloads_id))
         _set_cached_extractor_results(db, download, results)
 
     return results
@@ -434,11 +442,12 @@ def extract_and_create_download_text(db: DatabaseHandler, download: dict, extrac
     downloads_id = download['downloads_id']
 
     log.debug("Extracting download {}...".format(downloads_id))
-
     extraction_result = extract(db=db, download=download, extractor_args=extractor_args)
+    log.debug("Done extracting download {}.".format(downloads_id))
 
     download_text = None
     if extractor_args.use_existing():
+        log.debug("Fetching download text for download {}...".format(downloads_id))
         download_text = db.query("""
             SELECT *
             FROM download_texts
@@ -446,6 +455,7 @@ def extract_and_create_download_text(db: DatabaseHandler, download: dict, extrac
         """, {'downloads_id': downloads_id}).hash()
 
     if download_text is None:
+        log.debug("Creating download text for download {}...".format(downloads_id))
         download_text = create(db=db, download=download, extract=extraction_result)
 
     return download_text

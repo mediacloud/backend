@@ -22,12 +22,14 @@ def process_extracted_story(db: DatabaseHandler, story: dict, extractor_args: Py
     """Do post extraction story processing work by calling update_story_sentences_and_language()."""
     story = decode_object_from_bytes_if_needed(story)
 
+    stories_id = story['stories_id']
+
+    log.debug("Updating sentences and language for story {}...".format(stories_id))
     update_story_sentences_and_language(db=db, story=story, extractor_args=extractor_args)
 
     if not extractor_args.no_tag_extractor_version():
+        log.debug("Updating extractor version tag for story {}...".format(stories_id))
         update_extractor_version_tag(db=db, story=story)
-
-    stories_id = story['stories_id']
 
     # Extract -> CLIFF -> NYTLabels -> mark_as_processed() chain
     cliff = CLIFFAnnotator()
