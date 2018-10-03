@@ -198,6 +198,10 @@ def extract_links_for_topic_story(db: DatabaseHandler, story: dict, topic: dict)
         links = get_links_from_story(db, story)
 
         for link in links:
+            if mediawords.tm.domains.skip_self_linked_domain_url(db, topic['topics_id'], story['url'], link):
+                log.info("skipping self linked domain url...")
+                continue
+
             topic_link = {
                 'topics_id': topic['topics_id'],
                 'stories_id': story['stories_id'],
