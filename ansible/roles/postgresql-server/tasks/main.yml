@@ -83,16 +83,19 @@
     owner: "{{ postgresql_conf_user }}"
     group: "{{ postgresql_conf_group }}"
   become: "{{ postgresql_conf_become }}"
+  register: copy_postgresql_configuration
   notify:
     - "restart postgresql"
   tags:
     - postgresql-server
 
-# The initial configuration might be preventing PostgreSQL from getting started
-# (e.g., on Travis build the shared_buffers might have been set to a huge value
-# which wouldn't work on a smaller Travis instance), so restart PostgreSQL now
-- name: Restart PostgreSQL if needed
-  meta: flush_handlers
+- name: "Restart PostgreSQL service"
+  service:
+    name: postgresql
+    state: restarted
+  when: copy_postgresql_configuration.changed
+  become: true
+  become_user: root
   tags:
     - postgresql-server
 
@@ -104,7 +107,6 @@
 - name: Create PostgreSQL user for Media Cloud user
   postgresql_user:
     name: "{{ mediacloud_user }}"
-
     login_user: "{{ postgresql_psql_login_user }}"
   become: "{{ postgresql_psql_become }}"
   become_user: "{{ postgresql_psql_become_user }}"
