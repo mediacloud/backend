@@ -55,11 +55,11 @@ class TestExtractStoryLinksDB(mediawords.test.test_database.TestDatabaseWithSche
         super().setUp()
         db = self.db()
 
-        media = mediawords.test.db.create_test_story_stack(db, {'A': {'B': [1]}})
+        media = mediawords.test.db.create.create_test_story_stack(db, {'A': {'B': [1]}})
 
         story = media['A']['feeds']['B']['stories']['1']
 
-        download = mediawords.test.db.create_download_for_feed(db, media['A']['feeds']['B'])
+        download = mediawords.test.db.create.create_download_for_feed(db, media['A']['feeds']['B'])
         download['stories_id'] = story['stories_id']
         db.update_by_id('downloads', download['downloads_id'], download)
 
@@ -176,7 +176,7 @@ class TestExtractStoryLinksDB(mediawords.test.test_database.TestDatabaseWithSche
         story['description'] = 'http://foo.com http://bar.com'
         db.update_by_id('stories', story['stories_id'], story)
 
-        topic = mediawords.test.db.create_test_topic(db, 'links')
+        topic = mediawords.test.db.create.create_test_topic(db, 'links')
         db.create('topic_stories', {'topics_id': topic['topics_id'], 'stories_id': story['stories_id']})
 
         mediawords.tm.extract_story_links.extract_links_for_topic_story(db, story, topic)

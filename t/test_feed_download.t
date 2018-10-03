@@ -31,8 +31,10 @@ use MediaWords::DBI::DownloadTexts;
 use MediaWords::DBI::Stories;
 use MediaWords::Test::Data;
 use MediaWords::Test::DB;
+use MediaWords::Test::DB::Create;
 use MediaWords::Test::LocalServer;
 use MediaWords::Util::DateTime;
+use MediaWords::Util::Paths;
 
 use Data::Dumper;
 use Data::Sorting qw( :basics :arrays :extras );
@@ -113,7 +115,7 @@ sub test_stories
 
     my $test_stories = MediaWords::Test::Data::fetch_test_data( 'test_feed_download_stories' );
 
-    MediaWords::Test::Data::adjust_test_timezone( $test_stories, $test_stories->[ 0 ]->{ timezone } );
+    $test_stories = MediaWords::Test::Data::adjust_test_timezone( $test_stories, $test_stories->[ 0 ]->{ timezone } );
 
     my $test_story_hash;
     map { $test_story_hash->{ $_->{ title } } = $_ } @{ $test_stories };
@@ -158,17 +160,7 @@ sub test_stories
 
 sub get_crawler_data_directory
 {
-    my $crawler_data_location;
-
-    {
-        my $bin = $FindBin::Bin;
-        INFO "Bin = '$bin' ";
-        $crawler_data_location = "$FindBin::Bin/data/crawler";
-    }
-
-    INFO "crawler data '$crawler_data_location'";
-
-    return $crawler_data_location;
+    return MediaWords::Util::Paths::mc_root_path() . "/t/data/crawler/";
 }
 
 sub main
@@ -198,7 +190,7 @@ sub main
 
             my $feed = add_test_feed( $db, $url_to_crawl );
 
-            my $download = MediaWords::Test::DB::create_download_for_feed( $db, $feed );
+            my $download = MediaWords::Test::DB::Create::create_download_for_feed( $db, $feed );
 
             my $crawler = MediaWords::Crawler::Engine->new();
             $crawler->fetcher_number( 1 );
@@ -207,7 +199,7 @@ sub main
 
             $crawler->fetch_and_handle_single_download( $download );
 
-            my $redundant_feed_download = MediaWords::Test::DB::create_download_for_feed( $db, $feed );
+            my $redundant_feed_download = MediaWords::Test::DB::Create::create_download_for_feed( $db, $feed );
 
             $crawler->fetch_and_handle_single_download( $redundant_feed_download );
 

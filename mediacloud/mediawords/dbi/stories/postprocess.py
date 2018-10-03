@@ -8,9 +8,10 @@ log = create_logger(__name__)
 def mark_as_processed(db: DatabaseHandler, stories_id: int) -> bool:
     """Mark the story as processed by inserting an entry into 'processed_stories'. Return True on success."""
 
+    # FIXME upsert instead of inserting a potential duplicate
+
     if isinstance(stories_id, bytes):
         stories_id = decode_object_from_bytes_if_needed(stories_id)
-
     stories_id = int(stories_id)
 
     log.debug("Marking story ID %d as processed..." % stories_id)

@@ -1,4 +1,4 @@
-package MediaWords::Test::HTTP::HashServer;
+package MediaWords::Test::HashServer;
 
 use strict;
 use warnings;
@@ -6,7 +6,7 @@ use warnings;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;    # set PYTHONPATH too
 
-import_python_module( __PACKAGE__, 'mediawords.test.http.hash_server' );
+import_python_module( __PACKAGE__, 'mediawords.test.hash_server' );
 
 sub new
 {
@@ -21,8 +21,8 @@ sub new
     $port  = python_deep_copy( $port );
     $pages = python_deep_copy( $pages );
 
-    # Create Python object (::HashServer::HashServer)
-    $self->{ python_hashserver } = MediaWords::Test::HTTP::HashServer::HashServer->new( $port, $pages );
+    # Create Python object (first ::HashServer is Perl package, second ::HashServer is Python class)
+    $self->{ python_hashserver } = MediaWords::Test::HashServer::HashServer->new( $port, $pages );
 
     return $self;
 }

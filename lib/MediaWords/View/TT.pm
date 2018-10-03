@@ -7,7 +7,7 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use base 'Catalyst::View::TT';
-use MediaWords::Util::HTML;
+use MediaWords::Util::ParseHTML;
 use Data::Dumper;
 use Text::Trim;
 use MediaWords::Util::Config;
@@ -26,7 +26,7 @@ sub new
     $self->{ template }->context->define_filter(
         html_strip => sub {
             my $nr = shift;
-            $nr = MediaWords::Util::HTML::html_strip( $nr );
+            $nr = MediaWords::Util::ParseHTML::html_strip( $nr );
         }
     );
 

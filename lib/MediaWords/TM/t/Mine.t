@@ -7,6 +7,7 @@ use Test::More tests => 10;
 use MediaWords::CommonLibs;
 
 use MediaWords::Test::DB;
+use MediaWords::Test::DB::Create;
 use MediaWords::TM::Mine;
 
 sub test_postgres_regex_match($)
@@ -69,12 +70,12 @@ sub add_test_topic_stories($$$$)
 {
     my ( $db, $topic, $num_stories, $label ) = @_;
 
-    my $medium = MediaWords::Test::DB::create_test_medium( $db, "$label  " . $_topic_stories_medium_count++ );
-    my $feed = MediaWords::Test::DB::create_test_feed( $db, $label, $medium );
+    my $medium = MediaWords::Test::DB::Create::create_test_medium( $db, "$label  " . $_topic_stories_medium_count++ );
+    my $feed = MediaWords::Test::DB::Create::create_test_feed( $db, $label, $medium );
 
     for my $i ( 1 .. $num_stories )
     {
-        my $story = MediaWords::Test::DB::create_test_story( $db, "$label $i", $feed );
+        my $story = MediaWords::Test::DB::Create::create_test_story( $db, "$label $i", $feed );
         MediaWords::TM::Mine::add_to_topic_stories( $db, $topic, $story, 1, 'f', 1 );
     }
 }
@@ -85,7 +86,7 @@ sub test_die_if_max_stories_exceeded($)
 
     my $label = "test_die_if_max_stories_exceeded";
 
-    my $topic = MediaWords::Test::DB::create_test_topic( $db, $label );
+    my $topic = MediaWords::Test::DB::Create::create_test_topic( $db, $label );
 
     $topic = $db->update_by_id( 'topics', $topic->{ topics_id }, { max_stories => 0 } );
 

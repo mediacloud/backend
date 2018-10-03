@@ -9,7 +9,7 @@ use MediaWords::Test::URLs;
 
 BEGIN
 {
-    use_ok( 'MediaWords::Test::HTTP::HashServer' );
+    use_ok( 'MediaWords::Test::HashServer' );
 }
 
 my $_port = 8899;
@@ -56,7 +56,7 @@ sub main
         },
     };
 
-    my $hs = MediaWords::Test::HTTP::HashServer->new( $_port, $pages );
+    my $hs = MediaWords::Test::HashServer->new( $_port, $pages );
 
     ok( $hs, 'hashserver object returned' );
 

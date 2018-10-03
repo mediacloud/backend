@@ -4,7 +4,6 @@ use warnings;
 use Modern::Perl '2015';
 use MediaWords::CommonLibs;
 
-use MediaWords::Test::HTTP::HashServer;
 use Readonly;
 use Test::More;
 use Test::Deep;
@@ -13,6 +12,8 @@ use MediaWords::Test::API;
 use MediaWords::Test::DB;
 use MediaWords::Test::Solr;
 use MediaWords::Test::Supervisor;
+
+use MediaWords::Util::ParseJSON;
 
 Readonly my $NUM_MEDIA            => 5;
 Readonly my $NUM_FEEDS_PER_MEDIUM => 2;
@@ -53,7 +54,7 @@ SQL
     my $stories_ids_list = join( ' ', @{ $stories_ids } );
     my $got_ss = test_get( '/api/v2/sentences/list', { q => "stories_id:($stories_ids_list)" } );
 
-    WARN( MediaWords::Util::JSON::encode_json( $got_ss ) );
+    WARN( MediaWords::Util::ParseJSON::encode_json( $got_ss ) );
 
     my $fields = [ qw/stories_id media_id sentence language publish_date/ ];
     rows_match( $label, $got_ss, $expected_ss, 'story_sentences_id', $fields );
@@ -63,10 +64,10 @@ sub test_sentences($)
 {
     my ( $db ) = @_;
 
-    my $media = MediaWords::Test::DB::create_test_story_stack_numerated( $db, $NUM_MEDIA, $NUM_FEEDS_PER_MEDIUM,
+    my $media = MediaWords::Test::DB::Create::create_test_story_stack_numerated( $db, $NUM_MEDIA, $NUM_FEEDS_PER_MEDIUM,
         $NUM_STORIES_PER_FEED );
 
-    MediaWords::Test::DB::add_content_to_test_story_stack( $db, $media );
+    $media = MediaWords::Test::DB::Create::add_content_to_test_story_stack( $db, $media );
 
     MediaWords::Test::Solr::setup_test_index( $db );
 

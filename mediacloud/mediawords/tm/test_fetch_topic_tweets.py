@@ -11,8 +11,9 @@ from mediawords.test.test_database import TestDatabaseWithSchemaTestCase
 import mediawords.test.db
 import mediawords.tm.fetch_topic_tweets
 import mediawords.util.paths
-
 from mediawords.util.log import create_logger
+from mediawords.util.parse_json import decode_json
+
 logger = create_logger(__name__)
 
 # this is an estimate of the number of tweets per day included in the ch-posts-date.json files
@@ -59,7 +60,7 @@ class MockCrimsonHexagon(mediawords.tm.fetch_topic_tweets.AbstractCrimsonHexagon
         with open(filename, 'r', encoding='utf-8') as fh:
             json = fh.read()
 
-        data = dict(mediawords.util.json.decode_json(json))
+        data = dict(decode_json(json))
 
         assert 'posts' in data
         assert len(data['posts']) >= MOCK_TWEETS_PER_DAY
@@ -70,7 +71,7 @@ class MockCrimsonHexagon(mediawords.tm.fetch_topic_tweets.AbstractCrimsonHexagon
         # tweet_urler_lookup below
         i = 0
         for ch_post in data['posts']:
-            ch_post['url'] = re.sub('status/(\d+)/', '/status/' + str(i), ch_post['url'])
+            ch_post['url'] = re.sub(r'status/(\d+)/', '/status/' + str(i), ch_post['url'])
             i += 1
 
         return data
@@ -90,7 +91,6 @@ class MockTwitter(mediawords.tm.fetch_topic_tweets.AbstractTwitter):
 
         tweets = []
         for tweet_id in ids:
-
             # restrict url and user ids to desired number
             # include randomness so that the urls and users are not nearly collated
             url_id = int(random.randint(1, int(tweet_id))) % NUM_MOCK_URLS
@@ -129,7 +129,7 @@ def validate_topic_tweets(db: DatabaseHandler, topic_tweet_day: dict) -> None:
     assert len(topic_tweets) == topic_tweet_day['num_ch_tweets']
 
     for topic_tweet in topic_tweets:
-        tweet_data = dict(mediawords.util.json.decode_json(topic_tweet['data']))
+        tweet_data = dict(decode_json(topic_tweet['data']))
 
         # random field that should be coming from twitter
         assert 'assignedCategoryId' in tweet_data
@@ -155,7 +155,7 @@ def validate_topic_tweet_urls(db: DatabaseHandler, topic: dict) -> None:
 
     expected_num_urls = 0
     for topic_tweet in topic_tweets:
-        data = dict(mediawords.util.json.decode_json(topic_tweet['data']))
+        data = dict(decode_json(topic_tweet['data']))
         expected_num_urls += len(data['tweet']['entities']['urls'])
 
     # first sanity check to make sure we got some urls
@@ -165,7 +165,7 @@ def validate_topic_tweet_urls(db: DatabaseHandler, topic: dict) -> None:
     total_json_urls = 0
     for topic_tweet in topic_tweets:
 
-        ch_post = dict(mediawords.util.json.decode_json(topic_tweet['data']))
+        ch_post = dict(decode_json(topic_tweet['data']))
         expected_urls = [x['expanded_url'] for x in ch_post['tweet']['entities']['urls']]
         total_json_urls += len(expected_urls)
 
@@ -224,7 +224,7 @@ def test_ch_api() -> None:
 
     for post in got_posts:
         assert 'url' in post
-        assert re.search('status/\d+', post['url'])
+        assert re.search(r'status/\d+', post['url'])
 
 
 class TestFetchTopicTweets(TestDatabaseWithSchemaTestCase):
@@ -233,7 +233,7 @@ class TestFetchTopicTweets(TestDatabaseWithSchemaTestCase):
     def test_fetch_topic_tweets(self) -> None:
         """Run fetch_topic_tweet tests with test database."""
         db = self.db()
-        topic = mediawords.test.db.create_test_topic(db, 'test')
+        topic = mediawords.test.db.create.create_test_topic(db, 'test')
 
         test_dates = get_test_date_range()
         topic['start_date'] = test_dates[0]
@@ -265,7 +265,7 @@ class TestFetchTopicTweets(TestDatabaseWithSchemaTestCase):
         db = self.db()
         config = mediawords.util.config.get_config()
 
-        topic = mediawords.test.db.create_test_topic(db, "test_remote_integration")
+        topic = mediawords.test.db.create.create_test_topic(db, "test_remote_integration")
         topic['ch_monitor_id'] = config['crimson_hexagon']['test_monitor_id']
         db.update_by_id('topics', topic['topics_id'], topic)
 

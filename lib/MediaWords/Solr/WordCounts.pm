@@ -30,9 +30,10 @@ use MediaWords::Languages::Language;
 use MediaWords::Solr;
 use MediaWords::Util::Config;
 use MediaWords::Util::IdentifyLanguage;
-use MediaWords::Util::JSON;
+use MediaWords::Util::ParseJSON;
 use MediaWords::Util::Text;
 use MediaWords::Test::DB;
+use MediaWords::Test::DB::Environment;
 
 # Max. length of the sentence to tokenize
 Readonly my $MAX_SENTENCE_LENGTH => 1024;
@@ -328,15 +329,18 @@ sub _get_words_from_solr_server($)
     my @word_list;
     while ( my ( $stem, $count ) = each( %{ $words } ) )
     {
-        push( @word_list, [ $stem, $count->{ count } ] );
+        push( @word_list, { stem => $stem, count => $count->{ count } } );
     }
 
-    @word_list = sort { $b->[ 1 ] <=> $a->[ 1 ] } @word_list;
+    @word_list = sort {
+        $b->{ count } <=> $a->{ count } or    #
+          $b->{ stem } cmp $a->{ stem }       #
+    } @word_list;
 
     my $counts = [];
     for my $w ( @word_list )
     {
-        my $terms = $words->{ $w->[ 0 ] }->{ terms };
+        my $terms = $words->{ $w->{ stem } }->{ terms };
         my ( $max_term, $max_term_count );
         while ( my ( $term, $term_count ) = each( %{ $terms } ) )
         {
@@ -347,13 +351,13 @@ sub _get_words_from_solr_server($)
             }
         }
 
-        if ( !MediaWords::Util::Text::is_valid_utf8( $w->[ 0 ] ) || !MediaWords::Util::Text::is_valid_utf8( $max_term ) )
+        if ( !MediaWords::Util::Text::is_valid_utf8( $w->{ stem } ) || !MediaWords::Util::Text::is_valid_utf8( $max_term ) )
         {
-            WARN "invalid utf8: $w->[ 0 ] / $max_term";
+            WARN "invalid utf8: $w->{ stem } / $max_term";
             next;
         }
 
-        push( @{ $counts }, { stem => $w->[ 0 ], count => $w->[ 1 ], term => $max_term } );
+        push( @{ $counts }, { stem => $w->{ stem }, count => $w->{ count }, term => $max_term } );
     }
 
     splice( @{ $counts }, $self->num_words );
@@ -412,7 +416,7 @@ sub _get_remote_words
         die( "error retrieving words from solr: " . $res->decoded_content );
     }
 
-    my $words = MediaWords::Util::JSON::decode_json( $res->decoded_content );
+    my $words = MediaWords::Util::ParseJSON::decode_json( $res->decoded_content );
 
     unless ( $words && ref( $words ) )
     {
@@ -476,7 +480,7 @@ sub get_words
 
     my $words;
 
-    $words = $self->_get_cached_words unless ( MediaWords::Test::DB::using_test_database() );
+    $words = $self->_get_cached_words unless ( MediaWords::Test::DB::Environment::using_test_database() );
 
     if ( $words )
     {

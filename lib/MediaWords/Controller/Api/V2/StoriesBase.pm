@@ -15,8 +15,7 @@ use List::Compare;
 use MediaWords::DBI::Stories;
 use MediaWords::Solr;
 use MediaWords::Solr::TagCounts;
-use MediaWords::Util::HTML;
-use MediaWords::Util::JSON;
+use MediaWords::Util::ParseHTML;
 
 =head1 NAME
 
@@ -86,9 +85,9 @@ SQL
     for my $download ( @{ $downloads } )
     {
         my $story = $story_lookup->{ $download->{ stories_id } };
-        my $content_ref = MediaWords::DBI::Downloads::fetch_content( $db, $download );
+        my $content = MediaWords::DBI::Downloads::fetch_content( $db, $download );
 
-        $story->{ raw_first_download_file } = defined( $content_ref ) ? $$content_ref : { missing => 'true' };
+        $story->{ raw_first_download_file } = defined( $content ) ? $content : { missing => 'true' };
     }
 
     $db->commit;
@@ -186,6 +185,8 @@ sub _attach_word_counts_to_stories($$)
 
         }
     }
+
+    return $stories;
 }
 
 sub _add_nested_data
@@ -222,11 +223,12 @@ SQL
         {
             if ( $story_text_data->{ full_text_rss } )
             {
-                $story_text_data->{ story_text } = MediaWords::Util::HTML::html_strip( $story_text_data->{ story_text } );
+                $story_text_data->{ story_text } =
+                  MediaWords::Util::ParseHTML::html_strip( $story_text_data->{ story_text } );
             }
         }
 
-        MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $story_text_data );
+        $stories = MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $story_text_data );
 
         my $extracted_data = $db->query(
             <<SQL
@@ -241,7 +243,7 @@ SQL
 SQL
         )->hashes;
 
-        MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $extracted_data );
+        $stories = MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $extracted_data );
     }
 
     if ( $self->{ show_sentences } )
@@ -260,7 +262,7 @@ SQL
             }
         );
 
-        MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $sentences, 'story_sentences' );
+        $stories = MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $sentences, 'story_sentences' );
 
     }
 
@@ -268,7 +270,7 @@ SQL
     {
         my $ap_stories_ids = _get_ap_stories_ids( $db, $ids_table );
 
-        MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $ap_stories_ids );
+        $stories = MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $ap_stories_ids );
     }
 
     my $tag_data = $db->query(
@@ -290,7 +292,7 @@ SQL
 SQL
     )->hashes;
 
-    MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $tag_data, 'story_tags' );
+    $stories = MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $tag_data, 'story_tags' );
 
     if ( $self->{ show_feeds } )
     {
@@ -310,10 +312,10 @@ SQL
 SQL
         )->hashes;
 
-        MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $feed_data, 'feeds' );
+        $stories = MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $feed_data, 'feeds' );
     }
 
-    _attach_word_counts_to_stories( $db, $stories ) if ( $self->{ show_wc } );
+    $stories = _attach_word_counts_to_stories( $db, $stories ) if ( $self->{ show_wc } );
 
     return $stories;
 }

@@ -161,9 +161,9 @@ END
         map { { stories_id => $_, tag_names => join( "; ", @{ $story_tag_names->{ $_ } } ) } }
           keys( %{ $story_tag_names } )
     ];
-    MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $aggregate_story_tags );
+    $stories = MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $aggregate_story_tags );
 
-    return [ sort { $b->{ count } <=> $a->{ count } } values( %{ $story_tag_counts } ) ];
+    return ( $stories, [ sort { $b->{ count } <=> $a->{ count } } values( %{ $story_tag_counts } ) ] );
 }
 
 # set 'matches_pattern' field on each story
@@ -367,7 +367,8 @@ sub index : Path : Args(0)
         $num_stories = MediaWords::Solr::get_last_num_found();
     }
 
-    my $tag_counts = $csv ? [] : _generate_story_tag_data( $db, $stories );
+    my $tag_counts;
+    ( $stories, $tag_counts ) = $csv ? ( $stories, [] ) : _generate_story_tag_data( $db, $stories );
 
     if ( $csv )
     {

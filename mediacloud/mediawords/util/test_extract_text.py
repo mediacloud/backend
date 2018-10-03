@@ -7,7 +7,7 @@ from mediawords.util.extract_text import extractor_name, extract_article_from_ht
 
 def test_extractor_name():
     name = extractor_name()
-    assert re.match('^readability-lxml-[\d.]{3,7}?$', name)
+    assert re.match(r'^readability-lxml-[\d.]{3,7}?$', name)
 
     # Test caching
     cached_name = extractor_name()
@@ -15,7 +15,7 @@ def test_extractor_name():
 
 
 # noinspection SpellCheckingInspection
-def test_extract_text_from_html():
+def test_extract_article_from_html():
     assert extract_article_from_html('') == ''
     # noinspection PyTypeChecker
     assert extract_article_from_html(None) == ''
@@ -101,12 +101,11 @@ def test_extract_text_from_html():
     extracted_text = extract_article_from_html(input_html)
 
     assert re.match(
-        """
+        r"""
             Kim\ Kardashian\s*?
             <body.*?>\s*?
                 <nav.*?>Chloe\ Kardashian</nav>\s*?
                 <article.*?><p>Kim\ Kardashian</p></article>\s*?
-                <footer>Some\ other\ Kardashian</footer>\s*?
             </body>
         """,
         extracted_text,
@@ -114,13 +113,23 @@ def test_extract_text_from_html():
     )
 
 
+@timeout_decorator.timeout(seconds=5, use_signals=False)
+def test_extract_article_from_html_null_bytes():
+    null_bytes = '\x00' * 1024 * 1024 * 5
+    html = '<html><body><p>foo' + null_bytes + '</p></body></html>'
+
+    extracted_text = extract_article_from_html(html)
+
+    assert re.search(r'foo', extracted_text, flags=re.X)
+
+
 # make sure string with very long space range does not hang the extractor (triggered by a bug in
 # readability for which we added a work around in extract_text.py)
 @timeout_decorator.timeout(seconds=5, use_signals=False)
-def test_long_space():
+def test_extract_article_from_html_long_space():
     long_space = ' ' * 1000000
     html = '<html><body><p>foo' + long_space + '</p></body></html>'
 
     extracted_text = extract_article_from_html(html)
 
-    assert(re.search(r'foo', extracted_text, flags=re.X))
+    assert re.search(r'foo', extracted_text, flags=re.X)

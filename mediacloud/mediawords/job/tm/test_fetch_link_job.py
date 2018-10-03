@@ -1,7 +1,7 @@
 """Test mediawords.job.tm.fetch_link_job."""
 
 import mediawords.job.tm.fetch_link_job
-import mediawords.test.http.hash_server
+import mediawords.test.hash_server
 import mediawords.test.test_database
 
 
@@ -11,12 +11,12 @@ class TestFetchLinJobkDB(mediawords.test.test_database.TestDatabaseWithSchemaTes
     def test_fetch_link_job(self) -> None:
         db = self.db()
 
-        hs = mediawords.test.http.hash_server.HashServer(port=0, pages={
+        hs = mediawords.test.hash_server.HashServer(port=0, pages={
             '/foo': '<title>foo</title>',
             '/throttle': '<title>throttle</title>'})
         hs.start()
 
-        topic = mediawords.test.db.create_test_topic(db, 'foo')
+        topic = mediawords.test.db.create.create_test_topic(db, 'foo')
         topic['pattern'] = '.'
         topic = db.update_by_id('topics', topic['topics_id'], topic)
 

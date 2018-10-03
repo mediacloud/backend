@@ -14,11 +14,12 @@ use Encode;
 
 use MediaWords::DBI::Activities;
 use MediaWords::DBI::Stories;
+use MediaWords::DBI::Stories::Extract;
 use MediaWords::DBI::Stories::GuessDate;
 use MediaWords::DBI::Activities;
 use MediaWords::Util::Annotator::CLIFF;
 use MediaWords::Util::Annotator::NYTLabels;
-use MediaWords::Util::JSON;
+use MediaWords::Util::ParseJSON;
 
 =head1 NAME
 
@@ -151,7 +152,7 @@ END
     $c->stash->{ all_sentences }   = $all_sentences;
     $c->stash->{ story_sentences } = $story_sentences;
 
-    $c->stash->{ storytext } = MediaWords::DBI::Stories::get_text( $c->dbis, $story );
+    $c->stash->{ storytext } = MediaWords::DBI::Stories::Extract::get_text( $c->dbis, $story );
 
     $c->stash->{ stories_id } = $stories_id;
 
@@ -251,7 +252,7 @@ sub cliff_json : Local
 
     # Encode back to JSON, prettifying the result
     my $annotation_json;
-    eval { $annotation_json = MediaWords::Util::JSON::encode_json( $cliff_annotation, 1 ); };
+    eval { $annotation_json = MediaWords::Util::ParseJSON::encode_json( $cliff_annotation, 1 ); };
     if ( $@ or ( !$annotation_json ) )
     {
         die "Unable to encode story and its sentences annotation to JSON for story " .
@@ -300,7 +301,7 @@ sub nytlabels_json : Local
 
     # Encode back to JSON, prettifying the result
     my $annotation_json;
-    eval { $annotation_json = MediaWords::Util::JSON::encode_json( $nytlabels_annotation, 1 ); };
+    eval { $annotation_json = MediaWords::Util::ParseJSON::encode_json( $nytlabels_annotation, 1 ); };
     if ( $@ or ( !$annotation_json ) )
     {
         die "Unable to encode story and its sentences annotation to JSON for story " .
@@ -633,7 +634,7 @@ sub stories_query_json : Local
 
     foreach my $story ( @{ $stories } )
     {
-        my $story_text = MediaWords::DBI::Stories::get_text_for_word_counts( $c->dbis, $story );
+        my $story_text = MediaWords::DBI::Stories::Extract::get_text_for_word_counts( $c->dbis, $story );
         $story->{ story_text } = $story_text;
     }
 
@@ -647,18 +648,15 @@ sub stories_query_json : Local
     {
         foreach my $story ( @{ $stories } )
         {
-            my $content_ref = MediaWords::DBI::Stories::get_content_for_first_download( $c->dbis, $story );
+            my $content = MediaWords::DBI::Downloads::get_content_for_first_download( $c->dbis, $story );
 
-            if ( !defined( $content_ref ) )
+            if ( !defined( $content ) )
             {
                 $story->{ first_raw_download_file }->{ missing } = 'true';
             }
             else
             {
-
-                #TRACE "got content_ref $$content_ref";
-
-                $story->{ first_raw_download_file } = $$content_ref;
+                $story->{ first_raw_download_file } = $content;
             }
         }
     }
@@ -673,7 +671,7 @@ sub stories_query_json : Local
     DEBUG "finished stories_query_json";
 
     $c->response->content_type( 'application/json; charset=UTF-8' );
-    return $c->res->body( MediaWords::Util::JSON::encode_json( $stories ) );
+    return $c->res->body( MediaWords::Util::ParseJSON::encode_json( $stories ) );
 }
 
 =head1 AUTHOR

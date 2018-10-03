@@ -85,8 +85,7 @@ SQL
 
         my $download = $db->find_by_id( 'downloads', $downloads_id );
 
-        my $raw_download_content_ref = MediaWords::DBI::Downloads::fetch_content( $db, $download );
-        my $raw_download_content = $$raw_download_content_ref;
+        my $raw_download_content = MediaWords::DBI::Downloads::fetch_content( $db, $download );
 
         if ( $raw_download_content eq '(redundant feed)' )
         {
@@ -106,7 +105,7 @@ SQL
         }
 
         # Append raw content as last column
-        $csv->combine( @row, $$raw_download_content_ref );
+        $csv->combine( @row, $raw_download_content );
 
         print $csv->string . "\n";
     }

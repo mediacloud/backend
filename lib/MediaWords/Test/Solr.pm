@@ -19,6 +19,8 @@ use Test::More;
 
 use MediaWords::Solr;
 use MediaWords::Solr::Dump;
+use MediaWords::Test::DB::Environment;
+use MediaWords::Util::Tags;
 
 # remember that we already swapped the solr live collection
 my $_swapped_live_collection;
@@ -82,7 +84,7 @@ sub _add_timespans_to_stories
 {
     my ( $db, $stories ) = @_;
 
-    my $topic = MediaWords::Test::DB::create_test_topic( $db, "solr dump test" );
+    my $topic = MediaWords::Test::DB::Create::create_test_topic( $db, "solr dump test" );
 
     my $snapshot = {
         topics_id     => $topic->{ topics_id },
@@ -127,7 +129,7 @@ SQL
 
 Create a test story stack, add content to the stories, and index them.  The stories will have associated timespans_id,
 stories_tags_map, and processed_stories entries added as well.  Returns the test story stack as returned by
-MediaWords::Test::DB::create_test_story_stack()
+MediaWords::Test::DB::Create::create_test_story_stack()
 
 =cut
 
@@ -135,9 +137,9 @@ sub create_indexed_test_story_stack($$)
 {
     my ( $db, $data ) = @_;
 
-    my $media = MediaWords::Test::DB::create_test_story_stack( $db, $data );
+    my $media = MediaWords::Test::DB::Create::create_test_story_stack( $db, $data );
 
-    MediaWords::Test::DB::add_content_to_test_story_stack( $db, $media );
+    $media = MediaWords::Test::DB::Create::add_content_to_test_story_stack( $db, $media );
 
     my $test_stories = $db->query( "select * from stories order by md5( stories_id::text )" )->hashes;
 
@@ -171,7 +173,7 @@ sub setup_test_index($)
 {
     my ( $db ) = @_;
 
-    if ( !MediaWords::Test::DB::using_test_database() )
+    if ( !MediaWords::Test::DB::Environment::using_test_database() )
     {
         LOGDIE( 'setup_test_index can only be called while connected to postgres test database' );
     }

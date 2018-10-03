@@ -61,7 +61,6 @@ use MediaCloud::JobManager::Job;
 use MediaWords::Languages::Language;
 use MediaWords::Solr;
 use MediaWords::Util::Config;
-use MediaWords::Util::HTML;
 use MediaWords::Util::IdentifyLanguage;
 use MediaWords::Util::SQL;
 use MediaWords::Util::Tags;
@@ -164,17 +163,17 @@ sub get_first_download_content
 select d.* from downloads d where stories_id = ? order by downloads_id asc limit 1
 END
 
-    my $content_ref;
-    eval { $content_ref = MediaWords::DBI::Downloads::fetch_content( $db, $download ); };
+    my $content;
+    eval { $content = MediaWords::DBI::Downloads::fetch_content( $db, $download ); };
     if ( $@ )
     {
         MediaWords::DBI::Stories::fix_story_downloads_if_needed( $db, $story );
         $download = $db->find_by_id( 'downloads', int( $download->{ downloads_id } ) );
-        eval { $content_ref = MediaWords::DBI::Downloads::fetch_content( $db, $download ); };
+        eval { $content = MediaWords::DBI::Downloads::fetch_content( $db, $download ); };
         WARN "Error refetching content: $@" if ( $@ );
     }
 
-    return $content_ref ? $$content_ref : '';
+    return defined $content ? $content : '';
 }
 
 # return true if the publish date of the story is within 7 days of the topic date range or if the
@@ -1340,7 +1339,7 @@ SQL
 
     my $content = get_first_download_content( $db, $old_story );
 
-    $download = MediaWords::DBI::Downloads::store_content( $db, $download, \$content );
+    $download = MediaWords::DBI::Downloads::store_content( $db, $download, $content );
 
     $db->query( <<SQL, $download->{ downloads_id }, $old_story->{ stories_id } );
 insert into download_texts ( downloads_id, download_text, download_text_length )

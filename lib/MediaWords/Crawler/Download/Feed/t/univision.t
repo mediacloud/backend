@@ -19,8 +19,8 @@ use Test::Deep;
 use MediaWords::DB;
 use MediaWords::Test::DB;
 use MediaWords::Crawler::Engine;
-use MediaWords::Util::JSON;
-use MediaWords::Test::HTTP::HashServer;
+use MediaWords::Util::ParseJSON;
+use MediaWords::Test::HashServer;
 
 sub test_api_request_signature()
 {
@@ -89,7 +89,7 @@ sub test_api_request($$$)
     ok( $json_string, 'JSON response is not empty' );
 
     my $json;
-    eval { $json = MediaWords::Util::JSON::decode_json( $json_string ) };
+    eval { $json = MediaWords::Util::ParseJSON::decode_json( $json_string ) };
     ok( ( !$@ ), "JSON recoding of JSON succeeded: $json_string" );
 
     is( $json->{ 'status' }, 'success', "JSON response was successful: $json_string" );
@@ -118,7 +118,7 @@ sub test_fetch_handle_download($$)
         }
     );
 
-    my $download = MediaWords::Test::DB::create_download_for_feed( $db, $feed );
+    my $download = MediaWords::Test::DB::Create::create_download_for_feed( $db, $feed );
 
     my $handler = MediaWords::Crawler::Engine::handler_for_download( $db, $download );
 
@@ -205,7 +205,7 @@ sub main()
     say STDERR "Testing against local Univision test HTTP server...";
     my $pages = {
 
-        '/feed' => MediaWords::Util::JSON::encode_json(
+        '/feed' => MediaWords::Util::ParseJSON::encode_json(
             {
                 'status' => 'success',
                 'data'   => {
@@ -245,7 +245,7 @@ EOF
 EOF
     };
 
-    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    my $hs = MediaWords::Test::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
 
     test_univision( $local_univision_url, $local_univision_client_id, $local_univision_client_secret );

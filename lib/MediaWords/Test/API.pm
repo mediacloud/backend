@@ -13,6 +13,7 @@ use URI::QueryParam;
 
 use MediaWords::CommonLibs;
 use MediaWords::Util::Web;
+use MediaWords::Util::ParseJSON;
 
 require Exporter;
 our @ISA    = qw(Exporter);
@@ -30,7 +31,7 @@ sub setup_test_api_key($)
 
     if ( !$_test_api_key )
     {
-        $_test_api_key = MediaWords::Test::DB::create_test_user( $db, 'api_key' );
+        $_test_api_key = MediaWords::Test::DB::Create::create_test_user( $db, 'api_key' );
 
         #         $db->query( <<SQL );
         # insert into auth_users_roles_map ( auth_users_id, auth_roles_id )
@@ -87,7 +88,7 @@ sub test_request_response($$;$)
 
     is( $response->is_success, !$expect_error, "HTTP response status OK for $label:\n" . $response->decoded_content );
 
-    my $data = eval { MediaWords::Util::JSON::decode_json( $response->decoded_content ) };
+    my $data = eval { MediaWords::Util::ParseJSON::decode_json( $response->decoded_content ) };
 
     ok( $data, "decoded JSON for $label (json error: $@)" );
 
@@ -123,7 +124,7 @@ sub test_data_request($$$;$)
     }
     $url = $uri->as_string;
 
-    my $json = MediaWords::Util::JSON::encode_json( $data );
+    my $json = MediaWords::Util::ParseJSON::encode_json( $data );
 
     my $request = HTTP::Request->new( $method, $url );
     $request->header( 'Content-Type' => 'application/json' );

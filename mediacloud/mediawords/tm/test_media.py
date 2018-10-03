@@ -33,7 +33,7 @@ class TestTMMediaDB(mediawords.test.test_database.TestDatabaseWithSchemaTestCase
 
         assert not mediawords.tm.media._normalized_urls_out_of_date(db)
 
-        [mediawords.test.db.create_test_medium(db, str(i)) for i in range(5)]
+        [mediawords.test.db.create.create_test_medium(db, str(i)) for i in range(5)]
 
         assert mediawords.tm.media._normalized_urls_out_of_date(db)
 
@@ -53,7 +53,7 @@ class TestTMMediaDB(mediawords.test.test_database.TestDatabaseWithSchemaTestCase
         """Test _update_media_normalized_urls()."""
         db = self.db()
 
-        [mediawords.test.db.create_test_medium(db, str(i)) for i in range(5)]
+        [mediawords.test.db.create.create_test_medium(db, str(i)) for i in range(5)]
 
         mediawords.tm.media._update_media_normalized_urls(db)
 
@@ -67,7 +67,7 @@ class TestTMMediaDB(mediawords.test.test_database.TestDatabaseWithSchemaTestCase
         db = self.db()
 
         num_media = 5
-        [mediawords.test.db.create_test_medium(db, str(i)) for i in range(num_media)]
+        [mediawords.test.db.create.create_test_medium(db, str(i)) for i in range(num_media)]
 
         # dummy call to lookup_medium to set normalized_urls
         mediawords.tm.media.lookup_medium(db, 'foo', 'foo')
@@ -112,7 +112,7 @@ class TestTMMediaDB(mediawords.test.test_database.TestDatabaseWithSchemaTestCase
         db = self.db()
 
         num_media = 5
-        [mediawords.test.db.create_test_medium(db, str(i)) for i in range(num_media)]
+        [mediawords.test.db.create.create_test_medium(db, str(i)) for i in range(num_media)]
         media = db.query("select * from media order by media_id").hashes()
 
         assert mediawords.tm.media.get_unique_medium_url(db, ['UNIQUE']) == 'UNIQUE'
@@ -137,7 +137,7 @@ class TestTMMediaDB(mediawords.test.test_database.TestDatabaseWithSchemaTestCase
         db = self.db()
 
         num_media = 5
-        [mediawords.test.db.create_test_medium(db, str(i)) for i in range(num_media)]
+        [mediawords.test.db.create.create_test_medium(db, str(i)) for i in range(num_media)]
         media = db.query("select * from media order by media_id").hashes()
 
         assert mediawords.tm.media.get_unique_medium_name(db, ['UNIQUE']) == 'UNIQUE'
@@ -167,7 +167,7 @@ class TestTMMediaDB(mediawords.test.test_database.TestDatabaseWithSchemaTestCase
         db = self.db()
 
         num_media = 5
-        [mediawords.test.db.create_test_medium(db, str(i)) for i in range(num_media)]
+        [mediawords.test.db.create.create_test_medium(db, str(i)) for i in range(num_media)]
 
         # the default test media do not have unique domains
         db.query("update media set url = 'http://media-' || media_id ||'.com'")

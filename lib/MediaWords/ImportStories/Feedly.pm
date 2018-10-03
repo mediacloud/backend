@@ -35,7 +35,7 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 use URI::Escape;
 
-use MediaWords::Util::JSON;
+use MediaWords::Util::ParseJSON;
 use MediaWords::Util::SQL;
 use MediaWords::Util::Web;
 
@@ -121,7 +121,7 @@ sub _get_feedly_json_data_deteremined($$)
 
             my $json = $res->decoded_content;
 
-            $json_data = MediaWords::Util::JSON::decode_json( $json );
+            $json_data = MediaWords::Util::ParseJSON::decode_json( $json );
         };
 
         return $json_data if ( $json_data );
