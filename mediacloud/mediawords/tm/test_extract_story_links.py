@@ -222,7 +222,7 @@ class TestExtractStoryLinksDB(mediawords.test.test_database.TestDatabaseWithSche
 
         story_domain = mediawords.util.url.get_url_distinctive_domain(story['url'])
 
-        topic = mediawords.test.db.create_test_topic(db, 'links')
+        topic = mediawords.test.db.create.create_test_topic(db, 'links')
         db.create('topic_stories', {'topics_id': topic['topics_id'], 'stories_id': story['stories_id']})
 
         num_links = mediawords.tm.domains.MAX_SELF_LINKS * 2
