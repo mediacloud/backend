@@ -97,7 +97,7 @@ class TestTMDomainsDB(mediawords.test.test_database.TestDatabaseWithSchemaTestCa
             assert(mediawords.tm.domains.skip_self_linked_domain(db, tl) is True)
 
         self_domain_url = 'http://%s/foo/bar' % story_domain
-        for i in range(mediawords.tm.domains.MAX_SELF_LINKS - len(regex_skipped_urls)):
+        for i in range(mediawords.tm.domains.MAX_SELF_LINKS - len(regex_skipped_urls) - 1):
             url = self_domain_url + str(i)
             tl = _create_topic_link(db, topic, story, url, url)
             assert(mediawords.tm.domains.skip_self_linked_domain(db, tl) is False)
