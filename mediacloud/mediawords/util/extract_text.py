@@ -60,9 +60,9 @@ def extract_article_from_html(html: str) -> str:
     if html is None or html == '':
         return ''
 
-    # this is necessary to avoid a bug in readability.readability.clean() that causes the regular
-    # expression r'\s*\n\s*' to hang for some rare cases of text with many repeated spaces
-    html = re.sub(r'\s{255,}', ' ' * 255, html)
+    # If any character (e.g. a space, or a NUL byte) repeats itself over and over again, it's not natural language and
+    # we don't need it; also, it will make Readability really slow
+    html = re.sub(r'(.)\1{256,}', '\1', html)
 
     try:
         doc = readability.readability.Document(html)
