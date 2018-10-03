@@ -15,7 +15,7 @@ def test_extractor_name():
 
 
 # noinspection SpellCheckingInspection
-def test_extract_text_from_html():
+def test_extract_article_from_html():
     assert extract_article_from_html('') == ''
     # noinspection PyTypeChecker
     assert extract_article_from_html(None) == ''
