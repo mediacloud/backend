@@ -2041,9 +2041,6 @@ sub do_mine_topic ($$;$)
         {
             update_topic_state( $db, $topic, "fetching social media data" );
             fetch_social_media_data( $db, $topic );
-
-            update_topic_state( $db, $topic, "snapshotting" );
-            MediaWords::TM::Snapshot::snapshot_topic( $db, $topic->{ topics_id } );
         }
     }
 }
