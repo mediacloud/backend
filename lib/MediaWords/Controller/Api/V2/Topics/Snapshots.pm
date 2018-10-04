@@ -184,7 +184,7 @@ sub word2vec_model_GET
         die "Model data for topic $topics_id, snapshot $snapshots_id, model $models_id is undefined.";
     }
 
-    my $filename = "word2vec-topic_$topics_id-snapshot_$snapshots_id-model_$models_id.pickle";
+    my $filename = "word2vec-topic_$topics_id-snapshot_$snapshots_id-model_$models_id.bin";
 
     $c->response->content_type( 'application/octet-stream' );
     $c->response->header( 'Content-Disposition' => "attachment; filename=$filename" );

@@ -1946,10 +1946,12 @@ Response:
 
 #### Model was fetched
 
-Raw, [Pickle](https://docs.python.org/3/library/pickle.html)-serialized word2vec data is returned as `application/octet-stream`, to be later loaded with:
+Raw "word2vec C format" model data is returned as `application/octet-stream`, to be later loaded with:
 
 ```python
-model = KeyedVectors.load(path_to_model_data)
+import gensim
+
+word_vectors = gensim.models.KeyedVectors.load_word2vec_format('model.bin', binary=True)
 ```
 
 #### Failed to fetch the model

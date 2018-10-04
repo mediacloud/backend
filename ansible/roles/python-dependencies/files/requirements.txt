@@ -44,7 +44,7 @@ date_guesser==2.1.1
 furl==1.2.1
 
 # Word2vec topic models
-gensim==3.5.0
+gensim==3.6.0
 
 # Stemming Hausa words
 hausastemmer==1.0
