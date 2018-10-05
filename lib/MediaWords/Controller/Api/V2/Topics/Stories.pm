@@ -312,6 +312,7 @@ select s.*, slc.*, m.name media_name
         s.snapshots_id = \$1      
         and m.snapshots_id = \$1
     $sort_clause
+    offset \$3 limit \$2
 SQL
 
     $db->query( "drop table _topics_stories_slc" );
