@@ -9,6 +9,7 @@ import readability.readability
 
 from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_object_from_bytes_if_needed
+from mediawords.util.text import replace_control_nonprintable_characters
 
 log = create_logger(__name__)
 
@@ -60,9 +61,16 @@ def extract_article_from_html(html: str) -> str:
     if html is None or html == '':
         return ''
 
+    # Control characters will choke Readability
+    html = replace_control_nonprintable_characters(html)
+
     # If any character (e.g. a space, or a NUL byte) repeats itself over and over again, it's not natural language and
     # we don't need it; also, it will make Readability really slow
     html = re.sub(r'(.)\1{256,}', '\1', html)
+
+    # Same with any kind of whitespace; the whitespace character might wary (e.g. "\r\n \r\n ..."), so this is a
+    # separate regex
+    html = re.sub(r'\s{256,}', '\1', html)
 
     try:
         doc = readability.readability.Document(html)

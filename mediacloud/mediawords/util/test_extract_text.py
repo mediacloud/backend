@@ -133,3 +133,25 @@ def test_extract_article_from_html_long_space():
     extracted_text = extract_article_from_html(html)
 
     assert re.search(r'foo', extracted_text, flags=re.X)
+
+
+# Try out with different kinds of whitespace in a single sequence
+@timeout_decorator.timeout(seconds=5, use_signals=False)
+def test_extract_article_from_html_long_varied_whitespace():
+    long_space = ' \n\t\r' * 1000000
+    html = '<html><body><p>foo' + long_space + '</p></body></html>'
+
+    extracted_text = extract_article_from_html(html)
+
+    assert re.search(r'foo', extracted_text, flags=re.X)
+
+
+# Try out with different kinds of whitespace in a single sequence
+@timeout_decorator.timeout(seconds=5, use_signals=False)
+def test_extract_article_from_html_nonprintable_characters():
+    long_space = '\x00\x01\x02 ' * 1000000
+    html = '<html><body><p>foo' + long_space + '</p></body></html>'
+
+    extracted_text = extract_article_from_html(html)
+
+    assert re.search(r'foo', extracted_text, flags=re.X)
