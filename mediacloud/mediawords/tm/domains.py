@@ -30,21 +30,38 @@ def increment_domain_links(db: DatabaseHandler, topic_link: dict) -> None:
 
     self_link = 1 if story_domain in (url_domain, redirect_url_domain) else 0
 
-    db.query(
+    topic_domain = db.query(
         """
         insert into topic_domains (topics_id, domain, self_links, all_links)
             values(%(topics_id)s, %(domain)s, %(self_link)s, 1)
             on conflict (topics_id, md5(domain))
-                do update set
-                        self_links = topic_domains.self_links + %(self_link)s,
-                        all_links = topic_domains.all_links + 1
+                do nothing
+            returning *
         """,
         {
             'topics_id': topic_link['topics_id'],
             'domain': redirect_url_domain,
             'self_link': self_link
         }
-    )
+    ).hash()
+
+    # do this update separately instead of as an upsert because the upsert was occasionally deadlocking
+    if not topic_domain:
+        db.query(
+            """
+            update topic_domains set
+                    self_links = topic_domains.self_links + %(self_link)s,
+                    all_links = topic_domains.all_links + 1
+                where
+                    topics_id = %(topics_id)s and
+                    domain = %(domain)s
+            """,
+            {
+                'topics_id': topic_link['topics_id'],
+                'domain': redirect_url_domain,
+                'self_link': self_link
+            }
+        )
 
 
 def skip_self_linked_domain_url(db: DatabaseHandler, topics_id: int, source_url: str, ref_url: str) -> bool:
