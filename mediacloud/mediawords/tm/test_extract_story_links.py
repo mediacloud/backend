@@ -1,6 +1,7 @@
 """Test mediawords.tm.extract_story_links."""
 
 import mediawords.test.test_database
+import mediawords.test.db.create
 import mediawords.tm.domains
 import mediawords.tm.extract_story_links
 

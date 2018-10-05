@@ -2,6 +2,7 @@
 
 import mediawords.db
 from mediawords.db import DatabaseHandler
+import mediawords.test.db.create
 import mediawords.test.test_database
 import mediawords.tm.domains
 import mediawords.util.url
