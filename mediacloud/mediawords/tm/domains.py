@@ -15,10 +15,10 @@ SKIP_SELF_LINK_RE = r'\/(?:tag|category|author|search)'
 
 
 def increment_domain_links(db: DatabaseHandler, topic_link: dict) -> None:
-    """Given a topic link, increment the self_links and all_links counts in the corresponding topic_domains row.
+    """Given a topic link, increment the self_links count is necessary n the corresponding topic_domains row.
 
     Increment self_links if the domain of the story at topic_links.stories_id is the same as the domain of
-    topic_links.url or topic_links.redirect_url.  Always increment all_links.
+    topic_links.url or topic_links.redirect_url.
     """
     story = db.require_by_id('stories', topic_link['stories_id'])
     story_domain = mediawords.util.url.get_url_distinctive_domain(story['url'])
@@ -28,20 +28,20 @@ def increment_domain_links(db: DatabaseHandler, topic_link: dict) -> None:
     redirect_url = topic_link.get('redirect_url', topic_link['url'])
     redirect_url_domain = mediawords.util.url.get_url_distinctive_domain(redirect_url)
 
-    self_link = 1 if story_domain in (url_domain, redirect_url_domain) else 0
+    if story_domain not in (url_domain, redirect_url_domain):
+        return
 
     topic_domain = db.query(
         """
-        insert into topic_domains (topics_id, domain, self_links, all_links)
-            values(%(topics_id)s, %(domain)s, %(self_link)s, 1)
+        insert into topic_domains (topics_id, domain, self_links)
+            values(%(topics_id)s, %(domain)s, 1)
             on conflict (topics_id, md5(domain))
                 do nothing
             returning *
         """,
         {
             'topics_id': topic_link['topics_id'],
-            'domain': redirect_url_domain,
-            'self_link': self_link
+            'domain': redirect_url_domain
         }
     ).hash()
 
@@ -50,16 +50,14 @@ def increment_domain_links(db: DatabaseHandler, topic_link: dict) -> None:
         db.query(
             """
             update topic_domains set
-                    self_links = topic_domains.self_links + %(self_link)s,
-                    all_links = topic_domains.all_links + 1
+                    self_links = topic_domains.self_links + 1
                 where
                     topics_id = %(topics_id)s and
                     domain = %(domain)s
             """,
             {
                 'topics_id': topic_link['topics_id'],
-                'domain': redirect_url_domain,
-                'self_link': self_link
+                'domain': redirect_url_domain
             }
         )
 

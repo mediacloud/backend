@@ -48,15 +48,6 @@ class TestTMDomainsDB(mediawords.test.test_database.TestDatabaseWithSchemaTestCa
         nomatch_domain = 'no.match'
         story_domain = mediawords.util.url.get_url_distinctive_domain(story['url'])
 
-        num_nomatches = 3
-        for i in range(num_nomatches):
-            _create_topic_link(db, topic, story, nomatch_domain, nomatch_domain)
-            td = _get_topic_domain(db, topic, nomatch_domain)
-
-            assert(td is not None)
-            assert(td['self_links'] == 0)
-            assert(td['all_links'] == i + 1)
-
         num_url_matches = 3
         for i in range(num_url_matches):
             _create_topic_link(db, topic, story, story_domain, nomatch_domain)
@@ -64,7 +55,6 @@ class TestTMDomainsDB(mediawords.test.test_database.TestDatabaseWithSchemaTestCa
 
             assert(td is not None)
             assert(td['self_links'] == i + 1)
-            assert(td['all_links'] == i + 1 + num_nomatches)
 
         num_redirect_matches = 3
         for i in range(num_redirect_matches):
@@ -73,7 +63,6 @@ class TestTMDomainsDB(mediawords.test.test_database.TestDatabaseWithSchemaTestCa
 
             assert(td is not None)
             assert(td['self_links'] == i + 1)
-            assert(td['all_links'] == i + 1)
 
     def test_skip_self_linked_domain(self) -> None:
         """Test skip_self_linked_domain."""
