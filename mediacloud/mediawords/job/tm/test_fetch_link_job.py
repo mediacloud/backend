@@ -32,7 +32,7 @@ class TestFetchLinJobkDB(mediawords.test.test_database.TestDatabaseWithSchemaTes
 
         tfu = db.require_by_id('topic_fetch_urls', tfu['topic_fetch_urls_id'])
 
-        assert tfu['state'] == mediawords.tm.fetch_link.FETCH_STATE_STORY_ADDED
+        assert tfu['state'] == mediawords.tm.fetch_link.FETCH_STATE_TOPIC_STORY_ADDED
         assert tfu['url'] == fetch_url
         assert tfu['code'] == 200
         assert tfu['stories_id'] is not None
