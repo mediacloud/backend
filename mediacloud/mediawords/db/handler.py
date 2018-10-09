@@ -245,10 +245,7 @@ class DatabaseHandler(object):
 
         # Check if the database is empty
         db_vars_table_exists = len(self.query("""
-            -- noinspection SqlResolve
-            SELECT *
-            FROM information_schema.tables
-            WHERE table_name = 'database_variables'
+            select 1 from pg_tables where tablename = 'database_variables' and schemaname = 'public'
         """).flat()) > 0
         if not db_vars_table_exists:
             log.info(
