@@ -9,6 +9,8 @@ import typing
 from mediawords.db import DatabaseHandler
 import mediawords.db.exceptions.handler
 import mediawords.dbi.downloads
+from mediawords.dbi.stories.extractor_arguments import PyExtractorArguments
+import mediawords.dbi.stories.stories
 from mediawords.tm.guess_date import guess_date, GuessDateResult
 import mediawords.tm.media
 import mediawords.util.parse_html
@@ -37,31 +39,17 @@ class McTMStoriesDuplicateException(Exception):
     pass
 
 
-# Giving up on porting the extraction stuff for now because it requires porting all the way down to StoryVectors.pm.
-# Will leave the extraction to the perl side Mine.pm code.
-# -hal
-# def queue_download_exrtaction(db: DatabaseHandler, download: dict) -> None:
-#     """Queue an extraction job for the download
-#
-#     This just adds some checks not to re-extract and not to download obvious big binary file types.
-#     """
-#
-#     for ext in 'jpg pdf doc mp3 mp4 zip l7 gz'.split():
-#         if download['url'].endswith(ext):
-#             return
-#
-#     if re2.search(r'livejournal.com\/(tag|profile)', download['url'], flags=re2.I) is not None:
-#         return
-#
-#     dt = db.query("select 1 from download_texts where downloads_id = %(a)s", {'a': download['downloads_id']}).hash()
-#     if dt is not None:
-#         return
-#
-#     try:
-#         mediawords.dbi.downloads.process_download_for_extractor(
-#             db=db, download=download, use_cache=True, no_dedup_sentences=False)
-#     except Exception as e:
-#         log.warning("extract error processing download %d: %s" % (download['downloads_id'], str(e)))
+def _extract_story(db: DatabaseHandler, story: dict) -> None:
+    """Process the story through the extractor."""
+
+    if re2.search(r'jpg|pdf|doc|mp3|mp4|zip|png|docx', story['url'], re2.I):
+        return
+
+    if re2.search(r'livejournal.com\/(tag|profile)', story['url'], re2.I):
+        return
+
+    extractor_args = PyExtractorArguments(use_cache=True, use_existing=True, no_dedup_sentences=False)
+    mediawords.dbi.stories.stories.extract_and_process_story(db=db, story=story, extractor_args=extractor_args)
 
 
 def _get_story_with_most_sentences(db: DatabaseHandler, stories: list) -> dict:
@@ -388,6 +376,8 @@ def generate_story(
     download = create_download_for_new_story(db, story, feed)
 
     mediawords.dbi.downloads.store_content(db, download, content)
+
+    _extract_story(db, story)
 
     return story
 

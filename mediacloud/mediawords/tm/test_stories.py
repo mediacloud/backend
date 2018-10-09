@@ -3,6 +3,7 @@
 from operator import itemgetter
 import typing
 
+import mediawords.test.db.create
 import mediawords.test.test_database
 from mediawords.tm.guess_date import GuessDateResult
 import mediawords.tm.stories

@@ -90,18 +90,22 @@ sub test_die_if_max_stories_exceeded($)
 
     $topic = $db->update_by_id( 'topics', $topic->{ topics_id }, { max_stories => 0 } );
 
-    eval { add_test_topic_stories( $db, $topic, 1001, $label ) };
-    ok( $@, "$label adding 1001 stories to 0 max_stories topic generates error" );
+    add_test_topic_stories( $db, $topic, 101, $label );
+
+    eval { MediaWords::TM::Mine::die_if_max_stories_exceeded( $db, $topic ); };
+    ok( $@, "$label adding 101 stories to 0 max_stories topic generates error" );
 
     $db->query( "delete from topic_stories where topics_id = ?", $topic->{ topics_id } );
 
-    $topic = $db->update_by_id( 'topics', $topic->{ topics_id }, { max_stories => 1000 } );
+    $topic = $db->update_by_id( 'topics', $topic->{ topics_id }, { max_stories => 100 } );
 
-    eval { add_test_topic_stories( $db, $topic, 999, $label ) };
-    ok( !$@, "$label adding 999 stories to a 1000 max_stories does not generate an error: $@" );
+    add_test_topic_stories( $db, $topic, 99, $label );
+    eval { MediaWords::TM::Mine::die_if_max_stories_exceeded( $db, $topic ); };
+    ok( !$@, "$label adding 999 stories to a 100 max_stories does not generate an error: $@" );
 
-    eval { add_test_topic_stories( $db, $topic, 1002, $label ) };
-    ok( $@, "$label adding 2001 stories to a 1000 max_stories generates an error" );
+    add_test_topic_stories( $db, $topic, 102, $label );
+    eval { MediaWords::TM::Mine::die_if_max_stories_exceeded( $db, $topic ); };
+    ok( $@, "$label adding 2001 stories to a 100 max_stories generates an error" );
 }
 
 sub test_mine($)

@@ -36,6 +36,7 @@ FETCH_STATE_REQUEST_FAILED = 'request failed'
 FETCH_STATE_CONTENT_MATCH_FAILED = 'content match failed'
 FETCH_STATE_STORY_MATCH = 'story match'
 FETCH_STATE_STORY_ADDED = 'story added'
+FETCH_STATE_TOPIC_STORY_ADDED = 'topic story added'
 FETCH_STATE_PYTHON_ERROR = 'python error'
 FETCH_STATE_REQUEUED = 'requeued'
 FETCH_STATE_KILLED = 'killed'
@@ -102,7 +103,7 @@ def fetch_url(
             return response
 
 
-def content_matches_topic(content: str, topic: dict, assume_match: bool = False) -> bool:
+def _content_matches_topic(content: str, topic: dict, assume_match: bool = False) -> bool:
     """Test whether the content matches the topic['pattern'] regex.
 
     Only check the first megabyte of the string to avoid the occasional very long regex check.
@@ -124,6 +125,89 @@ def content_matches_topic(content: str, topic: dict, assume_match: bool = False)
     return re2.search(topic['pattern'], content, flags=re2.I | re2.X | re2.S) is not None
 
 
+def _story_matches_topic(
+        db: DatabaseHandler,
+        story: dict,
+        topic: dict,
+        assume_match: bool = False,
+        redirect_url: str = None) -> bool:
+    """Test whether the story sentences or metadata of the story match the topic['pattern'] regex.
+
+    Arguments:
+    db - databse handle
+    story - story to match against topic pattern
+    topic - topic to match against
+    redirect_url - alternate url for story
+
+
+    Return:
+    True if the story matches the topic pattern
+
+    """
+    if assume_match:
+        return True
+
+    pattern = topic['pattern']
+    re_flags = re2.I | re2.X | re2.S
+
+    for field in 'title description url'.split():
+        if re2.search(pattern, story[field], flags=re_flags):
+            return True
+
+    if redirect_url and re2.search(pattern, redirect_url, flags=re_flags):
+        return True
+
+    story = db.query(
+        """
+        select string_agg(' ', sentence) as text
+            from story_sentences ss
+                join topics c on ( c.topics_id = %(a)s )
+            where
+                ss.stories_id = %(b)s and
+                ( ( is_dup is null ) or not ss.is_dup )
+        """,
+        {'a': topic['topics_id'], 'b': story['stories_id']}).hash()
+
+    if re2.search(pattern, story['text'], flags=re_flags):
+        return True
+
+
+def _add_to_topic_stories(db: DatabaseHandler, story: dict, topic: dict) -> None:
+    """Add story to topic_stories table.
+
+    Query topic_stories and topic_links to find the linking story with the smallest iteration and use
+    that iteration + 1 for the new topic_stories row.
+    """
+    source_story = db.query(
+        """
+        select ts.*
+            from topic_stories ts
+                join topic_links tl using ( stories_id )
+            where
+                tl.ref_stories_id = %(a)s and
+                tl.topics_id = %(b)s
+            order by ts.iteration asc
+            limit 1
+        """,
+        {'a': story['stories_id'], 'b': topic['topics_id']}).hash()
+
+    iteration = source_story['iteration'] + 1 if source_story else 0
+
+    db.query(
+        """
+        insert into topic_stories
+            ( topics_id, stories_id, iteration, redirect_url, link_mined, valid_foreign_rss_story )
+            values ( %(a)s, %(b)s, %(c)s, %(d)s, False, False )
+        """,
+        {
+            'a': topic['topics_id'],
+            'b': story['stories_id'],
+            'c': iteration,
+            'd': story['url']
+        })
+
+
+# return true if the domain of the story url matches the domain of the medium url
 def get_seeded_content(db: DatabaseHandler, topic_fetch_url: dict) -> typing.Optional[str]:
     """Return content for this url and topic in topic_seed_urls.
 
@@ -300,6 +384,8 @@ def _try_fetch_topic_url(
 
     topic_fetch_url['code'] = response.code()
 
+    assume_match = topic_fetch_url['assume_match']
+
     _update_tfu_message(db, topic_fetch_url, "checking content match")
     if not response.is_success():
         topic_fetch_url['state'] = FETCH_STATE_REQUEST_FAILED
@@ -307,15 +393,22 @@ def _try_fetch_topic_url(
     elif story_match is not None:
         topic_fetch_url['state'] = FETCH_STATE_STORY_MATCH
         topic_fetch_url['stories_id'] = story_match['stories_id']
-    elif not content_matches_topic(content=content, topic=topic, assume_match=topic_fetch_url['assume_match']):
+    elif not _content_matches_topic(content=content, topic=topic, assume_match=assume_match):
         topic_fetch_url['state'] = FETCH_STATE_CONTENT_MATCH_FAILED
     else:
         try:
             _update_tfu_message(db, topic_fetch_url, "generating story")
             url = response_url if response_url is not None else fetched_url
             story = mediawords.tm.stories.generate_story(db=db, content=content, url=url)
-            topic_fetch_url['state'] = FETCH_STATE_STORY_ADDED
+
             topic_fetch_url['stories_id'] = story['stories_id']
+
+            if _story_matches_topic(db, story, topic, redirect_url=response_url, assume_match=assume_match):
+                _add_to_topic_stories(db, story, topic)
+                topic_fetch_url['state'] = FETCH_STATE_TOPIC_STORY_ADDED
+            else:
+                topic_fetch_url['state'] = FETCH_STATE_STORY_ADDED
+
         except mediawords.tm.stories.McTMStoriesDuplicateException:
             # may get a unique constraint error for the story addition within the media source.  that's fine
             # because it means the story is already in the database and we just need to match it again.

@@ -500,25 +500,6 @@ sub queue_extraction($$)
     ERROR( "error queueing extraction: $@" ) if ( $@ );
 }
 
-# return true if any of the story_sentences with no duplicates for the story matches the topic search pattern
-sub story_sentence_matches_pattern
-{
-    my ( $db, $story, $topic ) = @_;
-
-    my $ss = $db->query( <<END, $story->{ stories_id }, $topic->{ topics_id } )->hash;
-select 1
-    from story_sentences ss
-        join topics c on ( c.topics_id = \$2 )
-    where
-        ss.stories_id = \$1 and
-        ss.sentence ~ ( '(?isx)' || c.pattern ) and
-        ( ( is_dup is null ) or not ss.is_dup )
-    limit 1
-END
-
-    return $ss ? 1 : 0;
-}
-
 sub _get_sentences_from_story_text
 {
     my ( $story_text, $story_lang ) = @_;
@@ -535,59 +516,11 @@ sub _get_sentences_from_story_text
     return $sentences;
 }
 
-# return true if this url already failed a potential match, so we don't have to download it again
-sub url_failed_potential_match
-{
-    my ( $db, $topic, $url ) = @_;
-
-    my ( $failed ) = $db->query(
-        "select 1 from topic_fetch_urls where topics_id = ? and url = ? and state in ( ?, ? )",
-        $topic->{ 'topics_id' },
-        $url,
-        $MediaWords::TM::Stories::FETCH_STATE_REQUEST_FAILED,
-        $MediaWords::TM::Stories::FETCH_STATE_CONTENT_MATCH_FAILED
-    )->flat();
-
-    return $failed;
-}
-
-# return the type of match if the story title, url, description, or sentences match topic search pattern.
-# return undef if no match is found.
-sub story_matches_topic_pattern
-{
-    my ( $db, $topic, $story, $metadata_only ) = @_;
-
-    my $meta_values = [ map { $story->{ $_ } } qw/title description url redirect_url/ ];
-
-    my $match = $db->query( <<SQL, $topic->{ topics_id }, @{ $meta_values } )->hash;
-select 1
-    from topics t
-    where
-        t.topics_id = \$1 and
-        (
-            ( \$2 ~ ( '(?isx)' || t.pattern ) ) or
-            ( \$3 ~ ( '(?isx)' || t.pattern ) ) or
-            ( \$4 ~ ( '(?isx)' || t.pattern ) ) or
-            ( \$5 ~ ( '(?isx)' || t.pattern ) )
-        )
-SQL
-
-    return 'meta' if $match;
-
-    return 'sentence' if ( !$metadata_only && ( story_sentence_matches_pattern( $db, $story, $topic ) ) );
-
-    return 0;
-}
-
-my $_max_stories_check_count = 0;
-
 # die() with an appropriate error if topic_stories > topics.max_stories; because this check is expensive and we don't
 # care if the topic goes over by a few thousand stories, we only actually run the check randmly 1/1000 of the time
 sub die_if_max_stories_exceeded($$)
 {
     my ( $db, $topic ) = @_;
-
-    return if ( $_max_stories_check_count++ % 1000 );
 
     my ( $num_topic_stories ) = $db->query( <<SQL, $topic->{ topics_id } )->flat;
 select count(*) from topic_stories where topics_id = ?
@@ -603,8 +536,6 @@ SQL
 sub add_to_topic_stories
 {
     my ( $db, $topic, $story, $iteration, $link_mined, $valid_foreign_rss_story ) = @_;
-
-    die_if_max_stories_exceeded( $db, $topic );
 
     $db->query(
         "insert into topic_stories ( topics_id, stories_id, iteration, redirect_url, link_mined, valid_foreign_rss_story ) "
@@ -1004,14 +935,10 @@ sub add_new_links_chunk($$$$)
 {
     my ( $db, $topic, $iteration, $new_links ) = @_;
 
+    die_if_max_stories_exceeded( $db, $topic );
+
     INFO( "add_new_links_chunk: fetch_links" );
     my $topic_fetch_urls = fetch_links( $db, $topic, $new_links );
-
-    INFO( "add_new_links_chunk: extract_fetched_stories" );
-    extract_fetched_stories( $db, $topic_fetch_urls );
-
-    INFO( "add_new_links_chunk: add_to_topic_stories_if_match" );
-    map { add_to_topic_stories_if_match( $db, $topic, $_, $iteration ) } @{ $topic_fetch_urls };
 
     INFO( "add_new_links_chunk: mark topic links spidered" );
     my $link_ids_table = $db->get_temporary_ids_table( [ grep { $_ } map { $_->{ topic_links_id } } @{ $new_links } ] );
@@ -1573,29 +1500,6 @@ sub add_medium_url_to_ignore_redirects
     return if ( $ir );
 
     $db->create( 'topic_ignore_redirects', { url => $url } );
-}
-
-# given the completed topic_fetch_urls rows, add any fetched stories (in topic_fetch_urls.stories_id) to the topic
-# if they match they topic pattern.
-sub add_to_topic_stories_if_match($$$$)
-{
-    my ( $db, $topic, $topic_fetch_url, $iteration ) = @_;
-
-    TRACE "add story if match: $topic_fetch_url->{ url }";
-
-    return unless ( $topic_fetch_url->{ stories_id } );
-
-    my $story = $db->require_by_id( 'stories', int( $topic_fetch_url->{ stories_id } ) );
-    my $link = $db->find_by_id( 'topic_links', int( $topic_fetch_url->{ topic_links_id } || 0 ) );
-
-    return if ( story_is_topic_story( $db, $topic, $story ) );
-
-    if ( $topic_fetch_url->{ assume_match } || story_matches_topic_pattern( $db, $topic, $story ) )
-    {
-        TRACE "topic match: " . ( $link->{ url } || '' );
-
-        add_to_topic_stories( $db, $topic, $story, $iteration + 1, 0 );
-    }
 }
 
 # get the field pointing to the stories table from
