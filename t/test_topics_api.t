@@ -601,6 +601,49 @@ SQL
     }
 }
 
+sub test_media_search
+{
+    my ( $db ) = @_;
+
+    my $topic = $db->query( "select * from topics order by topics_id limit 1" )->hash();
+
+    my ( $sentence ) = $db->query( <<SQL, $topic->{ topics_id } )->flat();
+select ss.sentence
+    from story_sentences ss
+        join topic_stories ts using ( stories_id )
+    where
+        topics_id = ?
+    order by story_sentences_id
+    limit 1
+SQL
+
+    # we just need a present word to search for, so use the first word in the first sentence
+    my $sentence_words = [ split( ' ', $sentence ) ];
+    my $search_word = $sentence_words->[ 0 ];
+
+    # use a regex to manually find all media sources matching the search word
+    my $expected_media_ids = $db->query( <<SQL, $topic->{ topics_id }, $search_word )->flat();
+select distinct m.media_id 
+    from media m 
+        join stories s using ( media_id ) 
+        join topic_stories ts using ( stories_id )
+        join story_sentences ss using ( stories_id )
+    where
+        ss.sentence ~* ('[[:<:]]'|| \$2 ||'[[:>:]]') and
+        ts.topics_id = \$1
+    order by media_id
+SQL
+
+    ok( scalar( @{ $expected_media_ids } ) > 0, "media list q search found media ids" );
+
+    my $r = test_get( "/api/v2/topics/$topic->{ topics_id }/media/list", { q => $search_word } );
+
+    my $got_media = $r->{ media };
+    my $got_media_ids = [ sort { $a <=> $b } map { $_->{ media_id } } @{ $got_media } ];
+
+    is_deeply( $expected_media_ids, $got_media_ids, 'media/list q search' );
+}
+
 sub test_topics_api
 {
     my $db = shift;
@@ -625,6 +668,7 @@ sub test_topics_api
     test_story_list_count();
     test_default_sort( $stories );
     test_media_list( $stories );
+    test_media_search( $db );
     test_stories_facebook( $db );
 
     test_topics( $db );
