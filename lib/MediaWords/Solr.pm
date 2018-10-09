@@ -755,10 +755,7 @@ sub get_num_found ($$)
 
 =head2 search_for_media_ids( $db, $params )
 
-Return all of the media ids that match the solr query by sampling solr results.
-
-Performs the query on solr and returns up to 200,000 randomly sorted stories, then culls the list of media_ids from
-the list of sampled sentences.
+Return all of the media ids that match the solr query.
 
 =cut
 
@@ -768,16 +765,23 @@ sub search_for_media_ids ($$)
 
     my $p = { %{ $params } };
 
-    $p->{ fl }            = 'media_id';
-    $p->{ group }         = 'true';
-    $p->{ 'group.field' } = 'media_id';
-    $p->{ sort }          = 'random_1 asc';
-    $p->{ rows }          = 200_000;
+    $p->{ fl }               = 'media_id';
+    $p->{ facet }            = 'true';
+    $p->{ 'facet.limit' }    = 1_000_000;
+    $p->{ 'facet.field' }    = 'media_id';
+    $p->{ 'facet.mincount' } = 1;
+    $p->{ rows }             = 0;
 
     my $response = query( $db, $p );
 
-    my $groups = $response->{ grouped }->{ media_id }->{ groups };
-    my $media_ids = [ map { $_->{ groupValue } } @{ $groups } ];
+    my $counts = $response->{ facet_counts }->{ facet_fields }->{ media_id };
+
+    my $media_ids = [];
+    for ( my $i = 0 ; $i < scalar( @{ $counts } ) ; $i += 2 )
+    {
+        TRACE( $i );
+        push( @{ $media_ids }, $counts->[ $i ] );
+    }
 
     return $media_ids;
 }

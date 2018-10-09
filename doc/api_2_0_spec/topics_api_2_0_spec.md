@@ -1141,7 +1141,7 @@ The media\_id field can be specified multiple times to return a list of matching
 
 If the `name` parameter is specified, the call returns only media sources that match a case insensitive search specified value. If the specified value is less than 3 characters long, the call returns an empty list.
 
-If the `q` parameter is specified, the call returns only media sources for which at least one story matches the given solr query.  This call uses a random sample of 200,000 matching stories to determine the matching media sources, so it may not be comprehensive for very broad queries on very large topics.
+If the `q` parameter is specified, the call returns only media sources for which at least one story matches the given solr query.
 
 The `sort` parameter will determine the order in which the stories are returned.  The `twitter` sort parameter
 will return randomly ordered results unless the topic is a twitter topic.
