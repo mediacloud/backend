@@ -32,6 +32,7 @@ use MediaWords::CommonLibs;
 
 use MediaWords::TM::Mine;
 use MediaWords::DB;
+use MediaWords::Job::TM::SnapshotTopic;
 
 # only run one job for each topic at a time
 sub get_run_lock_arg
@@ -84,6 +85,9 @@ sub run_statefully($$;$)
     };
 
     MediaWords::TM::Mine::mine_topic( $db, $topic, $options );
+
+    INFO "Adding a new snapshot job for topics $topics_id...";
+    MediaWords::Job::TM::SnapshotTopic->add_to_queue( { topics_id => $topic->{ topics_id } } );
 }
 
 no Moose;    # gets rid of scaffolding
