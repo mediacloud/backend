@@ -45,7 +45,6 @@ use MediaWords::TM::FetchTopicTweets;
 use MediaWords::TM::FetchLink;
 use MediaWords::TM::GuessDate;
 use MediaWords::TM::GuessDate::Result;
-use MediaWords::TM::Snapshot;
 use MediaWords::TM::Stories;
 use MediaWords::DB;
 use MediaWords::DB::Locks;
@@ -53,10 +52,10 @@ use MediaWords::DBI::Activities;
 use MediaWords::DBI::Media;
 use MediaWords::DBI::Stories;
 use MediaWords::DBI::Stories::GuessDate;
-use MediaWords::Job::ExtractAndVector;
 use MediaWords::Job::Facebook::FetchStoryStats;
 use MediaWords::Job::TM::ExtractStoryLinks;
 use MediaWords::Job::TM::FetchLink;
+use MediaWords::Job::TM::SnapshotTopic;
 use MediaCloud::JobManager::Job;
 use MediaWords::Languages::Language;
 use MediaWords::Solr;
@@ -374,36 +373,6 @@ END
     return $db->query( $feed_query, $medium->{ media_id }, $medium->{ url } )->hash;
 }
 
-# extract the story for the given download
-sub extract_download($$$)
-{
-    my ( $db, $download, $story ) = @_;
-
-    return if ( $download->{ url } =~ /jpg|pdf|doc|mp3|mp4|zip|png|docx$/i );
-
-    return if ( $download->{ url } =~ /livejournal.com\/(tag|profile)/i );
-
-    my $dt = $db->query( "select 1 from download_texts where downloads_id = ?", $download->{ downloads_id } )->hash;
-    return if ( $dt );
-
-    my $extractor_args = MediaWords::DBI::Stories::ExtractorArguments->new(
-        {
-            no_dedup_sentences => 0,
-            use_cache          => 1,
-            use_existing       => 1,
-        }
-    );
-
-    eval { MediaWords::DBI::Downloads::process_download_for_extractor( $db, $download, $extractor_args ); };
-
-    if ( my $error = $@ )
-    {
-        WARN "extract error processing download $download->{ downloads_id }: $error";
-    }
-
-    return 1;
-}
-
 # recursively search for the medium pointed to by dup_media_id
 # by the media_id medium.  return the first medium that does not have a dup_media_id.
 sub get_dup_medium
@@ -482,40 +451,6 @@ sub create_download_for_new_story
     return $download;
 }
 
-# send story to the extraction queue in the hope that it will already be extracted by the time we get to the extraction
-# step later in add_new_links_chunk process.
-sub queue_extraction($$)
-{
-    my ( $db, $stories_id ) = @_;
-
-    return if ( $_test_mode );
-
-    my $args = {
-        stories_id => $stories_id,
-        use_cache  => 1
-    };
-
-    my $priority = $MediaCloud::JobManager::Job::MJM_JOB_PRIORITY_HIGH;
-    eval { MediaWords::Job::ExtractAndVector->add_to_queue( $args, $priority ) };
-    ERROR( "error queueing extraction: $@" ) if ( $@ );
-}
-
-sub _get_sentences_from_story_text
-{
-    my ( $story_text, $story_lang ) = @_;
-
-    # Tokenize into sentences
-    my $lang = MediaWords::Languages::Language::language_for_code( $story_lang );
-    if ( !$lang )
-    {
-        $lang = MediaWords::Languages::Language::default_language();
-    }
-
-    my $sentences = $lang->split_text_to_sentences( $story_text );
-
-    return $sentences;
-}
-
 # die() with an appropriate error if topic_stories > topics.max_stories; because this check is expensive and we don't
 # care if the topic goes over by a few thousand stories, we only actually run the check randmly 1/1000 of the time
 sub die_if_max_stories_exceeded($$)
@@ -559,93 +494,6 @@ sub _story_domain_matches_medium
     my $story_domains = [ map { MediaWords::Util::URL::get_url_distinctive_domain( $_ ) } ( $url, $redirect_url ) ];
 
     return ( grep { $medium_domain eq $_ } @{ $story_domains } ) ? 1 : 0;
-}
-
-# query the database for a count of sentences for each story
-sub get_story_with_most_sentences($$)
-{
-    my ( $db, $stories ) = @_;
-
-    LOGCONFESS( "no stories" ) unless ( scalar( @{ $stories } ) );
-
-    return $stories->[ 0 ] unless ( scalar( @{ $stories } ) > 1 );
-
-    my $stories_id_list = join( ',', map { $_->{ stories_id } } @{ $stories } );
-
-    my ( $stories_id ) = $db->query( <<SQL )->flat;
-select stories_id
-    from story_sentences
-    where stories_id in ($stories_id_list)
-    group by stories_id
-    order by count(*) desc
-    limit 1
-SQL
-
-    $stories_id ||= $stories->[ 0 ]->{ stories_id };
-
-    map { return $_ if ( $_->{ stories_id } eq $stories_id ) } @{ $stories };
-
-    LOGCONFESS( "unable to find story '$stories_id'" );
-}
-
-# given a set of possible story matches, find the story that is likely the best.
-# the best story is the one that first belongs to the media source that sorts first
-# according to the following criteria, in descending order of importance:
-# * media pointed to by some dup_media_id;
-# * media with a dup_media_id;
-# * media whose url domain matches that of the story;
-# * media with a lower media_id
-#
-# within a media source, the preferred story is the one with the most sentences.
-sub get_preferred_story
-{
-    my ( $db, $url, $redirect_url, $stories ) = @_;
-
-    return undef unless ( @{ $stories } );
-
-    my $stories_lookup = {};
-    map { $stories_lookup->{ $_->{ stories_id } } = $_ } @{ $stories };
-    $stories = [ values( %{ $stories_lookup } ) ];
-
-    return $stories->[ 0 ] if ( scalar( @{ $stories } ) == 1 );
-
-    TRACE "get_preferred_story: " . scalar( @{ $stories } );
-
-    my $media_lookup = {};
-    for my $story ( @{ $stories } )
-    {
-        my $medium = $media_lookup->{ $story->{ media_id } };
-        if ( !$medium )
-        {
-            $medium = get_cached_medium_by_id( $db, $story->{ media_id } );
-            $medium->{ is_dup_source } = $medium->{ dup_media_id } ? 1 : 0;
-            $medium->{ matches_domain } = _story_domain_matches_medium( $db, $medium, $url, $redirect_url );
-            $media_lookup->{ $medium->{ media_id } } = $medium;
-            $medium->{ stories } = [ $story ];
-        }
-        else
-        {
-            push( @{ $medium->{ stories } }, $story );
-        }
-    }
-
-    my $media = [ values %{ $media_lookup } ];
-
-    sub _compare_media
-    {
-             ( $b->{ is_dup_target } <=> $a->{ is_dup_target } )
-          || ( $b->{ is_dup_source } <=> $a->{ is_dup_source } )
-          || ( $b->{ matches_domain } <=> $a->{ matches_domain } )
-          || ( $a->{ media_id } <=> $b->{ media_id } );
-    }
-
-    my $sorted_media = [ sort _compare_media @{ $media } ];
-
-    my $preferred_story = get_story_with_most_sentences( $db, $sorted_media->[ 0 ]->{ stories } );
-
-    TRACE "get_preferred_story done";
-
-    return $preferred_story;
 }
 
 # return true if the story is already in topic_stories
@@ -857,74 +705,6 @@ SQL
     INFO( "completed fetch link queue" );
 
     return $completed_tfus;
-}
-
-# return the stories from the list that have no download texts associated with them.  attach a download to each story
-sub filter_and_attach_downloads_to_extract_stories($$)
-{
-    my ( $db, $stories ) = @_;
-
-    INFO( "filter and attach downloads to extract stories" );
-
-    my $stories_ids = [ map { int( $_->{ stories_id } ) } @{ $stories } ];
-
-    my $ids_table = $db->get_temporary_ids_table( $stories_ids );
-
-    my $downloads = $db->query( <<SQL )->hashes;
-select d.*
-    from downloads d
-        left join download_texts dt on ( d.downloads_id = dt.downloads_id )
-    where
-        dt.downloads_id is null and
-        d.stories_id in ( select id from $ids_table )
-SQL
-
-    $db->query( "discard temp" );
-
-    my $downloads_lookup = {};
-    map { $downloads_lookup->{ $_->{ stories_id } } = $_ } @{ $downloads };
-
-    map { $_->{ download } = $downloads_lookup->{ $_->{ stories_id } } } @{ $stories };
-
-    return [ grep { $_->{ download } } @{ $stories } ];
-}
-
-# extract new stories in the list of topic_fetch_urls
-sub extract_fetched_stories
-{
-    my ( $db, $tfus ) = @_;
-
-    INFO( "extract fetched stories" );
-
-    my $tfu_ids_table = $db->get_temporary_ids_table( [ map { $_->{ topic_fetch_urls_id } } @{ $tfus } ] );
-    my $stories = $db->query( <<SQL )->hashes();
-select s.*
-    from stories s
-        join topic_fetch_urls tfu using ( stories_id )
-    where
-        topic_fetch_urls_id in ( select id from $tfu_ids_table )
-SQL
-
-    # queue exrtactions first so that the extractor job pool can extract and cache some of the below extractions
-    map { queue_extraction( $db, $_->{ stories_id } ) } @{ $stories };
-
-    INFO "possible extract stories: " . scalar( @{ $stories } );
-
-    $stories = filter_and_attach_downloads_to_extract_stories( $db, $stories );
-
-    INFO "extract stories: " . scalar( @{ $stories } );
-
-    my $local_extracts = 0;
-    for my $story ( @{ $stories } )
-    {
-        TRACE "extract story: " . $story->{ url };
-        if ( extract_download( $db, $story->{ download }, $story ) )
-        {
-            $local_extracts += 1;
-        }
-    }
-
-    INFO "local extracts: " . $local_extracts;
 }
 
 # download any unmatched link in new_links, add it as a story, extract it, add any links to the topic_links list.
@@ -1947,7 +1727,7 @@ sub do_mine_topic ($$;$)
             fetch_social_media_data( $db, $topic );
 
             update_topic_state( $db, $topic, "snapshotting" );
-            MediaWords::TM::Snapshot::snapshot_topic( $db, $topic->{ topics_id } );
+            MediaWords::Job::TM::SnapshotTopic->add_to_queue( { topics_id => $topic->{ topics_id } }, undef, $db );
         }
     }
 }
@@ -2085,10 +1865,7 @@ sub mine_topic ($$;$)
         MediaWords::TM::send_topic_alert( $db, $topic, "started topic spidering" );
     }
 
-    eval {
-        do_mine_topic( $db, $topic );
-        MediaWords::TM::send_topic_alert( $db, $topic, "successfully completed topic spidering" );
-    };
+    eval { do_mine_topic( $db, $topic ); };
     if ( $@ )
     {
         my $error = $@;
