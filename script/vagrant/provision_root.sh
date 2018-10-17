@@ -19,7 +19,3 @@ if [ -b /dev/sda ]; then
     grub-install /dev/sda
     update-grub
 fi
-
-echo "Installing swapspace to accommodate MeCab's memory requirements..."
-apt-get -y install swapspace
-service swapspace start
