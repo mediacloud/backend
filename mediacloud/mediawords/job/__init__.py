@@ -200,19 +200,15 @@ class JobBrokerApp(celery.Celery):
             '--loglevel', 'info',
             '--hostname', node_name,
 
-            # Use "solo" pool because:
+            # It would be nice to use "solo" pool (--pool=solo) to work around worker stalls:
             #
-            # 1) We run (want want to run) a single job per process because multithreading is fun until it's not
-            # 2) Celery has concurrency bugs, e.g. sometimes gets "stuck" on a task
+            #     https://github.com/celery/celery/issues/3759#issuecomment-311763355
             #
-            #        https://github.com/celery/celery/issues/3759#issuecomment-311763355
+            # but then long-running tasks get executed multiple times:
             #
-            #    and a good way to avoid such concurrency bugs is just not to use concurrency.
-            #
-            '--pool', 'solo',
+            #     https://github.com/celery/celery/issues/3430
 
             # Workers aren't expected to interact much, and their heartbeats is just noise (and probably error prone)
             '--without-gossip',
             '--without-mingle',
-
         ])
