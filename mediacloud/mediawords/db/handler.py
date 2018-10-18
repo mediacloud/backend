@@ -884,7 +884,7 @@ class DatabaseHandler(object):
 
         copy = self.copy_from("COPY %s (id) FROM STDIN" % table_name)
         for single_id in ids:
-            copy.put_line("%d\n" % single_id)
+            copy.put_line("%d\n" % int(single_id))
         copy.end()
 
         self.query("ANALYZE %s" % table_name)
