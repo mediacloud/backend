@@ -36,7 +36,6 @@ FETCH_STATE_REQUEST_FAILED = 'request failed'
 FETCH_STATE_CONTENT_MATCH_FAILED = 'content match failed'
 FETCH_STATE_STORY_MATCH = 'story match'
 FETCH_STATE_STORY_ADDED = 'story added'
-FETCH_STATE_TOPIC_STORY_ADDED = 'topic story added'
 FETCH_STATE_PYTHON_ERROR = 'python error'
 FETCH_STATE_REQUEUED = 'requeued'
 FETCH_STATE_KILLED = 'killed'
@@ -170,6 +169,18 @@ def _story_matches_topic(
 
     if re2.search(pattern, story['text'], flags=re_flags):
         return True
+
+
+def _is_not_topic_story(db: DatabaseHandler, topic_fetch_url: dict) -> None:
+    """Return True if the story is not in topic_stories for the given topic."""
+    if 'stories_id' not in topic_fetch_url:
+        return True
+
+    ts = db.query(
+        "select * from topic_stories where stories_id = %(a)s and topics_id = %(b)s",
+        {'a': topic_fetch_url['stories_id'], 'b': topic_fetch_url['topics_id']}).hash()
+
+    return ts is None
 
 
 def _add_to_topic_stories(db: DatabaseHandler, story: dict, topic: dict) -> None:
@@ -402,12 +413,7 @@ def _try_fetch_topic_url(
             story = mediawords.tm.stories.generate_story(db=db, content=content, url=url)
 
             topic_fetch_url['stories_id'] = story['stories_id']
-
-            if _story_matches_topic(db, story, topic, redirect_url=response_url, assume_match=assume_match):
-                _add_to_topic_stories(db, story, topic)
-                topic_fetch_url['state'] = FETCH_STATE_TOPIC_STORY_ADDED
-            else:
-                topic_fetch_url['state'] = FETCH_STATE_STORY_ADDED
+            topic_fetch_url['state'] = FETCH_STATE_STORY_ADDED
 
         except mediawords.tm.stories.McTMStoriesDuplicateException:
             # may get a unique constraint error for the story addition within the media source.  that's fine
@@ -458,6 +464,15 @@ def fetch_topic_url(db: DatabaseHandler, topic_fetch_urls_id: int, domain_timeou
     try:
         log.info("fetch_link: %s" % topic_fetch_url['url'])
         _try_fetch_topic_url(db=db, topic_fetch_url=topic_fetch_url, domain_timeout=domain_timeout)
+
+        if 'stories_id' in topic_fetch_url and topic_fetch_url['stories_id'] is not None:
+            story = db.require_by_id('stories', topic_fetch_url['stories_id'])
+            topic = db.require_by_id('topics', topic_fetch_url['topics_id'])
+            redirect_url = topic_fetch_url['url']
+            assume_match = topic_fetch_url['assume_match']
+            if _is_not_topic_story(db, topic_fetch_url):
+                if _story_matches_topic(db, story, topic, redirect_url=redirect_url, assume_match=assume_match):
+                    _add_to_topic_stories(db, story, topic)
 
         if topic_fetch_url['topic_links_id'] and topic_fetch_url['stories_id']:
             try_update_topic_link_ref_stories_id(db, topic_fetch_url)

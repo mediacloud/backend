@@ -109,7 +109,7 @@ class TestTMFetchLinkDB(mediawords.test.test_database.TestDatabaseWithSchemaTest
 
         tfu = db.require_by_id('topic_fetch_urls', tfu['topic_fetch_urls_id'])
 
-        assert tfu['state'] == mediawords.tm.fetch_link.FETCH_STATE_TOPIC_STORY_ADDED
+        assert tfu['state'] == mediawords.tm.fetch_link.FETCH_STATE_STORY_ADDED
         assert tfu['code'] == 200
         assert tfu['stories_id'] is not None
 
@@ -163,7 +163,7 @@ class TestTMFetchLinkDB(mediawords.test.test_database.TestDatabaseWithSchemaTest
 
         tfu = db.require_by_id('topic_fetch_urls', tfu['topic_fetch_urls_id'])
 
-        assert tfu['state'] == mediawords.tm.fetch_link.FETCH_STATE_TOPIC_STORY_ADDED
+        assert tfu['state'] == mediawords.tm.fetch_link.FETCH_STATE_STORY_ADDED
         assert tfu['url'] == fetch_url
         assert tfu['fetch_date'][0:10] == before_fetch_date[0:10]
         assert tfu['code'] == 200
@@ -272,7 +272,7 @@ class TestTMFetchLinkDB(mediawords.test.test_database.TestDatabaseWithSchemaTest
 
         tfu = db.require_by_id('topic_fetch_urls', tfu['topic_fetch_urls_id'])
 
-        assert tfu['state'] == mediawords.tm.fetch_link.FETCH_STATE_TOPIC_STORY_ADDED
+        assert tfu['state'] == mediawords.tm.fetch_link.FETCH_STATE_STORY_ADDED
         assert tfu['code'] == 200
         assert tfu['stories_id'] is not None
 
@@ -307,7 +307,7 @@ class TestTMFetchLinkDB(mediawords.test.test_database.TestDatabaseWithSchemaTest
 
         tfu = db.require_by_id('topic_fetch_urls', tfu['topic_fetch_urls_id'])
 
-        assert tfu['state'] == mediawords.tm.fetch_link.FETCH_STATE_TOPIC_STORY_ADDED
+        assert tfu['state'] == mediawords.tm.fetch_link.FETCH_STATE_STORY_ADDED
         assert tfu['code'] == 200
         assert tfu['stories_id'] is not None
 
@@ -323,7 +323,7 @@ class TestTMFetchLinkDB(mediawords.test.test_database.TestDatabaseWithSchemaTest
         topics_id = topic['topics_id']
 
         tfus = [
-            ['http://story.added', mediawords.tm.fetch_link.FETCH_STATE_TOPIC_STORY_ADDED],
+            ['http://story.added', mediawords.tm.fetch_link.FETCH_STATE_STORY_ADDED],
             ['http://story.matched', mediawords.tm.fetch_link.FETCH_STATE_STORY_MATCH],
             ['http://request.failed', mediawords.tm.fetch_link.FETCH_STATE_REQUEST_FAILED],
             ['http://content.match.failed', mediawords.tm.fetch_link.FETCH_STATE_CONTENT_MATCH_FAILED]
@@ -372,7 +372,7 @@ class TestTMFetchLinkDB(mediawords.test.test_database.TestDatabaseWithSchemaTest
             'topics_id': topic['topics_id'],
             'url': 'http://foo.com',
             'topic_links_id': topic_link_a['topic_links_id'],
-            'state': mediawords.tm.fetch_link.FETCH_STATE_TOPIC_STORY_ADDED,
+            'state': mediawords.tm.fetch_link.FETCH_STATE_STORY_ADDED,
             'stories_id': target_story['stories_id']})
 
         mediawords.tm.fetch_link.try_update_topic_link_ref_stories_id(db, topic_fetch_url_a)
@@ -391,7 +391,7 @@ class TestTMFetchLinkDB(mediawords.test.test_database.TestDatabaseWithSchemaTest
             'topics_id': topic['topics_id'],
             'url': 'http://foo.com',
             'topic_links_id': topic_link_a['topic_links_id'],
-            'state': mediawords.tm.fetch_link.FETCH_STATE_TOPIC_STORY_ADDED,
+            'state': mediawords.tm.fetch_link.FETCH_STATE_STORY_ADDED,
             'stories_id': target_story['stories_id']})
 
         mediawords.tm.fetch_link.try_update_topic_link_ref_stories_id(db, topic_fetch_url_b)
