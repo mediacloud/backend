@@ -1,7 +1,9 @@
 """Creating, matching, and otherwise manipulating stories within topics."""
 
 import datetime
+import furl
 import operator
+import os
 import re2
 import traceback
 import typing
@@ -26,6 +28,8 @@ _MAX_TITLE_LENGTH = 1024
 
 SPIDER_FEED_NAME = 'Spider Feed'
 
+BINARY_EXTENSIONS = 'jpg pdf doc mp3 mp4 zip png docx'.split()
+
 
 class McTMStoriesException(Exception):
     """Defaut exception for package."""
@@ -39,10 +43,29 @@ class McTMStoriesDuplicateException(Exception):
     pass
 
 
+def url_has_binary_extension(url: str) -> bool:
+    """Return true if the url has a file extension that is likely to be a large binary file."""
+    path = str(furl.furl(url).path)
+    try:
+        path = str(furl.furl(url).path)
+    except Exception:
+        log.warning("error parsing url '%s'" % url)
+        return False
+
+    ext = os.path.splitext(path)[1].lower()
+
+    # .html -> html
+    ext = ext[1:]
+
+    log.warning("EXTENSION: '%s'" % ext)
+
+    return ext in BINARY_EXTENSIONS
+
+
 def _extract_story(db: DatabaseHandler, story: dict) -> None:
     """Process the story through the extractor."""
 
-    if re2.search(r'jpg|pdf|doc|mp3|mp4|zip|png|docx', story['url'], re2.I):
+    if url_has_binary_extension(story['url']):
         return
 
     if re2.search(r'livejournal.com\/(tag|profile)', story['url'], re2.I):
@@ -197,7 +220,7 @@ def get_story_match(db: DatabaseHandler, url: str, redirect_url: typing.Optional
     # for some reason some rare urls trigger a seq scan on the below query
     db.query("set enable_seqscan=off")
 
-    # look for matching stories, ignore those in foreign_rss_links media
+    # loo for matching stories, ignore those in foreign_rss_links media
     stories = db.query(
         """
 select distinct(s.*) from stories s

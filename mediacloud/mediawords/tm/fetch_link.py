@@ -59,6 +59,14 @@ def _network_is_down(host: str = DEFAULT_NETWORK_DOWN_HOST, port: int = DEFAULT_
     return True
 
 
+def _make_dummy_bypassed_response(url: str) -> Response:
+    """Given a url, make and return a response object with that url and empty content."""
+    response = Response(code=200, message='OK', headers={}, data='')
+    response.set_request(Request('GET', url))
+
+    return response
+
+
 def fetch_url(
         db: DatabaseHandler,
         url: str,
@@ -84,6 +92,9 @@ def fetch_url(
     Returns:
     Response object
     """
+    if mediawords.tm.stories.url_has_binary_extension(url):
+        return _make_dummy_bypassed_response(url)
+
     while True:
         ua = ThrottledUserAgent(db, domain_timeout=domain_timeout)
 
@@ -121,6 +132,12 @@ def _content_matches_topic(content: str, topic: dict, assume_match: bool = False
 
     content = content[0:1024 * 1024]
 
+    # for some reason I can't reproduce in dev, in production a small number of fields come from
+    # the database into the stories fields or the text value produced in the query below in _story_matches_topic
+    # as bytes objects, which re2.search chokes on
+    if isinstance(content, bytes):
+        content = content.decode('utf8', 'backslashreplace')
+
     return re2.search(topic['pattern'], content, flags=re2.I | re2.X | re2.S) is not None
 
 
@@ -146,14 +163,11 @@ def _story_matches_topic(
     if assume_match:
         return True
 
-    pattern = topic['pattern']
-    re_flags = re2.I | re2.X | re2.S
-
     for field in 'title description url'.split():
-        if re2.search(pattern, story[field], flags=re_flags):
+        if _content_matches_topic(story[field], topic):
             return True
 
-    if redirect_url and re2.search(pattern, redirect_url, flags=re_flags):
+    if redirect_url and _content_matches_topic(redirect_url, topic):
         return True
 
     story = db.query(
@@ -167,7 +181,7 @@ def _story_matches_topic(
         """,
         {'a': topic['topics_id'], 'b': story['stories_id']}).hash()
 
-    if re2.search(pattern, story['text'], flags=re_flags):
+    if _content_matches_topic(story['text'], topic):
         return True
 
 
