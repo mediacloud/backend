@@ -629,8 +629,8 @@ sub fetch_links
     # now poll waiting for the queue to clear
     my $requeues         = 0;
     my $max_requeues     = 3;
-    my $max_requeue_jobs = 10;
-    my $requeue_timeout  = 300;
+    my $max_requeue_jobs = 100;
+    my $requeue_timeout  = 30;
 
     my $last_pending_change   = time();
     my $last_num_pending_urls = 0;
