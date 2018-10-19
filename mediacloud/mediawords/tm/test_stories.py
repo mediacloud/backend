@@ -7,6 +7,7 @@ import mediawords.test.db.create
 import mediawords.test.test_database
 from mediawords.tm.guess_date import GuessDateResult
 import mediawords.tm.stories
+from mediawords.tm.stories import url_has_binary_extension
 from mediawords.util.log import create_logger
 
 log = create_logger(__name__)
@@ -27,6 +28,16 @@ def test_url_domain_matches_medium() -> None:
     medium['url'] = 'http://bar.com'
     urls = ['http://foo.com/bar/baz']
     assert not mediawords.tm.stories._url_domain_matches_medium(medium, urls)
+
+
+def test_url_has_binary_extension() -> None:
+    """Test url_has_binary_extention()."""
+    assert not url_has_binary_extension('http://google.com')
+    assert not url_has_binary_extension('https://www.nytimes.com/trump-khashoggi-dead.html')
+    assert not url_has_binary_extension('https://www.washingtonpost.com/war-has-not/_story.html?utm_term=.c6ddfa7f19')
+    assert url_has_binary_extension('http://uproxx.files.wordpress.com/2017/06/push-up.jpg?quality=100&amp;w=1024')
+    assert url_has_binary_extension('https://cdn.theatlantic.com/assets/media/files/shubeik_lubeik_byna_mohamed.pdf')
+    assert url_has_binary_extension('https://i1.wp.com/7miradas.com/wp-content/uploads8/02/UHJ9OKM.png?resize=62%2C62')
 
 
 class TestTMStoriesDB(mediawords.test.test_database.TestDatabaseWithSchemaTestCase):

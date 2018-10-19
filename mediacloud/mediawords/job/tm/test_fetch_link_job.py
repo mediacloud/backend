@@ -2,6 +2,7 @@
 
 import mediawords.job.tm.fetch_link_job
 import mediawords.test.hash_server
+import mediawords.test.db.create
 import mediawords.test.test_database
 
 

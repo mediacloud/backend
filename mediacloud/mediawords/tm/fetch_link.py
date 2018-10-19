@@ -59,6 +59,14 @@ def _network_is_down(host: str = DEFAULT_NETWORK_DOWN_HOST, port: int = DEFAULT_
     return True
 
 
+def _make_dummy_bypassed_response(url: str) -> Response:
+    """Given a url, make and return a response object with that url and empty content."""
+    response = Response(code=200, message='OK', headers={}, data='')
+    response.set_request(Request('GET', url))
+
+    return response
+
+
 def fetch_url(
         db: DatabaseHandler,
         url: str,
@@ -84,6 +92,9 @@ def fetch_url(
     Returns:
     Response object
     """
+    if mediawords.tm.stories.url_has_binary_extension(url):
+        return _make_dummy_bypassed_response(url)
+
     while True:
         ua = ThrottledUserAgent(db, domain_timeout=domain_timeout)
 
