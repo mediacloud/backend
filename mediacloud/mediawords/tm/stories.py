@@ -220,24 +220,32 @@ def get_story_match(db: DatabaseHandler, url: str, redirect_url: typing.Optional
     # for some reason some rare urls trigger a seq scan on the below query
     db.query("set enable_seqscan=off")
 
-    # loo for matching stories, ignore those in foreign_rss_links media
+    # look for matching stories, ignore those in foreign_rss_links media, only get last
+    # 100 to avoid hanging job trying to handle potentially thousands of matches
     stories = db.query(
         """
-select distinct(s.*) from stories s
-        join media m on s.media_id = m.media_id
-    where
-        ( ( s.url = any( %(a)s ) ) or
-            ( s.guid = any ( %(a)s ) ) ) and
-        m.foreign_rss_links = false
+with matching_stories as (
+    select distinct(s.*) from stories s
+            join media m on s.media_id = m.media_id
+        where
+            ( ( s.url = any( %(a)s ) ) or
+                ( s.guid = any ( %(a)s ) ) ) and
+            m.foreign_rss_links = false
 
-union
+    union
 
-select distinct(s.*) from stories s
-        join media m on s.media_id = m.media_id
-        join topic_seed_urls csu on s.stories_id = csu.stories_id
-    where
-        csu.url = any ( %(a)s ) and
-        m.foreign_rss_links = false
+    select distinct(s.*) from stories s
+            join media m on s.media_id = m.media_id
+            join topic_seed_urls csu on s.stories_id = csu.stories_id
+        where
+            csu.url = any ( %(a)s ) and
+            m.foreign_rss_links = false
+)
+
+select distinct(ms.*)
+    from matching_stories ms
+    order by collect_date desc
+    limit 100
         """,
         {'a': urls}).hashes()
 
