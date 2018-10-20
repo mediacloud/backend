@@ -130,6 +130,9 @@ def _content_matches_topic(content: str, topic: dict, assume_match: bool = False
     if assume_match:
         return True
 
+    if content is None:
+        return False
+
     content = content[0:1024 * 1024]
 
     # for some reason I can't reproduce in dev, in production a small number of fields come from
