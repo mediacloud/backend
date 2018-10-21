@@ -7,7 +7,7 @@
 
     - name: Add Erlang Solutions GPG key
       apt_key:
-        url: "https://packages.erlang-solutions.com/ubuntu/erlang_solutions.asc"
+        url: "https://packages.erlang-solutions.com/{{ ansible_distribution | lower }}/erlang_solutions.asc"
         state: present
       become: true
       become_user: root
@@ -23,10 +23,10 @@
       tags:
         - system-packages
 
-    # RabbitMQ > 3.7 requires newer Erlang than is provided by Ubuntu 16.04
+    # RabbitMQ > 3.7 requires newer Erlang than is provided by Ubuntu 16.04 / Debian
     - name: Add Erlang Solutions APT repository
       apt_repository:
-        repo: "deb https://packages.erlang-solutions.com/ubuntu {{ ansible_lsb.codename | lower }} contrib"
+        repo: "deb https://packages.erlang-solutions.com/{{ ansible_distribution | lower }} {{ ansible_lsb.codename | lower }} contrib"
         state: present
         filename: "erlang-solutions"
         update_cache: yes
@@ -58,7 +58,7 @@
 
     - name: Add RabbitMQ APT repository
       apt_repository:
-        repo: "deb https://packagecloud.io/rabbitmq/rabbitmq-server/ubuntu/ {{ ansible_lsb.codename | lower }} main"
+        repo: "deb https://packagecloud.io/rabbitmq/rabbitmq-server/{{ ansible_distribution | lower }}/ {{ ansible_lsb.codename | lower }} main"
         state: present
         filename: "packagecloud-rabbitmq"
         update_cache: yes
@@ -145,9 +145,9 @@
 
     - name: Add mecab-ipadic-neologd APT repository
       apt_repository:
-        repo: "deb https://dl.bintray.com/pypt/mecab-ipadic-neologd-deb {{ ansible_lsb.codename | lower }} main"
+        repo: "deb https://dl.bintray.com/mediacloud/mecab-ipadic-neologd-deb stable main"
         state: present
-        filename: "bintray-pypt-mecab-ipadic-neologd"
+        filename: "bintray-mediacloud-mecab-ipadic-neologd"
         update_cache: yes
       become: true
       become_user: root
@@ -215,8 +215,6 @@
     - python-pip
     - python2.7
     - python2.7-dev
-    - "python{{ python_version }}"
-    - "python{{ python_version }}-dev"
     - unzip
   become: true
   become_user: root

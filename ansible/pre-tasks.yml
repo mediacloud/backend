@@ -10,7 +10,7 @@
     - pre-tasks
     - always
 
-- name: Install Python 2.7 for Ansible on Ubuntu
+- name: Install Python 2.7 for Ansible on Debian / Ubuntu
   raw: if [ `uname` != 'Darwin' ]; then sudo apt-get -y install python-simplejson; fi
   register: install_python_2_7_result
   changed_when: "'python-simplejson is already the newest version' not in install_python_2_7_result.stdout and install_python_2_7_result.stdout != ''"
@@ -39,7 +39,7 @@
   become: true
   register: install_aptitude_result
   changed_when: "'aptitude is already the newest version' not in install_aptitude_result.stdout"
-  when: ansible_distribution == 'Ubuntu'
+  when: ansible_distribution == 'Ubuntu' or ansible_distribution == 'Debian'
   tags:
     - pre-tasks
     - always
