@@ -1,0 +1,26 @@
+---
+
+# Ubuntu 16.04 doesn't distribute Python 3.7
+- name: Add Python deadsnakes repository
+  apt_repository:
+    repo: "ppa:deadsnakes/ppa"
+  become: true
+  become_user: root
+  tags:
+    - system-packages
+    - python
+
+- name: "Install Python {{ python_version }}"
+  apt:
+    name: "{{item}}"
+    state: present
+    install_recommends: false
+  with_items:
+    - "python{{ python_version }}"
+    - "python{{ python_version }}-dev"
+  become: true
+  become_user: root
+  tags:
+    - system-packages
+    - python
+

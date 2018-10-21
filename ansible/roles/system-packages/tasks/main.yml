@@ -2,11 +2,13 @@
   include_vars: ../vars/main-{{ ansible_distribution }}.yml
   tags:
     - system-packages
+    - python
 
 - name: Include tasks
   include_tasks: main-{{ ansible_distribution }}.yml
   tags:
     - system-packages
+    - python
 
 - name: Test if MeCab is of the correct version
   command: "mecab-config --version"

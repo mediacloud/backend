@@ -167,14 +167,11 @@
       tags:
         - system-packages
 
-# Ubuntu 16.04 doesn't distribute Python 3.7
-- name: Add Python deadsnakes repository
-  apt_repository:
-    repo: "ppa:deadsnakes/ppa"
-  become: true
-  become_user: root
+- name: Include Python on Ubuntu / Debian tasks
+  include_tasks: "python-{{ ansible_distribution }}.yml"
   tags:
     - system-packages
+    - python
 
 - name: Install system packages
   apt:

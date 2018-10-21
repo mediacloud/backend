@@ -1,0 +1,109 @@
+---
+
+# Debian stretch doesn't distribute Python 3.7, and deadsnakes repo isn't supported on Debian per se
+
+- name: "Test if Python {{ python_version }} is installed"
+  command: "python3.7 --version"
+  register: python_3_exists
+  ignore_errors: true
+  tags:
+    - system-packages
+    - python
+
+- name: "Build and install Python {{ python_version }}"
+  when: python_3_exists.rc != 0
+  block:
+          
+    - name: Set Python full version
+      set_fact:
+        python_full_version: "{{ python_version }}.1"
+      tags:
+        - system-packages
+        - python
+
+    - name: Install system packages required for building Python
+      apt:
+        name: "{{ item }}"
+        state: present
+      with_items:
+        - "build-essential"
+        - "libbz2-dev"
+        - "libdb5.3-dev"
+        - "libexpat1-dev"
+        - "libffi-dev"
+        - "libffi6"
+        - "libgdbm-dev"
+        - "liblzma-dev"
+        - "libncurses5-dev"
+        - "libncursesw5-dev"
+        - "libreadline-dev"
+        - "libsqlite3-dev"
+        - "libssl-dev"
+        - "tk-dev"
+        - "uuid-dev"
+        - "zlib1g-dev"
+      become: true
+      become_user: root
+      tags:
+        - system-packages
+        - python
+
+    - name: "Download Python {{ python_full_version }} tarball"
+      get_url:
+        url: "https://www.python.org/ftp/python/{{ python_full_version }}/Python-{{ python_full_version }}.tgz" 
+        dest: "/tmp/Python-{{ python_full_version }}.tgz"
+      tags:
+        - system-packages
+        - python
+
+    - name: "Extract Python {{ python_full_version }} tarball"
+      unarchive:
+        copy: false
+        dest: "/tmp/"
+        src: "/tmp/Python-{{ python_full_version }}.tgz"
+      tags:
+        - system_packages
+        - python
+     
+    - name: "Configure Python {{ python_full_version }}"
+      command: "./configure --prefix=/usr/local --enable-optimizations"
+      args:
+        chdir: "/tmp/Python-{{ python_full_version }}"
+      tags:
+        - system_packages
+        - python
+
+    - name: "Build Python {{ python_full_version }}"
+      command: "make -j {{ ansible_processor_vcpus }}"
+      args:
+        chdir: "/tmp/Python-{{ python_full_version }}"
+      tags:
+        - system_packages
+        - python
+
+    - name: "Install Python {{ python_full_version }}"
+      command: "make install"
+      args:
+        chdir: "/tmp/Python-{{ python_full_version }}"
+      become: true
+      become_user: root
+      tags:
+        - system_packages
+        - python
+
+    - name: "Remove Python {{ python_full_version }} directory"
+      file:
+        path: "/tmp/Python-{{ python_full_version }}"
+        state: absent
+      tags:
+        - system-packages
+        - python
+
+    - name: "Remove Python {{ python_full_version }} tarball"
+      file:
+        path: "/tmp/Python-{{ python_full_version }}.tgz"
+        state: absent
+      tags:
+        - system-packages
+        - python
+
