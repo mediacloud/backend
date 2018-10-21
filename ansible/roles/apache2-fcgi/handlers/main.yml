@@ -7,11 +7,11 @@
   tags:
     - apache2-fcgi
 
-- name: "Stop Apache service (Ubuntu)"
+- name: "Stop Apache service (Ubuntu / Debian)"
   service:
     name: apache2
     state: stopped
-  when: "ansible_distribution == 'Ubuntu'"
+  when: "ansible_distribution == 'Ubuntu' or ansible_distribution == 'Debian'"
   become: true
   become_user: root
   listen:
@@ -20,7 +20,7 @@
     - apache2-fcgi
 
 - name: "Test if Apache service is stopped"
-  command: "pgrep {% if ansible_distribution == 'Ubuntu' %}apache2{% else %}httpd{% endif %}"
+  command: "pgrep {% if ansible_distribution == 'Ubuntu' or ansible_distribution == 'Debian' %}apache2{% else %}httpd{% endif %}"
   register: apache_status
   failed_when: "apache_status.stdout_lines | count > 0"
   changed_when: false
@@ -38,11 +38,11 @@
   tags:
     - apache2-fcgi
 
-- name: "Start Apache service (Ubuntu)"
+- name: "Start Apache service (Ubuntu / Debian)"
   service:
     name: apache2
     state: started
-  when: "ansible_distribution == 'Ubuntu'"
+  when: "ansible_distribution == 'Ubuntu' or ansible_distribution == 'Debian'"
   become: true
   become_user: root
   listen:
@@ -51,7 +51,7 @@
     - apache2-fcgi
 
 - name: "Test if Apache service is started"
-  command: "pgrep {% if ansible_distribution == 'Ubuntu' %}apache2{% else %}httpd{% endif %}"
+  command: "pgrep {% if ansible_distribution == 'Ubuntu' or ansible_distribution == 'Debian' %}apache2{% else %}httpd{% endif %}"
   register: apache_status
   failed_when: "apache_status.stdout_lines | count == 0"
   changed_when: false

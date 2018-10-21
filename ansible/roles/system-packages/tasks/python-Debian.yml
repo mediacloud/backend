@@ -95,6 +95,8 @@
       file:
         path: "/tmp/Python-{{ python_full_version }}"
         state: absent
+      become: true
+      become_user: root
       tags:
         - system-packages
         - python

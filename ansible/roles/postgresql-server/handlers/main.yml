@@ -34,6 +34,25 @@
   tags:
     - postgresql-server
 
+- name: "Restart PostgreSQL service (Debian)"
+  service:
+    name: postgresql
+    state: restarted
+  become: true
+  become_user: root
+  listen: "Restart PostgreSQL (Debian)"
+  tags:
+    - postgresql-server
+
+- name: "Test if PostgreSQL is running after restart (Debian)"
+  command: "pgrep postgres"
+  register: postgresql_status
+  failed_when: "postgresql_status.stdout_lines | count == 0"
+  changed_when: false
+  listen: "Restart PostgreSQL (Debian)"
+  tags:
+    - postgresql-server
+
 - name: restart postgresql
   debug:
     msg: "restart postgresql"

@@ -63,7 +63,7 @@
     requirements: "{{ pip_requirements_tempdir.path }}/requirements.txt"
   environment:
     # 1) On OS X, Hunspell lies under /usr/local
-    # 2) On Ubuntu, this is a no-op
+    # 2) On Ubuntu / Debian, this is a no-op
     CFLAGS: "-I/usr/local/include"
     CCFLAGS: "-I/usr/local/include"
     CXXFLAGS: "-I/usr/local/include"
