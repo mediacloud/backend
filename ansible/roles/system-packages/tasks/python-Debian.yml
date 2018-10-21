@@ -10,10 +10,32 @@
     - system-packages
     - python
 
+- name: Add /usr/local/lib to ld.so.conf
+  lineinfile:
+    path: /etc/ld.so.conf.d/mediacloud-python3.conf
+    regexp: '^/usr/local/lib'
+    line: '/usr/local/lib'
+    create: true
+  register: add_usr_local_lib_to_ld_so_conf
+  become: true
+  become_user: root
+  tags:
+    - system-packages
+    - python
+
+- name: Run ldconfig
+  command: "ldconfig"
+  when: add_usr_local_lib_to_ld_so_conf.changed
+  become: true
+  become_user: root
+  tags:
+    - system-packages
+    - python
+
 - name: "Build and install Python {{ python_version }}"
   when: python_3_exists.rc != 0
   block:
-          
+
     - name: Set Python full version
       set_fact:
         python_full_version: "{{ python_version }}.1"
