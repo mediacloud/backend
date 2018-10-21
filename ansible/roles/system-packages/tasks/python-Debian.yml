@@ -62,7 +62,7 @@
         dest: "/tmp/"
         src: "/tmp/Python-{{ python_full_version }}.tgz"
       tags:
-        - system_packages
+        - system-packages
         - python
      
     - name: "Configure Python {{ python_full_version }}"
@@ -70,7 +70,7 @@
       args:
         chdir: "/tmp/Python-{{ python_full_version }}"
       tags:
-        - system_packages
+        - system-packages
         - python
 
     - name: "Build Python {{ python_full_version }}"
@@ -78,7 +78,7 @@
       args:
         chdir: "/tmp/Python-{{ python_full_version }}"
       tags:
-        - system_packages
+        - system-packages
         - python
 
     - name: "Install Python {{ python_full_version }}"
@@ -88,7 +88,7 @@
       become: true
       become_user: root
       tags:
-        - system_packages
+        - system-packages
         - python
 
     - name: "Remove Python {{ python_full_version }} directory"
