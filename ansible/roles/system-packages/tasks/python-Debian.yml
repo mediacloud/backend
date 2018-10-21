@@ -82,7 +82,7 @@
         - python
 
     - name: "Install Python {{ python_full_version }}"
-      command: "make install"
+      command: "make altinstall"
       args:
         chdir: "/tmp/Python-{{ python_full_version }}"
       become: true
