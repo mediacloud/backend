@@ -64,9 +64,11 @@
   environment:
     # 1) On OS X, Hunspell lies under /usr/local
     # 2) On Ubuntu / Debian, this is a no-op
-    CFLAGS: "-I/usr/local/include"
-    CCFLAGS: "-I/usr/local/include"
-    CXXFLAGS: "-I/usr/local/include"
+    #
+    # Also, get rid of errors when building cld2-cffi: https://github.com/GregBowyer/cld2-cffi/issues/12
+    CFLAGS: "-Wno-narrowing -I/usr/local/include"
+    CCFLAGS: "-Wno-narrowing -I/usr/local/include"
+    CXXFLAGS: "-Wno-narrowing -I/usr/local/include"
     LDFLAGS: "-L/usr/local/lib"
   become: true
   become_user: "{{ mediacloud_user }}"
