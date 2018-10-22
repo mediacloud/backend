@@ -566,11 +566,11 @@ sub error_is_amqp($)
 }
 
 # add the topic_fetch_url to the fetch_link job queue.  try repeatedly on failure.
-sub queue_topic_fetch_url($)
+sub queue_topic_fetch_url($;$)
 {
-    my ( $tfu ) = @_;
+    my ( $tfu, $domain_timeout ) = @_;
 
-    my $fetch_link_domain_timeout = $_test_mode ? 0 : undef;
+    $domain_timeout //= $_test_mode ? 0 : undef;
 
     do
     {
@@ -578,7 +578,7 @@ sub queue_topic_fetch_url($)
             MediaWords::Job::TM::FetchLink->add_to_queue(
                 {
                     topic_fetch_urls_id => $tfu->{ topic_fetch_urls_id },
-                    domain_timeout      => $fetch_link_domain_timeout
+                    domain_timeout      => $domain_timeout
                 }
             );
         };
@@ -628,7 +628,7 @@ sub fetch_links
 
     # now poll waiting for the queue to clear
     my $requeues         = 0;
-    my $max_requeues     = 3;
+    my $max_requeues     = 10;
     my $max_requeue_jobs = 100;
     my $requeue_timeout  = 30;
 
@@ -667,7 +667,9 @@ SQL
             && ( $num_pending_urls < $max_requeue_jobs ) )
         {
             INFO( "requeueing fetch_link $num_pending_urls jobs ... [requeue $requeues]" );
-            map { queue_topic_fetch_url( $db->require_by_id( 'topic_fetch_urls', $_ ) ) } @{ $pending_url_ids };
+
+            # requeue with a domain_timeout of 0 so that requeued urls can ignore throttling
+            map { queue_topic_fetch_url( $db->require_by_id( 'topic_fetch_urls', $_ ), 0 ) } @{ $pending_url_ids };
             ++$requeues;
             $last_pending_change = time();
         }
