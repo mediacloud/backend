@@ -212,7 +212,7 @@
     - netcat
     - openjdk-8-jdk
     - pkg-config
-    - python-pip
+    - python3-pip
     - python2.7
     - python2.7-dev
     - "python{{ python_version }}"
