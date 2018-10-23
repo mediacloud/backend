@@ -10,7 +10,7 @@
     - bash-completion
     - git
     - htop
-    - python-software-properties
+    - python3-software-properties
     - vim
   become: true
   become_user: root
@@ -19,7 +19,7 @@
 
 - name: Install Pip
   apt:
-    name: python-pip
+    name: python3-pip
     state: present
     install_recommends: false
   become: true
