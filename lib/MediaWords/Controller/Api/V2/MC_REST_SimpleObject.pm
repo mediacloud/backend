@@ -127,9 +127,7 @@ sub _process_result_list
 
     if ( $self->has_nested_data() )
     {
-
-        my $nested_data = $c->req->param( 'nested_data' );
-        $nested_data //= 1;
+        my $nested_data = int( $c->req->param( 'nested_data' ) // 1 );
 
         if ( $nested_data )
         {
@@ -159,8 +157,7 @@ sub single_GET
 
     my $query = "select * from $table_name where $id_field = ? ";
 
-    my $all_fields = $c->req->param( 'all_fields' );
-    $all_fields //= 0;
+    my $all_fields = int( $c->req->param( 'all_fields' ) // 0 );
 
     my $items = $c->dbis->query( $query, $id )->hashes();
 
@@ -571,7 +568,7 @@ END
         push( @{ $clear_tags_map->{ $id } }, $tags_id );
     }
 
-    if ( $c->req->params->{ clear_tags } )
+    if ( int( $c->req->params->{ clear_tags } // 0 ) )
     {
         $self->_clear_tags( $c, $clear_tags_map );
     }
@@ -642,7 +639,7 @@ sub process_put_tags($$)
 
     my $put_tags = [ map { $self->_process_single_put_tag( $c, $_ ) } @{ $data } ];
 
-    if ( $c->req->params->{ clear_tag_sets } )
+    if ( int( $c->req->params->{ clear_tag_sets } // 0 ) )
     {
         my $id_field       = $self->get_table_name . "_id";
         my $clear_tags_map = {};

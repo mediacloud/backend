@@ -141,8 +141,8 @@ sub list_GET
     my $q  = $c->req->params->{ 'q' };
     my $fq = $c->req->params->{ 'fq' };
 
-    my $start = $c->req->params->{ 'start' };
-    my $rows  = $c->req->params->{ 'rows' };
+    my $start = int( $c->req->params->{ 'start' } // 0 );
+    my $rows  = int( $c->req->params->{ 'rows' }  // 0 );
     my $sort  = $c->req->params->{ 'sort' };
 
     $rows  //= 1000;
