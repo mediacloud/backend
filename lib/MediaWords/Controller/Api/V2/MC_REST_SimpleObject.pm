@@ -325,8 +325,7 @@ sub list_GET
     my $all_fields = $c->req->param( 'all_fields' );
     $all_fields //= 0;
 
-    my $rows = $c->req->param( 'rows' );
-    $rows //= $ROWS_PER_PAGE;
+    my $rows = int( $c->req->param( 'rows' ) || $ROWS_PER_PAGE + 0 );
     $rows = List::Util::min( $rows, 1_000 );
 
     # TRACE "rows $rows";
