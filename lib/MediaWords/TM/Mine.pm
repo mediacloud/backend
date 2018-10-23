@@ -841,12 +841,7 @@ sub run_spider
     # before we run the spider over links, we need to make sure links have been generated for all existing stories
     mine_topic_stories( $db, $topic );
 
-    my $num_iterations = $topic->{ max_iterations };
-
-    for my $i ( 1 .. $num_iterations )
-    {
-        spider_new_links( $db, $topic, $i );
-    }
+    map { spider_new_links( $db, $topic, $topic->{ max_iterations } ) } ( 1 .. $topic->{ max_iterations } );
 }
 
 # delete any stories belonging to one of the archive site sources and set any links to archive stories
