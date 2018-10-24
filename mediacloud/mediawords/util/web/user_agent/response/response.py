@@ -1,10 +1,15 @@
+import codecs
 import email
 from typing import Union, Dict
 
-import requests
+import chardet
+from urllib3 import HTTPResponse
 
+from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_object_from_bytes_if_needed
 from mediawords.util.web.user_agent.request.request import Request
+
+log = create_logger(__name__)
 
 
 class McUserAgentResponseException(Exception):
@@ -17,10 +22,8 @@ class Response(object):
     # FIXME redo properties to proper Pythonic way (with decorators).
 
     __slots__ = [
-        '__code',
-        '__message',
-        '__headers',
-        '__data',
+        '__urllib3_response',
+        '__max_raw_data_size',
 
         '__previous_response',
         '__request',
@@ -28,69 +31,47 @@ class Response(object):
         '__error_is_client_side',
     ]
 
-    def __init__(self, code: int, message: str, headers: dict, data: str):
-        """Constructor; expects headers and data encoded in UTF-8."""
-        message = decode_object_from_bytes_if_needed(message)
-        headers = decode_object_from_bytes_if_needed(headers)
-        data = decode_object_from_bytes_if_needed(data)
+    def __init__(self, urllib3_response: HTTPResponse, max_raw_data_size: int = None):
+        """Constructor."""
 
-        self.__code = None
-        self.__message = None
-        self.__headers = {}
-        self.__data = None
+        if not urllib3_response:
+            raise McUserAgentResponseException("urllib3 response is unset.")
+
+        if isinstance(max_raw_data_size, str):
+            max_raw_data_size = decode_object_from_bytes_if_needed(max_raw_data_size)
+
+        self.__urllib3_response = urllib3_response
+        self.__max_raw_data_size = max_raw_data_size
 
         self.__previous_response = None
         self.__request = None
 
         self.__error_is_client_side = False
 
-        self.__set_code(code)
-        self.__set_message(message)
-        self.__set_headers(headers)
-        self.__set_content(data)
-
-    @staticmethod
-    def from_requests_response(requests_response: requests.Response, data: str):
-        """Create response from requests's Response object."""
-        return Response(
-            code=requests_response.status_code,
-            message=requests_response.reason,
-            headers=requests_response.headers,
-            data=data,
-        )
-
     def code(self) -> int:
         """Return HTTP status code, e.g. 200."""
-        return self.__code
-
-    def __set_code(self, code: int) -> None:
-        """Set HTTP status code, e.g. 200."""
-        if isinstance(code, bytes):
-            code = decode_object_from_bytes_if_needed(code)
-        if code is None:
-            raise McUserAgentResponseException("HTTP status code is None.")
-
-        code = int(code)
-
-        if code < 1:
-            raise McUserAgentResponseException("HTTP status code is invalid: %s" % str(code))
-        self.__code = int(code)
+        return self.__urllib3_response.status
 
     def message(self) -> str:
         """Return HTTP status message, e.g. "OK" or an empty string."""
-        return self.__message
-
-    def __set_message(self, message: str) -> None:
-        """Set HTTP status message, e.g. "OK"."""
-        message = decode_object_from_bytes_if_needed(message)
-        if message is None:
-            raise McUserAgentResponseException("HTTP status message is None.")
-        # HTTP message can be empty (e.g. "HTTP 200" instead of "HTTP 200 OK") but not None
-        self.__message = message
+        return self.__urllib3_response.reason
 
     def headers(self) -> Dict[str, str]:
         """Return all HTTP headers."""
-        return self.__headers
+        # FIXME make use of HTTPHeaderDict
+        local_headers = {}
+
+        for name, value in self.__urllib3_response.headers:
+            if len(name) == 0:
+                raise McUserAgentResponseException("Header's name is empty.")
+            # Header value can be empty string (e.g. "x-check: ") but not None
+            if value is None:
+                raise McUserAgentResponseException("Header's value is None for header '{}'.".format(name))
+            name = name.lower()  # All locally stored headers will be lowercase
+            value = str(value)  # E.g. Content-Length might get passed as int
+            local_headers[name] = value
+
+        return local_headers
 
     def header(self, name: str) -> Union[str, None]:
         """Return HTTP header, e.g. "text/html; charset=UTF-8' for "Content-Type" parameter."""
@@ -100,53 +81,125 @@ class Response(object):
         if len(name) == 0:
             raise McUserAgentResponseException("Header's name is empty.")
         name = name.lower()  # All locally stored headers will be lowercase
-        if name in self.__headers:
-            return self.__headers[name]
+        local_headers = self.headers()
+        if name in local_headers:
+            return local_headers[name]
         else:
             return None
 
-    def __set_header(self, name: str, value: str) -> None:
-        """Set HTTP header, e.g. "Content-Type: text/html; charset=UTF-8."""
-        name = decode_object_from_bytes_if_needed(name)
-        value = decode_object_from_bytes_if_needed(value)
-        if name is None:
-            raise McUserAgentResponseException("Header's name is None.")
-        if len(name) == 0:
-            raise McUserAgentResponseException("Header's name is empty.")
-        if value is None:
-            raise McUserAgentResponseException("Header's value is None.")
-        # Header value can be empty string (e.g. "x-check: ") but not None
-        name = name.lower()  # All locally stored headers will be lowercase
-        value = str(value)  # E.g. Content-Length might get passed as int
-        self.__headers[name] = value
-
-    def __set_headers(self, headers: Dict[str, str]) -> None:
-        """Fill HTTP headers dictionary with headers."""
-        headers = decode_object_from_bytes_if_needed(headers)
-        if headers is None:
-            raise McUserAgentResponseException("Headers is None.")
-
-        # Convert requests's CaseInsensitiveDict to a native dictionary
-        for name, value in headers.items():
-            name = name.strip()
-            value = value.strip()
-            self.__set_header(name=name, value=value)
+    def raw_data(self) -> bytes:
+        """Return raw byte array of the response."""
+        raise NotImplementedError("FIXME not implemented")
 
     def decoded_content(self) -> str:
         """Return content in UTF-8 encoding."""
-        return self.__data
+        response_data = ""
+        read_response_data = True
+
+        url = self.__urllib3_response.geturl()
+
+        if self.__max_raw_data_size is not None:
+            content_length = self.header('Content-Length')
+
+            try:
+                if content_length is not None:
+
+                    # HTTP spec allows one to combine multiple headers into one so Content-Length might look
+                    # like "Content-Length: 123, 456"
+                    if ',' in content_length:
+                        content_length = content_length.split(',')
+                        content_length = list(map(int, content_length))
+                        content_length = max(content_length)
+
+                    content_length = int(content_length)
+
+            except Exception as ex:
+                log.warning(
+                    "Unable to read Content-Length for URL '%(url)s': %(exception)s" % {
+                        'url': url,
+                        'exception': ex,
+                    })
+                content_length = None
+
+            if content_length is not None:
+                if content_length > self.__max_raw_data_size:
+                    log.warning(
+                        "Content-Length exceeds %d for URL %s" % (
+                            self.__max_raw_data_size, url,
+                        )
+                    )
+
+                    read_response_data = False
+
+        if read_response_data:
+
+            # requests's "apparent_encoding" is not used because chardet might OOM on big binary data responses
+            get_content_charset()
+            encoding = requests_response.encoding
+
+            if encoding is not None:
+
+                # If "Content-Type" HTTP header contains a string "text" and doesn't have "charset" property,
+                # "requests" falls back to setting the encoding to ISO-8859-1, which is probably not right
+                # (encoding might have been defined in the HTML content itself via <meta> tag), so we use the
+                # "apparent encoding" instead
+                if encoding.lower() == 'iso-8859-1':
+                    # Will try to auto-detect later
+                    encoding = None
+
+            # Some pages report some funky encoding; in that case, fallback to UTF-8
+            if encoding is not None:
+                try:
+                    codecs.lookup(encoding)
+                except LookupError:
+                    log.warning("Invalid encoding %s for URL %s" % (encoding, requests_response.url,))
+
+                    # Autodetect later
+                    encoding = None
+
+            # 100 KB should be enough for for chardet to be able to make an informed decision
+            chunk_size = 1024 * 100
+            decoder = None
+            response_data_size = 0
+
+            raw_stream = self.__urllib3_response.stream(chunk_size, decode_content=True)
+
+            for chunk in raw_stream:
+
+                if encoding is None:
+                    # Test the encoding guesser's opinion, just like browsers do
+                    try:
+                        encoding = chardet.detect(chunk)['encoding']
+                    except Exception as ex:
+                        log.warning("Unable to detect encoding for URL %s: %s" % (url, ex,))
+                        encoding = None
+
+                    # If encoding is not in HTTP headers nor can be determined from content itself, assume that
+                    # it's UTF-8
+                    if encoding is None:
+                        encoding = 'UTF-8'
+
+                if decoder is None:
+                    decoder = codecs.getincrementaldecoder(encoding)(errors='replace')
+
+                decoded_chunk = decoder.decode(chunk)
+
+                response_data += decoded_chunk
+                response_data_size += len(chunk)  # byte length, not string length
+
+                # Content-Length might be missing / lying, so we measure size while fetching the data too
+                if self.__max_raw_data_size is not None:
+                    if response_data_size > self.__max_raw_data_size:
+                        log.warning("Data size exceeds %d for URL %s" % (self.__max_raw_data_size, url,))
+
+                        break
+
+        return response_data
 
     def decoded_utf8_content(self) -> str:
         """Return content in UTF-8 content while assuming that the raw data is in UTF-8."""
         # FIXME how do we do this?
         return self.decoded_content()
-
-    def __set_content(self, content: str) -> None:
-        """Set content in UTF-8 encoding."""
-        content = decode_object_from_bytes_if_needed(content)
-        if content is None:
-            raise McUserAgentResponseException("Content is None.")
-        self.__data = content
 
     def status_line(self) -> str:
         """Return HTTP status line, e.g. "200 OK" or "418"."""
@@ -174,6 +227,7 @@ class Response(object):
         header_parser = email.parser.HeaderParser()
         message = header_parser.parsestr("Content-Type: %s" % content_type)
         content_type = message.get_content_type()
+        charset = message.get_
         return content_type
 
     # noinspection PyMethodMayBeStatic

@@ -1,4 +1,3 @@
-import codecs
 import errno
 import fcntl
 import multiprocessing
@@ -11,7 +10,6 @@ from http import HTTPStatus
 from typing import Dict, List, Union
 from urllib.parse import quote
 
-import chardet
 import requests
 from furl import furl
 from requests.adapters import HTTPAdapter
@@ -775,112 +773,6 @@ class UserAgent(object):
                                                    error_is_client_side=False)
 
         return response
-
-    def __read_response_data(self, requests_response: requests.Response) -> str:
-        """Read data from Response object. Raises on read errors, callers are expected to catch exceptions."""
-        max_size = self.max_size()
-
-        response_data = ""
-        read_response_data = True
-
-        if max_size is not None:
-            content_length = requests_response.headers.get('Content-Length', None)
-
-            try:
-                if content_length is not None:
-
-                    # HTTP spec allows one to combine multiple headers into one so Content-Length might look
-                    # like "Content-Length: 123, 456"
-                    if ',' in content_length:
-                        content_length = content_length.split(',')
-                        content_length = list(map(int, content_length))
-                        content_length = max(content_length)
-
-                    content_length = int(content_length)
-
-            except Exception as ex:
-                log.warning(
-                    "Unable to read Content-Length for URL '%(url)s': %(exception)s" % {
-                        'url': requests_response.url,
-                        'exception': str(ex),
-                    })
-                content_length = None
-
-            if content_length is not None:
-                if content_length > max_size:
-                    log.warning("Content-Length exceeds %d for URL %s" % (max_size, requests_response.url,))
-
-                    # Release the response to return connection back to the pool
-                    # (http://docs.python-requests.org/en/master/user/advanced/#body-content-workflow)
-                    requests_response.close()
-
-                    read_response_data = False
-
-        if read_response_data:
-
-            # requests's "apparent_encoding" is not used because chardet might OOM on big binary data responses
-            encoding = requests_response.encoding
-
-            if encoding is not None:
-
-                # If "Content-Type" HTTP header contains a string "text" and doesn't have "charset" property,
-                # "requests" falls back to setting the encoding to ISO-8859-1, which is probably not right
-                # (encoding might have been defined in the HTML content itself via <meta> tag), so we use the
-                # "apparent encoding" instead
-                if encoding.lower() == 'iso-8859-1':
-                    # Will try to auto-detect later
-                    encoding = None
-
-            # Some pages report some funky encoding; in that case, fallback to UTF-8
-            if encoding is not None:
-                try:
-                    codecs.lookup(encoding)
-                except LookupError:
-                    log.warning("Invalid encoding %s for URL %s" % (encoding, requests_response.url,))
-
-                    # Autodetect later
-                    encoding = None
-
-            # 100 KB should be enough for for chardet to be able to make an informed decision
-            chunk_size = 1024 * 100
-            decoder = None
-            response_data_size = 0
-
-            for chunk in requests_response.raw.stream(chunk_size, decode_content=True):
-
-                if encoding is None:
-                    # Test the encoding guesser's opinion, just like browsers do
-                    try:
-                        encoding = chardet.detect(chunk)['encoding']
-                    except Exception as ex:
-                        log.warning("Unable to detect encoding for URL %s: %s" % (requests_response.url, str(ex),))
-                        encoding = None
-
-                    # If encoding is not in HTTP headers nor can be determined from content itself, assume that
-                    # it's UTF-8
-                    if encoding is None:
-                        encoding = 'UTF-8'
-
-                if decoder is None:
-                    decoder = codecs.getincrementaldecoder(encoding)(errors='replace')
-
-                decoded_chunk = decoder.decode(chunk)
-
-                response_data += decoded_chunk
-                response_data_size += len(chunk)  # byte length, not string length
-
-                # Content-Length might be missing / lying, so we measure size while fetching the data too
-                if max_size is not None:
-                    if response_data_size > max_size:
-                        log.warning("Data size exceeds %d for URL %s" % (max_size, requests_response.url,))
-
-                        # Release the response to return connection back to the pool
-                        # (http://docs.python-requests.org/en/master/user/advanced/#body-content-workflow)
-                        requests_response.close()
-
-                        break
-
-        return response_data
 
     def request(self, request: Request) -> Response:
         """Execute a request, return a response.
