@@ -70,11 +70,8 @@ sub get_extra_where_clause
         push( @{ $clauses }, "and tag_sets_id in ( $tag_sets_ids_list )" );
     }
 
-    if ( my $similar_tags_id = $c->req->params->{ similar_tags_id } )
+    if ( my $similar_tags_id = int( $c->req->params->{ similar_tags_id } // 0 ) )
     {
-        # make sure this is an int
-        $similar_tags_id += 0;
-
         push( @{ $clauses }, <<SQL );
 and tags_id in (
     select b.tags_id
@@ -121,10 +118,9 @@ sub _fetch_list($$$$$$)
 {
     my ( $self, $c, $last_id, $table_name, $id_field, $rows ) = @_;
 
-    my $public = $c->req->params->{ public } || '';
+    my $public = int( $c->req->params->{ public } // 0 );
 
-    my $public_clause =
-      $public eq '1' ? 't.show_on_media or ts.show_on_media or t.show_on_stories or ts.show_on_stories' : '1=1';
+    my $public_clause = $public ? 't.show_on_media or ts.show_on_media or t.show_on_stories or ts.show_on_stories' : '1=1';
 
     $c->dbis->query( <<END );
 create temporary view tags as
