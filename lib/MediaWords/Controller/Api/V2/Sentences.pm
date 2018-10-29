@@ -13,9 +13,13 @@ use Moose;
 use namespace::autoclean;
 use JSON::PP;
 use List::Compare;
+use Readonly;
 
 use MediaWords::Solr;
 use MediaWords::Util::ParseJSON;
+
+Readonly my $DEFAULT_ROW_COUNT => 1000;
+Readonly my $MAX_ROW_COUNT     => 10_000;
 
 =head1 NAME
 
@@ -141,12 +145,9 @@ sub list_GET
     my $q  = $c->req->params->{ 'q' };
     my $fq = $c->req->params->{ 'fq' };
 
-    my $start = $c->req->params->{ 'start' };
-    my $rows  = $c->req->params->{ 'rows' };
+    my $start = int( $c->req->params->{ 'start' } // 0 );
+    my $rows  = int( $c->req->params->{ 'rows' }  // $DEFAULT_ROW_COUNT + 0 );
     my $sort  = $c->req->params->{ 'sort' };
-
-    $rows  //= 1000;
-    $start //= 0;
 
     $params->{ q }     = $q;
     $params->{ fq }    = $fq;
@@ -155,7 +156,7 @@ sub list_GET
 
     $params->{ sort } = _get_sort_param( $sort ) if ( $rows );
 
-    $rows = List::Util::min( $rows, 10000 );
+    $rows = List::Util::min( $rows, $MAX_ROW_COUNT + 0 );
 
     my $sentences = MediaWords::Solr::query_matching_sentences( $c->dbis, $params );
 

@@ -50,7 +50,7 @@ sub list_GET
 
     my $topics_id = $c->stash->{ topics_id };
 
-    my $focal_set_definitions_id = $c->req->params->{ focal_set_definitions_id }
+    my $focal_set_definitions_id = int( $c->req->params->{ focal_set_definitions_id } // 0 )
       || die( "missing required param focal_set_definitions_id" );
 
     my $fds = $db->query( <<SQL, $focal_set_definitions_id )->hashes;
