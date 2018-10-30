@@ -127,9 +127,7 @@ sub _process_result_list
 
     if ( $self->has_nested_data() )
     {
-
-        my $nested_data = $c->req->param( 'nested_data' );
-        $nested_data //= 1;
+        my $nested_data = int( $c->req->param( 'nested_data' ) // 1 );
 
         if ( $nested_data )
         {
@@ -159,8 +157,7 @@ sub single_GET
 
     my $query = "select * from $table_name where $id_field = ? ";
 
-    my $all_fields = $c->req->param( 'all_fields' );
-    $all_fields //= 0;
+    my $all_fields = int( $c->req->param( 'all_fields' ) // 0 );
 
     my $items = $c->dbis->query( $query, $id )->hashes();
 
@@ -267,17 +264,19 @@ sub _fetch_list($$$$$$)
     my $name_clause         = $self->get_name_search_clause( $c );
     my $filter_field_clause = $self->_get_filter_field_clause( $c );
     my $extra_where_clause  = $self->get_extra_where_clause( $c );
-    my $order_by_clause     = $self->order_by_clause( $c ) || "$id_field asc";
+    my $order_by_clause     = $self->order_by_clause( $c ) || "$id_field ASC";
 
-    my $query = <<END;
-select *
-    from $table_name
-    where
-        $id_field > ? $name_clause
-        $extra_where_clause
-        $filter_field_clause
-    order by $order_by_clause limit ?
-END
+    my $query = <<"SQL";
+        SELECT *
+        FROM $table_name
+        WHERE
+            $id_field > ?
+            $name_clause
+            $extra_where_clause
+            $filter_field_clause
+        ORDER BY $order_by_clause
+        LIMIT ?
+SQL
 
     $list = $c->dbis->query( $query, $last_id, $rows )->hashes;
 
@@ -325,8 +324,7 @@ sub list_GET
     my $all_fields = $c->req->param( 'all_fields' );
     $all_fields //= 0;
 
-    my $rows = $c->req->param( 'rows' );
-    $rows //= $ROWS_PER_PAGE;
+    my $rows = int( $c->req->param( 'rows' ) || $ROWS_PER_PAGE + 0 );
     $rows = List::Util::min( $rows, 1_000 );
 
     # TRACE "rows $rows";
@@ -572,7 +570,7 @@ END
         push( @{ $clear_tags_map->{ $id } }, $tags_id );
     }
 
-    if ( $c->req->params->{ clear_tags } )
+    if ( int( $c->req->params->{ clear_tags } // 0 ) )
     {
         $self->_clear_tags( $c, $clear_tags_map );
     }
@@ -643,7 +641,7 @@ sub process_put_tags($$)
 
     my $put_tags = [ map { $self->_process_single_put_tag( $c, $_ ) } @{ $data } ];
 
-    if ( $c->req->params->{ clear_tag_sets } )
+    if ( int( $c->req->params->{ clear_tag_sets } // 0 ) )
     {
         my $id_field       = $self->get_table_name . "_id";
         my $clear_tags_map = {};

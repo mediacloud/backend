@@ -143,10 +143,10 @@ sub list_GET
     my $timespans_id = $timespan->{ timespans_id };
     my $snapshots_id = $timespan->{ snapshots_id };
 
-    my $limit = $c->req->params->{ limit };
+    my $limit = int( $c->req->params->{ limit } // 0 );
     $limit = List::Util::min( $limit, 1_000 );
 
-    my $offset = $c->req->params->{ offset };
+    my $offset = int( $c->req->params->{ offset } // 0 );
 
     my $extra_clause = _get_extra_where_clause( $c, $timespans_id );
 
@@ -185,10 +185,10 @@ sub links_GET
 
     my $db = $c->dbis;
 
-    my $limit = $c->req->params->{ limit } || 1_000;
+    my $limit = int( $c->req->params->{ limit } // 1_000 );
     $limit = List::Util::min( $limit, 1_000_000 );
 
-    my $offset = $c->req->params->{ offset } || 0;
+    my $offset = int( $c->req->params->{ offset } // 0 );
 
     my $timespans_id = $timespan->{ timespans_id };
     my $snapshots_id = $timespan->{ snapshots_id };
@@ -218,12 +218,17 @@ sub map_GET
 
     my $timespan             = MediaWords::TM::set_timespans_id_param( $c );
     my $color_field          = $c->req->params->{ color_field } || 'media_type';
-    my $num_media            = $c->req->params->{ num_media } || 500;
-    my $include_weights      = $c->req->params->{ include_weights } || 0;
-    my $num_links_per_medium = $c->req->params->{ num_links_per_medium } || 1000;
+    my $num_media            = int( $c->req->params->{ num_media } // 500 );
+    my $include_weights      = int( $c->req->params->{ include_weights } // 0 );
+    my $num_links_per_medium = int( $c->req->params->{ num_links_per_medium } // 1000 );
     my $exclude_media_ids    = $c->req->params->{ exclude_media_ids } || [];
 
-    $exclude_media_ids = [ $exclude_media_ids ] unless ( ref( $exclude_media_ids ) eq ref( [] ) );
+    unless ( ref( $exclude_media_ids ) eq ref( [] ) )
+    {
+        $exclude_media_ids = [ $exclude_media_ids ];
+    }
+
+    $exclude_media_ids = [ map { int( $_ ) } @{ $exclude_media_ids } ];
 
     my $db = $c->dbis;
 

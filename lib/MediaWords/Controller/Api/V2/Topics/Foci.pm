@@ -35,9 +35,9 @@ sub list_GET
 
     my $db = $c->dbis;
 
-    my $topics_id     = $c->stash->{ topics_id };
-    my $focal_sets_id = $c->req->params->{ focal_sets_id }
-      || die( 'missing required param foci_id' );
+    my $topics_id = $c->stash->{ topics_id };
+    my $focal_sets_id = int( $c->req->params->{ focal_sets_id } // 0 )
+      || die( 'missing required param focal_sets_id' );
 
     my $foci = $db->query( <<SQL, $focal_sets_id )->hashes;
 select foci_id, name, description, arguments->>'query' query
