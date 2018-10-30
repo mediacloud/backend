@@ -26,31 +26,28 @@ sub get_name_search_clause
 {
     my ( $self, $c ) = @_;
 
-    my $v = $c->req->params->{ search };
+    my $tag_search = $c->req->params->{ search };
 
-    return '' unless ( $v );
+    unless ( $tag_search )
+    {
+        return '';
+    }
 
-    return 'and false' unless ( length( $v ) > 2 );
+    unless ( length( $tag_search ) > 2 )
+    {
+        return 'AND false';
+    }
 
-    my $temp_tag_sets = 'name_search_tag_sets';
-    my $temp_tags     = 'name_search_tags';
+    my $db                 = $c->dbis;
+    my $escaped_tag_search = $db->quote( $tag_search );
 
-    my $db = $c->dbis;
-
-    # create these as temp tables to force postgres planner to use tags fts index
-    # (large "work_mem" allows executor to skip lengthy Bitmap Heap Scan in some cases)
-    $db->execute_with_large_work_mem( <<SQL, $v );
-create temporary table $temp_tags as
-select tags_id
-    from tags t
-    where
-        to_tsvector('english', t.tag || ' ' || t.label) @@ plainto_tsquery('english', ?)
+    # Return the FTS condition back to _fetch_list() instead of creating
+    # temporary tables with *all* found tags as then the executor can run more
+    # effective plans thanks to "tags_id" offset and LIMIT
+    return <<"SQL";
+        AND to_tsvector('english', tag || ' ' || label)
+            @@ plainto_tsquery('english', $escaped_tag_search)
 SQL
-
-    return <<END;
-and (
-    ( tags_id in ( select tags_id from $temp_tags ) ) )
-END
 }
 
 sub get_table_name
