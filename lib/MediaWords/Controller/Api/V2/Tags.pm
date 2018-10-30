@@ -38,7 +38,8 @@ sub get_name_search_clause
     my $db = $c->dbis;
 
     # create these as temp tables to force postgres planner to use tags fts index
-    $db->query( <<SQL, $v );
+    # (large "work_mem" allows executor to skip lengthy Bitmap Heap Scan in some cases)
+    $db->execute_with_large_work_mem( <<SQL, $v );
 create temporary table $temp_tags as
 select tags_id
     from tags t
