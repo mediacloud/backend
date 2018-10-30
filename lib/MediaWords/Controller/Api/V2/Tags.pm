@@ -43,7 +43,7 @@ create temporary table $temp_tags as
 select tags_id
     from tags t
     where
-        to_tsvector('english', t.tag || ' ' || t.label) @@ plainto_tsquery(?)
+        to_tsvector('english', t.tag || ' ' || t.label) @@ plainto_tsquery('english', ?)
 SQL
 
     return <<END;
