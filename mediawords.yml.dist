@@ -344,9 +344,8 @@ mediawords:
     #uncomment to enable a 10 minute timeout
     #db_statement_timeout: "600000"
 
-    # Uncommit to speed up slow queries by setting the Postgresql work_mem parameter to this value
-    # By default the initial Postgresql value of work_mem is used
-    # large_work_mem: "3GB"
+    # "work_mem" value to use for queries run with execute_with_large_work_mem()
+    large_work_mem: "1GB"
 
     # An experiment parameter to dump stack traces in error message even if not in debug mode
     # NOTE: may leak DB passwords and is not to be use in production
