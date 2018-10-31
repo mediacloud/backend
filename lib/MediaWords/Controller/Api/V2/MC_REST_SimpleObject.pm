@@ -143,7 +143,8 @@ sub _process_result_list
     return $items;
 }
 
-sub single : Local : ActionClass('MC_REST')    # action roles are to be set for each derivative sub-actions
+# action roles are to be set for each derivative sub-actions
+sub single : Local : ActionClass('MC_REST')
 {
 }
 
@@ -245,8 +246,6 @@ sub _get_filter_field_clause
 
 sub order_by_clause
 {
-    my ( $self ) = @_;
-
     return;
 }
 
@@ -264,7 +263,15 @@ sub _fetch_list($$$$$$)
     my $name_clause         = $self->get_name_search_clause( $c );
     my $filter_field_clause = $self->_get_filter_field_clause( $c );
     my $extra_where_clause  = $self->get_extra_where_clause( $c );
-    my $order_by_clause     = $self->order_by_clause( $c ) || "$id_field ASC";
+    my $order_by_clause     = $self->order_by_clause( $c, $id_field ) || "$id_field ASC";
+
+    # exact name= match always comes first
+    if ( $name_clause )
+    {
+        my $q_name     = $c->dbis->quote( $c->req->params->{ name } );
+        my $name_field = $self->list_name_search_field();
+        $order_by_clause = "( lower( $name_field ) = $q_name ) DESC, $order_by_clause";
+    }
 
     my $query = <<"SQL";
         SELECT *
@@ -279,6 +286,8 @@ sub _fetch_list($$$$$$)
 SQL
 
     $list = $c->dbis->query( $query, $last_id, $rows )->hashes;
+
+    print STDERR Dumper( map { $_->{ name } } @{ $list } );
 
     my $num_rows = scalar( @{ $list } );
 
@@ -300,7 +309,8 @@ sub _get_list_last_id_param_name
     return $last_id_param_name;
 }
 
-sub list : Local : ActionClass('MC_REST')    # action roles are to be set for each derivative sub-actions
+# action roles are to be set for each derivative sub-actions
+sub list : Local : ActionClass('MC_REST')
 {
 }
 
