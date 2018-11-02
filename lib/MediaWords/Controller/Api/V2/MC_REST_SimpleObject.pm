@@ -155,7 +155,7 @@ sub single_GET
 
     # ID is typically an int, e.g. media_id or stories_id
     $id = int( $id );
-    unless ( $id < 1 )
+    if ( $id < 1 )
     {
         die "ID must be positive.";
     }
