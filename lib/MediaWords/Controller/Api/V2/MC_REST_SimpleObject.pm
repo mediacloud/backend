@@ -153,6 +153,13 @@ sub single_GET
 
     my $table_name = $self->get_table_name();
 
+    # ID is typically an int, e.g. media_id or stories_id
+    $id = int( $id );
+    if ( $id < 1 )
+    {
+        die "ID must be positive.";
+    }
+
     my $id_field = $table_name . "_id";
 
     my $query = "select * from $table_name where $id_field = ? ";
@@ -261,6 +268,8 @@ sub _fetch_list($$$$$$)
 
     my $list;
 
+    $last_id = int( $last_id );
+
     my $name_clause         = $self->get_name_search_clause( $c );
     my $filter_field_clause = $self->_get_filter_field_clause( $c );
     my $extra_where_clause  = $self->get_extra_where_clause( $c );
@@ -339,6 +348,8 @@ sub list_GET
 sub _die_unless_tag_set_matches_user_email
 {
     my ( $self, $c, $tags_id ) = @_;
+
+    $tags_id = int( $tags_id );
 
     Readonly my $query =>
       "SELECT tag_sets.name from tags, tag_sets where tags.tag_sets_id = tag_sets.tag_sets_id AND tags_id = ? limit 1 ";
@@ -432,7 +443,7 @@ sub _get_tags_id
     if ( $tag_string =~ /^\d+/ )
     {
         # TRACE "returning int: $tag_string";
-        return $tag_string;
+        return int( $tag_string );
     }
     elsif ( $tag_string =~ /^.+:.+$/ )
     {
@@ -508,6 +519,8 @@ sub _clear_tags
     {
         my $tags_ids_list = join( ',', @{ $tags_ids } );
 
+        $id = int( $id );
+
         $c->dbis->query( <<END, $id );
 delete from $tags_map_table stm
     using tags keep_tags, tags delete_tags
@@ -541,6 +554,8 @@ sub _add_tags
         # TRACE "story_tag $story_tag";
 
         my ( $id, $tag ) = split ',', $story_tag;
+
+        $id = int( $id );
 
         my $tags_id = $self->_get_tags_id( $c, $tag );
 
