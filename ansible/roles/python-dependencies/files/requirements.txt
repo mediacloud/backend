@@ -114,7 +114,7 @@ regex==2018.08.29
 responses==0.9.0
 
 # Making HTTP requests
-requests==2.19.1
+requests==2.20.0
 
 # Asynchronous (parallell / concurrent) HTTP requests
 requests-futures==0.9.7
