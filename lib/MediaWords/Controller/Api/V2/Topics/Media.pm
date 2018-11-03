@@ -132,6 +132,8 @@ sub list_GET
 
     my $timespan = MediaWords::TM::set_timespans_id_param( $c );
 
+    $c->req->params->{ limit } = int( List::Util::min( $c->req->params->{ limit } // 0, 1_000 ) );
+
     MediaWords::DBI::ApiLinks::process_and_stash_link( $c );
 
     my $db = $c->dbis;
@@ -143,9 +145,7 @@ sub list_GET
     my $timespans_id = $timespan->{ timespans_id };
     my $snapshots_id = $timespan->{ snapshots_id };
 
-    my $limit = int( $c->req->params->{ limit } // 0 );
-    $limit = List::Util::min( $limit, 1_000 );
-
+    my $limit = int( $c->req->params->{ limit } );
     my $offset = int( $c->req->params->{ offset } // 0 );
 
     my $extra_clause = _get_extra_where_clause( $c, $timespans_id );
@@ -181,12 +181,12 @@ sub links_GET
 
     my $timespan = MediaWords::TM::set_timespans_id_param( $c );
 
+    $c->req->params->{ limit } = int( List::Util::min( $c->req->params->{ limit } // 1_000, 1_000_000 ) );
+    my $limit = $c->req->params->{ limit };
+
     MediaWords::DBI::ApiLinks::process_and_stash_link( $c );
 
     my $db = $c->dbis;
-
-    my $limit = int( $c->req->params->{ limit } // 1_000 );
-    $limit = List::Util::min( $limit, 1_000_000 );
 
     my $offset = int( $c->req->params->{ offset } // 0 );
 

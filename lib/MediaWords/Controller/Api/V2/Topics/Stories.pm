@@ -58,12 +58,12 @@ sub links_GET
 
     my $timespan = MediaWords::TM::set_timespans_id_param( $c );
 
-    MediaWords::DBI::ApiLinks::process_and_stash_link( $c );
-
     my $db = $c->dbis;
 
-    my $limit = int( $c->req->params->{ limit } // 1_000 );
-    $limit = List::Util::min( $limit, 1_000_000 );
+    $c->req->params->{ limit } = List::Util::min( int( $c->req->params->{ limit } // 1_000 ), 1_000_000 );
+    my $limit = $c->req->params->{ limit };
+
+    MediaWords::DBI::ApiLinks::process_and_stash_link( $c );
 
     my $offset = int( $c->req->params->{ offset } // 0 );
 
@@ -267,12 +267,14 @@ sub list_GET
 
     my $timespan = MediaWords::TM::set_timespans_id_param( $c );
 
+    $c->req->params->{ limit } = List::Util::min( int( $c->req->params->{ limit } // 20 ), 1_000 );
+    my $limit = int( $c->req->params->{ limit } );
+
     MediaWords::DBI::ApiLinks::process_and_stash_link( $c );
 
     my $db = $c->dbis;
 
     $c->req->params->{ sort } ||= 'inlink';
-    $c->req->params->{ limit } = int( $c->req->params->{ limit } // 20 );
 
     my $sort_clause = _get_sort_clause( $c->req->params->{ sort } );
     $sort_clause = "order by slc.timespans_id, $sort_clause, md5( slc.stories_id::text )";
@@ -281,9 +283,6 @@ sub list_GET
     my $snapshots_id = $timespan->{ snapshots_id };
 
     my $extra_clause = _get_extra_where_clause( $c, $timespans_id );
-
-    my $limit = int( $c->req->params->{ limit } // 0 );
-    $limit = List::Util::min( $limit, 1_000 );
 
     my $offset = int( $c->req->params->{ offset } // 0 );
 
@@ -338,11 +337,11 @@ sub facebook_GET
 
     my $timespan = MediaWords::TM::set_timespans_id_param( $c );
 
-    MediaWords::DBI::ApiLinks::process_and_stash_link( $c );
-
     my $db = $c->dbis;
 
     $c->req->params->{ limit } = int( $c->req->params->{ limit } // 1000 );
+
+    MediaWords::DBI::ApiLinks::process_and_stash_link( $c );
 
     my $timespans_id = $timespan->{ timespans_id };
 
