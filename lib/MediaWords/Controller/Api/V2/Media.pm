@@ -152,7 +152,11 @@ sub _create_topic_media_table
 {
     my ( $self, $c ) = @_;
 
-    my $timespans_id = $c->req->params->{ timespans_id } || $c->req->params->{ controversy_dump_time_slices_id };
+    my $timespans_id = int( $c->req->params->{ timespans_id } // 0 );
+    unless ( $timespans_id )
+    {
+        $timespans_id = int( $c->req->params->{ controversy_dump_time_slices_id } // 0 );
+    }
     my $timespan_mode = $c->req->params->{ topic_mode } || $c->req->params->{ controversy_mode } || '';
 
     return unless ( $timespans_id );
@@ -192,10 +196,8 @@ sub get_extra_where_clause
 
     my $db = $c->dbis;
 
-    if ( my $tags_id = $c->req->params->{ tags_id } )
+    if ( my $tags_id = int( $c->req->params->{ tags_id } // 0 ) )
     {
-        $tags_id += 0;
-
         push( @{ $clauses },
             "and media_id in ( select mtm.media_id from media_tags_map mtm where mtm.tags_id = $tags_id )" );
     }
@@ -227,14 +229,14 @@ and media_id in (
 SQL
     }
 
-    if ( $c->req->params->{ unhealthy } )
+    if ( int( $c->req->params->{ unhealthy } // 0 ) )
     {
         push( @{ $clauses }, <<SQL );
 and exists ( select 1 from media_health h where h.media_id = media.media_id and h.is_healthy = false )
 SQL
     }
 
-    if ( my $similar_media_id = $c->req->params->{ similar_media_id } )
+    if ( my $similar_media_id = int( $c->req->params->{ similar_media_id } // 0 ) )
     {
         # make sure this is an int
         $similar_media_id += 0;
@@ -253,7 +255,7 @@ and media_id in (
 SQL
     }
 
-    if ( ( $c->req->params->{ name } || $c->req->params->{ tag_name } ) && !$c->req->params->{ include_dups } )
+    if ( ( $c->req->params->{ name } || $c->req->params->{ tag_name } ) && !int( $c->req->params->{ include_dups } // 0 ) )
     {
         push( @{ $clauses }, "and dup_media_id is null" );
     }
@@ -571,10 +573,8 @@ sub list_suggestions_GET
 
     my $db = $c->dbis;
 
-    my $tags_id = $c->req->params->{ tags_id } || 0;
-    my $all     = $c->req->params->{ all }     || 0;
-
-    die( "tags_id must be a positve integer" ) if ( $tags_id =~ /[^0-9]/ );
+    my $tags_id = int( $c->req->params->{ tags_id } // 0 );
+    my $all     = int( $c->req->params->{ all }     // 0 );
 
     my $clauses = [ 'true' ];
 
