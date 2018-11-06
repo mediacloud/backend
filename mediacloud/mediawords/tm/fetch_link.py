@@ -73,7 +73,7 @@ def fetch_url(
         network_down_host: str = DEFAULT_NETWORK_DOWN_HOST,
         network_down_port: str = DEFAULT_NETWORK_DOWN_PORT,
         network_down_timeout: int = DEFAULT_NETWORK_DOWN_TIMEOUT,
-        domain_timeout: typing.Optional[int] = None) -> typing.Optional[Request]:
+        domain_timeout: typing.Optional[int] = None) -> Response:
     """Fetch a url and return the content.
 
     If fetching the url results in a 400 error, check whether the network_down_host is accessible.  If so,
