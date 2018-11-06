@@ -9,17 +9,6 @@ import mediawords.tm.fetch_link
 from mediawords.util.web.user_agent.throttled import McThrottledDomainException
 
 
-def test_network_is_down() -> None:
-    """Test network_is_down()."""
-    hs = mediawords.test.hash_server.HashServer(port=0, pages={'/foo': 'bar'})
-    port = hs.port()
-    hs.start()
-    assert not mediawords.tm.fetch_link._network_is_down(host='localhost', port=port)
-
-    hs.stop()
-    assert mediawords.tm.fetch_link._network_is_down(host='localhost', port=port)
-
-
 def test_content_matches_topic() -> None:
     """Test content_matches_topic()."""
     assert mediawords.tm.fetch_link._content_matches_topic('foo', {'pattern': 'foo'})
