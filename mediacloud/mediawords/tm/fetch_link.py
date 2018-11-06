@@ -130,7 +130,7 @@ def _content_matches_topic(content: str, topic: dict, assume_match: bool = False
     if isinstance(content, bytes):
         content = content.decode('utf8', 'backslashreplace')
 
-    return re2.search(topic['pattern'], content, flags=re2.I | re2.X | re2.S) is not None
+    return re2.search(topic['pattern'], content, int_flags=re2.I | re2.X | re2.S) is not None
 
 
 def _story_matches_topic(
@@ -177,7 +177,7 @@ def _story_matches_topic(
         return True
 
 
-def _is_not_topic_story(db: DatabaseHandler, topic_fetch_url: dict) -> None:
+def _is_not_topic_story(db: DatabaseHandler, topic_fetch_url: dict) -> bool:
     """Return True if the story is not in topic_stories for the given topic."""
     if 'stories_id' not in topic_fetch_url:
         return True
@@ -225,7 +225,7 @@ def _add_to_topic_stories(db: DatabaseHandler, story: dict, topic: dict) -> None
 
 
 # return true if the domain of the story url matches the domain of the medium url
-def get_seeded_content(db: DatabaseHandler, topic_fetch_url: dict) -> typing.Optional[str]:
+def get_seeded_content(db: DatabaseHandler, topic_fetch_url: dict) -> typing.Optional[Response]:
     """Return content for this url and topic in topic_seed_urls.
 
     Arguments:
@@ -283,10 +283,13 @@ def get_failed_url(db: DatabaseHandler, topics_id: int, url: str) -> typing.Opti
 
     a list of the topic_fetch_url dicts that do not have fetch fails
     """
-    topics_id = decode_object_from_bytes_if_needed(topics_id)
+    if isinstance(topics_id, bytes):
+        topics_id = decode_object_from_bytes_if_needed(topics_id)
+
+    topics_id = int(topics_id)
     url = decode_object_from_bytes_if_needed(url)
 
-    urls = list(set((url, mediawords.util.url.normalize_url_lossy(url))))
+    urls = list({url, mediawords.util.url.normalize_url_lossy(url)})
 
     failed_url = db.query(
         """
@@ -322,7 +325,7 @@ def _ignore_link_pattern(url: typing.Optional[str]) -> bool:
     p = mediawords.tm.extract_story_links.IGNORE_LINK_PATTERN
     nu = mediawords.util.url.normalize_url_lossy(url)
 
-    return re2.search(p, url, flags=re2.I) or re2.search(p, nu, flags=re2.I)
+    return re2.search(p, url, int_flags=re2.I) or re2.search(p, nu, int_flags=re2.I)
 
 
 def _try_fetch_topic_url(
