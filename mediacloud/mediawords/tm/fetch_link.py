@@ -2,7 +2,6 @@
 
 import datetime
 import re2
-import socket
 import time
 import traceback
 import typing
@@ -12,6 +11,7 @@ import mediawords.tm.domains
 import mediawords.tm.extract_story_links
 import mediawords.tm.stories
 from mediawords.util.log import create_logger
+from mediawords.util.network import tcp_port_is_open
 from mediawords.util.perl import decode_object_from_bytes_if_needed
 import mediawords.util.url
 from mediawords.util.web.user_agent.request.request import Request
@@ -48,17 +48,6 @@ class McTMFetchLinkException(Exception):
     pass
 
 
-def _network_is_down(host: str = DEFAULT_NETWORK_DOWN_HOST, port: int = DEFAULT_NETWORK_DOWN_PORT) -> bool:
-    """Test whether the internet is accessible by trying to connect to prot 80 on the given host."""
-    try:
-        socket.create_connection((host, port))
-        return False
-    except OSError:
-        pass
-
-    return True
-
-
 def _make_dummy_bypassed_response(url: str) -> Response:
     """Given a url, make and return a response object with that url and empty content."""
     response = Response(code=200, message='OK', headers={}, data='')
@@ -71,7 +60,7 @@ def fetch_url(
         db: DatabaseHandler,
         url: str,
         network_down_host: str = DEFAULT_NETWORK_DOWN_HOST,
-        network_down_port: str = DEFAULT_NETWORK_DOWN_PORT,
+        network_down_port: int = DEFAULT_NETWORK_DOWN_PORT,
         network_down_timeout: int = DEFAULT_NETWORK_DOWN_TIMEOUT,
         domain_timeout: typing.Optional[int] = None) -> Response:
     """Fetch a url and return the content.
@@ -106,7 +95,7 @@ def fetch_url(
         if response.is_success():
             return response
 
-        if response.code() == 400 and _network_is_down(network_down_host, network_down_port):
+        if response.code() == 400 and not tcp_port_is_open(port=network_down_port, hostname=network_down_host):
             log.warning("Response failed with %s and network is down.  Waiting to retry ..." % (url,))
             time.sleep(network_down_timeout)
         else:
