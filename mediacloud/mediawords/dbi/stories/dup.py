@@ -124,3 +124,25 @@ def get_medium_dup_stories_by_title(stories: List, assume_no_home_pages: bool = 
                 log.debug("Cowardly refusing to mark num_stories stories as dups [%s]" % dup_title)
 
     return duplicate_stories
+
+
+def get_medium_dup_stories_by_url(stories: List[dict]) -> List[List]:
+    """Get duplicate stories within the given set by url.
+
+    Get dup stories within the given set that are duplicates because the normalized url for two given stories is the
+    same.  Return a list of story duplicate lists.  Do not return any list of duplicates with greater than 5 dups for
+    fear that the url normalization is interacting with some url form in a goofy way
+    """
+    url_lookup = {}
+    for story in stories:
+        if 'url' not in story:
+            log.warning("No URL in story: %s" % str(story))
+            continue
+
+        nu = mediawords.util.url.normalize_url_lossy(story['url'])
+        story['normalized_url'] = nu
+
+        url_lookup.setdefault(nu, [])
+        url_lookup[nu].append(story)
+
+    return filter(lambda x: len(x) > 1 and len(x) < 6, url_lookup.values())
