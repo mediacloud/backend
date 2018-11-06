@@ -413,6 +413,41 @@ def generate_story(
     return story
 
 
+def add_to_topic_stories(db: DatabaseHandler, story: dict, topic: dict) -> None:
+    """Add story to topic_stories table.
+
+    Query topic_stories and topic_links to find the linking story with the smallest iteration and use
+    that iteration + 1 for the new topic_stories row.
+    """
+    source_story = db.query(
+        """
+        select ts.*
+            from topic_stories ts
+                join topic_links tl using ( stories_id )
+            where
+                tl.ref_stories_id = %(a)s and
+                tl.topics_id = %(b)s
+            order by ts.iteration asc
+            limit 1
+        """,
+        {'a': story['stories_id'], 'b': topic['topics_id']}).hash()
+
+    iteration = source_story['iteration'] + 1 if source_story else 0
+
+    db.query(
+        """
+        insert into topic_stories
+            ( topics_id, stories_id, iteration, redirect_url, link_mined, valid_foreign_rss_story )
+            values ( %(a)s, %(b)s, %(c)s, %(d)s, False, False )
+        """,
+        {
+            'a': topic['topics_id'],
+            'b': story['stories_id'],
+            'c': iteration,
+            'd': story['url']
+        })
+
+
 def merge_foreign_rss_stories(db: DatabaseHandler, topic: dict) -> None:
     """Move all topic stories with a foreign_rss_links medium from topic_stories back to topic_seed_urls."""
     topic = decode_object_from_bytes_if_needed(topic)
@@ -453,3 +488,65 @@ def merge_foreign_rss_stories(db: DatabaseHandler, topic: dict) -> None:
             "delete from topic_stories where stories_id = %(a)s and topics_id = %(b)s",
             {'a': story['stories_id'], 'b': topic['topics_id']})
         db.commit()
+
+
+def copy_story_to_new_medium(db: DatabaseHandler, topic: dict, old_story: dict, new_medium: dict) -> dict:
+    """Copy story to new medium.
+
+    Copy the given story, assigning the new media_id and copying over the download, extracted text, and so on.
+    Return the new story.
+    """
+
+    story = {
+        'url': old_story['url'],
+        'media_id': new_medium['media_id'],
+        'guid': old_story['guid'],
+        'publish_date': old_story['publish_date'],
+        'collect_date': mediawords.util.sql.sql_now(),
+        'description': old_story['description'],
+        'title': old_story['title']
+    }
+
+    story = db.create('stories', story)
+    add_to_topic_stories(db, story, topic)
+
+    db.query(
+        """
+        insert into stories_tags_map (stories_id, tags_id)
+            select %(a)s, stm.tags_id from stories_tags_map stm where stm.stories_id = %(b)s
+        """,
+        {'a': story['stories_id'], 'b': old_story['stories_id']})
+
+    feed = get_spider_feed(db, new_medium)
+    db.create('feeds_stories_map', {'feeds_id': feed['feeds_id'], 'stories_id': story['stories_id']})
+
+    old_download = db.query(
+        "select * from downloads where stories_id = %(a)s order by downloads_id limit 1",
+        {'a': old_story['stories_id']}).hash()
+    if old_download is not None:
+        content = mediawords.dbi.downloads.fetch_content(db, old_download)
+        download = create_download_for_new_story(db, story, feed)
+        download = mediawords.dbi.downloads.store_content(db, download, content)
+
+        db.query(
+            """
+            insert into download_texts (downloads_id, download_text, download_text_length)
+                select %(a)s, dt.download_text, dt.download_text_length
+                    from download_texts dt
+                        join downloads d on (dt.downloads_id = d.downloads_id)
+                    where d.stories_id = %(b)s
+                    order by d.downloads_id asc
+                    limit 1
+            """,
+            {'a': download['downloads_id'], 'b': old_story['stories_id']})
+
+    db.query(
+        """
+        insert into story_sentences (stories_id, sentence_number, sentence, media_id, publish_date, language)
+            select %(a)s, sentence_number, sentence, media_id, publish_date, language
+                from story_sentences
+                where stories_id = %(b)s
+        """,
+        {'a': story['stories_id'], 'b': old_story['stories_id']})
+
+    return story

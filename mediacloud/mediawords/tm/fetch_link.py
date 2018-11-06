@@ -200,41 +200,6 @@ def _is_not_topic_story(db: DatabaseHandler, topic_fetch_url: dict) -> None:
     return ts is None
 
 
-def _add_to_topic_stories(db: DatabaseHandler, story: dict, topic: dict) -> None:
-    """Add story to topic_stories table.
-
-    Query topic_stories and topic_links to find the linking story with the smallest iteration and use
-    that iteration + 1 for the new topic_stories row.
-    """
-    source_story = db.query(
-        """
-        select ts.*
-            from topic_stories ts
-                join topic_links tl using ( stories_id )
-            where
-                tl.ref_stories_id = %(a)s and
-                tl.topics_id = %(b)s
-            order by ts.iteration asc
-            limit 1
-        """,
-        {'a': story['stories_id'], 'b': topic['topics_id']}).hash()
-
-    iteration = source_story['iteration'] + 1 if source_story else 0
-
-    db.query(
-        """
-        insert into topic_stories
-            ( topics_id, stories_id, iteration, redirect_url, link_mined, valid_foreign_rss_story )
-            values ( %(a)s, %(b)s, %(c)s, %(d)s, False, False )
-        """,
-        {
-            'a': topic['topics_id'],
-            'b': story['stories_id'],
-            'c': iteration,
-            'd': story['url']
-        })
-
-
 # return true if the domain of the story url matches the domain of the medium url
 def get_seeded_content(db: DatabaseHandler, topic_fetch_url: dict) -> typing.Optional[str]:
     """Return content for this url and topic in topic_seed_urls.
@@ -489,7 +454,7 @@ def fetch_topic_url(db: DatabaseHandler, topic_fetch_urls_id: int, domain_timeou
             assume_match = topic_fetch_url['assume_match']
             if _is_not_topic_story(db, topic_fetch_url):
                 if _story_matches_topic(db, story, topic, redirect_url=redirect_url, assume_match=assume_match):
-                    _add_to_topic_stories(db, story, topic)
+                    mediawords.tm.stories.add_to_topic_stories(db, story, topic)
 
         if topic_fetch_url['topic_links_id'] and topic_fetch_url['stories_id']:
             try_update_topic_link_ref_stories_id(db, topic_fetch_url)
