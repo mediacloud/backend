@@ -56,7 +56,7 @@ def _make_dummy_bypassed_response(url: str) -> Response:
     return response
 
 
-def fetch_url(
+def _fetch_url(
         db: DatabaseHandler,
         url: str,
         network_down_host: str = DEFAULT_NETWORK_DOWN_HOST,
@@ -225,7 +225,7 @@ def _add_to_topic_stories(db: DatabaseHandler, story: dict, topic: dict) -> None
 
 
 # return true if the domain of the story url matches the domain of the medium url
-def get_seeded_content(db: DatabaseHandler, topic_fetch_url: dict) -> typing.Optional[Response]:
+def _get_seeded_content(db: DatabaseHandler, topic_fetch_url: dict) -> typing.Optional[Response]:
     """Return content for this url and topic in topic_seed_urls.
 
     Arguments:
@@ -249,7 +249,7 @@ def get_seeded_content(db: DatabaseHandler, topic_fetch_url: dict) -> typing.Opt
     return response
 
 
-def try_update_topic_link_ref_stories_id(db: DatabaseHandler, topic_fetch_url: dict) -> None:
+def _try_update_topic_link_ref_stories_id(db: DatabaseHandler, topic_fetch_url: dict) -> None:
     """Update the given topic link to point to the given ref_stories_id.
 
     Use the topic_fetch_url['topic_links_id'] as the id of the topic link to update and the
@@ -271,7 +271,7 @@ def try_update_topic_link_ref_stories_id(db: DatabaseHandler, topic_fetch_url: d
             raise e
 
 
-def get_failed_url(db: DatabaseHandler, topics_id: int, url: str) -> typing.Optional[dict]:
+def _get_failed_url(db: DatabaseHandler, topics_id: int, url: str) -> typing.Optional[dict]:
     """Return the links from the set without FETCH_STATE_REQUEST_FAILED or FETCH_STATE_CONTENT_MATCH_FAILED states.
 
     Arguments:
@@ -347,7 +347,7 @@ def _try_fetch_topic_url(
         return
 
     _update_tfu_message(db, topic_fetch_url, "checking failed url")
-    failed_url = get_failed_url(db, topic_fetch_url['topics_id'], topic_fetch_url['url'])
+    failed_url = _get_failed_url(db, topic_fetch_url['topics_id'], topic_fetch_url['url'])
     if failed_url:
         topic_fetch_url['state'] = failed_url['state']
         topic_fetch_url['code'] = failed_url['code']
@@ -380,10 +380,10 @@ def _try_fetch_topic_url(
 
     # get content from either the seed or by fetching it
     _update_tfu_message(db, topic_fetch_url, "checking seeded content")
-    response = get_seeded_content(db, topic_fetch_url)
+    response = _get_seeded_content(db, topic_fetch_url)
     if response is None:
         _update_tfu_message(db, topic_fetch_url, "fetching content")
-        response = fetch_url(db, topic_fetch_url['url'], domain_timeout=domain_timeout)
+        response = _fetch_url(db, topic_fetch_url['url'], domain_timeout=domain_timeout)
         log.debug("%d response returned for url: %s" % (response.code(), topic_fetch_url['url']))
     else:
         log.debug("seeded content found for url: %s" % topic_fetch_url['url'])
@@ -484,7 +484,7 @@ def fetch_topic_url(db: DatabaseHandler, topic_fetch_urls_id: int, domain_timeou
                     _add_to_topic_stories(db, story, topic)
 
         if topic_fetch_url['topic_links_id'] and topic_fetch_url['stories_id']:
-            try_update_topic_link_ref_stories_id(db, topic_fetch_url)
+            _try_update_topic_link_ref_stories_id(db, topic_fetch_url)
 
     except McThrottledDomainException as ex:
         raise ex
