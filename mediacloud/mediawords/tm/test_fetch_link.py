@@ -6,6 +6,7 @@ import mediawords.test.db.create
 import mediawords.test.hash_server
 import mediawords.test.test_database
 import mediawords.tm.fetch_link
+from mediawords.db.exceptions.handler import McUpdateByIDException
 from mediawords.util.web.user_agent.throttled import McThrottledDomainException
 
 
@@ -55,14 +56,14 @@ class TestTMFetchLinkDB(mediawords.test.test_database.TestDatabaseWithSchemaTest
         }
 
         # before delayed start, 404s and 500s should still return None
-        assert not mediawords.tm.fetch_link._fetch_url(db, hs.page_url('/404'), **timeout_args).is_success()
-        assert not mediawords.tm.fetch_link._fetch_url(db, hs.page_url('/500'), **timeout_args).is_success()
+        assert not mediawords.tm.fetch_link._fetch_url(db, hs.page_url('/404'), **timeout_args).is_success
+        assert not mediawords.tm.fetch_link._fetch_url(db, hs.page_url('/500'), **timeout_args).is_success
 
         # request for a valid page should make the call wait until the hs comes up
-        assert mediawords.tm.fetch_link._fetch_url(db, hs.page_url('/foo'), **timeout_args).decoded_content() == 'bar'
+        assert mediawords.tm.fetch_link._fetch_url(db, hs.page_url('/foo'), **timeout_args).content == 'bar'
 
         # and now a 400 should return a None
-        assert not mediawords.tm.fetch_link._fetch_url(db, hs.page_url('/400'), **timeout_args).is_success()
+        assert not mediawords.tm.fetch_link._fetch_url(db, hs.page_url('/400'), **timeout_args).is_success
 
         # make sure invalid url does not raise an exception
         assert not mediawords.tm.fetch_link._fetch_url(db, 'this is not a url', **timeout_args) is None
@@ -70,8 +71,8 @@ class TestTMFetchLinkDB(mediawords.test.test_database.TestDatabaseWithSchemaTest
         # make sure that requests follow meta redirects
         response = mediawords.tm.fetch_link._fetch_url(db, hs.page_url('/mr'), **timeout_args)
 
-        assert response.decoded_content() == 'meta redirect target'
-        assert response.request().url() == hs.page_url('/mr-foo')
+        assert response.content == 'meta redirect target'
+        assert response.last_requested_url == hs.page_url('/mr-foo')
 
     def test_get_seeded_content(self) -> None:
         """Test get_seeded_content()."""
@@ -91,9 +92,9 @@ class TestTMFetchLinkDB(mediawords.test.test_database.TestDatabaseWithSchemaTest
 
         response = mediawords.tm.fetch_link._get_seeded_content(db, tfu)
 
-        assert response.decoded_content() == tsu_content
-        assert response.code() == 200
-        assert response.request().url() == tfu['url']
+        assert response.content == tsu_content
+        assert response.code == 200
+        assert response.last_requested_url == tfu['url']
 
         mediawords.tm.fetch_link.fetch_topic_url(db, tfu['topic_fetch_urls_id'], domain_timeout=0)
 
@@ -392,5 +393,5 @@ class TestTMFetchLinkDB(mediawords.test.test_database.TestDatabaseWithSchemaTest
 
         # now generate an non-unique error and make sure we get an error
         bogus_tfu = {'topic_links_id': 0, 'topics_id': 'nan', 'stories_id': 'nan'}
-        with self.assertRaises(mediawords.db.exceptions.handler.McUpdateByIDException):
+        with self.assertRaises(McUpdateByIDException):
             mediawords.tm.fetch_link._try_update_topic_link_ref_stories_id(db, bogus_tfu)

@@ -5,16 +5,18 @@ import re2
 import time
 import traceback
 import typing
+from dataclasses import dataclass
+from http import HTTPStatus
 
 from mediawords.db import DatabaseHandler
 import mediawords.tm.domains
 import mediawords.tm.extract_story_links
 import mediawords.tm.stories
+from mediawords.db.exceptions.handler import McUpdateByIDException
 from mediawords.util.log import create_logger
 from mediawords.util.network import tcp_port_is_open
 from mediawords.util.perl import decode_object_from_bytes_if_needed
 import mediawords.util.url
-from mediawords.util.web.user_agent.request.request import Request
 from mediawords.util.web.user_agent.response.response import Response
 from mediawords.util.web.user_agent.throttled import ThrottledUserAgent, McThrottledDomainException
 
@@ -48,12 +50,52 @@ class McTMFetchLinkException(Exception):
     pass
 
 
-def _make_dummy_bypassed_response(url: str) -> Response:
-    """Given a url, make and return a response object with that url and empty content."""
-    response = Response(code=200, message='OK', headers={}, data='')
-    response.set_request(Request('GET', url))
+# Creating UserAgent's "fake" responses is just a bit too awkward because we have to go know how Response is implemented
+# so use our own response object storing just the parts that we need
+@dataclass
+class FetchLinkResponse(object):
+    """Response after fetching an URL."""
 
-    return response
+    url: str
+    """Originally requested URL."""
+
+    is_success: bool
+    """Whether or not the request was successful."""
+
+    code: int
+    """HTTP response code, e.g. 200."""
+
+    message: str
+    """HTTP response message, e.g. 'OK'."""
+
+    content: str
+    """Decoded content of the response."""
+
+    last_requested_url: typing.Optional[str] = None
+    """Last requested URL that led to this response (in case of a redirect cycle)."""
+
+    @classmethod
+    def from_useragent_response(cls, url: str, response: Response):
+        return cls(
+            url=url,
+            is_success=response.is_success(),
+            code=response.code(),
+            message=response.message(),
+            content=response.decoded_content(),
+            last_requested_url=response.request().url() if response.request() else None,
+        )
+
+
+def _make_dummy_bypassed_response(url: str) -> FetchLinkResponse:
+    """Given a url, make and return a response object with that url and empty content."""
+    return FetchLinkResponse(
+        url=url,
+        is_success=True,
+        code=HTTPStatus.OK.value,
+        message=HTTPStatus.OK.phrase,
+        content='',
+        last_requested_url=url,
+    )
 
 
 def _fetch_url(
@@ -62,7 +104,7 @@ def _fetch_url(
         network_down_host: str = DEFAULT_NETWORK_DOWN_HOST,
         network_down_port: int = DEFAULT_NETWORK_DOWN_PORT,
         network_down_timeout: int = DEFAULT_NETWORK_DOWN_TIMEOUT,
-        domain_timeout: typing.Optional[int] = None) -> Response:
+        domain_timeout: typing.Optional[int] = None) -> FetchLinkResponse:
     """Fetch a url and return the content.
 
     If fetching the url results in a 400 error, check whether the network_down_host is accessible.  If so,
@@ -87,15 +129,24 @@ def _fetch_url(
     while True:
         ua = ThrottledUserAgent(db, domain_timeout=domain_timeout)
 
-        try:
-            response = ua.get_follow_http_html_redirects(url)
-        except mediawords.util.web.user_agent.McGetFollowHTTPHTMLRedirectsException:
-            response = Response(400, 'bad url', {}, 'not a http url')
+        if mediawords.util.url.is_http_url(url):
+            ua_response = ua.get_follow_http_html_redirects(url)
+            response = FetchLinkResponse.from_useragent_response(url, ua_response)
+        else:
+            response = FetchLinkResponse(
+                url=url,
+                is_success=False,
+                code=HTTPStatus.BAD_REQUEST.value,
+                message=HTTPStatus.BAD_REQUEST.phrase,
+                content='bad url',
+                last_requested_url=None,
+            )
 
-        if response.is_success():
+        if response.is_success:
             return response
 
-        if response.code() == 400 and not tcp_port_is_open(port=network_down_port, hostname=network_down_host):
+        if response.code == HTTPStatus.BAD_REQUEST.value and not tcp_port_is_open(port=network_down_port,
+                                                                                  hostname=network_down_host):
             log.warning("Response failed with %s and network is down.  Waiting to retry ..." % (url,))
             time.sleep(network_down_timeout)
         else:
@@ -225,7 +276,7 @@ def _add_to_topic_stories(db: DatabaseHandler, story: dict, topic: dict) -> None
 
 
 # return true if the domain of the story url matches the domain of the medium url
-def _get_seeded_content(db: DatabaseHandler, topic_fetch_url: dict) -> typing.Optional[Response]:
+def _get_seeded_content(db: DatabaseHandler, topic_fetch_url: dict) -> typing.Optional[FetchLinkResponse]:
     """Return content for this url and topic in topic_seed_urls.
 
     Arguments:
@@ -243,10 +294,14 @@ def _get_seeded_content(db: DatabaseHandler, topic_fetch_url: dict) -> typing.Op
     if len(r) == 0:
         return None
 
-    response = Response(code=200, message='OK', headers={}, data=r[0])
-    response.set_request(Request('GET', topic_fetch_url['url']))
-
-    return response
+    return FetchLinkResponse(
+        url=topic_fetch_url['url'],
+        is_success=True,
+        code=HTTPStatus.OK.value,
+        message=HTTPStatus.OK.phrase,
+        content=r[0],
+        last_requested_url=topic_fetch_url['url'],
+    )
 
 
 def _try_update_topic_link_ref_stories_id(db: DatabaseHandler, topic_fetch_url: dict) -> None:
@@ -264,7 +319,7 @@ def _try_update_topic_link_ref_stories_id(db: DatabaseHandler, topic_fetch_url: 
             'topic_links',
             topic_fetch_url['topic_links_id'],
             {'ref_stories_id': topic_fetch_url['stories_id']})
-    except mediawords.db.exceptions.handler.McUpdateByIDException as e:
+    except McUpdateByIDException as e:
         # the query will throw a unique constraint error if stories_id,ref_stories already exists.  it's quicker
         # to just catch and ignore the error than to try to avoid id
         if 'unique constraint "topic_links_scr"' not in str(e):
@@ -384,14 +439,14 @@ def _try_fetch_topic_url(
     if response is None:
         _update_tfu_message(db, topic_fetch_url, "fetching content")
         response = _fetch_url(db, topic_fetch_url['url'], domain_timeout=domain_timeout)
-        log.debug("%d response returned for url: %s" % (response.code(), topic_fetch_url['url']))
+        log.debug("%d response returned for url: %s" % (response.code, topic_fetch_url['url']))
     else:
         log.debug("seeded content found for url: %s" % topic_fetch_url['url'])
 
-    content = response.decoded_content()
+    content = response.content
 
     fetched_url = topic_fetch_url['url']
-    response_url = response.request().url() if response.request() else None
+    response_url = response.last_requested_url
 
     if fetched_url != response_url:
         if _ignore_link_pattern(response_url):
@@ -402,14 +457,14 @@ def _try_fetch_topic_url(
         _update_tfu_message(db, topic_fetch_url, "checking story match for redirect_url")
         story_match = mediawords.tm.stories.get_story_match(db=db, url=fetched_url, redirect_url=response_url)
 
-    topic_fetch_url['code'] = response.code()
+    topic_fetch_url['code'] = response.code
 
     assume_match = topic_fetch_url['assume_match']
 
     _update_tfu_message(db, topic_fetch_url, "checking content match")
-    if not response.is_success():
+    if not response.is_success:
         topic_fetch_url['state'] = FETCH_STATE_REQUEST_FAILED
-        topic_fetch_url['message'] = response.message()
+        topic_fetch_url['message'] = response.message
     elif story_match is not None:
         topic_fetch_url['state'] = FETCH_STATE_STORY_MATCH
         topic_fetch_url['stories_id'] = story_match['stories_id']
