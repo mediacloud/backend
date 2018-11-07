@@ -206,7 +206,7 @@ def _story_matches_topic(
     if assume_match:
         return True
 
-    for field in 'title description url'.split():
+    for field in ['title', 'description', 'url']:
         if _content_matches_topic(story[field], topic):
             return True
 
