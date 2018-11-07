@@ -130,7 +130,7 @@ def _content_matches_topic(content: str, topic: dict, assume_match: bool = False
     if isinstance(content, bytes):
         content = content.decode('utf8', 'backslashreplace')
 
-    return re2.search(topic['pattern'], content, int_flags=re2.I | re2.X | re2.S) is not None
+    return re2.search(topic['pattern'], content, re2.I | re2.X | re2.S) is not None
 
 
 def _story_matches_topic(
@@ -325,7 +325,7 @@ def _ignore_link_pattern(url: typing.Optional[str]) -> bool:
     p = mediawords.tm.extract_story_links.IGNORE_LINK_PATTERN
     nu = mediawords.util.url.normalize_url_lossy(url)
 
-    return re2.search(p, url, int_flags=re2.I) or re2.search(p, nu, int_flags=re2.I)
+    return re2.search(p, url, re2.I) or re2.search(p, nu, re2.I)
 
 
 def _try_fetch_topic_url(
