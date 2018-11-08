@@ -413,38 +413,48 @@ def generate_story(
     return story
 
 
-def add_to_topic_stories(db: DatabaseHandler, story: dict, topic: dict) -> None:
+def add_to_topic_stories(
+        db: DatabaseHandler,
+        story: dict,
+        topic: dict,
+        link_mined: bool = False,
+        valid_foreign_rss_story: bool = False,
+        iteration: int = None) -> None:
     """Add story to topic_stories table.
 
     Query topic_stories and topic_links to find the linking story with the smallest iteration and use
     that iteration + 1 for the new topic_stories row.
     """
-    source_story = db.query(
-        """
-        select ts.*
-            from topic_stories ts
-                join topic_links tl using ( stories_id )
-            where
-                tl.ref_stories_id = %(a)s and
-                tl.topics_id = %(b)s
-            order by ts.iteration asc
-            limit 1
-        """,
-        {'a': story['stories_id'], 'b': topic['topics_id']}).hash()
+    if iteration is None:
+        source_story = db.query(
+            """
+            select ts.*
+                from topic_stories ts
+                    join topic_links tl on ( ts.stories_id = tl.stories_id and ts.topics_id = tl.topics_id )
+                where
+                    tl.ref_stories_id = %(a)s and
+                    tl.topics_id = %(b)s
+                order by ts.iteration asc
+                limit 1
+            """,
+            {'a': story['stories_id'], 'b': topic['topics_id']}).hash()
 
-    iteration = source_story['iteration'] + 1 if source_story else 0
+        iteration = (source_story['iteration'] + 1) if source_story else 0
 
     db.query(
         """
         insert into topic_stories
             ( topics_id, stories_id, iteration, redirect_url, link_mined, valid_foreign_rss_story )
-            values ( %(a)s, %(b)s, %(c)s, %(d)s, False, False )
+            values ( %(a)s, %(b)s, %(c)s, %(d)s, %(e)s, %(f)s )
+            on conflict do nothing
         """,
         {
             'a': topic['topics_id'],
             'b': story['stories_id'],
             'c': iteration,
-            'd': story['url']
+            'd': story['url'],
+            'e': link_mined,
+            'f': valid_foreign_rss_story
         })
 
 
@@ -508,7 +518,7 @@ def copy_story_to_new_medium(db: DatabaseHandler, topic: dict, old_story: dict, 
     }
 
     story = db.create('stories', story)
-    add_to_topic_stories(db, story, topic)
+    add_to_topic_stories(db=db, story=story, topic=topic, valid_foreign_rss_story=True)
 
     db.query(
         """
@@ -550,3 +560,87 @@ def copy_story_to_new_medium(db: DatabaseHandler, topic: dict, old_story: dict, 
         {'a': story['stories_id'], 'b': old_story['stories_id']})
 
     return story
+
+
+def _get_merged_iteration(db: DatabaseHandler, topic: dict, delete_story: dict, keep_story: dict) -> int:
+    """Get the smaller iteration of two stories"""
+    iterations = db.query(
+        """
+        select iteration
+            from topic_stories
+            where
+                topics_id = %(a)s and
+                stories_id in (%(b)s, %(c)s)
+        """,
+        {'a': topic['topics_id'], 'b': delete_story['stories_id'], 'c': keep_story['stories_id']}).flat()
+
+    return min(iterations)
+
+
+def merge_dup_story(db, topic, delete_story, keep_story):
+    """Merge delete_story into keep_story.
+
+    Make sure all links that are in delete_story are also in keep_story and make
+    sure that keep_story is in topic_stories.  once done, delete delete_story from topic_stories (but not from
+    stories). also change stories_id in topic_seed_urls and add a row in topic_merged_stories_map.
+    """
+
+    log.debug(
+        "%s [%d] <- %s [%d]" %
+        (keep_story['title'], keep_story['stories_id'], delete_story['title'], delete_story['stories_id']))
+
+    if delete_story['stories_id'] == keep_story['stories_id']:
+        log.debug("refusing to merge identical story")
+        return
+
+    topics_id = topic['topics_id']
+
+    merged_iteration = _get_merged_iteration(db, topic, delete_story, keep_story)
+    add_to_topic_stories(db=db, topic=topic, story=keep_story, link_mined=True, iteration=merged_iteration)
+
+    use_transaction = not db.in_transaction()
+    if use_transaction:
+        db.begin()
+
+    db.query(
+        """
+        insert into topic_links ( topics_id, stories_id, ref_stories_id, url, redirect_url, link_spidered )
+            select topics_id, %(c)s, ref_stories_id, url, redirect_url, link_spidered
+                from topic_links tl
+                where
+                    tl.topics_id = %(a)s and
+                    tl.stories_id = %(b)s
+            on conflict do nothing
+        """,
+        {'a': topics_id, 'b': delete_story['stories_id'], 'c': keep_story['stories_id']})
+
+    db.query(
+        """
+        insert into topic_links ( topics_id, stories_id, ref_stories_id, url, redirect_url, link_spidered )
+            select topics_id, stories_id, %(c)s, url, redirect_url, link_spidered
+                from topic_links tl
+                where
+                    tl.topics_id = %(a)s and
+                    tl.ref_stories_id = %(b)s
+            on conflict do nothing
+        """,
+        {'a': topics_id, 'b': delete_story['stories_id'], 'c': keep_story['stories_id']})
+
+    db.query(
+        "delete from topic_links where topics_id = %(a)s and %(b)s in ( stories_id, ref_stories_id )",
+        {'a': topics_id, 'b': delete_story['stories_id']})
+
+    db.query(
+        "delete from topic_stories where stories_id = %(a)s and topics_id = %(b)s",
+        {'a': delete_story['stories_id'], 'b': topics_id})
+
+    db.query(
+        "insert into topic_merged_stories_map (source_stories_id, target_stories_id) values (%(a)s, %(b)s)",
+        {'a': delete_story['stories_id'], 'b': keep_story['stories_id']})
+
+    db.query(
+        "update topic_seed_urls set stories_id = %(b)s where stories_id = %(a)s and topics_id = %(c)s",
+        {'a': delete_story['stories_id'], 'b': keep_story['stories_id'], 'c': topic['topics_id']})
+
+    if use_transaction:
+        db.commit()
