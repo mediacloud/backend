@@ -644,3 +644,45 @@ def merge_dup_story(db, topic, delete_story, keep_story):
 
     if use_transaction:
         db.commit()
+
+
+def _get_deduped_medium(db: DatabaseHandler, media_id: int) -> dict:
+    """Get either the referenced medium or the deduped version of the medium by recursively following dup_media_id."""
+    medium = db.require_by_id('media', media_id)
+    if medium['dup_media_id'] is None:
+        return medium
+    else:
+        return _get_deduped_medium(db, medium['dup_media_id'])
+
+
+def merge_dup_media_story(db, topic, story):
+    """Given a story in a dup_media_id medium, look for or create a story in the medium pointed to by dup_media_id.
+
+    Call merge_dup_story on the found or cloned story in the new medium.
+    """
+
+    dup_medium = _get_deduped_medium(db, story['media_id'])
+
+    new_story = db.query(
+        """
+        SELECT s.* FROM stories s
+            WHERE s.media_id = %(media_id)s and
+                (( %(url)s in ( s.url, s.guid ) ) or
+                 ( %(guid)s in ( s.url, s.guid) ) or
+                 ( s.title = %(title)s and date_trunc( 'day', s.publish_date ) = %(date)s ) )
+        """,
+        {
+            'media_id': dup_medium['media_id'],
+            'url': story['url'],
+            'guid': story['guid'],
+            'title': story['title'],
+            'date': story['publish_date']
+        }
+    ).hash()
+
+    if new_story is None:
+        new_story = copy_story_to_new_medium(db, topic, story, dup_medium)
+
+    merge_dup_story(db, topic, story, new_story)
+
+    return new_story

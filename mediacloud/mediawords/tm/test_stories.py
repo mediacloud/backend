@@ -509,3 +509,29 @@ class TestTMStoriesDB(mediawords.test.test_database.TestDatabaseWithSchemaTestCa
             "select * from topic_merged_stories_map where target_stories_id = %(a)s and source_stories_id = %(b)s",
             {'a': new_story['stories_id'], 'b': old_story['stories_id']}).hashes()
         assert len(topic_merged_stories_maps) == 1
+
+    def test_merge_dup_media_story(self) -> None:
+        """Test merge_dup_media_story()."""
+        db = self.db()
+
+        topic = mediawords.test.db.create.create_test_topic(db, 'merge')
+        medium = mediawords.test.db.create.create_test_medium(db, 'merge')
+        feed = mediawords.test.db.create.create_test_feed(db, 'merge', medium=medium)
+        old_story = mediawords.test.db.create.create_test_story(db=db, label='merge old', feed=feed)
+
+        new_medium = mediawords.test.db.create.create_test_medium(db, 'merge new')
+
+        db.update_by_id('media', medium['media_id'], {'dup_media_id': new_medium['media_id']})
+
+        cloned_story = mediawords.tm.stories.merge_dup_media_story(db, topic, old_story)
+
+        for field in 'url guid publish_date title'.split():
+            assert cloned_story[field] == old_story[field]
+
+        topic_story = db.query(
+            "select * from topic_stories where stories_id = %(a)s and topics_id = %(b)s",
+            {'a': cloned_story['stories_id'], 'b': topic['topics_id']}).hash()
+        assert topic_story is not None
+
+        merged_story = mediawords.tm.stories.merge_dup_media_story(db, topic, old_story)
+        assert merged_story['stories_id'] == cloned_story['stories_id']
