@@ -447,6 +447,9 @@ def fetch_topic_url(db: DatabaseHandler, topic_fetch_urls_id: int, domain_timeou
         log.info("fetch_link: %s" % topic_fetch_url['url'])
         _try_fetch_topic_url(db=db, topic_fetch_url=topic_fetch_url, domain_timeout=domain_timeout)
 
+        if topic_fetch_url['topic_links_id'] and topic_fetch_url['stories_id']:
+            try_update_topic_link_ref_stories_id(db, topic_fetch_url)
+
         if 'stories_id' in topic_fetch_url and topic_fetch_url['stories_id'] is not None:
             story = db.require_by_id('stories', topic_fetch_url['stories_id'])
             topic = db.require_by_id('topics', topic_fetch_url['topics_id'])
@@ -455,9 +458,6 @@ def fetch_topic_url(db: DatabaseHandler, topic_fetch_urls_id: int, domain_timeou
             if _is_not_topic_story(db, topic_fetch_url):
                 if _story_matches_topic(db, story, topic, redirect_url=redirect_url, assume_match=assume_match):
                     mediawords.tm.stories.add_to_topic_stories(db, story, topic)
-
-        if topic_fetch_url['topic_links_id'] and topic_fetch_url['stories_id']:
-            try_update_topic_link_ref_stories_id(db, topic_fetch_url)
 
     except McThrottledDomainException as ex:
         raise ex
