@@ -1013,58 +1013,6 @@ END
     $db->commit if ( $use_transaction );
 }
 
-# clone the given story, assigning the new media_id and copying over the download, extracted text, and so on
-sub clone_story
-{
-    my ( $db, $topic, $old_story, $new_medium ) = @_;
-
-    my $story = {
-        url          => $old_story->{ url },
-        media_id     => $new_medium->{ media_id },
-        guid         => $old_story->{ guid },
-        publish_date => $old_story->{ publish_date },
-        collect_date => MediaWords::Util::SQL::sql_now,
-        description  => $old_story->{ description },
-        title        => $old_story->{ title }
-    };
-
-    $story = safely_create_story( $db, $story );
-    add_to_topic_stories( $db, $topic, $story, 0, 1 );
-
-    $db->query( <<SQL, $story->{ stories_id }, $old_story->{ stories_id } );
-insert into stories_tags_map ( stories_id, tags_id )
-    select \$1, stm.tags_id from stories_tags_map stm where stm.stories_id = \$2
-SQL
-
-    my $feed = get_spider_feed( $db, $new_medium );
-    $db->create( 'feeds_stories_map', { feeds_id => $feed->{ feeds_id }, stories_id => $story->{ stories_id } } );
-
-    my $download = create_download_for_new_story( $db, $story, $feed );
-
-    my $content = get_first_download_content( $db, $old_story );
-
-    $download = MediaWords::DBI::Downloads::store_content( $db, $download, $content );
-
-    $db->query( <<SQL, $download->{ downloads_id }, $old_story->{ stories_id } );
-insert into download_texts ( downloads_id, download_text, download_text_length )
-    select \$1, dt.download_text, dt.download_text_length
-        from download_texts dt
-            join downloads d on ( dt.downloads_id = d.downloads_id )
-        where d.stories_id = \$2
-        order by d.downloads_id asc
-        limit 1
-SQL
-
-    $db->query( <<SQL, $story->{ stories_id }, $old_story->{ stories_id } );
-insert into story_sentences ( stories_id, sentence_number, sentence, media_id, publish_date, language )
-    select \$1, sentence_number, sentence, media_id, publish_date, language
-        from story_sentences
-        where stories_id = \$2
-SQL
-
-    return $story;
-}
-
 # given a story in a dup_media_id medium, look for or create a story in the medium pointed to by dup_media_id
 sub merge_dup_media_story
 {
