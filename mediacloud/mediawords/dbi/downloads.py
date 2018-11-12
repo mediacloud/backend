@@ -390,9 +390,6 @@ def extract_content(content: str) -> dict:
     """
     content = decode_object_from_bytes_if_needed(content)
 
-    # null characters cause problems with postgres in various places down the pipeline
-    content = content.replace('\x00', '')
-
     # Don't run through expensive extractor if the content is short and has no html
     if len(content) < MIN_CONTENT_LENGTH_TO_EXTRACT and re.search(r'<.*>', content) is None:
         log.info("Content length is less than MIN_CONTENT_LENGTH_TO_EXTRACT and has no HTML so skipping extraction")
