@@ -1,6 +1,6 @@
 crontab_mailto:
   - hroberts@cyber.law.harvard.edu
-  - lvaliukas@cyber.law.harvard.edu
+  - linas@media.mit.edu
 
 crontab_import_solr_data_nice: 15
 crontab_import_solr_data_jobs: 8
