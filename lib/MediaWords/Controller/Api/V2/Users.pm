@@ -92,7 +92,7 @@ sub create_GET
     my $input = { map { $_ => $data->{ $_ } } grep { exists( $data->{ $_ } ) } @{ $fields } };
     my $row = $c->dbis->create( 'feeds', $input );
 
-    return $self->status_ok( $c, entity => { feed => $row } );
+    return $self->status_ok( $c, entity => { user => $row } );
 }
 
 # query users for users/list or users/single
