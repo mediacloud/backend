@@ -686,3 +686,75 @@ def merge_dup_media_story(db, topic, story):
     merge_dup_story(db, topic, story, new_story)
 
     return new_story
+
+
+def _merge_dup_stories(db, topic, stories):
+    """Merge a list of stories into a single story, keeping the story with the most sentences."""
+    log.debug("merge dup stories")
+
+    stories_ids = [s['stories_id'] for s in stories]
+
+    story_sentence_counts = db.query(
+        """
+        select stories_id, count(*) sentence_count
+            from story_sentences
+            where stories_id = ANY(%(a)s)
+            group by stories_id
+        """,
+        {'a': stories_ids}).hashes()
+
+    ssc = {}
+    for s in stories:
+        ssc['stories_id'] = 0
+
+    for count in story_sentence_counts:
+        ssc['stories_id'] = count['sentence_count']
+
+    stories = sorted(stories, key=lambda x: ssc[x['stories_id']], reverse=True)
+
+    keep_story = stories.pop(0)
+
+    log.debug("duplicates: %s [%s %d]" % (keep_story['title'], keep_story['url'], keep_story['stories_id']))
+
+    [merge_dup_story(db, topic, s, keep_story) for s in stories]
+
+
+def _get_topic_stories_by_medium(db: DatabaseHandler, topic: dict) -> dict:
+    """Return hash of { $media_id: stories } for the topic."""
+
+    stories = db.query(
+        """
+        select s.stories_id, s.media_id, s.title, s.url, s.publish_date
+            from snap.live_stories s
+            where s.topics_id = %(a)s
+        """,
+        {'a': topic['topics_id']}).hashes()
+
+    media_lookup = {}
+    [media_lookup[s['media_id']].append(s) for s in stories]
+
+    return media_lookup
+
+
+def find_and_merge_dup_stories(db: DatabaseHandler, topic: dict) -> None:
+    """Merge duplicate stories ithin each media source by url and title."""
+    log.info("find and merge dup stories")
+
+    for get_dup_stories in (
+        ['url', mediawords.dbi.stories.dup.get_medium_dup_stories_by_url],
+        ['title', mediawords.dbi.stories.dup.get_medium_dup_stories_by_title]
+    ):
+
+        f_name = get_dup_stories[0]
+        f = get_dup_stories[1]
+
+        # regenerate story list each time to capture previously merged stories
+        media_lookup = _get_topic_stories_by_medium(db, topic)
+
+        num_media = len(media_lookup.keys())
+
+        for i, (media_id, stories) in enumerate(media_lookup.items()):
+            if (i % 1000) == 0:
+                log.info("merging dup stories by %s: media [i / %d]" % (f_name, num_media))
+            dup_stories = f(stories)
+            [_merge_dup_stories(db, topic, s) for s in dup_stories]
