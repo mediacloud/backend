@@ -81,10 +81,33 @@ sub test_users($)
         $db->create( 'auth_roles', { role => "role_$i", description => "description $i" } );
     }
 
-    my $expected_auth_roles = $db->query( "select * from auth_roles" );
+    my $expected_auth_roles = $db->query( "select * from auth_roles" )->hashes();
 
     $r = test_get( '/api/v2/users/list_roles', {} );
-    rows_match( $label, $r->{ roles }, $r->{ roles }, 'auth_roles_id', [ qw/role description/ ] );
+    rows_match( $label, $r->{ roles }, $expected_auth_roles, 'auth_roles_id', [ qw/role description/ ] );
+
+    $label = 'roles update';
+
+    my $user_role = $expected_auth_roles->[ 0 ];
+    my $update_input = { auth_users_id => $search_user->{ auth_users_id }, roles => [ $user_role->{ role } ] };
+    $r = test_put( '/api/v2/users/update', $update_input );
+
+    my $role_present = $db->query( <<SQL, $search_user->{ auth_users_id }, $user_role->{ auth_roles_id } )->hash();
+        select * from auth_users_roles_map where auth_users_id = \$1 and auth_roles_id = \$2
+SQL
+
+    ok( $role_present, $label );
+
+    $label = 'roles delete';
+
+    my $update_input = { auth_users_id => $search_user->{ auth_users_id }, roles => [] };
+    $r = test_put( '/api/v2/users/update', $update_input );
+
+    $role_present = $db->query( <<SQL, $search_user->{ auth_users_id } )->hash();
+        select * from auth_users_roles_map where auth_users_id = \$1
+SQL
+
+    ok( !$role_present, $label );
 }
 
 sub main

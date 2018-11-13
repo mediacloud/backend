@@ -38,7 +38,7 @@ sub _update_roles($$$)
 SQL
 
     $db->query( <<SQL, $user->{ auth_users_id }, $roles );
-        insert into auth_users_roles_map aurm ( auth_users_id, auth_roles_id )
+        insert into auth_users_roles_map ( auth_users_id, auth_roles_id )
             select \$1, ar.auth_roles_id
                 from auth_roles ar
                 where ar.role = any( \$2 )
@@ -65,7 +65,7 @@ sub update_PUT
 
     my $input = { map { $_ => $data->{ $_ } } grep { exists( $data->{ $_ } ) } @{ $update_fields } };
 
-    $c->dbis->update_by_id( 'auth_users', $data->{ auth_users_id }, $input );
+    $c->dbis->update_by_id( 'auth_users', $data->{ auth_users_id }, $input ) if ( scalar( keys( %{ $input } ) ) );
 
     my $db = $c->dbis;
 
