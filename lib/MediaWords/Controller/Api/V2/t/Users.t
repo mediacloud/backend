@@ -74,6 +74,17 @@ sub test_users($)
     $r = test_put( '/api/v2/users/update', $input_data );
     rows_match( $label, $r->{ user }, [ $input_data ], 'auth_users_id', [ qw/email full_name notes/ ] );
 
+    $label = 'roles';
+
+    for my $i ( 1 .. 6 )
+    {
+        $db->create( 'auth_roles', { role => "role_$i", description => "description $i" } );
+    }
+
+    my $expected_auth_roles = $db->query( "select * from auth_roles" );
+
+    $r = test_get( '/api/v2/users/list_roles', {} );
+    rows_match( $label, $r->{ roles }, $r->{ roles }, 'auth_roles_id', [ qw/role description/ ] );
 }
 
 sub main

@@ -175,4 +175,26 @@ sub single_GET
     $self->status_ok( $c, entity => { users => $users } );
 }
 
+sub list_roles : Local : ActionClass('MC_REST')
+{
+
+}
+
+sub list_roles_GET
+{
+    my ( $self, $c ) = @_;
+
+    MediaWords::DBI::ApiLinks::process_and_stash_link( $c );
+
+    my $db = $c->dbis;
+
+    my $roles = $db->query( "select auth_roles_id, role, description from auth_roles" )->hashes();
+
+    my $entity = { roles => $roles };
+
+    MediaWords::DBI::ApiLinks::add_links_to_entity( $c, $entity, 'roles' );
+
+    $self->status_ok( $c, entity => $entity );
+}
+
 1;
