@@ -1046,6 +1046,20 @@ Output:
 
 # Users
 
+## api/v2/users/single/
+
+| URL                              | Function
+| -------------------------------- | -------------------------------------------------------------
+| `api/v2/users/single/<auth\_users\_id>` | Return a single user
+
+### Query Parameters
+
+None.
+
+### Output
+
+See `api/v2/users/list` below for sample output.
+
 ## api/v2/users/list
 
 | URL                             | Description                            |

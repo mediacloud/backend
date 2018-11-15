@@ -15,8 +15,10 @@ BEGIN { extends 'MediaWords::Controller::Api::V2::MC_Controller_REST' }
 
 __PACKAGE__->config(
     action => {
-        update => { Does => [ qw( ~AdminAuthenticated ~Throttled ~Logged ) ] },
-        list   => { Does => [ qw( ~AdminAuthenticated ~Throttled ~Logged ) ] },
+        update     => { Does => [ qw( ~AdminAuthenticated ~Throttled ~Logged ) ] },
+        list       => { Does => [ qw( ~AdminAuthenticated ~Throttled ~Logged ) ] },
+        single     => { Does => [ qw( ~AdminAuthenticated ~Throttled ~Logged ) ] },
+        list_roles => { Does => [ qw( ~AdminAuthenticated ~Throttled ~Logged ) ] },
     }
 );
 
