@@ -35,13 +35,13 @@
   tags:
     - pam-limits
 
-# Each process is limited up to ~34 GB of memory
+# Each process is limited up to ~64 GB of memory
 - name: Add hard virtual memory limit on pam_limits
   pam_limits:
     domain: "{{ mediacloud_user }}"
     limit_type: hard
     limit_item: as
-    value: 33554432
+    value: 67108864
     dest: "{{ limits_conf_path }}"
   become: true
   become_user: root
