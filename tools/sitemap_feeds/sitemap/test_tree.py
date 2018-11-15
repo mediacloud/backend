@@ -1,5 +1,6 @@
 import datetime
 import textwrap
+from unittest import TestCase
 
 from mediawords.test.hash_server import HashServer
 from mediawords.util.log import create_logger
@@ -23,274 +24,285 @@ from sitemap_feeds.sitemap.tree import sitemap_tree_for_homepage
 log = create_logger(__name__)
 
 
-def test_sitemap_tree_for_homepage():
-    test_port = random_unused_port()
-    test_url = 'http://localhost:%d' % test_port
-
+class TestSitemapTree(TestCase):
     # Publication / "last modified" date
-    test_date_datetime = datetime.datetime(
+    TEST_DATE_DATETIME = datetime.datetime(
         year=2009, month=12, day=17, hour=12, minute=4, second=56,
         tzinfo=datetime.timezone(datetime.timedelta(seconds=7200)),
     )
-    test_date_str = test_date_datetime.isoformat()
+    TEST_DATE_STR = TEST_DATE_DATETIME.isoformat()
 
-    test_publication_name = 'Test publication'
-    test_publication_language = 'en'
+    TEST_PUBLICATION_NAME = 'Test publication'
+    TEST_PUBLICATION_LANGUAGE = 'en'
 
-    pages = {
-        '/': 'This is a homepage.',
+    __slots__ = [
+        '__test_port',
+        '__test_url',
+    ]
 
-        '/robots.txt': {
-            'header': 'Content-Type: text/plain',
-            'content': textwrap.dedent("""
-                    User-agent: *
-                    Disallow: /whatever
-                    
-                    Sitemap: {base_url}/sitemap_pages.xml
-                    Sitemap: {base_url}/sitemap_news_index_1.xml
-                """.format(base_url=test_url)).strip(),
-        },
+    def setUp(self):
+        super().setUp()
 
-        # One sitemap for random static pages
-        '/sitemap_pages.xml': {
-            'header': 'Content-Type: application/xml',
-            'content': textwrap.dedent("""
-                <?xml version="1.0" encoding="UTF-8"?>
-                <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-                    <url>
-                        <loc>{base_url}/about.html</loc>
-                        <lastmod>2005-01-01</lastmod>
-                        <changefreq>monthly</changefreq>
-                        <priority>0.8</priority>
-                    </url>
-                    <url>
-                        <loc>{base_url}/contact.html</loc>
-                        <lastmod>2005-01-01</lastmod>
-                        <changefreq>monthly</changefreq>
-                        <priority>0.8</priority>
-                    </url>
-                </urlset> 
-            """.format(base_url=test_url)).strip(),
-        },
+        self.__test_port = random_unused_port()
+        self.__test_url = 'http://localhost:%d' % self.__test_port
 
-        # Index sitemap pointing to sitemaps with stories
-        '/sitemap_news_index_1.xml': {
-            'header': 'Content-Type: application/xml',
-            'content': textwrap.dedent("""
-                <?xml version="1.0" encoding="UTF-8"?>
-                <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-                    <sitemap>
-                        <loc>{base_url}/sitemap_news_1.xml</loc>
-                        <lastmod>{last_modified}</lastmod>
-                    </sitemap>
-                    <sitemap>
-                        <loc>{base_url}/sitemap_news_index_2.xml</loc>
-                        <lastmod>{last_modified}</lastmod>
-                    </sitemap>
-                </sitemapindex>
-            """.format(base_url=test_url, last_modified=test_date_str)).strip(),
-        },
+    def test_sitemap_tree_for_homepage(self):
+        """Test sitemap_tree_for_homepage()."""
 
-        # First sitemap with actual stories
-        '/sitemap_news_1.xml': {
-            'header': 'Content-Type: application/xml',
-            'content': textwrap.dedent("""
-                <?xml version="1.0" encoding="UTF-8"?>
-                <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-                        xmlns:news="http://www.google.com/schemas/sitemap-news/0.9"
-                        xmlns:xhtml="http://www.w3.org/1999/xhtml">
-                    
-                    <url>
-                        <loc>{base_url}/news/foo.html</loc>
-                        <xhtml:link rel="alternate"
-                                    media="only screen and (max-width: 640px)"
-                                    href="{base_url}/news/foo.html?mobile=1" />
-                        <news:news>
-                            <news:publication>
-                                <news:name>{publication_name}</news:name>
-                                <news:language>{publication_language}</news:language>
-                            </news:publication>
-                            <news:publication_date>{publication_date}</news:publication_date>
-                            <news:title>Foo &lt;foo&gt;</news:title>    <!-- HTML entity decoding -->
-                        </news:news>
-                    </url>
-                    
-                    <!-- Has a duplicate story in /sitemap_news_2.xml -->
-                    <url>
-                        <loc>{base_url}/news/bar.html</loc>
-                        <xhtml:link rel="alternate"
-                                    media="only screen and (max-width: 640px)"
-                                    href="{base_url}/news/bar.html?mobile=1" />
-                        <news:news>
-                            <news:publication>
-                                <news:name>{publication_name}</news:name>
-                                <news:language>{publication_language}</news:language>
-                            </news:publication>
-                            <news:publication_date>{publication_date}</news:publication_date>
-                            <news:title>Bar &amp; bar</news:title>
-                        </news:news>
-                    </url>
+        pages = {
+            '/': 'This is a homepage.',
 
-                </urlset>
-            """.format(
-                base_url=test_url,
-                publication_name=test_publication_name,
-                publication_language=test_publication_language,
-                publication_date=test_date_str,
-            )).strip(),
-        },
+            '/robots.txt': {
+                'header': 'Content-Type: text/plain',
+                'content': textwrap.dedent("""
+                        User-agent: *
+                        Disallow: /whatever
+                        
+                        Sitemap: {base_url}/sitemap_pages.xml
+                        Sitemap: {base_url}/sitemap_news_index_1.xml
+                    """.format(base_url=self.__test_url)).strip(),
+            },
 
-        # Another index sitemap pointing to a second sitemaps with stories
-        '/sitemap_news_index_2.xml': {
-            'header': 'Content-Type: application/xml',
-            'content': textwrap.dedent("""
-                <?xml version="1.0" encoding="UTF-8"?>
-                <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-                
-                    <sitemap>
-                        <loc>{base_url}/sitemap_news_2.xml</loc>
-                        <lastmod>{last_modified}</lastmod>
-                    </sitemap>
+            # One sitemap for random static pages
+            '/sitemap_pages.xml': {
+                'header': 'Content-Type: application/xml',
+                'content': textwrap.dedent("""
+                    <?xml version="1.0" encoding="UTF-8"?>
+                    <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+                        <url>
+                            <loc>{base_url}/about.html</loc>
+                            <lastmod>2005-01-01</lastmod>
+                            <changefreq>monthly</changefreq>
+                            <priority>0.8</priority>
+                        </url>
+                        <url>
+                            <loc>{base_url}/contact.html</loc>
+                            <lastmod>2005-01-01</lastmod>
+                            <changefreq>monthly</changefreq>
+                            <priority>0.8</priority>
+                        </url>
+                    </urlset> 
+                """.format(base_url=self.__test_url)).strip(),
+            },
+
+            # Index sitemap pointing to sitemaps with stories
+            '/sitemap_news_index_1.xml': {
+                'header': 'Content-Type: application/xml',
+                'content': textwrap.dedent("""
+                    <?xml version="1.0" encoding="UTF-8"?>
+                    <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+                        <sitemap>
+                            <loc>{base_url}/sitemap_news_1.xml</loc>
+                            <lastmod>{last_modified}</lastmod>
+                        </sitemap>
+                        <sitemap>
+                            <loc>{base_url}/sitemap_news_index_2.xml</loc>
+                            <lastmod>{last_modified}</lastmod>
+                        </sitemap>
+                    </sitemapindex>
+                """.format(base_url=self.__test_url, last_modified=self.TEST_DATE_STR)).strip(),
+            },
+
+            # First sitemap with actual stories
+            '/sitemap_news_1.xml': {
+                'header': 'Content-Type: application/xml',
+                'content': textwrap.dedent("""
+                    <?xml version="1.0" encoding="UTF-8"?>
+                    <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+                            xmlns:news="http://www.google.com/schemas/sitemap-news/0.9"
+                            xmlns:xhtml="http://www.w3.org/1999/xhtml">
+                        
+                        <url>
+                            <loc>{base_url}/news/foo.html</loc>
+                            <xhtml:link rel="alternate"
+                                        media="only screen and (max-width: 640px)"
+                                        href="{base_url}/news/foo.html?mobile=1" />
+                            <news:news>
+                                <news:publication>
+                                    <news:name>{publication_name}</news:name>
+                                    <news:language>{publication_language}</news:language>
+                                </news:publication>
+                                <news:publication_date>{publication_date}</news:publication_date>
+                                <news:title>Foo &lt;foo&gt;</news:title>    <!-- HTML entity decoding -->
+                            </news:news>
+                        </url>
+                        
+                        <!-- Has a duplicate story in /sitemap_news_2.xml -->
+                        <url>
+                            <loc>{base_url}/news/bar.html</loc>
+                            <xhtml:link rel="alternate"
+                                        media="only screen and (max-width: 640px)"
+                                        href="{base_url}/news/bar.html?mobile=1" />
+                            <news:news>
+                                <news:publication>
+                                    <news:name>{publication_name}</news:name>
+                                    <news:language>{publication_language}</news:language>
+                                </news:publication>
+                                <news:publication_date>{publication_date}</news:publication_date>
+                                <news:title>Bar &amp; bar</news:title>
+                            </news:news>
+                        </url>
     
-                    <!-- Nonexistent sitemap -->
-                    <sitemap>
-                        <loc>{base_url}/sitemap_news_nonexistent.xml</loc>
-                        <lastmod>{last_modified}</lastmod>
-                    </sitemap>
+                    </urlset>
+                """.format(
+                    base_url=self.__test_url,
+                    publication_name=self.TEST_PUBLICATION_NAME,
+                    publication_language=self.TEST_PUBLICATION_LANGUAGE,
+                    publication_date=self.TEST_DATE_STR,
+                )).strip(),
+            },
+
+            # Another index sitemap pointing to a second sitemaps with stories
+            '/sitemap_news_index_2.xml': {
+                'header': 'Content-Type: application/xml',
+                'content': textwrap.dedent("""
+                    <?xml version="1.0" encoding="UTF-8"?>
+                    <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
                     
-                </sitemapindex>
-            """.format(base_url=test_url, last_modified=test_date_str)).strip(),
-        },
+                        <sitemap>
+                            <loc>{base_url}/sitemap_news_2.xml</loc>
+                            <lastmod>{last_modified}</lastmod>
+                        </sitemap>
+        
+                        <!-- Nonexistent sitemap -->
+                        <sitemap>
+                            <loc>{base_url}/sitemap_news_nonexistent.xml</loc>
+                            <lastmod>{last_modified}</lastmod>
+                        </sitemap>
+                        
+                    </sitemapindex>
+                """.format(base_url=self.__test_url, last_modified=self.TEST_DATE_STR)).strip(),
+            },
 
-        # First sitemap with actual stories
-        '/sitemap_news_2.xml': {
-            'header': 'Content-Type: application/xml',
-            'content': textwrap.dedent("""
-                <?xml version="1.0" encoding="UTF-8"?>
-                <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-                        xmlns:news="http://www.google.com/schemas/sitemap-news/0.9"
-                        xmlns:xhtml="http://www.w3.org/1999/xhtml">
-    
-                    <!-- Has a duplicate story in /sitemap_news_1.xml -->
-                    <url>
-                        <loc>{base_url}/news/bar.html</loc>
-                        <xhtml:link rel="alternate"
-                                    media="only screen and (max-width: 640px)"
-                                    href="{base_url}/news/bar.html?mobile=1" />
-                        <news:news>
-                            <news:publication>
-                                <news:name>{publication_name}</news:name>
-                                <news:language>{publication_language}</news:language>
-                            </news:publication>
-                            <news:publication_date>{publication_date}</news:publication_date>
-                            <news:title>Bar &amp; bar</news:title>
-                        </news:news>
-                    </url>
-    
-                    <url>
-                        <loc>{base_url}/news/baz.html</loc>
-                        <xhtml:link rel="alternate"
-                                    media="only screen and (max-width: 640px)"
-                                    href="{base_url}/news/baz.html?mobile=1" />
-                        <news:news>
-                            <news:publication>
-                                <news:name>{publication_name}</news:name>
-                                <news:language>{publication_language}</news:language>
-                            </news:publication>
-                            <news:publication_date>{publication_date}</news:publication_date>
-                            <news:title><![CDATA[Bąž]]></news:title>    <!-- CDATA and UTF-8 -->
-                        </news:news>
-                    </url>
-    
-                </urlset>
-            """.format(
-                base_url=test_url,
-                publication_name=test_publication_name,
-                publication_language=test_publication_language,
-                publication_date=test_date_str,
-            )).strip(),
-        },
-    }
+            # First sitemap with actual stories
+            '/sitemap_news_2.xml': {
+                'header': 'Content-Type: application/xml',
+                'content': textwrap.dedent("""
+                    <?xml version="1.0" encoding="UTF-8"?>
+                    <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+                            xmlns:news="http://www.google.com/schemas/sitemap-news/0.9"
+                            xmlns:xhtml="http://www.w3.org/1999/xhtml">
+        
+                        <!-- Has a duplicate story in /sitemap_news_1.xml -->
+                        <url>
+                            <loc>{base_url}/news/bar.html</loc>
+                            <xhtml:link rel="alternate"
+                                        media="only screen and (max-width: 640px)"
+                                        href="{base_url}/news/bar.html?mobile=1" />
+                            <news:news>
+                                <news:publication>
+                                    <news:name>{publication_name}</news:name>
+                                    <news:language>{publication_language}</news:language>
+                                </news:publication>
+                                <news:publication_date>{publication_date}</news:publication_date>
+                                <news:title>Bar &amp; bar</news:title>
+                            </news:news>
+                        </url>
+        
+                        <url>
+                            <loc>{base_url}/news/baz.html</loc>
+                            <xhtml:link rel="alternate"
+                                        media="only screen and (max-width: 640px)"
+                                        href="{base_url}/news/baz.html?mobile=1" />
+                            <news:news>
+                                <news:publication>
+                                    <news:name>{publication_name}</news:name>
+                                    <news:language>{publication_language}</news:language>
+                                </news:publication>
+                                <news:publication_date>{publication_date}</news:publication_date>
+                                <news:title><![CDATA[Bąž]]></news:title>    <!-- CDATA and UTF-8 -->
+                            </news:news>
+                        </url>
+        
+                    </urlset>
+                """.format(
+                    base_url=self.__test_url,
+                    publication_name=self.TEST_PUBLICATION_NAME,
+                    publication_language=self.TEST_PUBLICATION_LANGUAGE,
+                    publication_date=self.TEST_DATE_STR,
+                )).strip(),
+            },
+        }
 
-    # noinspection PyArgumentList
-    expected_sitemap_tree = IndexRobotsTxtSitemap(
-        url='{}/robots.txt'.format(test_url),
-        sub_sitemaps=[
-            StoriesXMLSitemap(
-                url='{}/sitemap_pages.xml'.format(test_url),
-                stories=[],  # Pages sitemap is expected to not have any news stories
-            ),
-            IndexXMLSitemap(
-                url='{}/sitemap_news_index_1.xml'.format(test_url),
-                sub_sitemaps=[
-                    StoriesXMLSitemap(
-                        url='{}/sitemap_news_1.xml'.format(test_url),
-                        stories=[
-                            SitemapStory(
-                                url='{}/news/foo.html'.format(test_url),
-                                title='Foo <foo>',
-                                publish_date=test_date_datetime,
-                                publication_name=test_publication_name,
-                                publication_language=test_publication_language,
-                            ),
-                            SitemapStory(
-                                url='{}/news/bar.html'.format(test_url),
-                                title='Bar & bar',
-                                publish_date=test_date_datetime,
-                                publication_name=test_publication_name,
-                                publication_language=test_publication_language,
-                            ),
-                        ]
-                    ),
-                    IndexXMLSitemap(
-                        url='{}/sitemap_news_index_2.xml'.format(test_url),
-                        sub_sitemaps=[
-                            StoriesXMLSitemap(
-                                url='{}/sitemap_news_2.xml'.format(test_url),
-                                stories=[
-                                    SitemapStory(
-                                        url='{}/news/bar.html'.format(test_url),
-                                        title='Bar & bar',
-                                        publish_date=test_date_datetime,
-                                        publication_name=test_publication_name,
-                                        publication_language=test_publication_language,
-                                    ),
-                                    SitemapStory(
-                                        url='{}/news/baz.html'.format(test_url),
-                                        title='Bąž',
-                                        publish_date=test_date_datetime,
-                                        publication_name=test_publication_name,
-                                        publication_language=test_publication_language,
-                                    ),
-                                ],
-                            ),
-                            InvalidSitemap(
-                                url='{}/sitemap_news_nonexistent.xml'.format(test_url),
-                                reason=(
-                                    'Unable to fetch sitemap from {base_url}/sitemap_news_nonexistent.xml: '
-                                    '404 Not Found'
-                                ).format(base_url=test_url),
-                            ),
-                        ],
-                    ),
-                ],
-            ),
-        ],
-    )
+        # noinspection PyArgumentList
+        expected_sitemap_tree = IndexRobotsTxtSitemap(
+            url='{}/robots.txt'.format(self.__test_url),
+            sub_sitemaps=[
+                StoriesXMLSitemap(
+                    url='{}/sitemap_pages.xml'.format(self.__test_url),
+                    stories=[],  # Pages sitemap is expected to not have any news stories
+                ),
+                IndexXMLSitemap(
+                    url='{}/sitemap_news_index_1.xml'.format(self.__test_url),
+                    sub_sitemaps=[
+                        StoriesXMLSitemap(
+                            url='{}/sitemap_news_1.xml'.format(self.__test_url),
+                            stories=[
+                                SitemapStory(
+                                    url='{}/news/foo.html'.format(self.__test_url),
+                                    title='Foo <foo>',
+                                    publish_date=self.TEST_DATE_DATETIME,
+                                    publication_name=self.TEST_PUBLICATION_NAME,
+                                    publication_language=self.TEST_PUBLICATION_LANGUAGE,
+                                ),
+                                SitemapStory(
+                                    url='{}/news/bar.html'.format(self.__test_url),
+                                    title='Bar & bar',
+                                    publish_date=self.TEST_DATE_DATETIME,
+                                    publication_name=self.TEST_PUBLICATION_NAME,
+                                    publication_language=self.TEST_PUBLICATION_LANGUAGE,
+                                ),
+                            ]
+                        ),
+                        IndexXMLSitemap(
+                            url='{}/sitemap_news_index_2.xml'.format(self.__test_url),
+                            sub_sitemaps=[
+                                StoriesXMLSitemap(
+                                    url='{}/sitemap_news_2.xml'.format(self.__test_url),
+                                    stories=[
+                                        SitemapStory(
+                                            url='{}/news/bar.html'.format(self.__test_url),
+                                            title='Bar & bar',
+                                            publish_date=self.TEST_DATE_DATETIME,
+                                            publication_name=self.TEST_PUBLICATION_NAME,
+                                            publication_language=self.TEST_PUBLICATION_LANGUAGE,
+                                        ),
+                                        SitemapStory(
+                                            url='{}/news/baz.html'.format(self.__test_url),
+                                            title='Bąž',
+                                            publish_date=self.TEST_DATE_DATETIME,
+                                            publication_name=self.TEST_PUBLICATION_NAME,
+                                            publication_language=self.TEST_PUBLICATION_LANGUAGE,
+                                        ),
+                                    ],
+                                ),
+                                InvalidSitemap(
+                                    url='{}/sitemap_news_nonexistent.xml'.format(self.__test_url),
+                                    reason=(
+                                        'Unable to fetch sitemap from {base_url}/sitemap_news_nonexistent.xml: '
+                                        '404 Not Found'
+                                    ).format(base_url=self.__test_url),
+                                ),
+                            ],
+                        ),
+                    ],
+                ),
+            ],
+        )
 
-    hs = HashServer(port=test_port, pages=pages)
-    hs.start()
+        hs = HashServer(port=self.__test_port, pages=pages)
+        hs.start()
 
-    actual_sitemap_tree = sitemap_tree_for_homepage(homepage_url=test_url)
+        actual_sitemap_tree = sitemap_tree_for_homepage(homepage_url=self.__test_url)
 
-    hs.stop()
+        hs.stop()
 
-    # PyCharm is not that amazing at formatting object diffs:
-    #
-    # expected_lines = str(expected_sitemap_tree).split()
-    # actual_lines = str(actual_sitemap_tree).split()
-    # diff = difflib.ndiff(expected_lines, actual_lines)
-    # diff_str = '\n'.join(diff)
-    # assert expected_lines == actual_lines
+        # PyCharm is not that amazing at formatting object diffs:
+        #
+        # expected_lines = str(expected_sitemap_tree).split()
+        # actual_lines = str(actual_sitemap_tree).split()
+        # diff = difflib.ndiff(expected_lines, actual_lines)
+        # diff_str = '\n'.join(diff)
+        # assert expected_lines == actual_lines
 
-    assert expected_sitemap_tree == actual_sitemap_tree
+        assert expected_sitemap_tree == actual_sitemap_tree
