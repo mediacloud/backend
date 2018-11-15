@@ -71,28 +71,7 @@ sub update_PUT
 
     _update_roles( $db, $user, $data->{ roles } );
 
-    $user = _get_users_list( $db, { auth_users_id => $user->{ auth_users_id } } );
-
-    return $self->status_ok( $c, entity => { user => $user } );
-}
-
-sub create : Local : ActionClass( 'MC_REST' )
-{
-}
-
-sub create_GET
-{
-    my ( $self, $c ) = @_;
-
-    my $data = $c->req->data;
-
-    $self->require_fields( $c, [ qw/email full_name/ ] );
-
-    my $fields = [ 'media_id', @{ $self->get_update_fields } ];
-    my $input = { map { $_ => $data->{ $_ } } grep { exists( $data->{ $_ } ) } @{ $fields } };
-    my $row = $c->dbis->create( 'feeds', $input );
-
-    return $self->status_ok( $c, entity => { user => $row } );
+    return $self->status_ok( $c, entity => { success => 1 } );
 }
 
 # query users for users/list or users/single
@@ -184,15 +163,11 @@ sub list_roles_GET
 {
     my ( $self, $c ) = @_;
 
-    MediaWords::DBI::ApiLinks::process_and_stash_link( $c );
-
     my $db = $c->dbis;
 
     my $roles = $db->query( "select auth_roles_id, role, description from auth_roles" )->hashes();
 
     my $entity = { roles => $roles };
-
-    MediaWords::DBI::ApiLinks::add_links_to_entity( $c, $entity, 'roles' );
 
     $self->status_ok( $c, entity => $entity );
 }

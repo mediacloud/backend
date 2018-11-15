@@ -72,7 +72,10 @@ sub test_users($)
         notes         => 'more notes'
     };
     $r = test_put( '/api/v2/users/update', $input_data );
-    rows_match( $label, $r->{ user }, [ $input_data ], 'auth_users_id', [ qw/email full_name notes/ ] );
+
+    my $updated_user = $db->require_by_id( 'auth_users', $search_user->{ auth_users_id } );
+
+    rows_match( $label, [ $updated_user ], [ $input_data ], 'auth_users_id', [ qw/email full_name notes/ ] );
 
     $label = 'roles';
 
@@ -100,7 +103,7 @@ SQL
 
     $label = 'roles delete';
 
-    my $update_input = { auth_users_id => $search_user->{ auth_users_id }, roles => [] };
+    $update_input = { auth_users_id => $search_user->{ auth_users_id }, roles => [] };
     $r = test_put( '/api/v2/users/update', $update_input );
 
     $role_present = $db->query( <<SQL, $search_user->{ auth_users_id } )->hash();
