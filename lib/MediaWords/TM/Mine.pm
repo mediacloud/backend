@@ -632,6 +632,9 @@ sub fetch_links
     my $max_requeue_jobs = 100;
     my $requeue_timeout  = 30;
 
+    # once the pool is this small, just requeue everything and exit
+    my $exit_pool_size = 25;
+
     my $last_pending_change   = time();
     my $last_num_pending_urls = 0;
     while ( 1 )
@@ -657,6 +660,12 @@ SQL
         }
 
         last if ( $num_pending_urls < 1 );
+
+        if ( $num_pending_urls <= $exit_pool_size )
+        {
+            map { queue_topic_fetch_url( $db->require_by_id( 'topic_fetch_urls', $_ ), 0 ) } @{ $pending_url_ids };
+            last;
+        }
 
         my $time_since_change = time() - $last_pending_change;
 

@@ -273,12 +273,12 @@ sub _fetch_list($$$$$$)
     my $filter_field_clause = $self->_get_filter_field_clause( $c );
     my $extra_where_clause  = $self->get_extra_where_clause( $c );
     my $order_by_clause     = $self->order_by_clause( $c, $id_field ) || "$id_field ASC";
+    my $name_field          = $self->list_name_search_field();
 
     # exact name= match always comes first
-    if ( $name_clause )
+    if ( $name_clause && $name_field )
     {
-        my $q_name     = $c->dbis->quote( $c->req->params->{ name } );
-        my $name_field = $self->list_name_search_field();
+        my $q_name = $c->dbis->quote( $c->req->params->{ name } );
         $order_by_clause = "( lower( $name_field ) = $q_name ) DESC, $order_by_clause";
     }
 
