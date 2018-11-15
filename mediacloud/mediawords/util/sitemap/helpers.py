@@ -9,7 +9,7 @@ import dateutil
 
 from mediawords.util.log import create_logger
 from mediawords.util.web.user_agent import UserAgent, Response
-from sitemap_feeds.sitemap.exceptions import McSitemapsException
+from mediawords.util.sitemap.exceptions import McSitemapsException
 
 # FIXME gzip sitemaps
 

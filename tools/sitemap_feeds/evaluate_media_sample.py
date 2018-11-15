@@ -3,7 +3,7 @@
 """Sitemap feed evaluation."""
 
 from mediawords.util.log import create_logger
-from sitemap_feeds.sitemap.tree import sitemap_tree_for_homepage
+from mediawords.util.sitemap.tree import sitemap_tree_for_homepage
 
 log = create_logger(__name__)
 

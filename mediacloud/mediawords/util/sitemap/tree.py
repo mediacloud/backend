@@ -1,5 +1,5 @@
-from sitemap_feeds.sitemap.fetchers import IndexRobotsTxtSitemapFetcher
-from sitemap_feeds.sitemap.objects import AbstractSitemap
+from mediawords.util.sitemap.fetchers import IndexRobotsTxtSitemapFetcher
+from mediawords.util.sitemap.objects import AbstractSitemap
 
 
 def sitemap_tree_for_homepage(homepage_url: str) -> AbstractSitemap:

@@ -5,14 +5,14 @@ from unittest import TestCase
 from mediawords.test.hash_server import HashServer
 from mediawords.util.log import create_logger
 from mediawords.util.network import random_unused_port
-from sitemap_feeds.sitemap.objects import (
+from mediawords.util.sitemap.objects import (
     IndexRobotsTxtSitemap,
     StoriesXMLSitemap,
     IndexXMLSitemap,
     SitemapStory,
     InvalidSitemap,
 )
-from sitemap_feeds.sitemap.tree import sitemap_tree_for_homepage
+from mediawords.util.sitemap.tree import sitemap_tree_for_homepage
 
 # FIXME invalid XML (ending prematurely)
 # FIXME gzip sitemaps
@@ -57,7 +57,7 @@ class TestSitemapTree(TestCase):
                 'content': textwrap.dedent("""
                         User-agent: *
                         Disallow: /whatever
-                        
+
                         Sitemap: {base_url}/sitemap_pages.xml
                         Sitemap: {base_url}/sitemap_news_index_1.xml
                     """.format(base_url=self.__test_url)).strip(),
@@ -81,7 +81,7 @@ class TestSitemapTree(TestCase):
                             <changefreq>monthly</changefreq>
                             <priority>0.8</priority>
                         </url>
-                    </urlset> 
+                    </urlset>
                 """.format(base_url=self.__test_url)).strip(),
             },
 
@@ -111,7 +111,7 @@ class TestSitemapTree(TestCase):
                     <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
                             xmlns:news="http://www.google.com/schemas/sitemap-news/0.9"
                             xmlns:xhtml="http://www.w3.org/1999/xhtml">
-                        
+
                         <url>
                             <loc>{base_url}/news/foo.html</loc>
                             <xhtml:link rel="alternate"
@@ -126,7 +126,7 @@ class TestSitemapTree(TestCase):
                                 <news:title>Foo &lt;foo&gt;</news:title>    <!-- HTML entity decoding -->
                             </news:news>
                         </url>
-                        
+
                         <!-- Has a duplicate story in /sitemap_news_2.xml -->
                         <url>
                             <loc>{base_url}/news/bar.html</loc>
@@ -142,7 +142,7 @@ class TestSitemapTree(TestCase):
                                 <news:title>Bar &amp; bar</news:title>
                             </news:news>
                         </url>
-    
+
                     </urlset>
                 """.format(
                     base_url=self.__test_url,
@@ -158,18 +158,18 @@ class TestSitemapTree(TestCase):
                 'content': textwrap.dedent("""
                     <?xml version="1.0" encoding="UTF-8"?>
                     <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-                    
+
                         <sitemap>
                             <loc>{base_url}/sitemap_news_2.xml</loc>
                             <lastmod>{last_modified}</lastmod>
                         </sitemap>
-        
+
                         <!-- Nonexistent sitemap -->
                         <sitemap>
                             <loc>{base_url}/sitemap_news_nonexistent.xml</loc>
                             <lastmod>{last_modified}</lastmod>
                         </sitemap>
-                        
+
                     </sitemapindex>
                 """.format(base_url=self.__test_url, last_modified=self.TEST_DATE_STR)).strip(),
             },
@@ -182,7 +182,7 @@ class TestSitemapTree(TestCase):
                     <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
                             xmlns:news="http://www.google.com/schemas/sitemap-news/0.9"
                             xmlns:xhtml="http://www.w3.org/1999/xhtml">
-        
+
                         <!-- Has a duplicate story in /sitemap_news_1.xml -->
                         <url>
                             <loc>{base_url}/news/bar.html</loc>
@@ -198,7 +198,7 @@ class TestSitemapTree(TestCase):
                                 <news:title>Bar &amp; bar</news:title>
                             </news:news>
                         </url>
-        
+
                         <url>
                             <loc>{base_url}/news/baz.html</loc>
                             <xhtml:link rel="alternate"
@@ -213,7 +213,7 @@ class TestSitemapTree(TestCase):
                                 <news:title><![CDATA[Bąž]]></news:title>    <!-- CDATA and UTF-8 -->
                             </news:news>
                         </url>
-        
+
                     </urlset>
                 """.format(
                     base_url=self.__test_url,

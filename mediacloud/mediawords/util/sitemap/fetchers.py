@@ -10,14 +10,14 @@ from furl import furl
 from mediawords.util.log import create_logger
 from mediawords.util.url import fix_common_url_mistakes, is_http_url, normalize_url, is_homepage_url
 from mediawords.util.web.user_agent import UserAgent
-from sitemap_feeds.sitemap.exceptions import McSitemapsException, McSitemapsXMLParsingException
-from sitemap_feeds.sitemap.helpers import (
+from mediawords.util.sitemap.exceptions import McSitemapsException, McSitemapsXMLParsingException
+from mediawords.util.sitemap.helpers import (
     sitemap_useragent,
     html_unescape_ignore_none,
     parse_sitemap_publication_date,
     get_url_retry_on_client_errors,
 )
-from sitemap_feeds.sitemap.objects import (
+from mediawords.util.sitemap.objects import (
     AbstractSitemap,
     InvalidSitemap,
     IndexRobotsTxtSitemap,
@@ -70,7 +70,7 @@ class AbstractSitemapFetcher(object, metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def sitemap(self) -> AbstractSitemap:
-        raise NotImplemented("Abstract method")
+        raise NotImplementedError("Abstract method")
 
 
 class IndexRobotsTxtSitemapFetcher(AbstractSitemapFetcher):
@@ -268,7 +268,7 @@ class AbstractXMLSitemapParser(object, metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def sitemap(self) -> AbstractSitemap:
-        raise NotImplemented("Abstract method.")
+        raise NotImplementedError("Abstract method.")
 
 
 class IndexXMLSitemapParser(AbstractXMLSitemapParser):
