@@ -50,7 +50,7 @@ class Response(object):
             requests_response.close()
 
         except Exception as ex:
-            log.warning("Error reading data for URL %s" % requests_response.url)
+            log.warning("Error reading data for URL {}: {}".format(requests_response.url, str(ex)))
 
             error_response = requests.Response()
             error_response.status_code = HTTPStatus.REQUEST_TIMEOUT.value
