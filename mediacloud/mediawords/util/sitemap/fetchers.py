@@ -16,6 +16,7 @@ from mediawords.util.sitemap.helpers import (
     html_unescape_ignore_none,
     parse_sitemap_publication_date,
     get_url_retry_on_client_errors,
+    ungzipped_response_content,
 )
 from mediawords.util.sitemap.objects import (
     AbstractSitemap,
@@ -164,7 +165,7 @@ class XMLSitemapFetcher(AbstractSitemapFetcher):
                 reason="Unable to fetch sitemap from {}: {}".format(str(self._uri.url), sitemap_response.status_line()),
             )
 
-        sitemap_xml = sitemap_response.decoded_content()
+        sitemap_xml = ungzipped_response_content(sitemap_response)
 
         parser = xml.parsers.expat.ParserCreate()
         parser.StartElementHandler = self._xml_element_start

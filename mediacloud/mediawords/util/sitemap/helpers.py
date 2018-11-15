@@ -6,12 +6,12 @@ import time
 from typing import Optional
 
 import dateutil
+from furl import furl
 
+from mediawords.util.compress import gunzip, McGunzipException
 from mediawords.util.log import create_logger
 from mediawords.util.web.user_agent import UserAgent, Response
 from mediawords.util.sitemap.exceptions import McSitemapsException
-
-# FIXME gzip sitemaps
 
 log = create_logger(__name__)
 
@@ -109,3 +109,32 @@ def get_url_retry_on_client_errors(url: str,
 
     log.info("Giving up on URL {}".format(url))
     return response
+
+
+def __response_is_gzipped_data(response: Response) -> bool:
+    """Return True if Response looks like it's gzipped."""
+    url_path = str(furl(response.request().url()).path)
+    content_type = response.content_type()
+
+    if url_path.lower().endswith('.gz') or 'gzip' in content_type.lower():
+        return True
+
+    else:
+        return False
+
+
+def ungzipped_response_content(response: Response) -> str:
+    """Return HTTP response's decoded content, gunzip it if neccessary."""
+
+    if __response_is_gzipped_data(response):
+        gzipped_data = response.raw_data()
+        try:
+            data = gunzip(gzipped_data)
+        except McGunzipException as ex:
+            log.error("Unable to gunzip response {}: {}".format(response, ex))
+            data = response.decoded_content()
+
+    else:
+        data = response.decoded_content()
+
+    return data

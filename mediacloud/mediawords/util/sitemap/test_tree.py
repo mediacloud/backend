@@ -3,6 +3,7 @@ import textwrap
 from unittest import TestCase
 
 from mediawords.test.hash_server import HashServer
+from mediawords.util.compress import gzip
 from mediawords.util.log import create_logger
 from mediawords.util.network import random_unused_port
 from mediawords.util.sitemap.objects import (
@@ -306,3 +307,93 @@ class TestSitemapTree(TestCase):
         # assert expected_lines == actual_lines
 
         assert expected_sitemap_tree == actual_sitemap_tree
+
+    def test_sitemap_tree_for_homepage_gzip(self):
+        """Test sitemap_tree_for_homepage() with gzipped sitemaps."""
+
+        pages = {
+            '/': 'This is a homepage.',
+
+            '/robots.txt': {
+                'header': 'Content-Type: text/plain',
+                'content': textwrap.dedent("""
+                        User-agent: *
+                        Disallow: /whatever
+
+                        Sitemap: {base_url}/sitemap_1.gz
+                        Sitemap: {base_url}/sitemap_2.dat
+                    """.format(base_url=self.__test_url)).strip(),
+            },
+
+            # Gzipped sitemap without correct HTTP header but with .gz extension
+            '/sitemap_1.gz': {
+                'content': gzip(textwrap.dedent("""
+                    <?xml version="1.0" encoding="UTF-8"?>
+                    <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+                            xmlns:news="http://www.google.com/schemas/sitemap-news/0.9">
+                        <url>
+                            <loc>{base_url}/news/foo.html</loc>
+                            <news:news>
+                                <news:publication>
+                                    <news:name>{publication_name}</news:name>
+                                    <news:language>{publication_language}</news:language>
+                                </news:publication>
+                                <news:publication_date>{publication_date}</news:publication_date>
+                                <news:title>Foo &lt;foo&gt;</news:title>    <!-- HTML entity decoding -->
+                            </news:news>
+                        </url>
+                    </urlset>
+                """.format(
+                    base_url=self.__test_url,
+                    publication_name=self.TEST_PUBLICATION_NAME,
+                    publication_language=self.TEST_PUBLICATION_LANGUAGE,
+                    publication_date=self.TEST_DATE_STR,
+                )).strip()),
+            },
+
+            # Gzipped sitemap with correct HTTP header but without .gz extension
+            '/sitemap_2.dat': {
+                'header': 'Content-Type: application/x-gzip',
+                'content': gzip(textwrap.dedent("""
+                    <?xml version="1.0" encoding="UTF-8"?>
+                    <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+                            xmlns:news="http://www.google.com/schemas/sitemap-news/0.9">
+                        <url>
+                            <loc>{base_url}/news/baz.html</loc>
+                            <news:news>
+                                <news:publication>
+                                    <news:name>{publication_name}</news:name>
+                                    <news:language>{publication_language}</news:language>
+                                </news:publication>
+                                <news:publication_date>{publication_date}</news:publication_date>
+                                <news:title><![CDATA[Bąž]]></news:title>    <!-- CDATA and UTF-8 -->
+                            </news:news>
+                        </url>
+                    </urlset>
+                """.format(
+                    base_url=self.__test_url,
+                    publication_name=self.TEST_PUBLICATION_NAME,
+                    publication_language=self.TEST_PUBLICATION_LANGUAGE,
+                    publication_date=self.TEST_DATE_STR,
+                )).strip()),
+            },
+        }
+
+        hs = HashServer(port=self.__test_port, pages=pages)
+        hs.start()
+
+        actual_sitemap_tree = sitemap_tree_for_homepage(homepage_url=self.__test_url)
+
+        hs.stop()
+
+        # Don't do an in-depth check, we just need to make sure that gunzip works
+        assert isinstance(actual_sitemap_tree, IndexRobotsTxtSitemap)
+        assert len(actual_sitemap_tree.sub_sitemaps) == 2
+
+        sitemap_1 = actual_sitemap_tree.sub_sitemaps[0]
+        assert isinstance(sitemap_1, StoriesXMLSitemap)
+        assert len(sitemap_1.stories) == 1
+
+        sitemap_2 = actual_sitemap_tree.sub_sitemaps[1]
+        assert isinstance(sitemap_2, StoriesXMLSitemap)
+        assert len(sitemap_2.stories) == 1
