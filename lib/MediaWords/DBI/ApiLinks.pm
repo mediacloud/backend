@@ -113,11 +113,12 @@ sub process_and_stash_link($)
 
     if ( $link_id )
     {
-        $link = $db->query( <<SQL, $link_id, $c->req->path )->hash;
+        my $path = $c->req->path;
+        $link = $db->query( <<SQL, $link_id, $path )->hash;
 select * from api_links where api_links_id = \$1 and path = \$2
 SQL
 
-        die( "no such link id exists: $link_id" ) unless ( $link );
+        die( "no such link id exists: $link_id [$path]" ) unless ( $link );
 
         my $link_params = MediaWords::Util::ParseJSON::decode_json( $link->{ params_json } );
 
