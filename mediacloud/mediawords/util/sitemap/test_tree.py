@@ -16,7 +16,6 @@ from mediawords.util.sitemap.objects import (
 from mediawords.util.sitemap.tree import sitemap_tree_for_homepage
 
 # FIXME invalid XML (ending prematurely)
-# FIXME gzip sitemaps
 # FIXME various exotic properties
 # FIXME XML vulnerabilities with Expat
 # FIXME XML namespaces
