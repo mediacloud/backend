@@ -231,6 +231,35 @@ sub test_story_list_count
     is( scalar @{ $actual_response->{ stories } }, $story_limit, "story limit" );
 }
 
+sub test_story_list_paging
+{
+    my ( $db ) = @_;
+
+    my ( $topics_id ) = $db->query( "select topics_id from topics" )->flat();
+
+    my ( $timespans_id ) = $db->query( <<SQL )->flat();
+select timespans_id from timespans t where period = 'overall' and foci_id is null;
+SQL
+
+    my ( $expected_stories_count ) = $db->query( <<SQL, $timespans_id )->flat();
+select count(*) from snap.story_link_counts where timespans_id = ?
+SQL
+
+    my $limit = 3;
+
+    my $r = test_get( "/api/v2/topics/$topics_id/stories/list", { timespans_id => $timespans_id, limit => $limit } );
+
+    my $got_stories_count = scalar( @{ $r->{ stories } } );
+
+    while ( my $next_link_id = $r->{ link_ids }->{ next } )
+    {
+        $r = test_get( "/api/v2/topics/$topics_id/stories/list", { link_id => $next_link_id } );
+        $got_stories_count += scalar( @{ $r->{ stories } } );
+    }
+
+    is( $got_stories_count, $expected_stories_count, "stories/list paging count" );
+}
+
 sub _get_story_link_counts
 {
     my $data = shift;
@@ -666,6 +695,7 @@ sub test_topics_api
 
     create_test_data( $db, $topic_media );
     test_story_list_count();
+    test_story_list_paging( $db );
     test_default_sort( $stories );
     test_media_list( $stories );
     test_media_search( $db );

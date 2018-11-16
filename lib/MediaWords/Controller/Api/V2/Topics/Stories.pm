@@ -267,9 +267,6 @@ sub list_GET
 
     my $timespan = MediaWords::TM::set_timespans_id_param( $c );
 
-    $c->req->params->{ limit } = List::Util::min( int( $c->req->params->{ limit } // 20 ), 1_000 );
-    my $limit = int( $c->req->params->{ limit } );
-
     MediaWords::DBI::ApiLinks::process_and_stash_link( $c );
 
     my $db = $c->dbis;
@@ -285,6 +282,7 @@ sub list_GET
     my $extra_clause = _get_extra_where_clause( $c, $timespans_id );
 
     my $offset = int( $c->req->params->{ offset } // 0 );
+    my $limit = int( $c->req->params->{ limit } );
 
     my $pre_limit_order = $extra_clause ? '' : "$sort_clause limit $limit offset $offset";
 
@@ -296,7 +294,7 @@ create temporary table _topics_stories_slc as
         $pre_limit_order
 SQL
 
-    my $stories = $db->query( <<SQL, $snapshots_id, $limit, $offset )->hashes;
+    my $stories = $db->query( <<SQL, $snapshots_id )->hashes;
 select s.*, slc.*, m.name media_name
     from _topics_stories_slc slc
         join snap.stories s on slc.stories_id = s.stories_id        
@@ -305,7 +303,6 @@ select s.*, slc.*, m.name media_name
         s.snapshots_id = \$1      
         and m.snapshots_id = \$1
     $sort_clause
-    offset \$3 limit \$2
 SQL
 
     $db->query( "drop table _topics_stories_slc" );
