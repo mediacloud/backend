@@ -704,11 +704,12 @@ def _merge_dup_stories(db, topic, stories):
         {'a': stories_ids}).hashes()
 
     ssc = {}
+
     for s in stories:
-        ssc['stories_id'] = 0
+        ssc[s['stories_id']] = 0
 
     for count in story_sentence_counts:
-        ssc['stories_id'] = count['sentence_count']
+        ssc[count['stories_id']] = count['sentence_count']
 
     stories = sorted(stories, key=lambda x: ssc[x['stories_id']], reverse=True)
 
