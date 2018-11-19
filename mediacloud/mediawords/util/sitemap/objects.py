@@ -1,7 +1,7 @@
 import abc
 import datetime
 from dataclasses import dataclass, field
-from typing import List, Optional
+from typing import List, Optional, Set
 
 
 @dataclass(frozen=True)
@@ -51,6 +51,11 @@ class AbstractSitemap(object, metaclass=abc.ABCMeta):
     url: str
     """Sitemap URL."""
 
+    @abc.abstractmethod
+    def all_stories(self) -> Set[SitemapStory]:
+        """Recursively return all stories from this sitemap and linked sitemaps."""
+        raise NotImplementedError("Abstract method")
+
 
 @dataclass(frozen=True)
 class InvalidSitemap(AbstractSitemap):
@@ -58,6 +63,9 @@ class InvalidSitemap(AbstractSitemap):
 
     reason: str
     """Reason why the sitemap is deemed invalid."""
+
+    def all_stories(self) -> Set[SitemapStory]:
+        return set()
 
 
 @dataclass(frozen=True)
@@ -67,6 +75,9 @@ class StoriesXMLSitemap(AbstractSitemap):
     stories: List[SitemapStory]
     """Stories found in the sitemap."""
 
+    def all_stories(self) -> Set[SitemapStory]:
+        return set(self.stories)
+
 
 @dataclass(frozen=True)
 class AbstractIndexSitemap(AbstractSitemap):
@@ -74,6 +85,12 @@ class AbstractIndexSitemap(AbstractSitemap):
 
     sub_sitemaps: List[AbstractSitemap]
     """Sub-sitemaps that are linked to from this sitemap."""
+
+    def all_stories(self) -> Set[SitemapStory]:
+        stories = set()
+        for sub_sitemap in self.sub_sitemaps:
+            stories |= sub_sitemap.all_stories()
+        return stories
 
 
 @dataclass(frozen=True)

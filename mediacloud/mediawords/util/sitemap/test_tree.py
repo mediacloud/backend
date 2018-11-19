@@ -306,6 +306,8 @@ class TestSitemapTree(TestCase):
 
         assert expected_sitemap_tree == actual_sitemap_tree
 
+        assert len(actual_sitemap_tree.all_stories()) == 3
+
     def test_sitemap_tree_for_homepage_gzip(self):
         """Test sitemap_tree_for_homepage() with gzipped sitemaps."""
 
