@@ -12,6 +12,7 @@ from mediawords.db import DatabaseHandler
 import mediawords.db.exceptions.handler
 import mediawords.dbi.downloads
 from mediawords.dbi.stories.extractor_arguments import PyExtractorArguments
+import mediawords.dbi.stories.dup
 import mediawords.dbi.stories.stories
 from mediawords.tm.guess_date import guess_date, GuessDateResult
 import mediawords.tm.media
@@ -732,7 +733,9 @@ def _get_topic_stories_by_medium(db: DatabaseHandler, topic: dict) -> dict:
         {'a': topic['topics_id']}).hashes()
 
     media_lookup = {}
-    [media_lookup[s['media_id']].append(s) for s in stories]
+    for s in stories:
+        media_lookup.setdefault(s['media_id'], [])
+        media_lookup[s['media_id']].append(s)
 
     return media_lookup
 
