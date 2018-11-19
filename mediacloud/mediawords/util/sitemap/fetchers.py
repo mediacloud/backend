@@ -353,6 +353,12 @@ class StoriesXMLSitemapParser(AbstractXMLSitemapParser):
                 log.warning("URL is unset")
                 return None
 
+            try:
+                url = normalize_url(url)
+            except Exception as ex:
+                log.error("Unable to normalize URL {}: {}".format(url, ex))
+                return None
+
             title = html_unescape_ignore_none(self.title)
             if not title:
                 log.warning("Title is unset")

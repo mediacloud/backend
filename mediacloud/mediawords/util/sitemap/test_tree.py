@@ -184,10 +184,10 @@ class TestSitemapTree(TestCase):
 
                         <!-- Has a duplicate story in /sitemap_news_1.xml -->
                         <url>
-                            <loc>{base_url}/news/bar.html</loc>
+                            <loc>{base_url}/news/bar.html#fragment_is_to_be_removed</loc>
                             <xhtml:link rel="alternate"
                                         media="only screen and (max-width: 640px)"
-                                        href="{base_url}/news/bar.html?mobile=1" />
+                                        href="{base_url}/news/bar.html?mobile=1#fragment_is_to_be_removed" />
                             <news:news>
                                 <news:publication>
                                     <news:name>{publication_name}</news:name>
