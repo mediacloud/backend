@@ -15,7 +15,6 @@ from mediawords.util.sitemap.objects import (
 )
 from mediawords.util.sitemap.tree import sitemap_tree_for_homepage
 
-# FIXME invalid XML (ending prematurely)
 # FIXME various exotic properties
 # FIXME XML vulnerabilities with Expat
 # FIXME XML namespaces
@@ -396,3 +395,84 @@ class TestSitemapTree(TestCase):
         sitemap_2 = actual_sitemap_tree.sub_sitemaps[1]
         assert isinstance(sitemap_2, StoriesXMLSitemap)
         assert len(sitemap_2.stories) == 1
+
+    def test_sitemap_tree_for_homepage_prematurely_ending_xml(self):
+        """Test sitemap_tree_for_homepage() with clipped XML.
+
+        Some webservers are misconfigured to limit the request length to a certain number of seconds, in which time the
+        server is unable to generate and compress a 50 MB sitemap XML. Google News doesn't seem to have a problem with
+        this behavior, so we have to support this too.
+        """
+
+        pages = {
+            '/': 'This is a homepage.',
+
+            '/robots.txt': {
+                'header': 'Content-Type: text/plain',
+                'content': textwrap.dedent("""
+                        User-agent: *
+                        Disallow: /whatever
+
+                        Sitemap: {base_url}/sitemap.xml
+                    """.format(base_url=self.__test_url)).strip(),
+            },
+
+            '/sitemap.xml': {
+                'content': textwrap.dedent("""
+                    <?xml version="1.0" encoding="UTF-8"?>
+                    <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+                            xmlns:news="http://www.google.com/schemas/sitemap-news/0.9">
+                        <url>
+                            <loc>{base_url}/news/first.html</loc>
+                            <news:news>
+                                <news:publication>
+                                    <news:name>{publication_name}</news:name>
+                                    <news:language>{publication_language}</news:language>
+                                </news:publication>
+                                <news:publication_date>{publication_date}</news:publication_date>
+                                <news:title>First story</news:title>
+                            </news:news>
+                        </url>
+                        <url>
+                            <loc>{base_url}/news/second.html</loc>
+                            <news:news>
+                                <news:publication>
+                                    <news:name>{publication_name}</news:name>
+                                    <news:language>{publication_language}</news:language>
+                                </news:publication>
+                                <news:publication_date>{publication_date}</news:publication_date>
+                                <news:title>Second story</news:title>
+                            </news:news>
+                        </url>
+
+                        <!-- The following story shouldn't get added as the XML ends prematurely -->
+                        <url>
+                            <loc>{base_url}/news/third.html</loc>
+                            <news:news>
+                                <news:publication>
+                                    <news:name>{publication_name}</news:name>
+                                    <news:language>{publication_language}</news:language>
+                                </news:publication>
+                                <news:publicat
+                """.format(
+                    base_url=self.__test_url,
+                    publication_name=self.TEST_PUBLICATION_NAME,
+                    publication_language=self.TEST_PUBLICATION_LANGUAGE,
+                    publication_date=self.TEST_DATE_STR,
+                )).strip(),
+            },
+        }
+
+        hs = HashServer(port=self.__test_port, pages=pages)
+        hs.start()
+
+        actual_sitemap_tree = sitemap_tree_for_homepage(homepage_url=self.__test_url)
+
+        hs.stop()
+
+        assert isinstance(actual_sitemap_tree, IndexRobotsTxtSitemap)
+        assert len(actual_sitemap_tree.sub_sitemaps) == 1
+
+        sitemap = actual_sitemap_tree.sub_sitemaps[0]
+        assert isinstance(sitemap, StoriesXMLSitemap)
+        assert len(sitemap.stories) == 2
