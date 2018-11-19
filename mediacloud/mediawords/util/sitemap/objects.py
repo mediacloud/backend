@@ -1,18 +1,20 @@
 import abc
 import datetime
 from dataclasses import dataclass, field
+from decimal import Decimal
+from enum import Enum, unique
 from typing import List, Optional, Set
+
+# As per the spec
+SITEMAP_PAGE_DEFAULT_PRIORITY = Decimal('0.5')
 
 
 @dataclass(frozen=True)
-class SitemapStory(object):
-    """Single sitemap-derived story."""
+class SitemapNewsStory(object):
+    """Single story derived from Google News XML sitemap."""
 
     # Spec defines that some of the properties below are "required" but in practice not every website provides the
-    # required properties
-
-    url: str
-    """Story URL."""
+    # required properties. So, we require only "title" and "publish_date" to be set.
 
     title: str
     """Story title."""
@@ -44,6 +46,43 @@ class SitemapStory(object):
     For example, "NASDAQ:AMAT" (but not "NASD:AMAT"), or "BOM:500325" (but not "BOM:RIL")."""
 
 
+@unique
+class SitemapPageChangeFrequency(Enum):
+    """Change frequency of a sitemap URL."""
+    ALWAYS = 'always'
+    HOURLY = 'hourly'
+    DAILY = 'daily'
+    WEEKLY = 'weekly'
+    MONTHLY = 'monthly'
+    YEARLY = 'yearly'
+    NEVER = 'never'
+
+    # Default change frequency for invalid input
+    @classmethod
+    def _missing_(cls, value):
+        return SitemapPageChangeFrequency.ALWAYS
+
+
+@dataclass(frozen=True)
+class SitemapPage(object):
+    """Single sitemap-derived page."""
+
+    url: str
+    """Page URL."""
+
+    last_modified: Optional[datetime.datetime] = None
+    """Date of last modification of the URL."""
+
+    change_frequency: Optional[SitemapPageChangeFrequency] = None
+    """Change frequency of a sitemap URL."""
+
+    priority: Optional[Decimal] = SITEMAP_PAGE_DEFAULT_PRIORITY
+    """Priority of this URL relative to other URLs on your site."""
+
+    news_story: Optional[SitemapNewsStory] = None
+    """Google News story attached to the URL."""
+
+
 @dataclass(frozen=True)
 class AbstractSitemap(object, metaclass=abc.ABCMeta):
     """Abstract sitemap."""
@@ -52,7 +91,7 @@ class AbstractSitemap(object, metaclass=abc.ABCMeta):
     """Sitemap URL."""
 
     @abc.abstractmethod
-    def all_stories(self) -> Set[SitemapStory]:
+    def all_pages(self) -> Set[SitemapPage]:
         """Recursively return all stories from this sitemap and linked sitemaps."""
         raise NotImplementedError("Abstract method")
 
@@ -64,19 +103,19 @@ class InvalidSitemap(AbstractSitemap):
     reason: str
     """Reason why the sitemap is deemed invalid."""
 
-    def all_stories(self) -> Set[SitemapStory]:
+    def all_pages(self) -> Set[SitemapPage]:
         return set()
 
 
 @dataclass(frozen=True)
-class StoriesXMLSitemap(AbstractSitemap):
-    """XML sitemap that contains links to stories."""
+class PagesXMLSitemap(AbstractSitemap):
+    """XML sitemap that contains URLs to pages."""
 
-    stories: List[SitemapStory]
-    """Stories found in the sitemap."""
+    pages: List[SitemapPage]
+    """URLs to pages that were found in a sitemap."""
 
-    def all_stories(self) -> Set[SitemapStory]:
-        return set(self.stories)
+    def all_pages(self) -> Set[SitemapPage]:
+        return set(self.pages)
 
 
 @dataclass(frozen=True)
@@ -86,11 +125,11 @@ class AbstractIndexSitemap(AbstractSitemap):
     sub_sitemaps: List[AbstractSitemap]
     """Sub-sitemaps that are linked to from this sitemap."""
 
-    def all_stories(self) -> Set[SitemapStory]:
-        stories = set()
+    def all_pages(self) -> Set[SitemapPage]:
+        pages = set()
         for sub_sitemap in self.sub_sitemaps:
-            stories |= sub_sitemap.all_stories()
-        return stories
+            pages |= sub_sitemap.all_pages()
+        return pages
 
 
 @dataclass(frozen=True)

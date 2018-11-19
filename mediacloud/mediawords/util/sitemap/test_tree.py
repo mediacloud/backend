@@ -1,5 +1,6 @@
 import datetime
 import textwrap
+from decimal import Decimal
 from unittest import TestCase
 
 from mediawords.test.hash_server import HashServer
@@ -8,16 +9,18 @@ from mediawords.util.log import create_logger
 from mediawords.util.network import random_unused_port
 from mediawords.util.sitemap.objects import (
     IndexRobotsTxtSitemap,
-    StoriesXMLSitemap,
+    PagesXMLSitemap,
     IndexXMLSitemap,
-    SitemapStory,
+    SitemapPage,
     InvalidSitemap,
-)
+    SitemapNewsStory,
+    SitemapPageChangeFrequency)
 from mediawords.util.sitemap.tree import sitemap_tree_for_homepage
 
 # FIXME various exotic properties
 # FIXME XML vulnerabilities with Expat
-# FIXME XML namespaces
+# FIXME strip input
+# FIXME max. recursion level
 
 
 log = create_logger(__name__)
@@ -70,18 +73,23 @@ class TestSitemapTree(TestCase):
                     <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
                         <url>
                             <loc>{base_url}/about.html</loc>
-                            <lastmod>2005-01-01</lastmod>
+                            <lastmod>{last_modified_date}</lastmod>
                             <changefreq>monthly</changefreq>
                             <priority>0.8</priority>
                         </url>
                         <url>
                             <loc>{base_url}/contact.html</loc>
-                            <lastmod>2005-01-01</lastmod>
-                            <changefreq>monthly</changefreq>
-                            <priority>0.8</priority>
+                            <lastmod>{last_modified_date}</lastmod>
+
+                            <!-- Invalid change frequency -->
+                            <changefreq>when we feel like it</changefreq>
+
+                            <!-- Invalid priority -->
+                            <priority>1.1</priority>
+
                         </url>
                     </urlset>
-                """.format(base_url=self.__test_url)).strip(),
+                """.format(base_url=self.__test_url, last_modified_date=self.TEST_DATE_STR)).strip(),
             },
 
             # Index sitemap pointing to sitemaps with stories
@@ -230,51 +238,79 @@ class TestSitemapTree(TestCase):
         expected_sitemap_tree = IndexRobotsTxtSitemap(
             url='{}/robots.txt'.format(self.__test_url),
             sub_sitemaps=[
-                StoriesXMLSitemap(
+                PagesXMLSitemap(
                     url='{}/sitemap_pages.xml'.format(self.__test_url),
-                    stories=[],  # Pages sitemap is expected to not have any news stories
+                    pages=[
+                        SitemapPage(
+                            url='{}/about.html'.format(self.__test_url),
+                            last_modified=self.TEST_DATE_DATETIME,
+                            news_story=None,
+                            change_frequency=SitemapPageChangeFrequency.MONTHLY,
+                            priority=Decimal('0.8'),
+                        ),
+                        SitemapPage(
+                            url='{}/contact.html'.format(self.__test_url),
+                            last_modified=self.TEST_DATE_DATETIME,
+                            news_story=None,
+
+                            # Invalid input -- should be reset to "always"
+                            change_frequency=SitemapPageChangeFrequency.ALWAYS,
+
+                            # Invalid input -- should be reset to 0.5 (the default as per the spec)
+                            priority=Decimal('0.5'),
+
+                        )
+                    ],
                 ),
                 IndexXMLSitemap(
                     url='{}/sitemap_news_index_1.xml'.format(self.__test_url),
                     sub_sitemaps=[
-                        StoriesXMLSitemap(
+                        PagesXMLSitemap(
                             url='{}/sitemap_news_1.xml'.format(self.__test_url),
-                            stories=[
-                                SitemapStory(
+                            pages=[
+                                SitemapPage(
                                     url='{}/news/foo.html'.format(self.__test_url),
-                                    title='Foo <foo>',
-                                    publish_date=self.TEST_DATE_DATETIME,
-                                    publication_name=self.TEST_PUBLICATION_NAME,
-                                    publication_language=self.TEST_PUBLICATION_LANGUAGE,
+                                    news_story=SitemapNewsStory(
+                                        title='Foo <foo>',
+                                        publish_date=self.TEST_DATE_DATETIME,
+                                        publication_name=self.TEST_PUBLICATION_NAME,
+                                        publication_language=self.TEST_PUBLICATION_LANGUAGE,
+                                    ),
                                 ),
-                                SitemapStory(
+                                SitemapPage(
                                     url='{}/news/bar.html'.format(self.__test_url),
-                                    title='Bar & bar',
-                                    publish_date=self.TEST_DATE_DATETIME,
-                                    publication_name=self.TEST_PUBLICATION_NAME,
-                                    publication_language=self.TEST_PUBLICATION_LANGUAGE,
+                                    news_story=SitemapNewsStory(
+                                        title='Bar & bar',
+                                        publish_date=self.TEST_DATE_DATETIME,
+                                        publication_name=self.TEST_PUBLICATION_NAME,
+                                        publication_language=self.TEST_PUBLICATION_LANGUAGE,
+                                    ),
                                 ),
                             ]
                         ),
                         IndexXMLSitemap(
                             url='{}/sitemap_news_index_2.xml'.format(self.__test_url),
                             sub_sitemaps=[
-                                StoriesXMLSitemap(
+                                PagesXMLSitemap(
                                     url='{}/sitemap_news_2.xml'.format(self.__test_url),
-                                    stories=[
-                                        SitemapStory(
+                                    pages=[
+                                        SitemapPage(
                                             url='{}/news/bar.html'.format(self.__test_url),
-                                            title='Bar & bar',
-                                            publish_date=self.TEST_DATE_DATETIME,
-                                            publication_name=self.TEST_PUBLICATION_NAME,
-                                            publication_language=self.TEST_PUBLICATION_LANGUAGE,
+                                            news_story=SitemapNewsStory(
+                                                title='Bar & bar',
+                                                publish_date=self.TEST_DATE_DATETIME,
+                                                publication_name=self.TEST_PUBLICATION_NAME,
+                                                publication_language=self.TEST_PUBLICATION_LANGUAGE,
+                                            ),
                                         ),
-                                        SitemapStory(
+                                        SitemapPage(
                                             url='{}/news/baz.html'.format(self.__test_url),
-                                            title='Bąž',
-                                            publish_date=self.TEST_DATE_DATETIME,
-                                            publication_name=self.TEST_PUBLICATION_NAME,
-                                            publication_language=self.TEST_PUBLICATION_LANGUAGE,
+                                            news_story=SitemapNewsStory(
+                                                title='Bąž',
+                                                publish_date=self.TEST_DATE_DATETIME,
+                                                publication_name=self.TEST_PUBLICATION_NAME,
+                                                publication_language=self.TEST_PUBLICATION_LANGUAGE,
+                                            ),
                                         ),
                                     ],
                                 ),
@@ -299,7 +335,7 @@ class TestSitemapTree(TestCase):
 
         hs.stop()
 
-        # PyCharm is not that amazing at formatting object diffs:
+        # PyCharm is not that great at formatting object diffs, so uncomment the following and set a breakpoint:
         #
         # expected_lines = str(expected_sitemap_tree).split()
         # actual_lines = str(actual_sitemap_tree).split()
@@ -309,7 +345,7 @@ class TestSitemapTree(TestCase):
 
         assert expected_sitemap_tree == actual_sitemap_tree
 
-        assert len(actual_sitemap_tree.all_stories()) == 3
+        assert len(actual_sitemap_tree.all_pages()) == 5
 
     def test_sitemap_tree_for_homepage_gzip(self):
         """Test sitemap_tree_for_homepage() with gzipped sitemaps."""
@@ -394,12 +430,12 @@ class TestSitemapTree(TestCase):
         assert len(actual_sitemap_tree.sub_sitemaps) == 2
 
         sitemap_1 = actual_sitemap_tree.sub_sitemaps[0]
-        assert isinstance(sitemap_1, StoriesXMLSitemap)
-        assert len(sitemap_1.stories) == 1
+        assert isinstance(sitemap_1, PagesXMLSitemap)
+        assert len(sitemap_1.pages) == 1
 
         sitemap_2 = actual_sitemap_tree.sub_sitemaps[1]
-        assert isinstance(sitemap_2, StoriesXMLSitemap)
-        assert len(sitemap_2.stories) == 1
+        assert isinstance(sitemap_2, PagesXMLSitemap)
+        assert len(sitemap_2.pages) == 1
 
     def test_sitemap_tree_for_homepage_prematurely_ending_xml(self):
         """Test sitemap_tree_for_homepage() with clipped XML.
@@ -479,8 +515,8 @@ class TestSitemapTree(TestCase):
         assert len(actual_sitemap_tree.sub_sitemaps) == 1
 
         sitemap = actual_sitemap_tree.sub_sitemaps[0]
-        assert isinstance(sitemap, StoriesXMLSitemap)
-        assert len(sitemap.stories) == 2
+        assert isinstance(sitemap, PagesXMLSitemap)
+        assert len(sitemap.pages) == 2
 
     def test_sitemap_tree_for_homepage_no_sitemap(self):
         """Test sitemap_tree_for_homepage() with no sitemaps listed in robots.txt."""
