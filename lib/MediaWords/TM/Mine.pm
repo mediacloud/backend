@@ -635,6 +635,10 @@ sub fetch_links
     # once the pool is this small, just requeue everything and exit
     my $exit_pool_size = 25;
 
+    # how many times to requeues everything if there is no change for $JOB_POLL_TIMEOUT seconds
+    my $full_requeues     = 0;
+    my $max_full_requeues = 2;
+
     my $last_pending_change   = time();
     my $last_num_pending_urls = 0;
     while ( 1 )
@@ -685,9 +689,18 @@ SQL
 
         if ( $time_since_change > $JOB_POLL_TIMEOUT )
         {
-            splice( @{ $pending_url_ids }, 10 );
-            my $ids_list = join( ', ', @{ $pending_url_ids } );
-            die( "Timed out waiting for fetch_link queue ($ids_list)" );
+            if ( $full_requeues < $max_full_requeues )
+            {
+                map { queue_topic_fetch_url( $db->require_by_id( 'topic_fetch_urls', $_ ) ) } @{ $pending_url_ids };
+                ++$full_requeues;
+                $last_pending_change = time();
+            }
+            else
+            {
+                splice( @{ $pending_url_ids }, 10 );
+                my $ids_list = join( ', ', @{ $pending_url_ids } );
+                die( "Timed out waiting for fetch_link queue ($ids_list)" );
+            }
         }
 
         $last_pending_change = time() if ( $num_pending_urls < $last_num_pending_urls );
