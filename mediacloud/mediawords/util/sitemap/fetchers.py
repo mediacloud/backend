@@ -361,7 +361,8 @@ class StoriesXMLSitemapParser(AbstractXMLSitemapParser):
 
             title = html_unescape_ignore_none(self.title)
             if not title:
-                log.warning("Title is unset")
+                # Probably just not a Google News story
+                log.debug("Title is unset")
                 return None
 
             publish_date = html_unescape_ignore_none(self.publish_date)
