@@ -1,5 +1,4 @@
 import abc
-import html
 import re
 import xml.parsers.expat
 from dataclasses import field, dataclass
@@ -386,19 +385,19 @@ class StoriesXMLSitemapParser(AbstractXMLSitemapParser):
 
             genres = html_unescape_ignore_none(self.genres)
             if genres:
-                genres = [html.unescape(x.strip()) for x in genres.split(',')]
+                genres = [x.strip() for x in genres.split(',')]
             else:
                 genres = []
 
             keywords = html_unescape_ignore_none(self.keywords)
             if keywords:
-                keywords = [html.unescape(x.strip()) for x in keywords.split(',')]
+                keywords = [x.strip() for x in keywords.split(',')]
             else:
                 keywords = []
 
             stock_tickers = html_unescape_ignore_none(self.stock_tickers)
             if stock_tickers:
-                stock_tickers = [html.unescape(x.strip()) for x in stock_tickers.split(',')]
+                stock_tickers = [x.strip() for x in stock_tickers.split(',')]
             else:
                 stock_tickers = []
 
