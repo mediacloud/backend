@@ -476,3 +476,57 @@ class TestSitemapTree(TestCase):
         sitemap = actual_sitemap_tree.sub_sitemaps[0]
         assert isinstance(sitemap, StoriesXMLSitemap)
         assert len(sitemap.stories) == 2
+
+    def test_sitemap_tree_for_homepage_no_sitemap(self):
+        """Test sitemap_tree_for_homepage() with no sitemaps listed in robots.txt."""
+
+        pages = {
+            '/': 'This is a homepage.',
+
+            '/robots.txt': {
+                'header': 'Content-Type: text/plain',
+                'content': textwrap.dedent("""
+                        User-agent: *
+                        Disallow: /whatever
+                    """.format(base_url=self.__test_url)).strip(),
+            },
+        }
+
+        # noinspection PyArgumentList
+        expected_sitemap_tree = IndexRobotsTxtSitemap(
+            url='{}/robots.txt'.format(self.__test_url),
+            sub_sitemaps=[],
+        )
+
+        hs = HashServer(port=self.__test_port, pages=pages)
+        hs.start()
+
+        actual_sitemap_tree = sitemap_tree_for_homepage(homepage_url=self.__test_url)
+
+        hs.stop()
+
+        assert expected_sitemap_tree == actual_sitemap_tree
+
+    def test_sitemap_tree_for_homepage_no_robots_txt(self):
+        """Test sitemap_tree_for_homepage() with no robots.txt."""
+
+        pages = {
+            '/': 'This is a homepage.',
+        }
+
+        # noinspection PyArgumentList
+        expected_sitemap_tree = InvalidSitemap(
+            url='{}/robots.txt'.format(self.__test_url),
+            reason=(
+                'Unable to fetch robots.txt from {base_url}/robots.txt: 404 Not Found'
+            ).format(base_url=self.__test_url),
+        )
+
+        hs = HashServer(port=self.__test_port, pages=pages)
+        hs.start()
+
+        actual_sitemap_tree = sitemap_tree_for_homepage(homepage_url=self.__test_url)
+
+        hs.stop()
+
+        assert expected_sitemap_tree == actual_sitemap_tree
