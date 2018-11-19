@@ -194,6 +194,9 @@ class TestSitemapTree(TestCase):
                                     <news:language>{publication_language}</news:language>
                                 </news:publication>
                                 <news:publication_date>{publication_date}</news:publication_date>
+
+                                <tag_without_inner_character_data name="value" />
+
                                 <news:title>Bar &amp; bar</news:title>
                             </news:news>
                         </url>

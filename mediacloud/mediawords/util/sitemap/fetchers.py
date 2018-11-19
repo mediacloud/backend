@@ -433,6 +433,12 @@ class StoriesXMLSitemapParser(AbstractXMLSitemapParser):
                 raise McSitemapsXMLParsingException("Story is expected to be unset by <url>.")
             self._current_story_row = StoriesXMLSitemapParser.StoryRow()
 
+    def __require_last_char_data_to_be_set(self, name: str) -> None:
+        if not self._last_char_data:
+            raise McSitemapsXMLParsingException(
+                "Character data is expected to be set at the end of <{}>.".format(name)
+            )
+
     def xml_element_end(self, name: str) -> None:
 
         if not self._current_story_row and name != 'urlset':
@@ -445,33 +451,36 @@ class StoriesXMLSitemapParser(AbstractXMLSitemapParser):
 
         else:
 
-            if not self._last_char_data:
-                raise McSitemapsXMLParsingException(
-                    "Character data is expected to be set at the end of <{}>.".format(name)
-                )
-
             if name == 'loc':
+                self.__require_last_char_data_to_be_set(name=name)
                 self._current_story_row.url = self._last_char_data
 
             elif name == 'name':  # news/publication/name
+                self.__require_last_char_data_to_be_set(name=name)
                 self._current_story_row.publication_name = self._last_char_data
 
             elif name == 'language':  # news/publication/language
+                self.__require_last_char_data_to_be_set(name=name)
                 self._current_story_row.publication_language = self._last_char_data
 
             elif name == 'publication_date':
+                self.__require_last_char_data_to_be_set(name=name)
                 self._current_story_row.publish_date = self._last_char_data
 
             elif name == 'title':
+                self.__require_last_char_data_to_be_set(name=name)
                 self._current_story_row.title = self._last_char_data
 
             elif name == 'access':
+                self.__require_last_char_data_to_be_set(name=name)
                 self._current_story_row.access = self._last_char_data
 
             elif name == 'keywords':
+                self.__require_last_char_data_to_be_set(name=name)
                 self._current_story_row.keywords = self._last_char_data
 
             elif name == 'stock_tickers':
+                self.__require_last_char_data_to_be_set(name=name)
                 self._current_story_row.stock_tickers = self._last_char_data
 
         super().xml_element_end(name=name)
