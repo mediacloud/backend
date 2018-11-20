@@ -38,7 +38,7 @@ __DATE_REGEXES = {
 
     # Complete date plus hours, minutes, seconds, and a decimal fraction of a second: YYYY-MM-DDThh:mm:ss.sTZD
     # (e.g. 1997-07-16T19:20:30.45+01:00)
-    '%Y-%m-%dT%H:%M:%S.%s%z': re.compile(
+    '%Y-%m-%dT%H:%M:%S.%f%z': re.compile(
         r'^\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d\.\d+?[+\-]\d\d:\d\d$'
     ),
 
