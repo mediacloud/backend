@@ -107,15 +107,17 @@ class IndexRobotsTxtSitemapFetcher(AbstractSitemapFetcher):
                 ),
             )
 
-        if not robots_txt_response.content_type().lower() == 'text/plain':
-            # noinspection PyArgumentList
-            return InvalidSitemap(
-                url=str(robots_txt_uri.url),
-                reason="robots.txt at {} is not 'text/plain' but rather '{}'".format(
-                    robots_txt_uri,
-                    robots_txt_response.content_type(),
-                ),
-            )
+        robots_txt_content_type = robots_txt_response.content_type()
+        if robots_txt_content_type:
+            if not robots_txt_content_type.lower() == 'text/plain':
+                # noinspection PyArgumentList
+                return InvalidSitemap(
+                    url=str(robots_txt_uri.url),
+                    reason="robots.txt at {} is not 'text/plain' but rather '{}'".format(
+                        robots_txt_uri,
+                        robots_txt_response.content_type(),
+                    ),
+                )
 
         sitemap_urls = []
 

@@ -550,6 +550,68 @@ class TestSitemapTree(TestCase):
 
         assert expected_sitemap_tree == actual_sitemap_tree
 
+    def test_sitemap_tree_for_homepage_robots_txt_no_content_type(self):
+        """Test sitemap_tree_for_homepage() with no Content-Type in robots.txt."""
+
+        pages = {
+            '/': 'This is a homepage.',
+
+            '/robots.txt': {
+                'header': 'Content-Type: ',
+                'content': textwrap.dedent("""
+                        User-agent: *
+                        Disallow: /whatever
+                    """.format(base_url=self.__test_url)).strip(),
+            },
+        }
+
+        # noinspection PyArgumentList
+        expected_sitemap_tree = IndexRobotsTxtSitemap(
+            url='{}/robots.txt'.format(self.__test_url),
+            sub_sitemaps=[],
+        )
+
+        hs = HashServer(port=self.__test_port, pages=pages)
+        hs.start()
+
+        actual_sitemap_tree = sitemap_tree_for_homepage(homepage_url=self.__test_url)
+
+        hs.stop()
+
+        assert expected_sitemap_tree == actual_sitemap_tree
+
+    def test_sitemap_tree_for_homepage_robots_txt_wrong_content_type(self):
+        """Test sitemap_tree_for_homepage() with wrong Content-Type in robots.txt."""
+
+        pages = {
+            '/': 'This is a homepage.',
+
+            '/robots.txt': {
+                'header': 'Content-Type: text/html',
+                'content': textwrap.dedent("""
+                        User-agent: *
+                        Disallow: /whatever
+                    """.format(base_url=self.__test_url)).strip(),
+            },
+        }
+
+        # noinspection PyArgumentList
+        expected_sitemap_tree = InvalidSitemap(
+            url='{}/robots.txt'.format(self.__test_url),
+            reason=(
+                "robots.txt at {base_url}/robots.txt is not 'text/plain' but rather 'text/html'"
+            ).format(base_url=self.__test_url),
+        )
+
+        hs = HashServer(port=self.__test_port, pages=pages)
+        hs.start()
+
+        actual_sitemap_tree = sitemap_tree_for_homepage(homepage_url=self.__test_url)
+
+        hs.stop()
+
+        assert expected_sitemap_tree == actual_sitemap_tree
+
     def test_sitemap_tree_for_homepage_no_robots_txt(self):
         """Test sitemap_tree_for_homepage() with no robots.txt."""
 
