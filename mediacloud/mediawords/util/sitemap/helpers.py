@@ -28,18 +28,18 @@ __DATE_REGEXES = {
 
     # Complete date plus hours and minutes: YYYY-MM-DDThh:mmTZD (e.g. 1997-07-16T19:20+01:00)
     '%Y-%m-%dT%H:%M%z': re.compile(
-        r'^\d\d\d\d-\d\d-\d\dT\d\d:\d\d[+\-]\d\d:\d\d$'
+        r'^\d\d\d\d-\d\d-\d\dT\d\d:\d\d(\w{1,4}|[+\-]\d\d:\d\d)$'
     ),
 
     # Complete date plus hours, minutes, and seconds: YYYY-MM-DDThh:mm:ssTZD (e.g. 1997-07-16T19:20:30+01:00)
     '%Y-%m-%dT%H:%M:%S%z': re.compile(
-        r'^\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d[+\-]\d\d:\d\d$'
+        r'^\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d(\w{1,4}|[+\-]\d\d:\d\d)$'
     ),
 
     # Complete date plus hours, minutes, seconds, and a decimal fraction of a second: YYYY-MM-DDThh:mm:ss.sTZD
     # (e.g. 1997-07-16T19:20:30.45+01:00)
     '%Y-%m-%dT%H:%M:%S.%f%z': re.compile(
-        r'^\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d\.\d+?[+\-]\d\d:\d\d$'
+        r'^\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d\.\d+?(\w{1,4}|[+\-]\d\d:\d\d)$'
     ),
 
 }
