@@ -70,14 +70,14 @@ class SitemapPage(object):
     url: str
     """Page URL."""
 
+    priority: Decimal = SITEMAP_PAGE_DEFAULT_PRIORITY
+    """Priority of this URL relative to other URLs on your site."""
+
     last_modified: Optional[datetime.datetime] = None
     """Date of last modification of the URL."""
 
     change_frequency: Optional[SitemapPageChangeFrequency] = None
     """Change frequency of a sitemap URL."""
-
-    priority: Optional[Decimal] = SITEMAP_PAGE_DEFAULT_PRIORITY
-    """Priority of this URL relative to other URLs on your site."""
 
     news_story: Optional[SitemapNewsStory] = None
     """Google News story attached to the URL."""
