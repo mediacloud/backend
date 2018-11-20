@@ -13,7 +13,7 @@ from mediawords.util.web.user_agent import UserAgent
 from mediawords.util.sitemap.exceptions import McSitemapsException, McSitemapsXMLParsingException
 from mediawords.util.sitemap.helpers import (
     sitemap_useragent,
-    html_unescape_ignore_none,
+    html_unescape_strip,
     parse_sitemap_publication_date,
     get_url_retry_on_client_errors,
     ungzipped_response_content,
@@ -334,7 +334,7 @@ class IndexXMLSitemapParser(AbstractXMLSitemapParser):
     def xml_element_end(self, name: str) -> None:
 
         if name == 'sitemap:loc':
-            sub_sitemap_url = html_unescape_ignore_none(self._last_char_data)
+            sub_sitemap_url = html_unescape_strip(self._last_char_data)
             if not is_http_url(sub_sitemap_url):
                 log.warning("Sub-sitemap URL does not look like one: {}".format(sub_sitemap_url))
 
@@ -394,7 +394,7 @@ class PagesXMLSitemapParser(AbstractXMLSitemapParser):
             """Return constructed sitemap page if one has been completed, otherwise None."""
 
             # Required
-            url = html_unescape_ignore_none(self.url)
+            url = html_unescape_strip(self.url)
             if not url:
                 log.error("URL is unset")
                 return None
@@ -405,16 +405,16 @@ class PagesXMLSitemapParser(AbstractXMLSitemapParser):
                 log.error("Unable to normalize URL {}: {}".format(url, ex))
                 return None
 
-            last_modified = html_unescape_ignore_none(self.last_modified)
+            last_modified = html_unescape_strip(self.last_modified)
             if last_modified:
                 last_modified = parse_sitemap_publication_date(last_modified)
 
-            change_frequency = html_unescape_ignore_none(self.change_frequency)
+            change_frequency = html_unescape_strip(self.change_frequency)
             if change_frequency:
                 change_frequency = SitemapPageChangeFrequency(change_frequency.lower())
                 assert isinstance(change_frequency, SitemapPageChangeFrequency)
 
-            priority = html_unescape_ignore_none(self.priority)
+            priority = html_unescape_strip(self.priority)
             if priority:
                 priority = Decimal(priority)
 
@@ -430,29 +430,29 @@ class PagesXMLSitemapParser(AbstractXMLSitemapParser):
             else:
                 priority = SITEMAP_PAGE_DEFAULT_PRIORITY
 
-            news_title = html_unescape_ignore_none(self.news_title)
+            news_title = html_unescape_strip(self.news_title)
 
-            news_publish_date = html_unescape_ignore_none(self.news_publish_date)
+            news_publish_date = html_unescape_strip(self.news_publish_date)
             if news_publish_date:
                 news_publish_date = parse_sitemap_publication_date(date_string=news_publish_date)
 
-            news_publication_name = html_unescape_ignore_none(self.news_publication_name)
-            news_publication_language = html_unescape_ignore_none(self.news_publication_language)
-            news_access = html_unescape_ignore_none(self.news_access)
+            news_publication_name = html_unescape_strip(self.news_publication_name)
+            news_publication_language = html_unescape_strip(self.news_publication_language)
+            news_access = html_unescape_strip(self.news_access)
 
-            news_genres = html_unescape_ignore_none(self.news_genres)
+            news_genres = html_unescape_strip(self.news_genres)
             if news_genres:
                 news_genres = [x.strip() for x in news_genres.split(',')]
             else:
                 news_genres = []
 
-            news_keywords = html_unescape_ignore_none(self.news_keywords)
+            news_keywords = html_unescape_strip(self.news_keywords)
             if news_keywords:
                 news_keywords = [x.strip() for x in news_keywords.split(',')]
             else:
                 news_keywords = []
 
-            news_stock_tickers = html_unescape_ignore_none(self.news_stock_tickers)
+            news_stock_tickers = html_unescape_strip(self.news_stock_tickers)
             if news_stock_tickers:
                 news_stock_tickers = [x.strip() for x in news_stock_tickers.split(',')]
             else:

@@ -2,12 +2,12 @@ import datetime
 
 import pytz
 
-from mediawords.util.sitemap.helpers import html_unescape_ignore_none, parse_sitemap_publication_date
+from mediawords.util.sitemap.helpers import html_unescape_strip, parse_sitemap_publication_date
 
 
-def test_html_unescape_ignore_none():
-    assert html_unescape_ignore_none("test &amp; test") == "test & test"
-    assert html_unescape_ignore_none(None) is None
+def test_html_unescape_strip():
+    assert html_unescape_strip("  test &amp; test  ") == "test & test"
+    assert html_unescape_strip(None) is None
 
 
 def test_parse_sitemap_publication_date():

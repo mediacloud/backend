@@ -167,7 +167,8 @@ class TestSitemapTree(TestCase):
                     <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
                         <sitemap>
-                            <loc>{base_url}/sitemap_news_2.xml</loc>
+                            <!-- Extra whitespace added around URL -->
+                            <loc>  {base_url}/sitemap_news_2.xml  </loc>
                             <lastmod>{last_modified}</lastmod>
                         </sitemap>
 
@@ -192,7 +193,8 @@ class TestSitemapTree(TestCase):
 
                         <!-- Has a duplicate story in /sitemap_news_1.xml -->
                         <url>
-                            <loc>{base_url}/news/bar.html#fragment_is_to_be_removed</loc>
+                            <!-- Extra whitespace added around URL -->
+                            <loc>  {base_url}/news/bar.html#fragment_is_to_be_removed  </loc>
                             <xhtml:link rel="alternate"
                                         media="only screen and (max-width: 640px)"
                                         href="{base_url}/news/bar.html?mobile=1#fragment_is_to_be_removed" />
