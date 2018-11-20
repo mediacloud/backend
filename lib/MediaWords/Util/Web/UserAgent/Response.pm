@@ -27,22 +27,7 @@ use MediaWords::Util::Web::UserAgent::Request;
     1;
 }
 
-sub new($$;$$$)
-{
-    my ( $class, $code, $message, $headers, $data ) = @_;
-
-    my $self = {};
-    bless $self, $class;
-
-    $self->{ _response } = MediaWords::Util::Web::UserAgent::Response::Proxy::Response->new(
-        $code,       #
-        $message,    #
-        $headers,    #
-        $data        #
-    );
-
-    return $self;
-}
+# No new() because Python responses get created using urllib3's response object
 
 sub from_python_response($$)
 {
