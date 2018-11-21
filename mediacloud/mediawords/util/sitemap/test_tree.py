@@ -19,7 +19,6 @@ from mediawords.util.sitemap.tree import sitemap_tree_for_homepage
 
 # FIXME various exotic properties
 # FIXME XML vulnerabilities with Expat
-# FIXME strip input
 # FIXME max. recursion level
 
 
