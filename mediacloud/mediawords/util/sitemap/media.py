@@ -21,6 +21,7 @@ def fetch_sitemap_pages_for_media_id(db: DatabaseHandler, media_id: int) -> None
 
     log.info("Storing {} sitemap pages for media ID {} ({})...".format(len(pages), media_id, media_url))
 
+    insert_counter = 0
     for page in pages:
         db.query("""
             INSERT INTO media_sitemap_pages (
@@ -40,5 +41,9 @@ def fetch_sitemap_pages_for_media_id(db: DatabaseHandler, media_id: int) -> None
             'news_title': page.news_story.title if page.news_story is not None else None,
             'news_publish_date': page.news_story.publish_date if page.news_story is not None else None,
         })
+
+        insert_counter += 1
+        if insert_counter % 1000 == 0:
+            log.info("Inserted {} / {} URLs...".format(insert_counter, len(pages)))
 
     log.info("Done storing {} sitemap pages for media ID {} ({}).".format(len(pages), media_id, media_url))
