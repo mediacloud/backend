@@ -21,8 +21,6 @@ def fetch_sitemap_pages_for_media_id(db: DatabaseHandler, media_id: int) -> None
 
     log.info("Storing {} sitemap pages for media ID {} ({})...".format(len(pages), media_id, media_url))
 
-    db.begin()
-
     for page in pages:
         db.query("""
             INSERT INTO media_sitemap_pages (
@@ -44,5 +42,3 @@ def fetch_sitemap_pages_for_media_id(db: DatabaseHandler, media_id: int) -> None
         })
 
     log.info("Done storing {} sitemap pages for media ID {} ({}).".format(len(pages), media_id, media_url))
-
-    db.commit()
