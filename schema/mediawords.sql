@@ -24,7 +24,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4694;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4695;
 BEGIN
 
     -- Update / set database schema version
@@ -3071,6 +3071,9 @@ CREATE TABLE media_sitemap_pages (
         CHECK (priority IS NULL OR (priority >= 0.0 AND priority <= 1.0))
 
 );
+
+CREATE INDEX media_sitemap_pages_media_id
+    ON media_sitemap_pages (media_id);
 
 CREATE UNIQUE INDEX media_sitemap_pages_url
     ON media_sitemap_pages (url);

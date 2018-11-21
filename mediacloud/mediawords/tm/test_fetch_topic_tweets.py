@@ -9,6 +9,7 @@ import unittest
 from mediawords.db import DatabaseHandler
 from mediawords.test.test_database import TestDatabaseWithSchemaTestCase
 import mediawords.test.db
+import mediawords.test.db.create
 import mediawords.tm.fetch_topic_tweets
 import mediawords.util.paths
 from mediawords.util.log import create_logger
