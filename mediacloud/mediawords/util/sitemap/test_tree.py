@@ -14,12 +14,11 @@ from mediawords.util.sitemap.objects import (
     SitemapPage,
     InvalidSitemap,
     SitemapNewsStory,
-    SitemapPageChangeFrequency)
+    SitemapPageChangeFrequency, PagesTextSitemap)
 from mediawords.util.sitemap.tree import sitemap_tree_for_homepage
 
 # FIXME various exotic properties
 # FIXME XML vulnerabilities with Expat
-# FIXME strip input
 # FIXME max. recursion level
 
 
@@ -121,9 +120,15 @@ class TestSitemapTree(TestCase):
 
                         <url>
                             <loc>{base_url}/news/foo.html</loc>
+
+                            <!-- Element present but empty -->
+                            <lastmod />
+
+                            <!-- Some other XML namespace -->
                             <xhtml:link rel="alternate"
                                         media="only screen and (max-width: 640px)"
                                         href="{base_url}/news/foo.html?mobile=1" />
+
                             <news:news>
                                 <news:publication>
                                     <news:name>{publication_name}</news:name>
@@ -439,6 +444,71 @@ class TestSitemapTree(TestCase):
         assert isinstance(sitemap_2, PagesXMLSitemap)
         assert len(sitemap_2.pages) == 1
 
+    def test_sitemap_tree_for_homepage_plain_text(self):
+        """Test sitemap_tree_for_homepage() with plain text sitemaps."""
+
+        pages = {
+            '/': 'This is a homepage.',
+
+            '/robots.txt': {
+                'header': 'Content-Type: text/plain',
+                'content': textwrap.dedent("""
+                        User-agent: *
+                        Disallow: /whatever
+
+                        Sitemap: {base_url}/sitemap_1.txt
+                        Sitemap: {base_url}/sitemap_2.txt.dat
+                    """.format(base_url=self.__test_url)).strip(),
+            },
+
+            # Plain text uncompressed sitemap
+            '/sitemap_1.txt': {
+                'content': textwrap.dedent("""
+
+                    {base_url}/news/foo.html
+
+
+                    {base_url}/news/bar.html
+
+                    Some other stuff which totally doesn't look like an URL
+                """.format(base_url=self.__test_url)).strip(),
+            },
+
+            # Plain text compressed sitemap without .gz extension
+            '/sitemap_2.txt.dat': {
+                'header': 'Content-Type: application/x-gzip',
+                'content': gzip(textwrap.dedent("""
+                    {base_url}/news/bar.html
+                        {base_url}/news/baz.html
+                """.format(base_url=self.__test_url)).strip()),
+            },
+        }
+
+        hs = HashServer(port=self.__test_port, pages=pages)
+        hs.start()
+
+        actual_sitemap_tree = sitemap_tree_for_homepage(homepage_url=self.__test_url)
+
+        hs.stop()
+
+        assert isinstance(actual_sitemap_tree, IndexRobotsTxtSitemap)
+        assert len(actual_sitemap_tree.sub_sitemaps) == 2
+
+        sitemap_1 = actual_sitemap_tree.sub_sitemaps[0]
+        assert isinstance(sitemap_1, PagesTextSitemap)
+        assert len(sitemap_1.pages) == 2
+
+        sitemap_2 = actual_sitemap_tree.sub_sitemaps[1]
+        assert isinstance(sitemap_2, PagesTextSitemap)
+        assert len(sitemap_2.pages) == 2
+
+        pages = actual_sitemap_tree.all_pages()
+        assert len(pages) == 3
+        print(pages)
+        assert SitemapPage(url='{}/news/foo.html'.format(self.__test_url)) in pages
+        assert SitemapPage(url='{}/news/bar.html'.format(self.__test_url)) in pages
+        assert SitemapPage(url='{}/news/baz.html'.format(self.__test_url)) in pages
+
     def test_sitemap_tree_for_homepage_prematurely_ending_xml(self):
         """Test sitemap_tree_for_homepage() with clipped XML.
 
@@ -580,38 +650,6 @@ class TestSitemapTree(TestCase):
 
         assert expected_sitemap_tree == actual_sitemap_tree
 
-    def test_sitemap_tree_for_homepage_robots_txt_wrong_content_type(self):
-        """Test sitemap_tree_for_homepage() with wrong Content-Type in robots.txt."""
-
-        pages = {
-            '/': 'This is a homepage.',
-
-            '/robots.txt': {
-                'header': 'Content-Type: text/html',
-                'content': textwrap.dedent("""
-                        User-agent: *
-                        Disallow: /whatever
-                    """.format(base_url=self.__test_url)).strip(),
-            },
-        }
-
-        # noinspection PyArgumentList
-        expected_sitemap_tree = InvalidSitemap(
-            url='{}/robots.txt'.format(self.__test_url),
-            reason=(
-                "robots.txt at {base_url}/robots.txt is not 'text/plain' but rather 'text/html'"
-            ).format(base_url=self.__test_url),
-        )
-
-        hs = HashServer(port=self.__test_port, pages=pages)
-        hs.start()
-
-        actual_sitemap_tree = sitemap_tree_for_homepage(homepage_url=self.__test_url)
-
-        hs.stop()
-
-        assert expected_sitemap_tree == actual_sitemap_tree
-
     def test_sitemap_tree_for_homepage_no_robots_txt(self):
         """Test sitemap_tree_for_homepage() with no robots.txt."""
 
@@ -623,7 +661,7 @@ class TestSitemapTree(TestCase):
         expected_sitemap_tree = InvalidSitemap(
             url='{}/robots.txt'.format(self.__test_url),
             reason=(
-                'Unable to fetch robots.txt from {base_url}/robots.txt: 404 Not Found'
+                'Unable to fetch sitemap from {base_url}/robots.txt: 404 Not Found'
             ).format(base_url=self.__test_url),
         )
 
@@ -635,3 +673,73 @@ class TestSitemapTree(TestCase):
         hs.stop()
 
         assert expected_sitemap_tree == actual_sitemap_tree
+
+    def test_sitemap_tree_for_homepage_huge_sitemap(self):
+        """Test sitemap_tree_for_homepage() with a huge sitemap (mostly for profiling)."""
+
+        page_count = 1000
+
+        sitemap_xml = """<?xml version="1.0" encoding="UTF-8"?>
+            <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+                    xmlns:news="http://www.google.com/schemas/sitemap-news/0.9"
+                    xmlns:xhtml="http://www.w3.org/1999/xhtml">
+        """
+        for x in range(page_count):
+            sitemap_xml += """
+                <url>
+                    <loc>{base_url}/news/page_{x}.html</loc>
+
+                    <!-- Element present but empty -->
+                    <lastmod />
+
+                    <!-- Some other XML namespace -->
+                    <xhtml:link rel="alternate"
+                                media="only screen and (max-width: 640px)"
+                                href="{base_url}/news/page_{x}.html?mobile=1" />
+
+                    <news:news>
+                        <news:publication>
+                            <news:name>{publication_name}</news:name>
+                            <news:language>{publication_language}</news:language>
+                        </news:publication>
+                        <news:publication_date>{publication_date}</news:publication_date>
+                        <news:title>Foo &lt;foo&gt;</news:title>    <!-- HTML entity decoding -->
+                    </news:news>
+                </url>
+            """.format(
+                x=x,
+                base_url=self.__test_url,
+                publication_name=self.TEST_PUBLICATION_NAME,
+                publication_language=self.TEST_PUBLICATION_LANGUAGE,
+                publication_date=self.TEST_DATE_STR,
+            )
+
+        sitemap_xml += "</urlset>"
+
+        pages = {
+            '/': 'This is a homepage.',
+
+            '/robots.txt': {
+                'header': 'Content-Type: text/plain',
+                'content': textwrap.dedent("""
+                        User-agent: *
+                        Disallow: /whatever
+
+                        Sitemap: {base_url}/sitemap.xml.gz
+                    """.format(base_url=self.__test_url)).strip(),
+            },
+
+            '/sitemap.xml.gz': {
+                'header': 'Content-Type: application/x-gzip',
+                'content': gzip(sitemap_xml),
+            },
+        }
+
+        hs = HashServer(port=self.__test_port, pages=pages)
+        hs.start()
+
+        actual_sitemap_tree = sitemap_tree_for_homepage(homepage_url=self.__test_url)
+
+        hs.stop()
+
+        assert len(actual_sitemap_tree.all_pages()) == page_count

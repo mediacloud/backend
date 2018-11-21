@@ -52,10 +52,12 @@ def sitemap_useragent() -> UserAgent:
 
 
 def html_unescape_strip(string: Optional[str]) -> Optional[str]:
-    """Decode HTML entities, strip string; ignore None as input."""
+    """Decode HTML entities, strip string, set to None if it's empty; ignore None as input."""
     if string:
         string = html.unescape(string)
         string = string.strip()
+        if not string:
+            string = None
     return string
 
 
@@ -115,7 +117,7 @@ def get_url_retry_on_client_errors(url: str,
 def __response_is_gzipped_data(response: Response) -> bool:
     """Return True if Response looks like it's gzipped."""
     url_path = str(furl(response.request().url()).path)
-    content_type = response.content_type()
+    content_type = response.content_type() or ''
 
     if url_path.lower().endswith('.gz') or 'gzip' in content_type.lower():
         return True
@@ -130,12 +132,14 @@ def ungzipped_response_content(response: Response) -> str:
     if __response_is_gzipped_data(response):
         gzipped_data = response.raw_data()
         try:
-            data = gunzip(gzipped_data)
+            data = gunzip(gzipped_data).decode('utf-8', errors='replace')
         except McGunzipException as ex:
             log.error("Unable to gunzip response {}: {}".format(response, ex))
             data = response.decoded_content()
 
     else:
         data = response.decoded_content()
+
+    assert isinstance(data, str)
 
     return data
