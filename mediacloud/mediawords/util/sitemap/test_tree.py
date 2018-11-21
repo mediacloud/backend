@@ -121,9 +121,15 @@ class TestSitemapTree(TestCase):
 
                         <url>
                             <loc>{base_url}/news/foo.html</loc>
+
+                            <!-- Element present but empty -->
+                            <lastmod />
+
+                            <!-- Some other XML namespace -->
                             <xhtml:link rel="alternate"
                                         media="only screen and (max-width: 640px)"
                                         href="{base_url}/news/foo.html?mobile=1" />
+
                             <news:news>
                                 <news:publication>
                                     <news:name>{publication_name}</news:name>

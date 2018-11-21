@@ -520,47 +520,49 @@ class PagesXMLSitemapParser(AbstractXMLSitemapParser):
         else:
 
             if name == 'sitemap:loc':
+                # Every entry must have <loc>
                 self.__require_last_char_data_to_be_set(name=name)
                 self._current_page.url = self._last_char_data
 
             elif name == 'sitemap:lastmod':
-                self.__require_last_char_data_to_be_set(name=name)
+                # Element might be present but character data might be empty
                 self._current_page.last_modified = self._last_char_data
 
             elif name == 'sitemap:changefreq':
-                self.__require_last_char_data_to_be_set(name=name)
+                # Element might be present but character data might be empty
                 self._current_page.change_frequency = self._last_char_data
 
             elif name == 'sitemap:priority':
-                self.__require_last_char_data_to_be_set(name=name)
+                # Element might be present but character data might be empty
                 self._current_page.priority = self._last_char_data
 
             elif name == 'news:name':  # news/publication/name
-                self.__require_last_char_data_to_be_set(name=name)
+                # Element might be present but character data might be empty
                 self._current_page.news_publication_name = self._last_char_data
 
             elif name == 'news:language':  # news/publication/language
-                self.__require_last_char_data_to_be_set(name=name)
+                # Element might be present but character data might be empty
                 self._current_page.news_publication_language = self._last_char_data
 
             elif name == 'news:publication_date':
-                self.__require_last_char_data_to_be_set(name=name)
+                # Element might be present but character data might be empty
                 self._current_page.news_publish_date = self._last_char_data
 
             elif name == 'news:title':
+                # Every Google News sitemap entry must have <title>
                 self.__require_last_char_data_to_be_set(name=name)
                 self._current_page.news_title = self._last_char_data
 
             elif name == 'news:access':
-                self.__require_last_char_data_to_be_set(name=name)
+                # Element might be present but character data might be empty
                 self._current_page.news_access = self._last_char_data
 
             elif name == 'news:keywords':
-                self.__require_last_char_data_to_be_set(name=name)
+                # Element might be present but character data might be empty
                 self._current_page.news_keywords = self._last_char_data
 
             elif name == 'news:stock_tickers':
-                self.__require_last_char_data_to_be_set(name=name)
+                # Element might be present but character data might be empty
                 self._current_page.news_stock_tickers = self._last_char_data
 
         super().xml_element_end(name=name)

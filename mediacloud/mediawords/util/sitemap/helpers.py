@@ -52,10 +52,12 @@ def sitemap_useragent() -> UserAgent:
 
 
 def html_unescape_strip(string: Optional[str]) -> Optional[str]:
-    """Decode HTML entities, strip string; ignore None as input."""
+    """Decode HTML entities, strip string, set to None if it's empty; ignore None as input."""
     if string:
         string = html.unescape(string)
         string = string.strip()
+        if not string:
+            string = None
     return string
 
 
