@@ -108,14 +108,26 @@ class InvalidSitemap(AbstractSitemap):
 
 
 @dataclass(frozen=True)
-class PagesXMLSitemap(AbstractSitemap):
-    """XML sitemap that contains URLs to pages."""
+class AbstractPagesSitemap(AbstractSitemap, metaclass=abc.ABCMeta):
+    """Abstract sitemap that contains URLs to pages."""
 
     pages: List[SitemapPage]
     """URLs to pages that were found in a sitemap."""
 
     def all_pages(self) -> Set[SitemapPage]:
         return set(self.pages)
+
+
+@dataclass(frozen=True)
+class PagesXMLSitemap(AbstractPagesSitemap):
+    """XML sitemap that contains URLs to pages."""
+    pass
+
+
+@dataclass(frozen=True)
+class PagesTextSitemap(AbstractPagesSitemap):
+    """Plain text sitemap that contains URLs to pages."""
+    pass
 
 
 @dataclass(frozen=True)

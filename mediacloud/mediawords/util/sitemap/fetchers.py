@@ -1,14 +1,13 @@
 import abc
 import re
 import xml.parsers.expat
+from collections import OrderedDict
 from dataclasses import field, dataclass
 from decimal import Decimal
 from typing import Optional, Dict
 
-from furl import furl
-
 from mediawords.util.log import create_logger
-from mediawords.util.url import fix_common_url_mistakes, is_http_url, normalize_url, is_homepage_url
+from mediawords.util.url import fix_common_url_mistakes, is_http_url, normalize_url
 from mediawords.util.web.user_agent import UserAgent
 from mediawords.util.sitemap.exceptions import McSitemapsException, McSitemapsXMLParsingException
 from mediawords.util.sitemap.helpers import (
@@ -19,29 +18,30 @@ from mediawords.util.sitemap.helpers import (
     ungzipped_response_content,
 )
 from mediawords.util.sitemap.objects import (
+    SitemapPage,
+    SitemapNewsStory,
     AbstractSitemap,
     InvalidSitemap,
     IndexRobotsTxtSitemap,
     IndexXMLSitemap,
-    SitemapPage,
     PagesXMLSitemap,
+    PagesTextSitemap,
     SitemapPageChangeFrequency,
-    SitemapNewsStory,
     SITEMAP_PAGE_DEFAULT_PRIORITY,
 )
 
 log = create_logger(__name__)
 
 
-class AbstractSitemapFetcher(object, metaclass=abc.ABCMeta):
-    """Abstract sitemap fetcher."""
+class SitemapFetcher(object):
+    """robots.txt / XML / plain text sitemap fetcher."""
 
     # Max. recursion level in iterating over sub-sitemaps
     __MAX_RECURSION_LEVEL = 10
 
     __slots__ = [
+        '_url',
         '_recursion_level',
-        '_uri',  # furl object
         '_ua',  # UserAgent object
     ]
 
@@ -60,68 +60,94 @@ class AbstractSitemapFetcher(object, metaclass=abc.ABCMeta):
         except Exception as ex:
             raise McSitemapsException("Unable to normalize URL {}: {}".format(url, ex))
 
-        try:
-            uri = furl(url)
-        except Exception as ex:
-            raise McSitemapsException("Unable to parse URL {}: {}".format(url, ex))
-
         if not ua:
             ua = sitemap_useragent()
 
-        self._uri = uri
+        self._url = url
         self._ua = ua
         self._recursion_level = recursion_level
 
-    @abc.abstractmethod
     def sitemap(self) -> AbstractSitemap:
-        raise NotImplementedError("Abstract method")
-
-
-class IndexRobotsTxtSitemapFetcher(AbstractSitemapFetcher):
-    """robots.txt index sitemap fetcher."""
-
-    def __init__(self, homepage_url: str, ua: Optional[UserAgent] = None):
-
-        super().__init__(url=homepage_url, recursion_level=0, ua=ua)
-
-        if not is_homepage_url(str(self._uri.url)):
-            try:
-                self._uri = self._uri.remove(path=True, query=True, query_params=True, fragment=True)
-                log.warning("Assuming that the homepage of {} is {}".format(homepage_url, self._uri))
-            except Exception as ex:
-                raise McSitemapsException("Unable to determine homepage URL for URL {}: {}".format(homepage_url, ex))
-
-    def sitemap(self) -> AbstractSitemap:
-        robots_txt_uri = self._uri.copy()
-        robots_txt_uri.path = '/robots.txt'
-
-        log.info("Fetching robots.txt from {}...".format(robots_txt_uri))
-        robots_txt_response = get_url_retry_on_client_errors(url=str(robots_txt_uri.url), ua=self._ua)
-        if not robots_txt_response.is_success():
+        log.info("Fetching level {} sitemap from {}...".format(self._recursion_level, self._url))
+        response = get_url_retry_on_client_errors(url=self._url, ua=self._ua)
+        if not response.is_success():
             # noinspection PyArgumentList
             return InvalidSitemap(
-                url=str(robots_txt_uri.url),
-                reason="Unable to fetch robots.txt from {}: {}".format(
-                    robots_txt_uri,
-                    robots_txt_response.status_line(),
-                ),
+                url=self._url,
+                reason="Unable to fetch sitemap from {}: {}".format(self._url, response.status_line()),
             )
 
-        robots_txt_content_type = robots_txt_response.content_type()
-        if robots_txt_content_type:
-            if not robots_txt_content_type.lower() == 'text/plain':
-                # noinspection PyArgumentList
-                return InvalidSitemap(
-                    url=str(robots_txt_uri.url),
-                    reason="robots.txt at {} is not 'text/plain' but rather '{}'".format(
-                        robots_txt_uri,
-                        robots_txt_response.content_type(),
-                    ),
+        response_content = ungzipped_response_content(response)
+
+        # MIME types returned in Content-Type are unpredictable, so peek into the content instead
+        if response_content[:20].strip().startswith('<'):
+            # XML sitemap (the specific kind is to be determined later)
+            parser = XMLSitemapParser(
+                url=self._url,
+                content=response_content,
+                recursion_level=self._recursion_level,
+                ua=self._ua,
+            )
+
+        else:
+            # Assume that it's some sort of a text file (robots.txt or plain text sitemap)
+            if self._url.endswith('/robots.txt'):
+                parser = IndexRobotsTxtSitemapParser(
+                    url=self._url,
+                    content=response_content,
+                    recursion_level=self._recursion_level,
+                    ua=self._ua,
+                )
+            else:
+                parser = PlainTextSitemapParser(
+                    url=self._url,
+                    content=response_content,
+                    recursion_level=self._recursion_level,
+                    ua=self._ua,
                 )
 
-        sitemap_urls = []
+        log.info("Parsing sitemap from URL {}...".format(self._url))
+        sitemap = parser.sitemap()
 
-        for robots_txt_line in robots_txt_response.decoded_content().splitlines():
+        return sitemap
+
+
+class AbstractSitemapParser(object, metaclass=abc.ABCMeta):
+    """Abstract robots.txt / XML / plain text sitemap parser."""
+
+    __slots__ = [
+        '_url',
+        '_content',
+        '_ua',
+        '_recursion_level',
+    ]
+
+    def __init__(self, url: str, content: str, recursion_level: int, ua: UserAgent):
+        self._url = url
+        self._content = content
+        self._recursion_level = recursion_level
+        self._ua = ua
+
+    @abc.abstractmethod
+    def sitemap(self) -> AbstractSitemap:
+        raise NotImplementedError("Abstract method.")
+
+
+class IndexRobotsTxtSitemapParser(AbstractSitemapParser):
+    """robots.txt index sitemap parser."""
+
+    def __init__(self, url: str, content: str, recursion_level: int, ua: UserAgent):
+        super().__init__(url=url, content=content, recursion_level=recursion_level, ua=ua)
+
+        if not self._url.endswith('/robots.txt'):
+            raise McSitemapsException("URL does not look like robots.txt URL: {}".format(self._url))
+
+    def sitemap(self) -> AbstractSitemap:
+
+        # Serves as an ordered set because we want to deduplicate URLs but
+        sitemap_urls = OrderedDict()
+
+        for robots_txt_line in self._content.splitlines():
             robots_txt_line = robots_txt_line.strip()
             # robots.txt is supposed to be case sensitive but who cares in these Node.js times?
             robots_txt_line = robots_txt_line.lower()
@@ -129,73 +155,88 @@ class IndexRobotsTxtSitemapFetcher(AbstractSitemapFetcher):
             if sitemap_match:
                 sitemap_url = sitemap_match.group(1)
                 if is_http_url(sitemap_url):
-                    if sitemap_url not in sitemap_urls:
-                        sitemap_urls.append(sitemap_url)
+                    sitemap_urls[sitemap_url] = True
                 else:
                     log.warning("Sitemap URL {} doesn't look like an URL, skipping".format(sitemap_url))
 
         sub_sitemaps = []
 
-        for sitemap_url in sitemap_urls:
-            fetcher = XMLSitemapFetcher(url=sitemap_url, recursion_level=0, ua=self._ua)
+        for sitemap_url in sitemap_urls.keys():
+            fetcher = SitemapFetcher(url=sitemap_url, recursion_level=self._recursion_level, ua=self._ua)
             fetched_sitemap = fetcher.sitemap()
             sub_sitemaps.append(fetched_sitemap)
 
         # noinspection PyArgumentList
-        index_sitemap = IndexRobotsTxtSitemap(url=str(robots_txt_uri.url), sub_sitemaps=sub_sitemaps)
+        index_sitemap = IndexRobotsTxtSitemap(url=self._url, sub_sitemaps=sub_sitemaps)
 
         return index_sitemap
 
 
-class XMLSitemapFetcher(AbstractSitemapFetcher):
-    """XML sitemap fetcher."""
+class PlainTextSitemapParser(AbstractSitemapParser):
+    """Plain text sitemap parser."""
+
+    def sitemap(self) -> AbstractSitemap:
+
+        story_urls = OrderedDict()
+
+        for story_url in self._content.splitlines():
+            story_url = story_url.strip()
+            if not story_url:
+                continue
+            if is_http_url(story_url):
+                story_urls[story_url] = True
+            else:
+                log.warning("Story URL {} doesn't look like an URL, skipping".format(story_url))
+
+        pages = []
+        for page_url in story_urls.keys():
+            page = SitemapPage(url=page_url)
+            pages.append(page)
+
+        # noinspection PyArgumentList
+        text_sitemap = PagesTextSitemap(url=self._url, pages=pages)
+
+        return text_sitemap
+
+
+class XMLSitemapParser(AbstractSitemapParser):
+    """XML sitemap parser."""
 
     __XML_NAMESPACE_SEPARATOR = ' '
 
     __slots__ = [
-        '_sitemap_parser',
+        '_concrete_parser',
     ]
 
-    def __init__(self, url: str, recursion_level: int, ua: UserAgent):
-        super().__init__(url=url, recursion_level=recursion_level, ua=ua)
+    def __init__(self, url: str, content: str, recursion_level: int, ua: UserAgent):
+        super().__init__(url=url, content=content, recursion_level=recursion_level, ua=ua)
 
         # Will be initialized when the type of sitemap is known
-        self._sitemap_parser = None
+        self._concrete_parser = None
 
     def sitemap(self) -> AbstractSitemap:
-
-        sitemap_response = get_url_retry_on_client_errors(url=str(self._uri.url), ua=self._ua)
-        if not sitemap_response.is_success():
-            # noinspection PyArgumentList
-            return InvalidSitemap(
-                url=str(self._uri.url),
-                reason="Unable to fetch sitemap from {}: {}".format(str(self._uri.url), sitemap_response.status_line()),
-            )
-
-        sitemap_xml = ungzipped_response_content(sitemap_response)
 
         parser = xml.parsers.expat.ParserCreate(namespace_separator=self.__XML_NAMESPACE_SEPARATOR)
         parser.StartElementHandler = self._xml_element_start
         parser.EndElementHandler = self._xml_element_end
         parser.CharacterDataHandler = self._xml_char_data
 
-        log.info("Parsing sitemap from URL {}...".format(self._uri.url))
         try:
             is_final = True
-            parser.Parse(sitemap_xml, is_final)
+            parser.Parse(self._content, is_final)
         except Exception as ex:
             # Some sitemap XML files might end abruptly because webservers might be timing out on returning huge XML
             # files so don't return InvalidSitemap() but try to get as much pages as possible
-            log.error("Parsing sitemap from URL {} failed: {}".format(self._uri.url, ex))
+            log.error("Parsing sitemap from URL {} failed: {}".format(self._url, ex))
 
-        if not self._sitemap_parser:
+        if not self._concrete_parser:
             # noinspection PyArgumentList
             return InvalidSitemap(
-                url=str(self._uri.url),
-                reason="No parsers support sitemap from {}".format(self._uri.url),
+                url=self._url,
+                reason="No parsers support sitemap from {}".format(self._url),
             )
 
-        return self._sitemap_parser.sitemap()
+        return self._concrete_parser.sitemap()
 
     @classmethod
     def __normalize_xml_element_name(cls, name: str):
@@ -236,20 +277,20 @@ class XMLSitemapFetcher(AbstractSitemapFetcher):
 
         name = self.__normalize_xml_element_name(name)
 
-        if self._sitemap_parser:
-            self._sitemap_parser.xml_element_start(name=name, attrs=attrs)
+        if self._concrete_parser:
+            self._concrete_parser.xml_element_start(name=name, attrs=attrs)
 
         else:
 
             # Root element -- initialize concrete parser
             if name == 'sitemap:urlset':
-                self._sitemap_parser = PagesXMLSitemapParser(
-                    url=str(self._uri.url),
+                self._concrete_parser = PagesXMLSitemapParser(
+                    url=self._url,
                 )
 
             elif name == 'sitemap:sitemapindex':
-                self._sitemap_parser = IndexXMLSitemapParser(
-                    url=str(self._uri.url),
+                self._concrete_parser = IndexXMLSitemapParser(
+                    url=self._url,
                     ua=self._ua,
                     recursion_level=self._recursion_level,
                 )
@@ -260,17 +301,17 @@ class XMLSitemapFetcher(AbstractSitemapFetcher):
 
         name = self.__normalize_xml_element_name(name)
 
-        if not self._sitemap_parser:
+        if not self._concrete_parser:
             raise McSitemapsXMLParsingException("Concrete sitemap parser should be set by now.")
 
-        self._sitemap_parser.xml_element_end(name=name)
+        self._concrete_parser.xml_element_end(name=name)
 
     def _xml_char_data(self, data: str) -> None:
 
-        if not self._sitemap_parser:
+        if not self._concrete_parser:
             raise McSitemapsXMLParsingException("Concrete sitemap parser should be set by now.")
 
-        self._sitemap_parser.xml_char_data(data=data)
+        self._concrete_parser.xml_char_data(data=data)
 
 
 class AbstractXMLSitemapParser(object, metaclass=abc.ABCMeta):
@@ -354,9 +395,9 @@ class IndexXMLSitemapParser(AbstractXMLSitemapParser):
 
             # URL might be invalid, or recursion limit might have been reached
             try:
-                fetcher = XMLSitemapFetcher(url=sub_sitemap_url,
-                                            recursion_level=self._recursion_level + 1,
-                                            ua=self._ua)
+                fetcher = SitemapFetcher(url=sub_sitemap_url,
+                                         recursion_level=self._recursion_level + 1,
+                                         ua=self._ua)
                 fetched_sitemap = fetcher.sitemap()
             except Exception as ex:
                 # noinspection PyArgumentList
