@@ -7,7 +7,7 @@ log = create_logger(__name__)
 
 # FIXME add test for this function
 def fetch_sitemap_pages_for_media_id(db: DatabaseHandler, media_id: int) -> None:
-    """Fetch and store all XML sitema pages (news stories or not) from media's sitemap."""
+    """Fetch and store all pages (news stories or not) from media's sitemap tree."""
     media = db.find_by_id(table='media', object_id=media_id)
     if not media:
         raise Exception("Unable to find media with ID {}".format(media_id))
