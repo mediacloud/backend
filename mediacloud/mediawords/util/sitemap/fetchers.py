@@ -157,7 +157,7 @@ class IndexRobotsTxtSitemapParser(AbstractSitemapParser):
                 if is_http_url(sitemap_url):
                     sitemap_urls[sitemap_url] = True
                 else:
-                    log.warning("Sitemap URL {} doesn't look like an URL, skipping".format(sitemap_url))
+                    log.debug("Sitemap URL {} doesn't look like an URL, skipping".format(sitemap_url))
 
         sub_sitemaps = []
 
