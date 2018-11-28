@@ -468,9 +468,9 @@ sub add_new_links_chunk($$$$)
     my $topic_fetch_urls = fetch_links( $db, $topic, $new_links );
 
     INFO( "add_new_links_chunk: mark topic links spidered" );
-    my $link_ids_table = $db->get_temporary_ids_table( [ grep { $_ } map { $_->{ topic_links_id } } @{ $new_links } ] );
-    $db->query( <<SQL );
-update topic_links set link_spidered  = 't' where topic_links_id in ( select id from $link_ids_table )
+    my $link_ids = [ grep { $_ } map { $_->{ topic_links_id } } @{ $new_links } ];
+    $db->query( <<SQL, $link_ids );
+update topic_links set link_spidered  = 't' where topic_links_id = any( ? )
 SQL
 }
 
