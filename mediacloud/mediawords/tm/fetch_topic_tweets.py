@@ -401,6 +401,7 @@ def _add_topic_tweet_days(
     end_date = datetime.datetime.strptime(topic['end_date'], '%Y-%m-%d')
     while date <= end_date:
         try:
+            log.info("fetching tweets for %s" % date)
             topic_tweet_day = _add_topic_tweet_single_day(db, topic, date, ch_class)
             _fetch_tweets_for_day(db, twitter_class, topic, topic_tweet_day)
         except McFetchTopicTweetDateFetchedException:
