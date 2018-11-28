@@ -2,67 +2,14 @@ use strict;
 use warnings;
 
 use Test::Deep;
-use Test::More tests => 10;
+use Test::More tests => 3;
 
 use MediaWords::CommonLibs;
 
 use MediaWords::Test::DB;
 use MediaWords::Test::DB::Create;
 use MediaWords::TM::Mine;
-
-sub test_postgres_regex_match($)
-{
-    my $db = shift;
-
-    my $regex = '(?: [[:<:]]alt-right | [[:<:]]alt[[:space:]]+right | [[:<:]]alternative[[:space:]]+right )';
-
-    {
-        # Match
-        my $strings = [ 'This is a string describing alt-right and something else.' ];
-        ok( MediaWords::TM::Mine::postgres_regex_match( $db, $strings, $regex ) );
-    }
-
-    {
-        # No match
-        my $strings = [ 'This is a string describing just something else.' ];
-        ok( !MediaWords::TM::Mine::postgres_regex_match( $db, $strings, $regex ) );
-    }
-
-    {
-        # One matching string
-        my $strings = [
-            'This is a string describing something else.',    #
-            'This is a string describing alt-right.',         #
-        ];
-        ok( MediaWords::TM::Mine::postgres_regex_match( $db, $strings, $regex ) );
-    }
-
-    {
-        # Two non-matching strings
-        my $strings = [
-            'This is a string describing something else.',          #
-            'This is a string describing something else again.',    #
-        ];
-        ok( !MediaWords::TM::Mine::postgres_regex_match( $db, $strings, $regex ) );
-    }
-
-    {
-        my $strings = [ ( 'x' x ( 8 * 1024 * 1024 ) ) . 'MATCH' ];
-        ok( !MediaWords::TM::Mine::postgres_regex_match( $db, $strings, 'MATCH' ) );
-    }
-
-    {
-        my $strings = [ 'MATCH' . ( 'x' x ( 8 * 1024 * 1024 ) ) ];
-        ok( MediaWords::TM::Mine::postgres_regex_match( $db, $strings, 'MATCH' ) );
-    }
-
-    {
-        # make sure we just fail and don't crash on null char
-        my $strings = [ "MATCH\x00FOO" ];
-        ok( !MediaWords::TM::Mine::postgres_regex_match( $db, $strings, 'MATCH' ) );
-    }
-
-}
+use MediaWords::TM::Stories;
 
 my $_topic_stories_medium_count = 0;
 
@@ -76,7 +23,7 @@ sub add_test_topic_stories($$$$)
     for my $i ( 1 .. $num_stories )
     {
         my $story = MediaWords::Test::DB::Create::create_test_story( $db, "$label $i", $feed );
-        MediaWords::TM::Mine::add_to_topic_stories( $db, $topic, $story, 1, 'f', 1 );
+        MediaWords::TM::Stories::add_to_topic_stories( $db, $story, $topic );
     }
 }
 
@@ -112,7 +59,6 @@ sub test_mine($)
 {
     my ( $db ) = @_;
 
-    test_postgres_regex_match( $db );
     test_die_if_max_stories_exceeded( $db );
 }
 
