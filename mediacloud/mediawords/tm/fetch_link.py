@@ -495,7 +495,7 @@ def fetch_topic_url(db: DatabaseHandler, topic_fetch_urls_id: int, domain_timeou
         _try_fetch_topic_url(db=db, topic_fetch_url=topic_fetch_url, domain_timeout=domain_timeout)
 
         if topic_fetch_url['topic_links_id'] and topic_fetch_url['stories_id']:
-            try_update_topic_link_ref_stories_id(db, topic_fetch_url)
+            _try_update_topic_link_ref_stories_id(db, topic_fetch_url)
 
         if 'stories_id' in topic_fetch_url and topic_fetch_url['stories_id'] is not None:
             story = db.require_by_id('stories', topic_fetch_url['stories_id'])
