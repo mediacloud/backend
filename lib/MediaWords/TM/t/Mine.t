@@ -2,7 +2,7 @@ use strict;
 use warnings;
 
 use Test::Deep;
-use Test::More tests => 10;
+use Test::More tests => 3;
 
 use MediaWords::CommonLibs;
 
@@ -23,7 +23,7 @@ sub add_test_topic_stories($$$$)
     for my $i ( 1 .. $num_stories )
     {
         my $story = MediaWords::Test::DB::Create::create_test_story( $db, "$label $i", $feed );
-        MediaWords::TM::Stories::add_to_topic_stories( $db, $story, $topic, 1, 'f', 1 );
+        MediaWords::TM::Stories::add_to_topic_stories( $db, $story, $topic );
     }
 }
 
