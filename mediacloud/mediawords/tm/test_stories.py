@@ -600,3 +600,30 @@ class TestTMStoriesDB(mediawords.test.test_database.TestDatabaseWithSchemaTestCa
             {'a': topic['topics_id'], 'b': stories_ids}).flat()
 
         assert merged_stories == [stories_ids[-1]]
+
+    def test_merge_dup_media_stories(self) -> None:
+        """Test merge_dup_media_stories()."""
+        db = self.db()
+
+        topic = mediawords.test.db.create.create_test_topic(db, 'merge')
+        old_medium = mediawords.test.db.create.create_test_medium(db, 'merge from')
+        new_medium = mediawords.test.db.create.create_test_medium(db, 'merge to')
+        feed = mediawords.test.db.create.create_test_feed(db, 'merge', medium=old_medium)
+
+        num_stories = 10
+        for i in range(num_stories):
+            story = mediawords.test.db.create.create_test_story(db, "merge " + str(i), feed=feed)
+            mediawords.tm.stories.add_to_topic_stories(db, story, topic)
+
+        db.update_by_id('media', old_medium['media_id'], {'dup_media_id': new_medium['media_id']})
+
+        mediawords.tm.stories.merge_dup_media_stories(db, topic)
+
+        got_stories = db.query(
+            "select s.* from stories s join topic_stories ts using (stories_id) where topics_id = %(a)s",
+            {'a': topic['topics_id']}).hashes()
+
+        assert len(got_stories) == num_stories
+
+        for got_story in got_stories:
+            assert got_story['media_id'] == new_medium['media_id']

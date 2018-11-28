@@ -689,6 +689,29 @@ def merge_dup_media_story(db, topic, story):
     return new_story
 
 
+def merge_dup_media_stories(db, topic):
+    """Merge all stories belonging to dup_media_id media to the dup_media_id in the current topic"""
+
+    log.info("merge dup media stories")
+
+    dup_media_stories = db.query(
+        """
+        SELECT distinct s.*
+            FROM snap.live_stories s
+                join topic_stories cs on (s.stories_id = cs.stories_id and s.topics_id = cs.topics_id)
+                join media m on (s.media_id = m.media_id)
+            WHERE
+                m.dup_media_id is not null and
+                cs.topics_id = %(a)s
+        """,
+        {'a': topic['topics_id']}).hashes()
+
+    if len(dup_media_stories) > 0:
+        log.info("merging %d stories" % len(dup_media_stories))
+
+    [merge_dup_media_story(db, topic, s) for s in dup_media_stories]
+
+
 def _merge_dup_stories(db, topic, stories):
     """Merge a list of stories into a single story, keeping the story with the most sentences."""
     log.debug("merge dup stories")

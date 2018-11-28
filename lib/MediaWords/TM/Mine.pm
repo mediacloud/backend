@@ -670,28 +670,6 @@ SQL
     }
 }
 
-# merge all stories belonging to dup_media_id media to the dup_media_id in the current topic
-sub merge_dup_media_stories
-{
-    my ( $db, $topic ) = @_;
-
-    INFO( "merge dup media stories" );
-
-    my $dup_media_stories = $db->query( <<END, $topic->{ topics_id } )->hashes;
-SELECT distinct s.*
-    FROM snap.live_stories s
-        join topic_stories cs on ( s.stories_id = cs.stories_id and s.topics_id = cs.topics_id )
-        join media m on ( s.media_id = m.media_id )
-    WHERE
-        m.dup_media_id is not null and
-        cs.topics_id = ?
-END
-
-    INFO "merging " . scalar( @{ $dup_media_stories } ) . " stories" if ( scalar( @{ $dup_media_stories } ) );
-
-    map { merge_dup_media_story( $db, $topic, $_ ) } @{ $dup_media_stories };
-}
-
 # import all topic_seed_urls that have not already been processed;
 # return 1 if new stories were added to the topic and 0 if not
 sub import_seed_urls
@@ -1146,7 +1124,7 @@ sub do_mine_topic ($$;$)
 
         # merge dup media and stories again to catch dups from spidering
         update_topic_state( $db, $topic, "merging duplicate media stories" );
-        merge_dup_media_stories( $db, $topic );
+        MediaWords::TM::Stories::merge_dup_media_stories( $db, $topic );
 
         update_topic_state( $db, $topic, "merging duplicate stories" );
         MediaWords::TM::Stories::find_and_merge_dup_stories( $db, $topic );
