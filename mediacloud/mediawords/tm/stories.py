@@ -576,11 +576,15 @@ def _get_merged_iteration(db: DatabaseHandler, topic: dict, delete_story: dict, 
             from topic_stories
             where
                 topics_id = %(a)s and
-                stories_id in (%(b)s, %(c)s)
+                stories_id in (%(b)s, %(c)s) and
+                iteration is not null
         """,
         {'a': topic['topics_id'], 'b': delete_story['stories_id'], 'c': keep_story['stories_id']}).flat()
 
-    return min(iterations)
+    if len(iterations) > 0:
+        return min(iterations)
+    else:
+        return 0
 
 
 def merge_dup_story(db, topic, delete_story, keep_story):
