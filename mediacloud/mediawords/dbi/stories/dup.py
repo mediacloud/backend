@@ -81,7 +81,6 @@ def get_medium_dup_stories_by_title(stories: List, assume_no_home_pages: bool = 
             continue
 
         title_parts = _get_title_parts(story['title'])
-        log.warning(title_parts)
 
         for i, title_part in enumerate(title_parts):
             if i == 0:
@@ -111,16 +110,15 @@ def get_medium_dup_stories_by_title(stories: List, assume_no_home_pages: bool = 
             title_part_counts[title_part]['stories'][stories_id] = story
 
     duplicate_stories = []
-    log.warning(title_part_counts)
     for t in filter(lambda t: t.get('solo', False), title_part_counts.values()):
         num_stories = len(t['stories'])
 
         if num_stories > 1:
-            dup_stories = t['stories'].values()
+            dup_stories = list(t['stories'].values())
             if num_stories < 26 or _get_story_date_range(dup_stories) < 7 * 86400:
                 duplicate_stories.append(dup_stories)
             else:
-                dup_title = t['stories'].values()[0]['title']
+                dup_title = dup_stories[0]['title']
                 log.debug("Cowardly refusing to mark num_stories stories as dups [%s]" % dup_title)
 
     return duplicate_stories
