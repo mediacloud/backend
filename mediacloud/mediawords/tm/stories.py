@@ -534,10 +534,15 @@ def copy_story_to_new_medium(db: DatabaseHandler, topic: dict, old_story: dict, 
     old_download = db.query(
         "select * from downloads where stories_id = %(a)s order by downloads_id limit 1",
         {'a': old_story['stories_id']}).hash()
+    download = create_download_for_new_story(db, story, feed)
+
     if old_download is not None:
-        content = mediawords.dbi.downloads.fetch_content(db, old_download)
-        download = create_download_for_new_story(db, story, feed)
-        download = mediawords.dbi.downloads.store_content(db, download, content)
+        try:
+            content = mediawords.dbi.downloads.fetch_content(db, old_download)
+            download = mediawords.dbi.downloads.store_content(db, download, content)
+        except mediawords.dbi.downloads.McDBIDownloadsException:
+            download_update = dict([(f, old_download[f]) for f in ['state', 'error_message', 'download_time']])
+            db.update_by_id('downloads', download['downloads_id'], download_update)
 
         db.query(
             """

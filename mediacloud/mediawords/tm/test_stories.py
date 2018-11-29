@@ -452,6 +452,34 @@ class TestTMStoriesDB(mediawords.test.test_database.TestDatabaseWithSchemaTestCa
             {'a': new_story['stories_id']}).hashes()
         assert len(story_sentences) > 0
 
+    def test_copy_story_to_new_medium_with_download_error(self) -> None:
+        """Test copy_story_to_new_medium with an associated download error."""
+        db = self.db()
+
+        topic = mediawords.test.db.create.create_test_topic(db, 'copy foo')
+
+        new_medium = mediawords.test.db.create.create_test_medium(db, 'copy new')
+
+        old_medium = mediawords.test.db.create.create_test_medium(db, 'copy old')
+        old_feed = mediawords.test.db.create.create_test_feed(db=db, label='copy old', medium=old_medium)
+        old_story = mediawords.test.db.create.create_test_story(db=db, label='copy old', feed=old_feed)
+
+        mediawords.test.db.create.add_content_to_test_story(db, old_story, old_feed)
+
+        db.query("update downloads set state = 'error' where stories_id = %(a)s", {'a': old_story['stories_id']})
+
+        mediawords.tm.stories.add_to_topic_stories(db, old_story, topic)
+
+        new_story = mediawords.tm.stories.copy_story_to_new_medium(db, topic, old_story, new_medium)
+
+        assert db.find_by_id('stories', new_story['stories_id']) is not None
+
+        new_download = db.query(
+            "select * from downloads where stories_id = %(a)s",
+            {'a': new_story['stories_id']}).hash()
+        assert new_download is not None
+        assert new_download['state'] == 'error'
+
     def test_merge_dup_story(self) -> None:
         """Test merge_dup_story()."""
         db = self.db()
