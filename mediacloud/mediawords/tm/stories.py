@@ -791,6 +791,6 @@ def find_and_merge_dup_stories(db: DatabaseHandler, topic: dict) -> None:
 
         for i, (media_id, stories) in enumerate(media_lookup.items()):
             if (i % 1000) == 0:
-                log.info("merging dup stories by %s: media [i / %d]" % (f_name, num_media))
+                log.info("merging dup stories by %s: media [%d / %d]" % (f_name, i, num_media))
             dup_stories = f(stories)
             [_merge_dup_stories(db, topic, s) for s in dup_stories]
