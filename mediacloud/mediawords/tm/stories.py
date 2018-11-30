@@ -14,6 +14,7 @@ import mediawords.dbi.downloads
 from mediawords.dbi.stories.extractor_arguments import PyExtractorArguments
 import mediawords.dbi.stories.dup
 import mediawords.dbi.stories.stories
+import mediawords.key_value_store.amazon_s3
 from mediawords.tm.guess_date import guess_date, GuessDateResult
 import mediawords.tm.media
 import mediawords.util.parse_html
@@ -540,7 +541,8 @@ def copy_story_to_new_medium(db: DatabaseHandler, topic: dict, old_story: dict, 
         try:
             content = mediawords.dbi.downloads.fetch_content(db, old_download)
             download = mediawords.dbi.downloads.store_content(db, download, content)
-        except mediawords.dbi.downloads.McDBIDownloadsException:
+        except (mediawords.dbi.downloads.McDBIDownloadsException,
+                mediawords.key_value_store.amazon_s3.McAmazonS3StoreException):
             download_update = dict([(f, old_download[f]) for f in ['state', 'error_message', 'download_time']])
             db.update_by_id('downloads', download['downloads_id'], download_update)
 
