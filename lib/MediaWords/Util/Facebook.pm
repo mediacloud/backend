@@ -147,6 +147,13 @@ sub api_request($$)
                 LOGDIE 'Decoded content is empty';
             }
 
+            # occasionally fb returns a 'something went wrong' 500 page that we don't want to kill the worker
+            if ( !$data && ( $decoded_content =~ /something went wrong/ ) )
+            {
+                $data = {};
+                $data->{ error } = { message => 'something went wrong', type => 'html_error_page', code => 500 };
+            }
+
             unless ( $data )
             {
                 # Error response is not in JSON
