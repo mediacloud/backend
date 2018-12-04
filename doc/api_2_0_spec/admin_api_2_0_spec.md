@@ -1118,21 +1118,27 @@ This call updates a single existing user.
 
 | Field             | Description                              |
 | ----------------- | ---------------------------------------- |
-| auth\_users\_id   | home page of media source (required)     |
+| auth\_users\_id   | user id (required)     |
 | full\_name        | full name of user |
 | email             | user email |
 | notes             | user submitted description of account usage |
+| active            | active state of user |
 | roles             | list of permission roles |
+| max\_topic\_stories | max size of max\_stories setting for topics |
+| weekly\_requests\_limit | max number of requests per week |
 
 The `roles` field should point to an array of strings, each of which is the
 'role' value for a role listed by `api/v2/users/list_roles`.  If the roles
 field is specified, the user's roles will be reset to consist only of the
-roles included in the given list.  All of the input fields other than
+roles included in the given list.  If weekly\_requests\_limit is set to 0,
+the user will be able to submit an unlimited number of requests.
+
+All of the input fields other than
 `auth\_users\_id` are optional.  Any fields not specified will not be updated.
 
 ### Example
 
-URL: https://api.mediacloud.org/api/v2/media/update
+URL: https://api.mediacloud.org/api/v2/users/update
 
 Input:
 
@@ -1140,7 +1146,42 @@ Input:
 {
   "auth_users_id": 123456,
   "notes": "Some update notes,
-  "roles": ['admin']
+  "roles": ['admin'],
+  "active": 1,
+  "weekly_requests_limit": 20000
+}
+```
+
+Output:
+
+```json
+{ "success": 1 }
+```
+
+## api/v2/users/delete (PUT)
+
+| URL                 | Description                     |
+| ------------------- | ------------------------------- |
+| api/v2/users/delete | delete an existing user |
+
+This call deletes a single existing user. 
+
+### Input Description
+
+| Field             | Description                              |
+| ----------------- | ---------------------------------------- |
+| auth\_users\_id   | user id (required)     |
+
+
+### Example
+
+URL: https://api.mediacloud.org/api/v2/users/update
+
+Input:
+
+```json
+{
+  "auth_users_id": 123456,
 }
 ```
 

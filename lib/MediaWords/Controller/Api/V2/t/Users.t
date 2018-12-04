@@ -66,16 +66,24 @@ sub test_users($)
     rows_match( $label, $r->{ users }, [ $search_user ], 'auth_users_id', $fields );
 
     my $input_data = {
-        auth_users_id => $search_user->{ auth_users_id },
-        email         => 'update@up.date',
-        full_name     => 'up date',
-        notes         => 'more notes'
+        auth_users_id         => $search_user->{ auth_users_id },
+        email                 => 'update@up.date',
+        full_name             => 'up date',
+        notes                 => 'more notes',
+        active                => !$search_user->{ active },
+        weekly_requests_limit => 123456,
+        max_topic_stories     => 456789,
     };
     $r = test_put( '/api/v2/users/update', $input_data );
 
-    my $updated_user = $db->require_by_id( 'auth_users', $search_user->{ auth_users_id } );
+    my $updated_user = $db->query( <<SQL, $search_user->{ auth_users_id } )->hash();
+select au.*, aul.weekly_requests_limit
+    from auth_users au
+        join auth_user_limits aul using ( auth_users_id )
+    where au.auth_users_id = ?
+SQL
 
-    rows_match( $label, [ $updated_user ], [ $input_data ], 'auth_users_id', [ qw/email full_name notes/ ] );
+    rows_match( $label, [ $updated_user ], [ $input_data ], 'auth_users_id', [ keys( %{ $input_data } ) ] );
 
     $label = 'roles';
 
@@ -111,6 +119,17 @@ SQL
 SQL
 
     ok( !$role_present, $label );
+
+    $label = 'users/delete';
+
+    my $delete_user = pop( @{ $expected_auth_users } );
+
+    $r = test_put( '/api/v2/users/delete', { auth_users_id => $delete_user->{ auth_users_id } } );
+
+    ok( $r->{ success } == 1, "$label returned sucess" );
+
+    my $user_exists = $db->find_by_id( 'auth_users', $delete_user->{ auth_users_id } );
+    ok( !$user_exists, "$label user exists" );
 }
 
 sub main

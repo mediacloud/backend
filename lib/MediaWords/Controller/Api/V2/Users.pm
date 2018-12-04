@@ -63,13 +63,22 @@ sub update_PUT
 
     my $user = $c->dbis->require_by_id( 'auth_users', $data->{ auth_users_id } );
 
-    my $update_fields = [ qw/email full_name notes/ ];
+    my $update_fields = [ qw/email full_name notes active max_topic_stories/ ];
 
     my $input = { map { $_ => $data->{ $_ } } grep { exists( $data->{ $_ } ) } @{ $update_fields } };
 
-    $c->dbis->update_by_id( 'auth_users', $data->{ auth_users_id }, $input ) if ( scalar( keys( %{ $input } ) ) );
-
     my $db = $c->dbis;
+
+    $db->update_by_id( 'auth_users', $data->{ auth_users_id }, $input ) if ( scalar( keys( %{ $input } ) ) );
+
+    if ( exists( $data->{ weekly_requests_limit } ) )
+    {
+        $db->query(
+            "update auth_user_limits set weekly_requests_limit = ? where auth_users_id = ?",
+            $data->{ weekly_requests_limit },
+            $data->{ auth_users_id }
+        );
+    }
 
     _update_roles( $db, $user, $data->{ roles } );
 
@@ -172,6 +181,25 @@ sub list_roles_GET
     my $entity = { roles => $roles };
 
     $self->status_ok( $c, entity => $entity );
+}
+
+sub delete : Local : ActionClass('MC_REST')
+{
+}
+
+sub delete_PUT
+{
+    my ( $self, $c ) = @_;
+
+    my $data = $c->req->data;
+
+    $self->require_fields( $c, [ qw/auth_users_id/ ] );
+
+    my $user = $c->dbis->require_by_id( 'auth_users', $data->{ auth_users_id } );
+
+    $c->dbis->query( "delete from auth_users where auth_users_id = ?", $user->{ auth_users_id } );
+
+    return $self->status_ok( $c, entity => { success => 1 } );
 }
 
 1;
