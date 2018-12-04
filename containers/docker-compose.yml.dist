@@ -17,7 +17,7 @@ services:
         container_name: mc_cliff_fetch_annotation
         environment:
             # Annotator endpoint URL
-            - MC_CLIFF_ANNOTATOR_URL: ""
+            MC_CLIFF_ANNOTATOR_URL: ""
         depends_on:
             - extract_and_vector
             - postgresql_pgbouncer
@@ -53,13 +53,13 @@ services:
         container_name: mc_cliff_update_story_tags
         environment:
             # CLIFF version tag
-            - MC_CLIFF_VERSION_TAG: "cliff_clavin_v2.4.1"
+            MC_CLIFF_VERSION_TAG: "cliff_clavin_v2.4.1"
             # Tag set to use for geographical name entities
-            - MC_CLIFF_GEONAMES_TAG_SET: "cliff_geonames"
+            MC_CLIFF_GEONAMES_TAG_SET: "cliff_geonames"
             # Tag set to use for organization name entities
-            - MC_CLIFF_ORGANIZATIONS_TAG_SET: "cliff_organizations"
+            MC_CLIFF_ORGANIZATIONS_TAG_SET: "cliff_organizations"
             # Tag set to use for person name entities
-            - MC_CLIFF_PEOPLE_TAG_SET: "cliff_people"
+            MC_CLIFF_PEOPLE_TAG_SET: "cliff_people"
         depends_on:
             - cliff_fetch_annotation
             - postgresql_pgbouncer
@@ -95,9 +95,9 @@ services:
         container_name: mc_crawler
         environment:
             # Univision API client ID
-            - MC_UNIVISION_CLIENT_ID: ""
+            MC_UNIVISION_CLIENT_ID: ""
             # Univision API client secret
-            - MC_UNIVISION_CLIENT_SECRET: ""
+            MC_UNIVISION_CLIENT_SECRET: ""
         depends_on:
             - postgresql_pgbouncer
             - rabbitmq_server
@@ -190,11 +190,11 @@ services:
         container_name: mc_facebook_fetch_story_stats
         environment:
             # Facebook application ID
-            - MC_FACEBOOK_APP_ID: ""
+            MC_FACEBOOK_APP_ID: ""
             # Facebook application secret
-            - MC_FACEBOOK_APP_SECRET: ""
+            MC_FACEBOOK_APP_SECRET: ""
             # Timeout for API calls
-            - MC_FACEBOOK_TIMEOUT: "60"
+            MC_FACEBOOK_TIMEOUT: "60"
         depends_on:
             - extract_and_vector
             - postgresql_pgbouncer
@@ -311,7 +311,7 @@ services:
         container_name: mc_import_solr_data
         environment:
             # Stories to import into Solr on a single run
-            - MC_SOLR_IMPORT_MAX_QUEUED_STORIES: "100000"
+            MC_SOLR_IMPORT_MAX_QUEUED_STORIES: "100000"
         depends_on:
             - postgresql_pgbouncer
             - solr_shard
@@ -427,11 +427,11 @@ services:
         container_name: mc_nytlabels_fetch_annotation
         environment:
             # NYTLabels annotator endpoint URL
-            - MC_NYTLABELS_ANNOTATOR_URL: ""
+            MC_NYTLABELS_ANNOTATOR_URL: ""
             # NYTLabels version tag
-            - MC_NYTLABELS_VERSION_TAG: "nyt_labeller_v1.0.0"
+            MC_NYTLABELS_VERSION_TAG: "nyt_labeller_v1.0.0"
             # Tag set to use for NYTLabels-derived tags
-            - MC_NYTLABELS_TAG_SET: "nyt_labels"
+            MC_NYTLABELS_TAG_SET: "nyt_labels"
         depends_on:
             - extract_and_vector
             - predict_news_labels
@@ -818,7 +818,7 @@ services:
         container_name: mc_similarweb_update_audience_data
         environment:
             # SimilarWeb API key
-            - MC_SIMILARWEB_API: ""
+            MC_SIMILARWEB_API: ""
         networks:
             # Stores audience data in PostgreSQL
             - net_postgresql
@@ -972,17 +972,17 @@ services:
         container_name: mc_topics_mine
         environment:
             # Twitter API consumer key
-            - MC_TWITTER_CONSUMER_KEY: ""
+            MC_TWITTER_CONSUMER_KEY: ""
             # Twitter API consumer secret
-            - MC_TWITTER_CONSUMER_SECRET: ""
+            MC_TWITTER_CONSUMER_SECRET: ""
             # Twitter API access token
-            - MC_TWITTER_ACCESS_TOKEN: ""
+            MC_TWITTER_ACCESS_TOKEN: ""
             # Twitter API access token secret
-            - MC_TWITTER_ACCESS_TOKEN_SECRET: ""
+            MC_TWITTER_ACCESS_TOKEN_SECRET: ""
             # Crimson Hexagon API key
-            - MC_CRIMSON_HEXAGON_API_KEY: ""
+            MC_CRIMSON_HEXAGON_API_KEY: ""
             # Comma-separated email addresses to inform about topic updates
-            - MC_TOPIC_ALERT_EMAILS: "topicupdates@mediacloud.org, slackupdates@mediacloud.org"
+            MC_TOPIC_ALERT_EMAILS: "topicupdates@mediacloud.org, slackupdates@mediacloud.org"
         networks:
             # Fetches / stores links in PostgreSQL
             - net_postgresql
@@ -1107,13 +1107,13 @@ services:
         container_name: mc_webapp
         environment:
             # User session expiration in seconds
-            - MC_WEBAPP_SESSION_EXPIRES: "3600"
+            MC_WEBAPP_SESSION_EXPIRES: "3600"
             # Whether or not to always show stack traces (might leak secrets!)
-            - MC_WEBAPP_ALWAYS_SHOW_STACK_TRACES: "0"
+            MC_WEBAPP_ALWAYS_SHOW_STACK_TRACES: "0"
             # reCAPTCHA public key
-            - MC_WEBAPP_RECAPTCHA_PUBLIC_KEY: ""
+            MC_WEBAPP_RECAPTCHA_PUBLIC_KEY: ""
             # reCAPTCHA private key
-            - MC_WEBAPP_RECAPTCHA_PRIVATE_KEY: ""
+            MC_WEBAPP_RECAPTCHA_PRIVATE_KEY: ""
         networks:
             # Uses PostgreSQL to fetch / store data
             - net_postgresql
