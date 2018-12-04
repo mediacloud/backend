@@ -112,8 +112,9 @@ sub _get_users_list($$)
     }
 
     my $users = $db->query( <<SQL, $limit, $offset )->hashes();
-        select auth_users_id, email, full_name, notes, active, created_date, max_topic_stories
-            from auth_users
+        select auth_users_id, email, full_name, notes, active, created_date, max_topic_stories, weekly_requests_limit
+            from auth_users au
+                join auth_user_limits aul using ( auth_users_id )
             where
                 $id_clause and
                 $search_clause

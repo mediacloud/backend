@@ -1093,6 +1093,7 @@ Output:
       "email": "foo@foo.bar",
       "full_name": "Sample User",
       "max_topic_stories": 100000,
+      "weekly_requests_limit": 10000,
       "notes": "For demonstrating the user api
       "roles": [
         {
