@@ -388,6 +388,8 @@ sub _fetch_list($$$$$$)
 
     my $ids_table = $db->get_temporary_ids_table( $ps_ids, 1 );
 
+    my $order_direction = $self->{ feeds_id } ? 'desc' : 'asc';
+
     my $stories = $db->query(
         <<"SQL",
         WITH ps_ids AS (
@@ -415,7 +417,7 @@ sub _fetch_list($$$$$$)
             LEFT JOIN stories_ap_syndicated ap
                 ON stories.stories_id = ap.stories_id
 
-        ORDER BY ps_ids.order_pkey
+        ORDER BY ps_ids.order_pkey $order_direction
         LIMIT ?
 SQL
         $rows

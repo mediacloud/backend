@@ -597,9 +597,7 @@ URL: https://api.mediacloud.org/api/v2/stories_public/single/27456565
 | `feeds_id` | null | Return only stories that match the given feeds_id, sorted my descending publish date |
 | `q`  | null  | If specified, return only results that match the given Solr query.  Only one `q` parameter may be included. |
 | `fq`             | null    | If specified, file results by the given Solr query.  More than one `fq` parameter may be included. |
-| `sort`                       | `processed_stories_id` | Returned results sort order. Supported values: <ul><li><code>processed_stories_id</code> - order results by processed stories ID (ascending);</li>
-<li><code>random</code> - order results randomly but consistently for a given search</li>
-</ul> |
+| `sort`                       | `processed_stories_id` | Returned results sort order. Supported values: processed_stories_id, random |
 | `wc` | 0 | if set to 1, include a 'word_count' field with each story that includes a count of the most common words in the story |
 | `show_feeds` | if set to 1, include a 'feeds' field with a list of the feeds associated with this story |
 
