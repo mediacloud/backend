@@ -927,7 +927,7 @@ services:
             - net_rabbitmq
         deploy:
             # Worker count
-            replicas: 100
+            replicas: 8
             # Auto-restart on crashes
             restart_policy:
                 condition: on-failure
