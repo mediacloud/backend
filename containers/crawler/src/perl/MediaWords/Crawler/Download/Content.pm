@@ -42,7 +42,7 @@ sub handle_download($$$$)
         WARN "Content for download $downloads_id, story $stories_id is empty";
     }
 
-    $download = MediaWords::DBI::Downloads::store_content( $db, $download, \$decoded_content );
+    $download = MediaWords::DBI::Downloads::store_content( $db, $download, $decoded_content );
 
     DEBUG "Done processing content download $downloads_id (story $stories_id)";
 

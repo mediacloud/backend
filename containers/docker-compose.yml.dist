@@ -310,6 +310,31 @@ services:
                     memory: 4G
 
     #
+    # Scrape Feedly for new stories
+    # -----------------------------
+    #
+    scrape_feedly:
+        build:
+            context: ./scrape-feedly/
+        image: mediacloud-scrape-feedly:latest
+        container_name: mc_scrape_feedly
+        deploy:
+            # Writes stories to PostgreSQL
+            - net_postgresql
+        deploy:
+            # Only one instance
+            mode: global
+            # Auto-restart on crashes
+            restart_policy:
+                condition: on-failure
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit (uses quite a lot of it until it OOMs)
+                    memory: 4G
+
+    #
     # OpenDKIM server
     # ---------------
     #
@@ -729,6 +754,31 @@ services:
                     memory: 256M
 
     #
+    # Print long running job states
+    # -----------------------------
+    #
+    print_long_running_job_states:
+        build:
+            context: ./print-long-running-job-states/
+        image: mediacloud-print-long-running-job-states:latest
+        container_name: mc_print_long_running_job_states
+        networks:
+            # Reads the states from PostgreSQL
+            - net_postgresql
+        deploy:
+            # Only one instance
+            mode: global
+            # Auto-restart on crashes
+            restart_policy:
+                condition: on-failure
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: 256M
+
+    #
     # Update SimilarWeb audience data
     # ----------------------
     #
@@ -962,6 +1012,35 @@ services:
             mode: replicated
             # Worker count
             replicas: 2
+            # Auto-restart on crashes
+            restart_policy:
+                condition: on-failure
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: 2G
+
+	#
+	# Fetch sitemap pages from media
+	# ------------------------------
+	#
+	sitemap_fetch_media_pages:
+        build:
+            context: ./sitemap-fetch-media-pages/
+        image: mediacloud-sitemap-fetch-media-pages:latest
+        container_name: mc_sitemap_fetch_media_pages
+        networks:
+            # Stores links to PostgreSQL
+            - net_postgresql
+            # Celery worker
+            - net_rabbitmq
+        deploy:
+            # Multiple workers
+            mode: replicated
+            # Worker count
+            replicas: 1
             # Auto-restart on crashes
             restart_policy:
                 condition: on-failure

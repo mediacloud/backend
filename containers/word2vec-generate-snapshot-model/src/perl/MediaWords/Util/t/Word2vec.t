@@ -18,7 +18,7 @@ sub test_load_word2vec_model($)
 {
     my $db = shift;
 
-    my $topic = MediaWords::Test::DB::create_test_topic( $db, 'test' );
+    my $topic = MediaWords::Test::DB::Create::create_test_topic( $db, 'test' );
     my $topics_id = $topic->{ topics_id };
 
     my $snapshot = $db->create(

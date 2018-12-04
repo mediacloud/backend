@@ -13,7 +13,7 @@ use MediaWords::CommonLibs;
 use Moose;
 with 'MediaWords::Crawler::Download::DefaultFetcher', 'MediaWords::Crawler::Download::Feed::FeedHandler';
 
-use MediaWords::Util::HTML;
+use MediaWords::Util::ParseHTML;
 use MediaWords::Util::SQL;
 
 use Readonly;
@@ -28,7 +28,7 @@ sub add_stories_from_feed($$$$)
 
     my $feed = $db->find_by_id( 'feeds', $feeds_id );
 
-    my $title = MediaWords::Util::HTML::html_title( $decoded_content, '(no title)' );
+    my $title = MediaWords::Util::ParseHTML::html_title( $decoded_content, '(no title)' );
     my $guid = substr( time . ":" . $download->{ url }, 0, 1024 );
 
     my $new_story = {

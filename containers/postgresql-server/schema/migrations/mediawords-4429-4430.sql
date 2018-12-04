@@ -52,8 +52,8 @@ CREATE TABLE activities (
     creation_date       TIMESTAMP       NOT NULL DEFAULT LOCALTIMESTAMP,
 
     -- User that executed the activity, either:
-    --     * user's email from "auth_users.email" (e.g. "lvaliukas@cyber.law.harvard.edu", or
-    --     * username that initiated the action (e.g. "system:lvaliukas")
+    --     * user's email from "auth_users.email" (e.g. "foo@bar.baz.com", or
+    --     * username that initiated the action (e.g. "system:foo")
     -- (store user's email instead of ID in case the user gets deleted)
     user_identifier     VARCHAR(255)    NOT NULL,
 

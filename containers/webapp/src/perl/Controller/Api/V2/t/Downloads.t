@@ -4,13 +4,13 @@ use warnings;
 use Modern::Perl '2015';
 use MediaWords::CommonLibs;
 
-use MediaWords::Test::HTTP::HashServer;
 use Readonly;
 use Test::More;
 use Test::Deep;
 
 use MediaWords::Test::API;
 use MediaWords::Test::DB;
+use MediaWords::Test::DB::Create;
 
 use MediaWords::DBI::Downloads;
 
@@ -23,8 +23,8 @@ sub test_downloads($)
 
     my $label = "downloads/list";
 
-    my $medium = MediaWords::Test::DB::create_test_medium( $db, $label );
-    my $feed = MediaWords::Test::DB::create_test_feed( $db, $label, $medium );
+    my $medium = MediaWords::Test::DB::Create::create_test_medium( $db, $label );
+    my $feed = MediaWords::Test::DB::Create::create_test_feed( $db, $label, $medium );
     for my $i ( 1 .. 10 )
     {
         my $download = $db->create(
@@ -42,7 +42,7 @@ sub test_downloads($)
         );
 
         my $content = "content $download->{ downloads_id }";
-        MediaWords::DBI::Downloads::store_content( $db, $download, \$content );
+        MediaWords::DBI::Downloads::store_content( $db, $download, $content );
     }
 
     my $expected_downloads = $db->query( "select * from downloads where feeds_id = ?", $feed->{ feeds_id } )->hashes;

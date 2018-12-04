@@ -1,14 +1,12 @@
 package MediaWords::Util::TagForm;
 
-# various functions for editing feed and medium tags
-#
-# FIXME move everything to "Tags" / "Tag sets" models?
-
 use strict;
 use warnings;
 
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
+
+import_python_module( __PACKAGE__, 'mediawords.util.tags' );
 
 use YAML::Syck;
 

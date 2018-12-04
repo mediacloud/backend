@@ -59,9 +59,9 @@ sub _add_nested_data
     {
         if ( MediaWords::DBI::Downloads::download_successful( $download ) )
         {
-            my $raw_content_ref = MediaWords::DBI::Downloads::fetch_content( $db, $download );
+            my $raw_content = MediaWords::DBI::Downloads::fetch_content( $db, $download );
 
-            $download->{ raw_content } = $$raw_content_ref;
+            $download->{ raw_content } = $raw_content;
         }
     }
 

@@ -15,7 +15,7 @@ use MediaWords::CommonLibs;
 use MediaWords::Util::IdentifyLanguage;
 use MediaWords::DBI::Media::Lookup;
 use MediaWords::DBI::Media::Rescrape;
-use MediaWords::Util::HTML;
+use MediaWords::Util::ParseHTML;
 use MediaWords::Util::SQL;
 use MediaWords::Util::URL;
 
@@ -197,8 +197,8 @@ sub _add_missing_media_from_urls
             next;
         }
 
-        my $title =
-          MediaWords::Util::HTML::html_title( $response->decoded_content, decode( 'utf8', $response->request->url ), 128 );
+        my $title = MediaWords::Util::ParseHTML::html_title( $response->decoded_content,
+            decode( 'utf8', $response->request->url ), 128 );
 
         my $medium = _find_medium_by_response( $dbis, $response );
 

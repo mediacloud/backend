@@ -251,8 +251,14 @@ SQL
     {
         push( @{ $expected_counts }, { stem => $stem, count => $data->{ count } } );
     }
-    $expected_counts = [ sort { $b->{ count } <=> $a->{ count } } @{ $expected_counts } ];
-    splice( @{ $expected_counts }, 10 );
+    $expected_counts = [
+        sort {
+            $b->{ count } <=> $a->{ count } or    #
+              $b->{ stem } cmp $a->{ stem }       #
+        } @{ $expected_counts }
+    ];
+
+    splice( @{ $expected_counts }, $num_words );
 
     my $test_wc = MediaWords::Solr::WordCounts->new(
         db                => $db,
@@ -265,8 +271,18 @@ SQL
     # term is hard to test without reproducing lots of logic, and term counting is already tested above
     map { delete( $_->{ term } ) } @{ $got_counts };
 
-    $got_counts      = [ sort { $a->{ stem } cmp $b->{ stem } } @{ $got_counts } ];
-    $expected_counts = [ sort { $a->{ stem } cmp $b->{ stem } } @{ $expected_counts } ];
+    $got_counts = [
+        sort {
+            $a->{ count } <=> $b->{ count } or    #
+              $a->{ stem } cmp $b->{ stem }       #
+        } @{ $got_counts }
+    ];
+    $expected_counts = [
+        sort {
+            $a->{ count } <=> $b->{ count } or    #
+              $a->{ stem } cmp $b->{ stem }       #
+        } @{ $expected_counts }
+    ];
 
     is_deeply( $got_counts, $expected_counts, "get_words" );
 }

@@ -18,6 +18,7 @@ use MediaWords::DBI::Stories;
 use MediaWords::Util::DateTime;
 use MediaWords::Util::URL;
 use MediaWords::Util::Web;
+use MediaWords::Util::ParseJSON;
 
 use Data::Dumper;
 use Date::Parse;
@@ -154,7 +155,7 @@ sub _get_stories_from_univision_feed($$$)
     }
 
     my $feed_json;
-    eval { $feed_json = MediaWords::Util::JSON::decode_json( $decoded_content ) };
+    eval { $feed_json = MediaWords::Util::ParseJSON::decode_json( $decoded_content ) };
     if ( $@ )
     {
         die "Unable to decode Univision feed JSON: $@";

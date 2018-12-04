@@ -2,7 +2,7 @@
 
 from mediawords.annotator.nyt_labels import NYTLabelsAnnotator
 from mediawords.db import connect_to_db
-from mediawords.dbi.stories import mark_as_processed
+from mediawords.dbi.stories.postprocess import mark_as_processed
 from mediawords.job import AbstractJob, McAbstractJobException, JobBrokerApp
 from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_object_from_bytes_if_needed

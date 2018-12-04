@@ -16,7 +16,7 @@ use MediaWords::DBI::Stories;
 use MediaWords::Solr;
 use MediaWords::Util::Annotator::CLIFF;
 use MediaWords::Util::Annotator::NYTLabels;
-use MediaWords::Util::JSON;
+use MediaWords::Util::ParseJSON;
 
 =head1 NAME
 
@@ -105,7 +105,7 @@ sub cliff : Local
     my $json_list = {};
     for my $stories_id ( @{ $stories_ids } )
     {
-        $stories_id = $stories_id + 0;
+        $stories_id = int( $stories_id );
 
         next if ( $json_list->{ $stories_id } );
 
@@ -139,7 +139,7 @@ sub cliff : Local
     }
 
     Readonly my $json_pretty => 1;
-    my $json = MediaWords::Util::JSON::encode_json( $json_items, $json_pretty );
+    my $json = MediaWords::Util::ParseJSON::encode_json( $json_items, $json_pretty );
 
     # Catalyst expects bytes
     $json = encode_utf8( $json );
@@ -166,7 +166,7 @@ sub nytlabels : Local
     my $json_list = {};
     for my $stories_id ( @{ $stories_ids } )
     {
-        $stories_id = $stories_id + 0;
+        $stories_id = int( $stories_id );
 
         next if ( $json_list->{ $stories_id } );
 
@@ -200,7 +200,7 @@ sub nytlabels : Local
     }
 
     Readonly my $json_pretty => 1;
-    my $json = MediaWords::Util::JSON::encode_json( $json_items, $json_pretty );
+    my $json = MediaWords::Util::ParseJSON::encode_json( $json_items, $json_pretty );
 
     # Catalyst expects bytes
     $json = encode_utf8( $json );

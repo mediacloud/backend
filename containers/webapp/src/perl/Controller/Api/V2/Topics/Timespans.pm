@@ -15,6 +15,13 @@ __PACKAGE__->config( action => { list => { Does => [ qw( ~TopicsReadAuthenticate
 sub apibase : Chained('/') : PathPart('api/v2/topics') : CaptureArgs(1)
 {
     my ( $self, $c, $topics_id ) = @_;
+
+    $topics_id = int( $topics_id // 0 );
+    unless ( $topics_id )
+    {
+        die "topics_id is unset.";
+    }
+
     $c->stash->{ topics_id } = $topics_id;
 }
 
@@ -34,11 +41,11 @@ sub list_GET
 
     my $db = $c->dbis;
 
-    my $topics_id = $c->stash->{ topics_id };
+    my $topics_id = int( $c->stash->{ topics_id } // 0 );
 
-    my $snapshots_id = $c->req->params->{ snapshots_id };
-    my $foci_id      = $c->req->params->{ foci_id };
-    my $timespans_id = $c->req->params->{ timespans_id };
+    my $snapshots_id = int( $c->req->params->{ snapshots_id } // 0 );
+    my $foci_id      = int( $c->req->params->{ foci_id }      // 0 );
+    my $timespans_id = int( $c->req->params->{ timespans_id } // 0 );
 
     my $snapshot = $db->require_by_id( 'snapshots', $snapshots_id ) if ( $snapshots_id );
     my $focus    = $db->require_by_id( 'foci',      $foci_id )      if ( $foci_id );

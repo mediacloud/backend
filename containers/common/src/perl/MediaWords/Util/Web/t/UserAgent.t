@@ -20,10 +20,10 @@ use URI;
 use URI::Escape;
 use URI::QueryParam;
 
-use MediaWords::Util::JSON;
+use MediaWords::Util::ParseJSON;
 use MediaWords::Util::Web;
 use MediaWords::Util::Text;
-use MediaWords::Test::HTTP::HashServer;
+use MediaWords::Test::HashServer;
 use MediaWords::Test::URLs;
 
 my Readonly $TEST_HTTP_SERVER_PORT = 9998;
@@ -46,7 +46,7 @@ sub test_get()
     # Basic GET
     my $pages = { '/test' => 'Hello!', };
 
-    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    my $hs = MediaWords::Test::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
 
     my $ua       = MediaWords::Util::Web::UserAgent->new();
@@ -71,7 +71,7 @@ sub test_get_user_agent_from_headers()
                 $response .= "HTTP/1.0 200 OK\r\n";
                 $response .= "Content-Type: application/json; charset=UTF-8\r\n";
                 $response .= "\r\n";
-                $response .= MediaWords::Util::JSON::encode_json(
+                $response .= MediaWords::Util::ParseJSON::encode_json(
                     {
                         'user-agent' => $request->header( 'User-Agent' ),
                         'from'       => $request->header( 'From' ),
@@ -82,7 +82,7 @@ sub test_get_user_agent_from_headers()
             }
         }
     };
-    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    my $hs = MediaWords::Test::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
 
     my $ua       = MediaWords::Util::Web::UserAgent->new();
@@ -97,7 +97,7 @@ sub test_get_user_agent_from_headers()
     my $expected_user_agent = $config->{ mediawords }->{ user_agent };
     my $expected_from       = $config->{ mediawords }->{ owner };
 
-    my $decoded_json = MediaWords::Util::JSON::decode_json( $response->decoded_content() );
+    my $decoded_json = MediaWords::Util::ParseJSON::decode_json( $response->decoded_content() );
     cmp_deeply(
         $decoded_json,
         {
@@ -126,7 +126,7 @@ sub test_get_not_found()
             }
         }
     };
-    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    my $hs = MediaWords::Test::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
 
     my $ua       = MediaWords::Util::Web::UserAgent->new();
@@ -160,7 +160,7 @@ sub test_get_timeout()
             }
         }
     };
-    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    my $hs = MediaWords::Test::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
 
     my $ua = MediaWords::Util::Web::UserAgent->new();
@@ -185,7 +185,7 @@ sub test_get_valid_utf8_content()
         },
     };
 
-    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    my $hs = MediaWords::Test::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
 
     my $ua       = MediaWords::Util::Web::UserAgent->new();
@@ -207,7 +207,7 @@ sub test_get_invalid_utf8_content()
         },
     };
 
-    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    my $hs = MediaWords::Test::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
 
     my $ua       = MediaWords::Util::Web::UserAgent->new();
@@ -240,7 +240,7 @@ sub test_get_non_utf8_content()
         },
     };
 
-    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    my $hs = MediaWords::Test::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
 
     my $ua       = MediaWords::Util::Web::UserAgent->new();
@@ -260,7 +260,7 @@ sub test_get_max_size()
     my $max_size     = length( $test_content ) / 10;
     my $pages        = { '/max-download-side' => $test_content, };
 
-    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    my $hs = MediaWords::Test::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
 
     my $ua = MediaWords::Util::Web::UserAgent->new();
@@ -293,7 +293,7 @@ sub test_get_max_redirect()
         '/8' => "Shouldn't be able to get to this one.",
     };
 
-    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    my $hs = MediaWords::Test::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
 
     my $ua = MediaWords::Util::Web::UserAgent->new();
@@ -320,13 +320,13 @@ sub test_get_request_headers()
                 $response .= "Content-Type: application/json; charset=UTF-8\r\n";
                 $response .= "\r\n";
                 $response .=
-                  MediaWords::Util::JSON::encode_json( { 'custom-header' => $request->header( 'X-Custom-Header' ), } );
+                  MediaWords::Util::ParseJSON::encode_json( { 'custom-header' => $request->header( 'X-Custom-Header' ), } );
 
                 return $response;
             }
         }
     };
-    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    my $hs = MediaWords::Test::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
 
     my $ua  = MediaWords::Util::Web::UserAgent->new();
@@ -340,7 +340,7 @@ sub test_get_request_headers()
     ok( $response->is_success() );
     is_urls( $response->request()->url(), $TEST_HTTP_SERVER_URL . '/test-custom-header' );
 
-    my $decoded_json = MediaWords::Util::JSON::decode_json( $response->decoded_content() );
+    my $decoded_json = MediaWords::Util::ParseJSON::decode_json( $response->decoded_content() );
     cmp_deeply( $decoded_json, { 'custom-header' => 'foo' } );
 
     $hs->stop();
@@ -365,7 +365,7 @@ sub test_get_response_status()
         }
     };
 
-    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    my $hs = MediaWords::Test::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
 
     my $ua       = MediaWords::Util::Web::UserAgent->new();
@@ -391,7 +391,7 @@ sub test_get_response_headers()
         }
     };
 
-    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    my $hs = MediaWords::Test::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
 
     my $ua       = MediaWords::Util::Web::UserAgent->new();
@@ -416,7 +416,7 @@ sub test_get_response_content_type()
         }
     };
 
-    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    my $hs = MediaWords::Test::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
 
     my $ua       = MediaWords::Util::Web::UserAgent->new();
@@ -487,7 +487,7 @@ sub test_get_blacklisted_url()
     $new_config->{ mediawords }->{ blacklist_url_pattern } = "$blacklisted_url";
     MediaWords::Util::Config::set_config( $new_config );
 
-    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    my $hs = MediaWords::Test::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
 
     my $ua                   = MediaWords::Util::Web::UserAgent->new();
@@ -516,7 +516,7 @@ sub test_get_http_auth()
         }
     };
 
-    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    my $hs = MediaWords::Test::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
 
     my $ua = MediaWords::Util::Web::UserAgent->new();
@@ -585,7 +585,7 @@ sub test_get_crawler_authenticated_domains()
         }
     };
 
-    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    my $hs = MediaWords::Test::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
 
     my $ua = MediaWords::Util::Web::UserAgent->new();
@@ -668,7 +668,7 @@ sub test_get_follow_http_html_redirects_http()
         '/fifth' => 'Seems to be working.'
     };
 
-    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    my $hs = MediaWords::Test::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
 
     my $response = $ua->get_follow_http_html_redirects( $starting_url );
@@ -687,7 +687,7 @@ sub test_get_follow_http_html_redirects_nonexistent()
     # Nonexistent URL ("/first")
     my $pages = {};
 
-    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    my $hs = MediaWords::Test::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
 
     my $ua       = MediaWords::Util::Web::UserAgent->new();
@@ -713,7 +713,7 @@ sub test_get_follow_http_html_redirects_html()
         '/fifth'  => 'Seems to be working too.'
     };
 
-    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    my $hs = MediaWords::Test::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
 
     my $ua       = MediaWords::Util::Web::UserAgent->new();
@@ -746,7 +746,7 @@ sub test_get_follow_http_html_redirects_http_loop()
         '/third' => { redirect => '/second', http_status_code => HTTP_SEE_OTHER }
     };
 
-    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    my $hs = MediaWords::Test::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
 
     my $ua       = MediaWords::Util::Web::UserAgent->new();
@@ -769,7 +769,7 @@ sub test_get_follow_http_html_redirects_html_loop()
         '/third'  => '<meta http-equiv="refresh" content="0; URL=/second" />',
     };
 
-    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    my $hs = MediaWords::Test::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
 
     my $ua       = MediaWords::Util::Web::UserAgent->new();
@@ -872,7 +872,7 @@ sub test_get_follow_http_html_redirects_cookies()
         '/no_cookies' => "No cookie support, go away, we don\'t like you."
     };
 
-    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    my $hs = MediaWords::Test::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
 
     my $ua       = MediaWords::Util::Web::UserAgent->new();
@@ -936,7 +936,7 @@ sub test_get_follow_http_html_redirects_previous_responses()
     Readonly my $TEST_HTTP_SERVER_URL => 'http://localhost:' . $TEST_HTTP_SERVER_PORT;
     my $starting_url = $TEST_HTTP_SERVER_URL . '/page_1';
 
-    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    my $hs = MediaWords::Test::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
 
     my $ua       = MediaWords::Util::Web::UserAgent->new();
@@ -1028,7 +1028,7 @@ sub test_parallel_get()
 
     my $ua = MediaWords::Util::Web::UserAgent->new();
 
-    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    my $hs = MediaWords::Test::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
 
     my $responses = $ua->parallel_get( $urls );
@@ -1131,7 +1131,7 @@ sub test_determined_retries()
         },
 
     };
-    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    my $hs = MediaWords::Test::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
 
     $hs->start();
 
@@ -1167,7 +1167,7 @@ sub test_determined_retries()
 sub test_get_string()
 {
     my $pages = { '/exists' => 'I do exist.', };
-    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    my $hs = MediaWords::Test::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
 
     my $ua = MediaWords::Util::Web::UserAgent->new();
@@ -1212,7 +1212,7 @@ sub test_post()
                 $response .= "HTTP/1.0 200 OK\r\n";
                 $response .= "Content-Type: application/json; charset=UTF-8\r\n";
                 $response .= "\r\n";
-                $response .= MediaWords::Util::JSON::encode_json(
+                $response .= MediaWords::Util::ParseJSON::encode_json(
                     {
                         'method'       => $request->method(),
                         'content-type' => $request->content_type(),
@@ -1224,7 +1224,7 @@ sub test_post()
             }
         }
     };
-    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    my $hs = MediaWords::Test::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
 
     my $ua  = MediaWords::Util::Web::UserAgent->new();
@@ -1241,7 +1241,7 @@ sub test_post()
         ok( $response->is_success() );
         is_urls( $response->request()->url(), $TEST_HTTP_SERVER_URL . '/test-post' );
 
-        my $decoded_json = MediaWords::Util::JSON::decode_json( $response->decoded_content() );
+        my $decoded_json = MediaWords::Util::ParseJSON::decode_json( $response->decoded_content() );
         cmp_deeply(
             $decoded_json,
             {
@@ -1271,7 +1271,7 @@ sub test_post()
         ok( $response->is_success() );
         is_urls( $response->request()->url(), $TEST_HTTP_SERVER_URL . '/test-post' );
 
-        my $decoded_json = MediaWords::Util::JSON::decode_json( $response->decoded_content() );
+        my $decoded_json = MediaWords::Util::ParseJSON::decode_json( $response->decoded_content() );
         cmp_deeply(
             $decoded_json,
             {

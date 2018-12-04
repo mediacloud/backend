@@ -3,9 +3,11 @@
 from operator import itemgetter
 import typing
 
+import mediawords.test.db.create
 import mediawords.test.test_database
 from mediawords.tm.guess_date import GuessDateResult
 import mediawords.tm.stories
+from mediawords.tm.stories import url_has_binary_extension
 from mediawords.util.log import create_logger
 
 log = create_logger(__name__)
@@ -28,6 +30,16 @@ def test_url_domain_matches_medium() -> None:
     assert not mediawords.tm.stories._url_domain_matches_medium(medium, urls)
 
 
+def test_url_has_binary_extension() -> None:
+    """Test url_has_binary_extention()."""
+    assert not url_has_binary_extension('http://google.com')
+    assert not url_has_binary_extension('https://www.nytimes.com/trump-khashoggi-dead.html')
+    assert not url_has_binary_extension('https://www.washingtonpost.com/war-has-not/_story.html?utm_term=.c6ddfa7f19')
+    assert url_has_binary_extension('http://uproxx.files.wordpress.com/2017/06/push-up.jpg?quality=100&amp;w=1024')
+    assert url_has_binary_extension('https://cdn.theatlantic.com/assets/media/files/shubeik_lubeik_byna_mohamed.pdf')
+    assert url_has_binary_extension('https://i1.wp.com/7miradas.com/wp-content/uploads8/02/UHJ9OKM.png?resize=62%2C62')
+
+
 class TestTMStoriesDB(mediawords.test.test_database.TestDatabaseWithSchemaTestCase):
     """Run tests that require database access."""
 
@@ -35,13 +47,13 @@ class TestTMStoriesDB(mediawords.test.test_database.TestDatabaseWithSchemaTestCa
         """Test _get_story_with_most_senences()."""
         db = self.db()
 
-        medium = mediawords.test.db.create_test_medium(db, "foo")
-        feed = mediawords.test.db.create_test_feed(db=db, label="foo", medium=medium)
+        medium = mediawords.test.db.create.create_test_medium(db, "foo")
+        feed = mediawords.test.db.create.create_test_feed(db=db, label="foo", medium=medium)
 
         num_filled_stories = 5
         stories = []
         for i in range(num_filled_stories):
-            story = mediawords.test.db.create_test_story(db=db, label="foo" + str(i), feed=feed)
+            story = mediawords.test.db.create.create_test_story(db=db, label="foo" + str(i), feed=feed)
             stories.append(story)
             for n in range(1, i + 1):
                 db.create('story_sentences', {
@@ -53,7 +65,7 @@ class TestTMStoriesDB(mediawords.test.test_database.TestDatabaseWithSchemaTestCa
 
         empty_stories = []
         for i in range(2):
-            story = mediawords.test.db.create_test_story(db=db, label="foo empty" + str(i), feed=feed)
+            story = mediawords.test.db.create.create_test_story(db=db, label="foo empty" + str(i), feed=feed)
             empty_stories.append(story)
             stories.append(story)
 
@@ -70,9 +82,9 @@ class TestTMStoriesDB(mediawords.test.test_database.TestDatabaseWithSchemaTestCa
         media = []
         stories = []
         for i in range(num_media):
-            medium = mediawords.test.db.create_test_medium(db, "foo " + str(i))
-            feed = mediawords.test.db.create_test_feed(db=db, label="foo", medium=medium)
-            story = mediawords.test.db.create_test_story(db=db, label="foo", feed=feed)
+            medium = mediawords.test.db.create.create_test_medium(db, "foo " + str(i))
+            feed = mediawords.test.db.create.create_test_feed(db=db, label="foo", medium=medium)
+            story = mediawords.test.db.create.create_test_story(db=db, label="foo", feed=feed)
             medium['story'] = story
             media.append(medium)
 
@@ -145,7 +157,7 @@ class TestTMStoriesDB(mediawords.test.test_database.TestDatabaseWithSchemaTestCa
         """Test get_story_match()."""
         db = self.db()
 
-        medium = mediawords.test.db.create_test_medium(db, 'foo')
+        medium = mediawords.test.db.create.create_test_medium(db, 'foo')
         num_stories = 10
         stories = []
         for i in range(num_stories):
@@ -182,9 +194,9 @@ class TestTMStoriesDB(mediawords.test.test_database.TestDatabaseWithSchemaTestCa
         """Test create_download_for_new_story()."""
         db = self.db()
 
-        medium = mediawords.test.db.create_test_medium(db, 'foo')
-        feed = mediawords.test.db.create_test_feed(db=db, label='foo', medium=medium)
-        story = mediawords.test.db.create_test_story(db=db, label='foo', feed=feed)
+        medium = mediawords.test.db.create.create_test_medium(db, 'foo')
+        feed = mediawords.test.db.create.create_test_feed(db=db, label='foo', medium=medium)
+        story = mediawords.test.db.create.create_test_story(db=db, label='foo', feed=feed)
 
         returned_download = mediawords.tm.stories.create_download_for_new_story(db, story, feed)
 
@@ -234,9 +246,9 @@ class TestTMStoriesDB(mediawords.test.test_database.TestDatabaseWithSchemaTestCa
         db = self.db()
 
         # def __init__(self, found: bool, guess_method: str = None, timestamp: int = None):
-        medium = mediawords.test.db.create_test_medium(db, 'foo')
-        feed = mediawords.test.db.create_test_feed(db=db, label='foo', medium=medium)
-        story = mediawords.test.db.create_test_story(db=db, label='foo', feed=feed)
+        medium = mediawords.test.db.create.create_test_medium(db, 'foo')
+        feed = mediawords.test.db.create.create_test_feed(db=db, label='foo', medium=medium)
+        story = mediawords.test.db.create.create_test_story(db=db, label='foo', feed=feed)
 
         result = GuessDateResult(found=True, guess_method='Extracted from url')
         mediawords.tm.stories.assign_date_guess_tag(db, story, result, None)
@@ -274,7 +286,7 @@ class TestTMStoriesDB(mediawords.test.test_database.TestDatabaseWithSchemaTestCa
         """Test get_spider_feed()."""
         db = self.db()
 
-        medium = mediawords.test.db.create_test_medium(db, 'foo')
+        medium = mediawords.test.db.create.create_test_medium(db, 'foo')
 
         feed = mediawords.tm.stories.get_spider_feed(self.db(), medium)
 
@@ -344,22 +356,25 @@ class TestTMStoriesDB(mediawords.test.test_database.TestDatabaseWithSchemaTestCa
         """Test merge_foreign_rss_stories()."""
         db = self.db()
 
-        topic = mediawords.test.db.create_test_topic(db, 'foo')
+        topic = mediawords.test.db.create.create_test_topic(db, 'foo')
 
-        medium = mediawords.test.db.create_test_medium(db, 'norss')
-        feed = mediawords.test.db.create_test_feed(db=db, label='norss', medium=medium)
+        medium = mediawords.test.db.create.create_test_medium(db, 'norss')
+        feed = mediawords.test.db.create.create_test_feed(db=db, label='norss', medium=medium)
         num_stories = 10
-        stories = [mediawords.test.db.create_test_story(db=db, label=str(i), feed=feed) for i in range(num_stories)]
+        stories = [
+            mediawords.test.db.create.create_test_story(db=db, label=str(i), feed=feed)
+            for i in range(num_stories)
+        ]
 
-        rss_medium = mediawords.test.db.create_test_medium(db, 'rss')
+        rss_medium = mediawords.test.db.create.create_test_medium(db, 'rss')
         rss_medium = db.query(
             "update media set foreign_rss_links = 't' where media_id = %(a)s returning *",
             {'a': rss_medium['media_id']}).hash()
-        rss_feed = mediawords.test.db.create_test_feed(db=db, label='rss', medium=rss_medium)
+        rss_feed = mediawords.test.db.create.create_test_feed(db=db, label='rss', medium=rss_medium)
         num_rss_stories = 10
         rss_stories = []
         for i in range(num_rss_stories):
-            story = mediawords.test.db.create_test_story(db=db, label=i, feed=rss_feed)
+            story = mediawords.test.db.create.create_test_story(db=db, label=i, feed=rss_feed)
             download = db.create('downloads', {
                 'stories_id': story['stories_id'],
                 'feeds_id': rss_feed['feeds_id'],
@@ -395,3 +410,248 @@ class TestTMStoriesDB(mediawords.test.test_database.TestDatabaseWithSchemaTestCa
             [{'url': s['url'], 'topics_id': topic['topics_id'], 'content': s['title']} for s in rss_stories]
 
         assert sorted(got_seed_urls, key=itemgetter('url')) == sorted(expected_seed_urls, key=itemgetter('url'))
+
+    def test_copy_story_to_new_medium(self) -> None:
+        """Test copy_story_to_new_medium."""
+        db = self.db()
+
+        topic = mediawords.test.db.create.create_test_topic(db, 'copy foo')
+
+        new_medium = mediawords.test.db.create.create_test_medium(db, 'copy new')
+
+        old_medium = mediawords.test.db.create.create_test_medium(db, 'copy old')
+        old_feed = mediawords.test.db.create.create_test_feed(db=db, label='copy old', medium=old_medium)
+        old_story = mediawords.test.db.create.create_test_story(db=db, label='copy old', feed=old_feed)
+
+        mediawords.test.db.create.add_content_to_test_story(db, old_story, old_feed)
+
+        mediawords.tm.stories.add_to_topic_stories(db, old_story, topic)
+
+        new_story = mediawords.tm.stories.copy_story_to_new_medium(db, topic, old_story, new_medium)
+
+        assert db.find_by_id('stories', new_story['stories_id']) is not None
+
+        for field in 'title url guid publish_date'.split():
+            assert old_story[field] == new_story[field]
+
+        topic_story_exists = db.query(
+            "select * from topic_stories where topics_id = %(a)s and stories_id = %(b)s",
+            {'a': topic['topics_id'], 'b': new_story['stories_id']}).hash()
+        assert topic_story_exists is not None
+
+        new_download = db.query(
+            "select * from downloads where stories_id = %(a)s",
+            {'a': new_story['stories_id']}).hash()
+        assert new_download is not None
+
+        content = mediawords.dbi.downloads.fetch_content(db, new_download)
+        assert content is not None and len(content) > 0
+
+        story_sentences = db.query(
+            "select * from story_sentences where stories_id = %(a)s",
+            {'a': new_story['stories_id']}).hashes()
+        assert len(story_sentences) > 0
+
+    def test_copy_story_to_new_medium_with_download_error(self) -> None:
+        """Test copy_story_to_new_medium with an associated download error."""
+        db = self.db()
+
+        topic = mediawords.test.db.create.create_test_topic(db, 'copy foo')
+
+        new_medium = mediawords.test.db.create.create_test_medium(db, 'copy new')
+
+        old_medium = mediawords.test.db.create.create_test_medium(db, 'copy old')
+        old_feed = mediawords.test.db.create.create_test_feed(db=db, label='copy old', medium=old_medium)
+        old_story = mediawords.test.db.create.create_test_story(db=db, label='copy old', feed=old_feed)
+
+        mediawords.test.db.create.add_content_to_test_story(db, old_story, old_feed)
+
+        db.query("update downloads set state = 'error' where stories_id = %(a)s", {'a': old_story['stories_id']})
+
+        mediawords.tm.stories.add_to_topic_stories(db, old_story, topic)
+
+        new_story = mediawords.tm.stories.copy_story_to_new_medium(db, topic, old_story, new_medium)
+
+        assert db.find_by_id('stories', new_story['stories_id']) is not None
+
+        new_download = db.query(
+            "select * from downloads where stories_id = %(a)s",
+            {'a': new_story['stories_id']}).hash()
+        assert new_download is not None
+        assert new_download['state'] == 'error'
+
+    def test_merge_dup_story(self) -> None:
+        """Test merge_dup_story()."""
+        db = self.db()
+
+        topic = mediawords.test.db.create.create_test_topic(db, 'merge')
+        medium = mediawords.test.db.create.create_test_medium(db, 'merge')
+        feed = mediawords.test.db.create.create_test_feed(db, 'merge', medium=medium)
+
+        old_story = mediawords.test.db.create.create_test_story(db=db, label='merge old', feed=feed)
+        new_story = mediawords.test.db.create.create_test_story(db=db, label='merge new', feed=feed)
+
+        linked_story = mediawords.test.db.create.create_test_story(db=db, label='linked', feed=feed)
+        linking_story = mediawords.test.db.create.create_test_story(db=db, label='linking', feed=feed)
+
+        for story in (old_story, new_story, linked_story, linking_story):
+            mediawords.tm.stories.add_to_topic_stories(db, story, topic)
+
+        db.create('topic_links', {
+            'topics_id': topic['topics_id'],
+            'stories_id': old_story['stories_id'],
+            'url': old_story['url'],
+            'ref_stories_id': linked_story['stories_id']})
+        db.create('topic_links', {
+            'topics_id': topic['topics_id'],
+            'stories_id': linking_story['stories_id'],
+            'url': old_story['url'],
+            'ref_stories_id': old_story['stories_id']})
+        db.create('topic_seed_urls', {
+            'topics_id': topic['topics_id'],
+            'stories_id': old_story['stories_id']})
+
+        mediawords.tm.stories.merge_dup_story(db, topic, old_story, new_story)
+
+        old_topic_links = db.query(
+            "select * from topic_links where topics_id = %(a)s and %(b)s in ( stories_id, ref_stories_id )",
+            {'a': topic['topics_id'], 'b': old_story['stories_id']}).hashes()
+        assert len(old_topic_links) == 0
+
+        new_topic_links_linked = db.query(
+            "select * from topic_links where topics_id = %(a)s and stories_id = %(b)s and ref_stories_id = %(c)s",
+            {'a': topic['topics_id'], 'b': new_story['stories_id'], 'c': linked_story['stories_id']}).hashes()
+        assert len(new_topic_links_linked) == 1
+
+        new_topic_links_linking = db.query(
+            "select * from topic_links where topics_id = %(a)s and ref_stories_id = %(b)s and stories_id = %(c)s",
+            {'a': topic['topics_id'], 'b': new_story['stories_id'], 'c': linking_story['stories_id']}).hashes()
+        assert len(new_topic_links_linking) == 1
+
+        old_topic_stories = db.query(
+            "select * from topic_stories where topics_id = %(a)s and stories_id = %(b)s",
+            {'a': topic['topics_id'], 'b': old_story['stories_id']}).hashes()
+        assert len(old_topic_stories) == 0
+
+        topic_merged_stories_maps = db.query(
+            "select * from topic_merged_stories_map where target_stories_id = %(a)s and source_stories_id = %(b)s",
+            {'a': new_story['stories_id'], 'b': old_story['stories_id']}).hashes()
+        assert len(topic_merged_stories_maps) == 1
+
+    def test_merge_dup_media_story(self) -> None:
+        """Test merge_dup_media_story()."""
+        db = self.db()
+
+        topic = mediawords.test.db.create.create_test_topic(db, 'merge')
+        medium = mediawords.test.db.create.create_test_medium(db, 'merge')
+        feed = mediawords.test.db.create.create_test_feed(db, 'merge', medium=medium)
+        old_story = mediawords.test.db.create.create_test_story(db=db, label='merge old', feed=feed)
+
+        new_medium = mediawords.test.db.create.create_test_medium(db, 'merge new')
+
+        db.update_by_id('media', medium['media_id'], {'dup_media_id': new_medium['media_id']})
+
+        cloned_story = mediawords.tm.stories.merge_dup_media_story(db, topic, old_story)
+
+        for field in 'url guid publish_date title'.split():
+            assert cloned_story[field] == old_story[field]
+
+        topic_story = db.query(
+            "select * from topic_stories where stories_id = %(a)s and topics_id = %(b)s",
+            {'a': cloned_story['stories_id'], 'b': topic['topics_id']}).hash()
+        assert topic_story is not None
+
+        merged_story = mediawords.tm.stories.merge_dup_media_story(db, topic, old_story)
+        assert merged_story['stories_id'] == cloned_story['stories_id']
+
+    def test_merge_dup_stories(self) -> None:
+        """Test merge_dup_stories()."""
+        db = self.db()
+
+        topic = mediawords.test.db.create.create_test_topic(db, 'merge')
+        medium = mediawords.test.db.create.create_test_medium(db, 'merge')
+        feed = mediawords.test.db.create.create_test_feed(db, 'merge', medium=medium)
+
+        num_stories = 10
+        stories = []
+        for i in range(num_stories):
+            story = mediawords.test.db.create.create_test_story(db, "merge " + str(i), feed=feed)
+            mediawords.tm.stories.add_to_topic_stories(db, story, topic)
+            stories.append(story)
+            for j in range(i):
+                db.query(
+                    """
+                    insert into story_sentences (stories_id, sentence_number, sentence, media_id, publish_date)
+                        select stories_id, %(b)s, 'foo bar', media_id, publish_date
+                            from stories where stories_id = %(a)s
+                    """,
+                    {'a': story['stories_id'], 'b': j})
+
+        mediawords.tm.stories._merge_dup_stories(db, topic, stories)
+
+        stories_ids = [s['stories_id'] for s in stories]
+        merged_stories = db.query(
+            "select stories_id from topic_stories where topics_id = %(a)s and stories_id = any(%(b)s)",
+            {'a': topic['topics_id'], 'b': stories_ids}).flat()
+
+        assert merged_stories == [stories_ids[-1]]
+
+    def test_find_and_merge_dup_stories(self) -> None:
+        """Test find_and_merge_dup_stories()."""
+        db = self.db()
+
+        topic = mediawords.test.db.create.create_test_topic(db, 'merge')
+        medium = mediawords.test.db.create.create_test_medium(db, 'merge')
+        feed = mediawords.test.db.create.create_test_feed(db, 'merge', medium=medium)
+
+        num_stories = 10
+        stories = []
+        for i in range(num_stories):
+            story = mediawords.test.db.create.create_test_story(db, "merge " + str(i), feed=feed)
+            db.update_by_id('stories', story['stories_id'], {'title': "long dup title foo bar baz"})
+            mediawords.tm.stories.add_to_topic_stories(db, story, topic)
+            stories.append(story)
+            for j in range(i):
+                db.query(
+                    """
+                    insert into story_sentences (stories_id, sentence_number, sentence, media_id, publish_date)
+                        select stories_id, %(b)s, 'foo bar', media_id, publish_date
+                            from stories where stories_id = %(a)s
+                    """,
+                    {'a': story['stories_id'], 'b': j})
+
+        mediawords.tm.stories.find_and_merge_dup_stories(db, topic)
+
+        stories_ids = [s['stories_id'] for s in stories]
+        merged_stories = db.query(
+            "select stories_id from topic_stories where topics_id = %(a)s and stories_id = any(%(b)s)",
+            {'a': topic['topics_id'], 'b': stories_ids}).flat()
+
+        assert merged_stories == [stories_ids[-1]]
+
+    def test_merge_dup_media_stories(self) -> None:
+        """Test merge_dup_media_stories()."""
+        db = self.db()
+
+        topic = mediawords.test.db.create.create_test_topic(db, 'merge')
+        old_medium = mediawords.test.db.create.create_test_medium(db, 'merge from')
+        new_medium = mediawords.test.db.create.create_test_medium(db, 'merge to')
+        feed = mediawords.test.db.create.create_test_feed(db, 'merge', medium=old_medium)
+
+        num_stories = 10
+        for i in range(num_stories):
+            story = mediawords.test.db.create.create_test_story(db, "merge " + str(i), feed=feed)
+            mediawords.tm.stories.add_to_topic_stories(db, story, topic)
+
+        db.update_by_id('media', old_medium['media_id'], {'dup_media_id': new_medium['media_id']})
+
+        mediawords.tm.stories.merge_dup_media_stories(db, topic)
+
+        got_stories = db.query(
+            "select s.* from stories s join topic_stories ts using (stories_id) where topics_id = %(a)s",
+            {'a': topic['topics_id']}).hashes()
+
+        assert len(got_stories) == num_stories
+
+        for got_story in got_stories:
+            assert got_story['media_id'] == new_medium['media_id']

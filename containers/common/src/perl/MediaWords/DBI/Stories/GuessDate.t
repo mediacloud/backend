@@ -13,7 +13,7 @@ sub test_assign_date_guess_method($)
 {
     my ( $db ) = @_;
 
-    my $media = MediaWords::Test::DB::create_test_story_stack_numerated( $db, 1, 1, 10 );
+    my $media = MediaWords::Test::DB::Create::create_test_story_stack_numerated( $db, 1, 1, 10 );
 
     my $story = $db->query( "select * from stories limit 1 offset 3" )->hash;
 

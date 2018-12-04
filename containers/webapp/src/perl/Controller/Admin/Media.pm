@@ -19,8 +19,8 @@ use MediaWords::DBI::Activities;
 use MediaWords::DBI::Feeds;
 use MediaWords::DBI::Media;
 use MediaWords::DBI::Stories;
-use MediaWords::Util::HTML;
-use MediaWords::Util::JSON;
+use MediaWords::DBI::Stories::Extract;
+use MediaWords::Util::ParseJSON;
 use MediaWords::Util::Tags;
 use MediaWords::Util::TagForm;
 use MediaWords::Util::Web;
@@ -143,7 +143,7 @@ sub media_tags_search_json : Local
         )->flat;
     }
 
-    $c->res->body( MediaWords::Util::JSON::encode_json( $terms ) );
+    $c->res->body( MediaWords::Util::ParseJSON::encode_json( $terms ) );
 
     return;
 }
@@ -513,7 +513,7 @@ sub edit_tags_do : Local
 
     my $tag_names = $c->req->params->{ tags };
 
-    MediaWords::Util::TagForm::save_tags_by_name( $db, $media_id, 'media', $tag_names );
+    MediaWords::Util::Tags::save_tags_by_name( $db, $media_id, 'media', $tag_names );
 
     $c->response->redirect( $c->uri_for( "/admin/feeds/list/" . $media_id, { status_msg => 'Tags updated.' } ) );
 }
@@ -726,7 +726,7 @@ EOF
 
     foreach my $story ( @{ $recent_stories } )
     {
-        $story->{ extracted_text } = MediaWords::DBI::Stories::get_extracted_text( $db, $story );
+        $story->{ extracted_text } = MediaWords::DBI::Stories::Extract::get_extracted_text( $db, $story );
     }
 
     my $next_media_id = $self->_get_next_media_id( $c, $media_id );

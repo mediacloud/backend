@@ -11,11 +11,11 @@ class TestExtractStoryLinksJobDB(mediawords.test.test_database.TestDatabaseWithS
         super().setUp()
         db = self.db()
 
-        media = mediawords.test.db.create_test_story_stack(db, {'A': {'B': [1]}})
+        media = mediawords.test.db.create.create_test_story_stack(db, {'A': {'B': [1]}})
 
         story = media['A']['feeds']['B']['stories']['1']
 
-        download = mediawords.test.db.create_download_for_feed(db, media['A']['feeds']['B'])
+        download = mediawords.test.db.create.create_download_for_feed(db, media['A']['feeds']['B'])
         download['stories_id'] = story['stories_id']
         db.update_by_id('downloads', download['downloads_id'], download)
 
@@ -33,7 +33,7 @@ class TestExtractStoryLinksJobDB(mediawords.test.test_database.TestDatabaseWithS
         story['description'] = 'http://foo.com'
         db.update_by_id('stories', story['stories_id'], story)
 
-        topic = mediawords.test.db.create_test_topic(db, 'links')
+        topic = mediawords.test.db.create.create_test_topic(db, 'links')
         db.create('topic_stories', {'topics_id': topic['topics_id'], 'stories_id': story['stories_id']})
 
         mediawords.job.tm.extract_story_links_job.ExtractStoryLinksJob.run_job(story['stories_id'], topic['topics_id'])

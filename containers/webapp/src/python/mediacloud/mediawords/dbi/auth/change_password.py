@@ -31,7 +31,7 @@ def change_password(db: DatabaseHandler,
     # Check if user exists
     try:
         user = user_info(db=db, email=email)
-    except Exception as _:
+    except Exception:
         raise McAuthChangePasswordException('User with email address "%s" does not exist.' % email)
 
     password_validation_message = validate_new_password(email=email,
@@ -62,7 +62,7 @@ def change_password(db: DatabaseHandler,
 
     if not do_not_inform_via_email:
 
-        message = AuthPasswordChangedMessage(to=email, full_name=user.full_name)
+        message = AuthPasswordChangedMessage(to=email, full_name=user.full_name())
         if not send_email(message):
             raise McAuthChangePasswordException(
                 'The password has been changed, but I was unable to send an email notifying you about the change.'
@@ -84,7 +84,7 @@ def change_password_with_old_password(db: DatabaseHandler,
     # Check if user exists
     try:
         user_info(db=db, email=email)
-    except Exception as _:
+    except Exception:
         raise McAuthChangePasswordException('User with email address "%s" does not exist.' % email)
 
     if old_password == new_password:
@@ -134,7 +134,7 @@ def change_password_with_reset_token(db: DatabaseHandler,
     # Check if user exists
     try:
         user_info(db=db, email=email)
-    except Exception as _:
+    except Exception:
         raise McAuthChangePasswordException('User with email address "%s" does not exist.' % email)
 
     # Validate the token once more (was pre-validated in controller)

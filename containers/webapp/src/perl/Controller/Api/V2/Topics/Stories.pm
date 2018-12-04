@@ -21,6 +21,7 @@ BEGIN { extends 'MediaWords::Controller::Api::V2::MC_Controller_REST' }
 __PACKAGE__->config(
     action => {
         list     => { Does => [ qw( ~TopicsReadAuthenticated ~Throttled ~Logged ) ] },
+        links    => { Does => [ qw( ~TopicsReadAuthenticated ~Throttled ~Logged ) ] },
         facebook => { Does => [ qw( ~TopicsReadAuthenticated ~Throttled ~Logged ) ] },
         count    => { Does => [ qw( ~TopicsReadAuthenticated ~Throttled ~Logged ) ] },
     }
@@ -46,6 +47,42 @@ sub stories : Chained('apibase') : PathPart('stories') : CaptureArgs(0)
 {
 }
 
+sub links : Chained('stories') : Args(0) : ActionClass('MC_REST')
+{
+}
+
+sub links_GET
+{
+    my ( $self, $c ) = @_;
+
+    my $timespan = MediaWords::TM::set_timespans_id_param( $c );
+
+    my $db = $c->dbis;
+
+    $c->req->params->{ limit } = List::Util::min( int( $c->req->params->{ limit } // 1_000 ), 1_000_000 );
+    my $limit = $c->req->params->{ limit };
+
+    MediaWords::DBI::ApiLinks::process_and_stash_link( $c );
+
+    my $offset = int( $c->req->params->{ offset } // 0 );
+
+    my $timespans_id = $timespan->{ timespans_id };
+    my $snapshots_id = $timespan->{ snapshots_id };
+
+    my $links = $db->query( <<SQL, $timespans_id, $limit, $offset )->hashes;
+select source_stories_id, ref_stories_id from snap.story_links
+    where timespans_id = ?
+    order by source_stories_id, ref_stories_id
+    limit ? offset ?
+SQL
+
+    my $entity = { links => $links };
+
+    MediaWords::DBI::ApiLinks::add_links_to_entity( $c, $entity, 'links' );
+
+    $self->status_ok( $c, entity => $entity );
+}
+
 sub list : Chained('stories') : Args(0) : ActionClass('MC_REST')
 {
 }
@@ -55,12 +92,14 @@ sub _get_extra_where_clause($$)
 {
     my ( $c, $timespans_id ) = @_;
 
+    $timespans_id = int( $timespans_id );
+
     my $clauses = [];
 
-    if ( my $media_id = $c->req->params->{ media_id } )
+    if ( my $media_id = int( $c->req->params->{ media_id } // 0 ) )
     {
         my $media_ids = ref( $media_id ) ? $media_id : [ $media_id ];
-        my $media_ids_list = join( ',', map { $_ += 0 } @{ $media_ids } );
+        my $media_ids_list = join( ',', map { int( $_ ) } @{ $media_ids } );
         push( @{ $clauses }, <<SQL );
 slc.stories_id in (
     select s.stories_id
@@ -74,17 +113,15 @@ slc.stories_id in (
 SQL
     }
 
-    if ( my $stories_id = $c->req->params->{ stories_id } )
+    if ( my $stories_id = int( $c->req->params->{ stories_id } // 0 ) )
     {
         my $stories_ids = ref( $stories_id ) ? $stories_id : [ $stories_id ];
-        my $stories_ids_list = join( ',', map { $_ += 0 } @{ $stories_ids } );
+        my $stories_ids_list = join( ',', map { int( $_ ) } @{ $stories_ids } );
         push( @{ $clauses }, "slc.stories_id in ( $stories_ids_list )" );
     }
 
-    if ( my $link_to_stories_id = $c->req->params->{ link_to_stories_id } )
+    if ( my $link_to_stories_id = int( $c->req->params->{ link_to_stories_id } // 0 ) )
     {
-        $link_to_stories_id += 0;
-        $timespans_id       += 0;
         push( @{ $clauses }, <<SQL );
 slc.stories_id in (
     select
@@ -98,10 +135,8 @@ SQL
 
     }
 
-    if ( my $link_from_stories_id = $c->req->params->{ link_from_stories_id } )
+    if ( my $link_from_stories_id = int( $c->req->params->{ link_from_stories_id } // 0 ) )
     {
-        $link_from_stories_id += 0;
-        $timespans_id         += 0;
         push( @{ $clauses }, <<SQL );
 slc.stories_id in (
     select
@@ -115,10 +150,8 @@ SQL
 
     }
 
-    if ( my $link_to_media_id = $c->req->params->{ link_to_media_id } )
+    if ( my $link_to_media_id = int( $c->req->params->{ link_to_media_id } // 0 ) )
     {
-        $link_to_media_id += 0;
-        $timespans_id     += 0;
         push( @{ $clauses }, <<SQL );
 slc.stories_id in (
     select
@@ -134,10 +167,8 @@ SQL
 
     }
 
-    if ( my $link_from_media_id = $c->req->params->{ link_from_media_id } )
+    if ( my $link_from_media_id = int( $c->req->params->{ link_from_media_id } // 0 ) )
     {
-        $link_from_media_id += 0;
-        $timespans_id       += 0;
         push( @{ $clauses }, <<SQL );
 slc.stories_id in (
     select
@@ -200,7 +231,9 @@ select
         a.timespans_id = \$1
 SQL
 
-    MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $foci, 'foci' );
+    $stories = MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $foci, 'foci' );
+
+    return $stories;
 }
 
 # accept sort_param of inlink, facebook, or twitter and
@@ -237,8 +270,7 @@ sub list_GET
 
     my $db = $c->dbis;
 
-    $c->req->params->{ sort }  ||= 'inlink';
-    $c->req->params->{ limit } ||= 1000;
+    $c->req->params->{ sort } ||= 'inlink';
 
     my $sort_clause = _get_sort_clause( $c->req->params->{ sort } );
     $sort_clause = "order by slc.timespans_id, $sort_clause, md5( slc.stories_id::text )";
@@ -248,10 +280,8 @@ sub list_GET
 
     my $extra_clause = _get_extra_where_clause( $c, $timespans_id );
 
-    my $limit = $c->req->params->{ limit };
-    $limit = List::Util::min( $limit, 1_000 );
-
-    my $offset = $c->req->params->{ offset } || 0;
+    my $offset = int( $c->req->params->{ offset } // 0 );
+    my $limit = int( $c->req->params->{ limit } );
 
     my $pre_limit_order = $extra_clause ? '' : "$sort_clause limit $limit offset $offset";
 
@@ -263,7 +293,7 @@ create temporary table _topics_stories_slc as
         $pre_limit_order
 SQL
 
-    my $stories = $db->query( <<SQL, $snapshots_id, $limit, $offset )->hashes;
+    my $stories = $db->query( <<SQL, $snapshots_id )->hashes;
 select s.*, slc.*, m.name media_name
     from _topics_stories_slc slc
         join snap.stories s on slc.stories_id = s.stories_id        
@@ -272,12 +302,11 @@ select s.*, slc.*, m.name media_name
         s.snapshots_id = \$1      
         and m.snapshots_id = \$1
     $sort_clause
-    limit \$2 offset \$3
 SQL
 
     $db->query( "drop table _topics_stories_slc" );
 
-    _add_foci_to_stories( $db, $timespan, $stories );
+    $stories = _add_foci_to_stories( $db, $timespan, $stories );
 
     MediaWords::DBI::Stories::GuessDate::add_date_is_reliable_to_stories( $db, $stories );
 
@@ -304,16 +333,16 @@ sub facebook_GET
 
     my $timespan = MediaWords::TM::set_timespans_id_param( $c );
 
-    MediaWords::DBI::ApiLinks::process_and_stash_link( $c );
-
     my $db = $c->dbis;
 
-    $c->req->params->{ limit } ||= 1000;
+    $c->req->params->{ limit } = int( $c->req->params->{ limit } // 1000 );
+
+    MediaWords::DBI::ApiLinks::process_and_stash_link( $c );
 
     my $timespans_id = $timespan->{ timespans_id };
 
-    my $limit  = $c->req->params->{ limit };
-    my $offset = $c->req->params->{ offset };
+    my $limit  = int( $c->req->params->{ limit }  // 0 );
+    my $offset = int( $c->req->params->{ offset } // 0 );
 
     my $counts = $db->query( <<SQL, $timespans_id, $limit, $offset )->hashes;
 select
@@ -349,8 +378,8 @@ sub count_GET
     my $timespan = MediaWords::TM::require_timespan_for_topic(
         $c->dbis,
         $c->stash->{ topics_id },
-        $c->req->params->{ timespans_id },
-        $c->req->params->{ snapshots_id }
+        int( $c->req->params->{ timespans_id } // 0 ),
+        int( $c->req->params->{ snapshots_id } // 0 )
     );
 
     my $q = $c->req->params->{ q };

@@ -7,18 +7,15 @@ FROM mediacloud-base:latest
 # Add Erlang Solutions GPG key
 RUN curl -L https://packages.erlang-solutions.com/ubuntu/erlang_solutions.asc | apt-key add -
 
-# Add RabbitMQ GPG key
-RUN curl -L https://dl.bintray.com/rabbitmq/Keys/rabbitmq-release-signing-key.asc | apt-key add -
-
-# Add Bintray.com GPG key
-RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 379CE192D401AB61
+# Add RabbitMQ PackageCloud GPG key
+RUN curl -L https://packagecloud.io/rabbitmq/rabbitmq-server/gpgkey | apt-key add -
 
 # Add Erlang Solutions APT repository
 # (RabbitMQ > 3.7 requires newer Erlang than is provided by Ubuntu 16.04)
 RUN add-apt-repository "deb https://packages.erlang-solutions.com/ubuntu xenial contrib"
 
 # Add RabbitMQ APT repository
-RUN add-apt-repository "deb https://dl.bintray.com/rabbitmq/debian xenial main"
+RUN add-apt-repository "deb https://packagecloud.io/rabbitmq/rabbitmq-server/ubuntu/ xenial main"
 
 # Fetch new repositories
 RUN apt-get -y update
@@ -29,7 +26,7 @@ RUN apt-get -y update
 # and check "apt-cache policy erlang-nox | rabbitmq-server" for available
 # versions)
 RUN \
-    export ERLANG_APT_PACKAGE_VERSION="1:20.3-1" && \
+    export ERLANG_APT_PACKAGE_VERSION="1:21.0.6-1" && \
     apt-get -y --no-install-recommends install \
         "erlang-asn1=$ERLANG_APT_PACKAGE_VERSION" \
         "erlang-base=$ERLANG_APT_PACKAGE_VERSION" \
@@ -62,7 +59,7 @@ RUN \
 
 # Install and hold a specific version of RabbitMQ
 RUN \
-    apt-get -y --no-install-recommends install "rabbitmq-server=3.7.3-1" && \
+    apt-get -y --no-install-recommends install "rabbitmq-server=3.7.7-1" && \
     apt-mark hold rabbitmq-server && \
     true
 

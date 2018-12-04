@@ -1,6 +1,8 @@
 """Test mediawords.tm.extract_story_links."""
 
 import mediawords.test.test_database
+import mediawords.test.db.create
+import mediawords.tm.domains
 import mediawords.tm.extract_story_links
 
 
@@ -33,6 +35,7 @@ def test_get_links_from_html() -> None:
     test_links('<a href="http://apidomain.com">', ['http://apidomain.com'])
     test_links('<a href="http://www.rumormillnews.com/cgi-bin/forum.cgi?noframes;read=54990">', [])
     test_links('<a href="http://tvtropes.org/pmwiki/pmwiki.php/Main/ClockTower">', [])
+    test_links('<a href=https://twitter.com/account/suspended">', [])
 
     # sanity test to make sure that we are able to get all of the links from a real html page
     filename = mediawords.util.paths.mc_root_path() + '/mediacloud/test-data/html/strip.html'
@@ -53,11 +56,11 @@ class TestExtractStoryLinksDB(mediawords.test.test_database.TestDatabaseWithSche
         super().setUp()
         db = self.db()
 
-        media = mediawords.test.db.create_test_story_stack(db, {'A': {'B': [1]}})
+        media = mediawords.test.db.create.create_test_story_stack(db, {'A': {'B': [1]}})
 
         story = media['A']['feeds']['B']['stories']['1']
 
-        download = mediawords.test.db.create_download_for_feed(db, media['A']['feeds']['B'])
+        download = mediawords.test.db.create.create_download_for_feed(db, media['A']['feeds']['B'])
         download['stories_id'] = story['stories_id']
         db.update_by_id('downloads', download['downloads_id'], download)
 
@@ -174,7 +177,7 @@ class TestExtractStoryLinksDB(mediawords.test.test_database.TestDatabaseWithSche
         story['description'] = 'http://foo.com http://bar.com'
         db.update_by_id('stories', story['stories_id'], story)
 
-        topic = mediawords.test.db.create_test_topic(db, 'links')
+        topic = mediawords.test.db.create.create_test_topic(db, 'links')
         db.create('topic_stories', {'topics_id': topic['topics_id'], 'stories_id': story['stories_id']})
 
         mediawords.tm.extract_story_links.extract_links_for_topic_story(db, story, topic)
@@ -211,3 +214,30 @@ class TestExtractStoryLinksDB(mediawords.test.test_database.TestDatabaseWithSche
 
         assert "KeyError: 'url'" in got_topic_story['link_mine_error']
         assert got_topic_story['link_mined']
+
+    def test_skip_self_links(self) -> None:
+        """Test that self links are skipped within extract_links_for_topic_story"""
+        db = self.db()
+
+        story = self.test_story
+
+        story_domain = mediawords.util.url.get_url_distinctive_domain(story['url'])
+
+        topic = mediawords.test.db.create.create_test_topic(db, 'links')
+        db.create('topic_stories', {'topics_id': topic['topics_id'], 'stories_id': story['stories_id']})
+
+        num_links = mediawords.tm.domains.MAX_SELF_LINKS * 2
+        content = ''
+        for i in range(num_links):
+            plain_text = "Sample sentence to make sure the links get extracted" * 10
+            url = "http://%s/%d" % (story_domain, i)
+            paragraph = "<p>%s <a href='%s'>link</a></p>\n\n" % (plain_text, url)
+            content = content + paragraph
+
+        mediawords.dbi.downloads.store_content(db, self.test_download, content)
+
+        mediawords.tm.extract_story_links.extract_links_for_topic_story(db, story, topic)
+
+        topic_links = db.query("select * from topic_links where topics_id = %(a)s", {'a': topic['topics_id']}).hashes()
+
+        assert(len(topic_links) == mediawords.tm.domains.MAX_SELF_LINKS)

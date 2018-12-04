@@ -20,7 +20,14 @@ _DEFAULT_DOMAIN_TIMEOUT = 10
 _ACCELERATED_DOMAINS = {
     'twitter.com',
     'wikipedia.org',
-    'feeds.feedburner.com'
+    'feeds.feedburner.com',
+    'facebook.com',
+    'wp.com',
+    'amazonaws.com',
+    't.co',
+    'google.com',
+    'doi.org',
+    'archive.org'
 }
 
 # Divide the normal domain timeout by this for accelerated URLs

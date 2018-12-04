@@ -9,7 +9,7 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use MediaWords::Feed::Parse;
-use MediaWords::Util::HTML;
+use MediaWords::Util::ParseHTML;
 use MediaWords::Util::URL;
 use MediaWords::Util::Web;
 
@@ -159,8 +159,11 @@ sub _get_feed_urls_from_html_links($$)
             {
                 my $url = _resolve_relative_url( $base_url, $1 );
 
-                DEBUG "Match link: $url";
-                push( @{ $urls }, $url );
+                if ( MediaWords::Util::URL::is_http_url( $url ) )
+                {
+                    DEBUG "Match link: $url";
+                    push( @{ $urls }, $url );
+                }
             }
         }
     }
@@ -650,7 +653,7 @@ sub _immediate_redirection_url_for_medium($)
     }
 
     my $html = $response->decoded_content || '';
-    $new_url = MediaWords::Util::HTML::meta_refresh_url_from_html( $html );
+    $new_url = MediaWords::Util::ParseHTML::meta_refresh_url_from_html( $html );
     if ( $new_url and ( !MediaWords::Util::URL::urls_are_equal( $medium->{ url }, $new_url ) ) )
     {
         DEBUG "New medium URL via HTML <meta/> refresh: $medium->{url} => $new_url";
@@ -727,11 +730,13 @@ sub get_valid_feeds_from_urls($;$)
     return [ sort { $a->{ name } cmp $b->{ name } } values( %{ $u } ) ];
 }
 
-# Add default feeds for the media by searching for them in the index page, then (if not found)
-# in a couple of child pages
+# Get default feeds for the media by searching for them in the index page, then (if not found)
+# recursively in child pages
 sub get_feed_links($)
 {
     my $medium = shift;
+
+    return [] if ( !MediaWords::Util::URL::is_http_url( $medium->{ url } ) );
 
     # if the website's main URL has been changed to a new one, update the URL to the new one
     # (don't touch the database though)

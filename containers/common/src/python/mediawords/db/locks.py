@@ -28,7 +28,7 @@ class McDBLocksException(Exception):
     pass
 
 
-def get_session_lock(db: mediawords.db.DatabaseHandler, lock_type: str, lock_id: int, wait: bool=False) -> bool:
+def get_session_lock(db: mediawords.db.DatabaseHandler, lock_type: str, lock_id: int, wait: bool = False) -> bool:
     """Get a postgres advisory lock with the lock_type and lock_id as the two keys.
 
     Arguments:
@@ -41,8 +41,14 @@ def get_session_lock(db: mediawords.db.DatabaseHandler, lock_type: str, lock_id:
     True if the lock is available
     """
     lock_type = str(decode_object_from_bytes_if_needed(lock_type))
-    lock_id = int(decode_object_from_bytes_if_needed(lock_id))
-    wait = bool(decode_object_from_bytes_if_needed(wait))
+
+    if isinstance(lock_id, bytes):
+        lock_id = decode_object_from_bytes_if_needed(lock_id)
+    lock_id = int(lock_id)
+
+    if isinstance(wait, bytes):
+        wait = decode_object_from_bytes_if_needed(wait)
+    wait = bool(wait)
 
     log.debug("trying for lock: %s, %d" % (lock_type, lock_id))
 
@@ -62,7 +68,10 @@ def get_session_lock(db: mediawords.db.DatabaseHandler, lock_type: str, lock_id:
 def release_session_lock(db: mediawords.db.DatabaseHandler, lock_type: str, lock_id: int) -> None:
     """Release the postgres advisory lock if it is held."""
     lock_type = str(decode_object_from_bytes_if_needed(lock_type))
-    lock_id = int(decode_object_from_bytes_if_needed(lock_id))
+
+    if isinstance(lock_id, bytes):
+        lock_id = decode_object_from_bytes_if_needed(lock_id)
+    lock_id = int(lock_id)
 
     if lock_type not in LOCK_TYPES:
         raise McDBLocksException("lock type not in LOCK_TYPES: %s" % lock_type)

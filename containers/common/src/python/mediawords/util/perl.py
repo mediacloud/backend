@@ -62,7 +62,7 @@ class McConvertDBDPgArgumentsToPsycopg2FormatException(Exception):
 def __replace_double_question_marks_or_return_none(q: str, q_args: list) -> Union[tuple, None]:
     """Replace "??" parameters with psycopg2's "%s" and tuple parameter, or return None if not found."""
 
-    double_question_mark_regex = re.compile("""
+    double_question_mark_regex = re.compile(r"""
         (?P<in_statement>\sIN\s)    # "(WHERE) column IN"
         \(\s*\?\?\s*\)              # "(??)" with optional spaces around
     """, flags=re.I | re.X)
@@ -96,7 +96,7 @@ def __replace_double_question_marks_or_return_none(q: str, q_args: list) -> Unio
 def __replace_question_marks_or_return_none(q: str, q_args: list) -> Union[tuple, None]:
     """Replace "?" parameters with psycopg2's "%s", or return None if not found."""
 
-    question_mark_regex = re.compile("""
+    question_mark_regex = re.compile(r"""
         (?P<char_before_question_mark>\s|,|\()      # Question mark preceded by whitespace, comma or bracket
         \?                                          # Question mark
         (?=(\s|,|\)|(::)|$))                        # Lookahead and make sure question mark is singled out
@@ -121,7 +121,7 @@ def __replace_question_marks_or_return_none(q: str, q_args: list) -> Union[tuple
 def __replace_dollar_signs_or_return_none(q: str, q_args: list) -> Union[tuple, None]:
     """Replace "$1" parameters with psycopg2's "%(param_1)s", or return None if not found."""
 
-    dollar_sign_regex = re.compile("""
+    dollar_sign_regex = re.compile(r"""
         (?P<char_before_dollar_sign>\s|,|\()    # Dollar sign preceded by whitespace, comma or bracket
         \$(?P<param_index>\d)                   # Dollar sign with a single-digit index ("$1", "$2", ...)
         (?=(\s|,|\)|(::)|$))                    # Lookahead and make sure dollar sign is singled out

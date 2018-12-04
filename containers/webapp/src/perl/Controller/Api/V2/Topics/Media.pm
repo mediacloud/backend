@@ -17,8 +17,9 @@ BEGIN { extends 'MediaWords::Controller::Api::V2::MC_Controller_REST' }
 
 __PACKAGE__->config(
     action => {
-        list => { Does => [ qw( ~TopicsReadAuthenticated ~Throttled ~Logged ) ] },
-        map  => { Does => [ qw( ~TopicsReadAuthenticated ~Throttled ~Logged ) ] },
+        links => { Does => [ qw( ~TopicsReadAuthenticated ~Throttled ~Logged ) ] },
+        list  => { Does => [ qw( ~TopicsReadAuthenticated ~Throttled ~Logged ) ] },
+        map   => { Does => [ qw( ~TopicsReadAuthenticated ~Throttled ~Logged ) ] },
     }
 );
 
@@ -45,10 +46,19 @@ sub _get_extra_where_clause($$)
 
     my $clauses = [];
 
-    if ( my $media_id = $c->req->params->{ media_id } )
+    if ( my $media_ids = $c->req->params->{ media_id } )
     {
-        $media_id += 0;
-        push( @{ $clauses }, "m.media_id = $media_id" );
+        $media_ids = [ $media_ids ] unless ( ref( $media_ids ) eq ref( [] ) );
+        my $media_ids_list = join( ',', map { int( $_ ) } @{ $media_ids } );
+        push( @{ $clauses }, "m.media_id in ( $media_ids_list )" );
+    }
+
+    if ( my $q = $c->req->params->{ q } )
+    {
+        $q = "timespans_id:$timespans_id and ( $q )";
+        my $media_ids = MediaWords::Solr::search_for_media_ids( $c->dbis, { q => $q } );
+        my $media_ids_list = join( ',', map { int( $_ ) } ( @{ $media_ids }, -1 ) );
+        push( @{ $clauses }, "m.media_id in ( $media_ids_list )" );
     }
 
     if ( my $name = $c->req->params->{ name } )
@@ -121,6 +131,8 @@ sub list_GET
 
     my $timespan = MediaWords::TM::set_timespans_id_param( $c );
 
+    $c->req->params->{ limit } = int( List::Util::min( $c->req->params->{ limit } // 0, 1_000 ) );
+
     MediaWords::DBI::ApiLinks::process_and_stash_link( $c );
 
     my $db = $c->dbis;
@@ -132,10 +144,8 @@ sub list_GET
     my $timespans_id = $timespan->{ timespans_id };
     my $snapshots_id = $timespan->{ snapshots_id };
 
-    my $limit = $c->req->params->{ limit };
-    $limit = List::Util::min( $limit, 1_000 );
-
-    my $offset = $c->req->params->{ offset };
+    my $limit = int( $c->req->params->{ limit } );
+    my $offset = int( $c->req->params->{ offset } // 0 );
 
     my $extra_clause = _get_extra_where_clause( $c, $timespans_id );
 
@@ -160,6 +170,42 @@ SQL
     $self->status_ok( $c, entity => $entity );
 }
 
+sub links : Chained('media') : Args(0) : ActionClass('MC_REST')
+{
+}
+
+sub links_GET
+{
+    my ( $self, $c ) = @_;
+
+    my $timespan = MediaWords::TM::set_timespans_id_param( $c );
+
+    $c->req->params->{ limit } = int( List::Util::min( $c->req->params->{ limit } // 1_000, 1_000_000 ) );
+    my $limit = $c->req->params->{ limit };
+
+    MediaWords::DBI::ApiLinks::process_and_stash_link( $c );
+
+    my $db = $c->dbis;
+
+    my $offset = int( $c->req->params->{ offset } // 0 );
+
+    my $timespans_id = $timespan->{ timespans_id };
+    my $snapshots_id = $timespan->{ snapshots_id };
+
+    my $links = $db->query( <<SQL, $timespans_id, $limit, $offset )->hashes;
+select source_media_id, ref_media_id from snap.medium_links
+    where timespans_id = ?
+    order by source_media_id, ref_media_id
+    limit ? offset ?
+SQL
+
+    my $entity = { links => $links };
+
+    MediaWords::DBI::ApiLinks::add_links_to_entity( $c, $entity, 'links' );
+
+    $self->status_ok( $c, entity => $entity );
+}
+
 sub map : Chained('media') : Args(0) : ActionClass('MC_REST')
 {
 
@@ -171,12 +217,17 @@ sub map_GET
 
     my $timespan             = MediaWords::TM::set_timespans_id_param( $c );
     my $color_field          = $c->req->params->{ color_field } || 'media_type';
-    my $num_media            = $c->req->params->{ num_media } || 500;
-    my $include_weights      = $c->req->params->{ include_weights } || 0;
-    my $num_links_per_medium = $c->req->params->{ num_links_per_medium } || 1000;
+    my $num_media            = int( $c->req->params->{ num_media } // 500 );
+    my $include_weights      = int( $c->req->params->{ include_weights } // 0 );
+    my $num_links_per_medium = int( $c->req->params->{ num_links_per_medium } // 1000 );
     my $exclude_media_ids    = $c->req->params->{ exclude_media_ids } || [];
 
-    $exclude_media_ids = [ $exclude_media_ids ] unless ( ref( $exclude_media_ids ) eq ref( [] ) );
+    unless ( ref( $exclude_media_ids ) eq ref( [] ) )
+    {
+        $exclude_media_ids = [ $exclude_media_ids ];
+    }
+
+    $exclude_media_ids = [ map { int( $_ ) } @{ $exclude_media_ids } ];
 
     my $db = $c->dbis;
 

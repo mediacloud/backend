@@ -10,7 +10,7 @@ use warnings;
 use MediaWords::CommonLibs;
 
 use MediaWords::Util::Config;
-use MediaWords::Util::JSON;
+use MediaWords::Util::ParseJSON;
 use MediaWords::Util::Process;
 use MediaWords::Util::URL;
 use MediaWords::Util::Web;
@@ -131,7 +131,7 @@ sub api_request($$)
 
         $decoded_content = $response->decoded_content;
 
-        eval { $data = MediaWords::Util::JSON::decode_json( $decoded_content ); };
+        eval { $data = MediaWords::Util::ParseJSON::decode_json( $decoded_content ); };
 
         if ( $response->is_success )
         {

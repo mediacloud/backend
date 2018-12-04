@@ -30,7 +30,7 @@ use MediaWords::DBI::Stories;
 use MediaWords::Solr::PseudoQueries;
 use MediaWords::Solr::Query;
 use MediaWords::Util::Config;
-use MediaWords::Util::JSON;
+use MediaWords::Util::ParseJSON;
 use MediaWords::Util::Text;
 use MediaWords::Util::Web;
 
@@ -351,7 +351,7 @@ sub query_encoded_json($$;$)
                 {
                     my $solr_response_json;
 
-                    eval { $solr_response_json = MediaWords::Util::JSON::decode_json( $solr_response_maybe_json ) };
+                    eval { $solr_response_json = MediaWords::Util::ParseJSON::decode_json( $solr_response_maybe_json ) };
                     unless ( $@ )
                     {
                         if (    exists( $solr_response_json->{ error }->{ msg } )
@@ -359,7 +359,8 @@ sub query_encoded_json($$;$)
                         {
                             my $solr_error_msg = $solr_response_json->{ error }->{ msg };
                             my $solr_params =
-                              MediaWords::Util::JSON::encode_json( $solr_response_json->{ responseHeader }->{ params } );
+                              MediaWords::Util::ParseJSON::encode_json(
+                                $solr_response_json->{ responseHeader }->{ params } );
 
                             # If we were able to decode Solr error message, overwrite the default error message with it
                             $error_message = 'Solr error: "' . $solr_error_msg . '", params: ' . $solr_params;
@@ -400,7 +401,7 @@ sub query($$;$)
     my $json = query_encoded_json( $db, $params, $c );
 
     my $data;
-    eval { $data = MediaWords::Util::JSON::decode_json( $json ) };
+    eval { $data = MediaWords::Util::ParseJSON::decode_json( $json ) };
     if ( $@ )
     {
         die( "Error parsing solr json: $@\n$json" );
@@ -686,7 +687,7 @@ sub search_for_stories ($$)
 
     my $stories = [ map { { stories_id => $_ } } @{ $stories_ids } ];
 
-    MediaWords::DBI::Stories::attach_story_meta_data_to_stories( $db, $stories );
+    $stories = MediaWords::DBI::Stories::attach_story_meta_data_to_stories( $db, $stories );
 
     $stories = [ grep { $_->{ url } } @{ $stories } ];
 
@@ -753,10 +754,7 @@ sub get_num_found ($$)
 
 =head2 search_for_media_ids( $db, $params )
 
-Return all of the media ids that match the solr query by sampling solr results.
-
-Performs the query on solr and returns up to 200,000 randomly sorted stories, then culls the list of media_ids from
-the list of sampled sentences.
+Return all of the media ids that match the solr query.
 
 =cut
 
@@ -766,16 +764,23 @@ sub search_for_media_ids ($$)
 
     my $p = { %{ $params } };
 
-    $p->{ fl }            = 'media_id';
-    $p->{ group }         = 'true';
-    $p->{ 'group.field' } = 'media_id';
-    $p->{ sort }          = 'random_1 asc';
-    $p->{ rows }          = 200_000;
+    $p->{ fl }               = 'media_id';
+    $p->{ facet }            = 'true';
+    $p->{ 'facet.limit' }    = 1_000_000;
+    $p->{ 'facet.field' }    = 'media_id';
+    $p->{ 'facet.mincount' } = 1;
+    $p->{ rows }             = 0;
 
     my $response = query( $db, $p );
 
-    my $groups = $response->{ grouped }->{ media_id }->{ groups };
-    my $media_ids = [ map { $_->{ groupValue } } @{ $groups } ];
+    my $counts = $response->{ facet_counts }->{ facet_fields }->{ media_id };
+
+    my $media_ids = [];
+    for ( my $i = 0 ; $i < scalar( @{ $counts } ) ; $i += 2 )
+    {
+        TRACE( $i );
+        push( @{ $media_ids }, $counts->[ $i ] );
+    }
 
     return $media_ids;
 }

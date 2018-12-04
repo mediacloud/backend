@@ -104,7 +104,8 @@ def add_user(db: DatabaseHandler, new_user: NewUser) -> None:
         password_hash = generate_secure_hash(password=new_user.password())
         if not password_hash:
             raise McAuthRegisterException("Password hash is empty.")
-    except Exception as _:
+    except Exception as ex:
+        log.error("Unable to hash a new password: {}".format(ex))
         raise McAuthRegisterException('Unable to hash a new password.')
 
     db.begin()

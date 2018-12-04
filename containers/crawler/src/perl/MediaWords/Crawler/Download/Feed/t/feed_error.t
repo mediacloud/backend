@@ -8,7 +8,7 @@ use MediaWords::CommonLibs;
 
 use Test::More tests => 2;
 
-use MediaWords::Test::HTTP::HashServer;
+use MediaWords::Test::HashServer;
 use Readonly;
 
 use MediaWords::Crawler::Engine;
@@ -60,11 +60,11 @@ sub test_invalid_feed($)
         '/foo' => '<rss version="2.0"><kim_kardashian></rss>',
     };
 
-    my $hs = MediaWords::Test::HTTP::HashServer->new( $HTTP_PORT, $pages );
+    my $hs = MediaWords::Test::HashServer->new( $HTTP_PORT, $pages );
 
     $hs->start;
 
-    my $media = MediaWords::Test::DB::create_test_story_stack( $db, { A => { B => [ 1 ] } } );
+    my $media = MediaWords::Test::DB::Create::create_test_story_stack( $db, { A => { B => [ 1 ] } } );
     my $feed = $media->{ A }->{ feeds }->{ B };
 
     my $download = _fetch_and_handle_response( $db, $HTTP_PORT, $feed, '/foo' );

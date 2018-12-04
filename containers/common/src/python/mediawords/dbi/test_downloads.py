@@ -1,26 +1,33 @@
 """Test mediawords.dbi.downloads."""
 
 import copy
+import os
 import unittest
 
 import mediawords.dbi.downloads
+from mediawords.dbi.stories.extract import combine_story_title_description_text
+from mediawords.dbi.stories.extractor_arguments import PyExtractorArguments
+from mediawords.test.data import fetch_test_data_from_individual_files, get_path_to_data_files
+from mediawords.test.db.create import create_download_for_feed, create_test_feed, create_test_medium, create_test_story
 from mediawords.test.test_database import TestDatabaseWithSchemaTestCase
 from mediawords.key_value_store.amazon_s3 import AmazonS3Store
 from mediawords.key_value_store.cached_amazon_s3 import CachedAmazonS3Store
 from mediawords.key_value_store.database_inline import DatabaseInlineStore
 from mediawords.key_value_store.postgresql import PostgreSQLStore
 from mediawords.key_value_store.multiple_stores import MultipleStoresStore
-
+from mediawords.test.text import TestCaseTextUtilities
+from mediawords.util.config import get_config
 from mediawords.util.log import create_logger
+
 log = create_logger(__name__)
 
 
-class TestDownloads(unittest.TestCase):
+class TestDownloads(unittest.TestCase, TestCaseTextUtilities):
     """Test case for downloads tests."""
 
     def setUp(self) -> None:
         """Set self.config and assign dummy values for amazon_s3."""
-        self.config = mediawords.util.config.get_config()
+        self.config = get_config()
         self.save_config = copy.deepcopy(self.config)
 
         self._setup_amazon_s3_config()
@@ -132,7 +139,10 @@ class TestDownloads(unittest.TestCase):
 
         for path in path_lookup:
             store = mediawords.dbi.downloads._get_store_for_reading({'path': (path + ':')})
-            assert isinstance(store, path_lookup[path])
+            expected_class = path_lookup[path]
+
+            # isinstance() emits a warning in PyCharm
+            assert type(store) == expected_class
 
         store = mediawords.dbi.downloads._get_store_for_reading({})
         assert isinstance(store, AmazonS3Store)
@@ -143,8 +153,8 @@ class TestDownloads(unittest.TestCase):
         with self.assertRaises(mediawords.dbi.downloads.McDBIDownloadsException):
             mediawords.dbi.downloads._get_store_for_reading({'path': 'invalidpath:'})
 
-    def test_extract_content(self) -> None:
-        """Test extract_count()."""
+    def test_extract_content_basic(self) -> None:
+        """Test extract_content()."""
         results = mediawords.dbi.downloads.extract_content("<script>foo<</script><p>bar</p>")
         assert results['extracted_html'].strip() == '<body id="readabilityBody"><p>bar</p></body>'
         assert results['extracted_text'].strip() == 'bar.'
@@ -153,9 +163,47 @@ class TestDownloads(unittest.TestCase):
         assert results['extracted_html'].strip() == 'foo'
         assert results['extracted_text'].strip() == 'foo'
 
+    def test_extract_content_extended(self):
+
+        test_dataset = 'gv'
+        test_file = 'index_1.html'
+        test_title = 'Brazil: Amplified conversations to fight the Digital Crimes Bill'
+
+        test_stories = fetch_test_data_from_individual_files(basename="crawler_stories/{}".format(test_dataset))
+
+        test_story_hash = {}
+        for story in test_stories:
+            test_story_hash[story['title']] = story
+
+        story = test_story_hash.get(test_title, None)
+        assert story, "Story with title '{}' was not found.".format(test_title)
+
+        data_files_path = get_path_to_data_files(subdirectory='crawler/{}'.format(test_dataset))
+        path = os.path.join(data_files_path, test_file)
+
+        with open(path, mode='r', encoding='utf-8') as f:
+            content = f.read()
+            results = mediawords.dbi.downloads.extract_content(content=content)
+
+            # Crawler test squeezes in story title and description into the expected output
+            combined_text = combine_story_title_description_text(
+                story_title=story['title'],
+                story_description=story['description'],
+                download_texts=[
+                    results['extracted_text'],
+                ],
+            )
+
+            expected_text = story['extracted_text']
+            actual_text = combined_text
+
+            self.assertTextEqual(got_text=actual_text, expected_text=expected_text)
+
 
 class TestDownloadsDB(TestDatabaseWithSchemaTestCase):
     """Run tests that require database access."""
+
+    __TEST_CONTENT = '<script>ignore</script><p>foo</p>'
 
     def setUp(self) -> None:
         """Set config for tests."""
@@ -163,13 +211,17 @@ class TestDownloadsDB(TestDatabaseWithSchemaTestCase):
 
         self.config = mediawords.util.config.get_config()
 
-        self.test_medium = mediawords.test.db.create_test_medium(self.db(), 'downloads test')
-        self.test_feed = mediawords.test.db.create_test_feed(self.db(), 'downlaods test', self.test_medium)
-        self.test_download = mediawords.test.db.create_download_for_feed(self.db(), self.test_feed)
+        self.test_medium = create_test_medium(self.db(), 'downloads test')
+        self.test_feed = create_test_feed(self.db(), 'downloads test', self.test_medium)
+        self.test_download = create_download_for_feed(self.db(), self.test_feed)
+        self.test_story = create_test_story(self.db(), label='downloads est', feed=self.test_feed)
 
         self.test_download['path'] = 'postgresql:foo'
         self.test_download['state'] = 'success'
+        self.test_download['stories_id'] = self.test_story['stories_id']
         self.db().update_by_id('downloads', self.test_download['downloads_id'], self.test_download)
+
+        mediawords.dbi.downloads.store_content(self.db(), self.test_download, self.__TEST_CONTENT)
 
         self.save_config = copy.deepcopy(self.config)
 
@@ -236,7 +288,7 @@ class TestDownloadsDB(TestDatabaseWithSchemaTestCase):
         assert got_content == content
         assert got_download['state'] == 'feed_error'
         assert got_download['path'] == 'postgresql:raw_downloads'
-        assert got_download['error_message'] == ''
+        assert not got_download['error_message']  # NULL or an empty string
 
     def test_extractor_cache(self) -> None:
         """Test set and get for extract cache."""
@@ -251,14 +303,75 @@ class TestDownloadsDB(TestDatabaseWithSchemaTestCase):
 
         html = '<script>ignore</script><p>foo</p>'
         mediawords.dbi.downloads.store_content(db, self.test_download, html)
-        result = mediawords.dbi.downloads.extract(db, self.test_download)
+        result = mediawords.dbi.downloads.extract(db=db, download=self.test_download)
 
         assert result['extracted_html'].strip() == '<body id="readabilityBody"><p>foo</p></body>'
         assert result['extracted_text'].strip() == 'foo.'
 
         mediawords.dbi.downloads.store_content(db, self.test_download, html)
-        mediawords.dbi.downloads.extract(db, self.test_download, use_cache=True)
+        mediawords.dbi.downloads.extract(
+            db=db,
+            download=self.test_download,
+            extractor_args=PyExtractorArguments(use_cache=True),
+        )
         mediawords.dbi.downloads.store_content(db, self.test_download, 'bar')
-        result = mediawords.dbi.downloads.extract(db, self.test_download, use_cache=True)
+        result = mediawords.dbi.downloads.extract(
+            db=db,
+            download=self.test_download,
+            extractor_args=PyExtractorArguments(use_cache=True),
+        )
         assert result['extracted_html'].strip() == '<body id="readabilityBody"><p>foo</p></body>'
         assert result['extracted_text'].strip() == 'foo.'
+
+    def test_get_media_id(self):
+        media_id = mediawords.dbi.downloads.get_media_id(db=self.db(), download=self.test_download)
+        assert media_id == self.test_medium['media_id']
+
+    def test_get_medium(self):
+        medium = mediawords.dbi.downloads.get_medium(db=self.db(), download=self.test_download)
+        assert medium == self.test_medium
+
+    def test_extract_and_create_download_text(self):
+        download_text = mediawords.dbi.downloads.extract_and_create_download_text(
+            db=self.db(),
+            download=self.test_download,
+            extractor_args=PyExtractorArguments(),
+        )
+
+        assert download_text
+        assert download_text['download_text'] == 'foo.'
+        assert download_text['downloads_id'] == self.test_download['downloads_id']
+
+    def test_process_download_for_extractor(self):
+        # Make sure nothing's extracted yet and download text is not to be found
+        assert len(self.db().select(
+            table='story_sentences',
+            what_to_select='*',
+            condition_hash={'stories_id': self.test_download['stories_id']},
+        ).hashes()) == 0
+        assert len(self.db().select(
+            table='download_texts',
+            what_to_select='*',
+            condition_hash={'downloads_id': self.test_download['downloads_id']},
+        ).hashes()) == 0
+
+        mediawords.dbi.downloads.process_download_for_extractor(db=self.db(), download=self.test_download)
+
+        # We expect the download to be extracted and the story to be processed
+        assert len(self.db().select(
+            table='story_sentences',
+            what_to_select='*',
+            condition_hash={'stories_id': self.test_download['stories_id']},
+        ).hashes()) > 0
+        assert len(self.db().select(
+            table='download_texts',
+            what_to_select='*',
+            condition_hash={'downloads_id': self.test_download['downloads_id']},
+        ).hashes()) > 0
+
+    def test_get_content_for_first_download(self):
+        content = mediawords.dbi.downloads.get_content_for_first_download(
+            db=self.db(),
+            story=self.test_story,
+        )
+        assert content == self.__TEST_CONTENT

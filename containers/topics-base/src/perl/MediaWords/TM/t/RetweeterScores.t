@@ -37,7 +37,7 @@ sub _get_topic($)
 {
     my ( $db ) = @_;
 
-    $_topic ||= MediaWords::Test::DB::create_test_topic( $db, "retweeter_scores" );
+    $_topic ||= MediaWords::Test::DB::Create::create_test_topic( $db, "retweeter_scores" );
 
     return $_topic;
 }
@@ -404,7 +404,7 @@ sub test_retweeter_scores($)
 
     srand( 2 );
 
-    my $data = MediaWords::Test::DB::create_test_story_stack_numerated( $db, $NUM_TWITTER_USERS, 1, 25, $label );
+    my $data = MediaWords::Test::DB::Create::create_test_story_stack_numerated( $db, $NUM_TWITTER_USERS, 1, 25, $label );
 
     my $stories = [ grep { $_->{ stories_id } } values( %{ $data } ) ];
 

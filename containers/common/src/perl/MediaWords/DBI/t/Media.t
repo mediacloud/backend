@@ -16,7 +16,8 @@ sub test_few_recent_stories($)
 
     my $label = 'few recent stories';
 
-    my $test_stack = MediaWords::Test::DB::create_test_story_stack( $db, { "$label medium" => { "feed" => [ 'story' ] } } );
+    my $test_stack =
+      MediaWords::Test::DB::Create::create_test_story_stack( $db, { "$label medium" => { "feed" => [ 'story' ] } } );
 
     my $medium = $test_stack->{ "$label medium" };
 
@@ -34,7 +35,8 @@ sub test_few_old_stories($)
 
     my $label = 'few old stories';
 
-    my $test_stack = MediaWords::Test::DB::create_test_story_stack( $db, { "$label medium" => { "feed" => [ 'story' ] } } );
+    my $test_stack =
+      MediaWords::Test::DB::Create::create_test_story_stack( $db, { "$label medium" => { "feed" => [ 'story' ] } } );
 
     my $medium = $test_stack->{ "$label medium" };
 
@@ -54,7 +56,7 @@ sub test_no_stories($)
 
     my $label = 'no stories';
 
-    my $test_stack = MediaWords::Test::DB::create_test_story_stack( $db, { "$label medium" => { "feed" => [] } } );
+    my $test_stack = MediaWords::Test::DB::Create::create_test_story_stack( $db, { "$label medium" => { "feed" => [] } } );
 
     my $medium = $test_stack->{ "$label medium" };
 
@@ -71,7 +73,8 @@ sub test_no_active_feed($)
 
     my $label = 'no active feed';
 
-    my $test_stack = MediaWords::Test::DB::create_test_story_stack( $db, { "$label medium" => { "feed" => [ 'story' ] } } );
+    my $test_stack =
+      MediaWords::Test::DB::Create::create_test_story_stack( $db, { "$label medium" => { "feed" => [ 'story' ] } } );
 
     my $medium = $test_stack->{ "$label medium" };
 

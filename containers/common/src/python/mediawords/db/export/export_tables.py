@@ -92,7 +92,7 @@ def __print_table_csv_to_stdout(db: DatabaseHandler, table: str) -> None:
     """Print table dump to STDOUT."""
 
     column_names = db.query("SELECT * FROM %s LIMIT 0" % table).columns()
-    primary_key_column = db.primary_key_column(table=table)
+    primary_key_column = db.primary_key_column(table)
 
     print("""
 --
@@ -119,7 +119,7 @@ def __print_table_csv_to_stdout(db: DatabaseHandler, table: str) -> None:
     })
 
     postgresql_null_value = '\\N'
-    postgresql_end_of_data = '\.'
+    postgresql_end_of_data = r'\.'
     while True:
         row = res.array()
         if row is None:

@@ -137,7 +137,7 @@ sub scrape_status_GET
 {
     my ( $self, $c ) = @_;
 
-    my $media_id = $c->req->params->{ media_id };
+    my $media_id = int( $c->req->params->{ media_id } // 0 );
 
     my $job_class = MediaWords::Job::RescrapeMedia->name;
 

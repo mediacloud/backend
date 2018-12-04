@@ -64,7 +64,7 @@ sub create_stories
 {
     my ( $db, $stories, $topics ) = @_;
 
-    my $media = MediaWords::Test::DB::create_test_story_stack( $db, $stories );
+    my $media = MediaWords::Test::DB::Create::create_test_story_stack( $db, $stories );
 }
 
 sub create_test_data
@@ -126,7 +126,7 @@ sub create_test_data
         }
     }
 
-    MediaWords::Test::DB::add_content_to_test_story_stack( $test_db, $topic_media_sources );
+    $topic_media_sources = MediaWords::Test::DB::Create::add_content_to_test_story_stack( $test_db, $topic_media_sources );
 
     MediaWords::Job::TM::SnapshotTopic->run_locally( { topics_id => $topic->{ topics_id } } );
 
@@ -163,6 +163,62 @@ sub test_media_list
     }
 }
 
+sub test_media_links
+{
+    my ( $db ) = @_;
+
+    my ( $timespans_id ) = $db->query( <<SQL )->flat();
+select timespans_id from timespans t where period = 'overall' and foci_id is null;
+SQL
+
+    my $limit = 1000;
+
+    my $expected_links = $db->query( <<SQL, $timespans_id, $limit )->hashes();
+select source_media_id, ref_media_id
+    from snap.medium_links sl
+    where
+        timespans_id = ?
+    order by source_media_id, ref_media_id
+    limit ?
+SQL
+
+    ok( scalar( @{ $expected_links } ) > 1, "test_media_links: more than one link" );
+
+    my $r = test_get( '/api/v2/topics/1/media/links', { limit => $limit } );
+
+    my $got_links = $r->{ links };
+
+    is_deeply( $got_links, $expected_links, "media_links: links returned" );
+}
+
+sub test_stories_links
+{
+    my ( $db ) = @_;
+
+    my ( $timespans_id ) = $db->query( <<SQL )->flat();
+select timespans_id from timespans t where period = 'overall' and foci_id is null;
+SQL
+
+    my $limit = 1000;
+
+    my $expected_links = $db->query( <<SQL, $timespans_id, $limit )->hashes();
+select source_stories_id, ref_stories_id
+    from snap.story_links sl
+    where
+        timespans_id = ?
+    order by source_stories_id, ref_stories_id
+    limit ?
+SQL
+
+    ok( scalar( @{ $expected_links } ) > 1, "test_stories_links: more than one link" );
+
+    my $r = test_get( '/api/v2/topics/1/stories/links', { limit => $limit } );
+
+    my $got_links = $r->{ links };
+
+    is_deeply( $got_links, $expected_links, "stories_links: links returned" );
+}
+
 sub test_story_list_count
 {
 
@@ -173,6 +229,35 @@ sub test_story_list_count
     my $actual_response = test_get( '/api/v2/topics/1/stories/list', { limit => $story_limit } );
 
     is( scalar @{ $actual_response->{ stories } }, $story_limit, "story limit" );
+}
+
+sub test_story_list_paging
+{
+    my ( $db ) = @_;
+
+    my ( $topics_id ) = $db->query( "select topics_id from topics" )->flat();
+
+    my ( $timespans_id ) = $db->query( <<SQL )->flat();
+select timespans_id from timespans t where period = 'overall' and foci_id is null;
+SQL
+
+    my ( $expected_stories_count ) = $db->query( <<SQL, $timespans_id )->flat();
+select count(*) from snap.story_link_counts where timespans_id = ?
+SQL
+
+    my $limit = 3;
+
+    my $r = test_get( "/api/v2/topics/$topics_id/stories/list", { timespans_id => $timespans_id, limit => $limit } );
+
+    my $got_stories_count = scalar( @{ $r->{ stories } } );
+
+    while ( my $next_link_id = $r->{ link_ids }->{ next } )
+    {
+        $r = test_get( "/api/v2/topics/$topics_id/stories/list", { link_id => $next_link_id } );
+        $got_stories_count += scalar( @{ $r->{ stories } } );
+    }
+
+    is( $got_stories_count, $expected_stories_count, "stories/list paging count" );
 }
 
 sub _get_story_link_counts
@@ -249,7 +334,7 @@ sub test_topics_crud($)
 
     my $label = "create topic";
 
-    MediaWords::Test::DB::create_test_story_stack_numerated( $db, 10, 2, 2, $label );
+    MediaWords::Test::DB::Create::create_test_story_stack_numerated( $db, 10, 2, 2, $label );
     $db->query( "insert into tag_sets ( name ) values ( 'create topic' )" );
     $db->query( "insert into tags ( tag, tag_sets_id ) select m.name, ts.tag_sets_id from media m, tag_sets ts" );
 
@@ -343,7 +428,7 @@ sub test_topics_spider($)
 {
     my ( $db ) = @_;
 
-    my $topic = MediaWords::Test::DB::create_test_topic( $db, 'spider test' );
+    my $topic = MediaWords::Test::DB::Create::create_test_topic( $db, 'spider test' );
 
     $topic = $db->update_by_id( 'topics', $topic->{ topics_id }, { solr_seed_query => 'BOGUSQUERYTORETURNOSTORIES' } );
     my $topics_id = $topic->{ topics_id };
@@ -375,10 +460,10 @@ sub test_topics_list($)
           message job_queue max_stories is_logogram is_story_index_ready/
     ];
 
-    my $topic_private_a = MediaWords::Test::DB::create_test_topic( $db, "label private a" );
-    my $topic_private_b = MediaWords::Test::DB::create_test_topic( $db, "label private b" );
-    my $topic_public_a  = MediaWords::Test::DB::create_test_topic( $db, "label public a" );
-    my $topic_public_b  = MediaWords::Test::DB::create_test_topic( $db, "label public b" );
+    my $topic_private_a = MediaWords::Test::DB::Create::create_test_topic( $db, "label private a" );
+    my $topic_private_b = MediaWords::Test::DB::Create::create_test_topic( $db, "label private b" );
+    my $topic_public_a  = MediaWords::Test::DB::Create::create_test_topic( $db, "label public a" );
+    my $topic_public_b  = MediaWords::Test::DB::Create::create_test_topic( $db, "label public b" );
 
     map { $db->update_by_id( 'topics', $_->{ topics_id }, { is_public => 't' } ) } ( $topic_public_a, $topic_public_b );
 
@@ -452,7 +537,7 @@ sub test_snapshots_generate($)
 
     my $label = 'snapshot generate';
 
-    my $topic = MediaWords::Test::DB::create_test_topic( $db, $label );
+    my $topic = MediaWords::Test::DB::Create::create_test_topic( $db, $label );
 
     $topic = $db->update_by_id( 'topics', $topic->{ topics_id }, { solr_seed_query => 'BOGUSQUERYTORETURNOSTORIES' } );
     my $topics_id = $topic->{ topics_id };
@@ -545,6 +630,49 @@ SQL
     }
 }
 
+sub test_media_search
+{
+    my ( $db ) = @_;
+
+    my $topic = $db->query( "select * from topics order by topics_id limit 1" )->hash();
+
+    my ( $sentence ) = $db->query( <<SQL, $topic->{ topics_id } )->flat();
+select ss.sentence
+    from story_sentences ss
+        join topic_stories ts using ( stories_id )
+    where
+        topics_id = ?
+    order by story_sentences_id
+    limit 1
+SQL
+
+    # we just need a present word to search for, so use the first word in the first sentence
+    my $sentence_words = [ split( ' ', $sentence ) ];
+    my $search_word = $sentence_words->[ 0 ];
+
+    # use a regex to manually find all media sources matching the search word
+    my $expected_media_ids = $db->query( <<SQL, $topic->{ topics_id }, $search_word )->flat();
+select distinct m.media_id 
+    from media m 
+        join stories s using ( media_id ) 
+        join topic_stories ts using ( stories_id )
+        join story_sentences ss using ( stories_id )
+    where
+        ss.sentence ~* ('[[:<:]]'|| \$2 ||'[[:>:]]') and
+        ts.topics_id = \$1
+    order by media_id
+SQL
+
+    ok( scalar( @{ $expected_media_ids } ) > 0, "media list q search found media ids" );
+
+    my $r = test_get( "/api/v2/topics/$topic->{ topics_id }/media/list", { q => $search_word } );
+
+    my $got_media = $r->{ media };
+    my $got_media_ids = [ sort { $a <=> $b } map { $_->{ media_id } } @{ $got_media } ];
+
+    is_deeply( $expected_media_ids, $got_media_ids, 'media/list q search' );
+}
+
 sub test_topics_api
 {
     my $db = shift;
@@ -567,15 +695,18 @@ sub test_topics_api
 
     create_test_data( $db, $topic_media );
     test_story_list_count();
+    test_story_list_paging( $db );
     test_default_sort( $stories );
     test_media_list( $stories );
+    test_media_search( $db );
     test_stories_facebook( $db );
 
     test_topics( $db );
     test_snapshots( $db );
 
     test_stories_count( $db );
-
+    test_stories_links( $db );
+    test_media_links( $db );
 }
 
 sub main

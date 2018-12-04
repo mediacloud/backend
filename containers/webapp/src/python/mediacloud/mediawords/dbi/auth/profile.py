@@ -5,10 +5,13 @@ from mediawords.dbi.auth.change_password import change_password
 from mediawords.dbi.auth.info import user_info
 from mediawords.dbi.auth.password import generate_secure_hash
 from mediawords.dbi.auth.user import CurrentUser, ModifyUser
+from mediawords.util.log import create_logger
 from mediawords.util.mail import send_email
 from mediawords.util.mail_message.templates import AuthAPIKeyResetMessage
 from mediawords.util.perl import decode_object_from_bytes_if_needed
 from mediawords.util.text import random_string
+
+log = create_logger(__name__)
 
 
 class McAuthProfileException(Exception):
@@ -47,7 +50,7 @@ def update_user(db: DatabaseHandler, user_updates: ModifyUser) -> None:
     # Check if user exists
     try:
         user = user_info(db=db, email=user_updates.email())
-    except Exception as _:
+    except Exception:
         raise McAuthProfileException('User with email address "%s" does not exist.' % user_updates.email())
 
     db.begin()
@@ -141,7 +144,7 @@ def delete_user(db: DatabaseHandler, email: str) -> None:
     # Check if user exists
     try:
         user_info(db=db, email=email)
-    except Exception as _:
+    except Exception:
         raise McAuthProfileException("User with email address '%s' does not exist." % email)
 
     # Delete the user (PostgreSQL's relation will take care of 'auth_users_roles_map')
@@ -162,7 +165,7 @@ def regenerate_api_key(db: DatabaseHandler, email: str) -> None:
     # Check if user exists
     try:
         user = user_info(db=db, email=email)
-    except Exception as _:
+    except Exception:
         raise McAuthProfileException("User with email address '%s' does not exist." % email)
 
     db.begin()

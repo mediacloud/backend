@@ -4,19 +4,15 @@
 
 FROM mediacloud-base:latest
 
-# Install Python
 RUN \
+    add-apt-repository ppa:deadsnakes/ppa && \
+    apt-get update && \
     apt-get -y --no-install-recommends install \
         build-essential \
-        python3 \
-        python3-dev \
-        python3-pip \
-        python3-setuptools \
+        python3.7 \
+        python3.7-dev \
     && \
-    true
-
-# Upgrade Pip
-RUN \
-    pip3 install --upgrade pip && \
+    curl https://bootstrap.pypa.io/get-pip.py | sudo -H python3.7 && \
     rm -rf /root/.cache/ && \
     true
+

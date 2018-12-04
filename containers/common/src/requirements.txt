@@ -1,62 +1,71 @@
+# Saner date / time management
+arrow==0.12.1
+
 # Amazon S3
-boto3==1.4.7
+boto3==1.9.5
 
 # HTML parsing and stripping
-beautifulsoup4==4.6.0
+beautifulsoup4==4.6.3
 
 # Job broker
-Celery==4.1.1
+Celery==4.2.1
 
 # Language identification
 cld2-cffi==0.1.4
 
-# Unit test coverage
-coverage==4.4.2
+# Colorful sentence diffs in unit tests
+colorama==0.3.9
 
-# some modules require latest version of this
-cryptography==2.2.2
+# Unit test coverage
+coverage==4.5.1
+
+# Some modules require latest version of this
+cryptography==2.3.1
 
 # Hindi stemming
-CyHunspell==1.2.1
+CyHunspell==1.3.0
 
 # Stemming Hausa words
 hausastemmer==1.0
 
 # Code conventions
-flake8==3.5.0
+-e git+https://github.com/PyCQA/flake8.git@9631dac52aa6ed8a3de9d0983c3c7b0267ae7d6d#egg=flake8
 
 # URL manipulation
-furl==1.0.1
+furl==1.2.1
+
+# Chinese language tokenizer, stemmer, etc.
+jieba==0.39
 
 # Parsing email templates
-Jinja2==2.9.6
+Jinja2==2.10
 
 # XML manipulations, HTML parsing
-lxml==4.1.0
+lxml==4.2.5
 
 # Japanese language tokenizer, stemmer, etc.
 mecab-python3==0.7
 
 # Natural language processing, e.g. tokenization
-nltk==3.2.4
+nltk==3.3
 
-# PostgreSQL
-psycopg2==2.7.3
+# PostgreSQL access
+psycopg2-binary==2.7.5
 
 # Snowball stemmer (NLTK's implementation doesn't support Turkish)
 PyStemmer==1.3.0
 
 # Unit tests
-pytest==3.2.2
+pytest==3.8.0
 
 # Test coverage
-pytest-cov==2.5.1
+pytest-cov==2.6.0
 
 # Date parsing
-python-dateutil==2.6.1
+python-dateutil==2.7.3
 
 # Making HTTP requests
-requests==2.18.4
+requests==2.20.0
 
 # Asynchronous (parallell / concurrent) HTTP requests
 requests-futures==0.9.7
@@ -68,4 +77,4 @@ sentence_splitter==1.2
 url_normalize==1.3.3
 
 # Low level HTTP requests (with SSL certificate verification)
-urllib3[secure]==1.22
+urllib3[secure]==1.23

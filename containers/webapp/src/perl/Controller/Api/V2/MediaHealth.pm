@@ -9,6 +9,8 @@ use List::Util qw(first max maxstr min minstr reduce shuffle sum);
 use Moose;
 use namespace::autoclean;
 
+use MediaWords::Util::ParseJSON;
+
 =head1 NAME
 
 MediaWords::Controller::MediaHealth - Catalyst Controller
@@ -73,14 +75,14 @@ SQL
         qw/num_stories num_stories_y num_stories_w num_stories_90 num_sentences num_sentences_y num_sentences_w/,
         qw/num_sentences_y num_sentences_90 expected_sentences expected_stories/
     ];
-    MediaWords::Util::JSON::numify_fields( $media_health, $mh_numify_fields );
+    MediaWords::Util::ParseJSON::numify_fields( $media_health, $mh_numify_fields );
 
     my $gaps = $db->query( <<SQL )->hashes;
 select mcg.* from media_coverage_gaps mcg join $ids_table ids on ( mcg.media_id = ids.id ) order by mcg.stat_week
 SQL
 
     my $gap_numify_fields = [ qw/num_stories expected_stories num_sentences expected_sentences/ ];
-    MediaWords::Util::JSON::numify_fields( $gaps, $gap_numify_fields );
+    MediaWords::Util::ParseJSON::numify_fields( $gaps, $gap_numify_fields );
 
     my $gaps_lookup = {};
     map { my $mid = $_->{ media_id }; push( @{ $gaps_lookup->{ $mid } }, $_ ) } @{ $gaps };

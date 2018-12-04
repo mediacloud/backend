@@ -30,10 +30,8 @@ from mediawords.util.text import random_string
 log = create_logger(__name__)
 
 # Set to the module in addition to connection so that adapt() returns what it should
-# noinspection PyUnresolvedReferences
-psycopg2.extensions.register_type(psycopg2.extensions.UNICODE)
-# noinspection PyUnresolvedReferences
-psycopg2.extensions.register_type(psycopg2.extensions.UNICODEARRAY)
+psycopg2.extensions.register_type(psycopg2.extensions.UNICODE, None)
+psycopg2.extensions.register_type(psycopg2.extensions.UNICODEARRAY, None)
 
 
 class DatabaseHandler(object):
@@ -42,24 +40,33 @@ class DatabaseHandler(object):
     # Min. "deadlock_timeout" to not cause problems under load (in seconds)
     __MIN_DEADLOCK_TIMEOUT = 5
 
-    # cache of table primary key columns ([schema][table])
-    __primary_key_columns = {}
-
-    # PIDs for which the schema version has been checked
-    __schema_version_check_pids = {}
-
-    # Whether or not to print PostgreSQL warnings
-    __print_warnings = True
-
     # "Double percentage sign" marker (see handler's quote() for explanation)
-    __double_percentage_sign_marker = "<DOUBLE PERCENTAGE SIGN: " + random_string(length=16) + ">"
+    __DOUBLE_PERCENTAGE_SIGN_MARKER = "<DOUBLE PERCENTAGE SIGN: " + random_string(length=16) + ">"
 
-    # Debugging variable to test whether we're in a transaction
-    __in_manual_transaction = False
+    # Whether or not "deadlock_timeout" was checked
+    # * lowercase because it's not a constant
+    # * class variable because we don't need to do it on every connect_to_db())
+    __deadlock_timeout_checked = False
 
-    # Pyscopg2 instance and cursor
-    __conn = None
-    __db = None
+    __slots__ = [
+
+        # Cache of table primary key columns ([schema][table])
+        '__primary_key_columns',
+
+        # PIDs for which the schema version has been checked
+        '__schema_version_check_pids',
+
+        # Whether or not to print PostgreSQL warnings
+        '__print_warnings',
+
+        # Debugging variable to test whether we're in a transaction
+        '__in_manual_transaction',
+
+        # Pyscopg2 instance and cursor
+        '__conn',
+        '__db',
+
+    ]
 
     def __init__(self,
                  host: str,
@@ -76,6 +83,13 @@ class DatabaseHandler(object):
         username = decode_object_from_bytes_if_needed(username)
         password = decode_object_from_bytes_if_needed(password)
         database = decode_object_from_bytes_if_needed(database)
+
+        self.__primary_key_columns = {}
+        self.__schema_version_check_pids = {}
+        self.__print_warnings = True
+        self.__in_manual_transaction = False
+        self.__conn = None
+        self.__db = None
 
         self.__connect(
             host=host,
@@ -148,14 +162,20 @@ class DatabaseHandler(object):
         self.__schema_version_check_pids[pid] = True
 
         # Check deadlock_timeout
-        (deadlock_timeout,) = self.query("SHOW deadlock_timeout").flat()
-        deadlock_timeout = re.sub(r'\s*s$', '', deadlock_timeout, re.I)
-        deadlock_timeout = int(deadlock_timeout)
-        if deadlock_timeout == 0:
-            raise McConnectException("'deadlock_timeout' is 0, probably unable to read it")
-        if deadlock_timeout < self.__MIN_DEADLOCK_TIMEOUT:
-            log.warning('"deadlock_timeout" is less than "%ds", expect deadlocks on high extractor load' %
-                        self.__MIN_DEADLOCK_TIMEOUT)
+        if not DatabaseHandler.__deadlock_timeout_checked:
+            (deadlock_timeout,) = self.query("SHOW deadlock_timeout").flat()
+            deadlock_timeout = re.sub(r'\s*s$', '', deadlock_timeout, re.I)
+            deadlock_timeout = int(deadlock_timeout)
+            if deadlock_timeout == 0:
+                raise McConnectException("'deadlock_timeout' is 0, probably unable to read it")
+            if deadlock_timeout < DatabaseHandler.__MIN_DEADLOCK_TIMEOUT:
+                log.warning(
+                    '"deadlock_timeout" is less than "{}", expect deadlocks on high extractor load.'.format(
+                        DatabaseHandler.__MIN_DEADLOCK_TIMEOUT
+                    )
+                )
+
+            DatabaseHandler.__deadlock_timeout_checked = True
 
     def disconnect(self) -> None:
         """Disconnect from the database."""
@@ -169,7 +189,8 @@ class DatabaseHandler(object):
     def dbh(self) -> None:
         raise McDatabaseHandlerException("Please don't use internal database handler directly")
 
-    def __should_continue_with_outdated_schema(self, current_schema_version: int, target_schema_version: int) -> bool:
+    @staticmethod
+    def __should_continue_with_outdated_schema(current_schema_version: int, target_schema_version: int) -> bool:
         """Schema is outdated / too new; returns 1 if MC should continue nevertheless, 0 otherwise"""
 
         config_ignore_schema_version = mediawords.util.config.ignore_schema_version()
@@ -210,10 +231,7 @@ class DatabaseHandler(object):
 
         # Check if the database is empty
         db_vars_table_exists = len(self.query("""
-            -- noinspection SqlResolve
-            SELECT *
-            FROM information_schema.tables
-            WHERE table_name = 'database_variables'
+            select 1 from pg_tables where tablename = 'database_variables' and schemaname = 'public'
         """).flat()) > 0
         if not db_vars_table_exists:
             log.info(
@@ -239,7 +257,7 @@ class DatabaseHandler(object):
 
         # Check if the current schema is up-to-date
         if current_schema_version != target_schema_version:
-            return self.__should_continue_with_outdated_schema(current_schema_version, target_schema_version)
+            return DatabaseHandler.__should_continue_with_outdated_schema(current_schema_version, target_schema_version)
         else:
             # Things are fine at this point.
             return True
@@ -273,7 +291,7 @@ class DatabaseHandler(object):
 
         return DatabaseResult(cursor=self.__db,
                               query_args=query_params,
-                              double_percentage_sign_marker=self.__double_percentage_sign_marker,
+                              double_percentage_sign_marker=DatabaseHandler.__DOUBLE_PERCENTAGE_SIGN_MARKER,
                               print_warnings=self.__print_warnings)
 
     def __get_current_work_mem(self) -> str:
@@ -332,61 +350,87 @@ class DatabaseHandler(object):
         if exception is not None:
             raise exception  # pass further
 
-    def primary_key_column(self, table: str) -> str:
-        """Get the primary key column for the table."""
+    def primary_key_column(self, object_name: str) -> str:
+        """Get the primary key column for a table or a view."""
 
-        table = decode_object_from_bytes_if_needed(table)
+        object_name = decode_object_from_bytes_if_needed(object_name)
 
-        if '.' in table:
-            schema, table = table.split('.', maxsplit=1)
+        if '.' in object_name:
+            schema_name, object_name = object_name.split('.', maxsplit=1)
         else:
-            schema = 'public'
+            schema_name = 'public'
 
-        if schema not in self.__primary_key_columns:
-            self.__primary_key_columns[schema] = {}
+        if schema_name not in self.__primary_key_columns:
+            self.__primary_key_columns[schema_name] = {}
 
-        if table not in self.__primary_key_columns[schema]:
+        if object_name not in self.__primary_key_columns[schema_name]:
 
-            if table.lower() == 'story_sentences':
-                # FIXME temporary exception for a intermediary "story_sentences" view while the actual underlying table
-                # is being partitioned
-                return 'story_sentences_id'
+            # noinspection SpellCheckingInspection,SqlResolve
+            columns = self.query("""
+                SELECT
+                    n.nspname AS schema_name,
+                    c.relname AS object_name,
+                    c.relkind AS object_type,
+                    a.attname AS column_name,
+                    i.indisprimary AS is_primary_index
 
-            # noinspection SqlResolve,SqlCheckUsingColumns
-            primary_key_column = self.query("""
-                SELECT column_name
-                FROM information_schema.table_constraints
-                     JOIN information_schema.key_column_usage
-                         USING (constraint_catalog, constraint_schema, constraint_name,
-                                table_catalog, table_schema, table_name)
-                WHERE constraint_type = 'PRIMARY KEY'
-                  AND table_schema = %(table_schema)s
-                  AND table_name = %(table_name)s
-                ORDER BY ordinal_position
+                FROM pg_namespace AS n
+                    INNER JOIN pg_class AS c
+                        ON n.oid = c.relnamespace
+                    INNER JOIN pg_attribute AS a
+                        ON a.attrelid = c.oid
+                        AND NOT a.attisdropped
+
+                    -- Object might be a view, so LEFT JOIN
+                    LEFT JOIN pg_index AS i
+                        ON c.oid = i.indrelid
+                        AND a.attnum = ANY(i.indkey)
+
+                WHERE
+
+                  -- No xid, cid, ...
+                  a.attnum > 0
+
+                  -- Live column
+                  AND NOT attisdropped
+
+                  AND n.nspname = %(schema_name)s
+                  AND c.relname = %(object_name)s
             """, {
-                'table_schema': schema,
-                'table_name': table,
-            }).flat()
-            if primary_key_column is None or len(primary_key_column) == 0:
+                'schema_name': schema_name,
+                'object_name': object_name,
+            }).hashes()
+            if not columns:
                 raise McPrimaryKeyColumnException(
-                    "Primary key for schema '%s', table '%s' was not found" % (schema, table,)
+                    "Object '{}' in schema '{} was not found.".format(schema_name, object_name)
                 )
 
-            if len(primary_key_column) > 1:
+            primary_key_column = None
+
+            for column in columns:
+
+                column_name = column['column_name']
+
+                if column['object_type'] == 'r':
+                    # Table
+                    if column['is_primary_index']:
+                        primary_key_column = column_name
+                        break
+
+                elif column['object_type'] in ['v', 'm']:
+                    # (Materialized) view
+                    if column['column_name'] == 'id' or column['column_name'] == '{}_id'.format(object_name):
+                        primary_key_column = column_name
+                        break
+
+            if not primary_key_column:
                 raise McPrimaryKeyColumnException(
-                    (
-                        "Multiple primary key column were found for schema '%(schema)s', "
-                        "table '%(table)s': %(primary_key_columns)s"
-                    ) % {
-                        'schema': schema,
-                        'table': table,
-                        'primary_key_columns': str(primary_key_column)
-                    })
-            primary_key_column = primary_key_column[0]
+                    "Primary key for schema '%s', object '%s' was not found" % (schema_name, object_name,)
+                )
 
-            self.__primary_key_columns[schema][table] = primary_key_column
+            self.__primary_key_columns[schema_name][object_name] = primary_key_column
 
-        return self.__primary_key_columns[schema][table]
+        return self.__primary_key_columns[schema_name][object_name]
 
     def find_by_id(self, table: str, object_id: int) -> Union[Dict[str, Any], None]:
         """Do an ID lookup on the table and return a single row match if found."""
@@ -617,6 +661,8 @@ class DatabaseHandler(object):
         """Select a single row from the database matching the hash or insert a row with the hash values and return the
         inserted row as a hash."""
 
+        # FIXME probably do this in a serialized transaction?
+
         table = decode_object_from_bytes_if_needed(table)
         insert_hash = decode_object_from_bytes_if_needed(insert_hash)
 
@@ -698,6 +744,7 @@ class DatabaseHandler(object):
             self.query('ROLLBACK')
             self.__set_in_transaction(False)
 
+    # noinspection PyMethodMayBeStatic
     def quote(self, value: Union[bool, int, float, str, None]) -> str:
         """Quote a string for being passed as a literal in a query.
 
@@ -739,7 +786,7 @@ class DatabaseHandler(object):
 
         # Replace percentage signs with a randomly generated marker that will be replaced back into '%%' when executing
         # the query.
-        quoted_value = quoted_value.replace('%', self.__double_percentage_sign_marker)
+        quoted_value = quoted_value.replace('%', DatabaseHandler.__DOUBLE_PERCENTAGE_SIGN_MARKER)
 
         return quoted_value
 
@@ -821,7 +868,7 @@ class DatabaseHandler(object):
 
         copy = self.copy_from("COPY %s (id) FROM STDIN" % table_name)
         for single_id in ids:
-            copy.put_line("%d\n" % single_id)
+            copy.put_line("%d\n" % int(single_id))
         copy.end()
 
         self.query("ANALYZE %s" % table_name)
@@ -914,4 +961,4 @@ class DatabaseHandler(object):
                              query=query,
                              page=page,
                              rows_per_page=rows_per_page,
-                             double_percentage_sign_marker=self.__double_percentage_sign_marker)
+                             double_percentage_sign_marker=DatabaseHandler.__DOUBLE_PERCENTAGE_SIGN_MARKER)

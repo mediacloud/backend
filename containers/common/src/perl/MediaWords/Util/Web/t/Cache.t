@@ -10,7 +10,7 @@ use MediaWords::Util::Web::Cache;
 
 BEGIN
 {
-    use_ok( 'MediaWords::Test::HTTP::HashServer' );
+    use_ok( 'MediaWords::Test::HashServer' );
     use_ok( 'MediaWords::Util::Web::Cache' );
 }
 
@@ -27,7 +27,7 @@ sub main
         $pages->{ "/127-redirect-$i" } = { page_num => $i, redirect => "http://localhost:$_port/page-$i" };
     }
 
-    my $hs = MediaWords::Test::HTTP::HashServer->new( $_port, $pages );
+    my $hs = MediaWords::Test::HashServer->new( $_port, $pages );
 
     ok( $hs, 'hashserver object returned' );
 

@@ -87,27 +87,29 @@ sub add_date_is_reliable_to_stories
       [ qw/guess_by_og_article_published_time guess_by_url guess_by_url_and_date_text merged_story_rss manual/ ];
     my $quoted_reliable_methods_list = join( ',', map { $db->quote( $_ ) } @{ $reliable_methods } );
 
-    my $reliable_stories_ids = $db->query( <<SQL )->flat;
-with date_tags as (
+    $db->query( <<SQL );
+create temporary table _date_tags as
     select t.*, ts.name tag_set_name
         from tags t
             join tag_sets ts on ( t.tag_sets_id = ts.tag_sets_id )
             where ts.name in ( 'date_guess_method', 'date_invalid' )
-),
+SQL
 
-story_date_tags as (
+    $db->query( <<SQL );
+create temporary table _story_date_tags as
     select stories_id, t.tag, t.tag_set_name
         from stories_tags_map stm
-            left join date_tags t on ( t.tags_id = stm.tags_id )
+            left join _date_tags t on ( t.tags_id = stm.tags_id )
         where stm.stories_id in ( select id from $ids_table )
-)
+SQL
 
+    my $reliable_stories_ids = $db->query( <<SQL )->flat;
 select id stories_id
     from $ids_table ids
     where
         exists (
             select 1
-                from story_date_tags d
+                from _story_date_tags d
                 where
                     d.stories_id = ids.id and
                     d.tag in ( $quoted_reliable_methods_list )
@@ -115,14 +117,14 @@ select id stories_id
         (
             exists (
                 select 1
-                    from story_date_tags d
+                    from _story_date_tags d
                     where
                         d.stories_id = ids.id and
                         d.tag = 'undateable'
             ) and
             not exists (
                 select 1
-                    from story_date_tags d
+                    from _story_date_tags d
                     where
                         d.stories_id = ids.id and
                         d.tag_set_name = 'date_guess_method'

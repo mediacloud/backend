@@ -88,7 +88,7 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use Array::Compare;
-use MediaWords::Util::JSON;
+use MediaWords::Util::ParseJSON;
 
 my Readonly $ACTIVITIES_SUBQUERY_OBJECT_ID_PLACEHOLDER = '##OBJECT_ID##';
 
@@ -222,10 +222,8 @@ Readonly::Hash my %ACTIVITIES => {
             references  => 'topics.topics_id'
         },
         parameters => {
-            'topic_name' => {
-                description =>
-                  'Topic name that was passed as an argument to the "search_and_tag_topic_stories.pl" script'
-            }
+            'topic_name' =>
+              { description => 'Topic name that was passed as an argument to the "search_and_tag_topic_stories.pl" script' }
         }
     },
 
@@ -542,7 +540,7 @@ sub encode_activity_description($$)
           join( ' ', @actual_parameters );
     }
 
-    my $description_json = MediaWords::Util::JSON::encode_json( $description_hash );
+    my $description_json = MediaWords::Util::ParseJSON::encode_json( $description_hash );
     unless ( $description_json )
     {
         die "Unable to encode activity description to JSON: $!";
@@ -578,7 +576,7 @@ sub decode_activity_description($$)
 {
     my ( $activity_name, $description_json ) = @_;
 
-    my $description_hash = MediaWords::Util::JSON::decode_json( $description_json );
+    my $description_hash = MediaWords::Util::ParseJSON::decode_json( $description_json );
     unless ( $description_hash )
     {
         die "Unable to decode activity description from JSON: $!";

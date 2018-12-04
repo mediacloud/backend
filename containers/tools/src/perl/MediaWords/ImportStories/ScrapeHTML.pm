@@ -27,7 +27,6 @@ use List::Util;
 use List::MoreUtils;
 
 use MediaWords::Util::Config;
-use MediaWords::Util::HTML;
 use MediaWords::Util::URL;
 use MediaWords::Util::Web;
 

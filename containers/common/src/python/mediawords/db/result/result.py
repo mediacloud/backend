@@ -61,7 +61,7 @@ class DatabaseResult(object):
             query = query_args[0]
 
             # Duplicate '%' everywhere except for psycopg2 parameter placeholders ('%s' and '%(...)s')
-            query = re.sub('%(?!(s|\(.*?\)s?))', '%%', query)
+            query = re.sub(r'%(?!(s|\(.*?\)s?))', '%%', query)
 
             # Replace percentage signs coming from quote()d strings with double percentage signs
             query = query.replace(double_percentage_sign_marker, '%%')

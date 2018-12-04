@@ -1,0 +1,11 @@
+#
+# Fetch sitemap pages worker
+#
+
+FROM mediacloud-common:latest
+
+# Copy Python sources
+COPY src/python/ /usr/lib/python3/dist-packages/
+
+# FIXME
+CMD ["bash", "-c", "while true; do echo sitemap-fetch-media-pages...; sleep 1; done"]

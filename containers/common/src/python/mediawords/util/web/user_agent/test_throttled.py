@@ -3,7 +3,7 @@
 import time
 
 from mediawords.test.test_database import TestDatabaseWithSchemaTestCase
-from mediawords.test.http.hash_server import HashServer
+from mediawords.test.hash_server import HashServer
 from mediawords.util.web.user_agent.throttled import ThrottledUserAgent
 from mediawords.util.web.user_agent.throttled import McThrottledDomainException
 import mediawords.util.web.user_agent.throttled

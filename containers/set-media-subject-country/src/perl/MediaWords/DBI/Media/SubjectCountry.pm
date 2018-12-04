@@ -15,6 +15,7 @@ use MediaWords::CommonLibs;
 use Readonly;
 
 use MediaWords::DBI::Media;
+use MediaWords::Util::Tags;
 
 # name of tag set that includes the story geotags
 Readonly our $GEOTAG_TAG_SET_NAME => 'mc-geocoder@media.mit.edu';

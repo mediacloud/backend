@@ -24,7 +24,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4687;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4695;
 BEGIN
 
     -- Update / set database schema version
@@ -424,6 +424,125 @@ insert into color_sets ( color, color_set, id ) values ( 'c10032', 'partisan_cod
 insert into color_sets ( color, color_set, id ) values ( '00519b', 'partisan_code', 'partisan_2012_liberal' );
 insert into color_sets ( color, color_set, id ) values ( '009543', 'partisan_code', 'partisan_2012_libertarian' );
 
+
+--
+-- Partitioning tools
+--
+
+-- Return partition size for every table that is partitioned by "stories_id"
+CREATE OR REPLACE FUNCTION partition_by_stories_id_chunk_size()
+RETURNS BIGINT AS $$
+BEGIN
+    RETURN 100 * 1000 * 1000;   -- 100m stories in each partition
+END; $$
+LANGUAGE plpgsql IMMUTABLE;
+
+
+-- Return partition table name for a given base table name and "stories_id"
+CREATE OR REPLACE FUNCTION partition_by_stories_id_partition_name(base_table_name TEXT, stories_id INT)
+RETURNS TEXT AS $$
+DECLARE
+
+    -- Up to 100 partitions, suffixed as "_00", "_01" ..., "_99"
+    -- (having more of them is not feasible)
+    to_char_format CONSTANT TEXT := '00';
+
+    -- Partition table name (e.g. "stories_tags_map_01")
+    table_name TEXT;
+
+    stories_id_chunk_number INT;
+
+BEGIN
+    SELECT stories_id / partition_by_stories_id_chunk_size() INTO stories_id_chunk_number;
+
+    SELECT base_table_name || '_' || TRIM(leading ' ' FROM TO_CHAR(stories_id_chunk_number, to_char_format))
+        INTO table_name;
+
+    RETURN table_name;
+END;
+$$
+LANGUAGE plpgsql IMMUTABLE;
+
+
+-- Create missing partitions for tables partitioned by "stories_id", returning
+-- a list of created partition tables
+CREATE OR REPLACE FUNCTION partition_by_stories_id_create_partitions(base_table_name TEXT)
+RETURNS SETOF TEXT AS
+$$
+DECLARE
+    chunk_size INT;
+    max_stories_id INT;
+    partition_stories_id INT;
+
+    -- Partition table name (e.g. "stories_tags_map_01")
+    target_table_name TEXT;
+
+    -- Partition table owner (e.g. "mediaclouduser")
+    target_table_owner TEXT;
+
+    -- "stories_id" chunk lower limit, inclusive (e.g. 30,000,000)
+    stories_id_start BIGINT;
+
+    -- stories_id chunk upper limit, exclusive (e.g. 31,000,000)
+    stories_id_end BIGINT;
+BEGIN
+
+    SELECT partition_by_stories_id_chunk_size() INTO chunk_size;
+
+    -- Create +1 partition for future insertions
+    SELECT COALESCE(MAX(stories_id), 0) + chunk_size FROM stories INTO max_stories_id;
+
+    FOR partition_stories_id IN 1..max_stories_id BY chunk_size LOOP
+        SELECT partition_by_stories_id_partition_name( base_table_name, partition_stories_id ) INTO target_table_name;
+        IF table_exists(target_table_name) THEN
+            RAISE NOTICE 'Partition "%" for story ID % already exists.', target_table_name, partition_stories_id;
+        ELSE
+            RAISE NOTICE 'Creating partition "%" for story ID %', target_table_name, partition_stories_id;
+
+            SELECT (partition_stories_id / chunk_size) * chunk_size INTO stories_id_start;
+            SELECT ((partition_stories_id / chunk_size) + 1) * chunk_size INTO stories_id_end;
+
+            EXECUTE '
+                CREATE TABLE ' || target_table_name || ' (
+
+                    PRIMARY KEY (' || base_table_name || '_id),
+
+                    -- Partition by stories_id
+                    CONSTRAINT ' || REPLACE(target_table_name, '.', '_') || '_stories_id CHECK (
+                        stories_id >= ''' || stories_id_start || '''
+                    AND stories_id <  ''' || stories_id_end   || '''),
+
+                    -- Foreign key to stories.stories_id
+                    CONSTRAINT ' || REPLACE(target_table_name, '.', '_') || '_stories_id_fkey
+                        FOREIGN KEY (stories_id) REFERENCES stories (stories_id) MATCH FULL ON DELETE CASCADE
+
+                ) INHERITS (' || base_table_name || ');
+            ';
+
+            -- Update owner
+            SELECT u.usename AS owner
+            FROM information_schema.tables AS t
+                JOIN pg_catalog.pg_class AS c ON t.table_name = c.relname
+                JOIN pg_catalog.pg_user AS u ON c.relowner = u.usesysid
+            WHERE t.table_name = base_table_name
+              AND t.table_schema = 'public'
+            INTO target_table_owner;
+
+            EXECUTE 'ALTER TABLE ' || target_table_name || ' OWNER TO ' || target_table_owner || ';';
+
+            -- Add created partition name to the list of returned partition names
+            RETURN NEXT target_table_name;
+
+        END IF;
+    END LOOP;
+
+    RETURN;
+
+END;
+$$
+LANGUAGE plpgsql;
+
+
 create table stories (
     stories_id                  serial          primary key,
     media_id                    int             not null references media on delete cascade,
@@ -602,133 +721,142 @@ ALTER TABLE raw_downloads
     ALTER COLUMN raw_data SET STORAGE EXTERNAL;
 
 
-create table feeds_stories_map
- (
-    feeds_stories_map_id    serial  primary key,
-    feeds_id                int        not null references feeds on delete cascade,
-    stories_id                int        not null references stories on delete cascade
+--
+-- Feed -> story map
+--
+
+-- "Master" table (no indexes, no foreign keys as they'll be ineffective)
+CREATE TABLE feeds_stories_map_partitioned (
+
+    -- PRIMARY KEY on master table needed for database handler's primary_key_column() method to work
+    feeds_stories_map_partitioned_id    BIGSERIAL   PRIMARY KEY NOT NULL,
+
+    feeds_id                            INT         NOT NULL,
+    stories_id                          INT         NOT NULL
 );
 
-create unique index feeds_stories_map_feed on feeds_stories_map (feeds_id, stories_id);
-create index feeds_stories_map_story on feeds_stories_map (stories_id);
-
-
---
--- Partitioning tools
---
-
--- Return partition size for every table that is partitioned by "stories_id"
-CREATE OR REPLACE FUNCTION stories_partition_chunk_size()
-RETURNS BIGINT AS $$
-BEGIN
-    RETURN 100 * 1000 * 1000;   -- 100m stories in each partition
-END; $$
-LANGUAGE plpgsql IMMUTABLE;
-
-
--- Return partition table name for a given base table name and "stories_id"
-CREATE OR REPLACE FUNCTION stories_partition_name(base_table_name TEXT, stories_id INT)
-RETURNS TEXT AS $$
+-- Note: "INSERT ... RETURNING *" doesn't work with the trigger, please use
+-- "feeds_stories_map" view instead
+CREATE OR REPLACE FUNCTION feeds_stories_map_partitioned_insert_trigger()
+RETURNS TRIGGER AS $$
 DECLARE
-
-    -- Up to 100 partitions, suffixed as "_00", "_01" ..., "_99"
-    -- (having more of them is not feasible)
-    to_char_format CONSTANT TEXT := '00';
-
-    -- Partition table name (e.g. "stories_tags_map_01")
-    table_name TEXT;
-
-    stories_id_chunk_number INT;
-
+    target_table_name TEXT;       -- partition table name (e.g. "feeds_stories_map_01")
 BEGIN
-    SELECT stories_id / stories_partition_chunk_size() INTO stories_id_chunk_number;
-
-    SELECT base_table_name || '_' || TRIM(leading ' ' FROM TO_CHAR(stories_id_chunk_number, to_char_format))
-        INTO table_name;
-
-    RETURN table_name;
+    SELECT partition_by_stories_id_partition_name('feeds_stories_map_partitioned', NEW.stories_id ) INTO target_table_name;
+    EXECUTE '
+        INSERT INTO ' || target_table_name || '
+            SELECT $1.*
+        ' USING NEW;
+    RETURN NULL;
 END;
 $$
-LANGUAGE plpgsql IMMUTABLE;
+LANGUAGE plpgsql;
+
+CREATE TRIGGER feeds_stories_map_partitioned_insert_trigger
+    BEFORE INSERT ON feeds_stories_map_partitioned
+    FOR EACH ROW EXECUTE PROCEDURE feeds_stories_map_partitioned_insert_trigger();
 
 
--- Create missing partitions for tables partitioned by "stories_id", returning
--- a list of created partition tables
-CREATE OR REPLACE FUNCTION stories_create_partitions(base_table_name TEXT)
-RETURNS SETOF TEXT AS
+-- Create missing "feeds_stories_map_partitioned" partitions
+CREATE OR REPLACE FUNCTION feeds_stories_map_create_partitions()
+RETURNS VOID AS
 $$
 DECLARE
-    chunk_size INT;
-    max_stories_id INT;
-    partition_stories_id INT;
-
-    -- Partition table name (e.g. "stories_tags_map_01")
-    target_table_name TEXT;
-
-    -- Partition table owner (e.g. "mediaclouduser")
-    target_table_owner TEXT;
-
-    -- "stories_id" chunk lower limit, inclusive (e.g. 30,000,000)
-    stories_id_start BIGINT;
-
-    -- stories_id chunk upper limit, exclusive (e.g. 31,000,000)
-    stories_id_end BIGINT;
+    created_partitions TEXT[];
+    partition TEXT;
 BEGIN
 
-    SELECT stories_partition_chunk_size() INTO chunk_size;
+    created_partitions := ARRAY(SELECT partition_by_stories_id_create_partitions('feeds_stories_map_partitioned'));
 
-    -- Create +1 partition for future insertions
-    SELECT COALESCE(MAX(stories_id), 0) + chunk_size FROM stories INTO max_stories_id;
+    FOREACH partition IN ARRAY created_partitions LOOP
 
-    FOR partition_stories_id IN 1..max_stories_id BY chunk_size LOOP
-        SELECT stories_partition_name( base_table_name, partition_stories_id ) INTO target_table_name;
-        IF table_exists(target_table_name) THEN
-            RAISE NOTICE 'Partition "%" for story ID % already exists.', target_table_name, partition_stories_id;
-        ELSE
-            RAISE NOTICE 'Creating partition "%" for story ID %', target_table_name, partition_stories_id;
+        RAISE NOTICE 'Altering created partition "%"...', partition;
+        
+        EXECUTE '
+            ALTER TABLE ' || partition || '
+                ADD CONSTRAINT ' || REPLACE(partition, '.', '_') || '_feeds_id_fkey
+                FOREIGN KEY (feeds_id) REFERENCES feeds (feeds_id) MATCH FULL ON DELETE CASCADE;
 
-            SELECT (partition_stories_id / chunk_size) * chunk_size INTO stories_id_start;
-            SELECT ((partition_stories_id / chunk_size) + 1) * chunk_size INTO stories_id_end;
+            CREATE UNIQUE INDEX ' || partition || '_feeds_id_stories_id
+                ON ' || partition || ' (feeds_id, stories_id);
 
-            EXECUTE '
-                CREATE TABLE ' || target_table_name || ' (
+            CREATE INDEX ' || partition || '_stories_id
+                ON ' || partition || ' (stories_id);
+        ';
 
-                    PRIMARY KEY (' || base_table_name || '_id),
-
-                    -- Partition by stories_id
-                    CONSTRAINT ' || REPLACE(target_table_name, '.', '_') || '_stories_id CHECK (
-                        stories_id >= ''' || stories_id_start || '''
-                    AND stories_id <  ''' || stories_id_end   || '''),
-
-                    -- Foreign key to stories.stories_id
-                    CONSTRAINT ' || REPLACE(target_table_name, '.', '_') || '_stories_id_fkey
-                        FOREIGN KEY (stories_id) REFERENCES stories (stories_id) MATCH FULL ON DELETE CASCADE
-
-                ) INHERITS (' || base_table_name || ');
-            ';
-
-            -- Update owner
-            SELECT u.usename AS owner
-            FROM information_schema.tables AS t
-                JOIN pg_catalog.pg_class AS c ON t.table_name = c.relname
-                JOIN pg_catalog.pg_user AS u ON c.relowner = u.usesysid
-            WHERE t.table_name = base_table_name
-              AND t.table_schema = 'public'
-            INTO target_table_owner;
-
-            EXECUTE 'ALTER TABLE ' || target_table_name || ' OWNER TO ' || target_table_owner || ';';
-
-            -- Add created partition name to the list of returned partition names
-            RETURN NEXT target_table_name;
-
-        END IF;
     END LOOP;
-
-    RETURN;
 
 END;
 $$
 LANGUAGE plpgsql;
+
+-- Create initial "feeds_stories_map_partitioned" partitions for empty database
+SELECT feeds_stories_map_create_partitions();
+
+
+-- Proxy view to "feeds_stories_map_partitioned" to make RETURNING work
+CREATE OR REPLACE VIEW feeds_stories_map AS
+
+    SELECT
+        feeds_stories_map_partitioned_id AS feeds_stories_map_id,
+        feeds_id,
+        stories_id
+    FROM feeds_stories_map_partitioned;
+
+
+-- Make RETURNING work with partitioned tables
+-- (https://wiki.postgresql.org/wiki/INSERT_RETURNING_vs_Partitioning)
+ALTER VIEW feeds_stories_map
+    ALTER COLUMN feeds_stories_map_id
+    SET DEFAULT nextval(pg_get_serial_sequence('feeds_stories_map_partitioned', 'feeds_stories_map_partitioned_id'));
+
+-- Prevent the next INSERT from failing
+SELECT nextval(pg_get_serial_sequence('feeds_stories_map_partitioned', 'feeds_stories_map_partitioned_id'));
+
+
+-- Trigger that implements INSERT / UPDATE / DELETE behavior on "feeds_stories_map" view
+CREATE OR REPLACE FUNCTION feeds_stories_map_view_insert_update_delete() RETURNS trigger AS $$
+
+BEGIN
+
+    IF (TG_OP = 'INSERT') THEN
+
+        -- By INSERTing into the master table, we're letting triggers choose
+        -- the correct partition.
+        INSERT INTO feeds_stories_map_partitioned SELECT NEW.*;
+
+        RETURN NEW;
+
+    ELSIF (TG_OP = 'UPDATE') THEN
+
+        UPDATE feeds_stories_map_partitioned
+            SET feeds_id = NEW.feeds_id,
+                stories_id = NEW.stories_id
+            WHERE feeds_id = OLD.feeds_id
+              AND stories_id = OLD.stories_id;
+
+        RETURN NEW;
+
+    ELSIF (TG_OP = 'DELETE') THEN
+
+        DELETE FROM feeds_stories_map_partitioned
+            WHERE feeds_id = OLD.feeds_id
+              AND stories_id = OLD.stories_id;
+
+        -- Return deleted rows
+        RETURN OLD;
+
+    ELSE
+        RAISE EXCEPTION 'Unconfigured operation: %', TG_OP;
+
+    END IF;
+
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER feeds_stories_map_view_insert_update_delete_trigger
+    INSTEAD OF INSERT OR UPDATE OR DELETE ON feeds_stories_map
+    FOR EACH ROW EXECUTE PROCEDURE feeds_stories_map_view_insert_update_delete();
 
 
 --
@@ -755,7 +883,7 @@ DECLARE
     partition TEXT;
 BEGIN
 
-    created_partitions := ARRAY(SELECT stories_create_partitions('stories_tags_map'));
+    created_partitions := ARRAY(SELECT partition_by_stories_id_create_partitions('stories_tags_map'));
 
     FOREACH partition IN ARRAY created_partitions LOOP
 
@@ -790,7 +918,7 @@ RETURNS TRIGGER AS $$
 DECLARE
     target_table_name TEXT;       -- partition table name (e.g. "stories_tags_map_01")
 BEGIN
-    SELECT stories_partition_name( 'stories_tags_map', NEW.stories_id ) INTO target_table_name;
+    SELECT partition_by_stories_id_partition_name( 'stories_tags_map', NEW.stories_id ) INTO target_table_name;
     EXECUTE '
         INSERT INTO ' || target_table_name || '
             SELECT $1.*
@@ -841,24 +969,6 @@ ALTER TABLE download_texts add CONSTRAINT download_text_length_is_correct CHECK 
 -- Individual sentences of every story
 --
 
--- Intermediate table for migrating sentences to the partitioned table
-create table story_sentences_nonpartitioned (
-    story_sentences_nonpartitioned_id   BIGSERIAL       PRIMARY KEY,
-    stories_id                          INT             NOT NULL REFERENCES stories (stories_id) ON DELETE CASCADE,
-    sentence_number                     INT             NOT NULL,
-    sentence                            TEXT            NOT NULL,
-    media_id                            INT             NOT NULL REFERENCES media (media_id) ON DELETE CASCADE,
-    publish_date                        TIMESTAMP       NOT NULL,
-    language                            VARCHAR(3)      NULL,
-    is_dup                              BOOLEAN         NULL
-);
-
-CREATE INDEX story_sentences_nonpartitioned_story
-    ON story_sentences_nonpartitioned (stories_id, sentence_number);
-
-CREATE INDEX story_sentences_nonpartitioned_sentence_half_md5
-    ON story_sentences_nonpartitioned (half_md5(sentence));
-
 -- "Master" table (no indexes, no foreign keys as they'll be ineffective)
 CREATE TABLE story_sentences_partitioned (
     story_sentences_partitioned_id      BIGSERIAL       PRIMARY KEY NOT NULL,
@@ -894,7 +1004,7 @@ RETURNS TRIGGER AS $$
 DECLARE
     target_table_name TEXT;       -- partition table name (e.g. "stories_tags_map_01")
 BEGIN
-    SELECT stories_partition_name('story_sentences_partitioned', NEW.stories_id ) INTO target_table_name;
+    SELECT partition_by_stories_id_partition_name('story_sentences_partitioned', NEW.stories_id ) INTO target_table_name;
     EXECUTE '
         INSERT INTO ' || target_table_name || '
             SELECT $1.*
@@ -918,7 +1028,7 @@ DECLARE
     partition TEXT;
 BEGIN
 
-    created_partitions := ARRAY(SELECT stories_create_partitions('story_sentences_partitioned'));
+    created_partitions := ARRAY(SELECT partition_by_stories_id_create_partitions('story_sentences_partitioned'));
 
     FOREACH partition IN ARRAY created_partitions LOOP
 
@@ -946,58 +1056,37 @@ LANGUAGE plpgsql;
 SELECT story_sentences_create_partitions();
 
 
--- View that joins the non-partitioned and partitioned tables while the data is
--- being migrated
+-- Proxy view to "story_sentences_partitioned" to make RETURNING work
 CREATE OR REPLACE VIEW story_sentences AS
 
-    SELECT *
-    FROM (
-        SELECT
-            story_sentences_partitioned_id AS story_sentences_id,
-            stories_id,
-            sentence_number,
-            sentence,
-            media_id,
-            publish_date,
-            language,
-            is_dup
-        FROM story_sentences_partitioned
-
-        UNION ALL
-
-        SELECT
-            story_sentences_nonpartitioned_id AS story_sentences_id,
-            stories_id,
-            sentence_number,
-            sentence,
-            media_id,
-            publish_date,
-            language,
-            is_dup
-        FROM story_sentences_nonpartitioned
-
-    ) AS ss;
+    SELECT
+        story_sentences_partitioned_id AS story_sentences_id,
+        stories_id,
+        sentence_number,
+        sentence,
+        media_id,
+        publish_date,
+        language,
+        is_dup
+    FROM story_sentences_partitioned;
 
 
 -- Make RETURNING work with partitioned tables
 -- (https://wiki.postgresql.org/wiki/INSERT_RETURNING_vs_Partitioning)
 ALTER VIEW story_sentences
     ALTER COLUMN story_sentences_id
-    SET DEFAULT nextval(pg_get_serial_sequence('story_sentences_partitioned', 'story_sentences_partitioned_id')) + 1;
+    SET DEFAULT nextval(pg_get_serial_sequence('story_sentences_partitioned', 'story_sentences_partitioned_id'));
+
+-- Prevent the next INSERT from failing
+SELECT nextval(pg_get_serial_sequence('story_sentences_partitioned', 'story_sentences_partitioned_id'));
 
 
 -- Trigger that implements INSERT / UPDATE / DELETE behavior on "story_sentences" view
 CREATE OR REPLACE FUNCTION story_sentences_view_insert_update_delete() RETURNS trigger AS $$
-
-DECLARE
-    target_table_name TEXT;       -- partition table name (e.g. "story_sentences_01")
-
 BEGIN
 
     IF (TG_OP = 'INSERT') THEN
 
-        -- All new INSERTs go to partitioned table only.
-        --
         -- By INSERTing into the master table, we're letting triggers choose
         -- the correct partition.
         INSERT INTO story_sentences_partitioned SELECT NEW.*;
@@ -1006,20 +1095,7 @@ BEGIN
 
     ELSIF (TG_OP = 'UPDATE') THEN
 
-        -- UPDATE on both tables
-
         UPDATE story_sentences_partitioned
-            SET stories_id = NEW.stories_id,
-                sentence_number = NEW.sentence_number,
-                sentence = NEW.sentence,
-                media_id = NEW.media_id,
-                publish_date = NEW.publish_date,
-                language = NEW.language,
-                is_dup = NEW.is_dup
-            WHERE stories_id = OLD.stories_id
-              AND sentence_number = OLD.sentence_number;
-
-        UPDATE story_sentences_nonpartitioned
             SET stories_id = NEW.stories_id,
                 sentence_number = NEW.sentence_number,
                 sentence = NEW.sentence,
@@ -1034,13 +1110,7 @@ BEGIN
 
     ELSIF (TG_OP = 'DELETE') THEN
 
-        -- DELETE from both tables
-
         DELETE FROM story_sentences_partitioned
-            WHERE stories_id = OLD.stories_id
-              AND sentence_number = OLD.sentence_number;
-
-        DELETE FROM story_sentences_nonpartitioned
             WHERE stories_id = OLD.stories_id
               AND sentence_number = OLD.sentence_number;
 
@@ -1058,126 +1128,6 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER story_sentences_view_insert_update_delete_trigger
     INSTEAD OF INSERT OR UPDATE OR DELETE ON story_sentences
     FOR EACH ROW EXECUTE PROCEDURE story_sentences_view_insert_update_delete();
-
-
-
--- Copy a chunk of story sentences from a non-partitioned "story_sentences" to a
--- partitioned one:
---
--- * Expects starting and ending stories_id instead of a chunk size in order to
---   avoid index bloat that would happen when copying sentences in sequential
---   chunks
--- * Copies directly to partitions to skip (slow) INSERT triggers on
---   "story_sentences" view
---
--- Returns number of rows that were copied.
---
--- Call this repeatedly to migrate all the data to the partitioned table.
-CREATE OR REPLACE FUNCTION copy_chunk_of_nonpartitioned_sentences_to_partitions(start_stories_id INT, end_stories_id INT)
-RETURNS INT AS $$
-
-DECLARE
-    copied_sentence_count INT;
-
-    -- Partition table names for both stories_id bounds
-    start_stories_id_table_name TEXT;
-    end_stories_id_table_name TEXT;
-
-BEGIN
-
-    IF NOT (start_stories_id < end_stories_id) THEN
-        RAISE EXCEPTION '"end_stories_id" must be bigger than "start_stories_id".';
-    END IF;
-
-    SELECT stories_partition_name('story_sentences_partitioned', start_stories_id)
-        INTO start_stories_id_table_name;
-    IF NOT (table_exists(start_stories_id_table_name)) THEN
-        RAISE EXCEPTION
-            'Table "%" for "start_stories_id" = % does not exist.',
-            start_stories_id_table_name, start_stories_id;
-    END IF;
-
-    SELECT stories_partition_name('story_sentences_partitioned', end_stories_id)
-        INTO end_stories_id_table_name;
-    IF NOT (table_exists(end_stories_id_table_name)) THEN
-        RAISE EXCEPTION
-            'Table "%" for "end_stories_id" = % does not exist.',
-            end_stories_id_table_name, end_stories_id;
-    END IF;
-
-    IF NOT (start_stories_id_table_name = end_stories_id_table_name) THEN
-        RAISE EXCEPTION
-            '"start_stories_id" = % and "end_stories_id" = % must be within the same partition.',
-            start_stories_id, end_stories_id;
-    END IF;
-
-    -- Kill all autovacuums before proceeding with DDL changes
-    PERFORM pid
-    FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
-    WHERE backend_type = 'autovacuum worker'
-      AND query ~ 'story_sentences';
-
-    RAISE NOTICE
-        'Copying sentences of stories_id BETWEEN % AND % to the partitioned table...',
-        start_stories_id, end_stories_id;
-
-    EXECUTE '
-
-        -- Fetch and delete sentences within bounds
-        WITH deleted_rows AS (
-            DELETE FROM story_sentences_nonpartitioned
-            WHERE stories_id BETWEEN ' || start_stories_id || ' AND ' || end_stories_id || '
-            RETURNING story_sentences_nonpartitioned.*
-        ),
-
-        -- Deduplicate sentences: nonpartitioned table has weird duplicates,
-        -- and the new index insists on (stories_id, sentence_number)
-        -- uniqueness (which is a logical assumption to make)
-        --
-        -- Assume that the sentence with the biggest story_sentences_id is the
-        -- newest one and so is the one that we want.
-        deduplicated_rows AS (
-            SELECT DISTINCT ON (stories_id, sentence_number) *
-            FROM deleted_rows
-            ORDER BY stories_id, sentence_number, story_sentences_nonpartitioned_id DESC
-        )
-
-        -- INSERT directly into the partition to circumvent slow insertion
-        -- trigger on "story_sentences" view
-        INSERT INTO ' || start_stories_id_table_name || ' (
-            story_sentences_partitioned_id,
-            stories_id,
-            sentence_number,
-            sentence,
-            media_id,
-            publish_date,
-            language,
-            is_dup
-        )
-        SELECT
-            story_sentences_nonpartitioned_id,
-            stories_id,
-            sentence_number,
-            sentence,
-            media_id,
-            publish_date,
-            language,
-            is_dup
-        FROM deduplicated_rows;
-
-    ';
-
-    GET DIAGNOSTICS copied_sentence_count = ROW_COUNT;
-
-    RAISE NOTICE
-        'Finished copying sentences of stories_id BETWEEN % AND % to the partitioned table, copied % sentences.',
-        start_stories_id, end_stories_id, copied_sentence_count;
-
-    RETURN copied_sentence_count;
-
-END;
-$$
-LANGUAGE plpgsql;
 
 
 -- update media stats table for new story. create the media / day row if needed.
@@ -1380,8 +1330,7 @@ create table topic_domains (
     topic_domains_id        serial primary key,
     topics_id               int not null,
     domain                  text not null,
-    self_links              int not null default 0,
-    all_links               int not null default 0
+    self_links              int not null default 0
 );
 
 create unique index topic_domains_domain on topic_domains (topics_id, md5(domain));
@@ -2240,8 +2189,8 @@ CREATE TABLE activities (
     creation_date       TIMESTAMP       NOT NULL DEFAULT LOCALTIMESTAMP,
 
     -- User that executed the activity, either:
-    --     * user's email from "auth_users.email" (e.g. "lvaliukas@cyber.law.harvard.edu", or
-    --     * username that initiated the action (e.g. "system:lvaliukas")
+    --     * user's email from "auth_users.email" (e.g. "foo@bar.baz.com", or
+    --     * username that initiated the action (e.g. "system:foo")
     -- (store user's email instead of ID in case the user gets deleted)
     user_identifier     CITEXT          NOT NULL,
 
@@ -2548,6 +2497,8 @@ BEGIN
     RAISE NOTICE 'Creating partitions in "story_sentences_partitioned" table...';
     PERFORM story_sentences_create_partitions();
 
+    RAISE NOTICE 'Creating partitions in "feeds_stories_map_partitioned" table...';
+    PERFORM feeds_stories_map_create_partitions();
 
 END;
 $$
@@ -3080,3 +3031,49 @@ CREATE TABLE similarweb_media_metrics (
     monthly_audience               INTEGER                  NOT NULL,
     update_date                    TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
+
+
+CREATE TYPE media_sitemap_pages_change_frequency AS ENUM (
+    'always',
+    'hourly',
+    'daily',
+    'weekly',
+    'monthly',
+    'yearly',
+    'never'
+);
+
+
+-- Pages derived from XML sitemaps (stories or not)
+CREATE TABLE media_sitemap_pages (
+    media_sitemap_pages_id  BIGSERIAL   PRIMARY KEY,
+    media_id                INT         NOT NULL REFERENCES media (media_id) ON DELETE CASCADE,
+
+    -- <loc> -- URL of the page
+    url                     TEXT                                  NOT NULL,
+
+    -- <lastmod> -- date of last modification of the URL
+    last_modified           TIMESTAMP WITH TIME ZONE              NULL,
+
+    -- <changefreq> -- how frequently the page is likely to change
+    change_frequency        media_sitemap_pages_change_frequency  NULL,
+
+    -- <priority> -- priority of this URL relative to other URLs on your site
+    priority                DECIMAL(2, 1)                         NOT NULL DEFAULT 0.5,
+
+    -- <news:title> -- title of the news article
+    news_title              TEXT                                  NULL,
+
+    -- <news:publication_date> -- article publication date
+    news_publish_date       TIMESTAMP WITH TIME ZONE              NULL,
+
+    CONSTRAINT media_sitemap_pages_priority_within_bounds
+        CHECK (priority IS NULL OR (priority >= 0.0 AND priority <= 1.0))
+
+);
+
+CREATE INDEX media_sitemap_pages_media_id
+    ON media_sitemap_pages (media_id);
+
+CREATE UNIQUE INDEX media_sitemap_pages_url
+    ON media_sitemap_pages (url);

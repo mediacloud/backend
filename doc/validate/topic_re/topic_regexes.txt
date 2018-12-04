@@ -47,7 +47,7 @@ high median: 0.114575
 mean: 1.095730
 sd: 4.880588
 
-## sw-re2
+## pyre2
 
 files: 100
 num_matches: 24
@@ -59,7 +59,7 @@ mean: 0.001486
 sd: 0.002131
 
 
-## sw-re2 module non-greedy
+## pyre2 module non-greedy
 
 num_matches: 24
 total: 0.174119

@@ -4,7 +4,7 @@ import re
 from mediawords.db import connect_to_db
 from mediawords.db.handler import DatabaseHandler
 from mediawords.db.schema.schema import recreate_db
-from mediawords.test.db.env import force_using_test_database
+from mediawords.test.db.environment import force_using_test_database
 from mediawords.util.config import (
     get_config as py_get_config,  # MC_REWRITE_TO_PYTHON: rename back to get_config()
 )
@@ -66,6 +66,18 @@ class TestDatabaseWithSchemaTestCase(TestCase):
     db_name = None
     template_db_name = None
 
+    @staticmethod
+    def __kill_connections_to_database(db: DatabaseHandler, database_name: str) -> None:
+        """Kill all active connections to the database."""
+        # If multiple Python test files get run in a sequence and one of them fails, the test apparently doesn't call
+        # tearDown() and the the connection to the test database persists (apparently)
+        db.query("""
+            SELECT pg_terminate_backend(pg_stat_activity.pid)
+            FROM pg_catalog.pg_stat_activity
+            WHERE datname = %(template_db_name)s
+              AND pid != pg_backend_pid()
+        """, {'template_db_name': database_name})
+
     @classmethod
     def setUpClass(cls) -> None:
         """Create a fresh template data from mediawords.sql.
@@ -100,8 +112,11 @@ class TestDatabaseWithSchemaTestCase(TestCase):
 
         # mediacloud_test should already exist, so we have to connect to it to create the template database
         db = connect_to_db(label=cls.TEST_DB_LABEL, do_not_check_schema_version=True)
-        db.query("drop database if exists %s" % (cls.template_db_name,))
-        db.query("create database %s" % (cls.template_db_name,))
+
+        cls.__kill_connections_to_database(db=db, database_name=cls.template_db_name)
+
+        db.query("DROP DATABASE IF EXISTS {}".format(cls.template_db_name))
+        db.query("CREATE DATABASE {}".format(cls.template_db_name))
         db.disconnect()
         recreate_db(label=cls.TEST_DB_LABEL, is_template=True)
 
@@ -116,8 +131,11 @@ class TestDatabaseWithSchemaTestCase(TestCase):
         log.warning("recreate test db from template: %s" % self.template_db_name)
 
         db = connect_to_db(label=self.TEST_DB_LABEL, is_template=True)
-        db.query("drop database if exists %s" % (self.db_name,))
-        db.query("create database %s template %s" % (self.db_name, self.template_db_name))
+
+        self.__kill_connections_to_database(db=db, database_name=self.db_name)
+
+        db.query("DROP DATABASE IF EXISTS {}".format(self.db_name))
+        db.query("CREATE DATABASE {} TEMPLATE {}".format(self.db_name, self.template_db_name))
 
         db.disconnect()
 

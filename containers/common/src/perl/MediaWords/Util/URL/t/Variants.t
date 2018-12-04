@@ -10,7 +10,7 @@ use Test::Deep;
 use Test::More tests => 15;
 
 use Readonly;
-use MediaWords::Test::HTTP::HashServer;
+use MediaWords::Test::HashServer;
 use HTTP::Status qw(:constants);
 use HTTP::Response;
 use Data::Dumper;
@@ -51,7 +51,7 @@ sub test_all_url_variants($)
         '/third'  => 'This is where the redirect chain should end.',
     };
 
-    my $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    my $hs = MediaWords::Test::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
     @actual_url_variants = MediaWords::Util::URL::Variants::all_url_variants( $db, $starting_url );
     $hs->stop();
@@ -70,7 +70,7 @@ sub test_all_url_variants($)
         '/third'  => '<link rel="canonical" href="' . $TEST_HTTP_SERVER_URL . '/fourth" />',
     };
 
-    $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    $hs = MediaWords::Test::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
     @actual_url_variants = MediaWords::Util::URL::Variants::all_url_variants( $db, $starting_url );
     $hs->stop();
@@ -93,7 +93,7 @@ sub test_all_url_variants($)
         '/second' => '<meta http-equiv="refresh" content="0; URL=/',
     };
 
-    $hs = MediaWords::Test::HTTP::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
+    $hs = MediaWords::Test::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
     @actual_url_variants = MediaWords::Util::URL::Variants::all_url_variants( $db, $starting_url );
     $hs->stop();
@@ -140,7 +140,7 @@ sub test_get_topic_url_variants
         D => { E => [ 7, 8, 9 ] }
     };
 
-    my $media = MediaWords::Test::DB::create_test_story_stack( $db, $data );
+    my $media = MediaWords::Test::DB::Create::create_test_story_stack( $db, $data );
 
     my $story_1 = $media->{ A }->{ feeds }->{ B }->{ stories }->{ 1 };
     my $story_2 = $media->{ A }->{ feeds }->{ B }->{ stories }->{ 2 };
@@ -156,7 +156,7 @@ END
 
     my $tag_set = $db->create( 'tag_sets', { name => 'foo' } );
 
-    my $topic = MediaWords::Test::DB::create_test_topic( $db, 'foo' );
+    my $topic = MediaWords::Test::DB::Create::create_test_topic( $db, 'foo' );
 
     $db->create(
         'topic_stories',
