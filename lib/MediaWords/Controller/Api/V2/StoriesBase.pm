@@ -344,8 +344,10 @@ sub _get_object_ids
             FROM processed_stories
                 JOIN feeds_stories_map USING (stories_id)
             WHERE feeds_id = ?
+            ORDER BY stories_id desc
+            limit ?
 SQL
-            $feeds_id
+            $feeds_id, $rows
         )->flat;
 
         return $stories_ids;
@@ -388,7 +390,7 @@ sub _fetch_list($$$$$$)
 
     my $ids_table = $db->get_temporary_ids_table( $ps_ids, 1 );
 
-    my $order_direction = $self->{ feeds_id } ? 'desc' : 'asc';
+    my $order_clause = $c->req->params->{ feeds_id } ? 'stories_id desc' : 'order_pkey asc';
 
     my $stories = $db->query(
         <<"SQL",
@@ -401,6 +403,8 @@ sub _fetch_list($$$$$$)
             FROM $ids_table
                 INNER JOIN processed_stories
                     ON $ids_table.id = processed_stories.processed_stories_id
+            ORDER BY $order_clause
+            LIMIT ?
         )
 
         SELECT
@@ -417,8 +421,7 @@ sub _fetch_list($$$$$$)
             LEFT JOIN stories_ap_syndicated ap
                 ON stories.stories_id = ap.stories_id
 
-        ORDER BY ps_ids.order_pkey $order_direction
-        LIMIT ?
+        ORDER BY $order_clause
 SQL
         $rows
     )->hashes;
