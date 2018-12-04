@@ -1171,25 +1171,25 @@ services:
     # Portainer for cluster management
     # --------------------------------
     #
-    portainer:
-        image: portainer/portainer
-        container_name: mc_portainer
-        ports:
-            # Web interface
-            - "9000:9000"
-        command: -H unix:///var/run/docker.sock
-        volumes:
-            - /var/run/docker.sock:/var/run/docker.sock
-            - vol_portainer_data:/data
-        deploy:
-            # Only one instance
-            mode: global
-            resources:
-                limits:
-                    # CPU core limit
-                    cpus: "1"
-                    # RAM limit
-                    memory: 1G
+    #portainer:
+    #    image: portainer/portainer
+    #    container_name: mc_portainer
+    #    ports:
+    #        # Web interface
+    #        - "9000:9000"
+    #    command: -H unix:///var/run/docker.sock
+    #    volumes:
+    #        - /var/run/docker.sock:/var/run/docker.sock
+    #        - vol_portainer_data:/data
+    #    deploy:
+    #        # Only one instance
+    #        mode: global
+    #        resources:
+    #            limits:
+    #                # CPU core limit
+    #                cpus: "1"
+    #                # RAM limit
+    #                memory: 1G
 
 #
 # Networks
@@ -1268,5 +1268,5 @@ volumes:
     vol_daily_rss_dumps: {}
 
     # Portainer data
-    vol_portainer_data: {}
+    #vol_portainer_data: {}
 
