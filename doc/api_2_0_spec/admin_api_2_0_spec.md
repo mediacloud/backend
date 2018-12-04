@@ -1122,12 +1122,18 @@ This call updates a single existing user.
 | full\_name        | full name of user |
 | email             | user email |
 | notes             | user submitted description of account usage |
+| active            | active state of user |
 | roles             | list of permission roles |
+| max\_topic\_stories | max size of max\_stories setting for topics |
+| weekly\_requests\_limit | max number of requests per week |
 
 The `roles` field should point to an array of strings, each of which is the
 'role' value for a role listed by `api/v2/users/list_roles`.  If the roles
 field is specified, the user's roles will be reset to consist only of the
-roles included in the given list.  All of the input fields other than
+roles included in the given list.  If weekly\_requests\_limit is set to 0,
+the user will be able to submit an unlimited number of requests.
+
+All of the input fields other than
 `auth\_users\_id` are optional.  Any fields not specified will not be updated.
 
 ### Example
@@ -1140,7 +1146,9 @@ Input:
 {
   "auth_users_id": 123456,
   "notes": "Some update notes,
-  "roles": ['admin']
+  "roles": ['admin'],
+  "active": 1,
+  "weekly_requests_limit": 20000
 }
 ```
 
