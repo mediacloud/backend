@@ -30,7 +30,6 @@ use MediaWords::DBI::Stories::Extract;
 use MediaWords::DBI::Stories::ExtractorArguments;
 use MediaWords::Languages::Language;
 use MediaWords::Solr::WordCounts;
-use MediaWords::StoryVectors;
 use MediaWords::Util::Annotator::CLIFF;
 use MediaWords::Util::Annotator::NYTLabels;
 use MediaWords::Util::Config;
