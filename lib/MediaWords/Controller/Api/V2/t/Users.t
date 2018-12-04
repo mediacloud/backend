@@ -34,13 +34,14 @@ sub test_users($)
         $auth_user = $db->create( 'auth_users', $auth_user );
     }
 
-    my $expected_auth_users = $db->query( "select * from auth_users" )->hashes();
+    my $expected_auth_users =
+      $db->query( "select * from auth_users join auth_user_limits using ( auth_users_id )" )->hashes();
 
     my $label = "users/list";
 
     my $r = test_get( '/api/v2/users/list', {} );
 
-    my $fields = [ qw ( email full_name notes created_date max_topic_stories ) ];
+    my $fields = [ qw ( email full_name notes created_date max_topic_stories weekly_requests_limit ) ];
     rows_match( $label, $r->{ users }, $expected_auth_users, "auth_users_id", $fields );
 
     $label = "users/single";
@@ -60,10 +61,10 @@ sub test_users($)
     };
     $search_user = $db->create( 'auth_users', $search_user );
 
-    $label = 'update';
-
     $r = test_get( '/api/v2/users/list', { search => 'search' } );
-    rows_match( $label, $r->{ users }, [ $search_user ], 'auth_users_id', $fields );
+    rows_match( $label, $r->{ users }, [ $search_user ], 'auth_users_id', [ 'auth_users_id' ] );
+
+    $label = 'update';
 
     my $input_data = {
         auth_users_id         => $search_user->{ auth_users_id },
