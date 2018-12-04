@@ -29,7 +29,8 @@ sub test_users($)
             full_name         => "foo bar $i",
             notes             => "notes $i",
             password_hash     => 'x' x 137,
-            max_topic_stories => $i
+            max_topic_stories => $i,
+            active            => 'false'
         };
         $auth_user = $db->create( 'auth_users', $auth_user );
     }
@@ -71,7 +72,7 @@ sub test_users($)
         email                 => 'update@up.date',
         full_name             => 'up date',
         notes                 => 'more notes',
-        active                => !$search_user->{ active },
+        active                => 1,
         weekly_requests_limit => 123456,
         max_topic_stories     => 456789,
     };

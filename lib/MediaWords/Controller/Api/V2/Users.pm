@@ -67,6 +67,11 @@ sub update_PUT
 
     my $input = { map { $_ => $data->{ $_ } } grep { exists( $data->{ $_ } ) } @{ $update_fields } };
 
+    if ( defined( $input->{ active } ) )
+    {
+        $input->{ active } = normalize_boolean_for_db( $input->{ active } );
+    }
+
     my $db = $c->dbis;
 
     $db->update_by_id( 'auth_users', $data->{ auth_users_id }, $input ) if ( scalar( keys( %{ $input } ) ) );
