@@ -2,7 +2,7 @@
 # Scrape Feedly for new stories 
 #
 
-FROM mediacloud-common:latest
+FROM dockermediacloud/mediacloud-common:latest
 
 # Install Perl dependencies
 COPY src/cpanfile /var/tmp/

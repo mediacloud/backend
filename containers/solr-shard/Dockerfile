@@ -2,7 +2,7 @@
 # Solr shard
 #
 
-FROM mediacloud-solr-base:latest
+FROM dockermediacloud/mediacloud-solr-base:latest
 
 # Solr data
 VOLUME /var/lib/solr/

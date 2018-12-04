@@ -1,3 +1,3 @@
 #!/bin/bash
 
-docker build -t mediacloud-facebook-fetch-story-stats .
+docker build -t dockermediacloud/mediacloud-facebook-fetch-story-stats .

@@ -1,3 +1,3 @@
 #!/bin/bash
 
-docker build -t mediacloud-cron-refresh-stats .
+docker build -t dockermediacloud/mediacloud-cron-refresh-stats .

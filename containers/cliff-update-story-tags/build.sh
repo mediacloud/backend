@@ -1,3 +1,3 @@
 #!/bin/bash
 
-docker build -t mediacloud-cliff-update-story-tags .
+docker build -t dockermediacloud/mediacloud-cliff-update-story-tags .

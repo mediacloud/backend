@@ -2,7 +2,7 @@
 # Various one-off tools
 #
 
-FROM mediacloud-common:latest
+FROM dockermediacloud/mediacloud-common:latest
 
 # Install dependencies
 RUN \

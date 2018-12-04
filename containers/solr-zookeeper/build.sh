@@ -1,3 +1,3 @@
 #!/bin/bash
 
-docker build -t mediacloud-solr-zookeeper .
+docker build -t dockermediacloud/mediacloud-solr-zookeeper .

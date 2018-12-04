@@ -1,3 +1,3 @@
 #!/bin/bash
 
-docker build -t mediacloud-webapp .
+docker build -t dockermediacloud/mediacloud-webapp .

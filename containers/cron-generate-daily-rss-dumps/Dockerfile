@@ -2,7 +2,7 @@
 # Generate daily RSS dumps Cron job
 #
 
-FROM mediacloud-cron-base:latest
+FROM dockermediacloud/mediacloud-cron-base:latest
 
 # Add Cron job
 ADD crontab /etc/cron.d/generate_daily_rss_dumps

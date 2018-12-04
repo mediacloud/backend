@@ -1,3 +1,3 @@
 #!/bin/bash
 
-docker build -t mediacloud-rabbitmq-server .
+docker build -t dockermediacloud/mediacloud-rabbitmq-server .

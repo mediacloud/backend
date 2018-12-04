@@ -1,3 +1,3 @@
 #!/bin/bash
 
-docker build -t mediacloud-topics-base .
+docker build -t dockermediacloud/mediacloud-topics-base .

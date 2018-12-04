@@ -1,3 +1,3 @@
 #!/bin/bash
 
-docker build -t mediacloud-predict-news-labels .
+docker build -t dockermediacloud/mediacloud-predict-news-labels .

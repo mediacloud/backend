@@ -1,3 +1,3 @@
 #!/bin/bash
 
-docker build -t mediacloud-mail-postfix-server .
+docker build -t dockermediacloud/mediacloud-mail-postfix-server .

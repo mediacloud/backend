@@ -1,3 +1,3 @@
 #!/bin/bash
 
-docker build -t mediacloud-solr-shard .
+docker build -t dockermediacloud/mediacloud-solr-shard .

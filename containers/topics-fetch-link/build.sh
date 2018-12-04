@@ -1,3 +1,3 @@
 #!/bin/bash
 
-docker build -t mediacloud-topics-fetch-link .
+docker build -t dockermediacloud/mediacloud-topics-fetch-link .

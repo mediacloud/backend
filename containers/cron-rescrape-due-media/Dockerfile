@@ -7,7 +7,7 @@
 #
 # FIXME disable initially
 
-FROM mediacloud-cron-base:latest
+FROM dockermediacloud/mediacloud-cron-base:latest
 
 COPY bin/rescrape_due_media.pl /
 

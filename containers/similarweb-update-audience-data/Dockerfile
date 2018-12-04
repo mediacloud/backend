@@ -2,7 +2,7 @@
 # Fetch audience data from SimilarWeb
 #
 
-FROM mediacloud-common:latest
+FROM dockermediacloud/mediacloud-common:latest
 
 # Install Python dependencies
 COPY src/requirements.txt /var/tmp/

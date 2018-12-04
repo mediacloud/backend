@@ -1,3 +1,3 @@
 #!/bin/bash
 
-docker build -t mediacloud-topics-extract-story-links .
+docker build -t dockermediacloud/mediacloud-topics-extract-story-links .

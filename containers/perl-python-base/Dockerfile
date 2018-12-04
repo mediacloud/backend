@@ -2,7 +2,7 @@
 # Perl-Python code base
 #
 
-FROM mediacloud-python-base:latest
+FROM dockermediacloud/mediacloud-python-base:latest
 
 # CPAN mirror URL (CPAN, DarkPan or MiniCPAN)
 ENV MEDIACLOUD_PERL_CPAN_MIRROR "https://s3.amazonaws.com/mediacloud-minicpan/minicpan-20170824/"

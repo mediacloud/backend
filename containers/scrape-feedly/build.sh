@@ -1,3 +1,3 @@
 #!/bin/bash
 
-docker build -t mediacloud-scrape-feedly .
+docker build -t dockermediacloud/mediacloud-scrape-feedly .

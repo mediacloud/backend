@@ -1,3 +1,3 @@
 #!/bin/bash
 
-docker build -t mediacloud-extract-and-vector .
+docker build -t dockermediacloud/mediacloud-extract-and-vector .

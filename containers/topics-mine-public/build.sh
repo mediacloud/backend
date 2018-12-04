@@ -1,3 +1,3 @@
 #!/bin/bash
 
-docker build -t mediacloud-topics-mine-public .
+docker build -t dockermediacloud/mediacloud-topics-mine-public .

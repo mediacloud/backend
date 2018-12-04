@@ -2,7 +2,7 @@
 # CLIFF base image
 #
 
-FROM mediacloud-common:latest
+FROM dockermediacloud/mediacloud-common:latest
 
 # Copy Perl sources
 COPY src/perl/ /usr/share/perl5/

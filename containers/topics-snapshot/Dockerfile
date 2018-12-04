@@ -2,7 +2,7 @@
 # Topic snapshot worker
 #
 
-FROM mediacloud-topics-base:latest
+FROM dockermediacloud/mediacloud-topics-base:latest
 
 # Install dependencies
 RUN \

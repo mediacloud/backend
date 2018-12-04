@@ -1,3 +1,3 @@
 #!/bin/bash
 
-docker build -t mediacloud-crawler .
+docker build -t dockermediacloud/mediacloud-crawler .

@@ -2,7 +2,7 @@
 # RabbitMQ server
 #
 
-FROM mediacloud-base:latest
+FROM dockermediacloud/mediacloud-base:latest
 
 # Add Erlang Solutions GPG key
 RUN curl -L https://packages.erlang-solutions.com/ubuntu/erlang_solutions.asc | apt-key add -

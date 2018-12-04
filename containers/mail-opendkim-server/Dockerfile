@@ -2,7 +2,7 @@
 # OpenDKIM server
 #
 
-FROM mediacloud-base:latest
+FROM dockermediacloud/mediacloud-base:latest
 
 # Domain that we will be signing for
 # FIXME keep in sync with main-postfix-server?

@@ -2,7 +2,7 @@
 # PgBouncer
 #
 
-FROM mediacloud-postgresql-base:latest
+FROM dockermediacloud/mediacloud-postgresql-base:latest
 
 # Install PgBouncer
 RUN apt-get -y --no-install-recommends install pgbouncer

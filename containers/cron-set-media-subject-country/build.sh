@@ -1,3 +1,3 @@
 #!/bin/bash
 
-docker build -t mediacloud-cron-set-media-subject-country .
+docker build -t dockermediacloud/mediacloud-cron-set-media-subject-country .

@@ -1,3 +1,3 @@
 #!/bin/bash
 
-docker build -t mediacloud-postgresql-server .
+docker build -t dockermediacloud/mediacloud-postgresql-server .

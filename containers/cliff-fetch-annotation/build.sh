@@ -1,3 +1,3 @@
 #!/bin/bash
 
-docker build -t mediacloud-cliff-fetch-annotation .
+docker build -t dockermediacloud/mediacloud-cliff-fetch-annotation .

@@ -1,3 +1,3 @@
 #!/bin/bash
 
-docker build -t mediacloud-mail-opendkim-server .
+docker build -t dockermediacloud/mediacloud-mail-opendkim-server .

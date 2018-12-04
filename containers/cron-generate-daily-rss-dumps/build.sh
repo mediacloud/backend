@@ -1,3 +1,3 @@
 #!/bin/bash
 
-docker build -t mediacloud-cron-generate-daily-rss-dumps .
+docker build -t dockermediacloud/mediacloud-cron-generate-daily-rss-dumps .

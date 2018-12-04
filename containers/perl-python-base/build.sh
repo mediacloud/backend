@@ -1,3 +1,3 @@
 #!/bin/bash
 
-docker build -t mediacloud-perl-python-base .
+docker build -t dockermediacloud/mediacloud-perl-python-base .

@@ -1,3 +1,3 @@
 #!/bin/bash
 
-docker build -t mediacloud-purge-object-caches .
+docker build -t dockermediacloud/mediacloud-purge-object-caches .

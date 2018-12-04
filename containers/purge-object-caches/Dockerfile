@@ -2,7 +2,7 @@
 # Purge object caches on PostgreSQL
 #
 
-FROM mediacloud-common:latest
+FROM dockermediacloud/mediacloud-common:latest
 
 COPY bin/purge_object_caches.py /
 

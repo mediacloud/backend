@@ -1,3 +1,3 @@
 #!/bin/bash
 
-docker build -t mediacloud-cron-rescrape-due-media .
+docker build -t dockermediacloud/mediacloud-cron-rescrape-due-media .

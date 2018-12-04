@@ -1,3 +1,3 @@
 #!/bin/bash
 
-docker build -t mediacloud-cron-generate-media-health .
+docker build -t dockermediacloud/mediacloud-cron-generate-media-health .

@@ -2,7 +2,7 @@
 # Postfix server
 #
 
-FROM mediacloud-base:latest
+FROM dockermediacloud/mediacloud-base:latest
 
 # FIXME keep in sync with main-opendkim-server?
 ENV MC_MAIL_POSTFIX_MAILNAME "mail.mediacloud.org"

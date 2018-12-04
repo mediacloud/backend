@@ -2,7 +2,7 @@
 # Refresh stats Cron job
 #
 
-FROM mediacloud-cron-base:latest
+FROM dockermediacloud/mediacloud-cron-base:latest
 
 COPY bin/refresh_stats.pl /
 

@@ -2,7 +2,7 @@
 # Python code base
 #
 
-FROM mediacloud-base:latest
+FROM dockermediacloud/mediacloud-base:latest
 
 RUN \
     add-apt-repository ppa:deadsnakes/ppa && \

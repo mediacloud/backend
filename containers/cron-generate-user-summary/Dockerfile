@@ -2,7 +2,7 @@
 # Generate daily and weekly user summaries Cron job
 #
 
-FROM mediacloud-cron-base:latest
+FROM dockermediacloud/mediacloud-cron-base:latest
 
 # Add Cron job
 ADD crontab /etc/cron.d/generate_user_summary

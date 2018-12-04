@@ -2,7 +2,7 @@
 # Webapp
 #
 
-FROM mediacloud-common:latest
+FROM dockermediacloud/mediacloud-common:latest
 
 # Install Apache
 RUN \

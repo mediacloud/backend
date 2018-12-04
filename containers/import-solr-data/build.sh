@@ -1,3 +1,3 @@
 #!/bin/bash
 
-docker build -t mediacloud-import-solr-data .
+docker build -t dockermediacloud/mediacloud-import-solr-data .

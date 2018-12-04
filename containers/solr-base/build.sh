@@ -1,3 +1,3 @@
 #!/bin/bash
 
-docker build -t mediacloud-solr-base .
+docker build -t dockermediacloud/mediacloud-solr-base .

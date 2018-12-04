@@ -2,7 +2,7 @@
 # NYTLabels fetch annotation worker
 #
 
-FROM mediacloud-nytlabels-base:latest
+FROM dockermediacloud/mediacloud-nytlabels-base:latest
 
 # Copy Python sources
 COPY src/python/ /usr/lib/python3/dist-packages/

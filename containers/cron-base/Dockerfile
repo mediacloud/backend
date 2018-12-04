@@ -3,7 +3,7 @@
 #
 # FIXME email the report
 
-FROM mediacloud-common:latest
+FROM dockermediacloud/mediacloud-common:latest
 
 # Install Cron
 RUN apt-get -y --no-install-recommends install cron

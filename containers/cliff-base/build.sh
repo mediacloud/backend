@@ -1,3 +1,3 @@
 #!/bin/bash
 
-docker build -t mediacloud-cliff-base .
+docker build -t dockermediacloud/mediacloud-cliff-base .

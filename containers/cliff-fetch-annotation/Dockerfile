@@ -2,7 +2,7 @@
 # CLIFF fetch annotation worker
 #
 
-FROM mediacloud-cliff-base:latest
+FROM dockermediacloud/mediacloud-cliff-base:latest
 
 # Copy Python sources
 COPY src/python/ /usr/lib/python3/dist-packages/

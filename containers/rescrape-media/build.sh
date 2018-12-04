@@ -1,3 +1,3 @@
 #!/bin/bash
 
-docker build -t mediacloud-rescrape-media .
+docker build -t dockermediacloud/mediacloud-rescrape-media .

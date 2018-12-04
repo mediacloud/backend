@@ -1,3 +1,3 @@
 #!/bin/bash
 
-docker build -t mediacloud-similarweb-update-audience-data .
+docker build -t dockermediacloud/mediacloud-similarweb-update-audience-data .

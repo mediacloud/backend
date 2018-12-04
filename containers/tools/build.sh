@@ -1,3 +1,3 @@
 #!/bin/bash
 
-docker build -t mediacloud-tools .
+docker build -t dockermediacloud/mediacloud-tools .

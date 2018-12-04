@@ -1,3 +1,3 @@
 #!/bin/bash
 
-docker build -t mediacloud-cron-base .
+docker build -t dockermediacloud/mediacloud-cron-base .

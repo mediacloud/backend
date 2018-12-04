@@ -1,3 +1,3 @@
 #!/bin/bash
 
-docker build -t mediacloud-nytlabels-base .
+docker build -t dockermediacloud/mediacloud-nytlabels-base .

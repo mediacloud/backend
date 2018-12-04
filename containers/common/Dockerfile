@@ -2,7 +2,7 @@
 # Common Media Cloud code
 #
 
-FROM mediacloud-perl-python-base:latest
+FROM dockermediacloud/mediacloud-perl-python-base:latest
 
 # Install dependencies
 RUN \

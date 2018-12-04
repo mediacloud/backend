@@ -1,3 +1,3 @@
 #!/bin/bash
 
-docker build -t mediacloud-cron-set-media-primary-language .
+docker build -t dockermediacloud/mediacloud-cron-set-media-primary-language .

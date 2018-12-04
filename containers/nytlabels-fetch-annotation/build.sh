@@ -1,3 +1,3 @@
 #!/bin/bash
 
-docker build -t mediacloud-nytlabels-fetch-annotation .
+docker build -t dockermediacloud/mediacloud-nytlabels-fetch-annotation .

@@ -1,3 +1,3 @@
 #!/bin/bash
 
-docker build -t mediacloud-python-base .
+docker build -t dockermediacloud/mediacloud-python-base .

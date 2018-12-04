@@ -2,7 +2,7 @@
 # Print long running job states
 #
 
-FROM mediacloud-cron-base:latest
+FROM dockermediacloud/mediacloud-cron-base:latest
 
 # Add Cron job
 ADD crontab /etc/cron.d/print_long_running_job_states

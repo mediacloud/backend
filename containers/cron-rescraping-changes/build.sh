@@ -1,3 +1,3 @@
 #!/bin/bash
 
-docker build -t mediacloud-cron-rescraping-changes .
+docker build -t dockermediacloud/mediacloud-cron-rescraping-changes .
