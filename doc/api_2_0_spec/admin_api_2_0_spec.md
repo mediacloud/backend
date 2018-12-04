@@ -1118,7 +1118,7 @@ This call updates a single existing user.
 
 | Field             | Description                              |
 | ----------------- | ---------------------------------------- |
-| auth\_users\_id   | home page of media source (required)     |
+| auth\_users\_id   | user id (required)     |
 | full\_name        | full name of user |
 | email             | user email |
 | notes             | user submitted description of account usage |
@@ -1132,7 +1132,7 @@ roles included in the given list.  All of the input fields other than
 
 ### Example
 
-URL: https://api.mediacloud.org/api/v2/media/update
+URL: https://api.mediacloud.org/api/v2/users/update
 
 Input:
 
@@ -1141,6 +1141,39 @@ Input:
   "auth_users_id": 123456,
   "notes": "Some update notes,
   "roles": ['admin']
+}
+```
+
+Output:
+
+```json
+{ "success": 1 }
+```
+
+## api/v2/users/delete (PUT)
+
+| URL                 | Description                     |
+| ------------------- | ------------------------------- |
+| api/v2/users/delete | delete an existing user |
+
+This call deletes a single existing user. 
+
+### Input Description
+
+| Field             | Description                              |
+| ----------------- | ---------------------------------------- |
+| auth\_users\_id   | user id (required)     |
+
+
+### Example
+
+URL: https://api.mediacloud.org/api/v2/users/update
+
+Input:
+
+```json
+{
+  "auth_users_id": 123456,
 }
 ```
 

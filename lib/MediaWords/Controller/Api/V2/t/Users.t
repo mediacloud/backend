@@ -111,6 +111,17 @@ SQL
 SQL
 
     ok( !$role_present, $label );
+
+    $label = 'users/delete';
+
+    my $delete_user = pop( @{ $expected_auth_users } );
+
+    $r = test_put( '/api/v2/users/delete', { auth_users_id => $delete_user->{ auth_users_id } } );
+
+    ok( $r->{ success } == 1, "$label returned sucess" );
+
+    my $user_exists = $db->find_by_id( 'auth_users', $delete_user->{ auth_users_id } );
+    ok( !$user_exists, "$label user exists" );
 }
 
 sub main

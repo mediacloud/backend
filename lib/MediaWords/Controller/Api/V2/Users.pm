@@ -174,4 +174,23 @@ sub list_roles_GET
     $self->status_ok( $c, entity => $entity );
 }
 
+sub delete : Local : ActionClass('MC_REST')
+{
+}
+
+sub delete_PUT
+{
+    my ( $self, $c ) = @_;
+
+    my $data = $c->req->data;
+
+    $self->require_fields( $c, [ qw/auth_users_id/ ] );
+
+    my $user = $c->dbis->require_by_id( 'auth_users', $data->{ auth_users_id } );
+
+    $c->dbis->query( "delete from auth_users where auth_users_id = ?", $user->{ auth_users_id } );
+
+    return $self->status_ok( $c, entity => { success => 1 } );
+}
+
 1;
