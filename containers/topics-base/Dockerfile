@@ -32,11 +32,6 @@ COPY src/requirements.txt /var/tmp/
 RUN \
     cd /var/tmp/ && \
     #
-    # Has to be done separately before anything else because pyre2 depends on it,
-    # and Pip is unable to figure out that it has to install Cython first from
-    # requirements.txt
-    pip3 install Cython==0.28.5 && \
-    #
     # Install the rest of the stuff
     pip3 install -r requirements.txt && \
     rm requirements.txt && \

@@ -1,5 +1,2 @@
-# gensim parallelization
-Cython==0.28.5
-
 # Word2vec topic models
 gensim==3.6.0
