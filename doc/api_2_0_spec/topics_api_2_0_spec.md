@@ -1265,7 +1265,7 @@ The media list call returns a gexf formatted network map of the media in the top
 
 | Parameter | Default | Notes                                    |
 | --------- | ------- | ---------------------------------------- |
-| color_field  | media_type    | node coloring; possible values: `partisan_code`, `media_type`          |
+| color_field  | media_type    | node coloring; possible values: `partisan_retweet`, `partisan_code`, `media_type`          |
 | num_media      | 500  | number of media to map, sorted by media inlinks |
 | include_weights | false | include weights on edges (default is to use a weight of 1 for every edge) |
 | num_links_per_medium | null | if set, only inclue the top num_links_per_media out links from each medium, sorted by medium_link_counts.link_count and then inlink_count of the target medium |
