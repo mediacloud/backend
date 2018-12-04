@@ -1017,11 +1017,11 @@ services:
                     # RAM limit
                     memory: 2G
 
-	#
-	# Fetch sitemap pages from media
-	# ------------------------------
-	#
-	sitemap_fetch_media_pages:
+    #
+    # Fetch sitemap pages from media
+    # ------------------------------
+    #
+    sitemap_fetch_media_pages:
         build:
             context: ./sitemap-fetch-media-pages/
         image: mediacloud-sitemap-fetch-media-pages:latest
@@ -1121,13 +1121,10 @@ services:
         command: -H unix:///var/run/docker.sock
         volumes:
             - /var/run/docker.sock:/var/run/docker.sock
-            - mc_portainer_data:/data
+            - vol_portainer_data:/data
         deploy:
             # Only one instance
             mode: global
-            # Auto-restart on crashes
-            restart-policy:
-                condition: on-failure
             resources:
                 limits:
                     # CPU core limit
