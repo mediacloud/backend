@@ -28,8 +28,6 @@ services:
             # Celery worker
             - net_rabbitmq
         deploy:
-            # Multiple workers
-            mode: replicated
             # Worker count
             replicas: 4
             # Auto-restart on crashes
@@ -70,8 +68,6 @@ services:
             # Celery worker
             - net_rabbitmq
         deploy:
-            # Multiple workers
-            mode: replicated
             # Worker count
             replicas: 1
             # Auto-restart on crashes
@@ -108,7 +104,7 @@ services:
             - net_rabbitmq
         deploy:
             # Only one instance
-            mode: global
+            replicas: 1
             # Auto-restart on crashes
             restart_policy:
                 condition: on-failure
@@ -135,7 +131,7 @@ services:
             - net_postgresql
         deploy:
             # Only one instance
-            mode: global
+            replicas: 1
             # Auto-restart on crashes
             restart_policy:
                 condition: on-failure
@@ -165,8 +161,6 @@ services:
             # Celery worker
             - net_rabbitmq
         deploy:
-            # Multiple workers
-            mode: replicated
             # Worker count
             replicas: 24
             # Auto-restart on crashes
@@ -205,8 +199,6 @@ services:
             # Celery worker
             - net_rabbitmq
         deploy:
-            # Multiple workers
-            mode: replicated
             # Worker count
             replicas: 4
             # Auto-restart on crashes
@@ -237,7 +229,7 @@ services:
             - vol_daily_rss_dumps:/var/lib/daily_rss_dumps/
         deploy:
             # Only one instance
-            mode: global
+            replicas: 1
             # Auto-restart on crashes
             restart_policy:
                 condition: on-failure
@@ -262,7 +254,7 @@ services:
             - net_postgresql
         deploy:
             # Only one instance
-            mode: global
+            replicas: 1
             # Auto-restart on crashes
             restart_policy:
                 condition: on-failure
@@ -289,7 +281,7 @@ services:
             - net_postgresql
         deploy:
             # Only one instance
-            mode: global
+            replicas: 1
             # Auto-restart on crashes
             restart_policy:
                 condition: on-failure
@@ -322,7 +314,7 @@ services:
             - net_solr
         deploy:
             # Only one instance
-            mode: global
+            replicas: 1
             # Auto-restart on crashes
             restart_policy:
                 condition: on-failure
@@ -347,7 +339,7 @@ services:
             - net_postgresql
         deploy:
             # Only one instance
-            mode: global
+            replicas: 1
             # Auto-restart on crashes
             restart_policy:
                 condition: on-failure
@@ -375,7 +367,7 @@ services:
             - "12301"
         deploy:
             # Only one instance
-            mode: global
+            replicas: 1
             # Auto-restart on crashes
             restart_policy:
                 condition: on-failure
@@ -405,7 +397,7 @@ services:
             - "25"
         deploy:
             # Only one instance
-            mode: global
+            replicas: 1
             # Auto-restart on crashes
             restart_policy:
                 condition: on-failure
@@ -445,8 +437,6 @@ services:
             # Celery worker
             - net_rabbitmq
         deploy:
-            # Multiple workers
-            mode: replicated
             # Worker count
             replicas: 4
             # Auto-restart on crashes
@@ -478,8 +468,6 @@ services:
             # Celery worker
             - net_rabbitmq
         deploy:
-            # Multiple workers
-            mode: replicated
             # Worker count
             replicas: 1
             # Auto-restart on crashes
@@ -512,7 +500,7 @@ services:
             - 6432
         deploy:
             # Only one instance
-            mode: global
+            replicas: 1
             # Auto-restart on crashes
             restart_policy:
                 condition: on-failure
@@ -535,7 +523,7 @@ services:
             - vol_postgresql_data:/var/lib/postgresql/10/main/
         deploy:
             # Only one instance
-            mode: global
+            replicas: 1
             # Auto-restart on crashes
             restart_policy:
                 condition: on-failure
@@ -555,10 +543,9 @@ services:
         expose:
             - 8080
         deploy:
-            # Multiple Gunicorn instances
-            mode: replicated
-            # Instance count
-            replicas: 4
+            # Worker count
+            # FIXME disabled while containerization branch is in development because takes up a lot of RAM
+            replicas: 0
             # Auto-restart on crashes
             restart_policy:
                 condition: on-failure
@@ -585,7 +572,7 @@ services:
             - net_postgresql
         deploy:
             # Only one instance
-            mode: global
+            replicas: 1
             # Auto-restart on crashes
             restart_policy:
                 condition: on-failure
@@ -615,7 +602,7 @@ services:
             - vol_rabbitmq_data:/var/lib/rabbitmq/mnesia/
         deploy:
             # Only one instance
-            mode: global
+            replicas: 1
             # Auto-restart on crashes
             restart_policy:
                 condition: on-failure
@@ -640,7 +627,7 @@ services:
             - net_postgresql
         deploy:
             # Only one instance
-            mode: global
+            replicas: 1
             # Auto-restart on crashes
             restart_policy:
                 condition: on-failure
@@ -667,7 +654,7 @@ services:
             - net_rabbitmq
         deploy:
             # Only one instance
-            mode: global
+            replicas: 1
             # Auto-restart on crashes
             restart_policy:
                 condition: on-failure
@@ -693,8 +680,6 @@ services:
             # Celery worker
             - net_rabbitmq
         deploy:
-            # Multiple workers
-            mode: replicated
             # Worker count
             replicas: 2
             # Auto-restart on crashes
@@ -721,7 +706,7 @@ services:
             - net_postgresql
         deploy:
             # Only one instance
-            mode: global
+            replicas: 1
             # Auto-restart on crashes
             restart_policy:
                 condition: on-failure
@@ -746,7 +731,7 @@ services:
             - net_postgresql
         deploy:
             # Only one instance
-            mode: global
+            replicas: 1
             # Auto-restart on crashes
             restart_policy:
                 condition: on-failure
@@ -771,7 +756,7 @@ services:
             - net_postgresql
         deploy:
             # Only one instance
-            mode: global
+            replicas: 1
             # Auto-restart on crashes
             restart_policy:
                 condition: on-failure
@@ -796,7 +781,7 @@ services:
             - net_postgresql
         deploy:
             # Only one instance
-            mode: global
+            replicas: 1
             # Auto-restart on crashes
             restart_policy:
                 condition: on-failure
@@ -825,8 +810,6 @@ services:
             # Celery worker
             - net_rabbitmq
         deploy:
-            # Multiple workers
-            mode: replicated
             # Worker count
             replicas: 4
             # Auto-restart on crashes
@@ -860,8 +843,6 @@ services:
         volumes:
             - vol_solr_shard_data:/var/lib/solr/
         deploy:
-            # Multiple shards
-            mode: replicated
             # Shard count
             replicas: 24
             # Auto-restart on crashes
@@ -892,7 +873,7 @@ services:
             - 3888
         deploy:
             # Only one instance
-            mode: global
+            replicas: 1
             # Auto-restart on crashes
             restart_policy:
                 condition: on-failure
@@ -918,8 +899,6 @@ services:
             # Celery worker
             - net_rabbitmq
         deploy:
-            # Multiple workers
-            mode: replicated
             # Worker count
             replicas: 32
             # Auto-restart on crashes
@@ -947,8 +926,6 @@ services:
             # Celery worker
             - net_rabbitmq
         deploy:
-            # Multiple workers
-            mode: replicated
             # Worker count
             replicas: 100
             # Auto-restart on crashes
@@ -991,8 +968,6 @@ services:
             # Celery worker
             - net_rabbitmq
         deploy:
-            # Multiple workers
-            mode: replicated
             # Worker count
             replicas: 4
             # Auto-restart on crashes
@@ -1022,8 +997,6 @@ services:
             # Celery worker
             - net_rabbitmq
         deploy:
-            # Multiple workers
-            mode: replicated
             # Worker count
             replicas: 4
             # Auto-restart on crashes
@@ -1053,8 +1026,6 @@ services:
             # Celery worker
             - net_rabbitmq
         deploy:
-            # Multiple workers
-            mode: replicated
             # Worker count
             replicas: 2
             # Auto-restart on crashes
@@ -1082,8 +1053,6 @@ services:
             # Celery worker
             - net_rabbitmq
         deploy:
-            # Multiple workers
-            mode: replicated
             # Worker count
             replicas: 1
             # Auto-restart on crashes
@@ -1127,7 +1096,7 @@ services:
             - vol_webapp_session_data:/var/lib/mediacloud-session/
         deploy:
             # Only one instance
-            mode: global
+            replicas: 1
             # Auto-restart on crashes
             restart_policy:
                 condition: on-failure
@@ -1153,8 +1122,6 @@ services:
             # Celery worker
             - net_rabbitmq
         deploy:
-            # Multiple workers
-            mode: replicated
             # Worker count
             replicas: 1
             # Auto-restart on crashes
@@ -1183,7 +1150,7 @@ services:
     #        - vol_portainer_data:/data
     #    deploy:
     #        # Only one instance
-    #        mode: global
+    #        replicas: 1
     #        resources:
     #            limits:
     #                # CPU core limit
