@@ -35,8 +35,6 @@ RUN \
         bash-completion \
         # Some of the packages might want to use SSL
         ca-certificates \
-        # Crontab jobs (cron has to be run manually though)
-        cron \
         curl \
         htop \
         less \

@@ -7,13 +7,10 @@
 #
 # FIXME disable initially
 
-FROM mediacloud-common:latest
+FROM mediacloud-cron-base:latest
 
 COPY bin/rescrape_due_media.pl /
 
 # Add Cron job
 ADD crontab /etc/cron.d/rescrape_due_media
 RUN chmod 0644 /etc/cron.d/rescrape_due_media
-
-# Run Cron
-CMD ["cron", "-f"]

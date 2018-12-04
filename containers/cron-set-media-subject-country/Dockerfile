@@ -2,7 +2,7 @@
 # Set media's subject country Cron job
 #
 
-FROM mediacloud-common:latest
+FROM mediacloud-cron-base:latest
 
 COPY bin/set_media_subject_country.pl /
 
@@ -12,6 +12,3 @@ COPY src/perl/ /usr/share/perl5/
 # Add Cron job
 ADD crontab /etc/cron.d/set_media_subject_country
 RUN chmod 0644 /etc/cron.d/set_media_subject_country
-
-# Run Cron
-CMD ["cron", "-f"]

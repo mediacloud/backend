@@ -199,12 +199,11 @@ services:
     # Generate daily RSS dumps Cron job
     # ---------------------------------
     #
-    # FIXME send email
-    generate_daily_rss_dumps:
+    cron_generate_daily_rss_dumps:
         build:
-            context: ./generate-daily-rss-dumps/
-        image: mediacloud-generate-daily-rss-dumps:latest
-        container_name: mc_generate_daily_rss_dumps
+            context: ./cron-generate-daily-rss-dumps/
+        image: mediacloud-cron-generate-daily-rss-dumps:latest
+        container_name: mc_cron_generate_daily_rss_dumps
         depends_on:
             - postgresql_pgbouncer
         networks:
@@ -229,12 +228,11 @@ services:
     # Generate media health report Cron job
     # -------------------------------------
     #
-    # FIXME send email
-    generate_media_health:
+    cron_generate_media_health:
         build:
-            context: ./generate-media-health/
-        image: mediacloud-generate-media-health:latest
-        container_name: mc_generate_media_health
+            context: ./cron-generate-media-health/
+        image: mediacloud-cron-generate-media-health:latest
+        container_name: mc_cron_generate_media_health
         networks:
             # Generates media health report from PostgreSQL
             - net_postgresql
@@ -255,12 +253,11 @@ services:
     # Generate daily / weekly user summary Cron job
     # ---------------------------------------------
     #
-    # FIXME send email
-    generate_user_summary:
+    cron_generate_user_summary:
         build:
-            context: ./generate-user-summary/
-        image: mediacloud-generate-user-summary:latest
-        container_name: mc_generate_user_summary
+            context: ./cron-generate-user-summary/
+        image: mediacloud-cron-generate-user-summary:latest
+        container_name: mc_cron_generate_user_summary
         depends_on:
             - postgresql_pgbouncer
         networks:
@@ -599,11 +596,11 @@ services:
     # Refresh stats Cron job
     # ----------------------
     #
-    refresh_stats:
+    cron_refresh_stats:
         build:
-            context: ./refresh-stats/
-        image: mediacloud-refresh-stats:latest
-        container_name: mc_refresh_stats
+            context: ./cron-refresh-stats/
+        image: mediacloud-cron-refresh-stats:latest
+        container_name: mc_cron_refresh_stats
         networks:
             # Refreshes stats on PostgreSQL
             - net_postgresql
@@ -624,11 +621,11 @@ services:
     # Add due media to the rescraping queue Cron job
     # ----------------------------------------------
     #
-    rescrape_due_media:
+    cron_rescrape_due_media:
         build:
-            context: ./rescrape-due-media/
-        image: mediacloud-rescrape-due-media:latest
-        container_name: mc_rescrape_due_media
+            context: ./cron-rescrape-due-media/
+        image: mediacloud-cron-rescrape-due-media:latest
+        container_name: mc_cron_rescrape_due_media
         networks:
             # Fetches media to rescrape from PostgreSQL
             - net_postgresql
@@ -680,13 +677,11 @@ services:
     # Report rescraping changes Cron job
     # ----------------------------------
     #
-    # FIXME send email
-    #
-    rescraping_changes:
+    cron_rescraping_changes:
         build:
-            context: ./rescraping-changes/
-        image: mediacloud-rescraping-changes:latest
-        container_name: mc_rescraping_changes
+            context: ./cron-rescraping-changes/
+        image: mediacloud-cron-rescraping-changes:latest
+        container_name: mc_cron_rescraping_changes
         networks:
             # Fetches media to rescrape from PostgreSQL
             - net_postgresql
@@ -707,11 +702,11 @@ services:
     # Set media primary language Cron job
     # -----------------------------------
     #
-    set_media_primary_language:
+    cron_set_media_primary_language:
         build:
-            context: ./set-media-primary-language/
-        image: mediacloud-set-media-primary-language:latest
-        container_name: mc_set_media_primary_language
+            context: ./cron-set-media-primary-language/
+        image: mediacloud-cron-set-media-primary-language:latest
+        container_name: mc_cron_set_media_primary_language
         networks:
             # Fetches media from PostgreSQL
             - net_postgresql
@@ -732,11 +727,11 @@ services:
     # Set media subject country Cron job
     # -----------------------------------
     #
-    set_media_subject_country:
+    cron_set_media_subject_country:
         build:
-            context: ./set-media-subject-country/
-        image: mediacloud-set-media-subject-country:latest
-        container_name: mc_set_media_subject_country
+            context: ./cron-set-media-subject-country/
+        image: mediacloud-cron-set-media-subject-country:latest
+        container_name: mc_cron_set_media_subject_country
         networks:
             # Fetches media from PostgreSQL
             - net_postgresql
@@ -757,11 +752,11 @@ services:
     # Print long running job states
     # -----------------------------
     #
-    print_long_running_job_states:
+    cron_print_long_running_job_states:
         build:
-            context: ./print-long-running-job-states/
-        image: mediacloud-print-long-running-job-states:latest
-        container_name: mc_print_long_running_job_states
+            context: ./cron-print-long-running-job-states/
+        image: mediacloud-cron-print-long-running-job-states:latest
+        container_name: mc_cron_print_long_running_job_states
         networks:
             # Reads the states from PostgreSQL
             - net_postgresql
