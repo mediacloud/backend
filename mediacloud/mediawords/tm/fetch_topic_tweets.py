@@ -225,7 +225,7 @@ def _add_tweets_to_ch_posts(twitter_class: typing.Type[AbstractTwitter], ch_post
             log.debug("no tweet fetched for url " + ch_post['url'])
 
 
-def _get_tweet_urls(ch_post: dict) -> None:
+def _get_tweet_urls(ch_post: dict) -> typing.List:
     """Parse unique tweet urls from the tweet data.
 
     Looks for urls and media, in the tweet proper and in the retweeted_status.
@@ -243,6 +243,18 @@ def _get_tweet_urls(ch_post: dict) -> None:
         urls = list(set(urls) | set(tweet_urls))
 
     return urls
+
+
+def _insert_tweet_urls(db: DatabaseHandler, topic_tweet: dict, urls: typing.List) -> typing.List:
+    """Insert list of urls into topic_tweet_urls."""
+    for url in urls:
+        db.query(
+            """
+            insert into topic_tweet_urls( topic_tweets_id, url )
+                values( %(a)s, %(b)s )
+                on conflict do nothing
+            """,
+            {'a': topic_tweet['topic_tweets_id'], 'b': url})
 
 
 def _store_tweet_and_urls(db: DatabaseHandler, topic_tweet_day: dict, ch_post: dict) -> None:
@@ -275,15 +287,29 @@ def _store_tweet_and_urls(db: DatabaseHandler, topic_tweet_day: dict, ch_post: d
     topic_tweet = db.create('topic_tweets', topic_tweet)
 
     urls = _get_tweet_urls(ch_post)
+    _insert_tweet_urls(db, topic_tweet, urls)
 
-    for url in urls:
-        db.query(
-            """
-            insert into topic_tweet_urls( topic_tweets_id, url )
-                values( %(a)s, %(b)s )
-                on conflict do nothing
-            """,
-            {'a': topic_tweet['topic_tweets_id'], 'b': url})
+
+def regenerate_tweet_urls(db: dict, topic: dict) -> None:
+    """Reparse the tweet json for a given topic and try to reinsert all tweet urls."""
+    topic_tweets_ids = db.query(
+        """
+        select tt.topic_tweets_id
+            from topic_tweets tt
+                join topic_tweet_days ttd using ( topic_tweet_days_id )
+            where
+                topics_id = %(a)s
+        """,
+        {'a': topic['topics_id']}).flat()
+
+    for (i, topic_tweets_id) in enumerate(topic_tweets_ids):
+        if i % 1000 == 0:
+            log.info('regenerate tweet urls: %d/%d' % (i, len(topic_tweets_ids)))
+
+        topic_tweet = db.require_by_id('topic_tweets', topic_tweets_id)
+        data = mediawords.util.parse_json.decode_json(topic_tweet['data'])
+        urls = _get_tweet_urls(data)
+        _insert_tweet_urls(db, topic_tweet, urls)
 
 
 def _fetch_tweets_for_day(
