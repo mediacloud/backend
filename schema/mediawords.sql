@@ -24,7 +24,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4695;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4696;
 BEGIN
 
     -- Update / set database schema version
@@ -2618,7 +2618,7 @@ create table topic_tweet_urls (
 );
 
 create index topic_tweet_urls_url on topic_tweet_urls ( url );
-create index topic_tweet_urls_tt on topic_tweet_urls ( topic_tweets_id, url );
+create unique index topic_tweet_urls_tt on topic_tweet_urls ( topic_tweets_id, url );
 
 -- view that joins together the related topic_tweets, topic_tweet_days, topic_tweet_urls, and topic_seed_urls tables
 -- tables for convenient querying of topic twitter url data
