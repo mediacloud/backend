@@ -241,21 +241,18 @@ def test_get_tweet_urls() -> None:
                 'entities':
                     {
                         'urls': [{'expanded_url': 'url foo'}, {'expanded_url': 'url bar'}],
-                        'media': [{'media_url': 'media foo'}, {'media_url': 'media bar'}]
                     },
                 'retweeted_status':
                     {
                         'entities':
                             {
                                 'urls': [{'expanded_url': 'rt url foo'}, {'expanded_url': 'rt url bar'}],
-                                'media': [{'media_url': 'rt media foo'}, {'media_url': 'rt media bar'}]
                             }
                     }
             }
         }
     urls = mediawords.tm.fetch_topic_tweets._get_tweet_urls(tweet)
-    expected_urls = \
-        ['url bar', 'url foo', 'media foo', 'media bar', 'rt url foo', 'rt url bar', 'rt media foo', 'rt media bar']
+    expected_urls = ['url bar', 'url foo', 'rt url foo', 'rt url bar']
     assert sorted(urls) == sorted(expected_urls)
 
 

@@ -236,10 +236,6 @@ def _get_tweet_urls(ch_post: dict) -> typing.List:
             continue
 
         tweet_urls = [u['expanded_url'] for u in tweet['entities']['urls']]
-        if 'media' in tweet['entities']:
-            media_urls = [m['media_url'] for m in tweet['entities']['media']]
-            tweet_urls = list(set(tweet_urls) | set(media_urls))
-
         urls = list(set(urls) | set(tweet_urls))
 
     return urls
