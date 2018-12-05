@@ -225,6 +225,26 @@ def _add_tweets_to_ch_posts(twitter_class: typing.Type[AbstractTwitter], ch_post
             log.debug("no tweet fetched for url " + ch_post['url'])
 
 
+def _get_tweet_urls(ch_post: dict) -> None:
+    """Parse unique tweet urls from the tweet data.
+
+    Looks for urls and media, in the tweet proper and in the retweeted_status.
+    """
+    urls = []
+    for tweet in (ch_post['tweet'], ch_post['tweet'].get('retweeted_status', None)):
+        if tweet is None:
+            continue
+
+        tweet_urls = [u['expanded_url'] for u in tweet['entities']['urls']]
+        if 'media' in tweet['entities']:
+            media_urls = [m['media_url'] for m in tweet['entities']['media']]
+            tweet_urls = list(set(tweet_urls) | set(media_urls))
+
+        urls = list(set(urls) | set(tweet_urls))
+
+    return urls
+
+
 def _store_tweet_and_urls(db: DatabaseHandler, topic_tweet_day: dict, ch_post: dict) -> None:
     """
     Store the tweet in topic_tweets and its urls in topic_tweet_urls, using the data in ch_post.
@@ -254,22 +274,16 @@ def _store_tweet_and_urls(db: DatabaseHandler, topic_tweet_day: dict, ch_post: d
 
     topic_tweet = db.create('topic_tweets', topic_tweet)
 
-    urls_inserted = {}  # type:typing.Dict[str, bool]
-    for url_data in ch_post['tweet']['entities']['urls']:
+    urls = _get_tweet_urls(ch_post)
 
-        url = url_data['expanded_url']
-
-        if url in urls_inserted:
-            break
-
-        urls_inserted[url] = True
-
-        db.create(
-            'topic_tweet_urls',
-            {
-                'topic_tweets_id': topic_tweet['topic_tweets_id'],
-                'url': url[0:1024]
-            })
+    for url in urls:
+        db.query(
+            """
+            insert into topic_tweet_urls( topic_tweets_id, url )
+                values( %(a)s, %(b)s )
+                on conflict do nothing
+            """,
+            {'a': topic_tweet['topic_tweets_id'], 'b': url})
 
 
 def _fetch_tweets_for_day(
