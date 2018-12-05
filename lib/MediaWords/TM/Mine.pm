@@ -1227,19 +1227,22 @@ update topic_seed_urls tsu
         assume_match = false
 SQL
 
-    # now insert any topic_tweet_urls that are not already in the topic_seed_urls
+    # now insert any topic_tweet_urls that are not already in the topic_seed_urls.
+    # ignore pb.twimg.com urls because they are almost all images and their servers hang the downloader
+    # when we try to download them en masse
     $db->execute_with_large_work_mem(
         <<SQL,
         INSERT INTO topic_seed_urls ( topics_id, url, assume_match, source )
             SELECT DISTINCT ttfu.topics_id, ttfu.url, true, 'twitter'
             FROM topic_tweet_full_urls ttfu
-            WHERE ttfu.topics_id = \$1
+            WHERE ttfu.topics_id =2597 
               AND ttfu.url NOT IN (
                 SELECT url
                 FROM topic_seed_urls
-                WHERE topics_id = \$1
+                WHERE topics_id = 2597
               )
               AND not ttfu.url like 'https://twitter.com%'
+              AND not ttfu.url like '%pbs.twimg.com%'
 SQL
         $topic->{ topics_id }
     );
