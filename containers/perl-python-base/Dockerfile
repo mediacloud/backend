@@ -2,7 +2,20 @@
 # Perl-Python code base
 #
 
-FROM dockermediacloud/mediacloud-python-base:latest
+FROM dockermediacloud/mediacloud-base:latest
+
+# Install Python
+RUN \
+    add-apt-repository ppa:deadsnakes/ppa && \
+    apt-get update && \
+    apt-get -y --no-install-recommends install \
+        build-essential \
+        python3.7 \
+        python3.7-dev \
+    && \
+    curl https://bootstrap.pypa.io/get-pip.py | sudo -H python3.7 && \
+    rm -rf /root/.cache/ && \
+    true
 
 # CPAN mirror URL (CPAN, DarkPan or MiniCPAN)
 ENV MEDIACLOUD_PERL_CPAN_MIRROR "https://s3.amazonaws.com/mediacloud-minicpan/minicpan-20170824/"
