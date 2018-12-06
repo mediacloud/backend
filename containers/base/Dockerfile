@@ -49,9 +49,6 @@ RUN \
         # Editing stuff while debugging
         vim \
     && \
-    # Default Cron jobs don't have to be run
-    rm -f /etc/cron.d/* && \
-    #
     true
 
 # Copy rsyslog configuration
