@@ -803,7 +803,7 @@ services:
         container_name: mc_similarweb_update_audience_data
         environment:
             # SimilarWeb API key
-            MC_SIMILARWEB_API: ""
+            MC_SIMILARWEB_API_KEY: ""
         networks:
             # Stores audience data in PostgreSQL
             - net_postgresql
@@ -1075,14 +1075,16 @@ services:
         image: dockermediacloud/mediacloud-webapp:latest
         container_name: mc_webapp
         environment:
-            # User session expiration in seconds
-            MC_WEBAPP_SESSION_EXPIRES: "3600"
             # Whether or not to always show stack traces (might leak secrets!)
             MC_WEBAPP_ALWAYS_SHOW_STACK_TRACES: "0"
             # reCAPTCHA public key
-            MC_WEBAPP_RECAPTCHA_PUBLIC_KEY: ""
+            MC_WEBAPP_RECAPTCHA_PUBLIC_KEY: "6LfEVt0SAAAAAFwQI0pOZ1bTHgDTpQcMeQY6VLd_"
             # reCAPTCHA private key
-            MC_WEBAPP_RECAPTCHA_PRIVATE_KEY: ""
+            MC_WEBAPP_RECAPTCHA_PRIVATE_KEY: "6LfEVt0SAAAAABmI-8IJmx4g93eNcSeyeCxvLMs2"
+            # Google Analytics account ID
+            MC_WEBAPP_GOOGLE_ANALYTICS_ACCOUNT_ID: ""
+            # Google Analytics domain name
+            MC_WEBAPP_GOOGLE_ANALYTICS_DOMAIN_NAME: ""
         networks:
             # Uses PostgreSQL to fetch / store data
             - net_postgresql
