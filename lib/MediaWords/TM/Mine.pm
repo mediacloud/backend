@@ -20,50 +20,24 @@ use warnings;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-use Carp;
-use Data::Dumper;
-use DateTime;
-use Digest::MD5;
-use Encode;
 use Getopt::Long;
-use HTML::Entities;
-use Inline::Python;
 use List::Util;
-use Parallel::ForkManager;
 use Readonly;
 use Time::Piece;
-use Time::Seconds;
-use URI;
-use URI::Escape;
-
-use MediaWords::CommonLibs;
 
 use MediaWords::TM;
 use MediaWords::TM::FetchTopicTweets;
-use MediaWords::TM::FetchLink;
 use MediaWords::TM::GuessDate;
-use MediaWords::TM::GuessDate::Result;
 use MediaWords::TM::Stories;
 use MediaWords::DB;
-use MediaWords::DB::Locks;
-use MediaWords::DBI::Activities;
-use MediaWords::DBI::Media;
-use MediaWords::DBI::Stories;
 use MediaWords::DBI::Stories::GuessDate;
 use MediaWords::Job::Facebook::FetchStoryStats;
 use MediaWords::Job::TM::ExtractStoryLinks;
 use MediaWords::Job::TM::FetchLink;
 use MediaWords::Job::TM::SnapshotTopic;
-use MediaCloud::JobManager::Job;
-use MediaWords::Languages::Language;
 use MediaWords::Solr;
 use MediaWords::Util::Config;
-use MediaWords::Util::IdentifyLanguage;
 use MediaWords::Util::SQL;
-use MediaWords::Util::Tags;
-use MediaWords::Util::URL;
-use MediaWords::Util::Web;
-use MediaWords::Util::Web::Cache;
 
 # total time to wait for fetching of social media metrics
 Readonly my $MAX_SOCIAL_MEDIA_FETCH_TIME => ( 60 * 60 * 24 );
@@ -92,29 +66,6 @@ Readonly my $MIN_SEED_IMPORT_FOR_PREDUP_STORIES => 50_000;
 # if mine_topic is run with the test_mode option, set this true and do not try to queue extractions
 my $_test_mode;
 
-# cache of media by media id
-my $_media_cache = {};
-
-# cache for spidered:spidered tag
-my $_spidered_tag;
-
-# cache of media by sanitized url
-my $_media_url_lookup;
-
-# cache that indicates whether we should recheck a given url
-my $_no_potential_match_urls = {};
-
-my $_link_extractor;
-
-# initialize static variables for each run
-sub init_static_variables
-{
-    $_media_cache             = {};
-    $_spidered_tag            = undef;
-    $_media_url_lookup        = undef;
-    $_no_potential_match_urls = {};
-}
-
 # update topics.state in the database
 sub update_topic_state($$$;$)
 {
@@ -127,27 +78,6 @@ sub update_topic_state($$$;$)
     {
         die( "error updating job state (mine_topic() must be called from MediaWords::Job::TM::MineTopic): $@" );
     }
-}
-
-sub get_cached_medium_by_id
-{
-    my ( $db, $media_id ) = @_;
-
-    if ( my $medium = $_media_cache->{ $media_id } )
-    {
-        TRACE "media cache hit";
-        return $medium;
-    }
-
-    TRACE "media cache miss";
-    $_media_cache->{ $media_id } = $db->query( <<SQL, $media_id )->hash;
-select *,
-        exists ( select 1 from media d where d.dup_media_id = m.media_id ) is_dup_target
-    from media m
-    where m.media_id = ?
-SQL
-
-    return $_media_cache->{ $media_id };
 }
 
 # return true if the publish date of the story is within 7 days of the topic date range or if the
@@ -587,52 +517,12 @@ sub run_spider
     map { spider_new_links( $db, $topic, $topic->{ max_iterations } ) } ( 1 .. $topic->{ max_iterations } );
 }
 
-# delete any stories belonging to one of the archive site sources and set any links to archive stories
-# to null ref_stories_id so that they will be respidered.  this allows us to respider any archive stories
-# left over before implementation of archive site redirects
-sub cleanup_existing_archive_stories($$)
-{
-    my ( $db, $topic ) = @_;
-
-    INFO( "cleanup existing archive stories" );
-
-    my $archive_media_ids = $db->query( <<SQL )->flat;
-select media_id from media where name in ( 'is', 'linkis.com', 'archive.org' )
-SQL
-
-    return unless ( @{ $archive_media_ids } );
-
-    my $media_ids_list = join( ',', @{ $archive_media_ids } );
-
-    $db->query( <<SQL, $topic->{ topics_id } );
-update topic_links tl set ref_stories_id = null
-    from snap.live_stories s
-    where
-        tl.ref_stories_id = s.stories_id and
-        tl.topics_id = s.topics_id and
-        tl.topics_id = ? and
-        s.media_id in ( $media_ids_list )
-SQL
-
-    $db->query( <<SQL, $topic->{ topics_id } );
-delete from topic_stories ts
-    using stories s
-    where
-        ts.stories_id = s.stories_id and
-        ts.topics_id = ? and
-        s.media_id in ( $media_ids_list )
-SQL
-
-}
-
 # mine for links any stories in topic_stories for this topic that have not already been mined
 sub mine_topic_stories
 {
     my ( $db, $topic ) = @_;
 
     INFO( "mine topic stories" );
-
-    cleanup_existing_archive_stories( $db, $topic );
 
     # check for twitter topic here as well as in generate_topic_links, because the below query grows very
     # large without ever mining links
@@ -1009,14 +899,6 @@ sub fetch_social_media_data ($$)
     LOGCONFESS( "Timed out waiting for social media data" );
 }
 
-# move all topic stories with a foreign_rss_links medium from topic_stories back to topic_seed_urls
-sub merge_foreign_rss_stories($$)
-{
-    my ( $db, $topic ) = @_;
-
-    MediaWords::TM::Stories::merge_foreign_rss_stories( $db, $topic );
-}
-
 # die if the error rate for link extraction or link fetching is too high
 sub check_job_error_rate($$)
 {
@@ -1074,7 +956,6 @@ SQL
 # mine the given topic for links and to recursively discover new stories on the web.
 # options:
 #   import_only - only run import_seed_urls and import_solr_seed and exit
-#   skip_outgoing_foreign_rss_links - skip slow process of adding links from foreign_rss_links media
 #   skip_post_processing - skip social media fetching and snapshotting
 sub do_mine_topic ($$;$)
 {
@@ -1086,12 +967,7 @@ sub do_mine_topic ($$;$)
     #     die( "refusing to run topic because is_story_index_ready is false" );
     # }
 
-    map { $options->{ $_ } ||= 0 }
-      qw/cache_broken_downloads import_only skip_outgoing_foreign_rss_links skip_post_processing test_mode/;
-
-    # Log activity that is about to start
-    MediaWords::DBI::Activities::log_system_activity( $db, 'tm_mine_topic', $topic->{ topics_id }, $options )
-      || LOGCONFESS( "Unable to log the 'tm_mine_topic' activity." );
+    map { $options->{ $_ } ||= 0 } qw/import_only skip_post_processing test_mode/;
 
     update_topic_state( $db, $topic, "fetching tweets" );
     fetch_and_import_twitter_urls( $db, $topic );
@@ -1103,7 +979,7 @@ sub do_mine_topic ($$;$)
     # something is breaking trying to call this perl.  commenting out for time being since we only need
     # this when we very rarely change the foreign_rss_links field of a media source - hal
     # update_topic_state( $db, $topic, "merging foreign rss stories" );
-    # merge_foreign_rss_stories( $db, $topic );
+    # MediaWords::TM::Stories::merge_foreign_rss_stories( $db, $topic );
 
     update_topic_state( $db, $topic, "importing seed urls" );
     if ( import_seed_urls( $db, $topic ) > $MIN_SEED_IMPORT_FOR_PREDUP_STORIES )
@@ -1261,14 +1137,12 @@ sub fetch_and_import_twitter_urls($$)
     seed_topic_with_tweet_urls( $db, $topic );
 }
 
-# wrap do_mine_topic in eval and handle errors and state1
+# wrap do_mine_topic in eval and handle errors and state
 sub mine_topic ($$;$)
 {
     my ( $db, $topic, $options ) = @_;
 
     my $prev_test_mode = $_test_mode;
-
-    init_static_variables();
 
     $_test_mode = 1 if ( $options->{ test_mode } );
 
