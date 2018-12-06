@@ -12,10 +12,10 @@ RUN curl -L https://packagecloud.io/rabbitmq/rabbitmq-server/gpgkey | apt-key ad
 
 # Add Erlang Solutions APT repository
 # (RabbitMQ > 3.7 requires newer Erlang than is provided by Ubuntu 16.04)
-RUN add-apt-repository "deb https://packages.erlang-solutions.com/ubuntu xenial contrib"
+RUN echo "deb https://packages.erlang-solutions.com/ubuntu xenial contrib" > /etc/apt/sources.list.d/erlang-solutions.list
 
 # Add RabbitMQ APT repository
-RUN add-apt-repository "deb https://packagecloud.io/rabbitmq/rabbitmq-server/ubuntu/ xenial main"
+RUN echo "deb https://packagecloud.io/rabbitmq/rabbitmq-server/ubuntu/ xenial main" > /etc/apt/sources.list.d/rabbitmq.list
 
 # Fetch new repositories
 RUN apt-get -y update

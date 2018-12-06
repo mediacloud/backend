@@ -6,13 +6,21 @@ FROM dockermediacloud/mediacloud-base:latest
 
 # Install Python
 RUN \
-    add-apt-repository ppa:deadsnakes/ppa && \
+    apt-key adv --keyserver keyserver.ubuntu.com --recv-keys F23C5A6CF475977595C89F51BA6932366A755776 && \
+    echo "deb http://ppa.launchpad.net/deadsnakes/ppa/ubuntu xenial main" > /etc/apt/sources.list.d/deadsnakes.list && \
     apt-get update && \
     apt-get -y --no-install-recommends install \
         build-essential \
         python3.7 \
         python3.7-dev \
     && \
+    #
+    # We don't install Python 3.5 via APT's "python3" package but want to make
+    # Python 3.7 be available via "python3" binary
+    ln -s /usr/bin/python3.7 /usr/bin/python3 && \
+    ln -s /usr/lib/python3.7/ /usr/lib/python3/ && \
+    #
+    # Install Pip
     curl https://bootstrap.pypa.io/get-pip.py | sudo -H python3.7 && \
     rm -rf /root/.cache/ && \
     true

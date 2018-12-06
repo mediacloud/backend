@@ -43,8 +43,6 @@ RUN \
         netcat \
         # Some packages insist on logging to syslog
         rsyslog \
-        # add-apt-repository
-        software-properties-common \
         tzdata \
     && \
     true

@@ -8,7 +8,7 @@ FROM dockermediacloud/mediacloud-perl-python-base:latest
 RUN \
     # Add repository for mecab-ipadic-neologd
     apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 379CE192D401AB61 && \
-    apt-add-repository "deb https://dl.bintray.com/pypt/mecab-ipadic-neologd-deb xenial main" && \
+    echo "deb https://dl.bintray.com/pypt/mecab-ipadic-neologd-deb xenial main" > /etc/apt/sources.list.d/mecab-ipadic-neologd.list && \
     apt-get -y update && \
     #
     # Required by "cffi" Python module
