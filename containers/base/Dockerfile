@@ -46,8 +46,6 @@ RUN \
         # add-apt-repository
         software-properties-common \
         tzdata \
-        # Editing stuff while debugging
-        vim \
     && \
     true
 
@@ -76,6 +74,3 @@ RUN \
     echo "* soft nofile 65536" >> /etc/security/limits.conf && \
     echo "* hard nofile 65536" >> /etc/security/limits.conf && \
     true
-
-# Set Vim as default system-wide editor
-RUN update-alternatives --set editor /usr/bin/vim.basic
