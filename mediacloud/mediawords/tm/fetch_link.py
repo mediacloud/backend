@@ -43,6 +43,8 @@ FETCH_STATE_REQUEUED = 'requeued'
 FETCH_STATE_KILLED = 'killed'
 FETCH_STATE_IGNORE = 'ignored'
 FETCH_STATE_SKIPPED = 'skipped'
+FETCH_STATE_TWEET_ADDED = 'tweet added'
+FETCH_STATE_TWEET_FAILED = 'tweet request failed'
 
 
 class McTMFetchLinkException(Exception):
