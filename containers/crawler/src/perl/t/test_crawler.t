@@ -89,7 +89,7 @@ sub _run_crawler()
 {
     my $crawler = MediaWords::Crawler::Engine->new();
 
-    $crawler->test_mode( 1 );    # will set extract_in_process() too
+    $crawler->test_mode( 1 );
 
     #$crawler->children_exit_on_kill( 1 );
 

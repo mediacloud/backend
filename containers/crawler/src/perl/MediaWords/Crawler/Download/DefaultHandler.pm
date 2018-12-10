@@ -40,18 +40,6 @@ use MediaWords::Job::ExtractAndVector;
 # max number of times to try a page after a 5xx error
 Readonly my $MAX_5XX_RETRIES => 10;
 
-# Whether download should be extracted in process instead of adding it to job
-# broker's queue
-has '_extract_in_process' => ( is => 'rw' );
-
-# Constructor
-sub BUILD($$)
-{
-    my ( $self, $args ) = @_;
-
-    $self->_extract_in_process( $args->{ extract_in_process } // 0 );
-}
-
 # Deal with any errors returned by the fetcher response. If the error status
 # looks like something that the site could recover from (503, 500 timeout),
 # queue another time out using back off timing.  If we don't recognize the
@@ -156,17 +144,7 @@ SQL
     {
         my $args = { stories_id => $stories_id + 0 };
 
-        if ( $self->_extract_in_process() )
-        {
-            DEBUG "Extracting story $stories_id for download $downloads_id in process...";
-            my $story = $db->find_by_id( 'stories', $stories_id );
-            MediaWords::DBI::Stories::extract_and_process_story( $db, $story );
-        }
-        else
-        {
-            TRACE "Adding story $stories_id for download $downloads_id to extraction queue...";
-            MediaWords::Job::ExtractAndVector->add_to_queue( $args );
-        }
+        TRACE "Adding story $stories_id for download $downloads_id to extraction queue...";
     }
 
     DEBUG "Handled download $downloads_id.";
