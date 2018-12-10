@@ -15,7 +15,6 @@ use MediaWords::DBI::Auth;
 use MediaWords::DBI::Downloads;
 use MediaWords::DBI::Stories;
 use MediaWords::DB::Schema;
-use MediaWords::Util::Config;
 use MediaWords::Util::URL;
 use MediaWords::Test::DB::Environment;
 

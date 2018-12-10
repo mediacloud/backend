@@ -31,7 +31,6 @@ use MediaWords::Languages::Language;
 use MediaWords::Solr::WordCounts;
 use MediaWords::Util::Annotator::CLIFF;
 use MediaWords::Util::Annotator::NYTLabels;
-use MediaWords::Util::Config;
 use MediaWords::Util::ParseHTML;
 use MediaWords::Util::SQL;
 use MediaWords::Util::URL;

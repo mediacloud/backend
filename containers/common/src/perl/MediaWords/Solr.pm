@@ -29,14 +29,12 @@ use MediaWords::DB;
 use MediaWords::DBI::Stories;
 use MediaWords::Solr::PseudoQueries;
 use MediaWords::Solr::Query;
-use MediaWords::Util::Config;
+use MediaWords::Util::Config::Common;
 use MediaWords::Util::ParseJSON;
 use MediaWords::Util::Text;
 use MediaWords::Util::Web;
 
 use List::MoreUtils qw ( uniq );
-
-use Time::HiRes;
 
 Readonly my $QUERY_HTTP_TIMEOUT => 900;
 
@@ -54,11 +52,8 @@ is a list.
 
 sub get_solr_url
 {
-    my $urls = MediaWords::Util::Config::solr_url();
-
-    my $i = int( Time::HiRes::time * 10000 ) % scalar( @{ $urls } );
-
-    my $url = ref( $urls ) ? $urls->[ $i ] : $urls;
+    my $common_config = MediaWords::Util::Config::Common::CommonConfig();
+    my $url = $common_config->solr_url();
 
     $url =~ s~/+$~~;
 

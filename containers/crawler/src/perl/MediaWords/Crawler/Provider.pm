@@ -51,7 +51,6 @@ use Readonly;
 
 use MediaWords::DB;
 use MediaWords::Crawler::Downloads_Queue;
-use MediaWords::Util::Config;
 
 # how often to download each feed (seconds)
 Readonly my $STALE_FEED_INTERVAL => 60 * 60 * 24 * 7;

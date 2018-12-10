@@ -37,7 +37,6 @@ requires 'add_stories_from_feed';
 requires 'return_stories_to_be_extracted_from_feed';
 
 use MediaWords::DBI::Downloads::Store;
-use MediaWords::Util::Config;
 
 use Readonly;
 

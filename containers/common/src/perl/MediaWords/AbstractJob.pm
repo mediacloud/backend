@@ -18,20 +18,23 @@ use MediaWords::DB::Locks;
     use MediaCloud::JobManager::Configuration;
     use MediaCloud::JobManager::Broker::RabbitMQ;
     use MediaWords::CommonLibs;
-    use MediaWords::Util::Config;
+    use MediaWords::Util::Config::Common;
     extends 'MediaCloud::JobManager::Configuration';
 
     sub BUILD
     {
         my $self = shift;
 
+	my $common_config = MediaWords::Util::Config::Common::CommonConfig();
+	my $rabbitmq_config = $common_config->rabbitmq();
+
         $job_broker = MediaCloud::JobManager::Broker::RabbitMQ->new(
-            hostname => MediaCloud::Util::Config::rabbitmq_hostname(),
-            port     => MediaCloud::Util::Config::rabbitmq_port(),
-            username => MediaCloud::Util::Config::rabbitmq_username(),
-            password => MediaCloud::Util::Config::rabbitmq_password(),
-            vhost    => MediaCloud::Util::Config::rabbitmq_vhost(),
-            timeout  => MediaCloud::Util::Config::rabbitmq_timeout(),
+            hostname => $rabbitmq_config->hostname(),
+            port     => $rabbitmq_config->port(),
+            username => $rabbitmq_config->username(),
+            password => $rabbitmq_config->password(),
+            vhost    => $rabbitmq_config->vhost(),
+            timeout  => $rabbitmq_config->timeout(),
         );
 
         unless ( $job_broker )

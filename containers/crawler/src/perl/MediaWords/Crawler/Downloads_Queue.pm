@@ -11,7 +11,6 @@ use Fcntl qw (O_RDWR O_CREAT O_TRUNC);
 use File::Path;
 use Data::Dumper;
 use MediaWords::DB;
-use MediaWords::Util::Config;
 use Readonly;
 
 Readonly my $DEBUG_MODE => 0;
