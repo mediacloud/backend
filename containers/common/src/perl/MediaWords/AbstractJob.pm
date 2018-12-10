@@ -28,7 +28,7 @@ use MediaWords::DB::Locks;
 	my $common_config = MediaWords::Util::Config::Common::CommonConfig();
 	my $rabbitmq_config = $common_config->rabbitmq();
 
-        $job_broker = MediaCloud::JobManager::Broker::RabbitMQ->new(
+        my $job_broker = MediaCloud::JobManager::Broker::RabbitMQ->new(
             hostname => $rabbitmq_config->hostname(),
             port     => $rabbitmq_config->port(),
             username => $rabbitmq_config->username(),
