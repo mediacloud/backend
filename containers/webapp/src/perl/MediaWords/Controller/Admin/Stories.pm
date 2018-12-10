@@ -147,7 +147,7 @@ sub view : Local
     my $story_sentences = $c->dbis->query( <<END, $stories_id )->hashes;
 select * from story_sentences where stories_id = ? order by sentence_number
 END
-    my $all_sentences = MediaWords::DBI::Stories::get_all_sentences( $c->dbis, $story );
+    my $all_sentences = MediaWords::DBI::Stories::Extract::get_all_sentences( $c->dbis, $story );
 
     $c->stash->{ all_sentences }   = $all_sentences;
     $c->stash->{ story_sentences } = $story_sentences;
