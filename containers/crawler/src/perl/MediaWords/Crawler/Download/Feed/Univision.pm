@@ -19,6 +19,7 @@ use MediaWords::Util::DateTime;
 use MediaWords::Util::URL;
 use MediaWords::Util::Web;
 use MediaWords::Util::ParseJSON;
+use MediaWords::Util::Config::Crawler;
 
 use Data::Dumper;
 use Date::Parse;
@@ -111,10 +112,10 @@ sub _api_request_url_with_signature_from_config($;$)
 
     $http_method //= 'GET';
 
-    my $config = MediaWords::Util::Config::get_config();
+    my $crawler_config = MediaWords::Util::Config::Crawler::CrawlerConfig();
+    my $client_id     = $crawler_config->univision_client_id();
+    my $client_secret = $crawler_config->univision_client_secret();
 
-    my $client_id     = $config->{ univision }->{ client_id };
-    my $client_secret = $config->{ univision }->{ client_secret };
     unless ( $client_id and $client_secret )
     {
         LOGDIE "Univision credentials are unset.";
