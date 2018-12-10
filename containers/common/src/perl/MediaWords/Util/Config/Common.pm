@@ -1,4 +1,4 @@
-package MediaWords::Util::Config;
+package MediaWords::Util::Config::Common;
 
 use strict;
 use warnings;
@@ -9,6 +9,6 @@ use Modern::Perl "2015";
 
 use MediaWords::Util::Python;
 
-MediaWords::Util::Python::import_python_module( __PACKAGE__, 'mediawords.util.config' );
+MediaWords::Util::Python::import_python_module( __PACKAGE__, 'mediawords.util.config.common' );
 
 1;

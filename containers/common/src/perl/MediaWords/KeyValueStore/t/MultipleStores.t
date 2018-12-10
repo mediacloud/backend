@@ -8,6 +8,7 @@ use MediaWords::KeyValueStore::AmazonS3;
 use MediaWords::KeyValueStore::PostgreSQL;
 use MediaWords::KeyValueStore::MultipleStores;
 use MediaWords::Test::DB;
+use MediaWords::Util::Config::Common;
 
 sub main()
 {
@@ -32,8 +33,9 @@ sub main()
 require "$FindBin::Bin/helpers/amazon_s3_set_credentials_from_env.inc.pl";
 set_amazon_s3_test_credentials_from_env_if_needed();
 
-my $config = MediaWords::Util::Config::get_config;
-unless ( defined( $config->{ amazon_s3 }->{ test } ) )
+my $common_config = MediaWords::Util::Config::Common::CommonConfig->new();
+my $amazon_s3_downloads_config = $common_config->amazon_s3_downloads();
+unless ( defined( $amazon_s3_downloads_config->access_key_id() ) )
 {
     plan skip_all => 'Amazon S3\'s testing bucket is not configured';
 }
@@ -44,3 +46,4 @@ else
 
     main();
 }
+
