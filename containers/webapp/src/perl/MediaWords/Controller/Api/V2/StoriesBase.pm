@@ -12,6 +12,7 @@ use Moose;
 use namespace::autoclean;
 
 use MediaWords::DBI::Stories;
+use MediaWords::DBI::Stories::WordMatrix;
 use MediaWords::Solr;
 use MediaWords::Solr::TagCounts;
 use MediaWords::Util::ParseHTML;
@@ -167,7 +168,7 @@ sub _attach_word_counts_to_stories($$)
     my $stories_lookup = {};
     map { $stories_lookup->{ $_->{ stories_id } } = $_ } @{ $stories };
 
-    my ( $word_matrix, $word_list ) = MediaWords::DBI::Stories::get_story_word_matrix( $db, $stories_ids );
+    my ( $word_matrix, $word_list ) = MediaWords::DBI::Stories::WordMatrix::get_story_word_matrix( $db, $stories_ids );
 
     while ( my ( $stories_id, $word_counts ) = each( %{ $word_matrix } ) )
     {
@@ -529,7 +530,7 @@ sub word_matrix_GET
     my $stories_ids =
       MediaWords::Solr::search_for_stories_ids( $db, { q => $q, fq => $fq, rows => $rows, sort => 'random_1 asc' } );
 
-    my ( $word_matrix, $word_list ) = MediaWords::DBI::Stories::get_story_word_matrix( $db, $stories_ids );
+    my ( $word_matrix, $word_list ) = MediaWords::DBI::Stories::WordMatrix::get_story_word_matrix( $db, $stories_ids );
 
     $self->status_ok( $c, entity => { word_matrix => $word_matrix, word_list => $word_list } );
 
