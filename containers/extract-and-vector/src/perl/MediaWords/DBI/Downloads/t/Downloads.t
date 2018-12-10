@@ -11,7 +11,8 @@ use MediaWords::CommonLibs;
 use Test::More tests => 12;
 use Test::NoWarnings;
 
-use MediaWords::DBI::Downloads;
+use MediaWords::DBI::Downloads::Store;
+use MediaWords::DBI::Downloads::Extract;
 use MediaWords::DBI::Stories::Extract;
 use MediaWords::DBI::Stories::ExtractorArguments;
 use MediaWords::DBI::Stories;
@@ -42,7 +43,7 @@ sub test_extract_content($$$)
 
     my $content = MediaWords::Util::Text::decode_from_utf8( read_file( $path ) );
 
-    my $results = MediaWords::DBI::Downloads::extract_content( $content );
+    my $results = MediaWords::DBI::Downloads::Extract::extract_content( $content );
 
     # crawler test squeezes in story title and description into the expected output
     my @download_texts = ( $results->{ extracted_text } );
@@ -79,7 +80,7 @@ sub _add_download_to_story
 
     my $story_content = "$story->{ title }\n\n$story->{ description }";
 
-    $download = MediaWords::DBI::Downloads::store_content( $db, $download, $story_content );
+    $download = MediaWords::DBI::Downloads::Store::store_content( $db, $download, $story_content );
 
     $story->{ content }  = $story_content;
     $story->{ download } = $download;
@@ -117,13 +118,13 @@ sub test_extract($)
 
     my $xargs_usecache = MediaWords::DBI::Stories::ExtractorArguments->new( { use_cache => 1 } );
 
-    my $res = MediaWords::DBI::Downloads::extract( $db, $story_1->{ download }, $xargs_nocache );
+    my $res = MediaWords::DBI::Downloads::Extract::extract( $db, $story_1->{ download }, $xargs_nocache );
     is( $res->{ extracted_html }, $story_1->{ content }, "uncached extraction - extractor result" );
 
     my $c = _get_cache_for_story( $db, $story_1 );
     ok( !$c, "uncached extraction - no cache entry" );
 
-    $res = MediaWords::DBI::Downloads::extract( $db, $story_1->{ download }, $xargs_usecache );
+    $res = MediaWords::DBI::Downloads::Extract::extract( $db, $story_1->{ download }, $xargs_usecache );
     is( $res->{ extracted_html }, $story_1->{ content }, "cached extraction 1 - extractor result" );
 
     $c = _get_cache_for_story( $db, $story_1 );
@@ -131,15 +132,15 @@ sub test_extract($)
     is( $c->{ extracted_html }, $story_1->{ content }, "cached extract 1 - cache result" );
 
     my $new_story_1_content = 'foo bar';
-    $story_1->{ download } = MediaWords::DBI::Downloads::store_content( $db, $story_1->{ download }, $new_story_1_content );
+    $story_1->{ download } = MediaWords::DBI::Downloads::Store::store_content( $db, $story_1->{ download }, $new_story_1_content );
 
-    $res = MediaWords::DBI::Downloads::extract( $db, $story_1->{ download }, $xargs_usecache );
+    $res = MediaWords::DBI::Downloads::Extract::extract( $db, $story_1->{ download }, $xargs_usecache );
     is( $res->{ extracted_html }, $story_1->{ content }, "cached extraction 2 - extractor result" );
 
-    $res = MediaWords::DBI::Downloads::extract( $db, $story_1->{ download }, $xargs_nocache );
+    $res = MediaWords::DBI::Downloads::Extract::extract( $db, $story_1->{ download }, $xargs_nocache );
     is( $res->{ extracted_html }, $new_story_1_content, "uncached extraction 2 - extractor result" );
 
-    $res = MediaWords::DBI::Downloads::extract( $db, $story_2->{ download }, $xargs_usecache );
+    $res = MediaWords::DBI::Downloads::Extract::extract( $db, $story_2->{ download }, $xargs_usecache );
     is( $res->{ extracted_html }, $story_2->{ content }, "cached extraction 3 - extractor result" );
 
     $c = _get_cache_for_story( $db, $story_2 );

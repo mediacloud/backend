@@ -27,7 +27,7 @@ use MediaWords::CommonLibs;
 use Test::NoWarnings;
 
 use MediaWords::Crawler::Engine;
-use MediaWords::DBI::Downloads;
+use MediaWords::DBI::Downloads::Store;
 use MediaWords::DBI::DownloadTexts;
 use MediaWords::DBI::Stories;
 use MediaWords::DBI::Stories::Extract;
@@ -136,7 +136,7 @@ EOF
         $story->{ stories_id }
     )->hash;
 
-    return $download ? MediaWords::DBI::Downloads::fetch_content( $db, $download ) : '';
+    return $download ? MediaWords::DBI::Downloads::Store::fetch_content( $db, $download ) : '';
 }
 
 # get stories from database, including content, text, tags, and sentences

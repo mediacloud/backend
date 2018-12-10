@@ -36,7 +36,7 @@ requires 'add_stories_from_feed';
 # be extracted right away.
 requires 'return_stories_to_be_extracted_from_feed';
 
-use MediaWords::DBI::Downloads;
+use MediaWords::DBI::Downloads::Store;
 use MediaWords::Util::Config;
 
 use Readonly;
@@ -101,7 +101,7 @@ SQL
     $download = $db->find_by_id( 'downloads', $downloads_id );
 
     # Store the feed in any case
-    $download = MediaWords::DBI::Downloads::store_content( $db, $download, $decoded_content );
+    $download = MediaWords::DBI::Downloads::Store::store_content( $db, $download, $decoded_content );
 
     DEBUG "Done processing feed download $downloads_id";
 

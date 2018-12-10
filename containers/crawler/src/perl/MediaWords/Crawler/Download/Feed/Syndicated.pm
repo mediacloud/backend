@@ -14,7 +14,7 @@ use Moose;
 with 'MediaWords::Crawler::Download::DefaultFetcher', 'MediaWords::Crawler::Download::Feed::FeedHandler';
 
 use MediaWords::Crawler::Engine;
-use MediaWords::DBI::Downloads;
+use MediaWords::DBI::Downloads::Store;
 use MediaWords::DBI::Feeds;
 use MediaWords::DBI::Stories;
 
@@ -70,7 +70,7 @@ sub add_stories_from_feed($$$$)
 {
     my ( $self, $db, $download, $decoded_content ) = @_;
 
-    my $media_id = MediaWords::DBI::Downloads::get_media_id( $db, $download );
+    my $media_id = MediaWords::DBI::Downloads::Store::get_media_id( $db, $download );
     my $download_time = $download->{ download_time };
 
     my $stories;
