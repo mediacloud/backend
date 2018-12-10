@@ -26,8 +26,6 @@ use HTML::Entities;
 use List::Util;
 
 use MediaWords::Languages::Language;
-use MediaWords::Util::Annotator::CLIFF;
-use MediaWords::Util::Annotator::NYTLabels;
 use MediaWords::Util::ParseHTML;
 use MediaWords::Util::SQL;
 use MediaWords::Util::URL;
