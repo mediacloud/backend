@@ -607,6 +607,10 @@ create table stories_ap_syndicated (
 create unique index stories_ap_syndicated_story on stories_ap_syndicated ( stories_id );
 
 
+--
+-- Downloads
+--
+
 CREATE TYPE download_state AS ENUM (
 
     -- Download fetch was attempted but led to an error
@@ -658,77 +662,128 @@ CREATE TYPE download_type AS ENUM (
 
 );
 
-create table downloads (
-    downloads_id        serial          primary key,
-    feeds_id            int             null references feeds,
-    stories_id          int             null references stories on delete cascade,
-    parent              int             null,
-    url                 varchar(1024)   not null,
-    host                varchar(1024)   not null,
-    download_time       timestamp       not null default now(),
-    type                download_type   not null,
-    state               download_state  not null,
-    path                text            null,
-    error_message       text            null,
-    priority            int             not null,
-    sequence            int             not null,
-    extracted           boolean         not null default 'f'
+CREATE TABLE downloads (
+    downloads_id        SERIAL          PRIMARY KEY,
+    feeds_id            INT             NULL REFERENCES feeds,
+    stories_id          INT             NULL REFERENCES stories ON DELETE CASCADE,
+    parent              INT             NULL,
+    url                 VARCHAR(1024)   NOT NULL,
+    host                VARCHAR(1024)   NOT NULL,
+    download_time       TIMESTAMP       NOT NULL DEFAULT NOW(),
+    type                download_type   NOT NULL,
+    state               download_state  NOT NULL,
+    path                TEXT            NULL,
+    error_message       TEXT            NULL,
+    priority            INT             NOT NULL,
+    sequence            INT             NOT NULL,
+    extracted           BOOLEAN         NOT NULL DEFAULT 'f'
 );
 
 
-alter table downloads add constraint downloads_parent_fkey
-    foreign key (parent) references downloads on delete set null;
-alter table downloads add constraint downloads_path
-    check ((state = 'success' and path is not null) or
-           (state != 'success'));
-alter table downloads add constraint downloads_feed_id_valid
-      check (feeds_id is not null);
-alter table downloads add constraint downloads_story
-    check (((type = 'feed') and stories_id is null) or (stories_id is not null));
+ALTER TABLE downloads
+    ADD CONSTRAINT downloads_parent_fkey
+    FOREIGN KEY (parent) REFERENCES downloads ON DELETE SET NULL;
+
+ALTER TABLE downloads
+    ADD CONSTRAINT downloads_path
+    CHECK ((state = 'success' AND path IS NOT NULL) OR (state != 'success'));
+
+ALTER TABLE downloads
+    ADD CONSTRAINT downloads_feed_id_valid
+    CHECK (feeds_id IS NOT NULL);
+
+ALTER TABLE downloads
+    ADD CONSTRAINT downloads_story
+    CHECK (((type = 'feed') AND stories_id IS NULL) OR (stories_id IS NOT NULL));
 
 -- make the query optimizer get enough stats to use the feeds_id index
-alter table downloads alter feeds_id set statistics 1000;
+ALTER TABLE downloads
+    ALTER feeds_id
+    SET STATISTICS 1000;
 
 -- Temporary hack so that we don't have to rewrite the entire download to alter the type column
 
 ALTER TABLE downloads
     ADD CONSTRAINT valid_download_type
-    CHECK( type NOT IN
-      (
-      'spider_blog_home',
-      'spider_posting',
-      'spider_rss',
-      'spider_blog_friends_list',
-      'spider_validation_blog_home',
-      'spider_validation_rss',
-      'archival_only'
-      )
-    );
+    CHECK (type NOT IN (
+        'spider_blog_home',
+        'spider_posting',
+        'spider_rss',
+        'spider_blog_friends_list',
+        'spider_validation_blog_home',
+        'spider_validation_rss',
+        'archival_only'
+    ));
 
-create index downloads_parent on downloads (parent);
--- create unique index downloads_host_fetching
---     on downloads(host, (case when state='fetching' then 1 else null end));
-create index downloads_time on downloads (download_time);
+CREATE INDEX downloads_parent
+    ON downloads (parent);
 
-create index downloads_feed_download_time on downloads ( feeds_id, download_time );
+CREATE INDEX downloads_time
+    ON downloads (download_time);
 
--- create index downloads_sequence on downloads (sequence);
-create index downloads_story on downloads(stories_id);
-CREATE INDEX downloads_state_downloads_id_pending on downloads(state,downloads_id) where state='pending';
-create index downloads_extracted on downloads(extracted, state, type)
-    where extracted = 'f' and state = 'success' and type = 'content';
+CREATE INDEX downloads_feed_download_time
+    ON downloads (feeds_id, download_time);
+
+CREATE INDEX downloads_story
+    ON downloads (stories_id);
+
+CREATE INDEX downloads_state_downloads_id_pending
+    ON downloads (state, downloads_id)
+    WHERE state = 'pending';
+
+CREATE INDEX downloads_extracted
+    ON downloads (extracted, state, type)
+    WHERE extracted = 'f'
+      AND state = 'success'
+      AND type = 'content';
 
 CREATE INDEX downloads_stories_to_be_extracted
     ON downloads (stories_id)
-    WHERE extracted = false AND state = 'success' AND type = 'content';
+    WHERE extracted = 'f'
+      AND state = 'success'
+      AND type = 'content';
 
-CREATE INDEX downloads_extracted_stories on downloads (stories_id) where type='content' and state='success';
-CREATE INDEX downloads_state_queued_or_fetching on downloads(state) where state='queued' or state='fetching';
-CREATE INDEX downloads_state_fetching ON downloads(state, downloads_id) where state = 'fetching';
+CREATE INDEX downloads_extracted_stories
+    ON downloads (stories_id)
+    WHERE type = 'content'
+      AND state = 'success';
 
-create view downloads_media as select d.*, f.media_id as _media_id from downloads d, feeds f where d.feeds_id = f.feeds_id;
+CREATE INDEX downloads_state_queued_or_fetching
+    ON downloads (state)
+    WHERE state IN ('queued', 'fetching');
 
-create view downloads_non_media as select d.* from downloads d where d.feeds_id is null;
+CREATE INDEX downloads_state_fetching
+    ON downloads (state, downloads_id)
+    WHERE state = 'fetching';
+
+CREATE VIEW downloads_media AS
+    SELECT
+        d.*,
+        f.media_id AS _media_id
+    FROM downloads d, feeds f
+    WHERE d.feeds_id = f.feeds_id;
+
+CREATE VIEW downloads_non_media AS
+    SELECT d.*
+    FROM downloads d
+    WHERE d.feeds_id IS NULL;
+
+CREATE VIEW downloads_to_be_extracted AS
+    SELECT *
+    FROM downloads
+    WHERE extracted = 'f'
+      AND state = 'success'
+      AND type = 'content';
+
+CREATE VIEW downloads_in_past_day AS
+    SELECT *
+    FROM downloads
+    WHERE download_time > NOW() - interval '1 day';
+
+CREATE VIEW downloads_with_error_in_past_day AS
+    SELECT *
+    FROM downloads_in_past_day
+    WHERE state = 'error';
 
 
 --
@@ -1945,11 +2000,6 @@ CREATE VIEW stories_collected_in_past_day AS
     FROM stories
     WHERE collect_date > now() - interval '1 day';
 
-
-CREATE VIEW downloads_to_be_extracted as select * from downloads where extracted = 'f' and state = 'success' and type = 'content';
-
-CREATE VIEW downloads_in_past_day as select * from downloads where download_time > now() - interval '1 day';
-CREATE VIEW downloads_with_error_in_past_day as select * from downloads_in_past_day where state = 'error';
 
 CREATE VIEW daily_stats AS
     SELECT *
