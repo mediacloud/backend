@@ -608,20 +608,46 @@ create unique index stories_ap_syndicated_story on stories_ap_syndicated ( stori
 
 
 CREATE TYPE download_state AS ENUM (
+
+    -- Download fetch was attempted but led to an error
     'error',
+
+    -- Download is currently being fetched by one of the crawler forks
     'fetching',
+
+    -- Download is waiting for its turn to get fetched
     'pending',
+
+    -- Not used anymore
     'queued',
+
+    -- Download was successfully fetched
     'success',
+
+    -- Download was a feed download, and an attempt at parsing it led to an
+    -- error (e.g. bad XML syntax)
     'feed_error',
+
+    -- Not used anymore
     'extractor_error'
+
 );
 
 CREATE TYPE download_type AS ENUM (
+
+    -- Not used anymore
     'Calais',
+
+    -- Not used anymore
     'calais',
+
+    -- Download is a content download, e.g. a news story
     'content',
+
+    -- Download is a periodic feed download, e.g. RSS / Atom feed
     'feed',
+
+    -- All of the below not used anymore
     'spider_blog_home',
     'spider_posting',
     'spider_rss',
@@ -629,6 +655,7 @@ CREATE TYPE download_type AS ENUM (
     'spider_validation_blog_home',
     'spider_validation_rss',
     'archival_only'
+
 );
 
 create table downloads (
