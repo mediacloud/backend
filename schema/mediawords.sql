@@ -24,7 +24,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4699;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4700;
 BEGIN
 
     -- Update / set database schema version
@@ -985,10 +985,11 @@ CREATE TRIGGER feeds_stories_map_view_insert_update_delete_trigger
 --
 
 -- "Master" table (no indexes, no foreign keys as they'll be ineffective)
-CREATE TABLE stories_tags_map (
+CREATE TABLE stories_tags_map_p (
 
-    -- PRIMARY KEY on master table needed for database handler's primary_key_column() method to work
-    stories_tags_map_id     BIGSERIAL   PRIMARY KEY NOT NULL,
+    -- PRIMARY KEY on master table needed for database handler's
+    -- primary_key_column() method to work
+    stories_tags_map_p_id   BIGSERIAL   PRIMARY KEY NOT NULL,
 
     stories_id              INT         NOT NULL,
     tags_id                 INT         NOT NULL
@@ -1004,7 +1005,7 @@ DECLARE
     partition TEXT;
 BEGIN
 
-    created_partitions := ARRAY(SELECT partition_by_stories_id_create_partitions('stories_tags_map'));
+    created_partitions := ARRAY(SELECT partition_by_stories_id_create_partitions('stories_tags_map_p'));
 
     FOREACH partition IN ARRAY created_partitions LOOP
 
@@ -1034,13 +1035,13 @@ SELECT stories_tags_map_create_partitions();
 
 
 -- Upsert row into correct partition
-CREATE OR REPLACE FUNCTION stories_tags_map_partition_upsert_trigger()
+CREATE OR REPLACE FUNCTION stories_tags_map_p_upsert_trigger()
 RETURNS TRIGGER AS $$
 DECLARE
     target_table_name TEXT;       -- partition table name (e.g. "stories_tags_map_01")
 BEGIN
     SELECT partition_by_stories_id_partition_name(
-        base_table_name := 'stories_tags_map',
+        base_table_name := 'stories_tags_map_p',
         stories_id := NEW.stories_id
     ) INTO target_table_name;
     EXECUTE '
@@ -1053,13 +1054,78 @@ END;
 $$
 LANGUAGE plpgsql;
 
-CREATE TRIGGER stories_tags_map_partition_upsert_trigger
-    BEFORE INSERT ON stories_tags_map
-    FOR EACH ROW EXECUTE PROCEDURE stories_tags_map_partition_upsert_trigger();
+CREATE TRIGGER stories_tags_map_p_upsert_trigger
+    BEFORE INSERT ON stories_tags_map_p
+    FOR EACH ROW EXECUTE PROCEDURE stories_tags_map_p_upsert_trigger();
 
 
-create trigger stm_insert_solr_import_story before insert or update or delete
-    on stories_tags_map for each row execute procedure insert_solr_import_story();
+CREATE TRIGGER stories_tags_map_p_insert_solr_import_story
+    BEFORE INSERT OR UPDATE OR DELETE ON stories_tags_map_p
+    FOR EACH ROW EXECUTE PROCEDURE insert_solr_import_story();
+
+
+-- Proxy view to "stories_tags_map_p" to make RETURNING work
+CREATE OR REPLACE VIEW stories_tags_map AS
+
+    SELECT
+        stories_tags_map_p_id AS stories_tags_map_id,
+        stories_id,
+        tags_id
+    FROM stories_tags_map_p;
+
+
+-- Make RETURNING work with partitioned tables
+-- (https://wiki.postgresql.org/wiki/INSERT_RETURNING_vs_Partitioning)
+ALTER VIEW stories_tags_map
+    ALTER COLUMN stories_tags_map_id
+    SET DEFAULT nextval(pg_get_serial_sequence('stories_tags_map_p', 'stories_tags_map_p_id'));
+
+-- Prevent the next INSERT from failing
+SELECT nextval(pg_get_serial_sequence('stories_tags_map_p', 'stories_tags_map_p_id'));
+
+
+-- Trigger that implements INSERT / UPDATE / DELETE behavior on "stories_tags_map" view
+CREATE OR REPLACE FUNCTION stories_tags_map_view_insert_update_delete() RETURNS trigger AS $$
+BEGIN
+
+    IF (TG_OP = 'INSERT') THEN
+
+        -- By INSERTing into the master table, we're letting triggers choose
+        -- the correct partition.
+        INSERT INTO stories_tags_map_p SELECT NEW.*;
+
+        RETURN NEW;
+
+    ELSIF (TG_OP = 'UPDATE') THEN
+
+        UPDATE stories_tags_map_p
+            SET stories_id = NEW.stories_id,
+                tags_id = NEW.tags_id
+            WHERE stories_id = OLD.stories_id
+              AND tags_id = OLD.tags_id;
+
+        RETURN NEW;
+
+    ELSIF (TG_OP = 'DELETE') THEN
+
+        DELETE FROM stories_tags_map_p
+            WHERE stories_id = OLD.stories_id
+              AND tags_id = OLD.tags_id;
+
+        -- Return deleted rows
+        RETURN OLD;
+
+    ELSE
+        RAISE EXCEPTION 'Unconfigured operation: %', TG_OP;
+
+    END IF;
+
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER stories_tags_map_view_insert_update_delete
+    INSTEAD OF INSERT OR UPDATE OR DELETE ON stories_tags_map
+    FOR EACH ROW EXECUTE PROCEDURE story_sentences_view_insert_update_delete();
 
 
 CREATE TABLE download_texts (
