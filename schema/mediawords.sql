@@ -24,7 +24,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4698;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4699;
 BEGIN
 
     -- Update / set database schema version
@@ -844,24 +844,24 @@ ALTER TABLE raw_downloads
 --
 
 -- "Master" table (no indexes, no foreign keys as they'll be ineffective)
-CREATE TABLE feeds_stories_map_partitioned (
+CREATE TABLE feeds_stories_map_p (
 
     -- PRIMARY KEY on master table needed for database handler's primary_key_column() method to work
-    feeds_stories_map_partitioned_id    BIGSERIAL   PRIMARY KEY NOT NULL,
+    feeds_stories_map_p_id    BIGSERIAL   PRIMARY KEY NOT NULL,
 
-    feeds_id                            INT         NOT NULL,
-    stories_id                          INT         NOT NULL
+    feeds_id                  INT         NOT NULL,
+    stories_id                INT         NOT NULL
 );
 
 -- Note: "INSERT ... RETURNING *" doesn't work with the trigger, please use
 -- "feeds_stories_map" view instead
-CREATE OR REPLACE FUNCTION feeds_stories_map_partitioned_insert_trigger()
+CREATE OR REPLACE FUNCTION feeds_stories_map_p_insert_trigger()
 RETURNS TRIGGER AS $$
 DECLARE
     target_table_name TEXT;       -- partition table name (e.g. "feeds_stories_map_01")
 BEGIN
     SELECT partition_by_stories_id_partition_name(
-        base_table_name := 'feeds_stories_map_partitioned',
+        base_table_name := 'feeds_stories_map_p',
         stories_id := NEW.stories_id
     ) INTO target_table_name;
     EXECUTE '
@@ -873,12 +873,12 @@ END;
 $$
 LANGUAGE plpgsql;
 
-CREATE TRIGGER feeds_stories_map_partitioned_insert_trigger
-    BEFORE INSERT ON feeds_stories_map_partitioned
-    FOR EACH ROW EXECUTE PROCEDURE feeds_stories_map_partitioned_insert_trigger();
+CREATE TRIGGER feeds_stories_map_p_insert_trigger
+    BEFORE INSERT ON feeds_stories_map_p
+    FOR EACH ROW EXECUTE PROCEDURE feeds_stories_map_p_insert_trigger();
 
 
--- Create missing "feeds_stories_map_partitioned" partitions
+-- Create missing "feeds_stories_map_p" partitions
 CREATE OR REPLACE FUNCTION feeds_stories_map_create_partitions()
 RETURNS VOID AS
 $$
@@ -887,7 +887,7 @@ DECLARE
     partition TEXT;
 BEGIN
 
-    created_partitions := ARRAY(SELECT partition_by_stories_id_create_partitions('feeds_stories_map_partitioned'));
+    created_partitions := ARRAY(SELECT partition_by_stories_id_create_partitions('feeds_stories_map_p'));
 
     FOREACH partition IN ARRAY created_partitions LOOP
 
@@ -911,28 +911,28 @@ END;
 $$
 LANGUAGE plpgsql;
 
--- Create initial "feeds_stories_map_partitioned" partitions for empty database
+-- Create initial "feeds_stories_map_p" partitions for empty database
 SELECT feeds_stories_map_create_partitions();
 
 
--- Proxy view to "feeds_stories_map_partitioned" to make RETURNING work
+-- Proxy view to "feeds_stories_map_p" to make RETURNING work
 CREATE OR REPLACE VIEW feeds_stories_map AS
 
     SELECT
-        feeds_stories_map_partitioned_id AS feeds_stories_map_id,
+        feeds_stories_map_p_id AS feeds_stories_map_id,
         feeds_id,
         stories_id
-    FROM feeds_stories_map_partitioned;
+    FROM feeds_stories_map_p;
 
 
 -- Make RETURNING work with partitioned tables
 -- (https://wiki.postgresql.org/wiki/INSERT_RETURNING_vs_Partitioning)
 ALTER VIEW feeds_stories_map
     ALTER COLUMN feeds_stories_map_id
-    SET DEFAULT nextval(pg_get_serial_sequence('feeds_stories_map_partitioned', 'feeds_stories_map_partitioned_id'));
+    SET DEFAULT nextval(pg_get_serial_sequence('feeds_stories_map_p', 'feeds_stories_map_p_id'));
 
 -- Prevent the next INSERT from failing
-SELECT nextval(pg_get_serial_sequence('feeds_stories_map_partitioned', 'feeds_stories_map_partitioned_id'));
+SELECT nextval(pg_get_serial_sequence('feeds_stories_map_p', 'feeds_stories_map_p_id'));
 
 
 -- Trigger that implements INSERT / UPDATE / DELETE behavior on "feeds_stories_map" view
@@ -944,13 +944,13 @@ BEGIN
 
         -- By INSERTing into the master table, we're letting triggers choose
         -- the correct partition.
-        INSERT INTO feeds_stories_map_partitioned SELECT NEW.*;
+        INSERT INTO feeds_stories_map_p SELECT NEW.*;
 
         RETURN NEW;
 
     ELSIF (TG_OP = 'UPDATE') THEN
 
-        UPDATE feeds_stories_map_partitioned
+        UPDATE feeds_stories_map_p
             SET feeds_id = NEW.feeds_id,
                 stories_id = NEW.stories_id
             WHERE feeds_id = OLD.feeds_id
@@ -960,7 +960,7 @@ BEGIN
 
     ELSIF (TG_OP = 'DELETE') THEN
 
-        DELETE FROM feeds_stories_map_partitioned
+        DELETE FROM feeds_stories_map_p
             WHERE feeds_id = OLD.feeds_id
               AND stories_id = OLD.stories_id;
 
@@ -1094,16 +1094,16 @@ ALTER TABLE download_texts add CONSTRAINT download_text_length_is_correct CHECK 
 --
 
 -- "Master" table (no indexes, no foreign keys as they'll be ineffective)
-CREATE TABLE story_sentences_partitioned (
-    story_sentences_partitioned_id      BIGSERIAL       PRIMARY KEY NOT NULL,
-    stories_id                          INT             NOT NULL,
-    sentence_number                     INT             NOT NULL,
-    sentence                            TEXT            NOT NULL,
-    media_id                            INT             NOT NULL,
-    publish_date                        TIMESTAMP       NOT NULL,
+CREATE TABLE story_sentences_p (
+    story_sentences_p_id    BIGSERIAL   PRIMARY KEY NOT NULL,
+    stories_id              INT         NOT NULL,
+    sentence_number         INT         NOT NULL,
+    sentence                TEXT        NOT NULL,
+    media_id                INT         NOT NULL,
+    publish_date            TIMESTAMP   NOT NULL,
 
     -- 2- or 3-character ISO 690 language code; empty if unknown, NULL if unset
-    language                            VARCHAR(3)      NULL,
+    language                VARCHAR(3)  NULL,
 
     -- Set to 'true' for every sentence for which a duplicate sentence was
     -- found in a future story (even though that duplicate sentence wasn't
@@ -1117,19 +1117,19 @@ CREATE TABLE story_sentences_partitioned (
     -- duped out of most stories but not the first time it appeared. So I added
     -- the check to remove stories that match on a dup sentence, even if it is
     -- the dup sentence, and things cleaned up."
-    is_dup                              BOOLEAN         NULL
+    is_dup                   BOOLEAN    NULL
 );
 
 
 -- Note: "INSERT ... RETURNING *" doesn't work with the trigger, please use
 -- "story_sentences" view instead
-CREATE OR REPLACE FUNCTION story_sentences_partitioned_insert_trigger()
+CREATE OR REPLACE FUNCTION story_sentences_p_insert_trigger()
 RETURNS TRIGGER AS $$
 DECLARE
     target_table_name TEXT;       -- partition table name (e.g. "stories_tags_map_01")
 BEGIN
     SELECT partition_by_stories_id_partition_name(
-        base_table_name := 'story_sentences_partitioned',
+        base_table_name := 'story_sentences_p',
         stories_id := NEW.stories_id
     ) INTO target_table_name;
     EXECUTE '
@@ -1141,12 +1141,12 @@ END;
 $$
 LANGUAGE plpgsql;
 
-CREATE TRIGGER story_sentences_partitioned_01_insert_trigger
-    BEFORE INSERT ON story_sentences_partitioned
-    FOR EACH ROW EXECUTE PROCEDURE story_sentences_partitioned_insert_trigger();
+CREATE TRIGGER story_sentences_p_insert_trigger
+    BEFORE INSERT ON story_sentences_p
+    FOR EACH ROW EXECUTE PROCEDURE story_sentences_p_insert_trigger();
 
 
--- Create missing "story_sentences_partitioned" partitions
+-- Create missing "story_sentences_p" partitions
 CREATE OR REPLACE FUNCTION story_sentences_create_partitions()
 RETURNS VOID AS
 $$
@@ -1155,7 +1155,7 @@ DECLARE
     partition TEXT;
 BEGIN
 
-    created_partitions := ARRAY(SELECT partition_by_stories_id_create_partitions('story_sentences_partitioned'));
+    created_partitions := ARRAY(SELECT partition_by_stories_id_create_partitions('story_sentences_p'));
 
     FOREACH partition IN ARRAY created_partitions LOOP
 
@@ -1179,15 +1179,15 @@ END;
 $$
 LANGUAGE plpgsql;
 
--- Create initial "story_sentences_partitioned" partitions for empty database
+-- Create initial "story_sentences_p" partitions for empty database
 SELECT story_sentences_create_partitions();
 
 
--- Proxy view to "story_sentences_partitioned" to make RETURNING work
+-- Proxy view to "story_sentences_p" to make RETURNING work
 CREATE OR REPLACE VIEW story_sentences AS
 
     SELECT
-        story_sentences_partitioned_id AS story_sentences_id,
+        story_sentences_p_id AS story_sentences_id,
         stories_id,
         sentence_number,
         sentence,
@@ -1195,17 +1195,17 @@ CREATE OR REPLACE VIEW story_sentences AS
         publish_date,
         language,
         is_dup
-    FROM story_sentences_partitioned;
+    FROM story_sentences_p;
 
 
 -- Make RETURNING work with partitioned tables
 -- (https://wiki.postgresql.org/wiki/INSERT_RETURNING_vs_Partitioning)
 ALTER VIEW story_sentences
     ALTER COLUMN story_sentences_id
-    SET DEFAULT nextval(pg_get_serial_sequence('story_sentences_partitioned', 'story_sentences_partitioned_id'));
+    SET DEFAULT nextval(pg_get_serial_sequence('story_sentences_p', 'story_sentences_p_id'));
 
 -- Prevent the next INSERT from failing
-SELECT nextval(pg_get_serial_sequence('story_sentences_partitioned', 'story_sentences_partitioned_id'));
+SELECT nextval(pg_get_serial_sequence('story_sentences_p', 'story_sentences_p_id'));
 
 
 -- Trigger that implements INSERT / UPDATE / DELETE behavior on "story_sentences" view
@@ -1216,13 +1216,13 @@ BEGIN
 
         -- By INSERTing into the master table, we're letting triggers choose
         -- the correct partition.
-        INSERT INTO story_sentences_partitioned SELECT NEW.*;
+        INSERT INTO story_sentences_p SELECT NEW.*;
 
         RETURN NEW;
 
     ELSIF (TG_OP = 'UPDATE') THEN
 
-        UPDATE story_sentences_partitioned
+        UPDATE story_sentences_p
             SET stories_id = NEW.stories_id,
                 sentence_number = NEW.sentence_number,
                 sentence = NEW.sentence,
@@ -1237,7 +1237,7 @@ BEGIN
 
     ELSIF (TG_OP = 'DELETE') THEN
 
-        DELETE FROM story_sentences_partitioned
+        DELETE FROM story_sentences_p
             WHERE stories_id = OLD.stories_id
               AND sentence_number = OLD.sentence_number;
 
@@ -2616,10 +2616,10 @@ BEGIN
     RAISE NOTICE 'Creating partitions in "stories_tags_map" table...';
     PERFORM stories_tags_map_create_partitions();
 
-    RAISE NOTICE 'Creating partitions in "story_sentences_partitioned" table...';
+    RAISE NOTICE 'Creating partitions in "story_sentences_p" table...';
     PERFORM story_sentences_create_partitions();
 
-    RAISE NOTICE 'Creating partitions in "feeds_stories_map_partitioned" table...';
+    RAISE NOTICE 'Creating partitions in "feeds_stories_map_p" table...';
     PERFORM feeds_stories_map_create_partitions();
 
 END;
