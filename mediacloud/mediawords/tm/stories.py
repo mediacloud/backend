@@ -24,10 +24,6 @@ import mediawords.util.url
 
 log = create_logger(__name__)
 
-# url and title length limits necessary to fit within postgres field
-_MAX_URL_LENGTH = 1024
-_MAX_TITLE_LENGTH = 1024
-
 SPIDER_FEED_NAME = 'Spider Feed'
 
 BINARY_EXTENSIONS = 'jpg pdf doc mp3 mp4 zip png docx'.split()
@@ -197,7 +193,7 @@ def get_story_match(db: DatabaseHandler, url: str, redirect_url: typing.Optional
 
     If multiple stories are found, use get_preferred_story() to decide which story to return.
 
-    Only mach the first _MAX_URL_LENGTH characters of the url / redirect_url.
+    Only mach the first mediawords.dbi.stories.stories.MAX_URL_LENGTH characters of the url / redirect_url.
 
     Arguments:
     db - db handle
@@ -208,11 +204,11 @@ def get_story_match(db: DatabaseHandler, url: str, redirect_url: typing.Optional
     the matched story or None
 
     """
-    u = url[0:_MAX_URL_LENGTH]
+    u = url[0:mediawords.dbi.stories.stories.MAX_URL_LENGTH]
 
     ru = ''
     if not ignore_redirect(db, url, redirect_url):
-        ru = redirect_url[0:_MAX_URL_LENGTH] if redirect_url is not None else u
+        ru = redirect_url[0:mediawords.dbi.stories.stories.MAX_URL_LENGTH] if redirect_url is not None else u
 
     nu = mediawords.util.url.normalize_url_lossy(u)
     nru = mediawords.util.url.normalize_url_lossy(ru)
@@ -351,6 +347,8 @@ def generate_story(
         db: DatabaseHandler,
         url: str,
         content: str,
+        title: str = None,
+        publish_date: datetime.datetime = None,
         fallback_date: typing.Optional[datetime.datetime] = None) -> dict:
     """Add a new story to the database by guessing metadata using the given url and content.
 
@@ -365,12 +363,14 @@ def generate_story(
     if len(url) < 1:
         raise McTMStoriesException("url must not be an empty string")
 
-    url = url[0:_MAX_URL_LENGTH]
+    url = url[0:mediawords.dbi.stories.stories.MAX_URL_LENGTH]
 
     medium = mediawords.tm.media.guess_medium(db, url)
     feed = get_spider_feed(db, medium)
     spidered_tag = mediawords.tm.media.get_spidered_tag(db)
-    title = mediawords.util.parse_html.html_title(content, url, _MAX_TITLE_LENGTH)
+
+    if title is None:
+        title = mediawords.util.parse_html.html_title(content, url, mediawords.dbi.stories.stories.MAX_TITLE_LENGTH)
 
     story = {
         'url': url,
@@ -384,10 +384,13 @@ def generate_story(
     for field in ('url', 'guid', 'title'):
         story[field] = re2.sub('\x00', '', story[field])
 
-    date_guess = guess_date(url, content)
-    story['publish_date'] = date_guess.date if date_guess.found else fallback_date
-    if story['publish_date'] is None:
-        story['publish_date'] = datetime.datetime.now().isoformat()
+    if publish_date is None:
+        date_guess = guess_date(url, content)
+        story['publish_date'] = date_guess.date if date_guess.found else fallback_date
+        if story['publish_date'] is None:
+            story['publish_date'] = datetime.datetime.now().isoformat()
+    else:
+        story['publish_date'] = publish_date
 
     try:
         story = db.create('stories', story)
@@ -400,7 +403,8 @@ def generate_story(
         "insert into stories_tags_map (stories_id, tags_id) values (%(a)s, %(b)s)",
         {'a': story['stories_id'], 'b': spidered_tag['tags_id']})
 
-    assign_date_guess_tag(db, story, date_guess, fallback_date)
+    if publish_date is None:
+        assign_date_guess_tag(db, story, date_guess, fallback_date)
 
     log.debug("add story: %s; %s; %s; %d" % (story['title'], story['url'], story['publish_date'], story['stories_id']))
 

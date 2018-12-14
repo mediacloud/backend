@@ -209,34 +209,6 @@ def test_ch_api() -> None:
         assert re.search(r'status/\d+', post['url'])
 
 
-def test_get_tweet_urls() -> None:
-    """Test _get_tweet_urls()."""
-    tweet = {'tweet': {'entities': {'urls': [{'expanded_url': 'foo'}, {'expanded_url': 'bar'}]}}}
-    urls = mediawords.tm.fetch_topic_tweets._get_tweet_urls(tweet)
-    assert sorted(urls) == ['bar', 'foo']
-
-    tweet = \
-        {
-            'tweet':
-            {
-                'entities':
-                    {
-                        'urls': [{'expanded_url': 'url foo'}, {'expanded_url': 'url bar'}],
-                    },
-                'retweeted_status':
-                    {
-                        'entities':
-                            {
-                                'urls': [{'expanded_url': 'rt url foo'}, {'expanded_url': 'rt url bar'}],
-                            }
-                    }
-            }
-        }
-    urls = mediawords.tm.fetch_topic_tweets._get_tweet_urls(tweet)
-    expected_urls = ['url bar', 'url foo', 'rt url foo', 'rt url bar']
-    assert sorted(urls) == sorted(expected_urls)
-
-
 class TestFetchTopicTweets(TestDatabaseWithSchemaTestCase):
     """Run database tests."""
 

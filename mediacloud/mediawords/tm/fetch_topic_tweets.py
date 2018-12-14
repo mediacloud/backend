@@ -168,22 +168,6 @@ def _add_tweets_to_ch_posts(twitter_class: typing.Type[AbstractTwitter], ch_post
             log.debug("no tweet fetched for url " + ch_post['url'])
 
 
-def _get_tweet_urls(ch_post: dict) -> typing.List:
-    """Parse unique tweet urls from the tweet data.
-
-    Looks for urls and media, in the tweet proper and in the retweeted_status.
-    """
-    urls = []
-    for tweet in (ch_post['tweet'], ch_post['tweet'].get('retweeted_status', None)):
-        if tweet is None:
-            continue
-
-        tweet_urls = [u['expanded_url'] for u in tweet['entities']['urls']]
-        urls = list(set(urls) | set(tweet_urls))
-
-    return urls
-
-
 def _insert_tweet_urls(db: DatabaseHandler, topic_tweet: dict, urls: typing.List) -> typing.List:
     """Insert list of urls into topic_tweet_urls."""
     for url in urls:
@@ -225,7 +209,7 @@ def _store_tweet_and_urls(db: DatabaseHandler, topic_tweet_day: dict, ch_post: d
 
     topic_tweet = db.create('topic_tweets', topic_tweet)
 
-    urls = _get_tweet_urls(ch_post)
+    urls = mediawords.util.twitter.get_tweet_urls(ch_post['tweet'])
     _insert_tweet_urls(db, topic_tweet, urls)
 
 
@@ -247,7 +231,7 @@ def regenerate_tweet_urls(db: dict, topic: dict) -> None:
 
         topic_tweet = db.require_by_id('topic_tweets', topic_tweets_id)
         data = mediawords.util.parse_json.decode_json(topic_tweet['data'])
-        urls = _get_tweet_urls(data)
+        urls = mediawords.util.twitter.get_tweet_urls(data['tweet'])
         _insert_tweet_urls(db, topic_tweet, urls)
 
 

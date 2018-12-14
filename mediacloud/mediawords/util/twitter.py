@@ -1,6 +1,7 @@
 """Routines for interacting with twitter api and data."""
 
-import time
+import re
+import typing
 
 import tweepy
 
@@ -11,6 +12,11 @@ from mediawords.util.log import create_logger
 
 log = create_logger(__name__)
 
+# configure retry behavior for tweepy
+TWITTER_RETRY_DELAY = 60
+TWITTER_RETRY_COUNT = 120
+TWITTER_RETRY_ERRORS = set([401, 404, 500, 503])
+
 
 class McFetchTweetsException(Exception):
     """error while fetching tweets from twitter."""
@@ -18,12 +24,9 @@ class McFetchTweetsException(Exception):
     pass
 
 
-def fetch_100_tweets(tweet_ids: list) -> list:
-    """Implement fetch_tweets on twitter api using config data from mediawords.yml."""
+def get_tweepy_api() -> tweepy.API:
+    """Return an authenticated tweepy api object configued for retries."""
     config = mediawords.util.config.get_config()
-
-    if len(tweet_ids) > 100:
-        raise McFetchTweetsException('tried to fetch more than 100 tweets')
 
     if 'twitter' not in config:
         raise McFetchTweetsException('missing twitter configuration in mediawords.yml')
@@ -36,28 +39,69 @@ def fetch_100_tweets(tweet_ids: list) -> list:
     auth.set_access_token(config['twitter']['access_token'], config['twitter']['access_token_secret'])
 
     # the RawParser lets us directly decode from json to dict below
-    api = tweepy.API(auth, parser=tweepy.parsers.RawParser())
+    api = tweepy.API(
+        auth_handler=auth,
+        retry_delay=TWITTER_RETRY_DELAY,
+        retry_count=TWITTER_RETRY_COUNT,
+        retry_errors=TWITTER_RETRY_ERRORS,
+        wait_on_rate_limit=True,
+        wait_on_rate_limit_notify=True,
+        parser=tweepy.parsers.RawParser())
 
-    # catch all errors and do backoff retries.  don't just catch rate limit errors because we want to be
-    # robust in the face of temporary network or service provider errors.
-    tweets = None
-    max_twitter_retries = 10
-    twitter_retries = 0
-    while tweets is None and twitter_retries < max_twitter_retries:
-        last_exception = None
-        try:
-            tweets = api.statuses_lookup(tweet_ids, include_entities=True, trim_user=False)
-        except tweepy.TweepError as e:
-            sleep = 2 * (twitter_retries ** 2)
-            log.info("twitter fetch error.  waiting " + str(sleep) + " seconds before retry ...")
-            time.sleep(sleep)
-            last_exception = e
+    return api
 
-        twitter_retries += 1
 
-    if twitter_retries >= max_twitter_retries:
-        raise McFetchTweetsException("unable to fetch tweets: " + str(last_exception))
+def fetch_100_users(screen_names: list) -> list:
+    """Fetch data for up to 100 users."""
+    if len(screen_names) > 100:
+        raise McFetchTweetsException('tried to fetch more than 100 users')
 
-    # it is hard to mock tweepy data directly, and the default tweepy objects are not json serializable,
-    # so just return a direct dict decoding of the raw twitter payload
+    users = get_tweepy_api().lookup_users(screen_names=screen_names, include_entities=False)
+
+    # return simple list so that this can be mocked. relies on RawParser() in get_tweepy_api
+    return list(mediawords.util.parse_json.decode_json(users))
+
+
+def fetch_100_tweets(tweet_ids: list) -> list:
+    """Fetch data for up to 100 tweets."""
+    if len(tweet_ids) > 100:
+        raise McFetchTweetsException('tried to fetch more than 100 tweets')
+
+    tweets = get_tweepy_api().statuses_lookup(tweet_ids, include_entities=True, trim_user=False)
+
+    # return simple list so that this can be mocked. relies on RawParser() in get_tweepy_api
     return list(mediawords.util.parse_json.decode_json(tweets))
+
+
+def parse_status_id_from_url(url: str) -> typing.Optional[str]:
+    """Try to parse a twitter status id from a url.  Return the status id or None if not found."""
+    m = re.search(r'https?://twitter.com/.*/status/(\d+)', url)
+    if m:
+        return m.group(1)
+    else:
+        return None
+
+
+def parse_screen_name_from_user_url(url: str) -> typing.Optional[str]:
+    """Try to parse a screen name from a twitter user page url."""
+    m = re.search(r'https?://twitter.com/([^\/]+)$', url)
+    if m:
+        return m.group(1)
+    else:
+        return None
+
+
+def get_tweet_urls(tweet: dict) -> typing.List:
+    """Parse unique tweet urls from the tweet data.
+
+    Looks for urls and media, in the tweet proper and in the retweeted_status.
+    """
+    urls = []
+    for tweet in (tweet, tweet.get('retweeted_status', None), tweet.get('quoted_status', None)):
+        if tweet is None:
+            continue
+
+        tweet_urls = [u['expanded_url'] for u in tweet['entities']['urls']]
+        urls = list(set(urls) | set(tweet_urls))
+
+    return urls

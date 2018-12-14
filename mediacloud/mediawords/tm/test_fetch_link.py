@@ -10,13 +10,13 @@ from mediawords.db.exceptions.handler import McUpdateByIDException
 from mediawords.util.web.user_agent.throttled import McThrottledDomainException
 
 
-def test_content_matches_topic() -> None:
+def testcontent_matches_topic() -> None:
     """Test content_matches_topic()."""
-    assert mediawords.tm.fetch_link._content_matches_topic('foo', {'pattern': 'foo'})
-    assert mediawords.tm.fetch_link._content_matches_topic('FOO', {'pattern': 'foo'})
-    assert mediawords.tm.fetch_link._content_matches_topic('FOO', {'pattern': ' foo '})
-    assert not mediawords.tm.fetch_link._content_matches_topic('foo', {'pattern': 'bar'})
-    assert mediawords.tm.fetch_link._content_matches_topic('foo', {'pattern': 'bar'}, assume_match=True)
+    assert mediawords.tm.fetch_link.content_matches_topic('foo', {'pattern': 'foo'})
+    assert mediawords.tm.fetch_link.content_matches_topic('FOO', {'pattern': 'foo'})
+    assert mediawords.tm.fetch_link.content_matches_topic('FOO', {'pattern': ' foo '})
+    assert not mediawords.tm.fetch_link.content_matches_topic('foo', {'pattern': 'bar'})
+    assert mediawords.tm.fetch_link.content_matches_topic('foo', {'pattern': 'bar'}, assume_match=True)
 
 
 class TestTMFetchLinkDB(mediawords.test.test_database.TestDatabaseWithSchemaTestCase):
@@ -366,7 +366,7 @@ class TestTMFetchLinkDB(mediawords.test.test_database.TestDatabaseWithSchemaTest
             'state': mediawords.tm.fetch_link.FETCH_STATE_STORY_ADDED,
             'stories_id': target_story['stories_id']})
 
-        mediawords.tm.fetch_link._try_update_topic_link_ref_stories_id(db, topic_fetch_url_a)
+        mediawords.tm.fetch_link.try_update_topic_link_ref_stories_id(db, topic_fetch_url_a)
 
         topic_link_a = db.require_by_id('topic_links', topic_link_a['topic_links_id'])
 
@@ -385,7 +385,7 @@ class TestTMFetchLinkDB(mediawords.test.test_database.TestDatabaseWithSchemaTest
             'state': mediawords.tm.fetch_link.FETCH_STATE_STORY_ADDED,
             'stories_id': target_story['stories_id']})
 
-        mediawords.tm.fetch_link._try_update_topic_link_ref_stories_id(db, topic_fetch_url_b)
+        mediawords.tm.fetch_link.try_update_topic_link_ref_stories_id(db, topic_fetch_url_b)
 
         topic_link_b = db.require_by_id('topic_links', topic_link_b['topic_links_id'])
 
@@ -394,4 +394,4 @@ class TestTMFetchLinkDB(mediawords.test.test_database.TestDatabaseWithSchemaTest
         # now generate an non-unique error and make sure we get an error
         bogus_tfu = {'topic_links_id': 0, 'topics_id': 'nan', 'stories_id': 'nan'}
         with self.assertRaises(McUpdateByIDException):
-            mediawords.tm.fetch_link._try_update_topic_link_ref_stories_id(db, bogus_tfu)
+            mediawords.tm.fetch_link.try_update_topic_link_ref_stories_id(db, bogus_tfu)
