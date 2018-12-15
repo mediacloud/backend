@@ -201,7 +201,7 @@ $$ LANGUAGE plpgsql;
 
 CREATE TRIGGER stories_tags_map_view_insert_update_delete
     INSTEAD OF INSERT OR UPDATE OR DELETE ON stories_tags_map
-    FOR EACH ROW EXECUTE PROCEDURE story_sentences_view_insert_update_delete();
+    FOR EACH ROW EXECUTE PROCEDURE stories_tags_map_view_insert_update_delete();
 
 
 --
