@@ -60,6 +60,10 @@ $$;
 ALTER TABLE stories_tags_map
     RENAME TO stories_tags_map_p;
 
+-- Some migrations might have led the sequence to have "1" suffix
+ALTER SEQUENCE IF EXISTS stories_tags_map_stories_tags_map_id_seq1
+    RENAME TO stories_tags_map_stories_tags_map_id_seq;
+
 ALTER SEQUENCE stories_tags_map_stories_tags_map_id_seq
     RENAME TO stories_tags_map_p_stories_tags_map_p_id_seq;
 
