@@ -91,7 +91,7 @@ sub _get_cache_for_story
 
     my $downloads_id = $story->{ download }->{ downloads_id };
 
-    my $c = $db->query( "select * from cached_extractor_results where downloads_id = ?", $downloads_id )->hash;
+    my $c = $db->query( "select * from cache.extractor_results_cache where downloads_id = ?", $downloads_id )->hash;
 
     return $c;
 }

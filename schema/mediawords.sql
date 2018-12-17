@@ -24,7 +24,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4701;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4702;
 BEGIN
 
     -- Update / set database schema version
@@ -1013,7 +1013,7 @@ BEGIN
         SET downloads_id = NEW.downloads_id
         WHERE downloads_id = OLD.downloads_id;
 
-        UPDATE cached_extractor_results
+        UPDATE cache.extractor_results_cache
         SET downloads_id = NEW.downloads_id
         WHERE downloads_id = OLD.downloads_id;
 
@@ -1048,7 +1048,7 @@ BEGIN
         DELETE FROM download_texts
         WHERE downloads_id = OLD.downloads_id;
 
-        DELETE FROM cached_extractor_results
+        DELETE FROM cache.extractor_results_cache
         WHERE downloads_id = OLD.downloads_id;
 
         DELETE FROM cache.s3_raw_downloads_cache
@@ -3349,25 +3349,6 @@ create view controversy_dump_time_slices as
         from timespans;
 
 
--- Cached extractor results for extraction jobs with use_cache set to true
-CREATE TABLE cached_extractor_results (
-    cached_extractor_results_id BIGSERIAL   PRIMARY KEY,
-    extracted_html              TEXT,
-    extracted_text              TEXT,
-    downloads_id                BIGINT      NOT NULL
-);
-
--- It's better to have a few duplicates than deal with locking issues, so we
--- don't try to make this unique
-CREATE INDEX cached_extractor_results_downloads_id
-    ON cached_extractor_results (downloads_id);
-
-CREATE TRIGGER cached_extractor_results_test_referenced_download_trigger
-    BEFORE INSERT OR UPDATE ON cached_extractor_results
-    FOR EACH ROW
-    EXECUTE PROCEDURE test_referenced_download_trigger('downloads_id');
-
-
 -- keep track of performance of the topic spider
 create table topic_spider_metrics (
     topic_spider_metrics_id         serial primary key,
@@ -3741,6 +3722,12 @@ BEGIN
         WHERE db_row_last_updated <= NOW() - INTERVAL ''3 days'';
     ';
 
+    RAISE NOTICE 'Purging "extractor_results_cache" table...';
+    EXECUTE '
+        DELETE FROM cache.extractor_results_cache
+        WHERE db_row_last_updated <= NOW() - INTERVAL ''3 days'';
+    ';
+
 END;
 $$
 LANGUAGE plpgsql;
@@ -3749,7 +3736,6 @@ LANGUAGE plpgsql;
 --
 -- Raw downloads from S3 cache
 --
-
 CREATE UNLOGGED TABLE cache.s3_raw_downloads_cache (
     s3_raw_downloads_cache_id SERIAL    PRIMARY KEY,
 
@@ -3778,6 +3764,38 @@ CREATE TRIGGER s3_raw_downloads_cache_test_referenced_download_trigger
     BEFORE INSERT OR UPDATE ON cache.s3_raw_downloads_cache
     FOR EACH ROW
     EXECUTE PROCEDURE test_referenced_download_trigger('object_id');
+
+
+--
+-- Cached extractor results for extraction jobs with use_cache set to true
+--
+CREATE UNLOGGED TABLE cache.extractor_results_cache (
+    extractor_results_cache_id  SERIAL  PRIMARY KEY,
+    extracted_html              TEXT    NULL,
+    extracted_text              TEXT    NULL,
+    downloads_id                BIGINT  NOT NULL,
+
+    -- Will be used to purge old cache objects;
+    -- don't forget to update cache.purge_object_caches()
+    db_row_last_updated         TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+);
+CREATE UNIQUE INDEX extractor_results_cache_downloads_id
+    ON cache.extractor_results_cache (downloads_id);
+CREATE INDEX extractor_results_cache_db_row_last_updated
+    ON cache.extractor_results_cache (db_row_last_updated);
+
+ALTER TABLE cache.extractor_results_cache
+    ALTER COLUMN extracted_html SET STORAGE EXTERNAL,
+    ALTER COLUMN extracted_text SET STORAGE EXTERNAL;
+
+CREATE TRIGGER extractor_results_cache_db_row_last_updated_trigger
+    BEFORE INSERT OR UPDATE ON cache.extractor_results_cache
+    FOR EACH ROW EXECUTE PROCEDURE cache.update_cache_db_row_last_updated();
+
+CREATE TRIGGER extractor_results_cache_test_referenced_download_trigger
+    BEFORE INSERT OR UPDATE ON cache.extractor_results_cache
+    FOR EACH ROW
+    EXECUTE PROCEDURE test_referenced_download_trigger('downloads_id');
 
 
 --
