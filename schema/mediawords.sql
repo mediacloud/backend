@@ -24,7 +24,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4702;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4703;
 BEGIN
 
     -- Update / set database schema version
@@ -1467,14 +1467,15 @@ LANGUAGE plpgsql;
 -- (if the "postgresql" download storage method is enabled)
 --
 CREATE TABLE raw_downloads (
-    raw_downloads_id    SERIAL      PRIMARY KEY,
+    raw_downloads_id    BIGSERIAL   PRIMARY KEY,
 
     -- "downloads_id" from "downloads"
-    object_id           INTEGER     NOT NULL,
+    object_id           BIGINT      NOT NULL,
 
     raw_data            BYTEA       NOT NULL
 );
-CREATE UNIQUE INDEX raw_downloads_object_id ON raw_downloads (object_id);
+CREATE UNIQUE INDEX raw_downloads_object_id
+    ON raw_downloads (object_id);
 
 -- Don't (attempt to) compress BLOBs in "raw_data" because they're going to be
 -- compressed already
