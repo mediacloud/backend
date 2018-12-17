@@ -796,12 +796,14 @@ CREATE VIEW downloads_media AS
     SELECT
         d.*,
         f.media_id AS _media_id
-    FROM downloads d, feeds f
+    FROM
+        downloads AS d,
+        feeds AS f
     WHERE d.feeds_id = f.feeds_id;
 
 CREATE VIEW downloads_non_media AS
     SELECT d.*
-    FROM downloads d
+    FROM downloads AS d
     WHERE d.feeds_id IS NULL;
 
 CREATE VIEW downloads_to_be_extracted AS
