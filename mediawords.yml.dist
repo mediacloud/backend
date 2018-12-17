@@ -119,6 +119,7 @@ supervisor:
         # other configurable supervisor programs
         #import_solr_data
         #create_missing_partitions
+        #move_nonpartitioned_downloads_to_partitions
         #purge_object_caches
         #facebook_fetch_story_stats
         #sitemap_fetch_media_pages
