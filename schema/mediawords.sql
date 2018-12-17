@@ -1776,33 +1776,26 @@ CREATE TRIGGER stories_tags_map_view_insert_update_delete
     FOR EACH ROW EXECUTE PROCEDURE stories_tags_map_view_insert_update_delete();
 
 
+--
+-- Extracted plain text from every download
 CREATE TABLE download_texts (
-    download_texts_id integer NOT NULL,
-    downloads_id integer NOT NULL,
-    download_text text NOT NULL,
-    download_text_length int NOT NULL
+    download_texts_id       SERIAL  PRIMARY KEY,
+    downloads_id            INT     NOT NULL,
+    download_text           TEXT    NOT NULL,
+    download_text_length    INT     NOT NULL
 );
 
-CREATE SEQUENCE download_texts_download_texts_id_seq
-    INCREMENT BY 1
-    NO MAXVALUE
-    NO MINVALUE
-    CACHE 1 OWNED BY download_texts.download_texts_id;
+CREATE UNIQUE INDEX download_texts_downloads_id_index
+    ON download_texts (downloads_id);
 
-CREATE UNIQUE INDEX download_texts_downloads_id_index ON download_texts USING btree (downloads_id);
-
-ALTER TABLE download_texts ALTER COLUMN download_texts_id SET DEFAULT nextval('download_texts_download_texts_id_seq'::regclass);
-
-ALTER TABLE ONLY download_texts
-    ADD CONSTRAINT download_texts_pkey PRIMARY KEY (download_texts_id);
-
-ALTER TABLE download_texts add CONSTRAINT download_text_length_is_correct CHECK (length(download_text)=download_text_length);
+ALTER TABLE download_texts
+    ADD CONSTRAINT download_text_length_is_correct
+    CHECK (length(download_text) = download_text_length);
 
 CREATE TRIGGER download_texts_test_referenced_download_trigger
     BEFORE INSERT OR UPDATE ON download_texts
     FOR EACH ROW
     EXECUTE PROCEDURE test_referenced_download_trigger('downloads_id');
-
 
 
 --
