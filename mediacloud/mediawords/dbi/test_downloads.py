@@ -8,7 +8,12 @@ import mediawords.dbi.downloads
 from mediawords.dbi.stories.extract import combine_story_title_description_text
 from mediawords.dbi.stories.extractor_arguments import PyExtractorArguments
 from mediawords.test.data import fetch_test_data_from_individual_files, get_path_to_data_files
-from mediawords.test.db.create import create_download_for_feed, create_test_feed, create_test_medium, create_test_story
+from mediawords.test.db.create import (
+    create_test_feed,
+    create_test_medium,
+    create_test_story,
+    create_download_for_story,
+)
 from mediawords.test.test_database import TestDatabaseWithSchemaTestCase
 from mediawords.key_value_store.amazon_s3 import AmazonS3Store
 from mediawords.key_value_store.cached_amazon_s3 import CachedAmazonS3Store
@@ -213,8 +218,8 @@ class TestDownloadsDB(TestDatabaseWithSchemaTestCase):
 
         self.test_medium = create_test_medium(self.db(), 'downloads test')
         self.test_feed = create_test_feed(self.db(), 'downloads test', self.test_medium)
-        self.test_download = create_download_for_feed(self.db(), self.test_feed)
         self.test_story = create_test_story(self.db(), label='downloads est', feed=self.test_feed)
+        self.test_download = create_download_for_story(self.db(), feed=self.test_feed, story=self.test_story)
 
         self.test_download['path'] = 'postgresql:foo'
         self.test_download['state'] = 'success'
