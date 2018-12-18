@@ -22,6 +22,11 @@ SET search_path = public, pg_catalog;
 -- empty in production or very small in development environments, so to
 -- preserve the column order let's just recreate everything
 
+-- Kill all autovacuums before proceeding with DDL changes
+SELECT pid
+FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
+WHERE backend_type = 'autovacuum worker'
+  AND query ~ 'raw_downloads';
 
 -- Rename "raw_downloads" to "raw_downloads_int"
 ALTER TABLE raw_downloads

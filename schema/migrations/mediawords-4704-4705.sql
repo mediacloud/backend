@@ -19,6 +19,15 @@ SET search_path = public, pg_catalog;
 
 
 --
+-- Kill all autovacuums before proceeding with DDL changes
+--
+SELECT pid
+FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
+WHERE backend_type = 'autovacuum worker'
+  AND query ~ 'download_texts';
+
+
+--
 -- Rename non-partitioned "download_texts" to "download_texts_np"
 --
 ALTER TABLE download_texts

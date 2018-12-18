@@ -18,6 +18,12 @@
 SET search_path = public, pg_catalog;
 
 
+-- Kill all autovacuums before proceeding with DDL changes
+SELECT pid
+FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
+WHERE backend_type = 'autovacuum worker'
+  AND query ~ 'cached_extractor_results';
+
 -- It's just some cache in it so we can just drop and recreate the table
 DROP TABLE cached_extractor_results;
 
