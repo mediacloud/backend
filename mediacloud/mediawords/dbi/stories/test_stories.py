@@ -27,8 +27,8 @@ class TestStories(TestDatabaseWithSchemaTestCase):
 
         self.test_medium = create_test_medium(self.db(), self.TEST_MEDIUM_NAME)
         self.test_feed = create_test_feed(self.db(), self.TEST_FEED_NAME, self.test_medium)
-        self.test_download = create_download_for_story(self.db(), feed=self.test_feed, story=self.test_story)
         self.test_story = create_test_story(self.db(), label=self.TEST_STORY_NAME, feed=self.test_feed)
+        self.test_download = create_download_for_story(self.db(), feed=self.test_feed, story=self.test_story)
 
     def test_is_new(self):
 
