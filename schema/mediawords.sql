@@ -24,7 +24,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4703;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4704;
 BEGIN
 
     -- Update / set database schema version
@@ -1303,13 +1303,6 @@ BEGIN
                                TO   (' || downloads_id_end   || ');
             ';
 
-            EXECUTE '
-                CREATE TRIGGER ' || target_table_name || '_test_referenced_download_trigger
-                    BEFORE INSERT OR UPDATE ON ' || target_table_name || '
-                    FOR EACH ROW
-                    EXECUTE PROCEDURE test_referenced_download_trigger(''parent'');
-            ';
-
             -- Update owner
             SELECT u.usename AS owner
             FROM information_schema.tables AS t
@@ -1337,12 +1330,41 @@ $$
 LANGUAGE plpgsql;
 
 
+-- Create subpartitions of "downloads_success_feed" or "downloads_success_content"
+CREATE OR REPLACE FUNCTION downloads_create_subpartitions(base_table_name TEXT)
+RETURNS VOID AS
+$$
+DECLARE
+    created_partitions TEXT[];
+    partition TEXT;
+BEGIN
+
+    created_partitions := ARRAY(SELECT partition_by_downloads_id_create_partitions(base_table_name));
+
+    FOREACH partition IN ARRAY created_partitions LOOP
+
+        RAISE NOTICE 'Altering created partition "%"...', partition;
+        
+        EXECUTE '
+            CREATE TRIGGER ' || partition || '_test_referenced_download_trigger
+                BEFORE INSERT OR UPDATE ON ' || partition || '
+                FOR EACH ROW
+                EXECUTE PROCEDURE test_referenced_download_trigger(''parent'');
+        ';
+
+    END LOOP;
+
+END;
+$$
+LANGUAGE plpgsql;
+
+
 -- Create missing "downloads_success_content" partitions
 CREATE OR REPLACE FUNCTION downloads_p_success_content_create_partitions()
 RETURNS VOID AS
 $$
 
-    SELECT partition_by_downloads_id_create_partitions('downloads_p_success_content');
+    SELECT downloads_create_subpartitions('downloads_p_success_content');
 
 $$
 LANGUAGE SQL;
@@ -1356,7 +1378,7 @@ CREATE OR REPLACE FUNCTION downloads_p_success_feed_create_partitions()
 RETURNS VOID AS
 $$
 
-    SELECT partition_by_downloads_id_create_partitions('downloads_p_success_feed');
+    SELECT downloads_create_subpartitions('downloads_p_success_feed');
 
 $$
 LANGUAGE SQL;
