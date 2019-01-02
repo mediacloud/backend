@@ -56,6 +56,11 @@
     - "postgresql-contrib-9.6"
     - "postgresql-plperl-9.6"
     - "postgresql-server-dev-9.6"
+    - "postgresql-10"
+    - "postgresql-client-10"
+    - "postgresql-contrib-10"
+    - "postgresql-plperl-10"
+    - "postgresql-server-dev-10"
   become: true
   become_user: root
   tags:

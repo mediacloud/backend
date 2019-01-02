@@ -3,7 +3,7 @@ postgresql_psql_become_user: postgres
 postgresql_psql_login_user: postgres
 
 # Directory with postgresql.conf
-postgresql_conf_dir: "/etc/postgresql/10/main/"
+postgresql_conf_dir: "/etc/postgresql/11/main/"
 
 # Should we sudo to create conf.d directory
 postgresql_conf_become: true
