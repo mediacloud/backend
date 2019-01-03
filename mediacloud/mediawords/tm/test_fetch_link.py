@@ -193,7 +193,7 @@ class TestTMFetchLinkDB(mediawords.test.test_database.TestDatabaseWithSchemaTest
 
         tfu = db.require_by_id('topic_fetch_urls', tfu['topic_fetch_urls_id'])
 
-        assert tfu['state'] == mediawords.tm.fetch_link.FETCH_STATE_IGNORE
+        assert tfu['state'] == mediawords.tm.fetch_link.FETCH_STATE_IGNORED
         assert tfu['code'] == 403
 
         # story match

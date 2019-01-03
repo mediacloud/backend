@@ -1,7 +1,9 @@
 """Test fetch_twitter_urls."""
 
 import json
+import random
 import re
+import threading
 from typing import List
 from urllib.parse import urlparse, parse_qs
 
@@ -15,6 +17,44 @@ import mediawords.tm.fetch_twitter_urls as ftu
 from mediawords.util.log import create_logger
 
 log = create_logger(__name__)
+
+
+def mock_users_lookup(request, uri, response_headers) -> List:
+    """Mock twitter /users/lookup response."""
+    params = parse_qs(request.body.decode('utf-8'))
+
+    screen_names = params['screen_name'][0].split(',')
+
+    users = []
+    for screen_name in screen_names:
+        user_id = re.match(r'.*_(\d+)$', screen_name).group(1)
+        user = {
+            'id': user_id,
+            'name': 'test user %s' % user_id,
+            'screen_name': screen_name,
+            'description': "test description for user %s" % user_id}
+        users.append(user)
+
+    return [200, response_headers, json.dumps(users)]
+
+
+def mock_statuses_lookup(request, uri, response_headers) -> List:
+    """Mock twitter /statuses/lookup response."""
+    params = parse_qs(urlparse(uri).query)
+
+    ids = params['id'][0].split(',')
+
+    tweets = []
+    for id in ids:
+        tweet = {
+            'id': id,
+            'text': 'test content for tweet %s' % id,
+            'created_at': 'Mon Dec 13 23:21:48 +0000 2010',
+            'user': {'screen_name': 'user %s' % id},
+            'entities': {'urls': []}}
+        tweets.append(tweet)
+
+    return [200, response_headers, json.dumps(tweets)]
 
 
 def test_split_urls_into_users_and_statuses() -> None:
@@ -85,7 +125,7 @@ class TestFetchTopicTweets(TestDatabaseWithSchemaTestCase):
             'description': 'test user description'
         }
 
-        story = ftu._add_user_story(db, topic, user, tfu)
+        story = ftu._add_user_story(db, topic, user, [tfu])
 
         got_story = db.require_by_id('stories', story['stories_id'])
 
@@ -119,29 +159,53 @@ class TestFetchTopicTweets(TestDatabaseWithSchemaTestCase):
 
         assert got_undateable_tag
 
-    def test_try_fetch_users_chunk(self) -> None:
-        """Test fetch_100_users using mock."""
-        def _mock_users_lookup(request, uri, response_headers) -> List:
-            """Mock twitter /users/lookup response."""
-            params = parse_qs(request.body.decode('utf-8'))
-
-            screen_names = params['screen_name'][0].split(',')
-
-            users = []
-            for screen_name in screen_names:
-                user_id = re.match(r'.*_(\d+)$', screen_name).group(1)
-                user = {
-                    'id': user_id,
-                    'name': 'test user %s' % user_id,
-                    'screen_name': screen_name,
-                    'description': "test description for user %s" % user_id}
-                users.append(user)
-
-            return [200, response_headers, json.dumps(users)]
+    def test_try_fetch_users_chunk_threaded(self) -> None:
+        """Test fetch_100_users using mock. Run in parallel threads to test for race conditions."""
+        def _try_fetch_users_chunk_threaded(topic: dict, tfus: list) -> None:
+            """Call ftu._try_fetch_users_chunk with a newly created db handle for thread safety."""
+            db = mediawords.db.connect_to_db()
+            ftu._try_fetch_users_chunk(db, topic, tfus)
 
         httpretty.enable()  # enable HTTPretty so that it will monkey patch the socket module
         httpretty.register_uri(
-            httpretty.POST, "https://api.twitter.com/1.1/users/lookup.json", body=_mock_users_lookup)
+            httpretty.POST, "https://api.twitter.com/1.1/users/lookup.json", body=mock_users_lookup)
+
+        db = self.db()
+
+        topic = mediawords.test.db.create.create_test_topic(db, 'test')
+        topics_id = topic['topics_id']
+
+        num_threads = 20
+        num_urls_per_thread = 100
+
+        threads = []
+        for i in range(num_threads):
+            tfus = []
+            for i in range(num_urls_per_thread):
+                url = 'https://twitter.com/test_user_%s' % i
+                tfu = db.create('topic_fetch_urls', {'topics_id': topics_id, 'url': url, 'state': 'pending'})
+                tfus.append(tfu)
+
+            random.shuffle(tfus)
+
+            t = threading.Thread(target=_try_fetch_users_chunk_threaded, args=(topic, tfus))
+            t.start()
+            threads.append(t)
+
+        [t.join() for t in threads]
+
+        [num_topic_stories] = db.query(
+            "select count(*) from topic_stories where topics_id = %(a)s", {'a': topics_id}).flat()
+        assert num_urls_per_thread == num_topic_stories
+
+        httpretty.disable()
+        httpretty.reset()
+
+    def test_try_fetch_users_chunk(self) -> None:
+        """Test fetch_100_users using mock."""
+        httpretty.enable()  # enable HTTPretty so that it will monkey patch the socket module
+        httpretty.register_uri(
+            httpretty.POST, "https://api.twitter.com/1.1/users/lookup.json", body=mock_users_lookup)
 
         db = self.db()
 
@@ -223,27 +287,9 @@ class TestFetchTopicTweets(TestDatabaseWithSchemaTestCase):
 
     def test_try_fetch_tweets_chunk(self) -> None:
         """Test fetch_100_tweets using mock."""
-        def _mock_statuses_lookup(request, uri, response_headers) -> List:
-            """Mock twitter /statuses/lookup response."""
-            params = parse_qs(urlparse(uri).query)
-
-            ids = params['id'][0].split(',')
-
-            tweets = []
-            for id in ids:
-                tweet = {
-                    'id': id,
-                    'text': 'test content for tweet %s' % id,
-                    'created_at': 'Mon Dec 13 23:21:48 +0000 2010',
-                    'user': {'screen_name': 'user %s' % id},
-                    'entities': {'urls': []}}
-                tweets.append(tweet)
-
-            return [200, response_headers, json.dumps(tweets)]
-
-        httpretty.enable()  # enable HTTPretty so that it will monkey patch the socket module
+        httpretty.enable()
         httpretty.register_uri(
-            httpretty.GET, "https://api.twitter.com/1.1/statuses/lookup.json", body=_mock_statuses_lookup)
+            httpretty.GET, "https://api.twitter.com/1.1/statuses/lookup.json", body=mock_statuses_lookup)
 
         db = self.db()
 

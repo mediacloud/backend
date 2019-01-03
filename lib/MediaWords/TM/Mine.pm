@@ -34,6 +34,7 @@ use MediaWords::DBI::Stories::GuessDate;
 use MediaWords::Job::Facebook::FetchStoryStats;
 use MediaWords::Job::TM::ExtractStoryLinks;
 use MediaWords::Job::TM::FetchLink;
+use MediaWords::Job::TM::FetchTwitterUrls;
 use MediaWords::Job::TM::SnapshotTopic;
 use MediaWords::Solr;
 use MediaWords::Util::Config;
@@ -263,6 +264,57 @@ sub create_and_queue_topic_fetch_urls($$$)
     return $tfus;
 }
 
+sub _fetch_twitter_urls($$$)
+{
+    my ( $db, $topic, $tfu_ids_table ) = @_;
+
+    my $twitter_tfu_ids = $db->query( <<SQL )->flat();
+select topic_fetch_urls_id
+    from topic_fetch_urls tfu
+        join $tfu_ids_table ids on ( tfu.topic_fetch_urls_id = ids.id )
+    where
+        tfu.state = 'tweet pending'
+SQL
+
+    return unless ( scalar( @{ $twitter_tfu_ids } ) > 0 );
+
+    $tfu_ids_table = $db->get_temporary_ids_table( $twitter_tfu_ids );
+
+    MediaWords::Job::TM::FetchTwitterUrls->add_to_queue( { topic_fetch_urls_ids => $twitter_tfu_ids } );
+
+    INFO( "waiting for fetch twitter urls job for " . scalar( @{ $twitter_tfu_ids } ) . " urls" );
+
+    # poll every $sleep_time seconds waiting for the jobs to complete.  die if the number of stories left to process
+    # has not shrunk for $large_timeout seconds.  warn but continue if the number of stories left to process
+    # is only 5% of the total and short_timeout has passed (this is to make the topic not hang entirely because
+    # of one link extractor job error).
+    my $prev_num_queued_urls = scalar( @{ $twitter_tfu_ids } );
+    my $last_change_time     = time();
+    while ( 1 )
+    {
+        my ( $num_queued_urls ) = $db->query( <<SQL )->flat();
+select count(*) 
+    from topic_fetch_urls tfu
+        join $tfu_ids_table ids on ( tfu.topic_fetch_urls_id = ids.id )
+    where
+        state in ('tweet pending')
+SQL
+
+        last if ( $num_queued_urls == 0 );
+
+        $last_change_time = time() if ( $num_queued_urls != $prev_num_queued_urls );
+        if ( ( time() - $last_change_time ) > $JOB_POLL_TIMEOUT )
+        {
+            LOGDIE( "Timed out waiting for twitter fetching." );
+        }
+
+        INFO( "$num_queued_urls twitter urls left to fetch ..." );
+
+        $prev_num_queued_urls = $num_queued_urls;
+        sleep( $JOB_POLL_WAIT );
+    }
+}
+
 # fetch the given links by creating topic_fetch_urls rows and sending them to the MediaWords::Job::TM::FetchLink queue
 # for processing.  wait for the queue to complete and returnt the resulting topic_fetch_urls.
 sub fetch_links
@@ -360,6 +412,8 @@ SQL
 
         sleep( $JOB_POLL_WAIT );
     }
+
+    _fetch_twitter_urls( $db, $topic, $tfu_ids_table );
 
     INFO( "fetch_links: update topic seed urls" );
     $db->query( <<SQL );

@@ -42,7 +42,7 @@ FETCH_STATE_STORY_ADDED = 'story added'
 FETCH_STATE_PYTHON_ERROR = 'python error'
 FETCH_STATE_REQUEUED = 'requeued'
 FETCH_STATE_KILLED = 'killed'
-FETCH_STATE_IGNORE = 'ignored'
+FETCH_STATE_IGNORED = 'ignored'
 FETCH_STATE_SKIPPED = 'skipped'
 FETCH_STATE_TWEET_PENDING = 'tweet pending'
 FETCH_STATE_TWEET_ADDED = 'tweet added'
@@ -376,7 +376,7 @@ def _try_fetch_topic_url(
 
     _update_tfu_message(db, topic_fetch_url, "checking ignore links")
     if _ignore_link_pattern(topic_fetch_url['url']):
-        topic_fetch_url['state'] = FETCH_STATE_IGNORE
+        topic_fetch_url['state'] = FETCH_STATE_IGNORED
         topic_fetch_url['code'] = 403
         return
 
@@ -435,7 +435,7 @@ def _try_fetch_topic_url(
 
     if fetched_url != response_url:
         if _ignore_link_pattern(response_url):
-            topic_fetch_url['state'] = FETCH_STATE_IGNORE
+            topic_fetch_url['state'] = FETCH_STATE_IGNORED
             topic_fetch_url['code'] = 403
             return
 

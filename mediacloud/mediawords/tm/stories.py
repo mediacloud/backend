@@ -354,6 +354,9 @@ def generate_story(
 
     This function guesses the medium, feed, title, and date of the story from the url and content.
 
+    If inserting the story results in a unique constraint error based on media_id and url, return
+    the existing story instead.
+
     Arguments:
     db - db handle
     url - story url
@@ -395,7 +398,7 @@ def generate_story(
     try:
         story = db.create('stories', story)
     except mediawords.db.exceptions.handler.McUniqueConstraintException:
-        raise McTMStoriesDuplicateException("Attempt to insert duplicate story url %s" % url)
+        return mediawords.tm.stories.get_story_match(db=db, url=story['url'])
     except Exception:
         raise McTMStoriesException("Error adding story: %s" % traceback.format_exc())
 
