@@ -64,7 +64,6 @@ perl_dependencies:
     - "Readonly::XS"
     - "Regexp::Common"
     - "Regexp::Common::time"
-    - "Scalar::List::Utils"
     - "Statistics::Basic"
     - "Sys::RunAlone"
     - "Template"
