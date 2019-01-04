@@ -6,13 +6,11 @@ use strict;
 use warnings;
 use base 'Catalyst::Controller';
 
-use Date::Calc;
 use Encode;
 use List::Util qw(first max maxstr min minstr reduce shuffle sum);
 use Moose;
 use namespace::autoclean;
 use JSON::PP;
-use List::Compare;
 use Readonly;
 
 use MediaWords::Solr;

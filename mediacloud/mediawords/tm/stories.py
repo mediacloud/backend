@@ -589,7 +589,7 @@ def _get_merged_iteration(db: DatabaseHandler, topic: dict, delete_story: dict, 
         return 0
 
 
-def merge_dup_story(db, topic, delete_story, keep_story):
+def _merge_dup_story(db, topic, delete_story, keep_story):
     """Merge delete_story into keep_story.
 
     Make sure all links that are in delete_story are also in keep_story and make
@@ -670,7 +670,7 @@ def _get_deduped_medium(db: DatabaseHandler, media_id: int) -> dict:
 def merge_dup_media_story(db, topic, story):
     """Given a story in a dup_media_id medium, look for or create a story in the medium pointed to by dup_media_id.
 
-    Call merge_dup_story on the found or cloned story in the new medium.
+    Call _merge_dup_story() on the found or cloned story in the new medium.
     """
 
     dup_medium = _get_deduped_medium(db, story['media_id'])
@@ -695,7 +695,7 @@ def merge_dup_media_story(db, topic, story):
     if new_story is None:
         new_story = copy_story_to_new_medium(db, topic, story, dup_medium)
 
-    merge_dup_story(db, topic, story, new_story)
+    _merge_dup_story(db, topic, story, new_story)
 
     return new_story
 
@@ -752,7 +752,7 @@ def _merge_dup_stories(db, topic, stories):
 
     log.debug("duplicates: %s [%s %d]" % (keep_story['title'], keep_story['url'], keep_story['stories_id']))
 
-    [merge_dup_story(db, topic, s, keep_story) for s in stories]
+    [_merge_dup_story(db, topic, s, keep_story) for s in stories]
 
 
 def _get_topic_stories_by_medium(db: DatabaseHandler, topic: dict) -> dict:

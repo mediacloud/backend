@@ -47,7 +47,6 @@ use Encode;
 use File::Temp;
 use FileHandle;
 use Getopt::Long;
-use GraphViz2;
 use List::Util;
 use XML::Simple;
 use Readonly;
@@ -1293,8 +1292,8 @@ END
             label => $medium->{ name },
         };
 
-        $medium->{ view_medium } =
-          "[_mc_base_url_]/admin/tm/medium/$medium->{ media_id }?timespan=$timespan->{ timespans_id }";
+        # FIXME should this be configurable?
+        $medium->{ view_medium } = 'https://sources.mediacloud.org/#/sources/' . $medium->{ media_id };
 
         my $j = 0;
         while ( my ( $name, $type ) = each( %{ $_media_static_gexf_attribute_types } ) )
@@ -1319,7 +1318,6 @@ END
 
     layout_gexf( $gexf );
 
-    # layout_gexf_with_graphviz( $gexf );
     my $xml = XML::Simple::XMLout( $gexf, XMLDecl => 1, RootName => 'gexf' );
 
     return $xml;
@@ -1374,16 +1372,11 @@ sub generate_timespan_data ($$;$)
 
 }
 
-=head2 update_timespan_counts( $db, $timespan, $live )
-
-Update story_count, story_link_count, medium_count, and medium_link_count fields in the timespan
-hash.  This must be called after setup_temporary_snapshot_tables() to get access to these fields in the timespan hash.
-
-Save to db unless $live is specified.
-
-=cut
-
-sub update_timespan_counts ($$;$)
+# Update story_count, story_link_count, medium_count, and medium_link_count fields in the timespan
+# hash.  This must be called after setup_temporary_snapshot_tables() to get access to these fields in the timespan hash.
+#
+# Save to db unless $live is specified.
+sub __update_timespan_counts($$;$)
 {
     my ( $db, $timespan, $live ) = @_;
 
@@ -1424,7 +1417,7 @@ sub generate_timespan ($$$$$$)
     DEBUG( "generating snapshot data ..." );
     generate_timespan_data( $db, $timespan );
 
-    update_timespan_counts( $db, $timespan );
+    __update_timespan_counts( $db, $timespan );
 
     $all_models_top_media ||= [ MediaWords::TM::Model::get_top_media_link_counts( $db, $timespan ) ];
 

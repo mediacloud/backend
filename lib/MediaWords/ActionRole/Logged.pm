@@ -68,13 +68,4 @@ SQL
     return $result;
 };
 
-# Static helper that sets the number of requested items (e.g. stories) in the Catalyst's stash to be later used by after{}
-sub set_requested_items_count($$)
-{
-    my ( $c, $requested_items_count ) = @_;
-
-    # Will use it later in after{}
-    $c->stash->{ $NUMBER_OF_REQUESTED_ITEMS_KEY } = $requested_items_count;
-}
-
 1;

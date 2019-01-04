@@ -8,7 +8,6 @@ use MediaWords::CommonLibs;
 
 use File::Path;
 use Readonly;
-use Text::Lorem::More;
 
 use MediaWords::DB;
 use MediaWords::DBI::Auth;

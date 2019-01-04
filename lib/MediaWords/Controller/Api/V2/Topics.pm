@@ -14,6 +14,8 @@ use Moose;
 use namespace::autoclean;
 
 use MediaWords::TM::Mine;
+use MediaWords::Job::TM::MineTopic;
+use MediaWords::Job::TM::MineTopicPublic;
 
 BEGIN
 {
@@ -544,7 +546,19 @@ SQL
         # wrap this in a transaction so that we're sure the last job added is the one we just added
         $db->begin;
 
-        MediaWords::TM::add_to_mine_job_queue( $db, $topic );
+        if ( $topic->{ job_queue } eq 'mc' )
+        {
+            MediaWords::Job::TM::MineTopic->add_to_queue( { topics_id => $topic->{ topics_id } }, undef, $db );
+        }
+        elsif ( $topic->{ job_queue } eq 'public' )
+        {
+            MediaWords::Job::TM::MineTopicPublic->add_to_queue( { topics_id => $topic->{ topics_id } }, undef, $db );
+        }
+        else
+        {
+            LOGDIE( "unknown job_queue type: $topic->{ job_queue }" );
+        }
+
         $job_state = $db->query( "select $JOB_STATE_FIELD_LIST from job_states order by job_states_id desc limit 1" )->hash;
 
         $db->commit;

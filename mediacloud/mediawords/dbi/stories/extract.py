@@ -5,23 +5,6 @@ from mediawords.util.parse_html import html_strip
 from mediawords.util.perl import decode_object_from_bytes_if_needed
 
 
-def combine_story_title_description_text(story_title: Optional[str],
-                                         story_description: Optional[str],
-                                         download_texts: List[str]) -> str:
-    """Get the combined story title, story description, and download text of the story in a consistent way."""
-    story_title = decode_object_from_bytes_if_needed(story_title)
-    story_description = decode_object_from_bytes_if_needed(story_description)
-    download_texts = decode_object_from_bytes_if_needed(download_texts)
-
-    if story_title is None:
-        story_title = ''
-
-    if story_description is None:
-        story_description = ''
-
-    return "\n***\n\n".join([html_strip(story_title), html_strip(story_description)] + download_texts)
-
-
 def __get_full_text_from_rss(story: dict) -> str:
     story = decode_object_from_bytes_if_needed(story)
 
@@ -31,7 +14,7 @@ def __get_full_text_from_rss(story: dict) -> str:
     return "\n\n".join([html_strip(story_title), html_strip(story_description)])
 
 
-def get_extracted_text(db: DatabaseHandler, story: dict) -> str:
+def _get_extracted_text(db: DatabaseHandler, story: dict) -> str:
     """Return the concatenated download_texts associated with the story."""
 
     story = decode_object_from_bytes_if_needed(story)
@@ -49,7 +32,7 @@ def get_extracted_text(db: DatabaseHandler, story: dict) -> str:
 
 
 def get_text_for_word_counts(db: DatabaseHandler, story: dict) -> str:
-    """Like get_text(), but it doesn't include both title + description and the extracted text.
+    """Get story title + description + body concatenated into a single string.
 
     This is what is used to fetch text to generate story_sentences, which eventually get imported into Solr.
 
@@ -61,7 +44,7 @@ def get_text_for_word_counts(db: DatabaseHandler, story: dict) -> str:
     if story['full_text_rss']:
         story_text = __get_full_text_from_rss(story)
     else:
-        story_text = get_extracted_text(db=db, story=story)
+        story_text = _get_extracted_text(db=db, story=story)
 
     story_description = story.get('description', '')
 
@@ -79,46 +62,5 @@ def get_text_for_word_counts(db: DatabaseHandler, story: dict) -> str:
                 story_text += '.'
 
             story_text += html_strip(story['description'])
-
-    return story_text
-
-
-def get_text(db: DatabaseHandler, story: dict) -> str:
-    """Get the concatenation of the story title and description and all of the download_texts associated with the story
-    in a consistent way.
-
-    If full_text_rss is True for the medium, just return the concatenation of the story title and description.
-    """
-
-    story = decode_object_from_bytes_if_needed(story)
-
-    if story['full_text_rss']:
-        return __get_full_text_from_rss(story=story)
-
-    download_texts = db.query("""
-        SELECT download_text
-        FROM download_texts AS dt,
-             downloads AS d
-        WHERE d.downloads_id = dt.downloads_id
-          AND d.stories_id = %(stories_id)s
-        ORDER BY d.downloads_id ASC
-    """, {'stories_id': story['stories_id']}).flat()
-
-    pending_downloads = db.query("""
-        SELECT downloads_id
-        FROM downloads
-        WHERE extracted = 'f'
-          AND stories_id = %(stories_id)s
-          AND type = 'content'
-    """, {'stories_id': story['stories_id']}).hashes()
-
-    if pending_downloads is not None and len(pending_downloads) > 0:
-        download_texts.append("(downloads pending extraction)")
-
-    story_text = combine_story_title_description_text(
-        story_title=story['title'],
-        story_description=story['description'],
-        download_texts=download_texts,
-    )
 
     return story_text

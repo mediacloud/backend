@@ -9,7 +9,6 @@ use base 'Catalyst::Controller::REST';
 use List::Util qw(first max maxstr min minstr reduce shuffle sum);
 use Moose;
 use namespace::autoclean;
-use List::Compare;
 use Readonly;
 
 =head1 NAME

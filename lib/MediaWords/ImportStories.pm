@@ -30,8 +30,6 @@ use Moose::Role;
 
 use Data::Dumper;
 use Encode;
-use List::MoreUtils;
-use Parallel::ForkManager;
 
 use MediaWords::TM::GuessDate;
 use MediaWords::CommonLibs;

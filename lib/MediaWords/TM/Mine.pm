@@ -26,10 +26,7 @@ use DateTime;
 use Digest::MD5;
 use Encode;
 use Getopt::Long;
-use HTML::Entities;
-use Inline::Python;
 use List::Util;
-use Parallel::ForkManager;
 use Readonly;
 use Time::Piece;
 use Time::Seconds;
@@ -63,7 +60,6 @@ use MediaWords::Util::SQL;
 use MediaWords::Util::Tags;
 use MediaWords::Util::URL;
 use MediaWords::Util::Web;
-use MediaWords::Util::Web::Cache;
 
 # total time to wait for fetching of social media metrics
 Readonly my $MAX_SOCIAL_MEDIA_FETCH_TIME => ( 60 * 60 * 24 );

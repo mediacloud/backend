@@ -481,7 +481,7 @@ class TestTMStoriesDB(mediawords.test.test_database.TestDatabaseWithSchemaTestCa
         assert new_download['state'] == 'error'
 
     def test_merge_dup_story(self) -> None:
-        """Test merge_dup_story()."""
+        """Test _merge_dup_story()."""
         db = self.db()
 
         topic = mediawords.test.db.create.create_test_topic(db, 'merge')
@@ -511,7 +511,7 @@ class TestTMStoriesDB(mediawords.test.test_database.TestDatabaseWithSchemaTestCa
             'topics_id': topic['topics_id'],
             'stories_id': old_story['stories_id']})
 
-        mediawords.tm.stories.merge_dup_story(db, topic, old_story, new_story)
+        mediawords.tm.stories._merge_dup_story(db, topic, old_story, new_story)
 
         old_topic_links = db.query(
             "select * from topic_links where topics_id = %(a)s and %(b)s in ( stories_id, ref_stories_id )",

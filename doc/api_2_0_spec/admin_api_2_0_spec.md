@@ -1238,11 +1238,6 @@ Output:
       "role": "stories-api"
     },
     {
-      "auth_roles_id": 227,
-      "description": "Access to the /search pages",
-      "role": "search"
-    },
-    {
       "auth_roles_id": 6,
       "description": "Topic mapper; includes media and story editing",
       "role": "tm"
