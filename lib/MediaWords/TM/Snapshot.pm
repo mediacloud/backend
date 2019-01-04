@@ -869,42 +869,6 @@ END
     }
 }
 
-sub write_date_counts_csv
-{
-    my ( $db, $cd, $period ) = @_;
-
-    my $csv = MediaWords::Util::CSV::get_query_as_csv( $db, <<END );
-select dc.publish_date, t.tag, t.tags_id, dc.story_count
-    from snapshot_${ period }_date_counts dc, tags t
-    where dc.tags_id = t.tags_id
-    order by t.tag, dc.publish_date
-END
-
-    create_snap_file( $db, $cd, "${ period }_counts.csv", $csv );
-}
-
-sub write_date_counts_snapshot
-{
-    my ( $db, $cd, $period ) = @_;
-
-    die( "unknown period '$period'" ) unless ( grep { $period eq $_ } qw(daily weekly) );
-    my $date_trunc = ( $period eq 'daily' ) ? 'day' : 'week';
-
-    $db->query( <<END, $date_trunc, $date_trunc );
-create temporary table snapshot_${ period }_date_counts $_temporary_tablespace as
-    select date_trunc( ?, s.publish_date ) publish_date, t.tags_id, count(*) story_count
-        from snapshot_stories s, snapshot_stories_tags_map stm, snapshot_tags t
-        where s.stories_id = stm.stories_id and
-            stm.tags_id = t.tags_id
-        group by date_trunc( ?, s.publish_date ), t.tags_id
-END
-
-    create_snap_snapshot( $db, $cd, "${ period }_date_counts" );
-
-    write_date_counts_csv( $db, $cd, $period );
-
-}
-
 sub attach_stories_to_media
 {
     my ( $stories, $media ) = @_;
@@ -1945,9 +1909,6 @@ sub snapshot_topic ($$;$$$)
     generate_period_focus_snapshots( $db, $snap, $periods );
 
     MediaWords::Job::TM::SnapshotTopic->update_job_state_message( $db, "finalizing snapshot" );
-
-    write_date_counts_snapshot( $db, $snap, 'daily' );
-    write_date_counts_snapshot( $db, $snap, 'weekly' );
 
     _export_stories_to_solr( $db, $snap );
 
