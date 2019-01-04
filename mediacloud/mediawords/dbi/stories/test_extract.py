@@ -1,8 +1,6 @@
 from mediawords.dbi.stories.extract import (
     _get_extracted_text,
     get_text_for_word_counts,
-    get_text,
-    combine_story_title_description_text,
 )
 from mediawords.test.db.create import create_test_medium, create_test_feed, create_download_for_feed, create_test_story
 from mediawords.test.test_database import TestDatabaseWithSchemaTestCase
