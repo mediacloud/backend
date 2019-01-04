@@ -1,29 +1,39 @@
 {
-    "collect_date":"2018-09-22 04:17:18.222685",
-    "content":"<p>This is the first item.</p>\n",
+    "collect_date":"2019-01-04 21:57:14.496724",
+    "content":"<!-- Intentionally short so that RSS description takes precedence -->\n<p>This is the first item.</p>\n",
     "description":"RSS description of the first inline item.",
-    "extracted_text":"First inline item\n***\n\nRSS description of the first inline item.\n***\n\nThis is the first item.",
+    "extracted_text":"First inline item.\n\nRSS description of the first inline item.",
     "feed_type":"syndicated",
     "full_text_rss":false,
     "guid":"http://www.example.com/inline_content/item_1.html",
     "language":"en",
     "media_id":1,
-    "publish_date":"2009-06-11 13:57:00",
+    "publish_date":"2009-06-11 10:57:00",
     "stories_id":1,
     "story_sentences":[
         {
             "is_dup":null,
-            "language":"en",
+            "language":"",
             "media_id":1,
-            "publish_date":"2009-06-11 13:57:00",
-            "sentence":"First inline item.RSS description of the first inline item.",
+            "publish_date":"2009-06-11 10:57:00",
+            "sentence":"First inline item.",
             "sentence_number":0,
             "stories_id":1,
-            "story_sentences_id":5
+            "story_sentences_id":20
+        },
+        {
+            "is_dup":null,
+            "language":"en",
+            "media_id":1,
+            "publish_date":"2009-06-11 10:57:00",
+            "sentence":"RSS description of the first inline item.",
+            "sentence_number":1,
+            "stories_id":1,
+            "story_sentences_id":21
         }
     ],
     "tags":[],
-    "timezone":"Europe/Vilnius",
+    "timezone":"UTC",
     "title":"First inline item",
-    "url":"http://tundra.lan:64994/inline_content/item_1.html"
+    "url":"http://penguin:40369/inline_content/item_1.html"
 }

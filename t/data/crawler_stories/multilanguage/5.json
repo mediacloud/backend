@@ -1,21 +1,21 @@
 {
-    "collect_date":"2018-09-22 04:19:47.769505",
+    "collect_date":"2019-01-04 21:42:14.297477",
     "content":"<p>\n    This RSS feed is used to test whether the story language gets identified\n    correctly.\n</p>\n",
     "description":null,
-    "extracted_text":"(no title)\n***\n\n\n***\n\nThis RSS feed is used to test whether the story language gets identified\n    correctly. .",
+    "extracted_text":"This RSS feed is used to test whether the story language gets identified\n    correctly. .",
     "feed_type":"web_page",
     "full_text_rss":false,
-    "guid":"1537561187:http://tundra.lan:65210//multilanguage/home.html",
+    "guid":"1546638134:http://penguin:46365//multilanguage/home.html",
     "language":"en",
     "media_id":1,
-    "publish_date":"2018-09-21 23:19:47",
+    "publish_date":"2019-01-04 21:42:14",
     "stories_id":5,
     "story_sentences":[
         {
             "is_dup":null,
             "language":"en",
             "media_id":1,
-            "publish_date":"2018-09-21 23:19:47",
+            "publish_date":"2019-01-04 21:42:14",
             "sentence":"This RSS feed is used to test whether the story language gets identified correctly..",
             "sentence_number":0,
             "stories_id":5,
@@ -23,7 +23,7 @@
         }
     ],
     "tags":[],
-    "timezone":"Europe/Vilnius",
+    "timezone":"UTC",
     "title":"(no title)",
-    "url":"http://tundra.lan:65210//multilanguage/home.html"
+    "url":"http://penguin:46365//multilanguage/home.html"
 }
