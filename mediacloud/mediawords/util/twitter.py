@@ -28,8 +28,14 @@ def get_tweepy_api() -> tweepy.API:
     """Return an authenticated tweepy api object configued for retries."""
     config = mediawords.util.config.get_config()
 
+    # add dummy config so that testing will work
     if 'twitter' not in config:
-        raise McFetchTweetsException('missing twitter configuration in mediawords.yml')
+        config['twitter'] = {
+            'consumer_secret': 'UNCONFIGURED',
+            'consumer_key': 'UNCONFIGURED',
+            'access_token': 'UNCONFIGURED',
+            'access_token_secret': 'UNCONFIGURED'
+        }
 
     for field in 'consumer_key consumer_secret access_token access_token_secret'.split():
         if field not in config['twitter']:

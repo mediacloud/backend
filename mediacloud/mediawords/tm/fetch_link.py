@@ -46,7 +46,7 @@ FETCH_STATE_IGNORED = 'ignored'
 FETCH_STATE_SKIPPED = 'skipped'
 FETCH_STATE_TWEET_PENDING = 'tweet pending'
 FETCH_STATE_TWEET_ADDED = 'tweet added'
-FETCH_STATE_TWEET_FAILED = 'tweet request failed'
+FETCH_STATE_TWEET_MISSING = 'tweet missing'
 
 
 class McTMFetchLinkException(Exception):

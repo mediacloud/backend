@@ -95,7 +95,7 @@ class TestFetchTopicTweets(TestDatabaseWithSchemaTestCase):
 
         [error_count] = db.query(
             "select count(*) from topic_fetch_urls where state = %(a)s",
-            {'a': mediawords.tm.fetch_link.FETCH_STATE_TWEET_FAILED}).flat()
+            {'a': mediawords.tm.fetch_link.FETCH_STATE_PYTHON_ERROR}).flat()
 
         assert error_count == ftu.URLS_CHUNK_SIZE * 2
 
@@ -159,8 +159,9 @@ class TestFetchTopicTweets(TestDatabaseWithSchemaTestCase):
 
         assert got_undateable_tag
 
-    def test_try_fetch_users_chunk_threaded(self) -> None:
+    def _test_try_fetch_users_chunk_threaded(self, num_threads: int = 1) -> None:
         """Test fetch_100_users using mock. Run in parallel threads to test for race conditions."""
+
         def _try_fetch_users_chunk_threaded(topic: dict, tfus: list) -> None:
             """Call ftu._try_fetch_users_chunk with a newly created db handle for thread safety."""
             db = mediawords.db.connect_to_db()
@@ -175,11 +176,10 @@ class TestFetchTopicTweets(TestDatabaseWithSchemaTestCase):
         topic = mediawords.test.db.create.create_test_topic(db, 'test')
         topics_id = topic['topics_id']
 
-        num_threads = 20
         num_urls_per_thread = 100
 
         threads = []
-        for i in range(num_threads):
+        for j in range(num_threads):
             tfus = []
             for i in range(num_urls_per_thread):
                 url = 'https://twitter.com/test_user_%s' % i
@@ -201,32 +201,13 @@ class TestFetchTopicTweets(TestDatabaseWithSchemaTestCase):
         httpretty.disable()
         httpretty.reset()
 
-    def test_try_fetch_users_chunk(self) -> None:
-        """Test fetch_100_users using mock."""
-        httpretty.enable()  # enable HTTPretty so that it will monkey patch the socket module
-        httpretty.register_uri(
-            httpretty.POST, "https://api.twitter.com/1.1/users/lookup.json", body=mock_users_lookup)
+    def test_try_fetch_users_chunk_single(self) -> None:
+        """Test _try_fetch_users_chunk with a single thread."""
+        self._test_try_fetch_users_chunk_threaded(1)
 
-        db = self.db()
-
-        topic = mediawords.test.db.create.create_test_topic(db, 'test')
-        topics_id = topic['topics_id']
-
-        num_urls = 100
-        tfus = []
-        for i in range(num_urls):
-            url = 'https://twitter.com/test_user_%s' % i
-            tfu = db.create('topic_fetch_urls', {'topics_id': topics_id, 'url': url, 'state': 'pending'})
-            tfus.append(tfu)
-
-        ftu._try_fetch_users_chunk(db, topic, tfus)
-
-        [num_topic_stories] = db.query(
-            "select count(*) from topic_stories where topics_id = %(a)s", {'a': topics_id}).flat()
-        assert num_urls == num_topic_stories
-
-        httpretty.disable()
-        httpretty.reset()
+    def test_try_fetch_users_chunk_multiple(self) -> None:
+        """Test _try_fetch_users_chunk with a single thread."""
+        self._test_try_fetch_users_chunk_threaded(20)
 
     def test_add_tweet_story(self) -> None:
         """Test _add_test_story()."""
@@ -257,7 +238,7 @@ class TestFetchTopicTweets(TestDatabaseWithSchemaTestCase):
             'quoted_status': {'entities': {'urls': [{'expanded_url': 'http://quoted.entity'}]}}
         }
 
-        story = ftu._add_tweet_story(db, topic, tweet, tfu)
+        story = ftu._add_tweet_story(db, topic, tweet, [tfu])
 
         got_story = db.require_by_id('stories', story['stories_id'])
 
@@ -285,8 +266,14 @@ class TestFetchTopicTweets(TestDatabaseWithSchemaTestCase):
                 {'a': topic['topics_id'], 'b': url}).hash()
             assert got_topic_link is not None
 
-    def test_try_fetch_tweets_chunk(self) -> None:
+    def _test_try_fetch_tweets_chunk_threaded(self, num_threads: int = 0) -> None:
         """Test fetch_100_tweets using mock."""
+
+        def _try_fetch_tweets_chunk_threaded(topic: dict, tfus: list) -> None:
+            """Call ftu._try_fetch_tweets_chunk with a newly created db handle for thread safety."""
+            db = mediawords.db.connect_to_db()
+            ftu._try_fetch_tweets_chunk(db, topic, tfus)
+
         httpretty.enable()
         httpretty.register_uri(
             httpretty.GET, "https://api.twitter.com/1.1/statuses/lookup.json", body=mock_statuses_lookup)
@@ -296,18 +283,35 @@ class TestFetchTopicTweets(TestDatabaseWithSchemaTestCase):
         topic = mediawords.test.db.create.create_test_topic(db, 'test')
         topics_id = topic['topics_id']
 
-        num_urls = 100
-        tfus = []
-        for i in range(num_urls):
-            url = 'https://twitter.com/foo/status/%d' % i
-            tfu = db.create('topic_fetch_urls', {'topics_id': topics_id, 'url': url, 'state': 'pending'})
-            tfus.append(tfu)
+        num_urls_per_thread = 100
 
-        ftu._try_fetch_tweets_chunk(db, topic, tfus)
+        threads = []
+        for j in range(num_threads):
+            tfus = []
+            for i in range(num_urls_per_thread):
+                url = 'https://twitter.com/foo/status/%d' % i
+                tfu = db.create('topic_fetch_urls', {'topics_id': topics_id, 'url': url, 'state': 'pending'})
+                tfus.append(tfu)
+
+            random.shuffle(tfus)
+
+            t = threading.Thread(target=_try_fetch_tweets_chunk_threaded, args=(topic, tfus))
+            t.start()
+            threads.append(t)
+
+        [t.join() for t in threads]
 
         [num_topic_stories] = db.query(
             "select count(*) from topic_stories where topics_id = %(a)s", {'a': topics_id}).flat()
-        assert num_urls == num_topic_stories
+        assert num_urls_per_thread == num_topic_stories
 
         httpretty.disable()
         httpretty.reset()
+
+    def test_try_fetch_tweets_chunk_single(self) -> None:
+        """Test _try_fetch_tweets_chunk with a single thread."""
+        self._test_try_fetch_tweets_chunk_threaded(1)
+
+    def test_try_fetch_tweets_chunk_multiple(self) -> None:
+        """Test _try_fetch_tweets_chunk with a single thread."""
+        self._test_try_fetch_tweets_chunk_threaded(20)
