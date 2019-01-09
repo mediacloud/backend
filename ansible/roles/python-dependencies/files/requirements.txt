@@ -68,7 +68,7 @@ networkx==2.1
 nltk==3.3
 
 # numerical processing, required by ForceAtlas2
-numpy==1.15.1
+numpy==1.15.4
 
 # Finding out which Readability version we're using
 pip==18.0
