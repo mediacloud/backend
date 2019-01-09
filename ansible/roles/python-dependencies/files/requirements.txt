@@ -49,6 +49,9 @@ gensim==3.6.0
 # Stemming Hausa words
 hausastemmer==1.0
 
+# socket level http mocking
+httpretty==0.9.6
+
 # Chinese language tokenizer, stemmer, etc.
 jieba==0.39
 

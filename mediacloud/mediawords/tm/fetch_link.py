@@ -16,6 +16,7 @@ from mediawords.db.exceptions.handler import McUpdateByIDException
 from mediawords.util.log import create_logger
 from mediawords.util.network import tcp_port_is_open
 from mediawords.util.perl import decode_object_from_bytes_if_needed
+from mediawords.util.twitter import parse_status_id_from_url, parse_screen_name_from_user_url
 import mediawords.util.url
 from mediawords.util.web.user_agent.response.response import Response
 from mediawords.util.web.user_agent.throttled import ThrottledUserAgent, McThrottledDomainException
@@ -41,8 +42,11 @@ FETCH_STATE_STORY_ADDED = 'story added'
 FETCH_STATE_PYTHON_ERROR = 'python error'
 FETCH_STATE_REQUEUED = 'requeued'
 FETCH_STATE_KILLED = 'killed'
-FETCH_STATE_IGNORE = 'ignored'
+FETCH_STATE_IGNORED = 'ignored'
 FETCH_STATE_SKIPPED = 'skipped'
+FETCH_STATE_TWEET_PENDING = 'tweet pending'
+FETCH_STATE_TWEET_ADDED = 'tweet added'
+FETCH_STATE_TWEET_MISSING = 'tweet missing'
 
 
 class McTMFetchLinkException(Exception):
@@ -153,7 +157,7 @@ def _fetch_url(
             return response
 
 
-def _content_matches_topic(content: str, topic: dict, assume_match: bool = False) -> bool:
+def content_matches_topic(content: str, topic: dict, assume_match: bool = False) -> bool:
     """Test whether the content matches the topic['pattern'] regex.
 
     Only check the first megabyte of the string to avoid the occasional very long regex check.
@@ -207,10 +211,10 @@ def _story_matches_topic(
         return True
 
     for field in ['title', 'description', 'url']:
-        if _content_matches_topic(story[field], topic):
+        if content_matches_topic(story[field], topic):
             return True
 
-    if redirect_url and _content_matches_topic(redirect_url, topic):
+    if redirect_url and content_matches_topic(redirect_url, topic):
         return True
 
     story = db.query(
@@ -224,7 +228,7 @@ def _story_matches_topic(
         """,
         {'a': topic['topics_id'], 'b': story['stories_id']}).hash()
 
-    if _content_matches_topic(story['text'], topic):
+    if content_matches_topic(story['text'], topic):
         return True
 
 
@@ -269,7 +273,7 @@ def _get_seeded_content(db: DatabaseHandler, topic_fetch_url: dict) -> typing.Op
     )
 
 
-def _try_update_topic_link_ref_stories_id(db: DatabaseHandler, topic_fetch_url: dict) -> None:
+def try_update_topic_link_ref_stories_id(db: DatabaseHandler, topic_fetch_url: dict) -> None:
     """Update the given topic link to point to the given ref_stories_id.
 
     Use the topic_fetch_url['topic_links_id'] as the id of the topic link to update and the
@@ -279,6 +283,9 @@ def _try_update_topic_link_ref_stories_id(db: DatabaseHandler, topic_fetch_url: 
     update to topic_links and catches and ignores any errors from that constraint.  Trying and failing on the
     constraint is faster and more reliable than checking before trying (and still maybe failing on the constraint).
     """
+    if topic_fetch_url.get('topic_links_id', None) is None:
+        return
+
     try:
         db.update_by_id(
             'topic_links',
@@ -348,6 +355,13 @@ def _ignore_link_pattern(url: typing.Optional[str]) -> bool:
     return re2.search(p, url, re2.I) or re2.search(p, nu, re2.I)
 
 
+def _get_pending_state(topic_fetch_url: dict) -> str:
+    """Return a state if this url should be put in a pending state for another job queue (eg fetch_twitter_urls)."""
+    url = topic_fetch_url['url']
+    if parse_status_id_from_url(url) or parse_screen_name_from_user_url(url):
+        return FETCH_STATE_TWEET_PENDING
+
+
 def _try_fetch_topic_url(
         db: DatabaseHandler,
         topic_fetch_url: dict,
@@ -362,7 +376,7 @@ def _try_fetch_topic_url(
 
     _update_tfu_message(db, topic_fetch_url, "checking ignore links")
     if _ignore_link_pattern(topic_fetch_url['url']):
-        topic_fetch_url['state'] = FETCH_STATE_IGNORE
+        topic_fetch_url['state'] = FETCH_STATE_IGNORED
         topic_fetch_url['code'] = 403
         return
 
@@ -398,6 +412,12 @@ def _try_fetch_topic_url(
             topic_fetch_url['stories_id'] = story_match['stories_id']
             return
 
+    # check whether we want to delay fetching for another job, eg. fetch_twitter_urls
+    pending_state = _get_pending_state(topic_fetch_url)
+    if pending_state:
+        topic_fetch_url['state'] = pending_state
+        return
+
     # get content from either the seed or by fetching it
     _update_tfu_message(db, topic_fetch_url, "checking seeded content")
     response = _get_seeded_content(db, topic_fetch_url)
@@ -415,7 +435,7 @@ def _try_fetch_topic_url(
 
     if fetched_url != response_url:
         if _ignore_link_pattern(response_url):
-            topic_fetch_url['state'] = FETCH_STATE_IGNORE
+            topic_fetch_url['state'] = FETCH_STATE_IGNORED
             topic_fetch_url['code'] = 403
             return
 
@@ -433,7 +453,7 @@ def _try_fetch_topic_url(
     elif story_match is not None:
         topic_fetch_url['state'] = FETCH_STATE_STORY_MATCH
         topic_fetch_url['stories_id'] = story_match['stories_id']
-    elif not _content_matches_topic(content=content, topic=topic, assume_match=assume_match):
+    elif not content_matches_topic(content=content, topic=topic, assume_match=assume_match):
         topic_fetch_url['state'] = FETCH_STATE_CONTENT_MATCH_FAILED
     else:
         try:
@@ -495,7 +515,7 @@ def fetch_topic_url(db: DatabaseHandler, topic_fetch_urls_id: int, domain_timeou
         _try_fetch_topic_url(db=db, topic_fetch_url=topic_fetch_url, domain_timeout=domain_timeout)
 
         if topic_fetch_url['topic_links_id'] and topic_fetch_url['stories_id']:
-            _try_update_topic_link_ref_stories_id(db, topic_fetch_url)
+            try_update_topic_link_ref_stories_id(db, topic_fetch_url)
 
         if 'stories_id' in topic_fetch_url and topic_fetch_url['stories_id'] is not None:
             story = db.require_by_id('stories', topic_fetch_url['stories_id'])
@@ -507,7 +527,7 @@ def fetch_topic_url(db: DatabaseHandler, topic_fetch_urls_id: int, domain_timeou
                     mediawords.tm.stories.add_to_topic_stories(db, story, topic)
 
         if topic_fetch_url['topic_links_id'] and topic_fetch_url['stories_id']:
-            _try_update_topic_link_ref_stories_id(db, topic_fetch_url)
+            try_update_topic_link_ref_stories_id(db, topic_fetch_url)
 
     except McThrottledDomainException as ex:
         raise ex

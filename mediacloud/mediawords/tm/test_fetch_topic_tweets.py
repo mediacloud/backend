@@ -12,6 +12,7 @@ import mediawords.test.db
 import mediawords.test.db.create
 import mediawords.tm.fetch_topic_tweets
 import mediawords.util.paths
+import mediawords.util.twitter
 from mediawords.util.log import create_logger
 from mediawords.util.parse_json import decode_json
 
@@ -41,6 +42,9 @@ NUM_MOCK_USERS = int((LOCAL_DATE_RANGE * MOCK_TWEETS_PER_DAY) / MOCK_TWEETS_PER_
 MIN_TEST_CH_POSTS = 500
 MIN_TEST_TWEET_LENGTH = 10
 MIN_TEST_TWITTER_USER_LENGTH = 3
+
+# test crimson hexagon monitor id
+TEST_MONITOR_ID = 4667493813
 
 
 class MockCrimsonHexagon(mediawords.tm.fetch_topic_tweets.AbstractCrimsonHexagon):
@@ -178,39 +182,16 @@ def validate_topic_tweet_urls(db: DatabaseHandler, topic: dict) -> None:
 
 
 @unittest.skipUnless(os.environ.get('MC_REMOTE_TESTS', False), "remote tests")
-def test_twitter_api() -> None:
-    """Test Twitter.fetch_100_tweets() by hitting the remote twitter api."""
-    config = mediawords.util.config.get_config()
-
-    assert 'twitter' in config, "twitter section present in mediawords.yml"
-    for key in 'consumer_key consumer_secret access_token access_token_secret test_status_id'.split():
-        assert key in config['twitter'], "twitter." + key + " present in mediawords.yml"
-
-    test_status_id = int(config['twitter']['test_status_id'])
-    got_tweets = mediawords.tm.fetch_topic_tweets.Twitter.fetch_100_tweets([test_status_id])
-
-    assert len(got_tweets) == 1
-
-    got_tweet = got_tweets[0]
-
-    assert 'text' in got_tweet
-    assert len(got_tweet['text']) > MIN_TEST_TWEET_LENGTH
-    assert 'user' in got_tweet
-    assert 'screen_name' in got_tweet['user']
-    assert len(got_tweet['user']['screen_name']) > MIN_TEST_TWITTER_USER_LENGTH
-
-
-@unittest.skipUnless(os.environ.get('MC_REMOTE_TESTS', False), "remote tests")
 def test_ch_api() -> None:
     """Test CrimsonHexagon.fetch_posts() by hitting the remote ch api."""
     config = mediawords.util.config.get_config()
 
     assert 'crimson_hexagon' in config, "crimson_hexagon section present in mediawords.yml"
-    for key in 'key test_monitor_id test_date'.split():
+    for key in 'key'.split():
         assert key in config['crimson_hexagon'], "crimson_hexagon." + key + " present in mediawords.yml"
 
-    test_monitor_id = config['crimson_hexagon']['test_monitor_id']
-    test_date = datetime.datetime.strptime(config['crimson_hexagon']['test_date'], '%Y-%m-%d')
+    test_monitor_id = TEST_MONITOR_ID
+    test_date = datetime.datetime(year=2016, month=1, day=1)
 
     got_data = mediawords.tm.fetch_topic_tweets.CrimsonHexagon.fetch_posts(test_monitor_id, test_date)
 
@@ -226,34 +207,6 @@ def test_ch_api() -> None:
     for post in got_posts:
         assert 'url' in post
         assert re.search(r'status/\d+', post['url'])
-
-
-def test_get_tweet_urls() -> None:
-    """Test _get_tweet_urls()."""
-    tweet = {'tweet': {'entities': {'urls': [{'expanded_url': 'foo'}, {'expanded_url': 'bar'}]}}}
-    urls = mediawords.tm.fetch_topic_tweets._get_tweet_urls(tweet)
-    assert sorted(urls) == ['bar', 'foo']
-
-    tweet = \
-        {
-            'tweet':
-            {
-                'entities':
-                    {
-                        'urls': [{'expanded_url': 'url foo'}, {'expanded_url': 'url bar'}],
-                    },
-                'retweeted_status':
-                    {
-                        'entities':
-                            {
-                                'urls': [{'expanded_url': 'rt url foo'}, {'expanded_url': 'rt url bar'}],
-                            }
-                    }
-            }
-        }
-    urls = mediawords.tm.fetch_topic_tweets._get_tweet_urls(tweet)
-    expected_urls = ['url bar', 'url foo', 'rt url foo', 'rt url bar']
-    assert sorted(urls) == sorted(expected_urls)
 
 
 class TestFetchTopicTweets(TestDatabaseWithSchemaTestCase):
@@ -292,10 +245,9 @@ class TestFetchTopicTweets(TestDatabaseWithSchemaTestCase):
     def test_remote_integration(self) -> None:
         """Run santity test on remote apis by calling the internal functions that integrate the CH and twitter data."""
         db = self.db()
-        config = mediawords.util.config.get_config()
 
         topic = mediawords.test.db.create.create_test_topic(db, "test_remote_integration")
-        topic['ch_monitor_id'] = config['crimson_hexagon']['test_monitor_id']
+        topic['ch_monitor_id'] = TEST_MONITOR_ID
         db.update_by_id('topics', topic['topics_id'], topic)
 
         ttd = mediawords.tm.fetch_topic_tweets._add_topic_tweet_single_day(
