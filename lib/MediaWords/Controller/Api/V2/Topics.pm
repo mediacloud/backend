@@ -462,6 +462,8 @@ sub update_PUT
           eval { MediaWords::Solr::Query::parse( $update->{ solr_seed_query } )->re( $update->{ is_logogram } ) };
         die( "unable to translate solr query to topic pattern: $@" ) if ( $@ );
 
+        $topic->{ solr_seed_query } = $update->{ solr_seed_query };
+
         my $full_solr_query = MediaWords::TM::Mine::get_full_solr_query( $db, $topic, $media_ids, $media_tags_ids );
         my $num_stories = eval { MediaWords::Solr::get_num_found( $db, $full_solr_query ) };
         die( "invalid solr query: $@" ) if ( $@ );
