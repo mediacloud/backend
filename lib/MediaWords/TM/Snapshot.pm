@@ -525,7 +525,7 @@ sub get_stories_csv
     my ( $db, $timespan ) = @_;
 
     my $csv = MediaWords::Util::CSV::get_query_as_csv( $db, <<END );
-select distinct s.stories_id, s.title, s.url,
+select s.stories_id, s.title, s.url,
         case when ( stm.tags_id is null ) then s.publish_date::text else 'undateable' end as publish_date,
         m.name media_name, m.url media_url, m.media_id,
         slc.media_inlink_count, slc.inlink_count, slc.outlink_count, slc.facebook_share_count,
@@ -534,7 +534,7 @@ select distinct s.stories_id, s.title, s.url,
 	    join snapshot_media m on ( s.media_id = m.media_id )
 	    join snapshot_story_link_counts slc on ( s.stories_id = slc.stories_id )
 	    left join (
-	        stories_tags_map stm
+	        snapshot_stories_tags_map stm
                 join tags t on ( stm.tags_id = t.tags_id  and t.tag = 'undateable' )
                 join tag_sets ts on ( t.tag_sets_id = ts.tag_sets_id and ts.name = 'date_invalid' ) )
             on ( stm.stories_id = s.stories_id )
