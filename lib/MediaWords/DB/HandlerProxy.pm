@@ -172,7 +172,7 @@ sub schema_is_up_to_date($)
         my $self = shift;
 
         my $text_type;
-        if ( _python_named_parameters( @_ ) )
+        if ( MediaWords::DB::HandlerProxy::_python_named_parameters( @_ ) )
         {
             $text_type = $_[ 1 ]->{ 'text_type' };
         }
