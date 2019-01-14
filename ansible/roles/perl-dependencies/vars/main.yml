@@ -78,3 +78,6 @@ perl_dependencies:
     - "XML::FeedPP"
     - "XML::LibXML"
     - "XML::Simple"
+    # Our code doesn't use it, but one of the dependencies attempts to load it
+    # and fails silently spitting out weird errors
+    - "YAML::XS"
