@@ -249,52 +249,6 @@ sub log_system_activity($$$$)
     return __log_activity( $db, $activity_name, 'system:' . $username, $object_id, '', $description_hash );
 }
 
-=head2 (static) C<__log_activities($db, $activity_name, $user, $object_id, $reason, $description_hashes)>
-
-Log multiple activities of the same type and the same object at once.
-
-For example, if you're making multiple changes on the same story, you can use
-this helper subroutine.
-
-C<$description_hashes> is an arrayref of hashrefs of miscellaneous parameters
-that describe each of the activities, e.g.:
-
-    [
-        {
-            'field' => 'title',   # Field that was edited
-            'old_value' => 'Foo...',    # Old value of the field
-            'new_value' => 'Bar!'       # New value of the field
-        },
-        {
-            'field' => 'description',
-            'old_value' => 'Loren ipsum dolor sit amet.',
-            'new_value' => 'Consectetur adipiscing elit.'
-        },
-        <...>
-    ]
-
-See C<__log_activity()> for the description of other parameters of this
-subroutine.
-
-Returns 1 if the activities were logged. Returns 0 on error.
-
-=cut
-
-sub __log_activities($$$$$$)
-{
-    my ( $db, $activity_name, $user, $object_id, $reason, $description_hashes ) = @_;
-
-    foreach my $description_hash ( @{ $description_hashes } )
-    {
-        unless ( __log_activity( $db, $activity_name, $user, $object_id, $reason, $description_hash ) )
-        {
-            return 0;
-        }
-    }
-
-    return 1;
-}
-
 =head1 HELPERS
 
 The helpers described below are mainly used by the web UI that lists the

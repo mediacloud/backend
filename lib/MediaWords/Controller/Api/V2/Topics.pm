@@ -498,25 +498,6 @@ sub update_PUT
     $self->status_ok( $c, entity => { topics => $topics } );
 }
 
-# return a pending job states for MineTopicPublic for this user if one exists
-sub _get_user_public_queued_job($$)
-{
-    my ( $db, $auth_users_id ) = @_;
-
-    my $job_state = $db->query( <<SQL, $auth_users_id )->hash;
-select $JOB_STATE_FIELD_LIST
-    from pending_job_states pjs
-        join topic_permissions tp on ( ( pjs.args->>'topics_id' )::int = tp.topics_id )
-    where
-        class like 'MediaWords::Job::TM::MineTopic%' and
-        tp.permission in ( 'admin', 'write' ) and
-        tp.auth_users_id = ?
-    order by job_states_id desc
-SQL
-
-    return $job_state;
-}
-
 sub spider : Chained( 'apibase' ) : ActionClass( 'MC_REST' )
 {
 }

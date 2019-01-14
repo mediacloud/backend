@@ -354,27 +354,6 @@ sub list_GET
     $self->status_ok( $c, entity => $list );
 }
 
-sub _die_unless_tag_set_matches_user_email
-{
-    my ( $self, $c, $tags_id ) = @_;
-
-    $tags_id = int( $tags_id );
-
-    Readonly my $query =>
-      "SELECT tag_sets.name from tags, tag_sets where tags.tag_sets_id = tag_sets.tag_sets_id AND tags_id = ? limit 1 ";
-
-    my $hashes = $c->dbis->query( $query, $tags_id )->hashes();
-
-    #TRACE "Hashes:\n" . Dumper( $hashes );
-
-    my $tag_set = $hashes->[ 0 ]->{ name };
-
-    die "Undefined tag_set for tags_id: $tags_id" unless defined( $tag_set );
-
-    die "Illegal tag_set name '$tag_set', tag_set must be user email "
-      unless $c->stash->{ api_auth }->email() eq $tag_set;
-}
-
 sub _get_user_tag_set_permissions
 {
     my ( $api_auth, $tag_set, $dbis ) = @_;
