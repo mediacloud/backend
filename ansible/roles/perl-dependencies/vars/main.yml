@@ -33,6 +33,7 @@ perl_dependencies:
     - "Catalyst::Runtime"
     - "CHI"
     - "Data::Dumper"
+    - "Date::Parse"
     - "Devel::Cover"
     - "Devel::Cover::Report::Coveralls"
     - "Devel::NYTProf"
