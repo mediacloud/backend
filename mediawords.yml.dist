@@ -54,7 +54,8 @@ job_manager:
 
             ## Connection credentials
             hostname: "localhost"
-            port: 5673     # not the default 5672
+            # not the default 5672:
+            port: 5673
             username: "mediacloud"
             password: "mediacloud"
             vhost: "/mediacloud"
@@ -78,7 +79,7 @@ job_manager:
             ## Port to use for RabbitMQ. Default port for vendor-provided RabbitMQ
             ## deployments is 5672, but Media Cloud runs its own RabbitMQ instance via
             ## Supervisord. Default is 5673.
-            port: 5673     # not the default 5672
+            port: 5673
 
             ## Node name
             node_name: "mediacloud@localhost"
