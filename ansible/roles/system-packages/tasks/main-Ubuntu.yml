@@ -214,6 +214,7 @@
     - python2.7-dev
     - "python{{ python_version }}"
     - "python{{ python_version }}-dev"
+    - swig
     - unzip
   become: true
   become_user: root
