@@ -1,5 +1,5 @@
 # Deployments
-ansible==2.6.4
+ansible==2.7.5
 
 # Saner date / time management
 arrow==0.13.0
@@ -8,10 +8,10 @@ arrow==0.13.0
 backoff==1.8.0
 
 # Amazon S3
-boto3==1.9.75
+boto3==1.9.78
 
 # HTML parsing
-beautifulsoup4==4.6.3
+beautifulsoup4==4.7.1
 
 # Python 3.7 upgrade
 CacheMan==2.1.0
@@ -23,13 +23,13 @@ Celery==4.2.1
 cld2-cffi==0.1.4
 
 # Colorful sentence diffs in unit tests
-colorama==0.3.9
+colorama==0.4.1
 
 # Unit test coverage
-coverage==4.5.1
+coverage==4.5.2
 
 # Some modules require latest version of this
-cryptography==2.3.1
+cryptography==2.4.2
 
 # Hindi stemming
 CyHunspell==1.3.0
@@ -41,7 +41,7 @@ date_guesser==2.1.1
 flake8==3.6.0
 
 # URL manipulation
-furl==1.2.1
+furl==2.0.0
 
 # Word2vec topic models
 gensim==3.6.0
@@ -56,13 +56,13 @@ jieba==0.39
 Jinja2==2.10
 
 # XML manipulations, HTML parsing
-lxml==4.2.5
+lxml==4.3.0
 
 # Japanese language tokenizer, stemmer, etc.
-mecab-python3==0.7
+mecab-python3==0.996.1
 
 # network analysis, used for graph layout
-networkx==2.1
+networkx==2.2
 
 # Natural language processing, e.g. tokenization
 nltk==3.4
@@ -71,10 +71,10 @@ nltk==3.4
 numpy==1.16.0
 
 # Finding out which Readability version we're using
-pip==18.0
+pip==18.1
 
 # PostgreSQL access
-psycopg2-binary==2.7.5
+psycopg2-binary==2.7.6.1
 
 # Python 3.7 upgrade
 pycodestyle==2.4.0
@@ -92,10 +92,10 @@ pytest==3.8.0
 pytest-cov==2.6.0
 
 # Date parsing
-python-dateutil==2.7.3
+python-dateutil==2.7.5
 
 # Timezone handling
-pytz==2018.5
+pytz==2018.9
 
 # Configuration file
 PyYAML==4.2b2
@@ -108,31 +108,31 @@ PyYAML==4.2b2
 readability-lxml==0.7
 
 # Python 3.7 upgrade
-regex==2018.08.29
+regex==2018.11.22
 
 # Mocking HTTP requests
 responses==0.10.5
 
 # Making HTTP requests
-requests==2.20.0
+requests==2.21.0
 
 # Asynchronous (parallell / concurrent) HTTP requests
-requests-futures==0.9.7
+requests-futures==0.9.9
 
 # math package for forceatlas implementation
 scipy==1.2.0
 
 # Splitting text into sentences using Lingua::Sentence's method
-sentence_splitter==1.2
+sentence_splitter==1.3
 
 # Useful for timing out tests for which the failure case is a hard hang that does not respond to signals
-timeout_decorator==0.4.0
+timeout_decorator==0.4.1
 
 # Twitter API client
 tweepy==3.7.0
 
 # Normalizing URLs
-url_normalize==1.3.3
+url_normalize==1.4.1
 
 # Low level HTTP requests (with SSL certificate verification)
-urllib3[secure]==1.23
+urllib3[secure]==1.24.1
