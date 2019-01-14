@@ -1,21 +1,21 @@
 {
-    "collect_date":"2019-01-04 21:57:19.917804",
+    "collect_date":"2019-01-15 01:34:18.681107",
     "content":"<p>\n    This RSS feed is used to test whether very short downloads (stored directly\n    in the <code>downloads.path</code> as <code>\"content:...\"</code>) are being\n    stored / extracted / fetched correctly.\n</p>\n",
     "description":null,
     "extracted_text":"This RSS feed is used to test whether very short downloads (stored directly\n    in the downloads.path as \"content:.\" ) are being\n    stored / extracted / fetched correctly. .",
     "feed_type":"web_page",
     "full_text_rss":false,
-    "guid":"1546639039:http://penguin:40369//inline_content/home.html",
+    "guid":"1547508858:http://tundra.local:59574//inline_content/home.html",
     "language":"en",
     "media_id":1,
-    "publish_date":"2019-01-04 21:57:19",
+    "publish_date":"2019-01-15 01:34:18",
     "stories_id":4,
     "story_sentences":[
         {
             "is_dup":null,
             "language":"en",
             "media_id":1,
-            "publish_date":"2019-01-04 21:57:19",
+            "publish_date":"2019-01-15 01:34:18",
             "sentence":"This RSS feed is used to test whether very short downloads (stored directly in the downloads.path as \"content:.\" ) are being stored / extracted / fetched correctly..",
             "sentence_number":0,
             "stories_id":4,
@@ -23,7 +23,7 @@
         }
     ],
     "tags":[],
-    "timezone":"UTC",
+    "timezone":"Europe/Vilnius",
     "title":"(no title)",
-    "url":"http://penguin:40369//inline_content/home.html"
+    "url":"http://tundra.local:59574//inline_content/home.html"
 }
