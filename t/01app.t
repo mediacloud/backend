@@ -12,4 +12,4 @@ BEGIN
     use_ok 'Catalyst::Test', 'MediaWords';
 }
 
-action_redirect( '/status', 'Request should succeed' );
+action_ok( '/status', 'Request should succeed' );
