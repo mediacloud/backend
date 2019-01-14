@@ -56,9 +56,6 @@ def get_text_for_word_counts(db: DatabaseHandler, story: dict) -> str:
 
         if story_description:
 
-            if not story_text.endswith('.'):
-                story_text += '.'
-
             story_text += "\n\n"
             story_text += html_strip(story_description).strip()
 
