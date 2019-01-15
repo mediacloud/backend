@@ -12,6 +12,9 @@ from mediawords.util.url import get_url_host
 
 log = create_logger(__name__)
 
+MAX_URL_LENGTH = 1024
+MAX_TITLE_LENGTH = 1024
+
 
 class McAddStoryException(Exception):
     """add_story() exception."""

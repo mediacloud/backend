@@ -344,9 +344,8 @@ class TestTMStoriesDB(mediawords.test.test_database.TestDatabaseWithSchemaTestCa
 
         assert story['publish_date'] == '2011-11-11 00:00:00'
 
-        self.assertRaises(
-            mediawords.tm.stories.McTMStoriesDuplicateException,
-            mediawords.tm.stories.generate_story, db, story['url'], 'foo')
+        matched_story = mediawords.tm.stories.generate_story(db, story['url'], 'foo')
+        assert matched_story['stories_id'] == story['stories_id']
 
         story = mediawords.tm.stories.generate_story(db=db, url='invalid url', content='foo')
 

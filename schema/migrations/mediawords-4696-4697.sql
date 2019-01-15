@@ -10,35 +10,24 @@
 --
 -- You might need to import some additional schema diff files to reach the desired version.
 --
-
 --
 -- 1 of 2. Import the output of 'apgdiff':
 --
 
-SET search_path = public, pg_catalog;
+drop table snap.weekly_date_counts;
+drop table snap.daily_date_counts;
 
-
-DELETE FROM auth_roles
-WHERE role = 'search';
-
-
-DELETE FROM activities
-WHERE name IN (
-	'tm_remove_story_from_topic',
-	'tm_media_merge',
-	'tm_story_merge',
-	'tm_search_tag_run',
-	'tm_search_tag_change',
-	'story_edit',
-	'media_edit'
-);
-
+--
+-- 2 of 2. Reset the database version.
+--
 
 CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
+
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
     MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4697;
+
 BEGIN
 
     -- Update / set database schema version
@@ -51,7 +40,6 @@ END;
 $$
 LANGUAGE 'plpgsql';
 
---
--- 2 of 2. Reset the database version.
---
 SELECT set_database_schema_version();
+
+

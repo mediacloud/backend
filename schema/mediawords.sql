@@ -24,7 +24,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4697;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4698;
 BEGIN
 
     -- Update / set database schema version
@@ -1747,26 +1747,6 @@ create table snap.medium_links (
 -- TODO: add complex foreign key to check that *_media_id exist for the snapshot media snapshot
 create index medium_links_source on snap.medium_links( timespans_id, source_media_id );
 create index medium_links_ref on snap.medium_links( timespans_id, ref_media_id );
-
-create table snap.daily_date_counts (
-    snapshots_id            int not null references snapshots on delete cascade,
-    publish_date                    date not null,
-    story_count                     int not null,
-    tags_id                         int
-);
-
-create index daily_date_counts_date on snap.daily_date_counts( snapshots_id, publish_date );
-create index daily_date_counts_tag on snap.daily_date_counts( snapshots_id, tags_id );
-
-create table snap.weekly_date_counts (
-    snapshots_id            int not null references snapshots on delete cascade,
-    publish_date                    date not null,
-    story_count                     int not null,
-    tags_id                         int
-);
-
-create index weekly_date_counts_date on snap.weekly_date_counts( snapshots_id, publish_date );
-create index weekly_date_counts_tag on snap.weekly_date_counts( snapshots_id, tags_id );
 
 -- create a mirror of the stories table with the stories for each topic.  this is to make
 -- it much faster to query the stories associated with a given topic, rather than querying the
