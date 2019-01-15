@@ -13,59 +13,6 @@ The code that runs the topics spider is [`MediaWords::TM::Spider`](../lib/MediaW
 
 The code that snapshots topics and performs analysis (aggregates link counts, generates link counts, models reliability for date guesses) is in [`MediaWords::TM::Mine`](../lib/MediaWords/TM/Mine.pm).  More information about the snapshotting process is [here](topic_snapshots.markdown).
 
-The topic web UI is implemented in the [`MediaWords::Controller::Admin::TM`](../lib/MediaWords/Controller/Admin/TM.pm) Catalyst controller.
-
-
-## How to run a topic for development
-
-If you are running on a development machine, first make sure that you have a Solr instance running in `supervisord`.
-
-Then run the following import data into Solr from PostgreSQL and verify existence of data in Solr by searching for a common word on the `/search` page.
-
-**DO NOT RUN THIS IN PRODUCTION!**
-
-The process for running a topic in production is the same, but without the Solr import (the production Solr database will already have data).
-
-    ./script/run_in_env.sh \
-        ./script/import_solr_data.pl \
-        --delete_all
-
-1. Go to <http://localhost:3000/admin/tm>.
-
-2. Click on *create topic* link on the right of the page.
-
-3. Fill out the topic form with a Solr query and a pattern that will return a good number of stories within your database.
-
-4. Check *preview* and click submit to see a preview of the stories returned by the given Solr query and pattern.
-
-5. Click the back button.
-
-6. If there were not enough stories (a few hundred for a viable topic), go back to step 3.
-
-7. If there were enough stories, uncheck *preview* and click submit.
-
-8. In a shell, go to your Media Cloud directory and run the following, replacing `<topics_id>` with the
-ID of the newly created topic (visible in the URL of the topic page after completion of step 7):
-
-        ./script/run_in_env.sh \
-            ./script/mine_topic.pl \
-            --topic <topics_id> \
-            --direct_job
-
-9. Wait for the topic spider to complete.  This can take anywhere from an hour or so to several days.  
-If you want it to complete faster, edit `mediawords->tm_spider_iterations` in `mediawords.yml` to some small number (1 or 2), which will make the spider only spider out that many levels from the seed set.
-
-10. After all media have been deduplicated, run the command in step 8 again to make the miner process the stories in the media now marked as duplicated.
-
-11. Run the following to create a snapshot for the topic:
-
-        ./script/run_in_env.sh \
-            ./script/snapshot_topic.pl \
-            --topic <topics_id> \
-            --direct_job
-
-12. That's it.  You should have a functioning topic. Go to the topic page in step 1 and click on the newly created topic.
-
 
 ## Basic flow of topic mapper
 
@@ -102,11 +49,11 @@ If you want it to complete faster, edit `mediawords->tm_spider_iterations` in `m
 
 1. Write both a Solr query and date range that defines the topic seed set as a combination of text, collection tag, and date clauses, for example `( sentence:trayvon AND tags_id_media:123456 AND publish_date:[2012-03-01T00:00:00Z TO 2012-05-01T00:00:00Z] )`.
 
-2. Validate that this query has at most 10% false positives by searching on `core/search` and manually validating the first ~25 (randomly sampled) stories returned on `core/search` page.  Repeat 1. and 2. until a good Solr query is found.
+2. Validate that this query has at most 10% false positives by searching for the Solr query on https://explorer.mediacloud.org/ and manually validating the first ~25 (randomly sampled) returned stories.  Repeat 1. and 2. until a good Solr query is found.
 
 3. Write a regex pattern that corresponds as closely as possible to the text part of the Solr seed query.  Any story added to the topic will have to match this pattern, including the stories returned by the Solr seed query.
 
-4. Create a row in the topics table with the above Solr seed query and topic regex using the `core/admin/tm/create` page.
+4. Create a row in the topics table with the above Solr seed query and topic regex page.
     * This basic topic metadata goes into the `topics` table.
 
 5. Add any additional seed set URLs from other sources (e.g. manual research by RAs, twitter links, Google search results).

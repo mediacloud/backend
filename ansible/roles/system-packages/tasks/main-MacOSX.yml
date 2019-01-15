@@ -44,29 +44,6 @@
   tags:
     - system-packages
 
-- name: Install dependencies for Graphviz
-  homebrew:
-    name: "{{ item }}"
-    state: present
-  with_items:
-    - fontconfig
-    - freetype
-    - gd
-    - pcre
-    - pkg-config
-    - ruby
-    - swig
-    - webp
-  tags:
-    - system-packages
-
-- name: Install Graphviz with Perl bindings
-  command: "brew install --verbose graphviz --with-bindings"
-  args:
-    creates: "/usr/local/Cellar/graphviz/*/lib/graphviz/perl/libgv_perl.so"
-  tags:
-    - system-packages
-
 - name: Test if mecab-ipadic-neologd is installed
   stat:
     path: "{{ mecab_ipadic_neologd_path }}/sys.dic"

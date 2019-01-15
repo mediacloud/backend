@@ -24,7 +24,7 @@ use CHI;
 use Data::Dumper;
 use HTML::LinkExtractor;
 use List::Util;
-use List::MoreUtils;
+use List::MoreUtils qw/ uniq /;
 
 use MediaWords::Util::Config;
 use MediaWords::Util::URL;
@@ -118,7 +118,7 @@ sub _get_stories_from_story_urls
 
     my $stories = [];
 
-    $story_urls = [ List::MoreUtils::uniq( @{ $story_urls } ) ];
+    $story_urls = [ uniq( @{ $story_urls } ) ];
 
     for my $url ( @{ $story_urls } )
     {

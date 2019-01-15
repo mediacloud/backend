@@ -1,8 +1,8 @@
 {
-    "collect_date":"2018-09-22 04:17:18.248896",
-    "content":"<p>This is the second item.</p>\n",
+    "collect_date":"2019-01-15 01:34:13.516134",
+    "content":"<!-- Intentionally short so that RSS description takes precedence -->\n<p>This is the second item.</p>\n",
     "description":"RSS description of the second inline item.",
-    "extracted_text":"Second inline item\n***\n\nRSS description of the second inline item.\n***\n\nThis is the second item.",
+    "extracted_text":"Second inline item\n\nRSS description of the second inline item.",
     "feed_type":"syndicated",
     "full_text_rss":false,
     "guid":"http://www.example.com/inline_content/item_2.html",
@@ -16,14 +16,24 @@
             "language":"en",
             "media_id":1,
             "publish_date":"2009-06-11 13:57:00",
-            "sentence":"Second inline item.RSS description of the second inline item.",
+            "sentence":"Second inline item",
             "sentence_number":0,
             "stories_id":2,
-            "story_sentences_id":4
+            "story_sentences_id":18
+        },
+        {
+            "is_dup":null,
+            "language":"en",
+            "media_id":1,
+            "publish_date":"2009-06-11 13:57:00",
+            "sentence":"RSS description of the second inline item.",
+            "sentence_number":1,
+            "stories_id":2,
+            "story_sentences_id":19
         }
     ],
     "tags":[],
     "timezone":"Europe/Vilnius",
     "title":"Second inline item",
-    "url":"http://tundra.lan:64994/inline_content/item_2.html"
+    "url":"http://tundra.local:59574/inline_content/item_2.html"
 }

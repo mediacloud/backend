@@ -36,31 +36,12 @@ sub new
     return $self;
 }
 
-sub _get_download_queue_file_name
-{
-    my ( $self, $media_id ) = @_;
-
-    my $config = MediaWords::Util::Config::get_config;
-
-    my $data_dir = $config->{ mediawords }->{ download_queue_dir } || $config->{ mediawords }->{ data_dir };
-
-    my $queue_dir = "$data_dir/download_queues";
-
-    File::Path::mkpath( $queue_dir );
-    my $ret = "$queue_dir/$media_id";
-    INFO "_get_download_queue_file_name returning: $ret";
-
-    return $ret;
-}
-
 sub _get_media_download_queue
 {
     my ( $self, $media_id ) = @_;
 
     my @array;
 
-    #my $file_name = $self->_get_download_queue_file_name($media_id);
-    #tie @array, 'Tie::File', $file_name , mode => O_RDWR | O_CREAT | O_TRUNC || LOGCONFESS "error tying array: $!";
     my $ret = \@array;
 
     return $ret;
@@ -150,39 +131,6 @@ sub _get_download_media_ids
           keys( %{ $self->{ downloads } } )
     ];
 }
-
-sub _get_queued_downloads_count
-{
-    my ( $self, $media_id, $quiet ) = @_;
-
-    unless ( defined( $quiet ) ) { INFO "_get_queued_downloads_count media='$media_id'"; }
-
-    my $ret;
-
-    if ( !defined( $self->{ downloads }->{ $media_id } ) || !$self->{ downloads }->{ $media_id } )
-    {
-        $ret = 0;
-    }
-    elsif ( !$self->{ downloads }->{ $media_id }->{ queued } )
-    {
-        $ret = 0;
-    }
-    else
-    {
-        $ret = scalar( @{ $self->{ downloads }->{ $media_id }->{ queued } } );
-    }
-
-    unless ( defined( $quiet ) ) { INFO "_get_queued_downloads_count media='$media_id' returning '$ret'"; }
-
-    return $ret;
-}
-
-# sub _get_download_media_ids_under_queue_max
-# {
-#     my ($self, $queue_max) = @_;
-
-#     return [ grep { scalar($_->{downloads}->{queued}) } key (%{$self->{ downloads }}) ];
-# }
 
 sub _verify_downloads_count
 {

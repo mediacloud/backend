@@ -38,9 +38,9 @@ use MediaWords::Test::LocalServer;
 use MediaWords::Test::Text;
 use MediaWords::Util::Config;
 use MediaWords::Util::DateTime;
+use MediaWords::Util::ParseHTML;
 
 use Data::Dumper;
-use Data::Sorting qw( :basics :arrays :extras );
 use Encode;
 use Readonly;
 
@@ -160,7 +160,7 @@ EOF
     for my $story ( @{ $stories } )
     {
         $story->{ content } = _fetch_content( $db, $story );
-        $story->{ extracted_text } = MediaWords::DBI::Stories::Extract::get_text( $db, $story );
+        $story->{ extracted_text } = MediaWords::DBI::Stories::Extract::get_text_for_word_counts( $db, $story );
         $story->{ tags } = _get_db_module_tags( $db, $story, 'NYTTopics' );
 
         $story->{ story_sentences } = $db->query(

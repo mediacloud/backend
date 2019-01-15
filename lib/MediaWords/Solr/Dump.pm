@@ -31,8 +31,6 @@ changes you make to the module.
 
 =cut
 
-#use forks;
-
 use strict;
 use warnings;
 
@@ -45,7 +43,7 @@ use Digest::MD5;
 use Encode;
 use FileHandle;
 use JSON::PP;
-use List::MoreUtils;
+use List::MoreUtils qw/natatime/;
 use List::Util;
 use Parallel::ForkManager;
 use Readonly;
@@ -326,7 +324,7 @@ sub _import_stories($$)
     my $pm = Parallel::ForkManager->new( $jobs );
 
     my $stories_per_job = int( scalar( @{ $stories_ids } ) / $jobs ) + 1;
-    my $iter = List::MoreUtils::natatime( $stories_per_job, @{ $stories_ids } );
+    my $iter = natatime( $stories_per_job, @{ $stories_ids } );
     while ( my @job_stories_ids = $iter->() )
     {
         $pm->start() && next;

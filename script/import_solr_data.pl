@@ -3,8 +3,6 @@
 # Generate and import dumps of PostgreSQL data for Solr
 #
 
-use forks;
-
 use strict;
 use warnings;
 

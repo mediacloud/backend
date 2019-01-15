@@ -917,36 +917,3 @@ class TestDatabaseHandler(TestDatabaseTestCase):
                 ]
             }
         ]
-
-    def test_query_paged_hashes(self):
-
-        sql = """SELECT * FROM generate_series(1, 15) AS number"""
-        rows_per_page = 10
-
-        # First page
-        qph = self.db().query_paged_hashes(query=sql, page=1, rows_per_page=rows_per_page)
-        hashes = qph.list()
-        pager = qph.pager()
-
-        assert len(hashes) == 10
-        assert hashes[0]['number'] == 1
-        assert hashes[9]['number'] == 10
-
-        assert pager.previous_page() is None
-        assert pager.next_page() == 2
-        assert pager.first() == 1
-        assert pager.last() == 10
-
-        # Last page
-        qph = self.db().query_paged_hashes(query=sql, page=2, rows_per_page=rows_per_page)
-        hashes = qph.list()
-        pager = qph.pager()
-
-        assert len(hashes) == 5
-        assert hashes[0]['number'] == 11
-        assert hashes[4]['number'] == 15
-
-        assert pager.previous_page() == 1
-        assert pager.next_page() is None
-        assert pager.first() == 11
-        assert pager.last() == 15

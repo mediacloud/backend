@@ -947,7 +947,7 @@ EOF
     my $hs = MediaWords::Test::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
 
     $hs->start();
-    my $actual_links = MediaWords::Feed::Scrape::get_valid_feeds_from_index_url( [ $TEST_HTTP_SERVER_URL ], 1 );
+    my $actual_links = MediaWords::Feed::Scrape::_get_valid_feeds_from_index_url( [ $TEST_HTTP_SERVER_URL ], 1 );
     $hs->stop();
 
     cmp_bag( $actual_links, $expected_links, 'test_rss_simple_website' );
@@ -1171,7 +1171,7 @@ HTML
     my $hs = MediaWords::Test::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
 
     $hs->start();
-    my $feed_links = MediaWords::Feed::Scrape::get_valid_feeds_from_index_url( [ $TEST_HTTP_SERVER_URL ], 1 );
+    my $feed_links = MediaWords::Feed::Scrape::_get_valid_feeds_from_index_url( [ $TEST_HTTP_SERVER_URL ], 1 );
     $hs->stop();
 
     cmp_bag( $feed_links, $expected_links, 'test_rss_base_href' );
@@ -1235,7 +1235,7 @@ HTML
     my $hs = MediaWords::Test::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
 
     $hs->start();
-    my $feed_links = MediaWords::Feed::Scrape::get_valid_feeds_from_index_url( [ $TEST_HTTP_SERVER_URL ], 1 );
+    my $feed_links = MediaWords::Feed::Scrape::_get_valid_feeds_from_index_url( [ $TEST_HTTP_SERVER_URL ], 1 );
     $hs->stop();
 
     cmp_bag( $feed_links, $expected_links, 'test_rss_unlinked_urls' );
@@ -1299,7 +1299,7 @@ HTML
     my $hs = MediaWords::Test::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
 
     $hs->start();
-    my $feed_links = MediaWords::Feed::Scrape::get_valid_feeds_from_index_url( [ $TEST_HTTP_SERVER_URL ], 1 );
+    my $feed_links = MediaWords::Feed::Scrape::_get_valid_feeds_from_index_url( [ $TEST_HTTP_SERVER_URL ], 1 );
     $hs->stop();
 
     cmp_bag( $feed_links, $expected_links, 'test_rss_image_link' );

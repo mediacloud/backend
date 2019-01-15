@@ -6,13 +6,11 @@ use strict;
 use warnings;
 use base 'Catalyst::Controller';
 
-use Date::Calc;
 use Encode;
 use List::Util qw(first max maxstr min minstr reduce shuffle sum);
 use Moose;
 use namespace::autoclean;
 use JSON::PP;
-use List::Compare;
 use Readonly;
 
 use MediaWords::Solr;
@@ -58,26 +56,6 @@ sub list : Local : ActionClass('MC_REST')
     #TRACE "starting Sentences/list";
 }
 
-# fill stories_ids temporary table with stories_ids from the given sentences
-# and return the temp table name
-sub _get_stories_ids_temporary_table
-{
-    my ( $db, $sentences ) = @_;
-
-    my $table_name = '_stories_ids';
-
-    $db->query( "CREATE TEMPORARY TABLE $table_name (stories_id BIGINT)" );
-
-    my $copy_from = $db->copy_from( "COPY $table_name FROM STDIN" );
-    for my $ss ( @{ $sentences } )
-    {
-        $copy_from->put_line( $ss->{ stories_id } . '' );
-    }
-    $copy_from->end();
-
-    return $table_name;
-}
-
 # return the solr sort param corresponding with the possible
 # api params values of publish_date_asc, publish_date_desc, and random
 sub _get_sort_param
@@ -104,34 +82,6 @@ sub _get_sort_param
     {
         die( "Unknown sort: $sort" );
     }
-}
-
-# given the raw data structure returned by the solr query to sentences/list, return the entity that should be passed
-# back to the client for the sentences/list end point.  this is mostly just mirroring the solr data structure, but
-# we include it so that we don't pass extra fields that may pop up in the solr query over time as we change sorl versions
-# and schemas.
-sub _get_sentences_entity_from_json_data
-{
-    my ( $data ) = @_;
-
-    my $entity = {};
-
-    map { $entity->{ responseHeader }->{ params }->{ $_ } = $data->{ responseHeader }->{ params }->{ $_ } }
-      qw/sort df wt q fq rows start/;
-
-    map { $entity->{ responseHeader }->{ $_ } = $data->{ responseHeader }->{ $_ } } qw/status QTime/;
-
-    for my $data_doc ( @{ $data->{ response }->{ docs } } )
-    {
-        my $entity_doc = {};
-
-        map { $entity_doc->{ $_ } = $data_doc->{ $_ } }
-          qw/sentence media_id publish_date sentence_number stories_id story_sentences_id _version_/;
-
-        push( @{ $entity->{ response }->{ docs } }, $entity_doc );
-    }
-
-    return $entity;
 }
 
 sub list_GET
