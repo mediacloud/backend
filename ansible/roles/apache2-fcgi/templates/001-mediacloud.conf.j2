@@ -12,10 +12,6 @@
     ServerName  {{ apache2_server_name }}
     ServerAdmin {{ apache2_server_admin }}
 
-    <Location /static>
-        SetHandler default-handler
-    </Location>
-
     <Location />
         Options ExecCGI
 
