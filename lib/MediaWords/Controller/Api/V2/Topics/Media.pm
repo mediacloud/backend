@@ -8,7 +8,6 @@ use base 'Catalyst::Controller';
 use List::Util qw(first max maxstr min minstr reduce shuffle sum);
 use Moose;
 use namespace::autoclean;
-use List::Compare;
 
 use MediaWords::DBI::ApiLinks;
 use MediaWords::Solr;
@@ -246,10 +245,6 @@ sub map_GET
     my $gexf = MediaWords::TM::Snapshot::get_gexf_snapshot( $db, $timespan, $gexf_options );
 
     MediaWords::TM::Snapshot::discard_temp_tables( $db );
-
-    my $base_url = $c->uri_for( '/' );
-
-    $gexf =~ s/\[_mc_base_url_\]/$base_url/g;
 
     my $file = "media_$timespan->{ timespans_id }.gexf";
 

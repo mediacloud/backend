@@ -1,7 +1,0 @@
-/* MS Internet Explorer specific styles */
-
-fieldset.radiogroup,
-fieldset.checkboxgroup
-{
-	padding-top: 0;
-}

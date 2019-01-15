@@ -24,7 +24,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4697;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4698;
 BEGIN
 
     -- Update / set database schema version
@@ -2047,8 +2047,7 @@ INSERT INTO auth_roles (role, description) VALUES
     ('stories-edit', 'Add / edit stories.'),
     ('tm', 'Topic mapper; includes media and story editing'),
     ('tm-readonly', 'Topic mapper; excludes media and story editing'),
-    ('stories-api', 'Access to the stories api'),
-    ('search', 'Access to the /search pages');
+    ('stories-api', 'Access to the stories api');
 
 
 --
@@ -2161,7 +2160,7 @@ CREATE TABLE auth_users_subscribe_to_newsletter (
 CREATE TABLE activities (
     activities_id       SERIAL          PRIMARY KEY,
 
-    -- Activity's name (e.g. "media_edit", "story_edit", etc.)
+    -- Activity's name (e.g. "tm_snapshot_topic")
     name                VARCHAR(255)    NOT NULL
                                         CONSTRAINT activities_name_can_not_contain_spaces CHECK(name NOT LIKE '% %'),
 
@@ -2175,7 +2174,6 @@ CREATE TABLE activities (
     user_identifier     CITEXT          NOT NULL,
 
     -- Indexed ID of the object that was modified in some way by the activity
-    -- (e.g. media's ID "media_edit" or story's ID in "story_edit")
     object_id           BIGINT          NULL,
 
     -- User-provided reason explaining why the activity was made

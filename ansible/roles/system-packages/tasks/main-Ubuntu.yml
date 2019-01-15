@@ -191,13 +191,10 @@
     - g++
     - gawk
     - gcc
-    - graphviz
-    - graphviz-dev
     - hunspell
     - libexpat1-dev
     - libhunspell-dev
     - libmecab-dev
-    - libgraphviz-dev
     - libre2-dev
     - libtidy-dev
     - libxml2-dev
@@ -217,6 +214,7 @@
     - python2.7-dev
     - "python{{ python_version }}"
     - "python{{ python_version }}-dev"
+    - swig
     - unzip
   become: true
   become_user: root

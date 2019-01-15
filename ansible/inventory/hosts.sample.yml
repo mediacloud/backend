@@ -15,7 +15,7 @@ all:
 
       # Apache's ServerName; Apache and Ansible will expect the server to be
       # accessible publicly using this name
-      apache2_server_name: "core.mediacloud.org"
+      apache2_server_name: "api.mediacloud.org"
 
       # Username to use for installing and running Media Cloud. Default is
       # "{{ ansible_user_id }}", i.e. Ansible user, for both localhost and remote

@@ -22,7 +22,6 @@ Functions for querying the solr server.  More information about solr integration
 
 use Encode;
 use List::Util;
-use List::MoreUtils;
 use Time::HiRes qw(gettimeofday tv_interval);
 use URI::Escape;
 
@@ -36,7 +35,7 @@ use MediaWords::Util::ParseJSON;
 use MediaWords::Util::Text;
 use MediaWords::Util::Web;
 
-use List::MoreUtils qw ( uniq );
+use List::MoreUtils qw/ uniq natatime /;
 
 use Time::HiRes;
 
@@ -478,7 +477,7 @@ sub query_matching_sentences($$;$)
     # postgres decides at some point beyond 1000 stories to do this query as a seq scan
     my $story_sentences   = [];
     my $stories_per_chunk = 1000;
-    my $iter              = List::MoreUtils::natatime( $stories_per_chunk, @{ $stories_ids } );
+    my $iter              = natatime( $stories_per_chunk, @{ $stories_ids } );
     while ( my @chunk_stories_ids = $iter->() )
     {
         my $ids_table = $db->get_temporary_ids_table( \@chunk_stories_ids );

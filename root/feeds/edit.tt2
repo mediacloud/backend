@@ -1,8 +1,0 @@
-[% title = 'Add New Feed' %]
-[% INCLUDE include/feeds_header.tt2 %]
-
-<fieldset>
-[% form.render %]
-</fieldset>
- 
-[% INCLUDE include/footer.tt2 %]

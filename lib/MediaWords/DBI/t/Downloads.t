@@ -8,7 +8,7 @@ use warnings;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-use Test::More tests => 12;
+use Test::More tests => 13;
 use Test::NoWarnings;
 
 use MediaWords::DBI::Downloads;
@@ -44,18 +44,10 @@ sub test_extract_content($$$)
 
     my $results = MediaWords::DBI::Downloads::extract_content( $content );
 
-    # crawler test squeezes in story title and description into the expected output
-    my @download_texts = ( $results->{ extracted_text } );
-    my $combined_text  = MediaWords::DBI::Stories::Extract::combine_story_title_description_text(
-        $story->{ title },
-        $story->{ description },
-        \@download_texts
-    );
+    my $extracted_text = $results->{ extracted_text };
 
-    my $expected_text = $story->{ extracted_text };
-    my $actual_text   = $combined_text;
-
-    MediaWords::Test::Text::eq_or_sentence_diff( $actual_text, $expected_text, "Extracted text comparison for $title" );
+    ok( length( $extracted_text ) > 7000, "Extracted text length looks reasonable" );
+    ok( index( $extracted_text, '<' ) == -1, "No HTML tags left in extracted text" );
 }
 
 sub _add_download_to_story
