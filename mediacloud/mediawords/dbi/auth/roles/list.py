@@ -41,11 +41,6 @@ class UserRoles(object):
         """Access to the stories API."""
         return 'stories-api'
 
-    @staticmethod
-    def search() -> str:
-        """Access to the /search pages."""
-        return 'search'
-
 
 def topic_mc_queue_roles() -> List[str]:
     """Roles that are allows to queue a topic into the 'mc' queue instead of the 'public' queue."""

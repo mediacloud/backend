@@ -146,12 +146,6 @@ def __set_dynamic_defaults(config: dict) -> dict:
         # FIXME create a helper in 'paths'
         config['mediawords']['data_dir'] = os.path.join(mc_root_path(), 'data')
 
-    # FIXME probably not needed
-    if 'session' not in config or config['session'] is None:
-        config['session'] = {}
-    if 'storage' not in config['session'] or config['session']['storage'] is None:
-        config['session']['storage'] = os.path.join(os.path.expanduser('~'), "tmp", "mediacloud-session")
-
     # MC_REWRITE_TO_PYTHON: probably not needed after Python rewrite
     if 'Plugin::Authentication' not in config or config['Plugin::Authentication'] is None:
         config['Plugin::Authentication'] = {

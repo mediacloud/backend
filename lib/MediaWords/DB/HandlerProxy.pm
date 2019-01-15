@@ -392,25 +392,6 @@ sub find_or_create($$$)
     return python_deep_copy( $return_value );
 }
 
-sub query_paged_hashes($$$$)
-{
-    my $self = shift;
-
-    my ( $query, $page, $rows_per_page );
-    if ( _python_named_parameters( @_ ) )
-    {
-        $query         = $_[ 1 ]->{ 'query' };
-        $page          = $_[ 1 ]->{ 'page' };
-        $rows_per_page = $_[ 1 ]->{ 'rows_per_page' };
-    }
-    else
-    {
-        ( $query, $page, $rows_per_page ) = @_;
-    }
-
-    return $self->{ _db }->query_paged_hashes( $query, $page, $rows_per_page );
-}
-
 sub get_temporary_ids_table($$;$)
 {
     my $self = shift;

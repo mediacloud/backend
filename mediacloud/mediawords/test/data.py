@@ -63,7 +63,10 @@ def _get_data_file(basename: str, subdirectory: str = '') -> str:
 
     basename = decode_object_from_bytes_if_needed(basename)
 
-    if not re.match('^[a-z0-9_]+$', basename):
+    if not basename:
+        raise McGetDataFileException("Basename is empty.")
+
+    if not re.match(r'^[a-z0-9_]+$', basename):
         raise McGetDataFileException("Test data basename can only include '[a-z0-9_].")
 
     return os.path.join(
@@ -135,7 +138,7 @@ def store_test_data_to_individual_files(basename: str, data: dict) -> None:
 
     # Write dict to files
     for index in data_dict.keys():
-        store_test_data(basename=index, data=data_dict[index], subdirectory=basename)
+        store_test_data(basename=str(index), data=data_dict[index], subdirectory=basename)
 
 
 def fetch_test_data_from_individual_files(basename: str) -> list:

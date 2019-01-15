@@ -177,11 +177,11 @@ Every call below includes a `key` parameter which will authenticate the user to 
 
 To get a key, register for a user:
 
-https://core.mediacloud.org/login/register
+https://topics.mediacloud.org/#/user/signup
 
 Once you have an account go here to see your key:
 
-https://core.mediacloud.org/admin/profile
+https://topics.mediacloud.org/#/user/profile
 
 ### Example
 
@@ -1592,7 +1592,7 @@ Output:
 
 #### Required role
 
-`search`.
+None.
 
 #### Output Description
 
@@ -1633,7 +1633,6 @@ Media Cloud currently includes the following authentication roles:
 | `admin-readonly` | Read every resource                                              |
 | `media-edit`     | Edit media sources                                               |
 | `stories-edit`   | Edit stories                                                     |
-| `search`         | Access <https://core.mediacloud.org/search> page                 |
 | `tm`             | Access legacy topic mapper web interface                         |
 | `tm-readonly`    | Access legacy topic mapper web interface with editing privileges |
 
@@ -1677,7 +1676,7 @@ URL: <https://api.mediacloud.org/api/v2/auth/profile>
 
 #### Required role
 
-`search`.
+None.
 
 #### Input Description
 
@@ -1736,7 +1735,7 @@ Output:
 
 #### Required role
 
-`search`.
+None.
 
 #### Output Description
 

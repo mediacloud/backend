@@ -30,8 +30,6 @@ use Moose::Role;
 
 use Data::Dumper;
 use Encode;
-use List::MoreUtils;
-use Parallel::ForkManager;
 
 use MediaWords::TM::GuessDate;
 use MediaWords::CommonLibs;
@@ -329,30 +327,6 @@ SQL
 
 }
 
-# download the content for the story's url
-sub _get_story_content
-{
-    my ( $self, $url ) = @_;
-
-    DEBUG "fetching story url $url";
-
-    my $ua = MediaWords::Util::Web::UserAgent->new();
-    $ua->set_timing( [ 1, 2, 4, 8 ] );
-
-    my $res = $ua->get( $url );
-
-    if ( $res->is_success )
-    {
-        return $res->decoded_content;
-    }
-    else
-    {
-        WARN "Unable to fetch content for story '$url'";
-        return '';
-    }
-
-}
-
 # add and extract download for story
 sub _add_story_download
 {
@@ -492,27 +466,6 @@ sub _print_story_diffs
     DEBUG "deduped stories:";
     $self->_print_stories( $deduped_stories );
 
-}
-
-# narrow date range to the dates of the new stories
-sub _narrow_dates_to_new_stories
-{
-    my ( $self, $new_stories ) = @_;
-
-    $new_stories = [ sort { $a->{ publish_date } cmp $b->{ publish_date } } @{ $new_stories } ];
-
-    my $earliest_story = $new_stories->[ 0 ];
-    my $latest_story   = pop( @{ $new_stories } );
-
-    if ( !$self->start_date || ( $earliest_story->{ publish_date } gt $self->start_date ) )
-    {
-        $self->start_date( $earliest_story->{ publish_date } );
-    }
-
-    if ( !$self->end_date || ( $latest_story->{ publish_date } lt $self->end_date ) )
-    {
-        $self->end_date( $latest_story->{ publish_date } );
-    }
 }
 
 # eliminate any stories with titles that are logogram language (chinese, japanese, etc) because story deduplication

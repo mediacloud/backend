@@ -22,7 +22,7 @@ apache2_ssl_cert_path: /etc/ssl/certs/ssl-cert-snakeoil.pem
 # (required if SSL is enabled) SSL private key path (must exist beforehand)
 apache2_ssl_cert_key_path: /etc/ssl/private/ssl-cert-snakeoil.key
 
-# ServerName (e.g. core.mediacloud.org)
+# ServerName (e.g. api.mediacloud.org)
 apache2_server_name: "{{ ansible_hostname }}"
 
 # (optional) SSL intermediate certificate path (must exist beforehand)

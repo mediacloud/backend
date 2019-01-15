@@ -1,9 +1,0 @@
-  <tr>
-    <td colspan = "5" bgcolor="#666666"><div id = "copyright">[% c.loc('Media Cloud is <span id="tagline">a project of the <a href="http://cyber.law.harvard.edu/">Berkman Center for Internet &amp; Society</a> at Harvard</span>') %]<br />
-        </div></td>
-  </tr>
-
-      <!--This is where the content ends!-->
-      </table>      
-</body>
-</html>
