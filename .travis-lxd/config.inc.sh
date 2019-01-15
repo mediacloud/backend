@@ -4,7 +4,7 @@
 
 # URL of LXD image with pre-provisioned Media Cloud dependencies
 # (use ./.travis-lxd/setup_travis_lxd_image.sh) to create a new one)
-MC_LXD_IMAGE_PROVISIONED_URL=https://s3.amazonaws.com/mediacloud-travis-lxd-images/travis-lxd-images/mediacloud-travis-20190104.tar.gz
+MC_LXD_IMAGE_PROVISIONED_URL=https://s3.amazonaws.com/mediacloud-travis-lxd-images/travis-lxd-images/mediacloud-travis-20190115.tar.gz
 
 # LXD image with base Ubuntu
 MC_LXD_IMAGE_UBUNTU_BASE=ubuntu:xenial
