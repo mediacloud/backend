@@ -46,7 +46,6 @@ use strict;
 use warnings;
 
 use Data::Dumper;
-use List::MoreUtils;
 use Readonly;
 
 use MediaWords::DB;

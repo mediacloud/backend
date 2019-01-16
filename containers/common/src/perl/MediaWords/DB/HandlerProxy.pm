@@ -172,7 +172,7 @@ sub schema_is_up_to_date($)
         my $self = shift;
 
         my $text_type;
-        if ( _python_named_parameters( @_ ) )
+        if ( MediaWords::DB::HandlerProxy::_python_named_parameters( @_ ) )
         {
             $text_type = $_[ 1 ]->{ 'text_type' };
         }
@@ -390,25 +390,6 @@ sub find_or_create($$$)
     return $return_value if MediaWords::Util::Python::called_from_python();
 
     return python_deep_copy( $return_value );
-}
-
-sub query_paged_hashes($$$$)
-{
-    my $self = shift;
-
-    my ( $query, $page, $rows_per_page );
-    if ( _python_named_parameters( @_ ) )
-    {
-        $query         = $_[ 1 ]->{ 'query' };
-        $page          = $_[ 1 ]->{ 'page' };
-        $rows_per_page = $_[ 1 ]->{ 'rows_per_page' };
-    }
-    else
-    {
-        ( $query, $page, $rows_per_page ) = @_;
-    }
-
-    return $self->{ _db }->query_paged_hashes( $query, $page, $rows_per_page );
 }
 
 sub get_temporary_ids_table($$;$)

@@ -2,7 +2,7 @@
 # Mine public topic worker
 #
 
-FROM dockermediacloud/mediacloud-common:latest
+FROM dockermediacloud/mediacloud-topics-mine:latest
 
 # Copy Perl sources
 COPY src/perl/ /usr/share/perl5/

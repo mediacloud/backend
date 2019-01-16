@@ -9,26 +9,26 @@ RUN \
     #
     # Install PostgreSQL
     apt-get -y --no-install-recommends install \
-        postgresql-10 \
-        postgresql-client-10 \
-        postgresql-contrib-10 \
-        postgresql-plperl-10 \
-        postgresql-server-dev-10 \
+        postgresql-11 \
+        postgresql-client-11 \
+        postgresql-contrib-11 \
+        postgresql-plperl-11 \
+        postgresql-server-dev-11 \
     && \
     true
 
 # Make some run directories
 RUN \
-    mkdir -p /var/run/postgresql/10-main.pg_stat_tmp && \
-    chown -R postgres:postgres /var/run/postgresql/10-main.pg_stat_tmp && \
+    mkdir -p /var/run/postgresql/11-main.pg_stat_tmp && \
+    chown -R postgres:postgres /var/run/postgresql/11-main.pg_stat_tmp && \
     true
 
 # Update static configuration
 COPY conf/postgresql.conf /var/tmp/
-RUN cat /var/tmp/postgresql.conf >> /etc/postgresql/10/main/postgresql.conf
+RUN cat /var/tmp/postgresql.conf >> /etc/postgresql/11/main/postgresql.conf
 
 # PostgreSQL data
-VOLUME /var/lib/postgresql/10/main/
+VOLUME /var/lib/postgresql/11/main/
 
 # Server
 EXPOSE 5432

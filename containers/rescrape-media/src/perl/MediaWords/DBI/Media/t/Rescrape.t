@@ -9,7 +9,7 @@ use Test::NoWarnings;
 use Test::Deep;
 
 use MediaWords::Test::DB;
-use MediaWords::DBI::Media;
+use MediaWords::DBI::Media::Rescrape;
 
 use MediaWords::Test::HashServer;
 use MediaWords::Test::URLs;

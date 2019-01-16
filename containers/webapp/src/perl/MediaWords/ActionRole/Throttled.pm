@@ -78,11 +78,9 @@ EOF
             my $weekly_requests_sum          = ( $limits->{ weekly_requests_sum }          // 0 ) + 0;
             my $weekly_requested_items_sum   = ( $limits->{ weekly_requested_items_sum }   // 0 ) + 0;
 
-            my $profile_url       = $c->uri_for( '/admin/profile' );
             my $throttled_message = <<END;
-You have exceeded your quota of requests or stories.  See your profile page
-at $profile_url for your current usage and limits.
-Contact info\@mediacloud.org with quota questions.
+You have exceeded your quota of requests or stories. Please contact
+info\@mediacloud.org with quota questions.
 END
 
             if ( $weekly_requests_limit > 0 )

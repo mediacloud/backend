@@ -1,2 +1,0 @@
-# Network analysis, used for graph layout
-networkx==2.1

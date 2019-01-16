@@ -1,4 +1,3 @@
-requires 'Data::Sorting';
 requires 'Date::Parse';
 requires 'Digest::SHA';
 requires 'Fcntl';

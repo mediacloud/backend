@@ -44,5 +44,5 @@ RUN \
     cpanm --mirror "$MEDIACLOUD_PERL_CPAN_MIRROR" --mirror-only Inline && \
     #
     # Install Inline::Python variant which die()s with tracebacks (stack traces)
-    cpanm https://github.com/berkmancenter/mediacloud-inline-python-pm.git@v0.56-mediacloud && \
+    cpanm https://github.com/berkmancenter/mediacloud-inline-python-pm.git@v0.56.1-mediacloud && \
     true

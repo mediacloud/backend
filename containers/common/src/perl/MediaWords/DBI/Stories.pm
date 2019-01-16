@@ -1,17 +1,8 @@
 package MediaWords::DBI::Stories;
 
-=head1 NAME
-
-Mediawords::DBI::Stories - various helper functions for stories
-
-=head1 SYNOPSIS
-
-
-=head1 DESCRIPTION
-
-This module includes various helper function for dealing with stories.
-
-=cut
+#
+# Various helper functions for stories
+#
 
 use strict;
 use warnings;
@@ -23,14 +14,10 @@ use MediaWords::CommonLibs;
 import_python_module( __PACKAGE__, 'mediawords.dbi.stories.stories' );
 
 use HTML::Entities;
-use List::Util;
 
-use MediaWords::Languages::Language;
 use MediaWords::Util::ParseHTML;
 use MediaWords::Util::SQL;
 use MediaWords::Util::URL;
-use MediaWords::Util::Web;
-use MediaWords::Util::Web::Cache;
 
 # common title prefixes that can be ignored for dup title matching
 Readonly my $DUP_TITLE_PREFIXES => [
@@ -39,86 +26,14 @@ Readonly my $DUP_TITLE_PREFIXES => [
     qw/revealed gallup ap read experts op-ed commentary feature letters survey/
 ];
 
-=head1 FUNCTIONS
-
-=cut
-
-=head2 is_fully_extracted( $db, $story )
-
-Return true if all downloads linking to this story have been extracted.
-
-=cut
-
-sub is_fully_extracted
-{
-    my ( $db, $story ) = @_;
-
-    my ( $bool ) = $db->query(
-        <<"EOF",
-        SELECT BOOL_AND(extracted)
-        FROM downloads
-        WHERE stories_id = ?
-EOF
-        $story->{ stories_id }
-    )->flat();
-
-    return ( defined( $bool ) && $bool ) ? 1 : 0;
-}
-
-=head2 get_existing_tags_as_string( $db, $stories_id )
-
-Get list of tags associated with the story in 'tag_set_name:tag' format.
-
-=cut
-
-sub get_existing_tags_as_string
-{
-    my ( $db, $stories_id ) = @_;
-
-    # Take note of the old tags
-    my $tags = $db->query(
-        <<"EOF",
-            SELECT stm.stories_id,
-                   CAST(ARRAY_AGG(ts.name || ':' || t.tag) AS TEXT) AS tags
-            FROM tags t,
-                 stories_tags_map stm,
-                 tag_sets ts
-            WHERE t.tags_id = stm.tags_id
-                  AND stm.stories_id = ?
-                  AND t.tag_sets_id = ts.tag_sets_id
-            GROUP BY stm.stories_id,
-                     t.tag_sets_id
-            ORDER BY tags
-            LIMIT 1
-EOF
-        $stories_id
-    )->hash;
-
-    if ( ref( $tags ) eq 'HASH' and $tags->{ stories_id } )
-    {
-        $tags = $tags->{ tags };
-    }
-    else
-    {
-        $tags = '';
-    }
-
-    return $tags;
-}
-
-=head2 attach_story_data_to_stories( $stories, $story_data, $list_field )
-
-Given two lists of hashes, $stories and $story_data, each with
-a stories_id field in each row, assign each key:value pair in
-story_data to the corresponding row in $stories.  If $list_field
-is specified, push each the value associate with key in each matching
-stories_id row in story_data field into a list with the name $list_field
-in stories.
-
-Return amended stories hashref.
-
-=cut
-
+# Given two lists of hashes, $stories and $story_data, each with
+# a stories_id field in each row, assign each key:value pair in
+# story_data to the corresponding row in $stories.  If $list_field
+# is specified, push each the value associate with key in each matching
+# stories_id row in story_data field into a list with the name $list_field
+# in stories.
+#
+# Return amended stories hashref.
 sub attach_story_data_to_stories
 {
     my ( $stories, $story_data, $list_field ) = @_;
@@ -161,15 +76,10 @@ sub attach_story_data_to_stories
     return $stories;
 }
 
-=head2 attach_story_meta_data_to_stories( $db, $stories )
-
-Call attach_story_data_to_stories_ids with a basic query that includes the fields:
-stories_id, title, publish_date, url, guid, media_id, language, media_name.
-
-Return the updated stories arrayref.
-
-=cut
-
+# Call attach_story_data_to_stories_ids with a basic query that includes the fields:
+# stories_id, title, publish_date, url, guid, media_id, language, media_name.
+#
+# Return the updated stories arrayref.
 sub attach_story_meta_data_to_stories
 {
     my ( $db, $stories ) = @_;
@@ -242,23 +152,17 @@ sub _get_story_date_range
     return List::Util::max( @{ $epoch_dates } ) - List::Util::min( @{ $epoch_dates } );
 }
 
-=head2 get_medium_dup_stories_by_title( $db, $stories, $assume_no_home_pages )
-
-Get duplicate stories within the set of stories by breaking the title of each story into parts by [-:|] and looking for
-any such part that is the sole title part for any story and is at least 4 words long and is not the title of a story
-with a path-less url.  Any story that includes that title part becames a duplicate.  return a list of duplciate story
-lists. Do not return any list of duplicates with greater than 25 duplicates for fear that the title deduping is
-interacting with some title form in a goofy way.
-
-By default, assume that any solr title part that is less than 5 words long or that is associated with a story whose
-url has no path is a home page and therefore should not be considered as a possible duplicate title part.  If
-$assume_no_home_pages is true, treat every solr url part greater than two words as a potential duplicate title part.
-
-Don't recognize twitter stories as dups, because the tweet title is the tweet text, and we want to capture retweets.
-
-
-=cut
-
+# Get duplicate stories within the set of stories by breaking the title of each story into parts by [-:|] and looking for
+# any such part that is the sole title part for any story and is at least 4 words long and is not the title of a story
+# with a path-less url.  Any story that includes that title part becames a duplicate.  return a list of duplciate story
+# lists. Do not return any list of duplicates with greater than 25 duplicates for fear that the title deduping is
+# interacting with some title form in a goofy way.
+#
+# By default, assume that any solr title part that is less than 5 words long or that is associated with a story whose
+# url has no path is a home page and therefore should not be considered as a possible duplicate title part.  If
+# $assume_no_home_pages is true, treat every solr url part greater than two words as a potential duplicate title part.
+# 
+# Don't recognize twitter stories as dups, because the tweet title is the tweet text, and we want to capture retweets.
 sub get_medium_dup_stories_by_title
 {
     my ( $db, $stories, $assume_no_home_pages ) = @_;
@@ -320,14 +224,9 @@ sub get_medium_dup_stories_by_title
     return $duplicate_stories;
 }
 
-=head2 get_medium_dup_stories_by_url( $db, $stories )
-
-Get duplicate stories within the given set that are duplicates because the normalized url for two given stories is the
-same.  Return a list of story duplicate lists.  Do not return any list of duplicates with greater than 5 duplicates for
-fear that the url normalization is interacting with some url form in a goofy way
-
-=cut
-
+# Get duplicate stories within the given set that are duplicates because the normalized url for two given stories is the
+# same.  Return a list of story duplicate lists.  Do not return any list of duplicates with greater than 5 duplicates for
+# fear that the url normalization is interacting with some url form in a goofy way
 sub get_medium_dup_stories_by_url
 {
     my ( $db, $stories ) = @_;

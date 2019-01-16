@@ -131,39 +131,6 @@ sub _get_download_media_ids
     ];
 }
 
-sub _get_queued_downloads_count
-{
-    my ( $self, $media_id, $quiet ) = @_;
-
-    unless ( defined( $quiet ) ) { INFO "_get_queued_downloads_count media='$media_id'"; }
-
-    my $ret;
-
-    if ( !defined( $self->{ downloads }->{ $media_id } ) || !$self->{ downloads }->{ $media_id } )
-    {
-        $ret = 0;
-    }
-    elsif ( !$self->{ downloads }->{ $media_id }->{ queued } )
-    {
-        $ret = 0;
-    }
-    else
-    {
-        $ret = scalar( @{ $self->{ downloads }->{ $media_id }->{ queued } } );
-    }
-
-    unless ( defined( $quiet ) ) { INFO "_get_queued_downloads_count media='$media_id' returning '$ret'"; }
-
-    return $ret;
-}
-
-# sub _get_download_media_ids_under_queue_max
-# {
-#     my ($self, $queue_max) = @_;
-
-#     return [ grep { scalar($_->{downloads}->{queued}) } key (%{$self->{ downloads }}) ];
-# }
-
 sub _verify_downloads_count
 {
     my ( $self ) = @_;

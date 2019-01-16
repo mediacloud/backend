@@ -11,6 +11,7 @@ use MediaWords::CommonLibs;
 
 use MediaWords::DB;
 use MediaWords::Solr;
+use List::MoreUtils qw/natatime/;
 
 sub main
 {
@@ -33,7 +34,7 @@ sub main
     print( Encode::encode( 'utf-8', $csv->string() . "\n" ) );
 
     my $i = 1;
-    my $iter = List::MoreUtils::natatime( 1000, @{ $stories_ids } );
+    my $iter = natatime( 1000, @{ $stories_ids } );
     while ( my @chunk_stories_ids = $iter->() )
     {
         print STDERR "printing block " . $i++ . "\n";

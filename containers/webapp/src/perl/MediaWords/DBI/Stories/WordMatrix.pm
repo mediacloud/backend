@@ -31,40 +31,35 @@ SQL
     return $cursor;
 }
 
-=head2 get_story_word_matrix_file( $db, $stories_ids, $max_words )
-
-Given a list of stories_ids, generate a matrix consisting of the vector of word stem counts for each stories_id on each
-line.  Return a hash of story word counts and a list of word stems.
-
-The list of story word counts is in the following format:
-{
-    { <stories_id> =>
-        { <word_id_1> => <count>,
-          <word_id_2 => <count>
-        }
-    },
-    ...
-]
-
-The id of each word is the indes of the given word in the word list.  The word list is a list of lists, with each
-member list consisting of the stem followed by the most commonly used term.
-
-For example, for stories_ids 1 and 2, both of which contain 4 mentions of 'foo' and 10 of 'bars', the word count
-has and and word list look like:
-
-[ { 1 => { 0 => 4, 1 => 10 } }, { 2 => { 0 => 4, 1 => 10 } } ]
-
-[ [ 'foo', 'foo' ], [ 'bar', 'bars' ] ]
-
-The story_sentences for each story will be used for word counting. If $max_words is specified, only the most common
-$max_words will be used for each story.
-
-The function uses MediaWords::Util::IdentifyLanguage to identify the stemming and stopwording language for each story.
-If the language of a given story is not supported, stemming and stopwording become null operations.  For the list of
-languages supported, see @MediaWords::Langauges::Language::_supported_languages.
-
-=cut
-
+# Given a list of stories_ids, generate a matrix consisting of the vector of word stem counts for each stories_id on each
+# line.  Return a hash of story word counts and a list of word stems.
+#
+# The list of story word counts is in the following format:
+# {
+#     { <stories_id> =>
+#         { <word_id_1> => <count>,
+#           <word_id_2 => <count>
+#         }
+#     },
+#     ...
+# ]
+#
+# The id of each word is the indes of the given word in the word list.  The word list is a list of lists, with each
+# member list consisting of the stem followed by the most commonly used term.
+#
+# For example, for stories_ids 1 and 2, both of which contain 4 mentions of 'foo' and 10 of 'bars', the word count
+# has and and word list look like:
+#
+# [ { 1 => { 0 => 4, 1 => 10 } }, { 2 => { 0 => 4, 1 => 10 } } ]
+#
+# [ [ 'foo', 'foo' ], [ 'bar', 'bars' ] ]
+#
+# The story_sentences for each story will be used for word counting. If $max_words is specified, only the most common
+# $max_words will be used for each story.
+#
+# The function uses MediaWords::Util::IdentifyLanguage to identify the stemming and stopwording language for each story.
+# If the language of a given story is not supported, stemming and stopwording become null operations.  For the list of
+# languages supported, see @MediaWords::Langauges::Language::_supported_languages.
 sub get_story_word_matrix($$;$)
 {
     my ( $db, $stories_ids, $max_words ) = @_;

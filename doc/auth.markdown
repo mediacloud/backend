@@ -26,16 +26,12 @@ To log in, open:
 User management
 ---------------
 
-You can manage (add, remove, change various properties) users via two
-interfaces:
+You can manage (add, remove, change various properties) users via:
 
-1. Web interface that is available on http://127.0.0.1:3000/admin/users/list,
-2. CLI Perl script located at `./script/manage_users.pl`.
+1. API (`/api/v2/users/*` endpoints),
+2. CLI script located at `./script/manage_users.pl`.
 
-The user management web interface (click on the `Users` link at the top of every page on the web app)
-is mostly self explaining.
-
-For the information on how to use the user management CLI Perl script, please
+For the information on how to use the user management CLI script, please
 open script with a text editor and read the documentation on the top of the
 file. Alternatively, you can run:
 

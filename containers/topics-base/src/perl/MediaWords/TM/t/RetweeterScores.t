@@ -4,9 +4,9 @@ use warnings;
 use MediaWords::CommonLibs;
 
 use Data::Dumper;
-use List::MoreUtils;
 use Readonly;
 use Test::More tests => 600;
+use Text::CSV_XS;
 
 use MediaWords::Util::CSV;
 use MediaWords::TM::RetweeterScores;
@@ -359,6 +359,37 @@ SQL
     rows_match( $label, $got_retweeter_media, $expected_retweeter_media, 'media_id', $fields );
 }
 
+# given a file name, open the file, parse it as a csv, and return a list of hashes.
+# assumes that the csv includes a header line.  If normalize_column_names is true,
+# lowercase and underline column names ( 'Media type' -> 'media_type' ).  if the $file argument
+# is a reference to a string, this function will parse that string instead of opening a file.
+sub __get_csv_as_hashes
+{
+    my ( $file, $normalize_column_names ) = @_;
+
+    my $csv = Text::CSV_XS->new( { binary => 1, sep_char => "," } )
+      || die "error using CSV_XS: " . Text::CSV_XS->error_diag();
+
+    open my $fh, "<:encoding(utf8)", $file || die "Unable to open file $file: $!\n";
+
+    my $column_names = $csv->getline( $fh );
+
+    if ( $normalize_column_names )
+    {
+        $column_names = [ map { s/ /_/g; lc( $_ ) } @{ $column_names } ];
+    }
+
+    $csv->column_names( $column_names );
+
+    my $hashes = [];
+    while ( my $hash = $csv->getline_hr( $fh ) )
+    {
+        push( @{ $hashes }, $hash );
+    }
+
+    return $hashes;
+}
+
 sub _validate_media_csv($)
 {
     my ( $db ) = @_;
@@ -367,7 +398,7 @@ sub _validate_media_csv($)
 
     my $csv = MediaWords::TM::RetweeterScores::generate_media_csv( $db, $retweeter_score );
 
-    my $got_rows = MediaWords::Util::CSV::get_csv_as_hashes( \$csv, 1 );
+    my $got_rows = __get_csv_as_hashes( \$csv, 1 );
 
     # just do sanity test of basic retweeter_media
     my $expected_rows = $db->query( <<SQL, $retweeter_score->{ retweeter_scores_id } )->hashes;
@@ -386,7 +417,7 @@ sub _validate_matrix_csv($)
 
     my $csv = MediaWords::TM::RetweeterScores::generate_matrix_csv( $db, $retweeter_score );
 
-    my $got_rows = MediaWords::Util::CSV::get_csv_as_hashes( \$csv, 1 );
+    my $got_rows = __get_csv_as_hashes( \$csv, 1 );
 
     my $expected_rows = $db->query( <<SQL, $retweeter_score->{ retweeter_scores_id } )->hashes;
 select * from retweeter_partition_matrix where retweeter_scores_id = ?

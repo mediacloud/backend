@@ -6,7 +6,6 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use Test::More tests => 3;
-use Test::Differences;
 use Test::Deep;
 use Test::NoWarnings;
 

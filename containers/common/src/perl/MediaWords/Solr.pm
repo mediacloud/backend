@@ -34,7 +34,7 @@ use MediaWords::Util::ParseJSON;
 use MediaWords::Util::Text;
 use MediaWords::Util::Web;
 
-use List::MoreUtils qw ( uniq );
+use List::MoreUtils qw/ uniq natatime /;
 
 Readonly my $QUERY_HTTP_TIMEOUT => 900;
 
@@ -444,11 +444,12 @@ sub query_matching_sentences($$;$)
 
     my $stories_ids = search_for_stories_ids( $db, $params );
 
+    # sort stories_ids so that chunks below will pull close blocks of stories_ids where possible
+    $stories_ids = [ sort { $a <=> $b } @{ $stories_ids } ];
+
     return [] unless ( @{ $stories_ids } );
 
     die( "too many stories (limit is 1,000,000)" ) if ( scalar( @{ $stories_ids } ) > 1_000_000 );
-
-    my $stories_ids_list = join( ',', @{ $stories_ids } );
 
     my $re_clause = 'true';
 
@@ -467,9 +468,15 @@ sub query_matching_sentences($$;$)
 
     my $order_limit = $random_limit ? "order by random() limit $random_limit" : 'order by sentence_number';
 
-    my $ids_table = $db->get_temporary_ids_table( $stories_ids );
+    # postgres decides at some point beyond 1000 stories to do this query as a seq scan
+    my $story_sentences   = [];
+    my $stories_per_chunk = 1000;
+    my $iter              = natatime( $stories_per_chunk, @{ $stories_ids } );
+    while ( my @chunk_stories_ids = $iter->() )
+    {
+        my $ids_table = $db->get_temporary_ids_table( \@chunk_stories_ids );
 
-    my $story_sentences = $db->query( <<SQL )->hashes;
+        my $chunk_story_sentences = $db->query( <<SQL )->hashes;
 select
         ss.sentence,
         ss.media_id,
@@ -487,6 +494,8 @@ select
         $re_clause 
    $order_limit 
 SQL
+        push( @{ $story_sentences }, @{ $chunk_story_sentences } );
+    }
 
     return $random_limit ? $story_sentences : _order_sentences_by_stories_ids( $stories_ids, $story_sentences );
 }

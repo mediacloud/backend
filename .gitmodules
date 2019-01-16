@@ -1,12 +1,3 @@
-[submodule "containers/webapp/src/root/script/non-free/amcharts3"]
-	path = containers/webapp/src/root/script/non-free/amcharts3
-	url = https://github.com/amcharts/amcharts3.git
-[submodule "containers/webapp/src/root/include/libs/handsontable"]
-	path = containers/webapp/src/root/include/libs/handsontable
-	url = https://github.com/handsontable/handsontable.git
-[submodule "containers/webapp/src/root/include/libs/tag-it"]
-	path = containers/webapp/src/root/include/libs/tag-it
-	url = https://github.com/aehlke/tag-it.git
 [submodule "doc/api_2_0_spec/github-markdown-toc"]
 	path = doc/api_2_0_spec/github-markdown-toc
 	url = https://github.com/ekalinin/github-markdown-toc.git

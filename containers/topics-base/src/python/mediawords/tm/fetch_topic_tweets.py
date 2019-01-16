@@ -3,8 +3,6 @@
 from abc import ABC, abstractmethod
 import datetime
 import re
-import time
-import tweepy
 import typing
 
 from mediawords.db import DatabaseHandler
@@ -127,46 +125,7 @@ class Twitter(AbstractTwitter):
     @staticmethod
     def fetch_100_tweets(tweet_ids: list) -> list:
         """Implement fetch_tweets on twitter api using config data from mediawords.yml."""
-        config = mediawords.util.config.get_config()
-
-        if len(tweet_ids) > 100:
-            raise McFetchTopicTweetsException('tried to fetch more than 100 tweets')
-
-        if 'twitter' not in config:
-            raise McFetchTopicTweetsConfigException('missing twitter configuration in mediawords.yml')
-
-        for field in 'consumer_key consumer_secret access_token access_token_secret'.split():
-            if field not in config['twitter']:
-                raise McFetchTopicTweetsConfigException('missing //twitter//' + field + ' value in mediawords.yml')
-
-        auth = tweepy.OAuthHandler(config['twitter']['consumer_key'], config['twitter']['consumer_secret'])
-        auth.set_access_token(config['twitter']['access_token'], config['twitter']['access_token_secret'])
-
-        # the RawParser lets us directly decode from json to dict below
-        api = tweepy.API(auth, parser=tweepy.parsers.RawParser())
-
-        # catch all errors and do backoff retries.  don't just catch rate limit errors because we want to be
-        # robust in the face of temporary network or service provider errors.
-        tweets = None
-        twitter_retries = 0
-        while tweets is None and twitter_retries <= 10:
-            last_exception = None
-            try:
-                tweets = api.statuses_lookup(tweet_ids, include_entities=True, trim_user=False)
-            except tweepy.TweepError as e:
-                sleep = 2 * (twitter_retries ** 2)
-                log.info("twitter fetch error.  waiting " + str(sleep) + " seconds before retry ...")
-                time.sleep(sleep)
-                last_exception = e
-
-            twitter_retries += 1
-
-        if tweets is None:
-            raise McFetchTopicTweetsDataException("unable to fetch tweets: " + str(last_exception))
-
-        # it is hard to mock tweepy data directly, and the default tweepy objects are not json serializable,
-        # so just return a direct dict decoding of the raw twitter payload
-        return list(mediawords.util.parse_json.decode_json(tweets))
+        return mediawords.util.twitter.fetch_100_tweets(tweet_ids)
 
 
 def _add_tweets_to_ch_posts(twitter_class: typing.Type[AbstractTwitter], ch_posts: list) -> None:
@@ -197,23 +156,7 @@ def _add_tweets_to_ch_posts(twitter_class: typing.Type[AbstractTwitter], ch_post
 
     tweet_ids = list(ch_post_lookup.keys())
 
-    tweets = None
-    twitter_retries = 0
-    last_exception = None
-    while (tweets is None and twitter_retries <= 10):
-        last_exception = None
-        try:
-            tweets = twitter_class.fetch_100_tweets(tweet_ids)
-        except tweepy.TweepError as e:
-            sleep = 2 * (twitter_retries ** 2)
-            log.debug("twitter fetch error.  waiting sleep seconds before retry ...")
-            time.sleep(sleep)
-            last_exception = e
-
-        twitter_retries += 1
-
-    if tweets is None:
-        raise McFetchTopicTweetsDataException("unable to fetch tweets: " + str(last_exception))
+    tweets = twitter_class.fetch_100_tweets(tweet_ids)
 
     log.debug("fetched " + str(len(tweets)) + " tweets")
 
@@ -223,6 +166,18 @@ def _add_tweets_to_ch_posts(twitter_class: typing.Type[AbstractTwitter], ch_post
     for ch_post in ch_posts:
         if 'tweet' not in ch_post:
             log.debug("no tweet fetched for url " + ch_post['url'])
+
+
+def _insert_tweet_urls(db: DatabaseHandler, topic_tweet: dict, urls: typing.List) -> typing.List:
+    """Insert list of urls into topic_tweet_urls."""
+    for url in urls:
+        db.query(
+            """
+            insert into topic_tweet_urls( topic_tweets_id, url )
+                values( %(a)s, %(b)s )
+                on conflict do nothing
+            """,
+            {'a': topic_tweet['topic_tweets_id'], 'b': url})
 
 
 def _store_tweet_and_urls(db: DatabaseHandler, topic_tweet_day: dict, ch_post: dict) -> None:
@@ -254,22 +209,30 @@ def _store_tweet_and_urls(db: DatabaseHandler, topic_tweet_day: dict, ch_post: d
 
     topic_tweet = db.create('topic_tweets', topic_tweet)
 
-    urls_inserted = {}  # type:typing.Dict[str, bool]
-    for url_data in ch_post['tweet']['entities']['urls']:
+    urls = mediawords.util.twitter.get_tweet_urls(ch_post['tweet'])
+    _insert_tweet_urls(db, topic_tweet, urls)
 
-        url = url_data['expanded_url']
 
-        if url in urls_inserted:
-            break
+def regenerate_tweet_urls(db: dict, topic: dict) -> None:
+    """Reparse the tweet json for a given topic and try to reinsert all tweet urls."""
+    topic_tweets_ids = db.query(
+        """
+        select tt.topic_tweets_id
+            from topic_tweets tt
+                join topic_tweet_days ttd using ( topic_tweet_days_id )
+            where
+                topics_id = %(a)s
+        """,
+        {'a': topic['topics_id']}).flat()
 
-        urls_inserted[url] = True
+    for (i, topic_tweets_id) in enumerate(topic_tweets_ids):
+        if i % 1000 == 0:
+            log.info('regenerate tweet urls: %d/%d' % (i, len(topic_tweets_ids)))
 
-        db.create(
-            'topic_tweet_urls',
-            {
-                'topic_tweets_id': topic_tweet['topic_tweets_id'],
-                'url': url[0:1024]
-            })
+        topic_tweet = db.require_by_id('topic_tweets', topic_tweets_id)
+        data = mediawords.util.parse_json.decode_json(topic_tweet['data'])
+        urls = mediawords.util.twitter.get_tweet_urls(data['tweet'])
+        _insert_tweet_urls(db, topic_tweet, urls)
 
 
 def _fetch_tweets_for_day(

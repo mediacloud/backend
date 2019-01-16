@@ -1,9 +1,11 @@
 package Catalyst::Plugin::ConfigDefaults;
 
-# local plugin to set default config values.
-
-# this has to be done as a plugin to be run after the ConfigLoader plugin setup but before the other plugins
-# (Session, for instance)
+#
+# Local plugin to set default config values.
+#
+# This has to be done as a plugin to be run after the ConfigLoader plugin
+# setup but before the other plugins.
+#
 
 use strict;
 use warnings;

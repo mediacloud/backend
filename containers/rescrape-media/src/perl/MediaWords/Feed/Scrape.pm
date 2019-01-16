@@ -26,7 +26,7 @@ use URI::URL;
 
 Readonly my $MAX_DEFAULT_FEEDS => 4;
 
-# max urls that get_valid_feeds_from_index_url will fetch
+# max urls that _get_valid_feeds_from_index_url() will fetch
 Readonly my $MAX_INDEX_URLS => 1000;
 
 # max length of scraped urls
@@ -180,7 +180,7 @@ sub _get_main_feed_urls_from_html($$)
 
     my $link_feed_urls = _get_feed_urls_from_html_links( $url, $html );
 
-    my $valid_link_feeds = get_valid_feeds_from_urls( $link_feed_urls );
+    my $valid_link_feeds = _get_valid_feeds_from_urls( $link_feed_urls );
 
     return $valid_link_feeds if ( @{ $valid_link_feeds } );
 
@@ -217,7 +217,7 @@ sub _get_main_feed_urls_from_html($$)
 
     my $standard_urls = [ map { "${ chopped_url }/$_" } @{ $suffixes } ];
 
-    my $valid_feed_urls = get_valid_feeds_from_urls( $standard_urls );
+    my $valid_feed_urls = _get_valid_feeds_from_urls( $standard_urls );
 
     $valid_feed_urls = [ $valid_feed_urls->[ 0 ] ] if ( @{ $valid_feed_urls } );
 
@@ -354,7 +354,7 @@ sub _get_feed_urls_from_html($$)
 # try to find all rss feeds for a site from the home page url of the site.  return a list
 # of urls of found rss feeds.
 #
-# fetch the html for the page at the $index url.  call get_valid_feeds_from_urls on the
+# fetch the html for the page at the $index url.  call _get_valid_feeds_from_urls() on the
 # urls scraped from that page.
 sub _recurse_get_valid_feeds_from_index_url($$$$);    # prototype to be able to recurse
 
@@ -387,7 +387,7 @@ sub _recurse_get_valid_feeds_from_index_url($$$$)
 
     $#{ $scraped_urls } = List::Util::min( $#{ $scraped_urls }, $MAX_INDEX_URLS - 1 );
 
-    my $valid_feeds = get_valid_feeds_from_urls( $scraped_urls, $ignore_patterns );
+    my $valid_feeds = _get_valid_feeds_from_urls( $scraped_urls, $ignore_patterns );
 
     if ( scalar @{ $scraped_urls } > 0 )
     {
@@ -666,9 +666,9 @@ sub _immediate_redirection_url_for_medium($)
 # try to find all rss feeds for a site from the home page url of the site.  return a list
 # of urls of found rss feeds.
 #
-# fetch the html for the page at the $index url.  call get_valid_feeds_from_urls on the
+# fetch the html for the page at the $index url.  call _get_valid_feeds_from_urls() on the
 # urls scraped from that page.
-sub get_valid_feeds_from_index_url($$;$)
+sub _get_valid_feeds_from_index_url($$;$)
 {
     my ( $urls, $recurse, $ignore_patterns ) = @_;
 
@@ -692,7 +692,7 @@ sub get_valid_feeds_from_index_url($$;$)
 # give a list of urls, return a list of feeds in the form of { name => $name, url => $url, type => 'syndicated' }
 # representing all of the links that refer to valid feeds (rss, rdf, or atom).
 # ignore urls that match one of the ignore patterns
-sub get_valid_feeds_from_urls($;$)
+sub _get_valid_feeds_from_urls($;$)
 {
     my ( $urls, $ignore_patterns_string ) = @_;
 
@@ -754,7 +754,7 @@ sub get_feed_links($)
     my $feed_links;
     if ( scalar @{ $default_feed_links } == 0 )
     {
-        $feed_links = get_valid_feeds_from_index_url( [ $medium->{ url } ], 1, [] );
+        $feed_links = _get_valid_feeds_from_index_url( [ $medium->{ url } ], 1, [] );
 
         $default_feed_links = _default_feed_links( $medium, $feed_links );
     }

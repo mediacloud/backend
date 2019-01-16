@@ -128,6 +128,7 @@ my $_url_permission_types = {
     '/api/v2/topics/wc/list'                      => 'topics_read',
     '/api/v2/util/is_syndicated_ap'               => 'public',
     '/api/v2/wc/list'                             => 'public',
+    '/api/v2/users/delete'                        => 'admin',
     '/api/v2/users/list'                          => 'admin',
     '/api/v2/users/list_roles'                    => 'admin',
     '/api/v2/users/single'                        => 'admin',

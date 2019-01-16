@@ -1,0 +1,2 @@
+# Socket level HTTP mocking
+httpretty==0.9.6

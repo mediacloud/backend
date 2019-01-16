@@ -65,7 +65,7 @@ def default_role_ids(db: DatabaseHandler) -> List[int]:
         SELECT auth_roles_id
         FROM auth_roles
         WHERE role = %(role)s
-    """, {'role': UserRoles.search()}).flat()
+    """, {'role': UserRoles.tm_readonly()}).flat()
     if (not default_roles) or (not len(default_roles)):
         raise McRoleIDForRoleException('Unable to find default role IDs.')
     if default_roles is None:

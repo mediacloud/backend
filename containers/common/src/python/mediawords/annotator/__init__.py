@@ -494,7 +494,7 @@ class JSONAnnotator(metaclass=abc.ABCMeta):
             # db.create() can't be used here because:
             #
             # 1) Master table for partitioned table might not have a primary key itself, only the partitions do --
-            #    FIXME maybe master tables should have primary keys? Or let's wait for when we move to PostgreSQL 10.
+            #    FIXME maybe master tables should have primary keys? Or let's wait for when we move to PostgreSQL 10+.
             #
             # 2) Partitioned table's INSERT trigger doesn't return last_inserted_id which db.create() requires
             #    FIXME there might be a way for it to return the inserted row

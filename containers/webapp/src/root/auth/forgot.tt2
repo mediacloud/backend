@@ -1,5 +1,0 @@
-[% INCLUDE 'include/auth/header.tt2' title="Forgot Password" %] 
-
-[% form.render %]
-  
-[% INCLUDE 'include/auth/footer.tt2' %]

@@ -19,6 +19,7 @@ RUN \
     #
     # Japanese language tokenization
     apt-get -y --no-install-recommends install libmecab-dev && \
+    apt-get -y --no-install-recommends install swig && \
     apt-get -y --no-install-recommends install mecab && \
     apt-get -y --no-install-recommends install mecab-ipadic-neologd && \
     #

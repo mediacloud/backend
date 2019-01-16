@@ -12,7 +12,6 @@ use MediaWords::CommonLibs;    # set PYTHONPATH too
 import_python_module( __PACKAGE__, 'mediawords.util.text' );
 
 use List::Util qw(min);
-use Memoize;
 use Encode;
 
 # Encode data into UTF-8; die() on error

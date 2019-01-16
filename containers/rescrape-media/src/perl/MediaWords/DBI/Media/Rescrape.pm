@@ -21,37 +21,6 @@ use MediaWords::Feed::Scrape;
 use URI;
 use Digest::SHA qw(sha256_hex);
 
-# add default feeds for a single medium
-sub add_to_rescrape_media_queue($)
-{
-    my ( $medium ) = @_;
-
-    return MediaWords::Job::RescrapeMedia->add_to_queue( { media_id => $medium->{ media_id } } );
-}
-
-# for each medium in $media, add an RescrapeMedia job for any medium
-# that is lacking feeds
-sub add_feeds_for_feedless_media
-{
-    my ( $db, $medium ) = @_;
-
-    my $media_has_active_syndicated_feeds = $db->query(
-        <<END,
-        SELECT 1
-        FROM media
-        WHERE media_id = ?
-          AND media_has_active_syndicated_feeds(media_id) = 't'
-END
-        $medium->{ media_id }
-    )->hash;
-
-    unless ( $media_has_active_syndicated_feeds )
-    {
-        INFO "Adding media " . $medium->{ media_id } . " to rescraping queue";
-        add_to_rescrape_media_queue( $medium );
-    }
-}
-
 # Move feed from "feeds_after_rescraping" to "feeds" table
 # Note: it doesn't create a transaction itself, so make sure to do that in a caller
 sub _move_rescraped_feed_to_feeds_table($$)

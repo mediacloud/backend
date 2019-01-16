@@ -63,13 +63,6 @@ sub _gr_url($)
     return _gr( $html, $story_url );
 }
 
-# Shortcut for making UNIX timestamps out of RFC 822 dates
-sub _ts($)
-{
-    my $date = shift;
-    return Date::Parse::str2time( $date );
-}
-
 sub test_dates()
 {
     is( _gt( '<meta property="article:published_time" content="2012-01-17T12:00:00-05:00" />' ),

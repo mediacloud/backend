@@ -271,7 +271,7 @@ sub get_api_urls()
 {
     # use any old request just to get the $c
     # Catalyst::Test::ctx_request()
-    my ( $res, $c ) = ctx_request( '/admin/topics/list' );
+    my ( $res, $c ) = ctx_request( '/status' );
 
     # this chunk of code that pulls url end points out of catalyst relies on ugly reverse engineering of the
     # private internals of the Catalyst::DispatchType::Chained and Catalyst::DispathType::Path, but it is as

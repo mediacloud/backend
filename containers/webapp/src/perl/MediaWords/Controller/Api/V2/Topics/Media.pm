@@ -246,10 +246,6 @@ sub map_GET
 
     MediaWords::TM::Snapshot::discard_temp_tables( $db );
 
-    my $base_url = $c->uri_for( '/' );
-
-    $gexf =~ s/\[_mc_base_url_\]/$base_url/g;
-
     my $file = "media_$timespan->{ timespans_id }.gexf";
 
     $c->response->header( "Content-Disposition" => "attachment;filename=$file" );

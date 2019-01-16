@@ -433,7 +433,7 @@ END
     for my $m ( @{ $unhealthy_media } )
     {
         print <<END;
-$m->{ name } [https://core.mediacloud.org/admin/health/medium/$m->{ media_id }]:
+$m->{ name } [$m->{ media_id }]:
     stories (0, w, 90, y)   - $m->{ num_stories }, $m->{ num_stories_w }, $m->{ num_stories_90 }, $m->{ num_stories_y }
     sentences (0, w, 90, y) - $m->{ num_sentences }, $m->{ num_sentences_w }, $m->{ num_sentences_90 }, $m->{ num_sentences_y }
 

@@ -520,7 +520,7 @@ services:
         expose:
             - 5432
         volumes:
-            - vol_postgresql_data:/var/lib/postgresql/10/main/
+            - vol_postgresql_data:/var/lib/postgresql/11/main/
         deploy:
             # Only one instance
             replicas: 1
@@ -913,7 +913,7 @@ services:
 
     #
     # Fetch link for a topic
-    # -------------------------------
+    # ----------------------
     #
     topics_fetch_link:
         build:
@@ -922,6 +922,33 @@ services:
         container_name: mc_topics_fetch_link
         networks:
             # Fetches / stores links in PostgreSQL
+            - net_postgresql
+            # Celery worker
+            - net_rabbitmq
+        deploy:
+            # Worker count
+            replicas: 8
+            # Auto-restart on crashes
+            restart_policy:
+                condition: on-failure
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: 256M
+
+    #
+    # Fetch Twitter URLs
+    # ------------------
+    #
+    topics_fetch_twitter_urls:
+        build:
+            context: ./topics-fetch-twitter-urls/
+        image: dockermediacloud/mediacloud-topics-fetch-twitter-urls:latest
+        container_name: mc_topics_fetch_twitter_urls
+        networks:
+            # Fetches / stores URLs in PostgreSQL
             - net_postgresql
             # Celery worker
             - net_rabbitmq
@@ -1074,17 +1101,6 @@ services:
             context: ./webapp/
         image: dockermediacloud/mediacloud-webapp:latest
         container_name: mc_webapp
-        environment:
-            # Whether or not to always show stack traces (might leak secrets!)
-            MC_WEBAPP_ALWAYS_SHOW_STACK_TRACES: "0"
-            # reCAPTCHA public key
-            MC_WEBAPP_RECAPTCHA_PUBLIC_KEY: "6LfEVt0SAAAAAFwQI0pOZ1bTHgDTpQcMeQY6VLd_"
-            # reCAPTCHA private key
-            MC_WEBAPP_RECAPTCHA_PRIVATE_KEY: "6LfEVt0SAAAAABmI-8IJmx4g93eNcSeyeCxvLMs2"
-            # Google Analytics account ID
-            MC_WEBAPP_GOOGLE_ANALYTICS_ACCOUNT_ID: ""
-            # Google Analytics domain name
-            MC_WEBAPP_GOOGLE_ANALYTICS_DOMAIN_NAME: ""
         networks:
             # Uses PostgreSQL to fetch / store data
             - net_postgresql

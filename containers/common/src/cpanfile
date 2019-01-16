@@ -1,5 +1,6 @@
 requires 'Array::Compare';
 requires 'Data::Dumper';
+requires 'Date::Parse';
 requires 'File::ReadBackwards';
 requires 'File::Slurp';
 requires 'File::Temp';
@@ -17,7 +18,6 @@ requires 'Net::AMQP::RabbitMQ';
 requires 'Readonly';
 requires 'Readonly::XS';
 requires 'Regexp::Common';
-requires 'Scalar::Defer';
 requires 'Test::Deep';
 requires 'Test::Differences';
 requires 'Test::NoWarnings';
@@ -29,3 +29,6 @@ requires 'URI';
 requires 'URI::Escape';
 requires 'URI::QueryParam';
 requires 'XML::FeedPP';
+# Our code doesn't use it, but one of the dependencies attempts to load it and
+# fails silently spitting out weird errors
+requires 'YAML::XS';

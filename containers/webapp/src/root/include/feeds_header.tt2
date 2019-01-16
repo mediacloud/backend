@@ -1,9 +1,0 @@
-[% title = medium.name _ " Feeds: " _ title -%]
-
-[% submenu_items = [ [ "/admin/feeds/list", "${medium.media_id}", "", "List Feeds"],
-					 [ "/admin/feeds/create", "${medium.media_id}", "", 'Create New Feed'],
-					 [ "/admin/feeds/scrape", "${medium.media_id}", "", 'Scrape Feeds'],
-					 [ "/admin/feeds/batch_create", "${medium.media_id}", "", 'Batch Create Feeds'],
-			       ]; -%]
-
-[% INCLUDE include/header.tt2 %]

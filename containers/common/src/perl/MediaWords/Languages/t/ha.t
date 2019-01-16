@@ -5,7 +5,6 @@ use warnings;
 use utf8;
 
 use Test::More tests => 5;
-use Test::Differences;
 use Test::NoWarnings;
 
 use MediaWords::Languages::ha;

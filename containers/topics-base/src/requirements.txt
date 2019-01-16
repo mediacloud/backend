@@ -2,13 +2,12 @@
 date_guesser==2.1.1
 
 # Timezone handling
-pytz==2018.5
+pytz==2018.9
 
 # Python 3 compatible version of Google's re2 library (requires libre2-dev system package)
 # (untagged and unreleased 0.2.23 version which builds on Python 3.7)
 -e git+https://github.com/andreasvc/pyre2.git@3e01eba6ba3eabd1359ef5e16c938c8866deea70#egg=re2
 
 # Twitter API client
-# (at the time of writing, the latest tweepy==3.6.0 doesn't work with Python 3.7.0)
--e git+https://github.com/tweepy/tweepy.git@2efe385fc69385b57733f747ee62e6be12a1338b#egg=tweepy
+tweepy==3.7.0
 
