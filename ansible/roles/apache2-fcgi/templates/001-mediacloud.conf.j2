@@ -23,6 +23,12 @@
         AddHandler cgi-script   .cgi
     </Location>
 
+    # Static files served by the webapp
+    Alias           /static     {{ mediacloud_root }}/data/webapp_static
+    <Location /static>
+        SetHandler default-handler
+    </Location>
+
     FcgidMinProcessesPerClass  2
     FcgidIdleTimeout           3600
     FcgidProcessLifeTime       7200
