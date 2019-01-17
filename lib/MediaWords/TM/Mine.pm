@@ -292,20 +292,22 @@ SQL
     my $last_change_time     = time();
     while ( 1 )
     {
-        my ( $num_queued_urls ) = $db->query( <<SQL )->flat();
-select count(*) 
+        my $queued_tfus = $db->query( <<SQL )->hashes();
+select tfu.*
     from topic_fetch_urls tfu
         join $tfu_ids_table ids on ( tfu.topic_fetch_urls_id = ids.id )
     where
         state in ('tweet pending')
 SQL
 
+        my $num_queued_urls = scalar( @{ $queued_tfus } );
+
         last if ( $num_queued_urls == 0 );
 
         $last_change_time = time() if ( $num_queued_urls != $prev_num_queued_urls );
         if ( ( time() - $last_change_time ) > $JOB_POLL_TIMEOUT )
         {
-            LOGDIE( "Timed out waiting for twitter fetching." );
+            LOGDIE( "Timed out waiting for twitter fetching.\n" . Dumper( $queued_tfus ) );
         }
 
         INFO( "$num_queued_urls twitter urls left to fetch ..." );
