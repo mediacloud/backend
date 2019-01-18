@@ -1,11 +1,82 @@
 ---
 
 - name: Install Apache
-  homebrew:
-    name: "{{ item }}"
+  homebrew: 
+    name: httpd
     state: present
-  with_items:
-    - httpd24
-    - mod_fcgid
+  tags:
+    - apache2-fcgi
+
+- name: Test if mod_fcgid is installed
+  stat:
+    path: "{{ apache2_mod_fcgid_path }}"
+  register: have_mod_fcgid
+  become: true
+  become_user: "{{ mediacloud_user }}"
+  tags:
+    - apache2-fcgi
+
+- name: Install Perlbrew
+  block:
+
+    - name: Create temporary directory for mod_fcgid
+      tempfile:
+        state: directory
+        suffix: mod_fcgid_install
+      register: mod_fcgid_install_tempdir
+      become: true
+      become_user: "{{ mediacloud_user }}"
+      tags:
+        - apache2-fcgi
+
+    - name: Download mod_fcgid.tar.gz
+      get_url:
+        url: "{{ apache2_mod_fcgid_tarball_url }}"
+        dest: "{{ mod_fcgid_install_tempdir.path }}/mod_fcgid.tar.gz"
+      become: true
+      become_user: "{{ mediacloud_user }}"
+      tags:
+        - apache2-fcgi
+
+    - name: Extract mod_fcgid.tar.gz
+      unarchive:
+        remote_src: true
+        src: "{{ mod_fcgid_install_tempdir.path }}/mod_fcgid.tar.gz"
+        dest: "{{ mod_fcgid_install_tempdir.path }}"
+        extra_opts: ["--strip-components=1"]
+      become: true
+      become_user: "{{ mediacloud_user }}"
+      tags:
+        - apache2-fcgi
+
+    - name: Configure mod_fcgid
+      command: ./configure.apxs
+      args:
+        chdir: "{{ mod_fcgid_install_tempdir.path }}"
+      environment:
+        APXS: "{{ apache2_apxs_path }}"
+      become: true
+      become_user: "{{ mediacloud_user }}"
+      tags:
+        - apache2-fcgi
+
+    - name: Build mod_fcgid
+      make:
+        chdir: "{{ mod_fcgid_install_tempdir.path }}"
+      become: true
+      become_user: "{{ mediacloud_user }}"
+      tags:
+        - apache2-fcgi
+
+    - name: Install mod_fcgid
+      make:
+        chdir: "{{ mod_fcgid_install_tempdir.path }}"
+        target: install
+      become: "{{ apache2_conf_become }}"
+      become_user: root
+      tags:
+        - apache2-fcgi
+
+  when: have_mod_fcgid.stat.exists == False
   tags:
     - apache2-fcgi

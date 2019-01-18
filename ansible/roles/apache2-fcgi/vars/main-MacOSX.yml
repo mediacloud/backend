@@ -1,8 +1,12 @@
-apache2_conf_path: /usr/local/etc/apache2/2.4/
-apache2_conf_httpd_conf_path: /usr/local/etc/apache2/2.4/httpd.conf
-apache2_modules_path: libexec/
-apache2_mod_fcgid_path: /usr/local/opt/mod_fcgid/libexec/mod_fcgid.so
-apache2_log_path: /usr/local/var/log/apache2/
+apache2_conf_path: /usr/local/etc/httpd/
+apache2_conf_httpd_conf_path: /usr/local/etc/httpd/httpd.conf
+apache2_modules_path: lib/httpd/modules/
+apache2_mod_fcgid_path: /usr/local/opt/httpd/lib/httpd/modules/mod_fcgid.so
+apache2_log_path: /usr/local/var/log/httpd/
 apache2_http_port: 8080 # Homebrew Apache runs as unprivileged user
 apache2_https_port: 8081
 apache2_conf_become: false
+
+# Only used for macOS:
+apache2_mod_fcgid_tarball_url: http://apache.mirror.vu.lt/apache//httpd/mod_fcgid/mod_fcgid-2.3.9.tar.gz
+apache2_apxs_path: /usr/local/bin/apxs
