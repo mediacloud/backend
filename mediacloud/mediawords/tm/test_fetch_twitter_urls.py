@@ -27,7 +27,13 @@ def mock_users_lookup(request, uri, response_headers) -> List:
 
     users = []
     for screen_name in screen_names:
-        user_id = re.match(r'.*_(\d+)$', screen_name).group(1)
+        m = re.match(r'.*_(\d+)$', screen_name)
+        if m:
+            user_id = m.group(1)
+        else:
+            # deal with dummy users inserted by mediawords.util.twitter.fetch_100_users() (see comments there)
+            user_id = 0
+
         user = {
             'id': user_id,
             'name': 'test user %s' % user_id,
