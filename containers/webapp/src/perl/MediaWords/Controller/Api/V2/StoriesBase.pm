@@ -248,19 +248,14 @@ SQL
 
     if ( int( $self->{ show_sentences } // 0 ) )
     {
-        my $sentences;
-        $db->run_block_with_large_work_mem(
-            sub {
-                $sentences = $db->query(
-                    <<SQL
-                    SELECT *
-                    FROM story_sentences
-                    WHERE stories_id IN ( SELECT id FROM $ids_table )
-                    ORDER BY sentence_number
+        my $sentences = $db->query(
+            <<SQL
+            SELECT *
+            FROM story_sentences
+            WHERE stories_id IN ( SELECT id FROM $ids_table )
+            ORDER BY sentence_number
 SQL
-                )->hashes;
-            }
-        );
+        )->hashes;
 
         $stories = MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $sentences, 'story_sentences' );
 

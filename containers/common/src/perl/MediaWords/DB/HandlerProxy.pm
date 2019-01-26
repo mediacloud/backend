@@ -198,18 +198,6 @@ sub query
     return MediaWords::DB::HandlerProxy::ResultProxy->new( $python_result );
 }
 
-sub run_block_with_large_work_mem
-{
-    my $self = shift;
-    return $self->{ _db }->run_block_with_large_work_mem( @_ );
-}
-
-sub execute_with_large_work_mem
-{
-    my $self = shift;
-    return $self->{ _db }->execute_with_large_work_mem( @_ );
-}
-
 sub primary_key_column($$)
 {
     my $self = shift;

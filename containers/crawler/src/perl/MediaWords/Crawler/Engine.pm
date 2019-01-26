@@ -393,66 +393,62 @@ sub crawl
     DEBUG "starting Crawler::Engine::crawl";
 
     my $db = $self->dbs;
-    $db->run_block_with_large_work_mem(
-        sub {
 
-          MAINLOOP: while ( 1 )
+    MAINLOOP: while ( 1 )
+    {
+        if ( $self->timeout && ( ( time - $start_time ) > $self->timeout ) )
+        {
+            TRACE "crawler timed out";
+            last MAINLOOP;
+        }
+
+        for my $s ( $socket_select->can_read() )
+        {
+            # set timeout so that a single hung read / write will not hork the whole crawler
+            $s->timeout( 60 );
+
+            my $fetcher_number = $s->getline();
+
+            if ( !defined( $fetcher_number ) )
             {
-                if ( $self->timeout && ( ( time - $start_time ) > $self->timeout ) )
+                DEBUG "skipping fetcher for which we couldn't read the fetcher number";
+                $socket_select->remove( $s );
+                next;
+            }
+
+            chomp( $fetcher_number );
+
+            if ( scalar( @{ $queued_downloads } ) == 0 )
+            {
+                DEBUG "refill queued downloads ...";
+                $queued_downloads = $provider->provide_downloads();
+
+                if ( !@{ $queued_downloads } && $self->test_mode )
                 {
-                    TRACE "crawler timed out";
+                    my $wait = 5;
+                    INFO "exiting after $wait second wait because crawler is in test mode and queue is empty";
+                    sleep $wait;
+                    INFO "exiting now.";
                     last MAINLOOP;
                 }
+            }
 
-                for my $s ( $socket_select->can_read() )
+            if ( my $queued_download = shift( @{ $queued_downloads } ) )
+            {
+                if ( !$s->printflush( $queued_download->{ downloads_id } . "\n" ) )
                 {
-                    # set timeout so that a single hung read / write will not hork the whole crawler
-                    $s->timeout( 60 );
-
-                    my $fetcher_number = $s->getline();
-
-                    if ( !defined( $fetcher_number ) )
-                    {
-                        DEBUG "skipping fetcher for which we couldn't read the fetcher number";
-                        $socket_select->remove( $s );
-                        next;
-                    }
-
-                    chomp( $fetcher_number );
-
-                    if ( scalar( @{ $queued_downloads } ) == 0 )
-                    {
-                        DEBUG "refill queued downloads ...";
-                        $queued_downloads = $provider->provide_downloads();
-
-                        if ( !@{ $queued_downloads } && $self->test_mode )
-                        {
-                            my $wait = 5;
-                            INFO "exiting after $wait second wait because crawler is in test mode and queue is empty";
-                            sleep $wait;
-                            INFO "exiting now.";
-                            last MAINLOOP;
-                        }
-                    }
-
-                    if ( my $queued_download = shift( @{ $queued_downloads } ) )
-                    {
-                        if ( !$s->printflush( $queued_download->{ downloads_id } . "\n" ) )
-                        {
-                            WARN( "provider failed to write download id to fetcher" );
-                            unshift( @{ $queued_downloads }, $queued_download );
-                        }
-
-                    }
-                    else
-                    {
-                        $s->printflush( "none\n" );
-                        last;
-                    }
+                    WARN( "provider failed to write download id to fetcher" );
+                    unshift( @{ $queued_downloads }, $queued_download );
                 }
+
+            }
+            else
+            {
+                $s->printflush( "none\n" );
+                last;
             }
         }
-    );
+    }
 
     kill( 15, map { $_->{ pid } } @{ $self->{ fetchers } } );
 

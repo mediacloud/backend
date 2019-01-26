@@ -192,11 +192,6 @@ sub _generate_media_health_table
 {
     my ( $db ) = @_;
 
-    if ( my $large_work_mem = MediaWords::Util::Config::large_work_mem() )
-    {
-        $db->query( 'set work_mem = ?', $large_work_mem );
-    }
-
     _create_crawled_media( $db );
 
     _generate_media_stats_weekly( $db );

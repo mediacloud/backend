@@ -679,7 +679,7 @@ SQL
     }
 
     # cleanup any topic_seed_urls pointing to a merged story
-    $db->execute_with_large_work_mem(
+    $db->query(
         <<SQL,
         UPDATE topic_seed_urls AS tsu
         SET stories_id = tms.target_stories_id, processed = 't'
@@ -1160,7 +1160,7 @@ SQL
     # now insert any topic_tweet_urls that are not already in the topic_seed_urls.
     # ignore pb.twimg.com urls because they are almost all images and their servers hang the downloader
     # when we try to download them en masse
-    $db->execute_with_large_work_mem(
+    $db->query(
         <<SQL,
         INSERT INTO topic_seed_urls ( topics_id, url, assume_match, source )
             SELECT DISTINCT ttfu.topics_id, ttfu.url, true, 'twitter'

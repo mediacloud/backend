@@ -448,7 +448,7 @@ sub write_story_links_snapshot
 
     if ( topic_is_twitter_topic( $db, $timespan ) )
     {
-        $db->execute_with_large_work_mem(
+        $db->query(
             <<SQL
 create temporary table snapshot_story_links as
 

@@ -293,62 +293,6 @@ class DatabaseHandler(object):
                               double_percentage_sign_marker=DatabaseHandler.__DOUBLE_PERCENTAGE_SIGN_MARKER,
                               print_warnings=self.__print_warnings)
 
-    def __get_current_work_mem(self) -> str:
-        current_work_mem = self.query("SHOW work_mem").flat()[0]
-        return current_work_mem
-
-    def __get_large_work_mem(self) -> str:
-        work_mem = mediawords.util.config.large_work_mem()
-        if not work_mem:
-            work_mem = self.__get_current_work_mem()
-        return work_mem
-
-    def __set_work_mem(self, new_work_mem: str) -> None:
-        new_work_mem = decode_object_from_bytes_if_needed(new_work_mem)
-        self.query("SET work_mem TO %s", (new_work_mem,))
-
-    def execute_with_large_work_mem(self, *query_args) -> None:
-        """Execute query with large 'work_mem' setting; does *not* return a result of any kind."""
-
-        def __execute_with_large_work_mem_subquery():
-            self.query(*query_args)
-
-        exception = None
-        try:
-            self.run_block_with_large_work_mem(__execute_with_large_work_mem_subquery)
-        except Exception as ex:
-            log.error("Error while running query with large work memory: %s" % str(ex))
-            exception = ex
-
-        if exception is not None:
-            raise exception  # pass further
-
-    def run_block_with_large_work_mem(self, block: Callable[[], None]) -> None:
-        """Run a block (function) with a large 'work_mem' setting set; does *not* return a result of any kind."""
-        log.debug("starting run_block_with_large_work_mem")
-
-        large_work_mem = self.__get_large_work_mem()
-        old_work_mem = self.__get_current_work_mem()
-
-        if large_work_mem is not None:
-            self.__set_work_mem(large_work_mem)
-        else:
-            log.warning("Large work memory is unset, using default 'work_mem'")
-
-        exception = None
-        try:
-            block()
-        except Exception as ex:
-            log.error("Error while running block with large work memory: %s" % str(ex))
-            exception = ex
-
-        self.__set_work_mem(old_work_mem)
-
-        log.debug("exiting run_block_with_large_work_mem")
-
-        if exception is not None:
-            raise exception  # pass further
-
     def primary_key_column(self, object_name: str) -> str:
         """Get the primary key column for a table or a view."""
 
