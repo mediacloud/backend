@@ -10,6 +10,9 @@ beautifulsoup4==4.7.1
 # Job broker
 Celery==4.2.1
 
+# Detect encodings of web responses
+chardet==3.0.4
+
 # Language identification
 cld2-cffi==0.1.4
 

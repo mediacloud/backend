@@ -4,6 +4,7 @@ import time
 
 from mediawords.test.test_database import TestDatabaseWithSchemaTestCase
 from mediawords.test.hash_server import HashServer
+from mediawords.util.config.common import UserAgentConfig
 from mediawords.util.web.user_agent.throttled import ThrottledUserAgent
 from mediawords.util.web.user_agent.throttled import McThrottledDomainException
 import mediawords.util.web.user_agent.throttled
@@ -60,12 +61,13 @@ class TestThrottledUserAgent(TestDatabaseWithSchemaTestCase):
         ua = ThrottledUserAgent(self.db(), domain_timeout=100)
         assert ua.domain_timeout == 100
 
-        config = mediawords.util.config.get_config()
+        class UserAgentThrottledConfig(UserAgentConfig):
+            @staticmethod
+            def throttled_domain_timeout():
+                return 200
 
-        config['mediawords']['throttled_user_agent_domain_timeout'] = 200
-        ua = ThrottledUserAgent(self.db())
+        ua = ThrottledUserAgent(db=self.db(), user_agent_config=UserAgentThrottledConfig())
         assert ua.domain_timeout == 200
 
-        del config['mediawords']['throttled_user_agent_domain_timeout']
-        ua = ThrottledUserAgent(self.db())
+        ua = ThrottledUserAgent(db=self.db())
         assert ua.domain_timeout == mediawords.util.web.user_agent.throttled._DEFAULT_DOMAIN_TIMEOUT

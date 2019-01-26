@@ -13,7 +13,7 @@ from requests.adapters import HTTPAdapter
 from requests.auth import HTTPBasicAuth
 from urllib3 import Retry, HTTPResponse
 
-from mediawords.util.config.common import CommonConfig, UserAgentConfig
+from mediawords.util.config.common import CommonConfig, UserAgentConfig, CrawlerAuthenticatedDomain
 from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_object_from_bytes_if_needed
 from mediawords.util.sql import sql_now
@@ -193,39 +193,22 @@ class UserAgent(object):
         self.__timing = None
         self.set_timing(None)
 
-    @staticmethod
-    def __get_domain_http_auth_lookup() -> Dict[str, Dict[str, str]]:
+    def __get_domain_http_auth_lookup(self) -> Dict[str, CrawlerAuthenticatedDomain]:
         """Read the mediawords.crawler_authenticated_domains list from mediawords.yml and generate a lookup hash with
         the host domain as the key and the user:password credentials as the value."""
         domain_http_auth_lookup = {}
 
-        domains = mediawords.util.config.crawler_authenticated_domains()
-        if domains is not None:
-            for domain in domains:
-
-                if 'domain' not in domain:
-                    raise McCrawlerAuthenticatedDomainsException(
-                        '"domain" is not present in HTTP auth configuration.'
-                    )
-                if 'user' not in domain:
-                    raise McCrawlerAuthenticatedDomainsException(
-                        '"user" is not present in HTTP auth configuration.'
-                    )
-                if 'password' not in domain:
-                    raise McCrawlerAuthenticatedDomainsException(
-                        '"password" is not present in HTTP auth configuration.'
-                    )
-
-                domain_http_auth_lookup[domain['domain'].lower()] = domain
+        domains = self.__user_agent_config.crawler_authenticated_domains()
+        for domain in domains:
+            domain_http_auth_lookup[domain.domain.lower()] = domain
 
         return domain_http_auth_lookup
 
-    @staticmethod
-    def __url_with_http_auth(url: str) -> str:
+    def __url_with_http_auth(self, url: str) -> str:
         """If there are HTTP auth credentials for the requested site, add them to the URL."""
         url = decode_object_from_bytes_if_needed(url)
 
-        auth_lookup = UserAgent.__get_domain_http_auth_lookup()
+        auth_lookup = self.__get_domain_http_auth_lookup()
 
         domain = get_url_distinctive_domain(url=url).lower()
 
@@ -234,8 +217,8 @@ class UserAgent(object):
             uri = furl(url)
 
             # https://stackoverflow.com/a/21629125/200603
-            uri.username = auth['user']
-            uri.password = auth['password']
+            uri.username = auth.username
+            uri.password = auth.password
 
             url = uri.url
 

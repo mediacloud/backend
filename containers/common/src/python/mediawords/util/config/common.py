@@ -1,7 +1,8 @@
 import re
+from dataclasses import dataclass
 from typing import List, Pattern, Optional
 
-from mediawords.util.config import env_value_or_raise
+from mediawords.util.config import env_value_or_raise, McConfigException
 
 
 class DatabaseConfig(object):
@@ -141,7 +142,7 @@ class DownloadStorageConfig(object):
     def storage_locations() -> List[str]:
         """Download storage locations."""
         env_value = env_value_or_raise('MC_DOWNLOADS_STORAGE_LOCATIONS')
-        locations = env_value.split(',')
+        locations = env_value.split(';')
         locations = [location.strip() for location in locations]
         if len(locations) == 0 and locations[0] == '':
             locations = []
@@ -165,6 +166,25 @@ class DownloadStorageConfig(object):
         return bool(int(env_value_or_raise('MC_DOWNLOADS_CACHE_S3', allow_empty_string=True)))
 
 
+@dataclass(frozen=True)
+class CrawlerAuthenticatedDomain(object):
+    """Single crawler authenticated domain."""
+
+    domain: str
+    """Domain name, e.g. "ap.org"."""
+
+    username: str
+    """HTTP auth username."""
+
+    password: str
+    """HTTP auth password."""
+
+
+class McConfigCrawlerAuthenticatedDomainsException(McConfigException):
+    """Exception thrown on crawler authenticated domains syntax errors."""
+    pass
+
+
 class UserAgentConfig(object):
     """UserAgent configuration."""
 
@@ -179,19 +199,54 @@ class UserAgentConfig(object):
         return pattern
 
     @staticmethod
+    def crawler_authenticated_domains() -> List[CrawlerAuthenticatedDomain]:
+        """List of crawler authenticated domains."""
+        env_value = env_value_or_raise('MC_USERAGENT_CRAWLER_AUTHENTICATED_DOMAINS', allow_empty_string=True)
+        entries = env_value.split(';')
+
+        domains = []
+
+        for entry in entries:
+            entry = entry.strip()
+            username_password, domain = entry.split('@', maxsplit=1)
+            if not username_password:
+                raise McConfigCrawlerAuthenticatedDomainsException("Username + password can't be empty.")
+            if not domain:
+                raise McConfigCrawlerAuthenticatedDomainsException("Domain can't be empty.")
+            if '@' in domain:
+                raise McConfigCrawlerAuthenticatedDomainsException("Domain contains '@' character.")
+
+            username, password = username_password.split(':', maxsplit=1)
+            if not username:
+                raise McConfigCrawlerAuthenticatedDomainsException("Username is empty.")
+            if not password:
+                raise McConfigCrawlerAuthenticatedDomainsException("Password is empty.")
+            if ':' in password:
+                raise McConfigCrawlerAuthenticatedDomainsException("Password contains ':' character.")
+
+            domains.append(CrawlerAuthenticatedDomain(domain=domain, username=username, password=password))
+
+        return domains
+
+    @staticmethod
     def parallel_get_num_parallel() -> int:
         """Parallel connection count."""
-        return int(env_value_or_raise('MC_PARALLEL_GET_NUM_PARALLEL'))
+        return int(env_value_or_raise('MC_USERAGENT_PARALLEL_GET_NUM_PARALLEL'))
 
     @staticmethod
     def parallel_get_timeout() -> int:
         """Connection timeout, in seconds."""
-        return int(env_value_or_raise('MC_PARALLEL_GET_TIMEOUT'))
+        return int(env_value_or_raise('MC_USERAGENT_PARALLEL_GET_TIMEOUT'))
 
     @staticmethod
     def parallel_get_per_domain_timeout() -> int:
         """Per-domain timeout, in seconds."""
-        return int(env_value_or_raise('MC_PARALLEL_GET_PER_DOMAIN_TIMEOUT'))
+        return int(env_value_or_raise('MC_USERAGENT_PARALLEL_GET_PER_DOMAIN_TIMEOUT'))
+
+    @staticmethod
+    def throttled_domain_timeout() -> int:
+        """No idea that that is, no one bothered to document it."""
+        return int(env_value_or_raise('MC_USERAGENT_THROTTLED_DOMAIN_TIMEOUT', allow_empty_string=True))
 
 
 class CommonConfig(object):
@@ -237,8 +292,3 @@ class CommonConfig(object):
         """Solr server URL, e.g. "http://localhost:8983/solr"."""
         # Container's name from docker-compose.yml; will round-robin between servers
         return 'http://mc_solr_shard:8983/solr'
-
-    @staticmethod
-    def throttled_user_agent_domain_timeout() -> int:
-        """No idea that that is, no one bothered to document it."""
-        return int(env_value_or_raise('MC_THROTTLED_USER_AGENT_DOMAIN_TIMEOUT', allow_empty_string=True))

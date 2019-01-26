@@ -1,4 +1,3 @@
-import copy
 import os
 import re
 import tempfile
@@ -13,7 +12,7 @@ from furl import furl
 
 from mediawords.test.hash_server import HashServer
 from mediawords.util.compress import gzip, gunzip
-from mediawords.util.config.common import UserAgentConfig
+from mediawords.util.config.common import UserAgentConfig, CrawlerAuthenticatedDomain
 from mediawords.util.parse_json import encode_json, decode_json
 from mediawords.util.log import create_logger
 from mediawords.util.network import random_unused_port
@@ -925,58 +924,53 @@ class TestUserAgentTestCase(TestCase):
         hs = HashServer(port=self.__test_port, pages=pages)
         hs.start()
 
-        ua = UserAgent()
-
         base_auth_url = '%s/auth' % self.__test_url
 
-        # No auth
-        config = py_get_config()
-        new_config = copy.deepcopy(config)
-        new_config['mediawords']['crawler_authenticated_domains'] = None
-        py_set_config(new_config)
+        class UserAgentNoAuthConfig(UserAgentConfig):
+            @staticmethod
+            def crawler_authenticated_domains():
+                # No domains
+                return []
 
+        ua = UserAgent(user_agent_config=UserAgentNoAuthConfig())
         no_auth_response = ua.get(base_auth_url)
         assert no_auth_response.is_success() is False
         assert no_auth_response.code() == HTTPStatus.UNAUTHORIZED.value
 
-        py_set_config(config)
+        class UserAgentInvalidAuthConfig(UserAgentConfig):
+            @staticmethod
+            def crawler_authenticated_domains():
+                # Invalid auth
+                return [
+                    CrawlerAuthenticatedDomain(
+                        domain=domain,
+                        username='incorrect_username1',
+                        password='incorrect_password2',
+                    )
+                ]
 
-        # Invalid auth
-        config = py_get_config()
-        new_config = copy.deepcopy(config)
-        new_config['mediawords']['crawler_authenticated_domains'] = [
-            {
-                'domain': domain,
-                'user': 'incorrect_username1',
-                'password': 'incorrect_password2',
-            }
-        ]
-        py_set_config(new_config)
-
+        ua = UserAgent(user_agent_config=UserAgentInvalidAuthConfig())
         invalid_auth_response = ua.get(base_auth_url)
         assert invalid_auth_response.is_success() is False
         assert invalid_auth_response.code() == HTTPStatus.UNAUTHORIZED.value
 
-        py_set_config(config)
+        class UserAgentValidAuthConfig(UserAgentConfig):
+            @staticmethod
+            def crawler_authenticated_domains():
+                # Valid auth
+                return [
+                    CrawlerAuthenticatedDomain(
+                        domain=domain,
+                        username=username,
+                        password=password,
+                    )
+                ]
 
-        # Valid auth
-        config = py_get_config()
-        new_config = copy.deepcopy(config)
-        new_config['mediawords']['crawler_authenticated_domains'] = [
-            {
-                'domain': domain,
-                'user': username,
-                'password': password,
-            }
-        ]
-        py_set_config(new_config)
-
+        ua = UserAgent(user_agent_config=UserAgentValidAuthConfig())
         valid_auth_response = ua.get(base_auth_url)
         assert valid_auth_response.is_success() is True
         assert valid_auth_response.code() == HTTPStatus.OK.value
         assert valid_auth_response.decoded_content() == 'Authenticated!'
-
-        py_set_config(config)
 
         hs.stop()
 

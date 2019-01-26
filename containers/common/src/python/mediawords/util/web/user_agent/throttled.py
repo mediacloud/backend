@@ -3,7 +3,7 @@
 import typing
 
 import mediawords.db
-from mediawords.util.config.common import CommonConfig
+from mediawords.util.config.common import CommonConfig, UserAgentConfig
 from mediawords.util.url import is_shortened_url
 from mediawords.util.web.user_agent import UserAgent
 from mediawords.util.web.user_agent.request.request import Request
@@ -43,19 +43,24 @@ class McThrottledDomainException(Exception):
 class ThrottledUserAgent(UserAgent):
     """Add per domain throttling to mediawords.util.web.UserAgent."""
 
-    def __init__(self, db: mediawords.db.DatabaseHandler, domain_timeout: typing.Optional[int] = None) -> None:
+    def __init__(self,
+                 db: mediawords.db.DatabaseHandler,
+                 domain_timeout: typing.Optional[int] = None,
+                 user_agent_config: UserAgentConfig = None) -> None:
         """
         Add database handler and domain_timeout to UserAgent object.
 
         If domain_timeout is not specified, use mediawords.throttled_user_agent_domain_timeout from mediawords.yml.
         If not present in mediawords.yml, use _DEFAULT_DOMAIN_TIMEOUT.
         """
+
+        super().__init__(user_agent_config=user_agent_config)
+
         self.db = db
         self.domain_timeout = domain_timeout
 
         if self.domain_timeout is None:
-            common_config = CommonConfig()
-            domain_timeout = common_config.throttled_user_agent_domain_timeout()
+            domain_timeout = self.__user_agent_config.throttled_domain_timeout()
             if not domain_timeout:
                 self.domain_timeout = _DEFAULT_DOMAIN_TIMEOUT
 

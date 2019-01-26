@@ -19,4 +19,3 @@ def env_value_or_raise(name: str, allow_empty_string: bool = False) -> str:
     if (not allow_empty_string) and value == '':
         raise McConfigEnvironmentVariableUnsetException("Environment variable '{}' is empty.".format(name))
     return value
-
