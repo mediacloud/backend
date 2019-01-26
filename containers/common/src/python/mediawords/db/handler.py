@@ -1,6 +1,6 @@
 import os
 import re
-from typing import Callable, Union, List, Dict, Any
+from typing import Union, List, Dict, Any
 
 import psycopg2
 import psycopg2.extras
@@ -489,6 +489,7 @@ class DatabaseHandler(object):
         if not primary_key_column:
             raise McDeleteByIDException("Primary key for table '%s' was not found" % table)
 
+        # noinspection SqlWithoutWhere
         sql = "DELETE FROM %s " % table
         sql += "WHERE %s = " % primary_key_column
         sql += "%(__object_id)s"  # "%(object_id)s" to be resolved by psycopg2, not Python
