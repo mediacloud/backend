@@ -139,7 +139,6 @@ sub _fetch_and_handle_download($$$)
     MediaWords::Util::Timing::stop_time( 'fetch', $start_fetch_time );
 
     my $start_handle_time = MediaWords::Util::Timing::start_time( 'handle' );
-    $DB::single = 1;
     eval { $handler->handle_response( $db, $download, $response ); };
     if ( $@ )
     {

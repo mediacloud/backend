@@ -114,7 +114,6 @@ sub parse_feed($;$)
 
     my $feed;
 
-    #$DB::single = 1;
     eval { $feed = MediaWords::Feed::Parse::SyndicatedFeed->new( $content ) };
 
     if ( $@ )

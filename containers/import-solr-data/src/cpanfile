@@ -1,1 +1,3 @@
+requires 'Cpanel::JSON::XS';
+requires 'JSON::PP';
 requires 'Parallel::ForkManager';
