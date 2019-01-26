@@ -141,6 +141,9 @@ class UserAgent(object):
 
     __slots__ = [
 
+        # Common configuration
+        '__config',
+
         # "requests" session
         '__session',
 
@@ -155,10 +158,14 @@ class UserAgent(object):
 
     ]
 
-    def __init__(self):
+    def __init__(self, config: CommonConfig = None):
         """Constructor."""
 
-        # "requests" session to carry the cookie pool around
+        self.__config = config
+        if not self.__config:
+            self.__config = CommonConfig()
+
+            # "requests" session to carry the cookie pool around
         self.__session = requests.Session()
 
         self.__session.headers.update({
@@ -464,8 +471,7 @@ class UserAgent(object):
 
         return scheduled_urls
 
-    @staticmethod
-    def parallel_get(urls: List[str]) -> List[Response]:
+    def parallel_get(self, urls: List[str]) -> List[Response]:
         """GET multiple URLs in parallel."""
 
         # FIXME doesn't respect timing() and other object properties
@@ -492,9 +498,9 @@ class UserAgent(object):
             if not is_http_url(url):
                 raise McParallelGetException("URL %s is not a valid URL; URLs: %s" % (url, str(urls),))
 
-        num_parallel = CommonConfig.parallel_get().num_parallel()
-        timeout = CommonConfig.parallel_get().timeout()
-        per_domain_timeout = CommonConfig.parallel_get().per_domain_timeout()
+        num_parallel = self.__config.parallel_get().num_parallel()
+        timeout = self.__config.parallel_get().timeout()
+        per_domain_timeout = self.__config.parallel_get().per_domain_timeout()
 
         url_stack = UserAgent.__get_scheduled_urls(urls_=urls, per_domain_timeout_=per_domain_timeout)
 
