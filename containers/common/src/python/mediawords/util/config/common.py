@@ -1,5 +1,7 @@
 from typing import List
 
+from mediawords.util.config import env_value_or_raise
+
 
 class DatabaseConfig(object):
     """PostgreSQL database configuration."""
@@ -221,7 +223,6 @@ class CommonConfig(object):
         return 'http://mc_solr_shard:8983/solr'
 
     @staticmethod
-    def throttled_user_agent_domain_timeout() -> str:
+    def throttled_user_agent_domain_timeout() -> int:
         """No idea that that is, no one bothered to document it."""
         return int(env_value_or_raise('MC_THROTTLED_USER_AGENT_DOMAIN_TIMEOUT', allow_empty_string=True))
-
