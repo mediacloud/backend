@@ -4,8 +4,8 @@ import os
 import smtplib
 from typing import List, Optional, Union
 
+from mediawords.util.config.common import CommonConfig
 from mediawords.util.perl import decode_object_from_bytes_if_needed
-import mediawords.util.config
 from mediawords.util.log import create_logger
 
 log = create_logger(__name__)
@@ -51,7 +51,7 @@ class Message(object):
                  bcc: Optional[Union[str, List[str]]] = None):
         """Email message constructor."""
 
-        self.from_ = mediawords.util.config.email_from_address()
+        self.from_ = CommonConfig.email_from_address()
 
         self.subject = decode_object_from_bytes_if_needed(subject)
         self.text_body = decode_object_from_bytes_if_needed(text_body)
@@ -130,8 +130,8 @@ def send_email(message: Message) -> bool:
 
             # Connect to SMTP
             smtp = smtplib.SMTP(
-                host=mediawords.util.config.mail_smtp_hostname(),
-                port=mediawords.util.config.mail_smtp_port(),
+                host=CommonConfig.smtp().hostname(),
+                port=CommonConfig.smtp().port(),
             )
 
             # Send message
