@@ -11,7 +11,7 @@ RUN \
     echo "deb https://dl.bintray.com/pypt/mecab-ipadic-neologd-deb xenial main" > /etc/apt/sources.list.d/mecab-ipadic-neologd.list && \
     apt-get -y update && \
     #
-    # Required by "cffi" Python module
+    # Required by "cld2-cffi" Python module
     apt-get -y --no-install-recommends install libffi-dev && \
     #
     # OpenSSL headers for various SSL modules
@@ -46,8 +46,12 @@ RUN \
 
 # Install Python dependencies
 COPY src/requirements.txt /var/tmp/
+
 RUN \
     cd /var/tmp/ && \
+    #
+    # cld2-cffi: https://github.com/chartbeat-labs/textacy/issues/94#issuecomment-299656714
+    export CFLAGS="-Wno-narrowing" && \
     #
     # Has to be done separately before anything else because pyre2 depends on it,
     # and Pip is unable to figure out that it has to install Cython first from
