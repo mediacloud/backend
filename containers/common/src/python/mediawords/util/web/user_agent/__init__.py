@@ -13,6 +13,7 @@ from requests.adapters import HTTPAdapter
 from requests.auth import HTTPBasicAuth
 from urllib3 import Retry, HTTPResponse
 
+from mediawords.util.config.common import CommonConfig
 from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_object_from_bytes_if_needed
 from mediawords.util.sql import sql_now
@@ -491,9 +492,9 @@ class UserAgent(object):
             if not is_http_url(url):
                 raise McParallelGetException("URL %s is not a valid URL; URLs: %s" % (url, str(urls),))
 
-        num_parallel = mediawords.util.config.web_store_num_parallel()
-        timeout = mediawords.util.config.web_store_timeout()
-        per_domain_timeout = mediawords.util.config.web_store_per_domain_timeout()
+        num_parallel = CommonConfig.parallel_get().num_parallel()
+        timeout = CommonConfig.parallel_get().timeout()
+        per_domain_timeout = CommonConfig.parallel_get().per_domain_timeout()
 
         url_stack = UserAgent.__get_scheduled_urls(urls_=urls, per_domain_timeout_=per_domain_timeout)
 
