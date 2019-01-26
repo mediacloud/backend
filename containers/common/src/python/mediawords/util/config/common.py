@@ -33,6 +33,11 @@ class DatabaseConfig(object):
         """Password."""
         return "mediacloud"
 
+    @staticmethod
+    def ignore_schema_version() -> bool:
+        """Ignore schema version."""
+        return bool(int(env_value_or_raise('MC_DATABASE_IGNORE_SCHEMA_VERSION', allow_empty_string=True)))
+
 
 class AmazonS3DownloadsConfig(object):
     """Amazon S3 raw download storage configuration."""

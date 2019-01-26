@@ -16,7 +16,7 @@ from mediawords.db.exceptions.handler import (
 from mediawords.db.result.result import DatabaseResult
 from mediawords.db.schema.version import schema_version_from_lines
 
-import mediawords.util.config
+from mediawords.util.config.common import CommonConfig
 from mediawords.util.log import create_logger
 from mediawords.util.paths import mc_sql_schema_path
 from mediawords.util.perl import (
@@ -192,8 +192,7 @@ class DatabaseHandler(object):
     def __should_continue_with_outdated_schema(current_schema_version: int, target_schema_version: int) -> bool:
         """Schema is outdated / too new; returns 1 if MC should continue nevertheless, 0 otherwise"""
 
-        config_ignore_schema_version = mediawords.util.config.ignore_schema_version()
-        if config_ignore_schema_version:
+        if CommonConfig.database().ignore_schema_version():
             log.warning("""
                 The current Media Cloud database schema is older than the schema present in mediawords.sql,
                 but 'ignore_schema_version' is set so continuing anyway.
