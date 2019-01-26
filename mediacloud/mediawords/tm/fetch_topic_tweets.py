@@ -8,6 +8,7 @@ import typing
 from mediawords.db import DatabaseHandler
 import mediawords.util.parse_json
 from mediawords.util.web.user_agent import UserAgent
+import mediawords.util.twitter
 
 from mediawords.util.log import create_logger
 
@@ -235,6 +236,11 @@ def regenerate_tweet_urls(db: dict, topic: dict) -> None:
         _insert_tweet_urls(db, topic_tweet, urls)
 
 
+def _post_matches_pattern(topic: dict, ch_post: dict) -> bool:
+    """Return true if the content of the post matches the topic pattern."""
+    return re.match(topic['pattern'], ch_post['tweet']['text']) is not None
+
+
 def _fetch_tweets_for_day(
         db: DatabaseHandler,
         twitter_class: typing.Type[AbstractTwitter],
@@ -272,6 +278,8 @@ def _fetch_tweets_for_day(
     # we can only get 100 posts at a time from twitter
     for i in range(0, len(ch_posts), 100):
         _add_tweets_to_ch_posts(twitter_class, ch_posts[i:i + 100])
+
+    ch_posts = list(filter(lambda p: _post_matches_pattern(topic, p), ch_posts))
 
     db.begin()
 
