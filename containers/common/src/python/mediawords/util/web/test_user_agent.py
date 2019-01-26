@@ -13,7 +13,7 @@ from furl import furl
 
 from mediawords.test.hash_server import HashServer
 from mediawords.util.compress import gzip, gunzip
-from mediawords.util.config.common import ParallelGetConfig, CommonConfig
+from mediawords.util.config.common import UserAgentConfig
 from mediawords.util.parse_json import encode_json, decode_json
 from mediawords.util.log import create_logger
 from mediawords.util.network import random_unused_port
@@ -825,21 +825,20 @@ class TestUserAgentTestCase(TestCase):
         whitelisted_url = '%s/whitelisted' % self.__test_url
         blacklisted_url = '%s/blacklisted' % self.__test_url
 
-        config = py_get_config()
-        new_config = copy.deepcopy(config)
-        new_config['mediawords']['blacklist_url_pattern'] = re.escape(blacklisted_url)
-        py_set_config(new_config)
+        class UserAgentBlacklistedConfig(UserAgentConfig):
+
+            @staticmethod
+            def blacklist_url_pattern():
+                return re.compile(re.escape(blacklisted_url))
 
         hs = HashServer(port=self.__test_port, pages=pages)
         hs.start()
 
-        ua = UserAgent()
+        ua = UserAgent(user_agent_config=UserAgentBlacklistedConfig())
         blacklisted_response = ua.get(blacklisted_url)
         whitelisted_response = ua.get(whitelisted_url)
 
         hs.stop()
-
-        py_set_config(config)
 
         assert blacklisted_response.is_success() is False
         assert blacklisted_response.error_is_client_side() is True
@@ -1338,17 +1337,10 @@ class TestUserAgentTestCase(TestCase):
             '/timeout': {'callback': __callback_timeout},
         }
 
-        class ParallelGetTimeoutFasterConfig(ParallelGetConfig):
+        class UserAgentTimeoutFasterConfig(UserAgentConfig):
             @staticmethod
-            def timeout():
+            def parallel_get_timeout():
                 return 2  # time out faster
-
-        class CommonTimeoutFasterConfig(CommonConfig):
-            @staticmethod
-            def parallel_get():
-                return ParallelGetTimeoutFasterConfig()
-
-        timeout_faster_config = CommonTimeoutFasterConfig()
 
         urls = [
             '%s/a' % self.__test_url,
@@ -1361,7 +1353,7 @@ class TestUserAgentTestCase(TestCase):
         hs = HashServer(port=self.__test_port, pages=pages)
         hs.start()
 
-        ua = UserAgent(config=timeout_faster_config)
+        ua = UserAgent(user_agent_config=UserAgentTimeoutFasterConfig())
 
         responses = ua.parallel_get(urls)
 

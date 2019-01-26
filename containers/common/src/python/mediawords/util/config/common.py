@@ -1,4 +1,5 @@
-from typing import List
+import re
+from typing import List, Pattern, Optional
 
 from mediawords.util.config import env_value_or_raise
 
@@ -164,21 +165,31 @@ class DownloadStorageConfig(object):
         return bool(int(env_value_or_raise('MC_DOWNLOADS_CACHE_S3', allow_empty_string=True)))
 
 
-class ParallelGetConfig(object):
-    """parallel_get() configuration."""
+class UserAgentConfig(object):
+    """UserAgent configuration."""
 
     @staticmethod
-    def num_parallel() -> int:
+    def blacklist_url_pattern() -> Optional[Pattern]:
+        """URL pattern for which we should fail all of the HTTP(s) requests."""
+        pattern = env_value_or_raise('MC_USERAGENT_BLACKLIST_URL_PATTERN', allow_empty_string=True)
+        if pattern:
+            pattern = re.compile(pattern, flags=re.IGNORECASE)
+        else:
+            pattern = None
+        return pattern
+
+    @staticmethod
+    def parallel_get_num_parallel() -> int:
         """Parallel connection count."""
         return int(env_value_or_raise('MC_PARALLEL_GET_NUM_PARALLEL'))
 
     @staticmethod
-    def timeout() -> int:
+    def parallel_get_timeout() -> int:
         """Connection timeout, in seconds."""
         return int(env_value_or_raise('MC_PARALLEL_GET_TIMEOUT'))
 
     @staticmethod
-    def per_domain_timeout() -> int:
+    def parallel_get_per_domain_timeout() -> int:
         """Per-domain timeout, in seconds."""
         return int(env_value_or_raise('MC_PARALLEL_GET_PER_DOMAIN_TIMEOUT'))
 
@@ -212,9 +223,9 @@ class CommonConfig(object):
         return DownloadStorageConfig()
 
     @staticmethod
-    def parallel_get() -> ParallelGetConfig:
-        """parallel_get() configuration."""
-        return ParallelGetConfig()
+    def user_agent() -> UserAgentConfig:
+        """UserAgent configuration."""
+        return UserAgentConfig()
 
     @staticmethod
     def email_from_address() -> str:
