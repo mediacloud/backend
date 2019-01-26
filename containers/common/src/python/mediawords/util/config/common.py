@@ -2,7 +2,7 @@ import re
 from dataclasses import dataclass
 from typing import List, Pattern, Optional
 
-from mediawords.util.config import env_value_or_raise, McConfigException
+from mediawords.util.config import env_value, McConfigException
 
 
 class DatabaseConfig(object):
@@ -38,7 +38,7 @@ class DatabaseConfig(object):
     @staticmethod
     def ignore_schema_version() -> bool:
         """Ignore schema version."""
-        return bool(int(env_value_or_raise('MC_DATABASE_IGNORE_SCHEMA_VERSION', allow_empty_string=True)))
+        return bool(int(env_value('MC_DATABASE_IGNORE_SCHEMA_VERSION', allow_empty_string=True)))
 
 
 class AmazonS3DownloadsConfig(object):
@@ -47,22 +47,22 @@ class AmazonS3DownloadsConfig(object):
     @staticmethod
     def access_key_id() -> str:
         """Access key ID."""
-        return env_value_or_raise('MC_DOWNLOADS_AMAZON_S3_ACCESS_KEY_ID')
+        return env_value('MC_DOWNLOADS_AMAZON_S3_ACCESS_KEY_ID')
 
     @staticmethod
     def secret_access_key() -> str:
         """Secret access key."""
-        return env_value_or_raise('MC_DOWNLOADS_AMAZON_S3_SECRET_ACCESS_KEY')
+        return env_value('MC_DOWNLOADS_AMAZON_S3_SECRET_ACCESS_KEY')
 
     @staticmethod
     def bucket_name() -> str:
         """Bucket name."""
-        return env_value_or_raise('MC_DOWNLOADS_AMAZON_S3_BUCKET_NAME')
+        return env_value('MC_DOWNLOADS_AMAZON_S3_BUCKET_NAME')
 
     @staticmethod
     def directory_name() -> str:
         """Directory name (prefix)."""
-        return env_value_or_raise('MC_DOWNLOADS_AMAZON_S3_DIRECTORY_NAME', allow_empty_string=True)
+        return env_value('MC_DOWNLOADS_AMAZON_S3_DIRECTORY_NAME', allow_empty_string=True)
 
 
 class RabbitMQConfig(object):
@@ -141,8 +141,8 @@ class DownloadStorageConfig(object):
     @staticmethod
     def storage_locations() -> List[str]:
         """Download storage locations."""
-        env_value = env_value_or_raise('MC_DOWNLOADS_STORAGE_LOCATIONS')
-        locations = env_value.split(';')
+        value = env_value('MC_DOWNLOADS_STORAGE_LOCATIONS')
+        locations = value.split(';')
         locations = [location.strip() for location in locations]
         if len(locations) == 0 and locations[0] == '':
             locations = []
@@ -151,19 +151,19 @@ class DownloadStorageConfig(object):
     @staticmethod
     def read_all_from_s3() -> bool:
         """Whether or not to read all non-inline downloads from S3."""
-        return bool(int(env_value_or_raise('MC_DOWNLOADS_READ_ALL_FROM_S3', allow_empty_string=True)))
+        return bool(int(env_value('MC_DOWNLOADS_READ_ALL_FROM_S3', allow_empty_string=True)))
 
     @staticmethod
     def fallback_postgresql_to_s3() -> bool:
         """Whether to fallback PostgreSQL downloads to Amazon S3.
 
         If the download doesn't exist in PostgreSQL storage, S3 will be tried instead."""
-        return bool(int(env_value_or_raise('MC_DOWNLOADS_FALLBACK_POSTGRESQL_TO_S3', allow_empty_string=True)))
+        return bool(int(env_value('MC_DOWNLOADS_FALLBACK_POSTGRESQL_TO_S3', allow_empty_string=True)))
 
     @staticmethod
     def cache_s3() -> bool:
         """Whether to enable local Amazon S3 download cache."""
-        return bool(int(env_value_or_raise('MC_DOWNLOADS_CACHE_S3', allow_empty_string=True)))
+        return bool(int(env_value('MC_DOWNLOADS_CACHE_S3', allow_empty_string=True)))
 
 
 @dataclass(frozen=True)
@@ -185,13 +185,53 @@ class McConfigCrawlerAuthenticatedDomainsException(McConfigException):
     pass
 
 
+def _crawler_authenticated_domains_from_string(value: Optional[str]) -> List[CrawlerAuthenticatedDomain]:
+    """Parse the string and return a list of crawler authenticated domains."""
+
+    if not value:
+        return []
+
+    entries = value.split(';')
+
+    domains = []
+
+    for entry in entries:
+        entry = entry.strip()
+
+        if '@' not in entry:
+            raise McConfigCrawlerAuthenticatedDomainsException("Entry doesn't contain '@' character.")
+
+        username_password, domain = entry.split('@', maxsplit=1)
+        if not username_password:
+            raise McConfigCrawlerAuthenticatedDomainsException("Username + password can't be empty.")
+        if not domain:
+            raise McConfigCrawlerAuthenticatedDomainsException("Domain can't be empty.")
+        if '@' in domain:
+            raise McConfigCrawlerAuthenticatedDomainsException("Domain contains '@' character.")
+        
+        if ':' not in username_password:
+            raise McConfigCrawlerAuthenticatedDomainsException("Username + password doesn't contain ':' character.")
+
+        username, password = username_password.split(':', maxsplit=1)
+        if not username:
+            raise McConfigCrawlerAuthenticatedDomainsException("Username is empty.")
+        if not password:
+            raise McConfigCrawlerAuthenticatedDomainsException("Password is empty.")
+        if ':' in password:
+            raise McConfigCrawlerAuthenticatedDomainsException("Password contains ':' character.")
+
+        domains.append(CrawlerAuthenticatedDomain(domain=domain, username=username, password=password))
+
+    return domains
+
+
 class UserAgentConfig(object):
     """UserAgent configuration."""
 
     @staticmethod
     def blacklist_url_pattern() -> Optional[Pattern]:
         """URL pattern for which we should fail all of the HTTP(s) requests."""
-        pattern = env_value_or_raise('MC_USERAGENT_BLACKLIST_URL_PATTERN', allow_empty_string=True)
+        pattern = env_value('MC_USERAGENT_BLACKLIST_URL_PATTERN', allow_empty_string=True)
         if pattern:
             pattern = re.compile(pattern, flags=re.IGNORECASE)
         else:
@@ -201,52 +241,28 @@ class UserAgentConfig(object):
     @staticmethod
     def crawler_authenticated_domains() -> List[CrawlerAuthenticatedDomain]:
         """List of crawler authenticated domains."""
-        env_value = env_value_or_raise('MC_USERAGENT_CRAWLER_AUTHENTICATED_DOMAINS', allow_empty_string=True)
-        entries = env_value.split(';')
-
-        domains = []
-
-        for entry in entries:
-            entry = entry.strip()
-            username_password, domain = entry.split('@', maxsplit=1)
-            if not username_password:
-                raise McConfigCrawlerAuthenticatedDomainsException("Username + password can't be empty.")
-            if not domain:
-                raise McConfigCrawlerAuthenticatedDomainsException("Domain can't be empty.")
-            if '@' in domain:
-                raise McConfigCrawlerAuthenticatedDomainsException("Domain contains '@' character.")
-
-            username, password = username_password.split(':', maxsplit=1)
-            if not username:
-                raise McConfigCrawlerAuthenticatedDomainsException("Username is empty.")
-            if not password:
-                raise McConfigCrawlerAuthenticatedDomainsException("Password is empty.")
-            if ':' in password:
-                raise McConfigCrawlerAuthenticatedDomainsException("Password contains ':' character.")
-
-            domains.append(CrawlerAuthenticatedDomain(domain=domain, username=username, password=password))
-
-        return domains
+        value = env_value('MC_USERAGENT_CRAWLER_AUTHENTICATED_DOMAINS', required=False, allow_empty_string=True)
+        return _crawler_authenticated_domains_from_string(value)
 
     @staticmethod
     def parallel_get_num_parallel() -> int:
         """Parallel connection count."""
-        return int(env_value_or_raise('MC_USERAGENT_PARALLEL_GET_NUM_PARALLEL'))
+        return int(env_value('MC_USERAGENT_PARALLEL_GET_NUM_PARALLEL'))
 
     @staticmethod
     def parallel_get_timeout() -> int:
         """Connection timeout, in seconds."""
-        return int(env_value_or_raise('MC_USERAGENT_PARALLEL_GET_TIMEOUT'))
+        return int(env_value('MC_USERAGENT_PARALLEL_GET_TIMEOUT'))
 
     @staticmethod
     def parallel_get_per_domain_timeout() -> int:
         """Per-domain timeout, in seconds."""
-        return int(env_value_or_raise('MC_USERAGENT_PARALLEL_GET_PER_DOMAIN_TIMEOUT'))
+        return int(env_value('MC_USERAGENT_PARALLEL_GET_PER_DOMAIN_TIMEOUT'))
 
     @staticmethod
     def throttled_domain_timeout() -> int:
         """No idea that that is, no one bothered to document it."""
-        return int(env_value_or_raise('MC_USERAGENT_THROTTLED_DOMAIN_TIMEOUT', allow_empty_string=True))
+        return int(env_value('MC_USERAGENT_THROTTLED_DOMAIN_TIMEOUT', allow_empty_string=True))
 
 
 class CommonConfig(object):
@@ -285,7 +301,7 @@ class CommonConfig(object):
     @staticmethod
     def email_from_address() -> str:
         """'From:' email address when sending emails."""
-        return env_value_or_raise('MC_EMAIL_FROM_ADDRESS')
+        return env_value('MC_EMAIL_FROM_ADDRESS')
 
     @staticmethod
     def solr_url() -> str:

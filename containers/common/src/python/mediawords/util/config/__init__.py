@@ -1,4 +1,5 @@
 import os
+from typing import Optional
 
 
 class McConfigException(Exception):
@@ -11,11 +12,27 @@ class McConfigEnvironmentVariableUnsetException(McConfigException):
     pass
 
 
-def env_value_or_raise(name: str, allow_empty_string: bool = False) -> str:
-    """Return value of an environment variable or raise an exception if it's unset / empty."""
+def env_value(name: str, required: bool = True, allow_empty_string: bool = False) -> Optional[str]:
+    """Return value of an environment variable, raise if it's required.
+
+    There are 4 types of configuration properties:
+
+    * required; must be a non-empty string
+    * required; can be an empty string
+    * optional; must be a non-empty string when set
+    * optional; can be an empty string when set
+    """
     value = os.environ.get(name, None)
+
     if value is None:
-        raise McConfigEnvironmentVariableUnsetException("Environment variable '{}' is unset.".format(name))
-    if (not allow_empty_string) and value == '':
-        raise McConfigEnvironmentVariableUnsetException("Environment variable '{}' is empty.".format(name))
+
+        if required:
+            raise McConfigEnvironmentVariableUnsetException(f"Environment variable '{name}' is unset.")
+
+    else:
+
+        if value == '':
+            if not allow_empty_string:
+                raise McConfigEnvironmentVariableUnsetException(f"Environment variable '{name}' is empty.")
+
     return value
