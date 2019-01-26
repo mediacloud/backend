@@ -279,7 +279,7 @@ def _fetch_tweets_for_day(
     for i in range(0, len(ch_posts), 100):
         _add_tweets_to_ch_posts(twitter_class, ch_posts[i:i + 100])
 
-    ch_posts = list(filter(lambda p: _post_matches_pattern(topic, p), ch_posts))
+    # ch_posts = list(filter(lambda p: _post_matches_pattern(topic, p), ch_posts))
 
     db.begin()
 
