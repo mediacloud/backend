@@ -1,7 +1,4 @@
-import errno
-import fcntl
 import multiprocessing
-import os
 import io
 import re
 import time
@@ -16,7 +13,6 @@ from requests.adapters import HTTPAdapter
 from requests.auth import HTTPBasicAuth
 from urllib3 import Retry, HTTPResponse
 
-import mediawords.util.config
 from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_object_from_bytes_if_needed
 from mediawords.util.sql import sql_now
@@ -136,6 +132,12 @@ class UserAgent(object):
     __DEFAULT_MAX_REDIRECT = 15
     __DEFAULT_TIMEOUT = 20
 
+    # HTTP "From:" header
+    __OWNER = 'mediawords@cyber.law.harvard.edu'
+
+    # HTTP "User-Agent:" header
+    __USER_AGENT = 'mediawords bot (http://cyber.law.harvard.edu)'
+
     __slots__ = [
 
         # "requests" session
@@ -159,8 +161,8 @@ class UserAgent(object):
         self.__session = requests.Session()
 
         self.__session.headers.update({
-            'From': mediawords.util.config.http_owner(),
-            'User-Agent': mediawords.util.config.http_user_agent(),
+            'From': self.__OWNER,
+            'User-Agent': self.__USER_AGENT,
             'Accept-Charset': 'utf-8',
 
             # MC_REWRITE_TO_PYTHON:
@@ -589,7 +591,6 @@ class UserAgent(object):
             raise McRequestException("URL is empty.")
 
         log.debug("HTTP request: %s %s\n" % (sql_now(), url,))
-
 
     def __prepare_request(self, request: Request) -> requests.PreparedRequest:
         """Create PreparedRequest from UserAgent's Request. Raises if one or more parameters are invalid."""

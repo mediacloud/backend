@@ -13,7 +13,6 @@ from furl import furl
 
 from mediawords.test.hash_server import HashServer
 from mediawords.util.compress import gzip, gunzip
-from mediawords.util.config import get_config as py_get_config, set_config as py_set_config
 from mediawords.util.parse_json import encode_json, decode_json
 from mediawords.util.log import create_logger
 from mediawords.util.network import random_unused_port
@@ -144,8 +143,8 @@ class TestUserAgentTestCase(TestCase):
         assert response.is_success() is True
         assert urls_are_equal(url1=response.request().url(), url2=test_url)
 
-        expected_user_agent = mediawords.util.config.http_user_agent()
-        expected_from = mediawords.util.config.http_owner()
+        expected_user_agent = 'mediawords bot (http://cyber.law.harvard.edu)'
+        expected_from = 'mediawords@cyber.law.harvard.edu'
 
         decoded_json = decode_json(response.decoded_content())
         assert decoded_json == {
