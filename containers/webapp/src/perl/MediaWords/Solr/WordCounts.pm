@@ -28,7 +28,6 @@ use URI::Escape;
 
 use MediaWords::Languages::Language;
 use MediaWords::Solr;
-use MediaWords::Util::Config;
 use MediaWords::Util::IdentifyLanguage;
 use MediaWords::Util::ParseJSON;
 use MediaWords::Util::Text;

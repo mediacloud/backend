@@ -59,7 +59,6 @@ use MediaWords::TM::Model;
 use MediaWords::TM::Snapshot::GraphLayout;
 use MediaWords::Util::CSV;
 use MediaWords::Util::Colors;
-use MediaWords::Util::Config;
 use MediaWords::Util::Paths;
 use MediaWords::Util::SQL;
 use MediaWords::DBI::Activities;

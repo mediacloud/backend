@@ -16,8 +16,6 @@ use MediaWords::CommonLibs;
 
 use HTTP::Status qw(:constants);
 
-use MediaWords::Util::Config;
-
 use MediaWords::DBI::Auth::Roles ( ':all' );
 
 sub _get_auth_roles

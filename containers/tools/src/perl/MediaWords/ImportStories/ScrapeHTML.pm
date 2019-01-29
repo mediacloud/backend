@@ -26,7 +26,6 @@ use HTML::LinkExtractor;
 use List::Util;
 use List::MoreUtils qw/ uniq /;
 
-use MediaWords::Util::Config;
 use MediaWords::Util::URL;
 use MediaWords::Util::Web;
 

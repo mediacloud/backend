@@ -14,7 +14,6 @@ use namespace::autoclean;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-use MediaWords::Util::Config;
 use HTTP::Status qw(:constants);
 
 around execute => sub {
