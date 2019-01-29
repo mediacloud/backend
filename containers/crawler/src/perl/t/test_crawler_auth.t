@@ -56,7 +56,7 @@ sub test_auth
     my $config     = MediaWords::Util::Config::get_config;
     my $new_config = python_deep_copy( $config );
 
-    $new_config->{ mediawords }->{ crawler_authenticated_domains } =
+    $new_config->{ mediawords }->{ authenticated_domains } =
       [ { domain => 'localhost.localhost', user => 'foo', password => 'bar' } ];
     MediaWords::Util::Config::set_config( $new_config );
 

@@ -167,8 +167,8 @@ class DownloadStorageConfig(object):
 
 
 @dataclass(frozen=True)
-class CrawlerAuthenticatedDomain(object):
-    """Single crawler authenticated domain."""
+class AuthenticatedDomain(object):
+    """Single authenticated domain."""
 
     domain: str
     """Domain name, e.g. "ap.org"."""
@@ -180,13 +180,13 @@ class CrawlerAuthenticatedDomain(object):
     """HTTP auth password."""
 
 
-class McConfigCrawlerAuthenticatedDomainsException(McConfigException):
-    """Exception thrown on crawler authenticated domains syntax errors."""
+class McConfigAuthenticatedDomainsException(McConfigException):
+    """Exception thrown on authenticated domains syntax errors."""
     pass
 
 
-def _crawler_authenticated_domains_from_string(value: Optional[str]) -> List[CrawlerAuthenticatedDomain]:
-    """Parse the string and return a list of crawler authenticated domains."""
+def _authenticated_domains_from_string(value: Optional[str]) -> List[AuthenticatedDomain]:
+    """Parse the string and return a list of authenticated domains."""
 
     if not value:
         return []
@@ -199,28 +199,28 @@ def _crawler_authenticated_domains_from_string(value: Optional[str]) -> List[Cra
         entry = entry.strip()
 
         if '@' not in entry:
-            raise McConfigCrawlerAuthenticatedDomainsException("Entry doesn't contain '@' character.")
+            raise McConfigAuthenticatedDomainsException("Entry doesn't contain '@' character.")
 
         username_password, domain = entry.split('@', maxsplit=1)
         if not username_password:
-            raise McConfigCrawlerAuthenticatedDomainsException("Username + password can't be empty.")
+            raise McConfigAuthenticatedDomainsException("Username + password can't be empty.")
         if not domain:
-            raise McConfigCrawlerAuthenticatedDomainsException("Domain can't be empty.")
+            raise McConfigAuthenticatedDomainsException("Domain can't be empty.")
         if '@' in domain:
-            raise McConfigCrawlerAuthenticatedDomainsException("Domain contains '@' character.")
+            raise McConfigAuthenticatedDomainsException("Domain contains '@' character.")
         
         if ':' not in username_password:
-            raise McConfigCrawlerAuthenticatedDomainsException("Username + password doesn't contain ':' character.")
+            raise McConfigAuthenticatedDomainsException("Username + password doesn't contain ':' character.")
 
         username, password = username_password.split(':', maxsplit=1)
         if not username:
-            raise McConfigCrawlerAuthenticatedDomainsException("Username is empty.")
+            raise McConfigAuthenticatedDomainsException("Username is empty.")
         if not password:
-            raise McConfigCrawlerAuthenticatedDomainsException("Password is empty.")
+            raise McConfigAuthenticatedDomainsException("Password is empty.")
         if ':' in password:
-            raise McConfigCrawlerAuthenticatedDomainsException("Password contains ':' character.")
+            raise McConfigAuthenticatedDomainsException("Password contains ':' character.")
 
-        domains.append(CrawlerAuthenticatedDomain(domain=domain, username=username, password=password))
+        domains.append(AuthenticatedDomain(domain=domain, username=username, password=password))
 
     return domains
 
@@ -239,10 +239,10 @@ class UserAgentConfig(object):
         return pattern
 
     @staticmethod
-    def crawler_authenticated_domains() -> List[CrawlerAuthenticatedDomain]:
-        """List of crawler authenticated domains."""
-        value = env_value('MC_USERAGENT_CRAWLER_AUTHENTICATED_DOMAINS', required=False, allow_empty_string=True)
-        return _crawler_authenticated_domains_from_string(value)
+    def authenticated_domains() -> List[AuthenticatedDomain]:
+        """List of authenticated domains."""
+        value = env_value('MC_USERAGENT_AUTHENTICATED_DOMAINS', required=False, allow_empty_string=True)
+        return _authenticated_domains_from_string(value)
 
     @staticmethod
     def parallel_get_num_parallel() -> int:

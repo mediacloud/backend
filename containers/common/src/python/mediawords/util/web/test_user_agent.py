@@ -12,7 +12,7 @@ from furl import furl
 
 from mediawords.test.hash_server import HashServer
 from mediawords.util.compress import gzip, gunzip
-from mediawords.util.config.common import UserAgentConfig, CrawlerAuthenticatedDomain
+from mediawords.util.config.common import UserAgentConfig, AuthenticatedDomain
 from mediawords.util.parse_json import encode_json, decode_json
 from mediawords.util.log import create_logger
 from mediawords.util.network import random_unused_port
@@ -906,8 +906,8 @@ class TestUserAgentTestCase(TestCase):
         with pytest.raises(McUserAgentRequestException):
             Request(method='GET', url='http://michigan-state-football-sexual-assault-charges-arrest-players-names')
 
-    def test_get_crawler_authenticated_domains(self):
-        """Crawler authenticated domains (configured in mediawords.yml)."""
+    def test_get_authenticated_domains(self):
+        """Authenticated domains (configured in mediawords.yml)."""
 
         # This is what get_url_distinctive_domain() returns for whatever reason
         domain = 'localhost.localhost'
@@ -928,7 +928,7 @@ class TestUserAgentTestCase(TestCase):
 
         class UserAgentNoAuthConfig(UserAgentConfig):
             @staticmethod
-            def crawler_authenticated_domains():
+            def authenticated_domains():
                 # No domains
                 return []
 
@@ -939,10 +939,10 @@ class TestUserAgentTestCase(TestCase):
 
         class UserAgentInvalidAuthConfig(UserAgentConfig):
             @staticmethod
-            def crawler_authenticated_domains():
+            def authenticated_domains():
                 # Invalid auth
                 return [
-                    CrawlerAuthenticatedDomain(
+                    AuthenticatedDomain(
                         domain=domain,
                         username='incorrect_username1',
                         password='incorrect_password2',
@@ -956,10 +956,10 @@ class TestUserAgentTestCase(TestCase):
 
         class UserAgentValidAuthConfig(UserAgentConfig):
             @staticmethod
-            def crawler_authenticated_domains():
+            def authenticated_domains():
                 # Valid auth
                 return [
-                    CrawlerAuthenticatedDomain(
+                    AuthenticatedDomain(
                         domain=domain,
                         username=username,
                         password=password,

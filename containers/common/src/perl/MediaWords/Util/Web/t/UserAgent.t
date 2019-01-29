@@ -571,7 +571,7 @@ sub test_get_http_auth()
     $hs->stop();
 }
 
-sub test_get_crawler_authenticated_domains()
+sub test_get_authenticated_domains()
 {
     # This is what get_url_distinctive_domain() returns for whatever reason
     my $domain   = 'localhost.localhost';
@@ -596,7 +596,7 @@ sub test_get_crawler_authenticated_domains()
         # No auth
         my $config     = MediaWords::Util::Config::get_config;
         my $new_config = python_deep_copy( $config );
-        $new_config->{ mediawords }->{ crawler_authenticated_domains } = undef;
+        $new_config->{ mediawords }->{ authenticated_domains } = undef;
         MediaWords::Util::Config::set_config( $new_config );
 
         my $no_auth_response = $ua->get( $base_auth_url );
@@ -608,7 +608,7 @@ sub test_get_crawler_authenticated_domains()
         # No auth
         my $config     = MediaWords::Util::Config::get_config;
         my $new_config = python_deep_copy( $config );
-        $new_config->{ mediawords }->{ crawler_authenticated_domains }->[ 0 ] = {
+        $new_config->{ mediawords }->{ authenticated_domains }->[ 0 ] = {
             'domain'   => $domain,
             'user'     => 'incorrect_username1',
             'password' => 'incorrect_password2',
@@ -625,7 +625,7 @@ sub test_get_crawler_authenticated_domains()
         # Valid auth
         my $config     = MediaWords::Util::Config::get_config;
         my $new_config = python_deep_copy( $config );
-        $new_config->{ mediawords }->{ crawler_authenticated_domains }->[ 0 ] = {
+        $new_config->{ mediawords }->{ authenticated_domains }->[ 0 ] = {
             'domain'   => $domain,
             'user'     => $username,
             'password' => $password,
@@ -643,7 +643,7 @@ sub test_get_crawler_authenticated_domains()
     # Clear up test auth
     my $config     = MediaWords::Util::Config::get_config;
     my $new_config = python_deep_copy( $config );
-    $new_config->{ mediawords }->{ crawler_authenticated_domains } = undef;
+    $new_config->{ mediawords }->{ authenticated_domains } = undef;
     MediaWords::Util::Config::set_config( $new_config );
 }
 
@@ -1310,7 +1310,7 @@ sub main()
     test_get_response_content_type();
     test_get_blacklisted_url();
     test_get_http_auth();
-    test_get_crawler_authenticated_domains();
+    test_get_authenticated_domains();
 
     test_get_follow_http_html_redirects_nonexistent();
     test_get_follow_http_html_redirects_http();

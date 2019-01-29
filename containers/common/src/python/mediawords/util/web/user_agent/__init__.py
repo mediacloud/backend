@@ -13,7 +13,7 @@ from requests.adapters import HTTPAdapter
 from requests.auth import HTTPBasicAuth
 from urllib3 import Retry, HTTPResponse
 
-from mediawords.util.config.common import CommonConfig, UserAgentConfig, CrawlerAuthenticatedDomain
+from mediawords.util.config.common import CommonConfig, UserAgentConfig, AuthenticatedDomain
 from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_object_from_bytes_if_needed
 from mediawords.util.sql import sql_now
@@ -46,8 +46,8 @@ class McUserAgentException(Exception):
     pass
 
 
-class McCrawlerAuthenticatedDomainsException(McUserAgentException):
-    """crawler_authenticated_domains exception."""
+class McAuthenticatedDomainsException(McUserAgentException):
+    """authenticated_domains exception."""
     pass
 
 
@@ -193,12 +193,12 @@ class UserAgent(object):
         self.__timing = None
         self.set_timing(None)
 
-    def __get_domain_http_auth_lookup(self) -> Dict[str, CrawlerAuthenticatedDomain]:
-        """Read the mediawords.crawler_authenticated_domains list from mediawords.yml and generate a lookup hash with
+    def __get_domain_http_auth_lookup(self) -> Dict[str, AuthenticatedDomain]:
+        """Read the mediawords.authenticated_domains list from mediawords.yml and generate a lookup hash with
         the host domain as the key and the user:password credentials as the value."""
         domain_http_auth_lookup = {}
 
-        domains = self.__user_agent_config.crawler_authenticated_domains()
+        domains = self.__user_agent_config.authenticated_domains()
         for domain in domains:
             domain_http_auth_lookup[domain.domain.lower()] = domain
 
