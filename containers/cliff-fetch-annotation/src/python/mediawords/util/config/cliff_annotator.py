@@ -1,4 +1,4 @@
-from mediawords.util.config import env_value_or_raise
+from mediawords.util.config import env_value
 
 
 class CLIFFAnnotatorConfig(object):
@@ -7,5 +7,5 @@ class CLIFFAnnotatorConfig(object):
     @staticmethod
     def annotator_url() -> str:
         """Annotator URL (text parsing endpoint), e.g. "http://localhost:8080/."""
-        return env_value_or_raise('MC_CLIFF_ANNOTATOR_URL')
+        return env_value('MC_CLIFF_ANNOTATOR_URL')
 

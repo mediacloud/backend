@@ -1,4 +1,4 @@
-from mediawords.util.config import env_value_or_raise
+from mediawords.util.config import env_value
 
 
 class SolrImportConfig(object):
@@ -7,4 +7,4 @@ class SolrImportConfig(object):
     @staticmethod
     def max_queued_stories() -> int:
         """Number of stories to import in one go."""
-        return int(env_value_or_raise('MC_SOLR_IMPORT_MAX_QUEUED_STORIES'))
+        return int(env_value('MC_SOLR_IMPORT_MAX_QUEUED_STORIES'))

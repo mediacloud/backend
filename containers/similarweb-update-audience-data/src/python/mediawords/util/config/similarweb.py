@@ -1,4 +1,4 @@
-from mediawords.util.config import env_value_or_raise
+from mediawords.util.config import env_value
 
 
 class SimilarWebConfig(object):
@@ -9,5 +9,5 @@ class SimilarWebConfig(object):
         """API key.
 
         Costs money, see at https://developer.similarweb.com/."""
-        return env_value_or_raise('MC_SIMILARWEB_API_KEY')
+        return env_value('MC_SIMILARWEB_API_KEY')
 

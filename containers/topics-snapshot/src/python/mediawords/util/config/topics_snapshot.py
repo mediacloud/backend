@@ -1,4 +1,4 @@
-from mediawords.util.config import env_value_or_raise
+from mediawords.util.config import env_value
 
 
 class SnapshotConfig(object):

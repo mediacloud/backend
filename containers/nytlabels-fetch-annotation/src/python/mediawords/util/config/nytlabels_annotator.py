@@ -1,4 +1,4 @@
-from mediawords.util.config import env_value_or_raise
+from mediawords.util.config import env_value
 
 
 class NYTLabelsAnnotatorConfig(object):
@@ -7,5 +7,5 @@ class NYTLabelsAnnotatorConfig(object):
     @staticmethod
     def annotator_url() -> str:
         """Annotator URL (text parsing endpoint), e.g. "http://localhost/predict.json"."""
-        return env_value_or_raise('MC_NYTLABELS_ANNOTATOR_URL')
+        return env_value('MC_NYTLABELS_ANNOTATOR_URL')
 
