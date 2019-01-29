@@ -22,7 +22,7 @@ from mediawords.key_value_store.cached_amazon_s3 import CachedAmazonS3Store
 from mediawords.key_value_store.database_inline import DatabaseInlineStore
 from mediawords.key_value_store.multiple_stores import MultipleStoresStore
 from mediawords.key_value_store.postgresql import PostgreSQLStore
-from mediawords.util.config.common import CommonConfig
+from mediawords.util.config.common import CommonConfig, AmazonS3DownloadsConfig, DownloadStorageConfig
 from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_object_from_bytes_if_needed
 
@@ -43,24 +43,15 @@ _store_for_writing = None
 
 class McDBIDownloadsException(Exception):
     """Default exceptions for this package."""
-
     pass
 
 
-def reset_store_singletons() -> None:
-    """Reset various store singletons, causing them to be regenerated for the next store / fetch call.
+def _default_download_storage_config() -> DownloadStorageConfig:
+    return CommonConfig.download_storage()
 
-    This is mostly useful for testing.
-    """
-    global _inline_store
-    global _amazon_s3_store
-    global _postgresql_store
-    global _store_for_writing
 
-    _inline_store = None
-    _amazon_s3_store = None
-    _postgresql_store = None
-    _store_for_writing = None
+def _default_amazon_s3_downloads_config() -> AmazonS3DownloadsConfig:
+    return CommonConfig.amazon_s3_downloads()
 
 
 def _get_inline_store() -> KeyValueStore:
@@ -75,26 +66,27 @@ def _get_inline_store() -> KeyValueStore:
     return _inline_store
 
 
-def _get_amazon_s3_store() -> KeyValueStore:
+def _get_amazon_s3_store(
+        amazon_s3_downloads_config: AmazonS3DownloadsConfig,
+        download_storage_config: DownloadStorageConfig,
+) -> KeyValueStore:
     """Get lazy initialized amazon s3 store, with credentials from mediawords.yml."""
     global _amazon_s3_store
 
     if _amazon_s3_store:
         return _amazon_s3_store
 
-    s3_config = CommonConfig.amazon_s3_downloads()
-
-    if not s3_config.access_key_id():
+    if not amazon_s3_downloads_config.access_key_id():
         raise McDBIDownloadsException("Amazon S3 download store is not configured.")
 
     store_params = {
-        'access_key_id': s3_config.access_key_id(),
-        'secret_access_key': s3_config.secret_access_key(),
-        'bucket_name': s3_config.bucket_name(),
-        'directory_name': s3_config.directory_name(),
+        'access_key_id': amazon_s3_downloads_config.access_key_id(),
+        'secret_access_key': amazon_s3_downloads_config.secret_access_key(),
+        'bucket_name': amazon_s3_downloads_config.bucket_name(),
+        'directory_name': amazon_s3_downloads_config.directory_name(),
     }
 
-    if CommonConfig.download_storage().cache_s3():
+    if download_storage_config.cache_s3():
         store_params['cache_table'] = S3_RAW_DOWNLOADS_CACHE_TABLE_NAME
         _amazon_s3_store = CachedAmazonS3Store(**store_params)
     else:
@@ -103,7 +95,10 @@ def _get_amazon_s3_store() -> KeyValueStore:
     return _amazon_s3_store
 
 
-def _get_postgresql_store() -> KeyValueStore:
+def _get_postgresql_store(
+        amazon_s3_downloads_config: AmazonS3DownloadsConfig,
+        download_storage_config: DownloadStorageConfig,
+) -> KeyValueStore:
     """Get lazy initialized postgresql store, with credentials from mediawords.yml."""
     global _postgresql_store
 
@@ -112,22 +107,33 @@ def _get_postgresql_store() -> KeyValueStore:
 
     _postgresql_store = PostgreSQLStore(table=RAW_DOWNLOADS_POSTGRESQL_KVS_TABLE_NAME)
 
-    if CommonConfig.download_storage().fallback_postgresql_to_s3():
+    if download_storage_config.fallback_postgresql_to_s3():
         _postgresql_store = MultipleStoresStore(
-            stores_for_reading=[_postgresql_store, _get_amazon_s3_store()],
-            stores_for_writing=[_postgresql_store])
+            stores_for_reading=[
+                _postgresql_store,
+                _get_amazon_s3_store(
+                    amazon_s3_downloads_config=amazon_s3_downloads_config,
+                    download_storage_config=download_storage_config,
+                ),
+            ],
+            stores_for_writing=[
+                _postgresql_store,
+            ])
 
     return _postgresql_store
 
 
-def _get_store_for_writing() -> KeyValueStore:
+def _get_store_for_writing(
+        amazon_s3_downloads_config: AmazonS3DownloadsConfig,
+        download_storage_config: DownloadStorageConfig,
+) -> KeyValueStore:
     """Get MultiStoresStore for writing downloads."""
     global _store_for_writing
     if _store_for_writing is not None:
         return _store_for_writing
 
     # Early sanity check on configuration
-    download_storage_locations = CommonConfig.download_storage().storage_locations()
+    download_storage_locations = download_storage_config.storage_locations()
 
     if len(download_storage_locations) == 0:
         raise McDBIDownloadsException("No download stores are configured.")
@@ -141,7 +147,10 @@ def _get_store_for_writing() -> KeyValueStore:
         elif location == 'postgresql':
             store = PostgreSQLStore(table=RAW_DOWNLOADS_POSTGRESQL_KVS_TABLE_NAME)
         elif location in ('s3', 'amazon', 'amazon_s3'):
-            store = _get_amazon_s3_store()
+            store = _get_amazon_s3_store(
+                amazon_s3_downloads_config=amazon_s3_downloads_config,
+                download_storage_config=download_storage_config,
+            )
         else:
             raise McDBIDownloadsException("store location '" + location + "' is not valid")
 
@@ -155,12 +164,19 @@ def _get_store_for_writing() -> KeyValueStore:
     return _store_for_writing
 
 
-def _get_store_for_reading(download: dict) -> KeyValueStore:
+def _get_store_for_reading(
+        download: dict,
+        amazon_s3_downloads_config: AmazonS3DownloadsConfig,
+        download_storage_config: DownloadStorageConfig,
+) -> KeyValueStore:
     """Return the store from which to read the content for the given download."""
     download = decode_object_from_bytes_if_needed(download)
 
-    if CommonConfig.download_storage().read_all_from_s3():
-        return _get_amazon_s3_store()
+    if download_storage_config.read_all_from_s3():
+        return _get_amazon_s3_store(
+            amazon_s3_downloads_config=amazon_s3_downloads_config,
+            download_storage_config=download_storage_config,
+        )
 
     path = download.get('path', 's3:')
 
@@ -171,12 +187,21 @@ def _get_store_for_reading(download: dict) -> KeyValueStore:
     if location == 'content':
         download_store = _get_inline_store()
     elif location == 'postgresql':
-        download_store = _get_postgresql_store()
+        download_store = _get_postgresql_store(
+            amazon_s3_downloads_config=amazon_s3_downloads_config,
+            download_storage_config=download_storage_config,
+        )
     elif location in ('s3', 'amazon_s3'):
-        download_store = _get_amazon_s3_store()
+        download_store = _get_amazon_s3_store(
+            amazon_s3_downloads_config=amazon_s3_downloads_config,
+            download_storage_config=download_storage_config,
+        )
     elif location == 'gridfs' or location == 'tar':
         # these are old storage formats that we moved to postgresql
-        download_store = _get_postgresql_store()
+        download_store = _get_postgresql_store(
+            amazon_s3_downloads_config=amazon_s3_downloads_config,
+            download_storage_config=download_storage_config,
+        )
     else:
         downloads_id = download.get('downloads_id', '(no downloads_id')
         raise McDBIDownloadsException("Location 'location' is unknown for download %d", [downloads_id])
@@ -186,7 +211,12 @@ def _get_store_for_reading(download: dict) -> KeyValueStore:
     return download_store
 
 
-def fetch_content(db: DatabaseHandler, download: dict) -> str:
+def fetch_content(
+        db: DatabaseHandler,
+        download: dict,
+        amazon_s3_downloads_config: AmazonS3DownloadsConfig = None,
+        download_storage_config: DownloadStorageConfig = None,
+) -> str:
     """Fetch the content for the given download from the configured content store."""
 
     download = decode_object_from_bytes_if_needed(download)
@@ -198,7 +228,16 @@ def fetch_content(db: DatabaseHandler, download: dict) -> str:
         raise McDBIDownloadsException(
             "attempt to fetch content for unsuccessful download: %d" % (download['downloads_id']))
 
-    store = _get_store_for_reading(download)
+    if not amazon_s3_downloads_config:
+        amazon_s3_downloads_config = _default_amazon_s3_downloads_config()
+    if not download_storage_config:
+        download_storage_config = _default_download_storage_config()
+
+    store = _get_store_for_reading(
+        download=download,
+        amazon_s3_downloads_config=amazon_s3_downloads_config,
+        download_storage_config=download_storage_config,
+    )
 
     content_bytes = store.fetch_content(db, download['downloads_id'], download['path'])
 
@@ -207,7 +246,13 @@ def fetch_content(db: DatabaseHandler, download: dict) -> str:
     return content
 
 
-def store_content(db: DatabaseHandler, download: dict, content: str) -> dict:
+def store_content(
+        db: DatabaseHandler,
+        download: dict,
+        content: str,
+        amazon_s3_downloads_config: AmazonS3DownloadsConfig = None,
+        download_storage_config: DownloadStorageConfig = None,
+) -> dict:
     """Store the content for the download."""
     # feed_error state indicates that the download was successful but that there was a problem
     # parsing the feed afterward.  so we want to keep the feed_error state even if we redownload
@@ -216,10 +261,19 @@ def store_content(db: DatabaseHandler, download: dict, content: str) -> dict:
     download = decode_object_from_bytes_if_needed(download)
     content = decode_object_from_bytes_if_needed(content)
 
+    if not amazon_s3_downloads_config:
+        amazon_s3_downloads_config = _default_amazon_s3_downloads_config()
+    if not download_storage_config:
+        download_storage_config = _default_download_storage_config()
+
     new_state = 'success' if download['state'] != 'feed_error' else 'feed_error'
 
     try:
-        path = _get_store_for_writing().store_content(db, download['downloads_id'], content)
+        store = _get_store_for_writing(
+            amazon_s3_downloads_config=amazon_s3_downloads_config,
+            download_storage_config=download_storage_config,
+        )
+        path = store.store_content(db, download['downloads_id'], content)
     except Exception as ex:
         raise McDBIDownloadsException("error while trying to store download %d: %s" % (download['downloads_id'], ex))
 
