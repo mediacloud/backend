@@ -15,7 +15,6 @@ requires 'FCGI::ProcManager';
 requires 'HTTP::Request';
 requires 'JSON::PP';
 requires 'Math::Prime::Util';
-requires 'MRO::Compat';
 requires 'namespace::autoclean';
 requires 'Regexp::Common';
 requires 'Net::IP';

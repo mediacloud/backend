@@ -102,8 +102,6 @@ sub _add_stories_to_import
 {
     my ( $db, $full ) = @_;
 
-    my $config = MediaWords::Util::Config::get_config;
-
     my $max_queued_stories = MediaWords::Util::Config::SolrImport::max_queued_stories();
 
     my $stories_queue_table = _get_stories_queue_table();

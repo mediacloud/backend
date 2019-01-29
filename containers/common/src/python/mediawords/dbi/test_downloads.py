@@ -15,7 +15,6 @@ from mediawords.key_value_store.database_inline import DatabaseInlineStore
 from mediawords.key_value_store.postgresql import PostgreSQLStore
 from mediawords.key_value_store.multiple_stores import MultipleStoresStore
 from mediawords.test.text import TestCaseTextUtilities
-from mediawords.util.config import get_config
 from mediawords.util.log import create_logger
 
 log = create_logger(__name__)

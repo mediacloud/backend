@@ -25,7 +25,6 @@ use URI;
 
 use Catalyst qw/
   ConfigLoader
-  ConfigDefaults
   Static::Simple
   StackTrace
   Authentication

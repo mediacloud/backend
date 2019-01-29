@@ -9,7 +9,7 @@ use warnings;
 
 use MediaWords::CommonLibs;
 
-use MediaWords::Util::Config;
+use MediaWords::Util::Config::Facebook;
 use MediaWords::Util::ParseJSON;
 use MediaWords::Util::Process;
 use MediaWords::Util::URL;
@@ -109,8 +109,10 @@ sub api_request($$)
         $api_uri->query_param_append( $key, $value );
     }
 
-    my $config       = MediaWords::Util::Config::get_config();
-    my $access_token = $config->{ facebook }->{ app_id } . '|' . $config->{ facebook }->{ app_secret };
+    my $facebook_app_id = MediaWords::Util::Config::Facebook::app_id();
+    my $facebook_app_secret = MediaWords::Util::Config::Facebook::app_secret();
+    my $access_token = "$facebook_app_id|$facebook_app_secret";
+
     $api_uri->query_param_append( 'access_token', $access_token );
 
     my ( $decoded_content, $data );
@@ -270,14 +272,9 @@ sub get_and_store_share_comment_counts
 {
     my ( $db, $story ) = @_;
 
-    my $config = MediaWords::Util::Config::get_config();
-    unless ( $config->{ facebook }->{ enabled } + 0 )
+    unless ( MediaWords::Util::Config::Facebook::is_enabled() )
     {
         fatal_error( 'Facebook API processing is not enabled.' );
-    }
-    unless ( $config->{ facebook }->{ app_id } and $config->{ facebook }->{ app_secret } )
-    {
-        fatal_error( 'Facebook API processing is enabled, but authentication credentials are not set.' );
     }
 
     my $story_url = $story->{ url };

@@ -22,7 +22,7 @@ from mediawords.key_value_store.cached_amazon_s3 import CachedAmazonS3Store
 from mediawords.key_value_store.database_inline import DatabaseInlineStore
 from mediawords.key_value_store.multiple_stores import MultipleStoresStore
 from mediawords.key_value_store.postgresql import PostgreSQLStore
-import mediawords.util.config
+from mediawords.util.config.common import CommonConfig
 from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_object_from_bytes_if_needed
 
@@ -82,17 +82,19 @@ def _get_amazon_s3_store() -> KeyValueStore:
     if _amazon_s3_store:
         return _amazon_s3_store
 
-    if not mediawords.util.config.s3_downloads_access_key_id():
+    s3_config = CommonConfig.amazon_s3_downloads()
+
+    if not s3_config.access_key_id():
         raise McDBIDownloadsException("Amazon S3 download store is not configured.")
 
     store_params = {
-        'access_key_id': mediawords.util.config.s3_downloads_access_key_id(),
-        'secret_access_key': mediawords.util.config.s3_downloads_secret_access_key(),
-        'bucket_name': mediawords.util.config.s3_downloads_bucket_name(),
-        'directory_name': mediawords.util.config.s3_downloads_directory_name(),
+        'access_key_id': s3_config.access_key_id(),
+        'secret_access_key': s3_config.secret_access_key(),
+        'bucket_name': s3_config.bucket_name(),
+        'directory_name': s3_config.directory_name(),
     }
 
-    if mediawords.util.config.cache_s3_downloads():
+    if CommonConfig.download_storage().cache_s3():
         store_params['cache_table'] = S3_RAW_DOWNLOADS_CACHE_TABLE_NAME
         _amazon_s3_store = CachedAmazonS3Store(**store_params)
     else:
@@ -110,7 +112,7 @@ def _get_postgresql_store() -> KeyValueStore:
 
     _postgresql_store = PostgreSQLStore(table=RAW_DOWNLOADS_POSTGRESQL_KVS_TABLE_NAME)
 
-    if mediawords.util.config.fallback_postgresql_downloads_to_s3():
+    if CommonConfig.download_storage().fallback_postgresql_to_s3():
         _postgresql_store = MultipleStoresStore(
             stores_for_reading=[_postgresql_store, _get_amazon_s3_store()],
             stores_for_writing=[_postgresql_store])
@@ -125,7 +127,7 @@ def _get_store_for_writing() -> KeyValueStore:
         return _store_for_writing
 
     # Early sanity check on configuration
-    download_storage_locations = mediawords.util.config.download_storage_locations()
+    download_storage_locations = CommonConfig.download_storage().storage_locations()
 
     if len(download_storage_locations) == 0:
         raise McDBIDownloadsException("No download stores are configured.")
@@ -157,7 +159,7 @@ def _get_store_for_reading(download: dict) -> KeyValueStore:
     """Return the store from which to read the content for the given download."""
     download = decode_object_from_bytes_if_needed(download)
 
-    if mediawords.util.config.read_all_downloads_from_s3():
+    if CommonConfig.download_storage().read_all_from_s3():
         return _get_amazon_s3_store()
 
     path = download.get('path', 's3:')
@@ -201,13 +203,6 @@ def fetch_content(db: DatabaseHandler, download: dict) -> str:
     content_bytes = store.fetch_content(db, download['downloads_id'], download['path'])
 
     content = content_bytes.decode()
-
-    # horrible hack to fix old content that is not stored in unicode
-    ascii_hack_downloads_id = mediawords.util.config.ascii_hack_downloads_id()
-    if download['downloads_id'] < ascii_hack_downloads_id:
-        # this matches all non-printable-ascii characters.  python re does not support POSIX character
-        # classes like [[:ascii:]]
-        content = re.sub(r'[^ -~]', ' ', content)
 
     return content
 
@@ -311,4 +306,3 @@ def get_content_for_first_download(db: DatabaseHandler, story: dict) -> Optional
     content = fetch_content(db=db, download=first_download)
 
     return content
-

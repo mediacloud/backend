@@ -3,7 +3,7 @@ use warnings;
 
 use Test::More;
 
-use MediaWords::Util::Config;
+use MediaWords::Util::Config::Common;
 use MediaWords::Util::Text;
 use Data::Dumper;
 use MediaWords::Test::DB;
@@ -12,18 +12,18 @@ sub s3_download_handler($)
 {
     my $s3_handler_class = shift;
 
-    my $config = MediaWords::Util::Config::get_config;
+    my $s3_config = MediaWords::Util::Config::Common::amazon_s3_downloads();
 
     # We want to be able to run S3 tests in parallel
     my $test_suffix    = '-' . MediaWords::Util::Text::random_string( 64 );
-    my $directory_name = $config->{ amazon_s3 }->{ test }->{ directory_name } . $test_suffix;
+    my $directory_name = $s3_config->directory_name() . $test_suffix;
     my $cache_table    = 'cache.s3_raw_downloads_cache';
 
     return $s3_handler_class->new(
         {
-            access_key_id     => $config->{ amazon_s3 }->{ test }->{ access_key_id },
-            secret_access_key => $config->{ amazon_s3 }->{ test }->{ secret_access_key },
-            bucket_name       => $config->{ amazon_s3 }->{ test }->{ bucket_name },
+            access_key_id     => $s3_config->access_key_id(),
+            secret_access_key => $s3_config->secret_access_key(),
+            bucket_name       => $s3_config->bucket_name(),
             directory_name    => $directory_name,
 
             # Used only for CachedAmazonS3
@@ -36,10 +36,10 @@ sub test_amazon_s3($;$)
 {
     my ( $s3_handler_class, $create_mock_download ) = @_;
 
-    my $config = MediaWords::Util::Config::get_config;
-    unless ( defined( $config->{ amazon_s3 }->{ test } ) )
+    my $s3_config = MediaWords::Util::Config::Common::amazon_s3_downloads();
+    unless ( $s3_config->access_key_id() )
     {
-        plan skip_all => 'Amazon S3\'s testing bucket is not configured';
+        plan skip_all => 'Amazon S3 is not configured';
     }
     else
     {

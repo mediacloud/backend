@@ -5,6 +5,13 @@ use warnings;
 
 use Modern::Perl "2015";
 
+use MediaWords::Util::Config::Common::AmazonS3Downloads;
+use MediaWords::Util::Config::Common::Database;
+use MediaWords::Util::Config::Common::DownloadStorage;
+use MediaWords::Util::Config::Common::RabbitMQ;
+use MediaWords::Util::Config::Common::SMTP;
+use MediaWords::Util::Config::Common::UserAgent;
+
 # Deliberately don't include MediaWords::CommonLibs as it includes this package itself
 
 {
@@ -25,32 +32,44 @@ use Modern::Perl "2015";
 
 sub database()
 {
-    return MediaWords::Util::Config::Common::PythonProxy::CommonConfig::database();
+    my $python_config = MediaWords::Util::Config::Common::PythonProxy::CommonConfig::database();
+    my $config = MediaWords::Util::Config::Common::Database->new( $python_config );
+    return $config;
 }
 
 sub amazon_s3_downloads()
 {
-    return MediaWords::Util::Config::Common::PythonProxy::CommonConfig::amazon_s3_downloads();
+    my $python_config = MediaWords::Util::Config::Common::PythonProxy::CommonConfig::amazon_s3_downloads();
+    my $config = MediaWords::Util::Config::Common::AmazonS3Downloads->new( $python_config );
+    return $config;
 }
 
 sub rabbitmq()
 {
-    return MediaWords::Util::Config::Common::PythonProxy::CommonConfig::rabbitmq();
+    my $python_config = MediaWords::Util::Config::Common::PythonProxy::CommonConfig::rabbitmq();
+    my $config = MediaWords::Util::Config::Common::RabbitMQ->new( $python_config );
+    return $config;
 }
 
 sub smtp()
 {
-    return MediaWords::Util::Config::Common::PythonProxy::CommonConfig::smtp();
+    my $python_config = MediaWords::Util::Config::Common::PythonProxy::CommonConfig::smtp();
+    my $config = MediaWords::Util::Config::Common::SMTP->new( $python_config );
+    return $config;
 }
 
 sub download_storage()
 {
-    return MediaWords::Util::Config::Common::PythonProxy::CommonConfig::download_storage();
+    my $python_config = MediaWords::Util::Config::Common::PythonProxy::CommonConfig::download_storage();
+    my $config = MediaWords::Util::Config::Common::DownloadStorage->new( $python_config );
+    return $config;
 }
 
 sub user_agent()
 {
-    return MediaWords::Util::Config::Common::PythonProxy::CommonConfig::user_agent();
+    my $python_config = MediaWords::Util::Config::Common::PythonProxy::CommonConfig::user_agent();
+    my $config = MediaWords::Util::Config::Common::UserAgent->new( $python_config );
+    return $config;
 }
 
 sub email_from_address()

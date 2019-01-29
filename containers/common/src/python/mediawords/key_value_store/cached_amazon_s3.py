@@ -135,6 +135,7 @@ class CachedAmazonS3Store(AmazonS3Store):
 
         object_id = self._prepare_object_id(object_id)
 
+        # noinspection SqlWithoutWhere
         sql = "DELETE FROM %s " % self.__cache_table  # interpolated by Python
         sql += "WHERE object_id = %(object_id)s"  # interpolated by psycopg2
 

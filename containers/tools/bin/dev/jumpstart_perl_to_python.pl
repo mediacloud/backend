@@ -116,9 +116,6 @@ sub main
     $code =~ s/ERROR\(/log.error\(/g;
     $code = "from mediawords.util.log import create_logger\nlog = create_logger(__name__)\n\n" . $code;
 
-    # add ()s to common get_config use
-    $code =~ s/\.get_config\[/\.get_config\(\)\[/g;
-
     # eq -> ==
     $code =~ s/ eq / == /g;
 

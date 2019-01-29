@@ -35,7 +35,6 @@ use MediaWords::Test::Data;
 use MediaWords::Test::DB;
 use MediaWords::Test::LocalServer;
 use MediaWords::Test::Text;
-use MediaWords::Util::Config;
 use MediaWords::Util::DateTime;
 use MediaWords::Util::ParseHTML;
 
@@ -80,8 +79,6 @@ EOF
 
     return $syndicated_feed;
 }
-
-Readonly my $crawler_timeout => MediaWords::Util::Config::get_config->{ mediawords }->{ crawler_test_timeout };
 
 # run the crawler for one minute, which should be enough time to gather all of
 # the stories from the test feed and test-extract them

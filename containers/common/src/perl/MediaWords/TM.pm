@@ -11,7 +11,7 @@ use MediaWords::CommonLibs;
 use Getopt::Long;
 use Data::Dumper;
 
-use MediaWords::Util::Config;
+use MediaWords::Util::Config::TopicsMine;
 use MediaWords::Util::Mail;
 
 # get a list topics that match the topic option, which can either be an id
@@ -183,7 +183,7 @@ SQL
 
     my $emails = [ map { $_->{ email } } @{ $users } ];
 
-    if ( my $topic_alert_emails = MediaWords::Util::Config::get_config->{ mediawords }->{ topic_alert_emails } )
+    if ( my $topic_alert_emails = MediaWords::Util::Config::TopicsMine::topic_alert_emails() )
     {
         push( @{ $emails }, @{ $topic_alert_emails } );
     }

@@ -20,6 +20,7 @@ use URI;
 use URI::Escape;
 use URI::QueryParam;
 
+use MediaWords::Util::Config::Common;
 use MediaWords::Util::ParseJSON;
 use MediaWords::Util::Web;
 use MediaWords::Util::Text;
@@ -93,9 +94,9 @@ sub test_get_user_agent_from_headers()
     ok( $response->is_success() );
     is_urls( $response->request()->url(), $TEST_HTTP_SERVER_URL . '/user-agent-from-headers' );
 
-    my $config              = MediaWords::Util::Config::get_config();
-    my $expected_user_agent = $config->{ mediawords }->{ user_agent };
-    my $expected_from       = $config->{ mediawords }->{ owner };
+    my $ua_config = MediaWords::Util::Config::Common::user_agent();
+    my $expected_user_agent = $ua_config->user_agent();
+    my $expected_from       = $ua_config->owner();
 
     my $decoded_json = MediaWords::Util::ParseJSON::decode_json( $response->decoded_content() );
     cmp_deeply(
@@ -482,15 +483,29 @@ sub test_get_blacklisted_url()
     my $whitelisted_url = $TEST_HTTP_SERVER_URL . "/whitelisted";
     my $blacklisted_url = $TEST_HTTP_SERVER_URL . "/blacklisted";
 
-    my $config     = MediaWords::Util::Config::get_config;
-    my $new_config = python_deep_copy( $config );
-    $new_config->{ mediawords }->{ blacklist_url_pattern } = "$blacklisted_url";
-    MediaWords::Util::Config::set_config( $new_config );
+    {
+        package BlacklistedURLUserAgentConfig;
+
+        use strict;
+        use warnings;
+
+        use base 'MediaWords::Util::Config::Common::UserAgent';
+
+        sub blacklist_url_pattern()
+        {
+            return "$blacklisted_url";
+        }
+
+        1;
+    }
+
+    my $default_ua_config = MediaWords::Util::Config::Common::user_agent();
+    my $blacklisted_url_ua_config = BlacklistedURLUserAgentConfig( $default_ua_config );
+    my $ua                   = MediaWords::Util::Web::UserAgent->new( $blacklisted_url_ua_config );
 
     my $hs = MediaWords::Test::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
 
-    my $ua                   = MediaWords::Util::Web::UserAgent->new();
     my $blacklisted_response = $ua->get( $blacklisted_url );
     my $whitelisted_response = $ua->get( $whitelisted_url );
 
@@ -588,16 +603,28 @@ sub test_get_authenticated_domains()
     my $hs = MediaWords::Test::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();
 
-    my $ua = MediaWords::Util::Web::UserAgent->new();
-
     my $base_auth_url = $TEST_HTTP_SERVER_URL . "/auth";
 
     {
-        # No auth
-        my $config     = MediaWords::Util::Config::get_config;
-        my $new_config = python_deep_copy( $config );
-        $new_config->{ mediawords }->{ authenticated_domains } = undef;
-        MediaWords::Util::Config::set_config( $new_config );
+        {
+            package NoAuthUserAgentConfig;
+
+            use strict;
+            use warnings;
+
+            use base 'MediaWords::Util::Config::Common::UserAgent';
+
+            sub authenticated_domains()
+            {
+                return [];
+            }
+
+            1;
+        }
+
+        my $default_ua_config = MediaWords::Util::Config::Common::user_agent();
+        my $no_auth_ua_config = NoAuthUserAgentConfig( $default_ua_config );
+        my $ua                = MediaWords::Util::Web::UserAgent->new( $no_auth_ua_config );
 
         my $no_auth_response = $ua->get( $base_auth_url );
         ok( !$no_auth_response->is_success() );
@@ -605,32 +632,71 @@ sub test_get_authenticated_domains()
     }
 
     {
-        # No auth
-        my $config     = MediaWords::Util::Config::get_config;
-        my $new_config = python_deep_copy( $config );
-        $new_config->{ mediawords }->{ authenticated_domains }->[ 0 ] = {
-            'domain'   => $domain,
-            'user'     => 'incorrect_username1',
-            'password' => 'incorrect_password2',
-        };
-        MediaWords::Util::Config::set_config( $new_config );
+        {
+            package IncorrectDomain;
 
-        # Invalid auth
+            use strict;
+            use warnings;
+
+            sub domain() { return $domain; }
+            sub username() { return 'incorrect_username1'; }
+            sub password() { return 'incorrect_password2'; }
+
+            1;
+        }
+
+        {
+            package IncorrectAuthUserAgentConfig;
+
+            use strict;
+            use warnings;
+
+            use base 'MediaWords::Util::Config::Common::UserAgent';
+
+            sub authenticated_domains() { return [ IncorrectDomain->new() ]; }
+
+            1;
+        }
+
+        my $default_ua_config = MediaWords::Util::Config::Common::user_agent();
+        my $incorrect_auth_ua_config = NoAuthUserAgentConfig( $default_ua_config );
+        my $ua                = MediaWords::Util::Web::UserAgent->new( $incorrect_auth_ua_config );
+
         my $invalid_auth_response = $ua->get( $base_auth_url );
         ok( !$invalid_auth_response->is_success() );
         is( $invalid_auth_response->code(), HTTP_UNAUTHORIZED );
     }
 
     {
-        # Valid auth
-        my $config     = MediaWords::Util::Config::get_config;
-        my $new_config = python_deep_copy( $config );
-        $new_config->{ mediawords }->{ authenticated_domains }->[ 0 ] = {
-            'domain'   => $domain,
-            'user'     => $username,
-            'password' => $password,
-        };
-        MediaWords::Util::Config::set_config( $new_config );
+        {
+            package CorrectDomain;
+
+            use strict;
+            use warnings;
+
+            sub domain() { return $domain; }
+            sub username() { return $username; }
+            sub password() { return $password; }
+
+            1;
+        }
+
+        {
+            package CorrectAuthUserAgentConfig;
+
+            use strict;
+            use warnings;
+
+            use base 'MediaWords::Util::Config::Common::UserAgent';
+
+            sub authenticated_domains() { return [ CorrectDomain->new() ]; }
+
+            1;
+        }
+
+        my $default_ua_config = MediaWords::Util::Config::Common::user_agent();
+        my $correct_auth_ua_config = NoAuthUserAgentConfig( $default_ua_config );
+        my $ua                = MediaWords::Util::Web::UserAgent->new( $correct_auth_ua_config );
 
         my $valid_auth_response = $ua->get( $base_auth_url );
         ok( $valid_auth_response->is_success() );
@@ -639,12 +705,6 @@ sub test_get_authenticated_domains()
     }
 
     $hs->stop();
-
-    # Clear up test auth
-    my $config     = MediaWords::Util::Config::get_config;
-    my $new_config = python_deep_copy( $config );
-    $new_config->{ mediawords }->{ authenticated_domains } = undef;
-    MediaWords::Util::Config::set_config( $new_config );
 }
 
 sub test_get_follow_http_html_redirects_http()
@@ -1012,10 +1072,25 @@ sub test_parallel_get()
         },
     };
 
-    my $config     = MediaWords::Util::Config::get_config;
-    my $new_config = python_deep_copy( $config );
-    $new_config->{ mediawords }->{ web_store_timeout } = 2;    # time out faster
-    MediaWords::Util::Config::set_config( $new_config );
+    {
+        package TimeoutFasterUserAgentConfig;
+
+        use strict;
+        use warnings;
+
+        use base 'MediaWords::Util::Config::Common::UserAgent';
+
+        sub parallel_get_timeout()
+        {
+            return 2;   # time out faster
+        }
+
+        1;
+    }
+
+    my $default_ua_config = MediaWords::Util::Config::Common::user_agent();
+    my $timeout_faster_ua_config = TimeoutFasterUserAgentConfig( $default_ua_config );
+    my $ua                   = MediaWords::Util::Web::UserAgent->new( $timeout_faster_ua_config );
 
     my $base_url = 'http://localhost:' . $TEST_HTTP_SERVER_PORT;
     my $urls     = [
@@ -1025,8 +1100,6 @@ sub test_parallel_get()
         "$base_url/timeout",                                   # times out
         "$base_url/does-not-exist",                            # does not exist
     ];
-
-    my $ua = MediaWords::Util::Web::UserAgent->new();
 
     my $hs = MediaWords::Test::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
     $hs->start();

@@ -8,10 +8,6 @@ from mediawords.db.handler import (
     McUpdateByIDException, McCreateException, McRequireByIDException, McUniqueConstraintException,
 )
 from mediawords.test.test_database import TestDatabaseTestCase
-from mediawords.util.config import (
-    get_config as py_get_config,
-    set_config as py_set_config,  # MC_REWRITE_TO_PYTHON: rename back to get_config(), set_config()
-)
 from mediawords.util.log import create_logger
 
 log = create_logger(__name__)

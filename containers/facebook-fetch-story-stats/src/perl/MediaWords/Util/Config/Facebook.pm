@@ -23,6 +23,11 @@ use Modern::Perl "2015";
     1;
 }
 
+sub is_enabled()
+{
+    return MediaWords::Util::Config::Facebook::PythonProxy::FacebookConfig::is_enabled();
+}
+
 sub app_id()
 {
     return MediaWords::Util::Config::Facebook::PythonProxy::FacebookConfig::app_id();

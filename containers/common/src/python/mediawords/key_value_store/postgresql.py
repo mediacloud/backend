@@ -111,6 +111,7 @@ class PostgreSQLStore(KeyValueStore):
 
         object_id = self._prepare_object_id(object_id)
 
+        # noinspection SqlWithoutWhere
         sql = "DELETE FROM %s " % self.__table  # interpolated by Python
         sql += "WHERE object_id = %(object_id)s"  # interpolated by psycopg2
 

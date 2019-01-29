@@ -18,7 +18,7 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use MediaWords::DB;
-use MediaWords::Util::Config;
+use MediaWords::Util::Config:Facebook;
 use MediaWords::Util::Facebook;
 use MediaWords::Util::Process;
 use Readonly;
@@ -29,8 +29,7 @@ sub run($;$)
 {
     my ( $self, $args ) = @_;
 
-    my $config = MediaWords::Util::Config::get_config();
-    unless ( $config->{ facebook }->{ enabled } + 0 )
+    unless ( MediaWords::Util::Config::Facebook::is_enabled() )
     {
         fatal_error( 'Facebook API processing is not enabled.' );
     }

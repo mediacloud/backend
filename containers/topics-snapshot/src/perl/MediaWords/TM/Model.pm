@@ -15,7 +15,7 @@ use Statistics::Basic;
 use Readonly;
 
 use MediaWords::TM::Snapshot;
-use MediaWords::Util::Config;
+use MediaWords::Util::Config::TopicsSnapshot;
 use MediaWords::Util::SQL;
 use MediaWords::Util::Tags;
 
@@ -384,8 +384,7 @@ sub get_all_models_top_media ($$)
 {
     my ( $db, $timespan ) = @_;
 
-    my $config = MediaWords::Util::Config::get_config;
-    my $model_reps = $config->{ mediawords }->{ topic_model_reps } || 0;
+    my $model_reps = MediaWords::Util::Config::TopicsSnapshot::model_reps();
 
     $model_reps //= 10;
 
