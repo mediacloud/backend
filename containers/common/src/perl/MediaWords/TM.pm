@@ -11,6 +11,7 @@ use MediaWords::CommonLibs;
 use Getopt::Long;
 use Data::Dumper;
 
+use MediaWords::Util::Config;
 use MediaWords::Util::Mail;
 
 # get a list topics that match the topic option, which can either be an id
