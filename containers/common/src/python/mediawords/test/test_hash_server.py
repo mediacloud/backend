@@ -8,8 +8,13 @@ import time
 
 from mediawords.util.network import random_unused_port
 from mediawords.util.url import urls_are_equal
-from mediawords.test.http.hash_server import (HashServer, tcp_port_is_open, HTTPStatus,
-                                              McHashServerException, START_RANDOM_PORT)
+from mediawords.test.hash_server import (
+    HashServer,
+    tcp_port_is_open,
+    HTTPStatus,
+    McHashServerException,
+    START_RANDOM_PORT,
+)
 
 
 def test_http_hash_server():
@@ -304,7 +309,7 @@ def test_http_hash_server_multiple_clients():
     hs.stop()
 
 
-def testRandomPort() -> None:
+def test_random_port() -> None:
     """Test assigning a random port where port = 0."""
 
     hss = []
@@ -322,7 +327,7 @@ def testRandomPort() -> None:
     [hs.stop() for hs in hss]
 
 
-def testDelay() -> None:
+def test_start_delay() -> None:
     """Test the delay= parameter to hs.start."""
     hs = HashServer(port=0, pages={'/foo': 'bar'})
 
