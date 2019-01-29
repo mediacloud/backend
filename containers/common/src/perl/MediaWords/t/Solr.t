@@ -17,7 +17,6 @@ BEGIN
     use_ok( 'MediaWords::Solr' );
 }
 
-use MediaWords::Test::API;
 use MediaWords::Test::DB;
 use MediaWords::Test::DB::Create;
 use MediaWords::Test::Solr;
