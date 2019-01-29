@@ -52,7 +52,7 @@ use URI;
 require bytes;    # do not override length() and such
 
 use MediaWords::DB;
-use MediaWords::Util::Config;
+use MediaWords::Util::Config::SolrImport;
 use MediaWords::Util::Paths;
 use MediaWords::Util::Web;
 use MediaWords::Solr;
@@ -104,7 +104,7 @@ sub _add_stories_to_import
 
     my $config = MediaWords::Util::Config::get_config;
 
-    my $max_queued_stories = $config->{ mediawords }->{ solr_import }->{ max_queued_stories };
+    my $max_queued_stories = MediaWords::Util::Config::SolrImport::max_queued_stories();
 
     my $stories_queue_table = _get_stories_queue_table();
 
@@ -660,7 +660,7 @@ Options:
 * stories_queue_table -- table from which to pull stories to import (default solr_import_stories)
 * skip_logging -- skip logging the import into the solr_import_stories or solr_imports tables (default=false)
 
-The import will run in blocks of config.mediawords.solr_import.max_queued_stories at a time.  It will 
+The import will run in blocks of "max_queued_stories" at a time.  It will 
 exit once there are less than $MIN_STORIES_TO_PROCESS stories left in the queue unless the daemon option is true.
 
 When run in daemon mode, the function will keep trying to find stories to import.  If there are less than
