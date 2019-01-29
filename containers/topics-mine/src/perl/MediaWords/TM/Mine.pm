@@ -37,7 +37,6 @@ use MediaWords::Job::TM::FetchLink;
 use MediaWords::Job::TM::FetchTwitterUrls;
 use MediaWords::Job::TM::SnapshotTopic;
 use MediaWords::Solr;
-use MediaWords::Util::Config;
 use MediaWords::Util::SQL;
 
 # total time to wait for fetching of social media metrics
