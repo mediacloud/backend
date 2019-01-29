@@ -1045,6 +1045,9 @@ services:
             context: ./topics-snapshot/
         image: dockermediacloud/mediacloud-topics-snapshot:latest
         container_name: mc_topics_snapshot
+        environment:
+            # Not sure what this is.
+            MC_TOPICS_SNAPSHOT_MODEL_REPS: "0"
         networks:
             # Fetches / stores links in PostgreSQL
             - net_postgresql

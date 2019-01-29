@@ -512,12 +512,6 @@ sub test_fetch_topic_tweets($)
 update topics set start_date = \$2, end_date = \$3 where topics_id = \$1
 SQL
 
-    # topic date modeling confuses perl TAP for some reason
-    my $config     = MediaWords::Util::Config::get_config();
-    my $new_config = python_deep_copy( $config );
-    $new_config->{ mediawords }->{ topic_model_reps } = 0;
-    MediaWords::Util::Config::set_config( $new_config );
-
     MediaWords::Job::TM::MineTopic->run_locally( { topics_id => $topic->{ topics_id }, test_mode => 1 } );
 
     $topic = $db->require_by_id( 'topics', $topic->{ topics_id } );

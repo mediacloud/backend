@@ -23,7 +23,6 @@ use MediaWords::Job::TM::MineTopic;
 use MediaWords::TM::Mine;
 use MediaWords::Test::DB;
 use MediaWords::Test::Supervisor;
-use MediaWords::Util::Config;
 use MediaWords::Util::SQL;
 use MediaWords::Util::Web;
 
@@ -584,9 +583,6 @@ sub test_spider
     test_pages( $sites );
 
     my $topic = create_topic( $db, $sites );
-
-    # topic date modeling confuses perl TAP for some reason
-    MediaWords::Util::Config::get_config()->{ mediawords }->{ topic_model_reps } = 0;
 
     my $mine_args = {
         topics_id                       => $topic->{ topics_id },

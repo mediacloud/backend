@@ -24,7 +24,6 @@ use MediaWords::Test::DB;
 use MediaWords::Test::Solr;
 use MediaWords::Test::Supervisor;
 use MediaWords::Util::Web;
-use MediaWords::Util::Config;
 
 Readonly my $TEST_HTTP_SERVER_PORT => '3000';
 
@@ -711,9 +710,6 @@ sub test_topics_api
 
 sub main
 {
-    # topic date modeling confuses perl TAP for some reason
-    MediaWords::Util::Config::get_config()->{ mediawords }->{ topic_model_reps } = 0;
-
     MediaWords::Test::Supervisor::test_with_supervisor( \&test_topics_api, [ 'solr_standalone', 'job_broker:rabbitmq' ] );
 
     done_testing();
