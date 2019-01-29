@@ -5,6 +5,7 @@
       <sourceFolder url="file://$MODULE_DIR$/src/python" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/perl" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/bin" isTestSource="false" />
+      <excludeFolder url="file://$MODULE_DIR$/src/python/snowball" />
     </content>
     <orderEntry type="jdk" jdkName="Python 3.7 (mediacloud-common)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
