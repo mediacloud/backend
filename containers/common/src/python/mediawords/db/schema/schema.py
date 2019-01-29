@@ -1,12 +1,9 @@
 """Functions handling management of the postgres database schema."""
 
-import typing
-
 from mediawords.db import connect_to_db
 from mediawords.db.handler import DatabaseHandler
 from mediawords.util.log import create_logger
 from mediawords.util.paths import mc_sql_schema_path
-from mediawords.util.perl import decode_str_from_bytes_if_needed
 
 log = create_logger(__name__)
 
@@ -17,7 +14,8 @@ class McSchemaException(Exception):
     pass
 
 
-def recreate_db(label: typing.Optional[str] = None, is_template: bool = False) -> None:
+# FIXME probably remove recreate_db()
+def recreate_db() -> None:
     """(Re)create database schema.
 
     This function drops all objects in all schemas and reruns the schema/mediawords.sql to recreate the schema
@@ -25,8 +23,14 @@ def recreate_db(label: typing.Optional[str] = None, is_template: bool = False) -
 
     This function will refuse to run if there are more than 10 million stories in the database, under the assumption
     that the database might be a production database in that case.
-
     """
+    db = connect_to_db(do_not_check_schema_version=True)
+    initialize_with_schema(db=db)
+
+
+def initialize_with_schema(db: DatabaseHandler) -> None:
+    """Initialize database with a fresh schema."""
+
     def reset_all_schemas(db_: DatabaseHandler) -> None:
         """Recreate all schemas."""
         schemas = db_.query("""
@@ -46,10 +50,6 @@ def recreate_db(label: typing.Optional[str] = None, is_template: bool = False) -
         db_.query('SET client_min_messages=NOTICE')
 
     # ---
-
-    label = decode_str_from_bytes_if_needed(label)
-
-    db = connect_to_db(label=label, do_not_check_schema_version=True, is_template=is_template)
 
     log.info("Resetting all schemas...")
     reset_all_schemas(db_=db)

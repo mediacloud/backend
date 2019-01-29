@@ -1,13 +1,9 @@
 from unittest import TestCase
-import re
 
-from mediawords.db import connect_to_db
 from mediawords.db.handler import DatabaseHandler
-from mediawords.db.schema.schema import recreate_db
+from mediawords.db.schema.schema import initialize_with_schema
 from mediawords.test.db.environment import force_using_test_database
-from mediawords.util.config import (
-    get_config as py_get_config,  # MC_REWRITE_TO_PYTHON: rename back to get_config()
-)
+from mediawords.util.config.common import CommonConfig
 from mediawords.util.log import create_logger
 from mediawords.util.mail import enable_test_mode, disable_test_mode
 
@@ -23,33 +19,22 @@ class McTestDatabaseTestCaseException(Exception):
 class TestDatabaseTestCase(TestCase):
     """TestCase that connects to the test database which is later accessible as self.db()."""
 
-    __db = None
-
-    @staticmethod
-    def create_database_handler() -> DatabaseHandler:
-        log.info("Looking for test database credentials...")
-        test_database = None
-        config = py_get_config()
-        for database in config['database']:
-            if database['label'] == 'test':
-                test_database = database
-                break
-        assert test_database is not None
-
-        log.info("Connecting to test database '%s' via DatabaseHandler class..." % test_database['db'])
-        db = DatabaseHandler(
-            host=test_database['host'],
-            port=test_database['port'],
-            username=test_database['user'],
-            password=test_database['pass'],
-            database=test_database['db']
-        )
-
-        return db
+    __slots__ = [
+        '__db_config',
+        '__db',
+    ]
 
     def setUp(self):
         super().setUp()
-        self.__db = self.create_database_handler()
+        log.info('Connecting to database...')
+        self.__db_config = CommonConfig.database()
+        self.__db = DatabaseHandler(
+            host=self.__db_config.hostname(),
+            port=self.__db_config.port(),
+            username=self.__db_config.username(),
+            password=self.__db_config.password(),
+            database=self.__db_config.database_name(),
+        )
 
     def tearDown(self):
         super().tearDown()
@@ -59,12 +44,8 @@ class TestDatabaseTestCase(TestCase):
         return self.__db
 
 
-class TestDatabaseWithSchemaTestCase(TestCase):
+class TestDatabaseWithSchemaTestCase(TestDatabaseTestCase):
     """TestCase that connects to the test database and imports schema; database is later accessible as self.db()."""
-
-    TEST_DB_LABEL = 'test'
-    db_name = None
-    template_db_name = None
 
     @staticmethod
     def __kill_connections_to_database(db: DatabaseHandler, database_name: str) -> None:
@@ -78,79 +59,27 @@ class TestDatabaseWithSchemaTestCase(TestCase):
               AND pid != pg_backend_pid()
         """, {'template_db_name': database_name})
 
-    @classmethod
-    def setUpClass(cls) -> None:
-        """Create a fresh template data from mediawords.sql.
-
-        The template database will be used to execute the
-        'create database mediacloud_test template mediacloud_test_template' functionality to create a fresh database
-        for each individual unit test.  Recreating from a template is much faster than creating a database from
-        scratch from our large schema.
-        """
-        super().setUpClass()
-
-        config = py_get_config()
-
-        db_config = list(filter(lambda x: x['label'] == cls.TEST_DB_LABEL, config['database']))
-        if len(db_config) < 1:
-            raise McTestDatabaseTestCaseException("Unable to find %s database in mediawords.yml" % cls.TEST_DB_LABEL)
-
-        cls.db_name = (db_config[0])['db']
-
-        cls.template_db_name = config['mediawords'].get('test_template_db_name', None)
-        if cls.template_db_name is not None:
-            log.warning("use existing test db template: %s" % cls.template_db_name)
-            return
-
-        log.info("create test db template")
-
-        cls.template_db_name = cls.db_name + '_template'
-
-        # we insert this db name directly into sql, so be paranoid about what is in it
-        if re.search('[^a-z0-9_]', cls.db_name, flags=re.I) is not None:
-            raise McTestDatabaseTestCaseException("Illegal table name: " + cls.db_name)
-
-        # mediacloud_test should already exist, so we have to connect to it to create the template database
-        db = connect_to_db(label=cls.TEST_DB_LABEL, do_not_check_schema_version=True)
-
-        cls.__kill_connections_to_database(db=db, database_name=cls.template_db_name)
-
-        db.query("DROP DATABASE IF EXISTS {}".format(cls.template_db_name))
-        db.query("CREATE DATABASE {}".format(cls.template_db_name))
-        db.disconnect()
-        recreate_db(label=cls.TEST_DB_LABEL, is_template=True)
-
     def setUp(self) -> None:
-        """Create a fresh testing database for each unit test.
-
-        This relies on an empty template existing, which should have been created in setUpClass() above.
-        """
+        """Create a fresh template data from mediawords.sql."""
         super().setUp()
 
-        # Connect to the template database to execure the create command for the test database
-        log.warning("recreate test db from template: %s" % self.template_db_name)
+        TestDatabaseWithSchemaTestCase.__kill_connections_to_database(
+            db=self.__db,
+            database_name=CommonConfig.database().database_name(),
+        )
 
-        db = connect_to_db(label=self.TEST_DB_LABEL, is_template=True)
+        # Refuse to do anything else if there is at least a single relation in a non-system schema
+        relations = self.__db.query("""
+            SELECT *
+            FROM information_schema.tables
+            WHERE table_schema NOT IN ('pg_catalog', 'information_schema')
+        """).hashes()
+        if len(relations):
+            raise McTestDatabaseTestCaseException("Test database is not empty.")
 
-        self.__kill_connections_to_database(db=db, database_name=self.db_name)
-
-        db.query("DROP DATABASE IF EXISTS {}".format(self.db_name))
-        db.query("CREATE DATABASE {} TEMPLATE {}".format(self.db_name, self.template_db_name))
-
-        db.disconnect()
-
-        db = connect_to_db(label=self.TEST_DB_LABEL)
+        initialize_with_schema(db=self.__db)
 
         force_using_test_database()
-
-        self.__db = db
-
-    def tearDown(self) -> None:
-        super().tearDown()
-        self.__db.disconnect()
-
-    def db(self) -> DatabaseHandler:
-        return self.__db
 
 
 class TestDoNotSendEmails(TestCase):
