@@ -30,7 +30,7 @@ sub main()
     );
 }
 
-my $common_config = MediaWords::Util::Config::Common::CommonConfig->new();
+my $common_config = MediaWords::Util::Config::Common->new();
 my $amazon_s3_downloads_config = $common_config->amazon_s3_downloads();
 unless ( defined( $amazon_s3_downloads_config->access_key_id() ) )
 {

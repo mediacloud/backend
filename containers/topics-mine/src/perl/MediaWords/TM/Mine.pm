@@ -25,7 +25,7 @@ use List::Util;
 use Readonly;
 use Time::Piece;
 
-use MediaWords::TM;
+use MediaWords::TM::Alert;
 use MediaWords::TM::FetchTopicTweets;
 use MediaWords::TM::GuessDate;
 use MediaWords::TM::Stories;
@@ -1201,14 +1201,14 @@ sub mine_topic ($$;$)
 
     if ( $topic->{ state } ne 'running' )
     {
-        MediaWords::TM::send_topic_alert( $db, $topic, "started topic spidering" );
+        MediaWords::TM::Alert::send_topic_alert( $db, $topic, "started topic spidering" );
     }
 
     eval { do_mine_topic( $db, $topic ); };
     if ( $@ )
     {
         my $error = $@;
-        MediaWords::TM::send_topic_alert( $db, $topic, "aborted topic spidering due to error" );
+        MediaWords::TM::Alert::send_topic_alert( $db, $topic, "aborted topic spidering due to error" );
         LOGDIE( $error );
     }
 

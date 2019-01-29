@@ -17,6 +17,7 @@ use MediaWords::DBI::Auth::Roles;
 use MediaWords::Test::API;
 use MediaWords::Test::DB;
 use MediaWords::Test::DB::Create;
+use MediaWords::Test::DB::Create::User;
 
 Readonly my $NUM_MEDIA            => 5;
 Readonly my $NUM_FEEDS_PER_MEDIUM => 2;
@@ -28,7 +29,7 @@ sub test_validate_max_stories($)
 
     my $label = "test_validate_max_stories";
 
-    my $auth_user_api_key = MediaWords::Test::DB::Create::create_test_user( $db, $label );
+    my $auth_user_api_key = MediaWords::Test::DB::Create::User::create_test_user( $db, $label );
     my $auth_user = $db->query(
         <<SQL,
         SELECT auth_users_id
@@ -71,7 +72,7 @@ sub test_is_mc_queue_user($)
 
     my $label = "test_is_mc_queue_user";
 
-    my $auth_user_api_key = MediaWords::Test::DB::Create::create_test_user( $db, $label );
+    my $auth_user_api_key = MediaWords::Test::DB::Create::User::create_test_user( $db, $label );
     my $auth_user = $db->query(
         <<SQL,
         SELECT auth_users_id

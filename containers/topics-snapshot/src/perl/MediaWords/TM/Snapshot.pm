@@ -54,7 +54,7 @@ use Readonly;
 use MediaWords::DBI::Media;
 use MediaWords::Job::TM::SnapshotTopic;
 use MediaWords::Solr;
-use MediaWords::TM;
+use MediaWords::TM::Alert;
 use MediaWords::TM::Model;
 use MediaWords::TM::Snapshot::GraphLayout;
 use MediaWords::Util::CSV;
@@ -1894,7 +1894,7 @@ sub snapshot_topic ($$;$$$)
 
     # update this manually because snapshot_topic might be called directly from mine_topic()
     $db->update_by_id( 'snapshots', $snap->{ snapshots_id }, { state => $MediaWords::AbstractJob::STATE_COMPLETED } );
-    MediaWords::TM::send_topic_alert( $db, $topic, "new topic snapshot is ready" );
+    MediaWords::TM::Alert::send_topic_alert( $db, $topic, "new topic snapshot is ready" );
 
     return $snap->{ snapshots_id };
 }

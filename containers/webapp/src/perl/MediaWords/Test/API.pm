@@ -14,6 +14,7 @@ use URI::QueryParam;
 use MediaWords::CommonLibs;
 use MediaWords::Util::Web;
 use MediaWords::Util::ParseJSON;
+use MediaWords::Test::DB::Create::User;
 
 require Exporter;
 our @ISA    = qw(Exporter);
@@ -31,7 +32,7 @@ sub setup_test_api_key($)
 
     if ( !$_test_api_key )
     {
-        $_test_api_key = MediaWords::Test::DB::Create::create_test_user( $db, 'api_key' );
+        $_test_api_key = MediaWords::Test::DB::Create::User::create_test_user( $db, 'api_key' );
 
         #         $db->query( <<SQL );
         # insert into auth_users_roles_map ( auth_users_id, auth_roles_id )

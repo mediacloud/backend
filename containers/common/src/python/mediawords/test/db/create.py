@@ -3,7 +3,6 @@ import re
 
 from mediawords.db.handler import DatabaseHandler
 from mediawords.dbi.downloads.store import store_content
-from mediawords.dbi.stories.stories import extract_and_process_story
 from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_object_from_bytes_if_needed, decode_str_from_bytes_if_needed
 from mediawords.util.url import get_url_host
