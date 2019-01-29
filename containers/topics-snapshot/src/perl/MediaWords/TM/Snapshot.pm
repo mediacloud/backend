@@ -1892,7 +1892,7 @@ sub snapshot_topic ($$;$$$)
 
     discard_temp_tables( $db );
 
-    # update this manually because snapshot_topic might be called directly from Mine::mine_topic()
+    # update this manually because snapshot_topic might be called directly from mine_topic()
     $db->update_by_id( 'snapshots', $snap->{ snapshots_id }, { state => $MediaWords::AbstractJob::STATE_COMPLETED } );
     MediaWords::TM::send_topic_alert( $db, $topic, "new topic snapshot is ready" );
 
