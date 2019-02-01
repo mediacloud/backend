@@ -178,7 +178,7 @@ def _insert_tweet_urls(db: DatabaseHandler, topic_tweet: dict, urls: typing.List
                 values( %(a)s, %(b)s )
                 on conflict do nothing
             """,
-            {'a': topic_tweet['topic_tweets_id'], 'b': url})
+            {'a': topic_tweet['topic_tweets_id'], 'b': url[0:1024]})
 
 
 def _store_tweet_and_urls(db: DatabaseHandler, topic_tweet_day: dict, ch_post: dict) -> None:
