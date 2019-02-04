@@ -141,7 +141,7 @@ sub set_temporary_table_tablespace
 
 # create temporary view of all the snapshot_* tables that call into the snap.* tables.
 # this is useful for writing queries on the snap.* tables without lots of ugly
-# joins and clauses to cd and timespan.  It also provides the same set of snapshot_*
+# joins and clauses to snap and timespan.  It also provides the same set of snapshot_*
 # tables as provided by write_story_link_counts_snapshot_tables, so that the same
 # set of queries can run against either.
 sub create_temporary_snapshot_views
@@ -171,12 +171,13 @@ END
 
 =head2 setup_temporary_snapshot_tables( $db, $timespan, $topic, $live )
 
-Setup snapshot_* tables by either creating views for the relevant snap.* tables for a snapshot snapshot or by copying live data
-if $live is true.
+Setup snapshot_* tables by creating views for the relevant snap.* tables.
 
 The following snapshot_tables are created that contain a copy of all relevant rows present in the topic at the time
 the snapshot was created: snapshot_topic_stories, snapshot_stories, snapshot_media, snapshot_topic_links_cross_media,
-snapshot_stories_tags_map, snapshot_stories_tags_map, snapshot_tag_sets, snapshot_media_with_types.  The data in each of these tables
+snapshot_stories_tags_map, snapshot_stories_tags_map, snapshot_tag_sets, snapshot_media_with_types.  
+
+The data in each of these tables
 consists of data related to all of the stories in the entire topic, not restricted to a specific timespan.  So
 snapshot_media includes all media including any story in the topic, regardless of date.  Each of these tables consists
 of the fields present in the snapshoted table.
@@ -1299,24 +1300,32 @@ sub create_timespan ($$$$$$)
 {
     my ( $db, $cd, $start_date, $end_date, $period, $focus ) = @_;
 
-    my $timespan = {
-        snapshots_id      => $cd->{ snapshots_id },
-        start_date        => $start_date,
-        end_date          => $end_date,
-        period            => $period,
-        story_count       => 0,
-        story_link_count  => 0,
-        medium_count      => 0,
-        medium_link_count => 0,
-        tweet_count       => 0,
-        foci_id           => $focus ? $focus->{ foci_id } : undef
-    };
+    my $snapshots_id = $cd->{ snapshots_id };
+    my $foci_id = $focus ? $focus->{ foci_id } : undef;
 
-    $timespan = $db->create( 'timespans', $timespan );
+    $timespan = $db->query( <<SQL, $snapshots_id, $start_date, $end_date, $period, $foci_id )->hash();
+insert into timespans
+    ( snapshots_id, start_date, end_date, period, foci_id, 
+      story_count, story_link_count, medium_count, medium_link_count, tweet_count )
+    values ( ?, ?, ?, ?, ?, 0, 0, 0, 0, 0 )
+    on conflict return *
+SQL
 
     $timespan->{ snapshot } = $cd;
 
     return $timespan;
+}
+
+# return true if there exists at least one row in the relevant table for which timespans_id = $timespans_id
+sub timespan_snapshot_exists($$)
+{
+    my ( $db, $table, $timespan ) = @_;
+
+    die( "Table name can only have letters and underscores" ) if ( $table =~ /[^a-z_]/i );
+
+    my $row_exists = $db->query( "select 1 from $table where timespans_id = ?", $timespan->{ timespans_id }->hash();
+
+    return $row_exists;
 }
 
 # generate data for the story_links, story_link_counts, media_links, media_link_counts tables
@@ -1324,6 +1333,12 @@ sub create_timespan ($$$$$$)
 sub generate_timespan_data ($$;$)
 {
     my ( $db, $timespan, $is_model ) = @_;
+
+    if ( timespan_snapshot_exists( $db, 'medium_link_counts', $timespans_id ) )
+    {
+        DEBUG( "timespan already exists.  skipping ..." );
+        return;
+    }
 
     write_period_stories( $db, $timespan );
 
@@ -1526,6 +1541,16 @@ sub create_snapshot
 
     DEBUG( "snapshot $table..." );
 
+    die( "Table name can only have letters and underscores" ) if ( $table =~ /[^a-z_]/i );
+    die( "Key can only have letters and underscores" ) if ( $key =~ /[^a-z_]/i );
+
+    my $snapshot_exists = $db->query( "select 1 from snap.$table where $key = $obj->{ $key }" )->hash();
+    if ( $snapshot_exists )
+    {
+        DEBUG( "snapshot $table already exists.  skipping ..." );
+        return;
+    }
+
     my $column_names = [ $db->query( <<END, $table, $key )->flat ];
 select column_name from information_schema.columns
     where table_name = ? and table_schema = 'snap' and
@@ -1534,7 +1559,6 @@ select column_name from information_schema.columns
 END
 
     die( "Field names can only have letters and underscores" ) if ( grep { /[^a-z_]/i } @{ $column_names } );
-    die( "Table name can only have letters and underscores" ) if ( $table =~ /[^a-z_]/i );
 
     my $column_list = join( ",", @{ $column_names } );
 
@@ -1859,13 +1883,15 @@ filter for bots (a bot is defined as any user tweeting more than 200 post per da
 The periods should be a list of periods to include in the snapshot, where the allowed periods are custom,
 overall, weekly, and monthly.  If periods is not specificied or is empty, all periods will be generated.
 
-Returns snapshot ID of a newly generated snapshot.
+If a snapshots_id is provided, use the existing snapshot.  Otherwise, create a new one.
+
+Returns snapshots_id of the provided or newly created snapshot.
 
 =cut
 
-sub snapshot_topic ($$;$$$)
+sub snapshot_topic ($$;$$$$)
 {
-    my ( $db, $topics_id, $note, $bot_policy, $periods ) = @_;
+    my ( $db, $topics_id, $snapshots_id, $note, $bot_policy, $periods ) = @_;
 
     my $allowed_periods = [ qw(custom overall weekly monthly) ];
 
@@ -1886,8 +1912,10 @@ sub snapshot_topic ($$;$$$)
     }
 
     my ( $start_date, $end_date ) = ( $topic->{ start_date }, $topic->{ end_date } );
-
-    my $snap = create_snapshot_row( $db, $topic, $start_date, $end_date, $note, $bot_policy );
+    
+    my $snap = $snapshots_id ?
+        $db->require_by_id( 'snapshots', $snapshots_id ) :
+        create_snapshot_row( $db, $topic, $start_date, $end_date, $note, $bot_policy );
 
     MediaWords::Job::TM::SnapshotTopic->update_job_state_args( $db, { snapshots_id => $snap->{ snapshots_id } } );
     MediaWords::Job::TM::SnapshotTopic->update_job_state_message( $db, "snapshotting data" );

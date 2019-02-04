@@ -1528,6 +1528,7 @@ create table timespans (
 );
 
 create index timespans_snapshot on timespans ( snapshots_id );
+create unique index timespans_unique on timespans ( snapshots_id, foci_id, start_date, end_date, period );
 
 create table timespan_files (
     timespan_files_id                   serial primary key,

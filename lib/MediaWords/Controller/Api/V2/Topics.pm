@@ -510,6 +510,10 @@ sub spider_GET
 
     my $topics_id = $c->stash->{ topics_id };
 
+    my $data = $c->req->data;
+
+    my $snapshots_id = $data->{ snapshots_id };
+
     my $db = $c->dbis;
 
     my $topic = $db->require_by_id( 'topics', $topics_id );
@@ -528,6 +532,8 @@ SQL
     {
         # wrap this in a transaction so that we're sure the last job added is the one we just added
         $db->begin;
+
+        my $mine_args = { topics_id => $topics_id, snapshots_id => $snapshots_id };
 
         if ( $topic->{ job_queue } eq 'mc' )
         {
