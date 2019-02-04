@@ -803,3 +803,20 @@ def find_and_merge_dup_stories(db: DatabaseHandler, topic: dict) -> None:
                 log.info("merging dup stories by %s: media [%d / %d]" % (f_name, i, num_media))
             dup_stories = f(stories)
             [_merge_dup_stories(db, topic, s) for s in dup_stories]
+
+
+def copy_stories_to_topic(db: DatabaseHandler, source_topics_id: int, target_topics_id: int) -> None:
+    """Copy stories from source_topics_id into seed_urls for target_topics_id."""
+    message = "copy_stories_to_topic: %s -> %s [%s]" % (source_topics_id, target_topics_id, datetime.datetime.now())
+
+    db.query(
+        """
+        insert into topic_seed_urls ( topics_id, url, stories_id, source )
+            select %(target)s, url, stories_id, %(message)s
+                from snap.live_stories s
+                where
+                    s.topics_id = %(source)s and
+                    s.stories_id not in ( select stories_id from topic_seed_urls where topics_id = %(target)s ) and
+                    s.url not in ( select url from topic_seed_urls where topics_id = %(target)s )
+        """,
+        {'target': target_topics_id, 'source': source_topics_id, 'message': message})
