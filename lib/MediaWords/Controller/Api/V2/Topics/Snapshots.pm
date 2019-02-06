@@ -85,7 +85,7 @@ SQL
     $self->status_ok( $c, entity => { snapshots => $snapshots } );
 }
 
-sub cancel: Chained('apibase') : PathPart( 'snapshots/cancel' ) : Args(0) : ActionClass('MC_REST')
+sub cancel : Chained('apibase') : PathPart( 'snapshots/cancel' ) : Args(0) : ActionClass('MC_REST')
 {
 }
 
@@ -104,7 +104,7 @@ sub cancel_PUT
     $self->status_ok( $c, entity => { snapshot => $snapshot } );
 }
 
-sub create: Chained('apibase') : PathPart( 'snapshots/create' ) : Args(0) : ActionClass('MC_REST')
+sub create : Chained('apibase') : PathPart( 'snapshots/create' ) : Args(0) : ActionClass('MC_REST')
 {
 }
 
@@ -124,6 +124,7 @@ sub create_GET
     my $snapshot = $db->query( <<SQL, $note, 'created but not queued', $topics_id )->hash();
 insert into snapshots ( topics_id, snapshot_date, start_date, end_date, note, state )
     select topics_id, now(), start_date, end_date, ?, ? from topics where topics_id = ?
+    returning *
 SQL
 
     $self->status_ok( $c, entity => { snapshot => $snapshot } );

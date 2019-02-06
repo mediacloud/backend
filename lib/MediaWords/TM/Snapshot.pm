@@ -1303,12 +1303,13 @@ sub create_timespan ($$$$$$)
     my $snapshots_id = $cd->{ snapshots_id };
     my $foci_id = $focus ? $focus->{ foci_id } : undef;
 
-    $timespan = $db->query( <<SQL, $snapshots_id, $start_date, $end_date, $period, $foci_id )->hash();
+    my $timespan = $db->query( <<SQL, $snapshots_id, $start_date, $end_date, $period, $foci_id )->hash();
 insert into timespans
     ( snapshots_id, start_date, end_date, period, foci_id, 
       story_count, story_link_count, medium_count, medium_link_count, tweet_count )
     values ( ?, ?, ?, ?, ?, 0, 0, 0, 0, 0 )
-    on conflict return *
+    on conflict do nothing
+    returning *
 SQL
 
     $timespan->{ snapshot } = $cd;
@@ -1317,13 +1318,13 @@ SQL
 }
 
 # return true if there exists at least one row in the relevant table for which timespans_id = $timespans_id
-sub timespan_snapshot_exists($$)
+sub timespan_snapshot_exists($$$)
 {
     my ( $db, $table, $timespan ) = @_;
 
     die( "Table name can only have letters and underscores" ) if ( $table =~ /[^a-z_]/i );
 
-    my $row_exists = $db->query( "select 1 from $table where timespans_id = ?", $timespan->{ timespans_id }->hash();
+    my $row_exists = $db->query( "select 1 from snap.$table where timespans_id = ?", $timespan->{ timespans_id } )->hash();
 
     return $row_exists;
 }
@@ -1334,7 +1335,7 @@ sub generate_timespan_data ($$;$)
 {
     my ( $db, $timespan, $is_model ) = @_;
 
-    if ( timespan_snapshot_exists( $db, 'medium_link_counts', $timespans_id ) )
+    if ( timespan_snapshot_exists( $db, 'medium_link_counts', $timespan ) )
     {
         DEBUG( "timespan already exists.  skipping ..." );
         return;
@@ -1542,7 +1543,7 @@ sub create_snapshot
     DEBUG( "snapshot $table..." );
 
     die( "Table name can only have letters and underscores" ) if ( $table =~ /[^a-z_]/i );
-    die( "Key can only have letters and underscores" ) if ( $key =~ /[^a-z_]/i );
+    die( "Key can only have letters and underscores" )        if ( $key =~ /[^a-z_]/i );
 
     my $snapshot_exists = $db->query( "select 1 from snap.$table where $key = $obj->{ $key }" )->hash();
     if ( $snapshot_exists )
@@ -1912,10 +1913,11 @@ sub snapshot_topic ($$;$$$$)
     }
 
     my ( $start_date, $end_date ) = ( $topic->{ start_date }, $topic->{ end_date } );
-    
-    my $snap = $snapshots_id ?
-        $db->require_by_id( 'snapshots', $snapshots_id ) :
-        create_snapshot_row( $db, $topic, $start_date, $end_date, $note, $bot_policy );
+
+    my $snap =
+        $snapshots_id
+      ? $db->require_by_id( 'snapshots', $snapshots_id )
+      : create_snapshot_row( $db, $topic, $start_date, $end_date, $note, $bot_policy );
 
     MediaWords::Job::TM::SnapshotTopic->update_job_state_args( $db, { snapshots_id => $snap->{ snapshots_id } } );
     MediaWords::Job::TM::SnapshotTopic->update_job_state_message( $db, "snapshotting data" );
