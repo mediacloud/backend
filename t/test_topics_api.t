@@ -537,11 +537,11 @@ sub test_snapshots_create($)
 
     my $label = 'snapshot create';
 
-    my $topic = MediaWords::Test::DB::Create::create_test_topoic( $db, $label );
+    my $topic = MediaWords::Test::DB::Create::create_test_topic( $db, $label );
 
-    my $r = test_post( "/api/v2/topics/$topic->{ topics_id }/snapshots/create" );
+    my $r = test_post( "/api/v2/topics/$topic->{ topics_id }/snapshots/create", {} );
 
-    ok( $r->{ snapshot }, "$label snapshot returned" );
+    ok( $r->{ snapshot },                   "$label snapshot returned" );
     ok( $r->{ snapshot }->{ snapshots_id }, "$label snapshots_id" );
 
     my $snapshot = $db->find_by_id( "snapshots", $r->{ snapshot }->{ snapshots_id } );
