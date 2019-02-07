@@ -1,15 +1,6 @@
 [submodule "mediacloud/mediawords/languages/hi/hindi-hunspell"]
 	path = mediacloud/mediawords/languages/hi/hindi-hunspell
 	url = https://github.com/Shreeshrii/hindi-hunspell.git
-[submodule "root/script/non-free/amcharts3"]
-	path = root/script/non-free/amcharts3
-	url = https://github.com/amcharts/amcharts3.git
-[submodule "root/include/libs/handsontable"]
-	path = root/include/libs/handsontable
-	url = https://github.com/handsontable/handsontable.git
-[submodule "root/include/libs/tag-it"]
-	path = root/include/libs/tag-it
-	url = https://github.com/aehlke/tag-it.git
 [submodule "doc/github-markdown-toc"]
 	path = doc/api_2_0_spec/github-markdown-toc
 	url = https://github.com/ekalinin/github-markdown-toc.git

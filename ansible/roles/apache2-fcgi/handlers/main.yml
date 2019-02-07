@@ -1,5 +1,5 @@
 - name: "Stop Apache service (MacOSX)"
-  command: brew services stop apache2
+  command: brew services stop httpd
   failed_when: false  # might not be started
   when: "ansible_distribution == 'MacOSX'"
   listen:
@@ -30,7 +30,7 @@
     - apache2-fcgi
 
 - name: "Start Apache service (MacOSX)"
-  command: brew services start apache2
+  command: brew services start httpd
   failed_when: false  # might not be started
   when: "ansible_distribution == 'MacOSX'"
   listen:

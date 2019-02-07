@@ -18,124 +18,212 @@
 SET search_path = public, pg_catalog;
 
 
-CREATE OR REPLACE FUNCTION partition_by_downloads_id_create_partitions(base_table_name TEXT)
-RETURNS SETOF TEXT AS
+-- Kill all autovacuums before proceeding with DDL changes
+SELECT pid
+FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
+WHERE backend_type = 'autovacuum worker'
+  AND query ~ 'cached_extractor_results';
+
+-- It's just some cache in it so we can just drop and recreate the table
+DROP TABLE cached_extractor_results;
+
+CREATE UNLOGGED TABLE cache.extractor_results_cache (
+    extractor_results_cache_id  SERIAL  PRIMARY KEY,
+    extracted_html              TEXT    NULL,
+    extracted_text              TEXT    NULL,
+    downloads_id                BIGINT  NOT NULL,
+
+    -- Will be used to purge old cache objects;
+    -- don't forget to update cache.purge_object_caches()
+    db_row_last_updated         TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+);
+CREATE UNIQUE INDEX extractor_results_cache_downloads_id
+    ON cache.extractor_results_cache (downloads_id);
+CREATE INDEX extractor_results_cache_db_row_last_updated
+    ON cache.extractor_results_cache (db_row_last_updated);
+
+ALTER TABLE cache.extractor_results_cache
+    ALTER COLUMN extracted_html SET STORAGE EXTERNAL,
+    ALTER COLUMN extracted_text SET STORAGE EXTERNAL;
+
+CREATE TRIGGER extractor_results_cache_db_row_last_updated_trigger
+    BEFORE INSERT OR UPDATE ON cache.extractor_results_cache
+    FOR EACH ROW EXECUTE PROCEDURE cache.update_cache_db_row_last_updated();
+
+CREATE TRIGGER extractor_results_cache_test_referenced_download_trigger
+    BEFORE INSERT OR UPDATE ON cache.extractor_results_cache
+    FOR EACH ROW
+    EXECUTE PROCEDURE test_referenced_download_trigger('downloads_id');
+
+
+-- Recreate helper that purges caches
+CREATE OR REPLACE FUNCTION cache.purge_object_caches()
+RETURNS VOID AS
 $$
-DECLARE
-    chunk_size INT;
-    max_downloads_id BIGINT;
-    partition_downloads_id BIGINT;
-
-    -- Partition table name (e.g. "downloads_success_content_01")
-    target_table_name TEXT;
-
-    -- Partition table owner (e.g. "mediaclouduser")
-    target_table_owner TEXT;
-
-    -- "downloads_id" chunk lower limit, inclusive (e.g. 30,000,000)
-    downloads_id_start BIGINT;
-
-    -- "downloads_id" chunk upper limit, exclusive (e.g. 31,000,000)
-    downloads_id_end BIGINT;
 BEGIN
 
-    SELECT partition_by_downloads_id_chunk_size() INTO chunk_size;
+    RAISE NOTICE 'Purging "s3_raw_downloads_cache" table...';
+    EXECUTE '
+        DELETE FROM cache.s3_raw_downloads_cache
+        WHERE db_row_last_updated <= NOW() - INTERVAL ''3 days'';
+    ';
 
-    -- Create +1 partition for future insertions
-    SELECT COALESCE(MAX(downloads_id), 0) + chunk_size FROM downloads INTO max_downloads_id;
-
-    FOR partition_downloads_id IN 1..max_downloads_id BY chunk_size LOOP
-        SELECT partition_by_downloads_id_partition_name(
-            base_table_name := base_table_name,
-            downloads_id := partition_downloads_id
-        ) INTO target_table_name;
-        IF table_exists(target_table_name) THEN
-            RAISE NOTICE 'Partition "%" for download ID % already exists.', target_table_name, partition_downloads_id;
-        ELSE
-            RAISE NOTICE 'Creating partition "%" for download ID %', target_table_name, partition_downloads_id;
-
-            SELECT (partition_downloads_id / chunk_size) * chunk_size INTO downloads_id_start;
-            SELECT ((partition_downloads_id / chunk_size) + 1) * chunk_size INTO downloads_id_end;
-
-            EXECUTE '
-                CREATE TABLE ' || target_table_name || '
-                    PARTITION OF ' || base_table_name || '
-                    FOR VALUES FROM (' || downloads_id_start || ')
-                               TO   (' || downloads_id_end   || ');
-            ';
-
-            -- Update owner
-            SELECT u.usename AS owner
-            FROM information_schema.tables AS t
-                JOIN pg_catalog.pg_class AS c ON t.table_name = c.relname
-                JOIN pg_catalog.pg_user AS u ON c.relowner = u.usesysid
-            WHERE t.table_name = base_table_name
-              AND t.table_schema = 'public'
-            INTO target_table_owner;
-
-            EXECUTE '
-                ALTER TABLE ' || target_table_name || '
-                    OWNER TO ' || target_table_owner || ';
-            ';
-
-            -- Add created partition name to the list of returned partition names
-            RETURN NEXT target_table_name;
-
-        END IF;
-    END LOOP;
-
-    RETURN;
+    RAISE NOTICE 'Purging "extractor_results_cache" table...';
+    EXECUTE '
+        DELETE FROM cache.extractor_results_cache
+        WHERE db_row_last_updated <= NOW() - INTERVAL ''3 days'';
+    ';
 
 END;
 $$
 LANGUAGE plpgsql;
 
 
-CREATE OR REPLACE FUNCTION downloads_create_subpartitions(base_table_name TEXT)
-RETURNS VOID AS
-$$
-DECLARE
-    created_partitions TEXT[];
-    partition TEXT;
+-- Recreate trigger on "downloads" view
+CREATE OR REPLACE FUNCTION downloads_view_insert_update_delete() RETURNS trigger AS $$
 BEGIN
 
-    created_partitions := ARRAY(SELECT partition_by_downloads_id_create_partitions(base_table_name));
+    IF (TG_OP = 'INSERT') THEN
 
-    FOREACH partition IN ARRAY created_partitions LOOP
+        -- New rows go into the partitioned table only
+        INSERT INTO downloads_p (
+            downloads_p_id,
+            feeds_id,
+            stories_id,
+            parent,
+            url,
+            host,
+            download_time,
+            type,
+            state,
+            path,
+            error_message,
+            priority,
+            sequence,
+            extracted
+        ) SELECT
+            NEW.downloads_id,
+            NEW.feeds_id,
+            NEW.stories_id,
+            NEW.parent,
+            NEW.url,
+            NEW.host,
+            COALESCE(NEW.download_time, NOW()),
+            NEW.type,
+            NEW.state,
+            NEW.path,
+            NEW.error_message,
+            NEW.priority,
+            NEW.sequence,
+            COALESCE(NEW.extracted, 'f');
 
-        RAISE NOTICE 'Altering created partition "%"...', partition;
-        
-        EXECUTE '
-            CREATE TRIGGER ' || partition || '_test_referenced_download_trigger
-                BEFORE INSERT OR UPDATE ON ' || partition || '
-                FOR EACH ROW
-                EXECUTE PROCEDURE test_referenced_download_trigger(''parent'');
-        ';
+        RETURN NEW;
 
-    END LOOP;
+    ELSIF (TG_OP = 'UPDATE') THEN
+
+        -- Update both tables as one of them will have the row
+        UPDATE downloads_np SET
+            downloads_np_id = NEW.downloads_id,
+            feeds_id = NEW.feeds_id,
+            stories_id = NEW.stories_id,
+            parent = NEW.parent,
+            url = NEW.url,
+            host = NEW.host,
+            download_time = NEW.download_time,
+            type = NEW.type::text::download_np_type,
+            state = NEW.state::text::download_np_state,
+            path = NEW.path,
+            error_message = NEW.error_message,
+            priority = NEW.priority,
+            sequence = NEW.sequence,
+            extracted = NEW.extracted
+        WHERE downloads_np_id = OLD.downloads_id;
+
+        UPDATE downloads_p SET
+            downloads_p_id = NEW.downloads_id,
+            feeds_id = NEW.feeds_id,
+            stories_id = NEW.stories_id,
+            parent = NEW.parent,
+            url = NEW.url,
+            host = NEW.host,
+            download_time = NEW.download_time,
+            type = NEW.type,
+            state = NEW.state,
+            path = NEW.path,
+            error_message = NEW.error_message,
+            priority = NEW.priority,
+            sequence = NEW.sequence,
+            extracted = NEW.extracted
+        WHERE downloads_p_id = OLD.downloads_id;
+
+        -- Update record in tables that reference "downloads" with a given ID
+        UPDATE downloads_np
+        SET parent = NEW.downloads_id
+        WHERE parent = OLD.downloads_id;
+
+        UPDATE downloads_p
+        SET parent = NEW.downloads_id
+        WHERE parent = OLD.downloads_id;
+
+        UPDATE raw_downloads
+        SET object_id = NEW.downloads_id
+        WHERE object_id = OLD.downloads_id;
+
+        UPDATE download_texts
+        SET downloads_id = NEW.downloads_id
+        WHERE downloads_id = OLD.downloads_id;
+
+        UPDATE cache.extractor_results_cache
+        SET downloads_id = NEW.downloads_id
+        WHERE downloads_id = OLD.downloads_id;
+
+        UPDATE cache.s3_raw_downloads_cache
+        SET object_id = NEW.downloads_id
+        WHERE object_id = OLD.downloads_id;
+
+        RETURN NEW;
+
+    ELSIF (TG_OP = 'DELETE') THEN
+
+        -- Delete from both tables as one of them will have the row
+        DELETE FROM downloads_np
+            WHERE downloads_np_id = OLD.downloads_id;
+
+        DELETE FROM downloads_p
+            WHERE downloads_p_id = OLD.downloads_id;
+
+        -- Update / delete record in tables that reference "downloads" with a
+        -- given ID
+        UPDATE downloads_np
+        SET parent = NULL
+        WHERE parent = OLD.downloads_id;
+
+        UPDATE downloads_p
+        SET parent = NULL
+        WHERE parent = OLD.downloads_id;
+
+        DELETE FROM raw_downloads
+        WHERE object_id = OLD.downloads_id;
+
+        DELETE FROM download_texts
+        WHERE downloads_id = OLD.downloads_id;
+
+        DELETE FROM cache.extractor_results_cache
+        WHERE downloads_id = OLD.downloads_id;
+
+        DELETE FROM cache.s3_raw_downloads_cache
+        WHERE object_id = OLD.downloads_id;
+
+        -- Return deleted rows
+        RETURN OLD;
+
+    ELSE
+        RAISE EXCEPTION 'Unconfigured operation: %', TG_OP;
+
+    END IF;
 
 END;
-$$
-LANGUAGE plpgsql;
-
-
-CREATE OR REPLACE FUNCTION downloads_p_success_content_create_partitions()
-RETURNS VOID AS
-$$
-
-    SELECT downloads_create_subpartitions('downloads_p_success_content');
-
-$$
-LANGUAGE SQL;
-
-CREATE OR REPLACE FUNCTION downloads_p_success_feed_create_partitions()
-RETURNS VOID AS
-$$
-
-    SELECT downloads_create_subpartitions('downloads_p_success_feed');
-
-$$
-LANGUAGE SQL;
+$$ LANGUAGE plpgsql;
 
 
 --

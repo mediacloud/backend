@@ -20,7 +20,6 @@ use Readonly;
 use URI;
 use URI::QueryParam;
 use Data::Dumper;
-use List::MoreUtils qw/any/;
 
 # Facebook Graph API version to use
 Readonly my $FACEBOOK_GRAPH_API_VERSION => 'v2.8';

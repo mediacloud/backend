@@ -1,7 +1,7 @@
 package MediaWords::Controller::Status;
 
 #
-# Static page used by monitoring to test Catalyst status
+# Static page used by monitoring to test whether Apache + Catalyst works
 #
 
 use strict;

@@ -8,7 +8,7 @@
 #
 # Usage:
 #
-# ./script/run_in_env.sh ./script/query_config.pl "/mediawords/session/storage"
+# ./script/run_in_env.sh ./script/query_config.pl "/mediawords/mail/from_address"
 #
 # or
 #
@@ -64,7 +64,6 @@ use XML::LibXML;
 #   </database>
 #   <!-- ... -->
 #   <mediawords>
-#     <always_show_stack_traces>no</always_show_stack_traces>
 #     <!-- ... -->
 #   </mediawords>
 #   <name>MediaWords</name>

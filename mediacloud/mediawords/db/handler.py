@@ -13,7 +13,6 @@ from mediawords.db.exceptions.handler import (
     McPrimaryKeyColumnException, McFindByIDException, McRequireByIDException, McUpdateByIDException,
     McDeleteByIDException, McCreateException, McFindOrCreateException, McBeginException,
     McQuoteException, McUniqueConstraintException)
-from mediawords.db.pages.pages import DatabasePages
 from mediawords.db.result.result import DatabaseResult
 from mediawords.db.schema.version import schema_version_from_lines
 
@@ -962,19 +961,3 @@ class DatabaseHandler(object):
                 parent[child_field].append(child)
 
         return data
-
-    def query_paged_hashes(self, query: str, page: int, rows_per_page: int) -> DatabasePages:
-        """Execute the query and return a list of pages hashes."""
-
-        # MC_REWRITE_TO_PYTHON: some IDs get passed as 'str' / 'bytes'; remove after getting rid of Catalyst
-        # noinspection PyTypeChecker
-        page = decode_object_from_bytes_if_needed(page)
-        page = int(page)
-
-        query = decode_object_from_bytes_if_needed(query)
-
-        return DatabasePages(cursor=self.__db,
-                             query=query,
-                             page=page,
-                             rows_per_page=rows_per_page,
-                             double_percentage_sign_marker=DatabaseHandler.__DOUBLE_PERCENTAGE_SIGN_MARKER)

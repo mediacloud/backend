@@ -24,10 +24,6 @@ import mediawords.util.url
 
 log = create_logger(__name__)
 
-# url and title length limits necessary to fit within postgres field
-_MAX_URL_LENGTH = 1024
-_MAX_TITLE_LENGTH = 1024
-
 SPIDER_FEED_NAME = 'Spider Feed'
 
 BINARY_EXTENSIONS = 'jpg pdf doc mp3 mp4 zip png docx'.split()
@@ -197,7 +193,7 @@ def get_story_match(db: DatabaseHandler, url: str, redirect_url: typing.Optional
 
     If multiple stories are found, use get_preferred_story() to decide which story to return.
 
-    Only mach the first _MAX_URL_LENGTH characters of the url / redirect_url.
+    Only mach the first mediawords.dbi.stories.stories.MAX_URL_LENGTH characters of the url / redirect_url.
 
     Arguments:
     db - db handle
@@ -208,11 +204,11 @@ def get_story_match(db: DatabaseHandler, url: str, redirect_url: typing.Optional
     the matched story or None
 
     """
-    u = url[0:_MAX_URL_LENGTH]
+    u = url[0:mediawords.dbi.stories.stories.MAX_URL_LENGTH]
 
     ru = ''
     if not ignore_redirect(db, url, redirect_url):
-        ru = redirect_url[0:_MAX_URL_LENGTH] if redirect_url is not None else u
+        ru = redirect_url[0:mediawords.dbi.stories.stories.MAX_URL_LENGTH] if redirect_url is not None else u
 
     nu = mediawords.util.url.normalize_url_lossy(u)
     nru = mediawords.util.url.normalize_url_lossy(ru)
@@ -351,10 +347,15 @@ def generate_story(
         db: DatabaseHandler,
         url: str,
         content: str,
+        title: str = None,
+        publish_date: datetime.datetime = None,
         fallback_date: typing.Optional[datetime.datetime] = None) -> dict:
     """Add a new story to the database by guessing metadata using the given url and content.
 
     This function guesses the medium, feed, title, and date of the story from the url and content.
+
+    If inserting the story results in a unique constraint error based on media_id and url, return
+    the existing story instead.
 
     Arguments:
     db - db handle
@@ -365,12 +366,14 @@ def generate_story(
     if len(url) < 1:
         raise McTMStoriesException("url must not be an empty string")
 
-    url = url[0:_MAX_URL_LENGTH]
+    url = url[0:mediawords.dbi.stories.stories.MAX_URL_LENGTH]
 
     medium = mediawords.tm.media.guess_medium(db, url)
     feed = get_spider_feed(db, medium)
     spidered_tag = mediawords.tm.media.get_spidered_tag(db)
-    title = mediawords.util.parse_html.html_title(content, url, _MAX_TITLE_LENGTH)
+
+    if title is None:
+        title = mediawords.util.parse_html.html_title(content, url, mediawords.dbi.stories.stories.MAX_TITLE_LENGTH)
 
     story = {
         'url': url,
@@ -384,15 +387,18 @@ def generate_story(
     for field in ('url', 'guid', 'title'):
         story[field] = re2.sub('\x00', '', story[field])
 
-    date_guess = guess_date(url, content)
-    story['publish_date'] = date_guess.date if date_guess.found else fallback_date
-    if story['publish_date'] is None:
-        story['publish_date'] = datetime.datetime.now().isoformat()
+    if publish_date is None:
+        date_guess = guess_date(url, content)
+        story['publish_date'] = date_guess.date if date_guess.found else fallback_date
+        if story['publish_date'] is None:
+            story['publish_date'] = datetime.datetime.now().isoformat()
+    else:
+        story['publish_date'] = publish_date
 
     try:
         story = db.create('stories', story)
     except mediawords.db.exceptions.handler.McUniqueConstraintException:
-        raise McTMStoriesDuplicateException("Attempt to insert duplicate story url %s" % url)
+        return mediawords.tm.stories.get_story_match(db=db, url=story['url'])
     except Exception:
         raise McTMStoriesException("Error adding story: %s" % traceback.format_exc())
 
@@ -400,7 +406,8 @@ def generate_story(
         "insert into stories_tags_map (stories_id, tags_id) values (%(a)s, %(b)s)",
         {'a': story['stories_id'], 'b': spidered_tag['tags_id']})
 
-    assign_date_guess_tag(db, story, date_guess, fallback_date)
+    if publish_date is None:
+        assign_date_guess_tag(db, story, date_guess, fallback_date)
 
     log.debug("add story: %s; %s; %s; %d" % (story['title'], story['url'], story['publish_date'], story['stories_id']))
 
@@ -589,7 +596,7 @@ def _get_merged_iteration(db: DatabaseHandler, topic: dict, delete_story: dict, 
         return 0
 
 
-def merge_dup_story(db, topic, delete_story, keep_story):
+def _merge_dup_story(db, topic, delete_story, keep_story):
     """Merge delete_story into keep_story.
 
     Make sure all links that are in delete_story are also in keep_story and make
@@ -670,7 +677,7 @@ def _get_deduped_medium(db: DatabaseHandler, media_id: int) -> dict:
 def merge_dup_media_story(db, topic, story):
     """Given a story in a dup_media_id medium, look for or create a story in the medium pointed to by dup_media_id.
 
-    Call merge_dup_story on the found or cloned story in the new medium.
+    Call _merge_dup_story() on the found or cloned story in the new medium.
     """
 
     dup_medium = _get_deduped_medium(db, story['media_id'])
@@ -695,7 +702,7 @@ def merge_dup_media_story(db, topic, story):
     if new_story is None:
         new_story = copy_story_to_new_medium(db, topic, story, dup_medium)
 
-    merge_dup_story(db, topic, story, new_story)
+    _merge_dup_story(db, topic, story, new_story)
 
     return new_story
 
@@ -752,7 +759,7 @@ def _merge_dup_stories(db, topic, stories):
 
     log.debug("duplicates: %s [%s %d]" % (keep_story['title'], keep_story['url'], keep_story['stories_id']))
 
-    [merge_dup_story(db, topic, s, keep_story) for s in stories]
+    [_merge_dup_story(db, topic, s, keep_story) for s in stories]
 
 
 def _get_topic_stories_by_medium(db: DatabaseHandler, topic: dict) -> dict:

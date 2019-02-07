@@ -18,201 +18,179 @@
 SET search_path = public, pg_catalog;
 
 
--- Kill all autovacuums before proceeding with DDL changes
-SELECT pid
-FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
-WHERE backend_type = 'autovacuum worker'
-  AND query ~ 'cached_extractor_results';
+DO $$
+DECLARE
+    tables CURSOR FOR
+        SELECT tablename
+        FROM pg_tables
+        WHERE schemaname = 'public'
+          AND tablename LIKE 'stories_tags_map_%'
+        ORDER BY tablename;
+    new_table_name TEXT;
+BEGIN
+    FOR table_record IN tables LOOP
+        SELECT REPLACE(table_record.tablename, 'stories_tags_map_', 'stories_tags_map_p_') INTO new_table_name;
+        EXECUTE '
+            ALTER TABLE ' || table_record.tablename || '
+                RENAME TO ' || new_table_name || ';';
+        EXECUTE '
+            ALTER INDEX ' || table_record.tablename || '_pkey
+                RENAME TO ' || new_table_name || '_pkey;';
+        EXECUTE '
+            ALTER INDEX ' || table_record.tablename || '_stories_id_tags_id_unique
+                RENAME TO ' || new_table_name || '_stories_id_tags_id_unique;';
+        EXECUTE '
+            ALTER TABLE ' || new_table_name || '
+                RENAME CONSTRAINT ' || table_record.tablename || '_stories_id
+                TO ' || new_table_name || '_stories_id';
+        EXECUTE '
+            ALTER TABLE ' || new_table_name || '
+                RENAME CONSTRAINT ' || table_record.tablename || '_stories_id_fkey
+                TO ' || new_table_name || '_stories_id_fkey';
+        EXECUTE '
+            ALTER TABLE ' || new_table_name || '
+                RENAME CONSTRAINT ' || table_record.tablename || '_tags_id_fkey
+                TO ' || new_table_name || '_tags_id_fkey';
 
--- It's just some cache in it so we can just drop and recreate the table
-DROP TABLE cached_extractor_results;
-
-CREATE UNLOGGED TABLE cache.extractor_results_cache (
-    extractor_results_cache_id  SERIAL  PRIMARY KEY,
-    extracted_html              TEXT    NULL,
-    extracted_text              TEXT    NULL,
-    downloads_id                BIGINT  NOT NULL,
-
-    -- Will be used to purge old cache objects;
-    -- don't forget to update cache.purge_object_caches()
-    db_row_last_updated         TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
-);
-CREATE UNIQUE INDEX extractor_results_cache_downloads_id
-    ON cache.extractor_results_cache (downloads_id);
-CREATE INDEX extractor_results_cache_db_row_last_updated
-    ON cache.extractor_results_cache (db_row_last_updated);
-
-ALTER TABLE cache.extractor_results_cache
-    ALTER COLUMN extracted_html SET STORAGE EXTERNAL,
-    ALTER COLUMN extracted_text SET STORAGE EXTERNAL;
-
-CREATE TRIGGER extractor_results_cache_db_row_last_updated_trigger
-    BEFORE INSERT OR UPDATE ON cache.extractor_results_cache
-    FOR EACH ROW EXECUTE PROCEDURE cache.update_cache_db_row_last_updated();
-
-CREATE TRIGGER extractor_results_cache_test_referenced_download_trigger
-    BEFORE INSERT OR UPDATE ON cache.extractor_results_cache
-    FOR EACH ROW
-    EXECUTE PROCEDURE test_referenced_download_trigger('downloads_id');
+    END LOOP;
+END
+$$;
 
 
--- Recreate helper that purges caches
-CREATE OR REPLACE FUNCTION cache.purge_object_caches()
-RETURNS VOID AS
+ALTER TABLE stories_tags_map
+    RENAME TO stories_tags_map_p;
+
+-- Some migrations might have led the sequence to have "1" suffix
+ALTER SEQUENCE IF EXISTS stories_tags_map_stories_tags_map_id_seq1
+    RENAME TO stories_tags_map_stories_tags_map_id_seq;
+
+ALTER SEQUENCE stories_tags_map_stories_tags_map_id_seq
+    RENAME TO stories_tags_map_p_stories_tags_map_p_id_seq;
+
+ALTER INDEX stories_tags_map_pkey
+    RENAME TO stories_tags_map_p_pkey;
+
+ALTER TABLE stories_tags_map_p
+    RENAME COLUMN stories_tags_map_id TO stories_tags_map_p_id;
+
+
+CREATE OR REPLACE FUNCTION stories_tags_map_create_partitions() RETURNS VOID AS
 $$
+DECLARE
+    created_partitions TEXT[];
+    partition TEXT;
 BEGIN
 
-    RAISE NOTICE 'Purging "s3_raw_downloads_cache" table...';
-    EXECUTE '
-        DELETE FROM cache.s3_raw_downloads_cache
-        WHERE db_row_last_updated <= NOW() - INTERVAL ''3 days'';
-    ';
+    created_partitions := ARRAY(SELECT partition_by_stories_id_create_partitions('stories_tags_map_p'));
 
-    RAISE NOTICE 'Purging "extractor_results_cache" table...';
-    EXECUTE '
-        DELETE FROM cache.extractor_results_cache
-        WHERE db_row_last_updated <= NOW() - INTERVAL ''3 days'';
-    ';
+    FOREACH partition IN ARRAY created_partitions LOOP
+
+        RAISE NOTICE 'Altering created partition "%"...', partition;
+        
+        -- Add extra foreign keys / constraints to the newly created partitions
+        EXECUTE '
+            ALTER TABLE ' || partition || '
+
+                -- Foreign key to tags.tags_id
+                ADD CONSTRAINT ' || REPLACE(partition, '.', '_') || '_tags_id_fkey
+                    FOREIGN KEY (tags_id) REFERENCES tags (tags_id) MATCH FULL ON DELETE CASCADE,
+
+                -- Unique duplets
+                ADD CONSTRAINT ' || REPLACE(partition, '.', '_') || '_stories_id_tags_id_unique
+                    UNIQUE (stories_id, tags_id);
+        ';
+
+    END LOOP;
 
 END;
 $$
 LANGUAGE plpgsql;
 
 
--- Recreate trigger on "downloads" view
-CREATE OR REPLACE FUNCTION downloads_view_insert_update_delete() RETURNS trigger AS $$
+-- Rename trigger
+DROP TRIGGER stm_insert_solr_import_story ON stories_tags_map_p;
+
+CREATE TRIGGER stories_tags_map_p_insert_solr_import_story
+    BEFORE INSERT OR UPDATE OR DELETE ON stories_tags_map_p
+    FOR EACH ROW
+    EXECUTE PROCEDURE insert_solr_import_story();
+
+
+
+DROP TRIGGER stories_tags_map_partition_upsert_trigger ON stories_tags_map_p;
+
+DROP FUNCTION stories_tags_map_partition_upsert_trigger();
+
+CREATE OR REPLACE FUNCTION stories_tags_map_p_upsert_trigger() RETURNS TRIGGER AS $$
+DECLARE
+    target_table_name TEXT;       -- partition table name (e.g. "stories_tags_map_01")
+BEGIN
+    SELECT partition_by_stories_id_partition_name(
+        base_table_name := 'stories_tags_map_p',
+        stories_id := NEW.stories_id
+    ) INTO target_table_name;
+    EXECUTE '
+        INSERT INTO ' || target_table_name || '
+            SELECT $1.*
+        ON CONFLICT (stories_id, tags_id) DO NOTHING
+        ' USING NEW;
+    RETURN NULL;
+END;
+$$
+LANGUAGE plpgsql;
+
+CREATE TRIGGER stories_tags_map_p_upsert_trigger
+    BEFORE INSERT ON stories_tags_map_p
+    FOR EACH ROW
+    EXECUTE PROCEDURE stories_tags_map_p_upsert_trigger();
+
+
+CREATE OR REPLACE VIEW stories_tags_map AS
+
+    SELECT
+        stories_tags_map_p_id AS stories_tags_map_id,
+        stories_id,
+        tags_id
+    FROM stories_tags_map_p;
+
+
+-- Make RETURNING work with partitioned tables
+-- (https://wiki.postgresql.org/wiki/INSERT_RETURNING_vs_Partitioning)
+ALTER VIEW stories_tags_map
+    ALTER COLUMN stories_tags_map_id
+    SET DEFAULT nextval(pg_get_serial_sequence('stories_tags_map_p', 'stories_tags_map_p_id'));
+
+-- Prevent the next INSERT from failing
+SELECT nextval(pg_get_serial_sequence('stories_tags_map_p', 'stories_tags_map_p_id'));
+
+
+-- Trigger that implements INSERT / UPDATE / DELETE behavior on "stories_tags_map" view
+CREATE OR REPLACE FUNCTION stories_tags_map_view_insert_update_delete() RETURNS trigger AS $$
 BEGIN
 
     IF (TG_OP = 'INSERT') THEN
 
-        -- New rows go into the partitioned table only
-        INSERT INTO downloads_p (
-            downloads_p_id,
-            feeds_id,
-            stories_id,
-            parent,
-            url,
-            host,
-            download_time,
-            type,
-            state,
-            path,
-            error_message,
-            priority,
-            sequence,
-            extracted
-        ) SELECT
-            NEW.downloads_id,
-            NEW.feeds_id,
-            NEW.stories_id,
-            NEW.parent,
-            NEW.url,
-            NEW.host,
-            COALESCE(NEW.download_time, NOW()),
-            NEW.type,
-            NEW.state,
-            NEW.path,
-            NEW.error_message,
-            NEW.priority,
-            NEW.sequence,
-            COALESCE(NEW.extracted, 'f');
+        -- By INSERTing into the master table, we're letting triggers choose
+        -- the correct partition.
+        INSERT INTO stories_tags_map_p SELECT NEW.*;
 
         RETURN NEW;
 
     ELSIF (TG_OP = 'UPDATE') THEN
 
-        -- Update both tables as one of them will have the row
-        UPDATE downloads_np SET
-            downloads_np_id = NEW.downloads_id,
-            feeds_id = NEW.feeds_id,
-            stories_id = NEW.stories_id,
-            parent = NEW.parent,
-            url = NEW.url,
-            host = NEW.host,
-            download_time = NEW.download_time,
-            type = NEW.type::text::download_np_type,
-            state = NEW.state::text::download_np_state,
-            path = NEW.path,
-            error_message = NEW.error_message,
-            priority = NEW.priority,
-            sequence = NEW.sequence,
-            extracted = NEW.extracted
-        WHERE downloads_np_id = OLD.downloads_id;
-
-        UPDATE downloads_p SET
-            downloads_p_id = NEW.downloads_id,
-            feeds_id = NEW.feeds_id,
-            stories_id = NEW.stories_id,
-            parent = NEW.parent,
-            url = NEW.url,
-            host = NEW.host,
-            download_time = NEW.download_time,
-            type = NEW.type,
-            state = NEW.state,
-            path = NEW.path,
-            error_message = NEW.error_message,
-            priority = NEW.priority,
-            sequence = NEW.sequence,
-            extracted = NEW.extracted
-        WHERE downloads_p_id = OLD.downloads_id;
-
-        -- Update record in tables that reference "downloads" with a given ID
-        UPDATE downloads_np
-        SET parent = NEW.downloads_id
-        WHERE parent = OLD.downloads_id;
-
-        UPDATE downloads_p
-        SET parent = NEW.downloads_id
-        WHERE parent = OLD.downloads_id;
-
-        UPDATE raw_downloads
-        SET object_id = NEW.downloads_id
-        WHERE object_id = OLD.downloads_id;
-
-        UPDATE download_texts
-        SET downloads_id = NEW.downloads_id
-        WHERE downloads_id = OLD.downloads_id;
-
-        UPDATE cache.extractor_results_cache
-        SET downloads_id = NEW.downloads_id
-        WHERE downloads_id = OLD.downloads_id;
-
-        UPDATE cache.s3_raw_downloads_cache
-        SET object_id = NEW.downloads_id
-        WHERE object_id = OLD.downloads_id;
+        UPDATE stories_tags_map_p
+            SET stories_id = NEW.stories_id,
+                tags_id = NEW.tags_id
+            WHERE stories_id = OLD.stories_id
+              AND tags_id = OLD.tags_id;
 
         RETURN NEW;
 
     ELSIF (TG_OP = 'DELETE') THEN
 
-        -- Delete from both tables as one of them will have the row
-        DELETE FROM downloads_np
-            WHERE downloads_np_id = OLD.downloads_id;
-
-        DELETE FROM downloads_p
-            WHERE downloads_p_id = OLD.downloads_id;
-
-        -- Update / delete record in tables that reference "downloads" with a
-        -- given ID
-        UPDATE downloads_np
-        SET parent = NULL
-        WHERE parent = OLD.downloads_id;
-
-        UPDATE downloads_p
-        SET parent = NULL
-        WHERE parent = OLD.downloads_id;
-
-        DELETE FROM raw_downloads
-        WHERE object_id = OLD.downloads_id;
-
-        DELETE FROM download_texts
-        WHERE downloads_id = OLD.downloads_id;
-
-        DELETE FROM cache.extractor_results_cache
-        WHERE downloads_id = OLD.downloads_id;
-
-        DELETE FROM cache.s3_raw_downloads_cache
-        WHERE object_id = OLD.downloads_id;
+        DELETE FROM stories_tags_map_p
+            WHERE stories_id = OLD.stories_id
+              AND tags_id = OLD.tags_id;
 
         -- Return deleted rows
         RETURN OLD;
@@ -224,6 +202,10 @@ BEGIN
 
 END;
 $$ LANGUAGE plpgsql;
+
+CREATE TRIGGER stories_tags_map_view_insert_update_delete
+    INSTEAD OF INSERT OR UPDATE OR DELETE ON stories_tags_map
+    FOR EACH ROW EXECUTE PROCEDURE stories_tags_map_view_insert_update_delete();
 
 
 --

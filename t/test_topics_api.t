@@ -8,7 +8,7 @@ use Catalyst::Test 'MediaWords';
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-use List::MoreUtils "uniq";
+use List::MoreUtils qw/uniq/;
 use List::Util "shuffle";
 use Math::Prime::Util;
 use Readonly;

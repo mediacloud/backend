@@ -24,7 +24,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4705;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4707;
 BEGIN
 
     -- Update / set database schema version
@@ -2770,26 +2770,6 @@ create table snap.medium_links (
 create index medium_links_source on snap.medium_links( timespans_id, source_media_id );
 create index medium_links_ref on snap.medium_links( timespans_id, ref_media_id );
 
-create table snap.daily_date_counts (
-    snapshots_id            int not null references snapshots on delete cascade,
-    publish_date                    date not null,
-    story_count                     int not null,
-    tags_id                         int
-);
-
-create index daily_date_counts_date on snap.daily_date_counts( snapshots_id, publish_date );
-create index daily_date_counts_tag on snap.daily_date_counts( snapshots_id, tags_id );
-
-create table snap.weekly_date_counts (
-    snapshots_id            int not null references snapshots on delete cascade,
-    publish_date                    date not null,
-    story_count                     int not null,
-    tags_id                         int
-);
-
-create index weekly_date_counts_date on snap.weekly_date_counts( snapshots_id, publish_date );
-create index weekly_date_counts_tag on snap.weekly_date_counts( snapshots_id, tags_id );
-
 -- create a mirror of the stories table with the stories for each topic.  this is to make
 -- it much faster to query the stories associated with a given topic, rather than querying the
 -- contested and bloated stories table.  only inserts and updates on stories are triggered, because
@@ -3084,8 +3064,7 @@ INSERT INTO auth_roles (role, description) VALUES
     ('stories-edit', 'Add / edit stories.'),
     ('tm', 'Topic mapper; includes media and story editing'),
     ('tm-readonly', 'Topic mapper; excludes media and story editing'),
-    ('stories-api', 'Access to the stories api'),
-    ('search', 'Access to the /search pages');
+    ('stories-api', 'Access to the stories api');
 
 
 --
@@ -3198,7 +3177,7 @@ CREATE TABLE auth_users_subscribe_to_newsletter (
 CREATE TABLE activities (
     activities_id       SERIAL          PRIMARY KEY,
 
-    -- Activity's name (e.g. "media_edit", "story_edit", etc.)
+    -- Activity's name (e.g. "tm_snapshot_topic")
     name                VARCHAR(255)    NOT NULL
                                         CONSTRAINT activities_name_can_not_contain_spaces CHECK(name NOT LIKE '% %'),
 
@@ -3212,7 +3191,6 @@ CREATE TABLE activities (
     user_identifier     CITEXT          NOT NULL,
 
     -- Indexed ID of the object that was modified in some way by the activity
-    -- (e.g. media's ID "media_edit" or story's ID in "story_edit")
     object_id           BIGINT          NULL,
 
     -- User-provided reason explaining why the activity was made
