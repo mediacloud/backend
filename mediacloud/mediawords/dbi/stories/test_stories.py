@@ -10,7 +10,7 @@ from mediawords.test.db.create import (
     create_test_feed,
     create_test_story,
     create_test_story_stack,
-    create_download_for_feed,
+    create_download_for_story,
 )
 from mediawords.test.test_database import TestDatabaseWithSchemaTestCase
 from mediawords.util.sql import increment_day
@@ -27,13 +27,8 @@ class TestStories(TestDatabaseWithSchemaTestCase):
 
         self.test_medium = create_test_medium(self.db(), self.TEST_MEDIUM_NAME)
         self.test_feed = create_test_feed(self.db(), self.TEST_FEED_NAME, self.test_medium)
-        self.test_download = create_download_for_feed(self.db(), self.test_feed)
         self.test_story = create_test_story(self.db(), label=self.TEST_STORY_NAME, feed=self.test_feed)
-
-        self.test_download['path'] = 'postgresql:foo'
-        self.test_download['state'] = 'success'
-        self.test_download['stories_id'] = self.test_story['stories_id']
-        self.db().update_by_id('downloads', self.test_download['downloads_id'], self.test_download)
+        self.test_download = create_download_for_story(self.db(), feed=self.test_feed, story=self.test_story)
 
     def test_is_new(self):
 
