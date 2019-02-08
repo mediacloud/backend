@@ -23,6 +23,11 @@ CREATE INDEX IF NOT EXISTS downloads_story_not_null
     WHERE stories_id IS NOT NULL;
 
 
+-- Needed for effective migration to a partitioned table
+CREATE INDEX IF NOT EXISTS downloads_type
+    ON downloads (type);
+
+
 CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
