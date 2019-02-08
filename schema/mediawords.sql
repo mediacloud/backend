@@ -761,10 +761,6 @@ CREATE INDEX downloads_np_story_not_null
     ON downloads_np (stories_id)
     WHERE stories_id IS NOT NULL;
 
--- Needed for effective migration to a partitioned table
-CREATE INDEX downloads_type
-    ON downloads (type);
-
 CREATE INDEX downloads_np_state_downloads_id_pending
     ON downloads_np (state, downloads_np_id)
     WHERE state = 'pending';

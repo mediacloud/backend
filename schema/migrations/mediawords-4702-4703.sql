@@ -68,8 +68,6 @@ ALTER INDEX downloads_story
     RENAME TO downloads_np_story;
 ALTER INDEX downloads_story_not_null
     RENAME TO downloads_np_story_not_null;
-ALTER INDEX downloads_type
-    RENAME TO downloads_np_type;
 ALTER INDEX downloads_state_downloads_id_pending
     RENAME TO downloads_np_state_downloads_id_pending;
 ALTER INDEX downloads_extracted
