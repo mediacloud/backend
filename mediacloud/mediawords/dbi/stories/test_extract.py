@@ -2,7 +2,12 @@ from mediawords.dbi.stories.extract import (
     _get_extracted_text,
     get_text_for_word_counts,
 )
-from mediawords.test.db.create import create_test_medium, create_test_feed, create_download_for_feed, create_test_story
+from mediawords.test.db.create import (
+    create_test_medium,
+    create_test_feed,
+    create_test_story,
+    create_download_for_story,
+)
 from mediawords.test.test_database import TestDatabaseWithSchemaTestCase
 
 
@@ -17,13 +22,8 @@ class TestExtract(TestDatabaseWithSchemaTestCase):
 
         self.test_medium = create_test_medium(self.db(), self.TEST_MEDIUM_NAME)
         self.test_feed = create_test_feed(self.db(), self.TEST_FEED_NAME, self.test_medium)
-        self.test_download = create_download_for_feed(self.db(), self.test_feed)
         self.test_story = create_test_story(self.db(), label=self.TEST_STORY_NAME, feed=self.test_feed)
-
-        self.test_download['path'] = 'postgresql:foo'
-        self.test_download['state'] = 'success'
-        self.test_download['stories_id'] = self.test_story['stories_id']
-        self.db().update_by_id('downloads', self.test_download['downloads_id'], self.test_download)
+        self.test_download = create_download_for_story(self.db(), feed=self.test_feed, story=self.test_story)
 
     def test_get_extracted_text(self):
         download_texts = [
@@ -33,16 +33,9 @@ class TestExtract(TestDatabaseWithSchemaTestCase):
         ]
 
         for download_text in download_texts:
-            test_download = create_download_for_feed(self.db(), self.test_feed)
+            test_download = create_download_for_story(self.db(), feed=self.test_feed, story=self.test_story)
             downloads_id = test_download['downloads_id']
 
-            self.db().update_by_id(
-                table='downloads',
-                object_id=downloads_id,
-                update_hash={
-                    'stories_id': self.test_story['stories_id'],
-                }
-            )
             self.db().create(
                 table='download_texts',
                 insert_hash={
@@ -92,16 +85,9 @@ class TestExtract(TestDatabaseWithSchemaTestCase):
         )
 
         for download_text in download_texts:
-            test_download = create_download_for_feed(self.db(), self.test_feed)
+            test_download = create_download_for_story(self.db(), feed=self.test_feed, story=self.test_story)
             downloads_id = test_download['downloads_id']
 
-            self.db().update_by_id(
-                table='downloads',
-                object_id=downloads_id,
-                update_hash={
-                    'stories_id': self.test_story['stories_id'],
-                }
-            )
             self.db().create(
                 table='download_texts',
                 insert_hash={
