@@ -15,11 +15,9 @@ class TestExtractStoryLinksJobDB(mediawords.test.test_database.TestDatabaseWithS
 
         story = media['A']['feeds']['B']['stories']['1']
 
-        download = mediawords.test.db.create.create_download_for_story(
-            db=db,
-            feed=media['A']['feeds']['B'],
-            story=story,
-        )
+        download = mediawords.test.db.create.create_download_for_feed(db, media['A']['feeds']['B'])
+        download['stories_id'] = story['stories_id']
+        db.update_by_id('downloads', download['downloads_id'], download)
 
         mediawords.dbi.downloads.store_content(db, download, '<p>foo</p>')
 

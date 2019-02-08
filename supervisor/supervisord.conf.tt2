@@ -132,17 +132,6 @@ programs = crawler
 %]
 
 [% INCLUDE program_config
-    program='move_nonpartitioned_downloads_to_partitions'
-    command="./script/run_in_env.sh ./tools/db/move_nonpartitioned_downloads_to_partitions.py"
-    default_stopasgroup='true'
-    default_killasgroup='true'
-    default_autorestart='false'
-    default_autostart='true'
-    priority=5
-    default_nice=12
-%]
-
-[% INCLUDE program_config
     program='purge_object_caches'
     command="./script/run_in_env.sh ./tools/db/purge_object_caches.py"
     default_stopasgroup='true'

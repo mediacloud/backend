@@ -8,7 +8,6 @@ import mediawords.tm.extract_story_links
 
 def test_get_links_from_html() -> None:
     """Test get_links_from_html()."""
-
     def test_links(html: str, links: list) -> None:
         assert mediawords.tm.extract_story_links.get_links_from_html(html) == links
 
@@ -61,11 +60,9 @@ class TestExtractStoryLinksDB(mediawords.test.test_database.TestDatabaseWithSche
 
         story = media['A']['feeds']['B']['stories']['1']
 
-        download = mediawords.test.db.create.create_download_for_story(
-            db=db,
-            feed=media['A']['feeds']['B'],
-            story=story,
-        )
+        download = mediawords.test.db.create.create_download_for_feed(db, media['A']['feeds']['B'])
+        download['stories_id'] = story['stories_id']
+        db.update_by_id('downloads', download['downloads_id'], download)
 
         mediawords.dbi.downloads.store_content(db, download, '<p>foo</p>')
 
@@ -243,4 +240,4 @@ class TestExtractStoryLinksDB(mediawords.test.test_database.TestDatabaseWithSche
 
         topic_links = db.query("select * from topic_links where topics_id = %(a)s", {'a': topic['topics_id']}).hashes()
 
-        assert (len(topic_links) == mediawords.tm.domains.MAX_SELF_LINKS)
+        assert(len(topic_links) == mediawords.tm.domains.MAX_SELF_LINKS)
