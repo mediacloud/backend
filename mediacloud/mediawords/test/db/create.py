@@ -35,6 +35,29 @@ def create_download_for_feed(db: DatabaseHandler, feed: dict) -> dict:
         })
 
 
+def create_download_for_story(db: DatabaseHandler, feed: dict, story: dict) -> dict:
+    feed = decode_object_from_bytes_if_needed(feed)
+    story = decode_object_from_bytes_if_needed(story)
+
+    host = get_url_host(url=feed['url'])
+
+    return db.create(
+        table='downloads',
+        insert_hash={
+            'feeds_id': feed['feeds_id'],
+            'url': story['url'],
+            'host': host,
+            'type': 'content',
+            'sequence': 1,
+            'state': 'success',
+            'priority': 1,
+            'extracted': False,
+            'path': 'postgresql:foo',
+            'stories_id': story['stories_id'],
+        }
+    )
+
+
 class McCreateTestStoryStack(Exception):
     """create_test_story_stack() exception."""
     pass
