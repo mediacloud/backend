@@ -195,7 +195,7 @@ sub _query_encoded_json($$;$)
 
     _uppercase_boolean_operators( $params->{ fq } );
 
-    $params->{ q } = MediaWords::Solr::Query::PseudoQueries::transform_query( $params->{ q } );
+    $params->{ q } = MediaWords::Solr::Query::PseudoQueries::transform_query( $db, $params->{ q } );
     $params->{ q } = _insert_collection_media_ids( $db, $params->{ q } );
 
     $params->{ fq } = [ map { _insert_collection_media_ids( $db, $_ ) } @{ $params->{ fq } } ];
@@ -266,7 +266,8 @@ sub _query_encoded_json($$;$)
                         {
                             my $solr_error_msg = $solr_response_json->{ error }->{ msg };
                             my $solr_params =
-                              MediaWords::Util::ParseJSON::encode_json( $solr_response_json->{ responseHeader }->{ params } );
+                              MediaWords::Util::ParseJSON::encode_json(
+                                $solr_response_json->{ responseHeader }->{ params } );
 
                             # If we were able to decode Solr error message, overwrite the default error message with it
                             $error_message = 'Solr error: "' . $solr_error_msg . '", params: ' . $solr_params;
@@ -491,12 +492,12 @@ sub _get_stories_ids_from_stories_only_q
 # transform the psuedoquery fields in the q and fq params and then run a simple pattern to detect
 # queries that consists of one or more AND'ed stories_id:... clauses in the q param and all fq params.
 # return undef if either the q or any of the fq params do not match.
-sub _get_stories_ids_from_stories_only_params
+sub _get_stories_ids_from_stories_only_params($$)
 {
-    my ( $params ) = @_;
+    my ( $db, $params ) = @_;
 
-    $params->{ q }  = MediaWords::Solr::Query::PseudoQueries::transform_query( $params->{ q } );
-    $params->{ fq } = MediaWords::Solr::Query::PseudoQueries::transform_query( $params->{ fq } );
+    $params->{ q }  = MediaWords::Solr::Query::PseudoQueries::transform_query( $db, $params->{ q } );
+    $params->{ fq } = MediaWords::Solr::Query::PseudoQueries::transform_query( $db, $params->{ fq } );
 
     my $q     = $params->{ q };
     my $fqs   = $params->{ fq };
@@ -571,7 +572,7 @@ sub search_for_stories_ids ($$)
 
     my $p = { %{ $params } };
 
-    if ( my $stories_ids = _get_stories_ids_from_stories_only_params( $p ) )
+    if ( my $stories_ids = _get_stories_ids_from_stories_only_params( $db, $p ) )
     {
         return $stories_ids;
     }
