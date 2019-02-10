@@ -15,7 +15,7 @@ stories to import by using the `solr_import_stories` postgres table.  Rows are a
 associated with the `stories` and `stories_tags_map` tables.
 
 The list of fields imported by Solr is configured in
-[solr/collections/_base_collection/conf/schema.xml](../solr/collections/_base_collection/conf/schema.xml).  As of this doc, we index the
+[solr/collections/mediacloud/conf/schema.xml](../solr/collections/mediacloud/conf/schema.xml).  As of this doc, we index the
 following fields:
 
 * `media_id`

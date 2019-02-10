@@ -67,63 +67,6 @@ sub get_solr_url
     return $url;
 }
 
-=head2 get_live_collection( $db )
-
-Get the name of the currently live collection, as stored in database_variables in postgres.
-
-We configure solr to  run 2 collections (collection1 and collection2) so that we can use one for staging a full import
-while the other stays live.  If you need to create a solr url using get_solr_url(), you should always use this function
-to create the collection name to query the production server (or get_staging_collection() to query the staging server).
-
-The flag for which collection is live is stored in postgres rather than in mediawords.yml so that the staging server
-can be changed without needing to reboot all running clients that might query solr.
-
-=cut
-
-sub get_live_collection
-{
-    my ( $db ) = @_;
-
-    my ( $collection ) = $db->query( "select value from database_variables where name = 'live_solr_collection' " )->flat;
-
-    return $collection || 'collection1';
-}
-
-=head2 get_staging_collection( $db )
-
-Get the name of the staging collection.  See get_live_collection() above.
-
-=cut
-
-sub get_staging_collection
-{
-    my ( $db ) = @_;
-
-    my $live_collection = get_live_collection( $db );
-
-    return $live_collection eq 'collection1' ? 'collection2' : 'collection1';
-}
-
-=head2 swap_live_collection( $db )
-
-Swap which collection is live and which is staging.  See get_live_collection() above.
-
-=cut
-
-sub swap_live_collection
-{
-    my ( $db ) = @_;
-
-    my $current_staging_collection = get_staging_collection( $db );
-
-    $db->begin;
-
-    $db->query( "delete from database_variables where name = 'live_solr_collection'" );
-    $db->create( 'database_variables', { name => 'live_solr_collection', value => $current_staging_collection } );
-
-    $db->commit;
-}
-
 =head2 get_last_num_found
 
 Get the number of sentences found from the last solr query run in this process.  This function does not perform a solr
@@ -294,7 +237,7 @@ sub _query_encoded_json($$;$)
 
     $params->{ fq } = [ map { _insert_collection_media_ids( $db, $_ ) } @{ $params->{ fq } } ];
 
-    my $url = sprintf( '%s/%s/select', get_solr_url(), get_live_collection( $db ) );
+    my $url = sprintf( '%s/mediacloud/select', get_solr_url() );
 
     my $ua = MediaWords::Util::Web::UserAgent->new();
 
