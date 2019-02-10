@@ -57,7 +57,7 @@ has 'db' => ( is => 'rw' );
 # list of all attribute names that should be exposed as cgi params
 sub __get_cgi_param_attributes()
 {
-    return [ qw(q fq num_words sample_size random_seed include_stopwords include_stats no_remote ngram_size) ];
+    return [ qw(q fq num_words sample_size random_seed include_stopwords include_stats ngram_size) ];
 }
 
 # return hash of attributes for use as cgi params
