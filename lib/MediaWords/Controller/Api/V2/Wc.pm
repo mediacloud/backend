@@ -38,6 +38,9 @@ sub list_GET : PathPrefix( '/api' )
 {
     my ( $self, $c ) = @_;
 
+    my $wc = MediaWords::Solr::WordCounts->new( int( $c->req->params->{ ngram_size } ),
+        int( $c->req->params->{ include_stopwords } ) );
+
     my $sample_size = int( $c->req->params->{ sample_size } // 0 );
 
     if ( $sample_size and $sample_size > 100_000 )
@@ -45,11 +48,15 @@ sub list_GET : PathPrefix( '/api' )
         $sample_size = 100_000;
     }
 
-    $c->req->params->{ sample_size } = $sample_size;
-
-    my $wc = MediaWords::Solr::WordCounts->new( { db => $c->dbis, cgi_params => $c->req->params } );
-
-    my $words = $wc->get_words;
+    my $words = $wc->get_words(
+        $c->dbis,
+        $c->req->params->{ q },
+        $c->req->params->{ fq },
+        $sample_size,
+        int( $c->req->params->{ num_words } ),
+        int( $c->req->params->{ random_seed } ),
+        int( $c->req->params->{ include_stats } )
+    );
 
     $self->status_ok( $c, entity => $words );
 }

@@ -162,7 +162,7 @@ sub _get_story_date_range
 # By default, assume that any solr title part that is less than 5 words long or that is associated with a story whose
 # url has no path is a home page and therefore should not be considered as a possible duplicate title part.  If
 # $assume_no_home_pages is true, treat every solr url part greater than two words as a potential duplicate title part.
-# 
+#
 # Don't recognize twitter stories as dups, because the tweet title is the tweet text, and we want to capture retweets.
 sub get_medium_dup_stories_by_title
 {
@@ -323,9 +323,6 @@ sub get_story_word_matrix($$;$)
         for my $story ( @{ $stories } )
         {
             my $wc = MediaWords::Solr::WordCounts->new();
-
-            # Remove stopwords from the stems
-            $wc->include_stopwords( 0 );
 
             my $sentences_and_story_languages = [];
             for my $sentence ( split( $sentence_separator, $story->{ story_text } ) )

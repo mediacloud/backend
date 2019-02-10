@@ -24,7 +24,7 @@ BEGIN
 # test count_stems() function that does the core word counting logic
 sub test_count_stems
 {
-    my $wc = MediaWords::Solr::WordCounts->new( include_stopwords => 0 );
+    my $wc = MediaWords::Solr::WordCounts->new();
 
     my $sentences_and_story_languages = [
         {
@@ -120,7 +120,8 @@ sub test_count_stems
 
     cmp_deeply( $got_stems, $expected_stems, "counts ngram_size = 1" );
 
-    $wc->ngram_size( 2 );
+    my $ngram_size = 2;
+    $wc = MediaWords::Solr::WordCounts->new( $ngram_size );
 
     my $got_bigrams = $wc->count_stems( $sentences_and_story_languages );
 
@@ -241,7 +242,10 @@ select
         sentence ~ ?
 SQL
 
-    my $wc = MediaWords::Solr::WordCounts->new( include_stopwords => 1 );
+    my $ngram_size        = undef;
+    my $include_stopwords = 1;
+
+    my $wc = MediaWords::Solr::WordCounts->new( $ngram_size, $include_stopwords );
 
     my $num_words = 10;
 
@@ -260,13 +264,14 @@ SQL
 
     splice( @{ $expected_counts }, $num_words );
 
-    my $test_wc = MediaWords::Solr::WordCounts->new(
-        db                => $db,
-        q                 => "$first_word*",
-        num_words         => $num_words,
-        include_stopwords => 1
+    my $test_wc = MediaWords::Solr::WordCounts->new( $ngram_size, $include_stopwords );
+    my $got_counts = $test_wc->get_words(
+        $db,                                      #
+        "$first_word*",                           # q
+        undef,                                    # fq
+        undef,                                    # sample_size
+        $num_words,                               # num_words
     );
-    my $got_counts = $test_wc->get_words();
 
     # term is hard to test without reproducing lots of logic, and term counting is already tested above
     map { delete( $_->{ term } ) } @{ $got_counts };

@@ -1,23 +1,14 @@
 package MediaWords::Solr::WordCounts;
 
-=head1 NAME
-
-MediaWords::Solr::WordCounts - handle word counting from solr
-
-=head1 DESCRIPTION
-
-Uses sampling to generate quick word counts from solr queries.
-
-=cut
+#
+# Handle word counting from Solr
+#
 
 use strict;
 use warnings;
-use utf8;
 
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
-
-use Moose;
 
 use Data::Dumper;
 use List::Util;
@@ -36,97 +27,29 @@ Readonly my $MAX_SENTENCE_LENGTH => 1024;
 # Max. number of times to count a word in a single sentence
 Readonly my $MAX_REPEATS_PER_SENTENCE => 3;
 
-# Moose instance fields
+# Default parameter values
+Readonly my $DEFAULT_SAMPLE_SIZE       => 1000;
+Readonly my $DEFAULT_NGRAM_SIZE        => 1;
+Readonly my $DEFAULT_INCLUDE_STOPWORDS => 0;
+Readonly my $DEFAULT_NUM_ROWS          => 500;
+Readonly my $DEFAULT_RANDOM_SEED       => 1;
+Readonly my $DEFAULT_INCLUDE_STATS     => 0;
 
-has 'q'                         => ( is => 'rw', isa => 'Str' );
-has 'fq'                        => ( is => 'rw', isa => 'ArrayRef' );
-has 'num_words'                 => ( is => 'rw', isa => 'Int', default => 500 );
-has 'sample_size'               => ( is => 'rw', isa => 'Int', default => 1000 );
-has 'random_seed'               => ( is => 'rw', isa => 'Int', default => 1 );
-has 'ngram_size'                => ( is => 'rw', isa => 'Int', default => 1 );
-has 'include_stopwords'         => ( is => 'rw', isa => 'Bool', default => 0 );
-has 'include_stats'             => ( is => 'rw', isa => 'Bool', default => 0 );
-
-has 'db' => ( is => 'rw' );
-
-has '__cached_combined_stopwords' => ( is => 'rw', isa => 'HashRef' );
-
-# list of all attribute names that should be exposed as cgi params
-sub __get_cgi_param_attributes()
+sub new($;$$)
 {
-    return [ qw(q fq num_words sample_size random_seed ngram_size include_stopwords include_stats) ];
+    my ( $class, $ngram_size, $include_stopwords ) = @_;
+
+    my $self = {};
+    bless( $self, $class );
+
+    $self->{ _ngram_size }        = $ngram_size        // $DEFAULT_NGRAM_SIZE + 0;
+    $self->{ _include_stopwords } = $include_stopwords // $DEFAULT_INCLUDE_STOPWORDS + 0;
+
+    # Combined stopword cache
+    $self->{ _cached_combined_stopwords } = {};
+
+    return $self;
 }
-
-# return hash of attributes for use as cgi params
-sub _get_cgi_param_hash($)
-{
-    my ( $self ) = @_;
-
-    my $keys = __get_cgi_param_attributes();
-
-    my $meta = $self->meta;
-
-    my $hash = {};
-    map { $hash->{ $_ } = $meta->get_attribute( $_ )->get_value( $self ) } @{ $keys };
-
-    return $hash;
-}
-
-# add support for constructor in this form:
-#   WordsCounts->new( cgi_params => $cgi_params )
-# where $cgi_params is a hash of cgi params directly from a web request
-around BUILDARGS => sub {
-    my $orig  = shift;
-    my $class = shift;
-
-    my $args;
-    if ( ref( $_[ 0 ] ) )
-    {
-        $args = $_[ 0 ];
-    }
-    elsif ( defined( $_[ 0 ] ) )
-    {
-        $args = { @_ };
-    }
-    else
-    {
-        $args = {};
-    }
-
-    my $vals;
-    if ( $args->{ cgi_params } )
-    {
-        my $cgi_params = $args->{ cgi_params };
-
-        $vals = {};
-        my $keys = __get_cgi_param_attributes();
-        for my $key ( @{ $keys } )
-        {
-            if ( exists( $cgi_params->{ $key } ) )
-            {
-                $vals->{ $key } = $cgi_params->{ $key };
-            }
-        }
-
-        if ( $args->{ db } )
-        {
-            $vals->{ db } = $args->{ db };
-        }
-    }
-    else
-    {
-        $vals = $args;
-    }
-
-    if ( $vals->{ fq } && !ref( $vals->{ fq } ) )
-    {
-        $vals->{ fq } = [ $vals->{ fq } ];
-    }
-
-    $vals->{ fq } ||= [];
-
-    return $class->$orig( $vals );
-};
 
 # Cache merged hashes of stopwords for speed
 sub _combine_stopwords($$)
@@ -164,12 +87,7 @@ sub _combine_stopwords($$)
 
     my $cache_key = join( '-', @{ $language_codes } );
 
-    unless ( $self->__cached_combined_stopwords() )
-    {
-        $self->__cached_combined_stopwords( {} );
-    }
-
-    unless ( defined $self->__cached_combined_stopwords->{ $cache_key } )
+    unless ( defined $self->{ _cached_combined_stopwords }->{ $cache_key } )
     {
         my $combined_stopwords = {};
         foreach my $language ( @{ $languages } )
@@ -178,10 +96,10 @@ sub _combine_stopwords($$)
             $combined_stopwords = { ( %{ $combined_stopwords }, %{ $stopwords } ) };
         }
 
-        $self->__cached_combined_stopwords->{ $cache_key } = $combined_stopwords;
+        $self->{ _cached_combined_stopwords }->{ $cache_key } = $combined_stopwords;
     }
 
-    return $self->__cached_combined_stopwords->{ $cache_key };
+    return $self->{ _cached_combined_stopwords }->{ $cache_key };
 }
 
 # expects story_sentence hashes, with a story_language field.
@@ -234,7 +152,7 @@ sub count_stems($$)
         # Remove stopwords;
         # (don't stem stopwords first as they will usually be stemmed too much)
         my $combined_stopwords = {};
-        unless ( $self->include_stopwords )
+        unless ( $self->{ _include_stopwords } )
         {
             # Use both sentence's language and English stopwords
             $combined_stopwords = $self->_combine_stopwords( [ $lang_en, $lang_story, $lang_sentence ] );
@@ -263,9 +181,9 @@ sub count_stems($$)
 
         # Stem using sentence language's algorithm
         my $sentence_word_stems =
-          ( $self->ngram_size > 1 ) ? $sentence_words : $lang_sentence->stem_words( $sentence_words );
+          ( $self->{ _ngram_size } > 1 ) ? $sentence_words : $lang_sentence->stem_words( $sentence_words );
 
-        my $n          = $self->ngram_size;
+        my $n          = $self->{ _ngram_size };
         my $num_ngrams = scalar( @{ $sentence_words } ) - $n + 1;
 
         my $sentence_stem_counts = {};
@@ -292,29 +210,55 @@ sub count_stems($$)
 }
 
 # get sorted list of most common words in sentences matching a Solr query, Excludes stop words.
-sub get_words($)
+sub get_words($$$$;$$$)
 {
-    my ( $self ) = @_;
+    my ( $self, $db, $q, $fq, $sample_size, $num_words, $random_seed, $include_stats ) = @_;
 
-    my $db = $self->db;
+    if ( $fq )
+    {
+        unless ( ref( $fq ) )
+        {
+            $fq = [ $fq ];
+        }
+    }
+    else
+    {
+        $fq = [];
+    }
 
-    unless ( $self->q() || ( $self->fq && @{ $self->fq } ) )
+    unless ( defined $sample_size )
+    {
+        $sample_size = $DEFAULT_SAMPLE_SIZE + 0;
+    }
+    unless ( defined $num_words )
+    {
+        $num_words = $DEFAULT_NUM_ROWS + 0;
+    }
+    unless ( defined $random_seed )
+    {
+        $random_seed = $DEFAULT_RANDOM_SEED + 0;
+    }
+    unless ( defined $include_stats )
+    {
+        $include_stats = $DEFAULT_INCLUDE_STATS + 0;
+    }
+
+    unless ( $q or ( $fq and @{ $fq } ) )
     {
         return [];
     }
 
     my $solr_params = {
-        q    => $self->q(),
-        fq   => $self->fq,
-        rows => $self->sample_size,
-        sort => 'random_' . $self->random_seed . ' asc'
+        q    => $q,
+        fq   => $fq,
+        rows => $sample_size,
+        sort => 'random_' . $random_seed . ' asc'
     };
 
     DEBUG( "executing solr query ..." );
     DEBUG Dumper( $solr_params );
 
-    my $story_sentences =
-      MediaWords::Solr::Query::query_solr_for_matching_sentences( $self->db, $solr_params, $self->sample_size );
+    my $story_sentences = MediaWords::Solr::Query::query_solr_for_matching_sentences( $db, $solr_params, $sample_size );
 
     DEBUG( "counting sentences..." );
     my $words = $self->count_stems( $story_sentences );
@@ -354,17 +298,17 @@ sub get_words($)
         push( @{ $counts }, { stem => $w->{ stem }, count => $w->{ count }, term => $max_term } );
     }
 
-    splice( @{ $counts }, $self->num_words );
+    splice( @{ $counts }, $num_words );
 
-    if ( $self->include_stats )
+    if ( $include_stats )
     {
         return {
             stats => {
                 num_words_returned     => scalar( @{ $counts } ),
                 num_sentences_returned => scalar( @{ $story_sentences } ),
-                num_words_param        => $self->num_words,
-                sample_size_param      => $self->sample_size,
-                random_seed            => $self->random_seed
+                num_words_param        => $num_words,
+                sample_size_param      => $sample_size,
+                random_seed            => $random_seed
             },
             words => $counts
         };
