@@ -1135,10 +1135,13 @@ The media list call returns the list of media in the topic.
 | name      | null    | search for media with the given name     |
 | limit     | 20      | return the given number of media         |
 | link_id   | null    | return media using the paging link       |
+| q         | null    | return media with at least one matching story |
 
 The media\_id field can be specified multiple times to return a list of matching media sources.
 
 If the `name` parameter is specified, the call returns only media sources that match a case insensitive search specified value. If the specified value is less than 3 characters long, the call returns an empty list.
+
+If the `q` parameter is specified, the call returns only media sources for which at least one story matches the given solr query.
 
 The `sort` parameter will determine the order in which the stories are returned.  The `twitter` sort parameter
 will return randomly ordered results unless the topic is a twitter topic.
@@ -1262,7 +1265,7 @@ The media list call returns a gexf formatted network map of the media in the top
 
 | Parameter | Default | Notes                                    |
 | --------- | ------- | ---------------------------------------- |
-| color_field  | media_type    | node coloring; possible values: `partisan_code`, `media_type`          |
+| color_field  | media_type    | node coloring; possible values: `partisan_retweet`, `partisan_code`, `media_type`          |
 | num_media      | 500  | number of media to map, sorted by media inlinks |
 | include_weights | false | include weights on edges (default is to use a weight of 1 for every edge) |
 | num_links_per_medium | null | if set, only inclue the top num_links_per_media out links from each medium, sorted by medium_link_counts.link_count and then inlink_count of the target medium |
@@ -1946,10 +1949,12 @@ Response:
 
 #### Model was fetched
 
-Raw, [Pickle](https://docs.python.org/3/library/pickle.html)-serialized word2vec data is returned as `application/octet-stream`, to be later loaded with:
+Raw "word2vec C format" model data is returned as `application/octet-stream`, to be later loaded with:
 
 ```python
-model = KeyedVectors.load(path_to_model_data)
+import gensim
+
+word_vectors = gensim.models.KeyedVectors.load_word2vec_format('model.bin', binary=True)
 ```
 
 #### Failed to fetch the model

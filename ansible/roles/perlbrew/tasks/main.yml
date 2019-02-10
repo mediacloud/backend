@@ -41,6 +41,8 @@
         - perlbrew
 
   when: have_perlbrew.stat.executable is not defined or have_perlbrew.stat.executable == False
+  tags:
+    - perlbrew
 
 - name: Install Perlbrew cpanm
   command: "{{ perlbrew_root }}/bin/perlbrew install-cpanm"

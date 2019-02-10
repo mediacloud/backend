@@ -100,90 +100,6 @@ SQL
     }
 }
 
-sub test_get_user_public_queued_job($)
-{
-    my ( $db ) = @_;
-
-    my $label = "test_get_user_public_queued_job";
-
-    my $auth_user_api_key = MediaWords::Test::DB::Create::create_test_user( $db, $label );
-    my $auth_user = $db->query(
-        <<SQL,
-        SELECT auth_users_id
-        FROM auth_user_api_keys
-        WHERE api_key = ?
-SQL
-        $auth_user_api_key
-    )->hash;
-    my $auth_users_id = $auth_user->{ auth_users_id };
-
-    my $got_job_state = MediaWords::Controller::Api::V2::Topics::_get_user_public_queued_job( $db, $auth_users_id );
-    ok( !$got_job_state, "$label empty job queue" );
-
-    my $topic = MediaWords::Test::DB::Create::create_test_topic( $db, $label );
-    my $job_state = $db->create(
-        'job_states',
-        {
-            class      => 'MediaWords::Job::TM::MineTopic',
-            state      => 'queued',
-            priority   => 'low',
-            hostname   => 'localhost',
-            process_id => 1,
-            args       => '{ "topics_id": ' . $topic->{ topics_id } . ' }'
-        }
-    );
-
-    my $topic_permission = $db->create(
-        'topic_permissions',
-        {
-            auth_users_id => $auth_users_id,
-            topics_id     => $topic->{ topics_id },
-            permission    => 'admin'
-        }
-    );
-
-    $got_job_state = MediaWords::Controller::Api::V2::Topics::_get_user_public_queued_job( $db, $auth_users_id );
-    ok( $got_job_state, "$label queued job admin permission" );
-
-    $topic_permission =
-      $db->update_by_id( 'topic_permissions', $topic_permission->{ topic_permissions_id }, { permission => 'write' } );
-
-    $got_job_state = MediaWords::Controller::Api::V2::Topics::_get_user_public_queued_job( $db, $auth_users_id );
-    ok( $got_job_state, "$label queued job write permission" );
-
-    $topic_permission =
-      $db->update_by_id( 'topic_permissions', $topic_permission->{ topic_permissions_id }, { permission => 'read' } );
-
-    $got_job_state = MediaWords::Controller::Api::V2::Topics::_get_user_public_queued_job( $db, $auth_users_id );
-    ok( !$got_job_state, "$label queued job read permission" );
-
-    $topic_permission =
-      $db->update_by_id( 'topic_permissions', $topic_permission->{ topic_permissions_id }, { permission => 'admin' } );
-    $job_state = $db->update_by_id( 'job_states', $job_state->{ job_states_id }, { state => 'running' } );
-
-    $got_job_state = MediaWords::Controller::Api::V2::Topics::_get_user_public_queued_job( $db, $auth_users_id );
-    ok( $got_job_state, "$label running job admin permission" );
-
-    $job_state = $db->update_by_id( 'job_states', $job_state->{ job_states_id }, { state => 'error' } );
-
-    $got_job_state = MediaWords::Controller::Api::V2::Topics::_get_user_public_queued_job( $db, $auth_users_id );
-    ok( !$got_job_state, "$label error job admin permission" );
-
-    $job_state = $db->update_by_id( 'job_states', $job_state->{ job_states_id }, { state => 'completed' } );
-
-    $got_job_state = MediaWords::Controller::Api::V2::Topics::_get_user_public_queued_job( $db, $auth_users_id );
-    ok( !$got_job_state, "$label completed job admin permission" );
-
-    $job_state = $db->update_by_id(
-        'job_states',
-        $job_state->{ job_states_id },
-        { state => 'queued', class => 'MediaWords::Job::TM::MineTopicPublic' }
-    );
-
-    $got_job_state = MediaWords::Controller::Api::V2::Topics::_get_user_public_queued_job( $db, $auth_users_id );
-    ok( $got_job_state, "$label queued public job admin permission" );
-}
-
 # test controversies/list and single
 sub test_controversies($)
 {
@@ -518,7 +434,6 @@ sub test_topics
     test_topics_reset( $db );
     test_validate_max_stories( $db );
     test_is_mc_queue_user( $db );
-    test_get_user_public_queued_job( $db );
 
     test_controversies( $db );
     test_controversy_dumps( $db );

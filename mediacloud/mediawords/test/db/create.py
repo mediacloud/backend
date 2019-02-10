@@ -312,7 +312,7 @@ def _get_test_content() -> str:
         id blandit elit dignissim et.
     """
 
-    dictionary = set([word.lower() for word in re.findall(pattern='\w+', string=lipsum_text)])
+    dictionary = set([word.lower() for word in re.findall(pattern=r'\w+', string=lipsum_text)])
 
     text = ""
     for paragraph_count in range(random.randint(1, 10)):

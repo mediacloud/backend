@@ -24,7 +24,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4692;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4698;
 BEGIN
 
     -- Update / set database schema version
@@ -1330,8 +1330,7 @@ create table topic_domains (
     topic_domains_id        serial primary key,
     topics_id               int not null,
     domain                  text not null,
-    self_links              int not null default 0,
-    all_links               int not null default 0
+    self_links              int not null default 0
 );
 
 create unique index topic_domains_domain on topic_domains (topics_id, md5(domain));
@@ -1749,26 +1748,6 @@ create table snap.medium_links (
 create index medium_links_source on snap.medium_links( timespans_id, source_media_id );
 create index medium_links_ref on snap.medium_links( timespans_id, ref_media_id );
 
-create table snap.daily_date_counts (
-    snapshots_id            int not null references snapshots on delete cascade,
-    publish_date                    date not null,
-    story_count                     int not null,
-    tags_id                         int
-);
-
-create index daily_date_counts_date on snap.daily_date_counts( snapshots_id, publish_date );
-create index daily_date_counts_tag on snap.daily_date_counts( snapshots_id, tags_id );
-
-create table snap.weekly_date_counts (
-    snapshots_id            int not null references snapshots on delete cascade,
-    publish_date                    date not null,
-    story_count                     int not null,
-    tags_id                         int
-);
-
-create index weekly_date_counts_date on snap.weekly_date_counts( snapshots_id, publish_date );
-create index weekly_date_counts_tag on snap.weekly_date_counts( snapshots_id, tags_id );
-
 -- create a mirror of the stories table with the stories for each topic.  this is to make
 -- it much faster to query the stories associated with a given topic, rather than querying the
 -- contested and bloated stories table.  only inserts and updates on stories are triggered, because
@@ -2068,8 +2047,7 @@ INSERT INTO auth_roles (role, description) VALUES
     ('stories-edit', 'Add / edit stories.'),
     ('tm', 'Topic mapper; includes media and story editing'),
     ('tm-readonly', 'Topic mapper; excludes media and story editing'),
-    ('stories-api', 'Access to the stories api'),
-    ('search', 'Access to the /search pages');
+    ('stories-api', 'Access to the stories api');
 
 
 --
@@ -2182,7 +2160,7 @@ CREATE TABLE auth_users_subscribe_to_newsletter (
 CREATE TABLE activities (
     activities_id       SERIAL          PRIMARY KEY,
 
-    -- Activity's name (e.g. "media_edit", "story_edit", etc.)
+    -- Activity's name (e.g. "tm_snapshot_topic")
     name                VARCHAR(255)    NOT NULL
                                         CONSTRAINT activities_name_can_not_contain_spaces CHECK(name NOT LIKE '% %'),
 
@@ -2190,13 +2168,12 @@ CREATE TABLE activities (
     creation_date       TIMESTAMP       NOT NULL DEFAULT LOCALTIMESTAMP,
 
     -- User that executed the activity, either:
-    --     * user's email from "auth_users.email" (e.g. "lvaliukas@cyber.law.harvard.edu", or
-    --     * username that initiated the action (e.g. "system:lvaliukas")
+    --     * user's email from "auth_users.email" (e.g. "foo@bar.baz.com", or
+    --     * username that initiated the action (e.g. "system:foo")
     -- (store user's email instead of ID in case the user gets deleted)
     user_identifier     CITEXT          NOT NULL,
 
     -- Indexed ID of the object that was modified in some way by the activity
-    -- (e.g. media's ID "media_edit" or story's ID in "story_edit")
     object_id           BIGINT          NULL,
 
     -- User-provided reason explaining why the activity was made
@@ -2619,7 +2596,7 @@ create table topic_tweet_urls (
 );
 
 create index topic_tweet_urls_url on topic_tweet_urls ( url );
-create index topic_tweet_urls_tt on topic_tweet_urls ( topic_tweets_id, url );
+create unique index topic_tweet_urls_tt on topic_tweet_urls ( topic_tweets_id, url );
 
 -- view that joins together the related topic_tweets, topic_tweet_days, topic_tweet_urls, and topic_seed_urls tables
 -- tables for convenient querying of topic twitter url data
@@ -3032,3 +3009,49 @@ CREATE TABLE similarweb_media_metrics (
     monthly_audience               INTEGER                  NOT NULL,
     update_date                    TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
+
+
+CREATE TYPE media_sitemap_pages_change_frequency AS ENUM (
+    'always',
+    'hourly',
+    'daily',
+    'weekly',
+    'monthly',
+    'yearly',
+    'never'
+);
+
+
+-- Pages derived from XML sitemaps (stories or not)
+CREATE TABLE media_sitemap_pages (
+    media_sitemap_pages_id  BIGSERIAL   PRIMARY KEY,
+    media_id                INT         NOT NULL REFERENCES media (media_id) ON DELETE CASCADE,
+
+    -- <loc> -- URL of the page
+    url                     TEXT                                  NOT NULL,
+
+    -- <lastmod> -- date of last modification of the URL
+    last_modified           TIMESTAMP WITH TIME ZONE              NULL,
+
+    -- <changefreq> -- how frequently the page is likely to change
+    change_frequency        media_sitemap_pages_change_frequency  NULL,
+
+    -- <priority> -- priority of this URL relative to other URLs on your site
+    priority                DECIMAL(2, 1)                         NOT NULL DEFAULT 0.5,
+
+    -- <news:title> -- title of the news article
+    news_title              TEXT                                  NULL,
+
+    -- <news:publication_date> -- article publication date
+    news_publish_date       TIMESTAMP WITH TIME ZONE              NULL,
+
+    CONSTRAINT media_sitemap_pages_priority_within_bounds
+        CHECK (priority IS NULL OR (priority >= 0.0 AND priority <= 1.0))
+
+);
+
+CREATE INDEX media_sitemap_pages_media_id
+    ON media_sitemap_pages (media_id);
+
+CREATE UNIQUE INDEX media_sitemap_pages_url
+    ON media_sitemap_pages (url);

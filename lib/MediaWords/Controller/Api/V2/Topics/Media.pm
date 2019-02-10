@@ -8,7 +8,6 @@ use base 'Catalyst::Controller';
 use List::Util qw(first max maxstr min minstr reduce shuffle sum);
 use Moose;
 use namespace::autoclean;
-use List::Compare;
 
 use MediaWords::DBI::ApiLinks;
 use MediaWords::TM::Snapshot;
@@ -50,6 +49,14 @@ sub _get_extra_where_clause($$)
     {
         $media_ids = [ $media_ids ] unless ( ref( $media_ids ) eq ref( [] ) );
         my $media_ids_list = join( ',', map { int( $_ ) } @{ $media_ids } );
+        push( @{ $clauses }, "m.media_id in ( $media_ids_list )" );
+    }
+
+    if ( my $q = $c->req->params->{ q } )
+    {
+        $q = "timespans_id:$timespans_id and ( $q )";
+        my $media_ids = MediaWords::Solr::Query::search_for_media_ids( $c->dbis, { q => $q } );
+        my $media_ids_list = join( ',', map { int( $_ ) } ( @{ $media_ids }, -1 ) );
         push( @{ $clauses }, "m.media_id in ( $media_ids_list )" );
     }
 
@@ -123,6 +130,8 @@ sub list_GET
 
     my $timespan = MediaWords::TM::set_timespans_id_param( $c );
 
+    $c->req->params->{ limit } = int( List::Util::min( $c->req->params->{ limit } // 0, 1_000 ) );
+
     MediaWords::DBI::ApiLinks::process_and_stash_link( $c );
 
     my $db = $c->dbis;
@@ -134,10 +143,8 @@ sub list_GET
     my $timespans_id = $timespan->{ timespans_id };
     my $snapshots_id = $timespan->{ snapshots_id };
 
-    my $limit = $c->req->params->{ limit };
-    $limit = List::Util::min( $limit, 1_000 );
-
-    my $offset = $c->req->params->{ offset };
+    my $limit = int( $c->req->params->{ limit } );
+    my $offset = int( $c->req->params->{ offset } // 0 );
 
     my $extra_clause = _get_extra_where_clause( $c, $timespans_id );
 
@@ -172,14 +179,14 @@ sub links_GET
 
     my $timespan = MediaWords::TM::set_timespans_id_param( $c );
 
+    $c->req->params->{ limit } = int( List::Util::min( $c->req->params->{ limit } // 1_000, 1_000_000 ) );
+    my $limit = $c->req->params->{ limit };
+
     MediaWords::DBI::ApiLinks::process_and_stash_link( $c );
 
     my $db = $c->dbis;
 
-    my $limit = $c->req->params->{ limit } || 1_000;
-    $limit = List::Util::min( $limit, 1_000_000 );
-
-    my $offset = $c->req->params->{ offset } || 0;
+    my $offset = int( $c->req->params->{ offset } // 0 );
 
     my $timespans_id = $timespan->{ timespans_id };
     my $snapshots_id = $timespan->{ snapshots_id };
@@ -209,12 +216,17 @@ sub map_GET
 
     my $timespan             = MediaWords::TM::set_timespans_id_param( $c );
     my $color_field          = $c->req->params->{ color_field } || 'media_type';
-    my $num_media            = $c->req->params->{ num_media } || 500;
-    my $include_weights      = $c->req->params->{ include_weights } || 0;
-    my $num_links_per_medium = $c->req->params->{ num_links_per_medium } || 1000;
+    my $num_media            = int( $c->req->params->{ num_media } // 500 );
+    my $include_weights      = int( $c->req->params->{ include_weights } // 0 );
+    my $num_links_per_medium = int( $c->req->params->{ num_links_per_medium } // 1000 );
     my $exclude_media_ids    = $c->req->params->{ exclude_media_ids } || [];
 
-    $exclude_media_ids = [ $exclude_media_ids ] unless ( ref( $exclude_media_ids ) eq ref( [] ) );
+    unless ( ref( $exclude_media_ids ) eq ref( [] ) )
+    {
+        $exclude_media_ids = [ $exclude_media_ids ];
+    }
+
+    $exclude_media_ids = [ map { int( $_ ) } @{ $exclude_media_ids } ];
 
     my $db = $c->dbis;
 
@@ -232,10 +244,6 @@ sub map_GET
     my $gexf = MediaWords::TM::Snapshot::get_gexf_snapshot( $db, $timespan, $gexf_options );
 
     MediaWords::TM::Snapshot::discard_temp_tables( $db );
-
-    my $base_url = $c->uri_for( '/' );
-
-    $gexf =~ s/\[_mc_base_url_\]/$base_url/g;
 
     my $file = "media_$timespan->{ timespans_id }.gexf";
 

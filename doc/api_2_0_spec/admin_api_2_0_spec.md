@@ -10,16 +10,19 @@ Table of Contents
       * [api/v2/stories/list](#apiv2storieslist)
          * [Query Parameters](#query-parameters)
          * [Example](#example)
+      * [api/v2/stories/update (PUT)](#apiv2storiesupdate-put)
+         * [Input Description](#input-description)
+         * [Example](#example-1)
       * [api/v2/stories/cliff](#apiv2storiescliff)
          * [Query Parameters](#query-parameters-1)
-         * [Example](#example-1)
+         * [Example](#example-2)
       * [api/v2/stories/nytlabels](#apiv2storiesnytlabels)
          * [Query Parameters](#query-parameters-2)
-         * [Example](#example-2)
+         * [Example](#example-3)
    * [Sentences](#sentences)
       * [api/v2/sentences/list](#apiv2sentenceslist)
          * [Query Parameters](#query-parameters-3)
-         * [Example](#example-3)
+         * [Example](#example-4)
    * [Downloads](#downloads)
       * [api/v2/downloads/single/](#apiv2downloadssingle)
          * [Query Parameters](#query-parameters-4)
@@ -28,48 +31,58 @@ Table of Contents
    * [Tags](#tags)
       * [api/v2/stories/put_tags (PUT)](#apiv2storiesput_tags-put)
          * [Query Parameters](#query-parameters-6)
-         * [Input Description](#input-description)
-         * [Example](#example-4)
-      * [api/v2/tags/create (POST)](#apiv2tagscreate-post)
          * [Input Description](#input-description-1)
          * [Example](#example-5)
-      * [api/v2/tags/update (PUT)](#apiv2tagsupdate-put)
+      * [api/v2/tags/create (POST)](#apiv2tagscreate-post)
          * [Input Description](#input-description-2)
          * [Example](#example-6)
-      * [api/v2/tag_sets/create (POST)](#apiv2tag_setscreate-post)
+      * [api/v2/tags/update (PUT)](#apiv2tagsupdate-put)
          * [Input Description](#input-description-3)
          * [Example](#example-7)
-      * [api/v2/tag_sets/update (PUT)](#apiv2tag_setsupdate-put)
+      * [api/v2/tag_sets/create (POST)](#apiv2tag_setscreate-post)
          * [Input Description](#input-description-4)
          * [Example](#example-8)
-   * [Feeds](#feeds)
-      * [api/v2/feeds/create (POST)](#apiv2feedscreate-post)
+      * [api/v2/tag_sets/update (PUT)](#apiv2tag_setsupdate-put)
          * [Input Description](#input-description-5)
          * [Example](#example-9)
-      * [api/v2/feeds/update (PUT)](#apiv2feedsupdate-put)
+   * [Feeds](#feeds)
+      * [api/v2/feeds/create (POST)](#apiv2feedscreate-post)
          * [Input Description](#input-description-6)
          * [Example](#example-10)
-      * [api/v2/feeds/scrape (POST)](#apiv2feedsscrape-post)
+      * [api/v2/feeds/update (PUT)](#apiv2feedsupdate-put)
          * [Input Description](#input-description-7)
          * [Example](#example-11)
-      * [api/v2/feeds/scrape_status](#apiv2feedsscrape_status)
+      * [api/v2/feeds/scrape (POST)](#apiv2feedsscrape-post)
          * [Input Description](#input-description-8)
-         * [Output Description](#output-description-1)
          * [Example](#example-12)
+      * [api/v2/feeds/scrape_status](#apiv2feedsscrape_status)
+         * [Input Description](#input-description-9)
+         * [Output Description](#output-description-1)
+         * [Example](#example-13)
    * [Media](#media)
       * [api/v2/media/create (POST)](#apiv2mediacreate-post)
-         * [Input Description](#input-description-9)
-         * [Output Description](#output-description-2)
-         * [Example](#example-13)
-      * [api/v2/media/update (PUT)](#apiv2mediaupdate-put)
          * [Input Description](#input-description-10)
+         * [Output Description](#output-description-2)
          * [Example](#example-14)
+      * [api/v2/media/update (PUT)](#apiv2mediaupdate-put)
+         * [Input Description](#input-description-11)
+         * [Example](#example-15)
       * [api/v2/media/list_suggestions](#apiv2medialist_suggestions)
          * [Query Parameters](#query-parameters-7)
-         * [Example](#example-15)
-      * [api/v2/media/mark_suggestion](#apiv2mediamark_suggestion)
-         * [Input Description](#input-description-11)
          * [Example](#example-16)
+      * [api/v2/media/mark_suggestion](#apiv2mediamark_suggestion)
+         * [Input Description](#input-description-12)
+         * [Example](#example-17)
+   * [Users](#users)
+      * [api/v2/users/list](#apiv2userslist)
+         * [Query Parameters](#query-parameters-8)
+         * [Example](#example-18)
+      * [api/v2/users/update (PUT)](#apiv2usersupdate-put)
+         * [Input Description](#input-description-13)
+         * [Example](#example-19)
+      * [api/v2/users/list_roles](#apiv2userslist_roles)
+         * [Query Parameters](#query-parameters-9)
+         * [Example](#example-20)
 
 ----
 <!-- MEDIACLOUD-TOC-END -->
@@ -1030,3 +1043,212 @@ Output:
 ```json
 { "success": 1 }
 ```
+
+# Users
+
+## api/v2/users/single/
+
+| URL                              | Function
+| -------------------------------- | -------------------------------------------------------------
+| `api/v2/users/single/<auth\_users\_id>` | Return a single user
+
+### Query Parameters
+
+None.
+
+### Output
+
+See `api/v2/users/list` below for sample output.
+
+## api/v2/users/list
+
+| URL                             | Description                            |
+| ------------------------------- | -------------------------------------- |
+| `api/v2/users/list` | list authentication users |
+
+### Query Parameters
+
+| Parameter | Default | Notes                                    |
+| --------- | ------- | ---------------------------------------- |
+| auth\_users\_id | null    | return specified users, specify more than once to return a list of users
+| search    | null    | search for users by email or full\_name
+
+### Example
+
+URL: https://api.mediacloud.org/api/v2/users/list?search=foo
+
+Output:
+ 
+```
+[
+  {
+  "link_ids": {
+    "current": 116554
+  },
+  "users": [
+    {
+      "active": true,
+      "auth_users_id": 6308,
+      "created_date": "2018-09-05 17:32:29.075184",
+      "email": "foo@foo.bar",
+      "full_name": "Sample User",
+      "max_topic_stories": 100000,
+      "weekly_requests_limit": 10000,
+      "notes": "For demonstrating the user api
+      "roles": [
+        {
+          "auth_users_id": 6308,
+          "role": "search"
+        }
+      ]
+    },
+  ]
+]
+ 
+```
+
+## api/v2/users/update (PUT)
+
+| URL                 | Description                     |
+| ------------------- | ------------------------------- |
+| api/v2/users/update | update an existing user |
+
+This call updates a single existing user. 
+
+### Input Description
+
+| Field             | Description                              |
+| ----------------- | ---------------------------------------- |
+| auth\_users\_id   | user id (required)     |
+| full\_name        | full name of user |
+| email             | user email |
+| notes             | user submitted description of account usage |
+| active            | active state of user |
+| roles             | list of permission roles |
+| max\_topic\_stories | max size of max\_stories setting for topics |
+| weekly\_requests\_limit | max number of requests per week |
+
+The `roles` field should point to an array of strings, each of which is the
+'role' value for a role listed by `api/v2/users/list_roles`.  If the roles
+field is specified, the user's roles will be reset to consist only of the
+roles included in the given list.  If weekly\_requests\_limit is set to 0,
+the user will be able to submit an unlimited number of requests.
+
+All of the input fields other than
+`auth\_users\_id` are optional.  Any fields not specified will not be updated.
+
+### Example
+
+URL: https://api.mediacloud.org/api/v2/users/update
+
+Input:
+
+```json
+{
+  "auth_users_id": 123456,
+  "notes": "Some update notes,
+  "roles": ['admin'],
+  "active": 1,
+  "weekly_requests_limit": 20000
+}
+```
+
+Output:
+
+```json
+{ "success": 1 }
+```
+
+## api/v2/users/delete (PUT)
+
+| URL                 | Description                     |
+| ------------------- | ------------------------------- |
+| api/v2/users/delete | delete an existing user |
+
+This call deletes a single existing user. 
+
+### Input Description
+
+| Field             | Description                              |
+| ----------------- | ---------------------------------------- |
+| auth\_users\_id   | user id (required)     |
+
+
+### Example
+
+URL: https://api.mediacloud.org/api/v2/users/update
+
+Input:
+
+```json
+{
+  "auth_users_id": 123456,
+}
+```
+
+Output:
+
+```json
+{ "success": 1 }
+```
+
+## api/v2/users/list\_roles
+
+| URL                             | Description                            |
+| ------------------------------- | -------------------------------------- |
+| `api/v2/users/list\_roles` | list authentication user roles |
+
+### Query Parameters
+
+none.
+
+### Example
+
+URL: https://api.mediacloud.org/api/v2/users/list\_roles
+
+Output:
+ 
+```
+
+{
+  "roles": [
+    {
+      "auth_roles_id": 1,
+      "description": "Do everything, including editing users.",
+      "role": "admin"
+    },
+    {
+      "auth_roles_id": 2,
+      "description": "Read access to admin interface.",
+      "role": "admin-readonly"
+    },
+    {
+      "auth_roles_id": 4,
+      "description": "Add / edit media; includes feeds.",
+      "role": "media-edit"
+    },
+    {
+      "auth_roles_id": 5,
+      "description": "Add / edit stories.",
+      "role": "stories-edit"
+    },
+    {
+      "auth_roles_id": 7,
+      "description": "Access to the stories api",
+      "role": "stories-api"
+    },
+    {
+      "auth_roles_id": 6,
+      "description": "Topic mapper; includes media and story editing",
+      "role": "tm"
+    },
+    {
+      "auth_roles_id": 647,
+      "description": "Topic mapper; excludes media and story editing",
+      "role": "tm-readonly"
+    }
+  ]
+}
+ 
+```
+

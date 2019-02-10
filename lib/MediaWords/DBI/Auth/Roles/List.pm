@@ -28,6 +28,4 @@ Readonly our $TM_READONLY => $user_roles->tm_readonly();
 
 Readonly our $STORIES_API => $user_roles->stories_api();
 
-Readonly our $SEARCH => $user_roles->search();
-
 1;

@@ -25,9 +25,6 @@ nytprof*
 # Devel::Cover output
 cover_db/
 
-# Data dumps
-root/include/data_dumps
-
 # Vagrant and test suite temporary files
 .vagrant
 script/vagrant/vagrant_test_suite.lock
@@ -41,6 +38,7 @@ script/vagrant/temp-vagrant-mediacloud
 
 # pytest cache
 .cache
+.pytest_cache
 
 # Test coverage report
 .coverage

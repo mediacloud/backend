@@ -10,7 +10,7 @@ use warnings;
 use MediaWords::CommonLibs;
 
 use MediaWords::Util::Config;
-use MediaWords::Util::JSON;
+use MediaWords::Util::ParseJSON;
 use MediaWords::Util::Process;
 use MediaWords::Util::URL;
 use MediaWords::Util::Web;
@@ -20,7 +20,6 @@ use Readonly;
 use URI;
 use URI::QueryParam;
 use Data::Dumper;
-use List::MoreUtils qw/any/;
 
 # Facebook Graph API version to use
 Readonly my $FACEBOOK_GRAPH_API_VERSION => 'v2.8';
@@ -131,7 +130,7 @@ sub api_request($$)
 
         $decoded_content = $response->decoded_content;
 
-        eval { $data = MediaWords::Util::JSON::decode_json( $decoded_content ); };
+        eval { $data = MediaWords::Util::ParseJSON::decode_json( $decoded_content ); };
 
         if ( $response->is_success )
         {
@@ -145,6 +144,13 @@ sub api_request($$)
             {
                 # Error response is empty
                 LOGDIE 'Decoded content is empty';
+            }
+
+            # occasionally fb returns a 'something went wrong' 500 page that we don't want to kill the worker
+            if ( !$data && ( $decoded_content =~ /something went wrong/ ) )
+            {
+                $data = {};
+                $data->{ error } = { message => 'something went wrong', type => 'html_error_page', code => 500 };
             }
 
             unless ( $data )

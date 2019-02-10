@@ -36,13 +36,11 @@ use MediaWords::Util::JSON;
 use MediaWords::Util::Text;
 use MediaWords::Util::Web;
 
-use List::MoreUtils qw ( uniq );
+use List::MoreUtils qw/ uniq natatime /;
 
 use Time::HiRes;
 
 Readonly my $QUERY_HTTP_TIMEOUT => 900;
-
-Readonly my $DEFAULT_TAG_COUNT_LIMIT => 1000;
 
 # numFound from last query_solr() call, accessible get get_last_num_found
 my $_last_num_found;
@@ -451,11 +449,12 @@ sub query_solr_for_matching_sentences($$;$)
 
     my $stories_ids = search_for_stories_ids( $db, $params );
 
+    # sort stories_ids so that chunks below will pull close blocks of stories_ids where possible
+    $stories_ids = [ sort { $a <=> $b } @{ $stories_ids } ];
+
     return [] unless ( @{ $stories_ids } );
 
     die( "too many stories (limit is 1,000,000)" ) if ( scalar( @{ $stories_ids } ) > 1_000_000 );
-
-    my $stories_ids_list = join( ',', @{ $stories_ids } );
 
     my $re_clause = 'true';
 
@@ -474,9 +473,15 @@ sub query_solr_for_matching_sentences($$;$)
 
     my $order_limit = $random_limit ? "order by random() limit $random_limit" : 'order by sentence_number';
 
-    my $ids_table = $db->get_temporary_ids_table( $stories_ids );
+    # postgres decides at some point beyond 1000 stories to do this query as a seq scan
+    my $story_sentences   = [];
+    my $stories_per_chunk = 1000;
+    my $iter              = natatime( $stories_per_chunk, @{ $stories_ids } );
+    while ( my @chunk_stories_ids = $iter->() )
+    {
+        my $ids_table = $db->get_temporary_ids_table( \@chunk_stories_ids );
 
-    my $story_sentences = $db->query( <<SQL )->hashes;
+        my $chunk_story_sentences = $db->query( <<SQL )->hashes;
 select
         ss.sentence,
         ss.media_id,
@@ -494,6 +499,8 @@ select
         $re_clause 
    $order_limit 
 SQL
+        push( @{ $story_sentences }, @{ $chunk_story_sentences } );
+    }
 
     return $random_limit ? $story_sentences : _order_sentences_by_stories_ids( $stories_ids, $story_sentences );
 }
@@ -756,10 +763,7 @@ sub get_num_found ($$)
 
 =head2 search_for_media_ids( $db, $params )
 
-Return all of the media ids that match the solr query by sampling solr results.
-
-Performs the query on solr and returns up to 200,000 randomly sorted stories, then culls the list of media_ids from
-the list of sampled sentences.
+Return all of the media ids that match the solr query.
 
 =cut
 
@@ -769,16 +773,23 @@ sub search_for_media_ids ($$)
 
     my $p = { %{ $params } };
 
-    $p->{ fl }            = 'media_id';
-    $p->{ group }         = 'true';
-    $p->{ 'group.field' } = 'media_id';
-    $p->{ sort }          = 'random_1 asc';
-    $p->{ rows }          = 200_000;
+    $p->{ fl }               = 'media_id';
+    $p->{ facet }            = 'true';
+    $p->{ 'facet.limit' }    = 1_000_000;
+    $p->{ 'facet.field' }    = 'media_id';
+    $p->{ 'facet.mincount' } = 1;
+    $p->{ rows }             = 0;
 
     my $response = query_solr( $db, $p );
 
-    my $groups = $response->{ grouped }->{ media_id }->{ groups };
-    my $media_ids = [ map { $_->{ groupValue } } @{ $groups } ];
+    my $counts = $response->{ facet_counts }->{ facet_fields }->{ media_id };
+
+    my $media_ids = [];
+    for ( my $i = 0 ; $i < scalar( @{ $counts } ) ; $i += 2 )
+    {
+        TRACE( $i );
+        push( @{ $media_ids }, $counts->[ $i ] );
+    }
 
     return $media_ids;
 }

@@ -8,7 +8,6 @@ use base 'Catalyst::Controller';
 use List::Util qw(first max maxstr min minstr reduce shuffle sum);
 use Moose;
 use namespace::autoclean;
-use List::Compare;
 use MediaWords::TM::Snapshot;
 use MediaWords::TM;
 
@@ -19,6 +18,13 @@ __PACKAGE__->config( action => { list => { Does => [ qw( ~TopicsReadAuthenticate
 sub apibase : Chained('/') : PathPart('api/v2/topics') : CaptureArgs(1)
 {
     my ( $self, $c, $topics_id ) = @_;
+
+    $topics_id = int( $topics_id // 0 );
+    unless ( $topics_id )
+    {
+        die "topics_id is unset.";
+    }
+
     $c->stash->{ topics_id } = $topics_id;
 }
 
@@ -40,8 +46,8 @@ sub list_GET
     my $timespan = MediaWords::TM::require_timespan_for_topic(
         $c->dbis,
         $c->stash->{ topics_id },
-        $c->req->params->{ timespans_id },
-        $c->req->params->{ snapshots_id }
+        int( $c->req->params->{ timespans_id } // 0 ),
+        int( $c->req->params->{ snapshots_id } // 0 )
     );
 
     my $q = $c->req->params->{ q };

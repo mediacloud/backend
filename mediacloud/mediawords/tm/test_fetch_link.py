@@ -2,24 +2,15 @@
 
 import datetime
 
-import mediawords.test.http.hash_server
+import mediawords.test.db.create
+import mediawords.test.hash_server
 import mediawords.test.test_database
 import mediawords.tm.fetch_link
+from mediawords.db.exceptions.handler import McUpdateByIDException
 from mediawords.util.web.user_agent.throttled import McThrottledDomainException
 
 
-def test_network_is_down() -> None:
-    """Test network_is_down()."""
-    hs = mediawords.test.http.hash_server.HashServer(port=0, pages={'/foo': 'bar'})
-    port = hs.port()
-    hs.start()
-    assert not mediawords.tm.fetch_link._network_is_down(host='localhost', port=port)
-
-    hs.stop()
-    assert mediawords.tm.fetch_link._network_is_down(host='localhost', port=port)
-
-
-def test_content_matches_topic() -> None:
+def testcontent_matches_topic() -> None:
     """Test content_matches_topic()."""
     assert mediawords.tm.fetch_link.content_matches_topic('foo', {'pattern': 'foo'})
     assert mediawords.tm.fetch_link.content_matches_topic('FOO', {'pattern': 'foo'})
@@ -36,12 +27,13 @@ class TestTMFetchLinkDB(mediawords.test.test_database.TestDatabaseWithSchemaTest
         db = self.db()
 
         def _meta_redirect(r):
-            return (
-                'HTTP/1.0 200 OK\r\n'
-                'Content-Type: text/html\r\n\r\n'
-                '<meta http-equiv="refresh" content="0; url=%s-foo">\n' % r.url())
+            resp = ""
+            resp += 'HTTP/1.0 200 OK\r\n'
+            resp += 'Content-Type: text/html\r\n\r\n'
+            resp += '<meta http-equiv="refresh" content="0; url=%s-foo">\n' % r.url()
+            return resp
 
-        hs = mediawords.test.http.hash_server.HashServer(
+        hs = mediawords.test.hash_server.HashServer(
             port=0,
             pages={
                 '/foo': 'bar',
@@ -63,24 +55,24 @@ class TestTMFetchLinkDB(mediawords.test.test_database.TestDatabaseWithSchemaTest
             'domain_timeout': 0
         }
 
-        # before delyaed start, 404s and 500s should still return None
-        assert not mediawords.tm.fetch_link.fetch_url(db, hs.page_url('/404'), **timeout_args).is_success()
-        assert not mediawords.tm.fetch_link.fetch_url(db, hs.page_url('/500'), **timeout_args).is_success()
+        # before delayed start, 404s and 500s should still return None
+        assert not mediawords.tm.fetch_link._fetch_url(db, hs.page_url('/404'), **timeout_args).is_success
+        assert not mediawords.tm.fetch_link._fetch_url(db, hs.page_url('/500'), **timeout_args).is_success
 
         # request for a valid page should make the call wait until the hs comes up
-        assert mediawords.tm.fetch_link.fetch_url(db, hs.page_url('/foo'), **timeout_args).decoded_content() == 'bar'
+        assert mediawords.tm.fetch_link._fetch_url(db, hs.page_url('/foo'), **timeout_args).content == 'bar'
 
         # and now a 400 should return a None
-        assert not mediawords.tm.fetch_link.fetch_url(db, hs.page_url('/400'), **timeout_args).is_success()
+        assert not mediawords.tm.fetch_link._fetch_url(db, hs.page_url('/400'), **timeout_args).is_success
 
         # make sure invalid url does not raise an exception
-        assert not mediawords.tm.fetch_link.fetch_url(db, 'this is not a url', **timeout_args) is None
+        assert not mediawords.tm.fetch_link._fetch_url(db, 'this is not a url', **timeout_args) is None
 
         # make sure that requests follow meta redirects
-        response = mediawords.tm.fetch_link.fetch_url(db, hs.page_url('/mr'), **timeout_args)
+        response = mediawords.tm.fetch_link._fetch_url(db, hs.page_url('/mr'), **timeout_args)
 
-        assert response.decoded_content() == 'meta redirect target'
-        assert response.request().url() == hs.page_url('/mr-foo')
+        assert response.content == 'meta redirect target'
+        assert response.last_requested_url == hs.page_url('/mr-foo')
 
     def test_get_seeded_content(self) -> None:
         """Test get_seeded_content()."""
@@ -93,16 +85,16 @@ class TestTMFetchLinkDB(mediawords.test.test_database.TestDatabaseWithSchemaTest
             'assume_match': True,
             'state': mediawords.tm.fetch_link.FETCH_STATE_PENDING})
 
-        assert mediawords.tm.fetch_link.get_seeded_content(db, tfu) is None
+        assert mediawords.tm.fetch_link._get_seeded_content(db, tfu) is None
 
         tsu_content = '<title>seeded content</title>'
         db.create('topic_seed_urls', {'topics_id': topic['topics_id'], 'url': tfu['url'], 'content': tsu_content})
 
-        response = mediawords.tm.fetch_link.get_seeded_content(db, tfu)
+        response = mediawords.tm.fetch_link._get_seeded_content(db, tfu)
 
-        assert response.decoded_content() == tsu_content
-        assert response.code() == 200
-        assert response.request().url() == tfu['url']
+        assert response.content == tsu_content
+        assert response.code == 200
+        assert response.last_requested_url == tfu['url']
 
         mediawords.tm.fetch_link.fetch_topic_url(db, tfu['topic_fetch_urls_id'], domain_timeout=0)
 
@@ -120,7 +112,7 @@ class TestTMFetchLinkDB(mediawords.test.test_database.TestDatabaseWithSchemaTest
         """Test fetch_topic_url()."""
         db = self.db()
 
-        hs = mediawords.test.http.hash_server.HashServer(
+        hs = mediawords.test.hash_server.HashServer(
             port=0,
             pages={
                 '/foo': '<title>foo</title>',
@@ -201,7 +193,7 @@ class TestTMFetchLinkDB(mediawords.test.test_database.TestDatabaseWithSchemaTest
 
         tfu = db.require_by_id('topic_fetch_urls', tfu['topic_fetch_urls_id'])
 
-        assert tfu['state'] == mediawords.tm.fetch_link.FETCH_STATE_IGNORE
+        assert tfu['state'] == mediawords.tm.fetch_link.FETCH_STATE_IGNORED
         assert tfu['code'] == 403
 
         # story match
@@ -334,17 +326,17 @@ class TestTMFetchLinkDB(mediawords.test.test_database.TestDatabaseWithSchemaTest
                 'url': tfu[0],
                 'state': tfu[1]})
 
-        request_failed_tfu = mediawords.tm.fetch_link.get_failed_url(db, topics_id, 'http://request.failed')
+        request_failed_tfu = mediawords.tm.fetch_link._get_failed_url(db, topics_id, 'http://request.failed')
         assert request_failed_tfu is not None
         assert request_failed_tfu['url'] == 'http://request.failed'
 
-        content_failed_tfu = mediawords.tm.fetch_link.get_failed_url(db, topics_id, 'http://content.match.failed')
+        content_failed_tfu = mediawords.tm.fetch_link._get_failed_url(db, topics_id, 'http://content.match.failed')
         assert content_failed_tfu is not None
         assert content_failed_tfu['url'] == 'http://content.match.failed'
 
-        assert mediawords.tm.fetch_link.get_failed_url(db, topics_id, 'http://story,added') is None
-        assert mediawords.tm.fetch_link.get_failed_url(db, topics_id, 'http://bogus.url') is None
-        assert mediawords.tm.fetch_link.get_failed_url(db, 0, 'http://request.failed') is None
+        assert mediawords.tm.fetch_link._get_failed_url(db, topics_id, 'http://story,added') is None
+        assert mediawords.tm.fetch_link._get_failed_url(db, topics_id, 'http://bogus.url') is None
+        assert mediawords.tm.fetch_link._get_failed_url(db, 0, 'http://request.failed') is None
 
     def test_try_update_topic_link_ref_stories_id(self) -> None:
         """Test try_update_topic_link_ref_stories_id()."""
@@ -401,5 +393,5 @@ class TestTMFetchLinkDB(mediawords.test.test_database.TestDatabaseWithSchemaTest
 
         # now generate an non-unique error and make sure we get an error
         bogus_tfu = {'topic_links_id': 0, 'topics_id': 'nan', 'stories_id': 'nan'}
-        with self.assertRaises(mediawords.db.exceptions.handler.McUpdateByIDException):
+        with self.assertRaises(McUpdateByIDException):
             mediawords.tm.fetch_link.try_update_topic_link_ref_stories_id(db, bogus_tfu)

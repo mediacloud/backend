@@ -30,7 +30,7 @@ use MediaWords::Languages::Language;
 use MediaWords::Solr::Query;
 use MediaWords::Util::Config;
 use MediaWords::Util::IdentifyLanguage;
-use MediaWords::Util::JSON;
+use MediaWords::Util::ParseJSON;
 use MediaWords::Util::Text;
 use MediaWords::Test::DB;
 use MediaWords::Test::DB::Environment;
@@ -59,7 +59,7 @@ has 'cached_combined_stopwords' => ( is => 'rw', isa => 'HashRef' );
 has 'db' => ( is => 'rw' );
 
 # list of all attribute names that should be exposed as cgi params
-sub get_cgi_param_attributes
+sub __get_cgi_param_attributes()
 {
     return [ qw(q fq num_words sample_size random_seed include_stopwords include_stats no_remote ngram_size) ];
 }
@@ -69,7 +69,7 @@ sub _get_cgi_param_hash($)
 {
     my ( $self ) = @_;
 
-    my $keys = get_cgi_param_attributes;
+    my $keys = __get_cgi_param_attributes();
 
     my $meta = $self->meta;
 
@@ -106,7 +106,7 @@ around BUILDARGS => sub {
         my $cgi_params = $args->{ cgi_params };
 
         $vals = {};
-        my $keys = get_cgi_param_attributes;
+        my $keys = __get_cgi_param_attributes();
         for my $key ( @{ $keys } )
         {
             if ( exists( $cgi_params->{ $key } ) )
@@ -417,7 +417,7 @@ sub _get_remote_words
         die( "error retrieving words from solr: " . $res->decoded_content );
     }
 
-    my $words = MediaWords::Util::JSON::decode_json( $res->decoded_content );
+    my $words = MediaWords::Util::ParseJSON::decode_json( $res->decoded_content );
 
     unless ( $words && ref( $words ) )
     {
@@ -450,7 +450,7 @@ sub _get_cache_key
 
     my $meta = $self->meta;
 
-    my $keys = $self->get_cgi_param_attributes;
+    my $keys = $self->__get_cgi_param_attributes();
 
     my $hash_key = "$_wc_cache_version:" . Dumper( map { $meta->get_attribute( $_ )->get_value( $self ) } @{ $keys } );
 

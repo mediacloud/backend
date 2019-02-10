@@ -11,6 +11,18 @@
   tags:
     - python-dependencies
 
+# Needs to be (re)created instead of just pointing to it via "pip" module in
+# case the Python version changes
+- name: Create Media Cloud virtualenv
+  command: "virtualenv {{ mediacloud_home }}/.virtualenvs/mediacloud/ --python=python{{ python_version }}"
+  args:
+    # Make sure that Python with the correct version gets symlinked
+    creates: "{{ mediacloud_home }}/.virtualenvs/mediacloud/bin/python{{ python_version }}"
+  become: true
+  become_user: "{{ mediacloud_user }}"
+  tags:
+    - python-dependencies
+
 - name: Create temporary directory for requirements.txt
   tempfile:
     state: directory
@@ -30,11 +42,32 @@
   tags:
     - python-dependencies
 
+# Has to be done separately before anything else because pyre2 depends on it,
+# and Pip is unable to figure out that it has to install Cython first from
+# requirements.txt
+- name: "Install Cython {{ cython_version }}"
+  pip:
+    name: Cython
+    version: "{{ cython_version }}"
+    virtualenv: "{{ mediacloud_home }}/.virtualenvs/mediacloud/"
+    virtualenv_python: "python{{ python_version }}"
+  become: true
+  become_user: "{{ mediacloud_user }}"
+  tags:
+    - python-dependencies
+
 - name: Install Media Cloud Python requirements
   pip:
     virtualenv: "{{ mediacloud_home }}/.virtualenvs/mediacloud/"
     virtualenv_python: "python{{ python_version }}"
     requirements: "{{ pip_requirements_tempdir.path }}/requirements.txt"
+  environment:
+    # 1) On OS X, Hunspell lies under /usr/local
+    # 2) On Ubuntu, this is a no-op
+    CFLAGS: "-I/usr/local/include"
+    CCFLAGS: "-I/usr/local/include"
+    CXXFLAGS: "-I/usr/local/include"
+    LDFLAGS: "-L/usr/local/lib"
   become: true
   become_user: "{{ mediacloud_user }}"
   tags:

@@ -11,9 +11,10 @@ from urllib.parse import quote, parse_qs
 import pytest
 from furl import furl
 
-from mediawords.test.http.hash_server import HashServer
+from mediawords.test.hash_server import HashServer
+from mediawords.util.compress import gzip, gunzip
 from mediawords.util.config import get_config as py_get_config, set_config as py_set_config
-from mediawords.util.json import encode_json, decode_json
+from mediawords.util.parse_json import encode_json, decode_json
 from mediawords.util.log import create_logger
 from mediawords.util.network import random_unused_port
 from mediawords.util.text import random_string
@@ -443,70 +444,6 @@ class TestUserAgentTestCase(TestCase):
         assert response.is_success() is True
         assert urls_are_equal(url1=response.request().url(), url2=test_url)
 
-    def test_get_max_size_with_content_length_header(self):
-        """Max. download size (with Content-Length header)."""
-
-        test_content_length = 1024 * 10
-        test_content = random_string(length=test_content_length)
-
-        pages = {
-            '/max-download-side': {
-                'header': 'Content-Length: %d' % test_content_length,
-                'content': test_content,
-            },
-        }
-
-        max_size = int(test_content_length / 10)
-
-        hs = HashServer(port=self.__test_port, pages=pages)
-        hs.start()
-
-        ua = UserAgent()
-        ua.set_max_size(max_size)
-        assert ua.max_size() == max_size
-
-        test_url = '%s/max-download-side' % self.__test_url
-        response = ua.get(test_url)
-
-        hs.stop()
-
-        # LWP::UserAgent truncates the response but still reports it as successful
-        assert response.is_success()
-        assert len(response.decoded_content()) <= max_size
-
-    def test_get_max_size_with_duplicate_content_length_header(self):
-        """Max. download size (with duplicate Content-Length header)."""
-
-        test_content_length = 1024 * 10
-        test_content = random_string(length=test_content_length)
-
-        pages = {
-            '/max-download-side': {
-                'header': 'Content-Length: %(content_length)d, %(content_length)d' % {
-                    'content_length': test_content_length
-                },
-                'content': test_content,
-            },
-        }
-
-        max_size = int(test_content_length / 10)
-
-        hs = HashServer(port=self.__test_port, pages=pages)
-        hs.start()
-
-        ua = UserAgent()
-        ua.set_max_size(max_size)
-        assert ua.max_size() == max_size
-
-        test_url = '%s/max-download-side' % self.__test_url
-        response = ua.get(test_url)
-
-        hs.stop()
-
-        # LWP::UserAgent truncates the response but still reports it as successful
-        assert response.is_success()
-        assert len(response.decoded_content()) <= max_size
-
     def test_get_max_size_with_bogus_content_length_header(self):
         """Max. download size (with bogus Content-Length header)."""
 
@@ -813,6 +750,40 @@ class TestUserAgentTestCase(TestCase):
         assert response.decoded_content() == 'pnolɔ ɐıpǝɯ'
 
         assert response.content_type() == 'application/xhtml+xml'
+
+    def test_get_response_raw_data(self):
+        """Raw data."""
+
+        input_data = random_string(length=1024)
+        input_compressed_data = gzip(input_data.encode('utf-8'))
+        assert isinstance(input_compressed_data, bytes), "Random compressed data is supposed to be 'bytes'."
+
+        pages = {
+            '/raw-data': {
+                'header': 'Content-Type: application/x-gzip',
+                'content': input_compressed_data,
+            },
+        }
+
+        hs = HashServer(port=self.__test_port, pages=pages)
+        hs.start()
+
+        ua = UserAgent()
+        test_url = '%s/raw-data' % self.__test_url
+        response = ua.get(test_url)
+
+        hs.stop()
+
+        assert response.is_success() is True
+        assert urls_are_equal(url1=response.request().url(), url2=test_url)
+
+        output_compressed_data = response.raw_data()
+        assert isinstance(output_compressed_data, bytes)
+
+        assert output_compressed_data == input_compressed_data
+
+        output_data = gunzip(output_compressed_data).decode('utf-8')
+        assert output_data == input_data
 
     def test_get_http_request_log(self):
         """HTTP request log."""

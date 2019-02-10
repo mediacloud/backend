@@ -98,15 +98,15 @@ class TestDatabaseHandler(TestDatabaseTestCase):
 
         date = self.db().query("""SELECT NOW()::DATE AS date""").hash()
         assert isinstance(date['date'], str)
-        assert re.match('^\d\d\d\d-\d\d-\d\d$', date['date'])
+        assert re.match(r'^\d\d\d\d-\d\d-\d\d$', date['date'])
 
         time = self.db().query("""SELECT NOW()::TIME AS time""").hash()
         assert isinstance(time['time'], str)
-        assert re.match('^\d\d:\d\d:\d\d(\.\d+)?$', time['time'])
+        assert re.match(r'^\d\d:\d\d:\d\d(\.\d+)?$', time['time'])
 
         timestamp = self.db().query("""SELECT NOW()::TIMESTAMP AS timestamp""").hash()
         assert isinstance(timestamp['timestamp'], str)
-        assert re.match('^\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d(\.\d+)?$', timestamp['timestamp'])
+        assert re.match(r'^\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d(\.\d+)?$', timestamp['timestamp'])
 
     def test_query_percentage_sign_like(self):
 
@@ -917,36 +917,3 @@ class TestDatabaseHandler(TestDatabaseTestCase):
                 ]
             }
         ]
-
-    def test_query_paged_hashes(self):
-
-        sql = """SELECT * FROM generate_series(1, 15) AS number"""
-        rows_per_page = 10
-
-        # First page
-        qph = self.db().query_paged_hashes(query=sql, page=1, rows_per_page=rows_per_page)
-        hashes = qph.list()
-        pager = qph.pager()
-
-        assert len(hashes) == 10
-        assert hashes[0]['number'] == 1
-        assert hashes[9]['number'] == 10
-
-        assert pager.previous_page() is None
-        assert pager.next_page() == 2
-        assert pager.first() == 1
-        assert pager.last() == 10
-
-        # Last page
-        qph = self.db().query_paged_hashes(query=sql, page=2, rows_per_page=rows_per_page)
-        hashes = qph.list()
-        pager = qph.pager()
-
-        assert len(hashes) == 5
-        assert hashes[0]['number'] == 11
-        assert hashes[4]['number'] == 15
-
-        assert pager.previous_page() == 1
-        assert pager.next_page() is None
-        assert pager.first() == 11
-        assert pager.last() == 15

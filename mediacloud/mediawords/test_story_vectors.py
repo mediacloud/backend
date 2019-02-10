@@ -101,7 +101,7 @@ class TestStoryVectors(TestDatabaseWithSchemaTestCase):
         assert escaped_sentences[0]['media_id'] == str(self.test_medium['media_id'])
         assert escaped_sentences[0]['stories_id'] == str(self.test_story['stories_id'])
         assert re.match(
-            pattern="^'\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d'::timestamp$",
+            pattern=r"^'\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d'::timestamp$",
             string=escaped_sentences[0]['publish_date'],
         )
         assert escaped_sentences[0]['sentence'] == "'It''s toasted!'"

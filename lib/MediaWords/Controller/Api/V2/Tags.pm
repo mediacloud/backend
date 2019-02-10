@@ -26,30 +26,28 @@ sub get_name_search_clause
 {
     my ( $self, $c ) = @_;
 
-    my $v = $c->req->params->{ search };
+    my $tag_search = $c->req->params->{ search };
 
-    return '' unless ( $v );
+    unless ( $tag_search )
+    {
+        return '';
+    }
 
-    return 'and false' unless ( length( $v ) > 2 );
+    unless ( length( $tag_search ) > 2 )
+    {
+        return 'AND false';
+    }
 
-    my $temp_tag_sets = 'name_search_tag_sets';
-    my $temp_tags     = 'name_search_tags';
+    my $db                 = $c->dbis;
+    my $escaped_tag_search = $db->quote( $tag_search );
 
-    my $db = $c->dbis;
-
-    # create these as temp tables to force postgres planner to use tags fts index
-    $db->query( <<SQL, $v );
-create temporary table $temp_tags as
-select tags_id
-    from tags t
-    where
-        to_tsvector('english', t.tag || ' ' || t.label) @@ plainto_tsquery(?)
+    # Return the FTS condition back to _fetch_list() instead of creating
+    # temporary tables with *all* found tags as then the executor can run more
+    # effective plans thanks to "tags_id" offset and LIMIT
+    return <<"SQL";
+        AND to_tsvector('english', tag || ' ' || label)
+            @@ plainto_tsquery('english', $escaped_tag_search)
 SQL
-
-    return <<END;
-and (
-    ( tags_id in ( select tags_id from $temp_tags ) ) )
-END
 }
 
 sub get_table_name
@@ -70,11 +68,8 @@ sub get_extra_where_clause
         push( @{ $clauses }, "and tag_sets_id in ( $tag_sets_ids_list )" );
     }
 
-    if ( my $similar_tags_id = $c->req->params->{ similar_tags_id } )
+    if ( my $similar_tags_id = int( $c->req->params->{ similar_tags_id } // 0 ) )
     {
-        # make sure this is an int
-        $similar_tags_id += 0;
-
         push( @{ $clauses }, <<SQL );
 and tags_id in (
     select b.tags_id
@@ -121,10 +116,9 @@ sub _fetch_list($$$$$$)
 {
     my ( $self, $c, $last_id, $table_name, $id_field, $rows ) = @_;
 
-    my $public = $c->req->params->{ public } || '';
+    my $public = int( $c->req->params->{ public } // 0 );
 
-    my $public_clause =
-      $public eq '1' ? 't.show_on_media or ts.show_on_media or t.show_on_stories or ts.show_on_stories' : '1=1';
+    my $public_clause = $public ? 't.show_on_media or ts.show_on_media or t.show_on_stories or ts.show_on_stories' : '1=1';
 
     $c->dbis->query( <<END );
 create temporary view tags as

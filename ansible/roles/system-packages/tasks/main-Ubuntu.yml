@@ -14,19 +14,10 @@
       tags:
         - system-packages
 
-    - name: Add RabbitMQ GPG key
+    - name: Add RabbitMQ PackageCloud GPG key
       apt_key:
-        url: "https://dl.bintray.com/rabbitmq/Keys/rabbitmq-release-signing-key.asc"
+        url: "https://packagecloud.io/rabbitmq/rabbitmq-server/gpgkey"
         state: present
-      become: true
-      become_user: root
-      tags:
-        - system-packages
-
-    # apt_key doesn't work for whatever reason
-    - name: Add Bintray.com GPG key
-      command: apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 379CE192D401AB61
-      changed_when: false
       become: true
       become_user: root
       tags:
@@ -44,36 +35,21 @@
       tags:
         - system-packages
 
-    # rabbitmq.com APT repository is no longer supported
-    - name: Remove obsolete rabbitmq.com RabbitMQ repository
+    # Bintray APT repository is no longer supported
+    - name: Remove obsolete Bintray RabbitMQ repository
       apt_repository:
-        repo: "deb http://www.rabbitmq.com/debian/ testing main"
+        repo: "deb https://dl.bintray.com/rabbitmq/debian {{ ansible_lsb.codename | lower }} main"
         state: absent
-        filename: rabbitmq
+        filename: "bintray-rabbitmq"
         update_cache: yes
       become: true
       become_user: root
       tags:
         - system-packages
 
-    # RabbitMQ from packagecloud.io is not used too
-    - name: Remove obsolete packagecloud.io RabbitMQ repository
-      apt_repository:
-        repo: "{{ item }}"
-        state: absent
-        filename: rabbitmq_rabbitmq-server
-        update_cache: yes
-      with_items:
-        - "deb https://packagecloud.io/rabbitmq/rabbitmq-server/ubuntu/ xenial main"
-        - "deb-src https://packagecloud.io/rabbitmq/rabbitmq-server/ubuntu/ xenial main"
-      become: true
-      become_user: root
-      tags:
-        - system-packages
-
-    - name: Remove empty packagecloud.io RabbitMQ repository sources file
+    - name: Remove empty Bintray RabbitMQ repository sources file
       file:
-        path: /etc/apt/sources.list.d/rabbitmq_rabbitmq-server.list
+        path: /etc/apt/sources.list.d/bintray-rabbitmq.list
         state: absent
       become: true
       become_user: root
@@ -82,9 +58,9 @@
 
     - name: Add RabbitMQ APT repository
       apt_repository:
-        repo: "deb https://dl.bintray.com/rabbitmq/debian {{ ansible_lsb.codename | lower }} main"
+        repo: "deb https://packagecloud.io/rabbitmq/rabbitmq-server/ubuntu/ {{ ansible_lsb.codename | lower }} main"
         state: present
-        filename: "bintray-rabbitmq"
+        filename: "packagecloud-rabbitmq"
         update_cache: yes
       become: true
       become_user: root
@@ -153,12 +129,48 @@
       tags:
         - system-packages
 
-- name: Add mecab-ipadic-neologd APT repository
+- name: Install mecab-ipadic-neologd
+  tags:
+    - system-packages
+  block:
+
+    # apt_key doesn't work for whatever reason
+    - name: Add Bintray.com GPG key
+      command: apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 379CE192D401AB61
+      changed_when: false
+      become: true
+      become_user: root
+      tags:
+        - system-packages
+
+    - name: Add mecab-ipadic-neologd APT repository
+      apt_repository:
+        repo: "deb https://dl.bintray.com/pypt/mecab-ipadic-neologd-deb {{ ansible_lsb.codename | lower }} main"
+        state: present
+        filename: "bintray-pypt-mecab-ipadic-neologd"
+        update_cache: yes
+      become: true
+      become_user: root
+      tags:
+        - system-packages
+
+    - name: Install mecab-ipadic-neologd
+      apt:
+        name: "{{item}}"
+        state: present
+        install_recommends: false
+      with_items:
+        - mecab
+        - mecab-ipadic-neologd
+      become: true
+      become_user: root
+      tags:
+        - system-packages
+
+# Ubuntu 16.04 doesn't distribute Python 3.7
+- name: Add Python deadsnakes repository
   apt_repository:
-    repo: "deb https://dl.bintray.com/pypt/mecab-ipadic-neologd-deb {{ ansible_lsb.codename | lower }} main"
-    state: present
-    filename: "bintray-pypt-mecab-ipadic-neologd"
-    update_cache: yes
+    repo: "ppa:deadsnakes/ppa"
   become: true
   become_user: root
   tags:
@@ -179,13 +191,10 @@
     - g++
     - gawk
     - gcc
-    - graphviz
-    - graphviz-dev
     - hunspell
     - libexpat1-dev
     - libhunspell-dev
     - libmecab-dev
-    - libgraphviz-dev
     - libre2-dev
     - libtidy-dev
     - libxml2-dev
@@ -197,16 +206,15 @@
     - libssl-dev  # OpenSSL headers
     - logrotate
     - make
-    - mecab
-    - mecab-ipadic-neologd
     - netcat
     - openjdk-8-jdk
     - pkg-config
-    - python-pip
+    - python3-pip
     - python2.7
     - python2.7-dev
     - "python{{ python_version }}"
     - "python{{ python_version }}-dev"
+    - swig
     - unzip
   become: true
   become_user: root

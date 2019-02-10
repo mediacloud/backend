@@ -8,7 +8,7 @@ use Catalyst::Test 'MediaWords';
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-use List::MoreUtils "uniq";
+use List::MoreUtils qw/uniq/;
 use List::Util "shuffle";
 use Math::Prime::Util;
 use Readonly;
@@ -229,6 +229,35 @@ sub test_story_list_count
     my $actual_response = MediaWords::Test::API::test_get( '/api/v2/topics/1/stories/list', { limit => $story_limit } );
 
     is( scalar @{ $actual_response->{ stories } }, $story_limit, "story limit" );
+}
+
+sub test_story_list_paging
+{
+    my ( $db ) = @_;
+
+    my ( $topics_id ) = $db->query( "select topics_id from topics" )->flat();
+
+    my ( $timespans_id ) = $db->query( <<SQL )->flat();
+select timespans_id from timespans t where period = 'overall' and foci_id is null;
+SQL
+
+    my ( $expected_stories_count ) = $db->query( <<SQL, $timespans_id )->flat();
+select count(*) from snap.story_link_counts where timespans_id = ?
+SQL
+
+    my $limit = 3;
+
+    my $r = test_get( "/api/v2/topics/$topics_id/stories/list", { timespans_id => $timespans_id, limit => $limit } );
+
+    my $got_stories_count = scalar( @{ $r->{ stories } } );
+
+    while ( my $next_link_id = $r->{ link_ids }->{ next } )
+    {
+        $r = test_get( "/api/v2/topics/$topics_id/stories/list", { link_id => $next_link_id } );
+        $got_stories_count += scalar( @{ $r->{ stories } } );
+    }
+
+    is( $got_stories_count, $expected_stories_count, "stories/list paging count" );
 }
 
 sub _get_story_link_counts
@@ -601,6 +630,49 @@ SQL
     }
 }
 
+sub test_media_search
+{
+    my ( $db ) = @_;
+
+    my $topic = $db->query( "select * from topics order by topics_id limit 1" )->hash();
+
+    my ( $sentence ) = $db->query( <<SQL, $topic->{ topics_id } )->flat();
+select ss.sentence
+    from story_sentences ss
+        join topic_stories ts using ( stories_id )
+    where
+        topics_id = ?
+    order by story_sentences_id
+    limit 1
+SQL
+
+    # we just need a present word to search for, so use the first word in the first sentence
+    my $sentence_words = [ split( ' ', $sentence ) ];
+    my $search_word = $sentence_words->[ 0 ];
+
+    # use a regex to manually find all media sources matching the search word
+    my $expected_media_ids = $db->query( <<SQL, $topic->{ topics_id }, $search_word )->flat();
+select distinct m.media_id 
+    from media m 
+        join stories s using ( media_id ) 
+        join topic_stories ts using ( stories_id )
+        join story_sentences ss using ( stories_id )
+    where
+        ss.sentence ~* ('[[:<:]]'|| \$2 ||'[[:>:]]') and
+        ts.topics_id = \$1
+    order by media_id
+SQL
+
+    ok( scalar( @{ $expected_media_ids } ) > 0, "media list q search found media ids" );
+
+    my $r = test_get( "/api/v2/topics/$topic->{ topics_id }/media/list", { q => $search_word } );
+
+    my $got_media = $r->{ media };
+    my $got_media_ids = [ sort { $a <=> $b } map { $_->{ media_id } } @{ $got_media } ];
+
+    is_deeply( $expected_media_ids, $got_media_ids, 'media/list q search' );
+}
+
 sub test_topics_api
 {
     my $db = shift;
@@ -623,8 +695,10 @@ sub test_topics_api
 
     create_test_data( $db, $topic_media );
     test_story_list_count();
+    test_story_list_paging( $db );
     test_default_sort( $stories );
     test_media_list( $stories );
+    test_media_search( $db );
     test_stories_facebook( $db );
 
     test_topics( $db );

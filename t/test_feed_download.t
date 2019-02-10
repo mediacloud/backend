@@ -37,7 +37,6 @@ use MediaWords::Util::DateTime;
 use MediaWords::Util::Paths;
 
 use Data::Dumper;
-use Data::Sorting qw( :basics :arrays :extras );
 use FindBin;
 use MediaWords::StoryVectors;
 use Readonly;

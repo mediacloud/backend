@@ -159,7 +159,7 @@ def _get_associated_press_near_title(story_title: str, story_text: str) -> bool:
     story_title = story_title.lower()
     story_text = story_text.lower()
 
-    content = re.sub(pattern='\s+', repl=' ', string=story_text, flags=re.MULTILINE)
+    content = re.sub(pattern=r'\s+', repl=' ', string=story_text, flags=re.MULTILINE)
 
     title_positions = _get_all_string_match_positions(haystack=content, needle=story_title)
     ap_positions = _get_all_string_match_positions(haystack=content, needle='associated press')
@@ -219,7 +219,7 @@ def is_syndicated(db: DatabaseHandler,
 
     ap_mentions_sentences = _get_content_pattern_matches(
         story_text=story_text,
-        pattern=re.compile(pattern='\(ap\)', flags=re.IGNORECASE),
+        pattern=re.compile(pattern=r'\(ap\)', flags=re.IGNORECASE),
     )
     if ap_mentions_sentences:
         log.debug('ap: ap_mentions_sentences')
@@ -233,7 +233,7 @@ def is_syndicated(db: DatabaseHandler,
 
         quoted_associated_press_mentions = _get_content_pattern_matches(
             story_text=story_text,
-            pattern=re.compile(pattern='["\'\|].{0,8}associated press.{0,8}["\'\|]', flags=re.IGNORECASE),
+            pattern=re.compile(pattern=r'["\'\|].{0,8}associated press.{0,8}["\'\|]', flags=re.IGNORECASE),
         )
         if quoted_associated_press_mentions:
             log.debug('ap: quoted_associated_press')
@@ -298,7 +298,7 @@ def is_syndicated(db: DatabaseHandler,
         if dup_sentences_32 == 1:
             ap_mentions_uppercase_location = _get_content_pattern_matches(
                 story_text=story_text,
-                pattern=re.compile(pattern='[A-Z]+\s*\(AP\)'),  # do not ignore case
+                pattern=re.compile(pattern=r'[A-Z]+\s*\(AP\)'),  # do not ignore case
             )
             if ap_mentions_uppercase_location:
                 log.debug('ap: single dup sentence -> ap upper')

@@ -38,18 +38,22 @@ around execute => sub {
 
         my $requested_items_count = $c->stash->{ $NUMBER_OF_REQUESTED_ITEMS_KEY } // 1;
 
-        # Log the request
-        my $db = $c->dbis;
-        $db->query(
-            <<SQL,
-            INSERT INTO auth_user_request_daily_counts (email, day, requests_count, requested_items_count)
-            VALUES (?, DATE_TRUNC('day', LOCALTIMESTAMP)::DATE, 1, ?)
-            ON CONFLICT (email, day) DO UPDATE
-                SET requests_count = auth_user_request_daily_counts.requests_count + 1,
-                    requested_items_count = auth_user_request_daily_counts.requested_items_count + EXCLUDED.requested_items_count
+        # only log non-admin requests because some admin accounts execute millions of daily requests, which clog
+        # the aurdc table with dead rows and make the basic quota check very slow for those millions of requests
+        if ( !grep { $_ eq 'admin' || $_ eq 'admin-readonly' } @{ $user_roles } )
+        {
+            my $db = $c->dbis;
+            $db->query(
+                <<SQL,
+                INSERT INTO auth_user_request_daily_counts (email, day, requests_count, requested_items_count)
+                VALUES (?, DATE_TRUNC('day', LOCALTIMESTAMP)::DATE, 1, ?)
+                ON CONFLICT (email, day) DO UPDATE
+                    SET requests_count = auth_user_request_daily_counts.requests_count + 1,
+                        requested_items_count = auth_user_request_daily_counts.requested_items_count + EXCLUDED.requested_items_count
 SQL
-            $user_email, $requested_items_count
-        );
+                $user_email, $requested_items_count
+            );
+        }
     };
 
     if ( $@ )
@@ -63,14 +67,5 @@ SQL
 
     return $result;
 };
-
-# Static helper that sets the number of requested items (e.g. stories) in the Catalyst's stash to be later used by after{}
-sub set_requested_items_count($$)
-{
-    my ( $c, $requested_items_count ) = @_;
-
-    # Will use it later in after{}
-    $c->stash->{ $NUMBER_OF_REQUESTED_ITEMS_KEY } = $requested_items_count;
-}
 
 1;

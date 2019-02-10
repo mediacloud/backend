@@ -152,11 +152,11 @@ class JapaneseLanguage(StopWordsFromFileMixIn):
         for sentence in japanese_sentences:
 
             # Split paragraphs separated by two line breaks denoting a list
-            paragraphs = re.split("\n\s*?\n", sentence)
+            paragraphs = re.split(r"\n\s*?\n", sentence)
             for paragraph in paragraphs:
 
                 # Split lists separated by "* "
-                list_items = re.split("\n\s*?(?=\* )", paragraph)
+                list_items = re.split(r"\n\s*?(?=\* )", paragraph)
                 for list_item in list_items:
                     # Split non-Japanese text
                     non_japanese_sentences = self.__english_language.split_text_to_sentences(list_item)

@@ -7,7 +7,6 @@ use warnings;
 use base 'Catalyst::Controller';
 
 use HTTP::Status qw(:constants);
-use List::Compare;
 use List::Util qw(first max maxstr min minstr reduce shuffle sum);
 
 use Moose;

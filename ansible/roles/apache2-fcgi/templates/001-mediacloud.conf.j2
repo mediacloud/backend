@@ -12,14 +12,6 @@
     ServerName  {{ apache2_server_name }}
     ServerAdmin {{ apache2_server_admin }}
 
-    DocumentRoot    {{ mediacloud_root }}/root
-    Alias           /static     {{ mediacloud_root }}/root/static
-    Alias           /include    {{ mediacloud_root }}/root/include
-
-    <Location /static>
-        SetHandler default-handler
-    </Location>
-
     <Location />
         Options ExecCGI
 
@@ -29,6 +21,12 @@
         AddHandler fcgid-script .pl
         AddHandler fcgid-script .sh
         AddHandler cgi-script   .cgi
+    </Location>
+
+    # Static files served by the webapp
+    Alias           /static     {{ mediacloud_root }}/data/webapp_static
+    <Location /static>
+        SetHandler default-handler
     </Location>
 
     FcgidMinProcessesPerClass  2

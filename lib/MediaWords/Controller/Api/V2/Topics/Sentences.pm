@@ -8,7 +8,6 @@ use base 'Catalyst::Controller';
 use List::Util qw(first max maxstr min minstr reduce shuffle sum);
 use Moose;
 use namespace::autoclean;
-use List::Compare;
 use MediaWords::TM::Snapshot;
 use MediaWords::TM;
 use MediaWords::Controller::Api::V2::Sentences;
@@ -42,8 +41,8 @@ sub count_GET
     my $timespan = MediaWords::TM::require_timespan_for_topic(
         $c->dbis,
         $c->stash->{ topics_id },
-        $c->req->params->{ timespans_id },
-        $c->req->params->{ snapshots_id }
+        int( $c->req->params->{ timespans_id } // 0 ),
+        int( $c->req->params->{ snapshots_id } // 0 )
     );
 
     my $q = $c->req->params->{ q };

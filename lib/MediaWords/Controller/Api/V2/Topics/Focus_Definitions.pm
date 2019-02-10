@@ -10,7 +10,7 @@ use Readonly;
 use namespace::autoclean;
 
 use MediaWords::Solr::Query;
-use MediaWords::Util::JSON;
+use MediaWords::Util::ParseJSON;
 
 Readonly my $SQL_FIELD_LIST => "focus_definitions_id, name, description, arguments->>'query' query";
 
@@ -50,7 +50,7 @@ sub list_GET
 
     my $topics_id = $c->stash->{ topics_id };
 
-    my $focal_set_definitions_id = $c->req->params->{ focal_set_definitions_id }
+    my $focal_set_definitions_id = int( $c->req->params->{ focal_set_definitions_id } // 0 )
       || die( "missing required param focal_set_definitions_id" );
 
     my $fds = $db->query( <<SQL, $focal_set_definitions_id )->hashes;
@@ -129,7 +129,7 @@ sub update_PUT
         eval { MediaWords::Solr::Query::query_solr( $db, { q => $query, rows => 0 } ) };
         die( "invalid solr query: $@" ) if ( $@ );
 
-        $c->req->data->{ arguments } = MediaWords::Util::JSON::encode_json( { query => $query } );
+        $c->req->data->{ arguments } = MediaWords::Util::ParseJSON::encode_json( { query => $query } );
     }
 
     my $fd = $self->update_table( $c, 'focus_definitions', $focus_definitions_id, [ qw/name description arguments/ ] );

@@ -54,7 +54,8 @@ job_manager:
 
             ## Connection credentials
             hostname: "localhost"
-            port: 5673     # not the default 5672
+            # not the default 5672:
+            port: 5673
             username: "mediacloud"
             password: "mediacloud"
             vhost: "/mediacloud"
@@ -78,7 +79,7 @@ job_manager:
             ## Port to use for RabbitMQ. Default port for vendor-provided RabbitMQ
             ## deployments is 5672, but Media Cloud runs its own RabbitMQ instance via
             ## Supervisord. Default is 5673.
-            port: 5673     # not the default 5672
+            port: 5673
 
             ## Node name
             node_name: "mediacloud@localhost"
@@ -121,6 +122,7 @@ supervisor:
         #create_missing_partitions
         #purge_object_caches
         #facebook_fetch_story_stats
+        #sitemap_fetch_media_pages
         #rabbitmq
         #rescrape_media
         #topic_mine
@@ -284,24 +286,10 @@ mail:
         username: ""
         password: ""
 
-### everything below is optional.  the system should work out of the box without
-### touching any of these other than calais_key for tagging
-
-#session:
-    #expires: 3600
-
-    ### directory where web app sessions are stored.  default to $homedir/tmp
-    #storage: "~/tmp/mediawords-session"
-
-## Uncomment and fill in to use Google Analytics
-#google_analytics:
-#      account: "<ACOUNT>"
-#      domainname: "<DOMAIN>"
+### Everything below is optional. The system should work out of the box without
+### touching any of these.
 
 mediawords:
-    ### defaults to http://$hostname:$port/.
-    #base_url: "http://your.mediacloud.server/and/path"
-
     ### Directory in which various kinds of data (logs, etc.) is being stored
     #data_dir: "<bindir>/../data"
 
@@ -344,24 +332,8 @@ mediawords:
     #uncomment to enable a 10 minute timeout
     #db_statement_timeout: "600000"
 
-    # Uncommit to speed up slow queries by setting the Postgresql work_mem parameter to this value
-    # By default the initial Postgresql value of work_mem is used
-    # large_work_mem: "3GB"
-
-    # An experiment parameter to dump stack traces in error message even if not in debug mode
-    # NOTE: may leak DB passwords and is not to be use in production
-    always_show_stack_traces: false
-
-    # reCAPTCHA public key (used to prevent brute-force in the password reset form)
-    # The default value was set up for http://127.0.0.1 and is a global key (should work across all domains)
-    recaptcha_public_key: "6LfEVt0SAAAAAFwQI0pOZ1bTHgDTpQcMeQY6VLd_"
-
-    # reCAPTCHA private key (used to prevent brute-force in the password reset form)
-    # The default value was set up for http://127.0.0.1 and is a global key (should work across all domains)
-    recaptcha_private_key: "6LfEVt0SAAAAABmI-8IJmx4g93eNcSeyeCxvLMs2"
-
-    #uncomment to make the public homepage the default start page
-    default_home_page: "admin/media/list"
+    # "work_mem" value to use for queries run with execute_with_large_work_mem()
+    large_work_mem: "1GB"
 
     # downloads id under which to strip all non-ascii characters
     #ascii_hack_downloads_id: 123456789

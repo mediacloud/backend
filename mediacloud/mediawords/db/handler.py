@@ -13,7 +13,6 @@ from mediawords.db.exceptions.handler import (
     McPrimaryKeyColumnException, McFindByIDException, McRequireByIDException, McUpdateByIDException,
     McDeleteByIDException, McCreateException, McFindOrCreateException, McBeginException,
     McQuoteException, McUniqueConstraintException)
-from mediawords.db.pages.pages import DatabasePages
 from mediawords.db.result.result import DatabaseResult
 from mediawords.db.schema.version import schema_version_from_lines
 
@@ -30,10 +29,8 @@ from mediawords.util.text import random_string
 log = create_logger(__name__)
 
 # Set to the module in addition to connection so that adapt() returns what it should
-# noinspection PyUnresolvedReferences
-psycopg2.extensions.register_type(psycopg2.extensions.UNICODE)
-# noinspection PyUnresolvedReferences
-psycopg2.extensions.register_type(psycopg2.extensions.UNICODEARRAY)
+psycopg2.extensions.register_type(psycopg2.extensions.UNICODE, None)
+psycopg2.extensions.register_type(psycopg2.extensions.UNICODEARRAY, None)
 
 
 class DatabaseHandler(object):
@@ -45,24 +42,33 @@ class DatabaseHandler(object):
     # Min. "deadlock_timeout" to not cause problems under load (in seconds)
     __MIN_DEADLOCK_TIMEOUT = 5
 
-    # cache of table primary key columns ([schema][table])
-    __primary_key_columns = {}
-
-    # PIDs for which the schema version has been checked
-    __schema_version_check_pids = {}
-
-    # Whether or not to print PostgreSQL warnings
-    __print_warnings = True
-
     # "Double percentage sign" marker (see handler's quote() for explanation)
-    __double_percentage_sign_marker = "<DOUBLE PERCENTAGE SIGN: " + random_string(length=16) + ">"
+    __DOUBLE_PERCENTAGE_SIGN_MARKER = "<DOUBLE PERCENTAGE SIGN: " + random_string(length=16) + ">"
 
-    # Debugging variable to test whether we're in a transaction
-    __in_manual_transaction = False
+    # Whether or not "deadlock_timeout" was checked
+    # * lowercase because it's not a constant
+    # * class variable because we don't need to do it on every connect_to_db())
+    __deadlock_timeout_checked = False
 
-    # Pyscopg2 instance and cursor
-    __conn = None
-    __db = None
+    __slots__ = [
+
+        # Cache of table primary key columns ([schema][table])
+        '__primary_key_columns',
+
+        # PIDs for which the schema version has been checked
+        '__schema_version_check_pids',
+
+        # Whether or not to print PostgreSQL warnings
+        '__print_warnings',
+
+        # Debugging variable to test whether we're in a transaction
+        '__in_manual_transaction',
+
+        # Pyscopg2 instance and cursor
+        '__conn',
+        '__db',
+
+    ]
 
     def __init__(self,
                  host: str,
@@ -79,6 +85,13 @@ class DatabaseHandler(object):
         username = decode_object_from_bytes_if_needed(username)
         password = decode_object_from_bytes_if_needed(password)
         database = decode_object_from_bytes_if_needed(database)
+
+        self.__primary_key_columns = {}
+        self.__schema_version_check_pids = {}
+        self.__print_warnings = True
+        self.__in_manual_transaction = False
+        self.__conn = None
+        self.__db = None
 
         self.__connect(
             host=host,
@@ -151,14 +164,20 @@ class DatabaseHandler(object):
         self.__schema_version_check_pids[pid] = True
 
         # Check deadlock_timeout
-        (deadlock_timeout,) = self.query("SHOW deadlock_timeout").flat()
-        deadlock_timeout = re.sub(r'\s*s$', '', deadlock_timeout, re.I)
-        deadlock_timeout = int(deadlock_timeout)
-        if deadlock_timeout == 0:
-            raise McConnectException("'deadlock_timeout' is 0, probably unable to read it")
-        if deadlock_timeout < self.__MIN_DEADLOCK_TIMEOUT:
-            log.warning('"deadlock_timeout" is less than "%ds", expect deadlocks on high extractor load' %
-                        self.__MIN_DEADLOCK_TIMEOUT)
+        if not DatabaseHandler.__deadlock_timeout_checked:
+            (deadlock_timeout,) = self.query("SHOW deadlock_timeout").flat()
+            deadlock_timeout = re.sub(r'\s*s$', '', deadlock_timeout, re.I)
+            deadlock_timeout = int(deadlock_timeout)
+            if deadlock_timeout == 0:
+                raise McConnectException("'deadlock_timeout' is 0, probably unable to read it")
+            if deadlock_timeout < DatabaseHandler.__MIN_DEADLOCK_TIMEOUT:
+                log.warning(
+                    '"deadlock_timeout" is less than "{}", expect deadlocks on high extractor load.'.format(
+                        DatabaseHandler.__MIN_DEADLOCK_TIMEOUT
+                    )
+                )
+
+            DatabaseHandler.__deadlock_timeout_checked = True
 
     def disconnect(self) -> None:
         """Disconnect from the database."""
@@ -172,7 +191,8 @@ class DatabaseHandler(object):
     def dbh(self) -> None:
         raise McDatabaseHandlerException("Please don't use internal database handler directly")
 
-    def __should_continue_with_outdated_schema(self, current_schema_version: int, target_schema_version: int) -> bool:
+    @staticmethod
+    def __should_continue_with_outdated_schema(current_schema_version: int, target_schema_version: int) -> bool:
         """Schema is outdated / too new; returns 1 if MC should continue nevertheless, 0 otherwise"""
         config = py_get_config()
 
@@ -180,11 +200,11 @@ class DatabaseHandler(object):
         if 'ignore_schema_version' in config['mediawords']:
             config_ignore_schema_version = config["mediawords"]["ignore_schema_version"]
 
-        if config_ignore_schema_version or self.__IGNORE_SCHEMA_VERSION_ENV_VARIABLE in os.environ:
+        if config_ignore_schema_version or DatabaseHandler.__IGNORE_SCHEMA_VERSION_ENV_VARIABLE in os.environ:
             log.warning("""
                 The current Media Cloud database schema is older than the schema present in mediawords.sql,
                 but %s is set so continuing anyway.
-            """ % self.__IGNORE_SCHEMA_VERSION_ENV_VARIABLE)
+            """ % DatabaseHandler.__IGNORE_SCHEMA_VERSION_ENV_VARIABLE)
             return True
         else:
             log.warning("""
@@ -215,7 +235,7 @@ class DatabaseHandler(object):
             """ % {
                 "current_schema_version": current_schema_version,
                 "target_schema_version": target_schema_version,
-                "IGNORE_SCHEMA_VERSION_ENV_VARIABLE": self.__IGNORE_SCHEMA_VERSION_ENV_VARIABLE,
+                "IGNORE_SCHEMA_VERSION_ENV_VARIABLE": DatabaseHandler.__IGNORE_SCHEMA_VERSION_ENV_VARIABLE,
             })
             return False
 
@@ -224,10 +244,7 @@ class DatabaseHandler(object):
 
         # Check if the database is empty
         db_vars_table_exists = len(self.query("""
-            -- noinspection SqlResolve
-            SELECT *
-            FROM information_schema.tables
-            WHERE table_name = 'database_variables'
+            select 1 from pg_tables where tablename = 'database_variables' and schemaname = 'public'
         """).flat()) > 0
         if not db_vars_table_exists:
             log.info(
@@ -253,7 +270,7 @@ class DatabaseHandler(object):
 
         # Check if the current schema is up-to-date
         if current_schema_version != target_schema_version:
-            return self.__should_continue_with_outdated_schema(current_schema_version, target_schema_version)
+            return DatabaseHandler.__should_continue_with_outdated_schema(current_schema_version, target_schema_version)
         else:
             # Things are fine at this point.
             return True
@@ -287,7 +304,7 @@ class DatabaseHandler(object):
 
         return DatabaseResult(cursor=self.__db,
                               query_args=query_params,
-                              double_percentage_sign_marker=self.__double_percentage_sign_marker,
+                              double_percentage_sign_marker=DatabaseHandler.__DOUBLE_PERCENTAGE_SIGN_MARKER,
                               print_warnings=self.__print_warnings)
 
     def __get_current_work_mem(self) -> str:
@@ -742,6 +759,7 @@ class DatabaseHandler(object):
             self.query('ROLLBACK')
             self.__set_in_transaction(False)
 
+    # noinspection PyMethodMayBeStatic
     def quote(self, value: Union[bool, int, float, str, None]) -> str:
         """Quote a string for being passed as a literal in a query.
 
@@ -783,7 +801,7 @@ class DatabaseHandler(object):
 
         # Replace percentage signs with a randomly generated marker that will be replaced back into '%%' when executing
         # the query.
-        quoted_value = quoted_value.replace('%', self.__double_percentage_sign_marker)
+        quoted_value = quoted_value.replace('%', DatabaseHandler.__DOUBLE_PERCENTAGE_SIGN_MARKER)
 
         return quoted_value
 
@@ -865,7 +883,7 @@ class DatabaseHandler(object):
 
         copy = self.copy_from("COPY %s (id) FROM STDIN" % table_name)
         for single_id in ids:
-            copy.put_line("%d\n" % single_id)
+            copy.put_line("%d\n" % int(single_id))
         copy.end()
 
         self.query("ANALYZE %s" % table_name)
@@ -943,19 +961,3 @@ class DatabaseHandler(object):
                 parent[child_field].append(child)
 
         return data
-
-    def query_paged_hashes(self, query: str, page: int, rows_per_page: int) -> DatabasePages:
-        """Execute the query and return a list of pages hashes."""
-
-        # MC_REWRITE_TO_PYTHON: some IDs get passed as 'str' / 'bytes'; remove after getting rid of Catalyst
-        # noinspection PyTypeChecker
-        page = decode_object_from_bytes_if_needed(page)
-        page = int(page)
-
-        query = decode_object_from_bytes_if_needed(query)
-
-        return DatabasePages(cursor=self.__db,
-                             query=query,
-                             page=page,
-                             rows_per_page=rows_per_page,
-                             double_percentage_sign_marker=self.__double_percentage_sign_marker)

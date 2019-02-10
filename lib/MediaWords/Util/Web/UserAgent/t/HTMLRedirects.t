@@ -5,7 +5,6 @@ use utf8;
 use Test::More tests => 14;
 use Test::NoWarnings;
 
-use Text::Trim;
 use Test::Deep;
 
 use MediaWords::Util::Web::UserAgent::HTMLRedirects;
