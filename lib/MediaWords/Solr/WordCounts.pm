@@ -1,7 +1,5 @@
 package MediaWords::Solr::WordCounts;
 
-use Moose;
-
 =head1 NAME
 
 MediaWords::Solr::WordCounts - handle word counting from solr
@@ -19,21 +17,18 @@ use utf8;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-use CHI;
+use Moose;
+
 use Data::Dumper;
-use Encode;
 use List::Util;
 use Readonly;
 use URI::Escape;
 
 use MediaWords::Languages::Language;
 use MediaWords::Solr::Query;
-use MediaWords::Util::Config;
 use MediaWords::Util::IdentifyLanguage;
 use MediaWords::Util::ParseJSON;
 use MediaWords::Util::Text;
-use MediaWords::Test::DB;
-use MediaWords::Test::DB::Environment;
 
 # Max. length of the sentence to tokenize
 Readonly my $MAX_SENTENCE_LENGTH => 1024;
