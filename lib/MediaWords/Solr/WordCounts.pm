@@ -47,8 +47,9 @@ has 'ngram_size'                => ( is => 'rw', isa => 'Int', default => 1 );
 has 'include_stopwords'         => ( is => 'rw', isa => 'Bool', default => 0 );
 has 'include_stats'             => ( is => 'rw', isa => 'Bool', default => 0 );
 
-has 'cached_combined_stopwords' => ( is => 'rw', isa => 'HashRef' );
 has 'db' => ( is => 'rw' );
+
+has '__cached_combined_stopwords' => ( is => 'rw', isa => 'HashRef' );
 
 # list of all attribute names that should be exposed as cgi params
 sub __get_cgi_param_attributes()
@@ -163,12 +164,12 @@ sub _combine_stopwords($$)
 
     my $cache_key = join( '-', @{ $language_codes } );
 
-    unless ( $self->cached_combined_stopwords() )
+    unless ( $self->__cached_combined_stopwords() )
     {
-        $self->cached_combined_stopwords( {} );
+        $self->__cached_combined_stopwords( {} );
     }
 
-    unless ( defined $self->cached_combined_stopwords->{ $cache_key } )
+    unless ( defined $self->__cached_combined_stopwords->{ $cache_key } )
     {
         my $combined_stopwords = {};
         foreach my $language ( @{ $languages } )
@@ -177,10 +178,10 @@ sub _combine_stopwords($$)
             $combined_stopwords = { ( %{ $combined_stopwords }, %{ $stopwords } ) };
         }
 
-        $self->cached_combined_stopwords->{ $cache_key } = $combined_stopwords;
+        $self->__cached_combined_stopwords->{ $cache_key } = $combined_stopwords;
     }
 
-    return $self->cached_combined_stopwords->{ $cache_key };
+    return $self->__cached_combined_stopwords->{ $cache_key };
 }
 
 # expects story_sentence hashes, with a story_language field.
