@@ -696,29 +696,6 @@ sub search_for_media_ids ($$)
     return $media_ids;
 }
 
-=head2 search_for_media( $db, $params )
-
-Query postgres for media.* for all media matching the ids returned by search_for_media_ids().
-
-=cut
-
-sub search_for_media ($$)
-{
-    my ( $db, $params ) = @_;
-
-    my $media_ids = search_for_media_ids( $db, $params );
-
-    $db->begin;
-
-    my $ids_table = $db->get_temporary_ids_table( $media_ids );
-
-    my $media = $db->query( "select * from media where media_id in ( select id from $ids_table ) " )->hashes;
-
-    $db->commit;
-
-    return $media;
-}
-
 # Run a query on solr and return a count of tags associate with tags matching the query.
 #
 # The $args parameter should be a hash with some of the following fields:

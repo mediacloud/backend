@@ -225,16 +225,6 @@ SQL
     }
 
     {
-        # search_for_media
-        my $media_id       = $test_stories->[ 0 ]->{ media_id };
-        my $expected_media = $db->query( "select * from media where media_id = ?", $media_id )->hashes;
-        my $got_media      = MediaWords::Solr::Query::search_for_media( $db, { q => "media_id:$media_id" } );
-
-        my $fields = [ qw/url name/ ];
-        MediaWords::Test::DB::rows_match( 'search_for_media', $got_media, $expected_media, 'media_id', $fields );
-    }
-
-    {
         # query_matching_sentences
         my $story = pop( @{ $test_stories } );
         my $story_sentences = $db->query( <<SQL, $story->{ stories_id } )->hashes;
