@@ -42,6 +42,8 @@ use Time::HiRes;
 
 Readonly my $QUERY_HTTP_TIMEOUT => 900;
 
+Readonly my $DEFAULT_TAG_COUNT_LIMIT => 1000;
+
 =head1 FUNCTIONS
 
 =head2 get_solr_url
