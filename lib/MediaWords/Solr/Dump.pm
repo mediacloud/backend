@@ -38,11 +38,6 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 require Cpanel::JSON::XS;
-use Data::Dumper;
-use Digest::MD5;
-use Encode;
-use FileHandle;
-use JSON::PP;
 use List::MoreUtils qw/natatime/;
 use List::Util;
 use Parallel::ForkManager;
@@ -53,11 +48,8 @@ require bytes;    # do not override length() and such
 
 use MediaWords::DB;
 use MediaWords::Util::Config;
-use MediaWords::Util::Paths;
 use MediaWords::Util::Web;
 use MediaWords::Solr::Query;
-use MediaWords::Test::DB;
-use MediaWords::Test::DB::Environment;
 
 # order and names of fields exported to and imported from csv
 Readonly my @SOLR_FIELDS => qw/stories_id media_id publish_date publish_day publish_week publish_month publish_year
