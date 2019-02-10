@@ -294,8 +294,8 @@ sub count_stems($$)
     return $stem_counts;
 }
 
-# connect to solr server directly and count the words resulting from the query
-sub _get_words_from_solr_server($)
+# get sorted list of most common words in sentences matching a Solr query, Excludes stop words.
+sub get_words($)
 {
     my ( $self ) = @_;
 
@@ -376,18 +376,6 @@ sub _get_words_from_solr_server($)
     {
         return $counts;
     }
-}
-
-
-# get sorted list of most common words in sentences matching a Solr query,
-# exclude stop words. Assumes english stemming and stopwording for now.
-sub get_words
-{
-    my ( $self ) = @_;
-
-    my $words = $self->_get_words_from_solr_server();
-
-    return $words;
 }
 
 1;
