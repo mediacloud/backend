@@ -49,15 +49,16 @@ has 'num_words'                 => ( is => 'rw', isa => 'Int', default => 500 );
 has 'sample_size'               => ( is => 'rw', isa => 'Int', default => 1000 );
 has 'random_seed'               => ( is => 'rw', isa => 'Int', default => 1 );
 has 'ngram_size'                => ( is => 'rw', isa => 'Int', default => 1 );
-has 'include_stopwords'         => ( is => 'rw', isa => 'Bool' );
-has 'include_stats'             => ( is => 'rw', isa => 'Bool' );
+has 'include_stopwords'         => ( is => 'rw', isa => 'Bool', default => 0 );
+has 'include_stats'             => ( is => 'rw', isa => 'Bool', default => 0 );
+
 has 'cached_combined_stopwords' => ( is => 'rw', isa => 'HashRef' );
 has 'db' => ( is => 'rw' );
 
 # list of all attribute names that should be exposed as cgi params
 sub __get_cgi_param_attributes()
 {
-    return [ qw(q fq num_words sample_size random_seed include_stopwords include_stats ngram_size) ];
+    return [ qw(q fq num_words sample_size random_seed ngram_size include_stopwords include_stats) ];
 }
 
 # return hash of attributes for use as cgi params
