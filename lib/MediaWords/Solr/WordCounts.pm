@@ -41,9 +41,6 @@ Readonly my $MAX_SENTENCE_LENGTH => 1024;
 # Max. number of times to count a word in a single sentence
 Readonly my $MAX_REPEATS_PER_SENTENCE => 3;
 
-# mediawords.wc_cache_version from config
-my $_wc_cache_version;
-
 # Moose instance fields
 
 has 'q'                         => ( is => 'rw', isa => 'Str' );
@@ -427,52 +424,6 @@ sub _get_remote_words
     return $words;
 }
 
-# return CHI cache for word counts
-sub _get_cache
-{
-    my $mediacloud_data_dir = MediaWords::Util::Config::get_config->{ mediawords }->{ data_dir };
-
-    return CHI->new(
-        driver           => 'File',
-        expires_in       => '1 day',
-        expires_variance => '0.1',
-        root_dir         => "${ mediacloud_data_dir }/cache/word_counts",
-        depth            => 4
-    );
-}
-
-# return key that uniquely identifies the query
-sub _get_cache_key
-{
-    my ( $self ) = @_;
-
-    $_wc_cache_version //= MediaWords::Util::Config::get_config->{ mediawords }->{ wc_cache_version } || '1';
-
-    my $meta = $self->meta;
-
-    my $keys = $self->__get_cgi_param_attributes();
-
-    my $hash_key = "$_wc_cache_version:" . Dumper( map { $meta->get_attribute( $_ )->get_value( $self ) } @{ $keys } );
-
-    return $hash_key;
-}
-
-# get a cached value for the given word count
-sub _get_cached_words
-{
-    my ( $self ) = @_;
-
-    return $self->_get_cache->get( $self->_get_cache_key );
-}
-
-# set a cached value for the given word count
-sub _set_cached_words
-{
-    my ( $self, $value ) = @_;
-
-    return $self->_get_cache->set( $self->_get_cache_key, $value );
-}
-
 # get sorted list of most common words in sentences matching a Solr query,
 # exclude stop words. Assumes english stemming and stopwording for now.
 sub get_words
@@ -481,21 +432,12 @@ sub get_words
 
     my $words;
 
-    $words = $self->_get_cached_words unless ( MediaWords::Test::DB::Environment::using_test_database() );
-
-    if ( $words )
-    {
-        return $words;
-    }
-
     unless ( $self->no_remote )
     {
         $words = $self->_get_remote_words;
     }
 
     $words ||= $self->_get_words_from_solr_server();
-
-    $self->_set_cached_words( $words );
 
     return $words;
 }

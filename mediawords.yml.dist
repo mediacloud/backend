@@ -382,9 +382,6 @@ mediawords:
     # database schema version
     # ignore_schema_version: true
 
-    # increment wc_cache_version to invalidate existing cache
-    # wc_cache_version: 1
-
     # list of emails to which to send all topic alerts
     # topic_alert_emails:
     #     - topicupdates@mediacloud.org
