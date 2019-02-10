@@ -349,13 +349,6 @@ mediawords:
     # tablespace in which to create temporary tables -- defaults to the postgres default
     # temporary_table_tablespace: temporary_tablespace
 
-    # url for solr word counting url.  if this is set, fetch word counts from a remote server
-    # using this url; otherwise, generate word counts locally
-    # solr_wc_url: http://localhost/api/v2/wc
-
-    # mc api key for appending to sol_wc_url for fetching remote word counts
-    # solr_wc_key: FOO
-
     # URLs for Solr queries; include multiple to make Media Cloud choose a random URL from
     # the list for each Solr query
     solr_url:
