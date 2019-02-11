@@ -55,6 +55,10 @@ NOOP_PLACEHOLDER = '__NOOP__'
 # replace ':' with this before tokenization so that it gets included with the field name
 FIELD_PLACEHOLDER = '__FIELD__'
 
+# have to construct a beginning word boundary out a positive lookahead because the postgres and python
+# regex engines do not share a common word boundary flag (\b vs. \y)
+WORD_BOUNDARY_REGEX = r'(?:^|(?<=\W))'
+
 
 class Token(object):
     """Object that holds the token value and type. type should one of T_* above """
@@ -195,7 +199,7 @@ class ParseNode(AbstractParseNode):
 
         # for logogram languages, remove the beginning word boundary because it breaks the re
         if is_logogram:
-            regexp = regexp.replace('[[:<:]]', '')
+            regexp = regexp.replace(WORD_BOUNDARY_REGEX, '')
 
         return regexp
 
@@ -213,7 +217,7 @@ class ParseNode(AbstractParseNode):
 
         # for logogram languages, remove the beginning word boundary because it breaks the re
         if is_logogram:
-            regexp = regexp.replace('[[:<:]]', '')
+            regexp = regexp.replace(WORD_BOUNDARY_REGEX, '')
 
         return regexp
 
@@ -271,7 +275,7 @@ class TermNode(ParseNode):
                 return OrNode(list(map(lambda x: TermNode(x), words))).get_re()
             elif self.proximity is None:
                 term = regex.sub(space_place_holder, '[[:space:]]+', term)
-                return '[[:<:]]' + term
+                return WORD_BOUNDARY_REGEX + term
             else:
                 # proximity searches do not care about order, so we need to change this to an and node, which will
                 # generate the and regex permutations. we are just ignoring the actual proximity here for simplicity.
@@ -282,7 +286,7 @@ class TermNode(ParseNode):
         else:
             # escape special characters.  regex.escape() escapes everything that is not
             # ascii alnum, which confuses the postgres reg ex engine
-            term = '[[:<:]]' + regex.sub(r"\W", r"\\\g<0>", term)
+            term = WORD_BOUNDARY_REGEX + regex.sub(r"\W", r"\\\g<0>", term)
             return term
 
     def get_inclusive_re(self, operands: List[AbstractParseNode] = None) -> str:
