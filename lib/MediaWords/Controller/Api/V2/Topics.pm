@@ -317,6 +317,10 @@ sub create_GET
     $topic->{ is_story_index_ready } = normalize_boolean_for_db( $topic->{ is_story_index_ready } );
     $topic->{ solr_seed_query_run }  = normalize_boolean_for_db( $topic->{ solr_seed_query_run } );
 
+    $topic->{ pattern } =
+      eval { MediaWords::Solr::Query::parse( $topic->{ solr_seed_query } )->re( $topic->{ is_logogram } ) };
+    die( "unable to translate solr query to topic pattern: $@" ) if ( $@ );
+
     my $full_solr_query = MediaWords::TM::Mine::get_full_solr_query( $db, $topic, $media_ids, $media_tags_ids );
     my $num_stories = eval { MediaWords::Solr::get_num_found( $db, $full_solr_query ) };
     die( "invalid solr query: $@" ) if ( $@ );
