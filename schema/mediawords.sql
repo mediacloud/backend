@@ -67,6 +67,12 @@ CREATE OR REPLACE FUNCTION half_md5(string TEXT) RETURNS bytea AS $$
     SELECT SUBSTRING(public.digest(string, 'md5'::text), 0, 9);
 $$ LANGUAGE SQL;
 
+-- Helper for indexing nonpartitioned "downloads.downloads_id" as BIGINT for
+-- faster casting
+CREATE FUNCTION to_bigint(p_integer INT) RETURNS BIGINT AS $$
+    SELECT p_integer::bigint;
+$$ LANGUAGE SQL IMMUTABLE;
+
 
 -- Returns true if table exists (and user has access to it)
 -- Table name might be with ("public.stories") or without ("stories") schema.
@@ -829,6 +835,71 @@ CREATE TYPE download_p_type AS ENUM (
 
 );
 
+
+-- Convert "download_np_type" (nonpartitioned table's "type" column)
+-- to "download_p_type" (partitioned table's "type" column)
+CREATE OR REPLACE FUNCTION download_np_type_to_download_p_type(p_type download_np_type)
+RETURNS download_p_type
+AS $$
+    SELECT (
+        CASE
+            -- Allow only the following types:
+            WHEN (p_type = 'content') THEN 'content'
+            WHEN (p_type = 'feed') THEN 'feed'
+
+            -- Temporarily expose obsolete types as "content"
+            -- (filtering them out in WHERE wouldn't work because then
+            -- PostgreSQL decides to do a sequential scan)
+            ELSE 'content'
+        END
+    )::download_p_type;
+$$ LANGUAGE SQL IMMUTABLE;
+
+
+-- Convert "download_np_state" (nonpartitioned table's "state" column)
+-- to "download_p_state" (partitioned table's "state" column)
+CREATE OR REPLACE FUNCTION download_np_state_to_download_p_state(p_state download_np_state)
+RETURNS download_p_state
+AS $$
+    SELECT (
+        CASE
+            -- Rewrite obsolete states
+            WHEN (p_state = 'queued') THEN 'pending'
+            WHEN (p_state = 'extractor_error') THEN 'error'
+
+            -- All the other states are OK
+            ELSE p_state::text
+        END
+    )::download_p_state;
+$$ LANGUAGE SQL IMMUTABLE;
+
+
+-- Create a bunch of extra indexes on the non-partitioned table with columns
+-- cast to partitioned table's types for faster querying
+CREATE INDEX downloads_np_pkey_bigint
+    ON downloads_np (to_bigint(downloads_np_id));
+
+CREATE INDEX downloads_np_parent_bigint
+    ON downloads_np (to_bigint(parent));
+
+CREATE INDEX downloads_type_p
+    ON downloads_np (download_np_type_to_download_p_type(type));
+
+CREATE INDEX downloads_np_state_p_downloads_id_bigint_pending
+    ON downloads_np (download_np_state_to_download_p_state(state), to_bigint(downloads_np_id))
+    WHERE download_np_state_to_download_p_state(state) = 'pending';
+
+CREATE INDEX downloads_np_extracted_p
+    ON downloads_np (extracted, download_np_state_to_download_p_state(state), download_np_type_to_download_p_type(type))
+    WHERE extracted = 'f'
+      AND download_np_state_to_download_p_state(state) = 'success'
+      AND download_np_type_to_download_p_type(type) = 'content';
+
+CREATE INDEX downloads_np_state_p_fetching
+    ON downloads_np (download_np_state_to_download_p_state(state), downloads_np_id)
+    WHERE download_np_state_to_download_p_state(state) = 'fetching';
+
+
 CREATE TABLE downloads_p (
     downloads_p_id  BIGSERIAL           NOT NULL,
     feeds_id        INT                 NOT NULL REFERENCES feeds (feeds_id),
@@ -863,55 +934,43 @@ SELECT setval(
 --
 CREATE OR REPLACE VIEW downloads AS
 
-    SELECT *
-    FROM (
+    -- Non-partitioned table
+    SELECT
+        downloads_np_id::bigint AS downloads_id,
+        feeds_id,
+        stories_id,
+        parent::bigint,
+        url::text,
+        host::text,
+        download_time,
+        download_np_type_to_download_p_type(type) AS type,
+        download_np_state_to_download_p_state(state) AS state,
+        path::text,
+        error_message::text,
+        priority::smallint,
+        sequence::smallint,
+        extracted
+    FROM downloads_np
 
-        -- Non-partitioned table
-        SELECT
-            downloads_np_id AS downloads_id,
-            feeds_id,
-            stories_id,
-            parent,
-            url,
-            host,
-            download_time,
-            type::text::download_p_type AS type,
-            (
-                CASE
-                    WHEN (state = 'queued') THEN 'pending'
-                    WHEN (state = 'extractor_error') THEN 'error'
-                    ELSE state::text
-                END
-            )::download_p_state AS state,
-            path,
-            error_message,
-            priority,
-            sequence,
-            extracted
-        FROM downloads_np
-        WHERE type IN ('content', 'feed')   -- Skip obsolete types like 'Calais'
+    UNION ALL
 
-        UNION ALL
-
-        -- Partitioned table
-        SELECT
-            downloads_p_id AS downloads_id,
-            feeds_id,
-            stories_id,
-            parent,
-            url,
-            host,
-            download_time,
-            type,
-            state,
-            path,
-            error_message,
-            priority,
-            sequence,
-            extracted
-        FROM downloads_p
-
-    ) AS d;
+    -- Partitioned table
+    SELECT
+        downloads_p_id AS downloads_id,
+        feeds_id,
+        stories_id,
+        parent,
+        url,
+        host,
+        download_time,
+        type,
+        state,
+        path,
+        error_message,
+        priority,
+        sequence,
+        extracted
+    FROM downloads_p;
 
 -- Make RETURNING work with partitioned tables
 -- (https://wiki.postgresql.org/wiki/INSERT_RETURNING_vs_Partitioning)
@@ -1459,14 +1518,8 @@ BEGIN
         url,
         host,
         download_time,
-        type::text::download_p_type AS type,
-        (
-            CASE
-                WHEN (state = 'queued') THEN 'pending'
-                WHEN (state = 'extractor_error') THEN 'error'
-                ELSE state::text
-            END
-        )::download_p_state AS state,
+        download_np_type_to_download_p_type(type) AS type,
+        download_np_state_to_download_p_state(state) AS state,
         path,
         error_message,
         priority,
