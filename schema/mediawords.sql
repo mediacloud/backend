@@ -1252,8 +1252,8 @@ CREATE TABLE downloads_p_success_content
     ) FOR VALUES IN ('content')
     PARTITION BY RANGE (downloads_p_id);
 
-CREATE INDEX downloads_p_success_content_extracted_stories
-    ON downloads_p_success_content (stories_id, extracted);
+CREATE INDEX downloads_p_success_content_extracted
+    ON downloads_p_success_content (extracted);
 
 
 CREATE VIEW downloads_media AS
