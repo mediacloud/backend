@@ -882,7 +882,7 @@ CREATE INDEX downloads_np_pkey_bigint
 CREATE INDEX downloads_np_parent_bigint
     ON downloads_np (to_bigint(parent));
 
-CREATE INDEX downloads_type_p
+CREATE INDEX downloads_np_type_p
     ON downloads_np (download_np_type_to_download_p_type(type));
 
 CREATE INDEX downloads_np_state_p_downloads_id_bigint_pending
