@@ -40,7 +40,7 @@ sub test_users($)
 
     my $label = "users/list";
 
-    my $r = test_get( '/api/v2/users/list', {} );
+    my $r = MediaWords::Test::API::test_get( '/api/v2/users/list', {} );
 
     my $fields = [ qw ( email full_name notes created_date max_topic_stories weekly_requests_limit ) ];
     rows_match( $label, $r->{ users }, $expected_auth_users, "auth_users_id", $fields );
@@ -49,7 +49,7 @@ sub test_users($)
 
     my $expected_single = $expected_auth_users->[ 0 ];
 
-    $r = test_get( '/api/v2/users/single/' . $expected_single->{ auth_users_id }, {} );
+    $r = MediaWords::Test::API::test_get( '/api/v2/users/single/' . $expected_single->{ auth_users_id }, {} );
     rows_match( $label, $r->{ users }, [ $expected_single ], 'auth_users_id', $fields );
 
     $label = "search";
@@ -62,7 +62,7 @@ sub test_users($)
     };
     $search_user = $db->create( 'auth_users', $search_user );
 
-    $r = test_get( '/api/v2/users/list', { search => 'search' } );
+    $r = MediaWords::Test::API::test_get( '/api/v2/users/list', { search => 'search' } );
     rows_match( $label, $r->{ users }, [ $search_user ], 'auth_users_id', [ 'auth_users_id' ] );
 
     $label = 'update';
@@ -96,7 +96,7 @@ SQL
 
     my $expected_auth_roles = $db->query( "select * from auth_roles" )->hashes();
 
-    $r = test_get( '/api/v2/users/list_roles', {} );
+    $r = MediaWords::Test::API::test_get( '/api/v2/users/list_roles', {} );
     rows_match( $label, $r->{ roles }, $expected_auth_roles, 'auth_roles_id', [ qw/role description/ ] );
 
     $label = 'roles update';

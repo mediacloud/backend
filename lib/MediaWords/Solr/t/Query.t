@@ -21,9 +21,9 @@ use MediaWords::Test::Supervisor;
 # run the given set of params against _gsifsop and verify that the given list of stories_ids (or undef) is returned
 sub test_stories_id_query
 {
-    my ( $params, $expected_stories_ids, $label ) = @_;
+    my ( $db, $params, $expected_stories_ids, $label ) = @_;
 
-    my $got_stories_ids = MediaWords::Solr::Query::_get_stories_ids_from_stories_only_params( $params );
+    my $got_stories_ids = MediaWords::Solr::Query::_get_stories_ids_from_stories_only_params( $db, $params );
 
     if ( $expected_stories_ids )
     {
@@ -43,51 +43,53 @@ sub test_stories_id_query
     }
 }
 
-sub test_solr_stories_only_query()
+sub test_solr_stories_only_query($)
 {
-    test_stories_id_query( { q  => '' }, undef, 'empty q' );
-    test_stories_id_query( { fq => '' }, undef, 'empty fq' );
-    test_stories_id_query( { q => '', fq => '' }, undef, 'empty q and fq' );
-    test_stories_id_query( { q => '', fq => '' }, undef, 'empty q and fq' );
+    my ( $db ) = @_;
 
-    test_stories_id_query( { q => 'stories_id:1' }, [ 1 ], 'simple q match' );
-    test_stories_id_query( { q => 'media_id:1' }, undef, 'simple q miss' );
-    test_stories_id_query( { q => '*:*', fq => 'stories_id:1' }, [ 1 ], 'simple fq match' );
-    test_stories_id_query( { q => '*:*', fq => 'media_id:1' }, undef, 'simple fq miss' );
+    test_stories_id_query( $db, { q  => '' }, undef, 'empty q' );
+    test_stories_id_query( $db, { fq => '' }, undef, 'empty fq' );
+    test_stories_id_query( $db, { q => '', fq => '' }, undef, 'empty q and fq' );
+    test_stories_id_query( $db, { q => '', fq => '' }, undef, 'empty q and fq' );
 
-    test_stories_id_query( { q => 'media_id:1',   fq => 'stories_id:1' }, undef, 'q hit / fq miss' );
-    test_stories_id_query( { q => 'stories_id:1', fq => 'media_id:1' },   undef, 'q miss / fq hit' );
+    test_stories_id_query( $db, { q => 'stories_id:1' }, [ 1 ], 'simple q match' );
+    test_stories_id_query( $db, { q => 'media_id:1' }, undef, 'simple q miss' );
+    test_stories_id_query( $db, { q => '*:*', fq => 'stories_id:1' }, [ 1 ], 'simple fq match' );
+    test_stories_id_query( $db, { q => '*:*', fq => 'media_id:1' }, undef, 'simple fq miss' );
 
-    test_stories_id_query( { q => '*:*', fq => [ 'stories_id:1', 'stories_id:1' ] }, [ 1 ], 'fq list hit' );
-    test_stories_id_query( { q => '*:*', fq => [ 'stories_id:1', 'media_id:1' ] }, undef, 'fq list miss' );
+    test_stories_id_query( $db, { q => 'media_id:1',   fq => 'stories_id:1' }, undef, 'q hit / fq miss' );
+    test_stories_id_query( $db, { q => 'stories_id:1', fq => 'media_id:1' },   undef, 'q miss / fq hit' );
 
-    test_stories_id_query( { q => 'stories_id:1', fq => '' },             [ 1 ], 'q hit / empty fq' );
-    test_stories_id_query( { q => 'stories_id:1', fq => [] },             [ 1 ], 'q hit / empty fq list' );
-    test_stories_id_query( { q => '*:*',          fq => 'stories_id:1' }, [ 1 ], '*:* q / fq hit' );
-    test_stories_id_query( { fq => 'stories_id:1' }, undef, 'empty q, fq hit' );
-    test_stories_id_query( { q  => '*:*' },          undef, '*:* q' );
+    test_stories_id_query( $db, { q => '*:*', fq => [ 'stories_id:1', 'stories_id:1' ] }, [ 1 ], 'fq list hit' );
+    test_stories_id_query( $db, { q => '*:*', fq => [ 'stories_id:1', 'media_id:1' ] }, undef, 'fq list miss' );
 
-    test_stories_id_query( { q => 'stories_id:( 1 2 3 )' }, [ 1, 2, 3 ], 'q list' );
+    test_stories_id_query( $db, { q => 'stories_id:1', fq => '' },             [ 1 ], 'q hit / empty fq' );
+    test_stories_id_query( $db, { q => 'stories_id:1', fq => [] },             [ 1 ], 'q hit / empty fq list' );
+    test_stories_id_query( $db, { q => '*:*',          fq => 'stories_id:1' }, [ 1 ], '*:* q / fq hit' );
+    test_stories_id_query( $db, { fq => 'stories_id:1' }, undef, 'empty q, fq hit' );
+    test_stories_id_query( $db, { q  => '*:*' },          undef, '*:* q' );
+
+    test_stories_id_query( $db, { q => 'stories_id:( 1 2 3 )' }, [ 1, 2, 3 ], 'q list' );
     test_stories_id_query(
         { q => 'stories_id:( 1 2 3 )', fq => 'stories_id:( 1 3 4 )' },
         [ 1, 3 ],
         'q list / fq list intersection'
     );
-    test_stories_id_query( { q => '( stories_id:2 )' }, [ 2 ], 'q parens' );
-    test_stories_id_query( { q => '(stories_id:3)' },   [ 3 ], 'q parens no spaces' );
+    test_stories_id_query( $db, { q => '( stories_id:2 )' }, [ 2 ], 'q parens' );
+    test_stories_id_query( $db, { q => '(stories_id:3)' },   [ 3 ], 'q parens no spaces' );
 
-    test_stories_id_query( { q => 'stories_id:4 and stories_id:4' }, [ 4 ], 'q simple and' );
-    test_stories_id_query( { q => 'stories_id:( 1 2 3 ) and stories_id:( 2 3 4 )' }, [ 2, 3 ], 'q and intersection' );
-    test_stories_id_query( { q => 'stories_id:( 1 2 3 ) and stories_id:( 4 5 6 )' }, [], 'q and empty intersection' );
+    test_stories_id_query( $db, { q => 'stories_id:4 and stories_id:4' }, [ 4 ], 'q simple and' );
+    test_stories_id_query( $db, { q => 'stories_id:( 1 2 3 ) and stories_id:( 2 3 4 )' }, [ 2, 3 ], 'q and intersection' );
+    test_stories_id_query( $db, { q => 'stories_id:( 1 2 3 ) and stories_id:( 4 5 6 )' }, [], 'q and empty intersection' );
 
     test_stories_id_query(
         { q => 'stories_id:( 1 2 3 4 ) and ( stories_id:( 2 3 4 5 6 ) and stories_id:( 3 4 ) )' },
         [ 3, 4 ],
         'q complex and intersection'
     );
-    test_stories_id_query( { q => 'stories_id:( 1 2 3 4 ) and ( stories_id:( 2 3 4 5 6 ) and media_id:1 )' },
+    test_stories_id_query( $db, { q => 'stories_id:( 1 2 3 4 ) and ( stories_id:( 2 3 4 5 6 ) and media_id:1 )' },
         undef, 'q complex and intersection miss' );
-    test_stories_id_query( { q => 'stories_id:( 1 2 3 4 ) and ( stories_id:( 2 3 4 5 6 ) and stories_id:( 243 ) )' },
+    test_stories_id_query( $db, { q => 'stories_id:( 1 2 3 4 ) and ( stories_id:( 2 3 4 5 6 ) and stories_id:( 243 ) )' },
         [], 'q complex and intersection empty' );
     test_stories_id_query(
         { q => 'stories_id:( 1 2 3 4 ) and stories_id:( 2 3 4 5 6 ) and stories_id:( 3 4 )' },
@@ -95,19 +97,19 @@ sub test_solr_stories_only_query()
         'q complex and intersection'
     );
 
-    test_stories_id_query( { q => 'stories_id:1 and ( stories_id:2 and ( stories_id:3 and obama ) )' },
+    test_stories_id_query( $db, { q => 'stories_id:1 and ( stories_id:2 and ( stories_id:3 and obama ) )' },
         undef, 'q complex boolean query with buried miss' );
-    test_stories_id_query( { q => '( ( stories_id:1 or stories_id:2 ) and stories_id:3 )' },
+    test_stories_id_query( $db, { q => '( ( stories_id:1 or stories_id:2 ) and stories_id:3 )' },
         undef, 'q complex boolean query with buried or' );
 
-    test_stories_id_query( { q => 'stories_id:( 1 2 3 4 5 6 )', foo => 'bar' }, undef, 'unrecognized parameters' );
-    test_stories_id_query( { q => 'stories_id:( 1 2 3 4 5 6 )', start => '2' }, [ 3, 4, 5, 6 ], 'start parameter' );
+    test_stories_id_query( $db, { q => 'stories_id:( 1 2 3 4 5 6 )', foo => 'bar' }, undef, 'unrecognized parameters' );
+    test_stories_id_query( $db, { q => 'stories_id:( 1 2 3 4 5 6 )', start => '2' }, [ 3, 4, 5, 6 ], 'start parameter' );
     test_stories_id_query(
         { q => 'stories_id:( 1 2 3 4 5 6 )', start => '2', rows => 2 },
         [ 3, 4 ],
         'start and rows parameter'
     );
-    test_stories_id_query( { q => 'stories_id:( 1 2 3 4 5 6 )', rows => 2 }, [ 1, 2 ], 'rows parameter' );
+    test_stories_id_query( $db, { q => 'stories_id:( 1 2 3 4 5 6 )', rows => 2 }, [ 1, 2 ], 'rows parameter' );
 }
 
 # generate a utf8 string and append it to the title of the given stories, both in the hashes and in
@@ -430,7 +432,7 @@ SQL
 
 sub main
 {
-    test_solr_stories_only_query();
+    MediaWords::Test::DB::test_on_test_database( \&test_solr_stories_only_query );
 
     MediaWords::Test::DB::test_on_test_database( \&test_collections_id_queries );
 

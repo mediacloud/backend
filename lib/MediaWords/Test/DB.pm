@@ -12,6 +12,7 @@ use MediaWords::Test::DB::Create;
 use MediaWords::Test::DB::Environment;
 
 use Regexp::Common;
+use Test::More;
 
 # run the given function on a temporary, clean database
 sub test_on_test_database

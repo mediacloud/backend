@@ -247,13 +247,14 @@ SQL
 
     my $limit = 3;
 
-    my $r = test_get( "/api/v2/topics/$topics_id/stories/list", { timespans_id => $timespans_id, limit => $limit } );
+    my $r = MediaWords::Test::API::test_get( "/api/v2/topics/$topics_id/stories/list",
+        { timespans_id => $timespans_id, limit => $limit } );
 
     my $got_stories_count = scalar( @{ $r->{ stories } } );
 
     while ( my $next_link_id = $r->{ link_ids }->{ next } )
     {
-        $r = test_get( "/api/v2/topics/$topics_id/stories/list", { link_id => $next_link_id } );
+        $r = MediaWords::Test::API::test_get( "/api/v2/topics/$topics_id/stories/list", { link_id => $next_link_id } );
         $got_stories_count += scalar( @{ $r->{ stories } } );
     }
 
@@ -665,7 +666,7 @@ SQL
 
     ok( scalar( @{ $expected_media_ids } ) > 0, "media list q search found media ids" );
 
-    my $r = test_get( "/api/v2/topics/$topic->{ topics_id }/media/list", { q => $search_word } );
+    my $r = MediaWords::Test::API::test_get( "/api/v2/topics/$topic->{ topics_id }/media/list", { q => $search_word } );
 
     my $got_media = $r->{ media };
     my $got_media_ids = [ sort { $a <=> $b } map { $_->{ media_id } } @{ $got_media } ];
