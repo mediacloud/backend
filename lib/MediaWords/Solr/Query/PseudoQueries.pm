@@ -369,6 +369,8 @@ solr query.
 
 =cut
 
+sub transform_query($$);
+
 sub transform_query($$)
 {
     my ( $db, $q ) = @_;
