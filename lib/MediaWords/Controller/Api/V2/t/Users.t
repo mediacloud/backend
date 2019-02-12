@@ -76,7 +76,7 @@ sub test_users($)
         weekly_requests_limit => 123456,
         max_topic_stories     => 456789,
     };
-    $r = test_put( '/api/v2/users/update', $input_data );
+    $r = MediaWords::Test::API::test_put( '/api/v2/users/update', $input_data );
 
     my $updated_user = $db->query( <<SQL, $search_user->{ auth_users_id } )->hash();
 select au.*, aul.weekly_requests_limit
@@ -109,7 +109,7 @@ SQL
 
     my $user_role = $expected_auth_roles->[ 0 ];
     my $update_input = { auth_users_id => $search_user->{ auth_users_id }, roles => [ $user_role->{ role } ] };
-    $r = test_put( '/api/v2/users/update', $update_input );
+    $r = MediaWords::Test::API::test_put( '/api/v2/users/update', $update_input );
 
     my $role_present = $db->query( <<SQL, $search_user->{ auth_users_id }, $user_role->{ auth_roles_id } )->hash();
         select * from auth_users_roles_map where auth_users_id = \$1 and auth_roles_id = \$2
@@ -120,7 +120,7 @@ SQL
     $label = 'roles delete';
 
     $update_input = { auth_users_id => $search_user->{ auth_users_id }, roles => [] };
-    $r = test_put( '/api/v2/users/update', $update_input );
+    $r = MediaWords::Test::API::test_put( '/api/v2/users/update', $update_input );
 
     $role_present = $db->query( <<SQL, $search_user->{ auth_users_id } )->hash();
         select * from auth_users_roles_map where auth_users_id = \$1
@@ -132,7 +132,7 @@ SQL
 
     my $delete_user = pop( @{ $expected_auth_users } );
 
-    $r = test_put( '/api/v2/users/delete', { auth_users_id => $delete_user->{ auth_users_id } } );
+    $r = MediaWords::Test::API::test_put( '/api/v2/users/delete', { auth_users_id => $delete_user->{ auth_users_id } } );
 
     ok( $r->{ success } == 1, "$label returned sucess" );
 
