@@ -1,5 +1,25 @@
 package MediaWords::Solr::Query::PseudoQueries;
 
+#
+# Transform pseudo query clauses in Solr queries
+#
+# Pseudo queries allow us to effectively perform joins with postgres queries
+# directly through the API with queries that look like:
+#
+#     sentence:obama and {~ timespan:1234 }
+#
+# which would be processed and replaced before sending to Solr with something
+# that looks like:
+#
+#     sentence:obama and stories_id:( ... )
+#
+# This module is integrated directly into query_solr(), so it shouldn't need to
+# be called directly by the user to query Solr.
+#
+# Documentation of the specific pseudo queries is in the API spec at
+# doc/api_2_0_spec/api_2_0_spec.md
+#
+
 use strict;
 use warnings;
 
@@ -7,32 +27,6 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use MediaWords::TM::Snapshot;
-
-=head1 NAME
-
-MediaWords::Solr::PseudoQueries - transform pseudo query clauses in solr queries
-
-=head1 DESCRIPTION
-
-Transform pseudo query clauses in solr queries.
-
-Pseudo queries allow us to effectively perform joins with postgres queries directly through the api with queries that
-look like:
-
-sentence:obama and {~ timespan:1234 }
-
-which would be processed and replaced before sending to solr with something that looks like:
-
-sentence:obama and stories_id:( ... )
-
-This module is integrated directly into MediaWords::Solr::Query::query_solr(), so it shouldn't need to be called directly by the user
-to query solr.
-
-Documentation of the specific pseudo queries is in the api spec at doc/api_2_0_spec/api_2_0_spec.md and rendered at
-
-https://github.com/berkmancenter/mediacloud/blob/master/doc/api_2_0_spec/api_2_0_spec.md#apiv2stories_publiclist
-
-=cut
 
 use List::Compare;
 use Readonly;
@@ -356,35 +350,34 @@ sub _transform_clause
     }
 }
 
-=head2 transform_query( $db, $q )
-
-Given a solr query, transform the pseudo clauses in a query to stories_id:(...) clauses and return the transformed
-solr query.
-
-=cut
-
 sub transform_query($$);
 
+# Given a Solr query, transform the pseudo clauses in a query to
+# stories_id:(...) clauses and return the transformed Solr query.
 sub transform_query($$)
 {
     my ( $db, $q ) = @_;
 
-    return undef unless ( defined( $q ) );
-
-    if ( ref( $q ) eq 'ARRAY' )
+    unless ( defined( $q ) )
     {
-        return [ map { transform_query( $db, $_ ) } @{ $q } ];
+        return undef;
     }
 
-    my $t = $q;
+    my $transformed_q = $q;
 
-    $t =~ s/(\{\~[^\}]*\})/_transform_clause( $db, $1 )/eg;
+    $transformed_q =~ s/(\{\~[^\}]*\})/_transform_clause( $db, $1 )/eg;
 
-    die( "transformed query is longer than max of $MAX_QUERY_LENGTH" ) if ( length( $t ) > $MAX_QUERY_LENGTH );
+    if ( length( $transformed_q ) > $MAX_QUERY_LENGTH )
+    {
+        die "Transformed query is longer than max. length of $MAX_QUERY_LENGTH";
+    }
 
-    TRACE "transformed solr query: '$q' -> '$t'\n" unless ( $t eq $q );
+    unless ( $transformed_q eq $q )
+    {
+        TRACE "Transformed Solr query: '$q' -> '$transformed_q'";
+    }
 
-    return $t;
+    return $transformed_q;
 }
 
 1;

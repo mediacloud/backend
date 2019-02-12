@@ -496,13 +496,12 @@ sub _get_stories_ids_from_stories_only_params($$)
 {
     my ( $db, $params ) = @_;
 
-    $params->{ q }  = MediaWords::Solr::Query::PseudoQueries::transform_query( $db, $params->{ q } );
-    $params->{ fq } = MediaWords::Solr::Query::PseudoQueries::transform_query( $db, $params->{ fq } );
-
     my $q     = $params->{ q };
     my $fqs   = $params->{ fq };
     my $start = $params->{ start };
     my $rows  = $params->{ rows };
+
+    $q = MediaWords::Solr::Query::PseudoQueries::transform_query( $db, $q );
 
     # return undef if there are any unrecognized params
     my $p = { %{ $params } };
@@ -516,6 +515,9 @@ sub _get_stories_ids_from_stories_only_params($$)
     if ( $fqs )
     {
         $fqs = ref( $fqs ) ? $fqs : [ $fqs ];
+
+        $fqs = [ map { MediaWords::Solr::Query::PseudoQueries::transform_query( $db, $_ ) } @{ $fqs } ];
+
         for my $fq ( @{ $fqs } )
         {
             if ( my $stories_ids = _get_stories_ids_from_stories_only_q( $fq ) )
@@ -527,7 +529,6 @@ sub _get_stories_ids_from_stories_only_params($$)
                 return undef;
             }
         }
-
     }
 
     my $r;
