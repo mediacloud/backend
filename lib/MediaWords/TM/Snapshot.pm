@@ -42,6 +42,8 @@ use warnings;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
+import_python_module( __PACKAGE__, 'mediawords.tm.snapshot.snapshot' );
+
 use Date::Format;
 use Encode;
 use File::Temp;
@@ -1656,49 +1658,6 @@ SQL
         my $table_exists = $db->query( "select * from pg_class where relname = ?", $table )->hash;
         die( "snapshot not created for snapshot table: $table" ) unless ( $table_exists );
     }
-
-}
-
-sub add_media_type_views
-{
-    my ( $db ) = @_;
-
-    $db->query( <<END );
-create or replace view snapshot_media_with_types as
-    with topics_id as (
-        select topics_id from snapshot_topic_stories limit 1
-    )
-
-    select
-            m.*,
-            case
-                when ( ct.label <> 'Not Typed' )
-                    then ct.label
-                when ( ut.label is not null )
-                    then ut.label
-                else
-                    'Not Typed'
-                end as media_type
-        from
-            snapshot_media m
-            left join (
-                snapshot_tags ut
-                join snapshot_tag_sets uts on ( ut.tag_sets_id = uts.tag_sets_id and uts.name = 'media_type' )
-                join snapshot_media_tags_map umtm on ( umtm.tags_id = ut.tags_id )
-            ) on ( m.media_id = umtm.media_id )
-            left join (
-                snapshot_tags ct
-                join snapshot_media_tags_map cmtm on ( cmtm.tags_id = ct.tags_id )
-                join topics c on ( c.media_type_tag_sets_id = ct.tag_sets_id )
-                join topics_id cid on ( c.topics_id = cid.topics_id )
-            ) on ( m.media_id = cmtm.media_id )
-END
-
-    $db->query( <<END );
-create or replace view snapshot_stories_with_types as
-    select s.*, m.media_type
-        from snapshot_stories s join snapshot_media_with_types m on ( s.media_id = m.media_id )
-END
 
 }
 
