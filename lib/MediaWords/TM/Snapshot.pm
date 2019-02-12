@@ -129,6 +129,56 @@ sub set_temporary_table_tablespace
     $_temporary_tablespace = $tablespace ? "tablespace $tablespace" : '';
 }
 
+# create temporary view of all the snapshot_* tables that call into the snap.* tables.
+# this is useful for writing queries on the snap.* tables without lots of ugly
+# joins and clauses to cd and timespan.  It also provides the same set of snapshot_*
+# tables as provided by write_story_link_counts_snapshot_tables, so that the same
+# set of queries can run against either.
+sub create_temporary_snapshot_views($$)
+{
+    my ( $db, $timespan ) = @_;
+
+    # postgres prints lots of 'NOTICE's when deleting temp tables
+    $db->set_print_warn( 0 );
+
+    for my $t ( @{ $SNAPSHOT_TABLES } )
+    {
+        $db->query(
+            <<SQL
+            CREATE TEMPORARY VIEW snapshot_$t AS
+                SELECT *
+                FROM snap.$t
+                WHERE snapshots_id = $timespan->{ snapshots_id }
+SQL
+        );
+    }
+
+    for my $t ( @{ $TIMESPAN_TABLES } )
+    {
+        $db->query(
+            <<SQL
+            CREATE TEMPORARY VIEW snapshot_$t AS
+                SELECT *
+                FROM snap.$t
+                WHERE timespans_id = $timespan->{ timespans_id }
+SQL
+        );
+    }
+
+    $db->query(
+        <<SQL
+        CREATE TEMPORARY VIEW snapshot_period_stories AS
+            SELECT stories_id
+            FROM snapshot_story_link_counts
+SQL
+    );
+
+    add_media_type_views( $db );
+
+    # Set the warnings back on
+    $db->set_print_warn( 0 );
+}
+
 =head2 discard_temp_tables( $db )
 
 Runs $db->query( "discard temp" ) to clean up temporary tables and views.  This should be run after calling
