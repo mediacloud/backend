@@ -26,8 +26,6 @@ use warnings;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-use MediaWords::TM::Snapshot;
-
 use List::Compare;
 use Readonly;
 
@@ -81,10 +79,11 @@ sub _transform_link_to_story_field
     my $stories_ids = $db->query(
         <<SQL,
         SELECT source_stories_id
-        FROM snapshot_story_links
+        FROM snap.story_links
         WHERE ref_stories_id = ?
+          AND timespans_id = ?
 SQL
-        $to_stories_id
+        $to_stories_id, $return_data->{ timespan }->[ 0 ]->{ timespans_id }
     )->flat;
 
     return { stories_ids => $stories_ids };
@@ -101,10 +100,11 @@ sub _transform_link_from_story_field
     my $stories_ids = $db->query(
         <<SQL,
         SELECT ref_stories_id
-        FROM snapshot_story_links
+        FROM snap.story_links
         WHERE source_stories_id = ?
+          AND timespans_id = ?
 SQL
-        $from_stories_id
+        $from_stories_id, $return_data->{ timespan }->[ 0 ]->{ timespans_id }
     )->flat;
 
     return { stories_ids => $stories_ids };
@@ -121,12 +121,13 @@ sub _transform_link_to_medium_field
     my $stories_ids = $db->query(
         <<SQL,
         SELECT DISTINCT sl.source_stories_id
-        FROM snapshot_story_links AS sl
-            JOIN snapshot_stories AS s
+        FROM snap.story_links AS sl
+            JOIN snap.stories AS s
                 ON sl.ref_stories_id = s.stories_id
         WHERE s.media_id = ?
+          AND sl.timespans_id = ?
 SQL
-        $to_media_id
+        $to_media_id, $return_data->{ timespan }->[ 0 ]->{ timespans_id }
     )->flat;
 
     return { stories_ids => $stories_ids };
@@ -143,12 +144,13 @@ sub _transform_link_from_medium_field
     my $stories_ids = $db->query(
         <<SQL,
         SELECT DISTINCT sl.ref_stories_id
-        FROM snapshot_story_links AS sl
-            JOIN snapshot_stories AS s
+        FROM snap.story_links AS sl
+            JOIN snap.stories AS s
                 ON sl.source_stories_id = s.stories_id
         WHERE s.media_id = ?
+          AND sl.timespans_id = ?
 SQL
-        $from_media_id
+        $from_media_id, $return_data->{ timespan }->[ 0 ]->{ timespans_id }
     )->flat;
 
     return { stories_ids => $stories_ids };
@@ -178,14 +180,23 @@ sub _transform_timespan_field
 {
     my ( $db, $return_data, $timespans_id, $live ) = @_;
 
-    my $timespan = $db->find_by_id( 'timespans', $timespans_id )
-      || die( "Unable to find timespan with id '$timespans_id'" );
+    my $timespan = $db->require_by_id( 'timespans', $timespans_id );
 
-    MediaWords::TM::Snapshot::create_temporary_snapshot_views( $db, $timespan );
+    my $stories_ids = $db->query(
+        <<SQL,
+        SELECT stories_id
+        FROM snap.story_link_counts
+        WHERE timespans_id = ?
+SQL
+        $timespans_id
+    )->flat;
 
-    my $stories_ids = $db->query( "SELECT stories_id FROM snapshot_story_link_counts" )->flat;
-
-    return { timespans_id => $timespans_id, stories_ids => $stories_ids, live => $live };
+    return {
+        timespans_id => $timespans_id,
+        snapshots_id => $timespan->{ snapshots_id },
+        stories_ids  => $stories_ids,
+        live         => $live
+    };
 }
 
 # accept link_from_tag:1234[-5678] clause and return a list of stories_ids where
@@ -231,36 +242,41 @@ SQL
         }
     }
 
-    my $stories_ids = $db->query(
-        <<"SQL"
+    my $snapshots_id = $return_data->{ timespan }->[ 0 ]->{ snapshots_id };
+    my $timespans_id = $return_data->{ timespan }->[ 0 ]->{ timespans_id };
+    my $stories_ids  = $db->query(
+        <<"SQL",
 
         WITH tagged_stories AS (
             SELECT
                 stm.stories_id,
                 stm.tags_id
-            FROM snapshot_stories_tags_map AS stm
+            FROM snap.stories_tags_map AS stm
+            WHERE stm.snapshots_id = ?
 
             UNION
 
             SELECT
                 s.stories_id,
                 mtm.tags_id
-                FROM snapshot_stories AS s
-                    JOIN media_tags_map AS mtm
-                        ON s.media_id = mtm.media_id
+            FROM snap.stories AS s
+                JOIN media_tags_map AS mtm
+                    ON s.media_id = mtm.media_id
+            WHERE s.snapshots_id = ?
         )
 
         SELECT sl.ref_stories_id
-        FROM snapshot_story_links AS sl
-        WHERE
-            sl.source_stories_id IN (
+        FROM snap.story_links AS sl
+        WHERE sl.timespans_id = ?
+          AND sl.source_stories_id IN (
                 SELECT stories_id
                 FROM tagged_stories AS ts
-                WHERE ts.tags_id = $from_tags_id
+                WHERE ts.tags_id = ?
             )
             $to_tags_id_clause
 
 SQL
+        $snapshots_id, $snapshots_id, $timespans_id, $from_tags_id
     )->flat;
 
     return { stories_ids => $stories_ids };
@@ -403,14 +419,8 @@ sub transform_query($$)
 
     my $transformed_q = $q;
 
-    my $use_transaction = !$db->in_transaction();
-    $db->begin if ( $use_transaction );
-
     eval { $transformed_q =~ s/(\{\~[^\}]*\})/_transform_clause( $db, $1 )/eg; };
     my $error_message = $@;
-
-    # Remove the temporary views that were created above
-    $db->rollback if ( $use_transaction );
 
     if ( $error_message )
     {
