@@ -98,13 +98,13 @@ my $_media_static_gexf_attribute_types = {
 };
 
 # all tables that get stored as snapshot_* for each spanshot
-my $_snapshot_tables = [
-    qw/topic_stories topic_links_cross_media topic_media_codes
-      stories media stories_tags_map media_tags_map tags tag_sets tweet_stories/
+Readonly my $SNAPSHOT_TABLES => [
+    qw/topic_stories topic_links_cross_media topic_media_codes stories media
+      stories_tags_map media_tags_map tags tag_sets tweet_stories/
 ];
 
 # all tables that get stories as snapshot_* for each timespan
-my $_timespan_tables = [ qw/story_link_counts story_links medium_link_counts medium_links timespan_tweets/ ];
+Readonly my $TIMESPAN_TABLES => [ qw/story_link_counts story_links medium_link_counts medium_links timespan_tweets/ ];
 
 # tablespace clause for temporary tables
 my $_temporary_tablespace;
@@ -115,18 +115,6 @@ my $_drop_snapshot_period_stories = 1;
 =head1 FUNCTIONS
 
 =cut
-
-# get the list of all snapshot tables
-sub __get_snapshot_tables
-{
-    return [ @{ $_snapshot_tables } ];
-}
-
-# get the list of all timespan specific tables
-sub get_timespan_tables
-{
-    return [ @{ $_timespan_tables } ];
-}
 
 # if the temporary_table_tablespace config is present, set $_temporary_tablespace
 # to a tablespace clause for the tablespace, otherwise set it to ''
@@ -151,7 +139,7 @@ sub create_temporary_snapshot_views($$)
     # postgres prints lots of 'NOTICE's when deleting temp tables
     $db->set_print_warn( 0 );
 
-    for my $t ( @{ __get_snapshot_tables() } )
+    for my $t ( @{ $SNAPSHOT_TABLES } )
     {
         $db->query(
             <<SQL
@@ -163,7 +151,7 @@ SQL
         );
     }
 
-    for my $t ( @{ get_timespan_tables() } )
+    for my $t ( @{ $TIMESPAN_TABLES } )
     {
         $db->query(
             <<SQL
@@ -201,7 +189,7 @@ sub discard_temp_tables
 {
     my ( $db ) = @_;
 
-    $db->query( "discard temp" );
+    $db->query( "DISCARD TEMP" );
 }
 
 # remove stories from snapshot_period_stories that don't math solr query in the associated focus, if any
@@ -1472,8 +1460,7 @@ sub copy_temporary_tables
 {
     my ( $db ) = @_;
 
-    my $snapshot_tables = __get_snapshot_tables();
-    for my $snapshot_table ( @{ $snapshot_tables } )
+    for my $snapshot_table ( @{ $SNAPSHOT_TABLES } )
     {
         my $snapshot_table = "snapshot_${ snapshot_table }";
         my $copy_table     = "_copy_${ snapshot_table }";
@@ -1488,8 +1475,7 @@ sub restore_temporary_tables
 {
     my ( $db ) = @_;
 
-    my $snapshot_tables = __get_snapshot_tables();
-    for my $snapshot_table ( @{ $snapshot_tables } )
+    for my $snapshot_table ( @{ $SNAPSHOT_TABLES } )
     {
         my $snapshot_table = "snapshot_${ snapshot_table }";
         my $copy_table     = "_copy_${ snapshot_table }";
@@ -1665,7 +1651,7 @@ SQL
 
     add_media_type_views( $db );
 
-    for my $table ( @{ __get_snapshot_tables() } )
+    for my $table ( @{ $SNAPSHOT_TABLES } )
     {
         my $table_exists = $db->query( "select * from pg_class where relname = ?", $table )->hash;
         die( "snapshot not created for snapshot table: $table" ) unless ( $table_exists );
@@ -1716,14 +1702,12 @@ END
 
 }
 
-# generate snapshots for all of the __get_snapshot_tables() from the temporary snapshot tables
+# generate snapshots for all of the $SNAPSHOT_TABLES from the temporary snapshot tables
 sub generate_snapshots_from_temporary_snapshot_tables
 {
     my ( $db, $cd ) = @_;
 
-    my $snapshot_tables = __get_snapshot_tables();
-
-    map { create_snap_snapshot( $db, $cd, $_ ) } @{ $_snapshot_tables };
+    map { create_snap_snapshot( $db, $cd, $_ ) } @{ $SNAPSHOT_TABLES };
 }
 
 # create the snapshot row for the current snapshot
@@ -1753,9 +1737,7 @@ sub analyze_snapshot_tables
 
     DEBUG( "analyzing tables..." );
 
-    my $snapshot_tables = __get_snapshot_tables();
-
-    for my $t ( @{ $snapshot_tables } )
+    for my $t ( @{ $SNAPSHOT_TABLES } )
     {
         $db->query( "analyze snap.$t" );
     }
