@@ -31,7 +31,7 @@ Readonly my $MAX_REPEATS_PER_SENTENCE => 3;
 Readonly my $DEFAULT_SAMPLE_SIZE       => 1000;
 Readonly my $DEFAULT_NGRAM_SIZE        => 1;
 Readonly my $DEFAULT_INCLUDE_STOPWORDS => 0;
-Readonly my $DEFAULT_NUM_ROWS          => 500;
+Readonly my $DEFAULT_NUM_WORDS         => 500;
 Readonly my $DEFAULT_RANDOM_SEED       => 1;
 Readonly my $DEFAULT_INCLUDE_STATS     => 0;
 
@@ -42,8 +42,8 @@ sub new($;$$)
     my $self = {};
     bless( $self, $class );
 
-    $self->{ _ngram_size }        = $ngram_size        // $DEFAULT_NGRAM_SIZE + 0;
-    $self->{ _include_stopwords } = $include_stopwords // $DEFAULT_INCLUDE_STOPWORDS + 0;
+    $self->{ _ngram_size }        = int( $ngram_size        // $DEFAULT_NGRAM_SIZE );
+    $self->{ _include_stopwords } = int( $include_stopwords // $DEFAULT_INCLUDE_STOPWORDS );
 
     # Combined stopword cache
     $self->{ _cached_combined_stopwords } = {};
@@ -226,22 +226,10 @@ sub get_words($$$$;$$$)
         $fq = [];
     }
 
-    unless ( defined $sample_size )
-    {
-        $sample_size = $DEFAULT_SAMPLE_SIZE + 0;
-    }
-    unless ( defined $num_words )
-    {
-        $num_words = $DEFAULT_NUM_ROWS + 0;
-    }
-    unless ( defined $random_seed )
-    {
-        $random_seed = $DEFAULT_RANDOM_SEED + 0;
-    }
-    unless ( defined $include_stats )
-    {
-        $include_stats = $DEFAULT_INCLUDE_STATS + 0;
-    }
+    $sample_size   = int( $sample_size   // $DEFAULT_SAMPLE_SIZE );
+    $num_words     = int( $num_words     // $DEFAULT_NUM_WORDS );
+    $random_seed   = int( $random_seed   // $DEFAULT_RANDOM_SEED );
+    $include_stats = int( $include_stats // $DEFAULT_INCLUDE_STATS );
 
     unless ( $q or ( $fq and @{ $fq } ) )
     {

@@ -71,6 +71,7 @@ sub test_solr_stories_only_query($)
 
     test_stories_id_query( $db, { q => 'stories_id:( 1 2 3 )' }, [ 1, 2, 3 ], 'q list' );
     test_stories_id_query(
+        $db,
         { q => 'stories_id:( 1 2 3 )', fq => 'stories_id:( 1 3 4 )' },
         [ 1, 3 ],
         'q list / fq list intersection'
@@ -83,6 +84,7 @@ sub test_solr_stories_only_query($)
     test_stories_id_query( $db, { q => 'stories_id:( 1 2 3 ) and stories_id:( 4 5 6 )' }, [], 'q and empty intersection' );
 
     test_stories_id_query(
+        $db,
         { q => 'stories_id:( 1 2 3 4 ) and ( stories_id:( 2 3 4 5 6 ) and stories_id:( 3 4 ) )' },
         [ 3, 4 ],
         'q complex and intersection'
@@ -92,6 +94,7 @@ sub test_solr_stories_only_query($)
     test_stories_id_query( $db, { q => 'stories_id:( 1 2 3 4 ) and ( stories_id:( 2 3 4 5 6 ) and stories_id:( 243 ) )' },
         [], 'q complex and intersection empty' );
     test_stories_id_query(
+        $db,
         { q => 'stories_id:( 1 2 3 4 ) and stories_id:( 2 3 4 5 6 ) and stories_id:( 3 4 )' },
         [ 3, 4 ],
         'q complex and intersection'
@@ -105,6 +108,7 @@ sub test_solr_stories_only_query($)
     test_stories_id_query( $db, { q => 'stories_id:( 1 2 3 4 5 6 )', foo => 'bar' }, undef, 'unrecognized parameters' );
     test_stories_id_query( $db, { q => 'stories_id:( 1 2 3 4 5 6 )', start => '2' }, [ 3, 4, 5, 6 ], 'start parameter' );
     test_stories_id_query(
+        $db,
         { q => 'stories_id:( 1 2 3 4 5 6 )', start => '2', rows => 2 },
         [ 3, 4 ],
         'start and rows parameter'
