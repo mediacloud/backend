@@ -64,8 +64,10 @@ sub _require_timespan
 {
     my ( $return_data, $field ) = @_;
 
-    die( "pseudo query error: '$field' field requires a timespan field in the same pseudo query clause" )
-      unless ( $return_data->{ timespan } );
+    unless ( $return_data->{ timespan } )
+    {
+        die "Pseudo query error: '$field' field requires a timespan field in the same pseudo query clause";
+    }
 }
 
 # transform link_to_story:1234 into list of stories within timespan that link
@@ -76,12 +78,14 @@ sub _transform_link_to_story_field
 
     _require_timespan( $return_data, 'link_to_story' );
 
-    my $stories_ids = $db->query( <<END, $to_stories_id )->flat;
-select source_stories_id
-    from snapshot_story_links
-    where
-        ref_stories_id = ?
-END
+    my $stories_ids = $db->query(
+        <<SQL,
+        SELECT source_stories_id
+        FROM snapshot_story_links
+        WHERE ref_stories_id = ?
+SQL
+        $to_stories_id
+    )->flat;
 
     return { stories_ids => $stories_ids };
 }
@@ -94,11 +98,14 @@ sub _transform_link_from_story_field
 
     _require_timespan( $return_data, 'link_from_story' );
 
-    my $stories_ids = $db->query( <<END, $from_stories_id )->flat;
-select ref_stories_id
-    from snapshot_story_links
-    where source_stories_id = ?
-END
+    my $stories_ids = $db->query(
+        <<SQL,
+        SELECT ref_stories_id
+        FROM snapshot_story_links
+        WHERE source_stories_id = ?
+SQL
+        $from_stories_id
+    )->flat;
 
     return { stories_ids => $stories_ids };
 }
@@ -111,15 +118,16 @@ sub _transform_link_to_medium_field
 
     _require_timespan( $return_data, 'link_from_medium' );
 
-    my $stories_ids = $db->query( <<END, $to_media_id )->flat;
-select distinct sl.source_stories_id
-    from
-        snapshot_story_links sl
-        join snapshot_stories s
-            on ( sl.ref_stories_id = s.stories_id )
-    where
-        s.media_id = \$1
-END
+    my $stories_ids = $db->query(
+        <<SQL,
+        SELECT DISTINCT sl.source_stories_id
+        FROM snapshot_story_links AS sl
+            JOIN snapshot_stories AS s
+                ON sl.ref_stories_id = s.stories_id
+        WHERE s.media_id = ?
+SQL
+        $to_media_id
+    )->flat;
 
     return { stories_ids => $stories_ids };
 }
@@ -132,15 +140,16 @@ sub _transform_link_from_medium_field
 
     _require_timespan( $return_data, 'link_from_medium' );
 
-    my $stories_ids = $db->query( <<END, $from_media_id )->flat;
-select distinct sl.ref_stories_id
-    from
-        snapshot_story_links sl
-        join snapshot_stories s
-            on ( sl.source_stories_id = s.stories_id )
-    where
-        s.media_id = \$1
-END
+    my $stories_ids = $db->query(
+        <<SQL,
+        SELECT DISTINCT sl.ref_stories_id
+        FROM snapshot_story_links AS sl
+            JOIN snapshot_stories AS s
+                ON sl.source_stories_id = s.stories_id
+        WHERE s.media_id = ?
+SQL
+        $from_media_id
+    )->flat;
 
     return { stories_ids => $stories_ids };
 }
@@ -151,9 +160,14 @@ sub _transform_topic_field
 {
     my ( $db, $return_data, $topics_id ) = @_;
 
-    my $stories_ids = $db->query( <<END, $topics_id )->flat;
-select stories_id from topic_stories where topics_id = ?
-END
+    my $stories_ids = $db->query(
+        <<SQL,
+        SELECT stories_id
+        FROM topic_stories
+        WHERE topics_id = ?
+SQL
+        $topics_id
+    )->flat;
 
     return { topics_id => $topics_id, stories_ids => $stories_ids };
 }
@@ -169,7 +183,7 @@ sub _transform_timespan_field
 
     MediaWords::TM::Snapshot::create_temporary_snapshot_views( $db, $timespan );
 
-    my $stories_ids = $db->query( "select stories_id from snapshot_story_link_counts" )->flat;
+    my $stories_ids = $db->query( "SELECT stories_id FROM snapshot_story_link_counts" )->flat;
 
     return { timespans_id => $timespans_id, stories_ids => $stories_ids, live => $live };
 }
@@ -193,37 +207,62 @@ sub _transform_link_from_tag_field
     {
         if ( $to_tags_id eq 'other' )
         {
-            $to_tags_id_clause = <<END;
-and sl.ref_stories_id not in ( select stories_id from tagged_stories ts where ts.tags_id != $from_tags_id )
-END
+            $to_tags_id_clause = <<SQL;
+                AND sl.ref_stories_id NOT IN (
+                    SELECT stories_id
+                    FROM tagged_stories AS ts
+                    WHERE ts.tags_id != $from_tags_id
+                )
+SQL
         }
         elsif ( $to_tags_id =~ /^\d+$/ )
         {
             $to_tags_id += 0;
-            $to_tags_id_clause = <<END;
-and sl.ref_stories_id in ( select stories_id from tagged_stories ts where ts.tags_id = $to_tags_id )
-END
+            $to_tags_id_clause = <<SQL;
+                AND sl.ref_stories_id IN (
+                    SELECT stories_id
+                    FROM tagged_stories AS ts
+                    WHERE ts.tags_id = $to_tags_id
+                )
+SQL
         }
         else
         {
-            die( "pseudo query error: second argument to link_field pseudo query clause must be an integer" );
+            die "Pseudo query error: second argument to link_field pseudo query clause must be an integer";
         }
     }
 
-    my $stories_ids = $db->query( <<END )->flat;
-with tagged_stories as (
-    select stm.stories_id, stm.tags_id from snapshot_stories_tags_map stm
-    union
-    select s.stories_id, mtm.tags_id from snapshot_stories s join media_tags_map mtm on ( s.media_id = mtm.media_id )
-)
+    my $stories_ids = $db->query(
+        <<"SQL"
 
-select sl.ref_stories_id
-    from
-        snapshot_story_links sl
-    where
-        ( sl.source_stories_id in ( select stories_id from tagged_stories ts where ts.tags_id = $from_tags_id ) )
-        $to_tags_id_clause
-END
+        WITH tagged_stories AS (
+            SELECT
+                stm.stories_id,
+                stm.tags_id
+            FROM snapshot_stories_tags_map AS stm
+
+            UNION
+
+            SELECT
+                s.stories_id,
+                mtm.tags_id
+                FROM snapshot_stories AS s
+                    JOIN media_tags_map AS mtm
+                        ON s.media_id = mtm.media_id
+        )
+
+        SELECT sl.ref_stories_id
+        FROM snapshot_story_links AS sl
+        WHERE
+            sl.source_stories_id IN (
+                SELECT stories_id
+                FROM tagged_stories AS ts
+                WHERE ts.tags_id = $from_tags_id
+            )
+            $to_tags_id_clause
+
+SQL
+    )->flat;
 
     return { stories_ids => $stories_ids };
 }
