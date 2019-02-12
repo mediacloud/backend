@@ -6,6 +6,8 @@ use warnings;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
+use MediaWords::TM::Snapshot;
+
 =head1 NAME
 
 MediaWords::Solr::PseudoQueries - transform pseudo query clauses in solr queries
