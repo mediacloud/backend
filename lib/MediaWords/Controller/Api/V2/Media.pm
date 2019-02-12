@@ -176,7 +176,7 @@ END
 
     $db->begin;
 
-    MediaWords::TM::Snapshot::setup_temporary_snapshot_tables( $db, $timespan, $topic, $live );
+    MediaWords::TM::Snapshot::create_temporary_snapshot_views( $db, $timespan );
 
     $db->query( <<END );
 create temporary table media as

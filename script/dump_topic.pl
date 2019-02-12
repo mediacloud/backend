@@ -25,7 +25,7 @@ sub main
       || die( "no timespan found for $timespans_id" );
 
     DEBUG( "setting up snapshot ..." );
-    MediaWords::TM::Snapshot::setup_temporary_snapshot_tables( $db, $timespan );
+    MediaWords::TM::Snapshot::create_temporary_snapshot_views( $db, $timespan );
 
     DEBUG( "dumping stories ..." );
     my $stories_csv = MediaWords::TM::Snapshot::get_stories_csv( $db, $timespan );

@@ -172,16 +172,8 @@ sub _transform_timespan_field
 
     my $timespan = $db->find_by_id( 'timespans', $timespans_id )
       || die( "Unable to find timespan with id '$timespans_id'" );
-    my $topic = $db->query( <<END, $timespan->{ snapshots_id } )->hash;
-select distinct c.*
-    from
-        topics c
-        join snapshots snap on ( c.topics_id = snap.topics_id )
-    where
-        snap.snapshots_id = ?
-END
 
-    MediaWords::TM::Snapshot::setup_temporary_snapshot_tables( $db, $timespan, $topic, $live );
+    MediaWords::TM::Snapshot::create_temporary_snapshot_views( $db, $timespan );
 
     my $stories_ids = $db->query( "select stories_id from snapshot_story_link_counts" )->flat;
 
