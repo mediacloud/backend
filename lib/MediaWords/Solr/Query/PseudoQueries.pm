@@ -365,7 +365,19 @@ sub transform_query($$)
 
     my $transformed_q = $q;
 
-    $transformed_q =~ s/(\{\~[^\}]*\})/_transform_clause( $db, $1 )/eg;
+    my $use_transaction = !$db->in_transaction();
+    $db->begin if ( $use_transaction );
+
+    eval { $transformed_q =~ s/(\{\~[^\}]*\})/_transform_clause( $db, $1 )/eg; };
+    my $error_message = $@;
+
+    # Remove the temporary views that were created above
+    $db->rollback if ( $use_transaction );
+
+    if ( $error_message )
+    {
+        die $error_message;
+    }
 
     if ( length( $transformed_q ) > $MAX_QUERY_LENGTH )
     {
