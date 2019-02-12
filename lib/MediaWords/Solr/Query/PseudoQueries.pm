@@ -198,7 +198,6 @@ sub _transform_link_from_tag_field
     my ( $db, $return_data, $from_tags_id, $to_tags_id ) = @_;
 
     $from_tags_id += 0;
-    $to_tags_id   += 0;
 
     _require_timespan( $return_data, 'link_from_tag' );
 
@@ -228,7 +227,7 @@ SQL
         }
         else
         {
-            die "Pseudo query error: second argument to link_field pseudo query clause must be an integer";
+            die "Pseudo query error: second argument to link_field pseudo query clause must be an integer or 'other'";
         }
     }
 
