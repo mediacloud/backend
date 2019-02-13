@@ -60,15 +60,6 @@ sub broker()
     return $job_broker;
 }
 
-
-# Whether or not RabbitMQ should create lazy queues for the jobs
-sub lazy_queue()
-{
-    # When some services are stopped on production, the queues might fill
-    # up pretty quickly
-    return 1;
-}
-
 # return true if jobs run through the sub class should maintain state in the job_states
 # table for every job run. state maintenance is relatively expensive
 # (it requires inserting and updating multiple times a row for every job), so it should

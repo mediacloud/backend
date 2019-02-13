@@ -118,7 +118,7 @@ Default implementation of this subroutine returns 0 ("default" type of queue).
 
 sub lazy_queue()
 {
-    return 0;
+    return 1;
 }
 
 =head3 Priorities
