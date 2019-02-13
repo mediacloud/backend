@@ -6,7 +6,7 @@ package MediaWords::JobManager::Broker;
 
 use strict;
 use warnings;
-use Modern::Perl "2012";
+use Modern::Perl "2015";
 
 use Moose::Role;
 

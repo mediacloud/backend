@@ -37,7 +37,7 @@ our $VERSION = '0.27';
 
 use strict;
 use warnings;
-use Modern::Perl "2012";
+use Modern::Perl "2015";
 
 use UUID::Tiny ':std';
 use Digest::SHA qw(sha256_hex);
@@ -121,10 +121,10 @@ sub _unique_path_job_id($$;$)
         # Thus, the job has to be logged to a location that can later be found
         # by knowing the job ID.
 
-        my $config = $function_name->configuration();
+        my $broker = MediaWords::AbstractJob::broker();
 
         # Strip the host part (if present)
-        $unique_id = $config->{ broker }->job_id_from_handle( $job_id );
+        $unique_id = $broker->job_id_from_handle( $job_id );
 
     }
     else

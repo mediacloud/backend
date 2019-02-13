@@ -24,13 +24,12 @@ package MediaWords::JobManager::Job;
 
 use strict;
 use warnings;
-use Modern::Perl "2012";
+use Modern::Perl "2015";
 use feature qw(switch);
 
 use Moose::Role 2.1005;
 
 use MediaWords::JobManager;    # helper subroutines
-use MediaWords::JobManager::Configuration;
 
 use Time::HiRes;
 use Data::Dumper;
@@ -146,25 +145,6 @@ sub publish_results()
     return 1;
 }
 
-=head3 (static) C<configuration()>
-
-Return an instance or a subclass of C<MediaWords::JobManager::Configuration> to
-be used as default configuration by both workers and clients.
-
-Workers and clients will still be able to override this configuration by
-passing their own C<config> argument. This configuration will be used if no
-such argument is present.
-
-Default implementation of this subroutine returns an instance of
-C<MediaWords::JobManager::Configuration> (default configuration).
-
-=cut
-
-sub configuration()
-{
-    return MediaWords::JobManager::Configuration->instance;
-}
-
 =head3 Priorities
 
 Jobs in a single queue can have different priorities ("low", "normal" or
@@ -212,7 +192,7 @@ sub _priority_is_valid($)
 
 The following subroutines can be used by clients to run a function.
 
-=head2 (static) C<$class-E<gt>run_locally([$args, $config])>
+=head2 (static) C<$class-E<gt>run_locally([$args])>
 
 Run locally and right away, blocking the parent process until the job is
 finished.
@@ -242,14 +222,14 @@ sub run_locally($;$$)
     }
 
     my $function_name = $class->name();
-    my $config        = $function_name->configuration();
+    my $broker = MediaWords::AbstractJob::broker();
 
     # DEBUG( "Running locally" );
 
     my $mjm_job_id;
     if ( $job )
     {
-        my $job_id = $config->{ broker }->job_id_from_handle( $job );
+        my $job_id = $broker->job_id_from_handle( $job );
         $mjm_job_id = MediaWords::JobManager::_unique_path_job_id( $function_name, $args, $job_id );
     }
     else
@@ -378,7 +358,7 @@ sub run_remotely($;$$)
         LOGDIE( "Unable to determine function name." );
     }
 
-    my $config = $function_name->configuration();
+    my $broker = MediaWords::AbstractJob::broker();
 
     $priority //= $MJM_JOB_PRIORITY_NORMAL;
     unless ( _priority_is_valid( $priority ) )
@@ -386,10 +366,10 @@ sub run_remotely($;$$)
         LOGDIE( "Job priority '$priority' is not valid." );
     }
 
-    return $config->{ broker }->run_job_sync( $function_name, $args, $priority );
+    return $broker->run_job_sync( $function_name, $args, $priority );
 }
 
-=head2 (static) C<$class-E<gt>add_to_queue([$args, $config])>
+=head2 (static) C<$class-E<gt>add_to_queue([$args])>
 
 Add to queue remotely, do not wait for the task to complete, return
 immediately; do not block the parent process until the job is complete.
@@ -422,7 +402,7 @@ sub add_to_queue($;$$)
         LOGDIE( "Unable to determine function name." );
     }
 
-    my $config = $function_name->configuration();
+    my $broker = MediaWords::AbstractJob::broker();
 
     $priority //= $MJM_JOB_PRIORITY_NORMAL;
     unless ( _priority_is_valid( $priority ) )
@@ -430,7 +410,7 @@ sub add_to_queue($;$$)
         LOGDIE( "Job priority '$priority' is not valid." );
     }
 
-    return $config->{ broker }->run_job_async( $function_name, $args, $priority );
+    return $broker->run_job_async( $function_name, $args, $priority );
 }
 
 =head2 (static) C<name()>

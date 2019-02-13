@@ -6,7 +6,7 @@ package MediaWords::JobManager::Worker;
 
 use strict;
 use warnings;
-use Modern::Perl "2012";
+use Modern::Perl "2015";
 
 use MediaWords::JobManager;
 
@@ -55,11 +55,11 @@ sub start_worker($)
     my ( $function_name_or_path ) = @_;
 
     my $function_name = import_function( $function_name_or_path );
-    my $config        = $function_name->configuration();
+    my $broker = MediaWords::AbstractJob::broker();
 
     INFO( "Starting function '$function_name' from '$function_name_or_path'." );
 
-    $config->{ broker }->start_worker( $function_name );
+    $broker->start_worker( $function_name );
 
     INFO( "Done." );
 }
