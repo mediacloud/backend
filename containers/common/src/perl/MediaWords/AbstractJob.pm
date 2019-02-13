@@ -11,15 +11,15 @@ use MediaWords::DB::Locks;
     package MediaWords::AbstractJob::Configuration;
 
     #
-    # Implements MediaCloud::JobManager::Configuration with values from Media Cloud's configuration
+    # Implements MediaWords::JobManager::Configuration with values from Media Cloud's configuration
     #
 
     use Moose;
-    use MediaCloud::JobManager::Configuration;
-    use MediaCloud::JobManager::Broker::RabbitMQ;
+    use MediaWords::JobManager::Configuration;
+    use MediaWords::JobManager::Broker::RabbitMQ;
     use MediaWords::CommonLibs;
     use MediaWords::Util::Config::Common;
-    extends 'MediaCloud::JobManager::Configuration';
+    extends 'MediaWords::JobManager::Configuration';
 
     sub BUILD
     {
@@ -28,7 +28,7 @@ use MediaWords::DB::Locks;
 	my $common_config = MediaWords::Util::Config::Common::CommonConfig();
 	my $rabbitmq_config = $common_config->rabbitmq();
 
-        my $job_broker = MediaCloud::JobManager::Broker::RabbitMQ->new(
+        my $job_broker = MediaWords::JobManager::Broker::RabbitMQ->new(
             hostname => $rabbitmq_config->hostname(),
             port     => $rabbitmq_config->port(),
             username => $rabbitmq_config->username(),
@@ -59,9 +59,9 @@ use MediaWords::DB::Locks;
     #
 
     use Moose::Role;
-    with 'MediaCloud::JobManager::Job' => {
+    with 'MediaWords::JobManager::Job' => {
 
-        # this alias magic is required to be able to override the MediaCloud::JobManager::Job::add_to_queue
+        # this alias magic is required to be able to override the MediaWords::JobManager::Job::add_to_queue
         # helper function -- it reassigns that helper function to $class->_role_add_to_queue so that
         # we can define our own $class->add_to_queue()
         -alias    => { add_to_queue => '_role_add_to_queue' },
@@ -129,7 +129,7 @@ use MediaWords::DB::Locks;
         my ( $self, $db, $args, $priority ) = @_;
 
         my $args_json = MediaWords::Util::ParseJSON::encode_json( $args );
-        $priority ||= $MediaCloud::JobManager::Job::MJM_JOB_PRIORITY_NORMAL;
+        $priority ||= $MediaWords::JobManager::Job::MJM_JOB_PRIORITY_NORMAL;
 
         my $job_state = {
             state      => $STATE_QUEUED,

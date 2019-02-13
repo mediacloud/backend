@@ -1,9 +1,5 @@
 # Job manager
 
-Media Cloud uses [MediaCloud::JobManager](https://github.com/berkmancenter/p5-MediaCloud-JobManager) for
-managing job queues.
-
-
 ## Starting a worker
 
 To start a single instance of a worker, run:
@@ -31,7 +27,7 @@ To pass arguments to the worker, add them as a hashref parameter:
 
 You can use the job ID to *cancel job which isn't running yet*:
 
-    MediaCloud::JobManager::Admin::cancel_job(
+    MediaWords::JobManager::Admin::cancel_job(
         MediaWords::Job::RescrapeMedia->configuration(),
         $job_id
     );

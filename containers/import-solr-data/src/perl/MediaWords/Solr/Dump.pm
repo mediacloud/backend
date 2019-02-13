@@ -37,7 +37,7 @@ use warnings;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-require Cpanel::JSON::XS;
+use JSON::XS;
 use Data::Dumper;
 use Digest::MD5;
 use Encode;
@@ -274,7 +274,7 @@ SQL
     }
 
     my $all_stories_ids = [ map { $_->{ stories_id } } @{ $all_stories } ];
-    my $stories_json = Cpanel::JSON::XS::encode_json( $all_stories );
+    my $stories_json = JSON::XS::encode_json( $all_stories );
 
     #DEBUG( $stories_json );
 

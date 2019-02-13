@@ -96,7 +96,7 @@ sub test_job_state($$$;$)
     is( $js->{ class },      'MediaWords::Job::StatefulJobTest',                    "$label class" );
     is( $js->{ hostname },   Sys::Hostname::hostname(),                             "$label hostname" );
     is( $js->{ process_id }, $$,                                                    "$label process_id" );
-    is( $js->{ priority },   $MediaCloud::JobManager::Job::MJM_JOB_PRIORITY_NORMAL, "$label priority" );
+    is( $js->{ priority },   $MediaWords::JobManager::Job::MJM_JOB_PRIORITY_NORMAL, "$label priority" );
 
     my $json_data = MediaWords::Util::ParseJSON::decode_json( $js->{ args } );
     is( $json_data->{ test }, $test, "$label args JSON test" );
