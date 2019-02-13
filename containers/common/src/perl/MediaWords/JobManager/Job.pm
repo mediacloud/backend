@@ -121,6 +121,30 @@ sub lazy_queue()
     return 1;
 }
 
+=head3 (static) C<publish_results()>
+
+Return true if worker should publish results back to a results RabbitMQ queue.
+
+Returns true if client that added job to the queue might be interested in the
+results of the job (whether or not it has failed, what has run() returned) so
+RabbitMQ should keep a result of the job and send it back to client when
+requested.
+
+One might want to disable this if distinct results of many jobs aren't that
+important and you'd like to make job broker a little bit faster.
+
+This subroutine will only be used when calling add_to_queue().
+
+Default implementation of this subroutine returns 1 (results will be collected,
+stored and sent back to clients if requested).
+
+=cut
+
+sub publish_results()
+{
+    return 1;
+}
+
 =head3 Priorities
 
 Jobs in a single queue can have different priorities ("low", "normal" or

@@ -60,6 +60,16 @@ sub broker()
     return $job_broker;
 }
 
+# Whether or not publish job state and return value upon completion to a
+# separate RabbitMQ queue
+sub publish_results()
+{
+    # Don't create response queues and post messages with job results to
+    # them because they use up resources and we don't really check those
+    # results for the many jobs that we run
+    return 0;
+}
+
 # return true if jobs run through the sub class should maintain state in the job_states
 # table for every job run. state maintenance is relatively expensive
 # (it requires inserting and updating multiple times a row for every job), so it should
