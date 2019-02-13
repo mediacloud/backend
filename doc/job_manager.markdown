@@ -25,13 +25,6 @@ To pass arguments to the worker, add them as a hashref parameter:
 
     my $job_id = MediaWords::Job::RescrapeMedia->add_to_queue();
 
-You can use the job ID to *cancel job which isn't running yet*:
-
-    MediaWords::JobManager::Admin::cancel_job(
-        MediaWords::Job::RescrapeMedia->configuration(),
-        $job_id
-    );
-
 
 ## Job brokers
 

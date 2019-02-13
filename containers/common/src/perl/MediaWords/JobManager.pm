@@ -39,8 +39,6 @@ use strict;
 use warnings;
 use Modern::Perl "2012";
 
-use MediaWords::JobManager::Configuration;
-
 use UUID::Tiny ':std';
 use Digest::SHA qw(sha256_hex);
 use Carp;
