@@ -117,6 +117,7 @@ def random_unused_port() -> int:
     """Return random unused TCP port that could be used e.g. for testing."""
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.bind(('', 0))
+    # noinspection PyArgumentList
     s.listen()
     port = s.getsockname()[1]
     s.close()

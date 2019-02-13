@@ -77,7 +77,7 @@ class DatabaseResult(object):
             cursor.execute(*query_args)
 
             query_time = time.time() - t
-            if (query_time >= 1):
+            if query_time >= 1:
                 query_text = textwrap.shorten(str(query_args[0]), width=80)
                 query_params = textwrap.shorten(str(query_args[1:]), width=80)
                 log.info("Slow query (%d seconds): %s, %s" % (query_time, query_text, query_params))

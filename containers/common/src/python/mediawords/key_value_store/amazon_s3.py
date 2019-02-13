@@ -2,7 +2,9 @@ import os
 from typing import Union
 
 import boto3
+# noinspection PyPackageRequirements
 from botocore.config import Config as BotoCoreConfig
+# noinspection PyPackageRequirements
 from botocore.exceptions import ClientError
 
 from mediawords.db import DatabaseHandler

@@ -19,21 +19,26 @@ class TestDatabaseTestCase(TestCase):
     """TestCase that connects to the test database which is later accessible as self.db()."""
 
     __slots__ = [
-        '__db_config',
         '__db',
     ]
+
+    @staticmethod
+    def create_database_handler() -> DatabaseHandler:
+        """Create and return database handler; used by some tests to create separate handlers."""
+        db_config = CommonConfig.database()
+        db = DatabaseHandler(
+            host=db_config.hostname(),
+            port=db_config.port(),
+            username=db_config.username(),
+            password=db_config.password(),
+            database=db_config.database_name(),
+        )
+        return db
 
     def setUp(self):
         super().setUp()
         log.info('Connecting to database...')
-        self.__db_config = CommonConfig.database()
-        self.__db = DatabaseHandler(
-            host=self.__db_config.hostname(),
-            port=self.__db_config.port(),
-            username=self.__db_config.username(),
-            password=self.__db_config.password(),
-            database=self.__db_config.database_name(),
-        )
+        self.__db = self.create_database_handler()
 
     def tearDown(self):
         super().tearDown()

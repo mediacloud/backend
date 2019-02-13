@@ -2,7 +2,7 @@ import os
 import re
 from typing import List
 
-# noinspection PyProtectedMember
+# noinspection PyPackageRequirements,PyProtectedMember
 from hunspell import Hunspell
 from nltk import TreebankWordTokenizer
 

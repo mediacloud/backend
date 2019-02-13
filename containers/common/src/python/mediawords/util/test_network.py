@@ -24,6 +24,7 @@ def test_tcp_port_is_open():
     # Open port
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.bind(('localhost', random_port))
+    # noinspection PyArgumentList
     s.listen()
     assert tcp_port_is_open(random_port) is True
 
