@@ -2,7 +2,9 @@ import re
 
 import pytest
 
-from mediawords.solr.query import parse, McSolrQueryParseSyntaxException, McSolrEmptyQueryException
+from mediawords.solr.query import (
+    parse, McSolrQueryParseSyntaxException, McSolrEmptyQueryException, WORD_BOUNDARY_REGEX
+)
 
 
 def test_tsquery():
@@ -244,6 +246,7 @@ def test_re():
 
         # make multiple spaces not significant
         s = re.sub(r'\s+', ' ', s)
+        s = s.replace('[[:<:]]', WORD_BOUNDARY_REGEX)
 
         s = s.lower()
 
@@ -594,18 +597,21 @@ def test_re():
         ') ) )'
     )
 
+    # complexphrase
     __validate_re(
         '{!complexphrase foo=bar}"foo bar"~10',
         '(?: (?: [[:<:]]foo .* [[:<:]]bar ) | (?: [[:<:]]bar .* [[:<:]]foo ) )'
     )
 
+    # is_logogram=True should not include word boundaries
     __validate_re(
         'foo and ( bar baz )',
-
         '(?: (?: foo .* (?: bar | baz ) ) | (?: (?: bar | baz ) .* foo ) )',
-
         True
     )
+
+    # hindi was triggering a bug in the python re module
+    __validate_re(u'राहुल', u'[[:<:]]राहुल')
 
 
 def test_inclusive_re():
@@ -614,6 +620,7 @@ def test_inclusive_re():
 
         # make multiple spaces not significant
         s = re.sub(r'\s+', ' ', s)
+        s = s.replace('[[:<:]]', WORD_BOUNDARY_REGEX)
 
         s = s.lower()
 

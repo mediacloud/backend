@@ -10,7 +10,7 @@ from mediawords.db import DatabaseHandler
 from mediawords.test.test_database import TestDatabaseWithSchemaTestCase
 import mediawords.test.db
 import mediawords.test.db.create
-import mediawords.tm.fetch_topic_tweets
+import mediawords.tm.fetch_topic_tweets as ftt
 import mediawords.util.paths
 import mediawords.util.twitter
 from mediawords.util.log import create_logger
@@ -47,7 +47,7 @@ MIN_TEST_TWITTER_USER_LENGTH = 3
 TEST_MONITOR_ID = 4667493813
 
 
-class MockCrimsonHexagon(mediawords.tm.fetch_topic_tweets.AbstractCrimsonHexagon):
+class MockCrimsonHexagon(ftt.AbstractCrimsonHexagon):
     """Mock the CrimsonHexagon class in fetch_topic_tweets to return test data."""
 
     @staticmethod
@@ -82,8 +82,8 @@ class MockCrimsonHexagon(mediawords.tm.fetch_topic_tweets.AbstractCrimsonHexagon
         return data
 
 
-class MockTwitter(mediawords.tm.fetch_topic_tweets.AbstractTwitter):
-    """Mock the Twitter class in mediawords.tm.fetch_topic_tweets to return test data."""
+class MockTwitter(ftt.AbstractTwitter):
+    """Mock the Twitter class in ftt.to return test data."""
 
     @staticmethod
     def fetch_100_tweets(ids: list) -> list:
@@ -181,6 +181,14 @@ def validate_topic_tweet_urls(db: DatabaseHandler, topic: dict) -> None:
     assert total_json_urls == num_urls
 
 
+def test_post_matches_pattern() -> None:
+    """Test _post_matches_pattern()."""
+    assert not ftt._post_matches_pattern({'pattern': 'foo'}, {'tweet': {'text': 'bar'}})
+    assert ftt._post_matches_pattern({'pattern': 'foo'}, {'tweet': {'text': 'foo bar'}})
+    assert ftt._post_matches_pattern({'pattern': 'foo'}, {'tweet': {'text': 'bar foo'}})
+    assert not ftt._post_matches_pattern({'pattern': 'foo'}, {})
+
+
 @unittest.skipUnless(os.environ.get('MC_REMOTE_TESTS', False), "remote tests")
 def test_ch_api() -> None:
     """Test CrimsonHexagon.fetch_posts() by hitting the remote ch api."""
@@ -193,7 +201,7 @@ def test_ch_api() -> None:
     test_monitor_id = TEST_MONITOR_ID
     test_date = datetime.datetime(year=2016, month=1, day=1)
 
-    got_data = mediawords.tm.fetch_topic_tweets.CrimsonHexagon.fetch_posts(test_monitor_id, test_date)
+    got_data = ftt.CrimsonHexagon.fetch_posts(test_monitor_id, test_date)
 
     # sanity test even though we don't know how many posts we should get back, but we want to make sure it is more
     # than 500 to make CH is not limiting us to the default 500 in their api
@@ -217,13 +225,15 @@ class TestFetchTopicTweets(TestDatabaseWithSchemaTestCase):
         db = self.db()
         topic = mediawords.test.db.create.create_test_topic(db, 'test')
 
+        topic = db.update_by_id('topics', topic['topics_id'], {'pattern': '.*'})
+
         test_dates = get_test_date_range()
         topic['start_date'] = test_dates[0]
         topic['end_date'] = test_dates[1]
         topic['ch_monitor_id'] = 123456
         db.update_by_id('topics', topic['topics_id'], topic)
 
-        mediawords.tm.fetch_topic_tweets.fetch_topic_tweets(db, topic['topics_id'], MockTwitter, MockCrimsonHexagon)
+        ftt.fetch_topic_tweets(db, topic['topics_id'], MockTwitter, MockCrimsonHexagon)
 
         topic_tweet_days = db.query("select * from topic_tweet_days").hashes()
         assert len(topic_tweet_days) == LOCAL_DATE_RANGE + 1
@@ -250,19 +260,11 @@ class TestFetchTopicTweets(TestDatabaseWithSchemaTestCase):
         topic['ch_monitor_id'] = TEST_MONITOR_ID
         db.update_by_id('topics', topic['topics_id'], topic)
 
-        ttd = mediawords.tm.fetch_topic_tweets._add_topic_tweet_single_day(
-            db,
-            topic,
-            datetime.datetime(year=2016, month=1, day=1),
-            mediawords.tm.fetch_topic_tweets.CrimsonHexagon)
+        ttd_day = datetime.datetime(year=2016, month=1, day=1)
+        ttd = ftt._add_topic_tweet_single_day(db, topic, ttd_day, ftt.CrimsonHexagon)
 
         max_tweets = 200
-        mediawords.tm.fetch_topic_tweets._fetch_tweets_for_day(
-            db,
-            mediawords.tm.fetch_topic_tweets.Twitter,
-            topic,
-            ttd,
-            max_tweets=max_tweets)
+        ftt._fetch_tweets_for_day(db, ftt.Twitter, topic, ttd, max_tweets=max_tweets)
 
         got_tts = db.query(
             "select * from topic_tweets where topic_tweet_days_id = %(a)s",

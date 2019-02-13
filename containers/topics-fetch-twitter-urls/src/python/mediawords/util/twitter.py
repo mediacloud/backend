@@ -14,7 +14,7 @@ log = create_logger(__name__)
 
 # configure retry behavior for tweepy
 TWITTER_RETRY_DELAY = 60
-TWITTER_RETRY_COUNT = 120
+TWITTER_RETRY_COUNT = 45
 TWITTER_RETRY_ERRORS = set([401, 404, 500, 503])
 
 
@@ -29,8 +29,10 @@ def get_tweepy_api() -> tweepy.API:
     config = mediawords.util.config.get_config()
 
     # add dummy config so that testing will work
-    if 'twitter' not in config:
-        config['twitter'] = {
+    if 'twitter' in config:
+        twitter_config = config['twitter']
+    else:
+        twitter_config = {
             'consumer_secret': 'UNCONFIGURED',
             'consumer_key': 'UNCONFIGURED',
             'access_token': 'UNCONFIGURED',
@@ -38,11 +40,11 @@ def get_tweepy_api() -> tweepy.API:
         }
 
     for field in 'consumer_key consumer_secret access_token access_token_secret'.split():
-        if field not in config['twitter']:
+        if field not in twitter_config:
             raise McFetchTweetsException('missing //twitter//' + field + ' value in mediawords.yml')
 
-    auth = tweepy.OAuthHandler(config['twitter']['consumer_key'], config['twitter']['consumer_secret'])
-    auth.set_access_token(config['twitter']['access_token'], config['twitter']['access_token_secret'])
+    auth = tweepy.OAuthHandler(twitter_config['consumer_key'], twitter_config['consumer_secret'])
+    auth.set_access_token(twitter_config['access_token'], twitter_config['access_token_secret'])
 
     # the RawParser lets us directly decode from json to dict below
     api = tweepy.API(
@@ -62,10 +64,27 @@ def fetch_100_users(screen_names: list) -> list:
     if len(screen_names) > 100:
         raise McFetchTweetsException('tried to fetch more than 100 users')
 
-    users = get_tweepy_api().lookup_users(screen_names=screen_names, include_entities=False)
+    # tweepy returns a 404 if none of the screen names exist, and that 404 is indistiguishable from a 404
+    # indicating that tweepy can't connect to the twitter api.  in the latter case, we want to let tweepy use its
+    # retry mechanism, but not the former.  so we add a dummy account that we know exists to every request
+    # to make sure any 404 we get back is an actual 404.
+    dummy_account = 'cyberhalroberts'
+    dummy_account_appended = False
+
+    if 'cyberhalroberts' not in screen_names:
+        screen_names.append('cyberhalroberts')
+        dummy_account_appended = True
+
+    users_json = get_tweepy_api().lookup_users(screen_names=screen_names, include_entities=False)
+
+    users = list(mediawords.util.parse_json.decode_json(users_json))
+
+    # if we added the dummy account, remove it from the results
+    if dummy_account_appended:
+        users = list(filter(lambda u: u['screen_name'] != dummy_account, users))
 
     # return simple list so that this can be mocked. relies on RawParser() in get_tweepy_api
-    return list(mediawords.util.parse_json.decode_json(users))
+    return users
 
 
 def fetch_100_tweets(tweet_ids: list) -> list:

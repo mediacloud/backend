@@ -87,12 +87,22 @@ sub add_date_is_reliable_to_stories
       [ qw/guess_by_og_article_published_time guess_by_url guess_by_url_and_date_text merged_story_rss manual/ ];
     my $quoted_reliable_methods_list = join( ',', map { $db->quote( $_ ) } @{ $reliable_methods } );
 
+    my $date_tag_sets_ids = $db->query( <<SQL )->flat();
+select tag_sets_id from tag_sets where name in ( 'date_guess_method', 'date_invalid' )
+SQL
+
+    # the query below errors in tests if date_tag_sets_ids is empty
+    push( @{ $date_tag_sets_ids }, -1 );
+
+    my $date_tag_sets_ids_list = join( ',', map { int( $_ ) } @{ $date_tag_sets_ids } );
+
     $db->query( <<SQL );
 create temporary table _date_tags as
     select t.*, ts.name tag_set_name
         from tags t
             join tag_sets ts on ( t.tag_sets_id = ts.tag_sets_id )
-            where ts.name in ( 'date_guess_method', 'date_invalid' )
+        where
+            t.tag_sets_id in ( $date_tag_sets_ids_list )
 SQL
 
     $db->query( <<SQL );

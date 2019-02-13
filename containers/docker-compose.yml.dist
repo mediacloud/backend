@@ -226,6 +226,7 @@ services:
             # Generates RSS report using data from PostgreSQL
             - net_postgresql
         volumes:
+            # Shared with "webapp" container:
             - vol_daily_rss_dumps:/var/lib/daily_rss_dumps/
         deploy:
             # Only one instance
@@ -1115,6 +1116,8 @@ services:
             - net_postfix
         volumes:
             - vol_webapp_session_data:/var/lib/mediacloud-session/
+            # Shared with "cron_generate_daily_rss_dumps" container:
+            - vol_daily_rss_dumps:/mediacloud_webapp_static/rss_dumps/
         deploy:
             # Only one instance
             replicas: 1

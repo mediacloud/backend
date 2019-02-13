@@ -206,7 +206,8 @@ sub _add_foci_to_stories($$$)
 {
     my ( $db, $timespan, $stories ) = @_;
 
-    my $ids_table = $db->get_temporary_ids_table( [ map { $_->{ stories_id } } @{ $stories } ] );
+    # enumerate the stories ids to get a decent query plan
+    my $stories_ids_list = join( ',', map { $_->{ stories_id } } @{ $stories } );
 
     my $foci = $db->query( <<SQL, $timespan->{ timespans_id } )->hashes;
 select
@@ -227,7 +228,7 @@ select
             ( slcb.stories_id = slc.stories_id and
                 slcb.timespans_id = b.timespans_id )
     where
-        slc.stories_id in ( select id from $ids_table ) and
+        slc.stories_id in ( $stories_ids_list ) and
         a.timespans_id = \$1
 SQL
 
@@ -246,18 +247,17 @@ sub _get_sort_clause
     $sort_param ||= 'inlink';
 
     my $sort_field_lookup = {
-        inlink       => 'slc.media_inlink_count',
-        inlink_count => 'slc.media_inlink_count',
-        facebook     => 'slc.facebook_share_count',
-        twitter      => 'slc.simple_tweet_count',
+        inlink       => 'slc.media_inlink_count desc',
+        inlink_count => 'slc.media_inlink_count desc',
+        facebook     => 'slc.facebook_share_count desc nulls last',
+        twitter      => 'slc.simple_tweet_count desc',
         random       => 'random()'
     };
 
     my $sort_field = $sort_field_lookup->{ lc( $sort_param ) }
       || die( "unknown sort value: '$sort_param'" );
 
-    # md5 hashing is to make tie breaks random but consistent
-    return "$sort_field desc nulls last";
+    return $sort_field;
 }
 
 sub list_GET
@@ -273,7 +273,7 @@ sub list_GET
     $c->req->params->{ sort } ||= 'inlink';
 
     my $sort_clause = _get_sort_clause( $c->req->params->{ sort } );
-    $sort_clause = "order by slc.timespans_id, $sort_clause, md5( slc.stories_id::text )";
+    $sort_clause = "order by slc.timespans_id desc, $sort_clause, md5( slc.stories_id::text ) desc";
 
     my $timespans_id = $timespan->{ timespans_id };
     my $snapshots_id = $timespan->{ snapshots_id };
