@@ -27,7 +27,7 @@ use Data::Dumper;
 # Run job
 sub run($;$)
 {
-    my ( $self, $args ) = @_;
+    my ( $class, $args ) = @_;
 
     unless ( MediaWords::Util::Config::Facebook::is_enabled() )
     {

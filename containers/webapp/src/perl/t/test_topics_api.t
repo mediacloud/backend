@@ -127,7 +127,7 @@ sub create_test_data
 
     $topic_media_sources = MediaWords::Test::DB::Create::add_content_to_test_story_stack( $test_db, $topic_media_sources );
 
-    MediaWords::Job::TM::SnapshotTopic->run_locally( { topics_id => $topic->{ topics_id } } );
+    MediaWords::JobManager::Job::run_remotely( 'MediaWords::Job::TM::SnapshotTopic', { topics_id => $topic->{ topics_id } } );
 
     MediaWords::Test::Solr::setup_test_index( $test_db );
 

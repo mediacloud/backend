@@ -7,7 +7,7 @@ import traceback
 import typing
 
 from mediawords.db import connect_to_db
-from mediawords.job import AbstractJob, McAbstractJobException, JobBrokerApp
+from mediawords.job import AbstractJob, McAbstractJobException, JobBrokerApp, JobManager
 import mediawords.tm.fetch_link
 from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_object_from_bytes_if_needed
@@ -81,7 +81,7 @@ class FetchLinkJob(AbstractJob):
                 topic_fetch_urls_id,
                 {'state': mediawords.tm.fetch_link.FETCH_STATE_REQUEUED, 'fetch_date': datetime.datetime.now()})
             if not dummy_requeue:
-                FetchLinkJob.add_to_queue(topic_fetch_urls_id)
+                JobManager.add_to_queue(name='MediaWords::Job::TM::FetchLink', topic_fetch_urls_id=topic_fetch_urls_id)
 
             cls._consecutive_requeues += 1
             if cls._consecutive_requeues > REQUEUES_UNTIL_SLEEP:

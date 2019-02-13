@@ -35,12 +35,6 @@ sub main
 
     my $rows = $db->query( $query )->hashes;
 
-    for my $job ( @{ $jobs } )
-    {
-        eval( "use MediaWords::Job::$job" );
-        die( "error loading job module: $@" ) if ( $@ );
-    }
-
     my $num_rows = scalar( @{ $rows } );
     my $i        = 0;
     for my $row ( @{ $rows } )
@@ -53,7 +47,7 @@ sub main
         for my $job ( @{ $jobs } )
         {
             DEBUG( "queueing [$i / $num_rows]: $job $id" );
-            eval( "MediaWords::Job::$job->add_to_queue( \$row, \$priority )" );
+            MediaWords::JobManager::Job::add_to_queue( "MediaWords::Job::$job", $row, $priority );
             die( "error adding to $job queue: $@\n" . Dumper( $row ) ) if ( $@ );
         }
     }

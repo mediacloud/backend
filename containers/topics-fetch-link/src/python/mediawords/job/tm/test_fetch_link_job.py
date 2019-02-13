@@ -1,6 +1,4 @@
-"""Test mediawords.job.tm.fetch_link_job."""
-
-import mediawords.job.tm.fetch_link_job
+from mediawords.job import JobManager
 import mediawords.test.hash_server
 import mediawords.test.db.create
 import mediawords.test.test_database
@@ -29,7 +27,10 @@ class TestFetchLinJobkDB(mediawords.test.test_database.TestDatabaseWithSchemaTes
             'url': hs.page_url('/foo'),
             'state': mediawords.tm.fetch_link.FETCH_STATE_PENDING})
 
-        mediawords.job.tm.fetch_link_job.FetchLinkJob.run_locally(tfu['topic_fetch_urls_id'])
+        JobManager.run_remotely(
+            name='MediaWords::Job::TM::FetchLink',
+            topic_fetch_urls_id=tfu['topic_fetch_urls_id'],
+        )
 
         tfu = db.require_by_id('topic_fetch_urls', tfu['topic_fetch_urls_id'])
 
@@ -49,6 +50,11 @@ class TestFetchLinJobkDB(mediawords.test.test_database.TestDatabaseWithSchemaTes
             'url': hs.page_url('/throttle'),
             'state': mediawords.tm.fetch_link.FETCH_STATE_PENDING})
 
-        mediawords.job.tm.fetch_link_job.FetchLinkJob.run_locally(tfu['topic_fetch_urls_id'], dummy_requeue=True)
+        JobManager.run_remotely(
+            name='MediaWords::Job::TM::FetchLink',
+            topic_fetch_urls_id=tfu['topic_fetch_urls_id'],
+            dummy_requeue=True,
+        )
+
         tfu = db.require_by_id('topic_fetch_urls', tfu['topic_fetch_urls_id'])
         assert tfu['state'] == mediawords.tm.fetch_link.FETCH_STATE_REQUEUED

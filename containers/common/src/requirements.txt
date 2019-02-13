@@ -43,6 +43,9 @@ jieba==0.39
 # Parsing email templates
 Jinja2==2.10
 
+# One of Celery's dependencies (here just for PyCharm to stop complaining)
+kombu==4.3.0
+
 # XML manipulations, HTML parsing
 lxml==4.3.0
 

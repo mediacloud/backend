@@ -25,7 +25,7 @@ use strict;
 use warnings;
 
 use Moose;
-with 'MediaWords::AbstractJob';
+with 'MediaWords::AbstractStatefulJob';
 
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
@@ -45,18 +45,13 @@ sub get_run_lock_type
     return 'MediaWords::Job::TM::MineTopic';
 }
 
-sub use_job_state
-{
-    return 1;
-}
-
 sub get_state_table_info
 {
     return { table => 'topics', state => 'state', message => 'message' };
 }
 
 # Run job
-sub run_statefully($$;$)
+sub run($$;$)
 {
     my ( $self, $db, $args ) = @_;
 

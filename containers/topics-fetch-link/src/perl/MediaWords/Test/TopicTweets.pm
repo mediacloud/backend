@@ -9,8 +9,6 @@ MediaWords::Test::TopicTweets - functions to help testing external apis
 use strict;
 use warnings;
 
-# test MediaWords::Job::FetchTopicTweets
-
 use Modern::Perl '2015';
 use MediaWords::CommonLibs;
 
@@ -19,7 +17,6 @@ use Test::More;
 use File::Slurp;
 
 use MediaWords::TM;
-use MediaWords::Job::TM::MineTopic;
 use MediaWords::Test::DB;
 use MediaWords::Test::Data;
 use MediaWords::Test::Supervisor;
@@ -512,7 +509,7 @@ sub test_fetch_topic_tweets($)
 update topics set start_date = \$2, end_date = \$3 where topics_id = \$1
 SQL
 
-    MediaWords::Job::TM::MineTopic->run_locally( { topics_id => $topic->{ topics_id }, test_mode => 1 } );
+    MediaWords::JobManager::Job::run_remotely( 'MediaWords::Job::TM::MineTopic', { topics_id => $topic->{ topics_id }, test_mode => 1 } );
 
     $topic = $db->require_by_id( 'topics', $topic->{ topics_id } );
 

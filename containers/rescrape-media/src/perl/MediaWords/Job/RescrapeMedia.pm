@@ -29,13 +29,8 @@ use MediaWords::CommonLibs;
 use MediaWords::DB;
 use MediaWords::DBI::Media::Rescrape;
 
-sub use_job_state($)
-{
-    return 1;
-}
-
 # Run job
-sub run_statefully($$;$)
+sub run($$;$)
 {
     my ( $self, $db, $args ) = @_;
 

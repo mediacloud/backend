@@ -52,7 +52,6 @@ use XML::Simple;
 use Readonly;
 
 use MediaWords::DBI::Media;
-use MediaWords::Job::TM::SnapshotTopic;
 use MediaWords::Solr;
 use MediaWords::TM::Alert;
 use MediaWords::TM::Model;
@@ -1359,7 +1358,7 @@ sub generate_timespan ($$$$$$)
 
     DEBUG( "generating $snapshot_label ..." );
 
-    MediaWords::Job::TM::SnapshotTopic->update_job_state_message( $db, "snapshotting $snapshot_label" );
+    MediaWords::JobManager::Job::update_job_state_message( $db, 'MediaWords::Job::TM::SnapshotTopic', "snapshotting $snapshot_label" );
 
     my $all_models_top_media = MediaWords::TM::Model::get_all_models_top_media( $db, $timespan );
 
@@ -1872,8 +1871,8 @@ sub snapshot_topic ($$;$$$)
 
     my $snap = create_snapshot_row( $db, $topic, $start_date, $end_date, $note, $bot_policy );
 
-    MediaWords::Job::TM::SnapshotTopic->update_job_state_args( $db, { snapshots_id => $snap->{ snapshots_id } } );
-    MediaWords::Job::TM::SnapshotTopic->update_job_state_message( $db, "snapshotting data" );
+    MediaWords::JobManager::Job::update_job_state_args( $db, 'MediaWords::Job::TM::SnapshotTopic', { snapshots_id => $snap->{ snapshots_id } } );
+    MediaWords::JobManager::Job::update_job_state_message( $db, 'MediaWords::Job::TM::SnapshotTopic', "snapshotting data" );
 
     write_temporary_snapshot_tables( $db, $topic, $snap );
 
@@ -1884,7 +1883,7 @@ sub snapshot_topic ($$;$$$)
 
     generate_period_focus_snapshots( $db, $snap, $periods );
 
-    MediaWords::Job::TM::SnapshotTopic->update_job_state_message( $db, "finalizing snapshot" );
+    MediaWords::JobManager::Job::update_job_state_message( $db, 'MediaWords::Job::TM::SnapshotTopic', "finalizing snapshot" );
 
     _export_stories_to_solr( $db, $snap );
 

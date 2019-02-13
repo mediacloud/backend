@@ -4,9 +4,10 @@ import uuid
 from typing import Type, Any
 
 import celery
+from celery.result import AsyncResult
 from kombu import Exchange, Queue
 
-import mediawords.util.config
+from mediawords.util.config.common import CommonConfig
 from mediawords.util.log import create_logger
 
 log = create_logger(__name__)
@@ -30,7 +31,7 @@ class _CeleryTask(celery.Task):
 
     def run(self, *args, **kwargs) -> None:
         """(Celery) Run task."""
-        return self.__job_class.run_locally(*args, **kwargs)
+        return self.__job_class.run_wrapper(*args, **kwargs)
 
     @property
     def name(self):
@@ -61,50 +62,32 @@ class AbstractJob(object, metaclass=abc.ABCMeta):
     # ---
 
     @classmethod
-    def run_locally(cls: Type['AbstractJob'], *args, **kwargs) -> Any:
-        """Run job locally, raise on error."""
+    def run_wrapper(cls: Type['AbstractJob'], *args, **kwargs) -> None:
+        """Run job with some logging, raise on error."""
 
         try:
-            log.info("Running job %(job_name)s with args: %(args)s, kwargs: %(kwargs)s..." % {
-                'job_name': cls.__name__,
-                'args': str(args),
-                'kwargs': str(kwargs),
-            })
-            return_value = cls.run_job(*args, **kwargs)
+            log.info("Running job {job_name} with args: {args}, kwargs: {kwargs}...".format(
+                job_name=cls.__name__,
+                args=str(args),
+                kwargs=str(kwargs),
+            ))
+            cls.run_job(*args, **kwargs)
 
         except Exception as ex:
-            log.error("Failed running job %(job_name)s with args: %(args)s, kwargs: %(kwargs)s: %(exception)s" % {
-                'job_name': cls.__name__,
-                'args': str(args),
-                'kwargs': str(kwargs),
-                'exception': str(ex)
-            })
+            log.error("Failed running job {job_name} with args: {args}, kwargs: {kwargs}: {exception}".format(
+                job_name=cls.__name__,
+                args=str(args),
+                kwargs=str(kwargs),
+                exception=str(ex),
+            ))
             raise ex
 
         else:
-            log.info("Finished running job %(job_name)s with args: %(args)s, kwargs: %(kwargs)s." % {
-                'job_name': cls.__name__,
-                'args': str(args),
-                'kwargs': str(kwargs),
-            })
-            return return_value
-
-    @classmethod
-    def run_remotely(cls: Type['AbstractJob'], *args, **kwargs) -> Any:
-        """Run job remotely, return the result."""
-        task = cls()
-        result = task.celery_task().delay(*args, **kwargs)
-        return result.get()
-
-    @classmethod
-    def add_to_queue(cls: Type['AbstractJob'], *args, **kwargs) -> str:
-        """Add job to queue, return job ID."""
-
-        JobBrokerApp(job_class=cls)
-
-        task = cls()
-        result = task.celery_task().delay(*args, **kwargs)
-        return result.id
+            log.info("Finished running job {job_name} with args: {args}, kwargs: {kwargs}.".format(
+                job_name=cls.__name__,
+                args=str(args),
+                kwargs=str(kwargs),
+            ))
 
     # ---
 
@@ -116,9 +99,27 @@ class AbstractJob(object, metaclass=abc.ABCMeta):
         """Constructor."""
         self._task = _CeleryTask(job_class=self.__class__)
 
-    def celery_task(self) -> celery.Task:
-        """(Internal) Return Celery task to be registered."""
-        return self._task
+
+class JobManager(object):
+    """Celery job manager."""
+
+    @classmethod
+    def __result_for_task(cls, name: str, args: tuple, kwargs: dict) -> AsyncResult:
+        app = JobBrokerApp(queue_name=name)
+        result = app.send_task(name, args=args, kwargs=kwargs)
+        return result
+
+    @classmethod
+    def run_remotely(cls, name: str, *args, **kwargs) -> Any:
+        """Run job remotely, return the result."""
+        result = cls.__result_for_task(name=name, args=args, kwargs=kwargs)
+        return result.get()
+
+    @classmethod
+    def add_to_queue(cls, name: str, *args, **kwargs) -> str:
+        """Add job to queue, return job ID."""
+        result = cls.__result_for_task(name=name, args=args, kwargs=kwargs)
+        return result.id
 
 
 class McJobBrokerAppException(Exception):
@@ -134,29 +135,25 @@ class JobBrokerApp(celery.Celery):
         '__task',
     ]
 
-    def __init__(self, job_class: Type[AbstractJob]):
-        """Return job broker (Celery app object) prepared for the specific job class."""
+    def __init__(self, queue_name: str):
+        """Return job broker (Celery app object) prepared for the specific queue name."""
 
-        if job_class is None:
-            raise McJobBrokerAppException("Job class is None.")
-
-        queue_name = job_class.queue_name()
-        if queue_name is None:
-            raise McJobBrokerAppException("Queue name is None.")
-        if len(queue_name) == 0:
+        if not queue_name:
             raise McJobBrokerAppException("Queue name is empty.")
 
-        broker_uri = 'amqp://%(username)s:%(password)s@%(hostname)s:%(port)d/%(vhost)s' % {
-            'username': mediawords.util.config.rabbitmq_username(),
-            'password': mediawords.util.config.rabbitmq_password(),
-            'hostname': mediawords.util.config.rabbitmq_hostname(),
-            'port': mediawords.util.config.rabbitmq_port(),
-            'vhost': mediawords.util.config.rabbitmq_vhost(),
-        }
+        config = CommonConfig()
+        rabbitmq_config = config.rabbitmq()
+        broker_uri = 'amqp://{username}:{password}@{hostname}:{port}/{vhost}'.format(
+            username=rabbitmq_config.username(),
+            password=rabbitmq_config.password(),
+            hostname=rabbitmq_config.hostname(),
+            port=rabbitmq_config.port(),
+            vhost=rabbitmq_config.vhost(),
+        )
 
         super().__init__(queue_name, broker=broker_uri)
 
-        self.conf.broker_connection_timeout = mediawords.util.config.rabbitmq_timeout()
+        self.conf.broker_connection_timeout = rabbitmq_config.timeout()
 
         # Concurrency is done by Supervisor, not Celery itself
         self.conf.worker_concurrency = 1
@@ -166,30 +163,35 @@ class JobBrokerApp(celery.Celery):
 
         self.conf.worker_max_tasks_per_child = 1000
 
-        queue = Queue(name=queue_name,
-                      exchange=Exchange(queue_name),
-                      routing_key=queue_name,
-                      queue_arguments={
-                          'x-max-priority': 3,
-                          'x-queue-mode': 'lazy',
-                      })
+        queue = Queue(
+            name=queue_name,
+            exchange=Exchange(queue_name),
+            routing_key=queue_name,
+            queue_arguments={
+                'x-max-priority': 3,
+                'x-queue-mode': 'lazy',
+            },
+        )
         self.conf.task_queues = [queue]
 
         # noinspection PyUnusedLocal
         def __route_task(name, args_, kwargs_, options_, task_=None, **kw_):
-            return {'queue': name, 'exchange': name, 'routing_key': name}
+            return {
+                'queue': name,
+                'exchange': name,
+                'routing_key': name,
+            }
 
         self.conf.task_routes = (__route_task,)
 
-        task = job_class()
-        self.__task = self.register_task(task.celery_task())
-
-        self.__job_class = job_class
-
     def start_worker(self):
         """Start worker for the job."""
-        node_name = '%s-%s@%s' % (self.__job_class.__name__, uuid.uuid4(), socket.gethostname(),)
-        log.info("Starting worker %s..." % node_name)
+        node_name = '{name}-{job_id}@{hostname}'.format(
+            name=self.__job_class.__name__,
+            job_id=uuid.uuid4(),
+            hostname=socket.gethostname(),
+        )
+        log.info(f"Starting worker {node_name}...")
         self.worker_main(argv=[
             'worker',
             '--loglevel', 'info',

@@ -15,15 +15,15 @@ To start a single instance of *all* workers in a subdirectory, run:
 
 To add a job to the worker queue, run:
 
-    MediaWords::Job::RescrapeMedia->add_to_queue();
+    MediaWords::JobManager::Job::add_to_queue('MediaWords::Job::RescrapeMedia');
 
 To pass arguments to the worker, add them as a hashref parameter:
 
-    MediaWords::Job::RescrapeMedia->add_to_queue({ one => 'two', three => 'four' });
+    MediaWords::JobManager::Job::add_to_queue('MediaWords::Job::RescrapeMedia', { one => 'two', three => 'four' });
 
 `add_to_queue()` returns a job ID if the job was added to queue successfully:
 
-    my $job_id = MediaWords::Job::RescrapeMedia->add_to_queue();
+    my $job_id = MediaWords::JobManager::Job::add_to_queue('MediaWords::Job::RescrapeMedia');
 
 
 ## Job brokers

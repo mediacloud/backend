@@ -4,8 +4,7 @@ from mediawords.db import DatabaseHandler
 from mediawords.dbi.stories.extractor_arguments import PyExtractorArguments
 from mediawords.dbi.stories.extractor_version import update_extractor_version_tag
 from mediawords.dbi.stories.postprocess import mark_as_processed
-from mediawords.job.cliff.fetch_annotation import CLIFFFetchAnnotationJob
-from mediawords.job.nyt_labels.fetch_annotation import NYTLabelsFetchAnnotationJob
+from mediawords.job import JobManager
 from mediawords.story_vectors import update_story_sentences_and_language
 from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_object_from_bytes_if_needed
@@ -37,7 +36,7 @@ def process_extracted_story(db: DatabaseHandler, story: dict, extractor_args: Py
         # If CLIFF annotator is enabled, cliff/update_story_tags job will check whether NYTLabels annotator is enabled,
         # and if it is, will pass the story further to NYTLabels. NYTLabels, in turn, will mark the story as processed.
         log.debug("Adding story {} to CLIFF annotation queue...".format(stories_id))
-        CLIFFFetchAnnotationJob.add_to_queue(stories_id=stories_id)
+        JobManager.add_to_queue(name='MediaWords::Job::CLIFF::FetchAnnotation', stories_id=stories_id)
 
     else:
         log.debug("Won't add {} to CLIFF annotation queue because it's not annotatable with CLIFF".format(stories_id))
@@ -47,7 +46,7 @@ def process_extracted_story(db: DatabaseHandler, story: dict, extractor_args: Py
             # If CLIFF annotator is disabled, pass the story to NYTLabels annotator which, if run, will mark the story
             # as processed
             log.debug("Adding story {} to NYTLabels annotation queue...".format(stories_id))
-            NYTLabelsFetchAnnotationJob.add_to_queue(stories_id=stories_id)
+            JobManager.add_to_queue(name='MediaWords::Job::NYTLabels::FetchAnnotation', stories_id=stories_id)
 
         else:
             log.debug("Won't add {} to NYTLabels annotation queue because it's not annotatable with NYTLabels".format(

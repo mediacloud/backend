@@ -1,10 +1,7 @@
-"""Test mediawords.job.tm.fetch_twitter_urls_job."""
-
 import random
 
 import httpretty
 
-import mediawords.job.tm.fetch_twitter_urls_job
 import mediawords.test.db.create
 import mediawords.test.test_database
 import mediawords.tm.test_fetch_twitter_urls as tftu
@@ -43,7 +40,7 @@ class TestFetchTwitterUrlsJobDB(mediawords.test.test_database.TestDatabaseWithSc
         tfu_ids = [u['topic_fetch_urls_id'] for u in tfus]
         random.shuffle(tfu_ids)
 
-        mediawords.job.tm.fetch_twitter_urls_job.FetchTwitterUrlsJob.run_locally(tfu_ids)
+        FetchTwitterUrlsJob.run(tfu_ids)
 
         [num_tweet_stories] = db.query(
             """

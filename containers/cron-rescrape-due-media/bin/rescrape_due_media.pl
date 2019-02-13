@@ -82,7 +82,7 @@ EOF
     INFO "Media count to be rescraped: " . scalar( @{ $due_media } );
     foreach my $media ( @{ $due_media } )
     {
-        MediaWords::Job::RescrapeMedia->add_to_queue( { media_id => $media->{ media_id } } );
+        MediaWords::JobManager::Job::add_to_queue( 'MediaWords::Job::RescrapeMedia', { media_id => $media->{ media_id } } );
     }
 }
 

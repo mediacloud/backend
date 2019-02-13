@@ -10,7 +10,6 @@ use MediaWords::CommonLibs;
 
 use Test::More;
 
-use MediaWords::Job::TM::SnapshotTopic;
 use MediaWords::Solr::Dump;
 use MediaWords::TM;
 use MediaWords::TM::Snapshot;
@@ -50,7 +49,7 @@ insert into topic_stories ( topics_id, stories_id )
     select \$1, stories_id from stories where media_id = \$2
 SQL
 
-    MediaWords::Job::TM::SnapshotTopic->run_locally( { topics_id => $topic->{ topics_id } } );
+    MediaWords::Job::TM::SnapshotTopic->run( { topics_id => $topic->{ topics_id } } );
 
     $num_solr_stories = MediaWords::Solr::get_num_found( $db, { q => 'timespans_id:1' } );
     is( $num_solr_stories, 0, "number of solr stories before snapshot import" );
@@ -76,7 +75,7 @@ insert into focus_definitions ( name, description, arguments, focal_set_definiti
     select \$1, \$2, ( '{ "query": ' || to_json( \$3::text ) || ' }' )::json, \$4
 SQL
 
-    MediaWords::Job::TM::SnapshotTopic->run_locally( { topics_id => $topic->{ topics_id } } );
+    MediaWords::Job::TM::SnapshotTopic->run( { topics_id => $topic->{ topics_id } } );
     MediaWords::Solr::Dump::import_data( $db, { empty_queue => 1 } );
 
     my ( $focus_timespans_id ) = $db->query( <<SQL )->flat;

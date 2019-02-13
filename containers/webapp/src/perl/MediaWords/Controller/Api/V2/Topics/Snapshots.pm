@@ -8,7 +8,6 @@ use base 'Catalyst::Controller';
 use Moose;
 use namespace::autoclean;
 
-use MediaWords::Job::TM::SnapshotTopic;
 use MediaWords::Util::Word2vec;
 
 BEGIN { extends 'MediaWords::Controller::Api::V2::MC_Controller_REST' }
@@ -96,7 +95,7 @@ sub generate_GET
 
     my $note = $c->req->data->{ post } || '' if ( $c->req->data );
 
-    my $job_class = MediaWords::Job::TM::SnapshotTopic->name;
+    my $job_class = 'MediaWords::Job::TM::SnapshotTopic';
 
     my $db = $c->dbis;
 
@@ -112,7 +111,7 @@ SQL
     if ( !$job_state )
     {
         $db->begin;
-        MediaWords::Job::TM::SnapshotTopic->add_to_queue( { topics_id => $topics_id, note => $note }, undef, $db );
+        MediaWords::JobManager::Job::add_to_queue( 'MediaWords::Job::TM::SnapshotTopic', { topics_id => $topics_id, note => $note }, undef, $db );
         $job_state = $db->query( "select $JOB_STATE_FIELD_LIST from job_states order by job_states_id desc limit 1" )->hash;
         $db->commit;
 
@@ -132,7 +131,7 @@ sub generate_status_GET
 
     my $topics_id = $c->stash->{ topics_id };
 
-    my $job_class = MediaWords::Job::TM::SnapshotTopic->name;
+    my $job_class = 'MediaWords::Job::TM::SnapshotTopic';
 
     my $db = $c->dbis;
 

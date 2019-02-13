@@ -5,7 +5,7 @@ import time
 from mediawords.db import connect_to_db
 from mediawords.dbi.stories.extractor_arguments import PyExtractorArguments
 from mediawords.dbi.stories.stories import extract_and_process_story
-from mediawords.job import AbstractJob, McAbstractJobException, JobBrokerApp
+from mediawords.job import AbstractJob, McAbstractJobException, JobBrokerApp, JobManager
 from mediawords.story_vectors import medium_is_locked
 from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_object_from_bytes_if_needed
@@ -65,7 +65,7 @@ class ExtractAndVectorJob(AbstractJob):
                 )
                 time.sleep(1)
 
-            ExtractAndVectorJob.add_to_queue(stories_id=stories_id)
+            JobManager.add_to_queue(name='MediaWords::Job::ExtractAndVector', stories_id=stories_id)
 
             return
 

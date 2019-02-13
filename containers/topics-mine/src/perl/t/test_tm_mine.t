@@ -19,7 +19,6 @@ use Readonly;
 use Test::More;
 use Text::Lorem::More;
 
-use MediaWords::Job::TM::MineTopic;
 use MediaWords::TM::Mine;
 use MediaWords::Test::DB;
 use MediaWords::Test::Supervisor;
@@ -593,7 +592,7 @@ sub test_spider
         test_mode                       => 1
     };
 
-    MediaWords::Job::TM::MineTopic->run_locally( $mine_args );
+    MediaWords::Job::TM::MineTopic->run( $mine_args );
 
     # MediaWords::TM::Mine::mine_topic( $db, $topic, $mine_options );
 

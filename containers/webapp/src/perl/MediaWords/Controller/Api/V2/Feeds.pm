@@ -11,8 +11,6 @@ use namespace::autoclean;
 
 use Readonly;
 
-use MediaWords::Job::RescrapeMedia;
-
 BEGIN { extends 'MediaWords::Controller::Api::V2::MC_REST_SimpleObject' }
 
 __PACKAGE__->config(
@@ -104,7 +102,7 @@ sub scrape_GET
 
     my $db = $c->dbis;
 
-    my $job_class = MediaWords::Job::RescrapeMedia->name;
+    my $job_class = 'MediaWords::Job::RescrapeMedia';
 
     my $job_state = $db->query( <<SQL, $data->{ media_id }, $job_class )->hash;
 select $JOB_STATE_FIELD_LIST
@@ -119,7 +117,7 @@ SQL
     if ( !$job_state )
     {
         $db->begin;
-        MediaWords::Job::RescrapeMedia->add_to_queue( { media_id => $data->{ media_id } }, undef, $db );
+        MediaWords::JobManager::Job::add_to_queue( $job_class, { media_id => $data->{ media_id } }, undef, $db );
         $job_state = $db->query( "select $JOB_STATE_FIELD_LIST from job_states order by job_states_id desc limit 1" )->hash;
         $db->commit;
 
@@ -139,7 +137,7 @@ sub scrape_status_GET
 
     my $media_id = int( $c->req->params->{ media_id } // 0 );
 
-    my $job_class = MediaWords::Job::RescrapeMedia->name;
+    my $job_class = 'MediaWords::Job::RescrapeMedia';
 
     my $db = $c->dbis;
 

@@ -31,11 +31,6 @@ use MediaWords::TM::GuessDate;
 use MediaWords::TM::Stories;
 use MediaWords::DB;
 use MediaWords::DBI::Stories::GuessDate;
-use MediaWords::Job::Facebook::FetchStoryStats;
-use MediaWords::Job::TM::ExtractStoryLinks;
-use MediaWords::Job::TM::FetchLink;
-use MediaWords::Job::TM::FetchTwitterUrls;
-use MediaWords::Job::TM::SnapshotTopic;
 use MediaWords::Solr;
 use MediaWords::Util::SQL;
 
@@ -73,10 +68,10 @@ sub update_topic_state($$$;$)
 
     INFO( "update topic state: $message" );
 
-    eval { MediaWords::Job::TM::MineTopic->update_job_state_message( $db, $message ) };
+    eval { MediaWords::JobManager::Job::update_job_state_message( $db, 'MediaWords::Job::TM::MineTopic', $message ) };
     if ( $@ )
     {
-        die( "error updating job state (mine_topic() must be called from MediaWords::Job::TM::MineTopic): $@" );
+        die "error updating job state: $@";
     }
 }
 
@@ -137,7 +132,8 @@ SQL
         do
         {
             eval {
-                MediaWords::Job::TM::ExtractStoryLinks->add_to_queue(
+                MediaWords::JobManager::Job::add_to_queue(
+                    'MediaWords::Job::TM::ExtractStoryLinks',
                     { stories_id => $story->{ stories_id }, topics_id => $topic->{ topics_id } } );
             };
             ( sleep( 1 ) && INFO( 'waiting for rabbit ...' ) ) if ( error_is_amqp( $@ ) );
@@ -226,7 +222,8 @@ sub queue_topic_fetch_url($;$)
     do
     {
         eval {
-            MediaWords::Job::TM::FetchLink->add_to_queue(
+            MediaWords::JobManager::Job::add_to_queue(
+                'MediaWords::Job::TM::FetchLink',
                 {
                     topic_fetch_urls_id => $tfu->{ topic_fetch_urls_id },
                     domain_timeout      => $domain_timeout
@@ -279,7 +276,7 @@ SQL
 
     $tfu_ids_table = $db->get_temporary_ids_table( $twitter_tfu_ids );
 
-    MediaWords::Job::TM::FetchTwitterUrls->add_to_queue( { topic_fetch_urls_ids => $twitter_tfu_ids } );
+    MediaWords::JobManager::Job::add_to_queue( 'MediaWords::Job::TM::FetchTwitterUrls', { topic_fetch_urls_ids => $twitter_tfu_ids } );
 
     INFO( "waiting for fetch twitter urls job for " . scalar( @{ $twitter_tfu_ids } ) . " urls" );
 
@@ -316,7 +313,7 @@ SQL
     }
 }
 
-# fetch the given links by creating topic_fetch_urls rows and sending them to the MediaWords::Job::TM::FetchLink queue
+# fetch the given links by creating topic_fetch_urls rows and sending them to the FetchLink queue
 # for processing.  wait for the queue to complete and returnt the resulting topic_fetch_urls.
 sub fetch_links
 {
@@ -938,7 +935,7 @@ sub fetch_social_media_data ($$)
 
     do
     {
-        eval { MediaWords::Job::Facebook::FetchStoryStats->add_topic_stories_to_queue( $db, $topic ); };
+        eval { MediaWords::JobManager::Job::add_topic_stories_to_queue( $db, 'MediaWords::Job::Facebook::FetchStoryStats', $topic ); };
         ( sleep( 5 ) && INFO( 'waiting for rabbit ...' ) ) if ( error_is_amqp( $@ ) );
     } until ( !error_is_amqp( $@ ) );
 
@@ -1067,7 +1064,7 @@ sub do_mine_topic ($$;$)
             fetch_social_media_data( $db, $topic );
 
             update_topic_state( $db, $topic, "snapshotting" );
-            MediaWords::Job::TM::SnapshotTopic->add_to_queue( { topics_id => $topic->{ topics_id } }, undef, $db );
+            MediaWords::JobManager::Job::add_to_queue( 'MediaWords::Job::TM::SnapshotTopic', { topics_id => $topic->{ topics_id } }, undef, $db );
         }
     }
 }

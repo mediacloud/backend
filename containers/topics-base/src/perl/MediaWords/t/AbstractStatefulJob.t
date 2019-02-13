@@ -17,16 +17,11 @@ use Test::More;
     package MediaWords::Job::StatefulJobTest;
 
     use Moose;
-    with 'MediaWords::AbstractJob';
+    with 'MediaWords::AbstractStatefulJob';
 
     use MediaWords::DB;
 
-    sub use_job_state
-    {
-        return 1;
-    }
-
-    sub run_statefully($$$)
+    sub run($$$)
     {
         my ( $self, $db, $args ) = @_;
 
@@ -41,12 +36,12 @@ use Test::More;
         }
         elsif ( $test eq 'running' )
         {
-            die( $MediaWords::AbstractJob::DIE_WITHOUT_ERROR_TAG );
+            die( $MediaWords::AbstractStatefulJob::DIE_WITHOUT_ERROR_TAG );
         }
         elsif ( $test eq 'custom' )
         {
             MediaWords::Job::StatefulJobTest->update_job_state_message( $db, 'custom message' );
-            die( $MediaWords::AbstractJob::DIE_WITHOUT_ERROR_TAG );
+            die( $MediaWords::AbstractStatefulJob::DIE_WITHOUT_ERROR_TAG );
         }
         else
         {
@@ -62,7 +57,7 @@ use Test::More;
     package MediaWords::Job::StatelessJobTest;
 
     use Moose;
-    with 'MediaWords::AbstractJob';
+    with 'MediaWords::AbstractStatefulJob';
 
     sub run($;$)
     {
@@ -72,14 +67,14 @@ use Test::More;
     no Moose;    # gets rid of scaffolding
 }
 
-# test that the given test with run_statefully() above results in the given job state
+# test that the given test with run() above results in the given job state
 sub test_job_state($$$;$)
 {
     my ( $db, $test, $state, $message ) = @_;
 
     my $label = "$test / $state";
 
-    MediaWords::Job::StatefulJobTest->run_locally( { test => $test } );
+    MediaWords::Job::StatefulJobTest->run( { test => $test } );
 
     my $js = $db->query( "select * from job_states order by job_states_id desc limit 1" )->hash;
 
@@ -107,7 +102,7 @@ sub test_stateful_job($)
 {
     my ( $db ) = @_;
 
-    is( MediaWords::Job::StatelessJobTest->run_locally( {} ), 'run', 'stateless job run' );
+    is( MediaWords::Job::StatelessJobTest->run( {} ), 'run', 'stateless job run' );
 
     test_job_state( $db, 'null',    'completed' );
     test_job_state( $db, 'error',   'error', 'test error' );

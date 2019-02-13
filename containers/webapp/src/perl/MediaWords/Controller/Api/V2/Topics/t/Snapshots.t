@@ -18,7 +18,6 @@ use MediaWords::Controller::Api::V2::Topics;
 use MediaWords::DBI::Auth::Roles;
 use MediaWords::Test::API;
 use MediaWords::Test::DB;
-use MediaWords::Job::Word2vec::GenerateSnapshotModel;
 
 Readonly my $NUM_MEDIA            => 5;
 Readonly my $NUM_FEEDS_PER_MEDIUM => 2;
@@ -98,7 +97,7 @@ SQL
     }
 
     # Add model generation job
-    MediaWords::Job::Word2vec::GenerateSnapshotModel->add_to_queue( { snapshots_id => $snapshots_id } );
+    MediaWords::JobManager::Job::add_to_queue( 'MediaWords::Job::Word2vec::GenerateSnapshotModel', { snapshots_id => $snapshots_id } );
 
     # Wait for model to appear
     my $found_models_id = undef;

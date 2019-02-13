@@ -12,24 +12,18 @@ use strict;
 use warnings;
 
 use Moose;
-with 'MediaWords::AbstractJob';
+with 'MediaWords::AbstractStatefulJob';
 
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use MediaWords::TM::Snapshot;
 use MediaWords::DB;
-use MediaWords::Job::Word2vec::GenerateSnapshotModel;
 
 # only run one job for each topic at a time
 sub get_run_lock_arg
 {
     return 'topics_id';
-}
-
-sub use_job_state
-{
-    return 1;
 }
 
 sub get_state_table_info
@@ -38,7 +32,7 @@ sub get_state_table_info
 }
 
 # Run job
-sub run_statefully($$;$)
+sub run($$;$)
 {
     my ( $self, $db, $args ) = @_;
 
@@ -53,7 +47,7 @@ sub run_statefully($$;$)
     my $snapshots_id = MediaWords::TM::Snapshot::snapshot_topic( $db, $topics_id, $note, $bot_policy, $periods );
 
     INFO "Adding a new word2vec model generation job for snapshot $snapshots_id...";
-    MediaWords::Job::Word2vec::GenerateSnapshotModel->add_to_queue( { snapshots_id => $snapshots_id } );
+    MediaWords::JobManager::Job::add_to_queue( 'MediaWords::Job::Word2vec::GenerateSnapshotModel', { snapshots_id => $snapshots_id } );
 }
 
 no Moose;    # gets rid of scaffolding

@@ -1,9 +1,5 @@
 #!/usr/bin/env perl
 
-#
-# Add MediaWords::Job::TM::SnapshotTopic job
-#
-
 use strict;
 use warnings;
 
@@ -14,11 +10,10 @@ use Getopt::Long;
 
 use MediaWords::DB;
 use MediaWords::TM;
-use MediaWords::Job::TM::SnapshotTopic;
 
 sub main
 {
-    my ( $topic_opt, $direct_job, $note, $bot_policy, $periods );
+    my ( $topic_opt, $note, $bot_policy, $periods );
 
     binmode( STDOUT, 'utf8' );
     binmode( STDERR, 'utf8' );
@@ -28,7 +23,6 @@ sub main
 
     Getopt::Long::GetOptions(
         "topic=s"      => \$topic_opt,
-        "direct_job!"  => \$direct_job,
         "note=s"       => \$note,
         "bot_policy=s" => \$bot_policy,
         "period=s"     => $periods
@@ -53,15 +47,7 @@ sub main
             periods    => $periods
         };
 
-        if ( $direct_job )
-        {
-            MediaWords::Job::TM::SnapshotTopic->run_locally( $args );
-        }
-        else
-        {
-            my $job_id = MediaWords::Job::TM::SnapshotTopic->add_to_queue( $args );
-            INFO "Added topic ID $topics_id ('$topic->{ name }') with job ID: $job_id";
-        }
+        MediaWords::Job::TM::SnapshotTopic->run( $args );
     }
 
 }

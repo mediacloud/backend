@@ -14,8 +14,6 @@ use Moose;
 use namespace::autoclean;
 
 use MediaWords::TM::Mine;
-use MediaWords::Job::TM::MineTopic;
-use MediaWords::Job::TM::MineTopicPublic;
 
 BEGIN
 {
@@ -535,11 +533,11 @@ SQL
 
         if ( $topic->{ job_queue } eq 'mc' )
         {
-            MediaWords::Job::TM::MineTopic->add_to_queue( { topics_id => $topic->{ topics_id } }, undef, $db );
+            MediaWords::JobManager::Job::add_to_queue( 'MediaWords::Job::TM::MineTopic', { topics_id => $topic->{ topics_id } }, undef, $db );
         }
         elsif ( $topic->{ job_queue } eq 'public' )
         {
-            MediaWords::Job::TM::MineTopicPublic->add_to_queue( { topics_id => $topic->{ topics_id } }, undef, $db );
+            MediaWords::JobManager::Job::add_to_queue( 'MediaWords::Job::TM::MineTopicPublic', { topics_id => $topic->{ topics_id } }, undef, $db );
         }
         else
         {

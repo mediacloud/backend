@@ -1,7 +1,7 @@
 """Test mediawords.tm.extract_story_links."""
 
 import mediawords.test.test_database
-import mediawords.job.tm.extract_story_links_job
+from mediawords.job.tm.extract_story_links_job import ExtractStoryLinksJob
 
 
 class TestExtractStoryLinksJobDB(mediawords.test.test_database.TestDatabaseWithSchemaTestCase):
@@ -36,7 +36,7 @@ class TestExtractStoryLinksJobDB(mediawords.test.test_database.TestDatabaseWithS
         topic = mediawords.test.db.create.create_test_topic(db, 'links')
         db.create('topic_stories', {'topics_id': topic['topics_id'], 'stories_id': story['stories_id']})
 
-        mediawords.job.tm.extract_story_links_job.ExtractStoryLinksJob.run_job(story['stories_id'], topic['topics_id'])
+        ExtractStoryLinksJob.run_job(story['stories_id'], topic['topics_id'])
 
         got_topic_links = db.query(
             "select topics_id, stories_id, url from topic_links where topics_id = %(a)s order by url",

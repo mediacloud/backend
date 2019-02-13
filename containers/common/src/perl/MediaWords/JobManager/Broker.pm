@@ -14,7 +14,7 @@ use Moose::Role;
 
 Start a worker.
 
-Should call C<$function_name-E<gt>run_locally( $args, $job )> to do the actual
+Should call C<$function_name::run( $args )> to do the actual
 work. C<$job> is job handle or identifier used by helpers.
 
 Parameters:

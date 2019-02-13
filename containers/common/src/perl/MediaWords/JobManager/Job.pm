@@ -188,40 +188,10 @@ sub _priority_is_valid($)
     return exists $valid_priorities{ $priority };
 }
 
-=head1 CLIENT SUBROUTINES
-
-The following subroutines can be used by clients to run a function.
-
-=head2 (static) C<$class-E<gt>run_locally([$args])>
-
-Run locally and right away, blocking the parent process until the job is
-finished.
-
-Parameters:
-
-=over 4
-
-=item * (optional) C<$args> (hashref), arguments required for running the
-function (serializable by the L<JSON> module)
-
-=item * (optional, internal) job handle
-
-=back
-
-Returns result (may be false of C<undef>) on success, C<die()>s on error
-
-=cut
-
-sub run_locally($;$$)
+sub __run($;$$)
 {
-    my ( $class, $args, $job ) = @_;
+    my ( $function_name, $args, $job ) = @_;
 
-    if ( ref $class )
-    {
-        LOGDIE( "Use this subroutine as a static method, e.g. MyFunction->run_locally()" );
-    }
-
-    my $function_name = $class->name();
     my $broker = MediaWords::AbstractJob::broker();
 
     # DEBUG( "Running locally" );
@@ -275,14 +245,8 @@ sub run_locally($;$$)
                 # Try to run the job
                 my $instance = $class->new();
 
-                # _job is undef when running locally, instance when issued from worker
-                $instance->_job( $job );
-
                 # Do the work
                 $result = $instance->run( $args );
-
-                # Unset the _job for the sake of cleanliness
-                $instance->_job( undef );
 
                 # Destroy instance
                 $instance = undef;
@@ -325,6 +289,10 @@ sub run_locally($;$$)
     return $result;
 }
 
+=head1 CLIENT SUBROUTINES
+
+The following subroutines can be used by clients to run a function.
+
 =head2 (static) C<$class-E<gt>run_remotely([$args])>
 
 Run remotely, wait for the task to complete, return the result; block the
@@ -345,14 +313,8 @@ Returns result (may be false of C<undef>) on success, C<die()>s on error
 
 sub run_remotely($;$$)
 {
-    my ( $class, $args, $priority ) = @_;
+    my ( $function_name, $args, $priority ) = @_;
 
-    if ( ref $class )
-    {
-        LOGDIE( "Use this subroutine as a static method, e.g. MyFunction->run_remotely()" );
-    }
-
-    my $function_name = $class->name;
     unless ( $function_name )
     {
         LOGDIE( "Unable to determine function name." );
@@ -389,14 +351,8 @@ Returns job ID if the job was added to queue successfully, C<die()>s on error.
 
 sub add_to_queue($;$$)
 {
-    my ( $class, $args, $priority ) = @_;
+    my ( $function_name, $args, $priority ) = @_;
 
-    if ( ref $class )
-    {
-        LOGDIE( "Use this subroutine as a static method, e.g. MyFunction->add_to_queue()" );
-    }
-
-    my $function_name = $class->name;
     unless ( $function_name )
     {
         LOGDIE( "Unable to determine function name." );
@@ -412,52 +368,6 @@ sub add_to_queue($;$$)
 
     return $broker->run_job_async( $function_name, $args, $priority );
 }
-
-=head2 (static) C<name()>
-
-Returns function's name (e.g. C<NinetyNineBottlesOfBeer>).
-
-Usage:
-
-	NinetyNineBottlesOfBeer->name();
-
-Parameters:
-
-=over 4
-
-=item * Class or class instance
-
-=back
-
-=cut
-
-sub name($)
-{
-    my $self_or_class = shift;
-
-    my $function_name = '';
-    if ( ref( $self_or_class ) )
-    {
-        # Instance
-        $function_name = '' . ref( $self_or_class );
-    }
-    else
-    {
-        # Static
-        $function_name = $self_or_class;
-    }
-
-    if ( $function_name eq 'Job' )
-    {
-        LOGDIE( "Unable to determine function name." );
-    }
-
-    return $function_name;
-}
-
-# Worker will pass this parameter to run_locally() which, in turn, will
-# temporarily place job handle to this variable.
-has '_job' => ( is => 'rw' );
 
 no Moose;    # gets rid of scaffolding
 

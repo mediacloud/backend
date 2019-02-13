@@ -1,9 +1,5 @@
 #!/usr/bin/env perl
 
-#
-# Add MediaWords::Job::TM::MineTopic job
-#
-
 use strict;
 use warnings;
 
@@ -17,7 +13,7 @@ use MediaWords::Job::TM::MineTopic;
 
 sub main
 {
-    my ( $topic_opt, $import_only, $cache_broken_downloads, $direct_job, $skip_outgoing_foreign_rss_links,
+    my ( $topic_opt, $import_only, $cache_broken_downloads, $skip_outgoing_foreign_rss_links,
         $skip_post_processing );
 
     binmode( STDOUT, 'utf8' );
@@ -29,16 +25,15 @@ sub main
         "topic=s"                          => \$topic_opt,
         "import_only!"                     => \$import_only,
         "cache_broken_downloads!"          => \$cache_broken_downloads,
-        "direct_job!"                      => \$direct_job,
         "skip_outgoing_foreign_rss_links!" => \$skip_outgoing_foreign_rss_links,
         "skip_post_processing!"            => \$skip_post_processing
     ) || return;
 
     my $optional_args =
-      join( ' ', map { "[ --$_ ]" } qw(direct_job import_only cache_broken_downloads skip_outgoing_foreign_rss_links) );
+      join( ' ', map { "[ --$_ ]" } qw(import_only cache_broken_downloads skip_outgoing_foreign_rss_links) );
     die( "usage: $0 --topic < id > $optional_args" ) unless ( $topic_opt );
 
-    my $db = MediaWords::DB::connect_to_db;
+    my $db = MediaWords::DB::connect_to_db();
     my $topics = MediaWords::TM::require_topics_by_opt( $db, $topic_opt );
     unless ( $topics )
     {
@@ -57,15 +52,7 @@ sub main
             skip_outgoing_foreign_rss_links => $skip_outgoing_foreign_rss_links
         };
 
-        if ( $direct_job )
-        {
-            MediaWords::Job::TM::MineTopic->run_locally( $args );
-        }
-        else
-        {
-            my $job_id = MediaWords::Job::TM::MineTopic->add_to_queue( $args );
-            INFO "Added job with ID: $job_id";
-        }
+        MediaWords::Job::TM::MineTopic->run( $args );
 
         INFO "Done processing topic $topics_id.";
     }

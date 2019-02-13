@@ -14,7 +14,6 @@ use MediaWords::Util::Log;
 
 use MediaWords::DBI::Media;
 use MediaWords::DBI::Feeds;
-use MediaWords::Job::RescrapeMedia;
 use MediaWords::Util::URL;
 use MediaWords::Feed::Scrape;
 
