@@ -7,8 +7,9 @@
       <sourceFolder url="file://$MODULE_DIR$/bin" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/src/python/snowball" />
     </content>
-    <orderEntry type="jdk" jdkName="Python 3.7 (mediacloud-common)" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="Remote Python 3.7.2 Docker (dockermediacloud/mediacloud-common:latest)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="module" module-name="perl-python-base" />
   </component>
   <component name="PackageRequirementsSettings">
     <option name="requirementsPath" value="$MODULE_DIR$/src/requirements.txt" />
