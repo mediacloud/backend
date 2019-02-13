@@ -3,6 +3,9 @@ import re
 
 from mediawords.db.handler import DatabaseHandler
 from mediawords.dbi.downloads.store import store_content
+from mediawords.dbi.stories.postprocess import mark_as_processed
+from mediawords.languages.factory import LanguageFactory
+from mediawords.util.identify_language import language_code_for_text
 from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_object_from_bytes_if_needed, decode_str_from_bytes_if_needed
 from mediawords.util.url import get_url_host
@@ -348,12 +351,17 @@ def add_content_to_test_story(db: DatabaseHandler, story: dict, feed: dict) -> d
     else:
         content = _get_test_content()
 
+    content_language_code = language_code_for_text(content)
+
     if story.get('full_text_rss', None):
         story['full_text_rss'] = False
         db.update_by_id(
             table='stories',
             object_id=story['stories_id'],
-            update_hash={'full_text_rss': False},
+            update_hash={
+                'full_text_rss': False,
+                'language': content_language_code,
+            },
         )
 
     host = get_url_host(feed['url'])
@@ -368,7 +376,7 @@ def add_content_to_test_story(db: DatabaseHandler, story: dict, feed: dict) -> d
             'sequence': 1,
             'state': 'fetching',
             'priority': 1,
-            'extracted': False,
+            'extracted': True,
             'stories_id': story['stories_id'],
         }
     )
@@ -378,7 +386,29 @@ def add_content_to_test_story(db: DatabaseHandler, story: dict, feed: dict) -> d
     story['download'] = download
     story['content'] = content
 
-    extract_and_process_story(db=db, story=story)
+    db.query("""
+        INSERT INTO download_texts (downloads_id, download_text, download_text_length)
+        VALUES (%(downloads_id)s, %(download_text)s, CHAR_LENGTH(%(download_text)s))
+    """, {
+        'downloads_id': download['downloads_id'],
+        'download_text': content,
+    })
+
+    lang = LanguageFactory.language_for_code(content_language_code)
+    sentences = lang.split_text_to_sentences(content)
+    sentence_number = 1
+    for sentence in sentences:
+        db.insert(table='story_sentences', insert_hash={
+            'sentence': sentence,
+            'language': language_code_for_text(sentence) or 'en',
+            'sentence_number': sentence_number,
+            'stories_id': story['stories_id'],
+            'media_id': story['media_id'],
+            'publish_date': story['publish_date'],
+        })
+        sentence_number += 1
+
+    mark_as_processed(db=db, stories_id=story['stories_id'])
 
     story['download_text'] = db.query("""
         SELECT *
