@@ -32,7 +32,6 @@ use MediaWords::Util::IdentifyLanguage;
 use MediaWords::Util::ParseJSON;
 use MediaWords::Util::Text;
 use MediaWords::Test::DB;
-use MediaWords::Test::DB::Environment;
 
 # Max. length of the sentence to tokenize
 Readonly my $MAX_SENTENCE_LENGTH => 1024;
@@ -431,7 +430,7 @@ sub get_words
 
     my $words;
 
-    $words = $self->_get_cached_words unless ( MediaWords::Test::DB::Environment::using_test_database() );
+    $words = $self->_get_cached_words;
 
     if ( $words )
     {

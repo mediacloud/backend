@@ -2,7 +2,6 @@ from unittest import TestCase
 
 from mediawords.db.handler import DatabaseHandler
 from mediawords.db.schema.schema import initialize_with_schema
-from mediawords.test.db.environment import force_using_test_database
 from mediawords.util.config.common import CommonConfig
 from mediawords.util.log import create_logger
 from mediawords.util.mail import enable_test_mode, disable_test_mode
@@ -78,8 +77,6 @@ class TestDatabaseWithSchemaTestCase(TestDatabaseTestCase):
             raise McTestDatabaseTestCaseException("Test database is not empty.")
 
         initialize_with_schema(db=self.__db)
-
-        force_using_test_database()
 
 
 class TestDoNotSendEmails(TestCase):

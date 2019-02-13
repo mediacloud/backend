@@ -19,7 +19,6 @@ use Test::More;
 
 use MediaWords::Solr;
 use MediaWords::Solr::Dump;
-use MediaWords::Test::DB::Environment;
 use MediaWords::Util::Tags;
 
 # remember that we already swapped the solr live collection
@@ -172,11 +171,6 @@ use the other collection no matter how many times it is called.
 sub setup_test_index($)
 {
     my ( $db ) = @_;
-
-    if ( !MediaWords::Test::DB::Environment::using_test_database() )
-    {
-        LOGDIE( 'setup_test_index can only be called while connected to postgres test database' );
-    }
 
     if ( !$_swapped_live_collection )
     {

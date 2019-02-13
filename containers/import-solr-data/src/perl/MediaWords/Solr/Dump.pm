@@ -57,7 +57,6 @@ use MediaWords::Util::Paths;
 use MediaWords::Util::Web;
 use MediaWords::Solr;
 use MediaWords::Test::DB;
-use MediaWords::Test::DB::Environment;
 
 # order and names of fields exported to and imported from csv
 Readonly my @SOLR_FIELDS => qw/stories_id media_id publish_date publish_day publish_week publish_month publish_year
@@ -634,17 +633,6 @@ update snapshots s set searchable = true
 SQL
 }
 
-# die if we are running on the testing databse but using the default solr index
-sub _validate_using_test_db_with_test_index()
-{
-    my ( $db ) = @_;
-
-    if ( MediaWords::Test::DB::Environment::using_test_database() && !MediaWords::Test::Solr::using_test_index() )
-    {
-        die( 'you are using a test database but not a test index.  call MediaWords::Test::Solr::setup_test_index()' );
-    }
-}
-
 =head2 import_data( $options )
 
 Import stories from postgres to solr.
@@ -791,8 +779,6 @@ Insert stories_ids for all processed stories into the stories queue table.
 sub queue_all_stories($;$)
 {
     my ( $db, $stories_queue_table ) = @_;
-
-    _validate_using_test_db_with_test_index();
 
     $stories_queue_table //= $DEFAULT_STORIES_QUEUE_TABLE;
 
