@@ -758,13 +758,6 @@ sub job_id_from_handle($$)
     return $job_handle;
 }
 
-sub set_job_progress($$$$)
-{
-    my ( $self, $job, $numerator, $denominator ) = @_;
-
-    LOGDIE( "FIXME not implemented." );
-}
-
 sub job_status($$$)
 {
     my ( $self, $function_name, $job_id ) = @_;

@@ -80,16 +80,12 @@ Returns hashref with the job status, e.g.:
 
 =begin text
 
-{     # Job ID that was passed as a parameter     'job_id' =>
-'H:tundra.home:8',
+{
+    # Job ID that was passed as a parameter
+    'job_id' => 'H:tundra.home:8',
 
 	# Whether or not the job is currently running
 	'running' => 1,
-
-	# Numerator and denominator of the job's progress
-	# (in this example, job is 1333/2000 complete)
-	'numerator' => 1333,
-	'denominator' => 2000
 };
 
 =end text

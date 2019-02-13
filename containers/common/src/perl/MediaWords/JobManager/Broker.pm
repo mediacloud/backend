@@ -15,8 +15,7 @@ use Moose::Role;
 Start a worker.
 
 Should call C<$function_name-E<gt>run_locally( $args, $job )> to do the actual
-work. C<$job> is job handle or identifier used by helpers (e.g.
-C<set_job_progress()>).
+work. C<$job> is job handle or identifier used by helpers.
 
 Parameters:
 
@@ -86,40 +85,6 @@ Parameters:
 
 requires 'job_id_from_handle';
 
-=head2 C<$self-E<gt>set_job_progress($job, $numerator, $denominator)>
-
-Provide progress report while running the task (from C<run()>).
-
-Examples:
-
-=over 4
-
-=item * C<$self-E<gt>set_progress(3, 10)>
-
-3 out of 10 subtasks are complete.
-
-=item * C<$self-E<gt>set_progress(45, 100)>
-
-45 out of 100 subtasks are complete (or 45% complete).
-
-=back
-
-Parameters:
-
-=over 4
-
-=item * Job handle or identifier
-
-=item * Numerator
-
-=item * Denominator
-
-=back
-
-=cut
-
-requires 'set_job_progress';
-
 =head2 C<$self-E<gt>job_status($function_name, $job_id)>
 
 Get job status.
@@ -140,16 +105,12 @@ Returns array with job status:
 
 =begin text
 
-{     # Job ID that was passed as a parameter     'job_id' =>
-'H:tundra.home:8',
+{
+    # Job ID that was passed as a parameter
+    'job_id' => 'H:tundra.home:8',
 
     # Whether or not the job is currently running
     'running' => 1,
-
-    # Numerator and denominator of the job's progress
-    # (in this example, job is 1333/2000 complete)
-    'numerator' => 1333,
-    'denominator' => 2000
 };
 
 =end text
@@ -175,12 +136,6 @@ Returns a hashref of servers and their jobs, e.g.:
 
                 # Whether or not the job is currently running
                 'running' => 1,
-
-                # Numerator and denominator of the job's progress
-                # (in this example, job is 1333/2000 complete)
-                'numerator' => 1333,    # 0 if the job haven't been started yet
-                'denominator' => 2000   # 1 if the job haven't been started yet;
-                                        # 0 if the job has been cancelled
                 
             },
 

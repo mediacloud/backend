@@ -76,14 +76,6 @@ each run.
 Returns result on success (serializable by the L<JSON> module). The result will
 be discarded if the job is added as a background process.
 
-Provides progress reports when available:
-
-=over 4
-
-=item * by calling C<$self-E<gt>set_progress($numerator, $denominator)>
-
-=back
-
 C<die()>s on error.
 
 Writes log to C<STDOUT> or C<STDERR> (preferably the latter).
@@ -216,54 +208,6 @@ sub _priority_is_valid($)
     return exists $valid_priorities{ $priority };
 }
 
-=head1 HELPER SUBROUTINES
-
-The following subroutines can be used by the deriving class.
-
-=head2 C<$self-E<gt>set_progress($numerator, $denominator)>
-
-Provide progress report while running the task (from C<run()>).
-
-Examples:
-
-=over 4
-
-=item * C<$self-E<gt>set_progress(3, 10)>
-
-3 out of 10 subtasks are complete.
-
-=item * C<$self-E<gt>set_progress(45, 100)>
-
-45 out of 100 subtasks are complete (or 45% complete).
-
-=back
-
-=cut
-
-sub set_progress($$$)
-{
-    my ( $self, $numerator, $denominator ) = @_;
-
-    unless ( defined $self->_job )
-    {
-        # Running the job locally, not going to report progress (because job is blocking)
-        DEBUG( "Job is undef" );
-        return;
-    }
-    unless ( $denominator )
-    {
-        LOGDIE( "Denominator is 0." );
-    }
-
-    my $function_name = $self->name();
-    my $config        = $function_name->configuration();
-
-    $config->{ broker }->set_job_progress( $self->_job, $numerator, $denominator );
-
-    # Written to job's log
-    INFO( "$numerator/$denominator complete." );
-}
-
 =head1 CLIENT SUBROUTINES
 
 The following subroutines can be used by clients to run a function.
@@ -280,7 +224,7 @@ Parameters:
 =item * (optional) C<$args> (hashref), arguments required for running the
 function (serializable by the L<JSON> module)
 
-=item * (optional, internal) job handle to be later used by send_progress()
+=item * (optional, internal) job handle
 
 =back
 
@@ -532,8 +476,7 @@ sub name($)
 }
 
 # Worker will pass this parameter to run_locally() which, in turn, will
-# temporarily place job handle to this variable so that set_progress() helper
-# can later use it
+# temporarily place job handle to this variable.
 has '_job' => ( is => 'rw' );
 
 no Moose;    # gets rid of scaffolding
