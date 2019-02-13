@@ -518,7 +518,7 @@ class HashServer(object):
 
         http_server.serve_forever()
 
-    def start(self, delay: int=0):
+    def start(self, delay: int = 0):
         """Start the webserver.
 
         Arguments:
