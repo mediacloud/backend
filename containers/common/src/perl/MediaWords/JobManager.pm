@@ -60,47 +60,6 @@ $| = 1;
 # MediaWords::JobManager::Job comes up with a job ID of its own)
 Readonly my $MJM_JOB_ID_MAX_LENGTH => 256;
 
-=head2 (static) C<job_status($function_name, $job_id[, $config])>
-
-Get job status.
-
-Parameters:
-
-=over 4
-
-=item * Function name (e.g. "NinetyNineBottlesOfBeer")
-
-=item * Job ID (e.g. "H:localhost.localdomain:8")
-
-=back
-
-Returns hashref with the job status, e.g.:
-
-=begin text
-
-{
-    # Job ID that was passed as a parameter
-    'job_id' => 'H:tundra.home:8',
-
-	# Whether or not the job is currently running
-	'running' => 1,
-};
-
-=end text
-
-Returns undef if the job ID was not found; dies on error.
-
-=cut
-
-sub job_status($$)
-{
-    my ( $function_name, $job_id ) = @_;
-
-    my $config = $function_name->configuration();
-
-    return $config->{ broker }->job_status( $function_name, $job_id );
-}
-
 # (static) Return an unique job ID that will identify a particular job with its
 # arguments
 #

@@ -67,41 +67,6 @@ sub job_id_from_handle($$)
     LOGDIE( "FIXME not implemented." );
 }
 
-sub job_status($$$)
-{
-    my ( $self, $function_name, $job_id ) = @_;
-
-    LOGDIE( "FIXME not implemented." );
-}
-
-sub show_jobs($)
-{
-    my $self = shift;
-
-    LOGDIE( "FIXME not implemented." );
-}
-
-sub cancel_job($)
-{
-    my ( $self, $job_id ) = @_;
-
-    LOGDIE( "FIXME not implemented." );
-}
-
-sub server_status($$)
-{
-    my $self = shift;
-
-    LOGDIE( "FIXME not implemented." );
-}
-
-sub workers($)
-{
-    my $self = shift;
-
-    LOGDIE( "FIXME not implemented." );
-}
-
 no Moose;    # gets rid of scaffolding
 
 1;
