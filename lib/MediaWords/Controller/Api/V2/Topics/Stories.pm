@@ -123,7 +123,7 @@ SQL
     if ( my $link_to_stories_id = int( $c->req->params->{ link_to_stories_id } // 0 ) )
     {
         push( @{ $clauses }, <<SQL );
-exists (
+slc.stories_id in (
     select
             sl.source_stories_id
         from snap.story_links sl
@@ -138,7 +138,7 @@ SQL
     if ( my $link_from_stories_id = int( $c->req->params->{ link_from_stories_id } // 0 ) )
     {
         push( @{ $clauses }, <<SQL );
-exists (
+slc.stories_id in (
     select
             sl.ref_stories_id
         from snap.story_links sl
@@ -153,7 +153,7 @@ SQL
     if ( my $link_to_media_id = int( $c->req->params->{ link_to_media_id } // 0 ) )
     {
         push( @{ $clauses }, <<SQL );
-exists (
+slc.stories_id in (
     select
             sl.source_stories_id
         from snap.story_links sl
@@ -170,7 +170,7 @@ SQL
     if ( my $link_from_media_id = int( $c->req->params->{ link_from_media_id } // 0 ) )
     {
         push( @{ $clauses }, <<SQL );
-exists (
+slc.stories_id in (
     select
             sl.ref_stories_id
         from snap.story_links sl
