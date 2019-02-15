@@ -1,10 +1,11 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="base/Dockerfile" type="docker-deploy" factoryName="dockerfile" server-name="mc_containers_dev">
+  <configuration default="false" name="base/Dockerfile" type="docker-deploy" factoryName="dockerfile" server-name="mediacloud">
     <deployment type="dockerfile">
       <settings>
         <option name="buildCliOptions" value="" />
+        <option name="buildOnly" value="true" />
         <option name="command" value="" />
-        <option name="containerName" value="mediacloud-base" />
+        <option name="containerName" value="mc_base" />
         <option name="entrypoint" value="" />
         <option name="imageTag" value="dockermediacloud/mediacloud-base" />
         <option name="commandLineOptions" value="" />
