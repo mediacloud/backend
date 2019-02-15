@@ -1,8 +1,9 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Dockerfile" type="docker-deploy" factoryName="dockerfile" server-name="mc_containers_dev">
+  <configuration default="false" name="Dockerfile" type="docker-deploy" factoryName="dockerfile" server-name="mediacloud">
     <deployment type="dockerfile">
       <settings>
         <option name="buildCliOptions" value="" />
+        <option name="buildOnly" value="true" />
         <option name="command" value="" />
         <option name="containerName" value="mc_crawler" />
         <option name="entrypoint" value="" />

@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="Perl5LocalSettings">
+    <option name="perlInterpreter" value="Docker[dockermediacloud/mediacloud-perl-python-base:latest], System: Perl v5.22.1" />
+  </component>
+  <component name="Perl5XSubsState">
+    <option name="myFilesMap">
+      <map>
+        <entry key="$USER_HOME$/.PyCharm2018.3/system/perl5/remote/docker_dockermediacloud_mediacloud-perl-python-base_latest/usr/lib/x86_64-linux-gnu/perl-base/auto/Cwd/Cwd.so" value="1542652175000" />
+        <entry key="$USER_HOME$/.PyCharm2018.3/system/perl5/remote/docker_dockermediacloud_mediacloud-perl-python-base_latest/usr/lib/x86_64-linux-gnu/perl-base/auto/Fcntl/Fcntl.so" value="1542652175000" />
+        <entry key="$USER_HOME$/.PyCharm2018.3/system/perl5/remote/docker_dockermediacloud_mediacloud-perl-python-base_latest/usr/lib/x86_64-linux-gnu/perl-base/auto/File/Glob/Glob.so" value="1542652175000" />
+        <entry key="$USER_HOME$/.PyCharm2018.3/system/perl5/remote/docker_dockermediacloud_mediacloud-perl-python-base_latest/usr/lib/x86_64-linux-gnu/perl-base/auto/Hash/Util/Util.so" value="1542652175000" />
+        <entry key="$USER_HOME$/.PyCharm2018.3/system/perl5/remote/docker_dockermediacloud_mediacloud-perl-python-base_latest/usr/lib/x86_64-linux-gnu/perl-base/auto/IO/IO.so" value="1542652175000" />
+        <entry key="$USER_HOME$/.PyCharm2018.3/system/perl5/remote/docker_dockermediacloud_mediacloud-perl-python-base_latest/usr/lib/x86_64-linux-gnu/perl-base/auto/List/Util/Util.so" value="1542652175000" />
+        <entry key="$USER_HOME$/.PyCharm2018.3/system/perl5/remote/docker_dockermediacloud_mediacloud-perl-python-base_latest/usr/lib/x86_64-linux-gnu/perl-base/auto/POSIX/POSIX.so" value="1542652175000" />
+        <entry key="$USER_HOME$/.PyCharm2018.3/system/perl5/remote/docker_dockermediacloud_mediacloud-perl-python-base_latest/usr/lib/x86_64-linux-gnu/perl-base/auto/Socket/Socket.so" value="1542652175000" />
+        <entry key="$USER_HOME$/.PyCharm2018.3/system/perl5/remote/docker_dockermediacloud_mediacloud-perl-python-base_latest/usr/lib/x86_64-linux-gnu/perl-base/auto/attributes/attributes.so" value="1542652175000" />
+        <entry key="$USER_HOME$/.PyCharm2018.3/system/perl5/remote/docker_dockermediacloud_mediacloud-perl-python-base_latest/usr/lib/x86_64-linux-gnu/perl-base/auto/re/re.so" value="1542652175000" />
+        <entry key="$USER_HOME$/.PyCharm2018.3/system/perl5/remote/docker_dockermediacloud_mediacloud-perl-python-base_latest/usr/lib/x86_64-linux-gnu/perl/5.22/auto/B/B.so" value="1542652175000" />
+        <entry key="$USER_HOME$/.PyCharm2018.3/system/perl5/remote/docker_dockermediacloud_mediacloud-perl-python-base_latest/usr/lib/x86_64-linux-gnu/perl/5.22/auto/Compress/Raw/Bzip2/Bzip2.so" value="1542652175000" />
+        <entry key="$USER_HOME$/.PyCharm2018.3/system/perl5/remote/docker_dockermediacloud_mediacloud-perl-python-base_latest/usr/lib/x86_64-linux-gnu/perl/5.22/auto/Compress/Raw/Zlib/Zlib.so" value="1542652175000" />
+        <entry key="$USER_HOME$/.PyCharm2018.3/system/perl5/remote/docker_dockermediacloud_mediacloud-perl-python-base_latest/usr/lib/x86_64-linux-gnu/perl/5.22/auto/Cwd/Cwd.so" value="1542652175000" />
+        <entry key="$USER_HOME$/.PyCharm2018.3/system/perl5/remote/docker_dockermediacloud_mediacloud-perl-python-base_latest/usr/lib/x86_64-linux-gnu/perl/5.22/auto/DB_File/DB_File.so" value="1542652175000" />
+        <entry key="$USER_HOME$/.PyCharm2018.3/system/perl5/remote/docker_dockermediacloud_mediacloud-perl-python-base_latest/usr/lib/x86_64-linux-gnu/perl/5.22/auto/Data/Dumper/Dumper.so" value="1542652175000" />
+        <entry key="$USER_HOME$/.PyCharm2018.3/system/perl5/remote/docker_dockermediacloud_mediacloud-perl-python-base_latest/usr/lib/x86_64-linux-gnu/perl/5.22/auto/Devel/PPPort/PPPort.so" value="1542652175000" />
+        <entry key="$USER_HOME$/.PyCharm2018.3/system/perl5/remote/docker_dockermediacloud_mediacloud-perl-python-base_latest/usr/lib/x86_64-linux-gnu/perl/5.22/auto/Devel/Peek/Peek.so" value="1542652175000" />
+        <entry key="$USER_HOME$/.PyCharm2018.3/system/perl5/remote/docker_dockermediacloud_mediacloud-perl-python-base_latest/usr/lib/x86_64-linux-gnu/perl/5.22/auto/Digest/MD5/MD5.so" value="1542652175000" />
+        <entry key="$USER_HOME$/.PyCharm2018.3/system/perl5/remote/docker_dockermediacloud_mediacloud-perl-python-base_latest/usr/lib/x86_64-linux-gnu/perl/5.22/auto/Digest/SHA/SHA.so" value="1542652175000" />
+        <entry key="$USER_HOME$/.PyCharm2018.3/system/perl5/remote/docker_dockermediacloud_mediacloud-perl-python-base_latest/usr/lib/x86_64-linux-gnu/perl/5.22/auto/Encode/Byte/Byte.so" value="1542652175000" />
+        <entry key="$USER_HOME$/.PyCharm2018.3/system/perl5/remote/docker_dockermediacloud_mediacloud-perl-python-base_latest/usr/lib/x86_64-linux-gnu/perl/5.22/auto/Encode/CN/CN.so" value="1542652175000" />
+        <entry key="$USER_HOME$/.PyCharm2018.3/system/perl5/remote/docker_dockermediacloud_mediacloud-perl-python-base_latest/usr/lib/x86_64-linux-gnu/perl/5.22/auto/Encode/EBCDIC/EBCDIC.so" value="1542652175000" />
+        <entry key="$USER_HOME$/.PyCharm2018.3/system/perl5/remote/docker_dockermediacloud_mediacloud-perl-python-base_latest/usr/lib/x86_64-linux-gnu/perl/5.22/auto/Encode/Encode.so" value="1542652175000" />
+        <entry key="$USER_HOME$/.PyCharm2018.3/system/perl5/remote/docker_dockermediacloud_mediacloud-perl-python-base_latest/usr/lib/x86_64-linux-gnu/perl/5.22/auto/Encode/JP/JP.so" value="1542652175000" />
+        <entry key="$USER_HOME$/.PyCharm2018.3/system/perl5/remote/docker_dockermediacloud_mediacloud-perl-python-base_latest/usr/lib/x86_64-linux-gnu/perl/5.22/auto/Encode/KR/KR.so" value="1542652175000" />
+        <entry key="$USER_HOME$/.PyCharm2018.3/system/perl5/remote/docker_dockermediacloud_mediacloud-perl-python-base_latest/usr/lib/x86_64-linux-gnu/perl/5.22/auto/Encode/Symbol/Symbol.so" value="1542652175000" />
+        <entry key="$USER_HOME$/.PyCharm2018.3/system/perl5/remote/docker_dockermediacloud_mediacloud-perl-python-base_latest/usr/lib/x86_64-linux-gnu/perl/5.22/auto/Encode/TW/TW.so" value="1542652175000" />
+        <entry key="$USER_HOME$/.PyCharm2018.3/system/perl5/remote/docker_dockermediacloud_mediacloud-perl-python-base_latest/usr/lib/x86_64-linux-gnu/perl/5.22/auto/Encode/Unicode/Unicode.so" value="1542652175000" />
+        <entry key="$USER_HOME$/.PyCharm2018.3/system/perl5/remote/docker_dockermediacloud_mediacloud-perl-python-base_latest/usr/lib/x86_64-linux-gnu/perl/5.22/auto/Fcntl/Fcntl.so" value="1542652175000" />
+        <entry key="$USER_HOME$/.PyCharm2018.3/system/perl5/remote/docker_dockermediacloud_mediacloud-perl-python-base_latest/usr/lib/x86_64-linux-gnu/perl/5.22/auto/File/DosGlob/DosGlob.so" value="1542652175000" />
+        <entry key="$USER_HOME$/.PyCharm2018.3/system/perl5/remote/docker_dockermediacloud_mediacloud-perl-python-base_latest/usr/lib/x86_64-linux-gnu/perl/5.22/auto/File/Glob/Glob.so" value="1542652175000" />
+        <entry key="$USER_HOME$/.PyCharm2018.3/system/perl5/remote/docker_dockermediacloud_mediacloud-perl-python-base_latest/usr/lib/x86_64-linux-gnu/perl/5.22/auto/Filter/Util/Call/Call.so" value="1542652175000" />
+        <entry key="$USER_HOME$/.PyCharm2018.3/system/perl5/remote/docker_dockermediacloud_mediacloud-perl-python-base_latest/usr/lib/x86_64-linux-gnu/perl/5.22/auto/GDBM_File/GDBM_File.so" value="1542652175000" />
+        <entry key="$USER_HOME$/.PyCharm2018.3/system/perl5/remote/docker_dockermediacloud_mediacloud-perl-python-base_latest/usr/lib/x86_64-linux-gnu/perl/5.22/auto/Hash/Util/FieldHash/FieldHash.so" value="1542652175000" />
+        <entry key="$USER_HOME$/.PyCharm2018.3/system/perl5/remote/docker_dockermediacloud_mediacloud-perl-python-base_latest/usr/lib/x86_64-linux-gnu/perl/5.22/auto/Hash/Util/Util.so" value="1542652175000" />
+        <entry key="$USER_HOME$/.PyCharm2018.3/system/perl5/remote/docker_dockermediacloud_mediacloud-perl-python-base_latest/usr/lib/x86_64-linux-gnu/perl/5.22/auto/I18N/Langinfo/Langinfo.so" value="1542652175000" />
+        <entry key="$USER_HOME$/.PyCharm2018.3/system/perl5/remote/docker_dockermediacloud_mediacloud-perl-python-base_latest/usr/lib/x86_64-linux-gnu/perl/5.22/auto/IO/IO.so" value="1542652175000" />
+        <entry key="$USER_HOME$/.PyCharm2018.3/system/perl5/remote/docker_dockermediacloud_mediacloud-perl-python-base_latest/usr/lib/x86_64-linux-gnu/perl/5.22/auto/IPC/SysV/SysV.so" value="1542652175000" />
+        <entry key="$USER_HOME$/.PyCharm2018.3/system/perl5/remote/docker_dockermediacloud_mediacloud-perl-python-base_latest/usr/lib/x86_64-linux-gnu/perl/5.22/auto/List/Util/Util.so" value="1542652175000" />
+        <entry key="$USER_HOME$/.PyCharm2018.3/system/perl5/remote/docker_dockermediacloud_mediacloud-perl-python-base_latest/usr/lib/x86_64-linux-gnu/perl/5.22/auto/MIME/Base64/Base64.so" value="1542652175000" />
+        <entry key="$USER_HOME$/.PyCharm2018.3/system/perl5/remote/docker_dockermediacloud_mediacloud-perl-python-base_latest/usr/lib/x86_64-linux-gnu/perl/5.22/auto/Math/BigInt/FastCalc/FastCalc.so" value="1542652175000" />
+        <entry key="$USER_HOME$/.PyCharm2018.3/system/perl5/remote/docker_dockermediacloud_mediacloud-perl-python-base_latest/usr/lib/x86_64-linux-gnu/perl/5.22/auto/NDBM_File/NDBM_File.so" value="1542652175000" />
+        <entry key="$USER_HOME$/.PyCharm2018.3/system/perl5/remote/docker_dockermediacloud_mediacloud-perl-python-base_latest/usr/lib/x86_64-linux-gnu/perl/5.22/auto/ODBM_File/ODBM_File.so" value="1542652175000" />
+        <entry key="$USER_HOME$/.PyCharm2018.3/system/perl5/remote/docker_dockermediacloud_mediacloud-perl-python-base_latest/usr/lib/x86_64-linux-gnu/perl/5.22/auto/Opcode/Opcode.so" value="1542652175000" />
+        <entry key="$USER_HOME$/.PyCharm2018.3/system/perl5/remote/docker_dockermediacloud_mediacloud-perl-python-base_latest/usr/lib/x86_64-linux-gnu/perl/5.22/auto/POSIX/POSIX.so" value="1542652175000" />
+        <entry key="$USER_HOME$/.PyCharm2018.3/system/perl5/remote/docker_dockermediacloud_mediacloud-perl-python-base_latest/usr/lib/x86_64-linux-gnu/perl/5.22/auto/PerlIO/encoding/encoding.so" value="1542652175000" />
+        <entry key="$USER_HOME$/.PyCharm2018.3/system/perl5/remote/docker_dockermediacloud_mediacloud-perl-python-base_latest/usr/lib/x86_64-linux-gnu/perl/5.22/auto/PerlIO/mmap/mmap.so" value="1542652175000" />
+        <entry key="$USER_HOME$/.PyCharm2018.3/system/perl5/remote/docker_dockermediacloud_mediacloud-perl-python-base_latest/usr/lib/x86_64-linux-gnu/perl/5.22/auto/PerlIO/scalar/scalar.so" value="1542652175000" />
+        <entry key="$USER_HOME$/.PyCharm2018.3/system/perl5/remote/docker_dockermediacloud_mediacloud-perl-python-base_latest/usr/lib/x86_64-linux-gnu/perl/5.22/auto/PerlIO/via/via.so" value="1542652175000" />
+        <entry key="$USER_HOME$/.PyCharm2018.3/system/perl5/remote/docker_dockermediacloud_mediacloud-perl-python-base_latest/usr/lib/x86_64-linux-gnu/perl/5.22/auto/SDBM_File/SDBM_File.so" value="1542652175000" />
+        <entry key="$USER_HOME$/.PyCharm2018.3/system/perl5/remote/docker_dockermediacloud_mediacloud-perl-python-base_latest/usr/lib/x86_64-linux-gnu/perl/5.22/auto/Socket/Socket.so" value="1542652175000" />
+        <entry key="$USER_HOME$/.PyCharm2018.3/system/perl5/remote/docker_dockermediacloud_mediacloud-perl-python-base_latest/usr/lib/x86_64-linux-gnu/perl/5.22/auto/Storable/Storable.so" value="1542652175000" />
+        <entry key="$USER_HOME$/.PyCharm2018.3/system/perl5/remote/docker_dockermediacloud_mediacloud-perl-python-base_latest/usr/lib/x86_64-linux-gnu/perl/5.22/auto/Sys/Hostname/Hostname.so" value="1542652175000" />
+        <entry key="$USER_HOME$/.PyCharm2018.3/system/perl5/remote/docker_dockermediacloud_mediacloud-perl-python-base_latest/usr/lib/x86_64-linux-gnu/perl/5.22/auto/Sys/Syslog/Syslog.so" value="1542652175000" />
+        <entry key="$USER_HOME$/.PyCharm2018.3/system/perl5/remote/docker_dockermediacloud_mediacloud-perl-python-base_latest/usr/lib/x86_64-linux-gnu/perl/5.22/auto/Tie/Hash/NamedCapture/NamedCapture.so" value="1542652175000" />
+        <entry key="$USER_HOME$/.PyCharm2018.3/system/perl5/remote/docker_dockermediacloud_mediacloud-perl-python-base_latest/usr/lib/x86_64-linux-gnu/perl/5.22/auto/Time/HiRes/HiRes.so" value="1542652175000" />
+        <entry key="$USER_HOME$/.PyCharm2018.3/system/perl5/remote/docker_dockermediacloud_mediacloud-perl-python-base_latest/usr/lib/x86_64-linux-gnu/perl/5.22/auto/Time/Piece/Piece.so" value="1542652175000" />
+        <entry key="$USER_HOME$/.PyCharm2018.3/system/perl5/remote/docker_dockermediacloud_mediacloud-perl-python-base_latest/usr/lib/x86_64-linux-gnu/perl/5.22/auto/Unicode/Collate/Collate.so" value="1542652175000" />
+        <entry key="$USER_HOME$/.PyCharm2018.3/system/perl5/remote/docker_dockermediacloud_mediacloud-perl-python-base_latest/usr/lib/x86_64-linux-gnu/perl/5.22/auto/arybase/arybase.so" value="1542652175000" />
+        <entry key="$USER_HOME$/.PyCharm2018.3/system/perl5/remote/docker_dockermediacloud_mediacloud-perl-python-base_latest/usr/lib/x86_64-linux-gnu/perl/5.22/auto/attributes/attributes.so" value="1542652175000" />
+        <entry key="$USER_HOME$/.PyCharm2018.3/system/perl5/remote/docker_dockermediacloud_mediacloud-perl-python-base_latest/usr/lib/x86_64-linux-gnu/perl/5.22/auto/mro/mro.so" value="1542652175000" />
+        <entry key="$USER_HOME$/.PyCharm2018.3/system/perl5/remote/docker_dockermediacloud_mediacloud-perl-python-base_latest/usr/lib/x86_64-linux-gnu/perl/5.22/auto/re/re.so" value="1542652175000" />
+        <entry key="$USER_HOME$/.PyCharm2018.3/system/perl5/remote/docker_dockermediacloud_mediacloud-perl-python-base_latest/usr/lib/x86_64-linux-gnu/perl/5.22/auto/threads/shared/shared.so" value="1542652175000" />
+        <entry key="$USER_HOME$/.PyCharm2018.3/system/perl5/remote/docker_dockermediacloud_mediacloud-perl-python-base_latest/usr/lib/x86_64-linux-gnu/perl/5.22/auto/threads/threads.so" value="1542652175000" />
+        <entry key="$USER_HOME$/.PyCharm2018.3/system/perl5/remote/docker_dockermediacloud_mediacloud-perl-python-base_latest/usr/local/lib/x86_64-linux-gnu/perl/5.22.1/auto/Inline/Python/Python.so" value="1550252780000" />
+        <entry key="$USER_HOME$/.PyCharm2018.3/system/perl5/remote/docker_dockermediacloud_mediacloud-perl-python-base_latest/usr/local/lib/x86_64-linux-gnu/perl/5.22.1/auto/Proc/ProcessTable/ProcessTable.so" value="1550252772000" />
+      </map>
+    </option>
+  </component>
+</project>
