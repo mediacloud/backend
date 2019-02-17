@@ -580,6 +580,32 @@ sub search_for_stories_ids ($$)
     return $stories_ids;
 }
 
+# Call attach_story_data_to_stories_ids with a basic query that includes the fields:
+# stories_id, title, publish_date, url, guid, media_id, language, media_name.
+#
+# Return the updated stories arrayref.
+sub __attach_story_meta_data_to_stories
+{
+    my ( $db, $stories ) = @_;
+
+    my $use_transaction = !$db->in_transaction();
+    $db->begin if ( $use_transaction );
+
+    my $ids_table = $db->get_temporary_ids_table( [ map { int( $_->{ stories_id } ) } @{ $stories } ] );
+
+    my $story_data = $db->query( <<END )->hashes;
+select s.stories_id, s.title, s.publish_date, s.url, s.guid, s.media_id, s.language, m.name media_name
+    from stories s join media m on ( s.media_id = m.media_id )
+    where s.stories_id in ( select id from $ids_table )
+END
+
+    $stories = MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $story_data );
+
+    $db->commit if ( $use_transaction );
+
+    return $stories;
+}
+
 =head2 search_for_stories( $db, $params )
 
 Call search_for_stories_ids() above and then query postgres for the stories returned by solr.  Include stories.* and
@@ -595,7 +621,7 @@ sub search_for_stories ($$)
 
     my $stories = [ map { { stories_id => $_ } } @{ $stories_ids } ];
 
-    $stories = MediaWords::DBI::Stories::attach_story_meta_data_to_stories( $db, $stories );
+    $stories = __attach_story_meta_data_to_stories( $db, $stories );
 
     $stories = [ grep { $_->{ url } } @{ $stories } ];
 
