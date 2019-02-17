@@ -60,7 +60,7 @@ class MockCrimsonHexagon(ftt.AbstractCrimsonHexagon):
         """
         assert MOCK_TWEETS_PER_DAY <= MAX_MOCK_TWEETS_PER_DAY
 
-        test_path = mediawords.util.paths.mc_root_path() + '/mediacloud/test-data/ch/'
+        test_path = '/mediacloud/test-data/ch/'
         filename = test_path + "ch-posts-" + day.strftime('%Y-%m-%d') + '.json'
         with open(filename, 'r', encoding='utf-8') as fh:
             json = fh.read()

@@ -7,36 +7,6 @@ from mediawords.util.perl import decode_object_from_bytes_if_needed
 
 log = create_logger(__name__)
 
-__FILE_THAT_EXISTS_AT_ROOT_PATH = 'mediawords.yml.dist'
-
-
-class McRootPathException(Exception):
-    pass
-
-
-def mc_root_path() -> str:
-    """Return full path to Media Cloud root directory."""
-    # MC_REWRITE_TO_PYTHON: Inline::Python doesn't always set __file__
-    # properly, but chances are that we're running from Media Cloud root directory
-    try:
-        __file__
-    except NameError:
-        pwd = os.getcwd()
-        log.debug("__file__ is undefined, trying current directory to pass as Media Cloud root: %s" % pwd)
-        root_path = pwd
-    else:
-        root_path = os.path.realpath(os.path.join(__file__, "..", "..", "..", ".."))
-
-    if not os.path.isfile(os.path.join(root_path, __FILE_THAT_EXISTS_AT_ROOT_PATH)):
-        raise McRootPathException("Unable to determine Media Cloud root path (tried '%s')" % root_path)
-    log.debug("Root path is %s" % root_path)
-    return root_path
-
-
-def mc_sql_schema_path() -> str:
-    """Return full path to SQL schema (mediawords.sql)."""
-    return os.path.join(mc_root_path(), 'schema', 'mediawords.sql')
-
 
 def mkdir_p(path: str) -> None:
     """mkdir -p"""
@@ -56,21 +26,6 @@ def mkdir_p(path: str) -> None:
 
 class McResolveAbsolutePathUnderMcRootException(Exception):
     pass
-
-
-def resolve_absolute_path_under_mc_root(path: str, must_exist: bool = False) -> str:
-    """Return absolute path to object (file or directory) under Media Cloud root."""
-
-    path = decode_object_from_bytes_if_needed(path)
-
-    mc_root = mc_root_path()
-    dist_path = os.path.join(mc_root, path)
-    if must_exist:
-        if not os.path.exists(dist_path):
-            raise McResolveAbsolutePathUnderMcRootException(
-                "Object '%s' at path '%s' does not exist." % (path, dist_path)
-            )
-    return os.path.abspath(dist_path)
 
 
 class McRelativeSymlinkException(Exception):

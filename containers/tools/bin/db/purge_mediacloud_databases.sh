@@ -3,11 +3,6 @@
 set -u
 set -o errexit
 
-PWD="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$PWD/../../script/set_mc_root_dir.inc.sh"
-
-cd "$MC_ROOT_DIR"
-
 # Include PostgreSQL path helpers
 source "$MC_ROOT_DIR/tools/db/postgresql_helpers.inc.sh"
 

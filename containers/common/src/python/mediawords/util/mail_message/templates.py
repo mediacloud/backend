@@ -3,7 +3,6 @@ import os
 from typing import Dict
 
 from mediawords.util.mail import Message
-from mediawords.util.paths import mc_root_path
 from mediawords.util.perl import decode_object_from_bytes_if_needed
 
 
@@ -59,10 +58,7 @@ class TemplateMessage(Message):
     @staticmethod
     def __templates_path() -> str:
         """Return path to Jinja2 email templates."""
-        root_path = mc_root_path()
-        email_templates_path = os.path.join(
-            root_path, 'lib', 'MediaWords', 'Util', 'Mail', 'Message', 'Templates', 'email-templates'
-        )
+        email_templates_path = '/usr/share/perl5/MediaWords/Util/Mail/Message/Templates/email-templates'
         if not os.path.isdir(email_templates_path):
             raise McMailTemplatesNotFound('Templates directory was not found at "%s".' % email_templates_path)
         return email_templates_path

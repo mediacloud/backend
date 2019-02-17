@@ -3,11 +3,6 @@
 set -u
 set -o errexit
 
-PWD="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$PWD/script/set_mc_root_dir.inc.sh"
-
-cd "$MC_ROOT_DIR"
-
 if [ `getconf LONG_BIT` != '64' ]; then
    echo "Install failed, you must have a 64 bit OS."
    exit 1

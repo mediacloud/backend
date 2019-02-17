@@ -50,7 +50,7 @@ Readonly our $AUTH_REALM_USERNAME_PASSWORD => 'mc_auth_realm_username_password';
 Readonly our $AUTH_REALM_API_KEY           => 'mc_auth_realm_api_key';
 
 # Set Catalyst home for path_to() to work and resolve .yml templates correctly
-__PACKAGE__->config( home => MediaWords::Util::Paths::mc_root_path() );
+__PACKAGE__->config( home => '/var/www/' );
 
 # Configure authentication scheme
 __PACKAGE__->config(
@@ -106,32 +106,5 @@ sub dbis
 
     return $_[ 0 ]->model( 'DBIS' )->dbis( $_[ 0 ]->req );
 }
-
-=head1 NAME
-
-MediaWords - Catalyst based application
-
-=head1 SYNOPSIS
-
-    script/server.pl
-
-=head1 DESCRIPTION
-
-[enter your description here]
-
-=head1 SEE ALSO
-
-L<MediaWords::Controller::Root>, L<Catalyst>
-
-=head1 AUTHOR
-
-Hal Roberts
-
-=head1 LICENSE
-
-This library is free software, you can redistribute it and/or modify
-it under the same terms as Perl itself.
-
-=cut
 
 1;

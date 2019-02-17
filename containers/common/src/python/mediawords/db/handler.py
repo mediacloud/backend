@@ -18,7 +18,6 @@ from mediawords.db.schema.version import schema_version_from_lines
 
 from mediawords.util.config.common import CommonConfig
 from mediawords.util.log import create_logger
-from mediawords.util.paths import mc_sql_schema_path
 from mediawords.util.perl import (
     convert_dbd_pg_arguments_to_psycopg2_format,
     decode_object_from_bytes_if_needed,
@@ -150,13 +149,6 @@ class DatabaseHandler(object):
         # Queries to have immediate effect by default
         self.__conn.set_isolation_level(psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT)
 
-        if not do_not_check_schema_version:
-            if not self.schema_is_up_to_date():
-                # It would make sense to check the MEDIACLOUD_IGNORE_DB_SCHEMA_VERSION environment variable
-                # at this particular point too, but schema_is_up_to_date() warns the user about schema being
-                # too old on every run, and that's supposedly a good thing.
-                raise McConnectException("Database schema is not up-to-date.")
-
         # If schema is not up-to-date, connect() dies and we don't get to set PID here
         self.__schema_version_check_pids[pid] = True
 
@@ -223,42 +215,6 @@ class DatabaseHandler(object):
                 "target_schema_version": target_schema_version,
             })
             return False
-
-    def schema_is_up_to_date(self) -> bool:
-        """Checks if the database schema is up-to-date"""
-
-        # Check if the database is empty
-        db_vars_table_exists = len(self.query("""
-            select 1 from pg_tables where tablename = 'database_variables' and schemaname = 'public'
-        """).flat()) > 0
-        if not db_vars_table_exists:
-            log.info(
-                "Database table 'database_variables' does not exist, probably the database is empty at this point.")
-            return True
-
-        # Current schema version
-        (current_schema_version,) = self.query("""
-            SELECT value AS schema_version
-            FROM database_variables
-            WHERE name = 'database-schema-version'
-            LIMIT 1
-        """).flat()
-        current_schema_version = int(current_schema_version)
-        if current_schema_version == 0:
-            raise McSchemaIsUpToDateException("Current schema version is 0")
-
-        # Target schema version
-        sql = open(mc_sql_schema_path(), 'r').read()
-        target_schema_version = schema_version_from_lines(sql)
-        if not target_schema_version:
-            raise McSchemaIsUpToDateException("Invalid target schema version.")
-
-        # Check if the current schema is up-to-date
-        if current_schema_version != target_schema_version:
-            return DatabaseHandler.__should_continue_with_outdated_schema(current_schema_version, target_schema_version)
-        else:
-            # Things are fine at this point.
-            return True
 
     def query(self, *query_params) -> DatabaseResult:
         """Run the query, return instance of DatabaseResult for accessing the result.

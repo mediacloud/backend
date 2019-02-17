@@ -156,11 +156,6 @@ sub test_stories
 
 }
 
-sub get_crawler_data_directory
-{
-    return MediaWords::Util::Paths::mc_root_path() . "/t/data/crawler/";
-}
-
 sub main
 {
 
@@ -180,7 +175,7 @@ sub main
             use Encode;
             my ( $db ) = @_;
 
-            my $crawler_data_location = get_crawler_data_directory();
+            my $crawler_data_location = "/t/data/crawler/";
 
             my $test_http_server = MediaWords::Test::LocalServer->new( $crawler_data_location );
             $test_http_server->start();

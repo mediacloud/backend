@@ -46,8 +46,7 @@ EOF
     INFO "Current schema version: $current_schema_version";
 
     # Target schema version
-    my $root_path           = MediaWords::Util::Paths::mc_root_path();
-    my $mediawords_sql_path = "$root_path/schema/mediawords.sql";
+    my $mediawords_sql_path = "/schema/mediawords.sql";
 
     my $sql                   = read_file( $mediawords_sql_path );
     my $target_schema_version = MediaWords::DB::Schema::Version::schema_version_from_lines( $sql );

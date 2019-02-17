@@ -15,21 +15,6 @@ RUN \
     a2enmod rewrite && \
     true
 
-# Set up logging
-RUN \
-    rm -f /var/log/apache2/access.log && \
-    rm -f /var/log/apache2/error.log && \
-    ln -s /proc/1/fd/1 /var/log/access.log && \
-    ln -s /proc/1/fd/2 /var/log/error.log && \
-    true
-
-# Configure Apache
-COPY conf/001-mediacloud.conf /etc/apache2/sites-available/
-RUN \
-    a2dissite 000-default && \
-    a2ensite 001-mediacloud && \
-    true
-
 # FIXME
 #
 # (optional) URL to redirect /login/register page to
@@ -53,14 +38,34 @@ RUN \
     rm -rf /root/.cpanm/ && \
     true
 
-# Copy FastCGI helpers
-COPY bin/ /
-
 # Copy static files
 RUN \
     mkdir -p /var/www/ && \
     rm -rf /var/www/* && \
     true
+
+# Set up logging
+RUN \
+    rm -f /var/log/apache2/access.log && \
+    rm -f /var/log/apache2/error.log && \
+    ln -s /proc/1/fd/1 /var/log/apache2/access.log && \
+    ln -s /proc/1/fd/2 /var/log/apache2/error.log && \
+    true
+
+# Configure Apache
+COPY conf/001-mediacloud.conf /etc/apache2/sites-available/
+RUN \
+    #
+    # Prepend ServerRoot to main configuration
+    sed -i '1i ServerRoot /etc/apache2/' /etc/apache2/apache2.conf && \
+    #
+    # Enable Media Cloud configuration
+    a2dissite 000-default && \
+    a2ensite 001-mediacloud && \
+    true
+
+# Copy FastCGI helpers
+COPY bin/ /
 
 # Copy Perl sources
 COPY src/perl/ /usr/share/perl5/
@@ -78,6 +83,4 @@ VOLUME /mediacloud_webapp_static/rss_dumps/
 EXPOSE 80
 
 # Run Apache
-# FIXME
-#CMD ["apachectl", "-d", ".", "-f", "/etc/apache2/apache2.conf", "-e", "info", "-DFOREGROUND"]
-CMD ["bash", "-c", "while true; do echo webapp...; sleep 1; done"]
+CMD ["apachectl", "-d", ".", "-f", "/etc/apache2/apache2.conf", "-e", "info", "-DFOREGROUND"]

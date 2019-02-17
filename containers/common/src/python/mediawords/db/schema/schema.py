@@ -3,7 +3,6 @@
 from mediawords.db import connect_to_db
 from mediawords.db.handler import DatabaseHandler
 from mediawords.util.log import create_logger
-from mediawords.util.paths import mc_sql_schema_path
 
 log = create_logger(__name__)
 
@@ -56,9 +55,8 @@ def initialize_with_schema(db: DatabaseHandler) -> None:
 
     db.set_show_error_statement(True)
 
-    mediawords_sql_path = mc_sql_schema_path()
     log.info("Importing from %s..." % mediawords_sql_path)
-    with open(mediawords_sql_path, 'r') as mediawords_sql_f:
+    with open('/schema/mediawords.sql', 'r') as mediawords_sql_f:
         mediawords_sql = mediawords_sql_f.read()
         db.query(mediawords_sql)
 

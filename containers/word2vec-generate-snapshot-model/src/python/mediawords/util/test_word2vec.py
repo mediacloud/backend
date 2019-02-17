@@ -8,7 +8,6 @@ import shutil
 
 from mediawords.test.db.create import create_test_medium, create_test_feed, create_test_story, create_test_topic
 from mediawords.test.test_database import TestDatabaseWithSchemaTestCase
-from mediawords.util.paths import mc_root_path
 from mediawords.util.word2vec import train_word2vec_model, load_word2vec_model
 from mediawords.util.word2vec.exceptions import McWord2vecException
 from mediawords.util.word2vec.model_stores import SnapshotDatabaseModelStore
@@ -131,7 +130,7 @@ class TestWord2vec(TestDatabaseWithSchemaTestCase):
 
 def _word2vec_test_data_dir() -> str:
     """Return path to word2vec testing data directory."""
-    return os.path.join(mc_root_path(), 'mediacloud', 'test-data', 'word2vec')
+    return '/mediacloud/test-data/word2vec/'
 
 
 def sample_word2vec_model_path() -> str:

@@ -5,7 +5,6 @@ import traceback
 
 from mediawords.db.handler import DatabaseHandler
 import mediawords.dbi.downloads
-import mediawords.dbi.stories.stories
 import mediawords.tm.domains
 from mediawords.tm.fetch_link import \
     FETCH_STATE_TWEET_MISSING, FETCH_STATE_TWEET_ADDED, FETCH_STATE_CONTENT_MATCH_FAILED, FETCH_STATE_PYTHON_ERROR

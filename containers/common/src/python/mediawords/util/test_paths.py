@@ -6,19 +6,6 @@ import pytest
 import mediawords.util.paths as mc_paths
 
 
-def test_mc_root_path():
-    root_path = mc_paths.mc_root_path()
-    assert os.path.exists(root_path)
-    assert os.path.isdir(root_path)
-    assert os.path.isfile(os.path.join(root_path, 'mediawords.yml.dist'))
-
-
-def test_mc_sql_schema_path():
-    sql_schema_path = mc_paths.mc_sql_schema_path()
-    assert os.path.exists(sql_schema_path)
-    assert os.path.isfile(sql_schema_path)
-
-
 def test_mkdir_p():
     temp_dir = tempfile.mkdtemp()
 
@@ -31,22 +18,6 @@ def test_mkdir_p():
     # Try creating again
     mc_paths.mkdir_p(test_dir)
     assert os.path.isdir(test_dir) is True
-
-
-def test_resolve_absolute_path_under_mc_root():
-    path = mc_paths.resolve_absolute_path_under_mc_root(path='.', must_exist=True)
-    assert len(path) > 0
-
-    # Path that exists
-    path = mc_paths.resolve_absolute_path_under_mc_root(path='mediawords.yml', must_exist=True)
-    assert len(path) > 0
-    assert os.path.isfile(path) is True
-
-    # Path that does not exist
-    path = mc_paths.resolve_absolute_path_under_mc_root(path='TOTALLY_DOES_NOT_EXIST',
-                                                        must_exist=False)
-    assert len(path) > 0
-    assert os.path.isfile(path) is False
 
 
 def test_relative_symlink():
