@@ -2,22 +2,26 @@
 
 from functools import reduce
 import hashlib
-import re
+import regex
 from typing import List
 
 from mediawords.dbi.stories.dup import (
-    _get_title_parts, _get_story_date_range, get_medium_dup_stories_by_title, get_medium_dup_stories_by_url)
+    _get_title_parts,
+    _get_story_date_range,
+    get_medium_dup_stories_by_title,
+    get_medium_dup_stories_by_url,
+)
 
 
 def test_get_title_parts() -> None:
     """Test get_title_parts()."""
-    assert(_get_title_parts("foo") == ["foo"])
-    assert(_get_title_parts("foo&amp;") == ["foo&"])
-    assert(_get_title_parts("FOO") == ["foo"])
-    assert(_get_title_parts("foo bar bat: bar bat foo") == ["foo bar bat: bar bat foo", "foo bar bat", "bar bat foo"])
-    assert(_get_title_parts("foo bar - bar foo") == ["foo bar : bar foo", "foo bar", "bar foo"])
-    assert(_get_title_parts("foo bar | bar foo") == ["foo bar : bar foo", "foo bar", "bar foo"])
-    assert(_get_title_parts("watch: foo") == ["foo"])
+    assert (_get_title_parts("foo") == ["foo"])
+    assert (_get_title_parts("foo&amp;") == ["foo&"])
+    assert (_get_title_parts("FOO") == ["foo"])
+    assert (_get_title_parts("foo bar bat: bar bat foo") == ["foo bar bat: bar bat foo", "foo bar bat", "bar bat foo"])
+    assert (_get_title_parts("foo bar - bar foo") == ["foo bar : bar foo", "foo bar", "bar foo"])
+    assert (_get_title_parts("foo bar | bar foo") == ["foo bar : bar foo", "foo bar", "bar foo"])
+    assert (_get_title_parts("watch: foo") == ["foo"])
 
 
 def test_get_story_date_range() -> None:
@@ -34,7 +38,7 @@ def test_get_story_date_range() -> None:
 
 def _get_dup_story(stories_id: int, title: str, publish_date: str = '2018-01-01') -> dict:
     """Return a dummy story for testing story dups."""
-    url = 'http://dummy.test/' + re.sub(r'[[:punct:]]', r'/', title)
+    url = 'http://dummy.test/' + regex.sub(r'[[:punct:]]', r'/', title)
     return {
         'stories_id': stories_id,
         'title': title,
@@ -72,5 +76,6 @@ def test_get_medium_dup_stories_by_url() -> None:
     sd = _get_dup_story(4, 'bar')
     se = _get_dup_story(5, 'foo bar')
 
-    assert _checksum_stories(get_medium_dup_stories_by_url([sa, sb, sc, sd, se])) == \
-        _checksum_stories([[sa, sc], [sb, sd]])
+    assert _checksum_stories(
+        get_medium_dup_stories_by_url([sa, sb, sc, sd, se])
+    ) == _checksum_stories([[sa, sc], [sb, sd]])

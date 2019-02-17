@@ -4,6 +4,7 @@ from typing import List
 
 from mediawords.util.log import create_logger
 from mediawords.util.parse_html import html_strip
+from mediawords.util.perl import decode_object_from_bytes_if_needed
 from mediawords.util.sql import get_epoch_from_sql_date
 from mediawords.util.url import get_url_path_fast, normalize_url_lossy
 
@@ -54,7 +55,7 @@ def _get_story_date_range(stories: List[dict]) -> int:
     return max(epoch_dates) - min(epoch_dates)
 
 
-def get_medium_dup_stories_by_title(stories: List, assume_no_home_pages: bool = False) -> List:
+def get_medium_dup_stories_by_title(stories: List[dict], assume_no_home_pages: bool = False) -> List:
     """
     Get duplicate stories within the stories by breaking the title of each story into parts by [-:|] and looking for
     any such part that is the sole title part for a story and is at least 4 words long and is not the title of a story
@@ -75,8 +76,14 @@ def get_medium_dup_stories_by_title(stories: List, assume_no_home_pages: bool = 
     Returns:
     * a list of duplicate story lists
     """
+
+    stories = decode_object_from_bytes_if_needed(stories)
+    if isinstance(assume_no_home_pages, bytes):
+        assume_no_home_pages = decode_object_from_bytes_if_needed(assume_no_home_pages)
+    assume_no_home_pages = bool(int(assume_no_home_pages))
+
     title_part_counts = {}
-    for story in stories:
+    for story in stories.items():
         if story['url'] and regex.match(r'^https?://twitter\.com', story['url']):
             continue
 
@@ -131,8 +138,11 @@ def get_medium_dup_stories_by_url(stories: List[dict]) -> List[List]:
     same.  Return a list of story duplicate lists.  Do not return any list of duplicates with greater than 5 dups for
     fear that the url normalization is interacting with some url form in a goofy way
     """
+
+    stories = decode_object_from_bytes_if_needed(stories)
+
     url_lookup = {}
-    for story in stories:
+    for story in stories.items():
         if 'url' not in story:
             log.warning("No URL in story: %s" % str(story))
             continue

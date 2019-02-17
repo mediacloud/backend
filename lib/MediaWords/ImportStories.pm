@@ -13,7 +13,7 @@ or MediaWords::ImportStories::Feedly to import stories from a given source.
 After the sub class identifies all story candidates, ImportStories looks for any
 duplicates among the story candidates and the existing stories in the media sources and only adds as stories
 the candidates with out existing duplicate stories.  The duplication check looks for matching normalized urls
-as well as matching title parts (see MediaWords::DBI::Stories::get_medium_dup_stories_by_<title|url>.
+as well as matching title parts (see MediaWords::DBI::Stories::Dup::get_medium_dup_stories_by_<title|url>.
 
 Each sub class needs to implement $self->get_new_stories(), which should return a set of story candidates
 for deduplication and date restriction by this super class.
@@ -34,7 +34,7 @@ use Encode;
 use MediaWords::TM::GuessDate;
 use MediaWords::CommonLibs;
 use MediaWords::DBI::Downloads;
-use MediaWords::DBI::Stories;
+use MediaWords::DBI::Stories::Dup;
 use MediaWords::Util::ParseHTML;
 use MediaWords::Util::SQL;
 use MediaWords::Util::Tags;
@@ -232,11 +232,11 @@ sub _dedup_imported_stories($$)
 {
     my ( $self, $stories ) = @_;
 
-    my $url_dup_stories = MediaWords::DBI::Stories::get_medium_dup_stories_by_url( $self->db, $stories );
+    my $url_dup_stories = MediaWords::DBI::Stories::Dup::get_medium_dup_stories_by_url( $self->db, $stories );
 
     my $deduped_stories = $self->_prune_dup_stories( $stories, $url_dup_stories );
 
-    my $title_dup_stories = MediaWords::DBI::Stories::get_medium_dup_stories_by_title( $self->db, $deduped_stories, 1 );
+    my $title_dup_stories = MediaWords::DBI::Stories::Dup::get_medium_dup_stories_by_title( $self->db, $deduped_stories, 1 );
 
     return $self->_prune_dup_stories( $deduped_stories, $title_dup_stories );
 }
@@ -253,8 +253,8 @@ sub _dedup_new_stories
 
     my $all_stories = [ @{ $new_stories }, @{ $existing_stories } ];
 
-    my $all_dup_stories = MediaWords::DBI::Stories::get_medium_dup_stories_by_url( $self->db, $all_stories );
-    my $title_dup_stories = MediaWords::DBI::Stories::get_medium_dup_stories_by_title( $self->db, $all_stories, 1 );
+    my $all_dup_stories = MediaWords::DBI::Stories::Dup::get_medium_dup_stories_by_url( $self->db, $all_stories );
+    my $title_dup_stories = MediaWords::DBI::Stories::Dup::get_medium_dup_stories_by_title( $self->db, $all_stories, 1 );
 
     push( @{ $all_dup_stories }, @{ $title_dup_stories } );
 
