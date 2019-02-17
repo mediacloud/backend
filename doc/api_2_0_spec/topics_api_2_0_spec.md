@@ -312,10 +312,6 @@ is a frozen version of the data within a topic that keeps a consistent view of a
 for researchers and also includes analytical results like link counts.  A timespan
 represents the set of stories active in a topic within a given date range.  Every timespan belongs to a snapshot.
 
-Topic data can be used to search stories and media sources as well.  Use the
-timespans_id param to list the media sources within a given timespan.  See the documentation for Solr pseudo queries for documentation of how to
-query for stories within a topic.
-
 ## `topics/create` (POST)
 
 `https://api.mediacloud.org/api/v2/topics/create`
