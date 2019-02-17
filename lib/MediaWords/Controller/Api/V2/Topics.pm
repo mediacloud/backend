@@ -307,6 +307,7 @@ sub create_GET
     my $topic = { map { $_ => $data->{ $_ } } @{ $TOPICS_EDIT_FIELDS } };
 
     $topic->{ max_stories } ||= 100_000;
+    $topic->{ is_logogram } ||= 0;
 
     $topic->{ pattern } =
       eval { MediaWords::Solr::Query::parse( $topic->{ solr_seed_query } )->re( $topic->{ is_logogram } ) };

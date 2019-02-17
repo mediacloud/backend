@@ -2,7 +2,9 @@ import re
 
 import pytest
 
-from mediawords.solr.query import parse, McSolrQueryParseSyntaxException, McSolrEmptyQueryException
+from mediawords.solr.query import (
+    parse, McSolrQueryParseSyntaxException, McSolrEmptyQueryException, WORD_BOUNDARY_REGEX
+)
 
 
 def test_tsquery():
@@ -244,6 +246,7 @@ def test_re():
 
         # make multiple spaces not significant
         s = re.sub(r'\s+', ' ', s)
+        s = s.replace('[[:<:]]', WORD_BOUNDARY_REGEX)
 
         s = s.lower()
 
@@ -614,6 +617,7 @@ def test_inclusive_re():
 
         # make multiple spaces not significant
         s = re.sub(r'\s+', ' ', s)
+        s = s.replace('[[:<:]]', WORD_BOUNDARY_REGEX)
 
         s = s.lower()
 
