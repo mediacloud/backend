@@ -11,7 +11,7 @@ use Test::Deep;
 use MediaWords::Test::API;
 use MediaWords::Test::DB::Create;
 
-use MediaWords::DBI::Downloads;
+use MediaWords::DBI::Downloads::Store;
 
 # test downloads/list and single
 sub test_downloads($)
@@ -41,7 +41,7 @@ sub test_downloads($)
         );
 
         my $content = "content $download->{ downloads_id }";
-        MediaWords::DBI::Downloads::store_content( $db, $download, $content );
+        MediaWords::DBI::Downloads::Store::store_content( $db, $download, $content );
     }
 
     my $expected_downloads = $db->query( "select * from downloads where feeds_id = ?", $feed->{ feeds_id } )->hashes;

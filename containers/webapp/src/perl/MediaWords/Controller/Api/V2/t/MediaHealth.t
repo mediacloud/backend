@@ -11,8 +11,6 @@ use Test::Deep;
 use MediaWords::Test::API;
 use MediaWords::Test::DB::Create;
 
-use MediaWords::DBI::Downloads;
-
 # test mediahealth/list and single
 sub test_mediahealth($)
 {

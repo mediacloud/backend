@@ -16,7 +16,6 @@ use Readonly;
 use Test::More;
 use File::Slurp;
 
-use MediaWords::TM;
 use MediaWords::Test::Data;
 use MediaWords::Test::Supervisor;
 use MediaWords::Util::Config;

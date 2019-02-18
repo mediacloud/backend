@@ -1,4 +1,4 @@
-package MediaWords::Test::DB::Create;
+package MediaWords::Test::DB::Create::User;
 
 use strict;
 use warnings;

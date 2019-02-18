@@ -2,7 +2,7 @@ from mediawords.db import DatabaseHandler
 from mediawords.db.exceptions.handler import McRequireByIDException
 from mediawords.util.perl import decode_object_from_bytes_if_needed
 from mediawords.util.url import normalize_url_lossy
-from .similarweb import SimilarWebClient
+from mediawords.similarweb.similarweb import SimilarWebClient
 
 
 class SimilarWebException(Exception):
