@@ -10,35 +10,6 @@ use warnings;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-
-# save tag info for the given object (medium or feed) from a space separated list of tag names.
-# oid is the object id (eg the media_id), and table is the name of the table for which to save
-# the tag associations (eg media).
-sub save_tags_by_name
-{
-    my ( $db, $oid, $table, $tag_names_list ) = @_;
-
-    my $oid_field = "${table}_id";
-
-    my $tag_names = [ split( /\s*,\s*/, $tag_names_list ) ];
-
-    my $tags = [];
-    map { push( @{ $tags }, lookup_or_create_tag( $db, $_ ) ) } @{ $tag_names };
-
-    $db->query( "delete from ${ table }_tags_map where ${ table }_id = ?", $oid );
-
-    for my $tag ( @{ $tags } )
-    {
-        my $tag_exists = $db->query( <<END, $tag->{ tags_id }, $oid )->hash;
-select * from ${ table }_tags_map where tags_id = ? and ${ table }_id = ?
-END
-        if ( !$tag_exists )
-        {
-            $db->create( "${table}_tags_map", { tags_id => $tag->{ tags_id }, $oid_field => $oid } );
-        }
-    }
-}
-
 # lookup the tag given the tag_set:tag format
 sub lookup_tag
 {
@@ -70,14 +41,14 @@ sub lookup_or_create_tag
 
     my ( $tag_set_name, $tag_tag ) = ( $1, $2 );
 
-    my $tag_set = lookup_or_create_tag_set( $db, $tag_set_name );
+    my $tag_set = __lookup_or_create_tag_set( $db, $tag_set_name );
     my $tag = $db->find_or_create( 'tags', { tag => $tag_tag, tag_sets_id => $tag_set->{ tag_sets_id } } );
 
     return $tag;
 }
 
 # lookup the tag_set given.  create it if it does not already exist
-sub lookup_or_create_tag_set
+sub __lookup_or_create_tag_set
 {
     my ( $db, $tag_set_name ) = @_;
 
