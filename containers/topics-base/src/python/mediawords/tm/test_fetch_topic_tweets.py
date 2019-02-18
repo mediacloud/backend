@@ -189,34 +189,6 @@ def test_post_matches_pattern() -> None:
     assert not ftt._post_matches_pattern({'pattern': 'foo'}, {})
 
 
-@unittest.skipUnless(os.environ.get('MC_REMOTE_TESTS', False), "remote tests")
-def test_ch_api() -> None:
-    """Test CrimsonHexagon.fetch_posts() by hitting the remote ch api."""
-    config = mediawords.util.config.get_config()
-
-    assert 'crimson_hexagon' in config, "crimson_hexagon section present in mediawords.yml"
-    for key in 'key'.split():
-        assert key in config['crimson_hexagon'], "crimson_hexagon." + key + " present in mediawords.yml"
-
-    test_monitor_id = TEST_MONITOR_ID
-    test_date = datetime.datetime(year=2016, month=1, day=1)
-
-    got_data = ftt.CrimsonHexagon.fetch_posts(test_monitor_id, test_date)
-
-    # sanity test even though we don't know how many posts we should get back, but we want to make sure it is more
-    # than 500 to make CH is not limiting us to the default 500 in their api
-    assert 'totalPostsAvailable' in got_data
-    assert got_data['totalPostsAvailable'] > MIN_TEST_CH_POSTS
-
-    assert 'posts' in got_data
-    got_posts = got_data['posts']
-    assert len(got_posts) > MIN_TEST_CH_POSTS
-
-    for post in got_posts:
-        assert 'url' in post
-        assert re.search(r'status/\d+', post['url'])
-
-
 class TestFetchTopicTweets(TestDatabaseWithSchemaTestCase):
     """Run database tests."""
 
@@ -250,28 +222,3 @@ class TestFetchTopicTweets(TestDatabaseWithSchemaTestCase):
             validate_topic_tweets(db, topic_tweet_day)
 
         validate_topic_tweet_urls(db, topic)
-
-    @unittest.skipUnless(os.environ.get('MC_REMOTE_TESTS', False), "remote tests")
-    def test_remote_integration(self) -> None:
-        """Run santity test on remote apis by calling the internal functions that integrate the CH and twitter data."""
-        db = self.db()
-
-        topic = mediawords.test.db.create.create_test_topic(db, "test_remote_integration")
-        topic['ch_monitor_id'] = TEST_MONITOR_ID
-        db.update_by_id('topics', topic['topics_id'], topic)
-
-        ttd_day = datetime.datetime(year=2016, month=1, day=1)
-        ttd = ftt._add_topic_tweet_single_day(db, topic, ttd_day, ftt.CrimsonHexagon)
-
-        max_tweets = 200
-        ftt._fetch_tweets_for_day(db, ftt.Twitter, topic, ttd, max_tweets=max_tweets)
-
-        got_tts = db.query(
-            "select * from topic_tweets where topic_tweet_days_id = %(a)s",
-            {'a': ttd['topic_tweet_days_id']}).hashes()
-
-        # for old ch monitors, lots of the tweets may be deleted
-        assert len(got_tts) > max_tweets / 10
-
-        assert len(got_tts[0]['content']) > MIN_TEST_TWEET_LENGTH
-        assert len(got_tts[0]['twitter_user']) > MIN_TEST_TWITTER_USER_LENGTH

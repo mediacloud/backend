@@ -15,50 +15,6 @@ MIN_TEST_TWEET_LENGTH = 10
 MIN_TEST_TWITTER_USER_LENGTH = 3
 
 
-@unittest.skipUnless(os.environ.get('MC_REMOTE_TESTS', False), "remote tests")
-def test_fetch_100_users_remote() -> None:
-    """Test Twitter.fetch_100_users() by hitting the remote twitter api."""
-    config = mediawords.util.config.get_config()
-
-    assert 'twitter' in config, "twitter section present in mediawords.yml"
-    for key in 'consumer_key consumer_secret access_token access_token_secret'.split():
-        assert key in config['twitter'], "twitter." + key + " present in mediawords.yml"
-
-    screen_name = 'cyberhalroberts'
-    got_users = mut.fetch_100_users([screen_name])
-
-    assert len(got_users) == 1
-
-    got_user = got_users[0]
-
-    assert got_user['screen_name'] == 'cyberhalroberts'
-    assert got_user['name'] == 'Hal Roberts'
-    assert got_user['id'] == 38100863
-
-
-@unittest.skipUnless(os.environ.get('MC_REMOTE_TESTS', False), "remote tests")
-def test_fetch_100_tweets_remote() -> None:
-    """Test Twitter.fetch_100_tweets() by hitting the remote twitter api."""
-    config = mediawords.util.config.get_config()
-
-    assert 'twitter' in config, "twitter section present in mediawords.yml"
-    for key in 'consumer_key consumer_secret access_token access_token_secret'.split():
-        assert key in config['twitter'], "twitter." + key + " present in mediawords.yml"
-
-    test_status_id = '915261573597364224'
-    got_tweets = mut.fetch_100_tweets([test_status_id])
-
-    assert len(got_tweets) == 1
-
-    got_tweet = got_tweets[0]
-
-    assert 'text' in got_tweet
-    assert len(got_tweet['text']) > MIN_TEST_TWEET_LENGTH
-    assert 'user' in got_tweet
-    assert 'screen_name' in got_tweet['user']
-    assert len(got_tweet['user']['screen_name']) > MIN_TEST_TWITTER_USER_LENGTH
-
-
 def _mock_users_lookup(request, uri, response_headers) -> List:
     """Mock twitter /statuses/lookup response."""
     params = parse_qs(request.body.decode('utf-8'))
