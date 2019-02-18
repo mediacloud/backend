@@ -1,4 +1,4 @@
-package MediaWords::Util::Mail::Message::Templates::AuthAPIKeyResetMessage;
+package MediaWords::Util::Mail::Message::Templates::AuthResetPasswordMessage;
 
 use strict;
 use warnings;
@@ -8,7 +8,7 @@ use parent 'MediaWords::Util::Mail::Message';
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-import_python_module( __PACKAGE__, 'mediawords.util.mail_message.templates' );
+import_python_module( __PACKAGE__, 'mediawords.util.mail_message.templates.webapp_messages' );
 
 sub new
 {
@@ -26,11 +26,16 @@ sub new
     {
         die "'full_name' is unset.";
     }
+    unless ( $args->{ password_reset_url } )
+    {
+        die "'password_reset_url' is unset.";
+    }
 
     $self->{ python_message } =
-      MediaWords::Util::Mail::Message::Templates::AuthAPIKeyResetMessage::AuthAPIKeyResetMessage->new(
+      MediaWords::Util::Mail::Message::Templates::AuthResetPasswordMessage::AuthResetPasswordMessage->new(
         $args->{ to },
         $args->{ full_name },
+        $args->{ password_reset_url },
       );
 
     return $self;

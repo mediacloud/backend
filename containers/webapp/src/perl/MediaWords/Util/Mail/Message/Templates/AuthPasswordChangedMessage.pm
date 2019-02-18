@@ -1,4 +1,4 @@
-package MediaWords::Util::Mail::Message::Templates::AuthActivatedMessage;
+package MediaWords::Util::Mail::Message::Templates::AuthPasswordChangedMessage;
 
 use strict;
 use warnings;
@@ -8,7 +8,7 @@ use parent 'MediaWords::Util::Mail::Message';
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-import_python_module( __PACKAGE__, 'mediawords.util.mail_message.templates' );
+import_python_module( __PACKAGE__, 'mediawords.util.mail_message.templates.webapp_messages' );
 
 sub new
 {
@@ -27,10 +27,11 @@ sub new
         die "'full_name' is unset.";
     }
 
-    $self->{ python_message } = MediaWords::Util::Mail::Message::Templates::AuthActivatedMessage::AuthActivatedMessage->new(
+    $self->{ python_message } =
+      MediaWords::Util::Mail::Message::Templates::AuthPasswordChangedMessage::AuthPasswordChangedMessage->new(
         $args->{ to },
         $args->{ full_name },
-    );
+      );
 
     return $self;
 }
