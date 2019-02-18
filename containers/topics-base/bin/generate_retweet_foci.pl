@@ -9,7 +9,7 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use MediaWords::DB;
-use MediaWords::TM;
+use MediaWords::TM::CLI;
 
 Readonly my $MASS_MARKET_MEDIA =>
 '2 1 1095 18268 27502 18364 1040 1150 1751 1149 39000 64866 40944 1110 25499 1752 1092 104828 1707 19334 6 1096 1117 6218 4425 62926 8 4442 1757 1112 101 5915 18710 6443 1109 1101 18775 7 113 19984 209366 111 1747 1100 1104 21511 4419 1755 20982 21936 5521';
@@ -159,7 +159,7 @@ sub main
 
     my $db = MediaWords::DB::connect_to_db;
 
-    my $topics = MediaWords::TM::require_topics_by_opt( $db, $topic_opt );
+    my $topics = MediaWords::TM::CLI::require_topics_by_opt( $db, $topic_opt );
     unless ( $topics )
     {
         die "Unable to find topics for option '$topic_opt'";

@@ -12,6 +12,7 @@ use Readonly;
 
 use MediaWords::DBI::ApiLinks;
 use MediaWords::Solr;
+use MediaWords::DBI::Timespans;
 use MediaWords::TM::Snapshot;
 
 Readonly my $DEFAULT_STORY_LIMIT => 10;
@@ -33,7 +34,7 @@ sub pre_deserialize($$)
 {
     my ( $self, $c ) = @_;
 
-    $c->stash->{ timespan } = MediaWords::TM::set_timespans_id_param( $c );
+    $c->stash->{ timespan } = MediaWords::DBI::Timespans::set_timespans_id_param( $c );
 }
 
 sub apibase : Chained('/') : PathPart('api/v2/topics') : CaptureArgs(1)
@@ -55,7 +56,7 @@ sub links_GET
 {
     my ( $self, $c ) = @_;
 
-    my $timespan = MediaWords::TM::set_timespans_id_param( $c );
+    my $timespan = MediaWords::DBI::Timespans::set_timespans_id_param( $c );
 
     my $db = $c->dbis;
 
@@ -264,7 +265,7 @@ sub list_GET
 {
     my ( $self, $c ) = @_;
 
-    my $timespan = MediaWords::TM::set_timespans_id_param( $c );
+    my $timespan = MediaWords::DBI::Timespans::set_timespans_id_param( $c );
 
     MediaWords::DBI::ApiLinks::process_and_stash_link( $c );
 
@@ -331,7 +332,7 @@ sub facebook_GET
 {
     my ( $self, $c ) = @_;
 
-    my $timespan = MediaWords::TM::set_timespans_id_param( $c );
+    my $timespan = MediaWords::DBI::Timespans::set_timespans_id_param( $c );
 
     my $db = $c->dbis;
 
@@ -375,7 +376,7 @@ sub count_GET
 
     my $db = $c->dbis;
 
-    my $timespan = MediaWords::TM::require_timespan_for_topic(
+    my $timespan = MediaWords::DBI::Timespans::require_timespan_for_topic(
         $c->dbis,
         $c->stash->{ topics_id },
         int( $c->req->params->{ timespans_id } // 0 ),

@@ -10,7 +10,7 @@ use Moose;
 use namespace::autoclean;
 use MediaWords::Solr;
 use MediaWords::TM::Snapshot;
-use MediaWords::TM;
+use MediaWords::DBI::Timespans;
 use MediaWords::Controller::Api::V2::Sentences;
 
 BEGIN { extends 'MediaWords::Controller::Api::V2::MC_Controller_REST' }
@@ -39,7 +39,7 @@ sub count_GET
 
     my $db = $c->dbis;
 
-    my $timespan = MediaWords::TM::require_timespan_for_topic(
+    my $timespan = MediaWords::DBI::Timespans::require_timespan_for_topic(
         $c->dbis,
         $c->stash->{ topics_id },
         int( $c->req->params->{ timespans_id } // 0 ),

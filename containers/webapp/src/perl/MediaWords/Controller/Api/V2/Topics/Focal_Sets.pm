@@ -8,6 +8,8 @@ use base 'Catalyst::Controller';
 use Moose;
 use namespace::autoclean;
 
+use MediaWords::DBI::Timespans;
+
 BEGIN { extends 'MediaWords::Controller::Api::V2::MC_Controller_REST' }
 
 __PACKAGE__->config( action => { list => { Does => [ qw( ~TopicsReadAuthenticated ~Throttled ~Logged ) ] }, } );
@@ -34,7 +36,7 @@ sub list_GET
     my $db = $c->dbis;
 
     my $topics_id    = $c->stash->{ topics_id };
-    my $timespan     = MediaWords::TM::set_timespans_id_param( $c );
+    my $timespan     = MediaWords::DBI::Timespans::set_timespans_id_param( $c );
     my $snapshots_id = $timespan->{ snapshots_id };
 
     my $focal_sets = $db->query( <<SQL, $snapshots_id )->hashes;

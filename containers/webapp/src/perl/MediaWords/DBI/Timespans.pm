@@ -1,6 +1,4 @@
-package MediaWords::TM;
-
-# General topic mapper utilities
+package MediaWords::DBI::Timespans;
 
 use strict;
 use warnings;
@@ -8,53 +6,7 @@ use warnings;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-use Getopt::Long;
 
-# get a list topics that match the topic option, which can either be an id
-# or a pattern that matches topic names. Die if no topics are found.
-sub require_topics_by_opt
-{
-    my ( $db, $topic_opt ) = @_;
-
-    if ( !defined( $topic_opt ) )
-    {
-        Getopt::Long::GetOptions( "topic=s" => \$topic_opt ) || return;
-    }
-
-    die( "Usage: $0 --topic < id or pattern >" ) unless ( $topic_opt );
-
-    my $topics;
-    if ( $topic_opt =~ /^\d+$/ )
-    {
-        $topics = $db->query( "select * from topics where topics_id = ?", $topic_opt )->hashes;
-        die( "No topics found by id '$topic_opt'" ) unless ( @{ $topics } );
-    }
-    else
-    {
-        $topics = $db->query( "select * from topics where name ~* ?", '^' . $topic_opt . '$' )->hashes;
-        die( "No topics found by pattern '$topic_opt'" ) unless ( @{ $topics } );
-    }
-
-    return $topics;
-}
-
-sub get_latest_overall_timespan
-{
-    my ( $db, $topics_id ) = @_;
-
-    my $timespan = $db->query( <<SQL, $topics_id )->hash;
-select timespan.*, snap.topics_id
-   from timespans timespan
-       join snapshots snap on ( snap.snapshots_id = timespan.snapshots_id )
-   where
-       snap.topics_id = ? and
-       timespan.period = 'overall' and
-       timespan.foci_id is null
-   order by snap.snapshot_date desc
-SQL
-
-    return $timespan;
-}
 
 sub _get_timespan
 {
@@ -111,14 +63,14 @@ SQL
 # * timespan if timespan specified
 # * latest timespan of snapshot is specified
 # * latest overall timespan
-sub get_timespan_for_topic($$$$)
+sub _get_timespan_for_topic($$$$)
 {
     my ( $db, $topics_id, $timespans_id, $snapshots_id ) = @_;
 
     $timespans_id ||= '';
     $snapshots_id ||= '';
 
-    TRACE "get_timespan_for_topic: topics_id-$topics_id timespans_id-$timespans_id snapshots_id-$snapshots_id";
+    TRACE "_get_timespan_for_topic: topics_id-$topics_id timespans_id-$timespans_id snapshots_id-$snapshots_id";
 
     my $timespan = $timespans_id && _get_timespan( $db, $timespans_id );
 
@@ -138,7 +90,7 @@ sub require_timespan_for_topic($$$$)
 {
     my ( $db, $topics_id, $timespans_id, $snapshots_id ) = @_;
 
-    my $timespan = get_timespan_for_topic( $db, $topics_id, $timespans_id, $snapshots_id );
+    my $timespan = _get_timespan_for_topic( $db, $topics_id, $timespans_id, $snapshots_id );
 
     die( "Unable to find timespan for topic, timespan, or snapshot" ) unless ( $timespan );
 
@@ -151,7 +103,7 @@ sub set_timespans_id_param($)
 {
     my ( $c ) = @_;
 
-    my $timespan = MediaWords::TM::require_timespan_for_topic(
+    my $timespan = require_timespan_for_topic(
         $c->dbis,
         $c->stash->{ topics_id },
         $c->req->params->{ timespans_id },

@@ -11,7 +11,7 @@ use MediaWords::CommonLibs;
 use Test::More;
 
 use MediaWords::Solr::Dump;
-use MediaWords::TM;
+use MediaWords::DBI::Topics;
 use MediaWords::TM::Snapshot;
 use MediaWords::Test::Solr;
 use MediaWords::Test::Supervisor;
@@ -58,7 +58,7 @@ SQL
     $num_topic_medium_stories = scalar( values( %{ $media->{ medium_1 }->{ feeds }->{ feed_1 }->{ stories } } ) );
     is( $num_solr_exported_stories, $num_topic_medium_stories, "number of stories added to solr export queue" );
 
-    my $timespan = MediaWords::TM::get_latest_overall_timespan( $db, $topic->{ topics_id } );
+    my $timespan = MediaWords::DBI::Topics::get_latest_overall_timespan( $db, $topic->{ topics_id } );
 
     MediaWords::Solr::Dump::import_data( $db, { empty_queue => 1 } );
 

@@ -13,6 +13,7 @@ use warnings;
 
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
+use MediaWords::DBI::Topics;
 
 use Readonly;
 
@@ -345,7 +346,7 @@ sub generate_media_csv($$)
 {
     my ( $db, $score ) = @_;
 
-    my $timespan = MediaWords::TM::get_latest_overall_timespan( $db, $score->{ topics_id } );
+    my $timespan = MediaWords::DBI::Topics::get_latest_overall_timespan( $db, $score->{ topics_id } );
 
     my $retweeter_scores_id = int( $score->{ retweeter_scores_id } );
     my $timespans_id = $timespan ? int( $timespan->{ timespans_id } ) : -1;

@@ -12,6 +12,7 @@ use namespace::autoclean;
 use MediaWords::DBI::ApiLinks;
 use MediaWords::Solr;
 use MediaWords::TM::Snapshot;
+use MediaWords::DBI::Timespans;
 
 BEGIN { extends 'MediaWords::Controller::Api::V2::MC_Controller_REST' }
 
@@ -129,7 +130,7 @@ sub list_GET
 {
     my ( $self, $c ) = @_;
 
-    my $timespan = MediaWords::TM::set_timespans_id_param( $c );
+    my $timespan = MediaWords::DBI::Timespans::set_timespans_id_param( $c );
 
     $c->req->params->{ limit } = int( List::Util::min( $c->req->params->{ limit } // 0, 1_000 ) );
 
@@ -178,7 +179,7 @@ sub links_GET
 {
     my ( $self, $c ) = @_;
 
-    my $timespan = MediaWords::TM::set_timespans_id_param( $c );
+    my $timespan = MediaWords::DBI::Timespans::set_timespans_id_param( $c );
 
     $c->req->params->{ limit } = int( List::Util::min( $c->req->params->{ limit } // 1_000, 1_000_000 ) );
     my $limit = $c->req->params->{ limit };
@@ -215,7 +216,7 @@ sub map_GET
 {
     my ( $self, $c ) = @_;
 
-    my $timespan             = MediaWords::TM::set_timespans_id_param( $c );
+    my $timespan             = MediaWords::DBI::Timespans::set_timespans_id_param( $c );
     my $color_field          = $c->req->params->{ color_field } || 'media_type';
     my $num_media            = int( $c->req->params->{ num_media } // 500 );
     my $include_weights      = int( $c->req->params->{ include_weights } // 0 );
