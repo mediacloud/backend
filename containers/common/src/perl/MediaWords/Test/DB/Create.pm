@@ -6,15 +6,6 @@ use warnings;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-use File::Path;
-use Readonly;
-
-use MediaWords::DB;
-use MediaWords::DBI::Downloads;
-use MediaWords::DBI::Stories;
-use MediaWords::DB::Schema;
-use MediaWords::Util::URL;
-
 {
 
     package MediaWords::Test::DB::Create::PythonProxy;

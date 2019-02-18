@@ -1,13 +1,13 @@
 package MediaWords::Controller::Api::V2::StoriesBase;
-use Modern::Perl "2015";
-use MediaWords::CommonLibs;
 
 use strict;
 use warnings;
 use base 'Catalyst::Controller';
 
-use Encode;
-use List::Util qw(first max maxstr min minstr reduce shuffle sum);
+use Modern::Perl "2015";
+use MediaWords::CommonLibs;
+
+use List::Util;
 use Moose;
 use namespace::autoclean;
 
@@ -16,6 +16,7 @@ use MediaWords::DBI::Stories::WordMatrix;
 use MediaWords::Solr;
 use MediaWords::Solr::TagCounts;
 use MediaWords::Util::ParseHTML;
+use MediaWords::DBI::Downloads::Store;
 
 =head1 NAME
 
@@ -85,7 +86,7 @@ SQL
     for my $download ( @{ $downloads } )
     {
         my $story = $story_lookup->{ $download->{ stories_id } };
-        my $content = MediaWords::DBI::Downloads::fetch_content( $db, $download );
+        my $content = MediaWords::DBI::Downloads::Store::fetch_content( $db, $download );
 
         $story->{ raw_first_download_file } = defined( $content ) ? $content : { missing => 'true' };
     }

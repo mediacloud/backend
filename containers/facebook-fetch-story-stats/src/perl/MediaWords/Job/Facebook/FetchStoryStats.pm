@@ -18,7 +18,7 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use MediaWords::DB;
-use MediaWords::Util::Config:Facebook;
+use MediaWords::Util::Config::Facebook;
 use MediaWords::Util::Facebook;
 use MediaWords::Util::Process;
 use Readonly;

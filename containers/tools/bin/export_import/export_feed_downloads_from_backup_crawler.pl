@@ -16,9 +16,8 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use MediaWords::DB;
-use MediaWords::DBI::Downloads;
+use MediaWords::DBI::Downloads::Store;
 
-use Data::Dumper;
 use FindBin;
 use Text::CSV_XS;
 
@@ -85,7 +84,7 @@ SQL
 
         my $download = $db->find_by_id( 'downloads', $downloads_id );
 
-        my $raw_download_content = MediaWords::DBI::Downloads::fetch_content( $db, $download );
+        my $raw_download_content = MediaWords::DBI::Downloads::Store::fetch_content( $db, $download );
 
         if ( $raw_download_content eq '(redundant feed)' )
         {

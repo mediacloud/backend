@@ -1,14 +1,16 @@
 package MediaWords::Controller::Api::V2::Downloads;
+
+use strict;
+use warnings;
+
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-use MediaWords::DBI::Downloads;
-use strict;
-use warnings;
 use base 'Catalyst::Controller';
-use List::Util qw(first max maxstr min minstr reduce shuffle sum);
 use Moose;
 use namespace::autoclean;
+
+use MediaWords::DBI::Downloads::Store;
 
 =head1 NAME
 
@@ -57,9 +59,9 @@ sub _add_nested_data
 
     foreach my $download ( @$downloads )
     {
-        if ( MediaWords::DBI::Downloads::download_successful( $download ) )
+        if ( MediaWords::DBI::Downloads::Store::download_successful( $download ) )
         {
-            my $raw_content = MediaWords::DBI::Downloads::fetch_content( $db, $download );
+            my $raw_content = MediaWords::DBI::Downloads::Store::fetch_content( $db, $download );
 
             $download->{ raw_content } = $raw_content;
         }

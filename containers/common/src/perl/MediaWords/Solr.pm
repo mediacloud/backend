@@ -27,7 +27,6 @@ use URI::Escape;
 
 use MediaWords::DB;
 use MediaWords::DBI::Stories;
-use MediaWords::Solr::PseudoQueries;
 use MediaWords::Solr::Query;
 use MediaWords::Util::Config::Common;
 use MediaWords::Util::ParseJSON;
@@ -181,9 +180,8 @@ https://wiki.apache.org/solr/CommonQueryParameters.
 
 The $c argument is optional and is used to pass the solr response back up to catalyst in the case of an error.
 
-The query ($params->{ q }) is transformed into two ways -- lower case boolean operators are uppercased to make
-solr recognize them as boolean queries and psuedo queries (see the api docs at mediacloud.org/api and PseudoQueries.pm)
-are translated into solr clauses.
+The query ($params->{ q }) is transformed: lower case boolean operators are uppercased to make
+solr recognize them as boolean queries.
 
 Return the raw encoded JSON from solr in the format described here:
 
@@ -226,7 +224,6 @@ sub query_encoded_json($$;$)
 
     _uppercase_boolean_operators( $params->{ fq } );
 
-    $params->{ q } = MediaWords::Solr::PseudoQueries::transform_query( $params->{ q } );
     $params->{ q } = _insert_collection_media_ids( $db, $params->{ q } );
 
     $params->{ fq } = [ map { _insert_collection_media_ids( $db, $_ ) } @{ $params->{ fq } } ];
@@ -528,9 +525,6 @@ sub _get_stories_ids_from_stories_only_q
 sub _get_stories_ids_from_stories_only_params
 {
     my ( $params ) = @_;
-
-    $params->{ q }  = MediaWords::Solr::PseudoQueries::transform_query( $params->{ q } );
-    $params->{ fq } = MediaWords::Solr::PseudoQueries::transform_query( $params->{ fq } );
 
     my $q     = $params->{ q };
     my $fqs   = $params->{ fq };
