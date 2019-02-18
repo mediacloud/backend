@@ -6,26 +6,6 @@ class TopicsMineConfig(object):
     """Topic miner configuration."""
 
     @staticmethod
-    def twitter_consumer_key() -> str:
-        """Twitter API consumer key."""
-        return env_value('MC_TWITTER_CONSUMER_KEY')
-
-    @staticmethod
-    def twitter_consumer_secret() -> str:
-        """Twitter API consumer secret."""
-        return env_value('MC_TWITTER_CONSUMER_SECRET')
-
-    @staticmethod
-    def twitter_access_token() -> str:
-        """Twitter API access token."""
-        return env_value('MC_TWITTER_ACCESS_TOKEN')
-
-    @staticmethod
-    def twitter_access_token_secret() -> str:
-        """Twitter API access token secret."""
-        return env_value('MC_TWITTER_ACCESS_TOKEN_SECRET')
-
-    @staticmethod
     def crimson_hexagon_api_key() -> str:
         """Crimson Hexagon API key."""
         return env_value('MC_CRIMSON_HEXAGON_API_KEY')

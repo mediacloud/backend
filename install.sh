@@ -26,9 +26,6 @@ ANSIBLE_CONFIG=ansible/ansible.cfg \
 
 # This will create a PostgreSQL user called "mediaclouduser" and two databases
 # owned by this user: "mediacloud" and "mediacloud_test".
-#
-# ("create_default_db_user_and_databases.sh" uses configuration mediawords.yml
-# so it needs a working Perl environment)
 echo "Creating default PostgreSQL user and databases for Media Cloud..."
 sudo ./tools/db/create_default_db_user_and_databases.sh
 

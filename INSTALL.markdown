@@ -30,8 +30,6 @@ You might consider running steps from `install.sh` individually too.
 
 If this script runs successfully, skip to the [Post Install](#post-install) section at the end of this file.
 
-**Note:** default Media Cloud installation is insecure as PostgreSQL users and databases get created with default hardcoded credentials. Make sure to not expose your Media Cloud instance to the public, firewall it accordingly, or change PostgreSQL credentials in `mediawords.yml` and remove default users before proceeding to making Media Cloud public.
-
 
 ## Post Install
   

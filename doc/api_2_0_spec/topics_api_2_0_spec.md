@@ -313,8 +313,7 @@ for researchers and also includes analytical results like link counts.  A timesp
 represents the set of stories active in a topic within a given date range.  Every timespan belongs to a snapshot.
 
 Topic data can be used to search stories and media sources as well.  Use the
-timespans_id param to list the media sources within a given timespan.  See the documentation for Solr pseudo queries for documentation of how to
-query for stories within a topic.
+timespans_id param to list the media sources within a given timespan.
 
 ## `topics/create` (POST)
 

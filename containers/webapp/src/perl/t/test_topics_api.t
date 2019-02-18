@@ -15,7 +15,6 @@ use Readonly;
 use Test::More;
 
 use MediaWords;
-use MediaWords::TM::Snapshot;
 use MediaWords::DB::Schema;
 use MediaWords::DBI::Auth::Roles;
 use MediaWords::Solr::Dump;

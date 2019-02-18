@@ -1,32 +1,26 @@
-package MediaWords::Test::TopicTweets;
-
-=head1 NAME
-
-MediaWords::Test::TopicTweets - functions to help testing external apis
-
-=cut
-
 use strict;
 use warnings;
 
 use Modern::Perl '2015';
 use MediaWords::CommonLibs;
 
+use Date::Format;
+use File::Slurp;
 use Readonly;
 use Test::More;
-use File::Slurp;
 
-use MediaWords::TM;
-use MediaWords::Test::DB;
+use MediaWords::AbstractJob;
+use MediaWords::JobManager::Job;
+use MediaWords::Test::DB::Create;
 use MediaWords::Test::Data;
 use MediaWords::Test::Supervisor;
-use MediaWords::Util::Config;
 use MediaWords::Util::ParseJSON;
+use MediaWords::Util::SQL;
 
 # test port for mock api server
 Readonly my $PORT => 8899;
 
-# id for valid monitor at CH (valid id needed only if MC_TEST_EXTERNAL_APIS set)
+# id for valid monitor at CH
 Readonly my $CH_MONITOR_ID => 7937743397;
 
 # this is an estimate of the number of tweets per day included in the ch-posts-$date.json files
@@ -70,81 +64,6 @@ sub get_test_dates()
     }
 
     return $test_dates;
-}
-
-# randomly get one of the rest dates
-sub get_random_test_date
-{
-    my $test_dates = get_test_dates();
-    return $test_dates->[ int( rand( @{ $test_dates } ) ) ];
-}
-
-# return the JSON in one of the ch-posts-$data.json files, where files are available for 2016-01-0[12345];
-# chop out all posts other than the first $MOCK_TWEETS_PER_DAY from each file
-sub get_test_data
-{
-    my ( $date ) = @_;
-
-    if ( $MOCK_TWEETS_PER_DAY > $MAX_MOCK_TWEETS_PER_DAY )
-    {
-        die( "\$MOCK_TWEETS_PER_DAY must be less than \$MAX_MOCK_TWEETS_PER_DAY" );
-    }
-
-    my $epoch_day = ( MediaWords::Util::SQL::get_epoch_from_sql_date( $date ) / 86400 );
-    my $file_dates = [ map { "2016-01-0" . $_ } ( 1 .. 5 ) ];
-
-    my $file_date = $file_dates->[ $epoch_day % scalar( @{ $file_dates } ) ];
-
-    my $json_data_file = MediaWords::Test::Data::get_path_to_data_files( 'ch' ) . "/ch-posts-$file_date.json";
-    my $json           = read_file( $json_data_file );
-
-    my $data = MediaWords::Util::ParseJSON::decode_json( $json );
-
-    die( "no posts found" ) unless ( $data->{ posts } );
-
-    splice( @{ $data->{ posts } }, $MOCK_TWEETS_PER_DAY );
-
-    return MediaWords::Util::ParseJSON::encode_json( $data );
-}
-
-# return a mock ch response to the posts end point.  generate the mock response by sending back data
-# from a consistent but semirandom selection of ch-posts-2016-01-0[123456].json and replacing
-# the tweet id in each tweet url returned by ch with a new unique id. The unique id is the start_date
-# passed into the request plus an iterator that increases for each tweet returned.
-sub mock_ch_posts
-{
-    my ( $request ) = @_;
-
-    my $params = $request->query_params();
-
-    my $auth       = $params->{ 'auth' }  || LOGDIE( "missing auth param" );
-    my $id         = $params->{ 'id' }    || LOGDIE( "missing id param" );
-    my $start_date = $params->{ 'start' } || LOGDIE( "missing start param" );
-    my $end_date   = $params->{ 'end' }   || LOGDIE( "missing end param" );
-
-    my $expected_end_date = MediaWords::Util::SQL::increment_day( $start_date );
-    LOGDIE( "end_date expected to be '$expected_end_date' for mock api" ) unless ( $end_date eq $expected_end_date );
-
-    my $json = get_test_data( $start_date );
-
-    my $data = MediaWords::Util::ParseJSON::decode_json( $json );
-
-    # replace tweets with the epoch of the start date so that we can infer the date of each tweet in
-    # mock_twitter_lookup below
-    my $i = 0;
-    for my $ch_post ( @{ $data->{ posts } } )
-    {
-        my $new_id = MediaWords::Util::SQL::get_epoch_from_sql_date( $start_date ) + $i++;
-        $ch_post->{ url } =~ s/status\/\d+/status\/$new_id/;
-    }
-
-    my $new_json = MediaWords::Util::ParseJSON::encode_json( $data );
-
-    my $response = "HTTP/1.1 200 OK\r\n";
-    $response .= "Content-Type: application/json\r\n";
-    $response .= "\r\n";
-    $response .= "$new_json\n";
-    return $response;
 }
 
 # send a simple text page for use mocking tweet url pages
@@ -205,7 +124,7 @@ sub mock_twitter_lookup
         my $url_id  = int( $id * rand() ) % $NUM_MOCK_URLS;
         my $user_id = int( $id * rand() ) % $NUM_MOCK_USERS;
 
-        # we can infer the date from the $id as set in mock_ch_post() above
+        # we can infer the date from the $id
         my $created_at = Date::Format::time2str( '%a %b %d %H:%M:%S +000000 %Y', $id );
 
         # 127.0.00000.1 goofiness to generate variations on localhost that will produce separate media in TM::Mine
@@ -544,22 +463,12 @@ SQL
 }
 
 # if the twitter and ch keys are setup, run the tests on the external apis
-sub run_tests_on_external_apis
+sub main
 {
-    my $config = MediaWords::Util::Config::get_config();
-
-    if ( !$config->{ twitter }->{ consumer_secret } || !$config->{ crimson_hexagon }->{ key } )
-    {
-        WARN( "SKIPPING EXTERNAL APIS BECAUSE TWITTER AND/OR CRIMSON HEXAGON KEYS NOT FOUND" );
-        ok( 1, "skipped test" );
-    }
-    else
-    {
-        MediaWords::Test::Supervisor::test_with_supervisor( \&test_fetch_topic_tweets,
-            [ 'job_broker:rabbitmq', 'fetch_link' ] );
-    }
+    MediaWords::Test::Supervisor::test_with_supervisor( \&test_fetch_topic_tweets,
+        [ 'job_broker:rabbitmq', 'fetch_link' ] );
 
     done_testing();
 }
 
-1;
+main();

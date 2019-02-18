@@ -70,7 +70,7 @@ def _extract_story(db: DatabaseHandler, story: dict) -> None:
         return
 
     extractor_args = PyExtractorArguments(use_cache=True, use_existing=True, no_dedup_sentences=False)
-    mediawords.dbi.stories.stories.extract_and_process_story(db=db, story=story, extractor_args=extractor_args)
+    mediawords.dbi.stories.extract.extract_and_process_story(db=db, story=story, extractor_args=extractor_args)
 
 
 def _get_story_with_most_sentences(db: DatabaseHandler, stories: list) -> dict:

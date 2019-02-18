@@ -948,6 +948,15 @@ services:
             context: ./topics-fetch-twitter-urls/
         image: dockermediacloud/mediacloud-topics-fetch-twitter-urls:latest
         container_name: mc_topics_fetch_twitter_urls
+        environment:
+            # Twitter API consumer key
+            MC_TWITTER_CONSUMER_KEY: ""
+            # Twitter API consumer secret
+            MC_TWITTER_CONSUMER_SECRET: ""
+            # Twitter API access token
+            MC_TWITTER_ACCESS_TOKEN: ""
+            # Twitter API access token secret
+            MC_TWITTER_ACCESS_TOKEN_SECRET: ""
         networks:
             # Fetches / stores URLs in PostgreSQL
             - net_postgresql
@@ -976,14 +985,6 @@ services:
         image: dockermediacloud/mediacloud-topics-mine:latest
         container_name: mc_topics_mine
         environment:
-            # Twitter API consumer key
-            MC_TWITTER_CONSUMER_KEY: ""
-            # Twitter API consumer secret
-            MC_TWITTER_CONSUMER_SECRET: ""
-            # Twitter API access token
-            MC_TWITTER_ACCESS_TOKEN: ""
-            # Twitter API access token secret
-            MC_TWITTER_ACCESS_TOKEN_SECRET: ""
             # Crimson Hexagon API key
             MC_CRIMSON_HEXAGON_API_KEY: ""
             # Comma-separated email addresses to inform about topic updates

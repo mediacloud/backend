@@ -18,7 +18,7 @@ with 'MediaWords::JobManager::Broker';
 use Net::AMQP::RabbitMQ;
 use UUID::Tiny ':std';
 use Tie::Cache;
-use JSON;
+use JSON::XS;
 use Data::Dumper;
 use Readonly;
 
@@ -59,7 +59,7 @@ Readonly my %RABBITMQ_PRIORITIES => (
 );
 
 # JSON (de)serializer
-my $json = JSON->new->allow_nonref->canonical->utf8;
+my $json = JSON::XS->new->allow_nonref->canonical->utf8;
 
 # RabbitMQ connection credentials
 has '_hostname' => ( is => 'rw', isa => 'Str' );

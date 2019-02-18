@@ -350,8 +350,7 @@ sub _create_delta_import_stories($$)
     return $stories_ids;
 }
 
-# Send a request to MediaWords::Solr::get_solr_url. Return content on success, die() on error. If $staging is true, use
-# the staging collection; otherwise use the live collection.
+# Send a request to MediaWords::Solr::get_solr_url. Return content on success, die() on error.
 sub _solr_request($$$;$$)
 {
     my ( $db, $path, $params, $content, $content_type ) = @_;
@@ -359,10 +358,7 @@ sub _solr_request($$$;$$)
     my $solr_url = MediaWords::Solr::get_solr_url;
     $params //= {};
 
-    my $collection =
-      $_solr_use_staging ? MediaWords::Solr::get_staging_collection( $db ) : MediaWords::Solr::get_live_collection( $db );
-
-    my $abs_uri = URI->new( "$solr_url/$collection/$path" );
+    my $abs_uri = URI->new( "$solr_url/mediacloud/$path" );
     $abs_uri->query_form( $params );
     my $abs_url = $abs_uri->as_string;
 

@@ -14,6 +14,8 @@ use MediaWords::Test::Solr;
 use MediaWords::Test::Supervisor;
 use MediaWords::Test::Types;
 
+use MediaWords::Solr::Dump;
+
 Readonly my $NUM_MEDIA            => 3;
 Readonly my $NUM_FEEDS_PER_MEDIUM => 2;
 Readonly my $NUM_STORIES_PER_FEED => 4;

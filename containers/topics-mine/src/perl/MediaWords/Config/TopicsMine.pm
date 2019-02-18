@@ -23,26 +23,6 @@ use Modern::Perl "2015";
     1;
 }
 
-sub twitter_consumer_key()
-{
-    return MediaWords::Util::Config::TopicsMine::PythonProxy::TopicsMineConfig::twitter_consumer_key();
-}
-
-sub twitter_consumer_secret()
-{
-    return MediaWords::Util::Config::TopicsMine::PythonProxy::TopicsMineConfig::twitter_consumer_secret();
-}
-
-sub twitter_access_token()
-{
-    return MediaWords::Util::Config::TopicsMine::PythonProxy::TopicsMineConfig::twitter_access_token();
-}
-
-sub twitter_access_token_secret()
-{
-    return MediaWords::Util::Config::TopicsMine::PythonProxy::TopicsMineConfig::twitter_access_token_secret();
-}
-
 sub crimson_hexagon_api_key()
 {
     return MediaWords::Util::Config::TopicsMine::PythonProxy::TopicsMineConfig::crimson_hexagon_api_key();
