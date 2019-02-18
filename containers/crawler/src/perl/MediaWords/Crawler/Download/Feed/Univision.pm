@@ -96,9 +96,9 @@ sub _api_request_url_with_signature($$$;$)
 
 # Return API URL with request signature appended; Univision credentials are
 # being read from configuration
-sub _api_request_url_with_signature_from_config($;$)
+sub _api_request_url_with_signature_from_config($;$$)
 {
-    my ( $api_url, $http_method ) = @_;
+    my ( $api_url, $http_method, $crawler_config ) = @_;
 
     unless ( $api_url )
     {
@@ -112,7 +112,10 @@ sub _api_request_url_with_signature_from_config($;$)
 
     $http_method //= 'GET';
 
-    my $crawler_config = MediaWords::Util::Config::Crawler::CrawlerConfig();
+    unless ($crawler_config) {
+        $crawler_config = MediaWords::Util::Config::Crawler::CrawlerConfig();
+    }
+    
     my $client_id     = $crawler_config->univision_client_id();
     my $client_secret = $crawler_config->univision_client_secret();
 
@@ -125,11 +128,15 @@ sub _api_request_url_with_signature_from_config($;$)
 }
 
 # Fetch Univision feed
-sub fetch_download($$$)
+sub fetch_download($$$;$)
 {
-    my ( $self, $db, $download ) = @_;
+    my ( $self, $db, $download, $crawler_config ) = @_;
 
-    $download->{ download_time } = MediaWords::Util::SQL::sql_now;
+    unless ( $crawler_config ) {
+        $crawler_config = MediaWords::Util::Config::Crawler::CrawlerConfig();
+    }
+
+    $download->{ download_time } = MediaWords::Util::SQL::sql_now();
     $download->{ state }         = 'fetching';
 
     $db->update_by_id( 'downloads', $download->{ downloads_id }, $download );
@@ -137,7 +144,11 @@ sub fetch_download($$$)
     my $ua = MediaWords::Util::Web::UserAgent->new();
 
     Readonly my $http_method => 'GET';
-    my $url_with_credentials = _api_request_url_with_signature_from_config( $download->{ url }, $http_method );
+    my $url_with_credentials = _api_request_url_with_signature_from_config(
+        $download->{ url }, #
+        $http_method,   #
+        $crawler_config,    #
+    );
 
     my $request = MediaWords::Util::Web::UserAgent::Request->new( 'GET', $url_with_credentials );
     my $response = $ua->request( $request );

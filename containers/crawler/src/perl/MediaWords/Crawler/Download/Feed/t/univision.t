@@ -95,9 +95,9 @@ sub test_api_request($$$)
     ok( $json->{ 'data' }, 'JSON response has "data" key' );
 }
 
-sub test_fetch_handle_download($$)
+sub test_fetch_handle_download($$$)
 {
-    my ( $db, $univision_url ) = @_;
+    my ( $db, $univision_url, $crawler_config ) = @_;
 
     my $medium = $db->create(
         'media',
@@ -121,7 +121,7 @@ sub test_fetch_handle_download($$)
 
     my $handler = MediaWords::Crawler::Engine::handler_for_download( $db, $download );
 
-    my $response = $handler->fetch_download( $db, $download );
+    my $response = $handler->fetch_download( $db, $download, $crawler_config );
     $handler->handle_response( $db, $download, $response );
 
     $download = $db->find_by_id( 'downloads', $download->{ downloads_id } );
@@ -150,24 +150,31 @@ sub test_univision($$$)
     test_api_request_signature();
     test_api_request( $univision_url, $univision_client_id, $univision_client_secret );
 
-    my $config     = MediaWords::Util::Config::get_config();
-    my $new_config = python_deep_copy( $config );
+    {
+        package UnivisionTestCrawlerConfig;
 
-    # Inject Univision credentials into configuration
-    $new_config->{ univision } = {};
-    my $old_univision_client_id     = $config->{ univision }->{ client_id };
-    my $old_univision_client_secret = $config->{ univision }->{ client_secret };
-    $new_config->{ univision }->{ client_id }     = $univision_client_id;
-    $new_config->{ univision }->{ client_secret } = $univision_client_secret;
-    MediaWords::Util::Config::set_config( $new_config );
+        use strict;
+        use warnings;
 
-    test_fetch_handle_download( $db, $univision_url );
+        use base 'MediaWords::Util::Config::Crawler';
+
+        sub univision_client_id()
+        {
+            return $univision_client_id;
+        }
+
+        sub univision_client_secret()
+        {
+            return $univision_client_secret;
+        }
+
+        1;
+    }
+
+    my $crawler_config = UnivisionTestCrawlerConfig->new();
+
+    test_fetch_handle_download( $db, $univision_url, $crawler_config );
     Test::NoWarnings::had_no_warnings();
-
-    # Reset configuration
-    $new_config->{ univision }->{ client_id }     = $old_univision_client_id;
-    $new_config->{ univision }->{ client_secret } = $old_univision_client_secret;
-    MediaWords::Util::Config::set_config( $new_config );
 }
 
 sub main()
@@ -184,18 +191,7 @@ sub main()
     my $local_univision_client_id     = 'foo';
     my $local_univision_client_secret = 'bar';
 
-    my $remote_univision_url           = $ENV{ MC_UNIVISION_TEST_URL };
-    my $remote_univision_client_id     = $ENV{ MC_UNIVISION_TEST_CLIENT_ID };
-    my $remote_univision_client_secret = $ENV{ MC_UNIVISION_TEST_CLIENT_SECRET };
-
-    if ( $remote_univision_url and $remote_univision_client_id and $remote_univision_client_secret )
-    {
-        plan tests => 33;
-    }
-    else
-    {
-        plan tests => 17;
-    }
+    plan tests => 33;
 
     say STDERR "Testing against local Univision test HTTP server...";
     my $pages = {
