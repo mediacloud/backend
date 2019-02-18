@@ -8,10 +8,7 @@ use Readonly;
 use Test::More tests => 600;
 use Text::CSV_XS;
 
-use MediaWords::Util::CSV;
 use MediaWords::TM::RetweeterScores;
-use MediaWords::Test::API;
-use MediaWords::Test::DB;
 
 Readonly my $NUM_TWITTER_USERS   => 11;
 Readonly my $NUM_RETWEETED_USERS => 4;
@@ -458,7 +455,8 @@ sub test_retweeter_scores($)
 
 sub main
 {
-    MediaWords::Test::DB::test_on_test_database( \&test_retweeter_scores );
+    my $db = MediaWords::DB::connect_to_db();
+    test_retweeter_scores( $db );
 }
 
 main();

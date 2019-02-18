@@ -8,7 +8,6 @@ use MediaWords::CommonLibs;
 use Test::More;
 
 use MediaWords::Test::API;
-use MediaWords::Test::DB;
 use MediaWords::Test::Solr;
 use MediaWords::Test::Supervisor;
 
@@ -17,7 +16,6 @@ use Readonly;
 use MediaWords::Controller::Api::V2::Topics;
 use MediaWords::DBI::Auth::Roles;
 use MediaWords::Test::API;
-use MediaWords::Test::DB;
 
 Readonly my $NUM_MEDIA            => 5;
 Readonly my $NUM_FEEDS_PER_MEDIUM => 2;

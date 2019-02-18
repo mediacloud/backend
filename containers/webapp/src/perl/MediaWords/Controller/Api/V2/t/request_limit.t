@@ -16,7 +16,6 @@ use URI::QueryParam;
 use HTTP::Status qw(:constants);
 
 use MediaWords::Test::API;
-use MediaWords::Test::DB;
 
 use MediaWords::DBI::Auth;
 use MediaWords::Util::Mail;
@@ -117,7 +116,9 @@ sub main
     # Don't actually send any emails
     MediaWords::Util::Mail::enable_test_mode();
 
-    MediaWords::Test::DB::test_on_test_database( \&test_request_limit );
+    my $db = MediaWords::DB::connect_to_db();
+
+    test_request_limit( $db );
 }
 
 main();

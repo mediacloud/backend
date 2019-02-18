@@ -9,7 +9,6 @@ use Test::More tests => 7;
 use Test::Deep;
 
 use MediaWords::StoryVectors;
-use MediaWords::Test::DB;
 use MediaWords::Test::DB::Create;
 use MediaWords::Util::SQL;
 
@@ -140,17 +139,12 @@ SQL
     is( $got_stats_sentences, $start_num_sentences - $num_sentences, "$label media_stats" );
 }
 
-sub run_database_tests($)
+sub main()
 {
-    my ( $db ) = @_;
+    my $db = MediaWords::DB::connect_to_db();
 
     test_dedup_sentences( $db );
     test_delete_story_sentences( $db );
-}
-
-sub main
-{
-    MediaWords::Test::DB::test_on_test_database( \&run_database_tests );
 }
 
 main();

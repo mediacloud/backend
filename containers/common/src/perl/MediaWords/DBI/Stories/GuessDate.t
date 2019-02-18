@@ -5,7 +5,7 @@ use Test::More;
 
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
-use MediaWords::Test::DB;
+use MediaWords::DB;
 
 use MediaWords::DBI::Stories::GuessDate;
 
@@ -39,7 +39,9 @@ SQL
 
 sub main
 {
-    MediaWords::Test::DB::test_on_test_database( \&test_assign_date_guess_method );
+    my $db = MediaWords::DB::connect_to_db();
+
+    test_assign_date_guess_method( $db );
 
     done_testing();
 }

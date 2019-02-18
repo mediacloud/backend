@@ -10,7 +10,6 @@ use Test::More;
 
 use MediaWords::DBI::Media;
 use MediaWords::DBI::Media::SubjectCountry;
-use MediaWords::Test::DB;
 
 # test that the given medium has the given subject country tag
 sub test_medium_country_tag($$$$)
@@ -116,14 +115,9 @@ sub test_media_subject_country
 
 sub main
 {
-    MediaWords::Test::DB::test_on_test_database(
-        sub {
-            use Encode;
-            my ( $db ) = @_;
+    my $db = MediaWords::DB::connect_to_db();
 
-            test_media_subject_country( $db );
-        }
-    );
+    test_media_subject_country( $db );
 
     done_testing();
 }

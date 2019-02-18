@@ -5,7 +5,6 @@ use utf8;
 use Test::More tests => 20 + 1;
 
 use MediaWords::KeyValueStore::PostgreSQL;
-use MediaWords::Test::DB;
 use Data::Dumper;
 use Readonly;
 

@@ -30,7 +30,6 @@ use MediaWords::Crawler::Engine;
 use MediaWords::DBI::DownloadTexts;
 use MediaWords::DBI::Stories;
 use MediaWords::Test::Data;
-use MediaWords::Test::DB;
 use MediaWords::Test::DB::Create;
 use MediaWords::Test::LocalServer;
 use MediaWords::Util::DateTime;
@@ -170,46 +169,40 @@ sub main
     binmode $builder->failure_output, ":utf8";
     binmode $builder->todo_output,    ":utf8";
 
-    MediaWords::Test::DB::test_on_test_database(
-        sub {
-            use Encode;
-            my ( $db ) = @_;
+    my $db = MediaWords::DB::connect_to_db();
 
-            my $crawler_data_location = "/t/data/crawler/";
+    my $crawler_data_location = "/t/data/crawler/";
 
-            my $test_http_server = MediaWords::Test::LocalServer->new( $crawler_data_location );
-            $test_http_server->start();
-            my $url_to_crawl = $test_http_server->url();
+    my $test_http_server = MediaWords::Test::LocalServer->new( $crawler_data_location );
+    $test_http_server->start();
+    my $url_to_crawl = $test_http_server->url();
 
-            my $feed = add_test_feed( $db, $url_to_crawl );
+    my $feed = add_test_feed( $db, $url_to_crawl );
 
-            my $download = MediaWords::Test::DB::Create::create_download_for_feed( $db, $feed );
+    my $download = MediaWords::Test::DB::Create::create_download_for_feed( $db, $feed );
 
-            my $crawler = MediaWords::Crawler::Engine->new();
-            $crawler->fetcher_number( 1 );
+    my $crawler = MediaWords::Crawler::Engine->new();
+    $crawler->fetcher_number( 1 );
 
-            INFO "starting fetch_and_handle_single_download";
+    INFO "starting fetch_and_handle_single_download";
 
-            $crawler->fetch_and_handle_single_download( $download );
+    $crawler->fetch_and_handle_single_download( $download );
 
-            my $redundant_feed_download = MediaWords::Test::DB::Create::create_download_for_feed( $db, $feed );
+    my $redundant_feed_download = MediaWords::Test::DB::Create::create_download_for_feed( $db, $feed );
 
-            $crawler->fetch_and_handle_single_download( $redundant_feed_download );
+    $crawler->fetch_and_handle_single_download( $redundant_feed_download );
 
-            if ( defined( $dump ) && ( $dump eq '-d' ) )
-            {
-                dump_stories( $db, $feed );
-            }
+    if ( defined( $dump ) && ( $dump eq '-d' ) )
+    {
+        dump_stories( $db, $feed );
+    }
 
-            test_stories( $db, $feed );
+    test_stories( $db, $feed );
 
-            INFO "Killing server";
-            $test_http_server->stop();
+    INFO "Killing server";
+    $test_http_server->stop();
 
-            Test::NoWarnings::had_no_warnings();
-        }
-    );
-
+    Test::NoWarnings::had_no_warnings();
 }
 
 main();

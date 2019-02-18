@@ -13,7 +13,6 @@ use Test::More;
 use URI::Escape;
 
 use MediaWords::Test::API;
-use MediaWords::Test::DB;
 
 # public and admin_read key users
 my $_public_user;
@@ -476,8 +475,9 @@ sub test_permissions($$)
 
 sub main()
 {
+    my $db = MediaWords::DB::connect_to_db();
 
-    MediaWords::Test::DB::test_on_test_database( \&test_permissions );
+    test_permissions( $db );
 
     done_testing();
 }

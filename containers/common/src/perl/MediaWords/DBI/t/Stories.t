@@ -8,7 +8,6 @@ use Test::Deep;
 use Test::More;
 
 use MediaWords::DBI::Stories;
-use MediaWords::Test::DB;
 use MediaWords::Util::SQL;
 
 sub test_get_title_parts
@@ -93,16 +92,10 @@ sub test_is_new($)
 
 sub main
 {
+    my $db = MediaWords::DB::connect_to_db();
+
     test_get_title_parts();
-
-    MediaWords::Test::DB::test_on_test_database(
-        sub {
-            use Encode;
-            my ( $db ) = @_;
-
-            test_is_new( $db );
-        }
-    );
+    test_is_new( $db );
 
     done_testing();
 }

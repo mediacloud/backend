@@ -12,7 +12,6 @@ use MediaWords::Test::HashServer;
 
 use MediaWords::Crawler::Engine;
 
-use MediaWords::Test::DB;
 use MediaWords::Util::SQL;
 use MediaWords::Util::Web;
 
@@ -106,13 +105,9 @@ sub test_errors
 
 sub main
 {
-    MediaWords::Test::DB::test_on_test_database(
-        sub {
-            my ( $db ) = @_;
+    my $db = MediaWords::DB::connect_to_db();
 
-            test_errors( $db );
-        }
-    );
+    test_errors( $db );
 }
 
 main();

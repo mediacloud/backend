@@ -8,7 +8,6 @@ use Test::More;
 use Test::Deep;
 
 use MediaWords::Test::API;
-use MediaWords::Test::DB;
 
 sub test_is_syndicated_ap($)
 {
@@ -35,7 +34,9 @@ sub test_util($)
 
 sub main
 {
-    MediaWords::Test::DB::test_on_test_database( \&test_util );
+    my $db = MediaWords::DB::connect_to_db();
+
+    test_util( $db );
 
     done_testing();
 }

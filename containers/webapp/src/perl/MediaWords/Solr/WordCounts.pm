@@ -31,7 +31,6 @@ use MediaWords::Solr;
 use MediaWords::Util::IdentifyLanguage;
 use MediaWords::Util::ParseJSON;
 use MediaWords::Util::Text;
-use MediaWords::Test::DB;
 
 # Max. length of the sentence to tokenize
 Readonly my $MAX_SENTENCE_LENGTH => 1024;

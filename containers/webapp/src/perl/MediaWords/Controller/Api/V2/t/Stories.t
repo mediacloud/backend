@@ -9,12 +9,9 @@ use Test::More;
 use Test::Deep;
 
 use MediaWords::Test::API;
-use MediaWords::Test::DB;
 use MediaWords::Test::Solr;
 use MediaWords::Test::Supervisor;
 use MediaWords::Test::Types;
-
-use MediaWords::Solr::Dump;
 
 Readonly my $NUM_MEDIA            => 3;
 Readonly my $NUM_FEEDS_PER_MEDIUM => 2;

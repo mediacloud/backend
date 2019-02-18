@@ -7,8 +7,8 @@ use MediaWords::CommonLibs;
 
 use Test::More;
 
-use MediaWords::Test::DB;
 use MediaWords::Util::Facebook;
+use MediaWords::Util::Config::Facebook;
 
 use Data::Dumper;
 
@@ -101,32 +101,9 @@ sub test_store_result($)
 
 sub main()
 {
-    my $config = MediaWords::Util::Config::get_config;
-    unless ($config->{ facebook }->{ enabled } + 0
-        and $config->{ facebook }->{ app_id }
-        and $config->{ facebook }->{ app_secret } )
-    {
-        # Facebook's API is not enabled, but maybe there are environment
-        # variables set by the automated testing environment
-        if ( defined $ENV{ 'MC_FACEBOOK_APP_ID' } and defined $ENV{ 'MC_FACEBOOK_APP_SECRET' } )
-        {
-            my $new_config = python_deep_copy( $config );
-
-            unless ( $new_config->{ facebook } )
-            {
-                $new_config->{ facebook } = {};
-            }
-            $new_config->{ facebook }->{ enabled }    = 1;
-            $new_config->{ facebook }->{ app_id }     = $ENV{ 'MC_FACEBOOK_APP_ID' };
-            $new_config->{ facebook }->{ app_secret } = $ENV{ 'MC_FACEBOOK_APP_SECRET' };
-
-            MediaWords::Util::Config::set_config( $new_config );
-        }
-        else
-        {
-            plan skip_all => "Facebook's API is not enabled.";
-            return;
-        }
+    unless ( MediaWords::Util::Config::Facebook::is_enabled() ) {
+        plan skip_all => "Facebook's API is not enabled.";
+        return;
     }
 
     plan tests => 24;
@@ -136,16 +113,11 @@ sub main()
     binmode $builder->failure_output, ":utf8";
     binmode $builder->todo_output,    ":utf8";
 
-    MediaWords::Test::DB::test_on_test_database(
-        sub {
-            my ( $db ) = @_;
+    my $db = MediaWords::DB::connect_to_db();
 
-            test_bogus_urls( $db );
-
-            test_share_comment_counts( $db );
-            test_store_result( $db );
-        }
-    );
+    test_bogus_urls( $db );
+    test_share_comment_counts( $db );
+    test_store_result( $db );
 }
 
 main();

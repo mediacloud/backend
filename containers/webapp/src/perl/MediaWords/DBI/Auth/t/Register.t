@@ -10,8 +10,6 @@ use Test::Deep;
 use URI;
 use URI::QueryParam;
 
-use MediaWords::Test::DB;
-
 use MediaWords::DBI::Auth::Register;
 use MediaWords::Util::Mail;
 
@@ -338,26 +336,11 @@ sub main
     # Don't actually send any emails
     MediaWords::Util::Mail::enable_test_mode();
 
-    MediaWords::Test::DB::test_on_test_database(
-        sub {
-            my $db = shift;
-            test_add_user( $db );
-        }
-    );
+    my $db = MediaWords::DB::connect_to_db();
 
-    MediaWords::Test::DB::test_on_test_database(
-        sub {
-            my $db = shift;
-            test_activate_user_via_token( $db );
-        }
-    );
-
-    MediaWords::Test::DB::test_on_test_database(
-        sub {
-            my $db = shift;
-            test_send_user_activation_token( $db );
-        }
-    );
+    test_add_user( $db );
+    test_activate_user_via_token( $db );
+    test_send_user_activation_token( $db );
 }
 
 main();

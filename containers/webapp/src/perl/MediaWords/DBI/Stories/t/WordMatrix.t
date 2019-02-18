@@ -8,7 +8,6 @@ use Test::Deep;
 use Test::More;
 
 use MediaWords::DBI::Stories::WordMatrix;
-use MediaWords::Test::DB;
 use MediaWords::Util::SQL;
 
 
@@ -131,15 +130,9 @@ sub test_get_story_word_matrix
 
 sub main
 {
-    MediaWords::Test::DB::test_on_test_database(
-        sub {
-            use Encode;
-            my ( $db ) = @_;
+    my $db = MediaWords::DB::connect_to_db();
 
-            test_get_story_word_matrix( $db );
-        }
-    );
-
+    test_get_story_word_matrix( $db );
 
     done_testing();
 }

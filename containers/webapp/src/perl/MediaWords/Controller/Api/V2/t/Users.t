@@ -9,7 +9,6 @@ use Test::More;
 use Test::Deep;
 
 use MediaWords::Test::API;
-use MediaWords::Test::DB;
 use MediaWords::Test::DB::Create;
 use MediaWords::Test::Solr;
 use MediaWords::Test::Supervisor;
@@ -136,7 +135,9 @@ SQL
 
 sub main
 {
-    MediaWords::Test::DB::test_on_test_database( \&test_users );
+    my $db = MediaWords::DB::connect_to_db();
+
+    test_users( $db );
 
     done_testing();
 }

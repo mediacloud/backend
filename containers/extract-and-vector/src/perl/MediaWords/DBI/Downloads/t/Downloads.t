@@ -17,7 +17,6 @@ use MediaWords::DBI::Stories::Extract;
 use MediaWords::DBI::Stories::ExtractorArguments;
 use MediaWords::DBI::Stories;
 use MediaWords::Test::Data;
-use MediaWords::Test::DB;
 use MediaWords::Test::Text;
 use MediaWords::Util::URL;
 
@@ -151,15 +150,11 @@ sub main
     binmode $builder->failure_output, ":utf8";
     binmode $builder->todo_output,    ":utf8";
 
+    my $db = MediaWords::DB::connect_to_db();
+
     test_extract_content( 'gv', 'index_1.html', 'Brazil: Amplified conversations to fight the Digital Crimes Bill' );
 
-    MediaWords::Test::DB::test_on_test_database(
-        sub {
-            my $db = shift;
-
-            test_extract( $db );
-        }
-    );
+    test_extract( $db );
 }
 
 main();

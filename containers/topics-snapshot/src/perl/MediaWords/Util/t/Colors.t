@@ -5,8 +5,6 @@ use utf8;
 use Test::NoWarnings;
 use Test::More tests => 166;
 
-use MediaWords::Test::DB;
-
 use_ok( 'MediaWords::Util::Colors' );
 
 sub test_get_consistent_color
@@ -91,26 +89,11 @@ sub test_get_consistent_color_create($)
 
 sub main
 {
-    MediaWords::Test::DB::test_on_test_database(
-        sub {
-            my ( $db ) = @_;
-            test_get_consistent_color( $db );
-        }
-    );
+    my $db = MediaWords::DB::connect_to_db();
 
-    MediaWords::Test::DB::test_on_test_database(
-        sub {
-            my ( $db ) = @_;
-            test_get_consistent_color_partisan( $db );
-        }
-    );
-
-    MediaWords::Test::DB::test_on_test_database(
-        sub {
-            my ( $db ) = @_;
-            test_get_consistent_color_create( $db );
-        }
-    );
+    test_get_consistent_color( $db );
+    test_get_consistent_color_partisan( $db );
+    test_get_consistent_color_create( $db );
 }
 
 main();

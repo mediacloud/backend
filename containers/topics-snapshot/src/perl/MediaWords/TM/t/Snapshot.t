@@ -6,7 +6,6 @@ use Test::More;
 
 use MediaWords::CommonLibs;
 
-use MediaWords::Test::DB;
 use MediaWords::TM::Snapshot;
 
 sub test_trim_to_giant_component

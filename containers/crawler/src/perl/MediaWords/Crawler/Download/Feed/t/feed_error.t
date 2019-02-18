@@ -12,7 +12,6 @@ use MediaWords::Test::HashServer;
 use Readonly;
 
 use MediaWords::Crawler::Engine;
-use MediaWords::Test::DB;
 
 Readonly my $HTTP_PORT => 8912;
 
@@ -77,13 +76,9 @@ sub test_invalid_feed($)
 
 sub main
 {
-    MediaWords::Test::DB::test_on_test_database(
-        sub {
-            my ( $db ) = @_;
+    my $db = MediaWords::DB::connect_to_db();
 
-            test_invalid_feed( $db );
-        }
-    );
+    test_invalid_feed( $db );
 }
 
 main();

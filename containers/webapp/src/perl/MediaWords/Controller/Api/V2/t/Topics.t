@@ -8,15 +8,12 @@ use MediaWords::CommonLibs;
 use Test::More;
 
 use MediaWords::Test::API;
-use MediaWords::Test::DB;
 
 use Catalyst::Test 'MediaWords';
 use Readonly;
 use MediaWords::Controller::Api::V2::Topics;
 use MediaWords::DBI::Auth::Roles;
 use MediaWords::Test::API;
-use MediaWords::Test::DB;
-use MediaWords::Test::DB::Create;
 use MediaWords::Test::DB::Create::User;
 
 Readonly my $NUM_MEDIA            => 5;
@@ -432,7 +429,9 @@ sub test_topics
 
 sub main
 {
-    MediaWords::Test::DB::test_on_test_database( \&test_topics );
+    my $db = MediaWords::DB::connect_to_db();
+
+    test_topics( $db );
 
     done_testing();
 }

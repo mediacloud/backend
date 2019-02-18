@@ -20,7 +20,6 @@ BEGIN
 
 use MediaWords::Solr::TagCounts;
 use MediaWords::Test::API;
-use MediaWords::Test::DB;
 use MediaWords::Test::Solr;
 use MediaWords::Test::Supervisor;
 

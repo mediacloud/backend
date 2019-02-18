@@ -20,7 +20,6 @@ use Test::More;
 use Text::Lorem::More;
 
 use MediaWords::TM::Mine;
-use MediaWords::Test::DB;
 use MediaWords::Test::Supervisor;
 use MediaWords::Util::SQL;
 use MediaWords::Util::Web;
@@ -612,7 +611,10 @@ sub run_nonspider_tests($)
 
 sub main
 {
-    MediaWords::Test::DB::test_on_test_database( \&run_nonspider_tests );
+    my $db = MediaWords::DB::connect_to_db();
+
+    run_nonspider_tests( $db );
+
     MediaWords::Test::Supervisor::test_with_supervisor( \&test_spider,
         [ 'job_broker:rabbitmq', 'extract_story_links', 'fetch_link' ] );
 }

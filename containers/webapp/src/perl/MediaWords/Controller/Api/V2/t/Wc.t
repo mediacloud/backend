@@ -9,7 +9,6 @@ use Test::More;
 use Test::Deep;
 
 use MediaWords::Test::API;
-use MediaWords::Test::DB;
 use MediaWords::Test::Solr;
 use MediaWords::Test::Supervisor;
 

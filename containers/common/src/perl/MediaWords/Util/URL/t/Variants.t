@@ -17,7 +17,6 @@ use Data::Dumper;
 
 use MediaWords::Util::URL::Variants;
 
-use MediaWords::Test::DB;
 use MediaWords::Test::URLs;
 
 Readonly my $TEST_HTTP_SERVER_PORT => 9998;
@@ -253,30 +252,11 @@ sub main()
     binmode $builder->failure_output, ":utf8";
     binmode $builder->todo_output,    ":utf8";
 
-    MediaWords::Test::DB::test_on_test_database(
-        sub {
-            my ( $db ) = @_;
+    my $db = MediaWords::DB::connect_to_db();
 
-            test_all_url_variants( $db );
-        }
-    );
-
-    MediaWords::Test::DB::test_on_test_database(
-        sub {
-            my ( $db ) = @_;
-
-            test_all_url_variants_invalid_variants( $db );
-        }
-    );
-
-    MediaWords::Test::DB::test_on_test_database(
-        sub {
-            my ( $db ) = @_;
-
-            test_get_topic_url_variants( $db );
-        }
-    );
-
+    test_all_url_variants( $db );
+    test_all_url_variants_invalid_variants( $db );
+    test_get_topic_url_variants( $db );
 }
 
 main();

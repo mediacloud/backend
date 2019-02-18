@@ -15,11 +15,11 @@ use Readonly;
 use Test::More;
 
 use MediaWords;
+use MediaWords::TM::Snapshot;
 use MediaWords::DB::Schema;
 use MediaWords::DBI::Auth::Roles;
 use MediaWords::Solr::Dump;
 use MediaWords::Test::API;
-use MediaWords::Test::DB;
 use MediaWords::Test::Solr;
 use MediaWords::Test::Supervisor;
 use MediaWords::Util::Web;

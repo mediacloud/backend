@@ -10,8 +10,6 @@ use Test::Deep;
 use URI;
 use URI::QueryParam;
 
-use MediaWords::Test::DB;
-
 use MediaWords::DBI::Auth::ChangePassword;
 use MediaWords::DBI::Auth::Register;
 use MediaWords::DBI::Auth::ResetPassword;
@@ -349,33 +347,12 @@ sub main
     # Don't actually send any emails
     MediaWords::Util::Mail::enable_test_mode();
 
-    MediaWords::Test::DB::test_on_test_database(
-        sub {
-            my $db = shift;
-            test_change_password( $db );
-        }
-    );
+    my $db = MediaWords::DB::connect_to_db();
 
-    MediaWords::Test::DB::test_on_test_database(
-        sub {
-            my $db = shift;
-            test_change_password_with_old_password( $db );
-        }
-    );
-
-    MediaWords::Test::DB::test_on_test_database(
-        sub {
-            my $db = shift;
-            test_change_password_with_reset_token( $db );
-        }
-    );
-
-    MediaWords::Test::DB::test_on_test_database(
-        sub {
-            my $db = shift;
-            test_send_password_reset_token( $db );
-        }
-    );
+    test_change_password( $db );
+    test_change_password_with_old_password( $db );
+    test_change_password_with_reset_token( $db );
+    test_send_password_reset_token( $db );
 }
 
 main();

@@ -9,7 +9,6 @@ use Test::More tests => 76;
 use Test::Deep;
 
 use MediaWords::Test::API;
-use MediaWords::Test::DB;
 
 sub test_tag_sets($)
 {
@@ -62,7 +61,9 @@ sub test_tag_sets($)
 
 sub main
 {
-    MediaWords::Test::DB::test_on_test_database( \&test_tag_sets );
+    my $db = MediaWords::DB::connect_to_db();
+
+    test_tag_sets( $db );
 }
 
 main();

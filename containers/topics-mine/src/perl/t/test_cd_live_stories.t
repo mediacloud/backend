@@ -8,7 +8,6 @@ use English '-no_match_vars';
 use Test::More tests => 14;
 use Test::Deep;
 
-use MediaWords::Test::DB;
 use MediaWords::Util::SQL;
 
 BEGIN
@@ -173,14 +172,9 @@ sub test_live_stories
 
 sub main
 {
-    MediaWords::Test::DB::test_on_test_database(
-        sub {
-            use Encode;
-            my ( $db ) = @_;
+    my $db = MediaWords::DB::connect_to_db();
 
-            test_live_stories( $db );
-        }
-    );
+    test_live_stories( $db );
 }
 
 main();

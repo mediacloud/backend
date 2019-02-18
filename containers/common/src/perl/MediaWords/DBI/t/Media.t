@@ -7,7 +7,6 @@ use Readonly;
 use Test::More;
 
 use MediaWords::DBI::Media;
-use MediaWords::Test::DB;
 
 # test that medium_is_ready_for_analysis returns false when there are few than 100 stories and they are recent
 sub test_few_recent_stories($)
@@ -99,14 +98,9 @@ sub test_medium_is_ready_for_analysis
 
 sub main
 {
-    MediaWords::Test::DB::test_on_test_database(
-        sub {
-            use Encode;
-            my ( $db ) = @_;
+    my $db = MediaWords::DB::connect_to_db();
 
-            test_medium_is_ready_for_analysis( $db );
-        }
-    );
+    test_medium_is_ready_for_analysis( $db );
 
     done_testing();
 }

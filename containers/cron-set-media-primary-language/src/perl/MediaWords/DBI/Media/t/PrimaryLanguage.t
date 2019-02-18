@@ -8,7 +8,6 @@ use Test::More;
 
 use MediaWords::DBI::Media;
 use MediaWords::DBI::Media::PrimaryLanguage;
-use MediaWords::Test::DB;
 
 # test that the given medium has the given language tag
 sub test_medium_language_tag($$$$)
@@ -83,14 +82,9 @@ sub test_media_primary_language
 
 sub main
 {
-    MediaWords::Test::DB::test_on_test_database(
-        sub {
-            use Encode;
-            my ( $db ) = @_;
+    my $db = MediaWords::DB::connect_to_db();
 
-            test_media_primary_language( $db );
-        }
-    );
+    test_media_primary_language( $db );
 
     done_testing();
 }

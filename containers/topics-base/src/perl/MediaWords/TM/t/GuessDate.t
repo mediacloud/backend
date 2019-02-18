@@ -9,7 +9,6 @@ use utf8;
 
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
-use MediaWords::Test::DB;
 use Readonly;
 
 # Integer constants (in case Date::Parse::str2time fails)

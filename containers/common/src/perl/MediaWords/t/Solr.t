@@ -17,7 +17,6 @@ BEGIN
     use_ok( 'MediaWords::Solr' );
 }
 
-use MediaWords::Test::DB;
 use MediaWords::Test::DB::Create;
 use MediaWords::Test::Solr;
 use MediaWords::Test::Supervisor;
@@ -352,9 +351,11 @@ SQL
 
 sub main
 {
+    my $db = MediaWords::DB::connect_to_db();
+
     test_solr_stories_only_query();
 
-    MediaWords::Test::DB::test_on_test_database( \&test_collections_id_queries );
+    test_collections_id_queries( $db );
 
     MediaWords::Test::Supervisor::test_with_supervisor( \&run_solr_tests, [ qw/solr_standalone/ ] );
 

@@ -33,8 +33,7 @@ use Encode;
 
 use MediaWords::TM::GuessDate;
 use MediaWords::CommonLibs;
-use MediaWords::DBI::Downloads::Extract;
-use MediaWords::DBI::Downloads::Store;
+use MediaWords::DBI::Downloads;
 use MediaWords::DBI::Stories;
 use MediaWords::Util::ParseHTML;
 use MediaWords::Util::SQL;
@@ -352,9 +351,9 @@ sub _add_story_download
 
         $download = $db->create( 'downloads', $download );
 
-        $download = MediaWords::DBI::Downloads::Store::store_content( $db, $download, $content );
+        $download = MediaWords::DBI::Downloads::store_content( $db, $download, $content );
 
-        eval { MediaWords::DBI::Downloads::Extract::process_download_for_extractor( $db, $download ); };
+        eval { MediaWords::DBI::Downloads::process_download_for_extractor( $db, $download ); };
 
         WARN "extract error processing download $download->{ downloads_id }: $@" if ( $@ );
     }

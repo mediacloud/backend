@@ -9,7 +9,6 @@ use Test::More;
 use Test::Deep;
 
 use MediaWords::Test::API;
-use MediaWords::Test::DB;
 use MediaWords::Test::DB::Create;
 
 use MediaWords::DBI::Downloads;
@@ -57,7 +56,9 @@ SQL
 
 sub main
 {
-    MediaWords::Test::DB::test_on_test_database( \&test_mediahealth );
+    my $db = MediaWords::DB::connect_to_db();
+
+    test_mediahealth( $db );
 
     done_testing();
 }

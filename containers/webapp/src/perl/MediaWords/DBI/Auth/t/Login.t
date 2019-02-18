@@ -8,8 +8,6 @@ use Readonly;
 use Test::More tests => 29;
 use Test::Deep;
 
-use MediaWords::Test::DB;
-
 use MediaWords::DBI::Auth::Login;
 use MediaWords::DBI::Auth::Register;
 use MediaWords::Util::Mail;
@@ -195,19 +193,10 @@ sub main
     # Don't actually send any emails
     MediaWords::Util::Mail::enable_test_mode();
 
-    MediaWords::Test::DB::test_on_test_database(
-        sub {
-            my $db = shift;
-            test_login_with_email_password( $db );
-        }
-    );
+    my $db = MediaWords::DB::connect_to_db();
 
-    MediaWords::Test::DB::test_on_test_database(
-        sub {
-            my $db = shift;
-            test_login_with_api_key( $db );
-        }
-    );
+    test_login_with_email_password( $db );
+    test_login_with_api_key( $db );
 }
 
 main();

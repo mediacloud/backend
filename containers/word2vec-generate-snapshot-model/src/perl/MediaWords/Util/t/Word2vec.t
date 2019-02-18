@@ -10,7 +10,6 @@ use Test::Deep;
 
 use Readonly;
 
-use MediaWords::Test::DB;
 use MediaWords::KeyValueStore::PostgreSQL;
 use MediaWords::Util::Word2vec;
 
@@ -56,13 +55,9 @@ sub main()
     binmode $builder->failure_output, ":utf8";
     binmode $builder->todo_output,    ":utf8";
 
-    MediaWords::Test::DB::test_on_test_database(
-        sub {
-            my ( $db ) = @_;
+    my $db = MediaWords::DB::connect_to_db();
 
-            test_load_word2vec_model( $db );
-        }
-    );
+    test_load_word2vec_model( $db );
 }
 
 main();

@@ -4,7 +4,6 @@ use warnings;
 use Test::More tests => 12;
 use Test::NoWarnings;
 
-use MediaWords::Test::DB;
 use MediaWords::DBI::Feeds;
 
 # test feed checksumming
@@ -101,15 +100,11 @@ sub test_stories_checksum_matches_feed
 
 sub main
 {
-    MediaWords::Test::DB::test_on_test_database(
-        sub {
-            my $db = shift;
+    my $db = MediaWords::DB::connect_to_db();
+    
+    test_stories_checksum_matches_feed( $db );
 
-            test_stories_checksum_matches_feed( $db );
-
-            Test::NoWarnings::had_no_warnings();
-        }
-    );
+    Test::NoWarnings::had_no_warnings();
 }
 
 main();

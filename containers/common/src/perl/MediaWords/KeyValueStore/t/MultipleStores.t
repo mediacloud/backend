@@ -7,27 +7,22 @@ use FindBin;
 use MediaWords::KeyValueStore::AmazonS3;
 use MediaWords::KeyValueStore::PostgreSQL;
 use MediaWords::KeyValueStore::MultipleStores;
-use MediaWords::Test::DB;
 use MediaWords::Util::Config::Common;
 
 sub main()
 {
-    MediaWords::Test::DB::test_on_test_database(
-        sub {
-            my ( $db ) = @_;
+    my $db = MediaWords::DB::connect_to_db();
 
-            my $postgresql      = MediaWords::KeyValueStore::PostgreSQL->new( { table => 'raw_downloads' } );
-            my $s3              = s3_download_handler( 'MediaWords::KeyValueStore::AmazonS3' );
-            my $multiple_stores = MediaWords::KeyValueStore::MultipleStores->new(
-                {
-                    stores_for_reading => [ $postgresql, $s3 ],
-                    stores_for_writing => [ $postgresql, $s3 ],
-                }
-            );
-
-            test_postgresql( $db, $multiple_stores );
+    my $postgresql      = MediaWords::KeyValueStore::PostgreSQL->new( { table => 'raw_downloads' } );
+    my $s3              = s3_download_handler( 'MediaWords::KeyValueStore::AmazonS3' );
+    my $multiple_stores = MediaWords::KeyValueStore::MultipleStores->new(
+        {
+            stores_for_reading => [ $postgresql, $s3 ],
+            stores_for_writing => [ $postgresql, $s3 ],
         }
     );
+
+    test_postgresql( $db, $multiple_stores );
 }
 
 my $common_config = MediaWords::Util::Config::Common->new();

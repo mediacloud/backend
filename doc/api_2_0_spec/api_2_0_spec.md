@@ -634,6 +634,39 @@ Be aware that ':' is usually replaced with '%3A' in programmatically generated U
 Solr range queries may only be used within the fq parameter.  Using a range query in the main q query will result in
 an error.
 
+In addition, there following fields may be entered as pseudo queries within the Solr query:
+
+| Pseudo Query Field                        | Description
+| ---------------------------- | -----------------------------------------------------
+| topic            | a topic id
+| timespan         | a timespan id
+| link_from_tag    | a tag id, returns stories linked from stories associated with the tag
+| link_to_story    | a story id, returns stories that link to the story
+| link_from_story  | a story id, returns stories that are linked from the story
+| link_to_medium   | a medium id, returns stories that link to stories within the medium
+| link_from_medium | link_from_medium, returns stories that are linked from stories within the medium
+
+To include one of these fields in a larger Solr query, delineate with {~ }, for example:
+
+{~ topic:1 } and media_id:1
+
+The API will translate the given pseudo query into a stories_id: clause in the larger Solr query.  So the above query
+will be translated into the following, including topic 1 consists of stories with ids 1, 2, 3, and 4.
+
+stories_id:( 1 2 3 4 ) and media_id:1
+
+If '-1' is appended to the timespan query field value, the pseudo query will match stories
+from the live topic matching the given time slice rather than from the dump.  For example, the following will
+live stories from timespan 1234:
+
+{~ timespan:1234-1 }
+
+The link_* pseudo query fields all must be within the same {~ } clause as a timespan query and
+return links from the associated timespan.  For example, the following returns stories that
+link to story 5678 within the specified time slice:
+
+{~ timespan:1234-1 link_to_story:5678 }
+
 ### Example
 
 The output of these calls is in exactly the same format as for the api/v2/stories_public/single call.

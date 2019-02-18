@@ -6,7 +6,6 @@ use Test::More tests => 3;
 
 use MediaWords::CommonLibs;
 
-use MediaWords::Test::DB;
 use MediaWords::Test::DB::Create;
 use MediaWords::TM::Mine;
 use MediaWords::TM::Stories;
@@ -55,16 +54,11 @@ sub test_die_if_max_stories_exceeded($)
     ok( $@, "$label adding 2001 stories to a 100 max_stories generates an error" );
 }
 
-sub test_mine($)
+sub main()
 {
-    my ( $db ) = @_;
+    my $db = MediaWords::DB::connect_to_db();
 
     test_die_if_max_stories_exceeded( $db );
-}
-
-sub main
-{
-    MediaWords::Test::DB::test_on_test_database( \&test_mine );
 }
 
 main();

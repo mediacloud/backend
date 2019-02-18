@@ -32,7 +32,6 @@ use MediaWords::DBI::DownloadTexts;
 use MediaWords::DBI::Stories;
 use MediaWords::DBI::Stories::Extract;
 use MediaWords::Test::Data;
-use MediaWords::Test::DB;
 use MediaWords::Test::LocalServer;
 use MediaWords::Test::Text;
 use MediaWords::Util::DateTime;
@@ -350,35 +349,31 @@ sub _test_crawler($$$)
 {
     my ( $test_name, $test_prefix, $stories_count ) = @_;
 
-    MediaWords::Test::DB::test_on_test_database(
-        sub {
-            my ( $db ) = @_;
+    my $db = MediaWords::DB::connect_to_db();
 
-            my $crawler_data_location = MediaWords::Test::Data::get_path_to_data_files( 'crawler' );
+    my $crawler_data_location = MediaWords::Test::Data::get_path_to_data_files( 'crawler' );
 
-            my $test_http_server = MediaWords::Test::LocalServer->new( $crawler_data_location );
-            $test_http_server->start();
-            my $url_to_crawl = $test_http_server->url();
+    my $test_http_server = MediaWords::Test::LocalServer->new( $crawler_data_location );
+    $test_http_server->start();
+    my $url_to_crawl = $test_http_server->url();
 
-            INFO "Adding test feed...";
-            _add_test_feed( $db, $url_to_crawl, $test_name, $test_prefix );
+    INFO "Adding test feed...";
+    _add_test_feed( $db, $url_to_crawl, $test_name, $test_prefix );
 
-            INFO "Starting crawler...";
-            _run_crawler();
+    INFO "Starting crawler...";
+    _run_crawler();
 
-            if ( defined( $ARGV[ 0 ] ) && ( $ARGV[ 0 ] eq '-d' ) )
-            {
-                INFO "Dumping stories...";
-                _dump_stories( $db, $test_name, $test_prefix );
-            }
+    if ( defined( $ARGV[ 0 ] ) && ( $ARGV[ 0 ] eq '-d' ) )
+    {
+        INFO "Dumping stories...";
+        _dump_stories( $db, $test_name, $test_prefix );
+    }
 
-            INFO "Testing stories...";
-            _test_stories( $db, $test_name, $test_prefix, $stories_count );
+    INFO "Testing stories...";
+    _test_stories( $db, $test_name, $test_prefix, $stories_count );
 
-            INFO "Killing server";
-            $test_http_server->stop();
-        }
-    );
+    INFO "Killing server";
+    $test_http_server->stop();
 }
 
 sub main

@@ -8,7 +8,6 @@ use Test::More tests => 77;
 use Test::NoWarnings;
 use Test::Deep;
 
-use MediaWords::Test::DB;
 use MediaWords::DBI::Media::Rescrape;
 
 use MediaWords::Test::HashServer;
@@ -496,17 +495,12 @@ sub main()
         \&test_media_with_same_set_of_feeds,                                            #
     );
 
+    my $db = MediaWords::DB::connect_to_db();
+
     foreach my $test_subroutine_ref ( @test_subroutines )
     {
-        MediaWords::Test::DB::test_on_test_database(
-            sub {
-                my $db = shift;
-
-                $test_subroutine_ref->( $db );
-
-                Test::NoWarnings::had_no_warnings();
-            }
-        );
+        my $db = MediaWords::DB::connect_to_db();
+        $test_subroutine_ref->( $db );
     }
 }
 

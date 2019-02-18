@@ -17,7 +17,6 @@ use Test::More;
 use Test::Deep;
 
 use MediaWords::DB;
-use MediaWords::Test::DB;
 use MediaWords::Crawler::Engine;
 use MediaWords::Util::ParseJSON;
 use MediaWords::Test::HashServer;
@@ -146,33 +145,29 @@ sub test_univision($$$)
 {
     my ( $univision_url, $univision_client_id, $univision_client_secret ) = @_;
 
+    my $db = MediaWords::DB::connect_to_db();
+
     test_api_request_signature();
     test_api_request( $univision_url, $univision_client_id, $univision_client_secret );
 
-    MediaWords::Test::DB::test_on_test_database(
-        sub {
-            my $db = shift;
+    my $config     = MediaWords::Util::Config::get_config();
+    my $new_config = python_deep_copy( $config );
 
-            my $config     = MediaWords::Util::Config::get_config();
-            my $new_config = python_deep_copy( $config );
+    # Inject Univision credentials into configuration
+    $new_config->{ univision } = {};
+    my $old_univision_client_id     = $config->{ univision }->{ client_id };
+    my $old_univision_client_secret = $config->{ univision }->{ client_secret };
+    $new_config->{ univision }->{ client_id }     = $univision_client_id;
+    $new_config->{ univision }->{ client_secret } = $univision_client_secret;
+    MediaWords::Util::Config::set_config( $new_config );
 
-            # Inject Univision credentials into configuration
-            $new_config->{ univision } = {};
-            my $old_univision_client_id     = $config->{ univision }->{ client_id };
-            my $old_univision_client_secret = $config->{ univision }->{ client_secret };
-            $new_config->{ univision }->{ client_id }     = $univision_client_id;
-            $new_config->{ univision }->{ client_secret } = $univision_client_secret;
-            MediaWords::Util::Config::set_config( $new_config );
+    test_fetch_handle_download( $db, $univision_url );
+    Test::NoWarnings::had_no_warnings();
 
-            test_fetch_handle_download( $db, $univision_url );
-            Test::NoWarnings::had_no_warnings();
-
-            # Reset configuration
-            $new_config->{ univision }->{ client_id }     = $old_univision_client_id;
-            $new_config->{ univision }->{ client_secret } = $old_univision_client_secret;
-            MediaWords::Util::Config::set_config( $new_config );
-        }
-    );
+    # Reset configuration
+    $new_config->{ univision }->{ client_id }     = $old_univision_client_id;
+    $new_config->{ univision }->{ client_secret } = $old_univision_client_secret;
+    MediaWords::Util::Config::set_config( $new_config );
 }
 
 sub main()

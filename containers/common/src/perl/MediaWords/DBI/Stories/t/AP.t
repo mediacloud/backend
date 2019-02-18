@@ -7,7 +7,6 @@ use Test::NoWarnings;
 use MediaWords::CommonLibs;
 
 use Data::Dumper;
-use MediaWords::Test::DB;
 use MediaWords::Test::DB::Create;
 use MediaWords::DBI::Stories::AP;
 
@@ -130,7 +129,8 @@ STORY
 
 sub main()
 {
-    MediaWords::Test::DB::test_on_test_database( \&test_ap_calls );
+    my $db = MediaWords::DB::connect_to_db();
+    test_ap_calls( $db );
 }
 
 main();

@@ -12,7 +12,6 @@ use MediaWords::Test::HashServer;
 use Test::More tests => 6;
 
 use MediaWords::Crawler::Engine;
-use MediaWords::Test::DB;
 use MediaWords::Util::Config;
 
 # call the fetcher on the given feed and return the response
@@ -75,13 +74,9 @@ sub test_auth
 
 sub main
 {
-    MediaWords::Test::DB::test_on_test_database(
-        sub {
-            my ( $db ) = @_;
+    my $db = MediaWords::DB::connect_to_db();
 
-            test_auth( $db );
-        }
-    );
+    test_auth( $db );
 }
 
 main();
