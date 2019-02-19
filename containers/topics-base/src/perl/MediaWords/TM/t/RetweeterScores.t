@@ -9,6 +9,7 @@ use Test::More tests => 600;
 use Text::CSV_XS;
 
 use MediaWords::TM::RetweeterScores;
+use MediaWords::Test::Rows;
 
 Readonly my $NUM_TWITTER_USERS   => 11;
 Readonly my $NUM_RETWEETED_USERS => 4;
@@ -247,7 +248,7 @@ SQL
     map { push( @{ $expected_group_users }, { retweeter_groups_id => 1, retweeted_user => $_ } ) } @{ $rt_users_a };
     map { push( @{ $expected_group_users }, { retweeter_groups_id => 2, retweeted_user => $_ } ) } @{ $rt_users_b };
 
-    MediaWords::Test::API::rows_match( $label, $got_group_users, $expected_group_users, 'retweeted_user', [ qw/retweeter_groups_id/ ] );
+    MediaWords::Test::Rows::rows_match( $label, $got_group_users, $expected_group_users, 'retweeted_user', [ qw/retweeter_groups_id/ ] );
 }
 
 # validate that the rows in retweeter_stories match the counts for
@@ -353,7 +354,7 @@ SQL
     my $got_retweeter_media = $db->query( "select * from retweeter_media" )->hashes;
 
     my $fields = [ qw/media_id group_a_count group_b_count group_a_count_n score/ ];
-    MediaWords::Test::API::rows_match( $label, $got_retweeter_media, $expected_retweeter_media, 'media_id', $fields );
+    MediaWords::Test::Rows::rows_match( $label, $got_retweeter_media, $expected_retweeter_media, 'media_id', $fields );
 }
 
 # given a file name, open the file, parse it as a csv, and return a list of hashes.
@@ -403,7 +404,7 @@ select * from retweeter_media where retweeter_scores_id = ?
 SQL
 
     my $fields = [ qw/retweeter_scores_id media_id group_a_count group_b_count group_a_count_n score partition/ ];
-    MediaWords::Test::API::rows_match( "generate_media_csv", $got_rows, $expected_rows, 'media_id', $fields );
+    MediaWords::Test::Rows::rows_match( "generate_media_csv", $got_rows, $expected_rows, 'media_id', $fields );
 }
 
 sub _validate_matrix_csv($)
@@ -421,7 +422,7 @@ select * from retweeter_partition_matrix where retweeter_scores_id = ?
 SQL
 
     my $fields = [ qw/retweeter_scores_id retweeter_groups_id group_name share_count group_proportion partition/ ];
-    MediaWords::Test::API::rows_match( "generate_matrix_csv", $got_rows, $expected_rows, 'retweeter_partition_matrix_id', $fields );
+    MediaWords::Test::Rows::rows_match( "generate_matrix_csv", $got_rows, $expected_rows, 'retweeter_partition_matrix_id', $fields );
 }
 
 sub test_retweeter_scores($)

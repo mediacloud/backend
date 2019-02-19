@@ -9,6 +9,7 @@ use Test::More;
 use Test::Deep;
 
 use MediaWords::Test::API;
+use MediaWords::Test::Rows;
 use MediaWords::Test::DB::Create;
 use MediaWords::Test::Solr;
 use MediaWords::Test::Supervisor;
@@ -42,14 +43,14 @@ sub test_users($)
     my $r = MediaWords::Test::API::test_get( '/api/v2/users/list', {} );
 
     my $fields = [ qw ( email full_name notes created_date max_topic_stories weekly_requests_limit ) ];
-    MediaWords::Test::API::rows_match( $label, $r->{ users }, $expected_auth_users, "auth_users_id", $fields );
+    MediaWords::Test::Rows::rows_match( $label, $r->{ users }, $expected_auth_users, "auth_users_id", $fields );
 
     $label = "users/single";
 
     my $expected_single = $expected_auth_users->[ 0 ];
 
     $r = MediaWords::Test::API::test_get( '/api/v2/users/single/' . $expected_single->{ auth_users_id }, {} );
-    MediaWords::Test::API::rows_match( $label, $r->{ users }, [ $expected_single ], 'auth_users_id', $fields );
+    MediaWords::Test::Rows::rows_match( $label, $r->{ users }, [ $expected_single ], 'auth_users_id', $fields );
 
     $label = "search";
 
@@ -62,7 +63,7 @@ sub test_users($)
     $search_user = $db->create( 'auth_users', $search_user );
 
     $r = MediaWords::Test::API::test_get( '/api/v2/users/list', { search => 'search' } );
-    MediaWords::Test::API::rows_match( $label, $r->{ users }, [ $search_user ], 'auth_users_id', [ 'auth_users_id' ] );
+    MediaWords::Test::Rows::rows_match( $label, $r->{ users }, [ $search_user ], 'auth_users_id', [ 'auth_users_id' ] );
 
     $label = 'update';
 
@@ -84,7 +85,7 @@ select au.*, aul.weekly_requests_limit
     where au.auth_users_id = ?
 SQL
 
-    MediaWords::Test::API::rows_match( $label, [ $updated_user ], [ $input_data ], 'auth_users_id', [ keys( %{ $input_data } ) ] );
+    MediaWords::Test::Rows::rows_match( $label, [ $updated_user ], [ $input_data ], 'auth_users_id', [ keys( %{ $input_data } ) ] );
 
     $label = 'roles';
 
@@ -96,7 +97,7 @@ SQL
     my $expected_auth_roles = $db->query( "select * from auth_roles" )->hashes();
 
     $r = MediaWords::Test::API::test_get( '/api/v2/users/list_roles', {} );
-    MediaWords::Test::API::rows_match( $label, $r->{ roles }, $expected_auth_roles, 'auth_roles_id', [ qw/role description/ ] );
+    MediaWords::Test::Rows::rows_match( $label, $r->{ roles }, $expected_auth_roles, 'auth_roles_id', [ qw/role description/ ] );
 
     $label = 'roles update';
 

@@ -22,6 +22,7 @@ requires 'MooseX::Singleton';
 requires 'Net::AMQP::RabbitMQ';
 requires 'Readonly';
 requires 'Readonly::XS';
+requires 'Regexp::Common';
 requires 'Test::Deep';
 requires 'Test::Differences';
 requires 'Test::NoWarnings';

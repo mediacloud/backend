@@ -20,6 +20,7 @@ BEGIN
 use MediaWords::Test::DB::Create;
 use MediaWords::Test::Solr;
 use MediaWords::Test::Supervisor;
+use MediaWords::Test::Rows;
 
 # run the given set of params against _gsifsop and verify that the given list of stories_ids (or undef) is returned
 sub test_stories_id_query
@@ -221,7 +222,7 @@ SQL
           MediaWords::Solr::search_for_stories( $db, { q => '*:*', fq => "stories_id:[$min_stories_id TO *]" } );
 
         my $fields = [ qw/title publish_date url guid media_id language/ ];
-        MediaWords::Test::API::rows_match( 'search_for_stories', $got_stories, $expected_stories, 'stories_id', $fields );
+        MediaWords::Test::Rows::rows_match( 'search_for_stories', $got_stories, $expected_stories, 'stories_id', $fields );
     }
 
     {
@@ -231,7 +232,7 @@ SQL
         my $got_media      = MediaWords::Solr::search_for_media( $db, { q => "media_id:$media_id" } );
 
         my $fields = [ qw/url name/ ];
-        MediaWords::Test::API::rows_match( 'search_for_media', $got_media, $expected_media, 'media_id', $fields );
+        MediaWords::Test::Rows::rows_match( 'search_for_media', $got_media, $expected_media, 'media_id', $fields );
     }
 
     {
@@ -249,7 +250,7 @@ SQL
         my $got_sentences      = MediaWords::Solr::query_matching_sentences( $db, { q => $query } );
 
         my $fields = [ qw/stories_id sentence_number sentence media_id publish_date language/ ];
-        MediaWords::Test::API::rows_match( "query_matching_sentences '$test_word'",
+        MediaWords::Test::Rows::rows_match( "query_matching_sentences '$test_word'",
             $got_sentences, $expected_sentences, 'story_sentences_id', $fields );
     }
 
@@ -263,7 +264,7 @@ SQL
         my $got_sentences = MediaWords::Solr::query_matching_sentences( $db, { q => $query } );
 
         my $fields = [ qw/stories_id sentence_number sentence media_id publish_date language/ ];
-        MediaWords::Test::API::rows_match( 'query_matching_sentences empty regex', $got_sentences, $story_sentences, 'story_sentences_id',
+        MediaWords::Test::Rows::rows_match( 'query_matching_sentences empty regex', $got_sentences, $story_sentences, 'story_sentences_id',
             $fields );
     }
 

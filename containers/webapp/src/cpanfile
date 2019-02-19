@@ -16,7 +16,6 @@ requires 'HTTP::Request';
 requires 'JSON::PP';
 requires 'Math::Prime::Util';
 requires 'namespace::autoclean';
-requires 'Regexp::Common';
 requires 'Net::IP';
 requires 'Template';
 requires 'XML::Simple';

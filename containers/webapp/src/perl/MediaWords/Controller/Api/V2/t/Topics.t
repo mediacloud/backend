@@ -7,13 +7,12 @@ use MediaWords::CommonLibs;
 
 use Test::More;
 
-use MediaWords::Test::API;
-
 use Catalyst::Test 'MediaWords';
 use Readonly;
 use MediaWords::Controller::Api::V2::Topics;
 use MediaWords::DBI::Auth::Roles;
 use MediaWords::Test::API;
+use MediaWords::Test::Rows;
 use MediaWords::Test::DB::Create::User;
 
 Readonly my $NUM_MEDIA            => 5;
@@ -112,14 +111,14 @@ sub test_controversies($)
     my $got_controversies = MediaWords::Test::API::test_get( '/api/v2/controversies/list', {} );
 
     my $fields = [ qw/controversies_id name pattern solr_seed_query description max_iterations/ ];
-    MediaWords::Test::API::rows_match( $label, $got_controversies, $expected_topics, "controversies_id", $fields );
+    MediaWords::Test::Rows::rows_match( $label, $got_controversies, $expected_topics, "controversies_id", $fields );
 
     $label = "controversies/single";
 
     my $expected_single = $expected_topics->[ 0 ];
 
     my $got_controversy = MediaWords::Test::API::test_get( '/api/v2/controversies/single/' . $expected_single->{ topics_id }, {} );
-    MediaWords::Test::API::rows_match( $label, $got_controversy, [ $expected_single ], 'controversies_id', $fields );
+    MediaWords::Test::Rows::rows_match( $label, $got_controversy, [ $expected_single ], 'controversies_id', $fields );
 }
 
 # test controversy_dumps/list and single
@@ -154,14 +153,14 @@ SQL
     my $got_cds = MediaWords::Test::API::test_get( '/api/v2/controversy_dumps/list', { controversies_id => $topic->{ topics_id } } );
 
     my $fields = [ qw/controversies_id controversy_dumps_id start_date end_date note/ ];
-    MediaWords::Test::API::rows_match( $label, $got_cds, $expected_snapshots, 'controversy_dumps_id', $fields );
+    MediaWords::Test::Rows::rows_match( $label, $got_cds, $expected_snapshots, 'controversy_dumps_id', $fields );
 
     $label = 'controversy_dumps/single';
 
     my $expected_snapshot = $expected_snapshots->[ 0 ];
 
     my $got_cd = MediaWords::Test::API::test_get( '/api/v2/controversy_dumps/single/' . $expected_snapshot->{ snapshots_id }, {} );
-    MediaWords::Test::API::rows_match( $label, $got_cd, [ $expected_snapshot ], 'controversy_dumps_id', $fields );
+    MediaWords::Test::Rows::rows_match( $label, $got_cd, [ $expected_snapshot ], 'controversy_dumps_id', $fields );
 }
 
 # test controversy_dump_time_slices/list and single
@@ -209,14 +208,14 @@ SQL
       MediaWords::Test::API::test_get( '/api/v2/controversy_dump_time_slices/list', { controversy_dumps_id => $snapshot->{ snapshots_id } } );
 
     my $fields = [ qw/controversy_dumps_id start_date end_date period/, @{ $metrics } ];
-    MediaWords::Test::API::rows_match( $label, $got_cdtss, $expected_timespans, 'controversy_dump_time_slices_id', $fields );
+    MediaWords::Test::Rows::rows_match( $label, $got_cdtss, $expected_timespans, 'controversy_dump_time_slices_id', $fields );
 
     $label = 'controversy_dump_time_slices/single';
 
     my $expected_timespan = $expected_timespans->[ 0 ];
 
     my $got_cdts = MediaWords::Test::API::test_get( '/api/v2/controversy_dump_time_slices/single/' . $expected_timespan->{ timespans_id }, {} );
-    MediaWords::Test::API::rows_match( $label, $got_cdts, [ $expected_timespan ], 'controversy_dump_time_slices_id', $fields );
+    MediaWords::Test::Rows::rows_match( $label, $got_cdts, [ $expected_timespan ], 'controversy_dump_time_slices_id', $fields );
 }
 
 sub test_update_query_scope($)

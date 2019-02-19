@@ -9,6 +9,7 @@ use Test::More;
 use Test::Deep;
 
 use MediaWords::Test::API;
+use MediaWords::Test::Rows;
 use MediaWords::Test::DB::Create;
 
 use MediaWords::DBI::Downloads::Store;
@@ -50,14 +51,14 @@ sub test_downloads($)
     my $got_downloads = MediaWords::Test::API::test_get( '/api/v2/downloads/list', { feeds_id => $feed->{ feeds_id } } );
 
     my $fields = [ qw/feeds_id url type state priority sequence download_time host/ ];
-    MediaWords::Test::API::rows_match( $label, $got_downloads, $expected_downloads, "downloads_id", $fields );
+    MediaWords::Test::Rows::rows_match( $label, $got_downloads, $expected_downloads, "downloads_id", $fields );
 
     $label = "downloads/single";
 
     my $expected_single = $expected_downloads->[ 0 ];
 
     my $got_download = MediaWords::Test::API::test_get( '/api/v2/downloads/single/' . $expected_single->{ downloads_id }, {} );
-    MediaWords::Test::API::rows_match( $label, $got_download, [ $expected_single ], 'downloads_id', $fields );
+    MediaWords::Test::Rows::rows_match( $label, $got_download, [ $expected_single ], 'downloads_id', $fields );
 }
 
 sub main

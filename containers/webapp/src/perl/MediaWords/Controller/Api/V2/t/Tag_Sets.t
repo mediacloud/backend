@@ -9,6 +9,8 @@ use Test::More tests => 76;
 use Test::Deep;
 
 use MediaWords::Test::API;
+use MediaWords::Test::Rows;
+
 
 sub test_tag_sets($)
 {
@@ -31,7 +33,7 @@ sub test_tag_sets($)
     };
 
     my $r = MediaWords::Test::API::test_post( '/api/v2/tag_sets/create', $create_input );
-    MediaWords::Test::API::validate_db_row( $db, 'tag_sets', $r->{ tag_set }, $create_input, 'create tag set' );
+    MediaWords::Test::Rows::validate_db_row( $db, 'tag_sets', $r->{ tag_set }, $create_input, 'create tag set' );
 
     # error on update non-existent tag
     MediaWords::Test::API::test_put( '/api/v2/tag_sets/update', { tag_sets_id => -1 }, 1 );
@@ -47,16 +49,16 @@ sub test_tag_sets($)
     };
 
     $r = MediaWords::Test::API::test_put( '/api/v2/tag_sets/update', $update_input );
-    MediaWords::Test::API::validate_db_row( $db, 'tag_sets', $r->{ tag_set }, $update_input, 'update tag set' );
+    MediaWords::Test::Rows::validate_db_row( $db, 'tag_sets', $r->{ tag_set }, $update_input, 'update tag set' );
 
     my $tag_sets       = $db->query( "select * from tag_sets" )->hashes;
     my $got_tag_sets   = MediaWords::Test::API::test_get( '/api/v2/tag_sets/list' );
     my $tag_set_fields = [ qw/name label description show_on_media show_on_stories/ ];
-    MediaWords::Test::API::rows_match( "tag_sets/list", $got_tag_sets, $tag_sets, 'tag_sets_id', $tag_set_fields );
+    MediaWords::Test::Rows::rows_match( "tag_sets/list", $got_tag_sets, $tag_sets, 'tag_sets_id', $tag_set_fields );
 
     my $tag_set = $tag_sets->[ 0 ];
     $got_tag_sets = MediaWords::Test::API::test_get( '/api/v2/tag_sets/single/' . $tag_set->{ tag_sets_id }, {} );
-    MediaWords::Test::API::rows_match( "tag_sets/single", $got_tag_sets, [ $tag_set ], 'tag_sets_id', $tag_set_fields );
+    MediaWords::Test::Rows::rows_match( "tag_sets/single", $got_tag_sets, [ $tag_set ], 'tag_sets_id', $tag_set_fields );
 }
 
 sub main

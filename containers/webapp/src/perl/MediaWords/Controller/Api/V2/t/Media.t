@@ -74,7 +74,7 @@ sub test_media_list($$)
 
     my $got_single_medium = MediaWords::Test::API::test_get( '/api/v2/media/single/' . $single_medium->{ media_id }, {} );
     my $fields = [ qw/name url is_healthy is_monitored editor_notes public_notes/ ];
-    MediaWords::Test::API::rows_match( $db, $got_single_medium, [ $single_medium ], 'media_id', $fields );
+    MediaWords::Test::Rows::rows_match( $db, $got_single_medium, [ $single_medium ], 'media_id', $fields );
 
     my $tagged_medium = $test_stack_media->[ 1 ];
     my $test_tag = MediaWords::Util::Tags::lookup_or_create_tag( $db, 'media_list_test:media_list_test' );
