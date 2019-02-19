@@ -238,7 +238,10 @@ def regenerate_tweet_urls(db: dict, topic: dict) -> None:
 
 def _post_matches_pattern(topic: dict, ch_post: dict) -> bool:
     """Return true if the content of the post matches the topic pattern."""
-    return re.match(topic['pattern'], ch_post['tweet']['text']) is not None
+    if 'tweet' in ch_post:
+        return re.search(topic['pattern'], ch_post['tweet']['text']) is not None
+    else:
+        return False
 
 
 def _fetch_tweets_for_day(
@@ -279,18 +282,15 @@ def _fetch_tweets_for_day(
     for i in range(0, len(ch_posts), 100):
         _add_tweets_to_ch_posts(twitter_class, ch_posts[i:i + 100])
 
-    # ch_posts = list(filter(lambda p: _post_matches_pattern(topic, p), ch_posts))
+    ch_posts = list(filter(lambda p: _post_matches_pattern(topic, p), ch_posts))
 
     db.begin()
 
     log.debug("inserting into topic_tweets ...")
 
-    for ch_post in ch_posts:
-        if 'tweet' in ch_post:
-            _store_tweet_and_urls(db, topic_tweet_day, ch_post)
+    [_store_tweet_and_urls(db, topic_tweet_day, ch_post) for ch_post in ch_posts]
 
-    num_deleted_tweets = len(list(filter(lambda x: 'tweet' not in x, ch_posts)))
-    topic_tweet_day['num_ch_tweets'] -= num_deleted_tweets
+    topic_tweet_day['num_ch_tweets'] = len(ch_posts)
 
     db.query(
         "update topic_tweet_days set tweets_fetched = true, num_ch_tweets = %(a)s where topic_tweet_days_id = %(b)s",

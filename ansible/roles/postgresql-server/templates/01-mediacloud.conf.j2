@@ -46,6 +46,7 @@ deadlock_timeout = 10s
 synchronous_commit = off
 
 jit = on
+jit_above_cost = 50000000   # reset after finishing up "downloads" partitions
 
 max_worker_processes = 16
 max_parallel_workers_per_gather = 4
