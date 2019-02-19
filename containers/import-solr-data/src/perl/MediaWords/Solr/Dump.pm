@@ -9,11 +9,6 @@ MediaWords::Solr::Dump - import story_sentences from postgres into solr
     # import updates stories into solr
     import_data( $db );
 
-    # regenerate entire solr database
-    queue_all_stories( $db );
-    delete_all_stories( $db );
-    import_data( $db, { full => 1 } );
-
 
 =head1 DESCRIPTION
 
@@ -736,62 +731,6 @@ sub import_data($;$)
         my $import_time = time() - $start_time;
         INFO( "imported $num_stories stories in $import_time seconds" );
     }
-}
-
-=head2 delete_all_stories
-
-Delete all stories from the solr server.  Cowardly refuse if there are enough stories that this may be a
-production server.
-
-=cut
-
-sub delete_all_stories($)
-{
-    my ( $db ) = @_;
-
-    INFO "deleting all sentences ...";
-
-    die( "Cowardly refusing to delete maybe production solr" ) if ( _maybe_production_solr( $db ) );
-
-    my $url_params = { 'commit' => 'true', 'stream.body' => '<delete><query>*:*</query></delete>', };
-    eval { _solr_request( $db, 'update', $url_params ); };
-    if ( $@ )
-    {
-        my $error = $@;
-        WARN "Error while deleting all stories: $error";
-        return 0;
-    }
-
-    return 1;
-}
-
-=head2 queue_all_stories
-
-Insert stories_ids for all processed stories into the stories queue table.
-
-=cut
-
-sub queue_all_stories($;$)
-{
-    my ( $db, $stories_queue_table ) = @_;
-
-    $stories_queue_table //= $DEFAULT_STORIES_QUEUE_TABLE;
-
-    $db->begin();
-
-    $db->query( "truncate table $stories_queue_table" );
-
-    # select from processed_stories because only processed stories should get imported.  sort so that the
-    # the import is more efficient when pulling blocks of stories out.
-    $db->query( <<SQL );
-insert into $stories_queue_table
-    select stories_id
-        from processed_stories
-        group by stories_id
-        order by stories_id
-SQL
-
-    $db->commit();
 }
 
 1;

@@ -39,17 +39,17 @@ sub test_users($)
 
     my $label = "users/list";
 
-    my $r = test_get( '/api/v2/users/list', {} );
+    my $r = MediaWords::Test::API::test_get( '/api/v2/users/list', {} );
 
     my $fields = [ qw ( email full_name notes created_date max_topic_stories weekly_requests_limit ) ];
-    rows_match( $label, $r->{ users }, $expected_auth_users, "auth_users_id", $fields );
+    MediaWords::Test::API::rows_match( $label, $r->{ users }, $expected_auth_users, "auth_users_id", $fields );
 
     $label = "users/single";
 
     my $expected_single = $expected_auth_users->[ 0 ];
 
-    $r = test_get( '/api/v2/users/single/' . $expected_single->{ auth_users_id }, {} );
-    rows_match( $label, $r->{ users }, [ $expected_single ], 'auth_users_id', $fields );
+    $r = MediaWords::Test::API::test_get( '/api/v2/users/single/' . $expected_single->{ auth_users_id }, {} );
+    MediaWords::Test::API::rows_match( $label, $r->{ users }, [ $expected_single ], 'auth_users_id', $fields );
 
     $label = "search";
 
@@ -61,8 +61,8 @@ sub test_users($)
     };
     $search_user = $db->create( 'auth_users', $search_user );
 
-    $r = test_get( '/api/v2/users/list', { search => 'search' } );
-    rows_match( $label, $r->{ users }, [ $search_user ], 'auth_users_id', [ 'auth_users_id' ] );
+    $r = MediaWords::Test::API::test_get( '/api/v2/users/list', { search => 'search' } );
+    MediaWords::Test::API::rows_match( $label, $r->{ users }, [ $search_user ], 'auth_users_id', [ 'auth_users_id' ] );
 
     $label = 'update';
 
@@ -75,7 +75,7 @@ sub test_users($)
         weekly_requests_limit => 123456,
         max_topic_stories     => 456789,
     };
-    $r = test_put( '/api/v2/users/update', $input_data );
+    $r = MediaWords::Test::API::test_put( '/api/v2/users/update', $input_data );
 
     my $updated_user = $db->query( <<SQL, $search_user->{ auth_users_id } )->hash();
 select au.*, aul.weekly_requests_limit
@@ -84,7 +84,7 @@ select au.*, aul.weekly_requests_limit
     where au.auth_users_id = ?
 SQL
 
-    rows_match( $label, [ $updated_user ], [ $input_data ], 'auth_users_id', [ keys( %{ $input_data } ) ] );
+    MediaWords::Test::API::rows_match( $label, [ $updated_user ], [ $input_data ], 'auth_users_id', [ keys( %{ $input_data } ) ] );
 
     $label = 'roles';
 
@@ -95,14 +95,14 @@ SQL
 
     my $expected_auth_roles = $db->query( "select * from auth_roles" )->hashes();
 
-    $r = test_get( '/api/v2/users/list_roles', {} );
-    rows_match( $label, $r->{ roles }, $expected_auth_roles, 'auth_roles_id', [ qw/role description/ ] );
+    $r = MediaWords::Test::API::test_get( '/api/v2/users/list_roles', {} );
+    MediaWords::Test::API::rows_match( $label, $r->{ roles }, $expected_auth_roles, 'auth_roles_id', [ qw/role description/ ] );
 
     $label = 'roles update';
 
     my $user_role = $expected_auth_roles->[ 0 ];
     my $update_input = { auth_users_id => $search_user->{ auth_users_id }, roles => [ $user_role->{ role } ] };
-    $r = test_put( '/api/v2/users/update', $update_input );
+    $r = MediaWords::Test::API::test_put( '/api/v2/users/update', $update_input );
 
     my $role_present = $db->query( <<SQL, $search_user->{ auth_users_id }, $user_role->{ auth_roles_id } )->hash();
         select * from auth_users_roles_map where auth_users_id = \$1 and auth_roles_id = \$2
@@ -113,7 +113,7 @@ SQL
     $label = 'roles delete';
 
     $update_input = { auth_users_id => $search_user->{ auth_users_id }, roles => [] };
-    $r = test_put( '/api/v2/users/update', $update_input );
+    $r = MediaWords::Test::API::test_put( '/api/v2/users/update', $update_input );
 
     $role_present = $db->query( <<SQL, $search_user->{ auth_users_id } )->hash();
         select * from auth_users_roles_map where auth_users_id = \$1
@@ -125,7 +125,7 @@ SQL
 
     my $delete_user = pop( @{ $expected_auth_users } );
 
-    $r = test_put( '/api/v2/users/delete', { auth_users_id => $delete_user->{ auth_users_id } } );
+    $r = MediaWords::Test::API::test_put( '/api/v2/users/delete', { auth_users_id => $delete_user->{ auth_users_id } } );
 
     ok( $r->{ success } == 1, "$label returned sucess" );
 

@@ -57,19 +57,19 @@ sub test_import
 
     {
         my $story = pop( @{ $test_stories } );
-        test_story_query( $db, "media_id:$story->{ media_id }", $story, 'media_id' );
+        MediaWords::Test::Solr::test_story_query( $db, "media_id:$story->{ media_id }", $story, 'media_id' );
     }
 
     {
         my $story = pop( @{ $test_stories } );
         my $title_clause = 'title:(' . join( ' and ', split( /\W/, $story->{ title } ) ) . ')';
-        test_story_query( $db, $title_clause, $story, "title" );
+        MediaWords::Test::Solr::test_story_query( $db, $title_clause, $story, "title" );
     }
 
     {
         my $story       = pop( @{ $test_stories } );
         my $date_clause = get_solr_date_clause( $story->{ publish_date } );
-        test_story_query( $db, $date_clause, $story, "publish_date" );
+        MediaWords::Test::Solr::test_story_query( $db, $date_clause, $story, "publish_date" );
     }
 
     {
@@ -81,12 +81,12 @@ SQL
         my $words = [ grep { $_ } ( split( /\W/, $text ) )[ 0 .. 10 ] ];
         my $text_clause = 'text: (' . join( ' and ', @{ $words } ) . ')';
 
-        test_story_query( $db, $text_clause, $story, 'text clause' );
+        MediaWords::Test::Solr::test_story_query( $db, $text_clause, $story, 'text clause' );
     }
 
     {
         my $story = pop( @{ $test_stories } );
-        test_story_query( $db, "language:$story->{ language }", $story, 'language' );
+        MediaWords::Test::Solr::test_story_query( $db, "language:$story->{ language }", $story, 'language' );
     }
 
     {
@@ -95,7 +95,7 @@ SQL
 select tags_id from stories_tags_map where stories_id = ?
 SQL
 
-        test_story_query( $db, "tags_id_stories:$tags_id", $story, 'tags_id_stories' );
+        MediaWords::Test::Solr::test_story_query( $db, "tags_id_stories:$tags_id", $story, 'tags_id_stories' );
     }
 
     {
@@ -103,7 +103,7 @@ SQL
         my ( $processed_stories_id ) = $db->query( <<SQL, $story->{ stories_id } )->flat;
 select processed_stories_id from processed_stories where stories_id = ?
 SQL
-        test_story_query( $db, "processed_stories_id:$processed_stories_id", $story, 'processed_stories_id' );
+        MediaWords::Test::Solr::test_story_query( $db, "processed_stories_id:$processed_stories_id", $story, 'processed_stories_id' );
     }
 
     {
@@ -111,7 +111,7 @@ SQL
         my ( $timespans_id ) = $db->query( <<SQL, $story->{ stories_id } )->flat;
 select timespans_id from snap.story_link_counts where stories_id = ? limit 1
 SQL
-        test_story_query( $db, "timespans_id:$timespans_id", $story, 'timespans_id' );
+        MediaWords::Test::Solr::test_story_query( $db, "timespans_id:$timespans_id", $story, 'timespans_id' );
     }
 
     {
@@ -121,7 +121,7 @@ SQL
         $db->commit();
 
         MediaWords::Solr::Dump::import_data( $db, { empty_queue => 1, throttle => 0 } );
-        test_story_query( $db, "language:up", $story, 'import updated story' );
+        MediaWords::Test::Solr::test_story_query( $db, "language:up", $story, 'import updated story' );
     }
 
     {
@@ -149,13 +149,12 @@ SQL
     }
 
     {
-        # test delete_all, queue_all_stories, and stories_queue_table option of import_data
-        MediaWords::Solr::Dump::delete_all_stories( $db );
+        # test stories_queue_table option of import_data
         is( MediaWords::Solr::get_num_found( $db, { q => '*:*' } ), 0, "stories after deleting" );
 
         $db->query( "create table test_stories_queue ( stories_id int )" );
 
-        MediaWords::Solr::Dump::queue_all_stories( $db, 'test_stories_queue' );
+        MediaWords::Test::Solr::queue_all_stories( $db, 'test_stories_queue' );
 
         my ( $test_queue_size )   = $db->query( "select count(*) from test_stories_queue" )->flat;
         my ( $test_stories_size ) = $db->query( "select count(*) from stories" )->flat;
@@ -184,12 +183,11 @@ SQL
             "solr_imported_stories rows with skip_logging" );
 
         my $story = pop( @{ $test_stories } );
-        test_story_query( $db, '*:*', $story, 'alternate stories queue table' );
+        MediaWords::Test::Solr::test_story_query( $db, '*:*', $story, 'alternate stories queue table' );
     }
 
     {
         # test threaded import
-        MediaWords::Solr::Dump::delete_all_stories( $db );
         is( MediaWords::Solr::get_num_found( $db, { q => '*:*' } ), 0, "stories after deleting" );
 
         MediaWords::Solr::Dump::queue_all_stories( $db );
@@ -202,7 +200,7 @@ SQL
         is( MediaWords::Solr::get_num_found( $db, { q => '*:*' } ), $test_stories_size, "stories threaded import" );
 
         my $story = pop( @{ $test_stories } );
-        test_story_query( $db, "*:*", $story );
+        MediaWords::Test::Solr::test_story_query( $db, "*:*", $story );
     }
 
 }

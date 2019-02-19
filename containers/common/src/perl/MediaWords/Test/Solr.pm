@@ -21,10 +21,6 @@ use MediaWords::Solr;
 use MediaWords::Solr::Dump;
 use MediaWords::Util::Tags;
 
-require Exporter;
-our @ISA    = qw(Exporter);
-our @EXPORT = qw(test_story_query);
-
 =head2 test_story_query( $db, $q, $expected_story, $label )
 
 Run the given query against solr, adding an 'and stories_id:$expected_story->{ stories_id }' to make it return at
@@ -143,9 +139,32 @@ sub create_indexed_test_story_stack($$)
     _add_story_tags_to_stories( $db, $test_stories );
     _add_timespans_to_stories( $db, $test_stories );
 
-    MediaWords::Test::Solr::setup_test_index( $db );
+    setup_test_index( $db );
 
     return $media;
+}
+
+sub queue_all_stories($;$)
+{
+    my ( $db, $stories_queue_table ) = @_;
+
+    $stories_queue_table //= $DEFAULT_STORIES_QUEUE_TABLE;
+
+    $db->begin();
+
+    $db->query( "truncate table $stories_queue_table" );
+
+    # select from processed_stories because only processed stories should get imported.  sort so that the
+    # the import is more efficient when pulling blocks of stories out.
+    $db->query( <<SQL );
+insert into $stories_queue_table
+    select stories_id
+        from processed_stories
+        group by stories_id
+        order by stories_id
+SQL
+
+    $db->commit();
 }
 
 =head2 setup_test_index( $db )
@@ -166,8 +185,7 @@ sub setup_test_index($)
 {
     my ( $db ) = @_;
 
-    MediaWords::Solr::Dump::delete_all_stories( $db );
-    MediaWords::Solr::Dump::queue_all_stories( $db );
+    queue_all_stories( $db );
     MediaWords::Solr::Dump::import_data( $db, { full => 1, throttle => 0 } );
 }
 

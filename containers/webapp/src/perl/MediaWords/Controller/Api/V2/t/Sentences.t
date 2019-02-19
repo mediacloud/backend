@@ -30,7 +30,7 @@ sub test_sentences_count($)
     my $ss = $db->query( 'select * from story_sentences where stories_id in ( ?? )', @{ $stories_ids } )->hashes;
 
     my $stories_ids_list = join( ' ', @{ $stories_ids } );
-    my $r = test_get( '/api/v2/sentences/count', { q => "stories_id:($stories_ids_list)" } );
+    my $r = MediaWords::Test::API::test_get( '/api/v2/sentences/count', { q => "stories_id:($stories_ids_list)" } );
 
     # we import titles as sentences as well as the sentences themselves, so expect them in the count
     my $expected_count = scalar( @{ $ss } ) + 10;
@@ -51,12 +51,12 @@ select * from story_sentences where stories_id in ( ?? )
 SQL
 
     my $stories_ids_list = join( ' ', @{ $stories_ids } );
-    my $got_ss = test_get( '/api/v2/sentences/list', { q => "stories_id:($stories_ids_list)" } );
+    my $got_ss = MediaWords::Test::API::test_get( '/api/v2/sentences/list', { q => "stories_id:($stories_ids_list)" } );
 
     WARN( MediaWords::Util::ParseJSON::encode_json( $got_ss ) );
 
     my $fields = [ qw/stories_id media_id sentence language publish_date/ ];
-    rows_match( $label, $got_ss, $expected_ss, 'story_sentences_id', $fields );
+    MediaWords::Test::API::rows_match( $label, $got_ss, $expected_ss, 'story_sentences_id', $fields );
 }
 
 sub test_sentences($)

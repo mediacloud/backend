@@ -37,7 +37,7 @@ sub test_request_limit($)
 
     # Register user
     {
-        my $r = test_post(
+        my $r = MediaWords::Test::API::test_post(
             '/api/v2/auth/register',
             {
                 email                   => $email,

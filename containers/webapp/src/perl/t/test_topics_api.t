@@ -136,7 +136,7 @@ sub test_media_list
 {
     my ( $data ) = @_;
 
-    my $actual_response = test_get( '/api/v2/topics/1/media/list' );
+    my $actual_response = MediaWords::Test::API::test_get( '/api/v2/topics/1/media/list' );
 
     ok( scalar @{ $actual_response->{ media } } == 3,
         "returned unexpected number of media scalar $actual_response->{ media }" );
@@ -180,7 +180,7 @@ SQL
 
     ok( scalar( @{ $expected_links } ) > 1, "test_media_links: more than one link" );
 
-    my $r = test_get( '/api/v2/topics/1/media/links', { limit => $limit } );
+    my $r = MediaWords::Test::API::test_get( '/api/v2/topics/1/media/links', { limit => $limit } );
 
     my $got_links = $r->{ links };
 
@@ -208,7 +208,7 @@ SQL
 
     ok( scalar( @{ $expected_links } ) > 1, "test_stories_links: more than one link" );
 
-    my $r = test_get( '/api/v2/topics/1/stories/links', { limit => $limit } );
+    my $r = MediaWords::Test::API::test_get( '/api/v2/topics/1/stories/links', { limit => $limit } );
 
     my $got_links = $r->{ links };
 
@@ -222,7 +222,7 @@ sub test_story_list_count
 
     my $story_limit = 10;
 
-    my $actual_response = test_get( '/api/v2/topics/1/stories/list', { limit => $story_limit } );
+    my $actual_response = MediaWords::Test::API::test_get( '/api/v2/topics/1/stories/list', { limit => $story_limit } );
 
     is( scalar @{ $actual_response->{ stories } }, $story_limit, "story limit" );
 }
@@ -243,13 +243,13 @@ SQL
 
     my $limit = 3;
 
-    my $r = test_get( "/api/v2/topics/$topics_id/stories/list", { timespans_id => $timespans_id, limit => $limit } );
+    my $r = MediaWords::Test::API::test_get( "/api/v2/topics/$topics_id/stories/list", { timespans_id => $timespans_id, limit => $limit } );
 
     my $got_stories_count = scalar( @{ $r->{ stories } } );
 
     while ( my $next_link_id = $r->{ link_ids }->{ next } )
     {
-        $r = test_get( "/api/v2/topics/$topics_id/stories/list", { link_id => $next_link_id } );
+        $r = MediaWords::Test::API::test_get( "/api/v2/topics/$topics_id/stories/list", { link_id => $next_link_id } );
         $got_stories_count += scalar( @{ $r->{ stories } } );
     }
 
@@ -305,7 +305,7 @@ sub _test_sort
 
     my ( $data, $expected_counts, $base_url, $sort_key ) = @_;
 
-    my $actual_response = test_get( $base_url, { limit => 20, sort => $sort_key } );
+    my $actual_response = MediaWords::Test::API::test_get( $base_url, { limit => 20, sort => $sort_key } );
 
     my $actual_stories_inlink_counts = {};
     my $actual_stories_order         = ();
@@ -326,7 +326,7 @@ sub test_topics_crud($)
     my ( $db ) = @_;
 
     # verify required params
-    test_post( '/api/v2/topics/create', {}, 1 );
+    MediaWords::Test::API::test_post( '/api/v2/topics/create', {}, 1 );
 
     my $label = "create topic";
 
@@ -353,7 +353,7 @@ sub test_topics_crud($)
         max_stories          => 1234,
     };
 
-    my $r = test_post( '/api/v2/topics/create', $input );
+    my $r = MediaWords::Test::API::test_post( '/api/v2/topics/create', $input );
 
     ok( $r->{ topics }, "$label JSON includes topics" );
     my $got_topic = $r->{ topics }->[ 0 ];
@@ -398,7 +398,7 @@ sub test_topics_crud($)
 
     $label = 'update topic';
 
-    $r = test_put( "/api/v2/topics/$topics_id/update", $update );
+    $r = MediaWords::Test::API::test_put( "/api/v2/topics/$topics_id/update", $update );
 
     ok( $r->{ topics }, "$label JSON includes topics" );
     $got_topic = $r->{ topics }->[ 0 ];
@@ -414,7 +414,7 @@ sub test_topics_crud($)
     # verify fix for bug dealing with undef max_stories using most of the create topic data from $input above
     $input->{ max_stories } = undef;
     $input->{ name }        = 'null max stories';
-    $r = test_post( '/api/v2/topics/create', $input );
+    $r = MediaWords::Test::API::test_post( '/api/v2/topics/create', $input );
 
     is( $r->{ topics }->[ 0 ]->{ max_stories }, 100_000 );
 }
@@ -429,14 +429,14 @@ sub test_topics_spider($)
     $topic = $db->update_by_id( 'topics', $topic->{ topics_id }, { solr_seed_query => 'BOGUSQUERYTORETURNOSTORIES' } );
     my $topics_id = $topic->{ topics_id };
 
-    my $r = test_post( "/api/v2/topics/$topics_id/spider", {} );
+    my $r = MediaWords::Test::API::test_post( "/api/v2/topics/$topics_id/spider", {} );
 
     ok( $r->{ job_state }, "spider return includes job_state" );
 
     is( $r->{ job_state }->{ state }, $MediaWords::AbstractJob::STATE_QUEUED, "spider state" );
     is( $r->{ job_state }->{ topics_id }, $topic->{ topics_id }, "spider topics_id" );
 
-    $r = test_get( "/api/v2/topics/$topics_id/spider_status" );
+    $r = MediaWords::Test::API::test_get( "/api/v2/topics/$topics_id/spider_status" );
 
     ok( $r->{ job_states }, "spider status return includes job_states" );
 
@@ -464,26 +464,26 @@ sub test_topics_list($)
     map { $db->update_by_id( 'topics', $_->{ topics_id }, { is_public => 't' } ) } ( $topic_public_a, $topic_public_b );
 
     {
-        my $r = test_get( "/api/v2/topics/list", {} );
+        my $r = MediaWords::Test::API::test_get( "/api/v2/topics/list", {} );
         my $expected_topics = $db->query( "select * from topics order by topics_id" )->hashes;
         ok( $r->{ topics }, "$label topics field present" );
-        rows_match( $label, $r->{ topics }, $expected_topics, 'topics_id', $match_fields );
+        MediaWords::Test::API::rows_match( $label, $r->{ topics }, $expected_topics, 'topics_id', $match_fields );
     }
 
     {
         $label = "$label with name";
-        my $r = test_get( "/api/v2/topics/list", { name => 'label private a' } );
+        my $r = MediaWords::Test::API::test_get( "/api/v2/topics/list", { name => 'label private a' } );
         my $expected_topics = $db->query( "select * from topics where name = 'label private a'" )->hashes;
         ok( $r->{ topics }, "$label topics field present" );
-        rows_match( $label, $r->{ topics }, $expected_topics, 'topics_id', $match_fields );
+        MediaWords::Test::API::rows_match( $label, $r->{ topics }, $expected_topics, 'topics_id', $match_fields );
     }
 
     {
         $label = "$label public";
-        my $r = test_get( "/api/v2/topics/list", { public => 1 } );
+        my $r = MediaWords::Test::API::test_get( "/api/v2/topics/list", { public => 1 } );
         my $expected_topics = $db->query( "select * from topics where name % 'public ?'" )->hashes;
         ok( $r->{ topics }, "$label topics field present" );
-        rows_match( $label, $r->{ topics }, $expected_topics, 'topics_id', $match_fields );
+        MediaWords::Test::API::rows_match( $label, $r->{ topics }, $expected_topics, 'topics_id', $match_fields );
     }
 
     {
@@ -502,11 +502,11 @@ SQL
 
         $db->query( "delete from auth_users_roles_map where auth_users_id = ?", $auth_users_id );
 
-        my $r               = test_get( "/api/v2/topics/list" );
+        my $r               = MediaWords::Test::API::test_get( "/api/v2/topics/list" );
         my $expected_topics = $db->query( "select * from topics where name % 'public ?'" )->hashes;
         ok( $r->{ topics }, "$label topics field present" );
 
-        rows_match( $label, $r->{ topics }, $expected_topics, 'topics_id', $match_fields );
+        MediaWords::Test::API::rows_match( $label, $r->{ topics }, $expected_topics, 'topics_id', $match_fields );
 
         $db->query( <<SQL, $auth_users_id, $MediaWords::DBI::Auth::Roles::List::ADMIN );
 insert into auth_users_roles_map ( auth_users_id, auth_roles_id )
@@ -538,14 +538,14 @@ sub test_snapshots_generate($)
     $topic = $db->update_by_id( 'topics', $topic->{ topics_id }, { solr_seed_query => 'BOGUSQUERYTORETURNOSTORIES' } );
     my $topics_id = $topic->{ topics_id };
 
-    my $r = test_post( "/api/v2/topics/$topics_id/snapshots/generate", {} );
+    my $r = MediaWords::Test::API::test_post( "/api/v2/topics/$topics_id/snapshots/generate", {} );
 
     ok( $r->{ job_state }, "$label return includes job_state" );
 
     is( $r->{ job_state }->{ state }, $MediaWords::AbstractJob::STATE_QUEUED, "$label state" );
     is( $r->{ job_state }->{ topics_id }, $topic->{ topics_id }, "$label topics_id" );
 
-    $r = test_get( "/api/v2/topics/$topics_id/snapshots/generate_status" );
+    $r = MediaWords::Test::API::test_get( "/api/v2/topics/$topics_id/snapshots/generate_status" );
 
     $label = 'snapshot generate_status';
 
@@ -590,13 +590,13 @@ sub test_stories_facebook($)
         push( @{ $expected_ss }, $ss );
     }
 
-    my $r = test_get( "/api/v2/topics/$topic->{ topics_id }/stories/facebook", {} );
+    my $r = MediaWords::Test::API::test_get( "/api/v2/topics/$topic->{ topics_id }/stories/facebook", {} );
 
     my $got_ss = $r->{ counts };
     ok( $got_ss, "$label counts field present" );
 
     my $fields = [ qw/facebook_share_count facebook_comment_count facebook_api_collect_date/ ];
-    rows_match( $label, $got_ss, $expected_ss, 'stories_id', $fields );
+    MediaWords::Test::API::rows_match( $label, $got_ss, $expected_ss, 'stories_id', $fields );
 }
 
 sub test_stories_count
@@ -615,12 +615,12 @@ SQL
     my $topic = $db->query( "select * from topics limit 1" )->hash;
 
     {
-        my $r = test_get( "/api/v2/topics/$topic->{ topics_id }/stories/count", {} );
+        my $r = MediaWords::Test::API::test_get( "/api/v2/topics/$topic->{ topics_id }/stories/count", {} );
         is( $r->{ count }, $expected_count, "topics/stories/count" );
     }
 
     {
-        my $r = test_get( "/api/v2/topics/$topic->{ topics_id }/stories/count" );
+        my $r = MediaWords::Test::API::test_get( "/api/v2/topics/$topic->{ topics_id }/stories/count" );
 
         is( $r->{ count }, $expected_count, "topics/stories/count split count" );
     }
@@ -661,7 +661,7 @@ SQL
 
     ok( scalar( @{ $expected_media_ids } ) > 0, "media list q search found media ids" );
 
-    my $r = test_get( "/api/v2/topics/$topic->{ topics_id }/media/list", { q => $search_word } );
+    my $r = MediaWords::Test::API::test_get( "/api/v2/topics/$topic->{ topics_id }/media/list", { q => $search_word } );
 
     my $got_media = $r->{ media };
     my $got_media_ids = [ sort { $a <=> $b } map { $_->{ media_id } } @{ $got_media } ];

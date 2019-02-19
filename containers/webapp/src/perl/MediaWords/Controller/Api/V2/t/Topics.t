@@ -109,17 +109,17 @@ sub test_controversies($)
 
     my $expected_topics = $db->query( "select *, topics_id controversies_id from topics" )->hashes;
 
-    my $got_controversies = test_get( '/api/v2/controversies/list', {} );
+    my $got_controversies = MediaWords::Test::API::test_get( '/api/v2/controversies/list', {} );
 
     my $fields = [ qw/controversies_id name pattern solr_seed_query description max_iterations/ ];
-    rows_match( $label, $got_controversies, $expected_topics, "controversies_id", $fields );
+    MediaWords::Test::API::rows_match( $label, $got_controversies, $expected_topics, "controversies_id", $fields );
 
     $label = "controversies/single";
 
     my $expected_single = $expected_topics->[ 0 ];
 
-    my $got_controversy = test_get( '/api/v2/controversies/single/' . $expected_single->{ topics_id }, {} );
-    rows_match( $label, $got_controversy, [ $expected_single ], 'controversies_id', $fields );
+    my $got_controversy = MediaWords::Test::API::test_get( '/api/v2/controversies/single/' . $expected_single->{ topics_id }, {} );
+    MediaWords::Test::API::rows_match( $label, $got_controversy, [ $expected_single ], 'controversies_id', $fields );
 }
 
 # test controversy_dumps/list and single
@@ -151,17 +151,17 @@ select *, topics_id controversies_id, snapshots_id controversy_dumps_id
     where topics_id = ?
 SQL
 
-    my $got_cds = test_get( '/api/v2/controversy_dumps/list', { controversies_id => $topic->{ topics_id } } );
+    my $got_cds = MediaWords::Test::API::test_get( '/api/v2/controversy_dumps/list', { controversies_id => $topic->{ topics_id } } );
 
     my $fields = [ qw/controversies_id controversy_dumps_id start_date end_date note/ ];
-    rows_match( $label, $got_cds, $expected_snapshots, 'controversy_dumps_id', $fields );
+    MediaWords::Test::API::rows_match( $label, $got_cds, $expected_snapshots, 'controversy_dumps_id', $fields );
 
     $label = 'controversy_dumps/single';
 
     my $expected_snapshot = $expected_snapshots->[ 0 ];
 
-    my $got_cd = test_get( '/api/v2/controversy_dumps/single/' . $expected_snapshot->{ snapshots_id }, {} );
-    rows_match( $label, $got_cd, [ $expected_snapshot ], 'controversy_dumps_id', $fields );
+    my $got_cd = MediaWords::Test::API::test_get( '/api/v2/controversy_dumps/single/' . $expected_snapshot->{ snapshots_id }, {} );
+    MediaWords::Test::API::rows_match( $label, $got_cd, [ $expected_snapshot ], 'controversy_dumps_id', $fields );
 }
 
 # test controversy_dump_time_slices/list and single
@@ -206,17 +206,17 @@ select *, snapshots_id controversy_dumps_id, timespans_id controversy_dump_time_
 SQL
 
     my $got_cdtss =
-      test_get( '/api/v2/controversy_dump_time_slices/list', { controversy_dumps_id => $snapshot->{ snapshots_id } } );
+      MediaWords::Test::API::test_get( '/api/v2/controversy_dump_time_slices/list', { controversy_dumps_id => $snapshot->{ snapshots_id } } );
 
     my $fields = [ qw/controversy_dumps_id start_date end_date period/, @{ $metrics } ];
-    rows_match( $label, $got_cdtss, $expected_timespans, 'controversy_dump_time_slices_id', $fields );
+    MediaWords::Test::API::rows_match( $label, $got_cdtss, $expected_timespans, 'controversy_dump_time_slices_id', $fields );
 
     $label = 'controversy_dump_time_slices/single';
 
     my $expected_timespan = $expected_timespans->[ 0 ];
 
-    my $got_cdts = test_get( '/api/v2/controversy_dump_time_slices/single/' . $expected_timespan->{ timespans_id }, {} );
-    rows_match( $label, $got_cdts, [ $expected_timespan ], 'controversy_dump_time_slices_id', $fields );
+    my $got_cdts = MediaWords::Test::API::test_get( '/api/v2/controversy_dump_time_slices/single/' . $expected_timespan->{ timespans_id }, {} );
+    MediaWords::Test::API::rows_match( $label, $got_cdts, [ $expected_timespan ], 'controversy_dump_time_slices_id', $fields );
 }
 
 sub test_update_query_scope($)
@@ -228,7 +228,7 @@ sub test_update_query_scope($)
     # for each call, just test whether or not an error is generated
 
     # query change should not trigger error if there are no spidered topic stories yet
-    test_put( "/api/v2/topics/$topic->{ topics_id }/update", { start_date => '2010-01-01' } );
+    MediaWords::Test::API::test_put( "/api/v2/topics/$topic->{ topics_id }/update", { start_date => '2010-01-01' } );
 
     # insert some spidered stories so that we can check for the date and media conditions
     my $story_stack = MediaWords::Test::DB::Create::create_test_story_stack_numerated( $db, 1, 1, 1, 'query_scope' );
@@ -237,19 +237,19 @@ insert into topic_stories ( topics_id, stories_id, iteration )
     select \$1, stories_id, 2 from stories where media_id = \$2
 SQL
 
-    test_put( "/api/v2/topics/$topic->{ topics_id }/update", { description => 'new query scope description' } );
-    test_put( "/api/v2/topics/$topic->{ topics_id }/update", { end_date    => $topic->{ end_date } } );
+    MediaWords::Test::API::test_put( "/api/v2/topics/$topic->{ topics_id }/update", { description => 'new query scope description' } );
+    MediaWords::Test::API::test_put( "/api/v2/topics/$topic->{ topics_id }/update", { end_date    => $topic->{ end_date } } );
 
     {
         my $update_start_date = MediaWords::Util::SQL::increment_day( $topic->{ start_date }, 1 );
-        test_put( "/api/v2/topics/$topic->{ topics_id }/update", { start_date => $update_start_date }, 1 );
+        MediaWords::Test::API::test_put( "/api/v2/topics/$topic->{ topics_id }/update", { start_date => $update_start_date }, 1 );
     }
 
-    test_put( "/api/v2/topics/$topic->{ topics_id }/update", { end_date => $topic->{ end_date } } );
+    MediaWords::Test::API::test_put( "/api/v2/topics/$topic->{ topics_id }/update", { end_date => $topic->{ end_date } } );
 
     {
         my $update_end_date = MediaWords::Util::SQL::increment_day( $topic->{ end_date }, -1 );
-        test_put( "/api/v2/topics/$topic->{ topics_id }/update", { end_date => $update_end_date }, 1 );
+        MediaWords::Test::API::test_put( "/api/v2/topics/$topic->{ topics_id }/update", { end_date => $update_end_date }, 1 );
     }
 
     {
@@ -257,10 +257,10 @@ SQL
         my $medium_b = MediaWords::Test::DB::Create::create_test_medium( $db, 'query scope b' );
         my $media_ids = [ map { $_->{ media_id } } ( $medium_a, $medium_b ) ];
 
-        test_put( "/api/v2/topics/$topic->{ topics_id }/update", { media_ids => $media_ids } );
+        MediaWords::Test::API::test_put( "/api/v2/topics/$topic->{ topics_id }/update", { media_ids => $media_ids } );
 
-        test_put( "/api/v2/topics/$topic->{ topics_id }/update", { media_ids => [] }, 1 );
-        test_put( "/api/v2/topics/$topic->{ topics_id }/update", { media_ids => [ $medium_a->{ media_id } ] }, 1 );
+        MediaWords::Test::API::test_put( "/api/v2/topics/$topic->{ topics_id }/update", { media_ids => [] }, 1 );
+        MediaWords::Test::API::test_put( "/api/v2/topics/$topic->{ topics_id }/update", { media_ids => [ $medium_a->{ media_id } ] }, 1 );
     }
 
     {
@@ -268,10 +268,10 @@ SQL
         my $tag_b = MediaWords::Util::Tags::lookup_or_create_tag( $db, 'query_scope:tag_b' );
         my $tags_ids = [ map { $_->{ tags_id } } ( $tag_a, $tag_b ) ];
 
-        test_put( "/api/v2/topics/$topic->{ topics_id }/update", { media_tags_ids => $tags_ids } );
+        MediaWords::Test::API::test_put( "/api/v2/topics/$topic->{ topics_id }/update", { media_tags_ids => $tags_ids } );
 
-        test_put( "/api/v2/topics/$topic->{ topics_id }/update", { media_tags_ids => [] }, 1 );
-        test_put( "/api/v2/topics/$topic->{ topics_id }/update", { media_tags_ids => [ $tag_a->{ tags_id } ] }, 1 );
+        MediaWords::Test::API::test_put( "/api/v2/topics/$topic->{ topics_id }/update", { media_tags_ids => [] }, 1 );
+        MediaWords::Test::API::test_put( "/api/v2/topics/$topic->{ topics_id }/update", { media_tags_ids => [ $tag_a->{ tags_id } ] }, 1 );
     }
 }
 
@@ -388,11 +388,11 @@ SQL
     $db->update_by_id( 'topics', $topic->{ topics_id }, { state => 'running' } );
 
     # this should generate an erro since the topic is running
-    test_put( "/api/v2/topics/$topic->{ topics_id }/reset", {}, 1 );
+    MediaWords::Test::API::test_put( "/api/v2/topics/$topic->{ topics_id }/reset", {}, 1 );
 
     $db->update_by_id( 'topics', $topic->{ topics_id }, { state => 'error', message => 'test message' } );
 
-    test_put( "/api/v2/topics/$topic->{ topics_id }/reset", {} );
+    MediaWords::Test::API::test_put( "/api/v2/topics/$topic->{ topics_id }/reset", {} );
 
     my ( $got_stories_count ) = $db->query( "select count(*) from topic_stories where topics_id = ?", $topics_id )->flat;
     is( $got_stories_count, 0, "topics reset: stories after reset" );

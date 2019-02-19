@@ -25,7 +25,7 @@ sub test_stats($)
 
     my $ms = $db->query( "select * from mediacloud_stats" )->hash;
 
-    my $r = test_get( '/api/v2/stats/list', {} );
+    my $r = MediaWords::Test::API::test_get( '/api/v2/stats/list', {} );
 
     my $fields = [
         qw/stats_date daily_downloads daily_stories active_crawled_media active_crawled_feeds/,

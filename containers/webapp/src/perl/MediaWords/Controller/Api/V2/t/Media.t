@@ -31,7 +31,7 @@ sub test_media_list_call($$)
     $d->Terse( 1 );
     my $label = "media/list with params " . $d->Dump;
 
-    my $got_media = test_get( '/api/v2/media/list', $params );
+    my $got_media = MediaWords::Test::API::test_get( '/api/v2/media/list', $params );
 
     is( scalar( @{ $got_media } ), scalar( @{ $expected_media } ), "$label number of media" );
     for my $got_medium ( @{ $got_media } )
@@ -72,9 +72,9 @@ sub test_media_list($$)
     my $single_medium = $test_stack_media->[ 0 ];
     test_media_list_call( { name => $single_medium->{ name } }, [ $single_medium ] );
 
-    my $got_single_medium = test_get( '/api/v2/media/single/' . $single_medium->{ media_id }, {} );
+    my $got_single_medium = MediaWords::Test::API::test_get( '/api/v2/media/single/' . $single_medium->{ media_id }, {} );
     my $fields = [ qw/name url is_healthy is_monitored editor_notes public_notes/ ];
-    rows_match( $db, $got_single_medium, [ $single_medium ], 'media_id', $fields );
+    MediaWords::Test::API::rows_match( $db, $got_single_medium, [ $single_medium ], 'media_id', $fields );
 
     my $tagged_medium = $test_stack_media->[ 1 ];
     my $test_tag = MediaWords::Util::Tags::lookup_or_create_tag( $db, 'media_list_test:media_list_test' );
@@ -177,7 +177,7 @@ sub test_media_create_update($$)
         } @{ $sites }
     ];
 
-    my $r = test_post( '/api/v2/media/create', $input );
+    my $r = MediaWords::Test::API::test_post( '/api/v2/media/create', $input );
 
     my $got_media_ids = [ map { $_->{ media_id } } grep { $_->{ status } ne 'error' } @{ $r } ];
     is( scalar( @{ $got_media_ids } ), scalar( @{ $sites } ), "media/create update media returned" );
@@ -211,17 +211,17 @@ sub test_media_update($$)
     my ( $db, $sites ) = @_;
 
     # test that request with no media_id returns an error
-    test_put( '/api/v2/media/update', {}, 1 );
+    MediaWords::Test::API::test_put( '/api/v2/media/update', {}, 1 );
 
     # test that request with list returns an error
-    test_put( '/api/v2/media/update', [ { media_id => 1 } ], 1 );
+    MediaWords::Test::API::test_put( '/api/v2/media/update', [ { media_id => 1 } ], 1 );
 
     my $medium = $db->query( "select * from media where name = ?", $sites->[ 0 ]->{ name } )->hash;
 
     my $fields = [ qw/media_id name url content_delay editor_notes public_notes foreign_rss_links/ ];
 
     # test just name change
-    my $r = test_put( '/api/v2/media/update', { media_id => $medium->{ media_id }, name => "$medium->{ name } FOO" } );
+    my $r = MediaWords::Test::API::test_put( '/api/v2/media/update', { media_id => $medium->{ media_id }, name => "$medium->{ name } FOO" } );
     is( $r->{ success }, 1, "media/update name success" );
 
     my $updated_medium = $db->require_by_id( 'media', $medium->{ media_id } );
@@ -240,7 +240,7 @@ sub test_media_update($$)
         public_notes      => 'public_notes update'
     };
 
-    $r = test_put( '/api/v2/media/update', $medium );
+    $r = MediaWords::Test::API::test_put( '/api/v2/media/update', $medium );
     is( $r->{ success }, 1, "media/update all success" );
 
     $updated_medium = $db->require_by_id( 'media', $medium->{ media_id } );
@@ -274,14 +274,14 @@ sub test_media_create($)
     $db->query( "truncate table media_rescraping" );
 
     # test that non-list returns an error
-    test_post( '/api/v2/media/create', {}, 1 );
+    MediaWords::Test::API::test_post( '/api/v2/media/create', {}, 1 );
 
     # test that single element without url returns an error
-    test_post( '/api/v2/media/create', [ { url => 'http://foo.com' }, { name => "bar" } ], 1 );
+    MediaWords::Test::API::test_post( '/api/v2/media/create', [ { url => 'http://foo.com' }, { name => "bar" } ], 1 );
 
     # simple test for creation of url only medium
     my $first_site = $sites->[ 0 ];
-    my $r = test_post( '/api/v2/media/create', [ { url => $first_site->{ url } } ] );
+    my $r = MediaWords::Test::API::test_post( '/api/v2/media/create', [ { url => $first_site->{ url } } ] );
 
     is( scalar( @{ $r } ),     1,     "media/create url number of statuses" );
     is( $r->[ 0 ]->{ status }, 'new', "media/create url status" );
@@ -291,7 +291,7 @@ sub test_media_create($)
     ok( $first_medium, "media/create url found medium with matching title" );
 
     # test that create reuse the same media source we just created
-    $r = test_post( '/api/v2/media/create', [ { url => $first_site->{ url } } ] );
+    $r = MediaWords::Test::API::test_post( '/api/v2/media/create', [ { url => $first_site->{ url } } ] );
     is( scalar( @{ $r } ),     1,          "media/create existing number of statuses" );
     is( $r->[ 0 ]->{ status }, 'existing', "media/create existing status" );
     is_urls( $r->[ 0 ]->{ url }, $first_site->{ url }, "media/create existing url" );
@@ -299,7 +299,7 @@ sub test_media_create($)
 
     # add all media sources in sites, plus one which should return a 404
     my $input = [ map { { url => $_->{ url } } } ( @{ $sites }, { url => 'http://127.0.0.1:12345/456789' } ) ];
-    $r = test_post( '/api/v2/media/create', $input );
+    $r = MediaWords::Test::API::test_post( '/api/v2/media/create', $input );
     my $status_media_ids = [ map { $_->{ media_id } } grep { $_->{ status } ne 'error' } @{ $r } ];
     my $status_errors    = [ map { $_->{ error } } grep    { $_->{ status } eq 'error' } @{ $r } ];
 
@@ -330,11 +330,11 @@ sub test_media_suggestions_submit($)
     my ( $db ) = @_;
 
     # make sure url is required
-    test_post( '/api/v2/media/submit_suggestion', {}, 1 );
+    MediaWords::Test::API::test_post( '/api/v2/media/submit_suggestion', {}, 1 );
 
     # test with simple url
     my $simple_url = 'http://foo.com';
-    test_post( '/api/v2/media/submit_suggestion', { url => $simple_url } );
+    MediaWords::Test::API::test_post( '/api/v2/media/submit_suggestion', { url => $simple_url } );
 
     my $simple_ms = $db->query( "select * from media_suggestions where url = \$1", $simple_url )->hash;
     ok( $simple_ms, "media/submit_suggestion simple url found" );
@@ -351,7 +351,7 @@ sub test_media_suggestions_submit($)
         tags_ids => [ map { $_->{ tags_id } } ( $tag_1, $tag_2 ) ]
     };
 
-    test_post( '/api/v2/media/submit_suggestion', $full_ms_input );
+    MediaWords::Test::API::test_post( '/api/v2/media/submit_suggestion', $full_ms_input );
 
     my $full_ms_db = $db->query( "select * from media_suggestions where url = \$1", $full_ms_input->{ url } )->hash;
     ok( $full_ms_db, "media/submit_suggestion full input found" );
@@ -381,7 +381,7 @@ sub test_suggestions_list_results($$$)
 
     my $expected_num = scalar( @{ $expected_results } );
 
-    my $r = test_get( '/api/v2/media/list_suggestions', $call_params );
+    my $r = MediaWords::Test::API::test_get( '/api/v2/media/list_suggestions', $call_params );
     my $got_mss = $r->{ media_suggestions };
     ok( $got_mss, "$label media_suggestions set" );
 
@@ -484,16 +484,16 @@ sub test_media_suggestions_mark($)
     my $ms_id = $ms->{ media_suggestions_id };
 
     # test for required status and media_suggestions_id
-    test_put( '/api/v2/media/mark_suggestion', {}, 1 );
-    test_put( '/api/v2/media/mark_suggestion', { media_suggestions_id => $ms_id }, 1 );
-    test_put( '/api/v2/media/mark_suggestion', { status => 'approved' }, 1 );
+    MediaWords::Test::API::test_put( '/api/v2/media/mark_suggestion', {}, 1 );
+    MediaWords::Test::API::test_put( '/api/v2/media/mark_suggestion', { media_suggestions_id => $ms_id }, 1 );
+    MediaWords::Test::API::test_put( '/api/v2/media/mark_suggestion', { status => 'approved' }, 1 );
 
     # test for error on invalid input
-    test_put( '/api/v2/media/mark_suggestion', { media_suggestions_id => 0,      status => 'approved' },       1 );
-    test_put( '/api/v2/media/mark_suggestion', { media_suggestions_id => $ms_id, status => 'invalid_status' }, 1 );
+    MediaWords::Test::API::test_put( '/api/v2/media/mark_suggestion', { media_suggestions_id => 0,      status => 'approved' },       1 );
+    MediaWords::Test::API::test_put( '/api/v2/media/mark_suggestion', { media_suggestions_id => $ms_id, status => 'invalid_status' }, 1 );
 
     # test reject
-    test_put( '/api/v2/media/mark_suggestion',
+    MediaWords::Test::API::test_put( '/api/v2/media/mark_suggestion',
         { media_suggestions_id => $ms_id, status => 'rejected', mark_reason => 'rejected' } );
     $ms = $db->require_by_id( 'media_suggestions', $ms_id );
 
@@ -510,11 +510,11 @@ sub test_media_suggestions_mark($)
     };
 
     # verify that approval with media_id causes error
-    test_put( '/api/v2/media/mark_suggestion', $approve_input, 1 );
+    MediaWords::Test::API::test_put( '/api/v2/media/mark_suggestion', $approve_input, 1 );
 
     # now try valid submission
     $approve_input->{ media_id } = $media_id;
-    test_put( '/api/v2/media/mark_suggestion', $approve_input );
+    MediaWords::Test::API::test_put( '/api/v2/media/mark_suggestion', $approve_input );
     $ms = $db->require_by_id( 'media_suggestions', $ms_id );
 
     is( $ms->{ status },      'approved', "media/mark_suggestion approve status" );
@@ -522,7 +522,7 @@ sub test_media_suggestions_mark($)
     is( $ms->{ media_id },    $media_id,  'media/mark_suggestion approve media_id' );
 
     # now try setting back to pending
-    test_put( '/api/v2/media/mark_suggestion',
+    MediaWords::Test::API::test_put( '/api/v2/media/mark_suggestion',
         { media_suggestions_id => $ms_id, status => 'pending', mark_reason => 'pending' } );
     $ms = $db->require_by_id( 'media_suggestions', $ms_id );
 

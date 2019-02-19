@@ -25,7 +25,7 @@ sub test_register($)
 
     # Register user
     {
-        my $r = test_post(
+        my $r = MediaWords::Test::API::test_post(
             '/api/v2/auth/register',
             {
                 email                   => $email,
@@ -75,7 +75,7 @@ SQL
     # Try registering duplicate user
     {
         my $expect_error = 1;
-        my $r            = test_post(
+        my $r            = MediaWords::Test::API::test_post(
             '/api/v2/auth/register',
             {
                 email                   => $email,
@@ -102,7 +102,7 @@ sub test_activate($)
     # Add inactive user
     {
         {
-            my $r = test_post(
+            my $r = MediaWords::Test::API::test_post(
                 '/api/v2/auth/register',
                 {
                     email                   => $email,
@@ -119,7 +119,7 @@ sub test_activate($)
         {
             # Confirm that we can't log in without activation
             my $expect_error = 1;
-            my $login = test_post( '/api/v2/auth/login', { email => $email, password => $password }, $expect_error );
+            my $login = MediaWords::Test::API::test_post( '/api/v2/auth/login', { email => $email, password => $password }, $expect_error );
             ok( $login->{ 'error' } );
         }
     }
@@ -135,7 +135,7 @@ sub test_activate($)
 
     # Activate user
     {
-        my $r = test_post(
+        my $r = MediaWords::Test::API::test_post(
             '/api/v2/auth/activate',
             {
                 email            => $email,
@@ -148,14 +148,14 @@ sub test_activate($)
 
     # Test logging in
     {
-        my $r = test_post( '/api/v2/auth/login', { email => $email, password => $password } );
+        my $r = MediaWords::Test::API::test_post( '/api/v2/auth/login', { email => $email, password => $password } );
         is( $r->{ 'success' }, 1 );
     }
 
     # Try activating nonexistent user
     {
         my $expect_error = 1;
-        my $r            = test_post(
+        my $r            = MediaWords::Test::API::test_post(
             '/api/v2/auth/activate',
             {
                 email            => 'totally_does_not_exist@gmail.com',
@@ -177,7 +177,7 @@ sub test_resend_activation_link($)
 
     # Register user
     {
-        my $r = test_post(
+        my $r = MediaWords::Test::API::test_post(
             '/api/v2/auth/register',
             {
                 email                   => $email,
@@ -193,7 +193,7 @@ sub test_resend_activation_link($)
 
     # Resend activation link
     {
-        my $r = test_post(
+        my $r = MediaWords::Test::API::test_post(
             '/api/v2/auth/resend_activation_link',
             {
                 email          => $email,
@@ -206,7 +206,7 @@ sub test_resend_activation_link($)
     # Try sending for nonexistent user (should not fail in order to not reveal
     # whether or not a particular user exists)
     {
-        my $r = test_post(
+        my $r = MediaWords::Test::API::test_post(
             '/api/v2/auth/resend_activation_link',
             {
                 email          => 'totally_does_not_exist@gmail.com',
@@ -227,7 +227,7 @@ sub test_send_password_reset_link($)
 
     # Register user
     {
-        my $r = test_post(
+        my $r = MediaWords::Test::API::test_post(
             '/api/v2/auth/register',
             {
                 email                   => $email,
@@ -243,7 +243,7 @@ sub test_send_password_reset_link($)
 
     # Resend password reset link
     {
-        my $r = test_post(
+        my $r = MediaWords::Test::API::test_post(
             '/api/v2/auth/send_password_reset_link',
             {
                 email              => $email,
@@ -256,7 +256,7 @@ sub test_send_password_reset_link($)
     # Try sending for nonexistent user (should not fail in order to not reveal
     # whether or not a particular user exists)
     {
-        my $r = test_post(
+        my $r = MediaWords::Test::API::test_post(
             '/api/v2/auth/send_password_reset_link',
             {
                 email              => 'totally_does_not_exist@gmail.com',
@@ -292,13 +292,13 @@ sub test_reset_password($)
 
     # Test logging in
     {
-        my $r = test_post( '/api/v2/auth/login', { email => $email, password => $password } );
+        my $r = MediaWords::Test::API::test_post( '/api/v2/auth/login', { email => $email, password => $password } );
         is( $r->{ 'success' }, 1 );
     }
 
     # Send password reset link
     {
-        my $r = test_post(
+        my $r = MediaWords::Test::API::test_post(
             '/api/v2/auth/send_password_reset_link',
             {
                 email              => $email,
@@ -321,7 +321,7 @@ sub test_reset_password($)
 
     # Reset user's password
     {
-        my $r = test_post(
+        my $r = MediaWords::Test::API::test_post(
             '/api/v2/auth/reset_password',
             {
                 email                => $email,
@@ -334,7 +334,7 @@ sub test_reset_password($)
 
     # Test logging in
     {
-        my $r = test_post( '/api/v2/auth/login', { email => $email, password => $new_password } );
+        my $r = MediaWords::Test::API::test_post( '/api/v2/auth/login', { email => $email, password => $new_password } );
         is( $r->{ 'success' }, 1 );
     }
 }
@@ -356,7 +356,7 @@ sub test_profile($)
     my $expected_api_key = $expected_profile->global_api_key();
     ok( $expected_api_key );
 
-    my $actual_profile = test_get( '/api/v2/auth/profile' );
+    my $actual_profile = MediaWords::Test::API::test_get( '/api/v2/auth/profile' );
     ok( $actual_profile );
 
     is( $actual_profile->{ email },     $expected_profile->email() );
@@ -402,7 +402,7 @@ sub test_login($)
         };
         ok( !$@, "Unable to add user: $@" );
 
-        my $r = test_post( '/api/v2/auth/login', { email => $email, password => $password } );
+        my $r = MediaWords::Test::API::test_post( '/api/v2/auth/login', { email => $email, password => $password } );
         is( $r->{ success }, 1 );
 
         my $db_api_key = $db->query(
@@ -424,7 +424,7 @@ SQL
         is( $r->{ profile }->{ api_key }, $db_api_key->{ api_key }, "'/api/v2/auth/login' API key" );
 
         Readonly my $expect_error => 1;
-        my $r_not_found = test_post( '/api/v2/auth/login', { email => $email, password => "$password FOO" }, $expect_error );
+        my $r_not_found = MediaWords::Test::API::test_post( '/api/v2/auth/login', { email => $email, password => "$password FOO" }, $expect_error );
         ok( $r_not_found->{ error } =~ /was not found or password/i,
             "'/api/v2/auth/login' status for wrong password: " . $r_not_found->{ error } );
     }
@@ -452,7 +452,7 @@ SQL
         ok( !$@, "Unable to add user: $@" );
 
         my $expect_error = 1;
-        my $r = test_post( '/api/v2/auth/login', { email => $email, password => $password }, $expect_error );
+        my $r = MediaWords::Test::API::test_post( '/api/v2/auth/login', { email => $email, password => $password }, $expect_error );
         ok( $r->{ error } );
 
         # Make sure the error message explicitly states that login failed due to user not being active
@@ -487,7 +487,7 @@ sub test_change_password($)
     # Test whether we can log in with old password
     my $api_key;
     {
-        my $r = test_post( '/api/v2/auth/login', { email => $email, password => $password } );
+        my $r = MediaWords::Test::API::test_post( '/api/v2/auth/login', { email => $email, password => $password } );
         is( $r->{ success }, 1 );
         $api_key = $r->{ profile }->{ api_key };
         ok( $api_key );
@@ -497,7 +497,7 @@ sub test_change_password($)
 
     # Change password
     {
-        my $r = test_post(
+        my $r = MediaWords::Test::API::test_post(
             '/api/v2/auth/change_password?key=' . $api_key,
             {
                 old_password => $password,
@@ -509,7 +509,7 @@ sub test_change_password($)
 
     # Test whether we can log in with new password
     {
-        my $r = test_post( '/api/v2/auth/login', { email => $email, password => $new_password } );
+        my $r = MediaWords::Test::API::test_post( '/api/v2/auth/login', { email => $email, password => $new_password } );
         is( $r->{ success }, 1 );
         $api_key = $r->{ profile }->{ api_key };
         ok( $api_key );
@@ -543,7 +543,7 @@ sub test_reset_api_key($)
     # Get API key
     my $api_key;
     {
-        my $r = test_post( '/api/v2/auth/login', { email => $email, password => $password } );
+        my $r = MediaWords::Test::API::test_post( '/api/v2/auth/login', { email => $email, password => $password } );
         is( $r->{ success }, 1 );
         $api_key = $r->{ profile }->{ api_key };
         ok( $api_key );
@@ -551,7 +551,7 @@ sub test_reset_api_key($)
 
     # Test whether we can use old API key
     {
-        my $r = test_post( '/api/v2/auth/profile?key=' . $api_key, {} );
+        my $r = MediaWords::Test::API::test_post( '/api/v2/auth/profile?key=' . $api_key, {} );
         is( $r->{ 'email' },   $email );
         is( $r->{ 'api_key' }, $api_key );
     }
@@ -559,14 +559,14 @@ sub test_reset_api_key($)
     # Reset API key
     my $new_api_key;
     {
-        my $r = test_post( '/api/v2/auth/reset_api_key?key=' . $api_key, {} );
+        my $r = MediaWords::Test::API::test_post( '/api/v2/auth/reset_api_key?key=' . $api_key, {} );
         is( $r->{ 'success' }, 1 );
         $new_api_key = $r->{ profile }->{ api_key };
     }
 
     # Test whether we can use new API key
     {
-        my $r = test_post( '/api/v2/auth/profile?key=' . $new_api_key, {} );
+        my $r = MediaWords::Test::API::test_post( '/api/v2/auth/profile?key=' . $new_api_key, {} );
         is( $r->{ 'email' },   $email );
         is( $r->{ 'api_key' }, $new_api_key );
     }
@@ -574,7 +574,7 @@ sub test_reset_api_key($)
     # Ensure that the old API key is invalid
     {
         my $expect_error = 1;
-        my $r = test_post( '/api/v2/auth/profile?key=' . $api_key, {}, $expect_error );
+        my $r = MediaWords::Test::API::test_post( '/api/v2/auth/profile?key=' . $api_key, {}, $expect_error );
         ok( $r->{ 'error' } );
     }
 }

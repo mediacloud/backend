@@ -76,7 +76,7 @@ SQL
     # Test that no models exist for snapshot
     {
         # No snapshots/single/<snapshots_id> available at the moment
-        my $fetched_snapshots = test_get( "/api/v2/topics/$topics_id/snapshots/list" );
+        my $fetched_snapshots = MediaWords::Test::API::test_get( "/api/v2/topics/$topics_id/snapshots/list" );
 
         my $found_snapshot = undef;
         for my $snapshot ( @{ $fetched_snapshots->{ snapshots } } )
@@ -104,7 +104,7 @@ SQL
         INFO "Trying to fetch generated snapshot model for $retry time...";
 
         # No snapshots/single/<snapshots_id> available at the moment
-        my $fetched_snapshots = test_get( "/api/v2/topics/$topics_id/snapshots/list" );
+        my $fetched_snapshots = MediaWords::Test::API::test_get( "/api/v2/topics/$topics_id/snapshots/list" );
 
         my $found_snapshot = undef;
         for my $snapshot ( @{ $fetched_snapshots->{ snapshots } } )

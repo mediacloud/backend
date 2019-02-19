@@ -179,7 +179,7 @@ sub run_solr_tests($)
     {
         # basic query
         my $story = pop( @{ $test_stories } );
-        test_story_query( $db, '*:*', $story, 'simple story' );
+        MediaWords::Test::Solr::test_story_query( $db, '*:*', $story, 'simple story' );
     }
 
     {
@@ -221,7 +221,7 @@ SQL
           MediaWords::Solr::search_for_stories( $db, { q => '*:*', fq => "stories_id:[$min_stories_id TO *]" } );
 
         my $fields = [ qw/title publish_date url guid media_id language/ ];
-        rows_match( 'search_for_stories', $got_stories, $expected_stories, 'stories_id', $fields );
+        MediaWords::Test::API::rows_match( 'search_for_stories', $got_stories, $expected_stories, 'stories_id', $fields );
     }
 
     {
@@ -231,7 +231,7 @@ SQL
         my $got_media      = MediaWords::Solr::search_for_media( $db, { q => "media_id:$media_id" } );
 
         my $fields = [ qw/url name/ ];
-        rows_match( 'search_for_media', $got_media, $expected_media, 'media_id', $fields );
+        MediaWords::Test::API::rows_match( 'search_for_media', $got_media, $expected_media, 'media_id', $fields );
     }
 
     {
@@ -249,7 +249,7 @@ SQL
         my $got_sentences      = MediaWords::Solr::query_matching_sentences( $db, { q => $query } );
 
         my $fields = [ qw/stories_id sentence_number sentence media_id publish_date language/ ];
-        rows_match( "query_matching_sentences '$test_word'",
+        MediaWords::Test::API::rows_match( "query_matching_sentences '$test_word'",
             $got_sentences, $expected_sentences, 'story_sentences_id', $fields );
     }
 
@@ -263,7 +263,7 @@ SQL
         my $got_sentences = MediaWords::Solr::query_matching_sentences( $db, { q => $query } );
 
         my $fields = [ qw/stories_id sentence_number sentence media_id publish_date language/ ];
-        rows_match( 'query_matching_sentences empty regex', $got_sentences, $story_sentences, 'story_sentences_id',
+        MediaWords::Test::API::rows_match( 'query_matching_sentences empty regex', $got_sentences, $story_sentences, 'story_sentences_id',
             $fields );
     }
 
