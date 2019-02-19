@@ -25,7 +25,7 @@ sub main
     my $options = {};
 
     Getopt::Long::GetOptions( $options,
-        qw/daemon! queue_only! update! empty_queue! jobs=i throttle=i staging! full! stories_queue_table=s skip_logging!/ );
+        qw/queue_only! update! empty_queue! jobs=i throttle=i staging! full! stories_queue_table=s skip_logging!/ );
 
     if ( -f $solr_backup_lock_file )
     {
