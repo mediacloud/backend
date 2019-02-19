@@ -22,7 +22,6 @@ The default is 'postgresql', and the production system uses Amazon S3.
 This module also includes extract and related functions to handle download
 extraction.
 """
-import random
 import re
 from typing import Optional
 
@@ -273,7 +272,7 @@ def store_content(db: DatabaseHandler, download: dict, content: str) -> dict:
     return download
 
 
-def _get_cached_extractor_results(db: DatabaseHandler, download: dict) -> Optional[dict]:
+def _get_extractor_results_cache(db: DatabaseHandler, download: dict) -> Optional[dict]:
     """Get extractor results from cache.
 
     Return:
@@ -283,7 +282,7 @@ def _get_cached_extractor_results(db: DatabaseHandler, download: dict) -> Option
 
     r = db.query("""
         SELECT extracted_html, extracted_text
-        FROM cached_extractor_results
+        FROM cache.extractor_results_cache
         WHERE downloads_id = %(a)s
     """, {'a': download['downloads_id']}).hash()
 
@@ -292,10 +291,10 @@ def _get_cached_extractor_results(db: DatabaseHandler, download: dict) -> Option
     return r
 
 
-def _set_cached_extractor_results(db, download: dict, results: dict) -> None:
+def _set_extractor_results_cache(db, download: dict, results: dict) -> None:
     """Store results in extractor cache and manage size of cache."""
 
-    # This cache is used as a backhanded way of extracting stories asynchronously in the topic spider.  Intead of
+    # This cache is used as a backhanded way of extracting stories asynchronously in the topic spider.  Instead of
     # submitting extractor jobs and then directly checking whether a given story has been extracted, we just
     # throw extraction jobs in chunks into the extractor job and cache the results.  Then if we re-extract
     # the same story shortly after, this cache will hit and the cost will be trivial.
@@ -303,29 +302,24 @@ def _set_cached_extractor_results(db, download: dict, results: dict) -> None:
     download = decode_object_from_bytes_if_needed(download)
     results = decode_object_from_bytes_if_needed(results)
 
-    max_cache_entries = 1000 * 1000
-
-    # We only need this cache to be a few thousand rows in size for the above to work, but it is cheap
-    # to have up to a million or so rows. So just randomly clear the cache every million requests or so and
-    # avoid expensively keeping track of the size of the postgres table.
-    if random.random() * (max_cache_entries / 10) < 1:
-        db.query("""
-            DELETE FROM cached_extractor_results
-            WHERE cached_extractor_results_id IN (
-                SELECT cached_extractor_results_id
-                FROM cached_extractor_results
-                ORDER BY cached_extractor_results_id DESC
-                OFFSET %(a)s
-            )
-        """, {'a': max_cache_entries})
-
-    cache = {
+    # Upsert cache entry
+    db.query("""
+        INSERT INTO cache.extractor_results_cache (
+            extracted_html,
+            extracted_text,
+            downloads_id
+        ) VALUES (
+            %(extracted_html)s,
+            %(extracted_text)s,
+            %(downloads_id)s
+        ) ON CONFLICT (downloads_id) DO UPDATE SET
+            extracted_html = EXCLUDED.extracted_html,
+            extracted_text = EXCLUDED.extracted_text
+    """, {
         'extracted_html': results['extracted_html'],
         'extracted_text': results['extracted_text'],
-        'downloads_id': download['downloads_id']
-    }
-
-    db.create('cached_extractor_results', cache)
+        'downloads_id': int(download['downloads_id']),
+    })
 
 
 def extract(db: DatabaseHandler, download: dict, extractor_args: PyExtractorArguments = PyExtractorArguments()) -> dict:
@@ -346,7 +340,7 @@ def extract(db: DatabaseHandler, download: dict, extractor_args: PyExtractorArgu
 
     if extractor_args.use_cache():
         log.debug("Fetching cached extractor results for download {}...".format(downloads_id))
-        results = _get_cached_extractor_results(db, download)
+        results = _get_extractor_results_cache(db, download)
         if results is not None:
             return results
 
@@ -360,7 +354,7 @@ def extract(db: DatabaseHandler, download: dict, extractor_args: PyExtractorArgu
 
     if extractor_args.use_cache():
         log.debug("Caching extractor results for download {}...".format(downloads_id))
-        _set_cached_extractor_results(db, download, results)
+        _set_extractor_results_cache(db, download, results)
 
     return results
 
