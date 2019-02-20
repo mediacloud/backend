@@ -18,7 +18,6 @@ use MediaWords::CommonLibs;
 use Test::More;
 
 use MediaWords::Solr;
-use MediaWords::Solr::Dump;
 use MediaWords::Util::Tags;
 
 =head2 test_story_query( $db, $q, $expected_story, $label )
@@ -175,7 +174,7 @@ full solr import based on the current postgres db.
 Using this function leaves the side effect of leaving all of the test data sitting in the staging collection after
 it has been run.
 
-Due to a failsafe built into MediaWords::Solr::Dump::generate_and_import_data, the delete of the staging collection
+Due to a failsafe built into generate_and_import_data(), the delete of the staging collection
 data will fail if there are more than 100 million sentences in the index (to prevent accidental deletion of
 production data).
 
@@ -186,7 +185,11 @@ sub setup_test_index($)
     my ( $db ) = @_;
 
     queue_all_stories( $db );
-    MediaWords::Solr::Dump::import_data( $db, { full => 1, throttle => 0 } );
+
+    MediaWords::JobManager::Job::run_remotely(  #
+        'MediaWords::Job::Facebook::ImportSolrDataForTesting',  #
+        { full => 1, throttle => 0 },   #
+    );
 }
 
 1;

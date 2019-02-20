@@ -14,6 +14,7 @@ use MediaWords::Test::Solr;
 use MediaWords::Test::Supervisor;
 use MediaWords::Test::Types;
 use MediaWords::DBI::Downloads::Store;
+use MediaWords::JobManager::Job;
 
 Readonly my $NUM_MEDIA            => 3;
 Readonly my $NUM_FEEDS_PER_MEDIUM => 2;
@@ -265,7 +266,10 @@ sub test_stories_count_split($)
 update stories set publish_date = '2017-01-01'::date + ( ( stories_id % 27 )::text || ' days' )::interval
 SQL
 
-    MediaWords::Solr::Dump::import_data( $db, { throttle => 0 } );
+    MediaWords::JobManager::Job::run_remotely(  #
+        'MediaWords::Job::Facebook::ImportSolrDataForTesting',  #
+        { throttle => 0 },   #
+    );
 
     my $date_counts = $db->query( "select publish_date, count(*) as count from stories group by publish_date" )->hashes;
 

@@ -10,11 +10,11 @@ use MediaWords::CommonLibs;
 
 use Test::More;
 
-use MediaWords::Solr::Dump;
 use MediaWords::DBI::Topics;
 use MediaWords::TM::Snapshot;
 use MediaWords::Test::Solr;
 use MediaWords::Test::Supervisor;
+use MediaWords::JobManager::Job;
 
 my $_test_supervisor_called;
 
@@ -60,7 +60,10 @@ SQL
 
     my $timespan = MediaWords::DBI::Topics::get_latest_overall_timespan( $db, $topic->{ topics_id } );
 
-    MediaWords::Solr::Dump::import_data( $db, { empty_queue => 1 } );
+    MediaWords::JobManager::Job::run_remotely(  #
+        'MediaWords::Job::Facebook::ImportSolrDataForTesting',  #
+        { empty_queue => 1 },   #
+    );
 
     my $num_topic_stories = MediaWords::Solr::get_num_found( $db, { q => "timespans_id:$timespan->{ timespans_id }" } );
     is( $num_topic_stories, $num_topic_medium_stories, "topic stories after snapshot" );
@@ -76,7 +79,11 @@ insert into focus_definitions ( name, description, arguments, focal_set_definiti
 SQL
 
     MediaWords::Job::TM::SnapshotTopic->run( { topics_id => $topic->{ topics_id } } );
-    MediaWords::Solr::Dump::import_data( $db, { empty_queue => 1 } );
+
+    MediaWords::JobManager::Job::run_remotely(  #
+        'MediaWords::Job::Facebook::ImportSolrDataForTesting',  #
+        { empty_queue => 1 },   #
+    );
 
     my ( $focus_timespans_id ) = $db->query( <<SQL )->flat;
 select *

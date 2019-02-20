@@ -327,6 +327,39 @@ services:
                     memory: 4G
 
     #
+    # Import stories into Solr for testing
+    # ------------------------------------
+    #
+    # import_solr_data_for_testing:
+    #     build:
+    #         context: ./import-solr-data-for-testing/
+    #     image: dockermediacloud/mediacloud-import-solr-data-for-testing:latest
+    #     container_name: mc_import_solr_data_for_testing
+    #     environment:
+    #         # Stories to import into Solr on a single run
+    #         MC_SOLR_IMPORT_MAX_QUEUED_STORIES: "100000"
+    #     depends_on:
+    #         - postgresql_pgbouncer
+    #         - solr_shard
+    #     networks:
+    #         # Reads stories from PostgreSQL
+    #         - net_postgresql
+    #         # Imports stories to Solr
+    #         - net_solr
+    #     deploy:
+    #         # Only one instance
+    #         replicas: 1
+    #         # Auto-restart on crashes
+    #         restart_policy:
+    #             condition: on-failure
+    #         resources:
+    #             limits:
+    #                 # CPU core limit
+    #                 cpus: "16"
+    #                 # RAM limit
+    #                 memory: 4G
+
+    #
     # Scrape Feedly for new stories
     # -----------------------------
     #

@@ -16,13 +16,13 @@ use Test::More;
 
 use MediaWords::DB::Schema;
 use MediaWords::DBI::Auth::Roles;
-use MediaWords::Solr::Dump;
 use MediaWords::Solr::Query;
 use MediaWords::Test::API;
 use MediaWords::Test::Rows;
 use MediaWords::Test::Solr;
 use MediaWords::Test::Supervisor;
 use MediaWords::Util::Web;
+use MediaWords::JobManager::Job;
 
 Readonly my $TEST_HTTP_SERVER_PORT => '3000';
 
@@ -130,8 +130,11 @@ sub create_test_data
 
     MediaWords::Test::Solr::setup_test_index( $test_db );
 
-    MediaWords::Solr::Dump::import_data( $test_db, { throttle => 0 } );
-
+    # FIXME commented out because we're probably doing the same thing twice
+    # MediaWords::JobManager::Job::run_remotely(  #
+    #     'MediaWords::Job::Facebook::ImportSolrDataForTesting',  #
+    #     { throttle => 0 },   #
+    # );
 }
 
 sub test_media_list

@@ -190,7 +190,7 @@ SQL
         # test threaded import
         is( MediaWords::Solr::get_num_found( $db, { q => '*:*' } ), 0, "stories after deleting" );
 
-        MediaWords::Solr::Dump::queue_all_stories( $db );
+        MediaWords::Test::Solr::queue_all_stories( $db );
 
         MediaWords::Solr::Dump::import_data( $db, { full => 1, jobs => 3, throttle => 0 } );
 

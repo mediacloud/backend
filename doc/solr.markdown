@@ -41,7 +41,7 @@ allow much faster grouping and also gives us stored values without requiring ext
 `title` fields are not stored because storing the values takes about twice as much space (which also impacts
 performance because it requires more memory use).
 
-For more information about the Solr import process, see [MediaWords::Solr::Dump](lib/MediaWords/Solr/Dump.pm).
+For more information about the Solr import process, see `import-solr-data`.
 
 Reads from the Solr database are performed through the [MediaWords::Solr](lib/MediaWords/Solr.pm) module for Perl code
 in the codebase and through the API (which itself uses Solr.pm) by external clients.
