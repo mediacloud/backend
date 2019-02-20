@@ -87,44 +87,23 @@ def fetch_100_users(screen_names: list) -> list:
     return users
 
 
-def _fetch_and_attach_retweets(tweets: list) -> list:
-    """Fetch retweets and attach them to the retweeted_status fields of the given tweets."""
-    log.warning('fetching retweets ...')
-    retweeted_ids = []
-    tweet_lookup = {}
-    for tweet in tweets:
-        if 'retweeted_status' in tweet:
-            log.warning('fetch retweet ' + str(tweet['retweeted_status']['id_str']))
-            retweeted_ids.append(tweet['retweeted_status']['id_str'])
-            tweet_lookup[tweet['retweeted_status']['id_str']] = tweet
-
-    retweets = fetch_100_tweets(tweet_ids=retweeted_ids, fetch_retweets=False)
-
-    for retweet in retweets:
-        log.warning('attach expanded retweet ' + str(retweet['id_str']))
-        if retweet['id_str'] in tweet_lookup:
-            tweet = tweet_lookup[retweet['id_str']]
-            tweet['expanded_retweeted_status'] = retweet
-        else:
-            log.warning('Unable to find tweet for retweet: %s' % retweet['id_str'])
-
-    return tweets
-
-
-def fetch_100_tweets(tweet_ids: list, fetch_retweets: bool = True) -> list:
+def fetch_100_tweets(tweet_ids: list) -> list:
     """Fetch data for up to 100 tweets."""
     if len(tweet_ids) > 100:
         raise McFetchTweetsException('tried to fetch more than 100 tweets')
 
+    if len(tweet_ids) == 0:
+        return []
+
     log.warning("fetching tweets: %s" % tweet_ids)
 
-    tweets = get_tweepy_api().statuses_lookup(tweet_ids, include_entities=True, trim_user=False)
+    tweets = get_tweepy_api().statuses_lookup(tweet_ids, include_entities=True, trim_user=False, tweet_mode='extended')
 
     # return simple list so that this can be mocked. relies on RawParser() in get_tweepy_api
     tweets = list(mediawords.util.parse_json.decode_json(tweets))
 
-    if fetch_retweets:
-        _fetch_and_attach_retweets(tweets)
+    for tweet in tweets:
+        tweet['text'] = tweet['full_text']
 
     return tweets
 
