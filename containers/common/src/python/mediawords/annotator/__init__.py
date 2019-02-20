@@ -451,16 +451,11 @@ class JSONAnnotator(metaclass=abc.ABCMeta):
             tags_id = int(db_tag['tags_id'])
 
             # Assign story to tag (if no such mapping exists yet)
+            #
             # (partitioned table's INSERT trigger will take care of conflicts)
             #
-            # db.create() can't be used here because:
-            #
-            # 1) Master table for partitioned table might not have a primary key itself, only the partitions do --
-            #    FIXME maybe master tables should have primary keys? Or let's wait for when we move to PostgreSQL 10+.
-            #
-            # 2) Partitioned table's INSERT trigger doesn't return last_inserted_id which db.create() requires
-            #    FIXME there might be a way for it to return the inserted row
-            #
+            # Not using db.create() because it tests last_inserted_id, and on duplicates there would be no such
+            # "last_inserted_id" set.
             db.query("""
                 INSERT INTO stories_tags_map (stories_id, tags_id)
                 VALUES (%(stories_id)s, %(tags_id)s)

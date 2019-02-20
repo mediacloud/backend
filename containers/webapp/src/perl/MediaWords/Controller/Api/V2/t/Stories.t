@@ -124,14 +124,21 @@ SQL
         my $got_story = $got_stories_lookup->{ $story->{ stories_id } };
 
         my $sentences = $db->query( "select * from story_sentences where stories_id = ?", $sid )->hashes;
-        my $download_text = $db->query( <<SQL, $sid )->hash;
-select dt.*
-    from download_texts dt
-        join downloads d using ( downloads_id )
-    where d.stories_id = ?
-    order by dt.download_texts_id
-    limit 1
+        my $download_text = $db->query(
+            <<SQL,
+            SELECT *
+            FROM download_texts
+            WHERE downloads_id = (
+                SELECT downloads_id
+                FROM downloads
+                WHERE stories_id = ?
+                ORDER BY downloads_id
+                LIMIT 1
+            )
 SQL
+            $sid
+        )->hash;
+
         my $content = MediaWords::DBI::Downloads::Store::get_content_for_first_download( $db, $story );
 
         my $ss_fields = [ qw/is_dup language media_id publish_date sentence sentence_number story_sentences_id/ ];

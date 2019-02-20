@@ -101,7 +101,7 @@ sub _get_extra_where_clause($$)
         my $media_ids = ref( $media_id ) ? $media_id : [ $media_id ];
         my $media_ids_list = join( ',', map { int( $_ ) } @{ $media_ids } );
         push( @{ $clauses }, <<SQL );
-slc.stories_id in (
+exists (
     select s.stories_id
         from snap.stories s
             join timespans t using ( snapshots_id )

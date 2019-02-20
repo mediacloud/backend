@@ -4,8 +4,8 @@ from unittest import TestCase
 # noinspection PyProtectedMember
 from mediawords.dbi.downloads.extract import (
     extract_content,
-    _set_cached_extractor_results,
-    _get_cached_extractor_results,
+    _set_extractor_results_cache,
+    _get_extractor_results_cache,
     extract,
     extract_and_create_download_text,
     process_download_for_extractor,
@@ -81,8 +81,8 @@ class TestExtractDB(TestDatabaseWithSchemaTestCase):
     def test_extractor_cache(self) -> None:
         """Test set and get for extract cache."""
         extractor_results = {'extracted_html': 'extracted html', 'extracted_text': 'extracted text'}
-        _set_cached_extractor_results(self.db(), self.test_download, extractor_results)
-        got_results = _get_cached_extractor_results(self.db(), self.test_download)
+        _set_extractor_results_cache(self.db(), self.test_download, extractor_results)
+        got_results = _get_extractor_results_cache(self.db(), self.test_download)
         assert got_results == extractor_results
 
     def test_extract(self) -> None:

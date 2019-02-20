@@ -40,8 +40,6 @@ sub run($$;$)
         die "'media_id' is undefined.";
     }
 
-    die( "media_id 361045 segfaults" ) if ( $media_id == 361045 );
-
     MediaWords::DBI::Media::Rescrape::rescrape_media( $db, $media_id );
 }
 

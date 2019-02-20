@@ -600,21 +600,18 @@ def test_re():
         ') ) )'
     )
 
-    # complexphrase
     __validate_re(
         '{!complexphrase foo=bar}"foo bar"~10',
         '(?: (?: [[:<:]]foo .* [[:<:]]bar ) | (?: [[:<:]]bar .* [[:<:]]foo ) )'
     )
 
-    # is_logogram=True should not include word boundaries
     __validate_re(
         'foo and ( bar baz )',
+
         '(?: (?: foo .* (?: bar | baz ) ) | (?: (?: bar | baz ) .* foo ) )',
+
         True
     )
-
-    # hindi was triggering a bug in the python re module
-    __validate_re(u'राहुल', u'[[:<:]]राहुल')
 
 
 def test_inclusive_re():
