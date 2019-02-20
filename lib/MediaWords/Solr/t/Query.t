@@ -116,53 +116,6 @@ sub test_solr_stories_only_query($)
     test_stories_id_query( $db, { q => 'stories_id:( 1 2 3 4 5 6 )', rows => 2 }, [ 1, 2 ], 'rows parameter' );
 }
 
-# generate a utf8 string and append it to the title of the given stories, both in the hashes and in
-# the database, and also add a sentence including the utf8 string to the db.  return the add utf8 string.
-sub append_utf8_string_to_stories($$)
-{
-    my ( $db, $stories ) = @_;
-
-    my $utf8_string = "ind\x{ed}gena";
-
-    # my $utf8_string = "foobarbaz";
-
-    for my $story ( @{ $stories } )
-    {
-        $story->{ title } = "$story->{ title } $utf8_string";
-        $db->update_by_id( 'stories', $story->{ stories_id }, { title => $story->{ title } } );
-
-        $db->query(
-            <<SQL,
-            INSERT INTO story_sentences (
-                stories_id,
-                sentence_number,
-                sentence,
-                media_id,
-                publish_date,
-                language,
-                is_dup
-            )
-            SELECT
-                stories_id,
-
-                -- Table seems to be prefilled with some stories already
-                100000 AS sentence_number,
-
-                ?,
-                media_id,
-                publish_date,
-                language,
-                false
-            FROM stories
-            WHERE stories_id = ?
-SQL
-            encode_utf8( $utf8_string ), $story->{ stories_id }
-        );
-    }
-
-    return $utf8_string;
-}
-
 # tests that require solr to be running
 sub test_query($)
 {

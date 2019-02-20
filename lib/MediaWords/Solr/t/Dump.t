@@ -16,7 +16,7 @@ use MediaWords::Test::Solr;
 use MediaWords::Test::Supervisor;
 use MediaWords::Util::Tags;
 
-sub get_solr_date_clause
+sub _get_solr_date_clause
 {
     my ( $sql_date ) = @_;
 
@@ -69,7 +69,7 @@ sub test_import
 
     {
         my $story       = pop( @{ $test_stories } );
-        my $date_clause = get_solr_date_clause( $story->{ publish_date } );
+        my $date_clause = _get_solr_date_clause( $story->{ publish_date } );
         MediaWords::Test::Solr::test_story_query( $db, $date_clause, $story, "publish_date" );
     }
 
