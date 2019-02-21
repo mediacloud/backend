@@ -24,7 +24,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4708;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4709;
 BEGIN
 
     -- Update / set database schema version
@@ -802,6 +802,25 @@ CREATE INDEX downloads_np_state_fetching
 
 
 --
+-- Due to a missing downloads.stories_id -> stories.stories_id foreign key in
+-- production, some downloads in the non-partitioned "downloads_np" table don't
+-- have a story that they point to.
+--
+-- The partitioned table reintroduces
+-- downloads.stories_id -> stories.stories_id foreign key, so in order to move
+-- rows from a non-partitioned table to a partitioned one and not break this
+-- constraint, we'll move rows from "downloads_np" with no matching story to
+-- this table.
+--
+CREATE TABLE downloads_np_with_no_matching_story
+    AS TABLE downloads_np
+    WITH NO DATA;
+
+CREATE UNIQUE INDEX downloads_np_with_no_matching_story_downloads_np_id
+    ON downloads_np_with_no_matching_story (downloads_np_id);
+
+
+--
 -- Downloads (partitioned table)
 --
 
@@ -1476,7 +1495,40 @@ BEGIN
         RAISE EXCEPTION '"end_downloads_id" must be bigger than "start_downloads_id".';
     END IF;
 
-    -- Kill all autovacuums before proceeding with DDL changes
+
+    PERFORM pid
+    FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
+    WHERE backend_type = 'autovacuum worker'
+      AND query ~ 'downloads';
+
+    RAISE NOTICE 'Moving away downloads BETWEEN % AND % with no matching story...',
+        start_downloads_id, end_downloads_id;
+
+    WITH deleted_rows AS (
+        DELETE FROM downloads_np
+        WHERE downloads_np_id IN (
+            SELECT downloads_np_id
+            FROM downloads_np
+            WHERE downloads_np_id BETWEEN start_downloads_id AND end_downloads_id
+              AND stories_id IS NOT NULL
+              AND NOT EXISTS (
+                SELECT stories_id
+                FROM stories
+                WHERE downloads_np.stories_id = stories.stories_id
+            )
+        )
+        RETURNING *
+    )
+    INSERT INTO downloads_np_with_no_matching_story
+        SELECT *
+        FROM deleted_rows;
+
+    GET DIAGNOSTICS moved_row_count = ROW_COUNT;
+
+    RAISE NOTICE 'Done moving away downloads BETWEEN % AND % with no matching story, moved % rows.',
+        start_downloads_id, end_downloads_id, moved_row_count;
+
+
     PERFORM pid
     FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
     WHERE backend_type = 'autovacuum worker'
@@ -1531,7 +1583,7 @@ BEGIN
     GET DIAGNOSTICS moved_row_count = ROW_COUNT;
 
     RAISE NOTICE
-        'Finished moving downloads of downloads_id BETWEEN % AND % to the partitioned table, moved % rows.',
+        'Done moving downloads of downloads_id BETWEEN % AND % to the partitioned table, moved % rows.',
         start_downloads_id, end_downloads_id, moved_row_count;
 
     RETURN moved_row_count;
