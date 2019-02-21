@@ -103,7 +103,8 @@ def fetch_100_tweets(tweet_ids: list) -> list:
     tweets = list(mediawords.util.parse_json.decode_json(tweets))
 
     for tweet in tweets:
-        tweet['text'] = tweet['full_text']
+        if 'full_text' in tweet:
+            tweet['text'] = tweet['full_text']
 
     return tweets
 
