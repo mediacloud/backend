@@ -12,7 +12,7 @@ log = create_logger(__name__)
 def move_nonpartitioned_downloads_to_partitions():
     """Gradually move downloads from "downloads_np" to "downloads_p"."""
 
-    # How many downloads to copy at the same time
+    # How many downloads to move at the same time
     downloads_chunk_size = 50 * 1000
 
     db = connect_to_db()
@@ -26,18 +26,18 @@ def move_nonpartitioned_downloads_to_partitions():
     for start_downloads_id in range(1, max_downloads_id + 1, downloads_chunk_size):
         end_downloads_id = start_downloads_id + downloads_chunk_size - 1
 
-        log.info("Copying rows with downloads_id between {} and {} to the partitioned table...".format(
+        log.info("Moving rows with downloads_id between {} and {} to the partitioned table...".format(
             start_downloads_id,
             end_downloads_id,
         ))
 
-        copied_row_count = db.query(
+        moved_row_count = db.query(
             'SELECT move_chunk_of_nonpartitioned_downloads_to_partitions(%(start_downloads_id)s, %(end_downloads_id)s)',
             {'start_downloads_id': start_downloads_id, 'end_downloads_id': end_downloads_id}
         ).flat()[0]
 
-        log.info("Copied {} rows with downloads_id between {} AND {} to the partitioned table.".format(
-            copied_row_count,
+        log.info("Moved {} rows with downloads_id between {} AND {} to the partitioned table.".format(
+            moved_row_count,
             start_downloads_id,
             end_downloads_id,
         ))
