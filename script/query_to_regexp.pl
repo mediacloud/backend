@@ -11,6 +11,8 @@ sub main
 {
     my ( $query ) = @ARGV;
 
+    binmode( STDOUT, ':utf8' );
+
     my $regex = MediaWords::Solr::Query::parse( $query )->re();
 
     print "$regex\n";

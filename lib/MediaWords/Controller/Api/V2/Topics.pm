@@ -461,8 +461,9 @@ sub update_PUT
 
     if ( $update->{ solr_seed_query } && ( $topic->{ solr_seed_query } ne $update->{ solr_seed_query } ) )
     {
+        my $is_logogram = defined( $update->{ is_logogram } ) ? $update->{ is_logogram } : $topic->{ is_logogram };
         $update->{ pattern } =
-          eval { MediaWords::Solr::Query::parse( $update->{ solr_seed_query } )->re( $update->{ is_logogram } ) };
+          eval { MediaWords::Solr::Query::parse( $update->{ solr_seed_query } )->re( $is_logogram ) };
         die( "unable to translate solr query to topic pattern: $@" ) if ( $@ );
 
         $topic->{ solr_seed_query } = $update->{ solr_seed_query };
