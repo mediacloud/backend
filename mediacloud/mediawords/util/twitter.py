@@ -95,8 +95,6 @@ def fetch_100_tweets(tweet_ids: list) -> list:
     if len(tweet_ids) == 0:
         return []
 
-    log.warning("fetching tweets: %s" % tweet_ids)
-
     tweets = get_tweepy_api().statuses_lookup(tweet_ids, include_entities=True, trim_user=False, tweet_mode='extended')
 
     # return simple list so that this can be mocked. relies on RawParser() in get_tweepy_api
