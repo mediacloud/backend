@@ -1786,6 +1786,45 @@ Response:
 
 Each *snapshot* contains a static copy of all data within a topic at the time the *snapshot* was made.  All data viewable by the Topics API must be viewed through a *snapshot*.
 
+## `snapshots/create` (POST)
+
+`https://api.mediacloud.org/api/v2/topics/<topics_id>/snapshots/create`
+
+Create a new but empty snapshot for the topic.  This call only creates an empty shell of a snapshot.  To fill it with
+data, you must pass the returned snapshots\_id to snapshots/generate or topic/spider.
+
+### Query Parameters
+
+(no parameters)
+
+### Input Description
+
+| Field | Description                              |
+| ----- | ---------------------------------------- |
+| note  | short text note about the snapshot; optional |
+
+### Output Description
+
+Returns the created snapshot, as in the example below.
+
+### Example
+
+Create a new snapshot for the 'U.S. 2016 Election' *topic*:
+
+`https://api.mediacloud.org/api/v2/topics/1344/snapshots/create`
+
+Response:
+
+```json
+{
+    "snapshot":
+        {
+            "snapshots_id": 1234,
+            "topics_id": 1404
+        }
+}
+```
+
 ## `snapshots/generate` (POST)
 
 `https://api.mediacloud.org/api/v2/topics/<topics_id>/snapshots/generate`

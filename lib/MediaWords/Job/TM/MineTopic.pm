@@ -66,6 +66,7 @@ sub run_statefully($$;$)
     my $skip_outgoing_foreign_rss_links = $args->{ skip_outgoing_foreign_rss_links } // 0;
     my $skip_post_processing            = $args->{ skip_post_processing } // 0;
     my $test_mode                       = $args->{ test_mode } // 0;
+    my $snapshots_id                    = $args->{ snapshots_id } // undef;
 
     unless ( $topics_id )
     {
@@ -80,7 +81,8 @@ sub run_statefully($$;$)
         cache_broken_downloads          => $cache_broken_downloads,
         skip_outgoing_foreign_rss_links => $skip_outgoing_foreign_rss_links,
         skip_post_processing            => $skip_post_processing,
-        test_mode                       => $test_mode
+        test_mode                       => $test_mode,
+        snapshots_id                    => $snapshots_id
     };
 
     MediaWords::TM::Mine::mine_topic( $db, $topic, $options );

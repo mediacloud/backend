@@ -1017,11 +1017,10 @@ sub do_mine_topic ($$;$)
 {
     my ( $db, $topic, $options ) = @_;
 
-    # commenting this out until we deploy the story index
-    # if ( !$topic->{ is_story_index_ready } )
-    # {
-    #     die( "refusing to run topic because is_story_index_ready is false" );
-    # }
+    if ( !$topic->{ is_story_index_ready } )
+    {
+        die( "refusing to run topic because is_story_index_ready is false" );
+    }
 
     map { $options->{ $_ } ||= 0 } qw/import_only skip_post_processing test_mode/;
 
@@ -1068,7 +1067,8 @@ sub do_mine_topic ($$;$)
             fetch_social_media_data( $db, $topic );
 
             update_topic_state( $db, $topic, "snapshotting" );
-            MediaWords::Job::TM::SnapshotTopic->add_to_queue( { topics_id => $topic->{ topics_id } }, undef, $db );
+            my $snapshot_args = { topics_id => $topic->{ topics_id }, snapshots_id => $options->{ snapshots_id } };
+            MediaWords::Job::TM::SnapshotTopic->add_to_queue( $snapshot_args, undef, $db );
         }
     }
 }
@@ -1207,7 +1207,7 @@ sub mine_topic ($$;$)
         MediaWords::TM::send_topic_alert( $db, $topic, "started topic spidering" );
     }
 
-    eval { do_mine_topic( $db, $topic ); };
+    eval { do_mine_topic( $db, $topic, $options ); };
     if ( $@ )
     {
         my $error = $@;
