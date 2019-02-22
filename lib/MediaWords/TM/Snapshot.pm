@@ -116,6 +116,24 @@ my $_drop_snapshot_period_stories = 1;
 
 =cut
 
+# update the job state args, catching any error caused by not running within a job
+sub update_job_state_args($$)
+{
+    my ( $db, $args ) = @_;
+
+    eval { MediaWords::Job::TM::SnapshotTopic->update_job_state_args( $db, $args ) };
+    die( $@ ) if ( $@ && ( $@ !~ /AbstractJob::run_statefully/ ) );
+}
+
+# update the job state message, catching any error caused by not running within a job
+sub update_job_state_message($$)
+{
+    my ( $db, $message ) = @_;
+
+    eval { MediaWords::Job::TM::SnapshotTopic->update_job_state_message( $db, $message ) };
+    die( $@ ) if ( $@ && ( $@ !~ /AbstractJob::run_statefully/ ) );
+}
+
 # get the list of all snapshot tables
 sub get_snapshot_tables
 {
@@ -279,6 +297,8 @@ sub restrict_period_stories_to_focus
     }
 
     $matching_stories_ids = [ map { int( $_ ) } @{ $matching_stories_ids } ];
+
+    DEBUG( "restricting timespan to focus query: " . scalar( @{ $matching_stories_ids } ) . " stories" );
 
     my $ids_table = $db->get_temporary_ids_table( $matching_stories_ids );
 
@@ -1303,12 +1323,24 @@ sub create_timespan ($$$$$$)
     my $snapshots_id = $cd->{ snapshots_id };
     my $foci_id = $focus ? $focus->{ foci_id } : undef;
 
+    my $focus_clause = $foci_id ? "foci_id = $foci_id" : "foci_id is null";
+
     my $timespan = $db->query( <<SQL, $snapshots_id, $start_date, $end_date, $period, $foci_id )->hash();
+select *
+    from timespans
+    where
+        snapshots_id = \$1 and
+        start_date = \$2 and
+        end_date = \$3 and
+        period = \$4 and
+        $focus_clause
+SQL
+
+    $timespan ||= $db->query( <<SQL, $snapshots_id, $start_date, $end_date, $period, $foci_id )->hash();
 insert into timespans
     ( snapshots_id, start_date, end_date, period, foci_id, 
       story_count, story_link_count, medium_count, medium_link_count, tweet_count )
-    values ( ?, ?, ?, ?, ?, 0, 0, 0, 0, 0 )
-    on conflict do nothing
+    values ( \$1, \$2, \$3, \$4, \$5, 0, 0, 0, 0, 0 )
     returning *
 SQL
 
@@ -1324,9 +1356,9 @@ sub timespan_snapshot_exists($$$)
 
     die( "Table name can only have letters and underscores" ) if ( $table =~ /[^a-z_]/i );
 
-    my $row_exists = $db->query( "select 1 from snap.$table where timespans_id = ?", $timespan->{ timespans_id } )->hash();
+    my $exists = $db->query( "select 1 from snap.$table where timespans_id = ?", $timespan->{ timespans_id } )->hash();
 
-    return $row_exists;
+    return $exists;
 }
 
 # generate data for the story_links, story_link_counts, media_links, media_link_counts tables
@@ -1341,6 +1373,8 @@ sub generate_timespan_data ($$;$)
         return;
     }
 
+    my $all_models_top_media = MediaWords::TM::Model::get_all_models_top_media( $db, $timespan );
+
     write_period_stories( $db, $timespan );
 
     write_timespan_tweets_snapshot( $db, $timespan );
@@ -1350,13 +1384,19 @@ sub generate_timespan_data ($$;$)
     write_medium_links_snapshot( $db, $timespan, $is_model );
     write_medium_link_counts_snapshot( $db, $timespan, $is_model );
 
+    update_timespan_counts( $db, $timespan );
+
+    $all_models_top_media ||= [ MediaWords::TM::Model::get_top_media_link_counts( $db, $timespan ) ];
+
+    MediaWords::TM::Model::print_model_matches( $db, $timespan, $all_models_top_media );
+    MediaWords::TM::Model::update_model_correlation( $db, $timespan, $all_models_top_media );
 }
 
 # Update story_count, story_link_count, medium_count, and medium_link_count fields in the timespan
 # hash.  This must be called after setup_temporary_snapshot_tables() to get access to these fields in the timespan hash.
 #
 # Save to db unless $live is specified.
-sub __update_timespan_counts($$;$)
+sub update_timespan_counts($$;$)
 {
     my ( $db, $timespan, $live ) = @_;
 
@@ -1390,19 +1430,10 @@ sub generate_timespan ($$$$$$)
 
     DEBUG( "generating $snapshot_label ..." );
 
-    MediaWords::Job::TM::SnapshotTopic->update_job_state_message( $db, "snapshotting $snapshot_label" );
-
-    my $all_models_top_media = MediaWords::TM::Model::get_all_models_top_media( $db, $timespan );
+    update_job_state_message( $db, "snapshotting $snapshot_label" );
 
     DEBUG( "generating snapshot data ..." );
     generate_timespan_data( $db, $timespan );
-
-    __update_timespan_counts( $db, $timespan );
-
-    $all_models_top_media ||= [ MediaWords::TM::Model::get_top_media_link_counts( $db, $timespan ) ];
-
-    MediaWords::TM::Model::print_model_matches( $db, $timespan, $all_models_top_media );
-    MediaWords::TM::Model::update_model_correlation( $db, $timespan, $all_models_top_media );
 }
 
 # decrease the given date to the latest monday equal to or before the date
@@ -1785,22 +1816,6 @@ END
     return $cd;
 }
 
-# analyze all of the snapshot tables because otherwise immediate queries to the
-# new snapshot ids offer trigger seq scans
-sub analyze_snapshot_tables
-{
-    my ( $db ) = @_;
-
-    DEBUG( "analyzing tables..." );
-
-    my $snapshot_tables = get_snapshot_tables();
-
-    for my $t ( @{ $snapshot_tables } )
-    {
-        $db->query( "analyze snap.$t" );
-    }
-}
-
 # validate and set the periods for the snapshot based on the period parameter
 sub get_periods ($)
 {
@@ -1830,6 +1845,7 @@ SQL
         my $focal_set = $db->query( <<SQL, $fsd->{ focal_set_definitions_id }, $snapshot->{ snapshots_id } )->hash;
 insert into focal_sets ( name, description, focal_technique, snapshots_id )
     select name, description, focal_technique, \$2 from focal_set_definitions where focal_set_definitions_id = \$1
+    on conflict (snapshots_id, name) do update set snapshots_id = \$2
     returning *
 SQL
 
@@ -1842,6 +1858,7 @@ SQL
             my $focus = $db->query( <<SQL, $fd->{ focus_definitions_id }, $focal_set->{ focal_sets_id } )->hash;
 insert into foci ( name, description, arguments, focal_sets_id )
     select name, description, arguments, \$2 from focus_definitions where focus_definitions_id = \$1
+    on conflict ( focal_sets_id, name ) do update set focal_sets_id = \$2
     returning *
 SQL
             map { generate_period_snapshot( $db, $snapshot, $_, $focus ) } @{ $periods };
@@ -1919,8 +1936,8 @@ sub snapshot_topic ($$;$$$$)
       ? $db->require_by_id( 'snapshots', $snapshots_id )
       : create_snapshot_row( $db, $topic, $start_date, $end_date, $note, $bot_policy );
 
-    MediaWords::Job::TM::SnapshotTopic->update_job_state_args( $db, { snapshots_id => $snap->{ snapshots_id } } );
-    MediaWords::Job::TM::SnapshotTopic->update_job_state_message( $db, "snapshotting data" );
+    update_job_state_args( $db, { snapshots_id => $snap->{ snapshots_id } } );
+    update_job_state_message( $db, "snapshotting data" );
 
     write_temporary_snapshot_tables( $db, $topic, $snap );
 
@@ -1931,11 +1948,9 @@ sub snapshot_topic ($$;$$$$)
 
     generate_period_focus_snapshots( $db, $snap, $periods );
 
-    MediaWords::Job::TM::SnapshotTopic->update_job_state_message( $db, "finalizing snapshot" );
+    update_job_state_message( $db, "finalizing snapshot" );
 
     _export_stories_to_solr( $db, $snap );
-
-    analyze_snapshot_tables( $db );
 
     discard_temp_tables( $db );
 
