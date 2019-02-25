@@ -37,6 +37,7 @@ requires 'URI::Escape';
 requires 'URI::QueryParam';
 requires 'UUID::Tiny';
 requires 'XML::FeedPP';
+requires 'XML::LibXML';
 # Our code doesn't use it, but one of the dependencies attempts to load it and
 # fails silently spitting out weird errors
 requires 'YAML::XS';

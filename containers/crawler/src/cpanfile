@@ -5,4 +5,3 @@ requires 'File::Path';
 requires 'HTTP::Daemon';
 requires 'IO::Select';
 requires 'IO::Socket';
-requires 'XML::LibXML';
