@@ -30,7 +30,6 @@ use MediaWords::Crawler::Engine;
 use MediaWords::DBI::Downloads::Store;
 use MediaWords::DBI::DownloadTexts;
 use MediaWords::DBI::Stories;
-use MediaWords::DBI::Stories::Extract;
 use MediaWords::Test::Data;
 use MediaWords::Test::LocalServer;
 use MediaWords::Test::Text;
