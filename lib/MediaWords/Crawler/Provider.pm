@@ -64,6 +64,9 @@ Readonly my $STALE_DOWNLOAD_INTERVAL => 60 * 5;
 # how many downloads to store in memory queue
 Readonly my $MAX_QUEUED_DOWNLOADS => 1_000_000;
 
+# how many downloads per site to story in memory queue
+Readonly my $MAX_QUEUED_DOWNLOADS_PER_SITE => 1_000;
+
 # how often to check the database for new pending downloads (seconds)
 Readonly my $DEFAULT_PENDING_CHECK_INTERVAL => 60 * 10;
 
@@ -234,7 +237,8 @@ SQL
     DEBUG "end _add_stale_feeds";
 }
 
-# add all pending downloads to the $_downloads list
+# add most recent $MAX_QUEUED_DOWNLOADS pending downloads to the $_downloads list,
+# limit to $MAX_QUEUED_DOWNLOADS_PER_SITE downloads per downloads.host.
 sub _add_pending_downloads
 {
     my ( $self ) = @_;
@@ -253,6 +257,12 @@ sub _add_pending_downloads
 
     my $db = $self->engine->dbs;
 
+    $db->query( <<SQL, $MAX_QUEUED_DOWNLOADS );
+create temporary table _recent_downloads as
+	select downloads_id from downloads where state = 'pending' order by downloads_id desc limit \$1
+SQL
+
+    # only rank recent downloads, because ranking all downloads for a giant queue is too slow
     $db->query( <<END );
 create temporary table _ranked_downloads as
     select
@@ -260,21 +270,23 @@ create temporary table _ranked_downloads as
         coalesce( d.host , 'non-media' ) site,
         rank() over ( partition by d.host order by priority asc, d.downloads_id desc ) as site_rank
     from downloads d
+		join _recent_downloads r using ( downloads_id )
     where
         d.state = 'pending' and
-        ( d.download_time < now() or d.download_time is null ) and
-        downloads_id > ( select max( downloads_id ) - $MAX_QUEUED_DOWNLOADS from downloads )
+        ( d.download_time < now() or d.download_time is null )
 END
 
-    my $downloads = $db->query( <<END, $MAX_QUEUED_DOWNLOADS )->hashes;
+    my $downloads = $db->query( <<END, $MAX_QUEUED_DOWNLOADS_PER_SITE )->hashes;
 select rd.*, 
         f.media_id _media_id
     from _ranked_downloads rd
         join feeds f using ( feeds_id )
+	where
+		rd.site_rank <= \$1
     order by priority asc, site_rank asc, downloads_id desc
-    limit ?
 END
 
+    $db->query( "drop table _recent_downloads" );
     $db->query( "drop table _ranked_downloads" );
 
     map { $self->{ downloads }->_queue_download( $_ ) } @{ $downloads };
