@@ -15,7 +15,7 @@ from mediawords.dbi.stories.extractor_arguments import PyExtractorArguments
 import mediawords.dbi.stories.dup
 import mediawords.dbi.stories.stories
 import mediawords.key_value_store.amazon_s3
-from mediawords.tm.guess_date import guess_date, GuessDateResult
+from mediawords.util.guess_date import guess_date, GuessDateResult
 import mediawords.tm.media
 import mediawords.util.parse_html
 from mediawords.util.log import create_logger
@@ -299,7 +299,7 @@ def assign_date_guess_tag(
 
     """
     if date_guess.found:
-        tag_set = mediawords.tm.guess_date.GUESS_METHOD_TAG_SET
+        tag_set = mediawords.util.guess_date.GUESS_METHOD_TAG_SET
         guess_method = date_guess.guess_method
         if guess_method.startswith('Extracted from url'):
             tag = 'guess_by_url'
@@ -310,11 +310,11 @@ def assign_date_guess_tag(
         else:
             tag = 'guess_by_unknown'
     elif fallback_date is not None:
-        tag_set = mediawords.tm.guess_date.GUESS_METHOD_TAG_SET
+        tag_set = mediawords.util.guess_date.GUESS_METHOD_TAG_SET
         tag = 'fallback_date'
     else:
-        tag_set = mediawords.tm.guess_date.INVALID_TAG_SET
-        tag = mediawords.tm.guess_date.INVALID_TAG
+        tag_set = mediawords.util.guess_date.INVALID_TAG_SET
+        tag = mediawords.util.guess_date.INVALID_TAG
 
     ts = db.find_or_create('tag_sets', {'name': tag_set})
     t = db.find_or_create('tags', {'tag': tag, 'tag_sets_id': ts['tag_sets_id']})

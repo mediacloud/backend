@@ -31,11 +31,11 @@ use Moose::Role;
 use Data::Dumper;
 use Encode;
 
-use MediaWords::TM::GuessDate;
 use MediaWords::CommonLibs;
 use MediaWords::DBI::Downloads::Extract;
 use MediaWords::DBI::Downloads::Store;
 use MediaWords::DBI::Stories;
+use MediaWords::Util::GuessDate;
 use MediaWords::Util::ParseHTML;
 use MediaWords::Util::SQL;
 use MediaWords::Util::Tags;
@@ -133,8 +133,8 @@ sub generate_story
         content      => $content
     };
 
-    my $date_guess = MediaWords::TM::GuessDate::guess_date( $story->{ url }, $content );
-    if ( $date_guess->{ result } eq $MediaWords::TM::GuessDate::Result::FOUND )
+    my $date_guess = MediaWords::Util::GuessDate::guess_date( $story->{ url }, $content );
+    if ( $date_guess->{ result } eq $MediaWords::Util::GuessDate::Result::FOUND )
     {
         $story->{ publish_date } = $date_guess->{ date };
     }

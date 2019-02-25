@@ -27,7 +27,6 @@ use Time::Piece;
 
 use MediaWords::TM::Alert;
 use MediaWords::TM::FetchTopicTweets;
-use MediaWords::TM::GuessDate;
 use MediaWords::TM::Stories;
 use MediaWords::DB;
 use MediaWords::DBI::Stories::GuessDate;

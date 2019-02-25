@@ -5,7 +5,7 @@ import typing
 
 import mediawords.test.db.create
 import mediawords.test.test_database
-from mediawords.tm.guess_date import GuessDateResult
+from mediawords.util.guess_date import GuessDateResult
 import mediawords.tm.stories
 from mediawords.tm.stories import url_has_binary_extension
 from mediawords.util.log import create_logger
@@ -226,7 +226,7 @@ class TestTMStoriesDB(mediawords.test.test_database.TestDatabaseWithSchemaTestCa
                     stm.stories_id = %(b)s
             """,
             {
-                'a': [mediawords.tm.guess_date.GUESS_METHOD_TAG_SET, mediawords.tm.guess_date.INVALID_TAG_SET],
+                'a': [mediawords.util.guess_date.GUESS_METHOD_TAG_SET, mediawords.util.guess_date.INVALID_TAG_SET],
                 'b': story['stories_id']
             }).hashes()
 
@@ -256,7 +256,7 @@ class TestTMStoriesDB(mediawords.test.test_database.TestDatabaseWithSchemaTestCa
 
         assert tag is not None
         assert tag['tag'] == 'guess_by_url'
-        assert tag_set['name'] == mediawords.tm.guess_date.GUESS_METHOD_TAG_SET
+        assert tag_set['name'] == mediawords.util.guess_date.GUESS_METHOD_TAG_SET
 
         result = GuessDateResult(found=True, guess_method='Extracted from tag:\n\n<meta/>')
         mediawords.tm.stories.assign_date_guess_tag(db, story, result, None)
@@ -264,15 +264,15 @@ class TestTMStoriesDB(mediawords.test.test_database.TestDatabaseWithSchemaTestCa
 
         assert tag is not None
         assert tag['tag'] == 'guess_by_tag_meta'
-        assert tag_set['name'] == mediawords.tm.guess_date.GUESS_METHOD_TAG_SET
+        assert tag_set['name'] == mediawords.util.guess_date.GUESS_METHOD_TAG_SET
 
         result = GuessDateResult(found=False, guess_method=None)
         mediawords.tm.stories.assign_date_guess_tag(db, story, result, None)
         (tag, tag_set) = self.get_story_date_tag(story)
 
         assert tag is not None
-        assert tag['tag'] == mediawords.tm.guess_date.INVALID_TAG
-        assert tag_set['name'] == mediawords.tm.guess_date.INVALID_TAG_SET
+        assert tag['tag'] == mediawords.util.guess_date.INVALID_TAG
+        assert tag_set['name'] == mediawords.util.guess_date.INVALID_TAG_SET
 
         result = GuessDateResult(found=False, guess_method=None)
         mediawords.tm.stories.assign_date_guess_tag(db, story, result, '2017-01-01')
@@ -280,7 +280,7 @@ class TestTMStoriesDB(mediawords.test.test_database.TestDatabaseWithSchemaTestCa
 
         assert tag is not None
         assert tag['tag'] == 'fallback_date'
-        assert tag_set['name'] == mediawords.tm.guess_date.GUESS_METHOD_TAG_SET
+        assert tag_set['name'] == mediawords.util.guess_date.GUESS_METHOD_TAG_SET
 
     def test_get_spider_feed(self) -> None:
         """Test get_spider_feed()."""
@@ -325,7 +325,7 @@ class TestTMStoriesDB(mediawords.test.test_database.TestDatabaseWithSchemaTestCa
         (date_tag, date_tag_set) = self.get_story_date_tag(story)
 
         assert date_tag['tag'] == 'guess_by_tag_meta'
-        assert date_tag_set['name'] == mediawords.tm.guess_date.GUESS_METHOD_TAG_SET
+        assert date_tag_set['name'] == mediawords.util.guess_date.GUESS_METHOD_TAG_SET
 
         download = db.query("select * from downloads where stories_id = %(a)s", {'a': story['stories_id']}).hash()
 

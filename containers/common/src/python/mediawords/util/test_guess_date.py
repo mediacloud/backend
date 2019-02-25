@@ -1,6 +1,6 @@
 import pytest
 
-from mediawords.tm.guess_date import guess_date, McGuessDateException
+from mediawords.util.guess_date import guess_date, McGuessDateException
 
 
 def test_guess_date():

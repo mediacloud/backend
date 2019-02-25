@@ -1,6 +1,3 @@
-# Guessing publication dates of stories
-date_guesser==2.1.1
-
 # Timezone handling
 pytz==2018.9
 
