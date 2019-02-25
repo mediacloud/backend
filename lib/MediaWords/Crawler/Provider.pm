@@ -262,7 +262,8 @@ create temporary table _ranked_downloads as
     from downloads d
     where
         d.state = 'pending' and
-        ( d.download_time < now() or d.download_time is null )
+        ( d.download_time < now() or d.download_time is null ) and
+        downloads_id > ( select max( downloads_id ) - $MAX_QUEUED_DOWNLOADS from downloads )
 END
 
     my $downloads = $db->query( <<END, $MAX_QUEUED_DOWNLOADS )->hashes;
