@@ -1,0 +1,15 @@
+{
+    "extracted_text":"First inline item\n\nRSS description of the first inline item.",
+    "story_sentences":[
+        {
+            "language":"",
+            "sentence":"First inline item",
+            "sentence_number":0
+        },
+        {
+            "language":"en",
+            "sentence":"RSS description of the first inline item.",
+            "sentence_number":1
+        }
+    ]
+}

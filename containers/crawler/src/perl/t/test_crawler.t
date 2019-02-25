@@ -155,34 +155,10 @@ EOF
     for my $story ( @{ $stories } )
     {
         $story->{ content } = _fetch_content( $db, $story );
-        $story->{ extracted_text } = MediaWords::DBI::Stories::Extract::get_text_for_word_counts( $db, $story );
         $story->{ tags } = _get_db_module_tags( $db, $story, 'NYTTopics' );
-
-        $story->{ story_sentences } = $db->query(
-            <<EOF,
-            SELECT *
-            FROM story_sentences
-            WHERE stories_id = ?
-            ORDER BY stories_id,
-                     sentence_number
-EOF
-            $story->{ stories_id }
-        )->hashes;
-
     }
 
     return $stories;
-}
-
-sub _purge_story_sentences_id_field($)
-{
-    my ( $sentences ) = @_;
-
-    for my $sentence ( @$sentences )
-    {
-        $sentence->{ story_sentences_id } = '';
-        delete $sentence->{ story_sentences_id };
-    }
 }
 
 # replace all stories_id fields with the normalized url of the corresponding story
@@ -252,7 +228,7 @@ sub _test_stories($$$$)
         my $test_story = $test_story_hash->{ $story->{ title } };
         if ( ok( $test_story, "$test_name ($story_url) - story match: " . $story->{ title } ) )
         {
-            my $fields = [ qw(description extracted_text) ];
+            my $fields = [ qw(description) ];
 
             # can't test web_page story dates against historical data b/c they are supposed to have
             # the current date
@@ -285,47 +261,9 @@ sub _test_stories($$$$)
                 scalar( @{ $test_story->{ tags } } ),
                 "$test_name ($story_url) - story tags count"
             );
-
-            my $expected_sentences = join( "\n", map { $_->{ sentence } } @{ $test_story->{ story_sentences } } );
-            my $got_sentences      = join( "\n", map { $_->{ sentence } } @{ $story->{ story_sentences } } );
-            eq_or_diff( $expected_sentences, $got_sentences, "$test_name ($story_url) - sentences match" );
-
-            _purge_story_sentences_id_field( $story->{ story_sentences } );
-            _purge_story_sentences_id_field( $test_story->{ story_sentences } );
-
-            # as above, don't compare dates for web_page stories
-            if ( $story->{ feed_type } eq 'web_page' )
-            {
-                map { delete( $_->{ publish_date } ) }
-                  ( @{ $story->{ story_sentences } }, @{ $test_story->{ story_sentences } } );
-            }
-
-            $test_story->{ story_sentences } =
-              MediaWords::Test::Data::adjust_test_timezone( $test_story->{ story_sentences }, $test_story->{ timezone } );
-
-            cmp_deeply(
-                $story->{ story_sentences },
-                $test_story->{ story_sentences },
-                "$test_name ($story_url) - story sentences " . $story->{ stories_id }
-            );
-
         }
 
         delete( $test_story_hash->{ $story->{ title } } );
-    }
-}
-
-# simple test to verify that each story has at least 60 characters in its sentences
-sub _sanity_test_stories($$$)
-{
-    my ( $stories, $test_name, $test_prefix ) = @_;
-
-    for my $story ( @{ $stories } )
-    {
-        next if ( $story->{ title } =~ /inline/ );    # expect inline stories to be short
-        my $all_sentences = join( '. ', map { $_->{ sentence } } @{ $story->{ story_sentences } } );
-        ok( length( $all_sentences ) >= 80,
-            "$test_name - story '$story->{ url }' has at least 80 characters in its sentences" );
     }
 }
 
@@ -341,8 +279,6 @@ sub _dump_stories($$$)
     map { $_->{ timezone } = $tz } @{ $stories };
 
     MediaWords::Test::Data::store_test_data_to_individual_files( "expected_crawler_stories/$test_prefix", $stories );
-
-    _sanity_test_stories( $stories, $test_name, $test_prefix );
 }
 
 sub _test_crawler($$$)

@@ -123,10 +123,7 @@ sub test_stories
         if ( ok( $test_story, "story match: " . $story->{ title } ) )
         {
 
-            #$story->{ extracted_text } =~ s/\n//g;
-            #$test_story->{ extracted_text } =~ s/\n//g;
-
-            for my $field ( qw(publish_date description guid extracted_text) )
+            for my $field ( qw(publish_date description guid) )
             {
                 oldstyle_diff;
 

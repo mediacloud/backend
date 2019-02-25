@@ -2,7 +2,6 @@
     "collect_date":"2019-01-15 01:36:42.429538",
     "content":"<p>\n    This RSS feed is used to test whether the story language gets identified\n    correctly.\n</p>\n",
     "description":null,
-    "extracted_text":"This RSS feed is used to test whether the story language gets identified\n    correctly. .",
     "feed_type":"web_page",
     "full_text_rss":false,
     "guid":"1547509002:http://tundra.local:59729//multilanguage/home.html",
@@ -10,18 +9,6 @@
     "media_id":1,
     "publish_date":"2019-01-15 01:36:42",
     "stories_id":5,
-    "story_sentences":[
-        {
-            "is_dup":null,
-            "language":"en",
-            "media_id":1,
-            "publish_date":"2019-01-15 01:36:42",
-            "sentence":"This RSS feed is used to test whether the story language gets identified correctly..",
-            "sentence_number":0,
-            "stories_id":5,
-            "story_sentences_id":2
-        }
-    ],
     "tags":[],
     "timezone":"Europe/Vilnius",
     "title":"(no title)",

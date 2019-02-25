@@ -1,0 +1,10 @@
+{
+    "extracted_text":"This RSS feed is used to test whether very short downloads (stored directly\n    in the downloads.path as \"content:.\" ) are being\n    stored / extracted / fetched correctly. .",
+    "story_sentences":[
+        {
+            "language":"en",
+            "sentence":"This RSS feed is used to test whether very short downloads (stored directly in the downloads.path as \"content:.\" ) are being stored / extracted / fetched correctly..",
+            "sentence_number":0
+        }
+    ]
+}
