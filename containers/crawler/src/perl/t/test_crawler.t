@@ -14,7 +14,7 @@ use warnings;
 #
 # This changes the expected results so it's important to make sure that you're
 # not masking bugs in the code. Also it's a good idea to manually examine the
-# changes in t/data/crawler_stories.pl before committing them.
+# changes in t/data/expected_crawler_stories/ before committing them.
 #
 
 use Test::More tests => 233;
@@ -233,7 +233,7 @@ sub _test_stories($$$$)
 
     is( scalar @{ $stories }, $stories_count, "$test_name - story count" );
 
-    my $test_stories = MediaWords::Test::Data::fetch_test_data_from_individual_files( "crawler_stories/$test_prefix" );
+    my $test_stories = MediaWords::Test::Data::fetch_test_data_from_individual_files( "expected_crawler_stories/$test_prefix" );
 
     $test_stories = MediaWords::Test::Data::adjust_test_timezone( $test_stories, $test_stories->[ 0 ]->{ timezone } );
 
@@ -340,7 +340,7 @@ sub _dump_stories($$$)
 
     map { $_->{ timezone } = $tz } @{ $stories };
 
-    MediaWords::Test::Data::store_test_data_to_individual_files( "crawler_stories/$test_prefix", $stories );
+    MediaWords::Test::Data::store_test_data_to_individual_files( "expected_crawler_stories/$test_prefix", $stories );
 
     _sanity_test_stories( $stories, $test_name, $test_prefix );
 }
