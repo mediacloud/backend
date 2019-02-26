@@ -487,8 +487,6 @@ def get_url_distinctive_domain(url: str) -> str:
     try:
         url = decode_object_from_bytes_if_needed(url)
 
-        url = fix_common_url_mistakes(url)
-
         host = get_url_host(url)
         if host is None:
             return url
