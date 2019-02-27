@@ -1017,10 +1017,10 @@ sub do_mine_topic ($$;$)
 {
     my ( $db, $topic, $options ) = @_;
 
-    if ( !$topic->{ is_story_index_ready } )
-    {
-        die( "refusing to run topic because is_story_index_ready is false" );
-    }
+    # if ( !$topic->{ is_story_index_ready } )
+    # {
+    #     die( "refusing to run topic because is_story_index_ready is false" );
+    # }
 
     map { $options->{ $_ } ||= 0 } qw/import_only skip_post_processing test_mode/;
 
