@@ -2,7 +2,7 @@
 
 from abc import ABC, abstractmethod
 import datetime
-import re
+import regex
 import typing
 
 from mediawords.db import DatabaseHandler
@@ -148,7 +148,7 @@ def _add_tweets_to_ch_posts(twitter_class: typing.Type[AbstractTwitter], ch_post
     ch_post_lookup = {}
     for ch_post in ch_posts:
         try:
-            tweet_id = int(re.search(r'/status/(\d+)', ch_post['url']).group(1))
+            tweet_id = int(regex.search(r'/status/(\d+)', ch_post['url']).group(1))
         except AttributeError:
             raise McFetchTopicTweetsDataException("Unable to parse id from tweet url: " + ch_post['url'])
 
@@ -239,7 +239,10 @@ def regenerate_tweet_urls(db: dict, topic: dict) -> None:
 def _post_matches_pattern(topic: dict, ch_post: dict) -> bool:
     """Return true if the content of the post matches the topic pattern."""
     if 'tweet' in ch_post:
-        return re.search(topic['pattern'], ch_post['tweet']['text']) is not None
+        match = regex.search(topic['pattern'], ch_post['tweet']['text'], flags=regex.I | regex.X) is not None
+        if not match:
+            log.info("match failed: %s" % ch_post['tweet']['text'])
+        return match
     else:
         return False
 
@@ -276,13 +279,15 @@ def _fetch_tweets_for_day(
     if (max_tweets is not None):
         ch_posts = ch_posts[0:max_tweets]
 
-    log.debug("adding %d tweets for topic %s, day %s" % (len(ch_posts), topic['topics_id'], topic_tweet_day['day']))
+    log.info("adding %d tweets for topic %s, day %s" % (len(ch_posts), topic['topics_id'], topic_tweet_day['day']))
 
     # we can only get 100 posts at a time from twitter
     for i in range(0, len(ch_posts), 100):
         _add_tweets_to_ch_posts(twitter_class, ch_posts[i:i + 100])
 
     ch_posts = list(filter(lambda p: _post_matches_pattern(topic, p), ch_posts))
+
+    log.info("%d tweets remaining after match" % (len(ch_posts)))
 
     db.begin()
 
