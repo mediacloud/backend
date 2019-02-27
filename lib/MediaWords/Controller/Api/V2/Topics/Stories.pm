@@ -117,7 +117,7 @@ SQL
     {
         my $stories_ids = ref( $stories_id ) ? $stories_id : [ $stories_id ];
         my $stories_ids_list = join( ',', map { int( $_ ) } @{ $stories_ids } );
-        push( @{ $clauses }, "slc.stories_id in ( $stories_ids_list )" );
+        push( @{ $clauses }, "slc.stories_id in ( -1, $stories_ids_list )" );
     }
 
     if ( my $link_to_stories_id = int( $c->req->params->{ link_to_stories_id } // 0 ) )
@@ -228,7 +228,7 @@ select
             ( slcb.stories_id = slc.stories_id and
                 slcb.timespans_id = b.timespans_id )
     where
-        slc.stories_id in ( $stories_ids_list ) and
+        slc.stories_id in ( -1, $stories_ids_list ) and
         a.timespans_id = \$1
 SQL
 
