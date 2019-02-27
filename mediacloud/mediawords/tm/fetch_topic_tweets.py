@@ -240,8 +240,6 @@ def _post_matches_pattern(topic: dict, ch_post: dict) -> bool:
     """Return true if the content of the post matches the topic pattern."""
     if 'tweet' in ch_post:
         match = regex.search(topic['pattern'], ch_post['tweet']['text'], flags=regex.I | regex.X) is not None
-        if not match:
-            log.info("match failed: %s" % ch_post['tweet']['text'])
         return match
     else:
         return False
