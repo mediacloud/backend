@@ -558,12 +558,9 @@ def copy_story_to_new_medium(db: DatabaseHandler, topic: dict, old_story: dict, 
             insert into download_texts (downloads_id, download_text, download_text_length)
                 select %(a)s, dt.download_text, dt.download_text_length
                     from download_texts dt
-                        join downloads d on (dt.downloads_id = d.downloads_id)
-                    where d.stories_id = %(b)s
-                    order by d.downloads_id asc
-                    limit 1
+                    where dt.downloads_id = %(a)s
             """,
-            {'a': download['downloads_id'], 'b': old_story['stories_id']})
+            {'a': download['downloads_id']})
 
     db.query(
         """
