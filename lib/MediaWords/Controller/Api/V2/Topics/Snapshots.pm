@@ -85,25 +85,6 @@ SQL
     $self->status_ok( $c, entity => { snapshots => $snapshots } );
 }
 
-sub cancel : Chained('apibase') : PathPart( 'snapshots/cancel' ) : Args(0) : ActionClass('MC_REST')
-{
-}
-
-sub cancel_PUT
-{
-    my ( $self, $c ) = @_;
-
-    my $db = $c->dbis;
-
-    my $snapshots_id = $c->req->data->{ snapshots_id };
-
-    $db->update_by_id( 'snapshots', $snapshots_id, { state => 'canceled' } );
-
-    my $snapshot = $db->require_by_id( 'snapshots', $snapshots_id );
-
-    $self->status_ok( $c, entity => { snapshot => $snapshot } );
-}
-
 sub create : Chained('apibase') : PathPart( 'snapshots/create' ) : Args(0) : ActionClass('MC_REST')
 {
 }
