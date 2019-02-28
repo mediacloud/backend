@@ -144,7 +144,7 @@ def goodbye_dump(media_csv_path: str, api_key: str):
 
     csv_header = ['media_id', 'name', 'url', 'domain', 'last_updated']
     for month_offset in range(start_month_offset, end_month_offset + 1):
-        csv_header.append('visits-{}'.format((now + relativedelta(months=month_offset)).strftime('%Y-%m')))
+        csv_header.append('visits_{}'.format((now + relativedelta(months=month_offset)).strftime('%Y-%m')))
 
     with ProcessPoolExecutor(max_workers=__MULTIPROCESSING_WORKER_POOL_SIZE) as executor:
         with open(media_csv_path, "r", encoding='utf-8') as f:
