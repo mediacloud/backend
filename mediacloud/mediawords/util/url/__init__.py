@@ -51,7 +51,7 @@ def fix_common_url_mistakes(url: str) -> Optional[str]:
     url = re.sub(r'(https?://)https?:?//', r"\1", url, flags=re.I)
 
     # Fix URLs with only one slash after "http" ("http:/www.")
-    url = re.sub(r'(https?:/)(www)', r"\1/\2", url, flags=re.I)
+    url = re.sub(r'(https?:/)(\w)', r"\1/\2", url, flags=re.I)
 
     # replace backslashes with forward
     url = re.sub(r'\\', r'/', url)
