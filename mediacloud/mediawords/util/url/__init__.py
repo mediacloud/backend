@@ -494,12 +494,9 @@ def get_url_distinctive_domain(url: str) -> str:
         name_parts = host.split('.')
         n = len(name_parts) - 1
 
-        if re.search(r'\.(gov|org|com?)\...$', host, re.I):
+        if re.search(r'\.(gov|org|com?)\...$', host, re.I) or re.search(r'\.(edu|gov)$', host, re.I):
             # foo.co.uk -> foo.co.uk instead of co.uk
             parts = [str(name_parts[n - 2]), str(name_parts[n - 1]), str(name_parts[n])]
-            domain = '.'.join(parts)
-        elif re.search(r'\.(edu|gov)$', host, re.I):
-            parts = [str(name_parts[n - 2]), str(name_parts[n - 1])]
             domain = '.'.join(parts)
         elif re.search(
                 r'go.com|wordpress.com|blogspot|livejournal.com|privet.ru|wikia.com|feedburner.com'
