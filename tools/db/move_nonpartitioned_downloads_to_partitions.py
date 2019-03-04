@@ -23,7 +23,7 @@ def move_nonpartitioned_downloads_to_partitions():
 
     log.info("Max. download ID: {}".format(max_downloads_id))
 
-    for start_downloads_id in range(43850001, max_downloads_id + 1, downloads_chunk_size):
+    for start_downloads_id in range(660200001, max_downloads_id + 1, downloads_chunk_size):
         end_downloads_id = start_downloads_id + downloads_chunk_size - 1
 
         log.info("Moving rows with downloads_id between {} and {} to the partitioned table...".format(
