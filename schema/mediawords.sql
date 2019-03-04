@@ -24,7 +24,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4709;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4710;
 BEGIN
 
     -- Update / set database schema version
@@ -1496,6 +1496,24 @@ BEGIN
     END IF;
 
 
+    RAISE NOTICE 'Creating a table of downloads BETWEEN % AND %...',
+        start_downloads_id, end_downloads_id;
+
+    -- For whatever reason (table stats way off? Too many tables referencing
+    -- "stories"? Bloated "downloads_np" primary key index so QP can't do
+    -- MAX(downloads_np_id)?), query planner (not the query itself!) runs for
+    -- the whole 6 or so minutes if we try to do
+    -- "FROM downloads_np LEFT JOIN stories" (to test for downloads with no
+    -- matching story).
+    --
+    -- Everything seems to be snappier when we create a temporary table with
+    -- row IDs to be moved first.
+    CREATE TEMPORARY TABLE temp_downloads_np_chunk AS
+        SELECT downloads_np_id, stories_id
+        FROM downloads_np
+        WHERE downloads_np_id BETWEEN start_downloads_id AND end_downloads_id;
+
+
     PERFORM pid
     FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
     WHERE backend_type = 'autovacuum worker'
@@ -1508,14 +1526,11 @@ BEGIN
         DELETE FROM downloads_np
         WHERE downloads_np_id IN (
             SELECT downloads_np_id
-            FROM downloads_np
-            WHERE downloads_np_id BETWEEN start_downloads_id AND end_downloads_id
-              AND stories_id IS NOT NULL
-              AND NOT EXISTS (
-                SELECT stories_id
-                FROM stories
-                WHERE downloads_np.stories_id = stories.stories_id
-            )
+            FROM temp_downloads_np_chunk AS td
+                LEFT JOIN stories AS s
+                    ON td.stories_id = s.stories_id
+            WHERE td.stories_id IS NOT NULL
+              AND s.stories_id IS NULL
         )
         RETURNING *
     )
@@ -1541,7 +1556,10 @@ BEGIN
     -- Fetch and delete downloads within bounds
     WITH deleted_rows AS (
         DELETE FROM downloads_np
-        WHERE downloads_np_id BETWEEN start_downloads_id AND end_downloads_id
+        WHERE downloads_np_id IN (
+            SELECT downloads_np_id
+            FROM temp_downloads_np_chunk
+        )
         RETURNING downloads_np.*
     )
 
@@ -1585,6 +1603,10 @@ BEGIN
     RAISE NOTICE
         'Done moving downloads of downloads_id BETWEEN % AND % to the partitioned table, moved % rows.',
         start_downloads_id, end_downloads_id, moved_row_count;
+
+
+    DROP TABLE temp_downloads_np_chunk;
+
 
     RETURN moved_row_count;
 
