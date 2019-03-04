@@ -161,7 +161,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4709;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4710;
 BEGIN
 
     -- Update / set database schema version
