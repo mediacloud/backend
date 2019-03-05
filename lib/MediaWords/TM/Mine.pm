@@ -53,7 +53,7 @@ Readonly my $EXTRACT_STORY_LINKS_CHUNK_SIZE => 1000;
 Readonly my $SPIDER_LINKS_CHUNK_SIZE => 100_000;
 
 # die if the error rate for link fetch or link extract jobs is greater than this
-Readonly my $MAX_JOB_ERROR_RATE => 0.01;
+Readonly my $MAX_JOB_ERROR_RATE => 0.02;
 
 # timeout when polling for jobs to finish
 Readonly my $JOB_POLL_TIMEOUT => 3600;
