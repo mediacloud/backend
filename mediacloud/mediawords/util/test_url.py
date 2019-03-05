@@ -314,7 +314,6 @@ def test_get_url_host():
 
 # noinspection SpellCheckingInspection
 def test_get_url_distinctive_domain():
-    # FIXME - some resulting domains look funny, not sure if I can change them easily though
     assert mc_url.get_url_distinctive_domain('http://www.nytimes.com/') == 'nytimes.com'
     assert mc_url.get_url_distinctive_domain('http://cyber.law.harvard.edu/') == 'law.harvard.edu'
     assert mc_url.get_url_distinctive_domain('http://www.gazeta.ru/') == 'gazeta.ru'
@@ -327,7 +326,7 @@ def test_get_url_distinctive_domain():
     assert mc_url.get_url_distinctive_domain('http://www.stat.gov.lt/') == 'stat.gov.lt'
 
     # "wordpress.com|blogspot|..." exception
-    assert mc_url.get_url_distinctive_domain('https://en.blog.wordpress.com/') == 'en.blog.wordpress.com'
+    assert mc_url.get_url_distinctive_domain('https://en.blog.wordpress.com/') == 'blog.wordpress.com'
 
 
 # noinspection SpellCheckingInspection
