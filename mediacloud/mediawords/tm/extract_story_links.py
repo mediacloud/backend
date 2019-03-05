@@ -114,7 +114,10 @@ def get_extracted_html(db: DatabaseHandler, story: dict) -> str:
 
     """
     download = db.query(
-        "select * from downloads where stories_id = %(a)s order by downloads_id limit 1",
+        """
+        with d as ( select * from downloads where stories_id = %(a)s ) -- goofy cte to avoid bad query plan
+            select * from d order by downloads_id limit 1
+        """,
         {'a': story['stories_id']}).hash()
 
     extractor_results = mediawords.dbi.downloads.extract(db, download, PyExtractorArguments(use_cache=True))
