@@ -806,14 +806,35 @@ def copy_stories_to_topic(db: DatabaseHandler, source_topics_id: int, target_top
     """Copy stories from source_topics_id into seed_urls for target_topics_id."""
     message = "copy_stories_to_topic: %s -> %s [%s]" % (source_topics_id, target_topics_id, datetime.datetime.now())
 
+    log.info("querying novel urls from source topic...")
+
+    db.query("set work_mem = '8GB'")
+
     db.query(
         """
-        insert into topic_seed_urls ( topics_id, url, stories_id, source )
-            select %(target)s, url, stories_id, %(message)s
+        create temporary table _stories as
+            select distinct stories_id from topic_seed_urls where topics_id = %(a)s and stories_id is not null;
+        create temporary table _urls as
+            select distinct url from topic_seed_urls where topics_id = %(a)s;
+        """,
+        {'a': target_topics_id})
+
+    db.query(
+        """
+        create temporary table _tsu as
+            select %(target)s topics_id, url, stories_id, %(message)s source
                 from snap.live_stories s
                 where
                     s.topics_id = %(source)s and
-                    s.stories_id not in ( select stories_id from topic_seed_urls where topics_id = %(target)s ) and
-                    s.url not in ( select url from topic_seed_urls where topics_id = %(target)s )
+                    s.stories_id not in ( select stories_id from _stories ) and
+                    s.url not in ( select url from _urls )
         """,
         {'target': target_topics_id, 'source': source_topics_id, 'message': message})
+
+    (num_inserted,) = db.query("select count(*) from _tsu").flat()
+
+    log.info("inserting %d urls ..." % num_inserted)
+
+    db.query("insert into topic_seed_urls ( topics_id, url, stories_id, source ) select * from _tsu")
+
+    db.query("drop table _stories; drop table _urls; drop table _tsu;")
