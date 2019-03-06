@@ -50,7 +50,7 @@ def encode_json(json_obj: Union[Dict, List], pretty: bool = False) -> str:
     return json_string
 
 
-def decode_json(json_string: str) -> Union[Dict, List]:
+def decode_json(json_string: str) -> Union[dict, list]:
     """Decode JSON to dictionary or list."""
 
     json_string = decode_object_from_bytes_if_needed(json_string)
