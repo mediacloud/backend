@@ -13,32 +13,32 @@ def add_media_to_similarweb_queue(db: DatabaseHandler) -> None:
             SELECT DISTINCT
                 media.media_id,
                 (
-                    mtm_emm_collection.tags_id IS NOT NULL
-                    AND media_health.media_health_id IS NOT NULL
-                    AND media_health.num_stories_y > 0
-                ) AS belongs_to_emm_collection_with_stories,
-                (
-                    mtm_emm_collection.tags_id IS NOT NULL
-                ) AS belongs_to_emm_collection,
+                    mtm_retweet_partisanship.tags_id IS NOT NULL
+                ) AS belongs_to_retweet_partisanship,
                 (
                     mtm_abyz_collection.tags_id IS NOT NULL
                     AND media_health.media_health_id IS NOT NULL
                     AND media_health.num_stories_y > 0
                 ) AS belongs_to_abyz_collection_with_stories,
                 (
-                    mtm_abyz_collection.tags_id IS NOT NULL
-                ) AS belongs_to_abyz_collection,
-                (
-                    mtm_collection.tags_id IS NOT NULL
-                ) AS belongs_to_collection,
+                    mtm_emm_collection.tags_id IS NOT NULL
+                    AND media_health.media_health_id IS NOT NULL
+                    AND media_health.num_stories_y > 0
+                ) AS belongs_to_emm_collection_with_stories,
                 (
                     mtm_collection.tags_id IS NOT NULL
                     AND media_health.media_health_id IS NOT NULL
                     AND media_health.num_stories_y > 0
                 ) AS belongs_to_collection_with_stories,
                 (
-                    mtm_retweet_partisanship.tags_id IS NOT NULL
-                ) AS belongs_to_retweet_partisanship
+                    mtm_abyz_collection.tags_id IS NOT NULL
+                ) AS belongs_to_abyz_collection,
+                (
+                    mtm_emm_collection.tags_id IS NOT NULL
+                ) AS belongs_to_emm_collection,
+                (
+                    mtm_collection.tags_id IS NOT NULL
+                ) AS belongs_to_collection
             FROM media
 
                 LEFT JOIN media_tags_map AS mtm_emm_collection
@@ -93,13 +93,13 @@ def add_media_to_similarweb_queue(db: DatabaseHandler) -> None:
                     ON media.media_id = media_health.media_id
 
             ORDER BY
+                belongs_to_retweet_partisanship DESC,           -- 't' first
                 belongs_to_abyz_collection_with_stories DESC,   -- 't' first
                 belongs_to_emm_collection_with_stories DESC,    -- 't' first
                 belongs_to_collection_with_stories DESC,        -- 't' first
                 belongs_to_abyz_collection DESC,                -- 't' first
                 belongs_to_emm_collection DESC,                 -- 't' first
                 belongs_to_collection DESC,                     -- 't' first
-                belongs_to_retweet_partisanship DESC,           -- 't' first
                 media.media_id ASC
         ) AS prioritized_media
     """).flat()
