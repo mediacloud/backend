@@ -24,7 +24,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4710;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4711;
 BEGIN
 
     -- Update / set database schema version
@@ -4166,34 +4166,6 @@ insert into domain_web_requests (domain) select domain_arg;
 return true;
 end
 $$ language plpgsql;
-
-
---
--- SimilarWeb metrics
---
-CREATE TABLE similarweb_metrics (
-    similarweb_metrics_id  SERIAL                   PRIMARY KEY,
-    domain                 VARCHAR(1024)            NOT NULL,
-    month                  DATE,
-    visits                 BIGINT,
-    update_date            TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
-);
-
-CREATE UNIQUE INDEX similarweb_metrics_domain_month
-    ON similarweb_metrics (domain, month);
-
-
---
--- Unnormalized table
---
-CREATE TABLE similarweb_media_metrics (
-    similarweb_media_metrics_id    SERIAL                   PRIMARY KEY,
-    media_id                       INTEGER                  NOT NULL UNIQUE references media,
-    similarweb_domain              VARCHAR(1024)            NOT NULL,
-    domain_exact_match             BOOLEAN                  NOT NULL,
-    monthly_audience               INTEGER                  NOT NULL,
-    update_date                    TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
-);
 
 
 CREATE TYPE media_sitemap_pages_change_frequency AS ENUM (
