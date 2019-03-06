@@ -13,7 +13,7 @@ from mediawords.util.similarweb.media import (
 log = create_logger(__name__)
 
 
-class UpdateEstimatedVisits(AbstractJob):
+class UpdateEstimatedVisitsJob(AbstractJob):
     """
 
     Update estimated visits for media ID.
@@ -45,5 +45,5 @@ class UpdateEstimatedVisits(AbstractJob):
 
 
 if __name__ == '__main__':
-    app = JobBrokerApp(job_class=UpdateEstimatedVisits)
+    app = JobBrokerApp(job_class=UpdateEstimatedVisitsJob)
     app.start_worker()

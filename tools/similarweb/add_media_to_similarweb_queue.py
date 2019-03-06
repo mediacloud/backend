@@ -1,5 +1,5 @@
 from mediawords.db import DatabaseHandler, connect_to_db
-from mediawords.job.similarweb.update_estimated_visits import UpdateEstimatedVisits
+from mediawords.job.similarweb.update_estimated_visits import UpdateEstimatedVisitsJob
 from mediawords.util.log import create_logger
 
 log = create_logger(__name__)
