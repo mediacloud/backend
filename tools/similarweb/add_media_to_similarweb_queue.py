@@ -111,7 +111,7 @@ def add_media_to_similarweb_queue(db: DatabaseHandler) -> None:
     x = 0
     for media_id in media:
         log.info(f"Adding media ID {media_id} to SimilarWeb queue...")
-        UpdateEstimatedVisits.add_to_queue({'media_id': media_id})
+        UpdateEstimatedVisitsJob.add_to_queue(media_id=media_id)
 
         x += 1
         if x % 1000 == 0:
