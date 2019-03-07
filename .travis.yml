@@ -13,7 +13,7 @@ env:
         #
         # (Please copy them to "./script/run_test_suite.sh" command in ".travis-script.sh" after adding a new one)
         # ---
-        #
+
         # Facebook Graph API credentials for testing:
         #
         # * MC_FACEBOOK_APP_ID

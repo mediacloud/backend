@@ -24,7 +24,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4710;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4712;
 BEGIN
 
     -- Update / set database schema version
@@ -4168,34 +4168,6 @@ end
 $$ language plpgsql;
 
 
---
--- SimilarWeb metrics
---
-CREATE TABLE similarweb_metrics (
-    similarweb_metrics_id  SERIAL                   PRIMARY KEY,
-    domain                 VARCHAR(1024)            NOT NULL,
-    month                  DATE,
-    visits                 BIGINT,
-    update_date            TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
-);
-
-CREATE UNIQUE INDEX similarweb_metrics_domain_month
-    ON similarweb_metrics (domain, month);
-
-
---
--- Unnormalized table
---
-CREATE TABLE similarweb_media_metrics (
-    similarweb_media_metrics_id    SERIAL                   PRIMARY KEY,
-    media_id                       INTEGER                  NOT NULL UNIQUE references media,
-    similarweb_domain              VARCHAR(1024)            NOT NULL,
-    domain_exact_match             BOOLEAN                  NOT NULL,
-    monthly_audience               INTEGER                  NOT NULL,
-    update_date                    TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
-);
-
-
 CREATE TYPE media_sitemap_pages_change_frequency AS ENUM (
     'always',
     'hourly',
@@ -4240,3 +4212,69 @@ CREATE INDEX media_sitemap_pages_media_id
 
 CREATE UNIQUE INDEX media_sitemap_pages_url
     ON media_sitemap_pages (url);
+
+
+--
+-- Domains for which we have tried to fetch SimilarWeb stats
+--
+-- Every media source domain for which we have tried to fetch estimated visits
+-- from SimilarWeb gets stored here.
+--
+-- The domain might have been invalid or unpopular enough so
+-- "similarweb_estimated_visits" might not necessarily store stats for every
+-- domain in this table.
+--
+CREATE TABLE similarweb_domains (
+    similarweb_domains_id SERIAL PRIMARY KEY,
+
+    -- Top-level (e.g. cnn.com) or second-level (e.g. edition.cnn.com) domain
+    domain TEXT NOT NULL
+
+);
+
+CREATE UNIQUE INDEX similarweb_domains_domain
+    ON similarweb_domains (domain);
+
+
+--
+-- Media - SimilarWeb domain map
+--
+-- A few media sources might be pointing to one or more domains due to code
+-- differences in how domain was extracted from media source's URL between
+-- various implementations.
+--
+CREATE TABLE media_similarweb_domains_map (
+    media_similarweb_domains_map_id SERIAL  PRIMARY KEY,
+
+    media_id                        INT     NOT NULL REFERENCES media (media_id) ON DELETE CASCADE,
+    similarweb_domains_id           INT     NOT NULL REFERENCES similarweb_domains (similarweb_domains_id) ON DELETE CASCADE
+);
+
+-- Different media sources can point to the same domain
+CREATE UNIQUE INDEX media_similarweb_domains_map_media_id_sdi
+    ON media_similarweb_domains_map (media_id, similarweb_domains_id);
+
+
+--
+-- SimilarWeb estimated visits for domain
+-- (https://www.similarweb.com/corp/developer/estimated_visits_api)
+--
+CREATE TABLE similarweb_estimated_visits (
+    similarweb_estimated_visits_id  SERIAL  PRIMARY KEY,
+
+    -- Domain for which the stats were fetched
+    similarweb_domains_id           INT     NOT NULL REFERENCES similarweb_domains (similarweb_domains_id) ON DELETE CASCADE,
+
+    -- Month, e.g. 2018-03-01 for March of 2018
+    month                           DATE    NOT NULL,
+
+    -- Visit count is for the main domain only (value of "main_domain_only" API call argument)
+    main_domain_only                BOOLEAN NOT NULL,
+
+    -- Visit count
+    visits                          BIGINT  NOT NULL
+
+);
+
+CREATE UNIQUE INDEX similarweb_estimated_visits_domain_month_mdo
+    ON similarweb_estimated_visits (similarweb_domains_id, month, main_domain_only);
