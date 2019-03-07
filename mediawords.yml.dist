@@ -124,7 +124,6 @@ supervisor:
         #purge_object_caches
         #facebook_fetch_story_stats
         #sitemap_fetch_media_pages
-        #similarweb_update_estimated_visits
         #rabbitmq
         #rescrape_media
         #topic_mine
@@ -176,13 +175,6 @@ supervisor_solr:
             # ZooKeeper host + port to connect shards to
             zookeeper_host: "localhost"
             zookeeper_port: 9983
-
-### SimilarWeb API
-similarweb:
-
-    ### API key, costs money, see at https://developer.similarweb.com/
-    api_key: ""
-
 
 ### CLIFF annotator
 cliff:

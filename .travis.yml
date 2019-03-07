@@ -41,11 +41,6 @@ env:
         - secure: "U4UiJwK5fsezvZOGsgW0v6hPiqXGor0Er6DAtlb7AE/qBx5j4goHYi4SsjMGX21pzFxlo+MmT6oGFj1rDf4uoF6TXW5UZn2fLsCYXrHRaQ7hJXog+tSw7CpAoR6mlXfxti6I83ln53GIgqhpzoZXscdS21r0q/vv8aFRT7dD8Ec="
         - secure: "Fw42BMs0PDUn3ouHbeDwps28BolRQuLcHtvax25sbFd6novSIpns/01c31pZy8LkOYSb0fDqnrx3zTYh468CctJks4cDRPTn8xjPMGP5mnrOxdQbVHLFD5nqo/bpOzvdUmBWj8t7r96C8x6PNqxfsQqeinzHi1e2wMbDyxGdFHQ="
 
-        # SimilarWeb test API key:
-        #
-        # * MC_SIMILARWEB_TEST_API_KEY
-        - secure: "aIxeItT9n8BysG19X4pBAuFSE3cNoyF2coYjwSNRco62w59LRK30EWVoYVc1nNBTDq8KXtRjiZJK1+h6g2I0pVTBjeJL6dH01nafNut8/iua4lDYrljyeNEQU6YgEhbVC1jY4l95GjNChmIUmFoKgEG2m8qogxP0oRPu41l4Hqc="
-
     matrix:
 
         # Single Travis instance is too slow to run all Perl tests, so
