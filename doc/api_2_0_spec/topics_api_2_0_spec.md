@@ -519,12 +519,12 @@ The call returns a `job_state` record with information about the state of the qu
 
 Start a topic spider for the 'U.S. 2016 Election' topic:
 
-`https://api.mediacloud.org/api/v2/topics/spider`
+`https://api.mediacloud.org/api/v2/topics/1404/spider`
 
 Input:
 
 ```json
-{ "topics_id": 1404 }
+{ "snapshots_id": 12345 }
 ```
 
 Response:
@@ -533,11 +533,14 @@ Response:
 {
     "job_state":
         {
-            "topics_id": 1404,
-            "job_states_id": 1,
-            "last_updated": "2017-01-26 14:27:04.781095",
-            "message": null,
-            "state": "queued"
+            "job_states_id": 425503, 
+            "class": "MediaWords::Job::TM::SnapshotTopic", 
+            "state": "queued", 
+            "message": null, 
+            "last_updated": "2019-03-06 00:36:31.561966", 
+            "args": "{\\"snapshots_id\\":12345,\\"topics_id\\":1404}", 
+            "priority": "normal", 
+            "hostname": "mcquery3" 
         }
 }
 ```
