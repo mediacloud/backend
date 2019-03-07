@@ -4215,7 +4215,14 @@ CREATE UNIQUE INDEX media_sitemap_pages_url
 
 
 --
--- Domains for which we have SimilarWeb stats
+-- Domains for which we have tried to fetch SimilarWeb stats
+--
+-- Every media source domain for which we have tried to fetch estimated visits
+-- from SimilarWeb gets stored here.
+--
+-- The domain might have been invalid or unpopular enough so
+-- "similarweb_estimated_visits" might not necessarily store stats for every
+-- domain in this table.
 --
 CREATE TABLE similarweb_domains (
     similarweb_domains_id SERIAL PRIMARY KEY,
@@ -4231,6 +4238,10 @@ CREATE UNIQUE INDEX similarweb_domains_domain
 
 --
 -- Media - SimilarWeb domain map
+--
+-- A few media sources might be pointing to one or more domains due to code
+-- differences in how domain was extracted from media source's URL between
+-- various implementations.
 --
 CREATE TABLE media_similarweb_domains_map (
     media_similarweb_domains_map_id SERIAL  PRIMARY KEY,
