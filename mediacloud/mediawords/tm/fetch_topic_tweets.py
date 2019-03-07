@@ -6,6 +6,7 @@ import regex
 import typing
 
 from mediawords.db import DatabaseHandler
+import mediawords.tm.fetch_link
 import mediawords.util.parse_json
 from mediawords.util.web.user_agent import UserAgent
 import mediawords.util.twitter
@@ -249,8 +250,7 @@ def regenerate_tweet_urls(db: dict, topic: dict) -> None:
 def _post_matches_pattern(topic: dict, ch_post: dict) -> bool:
     """Return true if the content of the post matches the topic pattern."""
     if 'tweet' in ch_post:
-        match = regex.search(topic['pattern'], ch_post['tweet']['text'], flags=regex.I | regex.X) is not None
-        return match
+        return mediawords.tm.fetch_link.content_matches_topic(ch_post['tweet']['text'], topic)
     else:
         return False
 
