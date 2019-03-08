@@ -191,6 +191,18 @@
   tags:
     - apache2-fcgi
 
+- name: Add LoadModule to headers.load  # OS X
+  lineinfile:
+    dest: "{{ apache2_conf_path }}/mods-available/headers.load"
+    regexp: "^LoadModule\\s+headers_module\\s+.+?$"
+    line: "LoadModule headers_module {{ apache2_modules_path }}/mod_headers.so"
+    create: true  # might not exist on OS X
+    state: present
+  become: "{{ apache2_conf_become }}"
+  become_user: root
+  tags:
+    - apache2-fcgi
+
 - name: Add LoadModule to mime.load  # OS X
   lineinfile:
     dest: "{{ apache2_conf_path }}/mods-available/mime.load"
@@ -237,6 +249,7 @@
     - alias
     - env
     - fcgid
+    - headers
     - mime
     - rewrite
   become: "{{ apache2_conf_become }}"
