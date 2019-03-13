@@ -281,16 +281,6 @@ programs = rabbitmq
 %]
 
 [% INCLUDE program_config
-    program='similarweb_update_estimated_visits'
-    command="./script/run_in_env.sh ./mediacloud/mediawords/job/similarweb/update_estimated_visits.py"
-    default_stopasgroup='false'
-    default_killasgroup='false'
-    default_autorestart='false'
-    default_autostart='true'
-    default_nice=10
-%]
-
-[% INCLUDE program_config
     program='facebook_fetch_story_stats'
     worker_module='Facebook/FetchStoryStats.pm'
     default_stopasgroup='false'
