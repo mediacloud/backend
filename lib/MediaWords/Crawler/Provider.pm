@@ -259,7 +259,7 @@ sub _add_pending_downloads
 
     $db->query( <<SQL, $MAX_QUEUED_DOWNLOADS );
 create temporary table _recent_downloads as
-	select downloads_id from downloads where state = 'pending' order by downloads_id desc limit \$1
+	select downloads_p_id from downloads_p where state = 'pending' order by downloads_p_id desc limit \$1
 SQL
 
     # only rank recent downloads, because ranking all downloads for a giant queue is too slow
@@ -267,10 +267,11 @@ SQL
 create temporary table _ranked_downloads as
     select
         d.*,
+        d.downloads_p_id downloads_id,
         coalesce( d.host , 'non-media' ) site,
-        rank() over ( partition by d.host order by priority asc, d.downloads_id desc ) as site_rank
-    from downloads d
-		join _recent_downloads r using ( downloads_id )
+        rank() over ( partition by d.host order by priority asc, d.downloads_p_id desc ) as site_rank
+    from downloads_p d
+		join _recent_downloads r using ( downloads_p_id )
     where
         d.state = 'pending' and
         ( d.download_time < now() or d.download_time is null )
