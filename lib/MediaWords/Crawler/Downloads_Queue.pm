@@ -77,7 +77,7 @@ sub _queue_download
 
     my $map = $self->{ downloads }->{ $media_id }->{ map };
 
-    return if ( $map->{ $download->{ downloads_id } } );
+    return 0 if ( $map->{ $download->{ downloads_id } } );
 
     $map->{ $download->{ downloads_id } } = 1;
 
@@ -93,6 +93,8 @@ sub _queue_download
     }
 
     $self->{ downloads_count }++;
+
+    return 1;
 }
 
 # pop the latest download for the given media_id off the queue
