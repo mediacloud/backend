@@ -158,14 +158,9 @@ sub _add_stale_feeds
 
     my $stale_feed_interval = $STALE_FEED_INTERVAL;
 
-    DEBUG "_add_stale_feeds";
-
     $self->{ last_stale_feed_check } = time();
 
     my $dbs = $self->engine->dbs;
-
-    my $constraint = <<"SQL";
-SQL
 
     # If the table doesn't exist, PostgreSQL sends a NOTICE which breaks the "no warnings" unit test
     $dbs->query( 'SET client_min_messages=WARNING' );
@@ -206,6 +201,7 @@ SQL
 SQL
 
     my $downloads = $dbs->query( <<"SQL" )->hashes;
+    WITH inserted_downloads as (
         INSERT INTO downloads (feeds_id, url, host, type, sequence, state, priority, download_time, extracted)
         SELECT feeds_id,
                url,
@@ -218,18 +214,18 @@ SQL
                false
         FROM feeds_to_queue
         RETURNING *
+    )
+
+    select d.*, f.media_id as _media_id
+        from inserted_downloads d
+            join feeds f using ( feeds_id )
 SQL
 
-    for my $download ( @{ $downloads } )
-    {
-        my $medium = $dbs->query( "select media_id from feeds where feeds_id = ?", $download->{ feeds_id } )->hash;
-        $download->{ _media_id } = $medium->{ media_id };
-        $self->{ downloads }->_queue_download( $download );
-    }
+    map { $self->{ downloads }->_queue_download( $_ ) } @{ $downloads };
 
     $dbs->query( "drop table feeds_to_queue" );
 
-    DEBUG "end _add_stale_feeds";
+    DEBUG "added stale feeds: " . scalar( @{ $downloads } );
 }
 
 # add most recent $MAX_QUEUED_DOWNLOADS pending downloads to the $_downloads list,
@@ -285,6 +281,8 @@ END
     $db->query( "drop table _recent_downloads" );
     $db->query( "drop table _ranked_downloads" );
 
+    DEBUG( "total pending downloads: " . scalar( @{ $downloads } ) );
+
     map { $self->{ downloads }->_queue_download( $_ ) } @{ $downloads };
 }
 
@@ -304,27 +302,6 @@ sub provide_downloads
 {
     my ( $self ) = @_;
 
-    # FIXME I wish I could explain what this sleep() from a commit in 2010 is for.
-    #
-    # "My guess is that this is related to the general awkwardness of testing
-    # the multi-process crawler. The provider works on schedules of periodic
-    # polling, so it will at times end up waiting for ten minutes until some
-    # queued download is provided to the fetchers."
-    #
-    # "This works well for normal operation of the crawler but breaks testing
-    # because we don't want to wait for the crawler to find some queued
-    # download ten minutes to test whether it has been processed correctly.
-    # There are some special configurations I added to the crawler to deal with
-    # some of these issues, but my guess is that in other places I added some
-    # brief waiting to make things work without special configuration."
-    #
-    # "The path of least immediate resistance is just to increase that sleep to
-    # the minimum value to make the crawler tests pass consistently. There will
-    # be some small impact on crawler performance in production because the
-    # provider is effectively a single threaded bottleneck on the whole crawler
-    # pool, so it's worth a little fiddling to make the wait as small as
-    # possible to make the tests pass consistently."
-    #
     # It appears that the provider is sleep()ing while waiting for the "engine"
     # to process a single download, and if the queue is not yet finished at the
     # end of the sleep(), provider will refuse to provide any downloads.
@@ -333,7 +310,7 @@ sub provide_downloads
     # before continuing, but UserAgent()'s rewrite made fetch_download()
     # + handle_download() slightly slower, so now the sleep() period has been
     # slightly increased.
-    sleep( 5 );
+    sleep( 5 ) if $self->engine->test_mode;
 
     $self->_setup();
 
@@ -346,10 +323,13 @@ sub provide_downloads
     my @downloads;
     my $num_skips = 0;
 
-  MEDIA_ID:
-    for my $media_id ( @{ $self->{ downloads }->_get_download_media_ids } )
-    {
+    my $queued_media_ids = $self->{ downloads }->_get_download_media_ids();
 
+    DEBUG( "provide downloads queued media ids: " . scalar( @{ $queued_media_ids } ) );
+
+  MEDIA_ID:
+    for my $media_id ( @{ $queued_media_ids } )
+    {
         # we just slept for 1 so only bother calling time() if throttle is greater than 1
         if ( ( $self->engine->throttle >= 1 ) && ( $media_id->{ time } > ( time() - $self->engine->throttle ) ) )
         {
