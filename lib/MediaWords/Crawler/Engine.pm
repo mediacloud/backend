@@ -210,6 +210,8 @@ sub _run_fetcher
                 chomp( $downloads_id );
             }
 
+            DEBUG( "run_fetcher got downloads_id: $downloads_id" );
+
             if ( $downloads_id && ( $downloads_id ne 'none' ) && ( $downloads_id ne 'exit' ) )
             {
                 $download = $db->find_by_id( 'downloads', $downloads_id );
