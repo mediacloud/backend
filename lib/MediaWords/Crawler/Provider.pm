@@ -89,8 +89,6 @@ sub new
 
     $self->engine( $engine );
 
-    $self->{ downloads } = MediaWords::Crawler::Downloads_Queue->new();
-
     # last time a pending downloads check was run
     $self->{ last_pending_check } = 0;
 
@@ -146,7 +144,7 @@ SQL
 
 }
 
-# get all stale feeds and add each to the download queue this subroutine expects to be executed in a transaction
+# add pending downloads for all stale feeds
 sub _add_stale_feeds
 {
     my ( $self ) = @_;
@@ -221,8 +219,6 @@ SQL
             join feeds f using ( feeds_id )
 SQL
 
-    map { $self->{ downloads }->_queue_download( $_ ) } @{ $downloads };
-
     $dbs->query( "drop table feeds_to_queue" );
 
     DEBUG "added stale feeds: " . scalar( @{ $downloads } );
@@ -237,6 +233,8 @@ sub _add_pending_downloads
     my $interval = $self->engine->pending_check_interval || $DEFAULT_PENDING_CHECK_INTERVAL;
 
     return if ( !$self->engine->test_mode && ( $self->{ last_pending_check } > ( time() - $interval ) ) );
+
+    $self->{ downloads } = MediaWords::Crawler::Downloads_Queue->new();
 
     $self->{ last_pending_check } = time();
 
