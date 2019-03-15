@@ -133,21 +133,16 @@ sub _timeout_stale_downloads
     }
     $self->{ last_stale_download_check } = time();
 
-    my $dbs       = $self->engine->dbs;
-    my @downloads = $dbs->query(
-        "SELECT * from downloads_media where state = 'fetching' and download_time < (now() - interval '5 minutes')" )
-      ->hashes;
-
-    for my $download ( @downloads )
-    {
-        $download->{ state }         = ( 'error' );
-        $download->{ error_message } = ( $DOWNLOAD_TIMED_OUT_ERROR_MESSAGE . '' );
-        $download->{ download_time } = ( 'now()' );
-
-        $dbs->update_by_id( "downloads", $download->{ downloads_id }, $download );
-
-        DEBUG "timed out stale download " . $download->{ downloads_id } . "  " . $download->{ url };
-    }
+    my $dbs = $self->engine->dbs;
+    $dbs->query( <<SQL, $DOWNLOAD_TIMED_OUT_ERROR_MESSAGE );
+update downloads_p set
+        state = 'error',
+        error_message = ?,
+        download_time = now()
+    where
+        state = 'fetching' and
+        download_time < now() - interval '5 minutes'
+SQL
 
 }
 
