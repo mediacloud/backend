@@ -62,13 +62,13 @@ Readonly my $STALE_FEED_CHECK_INTERVAL => 60 * 30;
 Readonly my $STALE_DOWNLOAD_INTERVAL => 60 * 5;
 
 # how many downloads to store in memory queue
-Readonly my $MAX_QUEUED_DOWNLOADS => 1_000_000;
+Readonly my $MAX_QUEUED_DOWNLOADS => 100_000;
 
 # how many downloads per site to story in memory queue
 Readonly my $MAX_QUEUED_DOWNLOADS_PER_SITE => 1_000;
 
 # how often to check the database for new pending downloads (seconds)
-Readonly my $DEFAULT_PENDING_CHECK_INTERVAL => 60 * 10;
+Readonly my $DEFAULT_PENDING_CHECK_INTERVAL => 60;
 
 Readonly my $DOWNLOAD_TIMED_OUT_ERROR_MESSAGE => 'Download timed out by Fetcher::_timeout_stale_downloads';
 
