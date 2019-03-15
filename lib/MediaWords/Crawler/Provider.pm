@@ -283,7 +283,13 @@ END
 
     DEBUG( "total pending downloads: " . scalar( @{ $downloads } ) );
 
-    map { $self->{ downloads }->_queue_download( $_ ) } @{ $downloads };
+    my $num_queued = 0;
+    for my $download ( @{ $downloads } )
+    {
+        $num_queued += $self->{ downloads }->_queue_download( $download );
+    }
+
+    DEBUG( "pending downloads queued: $num_queued" );
 }
 
 =head2 provide_downloads
