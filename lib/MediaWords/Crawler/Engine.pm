@@ -441,6 +441,7 @@ sub crawl
 
                     if ( my $queued_download = shift( @{ $queued_downloads } ) )
                     {
+                        DEBUG( "engine sending downloads_id: $queued_download->{ downloads_id }" );
                         if ( !$s->printflush( $queued_download->{ downloads_id } . "\n" ) )
                         {
                             WARN( "provider failed to write download id to fetcher" );
