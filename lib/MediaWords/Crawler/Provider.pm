@@ -264,7 +264,6 @@ create temporary table _ranked_downloads as
     from downloads_p d
 		join _recent_downloads r using ( downloads_p_id )
     where
-        d.state = 'pending' and
         ( d.download_time < now() or d.download_time is null )
 END
 
@@ -283,10 +282,16 @@ END
 
     DEBUG( "total pending downloads: " . scalar( @{ $downloads } ) );
 
-    my $num_queued = 0;
+    my $num_queued           = 0;
+    my $num_unqueued_printed = 0;
     for my $download ( @{ $downloads } )
     {
-        $num_queued += $self->{ downloads }->_queue_download( $download );
+        my $queued = $self->{ downloads }->_queue_download( $download );
+        $num_queued += $queued;
+        if ( !$queued && $num_unqueued_printed++ < 3 )
+        {
+            DEBUG( "queue failed for download $download->{ downloads_id }" );
+        }
     }
 
     DEBUG( "pending downloads queued: $num_queued" );
