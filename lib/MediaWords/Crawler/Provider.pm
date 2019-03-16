@@ -266,9 +266,8 @@ with pending_downloads as (
 )
 
 select
-        d.*,
         d.downloads_p_id downloads_id,
-        coalesce( d.host, 'non-media' ) site,
+        d.priority,
         f.media_id _media_id
     from pending_downloads d
         join feeds f using ( feeds_id )
