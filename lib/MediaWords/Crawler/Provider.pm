@@ -224,6 +224,29 @@ SQL
     DEBUG "added stale feeds: " . scalar( @{ $downloads } );
 }
 
+# add random sample of old pending downloads to _recent_downloads table so that there is a
+# wide selection of media from which to download, preventing the crawler from getting stuck
+# downloading 1 page per second from a big contiguous series of downloads from a single
+# media source
+sub _add_random_old_downloads_to_recent_downloads($)
+{
+    my ( $db ) = @_;
+
+    my ( $num_pending_downloads ) = $db->query( <<SQL )->flat();
+select n_live_tup from pg_stat_user_tables where schemaname = 'public' and relname = 'downloads_p_pending'
+SQL
+
+    return if ( $num_pending_downloads < $MAX_QUEUED_DOWNLOADS * 2 );
+
+    my $sample_size = ( $MAX_QUEUED_DOWNLOADS / $num_pending_downloads ) * 100;
+
+    DEBUG( "adding sample of $sample_size random pending downloads" );
+
+    $db->query( <<SQL, $sample_size );
+insert into _recent_downloads select downloads_p_id from downloads_p_pending tablesample( ? )
+SQL
+}
+
 # add most recent $MAX_QUEUED_DOWNLOADS pending downloads to the $_downloads list,
 # limit to $MAX_QUEUED_DOWNLOADS_PER_SITE downloads per downloads.host.
 sub _add_pending_downloads
@@ -250,6 +273,8 @@ sub _add_pending_downloads
 create temporary table _recent_downloads as
 	select downloads_p_id from downloads_p where state = 'pending' order by downloads_p_id desc limit \$1
 SQL
+
+    _add_random_old_downloads_to_recent_downloads( $db );
 
     # only rank recent downloads, because ranking all downloads for a giant queue is too slow
     $db->query( <<END );
