@@ -224,29 +224,6 @@ SQL
     DEBUG "added stale feeds: " . scalar( @{ $downloads } );
 }
 
-# add random sample of old pending downloads to _recent_downloads table so that there is a
-# wide selection of media from which to download, preventing the crawler from getting stuck
-# downloading 1 page per second from a big contiguous series of downloads from a single
-# media source
-sub _add_random_old_downloads_to_recent_downloads($)
-{
-    my ( $db ) = @_;
-
-    my ( $num_pending_downloads ) = $db->query( <<SQL )->flat();
-select n_live_tup from pg_stat_user_tables where schemaname = 'public' and relname = 'downloads_p_pending'
-SQL
-
-    return if ( $num_pending_downloads < $MAX_QUEUED_DOWNLOADS * 2 );
-
-    my $sample_size = ( $MAX_QUEUED_DOWNLOADS / $num_pending_downloads ) * 100;
-
-    DEBUG( "adding sample of $sample_size random pending downloads" );
-
-    $db->query( <<SQL, $sample_size );
-insert into _recent_downloads select downloads_p_id from downloads_p_pending tablesample system( ? )
-SQL
-}
-
 # add most recent $MAX_QUEUED_DOWNLOADS pending downloads to the $_downloads list,
 # limit to $MAX_QUEUED_DOWNLOADS_PER_SITE downloads per downloads.host.
 sub _add_pending_downloads
@@ -269,39 +246,36 @@ sub _add_pending_downloads
 
     my $db = $self->engine->dbs;
 
-    $db->query( <<SQL, $MAX_QUEUED_DOWNLOADS );
-create temporary table _recent_downloads as
-	select downloads_p_id from downloads_p where state = 'pending' order by downloads_p_id desc limit \$1
+    my ( $num_pending_downloads ) = $db->query( <<SQL )->flat();
+select n_live_tup from pg_stat_user_tables where schemaname = 'public' and relname = 'downloads_p_pending'
 SQL
 
-    _add_random_old_downloads_to_recent_downloads( $db );
+    # sample_size is used in query below to generate a random sample of all of the rows in the
+    # download_p_pending table, so that the crawler uses a good diversity of media sources and thereby
+    # does not get stuck heavily throttling a small number of recent sources
+    my $sample_size = ( $MAX_QUEUED_DOWNLOADS / ++$num_pending_downloads ) * 100;
+    $sample_size = List::Util::min( $sample_size, 10 );
 
-    # only rank recent downloads, because ranking all downloads for a giant queue is too slow
-    $db->query( <<END );
-create temporary table _ranked_downloads as
-    select
+    DEBUG( "pending downloads sample size: $sample_size" );
+
+    my $downloads = $db->query( <<END, $MAX_QUEUED_DOWNLOADS, $sample_size )->hashes();
+with pending_downloads as (
+    select * from ( select * from downloads_p_pending order by downloads_p_id desc limit ? ) q
+    union
+    select * from downloads_p_pending tablesample system ( ? )
+)
+
+select
         d.*,
         d.downloads_p_id downloads_id,
-        coalesce( d.host , 'non-media' ) site,
-        rank() over ( partition by d.host order by priority asc, d.downloads_p_id desc ) as site_rank
-    from downloads_p d
-		join _recent_downloads r using ( downloads_p_id )
+        coalesce( d.host, 'non-media' ) site,
+        f.media_id _media_id
+    from pending_downloads d
+        join feeds f using ( feeds_id )
     where
         ( d.download_time < now() or d.download_time is null )
+    order by downloads_id desc
 END
-
-    my $downloads = $db->query( <<END, $MAX_QUEUED_DOWNLOADS_PER_SITE )->hashes;
-select rd.*, 
-        f.media_id _media_id
-    from _ranked_downloads rd
-        join feeds f using ( feeds_id )
-	where
-		rd.site_rank <= \$1
-    order by priority asc, site_rank asc, downloads_id desc
-END
-
-    $db->query( "drop table _recent_downloads" );
-    $db->query( "drop table _ranked_downloads" );
 
     DEBUG( "total pending downloads: " . scalar( @{ $downloads } ) );
 
@@ -387,7 +361,7 @@ sub provide_downloads
 
     if ( !@downloads )
     {
-        sleep( 10 ) unless $self->engine->test_mode;
+        sleep( 1 ) unless $self->engine->test_mode;
     }
 
     return \@downloads;
