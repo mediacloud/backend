@@ -210,7 +210,7 @@ sub _run_fetcher
                 chomp( $downloads_id );
             }
 
-            DEBUG( "run_fetcher got downloads_id: $downloads_id" );
+            TRACE( "run_fetcher got downloads_id: $downloads_id" );
 
             if ( $downloads_id && ( $downloads_id ne 'none' ) && ( $downloads_id ne 'exit' ) )
             {
@@ -441,7 +441,7 @@ sub crawl
 
                     if ( my $queued_download = shift( @{ $queued_downloads } ) )
                     {
-                        DEBUG( "engine sending downloads_id: $queued_download->{ downloads_id }" );
+                        TRACE( "engine sending downloads_id: $queued_download->{ downloads_id }" );
                         if ( !$s->printflush( $queued_download->{ downloads_id } . "\n" ) )
                         {
                             WARN( "provider failed to write download id to fetcher" );
