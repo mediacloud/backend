@@ -243,7 +243,7 @@ SQL
     DEBUG( "adding sample of $sample_size random pending downloads" );
 
     $db->query( <<SQL, $sample_size );
-insert into _recent_downloads select downloads_p_id from downloads_p_pending tablesample( ? )
+insert into _recent_downloads select downloads_p_id from downloads_p_pending tablesample system( ? )
 SQL
 }
 
