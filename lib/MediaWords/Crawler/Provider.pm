@@ -132,15 +132,17 @@ sub _timeout_stale_downloads
     $self->{ last_stale_download_check } = time();
 
     my $dbs = $self->engine->dbs;
-    $dbs->query( <<SQL, $DOWNLOAD_TIMED_OUT_ERROR_MESSAGE );
-update downloads_p set
-        state = 'error',
-        error_message = ?,
-        download_time = now()
-    where
-        state = 'fetching' and
-        download_time < now() - interval '5 minutes'
+    $dbs->query(
+        <<SQL,
+        UPDATE downloads SET
+            state = 'error',
+            error_message = ?,
+            download_time = NOW()
+        WHERE state = 'fetching'
+          AND download_time < now() - interval '5 minutes'
 SQL
+        $DOWNLOAD_TIMED_OUT_ERROR_MESSAGE
+    );
 
 }
 
@@ -247,34 +249,37 @@ sub _add_pending_downloads
     my $db = $self->engine->dbs;
 
     my ( $num_pending_downloads ) = $db->query( <<SQL )->flat();
-select n_live_tup from pg_stat_user_tables where schemaname = 'public' and relname = 'downloads_p_pending'
+select n_live_tup from pg_stat_user_tables where schemaname = 'public' and relname = 'downloads_pending'
 SQL
 
     # sample_size is used in query below to generate a random sample of all of the rows in the
-    # download_p_pending table, so that the crawler uses a good diversity of media sources and thereby
+    # downloads_pending table, so that the crawler uses a good diversity of media sources and thereby
     # does not get stuck heavily throttling a small number of recent sources
     my $sample_size = ( $MAX_QUEUED_DOWNLOADS / ++$num_pending_downloads ) * 100;
     $sample_size = List::Util::min( $sample_size, 10 );
 
     DEBUG( "pending downloads sample size: $sample_size" );
 
-    my $downloads = $db->query( <<END, $MAX_QUEUED_DOWNLOADS, $sample_size )->hashes();
-with pending_downloads as (
-    select * from ( select * from downloads_p_pending order by downloads_p_id desc limit ? ) q
-    union
-    select * from downloads_p_pending tablesample system ( ? )
-)
+    my $downloads = $db->query(
+        <<SQL,
+        WITH pending_downloads AS (
+            SELECT * FROM ( SELECT * FROM downloads_pending ORDER BY downloads_id DESC LIMIT ? ) AS q
+            UNION
+            SELECT * FROM downloads_pending TABLESAMPLE SYSTEM ( ? )
+        )
 
-select
-        d.downloads_p_id downloads_id,
-        d.priority,
-        f.media_id _media_id
-    from pending_downloads d
-        join feeds f using ( feeds_id )
-    where
-        ( d.download_time < now() or d.download_time is null )
-    order by downloads_id desc
-END
+        SELECT
+            d.downloads_id,
+            d.priority,
+            f.media_id AS _media_id
+        FROM pending_downloads AS d
+            JOIN feeds AS f USING ( feeds_id )
+        WHERE d.download_time < NOW()
+           OR d.download_time IS NULL
+        ORDER BY downloads_id DESC
+SQL
+        $MAX_QUEUED_DOWNLOADS, $sample_size
+    )->hashes();
 
     DEBUG( "total pending downloads: " . scalar( @{ $downloads } ) );
 
