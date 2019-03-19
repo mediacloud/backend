@@ -67,6 +67,12 @@ CREATE OR REPLACE FUNCTION half_md5(string TEXT) RETURNS bytea AS $$
     SELECT SUBSTRING(public.digest(string, 'md5'::text), 0, 9);
 $$ LANGUAGE SQL;
 
+-- Helper for indexing nonpartitioned "downloads.downloads_id" as BIGINT for
+-- faster casting
+CREATE FUNCTION to_bigint(p_integer INT) RETURNS BIGINT AS $$
+    SELECT p_integer::bigint;
+$$ LANGUAGE SQL IMMUTABLE;
+
 
 -- Returns true if table exists (and user has access to it)
 -- Table name might be with ("public.stories") or without ("stories") schema.
@@ -1427,6 +1433,10 @@ CREATE TABLE download_texts_np (
 
 CREATE UNIQUE INDEX download_texts_np_downloads_id_index
     ON download_texts_np (downloads_id);
+
+-- Temporary index to be used on JOINs with "downloads" with BIGINT primary key
+CREATE UNIQUE INDEX download_texts_np_downloads_id_bigint_index
+    ON download_texts_np (to_bigint(downloads_id));
 
 ALTER TABLE download_texts_np
     ADD CONSTRAINT download_texts_np_length_is_correct

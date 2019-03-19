@@ -25,6 +25,11 @@ WHERE backend_type = 'autovacuum worker'
   AND query ~ 'download_texts';
 
 
+-- Temporary index to be used on JOINs with "downloads" with BIGINT primary key
+CREATE UNIQUE INDEX IF NOT EXISTS download_texts_np_downloads_id_bigint_index
+    ON download_texts_np (to_bigint(downloads_id));
+
+
 -- To be recreated later
 DROP VIEW daily_stats;
 DROP VIEW downloads_media;
@@ -53,8 +58,6 @@ DROP TABLE downloads_np;
 
 DROP FUNCTION download_np_type_to_download_p_type(p_type download_np_type);
 DROP FUNCTION download_np_state_to_download_p_state(p_state download_np_state);
-
-DROP FUNCTION to_bigint(p_integer INT);
 
 
 DROP TYPE download_np_state;
