@@ -63,7 +63,6 @@ sub _add_raw_1st_download
 {
     my ( $db, $stories ) = @_;
 
-    $db->begin;
     my $ids_table = $db->get_temporary_ids_table( [ map { int( $_->{ stories_id } ) } @{ $stories } ] );
 
     my $downloads = $db->query(
@@ -88,8 +87,6 @@ SQL
 
         $story->{ raw_first_download_file } = defined( $content ) ? $content : { missing => 'true' };
     }
-
-    $db->commit;
 }
 
 sub add_extra_data
