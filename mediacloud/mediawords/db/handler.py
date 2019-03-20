@@ -375,6 +375,11 @@ class DatabaseHandler(object):
         else:
             schema_name = 'public'
 
+        # FIXME add composite index support
+        if schema_name == 'public' and (object_name == 'downloads' or object_name.startswith('downloads_')):
+            # "downloads" uses a composite index which this function doesn't currently support
+            return 'downloads_id'
+
         if schema_name not in self.__primary_key_columns:
             self.__primary_key_columns[schema_name] = {}
 
