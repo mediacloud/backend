@@ -426,7 +426,7 @@ class DatabaseHandler(object):
 
                 column_name = column['column_name']
 
-                if column['object_type'] == 'r':
+                if column['object_type'] in ['r', 'p']:
                     # Table
                     if column['is_primary_index']:
                         primary_key_column = column_name
