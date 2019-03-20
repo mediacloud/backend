@@ -63,18 +63,16 @@ sub _add_raw_1st_download
 {
     my ( $db, $stories ) = @_;
 
-    $db->begin;
     my $ids_table = $db->get_temporary_ids_table( [ map { int( $_->{ stories_id } ) } @{ $stories } ] );
 
     my $downloads = $db->query(
-        <<SQL
-        SELECT d.*
-        FROM downloads AS d
-        JOIN (
-            SELECT MIN(s.downloads_id) OVER (PARTITION BY s.stories_id ) AS downloads_id
-            FROM downloads AS s
-            WHERE s.stories_id IN (SELECT id FROM $ids_table)
-        ) AS q ON d.downloads_id = q.downloads_id
+        <<"SQL"
+        SELECT DISTINCT ON(stories_id) *
+        FROM downloads
+        WHERE stories_id IN (
+            SELECT id FROM $ids_table
+        )
+        ORDER BY stories_id, downloads_id
 SQL
     )->hashes;
 
@@ -88,8 +86,6 @@ SQL
 
         $story->{ raw_first_download_file } = defined( $content ) ? $content : { missing => 'true' };
     }
-
-    $db->commit;
 }
 
 sub add_extra_data
