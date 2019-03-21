@@ -439,8 +439,8 @@ sub crawl
 
                     if ( my $queued_download = shift( @{ $queued_downloads } ) )
                     {
-                        TRACE( "engine sending downloads_id: $queued_download->{ downloads_id }" );
-                        if ( !$s->printflush( $queued_download->{ downloads_id } . "\n" ) )
+                        TRACE( "engine sending downloads_id: $queued_download" );
+                        if ( !$s->printflush( $queued_download . "\n" ) )
                         {
                             WARN( "provider failed to write download id to fetcher" );
                             unshift( @{ $queued_downloads }, $queued_download );
