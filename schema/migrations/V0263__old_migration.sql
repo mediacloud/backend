@@ -1,0 +1,7 @@
+
+
+
+DELETE FROM database_variables WHERE name = 'LAST_STORY_SENTENCES_ID_PROCESSED';
+DELETE FROM database_variables WHERE name = 'LAST_REIMPORTED_STORY_SENTENCES_ID';
+
+

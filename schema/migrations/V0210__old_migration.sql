@@ -1,0 +1,1 @@
+drop index story_sentences_publish_day;

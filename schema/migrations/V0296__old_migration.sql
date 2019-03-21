@@ -1,0 +1,52 @@
+
+
+alter table cd.live_stories add ap_syndicated boolean null;
+
+create or replace function insert_live_story() returns trigger as $insert_live_story$
+    begin
+
+        insert into cd.live_stories
+            ( controversies_id, controversy_stories_id, stories_id, media_id, url, guid, title, description,
+                publish_date, collect_date, full_text_rss, language,
+                db_row_last_updated, ap_syndicated )
+            select NEW.controversies_id, NEW.controversy_stories_id, NEW.stories_id, s.media_id, s.url, s.guid,
+                    s.title, s.description, s.publish_date, s.collect_date, s.full_text_rss, s.language,
+                    s.db_row_last_updated, s.ap_syndicated
+                from controversy_stories cs
+                    join stories s on ( cs.stories_id = s.stories_id )
+                where
+                    cs.stories_id = NEW.stories_id and
+                    cs.controversies_id = NEW.controversies_id;
+
+        return NEW;
+    END;
+$insert_live_story$ LANGUAGE plpgsql;
+
+create or replace function update_live_story() returns trigger as $update_live_story$
+    begin
+
+        IF NOT story_triggers_enabled() then
+	  RETURN NEW;
+        END IF;
+
+        update cd.live_stories set
+                media_id = NEW.media_id,
+                url = NEW.url,
+                guid = NEW.guid,
+                title = NEW.title,
+                description = NEW.description,
+                publish_date = NEW.publish_date,
+                collect_date = NEW.collect_date,
+                full_text_rss = NEW.full_text_rss,
+                language = NEW.language,
+                db_row_last_updated = NEW.db_row_last_updated,
+                ap_syndicated = NEW.ap_syndicated
+            where
+                stories_id = NEW.stories_id;
+
+        return NEW;
+    END;
+$update_live_story$ LANGUAGE plpgsql;
+
+
+
