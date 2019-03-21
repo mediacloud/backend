@@ -459,6 +459,18 @@ class TestDatabaseHandler(TestDatabaseTestCase):
         primary_key = self.db().primary_key_column('partitioned_table_c1')
         assert primary_key == 'partitioned_table_id'
 
+        # Composite primary key
+        self.db().query("""
+            CREATE TABLE IF NOT EXISTS table_with_composite_pk (
+                table_with_composite_pk_id  BIGSERIAL   NOT NULL,
+                name                        TEXT        NOT NULL,
+                surname                     TEXT        NOT NULL,
+                PRIMARY KEY (table_with_composite_pk_id, surname)
+            )
+        """)
+        primary_key = self.db().primary_key_column('table_with_composite_pk')
+        assert primary_key == 'table_with_composite_pk_id'
+
         # Nonexistent table
         with pytest.raises(McPrimaryKeyColumnException):
             self.db().primary_key_column('nonexistent_table')
