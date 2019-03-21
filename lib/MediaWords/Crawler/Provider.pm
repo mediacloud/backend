@@ -19,7 +19,7 @@ Mediawords::Crawler::Provider - provision downloads for the crawler engine's in 
     {
         if ( !@{ $queued_downloads } )
         {
-            $queued_downloads = $provider->provide_downloads();
+            $queued_downloads = $provider->provide_download_ids();
         }
 
         my $download = shift( @{ $queued_downloads } );
@@ -49,7 +49,6 @@ use Data::Dumper;
 use Readonly;
 
 use MediaWords::DB;
-use MediaWords::Crawler::Downloads_Queue;
 use MediaWords::Util::Config;
 
 # how often to download each feed (seconds)
@@ -61,17 +60,8 @@ Readonly my $STALE_FEED_CHECK_INTERVAL => 60 * 30;
 # timeout for download in fetching state (seconds)
 Readonly my $STALE_DOWNLOAD_INTERVAL => 60 * 5;
 
-# how many downloads to store in memory queue
-Readonly my $MAX_QUEUED_DOWNLOADS => 10_000;
-
-# how many downloads per site to story in memory queue
-Readonly my $MAX_QUEUED_DOWNLOADS_PER_SITE => 1_000;
-
 # downloads.error_message value for downloads timed out by _timeout_stale_downloads
 Readonly my $DOWNLOAD_TIMED_OUT_ERROR_MESSAGE => 'Download timed out by Fetcher::_timeout_stale_downloads';
-
-# hash of hosts pointing to last download time
-my $_pending_hosts = {};
 
 =head1 METHODS
 
@@ -90,8 +80,7 @@ sub new
 
     $self->engine( $engine );
 
-    # last time a pending downloads check was run
-    $self->{ last_pending_check } = 0;
+    $self->pending_hosts( {} );
 
     # last time a stale feed check was run
     $self->{ last_stale_feed_check } = 0;
@@ -227,7 +216,7 @@ SQL
     DEBUG "added stale feeds: " . scalar( @{ $downloads } );
 }
 
-# add all hosts from new downloads_pending rows to $_pending_hosts
+# add all hosts from new downloads_pending rows to $self->pending_hosts
 sub _add_pending_hosts($)
 {
     my ( $self ) = @_;
@@ -235,13 +224,13 @@ sub _add_pending_hosts($)
     my $db = $self->engine->dbs;
 
     my $new_hosts;
-    if ( scalar( keys( %{ $_pending_hosts } ) ) > 0 )
+    if ( scalar( keys( %{ $self->pending_hosts } ) ) > 0 )
     {
         # have to create temp table first to get postgres to use sane query plan
         #
         # we use the latest 'success' downloads as a shorthand for the most recent download that has not yet been
         # seen by this query.  the shorthand will add a few extra downloads, but it should be close enough to make
-        # this query very fast
+        # this query very fast without having to manually track the last max pending downloads_id
         $db->query( <<SQL );
 create temporary table _recent_downloads as
     select *
@@ -258,10 +247,10 @@ SQL
 
     DEBUG( "new pending hosts found: " . scalar( @{ $new_hosts } ) );
 
-    map { $_pending_hosts->{ $_ } ||= 0 } @{ $new_hosts };
+    map { $self->pending_hosts->{ $_ } ||= 0 } @{ $new_hosts };
 }
 
-=head2 provide_downloads
+=head2 provide_download_ids
 
 Hand out a list of pending download ids, throttling the downloads by host, so that a download is
 only handed our for each site each $self->engine->throttle seconds.
@@ -271,7 +260,7 @@ the back off algorithm.
 
 =cut
 
-sub provide_downloads
+sub provide_download_ids
 {
     my ( $self ) = @_;
 
@@ -279,7 +268,7 @@ sub provide_downloads
     # to process a single download, and if the queue is not yet finished at the
     # end of the sleep(), provider will refuse to provide any downloads.
     #
-    # In its original iteration, provide_downloads() was sleeping for 1 second
+    # In its original iteration, provide_download_ids() was sleeping for 1 second
     # before continuing, but UserAgent()'s rewrite made fetch_download()
     # + handle_download() slightly slower, so now the sleep() period has been
     # slightly increased.
@@ -298,20 +287,20 @@ sub provide_downloads
     my $pending_download_ids = [];
     my $num_skips            = 0;
 
-    my $hosts = [ keys( %{ $_pending_hosts } ) ];
+    my $hosts = [ keys( %{ $self->pending_hosts } ) ];
 
     DEBUG( "provide downloads from pending hosts: " . scalar( @{ $hosts } ) );
 
     for my $host ( @{ $hosts } )
     {
-        if ( $_pending_hosts->{ $host } > ( time() - $self->engine->throttle ) )
+        if ( $self->pending_hosts->{ $host } > ( time() - $self->engine->throttle ) )
         {
             TRACE "provide downloads: skipping host $host because of throttling";
             $num_skips++;
             next;
         }
 
-        $_pending_hosts->{ $host } = time();
+        $self->pending_hosts->{ $host } = time();
 
         my ( $downloads_id ) = $db->query( <<SQL, $host )->flat();
 select downloads_id from downloads_pending where host = ? order by priority asc, downloads_id desc nulls last
@@ -323,7 +312,7 @@ SQL
         }
         else
         {
-            delete( $_pending_hosts->{ $host } );
+            delete( $self->pending_hosts->{ $host } );
         }
     }
 
@@ -352,6 +341,22 @@ sub engine
     }
 
     return $_[ 0 ]->{ engine };
+}
+
+=head2 pending_hosts 
+
+getset pending_hosts - hash of hosts with pending downloads, pointing to last queue time for each
+
+=cut
+
+sub pending_hosts
+{
+    if ( $_[ 1 ] )
+    {
+        $_[ 0 ]->{ pending_hosts } = $_[ 1 ];
+    }
+
+    return $_[ 0 ]->{ pending_hosts };
 }
 
 1;

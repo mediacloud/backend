@@ -358,7 +358,7 @@ Start crawling by cralling $self->_spawn_fetchers() and then entering a loop tha
 =over
 
 =item *
-if the in memory queue of pending downloads is empty, calls $provider->provide_downloads to refill it;
+if the in memory queue of pending downloads is empty, calls $provider->provide_download_ids to refill it;
 
 =item *
 
@@ -425,7 +425,7 @@ sub crawl
                     if ( scalar( @{ $queued_downloads } ) == 0 )
                     {
                         DEBUG "refill queued downloads ...";
-                        $queued_downloads = $provider->provide_downloads();
+                        $queued_downloads = $provider->provide_download_ids();
 
                         if ( !@{ $queued_downloads } && $self->test_mode )
                         {
@@ -614,7 +614,7 @@ sub children_exit_on_kill
 =head2 test_mode
 
 getset test_mode - whether the crawler should exit the first time the downloads queue has been emptied rather than
-calling $provider->provide_downloads for more downloads.
+calling $provider->provide_download_ids for more downloads.
 
 if test_mode is set to true, the following other setters are called:
 
