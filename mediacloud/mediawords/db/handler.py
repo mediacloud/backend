@@ -366,7 +366,10 @@ class DatabaseHandler(object):
             raise exception  # pass further
 
     def primary_key_column(self, object_name: str) -> str:
-        """Get the primary key column for a table or a view."""
+        """Get INT / BIGINT primary key column name for a table or a view.
+
+        If the table has a composite primary key, return the first INT / BIGINT column name.
+        """
 
         object_name = decode_object_from_bytes_if_needed(object_name)
 
@@ -387,7 +390,9 @@ class DatabaseHandler(object):
                     c.relname AS object_name,
                     c.relkind AS object_type,
                     a.attname AS column_name,
-                    i.indisprimary AS is_primary_index
+                    i.indisprimary AS is_primary_index,
+                    t.typname AS column_type,
+                    t.typcategory AS column_type_category
 
                 FROM pg_namespace AS n
                     INNER JOIN pg_class AS c
@@ -395,6 +400,8 @@ class DatabaseHandler(object):
                     INNER JOIN pg_attribute AS a
                         ON a.attrelid = c.oid
                         AND NOT a.attisdropped
+                    INNER JOIN pg_type AS t
+                      ON a.atttypid = t.oid
 
                     -- Object might be a view, so LEFT JOIN
                     LEFT JOIN pg_index AS i
@@ -409,8 +416,14 @@ class DatabaseHandler(object):
                   -- Live column
                   AND NOT attisdropped
 
+                  -- Numeric (INT or BIGINT)
+                  AND t.typcategory = 'N'
+
                   AND n.nspname = %(schema_name)s
                   AND c.relname = %(object_name)s
+
+                -- In case of a composite PK, select the first numeric column
+                ORDER BY a.attnum
             """, {
                 'schema_name': schema_name,
                 'object_name': object_name,
