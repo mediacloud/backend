@@ -216,40 +216,6 @@ SQL
     DEBUG "added stale feeds: " . scalar( @{ $downloads } );
 }
 
-# add all hosts from new downloads_pending rows to $self->pending_hosts
-sub _add_pending_hosts($)
-{
-    my ( $self ) = @_;
-
-    my $db = $self->engine->dbs;
-
-    my $new_hosts;
-    if ( scalar( keys( %{ $self->pending_hosts } ) ) > 0 )
-    {
-        # have to create temp table first to get postgres to use sane query plan
-        #
-        # we use the latest 'success' downloads as a shorthand for the most recent download that has not yet been
-        # seen by this query.  the shorthand will add a few extra downloads, but it should be close enough to make
-        # this query very fast without having to manually track the last max pending downloads_id
-        $db->query( <<SQL );
-create temporary table _recent_downloads as
-    select *
-        from downloads_pending
-        where downloads_id > ( select max( downloads_id ) from downloads where state = 'success' )
-SQL
-        $new_hosts = $db->query( "select distinct host from _recent_downloads" )->flat();
-        $db->query( "drop table _recent_downloads" );
-    }
-    else
-    {
-        $new_hosts = $db->query( "select distinct host from downloads_pending" )->flat();
-    }
-
-    DEBUG( "new pending hosts found: " . scalar( @{ $new_hosts } ) );
-
-    map { $self->pending_hosts->{ $_ } ||= 0 } @{ $new_hosts };
-}
-
 =head2 provide_download_ids
 
 Hand out a list of pending download ids, throttling the downloads by host, so that a download is
@@ -280,44 +246,39 @@ sub provide_download_ids
 
     $self->_add_stale_feeds();
 
-    $self->_add_pending_hosts();
-
     my $db = $self->engine->dbs;
 
     my $pending_download_ids = [];
-    my $num_skips            = 0;
 
-    my $hosts = [ keys( %{ $self->pending_hosts } ) ];
+    DEBUG( "querying pending downloads ..." );
 
-    DEBUG( "provide downloads from pending hosts: " . scalar( @{ $hosts } ) );
+    my $downloads = $db->query( <<SQL )->hashes();
+select distinct on (host) downloads_id, host
+    from downloads_pending
+    order by host, priority, downloads_id desc nulls last;
+SQL
 
-    for my $host ( @{ $hosts } )
+    DEBUG( "provide downloads unthrottled hosts: " . scalar( @{ $downloads } ) );
+
+    for my $download ( @{ $downloads } )
     {
+        my $host         = $download->{ host };
+        my $downloads_id = $download->{ downloads_id };
+
+        $self->pending_hosts->{ $host } ||= 0;
+
         if ( $self->pending_hosts->{ $host } > ( time() - $self->engine->throttle ) )
         {
             TRACE "provide downloads: skipping host $host because of throttling";
-            $num_skips++;
             next;
         }
 
         $self->pending_hosts->{ $host } = time();
 
-        my ( $downloads_id ) = $db->query( <<SQL, $host )->flat();
-select downloads_id from downloads_pending where host = ? order by priority asc, downloads_id desc nulls last
-SQL
-
-        if ( $downloads_id )
-        {
-            push( @{ $pending_download_ids }, $downloads_id );
-        }
-        else
-        {
-            delete( $self->pending_hosts->{ $host } );
-        }
+        push( @{ $pending_download_ids }, $downloads_id );
     }
 
-    DEBUG "skipped / throttled downloads: $num_skips";
-    DEBUG "provide download ids: " . scalar( @{ $pending_download_ids } );
+    DEBUG "provide download throttled hosts: " . scalar( @{ $pending_download_ids } );
 
     if ( scalar( @{ $pending_download_ids } ) < 1 )
     {
