@@ -11,6 +11,7 @@ RUN \
     a2enmod alias && \
     a2enmod env && \
     a2enmod fcgid && \
+    a2enmod headers && \
     a2enmod mime && \
     a2enmod rewrite && \
     true

@@ -14,6 +14,7 @@ BEGIN { extends 'MediaWords::Controller::Api::V2::MC_Controller_REST' }
 
 __PACKAGE__->config(
     action => {
+        create          => { Does => [ qw( ~TopicsWriteAuthenticated ~Throttled ~Logged ) ] },
         list            => { Does => [ qw( ~TopicsReadAuthenticated ~Throttled ~Logged ) ] },
         generate        => { Does => [ qw( ~TopicsWriteAuthenticated ~Throttled ~Logged ) ] },
         generate_status => { Does => [ qw( ~TopicsReadAuthenticated ~Throttled ~Logged ) ] },
@@ -81,6 +82,32 @@ SQL
     );
 
     $self->status_ok( $c, entity => { snapshots => $snapshots } );
+}
+
+sub create : Chained('apibase') : PathPart( 'snapshots/create' ) : Args(0) : ActionClass('MC_REST')
+{
+}
+
+sub create_GET
+{
+    my ( $self, $c ) = @_;
+
+    my $db = $c->dbis;
+
+    my $topics_id = $c->stash->{ topics_id };
+    my $topic = $db->require_by_id( 'topics', $topics_id );
+
+    my $data = $c->req->data;
+
+    my $note = $data->{ note } || '';
+
+    my $snapshot = $db->query( <<SQL, $note, 'created but not queued', $topics_id )->hash();
+insert into snapshots ( topics_id, snapshot_date, start_date, end_date, note, state )
+    select topics_id, now(), start_date, end_date, ?, ? from topics where topics_id = ?
+    returning *
+SQL
+
+    $self->status_ok( $c, entity => { snapshot => $snapshot } );
 }
 
 sub generate : Chained('apibase') : PathPart( 'snapshots/generate' ) : Args(0) : ActionClass('MC_REST')

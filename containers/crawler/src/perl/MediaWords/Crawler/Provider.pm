@@ -19,7 +19,7 @@ Mediawords::Crawler::Provider - provision downloads for the crawler engine's in 
     {
         if ( !@{ $queued_downloads } )
         {
-            $queued_downloads = $provider->provide_downloads();
+            $queued_downloads = $provider->provide_download_ids();
         }
 
         my $download = shift( @{ $queued_downloads } );
@@ -49,7 +49,6 @@ use Data::Dumper;
 use Readonly;
 
 use MediaWords::DB;
-use MediaWords::Crawler::Downloads_Queue;
 
 # how often to download each feed (seconds)
 Readonly my $STALE_FEED_INTERVAL => 60 * 60 * 24 * 7;
@@ -60,12 +59,7 @@ Readonly my $STALE_FEED_CHECK_INTERVAL => 60 * 30;
 # timeout for download in fetching state (seconds)
 Readonly my $STALE_DOWNLOAD_INTERVAL => 60 * 5;
 
-# how many downloads to store in memory queue
-Readonly my $MAX_QUEUED_DOWNLOADS => 1_000_000;
-
-# how often to check the database for new pending downloads (seconds)
-Readonly my $DEFAULT_PENDING_CHECK_INTERVAL => 60 * 10;
-
+# downloads.error_message value for downloads timed out by _timeout_stale_downloads
 Readonly my $DOWNLOAD_TIMED_OUT_ERROR_MESSAGE => 'Download timed out by Fetcher::_timeout_stale_downloads';
 
 =head1 METHODS
@@ -85,10 +79,7 @@ sub new
 
     $self->engine( $engine );
 
-    $self->{ downloads } = MediaWords::Crawler::Downloads_Queue->new();
-
-    # last time a pending downloads check was run
-    $self->{ last_pending_check } = 0;
+    $self->pending_hosts( {} );
 
     # last time a stale feed check was run
     $self->{ last_stale_feed_check } = 0;
@@ -129,25 +120,22 @@ sub _timeout_stale_downloads
     }
     $self->{ last_stale_download_check } = time();
 
-    my $dbs       = $self->engine->dbs;
-    my @downloads = $dbs->query(
-        "SELECT * from downloads_media where state = 'fetching' and download_time < (now() - interval '5 minutes')" )
-      ->hashes;
-
-    for my $download ( @downloads )
-    {
-        $download->{ state }         = ( 'error' );
-        $download->{ error_message } = ( $DOWNLOAD_TIMED_OUT_ERROR_MESSAGE . '' );
-        $download->{ download_time } = ( 'now()' );
-
-        $dbs->update_by_id( "downloads", $download->{ downloads_id }, $download );
-
-        DEBUG "timed out stale download " . $download->{ downloads_id } . "  " . $download->{ url };
-    }
+    my $dbs = $self->engine->dbs;
+    $dbs->query(
+        <<SQL,
+        UPDATE downloads SET
+            state = 'error',
+            error_message = ?,
+            download_time = NOW()
+        WHERE state = 'fetching'
+          AND download_time < now() - interval '5 minutes'
+SQL
+        $DOWNLOAD_TIMED_OUT_ERROR_MESSAGE
+    );
 
 }
 
-# get all stale feeds and add each to the download queue this subroutine expects to be executed in a transaction
+# add pending downloads for all stale feeds
 sub _add_stale_feeds
 {
     my ( $self ) = @_;
@@ -159,14 +147,9 @@ sub _add_stale_feeds
 
     my $stale_feed_interval = $STALE_FEED_INTERVAL;
 
-    DEBUG "_add_stale_feeds";
-
     $self->{ last_stale_feed_check } = time();
 
     my $dbs = $self->engine->dbs;
-
-    my $constraint = <<"SQL";
-SQL
 
     # If the table doesn't exist, PostgreSQL sends a NOTICE which breaks the "no warnings" unit test
     $dbs->query( 'SET client_min_messages=WARNING' );
@@ -207,6 +190,7 @@ SQL
 SQL
 
     my $downloads = $dbs->query( <<"SQL" )->hashes;
+    WITH inserted_downloads as (
         INSERT INTO downloads (feeds_id, url, host, type, sequence, state, priority, download_time, extracted)
         SELECT feeds_id,
                url,
@@ -219,111 +203,41 @@ SQL
                false
         FROM feeds_to_queue
         RETURNING *
-SQL
+    )
 
-    for my $download ( @{ $downloads } )
-    {
-        my $medium = $dbs->query( "select media_id from feeds where feeds_id = ?", $download->{ feeds_id } )->hash;
-        $download->{ _media_id } = $medium->{ media_id };
-        $self->{ downloads }->_queue_download( $download );
-    }
+    select d.*, f.media_id as _media_id
+        from inserted_downloads d
+            join feeds f using ( feeds_id )
+SQL
 
     $dbs->query( "drop table feeds_to_queue" );
 
-    DEBUG "end _add_stale_feeds";
+    DEBUG "added stale feeds: " . scalar( @{ $downloads } );
 }
 
-# add all pending downloads to the $_downloads list
-sub _add_pending_downloads
-{
-    my ( $self ) = @_;
+=head2 provide_download_ids
 
-    my $interval = $self->engine->pending_check_interval || $DEFAULT_PENDING_CHECK_INTERVAL;
-
-    return if ( !$self->engine->test_mode && ( $self->{ last_pending_check } > ( time() - $interval ) ) );
-
-    $self->{ last_pending_check } = time();
-
-    if ( $self->{ downloads }->_get_downloads_size > $MAX_QUEUED_DOWNLOADS )
-    {
-        DEBUG "skipping add pending downloads due to queue size";
-        return;
-    }
-
-    my $db = $self->engine->dbs;
-
-    $db->query( <<END );
-create temporary table _ranked_downloads as
-    select
-        d.*,
-        coalesce( d.host , 'non-media' ) site,
-        rank() over ( partition by d.host order by priority asc, d.downloads_id desc ) as site_rank
-    from downloads d
-    where
-        d.state = 'pending' and
-        ( d.download_time < now() or d.download_time is null )
-END
-
-    my $downloads = $db->query( <<END, $MAX_QUEUED_DOWNLOADS )->hashes;
-select rd.*, 
-        f.media_id _media_id
-    from _ranked_downloads rd
-        join feeds f using ( feeds_id )
-    order by priority asc, site_rank asc, downloads_id desc
-    limit ?
-END
-
-    $db->query( "drop table _ranked_downloads" );
-
-    map { $self->{ downloads }->_queue_download( $_ ) } @{ $downloads };
-}
-
-=head2 provide_downloads
-
-Hand out a list of pending downloads, throttling the downloads by site (download host, generally), so that a download is
+Hand out a list of pending download ids, throttling the downloads by host, so that a download is
 only handed our for each site each $self->engine->throttle seconds.
 
 Every $STALE_FEED_INTERVAL, add downloads for all feeds that are due to be downloaded again according to
 the back off algorithm.
 
-Every $self->engine->pending_check_interval seconds, query the database for pending downloads (`state = 'pending'`).
-
 =cut
 
-sub provide_downloads
+sub provide_download_ids
 {
     my ( $self ) = @_;
 
-    # FIXME I wish I could explain what this sleep() from a commit in 2010 is for.
-    #
-    # "My guess is that this is related to the general awkwardness of testing
-    # the multi-process crawler. The provider works on schedules of periodic
-    # polling, so it will at times end up waiting for ten minutes until some
-    # queued download is provided to the fetchers."
-    #
-    # "This works well for normal operation of the crawler but breaks testing
-    # because we don't want to wait for the crawler to find some queued
-    # download ten minutes to test whether it has been processed correctly.
-    # There are some special configurations I added to the crawler to deal with
-    # some of these issues, but my guess is that in other places I added some
-    # brief waiting to make things work without special configuration."
-    #
-    # "The path of least immediate resistance is just to increase that sleep to
-    # the minimum value to make the crawler tests pass consistently. There will
-    # be some small impact on crawler performance in production because the
-    # provider is effectively a single threaded bottleneck on the whole crawler
-    # pool, so it's worth a little fiddling to make the wait as small as
-    # possible to make the tests pass consistently."
-    #
     # It appears that the provider is sleep()ing while waiting for the "engine"
     # to process a single download, and if the queue is not yet finished at the
     # end of the sleep(), provider will refuse to provide any downloads.
     #
-    # In its original iteration, provide_downloads() was sleeping for 1 second
+    # In its original iteration, provide_download_ids() was sleeping for 1 second
     # before continuing, but UserAgent()'s rewrite made fetch_download()
     # + handle_download() slightly slower, so now the sleep() period has been
     # slightly increased.
-    sleep( 5 );
+    sleep( 5 ) if $self->engine->test_mode;
 
     $self->_setup();
 
@@ -331,42 +245,46 @@ sub provide_downloads
 
     $self->_add_stale_feeds();
 
-    $self->_add_pending_downloads();
+    my $db = $self->engine->dbs;
 
-    my @downloads;
-    my $num_skips = 0;
+    my $pending_download_ids = [];
 
-  MEDIA_ID:
-    for my $media_id ( @{ $self->{ downloads }->_get_download_media_ids } )
+    DEBUG( "querying pending downloads ..." );
+
+    my $downloads = $db->query( <<SQL )->hashes();
+select distinct on (host) downloads_id, host
+    from downloads_pending
+    order by host, priority, downloads_id desc nulls last;
+SQL
+
+    DEBUG( "provide downloads unthrottled hosts: " . scalar( @{ $downloads } ) );
+
+    for my $download ( @{ $downloads } )
     {
+        my $host         = $download->{ host };
+        my $downloads_id = $download->{ downloads_id };
 
-        # we just slept for 1 so only bother calling time() if throttle is greater than 1
-        if ( ( $self->engine->throttle >= 1 ) && ( $media_id->{ time } > ( time() - $self->engine->throttle ) ) )
+        $self->pending_hosts->{ $host } ||= 0;
+
+        if ( $self->pending_hosts->{ $host } > ( time() - $self->engine->throttle ) )
         {
-
-            TRACE "provide downloads: skipping media id $media_id->{media_id} because of throttling";
-
-            $num_skips++;
-
-            #skip;
-            next MEDIA_ID;
+            TRACE "provide downloads: skipping host $host because of throttling";
+            next;
         }
 
-        if ( my $download = $self->{ downloads }->_pop_download( $media_id->{ media_id } ) )
-        {
-            push( @downloads, $download );
-        }
+        $self->pending_hosts->{ $host } = time();
+
+        push( @{ $pending_download_ids }, $downloads_id );
     }
 
-    DEBUG "skipped / throttled downloads: $num_skips" if ( $num_skips > 0 );
-    DEBUG "provide downloads: " . scalar( @downloads ) . " downloads";
+    DEBUG "provide downloads throttled hosts: " . scalar( @{ $pending_download_ids } );
 
-    if ( !@downloads )
+    if ( scalar( @{ $pending_download_ids } ) < 1 )
     {
-        sleep( 10 ) unless $self->engine->test_mode;
+        sleep( 1 ) unless $self->engine->test_mode;
     }
 
-    return \@downloads;
+    return $pending_download_ids;
 }
 
 =head2 engine
@@ -383,6 +301,22 @@ sub engine
     }
 
     return $_[ 0 ]->{ engine };
+}
+
+=head2 pending_hosts 
+
+getset pending_hosts - hash of hosts with pending downloads, pointing to last queue time for each
+
+=cut
+
+sub pending_hosts
+{
+    if ( $_[ 1 ] )
+    {
+        $_[ 0 ]->{ pending_hosts } = $_[ 1 ];
+    }
+
+    return $_[ 0 ]->{ pending_hosts };
 }
 
 1;

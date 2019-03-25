@@ -558,12 +558,9 @@ def copy_story_to_new_medium(db: DatabaseHandler, topic: dict, old_story: dict, 
             insert into download_texts (downloads_id, download_text, download_text_length)
                 select %(a)s, dt.download_text, dt.download_text_length
                     from download_texts dt
-                        join downloads d on (dt.downloads_id = d.downloads_id)
-                    where d.stories_id = %(b)s
-                    order by d.downloads_id asc
-                    limit 1
+                    where dt.downloads_id = %(a)s
             """,
-            {'a': download['downloads_id'], 'b': old_story['stories_id']})
+            {'a': download['downloads_id']})
 
     db.query(
         """
@@ -803,3 +800,41 @@ def find_and_merge_dup_stories(db: DatabaseHandler, topic: dict) -> None:
                 log.info("merging dup stories by %s: media [%d / %d]" % (f_name, i, num_media))
             dup_stories = f(stories)
             [_merge_dup_stories(db, topic, s) for s in dup_stories]
+
+
+def copy_stories_to_topic(db: DatabaseHandler, source_topics_id: int, target_topics_id: int) -> None:
+    """Copy stories from source_topics_id into seed_urls for target_topics_id."""
+    message = "copy_stories_to_topic: %s -> %s [%s]" % (source_topics_id, target_topics_id, datetime.datetime.now())
+
+    log.info("querying novel urls from source topic...")
+
+    db.query("set work_mem = '8GB'")
+
+    db.query(
+        """
+        create temporary table _stories as
+            select distinct stories_id from topic_seed_urls where topics_id = %(a)s and stories_id is not null;
+        create temporary table _urls as
+            select distinct url from topic_seed_urls where topics_id = %(a)s;
+        """,
+        {'a': target_topics_id})
+
+    db.query(
+        """
+        create temporary table _tsu as
+            select %(target)s topics_id, url, stories_id, %(message)s source
+                from snap.live_stories s
+                where
+                    s.topics_id = %(source)s and
+                    s.stories_id not in ( select stories_id from _stories ) and
+                    s.url not in ( select url from _urls )
+        """,
+        {'target': target_topics_id, 'source': source_topics_id, 'message': message})
+
+    (num_inserted,) = db.query("select count(*) from _tsu").flat()
+
+    log.info("inserting %d urls ..." % num_inserted)
+
+    db.query("insert into topic_seed_urls ( topics_id, url, stories_id, source ) select * from _tsu")
+
+    db.query("drop table _stories; drop table _urls; drop table _tsu;")

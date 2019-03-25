@@ -459,8 +459,9 @@ sub update_PUT
 
     if ( $update->{ solr_seed_query } && ( $topic->{ solr_seed_query } ne $update->{ solr_seed_query } ) )
     {
+        my $is_logogram = defined( $update->{ is_logogram } ) ? $update->{ is_logogram } : $topic->{ is_logogram };
         $update->{ pattern } =
-          eval { MediaWords::Solr::Query::parse( $update->{ solr_seed_query } )->re( $update->{ is_logogram } ) };
+          eval { MediaWords::Solr::Query::parse( $update->{ solr_seed_query } )->re( $is_logogram ) };
         die( "unable to translate solr query to topic pattern: $@" ) if ( $@ );
 
         $topic->{ solr_seed_query } = $update->{ solr_seed_query };
@@ -509,6 +510,10 @@ sub spider_GET
 
     my $topics_id = $c->stash->{ topics_id };
 
+    my $data = $c->req->data;
+
+    my $snapshots_id = $data->{ snapshots_id };
+
     my $db = $c->dbis;
 
     my $topic = $db->require_by_id( 'topics', $topics_id );
@@ -527,6 +532,8 @@ SQL
     {
         # wrap this in a transaction so that we're sure the last job added is the one we just added
         $db->begin;
+
+        my $mine_args = { topics_id => $topics_id, snapshots_id => $snapshots_id };
 
         if ( $topic->{ job_queue } eq 'mc' )
         {

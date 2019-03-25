@@ -40,6 +40,11 @@ sub run($$;$)
         die "'media_id' is undefined.";
     }
 
+    if ( $media_id == 361045 )
+    {
+        die "Job with media_id = 361045 manages to segfault me";
+    }
+
     MediaWords::DBI::Media::Rescrape::rescrape_media( $db, $media_id );
 }
 

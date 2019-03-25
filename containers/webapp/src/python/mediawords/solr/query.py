@@ -55,9 +55,9 @@ NOOP_PLACEHOLDER = '__NOOP__'
 # replace ':' with this before tokenization so that it gets included with the field name
 FIELD_PLACEHOLDER = '__FIELD__'
 
-# have to construct a beginning word boundary out a positive lookahead because the postgres and python
+# have to construct a beginning word boundary because postgres and python
 # regex engines do not share a common word boundary flag (\b vs. \y)
-WORD_BOUNDARY_REGEX = r'(?:^|(?<=\W))'
+WORD_BOUNDARY_REGEX = r'(?:^|\W)'
 
 
 class Token(object):

@@ -24,7 +24,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4708;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4714;
 BEGIN
 
     -- Update / set database schema version
@@ -646,166 +646,10 @@ LANGUAGE plpgsql;
 
 
 --
--- Downloads (non-partitioned table)
+-- Downloads
 --
 
-CREATE TYPE download_np_state AS ENUM (
-
-    -- Download fetch was attempted but led to an error
-    'error',
-
-    -- Download is currently being fetched by one of the crawler forks
-    'fetching',
-
-    -- Download is waiting for its turn to get fetched
-    'pending',
-
-    -- Not used anymore
-    'queued',
-
-    -- Download was successfully fetched
-    'success',
-
-    -- Download was a feed download, and an attempt at parsing it led to an
-    -- error (e.g. bad XML syntax)
-    'feed_error',
-
-    -- Not used anymore
-    'extractor_error'
-
-);
-
-CREATE TYPE download_np_type AS ENUM (
-
-    -- Not used anymore
-    'Calais',
-
-    -- Not used anymore
-    'calais',
-
-    -- Download is a content download, e.g. a news story
-    'content',
-
-    -- Download is a periodic feed download, e.g. RSS / Atom feed
-    'feed',
-
-    -- All of the below not used anymore
-    'spider_blog_home',
-    'spider_posting',
-    'spider_rss',
-    'spider_blog_friends_list',
-    'spider_validation_blog_home',
-    'spider_validation_rss',
-    'archival_only'
-
-);
-
-CREATE TABLE downloads_np (
-    downloads_np_id SERIAL              PRIMARY KEY,
-    feeds_id        INT                 NULL REFERENCES feeds,
-    stories_id      INT                 NULL REFERENCES stories ON DELETE CASCADE,
-    parent          INT                 NULL,
-    url             VARCHAR(1024)       NOT NULL,
-    host            VARCHAR(1024)       NOT NULL,
-    download_time   TIMESTAMP           NOT NULL DEFAULT NOW(),
-    type            download_np_type    NOT NULL,
-    state           download_np_state   NOT NULL,
-    path            TEXT                NULL,
-    error_message   TEXT                NULL,
-    priority        INT                 NOT NULL,
-    sequence        INT                 NOT NULL,
-    extracted       BOOLEAN             NOT NULL DEFAULT 'f'
-);
-
-ALTER TABLE downloads_np
-    ADD CONSTRAINT downloads_np_parent_fkey
-    FOREIGN KEY (parent) REFERENCES downloads_np ON DELETE SET NULL;
-
-ALTER TABLE downloads_np
-    ADD CONSTRAINT downloads_np_path
-    CHECK ((state = 'success' AND path IS NOT NULL) OR (state != 'success'));
-
-ALTER TABLE downloads_np
-    ADD CONSTRAINT downloads_np_feed_id_valid
-    CHECK (feeds_id IS NOT NULL);
-
-ALTER TABLE downloads_np
-    ADD CONSTRAINT downloads_np_story
-    CHECK (((type = 'feed') AND stories_id IS NULL) OR (stories_id IS NOT NULL));
-
--- Make the query optimizer get enough stats to use the feeds_id index
-ALTER TABLE downloads_np
-    ALTER feeds_id
-    SET STATISTICS 1000;
-
--- Temporary hack so that we don't have to rewrite the entire download to alter the type column
-ALTER TABLE downloads_np
-    ADD CONSTRAINT downloads_np_valid_download_type
-    CHECK (type NOT IN (
-        'spider_blog_home',
-        'spider_posting',
-        'spider_rss',
-        'spider_blog_friends_list',
-        'spider_validation_blog_home',
-        'spider_validation_rss',
-        'archival_only'
-    ));
-
-CREATE INDEX downloads_np_parent
-    ON downloads_np (parent);
-
-CREATE INDEX downloads_np_time
-    ON downloads_np (download_time);
-
-CREATE INDEX downloads_np_feed_download_time
-    ON downloads_np (feeds_id, download_time);
-
-CREATE INDEX downloads_np_story
-    ON downloads_np (stories_id);
-
-CREATE INDEX downloads_np_story_not_null
-    ON downloads_np (stories_id)
-    WHERE stories_id IS NOT NULL;
-
--- Needed for effective migration to a partitioned table
-CREATE INDEX downloads_np_type
-    ON downloads_np (type);
-
-CREATE INDEX downloads_np_state_downloads_id_pending
-    ON downloads_np (state, downloads_np_id)
-    WHERE state = 'pending';
-
-CREATE INDEX downloads_np_extracted
-    ON downloads_np (extracted, state, type)
-    WHERE extracted = 'f'
-      AND state = 'success'
-      AND type = 'content';
-
-CREATE INDEX downloads_np_stories_to_be_extracted
-    ON downloads_np (stories_id)
-    WHERE extracted = 'f'
-      AND state = 'success'
-      AND type = 'content';
-
-CREATE INDEX downloads_np_extracted_stories
-    ON downloads_np (stories_id)
-    WHERE type = 'content'
-      AND state = 'success';
-
-CREATE INDEX downloads_np_state_queued_or_fetching
-    ON downloads_np (state)
-    WHERE state IN ('queued', 'fetching');
-
-CREATE INDEX downloads_np_state_fetching
-    ON downloads_np (state, downloads_np_id)
-    WHERE state = 'fetching';
-
-
---
--- Downloads (partitioned table)
---
-
-CREATE TYPE download_p_state AS ENUM (
+CREATE TYPE download_state AS ENUM (
 
     -- Download fetch was attempted but led to an error
     'error',
@@ -825,7 +669,7 @@ CREATE TYPE download_p_state AS ENUM (
 
 );
 
-CREATE TYPE download_p_type AS ENUM (
+CREATE TYPE download_type AS ENUM (
 
     -- Download is a content download, e.g. a news story
     'content',
@@ -836,235 +680,35 @@ CREATE TYPE download_p_type AS ENUM (
 );
 
 
--- Convert "download_np_type" (nonpartitioned table's "type" column)
--- to "download_p_type" (partitioned table's "type" column)
-CREATE OR REPLACE FUNCTION download_np_type_to_download_p_type(p_type download_np_type)
-RETURNS download_p_type
-AS $$
-    SELECT (
-        CASE
-            -- Allow only the following types:
-            WHEN (p_type = 'content') THEN 'content'
-            WHEN (p_type = 'feed') THEN 'feed'
-
-            -- Temporarily expose obsolete types as "content"
-            -- (filtering them out in WHERE wouldn't work because then
-            -- PostgreSQL decides to do a sequential scan)
-            ELSE 'content'
-        END
-    )::download_p_type;
-$$ LANGUAGE SQL IMMUTABLE;
-
-
--- Convert "download_np_state" (nonpartitioned table's "state" column)
--- to "download_p_state" (partitioned table's "state" column)
-CREATE OR REPLACE FUNCTION download_np_state_to_download_p_state(p_state download_np_state)
-RETURNS download_p_state
-AS $$
-    SELECT (
-        CASE
-            -- Rewrite obsolete states
-            WHEN (p_state = 'queued') THEN 'pending'
-            WHEN (p_state = 'extractor_error') THEN 'error'
-
-            -- All the other states are OK
-            ELSE p_state::text
-        END
-    )::download_p_state;
-$$ LANGUAGE SQL IMMUTABLE;
-
-
--- Create a bunch of extra indexes on the non-partitioned table with columns
--- cast to partitioned table's types for faster querying
-CREATE INDEX downloads_np_pkey_bigint
-    ON downloads_np (to_bigint(downloads_np_id));
-
-CREATE INDEX downloads_np_parent_bigint
-    ON downloads_np (to_bigint(parent));
-
-CREATE INDEX downloads_np_type_p
-    ON downloads_np (download_np_type_to_download_p_type(type));
-
-CREATE INDEX downloads_np_state_p_downloads_id_bigint_pending
-    ON downloads_np (download_np_state_to_download_p_state(state), to_bigint(downloads_np_id))
-    WHERE download_np_state_to_download_p_state(state) = 'pending';
-
-CREATE INDEX downloads_np_extracted_p
-    ON downloads_np (extracted, download_np_state_to_download_p_state(state), download_np_type_to_download_p_type(type))
-    WHERE extracted = 'f'
-      AND download_np_state_to_download_p_state(state) = 'success'
-      AND download_np_type_to_download_p_type(type) = 'content';
-
-CREATE INDEX downloads_np_state_p_fetching
-    ON downloads_np (download_np_state_to_download_p_state(state), downloads_np_id)
-    WHERE download_np_state_to_download_p_state(state) = 'fetching';
-
-
-CREATE TABLE downloads_p (
-    downloads_p_id  BIGSERIAL           NOT NULL,
-    feeds_id        INT                 NOT NULL REFERENCES feeds (feeds_id),
-    stories_id      INT                 NULL REFERENCES stories (stories_id) ON DELETE CASCADE,
-    parent          BIGINT              NULL,
-    url             TEXT                NOT NULL,
-    host            TEXT                NOT NULL,
-    download_time   TIMESTAMP           NOT NULL DEFAULT NOW(),
-    type            download_p_type     NOT NULL,
-    state           download_p_state    NOT NULL,
-    path            TEXT                NULL,
-    error_message   TEXT                NULL,
-    priority        SMALLINT            NOT NULL,
-    sequence        SMALLINT            NOT NULL,
-    extracted       BOOLEAN             NOT NULL DEFAULT 'f',
+CREATE TABLE downloads (
+    downloads_id    BIGSERIAL       NOT NULL,
+    feeds_id        INT             NOT NULL REFERENCES feeds (feeds_id),
+    stories_id      INT             NULL REFERENCES stories (stories_id) ON DELETE CASCADE,
+    parent          BIGINT          NULL,
+    url             TEXT            NOT NULL,
+    host            TEXT            NOT NULL,
+    download_time   TIMESTAMP       NOT NULL DEFAULT NOW(),
+    type            download_type   NOT NULL,
+    state           download_state  NOT NULL,
+    path            TEXT            NULL,
+    error_message   TEXT            NULL,
+    priority        SMALLINT        NOT NULL,
+    sequence        SMALLINT        NOT NULL,
+    extracted       BOOLEAN         NOT NULL DEFAULT 'f',
 
     -- Partitions require a composite primary key
-    PRIMARY KEY (downloads_p_id, state, type)
+    PRIMARY KEY (downloads_id, state, type)
 
 ) PARTITION BY LIST (state);
 
--- Make partitioned table's "downloads_id" sequence start from where
--- non-partitioned table's sequence left off
-SELECT setval(
-    pg_get_serial_sequence('downloads_p', 'downloads_p_id'),
-    COALESCE(MAX(downloads_np_id), 1), MAX(downloads_np_id) IS NOT NULL
-) FROM downloads_np;
 
-
---
--- Proxy view to join partitioned and non-partitioned "downloads" tables
---
-CREATE OR REPLACE VIEW downloads AS
-
-    -- Non-partitioned table
-    SELECT
-        downloads_np_id::bigint AS downloads_id,
-        feeds_id,
-        stories_id,
-        parent::bigint,
-        url::text,
-        host::text,
-        download_time,
-        download_np_type_to_download_p_type(type) AS type,
-        download_np_state_to_download_p_state(state) AS state,
-        path::text,
-        error_message::text,
-        priority::smallint,
-        sequence::smallint,
-        extracted
-    FROM downloads_np
-
-    UNION ALL
-
-    -- Partitioned table
-    SELECT
-        downloads_p_id AS downloads_id,
-        feeds_id,
-        stories_id,
-        parent,
-        url,
-        host,
-        download_time,
-        type,
-        state,
-        path,
-        error_message,
-        priority,
-        sequence,
-        extracted
-    FROM downloads_p;
-
--- Make RETURNING work with partitioned tables
--- (https://wiki.postgresql.org/wiki/INSERT_RETURNING_vs_Partitioning)
-ALTER VIEW downloads
-    ALTER COLUMN downloads_id
-    SET DEFAULT nextval(pg_get_serial_sequence('downloads_p', 'downloads_p_id'));
-
--- Prevent the next INSERT from failing
-SELECT nextval(pg_get_serial_sequence('downloads_p', 'downloads_p_id'));
-
-
--- Trigger that implements INSERT / UPDATE / DELETE behavior on "downloads" view
-CREATE OR REPLACE FUNCTION downloads_view_insert_update_delete() RETURNS trigger AS $$
+-- UPDATE / DELETE "downloads" trigger that enforces foreign keys on referencing tables
+CREATE FUNCTION cascade_ref_downloads_trigger() RETURNS trigger AS $$
 BEGIN
 
-    IF (TG_OP = 'INSERT') THEN
+    IF (TG_OP = 'UPDATE') THEN
 
-        -- New rows go into the partitioned table only
-        INSERT INTO downloads_p (
-            downloads_p_id,
-            feeds_id,
-            stories_id,
-            parent,
-            url,
-            host,
-            download_time,
-            type,
-            state,
-            path,
-            error_message,
-            priority,
-            sequence,
-            extracted
-        ) SELECT
-            NEW.downloads_id,
-            NEW.feeds_id,
-            NEW.stories_id,
-            NEW.parent,
-            NEW.url,
-            NEW.host,
-            COALESCE(NEW.download_time, NOW()),
-            NEW.type,
-            NEW.state,
-            NEW.path,
-            NEW.error_message,
-            NEW.priority,
-            NEW.sequence,
-            COALESCE(NEW.extracted, 'f');
-
-        RETURN NEW;
-
-    ELSIF (TG_OP = 'UPDATE') THEN
-
-        -- Update both tables as one of them will have the row
-        UPDATE downloads_np SET
-            downloads_np_id = NEW.downloads_id,
-            feeds_id = NEW.feeds_id,
-            stories_id = NEW.stories_id,
-            parent = NEW.parent,
-            url = NEW.url,
-            host = NEW.host,
-            download_time = NEW.download_time,
-            type = NEW.type::text::download_np_type,
-            state = NEW.state::text::download_np_state,
-            path = NEW.path,
-            error_message = NEW.error_message,
-            priority = NEW.priority,
-            sequence = NEW.sequence,
-            extracted = NEW.extracted
-        WHERE downloads_np_id = OLD.downloads_id;
-
-        UPDATE downloads_p SET
-            downloads_p_id = NEW.downloads_id,
-            feeds_id = NEW.feeds_id,
-            stories_id = NEW.stories_id,
-            parent = NEW.parent,
-            url = NEW.url,
-            host = NEW.host,
-            download_time = NEW.download_time,
-            type = NEW.type,
-            state = NEW.state,
-            path = NEW.path,
-            error_message = NEW.error_message,
-            priority = NEW.priority,
-            sequence = NEW.sequence,
-            extracted = NEW.extracted
-        WHERE downloads_p_id = OLD.downloads_id;
-
-        -- Update record in tables that reference "downloads" with a given ID
-        UPDATE downloads_np
-        SET parent = NEW.downloads_id
-        WHERE parent = OLD.downloads_id;
-
-        UPDATE downloads_p
+        UPDATE downloads
         SET parent = NEW.downloads_id
         WHERE parent = OLD.downloads_id;
 
@@ -1088,20 +732,7 @@ BEGIN
 
     ELSIF (TG_OP = 'DELETE') THEN
 
-        -- Delete from both tables as one of them will have the row
-        DELETE FROM downloads_np
-            WHERE downloads_np_id = OLD.downloads_id;
-
-        DELETE FROM downloads_p
-            WHERE downloads_p_id = OLD.downloads_id;
-
-        -- Update / delete record in tables that reference "downloads" with a
-        -- given ID
-        UPDATE downloads_np
-        SET parent = NULL
-        WHERE parent = OLD.downloads_id;
-
-        UPDATE downloads_p
+        UPDATE downloads
         SET parent = NULL
         WHERE parent = OLD.downloads_id;
 
@@ -1127,10 +758,6 @@ BEGIN
 
 END;
 $$ LANGUAGE plpgsql;
-
-CREATE TRIGGER downloads_view_insert_update_delete_trigger
-    INSTEAD OF INSERT OR UPDATE OR DELETE ON downloads
-    FOR EACH ROW EXECUTE PROCEDURE downloads_view_insert_update_delete();
 
 
 -- Imitate a foreign key by testing if a download with an INSERTed / UPDATEd
@@ -1176,84 +803,104 @@ $$
 LANGUAGE plpgsql;
 
 
-CREATE INDEX downloads_p_parent
-    ON downloads_p (parent);
+CREATE INDEX downloads_parent
+    ON downloads (parent);
 
-CREATE INDEX downloads_time_p
-    ON downloads_p (download_time);
+CREATE INDEX downloads_time
+    ON downloads (download_time);
 
-CREATE INDEX downloads_p_feed_download_time
-    ON downloads_p (feeds_id, download_time);
+CREATE INDEX downloads_feed_download_time
+    ON downloads (feeds_id, download_time);
 
-CREATE INDEX downloads_p_story
-    ON downloads_p (stories_id);
+CREATE INDEX downloads_story
+    ON downloads (stories_id);
 
 
-CREATE TABLE downloads_p_error
-    PARTITION OF downloads_p
+CREATE TABLE downloads_error
+    PARTITION OF downloads
     FOR VALUES IN ('error');
 
-CREATE TRIGGER downloads_p_error_test_referenced_download_trigger
-    BEFORE INSERT OR UPDATE ON downloads_p_error
+CREATE TRIGGER downloads_error_test_referenced_download_trigger
+    BEFORE INSERT OR UPDATE ON downloads_error
     FOR EACH ROW
     EXECUTE PROCEDURE test_referenced_download_trigger('parent');
 
+CREATE TRIGGER downloads_error_cascade_ref_downloads_trigger
+    AFTER UPDATE OR DELETE ON downloads_error
+    FOR EACH ROW
+    EXECUTE PROCEDURE cascade_ref_downloads_trigger();
 
-CREATE TABLE downloads_p_feed_error
-    PARTITION OF downloads_p
+
+CREATE TABLE downloads_feed_error
+    PARTITION OF downloads
     FOR VALUES IN ('feed_error');
 
-CREATE TRIGGER downloads_p_feed_error_test_referenced_download_trigger
-    BEFORE INSERT OR UPDATE ON downloads_p_feed_error
+CREATE TRIGGER downloads_feed_error_test_referenced_download_trigger
+    BEFORE INSERT OR UPDATE ON downloads_feed_error
     FOR EACH ROW
     EXECUTE PROCEDURE test_referenced_download_trigger('parent');
 
+CREATE TRIGGER downloads_feed_error_cascade_ref_downloads_trigger
+    AFTER UPDATE OR DELETE ON downloads_feed_error
+    FOR EACH ROW
+    EXECUTE PROCEDURE cascade_ref_downloads_trigger();
 
-CREATE TABLE downloads_p_fetching
-    PARTITION OF downloads_p
+
+CREATE TABLE downloads_fetching
+    PARTITION OF downloads
     FOR VALUES IN ('fetching');
 
-CREATE TRIGGER downloads_p_fetching_test_referenced_download_trigger
-    BEFORE INSERT OR UPDATE ON downloads_p_fetching
+CREATE TRIGGER downloads_fetching_test_referenced_download_trigger
+    BEFORE INSERT OR UPDATE ON downloads_fetching
     FOR EACH ROW
     EXECUTE PROCEDURE test_referenced_download_trigger('parent');
 
+CREATE TRIGGER downloads_fetching_cascade_ref_downloads_trigger
+    AFTER UPDATE OR DELETE ON downloads_fetching
+    FOR EACH ROW
+    EXECUTE PROCEDURE cascade_ref_downloads_trigger();
 
-CREATE TABLE downloads_p_pending
-    PARTITION OF downloads_p
+
+CREATE TABLE downloads_pending
+    PARTITION OF downloads
     FOR VALUES IN ('pending');
 
-CREATE TRIGGER downloads_p_pending_test_referenced_download_trigger
-    BEFORE INSERT OR UPDATE ON downloads_p_pending
+CREATE TRIGGER downloads_pending_test_referenced_download_trigger
+    BEFORE INSERT OR UPDATE ON downloads_pending
     FOR EACH ROW
     EXECUTE PROCEDURE test_referenced_download_trigger('parent');
 
+CREATE TRIGGER downloads_pending_cascade_ref_downloads_trigger
+    AFTER UPDATE OR DELETE ON downloads_pending
+    FOR EACH ROW
+    EXECUTE PROCEDURE cascade_ref_downloads_trigger();
 
-CREATE TABLE downloads_p_success
-    PARTITION OF downloads_p (
-        CONSTRAINT downloads_p_success_path_not_null
+
+CREATE TABLE downloads_success
+    PARTITION OF downloads (
+        CONSTRAINT downloads_success_path_not_null
         CHECK (path IS NOT NULL)
     ) FOR VALUES IN ('success')
     PARTITION BY LIST (type);
 
 
-CREATE TABLE downloads_p_success_feed
-    PARTITION OF downloads_p_success (
-        CONSTRAINT downloads_p_success_feed_stories_id_null
+CREATE TABLE downloads_success_feed
+    PARTITION OF downloads_success (
+        CONSTRAINT downloads_success_feed_stories_id_null
         CHECK (stories_id IS NULL)
     ) FOR VALUES IN ('feed')
-    PARTITION BY RANGE (downloads_p_id);
+    PARTITION BY RANGE (downloads_id);
 
 
-CREATE TABLE downloads_p_success_content
-    PARTITION OF downloads_p_success (
-        CONSTRAINT downloads_p_success_content_stories_id_not_null
+CREATE TABLE downloads_success_content
+    PARTITION OF downloads_success (
+        CONSTRAINT downloads_success_content_stories_id_not_null
         CHECK (stories_id IS NOT NULL)
     ) FOR VALUES IN ('content')
-    PARTITION BY RANGE (downloads_p_id);
+    PARTITION BY RANGE (downloads_id);
 
-CREATE INDEX downloads_p_success_content_extracted
-    ON downloads_p_success_content (extracted);
+CREATE INDEX downloads_success_content_extracted
+    ON downloads_success_content (extracted);
 
 
 CREATE VIEW downloads_media AS
@@ -1415,6 +1062,13 @@ BEGIN
                 EXECUTE PROCEDURE test_referenced_download_trigger(''parent'');
         ';
 
+        EXECUTE '
+            CREATE TRIGGER ' || partition || '_cascade_ref_downloads_trigger
+                AFTER UPDATE OR DELETE ON ' || partition || '
+                FOR EACH ROW
+                EXECUTE PROCEDURE cascade_ref_downloads_trigger();
+        ';
+
     END LOOP;
 
 END;
@@ -1423,122 +1077,31 @@ LANGUAGE plpgsql;
 
 
 -- Create missing "downloads_success_content" partitions
-CREATE OR REPLACE FUNCTION downloads_p_success_content_create_partitions()
+CREATE OR REPLACE FUNCTION downloads_success_content_create_partitions()
 RETURNS VOID AS
 $$
 
-    SELECT downloads_create_subpartitions('downloads_p_success_content');
+    SELECT downloads_create_subpartitions('downloads_success_content');
 
 $$
 LANGUAGE SQL;
 
 -- Create initial "downloads_success_content" partitions for empty database
-SELECT downloads_p_success_content_create_partitions();
+SELECT downloads_success_content_create_partitions();
 
 
 -- Create missing "downloads_success_feed" partitions
-CREATE OR REPLACE FUNCTION downloads_p_success_feed_create_partitions()
+CREATE OR REPLACE FUNCTION downloads_success_feed_create_partitions()
 RETURNS VOID AS
 $$
 
-    SELECT downloads_create_subpartitions('downloads_p_success_feed');
+    SELECT downloads_create_subpartitions('downloads_success_feed');
 
 $$
 LANGUAGE SQL;
 
 -- Create initial "downloads_success_feed" partitions for empty database
-SELECT downloads_p_success_feed_create_partitions();
-
-
---
--- Move a chunk of downloads from a non-partitioned "downloads_np" to a
--- partitioned "downloads_p".
---
--- Expects starting and ending "downloads_id" instead of a chunk size in order
--- to avoid index bloat that would happen when reading rows in sequential
--- chunks.
---
--- Returns number of rows that were moved.
---
--- Call this repeatedly to migrate all the data to the partitioned table.
-CREATE OR REPLACE FUNCTION move_chunk_of_nonpartitioned_downloads_to_partitions(
-    start_downloads_id INT,
-    end_downloads_id INT
-)
-RETURNS INT AS $$
-
-DECLARE
-    moved_row_count INT;
-
-BEGIN
-
-    IF NOT (start_downloads_id < end_downloads_id) THEN
-        RAISE EXCEPTION '"end_downloads_id" must be bigger than "start_downloads_id".';
-    END IF;
-
-    -- Kill all autovacuums before proceeding with DDL changes
-    PERFORM pid
-    FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
-    WHERE backend_type = 'autovacuum worker'
-      AND query ~ 'downloads';
-
-    RAISE NOTICE
-        'Moving downloads of downloads_id BETWEEN % AND % to the partitioned table...',
-        start_downloads_id, end_downloads_id;
-
-    -- Fetch and delete downloads within bounds
-    WITH deleted_rows AS (
-        DELETE FROM downloads_np
-        WHERE downloads_np_id BETWEEN start_downloads_id AND end_downloads_id
-        RETURNING downloads_np.*
-    )
-
-    -- Insert rows to the partitioned table
-    INSERT INTO downloads_p (
-        downloads_p_id,
-        feeds_id,
-        stories_id,
-        parent,
-        url,
-        host,
-        download_time,
-        type,
-        state,
-        path,
-        error_message,
-        priority,
-        sequence,
-        extracted
-    )
-    SELECT
-        downloads_np_id,
-        feeds_id,
-        stories_id,
-        parent,
-        url,
-        host,
-        download_time,
-        download_np_type_to_download_p_type(type) AS type,
-        download_np_state_to_download_p_state(state) AS state,
-        path,
-        error_message,
-        priority,
-        sequence,
-        extracted
-    FROM deleted_rows
-    WHERE type IN ('content', 'feed');  -- Skip obsolete types like 'Calais'
-
-    GET DIAGNOSTICS moved_row_count = ROW_COUNT;
-
-    RAISE NOTICE
-        'Finished moving downloads of downloads_id BETWEEN % AND % to the partitioned table, moved % rows.',
-        start_downloads_id, end_downloads_id, moved_row_count;
-
-    RETURN moved_row_count;
-
-END;
-$$
-LANGUAGE plpgsql;
+SELECT downloads_success_feed_create_partitions();
 
 
 --
@@ -1870,6 +1433,10 @@ CREATE TABLE download_texts_np (
 
 CREATE UNIQUE INDEX download_texts_np_downloads_id_index
     ON download_texts_np (downloads_id);
+
+-- Temporary index to be used on JOINs with "downloads" with BIGINT primary key
+CREATE UNIQUE INDEX download_texts_np_downloads_id_bigint_index
+    ON download_texts_np (to_bigint(downloads_id));
 
 ALTER TABLE download_texts_np
     ADD CONSTRAINT download_texts_np_length_is_correct
@@ -2602,6 +2169,7 @@ create table timespans (
 );
 
 create index timespans_snapshot on timespans ( snapshots_id );
+create unique index timespans_unique on timespans ( snapshots_id, foci_id, start_date, end_date, period );
 
 create table timespan_files (
     timespan_files_id                   serial primary key,
@@ -3538,11 +3106,11 @@ RETURNS VOID AS
 $$
 BEGIN
 
-    RAISE NOTICE 'Creating partitions in "downloads_p_success_content" table...';
-    PERFORM downloads_p_success_content_create_partitions();
+    RAISE NOTICE 'Creating partitions in "downloads_success_content" table...';
+    PERFORM downloads_success_content_create_partitions();
 
-    RAISE NOTICE 'Creating partitions in "downloads_p_success_feed" table...';
-    PERFORM downloads_p_success_feed_create_partitions();
+    RAISE NOTICE 'Creating partitions in "downloads_success_feed" table...';
+    PERFORM downloads_success_feed_create_partitions();
 
     RAISE NOTICE 'Creating partitions in "download_texts_p" table...';
     PERFORM download_texts_p_create_partitions();
@@ -4093,34 +3661,6 @@ end
 $$ language plpgsql;
 
 
---
--- SimilarWeb metrics
---
-CREATE TABLE similarweb_metrics (
-    similarweb_metrics_id  SERIAL                   PRIMARY KEY,
-    domain                 VARCHAR(1024)            NOT NULL,
-    month                  DATE,
-    visits                 BIGINT,
-    update_date            TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
-);
-
-CREATE UNIQUE INDEX similarweb_metrics_domain_month
-    ON similarweb_metrics (domain, month);
-
-
---
--- Unnormalized table
---
-CREATE TABLE similarweb_media_metrics (
-    similarweb_media_metrics_id    SERIAL                   PRIMARY KEY,
-    media_id                       INTEGER                  NOT NULL UNIQUE references media,
-    similarweb_domain              VARCHAR(1024)            NOT NULL,
-    domain_exact_match             BOOLEAN                  NOT NULL,
-    monthly_audience               INTEGER                  NOT NULL,
-    update_date                    TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
-);
-
-
 CREATE TYPE media_sitemap_pages_change_frequency AS ENUM (
     'always',
     'hourly',
@@ -4165,3 +3705,69 @@ CREATE INDEX media_sitemap_pages_media_id
 
 CREATE UNIQUE INDEX media_sitemap_pages_url
     ON media_sitemap_pages (url);
+
+
+--
+-- Domains for which we have tried to fetch SimilarWeb stats
+--
+-- Every media source domain for which we have tried to fetch estimated visits
+-- from SimilarWeb gets stored here.
+--
+-- The domain might have been invalid or unpopular enough so
+-- "similarweb_estimated_visits" might not necessarily store stats for every
+-- domain in this table.
+--
+CREATE TABLE similarweb_domains (
+    similarweb_domains_id SERIAL PRIMARY KEY,
+
+    -- Top-level (e.g. cnn.com) or second-level (e.g. edition.cnn.com) domain
+    domain TEXT NOT NULL
+
+);
+
+CREATE UNIQUE INDEX similarweb_domains_domain
+    ON similarweb_domains (domain);
+
+
+--
+-- Media - SimilarWeb domain map
+--
+-- A few media sources might be pointing to one or more domains due to code
+-- differences in how domain was extracted from media source's URL between
+-- various implementations.
+--
+CREATE TABLE media_similarweb_domains_map (
+    media_similarweb_domains_map_id SERIAL  PRIMARY KEY,
+
+    media_id                        INT     NOT NULL REFERENCES media (media_id) ON DELETE CASCADE,
+    similarweb_domains_id           INT     NOT NULL REFERENCES similarweb_domains (similarweb_domains_id) ON DELETE CASCADE
+);
+
+-- Different media sources can point to the same domain
+CREATE UNIQUE INDEX media_similarweb_domains_map_media_id_sdi
+    ON media_similarweb_domains_map (media_id, similarweb_domains_id);
+
+
+--
+-- SimilarWeb estimated visits for domain
+-- (https://www.similarweb.com/corp/developer/estimated_visits_api)
+--
+CREATE TABLE similarweb_estimated_visits (
+    similarweb_estimated_visits_id  SERIAL  PRIMARY KEY,
+
+    -- Domain for which the stats were fetched
+    similarweb_domains_id           INT     NOT NULL REFERENCES similarweb_domains (similarweb_domains_id) ON DELETE CASCADE,
+
+    -- Month, e.g. 2018-03-01 for March of 2018
+    month                           DATE    NOT NULL,
+
+    -- Visit count is for the main domain only (value of "main_domain_only" API call argument)
+    main_domain_only                BOOLEAN NOT NULL,
+
+    -- Visit count
+    visits                          BIGINT  NOT NULL
+
+);
+
+CREATE UNIQUE INDEX similarweb_estimated_visits_domain_month_mdo
+    ON similarweb_estimated_visits (similarweb_domains_id, month, main_domain_only);

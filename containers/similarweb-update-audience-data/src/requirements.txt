@@ -1,5 +1,0 @@
-# Retry HTTP requests
-backoff==1.8.0
-
-# Mocking HTTP requests
-responses==0.10.5

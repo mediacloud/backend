@@ -116,7 +116,7 @@ SQL
     if ( my $stories_id = int( $c->req->params->{ stories_id } // 0 ) )
     {
         my $stories_ids = ref( $stories_id ) ? $stories_id : [ $stories_id ];
-        my $stories_ids_list = join( ',', map { int( $_ ) } @{ $stories_ids } );
+        my $stories_ids_list = join( ',', map { int( $_ ) } @{ $stories_ids } ) || '-1';
         push( @{ $clauses }, "slc.stories_id in ( $stories_ids_list )" );
     }
 
@@ -207,7 +207,7 @@ sub _add_foci_to_stories($$$)
     my ( $db, $timespan, $stories ) = @_;
 
     # enumerate the stories ids to get a decent query plan
-    my $stories_ids_list = join( ',', map { $_->{ stories_id } } @{ $stories } );
+    my $stories_ids_list = join( ',', map { $_->{ stories_id } } @{ $stories } ) || '-1';
 
     my $foci = $db->query( <<SQL, $timespan->{ timespans_id } )->hashes;
 select

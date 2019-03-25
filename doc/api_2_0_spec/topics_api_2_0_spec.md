@@ -494,11 +494,18 @@ Response:
 Start a topic spidering job.
 
 Topic spidering is asynchronous.  Once the topic has started spidering, you cannot start another spidering job until the current one is complete. A call to this end point when a 'running' or 'queued' job already exists for the given topic
-will just return the state of the existing job.
+will just return the state of the existing job. If a snapshots\_id is sent as input, that snapshot will be used
+for the job; otherwise, a new snapshot will be created.
 
 ### Query Parameters
 
 (no parameters)
+
+### Input Description
+
+| Field      | Description                              |
+| ---------- | ---------------------------------------- |
+| snapshots\_id | id of snapshot associated with spidering job (optional) | 
 
 ### Output Description
 
@@ -508,12 +515,12 @@ The call returns a `job_state` record with information about the state of the qu
 
 Start a topic spider for the 'U.S. 2016 Election' topic:
 
-`https://api.mediacloud.org/api/v2/topics/spider`
+`https://api.mediacloud.org/api/v2/topics/1404/spider`
 
 Input:
 
 ```json
-{ "topics_id": 1404 }
+{ "snapshots_id": 12345 }
 ```
 
 Response:
@@ -522,11 +529,14 @@ Response:
 {
     "job_state":
         {
-            "topics_id": 1404,
-            "job_states_id": 1,
-            "last_updated": "2017-01-26 14:27:04.781095",
-            "message": null,
-            "state": "queued"
+            "job_states_id": 425503, 
+            "class": "MediaWords::Job::TM::SnapshotTopic", 
+            "state": "queued", 
+            "message": null, 
+            "last_updated": "2019-03-06 00:36:31.561966", 
+            "args": "{\\"snapshots_id\\":12345,\\"topics_id\\":1404}", 
+            "priority": "normal", 
+            "hostname": "mcquery3" 
         }
 }
 ```
@@ -1781,6 +1791,45 @@ Response:
 # Snapshots
 
 Each *snapshot* contains a static copy of all data within a topic at the time the *snapshot* was made.  All data viewable by the Topics API must be viewed through a *snapshot*.
+
+## `snapshots/create` (POST)
+
+`https://api.mediacloud.org/api/v2/topics/<topics_id>/snapshots/create`
+
+Create a new but empty snapshot for the topic.  This call only creates an empty shell of a snapshot.  To fill it with
+data, you must pass the returned snapshots\_id to snapshots/generate or topic/spider.
+
+### Query Parameters
+
+(no parameters)
+
+### Input Description
+
+| Field | Description                              |
+| ----- | ---------------------------------------- |
+| note  | short text note about the snapshot; optional |
+
+### Output Description
+
+Returns the created snapshot, as in the example below.
+
+### Example
+
+Create a new snapshot for the 'U.S. 2016 Election' *topic*:
+
+`https://api.mediacloud.org/api/v2/topics/1344/snapshots/create`
+
+Response:
+
+```json
+{
+    "snapshot":
+        {
+            "snapshots_id": 1234,
+            "topics_id": 1404
+        }
+}
+```
 
 ## `snapshots/generate` (POST)
 

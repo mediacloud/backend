@@ -356,7 +356,7 @@ Start crawling by cralling $self->_spawn_fetchers() and then entering a loop tha
 =over
 
 =item *
-if the in memory queue of pending downloads is empty, calls $provider->provide_downloads to refill it;
+if the in memory queue of pending downloads is empty, calls $provider->provide_download_ids to refill it;
 
 =item *
 
@@ -437,8 +437,50 @@ sub crawl
             {
                 if ( !$s->printflush( $queued_download->{ downloads_id } . "\n" ) )
                 {
-                    WARN( "provider failed to write download id to fetcher" );
-                    unshift( @{ $queued_downloads }, $queued_download );
+                    # set timeout so that a single hung read / write will not hork the whole crawler
+                    $s->timeout( 60 );
+
+                    my $fetcher_number = $s->getline();
+
+                    if ( !defined( $fetcher_number ) )
+                    {
+                        DEBUG "skipping fetcher for which we couldn't read the fetcher number";
+                        $socket_select->remove( $s );
+                        next;
+                    }
+
+                    chomp( $fetcher_number );
+
+                    if ( scalar( @{ $queued_downloads } ) == 0 )
+                    {
+                        DEBUG "refill queued downloads ...";
+                        $queued_downloads = $provider->provide_download_ids();
+
+                        if ( !@{ $queued_downloads } && $self->test_mode )
+                        {
+                            my $wait = 5;
+                            INFO "exiting after $wait second wait because crawler is in test mode and queue is empty";
+                            sleep $wait;
+                            INFO "exiting now.";
+                            last MAINLOOP;
+                        }
+                    }
+
+                    if ( my $queued_download = shift( @{ $queued_downloads } ) )
+                    {
+                        TRACE( "engine sending downloads_id: $queued_download" );
+                        if ( !$s->printflush( $queued_download . "\n" ) )
+                        {
+                            WARN( "provider failed to write download id to fetcher" );
+                            unshift( @{ $queued_downloads }, $queued_download );
+                        }
+
+                    }
+                    else
+                    {
+                        $s->printflush( "none\n" );
+                        last;
+                    }
                 }
 
             }
@@ -607,7 +649,7 @@ sub children_exit_on_kill
 =head2 test_mode
 
 getset test_mode - whether the crawler should exit the first time the downloads queue has been emptied rather than
-calling $provider->provide_downloads for more downloads.
+calling $provider->provide_download_ids for more downloads.
 
 if test_mode is set to true, the following other setters are called:
 

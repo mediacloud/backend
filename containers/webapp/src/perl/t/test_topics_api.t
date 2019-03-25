@@ -534,6 +534,25 @@ sub test_topics($)
     test_topics_spider( $db );
 }
 
+# test snapshots/create
+sub test_snapshots_create($)
+{
+    my ( $db ) = @_;
+
+    my $label = 'snapshot create';
+
+    my $topic = MediaWords::Test::DB::Create::create_test_topic( $db, $label );
+
+    my $r = test_post( "/api/v2/topics/$topic->{ topics_id }/snapshots/create", {} );
+
+    ok( $r->{ snapshot },                   "$label snapshot returned" );
+    ok( $r->{ snapshot }->{ snapshots_id }, "$label snapshots_id" );
+
+    my $snapshot = $db->find_by_id( "snapshots", $r->{ snapshot }->{ snapshots_id } );
+
+    ok( $snapshot, "snapshot created" );
+}
+
 # test snapshots/generate and /generate_status
 sub test_snapshots_generate($)
 {
@@ -568,6 +587,7 @@ sub test_snapshots($)
 {
     my ( $db ) = @_;
 
+    test_snapshots_create( $db );
     test_snapshots_generate( $db );
 }
 

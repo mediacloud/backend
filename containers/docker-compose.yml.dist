@@ -827,36 +827,6 @@ services:
                     memory: 256M
 
     #
-    # Update SimilarWeb audience data
-    # ----------------------
-    #
-    similarweb_update_audience_data:
-        build:
-            context: ./similarweb-update-audience-data/
-        image: dockermediacloud/mediacloud-similarweb-update-audience-data:latest
-        container_name: mc_similarweb_update_audience_data
-        environment:
-            # SimilarWeb API key
-            MC_SIMILARWEB_API_KEY: ""
-        networks:
-            # Stores audience data in PostgreSQL
-            - net_postgresql
-            # Celery worker
-            - net_rabbitmq
-        deploy:
-            # Worker count
-            replicas: 4
-            # Auto-restart on crashes
-            restart_policy:
-                condition: on-failure
-            resources:
-                limits:
-                    # CPU core limit
-                    cpus: "1"
-                    # RAM limit
-                    memory: 512M
-
-    #
     # Solr shard
     # ----------
     #

@@ -46,7 +46,7 @@ Readonly my $EXTRACT_STORY_LINKS_CHUNK_SIZE => 1000;
 Readonly my $SPIDER_LINKS_CHUNK_SIZE => 100_000;
 
 # die if the error rate for link fetch or link extract jobs is greater than this
-Readonly my $MAX_JOB_ERROR_RATE => 0.01;
+Readonly my $MAX_JOB_ERROR_RATE => 0.02;
 
 # timeout when polling for jobs to finish
 Readonly my $JOB_POLL_TIMEOUT => 3600;
@@ -1012,7 +1012,6 @@ sub do_mine_topic ($$;$)
 {
     my ( $db, $topic, $options ) = @_;
 
-    # commenting this out until we deploy the story index
     # if ( !$topic->{ is_story_index_ready } )
     # {
     #     die( "refusing to run topic because is_story_index_ready is false" );
@@ -1063,7 +1062,8 @@ sub do_mine_topic ($$;$)
             fetch_social_media_data( $db, $topic );
 
             update_topic_state( $db, $topic, "snapshotting" );
-            MediaWords::JobManager::Job::add_to_queue( 'MediaWords::Job::TM::SnapshotTopic', { topics_id => $topic->{ topics_id } }, undef, $db );
+            my $snapshot_args = { topics_id => $topic->{ topics_id }, snapshots_id => $options->{ snapshots_id } };
+            MediaWords::JobManager::Job::add_to_queue( 'MediaWords::Job::TM::SnapshotTopic', $snapshot_args, undef, $db );
         }
     }
 }
@@ -1202,7 +1202,7 @@ sub mine_topic ($$;$)
         MediaWords::TM::Alert::send_topic_alert( $db, $topic, "started topic spidering" );
     }
 
-    eval { do_mine_topic( $db, $topic ); };
+    eval { do_mine_topic( $db, $topic, $options ); };
     if ( $@ )
     {
         my $error = $@;
