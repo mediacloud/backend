@@ -278,7 +278,7 @@ SQL
         push( @{ $pending_download_ids }, $downloads_id );
     }
 
-    DEBUG "provide download throttled hosts: " . scalar( @{ $pending_download_ids } );
+    DEBUG "provide downloads throttled hosts: " . scalar( @{ $pending_download_ids } );
 
     if ( scalar( @{ $pending_download_ids } ) < 1 )
     {
