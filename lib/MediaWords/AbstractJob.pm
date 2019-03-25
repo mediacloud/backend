@@ -282,7 +282,11 @@ use MediaWords::DB::Locks;
 
         my $job_state = $db->require_by_id( 'job_states', $job_states_id );
 
-        $job_state = $db->update_by_id( 'job_states', $job_state->{ job_states_id }, { message => $message } );
+        $job_state = $db->update_by_id(
+            'job_states',
+            $job_state->{ job_states_id },
+            { message => $message, last_updated => MediaWords::Util::SQL::sql_now() }
+        );
 
         $self->_update_table_state( $db, $job_state );
     }
