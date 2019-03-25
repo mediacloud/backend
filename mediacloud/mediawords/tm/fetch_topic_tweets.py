@@ -209,17 +209,15 @@ def _store_tweet_and_urls(db: DatabaseHandler, topic_tweet_day: dict, ch_post: d
         'twitter_user': ch_post['tweet']['user']['screen_name']
     }
 
-    topic_tweet = db.create('topic_tweets', topic_tweet)
-
-    # for some reason I can't figure out, null characters still sneak through the data_json.replace()
-    # above, so we have to tell postgres direclty to get rid of them, or else querying the row later
-    # will fail
-    db.query(
+    topic_tweet = db.query(
         """
-        update topic_tweets set data = regexp_replace(data::text, '\\u0000', '', 'g')::json
-            where topic_tweets_id = %(a)s and data::text ~ '\\u0000'
+        insert into topic_tweets
+            ( topic_tweet_days_id, data, content, tweet_id, publish_date, twitter_user )
+            values
+            ( %(topic_tweet_days_id)s, %(data)s, %(content)s, %(tweet_id)s, %(publish_date)s, %(twitter_user)s )
+            returning *
         """,
-        {'a': topic_tweet['topic_tweets_id']})
+        topic_tweet).hash()
 
     urls = mediawords.util.twitter.get_tweet_urls(ch_post['tweet'])
     _insert_tweet_urls(db, topic_tweet, urls)
