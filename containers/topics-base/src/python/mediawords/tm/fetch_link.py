@@ -16,7 +16,7 @@ from mediawords.db.exceptions.handler import McUpdateByIDException
 from mediawords.util.log import create_logger
 from mediawords.util.network import tcp_port_is_open
 from mediawords.util.perl import decode_object_from_bytes_if_needed
-from mediawords.util.twitter import parse_status_id_from_url, parse_screen_name_from_user_url
+from mediawords.util.url.twitter import parse_status_id_from_url, parse_screen_name_from_user_url
 import mediawords.util.url
 from mediawords.util.web.user_agent.response.response import Response
 from mediawords.util.web.user_agent.throttled import ThrottledUserAgent, McThrottledDomainException

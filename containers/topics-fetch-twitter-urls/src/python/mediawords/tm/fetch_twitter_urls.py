@@ -4,11 +4,15 @@ from typing import List, Callable
 import traceback
 
 from mediawords.db.handler import DatabaseHandler
-import mediawords.dbi.downloads
 import mediawords.tm.domains
-from mediawords.tm.fetch_link import \
-    FETCH_STATE_TWEET_MISSING, FETCH_STATE_TWEET_ADDED, FETCH_STATE_CONTENT_MATCH_FAILED, FETCH_STATE_PYTHON_ERROR
-import mediawords.util.twitter
+from mediawords.util.url.twitter import parse_status_id_from_url, parse_screen_name_from_user_url
+from mediawords.tm.fetch_link import (
+    FETCH_STATE_TWEET_MISSING,
+    FETCH_STATE_TWEET_ADDED,
+    FETCH_STATE_CONTENT_MATCH_FAILED,
+    FETCH_STATE_PYTHON_ERROR,
+)
+from mediawords.util.twitter import fetch_100_users, get_tweet_urls, fetch_100_tweets
 
 from mediawords.util.log import create_logger
 
@@ -110,14 +114,14 @@ def _try_fetch_users_chunk(db: DatabaseHandler, topic: dict, topic_fetch_urls: L
     """
     url_lookup = {}
     for topic_fetch_url in topic_fetch_urls:
-        screen_name = mediawords.util.twitter.parse_screen_name_from_user_url(topic_fetch_url['url']).lower()
+        screen_name = parse_screen_name_from_user_url(topic_fetch_url['url']).lower()
         url_lookup.setdefault(screen_name, [])
         url_lookup[screen_name].append(topic_fetch_url)
 
     screen_names = list(url_lookup.keys())
 
     log.info("fetching users for %d screen_names ..." % len(screen_names))
-    users = mediawords.util.twitter.fetch_100_users(screen_names)
+    users = fetch_100_users(screen_names)
 
     for user in users:
         try:
@@ -153,7 +157,7 @@ def _add_tweet_story(db: DatabaseHandler, topic: dict, tweet: dict, topic_fetch_
         topic_fetch_url = _log_tweet_added(db, topic_fetch_url, story)
         mediawords.tm.fetch_link.try_update_topic_link_ref_stories_id(db, topic_fetch_url)
 
-    urls = mediawords.util.twitter.get_tweet_urls(tweet)
+    urls = get_tweet_urls(tweet)
     for url in urls:
         if mediawords.tm.domains.skip_self_linked_domain_url(db, topic['topics_id'], story['url'], url):
             log.info("skipping self linked domain url...")
@@ -178,14 +182,14 @@ def _try_fetch_tweets_chunk(db: DatabaseHandler, topic: dict, topic_fetch_urls: 
     """
     status_lookup = {}
     for topic_fetch_url in topic_fetch_urls:
-        status_id = mediawords.util.twitter.parse_status_id_from_url(topic_fetch_url['url'])
+        status_id = parse_status_id_from_url(topic_fetch_url['url'])
         status_lookup.setdefault(status_id, [])
         status_lookup[status_id].append(topic_fetch_url)
 
     status_ids = list(status_lookup.keys())
 
     log.info("fetching tweets for %d status_ids ..." % len(status_ids))
-    tweets = mediawords.util.twitter.fetch_100_tweets(status_ids)
+    tweets = fetch_100_tweets(status_ids)
 
     for tweet in tweets:
         try:
@@ -233,11 +237,11 @@ def _split_urls_into_users_and_statuses(topic_fetch_urls: List) -> List:
 
     for topic_fetch_url in topic_fetch_urls:
         url = topic_fetch_url['url']
-        status_id = mediawords.util.twitter.parse_status_id_from_url(url)
+        status_id = parse_status_id_from_url(url)
         if status_id:
             status_urls.append(topic_fetch_url)
         else:
-            screen_name = mediawords.util.twitter.parse_screen_name_from_user_url(url)
+            screen_name = parse_screen_name_from_user_url(url)
             if screen_name:
                 user_urls.append(topic_fetch_url)
             else:
