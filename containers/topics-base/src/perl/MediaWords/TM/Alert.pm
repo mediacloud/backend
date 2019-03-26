@@ -6,7 +6,7 @@ use warnings;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-use MediaWords::Util::Config::TopicsMine;
+use MediaWords::Util::Config::TopicsBase;
 use MediaWords::Util::Mail;
 
 # send an alert about significant activity on the topic to all users with at least write access to the topic
@@ -25,7 +25,7 @@ SQL
 
     my $emails = [ map { $_->{ email } } @{ $users } ];
 
-    if ( my $topic_alert_emails = MediaWords::Util::Config::TopicsMine::topic_alert_emails() )
+    if ( my $topic_alert_emails = MediaWords::Util::Config::TopicsBase::topic_alert_emails() )
     {
         push( @{ $emails }, @{ $topic_alert_emails } );
     }

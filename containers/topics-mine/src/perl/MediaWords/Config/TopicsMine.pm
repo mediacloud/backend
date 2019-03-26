@@ -28,9 +28,4 @@ sub crimson_hexagon_api_key()
     return MediaWords::Util::Config::TopicsMine::PythonProxy::TopicsMineConfig::crimson_hexagon_api_key();
 }
 
-sub topic_alert_emails()
-{
-    return MediaWords::Util::Config::TopicsMine::PythonProxy::TopicsMineConfig::topic_alert_emails();
-}
-
 1;

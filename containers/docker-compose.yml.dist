@@ -990,8 +990,6 @@ services:
         environment:
             # Crimson Hexagon API key
             MC_CRIMSON_HEXAGON_API_KEY: ""
-            # Comma-separated email addresses to inform about topic updates
-            MC_TOPIC_ALERT_EMAILS: "topicupdates@mediacloud.org, slackupdates@mediacloud.org"
         networks:
             # Fetches / stores links in PostgreSQL
             - net_postgresql
