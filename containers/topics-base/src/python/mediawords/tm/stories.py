@@ -11,7 +11,6 @@ import typing
 from mediawords.db import DatabaseHandler
 import mediawords.db.exceptions.handler
 import mediawords.dbi.downloads
-from mediawords.dbi.stories.extractor_arguments import PyExtractorArguments
 import mediawords.dbi.stories.dup
 import mediawords.dbi.stories.stories
 import mediawords.key_value_store.amazon_s3
@@ -69,8 +68,12 @@ def _extract_story(db: DatabaseHandler, story: dict) -> None:
     if re2.search(r'livejournal.com\/(tag|profile)', story['url'], re2.I):
         return
 
-    extractor_args = PyExtractorArguments(use_cache=True, use_existing=True, no_dedup_sentences=False)
-    mediawords.dbi.stories.extract.extract_and_process_story(db=db, story=story, extractor_args=extractor_args)
+    JobManager.run_remotely(
+        name='MediaWords::Job::ExtractAndVector',
+        stories_id=story['stories_id'],
+        use_cache=True,
+        use_existing=True,
+    )
 
 
 def _get_story_with_most_sentences(db: DatabaseHandler, stories: list) -> dict:

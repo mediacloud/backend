@@ -36,7 +36,7 @@ class ExtractAndVectorJob(AbstractJob):
     _consecutive_requeues = 0
 
     @classmethod
-    def run_job(cls, stories_id: int, use_cache: bool = False) -> None:
+    def run_job(cls, stories_id: int, use_cache: bool = False, use_existing: bool = False) -> None:
 
         # MC_REWRITE_TO_PYTHON: remove after Python rewrite
         if isinstance(stories_id, bytes):
@@ -76,7 +76,7 @@ class ExtractAndVectorJob(AbstractJob):
         db.begin()
 
         try:
-            extractor_args = PyExtractorArguments(use_cache=use_cache)
+            extractor_args = PyExtractorArguments(use_cache=use_cache, use_existing=use_existing)
             extract_and_process_story(db=db, story=story, extractor_args=extractor_args)
 
         except Exception as ex:
