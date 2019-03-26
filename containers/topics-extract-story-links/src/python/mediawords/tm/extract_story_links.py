@@ -30,7 +30,7 @@ IGNORE_LINK_PATTERN = (
     r'(?:www.rumormillnews.com)|(?:tvtropes.org/pmwiki)|(?:twitter.com/account/suspended)')
 
 
-def get_links_from_html(html: str) -> typing.List[str]:
+def _get_links_from_html(html: str) -> typing.List[str]:
     """Return a list of all links that appear in the html.
 
     Only return absolute urls, because we would rather get fewer internal media source links.  Also include embedded
@@ -64,7 +64,7 @@ def get_links_from_html(html: str) -> typing.List[str]:
     return links
 
 
-def get_youtube_embed_links(db: DatabaseHandler, story: dict) -> typing.List[str]:
+def _get_youtube_embed_links(db: DatabaseHandler, story: dict) -> typing.List[str]:
     """Parse youtube embedded video urls out of the full html of the story.
 
     This function looks for youtube embed links anywhere in the html of the story content, rather than just in the
@@ -106,7 +106,7 @@ def get_youtube_embed_links(db: DatabaseHandler, story: dict) -> typing.List[str
     return links
 
 
-def get_extracted_html(db: DatabaseHandler, story: dict) -> str:
+def _get_extracted_html(db: DatabaseHandler, story: dict) -> str:
     """Get the extracted html for the story.
 
     We don't store the extracted html of a story, so we have to get the first download assoicated with the story
@@ -124,7 +124,7 @@ def get_extracted_html(db: DatabaseHandler, story: dict) -> str:
     return extractor_results['extracted_html']
 
 
-def get_links_from_story_text(db: DatabaseHandler, story: dict) -> typing.List[str]:
+def _get_links_from_story_text(db: DatabaseHandler, story: dict) -> typing.List[str]:
     """Get all urls that appear in the text or description of the story using a simple regex."""
     download_ids = db.query("""
         SELECT downloads_id
@@ -154,11 +154,11 @@ def get_links_from_story_text(db: DatabaseHandler, story: dict) -> typing.List[s
     return links
 
 
-def get_links_from_story(db: DatabaseHandler, story: dict) -> typing.List[str]:
+def _get_links_from_story(db: DatabaseHandler, story: dict) -> typing.List[str]:
     """Extract and return linksk from the story.
 
-    Extracts generates a deduped list of links from get_links_from_html(), get_links_from_story_text(),
-    and get_youtube_embed_links() for the given story.
+    Extracts generates a deduped list of links from _get_links_from_html(), _get_links_from_story_text(),
+    and _get_youtube_embed_links() for the given story.
 
     Arguments:
     db - db handle
@@ -169,11 +169,11 @@ def get_links_from_story(db: DatabaseHandler, story: dict) -> typing.List[str]:
 
     """
     try:
-        extracted_html = get_extracted_html(db, story)
+        extracted_html = _get_extracted_html(db, story)
 
-        html_links = get_links_from_html(extracted_html)
-        text_links = get_links_from_story_text(db, story)
-        youtube_links = get_youtube_embed_links(db, story)
+        html_links = _get_links_from_html(extracted_html)
+        text_links = _get_links_from_story_text(db, story)
+        youtube_links = _get_youtube_embed_links(db, story)
 
         all_links = html_links + text_links + youtube_links
 
@@ -193,7 +193,7 @@ def extract_links_for_topic_story(db: DatabaseHandler, story: dict, topic: dict)
     """
     Extract links from a story and insert them into the topic_links table for the given topic.
 
-    After the story is processed, set topic_stories.spidered to true for that story.  Calls get_links_from_story
+    After the story is processed, set topic_stories.spidered to true for that story.  Calls _get_links_from_story()
     on each story.
 
     Almost all errors are caught by this function saved in topic_stories.link_mine_error.  In the case of an error
@@ -210,7 +210,7 @@ def extract_links_for_topic_story(db: DatabaseHandler, story: dict, topic: dict)
     """
     try:
         log.info("mining %s %s for topic %s .." % (story['title'], story['url'], topic['name']))
-        links = get_links_from_story(db, story)
+        links = _get_links_from_story(db, story)
 
         for link in links:
             if mediawords.tm.domains.skip_self_linked_domain_url(db, topic['topics_id'], story['url'], link):

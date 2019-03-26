@@ -10,7 +10,7 @@ def test_get_links_from_html() -> None:
     """Test get_links_from_html()."""
 
     def test_links(html: str, links: list) -> None:
-        assert mediawords.tm.extract_story_links.get_links_from_html(html) == links
+        assert mediawords.tm.extract_story_links._get_links_from_html(html) == links
 
     test_links('<a href="http://foo.com">', ['http://foo.com'])
     test_links('<link href="http://bar.com">', ['http://bar.com'])
@@ -43,7 +43,7 @@ def test_get_links_from_html() -> None:
     with open(filename, 'r', encoding='utf8') as fh:
         html = fh.read()
 
-    links = mediawords.tm.extract_story_links.get_links_from_html(html)
+    links = mediawords.tm.extract_story_links._get_links_from_html(html)
     assert len(links) == 300
     for link in links:
         assert mediawords.util.url.is_http_url(link)
@@ -93,7 +93,7 @@ class TestExtractStoryLinksDB(mediawords.test.test_database.TestDatabaseWithSche
         assert links == ['http://youtube.com/embed/1234', 'http://youtube.com/embed/3456']
 
     def test_get_extracted_html(self) -> None:
-        """Test get_extracted_html()."""
+        """Test _get_extracted_html()."""
         db = self.db()
 
         story = self.test_story
@@ -103,7 +103,7 @@ class TestExtractStoryLinksDB(mediawords.test.test_database.TestDatabaseWithSche
 
         mediawords.dbi.downloads.store_content(db, download, content)
 
-        extracted_html = mediawords.tm.extract_story_links.get_extracted_html(db, story)
+        extracted_html = mediawords.tm.extract_story_links._get_extracted_html(db, story)
 
         assert extracted_html.strip() == '<body id="readabilityBody">foo</body>'
 
@@ -123,7 +123,7 @@ class TestExtractStoryLinksDB(mediawords.test.test_database.TestDatabaseWithSche
             'download_text': 'http://download.text',
             'download_text_length': 20})
 
-        links = mediawords.tm.extract_story_links.get_links_from_story_text(db, story)
+        links = mediawords.tm.extract_story_links._get_links_from_story_text(db, story)
 
         assert sorted(links) == sorted('http://title.com http://description.com http://download.text'.split())
 
@@ -167,7 +167,7 @@ class TestExtractStoryLinksDB(mediawords.test.test_database.TestDatabaseWithSche
 
         mediawords.dbi.downloads.store_content(db, download, html_content)
 
-        links = mediawords.tm.extract_story_links.get_links_from_story(db, story)
+        links = mediawords.tm.extract_story_links._get_links_from_story(db, story)
 
         assert sorted(links) == sorted(expected_links)
 
