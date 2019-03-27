@@ -13,14 +13,14 @@ MediaWords::TM::Snapshot - Snapshot and analyze topic data
 
     # setup and query snapshot tables
     my $live = 1;
-    setup_temporary_snapshot_tables( $db, $timespan, $topic, $live );
+    setup_temporary_snapshot_views( $db, $timespan, $topic, $live );
 
     # query data
     my $story_links = $db->query( "select * from snapshot_story_links" )->hashes;
     my $story_link_counts = $db->query( "select * from story_link_counts" )->hashes;
     my $snapshot_stories = $db->query( "select * from snapshot_stories" )->hashes;
 
-    discard_temp_tables( $db );
+    discard_temp_tables_and_views( $db );
 
 =head1 DESCRIPTION
 
@@ -135,49 +135,24 @@ sub _get_timespan_tables
     return [ @{ $_timespan_tables } ];
 }
 
-# create temporary view of all the snapshot_* tables that call into the snap.* tables.
+# Setup snapshot_* views by creating views for the relevant snap.* tables.
+#
 # this is useful for writing queries on the snap.* tables without lots of ugly
 # joins and clauses to snap and timespan.  It also provides the same set of snapshot_*
-# tables as provided by write_story_link_counts_snapshot tables, so that the same
+# views as provided by write_story_link_counts_snapshot, so that the same
 # set of queries can run against either.
-sub _create_temporary_snapshot_views
-{
-    my ( $db, $timespan ) = @_;
-
-    for my $t ( @{ _get_snapshot_tables() } )
-    {
-        $db->query( <<END );
-create temporary view snapshot_$t as select * from snap.$t
-    where snapshots_id = $timespan->{ snapshots_id }
-END
-    }
-
-    for my $t ( @{ _get_timespan_tables() } )
-    {
-        $db->query( <<END )
-create temporary view snapshot_$t as select * from snap.$t
-    where timespans_id = $timespan->{ timespans_id }
-END
-    }
-
-    $db->query( "create temporary view snapshot_period_stories as select stories_id from snapshot_story_link_counts" );
-
-    _add_media_type_views( $db );
-}
-
-# Setup snapshot_* tables by creating views for the relevant snap.* tables.
 #
-# The following snapshot_tables are created that contain a copy of all relevant rows present in the topic at the time
+# The following snapshot_ views are created that contain a copy of all relevant rows present in the topic at the time
 # the snapshot was created: snapshot_topic_stories, snapshot_stories, snapshot_media, snapshot_topic_links_cross_media,
 # snapshot_stories_tags_map, snapshot_stories_tags_map, snapshot_tag_sets, snapshot_media_with_types.  
 #
-# The data in each of these tables
+# The data in each of these views
 # consists of data related to all of the stories in the entire topic, not restricted to a specific timespan.  So
-# snapshot_media includes all media including any story in the topic, regardless of date.  Each of these tables consists
-# of the fields present in the snapshoted table.
+# snapshot_media includes all media including any story in the topic, regardless of date.  Each of these views consists
+# of the fields present in the snapshot's view.
 #
-# The following snapshot_tables are created that contain data relevant only to the specific timespan: snapshot_medium_links,
-# snapshot_story_links, snapshot_medium_link_counts, snapshot_story_link_counts.  These tables include the following fields:
+# The following snapshot_ views are created that contain data relevant only to the specific timespan: snapshot_medium_links,
+# snapshot_story_links, snapshot_medium_link_counts, snapshot_story_link_counts.  These views include the following fields:
 #
 # snapshot_medium_links: source_media_id, ref_media_id
 #
@@ -186,20 +161,47 @@ END
 # snapshot_story_links: source_stories_id, ref_stories_id
 #
 # snapshot_story_link_counts: stories_id, inlink_count, outlink_count, citly_click_count
-sub setup_temporary_snapshot_tables
+sub setup_temporary_snapshot_views
 {
     my ( $db, $timespan, $topic ) = @_;
 
     # postgres prints lots of 'NOTICE's when deleting temp tables
     $db->set_print_warn( 0 );
 
-    _create_temporary_snapshot_views( $db, $timespan );
+    for my $t ( @{ _get_snapshot_tables() } )
+    {
+        $db->query( <<"SQL" );
+            create temporary view snapshot_$t as
+                SELECT *
+                FROM snap.$t
+                WHERE snapshots_id = $timespan->{ snapshots_id }
+SQL
+    }
+
+    for my $t ( @{ _get_timespan_tables() } )
+    {
+        $db->query( <<"SQL" )
+            CREATE TEMPORARY VIEW snapshot_$t AS
+                SELECT *
+                FROM snap.$t
+                WHERE timespans_id = $timespan->{ timespans_id }
+SQL
+    }
+
+    $db->query( <<SQL
+        CREATE TEMPORARY VIEW snapshot_period_stories AS
+            SELECT stories_id
+            FROM snapshot_story_link_counts
+SQL
+    );
+
+    _add_media_type_views( $db );
 }
 
 # Runs $db->query( "discard temp" ) to clean up temporary tables and views.  This should be run after calling
-# setup_temporary_snapshot_tables().  Calling setup_temporary_snapshot_tables() within a transaction and committing the
+# setup_temporary_snapshot_views().  Calling setup_temporary_snapshot_views() within a transaction and committing the
 # transaction will have the same effect.
-sub discard_temp_tables
+sub discard_temp_tables_and_views
 {
     my ( $db ) = @_;
 
@@ -1139,7 +1141,7 @@ sub generate_timespan_data($$;$)
 }
 
 # Update story_count, story_link_count, medium_count, and medium_link_count fields in the timespan
-# hash.  This must be called after setup_temporary_snapshot_tables() to get access to these fields in the timespan hash.
+# hash.  This must be called after setup_temporary_snapshot_views() to get access to these fields in the timespan hash.
 #
 # Save to db unless $live is specified.
 sub _update_timespan_counts($$;$)
@@ -1641,7 +1643,7 @@ sub snapshot_topic ($$;$$$$)
 
     _export_stories_to_solr( $db, $snap );
 
-    discard_temp_tables( $db );
+    discard_temp_tables_and_views( $db );
 
     # update this manually because snapshot_topic might be called directly from mine_topic()
     $db->update_by_id( 'snapshots', $snap->{ snapshots_id }, { state => $MediaWords::AbstractJob::STATE_COMPLETED } );
