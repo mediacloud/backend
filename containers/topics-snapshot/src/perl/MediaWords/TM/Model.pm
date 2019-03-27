@@ -401,8 +401,6 @@ sub get_all_models_top_media ($$)
     {
         my $model_top_media = __model_confidence_data( $db, $timespan );
 
-        # MediaWords::TM::Snapshot::restore_temporary_tables( $db );
-
         return unless ( @{ $model_top_media } );
 
         push( @{ $all_models_top_media }, $model_top_media );
