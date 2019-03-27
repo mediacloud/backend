@@ -13,8 +13,6 @@ use Readonly;
 use Moose;
 use namespace::autoclean;
 
-use MediaWords::TM::Mine;
-
 BEGIN
 {
     extends 'MediaWords::Controller::Api::V2::MC_Controller_REST';
@@ -316,7 +314,7 @@ sub create_GET
     $topic->{ is_story_index_ready } = normalize_boolean_for_db( $topic->{ is_story_index_ready } );
     $topic->{ solr_seed_query_run }  = normalize_boolean_for_db( $topic->{ solr_seed_query_run } );
 
-    my $full_solr_query = MediaWords::TM::Mine::get_full_solr_query( $db, $topic, $media_ids, $media_tags_ids );
+    my $full_solr_query = MediaWords::Solr::Query::get_full_solr_query_for_topic( $db, $topic, $media_ids, $media_tags_ids );
     my $num_stories = eval { MediaWords::Solr::get_num_found( $db, $full_solr_query ) };
     die( "invalid solr query: $@" ) if ( $@ );
 
@@ -466,7 +464,7 @@ sub update_PUT
 
         $topic->{ solr_seed_query } = $update->{ solr_seed_query };
 
-        my $full_solr_query = MediaWords::TM::Mine::get_full_solr_query( $db, $topic, $media_ids, $media_tags_ids );
+        my $full_solr_query = MediaWords::Solr::Query::get_full_solr_query_for_topic( $db, $topic, $media_ids, $media_tags_ids );
         my $num_stories = eval { MediaWords::Solr::get_num_found( $db, $full_solr_query ) };
         die( "invalid solr query: $@" ) if ( $@ );
     }
