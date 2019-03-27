@@ -14,7 +14,6 @@ use MediaWords::Test::Solr;
 use MediaWords::Test::Supervisor;
 use MediaWords::Test::URLs;
 
-use MediaWords::DBI::Media::Health;
 use MediaWords::Util::SQL;
 use MediaWords::Util::Tags;
 
@@ -63,7 +62,6 @@ sub test_media_list($$)
     map { $_->{ is_healthy } = 1 } @{ $test_stack_media };
     my $unhealthy_medium = $test_stack_media->[ 2 ];
     $unhealthy_medium->{ is_healthy } = 0;
-    MediaWords::DBI::Media::Health::generate_media_health( $db );
     $db->query( "update media_health set is_healthy = ( media_id <> \$1 )", $unhealthy_medium->{ media_id } );
     test_media_list_call( { unhealthy => 1 }, [ $unhealthy_medium ] );
 
