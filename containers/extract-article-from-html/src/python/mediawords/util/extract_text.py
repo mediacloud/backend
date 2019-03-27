@@ -10,7 +10,6 @@ import readability.readability
 
 from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_object_from_bytes_if_needed
-from mediawords.util.text import replace_control_nonprintable_characters
 
 log = create_logger(__name__)
 
@@ -45,6 +44,17 @@ def __get_pip_module_version(module_name):
         __module_version_cache[module_name] = module_version
 
     return __module_version_cache[module_name]
+
+
+def replace_control_nonprintable_characters(string: str, replacement: str = ' ') -> str:
+    """Remove ASCII control characters except for \n, \r, and \t."""
+
+    # Allow 0x09 CHARACTER TABULATION
+    # Allow 0x0a LINE FEED (LF)
+    # Allow 0x0d CARRIAGE RETURN (CR)
+    string = re.sub(r'[\x00-\x08\x0b-\x0c\x0e-\x1f\x7f-\x9f]', replacement, string)
+
+    return string
 
 
 def extractor_name():

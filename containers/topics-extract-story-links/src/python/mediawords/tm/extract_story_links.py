@@ -9,8 +9,8 @@ from bs4 import BeautifulSoup
 from mediawords.db import DatabaseHandler
 import mediawords.dbi.downloads
 import mediawords.key_value_store.amazon_s3
-from mediawords.dbi.stories.extractor_arguments import PyExtractorArguments
 import mediawords.tm.domains
+from mediawords.util.extract_article_from_page import extract_article_html_from_page_html
 from mediawords.util.log import create_logger
 from mediawords.util.url import is_http_url
 
@@ -113,15 +113,27 @@ def _get_extracted_html(db: DatabaseHandler, story: dict) -> str:
     and run the extractor on it.
 
     """
-    download = db.query(
-        """
-        with d as ( select * from downloads where stories_id = %(a)s ) -- goofy cte to avoid bad query plan
-            select * from d order by downloads_id limit 1
-        """,
-        {'a': story['stories_id']}).hash()
 
-    extractor_results = mediawords.dbi.downloads.extract(db, download, PyExtractorArguments(use_cache=True))
-    return extractor_results['extracted_html']
+    # "download_texts" INT -> BIGINT join hack: convert parameter downloads_id to a constant array first
+    download_texts = db.query("""
+        SELECT download_text
+        FROM download_texts
+        WHERE downloads_id = ANY(
+            ARRAY(
+                SELECT downloads_id
+                FROM downloads
+                WHERE stories_id = %(stories_id)s
+            )
+        )
+        ORDER BY downloads_id
+    """, {'stories_id': story['stories_id']}).flat()
+
+    html = ".\n\n".join(download_texts)
+
+    extract = extract_article_html_from_page_html(html)
+    extracted_html = extract['extracted_html']
+
+    return extracted_html
 
 
 def _get_links_from_story_text(db: DatabaseHandler, story: dict) -> typing.List[str]:

@@ -1,6 +1,5 @@
 from mediawords.db import DatabaseHandler
 from mediawords.dbi.stories.extractor_arguments import PyExtractorArguments
-from mediawords.dbi.stories.extractor_version import update_extractor_version_tag
 from mediawords.dbi.stories.postprocess import mark_as_processed, story_is_english_and_has_sentences
 from mediawords.job import JobManager
 from mediawords.story_vectors import update_story_sentences_and_language
@@ -23,10 +22,6 @@ def process_extracted_story(db: DatabaseHandler, story: dict, extractor_args: Py
 
     log.debug("Updating sentences and language for story {}...".format(stories_id))
     update_story_sentences_and_language(db=db, story=story, extractor_args=extractor_args)
-
-    if not extractor_args.no_tag_extractor_version():
-        log.debug("Updating extractor version tag for story {}...".format(stories_id))
-        update_extractor_version_tag(db=db, story=story)
 
     # Extract -> CLIFF -> NYTLabels -> mark_as_processed() chain
     if story_is_english_and_has_sentences(db=db, stories_id=stories_id):

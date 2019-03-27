@@ -1,5 +1,7 @@
 #
-# Extract and vector stories
+# HTTP service that extracts article HTML from a page HTML
+#
+# FIXME possibly add cache
 #
 
 FROM dockermediacloud/mediacloud-common:latest
@@ -13,12 +15,11 @@ RUN \
     rm -rf /root/.cache/ && \
     true
 
-# Copy Perl sources
-COPY src/perl/ /usr/share/perl5/
-
 # Copy Python sources
 COPY src/python/ /usr/lib/python3/dist-packages/
 
-# FIXME
-#ENTRYPOINT ["/crawl.pl"]
-CMD ["bash", "-c", "while true; do echo extract-and-vector...; sleep 1; done"]
+COPY bin/extract_article_from_page.py /
+
+EXPOSE 80
+
+CMD ["/extract_article_from_page.py", "--port", "80"]

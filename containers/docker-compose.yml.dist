@@ -143,8 +143,30 @@ services:
                     memory: 256G
 
     #
-    # Extractor
-    # ---------
+    # Extract article HTML from page HTML
+    # -----------------------------------
+    #
+    extract_article_from_html:
+        build:
+            context: ./extract-article-from-html/
+        image: dockermediacloud/mediacloud-extract-article-from-html:latest
+        container_name: mc_extract_article_from_html
+        deploy:
+            # Worker count
+            replicas: 8
+            # Auto-restart on crashes
+            restart_policy:
+                condition: on-failure
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: 512M
+
+    #
+    # Extract and vector stories
+    # --------------------------
     #
     extract_and_vector:
         build:
@@ -152,6 +174,7 @@ services:
         image: dockermediacloud/mediacloud-extract-and-vector:latest
         container_name: mc_extract_and_vector
         depends_on:
+            - extract_article_from_html
             - crawler
             - postgresql_pgbouncer
             - rabbitmq_server
@@ -171,7 +194,7 @@ services:
                     # CPU core limit
                     cpus: "1"
                     # RAM limit
-                    memory: 2G
+                    memory: 256M
 
     #
     # Fetch story stats from Facebook

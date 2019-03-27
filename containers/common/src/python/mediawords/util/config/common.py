@@ -305,6 +305,12 @@ class CommonConfig(object):
 
     @staticmethod
     def solr_url() -> str:
-        """Solr server URL, e.g. "http://localhost:8983/solr"."""
-        # Container's name from docker-compose.yml; will round-robin between servers
+        """Solr server URL."""
+        # "mc_solr_shard" container's name from docker-compose.yml; will round-robin between servers
         return 'http://mc_solr_shard:8983/solr'
+
+    @staticmethod
+    def extractor_api_url() -> str:
+        """URL of the extractor API."""
+        # "mc_extract_article_from_html" container's name from docker-compose.yml; will round-robin between servers
+        return "http://mc_extract_article_from_html/extract"

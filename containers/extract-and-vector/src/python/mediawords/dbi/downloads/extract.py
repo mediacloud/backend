@@ -7,8 +7,9 @@ from mediawords.db import DatabaseHandler
 from mediawords.dbi.download_texts import create
 from mediawords.dbi.downloads.store import fetch_content
 from mediawords.dbi.stories.extractor_arguments import PyExtractorArguments
+from mediawords.dbi.stories.extractor_version import update_extractor_version_tag
 from mediawords.dbi.stories.process import process_extracted_story
-from mediawords.util.extract_text import extract_article_from_html
+from mediawords.util.extract_article_from_page import extract_article_html_from_page_html
 from mediawords.util.parse_html import html_strip
 from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_object_from_bytes_if_needed
@@ -26,11 +27,6 @@ _inline_store = None
 _amazon_s3_store = None
 _postgresql_store = None
 _store_for_writing = None
-
-
-class McDBIDownloadsException(Exception):
-    """Default exceptions for this package."""
-    pass
 
 
 def _get_extractor_results_cache(db: DatabaseHandler, download: dict) -> Optional[dict]:
@@ -126,10 +122,17 @@ def _call_extractor_on_html(content: str) -> dict:
     """Call extractor on the content."""
     content = decode_object_from_bytes_if_needed(content)
 
-    extracted_html = extract_article_from_html(content)
+    extract = extract_article_html_from_page_html(content)
+
+    extracted_html = extract['extracted_html']
+    extractor_version = extract['extractor_version']
     extracted_text = html_strip(extracted_html)
 
-    return {'extracted_html': extracted_html, 'extracted_text': extracted_text}
+    return {
+        'extracted_html': extracted_html,
+        'extracted_text': extracted_text,
+        'extractor_version': extractor_version,
+    }
 
 
 def extract_content(content: str) -> dict:
@@ -179,6 +182,14 @@ def extract_and_create_download_text(db: DatabaseHandler, download: dict, extrac
     if download_text is None:
         log.debug("Creating download text for download {}...".format(downloads_id))
         download_text = create(db=db, download=download, extract=extraction_result)
+
+    if not extractor_args.no_tag_extractor_version():
+        log.debug("Updating extractor version tag for story {}...".format(stories_id))
+        update_extractor_version_tag(
+            db=db,
+            story=story,
+            extractor_version=extraction_result['extractor_version'],
+        )
 
     return download_text
 
