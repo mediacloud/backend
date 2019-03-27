@@ -13,7 +13,7 @@ MediaWords::TM::Snapshot - Snapshot and analyze topic data
 
     # setup and query snapshot tables
     my $live = 1;
-    setup_temporary_snapshot_views( $db, $timespan, $topic, $live );
+    setup_temporary_snapshot_views( $db, $timespan );
 
     # query data
     my $story_links = $db->query( "select * from snapshot_story_links" )->hashes;
@@ -186,9 +186,9 @@ sub _get_timespan_tables
 #     * outlink_count
 #     * citly_click_count
 #
-sub setup_temporary_snapshot_views
+sub setup_temporary_snapshot_views($$)
 {
-    my ( $db, $timespan, $topic ) = @_;
+    my ( $db, $timespan ) = @_;
 
     # postgres prints lots of 'NOTICE's when deleting temp tables
     $db->set_print_warn( 0 );

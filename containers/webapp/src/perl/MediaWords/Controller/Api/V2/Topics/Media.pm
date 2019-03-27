@@ -234,7 +234,7 @@ sub map_GET
 
     my $topic = $db->require_by_id( 'topics', int( $c->stash->{ topics_id } ) );
 
-    MediaWords::TM::Snapshot::setup_temporary_snapshot_views( $db, $timespan, $topic );
+    MediaWords::TM::Snapshot::setup_temporary_snapshot_views( $db, $timespan );
 
     my $gexf_options = {
         max_media            => $num_media,
