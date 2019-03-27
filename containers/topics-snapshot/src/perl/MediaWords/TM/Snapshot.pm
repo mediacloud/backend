@@ -116,7 +116,13 @@ sub _update_job_state_message($$)
 {
     my ( $db, $message ) = @_;
 
-    eval { MediaWords::JobManager::Job::update_job_state_message( $db, 'MediaWords::Job::TM::SnapshotTopic', $message ) };
+    eval {
+        MediaWords::JobManager::Job::update_job_state_message(
+            $db,
+            'MediaWords::Job::TM::SnapshotTopic',
+            $message,
+        )
+    };
     die( $@ ) if ( $@ && ( $@ !~ /AbstractJob::run_statefully/ ) );
 }
 
@@ -135,29 +141,51 @@ sub _get_timespan_tables
 # Setup snapshot_* views by creating views for the relevant snap.* tables.
 #
 # this is useful for writing queries on the snap.* tables without lots of ugly
-# joins and clauses to snap and timespan.  It also provides the same set of snapshot_*
-# views as provided by write_story_link_counts_snapshot, so that the same
-# set of queries can run against either.
+# joins and clauses to snap and timespan.  It also provides the same set of
+# snapshot_* views as provided by write_story_link_counts_snapshot, so that the
+# same set of queries can run against either.
 #
-# The following snapshot_ views are created that contain a copy of all relevant rows present in the topic at the time
-# the snapshot was created: snapshot_topic_stories, snapshot_stories, snapshot_media, snapshot_topic_links_cross_media,
-# snapshot_stories_tags_map, snapshot_stories_tags_map, snapshot_tag_sets, snapshot_media_with_types.  
+# The following snapshot_ views are created that contain a copy of all relevant
+# rows present in the topic at the time the snapshot was created:
 #
-# The data in each of these views
-# consists of data related to all of the stories in the entire topic, not restricted to a specific timespan.  So
-# snapshot_media includes all media including any story in the topic, regardless of date.  Each of these views consists
-# of the fields present in the snapshot's view.
+# * snapshot_topic_stories
+# * snapshot_stories
+# * snapshot_media
+# * snapshot_topic_links_cross_media
+# * snapshot_stories_tags_map
+# * snapshot_stories_tags_map
+# * snapshot_tag_sets
+# * snapshot_media_with_types
 #
-# The following snapshot_ views are created that contain data relevant only to the specific timespan: snapshot_medium_links,
-# snapshot_story_links, snapshot_medium_link_counts, snapshot_story_link_counts.  These views include the following fields:
+# The data in each of these views consists of data related to all of the
+# stories in the entire topic, not restricted to a specific timespan. So
+# snapshot_media includes all media including any story in the topic,
+# regardless of date. Each of these views consists of the fields present in the
+# snapshot's view.
 #
-# snapshot_medium_links: source_media_id, ref_media_id
+# The following snapshot_ views are created that contain data relevant only to
+# the specific timespan and including the following fields:
 #
-# snapshot_medium_link_counts: media_id, inlink_count, outlink_count, story_count
+# * snapshot_medium_links:
+#     * source_media_id
+#     * ref_media_id
 #
-# snapshot_story_links: source_stories_id, ref_stories_id
+# * snapshot_story_links:
+#     * source_stories_id
+#     * ref_stories_id
 #
-# snapshot_story_link_counts: stories_id, inlink_count, outlink_count, citly_click_count
+# * snapshot_medium_link_counts:
+#     * media_id
+#     * inlink_count
+#     * outlink_count
+#     * story_count
+#
+# * snapshot_story_link_counts:
+#     * stories_id
+#     * inlink_count
+#     * outlink_count
+#     * citly_click_count
+#
 sub setup_temporary_snapshot_views
 {
     my ( $db, $timespan, $topic ) = @_;
@@ -168,7 +196,7 @@ sub setup_temporary_snapshot_views
     for my $t ( @{ _get_snapshot_tables() } )
     {
         $db->query( <<"SQL" );
-            create temporary view snapshot_$t as
+            CREATE TEMPORARY VIEW snapshot_$t AS
                 SELECT *
                 FROM snap.$t
                 WHERE snapshots_id = $timespan->{ snapshots_id }
@@ -195,8 +223,9 @@ SQL
     _add_media_type_views( $db );
 }
 
-# Runs $db->query( "discard temp" ) to clean up temporary tables and views.  This should be run after calling
-# setup_temporary_snapshot_views().  Calling setup_temporary_snapshot_views() within a transaction and committing the
+# Runs $db->query( "discard temp" ) to clean up temporary tables and views.
+# This should be run after calling setup_temporary_snapshot_views(). Calling
+# setup_temporary_snapshot_views() within a transaction and committing the
 # transaction will have the same effect.
 sub discard_temp_tables_and_views
 {
@@ -205,7 +234,8 @@ sub discard_temp_tables_and_views
     $db->query( "discard temp" );
 }
 
-# remove stories from snapshot_period_stories that don't math solr query in the associated focus, if any
+# remove stories from snapshot_period_stories that don't math solr query in the
+# associated focus, if any
 sub _restrict_period_stories_to_focus
 {
     my ( $db, $timespan ) = @_;
@@ -779,25 +809,46 @@ sub _get_weighted_edges
     my $include_weights      = $options->{ include_weights } || 0;
     my $max_links_per_medium = $options->{ max_links_per_medium } || 1_000_000;
 
-    DEBUG(
-"_get_weighted_edges: $max_media max media; $include_weights include_weights; $max_links_per_medium max_links_per_medium"
+    DEBUG(<<"EOF"
+_get_weighted_edges:
+    * $max_media max media;
+    * $include_weights include_weights;
+    * $max_links_per_medium max_links_per_medium
+EOF
     );
 
-    my $media_links = $db->query( <<END, $max_media, $max_links_per_medium )->hashes;
-with top_media as (
-    select * from snapshot_medium_link_counts order by media_inlink_count desc limit \$1
-),
+    my $media_links = $db->query( <<SQL,
 
-ranked_media as (
-    select *,
-            row_number() over ( partition by source_media_id order by l.link_count desc, rlc.inlink_count desc ) source_rank
-        from snapshot_medium_links l
-            join top_media slc on ( l.source_media_id = slc.media_id )
-            join top_media rlc on ( l.ref_media_id = rlc.media_id )
-)
+        WITH top_media AS (
+            SELECT *
+            FROM snapshot_medium_link_counts
+            ORDER BY media_inlink_count DESC
+            LIMIT \$1
+        ),
 
-select * from ranked_media where source_rank <= \$2
-END
+        ranked_media AS (
+            SELECT
+                *,
+                ROW_NUMBER() OVER (
+                    PARTITION BY source_media_id
+                    ORDER BY
+                        l.link_count DESC,
+                        rlc.inlink_count DESC
+                ) AS source_rank
+            FROM snapshot_medium_links AS l
+                JOIN top_media AS slc
+                    ON l.source_media_id = slc.media_id
+                JOIN top_media AS rlc
+                    ON l.ref_media_id = rlc.media_id
+        )
+
+        SELECT *
+        FROM ranked_media
+        WHERE source_rank <= \$2
+
+SQL
+        $max_media, $max_links_per_medium
+    )->hashes;
 
     my $media_map = {};
     map { $media_map->{ $_->{ media_id } } = 1 } @{ $media };
@@ -874,8 +925,6 @@ sub _scale_node_sizes
 
     my $scale = $MAX_NODE_SIZE / $max_size;
 
-    # my $scale = ( $max_size > ( $MAX_NODE_SIZE / $MIN_NODE_SIZE ) ) ? ( $MAX_NODE_SIZE / $max_size ) : 1;
-
     for my $node ( @{ $nodes } )
     {
         my $s = $node->{ 'viz:size' }->{ value };
@@ -942,16 +991,21 @@ END
     return $description;
 }
 
-# Get a gexf snapshot of the graph described by the linked media sources within the given topic timespan.
+# Get a gexf snapshot of the graph described by the linked media sources within
+# the given topic timespan.
 #
 # Layout the graph using the gaphviz neato algorithm.
 #
 # Accepts these $options:
 #
-# * color_field - color the nodes by the given field: $medium->{ $color_field } (default 'media_type').
-# * max_media -  include only the $max_media media sources with the most inlinks in the timespan (default 500).
+# * color_field - color the nodes by the given field: $medium->{ $color_field }
+#   (default 'media_type').
+# * max_media -  include only the $max_media media sources with the most
+#   inlinks in the timespan (default 500).
 # * include_weights - if true, use weighted edges
-# * max_links_per_medium - if set, only inclue the top $max_links_per_media out links from each medium, sorted by medium_link_counts.link_count and then inlink_count of the target medium
+# * max_links_per_medium - if set, only include the top $max_links_per_media
+#   out links from each medium, sorted by medium_link_counts.link_count and
+#   then inlink_count of the target medium
 # * exclude_media_ids - list of media_ids to exclude
 sub get_gexf_snapshot
 {
@@ -1137,8 +1191,10 @@ sub generate_timespan_data($$;$)
     MediaWords::TM::Model::update_model_correlation( $db, $timespan, $all_models_top_media );
 }
 
-# Update story_count, story_link_count, medium_count, and medium_link_count fields in the timespan
-# hash.  This must be called after setup_temporary_snapshot_views() to get access to these fields in the timespan hash.
+# Update story_count, story_link_count, medium_count, and medium_link_count
+# fields in the timespan hash. This must be called after
+# setup_temporary_snapshot_views() to get access to these fields in the
+# timespan hash.
 #
 # Save to db unless $live is specified.
 sub _update_timespan_counts($$;$)
@@ -1348,12 +1404,25 @@ create temporary table snapshot_topic_media_codes as
         where cmc.topics_id = ?
 END
 
-    $db->query( <<END, $topics_id );
-create temporary table snapshot_stories as
-    select s.stories_id, s.media_id, s.url, s.guid, s.title, s.publish_date, s.collect_date, s.full_text_rss, s.language
-        from snap.live_stories s
-            join snapshot_topic_stories dcs on ( s.stories_id = dcs.stories_id and s.topics_id = ? )
-END
+    $db->query( <<SQL,
+        CREATE TEMPORARY TABLE snapshot_stories AS
+            SELECT
+                s.stories_id,
+                s.media_id,
+                s.url,
+                s.guid,
+                s.title,
+                s.publish_date,
+                s.collect_date,
+                s.full_text_rss,
+                s.language
+            FROM snap.live_stories AS s
+                JOIN snapshot_topic_stories AS dcs
+                    ON s.stories_id = dcs.stories_id
+                   AND s.topics_id = ?
+SQL
+        $topics_id
+    );
 
     $db->query( <<END );
 create temporary table snapshot_media as
@@ -1456,42 +1525,60 @@ sub _add_media_type_views
 {
     my ( $db ) = @_;
 
-    $db->query( <<END );
-create or replace view snapshot_media_with_types as
-    with topics_id as (
-        select topics_id from snapshot_topic_stories limit 1
-    )
+    $db->query( <<SQL
 
-    select
-            m.*,
-            case
-                when ( ct.label <> 'Not Typed' )
-                    then ct.label
-                when ( ut.label is not null )
-                    then ut.label
-                else
-                    'Not Typed'
-                end as media_type
-        from
-            snapshot_media m
-            left join (
-                snapshot_tags ut
-                join snapshot_tag_sets uts on ( ut.tag_sets_id = uts.tag_sets_id and uts.name = 'media_type' )
-                join snapshot_media_tags_map umtm on ( umtm.tags_id = ut.tags_id )
-            ) on ( m.media_id = umtm.media_id )
-            left join (
-                snapshot_tags ct
-                join snapshot_media_tags_map cmtm on ( cmtm.tags_id = ct.tags_id )
-                join topics c on ( c.media_type_tag_sets_id = ct.tag_sets_id )
-                join topics_id cid on ( c.topics_id = cid.topics_id )
-            ) on ( m.media_id = cmtm.media_id )
-END
+        CREATE OR REPLACE VIEW snapshot_media_with_types AS
+            WITH topics_id AS (
+                SELECT topics_id
+                FROM snapshot_topic_stories
+                LIMIT 1
+            )
 
-    $db->query( <<END );
-create or replace view snapshot_stories_with_types as
-    select s.*, m.media_type
-        from snapshot_stories s join snapshot_media_with_types m on ( s.media_id = m.media_id )
-END
+            SELECT
+                m.*,
+                CASE
+                    WHEN (ct.label != 'Not Typed') THEN ct.label
+                    WHEN (ut.label IS NOT NULL) THEN ut.label
+                    ELSE 'Not Typed'
+                END AS media_type
+
+            FROM snapshot_media AS m
+
+                LEFT JOIN (
+                    snapshot_tags AS ut
+
+                        JOIN snapshot_tag_sets AS uts
+                            ON ut.tag_sets_id = uts.tag_sets_id
+                           AND uts.name = 'media_type'
+
+                        JOIN snapshot_media_tags_map AS umtm
+                            on umtm.tags_id = ut.tags_id
+
+                ) ON m.media_id = umtm.media_id
+
+                LEFT JOIN (
+                    snapshot_tags AS ct
+
+                        JOIN snapshot_media_tags_map AS cmtm
+                            ON cmtm.tags_id = ct.tags_id
+                        JOIN topics AS c
+                            ON c.media_type_tag_sets_id = ct.tag_sets_id
+                        JOIN topics_id AS cid
+                            ON c.topics_id = cid.topics_id
+                ) ON m.media_id = cmtm.media_id
+
+SQL
+    );
+
+    $db->query( <<SQL );
+        CREATE OR REPLACE VIEW snapshot_stories_with_types AS
+            SELECT
+                s.*,
+                m.media_type
+            FROM snapshot_stories AS s
+                JOIN snapshot_media_with_types AS m
+                    ON s.media_id = m.media_id
+SQL
 
 }
 
