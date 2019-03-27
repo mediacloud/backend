@@ -30,9 +30,6 @@ For detailed explanation of the snapshot process, see doc/snapshots.markdown.
 
 =cut
 
-# This module was converted from a script, and the functions were never refactored to prefix private methods with '_'.
-# Consider any method without a perldoc head to be private.
-
 use strict;
 use warnings;
 
