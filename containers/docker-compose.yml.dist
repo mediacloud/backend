@@ -920,6 +920,8 @@ services:
             context: ./topics-extract-story-links/
         image: dockermediacloud/mediacloud-topics-extract-story-links:latest
         container_name: mc_topics_extract_story_links
+        depends_on:
+            - extract_article_from_html
         networks:
             # Fetches / stores topic links in PostgreSQL
             - net_postgresql
