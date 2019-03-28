@@ -10,7 +10,8 @@ use MediaWords::CommonLibs;
 use Data::Dumper;
 use File::Slurp;
 
-use MediaWords::TM::Snapshot;
+use MediaWords::TM::Snapshot::ExtraFields;
+use MediaWords::TM::Snapshot::Views;
 use MediaWords::DB;
 use MediaWords::Util::CSV;
 
@@ -89,7 +90,7 @@ END
     my $fields = $res->columns;
     my $media  = $res->hashes;
 
-    my $extra_fields = MediaWords::TM::Snapshot::add_extra_fields_to_snapshot_media( $db, $timespan, $media );
+    my $extra_fields = MediaWords::TM::Snapshot::ExtraFields::add_extra_fields_to_snapshot_media( $db, $timespan, $media );
 
     push( @{ $fields }, @{ $extra_fields } );
 
@@ -110,7 +111,7 @@ sub main
       || die( "no timespan found for $timespans_id" );
 
     DEBUG( "setting up snapshot ..." );
-    MediaWords::TM::Snapshot::setup_temporary_snapshot_views( $db, $timespan );
+    MediaWords::TM::Snapshot::Views::setup_temporary_snapshot_views( $db, $timespan );
 
     DEBUG( "dumping stories ..." );
     my $stories_csv = _get_stories_csv( $db, $timespan );

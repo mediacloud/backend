@@ -31,6 +31,8 @@ RUN \
 COPY src/requirements.txt /var/tmp/
 RUN \
     cd /var/tmp/ && \
+    #
+    # Install the rest of the stuff
     pip3 install -r requirements.txt && \
     rm requirements.txt && \
     rm -rf /root/.cache/ && \

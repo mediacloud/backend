@@ -11,7 +11,8 @@ use namespace::autoclean;
 
 use MediaWords::DBI::ApiLinks;
 use MediaWords::Solr;
-use MediaWords::TM::Snapshot;
+use MediaWords::TM::Snapshot::GEXF;
+use MediaWords::TM::Snapshot::Views;
 use MediaWords::DBI::Timespans;
 
 BEGIN { extends 'MediaWords::Controller::Api::V2::MC_Controller_REST' }
@@ -234,7 +235,7 @@ sub map_GET
 
     my $topic = $db->require_by_id( 'topics', int( $c->stash->{ topics_id } ) );
 
-    MediaWords::TM::Snapshot::setup_temporary_snapshot_views( $db, $timespan );
+    MediaWords::TM::Snapshot::Views::setup_temporary_snapshot_views( $db, $timespan );
 
     my $gexf_options = {
         max_media            => $num_media,
@@ -243,9 +244,9 @@ sub map_GET
         max_links_per_medium => $num_links_per_medium,
         exclude_media_ids    => $exclude_media_ids
     };
-    my $gexf = MediaWords::TM::Snapshot::get_gexf_snapshot( $db, $timespan, $gexf_options );
+    my $gexf = MediaWords::TM::Snapshot::GEXF::get_gexf_snapshot( $db, $timespan, $gexf_options );
 
-    MediaWords::TM::Snapshot::discard_temp_tables_and_views( $db );
+    MediaWords::TM::Snapshot::Views::discard_temp_tables_and_views( $db );
 
     my $file = "media_$timespan->{ timespans_id }.gexf";
 

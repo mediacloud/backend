@@ -13,7 +13,7 @@ use namespace::autoclean;
 
 use MediaWords::DBI::Media::Lookup;
 use MediaWords::Solr;
-use MediaWords::TM::Snapshot;
+use MediaWords::TM::Snapshot::Views;
 use MediaWords::Util::ParseHTML;
 use MediaWords::Util::Tags;
 use MediaWords::Util::URL;
@@ -176,7 +176,7 @@ END
 
     $db->begin;
 
-    MediaWords::TM::Snapshot::setup_temporary_snapshot_views( $db, $timespan );
+    MediaWords::TM::Snapshot::Views::setup_temporary_snapshot_views( $db, $timespan );
 
     $db->query( <<END );
 create temporary table media as

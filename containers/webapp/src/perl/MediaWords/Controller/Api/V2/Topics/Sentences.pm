@@ -9,7 +9,6 @@ use List::Util qw(first max maxstr min minstr reduce shuffle sum);
 use Moose;
 use namespace::autoclean;
 use MediaWords::Solr;
-use MediaWords::TM::Snapshot;
 use MediaWords::DBI::Timespans;
 use MediaWords::Controller::Api::V2::Sentences;
 

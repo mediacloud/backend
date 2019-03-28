@@ -10,6 +10,7 @@ requires 'Catalyst::Restarter';
 requires 'Catalyst::Runtime';
 requires 'Catalyst::Test';
 requires 'CHI';
+requires 'Date::Format';
 requires 'FCGI';
 requires 'FCGI::ProcManager';
 requires 'HTTP::Request';

@@ -7,7 +7,7 @@ use warnings;
 
 use Data::Dumper;
 
-use MediaWords::TM::Snapshot;
+use MediaWords::TM::Snapshot::Views;
 use MediaWords::DB;
 
 sub main
@@ -24,7 +24,7 @@ sub main
     my $timespan = $db->find_by_id( "timespans", $timespans_id )
       || die( "Unknown timespan: '$timespans_id'" );
 
-    MediaWords::TM::Snapshot::setup_temporary_snapshot_views( $db, $timespan );
+    MediaWords::TM::Snapshot::Views::setup_temporary_snapshot_views( $db, $timespan );
 
     print $db->query( $query )->text( 'neat' );
 }

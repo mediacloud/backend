@@ -24,7 +24,7 @@ MediaWords::TM::Snapshot - Snapshot and analyze topic data
 
 =head1 DESCRIPTION
 
-Analyze a topic and snapshot the topic to snapshot tables and a gexf file.
+Analyze a topic and snapshot the topic to snapshot tables.
 
 For detailed explanation of the snapshot process, see doc/snapshots.markdown.
 
@@ -36,23 +36,13 @@ use warnings;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-use Date::Format;
-use Encode;
-use File::Temp;
-use FileHandle;
-use Getopt::Long;
 use List::Util;
-use XML::Simple;
 use Readonly;
 
-use MediaWords::DBI::Media;
 use MediaWords::Solr;
 use MediaWords::TM::Alert;
 use MediaWords::TM::Model;
-use MediaWords::TM::Snapshot::GraphLayout;
-use MediaWords::Util::CSV;
-use MediaWords::Util::Colors;
-use MediaWords::Util::Paths;
+use MediaWords::TM::Snapshot::Views;
 use MediaWords::Util::SQL;
 use MediaWords::DBI::Activities;
 
@@ -61,45 +51,17 @@ Readonly our $POLICY_NO_BOTS   => 'no bots';
 Readonly our $POLICY_ONLY_BOTS => 'only bots';
 Readonly our $POLICY_BOTS_ALL  => 'all';
 
-# max and mind node sizes for gexf snapshot
-Readonly my $MAX_NODE_SIZE => 20;
-Readonly my $MIN_NODE_SIZE => 2;
-
-# max map width for gexf snapshot
-Readonly my $MAX_MAP_WIDTH => 800;
-
-# max number of media to include in gexf map
-Readonly my $MAX_GEXF_MEDIA => 500;
-
 # number of tweets per day to use as a threshold for bot filtering
 Readonly my $BOT_TWEETS_PER_DAY => 200;
 
-# only layout the gexf export if there are fewer than this number of sources in the graph
-Readonly my $MAX_LAYOUT_SOURCES => 2000;
-
-# attributes to include in gexf snapshot
-my $_media_static_gexf_attribute_types = {
-    url                    => 'string',
-    inlink_count           => 'integer',
-    story_count            => 'integer',
-    view_medium            => 'string',
-    media_type             => 'string',
-    facebook_share_count   => 'integer',
-    simple_tweet_count     => 'integer',
-    normalized_tweet_count => 'integer'
-};
-
 # all tables that get stored as snapshot_* for each spanshot
-my $_snapshot_tables = [
+my $_SNAPSHOT_TABLES = [
     qw/topic_stories topic_links_cross_media topic_media_codes
       stories media stories_tags_map media_tags_map tags tag_sets tweet_stories/
 ];
 
 # all tables that get stories as snapshot_* for each timespan
-my $_timespan_tables = [ qw/story_link_counts story_links medium_link_counts medium_links timespan_tweets/ ];
-
-# temporary hack to get around snapshot_period_stories lock
-my $_drop_snapshot_period_stories = 1;
+my $_TIMESPAN_TABLES = [ qw/story_link_counts story_links medium_link_counts medium_links timespan_tweets/ ];
 
 
 # update the job state args, catching any error caused by not running within a job
@@ -129,109 +91,13 @@ sub _update_job_state_message($$)
 # get the list of all snapshot tables
 sub _get_snapshot_tables
 {
-    return [ @{ $_snapshot_tables } ];
+    return [ @{ $_SNAPSHOT_TABLES } ];
 }
 
 # get the list of all timespan specific tables
 sub _get_timespan_tables
 {
-    return [ @{ $_timespan_tables } ];
-}
-
-# Setup snapshot_* views by creating views for the relevant snap.* tables.
-#
-# this is useful for writing queries on the snap.* tables without lots of ugly
-# joins and clauses to snap and timespan.  It also provides the same set of
-# snapshot_* views as provided by write_story_link_counts_snapshot, so that the
-# same set of queries can run against either.
-#
-# The following snapshot_ views are created that contain a copy of all relevant
-# rows present in the topic at the time the snapshot was created:
-#
-# * snapshot_topic_stories
-# * snapshot_stories
-# * snapshot_media
-# * snapshot_topic_links_cross_media
-# * snapshot_stories_tags_map
-# * snapshot_stories_tags_map
-# * snapshot_tag_sets
-# * snapshot_media_with_types
-#
-# The data in each of these views consists of data related to all of the
-# stories in the entire topic, not restricted to a specific timespan. So
-# snapshot_media includes all media including any story in the topic,
-# regardless of date. Each of these views consists of the fields present in the
-# snapshot's view.
-#
-# The following snapshot_ views are created that contain data relevant only to
-# the specific timespan and including the following fields:
-#
-# * snapshot_medium_links:
-#     * source_media_id
-#     * ref_media_id
-#
-# * snapshot_story_links:
-#     * source_stories_id
-#     * ref_stories_id
-#
-# * snapshot_medium_link_counts:
-#     * media_id
-#     * inlink_count
-#     * outlink_count
-#     * story_count
-#
-# * snapshot_story_link_counts:
-#     * stories_id
-#     * inlink_count
-#     * outlink_count
-#     * citly_click_count
-#
-sub setup_temporary_snapshot_views($$)
-{
-    my ( $db, $timespan ) = @_;
-
-    # postgres prints lots of 'NOTICE's when deleting temp tables
-    $db->set_print_warn( 0 );
-
-    for my $t ( @{ _get_snapshot_tables() } )
-    {
-        $db->query( <<"SQL" );
-            CREATE TEMPORARY VIEW snapshot_$t AS
-                SELECT *
-                FROM snap.$t
-                WHERE snapshots_id = $timespan->{ snapshots_id }
-SQL
-    }
-
-    for my $t ( @{ _get_timespan_tables() } )
-    {
-        $db->query( <<"SQL" )
-            CREATE TEMPORARY VIEW snapshot_$t AS
-                SELECT *
-                FROM snap.$t
-                WHERE timespans_id = $timespan->{ timespans_id }
-SQL
-    }
-
-    $db->query( <<SQL
-        CREATE TEMPORARY VIEW snapshot_period_stories AS
-            SELECT stories_id
-            FROM snapshot_story_link_counts
-SQL
-    );
-
-    _add_media_type_views( $db );
-}
-
-# Runs $db->query( "discard temp" ) to clean up temporary tables and views.
-# This should be run after calling setup_temporary_snapshot_views(). Calling
-# setup_temporary_snapshot_views() within a transaction and committing the
-# transaction will have the same effect.
-sub discard_temp_tables_and_views
-{
-    my ( $db ) = @_;
-
-    $db->query( "discard temp" );
+    return [ @{ $_TIMESPAN_TABLES } ];
 }
 
 # remove stories from snapshot_period_stories that don't math solr query in the
@@ -602,94 +468,6 @@ END
     }
 }
 
-sub _add_partisan_code_to_snapshot_media
-{
-    my ( $db, $timespan, $media ) = @_;
-
-    my $label = 'partisan_code';
-
-    my $partisan_tags = $db->query( <<END )->hashes;
-select dmtm.*, dt.tag
-    from snapshot_media_tags_map dmtm
-        join snapshot_tags dt on ( dmtm.tags_id = dt.tags_id )
-        join snapshot_tag_sets dts on ( dts.tag_sets_id = dt.tag_sets_id )
-    where
-        dts.name = 'collection' and
-        dt.tag like 'partisan_2012_%'
-END
-
-    my $map = {};
-    map { $map->{ $_->{ media_id } } = $_->{ tag } } @{ $partisan_tags };
-
-    map { $_->{ $label } = $map->{ $_->{ media_id } } || 'null' } @{ $media };
-
-    return $label;
-}
-
-sub _add_partisan_retweet_to_snapshot_media
-{
-    my ( $db, $timespan, $media ) = @_;
-
-    my $label = 'partisan_retweet';
-
-    my $partisan_tags = $db->query( <<END )->hashes;
-select dmtm.*, dt.tag
-    from snapshot_media_tags_map dmtm
-        join snapshot_tags dt on ( dmtm.tags_id = dt.tags_id )
-        join snapshot_tag_sets dts on ( dts.tag_sets_id = dt.tag_sets_id )
-    where
-        dts.name = 'retweet_partisanship_2016_count_10'
-END
-
-    my $map = {};
-    map { $map->{ $_->{ media_id } } = $_->{ tag } } @{ $partisan_tags };
-
-    map { $_->{ $label } = $map->{ $_->{ media_id } } || 'null' } @{ $media };
-
-    return $label;
-}
-
-sub _add_fake_news_to_snapshot_media
-{
-    my ( $db, $timespan, $media ) = @_;
-
-    my $label = 'fake_news';
-
-    my $tags = $db->query( <<END )->hashes;
-select dmtm.*, dt.tag
-    from snapshot_media_tags_map dmtm
-        join snapshot_tags dt on ( dmtm.tags_id = dt.tags_id )
-        join snapshot_tag_sets dts on ( dts.tag_sets_id = dt.tag_sets_id )
-    where
-        dts.name = 'collection' and
-        dt.tag = 'fake_news_20170112'
-END
-
-    my $map = {};
-    map { $map->{ $_->{ media_id } } = $_->{ tag } ? 1 : 0 } @{ $tags };
-
-    map { $_->{ $label } = $map->{ $_->{ media_id } } || 0 } @{ $media };
-
-    return $label;
-}
-
-# add tags, codes, partisanship and other extra data to all snapshot media for the purpose
-# of making a gexf or csv snapshot.  return the list of extra fields added.
-sub add_extra_fields_to_snapshot_media
-{
-    my ( $db, $timespan, $media ) = @_;
-
-    my $partisan_field = _add_partisan_code_to_snapshot_media( $db, $timespan, $media );
-    my $partisan_retweet_field = _add_partisan_retweet_to_snapshot_media( $db, $timespan, $media );
-    my $fake_news_field = _add_fake_news_to_snapshot_media( $db, $timespan, $media );
-
-    my $all_fields = [ $partisan_field, $partisan_retweet_field, $fake_news_field ];
-
-    map { $_media_static_gexf_attribute_types->{ $_ } = 'string'; } @{ $all_fields };
-
-    return $all_fields;
-}
-
 sub _write_medium_link_counts_snapshot
 {
     my ( $db, $timespan, $is_model ) = @_;
@@ -756,339 +534,6 @@ END
     {
         _create_timespan_snapshot( $db, $timespan, 'medium_links' );
     }
-}
-
-# return only the $edges that are within the giant component of the network
-sub _trim_to_giant_component($)
-{
-    my ( $edges ) = @_;
-
-    my $edge_pairs = [ map { [ $_->{ source }, $_->{ target } ] } @{ $edges } ];
-
-    my $trimmed_edges = MediaWords::TM::Snapshot::GraphLayout::giant_component( $edge_pairs );
-
-    my $edge_lookup = {};
-    map { $edge_lookup->{ $_->[ 0 ] }->{ $_->[ 1 ] } = 1 } @{ $trimmed_edges };
-
-    my $links = [ grep { $edge_lookup->{ $_->{ source } }->{ $_->{ target } } } @{ $edges } ];
-
-    DEBUG( "_trim_to_giant_component: " . scalar( @{ $edges } ) . " -> " . scalar( @{ $links } ) );
-
-    return $links;
-}
-
-sub _get_weighted_edges
-{
-    my ( $db, $media, $options ) = @_;
-
-    my $max_media            = $options->{ max_media };
-    my $include_weights      = $options->{ include_weights } || 0;
-    my $max_links_per_medium = $options->{ max_links_per_medium } || 1_000_000;
-
-    DEBUG(<<"EOF"
-_get_weighted_edges:
-    * $max_media max media;
-    * $include_weights include_weights;
-    * $max_links_per_medium max_links_per_medium
-EOF
-    );
-
-    my $media_links = $db->query( <<SQL,
-
-        WITH top_media AS (
-            SELECT *
-            FROM snapshot_medium_link_counts
-            ORDER BY media_inlink_count DESC
-            LIMIT \$1
-        ),
-
-        ranked_media AS (
-            SELECT
-                *,
-                ROW_NUMBER() OVER (
-                    PARTITION BY source_media_id
-                    ORDER BY
-                        l.link_count DESC,
-                        rlc.inlink_count DESC
-                ) AS source_rank
-            FROM snapshot_medium_links AS l
-                JOIN top_media AS slc
-                    ON l.source_media_id = slc.media_id
-                JOIN top_media AS rlc
-                    ON l.ref_media_id = rlc.media_id
-        )
-
-        SELECT *
-        FROM ranked_media
-        WHERE source_rank <= \$2
-
-SQL
-        $max_media, $max_links_per_medium
-    )->hashes;
-
-    my $media_map = {};
-    map { $media_map->{ $_->{ media_id } } = 1 } @{ $media };
-
-    my $edges = [];
-    my $k     = 0;
-    for my $media_link ( @{ $media_links } )
-    {
-        next unless ( $media_map->{ $media_link->{ source_media_id } } && $media_map->{ $media_link->{ ref_media_id } } );
-        my $edge = {
-            id     => $k++,
-            source => $media_link->{ source_media_id },
-            target => $media_link->{ ref_media_id },
-            weight => ( $include_weights ? $media_link->{ link_count } : 1 )
-        };
-
-        push( @{ $edges }, $edge );
-    }
-
-    $edges = _trim_to_giant_component( $edges );
-
-    return $edges;
-}
-
-# given an rgb hex string, return a hash in the form { r => 12, g => 0, b => 255 }, which is
-# what we need for the viz:color element of the gexf snapshot
-sub _get_color_hash_from_hex
-{
-    my ( $rgb_hex ) = @_;
-
-    return {
-        r => hex( substr( $rgb_hex, 0, 2 ) ),
-        g => hex( substr( $rgb_hex, 2, 2 ) ),
-        b => hex( substr( $rgb_hex, 4, 2 ) )
-    };
-}
-
-# get a consistent color from MediaWords::Util::Colors.  convert to a color hash as needed by gexf.  translate
-# the set to a topic specific color set value for get_consistent_color.
-sub _get_color
-{
-    my ( $db, $timespan, $set, $id ) = @_;
-
-    my $color_set;
-    if ( grep { $_ eq $set } qw(partisan_code media_type partisan_retweet) )
-    {
-        $color_set = $set;
-    }
-    else
-    {
-        $color_set = "topic_${set}_$timespan->{ snapshot }->{ topics_id }";
-    }
-
-    $id ||= 'none';
-
-    my $color = MediaWords::Util::Colors::get_consistent_color( $db, $color_set, $id );
-
-    return _get_color_hash_from_hex( $color );
-}
-
-# scale the nodes such that the biggest node size is $MAX_NODE_SIZE and the smallest is $MIN_NODE_SIZE
-sub _scale_node_sizes
-{
-    my ( $nodes ) = @_;
-
-    map { $_->{ 'viz:size' }->{ value } += 1 } @{ $nodes };
-
-    my $max_size = 1;
-    for my $node ( @{ $nodes } )
-    {
-        my $s = $node->{ 'viz:size' }->{ value };
-        $max_size = $s if ( $max_size < $s );
-    }
-
-    my $scale = $MAX_NODE_SIZE / $max_size;
-
-    for my $node ( @{ $nodes } )
-    {
-        my $s = $node->{ 'viz:size' }->{ value };
-
-        $s = int( $scale * $s );
-
-        $s = $MIN_NODE_SIZE if ( $s < $MIN_NODE_SIZE );
-
-        $node->{ 'viz:size' }->{ value } = $s;
-    }
-}
-
-# call mediawords.tm.snapshot.graph_layout.layout_gexf
-sub _layout_gexf($)
-{
-    my ( $gexf ) = @_;
-
-    my $nodes = $gexf->{ graph }->[ 0 ]->{ nodes }->{ node };
-
-    my $layout;
-
-    if ( scalar( @{ $nodes } ) < $MAX_LAYOUT_SOURCES )
-    {
-        DEBUG( "laying out grap with " . scalar( @{ $nodes } ) . " sources ..." );
-        my $xml = XML::Simple::XMLout( $gexf, XMLDecl => 1, RootName => 'gexf' );
-
-        $layout = MediaWords::TM::Snapshot::GraphLayout::layout_gexf( $xml );
-    }
-    else
-    {
-        WARN( "refusing to layout graph with more than $MAX_LAYOUT_SOURCES sources" );
-        $layout = {};
-    }
-
-    for my $node ( @{ $nodes } )
-    {
-        my $pos = $layout->{ $node->{ id } };
-        my ( $x, $y ) = $pos ? @{ $pos } : ( 0, 0 );
-        $node->{ 'viz:position' }->{ x } = $x;
-        $node->{ 'viz:position' }->{ y } = $y;
-    }
-}
-
-# get a descirption for the gexf file export
-sub _get_gexf_description($$)
-{
-    my ( $db, $timespan ) = @_;
-
-    my $topic = $db->query( <<SQL, $timespan->{ snapshots_id } )->hash;
-select * from topics t join snapshots s using ( topics_id ) where snapshots_id = ?
-SQL
-
-    my $description = <<END;
-Media Cloud topic map of $topic->{ name } for $timespan->{ period } timespan
-from $timespan->{ start_date } to $timespan->{ end_date }
-END
-
-    if ( $timespan->{ foci_id } )
-    {
-        my $focus = $db->require_by_id( 'foci', $timespan->{ foci_id } );
-        $description .= "for $focus->{ name } focus";
-    }
-
-    return $description;
-}
-
-# Get a gexf snapshot of the graph described by the linked media sources within
-# the given topic timespan.
-#
-# Layout the graph using the gaphviz neato algorithm.
-#
-# Accepts these $options:
-#
-# * color_field - color the nodes by the given field: $medium->{ $color_field }
-#   (default 'media_type').
-# * max_media -  include only the $max_media media sources with the most
-#   inlinks in the timespan (default 500).
-# * include_weights - if true, use weighted edges
-# * max_links_per_medium - if set, only include the top $max_links_per_media
-#   out links from each medium, sorted by medium_link_counts.link_count and
-#   then inlink_count of the target medium
-# * exclude_media_ids - list of media_ids to exclude
-sub get_gexf_snapshot
-{
-    my ( $db, $timespan, $options ) = @_;
-
-    $options->{ max_media }   ||= $MAX_GEXF_MEDIA;
-    $options->{ color_field } ||= 'media_type';
-
-    my $exclude_media_ids_list = join( ',', map { int( $_ ) } ( @{ $options->{ exclude_media_ids } }, 0 ) );
-
-    my $media = $db->query( <<END, $options->{ max_media } )->hashes;
-select distinct
-        m.*,
-        mlc.media_inlink_count inlink_count,
-        mlc.story_count,
-        mlc.facebook_share_count,
-        mlc.simple_tweet_count,
-        mlc.normalized_tweet_count
-    from snapshot_media_with_types m
-        join snapshot_medium_link_counts mlc using ( media_id )
-    where
-        m.media_id not in ( $exclude_media_ids_list )
-    order
-        by mlc.media_inlink_count desc
-    limit ?
-END
-
-    add_extra_fields_to_snapshot_media( $db, $timespan, $media );
-
-    my $gexf = {
-        'xmlns'              => "http://www.gexf.net/1.2draft",
-        'xmlns:xsi'          => "http://www.w3.org/2001/XMLSchema-instance",
-        'xmlns:viz'          => "http://www.gexf.net/1.1draft/viz",
-        'xsi:schemaLocation' => "http://www.gexf.net/1.2draft http://www.gexf.net/1.2draft/gexf.xsd",
-        'version'            => "1.2",
-    };
-
-    my $meta = { 'lastmodifieddate' => Date::Format::time2str( '%Y-%m-%d', time ) };
-    push( @{ $gexf->{ meta } }, $meta );
-
-    push( @{ $meta->{ creator } }, 'Berkman Center' );
-
-    my $description = _get_gexf_description( $db, $timespan );
-    push( @{ $meta->{ description } }, $description );
-
-    my $graph = {
-        'mode'            => "static",
-        'defaultedgetype' => "directed",
-    };
-    push( @{ $gexf->{ graph } }, $graph );
-
-    my $attributes = { class => 'node', mode => 'static' };
-    push( @{ $graph->{ attributes } }, $attributes );
-
-    my $i = 0;
-    while ( my ( $name, $type ) = each( %{ $_media_static_gexf_attribute_types } ) )
-    {
-        push( @{ $attributes->{ attribute } }, { id => $i++, title => $name, type => $type } );
-    }
-
-    my $edges = _get_weighted_edges( $db, $media, $options );
-    $graph->{ edges }->{ edge } = $edges;
-
-    my $edge_lookup;
-    map { $edge_lookup->{ $_->{ source } } = 1; $edge_lookup->{ $_->{ target } } = 1; } @{ $edges };
-
-    my $total_link_count = 1;
-    map { $total_link_count += $_->{ inlink_count } } @{ $media };
-
-    for my $medium ( @{ $media } )
-    {
-        next unless ( $edge_lookup->{ $medium->{ media_id } } );
-
-        my $node = {
-            id    => $medium->{ media_id },
-            label => $medium->{ name },
-        };
-
-        # FIXME should this be configurable?
-        $medium->{ view_medium } = 'https://sources.mediacloud.org/#/sources/' . $medium->{ media_id };
-
-        my $j = 0;
-        while ( my ( $name, $type ) = each( %{ $_media_static_gexf_attribute_types } ) )
-        {
-            my $value = $medium->{ $name };
-            if ( !defined( $value ) )
-            {
-                $value = ( $type eq 'integer' ) ? 0 : '';
-            }
-
-            push( @{ $node->{ attvalues }->{ attvalue } }, { for => $j++, value => $value } );
-        }
-
-        my $color_field = $options->{ color_field };
-        $node->{ 'viz:color' } = [ _get_color( $db, $timespan, $color_field, $medium->{ $color_field } ) ];
-        $node->{ 'viz:size' } = { value => $medium->{ inlink_count } + 1 };
-
-        push( @{ $graph->{ nodes }->{ node } }, $node );
-    }
-
-    _scale_node_sizes( $graph->{ nodes }->{ node } );
-
-    _layout_gexf( $gexf );
-
-    my $xml = XML::Simple::XMLout( $gexf, XMLDecl => 1, RootName => 'gexf' );
-
-    return $xml;
 }
 
 sub _create_timespan($$$$$$)
@@ -1487,74 +932,13 @@ create temporary table snapshot_tweet_stories as
             topics_id = \$1 $bot_clause
 SQL
 
-    _add_media_type_views( $db );
+    MediaWords::TM::Snapshot::Views::add_media_type_views( $db );
 
     for my $table ( @{ _get_snapshot_tables() } )
     {
         my $table_exists = $db->query( "select * from pg_class where relname = ?", $table )->hash;
         die( "snapshot not created for snapshot table: $table" ) unless ( $table_exists );
     }
-
-}
-
-sub _add_media_type_views
-{
-    my ( $db ) = @_;
-
-    $db->query( <<SQL
-
-        CREATE OR REPLACE TEMPORARY VIEW snapshot_media_with_types AS
-            WITH topics_id AS (
-                SELECT topics_id
-                FROM snapshot_topic_stories
-                LIMIT 1
-            )
-
-            SELECT
-                m.*,
-                CASE
-                    WHEN (ct.label != 'Not Typed') THEN ct.label
-                    WHEN (ut.label IS NOT NULL) THEN ut.label
-                    ELSE 'Not Typed'
-                END AS media_type
-
-            FROM snapshot_media AS m
-
-                LEFT JOIN (
-                    snapshot_tags AS ut
-
-                        JOIN snapshot_tag_sets AS uts
-                            ON ut.tag_sets_id = uts.tag_sets_id
-                           AND uts.name = 'media_type'
-
-                        JOIN snapshot_media_tags_map AS umtm
-                            on umtm.tags_id = ut.tags_id
-
-                ) ON m.media_id = umtm.media_id
-
-                LEFT JOIN (
-                    snapshot_tags AS ct
-
-                        JOIN snapshot_media_tags_map AS cmtm
-                            ON cmtm.tags_id = ct.tags_id
-                        JOIN topics AS c
-                            ON c.media_type_tag_sets_id = ct.tag_sets_id
-                        JOIN topics_id AS cid
-                            ON c.topics_id = cid.topics_id
-                ) ON m.media_id = cmtm.media_id
-
-SQL
-    );
-
-    $db->query( <<SQL );
-        CREATE OR REPLACE TEMPORARY VIEW snapshot_stories_with_types AS
-            SELECT
-                s.*,
-                m.media_type
-            FROM snapshot_stories AS s
-                JOIN snapshot_media_with_types AS m
-                    ON s.media_id = m.media_id
-SQL
 
 }
 
@@ -1703,7 +1087,7 @@ sub snapshot_topic ($$;$$$$)
 
     _export_stories_to_solr( $db, $snap );
 
-    discard_temp_tables_and_views( $db );
+    MediaWords::TM::Snapshot::Views::discard_temp_tables_and_views( $db );
 
     # update this manually because snapshot_topic might be called directly from mine_topic()
     $db->update_by_id( 'snapshots', $snap->{ snapshots_id }, { state => $MediaWords::AbstractJob::STATE_COMPLETED } );

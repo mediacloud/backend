@@ -91,7 +91,7 @@ def __forceatlas2_layout(graph: nx.Graph,
     return dict(zip(graph, pos))
 
 
-def layout_gexf(gexf: str) -> Dict:
+def py_layout_gexf(gexf: str) -> Dict:
     """Accept a gexf graph, run force atlas on it, return the resulting laid out graph."""
 
     gexf = decode_object_from_bytes_if_needed(gexf)
@@ -111,7 +111,7 @@ def layout_gexf(gexf: str) -> Dict:
     return int_layout
 
 
-def giant_component(edges: list) -> list:
+def py_giant_component(edges: list) -> list:
     """Accept a list of edges as pairs of ids and return only the edges that are within the giant component."""
     ids = []
     for edge in edges:
