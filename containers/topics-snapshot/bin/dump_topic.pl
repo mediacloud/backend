@@ -60,7 +60,7 @@ END
 }
 
 # Get an encoded csv snapshot of the medium_links in the given timespan.
-sub get_medium_links_csv
+sub _get_medium_links_csv
 {
     my ( $db, $timespan ) = @_;
 
@@ -70,6 +70,30 @@ select ml.source_media_id, sm.name source_name, sm.url source_url,
     from snapshot_medium_links ml, media sm, media rm
     where ml.source_media_id = sm.media_id and ml.ref_media_id = rm.media_id
 END
+
+    return $csv;
+}
+
+# Get an encoded csv snapshot of the media in the given timespan.
+sub _get_media_csv
+{
+    my ( $db, $timespan ) = @_;
+
+    my $res = $db->query( <<END );
+select m.name, m.url, mlc.*
+    from snapshot_media m, snapshot_medium_link_counts mlc
+    where m.media_id = mlc.media_id
+    order by mlc.media_inlink_count desc;
+END
+
+    my $fields = $res->columns;
+    my $media  = $res->hashes;
+
+    my $extra_fields = MediaWords::TM::Snapshot::add_extra_fields_to_snapshot_media( $db, $timespan, $media );
+
+    push( @{ $fields }, @{ $extra_fields } );
+
+    my $csv = MediaWords::Util::CSV::get_hashes_as_encoded_csv( $media, $fields );
 
     return $csv;
 }
@@ -90,19 +114,19 @@ sub main
 
     DEBUG( "dumping stories ..." );
     my $stories_csv = _get_stories_csv( $db, $timespan );
-    File::Slurp::write_file( "stories_${ timespans_id }.csv", \$stories_csv );
+    write_file( "stories_${ timespans_id }.csv", \$stories_csv );
 
     DEBUG( "dumping media ..." );
-    my $media_csv = MediaWords::TM::Snapshot::get_media_csv( $db, $timespan );
-    File::Slurp::write_file( "media_${ timespans_id }.csv", \$media_csv );
+    my $media_csv = _get_media_csv( $db, $timespan );
+    write_file( "media_${ timespans_id }.csv", \$media_csv );
 
     DEBUG( "dumping story links ..." );
     my $story_links_csv = _get_story_links_csv( $db, $timespan );
-    File::Slurp::write_file( "story_links_${ timespans_id }.csv", \$story_links_csv );
+    write_file( "story_links_${ timespans_id }.csv", \$story_links_csv );
 
     DEBUG( "dumping medium_links ..." );
     my $medium_links_csv = _get_medium_links_csv( $db, $timespan );
-    File::Slurp::write_file( "medium_links_${ timespans_id }.csv", \$medium_links_csv );
+    write_file( "medium_links_${ timespans_id }.csv", \$medium_links_csv );
 
     DEBUG( "dumping medium_tags ..." );
     my $medium_tags_csv = MediaWords::Util::CSV::get_query_as_csv( $db, <<SQL );
@@ -112,8 +136,7 @@ select mtm.media_id, t.tags_id, t.tag, t.label, t.tag_sets_id, ts.name tag_set_n
         join snapshot_tags t using ( tags_id )
         join snapshot_tag_sets ts using ( tag_sets_id )
 SQL
-    File::Slurp::write_file( "medium_tags_${ timespans_id }.csv", \$medium_tags_csv );
-
+    write_file( "medium_tags_${ timespans_id }.csv", \$medium_tags_csv );
 }
 
 main();

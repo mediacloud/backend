@@ -675,7 +675,7 @@ END
 
 # add tags, codes, partisanship and other extra data to all snapshot media for the purpose
 # of making a gexf or csv snapshot.  return the list of extra fields added.
-sub _add_extra_fields_to_snapshot_media
+sub add_extra_fields_to_snapshot_media
 {
     my ( $db, $timespan, $media ) = @_;
 
@@ -688,30 +688,6 @@ sub _add_extra_fields_to_snapshot_media
     map { $_media_static_gexf_attribute_types->{ $_ } = 'string'; } @{ $all_fields };
 
     return $all_fields;
-}
-
-# Get an encoded csv snapshot of the media in the given timespan.
-sub get_media_csv
-{
-    my ( $db, $timespan ) = @_;
-
-    my $res = $db->query( <<END );
-select m.name, m.url, mlc.*
-    from snapshot_media m, snapshot_medium_link_counts mlc
-    where m.media_id = mlc.media_id
-    order by mlc.media_inlink_count desc;
-END
-
-    my $fields = $res->columns;
-    my $media  = $res->hashes;
-
-    my $extra_fields = _add_extra_fields_to_snapshot_media( $db, $timespan, $media );
-
-    push( @{ $fields }, @{ $extra_fields } );
-
-    my $csv = MediaWords::Util::CSV::get_hashes_as_encoded_csv( $media, $fields );
-
-    return $csv;
 }
 
 sub _write_medium_link_counts_snapshot
@@ -1033,7 +1009,7 @@ select distinct
     limit ?
 END
 
-    _add_extra_fields_to_snapshot_media( $db, $timespan, $media );
+    add_extra_fields_to_snapshot_media( $db, $timespan, $media );
 
     my $gexf = {
         'xmlns'              => "http://www.gexf.net/1.2draft",
