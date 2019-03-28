@@ -1503,7 +1503,7 @@ sub _add_media_type_views
 
     $db->query( <<SQL
 
-        CREATE OR REPLACE VIEW snapshot_media_with_types AS
+        CREATE OR REPLACE TEMPORARY VIEW snapshot_media_with_types AS
             WITH topics_id AS (
                 SELECT topics_id
                 FROM snapshot_topic_stories
@@ -1547,7 +1547,7 @@ SQL
     );
 
     $db->query( <<SQL );
-        CREATE OR REPLACE VIEW snapshot_stories_with_types AS
+        CREATE OR REPLACE TEMPORARY VIEW snapshot_stories_with_types AS
             SELECT
                 s.*,
                 m.media_type
