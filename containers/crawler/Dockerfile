@@ -4,14 +4,6 @@
 
 FROM dockermediacloud/mediacloud-common:latest
 
-# Install dependencies
-RUN \
-    #
-    # Required by XML::LibXML
-    apt-get -y --no-install-recommends install libxml2-dev && \
-    #
-    true
-
 # Install Perl dependencies
 COPY src/cpanfile /var/tmp/
 RUN \
