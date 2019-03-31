@@ -73,16 +73,6 @@ class JSONAnnotator(metaclass=abc.ABCMeta):
         """Returns list of tags for decoded JSON annotation."""
         raise NotImplementedError
 
-    # noinspection PyMethodMayBeStatic
-    def _postprocess_fetched_annotation(self, annotation: Union[dict, list]) -> Union[dict, list]:
-        """(Might be overridden) Post-process decoded JSON response."""
-        return annotation
-
-    # noinspection PyMethodMayBeStatic
-    def _preprocess_stored_annotation(self, annotation: Union[dict, list]) -> Union[dict, list]:
-        """(Might be overridden) Pre-process decoded JSON response just loaded from the object store."""
-        return annotation
-
     # ---
 
     # HTTP timeout for annotator
@@ -225,13 +215,6 @@ class JSONAnnotator(metaclass=abc.ABCMeta):
         if not response_is_valid:
             fatal_error("Annotator response is invalid for JSON string: %s" % results_string)
 
-        try:
-            results = self._postprocess_fetched_annotation(results)
-            if results is None:
-                raise McJSONAnnotatorException("Annotation is None after postprocessing.")
-        except Exception as ex:
-            fatal_error("Unable to postprocess fetched response: %s\nJSON string: %s" % (str(ex), results_string))
-
         log.info("Done annotating %d characters of text." % len(text))
 
         return results
@@ -333,16 +316,6 @@ class JSONAnnotator(metaclass=abc.ABCMeta):
         except Exception as ex:
             raise McJSONAnnotatorException(
                 "Unable to parse annotation JSON for story %d: %s\nString JSON: %s" % (stories_id, str(ex), json,)
-            )
-
-        try:
-            annotation = self._preprocess_stored_annotation(annotation)
-            if annotation is None:
-                raise McJSONAnnotatorException("Annotation is None after preprocessing.")
-        except Exception as ex:
-            fatal_error(
-                "Unable to preprocess stored annotation for story %d: %s\nString JSON: %s" %
-                (stories_id, str(ex), json,)
             )
 
         return annotation
