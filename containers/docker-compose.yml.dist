@@ -477,10 +477,6 @@ services:
         environment:
             # NYTLabels annotator endpoint URL
             MC_NYTLABELS_ANNOTATOR_URL: ""
-            # NYTLabels version tag
-            MC_NYTLABELS_VERSION_TAG: "nyt_labeller_v1.0.0"
-            # Tag set to use for NYTLabels-derived tags
-            MC_NYTLABELS_TAG_SET: "nyt_labels"
         depends_on:
             - extract_and_vector
             - predict_news_labels
@@ -515,6 +511,11 @@ services:
             context: ./nytlabels-update-story-tags/
         image: dockermediacloud/mediacloud-nytlabels-update-story-tags:latest
         container_name: mc_nytlabels_update_story_tags
+        environment:
+            # NYTLabels version tag
+            MC_NYTLABELS_VERSION_TAG: "nyt_labeller_v1.0.0"
+            # Tag set to use for NYTLabels-derived tags
+            MC_NYTLABELS_TAG_SET: "nyt_labels"
         depends_on:
             - nytlabels_fetch_annotation
             - postgresql_pgbouncer

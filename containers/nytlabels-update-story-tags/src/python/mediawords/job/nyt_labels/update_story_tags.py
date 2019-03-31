@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from mediawords.annotator.nyt_labels import NYTLabelsAnnotator
+from mediawords.annotator.nyt_labels_tagger import NYTLabelsTagger
 from mediawords.db import connect_to_db
 from mediawords.dbi.stories.postprocess import mark_as_processed
 from mediawords.job import AbstractJob, McAbstractJobException, JobBrokerApp
@@ -44,7 +44,7 @@ class NYTLabelsUpdateStoryTagsJob(AbstractJob):
         if story is None:
             raise McNYTLabelsUpdateStoryTagsJobException("Story with ID %d was not found." % stories_id)
 
-        nytlabels = NYTLabelsAnnotator()
+        nytlabels = NYTLabelsTagger()
         try:
             nytlabels.update_tags_for_story(db=db, stories_id=stories_id)
         except Exception as ex:

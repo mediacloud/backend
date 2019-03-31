@@ -17,4 +17,3 @@ class NYTLabelsTaggerConfig(object):
 
         Will be added under "geocoder_version" tag set."""
         return env_value('MC_NYTLABELS_TAG_SET')
-

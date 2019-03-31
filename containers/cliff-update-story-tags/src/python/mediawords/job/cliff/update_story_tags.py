@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from mediawords.annotator.cliff import CLIFFAnnotator
+from mediawords.annotator.cliff_tagger import CLIFFTagger
 from mediawords.db import connect_to_db
 from mediawords.job import AbstractJob, McAbstractJobException, JobBrokerApp, JobManager
 from mediawords.util.log import create_logger
@@ -43,7 +43,7 @@ class CLIFFUpdateStoryTagsJob(AbstractJob):
         if story is None:
             raise McCLIFFUpdateStoryTagsJobException("Story with ID %d was not found." % stories_id)
 
-        cliff = CLIFFAnnotator()
+        cliff = CLIFFTagger()
         try:
             cliff.update_tags_for_story(db=db, stories_id=stories_id)
         except Exception as ex:

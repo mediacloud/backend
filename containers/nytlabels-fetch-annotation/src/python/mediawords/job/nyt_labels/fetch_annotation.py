@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from mediawords.annotator.nyt_labels import NYTLabelsAnnotator
+from mediawords.annotator.nyt_labels_fetcher import NYTLabelsAnnotatorFetcher
 from mediawords.db import connect_to_db
 from mediawords.job import AbstractJob, McAbstractJobException, JobBrokerApp, JobManager
 from mediawords.util.log import create_logger
@@ -43,7 +43,7 @@ class NYTLabelsFetchAnnotationJob(AbstractJob):
         if story is None:
             raise McNYTLabelsFetchAnnotationJobException("Story with ID %d was not found." % stories_id)
 
-        nytlabels = NYTLabelsAnnotator()
+        nytlabels = NYTLabelsAnnotatorFetcher()
         try:
             nytlabels.annotate_and_store_for_story(db=db, stories_id=stories_id)
         except Exception as ex:

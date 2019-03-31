@@ -6,7 +6,7 @@
         <option name="command" value="" />
         <option name="containerName" value="mc_webapp" />
         <option name="entrypoint" value="" />
-        <option name="imageTag" value="dockermediacloud/mediacloud-webapp" />
+        <option name="imageTag" value="dockermediacloud/mediacloud-webapp:latest" />
         <option name="portBindings">
           <list>
             <DockerPortBindingImpl>

@@ -5,6 +5,11 @@ class CLIFFTaggerConfig(object):
     """CLIFF tagger configuration."""
 
     @staticmethod
+    def version_tag() -> str:
+        """CLIFF version tag, e.g. "cliff_clavin_v2.4.1"."""
+        return env_value('MC_CLIFF_VERSION_TAG')
+
+    @staticmethod
     def geonames_tag_set() -> str:
         """CLIFF geographical names tag set, e.g. "cliff_geonames".
 
@@ -24,4 +29,3 @@ class CLIFFTaggerConfig(object):
 
         Tags with names of people such as "Einstein" will be added under this tag set."""
         return env_value('MC_CLIFF_PEOPLE_TAG_SET')
-

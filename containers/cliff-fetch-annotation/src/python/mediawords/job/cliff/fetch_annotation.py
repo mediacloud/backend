@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 
-from mediawords.annotator.cliff import CLIFFAnnotator
 from mediawords.db import connect_to_db
 from mediawords.job import AbstractJob, McAbstractJobException, JobBrokerApp, JobManager
 from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_object_from_bytes_if_needed
+
+from mediawords.annotator.cliff_fetcher import CLIFFAnnotatorFetcher
 
 log = create_logger(__name__)
 
@@ -43,7 +44,7 @@ class CLIFFFetchAnnotationJob(AbstractJob):
         if story is None:
             raise McCLIFFFetchAnnotationJobException("Story with ID %d was not found." % stories_id)
 
-        cliff = CLIFFAnnotator()
+        cliff = CLIFFAnnotatorFetcher()
         try:
             cliff.annotate_and_store_for_story(db=db, stories_id=stories_id)
         except Exception as ex:

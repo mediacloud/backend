@@ -3,11 +3,10 @@
     <deployment type="dockerfile">
       <settings>
         <option name="buildCliOptions" value="" />
-        <option name="buildOnly" value="true" />
         <option name="command" value="" />
-        <option name="containerName" value="mc_common" />
+        <option name="containerName" value="mc_nytlabels_update_story_tags" />
         <option name="entrypoint" value="" />
-        <option name="imageTag" value="dockermediacloud/mediacloud-common:latest" />
+        <option name="imageTag" value="dockermediacloud/nytlabels-update-story-tags:latest" />
         <option name="commandLineOptions" value="" />
         <option name="sourceFilePath" value="Dockerfile" />
       </settings>
