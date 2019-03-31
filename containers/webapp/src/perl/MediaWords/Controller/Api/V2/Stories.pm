@@ -12,10 +12,9 @@ use HTTP::Status qw(:constants);
 use Readonly;
 use Encode;
 
+use MediaWords::Annotator::Store;
 use MediaWords::DBI::Stories;
 use MediaWords::Solr;
-use MediaWords::Util::Annotator::CLIFF;
-use MediaWords::Util::Annotator::NYTLabels;
 use MediaWords::Util::ParseJSON;
 
 =head1 NAME
@@ -119,8 +118,8 @@ sub cliff : Local
         }
         else
         {
-            my $cliff = MediaWords::Util::Annotator::CLIFF->new();
-            eval { $annotation = $cliff->fetch_annotation_for_story( $db, $stories_id ) };
+            my $cliff_store = MediaWords::Annotator::Store->new('cliff_annotations')
+            eval { $annotation = $cliff_store->fetch_annotation_for_story( $db, $stories_id ) };
             $annotation ||= 'story is not annotated';
         }
 
@@ -180,8 +179,8 @@ sub nytlabels : Local
         }
         else
         {
-            my $nytlabels = MediaWords::Util::Annotator::NYTLabels->new();
-            eval { $annotation = $nytlabels->fetch_annotation_for_story( $db, $stories_id ) };
+            my $nytlabels_store = MediaWords::Annotator::Store->new('nytlabels_annotations');
+            eval { $annotation = $nytlabels_store->fetch_annotation_for_story( $db, $stories_id ) };
             $annotation ||= 'story is not annotated';
         }
 
