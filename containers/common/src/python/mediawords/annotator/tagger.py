@@ -86,7 +86,7 @@ class JSONAnnotationTagger(metaclass=abc.ABCMeta):
 
         annotation = self.__annotation_store.fetch_annotation_for_story(db=db, stories_id=stories_id)
         if annotation is None:
-            raise McJSONAnnotatorTaggerException("Unable to fetch annotation for story %d" % stories_id)
+            raise McJSONAnnotationTaggerException("Unable to fetch annotation for story %d" % stories_id)
 
         tags = None
         try:
@@ -96,7 +96,7 @@ class JSONAnnotationTagger(metaclass=abc.ABCMeta):
             fatal_error("Unable to fetch tags for story %d: %s" % (stories_id, str(ex),))
 
         if tags is None:
-            raise McJSONAnnotatorTaggerException("Returned tags is None for story %d." % stories_id)
+            raise McJSONAnnotationTaggerException("Returned tags is None for story %d." % stories_id)
 
         log.debug("Tags for story %d: %s" % (stories_id, str(tags),))
 
