@@ -1,4 +1,3 @@
-import os
 import re
 from typing import Union, List, Dict, Any
 
@@ -9,14 +8,12 @@ from psycopg2.extensions import adapt as psycopg2_adapt
 from mediawords.db.copy.copy_from import CopyFrom
 from mediawords.db.copy.copy_to import CopyTo
 from mediawords.db.exceptions.handler import (
-    McConnectException, McDatabaseHandlerException, McSchemaIsUpToDateException, McQueryException,
+    McConnectException, McDatabaseHandlerException, McQueryException,
     McPrimaryKeyColumnException, McFindByIDException, McRequireByIDException, McUpdateByIDException,
     McDeleteByIDException, McCreateException, McFindOrCreateException, McBeginException,
     McQuoteException, McUniqueConstraintException)
 from mediawords.db.result.result import DatabaseResult
-from mediawords.db.schema.version import schema_version_from_lines
 
-from mediawords.util.config.common import CommonConfig
 from mediawords.util.log import create_logger
 from mediawords.util.perl import (
     convert_dbd_pg_arguments_to_psycopg2_format,
@@ -51,9 +48,6 @@ class DatabaseHandler(object):
         # Cache of table primary key columns ([schema][table])
         '__primary_key_columns',
 
-        # PIDs for which the schema version has been checked
-        '__schema_version_check_pids',
-
         # Whether or not to print PostgreSQL warnings
         '__print_warnings',
 
@@ -71,8 +65,7 @@ class DatabaseHandler(object):
                  port: int,
                  username: str,
                  password: str,
-                 database: str,
-                 do_not_check_schema_version: bool = False):
+                 database: str):
         """Database handler constructor; connects to PostgreSQL too."""
 
         host = decode_object_from_bytes_if_needed(host)
@@ -83,7 +76,6 @@ class DatabaseHandler(object):
         database = decode_object_from_bytes_if_needed(database)
 
         self.__primary_key_columns = {}
-        self.__schema_version_check_pids = {}
         self.__print_warnings = True
         self.__in_manual_transaction = False
         self.__conn = None
@@ -95,7 +87,6 @@ class DatabaseHandler(object):
             username=username,
             password=password,
             database=database,
-            do_not_check_schema_version=do_not_check_schema_version
         )
 
     def __connect(self,
@@ -103,8 +94,7 @@ class DatabaseHandler(object):
                   port: int,
                   username: str,
                   password: str,
-                  database: str,
-                  do_not_check_schema_version: bool = False) -> None:
+                  database: str) -> None:
         """Connect to PostgreSQL."""
 
         host = decode_object_from_bytes_if_needed(host)
@@ -114,21 +104,11 @@ class DatabaseHandler(object):
         password = decode_object_from_bytes_if_needed(password)
         database = decode_object_from_bytes_if_needed(database)
 
-        # If the user didn't clearly (via 'true' or 'false') state whether or not
-        # to check schema version, check it once per PID
-        pid = os.getpid()
-
         if not (host and username and password and database):
             raise McConnectException("Database connection credentials are not set.")
 
         if not port:
             port = 5432
-
-        if not do_not_check_schema_version:
-            if pid in self.__schema_version_check_pids:
-                do_not_check_schema_version = True
-            else:
-                do_not_check_schema_version = False
 
         self.__conn = psycopg2.connect(host=host, port=port, user=username, password=password, database=database)
 
@@ -148,9 +128,6 @@ class DatabaseHandler(object):
 
         # Queries to have immediate effect by default
         self.__conn.set_isolation_level(psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT)
-
-        # If schema is not up-to-date, connect() dies and we don't get to set PID here
-        self.__schema_version_check_pids[pid] = True
 
         # Check deadlock_timeout
         if not DatabaseHandler.__deadlock_timeout_checked:
@@ -179,42 +156,6 @@ class DatabaseHandler(object):
     # noinspection PyMethodMayBeStatic
     def dbh(self) -> None:
         raise McDatabaseHandlerException("Please don't use internal database handler directly")
-
-    @staticmethod
-    def __should_continue_with_outdated_schema(current_schema_version: int, target_schema_version: int) -> bool:
-        """Schema is outdated / too new; returns 1 if MC should continue nevertheless, 0 otherwise"""
-
-        if CommonConfig.database().ignore_schema_version():
-            log.warning("""
-                The current Media Cloud database schema is older than the schema present in mediawords.sql,
-                but 'ignore_schema_version' is set so continuing anyway.
-            """)
-            return True
-        else:
-            log.warning("""
-                ################################
-
-                The current Media Cloud database schema is not the same as the schema present in mediawords.sql.
-
-                The database schema currently running in the database is %(current_schema_version)s,
-                and the schema version in the mediawords.sql is %(target_schema_version)s.
-
-                Please run:
-
-                    ./script/run_in_env.sh ./script/upgrade_db.pl --import
-
-                to automatically upgrade the database schema to the latest version.
-
-                If you want to connect to the Media Cloud database anyway (ignoring the schema version),
-                set 'ignore_schema_version' configuration parameter.
-
-                ################################
-
-            """ % {
-                "current_schema_version": current_schema_version,
-                "target_schema_version": target_schema_version,
-            })
-            return False
 
     def query(self, *query_params) -> DatabaseResult:
         """Run the query, return instance of DatabaseResult for accessing the result.

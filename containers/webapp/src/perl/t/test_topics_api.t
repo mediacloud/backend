@@ -14,7 +14,6 @@ use Math::Prime::Util;
 use Readonly;
 use Test::More;
 
-use MediaWords::DB::Schema;
 use MediaWords::DBI::Auth::Roles;
 use MediaWords::Solr::Query;
 use MediaWords::Test::API;

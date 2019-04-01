@@ -23,7 +23,7 @@ def recreate_db() -> None:
     This function will refuse to run if there are more than 10 million stories in the database, under the assumption
     that the database might be a production database in that case.
     """
-    db = connect_to_db(do_not_check_schema_version=True)
+    db = connect_to_db()
     initialize_with_schema(db=db)
 
 

@@ -26,10 +26,10 @@ use MediaWords::DB::HandlerProxy;
 
 sub connect_to_db(;$$)
 {
-    my ( $label, $do_not_check_schema_version ) = @_;
+    my ( $label ) = @_;
 
     # Get unwrappered DatabaseHandler
-    my $db = MediaWords::DB::PythonConnectToDB::connect_to_db( $label, $do_not_check_schema_version );
+    my $db = MediaWords::DB::PythonConnectToDB::connect_to_db( $label );
 
     # Wrap it in HandlerProxy which will make return values writable
     my $wrappered_db = MediaWords::DB::HandlerProxy->new( $db );

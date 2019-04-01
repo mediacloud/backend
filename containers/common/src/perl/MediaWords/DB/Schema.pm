@@ -25,8 +25,7 @@ sub upgrade_db($;$)
     my $db;
     {
 
-        my $do_not_check_schema_version = 1;
-        $db = MediaWords::DB::connect_to_db( $label, $do_not_check_schema_version );
+        $db = MediaWords::DB::connect_to_db( $label );
     }
 
     # Current schema version
