@@ -1,8 +1,6 @@
 import os
 import tempfile
 
-import pytest
-
 import mediawords.util.paths as mc_paths
 
 
@@ -50,32 +48,3 @@ def test_file_extension():
     assert mc_paths.file_extension('TEST.ZIP') == '.zip'
     assert mc_paths.file_extension('test.tar.gz') == '.gz'
     assert mc_paths.file_extension('TEST.TAR.GZ') == '.gz'
-
-
-def test_lock_unlock_file():
-    temp_dir = tempfile.mkdtemp()
-    lock_file_path = os.path.join(temp_dir, 'test.lock')
-
-    assert os.path.isfile(lock_file_path) is False
-    mc_paths.lock_file(lock_file_path)
-    assert os.path.isfile(lock_file_path) is True
-    mc_paths.unlock_file(lock_file_path)
-    assert os.path.isfile(lock_file_path) is False
-
-    # Try locking twice, with timeout
-    assert os.path.isfile(lock_file_path) is False
-    mc_paths.lock_file(lock_file_path)
-    assert os.path.isfile(lock_file_path) is True
-
-    with pytest.raises(mc_paths.McLockFileException):
-        mc_paths.lock_file(lock_file_path, 2)
-
-    assert os.path.isfile(lock_file_path) is True
-    mc_paths.unlock_file(lock_file_path)
-    assert os.path.isfile(lock_file_path) is False
-
-    # Try unlocking nonexistent file
-    assert os.path.isfile(lock_file_path) is False
-    with pytest.raises(mc_paths.McUnlockFileException):
-        mc_paths.unlock_file(lock_file_path)
-    assert os.path.isfile(lock_file_path) is False

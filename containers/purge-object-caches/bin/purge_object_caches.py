@@ -7,7 +7,6 @@ import time
 
 from mediawords.db import connect_to_db
 from mediawords.util.log import create_logger
-from mediawords.util.process import run_alone
 
 log = create_logger(__name__)
 
@@ -31,4 +30,4 @@ def purge_object_caches():
 
 
 if __name__ == '__main__':
-    run_alone(purge_object_caches)
+    purge_object_caches()

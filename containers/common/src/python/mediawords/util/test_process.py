@@ -1,15 +1,15 @@
-import multiprocessing
 import os
 import subprocess
 import tempfile
-import time
 
 import pytest
 
-from mediawords.util.process import (process_with_pid_is_running, run_command_in_foreground,
-                                     run_alone, gracefully_kill_child_process,
-                                     McRunCommandInForegroundException,
-                                     McScriptInstanceIsAlreadyRunning, log)
+from mediawords.util.process import (
+    process_with_pid_is_running,
+    run_command_in_foreground,
+    gracefully_kill_child_process,
+    McRunCommandInForegroundException,
+)
 
 
 def test_process_with_pid_is_running():
@@ -87,64 +87,3 @@ def test_gracefully_kill_child_process():
 
     test_process.communicate()
     assert process_with_pid_is_running(test_process_pid) is False
-
-
-def test_run_alone():
-    # Basic usage
-    def create_file(file_to_create, sleep_forever_afterwards):
-        if os.path.exists(file_to_create):
-            raise Exception("File '%s' already exists." % file_to_create)
-        file = open(file_to_create, 'w+')
-        file.write('Foo.')
-        file.close()
-
-        if sleep_forever_afterwards:
-            log.info("PID %d sleeping forever" % os.getpid())
-            while True:
-                time.sleep(1)
-        else:
-            return True
-
-    temp_file = os.path.join(tempfile.mkdtemp(), 'foo.dat')
-    assert not os.path.exists(temp_file)
-
-    return_value = run_alone(create_file, temp_file, False)
-    assert return_value is True
-    assert os.path.exists(temp_file)
-
-    # Make sure that two instances of a function can't be run alone
-    background_thread_temp_file = os.path.join(tempfile.mkdtemp(), 'background_thread.dat')
-    assert not os.path.exists(background_thread_temp_file)
-
-    background_thread = multiprocessing.Process(
-        name='background_thread',
-        target=run_alone,
-        args=(create_file, background_thread_temp_file, True,)
-    )
-    background_thread.daemon = True
-    background_thread.start()
-    time.sleep(1)
-
-    # Make sure background thread is started
-    assert os.path.exists(background_thread_temp_file)
-
-    # Try running same function in foreground thread, make sure it fails
-    foreground_thread_temp_file = os.path.join(tempfile.mkdtemp(), 'foreground_thread.dat')
-    assert not os.path.exists(foreground_thread_temp_file)
-    with pytest.raises(McScriptInstanceIsAlreadyRunning):
-        run_alone(create_file, foreground_thread_temp_file, True)
-
-    assert not os.path.exists(foreground_thread_temp_file)
-
-    # FIXME doesn't get properly killed it seems
-    os.system('kill -INT {}'.format(background_thread.pid))
-    background_thread.terminate()
-    background_thread.join(timeout=2)
-
-    # Try running function again to make sure that the lock file got removed properly
-    another_foreground_thread_temp_file = os.path.join(tempfile.mkdtemp(),
-                                                       'another_foreground_thread.dat')
-    assert not os.path.exists(another_foreground_thread_temp_file)
-
-    run_alone(create_file, another_foreground_thread_temp_file, False)
-    assert os.path.exists(another_foreground_thread_temp_file)
