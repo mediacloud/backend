@@ -8,7 +8,7 @@ import shutil
 
 from mediawords.test.db.create import create_test_medium, create_test_feed, create_test_story, create_test_topic
 from mediawords.test.test_database import TestDatabaseWithSchemaTestCase
-from mediawords.util.word2vec import train_word2vec_model, load_word2vec_model
+from mediawords.util.word2vec import train_word2vec_model
 from mediawords.util.word2vec.exceptions import McWord2vecException
 from mediawords.util.word2vec.model_stores import SnapshotDatabaseModelStore
 from mediawords.util.word2vec.sentence_iterators import SnapshotSentenceIterator
@@ -107,7 +107,7 @@ class TestWord2vec(TestDatabaseWithSchemaTestCase):
         models_id = train_word2vec_model(sentence_iterator=sentence_iterator,
                                          model_store=model_store)
 
-        model_data = load_word2vec_model(model_store=model_store, models_id=models_id)
+        model_data = model_store.read_model(models_id=models_id)
         assert model_data is not None
         assert isinstance(model_data, bytes)
 

@@ -67,13 +67,3 @@ def train_word2vec_model(sentence_iterator: AbstractSentenceIterator,
     log.info("Done!")
 
     return models_id
-
-
-# MC_REWRITE_TO_PYTHON: make it return a file-like object instead of copying the whole model into 'bytes'
-def load_word2vec_model(model_store: AbstractModelStore, models_id: int) -> bytes:
-    """Load word2vec model.
-
-    :param model_store: Model store to load the model from
-    :param models_id: Model ID to load
-    """
-    return model_store.read_model(models_id=models_id)

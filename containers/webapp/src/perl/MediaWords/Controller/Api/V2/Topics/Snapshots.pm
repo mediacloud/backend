@@ -8,7 +8,7 @@ use base 'Catalyst::Controller';
 use Moose;
 use namespace::autoclean;
 
-use MediaWords::Util::Word2vec;
+use MediaWords::KeyValueStore::PostgreSQL;
 
 BEGIN { extends 'MediaWords::Controller::Api::V2::MC_Controller_REST' }
 
@@ -203,8 +203,8 @@ sub word2vec_model_GET
         die "models_id is not set.";
     }
 
-    my $model_store = MediaWords::Util::Word2vec::SnapshotDatabaseModelStore->new( $db, $snapshots_id );
-    my $model_data = MediaWords::Util::Word2vec::load_word2vec_model( $model_store, $models_id );
+    my $model_store = MediaWords::KeyValueStore::PostgreSQL->new( { table => 'snap.word2vec_models_data' } );
+    my $model_data = $model_store->fetch_content( $db, $models_id );
     unless ( defined $model_data )
     {
         die "Model data for topic $topics_id, snapshot $snapshots_id, model $models_id is undefined.";
