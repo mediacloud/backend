@@ -3,10 +3,10 @@ import re
 from mediawords.dbi.auth.info import user_info
 from mediawords.dbi.auth.register import add_user
 from mediawords.dbi.auth.user import NewUser, CurrentUser
-from mediawords.test.test_database import TestDatabaseWithSchemaTestCase, TestDoNotSendEmails
+from mediawords.test.test_database import TestDatabaseTestCase, TestDoNotSendEmails
 
 
-class TestInfo(TestDatabaseWithSchemaTestCase, TestDoNotSendEmails):
+class TestInfo(TestDatabaseTestCase, TestDoNotSendEmails):
 
     @staticmethod
     def __looks_like_iso8601_date(date: str) -> bool:

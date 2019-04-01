@@ -40,7 +40,7 @@ def test_url_has_binary_extension() -> None:
     assert url_has_binary_extension('https://i1.wp.com/7miradas.com/wp-content/uploads8/02/UHJ9OKM.png?resize=62%2C62')
 
 
-class TestTMStoriesDB(mediawords.test.test_database.TestDatabaseWithSchemaTestCase):
+class TestTMStoriesDB(mediawords.test.test_database.TestDatabaseTestCase):
     """Run tests that require database access."""
 
     def test_get_story_with_most_sentences(self) -> None:

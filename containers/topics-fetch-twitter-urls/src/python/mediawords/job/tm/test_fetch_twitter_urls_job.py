@@ -7,7 +7,7 @@ import mediawords.test.test_database
 import mediawords.tm.test_fetch_twitter_urls as tftu
 
 
-class TestFetchTwitterUrlsJobDB(mediawords.test.test_database.TestDatabaseWithSchemaTestCase):
+class TestFetchTwitterUrlsJobDB(mediawords.test.test_database.TestDatabaseTestCase):
     """Run tests that require database access."""
 
     def test_try_fetch_twitter_urls_job(self) -> None:

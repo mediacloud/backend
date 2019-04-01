@@ -1,9 +1,9 @@
 from mediawords.dbi.download_texts import create
 from mediawords.test.db.create import create_test_medium, create_test_feed, create_download_for_feed
-from mediawords.test.test_database import TestDatabaseWithSchemaTestCase
+from mediawords.test.test_database import TestDatabaseTestCase
 
 
-class TestDownloadTexts(TestDatabaseWithSchemaTestCase):
+class TestDownloadTexts(TestDatabaseTestCase):
 
     def setUp(self) -> None:
         """Set config for tests."""

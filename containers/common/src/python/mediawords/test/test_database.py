@@ -1,7 +1,6 @@
 from unittest import TestCase
 
 from mediawords.db.handler import DatabaseHandler
-from mediawords.db.schema.schema import initialize_with_schema
 from mediawords.util.config.common import CommonConfig
 from mediawords.util.log import create_logger
 from mediawords.util.mail import enable_test_mode, disable_test_mode
@@ -46,42 +45,6 @@ class TestDatabaseTestCase(TestCase):
 
     def db(self) -> DatabaseHandler:
         return self.__db
-
-
-class TestDatabaseWithSchemaTestCase(TestDatabaseTestCase):
-    """TestCase that connects to the test database and imports schema; database is later accessible as self.db()."""
-
-    @staticmethod
-    def __kill_connections_to_database(db: DatabaseHandler, database_name: str) -> None:
-        """Kill all active connections to the database."""
-        # If multiple Python test files get run in a sequence and one of them fails, the test apparently doesn't call
-        # tearDown() and the the connection to the test database persists (apparently)
-        db.query("""
-            SELECT pg_terminate_backend(pg_stat_activity.pid)
-            FROM pg_catalog.pg_stat_activity
-            WHERE datname = %(template_db_name)s
-              AND pid != pg_backend_pid()
-        """, {'template_db_name': database_name})
-
-    def setUp(self) -> None:
-        """Create a fresh template data from mediawords.sql."""
-        super().setUp()
-
-        TestDatabaseWithSchemaTestCase.__kill_connections_to_database(
-            db=self.__db,
-            database_name=CommonConfig.database().database_name(),
-        )
-
-        # Refuse to do anything else if there is at least a single relation in a non-system schema
-        relations = self.__db.query("""
-            SELECT *
-            FROM information_schema.tables
-            WHERE table_schema NOT IN ('pg_catalog', 'information_schema')
-        """).hashes()
-        if len(relations):
-            raise McTestDatabaseTestCaseException("Test database is not empty.")
-
-        initialize_with_schema(db=self.__db)
 
 
 class TestDoNotSendEmails(TestCase):

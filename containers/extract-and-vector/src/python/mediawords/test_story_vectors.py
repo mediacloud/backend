@@ -17,10 +17,10 @@ from mediawords.test.db.create import (
     create_test_story,
     create_download_for_story,
 )
-from mediawords.test.test_database import TestDatabaseWithSchemaTestCase
+from mediawords.test.test_database import TestDatabaseTestCase
 
 
-class TestStoryVectors(TestDatabaseWithSchemaTestCase):
+class TestStoryVectors(TestDatabaseTestCase):
 
     def setUp(self) -> None:
         super().setUp()

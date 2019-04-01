@@ -49,7 +49,7 @@ def test_get_links_from_html() -> None:
         assert mediawords.util.url.is_http_url(link)
 
 
-class TestExtractStoryLinksDB(mediawords.test.test_database.TestDatabaseWithSchemaTestCase):
+class TestExtractStoryLinksDB(mediawords.test.test_database.TestDatabaseTestCase):
     """Run tests that require database access."""
 
     def setUp(self) -> None:

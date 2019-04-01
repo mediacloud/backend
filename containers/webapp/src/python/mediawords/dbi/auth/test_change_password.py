@@ -13,10 +13,10 @@ from mediawords.dbi.auth.register import add_user
 # noinspection PyProtectedMember
 from mediawords.dbi.auth.reset_password import _generate_password_reset_token
 from mediawords.dbi.auth.user import NewUser, CurrentUser
-from mediawords.test.test_database import TestDatabaseWithSchemaTestCase, TestDoNotSendEmails
+from mediawords.test.test_database import TestDatabaseTestCase, TestDoNotSendEmails
 
 
-class TestChangePassword(TestDatabaseWithSchemaTestCase, TestDoNotSendEmails):
+class TestChangePassword(TestDatabaseTestCase, TestDoNotSendEmails):
 
     def test_change_password(self):
         email = 'test@user.login'

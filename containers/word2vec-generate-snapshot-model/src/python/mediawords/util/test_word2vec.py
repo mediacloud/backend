@@ -7,14 +7,14 @@ import pytest
 import shutil
 
 from mediawords.test.db.create import create_test_medium, create_test_feed, create_test_story, create_test_topic
-from mediawords.test.test_database import TestDatabaseWithSchemaTestCase
+from mediawords.test.test_database import TestDatabaseTestCase
 from mediawords.util.word2vec import train_word2vec_model
 from mediawords.util.word2vec.exceptions import McWord2vecException
 from mediawords.util.word2vec.model_stores import SnapshotDatabaseModelStore
 from mediawords.util.word2vec.sentence_iterators import SnapshotSentenceIterator
 
 
-class TestWord2vec(TestDatabaseWithSchemaTestCase):
+class TestWord2vec(TestDatabaseTestCase):
     TEST_STORY_COUNT = 20
     TEST_SENTENCE_PER_STORY_COUNT = 20
 

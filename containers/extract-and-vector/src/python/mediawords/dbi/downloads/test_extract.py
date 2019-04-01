@@ -14,7 +14,7 @@ from mediawords.dbi.downloads.store import store_content
 from mediawords.dbi.stories.extractor_arguments import PyExtractorArguments
 from mediawords.test.data import fetch_test_data_from_individual_files, get_path_to_data_files
 from mediawords.test.db.create import create_test_medium, create_test_feed, create_download_for_feed, create_test_story
-from mediawords.test.test_database import TestDatabaseWithSchemaTestCase
+from mediawords.test.test_database import TestDatabaseTestCase
 from mediawords.test.text import TestCaseTextUtilities
 
 
@@ -57,7 +57,7 @@ class TestExtract(TestCase, TestCaseTextUtilities):
             assert '<' not in extracted_text, "No HTML tags left in extracted text."
 
 
-class TestExtractDB(TestDatabaseWithSchemaTestCase):
+class TestExtractDB(TestDatabaseTestCase):
     """Run tests that require database access."""
 
     __TEST_CONTENT = '<script>ignore</script><p>foo</p>'

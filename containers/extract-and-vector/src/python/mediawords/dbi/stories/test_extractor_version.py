@@ -3,10 +3,10 @@ from typing import List, Dict, Any
 # noinspection PyProtectedMember
 from mediawords.dbi.stories.extractor_version import extractor_version_tag_sets_name, update_extractor_version_tag
 from mediawords.test.db.create import create_test_medium, create_test_feed, create_test_story
-from mediawords.test.test_database import TestDatabaseWithSchemaTestCase
+from mediawords.test.test_database import TestDatabaseTestCase
 
 
-class TestExtractorVersion(TestDatabaseWithSchemaTestCase):
+class TestExtractorVersion(TestDatabaseTestCase):
 
     def __story_extractor_tags(self, stories_id: int) -> List[Dict[str, Any]]:
         return self.db().query("""

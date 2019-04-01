@@ -2,14 +2,14 @@ import pytest
 
 from mediawords.test.db.create import create_test_story_stack, create_test_topic
 from mediawords.test.hash_server import HashServer
-from mediawords.test.test_database import TestDatabaseWithSchemaTestCase
+from mediawords.test.test_database import TestDatabaseTestCase
 from mediawords.util.network import random_unused_port
 from mediawords.util.url import urls_are_equal
 # noinspection PyProtectedMember
 from mediawords.util.url.variants import all_url_variants, McAllURLVariantsException
 
 
-class TestURLVariants(TestDatabaseWithSchemaTestCase):
+class TestURLVariants(TestDatabaseTestCase):
     # Cruft that we expect the function to remove
     CRUFT = '?utm_source=A&utm_medium=B&utm_campaign=C'
 

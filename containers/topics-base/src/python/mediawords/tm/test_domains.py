@@ -31,7 +31,7 @@ def _get_topic_domain(db: DatabaseHandler, topic: dict, domain: str) -> dict:
         {'a': topic['topics_id'], 'b': domain}).hash()
 
 
-class TestTMDomainsDB(mediawords.test.test_database.TestDatabaseWithSchemaTestCase):
+class TestTMDomainsDB(mediawords.test.test_database.TestDatabaseTestCase):
     """Run tests that require database access."""
 
     def test_increment_domain_links(self) -> None:

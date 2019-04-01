@@ -19,7 +19,7 @@ from mediawords.test.db.create import (
     create_test_medium,
     create_test_story,
 )
-from mediawords.test.test_database import TestDatabaseWithSchemaTestCase
+from mediawords.test.test_database import TestDatabaseTestCase
 from mediawords.key_value_store.amazon_s3 import AmazonS3Store
 from mediawords.key_value_store.cached_amazon_s3 import CachedAmazonS3Store
 from mediawords.key_value_store.database_inline import DatabaseInlineStore
@@ -241,7 +241,7 @@ class TestDownloads(TestCase, TestCaseTextUtilities):
             )
 
 
-class TestDownloadsDB(TestDatabaseWithSchemaTestCase):
+class TestDownloadsDB(TestDatabaseTestCase):
     """Run tests that require database access."""
 
     __TEST_CONTENT = '<script>ignore</script><p>foo</p>'

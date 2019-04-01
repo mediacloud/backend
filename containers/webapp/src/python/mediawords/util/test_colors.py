@@ -1,4 +1,4 @@
-from mediawords.test.test_database import TestDatabaseWithSchemaTestCase
+from mediawords.test.test_database import TestDatabaseTestCase
 from mediawords.util.colors import hex_to_rgb, rgb_to_hex, analogous_color, get_consistent_color
 
 
@@ -30,7 +30,7 @@ def test_analogous_color():
     assert colors[-1].lower() == starting_color
 
 
-class TestGetConsistentColorTestCase(TestDatabaseWithSchemaTestCase):
+class TestGetConsistentColorTestCase(TestDatabaseTestCase):
 
     def test_get_consistent_color(self):
         color_c_baz = get_consistent_color(db=self.db(), item_set='c', item_id='baz')

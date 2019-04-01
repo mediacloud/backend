@@ -1,11 +1,11 @@
 from mediawords.annotator.nyt_labels_tagger import NYTLabelsTagger
 from mediawords.annotator.nyt_labels_store import NYTLabelsAnnotatorStore
 from mediawords.annotator.sample_data import sample_nytlabels_response, expected_nytlabels_tags
-from mediawords.test.test_database import TestDatabaseWithSchemaTestCase
+from mediawords.test.test_database import TestDatabaseTestCase
 from mediawords.util.sql import sql_now
 
 
-class TestNYTLabelsAnnotator(TestDatabaseWithSchemaTestCase):
+class TestNYTLabelsAnnotator(TestDatabaseTestCase):
 
     def test_nyt_labels_annotator(self):
         media = self.db().create(table='media', insert_hash={

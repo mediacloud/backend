@@ -2,10 +2,10 @@ from typing import List
 
 from mediawords.dbi.stories.ap import get_ap_medium_name, is_syndicated
 from mediawords.test.db.create import create_test_medium, create_test_feed, create_test_story, add_content_to_test_story
-from mediawords.test.test_database import TestDatabaseWithSchemaTestCase
+from mediawords.test.test_database import TestDatabaseTestCase
 
 
-class TestAP(TestDatabaseWithSchemaTestCase):
+class TestAP(TestDatabaseTestCase):
 
     @staticmethod
     def __get_ap_sentences() -> List[str]:

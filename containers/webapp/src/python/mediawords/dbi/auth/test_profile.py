@@ -2,10 +2,10 @@ from mediawords.dbi.auth.login import login_with_email_password
 from mediawords.dbi.auth.profile import all_users, regenerate_api_key
 from mediawords.dbi.auth.register import add_user
 from mediawords.dbi.auth.user import NewUser, CurrentUser
-from mediawords.test.test_database import TestDatabaseWithSchemaTestCase, TestDoNotSendEmails
+from mediawords.test.test_database import TestDatabaseTestCase, TestDoNotSendEmails
 
 
-class TestProfile(TestDatabaseWithSchemaTestCase, TestDoNotSendEmails):
+class TestProfile(TestDatabaseTestCase, TestDoNotSendEmails):
 
     def test_all_users(self):
         email = 'test@user.info'

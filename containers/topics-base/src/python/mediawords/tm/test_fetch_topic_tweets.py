@@ -7,7 +7,7 @@ import re
 import unittest
 
 from mediawords.db import DatabaseHandler
-from mediawords.test.test_database import TestDatabaseWithSchemaTestCase
+from mediawords.test.test_database import TestDatabaseTestCase
 import mediawords.test.db
 import mediawords.test.db.create
 import mediawords.tm.fetch_topic_tweets as ftt
@@ -189,7 +189,7 @@ def test_post_matches_pattern() -> None:
     assert not ftt._post_matches_pattern({'pattern': 'foo'}, {})
 
 
-class TestFetchTopicTweets(TestDatabaseWithSchemaTestCase):
+class TestFetchTopicTweets(TestDatabaseTestCase):
     """Run database tests."""
 
     def test_fetch_topic_tweets(self) -> None:

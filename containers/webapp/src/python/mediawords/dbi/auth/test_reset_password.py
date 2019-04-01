@@ -1,10 +1,10 @@
 from mediawords.dbi.auth.register import add_user
 from mediawords.dbi.auth.reset_password import send_password_reset_token
 from mediawords.dbi.auth.user import NewUser
-from mediawords.test.test_database import TestDatabaseWithSchemaTestCase, TestDoNotSendEmails
+from mediawords.test.test_database import TestDatabaseTestCase, TestDoNotSendEmails
 
 
-class TestResetPassword(TestDatabaseWithSchemaTestCase, TestDoNotSendEmails):
+class TestResetPassword(TestDatabaseTestCase, TestDoNotSendEmails):
 
     def test_send_password_reset_token(self):
         email = 'test@user.login'

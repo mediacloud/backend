@@ -10,7 +10,7 @@ from urllib.parse import urlparse, parse_qs
 import httpretty
 
 import mediawords.test.db.create
-from mediawords.test.test_database import TestDatabaseWithSchemaTestCase
+from mediawords.test.test_database import TestDatabaseTestCase
 import mediawords.tm.fetch_link
 import mediawords.tm.fetch_twitter_urls as ftu
 
@@ -70,7 +70,7 @@ def test_split_urls_into_users_and_statuses() -> None:
     assert ftu._split_urls_into_users_and_statuses(user_urls + status_urls) == (user_urls, status_urls)
 
 
-class TestFetchTopicTweets(TestDatabaseWithSchemaTestCase):
+class TestFetchTopicTweets(TestDatabaseTestCase):
     """Run database tests."""
 
     def test_call_function_on_url_chunk(self) -> None:

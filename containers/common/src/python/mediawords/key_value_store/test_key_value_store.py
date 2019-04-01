@@ -3,10 +3,10 @@ import abc
 import pytest
 
 from mediawords.key_value_store import KeyValueStore, McKeyValueStoreException
-from mediawords.test.test_database import TestDatabaseWithSchemaTestCase
+from mediawords.test.test_database import TestDatabaseTestCase
 
 
-class TestKeyValueStoreTestCase(TestDatabaseWithSchemaTestCase, metaclass=abc.ABCMeta):
+class TestKeyValueStoreTestCase(TestDatabaseTestCase, metaclass=abc.ABCMeta):
     """Abstract test case for key-value store."""
 
     _TEST_OBJECT_ID = 12345

@@ -1,8 +1,8 @@
 from mediawords.test.db.create import create_test_medium, create_test_feed, create_download_for_feed, create_test_story
-from mediawords.test.test_database import TestDatabaseWithSchemaTestCase
+from mediawords.test.test_database import TestDatabaseTestCase
 
 
-class TestProcess(TestDatabaseWithSchemaTestCase):
+class TestProcess(TestDatabaseTestCase):
     TEST_MEDIUM_NAME = 'test medium'
     TEST_FEED_NAME = 'test feed'
     TEST_STORY_NAME = 'test story'

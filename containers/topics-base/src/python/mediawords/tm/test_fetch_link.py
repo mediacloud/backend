@@ -19,7 +19,7 @@ def testcontent_matches_topic() -> None:
     assert mediawords.tm.fetch_link.content_matches_topic('foo', {'pattern': 'bar'}, assume_match=True)
 
 
-class TestTMFetchLinkDB(mediawords.test.test_database.TestDatabaseWithSchemaTestCase):
+class TestTMFetchLinkDB(mediawords.test.test_database.TestDatabaseTestCase):
     """Run tests that require database access."""
 
     def test_fetch_url(self) -> None:

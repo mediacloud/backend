@@ -1,8 +1,8 @@
-from mediawords.test.test_database import TestDatabaseWithSchemaTestCase
+from mediawords.test.test_database import TestDatabaseTestCase
 from mediawords.util.tags import lookup_tag
 
 
-class TestTags(TestDatabaseWithSchemaTestCase):
+class TestTags(TestDatabaseTestCase):
 
     def test_lookup_tag(self):
         test_tag_set_name = 'test tag set'

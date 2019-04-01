@@ -24,7 +24,7 @@ def test_generate_medium_url_and_name_from_url() -> None:
     assert name == 'foo.com'
 
 
-class TestTMMediaDB(mediawords.test.test_database.TestDatabaseWithSchemaTestCase):
+class TestTMMediaDB(mediawords.test.test_database.TestDatabaseTestCase):
     """Run tests that require database access."""
 
     def test_normalized_urls_out_of_date(self) -> None:

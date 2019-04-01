@@ -2,7 +2,7 @@
 
 import time
 
-from mediawords.test.test_database import TestDatabaseWithSchemaTestCase
+from mediawords.test.test_database import TestDatabaseTestCase
 from mediawords.test.hash_server import HashServer
 from mediawords.util.config.common import UserAgentConfig
 from mediawords.util.web.user_agent.throttled import ThrottledUserAgent
@@ -10,7 +10,7 @@ from mediawords.util.web.user_agent.throttled import McThrottledDomainException
 import mediawords.util.web.user_agent.throttled
 
 
-class TestThrottledUserAgent(TestDatabaseWithSchemaTestCase):
+class TestThrottledUserAgent(TestDatabaseTestCase):
     """test case for ThrottledUserAgent."""
 
     def test_request(self) -> None:

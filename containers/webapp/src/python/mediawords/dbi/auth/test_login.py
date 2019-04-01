@@ -5,10 +5,10 @@ from mediawords.dbi.auth.login import login_with_email_password, McAuthLoginExce
 from mediawords.dbi.auth.profile import user_info
 from mediawords.dbi.auth.register import add_user
 from mediawords.dbi.auth.user import NewUser, CurrentUser
-from mediawords.test.test_database import TestDatabaseWithSchemaTestCase, TestDoNotSendEmails
+from mediawords.test.test_database import TestDatabaseTestCase, TestDoNotSendEmails
 
 
-class TestLogin(TestDatabaseWithSchemaTestCase, TestDoNotSendEmails):
+class TestLogin(TestDatabaseTestCase, TestDoNotSendEmails):
 
     def test_login_with_email_password(self):
         email = 'test@user.login'

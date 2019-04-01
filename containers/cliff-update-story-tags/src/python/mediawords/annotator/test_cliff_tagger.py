@@ -1,11 +1,11 @@
 from mediawords.annotator.cliff_tagger import CLIFFTagger
 from mediawords.annotator.cliff_store import CLIFFAnnotatorStore
 from mediawords.annotator.sample_data import sample_cliff_response, expected_cliff_tags
-from mediawords.test.test_database import TestDatabaseWithSchemaTestCase
+from mediawords.test.test_database import TestDatabaseTestCase
 from mediawords.util.sql import sql_now
 
 
-class TestCLIFFTagger(TestDatabaseWithSchemaTestCase):
+class TestCLIFFTagger(TestDatabaseTestCase):
 
     def test_cliff_tagger(self):
         media = self.db().create(table='media', insert_hash={

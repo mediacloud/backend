@@ -13,10 +13,10 @@ from mediawords.dbi.auth.register import (
     McAuthRegisterException,
 )
 from mediawords.dbi.auth.user import NewUser, CurrentUser, McAuthUserException
-from mediawords.test.test_database import TestDatabaseWithSchemaTestCase, TestDoNotSendEmails
+from mediawords.test.test_database import TestDatabaseTestCase, TestDoNotSendEmails
 
 
-class TestRegister(TestDatabaseWithSchemaTestCase, TestDoNotSendEmails):
+class TestRegister(TestDatabaseTestCase, TestDoNotSendEmails):
 
     def test_add_user(self):
         email = 'test@user.login'

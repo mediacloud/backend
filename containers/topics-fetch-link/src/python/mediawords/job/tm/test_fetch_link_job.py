@@ -4,7 +4,7 @@ import mediawords.test.db.create
 import mediawords.test.test_database
 
 
-class TestFetchLinJobkDB(mediawords.test.test_database.TestDatabaseWithSchemaTestCase):
+class TestFetchLinJobkDB(mediawords.test.test_database.TestDatabaseTestCase):
     """Run tests that require database access."""
 
     def test_fetch_link_job(self) -> None:

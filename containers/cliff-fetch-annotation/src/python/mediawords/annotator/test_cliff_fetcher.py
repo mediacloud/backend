@@ -3,14 +3,14 @@ from typing import Union
 from mediawords.annotator.cliff_fetcher import CLIFFAnnotatorFetcher
 from mediawords.annotator.sample_data import sample_cliff_response
 from mediawords.test.hash_server import HashServer
-from mediawords.test.test_database import TestDatabaseWithSchemaTestCase
+from mediawords.test.test_database import TestDatabaseTestCase
 from mediawords.util.config.cliff_fetcher import CLIFFFetcherConfig
 from mediawords.util.parse_json import encode_json
 from mediawords.util.network import random_unused_port
 from mediawords.util.sql import sql_now
 
 
-class TestCLIFFAnnotator(TestDatabaseWithSchemaTestCase):
+class TestCLIFFAnnotator(TestDatabaseTestCase):
 
     def test_cliff_annotator(self):
         media = self.db().create(table='media', insert_hash={

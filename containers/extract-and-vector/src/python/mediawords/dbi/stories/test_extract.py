@@ -9,10 +9,10 @@ from mediawords.test.db.create import (
     create_test_story,
     create_download_for_story,
 )
-from mediawords.test.test_database import TestDatabaseWithSchemaTestCase
+from mediawords.test.test_database import TestDatabaseTestCase
 
 
-class TestExtract(TestDatabaseWithSchemaTestCase):
+class TestExtract(TestDatabaseTestCase):
     TEST_MEDIUM_NAME = 'test medium'
     TEST_FEED_NAME = 'test feed'
     TEST_STORY_NAME = 'test story'
