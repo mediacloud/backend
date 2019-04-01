@@ -7,7 +7,7 @@
         <option name="command" value="" />
         <option name="containerName" value="mc_crawler" />
         <option name="entrypoint" value="" />
-        <option name="imageTag" value="dockermediacloud/mediacloud-crawler" />
+        <option name="imageTag" value="dockermediacloud/mediacloud-crawler:latest" />
         <option name="commandLineOptions" value="" />
         <option name="sourceFilePath" value="Dockerfile" />
       </settings>
