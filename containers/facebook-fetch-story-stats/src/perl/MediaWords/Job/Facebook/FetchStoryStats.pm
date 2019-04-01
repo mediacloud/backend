@@ -1,11 +1,9 @@
+#!mjm_worker.pl
+
 package MediaWords::Job::Facebook::FetchStoryStats;
 
 #
 # Fetch story's share count statistics via Facebook's Graph API
-#
-# Start this worker script by running:
-#
-# ./script/run_in_env.sh mjm_worker.pl lib/MediaWords/Job/Facebook/FetchStoryStats.pm
 #
 
 use strict;

@@ -1,11 +1,9 @@
+#!mjm_worker.pl
+
 package MediaWords::Job::Facebook::ImportSolrDataForTesting;
 
 #
 # Import test data to Solr; called by tests
-#
-# Start this worker script by running:
-#
-# ./script/run_in_env.sh mjm_worker.pl lib/MediaWords/Job/ImportSolrDataForTesting.pm
 #
 
 use strict;

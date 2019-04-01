@@ -1,11 +1,9 @@
+#!mjm_worker.pl
+
 package MediaWords::Job::RescrapeMedia;
 
 #
 # Search and add new feeds for media without them.
-#
-# Start this worker script by running:
-#
-# ./script/run_in_env.sh mjm_worker.pl lib/MediaWords/Job/RescrapeMedia.pm
 #
 # FIXME some output of the job is still logged to STDOUT and not to the log:
 #

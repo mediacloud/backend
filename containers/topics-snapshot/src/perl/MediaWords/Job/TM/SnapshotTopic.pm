@@ -1,11 +1,9 @@
+#!mjm_worker.pl
+
 package MediaWords::Job::TM::SnapshotTopic;
 
 #
 # Snapshot various topic queries to csv and build a gexf file
-#
-# Start this worker script by running:
-#
-# ./script/run_in_env.sh mjm_worker.pl lib/MediaWords/Job/TM/SnapshotTopic.pm
 #
 
 use strict;

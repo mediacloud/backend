@@ -1,3 +1,5 @@
+#!mjm_worker.pl
+
 package MediaWords::Job::TM::MineTopic;
 
 #
@@ -15,10 +17,6 @@ package MediaWords::Job::TM::MineTopic;
 #   only necessary to rerun new dedup code
 #
 # * import_only - only run import_seed_urls and import_solr_seed and return
-#
-# Start this worker script by running:
-#
-# ./script/run_in_env.sh mjm_worker.pl lib/MediaWords/Job/TM/MineTopic.pm
 #
 
 use strict;

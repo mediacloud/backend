@@ -4,11 +4,11 @@
 
 To start a single instance of a worker, run:
 
-    ./script/run_in_env.sh mjm_worker.pl lib/MediaWords/Job/RescrapeMedia.pm
+    mjm_worker.pl lib/MediaWords/Job/RescrapeMedia.pm
 
 To start a single instance of *all* workers in a subdirectory, run:
 
-    ./script/run_in_env.sh mjm_worker.pl lib/MediaWords/Job/
+    mjm_worker.pl lib/MediaWords/Job/
 
 
 ## Running a job
