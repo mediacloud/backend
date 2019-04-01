@@ -19,6 +19,8 @@ COPY src/perl/ /usr/share/perl5/
 # Copy Python sources
 COPY src/python/ /usr/lib/python3/dist-packages/
 
+# Copy extractor worker
+COPY bin/extract_and_vector.py /
+
 # FIXME
-#ENTRYPOINT ["/crawl.pl"]
 CMD ["bash", "-c", "while true; do echo extract-and-vector...; sleep 1; done"]
