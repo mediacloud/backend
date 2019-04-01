@@ -51,6 +51,7 @@ class NYTLabelsAnnotatorFetcher(JSONAnnotationFetcher):
 
         return request
 
+    # noinspection PyMethodMayBeStatic
     def _fetched_annotation_is_valid(self, annotation: Union[dict, list]) -> bool:
 
         annotation = decode_object_from_bytes_if_needed(annotation)
