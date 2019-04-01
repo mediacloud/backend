@@ -1098,6 +1098,33 @@ services:
                     memory: 2G
 
     #
+    # Upgrade database schema
+    # -----------------------
+    #
+    upgrade_database_schema:
+        build:
+            context: ./upgrade-database-schema/
+        image: dockermediacloud/mediacloud-upgrade-database-schema:latest
+        container_name: mc_upgrade_database_schema
+        depends_on:
+            - postgresql_pgbouncer
+        networks:
+            # Upgrades PostgreSQL schema
+            - net_postgresql
+        deploy:
+            # Only a single DDL update script
+            replicas: 1
+            # Run only once, don't attempt to restart it
+            restart_policy:
+                condition: none
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: 256M
+
+    #
     # Fetch sitemap pages from media
     # ------------------------------
     #
