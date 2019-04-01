@@ -19,9 +19,6 @@ RUN \
     rm -rf /root/.cpanm/ && \
     true
 
-# Copy Perl sources
-COPY src/perl/ /usr/share/perl5/
-
 # Install Perl dependencies
 COPY src/cpanfile /var/tmp/
 RUN \
@@ -36,6 +33,9 @@ RUN \
     rm cpanfile && \
     rm -rf /root/.cpanm/ && \
     true
+
+# Copy Perl sources
+COPY src/perl/ /usr/share/perl5/
 
 # Copy Python sources
 COPY src/python/ /usr/lib/python3/dist-packages/
