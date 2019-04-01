@@ -40,6 +40,7 @@ def test_wait_for_tcp_port_to_open():
     # Open port
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.bind(('localhost', random_port))
+    # noinspection PyArgumentList
     s.listen()
     assert wait_for_tcp_port_to_open(port=random_port, retries=2) is True
 
@@ -55,6 +56,7 @@ def test_wait_for_tcp_port_to_close():
     # Open port
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.bind(('localhost', random_port))
+    # noinspection PyArgumentList
     s.listen()
     assert wait_for_tcp_port_to_close(port=random_port, retries=2) is False
 

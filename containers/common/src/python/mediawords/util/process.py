@@ -204,7 +204,9 @@ def run_alone(isolated_function: Callable, *args, **kwargs) -> Any:
     # Catch SIGINTs and SIGTERMs while running the function to be able to remove lock file afterwards
     original_sigint_handler = signal.getsignal(signal.SIGINT)
     original_sigterm_handler = signal.getsignal(signal.SIGTERM)
+    # noinspection PyTypeChecker
     signal.signal(signal.SIGINT, __remove_run_alone_lock_file)
+    # noinspection PyTypeChecker
     signal.signal(signal.SIGTERM, __remove_run_alone_lock_file)
     atexit.register(__remove_run_alone_lock_file, signum=0, no_exception=True)
 

@@ -1,3 +1,5 @@
+from typing import Dict
+
 from mediawords.util.config.common import CommonConfig
 from mediawords.util.parse_json import encode_json, decode_json
 from mediawords.util.perl import decode_object_from_bytes_if_needed
@@ -7,6 +9,7 @@ from mediawords.util.web.user_agent import Request, UserAgent
 class McExtractArticleFromPageException(Exception):
     """extract_article_html_from_page_html() exception."""
     pass
+
 
 def extract_article_html_from_page_html(content: str) -> Dict[str, str]:
     content = decode_object_from_bytes_if_needed(content)

@@ -1,4 +1,3 @@
-import mediawords.languages.en
 from mediawords.util.parse_html import (
     link_canonical_url_from_html,
     meta_refresh_url_from_html,
@@ -7,7 +6,6 @@ from mediawords.util.parse_html import (
     _sententize_block_level_tags,
 )
 from mediawords.util.log import create_logger
-import mediawords.util.paths
 
 log = create_logger(__name__)
 
