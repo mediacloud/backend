@@ -16,15 +16,7 @@ class McNYTLabelsUpdateStoryTagsJobException(McAbstractJobException):
 
 
 class NYTLabelsUpdateStoryTagsJob(AbstractJob):
-    """
-
-    Create / update story tags using NYTLabels annotation
-
-    Start this worker script by running:
-
-        ./script/run_in_env.sh ./mediacloud/mediawords/job/nyt_labels/update_story_tags.py
-
-    """
+    """Create / update story tags using NYTLabels annotation."""
 
     @classmethod
     def run_job(cls, stories_id: int) -> None:

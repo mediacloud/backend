@@ -20,15 +20,9 @@ class McFetchTwitterUrlsJobException(McAbstractJobException):
 
 
 class FetchTwitterUrlsJob(AbstractJob):
-    """
-    Fetch a set of twitter urls from the twitter api and add each as a topic story if it matches.
+    """Fetch a set of twitter urls from the twitter api and add each as a topic story if it matches.
 
-    All of the interesting logic is in mediawords.tm.fetch_twitter_urls.
-
-    Start this worker script by running:
-
-        ./script/run_in_env.sh ./mediacloud/mediawords/job/tm/fetch_link_job.py
-    """
+    All of the interesting logic is in mediawords.tm.fetch_twitter_urls."""
 
     @classmethod
     def run_job(cls, topic_fetch_urls_ids: list):

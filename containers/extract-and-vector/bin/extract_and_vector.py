@@ -17,15 +17,7 @@ class McExtractAndVectorException(McAbstractJobException):
 
 
 class ExtractAndVectorJob(AbstractJob):
-    """
-
-    Extract, vector and process a story.
-
-    Start this worker script by running:
-
-        ./script/run_in_env.sh ./mediacloud/mediawords/job/extract_and_vector.py
-
-    """
+    """Extract, vector and process a story."""
 
     @classmethod
     def run_job(cls, stories_id: int, use_cache: bool = False, use_existing: bool = False) -> None:

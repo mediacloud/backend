@@ -15,15 +15,7 @@ class McCLIFFUpdateStoryTagsJobException(McAbstractJobException):
 
 
 class CLIFFUpdateStoryTagsJob(AbstractJob):
-    """
-
-    Create / update story tags using CLIFF annotation
-
-    Start this worker script by running:
-
-        ./script/run_in_env.sh ./mediacloud/mediawords/job/cliff/update_story_tags.py
-
-    """
+    """Create / update story tags using CLIFF annotation."""
 
     @classmethod
     def run_job(cls, stories_id: int) -> None:

@@ -10,15 +10,7 @@ log = create_logger(__name__)
 
 
 class FetchMediaPages(AbstractJob):
-    """
-
-    Fetch all media's pages (news stories and not) from XML sitemap.
-
-    Start this worker script by running:
-
-        ./script/run_in_env.sh ./mediacloud/mediawords/job/sitemap/fetch_media_pages.py
-
-    """
+    """Fetch all media's pages (news stories and not) from XML sitemap."""
 
     @classmethod
     def run_job(cls, media_id: int) -> None:

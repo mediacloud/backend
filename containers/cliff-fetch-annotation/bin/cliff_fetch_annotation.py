@@ -16,15 +16,7 @@ class McCLIFFFetchAnnotationJobException(McAbstractJobException):
 
 
 class CLIFFFetchAnnotationJob(AbstractJob):
-    """
-
-    Fetch story's CLIFF annotation.
-
-    Start this worker script by running:
-
-        ./script/run_in_env.sh ./mediacloud/mediawords/job/cliff/fetch_annotation.py
-
-    """
+    """Fetch story's CLIFF annotation."""
 
     @classmethod
     def run_job(cls, stories_id: int) -> None:

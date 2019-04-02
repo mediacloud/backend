@@ -15,15 +15,7 @@ class McNYTLabelsFetchAnnotationJobException(McAbstractJobException):
 
 
 class NYTLabelsFetchAnnotationJob(AbstractJob):
-    """
-
-    Fetch story's NYTLabels annotation.
-
-    Start this worker script by running:
-
-        ./script/run_in_env.sh ./mediacloud/mediawords/job/nyt_labels/fetch_annotation.py
-
-    """
+    """Fetch story's NYTLabels annotation."""
 
     @classmethod
     def run_job(cls, stories_id: int) -> None:

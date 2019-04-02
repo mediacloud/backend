@@ -22,16 +22,11 @@ class McFetchLinkJobException(McAbstractJobException):
 
 
 class FetchLinkJob(AbstractJob):
-    """
-    Fetch a link for a topic and either match it to an existing story or generate a story from it.
+    """Fetch a link for a topic and either match it to an existing story or generate a story from it.
 
-    Almost all of the interesting functionality here happens in mediawords.tm.fetch_link.fetch_topic_url().  The code
-    here just deals with routing, including requeueing responses throttled by mediawords.util.web.user_agent.throttled.
-
-    Start this worker script by running:
-
-        ./script/run_in_env.sh ./mediacloud/mediawords/job/tm/fetch_link_job.py
-    """
+    Almost all of the interesting functionality here happens in mediawords.tm.fetch_link.fetch_topic_url().
+    The code here just deals with routing, including requeueing responses throttled by
+    mediawords.util.web.user_agent.throttled."""
 
     @classmethod
     def run_job(

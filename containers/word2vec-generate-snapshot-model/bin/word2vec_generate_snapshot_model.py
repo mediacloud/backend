@@ -17,15 +17,7 @@ class McWord2vecGenerateSnapshotModelException(McAbstractJobException):
 
 
 class Word2vecGenerateSnapshotModelJob(AbstractJob):
-    """
-
-    Generate word2vec model for a given snapshot.
-
-    Start this worker script by running:
-
-        ./script/run_in_env.sh ./mediacloud/mediawords/job/word2vec/generate_snapshot_model.py
-
-    """
+    """Generate word2vec model for a given snapshot."""
 
     @classmethod
     def run_job(cls, snapshots_id: int) -> None:

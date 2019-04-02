@@ -20,13 +20,7 @@ class McExtractStoryLinksJobException(McAbstractJobException):
 
 
 class ExtractStoryLinksJob(AbstractJob):
-    """
-    Extract links from a story for a topic and insert the resulting links into topic_links.
-
-    Start this worker script by running:
-
-        ./script/run_in_env.sh ./mediacloud/mediawords/job/tm/extract_story_links.py
-    """
+    """Extract links from a story for a topic and insert the resulting links into topic_links."""
 
     @classmethod
     def run_job(cls, stories_id: int, topics_id: int) -> None:
