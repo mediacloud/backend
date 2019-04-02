@@ -29,6 +29,7 @@ use MediaWords::TM::FetchTopicTweets;
 use MediaWords::TM::Stories;
 use MediaWords::DB;
 use MediaWords::DBI::Stories::GuessDate;
+use MediaWords::JobManager::Job;
 use MediaWords::Solr;
 use MediaWords::Solr::Query;
 use MediaWords::Util::SQL;
@@ -843,6 +844,42 @@ SQL
     return !$null_facebook_story;
 }
 
+# add all topic stories without facebook data to the queue
+sub __add_topic_stories_to_facebook_queue($$)
+{
+    my ( $db, $topic ) = @_;
+
+    my $topics_id = $topic->{ topics_id };
+
+    my $stories = $db->query( <<END, $topics_id )->hashes;
+SELECT ss.*, cs.stories_id
+    FROM topic_stories cs
+        left join story_statistics ss on ( cs.stories_id = ss.stories_id )
+    WHERE cs.topics_id = ?
+    ORDER BY cs.stories_id
+END
+
+    unless ( scalar @{ $stories } )
+    {
+        DEBUG( "No stories found for topic '$topic->{ name }'" );
+    }
+
+    for my $ss ( @{ $stories } )
+    {
+        my $stories_id = $ss->{ stories_id };
+        my $args = { stories_id => $stories_id };
+
+        if (   $ss->{ facebook_api_error }
+            or !defined( $ss->{ facebook_api_collect_date } )
+            or !defined( $ss->{ facebook_share_count } )
+            or !defined( $ss->{ facebook_comment_count } ) )
+        {
+            DEBUG( "Adding job for story $stories_id" );
+            MediaWords::JobManager::Job::add_to_queue( 'MediaWords::Job::Facebook::FetchStoryStats', $args );
+        }
+    }
+}
+
 # send high priority jobs to fetch facebook data for all stories that don't yet have it
 sub fetch_social_media_data ($$)
 {
@@ -857,7 +894,7 @@ sub fetch_social_media_data ($$)
 
     do
     {
-        eval { MediaWords::JobManager::Job::add_topic_stories_to_queue( $db, 'MediaWords::Job::Facebook::FetchStoryStats', $topic ); };
+        eval { __add_topic_stories_to_facebook_queue( $db, $topic ); }
         ( sleep( 5 ) && INFO( 'waiting for rabbit ...' ) ) if ( error_is_amqp( $@ ) );
     } until ( !error_is_amqp( $@ ) );
 

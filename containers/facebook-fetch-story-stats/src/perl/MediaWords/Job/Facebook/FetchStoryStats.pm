@@ -65,42 +65,6 @@ sub run($;$)
     }
 }
 
-# add all topic stories without facebook data to the queue
-sub add_topic_stories_to_queue ($$;$$)
-{
-    my ( $class, $db, $topic ) = @_;
-
-    my $topics_id = $topic->{ topics_id };
-
-    my $stories = $db->query( <<END, $topics_id )->hashes;
-SELECT ss.*, cs.stories_id
-    FROM topic_stories cs
-        left join story_statistics ss on ( cs.stories_id = ss.stories_id )
-    WHERE cs.topics_id = ?
-    ORDER BY cs.stories_id
-END
-
-    unless ( scalar @{ $stories } )
-    {
-        DEBUG( "No stories found for topic '$topic->{ name }'" );
-    }
-
-    for my $ss ( @{ $stories } )
-    {
-        my $stories_id = $ss->{ stories_id };
-        my $args = { stories_id => $stories_id };
-
-        if (   $ss->{ facebook_api_error }
-            or !defined( $ss->{ facebook_api_collect_date } )
-            or !defined( $ss->{ facebook_share_count } )
-            or !defined( $ss->{ facebook_comment_count } ) )
-        {
-            DEBUG( "Adding job for story $stories_id" );
-            $class->add_to_queue( $args, 'high' );
-        }
-    }
-}
-
 no Moose;    # gets rid of scaffolding
 
 # Return package name instead of 1 or otherwise worker.pl won't know the name of the package it's loading
