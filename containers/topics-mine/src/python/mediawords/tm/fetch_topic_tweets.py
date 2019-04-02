@@ -6,7 +6,7 @@ from typing import Type, Optional, List
 import regex
 
 from mediawords.db import DatabaseHandler
-from mediawords.tm.fetch_link import content_matches_topic
+from mediawords.tm.fetch_link_utils import content_matches_topic
 from mediawords.util.log import create_logger
 from mediawords.util.parse_json import decode_json, encode_json
 from mediawords.util.web.user_agent import UserAgent

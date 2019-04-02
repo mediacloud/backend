@@ -8,15 +8,21 @@ import mediawords.test.test_database
 import mediawords.tm.fetch_link
 from mediawords.db.exceptions.handler import McUpdateByIDException
 from mediawords.util.web.user_agent.throttled import McThrottledDomainException
-
-
-def test_content_matches_topic() -> None:
-    """Test content_matches_topic()."""
-    assert mediawords.tm.fetch_link.content_matches_topic('foo', {'pattern': 'foo'})
-    assert mediawords.tm.fetch_link.content_matches_topic('FOO', {'pattern': 'foo'})
-    assert mediawords.tm.fetch_link.content_matches_topic('FOO', {'pattern': ' foo '})
-    assert not mediawords.tm.fetch_link.content_matches_topic('foo', {'pattern': 'bar'})
-    assert mediawords.tm.fetch_link.content_matches_topic('foo', {'pattern': 'bar'}, assume_match=True)
+from mediawords.tm.fetch_states import (
+    FETCH_STATE_PENDING,
+    FETCH_STATE_REQUEST_FAILED,
+    FETCH_STATE_CONTENT_MATCH_FAILED,
+    FETCH_STATE_STORY_MATCH,
+    FETCH_STATE_STORY_ADDED,
+    FETCH_STATE_PYTHON_ERROR,
+    FETCH_STATE_REQUEUED,
+    FETCH_STATE_KILLED,
+    FETCH_STATE_IGNORED,
+    FETCH_STATE_SKIPPED,
+    FETCH_STATE_TWEET_PENDING,
+    FETCH_STATE_TWEET_ADDED,
+    FETCH_STATE_TWEET_MISSING,
+)
 
 
 class TestTMFetchLinkDB(mediawords.test.test_database.TestDatabaseTestCase):
@@ -83,7 +89,7 @@ class TestTMFetchLinkDB(mediawords.test.test_database.TestDatabaseTestCase):
             'topics_id': topic['topics_id'],
             'url': 'http://0.0.0.1/foo',
             'assume_match': True,
-            'state': mediawords.tm.fetch_link.FETCH_STATE_PENDING})
+            'state': FETCH_STATE_PENDING})
 
         assert mediawords.tm.fetch_link._get_seeded_content(db, tfu) is None
 
@@ -100,7 +106,7 @@ class TestTMFetchLinkDB(mediawords.test.test_database.TestDatabaseTestCase):
 
         tfu = db.require_by_id('topic_fetch_urls', tfu['topic_fetch_urls_id'])
 
-        assert tfu['state'] == mediawords.tm.fetch_link.FETCH_STATE_STORY_ADDED
+        assert tfu['state'] == FETCH_STATE_STORY_ADDED
         assert tfu['code'] == 200
         assert tfu['stories_id'] is not None
 
@@ -147,14 +153,14 @@ class TestTMFetchLinkDB(mediawords.test.test_database.TestDatabaseTestCase):
         tfu = db.create('topic_fetch_urls', {
             'topics_id': topic['topics_id'],
             'url': fetch_url,
-            'state': mediawords.tm.fetch_link.FETCH_STATE_PENDING,
+            'state': FETCH_STATE_PENDING,
             'topic_links_id': topic_link['topic_links_id']})
 
         mediawords.tm.fetch_link.fetch_topic_url(db, tfu['topic_fetch_urls_id'], domain_timeout=0)
 
         tfu = db.require_by_id('topic_fetch_urls', tfu['topic_fetch_urls_id'])
 
-        assert tfu['state'] == mediawords.tm.fetch_link.FETCH_STATE_STORY_ADDED
+        assert tfu['state'] == FETCH_STATE_STORY_ADDED
         assert tfu['url'] == fetch_url
         assert tfu['fetch_date'][0:10] == before_fetch_date[0:10]
         assert tfu['code'] == 200
@@ -173,13 +179,13 @@ class TestTMFetchLinkDB(mediawords.test.test_database.TestDatabaseTestCase):
         tfu = db.create('topic_fetch_urls', {
             'topics_id': topic['topics_id'],
             'url': fetch_url + '/404',
-            'state': mediawords.tm.fetch_link.FETCH_STATE_PENDING})
+            'state': FETCH_STATE_PENDING})
 
         mediawords.tm.fetch_link.fetch_topic_url(db, tfu['topic_fetch_urls_id'], domain_timeout=0)
 
         tfu = db.require_by_id('topic_fetch_urls', tfu['topic_fetch_urls_id'])
 
-        assert tfu['state'] == mediawords.tm.fetch_link.FETCH_STATE_REQUEST_FAILED
+        assert tfu['state'] == FETCH_STATE_REQUEST_FAILED
         assert tfu['code'] == 404
         assert tfu['message'] == 'Not Found'
 
@@ -187,26 +193,26 @@ class TestTMFetchLinkDB(mediawords.test.test_database.TestDatabaseTestCase):
         tfu = db.create('topic_fetch_urls', {
             'topics_id': topic['topics_id'],
             'url': 'http://politicalgraveyard.com',
-            'state': mediawords.tm.fetch_link.FETCH_STATE_PENDING})
+            'state': FETCH_STATE_PENDING})
 
         mediawords.tm.fetch_link.fetch_topic_url(db, tfu['topic_fetch_urls_id'], domain_timeout=0)
 
         tfu = db.require_by_id('topic_fetch_urls', tfu['topic_fetch_urls_id'])
 
-        assert tfu['state'] == mediawords.tm.fetch_link.FETCH_STATE_IGNORED
+        assert tfu['state'] == FETCH_STATE_IGNORED
         assert tfu['code'] == 403
 
         # story match
         tfu = db.create('topic_fetch_urls', {
             'topics_id': topic['topics_id'],
             'url': fetch_url,
-            'state': mediawords.tm.fetch_link.FETCH_STATE_PENDING})
+            'state': FETCH_STATE_PENDING})
 
         mediawords.tm.fetch_link.fetch_topic_url(db, tfu['topic_fetch_urls_id'], domain_timeout=0)
 
         tfu = db.require_by_id('topic_fetch_urls', tfu['topic_fetch_urls_id'])
 
-        assert tfu['state'] == mediawords.tm.fetch_link.FETCH_STATE_STORY_MATCH
+        assert tfu['state'] == FETCH_STATE_STORY_MATCH
         assert tfu['code'] == 200
         assert tfu['stories_id'] == new_story['stories_id']
 
@@ -214,13 +220,13 @@ class TestTMFetchLinkDB(mediawords.test.test_database.TestDatabaseTestCase):
         tfu = db.create('topic_fetch_urls', {
             'topics_id': topic['topics_id'],
             'url': hs.page_url('/redirect-foo'),
-            'state': mediawords.tm.fetch_link.FETCH_STATE_PENDING})
+            'state': FETCH_STATE_PENDING})
 
         mediawords.tm.fetch_link.fetch_topic_url(db, tfu['topic_fetch_urls_id'], domain_timeout=0)
 
         tfu = db.require_by_id('topic_fetch_urls', tfu['topic_fetch_urls_id'])
 
-        assert tfu['state'] == mediawords.tm.fetch_link.FETCH_STATE_STORY_MATCH
+        assert tfu['state'] == FETCH_STATE_STORY_MATCH
         assert tfu['code'] == 200
         assert tfu['stories_id'] == new_story['stories_id']
 
@@ -231,20 +237,20 @@ class TestTMFetchLinkDB(mediawords.test.test_database.TestDatabaseTestCase):
         tfu = db.create('topic_fetch_urls', {
             'topics_id': topic['topics_id'],
             'url': hs.page_url('/bar'),
-            'state': mediawords.tm.fetch_link.FETCH_STATE_PENDING})
+            'state': FETCH_STATE_PENDING})
 
         mediawords.tm.fetch_link.fetch_topic_url(db, tfu['topic_fetch_urls_id'], domain_timeout=0)
 
         tfu = db.require_by_id('topic_fetch_urls', tfu['topic_fetch_urls_id'])
 
-        assert tfu['state'] == mediawords.tm.fetch_link.FETCH_STATE_CONTENT_MATCH_FAILED
+        assert tfu['state'] == FETCH_STATE_CONTENT_MATCH_FAILED
         assert tfu['code'] == 200
 
         # domain throttle
         tfu = db.create('topic_fetch_urls', {
             'topics_id': topic['topics_id'],
             'url': hs.page_url('/throttle'),
-            'state': mediawords.tm.fetch_link.FETCH_STATE_PENDING})
+            'state': FETCH_STATE_PENDING})
 
         self.assertRaises(
             McThrottledDomainException,
@@ -257,13 +263,13 @@ class TestTMFetchLinkDB(mediawords.test.test_database.TestDatabaseTestCase):
             'topics_id': topic['topics_id'],
             'url': hs.page_url('/redirect'),
             'assume_match': True,
-            'state': mediawords.tm.fetch_link.FETCH_STATE_PENDING})
+            'state': FETCH_STATE_PENDING})
 
         mediawords.tm.fetch_link.fetch_topic_url(db, tfu['topic_fetch_urls_id'], domain_timeout=0)
 
         tfu = db.require_by_id('topic_fetch_urls', tfu['topic_fetch_urls_id'])
 
-        assert tfu['state'] == mediawords.tm.fetch_link.FETCH_STATE_STORY_ADDED
+        assert tfu['state'] == FETCH_STATE_STORY_ADDED
         assert tfu['code'] == 200
         assert tfu['stories_id'] is not None
 
@@ -276,20 +282,20 @@ class TestTMFetchLinkDB(mediawords.test.test_database.TestDatabaseTestCase):
         tfu = db.create('topic_fetch_urls', {
             'topics_id': topic['topics_id'],
             'url': hs.page_url('/ignore'),
-            'state': mediawords.tm.fetch_link.FETCH_STATE_STORY_MATCH})
+            'state': FETCH_STATE_STORY_MATCH})
 
         mediawords.tm.fetch_link.fetch_topic_url(db, tfu['topic_fetch_urls_id'], domain_timeout=0)
 
         tfu = db.require_by_id('topic_fetch_urls', tfu['topic_fetch_urls_id'])
 
-        assert tfu['state'] == mediawords.tm.fetch_link.FETCH_STATE_STORY_MATCH
+        assert tfu['state'] == FETCH_STATE_STORY_MATCH
 
         # try passing some content through the topic_seed_urls table
         tfu = db.create('topic_fetch_urls', {
             'topics_id': topic['topics_id'],
             'url': hs.page_url('/ignore'),
             'assume_match': True,
-            'state': mediawords.tm.fetch_link.FETCH_STATE_PENDING})
+            'state': FETCH_STATE_PENDING})
 
         tsu_content = '<title>seeded content</title>'
         db.create('topic_seed_urls', {'topics_id': topic['topics_id'], 'url': tfu['url'], 'content': tsu_content})
@@ -298,7 +304,7 @@ class TestTMFetchLinkDB(mediawords.test.test_database.TestDatabaseTestCase):
 
         tfu = db.require_by_id('topic_fetch_urls', tfu['topic_fetch_urls_id'])
 
-        assert tfu['state'] == mediawords.tm.fetch_link.FETCH_STATE_STORY_ADDED
+        assert tfu['state'] == FETCH_STATE_STORY_ADDED
         assert tfu['code'] == 200
         assert tfu['stories_id'] is not None
 
@@ -314,10 +320,10 @@ class TestTMFetchLinkDB(mediawords.test.test_database.TestDatabaseTestCase):
         topics_id = topic['topics_id']
 
         tfus = [
-            ['http://story.added', mediawords.tm.fetch_link.FETCH_STATE_STORY_ADDED],
-            ['http://story.matched', mediawords.tm.fetch_link.FETCH_STATE_STORY_MATCH],
-            ['http://request.failed', mediawords.tm.fetch_link.FETCH_STATE_REQUEST_FAILED],
-            ['http://content.match.failed', mediawords.tm.fetch_link.FETCH_STATE_CONTENT_MATCH_FAILED]
+            ['http://story.added', FETCH_STATE_STORY_ADDED],
+            ['http://story.matched', FETCH_STATE_STORY_MATCH],
+            ['http://request.failed', FETCH_STATE_REQUEST_FAILED],
+            ['http://content.match.failed', FETCH_STATE_CONTENT_MATCH_FAILED]
         ]
 
         for tfu in tfus:
@@ -337,61 +343,3 @@ class TestTMFetchLinkDB(mediawords.test.test_database.TestDatabaseTestCase):
         assert mediawords.tm.fetch_link._get_failed_url(db, topics_id, 'http://story,added') is None
         assert mediawords.tm.fetch_link._get_failed_url(db, topics_id, 'http://bogus.url') is None
         assert mediawords.tm.fetch_link._get_failed_url(db, 0, 'http://request.failed') is None
-
-    def test_try_update_topic_link_ref_stories_id(self) -> None:
-        """Test try_update_topic_link_ref_stories_id()."""
-        db = self.db()
-
-        medium = mediawords.test.db.create.create_test_medium(db, 'foo')
-        feed = mediawords.test.db.create.create_test_feed(db, label='foo', medium=medium)
-        source_story = mediawords.test.db.create.create_test_story(db, label='source story', feed=feed)
-        target_story = mediawords.test.db.create.create_test_story(db, label='target story a', feed=feed)
-
-        topic = mediawords.test.db.create.create_test_topic(db, 'foo')
-
-        db.create('topic_stories', {
-            'topics_id': topic['topics_id'],
-            'stories_id': source_story['stories_id']})
-
-        # first update should work
-        topic_link_a = db.create('topic_links', {
-            'topics_id': topic['topics_id'],
-            'stories_id': source_story['stories_id'],
-            'url': 'http://foo.com'})
-
-        topic_fetch_url_a = db.create('topic_fetch_urls', {
-            'topics_id': topic['topics_id'],
-            'url': 'http://foo.com',
-            'topic_links_id': topic_link_a['topic_links_id'],
-            'state': mediawords.tm.fetch_link.FETCH_STATE_STORY_ADDED,
-            'stories_id': target_story['stories_id']})
-
-        mediawords.tm.fetch_link.try_update_topic_link_ref_stories_id(db, topic_fetch_url_a)
-
-        topic_link_a = db.require_by_id('topic_links', topic_link_a['topic_links_id'])
-
-        assert topic_link_a['ref_stories_id'] == target_story['stories_id']
-
-        # second one should silently fail
-        topic_link_b = db.create('topic_links', {
-            'topics_id': topic['topics_id'],
-            'stories_id': source_story['stories_id'],
-            'url': 'http://foo.com'})
-
-        topic_fetch_url_b = db.create('topic_fetch_urls', {
-            'topics_id': topic['topics_id'],
-            'url': 'http://foo.com',
-            'topic_links_id': topic_link_a['topic_links_id'],
-            'state': mediawords.tm.fetch_link.FETCH_STATE_STORY_ADDED,
-            'stories_id': target_story['stories_id']})
-
-        mediawords.tm.fetch_link.try_update_topic_link_ref_stories_id(db, topic_fetch_url_b)
-
-        topic_link_b = db.require_by_id('topic_links', topic_link_b['topic_links_id'])
-
-        assert topic_link_b['ref_stories_id'] is None
-
-        # now generate an non-unique error and make sure we get an error
-        bogus_tfu = {'topic_links_id': 0, 'topics_id': 'nan', 'stories_id': 'nan'}
-        with self.assertRaises(McUpdateByIDException):
-            mediawords.tm.fetch_link.try_update_topic_link_ref_stories_id(db, bogus_tfu)

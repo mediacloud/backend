@@ -15,6 +15,22 @@ from mediawords.db.exceptions.handler import McUpdateByIDException
 from mediawords.util.log import create_logger
 from mediawords.util.network import tcp_port_is_open
 from mediawords.util.perl import decode_object_from_bytes_if_needed
+from mediawords.tm.fetch_link_utils import content_matches_topic, try_update_topic_link_ref_stories_id
+from mediawords.tm.fetch_states import (
+    FETCH_STATE_PENDING,
+    FETCH_STATE_REQUEST_FAILED,
+    FETCH_STATE_CONTENT_MATCH_FAILED,
+    FETCH_STATE_STORY_MATCH,
+    FETCH_STATE_STORY_ADDED,
+    FETCH_STATE_PYTHON_ERROR,
+    FETCH_STATE_REQUEUED,
+    FETCH_STATE_KILLED,
+    FETCH_STATE_IGNORED,
+    FETCH_STATE_SKIPPED,
+    FETCH_STATE_TWEET_PENDING,
+    FETCH_STATE_TWEET_ADDED,
+    FETCH_STATE_TWEET_MISSING,
+)
 
 from mediawords.tm.ignore_link_pattern import IGNORE_LINK_PATTERN
 from mediawords.util.url.twitter import parse_status_id_from_url, parse_screen_name_from_user_url
@@ -33,21 +49,6 @@ DEFAULT_NETWORK_DOWN_TIMEOUT = 30
 # connect to port 80 on this host to check for network connectivity
 DEFAULT_NETWORK_DOWN_HOST = 'www.google.com'
 DEFAULT_NETWORK_DOWN_PORT = 80
-
-# states indicating the result of fetch_topic_url
-FETCH_STATE_PENDING = 'pending'
-FETCH_STATE_REQUEST_FAILED = 'request failed'
-FETCH_STATE_CONTENT_MATCH_FAILED = 'content match failed'
-FETCH_STATE_STORY_MATCH = 'story match'
-FETCH_STATE_STORY_ADDED = 'story added'
-FETCH_STATE_PYTHON_ERROR = 'python error'
-FETCH_STATE_REQUEUED = 'requeued'
-FETCH_STATE_KILLED = 'killed'
-FETCH_STATE_IGNORED = 'ignored'
-FETCH_STATE_SKIPPED = 'skipped'
-FETCH_STATE_TWEET_PENDING = 'tweet pending'
-FETCH_STATE_TWEET_ADDED = 'tweet added'
-FETCH_STATE_TWEET_MISSING = 'tweet missing'
 
 
 class McTMFetchLinkException(Exception):
@@ -158,37 +159,6 @@ def _fetch_url(
             return response
 
 
-def content_matches_topic(content: str, topic: dict, assume_match: bool = False) -> bool:
-    """Test whether the content matches the topic['pattern'] regex.
-
-    Only check the first megabyte of the string to avoid the occasional very long regex check.
-
-    Arguments:
-    content - text content
-    topic - topic dict from db
-    assume_match - assume that the content matches
-
-    Return:
-    True if the content matches the topic pattern
-
-    """
-    if assume_match:
-        return True
-
-    if content is None:
-        return False
-
-    content = content[0:1024 * 1024]
-
-    # for some reason I can't reproduce in dev, in production a small number of fields come from
-    # the database into the stories fields or the text value produced in the query below in _story_matches_topic
-    # as bytes objects, which re2.search chokes on
-    if isinstance(content, bytes):
-        content = content.decode('utf8', 'backslashreplace')
-
-    return re2.search(topic['pattern'], content, re2.I | re2.X | re2.S) is not None
-
-
 def _story_matches_topic(
         db: DatabaseHandler,
         story: dict,
@@ -272,31 +242,6 @@ def _get_seeded_content(db: DatabaseHandler, topic_fetch_url: dict) -> typing.Op
         content=r[0],
         last_requested_url=topic_fetch_url['url'],
     )
-
-
-def try_update_topic_link_ref_stories_id(db: DatabaseHandler, topic_fetch_url: dict) -> None:
-    """Update the given topic link to point to the given ref_stories_id.
-
-    Use the topic_fetch_url['topic_links_id'] as the id of the topic link to update and the
-    topic_fetch_url['stories_id'] as the ref_stories_id.
-
-    There is a unique constraint on topic_links(topics_id, stories_id, ref_stories_id).  This function just does the
-    update to topic_links and catches and ignores any errors from that constraint.  Trying and failing on the
-    constraint is faster and more reliable than checking before trying (and still maybe failing on the constraint).
-    """
-    if topic_fetch_url.get('topic_links_id', None) is None:
-        return
-
-    try:
-        db.update_by_id(
-            'topic_links',
-            topic_fetch_url['topic_links_id'],
-            {'ref_stories_id': topic_fetch_url['stories_id']})
-    except McUpdateByIDException as e:
-        # the query will throw a unique constraint error if stories_id,ref_stories already exists.  it's quicker
-        # to just catch and ignore the error than to try to avoid id
-        if 'unique constraint "topic_links_scr"' not in str(e):
-            raise e
 
 
 def _get_failed_url(db: DatabaseHandler, topics_id: int, url: str) -> typing.Optional[dict]:

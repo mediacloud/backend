@@ -2,6 +2,7 @@ from mediawords.job import JobManager
 import mediawords.test.hash_server
 import mediawords.test.db.create
 import mediawords.test.test_database
+import mediawords.tm.fetch_link_states
 
 
 class TestFetchLinJobkDB(mediawords.test.test_database.TestDatabaseTestCase):
@@ -25,7 +26,7 @@ class TestFetchLinJobkDB(mediawords.test.test_database.TestDatabaseTestCase):
         tfu = db.create('topic_fetch_urls', {
             'topics_id': topic['topics_id'],
             'url': hs.page_url('/foo'),
-            'state': mediawords.tm.fetch_link.FETCH_STATE_PENDING})
+            'state': mediawords.tm.fetch_link_states.FETCH_STATE_PENDING})
 
         JobManager.run_remotely(
             name='MediaWords::Job::TM::FetchLink',
@@ -34,7 +35,7 @@ class TestFetchLinJobkDB(mediawords.test.test_database.TestDatabaseTestCase):
 
         tfu = db.require_by_id('topic_fetch_urls', tfu['topic_fetch_urls_id'])
 
-        assert tfu['state'] == mediawords.tm.fetch_link.FETCH_STATE_STORY_ADDED
+        assert tfu['state'] == mediawords.tm.fetch_link_states.FETCH_STATE_STORY_ADDED
         assert tfu['url'] == fetch_url
         assert tfu['code'] == 200
         assert tfu['stories_id'] is not None
@@ -48,7 +49,7 @@ class TestFetchLinJobkDB(mediawords.test.test_database.TestDatabaseTestCase):
         tfu = db.create('topic_fetch_urls', {
             'topics_id': topic['topics_id'],
             'url': hs.page_url('/throttle'),
-            'state': mediawords.tm.fetch_link.FETCH_STATE_PENDING})
+            'state': mediawords.tm.fetch_link_states.FETCH_STATE_PENDING})
 
         JobManager.run_remotely(
             name='MediaWords::Job::TM::FetchLink',
@@ -57,4 +58,4 @@ class TestFetchLinJobkDB(mediawords.test.test_database.TestDatabaseTestCase):
         )
 
         tfu = db.require_by_id('topic_fetch_urls', tfu['topic_fetch_urls_id'])
-        assert tfu['state'] == mediawords.tm.fetch_link.FETCH_STATE_REQUEUED
+        assert tfu['state'] == mediawords.tm.fetch_link_states.FETCH_STATE_REQUEUED

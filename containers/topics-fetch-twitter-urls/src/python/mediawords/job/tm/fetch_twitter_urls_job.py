@@ -52,7 +52,7 @@ class FetchTwitterUrlsJob(AbstractJob):
                     where topic_fetch_urls_id = any(%(c)s)
                 """,
                 {
-                    'a': mediawords.tm.fetch_link.FETCH_STATE_PYTHON_ERROR,
+                    'a': mediawords.tm.fetch_link_states.FETCH_STATE_PYTHON_ERROR,
                     'b': traceback.format_exc(),
                     'c': topic_fetch_urls_ids
                 })

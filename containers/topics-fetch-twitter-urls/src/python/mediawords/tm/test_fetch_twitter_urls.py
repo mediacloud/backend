@@ -11,7 +11,7 @@ import httpretty
 
 import mediawords.test.db.create
 from mediawords.test.test_database import TestDatabaseTestCase
-import mediawords.tm.fetch_link
+import mediawords.tm.fetch_link_states
 import mediawords.tm.fetch_twitter_urls as ftu
 
 from mediawords.util.log import create_logger
@@ -101,7 +101,7 @@ class TestFetchTopicTweets(TestDatabaseTestCase):
 
         [error_count] = db.query(
             "select count(*) from topic_fetch_urls where state = %(a)s",
-            {'a': mediawords.tm.fetch_link.FETCH_STATE_PYTHON_ERROR}).flat()
+            {'a': mediawords.tm.fetch_link_states.FETCH_STATE_PYTHON_ERROR}).flat()
 
         assert error_count == ftu.URLS_CHUNK_SIZE * 2
 

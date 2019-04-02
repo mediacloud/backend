@@ -6,7 +6,8 @@ import traceback
 from mediawords.db.handler import DatabaseHandler
 import mediawords.tm.domains
 from mediawords.util.url.twitter import parse_status_id_from_url, parse_screen_name_from_user_url
-from mediawords.tm.fetch_link import (
+from mediawords.tm.fetch_link_utils import content_matches_topic, try_update_topic_link_ref_stories_id
+from mediawords.tm.fetch_link_states import (
     FETCH_STATE_TWEET_MISSING,
     FETCH_STATE_TWEET_ADDED,
     FETCH_STATE_CONTENT_MATCH_FAILED,
@@ -96,7 +97,7 @@ def _add_user_story(db: DatabaseHandler, topic: dict, user: dict, topic_fetch_ur
 
     for topic_fetch_url in topic_fetch_urls:
         topic_fetch_url = _log_tweet_added(db, topic_fetch_url, story)
-        mediawords.tm.fetch_link.try_update_topic_link_ref_stories_id(db, topic_fetch_url)
+        mediawords.tm.fetch_link_utils.try_update_topic_link_ref_stories_id(db, topic_fetch_url)
 
     # twitter user pages are undateable because there is never a consistent version of the page
     undateable_tag = _get_undateable_tag(db)
@@ -132,7 +133,7 @@ def _try_fetch_users_chunk(db: DatabaseHandler, topic: dict, topic_fetch_urls: L
             raise KeyError("can't find user '%s' in urls: %s" % (user['screen_name'], str(screen_names)))
 
         content = "%s %s %s" % (user['name'], user['screen_name'], user['description'])
-        if mediawords.tm.fetch_link.content_matches_topic(content, topic):
+        if mediawords.tm.fetch_link_utils_utils.content_matches_topic(content, topic):
             _add_user_story(db, topic, user, topic_fetch_urls)
         else:
             [_log_content_match_failed(db, u) for u in topic_fetch_urls]
@@ -155,7 +156,7 @@ def _add_tweet_story(db: DatabaseHandler, topic: dict, tweet: dict, topic_fetch_
 
     for topic_fetch_url in topic_fetch_urls:
         topic_fetch_url = _log_tweet_added(db, topic_fetch_url, story)
-        mediawords.tm.fetch_link.try_update_topic_link_ref_stories_id(db, topic_fetch_url)
+        mediawords.tm.fetch_link_utils.try_update_topic_link_ref_stories_id(db, topic_fetch_url)
 
     urls = get_tweet_urls(tweet)
     for url in urls:
@@ -198,7 +199,7 @@ def _try_fetch_tweets_chunk(db: DatabaseHandler, topic: dict, topic_fetch_urls: 
         except KeyError:
             raise KeyError("can't find tweet '%s' in ids: %s" % (tweet['id'], str(status_ids)))
 
-        if mediawords.tm.fetch_link.content_matches_topic(tweet['text'], topic):
+        if mediawords.tm.fetch_link_utils.content_matches_topic(tweet['text'], topic):
             _add_tweet_story(db, topic, tweet, topic_fetch_urls)
         else:
             [_log_content_match_failed(db, u) for u in topic_fetch_urls]
