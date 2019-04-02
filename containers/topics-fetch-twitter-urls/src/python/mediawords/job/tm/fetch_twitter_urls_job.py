@@ -32,7 +32,7 @@ class FetchTwitterUrlsJob(AbstractJob):
 
     @classmethod
     def run_job(cls, topic_fetch_urls_ids: list):
-        """Call fetch_topic_url and requeue the job of the request has been domain throttled.
+        """Call fetch_twitter_urls and requeue the job of the request has been domain throttled.
 
         Arguments:
         topic_fetch_urls_ids - ids of topic_fetch_urls
