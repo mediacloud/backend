@@ -2,7 +2,6 @@
 """Topic Maapper job that fetches a link and either matches it to an existing story or generates a story from it."""
 
 import datetime
-import time
 import traceback
 import typing
 
@@ -14,9 +13,6 @@ from mediawords.util.perl import decode_object_from_bytes_if_needed
 from mediawords.util.web.user_agent.throttled import McThrottledDomainException
 
 log = create_logger(__name__)
-
-# after requeueing this many times in a rows, start sleeping one second before each requeue
-REQUEUES_UNTIL_SLEEP = 200
 
 
 class McFetchLinkJobException(McAbstractJobException):
@@ -36,8 +32,6 @@ class FetchLinkJob(AbstractJob):
 
         ./script/run_in_env.sh ./mediacloud/mediawords/job/tm/fetch_link_job.py
     """
-
-    _consecutive_requeues = 0
 
     @classmethod
     def run_job(
@@ -70,7 +64,6 @@ class FetchLinkJob(AbstractJob):
                 db=db,
                 topic_fetch_urls_id=topic_fetch_urls_id,
                 domain_timeout=domain_timeout)
-            cls._consecutive_requeues = 0
 
         except McThrottledDomainException:
             # if a domain has been throttled, just add it back to the end of the queue
@@ -83,15 +76,9 @@ class FetchLinkJob(AbstractJob):
             if not dummy_requeue:
                 JobManager.add_to_queue(name='MediaWords::Job::TM::FetchLink', topic_fetch_urls_id=topic_fetch_urls_id)
 
-            cls._consecutive_requeues += 1
-            if cls._consecutive_requeues > REQUEUES_UNTIL_SLEEP:
-                log.info("sleeping after %d consecutive retries ..." % cls._consecutive_requeues)
-                time.sleep(1)
-
         except Exception as ex:
             # all non throttled errors should get caught by the try: about, but catch again here just in case
             log.error("Error while fetching URL with ID {}: {}".format(topic_fetch_urls_id, str(ex)))
-            cls._consecutive_requeues = 0
             update = {
                 'state': mediawords.tm.fetch_link.FETCH_STATE_PYTHON_ERROR,
                 'fetch_date': datetime.datetime.now(),

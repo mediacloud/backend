@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 
-import time
-
 from mediawords.db import connect_to_db
 from mediawords.dbi.stories.extractor_arguments import PyExtractorArguments
 from mediawords.dbi.stories.extract import extract_and_process_story
@@ -29,12 +27,6 @@ class ExtractAndVectorJob(AbstractJob):
 
     """
 
-    # Sleep for one second if there are more than this number of consecutive requeues
-    _SLEEP_AFTER_REQUEUES = 100
-
-    # Count the number of consecutive requeues
-    _consecutive_requeues = 0
-
     @classmethod
     def run_job(cls, stories_id: int, use_cache: bool = False, use_existing: bool = False) -> None:
 
@@ -54,22 +46,8 @@ class ExtractAndVectorJob(AbstractJob):
 
         if medium_is_locked(db=db, media_id=story['media_id']):
             log.warning("Requeueing job for story {} in locked medium {}...".format(stories_id, story['media_id']))
-            ExtractAndVectorJob._consecutive_requeues += 1
-
-            # Prevent spamming these requeue events if the locked media source is the only one in the queue
-            if ExtractAndVectorJob._consecutive_requeues > ExtractAndVectorJob._SLEEP_AFTER_REQUEUES:
-                log.warning(
-                    "Story extraction job has been requeued more than {} times, waiting before requeueing...".format(
-                        ExtractAndVectorJob._consecutive_requeues
-                    )
-                )
-                time.sleep(1)
-
             JobManager.add_to_queue(name='MediaWords::Job::ExtractAndVector', stories_id=stories_id)
-
             return
-
-        ExtractAndVectorJob._consecutive_requeues = 0
 
         log.info("Extracting story {}...".format(stories_id))
 
