@@ -4,9 +4,9 @@
       <settings>
         <option name="buildCliOptions" value="" />
         <option name="command" value="" />
-        <option name="containerName" value="mc_extract_article_from_html" />
+        <option name="containerName" value="mc_extract_article_from_page" />
         <option name="entrypoint" value="" />
-        <option name="imageTag" value="dockermediacloud/mediacloud-extract-article-from-html:latest" />
+        <option name="imageTag" value="dockermediacloud/mediacloud-extract-article-from-page:latest" />
         <option name="commandLineOptions" value="" />
         <option name="sourceFilePath" value="Dockerfile" />
       </settings>

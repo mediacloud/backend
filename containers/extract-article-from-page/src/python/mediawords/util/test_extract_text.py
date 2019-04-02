@@ -4,7 +4,7 @@ import timeout_decorator
 
 from mediawords.util.extract_text import (
     extractor_name,
-    extract_article_from_html,
+    extract_article_from_page,
     replace_control_nonprintable_characters,
 )
 
@@ -19,16 +19,16 @@ def test_extractor_name():
 
 
 # noinspection SpellCheckingInspection
-def test_extract_article_from_html():
-    assert extract_article_from_html('') == ''
+def test_extract_article_from_page():
+    assert extract_article_from_page('') == ''
     # noinspection PyTypeChecker
-    assert extract_article_from_html(None) == ''
+    assert extract_article_from_page(None) == ''
 
     # No HTML
     input_html = 'Kim Kardashian'
     expected_title = ''
     expected_summary = '<body id="readabilityBody"><p>Kim Kardashian</p></body>'
-    extracted_text = extract_article_from_html(input_html)
+    extracted_text = extract_article_from_page(input_html)
     assert extracted_text == "%s\n\n%s" % (expected_title, expected_summary)
 
     # Simple HTML 5
@@ -102,7 +102,7 @@ def test_extract_article_from_html():
 </body>
 </html>"""
 
-    extracted_text = extract_article_from_html(input_html)
+    extracted_text = extract_article_from_page(input_html)
 
     assert re.match(
         r"""
@@ -129,11 +129,11 @@ def test_replace_control_nonprintable_characters():
 
 
 @timeout_decorator.timeout(seconds=5, use_signals=False)
-def test_extract_article_from_html_null_bytes():
+def test_extract_article_from_page_null_bytes():
     null_bytes = '\x00' * 1024 * 1024 * 5
     html = '<html><body><p>foo' + null_bytes + '</p></body></html>'
 
-    extracted_text = extract_article_from_html(html)
+    extracted_text = extract_article_from_page(html)
 
     assert re.search(r'foo', extracted_text, flags=re.X)
 
@@ -141,32 +141,32 @@ def test_extract_article_from_html_null_bytes():
 # make sure string with very long space range does not hang the extractor (triggered by a bug in
 # readability for which we added a work around in extract_text.py)
 @timeout_decorator.timeout(seconds=5, use_signals=False)
-def test_extract_article_from_html_long_space():
+def test_extract_article_from_page_long_space():
     long_space = ' ' * 1000000
     html = '<html><body><p>foo' + long_space + '</p></body></html>'
 
-    extracted_text = extract_article_from_html(html)
+    extracted_text = extract_article_from_page(html)
 
     assert re.search(r'foo', extracted_text, flags=re.X)
 
 
 # Try out with different kinds of whitespace in a single sequence
 @timeout_decorator.timeout(seconds=5, use_signals=False)
-def test_extract_article_from_html_long_varied_whitespace():
+def test_extract_article_from_page_long_varied_whitespace():
     long_space = ' \n\t\r' * 1000000
     html = '<html><body><p>foo' + long_space + '</p></body></html>'
 
-    extracted_text = extract_article_from_html(html)
+    extracted_text = extract_article_from_page(html)
 
     assert re.search(r'foo', extracted_text, flags=re.X)
 
 
 # Try out with different kinds of whitespace in a single sequence
 @timeout_decorator.timeout(seconds=5, use_signals=False)
-def test_extract_article_from_html_nonprintable_characters():
+def test_extract_article_from_page_nonprintable_characters():
     long_space = '\x00\x01\x02 ' * 1000000
     html = '<html><body><p>foo' + long_space + '</p></body></html>'
 
-    extracted_text = extract_article_from_html(html)
+    extracted_text = extract_article_from_page(html)
 
     assert re.search(r'foo', extracted_text, flags=re.X)

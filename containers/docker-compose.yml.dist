@@ -146,11 +146,11 @@ services:
     # Extract article HTML from page HTML
     # -----------------------------------
     #
-    extract_article_from_html:
+    extract_article_from_page:
         build:
-            context: ./extract-article-from-html/
-        image: dockermediacloud/mediacloud-extract-article-from-html:latest
-        container_name: mc_extract_article_from_html
+            context: ./extract-article-from-page/
+        image: dockermediacloud/mediacloud-extract-article-from-page:latest
+        container_name: mc_extract_article_from_page
         deploy:
             # Worker count
             replicas: 8
@@ -174,7 +174,7 @@ services:
         image: dockermediacloud/mediacloud-extract-and-vector:latest
         container_name: mc_extract_and_vector
         depends_on:
-            - extract_article_from_html
+            - extract_article_from_page
             - crawler
             - postgresql_pgbouncer
             - rabbitmq_server
@@ -922,7 +922,7 @@ services:
         image: dockermediacloud/mediacloud-topics-extract-story-links:latest
         container_name: mc_topics_extract_story_links
         depends_on:
-            - extract_article_from_html
+            - extract_article_from_page
         networks:
             # Fetches / stores topic links in PostgreSQL
             - net_postgresql

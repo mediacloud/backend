@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/extract-article-from-html.iml" filepath="$PROJECT_DIR$/.idea/extract-article-from-html.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/extract-article-from-page.iml" filepath="$PROJECT_DIR$/.idea/extract-article-from-page.iml" />
     </modules>
   </component>
 </project>

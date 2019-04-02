@@ -30,7 +30,7 @@ from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib.parse import urlparse
 
-from mediawords.util.extract_text import extract_article_from_html, extractor_name
+from mediawords.util.extract_text import extract_article_from_page, extractor_name
 from mediawords.util.parse_json import encode_json, decode_json
 from mediawords.util.log import create_logger
 
@@ -117,7 +117,7 @@ class ServerHandler(BaseHTTPRequestHandler):
         html = body["html"]
 
         try:
-            extracted_html = extract_article_from_html(html)
+            extracted_html = extract_article_from_page(html)
         except Exception as ex:
             return self.__error_response(
                 status=HTTPStatus.BAD_REQUEST.value,

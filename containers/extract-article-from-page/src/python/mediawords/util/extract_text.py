@@ -65,7 +65,7 @@ def extractor_name():
     return '%s-%s' % (readability_module, readability_version)
 
 
-def extract_article_from_html(html: str) -> str:
+def extract_article_from_page(html: str) -> str:
     """Extract article HTML from a full HTML file."""
     # FIXME move HTML stripping here too
     html = decode_object_from_bytes_if_needed(html)

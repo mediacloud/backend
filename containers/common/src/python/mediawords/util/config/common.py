@@ -312,5 +312,5 @@ class CommonConfig(object):
     @staticmethod
     def extractor_api_url() -> str:
         """URL of the extractor API."""
-        # "mc_extract_article_from_html" container's name from docker-compose.yml; will round-robin between servers
-        return "http://mc_extract_article_from_html/extract"
+        # "mc_extract_article_from_page" container's name from docker-compose.yml; will round-robin between servers
+        return "http://mc_extract_article_from_page/extract"
