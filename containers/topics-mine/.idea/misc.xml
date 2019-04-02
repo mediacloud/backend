@@ -6,5 +6,5 @@
   <component name="NodePackageJsonFileManager">
     <packageJsonPaths />
   </component>
-  <component name="ProjectRootManager" version="2" project-jdk-name="Remote Python 3.7.3 Docker (dockermediacloud/mediacloud-topics-snapshot:latest)" project-jdk-type="Python SDK" />
+  <component name="ProjectRootManager" version="2" project-jdk-name="Remote Python 3.7.3 Docker (dockermediacloud/mediacloud-topics-mine:latest)" project-jdk-type="Python SDK" />
 </project>
