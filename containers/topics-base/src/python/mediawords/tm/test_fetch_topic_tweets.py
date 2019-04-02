@@ -1,20 +1,21 @@
 """test fetch_topic_tweets."""
 
 import datetime
-import os
 import random
 import re
-import unittest
 
 from mediawords.db import DatabaseHandler
+from mediawords.test.db.create import create_test_topic
 from mediawords.test.test_database import TestDatabaseTestCase
-import mediawords.test.db
-import mediawords.test.db.create
-import mediawords.tm.fetch_topic_tweets as ftt
-import mediawords.util.paths
-import mediawords.util.twitter
 from mediawords.util.log import create_logger
 from mediawords.util.parse_json import decode_json
+
+from mediawords.tm.fetch_topic_tweets import (
+    AbstractCrimsonHexagon,
+    AbstractTwitter,
+    fetch_topic_tweets,
+    _post_matches_pattern,
+)
 
 logger = create_logger(__name__)
 
@@ -47,7 +48,7 @@ MIN_TEST_TWITTER_USER_LENGTH = 3
 TEST_MONITOR_ID = 4667493813
 
 
-class MockCrimsonHexagon(ftt.AbstractCrimsonHexagon):
+class MockCrimsonHexagon(AbstractCrimsonHexagon):
     """Mock the CrimsonHexagon class in fetch_topic_tweets to return test data."""
 
     @staticmethod
@@ -82,8 +83,8 @@ class MockCrimsonHexagon(ftt.AbstractCrimsonHexagon):
         return data
 
 
-class MockTwitter(ftt.AbstractTwitter):
-    """Mock the Twitter class in ftt.to return test data."""
+class MockTwitter(AbstractTwitter):
+    """Mock the Twitter class in to return test data."""
 
     @staticmethod
     def fetch_100_tweets(ids: list) -> list:
@@ -119,7 +120,7 @@ class MockTwitter(ftt.AbstractTwitter):
 def get_test_date_range() -> tuple:
     """Return either 2016-01-01 - 2016-01-01 + LOCAL_DATE_RANGE - 1 for local tests."""
     end_date = datetime.datetime(year=2016, month=1, day=1) + datetime.timedelta(days=LOCAL_DATE_RANGE)
-    return ('2016-01-01', end_date.strftime('%Y-%m-%d'))
+    return '2016-01-01', end_date.strftime('%Y-%m-%d')
 
 
 def validate_topic_tweets(db: DatabaseHandler, topic_tweet_day: dict) -> None:
@@ -183,10 +184,10 @@ def validate_topic_tweet_urls(db: DatabaseHandler, topic: dict) -> None:
 
 def test_post_matches_pattern() -> None:
     """Test _post_matches_pattern()."""
-    assert not ftt._post_matches_pattern({'pattern': 'foo'}, {'tweet': {'text': 'bar'}})
-    assert ftt._post_matches_pattern({'pattern': 'foo'}, {'tweet': {'text': 'foo bar'}})
-    assert ftt._post_matches_pattern({'pattern': 'foo'}, {'tweet': {'text': 'bar foo'}})
-    assert not ftt._post_matches_pattern({'pattern': 'foo'}, {})
+    assert not _post_matches_pattern({'pattern': 'foo'}, {'tweet': {'text': 'bar'}})
+    assert _post_matches_pattern({'pattern': 'foo'}, {'tweet': {'text': 'foo bar'}})
+    assert _post_matches_pattern({'pattern': 'foo'}, {'tweet': {'text': 'bar foo'}})
+    assert not _post_matches_pattern({'pattern': 'foo'}, {})
 
 
 class TestFetchTopicTweets(TestDatabaseTestCase):
@@ -195,7 +196,7 @@ class TestFetchTopicTweets(TestDatabaseTestCase):
     def test_fetch_topic_tweets(self) -> None:
         """Run fetch_topic_tweet tests with test database."""
         db = self.db()
-        topic = mediawords.test.db.create.create_test_topic(db, 'test')
+        topic = create_test_topic(db, 'test')
 
         topic = db.update_by_id('topics', topic['topics_id'], {'pattern': '.*'})
 
@@ -205,7 +206,7 @@ class TestFetchTopicTweets(TestDatabaseTestCase):
         topic['ch_monitor_id'] = 123456
         db.update_by_id('topics', topic['topics_id'], topic)
 
-        ftt.fetch_topic_tweets(db, topic['topics_id'], MockTwitter, MockCrimsonHexagon)
+        fetch_topic_tweets(db, topic['topics_id'], MockTwitter, MockCrimsonHexagon)
 
         topic_tweet_days = db.query("select * from topic_tweet_days").hashes()
         assert len(topic_tweet_days) == LOCAL_DATE_RANGE + 1

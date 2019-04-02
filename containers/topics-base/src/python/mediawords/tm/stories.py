@@ -9,17 +9,20 @@ import traceback
 import typing
 
 from mediawords.db import DatabaseHandler
-import mediawords.db.exceptions.handler
-import mediawords.dbi.downloads
-import mediawords.dbi.stories.dup
-import mediawords.dbi.stories.stories
-import mediawords.key_value_store.amazon_s3
-from mediawords.util.guess_date import guess_date, GuessDateResult
-import mediawords.tm.media
-import mediawords.util.parse_html
+from mediawords.db.exceptions.handler import McUniqueConstraintException
+from mediawords.dbi.downloads.store import McDBIDownloadsException, fetch_content, store_content
+from mediawords.dbi.stories.stories import MAX_URL_LENGTH, MAX_TITLE_LENGTH
+from mediawords.dbi.stories.dup import get_medium_dup_stories_by_url, get_medium_dup_stories_by_title
+from mediawords.job import JobManager
+from mediawords.key_value_store.amazon_s3 import McAmazonS3StoreException
+from mediawords.util.guess_date import guess_date, GuessDateResult, GUESS_METHOD_TAG_SET, INVALID_TAG_SET, INVALID_TAG
 from mediawords.util.log import create_logger
+from mediawords.util.parse_html import html_title
 from mediawords.util.perl import decode_object_from_bytes_if_needed
-import mediawords.util.url
+from mediawords.util.sql import sql_now
+from mediawords.util.url import get_url_distinctive_domain, normalize_url_lossy, get_url_host
+
+from mediawords.tm.media import generate_medium_url_and_name_from_url, guess_medium, get_spidered_tag
 
 log = create_logger(__name__)
 
@@ -29,7 +32,7 @@ BINARY_EXTENSIONS = 'jpg pdf doc mp3 mp4 zip png docx'.split()
 
 
 class McTMStoriesException(Exception):
-    """Defaut exception for package."""
+    """Default exception for package."""
 
     pass
 
@@ -42,11 +45,10 @@ class McTMStoriesDuplicateException(Exception):
 
 def url_has_binary_extension(url: str) -> bool:
     """Return true if the url has a file extension that is likely to be a large binary file."""
-    path = str(furl.furl(url).path)
     try:
         path = str(furl.furl(url).path)
-    except Exception:
-        log.warning("error parsing url '%s'" % url)
+    except Exception as ex:
+        log.warning(f"Error parsing URL '{url}': {ex}")
         return False
 
     ext = os.path.splitext(path)[1].lower()
@@ -59,7 +61,7 @@ def url_has_binary_extension(url: str) -> bool:
     return ext in BINARY_EXTENSIONS
 
 
-def _extract_story(db: DatabaseHandler, story: dict) -> None:
+def _extract_story(story: dict) -> None:
     """Process the story through the extractor."""
 
     if url_has_binary_extension(story['url']):
@@ -106,9 +108,9 @@ def _get_story_with_most_sentences(db: DatabaseHandler, stories: list) -> dict:
 
 def _url_domain_matches_medium(medium: dict, urls: list) -> bool:
     """Return true if the domain of any of the story urls matches the domain of the medium url."""
-    medium_domain = mediawords.util.url.get_url_distinctive_domain(medium['url'])
+    medium_domain = get_url_distinctive_domain(medium['url'])
 
-    story_domains = [mediawords.util.url.get_url_distinctive_domain(u) for u in urls]
+    story_domains = [get_url_distinctive_domain(u) for u in urls]
 
     matches = list(filter(lambda d: medium_domain == d, story_domains))
 
@@ -179,9 +181,9 @@ def ignore_redirect(db: DatabaseHandler, url: str, redirect_url: typing.Optional
     if redirect_url is None or url == redirect_url:
         return False
 
-    medium_url = mediawords.tm.media.generate_medium_url_and_name_from_url(redirect_url)[0]
+    medium_url = generate_medium_url_and_name_from_url(redirect_url)[0]
 
-    u = mediawords.util.url.normalize_url_lossy(medium_url)
+    u = normalize_url_lossy(medium_url)
 
     match = db.query("select 1 from topic_ignore_redirects where url = %(a)s", {'a': u}).hash()
 
@@ -207,14 +209,14 @@ def get_story_match(db: DatabaseHandler, url: str, redirect_url: typing.Optional
     the matched story or None
 
     """
-    u = url[0:mediawords.dbi.stories.stories.MAX_URL_LENGTH]
+    u = url[0:MAX_URL_LENGTH]
 
     ru = ''
     if not ignore_redirect(db, url, redirect_url):
-        ru = redirect_url[0:mediawords.dbi.stories.stories.MAX_URL_LENGTH] if redirect_url is not None else u
+        ru = redirect_url[0:MAX_URL_LENGTH] if redirect_url is not None else u
 
-    nu = mediawords.util.url.normalize_url_lossy(u)
-    nru = mediawords.util.url.normalize_url_lossy(ru)
+    nu = normalize_url_lossy(u)
+    nru = normalize_url_lossy(ru)
 
     urls = list({u, ru, nu, nru})
 
@@ -267,7 +269,7 @@ def create_download_for_new_story(db: DatabaseHandler, story: dict, feed: dict) 
         'feeds_id': feed['feeds_id'],
         'stories_id': story['stories_id'],
         'url': story['url'],
-        'host': mediawords.util.url.get_url_host(story['url']),
+        'host': get_url_host(story['url']),
         'type': 'content',
         'sequence': 1,
         'state': 'success',
@@ -302,7 +304,7 @@ def assign_date_guess_tag(
 
     """
     if date_guess.found:
-        tag_set = mediawords.util.guess_date.GUESS_METHOD_TAG_SET
+        tag_set = GUESS_METHOD_TAG_SET
         guess_method = date_guess.guess_method
         if guess_method.startswith('Extracted from url'):
             tag = 'guess_by_url'
@@ -313,11 +315,11 @@ def assign_date_guess_tag(
         else:
             tag = 'guess_by_unknown'
     elif fallback_date is not None:
-        tag_set = mediawords.util.guess_date.GUESS_METHOD_TAG_SET
+        tag_set = GUESS_METHOD_TAG_SET
         tag = 'fallback_date'
     else:
-        tag_set = mediawords.util.guess_date.INVALID_TAG_SET
-        tag = mediawords.util.guess_date.INVALID_TAG
+        tag_set = INVALID_TAG_SET
+        tag = INVALID_TAG
 
     ts = db.find_or_create('tag_sets', {'name': tag_set})
     t = db.find_or_create('tags', {'tag': tag, 'tag_sets_id': ts['tag_sets_id']})
@@ -351,7 +353,7 @@ def generate_story(
         url: str,
         content: str,
         title: str = None,
-        publish_date: datetime.datetime = None,
+        publish_date: str = None,
         fallback_date: typing.Optional[datetime.datetime] = None) -> dict:
     """Add a new story to the database by guessing metadata using the given url and content.
 
@@ -369,14 +371,14 @@ def generate_story(
     if len(url) < 1:
         raise McTMStoriesException("url must not be an empty string")
 
-    url = url[0:mediawords.dbi.stories.stories.MAX_URL_LENGTH]
+    url = url[0:MAX_URL_LENGTH]
 
-    medium = mediawords.tm.media.guess_medium(db, url)
+    medium = guess_medium(db, url)
     feed = get_spider_feed(db, medium)
-    spidered_tag = mediawords.tm.media.get_spidered_tag(db)
+    spidered_tag = get_spidered_tag(db)
 
     if title is None:
-        title = mediawords.util.parse_html.html_title(content, url, mediawords.dbi.stories.stories.MAX_TITLE_LENGTH)
+        title = html_title(content, url, MAX_TITLE_LENGTH)
 
     story = {
         'url': url,
@@ -400,8 +402,8 @@ def generate_story(
 
     try:
         story = db.create('stories', story)
-    except mediawords.db.exceptions.handler.McUniqueConstraintException:
-        return mediawords.tm.stories.get_story_match(db=db, url=story['url'])
+    except McUniqueConstraintException:
+        return get_story_match(db=db, url=story['url'])
     except Exception:
         raise McTMStoriesException("Error adding story: %s" % traceback.format_exc())
 
@@ -418,9 +420,9 @@ def generate_story(
 
     download = create_download_for_new_story(db, story, feed)
 
-    mediawords.dbi.downloads.store_content(db, download, content)
+    store_content(db, download, content)
 
-    _extract_story(db, story)
+    _extract_story(story)
 
     return story
 
@@ -494,7 +496,7 @@ def merge_foreign_rss_stories(db: DatabaseHandler, topic: dict) -> None:
 
         content = ''
         try:
-            content = mediawords.dbi.downloads.fetch_content(db, download)
+            content = fetch_content(db, download)
         except Exception:
             pass
 
@@ -524,7 +526,7 @@ def copy_story_to_new_medium(db: DatabaseHandler, topic: dict, old_story: dict, 
         'media_id': new_medium['media_id'],
         'guid': old_story['guid'],
         'publish_date': old_story['publish_date'],
-        'collect_date': mediawords.util.sql.sql_now(),
+        'collect_date': sql_now(),
         'description': old_story['description'],
         'title': old_story['title']
     }
@@ -549,10 +551,9 @@ def copy_story_to_new_medium(db: DatabaseHandler, topic: dict, old_story: dict, 
 
     if old_download is not None:
         try:
-            content = mediawords.dbi.downloads.fetch_content(db, old_download)
-            download = mediawords.dbi.downloads.store_content(db, download, content)
-        except (mediawords.dbi.downloads.McDBIDownloadsException,
-                mediawords.key_value_store.amazon_s3.McAmazonS3StoreException):
+            content = fetch_content(db, old_download)
+            download = store_content(db, download, content)
+        except (McDBIDownloadsException, McAmazonS3StoreException):
             download_update = dict([(f, old_download[f]) for f in ['state', 'error_message', 'download_time']])
             db.update_by_id('downloads', download['downloads_id'], download_update)
 
@@ -786,8 +787,8 @@ def find_and_merge_dup_stories(db: DatabaseHandler, topic: dict) -> None:
     log.info("find and merge dup stories")
 
     for get_dup_stories in (
-        ['url', mediawords.dbi.stories.dup.get_medium_dup_stories_by_url],
-        ['title', mediawords.dbi.stories.dup.get_medium_dup_stories_by_title]
+            ['url', get_medium_dup_stories_by_url],
+            ['title', get_medium_dup_stories_by_title]
     ):
 
         f_name = get_dup_stories[0]
@@ -824,6 +825,7 @@ def copy_stories_to_topic(db: DatabaseHandler, source_topics_id: int, target_top
 
     db.query(
         """
+        -- noinspection SqlResolve
         create temporary table _tsu as
             select %(target)s topics_id, url, stories_id, %(message)s source
                 from snap.live_stories s
@@ -834,10 +836,13 @@ def copy_stories_to_topic(db: DatabaseHandler, source_topics_id: int, target_top
         """,
         {'target': target_topics_id, 'source': source_topics_id, 'message': message})
 
+    # noinspection SqlResolve
     (num_inserted,) = db.query("select count(*) from _tsu").flat()
 
     log.info("inserting %d urls ..." % num_inserted)
 
+    # noinspection SqlResolve,SqlInsertValues
     db.query("insert into topic_seed_urls ( topics_id, url, stories_id, source ) select * from _tsu")
 
+    # noinspection SqlResolve
     db.query("drop table _stories; drop table _urls; drop table _tsu;")

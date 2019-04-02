@@ -64,14 +64,14 @@ def generate_medium_url_and_name_from_url(story_url: str) -> tuple:
     matches = re.search(r'(http.?://([^/]+))', normalized_url, flags=re.I)
     if matches is None:
         log.warning("Unable to find host name in url: normalized_url (%s)" % story_url)
-        return (story_url, story_url)
+        return story_url, story_url
 
     (medium_url, medium_name) = (matches.group(1).lower(), matches.group(2).lower())
 
     if not medium_url.endswith('/'):
         medium_url += "/"
 
-    return (medium_url, medium_name)
+    return medium_url, medium_name
 
 
 def _normalized_urls_out_of_date(db: DatabaseHandler) -> bool:

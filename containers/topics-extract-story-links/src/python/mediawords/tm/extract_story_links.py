@@ -13,21 +13,9 @@ import mediawords.tm.domains
 from mediawords.util.extract_article_from_page import extract_article_html_from_page_html
 from mediawords.util.log import create_logger
 from mediawords.util.url import is_http_url
+from mediawords.tm.ignore_link_pattern import IGNORE_LINK_PATTERN
 
 log = create_logger(__name__)
-
-# ignore any list that match the below patterns.  the sites below are most social sharing button links of
-# various kinds, along with some content spam sitesand a couple of sites that confuse the spider with too
-# many domain alternatives.
-IGNORE_LINK_PATTERN = (
-    r'(?:www.addtoany.com)|(?:novostimira.com)|(?:ads\.pheedo)|(?:www.dailykos.com\/user)|'
-    r'(?:livejournal.com\/(?:tag|profile))|(?:sfbayview.com\/tag)|(?:absoluteastronomy.com)|'
-    r'(?:\/share.*http)|(?:digg.com\/submit)|(?:facebook.com.*mediacontentsharebutton)|'
-    r'(?:feeds.wordpress.com\/.*\/go)|(?:sharetodiaspora.github.io\/)|(?:iconosquare.com)|'
-    r'(?:unz.com)|(?:answers.com)|(?:downwithtyranny.com\/search)|(?:scoop\.?it)|(?:sco\.lt)|'
-    r'(?:pronk.*\.wordpress\.com\/(?:tag|category))|(?:wn\.com)|(?:pinterest\.com\/pin\/create)|(?:feedblitz\.com)|'
-    r'(?:atomz.com)|(?:unionpedia.org)|(?:http://politicalgraveyard.com)|(?:https?://api\.[^\/]+)|'
-    r'(?:www.rumormillnews.com)|(?:tvtropes.org/pmwiki)|(?:twitter.com/account/suspended)')
 
 
 def _get_links_from_html(html: str) -> typing.List[str]:

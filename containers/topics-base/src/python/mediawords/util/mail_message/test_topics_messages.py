@@ -1,3 +1,6 @@
+from mediawords.util.mail_message.topics_messages import TopicSpiderUpdateMessage
+
+
 def test_topic_spider_update_email():
     topic_name = 'Foo Bar Baz & <script></script>'
     topic_url = 'https://topics.com/topic?ab=cd&ef=gh'

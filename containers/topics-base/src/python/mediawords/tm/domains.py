@@ -3,9 +3,10 @@
 import re
 
 from mediawords.db.handler import DatabaseHandler
-import mediawords.util.log
+from mediawords.util.log import create_logger
+from mediawords.util.url import get_url_distinctive_domain
 
-log = mediawords.util.log.create_logger(__name__)
+log = create_logger(__name__)
 
 # max number of self links from a single domain
 MAX_SELF_LINKS = 200
@@ -21,12 +22,12 @@ def increment_domain_links(db: DatabaseHandler, topic_link: dict) -> None:
     topic_links.url or topic_links.redirect_url.
     """
     story = db.require_by_id('stories', topic_link['stories_id'])
-    story_domain = mediawords.util.url.get_url_distinctive_domain(story['url'])
+    story_domain = get_url_distinctive_domain(story['url'])
 
-    url_domain = mediawords.util.url.get_url_distinctive_domain(topic_link['url'])
+    url_domain = get_url_distinctive_domain(topic_link['url'])
 
     redirect_url = topic_link.get('redirect_url', topic_link['url'])
-    redirect_url_domain = mediawords.util.url.get_url_distinctive_domain(redirect_url)
+    redirect_url_domain = get_url_distinctive_domain(redirect_url)
 
     if story_domain not in (url_domain, redirect_url_domain):
         return
@@ -70,8 +71,8 @@ def skip_self_linked_domain_url(db: DatabaseHandler, topics_id: int, source_url:
     * topic.domains.self_links value for the domain is greater than MAX_SELF_LINKS or
     * ref_url matches SKIP_SELF_LINK_RE.
     """
-    source_domain = mediawords.util.url.get_url_distinctive_domain(source_url)
-    ref_domain = mediawords.util.url.get_url_distinctive_domain(ref_url)
+    source_domain = get_url_distinctive_domain(source_url)
+    ref_domain = get_url_distinctive_domain(ref_url)
 
     if source_domain != ref_domain:
         return False

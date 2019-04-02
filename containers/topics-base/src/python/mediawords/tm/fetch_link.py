@@ -10,12 +10,13 @@ from http import HTTPStatus
 
 from mediawords.db import DatabaseHandler
 import mediawords.tm.domains
-import mediawords.tm.extract_story_links
 import mediawords.tm.stories
 from mediawords.db.exceptions.handler import McUpdateByIDException
 from mediawords.util.log import create_logger
 from mediawords.util.network import tcp_port_is_open
 from mediawords.util.perl import decode_object_from_bytes_if_needed
+
+from mediawords.tm.ignore_link_pattern import IGNORE_LINK_PATTERN
 from mediawords.util.url.twitter import parse_status_id_from_url, parse_screen_name_from_user_url
 import mediawords.util.url
 from mediawords.util.web.user_agent.response.response import Response
@@ -349,7 +350,7 @@ def _ignore_link_pattern(url: typing.Optional[str]) -> bool:
     if url is None:
         return False
 
-    p = mediawords.tm.extract_story_links.IGNORE_LINK_PATTERN
+    p = IGNORE_LINK_PATTERN
     nu = mediawords.util.url.normalize_url_lossy(url)
 
     return re2.search(p, url, re2.I) or re2.search(p, nu, re2.I)

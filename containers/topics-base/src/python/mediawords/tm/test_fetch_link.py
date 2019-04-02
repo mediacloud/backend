@@ -10,7 +10,7 @@ from mediawords.db.exceptions.handler import McUpdateByIDException
 from mediawords.util.web.user_agent.throttled import McThrottledDomainException
 
 
-def testcontent_matches_topic() -> None:
+def test_content_matches_topic() -> None:
     """Test content_matches_topic()."""
     assert mediawords.tm.fetch_link.content_matches_topic('foo', {'pattern': 'foo'})
     assert mediawords.tm.fetch_link.content_matches_topic('FOO', {'pattern': 'foo'})
