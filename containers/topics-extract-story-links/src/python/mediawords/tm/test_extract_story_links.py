@@ -1,16 +1,25 @@
 """Test mediawords.tm.extract_story_links."""
-
-import mediawords.test.test_database
-import mediawords.test.db.create
-import mediawords.tm.domains
-import mediawords.tm.extract_story_links
+from mediawords.dbi.downloads.store import store_content
+from mediawords.test.db.create import create_test_story_stack, create_download_for_story, create_test_topic
+from mediawords.test.test_database import TestDatabaseTestCase
+from mediawords.tm.domains import MAX_SELF_LINKS
+# noinspection PyProtectedMember
+from mediawords.tm.extract_story_links import (
+    _get_links_from_html,
+    _get_youtube_embed_links,
+    _get_extracted_html,
+    _get_links_from_story_text,
+    _get_links_from_story,
+    extract_links_for_topic_story,
+)
+from mediawords.util.url import is_http_url, get_url_distinctive_domain
 
 
 def test_get_links_from_html() -> None:
     """Test get_links_from_html()."""
 
-    def test_links(html: str, links: list) -> None:
-        assert mediawords.tm.extract_story_links._get_links_from_html(html) == links
+    def test_links(html_: str, links_: list) -> None:
+        assert _get_links_from_html(html_) == links_
 
     test_links('<a href="http://foo.com">', ['http://foo.com'])
     test_links('<link href="http://bar.com">', ['http://bar.com'])
@@ -43,13 +52,13 @@ def test_get_links_from_html() -> None:
     with open(filename, 'r', encoding='utf8') as fh:
         html = fh.read()
 
-    links = mediawords.tm.extract_story_links._get_links_from_html(html)
+    links = _get_links_from_html(html)
     assert len(links) == 300
     for link in links:
-        assert mediawords.util.url.is_http_url(link)
+        assert is_http_url(link)
 
 
-class TestExtractStoryLinksDB(mediawords.test.test_database.TestDatabaseTestCase):
+class TestExtractStoryLinksDB(TestDatabaseTestCase):
     """Run tests that require database access."""
 
     def setUp(self) -> None:
@@ -57,17 +66,17 @@ class TestExtractStoryLinksDB(mediawords.test.test_database.TestDatabaseTestCase
         super().setUp()
         db = self.db()
 
-        media = mediawords.test.db.create.create_test_story_stack(db, {'A': {'B': [1]}})
+        media = create_test_story_stack(db, {'A': {'B': [1]}})
 
         story = media['A']['feeds']['B']['stories']['1']
 
-        download = mediawords.test.db.create.create_download_for_story(
+        download = create_download_for_story(
             db=db,
             feed=media['A']['feeds']['B'],
             story=story,
         )
 
-        mediawords.dbi.downloads.store_content(db, download, '<p>foo</p>')
+        store_content(db, download, '<p>foo</p>')
 
         self.test_story = story
         self.test_download = download
@@ -86,9 +95,9 @@ class TestExtractStoryLinksDB(mediawords.test.test_database.TestDatabaseTestCase
         <iframe src="http://bar.com" />
         """
 
-        mediawords.dbi.downloads.store_content(db, download, youtube_html)
+        store_content(db, download, youtube_html)
 
-        links = mediawords.tm.extract_story_links.get_youtube_embed_links(db, story)
+        links = _get_youtube_embed_links(db, story)
 
         assert links == ['http://youtube.com/embed/1234', 'http://youtube.com/embed/3456']
 
@@ -101,9 +110,9 @@ class TestExtractStoryLinksDB(mediawords.test.test_database.TestDatabaseTestCase
 
         content = '<html><head><meta foo="bar" /></head><body>foo</body></html>'
 
-        mediawords.dbi.downloads.store_content(db, download, content)
+        store_content(db, download, content)
 
-        extracted_html = mediawords.tm.extract_story_links._get_extracted_html(db, story)
+        extracted_html = _get_extracted_html(db, story)
 
         assert extracted_html.strip() == '<body id="readabilityBody">foo</body>'
 
@@ -123,7 +132,7 @@ class TestExtractStoryLinksDB(mediawords.test.test_database.TestDatabaseTestCase
             'download_text': 'http://download.text',
             'download_text_length': 20})
 
-        links = mediawords.tm.extract_story_links._get_links_from_story_text(db, story)
+        links = _get_links_from_story_text(db, story)
 
         assert sorted(links) == sorted('http://title.com http://description.com http://download.text'.split())
 
@@ -147,7 +156,7 @@ class TestExtractStoryLinksDB(mediawords.test.test_database.TestDatabaseTestCase
         <iframe src="http://youtube-embed.com/embed/123456" />
         """
 
-        download_text = {}
+        download_text = dict()
         download_text['downloads_id'] = download['downloads_id']
         download_text['download_text'] = "http://text.1.link http://text.2.link http://text.2.link http://link-text.dup"
         download_text['download_text_length'] = len(download_text['download_text'])
@@ -165,9 +174,9 @@ class TestExtractStoryLinksDB(mediawords.test.test_database.TestDatabaseTestCase
         http://link-text.dup
         """.split()
 
-        mediawords.dbi.downloads.store_content(db, download, html_content)
+        store_content(db, download, html_content)
 
-        links = mediawords.tm.extract_story_links._get_links_from_story(db, story)
+        links = _get_links_from_story(db, story)
 
         assert sorted(links) == sorted(expected_links)
 
@@ -180,10 +189,10 @@ class TestExtractStoryLinksDB(mediawords.test.test_database.TestDatabaseTestCase
         story['description'] = 'http://foo.com http://bar.com'
         db.update_by_id('stories', story['stories_id'], story)
 
-        topic = mediawords.test.db.create.create_test_topic(db, 'links')
+        topic = create_test_topic(db, 'links')
         db.create('topic_stories', {'topics_id': topic['topics_id'], 'stories_id': story['stories_id']})
 
-        mediawords.tm.extract_story_links.extract_links_for_topic_story(db, story, topic)
+        extract_links_for_topic_story(db=db, stories_id=story['stories_id'], topics_id=topic['topics_id'])
 
         got_topic_links = db.query(
             "select topics_id, stories_id, url from topic_links where topics_id = %(a)s order by url",
@@ -205,7 +214,7 @@ class TestExtractStoryLinksDB(mediawords.test.test_database.TestDatabaseTestCase
 
         # generate an error and make sure that it gets saved to topic_stories
         del story['url']
-        mediawords.tm.extract_story_links.extract_links_for_topic_story(db, story, topic)
+        extract_links_for_topic_story(db=db, stories_id=story['stories_id'], topics_id=topic['topics_id'])
 
         got_topic_story = db.query(
             """
@@ -224,12 +233,12 @@ class TestExtractStoryLinksDB(mediawords.test.test_database.TestDatabaseTestCase
 
         story = self.test_story
 
-        story_domain = mediawords.util.url.get_url_distinctive_domain(story['url'])
+        story_domain = get_url_distinctive_domain(story['url'])
 
-        topic = mediawords.test.db.create.create_test_topic(db, 'links')
+        topic = create_test_topic(db, 'links')
         db.create('topic_stories', {'topics_id': topic['topics_id'], 'stories_id': story['stories_id']})
 
-        num_links = mediawords.tm.domains.MAX_SELF_LINKS * 2
+        num_links = MAX_SELF_LINKS * 2
         content = ''
         for i in range(num_links):
             plain_text = "Sample sentence to make sure the links get extracted" * 10
@@ -237,10 +246,10 @@ class TestExtractStoryLinksDB(mediawords.test.test_database.TestDatabaseTestCase
             paragraph = "<p>%s <a href='%s'>link</a></p>\n\n" % (plain_text, url)
             content = content + paragraph
 
-        mediawords.dbi.downloads.store_content(db, self.test_download, content)
+        store_content(db, self.test_download, content)
 
-        mediawords.tm.extract_story_links.extract_links_for_topic_story(db, story, topic)
+        extract_links_for_topic_story(db=db, stories_id=story['stories_id'], topics_id=topic['topics_id'])
 
         topic_links = db.query("select * from topic_links where topics_id = %(a)s", {'a': topic['topics_id']}).hashes()
 
-        assert (len(topic_links) == mediawords.tm.domains.MAX_SELF_LINKS)
+        assert (len(topic_links) == MAX_SELF_LINKS)

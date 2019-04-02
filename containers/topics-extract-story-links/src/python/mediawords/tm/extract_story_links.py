@@ -2,23 +2,23 @@
 
 import re
 import traceback
-import typing
+from typing import List
 
 from bs4 import BeautifulSoup
 
 from mediawords.db import DatabaseHandler
-import mediawords.dbi.downloads
-import mediawords.key_value_store.amazon_s3
-import mediawords.tm.domains
+from mediawords.dbi.downloads.store import fetch_content
+from mediawords.key_value_store.amazon_s3 import McAmazonS3StoreException
+from mediawords.tm.domains import skip_self_linked_domain_url, increment_domain_links
 from mediawords.util.extract_article_from_page import extract_article_html_from_page_html
 from mediawords.util.log import create_logger
-from mediawords.util.url import is_http_url
+from mediawords.util.url import is_http_url, normalize_url_lossy
 from mediawords.tm.ignore_link_pattern import IGNORE_LINK_PATTERN
 
 log = create_logger(__name__)
 
 
-def _get_links_from_html(html: str) -> typing.List[str]:
+def _get_links_from_html(html: str) -> List[str]:
     """Return a list of all links that appear in the html.
 
     Only return absolute urls, because we would rather get fewer internal media source links.  Also include embedded
@@ -52,7 +52,7 @@ def _get_links_from_html(html: str) -> typing.List[str]:
     return links
 
 
-def _get_youtube_embed_links(db: DatabaseHandler, story: dict) -> typing.List[str]:
+def _get_youtube_embed_links(db: DatabaseHandler, story: dict) -> List[str]:
     """Parse youtube embedded video urls out of the full html of the story.
 
     This function looks for youtube embed links anywhere in the html of the story content, rather than just in the
@@ -71,7 +71,7 @@ def _get_youtube_embed_links(db: DatabaseHandler, story: dict) -> typing.List[st
         "select * from downloads where stories_id = %(a)s order by stories_id limit 1",
         {'a': story['stories_id']}).hash()
 
-    html = mediawords.dbi.downloads.fetch_content(db, download)
+    html = fetch_content(db, download)
 
     soup = BeautifulSoup(html, 'lxml')
 
@@ -124,14 +124,14 @@ def _get_extracted_html(db: DatabaseHandler, story: dict) -> str:
     return extracted_html
 
 
-def _get_links_from_story_text(db: DatabaseHandler, story: dict) -> typing.List[str]:
+def _get_links_from_story_text(db: DatabaseHandler, story: dict) -> List[str]:
     """Get all urls that appear in the text or description of the story using a simple regex."""
     download_ids = db.query("""
         SELECT downloads_id
         FROM downloads
         WHERE stories_id = %(stories_id)s
         """, {'stories_id': story['stories_id']}
-    ).flat()
+                            ).flat()
 
     download_texts = db.query("""
         SELECT *
@@ -139,7 +139,7 @@ def _get_links_from_story_text(db: DatabaseHandler, story: dict) -> typing.List[
         WHERE downloads_id = ANY(%(download_ids)s)
         ORDER BY download_texts_id
         """, {'download_ids': download_ids}
-    ).hashes()
+                              ).hashes()
 
     story_text = ' '.join([dt['download_text'] for dt in download_texts])
 
@@ -154,7 +154,7 @@ def _get_links_from_story_text(db: DatabaseHandler, story: dict) -> typing.List[
     return links
 
 
-def _get_links_from_story(db: DatabaseHandler, story: dict) -> typing.List[str]:
+def _get_links_from_story(db: DatabaseHandler, story: dict) -> List[str]:
     """Extract and return linksk from the story.
 
     Extracts generates a deduped list of links from _get_links_from_html(), _get_links_from_story_text(),
@@ -179,17 +179,17 @@ def _get_links_from_story(db: DatabaseHandler, story: dict) -> typing.List[str]:
 
         link_lookup = {}
         for url in filter(lambda x: re.search(IGNORE_LINK_PATTERN, x, flags=re.I) is None, all_links):
-            link_lookup[mediawords.util.url.normalize_url_lossy(url)] = url
+            link_lookup[normalize_url_lossy(url)] = url
 
         links = list(link_lookup.values())
 
         return links
-    except mediawords.key_value_store.amazon_s3.McAmazonS3StoreException:
+    except McAmazonS3StoreException:
         # we expect the fetch_content() to fail occasionally
         return []
 
 
-def extract_links_for_topic_story(db: DatabaseHandler, story: dict, topic: dict) -> None:
+def extract_links_for_topic_story(db: DatabaseHandler, stories_id: int, topics_id: int) -> None:
     """
     Extract links from a story and insert them into the topic_links table for the given topic.
 
@@ -208,12 +208,15 @@ def extract_links_for_topic_story(db: DatabaseHandler, story: dict, topic: dict)
     None
 
     """
+    story = db.require_by_id(table='stories', object_id=stories_id)
+    topic = db.require_by_id(table='topics', object_id=topics_id)
+
     try:
         log.info("mining %s %s for topic %s .." % (story['title'], story['url'], topic['name']))
         links = _get_links_from_story(db, story)
 
         for link in links:
-            if mediawords.tm.domains.skip_self_linked_domain_url(db, topic['topics_id'], story['url'], link):
+            if skip_self_linked_domain_url(db, topic['topics_id'], story['url'], link):
                 log.info("skipping self linked domain url...")
                 continue
 
@@ -224,10 +227,11 @@ def extract_links_for_topic_story(db: DatabaseHandler, story: dict, topic: dict)
             }
 
             db.create('topic_links', topic_link)
-            mediawords.tm.domains.increment_domain_links(db, topic_link)
+            increment_domain_links(db, topic_link)
 
         link_mine_error = ''
-    except Exception:
+    except Exception as ex:
+        log.error(f"Link mining error: {ex}")
         link_mine_error = traceback.format_exc()
 
     db.query(
