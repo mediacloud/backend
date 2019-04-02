@@ -1,5 +1,6 @@
-#!/usr/bin/env python
-"""Topic Maapper job that fetches a link and either matches it to an existing story or generates a story from it."""
+#!/usr/bin/env python3
+
+"""Topic Mapper job that fetches a link and either matches it to an existing story or generates a story from it."""
 
 import datetime
 import traceback
@@ -7,7 +8,8 @@ import typing
 
 from mediawords.db import connect_to_db
 from mediawords.job import AbstractJob, McAbstractJobException, JobBrokerApp, JobManager
-import mediawords.tm.fetch_link
+from mediawords.tm.fetch_states import FETCH_STATE_REQUEUED, FETCH_STATE_PYTHON_ERROR
+from mediawords.tm.fetch_link import fetch_topic_url
 from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_object_from_bytes_if_needed
 from mediawords.util.web.user_agent.throttled import McThrottledDomainException
@@ -24,7 +26,7 @@ class McFetchLinkJobException(McAbstractJobException):
 class FetchLinkJob(AbstractJob):
     """Fetch a link for a topic and either match it to an existing story or generate a story from it.
 
-    Almost all of the interesting functionality here happens in mediawords.tm.fetch_link.fetch_topic_url().
+    Almost all of the interesting functionality here happens in fetch_topic_url().
     The code here just deals with routing, including requeueing responses throttled by
     mediawords.util.web.user_agent.throttled."""
 
@@ -55,7 +57,7 @@ class FetchLinkJob(AbstractJob):
         db = connect_to_db()
 
         try:
-            mediawords.tm.fetch_link.fetch_topic_url(
+            fetch_topic_url(
                 db=db,
                 topic_fetch_urls_id=topic_fetch_urls_id,
                 domain_timeout=domain_timeout)
@@ -67,7 +69,7 @@ class FetchLinkJob(AbstractJob):
             db.update_by_id(
                 'topic_fetch_urls',
                 topic_fetch_urls_id,
-                {'state': mediawords.tm.fetch_link.FETCH_STATE_REQUEUED, 'fetch_date': datetime.datetime.now()})
+                {'state': FETCH_STATE_REQUEUED, 'fetch_date': datetime.datetime.now()})
             if not dummy_requeue:
                 JobManager.add_to_queue(name='MediaWords::Job::TM::FetchLink', topic_fetch_urls_id=topic_fetch_urls_id)
 
@@ -75,7 +77,7 @@ class FetchLinkJob(AbstractJob):
             # all non throttled errors should get caught by the try: about, but catch again here just in case
             log.error("Error while fetching URL with ID {}: {}".format(topic_fetch_urls_id, str(ex)))
             update = {
-                'state': mediawords.tm.fetch_link.FETCH_STATE_PYTHON_ERROR,
+                'state': FETCH_STATE_PYTHON_ERROR,
                 'fetch_date': datetime.datetime.now(),
                 'message': traceback.format_exc(),
             }

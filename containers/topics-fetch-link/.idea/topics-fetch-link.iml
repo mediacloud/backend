@@ -6,7 +6,7 @@
       <sourceFolder url="file://$MODULE_DIR$/src/perl" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/bin" isTestSource="false" />
     </content>
-    <orderEntry type="inheritedJdk" />
+    <orderEntry type="jdk" jdkName="Remote Python 3.7.3 Docker (dockermediacloud/mediacloud-topics-fetch-link:latest)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
   <component name="TestRunnerService">

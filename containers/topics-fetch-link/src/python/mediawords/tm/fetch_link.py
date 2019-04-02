@@ -9,9 +9,14 @@ from dataclasses import dataclass
 from http import HTTPStatus
 
 from mediawords.db import DatabaseHandler
-import mediawords.tm.domains
-import mediawords.tm.stories
-from mediawords.db.exceptions.handler import McUpdateByIDException
+from mediawords.tm.domains import skip_self_linked_domain
+from mediawords.tm.stories import (
+    url_has_binary_extension,
+    get_story_match,
+    generate_story,
+    McTMStoriesDuplicateException,
+    add_to_topic_stories,
+)
 from mediawords.util.log import create_logger
 from mediawords.util.network import tcp_port_is_open
 from mediawords.util.perl import decode_object_from_bytes_if_needed
@@ -24,17 +29,14 @@ from mediawords.tm.fetch_states import (
     FETCH_STATE_STORY_ADDED,
     FETCH_STATE_PYTHON_ERROR,
     FETCH_STATE_REQUEUED,
-    FETCH_STATE_KILLED,
     FETCH_STATE_IGNORED,
     FETCH_STATE_SKIPPED,
     FETCH_STATE_TWEET_PENDING,
-    FETCH_STATE_TWEET_ADDED,
-    FETCH_STATE_TWEET_MISSING,
 )
 
 from mediawords.tm.ignore_link_pattern import IGNORE_LINK_PATTERN
+from mediawords.util.url import is_http_url, normalize_url_lossy
 from mediawords.util.url.twitter import parse_status_id_from_url, parse_screen_name_from_user_url
-import mediawords.util.url
 from mediawords.util.web.user_agent.response.response import Response
 from mediawords.util.web.user_agent.throttled import ThrottledUserAgent, McThrottledDomainException
 
@@ -129,13 +131,13 @@ def _fetch_url(
     Returns:
     Response object
     """
-    if mediawords.tm.stories.url_has_binary_extension(url):
+    if url_has_binary_extension(url):
         return _make_dummy_bypassed_response(url)
 
     while True:
         ua = ThrottledUserAgent(db, domain_timeout=domain_timeout)
 
-        if mediawords.util.url.is_http_url(url):
+        if is_http_url(url):
             ua_response = ua.get_follow_http_html_redirects(url)
             response = FetchLinkResponse.from_useragent_response(url, ua_response)
         else:
@@ -168,7 +170,7 @@ def _story_matches_topic(
     """Test whether the story sentences or metadata of the story match the topic['pattern'] regex.
 
     Arguments:
-    db - databse handle
+    db - database handle
     story - story to match against topic pattern
     topic - topic to match against
     redirect_url - alternate url for story
@@ -262,7 +264,7 @@ def _get_failed_url(db: DatabaseHandler, topics_id: int, url: str) -> typing.Opt
     topics_id = int(topics_id)
     url = decode_object_from_bytes_if_needed(url)
 
-    urls = list({url, mediawords.util.url.normalize_url_lossy(url)})
+    urls = list({url, normalize_url_lossy(url)})
 
     failed_url = db.query(
         """
@@ -296,7 +298,7 @@ def _ignore_link_pattern(url: typing.Optional[str]) -> bool:
         return False
 
     p = IGNORE_LINK_PATTERN
-    nu = mediawords.util.url.normalize_url_lossy(url)
+    nu = normalize_url_lossy(url)
 
     return re2.search(p, url, re2.I) or re2.search(p, nu, re2.I)
 
@@ -335,7 +337,7 @@ def _try_fetch_topic_url(
         return
 
     _update_tfu_message(db, topic_fetch_url, "checking self linked domain")
-    if mediawords.tm.domains.skip_self_linked_domain(db, topic_fetch_url):
+    if skip_self_linked_domain(db, topic_fetch_url):
         topic_fetch_url['state'] = FETCH_STATE_SKIPPED
         topic_fetch_url['code'] = 403
         return
@@ -349,7 +351,7 @@ def _try_fetch_topic_url(
     # spammy 'requeued' requests
     _update_tfu_message(db, topic_fetch_url, "checking story match")
     if topic_fetch_url['state'] == FETCH_STATE_PENDING:
-        story_match = mediawords.tm.stories.get_story_match(db=db, url=topic_fetch_url['url'])
+        story_match = get_story_match(db=db, url=topic_fetch_url['url'])
 
         # try to match the story before doing the expensive fetch
         if story_match is not None:
@@ -386,7 +388,7 @@ def _try_fetch_topic_url(
             return
 
         _update_tfu_message(db, topic_fetch_url, "checking story match for redirect_url")
-        story_match = mediawords.tm.stories.get_story_match(db=db, url=fetched_url, redirect_url=response_url)
+        story_match = get_story_match(db=db, url=fetched_url, redirect_url=response_url)
 
     topic_fetch_url['code'] = response.code
 
@@ -405,17 +407,17 @@ def _try_fetch_topic_url(
         try:
             _update_tfu_message(db, topic_fetch_url, "generating story")
             url = response_url if response_url is not None else fetched_url
-            story = mediawords.tm.stories.generate_story(db=db, content=content, url=url)
+            story = generate_story(db=db, content=content, url=url)
 
             topic_fetch_url['stories_id'] = story['stories_id']
             topic_fetch_url['state'] = FETCH_STATE_STORY_ADDED
 
-        except mediawords.tm.stories.McTMStoriesDuplicateException:
+        except McTMStoriesDuplicateException:
             # may get a unique constraint error for the story addition within the media source.  that's fine
             # because it means the story is already in the database and we just need to match it again.
             _update_tfu_message(db, topic_fetch_url, "checking for story match on unique constraint error")
             topic_fetch_url['state'] = FETCH_STATE_STORY_MATCH
-            story_match = mediawords.tm.stories.get_story_match(db=db, url=fetched_url, redirect_url=response_url)
+            story_match = get_story_match(db=db, url=fetched_url, redirect_url=response_url)
             if story_match is None:
                 raise McTMFetchLinkException("Unable to find matching story after unique constraint error.")
             topic_fetch_url['stories_id'] = story_match['stories_id']
@@ -448,7 +450,7 @@ def fetch_topic_url(db: DatabaseHandler, topic_fetch_urls_id: int, domain_timeou
     Arguments:
     db - db handle
     topic_fetch_urls_id - id of topic_fetch_urls row
-    domain_timeout - pass through to fech_link
+    domain_timeout - pass through to fetch_link
 
     Returns:
     None
@@ -470,7 +472,7 @@ def fetch_topic_url(db: DatabaseHandler, topic_fetch_urls_id: int, domain_timeou
             assume_match = topic_fetch_url['assume_match']
             if _is_not_topic_story(db, topic_fetch_url):
                 if _story_matches_topic(db, story, topic, redirect_url=redirect_url, assume_match=assume_match):
-                    mediawords.tm.stories.add_to_topic_stories(db, story, topic)
+                    add_to_topic_stories(db, story, topic)
 
         if topic_fetch_url['topic_links_id'] and topic_fetch_url['stories_id']:
             try_update_topic_link_ref_stories_id(db, topic_fetch_url)
