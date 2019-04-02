@@ -13,11 +13,11 @@ RUN \
     rm -rf /root/.cache/ && \
     true
 
-# Copy Perl sources
-COPY src/perl/ /usr/share/perl5/
-
 # Copy Python sources
 COPY src/python/ /usr/lib/python3/dist-packages/
 
+# Copy worker script
+COPY bin/topics_fetch_twitter_urls.py /
+
 # FIXME
-CMD ["bash", "-c", "while true; do echo topics-fetch-link...; sleep 1; done"]
+CMD ["bash", "-c", "while true; do echo topics-fetch-twitter-urls...; sleep 1; done"]

@@ -1,13 +1,12 @@
-#!/usr/bin/env python
-"""Topic Maapper job that fetches twitter status and user urls from the twitter api and adds them to the topic
+#!/usr/bin/env python3
+
+"""Topic Mapper job that fetches twitter status and user urls from the twitter api and adds them to the topic
 if they match the topic pattern.
 ."""
 
-import traceback
-
 from mediawords.db import connect_to_db
 from mediawords.job import AbstractJob, McAbstractJobException, JobBrokerApp
-import mediawords.tm.fetch_twitter_urls
+from mediawords.tm.fetch_twitter_urls import fetch_twitter_urls_update_state
 from mediawords.util.log import create_logger
 
 log = create_logger(__name__)
@@ -42,24 +41,9 @@ class FetchTwitterUrlsJob(AbstractJob):
 
         db = connect_to_db()
 
-        try:
-            mediawords.tm.fetch_twitter_urls.fetch_twitter_urls(db=db, topic_fetch_urls_ids=topic_fetch_urls_ids)
-        except Exception as ex:
-            log.error("Error while fetching URL with ID {}: {}".format(topic_fetch_urls_ids, str(ex)))
-            db.query(
-                """
-                update topic_fetch_urls set state = %(a)s, message = %(b)s, fetch_date = now()
-                    where topic_fetch_urls_id = any(%(c)s)
-                """,
-                {
-                    'a': mediawords.tm.fetch_link_states.FETCH_STATE_PYTHON_ERROR,
-                    'b': traceback.format_exc(),
-                    'c': topic_fetch_urls_ids
-                })
+        fetch_twitter_urls_update_state(db=db, topic_fetch_urls_ids=topic_fetch_urls_ids)
 
-        db.disconnect()
-
-        log.info("Finished fetching twitter url")
+        log.info("Finished fetching twitter urls")
 
     @classmethod
     def queue_name(cls) -> str:

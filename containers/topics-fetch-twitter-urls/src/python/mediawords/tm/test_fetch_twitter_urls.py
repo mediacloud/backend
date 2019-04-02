@@ -9,16 +9,28 @@ from urllib.parse import urlparse, parse_qs
 
 import httpretty
 
-import mediawords.test.db.create
+from mediawords.db import connect_to_db
+from mediawords.dbi.downloads.store import get_content_for_first_download
+from mediawords.test.db.create import create_test_topic, create_test_feed, create_test_medium, create_test_story
 from mediawords.test.test_database import TestDatabaseTestCase
-import mediawords.tm.fetch_link_states
-import mediawords.tm.fetch_twitter_urls as ftu
-
+from mediawords.tm.fetch_states import FETCH_STATE_PYTHON_ERROR
+# noinspection PyProtectedMember
+from mediawords.tm.fetch_twitter_urls import (
+    fetch_twitter_urls_update_state,
+    _split_urls_into_users_and_statuses,
+    URLS_CHUNK_SIZE,
+    _call_function_on_url_chunks,
+    _add_user_story,
+    _try_fetch_users_chunk,
+    _add_tweet_story,
+    _try_fetch_tweets_chunk,
+)
 from mediawords.util.log import create_logger
 
 log = create_logger(__name__)
 
 
+# noinspection PyUnusedLocal
 def mock_users_lookup(request, uri, response_headers) -> List:
     """Mock twitter /users/lookup response."""
     params = parse_qs(request.body.decode('utf-8'))
@@ -44,6 +56,7 @@ def mock_users_lookup(request, uri, response_headers) -> List:
     return [200, response_headers, json.dumps(users)]
 
 
+# noinspection PyUnusedLocal
 def mock_statuses_lookup(request, uri, response_headers) -> List:
     """Mock twitter /statuses/lookup response."""
     params = parse_qs(urlparse(uri).query)
@@ -51,12 +64,12 @@ def mock_statuses_lookup(request, uri, response_headers) -> List:
     ids = params['id'][0].split(',')
 
     tweets = []
-    for id in ids:
+    for tweet_id in ids:
         tweet = {
-            'id': id,
-            'text': 'test content for tweet %s' % id,
+            'id': tweet_id,
+            'text': 'test content for tweet %s' % tweet_id,
             'created_at': 'Mon Dec 13 23:21:48 +0000 2010',
-            'user': {'screen_name': 'user %s' % id},
+            'user': {'screen_name': 'user %s' % tweet_id},
             'entities': {'urls': []}}
         tweets.append(tweet)
 
@@ -67,7 +80,7 @@ def test_split_urls_into_users_and_statuses() -> None:
     """Test split_urls_into_users_and_statuses()."""
     user_urls = [{'url': u} for u in ['http://twitter.com/foo', 'http://twitter.com/bar']]
     status_urls = [{'url': u} for u in ['https://twitter.com/foo/status/123', 'https://twitter.com/bar/status/456']]
-    assert ftu._split_urls_into_users_and_statuses(user_urls + status_urls) == (user_urls, status_urls)
+    assert _split_urls_into_users_and_statuses(user_urls + status_urls) == (user_urls, status_urls)
 
 
 class TestFetchTopicTweets(TestDatabaseTestCase):
@@ -77,42 +90,44 @@ class TestFetchTopicTweets(TestDatabaseTestCase):
         """test _call_function_on_url_chunk."""
         _chunk_collector = []
 
-        def _test_function(db, topic, urls):
-            _chunk_collector.append(urls)
+        # noinspection PyUnusedLocal
+        def _test_function(db_, topic_, urls_):
+            _chunk_collector.append(urls_)
 
-        def _error_function(db, topic, urls):
+        # noinspection PyUnusedLocal
+        def _error_function(db_, topic_, urls_):
             raise Exception('chunk exception')
 
         db = self.db()
-        topic = mediawords.test.db.create.create_test_topic(db, 'test')
+        topic = create_test_topic(db, 'test')
 
-        urls = list(range(ftu.URLS_CHUNK_SIZE * 2))
+        urls = list(range(URLS_CHUNK_SIZE * 2))
 
-        ftu._call_function_on_url_chunks(db, topic, urls, _test_function)
+        _call_function_on_url_chunks(db, topic, urls, _test_function)
 
-        assert _chunk_collector == [urls[0:ftu.URLS_CHUNK_SIZE], urls[ftu.URLS_CHUNK_SIZE:]]
+        assert _chunk_collector == [urls[0:URLS_CHUNK_SIZE], urls[URLS_CHUNK_SIZE:]]
 
-        for i in range(ftu.URLS_CHUNK_SIZE * 2):
+        for i in range(URLS_CHUNK_SIZE * 2):
             db.create('topic_fetch_urls', {'topics_id': topic['topics_id'], 'url': 'foo', 'state': 'pending'})
 
         topic_fetch_urls = db.query("select * from topic_fetch_urls").hashes()
 
-        ftu._call_function_on_url_chunks(db, topic, topic_fetch_urls, _error_function)
+        _call_function_on_url_chunks(db, topic, topic_fetch_urls, _error_function)
 
         [error_count] = db.query(
             "select count(*) from topic_fetch_urls where state = %(a)s",
-            {'a': mediawords.tm.fetch_link_states.FETCH_STATE_PYTHON_ERROR}).flat()
+            {'a': FETCH_STATE_PYTHON_ERROR}).flat()
 
-        assert error_count == ftu.URLS_CHUNK_SIZE * 2
+        assert error_count == URLS_CHUNK_SIZE * 2
 
     def test_add_user_story(self) -> None:
         """Test _add_user_story()."""
         db = self.db()
 
-        topic = mediawords.test.db.create.create_test_topic(db, 'test')
-        medium = mediawords.test.db.create.create_test_medium(db, 'test')
-        feed = mediawords.test.db.create.create_test_feed(db, 'test', medium)
-        source_story = mediawords.test.db.create.create_test_story(db, 'source', feed)
+        topic = create_test_topic(db, 'test')
+        medium = create_test_medium(db, 'test')
+        feed = create_test_feed(db, 'test', medium)
+        source_story = create_test_story(db, 'source', feed)
 
         topics_id = topic['topics_id']
 
@@ -131,7 +146,7 @@ class TestFetchTopicTweets(TestDatabaseTestCase):
             'description': 'test user description'
         }
 
-        story = ftu._add_user_story(db, topic, user, [tfu])
+        story = _add_user_story(db, topic, user, [tfu])
 
         got_story = db.require_by_id('stories', story['stories_id'])
 
@@ -142,7 +157,7 @@ class TestFetchTopicTweets(TestDatabaseTestCase):
         assert got_topic_link['ref_stories_id'] == story['stories_id']
 
         content = '%s (%s): %s' % (user['name'], user['screen_name'], user['description'])
-        assert mediawords.dbi.downloads.get_content_for_first_download(db, story) == content
+        assert get_content_for_first_download(db, story) == content
 
         got_topic_story = db.query(
             "select * from topic_stories where stories_id = %(a)s and topics_id = %(b)s",
@@ -168,10 +183,10 @@ class TestFetchTopicTweets(TestDatabaseTestCase):
     def _test_try_fetch_users_chunk_threaded(self, num_threads: int = 1) -> None:
         """Test fetch_100_users using mock. Run in parallel threads to test for race conditions."""
 
-        def _try_fetch_users_chunk_threaded(topic: dict, tfus: list) -> None:
+        def _try_fetch_users_chunk_threaded(topic_: dict, tfus_: list) -> None:
             """Call ftu._try_fetch_users_chunk with a newly created db handle for thread safety."""
-            db = mediawords.db.connect_to_db()
-            ftu._try_fetch_users_chunk(db, topic, tfus)
+            db_ = connect_to_db()
+            _try_fetch_users_chunk(db_, topic_, tfus_)
 
         httpretty.enable()  # enable HTTPretty so that it will monkey patch the socket module
         httpretty.register_uri(
@@ -179,7 +194,7 @@ class TestFetchTopicTweets(TestDatabaseTestCase):
 
         db = self.db()
 
-        topic = mediawords.test.db.create.create_test_topic(db, 'test')
+        topic = create_test_topic(db, 'test')
         topics_id = topic['topics_id']
 
         num_urls_per_thread = 100
@@ -219,10 +234,10 @@ class TestFetchTopicTweets(TestDatabaseTestCase):
         """Test _add_test_story()."""
         db = self.db()
 
-        topic = mediawords.test.db.create.create_test_topic(db, 'test')
-        medium = mediawords.test.db.create.create_test_medium(db, 'test')
-        feed = mediawords.test.db.create.create_test_feed(db, 'test', medium)
-        source_story = mediawords.test.db.create.create_test_story(db, 'source', feed)
+        topic = create_test_topic(db, 'test')
+        medium = create_test_medium(db, 'test')
+        feed = create_test_feed(db, 'test', medium)
+        source_story = create_test_story(db, 'source', feed)
 
         topics_id = topic['topics_id']
 
@@ -244,7 +259,7 @@ class TestFetchTopicTweets(TestDatabaseTestCase):
             'quoted_status': {'entities': {'urls': [{'expanded_url': 'http://quoted.entity'}]}}
         }
 
-        story = ftu._add_tweet_story(db, topic, tweet, [tfu])
+        story = _add_tweet_story(db, topic, tweet, [tfu])
 
         got_story = db.require_by_id('stories', story['stories_id'])
 
@@ -256,7 +271,7 @@ class TestFetchTopicTweets(TestDatabaseTestCase):
         got_topic_link = db.require_by_id('topic_links', topic_link['topic_links_id'])
         assert got_topic_link['ref_stories_id'] == story['stories_id']
 
-        assert mediawords.dbi.downloads.get_content_for_first_download(db, story) == tweet['text']
+        assert get_content_for_first_download(db, story) == tweet['text']
 
         got_topic_story = db.query(
             "select * from topic_stories where stories_id = %(a)s and topics_id = %(b)s",
@@ -264,9 +279,10 @@ class TestFetchTopicTweets(TestDatabaseTestCase):
         assert got_topic_story is not None
         assert got_topic_story['link_mined']
 
-        for url in (tweet['entities']['urls'][0]['expanded_url'],
+        # noinspection PyTypeChecker
+        for url in [tweet['entities']['urls'][0]['expanded_url'],
                     tweet['retweeted_status']['entities']['urls'][0]['expanded_url'],
-                    tweet['quoted_status']['entities']['urls'][0]['expanded_url']):
+                    tweet['quoted_status']['entities']['urls'][0]['expanded_url']]:
             got_topic_link = db.query(
                 "select * from topic_links where topics_id = %(a)s and url = %(b)s",
                 {'a': topic['topics_id'], 'b': url}).hash()
@@ -275,10 +291,10 @@ class TestFetchTopicTweets(TestDatabaseTestCase):
     def _test_try_fetch_tweets_chunk_threaded(self, num_threads: int = 0) -> None:
         """Test fetch_100_tweets using mock."""
 
-        def _try_fetch_tweets_chunk_threaded(topic: dict, tfus: list) -> None:
+        def _try_fetch_tweets_chunk_threaded(topic_: dict, tfus_: list) -> None:
             """Call ftu._try_fetch_tweets_chunk with a newly created db handle for thread safety."""
-            db = mediawords.db.connect_to_db()
-            ftu._try_fetch_tweets_chunk(db, topic, tfus)
+            db_ = connect_to_db()
+            _try_fetch_tweets_chunk(db_, topic_, tfus_)
 
         httpretty.enable()
         httpretty.register_uri(
@@ -286,7 +302,7 @@ class TestFetchTopicTweets(TestDatabaseTestCase):
 
         db = self.db()
 
-        topic = mediawords.test.db.create.create_test_topic(db, 'test')
+        topic = create_test_topic(db, 'test')
         topics_id = topic['topics_id']
 
         num_urls_per_thread = 100
@@ -321,3 +337,58 @@ class TestFetchTopicTweets(TestDatabaseTestCase):
     def test_try_fetch_tweets_chunk_multiple(self) -> None:
         """Test _try_fetch_tweets_chunk with a single thread."""
         self._test_try_fetch_tweets_chunk_threaded(20)
+
+    def test_fetch_twitter_urls_update_state(self) -> None:
+        """Test fetch_100_tweets using mock."""
+        httpretty.enable()
+        httpretty.register_uri(
+            httpretty.GET, "https://api.twitter.com/1.1/statuses/lookup.json", body=mock_statuses_lookup)
+        httpretty.register_uri(
+            httpretty.POST, "https://api.twitter.com/1.1/users/lookup.json", body=mock_users_lookup)
+
+        db = self.db()
+
+        topic = create_test_topic(db, 'test')
+        topics_id = topic['topics_id']
+
+        tfus = []
+
+        num_tweets = 150
+        for i in range(num_tweets):
+            url = 'https://twitter.com/foo/status/%d' % i
+            tfu = db.create('topic_fetch_urls', {'topics_id': topics_id, 'url': url, 'state': 'pending'})
+            tfus.append(tfu)
+
+        num_users = 150
+        for i in range(num_users):
+            url = 'https://twitter.com/test_user_%s' % i
+            tfu = db.create('topic_fetch_urls', {'topics_id': topics_id, 'url': url, 'state': 'pending'})
+            tfus.append(tfu)
+
+        tfu_ids = [u['topic_fetch_urls_id'] for u in tfus]
+        random.shuffle(tfu_ids)
+
+        fetch_twitter_urls_update_state(db=db, topic_fetch_urls_ids=tfu_ids)
+
+        [num_tweet_stories] = db.query(
+            """
+            select count(*)
+                from topic_stories ts
+                    join stories s using ( stories_id )
+                where topics_id = %(a)s and url ~ '/status/[0-9]+'
+            """,
+            {'a': topics_id}).flat()
+        assert num_tweet_stories == num_tweets
+
+        [num_user_stories] = db.query(
+            """
+            select count(*)
+                from topic_stories ts
+                    join stories s using ( stories_id )
+                where topics_id = %(a)s and url !~ '/status/[0-9]+'
+            """,
+            {'a': topics_id}).flat()
+        assert num_user_stories == num_users
+
+        httpretty.disable()
+        httpretty.reset()

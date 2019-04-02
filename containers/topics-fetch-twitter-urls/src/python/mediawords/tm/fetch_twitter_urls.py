@@ -4,18 +4,19 @@ from typing import List, Callable
 import traceback
 
 from mediawords.db.handler import DatabaseHandler
-import mediawords.tm.domains
+from mediawords.tm.domains import skip_self_linked_domain_url, increment_domain_links
+from mediawords.tm.stories import generate_story, add_to_topic_stories
+from mediawords.util.sql import sql_now
 from mediawords.util.url.twitter import parse_status_id_from_url, parse_screen_name_from_user_url
 from mediawords.tm.fetch_link_utils import content_matches_topic, try_update_topic_link_ref_stories_id
-from mediawords.tm.fetch_link_states import (
+from mediawords.tm.fetch_states import (
     FETCH_STATE_TWEET_MISSING,
     FETCH_STATE_TWEET_ADDED,
     FETCH_STATE_CONTENT_MATCH_FAILED,
     FETCH_STATE_PYTHON_ERROR,
 )
-from mediawords.util.twitter import fetch_100_users, get_tweet_urls, fetch_100_tweets
-
 from mediawords.util.log import create_logger
+from mediawords.util.twitter import fetch_100_users, get_tweet_urls, fetch_100_tweets
 
 log = create_logger(__name__)
 
@@ -23,19 +24,18 @@ URLS_CHUNK_SIZE = 100
 
 
 class McFetchTwitterUrlsDataException(Exception):
-    """default exception."""
-
+    """Default exception."""
     pass
 
 
-def _log_tweet_missing(db: DatabaseHandler, topic_fetch_url: dict) -> dict:
+def _log_tweet_missing(db: DatabaseHandler, topic_fetch_url: dict) -> None:
     """Update topic_fetch_url state to tweet missing."""
     db.query(
         "update topic_fetch_urls set state = %(a)s, fetch_date = now() where topic_fetch_urls_id = %(b)s",
         {'a': FETCH_STATE_TWEET_MISSING, 'b': topic_fetch_url['topic_fetch_urls_id']})
 
 
-def _log_content_match_failed(db: DatabaseHandler, topic_fetch_url: dict) -> dict:
+def _log_content_match_failed(db: DatabaseHandler, topic_fetch_url: dict) -> None:
     """Update topic_fetch_url state to content match failed."""
     db.query(
         "update topic_fetch_urls set state = %(a)s, fetch_date = now() where topic_fetch_urls_id = %(b)s",
@@ -44,22 +44,14 @@ def _log_content_match_failed(db: DatabaseHandler, topic_fetch_url: dict) -> dic
 
 def _log_tweet_added(db: DatabaseHandler, topic_fetch_url: dict, story: dict) -> dict:
     """Update topic_fetch_url stat to tweet added."""
-    return db.query(
-        """
-        update topic_fetch_urls set state=%(a)s, stories_id=%(b)s, fetch_date=now() where topic_fetch_urls_id=%(c)s
-            returning *
-        """,
-        {'a': FETCH_STATE_TWEET_ADDED, 'b': story['stories_id'], 'c': topic_fetch_url['topic_fetch_urls_id']}).hash()
-
-
-def _log_python_errpr(db: DatabaseHandler, topic_fetch_url: dict, message: str) -> dict:
-    """Update topic_fetch_url stat to tweet failed."""
-    return db.query(
-        """
-        update topic_fetch_urls set state=%(a)s, fetch_date=now(), message = %(b)s  where topic_fetch_urls_id=%(c)s
-            returning *
-        """,
-        {'a': FETCH_STATE_PYTHON_ERROR, 'b': message, 'c': topic_fetch_url['topic_fetch_urls_id']}).hash()
+    return db.query("""
+        UPDATE topic_fetch_urls
+        SET state = %(a)s,
+            stories_id = %(b)s,
+            fetch_date = NOW()
+        WHERE topic_fetch_urls_id = %(c)s
+        RETURNING *
+    """, {'a': FETCH_STATE_TWEET_ADDED, 'b': story['stories_id'], 'c': topic_fetch_url['topic_fetch_urls_id']}).hash()
 
 
 def _get_undateable_tag(db: DatabaseHandler) -> dict:
@@ -89,15 +81,15 @@ def _add_user_story(db: DatabaseHandler, topic: dict, user: dict, topic_fetch_ur
     """Generate a story based on the given user, as returned by the twitter api."""
     content = '%s (%s): %s' % (user['name'], user['screen_name'], user['description'])
     title = '%s (%s) | Twitter' % (user['name'], user['screen_name'])
-    tweet_date = mediawords.util.sql.sql_now()
+    tweet_date = sql_now()
     url = 'https://twitter.com/%s' % user['screen_name']
 
-    story = mediawords.tm.stories.generate_story(db=db, url=url, content=content, title=title, publish_date=tweet_date)
-    mediawords.tm.stories.add_to_topic_stories(db=db, story=story, topic=topic, link_mined=True)
+    story = generate_story(db=db, url=url, content=content, title=title, publish_date=tweet_date)
+    add_to_topic_stories(db=db, story=story, topic=topic, link_mined=True)
 
     for topic_fetch_url in topic_fetch_urls:
         topic_fetch_url = _log_tweet_added(db, topic_fetch_url, story)
-        mediawords.tm.fetch_link_utils.try_update_topic_link_ref_stories_id(db, topic_fetch_url)
+        try_update_topic_link_ref_stories_id(db, topic_fetch_url)
 
     # twitter user pages are undateable because there is never a consistent version of the page
     undateable_tag = _get_undateable_tag(db)
@@ -128,12 +120,12 @@ def _try_fetch_users_chunk(db: DatabaseHandler, topic: dict, topic_fetch_urls: L
         try:
             screen_name = user['screen_name'].lower()
             topic_fetch_urls = url_lookup[screen_name]
-            del(url_lookup[screen_name])
+            del (url_lookup[screen_name])
         except KeyError:
             raise KeyError("can't find user '%s' in urls: %s" % (user['screen_name'], str(screen_names)))
 
         content = "%s %s %s" % (user['name'], user['screen_name'], user['description'])
-        if mediawords.tm.fetch_link_utils_utils.content_matches_topic(content, topic):
+        if content_matches_topic(content, topic):
             _add_user_story(db, topic, user, topic_fetch_urls)
         else:
             [_log_content_match_failed(db, u) for u in topic_fetch_urls]
@@ -151,16 +143,16 @@ def _add_tweet_story(db: DatabaseHandler, topic: dict, tweet: dict, topic_fetch_
     tweet_date = tweet['created_at']
     url = 'https://twitter.com/%s/status/%s' % (screen_name, tweet['id'])
 
-    story = mediawords.tm.stories.generate_story(db=db, url=url, content=content, title=title, publish_date=tweet_date)
-    mediawords.tm.stories.add_to_topic_stories(db=db, story=story, topic=topic, link_mined=True)
+    story = generate_story(db=db, url=url, content=content, title=title, publish_date=tweet_date)
+    add_to_topic_stories(db=db, story=story, topic=topic, link_mined=True)
 
     for topic_fetch_url in topic_fetch_urls:
         topic_fetch_url = _log_tweet_added(db, topic_fetch_url, story)
-        mediawords.tm.fetch_link_utils.try_update_topic_link_ref_stories_id(db, topic_fetch_url)
+        try_update_topic_link_ref_stories_id(db, topic_fetch_url)
 
     urls = get_tweet_urls(tweet)
     for url in urls:
-        if mediawords.tm.domains.skip_self_linked_domain_url(db, topic['topics_id'], story['url'], url):
+        if skip_self_linked_domain_url(db, topic['topics_id'], story['url'], url):
             log.info("skipping self linked domain url...")
             continue
 
@@ -171,7 +163,7 @@ def _add_tweet_story(db: DatabaseHandler, topic: dict, tweet: dict, topic_fetch_
         }
 
         db.create('topic_links', topic_link)
-        mediawords.tm.domains.increment_domain_links(db, topic_link)
+        increment_domain_links(db, topic_link)
 
     return story
 
@@ -195,11 +187,11 @@ def _try_fetch_tweets_chunk(db: DatabaseHandler, topic: dict, topic_fetch_urls: 
     for tweet in tweets:
         try:
             topic_fetch_urls = status_lookup[str(tweet['id'])]
-            del(status_lookup[str(tweet['id'])])
+            del (status_lookup[str(tweet['id'])])
         except KeyError:
             raise KeyError("can't find tweet '%s' in ids: %s" % (tweet['id'], str(status_ids)))
 
-        if mediawords.tm.fetch_link_utils.content_matches_topic(tweet['text'], topic):
+        if content_matches_topic(tweet['text'], topic):
             _add_tweet_story(db, topic, tweet, topic_fetch_urls)
         else:
             [_log_content_match_failed(db, u) for u in topic_fetch_urls]
@@ -231,7 +223,7 @@ def _call_function_on_url_chunks(db: DatabaseHandler, topic: dict, urls: List, c
         i += URLS_CHUNK_SIZE
 
 
-def _split_urls_into_users_and_statuses(topic_fetch_urls: List) -> List:
+def _split_urls_into_users_and_statuses(topic_fetch_urls: List) -> tuple:
     """Split topic_fetch_urls into status_id urls and screen_name urls."""
     status_urls = []
     user_urls = []
@@ -248,10 +240,10 @@ def _split_urls_into_users_and_statuses(topic_fetch_urls: List) -> List:
             else:
                 raise McFetchTwitterUrlsDataException("url '%s' is not a twitter status or a twitter user" % url)
 
-    return(user_urls, status_urls)
+    return user_urls, status_urls
 
 
-def fetch_twitter_urls(db: DatabaseHandler, topic_fetch_urls_ids: List) -> None:
+def fetch_twitter_urls(db: DatabaseHandler, topic_fetch_urls_ids: List[int]) -> None:
     """Fetch topic_fetch_urls from twitter api as statuses and users in chunks of up to 100."""
     if len(topic_fetch_urls_ids) == 0:
         return
@@ -266,3 +258,18 @@ def fetch_twitter_urls(db: DatabaseHandler, topic_fetch_urls_ids: List) -> None:
 
     _call_function_on_url_chunks(db, topic, user_urls, _try_fetch_users_chunk)
     _call_function_on_url_chunks(db, topic, status_urls, _try_fetch_tweets_chunk)
+
+
+def fetch_twitter_urls_update_state(db: DatabaseHandler, topic_fetch_urls_ids: List[int]):
+    """Try fetch_twitter_urls(), update state."""
+    try:
+        fetch_twitter_urls(db=db, topic_fetch_urls_ids=topic_fetch_urls_ids)
+    except Exception as ex:
+        log.error("Error while fetching URL with ID {}: {}".format(topic_fetch_urls_ids, str(ex)))
+        db.query("""
+            update topic_fetch_urls
+            set state = %(a)s,
+                message = %(b)s,
+                fetch_date = now()
+            where topic_fetch_urls_id = any(%(c)s)
+        """, {'a': FETCH_STATE_PYTHON_ERROR, 'b': traceback.format_exc(), 'c': topic_fetch_urls_ids})
