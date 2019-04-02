@@ -7,7 +7,7 @@ from mediawords.dbi.auth.password import generate_secure_hash
 from mediawords.dbi.auth.user import CurrentUser, ModifyUser
 from mediawords.util.log import create_logger
 from mediawords.util.mail import send_email
-from mediawords.util.mail_message.templates import AuthAPIKeyResetMessage
+from mediawords.util.mail_message.webapp_messages import AuthAPIKeyResetMessage
 from mediawords.util.perl import decode_object_from_bytes_if_needed
 from mediawords.util.text import random_string
 

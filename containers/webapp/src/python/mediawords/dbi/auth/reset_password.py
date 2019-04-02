@@ -7,7 +7,7 @@ from mediawords.dbi.auth.info import user_info
 from mediawords.dbi.auth.profile import create_password_reset_token
 from mediawords.util.log import create_logger
 from mediawords.util.mail import send_email
-from mediawords.util.mail_message.templates import AuthResetPasswordMessage
+from mediawords.util.mail_message.webapp_messages import AuthResetPasswordMessage
 from mediawords.util.perl import decode_object_from_bytes_if_needed
 
 log = create_logger(__name__)

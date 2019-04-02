@@ -7,7 +7,8 @@ from mediawords.dbi.auth.change_password import (
     change_password,
     change_password_with_old_password,
     McAuthChangePasswordException,
-    change_password_with_reset_token)
+    change_password_with_reset_token,
+)
 from mediawords.dbi.auth.login import login_with_email_password, McAuthLoginException
 from mediawords.dbi.auth.register import add_user
 # noinspection PyProtectedMember
