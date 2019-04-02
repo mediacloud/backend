@@ -22,5 +22,11 @@ RUN \
 # Copy Perl sources
 COPY src/perl/ /usr/share/perl5/
 
+# Copy Python sources
+COPY src/python/ /usr/lib/python3/dist-packages/
+
+# Copy importer script
+COPY bin/import_solr_data.pl /
+
 # FIXME
 CMD ["bash", "-c", "while true; do echo import-solr-data...; sleep 1; done"]

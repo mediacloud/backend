@@ -4,8 +4,8 @@
 
 FROM dockermediacloud/mediacloud-import-solr-data:latest
 
-# Copy Perl sources
-COPY src/perl/ /usr/share/perl5/
+# Copy worker script
+COPY bin/import_solr_data_for_testing.pm /
 
 # FIXME
 CMD ["bash", "-c", "while true; do echo import-solr-data-for-testing...; sleep 1; done"]
