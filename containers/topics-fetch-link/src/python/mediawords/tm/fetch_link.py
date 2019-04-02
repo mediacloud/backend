@@ -1,10 +1,11 @@
 """This is the code backing the topic_fetch_link job, which fetches links and generates mc stories from them."""
 
 import datetime
+from typing import Optional
+
 import re2
 import time
 import traceback
-import typing
 from dataclasses import dataclass
 from http import HTTPStatus
 
@@ -79,7 +80,7 @@ class FetchLinkResponse(object):
     content: str
     """Decoded content of the response."""
 
-    last_requested_url: typing.Optional[str] = None
+    last_requested_url: Optional[str] = None
     """Last requested URL that led to this response (in case of a redirect cycle)."""
 
     @classmethod
@@ -112,7 +113,7 @@ def _fetch_url(
         network_down_host: str = DEFAULT_NETWORK_DOWN_HOST,
         network_down_port: int = DEFAULT_NETWORK_DOWN_PORT,
         network_down_timeout: int = DEFAULT_NETWORK_DOWN_TIMEOUT,
-        domain_timeout: typing.Optional[int] = None) -> FetchLinkResponse:
+        domain_timeout: Optional[int] = None) -> FetchLinkResponse:
     """Fetch a url and return the content.
 
     If fetching the url results in a 400 error, check whether the network_down_host is accessible.  If so,
@@ -218,7 +219,7 @@ def _is_not_topic_story(db: DatabaseHandler, topic_fetch_url: dict) -> bool:
 
 
 # return true if the domain of the story url matches the domain of the medium url
-def _get_seeded_content(db: DatabaseHandler, topic_fetch_url: dict) -> typing.Optional[FetchLinkResponse]:
+def _get_seeded_content(db: DatabaseHandler, topic_fetch_url: dict) -> Optional[FetchLinkResponse]:
     """Return content for this url and topic in topic_seed_urls.
 
     Arguments:
@@ -246,7 +247,7 @@ def _get_seeded_content(db: DatabaseHandler, topic_fetch_url: dict) -> typing.Op
     )
 
 
-def _get_failed_url(db: DatabaseHandler, topics_id: int, url: str) -> typing.Optional[dict]:
+def _get_failed_url(db: DatabaseHandler, topics_id: int, url: str) -> Optional[dict]:
     """Return the links from the set without FETCH_STATE_REQUEST_FAILED or FETCH_STATE_CONTENT_MATCH_FAILED states.
 
     Arguments:
@@ -292,7 +293,7 @@ def _update_tfu_message(db: DatabaseHandler, topic_fetch_url: dict, message: str
         db.update_by_id('topic_fetch_urls', topic_fetch_url['topic_fetch_urls_id'], {'message': message})
 
 
-def _ignore_link_pattern(url: typing.Optional[str]) -> bool:
+def _ignore_link_pattern(url: Optional[str]) -> bool:
     """Return true if the url or redirect_url matches the ignore link pattern."""
     if url is None:
         return False
@@ -313,7 +314,7 @@ def _get_pending_state(topic_fetch_url: dict) -> str:
 def _try_fetch_topic_url(
         db: DatabaseHandler,
         topic_fetch_url: dict,
-        domain_timeout: typing.Optional[int] = None) -> None:
+        domain_timeout: Optional[int] = None) -> None:
     """Implement the logic of fetch_topic_url without the try: or the topic_fetch_url update."""
 
     log.warning("_try_fetch_topic_url: %s" % topic_fetch_url['url'])
@@ -425,7 +426,7 @@ def _try_fetch_topic_url(
     _update_tfu_message(db, topic_fetch_url, "_try_fetch_url done")
 
 
-def fetch_topic_url(db: DatabaseHandler, topic_fetch_urls_id: int, domain_timeout: typing.Optional[int] = None) -> None:
+def fetch_topic_url(db: DatabaseHandler, topic_fetch_urls_id: int, domain_timeout: Optional[int] = None) -> None:
     """Fetch a url for a topic and create a media cloud story from it if its content matches the topic pattern.
 
     Update the following fields in the topic_fetch_urls row:
@@ -488,3 +489,37 @@ def fetch_topic_url(db: DatabaseHandler, topic_fetch_urls_id: int, domain_timeou
         log.warning('topic_fetch_url %s failed: %s' % (topic_fetch_url['url'], topic_fetch_url['message']))
 
     db.update_by_id('topic_fetch_urls', topic_fetch_url['topic_fetch_urls_id'], topic_fetch_url)
+
+
+def fetch_topic_url_update_state(db: DatabaseHandler,
+                                 topic_fetch_urls_id: int,
+                                 domain_timeout: Optional[int] = None) -> bool:
+    """Tries fetch_topic_url(), updates state; returns True if job completed and does not have to be requeued."""
+    try:
+        fetch_topic_url(
+            db=db,
+            topic_fetch_urls_id=topic_fetch_urls_id,
+            domain_timeout=domain_timeout)
+
+    except McThrottledDomainException:
+        # if a domain has been throttled, just add it back to the end of the queue
+        log.info("Fetch for topic_fetch_url %d domain throttled. Requeueing ..." % topic_fetch_urls_id)
+
+        db.update_by_id(
+            'topic_fetch_urls',
+            topic_fetch_urls_id,
+            {'state': FETCH_STATE_REQUEUED, 'fetch_date': datetime.datetime.now()}
+        )
+        return False
+
+    except Exception as ex:
+        # all non throttled errors should get caught by the try: about, but catch again here just in case
+        log.error("Error while fetching URL with ID {}: {}".format(topic_fetch_urls_id, str(ex)))
+        update = {
+            'state': FETCH_STATE_PYTHON_ERROR,
+            'fetch_date': datetime.datetime.now(),
+            'message': traceback.format_exc(),
+        }
+        db.update_by_id('topic_fetch_urls', topic_fetch_urls_id, update)
+
+    return True
