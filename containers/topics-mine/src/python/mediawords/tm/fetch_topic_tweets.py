@@ -1,50 +1,44 @@
 """Use the Crimson Hexagon API to lookup tweets relevant to a topic, then fetch each of those tweets from twitter."""
-
-from abc import ABC, abstractmethod
+import abc
 import datetime
+from typing import Type, Optional, List
+
 import regex
-import typing
 
 from mediawords.db import DatabaseHandler
-import mediawords.tm.fetch_link
-import mediawords.util.parse_json
-from mediawords.util.web.user_agent import UserAgent
-import mediawords.util.twitter
-
+from mediawords.tm.fetch_link import content_matches_topic
 from mediawords.util.log import create_logger
+from mediawords.util.parse_json import decode_json, encode_json
+from mediawords.util.web.user_agent import UserAgent
 
 log = create_logger(__name__)
 
 
 class McFetchTopicTweetsException(Exception):
     """default exception."""
-
     pass
 
 
 class McFetchTopicTweetsDataException(Exception):
     """exception indicating an error in the external data fetched by this module."""
-
     pass
 
 
 class McFetchTopicTweetsConfigException(Exception):
     """exception indicating an error in the mediawords.yml configuration."""
-
     pass
 
 
 class McFetchTopicTweetDateFetchedException(Exception):
     """exception indicating the topic tweets for the given day have already been fetched."""
-
     pass
 
 
-class AbstractCrimsonHexagon(ABC):
+class AbstractCrimsonHexagon(metaclass=abc.ABCMeta):
     """abstract class that fetches data from Crimson Hexagon."""
 
     @staticmethod
-    @abstractmethod
+    @abc.abstractmethod
     def fetch_posts(ch_monitor_id: int, day: datetime.datetime) -> dict:
         """
         Fetch the list of tweets from the ch api.
@@ -60,7 +54,7 @@ class AbstractCrimsonHexagon(ABC):
 
 
 class CrimsonHexagon(AbstractCrimsonHexagon):
-    """class that fech_posts() method that can list posts via the Crimson Hexagon api."""
+    """class that fetch_posts() method that can list posts via the Crimson Hexagon api."""
 
     @staticmethod
     def fetch_posts(ch_monitor_id: int, day: datetime.datetime) -> dict:
@@ -70,7 +64,7 @@ class CrimsonHexagon(AbstractCrimsonHexagon):
         ua.set_timeout(90)
         ua.set_timing([1, 2, 4, 8, 16, 32, 64, 128, 256, 512])
 
-        config = mediawords.util.config.get_config()
+        config = get_config()
         if 'crimson_hexagon' not in config or 'key' not in config['crimson_hexagon']:
             raise McFetchTopicTweetsConfigException("no key in mediawords.yml at //crimson_hexagon/key.")
 
@@ -93,7 +87,7 @@ class CrimsonHexagon(AbstractCrimsonHexagon):
 
         decoded_content = response.decoded_content()
 
-        data = dict(mediawords.util.parse_json.decode_json(decoded_content))
+        data = dict(decode_json(decoded_content))
 
         if 'status' not in data or not data['status'] == 'success':
             raise McFetchTopicTweetsDataException("Unknown response status: " + str(data))
@@ -101,11 +95,11 @@ class CrimsonHexagon(AbstractCrimsonHexagon):
         return data
 
 
-class AbstractTwitter(ABC):
+class AbstractTwitter(metaclass=abc.ABCMeta):
     """abstract class that fetches data from Twitter."""
 
     @staticmethod
-    @abstractmethod
+    @abc.abstractmethod
     def fetch_100_tweets(tweet_ids: list) -> list:
         """
         Fetch up to 100 tweets from the twitter api.
@@ -127,10 +121,10 @@ class Twitter(AbstractTwitter):
     @staticmethod
     def fetch_100_tweets(tweet_ids: list) -> list:
         """Implement fetch_tweets on twitter api using config data from mediawords.yml."""
-        return mediawords.util.twitter.fetch_100_tweets(tweet_ids)
+        return fetch_100_tweets(tweet_ids)
 
 
-def _add_tweets_to_ch_posts(twitter_class: typing.Type[AbstractTwitter], ch_posts: list) -> None:
+def _add_tweets_to_ch_posts(twitter_class: Type[AbstractTwitter], ch_posts: list) -> None:
     """
     Given a set of ch_posts, fetch data from twitter about each tweet and attach it under the ch['tweet'] field.
 
@@ -170,7 +164,7 @@ def _add_tweets_to_ch_posts(twitter_class: typing.Type[AbstractTwitter], ch_post
             log.debug("no tweet fetched for url " + ch_post['url'])
 
 
-def _insert_tweet_urls(db: DatabaseHandler, topic_tweet: dict, urls: typing.List) -> typing.List:
+def _insert_tweet_urls(db: DatabaseHandler, topic_tweet: dict, urls: List) -> List:
     """Insert list of urls into topic_tweet_urls."""
     for url in urls:
         db.query(
@@ -195,7 +189,7 @@ def _store_tweet_and_urls(db: DatabaseHandler, topic_tweet_day: dict, ch_post: d
     Return:
     None
     """
-    data_json = mediawords.util.parse_json.encode_json(ch_post)
+    data_json = encode_json(ch_post)
 
     # null characters are not legal in json but for some reason get stuck in these tweets
     data_json = data_json.replace('\x00', '')
@@ -219,11 +213,11 @@ def _store_tweet_and_urls(db: DatabaseHandler, topic_tweet_day: dict, ch_post: d
         """,
         topic_tweet).hash()
 
-    urls = mediawords.util.twitter.get_tweet_urls(ch_post['tweet'])
+    urls = get_tweet_urls(ch_post['tweet'])
     _insert_tweet_urls(db, topic_tweet, urls)
 
 
-def regenerate_tweet_urls(db: dict, topic: dict) -> None:
+def regenerate_tweet_urls(db: DatabaseHandler, topic: dict) -> None:
     """Reparse the tweet json for a given topic and try to reinsert all tweet urls."""
     topic_tweets_ids = db.query(
         """
@@ -240,25 +234,25 @@ def regenerate_tweet_urls(db: dict, topic: dict) -> None:
             log.info('regenerate tweet urls: %d/%d' % (i, len(topic_tweets_ids)))
 
         topic_tweet = db.require_by_id('topic_tweets', topic_tweets_id)
-        data = mediawords.util.parse_json.decode_json(topic_tweet['data'])
-        urls = mediawords.util.twitter.get_tweet_urls(data['tweet'])
+        data = decode_json(topic_tweet['data'])
+        urls = get_tweet_urls(data['tweet'])
         _insert_tweet_urls(db, topic_tweet, urls)
 
 
 def _post_matches_pattern(topic: dict, ch_post: dict) -> bool:
     """Return true if the content of the post matches the topic pattern."""
     if 'tweet' in ch_post:
-        return mediawords.tm.fetch_link.content_matches_topic(ch_post['tweet']['text'], topic)
+        return content_matches_topic(ch_post['tweet']['text'], topic)
     else:
         return False
 
 
 def _fetch_tweets_for_day(
         db: DatabaseHandler,
-        twitter_class: typing.Type[AbstractTwitter],
+        twitter_class: Type[AbstractTwitter],
         topic: dict,
         topic_tweet_day: dict,
-        max_tweets: typing.Optional[int] = None) -> None:
+        max_tweets: Optional[int] = None) -> None:
     """
     Fetch tweets for a single day.
 
@@ -282,7 +276,7 @@ def _fetch_tweets_for_day(
 
     ch_posts = ch_posts_data['posts']
 
-    if (max_tweets is not None):
+    if max_tweets is not None:
         ch_posts = ch_posts[0:max_tweets]
 
     log.info("adding %d tweets for topic %s, day %s" % (len(ch_posts), topic['topics_id'], topic_tweet_day['day']))
@@ -316,7 +310,7 @@ def _add_topic_tweet_single_day(
         db: DatabaseHandler,
         topic: dict,
         day: datetime.datetime,
-        ch_class: typing.Type[AbstractCrimsonHexagon]) -> dict:
+        ch_class: Type[AbstractCrimsonHexagon]) -> dict:
     """
     Add a row to topic_tweet_day if it does not already exist.  fetch data for new row from CH.
 
@@ -365,8 +359,8 @@ def _add_topic_tweet_single_day(
 def _add_topic_tweet_days(
         db: DatabaseHandler,
         topic: dict,
-        twitter_class: typing.Type[AbstractTwitter],
-        ch_class: typing.Type[AbstractCrimsonHexagon]) -> None:
+        twitter_class: Type[AbstractTwitter],
+        ch_class: Type[AbstractCrimsonHexagon]) -> None:
     """
     For each day within the topic date range, find or create a topic_tweet_day row and fetch data for that row from CH.
 
@@ -395,8 +389,8 @@ def _add_topic_tweet_days(
 def fetch_topic_tweets(
         db: DatabaseHandler,
         topics_id: int,
-        twitter_class: typing.Type[AbstractTwitter] = Twitter,
-        ch_class: typing.Type[AbstractCrimsonHexagon] = CrimsonHexagon) -> None:
+        twitter_class: Type[AbstractTwitter] = Twitter,
+        ch_class: Type[AbstractCrimsonHexagon] = CrimsonHexagon) -> None:
     """
     Fetch list of tweets within a Crimson Hexagon monitor based on the ch_monitor_id of the given topic.
 

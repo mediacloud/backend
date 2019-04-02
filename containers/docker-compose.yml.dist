@@ -1045,6 +1045,9 @@ services:
             context: ./topics-mine-public/
         image: dockermediacloud/mediacloud-topics-mine-public:latest
         container_name: mc_topics_mine_public
+        environment:
+            # Crimson Hexagon API key
+            MC_CRIMSON_HEXAGON_API_KEY: ""
         networks:
             # Fetches / stores links in PostgreSQL
             - net_postgresql
