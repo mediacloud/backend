@@ -6,13 +6,13 @@ mjm_worker.pl - Start MediaWords::JobManager::Job worker
 
 =head1 SYNOPSIS
 
-	# Run instance of the "NinetyNineBottlesOfBeer" function
-	mjm_worker.pl NinetyNineBottlesOfBeer
+    # Run instance of the "NinetyNineBottlesOfBeer" function
+    mjm_worker.pl NinetyNineBottlesOfBeer
 
 or:
 
-	# Run instance of the function from "path/to/NinetyNineBottlesOfBeer.pm"
-	mjm_worker.pl path/to/NinetyNineBottlesOfBeer.pm
+    # Run instance of the function from "path/to/NinetyNineBottlesOfBeer.pm"
+    mjm_worker.pl path/to/NinetyNineBottlesOfBeer.pm
 
 =cut
 
