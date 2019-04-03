@@ -5,7 +5,7 @@
 use strict;
 use warnings;
 
-use MediaWords::Solr::Query;
+use MediaWords::Solr::Query::Parse;
 
 sub main
 {
@@ -13,7 +13,7 @@ sub main
 
     binmode( STDOUT, ':utf8' );
 
-    my $regex = MediaWords::Solr::Query::parse( $query )->re();
+    my $regex = MediaWords::Solr::Query::Parse::parse_solr_query( $query )->re();
 
     print "$regex\n";
 }

@@ -15,7 +15,7 @@ use Readonly;
 use Test::More;
 
 use MediaWords::DBI::Auth::Roles;
-use MediaWords::Solr::Query;
+use MediaWords::Solr::Query::Parse;
 use MediaWords::Test::API;
 use MediaWords::Test::Rows;
 use MediaWords::Test::Solr;
@@ -369,7 +369,7 @@ sub test_topics_crud($)
       [ qw/name description solr_seed_query max_ierations start_date end_date is_public ch_monitor_id max_stories/ ];
     map { is( $got_topic->{ $_ }, $input->{ $_ }, "$label $_" ) } @{ $test_fields };
 
-    my $expected_pattern = MediaWords::Solr::Query::parse( $input->{ solr_seed_query } )->re();
+    my $expected_pattern = MediaWords::Solr::Query::Parse::parse_solr_query( $input->{ solr_seed_query } )->re();
     is( $got_topic->{ pattern }, $expected_pattern, "$label pattern" );
 
     my $topics_id = $got_topic->{ topics_id };

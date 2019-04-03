@@ -13,6 +13,10 @@ use Readonly;
 use Moose;
 use namespace::autoclean;
 
+use MediaWords::Solr;
+use MediaWords::Solr::Query;
+use MediaWords::Solr::Query::Parse;
+
 BEGIN
 {
     extends 'MediaWords::Controller::Api::V2::MC_Controller_REST';
@@ -306,7 +310,7 @@ sub create_GET
     $topic->{ is_logogram } ||= 0;
 
     $topic->{ pattern } =
-      eval { MediaWords::Solr::Query::parse( $topic->{ solr_seed_query } )->re( $topic->{ is_logogram } ) };
+      eval { MediaWords::Solr::Query::Parse::parse_solr_query( $topic->{ solr_seed_query } )->re( $topic->{ is_logogram } ) };
     die( "unable to translate solr query to topic pattern: $@" ) if ( $@ );
 
     $topic->{ is_public }            = normalize_boolean_for_db( $topic->{ is_public } );
@@ -459,7 +463,7 @@ sub update_PUT
     {
         my $is_logogram = defined( $update->{ is_logogram } ) ? $update->{ is_logogram } : $topic->{ is_logogram };
         $update->{ pattern } =
-          eval { MediaWords::Solr::Query::parse( $update->{ solr_seed_query } )->re( $is_logogram ) };
+          eval { MediaWords::Solr::Query::Parse::parse_solr_query( $update->{ solr_seed_query } )->re( $is_logogram ) };
         die( "unable to translate solr query to topic pattern: $@" ) if ( $@ );
 
         $topic->{ solr_seed_query } = $update->{ solr_seed_query };

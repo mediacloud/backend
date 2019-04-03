@@ -3,7 +3,7 @@
 
 import sys
 
-import mediawords.solr.query
+from mediawords.solr.query.parse import parse_solr_query
 
 def main():
     if len(sys.argv) < 2:
@@ -14,6 +14,6 @@ def main():
     if len(q) == 0:
         return
 
-    print(mediawords.solr.query.parse(q).re())
+    print(parse_solr_query(q).re())
 
 main()

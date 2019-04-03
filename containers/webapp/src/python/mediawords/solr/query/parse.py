@@ -741,7 +741,7 @@ def __get_tokens(query: str) -> List[Token]:
     return tokens
 
 
-def parse(solr_query: str) -> ParseNode:
+def parse_solr_query(solr_query: str) -> ParseNode:
     """ Parse a solr query and return a set of *Node objects that encapsulate the query in structured form."""
 
     solr_query = "( " + decode_object_from_bytes_if_needed(solr_query) + " )"

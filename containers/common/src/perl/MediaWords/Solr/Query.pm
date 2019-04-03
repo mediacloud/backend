@@ -16,9 +16,6 @@ use MediaWords::CommonLibs;    # set PYTHONPATH too
 
 use Time::Piece;
 
-import_python_module( __PACKAGE__, 'mediawords.solr.query' );
-
-
 # for the given topic, get a solr publish_date clause that will return one month of the seed query,
 # starting at start_date and offset by $month_offset months.  return undef if $month_offset puts
 # the start date past the topic start date.
