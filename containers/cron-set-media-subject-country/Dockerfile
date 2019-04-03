@@ -4,10 +4,11 @@
 
 FROM dockermediacloud/mediacloud-cron-base:latest
 
-COPY bin/set_media_subject_country.pl /
-
 # Copy Perl sources
 COPY src/perl/ /usr/share/perl5/
+
+# Copy Cron script
+COPY bin/cron_set_media_subject_country.pl /
 
 # Add Cron job
 ADD crontab /etc/cron.d/set_media_subject_country

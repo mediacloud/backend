@@ -9,7 +9,8 @@
 
 FROM dockermediacloud/mediacloud-cron-base:latest
 
-COPY bin/rescraping_changes.sh /
+# Copy worker script
+COPY bin/cron_rescraping_changes.sh /
 
 # Add Cron job
 ADD crontab /etc/cron.d/rescraping_changes

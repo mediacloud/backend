@@ -6,7 +6,7 @@
         <option name="command" value="" />
         <option name="containerName" value="mc_cron_base" />
         <option name="entrypoint" value="" />
-        <option name="imageTag" value="dockermediacloud/mediacloud-cron-base" />
+        <option name="imageTag" value="dockermediacloud/mediacloud-cron-base:latest" />
         <option name="commandLineOptions" value="" />
         <option name="sourceFilePath" value="Dockerfile" />
       </settings>

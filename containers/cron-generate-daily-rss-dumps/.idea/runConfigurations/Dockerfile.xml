@@ -6,7 +6,7 @@
         <option name="command" value="" />
         <option name="containerName" value="mc_cron_generate_daily_rss_dumps" />
         <option name="entrypoint" value="" />
-        <option name="imageTag" value="dockermediacloud/mediacloud-cron-generate-daily-rss-dumps" />
+        <option name="imageTag" value="dockermediacloud/mediacloud-cron-generate-daily-rss-dumps:latest" />
         <option name="commandLineOptions" value="" />
         <option name="sourceFilePath" value="Dockerfile" />
       </settings>

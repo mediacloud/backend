@@ -4,7 +4,8 @@
 
 FROM dockermediacloud/mediacloud-cron-base:latest
 
-COPY bin/refresh_stats.pl /
+# Copy Cron script
+COPY bin/cron_refresh_stats.pl /
 
 # Add Cron job
 ADD crontab /etc/cron.d/refresh_stats
