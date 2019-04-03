@@ -1,8 +1,12 @@
 from mediawords.db import DatabaseHandler
 from mediawords.dbi.downloads.extract import extract_and_create_download_text
+from mediawords.dbi.stories.extractor_arguments import PyExtractorArguments
 from mediawords.dbi.stories.process import process_extracted_story
+from mediawords.util.log import create_logger
 from mediawords.util.parse_html import html_strip
 from mediawords.util.perl import decode_object_from_bytes_if_needed
+
+log = create_logger(__name__)
 
 
 def __get_full_text_from_rss(story: dict) -> str:
@@ -62,7 +66,6 @@ def get_text_for_word_counts(db: DatabaseHandler, story: dict) -> str:
         story_text = html_strip(story['title']).strip()
 
         if story_description:
-
             story_text += "\n\n"
             story_text += html_strip(story_description).strip()
 

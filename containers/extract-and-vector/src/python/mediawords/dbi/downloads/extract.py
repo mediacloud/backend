@@ -1,5 +1,5 @@
 """Functions for extracting downloads."""
-import random
+
 import re
 from typing import Optional
 
@@ -58,8 +58,6 @@ def _set_extractor_results_cache(db, download: dict, results: dict) -> None:
 
     download = decode_object_from_bytes_if_needed(download)
     results = decode_object_from_bytes_if_needed(results)
-
-    max_cache_entries = 1000 * 1000
 
     # Upsert cache entry
     db.query("""
@@ -122,10 +120,10 @@ def _call_extractor_on_html(content: str) -> dict:
     """Call extractor on the content."""
     content = decode_object_from_bytes_if_needed(content)
 
-    extract = extract_article_html_from_page_html(content)
+    extractor_results = extract_article_html_from_page_html(content)
 
-    extracted_html = extract['extracted_html']
-    extractor_version = extract['extractor_version']
+    extracted_html = extractor_results['extracted_html']
+    extractor_version = extractor_results['extractor_version']
     extracted_text = html_strip(extracted_html)
 
     return {
@@ -183,11 +181,13 @@ def extract_and_create_download_text(db: DatabaseHandler, download: dict, extrac
         log.debug("Creating download text for download {}...".format(downloads_id))
         download_text = create(db=db, download=download, extract=extraction_result)
 
+    assert 'stories_id' in download, "It is expected to have 'stories_id' set for a download at this point."
+
     if not extractor_args.no_tag_extractor_version():
-        log.debug("Updating extractor version tag for story {}...".format(stories_id))
+        log.debug("Updating extractor version tag for story {}...".format(download['stories_id']))
         update_extractor_version_tag(
             db=db,
-            story=story,
+            stories_id=download['stories_id'],
             extractor_version=extraction_result['extractor_version'],
         )
 

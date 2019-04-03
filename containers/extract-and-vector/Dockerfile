@@ -4,15 +4,6 @@
 
 FROM dockermediacloud/mediacloud-common:latest
 
-# Install Python dependencies
-COPY src/requirements.txt /var/tmp/
-RUN \
-    cd /var/tmp/ && \
-    pip3 install -r requirements.txt && \
-    rm requirements.txt && \
-    rm -rf /root/.cache/ && \
-    true
-
 # Copy Perl sources
 COPY src/perl/ /usr/share/perl5/
 

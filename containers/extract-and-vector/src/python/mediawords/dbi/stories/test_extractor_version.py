@@ -30,7 +30,11 @@ class TestExtractorVersion(TestDatabaseTestCase):
         story_extractor_tags = self.__story_extractor_tags(stories_id=test_story['stories_id'])
         assert len(story_extractor_tags) == 0
 
-        update_extractor_version_tag(db=self.db(), story=test_story, extractor_version="dummy_extractor")
+        update_extractor_version_tag(
+            db=self.db(),
+            stories_id=test_story['stories_id'],
+            extractor_version="dummy_extractor",
+        )
 
         story_extractor_tags = self.__story_extractor_tags(stories_id=test_story['stories_id'])
         assert len(story_extractor_tags) == 1

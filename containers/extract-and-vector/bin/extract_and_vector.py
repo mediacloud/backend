@@ -48,13 +48,13 @@ class ExtractAndVectorJob(AbstractJob):
 
         if medium_is_locked(db=db, media_id=story['media_id']):
             log.warning("Requeueing job for story {} in locked medium {}...".format(stories_id, story['media_id']))
-            ExtractAndVectorJob._consecutive_requeues += 1
+            cls._consecutive_requeues += 1
 
             # Prevent spamming these requeue events if the locked media source is the only one in the queue
-            if ExtractAndVectorJob._consecutive_requeues > ExtractAndVectorJob._SLEEP_AFTER_REQUEUES:
+            if cls._consecutive_requeues > cls._SLEEP_AFTER_REQUEUES:
                 log.warning(
                     "Story extraction job has been requeued more than {} times, waiting before requeueing...".format(
-                        ExtractAndVectorJob._consecutive_requeues
+                        cls._consecutive_requeues
                     )
                 )
                 time.sleep(1)
@@ -63,7 +63,7 @@ class ExtractAndVectorJob(AbstractJob):
 
             return
 
-        ExtractAndVectorJob._consecutive_requeues = 0
+        cls._consecutive_requeues = 0
 
         log.info("Extracting story {}...".format(stories_id))
 

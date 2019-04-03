@@ -6,7 +6,7 @@
         <option name="command" value="" />
         <option name="containerName" value="mc_extract_and_vector" />
         <option name="entrypoint" value="" />
-        <option name="imageTag" value="dockermediacloud/mediacloud-extract-and-vector" />
+        <option name="imageTag" value="dockermediacloud/mediacloud-extract-and-vector:latest" />
         <option name="commandLineOptions" value="" />
         <option name="sourceFilePath" value="Dockerfile" />
       </settings>
