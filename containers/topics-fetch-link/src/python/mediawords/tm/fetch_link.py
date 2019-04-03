@@ -494,12 +494,20 @@ def fetch_topic_url(db: DatabaseHandler, topic_fetch_urls_id: int, domain_timeou
 def fetch_topic_url_update_state(db: DatabaseHandler,
                                  topic_fetch_urls_id: int,
                                  domain_timeout: Optional[int] = None) -> bool:
-    """Tries fetch_topic_url(), updates state; returns True if job completed and does not have to be requeued."""
+    """Tries fetch_topic_url() and updates state.
+
+    Returns True if job completed and does not have to be requeued.
+
+    Returns False if job was throttled and has to be requeued.
+
+    Raises exception on other errors (after updating state).
+    """
     try:
         fetch_topic_url(
             db=db,
             topic_fetch_urls_id=topic_fetch_urls_id,
             domain_timeout=domain_timeout)
+        return True
 
     except McThrottledDomainException:
         # if a domain has been throttled, just add it back to the end of the queue
@@ -521,5 +529,4 @@ def fetch_topic_url_update_state(db: DatabaseHandler,
             'message': traceback.format_exc(),
         }
         db.update_by_id('topic_fetch_urls', topic_fetch_urls_id, update)
-
-    return True
+        raise ex
