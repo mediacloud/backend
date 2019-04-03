@@ -10,6 +10,7 @@ from mediawords.test.test_database import TestDatabaseTestCase
 from mediawords.util.log import create_logger
 from mediawords.util.parse_json import decode_json
 
+# noinspection PyProtectedMember
 from mediawords.tm.fetch_topic_tweets import (
     AbstractCrimsonHexagon,
     AbstractTwitter,

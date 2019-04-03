@@ -1,4 +1,5 @@
 """Use the Crimson Hexagon API to lookup tweets relevant to a topic, then fetch each of those tweets from twitter."""
+
 import abc
 import datetime
 from typing import Type, Optional, List
@@ -34,7 +35,7 @@ class McFetchTopicTweetDateFetchedException(Exception):
     pass
 
 
-class AbstractCrimsonHexagon(metaclass=abc.ABCMeta):
+class AbstractCrimsonHexagon(object, metaclass=abc.ABCMeta):
     """abstract class that fetches data from Crimson Hexagon."""
 
     @staticmethod
@@ -95,7 +96,7 @@ class CrimsonHexagon(AbstractCrimsonHexagon):
         return data
 
 
-class AbstractTwitter(metaclass=abc.ABCMeta):
+class AbstractTwitter(object, metaclass=abc.ABCMeta):
     """abstract class that fetches data from Twitter."""
 
     @staticmethod
@@ -116,7 +117,7 @@ class AbstractTwitter(metaclass=abc.ABCMeta):
 
 
 class Twitter(AbstractTwitter):
-    """class that fech_posts() method that can list posts via the Crimson Hexagon api."""
+    """class that fetch_posts() method that can list posts via the Crimson Hexagon api."""
 
     @staticmethod
     def fetch_100_tweets(tweet_ids: list) -> list:

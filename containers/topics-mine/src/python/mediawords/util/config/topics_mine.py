@@ -1,4 +1,3 @@
-from typing import List
 from mediawords.util.config import env_value
 
 

@@ -13,7 +13,6 @@ RUN \
         postgresql-client-11 \
         postgresql-contrib-11 \
         postgresql-plperl-11 \
-        postgresql-server-dev-11 \
     && \
     true
 
@@ -34,5 +33,5 @@ VOLUME /var/lib/postgresql/11/main/
 EXPOSE 5432
 
 # Start PostgreSQL
-COPY bin/postgres.sh /
-CMD ["sudo", "su", "-", "postgres", "/postgres.sh"]
+COPY bin/postgresql_server.sh /
+CMD ["sudo", "su", "-", "postgres", "/postgresql_server.sh"]

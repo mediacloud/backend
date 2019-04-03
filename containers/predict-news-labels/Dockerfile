@@ -21,7 +21,7 @@ RUN \
         python-setuptools \
         unzip \
     && \
-    pip install --upgrade pip && \
+    pip2 install --upgrade pip && \
     #
     # Install Python modules
     pip2 install -r /usr/src/predict-news-labels/requirements.txt && \
@@ -55,5 +55,5 @@ RUN \
 EXPOSE 8080
 
 # Run tagger
-COPY bin/predict-news-labels.sh /
-CMD ["/predict-news-labels.sh"]
+COPY bin/predict_news_labels.sh /
+CMD ["/predict_news_labels.sh"]
