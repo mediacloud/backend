@@ -1,3 +1,7 @@
+from mediawords.util.mail_message.templates import TemplateMessage, McMailTemplatesException
+from mediawords.util.perl import decode_object_from_bytes_if_needed
+
+
 class AuthActivationNeededMessage(TemplateMessage):
     """Generate and return "activation needed" email message."""
 

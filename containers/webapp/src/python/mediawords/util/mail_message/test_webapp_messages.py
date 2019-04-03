@@ -1,3 +1,7 @@
+from mediawords.util.mail_message.webapp_messages import AuthActivationNeededMessage, AuthActivatedMessage, \
+    AuthResetPasswordMessage, AuthPasswordChangedMessage, AuthAPIKeyResetMessage
+
+
 def test_auth_activation_needed_email():
     full_name = 'Foo Bar Baz & <script></script>'
     activation_url = 'https://activation.com/activate?ab=cd&ef=gh'
