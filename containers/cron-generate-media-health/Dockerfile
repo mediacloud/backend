@@ -13,3 +13,5 @@ COPY bin/cron_generate_media_health.pl /
 # Add Cron job
 ADD crontab /etc/cron.d/generate_media_health
 RUN chmod 0644 /etc/cron.d/generate_media_health
+
+# CMD is set in "cron-base"

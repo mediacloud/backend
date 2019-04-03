@@ -10,3 +10,5 @@ COPY bin/cron_refresh_stats.pl /
 # Add Cron job
 ADD crontab /etc/cron.d/refresh_stats
 RUN chmod 0644 /etc/cron.d/refresh_stats
+
+# CMD is set in "cron-base"

@@ -15,3 +15,5 @@ COPY bin/cron_rescrape_due_media.pl /
 # Add Cron job
 ADD crontab /etc/cron.d/rescrape_due_media
 RUN chmod 0644 /etc/cron.d/rescrape_due_media
+
+# CMD is set in "cron-base"

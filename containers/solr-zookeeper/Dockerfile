@@ -34,4 +34,5 @@ EXPOSE 3888
 
 # Run ZooKeeper
 COPY bin/zookeeper.sh /
+
 CMD ["/zookeeper.sh"]

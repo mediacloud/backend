@@ -13,3 +13,5 @@ COPY bin/cron_set_media_primary_language.pl /
 # Add Cron job
 ADD crontab /etc/cron.d/set_media_primary_language
 RUN chmod 0644 /etc/cron.d/set_media_primary_language
+
+# CMD is set in "cron-base"

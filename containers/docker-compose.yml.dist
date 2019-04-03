@@ -90,6 +90,9 @@ services:
         image: dockermediacloud/mediacloud-crawler:latest
         container_name: mc_crawler
         environment:
+            # Number of fetcher forks to start
+            # (probably keep in sync with deploy/resources/limits/cpus)
+            MC_CRAWLER_FETCHER_FORKS: 16
             # Univision API client ID
             MC_UNIVISION_CLIENT_ID: ""
             # Univision API client secret
@@ -111,6 +114,7 @@ services:
             resources:
                 limits:
                     # CPU core limit
+                    # (probably keep in sync with environment/MC_CRAWLER_FETCHER_FORKS)
                     cpus: "16"
                     # RAM limit
                     memory: 64G
@@ -859,6 +863,10 @@ services:
             context: ./solr-shard/
         image: dockermediacloud/mediacloud-solr-shard:latest
         container_name: mc_solr_shard
+        environment:
+            # Shard count
+            # (keep in sync with deploy/replicas)
+            MC_SOLR_SHARD_COUNT: "24"
         depends_on:
             - solr_zookeeper
         networks:
@@ -872,6 +880,7 @@ services:
             - vol_solr_shard_data:/var/lib/solr/
         deploy:
             # Shard count
+            # (keep in sync with environment/MC_SOLR_SHARD_COUNT)
             replicas: 24
             # Auto-restart on crashes
             restart_policy:

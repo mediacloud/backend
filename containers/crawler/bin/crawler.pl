@@ -11,6 +11,7 @@
 use strict;
 use warnings;
 
+use MediaWords::Util::Config::Crawler;
 use MediaWords::Crawler::Engine;
 
 sub main
@@ -22,9 +23,7 @@ sub main
         shift( @ARGV );
     }
 
-    my ( $processes ) = @ARGV;
-
-    $processes ||= 1;
+    my $processes = MediaWords::Util::Config::Crawler::crawler_fetcher_forks();
 
     my $crawler = MediaWords::Crawler::Engine->new();
 

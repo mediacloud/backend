@@ -13,3 +13,5 @@ COPY bin/cron_set_media_subject_country.pl /
 # Add Cron job
 ADD crontab /etc/cron.d/set_media_subject_country
 RUN chmod 0644 /etc/cron.d/set_media_subject_country
+
+# CMD is set in "cron-base"

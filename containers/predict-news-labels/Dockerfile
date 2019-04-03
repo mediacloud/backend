@@ -56,4 +56,5 @@ EXPOSE 8080
 
 # Run tagger
 COPY bin/predict_news_labels.sh /
+
 CMD ["/predict_news_labels.sh"]

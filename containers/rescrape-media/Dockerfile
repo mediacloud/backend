@@ -25,5 +25,4 @@ COPY src/perl/ /usr/share/perl5/
 # Copy worker script
 COPY bin/rescrape_media.pm /
 
-# FIXME
-CMD ["bash", "-c", "while true; do echo rescrape-media...; sleep 1; done"]
+CMD ["/rescrape_media.pm"]

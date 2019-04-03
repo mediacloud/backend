@@ -34,4 +34,5 @@ EXPOSE 5432
 
 # Start PostgreSQL
 COPY bin/postgresql_server.sh /
+
 CMD ["sudo", "su", "-", "postgres", "/postgresql_server.sh"]

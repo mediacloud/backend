@@ -4,5 +4,8 @@
 
 FROM dockermediacloud/mediacloud-topics-mine:latest
 
+# Copy worker script
+COPY bin/topics_mine_public.pm /
+
 # FIXME
-CMD ["bash", "-c", "while true; do echo topics-mine-public...; sleep 1; done"]
+CMD ["/topics_mine_public.pm"]

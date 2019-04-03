@@ -49,4 +49,5 @@ EXPOSE 12301
 
 # Start OpenDKIM
 COPY bin/opendkim.sh /
+
 CMD ["/opendkim.sh"]

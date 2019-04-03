@@ -15,9 +15,6 @@ use MediaWords::Solr::Dump;
 use Data::Dumper;
 use Readonly;
 
-# File that gets created when Solr shards are being backed up offsite
-Readonly my $solr_backup_lock_file => '/tmp/solrbackup.lock';
-
 sub main
 {
     $| = 1;
@@ -26,11 +23,6 @@ sub main
 
     Getopt::Long::GetOptions( $options,
         qw/queue_only! update! empty_queue! jobs=i throttle=i staging! full! stories_queue_table=s skip_logging!/ );
-
-    if ( -f $solr_backup_lock_file )
-    {
-        die "Refusing to run while lock file $solr_backup_lock_file exists";
-    }
 
     my $db = MediaWords::DB::connect_to_db;
 

@@ -41,9 +41,7 @@ COPY src/perl/ /usr/share/perl5/
 COPY src/python/ /usr/lib/python3/dist-packages/
 
 # Copy crawler script
-# (ENTRYPOINT because script expects number of threads as its parameter)
 COPY bin/crawler.pl /
 
-# FIXME
-#ENTRYPOINT ["/crawler.pl"]
-CMD ["bash", "-c", "while true; do echo crawler...; sleep 1; done"]
+# Fork count is read from configuration
+CMD ["/crawler.pl"]

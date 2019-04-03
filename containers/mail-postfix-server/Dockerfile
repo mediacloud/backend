@@ -34,4 +34,5 @@ EXPOSE 25
 
 # Start OpenDKIM
 COPY bin/postfix.sh /
+
 CMD ["/postfix.sh"]

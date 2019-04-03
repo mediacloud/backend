@@ -13,3 +13,5 @@ RUN chmod 0644 /etc/cron.d/generate_daily_rss_dumps
 
 # Generated dumps
 VOLUME /var/lib/daily_rss_dumps/
+
+# CMD is set in "cron-base"

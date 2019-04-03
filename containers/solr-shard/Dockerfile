@@ -11,6 +11,6 @@ VOLUME /var/lib/solr/
 EXPOSE 8983
 
 # Run Solr shard
-# (ENTRYPOINT because script expects number of shards as its parameter)
 COPY bin/solr-shard.sh /
-ENTRYPOINT ["/solr-shard.sh"]
+
+CMD ["bash", "-c", "/solr-shard.sh $MC_SOLR_SHARD_COUNT"]

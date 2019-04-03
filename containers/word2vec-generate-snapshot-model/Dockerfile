@@ -19,5 +19,4 @@ COPY src/python/ /usr/lib/python3/dist-packages/
 # Copy worker script
 COPY bin/word2vec_generate_snapshot_model.py /
 
-# FIXME
-CMD ["bash", "-c", "while true; do echo word2vec-generate-snapshot-model...; sleep 1; done"]
+CMD ["/word2vec_generate_snapshot_model.py"]

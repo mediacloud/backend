@@ -77,4 +77,5 @@ EXPOSE 15672
 
 # Run RabbitMQ
 COPY bin/rabbitmq.sh /
+
 CMD ["/rabbitmq.sh"]

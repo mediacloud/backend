@@ -23,6 +23,11 @@ use Modern::Perl "2015";
     1;
 }
 
+sub crawler_fetcher_forks()
+{
+    return MediaWords::Util::Config::Crawler::PythonProxy::CrawlerConfig::crawler_fetcher_forks();
+}
+
 sub univision_client_id()
 {
     return MediaWords::Util::Config::Crawler::PythonProxy::CrawlerConfig::univision_client_id();

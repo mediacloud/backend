@@ -22,5 +22,7 @@ RUN \
 # Copy Perl sources
 COPY src/perl/ /usr/share/perl5/
 
-# FIXME: run scrape_feedly.pl --all
-CMD ["bash", "-c", "while true; do echo scrape-feedly...; sleep 1; done"]
+# Copy worker script
+COPY bin/scrape_feedly.pl /
+
+CMD ["/scrape_feedly.pl", "--all"]
