@@ -2,12 +2,11 @@
 
 - name: Install Apache
   apt:
-    name: "{{ item }}"
+    name:
+      - apache2
+      - libapache2-mod-fcgid
     state: present
     install_recommends: false
-  with_items:
-    - apache2
-    - libapache2-mod-fcgid
   become: true
   become_user: root
   tags:

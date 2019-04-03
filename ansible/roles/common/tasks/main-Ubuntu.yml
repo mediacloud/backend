@@ -2,16 +2,15 @@
 
 - name: Install common utils
   apt:
-    name: "{{ item }}"
+    name:
+      - acl
+      - bash-completion
+      - git
+      - htop
+      - python3-software-properties
+      - vim
     state: present
     install_recommends: false
-  with_items:
-    - acl
-    - bash-completion
-    - git
-    - htop
-    - python3-software-properties
-    - vim
   become: true
   become_user: root
   tags:
