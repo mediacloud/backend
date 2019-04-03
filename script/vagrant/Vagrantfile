@@ -11,7 +11,7 @@
 
 # AMI (see https://cloud-images.ubuntu.com/locator/ec2/)
 # ("us-east-1 xenial 16.04 LTS amd64 hvm:ebs-ssd")
-mediacloud_aws_ami           = ENV['AWS_AMI']            || "ami-04169656fea786776"
+mediacloud_aws_ami           = ENV['AWS_AMI']            || "ami-06d990a360d7a793c"
 mediacloud_aws_region        = ENV['AWS_REGION']         || "us-east-1"
 mediacloud_aws_instance_name = ENV['AWS_INSTANCE_NAME']  || "Media Cloud Vagrant test box"
 

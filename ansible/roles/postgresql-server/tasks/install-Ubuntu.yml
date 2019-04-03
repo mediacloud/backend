@@ -22,45 +22,44 @@
 
 - name: Remove installed obsolete PostgreSQL packages
   apt:
-    name: "{{ item }}"
+    name:
+      - "postgresql-9.1"
+      - "postgresql-client-9.1"
+      - "postgresql-contrib-9.1"
+      - "postgresql-plperl-9.1"
+      - "postgresql-server-dev-9.1"
+      - "postgresql-9.2"
+      - "postgresql-client-9.2"
+      - "postgresql-contrib-9.2"
+      - "postgresql-plperl-9.2"
+      - "postgresql-server-dev-9.2"
+      - "postgresql-9.3"
+      - "postgresql-client-9.3"
+      - "postgresql-contrib-9.3"
+      - "postgresql-plperl-9.3"
+      - "postgresql-server-dev-9.3"
+      - "postgresql-9.4"
+      - "postgresql-client-9.4"
+      - "postgresql-contrib-9.4"
+      - "postgresql-plperl-9.4"
+      - "postgresql-server-dev-9.4"
+      - "postgresql-9.5"
+      - "postgresql-client-9.5"
+      - "postgresql-contrib-9.5"
+      - "postgresql-plperl-9.5"
+      - "postgresql-server-dev-9.5"
+      - "postgresql-9.6"
+      - "postgresql-client-9.6"
+      - "postgresql-contrib-9.6"
+      - "postgresql-plperl-9.6"
+      - "postgresql-server-dev-9.6"
+      - "postgresql-10"
+      - "postgresql-client-10"
+      - "postgresql-contrib-10"
+      - "postgresql-plperl-10"
+      - "postgresql-server-dev-10"
     state: absent
     install_recommends: false
-  with_items:
-    - "postgresql-9.1"
-    - "postgresql-client-9.1"
-    - "postgresql-contrib-9.1"
-    - "postgresql-plperl-9.1"
-    - "postgresql-server-dev-9.1"
-    - "postgresql-9.2"
-    - "postgresql-client-9.2"
-    - "postgresql-contrib-9.2"
-    - "postgresql-plperl-9.2"
-    - "postgresql-server-dev-9.2"
-    - "postgresql-9.3"
-    - "postgresql-client-9.3"
-    - "postgresql-contrib-9.3"
-    - "postgresql-plperl-9.3"
-    - "postgresql-server-dev-9.3"
-    - "postgresql-9.4"
-    - "postgresql-client-9.4"
-    - "postgresql-contrib-9.4"
-    - "postgresql-plperl-9.4"
-    - "postgresql-server-dev-9.4"
-    - "postgresql-9.5"
-    - "postgresql-client-9.5"
-    - "postgresql-contrib-9.5"
-    - "postgresql-plperl-9.5"
-    - "postgresql-server-dev-9.5"
-    - "postgresql-9.6"
-    - "postgresql-client-9.6"
-    - "postgresql-contrib-9.6"
-    - "postgresql-plperl-9.6"
-    - "postgresql-server-dev-9.6"
-    - "postgresql-10"
-    - "postgresql-client-10"
-    - "postgresql-contrib-10"
-    - "postgresql-plperl-10"
-    - "postgresql-server-dev-10"
   become: true
   become_user: root
   tags:
@@ -68,15 +67,14 @@
 
 - name: Install PostgreSQL
   apt:
-    name: "{{ item }}"
+    name:
+      - "postgresql-{{ postgresql_version }}"
+      - "postgresql-client-{{ postgresql_version }}"
+      - "postgresql-contrib-{{ postgresql_version }}"
+      - "postgresql-plperl-{{ postgresql_version }}"
+      - "postgresql-server-dev-{{ postgresql_version }}"
     state: present
     install_recommends: false
-  with_items:
-    - "postgresql-{{ postgresql_version }}"
-    - "postgresql-client-{{ postgresql_version }}"
-    - "postgresql-contrib-{{ postgresql_version }}"
-    - "postgresql-plperl-{{ postgresql_version }}"
-    - "postgresql-server-dev-{{ postgresql_version }}"
   become: true
   become_user: root
   tags:
