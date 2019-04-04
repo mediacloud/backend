@@ -41,12 +41,16 @@ Create new crawler engine object.
 
 sub new
 {
-    my ( $class ) = @_;
+    my ( $class, $db ) = @_;
 
     my $self = {};
     bless( $self, $class );
 
     $self->extract_in_process( 0 );
+
+    die( 'database handle required' ) unless $db;
+
+    $self->dbs( $db );
 
     return $self;
 }
