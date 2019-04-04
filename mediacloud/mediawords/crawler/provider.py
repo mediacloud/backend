@@ -163,8 +163,6 @@ def provide_download_ids(db: DatabaseHandler) -> None:
 
     log.info("querying pending downloads ...")
 
-    print(db.query("select * from downloads_pending").hashes())
-
     downloads = db.query(
         """
         select distinct on (host) downloads_id, host
