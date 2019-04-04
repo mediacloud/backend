@@ -104,11 +104,16 @@ supervisor:
     # the defaults should work for a small dev setup, but you will want to increase
     # numprocs for some daemons depending on load.  you can also set some daemons
     # not to autostart -- for instance you might want to change crawler.autostart
-    # to "false" (without quotes) to prevent the crawler from starting automatically on a dev machine.
+    # to "false" (without quotes) to prevent the orawler from starting automatically on a dev machine.
     #programs:
 
-        #crawler:
+        #crawler_provider:
             #numprocs: 1
+            #autostart: true
+            #autorestart: false
+
+        #crawler_fetcher:
+            #numprocs: 3
             #autostart: true
             #autorestart: false
 

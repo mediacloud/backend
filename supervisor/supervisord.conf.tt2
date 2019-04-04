@@ -81,19 +81,25 @@ supervisor.rpcinterface_factory = supervisor.rpcinterface:make_main_rpcinterface
 [supervisorctl]
 serverurl = unix://%(here)s/supervisord.sock                ; use a unix:// URL for a unix socket
 
-[group:mc]
-programs = crawler
-
-[%- crawler_numprocs = supervisor.programs.crawler.numprocs || 1 %]
 [% INCLUDE program_config
-    program='crawler'
-    command="bash ./script/run_in_env.sh ./script/crawl.pl $crawler_numprocs"
+    program='crawler_provider'
+    command="./script/run_in_env.sh tools/web/crawler-provider.py"
     default_stopasgroup='false'
     default_killasgroup='false'
     default_autorestart='false'
-    default_autostart='true'
+    default_autostart='false'
     skip_numprocs=1
-    default_nice=5
+    default_nice=12
+%]
+
+[% INCLUDE program_config
+    program='crawler_fetcher'
+    command="./script/run_in_env.sh script/crawler_fetcher.pl"
+    default_stopasgroup='false'
+    default_killasgroup='false'
+    default_autorestart='false'
+    default_autostart='false'
+    default_nice=12
 %]
 
 ; Solr shards take about 5,5 minutes to start (no idea why), so we wait for 7 minutes before starting the import
