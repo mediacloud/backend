@@ -34,10 +34,7 @@ STALE_FEED_INTERVAL = 60 * 60 * 24 * 7
 STALE_FEED_CHECK_INTERVAL = 60 * 30
 
 # timeout for download in fetching state (seconds)
-STALE_DOWNLOAD_INTERVAL = 60 * 5
-
-# downloads.error_message value for downloads timed out by _timeout_stale_downloads
-DOWNLOAD_TIMED_OUT_ERROR_MESSAGE = 'Download timed out by Fetcher::_timeout_stale_downloads'
+STALE_DOWNLOAD_INTERVAL = 60 * 60 * 24
 
 # how many seconds to wait between downloads for each host
 HOST_THROTTLE = 1
@@ -50,7 +47,7 @@ QUEUE_INTERVAL = 5
 
 
 def _timeout_stale_downloads(db: DatabaseHandler) -> None:
-    """Delete downloads in fetching mode more than five minutes old.
+    """Move fetching downloads back to pending after STALE_DOWNLOAD_INTERVAL.
 
     This shouldn't technically happen, but we want to make sure that
     no hosts get hung b/c a download sits around in the fetching state forever
@@ -64,13 +61,12 @@ def _timeout_stale_downloads(db: DatabaseHandler) -> None:
     db.query(
         """
         UPDATE downloads SET
-            state = 'error',
-            error_message = %(a)s,
+            state = 'pending',
             download_time = NOW()
         WHERE state = 'fetching'
-          AND download_time < now() - interval '5 minutes'
+          AND download_time < now() - (%(a)s || ' seconds')::interval
         """,
-        {'a': DOWNLOAD_TIMED_OUT_ERROR_MESSAGE})
+        {'a': STALE_DOWNLOAD_INTERVAL})
 
 
 def _add_stale_feeds(db: DatabaseHandler) -> None:
@@ -167,11 +163,12 @@ def provide_download_ids(db: DatabaseHandler) -> None:
 
     log.info("querying pending downloads ...")
 
+    print(db.query("select * from downloads_pending").hashes())
+
     downloads = db.query(
         """
         select distinct on (host) downloads_id, host
             from downloads_pending
-            where downloads_id not in ( select downloads_id from queued_downloads )
             order by host, priority, downloads_id desc nulls last
         """).hashes()
 
@@ -193,6 +190,10 @@ def provide_download_ids(db: DatabaseHandler) -> None:
 
         pending_download_ids.append(download['downloads_id'])
 
+    db.query(
+        "update downloads set state = 'fetching', download_time = now()  where downloads_id = any(%(a)s)",
+        {'a': pending_download_ids})
+
     log.info("provide downloads throttled hosts: %d" % len(pending_download_ids))
 
     if len(pending_download_ids) < 1:
@@ -208,9 +209,6 @@ def run_provider(db: DatabaseHandler, daemon: bool = True) -> None:
     has less than MAX_QUEUE_SIZE jobs. If it does, call provide_download_ids and queue a
     fetcher job for each provided download_id.
     """
-    # catch and downloads stuck in fetchiner state after last run
-    db.query("update downloads set state = 'pending' where state = 'fetching'")
-
     while True:
         queue_size = db.query("select count(*) from queued_downloads").flat()[0]
         log.warning("queue_size: %d" % queue_size)
