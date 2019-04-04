@@ -149,11 +149,20 @@ sub run_fetcher
         my $download;
 
         eval {
+            # the delete below can deadlock, so only do it once at a time
+            while ( !MediaWords::DB::Locks::get_session_lock( $db, 'MediaWords::Crawler::Engine::run_fetcher', 0 ) )
+            {
+                DEBUG( "waiting for run_fetcher queued_downloads lock..." );
+                sleep( 1 );
+            }
+
             my ( $downloads_id ) = $db->query( <<SQL )->flat();
 delete from queued_downloads where queued_downloads_id in 
         ( select queued_downloads_id from queued_downloads order by queued_downloads_id limit 1 )
     returning downloads_id
 SQL
+
+            MediaWords::DB::Locks::release_session_lock( $db, 'MediaWords::Crawler::Engine::run_fetcher', 0 );
 
             if ( $downloads_id )
             {
