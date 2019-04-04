@@ -150,6 +150,7 @@ sub run_fetcher
 
         eval {
             # the delete below can deadlock, so only do it once at a time
+            $db->commit();
             while ( !MediaWords::DB::Locks::get_session_lock( $db, 'MediaWords::Crawler::Engine::run_fetcher', 0 ) )
             {
                 DEBUG( "waiting for run_fetcher queued_downloads lock..." );
