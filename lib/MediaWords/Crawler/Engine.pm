@@ -160,7 +160,10 @@ sub run_fetcher
             my $queued_download = $db->query( <<SQL )->hash();
 select * from queued_downloads order by queued_downloads_id limit 1
 SQL
-            $db->delete_by_id( 'queued_downloads', $queued_download->{ queued_downloads_id } );
+            if ( $queued_download )
+            {
+                $db->delete_by_id( 'queued_downloads', $queued_download->{ queued_downloads_id } );
+            }
 
             MediaWords::DB::Locks::release_session_lock( $db, 'MediaWords::Crawler::Engine::run_fetcher', 0 );
 
