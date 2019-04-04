@@ -208,7 +208,9 @@ def run_provider(db: DatabaseHandler, daemon: bool = True) -> None:
     fetcher job for each provided download_id.
     """
     while True:
-        queue_size = db.query("select count(*) from queued_downloads").flat()[0]
+        queue_size = db.query(
+            "select count(*) from ( select 1 from queued_downloads limit %(a)s ) q",
+            {'a': MAX_QUEUE_SIZE * 10}).flat()[0]
         log.warning("queue_size: %d" % queue_size)
         if queue_size < MAX_QUEUE_SIZE:
             downloads_ids = provide_download_ids(db)
