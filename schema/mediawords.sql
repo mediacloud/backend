@@ -24,7 +24,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4714;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4715;
 BEGIN
 
     -- Update / set database schema version
@@ -736,17 +736,6 @@ BEGIN
         SET parent = NULL
         WHERE parent = OLD.downloads_id;
 
-        DELETE FROM raw_downloads
-        WHERE object_id = OLD.downloads_id;
-
-        DELETE FROM download_texts
-        WHERE downloads_id = OLD.downloads_id;
-
-        DELETE FROM cache.extractor_results_cache
-        WHERE downloads_id = OLD.downloads_id;
-
-        DELETE FROM cache.s3_raw_downloads_cache
-        WHERE object_id = OLD.downloads_id;
 
         -- Return deleted rows
         RETURN OLD;
@@ -1417,6 +1406,11 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER stories_tags_map_view_insert_update_delete
     INSTEAD OF INSERT OR UPDATE OR DELETE ON stories_tags_map
     FOR EACH ROW EXECUTE PROCEDURE stories_tags_map_view_insert_update_delete();
+
+create table queued_downloads (
+    queued_downloads_id bigserial   primary key,
+    downloads_id        bigint      not null
+);
 
 
 --
