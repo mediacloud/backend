@@ -156,17 +156,16 @@ sub run_fetcher
                 sleep( 1 );
             }
 
-            my ( $downloads_id ) = $db->query( <<SQL )->flat();
-delete from queued_downloads where queued_downloads_id in 
-        ( select queued_downloads_id from queued_downloads order by queued_downloads_id limit 1 )
-    returning downloads_id
+            my $queued_download = $db->query( <<SQL )->hash();
+select * from queued_downloads order by queued_downloads_id limit 1
 SQL
+            $db->delete_by_id( 'queued_downloads', $queued_download->{ queued_downloads_id } );
 
             MediaWords::DB::Locks::release_session_lock( $db, 'MediaWords::Crawler::Engine::run_fetcher', 0 );
 
-            if ( $downloads_id )
+            if ( $queued_download )
             {
-                $download = $db->find_by_id( 'downloads', $downloads_id );
+                $download = $db->find_by_id( 'downloads', $queued_download->{ downloads_id } );
 
                 MediaWords::Util::Timing::stop_time( 'idle', $start_idle_time );
 
