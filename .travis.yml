@@ -1,0 +1,28 @@
+sudo: required
+language: python
+python: "3.5"
+services:
+  - docker
+env:
+  # DOCKERHUB_USERNAME: user for pushing images to "dockermediacloud" organization
+  - secure: "NWTrAcDGL3xP1h4wQzkw63hbpY8lqdtaSCMjStm3MYz/zK+IAcbFwXVUVAmANloDixyCc+2UHQOizV/tQbxoIaAb2jl822sWkKd0wYsY2a+DDMyNiCa+N+xtN5nZI5X0AWzKh8+GKntYwghc1Npib3yJvrdDjwkiHl/rxw5QHNE="
+  # DOCKERHUB_PASSWORD: password for said user
+  - secure: "LGELEXZ9IEtYtKiLl4VykUVrzuHNr3+lp0jPKcglXD5J7BW81DBGsHhrCHd/1ijMsmgey/Yq596M5iYRbVdS2YV9ephrz3nvwOjcrPXmR4W1cKbw4/6uiEPXPGyFTsTCVVx8tx3ksYy+S0tjZ9O8aMAEiDz8r2yu+S2wM3/moaU="
+before_install:
+  # Try to pull all the images that are about to be built from Docker Hub to be
+  # used for cache.
+  #
+  # Don't stop on a single failure because the image might not exist or a
+  # network error might have happened.
+  - ./build_tools/docker_commands.py --container_dir containers/ pull | bash || true
+install:
+  # Build all images
+  - ./build_tools/docker_commands.py --container_dir containers/ build | bash
+after_success:
+  # Log in to Docker Hub
+  - echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+deploy:
+  provider: script
+  # Push all images to Docker Hub
+  # FIXME only push on a specific branch
+  script: ./build_tools/docker_commands.py --container_dir containers/ push | bash
