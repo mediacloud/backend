@@ -9,9 +9,7 @@ use MediaWords::Crawler::Engine;
 
 sub main
 {
-    my $db = MediaWords::DB::connect_to_db();
-
-    my $crawler = MediaWords::Crawler::Engine->new( $db );
+    my $crawler = MediaWords::Crawler::Engine->new();
 
     $crawler->run_fetcher();
 }

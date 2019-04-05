@@ -41,16 +41,12 @@ Create new crawler engine object.
 
 sub new
 {
-    my ( $class, $db ) = @_;
+    my ( $class ) = @_;
 
     my $self = {};
     bless( $self, $class );
 
     $self->extract_in_process( 0 );
-
-    die( 'database handle required' ) unless $db;
-
-    $self->dbs( $db );
 
     return $self;
 }
@@ -142,10 +138,12 @@ sub run_fetcher
 
     my $start_idle_time = MediaWords::Util::Timing::start_time( 'idle' );
 
-    my $db = $self->dbs;
-
     while ( 1 )
     {
+        # reconnect
+        $self->dbs( MediaWords::DB::connect_to_db() );
+        my $db = $self->dbs;
+
         my $download;
 
         eval {
@@ -185,6 +183,8 @@ sub run_fetcher
                 $self->dbs->update_by_id( 'downloads', $download->{ downloads_id }, $download );
             }
         }
+
+        $db->disconnect();
 
         last if ( $no_daemon );
     }
