@@ -12,22 +12,6 @@ RUN \
         --mirror "$MEDIACLOUD_PERL_CPAN_MIRROR" \
         --mirror-only \
         --notest \
-        --verbose \
-        --installdeps \
-        . && \
-    rm cpanfile && \
-    rm -rf /root/.cpanm/ && \
-    true
-
-# Install Perl dependencies
-COPY src/cpanfile /var/tmp/
-RUN \
-    cd /var/tmp/ && \
-    cpanm \
-        --mirror "$MEDIACLOUD_PERL_CPAN_MIRROR" \
-        --mirror-only \
-        --notest \
-        --verbose \
         --installdeps \
         . && \
     rm cpanfile && \

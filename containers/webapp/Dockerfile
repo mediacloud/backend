@@ -36,7 +36,6 @@ RUN \
         --mirror "$MEDIACLOUD_PERL_CPAN_MIRROR" \
         --mirror-only \
         --notest \
-        --verbose \
         --installdeps \
         . && \
     rm cpanfile && \
