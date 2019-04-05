@@ -19,6 +19,9 @@ before_install:
 install:
   # Build all images
   - ./build_tools/docker_commands.py --container_dir containers/ build | bash
+script:
+  # FIXME
+  - true
 after_success:
   # Log in to Docker Hub
   - echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
