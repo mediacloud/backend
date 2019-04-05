@@ -188,8 +188,16 @@ def provide_download_ids(db: DatabaseHandler) -> None:
 
         pending_download_ids.append(download['downloads_id'])
 
+    # the for update skip locked is below because sometimes this query hangs on a downloads_id lock.
+    # for those rare downloads, we just leave them as pending and requeue them, which just results in redownloading
+    # a download every 1000 or so downloads
     db.query(
-        "update downloads set state = 'fetching', download_time = now()  where downloads_id = any(%(a)s)",
+        """
+        update downloads set state = 'fetching', download_time = now()
+            where downloads_id in (
+                select downloads_id from downloads where downloads_id = any(%(a)s) for update skip locked
+            )
+        """,
         {'a': pending_download_ids})
 
     log.info("provide downloads throttled hosts: %d" % len(pending_download_ids))
