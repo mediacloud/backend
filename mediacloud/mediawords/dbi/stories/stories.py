@@ -56,9 +56,6 @@ def is_new(db: DatabaseHandler, story: dict) -> bool:
           -- We do the goofy " + interval '1 second'" to force postgres to use the stories_title_hash index
           AND date_trunc('day', publish_date)  + interval '1 second'
             = date_trunc('day', %(publish_date)s::date) + interval '1 second'
-
-        -- FIXME why FOR UPDATE?
-        FOR UPDATE
     """, {
         'title': story['title'],
         'media_id': story['media_id'],
