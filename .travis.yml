@@ -28,5 +28,7 @@ after_success:
 deploy:
   provider: script
   # Push all images to Docker Hub
-  # FIXME only push on a specific branch
   script: ./build_tools/docker_commands.py --container_dir containers/ push | bash
+  # FIXME only push on a "release"
+  on:
+    branch: containers
