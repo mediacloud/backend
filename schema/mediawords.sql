@@ -24,7 +24,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4715;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4716;
 BEGIN
 
     -- Update / set database schema version
@@ -1411,6 +1411,8 @@ create table queued_downloads (
     queued_downloads_id bigserial   primary key,
     downloads_id        bigint      not null
 );
+
+create unique index queued_downloads_download on queued_downloads(downloads_id);
 
 
 --
