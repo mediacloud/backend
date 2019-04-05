@@ -559,11 +559,11 @@ SQL
 
         if ( $topic->{ job_queue } eq 'mc' )
         {
-            MediaWords::Job::TM::MineTopic->add_to_queue( { topics_id => $topic->{ topics_id } }, undef, $db );
+            MediaWords::Job::TM::MineTopic->add_to_queue( $mine_args, undef, $db );
         }
         elsif ( $topic->{ job_queue } eq 'public' )
         {
-            MediaWords::Job::TM::MineTopicPublic->add_to_queue( { topics_id => $topic->{ topics_id } }, undef, $db );
+            MediaWords::Job::TM::MineTopicPublic->add_to_queue( $mine_args, undef, $db );
         }
         else
         {
