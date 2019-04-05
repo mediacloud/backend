@@ -3,6 +3,10 @@ language: python
 python: "3.5"
 services:
   - docker
+addons:
+  apt:
+    packages:
+      - docker-ce
 env:
   global:
     # DOCKERHUB_USERNAME: user for pushing images to "dockermediacloud" organization
