@@ -165,6 +165,12 @@ SQL
 
                 MediaWords::Util::Timing::stop_time( 'idle', $start_idle_time );
 
+                if ( $download->{ state } ne 'fetching' )
+                {
+                    DEBUG( "skipping download $download->{ downloads_id } with state '$download->{ state }'" );
+                    next;
+                }
+
                 my $handler = handler_for_download( $db, $download, { extract_in_process => $self->extract_in_process } );
 
                 $self->_fetch_and_handle_download( $download, $handler );
