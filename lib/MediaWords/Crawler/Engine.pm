@@ -149,19 +149,11 @@ sub run_fetcher
         my $download;
 
         eval {
-            $db->begin();
-            my $queued_download = $db->query( <<SQL )->hash();
-select * from queued_downloads order by queued_downloads_id limit 1 for update skip locked
-SQL
-            if ( $queued_download )
-            {
-                $db->delete_by_id( 'queued_downloads', $queued_download->{ queued_downloads_id } );
-            }
-            $db->commit();
+            my ( $downloads_id ) = $db->query( "select pop_queued_download()" )->flat();
 
-            if ( $queued_download )
+            if ( $downloads_id )
             {
-                $download = $db->find_by_id( 'downloads', $queued_download->{ downloads_id } );
+                $download = $db->find_by_id( 'downloads', $downloads_id );
 
                 MediaWords::Util::Timing::stop_time( 'idle', $start_idle_time );
 
