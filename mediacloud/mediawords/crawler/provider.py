@@ -36,14 +36,11 @@ STALE_FEED_CHECK_INTERVAL = 60 * 30
 # timeout for download in fetching state (seconds)
 STALE_DOWNLOAD_INTERVAL = 60 * 60 * 24
 
-# how many seconds to wait between downloads for each host
-HOST_THROTTLE = 1
-
 # do not add downloads to queued_downloads if there are already this many rows in the table
 MAX_QUEUE_SIZE = 10 * 1000
 
 # sleep this many seconds between each queue attempt
-QUEUE_INTERVAL = 5
+QUEUE_INTERVAL = 1
 
 
 def _timeout_stale_downloads(db: DatabaseHandler) -> None:
@@ -149,8 +146,7 @@ def _add_stale_feeds(db: DatabaseHandler) -> None:
 def provide_download_ids(db: DatabaseHandler) -> None:
     """Return a list of pending downloads ids to queue for fetching.
 
-    Hand out a list of pending download ids, throttling the downloads by host, so that a download is
-    only handed our for each site each self.engine.throttle seconds.
+    Hand out one downloads_id for each distinct host with a pending download.
 
     Every STALE_FEED_INTERVAL, add downloads for all feeds that are due to be downloaded again according to
     the back off algorithm.
@@ -159,34 +155,14 @@ def provide_download_ids(db: DatabaseHandler) -> None:
 
     _add_stale_feeds(db)
 
-    pending_download_ids = []
-
     log.info("querying pending downloads ...")
 
-    downloads = db.query(
+    downloads_ids = db.query(
         """
-        select distinct on (host) downloads_id, host
+        select distinct on (host) downloads_id
             from downloads_pending
             order by host, priority, downloads_id desc nulls last
-        """).hashes()
-
-    log.info("provide downloads unthrottled hosts: %d" % len(downloads))
-
-    vars(provide_download_ids).setdefault('host_times', {})
-    host_times = provide_download_ids.host_times
-
-    for download in downloads:
-        host = download['host']
-
-        host_times.setdefault(host, 0)
-
-        if host_times[host] > time.time() - HOST_THROTTLE:
-            log.debug("provide downloads: skipping host %s because of throttling" % host)
-            continue
-
-        host_times[host] = time.time()
-
-        pending_download_ids.append(download['downloads_id'])
+        """).flat()
 
     # the for update skip locked is below because sometimes this query hangs on a downloads_id lock.
     # for those rare downloads, we just leave them as pending and requeue them, which just results in redownloading
@@ -198,14 +174,11 @@ def provide_download_ids(db: DatabaseHandler) -> None:
                 select downloads_id from downloads where downloads_id = any(%(a)s) for update skip locked
             )
         """,
-        {'a': pending_download_ids})
+        {'a': downloads_ids})
 
-    log.info("provide downloads throttled hosts: %d" % len(pending_download_ids))
+    log.info("provide downloads host downloads: %d" % len(downloads_ids))
 
-    if len(pending_download_ids) < 1:
-        time.sleep(1)
-
-    return pending_download_ids
+    return downloads_ids
 
 
 def run_provider(db: DatabaseHandler, daemon: bool = True) -> None:
@@ -214,15 +187,20 @@ def run_provider(db: DatabaseHandler, daemon: bool = True) -> None:
     Poll forever as a daemon.  Every QUEUE_INTERVAL seconds, check whether queued_downloads
     has less than MAX_QUEUE_SIZE jobs. If it does, call provide_download_ids and queue a
     fetcher job for each provided download_id.
+
+    When run as a daemon, this function effectively throttles each host to no more than one download every
+    QUEUE_INTERVAL seconds because provide_download_ids only provides one downloads_id for each host.
     """
     while True:
         queue_size = db.query(
             "select count(*) from ( select 1 from queued_downloads limit %(a)s ) q",
             {'a': MAX_QUEUE_SIZE * 10}).flat()[0]
         log.warning("queue_size: %d" % queue_size)
+
         if queue_size < MAX_QUEUE_SIZE:
             downloads_ids = provide_download_ids(db)
-            log.warning("ADD TO QUEUE: %d" % len(downloads_ids))
+            log.warning("adding to downloads to queue: %d" % len(downloads_ids))
+
             db.begin()
             for i in downloads_ids:
                 db.query(
@@ -230,7 +208,11 @@ def run_provider(db: DatabaseHandler, daemon: bool = True) -> None:
                     {'a': i})
             db.commit()
 
+            if daemon:
+                time.sleep(QUEUE_INTERVAL)
+
+        elif daemon:
+            time.sleep(QUEUE_INTERVAL * 10)
+
         if not daemon:
             break
-
-        time.sleep(QUEUE_INTERVAL)

@@ -137,18 +137,12 @@ class TestTMCrawlerProviderDB(mediawords.test.test_database.TestDatabaseWithSche
 
                 db.create('downloads', download)
 
-        # should get one per host
-        download_ids = mediawords.crawler.provider.provide_download_ids(db)
-        assert len(download_ids) == len(hosts)
+        for i in range(downloads_per_host):
+            download_ids = mediawords.crawler.provider.provide_download_ids(db)
+            assert len(download_ids) == len(hosts)
 
-        # all hosts should be throttled
         download_ids = mediawords.crawler.provider.provide_download_ids(db)
         assert len(download_ids) == 0
-
-        # after sleep, hosts should no longer be throttled
-        time.sleep(1)
-        download_ids = mediawords.crawler.provider.provide_download_ids(db)
-        assert len(download_ids) == len(hosts)
 
         # reset host timing for any subsequent tests
         time.sleep(1)
