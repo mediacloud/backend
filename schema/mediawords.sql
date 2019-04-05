@@ -24,7 +24,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4716;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4717;
 BEGIN
 
     -- Update / set database schema version
@@ -1413,6 +1413,27 @@ create table queued_downloads (
 );
 
 create unique index queued_downloads_download on queued_downloads(downloads_id);
+
+create function pop_queued_download() returns bigint as $$
+
+declare
+
+    pop_downloads_id bigint;
+
+begin
+
+    select into pop_downloads_id downloads_id 
+        from queued_downloads 
+        order by downloads_id desc 
+        limit 1 for 
+        update skip locked;
+
+    delete from queued_downloads where downloads_id = pop_downloads_id;
+
+    return pop_downloads_id;
+end;
+
+$$ language plpgsql;
 
 
 --
