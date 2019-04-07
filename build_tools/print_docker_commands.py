@@ -316,7 +316,10 @@ if __name__ == '__main__':
 
     default_config = DefaultDockerHubConfiguration()
 
-    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser = argparse.ArgumentParser(
+        description='Print Docker commands to run to pull / build / push all of the containers.',
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
 
     parser.add_argument('command', type=str, choices=['pull', 'build', 'push'], help='Docker command to run.')
 
