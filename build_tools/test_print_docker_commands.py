@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from docker_commands import (
+from print_docker_commands import (
     _ordered_container_dependencies,
     _container_dir_name_from_image_name,
     DefaultDockerHubConfiguration,
