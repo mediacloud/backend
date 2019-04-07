@@ -1,7 +1,5 @@
 requires 'Carp::Always';
 requires 'CHI';
-requires 'Devel::Cover';
-requires 'Devel::Cover::Report::Coveralls';
 requires 'Fcntl';
 requires 'HTML::LinkExtractor';
 requires 'Parallel::ForkManager';

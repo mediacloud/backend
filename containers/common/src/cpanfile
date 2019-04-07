@@ -3,6 +3,8 @@ requires 'Data::Dumper';
 requires 'Date::Parse';
 requires 'DateTime';
 requires 'DateTime::TimeZone';
+requires 'Devel::Cover';
+requires 'Devel::Cover::Report::Coveralls';
 requires 'File::ReadBackwards';
 requires 'File::Slurp';
 requires 'File::Temp';
