@@ -1,14 +1,5 @@
 package MediaWords::Test::Solr;
 
-=head1 NAME
-
-MediaWords::Test::Supervisor - functions for using solr during testing
-
-=head1 SYNOPSIS
-
-    MediaWords::Test::Solr::set_test_index( $db )
-=cut
-
 use strict;
 use warnings;
 

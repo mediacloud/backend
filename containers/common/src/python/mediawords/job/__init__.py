@@ -155,7 +155,7 @@ class JobBrokerApp(celery.Celery):
 
         self.conf.broker_connection_timeout = rabbitmq_config.timeout()
 
-        # Concurrency is done by Supervisor, not Celery itself
+        # Concurrency is done by us, not Celery itself
         self.conf.worker_concurrency = 1
 
         # Fetch only one job at a time

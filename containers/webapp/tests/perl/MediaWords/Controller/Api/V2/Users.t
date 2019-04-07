@@ -12,7 +12,6 @@ use MediaWords::Test::API;
 use MediaWords::Test::Rows;
 use MediaWords::Test::DB::Create;
 use MediaWords::Test::Solr;
-use MediaWords::Test::Supervisor;
 
 sub test_users($)
 {

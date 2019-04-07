@@ -8,9 +8,6 @@ engine hands queued URLs to the fetchers to download.  Whenever the engine runs 
 provider to give it more.  The handlers store the downloaded content.  If the content is a feed, they also parse the
 feed to find new stories and add those to the download queue.
 
-The crawler is started by [supervisor](supervisor.markdown).  The number of crawlers run is configured in the
-supervisord section of mediawords.yml.
-
 All downloads, including feeds and stories, are stored and processed in the downloads table.  The downloads table has
 the following fields (among many others) that help control the flow of the crawling process:
 

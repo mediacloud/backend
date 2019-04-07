@@ -10,7 +10,7 @@ above describe how we administer our Solr cluster, including scripts we use to c
 Solr shards.
 
 The basic interaction between Solr and the rest of the platform is that we import any updated `story_sentences` into
-Solr from the PostgreSQL server every minute via the `imoport_solr_data` supervisord daemon.  That script finds which
+Solr from the PostgreSQL server every minute via the `imoport_solr_data`.  That script finds which
 stories to import by using the `solr_import_stories` postgres table.  Rows are added to that table by triggers
 associated with the `stories` and `stories_tags_map` tables.
 
