@@ -1,5 +1,6 @@
-from mediawords.db.handler import DatabaseHandler
+import time
 
+from mediawords.db.handler import DatabaseHandler
 from mediawords.util.config.common import CommonConfig
 from mediawords.util.log import create_logger
 
@@ -15,26 +16,44 @@ def connect_to_db() -> DatabaseHandler:
     """Connect to PostgreSQL."""
 
     db_config = CommonConfig.database()
+    retries_config = db_config.retries()
 
-    try:
-        ret = DatabaseHandler(
-            host=db_config.hostname(),
-            port=db_config.port(),
-            username=db_config.username(),
-            password=db_config.password(),
-            database=db_config.database_name(),
-        )
-    except Exception as ex:
-        raise McConnectToDBException(
-            "Unable to connect to database %(username)s@%(host)s:%(port)d/%(database)s: %(exception)s" % {
+    assert retries_config.max_attempts() > 0, "max_tries can't be negative."
+
+    db = None
+
+    for attempt in range(1, retries_config.max_attempts() + 1):
+
+        try:
+
+            db = DatabaseHandler(
+                host=db_config.hostname(),
+                port=db_config.port(),
+                username=db_config.username(),
+                password=db_config.password(),
+                database=db_config.database_name(),
+            )
+            if not db:
+                raise ValueError("Returned value is None.")
+
+        except Exception as ex:
+
+            error_message = "Unable to connect to %(username)s@%(host)s:%(port)d/%(database)s: %(exception)s" % {
                 'username': db_config.username(),
                 'host': db_config.hostname(),
                 'port': db_config.port(),
                 'database': db_config.database_name(),
-                'exception': str(ex)
-            })
+                'exception': str(ex),
+            }
 
-    if ret is None:
-        raise McConnectToDBException("Error while connecting to the database.")
+            log.error(error_message)
 
-    return ret
+            if attempt < retries_config.max_attempts():
+                log.info(f"Will retry for #{attempt} time in {retries_config.sleep_between_attempts()} seconds...")
+                time.sleep(retries_config.sleep_between_attempts())
+
+            else:
+                log.info("Out of retries, giving up...")
+                raise McConnectToDBException(error_message)
+
+    return db

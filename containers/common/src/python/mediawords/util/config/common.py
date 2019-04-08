@@ -52,6 +52,11 @@ class DatabaseConfig(object):
         """Password."""
         return "mediacloud"
 
+    @staticmethod
+    def retries() -> ConnectRetriesConfig:
+        """connect_to_db() retries configuration."""
+        return ConnectRetriesConfig()
+
 
 class AmazonS3DownloadsConfig(object):
     """Amazon S3 raw download storage configuration."""
