@@ -24,7 +24,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4717;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4718;
 BEGIN
 
     -- Update / set database schema version
@@ -1043,7 +1043,7 @@ BEGIN
     FOREACH partition IN ARRAY created_partitions LOOP
 
         RAISE NOTICE 'Altering created partition "%"...', partition;
-        
+
         EXECUTE '
             CREATE TRIGGER ' || partition || '_test_referenced_download_trigger
                 BEFORE INSERT OR UPDATE ON ' || partition || '
@@ -1172,7 +1172,7 @@ BEGIN
     FOREACH partition IN ARRAY created_partitions LOOP
 
         RAISE NOTICE 'Altering created partition "%"...', partition;
-        
+
         EXECUTE '
             ALTER TABLE ' || partition || '
                 ADD CONSTRAINT ' || REPLACE(partition, '.', '_') || '_feeds_id_fkey
@@ -1290,7 +1290,7 @@ BEGIN
     FOREACH partition IN ARRAY created_partitions LOOP
 
         RAISE NOTICE 'Altering created partition "%"...', partition;
-        
+
         -- Add extra foreign keys / constraints to the newly created partitions
         EXECUTE '
             ALTER TABLE ' || partition || '
@@ -1414,6 +1414,8 @@ create table queued_downloads (
 
 create unique index queued_downloads_download on queued_downloads(downloads_id);
 
+-- do this as a plpgsql function because it wraps it in the necessary transaction without
+-- having to know whether the calling context is in a transaction
 create function pop_queued_download() returns bigint as $$
 
 declare
@@ -1422,10 +1424,10 @@ declare
 
 begin
 
-    select into pop_downloads_id downloads_id 
-        from queued_downloads 
-        order by downloads_id desc 
-        limit 1 for 
+    select into pop_downloads_id downloads_id
+        from queued_downloads
+        order by downloads_id desc
+        limit 1 for
         update skip locked;
 
     delete from queued_downloads where downloads_id = pop_downloads_id;
@@ -1435,6 +1437,36 @@ end;
 
 $$ language plpgsql;
 
+-- efficiently query downloads_pending for the latest downloads_id per host.  postgres is not able to do this through
+-- its normal query planning (it just does an index scan of the whole indesx).  this turns a query that 
+-- takes ~22 seconds for a 100 million row table into one that takes ~0.25 seconds
+create or replace function get_downloads_for_queue() returns table(downloads_id bigint) as $$
+declare
+    pending_host record;
+begin
+    create temporary table pending_downloads (downloads_id bigint) on commit drop;
+    for pending_host in
+            WITH RECURSIVE t AS (
+               (SELECT host FROM downloads_pending ORDER BY host LIMIT 1)
+               UNION ALL
+               SELECT (SELECT host FROM downloads_pending WHERE host > t.host ORDER BY host LIMIT 1)
+               FROM t
+               WHERE t.host IS NOT NULL
+               )
+            SELECT host FROM t WHERE host IS NOT NULL
+        loop
+            insert into pending_downloads
+                select dp.downloads_id
+                    from downloads_pending dp
+                    where host = pending_host.host
+                    order by priority, downloads_id desc nulls last
+                    limit 1;
+        end loop;
+
+    return query select pd.downloads_id from pending_downloads pd;
+ end;
+
+$$ language plpgsql;
 
 --
 -- Extracted plain text from every download
@@ -1499,7 +1531,7 @@ BEGIN
     FOREACH partition IN ARRAY created_partitions LOOP
 
         RAISE NOTICE 'Altering created partition "%"...', partition;
-        
+
         EXECUTE '
             CREATE TRIGGER ' || partition || '_test_referenced_download_trigger
                 BEFORE INSERT OR UPDATE ON ' || partition || '
@@ -1691,7 +1723,7 @@ BEGIN
     FOREACH partition IN ARRAY created_partitions LOOP
 
         RAISE NOTICE 'Altering created partition "%"...', partition;
-        
+
         EXECUTE '
             ALTER TABLE ' || partition || '
                 ADD CONSTRAINT ' || REPLACE(partition, '.', '_') || '_media_id_fkey
