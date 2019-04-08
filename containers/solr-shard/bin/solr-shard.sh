@@ -19,8 +19,8 @@ if [ "$#" -ne 1 ]; then
 fi
 
 MC_NUM_SHARDS=$1
-if [ $MC_NUM_SHARDS -lt 2 ]; then
-    echo "Number of shards must be >= 2."
+if [ $MC_NUM_SHARDS -lt 1 ]; then
+    echo "Number of shards must be positive."
     exit 1
 fi
 
