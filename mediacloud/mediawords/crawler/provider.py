@@ -157,12 +157,9 @@ def provide_download_ids(db: DatabaseHandler) -> None:
 
     log.info("querying pending downloads ...")
 
-    downloads_ids = db.query(
-        """
-        select distinct on (host) downloads_id
-            from downloads_pending
-            order by host, priority, downloads_id desc nulls last
-        """).flat()
+    # get one downloads_id per host, ordered by priority asc, downloads_id desc, do this through a plpgsql
+    # function because that's the only way to avoid an index scan of the entire (host, priority, downloads_id) index
+    downloads_ids = db.query("select get_downloads_for_queue() downloads_id").flat()
 
     # the for update skip locked is below because sometimes this query hangs on a downloads_id lock.
     # for those rare downloads, we just leave them as pending and requeue them, which just results in redownloading
