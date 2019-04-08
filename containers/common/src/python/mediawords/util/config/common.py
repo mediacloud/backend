@@ -220,7 +220,7 @@ def _authenticated_domains_from_string(value: Optional[str]) -> List[Authenticat
             raise McConfigAuthenticatedDomainsException("Domain can't be empty.")
         if '@' in domain:
             raise McConfigAuthenticatedDomainsException("Domain contains '@' character.")
-        
+
         if ':' not in username_password:
             raise McConfigAuthenticatedDomainsException("Username + password doesn't contain ':' character.")
 
