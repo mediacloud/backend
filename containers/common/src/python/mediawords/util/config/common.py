@@ -19,7 +19,7 @@ class ConnectRetriesConfig(object):
 
         Must be positive (we want to try connecting at least one time).
         """
-        return 30
+        return 10
 
 
 class DatabaseConfig(object):
