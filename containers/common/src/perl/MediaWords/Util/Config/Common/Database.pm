@@ -46,9 +46,4 @@ sub password()
     return $self->{ _proxy_config }->password();
 }
 
-sub ignore_schema_version()
-{
-    return $self->{ _proxy_config }->ignore_schema_version();
-}
-
 1;
