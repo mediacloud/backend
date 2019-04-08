@@ -1,15 +1,17 @@
 import pytest
 
-from mediawords.db.schema.version import (McSchemaVersionFromLinesException,
-                                          schema_version_from_lines)
+from mediawords.db.schema.migrate import (
+    McSchemaVersionFromLinesException,
+    _schema_version_from_lines,
+)
 
 
 def test_schema_version_from_lines():
     with pytest.raises(McSchemaVersionFromLinesException):
-        schema_version_from_lines('no version')
+        _schema_version_from_lines('no version')
 
     # noinspection SqlDialectInspection,SqlNoDataSourceInspection
-    assert schema_version_from_lines("""
+    assert _schema_version_from_lines("""
 CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
 

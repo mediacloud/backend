@@ -1110,21 +1110,21 @@ services:
                     memory: 2G
 
     #
-    # Upgrade database schema
-    # -----------------------
+    # Migrate (install or update) database schema
+    # -------------------------------------------
     #
-    upgrade_database_schema:
+    migrate_schema:
         build:
-            context: ./upgrade-database-schema/
-        image: dockermediacloud/mediacloud-upgrade-database-schema:latest
-        container_name: mc_upgrade_database_schema
+            context: ./migrate-schema/
+        image: dockermediacloud/mediacloud-migrate-schema:latest
+        container_name: mc_migrate_schema
         depends_on:
             - postgresql_pgbouncer
         networks:
-            # Upgrades PostgreSQL schema
+            # Manages PostgreSQL schema
             - net_postgresql
         deploy:
-            # Only a single DDL update script
+            # Only a single DDL script
             replicas: 1
             # Run only once, don't attempt to restart it
             restart_policy:
