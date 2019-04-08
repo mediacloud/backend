@@ -3,8 +3,7 @@
 # Run Solr shard
 #
 
-# FIXME
-MC_SOLR_ZOOKEEPER_HOST="mc_zookeeper_host"
+MC_SOLR_ZOOKEEPER_HOST="mc_solr_zookeeper"
 MC_SOLR_ZOOKEEPER_PORT=2181
 MC_SOLR_PORT=8983
 
