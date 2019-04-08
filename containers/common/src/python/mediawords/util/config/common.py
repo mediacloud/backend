@@ -5,6 +5,23 @@ from typing import List, Pattern, Optional
 from mediawords.util.config import env_value, McConfigException
 
 
+class ConnectRetriesConfig(object):
+    """Connect retries configuration."""
+
+    @staticmethod
+    def sleep_between_attempts() -> float:
+        """Seconds (or parts of second) to sleep between retries."""
+        return 1.0
+
+    @staticmethod
+    def max_attempts() -> int:
+        """Max. number of attempts to connect.
+
+        Must be positive (we want to try connecting at least one time).
+        """
+        return 30
+
+
 class DatabaseConfig(object):
     """PostgreSQL database configuration."""
 
