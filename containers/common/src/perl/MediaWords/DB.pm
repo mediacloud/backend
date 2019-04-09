@@ -24,12 +24,15 @@ use MediaWords::DB::HandlerProxy;
     1;
 }
 
-sub connect_to_db(;$$)
+sub connect_to_db(;$)
 {
-    my ( $label ) = @_;
+    my ( $require_schema ) = @_;
+
+    $require_schema //= 1;
+    $require_schema = int( $require_schema );
 
     # Get unwrappered DatabaseHandler
-    my $db = MediaWords::DB::PythonConnectToDB::connect_to_db( $label );
+    my $db = MediaWords::DB::PythonConnectToDB::connect_to_db( $require_schema );
 
     # Wrap it in HandlerProxy which will make return values writable
     my $wrappered_db = MediaWords::DB::HandlerProxy->new( $db );

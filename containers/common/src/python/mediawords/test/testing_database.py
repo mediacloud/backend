@@ -1,7 +1,7 @@
 from unittest import TestCase
 
+from mediawords.db import connect_to_db
 from mediawords.db.handler import DatabaseHandler
-from mediawords.util.config.common import CommonConfig
 from mediawords.util.log import create_logger
 from mediawords.util.mail import enable_test_mode, disable_test_mode
 
@@ -24,14 +24,7 @@ class TestDatabaseTestCase(TestCase):
     @staticmethod
     def create_database_handler() -> DatabaseHandler:
         """Create and return database handler; used by some tests to create separate handlers."""
-        db_config = CommonConfig.database()
-        db = DatabaseHandler(
-            host=db_config.hostname(),
-            port=db_config.port(),
-            username=db_config.username(),
-            password=db_config.password(),
-            database=db_config.database_name(),
-        )
+        db = connect_to_db()
         return db
 
     def setUp(self):

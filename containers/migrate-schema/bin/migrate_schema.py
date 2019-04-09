@@ -18,7 +18,7 @@ if __name__ == '__main__':
                         help="Print what is about to be executed instead of executing it")
     args = parser.parse_args()
 
-    db_ = connect_to_db()
+    db_ = connect_to_db(require_schema=False)
 
     db_.begin()
 

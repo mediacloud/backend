@@ -3,7 +3,7 @@
 import os
 import re
 
-from mediawords.db import DatabaseHandler
+from mediawords.db import DatabaseHandler, database_looks_empty
 from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_object_from_bytes_if_needed
 
@@ -17,20 +17,6 @@ MIGRATIONS_DIR_PATH = os.path.join(SCHEMA_DIR_PATH, 'migrations')
 class McSchemaVersionFromLinesException(Exception):
     """schema_version_from_lines() exception."""
     pass
-
-
-def _database_looks_empty(db: DatabaseHandler) -> bool:
-    """Returns True if the database looks empty."""
-    stories_tables = db.query("""
-        SELECT 1
-        FROM information_schema.tables 
-        WHERE table_schema = 'public'
-          AND table_name = 'stories' 
-    """).flat()
-    if len(stories_tables) > 0:
-        return False
-    else:
-        return True
 
 
 def _current_schema_version(db: DatabaseHandler) -> int:
@@ -80,7 +66,7 @@ def migration_sql(db: DatabaseHandler) -> str:
         full_schema_sql = f.read()
         assert full_schema_sql, f"Full schema is empty."
 
-    if _database_looks_empty(db):
+    if database_looks_empty(db):
 
         log.info("Database looks empty, initializing with full schema...")
         sql = full_schema_sql
