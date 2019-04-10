@@ -10,11 +10,10 @@ services:
     # CLIFF fetch annotation
     # ----------------------
     #
-    cliff_fetch_annotation:
+    mc_cliff_fetch_annotation:
         build:
             context: ./cliff-fetch-annotation/
         image: dockermediacloud/mediacloud-cliff-fetch-annotation:latest
-        container_name: mc_cliff_fetch_annotation
         environment:
             # Annotator endpoint URL
             MC_CLIFF_ANNOTATOR_URL: ""
@@ -44,11 +43,10 @@ services:
     # CLIFF update story tags
     # -----------------------
     #
-    cliff_update_story_tags:
+    mc_cliff_update_story_tags:
         build:
             context: ./cliff-update-story-tags/
         image: dockermediacloud/mediacloud-cliff-update-story-tags:latest
-        container_name: mc_cliff_update_story_tags
         environment:
             # CLIFF version tag
             MC_CLIFF_VERSION_TAG: "cliff_clavin_v2.4.1"
@@ -84,11 +82,10 @@ services:
     # Crawler
     # -------
     #
-    crawler:
+    mc_crawler:
         build:
             context: ./crawler/
         image: dockermediacloud/mediacloud-crawler:latest
-        container_name: mc_crawler
         environment:
             # Number of fetcher forks to start
             # (probably keep in sync with deploy/resources/limits/cpus)
@@ -123,11 +120,10 @@ services:
     # Create missing PostgreSQL partitions
     # ------------------------------------
     #
-    create_missing_partitions:
+    mc_create_missing_partitions:
         build:
             context: ./create-missing-partitions/
         image: dockermediacloud/mediacloud-create-missing-partitions:latest
-        container_name: mc_create_missing_partitions
         depends_on:
             - postgresql_pgbouncer
         networks:
@@ -150,11 +146,10 @@ services:
     # Extract article HTML from page HTML
     # -----------------------------------
     #
-    extract_article_from_page:
+    mc_extract_article_from_page:
         build:
             context: ./extract-article-from-page/
         image: dockermediacloud/mediacloud-extract-article-from-page:latest
-        container_name: mc_extract_article_from_page
         deploy:
             # Worker count
             replicas: 8
@@ -172,11 +167,10 @@ services:
     # Extract and vector stories
     # --------------------------
     #
-    extract_and_vector:
+    mc_extract_and_vector:
         build:
             context: ./extract-and-vector/
         image: dockermediacloud/mediacloud-extract-and-vector:latest
-        container_name: mc_extract_and_vector
         depends_on:
             - extract_article_from_page
             - crawler
@@ -204,11 +198,10 @@ services:
     # Fetch story stats from Facebook
     # -------------------------------
     #
-    facebook_fetch_story_stats:
+    mc_facebook_fetch_story_stats:
         build:
             context: ./facebook-fetch-story-stats/
         image: dockermediacloud/mediacloud-facebook-fetch-story-stats:latest
-        container_name: mc_facebook_fetch_story_stats
         environment:
             # Facebook application ID
             MC_FACEBOOK_APP_ID: ""
@@ -242,11 +235,10 @@ services:
     # Generate daily RSS dumps Cron job
     # ---------------------------------
     #
-    cron_generate_daily_rss_dumps:
+    mc_cron_generate_daily_rss_dumps:
         build:
             context: ./cron-generate-daily-rss-dumps/
         image: dockermediacloud/mediacloud-cron-generate-daily-rss-dumps:latest
-        container_name: mc_cron_generate_daily_rss_dumps
         depends_on:
             - postgresql_pgbouncer
         networks:
@@ -272,11 +264,10 @@ services:
     # Generate media health report Cron job
     # -------------------------------------
     #
-    cron_generate_media_health:
+    mc_cron_generate_media_health:
         build:
             context: ./cron-generate-media-health/
         image: dockermediacloud/mediacloud-cron-generate-media-health:latest
-        container_name: mc_cron_generate_media_health
         networks:
             # Generates media health report from PostgreSQL
             - net_postgresql
@@ -297,11 +288,10 @@ services:
     # Generate daily / weekly user summary Cron job
     # ---------------------------------------------
     #
-    cron_generate_user_summary:
+    mc_cron_generate_user_summary:
         build:
             context: ./cron-generate-user-summary/
         image: dockermediacloud/mediacloud-cron-generate-user-summary:latest
-        container_name: mc_cron_generate_user_summary
         depends_on:
             - postgresql_pgbouncer
         networks:
@@ -324,11 +314,10 @@ services:
     # Import stories into Solr
     # ------------------------
     #
-    import_solr_data:
+    mc_import_solr_data:
         build:
             context: ./import-solr-data/
         image: dockermediacloud/mediacloud-import-solr-data:latest
-        container_name: mc_import_solr_data
         environment:
             # Stories to import into Solr on a single run
             MC_SOLR_IMPORT_MAX_QUEUED_STORIES: "100000"
@@ -357,11 +346,10 @@ services:
     # Import stories into Solr for testing
     # ------------------------------------
     #
-    # import_solr_data_for_testing:
+    # mc_import_solr_data_for_testing:
     #     build:
     #         context: ./import-solr-data-for-testing/
     #     image: dockermediacloud/mediacloud-import-solr-data-for-testing:latest
-    #     container_name: mc_import_solr_data_for_testing
     #     environment:
     #         # Stories to import into Solr on a single run
     #         MC_SOLR_IMPORT_MAX_QUEUED_STORIES: "100000"
@@ -390,11 +378,10 @@ services:
     # Scrape Feedly for new stories
     # -----------------------------
     #
-    scrape_feedly:
+    mc_scrape_feedly:
         build:
             context: ./scrape-feedly/
         image: dockermediacloud/mediacloud-scrape-feedly:latest
-        container_name: mc_scrape_feedly
         deploy:
             # Writes stories to PostgreSQL
             - net_postgresql
@@ -415,11 +402,10 @@ services:
     # OpenDKIM server
     # ---------------
     #
-    mail_opendkim_server:
+    mc_mail_opendkim_server:
         build:
             context: ./mail-opendkim-server/
         image: dockermediacloud/mediacloud-mail-opendkim-server:latest
-        container_name: mc_mail_opendkim_server
         networks:
             # Accessed by Postfix only
             - net_postfix_opendkim
@@ -443,11 +429,10 @@ services:
     # Postfix server
     # ---------------
     #
-    mail_postfix_server:
+    mc_mail_postfix_server:
         build:
             context: ./mail-postfix-server/
         image: dockermediacloud/mediacloud-mail-postfix-server:latest
-        container_name: mc_mail_postfix_server
         networks:
             # Exposed to the rest of the services through this network
             - net_postfix
@@ -473,11 +458,10 @@ services:
     # NYTLabels fetch annotation
     # ----------------------
     #
-    nytlabels_fetch_annotation:
+    mc_nytlabels_fetch_annotation:
         build:
             context: ./nytlabels-fetch-annotation/
         image: dockermediacloud/mediacloud-nytlabels-fetch-annotation:latest
-        container_name: mc_nytlabels_fetch_annotation
         environment:
             # NYTLabels annotator endpoint URL
             MC_NYTLABELS_ANNOTATOR_URL: ""
@@ -510,11 +494,10 @@ services:
     # NYTLabels update story tags
     # -----------------------
     #
-    nytlabels_update_story_tags:
+    mc_nytlabels_update_story_tags:
         build:
             context: ./nytlabels-update-story-tags/
         image: dockermediacloud/mediacloud-nytlabels-update-story-tags:latest
-        container_name: mc_nytlabels_update_story_tags
         environment:
             # NYTLabels version tag
             MC_NYTLABELS_VERSION_TAG: "nyt_labeller_v1.0.0"
@@ -546,11 +529,10 @@ services:
     # PgBouncer
     # ---------
     #
-    postgresql_pgbouncer:
+    mc_postgresql_pgbouncer:
         build:
             context: ./postgresql-pgbouncer/
         image: dockermediacloud/mediacloud-postgresql-pgbouncer:latest
-        container_name: mc_postgresql_pgbouncer
         depends_on:
             - postgresql_server
         networks:
@@ -571,11 +553,10 @@ services:
     # PostgreSQL server
     # -----------------
     #
-    postgresql_server:
+    mc_postgresql_server:
         build:
             context: ./postgresql-server/
         image: dockermediacloud/mediacloud-postgresql-server:latest
-        container_name: mc_postgresql_server
         networks:
             # Not in "net_postgresql" because accessed through PgBouncer
             - net_postgresql_pgbouncer
@@ -594,11 +575,10 @@ services:
     # NYT-Based News Tagger service
     # -----------------------------
     #
-    predict_news_labels:
+    mc_predict_news_labels:
         build:
             context: ./predict-news-labels/
         image: dockermediacloud/mediacloud-predict-news-labels:latest
-        container_name: mc_predict_news_labels
         networks:
             # Accessed by nytlabels_fetch_annotation only
             - net_nytlabels_fetch_annotation_predict_news_labels
@@ -622,11 +602,10 @@ services:
     # Purge PostgreSQL object caches
     # ------------------------------------
     #
-    purge_object_caches:
+    mc_purge_object_caches:
         build:
             context: ./purge-object-caches/
         image: dockermediacloud/mediacloud-purge-object-caches:latest
-        container_name: mc_purge_object_caches
         depends_on:
             - postgresql_pgbouncer
         networks:
@@ -649,11 +628,10 @@ services:
     # RabbitMQ
     # --------
     #
-    rabbitmq_server:
+    mc_rabbitmq_server:
         build:
             context: ./rabbitmq-server/
         image: dockermediacloud/mediacloud-rabbitmq-server:latest
-        container_name: mc_rabbitmq_server
         networks:
             # Exposed to the rest of the services through this network
             - net_rabbitmq
@@ -679,11 +657,10 @@ services:
     # Refresh stats Cron job
     # ----------------------
     #
-    cron_refresh_stats:
+    mc_cron_refresh_stats:
         build:
             context: ./cron-refresh-stats/
         image: dockermediacloud/mediacloud-cron-refresh-stats:latest
-        container_name: mc_cron_refresh_stats
         networks:
             # Refreshes stats on PostgreSQL
             - net_postgresql
@@ -704,11 +681,10 @@ services:
     # Add due media to the rescraping queue Cron job
     # ----------------------------------------------
     #
-    cron_rescrape_due_media:
+    mc_cron_rescrape_due_media:
         build:
             context: ./cron-rescrape-due-media/
         image: dockermediacloud/mediacloud-cron-rescrape-due-media:latest
-        container_name: mc_cron_rescrape_due_media
         networks:
             # Fetches media to rescrape from PostgreSQL
             - net_postgresql
@@ -731,11 +707,10 @@ services:
     # (Re)scrape media
     # ----------------
     #
-    rescrape_media:
+    mc_rescrape_media:
         build:
             context: ./rescrape-media/
         image: dockermediacloud/mediacloud-rescrape-media:latest
-        container_name: mc_rescrape_media
         networks:
             # Fetches media to rescrape from PostgreSQL
             - net_postgresql
@@ -758,11 +733,10 @@ services:
     # Report rescraping changes Cron job
     # ----------------------------------
     #
-    cron_rescraping_changes:
+    mc_cron_rescraping_changes:
         build:
             context: ./cron-rescraping-changes/
         image: dockermediacloud/mediacloud-cron-rescraping-changes:latest
-        container_name: mc_cron_rescraping_changes
         networks:
             # Fetches media to rescrape from PostgreSQL
             - net_postgresql
@@ -783,11 +757,10 @@ services:
     # Set media primary language Cron job
     # -----------------------------------
     #
-    cron_set_media_primary_language:
+    mc_cron_set_media_primary_language:
         build:
             context: ./cron-set-media-primary-language/
         image: dockermediacloud/mediacloud-cron-set-media-primary-language:latest
-        container_name: mc_cron_set_media_primary_language
         networks:
             # Fetches media from PostgreSQL
             - net_postgresql
@@ -808,11 +781,10 @@ services:
     # Set media subject country Cron job
     # -----------------------------------
     #
-    cron_set_media_subject_country:
+    mc_cron_set_media_subject_country:
         build:
             context: ./cron-set-media-subject-country/
         image: dockermediacloud/mediacloud-cron-set-media-subject-country:latest
-        container_name: mc_cron_set_media_subject_country
         networks:
             # Fetches media from PostgreSQL
             - net_postgresql
@@ -833,11 +805,10 @@ services:
     # Print long running job states
     # -----------------------------
     #
-    cron_print_long_running_job_states:
+    mc_cron_print_long_running_job_states:
         build:
             context: ./cron-print-long-running-job-states/
         image: dockermediacloud/mediacloud-cron-print-long-running-job-states:latest
-        container_name: mc_cron_print_long_running_job_states
         networks:
             # Reads the states from PostgreSQL
             - net_postgresql
@@ -858,11 +829,10 @@ services:
     # Solr shard
     # ----------
     #
-    solr_shard:
+    mc_solr_shard:
         build:
             context: ./solr-shard/
         image: dockermediacloud/mediacloud-solr-shard:latest
-        container_name: mc_solr_shard
         environment:
             # Shard count
             # (keep in sync with deploy/replicas)
@@ -896,11 +866,10 @@ services:
     # Solr ZooKeeper
     # --------------
     #
-    solr_zookeeper:
+    mc_solr_zookeeper:
         build:
             context: ./solr-zookeeper/
         image: dockermediacloud/mediacloud-solr-zookeeper:latest
-        container_name: mc_solr_zookeeper
         networks:
             # Not in "net_solr" because only Solr shards use it
             - net_solr_zookeeper
@@ -925,11 +894,10 @@ services:
     # Extract story links for a topic
     # -------------------------------
     #
-    topics_extract_story_links:
+    mc_topics_extract_story_links:
         build:
             context: ./topics-extract-story-links/
         image: dockermediacloud/mediacloud-topics-extract-story-links:latest
-        container_name: mc_topics_extract_story_links
         depends_on:
             - extract_article_from_page
         networks:
@@ -954,11 +922,10 @@ services:
     # Fetch link for a topic
     # ----------------------
     #
-    topics_fetch_link:
+    mc_topics_fetch_link:
         build:
             context: ./topics-fetch-link/
         image: dockermediacloud/mediacloud-topics-fetch-link:latest
-        container_name: mc_topics_fetch_link
         networks:
             # Fetches / stores links in PostgreSQL
             - net_postgresql
@@ -981,11 +948,10 @@ services:
     # Fetch Twitter URLs
     # ------------------
     #
-    topics_fetch_twitter_urls:
+    mc_topics_fetch_twitter_urls:
         build:
             context: ./topics-fetch-twitter-urls/
         image: dockermediacloud/mediacloud-topics-fetch-twitter-urls:latest
-        container_name: mc_topics_fetch_twitter_urls
         environment:
             # Twitter API consumer key
             MC_TWITTER_CONSUMER_KEY: ""
@@ -1017,11 +983,10 @@ services:
     # Mine a topic
     # ------------
     #
-    topics_mine:
+    mc_topics_mine:
         build:
             context: ./topics-mine/
         image: dockermediacloud/mediacloud-topics-mine:latest
-        container_name: mc_topics_mine
         environment:
             # Crimson Hexagon API key
             MC_CRIMSON_HEXAGON_API_KEY: ""
@@ -1049,11 +1014,10 @@ services:
     # Mine a public topic
     # -------------------
     #
-    topics_mine_public:
+    mc_topics_mine_public:
         build:
             context: ./topics-mine-public/
         image: dockermediacloud/mediacloud-topics-mine-public:latest
-        container_name: mc_topics_mine_public
         environment:
             # Crimson Hexagon API key
             MC_CRIMSON_HEXAGON_API_KEY: ""
@@ -1081,11 +1045,10 @@ services:
     # Snapshot a topic
     # ----------------
     #
-    topics_snapshot:
+    mc_topics_snapshot:
         build:
             context: ./topics-snapshot/
         image: dockermediacloud/mediacloud-topics-snapshot:latest
-        container_name: mc_topics_snapshot
         environment:
             # Not sure what this is.
             MC_TOPICS_SNAPSHOT_MODEL_REPS: "0"
@@ -1113,11 +1076,10 @@ services:
     # Migrate (install or update) database schema
     # -------------------------------------------
     #
-    migrate_schema:
+    mc_migrate_schema:
         build:
             context: ./migrate-schema/
         image: dockermediacloud/mediacloud-migrate-schema:latest
-        container_name: mc_migrate_schema
         depends_on:
             - postgresql_pgbouncer
         networks:
@@ -1140,11 +1102,10 @@ services:
     # Fetch sitemap pages from media
     # ------------------------------
     #
-    sitemap_fetch_media_pages:
+    mc_sitemap_fetch_media_pages:
         build:
             context: ./sitemap-fetch-media-pages/
         image: dockermediacloud/mediacloud-sitemap-fetch-media-pages:latest
-        container_name: mc_sitemap_fetch_media_pages
         networks:
             # Stores links to PostgreSQL
             - net_postgresql
@@ -1167,11 +1128,10 @@ services:
     # Webapp
     # ------
     #
-    webapp:
+    mc_webapp:
         build:
             context: ./webapp/
         image: dockermediacloud/mediacloud-webapp:latest
-        container_name: mc_webapp
         networks:
             # Uses PostgreSQL to fetch / store data
             - net_postgresql
@@ -1201,11 +1161,10 @@ services:
     # Generate word2vec snapshot model
     # ----------------
     #
-    word2vec_generate_snapshot_model:
+    mc_word2vec_generate_snapshot_model:
         build:
             context: ./word2vec-generate-snapshot-model/
         image: dockermediacloud/mediacloud-word2vec-generate-snapshot-model:latest
-        container_name: mc_word2vec_generate_snapshot_model
         networks:
             # Fetches sentences / stores model in PostgreSQL
             - net_postgresql
@@ -1228,9 +1187,8 @@ services:
     # Portainer for cluster management
     # --------------------------------
     #
-    #portainer:
+    #mc_portainer:
     #    image: portainer/portainer
-    #    container_name: mc_portainer
     #    ports:
     #        # Web interface
     #        - "9000:9000"
