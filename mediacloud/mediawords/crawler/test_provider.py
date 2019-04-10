@@ -137,12 +137,8 @@ class TestTMCrawlerProviderDB(mediawords.test.test_database.TestDatabaseWithSche
 
                 db.create('downloads', download)
 
-        for i in range(downloads_per_host):
-            download_ids = mediawords.crawler.provider.provide_download_ids(db)
-            assert len(download_ids) == len(hosts)
-
         download_ids = mediawords.crawler.provider.provide_download_ids(db)
-        assert len(download_ids) == 0
+        assert len(download_ids) == len(hosts)
 
         # reset host timing for any subsequent tests
         time.sleep(1)

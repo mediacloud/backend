@@ -24,7 +24,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4718;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4719;
 BEGIN
 
     -- Update / set database schema version
@@ -1458,7 +1458,10 @@ begin
             insert into pending_downloads
                 select dp.downloads_id
                     from downloads_pending dp
-                    where host = pending_host.host
+                        left join queued_downloads qd on ( dp.downloads_id = qd.downloads_id )
+                    where 
+                        host = pending_host.host and
+                        qd.downloads_id is null
                     order by priority, downloads_id desc nulls last
                     limit 1;
         end loop;
