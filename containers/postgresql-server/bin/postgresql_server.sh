@@ -24,7 +24,7 @@ fi
 if [ ! -f $MC_POSTGRESQL_DATA_DIR/mediacloud_db_created.lock ]; then
 
     $MC_POSTGRESQL_BIN_DIR/pg_ctl \
-        -o "-c config_file=$MC_POSTGRESQL_CONF_PATH -c listen_addresses="
+        -o "-c config_file=$MC_POSTGRESQL_CONF_PATH -c listen_addresses=" \
         -D $MC_POSTGRESQL_DATA_DIR \
         -w \
         start
