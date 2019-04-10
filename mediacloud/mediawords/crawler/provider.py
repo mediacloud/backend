@@ -23,7 +23,6 @@ worker jobs that just do a quick query of queued_downloads to grab the oldest qu
 import time
 
 from mediawords.db import DatabaseHandler
-from mediawords.db.exceptions.result import McDatabaseResultException
 from mediawords.util.log import create_logger
 
 log = create_logger(__name__)
@@ -144,33 +143,6 @@ def _add_stale_feeds(db: DatabaseHandler) -> None:
     log.info("added stale feeds: %d" % len(downloads))
 
 
-def update_downloads_to_fetching(db: DatabaseHandler, downloads_ids: list) -> None:
-    """Update downloads to fetching state, repeating the query if the 'tuple to be locked...' error is thrown."""
-    max_retries = 5
-    for i in range(max_retries):
-        try:
-            # the for update skip locked is below because sometimes this query hangs on a downloads_id lock.
-            # for those rare downloads, we just leave them as pending and requeue them, which just results in
-            # redownloading a download every 1000 or so downloads
-            db.query(
-                """
-                update downloads set state = 'fetching', download_time = now()
-                    where downloads_id in (
-                        select downloads_id from downloads where downloads_id = any(%(a)s) for update skip locked
-                    )
-                """,
-                {'a': downloads_ids})
-        except McDatabaseResultException as e:
-            if i < (max_retries - 1) and 'tuple to be locked was already moved to another partition' in str(e):
-                log.info("update_downloads_to_fetching: query failed due to tuple lock failure.  trying again ...")
-                time.sleep(1)
-                continue
-            else:
-                raise(e)
-
-        break
-
-
 def provide_download_ids(db: DatabaseHandler) -> None:
     """Return a list of pending downloads ids to queue for fetching.
 
@@ -188,8 +160,6 @@ def provide_download_ids(db: DatabaseHandler) -> None:
     # get one downloads_id per host, ordered by priority asc, downloads_id desc, do this through a plpgsql
     # function because that's the only way to avoid an index scan of the entire (host, priority, downloads_id) index
     downloads_ids = db.query("select get_downloads_for_queue() downloads_id").flat()
-
-    update_downloads_to_fetching(db, downloads_ids)
 
     log.info("provide downloads host downloads: %d" % len(downloads_ids))
 
