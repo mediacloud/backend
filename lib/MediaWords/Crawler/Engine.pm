@@ -155,7 +155,7 @@ sub run_fetcher
 
                 MediaWords::Util::Timing::stop_time( 'idle', $start_idle_time );
 
-                if ( $download->{ state } ne 'fetching' )
+                if ( $download->{ state } ne 'pending' )
                 {
                     DEBUG( "skipping download $download->{ downloads_id } with state '$download->{ state }'" );
                     next;
