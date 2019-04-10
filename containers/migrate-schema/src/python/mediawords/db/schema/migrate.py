@@ -30,7 +30,7 @@ def _current_schema_version(db: DatabaseHandler) -> int:
     if not schema_version:
         raise ValueError("Schema version was not found.")
 
-    schema_version = schema_version[0]
+    schema_version = int(schema_version[0])
     if not schema_version:
         raise ValueError("Schema version is zero or unset.")
 

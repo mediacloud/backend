@@ -11,6 +11,6 @@ COPY src/python/ /usr/lib/python3/dist-packages/
 COPY bin/migrate_schema.py /
 
 # Copy full schema and migrations
-COPY schema/ /
+COPY schema/ /schema/
 
 CMD ["/migrate_schema.py"]

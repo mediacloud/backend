@@ -26,6 +26,9 @@ RUN \
 COPY conf/postgresql.conf /var/tmp/
 RUN cat /var/tmp/postgresql.conf >> /etc/postgresql/11/main/postgresql.conf
 
+# Allow mc_postgresql_pgbouncer to connect using a password
+RUN echo "host all mediacloud samenet md5" >> /etc/postgresql/11/main/pg_hba.conf
+
 # PostgreSQL data
 VOLUME /var/lib/postgresql/11/main/
 
