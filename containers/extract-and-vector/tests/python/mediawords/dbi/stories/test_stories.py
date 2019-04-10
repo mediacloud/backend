@@ -1,3 +1,5 @@
+#!/usr/bin/env py.test
+
 from mediawords.db import DatabaseHandler
 # noinspection PyProtectedMember
 from mediawords.dbi.stories.stories import (

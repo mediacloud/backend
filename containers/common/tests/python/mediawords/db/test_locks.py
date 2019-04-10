@@ -1,3 +1,5 @@
+#!/usr/bin/env py.test
+
 """Test mediawords.db.locks"""
 
 import mediawords.db

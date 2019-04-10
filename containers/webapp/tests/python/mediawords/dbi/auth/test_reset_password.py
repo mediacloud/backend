@@ -1,3 +1,5 @@
+#!/usr/bin/env py.test
+
 from mediawords.dbi.auth.register import add_user
 from mediawords.dbi.auth.reset_password import send_password_reset_token
 from mediawords.dbi.auth.user import NewUser

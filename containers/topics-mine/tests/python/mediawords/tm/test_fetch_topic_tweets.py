@@ -1,3 +1,5 @@
+#!/usr/bin/env py.test
+
 """test fetch_topic_tweets."""
 
 import datetime

@@ -1,3 +1,5 @@
+#!/usr/bin/env py.test
+
 from mediawords.test.testing_database import TestDatabaseTestCase
 from mediawords.util.tags import lookup_tag
 

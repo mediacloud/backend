@@ -1,3 +1,5 @@
+#!/usr/bin/env prove
+
 use strict;
 use warnings;
 use utf8;

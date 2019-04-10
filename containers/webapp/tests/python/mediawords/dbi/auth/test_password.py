@@ -1,3 +1,5 @@
+#!/usr/bin/env py.test
+
 import pytest
 
 from mediawords.dbi.auth.password import (

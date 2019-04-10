@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env prove
 
 # test MediaWords::Crawler::Download::Feed::Syndicated against manually extracted downloads
 

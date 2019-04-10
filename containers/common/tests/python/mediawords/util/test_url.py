@@ -1,3 +1,5 @@
+#!/usr/bin/env py.test
+
 import pytest
 
 import mediawords.util.url as mc_url

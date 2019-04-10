@@ -1,3 +1,5 @@
+#!/usr/bin/env prove
+
 #
 # Basic sanity test of extractor functionality
 #

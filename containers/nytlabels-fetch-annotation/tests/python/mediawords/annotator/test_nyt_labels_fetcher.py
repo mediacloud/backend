@@ -1,3 +1,5 @@
+#!/usr/bin/env py.test
+
 from typing import Union
 
 from mediawords.annotator.nyt_labels_fetcher import NYTLabelsAnnotatorFetcher

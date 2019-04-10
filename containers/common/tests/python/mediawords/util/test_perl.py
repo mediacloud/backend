@@ -1,3 +1,5 @@
+#!/usr/bin/env py.test
+
 from mediawords.util.perl import (
     decode_object_from_bytes_if_needed, convert_dbd_pg_arguments_to_psycopg2_format)
 

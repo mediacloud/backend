@@ -1,3 +1,5 @@
+#!/usr/bin/env py.test
+
 import re
 
 import timeout_decorator

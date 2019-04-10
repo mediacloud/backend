@@ -1,3 +1,5 @@
+#!/usr/bin/env py.test
+
 from mediawords.util.mail_message.webapp_messages import AuthActivationNeededMessage, AuthActivatedMessage, \
     AuthResetPasswordMessage, AuthPasswordChangedMessage, AuthAPIKeyResetMessage
 

@@ -1,3 +1,5 @@
+#!/usr/bin/env py.test
+
 """Test mediawords.tm.extract_story_links."""
 from mediawords.dbi.downloads.store import store_content
 from mediawords.test.db.create import create_test_story_stack, create_download_for_story, create_test_topic

@@ -1,3 +1,5 @@
+#!/usr/bin/env py.test
+
 import pytest
 
 from mediawords.test.db.create import create_test_story_stack, create_test_topic

@@ -1,3 +1,5 @@
+#!/usr/bin/env py.test
+
 import re
 
 from mediawords.db import connect_to_db

@@ -1,3 +1,5 @@
+#!/usr/bin/env py.test
+
 import abc
 
 import pytest

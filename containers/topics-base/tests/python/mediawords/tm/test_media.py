@@ -1,3 +1,5 @@
+#!/usr/bin/env py.test
+
 """Test mediawords.tm.media.*."""
 
 from mediawords.test.db.create import create_test_medium

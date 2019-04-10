@@ -1,3 +1,5 @@
+#!/usr/bin/env py.test
+
 from mediawords.key_value_store.amazon_s3 import AmazonS3Store
 from mediawords.key_value_store.multiple_stores import MultipleStoresStore
 from mediawords.key_value_store.postgresql import PostgreSQLStore

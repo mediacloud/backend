@@ -1,4 +1,6 @@
-""" Test mediawords.tm.domains. """
+#!/usr/bin/env py.test
+
+"""Test mediawords.tm.domains."""
 
 import mediawords.db
 from mediawords.db import DatabaseHandler

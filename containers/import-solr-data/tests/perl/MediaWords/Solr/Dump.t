@@ -1,4 +1,4 @@
-#!/usr/bin/env perl
+#!/usr/bin/env prove
 
 # test dumping and importing of data for solr
 

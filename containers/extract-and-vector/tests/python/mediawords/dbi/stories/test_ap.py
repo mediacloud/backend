@@ -1,3 +1,5 @@
+#!/usr/bin/env py.test
+
 from typing import List
 
 from mediawords.dbi.stories.ap import get_ap_medium_name, is_syndicated

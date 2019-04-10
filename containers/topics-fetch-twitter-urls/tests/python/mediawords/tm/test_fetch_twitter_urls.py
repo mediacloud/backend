@@ -1,3 +1,5 @@
+#!/usr/bin/env py.test
+
 """Test fetch_twitter_urls."""
 
 import json

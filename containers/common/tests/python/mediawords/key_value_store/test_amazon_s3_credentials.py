@@ -1,3 +1,5 @@
+#!/usr/bin/env py.test
+
 import abc
 
 from mediawords.key_value_store.test_key_value_store import TestKeyValueStoreTestCase

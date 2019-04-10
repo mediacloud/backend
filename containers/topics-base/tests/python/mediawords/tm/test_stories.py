@@ -1,3 +1,5 @@
+#!/usr/bin/env py.test
+
 """Test mediawords.tm.stories."""
 
 from operator import itemgetter

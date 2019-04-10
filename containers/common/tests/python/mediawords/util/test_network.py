@@ -1,3 +1,5 @@
+#!/usr/bin/env py.test
+
 import socket
 
 from mediawords.util.network import (

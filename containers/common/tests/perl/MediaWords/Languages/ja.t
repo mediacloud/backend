@@ -1,4 +1,5 @@
-#!/usr/bin/perl
+#!/usr/bin/env prove
+
 #
 # Basic Japanese tokenizer test
 # (more extensive testing is being on the Python side)

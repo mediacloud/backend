@@ -1,3 +1,5 @@
+#!/usr/bin/env py.test
+
 """Test mediawords.tm.fetch_link.*"""
 
 import datetime

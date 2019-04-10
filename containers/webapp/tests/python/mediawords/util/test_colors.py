@@ -1,3 +1,5 @@
+#!/usr/bin/env py.test
+
 from mediawords.test.testing_database import TestDatabaseTestCase
 from mediawords.util.colors import hex_to_rgb, rgb_to_hex, analogous_color, get_consistent_color
 

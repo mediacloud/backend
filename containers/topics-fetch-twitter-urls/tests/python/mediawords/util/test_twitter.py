@@ -1,3 +1,5 @@
+#!/usr/bin/env py.test
+
 """Unit tests for mediawords.util.twitter."""
 
 import json

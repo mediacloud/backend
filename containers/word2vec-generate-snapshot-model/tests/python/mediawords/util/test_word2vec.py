@@ -1,3 +1,5 @@
+#!/usr/bin/env py.test
+
 import os
 import tempfile
 from typing import List

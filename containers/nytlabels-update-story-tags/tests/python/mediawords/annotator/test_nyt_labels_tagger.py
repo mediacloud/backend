@@ -1,3 +1,5 @@
+#!/usr/bin/env py.test
+
 from mediawords.annotator.nyt_labels_tagger import NYTLabelsTagger
 from mediawords.annotator.nyt_labels_store import NYTLabelsAnnotatorStore
 from mediawords.annotator.sample_data import sample_nytlabels_response, expected_nytlabels_tags

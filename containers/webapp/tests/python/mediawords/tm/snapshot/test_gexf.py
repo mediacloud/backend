@@ -1,3 +1,5 @@
+#!/usr/bin/env py.test
+
 """Test graph_layout functions."""
 
 from mediawords.tm.snapshot.gexf import py_giant_component

@@ -1,3 +1,5 @@
+#!/usr/bin/env py.test
+
 from mediawords.util.sql import (get_sql_date_from_epoch, sql_now, get_epoch_from_sql_date,
                                  increment_day)
 

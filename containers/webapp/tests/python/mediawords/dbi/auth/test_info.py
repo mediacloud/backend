@@ -1,3 +1,5 @@
+#!/usr/bin/env py.test
+
 import re
 
 from mediawords.dbi.auth.info import user_info

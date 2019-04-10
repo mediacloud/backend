@@ -1,3 +1,5 @@
+#!/usr/bin/env py.test
+
 from mediawords.db.exceptions.handler import McUpdateByIDException
 from mediawords.test.db.create import create_test_medium, create_test_story, create_test_feed, create_test_topic
 from mediawords.test.testing_database import TestDatabaseTestCase

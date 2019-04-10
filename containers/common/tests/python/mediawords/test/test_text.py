@@ -1,3 +1,5 @@
+#!/usr/bin/env py.test
+
 import unittest
 
 from mediawords.test.text import TestCaseTextUtilities

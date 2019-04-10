@@ -1,4 +1,4 @@
-#!/usr/bin/env perl
+#!/usr/bin/env prove
 
 # test that the timespan field gets exported to solr
 

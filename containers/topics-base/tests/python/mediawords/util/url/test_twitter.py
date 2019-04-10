@@ -1,3 +1,5 @@
+#!/usr/bin/env py.test
+
 from mediawords.util.url.twitter import parse_status_id_from_url, parse_screen_name_from_user_url
 
 

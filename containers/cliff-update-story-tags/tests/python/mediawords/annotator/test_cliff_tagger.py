@@ -1,3 +1,5 @@
+#!/usr/bin/env py.test
+
 from mediawords.annotator.cliff_tagger import CLIFFTagger
 from mediawords.annotator.cliff_store import CLIFFAnnotatorStore
 from mediawords.annotator.sample_data import sample_cliff_response, expected_cliff_tags

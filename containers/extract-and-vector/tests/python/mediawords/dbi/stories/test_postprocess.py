@@ -1,3 +1,5 @@
+#!/usr/bin/env py.test
+
 from mediawords.dbi.stories.postprocess import mark_as_processed
 from mediawords.test.db.create import create_test_medium, create_test_feed, create_test_story
 from mediawords.test.testing_database import TestDatabaseTestCase

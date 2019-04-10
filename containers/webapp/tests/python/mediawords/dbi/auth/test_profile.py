@@ -1,3 +1,5 @@
+#!/usr/bin/env py.test
+
 from mediawords.dbi.auth.login import login_with_email_password
 from mediawords.dbi.auth.profile import all_users, regenerate_api_key
 from mediawords.dbi.auth.register import add_user
