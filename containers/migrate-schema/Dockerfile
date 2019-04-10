@@ -13,4 +13,5 @@ COPY bin/migrate_schema.py /
 # Copy full schema and migrations
 COPY schema/ /schema/
 
-CMD ["/migrate_schema.py"]
+# Just idle around because tests get run with --abort-on-container-exit
+CMD ["/migrate_schema.py", "--sleep_after_finishing"]

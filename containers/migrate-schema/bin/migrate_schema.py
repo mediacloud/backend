@@ -5,6 +5,7 @@ Migrate (install or update) database schema
 """
 
 import argparse
+import time
 
 from mediawords.db import connect_to_db
 from mediawords.db.schema.migrate import migration_sql
@@ -14,8 +15,10 @@ log = create_logger(__name__)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Migrate database schema.")
-    parser.add_argument('-d', '--dryrun', action='store_true',
+    parser.add_argument('-d', '--dry_run', action='store_true',
                         help="Print what is about to be executed instead of executing it")
+    parser.add_argument('-s', '--sleep_after_finishing', action='store_true',
+                        help="Sleep indefinitely after finishing the migration.")
     args = parser.parse_args()
 
     db_ = connect_to_db(require_schema=False)
@@ -25,7 +28,7 @@ if __name__ == '__main__':
     sql = migration_sql(db_)
 
     if sql:
-        if args.dryrun:
+        if args.dry_run:
             log.info("Printing migration SQL...")
             print(sql)
             log.info("Done printing migration SQL.")
@@ -38,3 +41,7 @@ if __name__ == '__main__':
         log.info("Schema is up-to-date, nothing to do.")
 
     db_.commit()
+
+    if args.sleep_after_finishing:
+        while True:
+            time.sleep(60)
