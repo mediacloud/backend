@@ -1,55 +1,51 @@
 #!/usr/bin/env py.test
 
+from mediawords.db import connect_to_db
 from mediawords.dbi.download_texts import create
 from mediawords.test.db.create import create_test_medium, create_test_feed, create_download_for_feed
-from mediawords.test.testing_database import TestDatabaseTestCase
 
 
-class TestDownloadTexts(TestDatabaseTestCase):
+def test_create():
+    db = connect_to_db()
 
-    def setUp(self) -> None:
-        """Set config for tests."""
-        super().setUp()
+    test_medium = create_test_medium(db, 'downloads test')
+    test_feed = create_test_feed(db, 'downloads test', test_medium)
+    test_download = create_download_for_feed(db, test_feed)
 
-        self.test_medium = create_test_medium(self.db(), 'downloads test')
-        self.test_feed = create_test_feed(self.db(), 'downloads test', self.test_medium)
-        self.test_download = create_download_for_feed(self.db(), self.test_feed)
+    test_download['path'] = 'postgresql:foo'
+    test_download['state'] = 'success'
+    db.update_by_id('downloads', test_download['downloads_id'], test_download)
 
-        self.test_download['path'] = 'postgresql:foo'
-        self.test_download['state'] = 'success'
-        self.db().update_by_id('downloads', self.test_download['downloads_id'], self.test_download)
+    assert len(db.query("""
+        SELECT *
+        FROM download_texts
+        WHERE downloads_id = %(downloads_id)s
+    """, {'downloads_id': test_download['downloads_id']}).hashes()) == 0
 
-    def test_create(self):
-        assert len(self.db().query("""
-            SELECT *
-            FROM download_texts
-            WHERE downloads_id = %(downloads_id)s
-        """, {'downloads_id': self.test_download['downloads_id']}).hashes()) == 0
+    assert len(db.query("""
+        SELECT *
+        FROM downloads
+        WHERE downloads_id = %(downloads_id)s
+          AND extracted = 't'
+    """, {'downloads_id': test_download['downloads_id']}).hashes()) == 0
 
-        assert len(self.db().query("""
-            SELECT *
-            FROM downloads
-            WHERE downloads_id = %(downloads_id)s
-              AND extracted = 't'
-        """, {'downloads_id': self.test_download['downloads_id']}).hashes()) == 0
+    extract = {
+        'extracted_text': 'Hello!',
+    }
 
-        extract = {
-            'extracted_text': 'Hello!',
-        }
+    created_download_text = create(db=db, download=test_download, extract=extract)
+    assert created_download_text
+    assert created_download_text['downloads_id'] == test_download['downloads_id']
 
-        created_download_text = create(db=self.db(), download=self.test_download, extract=extract)
-        assert created_download_text
-        assert created_download_text['downloads_id'] == self.test_download['downloads_id']
+    found_download_texts = db.query("""
+        SELECT *
+        FROM download_texts
+        WHERE downloads_id = %(downloads_id)s
+    """, {'downloads_id': test_download['downloads_id']}).hashes()
+    assert len(found_download_texts) == 1
 
-        found_download_texts = self.db().query("""
-            SELECT *
-            FROM download_texts
-            WHERE downloads_id = %(downloads_id)s
-        """, {'downloads_id': self.test_download['downloads_id']}).hashes()
-        assert len(found_download_texts) == 1
-
-        download_text = found_download_texts[0]
-        assert download_text
-        assert download_text['downloads_id'] == self.test_download['downloads_id']
-        assert download_text['download_text'] == extract['extracted_text']
-        assert download_text['download_text_length'] == len(extract['extracted_text'])
+    download_text = found_download_texts[0]
+    assert download_text
+    assert download_text['downloads_id'] == test_download['downloads_id']
+    assert download_text['download_text'] == extract['extracted_text']
+    assert download_text['download_text_length'] == len(extract['extracted_text'])

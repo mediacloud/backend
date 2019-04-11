@@ -2,15 +2,14 @@
 
 """Test mediawords.db.locks"""
 
-import mediawords.db
+from mediawords.db import connect_to_db
 from mediawords.db.locks import get_session_lock, release_session_lock, list_session_locks
-import mediawords.test.testing_database
 
 
 def test_locks() -> None:
     """Test get_session_lock and release_session_lock."""
-    db1 = mediawords.test.testing_database.TestDatabaseTestCase.create_database_handler()
-    db2 = mediawords.test.testing_database.TestDatabaseTestCase.create_database_handler()
+    db1 = connect_to_db()
+    db2 = connect_to_db()
 
     assert db1 != db2
 

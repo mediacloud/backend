@@ -1,26 +1,30 @@
 #!/usr/bin/env py.test
 
 from typing import Union
+from unittest import TestCase
 
+from mediawords.db import connect_to_db
 from mediawords.annotator.nyt_labels_fetcher import NYTLabelsAnnotatorFetcher
 from mediawords.annotator.sample_data import sample_nytlabels_response
 from mediawords.test.hash_server import HashServer
-from mediawords.test.testing_database import TestDatabaseTestCase
 from mediawords.util.config.nytlabels_fetcher import NYTLabelsFetcherConfig
 from mediawords.util.parse_json import encode_json
 from mediawords.util.network import random_unused_port
 from mediawords.util.sql import sql_now
 
 
-class TestNYTLabelsAnnotator(TestDatabaseTestCase):
+class TestNYTLabelsAnnotator(TestCase):
 
     def test_nyt_labels_annotator(self):
-        media = self.db().create(table='media', insert_hash={
+
+        db = connect_to_db()
+
+        media = db.create(table='media', insert_hash={
             'name': "test medium",
             'url': "url://test/medium",
         })
 
-        story = self.db().create(table='stories', insert_hash={
+        story = db.create(table='stories', insert_hash={
             'media_id': media['media_id'],
             'url': 'url://story/a',
             'guid': 'guid://story/a',
@@ -32,7 +36,7 @@ class TestNYTLabelsAnnotator(TestDatabaseTestCase):
         })
         stories_id = story['stories_id']
 
-        self.db().create(table='story_sentences', insert_hash={
+        db.create(table='story_sentences', insert_hash={
             'stories_id': stories_id,
             'sentence_number': 1,
             'sentence': 'I hope that the CLIFF annotator is working.',
@@ -68,10 +72,10 @@ class TestNYTLabelsAnnotator(TestDatabaseTestCase):
                 return annotator_url
 
         nytlabels = NYTLabelsAnnotatorFetcher(fetcher_config=TestNYTLabelsFetcherConfig())
-        nytlabels.annotate_and_store_for_story(db=self.db(), stories_id=stories_id)
+        nytlabels.annotate_and_store_for_story(db=db, stories_id=stories_id)
 
         hs.stop()
-        annotation_exists = self.db().query("""
+        annotation_exists = db.query("""
             SELECT 1
             FROM nytlabels_annotations
             WHERE object_id = %(object_id)s

@@ -4,72 +4,75 @@
 
 import time
 
-from mediawords.test.testing_database import TestDatabaseTestCase
+from mediawords.db import connect_to_db
 from mediawords.test.hash_server import HashServer
 from mediawords.util.config.common import UserAgentConfig
-from mediawords.util.web.user_agent.throttled import ThrottledUserAgent
-from mediawords.util.web.user_agent.throttled import McThrottledDomainException
-import mediawords.util.web.user_agent.throttled
+# noinspection PyProtectedMember
+from mediawords.util.web.user_agent.throttled import (
+    ThrottledUserAgent,
+    McThrottledDomainException,
+    _DEFAULT_DOMAIN_TIMEOUT,
+)
 
 
-class TestThrottledUserAgent(TestDatabaseTestCase):
-    """test case for ThrottledUserAgent."""
+def test_throttled_user_agent(self) -> None:
+    """Test requests with throttling."""
 
-    def test_request(self) -> None:
-        """Test requests with throttling."""
-        pages = {'/test': 'Hello!', }
-        port = 8888
-        hs = HashServer(port=port, pages=pages)
-        hs.start()
+    db = connect_to_db()
 
-        ua = ThrottledUserAgent(self.db(), domain_timeout=2)
-        test_url = hs.page_url('/test')
+    pages = {'/test': 'Hello!', }
+    port = 8888
+    hs = HashServer(port=port, pages=pages)
+    hs.start()
 
-        # first request should work
-        response = ua.get(test_url)
-        assert response.decoded_content() == 'Hello!'
+    ua = ThrottledUserAgent(db, domain_timeout=2)
+    test_url = hs.page_url('/test')
 
-        # fail because we're in the timeout
-        ua = ThrottledUserAgent(self.db(), domain_timeout=2)
-        self.assertRaises(McThrottledDomainException, ua.get, test_url)
+    # first request should work
+    response = ua.get(test_url)
+    assert response.decoded_content() == 'Hello!'
 
-        # succeed because it's a different domain
-        ua = ThrottledUserAgent(self.db(), domain_timeout=2)
-        response = ua.get('http://127.0.0.1:8888/test')
-        assert response.decoded_content() == 'Hello!'
+    # fail because we're in the timeout
+    ua = ThrottledUserAgent(db, domain_timeout=2)
+    self.assertRaises(McThrottledDomainException, ua.get, test_url)
 
-        # still fail within the timeout
-        ua = ThrottledUserAgent(self.db(), domain_timeout=2)
-        self.assertRaises(McThrottledDomainException, ua.get, test_url)
+    # succeed because it's a different domain
+    ua = ThrottledUserAgent(db, domain_timeout=2)
+    response = ua.get('http://127.0.0.1:8888/test')
+    assert response.decoded_content() == 'Hello!'
 
-        time.sleep(2)
+    # still fail within the timeout
+    ua = ThrottledUserAgent(db, domain_timeout=2)
+    self.assertRaises(McThrottledDomainException, ua.get, test_url)
 
-        # now we're outside the timeout, so it should work
-        ua = ThrottledUserAgent(self.db(), domain_timeout=2)
-        response = ua.get(test_url)
-        assert response.decoded_content() == 'Hello!'
+    time.sleep(2)
 
-        # and follow up request on the same ua object should work
-        response = ua.get(test_url)
-        assert response.decoded_content() == 'Hello!'
+    # now we're outside the timeout, so it should work
+    ua = ThrottledUserAgent(db, domain_timeout=2)
+    response = ua.get(test_url)
+    assert response.decoded_content() == 'Hello!'
 
-        # but then fail within the new timeout period with a new object
-        ua = ThrottledUserAgent(self.db(), domain_timeout=2)
-        self.assertRaises(McThrottledDomainException, ua.get, test_url)
+    # and follow up request on the same ua object should work
+    response = ua.get(test_url)
+    assert response.decoded_content() == 'Hello!'
 
-        hs.stop()
+    # but then fail within the new timeout period with a new object
+    ua = ThrottledUserAgent(db, domain_timeout=2)
+    self.assertRaises(McThrottledDomainException, ua.get, test_url)
 
-        # test domain_timeout assignment logic
-        ua = ThrottledUserAgent(self.db(), domain_timeout=100)
-        assert ua.domain_timeout == 100
+    hs.stop()
 
-        class UserAgentThrottledConfig(UserAgentConfig):
-            @staticmethod
-            def throttled_domain_timeout():
-                return 200
+    # test domain_timeout assignment logic
+    ua = ThrottledUserAgent(db, domain_timeout=100)
+    assert ua.domain_timeout == 100
 
-        ua = ThrottledUserAgent(db=self.db(), user_agent_config=UserAgentThrottledConfig())
-        assert ua.domain_timeout == 200
+    class UserAgentThrottledConfig(UserAgentConfig):
+        @staticmethod
+        def throttled_domain_timeout():
+            return 200
 
-        ua = ThrottledUserAgent(db=self.db())
-        assert ua.domain_timeout == mediawords.util.web.user_agent.throttled._DEFAULT_DOMAIN_TIMEOUT
+    ua = ThrottledUserAgent(db=db, user_agent_config=UserAgentThrottledConfig())
+    assert ua.domain_timeout == 200
+
+    ua = ThrottledUserAgent(db=db)
+    assert ua.domain_timeout == _DEFAULT_DOMAIN_TIMEOUT
