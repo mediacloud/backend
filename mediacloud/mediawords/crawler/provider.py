@@ -187,12 +187,10 @@ def run_provider(db: DatabaseHandler, daemon: bool = True) -> None:
             downloads_ids = provide_download_ids(db)
             log.warning("adding to downloads to queue: %d" % len(downloads_ids))
 
-            db.begin()
-            for i in downloads_ids:
-                db.query(
-                    "insert into queued_downloads(downloads_id) values(%(a)s) on conflict (downloads_id) do nothing",
-                    {'a': i})
-            db.commit()
+            values = ','.join(["(%d)" % i for i in downloads_ids])
+            db.query(
+                "insert into queued_downloads(downloads_id) values %s on conflict (downloads_id) do nothing" %
+                values)
 
             if daemon:
                 if time.time() - last_queue_time < QUEUE_INTERVAL:
