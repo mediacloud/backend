@@ -176,6 +176,7 @@ def run_provider(db: DatabaseHandler, daemon: bool = True) -> None:
     When run as a daemon, this function effectively throttles each host to no more than one download every
     QUEUE_INTERVAL seconds because provide_download_ids only provides one downloads_id for each host.
     """
+    last_queue_time = 0
     while True:
         queue_size = db.query(
             "select count(*) from ( select 1 from queued_downloads limit %(a)s ) q",
@@ -194,10 +195,14 @@ def run_provider(db: DatabaseHandler, daemon: bool = True) -> None:
             db.commit()
 
             if daemon:
-                time.sleep(QUEUE_INTERVAL)
+                sleep_interval = time.time() - (last_queue_time + QUEUE_INTERVAL)
+                if sleep_interval > 0:
+                    time.sleep(sleep_interval)
 
         elif daemon:
             time.sleep(QUEUE_INTERVAL * 10)
+
+        last_queue_time = time.time()
 
         if not daemon:
             break
