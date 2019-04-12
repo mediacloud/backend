@@ -1,0 +1,41 @@
+version: "3"
+
+services:
+
+    mc_common:
+        image: dockermediacloud/mediacloud-common:latest
+
+    mc_migrate_schema:
+        image: dockermediacloud/mediacloud-migrate-schema:latest
+
+    mc_postgresql_pgbouncer:
+        image: dockermediacloud/mediacloud-postgresql-pgbouncer:latest
+        expose:
+            - 6432
+
+    mc_postgresql_server:
+        image: dockermediacloud/mediacloud-postgresql-server:latest
+        expose:
+            - 5432
+        volumes:
+            - vol_postgresql_data:/var/lib/postgresql/11/main/
+
+    mc_solr_shard:
+        image: dockermediacloud/mediacloud-solr-shard:latest
+        environment:
+            MC_SOLR_SHARD_COUNT: "1"
+        expose:
+            - 8983
+        volumes:
+            - vol_solr_shard_data:/var/lib/solr/
+
+    mc_solr_zookeeper:
+        image: dockermediacloud/mediacloud-solr-zookeeper:latest
+        expose:
+            - 2181
+            - 2888
+            - 3888
+
+volumes:
+    vol_postgresql_data: {}
+    vol_solr_shard_data: {}
