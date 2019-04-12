@@ -195,9 +195,8 @@ def run_provider(db: DatabaseHandler, daemon: bool = True) -> None:
             db.commit()
 
             if daemon:
-                sleep_interval = time.time() - (last_queue_time + QUEUE_INTERVAL)
-                if sleep_interval > 0:
-                    time.sleep(sleep_interval)
+                if time.time() - last_queue_time < QUEUE_INTERVAL:
+                    time.sleep(QUEUE_INTERVAL)
 
         elif daemon:
             time.sleep(QUEUE_INTERVAL * 10)
