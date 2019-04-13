@@ -14,6 +14,8 @@ env:
     # DOCKERHUB_PASSWORD: password for said user
     - secure: "LGELEXZ9IEtYtKiLl4VykUVrzuHNr3+lp0jPKcglXD5J7BW81DBGsHhrCHd/1ijMsmgey/Yq596M5iYRbVdS2YV9ephrz3nvwOjcrPXmR4W1cKbw4/6uiEPXPGyFTsTCVVx8tx3ksYy+S0tjZ9O8aMAEiDz8r2yu+S2wM3/moaU="
 before_install:
+  # Install PyYAML for docker-compose.yml validation
+  - pip3 install PyYAML
   # Try to pull all the images that are about to be built from Docker Hub to be
   # used for cache.
   #
@@ -24,8 +26,6 @@ install:
   # Build all images
   - ./build_tools/print_build_commands.py --all_containers_dir containers/ | bash
 script:
-  # Install PyYAML for docker-compose.yml validation
-  - pip3 install PyYAML
   # Run all test files in all containers
   - ./build_tools/print_run_all_tests_commands.py --all_containers_dir containers/ | bash
 after_success:
