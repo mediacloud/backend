@@ -8,10 +8,9 @@ use English '-no_match_vars';
 use Data::Dumper;
 use Test::More tests => 32;
 
-use MediaWords::Test::HashServer;
-
 use MediaWords::Crawler::Engine;
-
+use MediaWords::DB;
+use MediaWords::Test::HashServer;
 use MediaWords::Util::SQL;
 use MediaWords::Util::Web;
 

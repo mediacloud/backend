@@ -8,6 +8,7 @@ use Readonly;
 use Test::More tests => 600;
 use Text::CSV_XS;
 
+use MediaWords::DB;
 use MediaWords::TM::RetweeterScores;
 use MediaWords::Test::Rows;
 

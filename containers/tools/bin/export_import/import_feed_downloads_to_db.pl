@@ -47,7 +47,7 @@ sub main
     # Autoflush
     $| = 1;
 
-    my $db = MediaWords::DB::connect_to_db;
+    my $db = MediaWords::DB::connect_to_db();
 
     my $csv = Text::CSV_XS->new(
         {    #

@@ -16,7 +16,7 @@ sub main
 {
     binmode( STDOUT, ':utf8' );
 
-    my $db = MediaWords::DB::connect_to_db;
+    my $db = MediaWords::DB::connect_to_db();
 
     MediaWords::DBI::Media::Health::generate_media_health( $db );
 

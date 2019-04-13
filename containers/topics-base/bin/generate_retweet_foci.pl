@@ -157,7 +157,7 @@ sub main
 
     die( "usage: $@ <topic_opt>" ) unless ( $topic_opt );
 
-    my $db = MediaWords::DB::connect_to_db;
+    my $db = MediaWords::DB::connect_to_db();
 
     my $topics = MediaWords::TM::CLI::require_topics_by_opt( $db, $topic_opt );
     unless ( $topics )

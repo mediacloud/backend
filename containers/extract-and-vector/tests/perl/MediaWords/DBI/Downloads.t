@@ -11,6 +11,7 @@ use MediaWords::CommonLibs;
 use Test::More tests => 13;
 use Test::NoWarnings;
 
+use MediaWords::DB;
 use MediaWords::DBI::Downloads::Store;
 use MediaWords::DBI::Downloads::Extract;
 use MediaWords::DBI::Stories::Extract;

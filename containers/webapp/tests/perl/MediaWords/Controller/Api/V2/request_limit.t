@@ -15,8 +15,8 @@ use URI;
 use URI::QueryParam;
 use HTTP::Status qw(:constants);
 
+use MediaWords::DB;
 use MediaWords::Test::API;
-
 use MediaWords::DBI::Auth;
 use MediaWords::Util::Mail;
 use MediaWords::Util::ParseJSON;

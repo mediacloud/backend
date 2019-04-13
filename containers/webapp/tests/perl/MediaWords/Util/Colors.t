@@ -5,6 +5,8 @@ use utf8;
 use Test::NoWarnings;
 use Test::More tests => 166;
 
+use MediaWords::DB;
+
 use_ok( 'MediaWords::Util::Colors' );
 
 sub test_get_consistent_color

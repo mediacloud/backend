@@ -4,6 +4,8 @@ use utf8;
 
 use Test::More;
 use FindBin;
+
+use MediaWords::DB;
 use MediaWords::KeyValueStore::AmazonS3;
 use MediaWords::KeyValueStore::PostgreSQL;
 use MediaWords::KeyValueStore::MultipleStores;

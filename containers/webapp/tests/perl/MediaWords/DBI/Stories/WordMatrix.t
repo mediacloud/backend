@@ -5,6 +5,7 @@ use Data::Dumper;
 use Test::Deep;
 use Test::More;
 
+use MediaWords::DB;
 use MediaWords::DBI::Stories::WordMatrix;
 use MediaWords::Util::SQL;
 

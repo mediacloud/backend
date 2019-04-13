@@ -15,7 +15,7 @@ use MediaWords::DBI::Media::PrimaryLanguage;
 
 sub main
 {
-    my $db = MediaWords::DB::connect_to_db;
+    my $db = MediaWords::DB::connect_to_db();
 
     my $queue_functions = [
         \&MediaWords::DBI::Media::PrimaryLanguage::get_untagged_media_ids,

@@ -41,7 +41,7 @@ sub main
         'path',
     );
 
-    my $db = MediaWords::DB::connect_to_db;
+    my $db = MediaWords::DB::connect_to_db();
 
     $db->begin;
 

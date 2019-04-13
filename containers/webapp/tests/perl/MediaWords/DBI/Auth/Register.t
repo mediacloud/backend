@@ -10,6 +10,7 @@ use Test::Deep;
 use URI;
 use URI::QueryParam;
 
+use MediaWords::DB;
 use MediaWords::DBI::Auth::Register;
 use MediaWords::Util::Mail;
 

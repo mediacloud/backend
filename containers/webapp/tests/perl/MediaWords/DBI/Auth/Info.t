@@ -8,6 +8,7 @@ use Readonly;
 use Test::More tests => 10;
 use Test::Deep;
 
+use MediaWords::DB;
 use MediaWords::DBI::Auth::Profile;
 use MediaWords::DBI::Auth::Register;
 use MediaWords::Util::Mail;

@@ -10,6 +10,7 @@ use Readonly;
 use Test::More;
 use URI::Escape;
 
+use MediaWords::DB;
 use MediaWords::Test::API;
 
 # public and admin_read key users

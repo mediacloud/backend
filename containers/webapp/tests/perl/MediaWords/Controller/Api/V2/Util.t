@@ -7,6 +7,7 @@ use MediaWords::CommonLibs;
 use Test::More;
 use Test::Deep;
 
+use MediaWords::DB;
 use MediaWords::Test::API;
 
 sub test_is_syndicated_ap($)

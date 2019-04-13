@@ -27,7 +27,6 @@ use Readonly;
 use MediaWords::TM::Alert;
 use MediaWords::TM::FetchTopicTweets;
 use MediaWords::TM::Stories;
-use MediaWords::DB;
 use MediaWords::DBI::Stories::GuessDate;
 use MediaWords::JobManager::Job;
 use MediaWords::Solr;

@@ -16,7 +16,6 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use MediaWords::TM::Snapshot;
-use MediaWords::DB;
 
 # only run one job for each topic at a time
 sub get_run_lock_arg

@@ -8,6 +8,7 @@ use Readonly;
 use Test::More tests => 76;
 use Test::Deep;
 
+use MediaWords::DB;
 use MediaWords::Test::API;
 use MediaWords::Test::Rows;
 

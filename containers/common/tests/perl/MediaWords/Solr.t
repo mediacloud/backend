@@ -15,6 +15,7 @@ BEGIN
     use_ok( 'MediaWords::Solr' );
 }
 
+use MediaWords::DB;
 use MediaWords::Test::DB::Create;
 use MediaWords::Test::Solr;
 use MediaWords::Test::Supervisor;

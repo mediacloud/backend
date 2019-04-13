@@ -24,6 +24,7 @@ use MediaWords::CommonLibs;
 
 use Test::NoWarnings;
 
+use MediaWords::DB;
 use MediaWords::Crawler::Engine;
 use MediaWords::DBI::Downloads::Store;
 use MediaWords::DBI::DownloadTexts;

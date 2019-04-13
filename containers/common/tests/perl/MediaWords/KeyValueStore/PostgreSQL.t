@@ -3,6 +3,8 @@ use warnings;
 use utf8;
 
 use FindBin;
+
+use MediaWords::DB;
 use MediaWords::KeyValueStore::PostgreSQL;
 
 require "$FindBin::Bin/helpers/postgresql_tests.inc.pl";

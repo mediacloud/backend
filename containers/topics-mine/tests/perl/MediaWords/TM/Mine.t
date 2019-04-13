@@ -5,7 +5,7 @@ use Test::Deep;
 use Test::More tests => 3;
 
 use MediaWords::CommonLibs;
-
+use MediaWords::DB;
 use MediaWords::Test::DB::Create;
 use MediaWords::TM::Mine;
 use MediaWords::TM::Stories;

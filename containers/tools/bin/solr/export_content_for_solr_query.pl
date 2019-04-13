@@ -91,7 +91,7 @@ sub main
 
     $content_type ||= 'sentences';
 
-    my $db = MediaWords::DB::connect_to_db;
+    my $db = MediaWords::DB::connect_to_db();
 
     my $stories_ids;
     if ( $query =~ /^select/i )

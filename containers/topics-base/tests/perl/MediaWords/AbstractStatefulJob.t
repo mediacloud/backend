@@ -19,8 +19,6 @@ use Test::More;
     use Moose;
     with 'MediaWords::AbstractStatefulJob';
 
-    use MediaWords::DB;
-
     sub run($$$)
     {
         my ( $self, $db, $args ) = @_;

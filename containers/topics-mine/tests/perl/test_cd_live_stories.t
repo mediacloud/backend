@@ -8,6 +8,7 @@ use English '-no_match_vars';
 use Test::More tests => 14;
 use Test::Deep;
 
+use MediaWords::DB;
 use MediaWords::Util::SQL;
 
 BEGIN

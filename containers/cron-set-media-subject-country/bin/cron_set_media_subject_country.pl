@@ -15,7 +15,7 @@ use MediaWords::DBI::Media::SubjectCountry;
 
 sub main
 {
-    my $db = MediaWords::DB::connect_to_db;
+    my $db = MediaWords::DB::connect_to_db();
 
     my $queue_functions = [
         \&MediaWords::DBI::Media::SubjectCountry::get_untagged_media_ids

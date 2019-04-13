@@ -24,6 +24,7 @@ use Test::Deep;
 
 require Test::NoWarnings;
 
+use MediaWords::DB;
 use MediaWords::Crawler::Engine;
 use MediaWords::DBI::DownloadTexts;
 use MediaWords::DBI::Stories;

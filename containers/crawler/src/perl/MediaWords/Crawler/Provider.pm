@@ -48,8 +48,6 @@ use warnings;
 use Data::Dumper;
 use Readonly;
 
-use MediaWords::DB;
-
 # how often to download each feed (seconds)
 Readonly my $STALE_FEED_INTERVAL => 60 * 60 * 24 * 7;
 

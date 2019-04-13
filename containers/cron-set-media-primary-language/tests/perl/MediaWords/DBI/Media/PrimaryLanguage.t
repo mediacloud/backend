@@ -6,6 +6,7 @@ use warnings;
 use Readonly;
 use Test::More;
 
+use MediaWords::DB;
 use MediaWords::DBI::Media;
 use MediaWords::DBI::Media::PrimaryLanguage;
 

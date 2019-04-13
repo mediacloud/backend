@@ -8,8 +8,8 @@ use Readonly;
 use Test::More;
 use Test::Deep;
 
+use MediaWords::DB;
 use MediaWords::Test::API;
-
 use MediaWords::DBI::Stats;
 
 # test downloads/list and single

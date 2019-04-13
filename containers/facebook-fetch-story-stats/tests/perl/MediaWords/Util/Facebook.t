@@ -7,6 +7,7 @@ use MediaWords::CommonLibs;
 
 use Test::More;
 
+use MediaWords::DB;
 use MediaWords::Util::Facebook;
 use MediaWords::Util::Config::Facebook;
 

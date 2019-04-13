@@ -72,7 +72,7 @@ sub dump_table_single($$$$$$)
     open( my $fh, ">$lock_file" ) || die( "Unable to open lock file '$lock_file': $!" );
 
     # reconnect after starting new process
-    my $db = MediaWords::DB::connect_to_db;
+    my $db = MediaWords::DB::connect_to_db();
 
     $| = 1;
 
@@ -168,7 +168,7 @@ EOF
 
     die $usage unless ( $jobs and $table );
 
-    my $db = MediaWords::DB::connect_to_db;
+    my $db = MediaWords::DB::connect_to_db();
 
     dump_table( $db, $table, $jobs, \@columns );
 }

@@ -8,6 +8,7 @@ use MediaWords::CommonLibs;
 
 use Getopt::Long;
 
+use MediaWords::DB;
 use MediaWords::TM::CLI;
 use MediaWords::Job::TM::MineTopic;
 

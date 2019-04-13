@@ -31,7 +31,7 @@ sub main
 
     $priority ||= 'normal';
 
-    my $db = MediaWords::DB::connect_to_db;
+    my $db = MediaWords::DB::connect_to_db();
 
     my $rows = $db->query( $query )->hashes;
 

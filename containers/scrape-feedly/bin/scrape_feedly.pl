@@ -7,6 +7,7 @@ use warnings;
 
 use Getopt::Long;
 
+use MediaWords::DB;
 use MediaWords::CommonLibs;
 use MediaWords::ImportStories::Feedly;
 
@@ -59,7 +60,7 @@ sub main
 
     Getopt::Long::GetOptions( $opt, "tags_id=i", "feeds_id=i", "media_id=i", "all!" ) || return;
 
-    my $db = MediaWords::DB::connect_to_db;
+    my $db = MediaWords::DB::connect_to_db();
 
     if ( my $tags_id = $opt->{ tags_id } )
     {

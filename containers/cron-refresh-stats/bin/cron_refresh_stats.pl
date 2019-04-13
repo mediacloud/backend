@@ -13,7 +13,7 @@ use MediaWords::DBI::Stats;
 
 sub main
 {
-    my $db = MediaWords::DB::connect_to_db;
+    my $db = MediaWords::DB::connect_to_db();
 
     MediaWords::DBI::Stats::refresh_stats( $db );
 }

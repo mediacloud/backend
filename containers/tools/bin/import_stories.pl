@@ -7,6 +7,7 @@ use warnings;
 
 use Getopt::Long;
 
+use MediaWords::DB;
 use MediaWords::ImportStories::ScrapeHTML;
 use MediaWords::ImportStories::Feedly;
 
@@ -64,7 +65,7 @@ sub main
 
     delete( $p->{ import_module } );
 
-    $p->{ db } = MediaWords::DB::connect_to_db;
+    $p->{ db } = MediaWords::DB::connect_to_db();
 
     my $media = get_media_from_options( $p->{ db }, $p->{ media_id }, $p->{ tags_id_media }, $import_module );
 

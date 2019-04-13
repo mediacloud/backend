@@ -705,7 +705,7 @@ sub import_data($;$)
         _import_stories( $db, $jobs );
 
         # have to reconnect becaue import_stories may have forked, ruining existing db handles
-        $db = MediaWords::DB::connect_to_db if ( $jobs > 1 );
+        $db = MediaWords::DB::connect_to_db() if ( $jobs > 1 );
 
         if ( !$skip_logging )
         {

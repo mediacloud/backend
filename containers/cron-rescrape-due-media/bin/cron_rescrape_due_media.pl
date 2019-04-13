@@ -10,10 +10,12 @@ use warnings;
 
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
-use MediaWords::Job::RescrapeMedia;
 
 use Readonly;
 use Getopt::Long;
+
+use MediaWords::DB;
+use MediaWords::Job::RescrapeMedia;
 
 sub main
 {
@@ -25,7 +27,7 @@ EOF
 
     Getopt::Long::GetOptions( 'tag=s' => \$tag, ) or die $usage;
 
-    my $db = MediaWords::DB::connect_to_db;
+    my $db = MediaWords::DB::connect_to_db();
 
     my $tag_condition = '';
     if ( $tag )

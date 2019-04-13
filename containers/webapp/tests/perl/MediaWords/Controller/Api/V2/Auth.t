@@ -11,8 +11,8 @@ use Test::Deep;
 use URI;
 use URI::QueryParam;
 
+use MediaWords::DB;
 use MediaWords::Test::API;
-
 use MediaWords::DBI::Auth;
 use MediaWords::Util::Mail;
 

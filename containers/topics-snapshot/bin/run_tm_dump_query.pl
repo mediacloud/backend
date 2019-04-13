@@ -19,7 +19,7 @@ sub main
 
     die( "usage: $0 <timespans_id> <query>" ) unless ( $query && $timespans_id );
 
-    my $db = MediaWords::DB::connect_to_db;
+    my $db = MediaWords::DB::connect_to_db();
 
     my $timespan = $db->find_by_id( "timespans", $timespans_id )
       || die( "Unknown timespan: '$timespans_id'" );

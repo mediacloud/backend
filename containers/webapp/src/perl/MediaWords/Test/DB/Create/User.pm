@@ -9,7 +9,6 @@ use MediaWords::CommonLibs;
 use File::Path;
 use Readonly;
 
-use MediaWords::DB;
 use MediaWords::DBI::Auth;
 
 # Create a user for temporary databases

@@ -7,15 +7,16 @@ use MediaWords::CommonLibs;
 use Test::More tests => 77;
 use Test::NoWarnings;
 use Test::Deep;
-
-use MediaWords::DBI::Media::Rescrape;
-
-use MediaWords::Test::HashServer;
-use MediaWords::Test::URLs;
 use HTML::Entities;
 use Encode;
 use Readonly;
 use Data::Dumper;
+
+use MediaWords::DB;
+use MediaWords::DBI::Media::Rescrape;
+use MediaWords::Test::HashServer;
+use MediaWords::Test::URLs;
+
 
 # must contain a hostname ('localhost') because a foreign feed link test requires it
 Readonly my $TEST_HTTP_SERVER_PORT  => 9998;

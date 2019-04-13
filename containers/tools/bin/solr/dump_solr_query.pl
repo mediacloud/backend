@@ -19,7 +19,7 @@ sub main
 
     die( "usage: $0 <solr query> [<solr filter query>]" ) unless ( $q );
 
-    my $db = MediaWords::DB::connect_to_db;
+    my $db = MediaWords::DB::connect_to_db();
 
     my $stories_ids = MediaWords::Solr::search_for_stories_ids( $db, { q => $q, fq => $fq, rows => 10_000_000 } );
 

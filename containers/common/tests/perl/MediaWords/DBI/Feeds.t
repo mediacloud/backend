@@ -4,6 +4,7 @@ use warnings;
 use Test::More tests => 12;
 use Test::NoWarnings;
 
+use MediaWords::DB;
 use MediaWords::DBI::Feeds;
 
 # test feed checksumming

@@ -7,11 +7,12 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use Test::More tests => 2;
-
-use MediaWords::Test::HashServer;
 use Readonly;
 
 use MediaWords::Crawler::Engine;
+use MediaWords::DB;
+use MediaWords::Test::HashServer;
+
 
 Readonly my $HTTP_PORT => 8912;
 

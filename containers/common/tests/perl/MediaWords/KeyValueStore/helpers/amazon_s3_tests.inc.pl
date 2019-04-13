@@ -1,11 +1,12 @@
 use strict;
 use warnings;
 
+use Data::Dumper;
 use Test::More;
 
+use MediaWords::DB;
 use MediaWords::Util::Config::Common;
 use MediaWords::Util::Text;
-use Data::Dumper;
 
 sub s3_download_handler($)
 {

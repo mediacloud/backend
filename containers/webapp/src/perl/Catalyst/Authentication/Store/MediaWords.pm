@@ -11,7 +11,6 @@ with 'MooseX::Emulate::Class::Accessor::Fast';
 
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
-use MediaWords::DB;
 use MediaWords::DBI::Auth;
 use Catalyst::Authentication::User::Hash;
 use Scalar::Util qw( blessed );

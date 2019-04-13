@@ -5,6 +5,7 @@ use Test::More tests => 13;
 use Test::NoWarnings;
 
 use MediaWords::CommonLibs;
+use MediaWords::DB;
 
 use Data::Dumper;
 use MediaWords::Test::DB::Create;

@@ -13,7 +13,6 @@ use MediaWords::CommonLibs;
 use Moose::Role;
 with 'MediaWords::Crawler::FetcherRole';
 
-use MediaWords::DB;
 use MediaWords::Util::SQL;
 use MediaWords::Util::Web;
 use MediaWords::Util::URL;

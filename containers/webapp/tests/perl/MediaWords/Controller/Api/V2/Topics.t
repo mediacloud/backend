@@ -6,9 +6,10 @@ use Modern::Perl '2015';
 use MediaWords::CommonLibs;
 
 use Test::More;
-
 use Catalyst::Test 'MediaWords';
 use Readonly;
+
+use MediaWords::DB;
 use MediaWords::Controller::Api::V2::Topics;
 use MediaWords::DBI::Auth::Roles;
 use MediaWords::Test::API;

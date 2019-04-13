@@ -6,6 +6,7 @@ use warnings;
 use Readonly;
 use Test::More;
 
+use MediaWords::DB;
 use MediaWords::DBI::Media;
 
 # test that medium_is_ready_for_analysis returns false when there are few than 100 stories and they are recent

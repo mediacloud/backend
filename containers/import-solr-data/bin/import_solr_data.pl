@@ -24,7 +24,7 @@ sub main
     Getopt::Long::GetOptions( $options,
         qw/queue_only! update! empty_queue! jobs=i throttle=i staging! full! stories_queue_table=s skip_logging!/ );
 
-    my $db = MediaWords::DB::connect_to_db;
+    my $db = MediaWords::DB::connect_to_db();
 
     MediaWords::Solr::Dump::import_data( $db, $options );
 }

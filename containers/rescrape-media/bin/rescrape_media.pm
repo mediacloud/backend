@@ -24,7 +24,6 @@ with 'MediaWords::AbstractJob';
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-use MediaWords::DB;
 use MediaWords::DBI::Media::Rescrape;
 
 # Run job

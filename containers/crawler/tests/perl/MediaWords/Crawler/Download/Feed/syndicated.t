@@ -4,13 +4,15 @@ use strict;
 
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
-use MediaWords::Crawler::Download::Feed::Syndicated;
 
 use Readonly;
-
 use Test::NoWarnings;
 use Test::More;
 use Test::Deep;
+
+use MediaWords::Crawler::Download::Feed::Syndicated;
+use MediaWords::DB;
+
 
 sub _convert_to_local_time_zone
 {

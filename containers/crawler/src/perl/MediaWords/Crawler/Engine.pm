@@ -37,6 +37,7 @@ use IO::Select;
 use IO::Socket;
 use Data::Dumper;
 
+use MediaWords::DB;
 use MediaWords::Crawler::Download::Content;
 use MediaWords::Crawler::Download::Feed::Syndicated;
 use MediaWords::Crawler::Download::Feed::WebPage;
@@ -727,7 +728,7 @@ sub _reconnect_db
         $self->_close_db_connection();
     }
 
-    $self->{ dbs } = MediaWords::DB::connect_to_db;
+    $self->{ dbs } = MediaWords::DB::connect_to_db();
 }
 
 1;
