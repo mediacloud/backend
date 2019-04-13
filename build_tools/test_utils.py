@@ -1,16 +1,12 @@
 from unittest import TestCase
 
-from print_docker_commands import (
-    _ordered_container_dependencies,
-    _container_dir_name_from_image_name,
-    DefaultDockerHubConfiguration,
-)
+from utils import container_dir_name_from_image_name, DefaultDockerHubConfiguration, _ordered_container_dependencies
 
 
-class TestBuildDockerImages(TestCase):
+class TestUtils(TestCase):
 
-    def test_container_name_from_image_name(self):
-        assert _container_dir_name_from_image_name(
+    def test_container_dir_name_from_image_name(self):
+        assert container_dir_name_from_image_name(
             image_name='dockermediacloud/mediacloud-topics-fetch-twitter-urls:latest',
             conf=DefaultDockerHubConfiguration(),
         ) == 'topics-fetch-twitter-urls'
