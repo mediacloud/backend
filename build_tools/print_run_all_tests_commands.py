@@ -3,30 +3,29 @@
 import argparse
 import glob
 import os
+import re
 import sys
-from typing import List
+from typing import List, Pattern
 
 PRINT_TEST_COMMANDS_SCRIPT_FILENAME = 'print_run_test_commands.py'
 """Script that will be called to run a single test."""
 
 
-def _find_files_with_extension(directory: str, extension: str) -> List[str]:
+def _find_files_with_pattern(directory: str, filename_pattern: Pattern) -> List[str]:
     """
-    Find all files with a given extension in a directory.
+    Find all files that match a certain pattern in a directory.
 
     :param directory: Directory to look into.
-    :param extension: File extension.
+    :param filename_pattern: Regex pattern that the filename should match.
     :return: List of files with a given extension found in a directory.
     """
-
-    assert extension.startswith('.'), 'Extension must start with a period.'
 
     found_files = []
     if os.path.isdir(directory):
         for root, dirs, files in os.walk(directory):
             for f in files:
-                full_path = os.path.join(root, f)
-                if os.path.splitext(full_path)[1] == extension:
+                if re.match(pattern=filename_pattern, string=os.path.basename(f)):
+                    full_path = os.path.join(root, f)
                     found_files.append(full_path)
 
     return sorted(found_files)
@@ -68,8 +67,8 @@ def docker_all_tests_commands(all_containers_dir: str) -> List[List[str]]:
             perl_tests_dir = os.path.join(tests_dir, 'perl')
             python_tests_dir = os.path.join(tests_dir, 'python')
 
-            perl_tests = _find_files_with_extension(perl_tests_dir, '.t')
-            python_tests = _find_files_with_extension(python_tests_dir, '.py')
+            perl_tests = _find_files_with_pattern(perl_tests_dir, re.compile(r'^.+?\.t$'))
+            python_tests = _find_files_with_pattern(python_tests_dir, re.compile(r'^test_.+?\.py'))
 
             if not (perl_tests or python_tests):
                 # Might be a programmer error
