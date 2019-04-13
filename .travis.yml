@@ -19,10 +19,10 @@ before_install:
   #
   # Don't stop on a single failure because the image might not exist or a
   # network error might have happened.
-  - ./build_tools/print_pull_commands.py --container_dir containers/ | bash || true
+  - ./build_tools/print_pull_commands.py --all_containers_dir containers/ | bash || true
 install:
   # Build all images
-  - ./build_tools/print_build_commands.py --container_dir containers/ | bash
+  - ./build_tools/print_build_commands.py --all_containers_dir containers/ | bash
 script:
   # FIXME
   - true
