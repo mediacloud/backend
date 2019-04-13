@@ -24,6 +24,8 @@ install:
   # Build all images
   - ./build_tools/print_build_commands.py --all_containers_dir containers/ | bash
 script:
+  # Install PyYAML for docker-compose.yml validation
+  - pip3 install PyYAML
   # Run all test files in all containers
   - ./build_tools/print_run_all_tests_commands.py --all_containers_dir containers/ | bash
 after_success:
