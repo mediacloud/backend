@@ -56,7 +56,7 @@ def _project_name(container_name: str, tests_dir: str, test_file: str) -> str:
 
     project_name = 'test-{}-{}'.format(
         container_name,
-        re.sub(r'\W+', '_', shortened_test_file, flags=re.ASCII),
+        re.sub(r'\W+', '_', shortened_test_file, flags=re.ASCII).lower(),
     )
 
     return project_name
