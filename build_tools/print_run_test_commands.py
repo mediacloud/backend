@@ -160,7 +160,7 @@ def docker_test_commands(all_containers_dir: str, test_file: str) -> List[List[s
         '--project-name', project_name,
         '--file', docker_compose_path,
         'logs',
-        ';', 'false', '}',
+        ';', 'false;', '}',
     ])
 
     commands.append([
