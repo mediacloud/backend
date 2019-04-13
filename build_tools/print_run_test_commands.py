@@ -8,7 +8,7 @@ from typing import List
 
 # Given that docker-compose is present, we assume that PyYAML is installed
 try:
-    from yaml import load as load_yaml
+    from yaml import safe_load as load_yaml
 except ModuleNotFoundError:
     raise ImportError("Please install PyYAML.")
 
