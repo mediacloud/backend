@@ -85,14 +85,6 @@ def docker_test_commands(all_containers_dir: str, test_file: str) -> List[List[s
     if test_file_extension not in ['.py', '.t']:
         raise ValueError("Test file '{}' doesn't look like one.".format(test_file))
 
-    if not os.access(test_file, os.X_OK):
-        raise ValueError("Test file '{}' is not executable.".format(test_file))
-
-    with open(test_file, mode='r', encoding='utf-8') as f:
-        first_line = f.readline()
-        if not first_line.startswith('#!'):
-            raise ValueError("Test file '{}' does not have a shebang line.".format(test_file))
-
     test_file_relative_path = test_file[(len(all_containers_dir)):]
     test_file_relative_path_dirs = Path(test_file_relative_path).parts
 
@@ -120,13 +112,19 @@ def docker_test_commands(all_containers_dir: str, test_file: str) -> List[List[s
     docker_compose_override_path = os.path.join(tempfile.mkdtemp(), 'docker-compose.tests-override.yml')
 
     test_path_in_container = '/tests' + test_file[len(tests_dir):]
+
+    if test_file.endswith('.py'):
+        test_command = 'py.test --verbose ' + test_path_in_container
+    elif test_file.endswith('.t'):
+        test_command = 'prove ' + test_path_in_container
+    else:
+        raise ValueError("Not sure how to run this test: {}".format(test_path_in_container))
+
     commands.append(['touch', docker_compose_override_path])
     commands.append(['echo', "'version: \"3\"'", '>>', docker_compose_override_path])
     commands.append(['echo', "'services:'", '>>', docker_compose_override_path])
     commands.append(['echo', "'    {}:'".format(container_name), '>>', docker_compose_override_path])
-    commands.append(['echo', "'        command: \"{}\"'".format(
-        test_path_in_container
-    ), '>>', docker_compose_override_path])
+    commands.append(['echo', "'        command: \"{}\"'".format(test_command), '>>', docker_compose_override_path])
 
     commands.append([
         'docker-compose',
