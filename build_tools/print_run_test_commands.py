@@ -3,6 +3,7 @@
 import argparse
 import os
 import re
+import tempfile
 from pathlib import Path
 from typing import List
 
@@ -26,8 +27,6 @@ def _validate_docker_compose_yml(docker_compose_path: str, container_name: str) 
     :param docker_compose_path: Path to docker-compose.yml
     """
 
-    expected_container_command = 'sleep infinity'
-
     with open(docker_compose_path, mode='r', encoding='utf-8') as f:
 
         try:
@@ -40,12 +39,6 @@ def _validate_docker_compose_yml(docker_compose_path: str, container_name: str) 
 
         if container_name not in yaml_root['services']:
             raise InvalidDockerComposeYMLException("No '{} key under 'services'.".format(container_name))
-
-        if yaml_root['services'][container_name].get('command', None) != expected_container_command:
-            raise InvalidDockerComposeYMLException("'command' of '{}' is not '{}'.".format(
-                container_name,
-                expected_container_command,
-            ))
 
 
 def _project_name(container_name: str, tests_dir: str, test_file: str) -> str:
@@ -124,12 +117,24 @@ def docker_test_commands(all_containers_dir: str, test_file: str) -> List[List[s
 
     commands = list()
 
+    docker_compose_override_path = os.path.join(tempfile.mkdtemp(), 'docker-compose.tests-override.yml')
+
+    test_path_in_container = '/tests' + test_file[len(tests_dir):]
+    commands.append(['touch', docker_compose_override_path])
+    commands.append(['echo', "'version: \"3\"'", '>>', docker_compose_override_path])
+    commands.append(['echo', "'services:'", '>>', docker_compose_override_path])
+    commands.append(['echo', "'    {}:'".format(container_name), '>>', docker_compose_override_path])
+    commands.append(['echo', "'        command: \"{}\"'".format(
+        test_path_in_container
+    ), '>>', docker_compose_override_path])
+
     commands.append([
         'docker-compose',
         '--project-name', project_name,
         '--file', docker_compose_path,
+        '--file', docker_compose_override_path,
         'up',
-        '--detach',
+        '--no-start',
         '--renew-anon-volumes',
         '--force-recreate',
     ])
@@ -150,17 +155,10 @@ def docker_test_commands(all_containers_dir: str, test_file: str) -> List[List[s
         'docker-compose',
         '--project-name', project_name,
         '--file', docker_compose_path,
-        'exec',
-        container_name,
-        '/tests' + test_file[len(tests_dir):],
-
-        # If the test has failed, the service logs might provide a clue as to why that happened, so we print them here
-        '||', '{',
-        'docker-compose',
-        '--project-name', project_name,
-        '--file', docker_compose_path,
-        'logs',
-        ';', 'false;', '}',
+        '--file', docker_compose_override_path,
+        'up',
+        '--abort-on-container-exit',
+        '--exit-code-from', container_name,
     ])
 
     commands.append([
@@ -169,7 +167,6 @@ def docker_test_commands(all_containers_dir: str, test_file: str) -> List[List[s
         '--file', docker_compose_path,
         'down',
         '--volumes',
-        '--remove-orphans',
     ])
 
     return commands
