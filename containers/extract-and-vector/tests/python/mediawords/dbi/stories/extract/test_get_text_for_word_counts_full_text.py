@@ -1,5 +1,3 @@
-#!/usr/bin/env py.test
-
 from mediawords.dbi.stories.extract import get_text_for_word_counts
 from mediawords.dbi.stories.extract.setup_test_extract import TestExtract
 

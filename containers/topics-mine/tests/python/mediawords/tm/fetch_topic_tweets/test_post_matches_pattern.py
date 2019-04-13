@@ -1,5 +1,3 @@
-#!/usr/bin/env py.test
-
 from mediawords.tm.fetch_topic_tweets import _post_matches_pattern
 
 

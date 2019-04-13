@@ -1,5 +1,3 @@
-#!/usr/bin/env py.test
-
 from mediawords.languages.factory import LanguageFactory
 from mediawords.util.identify_language import (
     language_code_for_text, identification_would_be_reliable, language_is_supported,

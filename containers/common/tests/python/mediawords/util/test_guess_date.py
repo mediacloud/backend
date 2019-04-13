@@ -1,5 +1,3 @@
-#!/usr/bin/env py.test
-
 import pytest
 
 from mediawords.util.guess_date import guess_date, McGuessDateException

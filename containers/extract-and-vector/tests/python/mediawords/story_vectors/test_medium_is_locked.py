@@ -1,5 +1,3 @@
-#!/usr/bin/env py.test
-
 from mediawords.db import connect_to_db
 from mediawords.story_vectors import medium_is_locked
 from mediawords.story_vectors.setup_test_story_vectors import TestStoryVectors

@@ -1,5 +1,3 @@
-#!/usr/bin/env py.test
-
 from mediawords.db import connect_to_db
 from mediawords.dbi.downloads.store import get_content_for_first_download
 from mediawords.test.db.create import create_test_topic, create_test_medium, create_test_feed, create_test_story

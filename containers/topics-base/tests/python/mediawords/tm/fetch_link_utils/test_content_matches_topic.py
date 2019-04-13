@@ -1,5 +1,3 @@
-#!/usr/bin/env py.test
-
 from mediawords.tm.fetch_link_utils import content_matches_topic
 
 

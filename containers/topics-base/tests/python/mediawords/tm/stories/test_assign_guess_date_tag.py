@@ -1,5 +1,3 @@
-#!/usr/bin/env py.test
-
 from mediawords.db import connect_to_db
 from mediawords.test.db.create import create_test_medium, create_test_feed, create_test_story
 from mediawords.util.guess_date import GuessDateResult, GUESS_METHOD_TAG_SET, INVALID_TAG, INVALID_TAG_SET

@@ -1,5 +1,3 @@
-#!/usr/bin/env py.test
-
 """Test mediawords.db.stories.dup."""
 
 from functools import reduce

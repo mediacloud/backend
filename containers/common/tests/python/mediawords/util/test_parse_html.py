@@ -1,5 +1,3 @@
-#!/usr/bin/env py.test
-
 from mediawords.util.parse_html import (
     link_canonical_url_from_html,
     meta_refresh_url_from_html,

@@ -1,5 +1,3 @@
-#!/usr/bin/env py.test
-
 # noinspection PyProtectedMember
 from mediawords.tm.media import _normalize_url, MAX_URL_LENGTH
 

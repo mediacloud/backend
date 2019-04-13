@@ -1,5 +1,3 @@
-#!/usr/bin/env py.test
-
 from mediawords.db import connect_to_db
 from mediawords.dbi.downloads.store import fetch_content
 from mediawords.test.db.create import (

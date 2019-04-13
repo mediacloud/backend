@@ -1,5 +1,3 @@
-#!/usr/bin/env py.test
-
 # noinspection PyProtectedMember
 from mediawords.tm.stories import _url_domain_matches_medium
 

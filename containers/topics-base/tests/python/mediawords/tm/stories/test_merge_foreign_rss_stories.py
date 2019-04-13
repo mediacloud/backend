@@ -1,5 +1,3 @@
-#!/usr/bin/env py.test
-
 from operator import itemgetter
 
 from mediawords.db import connect_to_db

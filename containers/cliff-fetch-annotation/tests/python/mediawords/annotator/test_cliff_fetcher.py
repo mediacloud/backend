@@ -1,5 +1,3 @@
-#!/usr/bin/env py.test
-
 from typing import Union
 
 from mediawords.db import connect_to_db

@@ -1,5 +1,3 @@
-#!/usr/bin/env py.test
-
 # noinspection PyProtectedMember
 from mediawords.story_vectors import _clean_sentences
 

@@ -1,5 +1,3 @@
-#!/usr/bin/env py.test
-
 import json
 from typing import Union
 

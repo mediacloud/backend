@@ -1,5 +1,3 @@
-#!/usr/bin/env py.test
-
 """Test mediawords.dbi.downloads.store."""
 
 from unittest import TestCase

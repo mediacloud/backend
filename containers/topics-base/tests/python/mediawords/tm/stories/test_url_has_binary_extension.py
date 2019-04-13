@@ -1,5 +1,3 @@
-#!/usr/bin/env py.test
-
 from mediawords.tm.stories import url_has_binary_extension
 
 

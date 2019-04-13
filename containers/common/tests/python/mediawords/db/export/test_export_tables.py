@@ -1,5 +1,3 @@
-#!/usr/bin/env py.test
-
 from io import StringIO
 import sys
 

@@ -1,5 +1,3 @@
-#!/usr/bin/env py.test
-
 from mediawords.db import connect_to_db
 from mediawords.dbi.auth.login import login_with_email_password
 from mediawords.dbi.auth.profile import regenerate_api_key

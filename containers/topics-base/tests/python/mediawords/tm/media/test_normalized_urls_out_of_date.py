@@ -1,5 +1,3 @@
-#!/usr/bin/env py.test
-
 from mediawords.db import connect_to_db
 # noinspection PyProtectedMember
 from mediawords.tm.media import _normalized_urls_out_of_date

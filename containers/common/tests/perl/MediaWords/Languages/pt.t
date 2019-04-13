@@ -1,5 +1,3 @@
-#!/usr/bin/env prove
-
 #
 # Some test strings copied from Wikipedia (CC-BY-SA, http://creativecommons.org/licenses/by-sa/3.0/).
 #

@@ -1,5 +1,3 @@
-#!/usr/bin/env prove
-
 # test MediaWords::Crawler::Download::Feed::Syndicated against manually extracted downloads
 
 use strict;

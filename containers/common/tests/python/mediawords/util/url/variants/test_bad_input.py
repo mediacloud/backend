@@ -1,5 +1,3 @@
-#!/usr/bin/env py.test
-
 import pytest
 
 from mediawords.util.url.variants import all_url_variants, McAllURLVariantsException

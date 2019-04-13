@@ -1,5 +1,3 @@
-#!/usr/bin/env py.test
-
 # noinspection PyProtectedMember
 from mediawords.story_vectors import _get_sentences_from_story_text
 

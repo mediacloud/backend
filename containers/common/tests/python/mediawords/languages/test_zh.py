@@ -1,5 +1,3 @@
-#!/usr/bin/env py.test
-
 from unittest import TestCase
 
 from mediawords.languages.zh import ChineseLanguage

@@ -1,5 +1,3 @@
-#!/usr/bin/env prove
-
 # test dumping and importing of data for solr
 
 use strict;

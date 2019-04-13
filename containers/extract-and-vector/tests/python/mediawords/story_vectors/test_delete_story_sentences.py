@@ -1,5 +1,3 @@
-#!/usr/bin/env py.test
-
 # noinspection PyProtectedMember
 from mediawords.story_vectors import _delete_story_sentences
 from mediawords.story_vectors.setup_test_story_vectors import TestStoryVectors

@@ -1,5 +1,3 @@
-#!/usr/bin/env py.test
-
 # noinspection PyProtectedMember
 from mediawords.dbi.stories.stories import _create_child_download_for_story
 from mediawords.dbi.stories.stories.setup_test_stories import TestStories

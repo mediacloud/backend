@@ -1,5 +1,3 @@
-#!/usr/bin/env py.test
-
 import pytest
 
 from mediawords.key_value_store import McKeyValueStoreException

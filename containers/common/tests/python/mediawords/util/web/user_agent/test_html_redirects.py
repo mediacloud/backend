@@ -1,5 +1,3 @@
-#!/usr/bin/env py.test
-
 from mediawords.util.url import urls_are_equal
 from mediawords.util.web.user_agent.html_redirects import (
     target_request_from_meta_refresh_url,

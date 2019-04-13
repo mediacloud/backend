@@ -1,5 +1,3 @@
-#!/usr/bin/env prove
-
 #
 # Some tests ported from languagetool ('ChineseSentenceTokenizerTest.java', 'ChineseWordTokenizerTest.java'):
 #

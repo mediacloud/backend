@@ -1,5 +1,3 @@
-#!/usr/bin/env py.test
-
 from mediawords.dbi.stories.extract.setup_test_extract import TestExtract
 # noinspection PyProtectedMember
 from mediawords.dbi.stories.extract import _get_extracted_text

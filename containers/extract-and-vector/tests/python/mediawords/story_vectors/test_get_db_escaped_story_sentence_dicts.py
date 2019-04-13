@@ -1,5 +1,3 @@
-#!/usr/bin/env py.test
-
 import re
 
 from mediawords.story_vectors.setup_test_story_vectors import TestStoryVectors

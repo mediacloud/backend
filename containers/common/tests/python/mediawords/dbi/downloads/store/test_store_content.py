@@ -1,5 +1,3 @@
-#!/usr/bin/env py.test
-
 # noinspection PyProtectedMember
 from mediawords.dbi.downloads.store import _default_amazon_s3_downloads_config, _get_store_for_reading, store_content
 from mediawords.util.config.common import DownloadStorageConfig

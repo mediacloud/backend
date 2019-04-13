@@ -1,5 +1,3 @@
-#!/usr/bin/env py.test
-
 import pytest
 
 from mediawords.db.schema.migrate import (

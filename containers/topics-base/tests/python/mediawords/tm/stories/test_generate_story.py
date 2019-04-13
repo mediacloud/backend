@@ -1,5 +1,3 @@
-#!/usr/bin/env py.test
-
 from mediawords.db import connect_to_db
 from mediawords.dbi.downloads.store import fetch_content
 from mediawords.util.guess_date import GUESS_METHOD_TAG_SET

@@ -1,5 +1,3 @@
-#!/usr/bin/env py.test
-
 from mediawords.dbi.downloads.store import store_content
 from mediawords.test.db.create import create_test_topic
 from mediawords.tm.domains import MAX_SELF_LINKS

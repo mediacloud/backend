@@ -1,5 +1,3 @@
-#!/usr/bin/env py.test
-
 import pytest
 
 from mediawords.util.parse_json import encode_json, decode_json, McDecodeJSONException, McEncodeJSONException

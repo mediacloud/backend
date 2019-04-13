@@ -1,5 +1,3 @@
-#!/usr/bin/env py.test
-
 from mediawords.test.db.create import create_test_story_stack, create_test_topic
 from mediawords.util.url import urls_are_equal
 from mediawords.util.url.variants import all_url_variants

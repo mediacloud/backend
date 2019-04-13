@@ -1,5 +1,3 @@
-#!/usr/bin/env py.test
-
 from mediawords.tm.domains import skip_self_linked_domain, MAX_SELF_LINKS
 from mediawords.tm.domains.setup_test_domains import TestTMDomainsDB
 from mediawords.util.url import get_url_distinctive_domain

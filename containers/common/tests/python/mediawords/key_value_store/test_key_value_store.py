@@ -1,5 +1,3 @@
-#!/usr/bin/env py.test
-
 import abc
 from unittest import TestCase
 

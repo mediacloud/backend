@@ -1,5 +1,3 @@
-#!/usr/bin/env py.test
-
 from mediawords.dbi.downloads.store import get_media_id
 from mediawords.dbi.downloads.setup_test_downloads import TestDownloadsDB
 

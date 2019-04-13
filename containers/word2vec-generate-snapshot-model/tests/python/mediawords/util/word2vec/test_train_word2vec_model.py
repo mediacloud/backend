@@ -1,5 +1,3 @@
-#!/usr/bin/env py.test
-
 import os
 import shutil
 import tempfile

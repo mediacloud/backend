@@ -1,5 +1,3 @@
-#!/usr/bin/env py.test
-
 from mediawords.db import connect_to_db, DatabaseHandler
 from mediawords.dbi.stories.ap import get_ap_medium_name, is_syndicated
 from mediawords.test.db.create import create_test_medium, create_test_feed, create_test_story, add_content_to_test_story

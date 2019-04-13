@@ -1,5 +1,3 @@
-#!/usr/bin/env py.test
-
 # noinspection PyProtectedMember
 from mediawords.story_vectors import _insert_story_sentences
 from mediawords.test.db.create import create_test_story

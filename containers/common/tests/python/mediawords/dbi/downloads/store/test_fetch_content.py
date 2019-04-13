@@ -1,5 +1,3 @@
-#!/usr/bin/env py.test
-
 # noinspection PyProtectedMember
 from mediawords.dbi.downloads.store import (
     McDBIDownloadsException,

@@ -1,5 +1,3 @@
-#!/usr/bin/env py.test
-
 from typing import List, Dict, Any
 
 from mediawords.db import connect_to_db, DatabaseHandler

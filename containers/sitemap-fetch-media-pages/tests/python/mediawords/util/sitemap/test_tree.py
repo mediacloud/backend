@@ -1,5 +1,3 @@
-#!/usr/bin/env py.test
-
 import datetime
 import textwrap
 from decimal import Decimal

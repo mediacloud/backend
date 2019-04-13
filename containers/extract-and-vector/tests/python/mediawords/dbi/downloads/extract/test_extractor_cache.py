@@ -1,5 +1,3 @@
-#!/usr/bin/env py.test
-
 # noinspection PyProtectedMember
 from mediawords.dbi.downloads.extract import _set_extractor_results_cache, _get_extractor_results_cache
 from mediawords.dbi.downloads.extract.setup_test_extract import TestExtractDB

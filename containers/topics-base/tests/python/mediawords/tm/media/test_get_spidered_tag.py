@@ -1,5 +1,3 @@
-#!/usr/bin/env py.test
-
 from mediawords.tm.media import get_spidered_tag, SPIDERED_TAG_TAG, SPIDERED_TAG_SET
 from mediawords.db import connect_to_db
 

@@ -1,5 +1,3 @@
-#!/usr/bin/env py.test
-
 # noinspection PyProtectedMember
 from mediawords.tm.fetch_twitter_urls import _split_urls_into_users_and_statuses
 

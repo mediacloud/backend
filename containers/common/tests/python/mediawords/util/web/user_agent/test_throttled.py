@@ -1,5 +1,3 @@
-#!/usr/bin/env py.test
-
 """test ThrottledUserAgent."""
 
 import time

@@ -1,5 +1,3 @@
-#!/usr/bin/env py.test
-
 from mediawords.tm.media import generate_medium_url_and_name_from_url
 
 

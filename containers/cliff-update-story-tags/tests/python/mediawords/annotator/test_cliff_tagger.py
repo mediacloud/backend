@@ -1,5 +1,3 @@
-#!/usr/bin/env py.test
-
 from mediawords.db import connect_to_db
 from mediawords.annotator.cliff_tagger import CLIFFTagger
 from mediawords.annotator.cliff_store import CLIFFAnnotatorStore

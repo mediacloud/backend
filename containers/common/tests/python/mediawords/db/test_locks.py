@@ -1,5 +1,3 @@
-#!/usr/bin/env py.test
-
 """Test mediawords.db.locks"""
 
 from mediawords.db import connect_to_db

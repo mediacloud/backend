@@ -1,5 +1,3 @@
-#!/usr/bin/env py.test
-
 from mediawords.dbi.stories.stories import add_story
 from mediawords.dbi.stories.stories.setup_test_stories import TestStories
 

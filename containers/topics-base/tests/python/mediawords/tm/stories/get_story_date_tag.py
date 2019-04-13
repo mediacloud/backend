@@ -1,5 +1,3 @@
-#!/usr/bin/env py.test
-
 from typing import Optional
 
 from mediawords.db import DatabaseHandler

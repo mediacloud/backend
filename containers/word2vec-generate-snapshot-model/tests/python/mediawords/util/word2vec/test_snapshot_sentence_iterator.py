@@ -1,5 +1,3 @@
-#!/usr/bin/env py.test
-
 from mediawords.util.word2vec.sentence_iterators import SnapshotSentenceIterator
 
 from mediawords.util.word2vec.setup_test_word2vec import TestWord2vec

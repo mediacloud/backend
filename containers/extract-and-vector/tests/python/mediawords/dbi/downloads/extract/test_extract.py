@@ -1,5 +1,3 @@
-#!/usr/bin/env py.test
-
 from mediawords.dbi.downloads.extract import extract
 from mediawords.dbi.downloads.extract.setup_test_extract import TestExtractDB
 from mediawords.dbi.downloads.store import store_content

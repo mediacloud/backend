@@ -1,5 +1,3 @@
-#!/usr/bin/env py.test
-
 from mediawords.db import connect_to_db
 from mediawords.tm.media import guess_medium, URL_SPIDERED_SUFFIX, get_spidered_tag
 from mediawords.test.db.create import create_test_medium

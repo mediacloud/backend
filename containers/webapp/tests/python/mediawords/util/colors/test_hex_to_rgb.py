@@ -1,5 +1,3 @@
-#!/usr/bin/env py.test
-
 from mediawords.util.colors import hex_to_rgb
 
 

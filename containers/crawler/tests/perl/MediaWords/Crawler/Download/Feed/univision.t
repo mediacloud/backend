@@ -1,5 +1,3 @@
-#!/usr/bin/env prove
-
 #
 # Test MediaWords::Crawler::Download::Feed::Univision feed
 #
