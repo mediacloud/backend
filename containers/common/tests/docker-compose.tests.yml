@@ -4,6 +4,8 @@ services:
 
     mc_common:
         image: dockermediacloud/mediacloud-common:latest
+        # Don't do nothing in this container
+        command: "sleep infinity"
 
     mc_migrate_schema:
         image: dockermediacloud/mediacloud-migrate-schema:latest

@@ -93,10 +93,10 @@ def docker_test_commands(all_containers_dir: str, test_file: str) -> List[List[s
 
     commands.append(
         _docker_compose_command(project_name=project_name, docker_compose_path=docker_compose_path) + [
-            '--exit-code-from', container_name,
+            'up',
             '--detach',
             '--renew-anon-volumes',
-            'up',
+            '--force-recreate',
         ]
     )
 
@@ -115,15 +115,26 @@ def docker_test_commands(all_containers_dir: str, test_file: str) -> List[List[s
     commands.append(
         _docker_compose_command(project_name=project_name, docker_compose_path=docker_compose_path) + [
             'exec',
-            os.path.join('/tests/', test_file[len(tests_dir):]),
+            container_name,
+            '/tests' + test_file[len(tests_dir):],
+        ] +
+
+        # If the test has failed, the service logs might provide a clue as to why that happened, so we print them here
+        [
+            '||', '{'
+        ] +
+        _docker_compose_command(project_name=project_name, docker_compose_path=docker_compose_path) + [
+            'logs',
+        ] + [
+            ';', 'false', '}',
         ]
     )
 
     commands.append(
         _docker_compose_command(project_name=project_name, docker_compose_path=docker_compose_path) + [
+            'down',
             '--volumes',
             '--remove-orphans',
-            'down',
         ]
     )
 
