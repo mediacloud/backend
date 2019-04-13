@@ -6,8 +6,46 @@ import re
 from pathlib import Path
 from typing import List
 
+# Given that docker-compose is present, we assume that PyYAML is installed
+try:
+    from yaml import load as load_yaml
+except ModuleNotFoundError:
+    raise ImportError("Please install PyYAML.")
+
 DOCKER_COMPOSE_FILENAME = 'docker-compose.tests.yml'
 """Filename of 'docker-compose.yml' used for running tests."""
+
+
+class InvalidDockerComposeYMLException(Exception):
+    """Exception that gets thrown on docker-compose.yml errors."""
+
+
+def _validate_docker_compose_yml(docker_compose_path: str, container_name: str) -> None:
+    """
+    Validate docker-compose.yml, throw exception on errors
+    :param docker_compose_path: Path to docker-compose.yml
+    """
+
+    expected_container_command = 'sleep infinity'
+
+    with open(docker_compose_path, mode='r', encoding='utf-8') as f:
+
+        try:
+            yaml_root = load_yaml(f)
+        except Exception as ex:
+            raise InvalidDockerComposeYMLException("Unable to load YAML file: {}".format(ex))
+
+        if 'services' not in yaml_root:
+            raise InvalidDockerComposeYMLException("No 'services' key under root.")
+
+        if container_name not in yaml_root['services']:
+            raise InvalidDockerComposeYMLException("No '{} key under 'services'.".format(container_name))
+
+        if yaml_root['services'][container_name].get('command', None) != expected_container_command:
+            raise InvalidDockerComposeYMLException("'command' of '{}' is not '{}'.".format(
+                container_name,
+                expected_container_command,
+            ))
 
 
 def _project_name(container_name: str, tests_dir: str, test_file: str) -> str:
@@ -76,6 +114,11 @@ def docker_test_commands(all_containers_dir: str, test_file: str) -> List[List[s
     docker_compose_path = os.path.join(container_dir, 'tests', DOCKER_COMPOSE_FILENAME)
     if not os.path.isfile(docker_compose_path):
         raise ValueError("docker-compose configuration was not found at '{}'.".format(docker_compose_path))
+
+    try:
+        _validate_docker_compose_yml(docker_compose_path=docker_compose_path, container_name=container_name)
+    except InvalidDockerComposeYMLException as ex:
+        raise ValueError("docker-compose configuration in '{}' is invalid: {}".format(docker_compose_path, ex))
 
     project_name = _project_name(container_name=container_name, tests_dir=tests_dir, test_file=test_file)
 
