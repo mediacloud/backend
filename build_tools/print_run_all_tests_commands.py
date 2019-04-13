@@ -33,6 +33,13 @@ def _find_files_with_extension(directory: str, extension: str) -> List[str]:
 
 
 def docker_all_tests_commands(all_containers_dir: str) -> List[List[str]]:
+    """
+    Return list commands to execute in order to run all test files from all containers.
+
+    :param all_containers_dir: Directory with container subdirectories.
+    :return: List of commands (as lists) to execute in order to run all test files from all containers.
+    """
+
     if not os.path.isdir(all_containers_dir):
         raise ValueError("Containers directory '{}' does not exist.".format(all_containers_dir))
 

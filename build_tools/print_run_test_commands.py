@@ -23,31 +23,21 @@ def _project_name(container_name: str, tests_dir: str, test_file: str) -> str:
     if shortened_test_file.startswith('/'):
         shortened_test_file = shortened_test_file[1:]
 
-    project_name = 'test-' + container_name + '-' + re.sub(r'\W+', '_', shortened_test_file, flags=re.ASCII)
+    project_name = 'test-{}-{}'.format(
+        container_name,
+        re.sub(r'\W+', '_', shortened_test_file, flags=re.ASCII),
+    )
 
     return project_name
 
 
-def _docker_compose_command(project_name: str, docker_compose_path: str) -> List[str]:
-    command = [
-        'docker-compose',
-        '--project-name', project_name,
-        '--file', docker_compose_path,
-    ]
-    return command
-
-
-def _docker_compose_main_container_name(project_name: str, container_name: str) -> str:
-    return project_name + '_' + container_name + '_1'
-
-
 def docker_test_commands(all_containers_dir: str, test_file: str) -> List[List[str]]:
     """
-    Return list commands to execute in order to run all the tests in a single test file.
+    Return list commands to execute in order to run all tests in a single test file.
 
     :param all_containers_dir: Directory with container subdirectories.
     :param test_file: Perl or Python test file.
-    :return: List of commands (as lists to be escaped later) to execute in order to run tests in a test file.
+    :return: List of commands (as lists) to execute in order to run tests in a test file.
     """
     if not os.path.isfile(test_file):
         raise ValueError("Test file '{}' does not exist.".format(test_file))
@@ -91,14 +81,15 @@ def docker_test_commands(all_containers_dir: str, test_file: str) -> List[List[s
 
     commands = list()
 
-    commands.append(
-        _docker_compose_command(project_name=project_name, docker_compose_path=docker_compose_path) + [
-            'up',
-            '--detach',
-            '--renew-anon-volumes',
-            '--force-recreate',
-        ]
-    )
+    commands.append([
+        'docker-compose',
+        '--project-name', project_name,
+        '--file', docker_compose_path,
+        'up',
+        '--detach',
+        '--renew-anon-volumes',
+        '--force-recreate',
+    ])
 
     # Copy the whole "tests/" directory because:
     #
@@ -109,34 +100,34 @@ def docker_test_commands(all_containers_dir: str, test_file: str) -> List[List[s
         'docker',
         'cp',
         tests_dir,
-        _docker_compose_main_container_name(project_name=project_name, container_name=container_name) + ':/',
+        '{}_{}_1:/'.format(project_name, container_name),
     ])
 
-    commands.append(
-        _docker_compose_command(project_name=project_name, docker_compose_path=docker_compose_path) + [
-            'exec',
-            container_name,
-            '/tests' + test_file[len(tests_dir):],
-        ] +
+    commands.append([
+        'docker-compose',
+        '--project-name', project_name,
+        '--file', docker_compose_path,
+        'exec',
+        container_name,
+        '/tests' + test_file[len(tests_dir):],
 
         # If the test has failed, the service logs might provide a clue as to why that happened, so we print them here
-        [
-            '||', '{'
-        ] +
-        _docker_compose_command(project_name=project_name, docker_compose_path=docker_compose_path) + [
-            'logs',
-        ] + [
-            ';', 'false', '}',
-        ]
-    )
+        '||', '{',
+        'docker-compose',
+        '--project-name', project_name,
+        '--file', docker_compose_path,
+        'logs',
+        ';', 'false', '}',
+    ])
 
-    commands.append(
-        _docker_compose_command(project_name=project_name, docker_compose_path=docker_compose_path) + [
-            'down',
-            '--volumes',
-            '--remove-orphans',
-        ]
-    )
+    commands.append([
+        'docker-compose',
+        '--project-name', project_name,
+        '--file', docker_compose_path,
+        'down',
+        '--volumes',
+        '--remove-orphans',
+    ])
 
     return commands
 
