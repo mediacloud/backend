@@ -7,14 +7,17 @@ services:
 
     mc_migrate_schema:
         image: dockermediacloud/mediacloud-migrate-schema:latest
+        stop_signal: SIGKILL
 
     mc_postgresql_pgbouncer:
         image: dockermediacloud/mediacloud-postgresql-pgbouncer:latest
+        stop_signal: SIGKILL
         expose:
             - 6432
 
     mc_postgresql_server:
         image: dockermediacloud/mediacloud-postgresql-server:latest
+        stop_signal: SIGKILL
         expose:
             - 5432
         volumes:
@@ -22,6 +25,7 @@ services:
 
     mc_solr_shard:
         image: dockermediacloud/mediacloud-solr-shard:latest
+        stop_signal: SIGKILL
         environment:
             MC_SOLR_SHARD_COUNT: "1"
         expose:
@@ -31,6 +35,7 @@ services:
 
     mc_solr_zookeeper:
         image: dockermediacloud/mediacloud-solr-zookeeper:latest
+        stop_signal: SIGKILL
         expose:
             - 2181
             - 2888
