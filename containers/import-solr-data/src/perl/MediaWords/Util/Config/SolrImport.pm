@@ -23,9 +23,14 @@ use Modern::Perl "2015";
     1;
 }
 
+sub _python_config()
+{
+    return MediaWords::Util::Config::Common::PythonProxy::SolrImportConfig->new();
+}
+
 sub max_queued_stories()
 {
-    return MediaWords::Util::Config::SolrImport::PythonProxy::SolrImportConfig::max_queued_stories();
+    return _python_config()->max_queued_stories();
 }
 
 1;

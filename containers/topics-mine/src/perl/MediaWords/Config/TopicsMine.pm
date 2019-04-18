@@ -23,9 +23,14 @@ use Modern::Perl "2015";
     1;
 }
 
+sub _python_config()
+{
+    return MediaWords::Util::Config::Common::PythonProxy::TopicsMineConfig->new();
+}
+
 sub crimson_hexagon_api_key()
 {
-    return MediaWords::Util::Config::TopicsMine::PythonProxy::TopicsMineConfig::crimson_hexagon_api_key();
+    return _python_config()->crimson_hexagon_api_key();
 }
 
 1;

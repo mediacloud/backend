@@ -23,24 +23,29 @@ use Modern::Perl "2015";
     1;
 }
 
+sub _python_config()
+{
+    return MediaWords::Util::Config::Common::PythonProxy::FacebookConfig->new();
+}
+
 sub is_enabled()
 {
-    return MediaWords::Util::Config::Facebook::PythonProxy::FacebookConfig::is_enabled();
+    return _python_config()->is_enabled();
 }
 
 sub app_id()
 {
-    return MediaWords::Util::Config::Facebook::PythonProxy::FacebookConfig::app_id();
+    return _python_config()->app_id();
 }
 
 sub app_secret()
 {
-    return MediaWords::Util::Config::Facebook::PythonProxy::FacebookConfig::app_secret();
+    return _python_config()->app_secret();
 }
 
 sub timeout()
 {
-    return MediaWords::Util::Config::Facebook::PythonProxy::FacebookConfig::timeout();
+    return _python_config()->timeout();
 }
 
 1;

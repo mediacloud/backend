@@ -23,19 +23,24 @@ use Modern::Perl "2015";
     1;
 }
 
+sub _python_config()
+{
+    return MediaWords::Util::Config::Common::PythonProxy::CrawlerConfig->new();
+}
+
 sub crawler_fetcher_forks()
 {
-    return MediaWords::Util::Config::Crawler::PythonProxy::CrawlerConfig::crawler_fetcher_forks();
+    return _python_config()->crawler_fetcher_forks();
 }
 
 sub univision_client_id()
 {
-    return MediaWords::Util::Config::Crawler::PythonProxy::CrawlerConfig::univision_client_id();
+    return _python_config()->univision_client_id();
 }
 
 sub univision_client_secret()
 {
-    return MediaWords::Util::Config::Crawler::PythonProxy::CrawlerConfig::univision_client_secret();
+    return _python_config()->univision_client_secret();
 }
 
 1;

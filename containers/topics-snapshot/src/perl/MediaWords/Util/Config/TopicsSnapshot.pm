@@ -23,9 +23,14 @@ use Modern::Perl "2015";
     1;
 }
 
+sub _python_config()
+{
+    return MediaWords::Util::Config::Common::PythonProxy::TopicsSnapshotConfig->new();
+}
+
 sub model_reps()
 {
-    return MediaWords::Util::Config::TopicsSnapshot::PythonProxy::TopicsSnapshotConfig::model_reps();
+    return _python_config()->model_reps();
 }
 
 1;

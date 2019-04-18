@@ -30,56 +30,49 @@ use MediaWords::Util::Config::Common::UserAgent;
     1;
 }
 
+sub _python_config()
+{
+    return MediaWords::Util::Config::Common::PythonProxy::CommonConfig->new();
+}
+
 sub database()
 {
-    my $python_config = MediaWords::Util::Config::Common::PythonProxy::CommonConfig::database();
-    my $config = MediaWords::Util::Config::Common::Database->new( $python_config );
-    return $config;
+    return MediaWords::Util::Config::Common::Database->new( _python_config()->database() );
 }
 
 sub amazon_s3_downloads()
 {
-    my $python_config = MediaWords::Util::Config::Common::PythonProxy::CommonConfig::amazon_s3_downloads();
-    my $config = MediaWords::Util::Config::Common::AmazonS3Downloads->new( $python_config );
-    return $config;
+    return MediaWords::Util::Config::Common::Database->new( _python_config()->amazon_s3_downloads() );
 }
 
 sub rabbitmq()
 {
-    my $python_config = MediaWords::Util::Config::Common::PythonProxy::CommonConfig::rabbitmq();
-    my $config = MediaWords::Util::Config::Common::RabbitMQ->new( $python_config );
-    return $config;
+    return MediaWords::Util::Config::Common::Database->new( _python_config()->rabbitmq() );
 }
 
 sub smtp()
 {
-    my $python_config = MediaWords::Util::Config::Common::PythonProxy::CommonConfig::smtp();
-    my $config = MediaWords::Util::Config::Common::SMTP->new( $python_config );
-    return $config;
+    return MediaWords::Util::Config::Common::Database->new( _python_config()->smtp() );
 }
 
 sub download_storage()
 {
-    my $python_config = MediaWords::Util::Config::Common::PythonProxy::CommonConfig::download_storage();
-    my $config = MediaWords::Util::Config::Common::DownloadStorage->new( $python_config );
-    return $config;
+    return MediaWords::Util::Config::Common::Database->new( _python_config()->download_storage() );
 }
 
 sub user_agent()
 {
-    my $python_config = MediaWords::Util::Config::Common::PythonProxy::CommonConfig::user_agent();
-    my $config = MediaWords::Util::Config::Common::UserAgent->new( $python_config );
-    return $config;
+    return MediaWords::Util::Config::Common::Database->new( _python_config()->user_agent() );
 }
 
 sub email_from_address()
 {
-    return MediaWords::Util::Config::Common::PythonProxy::CommonConfig::email_from_address();
+    return _python_config()->email_from_address();
 }
 
 sub solr_url()
 {
-    return MediaWords::Util::Config::Common::PythonProxy::CommonConfig::solr_url();
+    return _python_config()->solr_url();
 }
 
 1;
