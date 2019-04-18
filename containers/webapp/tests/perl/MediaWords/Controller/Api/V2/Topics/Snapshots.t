@@ -9,7 +9,6 @@ use Test::More;
 
 use MediaWords::Test::API;
 use MediaWords::Test::Solr;
-use MediaWords::Test::Supervisor;
 
 use Catalyst::Test 'MediaWords';
 use Readonly;
@@ -161,14 +160,7 @@ sub test_topics
 
 sub main
 {
-    MediaWords::Test::Supervisor::test_with_supervisor(    #
-        \&test_topics,                                     #
-        [                                                  #
-            'solr_standalone',                             #
-            'job_broker:rabbitmq',                         #
-            'word2vec_generate_snapshot_model',            #
-        ]                                                  #
-    );
+    test_topics();
 
     done_testing();
 }

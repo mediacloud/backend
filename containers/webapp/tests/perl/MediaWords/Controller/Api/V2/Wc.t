@@ -10,7 +10,6 @@ use Test::Deep;
 
 use MediaWords::Test::API;
 use MediaWords::Test::Solr;
-use MediaWords::Test::Supervisor;
 
 use MediaWords::Languages::Language;
 use MediaWords::Util::IdentifyLanguage;
@@ -95,8 +94,7 @@ sub test_media($)
 
 sub main
 {
-    MediaWords::Test::Supervisor::test_with_supervisor( \&test_media,
-        [ 'solr_standalone', 'job_broker:rabbitmq', 'rescrape_media' ] );
+    test_media();
 
     done_testing();
 }

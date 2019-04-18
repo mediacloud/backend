@@ -11,7 +11,6 @@ use Test::Deep;
 use MediaWords::Test::API;
 use MediaWords::Test::Rows;
 use MediaWords::Test::Solr;
-use MediaWords::Test::Supervisor;
 
 use MediaWords::Util::ParseJSON;
 
@@ -80,8 +79,7 @@ sub test_sentences($)
 
 sub main
 {
-    MediaWords::Test::Supervisor::test_with_supervisor( \&test_sentences,
-        [ 'solr_standalone', 'job_broker:rabbitmq', 'rescrape_media' ] );
+    test_sentences();
 
     done_testing();
 }

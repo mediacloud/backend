@@ -1,0 +1,6 @@
+version: "3"
+
+services:
+
+    mc_migrate_schema:
+        image: dockermediacloud/mediacloud-migrate-schema:latest

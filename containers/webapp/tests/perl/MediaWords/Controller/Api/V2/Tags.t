@@ -11,7 +11,6 @@ use Test::Deep;
 use MediaWords::Test::API;
 use MediaWords::Test::Rows;
 use MediaWords::Test::Solr;
-use MediaWords::Test::Supervisor;
 
 Readonly my $NUM_MEDIA            => 5;
 Readonly my $NUM_FEEDS_PER_MEDIUM => 2;
@@ -368,8 +367,7 @@ sub test_tags($)
 
 sub main
 {
-    MediaWords::Test::Supervisor::test_with_supervisor( \&test_tags,
-        [ 'solr_standalone', 'job_broker:rabbitmq', 'rescrape_media' ] );
+    test_tags();
 
     done_testing();
 }

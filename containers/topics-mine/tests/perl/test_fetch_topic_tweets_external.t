@@ -13,7 +13,6 @@ use MediaWords::AbstractJob;
 use MediaWords::JobManager::Job;
 use MediaWords::Test::DB::Create;
 use MediaWords::Test::Data;
-use MediaWords::Test::Supervisor;
 use MediaWords::Util::ParseJSON;
 use MediaWords::Util::SQL;
 
@@ -465,8 +464,7 @@ SQL
 # if the twitter and ch keys are setup, run the tests on the external apis
 sub main
 {
-    MediaWords::Test::Supervisor::test_with_supervisor( \&test_fetch_topic_tweets,
-        [ 'job_broker:rabbitmq', 'fetch_link' ] );
+    test_fetch_topic_tweets();
 
     done_testing();
 }

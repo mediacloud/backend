@@ -11,7 +11,6 @@ use Test::Deep;
 use MediaWords::Test::API;
 use MediaWords::Test::Rows;
 use MediaWords::Test::Solr;
-use MediaWords::Test::Supervisor;
 use MediaWords::Test::Types;
 use MediaWords::DBI::Downloads::Store;
 use MediaWords::JobManager::Job;
@@ -420,8 +419,7 @@ sub test_stories($)
 
 sub main
 {
-    MediaWords::Test::Supervisor::test_with_supervisor( \&test_stories,
-        [ 'solr_standalone', 'job_broker:rabbitmq', 'rescrape_media' ] );
+    test_stories();
 
     done_testing();
 }

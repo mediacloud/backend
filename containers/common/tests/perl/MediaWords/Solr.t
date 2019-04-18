@@ -18,7 +18,6 @@ BEGIN
 use MediaWords::DB;
 use MediaWords::Test::DB::Create;
 use MediaWords::Test::Solr;
-use MediaWords::Test::Supervisor;
 use MediaWords::Test::Rows;
 
 # run the given set of params against _gsifsop and verify that the given list of stories_ids (or undef) is returned
@@ -357,7 +356,7 @@ sub main
 
     test_collections_id_queries( $db );
 
-    MediaWords::Test::Supervisor::test_with_supervisor( \&run_solr_tests, [ qw/solr_standalone/ ] );
+    run_solr_tests();
 
     done_testing();
 }

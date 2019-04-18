@@ -10,7 +10,6 @@ use Test::More;
 
 use MediaWords::Solr::Dump;
 use MediaWords::Test::Solr;
-use MediaWords::Test::Supervisor;
 use MediaWords::Util::Tags;
 
 sub get_solr_date_clause
@@ -205,7 +204,7 @@ SQL
 
 sub main
 {
-    MediaWords::Test::Supervisor::test_with_supervisor( \&test_import, [ 'solr_standalone' ] );
+    test_import();
 
     done_testing();
 }

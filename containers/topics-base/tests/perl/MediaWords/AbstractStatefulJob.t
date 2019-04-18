@@ -5,7 +5,6 @@ use warnings;
 
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
-use MediaWords::Test::Supervisor;
 use MediaWords::Util::ParseJSON;
 
 use Sys::Hostname;
@@ -110,7 +109,7 @@ sub test_stateful_job($)
 
 sub main
 {
-    MediaWords::Test::Supervisor::test_with_supervisor( \&test_stateful_job, [ 'job_broker:rabbitmq' ] );
+    test_stateful_job();
 
     done_testing();
 }

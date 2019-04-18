@@ -12,7 +12,6 @@ use MediaWords::Test::API;
 use MediaWords::Test::Rows;
 use MediaWords::Test::DB::Create;
 use MediaWords::Test::Solr;
-use MediaWords::Test::Supervisor;
 
 Readonly my $NUM_MEDIA            => 5;
 Readonly my $NUM_FEEDS_PER_MEDIUM => 2;
@@ -106,7 +105,7 @@ sub test_feeds($)
 
 sub main
 {
-    MediaWords::Test::Supervisor::test_with_supervisor( \&test_feeds, [ 'job_broker:rabbitmq', 'rescrape_media' ] );
+    test_feeds();
 
     done_testing();
 }

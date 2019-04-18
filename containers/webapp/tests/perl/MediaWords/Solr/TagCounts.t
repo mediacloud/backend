@@ -19,7 +19,6 @@ BEGIN
 use MediaWords::Solr::TagCounts;
 use MediaWords::Test::API;
 use MediaWords::Test::Solr;
-use MediaWords::Test::Supervisor;
 
 # tests that require solr to be running
 sub run_solr_tests($)
@@ -109,7 +108,7 @@ SQL
 
 sub main
 {
-    MediaWords::Test::Supervisor::test_with_supervisor( \&run_solr_tests, [ qw/solr_standalone/ ] );
+    run_solr_tests();
 
     done_testing();
 }

@@ -17,7 +17,6 @@ use MediaWords::Solr::Query::Parse;
 use MediaWords::Test::API;
 use MediaWords::Test::Rows;
 use MediaWords::Test::Solr;
-use MediaWords::Test::Supervisor;
 use MediaWords::Util::Web;
 use MediaWords::JobManager::Job;
 
@@ -732,7 +731,7 @@ sub test_topics_api
 
 sub main
 {
-    MediaWords::Test::Supervisor::test_with_supervisor( \&test_topics_api, [ 'solr_standalone', 'job_broker:rabbitmq' ] );
+    test_topics_api();
 
     done_testing();
 }

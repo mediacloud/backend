@@ -6,7 +6,6 @@ use utf8;
 
 use MediaWords::CommonLibs;
 
-use MediaWords::Test::Supervisor;
 use MediaWords::Test::Solr;
 
 use English '-no_match_vars';
@@ -294,7 +293,7 @@ sub main
 
     test_count_stems();
 
-    MediaWords::Test::Supervisor::test_with_supervisor( \&test_get_words, [ qw/solr_standalone/ ] );
+    test_get_words();
 
     done_testing();
 }

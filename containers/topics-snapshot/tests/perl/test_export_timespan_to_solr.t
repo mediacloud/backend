@@ -11,7 +11,6 @@ use Test::More;
 use MediaWords::DBI::Topics;
 use MediaWords::TM::Snapshot;
 use MediaWords::Test::Solr;
-use MediaWords::Test::Supervisor;
 use MediaWords::JobManager::Job;
 
 my $_test_supervisor_called;
@@ -104,8 +103,7 @@ SQL
 
 sub main
 {
-    MediaWords::Test::Supervisor::test_with_supervisor( \&test_timespan_export,
-        [ 'solr_standalone', 'job_broker:rabbitmq' ] );
+    test_timespan_export();
 
     done_testing();
 }

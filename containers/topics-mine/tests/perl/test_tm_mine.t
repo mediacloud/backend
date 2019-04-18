@@ -16,7 +16,6 @@ use Test::More;
 use Text::Lorem::More;
 
 use MediaWords::TM::Mine;
-use MediaWords::Test::Supervisor;
 use MediaWords::Util::SQL;
 use MediaWords::Util::Web;
 
@@ -531,8 +530,7 @@ sub test_spider
 
 sub main
 {
-    MediaWords::Test::Supervisor::test_with_supervisor( \&test_spider,
-        [ 'job_broker:rabbitmq', 'extract_story_links', 'fetch_link' ] );
+    test_spider();
 }
 
 main();
