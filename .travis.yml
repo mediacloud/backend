@@ -10,10 +10,42 @@ addons:
       - parallel
 env:
   global:
-    # DOCKERHUB_USERNAME: user for pushing images to "dockermediacloud" organization
+
+    # Docker Hub credentials pushing images to "dockermediacloud" organization
+    #
+    # * DOCKERHUB_USERNAME
+    # * DOCKERHUB_PASSWORD
     - secure: "NWTrAcDGL3xP1h4wQzkw63hbpY8lqdtaSCMjStm3MYz/zK+IAcbFwXVUVAmANloDixyCc+2UHQOizV/tQbxoIaAb2jl822sWkKd0wYsY2a+DDMyNiCa+N+xtN5nZI5X0AWzKh8+GKntYwghc1Npib3yJvrdDjwkiHl/rxw5QHNE="
     # DOCKERHUB_PASSWORD: password for said user
     - secure: "LGELEXZ9IEtYtKiLl4VykUVrzuHNr3+lp0jPKcglXD5J7BW81DBGsHhrCHd/1ijMsmgey/Yq596M5iYRbVdS2YV9ephrz3nvwOjcrPXmR4W1cKbw4/6uiEPXPGyFTsTCVVx8tx3ksYy+S0tjZ9O8aMAEiDz8r2yu+S2wM3/moaU="
+
+    # Facebook Graph API credentials for testing:
+    #
+    # * MC_FACEBOOK_APP_ID
+    # * MC_FACEBOOK_APP_SECRET
+    - secure: "DWjWZe2z7SdqA3RJl0rLo0sg1PprntjnLRSQCKISo5hC3FxguprOJlXZRrFpr+hA2Lv/iOyLHPlyd2rE+xPXFkH2/+AldPZumjaP8UOB4BoWuOHiSTKPUUiYkdBWh3/qknSHNpeuzg4x/seBwkKxTTPUyGa3yEyqoA4E36o6zkQ="
+    - secure: "U5NWPIzXunGvUBUIasUxEGNN4pSEVrDP/Bkqk+iiEt5UaWca0GeDgcAFtMPPo/5GyWZ9ZYooUVjWKLE95sg9s0K1RfS/smlj7VdUgV3Tf/iM9U2eyxP9t2KEr/UCGFTNavCGxp5he3e675GiZblWjrKUz7P+2EhKbet5sHz0iwY="
+
+    # Amazon S3 test bucket credentials:
+    #
+    # * MC_DOWNLOADS_AMAZON_S3_ACCESS_KEY_ID
+    # * MC_DOWNLOADS_AMAZON_S3_SECRET_ACCESS_KEY
+    # * MC_DOWNLOADS_AMAZON_S3_BUCKET_NAME
+    # * MC_DOWNLOADS_AMAZON_S3_DIRECTORY_NAME
+    - secure: "PFcXc95w1CpKmz8RUfoJBOJWzUN6UVSUXFh2llpZukx+vDA392NVcGb1e+MCUdLMuPjo2gyBKXKJFCJsI+GhL4LlDCaoPrYMNW4m3UPw6UY0q6joFUeEaHgtDHcJMmcFML5p90S8UxBlu31e9QGUqh+uSXJ4hvvkNO2Nujee5ec="
+    - secure: "DB0QfBVrj1WtD+Xqg1YfjKm2kR8kg6dEf7UbjQmPJe23r/SgME6PmgUsCNQgj9uqKZga0wLqOl0L4/kfD3ZRR+ETfW24oIhoJX9ZYTFnwEgHIsEl7sJGZ9H9vqRDYyvkadmBdqJjnXOmo1UMZ6sr/9KOP8xw8zaftSici7ekYCc="
+    - secure: "YE4JMOHeceYPHhr9cXqRwk4lQnW07qK3UDGogzNDPb4I8SWBG48zmQ6uvgh8pj3kFjlu6ytnYTNwCEcnxYBTBVxB/IjaVUgW3FiRonLpInT3a2tRtr6XZplHxW77vgHAyPIC9+LA5VjAL+F3KUDl0PrZVIDVLBqtQBdrqI4xAwU="
+    - secure: "BZnspnmNVvPMML55ukaAETYbpPYvzh3zkB8mWPJcBCeJQxmtipe95vQQfkZGW/DzHuM6g1ImolxJ+p7c+7N3d43FFvfVgWPCRx7OoAb3biZPt6hjK58IsQjQUEDtbNYiT4YfNLfCFhNbznuchgPmAyRLv5zjvG/qVTrWqxEV4qc="
+
+    # Univision API test credentials:
+    #
+    # * MC_UNIVISION_CLIENT_ID
+    # * MC_UNIVISION_CLIENT_SECRET
+    # * MC_UNIVISION_TEST_URL
+    - secure: "SsoYs6nuyr1xpO6kxoZVVEleT/w9OLi/Hs2NL5Hy97EImDpl9Ae+Ucut2jtLktnIrK8vpnK/wNVCK9YEMX/sLQZY6nxzecXhB0FPjD5Zjm8/WLP6tRN1ONikiDPmf+qi4gn/nY8IiN4BC/DyNAgY78/p40FpTld7SRFmRN2VIsM="
+    - secure: "OWqQ+GJwfRV9B36THy2aBQRdWlnrnY6Y/O8kl3NyRXnMv/3+11bQcb8E+4kH/TT7L1bVqzPXyifUjQPUCBvrfg0Dty6nQFHCEVKYwJKq29qBDndjt07BkynefZWpS9rYgvaEwIizzn0KUwnC+BqI3BW0No8lN8LZCMChiMx+q4w="
+    - secure: "GfiDnOLd9NLK0Jl2fHNxoe68pzYlHKniW7YCI3bPZgrJzV2FXSjh7NcTbo0WelLn3fbBClBsjA+GbVA3AKqqeeov27/6lzfKx/yuZ2OBnlBL3WNMF0RoSvGTvQYJUQbET23QKYTvesBUndlfOUd9cxwcKbaEmdYEVdtpgFDRB7s="
+
 before_install:
   # Upgrade docker-compose
   - pip3 install --quiet --upgrade docker-compose && docker-compose version

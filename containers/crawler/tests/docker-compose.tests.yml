@@ -5,6 +5,11 @@ services:
     mc_crawler:
         image: dockermediacloud/mediacloud-crawler:latest
         env_file: global.env
+        environment:
+            MC_UNIVISION_CLIENT_ID: "${MC_UNIVISION_CLIENT_ID}"
+            MC_UNIVISION_CLIENT_SECRET: "${MC_UNIVISION_CLIENT_ID}"
+            # Used by Univision test only
+            MC_UNIVISION_TEST_URL: "${MC_UNIVISION_TEST_URL}"
 
     mc_migrate_schema:
         image: dockermediacloud/mediacloud-migrate-schema:latest

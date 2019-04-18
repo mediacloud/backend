@@ -5,6 +5,10 @@ services:
     mc_facebook_fetch_story_stats:
         image: dockermediacloud/mediacloud-facebook-fetch-story-stats:latest
         env_file: global.env
+        environment:
+            MC_FACEBOOK_APP_ID: "${MC_FACEBOOK_APP_ID}"
+            MC_FACEBOOK_APP_SECRET: "${MC_FACEBOOK_APP_SECRET}"
+            MC_FACEBOOK_TIMEOUT: 60
 
     mc_migrate_schema:
         image: dockermediacloud/mediacloud-migrate-schema:latest
