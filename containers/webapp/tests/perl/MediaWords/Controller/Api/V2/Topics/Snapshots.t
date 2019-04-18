@@ -9,6 +9,7 @@ use Test::More;
 
 use MediaWords::Test::API;
 use MediaWords::Test::Solr;
+use MediaWords::Test::DB::Create;
 
 use Catalyst::Test 'MediaWords';
 use Readonly;

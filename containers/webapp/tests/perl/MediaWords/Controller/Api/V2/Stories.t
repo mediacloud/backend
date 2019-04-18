@@ -12,6 +12,7 @@ use MediaWords::Test::API;
 use MediaWords::Test::Rows;
 use MediaWords::Test::Solr;
 use MediaWords::Test::Types;
+use MediaWords::Test::DB::Create;
 use MediaWords::DBI::Downloads::Store;
 use MediaWords::JobManager::Job;
 

@@ -11,6 +11,7 @@ use Text::CSV_XS;
 use MediaWords::DB;
 use MediaWords::TM::RetweeterScores;
 use MediaWords::Test::Rows;
+use MediaWords::Test::DB::Create;
 
 Readonly my $NUM_TWITTER_USERS   => 11;
 Readonly my $NUM_RETWEETED_USERS => 4;

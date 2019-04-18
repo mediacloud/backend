@@ -8,6 +8,7 @@ use MediaWords::CommonLibs;
 use MediaWords::DB;
 
 use MediaWords::DBI::Stories::GuessDate;
+use MediaWords::Test::DB::Create;
 
 sub test_assign_date_guess_method($)
 {

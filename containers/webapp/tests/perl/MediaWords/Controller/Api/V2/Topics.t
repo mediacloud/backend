@@ -14,6 +14,7 @@ use MediaWords::Controller::Api::V2::Topics;
 use MediaWords::DBI::Auth::Roles;
 use MediaWords::Test::API;
 use MediaWords::Test::Rows;
+use MediaWords::Test::DB::Create;
 use MediaWords::Test::DB::Create::User;
 
 Readonly my $NUM_MEDIA            => 5;

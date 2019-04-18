@@ -8,6 +8,7 @@ use Test::More;
 
 use MediaWords::DB;
 use MediaWords::DBI::Media::Health;
+use MediaWords::Test::DB::Create;
 
 Readonly my $NUM_MEDIA            => 3;
 Readonly my $NUM_FEEDS_PER_MEDIUM => 1;

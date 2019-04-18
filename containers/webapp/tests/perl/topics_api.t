@@ -19,6 +19,7 @@ use MediaWords::Test::Rows;
 use MediaWords::Test::Solr;
 use MediaWords::Util::Web;
 use MediaWords::JobManager::Job;
+use MediaWords::Test::DB::Create;
 
 Readonly my $TEST_HTTP_SERVER_PORT => '3000';
 

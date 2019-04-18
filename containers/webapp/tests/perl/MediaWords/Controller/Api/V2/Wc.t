@@ -10,6 +10,7 @@ use Test::Deep;
 
 use MediaWords::Test::API;
 use MediaWords::Test::Solr;
+use MediaWords::Test::DB::Create;
 
 use MediaWords::Languages::Language;
 use MediaWords::Util::IdentifyLanguage;

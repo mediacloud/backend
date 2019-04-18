@@ -11,6 +11,7 @@ use Test::Deep;
 use MediaWords::Test::API;
 use MediaWords::Test::Rows;
 use MediaWords::Test::Solr;
+use MediaWords::Test::DB::Create;
 
 Readonly my $NUM_MEDIA            => 5;
 Readonly my $NUM_FEEDS_PER_MEDIUM => 2;

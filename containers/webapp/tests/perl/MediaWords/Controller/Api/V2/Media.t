@@ -12,6 +12,7 @@ use Test::Deep;
 use MediaWords::Test::API;
 use MediaWords::Test::Solr;
 use MediaWords::Test::URLs;
+use MediaWords::Test::DB::Create;
 
 use MediaWords::Util::SQL;
 use MediaWords::Util::Tags;
