@@ -43,7 +43,7 @@ sub test_amazon_s3($;$)
     }
     else
     {
-        plan tests => 20;
+        plan tests => 19;
     }
 
     my $db = MediaWords::DB::connect_to_db();
