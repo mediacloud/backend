@@ -21,28 +21,33 @@ sub new($$)
     return $self;
 }
 
-sub hostname()
+sub hostname($)
 {
+    my $self = shift;
     return $self->{ _proxy_config }->hostname();
 }
 
-sub port()
+sub port($)
 {
+    my $self = shift;
     return $self->{ _proxy_config }->port();
 }
 
-sub use_starttls()
+sub use_starttls($)
 {
+    my $self = shift;
     return $self->{ _proxy_config }->use_starttls();
 }
 
-sub username()
+sub username($)
 {
+    my $self = shift;
     return $self->{ _proxy_config }->username();
 }
 
-sub password()
+sub password($)
 {
+    my $self = shift;
     return $self->{ _proxy_config }->password();
 }
 

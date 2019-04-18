@@ -21,23 +21,27 @@ sub new($$)
     return $self;
 }
 
-sub access_key_id()
+sub access_key_id($)
 {
+    my $self = shift;
     return $self->{ _proxy_config }->access_key_id();
 }
 
-sub secret_access_key()
+sub secret_access_key($)
 {
+    my $self = shift;
     return $self->{ _proxy_config }->secret_access_key();
 }
 
-sub bucket_name()
+sub bucket_name($)
 {
+    my $self = shift;
     return $self->{ _proxy_config }->bucket_name();
 }
 
-sub directory_name()
+sub directory_name($)
 {
+    my $self = shift;
     return $self->{ _proxy_config }->directory_name();
 }
 

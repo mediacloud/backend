@@ -21,23 +21,27 @@ sub new($$)
     return $self;
 }
 
-sub storage_locations()
+sub storage_locations($)
 {
+    my $self = shift;
     return $self->{ _proxy_config }->storage_locations();
 }
 
-sub read_all_from_s3()
+sub read_all_from_s3($)
 {
+    my $self = shift;
     return $self->{ _proxy_config }->read_all_from_s3();
 }
 
-sub fallback_postgresql_to_s3()
+sub fallback_postgresql_to_s3($)
 {
+    my $self = shift;
     return $self->{ _proxy_config }->fallback_postgresql_to_s3();
 }
 
-sub cache_s3()
+sub cache_s3($)
 {
+    my $self = shift;
     return $self->{ _proxy_config }->cache_s3();
 }
 
