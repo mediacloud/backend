@@ -10,23 +10,6 @@ use MediaWords::DBI::Stories;
 use MediaWords::Util::SQL;
 use MediaWords::Test::DB::Create;
 
-sub test_get_title_parts
-{
-    cmp_deeply( MediaWords::DBI::Stories::_get_title_parts( 'foo' ),           [ 'foo' ] );
-    cmp_deeply( MediaWords::DBI::Stories::_get_title_parts( 'FOO: bar' ),      [ 'foo bar', 'foo', 'bar' ] );
-    cmp_deeply( MediaWords::DBI::Stories::_get_title_parts( 'FOO : bar' ),     [ 'foo bar', 'foo', 'bar' ] );
-    cmp_deeply( MediaWords::DBI::Stories::_get_title_parts( 'FOO - bar' ),     [ 'foo bar', 'foo', 'bar' ] );
-    cmp_deeply( MediaWords::DBI::Stories::_get_title_parts( 'FOO | bar' ),     [ 'foo bar', 'foo', 'bar' ] );
-    cmp_deeply( MediaWords::DBI::Stories::_get_title_parts( 'opinion: bar' ),  [ 'bar' ] );
-    cmp_deeply( MediaWords::DBI::Stories::_get_title_parts( 'subject: bar' ),  [ 'bar' ] );
-    cmp_deeply( MediaWords::DBI::Stories::_get_title_parts( 'revealed: bar' ), [ 'bar' ] );
-    cmp_deeply(
-        MediaWords::DBI::Stories::_get_title_parts( 'washington post: foo bar' ),
-        [ 'washington post foo bar', 'washington post', 'foo bar' ]
-    );
-    cmp_deeply( MediaWords::DBI::Stories::_get_title_parts( 'http://foo.com/foo/bar' ), [ 'http://foo.com/foo/bar' ] );
-}
-
 sub _is_new_compare($$$$;$)
 {
     my ( $db, $label, $expected_is_new, $base_story, $story_changes ) = @_;
@@ -93,8 +76,6 @@ sub test_is_new($)
 sub main
 {
     my $db = MediaWords::DB::connect_to_db();
-
-    test_get_title_parts();
     test_is_new( $db );
 
     done_testing();
