@@ -8,6 +8,7 @@ use Test::More;
 
 use MediaWords::DB;
 use MediaWords::DBI::Media;
+use MediaWords::Test::DB::Create;
 
 # test that medium_is_ready_for_analysis returns false when there are few than 100 stories and they are recent
 sub test_few_recent_stories($)

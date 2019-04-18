@@ -12,6 +12,7 @@ use MediaWords::DBI::Topics;
 use MediaWords::TM::Snapshot;
 use MediaWords::Test::Solr;
 use MediaWords::JobManager::Job;
+use MediaWords::Test::DB::Create;
 
 my $_test_supervisor_called;
 

@@ -9,6 +9,7 @@ use Test::More;
 use MediaWords::DB;
 use MediaWords::DBI::Media;
 use MediaWords::DBI::Media::PrimaryLanguage;
+use MediaWords::Test::DB::Create;
 
 # test that the given medium has the given language tag
 sub test_medium_language_tag($$$$)

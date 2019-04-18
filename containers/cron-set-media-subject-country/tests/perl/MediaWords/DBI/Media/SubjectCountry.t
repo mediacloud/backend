@@ -11,6 +11,7 @@ use Test::More;
 use MediaWords::DB;
 use MediaWords::DBI::Media;
 use MediaWords::DBI::Media::SubjectCountry;
+use MediaWords::Test::DB::Create;
 
 # test that the given medium has the given subject country tag
 sub test_medium_country_tag($$$$)

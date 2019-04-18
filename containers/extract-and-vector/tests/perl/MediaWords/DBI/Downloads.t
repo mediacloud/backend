@@ -19,6 +19,7 @@ use MediaWords::DBI::Stories::ExtractorArguments;
 use MediaWords::DBI::Stories;
 use MediaWords::Test::Data;
 use MediaWords::Test::Text;
+use MediaWords::Test::DB::Create;
 use MediaWords::Util::URL;
 
 use Data::Dumper;

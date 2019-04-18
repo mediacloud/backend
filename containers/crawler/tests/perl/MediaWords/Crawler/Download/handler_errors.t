@@ -13,6 +13,7 @@ use MediaWords::DB;
 use MediaWords::Test::HashServer;
 use MediaWords::Util::SQL;
 use MediaWords::Util::Web;
+use MediaWords::Test::DB::Create;
 
 # call the fetcher and handler on the given url.  return the download passed to the fetcher and handler.
 sub _fetch_and_handle_response

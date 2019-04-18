@@ -8,6 +8,7 @@ use Test::More;
 use MediaWords::DB;
 use MediaWords::DBI::Stories::WordMatrix;
 use MediaWords::Util::SQL;
+use MediaWords::Test::DB::Create;
 
 
 my $_possible_words = [

@@ -8,6 +8,7 @@ use Test::More;
 use MediaWords::DB;
 use MediaWords::DBI::Stories;
 use MediaWords::Util::SQL;
+use MediaWords::Test::DB::Create;
 
 sub test_get_title_parts
 {

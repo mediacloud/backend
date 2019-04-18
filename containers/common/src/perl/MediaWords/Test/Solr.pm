@@ -10,6 +10,7 @@ use Test::More;
 
 use MediaWords::Solr;
 use MediaWords::Util::Tags;
+use MediaWords::Test::DB::Create;
 
 =head2 test_story_query( $db, $q, $expected_story, $label )
 

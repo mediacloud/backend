@@ -12,6 +12,7 @@ use Readonly;
 use MediaWords::Crawler::Engine;
 use MediaWords::DB;
 use MediaWords::Test::HashServer;
+use MediaWords::Test::DB::Create;
 
 
 Readonly my $HTTP_PORT => 8912;

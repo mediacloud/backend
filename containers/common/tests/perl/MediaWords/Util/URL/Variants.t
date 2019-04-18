@@ -18,6 +18,7 @@ use MediaWords::DB;
 use MediaWords::Test::HashServer;
 use MediaWords::Test::URLs;
 use MediaWords::Util::URL::Variants;
+use MediaWords::Test::DB::Create;
 
 
 Readonly my $TEST_HTTP_SERVER_PORT => 9998;

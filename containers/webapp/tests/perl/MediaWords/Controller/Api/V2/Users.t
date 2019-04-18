@@ -11,7 +11,6 @@ use Test::Deep;
 use MediaWords::DB;
 use MediaWords::Test::API;
 use MediaWords::Test::Rows;
-use MediaWords::Test::DB::Create;
 use MediaWords::Test::Solr;
 
 sub test_users($)

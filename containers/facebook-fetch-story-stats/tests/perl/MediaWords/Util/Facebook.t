@@ -10,6 +10,7 @@ use Test::More;
 use MediaWords::DB;
 use MediaWords::Util::Facebook;
 use MediaWords::Util::Config::Facebook;
+use MediaWords::Test::DB::Create;
 
 use Data::Dumper;
 

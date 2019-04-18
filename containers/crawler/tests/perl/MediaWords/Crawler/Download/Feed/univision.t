@@ -19,6 +19,7 @@ use MediaWords::DB;
 use MediaWords::Crawler::Engine;
 use MediaWords::Util::ParseJSON;
 use MediaWords::Test::HashServer;
+use MediaWords::Test::DB::Create;
 
 sub test_api_request_signature()
 {
