@@ -6,7 +6,7 @@
 	url = https://github.com/mitmedialab/MediaCloud-NYT-News-Labeler.git
 [submodule "containers/common/src/python/mediawords/languages/hi/hindi-hunspell"]
 	path = containers/common/src/python/mediawords/languages/hi/hindi-hunspell
-	url = https://github.com/Shreeshrii/hindi-hunspell.git
+	url = https://github.com/berkmancenter/mediacloud-hindi-hunspell.git
 [submodule "containers/common/src/perl/MediaWords/Util/Mail/Message/Templates/email-templates"]
 	path = containers/common/src/perl/MediaWords/Util/Mail/Message/Templates/email-templates
 	url = https://github.com/berkmancenter/mediacloud-email-templates.git
