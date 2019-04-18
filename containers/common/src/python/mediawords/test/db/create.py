@@ -375,6 +375,7 @@ def add_content_to_test_story(db: DatabaseHandler, story: dict, feed: dict) -> d
         content = _get_test_content()
 
     content_language_code = language_code_for_text(content)
+    assert content_language_code, f"Unknown language for content: {content}".
 
     if story.get('full_text_rss', None):
         story['full_text_rss'] = False
@@ -418,6 +419,8 @@ def add_content_to_test_story(db: DatabaseHandler, story: dict, feed: dict) -> d
     })
 
     lang = LanguageFactory.language_for_code(content_language_code)
+    assert lang, f"Language is None for code {content_language_code}"
+
     sentences = lang.split_text_to_sentences(content)
     sentence_number = 1
     for sentence in sentences:
