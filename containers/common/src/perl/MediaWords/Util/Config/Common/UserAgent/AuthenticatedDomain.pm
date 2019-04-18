@@ -21,18 +21,21 @@ sub new($$)
     return $self;
 }
 
-sub domain()
+sub domain($)
 {
+    my $self = shift;
     return $self->{ _proxy_domain }->domain();
 }
 
-sub username()
+sub username($)
 {
+    my $self = shift;
     return $self->{ _proxy_domain }->username();
 }
 
-sub password()
+sub password($)
 {
+    my $self = shift;
     return $self->{ _proxy_domain }->password();
 }
 
