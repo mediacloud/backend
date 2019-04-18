@@ -4,15 +4,18 @@ services:
 
     mc_topics_base:
         image: dockermediacloud/mediacloud-topics-base:latest
+        env_file: .env
 
     mc_migrate_schema:
         image: dockermediacloud/mediacloud-migrate-schema:latest
+        env_file: .env
         stop_signal: SIGKILL
         logging:
             driver: none
 
     mc_postgresql_pgbouncer:
         image: dockermediacloud/mediacloud-postgresql-pgbouncer:latest
+        env_file: .env
         stop_signal: SIGKILL
         logging:
             driver: none
@@ -21,6 +24,7 @@ services:
 
     mc_postgresql_server:
         image: dockermediacloud/mediacloud-postgresql-server:latest
+        env_file: .env
         stop_signal: SIGKILL
         logging:
             driver: none
@@ -31,6 +35,7 @@ services:
 
     mc_rabbitmq_server:
         image: dockermediacloud/mediacloud-rabbitmq-server:latest
+        env_file: .env
         stop_signal: SIGKILL
         logging:
             driver: none
