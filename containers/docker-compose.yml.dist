@@ -14,7 +14,7 @@ services:
         build:
             context: ./cliff-fetch-annotation/
         image: dockermediacloud/mediacloud-cliff-fetch-annotation:latest
-        env_file: .env
+        env_file: global.env
         environment:
             # Annotator endpoint URL
             MC_CLIFF_ANNOTATOR_URL: ""
@@ -48,7 +48,7 @@ services:
         build:
             context: ./cliff-update-story-tags/
         image: dockermediacloud/mediacloud-cliff-update-story-tags:latest
-        env_file: .env
+        env_file: global.env
         environment:
             # CLIFF version tag
             MC_CLIFF_VERSION_TAG: "cliff_clavin_v2.4.1"
@@ -88,7 +88,7 @@ services:
         build:
             context: ./crawler/
         image: dockermediacloud/mediacloud-crawler:latest
-        env_file: .env
+        env_file: global.env
         environment:
             # Number of fetcher forks to start
             # (probably keep in sync with deploy/resources/limits/cpus)
@@ -127,7 +127,7 @@ services:
         build:
             context: ./create-missing-partitions/
         image: dockermediacloud/mediacloud-create-missing-partitions:latest
-        env_file: .env
+        env_file: global.env
         depends_on:
             - postgresql_pgbouncer
         networks:
@@ -154,7 +154,7 @@ services:
         build:
             context: ./extract-article-from-page/
         image: dockermediacloud/mediacloud-extract-article-from-page:latest
-        env_file: .env
+        env_file: global.env
         deploy:
             # Worker count
             replicas: 8
@@ -176,7 +176,7 @@ services:
         build:
             context: ./extract-and-vector/
         image: dockermediacloud/mediacloud-extract-and-vector:latest
-        env_file: .env
+        env_file: global.env
         depends_on:
             - extract_article_from_page
             - crawler
@@ -208,7 +208,7 @@ services:
         build:
             context: ./facebook-fetch-story-stats/
         image: dockermediacloud/mediacloud-facebook-fetch-story-stats:latest
-        env_file: .env
+        env_file: global.env
         environment:
             # Facebook application ID
             MC_FACEBOOK_APP_ID: ""
@@ -246,7 +246,7 @@ services:
         build:
             context: ./cron-generate-daily-rss-dumps/
         image: dockermediacloud/mediacloud-cron-generate-daily-rss-dumps:latest
-        env_file: .env
+        env_file: global.env
         depends_on:
             - postgresql_pgbouncer
         networks:
@@ -276,7 +276,7 @@ services:
         build:
             context: ./cron-generate-media-health/
         image: dockermediacloud/mediacloud-cron-generate-media-health:latest
-        env_file: .env
+        env_file: global.env
         networks:
             # Generates media health report from PostgreSQL
             - net_postgresql
@@ -301,7 +301,7 @@ services:
         build:
             context: ./cron-generate-user-summary/
         image: dockermediacloud/mediacloud-cron-generate-user-summary:latest
-        env_file: .env
+        env_file: global.env
         depends_on:
             - postgresql_pgbouncer
         networks:
@@ -328,7 +328,7 @@ services:
         build:
             context: ./import-solr-data/
         image: dockermediacloud/mediacloud-import-solr-data:latest
-        env_file: .env
+        env_file: global.env
         environment:
             # Stories to import into Solr on a single run
             MC_SOLR_IMPORT_MAX_QUEUED_STORIES: "100000"
@@ -361,7 +361,7 @@ services:
     #     build:
     #         context: ./import-solr-data-for-testing/
     #     image: dockermediacloud/mediacloud-import-solr-data-for-testing:latest
-    #    env_file: .env
+    #    env_file: global.env
     #     environment:
     #         # Stories to import into Solr on a single run
     #         MC_SOLR_IMPORT_MAX_QUEUED_STORIES: "100000"
@@ -394,7 +394,7 @@ services:
         build:
             context: ./scrape-feedly/
         image: dockermediacloud/mediacloud-scrape-feedly:latest
-        env_file: .env
+        env_file: global.env
         deploy:
             # Writes stories to PostgreSQL
             - net_postgresql
@@ -419,7 +419,7 @@ services:
         build:
             context: ./mail-opendkim-server/
         image: dockermediacloud/mediacloud-mail-opendkim-server:latest
-        env_file: .env
+        env_file: global.env
         networks:
             # Accessed by Postfix only
             - net_postfix_opendkim
@@ -447,7 +447,7 @@ services:
         build:
             context: ./mail-postfix-server/
         image: dockermediacloud/mediacloud-mail-postfix-server:latest
-        env_file: .env
+        env_file: global.env
         networks:
             # Exposed to the rest of the services through this network
             - net_postfix
@@ -477,7 +477,7 @@ services:
         build:
             context: ./nytlabels-fetch-annotation/
         image: dockermediacloud/mediacloud-nytlabels-fetch-annotation:latest
-        env_file: .env
+        env_file: global.env
         environment:
             # NYTLabels annotator endpoint URL
             MC_NYTLABELS_ANNOTATOR_URL: ""
@@ -514,7 +514,7 @@ services:
         build:
             context: ./nytlabels-update-story-tags/
         image: dockermediacloud/mediacloud-nytlabels-update-story-tags:latest
-        env_file: .env
+        env_file: global.env
         environment:
             # NYTLabels version tag
             MC_NYTLABELS_VERSION_TAG: "nyt_labeller_v1.0.0"
@@ -550,7 +550,7 @@ services:
         build:
             context: ./postgresql-pgbouncer/
         image: dockermediacloud/mediacloud-postgresql-pgbouncer:latest
-        env_file: .env
+        env_file: global.env
         depends_on:
             - postgresql_server
         networks:
@@ -575,7 +575,7 @@ services:
         build:
             context: ./postgresql-server/
         image: dockermediacloud/mediacloud-postgresql-server:latest
-        env_file: .env
+        env_file: global.env
         networks:
             # Not in "net_postgresql" because accessed through PgBouncer
             - net_postgresql_pgbouncer
@@ -598,7 +598,7 @@ services:
         build:
             context: ./predict-news-labels/
         image: dockermediacloud/mediacloud-predict-news-labels:latest
-        env_file: .env
+        env_file: global.env
         networks:
             # Accessed by nytlabels_fetch_annotation only
             - net_nytlabels_fetch_annotation_predict_news_labels
@@ -626,7 +626,7 @@ services:
         build:
             context: ./purge-object-caches/
         image: dockermediacloud/mediacloud-purge-object-caches:latest
-        env_file: .env
+        env_file: global.env
         depends_on:
             - postgresql_pgbouncer
         networks:
@@ -653,7 +653,7 @@ services:
         build:
             context: ./rabbitmq-server/
         image: dockermediacloud/mediacloud-rabbitmq-server:latest
-        env_file: .env
+        env_file: global.env
         networks:
             # Exposed to the rest of the services through this network
             - net_rabbitmq
@@ -683,7 +683,7 @@ services:
         build:
             context: ./cron-refresh-stats/
         image: dockermediacloud/mediacloud-cron-refresh-stats:latest
-        env_file: .env
+        env_file: global.env
         networks:
             # Refreshes stats on PostgreSQL
             - net_postgresql
@@ -708,7 +708,7 @@ services:
         build:
             context: ./cron-rescrape-due-media/
         image: dockermediacloud/mediacloud-cron-rescrape-due-media:latest
-        env_file: .env
+        env_file: global.env
         networks:
             # Fetches media to rescrape from PostgreSQL
             - net_postgresql
@@ -735,7 +735,7 @@ services:
         build:
             context: ./rescrape-media/
         image: dockermediacloud/mediacloud-rescrape-media:latest
-        env_file: .env
+        env_file: global.env
         networks:
             # Fetches media to rescrape from PostgreSQL
             - net_postgresql
@@ -762,7 +762,7 @@ services:
         build:
             context: ./cron-rescraping-changes/
         image: dockermediacloud/mediacloud-cron-rescraping-changes:latest
-        env_file: .env
+        env_file: global.env
         networks:
             # Fetches media to rescrape from PostgreSQL
             - net_postgresql
@@ -787,7 +787,7 @@ services:
         build:
             context: ./cron-set-media-primary-language/
         image: dockermediacloud/mediacloud-cron-set-media-primary-language:latest
-        env_file: .env
+        env_file: global.env
         networks:
             # Fetches media from PostgreSQL
             - net_postgresql
@@ -812,7 +812,7 @@ services:
         build:
             context: ./cron-set-media-subject-country/
         image: dockermediacloud/mediacloud-cron-set-media-subject-country:latest
-        env_file: .env
+        env_file: global.env
         networks:
             # Fetches media from PostgreSQL
             - net_postgresql
@@ -837,7 +837,7 @@ services:
         build:
             context: ./cron-print-long-running-job-states/
         image: dockermediacloud/mediacloud-cron-print-long-running-job-states:latest
-        env_file: .env
+        env_file: global.env
         networks:
             # Reads the states from PostgreSQL
             - net_postgresql
@@ -862,7 +862,7 @@ services:
         build:
             context: ./solr-shard/
         image: dockermediacloud/mediacloud-solr-shard:latest
-        env_file: .env
+        env_file: global.env
         environment:
             # Shard count
             # (keep in sync with deploy/replicas)
@@ -900,7 +900,7 @@ services:
         build:
             context: ./solr-zookeeper/
         image: dockermediacloud/mediacloud-solr-zookeeper:latest
-        env_file: .env
+        env_file: global.env
         networks:
             # Not in "net_solr" because only Solr shards use it
             - net_solr_zookeeper
@@ -929,7 +929,7 @@ services:
         build:
             context: ./topics-extract-story-links/
         image: dockermediacloud/mediacloud-topics-extract-story-links:latest
-        env_file: .env
+        env_file: global.env
         depends_on:
             - extract_article_from_page
         networks:
@@ -958,7 +958,7 @@ services:
         build:
             context: ./topics-fetch-link/
         image: dockermediacloud/mediacloud-topics-fetch-link:latest
-        env_file: .env
+        env_file: global.env
         networks:
             # Fetches / stores links in PostgreSQL
             - net_postgresql
@@ -985,7 +985,7 @@ services:
         build:
             context: ./topics-fetch-twitter-urls/
         image: dockermediacloud/mediacloud-topics-fetch-twitter-urls:latest
-        env_file: .env
+        env_file: global.env
         environment:
             # Twitter API consumer key
             MC_TWITTER_CONSUMER_KEY: ""
@@ -1021,7 +1021,7 @@ services:
         build:
             context: ./topics-mine/
         image: dockermediacloud/mediacloud-topics-mine:latest
-        env_file: .env
+        env_file: global.env
         environment:
             # Crimson Hexagon API key
             MC_CRIMSON_HEXAGON_API_KEY: ""
@@ -1053,7 +1053,7 @@ services:
         build:
             context: ./topics-mine-public/
         image: dockermediacloud/mediacloud-topics-mine-public:latest
-        env_file: .env
+        env_file: global.env
         environment:
             # Crimson Hexagon API key
             MC_CRIMSON_HEXAGON_API_KEY: ""
@@ -1085,7 +1085,7 @@ services:
         build:
             context: ./topics-snapshot/
         image: dockermediacloud/mediacloud-topics-snapshot:latest
-        env_file: .env
+        env_file: global.env
         environment:
             # Not sure what this is.
             MC_TOPICS_SNAPSHOT_MODEL_REPS: "0"
@@ -1117,7 +1117,7 @@ services:
         build:
             context: ./migrate-schema/
         image: dockermediacloud/mediacloud-migrate-schema:latest
-        env_file: .env
+        env_file: global.env
         depends_on:
             - postgresql_pgbouncer
         networks:
@@ -1144,7 +1144,7 @@ services:
         build:
             context: ./sitemap-fetch-media-pages/
         image: dockermediacloud/mediacloud-sitemap-fetch-media-pages:latest
-        env_file: .env
+        env_file: global.env
         networks:
             # Stores links to PostgreSQL
             - net_postgresql
@@ -1171,7 +1171,7 @@ services:
         build:
             context: ./webapp/
         image: dockermediacloud/mediacloud-webapp:latest
-        env_file: .env
+        env_file: global.env
         networks:
             # Uses PostgreSQL to fetch / store data
             - net_postgresql
@@ -1205,7 +1205,7 @@ services:
         build:
             context: ./word2vec-generate-snapshot-model/
         image: dockermediacloud/mediacloud-word2vec-generate-snapshot-model:latest
-        env_file: .env
+        env_file: global.env
         networks:
             # Fetches sentences / stores model in PostgreSQL
             - net_postgresql

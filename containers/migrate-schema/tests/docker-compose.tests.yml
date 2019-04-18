@@ -4,4 +4,4 @@ services:
 
     mc_migrate_schema:
         image: dockermediacloud/mediacloud-migrate-schema:latest
-        env_file: .env
+        env_file: global.env
