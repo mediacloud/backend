@@ -37,7 +37,7 @@ after_success:
 deploy:
   provider: script
   # Push all images to Docker Hub
-  script: ./build_tools/print_push_commands.py --container_dir containers/ | bash
+  script: ./build_tools/print_push_commands.py --all_containers_dir containers/ | bash
   # FIXME only push on a "release"
   on:
     branch: containers
