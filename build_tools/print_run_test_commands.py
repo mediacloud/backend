@@ -113,7 +113,12 @@ def docker_test_commands(all_containers_dir: str, test_file: str) -> List[List[s
 
     test_path_in_container = '/tests' + test_file[len(tests_dir):]
 
-    test_command = 'sleep infinity'
+    if test_file.endswith('.py'):
+        test_command = 'py.test --verbose ' + test_path_in_container
+    elif test_file.endswith('.t'):
+        test_command = 'prove ' + test_path_in_container
+    else:
+        raise ValueError("Not sure how to run this test: {}".format(test_path_in_container))
 
     commands.append(['touch', docker_compose_override_path])
     commands.append(['echo', "'version: \"3\"'", '>>', docker_compose_override_path])
