@@ -16,9 +16,9 @@ env:
     - secure: "LGELEXZ9IEtYtKiLl4VykUVrzuHNr3+lp0jPKcglXD5J7BW81DBGsHhrCHd/1ijMsmgey/Yq596M5iYRbVdS2YV9ephrz3nvwOjcrPXmR4W1cKbw4/6uiEPXPGyFTsTCVVx8tx3ksYy+S0tjZ9O8aMAEiDz8r2yu+S2wM3/moaU="
 before_install:
   # Upgrade docker-compose
-  - pip3 install -U docker-compose && docker-compose version
+  - pip3 install --quiet --upgrade docker-compose && docker-compose version
   # Install PyYAML for docker-compose.yml validation
-  - pip3 install PyYAML
+  - pip3 install --quiet PyYAML
   # Try to pull all the images that are about to be built from Docker Hub to be
   # used for cache.
   #
