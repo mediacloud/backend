@@ -90,7 +90,7 @@ def docker_test_commands(all_containers_dir: str, test_file: str) -> List[List[s
 
     container_dirname = test_file_relative_path_dirs[1]
     container_dir = os.path.join(all_containers_dir, container_dirname)
-    container_name = "mc_" + container_dirname
+    container_name = "mc_" + container_dirname.replace('-', '_')
 
     tests_dir = os.path.join(container_dir, 'tests')
     if not os.path.isdir(tests_dir):
