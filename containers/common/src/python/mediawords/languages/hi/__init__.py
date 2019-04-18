@@ -37,7 +37,7 @@ class HindiLanguage(StopWordsFromFileMixIn):
         hunspell_dict_dir = os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
             'hindi-hunspell',
-            'Hindi',
+            'dict-hi_IN',
         )
         if not os.path.isdir(hunspell_dict_dir):
             raise McLanguageException(
