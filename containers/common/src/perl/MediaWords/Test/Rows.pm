@@ -7,6 +7,7 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use Regexp::Common;
+use Test::More;
 
 
 # test that got_rows matches expected_rows by checking for the same number of elements, the matching up rows in

@@ -9,6 +9,7 @@ use MediaWords::Solr::Query;
 use MediaWords::Test::DB::Create;
 
 use Time::Piece;
+use Test::More;
 
 # test that MediaWords::Solr::Query::get_full_solr_query_for_topic() returns the expected query
 sub test_get_full_solr_query_for_topic($)
