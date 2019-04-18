@@ -42,27 +42,27 @@ sub database()
 
 sub amazon_s3_downloads()
 {
-    return MediaWords::Util::Config::Common::Database->new( _python_config()->amazon_s3_downloads() );
+    return MediaWords::Util::Config::Common::AmazonS3Downloads->new( _python_config()->amazon_s3_downloads() );
 }
 
 sub rabbitmq()
 {
-    return MediaWords::Util::Config::Common::Database->new( _python_config()->rabbitmq() );
+    return MediaWords::Util::Config::Common::RabbitMQ->new( _python_config()->rabbitmq() );
 }
 
 sub smtp()
 {
-    return MediaWords::Util::Config::Common::Database->new( _python_config()->smtp() );
+    return MediaWords::Util::Config::Common::SMTP->new( _python_config()->smtp() );
 }
 
 sub download_storage()
 {
-    return MediaWords::Util::Config::Common::Database->new( _python_config()->download_storage() );
+    return MediaWords::Util::Config::Common::DownloadStorage->new( _python_config()->download_storage() );
 }
 
 sub user_agent()
 {
-    return MediaWords::Util::Config::Common::Database->new( _python_config()->user_agent() );
+    return MediaWords::Util::Config::Common::UserAgent->new( _python_config()->user_agent() );
 }
 
 sub email_from_address()
