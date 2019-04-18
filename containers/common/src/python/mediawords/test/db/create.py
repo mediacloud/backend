@@ -374,8 +374,7 @@ def add_content_to_test_story(db: DatabaseHandler, story: dict, feed: dict) -> d
     else:
         content = _get_test_content()
 
-    content_language_code = language_code_for_text(content)
-    assert content_language_code, f"Unknown language for content: {content}"
+    content_language_code = language_code_for_text(content) or 'en'
 
     if story.get('full_text_rss', None):
         story['full_text_rss'] = False
