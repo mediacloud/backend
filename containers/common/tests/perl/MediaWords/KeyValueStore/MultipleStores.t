@@ -27,8 +27,7 @@ sub main()
     test_postgresql( $db, $multiple_stores );
 }
 
-my $common_config = MediaWords::Util::Config::Common->new();
-my $amazon_s3_downloads_config = $common_config->amazon_s3_downloads();
+my $amazon_s3_downloads_config = MediaWords::Util::Config::Common::amazon_s3_downloads();
 unless ( defined( $amazon_s3_downloads_config->access_key_id() ) )
 {
     plan skip_all => 'Amazon S3\'s testing bucket is not configured';
