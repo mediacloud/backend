@@ -13,13 +13,14 @@ export ZOO_LOG_DIR=/var/lib/zookeeper   # no slash at the end
 export SERVER_JVMFLAGS="-Dlog4j.configuration=file:///opt/zookeeper/conf/log4j.properties"
 
 
-# Start ZooKeeper, wait for it to start up
-# (started on a different port for the clients to not start thinking that
-# ZooKeeper is fully up and running)
+# Start a temporary instance of ZooKeeper to upload config
+# (started listening to localhost only and on a different port for the clients
+# to think that ZooKeeper is fully up and running)
 TEMP_PORT=12345
 TEMP_CONFIG=zoo-setup.cfg
 TEMP_CONFIG_PATH="$ZOOCFGDIR/$TEMP_CONFIG"
 cp "$ZOOCFGDIR/$ZOOCFG" "$TEMP_CONFIG_PATH"
+sed -i -e "s/^clientPortAddress=.*/clientPortAddress=127.0.0.1" $TEMP_CONFIG_PATH
 sed -i -e "s/^clientPort=.*/clientPort=$TEMP_PORT/" $TEMP_CONFIG_PATH
 ZOOCFG="$TEMP_CONFIG" /opt/zookeeper/bin/zkServer.sh start-foreground &
 while true; do
