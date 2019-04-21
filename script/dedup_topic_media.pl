@@ -267,6 +267,8 @@ sub ignore_domain
 
 sub main
 {
+    my $topics_ids = [ @ARGV ];
+
     binmode( STDOUT, 'utf8' );
     binmode( STDERR, 'utf8' );
 
@@ -289,12 +291,15 @@ select media_id, 1 public_set from media m
       )
 SQL
 
+    my $topics_ids_list = @{ $topics_ids } ? join( ',', map { int( $_ ) } @{ $topics_ids } ) : '';
+    my $topics_clause = $topics_ids_list ? "topics_id in ($topics_ids_list)" : "1=1";
+
     # only dedup media that are either not spidered or are associated with topic stories
     # (this eliminates spidered media not actually associated with any topic story)
     my $media = $db->query( <<SQL, $spidered_tag->{ tags_id } )->hashes;
 with
     spidered_media as ( select distinct media_id from media_tags_map mtm where mtm.tags_id = ? ),
-    topic_media as ( select distinct media_id from snap.live_stories )
+    topic_media as ( select distinct media_id from snap.live_stories where $topics_clause )
 
 select distinct m.*,
         coalesce( sm.media_id, 0 ) is_spidered,
