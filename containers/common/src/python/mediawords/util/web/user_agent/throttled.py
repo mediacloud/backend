@@ -60,7 +60,7 @@ class ThrottledUserAgent(UserAgent):
         self.domain_timeout = domain_timeout
 
         if self.domain_timeout is None:
-            domain_timeout = self.__user_agent_config.throttled_domain_timeout()
+            domain_timeout = self._user_agent_config.throttled_domain_timeout()
             if not domain_timeout:
                 self.domain_timeout = _DEFAULT_DOMAIN_TIMEOUT
 

@@ -142,7 +142,7 @@ class UserAgent(object):
     __slots__ = [
 
         # User agent configuratio
-        '__user_agent_config',
+        '_user_agent_config',
 
         # "requests" session
         '__session',
@@ -161,9 +161,9 @@ class UserAgent(object):
     def __init__(self, user_agent_config: UserAgentConfig = None):
         """Constructor."""
 
-        self.__user_agent_config = user_agent_config
-        if not self.__user_agent_config:
-            self.__user_agent_config = CommonConfig.user_agent()
+        self._user_agent_config = user_agent_config
+        if not self._user_agent_config:
+            self._user_agent_config = CommonConfig.user_agent()
 
             # "requests" session to carry the cookie pool around
         self.__session = requests.Session()
@@ -198,7 +198,7 @@ class UserAgent(object):
         the host domain as the key and the user:password credentials as the value."""
         domain_http_auth_lookup = {}
 
-        domains = self.__user_agent_config.authenticated_domains()
+        domains = self._user_agent_config.authenticated_domains()
         for domain in domains:
             domain_http_auth_lookup[domain.domain.lower()] = domain
 
@@ -481,9 +481,9 @@ class UserAgent(object):
             if not is_http_url(url):
                 raise McParallelGetException("URL %s is not a valid URL; URLs: %s" % (url, str(urls),))
 
-        num_parallel = self.__user_agent_config.parallel_get_num_parallel()
-        timeout = self.__user_agent_config.parallel_get_timeout()
-        per_domain_timeout = self.__user_agent_config.parallel_get_per_domain_timeout()
+        num_parallel = self._user_agent_config.parallel_get_num_parallel()
+        timeout = self._user_agent_config.parallel_get_timeout()
+        per_domain_timeout = self._user_agent_config.parallel_get_per_domain_timeout()
 
         url_stack = UserAgent.__get_scheduled_urls(urls_=urls, per_domain_timeout_=per_domain_timeout)
 
@@ -558,7 +558,7 @@ class UserAgent(object):
         if len(url) == 0:
             raise McRequestException("URL is empty.")
 
-        blacklist_url_pattern = self.__user_agent_config.blacklist_url_pattern()
+        blacklist_url_pattern = self._user_agent_config.blacklist_url_pattern()
         if blacklist_url_pattern:
             if re.search(pattern=blacklist_url_pattern, string=url, flags=re.IGNORECASE | re.UNICODE) is not None:
                 request.set_url("http://0.0.0.1/%s" % url)
