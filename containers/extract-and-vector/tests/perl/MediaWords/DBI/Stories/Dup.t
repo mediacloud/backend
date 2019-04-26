@@ -26,6 +26,8 @@ sub test_get_title_parts
 sub main()
 {
     test_get_title_parts();
+
+    done_testing();
 }
 
 main();
