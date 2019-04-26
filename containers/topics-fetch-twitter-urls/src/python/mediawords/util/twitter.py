@@ -5,8 +5,8 @@ import typing
 
 import tweepy
 
-import mediawords.util.parse_json
-import mediawords.util.config
+from mediawords.util.parse_json import decode_json
+from mediawords.util.config.topics_fetch_twitter_urls import TopicsFetchTwitterURLsConfig
 
 from mediawords.util.log import create_logger
 
@@ -26,25 +26,11 @@ class McFetchTweetsException(Exception):
 
 def get_tweepy_api() -> tweepy.API:
     """Return an authenticated tweepy api object configued for retries."""
-    config = mediawords.util.config.get_config()
 
-    # add dummy config so that testing will work
-    if 'twitter' in config:
-        twitter_config = config['twitter']
-    else:
-        twitter_config = {
-            'consumer_secret': 'UNCONFIGURED',
-            'consumer_key': 'UNCONFIGURED',
-            'access_token': 'UNCONFIGURED',
-            'access_token_secret': 'UNCONFIGURED'
-        }
+    twitter_config = TopicsFetchTwitterURLsConfig()
 
-    for field in 'consumer_key consumer_secret access_token access_token_secret'.split():
-        if field not in twitter_config:
-            raise McFetchTweetsException('missing //twitter//' + field + ' value in mediawords.yml')
-
-    auth = tweepy.OAuthHandler(twitter_config['consumer_key'], twitter_config['consumer_secret'])
-    auth.set_access_token(twitter_config['access_token'], twitter_config['access_token_secret'])
+    auth = tweepy.OAuthHandler(twitter_config.twitter_consumer_key(), twitter_config.twitter_consumer_secret())
+    auth.set_access_token(twitter_config.twitter_access_token(), twitter_config.twitter_access_token_secret())
 
     # the RawParser lets us directly decode from json to dict below
     api = tweepy.API(
@@ -77,7 +63,7 @@ def fetch_100_users(screen_names: list) -> list:
 
     users_json = get_tweepy_api().lookup_users(screen_names=screen_names, include_entities=False)
 
-    users = list(mediawords.util.parse_json.decode_json(users_json))
+    users = list(decode_json(users_json))
 
     # if we added the dummy account, remove it from the results
     if dummy_account_appended:
@@ -98,7 +84,7 @@ def fetch_100_tweets(tweet_ids: list) -> list:
     tweets = get_tweepy_api().statuses_lookup(tweet_ids, include_entities=True, trim_user=False, tweet_mode='extended')
 
     # return simple list so that this can be mocked. relies on RawParser() in get_tweepy_api
-    tweets = list(mediawords.util.parse_json.decode_json(tweets))
+    tweets = list(decode_json(tweets))
 
     for tweet in tweets:
         if 'full_text' in tweet:
