@@ -229,7 +229,7 @@ sub __run($;$$)
         my $start = Time::HiRes::gettimeofday();
 
         my $job_succeeded = 0;
-        for ( my $retry = 0 ; $retry <= $class->retries() ; ++$retry )
+        for ( my $retry = 0 ; $retry <= $function_name->retries() ; ++$retry )
         {
             if ( $retry > 0 )
             {
@@ -243,7 +243,7 @@ sub __run($;$$)
             eval {
 
                 # Try to run the job
-                my $instance = $class->new();
+                my $instance = $function_name->new();
 
                 # Do the work
                 $result = $instance->run( $args );
@@ -269,7 +269,7 @@ sub __run($;$$)
             ERROR( "" );
             ERROR( "========" );
             LOGDIE( "Job \"$mjm_job_id\" failed" .
-                  ( $class->retries() ? " after " . $class->retries() . " retries" : "" ) . ": $@" );
+                  ( $function_name->retries() ? " after " . $function_name->retries() . " retries" : "" ) . ": $@" );
         }
 
         my $end = Time::HiRes::gettimeofday();
@@ -293,7 +293,7 @@ sub __run($;$$)
 
 The following subroutines can be used by clients to run a function.
 
-=head2 (static) C<$class-E<gt>run_remotely([$args])>
+=head2 (static) C<$function_name-E<gt>run_remotely([$args])>
 
 Run remotely, wait for the task to complete, return the result; block the
 process until the job is complete.
@@ -331,7 +331,7 @@ sub run_remotely($;$$)
     return $broker->run_job_sync( $function_name, $args, $priority );
 }
 
-=head2 (static) C<$class-E<gt>add_to_queue([$args])>
+=head2 (static) C<$function_name-E<gt>add_to_queue([$args])>
 
 Add to queue remotely, do not wait for the task to complete, return
 immediately; do not block the parent process until the job is complete.

@@ -461,10 +461,10 @@ sub _process_worker_message($$$)
 
     # Do the job
     my $job_result;
-    eval { $job_result = $function_name->run( $args, $celery_job_id ); };
+    eval { $job_result = $function_name->_run( $args, $celery_job_id ); };
     my $error_message = $@;
 
-    # If the job has failed, __run() has already printed the error
+    # If the job has failed, _run() has already printed the error
     # message multiple times at this point so we don't repeat outselves
 
     if ( $reply_to )
