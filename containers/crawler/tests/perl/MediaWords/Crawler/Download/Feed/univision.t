@@ -20,7 +20,7 @@ use MediaWords::Crawler::Engine;
 use MediaWords::Util::ParseJSON;
 use MediaWords::Test::HashServer;
 use MediaWords::Test::DB::Create;
-use MediaWords::Util::Config::Crawler::CrawlerConfig;
+use MediaWords::Util::Config::Crawler;
 
 sub test_api_request_signature()
 {
