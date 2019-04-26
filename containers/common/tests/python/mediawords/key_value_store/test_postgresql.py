@@ -1,5 +1,5 @@
 from mediawords.key_value_store.postgresql import PostgreSQLStore
-from mediawords.key_value_store.test_mock_download import TestMockDownloadTestCase
+from mediawords.key_value_store.mock_download import TestMockDownloadTestCase
 
 
 class TestPostgreSQLStoreTestCase(TestMockDownloadTestCase):

@@ -5,7 +5,7 @@ from mediawords.key_value_store.test_amazon_s3_credentials import (
     TestAmazonS3CredentialsTestCase,
     get_test_s3_credentials,
 )
-from mediawords.key_value_store.test_mock_download import TestMockDownloadTestCase
+from mediawords.key_value_store.mock_download import TestMockDownloadTestCase
 
 test_credentials = get_test_s3_credentials()
 
