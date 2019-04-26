@@ -6,6 +6,7 @@ use warnings;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 use MediaWords::Util::ParseJSON;
+use MediaWords::DB;
 
 use Sys::Hostname;
 
@@ -109,7 +110,9 @@ sub test_stateful_job($)
 
 sub main
 {
-    test_stateful_job();
+    my $db = MediaWords::DB::connect_to_db();
+
+    test_stateful_job( $db );
 
     done_testing();
 }
