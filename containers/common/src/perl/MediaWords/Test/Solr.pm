@@ -135,20 +135,18 @@ sub create_indexed_test_story_stack($$)
     return $media;
 }
 
-sub queue_all_stories($;$)
+sub queue_all_stories($)
 {
-    my ( $db, $stories_queue_table ) = @_;
-
-    $stories_queue_table //= $DEFAULT_STORIES_QUEUE_TABLE;
+    my ( $db ) = @_;
 
     $db->begin();
 
-    $db->query( "truncate table $stories_queue_table" );
+    $db->query( "truncate table solr_import_stories" );
 
     # select from processed_stories because only processed stories should get imported.  sort so that the
     # the import is more efficient when pulling blocks of stories out.
     $db->query( <<SQL );
-insert into $stories_queue_table
+insert into solr_import_stories
     select stories_id
         from processed_stories
         group by stories_id
