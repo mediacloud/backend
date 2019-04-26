@@ -8,6 +8,7 @@ import regex
 
 from mediawords.db import DatabaseHandler
 from mediawords.tm.fetch_link_utils import content_matches_topic
+from mediawords.util.config.topics_mine import TopicsMineConfig
 from mediawords.util.log import create_logger
 from mediawords.util.parse_json import decode_json, encode_json
 from mediawords.util.web.user_agent import UserAgent
@@ -65,11 +66,7 @@ class CrimsonHexagon(AbstractCrimsonHexagon):
         ua.set_timeout(90)
         ua.set_timing([1, 2, 4, 8, 16, 32, 64, 128, 256, 512])
 
-        config = get_config()
-        if 'crimson_hexagon' not in config or 'key' not in config['crimson_hexagon']:
-            raise McFetchTopicTweetsConfigException("no key in mediawords.yml at //crimson_hexagon/key.")
-
-        key = config['crimson_hexagon']['key']
+        tm_config = TopicsMineConfig()
 
         next_day = day + datetime.timedelta(days=1)
 
@@ -77,7 +74,7 @@ class CrimsonHexagon(AbstractCrimsonHexagon):
         next_day_arg = next_day.strftime('%Y-%m-%d')
 
         url = ("https://api.crimsonhexagon.com/api/monitor/posts?auth=%s&id=%d&start=%s&end=%s&extendLimit=true" %
-               (key, ch_monitor_id, day_arg, next_day_arg))
+               (tm_config.crimson_hexagon_api_key(), ch_monitor_id, day_arg, next_day_arg))
 
         log.debug("crimson hexagon url: " + url)
 
