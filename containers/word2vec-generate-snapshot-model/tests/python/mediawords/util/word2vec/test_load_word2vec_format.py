@@ -6,7 +6,7 @@ import gensim
 
 def _word2vec_test_data_dir() -> str:
     """Return path to word2vec testing data directory."""
-    return '/mediacloud/test-data/word2vec/'
+    return '/tests/data/word2vec/'
 
 
 def sample_word2vec_model_path() -> str:

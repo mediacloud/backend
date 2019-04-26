@@ -28,7 +28,7 @@ def generate_sample_word2vec_model():
 
     3) Commit the sample model to the source tree:
 
-         git add mediacloud/test-data/word2vec/*
+         git add tests/data/word2vec/*
 
     4) Install the newest gensim to test the model loading against:
 

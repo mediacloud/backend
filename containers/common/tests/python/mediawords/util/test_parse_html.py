@@ -203,7 +203,7 @@ def test_html_strip() -> None:
 
     assert html_strip("&amp;&quot;") == '&"'
 
-    html_path = '/mediacloud/test-data/html-strip/strip.html'
+    html_path = '/tests/data/html-strip/strip.html'
     with open(html_path, 'r', encoding='utf8') as fh:
         html = fh.read()
 
@@ -234,7 +234,7 @@ def test_html_title() -> None:
     assert html_title('<title>Title Tag</title>', 'fb') == 'Title Tag'
 
     # more complex
-    html_path = '/mediacloud/test-data/html-strip/strip.html'
+    html_path = '/tests/data/html-strip/strip.html'
     with open(html_path, 'r', encoding='utf8') as fh:
         html = fh.read()
 
