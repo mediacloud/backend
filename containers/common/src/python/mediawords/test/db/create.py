@@ -369,12 +369,16 @@ def add_content_to_test_story(db: DatabaseHandler, story: dict, feed: dict) -> d
     story = decode_object_from_bytes_if_needed(story)
     feed = decode_object_from_bytes_if_needed(feed)
 
+    content_language_code = None
     if 'content' in story:
         content = story['content']
+        content_language_code = language_code_for_text(content)
     else:
         content = _get_test_content()
 
-    content_language_code = language_code_for_text(content) or 'en'
+    # If language code was undetermined, or if we're using Latin test content
+    if not content_language_code:
+        content_language_code = 'en'
 
     if story.get('full_text_rss', None):
         story['full_text_rss'] = False
