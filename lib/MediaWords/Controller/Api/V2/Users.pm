@@ -134,6 +134,13 @@ SQL
                 join auth_roles ar using ( auth_roles_id )  
 SQL
 
+    $users = $db->attach_child_query( $users, <<SQL, 'requests', 'auth_users_id' );
+        select au.auth_users_id, c.day, c.requests_count
+            from auth_user_request_daily_counts c
+                join auth_users au using ( email )
+            order by day
+SQL
+
     return $users;
 }
 
