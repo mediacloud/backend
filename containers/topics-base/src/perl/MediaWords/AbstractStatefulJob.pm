@@ -19,6 +19,7 @@ use MediaWords::DB;
 use MediaWords::DB::Locks;
 use MediaWords::Util::ParseJSON;
 use MediaWords::Util::SQL;
+use MediaWords::JobManager::Job;
 
 # tag to put into a die() message to make the module not set the final state to 'error' on a die (for testing)
 Readonly our $DIE_WITHOUT_ERROR_TAG => 'dU3A4yUajMLV';
