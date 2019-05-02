@@ -3,13 +3,7 @@
 import os
 from typing import List
 
-from utils import (
-    DockerHubConfiguration,
-    container_dir_name_from_image_name,
-    argument_parser,
-    docker_hub_configuration_from_arguments,
-    docker_images,
-)
+from utils import DockerHubConfiguration, container_dir_name_from_image_name, docker_images, DockerHubArgumentParser
 
 
 class DockerImageToBuild(object):
@@ -67,11 +61,11 @@ def _docker_images_to_build(all_containers_dir: str, conf: DockerHubConfiguratio
 
 if __name__ == '__main__':
 
-    parser = argument_parser(description='Print commands to build all container images.')
-    args = parser.parse_args()
-    conf_ = docker_hub_configuration_from_arguments(args)
+    parser = DockerHubArgumentParser(description='Print commands to build all container images.')
+    args = parser.parse_arguments()
+    conf_ = args.docker_hub_configuration()
 
-    for image in _docker_images_to_build(all_containers_dir=args.all_containers_dir, conf=conf_):
+    for image in _docker_images_to_build(all_containers_dir=args.all_containers_dir(), conf=conf_):
         print(
             (
                 'docker build --cache-from {image_name} --tag {image_name} {container_path}'

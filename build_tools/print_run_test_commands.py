@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import argparse
 import os
 import re
 import tempfile
@@ -8,6 +7,9 @@ from pathlib import Path
 from typing import List
 
 # Given that docker-compose is present, we assume that PyYAML is installed
+
+from utils import DockerArgumentParser, DockerArguments
+
 try:
     from yaml import safe_load as load_yaml
 except ModuleNotFoundError:
@@ -170,15 +172,46 @@ def docker_test_commands(all_containers_dir: str, test_file: str) -> List[List[s
     return commands
 
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(
-        description='Print commands to run tests in a single test file.',
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-    )
-    parser.add_argument('-c', '--all_containers_dir', required=True, type=str,
-                        help='Directory with container subdirectories.')
-    parser.add_argument('test_file', help='Perl or Python test file.')
-    args = parser.parse_args()
+class DockerRunTestArguments(DockerArguments):
+    """
+    Arguments with a test file path.
+    """
 
-    for command_ in docker_test_commands(all_containers_dir=args.all_containers_dir, test_file=args.test_file):
+    def test_file(self) -> str:
+        """
+        Return path to file to test.
+
+        :return: Path to test file.
+        """
+        return self._args.test_file
+
+
+class DockerRunTestArgumentParser(DockerArgumentParser):
+    """
+    Argument parser that includes a path to test file.
+    """
+
+    def __init__(self, description: str):
+        """
+        Constructor.
+
+        :param description: Description of the script to print when "--help" is passed.
+        """
+        super().__init__(description=description)
+        self._parser.add_argument('test_file', help='Perl or Python test file.')
+
+    def parse_arguments(self) -> DockerRunTestArguments:
+        """
+        Parse arguments and return an object with parsed arguments.
+
+        :return: DockerRunTestArguments object.
+        """
+        return DockerRunTestArguments(self._parser.parse_args())
+
+
+if __name__ == '__main__':
+    parser = DockerRunTestArgumentParser(description='Print commands to run tests in a single test file.')
+    args = parser.parse_arguments()
+
+    for command_ in docker_test_commands(all_containers_dir=args.all_containers_dir(), test_file=args.test_file()):
         print(' '.join(command_))

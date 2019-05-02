@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 
-import argparse
 import glob
 import os
 import re
 import sys
 from typing import List, Pattern
+
+from utils import DockerArgumentParser
 
 PRINT_TEST_COMMANDS_SCRIPT_FILENAME = 'print_run_test_commands.py'
 """Script that will be called to run a single test."""
@@ -91,13 +92,8 @@ def docker_all_tests_commands(all_containers_dir: str) -> List[List[str]]:
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(
-        description='Print commands to run all tests found in all containers.',
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-    )
-    parser.add_argument('-c', '--all_containers_dir', required=True, type=str,
-                        help='Directory with container subdirectories.')
-    args = parser.parse_args()
+    parser = DockerArgumentParser(description='Print commands to run all tests found in all containers.')
+    args = parser.parse_arguments()
 
-    for command_ in docker_all_tests_commands(all_containers_dir=args.all_containers_dir):
+    for command_ in docker_all_tests_commands(all_containers_dir=args.all_containers_dir()):
         print(' '.join(command_))

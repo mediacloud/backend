@@ -238,46 +238,111 @@ def docker_images(all_containers_dir: str, only_belonging_to_user: bool, conf: D
     return images
 
 
-def argument_parser(description: str) -> argparse.ArgumentParser:
+class DockerArguments(object):
     """
-    Create and return an argument parser object to use for reading command's arguments.
-
-    :param description: Description of the script to print when "--help" is passed.
-    :return: Argument parser object.
+    Basic arguments.
     """
 
-    default_conf = DefaultDockerHubConfiguration()
+    __slots__ = [
+        # argparse.Namespace object
+        '_args',
+    ]
 
-    parser = argparse.ArgumentParser(
-        description=description,
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-    )
+    def __init__(self, args: argparse.Namespace):
+        """
+        Constructor.
 
-    parser.add_argument('-c', '--all_containers_dir', required=True, type=str,
-                        help='Directory with container subdirectories.')
-    parser.add_argument('-u', '--dockerhub_user', required=False, type=str, default=default_conf.username,
-                        help='Docker Hub user that is hosting the images.')
-    parser.add_argument('-p', '--image_prefix', required=False, type=str, default=default_conf.image_prefix,
-                        help="Prefix to add to built images.")
-    parser.add_argument('-s', '--image_version', required=False, type=str, default=default_conf.image_version,
-                        help="Version to add to built images.")
+        :param args: argparse.Namespace object.
+        """
+        self._args = args
 
-    return parser
+    def all_containers_dir(self) -> str:
+        """
+        Return directory with container subdirectories.
+
+        :return Directory with container subdirectories.
+        """
+        return self._args.all_containers_dir
 
 
-def docker_hub_configuration_from_arguments(args: argparse.Namespace) -> DockerHubConfiguration:
+class DockerArgumentParser(object):
     """
-    Create and return a Docker Hub configuration object from an argument parser object.
-
-    :param args: argparse arguments.
-    :return: DockerHubConfiguration object.
+    Basic argument parser.
     """
 
-    if not os.path.isfile(os.path.join(args.all_containers_dir, 'docker-compose.yml.dist')):
-        raise ValueError("Invalid directory with container subdirectories '{}'.".format(args.all_containers_dir))
+    __slots__ = [
+        # argparse.ArgumentParser object
+        '_parser',
+    ]
 
-    return DockerHubConfiguration(
-        username=args.dockerhub_user,
-        image_prefix=args.image_prefix,
-        image_version=args.image_version,
-    )
+    def __init__(self, description: str):
+        """
+        Create and return an argument parser object to use for reading command's arguments.
+
+        :param description: Description of the script to print when "--help" is passed.
+        """
+        self._parser = argparse.ArgumentParser(
+            description=description,
+            formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+        )
+        self._parser.add_argument('-c', '--all_containers_dir', required=True, type=str,
+                                  help='Directory with container subdirectories.')
+
+    def parse_arguments(self) -> DockerArguments:
+        """
+        Parse arguments and return an object with parsed arguments.
+
+        :return: DockerArguments (or subclass) object.
+        """
+        return DockerArguments(self._parser.parse_args())
+
+
+class DockerHubArguments(DockerArguments):
+    """
+    Arguments that include Docker Hub credentials.
+    """
+
+    def docker_hub_configuration(self) -> DockerHubConfiguration:
+        """
+        Return a Docker Hub configuration object from an argument parser object.
+
+        :return: DockerHubConfiguration object.
+        """
+
+        if not os.path.isfile(os.path.join(self.all_containers_dir(), 'docker-compose.yml.dist')):
+            raise ValueError("Invalid directory with container subdirectories '{}'.".format(self.all_containers_dir()))
+
+        return DockerHubConfiguration(
+            username=self._args.dockerhub_user,
+            image_prefix=self._args.image_prefix,
+            image_version=self._args.image_version,
+        )
+
+
+class DockerHubArgumentParser(DockerArgumentParser):
+    """Argument parser which requires Docker Hub credentials."""
+
+    def __init__(self, description: str):
+        """
+        Constructor.
+
+        :param description: Description of the script to print when "--help" is passed.
+        """
+        super().__init__(description=description)
+
+        default_conf = DefaultDockerHubConfiguration()
+
+        self._parser.add_argument('-u', '--dockerhub_user', required=False, type=str, default=default_conf.username,
+                                  help='Docker Hub user that is hosting the images.')
+        self._parser.add_argument('-p', '--image_prefix', required=False, type=str, default=default_conf.image_prefix,
+                                  help="Prefix to add to built images.")
+        self._parser.add_argument('-s', '--image_version', required=False, type=str, default=default_conf.image_version,
+                                  help="Version to add to built images.")
+
+    def parse_arguments(self) -> DockerHubArguments:
+        """
+        Parse arguments and return an object with parsed arguments.
+
+        :return: DockerHubArguments object.
+        """
+        return DockerHubArguments(self._parser.parse_args())
