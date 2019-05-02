@@ -66,20 +66,7 @@ if __name__ == '__main__':
     conf_ = args.docker_hub_configuration()
 
     for image in _docker_images_to_build(all_containers_dir=args.all_containers_dir(), conf=conf_):
-        print(
-            (
-                'docker build --cache-from {image_name} --tag {image_name} {container_path}'
-
-                # If initial 'docker build' fails, try building again without --cache-from because:
-                #
-                # * the image to be used for cache might not get pulled due to, say, network problems;
-                # * the image might not exist at all if this is a new container image not built before
-                #
-                ' || '
-                'docker build --tag {image_name} {container_path}'
-
-            ).format(
-                image_name=image.tag,
-                container_path=image.path,
-            )
-        )
+        print('docker build --cache-from {image_name} --tag {image_name} {container_path}'.format(
+            image_name=image.tag,
+            container_path=image.path,
+        ))
