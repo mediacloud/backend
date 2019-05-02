@@ -64,12 +64,13 @@ def _project_name(container_name: str, tests_dir: str, test_file: str) -> str:
     return project_name
 
 
-def docker_test_commands(all_containers_dir: str, test_file: str) -> List[List[str]]:
+def docker_test_commands(all_containers_dir: str, test_file: str, dummy: bool = False) -> List[List[str]]:
     """
     Return list commands to execute in order to run all tests in a single test file.
 
     :param all_containers_dir: Directory with container subdirectories.
     :param test_file: Perl or Python test file.
+    :param dummy: If True, set up Compose environment and sleep indefinitely instead of running the test.
     :return: List of commands (as lists) to execute in order to run tests in a test file.
     """
     if not os.path.isfile(test_file):
@@ -113,14 +114,18 @@ def docker_test_commands(all_containers_dir: str, test_file: str) -> List[List[s
 
     docker_compose_override_path = os.path.join(tempfile.mkdtemp(), 'docker-compose.tests-override.yml')
 
-    test_path_in_container = '/tests' + test_file[len(tests_dir):]
+    if dummy:
+        test_command = 'sleep infinity'
 
-    if test_file.endswith('.py'):
-        test_command = 'py.test --verbose ' + test_path_in_container
-    elif test_file.endswith('.t'):
-        test_command = 'prove ' + test_path_in_container
     else:
-        raise ValueError("Not sure how to run this test: {}".format(test_path_in_container))
+        test_path_in_container = '/tests' + test_file[len(tests_dir):]
+
+        if test_file.endswith('.py'):
+            test_command = 'py.test --verbose ' + test_path_in_container
+        elif test_file.endswith('.t'):
+            test_command = 'prove ' + test_path_in_container
+        else:
+            raise ValueError("Not sure how to run this test: {}".format(test_path_in_container))
 
     commands.append(['touch', docker_compose_override_path])
     commands.append(['echo', "'version: \"3\"'", '>>', docker_compose_override_path])
@@ -185,6 +190,13 @@ class DockerRunTestArguments(DockerArguments):
         """
         return self._args.test_file
 
+    def dummy(self) -> bool:
+        """
+        Return True if instead of running the test, we should set up the Compose environment and then sleep.
+        :return: True if instead of running the test, we should set up the Compose environment and then sleep.
+        """
+        return self._args.dummy
+
 
 class DockerRunTestArgumentParser(DockerArgumentParser):
     """
@@ -198,7 +210,10 @@ class DockerRunTestArgumentParser(DockerArgumentParser):
         :param description: Description of the script to print when "--help" is passed.
         """
         super().__init__(description=description)
-        self._parser.add_argument('test_file', help='Perl or Python test file.')
+        self._parser.add_argument('test_file',
+                                  help='Perl or Python test file.')
+        self._parser.add_argument('-d', '--dummy', action='store_true',
+                                  help="Don't actually run the test, instead sleep for infinity.")
 
     def parse_arguments(self) -> DockerRunTestArguments:
         """
@@ -213,5 +228,7 @@ if __name__ == '__main__':
     parser = DockerRunTestArgumentParser(description='Print commands to run tests in a single test file.')
     args = parser.parse_arguments()
 
-    for command_ in docker_test_commands(all_containers_dir=args.all_containers_dir(), test_file=args.test_file()):
+    for command_ in docker_test_commands(all_containers_dir=args.all_containers_dir(),
+                                         test_file=args.test_file(),
+                                         dummy=args.dummy()):
         print(' '.join(command_))
