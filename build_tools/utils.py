@@ -285,8 +285,23 @@ class DockerArgumentParser(object):
             description=description,
             formatter_class=argparse.ArgumentDefaultsHelpFormatter,
         )
-        self._parser.add_argument('-c', '--all_containers_dir', required=True, type=str,
-                                  help='Directory with container subdirectories.')
+
+        args = [
+            '-c', '--all_containers_dir',
+        ]
+        kwargs = {
+            'type': str,
+            'help': 'Directory with container subdirectories.',
+        }
+
+        pwd = os.path.dirname(os.path.realpath(__file__))
+        expected_containers_dir = os.path.join(pwd, '../', 'containers')
+        if os.path.isdir(expected_containers_dir):
+            kwargs['default'] = expected_containers_dir
+        else:
+            kwargs['required'] = True
+
+        self._parser.add_argument(*args, **kwargs)
 
     def parse_arguments(self) -> DockerArguments:
         """
