@@ -16,6 +16,7 @@ BEGIN
     use_ok( 'MediaWords::Solr' );
 }
 
+use MediaWords::DB;
 use MediaWords::Solr::TagCounts;
 use MediaWords::Test::API;
 use MediaWords::Test::Solr;
@@ -108,7 +109,9 @@ SQL
 
 sub main
 {
-    run_solr_tests();
+    my $db = MediaWords::DB::connect_to_db();
+
+    run_solr_tests( $db );
 
     done_testing();
 }

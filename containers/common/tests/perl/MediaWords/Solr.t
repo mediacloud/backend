@@ -356,7 +356,7 @@ sub main
 
     test_collections_id_queries( $db );
 
-    run_solr_tests();
+    run_solr_tests( $db );
 
     done_testing();
 }

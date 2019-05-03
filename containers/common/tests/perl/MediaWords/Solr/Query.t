@@ -85,6 +85,8 @@ sub main()
     my $db = MediaWords::DB::connect_to_db();
 
     test_get_full_solr_query_for_topic( $db );
+
+    done_testing();
 }
 
 main();
