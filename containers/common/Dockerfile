@@ -4,12 +4,22 @@
 
 FROM dockermediacloud/mediacloud-perl-python-base:latest
 
-# Install dependencies
+# Install mecab-ipadic-neologd (for Japanese language tokenization) first because it's so large
 RUN \
     # Add repository for mecab-ipadic-neologd
     apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 379CE192D401AB61 && \
     echo "deb https://dl.bintray.com/pypt/mecab-ipadic-neologd-deb xenial main" > /etc/apt/sources.list.d/mecab-ipadic-neologd.list && \
     apt-get -y update && \
+    # Japanese language tokenization
+    apt-get -y --no-install-recommends install libmecab-dev && \
+    apt-get -y --no-install-recommends install swig && \
+    apt-get -y --no-install-recommends install mecab && \
+    apt-get -y --no-install-recommends install mecab-ipadic-neologd && \
+    #
+    true
+
+# Install the rest of the dependencies
+RUN \
     #
     # Required by "cld2-cffi" Python module
     apt-get -y --no-install-recommends install libffi-dev && \
@@ -19,12 +29,6 @@ RUN \
     #
     # OpenSSL headers for various SSL modules
     apt-get -y --no-install-recommends install libssl-dev && \
-    #
-    # Japanese language tokenization
-    apt-get -y --no-install-recommends install libmecab-dev && \
-    apt-get -y --no-install-recommends install swig && \
-    apt-get -y --no-install-recommends install mecab && \
-    apt-get -y --no-install-recommends install mecab-ipadic-neologd && \
     #
     # Hindi stemming with Hunspell
     apt-get -y --no-install-recommends install hunspell && \
