@@ -14,6 +14,7 @@ use warnings;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 use MediaWords::DBI::Topics;
+use MediaWords::Util::CSV;
 use MediaWords::Util::Tags;
 
 use Readonly;
