@@ -44,7 +44,7 @@ furl==2.0.0
 jieba==0.39
 
 # Parsing email templates
-Jinja2==2.10
+Jinja2==2.10.1
 
 # One of Celery's dependencies (here just for PyCharm to stop complaining)
 kombu==4.3.0
@@ -86,4 +86,4 @@ sentence_splitter==1.3
 url_normalize==1.4.1
 
 # Low level HTTP requests (with SSL certificate verification)
-urllib3[secure]==1.24.1
+urllib3[secure]==1.24.2

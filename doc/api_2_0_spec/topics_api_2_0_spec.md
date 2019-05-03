@@ -505,7 +505,7 @@ for the job; otherwise, a new snapshot will be created.
 
 | Field      | Description                              |
 | ---------- | ---------------------------------------- |
-| snapshots\_id | id of snapshot associated with spidering job (optional) | 
+| snapshots\_id | id of snapshot associated with spidering job (optional) |
 
 ### Output Description
 
@@ -529,14 +529,14 @@ Response:
 {
     "job_state":
         {
-            "job_states_id": 425503, 
-            "class": "MediaWords::Job::TM::SnapshotTopic", 
-            "state": "queued", 
-            "message": null, 
-            "last_updated": "2019-03-06 00:36:31.561966", 
-            "args": "{\\"snapshots_id\\":12345,\\"topics_id\\":1404}", 
-            "priority": "normal", 
-            "hostname": "mcquery3" 
+            "job_states_id": 425503,
+            "class": "MediaWords::Job::TM::SnapshotTopic",
+            "state": "queued",
+            "message": null,
+            "last_updated": "2019-03-06 00:36:31.561966",
+            "args": "{\\"snapshots_id\\":12345,\\"topics_id\\":1404}",
+            "priority": "normal",
+            "hostname": "mcquery3"
         }
 }
 ```
@@ -626,6 +626,7 @@ Standard parameters accepted: link_id.
 | queue               | which job pool the topic runs in -- 'mc' for internal media cloud jobs and 'public' for public jobs |
 | max_stories         | max number of stories allowed in the topic |
 | owners              | list of users with 'admin' permissions for the topic |
+| job_states              | list of all job MineTopic and SnapshotTopic job states associated with the topic |}
 
 ### Example
 
@@ -666,6 +667,27 @@ Response:
                     "full_name": "Hal Roberts",
                     "topics_id": 672,
                 }
+            ],
+			"job_states":
+            [
+                {
+                  "class": "MediaWords::Job::TM::SnapshotTopic",
+                  "job_states_id": 425503,
+                  "last_updated": "2019-03-06 00:36:31.561966",
+                  "message": null,
+                  "snapshots_id": 3503,
+                  "state": "queued",
+                  "topics_id": 2424
+                },
+                {
+                  "class": "MediaWords::Job::TM::MineTopic",
+                  "job_states_id": 425488,
+                  "last_updated": "2019-03-06 00:36:31",
+                  "message": "",
+                  "snapshots_id": 3503,
+                  "state": "completed",
+                  "topics_id": 2424
+                },
             ]
         }
     ],
@@ -1847,9 +1869,12 @@ This is an asynchronous call.  The *snapshot* process will run in the background
 
 ### Input Description
 
+As elsewhere in the topics api, Input is passed to the end point as a json document.
+
 | Field | Description                              |
 | ----- | ---------------------------------------- |
 | note  | short text note about the snapshot; optional |
+| snapshots\_id | id of the snapshot to generate |
 
 ### Output Description
 

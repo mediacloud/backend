@@ -18,7 +18,8 @@ LOCK_TYPES = {
     'test-b': 11,
     'MediaWords::Job::TM::MineTopic': 12,
     'MediaWords::Job::TM::SnapshotTopic': 13,
-    'MediaWords::TM::Media::media_normalized_urls': 14
+    'MediaWords::TM::Media::media_normalized_urls': 14,
+    'MediaWords::Crawler::Engine::run_fetcher': 15
 }
 
 

@@ -40,7 +40,7 @@ Readonly::Scalar my $TOPICS_EDIT_FIELDS => [
 ];
 
 Readonly::Scalar my $JOB_STATE_FIELD_LIST =>
-  "job_states_id, ( args->>'topics_id' )::int topics_id, state, message, last_updated";
+"job_states_id, ( args->>'topics_id' )::int topics_id, ( args->>'snapshots_id' )::int snapshots_id, state, message, last_updated";
 
 sub apibase : Chained('/') : PathPart('api/v2/topics') : CaptureArgs(1)
 {
@@ -154,6 +154,26 @@ SQL
         tp.permission = 'admin'
 SQL
         'owners', 'topics_id'
+    );
+
+    $topics = $db->attach_child_query(
+        $topics, <<SQL,
+        WITH js as (
+            SELECT
+                js.job_states_id,
+                js.class,
+                js.state,
+                js.message,
+                js.last_updated,
+                ( js.args->>'topics_id' )::int topics_id,
+                ( js.args->>'snapshots_id' )::int snapshots_id
+            FROM job_states js
+            ORDER BY job_states_id desc
+        )
+
+        select * from js
+SQL
+        'job_states', 'topics_id'
     );
 
     return $topics;
@@ -539,11 +559,11 @@ SQL
 
         if ( $topic->{ job_queue } eq 'mc' )
         {
-            MediaWords::JobManager::Job::add_to_queue( 'MediaWords::Job::TM::MineTopic', { topics_id => $topic->{ topics_id } }, undef, $db );
+            MediaWords::JobManager::Job::add_to_queue( 'MediaWords::Job::TM::MineTopic', $mine_args, undef, $db );
         }
         elsif ( $topic->{ job_queue } eq 'public' )
         {
-            MediaWords::JobManager::Job::add_to_queue( 'MediaWords::Job::TM::MineTopicPublic', { topics_id => $topic->{ topics_id } }, undef, $db );
+            MediaWords::JobManager::Job::add_to_queue( 'MediaWords::Job::TM::MineTopicPublic', $mine_args, undef, $db );
         }
         else
         {

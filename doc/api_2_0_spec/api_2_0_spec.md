@@ -1880,10 +1880,10 @@ with open( '/tmp/media.csv', 'wb') as csvfile:
 This is broken down into multiple steps for convenience and because that's probably how a real user would do it.
 
 The you almost always want to search by a specific media source or media collection.  The easiest way to find a relevant media
-collection is to use our [Sources Tool](https://sources.mediameter.org).  The URL for a the US Mainstream Media media collection in
+collection is to use our [Sources Tool](https://sources.mediacloud.org).  The URL for a the US Mainstream Media media collection in
 the sources tool looks like this:
 
-https://sources.mediameter.org/#media-tag/8875027/details
+https://sources.mediacloud.org/#media-tag/8875027/details
 
 The number in that URL is the tags_id of the media collection.
 

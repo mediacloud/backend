@@ -17,6 +17,7 @@ use MediaWords::Solr::Query::Parse;
 use MediaWords::Test::API;
 use MediaWords::Test::Rows;
 use MediaWords::Test::Solr;
+use MediaWords::Util::SQL;
 use MediaWords::Util::Web;
 use MediaWords::JobManager::Job;
 use MediaWords::Test::DB::Create;
@@ -434,19 +435,30 @@ sub test_topics_spider($)
     $topic = $db->update_by_id( 'topics', $topic->{ topics_id }, { solr_seed_query => 'BOGUSQUERYTORETURNOSTORIES' } );
     my $topics_id = $topic->{ topics_id };
 
-    my $r = MediaWords::Test::API::test_post( "/api/v2/topics/$topics_id/spider", {} );
+    my $snapshot = {
+        topics_id     => $topics_id,
+        snapshot_date => MediaWords::Util::SQL::sql_now(),
+        start_date    => $topic->{ start_date },
+        end_date      => $topic->{ end_date },
+    };
+    $snapshot = $db->create( 'snapshots', $snapshot );
+    my $snapshots_id = $snapshot->{ snapshots_id };
+
+    my $r = MediaWords::Test::API::test_post( "/api/v2/topics/$topics_id/spider", { snapshots_id => $snapshots_id } );
 
     ok( $r->{ job_state }, "spider return includes job_state" );
 
-    is( $r->{ job_state }->{ state }, $MediaWords::AbstractJob::STATE_QUEUED, "spider state" );
-    is( $r->{ job_state }->{ topics_id }, $topic->{ topics_id }, "spider topics_id" );
+    is( $r->{ job_state }->{ state },        $MediaWords::AbstractJob::STATE_QUEUED, "spider state" );
+    is( $r->{ job_state }->{ topics_id },    $topic->{ topics_id },                  "spider topics_id" );
+    is( $r->{ job_state }->{ snapshots_id }, $snapshots_id,                          "spider snapshots_id" );
 
     $r = MediaWords::Test::API::test_get( "/api/v2/topics/$topics_id/spider_status" );
 
     ok( $r->{ job_states }, "spider status return includes job_states" );
 
-    is( $r->{ job_states }->[ 0 ]->{ state }, $MediaWords::AbstractJob::STATE_QUEUED, "spider_status state" );
-    is( $r->{ job_states }->[ 0 ]->{ topics_id }, $topic->{ topics_id }, "spider_status topics_id" );
+    is( $r->{ job_states }->[ 0 ]->{ state },        $MediaWords::AbstractJob::STATE_QUEUED, "spider_status state" );
+    is( $r->{ job_states }->[ 0 ]->{ topics_id },    $topic->{ topics_id },                  "spider_status topics_id" );
+    is( $r->{ job_states }->[ 0 ]->{ snapshots_id }, $snapshots_id,                          "spider_status snapshots_id" );
 }
 
 # test topics/list

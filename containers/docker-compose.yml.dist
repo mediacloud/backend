@@ -81,30 +81,19 @@ services:
                     memory: 256M
 
     #
-    # Crawler
-    # -------
+    # Crawler provider
+    # ----------------
     #
-    mc_crawler:
+    mc_crawler_provider:
         build:
-            context: ./crawler/
-        image: dockermediacloud/mediacloud-crawler:latest
+            context: ./crawler-provider/
+        image: dockermediacloud/mediacloud-crawler-provider:latest
         env_file: global.env
-        environment:
-            # Number of fetcher forks to start
-            # (probably keep in sync with deploy/resources/limits/cpus)
-            MC_CRAWLER_FETCHER_FORKS: 16
-            # Univision API client ID
-            MC_UNIVISION_CLIENT_ID: ""
-            # Univision API client secret
-            MC_UNIVISION_CLIENT_SECRET: ""
         depends_on:
             - postgresql_pgbouncer
-            - rabbitmq_server
         networks:
-            # Stores fetched data in PostgreSQL
+            # Writes provided downloads to PostgreSQL
             - net_postgresql
-            # Adds extractor jobs
-            - net_rabbitmq
         deploy:
             # Only one instance
             replicas: 1
@@ -114,10 +103,39 @@ services:
             resources:
                 limits:
                     # CPU core limit
-                    # (probably keep in sync with environment/MC_CRAWLER_FETCHER_FORKS)
-                    cpus: "16"
+                    cpus: "1"
                     # RAM limit
-                    memory: 64G
+                    memory: 1G
+
+    #
+    # Crawler fetcher
+    # ---------------
+    #
+    mc_crawler_fetcher:
+        build:
+            context: ./crawler-fetcher/
+        image: dockermediacloud/mediacloud-crawler-fetcher:latest
+        env_file: global.env
+        depends_on:
+            - postgresql_pgbouncer
+            - rabbitmq_server
+        networks:
+            # Writes fetched downloads to PostgreSQL
+            - net_postgresql
+            # Adds extractor jobs
+            - net_rabbitmq
+        deploy:
+            # Worker count
+            replicas: 8
+            # Auto-restart on crashes
+            restart_policy:
+                condition: on-failure
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: 512M
 
     #
     # Create missing PostgreSQL partitions
