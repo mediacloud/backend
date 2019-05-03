@@ -559,8 +559,16 @@ class UserAgent(object):
             raise McRequestException("URL is empty.")
 
         blacklist_url_pattern = self._user_agent_config.blacklist_url_pattern()
+
         if blacklist_url_pattern:
-            if re.search(pattern=blacklist_url_pattern, string=url, flags=re.IGNORECASE | re.UNICODE) is not None:
+
+            # MC_REWRITE_TO_PYTHON: a string might be coming from Perl
+            if isinstance(blacklist_url_pattern, bytes):
+                blacklist_url_pattern = decode_object_from_bytes_if_needed(blacklist_url_pattern)
+            if isinstance(blacklist_url_pattern, str):
+                blacklist_url_pattern = re.compile(blacklist_url_pattern, flags=re.IGNORECASE | re.UNICODE)
+
+            if re.search(pattern=blacklist_url_pattern, string=url) is not None:
                 request.set_url("http://0.0.0.1/%s" % url)
 
         return request
