@@ -11,7 +11,6 @@ use MediaWords::Crawler::Download::Feed::Univision;
 
 use Readonly;
 
-use Test::NoWarnings;
 use Test::More;
 use Test::Deep;
 
@@ -175,7 +174,6 @@ sub test_univision($$$)
     my $crawler_config = UnivisionTestCrawlerConfig->new();
 
     test_fetch_handle_download( $db, $univision_url, $crawler_config );
-    Test::NoWarnings::had_no_warnings();
 }
 
 sub main()
@@ -191,8 +189,6 @@ sub main()
     my $local_univision_url           = $TEST_HTTP_SERVER_URL . '/feed';
     my $local_univision_client_id     = 'foo';
     my $local_univision_client_secret = 'bar';
-
-    plan tests => 33;
 
     say STDERR "Testing against local Univision test HTTP server...";
     my $pages = {
@@ -256,6 +252,8 @@ EOF
         say STDERR "Testing against remote (live) Univision HTTP server...";
         test_univision( $remote_univision_url, $remote_univision_client_id, $remote_univision_client_secret );
     }
+
+    done_testing();
 }
 
 main();
