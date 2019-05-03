@@ -51,7 +51,10 @@ services:
             - 2181
             - 2888
             - 3888
+        volumes:
+            - vol_solr_zookeeper_data:/var/lib/zookeeper/
 
 volumes:
     vol_postgresql_data: {}
     vol_solr_shard_data: {}
+    vol_solr_zookeeper_data: {}

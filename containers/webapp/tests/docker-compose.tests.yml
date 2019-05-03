@@ -56,6 +56,8 @@ services:
             - 2181
             - 2888
             - 3888
+        volumes:
+            - vol_solr_zookeeper_data:/var/lib/zookeeper/
 
     mc_rabbitmq_server:
         image: dockermediacloud/mediacloud-rabbitmq-server:latest
@@ -84,4 +86,5 @@ services:
 volumes:
     vol_postgresql_data: {}
     vol_solr_shard_data: {}
+    vol_solr_zookeeper_data: {}
     vol_rabbitmq_data: {}
