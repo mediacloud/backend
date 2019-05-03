@@ -14,6 +14,10 @@ use Readonly;
 
 use MediaWords::Util::Config::Common;
 
+# Timeout of Solr starting up
+Readonly my $SOLR_STARTUP_TIMEOUT => 120;
+
+# Timeout of a single HTTP query
 Readonly my $QUERY_HTTP_TIMEOUT => 900;
 
 
@@ -25,6 +29,60 @@ sub _get_solr_url
     $url =~ s~/+$~~;
 
     return $url;
+}
+
+# Wait for Solr to start and collections to become available, if needed
+sub _wait_for_solr_to_start()
+{
+    my $solr_url = _get_solr_url();
+    my $collections_list_url = "$solr_url/admin/collections?action=LIST&wt=json";
+
+    my $connected = 0;
+
+    for ( my $retry = 0; $retry <= $SOLR_STARTUP_TIMEOUT + 0; ++$retry ) {
+    	if ( $retry > 0 ) {
+    		DEBUG "Retrying Solr connection ($retry)...";
+    	}
+
+    	eval {
+
+		    my $ua = MediaWords::Util::Web::UserAgent->new();
+		    $ua->set_timeout( 1 );
+		    my $response = $ua->get( $collections_list_url );
+
+		    unless ( $response->is_success() ) {
+		    	die "Unable to connect: " . $response->decoded_content;
+		    }
+
+		    unless ( $response->decoded_content() ) {
+		    	die "Response is empty.";
+		    }
+
+		    my $collections;
+		    eval {
+		    	$collections = decode_json( $response->decoded_content() );
+		    };
+		    if ( $@ ) {
+		    	die "Unable to decode response: $@";
+		    }
+
+		    unless ( scalar( $collections->{ 'collections' } ) ) {
+		    	die "No collections found.";
+		    }
+		};
+		if ( $@ ) {
+			WARNING "Solr is down, will retry: $@";
+
+		} else {
+			INFO "Solr is up!";
+			$connected = 1;
+		}
+
+    }
+
+    unless ( $connected ) {
+    	die "Solr is still down after $SOLR_STARTUP_TIMEOUT retries, giving up";
+    }
 }
 
 # Parse out Solr error message from response
@@ -108,6 +166,9 @@ sub solr_request($$;$$)
             LOGCONFESS "XML queries are not supported.";
         }
     }
+
+    # Solr might still be starting up so wait for it to expose the collections list
+    _wait_for_solr_to_start();
 
     TRACE "Requesting URL: $abs_url...";
 
