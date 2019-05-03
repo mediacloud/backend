@@ -194,13 +194,15 @@ class UserAgent(object):
         self.set_timing(None)
 
     def __get_domain_http_auth_lookup(self) -> Dict[str, AuthenticatedDomain]:
-        """Read the mediawords.authenticated_domains list from mediawords.yml and generate a lookup hash with
+        """Read the authenticated domains from configuration and generate a lookup hash with
         the host domain as the key and the user:password credentials as the value."""
         domain_http_auth_lookup = {}
 
         domains = self._user_agent_config.authenticated_domains()
         for domain in domains:
-            domain_http_auth_lookup[domain.domain.lower()] = domain
+            lookup_domain = domain.domain()
+            lookup_domain = decode_object_from_bytes_if_needed(lookup_domain)
+            domain_http_auth_lookup[lookup_domain] = domain
 
         return domain_http_auth_lookup
 
@@ -210,17 +212,19 @@ class UserAgent(object):
 
         auth_lookup = self.__get_domain_http_auth_lookup()
 
-        domain = get_url_distinctive_domain(url=url).lower()
+        domain = get_url_distinctive_domain(url=url)
+        if domain:
+            domain = domain.lower()
 
-        if domain in auth_lookup:
-            auth = auth_lookup[domain]
-            uri = furl(url)
+            if domain in auth_lookup:
+                auth = auth_lookup[domain]
+                uri = furl(url)
 
-            # https://stackoverflow.com/a/21629125/200603
-            uri.username = auth.username
-            uri.password = auth.password
+                # https://stackoverflow.com/a/21629125/200603
+                uri.username = decode_object_from_bytes_if_needed(auth.username())
+                uri.password = decode_object_from_bytes_if_needed(auth.password())
 
-            url = uri.url
+                url = uri.url
 
         return url
 

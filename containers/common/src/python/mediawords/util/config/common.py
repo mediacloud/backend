@@ -1,5 +1,4 @@
 import re
-from dataclasses import dataclass
 from typing import List, Pattern, Optional
 
 from mediawords.util.config import env_value, McConfigException
@@ -183,18 +182,31 @@ class DownloadStorageConfig(object):
         return bool(int(env_value('MC_DOWNLOADS_CACHE_S3', allow_empty_string=True)))
 
 
-@dataclass(frozen=True)
 class AuthenticatedDomain(object):
     """Single authenticated domain."""
 
-    domain: str
-    """Domain name, e.g. "ap.org"."""
+    __slots__ = [
+        '_domain',
+        '_username',
+        '_password',
+    ]
 
-    username: str
-    """HTTP auth username."""
+    def __init__(self, domain: str, username: str, password: str):
+        self._domain = domain
+        self._username = username
+        self._password = password
 
-    password: str
-    """HTTP auth password."""
+    def domain(self) -> str:
+        """Return domain name, e.g. "ap.org"."""
+        return self._domain
+
+    def username(self) -> str:
+        """Return HTTP auth username."""
+        return self._username
+
+    def password(self) -> str:
+        """Return HTTP auth password."""
+        return self._password
 
 
 class McConfigAuthenticatedDomainsException(McConfigException):
