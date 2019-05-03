@@ -36,7 +36,7 @@ my $_current_job_states_id;
 # job_states_id
 sub _create_queued_job_state($$$;$)
 {
-    my ( $db, $function_name, $args, $priority ) = @_;
+    my ( $db, $class, $args, $priority ) = @_;
 
     my $args_json = MediaWords::Util::ParseJSON::encode_json( $args );
     $priority ||= $MediaWords::JobManager::Job::MJM_JOB_PRIORITY_NORMAL;
@@ -45,7 +45,7 @@ sub _create_queued_job_state($$$;$)
         state      => $STATE_QUEUED,
         args       => $args_json,
         priority   => $priority,
-        class      => $function_name,
+        class      => $class,
         process_id => $$,
         hostname   => Sys::Hostname::hostname
     };
@@ -59,16 +59,16 @@ sub _create_queued_job_state($$$;$)
 # of $STATE_QUEUED. optinoally include a $db handle to use to create the job_states row
 sub add_to_queue($;$$$)
 {
-    my ( $function_name, $args, $priority, $db ) = @_;
+    my ( $class, $args, $priority, $db ) = @_;
 
     $db ||= MediaWords::DB::connect_to_db();
-    my $job_state = _create_queued_job_state( $db, $function_name, $args, $priority );
+    my $job_state = _create_queued_job_state( $db, $class, $args, $priority );
     $args->{ job_states_id } = $job_state->{ job_states_id };
 
-    eval { _update_table_state( $db, $function_name, $job_state ); };
+    eval { _update_table_state( $db, $class, $job_state ); };
     LOGCONFESS( "error updating table state: $@" ) if ( $@ );
 
-    $function_name->SUPER::add_to_queue( $args, $priority );
+    $class->SUPER::add_to_queue( $args, $priority );
 }
 
 # return the job_states row associated with the currently running job
@@ -94,9 +94,9 @@ sub get_state_table_info($)
 # row whose '<table>_id' field matches that field in the job args
 sub _update_table_state($$$)
 {
-    my ( $db, $function_name, $job_state ) = @_;
+    my ( $db, $class, $job_state ) = @_;
 
-    my $table_info = $function_name->get_state_table_info() || return;
+    my $table_info = $class->get_state_table_info() || return;
 
     my $args = MediaWords::Util::ParseJSON::decode_json( $job_state->{ args } );
 
@@ -137,7 +137,7 @@ sub _update_job_state($$$)
         }
     );
 
-    _update_table_state( $db, $function_name, $job_state );
+    _update_table_state( $db, $class, $job_state );
 }
 
 # update the args field for the current job_state row
@@ -180,7 +180,7 @@ sub update_job_state_message($$$)
         { message => $message, last_updated => MediaWords::Util::SQL::sql_now() }
     );
 
-    _update_table_state( $db, $function_name, $job_state );
+    _update_table_state( $db, $class, $job_state );
 }
 
 # define this in the sub class to make it so that only one job can run for each distinct value of the

@@ -151,7 +151,7 @@ SQL
 
         $db->query( "create table test_stories_queue ( stories_id int )" );
 
-        MediaWords::Test::Solr::queue_all_stories( $db, 'test_stories_queue' );
+        MediaWords::Test::Solr::queue_all_stories( $db );
 
         my ( $test_queue_size )   = $db->query( "select count(*) from test_stories_queue" )->flat;
         my ( $test_stories_size ) = $db->query( "select count(*) from stories" )->flat;
