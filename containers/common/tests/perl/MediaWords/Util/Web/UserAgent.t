@@ -5,9 +5,8 @@ use utf8;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-use Test::NoWarnings;
 use Test::Deep;
-use Test::More tests => 142;
+use Test::More tests => 133;
 
 use Encode;
 use File::Temp qw/ tempdir tempfile /;
