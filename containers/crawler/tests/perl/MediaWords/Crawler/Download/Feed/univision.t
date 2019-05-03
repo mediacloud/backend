@@ -243,11 +243,12 @@ EOF
     test_univision( $local_univision_url, $local_univision_client_id, $local_univision_client_secret );
 
     $hs->stop();
+
+    my $crawler_config = MediaWords::Util::Config::Crawler->new();
     
     my $remote_univision_url = $ENV{ 'MC_UNIVISION_TEST_URL' };
     my $remote_univision_client_id     = $crawler_config->univision_client_id();
 
-    my $crawler_config = MediaWords::Util::Config::Crawler::CrawlerConfig();
     my $remote_univision_client_secret = $crawler_config->univision_client_secret();
 
     if ( $remote_univision_url and $remote_univision_client_id and $remote_univision_client_secret )

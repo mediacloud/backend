@@ -23,9 +23,19 @@ use Modern::Perl "2015";
     1;
 }
 
+sub new($)
+{
+    my ( $class ) = @_;
+
+    my $self = {};
+    bless $self, $class;
+
+    return $self;
+}
+
 sub _python_config()
 {
-    return MediaWords::Util::Config::Common::PythonProxy::CrawlerConfig->new();
+    return MediaWords::Util::Config::Crawler::PythonProxy::CrawlerConfig->new();
 }
 
 sub crawler_fetcher_forks()
