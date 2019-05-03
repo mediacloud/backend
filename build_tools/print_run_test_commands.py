@@ -128,7 +128,7 @@ def docker_test_commands(all_containers_dir: str, test_file: str, dummy: bool = 
             raise ValueError("Not sure how to run this test: {}".format(test_path_in_container))
 
     commands.append(['touch', docker_compose_override_path])
-    commands.append(['echo', "'version: \"3\"'", '>>', docker_compose_override_path])
+    commands.append(['echo', "'version: \"3.7\"'", '>>', docker_compose_override_path])
     commands.append(['echo', "'services:'", '>>', docker_compose_override_path])
     commands.append(['echo', "'    {}:'".format(container_name), '>>', docker_compose_override_path])
     commands.append(['echo', "'        command: \"{}\"'".format(test_command), '>>', docker_compose_override_path])
