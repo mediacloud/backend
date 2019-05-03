@@ -285,7 +285,7 @@ sub _test_crawler($$$)
 
     my $db = MediaWords::DB::connect_to_db();
 
-    my $crawler_data_location = MediaWords::Test::Data::get_path_to_data_files( 'crawler' );
+    my $crawler_data_location = '/tests/data/crawler/';
 
     my $test_http_server = MediaWords::Test::LocalServer->new( $crawler_data_location );
     $test_http_server->start();

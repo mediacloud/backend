@@ -3,17 +3,7 @@ import os
 import arrow
 import dateutil
 
-from mediawords.test.data import get_path_to_data_files, adjust_test_timezone
-
-
-def test_get_path_to_data_files():
-    path = get_path_to_data_files()
-    assert os.path.isdir(path)
-    assert os.path.isdir(os.path.join(path, 'crawler'))
-
-    path = get_path_to_data_files(subdirectory="crawler")
-    assert os.path.isdir(path)
-    assert os.path.isdir(os.path.join(path, 'gv'))
+from mediawords.test.data import adjust_test_timezone
 
 
 def test_adjust_test_timezone():

@@ -1,7 +1,7 @@
 import os
 from unittest import TestCase
 
-from mediawords.test.data import fetch_test_data_from_individual_files, get_path_to_data_files
+from mediawords.test.data import fetch_test_data_from_individual_files
 
 from mediawords.dbi.downloads.extract import extract_content
 from mediawords.test.text import TestCaseTextUtilities
@@ -33,8 +33,7 @@ class TestExtractContent(TestCase, TestCaseTextUtilities):
         story = test_story_hash.get(test_title, None)
         assert story, "Story with title '{}' was not found.".format(test_title)
 
-        data_files_path = get_path_to_data_files(subdirectory='crawler/{}'.format(test_dataset))
-        path = os.path.join(data_files_path, test_file)
+        path = os.path.join('/tests/data/crawler/', test_dataset, test_file)
 
         with open(path, mode='r', encoding='utf-8') as f:
             content = f.read()

@@ -13,11 +13,6 @@ from mediawords.util.perl import decode_object_from_bytes_if_needed
 log = create_logger(__name__)
 
 
-class McGetPathToDataFilesException(Exception):
-    """get_path_to_data_files() exception."""
-    pass
-
-
 class McGetDataFileException(Exception):
     """_get_data_file() exception."""
     pass
@@ -31,26 +26,6 @@ class McStoreTestDataToIndividualFilesException(Exception):
 class McFetchTestDataFromIndividualFilesException(Exception):
     """fetch_test_data_from_individual_files() exception."""
     pass
-
-
-def get_path_to_data_files(subdirectory: str = '') -> str:
-    """Get path to where data file(s) should be stored."""
-
-    subdirectory = decode_object_from_bytes_if_needed(subdirectory)
-
-    path = os.path.join('/t', 'data', subdirectory)
-
-    # Try to create just the base directory
-    if not os.path.isdir(path):
-        log.warning("Creating test data directory '{}'...".format(path))
-        os.mkdir(path)
-
-    if not os.path.isdir(path):
-        raise McGetPathToDataFilesException(
-            "Test data file path '{}' is not a directory (or doesn't exist at all).".format(path)
-        )
-
-    return path
 
 
 def _get_data_file_extension() -> str:
@@ -69,7 +44,8 @@ def _get_data_file(basename: str, subdirectory: str = '') -> str:
         raise McGetDataFileException("Test data basename can only include '[a-z0-9_].")
 
     return os.path.join(
-        get_path_to_data_files(subdirectory),
+        '/tests/data/',
+        subdirectory,
         "{}{}".format(basename, _get_data_file_extension()),
     )
 
@@ -102,7 +78,8 @@ def __test_data_files(basename: str) -> List[str]:
     basename = decode_object_from_bytes_if_needed(basename)
 
     glob_path_to_test_data_files = '{}/*{}'.format(
-        get_path_to_data_files(subdirectory=basename),
+        '/tests/data/',
+        basename,
         _get_data_file_extension(),
     )
     test_data_files = glob.glob(glob_path_to_test_data_files)
