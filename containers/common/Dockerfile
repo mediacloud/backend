@@ -78,5 +78,18 @@ COPY src/perl/ /usr/share/perl5/
 # Copy Python sources
 COPY src/python/ /usr/lib/python3/dist-packages/
 
+# Test if submodules were checked out
+RUN \
+    if [ ! -f /usr/lib/python3/dist-packages/mediawords/languages/lt/snowball_stemmer/LICENSE ]; then \
+        echo && \
+        echo "Git submodules haven't been checked out, please run:" && \
+        echo && \
+        echo "    git submodule update --init --recursive" && \
+        echo && \
+        echo "and then rebuild this container." && \
+        echo && \
+        exit 1; \
+    fi
+
 # Move Log::Log4perl configuration
 RUN mv /usr/share/perl5/log4perl.conf /etc/
