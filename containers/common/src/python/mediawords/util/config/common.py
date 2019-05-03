@@ -250,7 +250,7 @@ class UserAgentConfig(object):
         """URL pattern for which we should fail all of the HTTP(s) requests."""
         pattern = env_value('MC_USERAGENT_BLACKLIST_URL_PATTERN', allow_empty_string=True)
         if pattern:
-            pattern = re.compile(pattern, flags=re.IGNORECASE)
+            pattern = re.compile(pattern, flags=re.IGNORECASE | re.UNICODE)
         else:
             pattern = None
         return pattern
