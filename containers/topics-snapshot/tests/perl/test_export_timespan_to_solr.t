@@ -14,8 +14,6 @@ use MediaWords::Test::Solr;
 use MediaWords::JobManager::Job;
 use MediaWords::Test::DB::Create;
 
-my $_test_supervisor_called;
-
 sub test_timespan_export
 {
     my ( $db ) = @_;

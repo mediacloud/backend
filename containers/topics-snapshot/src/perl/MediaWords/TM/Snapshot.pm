@@ -949,7 +949,7 @@ sub _generate_snapshots_from_temporary_snapshot_tables
 
     my $snapshot_tables = _get_snapshot_tables();
 
-    map { create_snap_snapshot( $db, $cd, $_ ) } @{ $_snapshot_tables };
+    map { create_snap_snapshot( $db, $cd, $_ ) } @{ $snapshot_tables };
 }
 
 # create the snapshot row for the current snapshot
