@@ -94,9 +94,8 @@ sub test_get_user_agent_from_headers()
     ok( $response->is_success() );
     is_urls( $response->request()->url(), $TEST_HTTP_SERVER_URL . '/user-agent-from-headers' );
 
-    my $ua_config = MediaWords::Util::Config::Common::user_agent();
-    my $expected_user_agent = $ua_config->user_agent();
-    my $expected_from       = $ua_config->owner();
+    my $expected_user_agent = 'mediawords bot (http://cyber.law.harvard.edu)';
+    my $expected_from       = 'mediawords@cyber.law.harvard.edu';
 
     my $decoded_json = MediaWords::Util::ParseJSON::decode_json( $response->decoded_content() );
     cmp_deeply(
