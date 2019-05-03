@@ -139,42 +139,6 @@ sub test_get_not_found()
     is( $response->decoded_content(), 'I do not exist.' );
 }
 
-sub test_get_timeout()
-{
-    # HTTP redirects
-    my $pages = {
-        '/timeout' => {
-            callback => sub {
-                my ( $request ) = @_;
-
-                my $response = '';
-
-                $response .= "HTTP/1.0 200 OK\r\n";
-                $response .= "Content-Type: text/html; charset=UTF-8\r\n";
-                $response .= "\r\n";
-                $response .= "And now we wait";
-
-                sleep( 10 );
-
-                return $response;
-            }
-        }
-    };
-    my $hs = MediaWords::Test::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
-    $hs->start();
-
-    my $ua = MediaWords::Util::Web::UserAgent->new();
-    $ua->set_timeout( 2 );
-    is( $ua->timeout(), 2 );
-
-    my $response = $ua->get( "$TEST_HTTP_SERVER_URL/timeout" );
-
-    $hs->stop();
-
-    ok( !$response->is_success() );
-    ok( $response->error_is_client_side() );
-}
-
 sub test_get_valid_utf8_content()
 {
     # Valid UTF-8 content
@@ -1390,7 +1354,6 @@ sub main()
     test_get();
     test_get_user_agent_from_headers();
     test_get_not_found();
-    test_get_timeout();
     test_get_valid_utf8_content();
     test_get_invalid_utf8_content();
     test_get_non_utf8_content();
