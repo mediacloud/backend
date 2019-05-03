@@ -12,6 +12,7 @@ use MediaWords::CommonLibs;
 
 use MediaWords::Util::Web::UserAgent::Request;
 use MediaWords::Util::Web::UserAgent::Response;
+use MediaWords::Util::Config::Common;
 
 {
 
@@ -28,14 +29,18 @@ use MediaWords::Util::Web::UserAgent::Response;
     1;
 }
 
-sub new
+sub new($;$)
 {
-    my ( $class ) = @_;
+    my ( $class, $config ) = @_;
 
     my $self = {};
     bless $self, $class;
 
-    $self->{ _ua } = MediaWords::Util::Web::UserAgent::Proxy::UserAgent->new();
+    unless ( $config ) {
+        $config = MediaWords::Util::Config::Common::user_agent();
+    }
+
+    $self->{ _ua } = MediaWords::Util::Web::UserAgent::Proxy::UserAgent->new( $config );
 
     return $self;
 }
