@@ -208,6 +208,18 @@ class AuthenticatedDomain(object):
         """Return HTTP auth password."""
         return self._password
 
+    # Tests do the comparison
+    def __eq__(self, other) -> bool:
+        if not isinstance(other, AuthenticatedDomain):
+            return NotImplemented
+
+        return (self.domain() == other.domain()) and (
+                self.username() == other.username()) and (self.password() == other.password())
+
+    # __eq__() disables hashing
+    def __hash__(self):
+        return hash((self._domain, self._username, self._password))
+
 
 class McConfigAuthenticatedDomainsException(McConfigException):
     """Exception thrown on authenticated domains syntax errors."""
