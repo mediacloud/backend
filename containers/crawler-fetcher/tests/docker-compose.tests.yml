@@ -3,7 +3,7 @@ version: "3"
 services:
 
     mc_crawler:
-        image: dockermediacloud/mediacloud-crawler:latest
+        image: dockermediacloud/mediacloud-crawler-fetcher:latest
         env_file: global.env
         environment:
             MC_UNIVISION_CLIENT_ID: "${MC_UNIVISION_CLIENT_ID}"
