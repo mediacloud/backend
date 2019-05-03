@@ -51,6 +51,7 @@ use MediaWords::Util::Config::SolrImport;
 use MediaWords::Util::Paths;
 use MediaWords::Util::Web;
 use MediaWords::Solr;
+use MediaWords::Solr::Request;
 
 # order and names of fields exported to and imported from csv
 Readonly my @SOLR_FIELDS => qw/stories_id media_id publish_date publish_day publish_week publish_month publish_year
@@ -288,11 +289,11 @@ sub _import_stories_from_db_single($$)
     my ( $import_url, $import_params ) = _get_import_url_params();
 
     DEBUG "importing " . scalar( @{ $json->{ stories_ids } } ) . " stories into solr ...";
-    eval { _solr_request( $db, $import_url, $import_params, $json->{ json }, 'application/json' ); };
+    eval { MediaWords::Solr::Request::solr_request( $import_url, $import_params, $json->{ json }, 'application/json' ); };
     die( "error importing to solr: $@" ) if ( $@ );
 
     TRACE( "committing solr index changes ..." );
-    _solr_request( $db, 'update', { 'commit' => 'true' } );
+    MediaWords::Solr::Request::solr_request( 'update', { 'commit' => 'true' } );
 
     _delete_stories_from_import_queue( $db, $stories_ids );
 
@@ -342,86 +343,6 @@ sub _create_delta_import_stories($$)
     my $stories_ids = $db->query( "select stories_id from delta_import_stories" )->flat();
 
     return $stories_ids;
-}
-
-# Send a request to MediaWords::Solr::get_solr_url. Return content on success, die() on error.
-sub _solr_request($$$;$$)
-{
-    my ( $db, $path, $params, $content, $content_type ) = @_;
-
-    my $solr_url = MediaWords::Solr::get_solr_url;
-    $params //= {};
-
-    my $abs_uri = URI->new( "$solr_url/mediacloud/$path" );
-    $abs_uri->query_form( $params );
-    my $abs_url = $abs_uri->as_string;
-
-    my $ua = MediaWords::Util::Web::UserAgent->new();
-    $ua->set_max_size( undef );
-
-    # should be able to process about this fast.  otherwise, time out and throw error so that we can continue processing
-    my $req;
-
-    my $timeout = 600;
-
-    # Remediate CVE-2017-12629
-    if ( $params->{ q } )
-    {
-        if ( $params->{ q } =~ /xmlparser/i )
-        {
-            LOGCONFESS "XML queries are not supported.";
-        }
-    }
-
-    TRACE "Requesting URL: $abs_url...";
-
-    if ( $content )
-    {
-        $content_type ||= 'text/plain; charset=utf-8';
-
-        $req = MediaWords::Util::Web::UserAgent::Request->new( 'POST', $abs_url );
-        $req->set_header( 'Content-Type',   $content_type );
-        $req->set_header( 'Content-Length', bytes::length( $content ) );
-        $req->set_content( $content );
-    }
-    else
-    {
-        $req = MediaWords::Util::Web::UserAgent::Request->new( 'GET', $abs_url );
-    }
-
-    my $res;
-    eval {
-        local $SIG{ ALRM } = sub { die "alarm" };
-
-        alarm $timeout;
-
-        $ua->set_timeout( $timeout );
-        $res = $ua->request( $req );
-
-        alarm 0;
-    };
-
-    if ( $@ )
-    {
-        my $error_message = $@;
-
-        if ( $error_message =~ /^alarm at/ )
-        {
-            die "Request to $abs_url timed out after $timeout seconds";
-        }
-        else
-        {
-            die "Request to $abs_url failed: $error_message";
-        }
-    }
-
-    my $response = $res->decoded_content;
-    unless ( $res->is_success )
-    {
-        die "Request to $abs_url returned HTTP error: $response";
-    }
-
-    return $response;
 }
 
 # get the solr url and parameters to send csv data to
@@ -553,7 +474,7 @@ sub _delete_queued_stories($)
 
         my $delete_query = "<delete><query>$stories_id_query</query></delete>";
 
-        eval { _solr_request( $db, 'update', undef, $delete_query, 'application/xml' ); };
+        eval { MediaWords::Solr::Request::solr_request( 'update', undef, $delete_query, 'application/xml' ); };
         if ( $@ )
         {
             my $error = $@;

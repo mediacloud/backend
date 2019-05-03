@@ -27,6 +27,7 @@ use URI::Escape;
 
 use MediaWords::DBI::Stories;
 use MediaWords::Solr::Query;
+use MediaWords::Solr::Request;
 use MediaWords::Util::Config::Common;
 use MediaWords::Util::ParseJSON;
 use MediaWords::Util::Text;
@@ -34,29 +35,9 @@ use MediaWords::Util::Web;
 
 use List::MoreUtils qw/ uniq /;
 
-Readonly my $QUERY_HTTP_TIMEOUT => 900;
 
 # numFound from last query() call, accessible get get_last_num_found
 my $_last_num_found;
-
-=head1 FUNCTIONS
-
-=head2 get_solr_url
-
-Get a solr url from the config, returning either the single url if there is one or a random member of the list if there
-is a list.
-
-=cut
-
-sub get_solr_url
-{
-    my $common_config = MediaWords::Util::Config::Common::CommonConfig();
-    my $url = $common_config->solr_url();
-
-    $url =~ s~/+$~~;
-
-    return $url;
-}
 
 =head2 get_last_num_found
 
@@ -227,99 +208,9 @@ sub query_encoded_json($$;$)
 
     $params->{ fq } = [ map { _insert_collection_media_ids( $db, $_ ) } @{ $params->{ fq } } ];
 
-    my $url = sprintf( '%s/mediacloud/select', get_solr_url() );
+    my $response_content = MediaWords::Solr::Request::solr_request( 'select', {}, $params, 'application/x-www-form-urlencoded' );
 
-    my $ua = MediaWords::Util::Web::UserAgent->new();
-
-    $ua->set_timeout( $QUERY_HTTP_TIMEOUT );
-    $ua->set_max_size( undef );
-
-    # Remediate CVE-2017-12629
-    if ( $params->{ q } )
-    {
-        if ( $params->{ q } =~ /xmlparser/i )
-        {
-            LOGCONFESS "XML queries are not supported.";
-        }
-    }
-
-    # make sure we're not sending fq=[] in the cgi post data
-    delete( $params->{ fq } ) unless ( @{ $params->{ fq } } );
-
-    TRACE "Executing Solr query on $url ...";
-    TRACE 'Parameters: ' . Dumper( $params );
-    my $t0 = [ gettimeofday ];
-
-    my $request = MediaWords::Util::Web::UserAgent::Request->new( 'POST', $url );
-    $request->set_content_type( 'application/x-www-form-urlencoded; charset=utf-8' );
-
-    $request->set_content_utf8( $params );
-
-    my $res = $ua->request( $request );
-
-    TRACE "query returned in " . tv_interval( $t0, [ gettimeofday ] ) . "s.";
-
-    unless ( $res->is_success )
-    {
-        my $error_message;
-
-        if ( $res->error_is_client_side() )
-        {
-
-            # LWP error (LWP wasn't able to connect to the server or something like that)
-            $error_message = 'LWP error: ' . $res->decoded_content;
-
-        }
-        else
-        {
-
-            my $status_code = $res->code;
-            if ( $status_code =~ /^4\d\d$/ )
-            {
-                # Client error - set default message
-                $error_message = 'Client error: ' . $res->status_line . ' ' . $res->decoded_content;
-
-                # Parse out Solr error message if there is one
-                my $solr_response_maybe_json = $res->decoded_content;
-                if ( $solr_response_maybe_json )
-                {
-                    my $solr_response_json;
-
-                    eval { $solr_response_json = MediaWords::Util::ParseJSON::decode_json( $solr_response_maybe_json ) };
-                    unless ( $@ )
-                    {
-                        if (    exists( $solr_response_json->{ error }->{ msg } )
-                            and exists( $solr_response_json->{ responseHeader }->{ params } ) )
-                        {
-                            my $solr_error_msg = $solr_response_json->{ error }->{ msg };
-                            my $solr_params =
-                              MediaWords::Util::ParseJSON::encode_json(
-                                $solr_response_json->{ responseHeader }->{ params } );
-
-                            # If we were able to decode Solr error message, overwrite the default error message with it
-                            $error_message = 'Solr error: "' . $solr_error_msg . '", params: ' . $solr_params;
-                        }
-                    }
-                }
-
-            }
-            elsif ( $status_code =~ /^5\d\d/ )
-            {
-                # Server error or some other error
-                $error_message = 'Server / other error: ' . $res->status_line . ' ' . $res->decoded_content;
-            }
-
-        }
-
-        if ( $c )
-        {
-            # Set HTTP status code if Catalyst object is present
-            $c->response->status( $res->code );
-        }
-        die "Error fetching Solr response: $error_message";
-    }
-
-    return $res->decoded_content;
+    return $response_content;
 }
 
 =head2 query( $db, $params, $c )
