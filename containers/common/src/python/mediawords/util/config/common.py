@@ -300,11 +300,6 @@ class UserAgentConfig(object):
         """Per-domain timeout, in seconds."""
         return int(env_value('MC_USERAGENT_PARALLEL_GET_PER_DOMAIN_TIMEOUT'))
 
-    @staticmethod
-    def throttled_domain_timeout() -> int:
-        """No idea that that is, no one bothered to document it."""
-        return int(env_value('MC_USERAGENT_THROTTLED_DOMAIN_TIMEOUT', allow_empty_string=True))
-
 
 class CommonConfig(object):
     """Global configuration (shared by all the containers)."""

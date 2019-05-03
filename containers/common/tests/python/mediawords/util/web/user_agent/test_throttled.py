@@ -4,7 +4,6 @@ import time
 
 from mediawords.db import connect_to_db
 from mediawords.test.hash_server import HashServer
-from mediawords.util.config.common import UserAgentConfig
 # noinspection PyProtectedMember
 from mediawords.util.web.user_agent.throttled import (
     ThrottledUserAgent,
@@ -63,14 +62,6 @@ def test_throttled_user_agent(self) -> None:
     # test domain_timeout assignment logic
     ua = ThrottledUserAgent(db, domain_timeout=100)
     assert ua.domain_timeout == 100
-
-    class UserAgentThrottledConfig(UserAgentConfig):
-        @staticmethod
-        def throttled_domain_timeout():
-            return 200
-
-    ua = ThrottledUserAgent(db=db, user_agent_config=UserAgentThrottledConfig())
-    assert ua.domain_timeout == 200
 
     ua = ThrottledUserAgent(db=db)
     assert ua.domain_timeout == _DEFAULT_DOMAIN_TIMEOUT

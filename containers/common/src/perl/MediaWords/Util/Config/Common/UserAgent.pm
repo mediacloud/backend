@@ -59,10 +59,4 @@ sub parallel_get_per_domain_timeout($)
     return $self->{ _proxy_config }->parallel_get_per_domain_timeout();
 }
 
-sub throttled_domain_timeout($)
-{
-    my $self = shift;
-    return $self->{ _proxy_config }->throttled_domain_timeout();
-}
-
 1;
