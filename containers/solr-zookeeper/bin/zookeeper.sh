@@ -20,7 +20,7 @@ TEMP_PORT=12345
 TEMP_CONFIG=zoo-setup.cfg
 TEMP_CONFIG_PATH="$ZOOCFGDIR/$TEMP_CONFIG"
 cp "$ZOOCFGDIR/$ZOOCFG" "$TEMP_CONFIG_PATH"
-sed -i -e "s/^clientPortAddress=.*/clientPortAddress=127.0.0.1" $TEMP_CONFIG_PATH
+sed -i -e "s/^clientPortAddress=.*/clientPortAddress=127.0.0.1/" $TEMP_CONFIG_PATH
 sed -i -e "s/^clientPort=.*/clientPort=$TEMP_PORT/" $TEMP_CONFIG_PATH
 ZOOCFG="$TEMP_CONFIG" /opt/zookeeper/bin/zkServer.sh start-foreground &
 while true; do
