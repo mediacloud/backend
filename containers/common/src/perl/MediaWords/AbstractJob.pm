@@ -17,12 +17,12 @@ use Readonly;
 use MediaWords::DB;
 use MediaWords::DB::Locks;
 use MediaWords::Util::ParseJSON;
+use MediaWords::Util::Config::Common;
 
 # (static) Return broker used the job manager
 sub broker()
 {
-    my $common_config = MediaWords::Util::Config::Common::CommonConfig();
-    my $rabbitmq_config = $common_config->rabbitmq();
+    my $rabbitmq_config = MediaWords::Util::Config::Common::rabbitmq();
 
     my $job_broker = MediaWords::JobManager::Broker::RabbitMQ->new(
         hostname => $rabbitmq_config->hostname(),

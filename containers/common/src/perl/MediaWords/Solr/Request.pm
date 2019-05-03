@@ -11,8 +11,11 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use Readonly;
+use URI;
 
 use MediaWords::Util::Config::Common;
+use MediaWords::Util::Web::UserAgent;
+use MediaWords::Util::ParseJSON;
 
 # Timeout of Solr starting up
 Readonly my $SOLR_STARTUP_TIMEOUT => 120;
@@ -23,8 +26,7 @@ Readonly my $QUERY_HTTP_TIMEOUT => 900;
 
 sub _get_solr_url
 {
-    my $common_config = MediaWords::Util::Config::Common::CommonConfig();
-    my $url = $common_config->solr_url();
+    my $url = MediaWords::Util::Config::Common::solr_url();
 
     $url =~ s~/+$~~;
 
@@ -60,7 +62,7 @@ sub _wait_for_solr_to_start()
 
 		    my $collections;
 		    eval {
-		    	$collections = decode_json( $response->decoded_content() );
+		    	$collections = MediaWords::Util::ParseJSON::decode_json( $response->decoded_content() );
 		    };
 		    if ( $@ ) {
 		    	die "Unable to decode response: $@";
@@ -71,11 +73,13 @@ sub _wait_for_solr_to_start()
 		    }
 		};
 		if ( $@ ) {
-			WARNING "Solr is down, will retry: $@";
+			WARN "Solr is down, will retry: $@";
+			sleep( 1 );
 
 		} else {
 			INFO "Solr is up!";
 			$connected = 1;
+			last;
 		}
 
     }
@@ -96,7 +100,7 @@ sub _solr_error_message_from_response($)
     {
 
         # LWP error (LWP wasn't able to connect to the server or something like that)
-        $error_message = 'LWP error: ' . $res->decoded_content;
+        $error_message = 'LWP error: ' . $response->decoded_content;
 
     }
     else
@@ -188,8 +192,6 @@ sub solr_request($$;$$)
     }
 
     my $response = $ua->request( $request );
-
-    TRACE "query returned in " . tv_interval( $t0, [ gettimeofday ] ) . "s.";
 
     unless ( $response->is_success )
     {
