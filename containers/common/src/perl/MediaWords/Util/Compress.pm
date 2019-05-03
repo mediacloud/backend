@@ -23,20 +23,6 @@ use MediaWords::Util::Text;
     1;
 }
 
-sub extract_tarball_to_directory($$;$)
-{
-    my ( $archive_file, $dest_directory, $strip_root ) = @_;
-
-    return MediaWords::Util::Compress::Proxy::extract_tarball_to_directory( $archive_file, $dest_directory, $strip_root );
-}
-
-sub extract_zip_to_directory($$)
-{
-    my ( $archive_file, $dest_directory ) = @_;
-
-    return MediaWords::Util::Compress::Proxy::extract_zip_to_directory( $archive_file, $dest_directory );
-}
-
 sub bzip2($)
 {
     my $data = shift;
