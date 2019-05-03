@@ -637,6 +637,16 @@ sub test_get_authenticated_domains()
             use strict;
             use warnings;
 
+            sub new($)
+            {
+                my ( $class ) = @_;
+
+                my $self = {};
+                bless $self, $class;
+
+                return $self;
+            }
+
             sub domain() { return $domain; }
             sub username() { return 'incorrect_username1'; }
             sub password() { return 'incorrect_password2'; }
@@ -658,7 +668,7 @@ sub test_get_authenticated_domains()
         }
 
         my $default_ua_config = MediaWords::Util::Config::Common::user_agent();
-        my $incorrect_auth_ua_config = NoAuthUserAgentConfig->new( $default_ua_config );
+        my $incorrect_auth_ua_config = IncorrectAuthUserAgentConfig->new( $default_ua_config );
         my $ua                = MediaWords::Util::Web::UserAgent->new( $incorrect_auth_ua_config );
 
         my $invalid_auth_response = $ua->get( $base_auth_url );
@@ -672,6 +682,16 @@ sub test_get_authenticated_domains()
 
             use strict;
             use warnings;
+
+            sub new($)
+            {
+                my ( $class ) = @_;
+
+                my $self = {};
+                bless $self, $class;
+
+                return $self;
+            }
 
             sub domain() { return $domain; }
             sub username() { return $username; }
@@ -694,7 +714,7 @@ sub test_get_authenticated_domains()
         }
 
         my $default_ua_config = MediaWords::Util::Config::Common::user_agent();
-        my $correct_auth_ua_config = NoAuthUserAgentConfig->new( $default_ua_config );
+        my $correct_auth_ua_config = CorrectAuthUserAgentConfig->new( $default_ua_config );
         my $ua                = MediaWords::Util::Web::UserAgent->new( $correct_auth_ua_config );
 
         my $valid_auth_response = $ua->get( $base_auth_url );
