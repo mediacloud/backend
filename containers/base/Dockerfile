@@ -37,6 +37,8 @@ RUN \
         ca-certificates \
         curl \
         htop \
+        # Pinging other containers from within Compose environment
+        iputils-ping \
         less \
         locales \
         # Waiting for some port to open
