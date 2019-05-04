@@ -1,2 +1,2 @@
 # m h dom mon dow user    command
-46  3 *   *   sun root    /cron_refresh_stats.pl 1> /proc/1/fd/1 2> /proc/1/fd/2
+46  3 *   *   sun root    /opt/mediacloud/bin/cron_refresh_stats.pl 1> /proc/1/fd/1 2> /proc/1/fd/2

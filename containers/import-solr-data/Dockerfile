@@ -18,13 +18,12 @@ RUN \
     rm -rf /root/.cpanm/ && \
     true
 
-# Copy Perl sources
-COPY src/perl/ /usr/share/perl5/
-
-# Copy Python sources
-COPY src/python/ /usr/lib/python3/dist-packages/
+# Copy sources
+COPY src/ /opt/mediacloud/src/import-solr-data/
+ENV PERL5LIB="/opt/mediacloud/src/import-solr-data/perl:${PERL5LIB}"
+ENV PYTHONPATH="/opt/mediacloud/src/import-solr-data/python:${PYTHONPATH}"
 
 # Copy importer script
-COPY bin/import_solr_data.pl /
+COPY bin /opt/mediacloud/bin
 
-CMD ["/import_solr_data.pl"]
+CMD ["import_solr_data.pl"]

@@ -1,2 +1,2 @@
 # m h dom mon dow user    command
-16  2 *   *   *   root    /cron_set_media_primary_language.pl 1> /proc/1/fd/1 2> /proc/1/fd/2
+16  2 *   *   *   root    /opt/mediacloud/bin/cron_set_media_primary_language.pl 1> /proc/1/fd/1 2> /proc/1/fd/2

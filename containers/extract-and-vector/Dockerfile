@@ -4,13 +4,12 @@
 
 FROM dockermediacloud/mediacloud-common:latest
 
-# Copy Perl sources
-COPY src/perl/ /usr/share/perl5/
-
-# Copy Python sources
-COPY src/python/ /usr/lib/python3/dist-packages/
+# Copy sources
+COPY src/ /opt/mediacloud/src/extract-and-vector/
+ENV PERL5LIB="/opt/mediacloud/src/extract-and-vector/perl:${PERL5LIB}"
+ENV PYTHONPATH="/opt/mediacloud/src/extract-and-vector/python:${PYTHONPATH}"
 
 # Copy extractor worker
-COPY bin/extract_and_vector.py /
+COPY bin /opt/mediacloud/bin
 
-CMD ["/extract_and_vector.py"]
+CMD ["extract_and_vector.py"]

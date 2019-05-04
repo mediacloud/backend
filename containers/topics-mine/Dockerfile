@@ -4,13 +4,12 @@
 
 FROM dockermediacloud/mediacloud-topics-base:latest
 
-# Copy Perl sources
-COPY src/perl/ /usr/share/perl5/
-
-# Copy Python sources
-COPY src/python/ /usr/lib/python3/dist-packages/
+# Copy sources
+COPY src/ /opt/mediacloud/src/topics-mine/
+ENV PERL5LIB="/opt/mediacloud/src/topics-mine/perl:${PERL5LIB}"
+ENV PYTHONPATH="/opt/mediacloud/src/topics-mine/python:${PYTHONPATH}"
 
 # Copy worker script
-COPY bin/topics_mine.pm /
+COPY bin /opt/mediacloud/bin
 
-CMD ["/topics_mine.pm"]
+CMD ["topics_mine.pm"]

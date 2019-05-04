@@ -1,2 +1,2 @@
 # m h dom mon dow user    command
-0   3 *   *   *   root    /cron_rescrape_due_media.pl 1> /proc/1/fd/1 2> /proc/1/fd/2
+0   3 *   *   *   root    /opt/mediacloud/bin/cron_rescrape_due_media.pl 1> /proc/1/fd/1 2> /proc/1/fd/2

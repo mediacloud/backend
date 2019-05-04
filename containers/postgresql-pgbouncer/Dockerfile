@@ -15,6 +15,6 @@ COPY conf/userlist.txt /etc/pgbouncer/
 EXPOSE 6432
 
 # Copy wrapper script
-COPY bin/pgbouncer.sh /
+COPY bin /opt/mediacloud/bin
 
 CMD ["/pgbouncer.sh"]

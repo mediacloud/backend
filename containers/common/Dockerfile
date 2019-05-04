@@ -72,15 +72,20 @@ RUN \
     rm -rf /root/.cache/ && \
     true
 
-# Copy Perl sources
-COPY src/perl/ /usr/share/perl5/
+# Create directory where sources will be stored in
+RUN mkdir -p /opt/mediacloud/src/ /opt/mediacloud/tests/
 
-# Copy Python sources
-COPY src/python/ /usr/lib/python3/dist-packages/
+# /opt/mediacloud/bin is where container images are expected to store executables
+ENV PATH="/opt/mediacloud/bin:${PATH}"
+
+# Copy sources
+COPY src/ /opt/mediacloud/src/common/
+ENV PERL5LIB="/opt/mediacloud/src/common/perl:${PERL5LIB}"
+ENV PYTHONPATH="/opt/mediacloud/src/common/python:${PYTHONPATH}"
 
 # Test if submodules were checked out
 RUN \
-    if [ ! -f /usr/lib/python3/dist-packages/mediawords/languages/lt/snowball_stemmer/LICENSE ]; then \
+    if [ ! -f /opt/mediacloud/src/common/python/mediawords/languages/lt/snowball_stemmer/LICENSE ]; then \
         echo && \
         echo "Git submodules haven't been checked out, please run:" && \
         echo && \
@@ -91,5 +96,5 @@ RUN \
         exit 1; \
     fi
 
-# Move Log::Log4perl configuration
-RUN mv /usr/share/perl5/log4perl.conf /etc/
+# Symlink Log::Log4perl configuration to where it's going to be found
+RUN ln -s /opt/mediacloud/src/common/perl/log4perl.conf /etc/log4perl.conf

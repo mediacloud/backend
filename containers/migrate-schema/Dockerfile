@@ -4,14 +4,16 @@
 
 FROM dockermediacloud/mediacloud-common:latest
 
-# Copy Python sources
-COPY src/python/ /usr/lib/python3/dist-packages/
+# Copy sources
+COPY src/ /opt/mediacloud/src/migrate-schema/
+ENV PERL5LIB="/opt/mediacloud/src/migrate-schema/perl:${PERL5LIB}"
+ENV PYTHONPATH="/opt/mediacloud/src/migrate-schema/python:${PYTHONPATH}"
 
 # Copy schema upgrade script
-COPY bin/migrate_schema.py /
+COPY bin /opt/mediacloud/bin
 
 # Copy full schema and migrations
-COPY schema/ /schema/
+COPY schema/ /opt/mediacloud/schema/
 
 # Just idle around because tests get run with --abort-on-container-exit
-CMD ["/migrate_schema.py", "--sleep_after_finishing"]
+CMD ["migrate_schema.py", "--sleep_after_finishing"]

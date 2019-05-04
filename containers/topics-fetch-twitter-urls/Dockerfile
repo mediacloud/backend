@@ -13,10 +13,12 @@ RUN \
     rm -rf /root/.cache/ && \
     true
 
-# Copy Python sources
-COPY src/python/ /usr/lib/python3/dist-packages/
+# Copy sources
+COPY src/ /opt/mediacloud/src/topics-fetch-twitter-urls/
+ENV PERL5LIB="/opt/mediacloud/src/topics-fetch-twitter-urls/perl:${PERL5LIB}"
+ENV PYTHONPATH="/opt/mediacloud/src/topics-fetch-twitter-urls/python:${PYTHONPATH}"
 
 # Copy worker script
-COPY bin/topics_fetch_twitter_urls.py /
+COPY bin /opt/mediacloud/bin
 
-CMD ["/topics_fetch_twitter_urls.py"]
+CMD ["topics_fetch_twitter_urls.py"]

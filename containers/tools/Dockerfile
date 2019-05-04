@@ -37,11 +37,13 @@ RUN \
     rm -rf /root/.cache/ && \
     true
 
-# Copy Perl sources
-COPY src/perl/ /usr/share/perl5/
+# Copy sources
+COPY src/ /opt/mediacloud/src/tools/
+ENV PERL5LIB="/opt/mediacloud/src/tools/perl:${PERL5LIB}"
+ENV PYTHONPATH="/opt/mediacloud/src/tools/python:${PYTHONPATH}"
 
 # Copy tools
-COPY bin/ /
+COPY bin /opt/mediacloud/bin
 
 # Run the tool (ENTRYPOINT because the tool's path is to follow)
 ENTRYPOINT ["bash", "-c"]

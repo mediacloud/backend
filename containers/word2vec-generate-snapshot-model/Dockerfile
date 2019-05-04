@@ -13,10 +13,12 @@ RUN \
     rm -rf /root/.cache/ && \
     true
 
-# Copy Python sources
-COPY src/python/ /usr/lib/python3/dist-packages/
+# Copy sources
+COPY src/ /opt/mediacloud/src/word2vec-generate-snapshot-model/
+ENV PERL5LIB="/opt/mediacloud/src/word2vec-generate-snapshot-model/perl:${PERL5LIB}"
+ENV PYTHONPATH="/opt/mediacloud/src/word2vec-generate-snapshot-model/python:${PYTHONPATH}"
 
 # Copy worker script
-COPY bin/word2vec_generate_snapshot_model.py /
+COPY bin /opt/mediacloud/bin
 
-CMD ["/word2vec_generate_snapshot_model.py"]
+CMD ["word2vec_generate_snapshot_model.py"]

@@ -15,11 +15,13 @@ RUN \
     rm -rf /root/.cache/ && \
     true
 
-# Copy Python sources
-COPY src/python/ /usr/lib/python3/dist-packages/
+# Copy sources
+COPY src/ /opt/mediacloud/src/extract-article-from-page/
+ENV PERL5LIB="/opt/mediacloud/src/extract-article-from-page/perl:${PERL5LIB}"
+ENV PYTHONPATH="/opt/mediacloud/src/extract-article-from-page/python:${PYTHONPATH}"
 
-COPY bin/extract_article_from_page.py /
+COPY bin /opt/mediacloud/bin
 
 EXPOSE 80
 
-CMD ["/extract_article_from_page.py", "--port", "80"]
+CMD ["extract_article_from_page.py", "--port", "80"]

@@ -18,10 +18,12 @@ RUN \
     rm -rf /root/.cpanm/ && \
     true
 
-# Copy Perl sources
-COPY src/perl/ /usr/share/perl5/
+# Copy sources
+COPY src/ /opt/mediacloud/src/scrape-feedly/
+ENV PERL5LIB="/opt/mediacloud/src/scrape-feedly/perl:${PERL5LIB}"
+ENV PYTHONPATH="/opt/mediacloud/src/scrape-feedly/python:${PYTHONPATH}"
 
 # Copy worker script
-COPY bin/scrape_feedly.pl /
+COPY bin /opt/mediacloud/bin
 
-CMD ["/scrape_feedly.pl", "--all"]
+CMD ["scrape_feedly.pl", "--all"]

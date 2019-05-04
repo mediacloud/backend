@@ -34,7 +34,7 @@ def test_get_links_from_html():
     test_links('<a href=https://twitter.com/account/suspended">', [])
 
     # sanity test to make sure that we are able to get all of the links from a real html page
-    filename = '/tests/data/html-strip/strip.html'
+    filename = '/opt/mediacloud/tests/data/html-strip/strip.html'
     with open(filename, 'r', encoding='utf8') as fh:
         html = fh.read()
 

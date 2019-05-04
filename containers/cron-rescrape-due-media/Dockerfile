@@ -10,7 +10,7 @@
 FROM dockermediacloud/mediacloud-cron-base:latest
 
 # Copy worker script
-COPY bin/cron_rescrape_due_media.pl /
+COPY bin /opt/mediacloud/bin
 
 # Add Cron job
 ADD crontab /etc/cron.d/rescrape_due_media

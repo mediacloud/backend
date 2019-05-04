@@ -5,7 +5,7 @@
 FROM dockermediacloud/mediacloud-cron-base:latest
 
 # Copy Cron script
-COPY bin/cron_generate_user_summary.pl /
+COPY bin /opt/mediacloud/bin
 
 # Add Cron job
 ADD crontab /etc/cron.d/generate_user_summary

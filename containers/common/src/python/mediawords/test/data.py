@@ -44,7 +44,7 @@ def _get_data_file(basename: str, subdirectory: str = '') -> str:
         raise McGetDataFileException("Test data basename can only include '[a-z0-9_].")
 
     return os.path.join(
-        '/tests/data/',
+        '/opt/mediacloud/tests/data/',
         subdirectory,
         "{}{}".format(basename, _get_data_file_extension()),
     )
@@ -78,7 +78,7 @@ def __test_data_files(basename: str) -> List[str]:
     basename = decode_object_from_bytes_if_needed(basename)
 
     glob_path_to_test_data_files = '{}/*{}'.format(
-        '/tests/data/',
+        '/opt/mediacloud/tests/data/',
         basename,
         _get_data_file_extension(),
     )

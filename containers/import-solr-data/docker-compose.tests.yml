@@ -1,0 +1,79 @@
+version: "3.7"
+
+services:
+
+    mc_import_solr_data:
+        image: dockermediacloud/mediacloud-import-solr-data:latest
+        stop_signal: SIGKILL
+        env_file: ./../global.env.dist
+        volumes:
+            - type: bind
+              source: ./bin/
+              target: /opt/mediacloud/bin/
+            - type: bind
+              source: ./src/
+              target: /opt/mediacloud/src/import-solr-data/
+            - type: bind
+              source: ./tests/
+              target: /opt/mediacloud/tests/
+            - type: bind
+              source: ./../common/src/
+              target: /opt/mediacloud/src/common/
+
+    mc_migrate_schema:
+        image: dockermediacloud/mediacloud-migrate-schema:latest
+        env_file: ./../global.env.dist
+        stop_signal: SIGKILL
+        logging:
+            driver: none
+
+    mc_postgresql_pgbouncer:
+        image: dockermediacloud/mediacloud-postgresql-pgbouncer:latest
+        env_file: ./../global.env.dist
+        stop_signal: SIGKILL
+        logging:
+            driver: none
+        expose:
+            - 6432
+
+    mc_postgresql_server:
+        image: dockermediacloud/mediacloud-postgresql-server:latest
+        env_file: ./../global.env.dist
+        stop_signal: SIGKILL
+        logging:
+            driver: none
+        expose:
+            - 5432
+        volumes:
+            - vol_postgresql_data:/var/lib/postgresql/11/main/
+
+    mc_solr_shard:
+        image: dockermediacloud/mediacloud-solr-shard:latest
+        env_file: ./../global.env.dist
+        stop_signal: SIGKILL
+        logging:
+            driver: none
+        environment:
+            MC_SOLR_SHARD_COUNT: "1"
+        expose:
+            - 8983
+        volumes:
+            - vol_solr_shard_data:/var/lib/solr/
+
+    mc_solr_zookeeper:
+        image: dockermediacloud/mediacloud-solr-zookeeper:latest
+        env_file: ./../global.env.dist
+        stop_signal: SIGKILL
+        logging:
+            driver: none
+        expose:
+            - 2181
+            - 2888
+            - 3888
+        volumes:
+            - vol_solr_zookeeper_data:/var/lib/zookeeper/
+
+volumes:
+    vol_postgresql_data: {}
+    vol_solr_shard_data: {}
+    vol_solr_zookeeper_data: {}

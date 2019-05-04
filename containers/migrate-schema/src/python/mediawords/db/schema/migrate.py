@@ -9,7 +9,7 @@ from mediawords.util.perl import decode_object_from_bytes_if_needed
 
 log = create_logger(__name__)
 
-SCHEMA_DIR_PATH = '/schema/'
+SCHEMA_DIR_PATH = '/opt/mediacloud/schema/'
 FULL_SCHEMA_PATH = os.path.join(SCHEMA_DIR_PATH, 'mediawords.sql')
 MIGRATIONS_DIR_PATH = os.path.join(SCHEMA_DIR_PATH, 'migrations')
 

@@ -4,6 +4,6 @@
 
 FROM dockermediacloud/mediacloud-common:latest
 
-COPY bin/purge_object_caches.py /
+COPY bin /opt/mediacloud/bin
 
-CMD ["/purge_object_caches.py"]
+CMD ["purge_object_caches.py"]

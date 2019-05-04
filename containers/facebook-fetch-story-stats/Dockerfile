@@ -4,10 +4,12 @@
 
 FROM dockermediacloud/mediacloud-common:latest
 
-# Copy Perl sources
-COPY src/perl/ /usr/share/perl5/
+# Copy sources
+COPY src/ /opt/mediacloud/src/facebook-fetch-story-stats/
+ENV PERL5LIB="/opt/mediacloud/src/facebook-fetch-story-stats/perl:${PERL5LIB}"
+ENV PYTHONPATH="/opt/mediacloud/src/facebook-fetch-story-stats/python:${PYTHONPATH}"
 
 # Copy worker script
-COPY bin/facebook_fetch_story_stats.pm /
+COPY bin /opt/mediacloud/bin
 
-CMD ["/facebook_fetch_story_stats.pm"]
+CMD ["facebook_fetch_story_stats.pm"]

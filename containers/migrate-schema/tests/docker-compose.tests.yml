@@ -1,7 +1,0 @@
-version: "3.7"
-
-services:
-
-    mc_migrate_schema:
-        image: dockermediacloud/mediacloud-migrate-schema:latest
-        env_file: global.env

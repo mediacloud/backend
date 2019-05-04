@@ -4,10 +4,12 @@
 
 FROM dockermediacloud/mediacloud-topics-base:latest
 
-# Copy Python sources
-COPY src/python/ /usr/lib/python3/dist-packages/
+# Copy sources
+COPY src/ /opt/mediacloud/src/topics-extract-story-links/
+ENV PERL5LIB="/opt/mediacloud/src/topics-extract-story-links/perl:${PERL5LIB}"
+ENV PYTHONPATH="/opt/mediacloud/src/topics-extract-story-links/python:${PYTHONPATH}"
 
 # Copy worker script
-COPY bin/topics_extract_story_links.py /
+COPY bin /opt/mediacloud/bin
 
-CMD ["/topics_extract_story_links.py"]
+CMD ["topics_extract_story_links.py"]

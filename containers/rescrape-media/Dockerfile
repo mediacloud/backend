@@ -18,10 +18,12 @@ RUN \
     rm -rf /root/.cpanm/ && \
     true
 
-# Copy Perl sources
-COPY src/perl/ /usr/share/perl5/
+# Copy sources
+COPY src/ /opt/mediacloud/src/rescrape-media/
+ENV PERL5LIB="/opt/mediacloud/src/rescrape-media/perl:${PERL5LIB}"
+ENV PYTHONPATH="/opt/mediacloud/src/rescrape-media/python:${PYTHONPATH}"
 
 # Copy worker script
-COPY bin/rescrape_media.pm /
+COPY bin /opt/mediacloud/bin
 
-CMD ["/rescrape_media.pm"]
+CMD ["rescrape_media.pm"]

@@ -39,7 +39,7 @@ sub test_extract_content($$$)
 
     die "story '$title' not found " unless $story;
 
-    my $path            = "/tests/data/crawler/$test_dataset/$file";
+    my $path            = "/opt/mediacloud/tests/data/crawler/$test_dataset/$file";
 
     my $content = MediaWords::Util::Text::decode_from_utf8( read_file( $path ) );
 

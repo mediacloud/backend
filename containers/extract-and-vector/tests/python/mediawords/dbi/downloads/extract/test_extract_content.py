@@ -33,7 +33,7 @@ class TestExtractContent(TestCase, TestCaseTextUtilities):
         story = test_story_hash.get(test_title, None)
         assert story, "Story with title '{}' was not found.".format(test_title)
 
-        path = os.path.join('/tests/data/crawler/', test_dataset, test_file)
+        path = os.path.join('/opt/mediacloud/tests/data/crawler/', test_dataset, test_file)
 
         with open(path, mode='r', encoding='utf-8') as f:
             content = f.read()

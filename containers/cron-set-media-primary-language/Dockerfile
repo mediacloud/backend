@@ -4,11 +4,13 @@
 
 FROM dockermediacloud/mediacloud-cron-base:latest
 
-# Copy Perl sources
-COPY src/perl/ /usr/share/perl5/
+# Copy sources
+COPY src/ /opt/mediacloud/src/cron-set-media-primary-language/
+ENV PERL5LIB="/opt/mediacloud/src/cron-set-media-primary-language/perl:${PERL5LIB}"
+ENV PYTHONPATH="/opt/mediacloud/src/cron-set-media-primary-language/python:${PYTHONPATH}"
 
 # Copy Cron script
-COPY bin/cron_set_media_primary_language.pl /
+COPY bin /opt/mediacloud/bin
 
 # Add Cron job
 ADD crontab /etc/cron.d/set_media_primary_language

@@ -99,7 +99,7 @@ def docker_test_commands(all_containers_dir: str, test_file: str, dummy: bool = 
     if not os.path.isdir(tests_dir):
         raise ValueError("Test file '{}' is not located in '{}' subdirectory.".format(test_file, tests_dir))
 
-    docker_compose_path = os.path.join(container_dir, 'tests', DOCKER_COMPOSE_FILENAME)
+    docker_compose_path = os.path.join(container_dir, DOCKER_COMPOSE_FILENAME)
     if not os.path.isfile(docker_compose_path):
         raise ValueError("docker-compose configuration was not found at '{}'.".format(docker_compose_path))
 
@@ -118,7 +118,7 @@ def docker_test_commands(all_containers_dir: str, test_file: str, dummy: bool = 
         test_command = 'sleep infinity'
 
     else:
-        test_path_in_container = '/tests' + test_file[len(tests_dir):]
+        test_path_in_container = '/opt/mediacloud/tests' + test_file[len(tests_dir):]
 
         if test_file.endswith('.py'):
             test_command = 'py.test --verbose ' + test_path_in_container
@@ -142,18 +142,6 @@ def docker_test_commands(all_containers_dir: str, test_file: str, dummy: bool = 
         '--no-start',
         '--renew-anon-volumes',
         '--force-recreate',
-    ])
-
-    # Copy the whole "tests/" directory because:
-    #
-    # 1) Certain test files might be using other test files
-    # 2) Directory might have test data made available in "tests/data/"
-    #
-    commands.append([
-        'docker',
-        'cp',
-        tests_dir,
-        '{}_{}_1:/'.format(project_name, container_name),
     ])
 
     commands.append([

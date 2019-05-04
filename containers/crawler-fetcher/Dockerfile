@@ -18,12 +18,11 @@ RUN \
     rm -rf /root/.cpanm/ && \
     true
 
-# Copy Perl sources
-COPY src/perl/ /usr/share/perl5/
+# Copy sources
+COPY src/ /opt/mediacloud/src/crawler-fetcher/
+ENV PERL5LIB="/opt/mediacloud/src/crawler-fetcher/perl:${PERL5LIB}"
+ENV PYTHONPATH="/opt/mediacloud/src/crawler-fetcher/python:${PYTHONPATH}"
 
-# Copy Python sources
-COPY src/python/ /usr/lib/python3/dist-packages/
+COPY bin /opt/mediacloud/bin
 
-COPY bin/crawler-fetcher.pl /
-
-CMD ["/crawler-fetcher.pl"]
+CMD ["crawler-fetcher.pl"]

@@ -1,0 +1,54 @@
+version: "3.7"
+
+services:
+
+    mc_nytlabels_fetch_annotation:
+        image: dockermediacloud/mediacloud-nytlabels-fetch-annotation:latest
+        stop_signal: SIGKILL
+        env_file: ./../global.env.dist
+        volumes:
+            - type: bind
+              source: ./bin/
+              target: /opt/mediacloud/bin/
+            - type: bind
+              source: ./src/
+              target: /opt/mediacloud/src/nytlabels-fetch-annotation/
+            - type: bind
+              source: ./tests/
+              target: /opt/mediacloud/tests/
+            - type: bind
+              source: ./../nytlabels-base/src/
+              target: /opt/mediacloud/src/nytlabels-base/
+            - type: bind
+              source: ./../common/src/
+              target: /opt/mediacloud/src/common/
+
+    mc_migrate_schema:
+        image: dockermediacloud/mediacloud-migrate-schema:latest
+        env_file: ./../global.env.dist
+        stop_signal: SIGKILL
+        logging:
+            driver: none
+
+    mc_postgresql_pgbouncer:
+        image: dockermediacloud/mediacloud-postgresql-pgbouncer:latest
+        env_file: ./../global.env.dist
+        stop_signal: SIGKILL
+        logging:
+            driver: none
+        expose:
+            - 6432
+
+    mc_postgresql_server:
+        image: dockermediacloud/mediacloud-postgresql-server:latest
+        env_file: ./../global.env.dist
+        stop_signal: SIGKILL
+        logging:
+            driver: none
+        expose:
+            - 5432
+        volumes:
+            - vol_postgresql_data:/var/lib/postgresql/11/main/
+
+volumes:
+    vol_postgresql_data: {}

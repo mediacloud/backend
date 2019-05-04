@@ -4,11 +4,13 @@
 
 FROM dockermediacloud/mediacloud-cron-base:latest
 
-# Copy Perl sources
-COPY src/perl/ /usr/share/perl5/
+# Copy sources
+COPY src/ /opt/mediacloud/src/cron-generate-media-health/
+ENV PERL5LIB="/opt/mediacloud/src/cron-generate-media-health/perl:${PERL5LIB}"
+ENV PYTHONPATH="/opt/mediacloud/src/cron-generate-media-health/python:${PYTHONPATH}"
 
 # Copy Cron script
-COPY bin/cron_generate_media_health.pl /
+COPY bin /opt/mediacloud/bin
 
 # Add Cron job
 ADD crontab /etc/cron.d/generate_media_health

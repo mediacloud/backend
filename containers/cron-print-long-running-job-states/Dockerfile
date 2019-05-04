@@ -5,7 +5,7 @@
 FROM dockermediacloud/mediacloud-cron-base:latest
 
 # Copy Cron script
-COPY bin/cron_print_long_running_job_states.py /
+COPY bin /opt/mediacloud/bin
 
 # Add Cron job
 ADD crontab /etc/cron.d/print_long_running_job_states
