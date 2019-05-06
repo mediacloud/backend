@@ -62,7 +62,7 @@ install:
   - ./build_tools/print_build_commands.py | bash
 script:
   # Run all test files in all containers
-  - ./build_tools/print_run_all_tests_commands.py | parallel --jobs 4 --group
+  #- ./build_tools/print_run_all_tests_commands.py | parallel --jobs 4 --group
 after_success:
   # Log in to Docker Hub
   - echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
