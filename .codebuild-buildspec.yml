@@ -3,6 +3,8 @@ version: 0.2
 phases:
 
   install:
+    runtime-versions:
+      docker: 18
     commands:
       # Upgrade docker-compose
       - pip3 install --quiet --upgrade docker-compose && docker-compose version
