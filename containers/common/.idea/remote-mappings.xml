@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="RemoteMappingsManager">
+    <list>
+      <list>
+        <remote-mappings server-id="python@docker-compose://[/Users/pypt/Dropbox/etc-MediaCloud/trunk/containers/common/docker-compose.tests.yml]:mc_common/python3">
+          <settings>
+            <list>
+              <mapping local-root="$PROJECT_DIR$/src" remote-root="/opt/mediacloud/src/common" />
+              <mapping local-root="$PROJECT_DIR$/tests" remote-root="/opt/mediacloud/tests" />
+              <mapping local-root="$PROJECT_DIR$/bin" remote-root="/opt/mediacloud/bin" />
+            </list>
+          </settings>
+        </remote-mappings>
+      </list>
+    </list>
+  </component>
+</project>
