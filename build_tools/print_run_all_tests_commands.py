@@ -69,7 +69,7 @@ def docker_all_tests_commands(all_containers_dir: str) -> List[List[str]]:
             python_tests_dir = os.path.join(tests_dir, 'python')
 
             perl_tests = _find_files_with_pattern(perl_tests_dir, re.compile(r'^.+?\.t$'))
-            python_tests = _find_files_with_pattern(python_tests_dir, re.compile(r'^test_.+?\.py'))
+            python_tests = _find_files_with_pattern(python_tests_dir, re.compile(r'^test_.+?\.py$'))
 
             if not (perl_tests or python_tests):
                 # Might be a programmer error
