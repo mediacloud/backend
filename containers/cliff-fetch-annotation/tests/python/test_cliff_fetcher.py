@@ -1,10 +1,10 @@
 from typing import Union
 
 from mediawords.db import connect_to_db
-from mediawords.annotator.cliff_fetcher import CLIFFAnnotatorFetcher
-from mediawords.annotator.sample_data import sample_cliff_response
+from cliff_fetch_annotation.fetcher import CLIFFAnnotatorFetcher
+from cliff_base.sample_data import sample_cliff_response
 from mediawords.test.hash_server import HashServer
-from mediawords.util.config.cliff_fetcher import CLIFFFetcherConfig
+from cliff_fetch_annotation.config import CLIFFFetcherConfig
 from mediawords.util.parse_json import encode_json
 from mediawords.util.network import random_unused_port
 from mediawords.util.sql import sql_now

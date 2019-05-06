@@ -5,7 +5,7 @@ from mediawords.job import AbstractJob, McAbstractJobException, JobBrokerApp, Jo
 from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_object_from_bytes_if_needed
 
-from mediawords.annotator.cliff_fetcher import CLIFFAnnotatorFetcher
+from cliff_fetch_annotation.fetcher import CLIFFAnnotatorFetcher
 
 log = create_logger(__name__)
 

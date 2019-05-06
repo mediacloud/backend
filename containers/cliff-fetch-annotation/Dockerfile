@@ -12,4 +12,4 @@ ENV PYTHONPATH="/opt/mediacloud/src/cliff-fetch-annotation/python:${PYTHONPATH}"
 # Copy worker script
 COPY bin /opt/mediacloud/bin
 
-CMD ["cliff_fetch_annotation.py"]
+CMD ["cliff-fetch-annotation.py"]

@@ -1,12 +1,12 @@
 from typing import Union
 
-from mediawords.annotator.cliff_store import CLIFFAnnotatorStore
+from cliff_base.cliff_store import CLIFFAnnotatorStore
 from mediawords.annotator.fetcher import JSONAnnotationFetcher, McJSONAnnotationFetcherException
 from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_object_from_bytes_if_needed
 from mediawords.util.web.user_agent import Request
 
-from mediawords.util.config.cliff_fetcher import CLIFFFetcherConfig
+from cliff_fetch_annotation.config import CLIFFFetcherConfig
 
 log = create_logger(__name__)
 
