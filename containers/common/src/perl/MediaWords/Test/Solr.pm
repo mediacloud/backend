@@ -11,6 +11,7 @@ use Test::More;
 use MediaWords::Solr;
 use MediaWords::Util::Tags;
 use MediaWords::Test::DB::Create;
+use MediaWords::JobManager::Job;
 
 =head2 test_story_query( $db, $q, $expected_story, $label )
 
