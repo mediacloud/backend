@@ -195,10 +195,14 @@ sub get_extra_where_clause
 
     my $db = $c->dbis;
 
-    if ( my $tags_id = int( $c->req->params->{ tags_id } // 0 ) )
+    if ( my $tags_id = $c->req->params->{ tags_id } )
     {
-        push( @{ $clauses },
-            "and media_id in ( select mtm.media_id from media_tags_map mtm where mtm.tags_id = $tags_id )" );
+        $tags_id = ref( $tags_id ) ? $tags_id : [ $tags_id ];
+        my $tags_id_list = join( ',', map { int( $_ ) } @{ $tags_id } );
+        push(
+            @{ $clauses },
+            "and media_id in ( select mtm.media_id from media_tags_map mtm where mtm.tags_id in ($tags_id_list) )"
+        );
     }
 
     if ( my $q = $c->req->params->{ q } )
