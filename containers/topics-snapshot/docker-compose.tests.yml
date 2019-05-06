@@ -22,6 +22,10 @@ services:
             - type: bind
               source: ./../common/src/
               target: /opt/mediacloud/src/common/
+        depends_on:
+            - mc_migrate_schema
+            - mc_solr_shard
+            - mc_rabbitmq_server
 
     mc_migrate_schema:
         image: dockermediacloud/mediacloud-migrate-schema:latest
@@ -29,6 +33,8 @@ services:
         stop_signal: SIGKILL
         logging:
             driver: none
+        depends_on:
+            - mc_postgresql_pgbouncer
 
     mc_postgresql_pgbouncer:
         image: dockermediacloud/mediacloud-postgresql-pgbouncer:latest
@@ -38,6 +44,8 @@ services:
             driver: none
         expose:
             - 6432
+        depends_on:
+            - mc_postgresql_server
 
     mc_postgresql_server:
         image: dockermediacloud/mediacloud-postgresql-server:latest
@@ -62,6 +70,8 @@ services:
             - 8983
         volumes:
             - vol_solr_shard_data:/var/lib/solr/
+        depends_on:
+            - mc_solr_zookeeper
 
     mc_solr_zookeeper:
         image: dockermediacloud/mediacloud-solr-zookeeper:latest

@@ -22,6 +22,11 @@ services:
             - type: bind
               source: ./../common/src/
               target: /opt/mediacloud/src/common/
+        depends_on:
+            - mc_migrate_schema
+            - mc_rabbitmq_server
+            - mc_topics_fetch_link
+            - mc_topics_extract_story_links
 
     mc_migrate_schema:
         image: dockermediacloud/mediacloud-migrate-schema:latest
@@ -29,6 +34,8 @@ services:
         stop_signal: SIGKILL
         logging:
             driver: none
+        depends_on:
+            - mc_postgresql_pgbouncer
 
     mc_postgresql_pgbouncer:
         image: dockermediacloud/mediacloud-postgresql-pgbouncer:latest
@@ -38,6 +45,8 @@ services:
             driver: none
         expose:
             - 6432
+        depends_on:
+            - mc_postgresql_server
 
     mc_postgresql_server:
         image: dockermediacloud/mediacloud-postgresql-server:latest
