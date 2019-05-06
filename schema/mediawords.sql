@@ -492,6 +492,53 @@ create index stories_language on stories(language);
 create index stories_title_hash on stories( md5( title ) );
 create index stories_publish_day on stories( date_trunc( 'day', publish_date ) );
 
+
+CREATE OR REPLACE FUNCTION get_normalized_title(title text, title_media_id int)
+ RETURNS text
+ IMMUTABLE
+AS $function$
+declare
+        title_part text;
+        media_title text;
+begin
+
+        -- stupid simple html stripper to avoid html messing up title_parts
+        select into title regexp_replace(title, '<[^\<]*>', '', 'gi');
+        select into title regexp_replace(title, '\&#?[a-z0-9]*', '', 'gi');
+
+        select into title lower(title);
+        select into title regexp_replace(title,'(?:\- )|[:|]', 'SEPSEP', 'g');
+        select into title regexp_replace(title, '[[:punct:]]', '', 'g');
+        select into title regexp_replace(title, '\s+', ' ', 'g');
+        select into title substr(title, 0, 1024);
+
+        if title_media_id = 0 then
+            return title;
+        end if;
+
+        select into title_part part
+            from ( select regexp_split_to_table(title, ' *SEPSEP *') part ) parts
+            order by length(part) desc limit 1;
+
+        if title_part = title then
+            return title;
+        end if;
+
+        if length(title_part) < 32 then
+            return title;
+        end if;
+
+        select into media_title get_normalized_title(name, 0) from media where media_id = title_media_id;
+        if media_title = title_part then
+            return title;
+        end if;
+
+        return title_part;
+end
+$function$ language plpgsql;
+
+--create index stories_normalized_title on stories(get_normalized_title(title), media_id);
+
 create function insert_solr_import_story() returns trigger as $insert_solr_import_story$
 DECLARE
 
@@ -531,7 +578,6 @@ create table stories_ap_syndicated (
 );
 
 create unique index stories_ap_syndicated_story on stories_ap_syndicated ( stories_id );
-
 
 --
 -- Partitioning tools for tables partitioned by "stories_id"
@@ -735,7 +781,6 @@ BEGIN
         UPDATE downloads
         SET parent = NULL
         WHERE parent = OLD.downloads_id;
-
 
         -- Return deleted rows
         RETURN OLD;
