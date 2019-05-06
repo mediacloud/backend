@@ -82,10 +82,6 @@ def docker_all_tests_commands(all_containers_dir: str) -> List[List[str]]:
                     print_test_commands_script,
                     '--all_containers_dir', all_containers_dir,
                     test_file,
-
-                    # Script merely prints the commands to run so we have to pipe them to "bash" to actually run them
-                    '|',
-                    'bash',
                 ])
 
     return commands
@@ -96,4 +92,4 @@ if __name__ == '__main__':
     args = parser.parse_arguments()
 
     for command_ in docker_all_tests_commands(all_containers_dir=args.all_containers_dir()):
-        print(' '.join(command_))
+        print('bash <(' + ' '.join(command_) + ')')
