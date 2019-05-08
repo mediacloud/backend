@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 
-from mediawords.annotator.cliff_tagger import CLIFFTagger
 from mediawords.db import connect_to_db
 from mediawords.job import JobBroker
 from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_object_from_bytes_if_needed
+from cliff_update_story_tags.cliff_tagger import CLIFFTagger
 
 log = create_logger(__name__)
 

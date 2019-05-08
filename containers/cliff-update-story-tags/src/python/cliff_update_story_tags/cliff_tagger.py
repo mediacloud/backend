@@ -1,10 +1,10 @@
 from typing import Union, List
 
-from mediawords.annotator.cliff_store import CLIFFAnnotatorStore
 from mediawords.annotator.tagger import JSONAnnotationTagger, McJSONAnnotationTaggerException
-from mediawords.util.config.cliff_tagger import CLIFFTaggerConfig
 from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_object_from_bytes_if_needed
+from cliff_base.cliff_store import CLIFFAnnotatorStore
+from cliff_update_story_tags.config import CLIFFTaggerConfig
 
 log = create_logger(__name__)
 
