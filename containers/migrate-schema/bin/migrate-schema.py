@@ -8,8 +8,8 @@ import argparse
 import time
 
 from mediawords.db import connect_to_db
-from mediawords.db.schema.migrate import migration_sql
 from mediawords.util.log import create_logger
+from migrate_schema import migration_sql
 
 log = create_logger(__name__)
 

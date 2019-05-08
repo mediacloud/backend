@@ -1,8 +1,8 @@
 from mediawords.db import connect_to_db
-from mediawords.annotator.cliff_tagger import CLIFFTagger
-from mediawords.annotator.cliff_store import CLIFFAnnotatorStore
-from mediawords.annotator.sample_data import sample_cliff_response, expected_cliff_tags
 from mediawords.util.sql import sql_now
+from cliff_update_story_tags.cliff_tagger import CLIFFTagger
+from cliff_base.cliff_store import CLIFFAnnotatorStore
+from cliff_base.sample_data import sample_cliff_response, expected_cliff_tags
 
 
 def test_cliff_tagger():

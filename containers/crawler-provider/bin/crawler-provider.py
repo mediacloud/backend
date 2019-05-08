@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
 
-import mediawords.crawler.provider
-import mediawords.db
-
-def main():
-    db = mediawords.db.connect_to_db()
-    mediawords.crawler.provider.run_provider(db)
+from mediawords.db import connect_to_db
+from crawler_provider import run_provider
 
 
-main()
+if __name__ == '__main__':
+    db = connect_to_db()
+    run_provider(db)

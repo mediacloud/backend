@@ -16,4 +16,4 @@ COPY bin /opt/mediacloud/bin
 COPY schema/ /opt/mediacloud/schema/
 
 # Just idle around because tests get run with --abort-on-container-exit
-CMD ["migrate_schema.py", "--sleep_after_finishing"]
+CMD ["migrate-schema.py", "--sleep_after_finishing"]
