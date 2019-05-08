@@ -3,57 +3,50 @@
 from mediawords.annotator.nyt_labels_tagger import NYTLabelsTagger
 from mediawords.db import connect_to_db
 from mediawords.dbi.stories.postprocess import mark_as_processed
-from mediawords.job import AbstractJob, McAbstractJobException, JobBrokerApp
+from mediawords.job import JobBroker
 from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_object_from_bytes_if_needed
 
 log = create_logger(__name__)
 
 
-class McNYTLabelsUpdateStoryTagsJobException(McAbstractJobException):
+class McNYTLabelsUpdateStoryTagsJobException(Exception):
     """NYTLabelsUpdateStoryTagsJob exception."""
     pass
 
 
-class NYTLabelsUpdateStoryTagsJob(AbstractJob):
+def run_nytlabels_update_story_tags(stories_id: int) -> None:
     """Create / update story tags using NYTLabels annotation."""
+    if isinstance(stories_id, bytes):
+        stories_id = decode_object_from_bytes_if_needed(stories_id)
 
-    @classmethod
-    def run_job(cls, stories_id: int) -> None:
-        if isinstance(stories_id, bytes):
-            stories_id = decode_object_from_bytes_if_needed(stories_id)
+    if stories_id is None:
+        raise McNYTLabelsUpdateStoryTagsJobException("'stories_id' is None.")
 
-        if stories_id is None:
-            raise McNYTLabelsUpdateStoryTagsJobException("'stories_id' is None.")
+    stories_id = int(stories_id)
 
-        stories_id = int(stories_id)
+    db = connect_to_db()
 
-        db = connect_to_db()
+    log.info("Updating tags for story ID %d..." % stories_id)
 
-        log.info("Updating tags for story ID %d..." % stories_id)
+    story = db.find_by_id(table='stories', object_id=stories_id)
+    if story is None:
+        raise McNYTLabelsUpdateStoryTagsJobException("Story with ID %d was not found." % stories_id)
 
-        story = db.find_by_id(table='stories', object_id=stories_id)
-        if story is None:
-            raise McNYTLabelsUpdateStoryTagsJobException("Story with ID %d was not found." % stories_id)
+    nytlabels = NYTLabelsTagger()
+    try:
+        nytlabels.update_tags_for_story(db=db, stories_id=stories_id)
+    except Exception as ex:
+        raise McNYTLabelsUpdateStoryTagsJobException(
+            "Unable to process story ID %d with NYTLabels: %s" % (stories_id, str(ex),)
+        )
 
-        nytlabels = NYTLabelsTagger()
-        try:
-            nytlabels.update_tags_for_story(db=db, stories_id=stories_id)
-        except Exception as ex:
-            raise McNYTLabelsUpdateStoryTagsJobException(
-                "Unable to process story ID %d with NYTLabels: %s" % (stories_id, str(ex),)
-            )
+    log.info("Marking story ID %d as processed..." % stories_id)
+    mark_as_processed(db=db, stories_id=stories_id)
 
-        log.info("Marking story ID %d as processed..." % stories_id)
-        mark_as_processed(db=db, stories_id=stories_id)
-
-        log.info("Finished updating tags for story ID %d" % stories_id)
-
-    @classmethod
-    def queue_name(cls) -> str:
-        return 'MediaWords::Job::NYTLabels::UpdateStoryTags'
+    log.info("Finished updating tags for story ID %d" % stories_id)
 
 
 if __name__ == '__main__':
-    app = JobBrokerApp(queue_name=NYTLabelsUpdateStoryTagsJob.queue_name())
-    app.start_worker()
+    app = JobBroker(queue_name='MediaWords::Job::NYTLabels::UpdateStoryTags')
+    app.start_worker(handler=run_nytlabels_update_story_tags)

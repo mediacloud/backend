@@ -13,7 +13,7 @@ from mediawords.db.exceptions.handler import McUniqueConstraintException
 from mediawords.dbi.downloads.store import McDBIDownloadsException, fetch_content, store_content
 from mediawords.dbi.stories.stories import MAX_URL_LENGTH, MAX_TITLE_LENGTH
 from mediawords.dbi.stories.dup import get_medium_dup_stories_by_url, get_medium_dup_stories_by_title
-from mediawords.job import JobManager
+from mediawords.job import JobBroker
 from mediawords.key_value_store.amazon_s3 import McAmazonS3StoreException
 from mediawords.util.guess_date import guess_date, GuessDateResult, GUESS_METHOD_TAG_SET, INVALID_TAG_SET, INVALID_TAG
 from mediawords.util.log import create_logger
@@ -70,8 +70,7 @@ def _extract_story(story: dict) -> None:
     if re2.search(r'livejournal.com\/(tag|profile)', story['url'], re2.I):
         return
 
-    JobManager.run_remotely(
-        name='MediaWords::Job::ExtractAndVector',
+    JobBroker(queue_name='MediaWords::Job::ExtractAndVector').run_remotely(
         stories_id=story['stories_id'],
         use_cache=True,
         use_existing=True,
