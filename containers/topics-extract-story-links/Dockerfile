@@ -12,4 +12,4 @@ ENV PYTHONPATH="/opt/mediacloud/src/topics-extract-story-links/python:${PYTHONPA
 # Copy worker script
 COPY bin /opt/mediacloud/bin
 
-CMD ["topics_extract_story_links.py"]
+CMD ["topics_extract_story_links_worker.py"]

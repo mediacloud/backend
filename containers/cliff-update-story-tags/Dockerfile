@@ -12,4 +12,4 @@ ENV PYTHONPATH="/opt/mediacloud/src/cliff-update-story-tags/python:${PYTHONPATH}
 # Copy worker script
 COPY bin /opt/mediacloud/bin
 
-CMD ["cliff_update_story_tags.py"]
+CMD ["cliff_update_story_tags_worker.py"]

@@ -21,4 +21,4 @@ ENV PYTHONPATH="/opt/mediacloud/src/word2vec-generate-snapshot-model/python:${PY
 # Copy worker script
 COPY bin /opt/mediacloud/bin
 
-CMD ["word2vec_generate_snapshot_model.py"]
+CMD ["word2vec_generate_snapshot_model_worker.py"]

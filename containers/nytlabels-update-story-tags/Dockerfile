@@ -12,4 +12,4 @@ ENV PYTHONPATH="/opt/mediacloud/src/nytlabels-update-story-tags/python:${PYTHONP
 # Copy worker script
 COPY bin /opt/mediacloud/bin
 
-CMD ["nytlabels_update_story_tags.py"]
+CMD ["nytlabels_update_story_tags_worker.py"]

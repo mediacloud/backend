@@ -21,4 +21,4 @@ ENV PYTHONPATH="/opt/mediacloud/src/topics-fetch-twitter-urls/python:${PYTHONPAT
 # Copy worker script
 COPY bin /opt/mediacloud/bin
 
-CMD ["topics_fetch_twitter_urls.py"]
+CMD ["topics_fetch_twitter_urls_worker.py"]
