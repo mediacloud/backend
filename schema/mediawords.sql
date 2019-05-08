@@ -475,6 +475,7 @@ create table stories (
     url                         varchar(1024)   not null,
     guid                        varchar(1024)   not null,
     title                       text            not null,
+    normalized_title_hash       uuid            null,
     description                 text            null,
     publish_date                timestamp       not null,
     collect_date                timestamp       not null default now(),
@@ -491,8 +492,11 @@ create index stories_md on stories(media_id, date_trunc('day'::text, publish_dat
 create index stories_language on stories(language);
 create index stories_title_hash on stories( md5( title ) );
 create index stories_publish_day on stories( date_trunc( 'day', publish_date ) );
+create index stories_normalized_title_hash on stories( media_id, normalized_title_hash );
 
-
+-- get normalized story title by breaking the title into parts by the separator characters :-| and  using
+-- the longest single part.  longest part must be at least 32 characters cannot be the same as the media source
+-- name.  also remove all html, punctuation and repeated spaces, lowecase, and limit to 1024 characters.
 CREATE OR REPLACE FUNCTION get_normalized_title(title text, title_media_id int)
  RETURNS text
  IMMUTABLE
@@ -537,7 +541,25 @@ begin
 end
 $function$ language plpgsql;
 
---create index stories_normalized_title on stories(get_normalized_title(title), media_id);
+create function add_normalized_title_hash() returns trigger as $function$
+BEGIN
+
+    if ( TG_OP = 'update' ) then
+        if ( OLD.title = NEW.title ) then
+            return new;
+        end if;
+    end if;
+
+    select into NEW.normalized_title_hash md5( get_normalized_title( NEW.title, NEW.media_id ) )::uuid;
+    
+    return new;
+
+END
+
+$function$ language plpgsql;
+
+create trigger stories_add_normalized_title before insert or update
+    on stories for each row execute procedure add_normalized_title_hash();
 
 create function insert_solr_import_story() returns trigger as $insert_solr_import_story$
 DECLARE

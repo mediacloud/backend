@@ -50,7 +50,7 @@ def is_new(db: DatabaseHandler, story: dict) -> bool:
     db_story = db.query("""
         SELECT 1
         FROM stories
-        WHERE md5(title) = md5(%(title)s)
+        WHERE normalized_title_hash = md5( get_normalized_title( %(title)s, %(media_id)s ) )::uuid
           AND media_id = %(media_id)s
 
           -- We do the goofy " + interval '1 second'" to force postgres to use the stories_title_hash index
