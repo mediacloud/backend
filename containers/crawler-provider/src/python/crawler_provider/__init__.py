@@ -185,12 +185,16 @@ def run_provider(db: DatabaseHandler, daemon: bool = True) -> None:
 
         if queue_size < MAX_QUEUE_SIZE:
             downloads_ids = provide_download_ids(db)
-            log.warning("adding to downloads to queue: %d" % len(downloads_ids))
 
-            values = ','.join(["(%d)" % i for i in downloads_ids])
-            db.query(
-                "insert into queued_downloads(downloads_id) values %s on conflict (downloads_id) do nothing" %
-                values)
+            if downloads_ids:
+                log.warning("adding to downloads to queue: %d" % len(downloads_ids))
+
+                values = ','.join(["(%d)" % i for i in downloads_ids])
+                db.query(
+                    "insert into queued_downloads(downloads_id) values %s on conflict (downloads_id) do nothing" %
+                    values)
+            else:
+                log.info("No downloads to add")
 
             if daemon:
                 if time.time() - last_queue_time < QUEUE_INTERVAL:
