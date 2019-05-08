@@ -28,9 +28,13 @@ def test_run_provider():
             db.create('downloads', download)
 
     run_provider(db, daemon=False)
-    assert len(hosts) == db.query("select count(distinct downloads_id) from queued_downloads").flat()[0]
+
+    # +1 for the test feed
+    assert len(hosts) + 1 == db.query("select count(distinct downloads_id) from queued_downloads").flat()[0]
 
     # make sure that the next loop doesn't just add the same downloads_id values again
     time.sleep(1)
     run_provider(db, daemon=False)
-    assert 2 * len(hosts) == db.query("select count(distinct downloads_id) from queued_downloads").flat()[0]
+
+    # +1 for the test feed
+    assert 2 * len(hosts) + 1 == db.query("select count(distinct downloads_id) from queued_downloads").flat()[0]

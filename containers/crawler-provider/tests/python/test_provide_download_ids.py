@@ -26,4 +26,6 @@ def test_provide_download_ids() -> None:
             db.create('downloads', download)
 
     download_ids = provide_download_ids(db)
-    assert len(download_ids) == len(hosts)
+
+    # +1 for the test feed
+    assert len(download_ids) == len(hosts) + 1
