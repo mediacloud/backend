@@ -38,13 +38,14 @@ env:
     - secure: "BZnspnmNVvPMML55ukaAETYbpPYvzh3zkB8mWPJcBCeJQxmtipe95vQQfkZGW/DzHuM6g1ImolxJ+p7c+7N3d43FFvfVgWPCRx7OoAb3biZPt6hjK58IsQjQUEDtbNYiT4YfNLfCFhNbznuchgPmAyRLv5zjvG/qVTrWqxEV4qc="
 
     # Univision API test credentials:
+    # (disabled as currently the feed is empty)
     #
     # * MC_UNIVISION_CLIENT_ID
     # * MC_UNIVISION_CLIENT_SECRET
     # * MC_UNIVISION_TEST_URL
-    - secure: "SsoYs6nuyr1xpO6kxoZVVEleT/w9OLi/Hs2NL5Hy97EImDpl9Ae+Ucut2jtLktnIrK8vpnK/wNVCK9YEMX/sLQZY6nxzecXhB0FPjD5Zjm8/WLP6tRN1ONikiDPmf+qi4gn/nY8IiN4BC/DyNAgY78/p40FpTld7SRFmRN2VIsM="
-    - secure: "OWqQ+GJwfRV9B36THy2aBQRdWlnrnY6Y/O8kl3NyRXnMv/3+11bQcb8E+4kH/TT7L1bVqzPXyifUjQPUCBvrfg0Dty6nQFHCEVKYwJKq29qBDndjt07BkynefZWpS9rYgvaEwIizzn0KUwnC+BqI3BW0No8lN8LZCMChiMx+q4w="
-    - secure: "GfiDnOLd9NLK0Jl2fHNxoe68pzYlHKniW7YCI3bPZgrJzV2FXSjh7NcTbo0WelLn3fbBClBsjA+GbVA3AKqqeeov27/6lzfKx/yuZ2OBnlBL3WNMF0RoSvGTvQYJUQbET23QKYTvesBUndlfOUd9cxwcKbaEmdYEVdtpgFDRB7s="
+    #- secure: "SsoYs6nuyr1xpO6kxoZVVEleT/w9OLi/Hs2NL5Hy97EImDpl9Ae+Ucut2jtLktnIrK8vpnK/wNVCK9YEMX/sLQZY6nxzecXhB0FPjD5Zjm8/WLP6tRN1ONikiDPmf+qi4gn/nY8IiN4BC/DyNAgY78/p40FpTld7SRFmRN2VIsM="
+    #- secure: "OWqQ+GJwfRV9B36THy2aBQRdWlnrnY6Y/O8kl3NyRXnMv/3+11bQcb8E+4kH/TT7L1bVqzPXyifUjQPUCBvrfg0Dty6nQFHCEVKYwJKq29qBDndjt07BkynefZWpS9rYgvaEwIizzn0KUwnC+BqI3BW0No8lN8LZCMChiMx+q4w="
+    #- secure: "GfiDnOLd9NLK0Jl2fHNxoe68pzYlHKniW7YCI3bPZgrJzV2FXSjh7NcTbo0WelLn3fbBClBsjA+GbVA3AKqqeeov27/6lzfKx/yuZ2OBnlBL3WNMF0RoSvGTvQYJUQbET23QKYTvesBUndlfOUd9cxwcKbaEmdYEVdtpgFDRB7s="
 
 before_install:
   # Upgrade docker-compose
