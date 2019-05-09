@@ -8,7 +8,7 @@ services:
         env_file: ./../global.env.dist
         environment:
             MC_UNIVISION_CLIENT_ID: "${MC_UNIVISION_CLIENT_ID}"
-            MC_UNIVISION_CLIENT_SECRET: "${MC_UNIVISION_CLIENT_ID}"
+            MC_UNIVISION_CLIENT_SECRET: "${MC_UNIVISION_CLIENT_SECRET}"
             # Used by Univision test only
             MC_UNIVISION_TEST_URL: "${MC_UNIVISION_TEST_URL}"
         volumes:
