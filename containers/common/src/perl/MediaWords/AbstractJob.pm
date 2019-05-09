@@ -18,6 +18,7 @@ use MediaWords::DB;
 use MediaWords::DB::Locks;
 use MediaWords::Util::ParseJSON;
 use MediaWords::Util::Config::Common;
+use MediaWords::JobManager::Broker::RabbitMQ;
 
 # (static) Return broker used the job manager
 sub broker()

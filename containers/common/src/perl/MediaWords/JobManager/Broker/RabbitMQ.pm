@@ -694,7 +694,7 @@ sub _run_job_on_rabbitmq($$$$$)
     # Encode payload
     my $payload = {
         'expires'   => undef,
-        'utc'       => JSON::true,
+        'utc'       => JSON::XS::true,
         'args'      => [],
         'chord'     => undef,
         'callbacks' => undef,
