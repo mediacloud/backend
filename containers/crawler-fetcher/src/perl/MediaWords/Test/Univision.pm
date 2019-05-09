@@ -1,3 +1,14 @@
+package MediaWords::Test::Univision;
+
+use strict;
+use warnings;
+
+use strict;
+use warnings;
+
+use Modern::Perl "2015";
+use MediaWords::CommonLibs;
+
 #
 # Test MediaWords::Crawler::Download::Feed::Univision feed
 #
@@ -7,7 +18,6 @@ use warnings;
 
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
-use MediaWords::Crawler::Download::Feed::Univision;
 
 use Readonly;
 
@@ -16,12 +26,13 @@ use Test::Deep;
 
 use MediaWords::DB;
 use MediaWords::Crawler::Engine;
+use MediaWords::Crawler::Download::Feed::Univision;
 use MediaWords::Util::ParseJSON;
 use MediaWords::Test::HashServer;
 use MediaWords::Test::DB::Create;
 use MediaWords::Util::Config::Crawler;
 
-sub test_api_request_signature()
+sub _test_api_request_signature()
 {
     # Invalid input
     eval { MediaWords::Crawler::Download::Feed::Univision::_api_request_url_with_signature( undef, undef, undef ) };
@@ -71,13 +82,15 @@ sub test_api_request_signature()
 }
 
 # Basic request
-sub test_api_request($$$)
+sub _test_api_request($$$)
 {
     my ( $univision_url, $univision_client_id, $univision_client_secret ) = @_;
 
-    my $api_request_url =
-      MediaWords::Crawler::Download::Feed::Univision::_api_request_url_with_signature( $univision_url, $univision_client_id,
-        $univision_client_secret );
+    my $api_request_url = MediaWords::Crawler::Download::Feed::Univision::_api_request_url_with_signature(
+    	$univision_url,				#
+    	$univision_client_id,		#
+        $univision_client_secret,	#
+    );
     ok( length( $api_request_url ) > 0, 'API request URL is not empty' );
 
     my $ua       = MediaWords::Util::Web::UserAgent->new();
@@ -95,7 +108,7 @@ sub test_api_request($$$)
     ok( $json->{ 'data' }, 'JSON response has "data" key' );
 }
 
-sub test_fetch_handle_download($$$)
+sub _test_fetch_handle_download($$$)
 {
     my ( $db, $univision_url, $crawler_config ) = @_;
 
@@ -141,14 +154,14 @@ EOF
     ok( scalar( @{ $story_downloads } ) > 0, 'One or more story downloads were derived from feed' );
 }
 
-sub test_univision($$$)
+sub test_univision($$$$)
 {
-    my ( $univision_url, $univision_client_id, $univision_client_secret ) = @_;
+    my ( $db, $univision_url, $univision_client_id, $univision_client_secret ) = @_;
 
-    my $db = MediaWords::DB::connect_to_db();
+    say STDERR "Testing against $univision_url with $univision_client_id:$univision_client_secret...";
 
-    test_api_request_signature();
-    test_api_request( $univision_url, $univision_client_id, $univision_client_secret );
+    _test_api_request_signature();
+    _test_api_request( $univision_url, $univision_client_id, $univision_client_secret );
 
     {
         package UnivisionTestCrawlerConfig;
@@ -173,87 +186,7 @@ sub test_univision($$$)
 
     my $crawler_config = UnivisionTestCrawlerConfig->new();
 
-    test_fetch_handle_download( $db, $univision_url, $crawler_config );
+    _test_fetch_handle_download( $db, $univision_url, $crawler_config );
 }
 
-sub main()
-{
-    my $builder = Test::More->builder;
-    binmode $builder->output,         ":utf8";
-    binmode $builder->failure_output, ":utf8";
-    binmode $builder->todo_output,    ":utf8";
-
-    Readonly my $TEST_HTTP_SERVER_PORT => 9998;
-    Readonly my $TEST_HTTP_SERVER_URL  => 'http://localhost:' . $TEST_HTTP_SERVER_PORT;
-
-    my $local_univision_url           = $TEST_HTTP_SERVER_URL . '/feed';
-    my $local_univision_client_id     = 'foo';
-    my $local_univision_client_secret = 'bar';
-
-    say STDERR "Testing against local Univision test HTTP server...";
-    my $pages = {
-
-        '/feed' => MediaWords::Util::ParseJSON::encode_json(
-            {
-                'status' => 'success',
-                'data'   => {
-                    'title'      => 'Sample Univision feed',
-                    'totalItems' => 2,
-                    'items'      => [
-                        {
-                            'type'        => 'article',
-                            'uid'         => '00000156-ba02-d374-ab77-feab13e20000',
-                            'url'         => $TEST_HTTP_SERVER_URL . '/first_article',
-                            'publishDate' => '2016-08-23T23:32:11-04:00',
-                            'updateDate'  => '2016-08-24T10:09:26-04:00',
-                            'title'       => 'First article: 🍕',                           # UTF-8 in the title
-                            'description' => 'This is the first Univision sample article.',
-                        },
-                        {
-                            'type'        => 'article',
-                            'uid'         => '00000156-ba73-d5b6-affe-faf77f890000',
-                            'url'         => $TEST_HTTP_SERVER_URL . '/second_article',
-                            'publishDate' => '2016-08-23T23:20:13-04:00',
-                            'updateDate'  => '2016-08-24T09:55:40-04:00',
-                            'title'       => 'Second article: 🍔',                           # UTF-8 in the title
-                            'description' => 'This is the second Univision sample article.',
-                        },
-                    ]
-                }
-            }
-        ),
-
-        '/first_article' => <<EOF,
-            <h1>First article</h1>
-            <p>This is the first Univision sample article.</p>
-EOF
-        '/second_article' => <<EOF,
-            <h1>Second article</h1>
-            <p>This is the second Univision sample article.</p>
-EOF
-    };
-
-    my $hs = MediaWords::Test::HashServer->new( $TEST_HTTP_SERVER_PORT, $pages );
-    $hs->start();
-
-    test_univision( $local_univision_url, $local_univision_client_id, $local_univision_client_secret );
-
-    $hs->stop();
-
-    my $crawler_config = MediaWords::Util::Config::Crawler->new();
-    
-    my $remote_univision_url = $ENV{ 'MC_UNIVISION_TEST_URL' };
-    my $remote_univision_client_id     = $crawler_config->univision_client_id();
-
-    my $remote_univision_client_secret = $crawler_config->univision_client_secret();
-
-    if ( $remote_univision_url and $remote_univision_client_id and $remote_univision_client_secret )
-    {
-        say STDERR "Testing against remote (live) Univision HTTP server...";
-        test_univision( $remote_univision_url, $remote_univision_client_id, $remote_univision_client_secret );
-    }
-
-    done_testing();
-}
-
-main();
+1;
