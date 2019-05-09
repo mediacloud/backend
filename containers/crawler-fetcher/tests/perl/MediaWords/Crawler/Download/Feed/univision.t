@@ -132,11 +132,11 @@ sub test_fetch_handle_download($$$)
         <<EOF,
         SELECT *
         FROM downloads
-        WHERE parent = ?
+        WHERE feeds_id = ?
           AND type = 'content'
           AND state = 'pending'
 EOF
-        $download->{ downloads_id }
+        $download->{ feeds_id }
     )->hashes;
     ok( scalar( @{ $story_downloads } ) > 0, 'One or more story downloads were derived from feed' );
 }
