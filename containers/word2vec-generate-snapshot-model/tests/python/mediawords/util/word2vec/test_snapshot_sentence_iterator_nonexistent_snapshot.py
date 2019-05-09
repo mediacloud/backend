@@ -2,8 +2,7 @@ import pytest
 
 from mediawords.util.word2vec import McWord2vecException
 from mediawords.util.word2vec.sentence_iterators import SnapshotSentenceIterator
-
-from mediawords.util.word2vec.setup_test_word2vec import TestWord2vec
+from .setup_test_word2vec import TestWord2vec
 
 
 class TestSnapshotSentenceIteratorNonexistentSnapshot(TestWord2vec):

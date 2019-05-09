@@ -17,7 +17,6 @@ use MediaWords::DBI::Downloads::Extract;
 use MediaWords::DBI::Stories::Extract;
 use MediaWords::DBI::Stories::ExtractorArguments;
 use MediaWords::DBI::Stories;
-use MediaWords::Test::Data;
 use MediaWords::Test::Text;
 use MediaWords::Test::DB::Create;
 use MediaWords::Util::URL;
@@ -26,29 +25,13 @@ use Data::Dumper;
 use File::Slurp;
 use Readonly;
 
-sub test_extract_content($$$)
+sub test_extract_content()
 {
-    my ( $test_dataset, $file, $title ) = @_;
-
-    my $test_stories = MediaWords::Test::Data::fetch_test_data_from_individual_files( "crawler_stories/$test_dataset" );
-
-    my $test_story_hash;
-    map { $test_story_hash->{ $_->{ title } } = $_ } @{ $test_stories };
-
-    my $story = $test_story_hash->{ $title };
-
-    die "story '$title' not found " unless $story;
-
-    my $path            = "/opt/mediacloud/tests/data/crawler/$test_dataset/$file";
-
-    my $content = MediaWords::Util::Text::decode_from_utf8( read_file( $path ) );
-
-    my $results = MediaWords::DBI::Downloads::Extract::extract_content( $content );
+    my $results = MediaWords::DBI::Downloads::Extract::extract_content( "<script>foo<</script><p>bar</p>" );
 
     my $extracted_text = $results->{ extracted_text };
-
-    ok( length( $extracted_text ) > 7000, "Extracted text length looks reasonable" );
-    ok( index( $extracted_text, '<' ) == -1, "No HTML tags left in extracted text" );
+    like( $results->{ 'extracted_html' }, qr|^\s*?<body id="readabilityBody"><p>bar</p></body>\s*$| );
+    is( $results->{ 'extracted_text' }, 'bar.' );
 }
 
 sub _add_download_to_story
@@ -153,7 +136,7 @@ sub main
 
     my $db = MediaWords::DB::connect_to_db();
 
-    test_extract_content( 'gv', 'index_1.html', 'Brazil: Amplified conversations to fight the Digital Crimes Bill' );
+    test_extract_content();
 
     test_extract( $db );
 }

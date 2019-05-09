@@ -1,4 +1,4 @@
-from mediawords.tm.domains.setup_test_domains import TestTMDomainsDB
+from .setup_test_domains import TestTMDomainsDB
 from mediawords.util.url import get_url_distinctive_domain
 
 

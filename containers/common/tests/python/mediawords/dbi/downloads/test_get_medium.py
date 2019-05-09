@@ -1,5 +1,5 @@
 from mediawords.dbi.downloads.store import get_medium
-from mediawords.dbi.downloads.setup_test_downloads import TestDownloadsDB
+from .setup_test_downloads import TestDownloadsDB
 
 
 class TestGetMedium(TestDownloadsDB):

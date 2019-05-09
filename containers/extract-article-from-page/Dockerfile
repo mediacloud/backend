@@ -24,4 +24,4 @@ COPY bin /opt/mediacloud/bin
 
 EXPOSE 80
 
-CMD ["extract_article_from_page.py", "--port", "80"]
+CMD ["extract_article_from_page_http_server.py", "--port", "80"]

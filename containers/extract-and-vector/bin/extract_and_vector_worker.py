@@ -3,12 +3,12 @@
 import time
 
 from mediawords.db import connect_to_db
-from mediawords.dbi.stories.extractor_arguments import PyExtractorArguments
-from mediawords.dbi.stories.extract import extract_and_process_story
 from mediawords.job import JobBroker
-from mediawords.story_vectors import medium_is_locked
 from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_object_from_bytes_if_needed
+from extract_and_vector.dbi.stories.extractor_arguments import PyExtractorArguments
+from extract_and_vector.dbi.stories.extract import extract_and_process_story
+from extract_and_vector.story_vectors import medium_is_locked
 
 log = create_logger(__name__)
 

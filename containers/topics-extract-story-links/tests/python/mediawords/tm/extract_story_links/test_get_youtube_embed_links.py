@@ -1,7 +1,7 @@
 from mediawords.dbi.downloads.store import store_content
 # noinspection PyProtectedMember
 from mediawords.tm.extract_story_links import _get_youtube_embed_links
-from mediawords.tm.extract_story_links.setup_test_extract_story_links import TestExtractStoryLinksDB
+from .setup_test_extract_story_links import TestExtractStoryLinksDB
 
 
 class TestGetYouTubeEmbedLinks(TestExtractStoryLinksDB):

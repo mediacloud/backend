@@ -5,7 +5,7 @@ from mediawords.dbi.downloads.store import (
     _default_amazon_s3_downloads_config,
     _get_store_for_reading,
 )
-from mediawords.dbi.downloads.setup_test_downloads import TestDownloadsDB
+from .setup_test_downloads import TestDownloadsDB
 from mediawords.util.config.common import DownloadStorageConfig
 
 

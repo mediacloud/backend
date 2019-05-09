@@ -1,5 +1,5 @@
 from mediawords.test.db.create import create_test_topic
-from mediawords.tm.extract_story_links.setup_test_extract_story_links import TestExtractStoryLinksDB
+from .setup_test_extract_story_links import TestExtractStoryLinksDB
 from mediawords.tm.extract_story_links import extract_links_for_topic_story
 
 

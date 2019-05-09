@@ -1,7 +1,7 @@
 import pytest
 
 from mediawords.util.url.variants import all_url_variants, McAllURLVariantsException
-from mediawords.util.url.variants.setup_test_url_variants import TestURLVariantsTestCase
+from .setup_test_url_variants import TestURLVariantsTestCase
 
 
 class TestBadInput(TestURLVariantsTestCase):

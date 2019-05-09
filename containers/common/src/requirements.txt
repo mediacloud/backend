@@ -1,6 +1,3 @@
-# Saner date / time management
-arrow==0.13.0
-
 # Amazon S3
 boto3==1.9.78
 

@@ -6,7 +6,7 @@ use warnings;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-import_python_module( __PACKAGE__, 'mediawords.dbi.stories.extract' );
+import_python_module( __PACKAGE__, 'extract_and_vector.dbi.stories.extract' );
 
 =head2 get_all_sentences( $db, $story )
 

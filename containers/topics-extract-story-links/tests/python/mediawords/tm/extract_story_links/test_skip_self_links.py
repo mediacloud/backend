@@ -2,7 +2,7 @@ from mediawords.dbi.downloads.store import store_content
 from mediawords.test.db.create import create_test_topic
 from mediawords.tm.domains import MAX_SELF_LINKS
 from mediawords.tm.extract_story_links import extract_links_for_topic_story
-from mediawords.tm.extract_story_links.setup_test_extract_story_links import TestExtractStoryLinksDB
+from .setup_test_extract_story_links import TestExtractStoryLinksDB
 from mediawords.util.url import get_url_distinctive_domain
 
 

@@ -7,8 +7,7 @@ import gensim
 from mediawords.util.word2vec import train_word2vec_model
 from mediawords.util.word2vec.model_stores import SnapshotDatabaseModelStore
 from mediawords.util.word2vec.sentence_iterators import SnapshotSentenceIterator
-
-from mediawords.util.word2vec.setup_test_word2vec import TestWord2vec
+from .setup_test_word2vec import TestWord2vec
 
 
 class TestTrainWord2vecModel(TestWord2vec):

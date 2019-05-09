@@ -15,7 +15,7 @@ use Readonly;
 use Getopt::Long;
 
 use MediaWords::DB;
-use MediaWords::Job::RescrapeMedia;
+use MediaWords::JobManager::Job;
 
 sub main
 {

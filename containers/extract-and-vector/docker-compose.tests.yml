@@ -20,7 +20,17 @@ services:
               source: ./../common/src/
               target: /opt/mediacloud/src/common/
         depends_on:
+            - mc_extract_article_from_page
             - mc_migrate_schema
+            # process_extracted_story() will try to add story to CLIFF / NYTLabels queue:
+            - mc_rabbitmq_server
+
+    mc_extract_article_from_page:
+        image: dockermediacloud/mediacloud-extract-article-from-page:latest
+        env_file: ./../global.env.dist
+        stop_signal: SIGKILL
+        logging:
+            driver: none
 
     mc_migrate_schema:
         image: dockermediacloud/mediacloud-migrate-schema:latest
@@ -53,5 +63,18 @@ services:
         volumes:
             - vol_postgresql_data:/var/lib/postgresql/11/main/
 
+    mc_rabbitmq_server:
+        image: dockermediacloud/mediacloud-rabbitmq-server:latest
+        env_file: ./../global.env.dist
+        stop_signal: SIGKILL
+        logging:
+            driver: none
+        expose:
+            - 5672
+            - 15672
+        volumes:
+            - vol_rabbitmq_data:/var/lib/rabbitmq/mnesia/
+
 volumes:
     vol_postgresql_data: {}
+    vol_rabbitmq_data: {}

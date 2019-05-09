@@ -12,7 +12,6 @@ use Test::More;
 use MediaWords::AbstractJob;
 use MediaWords::JobManager::Job;
 use MediaWords::Test::DB::Create;
-use MediaWords::Test::Data;
 use MediaWords::Util::ParseJSON;
 use MediaWords::Util::SQL;
 

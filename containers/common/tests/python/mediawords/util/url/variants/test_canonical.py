@@ -1,6 +1,6 @@
 from mediawords.test.hash_server import HashServer
 from mediawords.util.url.variants import all_url_variants
-from mediawords.util.url.variants.setup_test_url_variants import TestURLVariantsTestCase
+from .setup_test_url_variants import TestURLVariantsTestCase
 
 
 class TestCanonical(TestURLVariantsTestCase):
