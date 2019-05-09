@@ -38,7 +38,7 @@ sub main()
             $remote_univision_client_secret,    #
         );
     } else {
-        INFO "Skipping remote Univision test because it's not configured.";
+        plan skip_all => 'Univision credentials are not configured';
     }
 
     done_testing();
