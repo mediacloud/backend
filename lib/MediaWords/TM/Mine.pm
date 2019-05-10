@@ -337,8 +337,8 @@ sub fetch_links
     my $max_requeue_jobs = 100;
     my $requeue_timeout  = 30;
 
-    # once the pool is this small, just requeue everything and exit
-    my $exit_pool_size = 25;
+    # once the pool is this small, just requeue everything with a 0 per site throttle
+    my $instant_queue_size = 25;
 
     # how many times to requeues everything if there is no change for $JOB_POLL_TIMEOUT seconds
     my $full_requeues     = 0;
@@ -370,16 +370,16 @@ SQL
 
         last if ( $num_pending_urls < 1 );
 
-        if ( $num_pending_urls <= $exit_pool_size )
+        if ( $num_pending_urls <= $instant_queue_size )
         {
             map { queue_topic_fetch_url( $db->require_by_id( 'topic_fetch_urls', $_ ), 0 ) } @{ $pending_url_ids };
-            last;
+            sleep( $JOB_POLL_WAIT );
+            next;
         }
 
         my $time_since_change = time() - $last_pending_change;
 
-        # for some reason, the fetch_link queue is occasionally losing a small number of jobs.  until we can
-        # find the cause of the bug, just requeue stray jobs a few times
+        # for some reason, the fetch_link queue is occasionally losing a small number of jobs.
         if (   ( $time_since_change > $requeue_timeout )
             && ( $requeues < $max_requeues )
             && ( $num_pending_urls < $max_requeue_jobs ) )
