@@ -29,6 +29,9 @@ RUN \
     postconf -e non_smtpd_milters=inet:${MC_MAIL_POSTFIX_OPENDKIM_HOST}:12301 && \
     true
 
+# Postfix data
+VOLUME /var/spool/postfix/
+
 # SMTP port
 EXPOSE 25
 

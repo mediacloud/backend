@@ -474,6 +474,8 @@ services:
         expose:
             # Expose SMTP to mail senders
             - "25"
+        volumes:
+            - vol_postfix_data:/var/spool/postfix/
         deploy:
             # Only one instance
             replicas: 1
@@ -1339,6 +1341,9 @@ volumes:
 
     # RabbitMQ data
     vol_rabbitmq_data: {}
+
+    # Postfix data
+    vol_postfix_data: {}
 
     # Daily RSS dumps
     vol_daily_rss_dumps: {}
