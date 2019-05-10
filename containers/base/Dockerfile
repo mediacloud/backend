@@ -47,6 +47,8 @@ RUN \
         netcat \
         # Some packages insist on logging to syslog
         rsyslog \
+        # Sending mail via sendmail utility through mc_mail_postfix_server
+        ssmtp \
         tzdata \
     && \
     true
@@ -76,3 +78,11 @@ RUN \
     echo "* soft nofile 65536" >> /etc/security/limits.conf && \
     echo "* hard nofile 65536" >> /etc/security/limits.conf && \
     true
+
+# Configure sSMTP to relay mail to Postfix
+RUN \
+    sed -i -e "s/^mailhub=.*/mailhub=mc_mail_postfix_server:25/" /etc/ssmtp/ssmtp.conf && \
+    echo "root:no-reply@mediacloud.org:mc_mail_postfix_server:25" >> /etc/ssmtp/revaliases && \
+    echo "mediacloud:no-reply@mediacloud.org:mc_mail_postfix_server:25" >> /etc/ssmtp/revaliases && \
+    true
+
