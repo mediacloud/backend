@@ -24,7 +24,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4719;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4720;
 BEGIN
 
     -- Update / set database schema version
@@ -702,53 +702,6 @@ CREATE TABLE downloads (
 ) PARTITION BY LIST (state);
 
 
--- UPDATE / DELETE "downloads" trigger that enforces foreign keys on referencing tables
-CREATE FUNCTION cascade_ref_downloads_trigger() RETURNS trigger AS $$
-BEGIN
-
-    IF (TG_OP = 'UPDATE') THEN
-
-        UPDATE downloads
-        SET parent = NEW.downloads_id
-        WHERE parent = OLD.downloads_id;
-
-        UPDATE raw_downloads
-        SET object_id = NEW.downloads_id
-        WHERE object_id = OLD.downloads_id;
-
-        UPDATE download_texts
-        SET downloads_id = NEW.downloads_id
-        WHERE downloads_id = OLD.downloads_id;
-
-        UPDATE cache.extractor_results_cache
-        SET downloads_id = NEW.downloads_id
-        WHERE downloads_id = OLD.downloads_id;
-
-        UPDATE cache.s3_raw_downloads_cache
-        SET object_id = NEW.downloads_id
-        WHERE object_id = OLD.downloads_id;
-
-        RETURN NEW;
-
-    ELSIF (TG_OP = 'DELETE') THEN
-
-        UPDATE downloads
-        SET parent = NULL
-        WHERE parent = OLD.downloads_id;
-
-
-        -- Return deleted rows
-        RETURN OLD;
-
-    ELSE
-        RAISE EXCEPTION 'Unconfigured operation: %', TG_OP;
-
-    END IF;
-
-END;
-$$ LANGUAGE plpgsql;
-
-
 -- Imitate a foreign key by testing if a download with an INSERTed / UPDATEd
 -- "downloads_id" exists in "downloads"
 --
@@ -814,11 +767,6 @@ CREATE TRIGGER downloads_error_test_referenced_download_trigger
     FOR EACH ROW
     EXECUTE PROCEDURE test_referenced_download_trigger('parent');
 
-CREATE TRIGGER downloads_error_cascade_ref_downloads_trigger
-    AFTER UPDATE OR DELETE ON downloads_error
-    FOR EACH ROW
-    EXECUTE PROCEDURE cascade_ref_downloads_trigger();
-
 
 CREATE TABLE downloads_feed_error
     PARTITION OF downloads
@@ -828,11 +776,6 @@ CREATE TRIGGER downloads_feed_error_test_referenced_download_trigger
     BEFORE INSERT OR UPDATE ON downloads_feed_error
     FOR EACH ROW
     EXECUTE PROCEDURE test_referenced_download_trigger('parent');
-
-CREATE TRIGGER downloads_feed_error_cascade_ref_downloads_trigger
-    AFTER UPDATE OR DELETE ON downloads_feed_error
-    FOR EACH ROW
-    EXECUTE PROCEDURE cascade_ref_downloads_trigger();
 
 
 CREATE TABLE downloads_fetching
@@ -844,11 +787,6 @@ CREATE TRIGGER downloads_fetching_test_referenced_download_trigger
     FOR EACH ROW
     EXECUTE PROCEDURE test_referenced_download_trigger('parent');
 
-CREATE TRIGGER downloads_fetching_cascade_ref_downloads_trigger
-    AFTER UPDATE OR DELETE ON downloads_fetching
-    FOR EACH ROW
-    EXECUTE PROCEDURE cascade_ref_downloads_trigger();
-
 
 CREATE TABLE downloads_pending
     PARTITION OF downloads
@@ -858,11 +796,6 @@ CREATE TRIGGER downloads_pending_test_referenced_download_trigger
     BEFORE INSERT OR UPDATE ON downloads_pending
     FOR EACH ROW
     EXECUTE PROCEDURE test_referenced_download_trigger('parent');
-
-CREATE TRIGGER downloads_pending_cascade_ref_downloads_trigger
-    AFTER UPDATE OR DELETE ON downloads_pending
-    FOR EACH ROW
-    EXECUTE PROCEDURE cascade_ref_downloads_trigger();
 
 
 CREATE TABLE downloads_success
@@ -1049,13 +982,6 @@ BEGIN
                 BEFORE INSERT OR UPDATE ON ' || partition || '
                 FOR EACH ROW
                 EXECUTE PROCEDURE test_referenced_download_trigger(''parent'');
-        ';
-
-        EXECUTE '
-            CREATE TRIGGER ' || partition || '_cascade_ref_downloads_trigger
-                AFTER UPDATE OR DELETE ON ' || partition || '
-                FOR EACH ROW
-                EXECUTE PROCEDURE cascade_ref_downloads_trigger();
         ';
 
     END LOOP;
