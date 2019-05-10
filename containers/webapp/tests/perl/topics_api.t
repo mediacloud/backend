@@ -130,7 +130,7 @@ sub create_test_data
 
     # FIXME commented out because we're probably doing the same thing twice
     # MediaWords::JobManager::Job::run_remotely(  #
-    #     'MediaWords::Job::Facebook::ImportSolrDataForTesting',  #
+    #     'MediaWords::Job::ImportSolrDataForTesting',  #
     #     { throttle => 0 },   #
     # );
 }

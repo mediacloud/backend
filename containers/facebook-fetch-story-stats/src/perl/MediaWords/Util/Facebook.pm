@@ -121,7 +121,7 @@ sub api_request($$)
         DEBUG 'Retrying #' . $retry . '...' if ( $retry > 1 );
 
         my $ua = MediaWords::Util::Web::UserAgent->new();
-        $ua->set_timeout( $config->{ facebook }->{ timeout } );
+        $ua->set_timeout( MediaWords::Util::Config::Facebook::timeout() );
 
         my $response;
         eval { $response = $ua->get( $api_uri->as_string ); };

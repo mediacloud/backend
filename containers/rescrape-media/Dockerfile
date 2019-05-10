@@ -26,4 +26,4 @@ ENV PYTHONPATH="/opt/mediacloud/src/rescrape-media/python:${PYTHONPATH}"
 # Copy worker script
 COPY bin /opt/mediacloud/bin
 
-CMD ["rescrape_media.pm"]
+CMD ["rescrape_media_worker.pl"]

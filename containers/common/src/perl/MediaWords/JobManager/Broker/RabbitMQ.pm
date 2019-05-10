@@ -35,7 +35,7 @@ Log::Log4perl->easy_init(
 $| = 1;
 
 use MediaWords::JobManager;
-use MediaWords::JobManager::Job;
+use MediaWords::JobManager::Priority;
 
 # RabbitMQ default timeout
 Readonly my $RABBITMQ_DEFAULT_TIMEOUT => 60;
@@ -52,11 +52,11 @@ Readonly my $RABBITMQ_QUEUE_TRANSIENT => 0;
 Readonly my $RABBITMQ_QUEUE_DURABLE   => 1;
 
 # RabbitMQ priorities
-Readonly my %RABBITMQ_PRIORITIES => (
-    $MediaWords::JobManager::Job::MJM_JOB_PRIORITY_LOW    => 0,
-    $MediaWords::JobManager::Job::MJM_JOB_PRIORITY_NORMAL => 1,
-    $MediaWords::JobManager::Job::MJM_JOB_PRIORITY_HIGH   => 2,
-);
+Readonly my $RABBITMQ_PRIORITIES => {
+    $MediaWords::JobManager::Priority::MJM_JOB_PRIORITY_LOW    => 0,
+    $MediaWords::JobManager::Priority::MJM_JOB_PRIORITY_NORMAL => 1,
+    $MediaWords::JobManager::Priority::MJM_JOB_PRIORITY_HIGH   => 2,
+};
 
 # JSON (de)serializer
 my $json = JSON::XS->new->allow_nonref->canonical->utf8;
@@ -143,7 +143,7 @@ sub _mq($)
     {
 
         # Connect to RabbitMQ, open channel
-        DEBUG( "Connecting to RabbitMQ (PID: $$, hostname: " .
+        DEBUG( "Connecting to RabbitMQ (hostname: " .
               $self->_hostname . ", port: " . $self->_port . ", username: " . $self->_username . ")..." );
 
         # RabbitMQ might not yet be up at the time of connecting, so try for up to a minute
@@ -266,9 +266,9 @@ sub _channel_number()
     return 1;
 }
 
-sub _declare_queue($$$$;$)
+sub _declare_queue($$$$)
 {
-    my ( $self, $queue_name, $durable, $declare_and_bind_exchange, $lazy_queue ) = @_;
+    my ( $self, $queue_name, $durable, $declare_and_bind_exchange ) = @_;
 
     unless ( defined $queue_name )
     {
@@ -284,7 +284,7 @@ sub _declare_queue($$$$;$)
     };
     my $arguments = {
         'x-max-priority' => _priority_count(),
-        'x-queue-mode'   => ( $lazy_queue ? 'lazy' : 'default' ),
+        'x-queue-mode'   => 'lazy',
     };
 
     eval { $mq->queue_declare( $channel_number, $queue_name, $options, $arguments ); };
@@ -316,9 +316,9 @@ sub _declare_queue($$$$;$)
     }
 }
 
-sub _declare_task_queue($$;$)
+sub _declare_task_queue($$)
 {
-    my ( $self, $queue_name, $lazy_queue ) = @_;
+    my ( $self, $queue_name ) = @_;
 
     unless ( defined $queue_name )
     {
@@ -328,12 +328,12 @@ sub _declare_task_queue($$;$)
     my $durable                   = $RABBITMQ_QUEUE_DURABLE;
     my $declare_and_bind_exchange = 1;
 
-    return $self->_declare_queue( $queue_name, $durable, $declare_and_bind_exchange, $lazy_queue );
+    return $self->_declare_queue( $queue_name, $durable, $declare_and_bind_exchange );
 }
 
-sub _declare_results_queue($$;$)
+sub _declare_results_queue($$)
 {
-    my ( $self, $queue_name, $lazy_queue ) = @_;
+    my ( $self, $queue_name ) = @_;
 
     unless ( defined $queue_name )
     {
@@ -343,7 +343,7 @@ sub _declare_results_queue($$;$)
     my $durable                   = $RABBITMQ_QUEUE_TRANSIENT;
     my $declare_and_bind_exchange = 0;
 
-    return $self->_declare_queue( $queue_name, $durable, $declare_and_bind_exchange, $lazy_queue );
+    return $self->_declare_queue( $queue_name, $durable, $declare_and_bind_exchange );
 }
 
 sub _publish_json_message($$$;$$)
@@ -401,17 +401,17 @@ sub _priority_to_int($)
 {
     my $priority = shift;
 
-    unless ( exists $RABBITMQ_PRIORITIES{ $priority } )
+    unless ( exists $RABBITMQ_PRIORITIES->{ $priority } )
     {
         LOGDIE( "Unknown job priority: $priority" );
     }
 
-    return $RABBITMQ_PRIORITIES{ $priority };
+    return $RABBITMQ_PRIORITIES->{ $priority };
 }
 
 sub _priority_count()
 {
-    return scalar( keys( %RABBITMQ_PRIORITIES ) );
+    return scalar( keys( %{ $RABBITMQ_PRIORITIES } ) );
 }
 
 sub _process_worker_message($$$)
@@ -461,8 +461,12 @@ sub _process_worker_message($$$)
 
     # Do the job
     my $job_result;
-    eval { $job_result = $function_name->_run( $args, $celery_job_id ); };
+    eval { $job_result = $function_name->__run( $args, $celery_job_id ); };
     my $error_message = $@;
+
+    if ( $error_message ) {
+        ERROR( "Job '$celery_job_id' died: $@" );        
+    }
 
     # If the job has failed, _run() has already printed the error
     # message multiple times at this point so we don't repeat outselves
@@ -474,7 +478,6 @@ sub _process_worker_message($$$)
         my $response;
         if ( $error_message )
         {
-            ERROR( "Job '$celery_job_id' died: $@" );
             $response = {
                 'status'    => 'FAILURE',
                 'traceback' => "Job died: $error_message",
@@ -499,7 +502,7 @@ sub _process_worker_message($$$)
 
         # Send message back with the job result
         eval {
-            $self->_declare_results_queue( $reply_to, $function_name->lazy_queue() );
+            $self->_declare_results_queue( $reply_to );
             $self->_publish_json_message(
                 $reply_to,
                 $response,
@@ -528,13 +531,34 @@ sub _process_worker_message($$$)
     }
 }
 
+# Import function Perl module by path or name
+sub _import_function($)
+{
+    my ( $path_or_name ) = shift;
+
+    eval {
+        # Foo::Bar
+        ( my $file = $path_or_name ) =~ s|::|/|g;
+        require $file . '.pm';
+        $path_or_name->import();
+        1;
+    } or do
+    {
+        LOGDIE( "Unable to find function in '$path_or_name': $@" );
+    };
+
+    return $path_or_name;
+}
+
 sub start_worker($$)
 {
     my ( $self, $function_name ) = @_;
 
+    _import_function( $function_name );
+
     my $mq = $self->_mq();
 
-    $self->_declare_task_queue( $function_name, $function_name->lazy_queue() );
+    $self->_declare_task_queue( $function_name );
 
     my $consume_options = {
 
@@ -556,6 +580,8 @@ sub run_job_sync($$$$)
 {
     my ( $self, $function_name, $args, $priority ) = @_;
 
+    _import_function( $function_name );
+
     my $mq = $self->_mq();
 
     # Post the job
@@ -564,7 +590,7 @@ sub run_job_sync($$$$)
 
     # Declare result queue (ignore function's publish_results())
     my $reply_to_queue = $self->_reply_to_queue( $function_name );
-    eval { $self->_declare_results_queue( $reply_to_queue, $function_name->lazy_queue() ); };
+    eval { $self->_declare_results_queue( $reply_to_queue ); };
     if ( $@ )
     {
         LOGDIE( "Unable to declare results queue '$reply_to_queue': $@" );
@@ -673,12 +699,17 @@ sub run_job_async($$$$)
 {
     my ( $self, $function_name, $args, $priority ) = @_;
 
-    return $self->_run_job_on_rabbitmq( $function_name, $args, $priority, $function_name->publish_results() );
+    _import_function( $function_name );
+
+    my $publish_results = 0;
+    return $self->_run_job_on_rabbitmq( $function_name, $args, $priority, $publish_results );
 }
 
 sub _run_job_on_rabbitmq($$$$$)
 {
     my ( $self, $function_name, $args, $priority, $publish_results ) = @_;
+
+    _import_function( $function_name );
 
     unless ( defined( $args ) )
     {
@@ -701,7 +732,7 @@ sub _run_job_on_rabbitmq($$$$$)
         'errbacks'  => undef,
         'taskset'   => undef,
         'id'        => $celery_job_id,
-        'retries'   => $function_name->retries(),
+        'retries'   => 0,
         'task'      => $function_name,
         'timelimit' => [ undef, undef, ],
         'eta'       => undef,
@@ -709,14 +740,14 @@ sub _run_job_on_rabbitmq($$$$$)
     };
 
     # Declare task queue
-    $self->_declare_task_queue( $function_name, $function_name->lazy_queue() );
+    $self->_declare_task_queue( $function_name );
 
     my $reply_to_queue;
     if ( $publish_results )
     {
         # Declare result queue before posting a job (just like Celery does)
         $reply_to_queue = $self->_reply_to_queue( $function_name );
-        $self->_declare_results_queue( $reply_to_queue, $function_name->lazy_queue() );
+        $self->_declare_results_queue( $reply_to_queue );
     }
     else
     {

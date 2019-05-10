@@ -267,7 +267,7 @@ update stories set publish_date = '2017-01-01'::date + ( ( stories_id % 27 )::te
 SQL
 
     MediaWords::JobManager::Job::run_remotely(  #
-        'MediaWords::Job::Facebook::ImportSolrDataForTesting',  #
+        'MediaWords::Job::ImportSolrDataForTesting',  #
         { throttle => 0 },   #
     );
 

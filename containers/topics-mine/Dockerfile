@@ -12,4 +12,4 @@ ENV PYTHONPATH="/opt/mediacloud/src/topics-mine/python:${PYTHONPATH}"
 # Copy worker script
 COPY bin /opt/mediacloud/bin
 
-CMD ["topics_mine.pm"]
+CMD ["topics_mine_worker.pl"]

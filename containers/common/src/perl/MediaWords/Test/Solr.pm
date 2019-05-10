@@ -178,7 +178,7 @@ sub setup_test_index($)
     queue_all_stories( $db );
 
     MediaWords::JobManager::Job::run_remotely(  #
-        'MediaWords::Job::Facebook::ImportSolrDataForTesting',  #
+        'MediaWords::Job::ImportSolrDataForTesting',  #
         { full => 1, throttle => 0 },   #
     );
 }

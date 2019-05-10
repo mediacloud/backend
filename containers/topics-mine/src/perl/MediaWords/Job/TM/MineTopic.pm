@@ -1,5 +1,3 @@
-#!mjm_worker.pl
-
 package MediaWords::Job::TM::MineTopic;
 
 #
@@ -82,5 +80,4 @@ sub run($$;$)
 
 no Moose;    # gets rid of scaffolding
 
-# Return package name instead of 1 or otherwise worker.pl won't know the name of the package it's loading
-__PACKAGE__;
+1;

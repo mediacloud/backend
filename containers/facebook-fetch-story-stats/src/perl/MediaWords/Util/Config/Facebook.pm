@@ -18,14 +18,14 @@ use Modern::Perl "2015";
 
     use MediaWords::Util::Python;
 
-    MediaWords::Util::Python::import_python_module( __PACKAGE__, 'mediawords.util.config.facebook' );
+    MediaWords::Util::Python::import_python_module( __PACKAGE__, 'facebook_fetch_story_stats.config' );
 
     1;
 }
 
 sub _python_config()
 {
-    return MediaWords::Util::Config::Common::PythonProxy::FacebookConfig->new();
+    return MediaWords::Util::Config::Facebook::PythonProxy::FacebookConfig->new();
 }
 
 sub is_enabled()

@@ -42,16 +42,6 @@ sub broker()
     return $job_broker;
 }
 
-# Whether or not publish job state and return value upon completion to a
-# separate RabbitMQ queue
-sub publish_results()
-{
-    # Don't create response queues and post messages with job results to
-    # them because they use up resources and we don't really check those
-    # results for the many jobs that we run
-    return 0;
-}
-
 # define this in the sub class to make it so that only one job can run for each distinct value of the
 # given $arg.  For instance, set this to 'topics_id' to make sure that only one MineTopic job can be running
 # at a given time for a given topics_id.

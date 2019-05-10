@@ -1,6 +1,4 @@
-#!mjm_worker.pl
-
-package MediaWords::Job::Facebook::ImportSolrDataForTesting;
+package MediaWords::Job::ImportSolrDataForTesting;
 
 #
 # Import test data to Solr; called by tests
@@ -29,10 +27,9 @@ sub run($;$)
 
     MediaWords::Solr::Dump::import_data( $db, $args );
 
-    INFO "Done imporing test Solr data.";
+    INFO "Done importing test Solr data.";
 }
 
 no Moose;    # gets rid of scaffolding
 
-# Return package name instead of 1 or otherwise worker.pl won't know the name of the package it's loading
-__PACKAGE__;
+1;

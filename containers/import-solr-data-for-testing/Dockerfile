@@ -4,7 +4,12 @@
 
 FROM dockermediacloud/mediacloud-import-solr-data:latest
 
+# Copy sources
+COPY src/ /opt/mediacloud/src/import-solr-data-for-testing/
+ENV PERL5LIB="/opt/mediacloud/src/import-solr-data-for-testing/perl:${PERL5LIB}"
+ENV PYTHONPATH="/opt/mediacloud/src/import-solr-data-for-testing/python:${PYTHONPATH}"
+
 # Copy worker script
 COPY bin /opt/mediacloud/bin
 
-CMD ["import_solr_data_for_testing.pm"]
+CMD ["import_solr_data_for_testing_worker.pl"]

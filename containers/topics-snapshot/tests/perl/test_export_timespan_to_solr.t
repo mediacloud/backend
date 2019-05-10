@@ -57,7 +57,7 @@ SQL
     my $timespan = MediaWords::DBI::Topics::get_latest_overall_timespan( $db, $topic->{ topics_id } );
 
     MediaWords::JobManager::Job::run_remotely(  #
-        'MediaWords::Job::Facebook::ImportSolrDataForTesting',  #
+        'MediaWords::Job::ImportSolrDataForTesting',  #
         { empty_queue => 1 },   #
     );
 
@@ -77,7 +77,7 @@ SQL
     MediaWords::Job::TM::SnapshotTopic->run( { topics_id => $topic->{ topics_id } } );
 
     MediaWords::JobManager::Job::run_remotely(  #
-        'MediaWords::Job::Facebook::ImportSolrDataForTesting',  #
+        'MediaWords::Job::ImportSolrDataForTesting',  #
         { empty_queue => 1 },   #
     );
 
