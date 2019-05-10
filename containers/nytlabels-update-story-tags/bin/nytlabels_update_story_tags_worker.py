@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 
-from mediawords.annotator.nyt_labels_tagger import NYTLabelsTagger
 from mediawords.db import connect_to_db
 from mediawords.dbi.stories.postprocess import mark_as_processed
 from mediawords.job import JobBroker
 from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_object_from_bytes_if_needed
+from nytlabels_update_story_tags.nyt_labels_tagger import NYTLabelsTagger
 
 log = create_logger(__name__)
 

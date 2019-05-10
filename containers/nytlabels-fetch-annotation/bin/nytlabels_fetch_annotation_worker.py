@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 
-from mediawords.annotator.nyt_labels_fetcher import NYTLabelsAnnotatorFetcher
 from mediawords.db import connect_to_db
 from mediawords.job import JobBroker
 from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_object_from_bytes_if_needed
+from nytlabels_fetch_annotation.fetcher import NYTLabelsAnnotatorFetcher
 
 log = create_logger(__name__)
 

@@ -1,6 +1,6 @@
 import pytest
 
-from mediawords.db.schema.migrate import (
+from migrate_schema import (
     McSchemaVersionFromLinesException,
     _schema_version_from_lines,
 )

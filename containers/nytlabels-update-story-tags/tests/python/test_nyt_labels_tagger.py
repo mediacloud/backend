@@ -1,10 +1,10 @@
 from unittest import TestCase
 
 from mediawords.db import connect_to_db
-from mediawords.annotator.nyt_labels_tagger import NYTLabelsTagger
-from mediawords.annotator.nyt_labels_store import NYTLabelsAnnotatorStore
-from mediawords.annotator.sample_data import sample_nytlabels_response, expected_nytlabels_tags
 from mediawords.util.sql import sql_now
+from nytlabels_base.nyt_labels_store import NYTLabelsAnnotatorStore
+from nytlabels_base.sample_data import sample_nytlabels_response, expected_nytlabels_tags
+from nytlabels_update_story_tags.nyt_labels_tagger import NYTLabelsTagger
 
 
 class TestNYTLabelsAnnotator(TestCase):

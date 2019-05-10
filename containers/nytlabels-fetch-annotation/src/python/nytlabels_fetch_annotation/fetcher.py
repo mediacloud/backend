@@ -1,12 +1,12 @@
 from typing import Union
 
 from mediawords.annotator.fetcher import JSONAnnotationFetcher, McJSONAnnotationFetcherException
-from mediawords.annotator.nyt_labels_store import NYTLabelsAnnotatorStore
-from mediawords.util.config.nytlabels_fetcher import NYTLabelsFetcherConfig
 from mediawords.util.parse_json import encode_json
 from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_object_from_bytes_if_needed
 from mediawords.util.web.user_agent import Request
+from nytlabels_base.nyt_labels_store import NYTLabelsAnnotatorStore
+from nytlabels_fetch_annotation.config import NYTLabelsFetcherConfig
 
 log = create_logger(__name__)
 

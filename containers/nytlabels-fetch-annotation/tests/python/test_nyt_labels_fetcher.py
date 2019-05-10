@@ -2,13 +2,13 @@ from typing import Union
 from unittest import TestCase
 
 from mediawords.db import connect_to_db
-from mediawords.annotator.nyt_labels_fetcher import NYTLabelsAnnotatorFetcher
-from mediawords.annotator.sample_data import sample_nytlabels_response
 from mediawords.test.hash_server import HashServer
-from mediawords.util.config.nytlabels_fetcher import NYTLabelsFetcherConfig
 from mediawords.util.parse_json import encode_json
 from mediawords.util.network import random_unused_port
 from mediawords.util.sql import sql_now
+from nytlabels_base.sample_data import sample_nytlabels_response
+from nytlabels_fetch_annotation.fetcher import NYTLabelsAnnotatorFetcher
+from nytlabels_fetch_annotation.config import NYTLabelsFetcherConfig
 
 
 class TestNYTLabelsAnnotator(TestCase):

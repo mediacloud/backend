@@ -1,10 +1,10 @@
 from typing import Union, List
 
-from mediawords.annotator.nyt_labels_store import NYTLabelsAnnotatorStore
 from mediawords.annotator.tagger import JSONAnnotationTagger, McJSONAnnotationTaggerException
-from mediawords.util.config.nytlabels_tagger import NYTLabelsTaggerConfig
 from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_object_from_bytes_if_needed
+from nytlabels_base.nyt_labels_store import NYTLabelsAnnotatorStore
+from nytlabels_update_story_tags.config import NYTLabelsTaggerConfig
 
 log = create_logger(__name__)
 
