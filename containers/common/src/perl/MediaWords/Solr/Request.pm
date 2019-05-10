@@ -37,7 +37,8 @@ sub _get_solr_url
 sub _wait_for_solr_to_start()
 {
     my $solr_url = _get_solr_url();
-    my $collections_list_url = "$solr_url/admin/collections?action=LIST&wt=json";
+
+    my $sample_select_url = "$solr_url/mediacloud/select?q=*.*&rows=1&wt=json";
 
     my $connected = 0;
 
@@ -50,26 +51,26 @@ sub _wait_for_solr_to_start()
 
 		    my $ua = MediaWords::Util::Web::UserAgent->new();
 		    $ua->set_timeout( 1 );
-		    my $response = $ua->get( $collections_list_url );
+		    my $response = $ua->get( $sample_select_url );
 
 		    unless ( $response->is_success() ) {
-		    	die "Unable to connect: " . $response->decoded_content;
+		    	die "Unable to connect: " . $response->status_line;
 		    }
 
 		    unless ( $response->decoded_content() ) {
 		    	die "Response is empty.";
 		    }
 
-		    my $collections;
+		    my $result;
 		    eval {
-		    	$collections = MediaWords::Util::ParseJSON::decode_json( $response->decoded_content() );
+		    	$result = MediaWords::Util::ParseJSON::decode_json( $response->decoded_content() );
 		    };
 		    if ( $@ ) {
 		    	die "Unable to decode response: $@";
 		    }
 
-		    unless ( scalar( $collections->{ 'collections' } ) ) {
-		    	die "No collections found.";
+		    unless ( defined( $result->{ 'response' } ) ) {
+		    	die "Response doesn't have 'response' key: " . $response->decoded_content();
 		    }
 		};
 		if ( $@ ) {
