@@ -39,6 +39,8 @@ RUN \
         htop \
         # Pinging other containers from within Compose environment
         iputils-ping \
+        # Provides killall among other utilities
+        psmisc \
         less \
         locales \
         # Waiting for some port to open
