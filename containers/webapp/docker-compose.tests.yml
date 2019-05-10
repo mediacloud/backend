@@ -83,19 +83,17 @@ services:
             - 5672
             - 15672
         volumes:
-            - vol_rabbitmq_data:/var/lib/rabbitmq/mnesia/
+            - vol_rabbitmq_data:/var/lib/rabbitmq/
 
     mc_rescrape_media:
         image: dockermediacloud/mediacloud-rescrape-media:latest
         env_file: ./../global.env.dist
         stop_signal: SIGKILL
-        # Logging might reveal test failures, so we leave it on
 
     mc_word2vec_generate_snapshot_model:
         image: dockermediacloud/mediacloud-word2vec-generate-snapshot-model:latest
         env_file: ./../global.env.dist
         stop_signal: SIGKILL
-        # Logging might reveal test failures, so we leave it on
 
 volumes:
     vol_postgresql_data: {}

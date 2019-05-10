@@ -2,8 +2,8 @@ version: "3.7"
 
 services:
 
-    mc_topics_mine:
-        image: dockermediacloud/mediacloud-topics-mine:latest
+    mc_purge_object_caches:
+        image: dockermediacloud/mediacloud-purge-object-caches:latest
         stop_signal: SIGKILL
         env_file: ./../global.env.dist
         volumes:
@@ -11,22 +11,10 @@ services:
               source: ./bin/
               target: /opt/mediacloud/bin/
             - type: bind
-              source: ./src/
-              target: /opt/mediacloud/src/topics-mine/
-            - type: bind
-              source: ./tests/
-              target: /opt/mediacloud/tests/
-            - type: bind
-              source: ./../topics-base/src/
-              target: /opt/mediacloud/src/topics-base/
-            - type: bind
               source: ./../common/src/
               target: /opt/mediacloud/src/common/
         depends_on:
             - mc_migrate_schema
-            - mc_rabbitmq_server
-            - mc_topics_fetch_link
-            - mc_topics_extract_story_links
 
     mc_migrate_schema:
         image: dockermediacloud/mediacloud-migrate-schema:latest
@@ -52,26 +40,6 @@ services:
             - 5432
         volumes:
             - vol_postgresql_data:/var/lib/postgresql/11/main/
-
-    mc_rabbitmq_server:
-        image: dockermediacloud/mediacloud-rabbitmq-server:latest
-        env_file: ./../global.env.dist
-        stop_signal: SIGKILL
-        expose:
-            - 5672
-            - 15672
-        volumes:
-            - vol_rabbitmq_data:/var/lib/rabbitmq/
-
-    mc_topics_fetch_link:
-        image: dockermediacloud/mediacloud-topics-fetch-link:latest
-        env_file: ./../global.env.dist
-        stop_signal: SIGKILL
-
-    mc_topics_extract_story_links:
-        image: dockermediacloud/mediacloud-topics-extract-story-links:latest
-        env_file: ./../global.env.dist
-        stop_signal: SIGKILL
 
 volumes:
     vol_postgresql_data: {}

@@ -60,7 +60,7 @@ services:
             - 5672
             - 15672
         volumes:
-            - vol_rabbitmq_data:/var/lib/rabbitmq/mnesia/
+            - vol_rabbitmq_data:/var/lib/rabbitmq/
 
 volumes:
     vol_postgresql_data: {}

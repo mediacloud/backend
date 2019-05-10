@@ -67,7 +67,7 @@ RUN \
 COPY --chown=rabbitmq:rabbitmq conf/* /etc/rabbitmq/
 
 # Mnesia database
-VOLUME /var/lib/rabbitmq/mnesia/
+VOLUME /var/lib/rabbitmq/
 
 # Server
 EXPOSE 5672
