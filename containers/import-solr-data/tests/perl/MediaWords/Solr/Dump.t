@@ -1,5 +1,3 @@
-# test dumping and importing of data for solr
-
 use strict;
 use warnings;
 
@@ -8,6 +6,7 @@ use MediaWords::CommonLibs;
 
 use Test::More;
 
+use MediaWords::DB;
 use MediaWords::Solr::Dump;
 use MediaWords::Test::Solr;
 use MediaWords::Util::Tags;
@@ -26,7 +25,7 @@ sub get_solr_date_clause
     return "publish_day:$year-$month-${day}T00\\:00\\:00Z";
 }
 
-sub test_import
+sub test_import($)
 {
     my ( $db ) = @_;
 
@@ -144,67 +143,13 @@ select * from solr_import_stories where stories_id = ?
 SQL
         ok( $solr_import_story, "queue story from stories_tags_map insert" );
     }
-
-    {
-        # test stories_queue_table option of import_data
-        is( MediaWords::Solr::get_num_found( $db, { q => '*:*' } ), 0, "stories after deleting" );
-
-        $db->query( "create table test_stories_queue ( stories_id int )" );
-
-        MediaWords::Test::Solr::queue_all_stories( $db );
-
-        my ( $test_queue_size )   = $db->query( "select count(*) from test_stories_queue" )->flat;
-        my ( $test_stories_size ) = $db->query( "select count(*) from stories" )->flat;
-        is( $test_queue_size, $test_stories_size, "test queue size" );
-
-        my ( $pre_num_solr_imports )          = $db->query( "select count(*) from solr_imports" )->flat;
-        my ( $pre_num_solr_imported_stories ) = $db->query( "select count(*) from solr_imported_stories" )->flat;
-
-        MediaWords::Solr::Dump::import_data(
-            $db,
-            {
-                queue_only          => 1,
-                stories_queue_table => 'test_stories_queue',
-                skip_logging        => 1,
-                throttle            => 0,
-            }
-        );
-
-        is( MediaWords::Solr::get_num_found( $db, { q => '*:*' } ), $test_stories_size, "stories after queue import" );
-
-        my ( $post_num_solr_imports )          = $db->query( "select count(*) from solr_imports" )->flat;
-        my ( $post_num_solr_imported_stories ) = $db->query( "select count(*) from solr_imported_stories" )->flat;
-
-        is( $pre_num_solr_imports, $post_num_solr_imports, "solr_imports rows with skip_logging" );
-        is( $pre_num_solr_imported_stories, $post_num_solr_imported_stories,
-            "solr_imported_stories rows with skip_logging" );
-
-        my $story = pop( @{ $test_stories } );
-        MediaWords::Test::Solr::test_story_query( $db, '*:*', $story, 'alternate stories queue table' );
-    }
-
-    {
-        # test threaded import
-        is( MediaWords::Solr::get_num_found( $db, { q => '*:*' } ), 0, "stories after deleting" );
-
-        MediaWords::Test::Solr::queue_all_stories( $db );
-
-        MediaWords::Solr::Dump::import_data( $db, { full => 1, jobs => 3, throttle => 0 } );
-
-        $db = MediaWords::DB::connect_to_db();
-
-        my ( $test_stories_size ) = $db->query( "select count(*) from stories" )->flat;
-        is( MediaWords::Solr::get_num_found( $db, { q => '*:*' } ), $test_stories_size, "stories threaded import" );
-
-        my $story = pop( @{ $test_stories } );
-        MediaWords::Test::Solr::test_story_query( $db, "*:*", $story );
-    }
-
 }
 
 sub main
 {
-    test_import();
+    my $db = MediaWords::DB::connect_to_db();
+
+    test_import( $db );
 
     done_testing();
 }

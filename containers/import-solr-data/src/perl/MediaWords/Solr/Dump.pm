@@ -37,7 +37,6 @@ use Data::Dumper;
 use Digest::MD5;
 use Encode;
 use FileHandle;
-use JSON::PP;
 use List::MoreUtils qw/natatime/;
 use List::Util;
 use Parallel::ForkManager;
@@ -73,7 +72,6 @@ Readonly my $MIN_STORIES_TO_PROCESS => 1000;
 my $_import_date;
 
 # options
-my $_solr_use_staging;
 my $_stories_queue_table;
 
 # keep track of the max stories_id from the last time we queried the queue table so that we don't have to
@@ -593,10 +591,9 @@ sub import_data($;$)
     my $empty_queue  = $options->{ empty_queue }  // 0;
     my $throttle     = $options->{ throttle }     // $DEFAULT_THROTTLE;
     my $jobs         = $options->{ jobs }         // 1;
-    my $staging      = $options->{ staging }      // 0;
     my $skip_logging = $options->{ skip_logging } // 0;
+    my $daemon = $options->{ daemon } // 0;
 
-    $_solr_use_staging          = $staging;
     $_stories_queue_table       = $stories_queue_table;
     $_last_max_queue_stories_id = 0;
 
@@ -612,9 +609,17 @@ sub import_data($;$)
         my $num_stories = scalar( @{ $stories_ids } );
         if ( $num_stories < $MIN_STORIES_TO_PROCESS )
         {
-            INFO( "too few stories ($num_stories/$MIN_STORIES_TO_PROCESS). sleeping $throttle seconds ..." );
-            sleep( $throttle );
-            next;
+            if ( $daemon )
+            {
+                INFO( "too few stories ($num_stories/$MIN_STORIES_TO_PROCESS). sleeping $throttle seconds ..." );
+                sleep( $throttle );
+                next;
+            }
+            elsif ( !$num_stories || !$empty_queue )
+            {
+                INFO( "too few stories ($num_stories/$MIN_STORIES_TO_PROCESS). quitting." );
+                last;
+            }
         }
 
         if ( $update )

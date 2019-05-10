@@ -18,14 +18,14 @@ use Modern::Perl "2015";
 
     use MediaWords::Util::Python;
 
-    MediaWords::Util::Python::import_python_module( __PACKAGE__, 'mediawords.util.config.solr_import' );
+    MediaWords::Util::Python::import_python_module( __PACKAGE__, 'import_solr_data.config' );
 
     1;
 }
 
 sub _python_config()
 {
-    return MediaWords::Util::Config::Common::PythonProxy::SolrImportConfig->new();
+    return MediaWords::Util::Config::SolrImport::PythonProxy::SolrImportConfig->new();
 }
 
 sub max_queued_stories()

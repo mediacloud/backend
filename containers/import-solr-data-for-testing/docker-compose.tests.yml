@@ -2,31 +2,29 @@ version: "3.7"
 
 services:
 
-    mc_topics_mine:
-        image: dockermediacloud/mediacloud-topics-mine:latest
+    mc_import_solr_data_for_testing:
+        image: dockermediacloud/mediacloud-import-solr-data-for-testing:latest
         stop_signal: SIGKILL
         env_file: ./../global.env.dist
+        environment:
+            MC_SOLR_IMPORT_MAX_QUEUED_STORIES: 100000
         volumes:
             - type: bind
               source: ./bin/
               target: /opt/mediacloud/bin/
             - type: bind
               source: ./src/
-              target: /opt/mediacloud/src/topics-mine/
+              target: /opt/mediacloud/src/import-solr-data-for-testing/
             - type: bind
-              source: ./tests/
-              target: /opt/mediacloud/tests/
-            - type: bind
-              source: ./../topics-base/src/
-              target: /opt/mediacloud/src/topics-base/
+              source: ./../import-solr-data/src/
+              target: /opt/mediacloud/src/import-solr-data/
             - type: bind
               source: ./../common/src/
               target: /opt/mediacloud/src/common/
         depends_on:
             - mc_migrate_schema
+            - mc_solr_shard
             - mc_rabbitmq_server
-            - mc_topics_fetch_link
-            - mc_topics_extract_story_links
 
     mc_migrate_schema:
         image: dockermediacloud/mediacloud-migrate-schema:latest
@@ -53,6 +51,30 @@ services:
         volumes:
             - vol_postgresql_data:/var/lib/postgresql/11/main/
 
+    mc_solr_shard:
+        image: dockermediacloud/mediacloud-solr-shard:latest
+        env_file: ./../global.env.dist
+        stop_signal: SIGKILL
+        environment:
+            MC_SOLR_SHARD_COUNT: "1"
+        expose:
+            - 8983
+        volumes:
+            - vol_solr_shard_data:/var/lib/solr/
+        depends_on:
+            - mc_solr_zookeeper
+
+    mc_solr_zookeeper:
+        image: dockermediacloud/mediacloud-solr-zookeeper:latest
+        env_file: ./../global.env.dist
+        stop_signal: SIGKILL
+        expose:
+            - 2181
+            - 2888
+            - 3888
+        volumes:
+            - vol_solr_zookeeper_data:/var/lib/zookeeper/
+
     mc_rabbitmq_server:
         image: dockermediacloud/mediacloud-rabbitmq-server:latest
         env_file: ./../global.env.dist
@@ -63,17 +85,8 @@ services:
         volumes:
             - vol_rabbitmq_data:/var/lib/rabbitmq/mnesia/
 
-    mc_topics_fetch_link:
-        image: dockermediacloud/mediacloud-topics-fetch-link:latest
-        env_file: ./../global.env.dist
-        stop_signal: SIGKILL
-        # Logging might reveal test failures, so we leave it on
-
-    mc_topics_extract_story_links:
-        image: dockermediacloud/mediacloud-topics-extract-story-links:latest
-        env_file: ./../global.env.dist
-        stop_signal: SIGKILL
-        # Logging might reveal test failures, so we leave it on
-
 volumes:
     vol_postgresql_data: {}
+    vol_solr_shard_data: {}
+    vol_solr_zookeeper_data: {}
+    vol_rabbitmq_data: {}

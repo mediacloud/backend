@@ -77,7 +77,7 @@ sub _wait_for_solr_to_start()
 			sleep( 1 );
 
 		} else {
-			INFO "Solr is up!";
+			DEBUG "Solr is up!";
 			$connected = 1;
 			last;
 		}

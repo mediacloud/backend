@@ -1,30 +1,11 @@
-
-=head1 NAME
-
-C<MediaWords::JobManager::Job> - An abstract class for a "function".
-
-
-=head1 LINGO
-
-=over 4
-
-=item * function
-
-A function to be run by locally or remotely, e.g. C<add_default_feeds>.
-
-=item * job
-
-An instance of the function doing the actual job with specific parameters.
-
-=back
-
-=cut
-
 package MediaWords::JobManager::Job;
 
 use strict;
 use warnings;
+
 use Modern::Perl "2015";
+use MediaWords::CommonLibs;
+
 use feature qw(switch);
 
 use Moose::Role 2.1005;
@@ -37,17 +18,6 @@ use Time::HiRes;
 use Data::Dumper;
 use DateTime;
 use Readonly;
-
-# used for capturing STDOUT and STDERR output of each job and timestamping it;
-# initialized before each job
-use Log::Log4perl qw(:easy);
-Log::Log4perl->easy_init(
-    {
-        level  => $DEBUG,
-        utf8   => 1,
-        layout => "%d{ISO8601} [%P]: %m%n"
-    }
-);
 
 =head1 ABSTRACT INTERFACE
 

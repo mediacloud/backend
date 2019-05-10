@@ -14,7 +14,7 @@ requires 'Date::Format';
 requires 'FCGI';
 requires 'FCGI::ProcManager';
 requires 'HTTP::Request';
-requires 'JSON::PP';
+requires 'JSON::XS';
 requires 'Math::Prime::Util';
 requires 'namespace::autoclean';
 requires 'Net::IP';

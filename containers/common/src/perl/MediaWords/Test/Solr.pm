@@ -109,15 +109,7 @@ SQL
 
 }
 
-=head2 create_indexed_test_story_stack( $db, $data )
-
-Create a test story stack, add content to the stories, and index them.  The stories will have associated timespans_id,
-stories_tags_map, and processed_stories entries added as well.  Returns the test story stack as returned by
-MediaWords::Test::DB::Create::create_test_story_stack()
-
-=cut
-
-sub create_indexed_test_story_stack($$)
+sub create_test_story_stack_for_indexing($$)
 {
     my ( $db, $data ) = @_;
 
@@ -131,23 +123,42 @@ sub create_indexed_test_story_stack($$)
     _add_story_tags_to_stories( $db, $test_stories );
     _add_timespans_to_stories( $db, $test_stories );
 
+    return $media;
+}
+
+=head2 create_indexed_test_story_stack( $db, $data )
+
+Create a test story stack, add content to the stories, and index them.  The stories will have associated timespans_id,
+stories_tags_map, and processed_stories entries added as well.  Returns the test story stack as returned by
+MediaWords::Test::DB::Create::create_test_story_stack()
+
+=cut
+
+sub create_indexed_test_story_stack($$)
+{
+    my ( $db, $data ) = @_;
+
+    my $media = create_test_story_stack_for_indexing( $db, $data );
+
     setup_test_index( $db );
 
     return $media;
 }
 
-sub queue_all_stories($)
+sub queue_all_stories($;$)
 {
-    my ( $db ) = @_;
+    my ( $db, $stories_queue_table ) = @_;
+
+    $stories_queue_table //= 'solr_import_stories';
 
     $db->begin();
 
-    $db->query( "truncate table solr_import_stories" );
+    $db->query( "truncate table $stories_queue_table" );
 
     # select from processed_stories because only processed stories should get imported.  sort so that the
     # the import is more efficient when pulling blocks of stories out.
     $db->query( <<SQL );
-insert into solr_import_stories
+insert into $stories_queue_table
     select stories_id
         from processed_stories
         group by stories_id
@@ -159,14 +170,11 @@ SQL
 
 =head2 setup_test_index( $db )
 
-Switch the active sole index to the staging collection.  Delete everything currently in that collection.  Run a
-full solr import based on the current postgres db.
+Delete everything currently in the collection and run a full solr import based on the current
+postgres db.
 
-Using this function leaves the side effect of leaving all of the test data sitting in the staging collection after
-it has been run.
-
-Due to a failsafe built into generate_and_import_data(), the delete of the staging collection
-data will fail if there are more than 100 million sentences in the index (to prevent accidental deletion of
+Due to a failsafe built into generate_and_import_data(), the delete of the collection data will
+fail if there are more than 100 million sentences in the index (to prevent accidental deletion of
 production data).
 
 =cut

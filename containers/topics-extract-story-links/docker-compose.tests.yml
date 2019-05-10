@@ -29,8 +29,6 @@ services:
         image: dockermediacloud/mediacloud-migrate-schema:latest
         env_file: ./../global.env.dist
         stop_signal: SIGKILL
-        logging:
-            driver: none
         depends_on:
             - mc_postgresql_pgbouncer
 
@@ -38,8 +36,6 @@ services:
         image: dockermediacloud/mediacloud-postgresql-pgbouncer:latest
         env_file: ./../global.env.dist
         stop_signal: SIGKILL
-        logging:
-            driver: none
         expose:
             - 6432
         depends_on:
@@ -49,8 +45,6 @@ services:
         image: dockermediacloud/mediacloud-postgresql-server:latest
         env_file: ./../global.env.dist
         stop_signal: SIGKILL
-        logging:
-            driver: none
         expose:
             - 5432
         volumes:

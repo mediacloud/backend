@@ -16,14 +16,21 @@ use MediaWords::CommonLibs;
 use MediaWords::DB;
 use MediaWords::Solr::Dump;
 
+use Data::Dumper;
+
+
 # Run job
-sub run($;$)
+sub run($$)
 {
     my ( $class, $args ) = @_;
 
     my $db = MediaWords::DB::connect_to_db();
 
-    INFO "Importing test Solr data...";
+    unless ( $args ) {
+    	$args = {};
+    }
+
+    INFO "Importing test Solr data with arguments " . Dumper( $args ) . "...";
 
     MediaWords::Solr::Dump::import_data( $db, $args );
 

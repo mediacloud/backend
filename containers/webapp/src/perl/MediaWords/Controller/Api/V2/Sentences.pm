@@ -10,7 +10,7 @@ use Encode;
 use List::Util qw(first max maxstr min minstr reduce shuffle sum);
 use Moose;
 use namespace::autoclean;
-use JSON::PP;
+use JSON::XS;
 use Readonly;
 
 use MediaWords::Solr;
@@ -122,7 +122,7 @@ sub list_GET
     #$self->status_ok( $c, entity => $sentences );
     #
     $c->response->content_type( 'application/json; charset=UTF-8' );
-    $c->response->body( encode_utf8( JSON::PP::encode_json( $sentences ) ) );
+    $c->response->body( encode_utf8( JSON::XS::encode_json( $sentences ) ) );
 }
 
 sub count : Local : ActionClass('MC_REST')

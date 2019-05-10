@@ -25,7 +25,7 @@ use Modern::Perl "2015";
 
 sub _python_config()
 {
-    return MediaWords::Util::Config::Common::PythonProxy::TopicsMineConfig->new();
+    return MediaWords::Util::Config::TopicsMine::PythonProxy::TopicsMineConfig->new();
 }
 
 sub crimson_hexagon_api_key()

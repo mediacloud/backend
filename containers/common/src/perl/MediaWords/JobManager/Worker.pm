@@ -6,12 +6,11 @@ package MediaWords::JobManager::Worker;
 
 use strict;
 use warnings;
+
 use Modern::Perl "2015";
+use MediaWords::CommonLibs;
 
 use MediaWords::AbstractJob;
-
-use Log::Log4perl qw(:easy);
-Log::Log4perl->easy_init( { level => $DEBUG, utf8 => 1, layout => "%d{ISO8601} [%P]: %m%n" } );
 
 # Run worker
 sub start_worker($)

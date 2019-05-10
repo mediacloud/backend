@@ -1,57 +1,15 @@
-
-=head1 NAME
-
-C<MediaWords::JobManager> - Perl worker / client library for running jobs
-asynchronously.
-
-=head1 SYNOPSIS
-
-  use MediaWords::JobManager;
-
-=head1 DESCRIPTION
-
-Run jobs locally, remotely or remotely + asynchronously.
-
-=head2 EXPORT
-
-None by default.
-
-=head1 AUTHOR
-
-Linas Valiukas, E<lt>lvaliukas@cyber.law.harvard.eduE<gt>
-
-=head1 COPYRIGHT AND LICENSE
-
-Copyright (C) 2013- Linas Valiukas, 2013- Berkman Center for Internet &
-Society.
-
-This library is free software; you can redistribute it and/or modify it under
-the same terms as Perl itself, either Perl version 5.18.2 or, at your option,
-any later version of Perl 5 you may have available.
-
-=cut
-
 package MediaWords::JobManager;
-
-our $VERSION = '0.27';
 
 use strict;
 use warnings;
+
 use Modern::Perl "2015";
+use MediaWords::CommonLibs;
 
 use UUID::Tiny ':std';
 use Digest::SHA qw(sha256_hex);
 use Carp;
 use Readonly;
-
-use Log::Log4perl qw(:easy);
-Log::Log4perl->easy_init(
-    {
-        level  => $DEBUG,
-        utf8   => 1,
-        layout => "%d{ISO8601} [%P]: %m%n"
-    }
-);
 
 # flush sockets after every write
 $| = 1;

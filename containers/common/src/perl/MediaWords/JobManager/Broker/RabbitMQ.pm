@@ -10,7 +10,9 @@ package MediaWords::JobManager::Broker::RabbitMQ;
 
 use strict;
 use warnings;
+
 use Modern::Perl "2015";
+use MediaWords::CommonLibs;
 
 use Moose;
 with 'MediaWords::JobManager::Broker';
@@ -21,15 +23,6 @@ use Tie::Cache;
 use JSON::XS;
 use Data::Dumper;
 use Readonly;
-
-use Log::Log4perl qw(:easy);
-Log::Log4perl->easy_init(
-    {
-        level  => $DEBUG,
-        utf8   => 1,
-        layout => "%d{ISO8601} [%P]: %m%n"
-    }
-);
 
 # flush sockets after every write
 $| = 1;
@@ -534,20 +527,20 @@ sub _process_worker_message($$$)
 # Import function Perl module by path or name
 sub _import_function($)
 {
-    my ( $path_or_name ) = shift;
+    my ( $function_name ) = shift;
 
     eval {
         # Foo::Bar
-        ( my $file = $path_or_name ) =~ s|::|/|g;
+        ( my $file = $function_name ) =~ s|::|/|g;
         require $file . '.pm';
-        $path_or_name->import();
+        $function_name->import();
         1;
     } or do
     {
-        LOGDIE( "Unable to find function in '$path_or_name': $@" );
+        LOGDIE( "Unable to import function '$function_name': $@" );
     };
 
-    return $path_or_name;
+    return $function_name;
 }
 
 sub start_worker($$)
@@ -579,8 +572,6 @@ sub start_worker($$)
 sub run_job_sync($$$$)
 {
     my ( $self, $function_name, $args, $priority ) = @_;
-
-    _import_function( $function_name );
 
     my $mq = $self->_mq();
 
@@ -699,8 +690,6 @@ sub run_job_async($$$$)
 {
     my ( $self, $function_name, $args, $priority ) = @_;
 
-    _import_function( $function_name );
-
     my $publish_results = 0;
     return $self->_run_job_on_rabbitmq( $function_name, $args, $priority, $publish_results );
 }
@@ -708,8 +697,6 @@ sub run_job_async($$$$)
 sub _run_job_on_rabbitmq($$$$$)
 {
     my ( $self, $function_name, $args, $priority, $publish_results ) = @_;
-
-    _import_function( $function_name );
 
     unless ( defined( $args ) )
     {

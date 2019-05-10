@@ -26,4 +26,4 @@ ENV PYTHONPATH="/opt/mediacloud/src/import-solr-data/python:${PYTHONPATH}"
 # Copy importer script
 COPY bin /opt/mediacloud/bin
 
-CMD ["import_solr_data.pl"]
+CMD ["import_solr_data.pl", "--daemon"]
