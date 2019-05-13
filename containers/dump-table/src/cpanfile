@@ -1,4 +1,2 @@
 requires 'Fcntl';
-requires 'HTML::LinkExtractor';
 requires 'Parallel::ForkManager';
-

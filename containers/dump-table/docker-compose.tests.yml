@@ -1,0 +1,45 @@
+version: "3.7"
+
+services:
+
+    mc_dump_table:
+        image: dockermediacloud/mediacloud-dump-table:latest
+        stop_signal: SIGKILL
+        env_file: ./../global.env.dist
+        volumes:
+            - type: bind
+              source: ./bin/
+              target: /opt/mediacloud/bin/
+            - type: bind
+              source: ./../common/src/
+              target: /opt/mediacloud/src/common/
+        depends_on:
+            - mc_migrate_schema
+
+    mc_migrate_schema:
+        image: dockermediacloud/mediacloud-migrate-schema:latest
+        env_file: ./../global.env.dist
+        stop_signal: SIGKILL
+        depends_on:
+            - mc_postgresql_pgbouncer
+
+    mc_postgresql_pgbouncer:
+        image: dockermediacloud/mediacloud-postgresql-pgbouncer:latest
+        env_file: ./../global.env.dist
+        stop_signal: SIGKILL
+        expose:
+            - 6432
+        depends_on:
+            - mc_postgresql_server
+
+    mc_postgresql_server:
+        image: dockermediacloud/mediacloud-postgresql-server:latest
+        env_file: ./../global.env.dist
+        stop_signal: SIGKILL
+        expose:
+            - 5432
+        volumes:
+            - vol_postgresql_data:/var/lib/postgresql/11/main/
+
+volumes:
+    vol_postgresql_data: {}

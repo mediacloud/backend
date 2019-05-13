@@ -1,1 +1,2 @@
 requires 'CHI';
+requires 'HTML::LinkExtractor';

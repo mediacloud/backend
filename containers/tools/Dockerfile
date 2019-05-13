@@ -4,28 +4,6 @@
 
 FROM dockermediacloud/mediacloud-common:latest
 
-# Install dependencies
-RUN \
-    #
-    # Required by Perl::Tidy
-    apt-get -y --no-install-recommends install libtidy-dev && \
-    #
-    true
-
-# Install Perl dependencies
-COPY src/cpanfile /var/tmp/
-RUN \
-    cd /var/tmp/ && \
-    cpanm \
-        --mirror "$MEDIACLOUD_PERL_CPAN_MIRROR" \
-        --mirror-only \
-        --notest \
-        --installdeps \
-        . && \
-    rm cpanfile && \
-    rm -rf /root/.cpanm/ && \
-    true
-
 # Install Python dependencies
 COPY src/requirements.txt /var/tmp/
 RUN \

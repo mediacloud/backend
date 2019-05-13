@@ -1,0 +1,24 @@
+#
+# Table dump script
+#
+
+FROM dockermediacloud/mediacloud-common:latest
+
+# Install Perl dependencies
+COPY src/cpanfile /var/tmp/
+RUN \
+    cd /var/tmp/ && \
+    cpanm \
+        --mirror "$MEDIACLOUD_PERL_CPAN_MIRROR" \
+        --mirror-only \
+        --notest \
+        --installdeps \
+        . && \
+    rm cpanfile && \
+    rm -rf /root/.cpanm/ && \
+    true
+
+# Copy extractor worker
+COPY bin /opt/mediacloud/bin
+
+CMD ["dump_table.pl"]
