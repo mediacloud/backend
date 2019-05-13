@@ -19,5 +19,7 @@ requires 'Math::Prime::Util';
 requires 'namespace::autoclean';
 requires 'Net::IP';
 requires 'Template';
+requires 'Term::Prompt';
+requires 'Term::ReadKey';
 requires 'XML::Simple';
 requires 'YAML::Syck';

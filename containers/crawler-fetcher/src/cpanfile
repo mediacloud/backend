@@ -1,7 +1,4 @@
 requires 'Date::Parse';
 requires 'Digest::SHA';
-requires 'Fcntl';
 requires 'File::Path';
 requires 'HTTP::Daemon';
-requires 'IO::Select';
-requires 'IO::Socket';

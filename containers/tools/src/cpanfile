@@ -1,9 +1,4 @@
-requires 'Carp::Always';
 requires 'Fcntl';
 requires 'HTML::LinkExtractor';
 requires 'Parallel::ForkManager';
-requires 'Parse::BooleanLogic';
-requires 'Perl::Tidy';
-requires 'Term::Prompt';
-requires 'Term::ReadKey';
 
