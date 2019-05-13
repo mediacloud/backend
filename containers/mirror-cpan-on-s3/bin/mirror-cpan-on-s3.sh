@@ -23,9 +23,6 @@ MC_CPAN_S3_PATH="s3://mediacloud-minicpan/minicpan-$(date +%Y%m%d)/"
 MC_CPAN_MIRROR="http://mirror.cc.columbia.edu/pub/software/cpan/"
 MC_CPAN_DIR="`pwd`/mediacloud-cpan"
 
-pip install s4cmd
-cpanm CPAN::Mini
-
 RCFILE_PATH="$(mktemp -d)/mediacloud.minicpanrc"
 echo "local: $MC_CPAN_DIR" >> "$RCFILE_PATH"
 echo "remote: $MC_CPAN_MIRROR" >> "$RCFILE_PATH"
@@ -33,18 +30,12 @@ echo "exact_mirror: 1" >> "$RCFILE_PATH"
 echo "skip_perl: 1" >> "$RCFILE_PATH"
 echo "also_mirror: indices/ls-lR.gz" >> "$RCFILE_PATH"
 
-MINICPAN=minicpan
-if [ -x /usr/local/opt/perl/bin/minicpan ]; then
-    # OS X
-    MINICPAN=/usr/local/opt/perl/bin/minicpan
-fi
-
 # Fetch the modules
 mkdir -p "$MC_CPAN_DIR"
-$MINICPAN -C "$RCFILE_PATH"
+minicpan -C "$RCFILE_PATH"
 
 # Upload the modules to S3
-python -m s4cmd \
+python3 -m s4cmd \
     dsync \
     --recursive \
     --verbose \
