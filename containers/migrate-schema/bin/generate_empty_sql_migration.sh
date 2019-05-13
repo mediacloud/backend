@@ -1,31 +1,37 @@
 #!/bin/bash
 
-if [ ! -e schema/mediawords.sql ]; then
-    echo "Can't find schema/mediawords.sql.  Are you running from the mediacloud root directory?";
-    exit;
+set -u
+set -e
+
+SCHEMA_DIR="/opt/mediacloud/schema/"
+MEDIAWORDS_SQL_PATH="$SCHEMA_DIR/mediawords.sql"
+
+if [ ! -e "$MEDIAWORDS_SQL_PATH" ]; then
+    echo "Can't find mediawords.sql."
+    exit 1
 fi
 
-NEW_SCHEMA_VERSION=`cat schema/mediawords.sql  \
-    | perl -lne 'print if /(MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT)/'   \
+NEW_SCHEMA_VERSION=`cat $MEDIAWORDS_SQL_PATH  \
+    | perl -lne 'print if /(MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT)/' \
     | perl -lpe 's/.*MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := (\d+?);.*/$1/'`
 
-if [ "$NEW_SCHEMA_VERSION" == '' ] ; then
-    echo "Unable to find MEDIACLOUD_DATABASE_SCHEMA_VERSION in mediawords.sql";
-    exit;
+if [ "$NEW_SCHEMA_VERSION" == '' ]; then
+    echo "Unable to find MEDIACLOUD_DATABASE_SCHEMA_VERSION in mediawords.sql"
+    exit
 fi
-    
+
 OLD_SCHEMA_VERSION=`expr "$NEW_SCHEMA_VERSION" - 1`
 
-if [ "$OLD_SCHEMA_VERSION" == '' ] ; then
-    echo "Unable to generate old schema version from new schema version";
-    exit;
+if [ "$OLD_SCHEMA_VERSION" == '' ]; then
+    echo "Unable to generate old schema version from new schema version"
+    exit
 fi
 
-MIGRATION_FILE="schema/migrations/mediawords-$OLD_SCHEMA_VERSION-$NEW_SCHEMA_VERSION.sql";
+MIGRATION_FILE="$SCHEMA_DIR/migrations/mediawords-$OLD_SCHEMA_VERSION-$NEW_SCHEMA_VERSION.sql"
 
 if [ -e "$MIGRATION_FILE" ]; then
-    echo "'$MIGRATION_FILE' already exists.  Cowardly refusing to overwrite it.";
-    exit;
+    echo "'$MIGRATION_FILE' already exists. Cowardly refusing to overwrite it."
+    exit 1
 fi
 
 SQL="--
@@ -73,6 +79,4 @@ SELECT set_database_schema_version();
 
 echo "$SQL" > "$MIGRATION_FILE"
 
-git add "$MIGRATION_FILE"
-
-echo "generated $MIGRATION_FILE and added it to git commit"
+echo "Generated $MIGRATION_FILE"
