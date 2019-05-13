@@ -7,9 +7,9 @@ import csv
 import networkx as nx
 import re
 
-import mediawords.util.log
+from mediawords.util.log import create_logger
 
-logger = mediawords.util.log.create_logger(__name__)
+logger = create_logger(__name__)
 
 
 def main():
