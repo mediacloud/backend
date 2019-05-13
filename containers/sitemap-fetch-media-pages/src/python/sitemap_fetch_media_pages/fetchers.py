@@ -9,15 +9,18 @@ from typing import Optional, Dict
 from mediawords.util.log import create_logger
 from mediawords.util.url import fix_common_url_mistakes, is_http_url, normalize_url
 from mediawords.util.web.user_agent import UserAgent
-from mediawords.util.sitemap.exceptions import McSitemapsException, McSitemapsXMLParsingException
-from mediawords.util.sitemap.helpers import (
+from sitemap_fetch_media_pages.exceptions import (
+    McSitemapsException,
+    McSitemapsXMLParsingException,
+)
+from sitemap_fetch_media_pages.helpers import (
     sitemap_useragent,
     html_unescape_strip,
     parse_sitemap_publication_date,
     get_url_retry_on_client_errors,
     ungzipped_response_content,
 )
-from mediawords.util.sitemap.objects import (
+from sitemap_fetch_media_pages.objects import (
     SitemapPage,
     SitemapNewsStory,
     AbstractSitemap,

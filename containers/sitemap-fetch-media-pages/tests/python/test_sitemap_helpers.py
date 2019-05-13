@@ -2,7 +2,10 @@ import datetime
 
 import pytz
 
-from mediawords.util.sitemap.helpers import html_unescape_strip, parse_sitemap_publication_date
+from sitemap_fetch_media_pages.helpers import (
+    html_unescape_strip,
+    parse_sitemap_publication_date,
+)
 
 
 def test_html_unescape_strip():

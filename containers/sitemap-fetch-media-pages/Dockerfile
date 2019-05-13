@@ -12,4 +12,4 @@ ENV PYTHONPATH="/opt/mediacloud/src/sitemap-fetch-media-pages/python:${PYTHONPAT
 # Copy worker script
 COPY bin /opt/mediacloud/bin
 
-CMD ["sitemap_fetch_media_pages.py"]
+CMD ["sitemap_fetch_media_pages_worker.py"]

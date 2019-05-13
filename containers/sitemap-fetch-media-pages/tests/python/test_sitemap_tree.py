@@ -7,7 +7,7 @@ from mediawords.test.hash_server import HashServer
 from mediawords.util.compress import gzip
 from mediawords.util.log import create_logger
 from mediawords.util.network import random_unused_port
-from mediawords.util.sitemap.objects import (
+from sitemap_fetch_media_pages.objects import (
     IndexRobotsTxtSitemap,
     PagesXMLSitemap,
     IndexXMLSitemap,
@@ -15,7 +15,7 @@ from mediawords.util.sitemap.objects import (
     InvalidSitemap,
     SitemapNewsStory,
     SitemapPageChangeFrequency, PagesTextSitemap)
-from mediawords.util.sitemap.tree import sitemap_tree_for_homepage
+from sitemap_fetch_media_pages.tree import sitemap_tree_for_homepage
 
 # FIXME various exotic properties
 # FIXME XML vulnerabilities with Expat

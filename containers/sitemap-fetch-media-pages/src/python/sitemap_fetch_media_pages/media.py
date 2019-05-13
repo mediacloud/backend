@@ -1,6 +1,6 @@
 from mediawords.db import DatabaseHandler
 from mediawords.util.log import create_logger
-from mediawords.util.sitemap.tree import sitemap_tree_for_homepage
+from sitemap_fetch_media_pages.tree import sitemap_tree_for_homepage
 
 log = create_logger(__name__)
 

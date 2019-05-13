@@ -11,7 +11,7 @@ from furl import furl
 from mediawords.util.compress import gunzip, McGunzipException
 from mediawords.util.log import create_logger
 from mediawords.util.web.user_agent import UserAgent, Response
-from mediawords.util.sitemap.exceptions import McSitemapsException
+from sitemap_fetch_media_pages.exceptions import McSitemapsException
 
 log = create_logger(__name__)
 

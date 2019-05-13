@@ -1,10 +1,10 @@
 from furl import furl
 
 from mediawords.util.log import create_logger
-from mediawords.util.sitemap.exceptions import McSitemapsException
-from mediawords.util.sitemap.fetchers import SitemapFetcher
-from mediawords.util.sitemap.objects import AbstractSitemap
 from mediawords.util.url import is_homepage_url, is_http_url, normalize_url
+from sitemap_fetch_media_pages.exceptions import McSitemapsException
+from sitemap_fetch_media_pages.fetchers import SitemapFetcher
+from sitemap_fetch_media_pages.objects import AbstractSitemap
 
 log = create_logger(__name__)
 

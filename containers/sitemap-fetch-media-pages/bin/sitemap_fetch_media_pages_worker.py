@@ -4,7 +4,7 @@ from mediawords.db import connect_to_db
 from mediawords.job import JobBroker
 from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_object_from_bytes_if_needed
-from mediawords.util.sitemap.media import fetch_sitemap_pages_for_media_id
+from sitemap_fetch_media_pages.media import fetch_sitemap_pages_for_media_id
 
 log = create_logger(__name__)
 
