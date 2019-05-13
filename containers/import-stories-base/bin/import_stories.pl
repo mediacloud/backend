@@ -5,16 +5,12 @@
 use strict;
 use warnings;
 
+use Modern::Perl "2015";
+use MediaWords::CommonLibs;
+
 use Getopt::Long;
 
 use MediaWords::DB;
-use MediaWords::ImportStories::ScrapeHTML;
-use MediaWords::ImportStories::Feedly;
-
-my $_import_module_lookup = {
-    feedly     => 'MediaWords::ImportStories::Feedly',
-    scrapehtml => 'MediaWords::ImportStories::ScrapeHTML'
-};
 
 sub get_media_from_options
 {
@@ -60,8 +56,17 @@ sub main
         die( "usage: $0 ---media_id <id> --import_module <import module>" );
     }
 
-    my $import_module = $_import_module_lookup->{ lc( $p->{ import_module } ) }
-      || die( "Unknown import_module: '$p->{ import_module }'" );
+    my $import_module = $p->{ import_module };
+
+    eval {
+        ( my $file = $import_module ) =~ s|::|/|g;
+        require $file . '.pm';
+        $import_module->import();
+        1;
+    } or do
+    {
+        LOGDIE( "Unable to import module '$import_module': $@" );
+    };
 
     delete( $p->{ import_module } );
 

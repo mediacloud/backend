@@ -37,11 +37,6 @@ RUN \
     rm -rf /root/.cache/ && \
     true
 
-# Copy sources
-COPY src/ /opt/mediacloud/src/tools/
-ENV PERL5LIB="/opt/mediacloud/src/tools/perl:${PERL5LIB}"
-ENV PYTHONPATH="/opt/mediacloud/src/tools/python:${PYTHONPATH}"
-
 # Copy tools
 COPY bin /opt/mediacloud/bin
 

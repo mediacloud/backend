@@ -7,8 +7,8 @@ Mediawords::ImportStories - template class for importing stories into db
 =head1 DESCRIPTION
 
 Import stories into the database, handling date bounding and story deduping.  This is only
-a template class.  You must use of the sub class such as MediaWords::ImportStories::ScrapeHTML
-or MediaWords::ImportStories::Feedly to import stories from a given source.
+a template class.  You must use of the sub class such as MediaWords::ImportStories::Feedly
+to import stories from a given source.
 
 After the sub class identifies all story candidates, ImportStories looks for any
 duplicates among the story candidates and the existing stories in the media sources and only adds as stories

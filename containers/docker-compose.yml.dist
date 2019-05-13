@@ -405,13 +405,13 @@ services:
     #                 memory: 4G
 
     #
-    # Scrape Feedly for new stories
-    # -----------------------------
+    # Import stories by scraping Feedly
+    # ---------------------------------
     #
-    mc_scrape_feedly:
+    mc_import_stories_feedly:
         build:
-            context: ./scrape-feedly/
-        image: dockermediacloud/mediacloud-scrape-feedly:latest
+            context: ./import-stories-feedly/
+        image: dockermediacloud/mediacloud-import-stories-feedly:latest
         env_file: global.env
         deploy:
             # Writes stories to PostgreSQL

@@ -1,8 +1,8 @@
 #
-# Scrape Feedly for new stories 
+# Import stories by fetching them from Feedly
 #
 
-FROM dockermediacloud/mediacloud-common:latest
+FROM dockermediacloud/mediacloud-import-stories-base:latest
 
 # Install Perl dependencies
 COPY src/cpanfile /var/tmp/
@@ -19,11 +19,11 @@ RUN \
     true
 
 # Copy sources
-COPY src/ /opt/mediacloud/src/scrape-feedly/
-ENV PERL5LIB="/opt/mediacloud/src/scrape-feedly/perl:${PERL5LIB}"
-ENV PYTHONPATH="/opt/mediacloud/src/scrape-feedly/python:${PYTHONPATH}"
+COPY src/ /opt/mediacloud/src/import-stories-feedly/
+ENV PERL5LIB="/opt/mediacloud/src/import-stories-feedly/perl:${PERL5LIB}"
+ENV PYTHONPATH="/opt/mediacloud/src/import-stories-feedly/python:${PYTHONPATH}"
 
-# Copy worker script
+# Copy scraper script
 COPY bin /opt/mediacloud/bin
 
 CMD ["scrape_feedly.pl", "--all"]
