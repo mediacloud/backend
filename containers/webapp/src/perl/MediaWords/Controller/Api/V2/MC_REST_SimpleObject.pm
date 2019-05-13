@@ -620,7 +620,7 @@ SQL
     }
     else
     {
-        die( "Uknown put_tags action: $action" );
+        die( "Unknown put_tags action: $action" );
     }
 
     $put_tag->{ tag } = $tag;

@@ -322,7 +322,7 @@ def normalize_url_lossy(url: str) -> Optional[str]:
     in some cases).
 
     WARNING: You MUST set media.normalized_url = null for all possibly impacted media if you edit this
-    function.  If in doubt, set normalized_url = null for all media.  See mediawords.tm.media.lookup_medium for
+    function.  If in doubt, set normalized_url = null for all media.  See topics_base.media.lookup_medium() for
     more details.
     """
     url = decode_object_from_bytes_if_needed(url)

@@ -6,9 +6,9 @@ import traceback
 
 from mediawords.db import connect_to_db
 from mediawords.job import JobBroker
-from mediawords.tm.extract_story_links import extract_links_for_topic_story
 from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_object_from_bytes_if_needed
+from topics_extract_story_links.extract_story_links import extract_links_for_topic_story
 
 log = create_logger(__name__)
 

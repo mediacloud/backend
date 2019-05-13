@@ -8,9 +8,6 @@ services:
         env_file: ./../global.env.dist
         volumes:
             - type: bind
-              source: ./bin/
-              target: /opt/mediacloud/bin/
-            - type: bind
               source: ./src/
               target: /opt/mediacloud/src/topics-base/
             - type: bind

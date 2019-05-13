@@ -28,7 +28,7 @@ create trigger update_media_db_row_last_updated before update or insert
     on media for each row execute procedure update_media_db_row_last_updated();
 
 --- allow lookup of media by mediawords.util.url.normalize_url_lossy.
--- the data in this table is accessed and kept up to date by mediawords.tm.media.lookup_medium_by_url
+-- the data in this table is accessed and kept up to date by topics_base.media.lookup_medium_by_url()
 create table media_normalized_urls (
     media_normalized_urls_id        serial primary key,
     media_id                        int not null references media,

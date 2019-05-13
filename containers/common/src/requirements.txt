@@ -67,6 +67,9 @@ pytest==3.8.0
 # Test coverage
 pytest-cov==2.6.0
 
+# Timezone handling
+pytz==2018.9
+
 # Date parsing
 python-dateutil==2.7.5
 

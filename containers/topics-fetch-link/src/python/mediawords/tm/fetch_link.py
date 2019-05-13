@@ -10,19 +10,22 @@ from dataclasses import dataclass
 from http import HTTPStatus
 
 from mediawords.db import DatabaseHandler
-from mediawords.tm.domains import skip_self_linked_domain
-from mediawords.tm.stories import (
+from mediawords.util.log import create_logger
+from mediawords.util.network import tcp_port_is_open
+from mediawords.util.perl import decode_object_from_bytes_if_needed
+from mediawords.util.url import is_http_url, normalize_url_lossy
+from mediawords.util.web.user_agent.response.response import Response
+from mediawords.util.web.user_agent.throttled import ThrottledUserAgent, McThrottledDomainException
+from topics_base.domains import skip_self_linked_domain
+from topics_base.stories import (
     url_has_binary_extension,
     get_story_match,
     generate_story,
     McTMStoriesDuplicateException,
     add_to_topic_stories,
 )
-from mediawords.util.log import create_logger
-from mediawords.util.network import tcp_port_is_open
-from mediawords.util.perl import decode_object_from_bytes_if_needed
-from mediawords.tm.fetch_link_utils import content_matches_topic, try_update_topic_link_ref_stories_id
-from mediawords.tm.fetch_states import (
+from topics_base.fetch_link_utils import content_matches_topic, try_update_topic_link_ref_stories_id
+from topics_base.fetch_states import (
     FETCH_STATE_PENDING,
     FETCH_STATE_REQUEST_FAILED,
     FETCH_STATE_CONTENT_MATCH_FAILED,
@@ -34,12 +37,8 @@ from mediawords.tm.fetch_states import (
     FETCH_STATE_SKIPPED,
     FETCH_STATE_TWEET_PENDING,
 )
-
-from mediawords.tm.ignore_link_pattern import IGNORE_LINK_PATTERN
-from mediawords.util.url import is_http_url, normalize_url_lossy
-from mediawords.util.url.twitter import parse_status_id_from_url, parse_screen_name_from_user_url
-from mediawords.util.web.user_agent.response.response import Response
-from mediawords.util.web.user_agent.throttled import ThrottledUserAgent, McThrottledDomainException
+from topics_base.twitter_url import parse_status_id_from_url, parse_screen_name_from_user_url
+from topics_base.ignore_link_pattern import IGNORE_LINK_PATTERN
 
 log = create_logger(__name__)
 

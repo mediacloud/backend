@@ -4,19 +4,19 @@ from typing import List, Callable
 import traceback
 
 from mediawords.db.handler import DatabaseHandler
-from mediawords.tm.domains import skip_self_linked_domain_url, increment_domain_links
-from mediawords.tm.stories import generate_story, add_to_topic_stories
+from topics_base.domains import skip_self_linked_domain_url, increment_domain_links
+from topics_base.stories import generate_story, add_to_topic_stories
 from mediawords.util.sql import sql_now
-from mediawords.util.url.twitter import parse_status_id_from_url, parse_screen_name_from_user_url
-from mediawords.tm.fetch_link_utils import content_matches_topic, try_update_topic_link_ref_stories_id
-from mediawords.tm.fetch_states import (
+from mediawords.util.log import create_logger
+from mediawords.util.twitter import fetch_100_users, get_tweet_urls, fetch_100_tweets
+from topics_base.twitter_url import parse_status_id_from_url, parse_screen_name_from_user_url
+from topics_base.fetch_link_utils import content_matches_topic, try_update_topic_link_ref_stories_id
+from topics_base.fetch_states import (
     FETCH_STATE_TWEET_MISSING,
     FETCH_STATE_TWEET_ADDED,
     FETCH_STATE_CONTENT_MATCH_FAILED,
     FETCH_STATE_PYTHON_ERROR,
 )
-from mediawords.util.log import create_logger
-from mediawords.util.twitter import fetch_100_users, get_tweet_urls, fetch_100_tweets
 
 log = create_logger(__name__)
 

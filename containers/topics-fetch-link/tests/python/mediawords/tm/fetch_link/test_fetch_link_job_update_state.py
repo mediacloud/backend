@@ -2,7 +2,7 @@ from mediawords.db import connect_to_db
 from mediawords.test.db.create import create_test_topic
 from mediawords.test.hash_server import HashServer
 from mediawords.tm.fetch_link import fetch_topic_url_update_state
-from mediawords.tm.fetch_states import FETCH_STATE_PENDING, FETCH_STATE_STORY_ADDED, FETCH_STATE_REQUEUED
+from topics_base.fetch_states import FETCH_STATE_PENDING, FETCH_STATE_STORY_ADDED, FETCH_STATE_REQUEUED
 
 
 def test_fetch_link_job_update_state():

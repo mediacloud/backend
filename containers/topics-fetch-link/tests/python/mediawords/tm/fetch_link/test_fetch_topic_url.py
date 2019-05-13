@@ -8,7 +8,7 @@ from mediawords.test.hash_server import HashServer
 from mediawords.util.web.user_agent.throttled import McThrottledDomainException
 
 from mediawords.tm.fetch_link import fetch_topic_url
-from mediawords.tm.fetch_states import (
+from topics_base.fetch_states import (
     FETCH_STATE_PENDING,
     FETCH_STATE_STORY_ADDED,
     FETCH_STATE_REQUEST_FAILED,

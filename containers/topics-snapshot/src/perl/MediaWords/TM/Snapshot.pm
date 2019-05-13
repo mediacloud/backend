@@ -1027,7 +1027,7 @@ sub _validate_periods($$)
 
     for my $period ( @{ $allowed_periods } )
     {
-        die( "uknown period: '$period'" ) unless ( grep { $period eq $_ } @{ $allowed_periods } );
+        die( "unknown period: '$period'" ) unless ( grep { $period eq $_ } @{ $allowed_periods } );
     }
 }
 

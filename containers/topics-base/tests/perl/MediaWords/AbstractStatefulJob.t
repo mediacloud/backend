@@ -43,7 +43,7 @@ use Test::More;
         }
         else
         {
-            die( "uknown test: $test" );
+            die( "unknown test: $test" );
         }
     }
 

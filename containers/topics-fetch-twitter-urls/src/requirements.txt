@@ -1,2 +1,5 @@
 # Socket level HTTP mocking
 httpretty==0.9.6
+
+# Twitter API client
+tweepy==3.7.0
