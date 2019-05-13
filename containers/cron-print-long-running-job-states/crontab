@@ -1,2 +1,2 @@
 # m h  dom mon dow user    command
-6   19 *   *   *   root    /opt/mediacloud/bin/cron_print_long_running_job_states.py 1> /proc/1/fd/1 2> /proc/1/fd/2
+6   19 *   *   *   root    /opt/mediacloud/bin/cron_print_long_running_job_states.py 1> /dev/stdout 2> /dev/stderr

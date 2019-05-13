@@ -57,8 +57,8 @@ RUN \
 RUN \
     rm -f /var/log/apache2/access.log && \
     rm -f /var/log/apache2/error.log && \
-    ln -s /proc/1/fd/1 /var/log/apache2/access.log && \
-    ln -s /proc/1/fd/2 /var/log/apache2/error.log && \
+    ln -s /dev/stdout /var/log/apache2/access.log && \
+    ln -s /dev/stderr /var/log/apache2/error.log && \
     true
 
 # Configure Apache

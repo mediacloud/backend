@@ -1,7 +1,7 @@
 # m h dom mon dow user    command
 
 # Daily:
-34  4 *   *   *   root    /opt/mediacloud/bin/cron_generate_user_summary.pl 1> /proc/1/fd/1 2> /proc/1/fd/2
+34  4 *   *   *   root    /opt/mediacloud/bin/cron_generate_user_summary.pl 1> /dev/stdout 2> /dev/stderr
 
 # Weekly:
-22  5 *   *   sun root    /opt/mediacloud/bin/cron_generate_user_summary.pl --new 7 --activity 7 1> /proc/1/fd/1 2> /proc/1/fd/2
+22  5 *   *   sun root    /opt/mediacloud/bin/cron_generate_user_summary.pl --new 7 --activity 7 1> /dev/stdout 2> /dev/stderr

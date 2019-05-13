@@ -4,7 +4,7 @@
 
 # Symlink syslog to Docker's STDOUT
 rm -f /var/log/syslog
-ln -s /proc/1/fd/1 /var/log/syslog
+ln -s /dev/stdout /var/log/syslog
 chmod 666 /var/log/syslog
 
 # Start rsyslogd
