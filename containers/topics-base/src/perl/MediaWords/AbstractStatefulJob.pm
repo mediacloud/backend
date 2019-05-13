@@ -71,16 +71,6 @@ sub add_to_queue($;$$$)
     $class->SUPER::add_to_queue( $args, $priority );
 }
 
-# return the job_states row associated with the currently running job
-sub get_current_job_state($$)
-{
-    my ( $class, $db ) = @_;
-
-    LOGDIE( "no stateful job is currently running" ) unless ( $_current_job_states_id );
-
-    return $db->require_by_id( 'job_states', $_current_job_states_id );
-}
-
 # to make update_job_state() update a state field in a table other than job_states, make this method return a
 # hash in the form of { table => $table, state_field => $state_field, message_field => $message_field }.  this is
 # useful to keep the state and message of the current job in a table for easy access, for instance in
