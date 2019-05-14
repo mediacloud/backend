@@ -14,6 +14,9 @@
 -- 1 of 2. Import the output of 'apgdiff':
 --
 
+
+alter table auth_users add has_consented boolean not null default false;
+
 --
 -- 2 of 2. Reset the database version.
 --
