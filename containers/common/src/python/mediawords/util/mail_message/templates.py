@@ -58,7 +58,7 @@ class TemplateMessage(Message):
     @staticmethod
     def __templates_path() -> str:
         """Return path to Jinja2 email templates."""
-        email_templates_path = '/usr/share/perl5/MediaWords/Util/Mail/Message/Templates/email-templates'
+        email_templates_path = '/opt/mediacloud/src/common/perl/MediaWords/Util/Mail/Message/Templates/email-templates'
         if not os.path.isdir(email_templates_path):
             raise McMailTemplatesNotFound('Templates directory was not found at "%s".' % email_templates_path)
         return email_templates_path
