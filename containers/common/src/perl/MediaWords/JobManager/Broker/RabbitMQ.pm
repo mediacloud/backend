@@ -27,7 +27,6 @@ use Readonly;
 # flush sockets after every write
 $| = 1;
 
-use MediaWords::JobManager;
 use MediaWords::JobManager::Priority;
 
 # RabbitMQ default timeout

@@ -10,7 +10,6 @@ use feature qw(switch);
 
 use Moose::Role 2.1005;
 
-use MediaWords::JobManager;    # helper subroutines
 use MediaWords::JobManager::AbstractJob;
 use MediaWords::JobManager::Priority;
 
