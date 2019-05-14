@@ -102,21 +102,20 @@ def _get_extracted_html(db: DatabaseHandler, story: dict) -> str:
 
     """
 
-    # "download_texts" INT -> BIGINT join hack: convert parameter downloads_id to a constant array first
-    download_texts = db.query("""
-        SELECT download_text
-        FROM download_texts
-        WHERE downloads_id = ANY(
-            ARRAY(
-                SELECT downloads_id
-                FROM downloads
-                WHERE stories_id = %(stories_id)s
-            )
+    download = db.query("""
+        -- Goofy cte to avoid bad query plan
+        WITH d AS (
+            SELECT *
+            FROM downloads
+            WHERE stories_id = %(a)s
         )
+        SELECT *
+        FROM d
         ORDER BY downloads_id
-    """, {'stories_id': story['stories_id']}).flat()
+        LIMIT 1
+    """, {'a': story['stories_id']}).hash()
 
-    html = ".\n\n".join(download_texts)
+    html = fetch_content(db, download)
 
     extract = extract_article_html_from_page_html(html)
     extracted_html = extract['extracted_html']
@@ -189,7 +188,16 @@ def _get_links_from_story(db: DatabaseHandler, story: dict) -> List[str]:
         return []
 
 
-def extract_links_for_topic_story(db: DatabaseHandler, stories_id: int, topics_id: int) -> None:
+class McExtractLinksForTopicStoryTestException(Exception):
+    pass
+
+
+def extract_links_for_topic_story(
+    db: DatabaseHandler,
+    stories_id: int,
+    topics_id: int,
+    test_throw_exception: bool = False,
+) -> None:
     """
     Extract links from a story and insert them into the topic_links table for the given topic.
 
@@ -212,6 +220,9 @@ def extract_links_for_topic_story(db: DatabaseHandler, stories_id: int, topics_i
     topic = db.require_by_id(table='topics', object_id=topics_id)
 
     try:
+        if test_throw_exception:
+            raise McExtractLinksForTopicStoryTestException("Testing whether errors get logged.")
+
         log.info("mining %s %s for topic %s .." % (story['title'], story['url'], topic['name']))
         links = _get_links_from_story(db, story)
 

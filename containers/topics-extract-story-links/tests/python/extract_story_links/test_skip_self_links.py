@@ -1,9 +1,9 @@
 from mediawords.dbi.downloads.store import store_content
 from mediawords.test.db.create import create_test_topic
-from mediawords.tm.extract_story_links import extract_links_for_topic_story
 from mediawords.util.url import get_url_distinctive_domain
-from .setup_test_extract_story_links import TestExtractStoryLinksDB
 from topics_base.domains import MAX_SELF_LINKS
+from topics_extract_story_links.extract_story_links import extract_links_for_topic_story
+from .setup_test_extract_story_links import TestExtractStoryLinksDB
 
 
 class TestSkipSelfLinks(TestExtractStoryLinksDB):

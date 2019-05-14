@@ -1,6 +1,6 @@
 from mediawords.test.db.create import create_test_topic
 from .setup_test_extract_story_links import TestExtractStoryLinksDB
-from mediawords.tm.extract_story_links import extract_links_for_topic_story
+from topics_extract_story_links.extract_story_links import extract_links_for_topic_story
 
 
 class TestExtractLinksForTopicStory(TestExtractStoryLinksDB):
@@ -44,8 +44,12 @@ class TestExtractLinksForTopicStory(TestExtractStoryLinksDB):
 
         # generate an error and make sure that it gets saved to topic_stories
         del self.test_story['url']
-        extract_links_for_topic_story(db=self.db, stories_id=self.test_story['stories_id'],
-                                      topics_id=topic['topics_id'])
+        extract_links_for_topic_story(
+            db=self.db,
+            stories_id=self.test_story['stories_id'],
+            topics_id=topic['topics_id'],
+            test_throw_exception=True,
+        )
 
         got_topic_story = self.db.query(
             """
@@ -55,5 +59,5 @@ class TestExtractLinksForTopicStory(TestExtractStoryLinksDB):
             """,
             {'a': topic['topics_id'], 'b': self.test_story['stories_id']}).hash()
 
-        assert "KeyError: 'url'" in got_topic_story['link_mine_error']
+        assert "McExtractLinksForTopicStoryTestException" in got_topic_story['link_mine_error']
         assert got_topic_story['link_mined']

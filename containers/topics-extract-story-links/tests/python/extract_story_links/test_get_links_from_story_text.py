@@ -1,5 +1,5 @@
 # noinspection PyProtectedMember
-from mediawords.tm.extract_story_links import _get_links_from_story_text
+from topics_extract_story_links.extract_story_links import _get_links_from_story_text
 from .setup_test_extract_story_links import TestExtractStoryLinksDB
 
 

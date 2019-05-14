@@ -1,7 +1,10 @@
 from mediawords.dbi.downloads.store import store_content
 # noinspection PyProtectedMember
-from mediawords.tm.extract_story_links import _get_extracted_html
+from topics_extract_story_links.extract_story_links import _get_extracted_html
 from .setup_test_extract_story_links import TestExtractStoryLinksDB
+from mediawords.util.log import create_logger
+
+log = create_logger(__name__)
 
 
 class TestGetExtractedHTML(TestExtractStoryLinksDB):
