@@ -60,7 +60,7 @@ sub get_run_lock_type()
 
 # set job state to $STATE_RUNNING, call run(), either catch any errors and set state to $STATE_ERROR and save
 # the error or set state to $STATE_COMPLETED
-sub run($;$)
+sub __run($;$)
 {
     my ( $class, $args ) = @_;
 
@@ -78,7 +78,7 @@ sub run($;$)
         DEBUG( "Got run once lock for this job class." );
     }
 
-    return $class->SUPER::run( $args );
+    return $class->run( $args );
 }
 
 no Moose;    # gets rid of scaffolding

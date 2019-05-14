@@ -29,6 +29,7 @@ use MediaWords::TM::FetchTopicTweets;
 use MediaWords::TM::Stories;
 use MediaWords::DBI::Stories::GuessDate;
 use MediaWords::JobManager::Job;
+use MediaWords::JobManager::StatefulJob;
 use MediaWords::Solr;
 use MediaWords::Solr::Query;
 use MediaWords::Util::SQL;
@@ -67,7 +68,7 @@ sub update_topic_state($$$;$)
 
     INFO( "update topic state: $message" );
 
-    eval { MediaWords::JobManager::Job::update_job_state_message( $db, 'MediaWords::Job::TM::MineTopic', $message ) };
+    eval { MediaWords::JobManager::StatefulJob::update_job_state_message( $db, 'MediaWords::Job::TM::MineTopic', $message ) };
     if ( $@ )
     {
         die "error updating job state: $@";
@@ -1022,7 +1023,7 @@ sub do_mine_topic ($$;$)
 
             update_topic_state( $db, $topic, "snapshotting" );
             my $snapshot_args = { topics_id => $topic->{ topics_id }, snapshots_id => $options->{ snapshots_id } };
-            MediaWords::JobManager::Job::add_to_queue( 'MediaWords::Job::TM::SnapshotTopic', $snapshot_args, undef, $db );
+            MediaWords::JobManager::StatefulJob::add_to_queue( 'MediaWords::Job::TM::SnapshotTopic', $snapshot_args, undef, $db );
         }
     }
 }

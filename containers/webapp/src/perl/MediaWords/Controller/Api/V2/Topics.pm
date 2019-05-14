@@ -16,6 +16,7 @@ use namespace::autoclean;
 use MediaWords::Solr;
 use MediaWords::Solr::Query;
 use MediaWords::Solr::Query::Parse;
+use MediaWords::JobManager::StatefulJob;
 
 BEGIN
 {
@@ -559,11 +560,11 @@ SQL
 
         if ( $topic->{ job_queue } eq 'mc' )
         {
-            MediaWords::JobManager::Job::add_to_queue( 'MediaWords::Job::TM::MineTopic', $mine_args, undef, $db );
+            MediaWords::JobManager::StatefulJob::add_to_queue( 'MediaWords::Job::TM::MineTopic', $mine_args, undef, $db );
         }
         elsif ( $topic->{ job_queue } eq 'public' )
         {
-            MediaWords::JobManager::Job::add_to_queue( 'MediaWords::Job::TM::MineTopicPublic', $mine_args, undef, $db );
+            MediaWords::JobManager::StatefulJob::add_to_queue( 'MediaWords::Job::TM::MineTopicPublic', $mine_args, undef, $db );
         }
         else
         {

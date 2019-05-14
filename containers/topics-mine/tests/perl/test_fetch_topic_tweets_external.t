@@ -9,8 +9,8 @@ use File::Slurp;
 use Readonly;
 use Test::More;
 
-use MediaWords::JobManager::AbstractJob;
-use MediaWords::JobManager::Job;
+use MediaWords::JobManager::AbstractStatefulJob;
+use MediaWords::JobManager::StatefulJob;
 use MediaWords::Test::DB::Create;
 use MediaWords::Util::ParseJSON;
 use MediaWords::Util::SQL;
@@ -426,7 +426,7 @@ sub test_fetch_topic_tweets($)
 update topics set start_date = \$2, end_date = \$3 where topics_id = \$1
 SQL
 
-    MediaWords::JobManager::Job::run_remotely( 'MediaWords::Job::TM::MineTopic', { topics_id => $topic->{ topics_id }, test_mode => 1 } );
+    MediaWords::JobManager::StatefulJob::run_remotely( 'MediaWords::Job::TM::MineTopic', { topics_id => $topic->{ topics_id }, test_mode => 1 } );
 
     $topic = $db->require_by_id( 'topics', $topic->{ topics_id } );
 

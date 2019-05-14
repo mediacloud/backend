@@ -13,6 +13,7 @@ with 'MediaWords::JobManager::AbstractStatefulJob';
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
+use MediaWords::DB;
 use MediaWords::TM::Snapshot;
 
 # only run one job for each topic at a time
@@ -27,9 +28,11 @@ sub get_state_table_info
 }
 
 # Run job
-sub run($$;$)
+sub run($;$)
 {
-    my ( $self, $db, $args ) = @_;
+    my ( $self, $args ) = @_;
+
+    my $db = MediaWords::DB::connect_to_db();
 
     my $topics_id  = $args->{ topics_id };
     my $note       = $args->{ note };
@@ -41,7 +44,8 @@ sub run($$;$)
 
     # No transaction started because apparently snapshot_topic() does start one itself
     $snapshots_id = MediaWords::TM::Snapshot::snapshot_topic( 
-        $db, $topics_id, $snapshots_id, $note, $bot_policy, $periods );
+        $db, $topics_id, $snapshots_id, $note, $bot_policy, $periods
+    );
 
     INFO "Adding a new word2vec model generation job for snapshot $snapshots_id...";
     MediaWords::JobManager::Job::add_to_queue( 'MediaWords::Job::Word2vec::GenerateSnapshotModel', { snapshots_id => $snapshots_id } );

@@ -26,6 +26,7 @@ with 'MediaWords::JobManager::AbstractStatefulJob';
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
+use MediaWords::DB;
 use MediaWords::TM::Mine;
 
 # only run one job for each topic at a time
@@ -46,9 +47,11 @@ sub get_state_table_info
 }
 
 # Run job
-sub run($$;$)
+sub run($;$)
 {
-    my ( $self, $db, $args ) = @_;
+    my ( $self, $args ) = @_;
+
+    my $db = MediaWords::DB::connect_to_db();
 
     my $topics_id                       = $args->{ topics_id };
     my $import_only                     = $args->{ import_only } // 0;

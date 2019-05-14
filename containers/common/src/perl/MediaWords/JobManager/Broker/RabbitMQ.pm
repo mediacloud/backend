@@ -453,7 +453,7 @@ sub _process_worker_message($$$)
 
     # Do the job
     my $job_result;
-    eval { $job_result = $function_name->__run( $args, $celery_job_id ); };
+    eval { $job_result = $function_name->__run( $args ); };
     my $error_message = $@;
 
     if ( $error_message ) {

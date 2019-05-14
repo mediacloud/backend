@@ -18,6 +18,7 @@ use MediaWords::Util::ParseHTML;
 use MediaWords::Util::Tags;
 use MediaWords::Util::URL;
 use MediaWords::Util::Web;
+use MediaWords::JobManager::StatefulJob;
 
 =head1 NAME
 
@@ -414,7 +415,7 @@ sub _apply_updates_to_media($$)
             map { MediaWords::DBI::Media::add_feed_url_to_medium( $db, $input_medium->{ medium }, $_ ) } @{ $feeds };
         }
 
-        MediaWords::JobManager::Job::add_to_queue( 'MediaWords::Job::RescrapeMedia', { media_id => $medium->{ media_id } }, undef, $db );
+        MediaWords::JobManager::StatefulJob::add_to_queue( 'MediaWords::Job::RescrapeMedia', { media_id => $medium->{ media_id } }, undef, $db );
 
         if ( my $tags_ids = $input_medium->{ tags_ids } )
         {

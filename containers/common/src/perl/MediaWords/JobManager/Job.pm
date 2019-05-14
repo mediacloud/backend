@@ -54,9 +54,9 @@ Writes log to C<STDOUT> or C<STDERR> (preferably the latter).
 
 requires 'run';
 
-sub __run($;$$)
+sub __run($;$)
 {
-    my ( $function_name, $args, $job ) = @_;
+    my ( $function_name, $args ) = @_;
 
     my $broker = MediaWords::JobManager::AbstractJob::broker();
 
@@ -112,6 +112,27 @@ sub __run($;$$)
 
     return $result;
 }
+
+sub run_locally($;$)
+{
+    my ( $function_name, $args ) = @_;
+
+    unless ( $function_name )
+    {
+        LOGDIE( "Unable to determine function name." );
+    }
+
+    my $job_result;
+    eval { $job_result = $function_name->__run( $args ); };
+    my $error_message = $@;
+
+    if ( $error_message ) {
+        ERROR( "Local job died: $@" );        
+    }
+
+    return $job_result;
+}
+
 
 =head1 CLIENT SUBROUTINES
 

@@ -22,12 +22,15 @@ with 'MediaWords::JobManager::AbstractStatefulJob';
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
+use MediaWords::DB;
 use MediaWords::DBI::Media::Rescrape;
 
 # Run job
-sub run($$;$)
+sub run($;$)
 {
-    my ( $self, $db, $args ) = @_;
+    my ( $self, $args ) = @_;
+
+    my $db = MediaWords::DB::connect_to_db();
 
     my $media_id = $args->{ media_id };
     unless ( defined $media_id )

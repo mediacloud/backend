@@ -20,6 +20,7 @@ use MediaWords::DB::Locks;
 use MediaWords::Util::ParseJSON;
 use MediaWords::Util::SQL;
 use MediaWords::JobManager::Job;
+use MediaWords::JobManager::Priority;
 
 # tag to put into a die() message to make the module not set the final state to 'error' on a die (for testing)
 Readonly our $DIE_WITHOUT_ERROR_TAG => 'dU3A4yUajMLV';
@@ -39,7 +40,7 @@ sub _create_queued_job_state($$$;$)
     my ( $db, $class, $args, $priority ) = @_;
 
     my $args_json = MediaWords::Util::ParseJSON::encode_json( $args );
-    $priority ||= $MediaWords::JobManager::Job::MJM_JOB_PRIORITY_NORMAL;
+    $priority ||= $MediaWords::JobManager::Priority::MJM_JOB_PRIORITY_NORMAL;
 
     my $job_state = {
         state      => $STATE_QUEUED,
@@ -53,22 +54,6 @@ sub _create_queued_job_state($$$;$)
     $job_state = $db->create( 'job_states', $job_state );
 
     return $job_state;
-}
-
-# override add_to_queue method to add state actions, including add a new job_states row with a state
-# of $STATE_QUEUED. optinoally include a $db handle to use to create the job_states row
-sub add_to_queue($;$$$)
-{
-    my ( $class, $args, $priority, $db ) = @_;
-
-    $db ||= MediaWords::DB::connect_to_db();
-    my $job_state = _create_queued_job_state( $db, $class, $args, $priority );
-    $args->{ job_states_id } = $job_state->{ job_states_id };
-
-    eval { _update_table_state( $db, $class, $job_state ); };
-    LOGCONFESS( "error updating table state: $@" ) if ( $@ );
-
-    $class->SUPER::add_to_queue( $args, $priority );
 }
 
 # to make update_job_state() update a state field in a table other than job_states, make this method return a
@@ -175,23 +160,14 @@ sub update_job_state_message($$$)
 
 # set job state to $STATE_RUNNING, call run(), either catch any errors and set state to $STATE_ERROR and save
 # the error or set state to $STATE_COMPLETED
-sub run($;$)
-{
-    my ( $class, $args ) = @_;
+around '__run' => sub {
+    my $orig = shift;
+    my $self = shift;
+    my ( $args ) = @_;
+
+    $args //= {};
 
     my $db = MediaWords::DB::connect_to_db();
-
-    # if a job for a run locked class is already running, exit without doinig anything.
-    if ( my $run_lock_arg = $class->get_run_lock_arg() )
-    {
-        my $lock_type = $class->get_run_lock_type();
-        if ( !MediaWords::DB::Locks::get_session_lock( $db, $lock_type, $args->{ $run_lock_arg }, 0 ) )
-        {
-            WARN( "Job with $run_lock_arg = $args->{ $run_lock_arg } is already running.  Exiting." );
-            return;
-        }
-        DEBUG( "Got run once lock for this job class." );
-    }
 
     my $r;
 
@@ -201,15 +177,15 @@ sub run($;$)
         my $job_states_id = $args->{ job_states_id };
         if ( !$job_states_id )
         {
-            my $job_state = _create_queued_job_state( $db, $class, $args );
+            my $job_state = _create_queued_job_state( $db, $self, $args );
             $job_states_id = $job_state->{ job_states_id };
         }
 
         $_current_job_states_id = $job_states_id;
 
-        $class->_update_job_state( $db, $STATE_RUNNING );
+        $self->_update_job_state( $db, $STATE_RUNNING );
 
-        $r = $class->SUPER::run( $db, $args );
+        $r = $self->$orig( $args );
     };
 
     my $eval_error = $@;
@@ -226,18 +202,18 @@ sub run($;$)
         if ( $eval_error )
         {
             WARN( "logged error in job_states: $eval_error" );
-            $class->_update_job_state( $db, $STATE_ERROR, $eval_error );
+            $self->_update_job_state( $db, $STATE_ERROR, $eval_error );
         }
         else
         {
-            $class->_update_job_state( $db, $STATE_COMPLETED );
+            $self->_update_job_state( $db, $STATE_COMPLETED );
         }
     };
 
     $_current_job_states_id = undef;
 
     return $r;
-}
+};
 
 no Moose;    # gets rid of scaffolding
 

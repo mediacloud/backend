@@ -5,23 +5,28 @@ use warnings;
 
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
-use MediaWords::Util::ParseJSON;
+
 use MediaWords::DB;
+use MediaWords::Util::ParseJSON;
+use MediaWords::JobManager::Job;
+use MediaWords::JobManager::Priority;
 
 use Sys::Hostname;
-
 use Test::More;
 
 {
-
-    package MediaWords::Job::StatefulJobTest;
+    package StatefulJobTest;
 
     use Moose;
     with 'MediaWords::JobManager::AbstractStatefulJob';
 
-    sub run($$$)
+    use MediaWords::DB;
+
+    sub run($$)
     {
-        my ( $self, $db, $args ) = @_;
+        my ( $self, $args ) = @_;
+
+        my $db = MediaWords::DB::connect_to_db();
 
         my $test = $args->{ test };
         if ( $test eq 'null' )
@@ -38,7 +43,7 @@ use Test::More;
         }
         elsif ( $test eq 'custom' )
         {
-            MediaWords::Job::StatefulJobTest->update_job_state_message( $db, 'custom message' );
+            StatefulJobTest->update_job_state_message( $db, 'custom message' );
             die( $MediaWords::JobManager::AbstractStatefulJob::DIE_WITHOUT_ERROR_TAG );
         }
         else
@@ -48,11 +53,13 @@ use Test::More;
     }
 
     no Moose;    # gets rid of scaffolding
+
+    1;
 }
 
 {
 
-    package MediaWords::Job::StatelessJobTest;
+    package StatelessJobTest;
 
     use Moose;
     with 'MediaWords::JobManager::AbstractStatefulJob';
@@ -66,13 +73,13 @@ use Test::More;
 }
 
 # test that the given test with run() above results in the given job state
-sub test_job_state($$$;$)
+sub _test_job_state($$$;$)
 {
     my ( $db, $test, $state, $message ) = @_;
 
     my $label = "$test / $state";
 
-    MediaWords::Job::StatefulJobTest->run( { test => $test } );
+    MediaWords::JobManager::Job::run_locally( 'StatefulJobTest', { 'test' => $test } );
 
     my $js = $db->query( "select * from job_states order by job_states_id desc limit 1" )->hash;
 
@@ -86,32 +93,37 @@ sub test_job_state($$$;$)
         ok( $got_message =~ /\Q$message\E/, "$label message '$got_message' matches pattern '$message'" );
     }
 
-    is( $js->{ class },      'MediaWords::Job::StatefulJobTest',                    "$label class" );
+    is( $js->{ class },      'StatefulJobTest',                    "$label class" );
     is( $js->{ hostname },   Sys::Hostname::hostname(),                             "$label hostname" );
     is( $js->{ process_id }, $$,                                                    "$label process_id" );
-    is( $js->{ priority },   $MediaWords::JobManager::Job::MJM_JOB_PRIORITY_NORMAL, "$label priority" );
+    is( $js->{ priority },   $MediaWords::JobManager::Priority::MJM_JOB_PRIORITY_NORMAL, "$label priority" );
 
     my $json_data = MediaWords::Util::ParseJSON::decode_json( $js->{ args } );
     is( $json_data->{ test }, $test, "$label args JSON test" );
 }
 
-# test the stateful job functinoality of AbstractJob
+sub test_stateless_job($)
+{
+    my ( $db ) = @_;
+
+    is( StatelessJobTest->run( {} ), 'run', 'stateless job run' );
+}
+
 sub test_stateful_job($)
 {
     my ( $db ) = @_;
 
-    is( MediaWords::Job::StatelessJobTest->run( {} ), 'run', 'stateless job run' );
-
-    test_job_state( $db, 'null',    'completed' );
-    test_job_state( $db, 'error',   'error', 'test error' );
-    test_job_state( $db, 'running', 'running' );
-    test_job_state( $db, 'custom',  'running', 'custom message' );
+    _test_job_state( $db, 'null',    'completed' );
+    _test_job_state( $db, 'error',   'error', 'test error' );
+    _test_job_state( $db, 'running', 'running' );
+    _test_job_state( $db, 'custom',  'running', 'custom message' );
 }
 
 sub main
 {
     my $db = MediaWords::DB::connect_to_db();
 
+    test_stateless_job( $db );
     test_stateful_job( $db );
 
     done_testing();
