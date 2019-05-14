@@ -6,6 +6,8 @@ services:
         image: dockermediacloud/mediacloud-extract-article-from-page:latest
         stop_signal: SIGKILL
         env_file: ./../global.env.dist
+        expose:
+            - 80
         volumes:
             - type: bind
               source: ./bin/
