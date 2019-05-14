@@ -173,22 +173,6 @@ sub update_job_state_message($$$)
     _update_table_state( $db, $class, $job_state );
 }
 
-# define this in the sub class to make it so that only one job can run for each distinct value of the
-# given $arg.  For instance, set this to 'topics_id' to make sure that only one MineTopic job can be running
-# at a given time for a given topics_id.
-sub get_run_lock_arg()
-{
-    return undef;
-}
-
-# return the lock type from mediawords.db.locks to use for run once locking.  default to the class name.
-sub get_run_lock_type()
-{
-    my ( $class ) = @_;
-
-    return $class;
-}
-
 # set job state to $STATE_RUNNING, call run(), either catch any errors and set state to $STATE_ERROR and save
 # the error or set state to $STATE_COMPLETED
 sub run($;$)
