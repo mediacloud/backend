@@ -17,7 +17,7 @@ use strict;
 use warnings;
 
 use Moose;
-with 'MediaWords::AbstractJob';
+with 'MediaWords::JobManager::AbstractStatefulJob';
 
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;

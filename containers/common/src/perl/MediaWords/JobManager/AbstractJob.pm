@@ -1,4 +1,4 @@
-package MediaWords::AbstractJob;
+package MediaWords::JobManager::AbstractJob;
 
 #
 # Superclass of all Media Cloud jobs

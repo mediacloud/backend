@@ -1,4 +1,4 @@
-package MediaWords::AbstractStatefulJob;
+package MediaWords::JobManager::AbstractStatefulJob;
 
 #
 # Run job while logging its state
@@ -8,7 +8,7 @@ use strict;
 use warnings;
 
 use Moose::Role;
-with 'MediaWords::AbstractJob';
+with 'MediaWords::JobManager::AbstractJob';
 
 use MediaWords::CommonLibs;
 
@@ -115,7 +115,7 @@ sub _update_job_state($$$)
     DEBUG( "$class state: $state" );
 
     my $job_states_id = $_current_job_states_id;
-    LOGCONFESS( "must be called from inside of MediaWords::AbstractStatefulJob::run()" ) unless ( $job_states_id );
+    LOGCONFESS( "must be called from inside of MediaWords::JobManager::AbstractStatefulJob::run()" ) unless ( $job_states_id );
 
     my $job_state = $db->update_by_id(
         'job_states',
@@ -136,7 +136,7 @@ sub update_job_state_args($$$)
     my ( $class, $db, $update ) = @_;
 
     my $job_states_id = $_current_job_states_id;
-    LOGCONFESS( "must be called from inside of MediaWords::AbstractStatefulJob::run" ) unless ( $job_states_id );
+    LOGCONFESS( "must be called from inside of MediaWords::JobManager::AbstractStatefulJob::run" ) unless ( $job_states_id );
 
     my $job_state = $db->require_by_id( 'job_states', $job_states_id );
 
@@ -160,7 +160,7 @@ sub update_job_state_message($$$)
     my ( $class, $db, $message ) = @_;
 
     my $job_states_id = $_current_job_states_id;
-    LOGCONFESS( "must be called from inside of MediaWords::AbstractStatefulJob::run" ) unless ( $job_states_id );
+    LOGCONFESS( "must be called from inside of MediaWords::JobManager::AbstractStatefulJob::run" ) unless ( $job_states_id );
 
     my $job_state = $db->require_by_id( 'job_states', $job_states_id );
 

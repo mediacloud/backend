@@ -8,7 +8,7 @@ use strict;
 use warnings;
 
 use Moose;
-with 'MediaWords::AbstractJob';
+with 'MediaWords::JobManager::AbstractJob';
 
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;

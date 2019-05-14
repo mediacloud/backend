@@ -448,7 +448,7 @@ sub test_topics_spider($)
 
     ok( $r->{ job_state }, "spider return includes job_state" );
 
-    is( $r->{ job_state }->{ state },        $MediaWords::AbstractJob::STATE_QUEUED, "spider state" );
+    is( $r->{ job_state }->{ state },        $MediaWords::JobManager::AbstractJob::STATE_QUEUED, "spider state" );
     is( $r->{ job_state }->{ topics_id },    $topic->{ topics_id },                  "spider topics_id" );
     is( $r->{ job_state }->{ snapshots_id }, $snapshots_id,                          "spider snapshots_id" );
 
@@ -456,7 +456,7 @@ sub test_topics_spider($)
 
     ok( $r->{ job_states }, "spider status return includes job_states" );
 
-    is( $r->{ job_states }->[ 0 ]->{ state },        $MediaWords::AbstractJob::STATE_QUEUED, "spider_status state" );
+    is( $r->{ job_states }->[ 0 ]->{ state },        $MediaWords::JobManager::AbstractJob::STATE_QUEUED, "spider_status state" );
     is( $r->{ job_states }->[ 0 ]->{ topics_id },    $topic->{ topics_id },                  "spider_status topics_id" );
     is( $r->{ job_states }->[ 0 ]->{ snapshots_id }, $snapshots_id,                          "spider_status snapshots_id" );
 }
@@ -578,7 +578,7 @@ sub test_snapshots_generate($)
 
     ok( $r->{ job_state }, "$label return includes job_state" );
 
-    is( $r->{ job_state }->{ state }, $MediaWords::AbstractJob::STATE_QUEUED, "$label state" );
+    is( $r->{ job_state }->{ state }, $MediaWords::JobManager::AbstractJob::STATE_QUEUED, "$label state" );
     is( $r->{ job_state }->{ topics_id }, $topic->{ topics_id }, "$label topics_id" );
 
     $r = MediaWords::Test::API::test_get( "/api/v2/topics/$topics_id/snapshots/generate_status" );
@@ -587,7 +587,7 @@ sub test_snapshots_generate($)
 
     ok( $r->{ job_states }, "$label return includes job_states" );
 
-    is( $r->{ job_states }->[ 0 ]->{ state }, $MediaWords::AbstractJob::STATE_QUEUED, "$label status state" );
+    is( $r->{ job_states }->[ 0 ]->{ state }, $MediaWords::JobManager::AbstractJob::STATE_QUEUED, "$label status state" );
     is( $r->{ job_states }->[ 0 ]->{ topics_id }, $topic->{ topics_id }, "$label topics_id" );
 }
 

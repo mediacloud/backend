@@ -11,7 +11,7 @@ use feature qw(switch);
 use Moose::Role 2.1005;
 
 use MediaWords::JobManager;    # helper subroutines
-use MediaWords::AbstractJob;
+use MediaWords::JobManager::AbstractJob;
 use MediaWords::JobManager::Priority;
 
 use Time::HiRes;
@@ -59,7 +59,7 @@ sub __run($;$$)
 {
     my ( $function_name, $args, $job ) = @_;
 
-    my $broker = MediaWords::AbstractJob::broker();
+    my $broker = MediaWords::JobManager::AbstractJob::broker();
 
     # DEBUG( "Running locally" );
 
@@ -162,7 +162,7 @@ sub run_remotely($;$$)
         LOGDIE( "Unable to determine function name." );
     }
 
-    my $broker = MediaWords::AbstractJob::broker();
+    my $broker = MediaWords::JobManager::AbstractJob::broker();
 
     $priority //= $MediaWords::JobManager::Priority::MJM_JOB_PRIORITY_NORMAL;
     unless ( MediaWords::JobManager::Priority::priority_is_valid( $priority ) )
@@ -200,7 +200,7 @@ sub add_to_queue($;$$)
         LOGDIE( "Unable to determine function name." );
     }
 
-    my $broker = MediaWords::AbstractJob::broker();
+    my $broker = MediaWords::JobManager::AbstractJob::broker();
 
     $priority //= $MediaWords::JobManager::Priority::MJM_JOB_PRIORITY_NORMAL;
     unless ( MediaWords::JobManager::Priority::priority_is_valid( $priority ) )

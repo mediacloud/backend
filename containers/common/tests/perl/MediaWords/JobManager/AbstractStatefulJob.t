@@ -17,7 +17,7 @@ use Test::More;
     package MediaWords::Job::StatefulJobTest;
 
     use Moose;
-    with 'MediaWords::AbstractStatefulJob';
+    with 'MediaWords::JobManager::AbstractStatefulJob';
 
     sub run($$$)
     {
@@ -34,12 +34,12 @@ use Test::More;
         }
         elsif ( $test eq 'running' )
         {
-            die( $MediaWords::AbstractStatefulJob::DIE_WITHOUT_ERROR_TAG );
+            die( $MediaWords::JobManager::AbstractStatefulJob::DIE_WITHOUT_ERROR_TAG );
         }
         elsif ( $test eq 'custom' )
         {
             MediaWords::Job::StatefulJobTest->update_job_state_message( $db, 'custom message' );
-            die( $MediaWords::AbstractStatefulJob::DIE_WITHOUT_ERROR_TAG );
+            die( $MediaWords::JobManager::AbstractStatefulJob::DIE_WITHOUT_ERROR_TAG );
         }
         else
         {
@@ -55,7 +55,7 @@ use Test::More;
     package MediaWords::Job::StatelessJobTest;
 
     use Moose;
-    with 'MediaWords::AbstractStatefulJob';
+    with 'MediaWords::JobManager::AbstractStatefulJob';
 
     sub run($;$)
     {

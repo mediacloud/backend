@@ -3345,7 +3345,7 @@ create table mediacloud_stats (
     total_sentences         bigint not null
 );
 
--- job states as implemented in MediaWords::AbstractJob
+-- job states as implemented in MediaWords::JobManager::AbstractJob
 create table job_states (
     job_states_id           serial primary key,
 

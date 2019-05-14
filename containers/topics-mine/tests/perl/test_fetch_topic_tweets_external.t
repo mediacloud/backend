@@ -9,7 +9,7 @@ use File::Slurp;
 use Readonly;
 use Test::More;
 
-use MediaWords::AbstractJob;
+use MediaWords::JobManager::AbstractJob;
 use MediaWords::JobManager::Job;
 use MediaWords::Test::DB::Create;
 use MediaWords::Util::ParseJSON;
@@ -362,7 +362,7 @@ sub validate_topic_data($$)
 {
     my ( $db, $topic ) = @_;
 
-    my $completed = $MediaWords::AbstractJob::STATE_COMPLETED;
+    my $completed = $MediaWords::JobManager::AbstractJob::STATE_COMPLETED;
 
     is( $topic->{ state }, $completed, "twitter topic state" );
 
