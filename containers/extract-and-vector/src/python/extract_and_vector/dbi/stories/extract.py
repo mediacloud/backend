@@ -1,5 +1,6 @@
 from mediawords.db import DatabaseHandler
 from mediawords.util.log import create_logger
+from mediawords.util.perl import decode_object_from_bytes_if_needed
 from extract_and_vector.dbi.stories.extractor_arguments import PyExtractorArguments
 from extract_and_vector.dbi.downloads.extract import extract_and_create_download_text
 from extract_and_vector.dbi.stories.process import process_extracted_story
