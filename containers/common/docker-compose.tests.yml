@@ -21,6 +21,7 @@ services:
         depends_on:
             - mc_migrate_schema
             - mc_solr_shard
+            - mc_rabbitmq_server
 
     mc_migrate_schema:
         image: dockermediacloud/mediacloud-migrate-schema:latest
@@ -71,7 +72,18 @@ services:
         volumes:
             - vol_solr_zookeeper_data:/var/lib/zookeeper/
 
+    mc_rabbitmq_server:
+        image: dockermediacloud/mediacloud-rabbitmq-server:latest
+        env_file: ./../global.env.dist
+        stop_signal: SIGKILL
+        expose:
+            - 5672
+            - 15672
+        volumes:
+            - vol_rabbitmq_data:/var/lib/rabbitmq/
+
 volumes:
     vol_postgresql_data: {}
     vol_solr_shard_data: {}
     vol_solr_zookeeper_data: {}
+    vol_rabbitmq_data: {}
