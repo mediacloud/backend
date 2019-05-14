@@ -1,13 +1,13 @@
 from mediawords.db import connect_to_db
 from mediawords.test.db.create import create_test_topic
 # noinspection PyProtectedMember
-from mediawords.tm.fetch_link import _get_failed_url
 from topics_base.fetch_states import (
     FETCH_STATE_STORY_ADDED,
     FETCH_STATE_STORY_MATCH,
     FETCH_STATE_REQUEST_FAILED,
     FETCH_STATE_CONTENT_MATCH_FAILED,
 )
+from topics_fetch_link.fetch_link import _get_failed_url
 
 
 def test_get_failed_url():

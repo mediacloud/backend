@@ -24,6 +24,27 @@ services:
               target: /opt/mediacloud/src/common/
         depends_on:
             - mc_migrate_schema
+            # 1) test_fetch_link_job_update_state() calls fetch_topic_url_update_state()
+            # 2) fetch_topic_url_update_state() calls generate_story()
+            # 3) generate_story() calls _extract_story()
+            # 4) _extract_story() runs a remote extraction job
+            - mc_extract_and_vector
+            - mc_rabbitmq_server
+
+    mc_extract_and_vector:
+        image: dockermediacloud/mediacloud-extract-and-vector:latest
+        env_file: ./../global.env.dist
+        stop_signal: SIGKILL
+        depends_on:
+            - mc_postgresql_pgbouncer
+            - mc_extract_article_from_page
+
+    mc_extract_article_from_page:
+        image: dockermediacloud/mediacloud-extract-article-from-page:latest
+        env_file: ./../global.env.dist
+        stop_signal: SIGKILL
+        expose:
+            - 80
 
     mc_migrate_schema:
         image: dockermediacloud/mediacloud-migrate-schema:latest
@@ -50,5 +71,16 @@ services:
         volumes:
             - vol_postgresql_data:/var/lib/postgresql/11/main/
 
+    mc_rabbitmq_server:
+        image: dockermediacloud/mediacloud-rabbitmq-server:latest
+        env_file: ./../global.env.dist
+        stop_signal: SIGKILL
+        expose:
+            - 5672
+            - 15672
+        volumes:
+            - vol_rabbitmq_data:/var/lib/rabbitmq/
+
 volumes:
     vol_postgresql_data: {}
+    vol_rabbitmq_data: {}

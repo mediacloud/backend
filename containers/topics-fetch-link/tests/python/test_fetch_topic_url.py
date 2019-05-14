@@ -7,7 +7,6 @@ from mediawords.test.db.create import create_test_topic, create_test_medium, cre
 from mediawords.test.hash_server import HashServer
 from mediawords.util.web.user_agent.throttled import McThrottledDomainException
 
-from mediawords.tm.fetch_link import fetch_topic_url
 from topics_base.fetch_states import (
     FETCH_STATE_PENDING,
     FETCH_STATE_STORY_ADDED,
@@ -16,6 +15,7 @@ from topics_base.fetch_states import (
     FETCH_STATE_STORY_MATCH,
     FETCH_STATE_CONTENT_MATCH_FAILED,
 )
+from topics_fetch_link.fetch_link import fetch_topic_url
 
 
 def test_fetch_topic_url():

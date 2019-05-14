@@ -7,7 +7,7 @@ from typing import Optional
 
 from mediawords.db import connect_to_db
 from mediawords.job import JobBroker
-from mediawords.tm.fetch_link import fetch_topic_url_update_state
+from topics_fetch_link.fetch_link import fetch_topic_url_update_state
 from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_object_from_bytes_if_needed
 

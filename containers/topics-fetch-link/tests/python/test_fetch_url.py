@@ -1,7 +1,7 @@
 from mediawords.db import connect_to_db
 from mediawords.test.hash_server import HashServer
 # noinspection PyProtectedMember
-from mediawords.tm.fetch_link import _fetch_url
+from topics_fetch_link.fetch_link import _fetch_url
 
 
 def test_fetch_url():
