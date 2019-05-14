@@ -61,23 +61,6 @@ sub __run($;$$)
 
     my $broker = MediaWords::JobManager::AbstractJob::broker();
 
-    # DEBUG( "Running locally" );
-
-    my $mjm_job_id;
-    if ( $job )
-    {
-        my $job_id = $broker->job_id_from_handle( $job );
-        $mjm_job_id = MediaWords::JobManager::_unique_path_job_id( $function_name, $args, $job_id );
-    }
-    else
-    {
-        $mjm_job_id = MediaWords::JobManager::_unique_path_job_id( $function_name, $args );
-    }
-    unless ( $mjm_job_id )
-    {
-        LOGDIE( "Unable to determine unique MediaWords::JobManager job ID" );
-    }
-
     my $result;
     eval {
 
@@ -87,7 +70,7 @@ sub __run($;$$)
 
         my $str_arguments = $d->Dump;
 
-        INFO( "Starting job ID \"$mjm_job_id\"..." );
+        INFO( "Starting job..." );
         INFO( "========" );
         INFO( "Arguments: $str_arguments" );
         INFO( "========" );
@@ -111,14 +94,14 @@ sub __run($;$$)
         {
             ERROR( "" );
             ERROR( "========" );
-            LOGDIE( "Job \"$mjm_job_id\" failed: $@" );
+            LOGDIE( "Job failed: $@" );
         }
 
         my $end = Time::HiRes::gettimeofday();
 
         INFO( "" );
         INFO( "========" );
-        INFO( "Finished job ID \"$mjm_job_id\" in " . sprintf( "%.2f", $end - $start ) . " seconds" );
+        INFO( "Finished job in " . sprintf( "%.2f", $end - $start ) . " seconds" );
 
     };
 
