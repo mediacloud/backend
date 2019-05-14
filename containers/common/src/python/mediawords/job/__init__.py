@@ -93,7 +93,7 @@ class JobBroker(object):
             vhost=rabbitmq_config.vhost(),
         )
 
-        self.__app = celery.Celery(queue_name, broker=broker_uri)
+        self.__app = celery.Celery(queue_name, broker=broker_uri, backend='rpc://')
 
         self.__app.conf.broker_connection_timeout = rabbitmq_config.timeout()
 
