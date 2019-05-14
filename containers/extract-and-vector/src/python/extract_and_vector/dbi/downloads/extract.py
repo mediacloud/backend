@@ -151,7 +151,11 @@ def extract_content(content: str) -> dict:
     # Don't run through expensive extractor if the content is short and has no html
     if len(content) < MIN_CONTENT_LENGTH_TO_EXTRACT and re.search(r'<.*>', content) is None:
         log.info("Content length is less than MIN_CONTENT_LENGTH_TO_EXTRACT and has no HTML so skipping extraction")
-        ret = {'extracted_html': content, 'extracted_text': content}
+        ret = {
+            'extracted_html': content,
+            'extracted_text': content,
+            'extractor_version': 'too-short-to-extract',
+        }
     else:
         ret = _call_extractor_on_html(content)
 
