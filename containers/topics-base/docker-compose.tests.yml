@@ -19,6 +19,23 @@ services:
         depends_on:
             - mc_migrate_schema
             - mc_rabbitmq_server
+            # For test_generate_story:
+            - mc_extract_and_vector
+
+    mc_extract_and_vector:
+        image: dockermediacloud/mediacloud-extract-and-vector:latest
+        env_file: ./../global.env.dist
+        stop_signal: SIGKILL
+        depends_on:
+            - mc_postgresql_pgbouncer
+            - mc_extract_article_from_page
+
+    mc_extract_article_from_page:
+        image: dockermediacloud/mediacloud-extract-article-from-page:latest
+        env_file: ./../global.env.dist
+        stop_signal: SIGKILL
+        expose:
+            - 80
 
     mc_migrate_schema:
         image: dockermediacloud/mediacloud-migrate-schema:latest
