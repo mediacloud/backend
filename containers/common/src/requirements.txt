@@ -5,7 +5,7 @@ boto3==1.9.78
 beautifulsoup4==4.7.1
 
 # Job broker
-Celery==4.2.1
+Celery==4.3
 
 # Detect encodings of web responses
 chardet==3.0.4
@@ -44,7 +44,7 @@ jieba==0.39
 Jinja2==2.10.1
 
 # One of Celery's dependencies (here just for PyCharm to stop complaining)
-kombu==4.3.0
+kombu==4.5.0
 
 # XML manipulations, HTML parsing
 lxml==4.3.0
