@@ -25,13 +25,13 @@ def test_get_epoch_from_sql_date():
 def test_increment_day():
     assert increment_day(date='2016-10-11', days=3) == '2016-10-14'
 
+
 class TestUtilSQLDB(mediawords.test.test_database.TestDatabaseWithSchemaTestCase):
     """Run tests that require database access."""
 
     def test_get_normalized_title(self) -> None:
         """Test plpgsql get_normalized_title() function."""
         db = self.db()
-
 
         # simple title
         (got_title,) = db.query("select get_normalized_title('foo bar', 0)").flat()
@@ -44,12 +44,12 @@ class TestUtilSQLDB(mediawords.test.test_database.TestDatabaseWithSchemaTestCase
         assert got_title == title_part
 
         title_part = "foo barfoo barfoo barfoo barfoo bar"
-        title = 'bat baz: ' + title_part 
+        title = 'bat baz: ' + title_part
         (got_title,) = db.query("select get_normalized_title(%(title)s, 1)", {'title': title}).flat()
         assert got_title == title_part
 
         title_part = "foo barfoo barfoo barfoo barfoo bar"
-        title = 'bat baz - ' + title_part 
+        title = 'bat baz - ' + title_part
         (got_title,) = db.query("select get_normalized_title(%(title)s, 1)", {'title': title}).flat()
         assert got_title == title_part
 
@@ -63,11 +63,7 @@ class TestUtilSQLDB(mediawords.test.test_database.TestDatabaseWithSchemaTestCase
 
         # don't allow medium name as title part
         medium_name = 'A' * 64
-        medium = mediawords.test.db.create.create_test_medium(db, medium_name)
+        mediawords.test.db.create.create_test_medium(db, medium_name)
         title = medium_name + ': foo bar'
         (got_title,) = db.query("select get_normalized_title(%(title)s, 1)", {'title': title}).flat()
         assert got_title == medium_name.lower() + 'SEPSEP foo bar'
-
-        
-        
-

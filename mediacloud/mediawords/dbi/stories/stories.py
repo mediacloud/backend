@@ -21,34 +21,40 @@ class McAddStoryException(Exception):
     pass
 
 
-def is_new(db: DatabaseHandler, story: dict) -> bool:
-    """Return true if this story should be considered new for the given media source.
+def find_dup_story(db: DatabaseHandler, story: dict) -> bool:
+    """Return existing duplicate story within the same media source.
 
-    This is used to determine whether to add a new story for a feed item URL.
+    Search for a story that is a duplicate of the given story.  A story is a duplicate if it shares the same media
+    source and:
 
-    A story is new if no story with the same URL or GUID exists in the same media source and if no story exists with the
-    same title in the same media source in the same calendar day.
+    * has the same normalized title and has a publish_date within the same calendar week
+    * has a guid or url that is the same as the guid or url
+
+    If a dup story is found, insert the url and guid into the story_urls table.
+
+    Return the found story or None if no story is found.
     """
-
     story = decode_object_from_bytes_if_needed(story)
 
     if story['title'] == '(no title)':
-        return False
+        return None
 
     db_story = db.query("""
         SELECT *
         FROM stories
-        WHERE guid = %(guid)s
-          AND media_id = %(media_id)s
+        WHERE
+            ( guid in ( %(guid)s, %(url)s ) or url in ( %(guid)s, %(url)s ) ) and
+            media_id = %(media_id)s
     """, {
         'guid': story['guid'],
+        'url': story['url'],
         'media_id': story['media_id'],
     }).hash()
     if db_story:
-        return False
+        return db_story
 
     db_story = db.query("""
-        SELECT 1
+        SELECT *
         FROM stories
         WHERE normalized_title_hash = md5( get_normalized_title( %(title)s, %(media_id)s ) )::uuid
           AND media_id = %(media_id)s
@@ -62,24 +68,21 @@ def is_new(db: DatabaseHandler, story: dict) -> bool:
         'publish_date': story['publish_date'],
     }).hash()
     if db_story:
-        return False
+        return db_story
 
-    return True
+    return None
 
 
-def add_story(db: DatabaseHandler, story: dict, feeds_id: int, skip_checking_if_new: bool = False) -> Optional[dict]:
-    """If the story is new, add story to the database with the feed of the download as story feed.
+def add_story(db: DatabaseHandler, story: dict, feeds_id: int) -> Optional[dict]:
+    """Return an existing dup story if it matches the url, guid, or title; otherwise, add a new story and return it.
 
-    Returns created story or None if story wasn't created.
+    Returns found or created story. Adds an is_new = True story if the story was created by the call.
     """
 
     story = decode_object_from_bytes_if_needed(story)
     if isinstance(feeds_id, bytes):
         feeds_id = decode_object_from_bytes_if_needed(feeds_id)
     feeds_id = int(feeds_id)
-    if isinstance(skip_checking_if_new, bytes):
-        skip_checking_if_new = decode_object_from_bytes_if_needed(skip_checking_if_new)
-    skip_checking_if_new = bool(int(skip_checking_if_new))
 
     if db.in_transaction():
         raise McAddStoryException("add_story() can't be run from within transaction.")
@@ -88,11 +91,11 @@ def add_story(db: DatabaseHandler, story: dict, feeds_id: int, skip_checking_if_
 
     db.query("LOCK TABLE stories IN ROW EXCLUSIVE MODE")
 
-    if not skip_checking_if_new:
-        if not is_new(db=db, story=story):
-            log.debug("Story '{}' is not new.".format(story['url']))
-            db.commit()
-            return None
+    db_story = find_dup_story(db, story)
+    if db_story:
+        log.debug("found existing dup story: %s [%s]" % (story['title'], story['url']))
+        db.commit()
+        return db_story
 
     medium = db.find_by_id(table='media', object_id=story['media_id'])
 
@@ -115,6 +118,8 @@ def add_story(db: DatabaseHandler, story: dict, feeds_id: int, skip_checking_if_
 
         else:
             raise McAddStoryException("Error adding story: {}\nStory: {}".format(str(ex), str(story)))
+
+    story['is_new'] = True
 
     db.find_or_create(
         table='feeds_stories_map',

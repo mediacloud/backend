@@ -1,7 +1,7 @@
 from mediawords.db import DatabaseHandler
 # noinspection PyProtectedMember
 from mediawords.dbi.stories.stories import (
-    is_new,
+    find_dup_story,
     add_story,
     _create_child_download_for_story,
 )
@@ -30,63 +30,63 @@ class TestStories(TestDatabaseWithSchemaTestCase):
         self.test_story = create_test_story(self.db(), label=self.TEST_STORY_NAME, feed=self.test_feed)
         self.test_download = create_download_for_story(self.db(), feed=self.test_feed, story=self.test_story)
 
-    def test_is_new(self):
+    def test_find_dup_story(self):
 
         def _test_story(db: DatabaseHandler, story_: dict, num_: int) -> None:
 
-            assert is_new(
+            assert find_dup_story(
                 db=db,
                 story=story_,
-            ) is False, "{} identical".format(num_)
+            ) == story_, "{} identical".format(num_)
 
-            assert is_new(
+            assert find_dup_story(
                 db=db,
                 story={**story_, **{
                     'media_id': story['media_id'] + 1,
                 }},
-            ) is True, "{} media_id diff".format(num_)
+            ) is None, "{} media_id diff".format(num_)
 
-            assert is_new(
+            assert find_dup_story(
                 db=db,
                 story={**story_, **{
                     'url': 'diff',
                     'guid': 'diff',
                 }},
-            ) is False, "{} URL + GUID diff, title same".format(num_)
+            ) == story_, "{} URL + GUID diff, title same".format(num_)
 
-            assert is_new(
+            assert find_dup_story(
                 db=db,
                 story={**story_, **{
                     'url': 'diff',
                     'title': 'diff',
                 }},
-            ) is False, "{} title + URL diff, GUID same".format(num_)
+            ) == story_, "{} title + URL diff, GUID same".format(num_)
 
-            assert is_new(
+            assert find_dup_story(
                 db=db,
                 story={**story_, **{
                     'guid': 'diff',
                     'title': 'diff',
                 }},
-            ) is True, "{} title + GUID diff, URL same".format(num_)
+            ) == story_, "{} title + GUID diff, URL same".format(num_)
 
-            assert is_new(
+            assert find_dup_story(
                 db=db,
                 story={**story_, **{
                     'url': 'diff',
                     'guid': 'diff',
                     'publish_date': increment_day(date=story['publish_date'], days=2),
                 }},
-            ) is True, "{} date + 2 days".format(num_)
+            ) is None, "{} date + 2 days".format(num_)
 
-            assert is_new(
+            assert find_dup_story(
                 db=db,
                 story={**story_, **{
                     'url': 'diff',
                     'guid': 'diff',
                     'publish_date': increment_day(date=story['publish_date'], days=-2),
                 }},
-            ) is True, "{} date - 2 days".format(num_)
+            ) is None, "{} date - 2 days".format(num_)
 
         data = {
             'A': {
@@ -139,12 +139,9 @@ class TestStories(TestDatabaseWithSchemaTestCase):
         assert len(feeds_stories_tag_mapping) == 1
 
         # Try adding a duplicate story
-        added_story = add_story(db=self.db(), story=story, feeds_id=feeds_id)
-        assert added_story is None
-
-        # Try adding a duplicate story with explicit "is new" testing disabled
-        added_story = add_story(db=self.db(), story=story, feeds_id=feeds_id, skip_checking_if_new=True)
-        assert added_story is None
+        dup_story = add_story(db=self.db(), story=story, feeds_id=feeds_id)
+        assert dup_story is not None
+        assert dup_story == added_story
 
     def test_add_story_full_text_rss(self):
         """Test add_story() with only parent media's full_text_rss set to True."""
