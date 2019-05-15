@@ -48,6 +48,11 @@ env:
     - secure: "TG1xefj/FOL2zLcIPHwqxEcbyR3D98sv+K24n/WgEUHljHbtCJlhThf3p6fbKF0HwHYVRRYhO1YYetgudwGSfPyAMc6WBXiDARyAGnNgtFF41jMf7RsdrQgedzOBltJnUYCETRhREd9R2ESvImiZ6o2d41Z7+lwC+GIH0SX1jOE="
     - secure: "N+cqgW5HI8T3e0hKY+B365fywH7jkOzvJp+Rh7E2V1aucLmsx+cc0D5agzUZz0Zqh4WXBCFfxZCtye2sjjVBj2V7kwiwhYRUdW3zSUtRvVvOBdHXuGU/YMYi34DAtiYaEF4d8GKEeOKSM2yG4O9IVirVaKPdHMig+iJKvPRv76g="
 
+    # Crimson Hexagon API key:
+    #
+    # * MC_CRIMSON_HEXAGON_API_KEY
+    secure: "QQ5o6mN3h4d417+8jL36QxDtbVW9xXQ+TjkfvOJsb9hgKyrcv0pV0UDn4Kpawto1wGYJnnG4YWxu8wfnd9gaOEwbygXzcHfvG6pe4adrKhvrjy3PhEmLHAs/19eL22975J9xTLQY7qJqVhyly1m64ZAlxCdvr+KdQZmsch5aDEY="
+
     # Univision API test credentials:
     # (disabled as currently the feed is empty)
     #
