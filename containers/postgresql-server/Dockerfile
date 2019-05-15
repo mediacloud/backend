@@ -29,13 +29,23 @@ RUN cat /var/tmp/postgresql.conf >> /etc/postgresql/11/main/postgresql.conf
 # Allow mc_postgresql_pgbouncer to connect using a password
 RUN echo "host all mediacloud samenet md5" >> /etc/postgresql/11/main/pg_hba.conf
 
+# Copy helper scripts
+COPY bin/postgresql_server.sh bin/initialize_postgresql_db.sh /
+
+# Initialize data volume, create users and a database
+# If a new empty volume gets mounted to /var/lib/postgresql/ upon
+# container start, Docker will copy the files from the container to the volume
+RUN \
+    echo "Creating initial database..." && \
+    rm -rf /var/lib/postgresql/11/main/ && \
+    sudo su - postgres /initialize_postgresql_db.sh && \
+    echo "Done creating initial database." && \
+    true
+
 # PostgreSQL data
 VOLUME /var/lib/postgresql/11/main/
 
 # Server
 EXPOSE 5432
-
-# Start PostgreSQL
-COPY bin/postgresql_server.sh /
 
 CMD ["sudo", "su", "-", "postgres", "/postgresql_server.sh"]
