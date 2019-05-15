@@ -37,6 +37,17 @@ env:
     - secure: "YE4JMOHeceYPHhr9cXqRwk4lQnW07qK3UDGogzNDPb4I8SWBG48zmQ6uvgh8pj3kFjlu6ytnYTNwCEcnxYBTBVxB/IjaVUgW3FiRonLpInT3a2tRtr6XZplHxW77vgHAyPIC9+LA5VjAL+F3KUDl0PrZVIDVLBqtQBdrqI4xAwU="
     - secure: "BZnspnmNVvPMML55ukaAETYbpPYvzh3zkB8mWPJcBCeJQxmtipe95vQQfkZGW/DzHuM6g1ImolxJ+p7c+7N3d43FFvfVgWPCRx7OoAb3biZPt6hjK58IsQjQUEDtbNYiT4YfNLfCFhNbznuchgPmAyRLv5zjvG/qVTrWqxEV4qc="
 
+    # Twitter API credentials:
+    #
+    # * MC_TWITTER_CONSUMER_KEY
+    # * MC_TWITTER_CONSUMER_SECRET
+    # * MC_TWITTER_ACCESS_TOKEN
+    # * MC_TWITTER_ACCESS_TOKEN_SECRET
+    - secure: "LVdE8m0x1zRyoCRGJxr6oyzjERZffE3l3gGULxSXlCU2UBZOpzaQtrj2ssF3eheeGH5HdlxVxW7k40eshUMnfHIFS+9/qiY83p13lgFlnSSfaCbxXXZxcttxYLQDmXAuTBY6EAmr2Fb5gN94A3z8bfONnM3QOSuXUahobfG4334="
+    - secure: "LcB24hRsafXV/PmxxkTNPj4rxRVlVloy4hkDWdAz/wf5wdzn79GQGpUfmieq5ayl3O0naxvmE4J0h0vOMz8EFAWNGOhh0VvWnhOs9qjW4Am+NA3TvQqwyNAi4nbPeJ7Qb+qlh0C3mQ4y6FanEvofHVQRhiH8zlD/tiPb1Y9+9hs="
+    - secure: "TG1xefj/FOL2zLcIPHwqxEcbyR3D98sv+K24n/WgEUHljHbtCJlhThf3p6fbKF0HwHYVRRYhO1YYetgudwGSfPyAMc6WBXiDARyAGnNgtFF41jMf7RsdrQgedzOBltJnUYCETRhREd9R2ESvImiZ6o2d41Z7+lwC+GIH0SX1jOE="
+    - secure: "N+cqgW5HI8T3e0hKY+B365fywH7jkOzvJp+Rh7E2V1aucLmsx+cc0D5agzUZz0Zqh4WXBCFfxZCtye2sjjVBj2V7kwiwhYRUdW3zSUtRvVvOBdHXuGU/YMYi34DAtiYaEF4d8GKEeOKSM2yG4O9IVirVaKPdHMig+iJKvPRv76g="
+
     # Univision API test credentials:
     # (disabled as currently the feed is empty)
     #
