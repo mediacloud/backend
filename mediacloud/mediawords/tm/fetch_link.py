@@ -223,8 +223,7 @@ def _story_matches_topic(
             from story_sentences ss
                 join topics c on ( c.topics_id = %(a)s )
             where
-                ss.stories_id = %(b)s and
-                ( ( is_dup is null ) or not ss.is_dup )
+                ss.stories_id = %(b)s
         """,
         {'a': topic['topics_id'], 'b': story['stories_id']}).hash()
 
