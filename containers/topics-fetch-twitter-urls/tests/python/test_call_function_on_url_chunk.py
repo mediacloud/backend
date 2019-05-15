@@ -1,8 +1,8 @@
 from mediawords.db import connect_to_db
 from mediawords.test.db.create import create_test_topic
-# noinspection PyProtectedMember
-from mediawords.tm.fetch_twitter_urls import URLS_CHUNK_SIZE, _call_function_on_url_chunks
 from topics_base.fetch_states import FETCH_STATE_PYTHON_ERROR
+# noinspection PyProtectedMember
+from topics_fetch_twitter_urls.fetch_twitter_urls import URLS_CHUNK_SIZE, _call_function_on_url_chunks
 
 
 def test_call_function_on_url_chunk():

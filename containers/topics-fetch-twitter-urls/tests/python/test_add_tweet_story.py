@@ -2,7 +2,7 @@ from mediawords.db import connect_to_db
 from mediawords.dbi.downloads.store import get_content_for_first_download
 from mediawords.test.db.create import create_test_topic, create_test_medium, create_test_feed, create_test_story
 # noinspection PyProtectedMember
-from mediawords.tm.fetch_twitter_urls import _add_tweet_story
+from topics_fetch_twitter_urls.fetch_twitter_urls import _add_tweet_story
 
 
 def test_add_tweet_story():

@@ -6,9 +6,8 @@ import typing
 import tweepy
 
 from mediawords.util.parse_json import decode_json
-from mediawords.util.config.topics_fetch_twitter_urls import TopicsFetchTwitterURLsConfig
-
 from mediawords.util.log import create_logger
+from topics_fetch_twitter_urls.config import TopicsFetchTwitterURLsConfig
 
 log = create_logger(__name__)
 

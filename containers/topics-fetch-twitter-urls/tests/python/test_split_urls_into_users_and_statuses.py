@@ -1,5 +1,5 @@
 # noinspection PyProtectedMember
-from mediawords.tm.fetch_twitter_urls import _split_urls_into_users_and_statuses
+from topics_fetch_twitter_urls.fetch_twitter_urls import _split_urls_into_users_and_statuses
 
 
 def test_split_urls_into_users_and_statuses() -> None:

@@ -8,8 +8,11 @@ import unittest
 
 import httpretty
 
-import mediawords.util.config
-import mediawords.util.twitter as mut
+from topics_fetch_twitter_urls.twitter import (
+    fetch_100_users,
+    fetch_100_tweets,
+    get_tweet_urls,
+)
 
 MIN_TEST_TWEET_LENGTH = 10
 MIN_TEST_TWITTER_USER_LENGTH = 3
@@ -39,7 +42,7 @@ def test_fetch_100_users() -> None:
     httpretty.register_uri(
         httpretty.POST, "https://api.twitter.com/1.1/users/lookup.json", body=_mock_users_lookup)
 
-    got_users = mut.fetch_100_users(['foo', 'bar', 'bat'])
+    got_users = fetch_100_users(['foo', 'bar', 'bat'])
 
     got_screen_names = [u['screen_name'] for u in got_users]
 
@@ -68,7 +71,7 @@ def test_fetch_100_tweets() -> None:
     httpretty.register_uri(
         httpretty.GET, "https://api.twitter.com/1.1/statuses/lookup.json", body=_mock_statuses_lookup)
 
-    got_tweets = mut.fetch_100_tweets([1, 2, 3, 4])
+    got_tweets = fetch_100_tweets([1, 2, 3, 4])
 
     assert sorted(got_tweets, key=lambda t: t['id']) == [
         {'id': 1, 'text': "content 1"},
@@ -83,7 +86,7 @@ def test_fetch_100_tweets() -> None:
 def test_get_tweet_urls() -> None:
     """Test get_tweet_urls()."""
     tweet = {'entities': {'urls': [{'expanded_url': 'foo'}, {'expanded_url': 'bar'}]}}
-    urls = mut.get_tweet_urls(tweet)
+    urls = get_tweet_urls(tweet)
     assert sorted(urls) == ['bar', 'foo']
 
     tweet = \
@@ -100,6 +103,6 @@ def test_get_tweet_urls() -> None:
                         }
                 }
         }
-    urls = mut.get_tweet_urls(tweet)
+    urls = get_tweet_urls(tweet)
     expected_urls = ['url bar', 'url foo', 'rt url foo', 'rt url bar']
     assert sorted(urls) == sorted(expected_urls)

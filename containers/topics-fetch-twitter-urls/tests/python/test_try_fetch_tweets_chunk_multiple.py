@@ -6,24 +6,21 @@ import httpretty
 from mediawords.db import connect_to_db
 from mediawords.test.db.create import create_test_topic
 # noinspection PyProtectedMember
-from mediawords.tm.fetch_twitter_urls import _try_fetch_users_chunk
+from topics_fetch_twitter_urls.fetch_twitter_urls import _try_fetch_tweets_chunk
+from .mock_lookups import mock_statuses_lookup
 
-from mediawords.tm.fetch_twitter_urls.mock_lookups import mock_users_lookup
 
-
-def test_try_fetch_users_chunk_multiple():
-    """Test fetch_100_users using mock. Run in parallel threads to test for race conditions."""
-
-    def _try_fetch_users_chunk_threaded(topic_: dict, tfus_: list) -> None:
-        """Call ftu._try_fetch_users_chunk with a newly created db handle for thread safety."""
+def test_try_fetch_tweets_chunk_multiple():
+    def _try_fetch_tweets_chunk_threaded(topic_: dict, tfus_: list) -> None:
+        """Call ftu._try_fetch_tweets_chunk with a newly created db handle for thread safety."""
         db_ = connect_to_db()
-        _try_fetch_users_chunk(db_, topic_, tfus_)
+        _try_fetch_tweets_chunk(db_, topic_, tfus_)
 
     num_threads = 20
 
-    httpretty.enable()  # enable HTTPretty so that it will monkey patch the socket module
+    httpretty.enable()
     httpretty.register_uri(
-        httpretty.POST, "https://api.twitter.com/1.1/users/lookup.json", body=mock_users_lookup)
+        httpretty.GET, "https://api.twitter.com/1.1/statuses/lookup.json", body=mock_statuses_lookup)
 
     db = connect_to_db()
 
@@ -36,13 +33,13 @@ def test_try_fetch_users_chunk_multiple():
     for j in range(num_threads):
         tfus = []
         for i in range(num_urls_per_thread):
-            url = 'https://twitter.com/test_user_%s' % i
+            url = 'https://twitter.com/foo/status/%d' % i
             tfu = db.create('topic_fetch_urls', {'topics_id': topics_id, 'url': url, 'state': 'pending'})
             tfus.append(tfu)
 
         random.shuffle(tfus)
 
-        t = threading.Thread(target=_try_fetch_users_chunk_threaded, args=(topic, tfus))
+        t = threading.Thread(target=_try_fetch_tweets_chunk_threaded, args=(topic, tfus))
         t.start()
         threads.append(t)
 

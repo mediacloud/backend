@@ -4,11 +4,8 @@ from typing import List, Callable
 import traceback
 
 from mediawords.db.handler import DatabaseHandler
-from topics_base.domains import skip_self_linked_domain_url, increment_domain_links
-from topics_base.stories import generate_story, add_to_topic_stories
 from mediawords.util.sql import sql_now
 from mediawords.util.log import create_logger
-from mediawords.util.twitter import fetch_100_users, get_tweet_urls, fetch_100_tweets
 from topics_base.twitter_url import parse_status_id_from_url, parse_screen_name_from_user_url
 from topics_base.fetch_link_utils import content_matches_topic, try_update_topic_link_ref_stories_id
 from topics_base.fetch_states import (
@@ -17,6 +14,9 @@ from topics_base.fetch_states import (
     FETCH_STATE_CONTENT_MATCH_FAILED,
     FETCH_STATE_PYTHON_ERROR,
 )
+from topics_base.domains import skip_self_linked_domain_url, increment_domain_links
+from topics_base.stories import generate_story, add_to_topic_stories
+from topics_fetch_twitter_urls.twitter import fetch_100_users, get_tweet_urls, fetch_100_tweets
 
 log = create_logger(__name__)
 
@@ -213,7 +213,7 @@ def _call_function_on_url_chunks(db: DatabaseHandler, topic: dict, urls: List, c
         try:
             chunk_function(db, topic, chunk_urls)
         except Exception as ex:
-            log.warning("error fetching twitter data: {}".format(ex))
+            log.warning("error fetching twitter data: {}".format(traceback.format_exc()))
 
             topic_fetch_urls_ids = [u['topic_fetch_urls_id'] for u in urls]
             db.query(

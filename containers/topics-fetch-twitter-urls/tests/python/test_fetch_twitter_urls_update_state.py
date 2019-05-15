@@ -5,8 +5,8 @@ import httpretty
 from mediawords.db import connect_to_db
 from mediawords.test.db.create import create_test_topic
 
-from mediawords.tm.fetch_twitter_urls import fetch_twitter_urls_update_state
-from mediawords.tm.fetch_twitter_urls.mock_lookups import mock_statuses_lookup, mock_users_lookup
+from topics_fetch_twitter_urls.fetch_twitter_urls import fetch_twitter_urls_update_state
+from .mock_lookups import mock_statuses_lookup, mock_users_lookup
 
 
 def test_fetch_twitter_urls_update_state():
