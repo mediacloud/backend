@@ -66,6 +66,25 @@ RUN \
 # Copy configuration
 COPY --chown=rabbitmq:rabbitmq conf/* /etc/rabbitmq/
 
+# Copy scripts
+COPY bin/initialize_rabbitmq_db.sh /
+
+# Set node name
+ENV RABBITMQ_NODENAME="mediacloud@localhost"
+
+# Increase I/O thread pool size to accommodate for a bigger number of connections
+ENV RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS="+A 512"
+
+# Create a template database that we can use to initialize a fresh copy of
+# RabbitMQ more quickly
+# If a new empty volume gets mounted to /var/lib/rabbitmq/mnesia/ upon
+# container start, Docker will copy the files from the container to the volume
+RUN \
+    echo "Creating template database..." && \
+    /initialize_rabbitmq_db.sh && \
+    echo "Done creating template database." && \
+    true
+
 # Mnesia database
 VOLUME /var/lib/rabbitmq/
 
@@ -76,6 +95,4 @@ EXPOSE 5672
 EXPOSE 15672
 
 # Run RabbitMQ
-COPY bin/rabbitmq.sh /
-
-CMD ["/rabbitmq.sh"]
+CMD ["rabbitmq-server"]
