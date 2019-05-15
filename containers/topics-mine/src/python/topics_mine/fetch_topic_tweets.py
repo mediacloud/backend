@@ -7,11 +7,11 @@ from typing import Type, Optional, List
 import regex
 
 from mediawords.db import DatabaseHandler
-from mediawords.util.config.topics_mine import TopicsMineConfig
 from mediawords.util.log import create_logger
 from mediawords.util.parse_json import decode_json, encode_json
 from mediawords.util.web.user_agent import UserAgent
 from topics_base.fetch_link_utils import content_matches_topic
+from topics_mine.config import TopicsMineConfig
 
 log = create_logger(__name__)
 

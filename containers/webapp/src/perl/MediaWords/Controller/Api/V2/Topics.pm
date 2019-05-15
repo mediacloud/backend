@@ -560,11 +560,11 @@ SQL
 
         if ( $topic->{ job_queue } eq 'mc' )
         {
-            MediaWords::JobManager::StatefulJob::add_to_queue( 'MediaWords::Job::TM::MineTopic', $mine_args, undef, $db );
+            MediaWords::JobManager::StatefulJob::add_to_queue( 'MediaWords::Job::TM::MineTopic', $mine_args );
         }
         elsif ( $topic->{ job_queue } eq 'public' )
         {
-            MediaWords::JobManager::StatefulJob::add_to_queue( 'MediaWords::Job::TM::MineTopicPublic', $mine_args, undef, $db );
+            MediaWords::JobManager::StatefulJob::add_to_queue( 'MediaWords::Job::TM::MineTopicPublic', $mine_args );
         }
         else
         {

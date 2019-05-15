@@ -9,6 +9,7 @@ use File::Slurp;
 use Readonly;
 use Test::More;
 
+use MediaWords::DB;
 use MediaWords::JobManager::AbstractStatefulJob;
 use MediaWords::JobManager::StatefulJob;
 use MediaWords::Test::DB::Create;
@@ -362,7 +363,7 @@ sub validate_topic_data($$)
 {
     my ( $db, $topic ) = @_;
 
-    my $completed = $MediaWords::JobManager::AbstractJob::STATE_COMPLETED;
+    my $completed = $MediaWords::JobManager::AbstractStatefulJob::STATE_COMPLETED;
 
     is( $topic->{ state }, $completed, "twitter topic state" );
 
@@ -463,7 +464,9 @@ SQL
 # if the twitter and ch keys are setup, run the tests on the external apis
 sub main
 {
-    test_fetch_topic_tweets();
+    my $db = MediaWords::DB::connect_to_db();
+
+    test_fetch_topic_tweets( $db );
 
     done_testing();
 }

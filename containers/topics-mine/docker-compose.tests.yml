@@ -6,6 +6,8 @@ services:
         image: dockermediacloud/mediacloud-topics-mine:latest
         stop_signal: SIGKILL
         env_file: ./../global.env.dist
+        environment:
+            MC_CRIMSON_HEXAGON_API_KEY: "${MC_CRIMSON_HEXAGON_API_KEY}"
         volumes:
             - type: bind
               source: ./bin/
@@ -75,3 +77,4 @@ services:
 
 volumes:
     vol_postgresql_data: {}
+    vol_rabbitmq_data: {}

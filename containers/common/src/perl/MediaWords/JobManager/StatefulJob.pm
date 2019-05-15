@@ -13,6 +13,19 @@ use MediaWords::JobManager::AbstractStatefulJob;
 use MediaWords::JobManager::Job;
 
 
+sub run_remotely($;$$)
+{
+    my ( $function_name, $args, $priority ) = @_;
+
+    my $db = MediaWords::DB::connect_to_db();
+    $args //= {};
+
+    my $job_state = MediaWords::JobManager::AbstractStatefulJob::_create_queued_job_state( $db, $function_name, $args, $priority );
+    $args->{ job_states_id } = $job_state->{ job_states_id };
+
+    return MediaWords::JobManager::Job::run_remotely( $function_name, $args, $priority );
+}
+
 # override add_to_queue method to add state actions, including add a new job_states row with a state
 # of $STATE_QUEUED. optinoally include a $db handle to use to create the job_states row
 sub add_to_queue($;$$)
@@ -32,7 +45,7 @@ sub add_to_queue($;$$)
     # eval { MediaWords::JobManager::AbstractStatefulJob::_update_table_state( $db, $function_name, $job_state ); };
     # LOGCONFESS( "error updating table state: $@" ) if ( $@ );
 
-    MediaWords::JobManager::Job::add_to_queue( $function_name, $args, $priority );
+    return MediaWords::JobManager::Job::add_to_queue( $function_name, $args, $priority );
 }
 
 no Moose;    # gets rid of scaffolding

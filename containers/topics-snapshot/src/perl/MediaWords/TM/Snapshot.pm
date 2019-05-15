@@ -1090,7 +1090,7 @@ sub snapshot_topic ($$;$$$$)
     MediaWords::TM::Snapshot::Views::discard_temp_tables_and_views( $db );
 
     # update this manually because snapshot_topic might be called directly from mine_topic()
-    $db->update_by_id( 'snapshots', $snap->{ snapshots_id }, { state => $MediaWords::JobManager::AbstractJob::STATE_COMPLETED } );
+    $db->update_by_id( 'snapshots', $snap->{ snapshots_id }, { state => $MediaWords::JobManager::AbstractStatefulJob::STATE_COMPLETED } );
     MediaWords::TM::Alert::send_topic_alert( $db, $topic, "new topic snapshot is ready" );
 
     return $snap->{ snapshots_id };

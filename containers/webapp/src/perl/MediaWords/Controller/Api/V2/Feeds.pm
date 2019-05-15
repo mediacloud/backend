@@ -118,7 +118,7 @@ SQL
     if ( !$job_state )
     {
         $db->begin;
-        MediaWords::JobManager::StatefulJob::add_to_queue( $job_class, { media_id => $data->{ media_id } }, undef, $db );
+        MediaWords::JobManager::StatefulJob::add_to_queue( $job_class, { media_id => $data->{ media_id } } );
         $job_state = $db->query( "select $JOB_STATE_FIELD_LIST from job_states order by job_states_id desc limit 1" )->hash;
         $db->commit;
 

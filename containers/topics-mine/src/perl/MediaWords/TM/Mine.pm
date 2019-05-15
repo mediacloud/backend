@@ -129,15 +129,10 @@ SQL
 
         push( @{ $queued_stories_ids }, $story->{ stories_id } );
 
-        do
-        {
-            eval {
-                MediaWords::JobManager::Job::add_to_queue(
-                    'MediaWords::Job::TM::ExtractStoryLinks',
-                    { stories_id => $story->{ stories_id }, topics_id => $topic->{ topics_id } } );
-            };
-            ( sleep( 1 ) && INFO( 'waiting for rabbit ...' ) ) if ( error_is_amqp( $@ ) );
-        } until ( !error_is_amqp( $@ ) );
+        MediaWords::JobManager::Job::add_to_queue(
+            'MediaWords::Job::TM::ExtractStoryLinks',                                       #
+            { stories_id => $story->{ stories_id }, topics_id => $topic->{ topics_id } },   #
+        );
 
         TRACE( "queued link extraction for story $story->{ title } $story->{ url }." );
     }
@@ -204,14 +199,6 @@ SQL
     }
 }
 
-# return true if the $@ error is defined and matches 'AMQP socket not connected'
-sub error_is_amqp($)
-{
-    my ( $error ) = @_;
-
-    return ( $error && ( $error =~ /AMQP socket not connected/ ) );
-}
-
 # add the topic_fetch_url to the fetch_link job queue.  try repeatedly on failure.
 sub queue_topic_fetch_url($;$)
 {
@@ -219,19 +206,13 @@ sub queue_topic_fetch_url($;$)
 
     $domain_timeout //= $_test_mode ? 0 : undef;
 
-    do
-    {
-        eval {
-            MediaWords::JobManager::Job::add_to_queue(
-                'MediaWords::Job::TM::FetchLink',
-                {
-                    topic_fetch_urls_id => $tfu->{ topic_fetch_urls_id },
-                    domain_timeout      => $domain_timeout
-                }
-            );
-        };
-        ( sleep( 1 ) && DEBUG( 'waiting for rabbit ...' ) ) if ( error_is_amqp( $@ ) );
-    } until ( !error_is_amqp( $@ ) );
+    MediaWords::JobManager::Job::add_to_queue(
+        'MediaWords::Job::TM::FetchLink',
+        {
+            topic_fetch_urls_id => $tfu->{ topic_fetch_urls_id },
+            domain_timeout      => $domain_timeout
+        }
+    );
 }
 
 # create topic_fetch_urls rows correpsonding to the links and queue a FetchLink job for each.  return the tfu rows.
@@ -892,11 +873,7 @@ sub fetch_social_media_data ($$)
 
     my $cid = $topic->{ topics_id };
 
-    do
-    {
-        eval { __add_topic_stories_to_facebook_queue( $db, $topic ); }
-        ( sleep( 5 ) && INFO( 'waiting for rabbit ...' ) ) if ( error_is_amqp( $@ ) );
-    } until ( !error_is_amqp( $@ ) );
+    __add_topic_stories_to_facebook_queue( $db, $topic );
 
     my $poll_wait = 30;
     my $retries   = int( $MAX_SOCIAL_MEDIA_FETCH_TIME / $poll_wait ) + 1;
@@ -1023,7 +1000,7 @@ sub do_mine_topic ($$;$)
 
             update_topic_state( $db, $topic, "snapshotting" );
             my $snapshot_args = { topics_id => $topic->{ topics_id }, snapshots_id => $options->{ snapshots_id } };
-            MediaWords::JobManager::StatefulJob::add_to_queue( 'MediaWords::Job::TM::SnapshotTopic', $snapshot_args, undef, $db );
+            MediaWords::JobManager::StatefulJob::add_to_queue( 'MediaWords::Job::TM::SnapshotTopic', $snapshot_args );
         }
     }
 }

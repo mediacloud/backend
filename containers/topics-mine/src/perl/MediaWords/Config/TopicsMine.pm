@@ -18,7 +18,7 @@ use Modern::Perl "2015";
 
     use MediaWords::Util::Python;
 
-    MediaWords::Util::Python::import_python_module( __PACKAGE__, 'mediawords.util.config.topics_mine' );
+    MediaWords::Util::Python::import_python_module( __PACKAGE__, 'topics_mine.config' );
 
     1;
 }
