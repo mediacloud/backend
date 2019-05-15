@@ -712,6 +712,15 @@ END;
 $$
 LANGUAGE plpgsql;
 
+-- list of all url or guid identifiers for each story
+create table story_urls (
+    story_urls_id   bigserial primary key,
+    stories_id      int references stories on delete cascade,
+    url             varchar(1024) not null
+);
+
+create unique index story_urls_url on story_urls ( url, stories_id );
+create index stories_story on story_urls ( stories_id );
 
 --
 -- Downloads

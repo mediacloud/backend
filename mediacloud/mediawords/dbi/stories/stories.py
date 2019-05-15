@@ -40,10 +40,15 @@ def find_dup_story(db: DatabaseHandler, story: dict) -> bool:
         return None
 
     db_story = db.query("""
-        SELECT *
-        FROM stories
+        SELECT s.*
+        FROM stories s
+            join story_urls su using ( stories_id )
         WHERE
-            ( guid in ( %(guid)s, %(url)s ) or url in ( %(guid)s, %(url)s ) ) and
+            (
+                s.guid in ( %(guid)s, %(url)s ) or
+                s.url in ( %(guid)s, %(url)s ) or
+                su.url in ( %(guid)s, %(url)s )
+            ) and
             media_id = %(media_id)s
     """, {
         'guid': story['guid'],
@@ -68,6 +73,13 @@ def find_dup_story(db: DatabaseHandler, story: dict) -> bool:
         'publish_date': story['publish_date'],
     }).hash()
     if db_story:
+        for field in ('url', 'guid'):
+            db.query(
+                """
+                insert into story_urls (stories_id, url) values (%(a)s, %(b)s) on conflict (url, stories_id) do nothing
+                """,
+                {'a': db_story['stories_id'], 'b': story[field]})
+
         return db_story
 
     return None
