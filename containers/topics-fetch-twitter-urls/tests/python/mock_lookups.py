@@ -1,14 +1,17 @@
 # noinspection PyUnusedLocal
-import json
 import re
 from typing import List
 from urllib.parse import parse_qs, urlparse
 
+import requests
+
+from mediawords.util.parse_json import encode_json
+
 
 # noinspection PyUnusedLocal
-def mock_users_lookup(request, uri, response_headers) -> List:
+def mock_users_lookup(request: requests.PreparedRequest, context) -> str:
     """Mock twitter /users/lookup response."""
-    params = parse_qs(request.body.decode('utf-8'))
+    params = parse_qs(request.body)
 
     screen_names = params['screen_name'][0].split(',')
 
@@ -18,7 +21,7 @@ def mock_users_lookup(request, uri, response_headers) -> List:
         if m:
             user_id = m.group(1)
         else:
-            # deal with dummy users inserted by mediawords.util.twitter.fetch_100_users() (see comments there)
+            # deal with dummy users inserted by fetch_100_users() (see comments there)
             user_id = 0
 
         user = {
@@ -28,13 +31,15 @@ def mock_users_lookup(request, uri, response_headers) -> List:
             'description': "test description for user %s" % user_id}
         users.append(user)
 
-    return [200, response_headers, json.dumps(users)]
+    context.status_code = 200
+    context.headers = {'Content-Type': 'application/json; charset=UTF-8'}
+    return encode_json(users)
 
 
 # noinspection PyUnusedLocal
-def mock_statuses_lookup(request, uri, response_headers) -> List:
+def mock_statuses_lookup(request: requests.PreparedRequest, context) -> str:
     """Mock twitter /statuses/lookup response."""
-    params = parse_qs(urlparse(uri).query)
+    params = parse_qs(urlparse(request.url).query)
 
     ids = params['id'][0].split(',')
 
@@ -48,4 +53,6 @@ def mock_statuses_lookup(request, uri, response_headers) -> List:
             'entities': {'urls': []}}
         tweets.append(tweet)
 
-    return [200, response_headers, json.dumps(tweets)]
+    context.status_code = 200
+    context.headers = {'Content-Type': 'application/json; charset=UTF-8'}
+    return encode_json(tweets)

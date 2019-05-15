@@ -1,7 +1,7 @@
 import random
 import threading
 
-import httpretty
+import requests_mock
 
 from mediawords.db import connect_to_db
 from mediawords.test.db.create import create_test_topic
@@ -16,13 +16,11 @@ def test_try_fetch_users_chunk_multiple():
     def _try_fetch_users_chunk_threaded(topic_: dict, tfus_: list) -> None:
         """Call ftu._try_fetch_users_chunk with a newly created db handle for thread safety."""
         db_ = connect_to_db()
-        _try_fetch_users_chunk(db_, topic_, tfus_)
+        with requests_mock.Mocker() as m:
+            m.post("https://api.twitter.com/1.1/users/lookup.json", text=mock_users_lookup)
+            _try_fetch_users_chunk(db_, topic_, tfus_)
 
     num_threads = 20
-
-    httpretty.enable()  # enable HTTPretty so that it will monkey patch the socket module
-    httpretty.register_uri(
-        httpretty.POST, "https://api.twitter.com/1.1/users/lookup.json", body=mock_users_lookup)
 
     db = connect_to_db()
 
@@ -50,6 +48,3 @@ def test_try_fetch_users_chunk_multiple():
     [num_topic_stories] = db.query(
         "select count(*) from topic_stories where topics_id = %(a)s", {'a': topics_id}).flat()
     assert num_urls_per_thread == num_topic_stories
-
-    httpretty.disable()
-    httpretty.reset()

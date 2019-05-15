@@ -1,6 +1,6 @@
 import random
 
-import httpretty
+import requests_mock
 
 from mediawords.db import connect_to_db
 from mediawords.test.db.create import create_test_topic
@@ -11,11 +11,6 @@ from .mock_lookups import mock_statuses_lookup, mock_users_lookup
 
 def test_fetch_twitter_urls_update_state():
     """Test fetch_100_tweets using mock."""
-    httpretty.enable()
-    httpretty.register_uri(
-        httpretty.GET, "https://api.twitter.com/1.1/statuses/lookup.json", body=mock_statuses_lookup)
-    httpretty.register_uri(
-        httpretty.POST, "https://api.twitter.com/1.1/users/lookup.json", body=mock_users_lookup)
 
     db = connect_to_db()
 
@@ -39,7 +34,11 @@ def test_fetch_twitter_urls_update_state():
     tfu_ids = [u['topic_fetch_urls_id'] for u in tfus]
     random.shuffle(tfu_ids)
 
-    fetch_twitter_urls_update_state(db=db, topic_fetch_urls_ids=tfu_ids)
+    with requests_mock.Mocker() as m:
+        m.get("https://api.twitter.com/1.1/statuses/lookup.json", text=mock_statuses_lookup)
+        m.post("https://api.twitter.com/1.1/users/lookup.json", text=mock_users_lookup)
+
+        fetch_twitter_urls_update_state(db=db, topic_fetch_urls_ids=tfu_ids)
 
     [num_tweet_stories] = db.query(
         """
@@ -60,6 +59,3 @@ def test_fetch_twitter_urls_update_state():
         """,
         {'a': topics_id}).flat()
     assert num_user_stories == num_users
-
-    httpretty.disable()
-    httpretty.reset()
