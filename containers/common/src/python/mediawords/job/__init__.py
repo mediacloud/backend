@@ -152,7 +152,17 @@ class JobBroker(object):
     def run_remotely(self, *args, **kwargs) -> Any:
         """Run job remotely, return the result."""
         result = self.__result_for_task(args=args, kwargs=kwargs)
-        return result.get()
+
+        # As per http://docs.celeryq.org/en/latest/userguide/tasks.html#task-synchronous-subtasks,
+        # synchronous sub-tasks are not super-awesome, but some tests use them,
+        # e.g. test_topics_mine.t calls topics_fetch_link worker and it
+        # extracts the fetched link with extract_and_vector worker, thus
+        # building up this chain of operations.
+        #
+        # Let's only hope someone refactors this one day!
+        disable_sync_subtasks = False
+
+        return result.get(disable_sync_subtasks=disable_sync_subtasks)
 
     def add_to_queue(self, *args, **kwargs) -> str:
         """Add job to queue, return job ID."""
