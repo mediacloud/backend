@@ -22,6 +22,11 @@ sub get_run_lock_arg
     return 'topics_id';
 }
 
+sub get_run_lock_type
+{
+    return 'MediaWords::Job::TM::SnapshotTopic';
+}
+
 sub get_state_table_info
 {
     return { table => 'snapshots', state => 'state', message => 'message' };
