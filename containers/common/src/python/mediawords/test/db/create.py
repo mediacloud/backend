@@ -7,6 +7,7 @@ from mediawords.dbi.stories.postprocess import mark_as_processed
 from mediawords.languages.factory import LanguageFactory
 from mediawords.util.identify_language import language_code_for_text
 from mediawords.util.log import create_logger
+from mediawords.util.parse_html import html_strip
 from mediawords.util.perl import decode_object_from_bytes_if_needed, decode_str_from_bytes_if_needed
 from mediawords.util.url import get_url_host
 
@@ -410,21 +411,23 @@ def add_content_to_test_story(db: DatabaseHandler, story: dict, feed: dict) -> d
 
     download = store_content(db=db, download=download, content=content)
 
+    extracted_content = html_strip(content)
+
     story['download'] = download
-    story['content'] = content
+    story['content'] = extracted_content
 
     db.query("""
         INSERT INTO download_texts (downloads_id, download_text, download_text_length)
         VALUES (%(downloads_id)s, %(download_text)s, CHAR_LENGTH(%(download_text)s))
     """, {
         'downloads_id': download['downloads_id'],
-        'download_text': content,
+        'download_text': extracted_content,
     })
 
     lang = LanguageFactory.language_for_code(content_language_code)
     assert lang, f"Language is None for code {content_language_code}"
 
-    sentences = lang.split_text_to_sentences(content)
+    sentences = lang.split_text_to_sentences(extracted_content)
     sentence_number = 1
     for sentence in sentences:
         db.insert(table='story_sentences', insert_hash={
