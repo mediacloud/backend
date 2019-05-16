@@ -8,7 +8,7 @@ from mediawords.dbi.stories.process import process_extracted_story
 from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_object_from_bytes_if_needed
 from mediawords.util.sql import get_sql_date_from_epoch
-from mediawords.util.url import get_url_host
+from mediawords.util.url import get_url_host, normalize_url_lossy
 
 log = create_logger(__name__)
 
@@ -19,6 +19,25 @@ MAX_TITLE_LENGTH = 1024
 class McAddStoryException(Exception):
     """add_story() exception."""
     pass
+
+
+def _insert_story_urls(db: DatabaseHandler, story: dict, url: str) -> None:
+    """Insert the url and the normalize_url_lossy() version of the url into story_urls."""
+    urls = (url, normalize_url_lossy(url))
+
+    for url in set(urls):
+        db.query(
+            """
+            insert into story_urls (stories_id, url) values (%(a)s, %(b)s) on conflict (url, stories_id) do nothing
+            """,
+            {'a': story['stories_id'], 'b': url})
+
+
+def _get_story_url_variants(story: dict) -> list:
+    """Return a list of the unique set of the story url and guid and their normalize_url_lossy() versions."""
+    urls = list({story['url'], normalize_url_lossy(story['url']), story['guid'], normalize_url_lossy(story['guid'])})
+
+    return urls
 
 
 def find_dup_story(db: DatabaseHandler, story: dict) -> bool:
@@ -39,20 +58,21 @@ def find_dup_story(db: DatabaseHandler, story: dict) -> bool:
     if story['title'] == '(no title)':
         return None
 
+    urls = _get_story_url_variants(story)
+
     db_story = db.query("""
         SELECT s.*
         FROM stories s
             join story_urls su using ( stories_id )
         WHERE
             (
-                s.guid in ( %(guid)s, %(url)s ) or
-                s.url in ( %(guid)s, %(url)s ) or
-                su.url in ( %(guid)s, %(url)s )
+                s.guid = any( %(urls)s ) or
+                s.url = any( %(urls)s ) or
+                su.url = any( %(urls)s )
             ) and
             media_id = %(media_id)s
     """, {
-        'guid': story['guid'],
-        'url': story['url'],
+        'urls': urls,
         'media_id': story['media_id'],
     }).hash()
     if db_story:
@@ -72,13 +92,9 @@ def find_dup_story(db: DatabaseHandler, story: dict) -> bool:
         'media_id': story['media_id'],
         'publish_date': story['publish_date'],
     }).hash()
+
     if db_story:
-        for field in ('url', 'guid'):
-            db.query(
-                """
-                insert into story_urls (stories_id, url) values (%(a)s, %(b)s) on conflict (url, stories_id) do nothing
-                """,
-                {'a': db_story['stories_id'], 'b': story[field]})
+        [_insert_story_urls(db, story, u) for u in (story['url'], story['guid'])]
 
         return db_story
 
@@ -133,13 +149,16 @@ def add_story(db: DatabaseHandler, story: dict, feeds_id: int) -> Optional[dict]
 
     story['is_new'] = True
 
-    db.find_or_create(
-        table='feeds_stories_map',
-        insert_hash={
-            'stories_id': story['stories_id'],
-            'feeds_id': feeds_id,
-        }
-    )
+    [_insert_story_urls(db, story, u) for u in (story['url'], story['guid'])]
+
+    # this ugly query is necessary because on conflict doesnot work with partitioned feeds_stories_map
+    db.query(
+        """
+        insert into feeds_stories_map_p ( feeds_id, stories_id )
+            select %(a)s, %(b)s where not exists (
+                select 1 from feeds_stories_map where feeds_id = %(a)s and stories_id = %(b)s )
+        """,
+        {'a': feeds_id, 'b': story['stories_id']})
 
     db.commit()
 
@@ -186,7 +205,7 @@ def add_story_and_content_download(db: DatabaseHandler, story: dict, parent_down
 
     story = add_story(db=db, story=story, feeds_id=parent_download['feeds_id'])
 
-    if story is not None:
+    if story.get('is_new', False):
         _create_child_download_for_story(db=db, story=story, parent_download=parent_download)
 
     return story

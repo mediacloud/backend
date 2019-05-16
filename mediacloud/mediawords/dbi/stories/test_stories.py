@@ -21,6 +21,13 @@ class TestStories(TestDatabaseWithSchemaTestCase):
     TEST_FEED_NAME = 'test feed'
     TEST_STORY_NAME = 'test story'
 
+    unique_string_generator = 0
+
+    def new_unique_str(self) -> str:
+        """Return a new unique string each call."""
+        self.unique_string_generator += 1
+        return str(self.unique_string_generator)
+
     def setUp(self) -> None:
         """Set config for tests."""
         super().setUp()
@@ -31,12 +38,6 @@ class TestStories(TestDatabaseWithSchemaTestCase):
         self.test_download = create_download_for_story(self.db(), feed=self.test_feed, story=self.test_story)
 
     def test_find_dup_story(self):
-
-        def _new_unique_str() -> str:
-            global i
-            i = 0 if i is None else i + 1
-
-            return str(i)
 
         def _test_story(db: DatabaseHandler, story_: dict, num_: int) -> None:
 
@@ -55,32 +56,41 @@ class TestStories(TestDatabaseWithSchemaTestCase):
             assert find_dup_story(
                 db=db,
                 story={**story_, **{
-                    'url': _new_unique_str(),
-                    'guid': _new_unique_str()
+                    'url': self.new_unique_str(),
+                    'guid': self.new_unique_str()
                 }},
             ) == story_, "{} URL + GUID diff, title same".format(num_)
 
             assert find_dup_story(
                 db=db,
                 story={**story_, **{
-                    'url': _new_unique_str(),
-                    'title': _new_unique_str()
+                    'url': self.new_unique_str(),
+                    'title': self.new_unique_str()
                 }},
             ) == story_, "{} title + URL diff, GUID same".format(num_)
 
             assert find_dup_story(
                 db=db,
                 story={**story_, **{
-                    'guid': _new_unique_str(),
-                    'title': _new_unique_str(),
+                    'guid': self.new_unique_str(),
+                    'title': self.new_unique_str(),
                 }},
             ) == story_, "{} title + GUID diff, URL same".format(num_)
 
             assert find_dup_story(
                 db=db,
                 story={**story_, **{
-                    'url': _new_unique_str(),
-                    'guid': _new_unique_str(),
+                    'url': story_['url'].upper(),
+                    'guid': self.new_unique_str(),
+                    'title': self.new_unique_str(),
+                }},
+            ) == story_, "{} title + GUID diff, nornmalized url same ".format(num_)
+
+            assert find_dup_story(
+                db=db,
+                story={**story_, **{
+                    'url': self.new_unique_str(),
+                    'guid': self.new_unique_str(),
                     'publish_date': increment_day(date=story['publish_date'], days=2),
                 }},
             ) is None, "{} date + 2 days".format(num_)
@@ -88,17 +98,17 @@ class TestStories(TestDatabaseWithSchemaTestCase):
             assert find_dup_story(
                 db=db,
                 story={**story_, **{
-                    'url': _new_unique_str(),
-                    'guid': _new_unique_str(),
+                    'url': self.new_unique_str(),
+                    'guid': self.new_unique_str(),
                     'publish_date': increment_day(date=story['publish_date'], days=-2),
                 }},
             ) is None, "{} date - 2 days".format(num_)
 
             # verify that we can find dup story by the url or guid of a previously dup'd story
-            dup_url = _new_unique_str()
-            dup_guid = _new_unique_str()
+            dup_url = self.new_unique_str()
+            dup_guid = self.new_unique_str()
 
-            nondup_url = _new_unique_str()
+            nondup_url = self.new_unique_str()
             nondup_guid = 'bogus unique guid'
             nondup_title = 'bogus unique title'
 
@@ -160,6 +170,12 @@ class TestStories(TestDatabaseWithSchemaTestCase):
             }
         ).hashes()
         assert len(feeds_stories_tag_mapping) == 1
+
+        story_urls = self.db().query(
+            "select * from story_urls where stories_id = %(a)s",
+            {'a': added_story['stories_id']}).hashes()
+        assert len(story_urls) == 1
+        assert story_urls[0]['url'] == added_story['url']
 
         # Try adding a duplicate story
         dup_story = add_story(db=self.db(), story=story, feeds_id=feeds_id)

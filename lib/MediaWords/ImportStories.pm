@@ -316,17 +316,6 @@ SQL
     return $feed;
 }
 
-# add story to a special 'scrape' feed
-sub _add_story_to_scrape_feed
-{
-    my ( $self, $story ) = @_;
-
-    $self->db->query( <<SQL, $self->_get_scrape_feed->{ feeds_id }, $story->{ stories_id } );
-insert into feeds_stories_map ( feeds_id, stories_id ) values ( ?, ? )
-SQL
-
-}
-
 # add and extract download for story
 sub _add_story_download
 {
@@ -395,6 +384,8 @@ sub _add_new_stories
 
     DEBUG "adding new stories to db ..." if ( $self->debug );
 
+    my $scrape_feeds_id = $self->_get_scrape_feed()->{ feeds_id };
+
     my $total_stories = scalar( @{ $stories } );
     my $i             = 1;
 
@@ -409,26 +400,9 @@ sub _add_new_stories
         delete( $story->{ content } );
         delete( $story->{ normalized_url } );
 
-        eval { $story = $self->db->create( 'stories', $story ) };
-        if ( $@ )
-        {
-            # it's quicker to just rely on postgres to catch constrained dups than to check for them first
-            if ( $@ =~ /unique constraint "([^"]*)"/ )
-            {
-                DEBUG( "skipping postgres dup: $1" );
-            }
-            else
-            {
-                LOGCARP( $@ . " - " . Dumper( $story ) );
-            }
-
-            $self->db->rollback;
-            next;
-        }
+        $story = MediaWords::DBI::Stories::Stories::add_new( $self->db, $story, $scrape_feeds_id );
 
         $self->_add_scraped_stories_flag( $story );
-
-        $self->_add_story_to_scrape_feed( $story );
 
         $self->_add_story_download( $story, $content );
 

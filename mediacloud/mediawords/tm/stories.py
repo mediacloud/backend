@@ -5,14 +5,12 @@ import furl
 import operator
 import os
 import re2
-import traceback
 import typing
 
 from mediawords.db import DatabaseHandler
 import mediawords.db.exceptions.handler
 import mediawords.dbi.downloads
 from mediawords.dbi.stories.extractor_arguments import PyExtractorArguments
-import mediawords.dbi.stories.dup
 import mediawords.dbi.stories.stories
 import mediawords.key_value_store.amazon_s3
 from mediawords.tm.guess_date import guess_date, GuessDateResult
@@ -234,9 +232,9 @@ with matching_stories as (
 
     select distinct(s.*) from stories s
             join media m on s.media_id = m.media_id
-            join topic_seed_urls csu on s.stories_id = csu.stories_id
+            join story_urls su on s.stories_id = su.stories_id
         where
-            csu.url = any ( %(a)s ) and
+            su.url = any ( %(a)s ) and
             m.foreign_rss_links = false
 )
 
@@ -395,15 +393,14 @@ def generate_story(
     else:
         story['publish_date'] = publish_date
 
-    try:
-        story = db.create('stories', story)
-    except mediawords.db.exceptions.handler.McUniqueConstraintException:
-        return mediawords.tm.stories.get_story_match(db=db, url=story['url'])
-    except Exception:
-        raise McTMStoriesException("Error adding story: %s" % traceback.format_exc())
+    story = mediawords.dbi.stories.stories.add_story(db, story, feed['feeds_id'])
 
     db.query(
-        "insert into stories_tags_map (stories_id, tags_id) values (%(a)s, %(b)s)",
+        """
+        insert into stories_tags_map (stories_id, tags_id)
+            select %(a)s, %(b)s where not exists (
+                select 1 from stories_tags_map where stories_id = %(a)s and tags_id = %(b)s )
+        """,
         {'a': story['stories_id'], 'b': spidered_tag['tags_id']})
 
     if publish_date is None:
@@ -411,13 +408,10 @@ def generate_story(
 
     log.debug("add story: %s; %s; %s; %d" % (story['title'], story['url'], story['publish_date'], story['stories_id']))
 
-    db.create('feeds_stories_map', {'stories_id': story['stories_id'], 'feeds_id': feed['feeds_id']})
-
-    download = create_download_for_new_story(db, story, feed)
-
-    mediawords.dbi.downloads.store_content(db, download, content)
-
-    _extract_story(db, story)
+    if story.get('is_new', False):
+        download = create_download_for_new_story(db, story, feed)
+        mediawords.dbi.downloads.store_content(db, download, content)
+        _extract_story(db, story)
 
     return story
 
@@ -725,81 +719,6 @@ def merge_dup_media_stories(db, topic):
         log.info("merging %d stories" % len(dup_media_stories))
 
     [merge_dup_media_story(db, topic, s) for s in dup_media_stories]
-
-
-def _merge_dup_stories(db, topic, stories):
-    """Merge a list of stories into a single story, keeping the story with the most sentences."""
-    log.debug("merge dup stories")
-
-    stories_ids = [s['stories_id'] for s in stories]
-
-    story_sentence_counts = db.query(
-        """
-        select stories_id, count(*) sentence_count
-            from story_sentences
-            where stories_id = ANY(%(a)s)
-            group by stories_id
-        """,
-        {'a': stories_ids}).hashes()
-
-    ssc = {}
-
-    for s in stories:
-        ssc[s['stories_id']] = 0
-
-    for count in story_sentence_counts:
-        ssc[count['stories_id']] = count['sentence_count']
-
-    stories = sorted(stories, key=lambda x: ssc[x['stories_id']], reverse=True)
-
-    keep_story = stories.pop(0)
-
-    log.debug("duplicates: %s [%s %d]" % (keep_story['title'], keep_story['url'], keep_story['stories_id']))
-
-    [_merge_dup_story(db, topic, s, keep_story) for s in stories]
-
-
-def _get_topic_stories_by_medium(db: DatabaseHandler, topic: dict) -> dict:
-    """Return hash of { $media_id: stories } for the topic."""
-
-    stories = db.query(
-        """
-        select s.stories_id, s.media_id, s.title, s.url, s.publish_date
-            from snap.live_stories s
-            where s.topics_id = %(a)s
-        """,
-        {'a': topic['topics_id']}).hashes()
-
-    media_lookup = {}
-    for s in stories:
-        media_lookup.setdefault(s['media_id'], [])
-        media_lookup[s['media_id']].append(s)
-
-    return media_lookup
-
-
-def find_and_merge_dup_stories(db: DatabaseHandler, topic: dict) -> None:
-    """Merge duplicate stories ithin each media source by url and title."""
-    log.info("find and merge dup stories")
-
-    for get_dup_stories in (
-        ['url', mediawords.dbi.stories.dup.get_medium_dup_stories_by_url],
-        ['title', mediawords.dbi.stories.dup.get_medium_dup_stories_by_title]
-    ):
-
-        f_name = get_dup_stories[0]
-        f = get_dup_stories[1]
-
-        # regenerate story list each time to capture previously merged stories
-        media_lookup = _get_topic_stories_by_medium(db, topic)
-
-        num_media = len(media_lookup.keys())
-
-        for i, (media_id, stories) in enumerate(media_lookup.items()):
-            if (i % 1000) == 0:
-                log.info("merging dup stories by %s: media [%d / %d]" % (f_name, i, num_media))
-            dup_stories = f(stories)
-            [_merge_dup_stories(db, topic, s) for s in dup_stories]
 
 
 def copy_stories_to_topic(db: DatabaseHandler, source_topics_id: int, target_topics_id: int) -> None:
