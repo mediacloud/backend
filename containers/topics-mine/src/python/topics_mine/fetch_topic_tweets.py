@@ -11,6 +11,7 @@ from mediawords.util.log import create_logger
 from mediawords.util.parse_json import decode_json, encode_json
 from mediawords.util.web.user_agent import UserAgent
 from topics_base.fetch_link_utils import content_matches_topic
+from topics_base.twitter_url import get_tweet_urls
 from topics_mine.config import TopicsMineConfig
 
 log = create_logger(__name__)
