@@ -541,41 +541,29 @@ sub spider_GET
     my $topic = $db->require_by_id( 'topics', $topics_id );
     my $auth_users_id = $c->stash->{ api_auth }->user_id();
 
-    my $job_state = $db->query( <<SQL, $topics_id )->hash;
-select $JOB_STATE_FIELD_LIST
-    from pending_job_states
-    where
-        ( args->>'topics_id' )::int = \$1 and
-        class like 'MediaWords::Job::TM::MineTopic%'
-    order by job_states_id desc
-SQL
+    # wrap this in a transaction so that we're sure the last job added is the one we just added
+    $db->begin;
 
-    if ( !$job_state )
+    my $mine_args = { topics_id => $topics_id, snapshots_id => $snapshots_id };
+
+    if ( $topic->{ job_queue } eq 'mc' )
     {
-        # wrap this in a transaction so that we're sure the last job added is the one we just added
-        $db->begin;
-
-        my $mine_args = { topics_id => $topics_id, snapshots_id => $snapshots_id };
-
-        if ( $topic->{ job_queue } eq 'mc' )
-        {
-            MediaWords::Job::TM::MineTopic->add_to_queue( $mine_args, undef, $db );
-        }
-        elsif ( $topic->{ job_queue } eq 'public' )
-        {
-            MediaWords::Job::TM::MineTopicPublic->add_to_queue( $mine_args, undef, $db );
-        }
-        else
-        {
-            LOGDIE( "unknown job_queue type: $topic->{ job_queue }" );
-        }
-
-        $job_state = $db->query( "select $JOB_STATE_FIELD_LIST from job_states order by job_states_id desc limit 1" )->hash;
-
-        $db->commit;
-
-        die( "Unable to find job state from queued job" ) unless ( $job_state );
+        MediaWords::Job::TM::MineTopic->add_to_queue( $mine_args, undef, $db );
     }
+    elsif ( $topic->{ job_queue } eq 'public' )
+    {
+        MediaWords::Job::TM::MineTopicPublic->add_to_queue( $mine_args, undef, $db );
+    }
+    else
+    {
+        LOGDIE( "unknown job_queue type: $topic->{ job_queue }" );
+    }
+
+    my $job_state = $db->query( "select $JOB_STATE_FIELD_LIST from job_states order by job_states_id desc limit 1" )->hash;
+
+    $db->commit;
+
+    die( "Unable to find job state from queued job" ) unless ( $job_state );
 
     return $self->status_ok( $c, entity => { job_state => $job_state } );
 }

@@ -497,8 +497,7 @@ Response:
 
 Start a topic spidering job.
 
-Topic spidering is asynchronous.  Once the topic has started spidering, you cannot start another spidering job until the current one is complete. A call to this end point when a 'running' or 'queued' job already exists for the given topic
-will just return the state of the existing job. If a snapshots\_id is sent as input, that snapshot will be used
+Topic spidering is asynchronous. If a snapshots\_id is sent as input, that snapshot will be used
 for the job; otherwise, a new snapshot will be created.
 
 ### Query Parameters
