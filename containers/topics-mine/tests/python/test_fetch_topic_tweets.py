@@ -9,7 +9,11 @@ from mediawords.test.db.create import create_test_topic
 from mediawords.util.parse_json import decode_json
 
 # noinspection PyProtectedMember
-from mediawords.tm.fetch_topic_tweets import AbstractCrimsonHexagon, AbstractTwitter, fetch_topic_tweets
+from topics_mine.fetch_topic_tweets import (
+    AbstractCrimsonHexagon,
+    AbstractTwitter,
+    fetch_topic_tweets,
+)
 
 # this is an estimate of the number of tweets per day included in the ch-posts-date.json files
 # this should not be edited other than to provide a better estimate

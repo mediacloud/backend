@@ -12,9 +12,11 @@ use Data::Dumper;
 use Digest::MD5 qw(md5_hex);
 use MediaWords::Test::HashServer;
 use Readonly;
+use Sys::Hostname;
 use Test::More;
 use Text::Lorem::More;
 
+use MediaWords::DB;
 use MediaWords::TM::Mine;
 use MediaWords::Util::SQL;
 use MediaWords::Util::Web;
@@ -27,7 +29,7 @@ Readonly my $NUM_LINKS_PER_PAGE => 2;
 
 Readonly my $TOPIC_PATTERN => 'FOOBARBAZ';
 
-sub get_html_link
+sub get_html_link($)
 {
     my ( $page ) = @_;
 
@@ -43,7 +45,7 @@ sub get_html_link
     }
 }
 
-sub generate_content_for_site
+sub generate_content_for_site($)
 {
     my ( $site ) = @_;
 
@@ -65,7 +67,7 @@ sub generate_content_for_site
 HTML
 }
 
-sub generate_content_for_page
+sub generate_content_for_page($$)
 {
     my ( $site, $page ) = @_;
 
@@ -114,7 +116,7 @@ HTML
 
 }
 
-sub generate_content_for_sites
+sub generate_content_for_sites($)
 {
     my ( $sites ) = @_;
 
@@ -145,7 +147,11 @@ sub get_test_sites()
         my $site = {
             port  => $port,
             id    => $site_id,
-            url   => "http://127.0.0.1:$port/",
+
+            # Other containers will access this host to we have to set the
+            # actual hostname instead of just localhost
+            url   => "http://" . Sys::Hostname::hostname . ":$port/",
+
             title => "site $site_id"
         };
 
@@ -195,7 +201,7 @@ sub get_test_sites()
 }
 
 # add a medium for each site so that the topic mapper's spider can find the medium that corresponds to each url
-sub add_site_media
+sub add_site_media($$)
 {
     my ( $db, $sites ) = @_;
 
@@ -211,7 +217,7 @@ sub add_site_media
     }
 }
 
-sub start_hash_servers
+sub start_hash_servers($)
 {
     my ( $sites ) = @_;
 
@@ -240,7 +246,7 @@ sub start_hash_servers
     return $hash_servers;
 }
 
-sub test_page
+sub test_page($$$)
 {
     my ( $label, $url, $expected_content ) = @_;
 
@@ -259,7 +265,7 @@ sub test_page
     is( $got_content, $expected_content, "simple page test: $label" );
 }
 
-sub test_pages
+sub test_pages($)
 {
     my ( $sites ) = @_;
 
@@ -272,7 +278,7 @@ sub test_pages
     }
 }
 
-sub seed_unlinked_urls
+sub seed_unlinked_urls($$$)
 {
     my ( $db, $topic, $sites ) = @_;
 
@@ -316,7 +322,7 @@ sub seed_unlinked_urls
     }
 }
 
-sub create_topic
+sub create_topic($$)
 {
     my ( $db, $sites ) = @_;
 
@@ -348,7 +354,7 @@ sub create_topic
     return $topic;
 }
 
-sub test_topic_stories
+sub test_topic_stories($$$)
 {
     my ( $db, $topic, $sites ) = @_;
 
@@ -381,6 +387,21 @@ SQL
     is( scalar( keys( %{ $topic_pages_lookup } ) ),
         0, "missing topic story for topic pages: " . Dumper( values( %{ $topic_pages_lookup } ) ) );
 
+    # Wait for pending URLs to disappear
+    Readonly my $WAIT_PENDING_SECONDS => 10;
+    my $pending_count = 0;
+    for ( my $pending_retry = 0; $pending_retry <= $WAIT_PENDING_SECONDS; ++$pending_retry ) {
+        ( $pending_count ) = $db->query( "select count(*) from topic_fetch_urls where state ='pending'" )->flat;
+        if ( $pending_count > 0 ) {
+            WARN "Still $pending_count URLs are pending, will retry shortly";
+            sleep( 1 );
+        } else {
+            INFO "No more pending URLs, continuing";
+            last;
+        }
+    }
+    is( $pending_count, 0, "After waiting $WAIT_PENDING_SECONDS some URLs are still in 'pending' state" );
+
     my ( $dead_link_count ) = $db->query( "select count(*) from topic_fetch_urls where state ='request failed'" )->flat;
     is( $dead_link_count, scalar( @{ $topic_pages } ), "dead link count" );
 
@@ -394,7 +415,7 @@ SQL
     }
 }
 
-sub test_topic_links
+sub test_topic_links($$$)
 {
     my ( $db, $topic, $sites ) = @_;
 
@@ -438,7 +459,7 @@ SQL
 }
 
 # test that no errors exist in the topics or snapshots tables
-sub test_for_errors
+sub test_for_errors($)
 {
     my ( $db ) = @_;
 
@@ -451,7 +472,7 @@ sub test_for_errors
     ok( scalar( @{ $error_snapshots } ) == 0, "snapshot errors: " . Dumper( $error_snapshots ) );
 }
 
-sub test_spider_results
+sub test_spider_results($$$)
 {
     my ( $db, $topic, $sites ) = @_;
 
@@ -462,7 +483,7 @@ sub test_spider_results
     test_for_errors( $db );
 }
 
-sub get_site_structure
+sub get_site_structure($)
 {
     my ( $sites ) = @_;
 
@@ -487,7 +508,7 @@ sub get_site_structure
     return $meta_sites;
 }
 
-sub test_spider
+sub test_spider($)
 {
     my ( $db ) = @_;
 
@@ -517,20 +538,20 @@ sub test_spider
         test_mode                       => 1
     };
 
-    MediaWords::Job::TM::MineTopic->run( $mine_args );
-
-    # MediaWords::TM::Mine::mine_topic( $db, $topic, $mine_options );
+    MediaWords::TM::Mine::mine_topic( $db, $topic, $mine_args );
 
     test_spider_results( $db, $topic, $sites );
 
     map { $_->stop } @{ $hash_servers };
-
-    done_testing();
 }
 
 sub main
 {
-    test_spider();
+    my $db = MediaWords::DB::connect_to_db();
+
+    test_spider( $db );
+
+    done_testing();
 }
 
 main();

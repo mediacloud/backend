@@ -1,4 +1,4 @@
-from mediawords.tm.fetch_topic_tweets import _post_matches_pattern
+from topics_mine.fetch_topic_tweets import _post_matches_pattern
 
 
 def test_post_matches_pattern() -> None:
