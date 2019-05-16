@@ -84,6 +84,7 @@ class JobBroker(object):
         self.__queue_name = queue_name
 
         config = CommonConfig()
+
         rabbitmq_config = config.rabbitmq()
         broker_uri = 'amqp://{username}:{password}@{hostname}:{port}/{vhost}'.format(
             username=rabbitmq_config.username(),
@@ -93,7 +94,16 @@ class JobBroker(object):
             vhost=rabbitmq_config.vhost(),
         )
 
-        self.__app = celery.Celery(queue_name, broker=broker_uri, backend='rpc://')
+        db_config = CommonConfig.database()
+        result_backend_url = 'db+postgresql+psycopg2://{username}:{password}@{hostname}:{port}/{database}'.format(
+            username=db_config.username(),
+            password=db_config.password(),
+            hostname=db_config.hostname(),
+            port=db_config.port(),
+            database=db_config.database_name(),
+        )
+
+        self.__app = celery.Celery(queue_name, broker=broker_uri, backend=result_backend_url)
 
         self.__app.conf.broker_connection_timeout = rabbitmq_config.timeout()
 
@@ -104,6 +114,11 @@ class JobBroker(object):
 
         # https://tech.labs.oliverwyman.com/blog/2015/04/30/making-celery-play-nice-with-rabbitmq-and-bigwig/
         self.__app.conf.broker_transport_options = {'confirm_publish': True}
+
+        self.__app.conf.database_table_names = {
+            'task': 'celery_tasks',
+            'group': 'celery_groups',
+        }
 
         # Fetch only one job at a time
         self.__app.conf.worker_prefetch_multiplier = 1

@@ -82,6 +82,9 @@ requests-futures==0.9.9
 # Splitting text into sentences using Lingua::Sentence's method
 sentence_splitter==1.3
 
+# Celery PostgreSQL result backend support
+sqlalchemy==1.3.3
+
 # Normalizing URLs
 url_normalize==1.4.1
 
