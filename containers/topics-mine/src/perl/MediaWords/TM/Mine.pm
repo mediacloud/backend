@@ -915,7 +915,7 @@ SQL
 
     if ( $fetch_error_rate > $MAX_JOB_ERROR_RATE )
     {
-        die( "Fetch error rate of $fetch_error_rate is great than max of $MAX_JOB_ERROR_RATE" );
+        die( "Fetch error rate of $fetch_error_rate is greater than max of $MAX_JOB_ERROR_RATE" );
     }
 
     my $link_stats = $db->query( <<SQL, $topic->{ topics_id } )->hashes();
@@ -938,7 +938,7 @@ SQL
 
     if ( $link_error_rate > $MAX_JOB_ERROR_RATE )
     {
-        die( "link error rate of $link_error_rate is great than max of $MAX_JOB_ERROR_RATE" );
+        die( "link error rate of $link_error_rate is greater than max of $MAX_JOB_ERROR_RATE" );
     }
 }
 
