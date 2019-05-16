@@ -118,8 +118,8 @@ sub cliff : Local
         }
         else
         {
-            my $cliff_store = MediaWords::Annotator::Store->new('cliff_annotations')
-            eval { $annotation = $cliff_store->fetch_annotation_for_story( $db, $stories_id ) };
+            my $cliff_store = MediaWords::Annotator::Store->new('cliff_annotations');
+            eval { $annotation = $cliff_store->fetch_annotation_for_story( $db, $stories_id ); };
             $annotation ||= 'story is not annotated';
         }
 
