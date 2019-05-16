@@ -51,11 +51,17 @@ sub get_run_lock_arg()
 }
 
 # return the lock type from mediawords.db.locks to use for run once locking.  default to the class name.
-sub get_run_lock_type()
+sub get_run_lock_type
 {
-    my ( $self ) = @_;
+    my ( $class_object_or_class_name ) = @_;
 
-    return ref( $self );
+    if ( ref( $class_object_or_class_name ) ) {
+        # Class / object
+        return ref( $class_object_or_class_name );
+    } else {
+        # Simple string
+        return $class_object_or_class_name;
+    }
 }
 
 # set job state to $STATE_RUNNING, call run(), either catch any errors and set state to $STATE_ERROR and save
