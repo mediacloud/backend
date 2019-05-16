@@ -8,13 +8,15 @@ use MediaWords::CommonLibs;
 
 use Test::More;
 
+use MediaWords::DB;
 use MediaWords::DBI::Topics;
 use MediaWords::TM::Snapshot;
 use MediaWords::Test::Solr;
 use MediaWords::JobManager::Job;
 use MediaWords::Test::DB::Create;
+use MediaWords::Job::TM::SnapshotTopic;
 
-sub test_timespan_export
+sub test_timespan_export($)
 {
     my ( $db ) = @_;
 
@@ -102,7 +104,9 @@ SQL
 
 sub main
 {
-    test_timespan_export();
+    my $db = MediaWords::DB::connect_to_db();
+
+    test_timespan_export( $db );
 
     done_testing();
 }

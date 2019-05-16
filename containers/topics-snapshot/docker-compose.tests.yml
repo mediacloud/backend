@@ -6,6 +6,8 @@ services:
         image: dockermediacloud/mediacloud-topics-snapshot:latest
         stop_signal: SIGKILL
         env_file: ./../global.env.dist
+        environment:
+            MC_TOPICS_SNAPSHOT_MODEL_REPS: "0"
         volumes:
             - type: bind
               source: ./bin/
@@ -26,6 +28,17 @@ services:
             - mc_migrate_schema
             - mc_solr_shard
             - mc_rabbitmq_server
+            - mc_import_solr_data_for_testing
+
+    mc_import_solr_data_for_testing:
+        image: dockermediacloud/mediacloud-import-solr-data-for-testing:latest
+        env_file: ./../global.env.dist
+        environment:
+            MC_SOLR_IMPORT_MAX_QUEUED_STORIES: 100000
+        stop_signal: SIGKILL
+        depends_on:
+            - mc_migrate_schema
+            - mc_solr_shard
 
     mc_migrate_schema:
         image: dockermediacloud/mediacloud-migrate-schema:latest

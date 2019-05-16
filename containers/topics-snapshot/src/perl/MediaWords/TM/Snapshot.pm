@@ -45,6 +45,7 @@ use MediaWords::TM::Model;
 use MediaWords::TM::Snapshot::Views;
 use MediaWords::Util::SQL;
 use MediaWords::DBI::Activities;
+use MediaWords::JobManager::Job;
 
 # possible values of snapshots.bot_policy
 Readonly our $POLICY_NO_BOTS   => 'no bots';
@@ -69,7 +70,7 @@ sub _update_job_state_args($$)
 {
     my ( $db, $args ) = @_;
 
-    MediaWords::JobManager::Job::update_job_state_args( $db, 'MediaWords::Job::TM::SnapshotTopic', $args );
+    MediaWords::JobManager::AbstractStatefulJob::update_job_state_args( $db, 'MediaWords::Job::TM::SnapshotTopic', $args );
 }
 
 # update the job state message, catching any error caused by not running within a job
@@ -77,7 +78,7 @@ sub _update_job_state_message($$)
 {
     my ( $db, $message ) = @_;
 
-    MediaWords::JobManager::Job::update_job_state_message(
+    MediaWords::JobManager::AbstractStatefulJob::update_job_state_message(
         $db,
         'MediaWords::Job::TM::SnapshotTopic',
         $message,
@@ -648,7 +649,7 @@ sub _generate_timespan($$$$$$)
 
     DEBUG( "generating $snapshot_label ..." );
 
-    update_job_state_message( $db, "snapshotting $snapshot_label" );
+    _update_job_state_message( $db, "snapshotting $snapshot_label" );
 
     DEBUG( "generating snapshot data ..." );
     generate_timespan_data( $db, $timespan );

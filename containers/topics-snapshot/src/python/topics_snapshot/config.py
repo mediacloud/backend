@@ -1,7 +1,7 @@
 from mediawords.util.config import env_value
 
 
-class SnapshotConfig(object):
+class TopicsSnapshotConfig(object):
     """Topic snapshot configuration."""
 
     @staticmethod
