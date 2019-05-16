@@ -96,10 +96,6 @@ SQL
     my $focus_timespan_stories = MediaWords::Solr::get_num_found( $db, { q => "timespans_id:$focus_timespans_id" } );
 
     is( $focus_timespan_stories, $focus_story_stories, "focus timespan stories" );
-
-    my $psuedo_timespan_stories = MediaWords::Solr::get_num_found( $db, { q => "{~ timespan:$focus_timespans_id }" } );
-
-    is( $psuedo_timespan_stories, $focus_story_stories, "focus timespan stories" );
 }
 
 sub main
