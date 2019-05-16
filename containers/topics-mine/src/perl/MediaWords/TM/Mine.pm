@@ -33,6 +33,7 @@ use MediaWords::JobManager::StatefulJob;
 use MediaWords::Solr;
 use MediaWords::Solr::Query;
 use MediaWords::Util::SQL;
+use MediaWords::JobManager::AbstractStatefulJob;
 
 # total time to wait for fetching of social media metrics
 Readonly my $MAX_SOCIAL_MEDIA_FETCH_TIME => ( 60 * 60 * 24 );
@@ -68,7 +69,7 @@ sub update_topic_state($$$;$)
 
     INFO( "update topic state: $message" );
 
-    eval { MediaWords::JobManager::StatefulJob::update_job_state_message( $db, 'MediaWords::Job::TM::MineTopic', $message ) };
+    eval { MediaWords::JobManager::AbstractStatefulJob::update_job_state_message( $db, 'MediaWords::Job::TM::MineTopic', $message ) };
     if ( $@ )
     {
         die "error updating job state: $@";

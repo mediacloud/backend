@@ -100,41 +100,45 @@ sub _update_job_state($$$)
     DEBUG( "$class state: $state" );
 
     my $job_states_id = $_current_job_states_id;
-    LOGCONFESS( "must be called from inside of MediaWords::JobManager::AbstractStatefulJob::run()" ) unless ( $job_states_id );
+    unless ( $job_states_id ) {
+        WARN( "Not called from MediaWords::JobManager::AbstractStatefulJob::run()" ) ;
+    } else {
+        my $job_state = $db->update_by_id(
+            'job_states',
+            $job_states_id,
+            {
+                state        => $state,
+                last_updated => MediaWords::Util::SQL::sql_now(),
+                message      => $message || ''
+            }
+        );
 
-    my $job_state = $db->update_by_id(
-        'job_states',
-        $job_states_id,
-        {
-            state        => $state,
-            last_updated => MediaWords::Util::SQL::sql_now(),
-            message      => $message || ''
-        }
-    );
-
-    _update_table_state( $db, $class, $job_state );
+        _update_table_state( $db, $class, $job_state );        
+    }
 }
 
 # update the args field for the current job_state row
 sub update_job_state_args($$$)
 {
-    my ( $class, $db, $update ) = @_;
+    my ( $db, $class, $update ) = @_;
 
     my $job_states_id = $_current_job_states_id;
-    LOGCONFESS( "must be called from inside of MediaWords::JobManager::AbstractStatefulJob::run" ) unless ( $job_states_id );
 
-    my $job_state = $db->require_by_id( 'job_states', $job_states_id );
+    unless ( $job_states_id ) {
+        WARN( "Not called from MediaWords::JobManager::AbstractStatefulJob::run" );
+    } else {
+        my $job_state = $db->require_by_id( 'job_states', $job_states_id );
 
-    my $args_data = MediaWords::Util::ParseJSON::decode_json( $job_state->{ args } );
+        my $args_data = MediaWords::Util::ParseJSON::decode_json( $job_state->{ args } );
 
-    my $json_data;
-    map { $json_data->{ $_ } = $args_data->{ $_ } } ( keys( %{ $args_data } ) );
-    map { $json_data->{ $_ } = $update->{ $_ } }    ( keys( %{ $update } ) );
+        my $json_data;
+        map { $json_data->{ $_ } = $args_data->{ $_ } } ( keys( %{ $args_data } ) );
+        map { $json_data->{ $_ } = $update->{ $_ } }    ( keys( %{ $update } ) );
 
-    my $args_json = MediaWords::Util::ParseJSON::encode_json( $json_data );
+        my $args_json = MediaWords::Util::ParseJSON::encode_json( $json_data );
 
-    $db->update_by_id( 'job_states', $job_state->{ job_states_id }, { args => $args_json } );
-
+        $db->update_by_id( 'job_states', $job_state->{ job_states_id }, { args => $args_json } );
+    }
 }
 
 # update the message field for the current job_state row.  this is a public method that is intended to be used
@@ -142,20 +146,22 @@ sub update_job_state_args($$$)
 # of a long running job.
 sub update_job_state_message($$$)
 {
-    my ( $class, $db, $message ) = @_;
+    my ( $db, $class, $message ) = @_;
 
     my $job_states_id = $_current_job_states_id;
-    LOGCONFESS( "must be called from inside of MediaWords::JobManager::AbstractStatefulJob::run" ) unless ( $job_states_id );
+    unless ( $job_states_id ) {
+        WARN( "Not called from MediaWords::JobManager::AbstractStatefulJob::run" );
+    } else {
+        my $job_state = $db->require_by_id( 'job_states', $job_states_id );
 
-    my $job_state = $db->require_by_id( 'job_states', $job_states_id );
+        $job_state = $db->update_by_id(
+            'job_states',
+            $job_state->{ job_states_id },
+            { message => $message, last_updated => MediaWords::Util::SQL::sql_now() }
+        );
 
-    $job_state = $db->update_by_id(
-        'job_states',
-        $job_state->{ job_states_id },
-        { message => $message, last_updated => MediaWords::Util::SQL::sql_now() }
-    );
-
-    _update_table_state( $db, $class, $job_state );
+        _update_table_state( $db, $class, $job_state );
+    }
 }
 
 # set job state to $STATE_RUNNING, call run(), either catch any errors and set state to $STATE_ERROR and save

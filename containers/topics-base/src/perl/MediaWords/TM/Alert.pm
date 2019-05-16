@@ -8,6 +8,7 @@ use MediaWords::CommonLibs;
 
 use MediaWords::Util::Config::TopicsBase;
 use MediaWords::Util::Mail;
+use MediaWords::Util::Mail::Message::Templates::TopicSpiderUpdateMessage;
 
 # send an alert about significant activity on the topic to all users with at least write access to the topic
 sub send_topic_alert($$$)

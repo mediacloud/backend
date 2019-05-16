@@ -15,6 +15,7 @@ use MediaWords::JobManager::StatefulJob;
 use MediaWords::Test::DB::Create;
 use MediaWords::Util::ParseJSON;
 use MediaWords::Util::SQL;
+use MediaWords::TM::Mine;
 
 # test port for mock api server
 Readonly my $PORT => 8899;
@@ -427,7 +428,7 @@ sub test_fetch_topic_tweets($)
 update topics set start_date = \$2, end_date = \$3 where topics_id = \$1
 SQL
 
-    MediaWords::JobManager::StatefulJob::run_remotely( 'MediaWords::Job::TM::MineTopic', { topics_id => $topic->{ topics_id }, test_mode => 1 } );
+    MediaWords::TM::Mine::mine_topic( $db, $topic, { test_mode => 1 } );
 
     $topic = $db->require_by_id( 'topics', $topic->{ topics_id } );
 

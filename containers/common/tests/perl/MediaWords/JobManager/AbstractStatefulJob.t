@@ -43,7 +43,7 @@ use Test::More;
         }
         elsif ( $test eq 'custom' )
         {
-            StatefulJobTest->update_job_state_message( $db, 'custom message' );
+            MediaWords::JobManager::AbstractStatefulJob::update_job_state_message( $db, 'StatefulJobTest', 'custom message' );
             die( $MediaWords::JobManager::AbstractStatefulJob::DIE_WITHOUT_ERROR_TAG );
         }
         else

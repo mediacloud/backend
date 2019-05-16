@@ -69,8 +69,7 @@ sub _update_job_state_args($$)
 {
     my ( $db, $args ) = @_;
 
-    eval { MediaWords::JobManager::Job::update_job_state_args( $db, 'MediaWords::Job::TM::SnapshotTopic', $args ) };
-    die( $@ ) if ( $@ && ( $@ !~ /AbstractJob::run_statefully/ ) );
+    MediaWords::JobManager::Job::update_job_state_args( $db, 'MediaWords::Job::TM::SnapshotTopic', $args );
 }
 
 # update the job state message, catching any error caused by not running within a job
@@ -78,14 +77,11 @@ sub _update_job_state_message($$)
 {
     my ( $db, $message ) = @_;
 
-    eval {
-        MediaWords::JobManager::Job::update_job_state_message(
-            $db,
-            'MediaWords::Job::TM::SnapshotTopic',
-            $message,
-        )
-    };
-    die( $@ ) if ( $@ && ( $@ !~ /AbstractJob::run_statefully/ ) );
+    MediaWords::JobManager::Job::update_job_state_message(
+        $db,
+        'MediaWords::Job::TM::SnapshotTopic',
+        $message,
+    );
 }
 
 # get the list of all snapshot tables
