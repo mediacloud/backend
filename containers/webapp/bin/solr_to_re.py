@@ -4,7 +4,7 @@
 
 import sys
 
-from mediawords.solr.query.parse import parse_solr_query
+from webapp.solr.query.parse import parse_solr_query
 
 
 def main():

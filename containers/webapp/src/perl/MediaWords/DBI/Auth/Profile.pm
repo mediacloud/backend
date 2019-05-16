@@ -19,7 +19,7 @@ use MediaWords::DBI::Auth::User::ModifyUser;
     use Modern::Perl "2015";
     use MediaWords::CommonLibs;
 
-    import_python_module( __PACKAGE__, 'mediawords.dbi.auth.profile' );
+    import_python_module( __PACKAGE__, 'webapp.auth.profile' );
 
     1;
 }

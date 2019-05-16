@@ -16,7 +16,7 @@ use MediaWords::CommonLibs;
     use Modern::Perl "2015";
     use MediaWords::CommonLibs;
 
-    import_python_module( __PACKAGE__, 'mediawords.dbi.auth.user' );
+    import_python_module( __PACKAGE__, 'webapp.auth.user' );
 
     1;
 }

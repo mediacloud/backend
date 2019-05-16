@@ -13,7 +13,7 @@ use Date::Format;
 use Readonly;
 use XML::Simple;
 
-import_python_module( __PACKAGE__, 'mediawords.tm.snapshot.gexf' );
+import_python_module( __PACKAGE__, 'webapp.tm.snapshot.gexf' );
 
 
 # max number of media to include in gexf map
@@ -205,7 +205,7 @@ sub _scale_node_sizes
     }
 }
 
-# call mediawords.tm.snapshot.graph_layout.layout_gexf
+# call webapp.tm.snapshot.graph_layout.layout_gexf
 sub _layout_gexf($)
 {
     my ( $gexf ) = @_;

@@ -8,7 +8,7 @@ use MediaWords::CommonLibs;
 
 use Readonly;
 
-import_python_module( __PACKAGE__, 'mediawords.dbi.auth.roles.list' );
+import_python_module( __PACKAGE__, 'webapp.auth.roles.list' );
 
 # Inline::Perl doesn't seem to know how to call static methods
 my $user_roles = MediaWords::DBI::Auth::Roles::List::UserRoles->new();
