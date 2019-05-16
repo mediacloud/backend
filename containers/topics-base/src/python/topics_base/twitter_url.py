@@ -1,5 +1,5 @@
 import re
-from typing import Optional
+from typing import List, Optional
 
 
 def parse_status_id_from_url(url: str) -> Optional[str]:
@@ -23,3 +23,19 @@ def parse_screen_name_from_user_url(url: str) -> Optional[str]:
         return None
 
     return user
+
+
+def get_tweet_urls(tweet: dict) -> List[str]:
+    """Parse unique tweet urls from the tweet data.
+
+    Looks for urls and media, in the tweet proper and in the retweeted_status.
+    """
+    urls = []
+    for tweet in (tweet, tweet.get('retweeted_status', None), tweet.get('quoted_status', None)):
+        if tweet is None:
+            continue
+
+        tweet_urls = [u['expanded_url'] for u in tweet['entities']['urls']]
+        urls = list(set(urls) | set(tweet_urls))
+
+    return urls

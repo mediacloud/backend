@@ -13,7 +13,6 @@ from mediawords.util.parse_json import encode_json
 from topics_fetch_twitter_urls.twitter import (
     fetch_100_users,
     fetch_100_tweets,
-    get_tweet_urls,
 )
 
 MIN_TEST_TWEET_LENGTH = 10
@@ -79,28 +78,3 @@ def test_fetch_100_tweets() -> None:
         {'id': 2, 'text': "content 2"},
         {'id': 3, 'text': "content 3"},
         {'id': 4, 'text': "content 4"}]
-
-
-def test_get_tweet_urls() -> None:
-    """Test get_tweet_urls()."""
-    tweet = {'entities': {'urls': [{'expanded_url': 'foo'}, {'expanded_url': 'bar'}]}}
-    urls = get_tweet_urls(tweet)
-    assert sorted(urls) == ['bar', 'foo']
-
-    tweet = \
-        {
-            'entities':
-                {
-                    'urls': [{'expanded_url': 'url foo'}, {'expanded_url': 'url bar'}],
-                },
-            'retweeted_status':
-                {
-                    'entities':
-                        {
-                            'urls': [{'expanded_url': 'rt url foo'}, {'expanded_url': 'rt url bar'}],
-                        }
-                }
-        }
-    urls = get_tweet_urls(tweet)
-    expected_urls = ['url bar', 'url foo', 'rt url foo', 'rt url bar']
-    assert sorted(urls) == sorted(expected_urls)

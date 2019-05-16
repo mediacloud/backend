@@ -16,7 +16,8 @@ from topics_base.fetch_states import (
 )
 from topics_base.domains import skip_self_linked_domain_url, increment_domain_links
 from topics_base.stories import generate_story, add_to_topic_stories
-from topics_fetch_twitter_urls.twitter import fetch_100_users, get_tweet_urls, fetch_100_tweets
+from topics_base.twitter_url import get_tweet_urls
+from topics_fetch_twitter_urls.twitter import fetch_100_users, fetch_100_tweets
 
 log = create_logger(__name__)
 

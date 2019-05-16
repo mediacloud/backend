@@ -1,4 +1,8 @@
-from topics_base.twitter_url import parse_status_id_from_url, parse_screen_name_from_user_url
+from topics_base.twitter_url import (
+    parse_status_id_from_url,
+    parse_screen_name_from_user_url,
+    get_tweet_urls,
+)
 
 
 def test_parse_status_id_from_url() -> None:
@@ -19,3 +23,28 @@ def test_parse_screen_name_from_user_url() -> None:
     assert parse_screen_name_from_user_url('https://twitter.com/search?q=foo') is None
     assert parse_screen_name_from_user_url('https://twitter.com/login?q=foo') is None
     assert parse_screen_name_from_user_url('http://google.com') is None
+
+
+def test_get_tweet_urls() -> None:
+    """Test get_tweet_urls()."""
+    tweet = {'entities': {'urls': [{'expanded_url': 'foo'}, {'expanded_url': 'bar'}]}}
+    urls = get_tweet_urls(tweet)
+    assert sorted(urls) == ['bar', 'foo']
+
+    tweet = \
+        {
+            'entities':
+                {
+                    'urls': [{'expanded_url': 'url foo'}, {'expanded_url': 'url bar'}],
+                },
+            'retweeted_status':
+                {
+                    'entities':
+                        {
+                            'urls': [{'expanded_url': 'rt url foo'}, {'expanded_url': 'rt url bar'}],
+                        }
+                }
+        }
+    urls = get_tweet_urls(tweet)
+    expected_urls = ['url bar', 'url foo', 'rt url foo', 'rt url bar']
+    assert sorted(urls) == sorted(expected_urls)

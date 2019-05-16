@@ -90,19 +90,3 @@ def fetch_100_tweets(tweet_ids: list) -> list:
             tweet['text'] = tweet['full_text']
 
     return tweets
-
-
-def get_tweet_urls(tweet: dict) -> typing.List:
-    """Parse unique tweet urls from the tweet data.
-
-    Looks for urls and media, in the tweet proper and in the retweeted_status.
-    """
-    urls = []
-    for tweet in (tweet, tweet.get('retweeted_status', None), tweet.get('quoted_status', None)):
-        if tweet is None:
-            continue
-
-        tweet_urls = [u['expanded_url'] for u in tweet['entities']['urls']]
-        urls = list(set(urls) | set(tweet_urls))
-
-    return urls
