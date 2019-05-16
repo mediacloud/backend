@@ -454,7 +454,10 @@ class HashServer(object):
 
         """
 
-        self.__host = '127.0.0.1'
+        # Listen publicly because other containers might want to connect to
+        # this host, e.g. in tm_mine_topic.t's case
+        self.__host = '0.0.0.0'
+
         self.__http_server_thread = None
 
         if len(pages) == 0:
