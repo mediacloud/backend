@@ -8,7 +8,7 @@ from mediawords.db import DatabaseHandler
 from mediawords.languages.factory import LanguageFactory
 from mediawords.util.identify_language import identification_would_be_reliable, language_code_for_text
 from mediawords.util.log import create_logger
-from mediawords.util.word2vec import McWord2vecException
+from word2vec_generate_snapshot_model import McWord2vecException
 
 log = create_logger(__name__)
 

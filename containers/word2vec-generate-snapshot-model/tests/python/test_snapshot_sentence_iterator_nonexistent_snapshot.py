@@ -1,7 +1,7 @@
 import pytest
 
-from mediawords.util.word2vec import McWord2vecException
-from mediawords.util.word2vec.sentence_iterators import SnapshotSentenceIterator
+from word2vec_generate_snapshot_model import McWord2vecException
+from word2vec_generate_snapshot_model.sentence_iterators import SnapshotSentenceIterator
 from .setup_test_word2vec import TestWord2vec
 
 

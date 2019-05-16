@@ -4,7 +4,7 @@ from mediawords.db import DatabaseHandler
 from mediawords.key_value_store import KeyValueStore
 from mediawords.key_value_store.postgresql import PostgreSQLStore
 from mediawords.util.log import create_logger
-from mediawords.util.word2vec import McWord2vecException
+from word2vec_generate_snapshot_model import McWord2vecException
 
 log = create_logger(__name__)
 

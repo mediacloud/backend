@@ -4,9 +4,9 @@ from mediawords.db import connect_to_db
 from mediawords.job import JobBroker
 from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_object_from_bytes_if_needed
-from mediawords.util.word2vec import train_word2vec_model
-from mediawords.util.word2vec.model_stores import SnapshotDatabaseModelStore
-from mediawords.util.word2vec.sentence_iterators import SnapshotSentenceIterator
+from word2vec_generate_snapshot_model import train_word2vec_model
+from word2vec_generate_snapshot_model.model_stores import SnapshotDatabaseModelStore
+from word2vec_generate_snapshot_model.sentence_iterators import SnapshotSentenceIterator
 
 log = create_logger(__name__)
 

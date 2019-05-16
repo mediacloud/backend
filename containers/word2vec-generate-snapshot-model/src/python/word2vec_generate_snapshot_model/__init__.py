@@ -5,9 +5,9 @@ import tempfile
 import gensim
 
 from mediawords.util.log import create_logger
-from mediawords.util.word2vec.exceptions import McWord2vecException
-from mediawords.util.word2vec.model_stores import AbstractModelStore
-from mediawords.util.word2vec.sentence_iterators import AbstractSentenceIterator
+from word2vec_generate_snapshot_model.exceptions import McWord2vecException
+from word2vec_generate_snapshot_model.model_stores import AbstractModelStore
+from word2vec_generate_snapshot_model.sentence_iterators import AbstractSentenceIterator
 
 log = create_logger(__name__)
 

@@ -4,9 +4,9 @@ import tempfile
 
 import gensim
 
-from mediawords.util.word2vec import train_word2vec_model
-from mediawords.util.word2vec.model_stores import SnapshotDatabaseModelStore
-from mediawords.util.word2vec.sentence_iterators import SnapshotSentenceIterator
+from word2vec_generate_snapshot_model import train_word2vec_model
+from word2vec_generate_snapshot_model.model_stores import SnapshotDatabaseModelStore
+from word2vec_generate_snapshot_model.sentence_iterators import SnapshotSentenceIterator
 from .setup_test_word2vec import TestWord2vec
 
 
