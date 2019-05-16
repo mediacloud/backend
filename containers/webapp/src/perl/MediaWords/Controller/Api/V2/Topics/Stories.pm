@@ -13,6 +13,7 @@ use Readonly;
 use MediaWords::DBI::ApiLinks;
 use MediaWords::Solr;
 use MediaWords::DBI::Timespans;
+use MediaWords::DBI::Stories::GuessDate;
 
 Readonly my $DEFAULT_STORY_LIMIT => 10;
 

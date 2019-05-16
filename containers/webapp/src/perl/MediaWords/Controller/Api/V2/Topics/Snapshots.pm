@@ -128,9 +128,11 @@ sub generate_GET
     my $db = $c->dbis;
 
     $db->begin;
-    MediaWords::Job::TM::SnapshotTopic->add_to_queue(
+
+    MediaWords::JobManager::StatefulJob::add_to_queue(
+        'MediaWords::Job::TM::SnapshotTopic',
         { snapshots_id => $snapshots_id, topics_id => $topics_id, note => $note },
-        undef, $db );
+    );
     my $job_state = $db->query( "select $JOB_STATE_FIELD_LIST from job_states order by job_states_id desc limit 1" )->hash;
     $db->commit;
 

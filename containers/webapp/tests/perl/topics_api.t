@@ -12,6 +12,7 @@ use Math::Prime::Util;
 use Readonly;
 use Test::More;
 
+use MediaWords::DB;
 use MediaWords::DBI::Auth::Roles;
 use MediaWords::Solr::Query::Parse;
 use MediaWords::Test::API;
@@ -32,7 +33,7 @@ Readonly my $DEFAULT_STORY_LIMIT => 20;
 # A constant used to generate consistent orderings in test sorts
 Readonly my $TEST_MODULO => 6;
 
-sub add_topic_link
+sub add_topic_link($$$$)
 {
     my ( $db, $topic, $story, $ref_story ) = @_;
 
@@ -49,21 +50,21 @@ sub add_topic_link
 
 }
 
-sub add_topic_story
+sub add_topic_story($$$)
 {
     my ( $db, $topic, $story ) = @_;
 
     $db->create( 'topic_stories', { stories_id => $story->{ stories_id }, topics_id => $topic->{ topics_id } } );
 }
 
-sub create_stories
+sub create_stories($$)
 {
-    my ( $db, $stories, $topics ) = @_;
+    my ( $db, $stories ) = @_;
 
     my $media = MediaWords::Test::DB::Create::create_test_story_stack( $db, $stories );
 }
 
-sub create_test_data
+sub create_test_data($$)
 {
 
     my ( $test_db, $topic_media_sources ) = @_;
@@ -135,7 +136,7 @@ sub create_test_data
     # );
 }
 
-sub test_media_list
+sub test_media_list($)
 {
     my ( $data ) = @_;
 
@@ -162,7 +163,7 @@ sub test_media_list
     }
 }
 
-sub test_media_links
+sub test_media_links($)
 {
     my ( $db ) = @_;
 
@@ -190,7 +191,7 @@ SQL
     is_deeply( $got_links, $expected_links, "media_links: links returned" );
 }
 
-sub test_stories_links
+sub test_stories_links($)
 {
     my ( $db ) = @_;
 
@@ -218,7 +219,7 @@ SQL
     is_deeply( $got_links, $expected_links, "stories_links: links returned" );
 }
 
-sub test_story_list_count
+sub test_story_list_count()
 {
 
     # The number of stories returned in stories/list matches the count in timespan
@@ -230,7 +231,7 @@ sub test_story_list_count
     is( scalar @{ $actual_response->{ stories } }, $story_limit, "story limit" );
 }
 
-sub test_story_list_paging
+sub test_story_list_paging($)
 {
     my ( $db ) = @_;
 
@@ -259,7 +260,7 @@ SQL
     is( $got_stories_count, $expected_stories_count, "stories/list paging count" );
 }
 
-sub _get_story_link_counts
+sub _get_story_link_counts($)
 {
     my $data = shift;
 
@@ -285,7 +286,7 @@ sub _get_story_link_counts
 
 }
 
-sub test_default_sort
+sub test_default_sort($)
 {
 
     my $data = shift;
@@ -300,7 +301,7 @@ sub test_default_sort
 
 }
 
-sub _test_sort
+sub _test_sort($$$$)
 {
 
     # Make sure that only expected stories are in stories list response
@@ -552,7 +553,7 @@ sub test_snapshots_create($)
 
     my $topic = MediaWords::Test::DB::Create::create_test_topic( $db, $label );
 
-    my $r = test_post( "/api/v2/topics/$topic->{ topics_id }/snapshots/create", {} );
+    my $r = MediaWords::Test::API::test_post( "/api/v2/topics/$topic->{ topics_id }/snapshots/create", {} );
 
     ok( $r->{ snapshot },                   "$label snapshot returned" );
     ok( $r->{ snapshot }->{ snapshots_id }, "$label snapshots_id" );
@@ -587,7 +588,9 @@ sub test_snapshots_generate($)
 
     ok( $r->{ job_states }, "$label return includes job_states" );
 
-    is( $r->{ job_states }->[ 0 ]->{ state }, $MediaWords::JobManager::AbstractStatefulJob::STATE_QUEUED, "$label status state" );
+    # Given that the snapshot worker is running, the job could be at any state
+    # by now, so we only test that it's set
+    ok( $r->{ job_states }->[ 0 ]->{ state }, "$label status state" );
     is( $r->{ job_states }->[ 0 ]->{ topics_id }, $topic->{ topics_id }, "$label topics_id" );
 }
 
@@ -636,7 +639,7 @@ sub test_stories_facebook($)
     MediaWords::Test::Rows::rows_match( $label, $got_ss, $expected_ss, 'stories_id', $fields );
 }
 
-sub test_stories_count
+sub test_stories_count($)
 {
     my ( $db ) = @_;
 
@@ -663,7 +666,7 @@ SQL
     }
 }
 
-sub test_media_search
+sub test_media_search($)
 {
     my ( $db ) = @_;
 
@@ -696,17 +699,17 @@ select distinct m.media_id
     order by media_id
 SQL
 
-    ok( scalar( @{ $expected_media_ids } ) > 0, "media list q search found media ids" );
+    ok( scalar( @{ $expected_media_ids } ) > 0, "media list q search found media ids: topic $topic->{ topics_id }, search word $search_word" );
 
     my $r = MediaWords::Test::API::test_get( "/api/v2/topics/$topic->{ topics_id }/media/list", { q => $search_word } );
 
     my $got_media = $r->{ media };
     my $got_media_ids = [ sort { $a <=> $b } map { $_->{ media_id } } @{ $got_media } ];
 
-    is_deeply( $expected_media_ids, $got_media_ids, 'media/list q search' );
+    is_deeply( $expected_media_ids, $got_media_ids, "media/list q search: topic $topic->{ topics_id }, search word $search_word" );
 }
 
-sub test_topics_api
+sub test_topics_api($)
 {
     my $db = shift;
 
@@ -744,7 +747,9 @@ sub test_topics_api
 
 sub main
 {
-    test_topics_api();
+    my $db = MediaWords::DB::connect_to_db();
+
+    test_topics_api( $db );
 
     done_testing();
 }

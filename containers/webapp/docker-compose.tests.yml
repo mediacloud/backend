@@ -25,6 +25,10 @@ services:
             - mc_rabbitmq_server
             - mc_rescrape_media
             - mc_word2vec_generate_snapshot_model
+            # test_topics_api.t snapshots a topic
+            - mc_topics_snapshot
+            # Multiple tests import Solr data
+            - mc_import_solr_data_for_testing
 
     mc_migrate_schema:
         image: dockermediacloud/mediacloud-migrate-schema:latest
@@ -94,6 +98,23 @@ services:
         image: dockermediacloud/mediacloud-word2vec-generate-snapshot-model:latest
         env_file: ./../global.env.dist
         stop_signal: SIGKILL
+
+    mc_topics_snapshot:
+        image: dockermediacloud/mediacloud-topics-snapshot:latest
+        stop_signal: SIGKILL
+        env_file: ./../global.env.dist
+        environment:
+            MC_TOPICS_SNAPSHOT_MODEL_REPS: "0"
+
+    mc_import_solr_data_for_testing:
+        image: dockermediacloud/mediacloud-import-solr-data-for-testing:latest
+        env_file: ./../global.env.dist
+        environment:
+            MC_SOLR_IMPORT_MAX_QUEUED_STORIES: 100000
+        stop_signal: SIGKILL
+        depends_on:
+            - mc_migrate_schema
+            - mc_solr_shard
 
 volumes:
     vol_postgresql_data: {}
