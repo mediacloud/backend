@@ -387,3 +387,5 @@ mediawords:
     # topic_alert_emails:
     #     - topicupdates@mediacloud.org
     #     - slackupdates@mediacloud.org
+associated_press:
+    apikey: ""
