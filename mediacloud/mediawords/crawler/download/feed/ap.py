@@ -169,11 +169,6 @@ def get_new_stories(db=None) -> list:
         content_params = {k:v[0] for k,v in urlparse.parse_qs(parsed_content_uri.query).items()}
         logger.info("Fetching content for story (guid: {})".format(guid))
         content = json.loads(api.content(content_path,**content_params))['data']['item']
-        try:
-            story_url = content['links'][0]['href'] # This is held in an array which suggests more than one link for a story is possible?
-        except:
-            logger.warning('No URL link found for guid {}. Skipping story.'.format(guid))
-            continue
         publish_date = content['firstcreated'] # There is a first created date and a version created date (last edit datetime?)
 
         # Get nitf rendition for story
@@ -186,9 +181,17 @@ def get_new_stories(db=None) -> list:
 
         # Extract story text from nitf XML (body.content) and create story_data object
         soup = BeautifulSoup(nitf_content,features="html.parser")
+
+        # Create item dict for inclusion in list
         story_data = {}
         story_data['guid'] = guid
         story_data['publish_date'] = publish_date
+        try:
+            story_data['url'] = content['links'][0]['href'] # This is held in an array which suggests more than one link for a story is possible?
+        except:
+            logger.warning('No URL link found for guid {}. Using the story content URL instead.'.format(guid))
+            story_data['url'] = nitf_href
+        publish_date = content['firstcreated'] # There is a first created date and a version created date (last edit datetime?)
         story_data['url'] = story_url
         story_data['text'] = soup.find('body.content').text
         story_data['title'] = content['headline']
