@@ -144,7 +144,7 @@ def get_new_stories(db=None) -> list:
     """
 
     api = AssociatedPressAPI()
-    feed_data = api.feed(page_size=50)
+    feed_data = api.feed(page_size=100)
     items = []  # list of dict items to return
 
     for obj in feed_data['items']:
