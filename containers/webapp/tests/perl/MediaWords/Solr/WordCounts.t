@@ -6,6 +6,7 @@ use utf8;
 
 use MediaWords::CommonLibs;
 
+use MediaWords::DB;
 use MediaWords::Test::Solr;
 
 use English '-no_match_vars';
@@ -19,7 +20,7 @@ BEGIN
 }
 
 # test count_stems() function that does the core word counting logic
-sub test_count_stems
+sub test_count_stems()
 {
     my $wc = MediaWords::Solr::WordCounts->new( include_stopwords => 0 );
 
@@ -207,7 +208,7 @@ sub test_count_stems
     cmp_deeply( $got_bigrams, $expected_bigrams, "counts ngram_size = 2" );
 }
 
-sub test_get_words
+sub test_get_words($)
 {
     my ( $db ) = @_;
 
@@ -293,7 +294,8 @@ sub main
 
     test_count_stems();
 
-    test_get_words();
+    my $db = MediaWords::DB::connect_to_db();
+    test_get_words( $db );
 
     done_testing();
 }

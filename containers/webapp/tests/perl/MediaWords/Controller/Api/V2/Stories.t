@@ -8,6 +8,7 @@ use Readonly;
 use Test::More;
 use Test::Deep;
 
+use MediaWords::DB;
 use MediaWords::Test::API;
 use MediaWords::Test::Rows;
 use MediaWords::Test::Solr;
@@ -420,7 +421,9 @@ sub test_stories($)
 
 sub main
 {
-    test_stories();
+    my $db = MediaWords::DB::connect_to_db();
+
+    test_stories( $db );
 
     done_testing();
 }

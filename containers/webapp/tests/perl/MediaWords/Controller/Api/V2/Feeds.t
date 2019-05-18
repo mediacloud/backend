@@ -8,6 +8,7 @@ use Readonly;
 use Test::More;
 use Test::Deep;
 
+use MediaWords::DB;
 use MediaWords::Test::API;
 use MediaWords::Test::Rows;
 use MediaWords::Test::DB::Create;
@@ -105,7 +106,9 @@ sub test_feeds($)
 
 sub main
 {
-    test_feeds();
+    my $db = MediaWords::DB::connect_to_db();
+
+    test_feeds( $db );
 
     done_testing();
 }

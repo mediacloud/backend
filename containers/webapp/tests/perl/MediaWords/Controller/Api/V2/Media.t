@@ -9,11 +9,11 @@ use Readonly;
 use Test::More;
 use Test::Deep;
 
+use MediaWords::DB;
 use MediaWords::Test::API;
 use MediaWords::Test::Solr;
 use MediaWords::Test::URLs;
 use MediaWords::Test::DB::Create;
-
 use MediaWords::Util::SQL;
 use MediaWords::Util::Tags;
 
@@ -558,7 +558,9 @@ sub test_media($)
 
 sub main
 {
-    test_media();
+    my $db = MediaWords::DB::connect_to_db();
+
+    test_media( $db );
 
     done_testing();
 }

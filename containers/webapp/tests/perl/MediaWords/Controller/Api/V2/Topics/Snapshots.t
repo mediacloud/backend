@@ -6,13 +6,13 @@ use Modern::Perl '2015';
 use MediaWords::CommonLibs;
 
 use Test::More;
+use Catalyst::Test 'MediaWords';
+use Readonly;
 
+use MediaWords::DB;
 use MediaWords::Test::API;
 use MediaWords::Test::Solr;
 use MediaWords::Test::DB::Create;
-
-use Catalyst::Test 'MediaWords';
-use Readonly;
 use MediaWords::Controller::Api::V2::Topics;
 use MediaWords::DBI::Auth::Roles;
 use MediaWords::Test::API;
@@ -143,7 +143,7 @@ SQL
     ok( $model_data_length > 0 );
 }
 
-sub test_topics
+sub test_topics($)
 {
     my ( $db ) = @_;
 
@@ -161,7 +161,9 @@ sub test_topics
 
 sub main
 {
-    test_topics();
+    my $db = MediaWords::DB::connect_to_db();
+
+    test_topics( $db );
 
     done_testing();
 }
