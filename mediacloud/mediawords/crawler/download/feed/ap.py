@@ -2,7 +2,7 @@
 
 import requests
 import json
-import os
+import sys, os
 import time
 import logging
 import urllib.parse as urlparse
@@ -31,7 +31,7 @@ class AssociatedPressAPI:
             logger.error("Could not load api key from configuration file.")
             raise ValueError("API key configuration data missing for associated_press.")
 
-    def feed(self,**kwargs) -> dict:
+    def feed(self, **kwargs) -> dict:
         """Feed API endpoint (Documentation: https://api.ap.org/media/v/docs/api/Search-and-Feed/#feed)
 
         METHOD: GET
@@ -101,7 +101,7 @@ class AssociatedPressAPI:
             logger.debug("Making request to {} with parameters {}".format(url,params))
 
             try:
-                response = requests.get(url,params=params)
+                response = requests.get(url,params=params,timeout=30)
             except Exception as e:
                 logger.warning("Encountered an exception while making request to {}. Exception info: {}".format(url,e))
             else:
@@ -144,8 +144,8 @@ def get_new_stories(db=None) -> list:
     """
 
     api = AssociatedPressAPI()
-    feed_data = api.feed(page_size=100)
     items = []  # list of dict items to return
+    feed_data = api.feed(page_size=100)
 
     for obj in feed_data['items']:
 
@@ -157,7 +157,7 @@ def get_new_stories(db=None) -> list:
         if db:
             guid_exists = db.query("select 1 from stories s join media m using (media_id) where m.name = 'AP' and s.guid = %(a)s", {'a': guid}).hash()
             if guid_exists:
-                logger.info('Story with guid: {} is already in the database -- skipping.')
+                logger.info('Story with guid: {} is already in the database -- skipping story.')
                 continue
 
         logger.info('Found new story (guid: {}, version: {})'.format(guid,version))
@@ -192,7 +192,6 @@ def get_new_stories(db=None) -> list:
             logger.warning('No URL link found for guid {}. Using the story content URL instead.'.format(guid))
             story_data['url'] = nitf_href
         publish_date = content['firstcreated'] # There is a first created date and a version created date (last edit datetime?)
-        story_data['url'] = story_url
         story_data['text'] = soup.find('body.content').text
         story_data['title'] = content['headline']
         try:
