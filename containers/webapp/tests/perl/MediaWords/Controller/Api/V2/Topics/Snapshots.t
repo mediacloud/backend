@@ -135,7 +135,7 @@ SQL
     my $response = request( $path );    # Catalyst::Test::request()
     ok( $response->is_success );
 
-    my $model_data = $response->decoded_content;
+    my $model_data = $response->content;
     ok( defined $model_data );
 
     my $model_data_length = length( $model_data );
