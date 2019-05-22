@@ -100,8 +100,8 @@ sub single_GET
     my $items = $c->dbis->query( <<END, $id )->hashes();
 select t.tags_id, t.tag_sets_id, t.label, t.description, t.tag,
         ts.name tag_set_name, ts.label tag_set_label, ts.description tag_set_description,
-        t.show_on_media OR ts.show_on_media show_on_media,
-        t.show_on_stories OR ts.show_on_stories show_on_stories,
+        COALESCE(t.show_on_media, 'f') OR COALESCE(ts.show_on_media, 'f') AS show_on_media,
+        COALESCE(t.show_on_stories, 'f') OR COALESCE(ts.show_on_stories, 'f') AS show_on_stories,
         t.is_static
     from tags t
         join tag_sets ts on ( t.tag_sets_id = ts.tag_sets_id )
