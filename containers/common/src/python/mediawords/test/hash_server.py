@@ -5,6 +5,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 import multiprocessing
 import os
 import signal
+import socket
 from socketserver import ForkingMixIn
 import time
 from typing import Union, Dict
@@ -105,7 +106,8 @@ class HashServer(object):
 
         def url(self) -> str:
             """Return full URL of the request."""
-            return 'http://localhost:%(port)d%(path)s' % {
+            return 'http://%(hostname)s:%(port)d%(path)s' % {
+                'hostname': _fqdn(),
                 'port': self._port,
                 'path': self._path,
             }
@@ -272,7 +274,7 @@ class HashServer(object):
                 raise McHashServerException("Path is empty.")
 
             # Strip query string
-            path = str(furl('http://localhost/' + path).path)
+            path = str(furl('http://somehostname/' + path).path)
             path = os.path.normpath(path)
             path = os.path.realpath(path)
 
@@ -606,4 +608,38 @@ class HashServer(object):
         if path not in self.__pages:
             raise McHashServerException('No page for path "%s" among pages %s.' % (path, str(self.__pages)))
 
-        return 'http://localhost:%d%s' % (self.__port, path)
+        return 'http://%s:%d%s' % (_fqdn(), self.__port, path)
+
+
+class McFQDNException(Exception):
+    pass
+
+
+def _fqdn() -> str:
+    """Return Fully Qualified Domain Name (hostname -f), e.g. mcquery2.media.mit.edu."""
+    # socket.getfqdn() returns goofy results
+    hostname = socket.getaddrinfo(socket.gethostname(), 0, flags=socket.AI_CANONNAME)[0][3]
+    if hostname is None or len(hostname) == 0:
+        raise McFQDNException("Unable to determine FQDN.")
+    hostname = hostname.lower()
+    if hostname == 'localhost':
+        log.warning("FQDN is 'localhost', are you sure that /etc/hosts is set up properly?")
+
+    # Solr (ZooKeeper?) somehow manages to translate underscore to something else, so something like:
+    #
+    #     ec2_solr_mcquery2
+    #
+    # becomes:
+    #
+    #     ec2/solr_mcquery2:7981/solr
+    #
+    # Can't explain that.
+    if '_' in hostname:
+        raise McFQDNException("FQDN contains underscore ('_') which might mess up Solr shard naming")
+
+    try:
+        socket.gethostbyname(hostname)
+    except socket.error:
+        raise McFQDNException("Hostname '%s' does not resolve." % hostname)
+
+    return hostname

@@ -17,37 +17,6 @@ def hostname_resolves(hostname: str) -> bool:
         return False
 
 
-class McFQDNException(Exception):
-    pass
-
-
-def fqdn() -> str:
-    """Return Fully Qualified Domain Name (hostname -f), e.g. mcquery2.media.mit.edu."""
-    # socket.getfqdn() returns goofy results
-    hostname = socket.getaddrinfo(socket.gethostname(), 0, flags=socket.AI_CANONNAME)[0][3]
-    if hostname is None or len(hostname) == 0:
-        raise McFQDNException("Unable to determine FQDN.")
-    hostname = hostname.lower()
-    if hostname == 'localhost':
-        log.warning("FQDN is 'localhost', are you sure that /etc/hosts is set up properly?")
-
-    # Solr (ZooKeeper?) somehow manages to translate underscore to something else, so something like:
-    #
-    #     ec2_solr_mcquery2
-    #
-    # becomes:
-    #
-    #     ec2/solr_mcquery2:7981/solr
-    #
-    # Can't explain that.
-    if '_' in hostname:
-        raise McFQDNException("FQDN contains underscore ('_') which might mess up Solr shard naming")
-
-    if not hostname_resolves(hostname):
-        raise McFQDNException("Hostname '%s' does not resolve." % hostname)
-    return hostname
-
-
 def tcp_port_is_open(port: int, hostname: str = 'localhost') -> bool:
     """Test if TCP port is open."""
 

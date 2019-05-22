@@ -14,6 +14,7 @@ from mediawords.test.hash_server import (
     HTTPStatus,
     McHashServerException,
     START_RANDOM_PORT,
+    _fqdn,
 )
 
 
@@ -344,3 +345,9 @@ def test_start_delay() -> None:
     assert str(requests.get(hs.page_url('/foo')).text) == 'bar'
 
     hs.stop()
+
+
+def test_fqdn():
+    fq_hostname = _fqdn()
+    assert fq_hostname != ''
+    assert hostname_resolves(fq_hostname) is True
