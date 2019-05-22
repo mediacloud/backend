@@ -18,6 +18,8 @@ use MediaWords::Test::DB::Create;
 use MediaWords::Util::SQL;
 use MediaWords::Util::Tags;
 
+use Sys::Hostname;
+
 Readonly my $NUM_MEDIA            => 5;
 Readonly my $NUM_FEEDS_PER_MEDIUM => 2;
 Readonly my $NUM_STORIES_PER_FEED => 10;
@@ -116,9 +118,9 @@ sub test_for_scraped_feeds($$)
 }
 
 # start a MediaWords::Test::HashServer with the following pages for each of the given site names:
-# * home page - http://localhost:$port/$site
-# * feed page - http://localhost:$port/$site/feed
-# * custom feed page - http://localhost:$port/$site/custom_feed
+# * home page - http://<container_host>:$port/$site
+# * feed page - http://<container_host>:$port/$site/feed
+# * custom feed page - http://<container_host>:$port/$site/custom_feed
 #
 # return the MediaWords::Test::HashServer instance
 sub _start_media_create_hash_server
@@ -132,16 +134,18 @@ sub _start_media_create_hash_server
     {
         $pages->{ "/$site_name" } = "<html><title>$site_name</title><body>$site_name body</body>";
 
-        my $atom = <<ATOM;
+        my $hostname = Sys::Hostname::hostname;
+
+        my $atom = <<"ATOM";
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
     <title>$site_name</title>
-    <link href="http://localhost:$port/$site_name" />
+    <link href="http://$hostname:$port/$site_name" />
     <id>urn:uuid:60a76c80-d399-11d9-b91C-0003939e0af6</id>
     <updated>2015-12-13T18:30:02Z</updated>
     <entry>
         <title>$site_name page</title>
-        <link href="http://localhost:$port/$site_name/page" />
+        <link href="http://$hostname:$port/$site_name/page" />
         <id>urn:uuid:1225c695-cfb8-4ebb-aaaa-80da344efa6a</id>
         <updated>2015-12-13T18:30:02Z</updated>
     </entry>
@@ -166,12 +170,14 @@ sub test_media_create_update($$)
 
     my $tag = MediaWords::Util::Tags::lookup_or_create_tag( $db, 'media_test:media_test' );
 
+    my $hostname = Sys::Hostname::hostname;
+
     my $input = [
         map {
             {
                 url      => $_->{ url },
                 tags_ids => [ $tag->{ tags_id } ],
-                feeds    => [ $_->{ feed_url }, $_->{ custom_feed_url }, 'http://127.0.0.1:12345/456789/feed' ]
+                feeds    => [ $_->{ feed_url }, $_->{ custom_feed_url }, 'http://' . $hostname . ':12345/456789/feed' ]
             }
         } @{ $sites }
     ];
@@ -297,7 +303,8 @@ sub test_media_create($)
     is( $r->[ 0 ]->{ media_id }, $first_medium->{ media_id }, "media/create existing media_id" );
 
     # add all media sources in sites, plus one which should return a 404
-    my $input = [ map { { url => $_->{ url } } } ( @{ $sites }, { url => 'http://127.0.0.1:12345/456789' } ) ];
+    my $hostname = Sys::Hostname::hostname;
+    my $input = [ map { { url => $_->{ url } } } ( @{ $sites }, { url => 'http://' . $hostname . ':12345/456789' } ) ];
     $r = MediaWords::Test::API::test_post( '/api/v2/media/create', $input );
     my $status_media_ids = [ map { $_->{ media_id } } grep { $_->{ status } ne 'error' } @{ $r } ];
     my $status_errors    = [ map { $_->{ error } } grep    { $_->{ status } eq 'error' } @{ $r } ];
