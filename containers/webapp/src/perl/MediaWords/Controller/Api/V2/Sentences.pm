@@ -15,6 +15,7 @@ use Readonly;
 
 use MediaWords::Solr;
 use MediaWords::Util::ParseJSON;
+use MediaWords::Solr::Query::MatchingSentences;
 
 Readonly my $DEFAULT_ROW_COUNT => 1000;
 Readonly my $MAX_ROW_COUNT     => 10_000;
@@ -108,7 +109,7 @@ sub list_GET
 
     $rows = List::Util::min( $rows, $MAX_ROW_COUNT + 0 );
 
-    my $sentences = MediaWords::Solr::query_matching_sentences( $c->dbis, $params );
+    my $sentences = MediaWords::Solr::Query::MatchingSentences::query_matching_sentences( $c->dbis, $params );
 
     # stories are random but sentences are in stories_id, sentence_number order
     if ( $sort && ( $sort eq 'random' ) )
