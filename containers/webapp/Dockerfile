@@ -77,6 +77,7 @@ RUN \
 COPY bin /opt/mediacloud/bin
 
 # Copy sources
+# (Keep in sync with what gets set Apache's configuration)
 COPY src/ /opt/mediacloud/src/webapp/
 ENV PERL5LIB="/opt/mediacloud/src/webapp/perl:${PERL5LIB}"
 ENV PYTHONPATH="/opt/mediacloud/src/webapp/python:${PYTHONPATH}"
