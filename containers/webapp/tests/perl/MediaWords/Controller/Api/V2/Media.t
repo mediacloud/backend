@@ -61,11 +61,30 @@ sub test_media_list($$)
     my $test_stack_media = [ grep { defined( $_->{ foreign_rss_links } ) } values( %{ $test_stack } ) ];
     die( "no media found: " . Dumper( $test_stack ) ) unless ( @{ $test_stack_media } );
 
-    # this has to be done first so that media_health exists
     map { $_->{ is_healthy } = 1 } @{ $test_stack_media };
     my $unhealthy_medium = $test_stack_media->[ 2 ];
     $unhealthy_medium->{ is_healthy } = 0;
-    $db->query( "update media_health set is_healthy = ( media_id <> \$1 )", $unhealthy_medium->{ media_id } );
+    $db->query(<<SQL,
+        INSERT INTO media_health (
+            media_id,
+            num_stories, num_stories_y, num_stories_w, num_stories_90,
+            num_sentences, num_sentences_y, num_sentences_w, num_sentences_90,
+            is_healthy, has_active_feed,
+            start_date, end_date,
+            expected_sentences, expected_stories,
+            coverage_gaps
+        ) VALUES (
+            ?,
+            0, 0, 0, 0,
+            0, 0, 0, 0,
+            'f', 'f',
+            NOW(), NOW(),
+            0, 0,
+            0
+        )
+SQL
+        $unhealthy_medium->{ media_id }
+    );
     test_media_list_call( { unhealthy => 1 }, [ $unhealthy_medium ] );
 
     test_media_list_call( {}, $test_stack_media );
