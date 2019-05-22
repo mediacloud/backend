@@ -11,6 +11,7 @@ use Test::Deep;
 
 use MediaWords::DB;
 use MediaWords::Test::API;
+use MediaWords::Test::Rows;
 use MediaWords::Test::Solr;
 use MediaWords::Test::URLs;
 use MediaWords::Test::DB::Create;
