@@ -197,7 +197,9 @@ sub word2vec_model_GET
     }
 
     my $model_store = MediaWords::KeyValueStore::PostgreSQL->new( { table => 'snap.word2vec_models_data' } );
-    my $model_data = $model_store->fetch_content( $db, $models_id );
+    my $object_path = undef;
+    my $raw = 1;
+    my $model_data = $model_store->fetch_content( $db, $models_id, $object_path, $raw );
     unless ( defined $model_data )
     {
         die "Model data for topic $topics_id, snapshot $snapshots_id, model $models_id is undefined.";

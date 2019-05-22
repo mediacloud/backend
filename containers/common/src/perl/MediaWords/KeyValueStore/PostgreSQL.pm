@@ -41,9 +41,9 @@ sub store_content($$$$)
     return $self->_python_store->store_content( $db, $object_id, $content );
 }
 
-sub fetch_content($$$;$)
+sub fetch_content($$$;$$)
 {
-    my ( $self, $db, $object_id, $object_path ) = @_;
+    my ( $self, $db, $object_id, $object_path, $raw ) = @_;
 
     my $content = $self->_python_store->fetch_content( $db, $object_id, $object_path );
 
@@ -53,7 +53,12 @@ sub fetch_content($$$;$)
         $content = join( '', @{ $content } );
     }
 
-    my $decoded_content = MediaWords::Util::Text::decode_from_utf8( $content );
+    my $decoded_content;
+    if ( $raw ) {
+        $decoded_content = $content;
+    } else {
+        $decoded_content = MediaWords::Util::Text::decode_from_utf8( $content );
+    }
 
     return $decoded_content;
 }
