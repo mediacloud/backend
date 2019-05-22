@@ -14,6 +14,7 @@ use URI::QueryParam;
 use MediaWords::DB;
 use MediaWords::Test::API;
 use MediaWords::DBI::Auth;
+use MediaWords::DBI::Auth::Roles;
 use MediaWords::Util::Mail;
 
 sub test_register($)

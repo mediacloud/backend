@@ -12,6 +12,7 @@ use base 'Catalyst::Controller';
 
 use MediaWords::Controller::Api::V2::MC_Controller_REST;
 use MediaWords::DBI::Auth;
+use MediaWords::DBI::Auth::Roles;
 use MediaWords::Util::URL;
 
 use Moose;

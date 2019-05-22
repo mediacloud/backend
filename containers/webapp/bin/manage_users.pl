@@ -81,6 +81,7 @@ use MediaWords::CommonLibs;
 
 use MediaWords::DB;
 use MediaWords::DBI::Auth;
+use MediaWords::DBI::Auth::Roles;
 
 use Data::Dumper;
 use Getopt::Long qw(:config pass_through);
