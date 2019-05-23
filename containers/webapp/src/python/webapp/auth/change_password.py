@@ -4,7 +4,7 @@ from mediawords.util.perl import decode_object_from_bytes_if_needed
 from webapp.auth.login import login_with_email_password
 from webapp.auth.password import validate_new_password, generate_secure_hash, password_reset_token_is_valid
 from webapp.auth.info import user_info
-from webapp.util.mail_message.webapp_messages import AuthPasswordChangedMessage
+from webapp.mail.messages import AuthPasswordChangedMessage
 
 
 class McAuthChangePasswordException(Exception):

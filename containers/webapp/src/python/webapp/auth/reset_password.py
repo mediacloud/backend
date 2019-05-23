@@ -8,7 +8,7 @@ from mediawords.util.mail import send_email
 from mediawords.util.perl import decode_object_from_bytes_if_needed
 from webapp.auth.info import user_info
 from webapp.auth.profile import create_password_reset_token
-from webapp.util.mail_message.webapp_messages import AuthResetPasswordMessage
+from webapp.mail.messages import AuthResetPasswordMessage
 
 log = create_logger(__name__)
 

@@ -9,7 +9,7 @@ from webapp.auth.change_password import change_password
 from webapp.auth.info import user_info
 from webapp.auth.password import generate_secure_hash
 from webapp.auth.user import CurrentUser, ModifyUser
-from webapp.util.mail_message.webapp_messages import AuthAPIKeyResetMessage
+from webapp.mail.messages import AuthAPIKeyResetMessage
 
 log = create_logger(__name__)
 

@@ -10,7 +10,7 @@ from webapp.auth.info import user_info
 from webapp.auth.password import generate_secure_hash, password_reset_token_is_valid
 from webapp.auth.profile import create_password_reset_token
 from webapp.auth.user import NewUser
-from webapp.util.mail_message.webapp_messages import AuthActivationNeededMessage, AuthActivatedMessage
+from webapp.mail.messages import AuthActivationNeededMessage, AuthActivatedMessage
 
 log = create_logger(__name__)
 

@@ -1,4 +1,4 @@
-from webapp.util.mail_message.webapp_messages import (
+from webapp.mail.messages import (
     AuthActivationNeededMessage,
     AuthActivatedMessage,
     AuthResetPasswordMessage,
