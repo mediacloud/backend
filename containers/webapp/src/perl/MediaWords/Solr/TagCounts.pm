@@ -109,6 +109,8 @@ SQL
     }
 
     $tag_counts = [ sort { $b->{ count } <=> $a->{ count } } @{ $tag_counts } ];
+
+    return $tag_counts;
 }
 
 1;
