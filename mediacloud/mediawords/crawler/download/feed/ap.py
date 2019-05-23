@@ -10,7 +10,6 @@ from collections import defaultdict
 import urllib.parse as urlparse
 from typing import Any
 from bs4 import BeautifulSoup
-import mediawords
 from mediawords.util.config import get_config
 import mediawords.util.web.user_agent
 
