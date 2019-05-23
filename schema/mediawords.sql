@@ -24,7 +24,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4720;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4721;
 BEGIN
 
     -- Update / set database schema version
@@ -2655,7 +2655,9 @@ CREATE TABLE auth_users (
 
     created_date                        timestamp not null default now(),
 
-    max_topic_stories                   int not null default 100000
+    max_topic_stories                   int not null default 100000,
+    
+    has_consented                       boolean not null default false
 );
 
 

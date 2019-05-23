@@ -250,7 +250,7 @@ sub _get_sort_clause
         inlink       => 'slc.media_inlink_count desc',
         inlink_count => 'slc.media_inlink_count desc',
         facebook     => 'slc.facebook_share_count desc nulls last',
-        twitter      => 'slc.simple_tweet_count desc',
+        twitter      => 'slc.simple_tweet_count desc nulls last',
         random       => 'random()'
     };
 
