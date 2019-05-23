@@ -26,7 +26,7 @@ sub run_solr_tests($)
 {
     my ( $db ) = @_;
 
-    my $media = MediaWords::Test::Solr::create_indexed_test_story_stack(
+    my $media = MediaWords::Test::Solr::create_test_story_stack_for_indexing(
         $db,
         {
             medium_1 => { feed_1 => [ map { "story_$_" } ( 1 .. 15 ) ] },
@@ -34,6 +34,9 @@ sub run_solr_tests($)
             medium_3 => { feed_3 => [ map { "story_$_" } ( 26 .. 50 ) ] },
         }
     );
+
+    # Delete test tags added by create_test_story_stack_for_indexing()
+    $db->query('DELETE FROM tags WHERE tag LIKE ?', 'test_%');
 
     my $test_stories = $db->query( "select * from stories order by md5( stories_id::text )" )->hashes;
 
@@ -46,7 +49,7 @@ sub run_solr_tests($)
         {
             my $tag =
               $db->create( 'tags', { tag => "tag_$ti", label => "Tag $ti", tag_sets_id => $tag_set->{ tag_sets_id } } );
-            my $num_tag_stories = $tag->{ tags_id } * 5;
+            my $num_tag_stories = $tag->{ tags_id } * 2;
             for my $i ( 1 .. $num_tag_stories )
             {
                 my $tag_story = shift( @{ $test_stories } );
@@ -84,10 +87,7 @@ SQL
     map { ok( $got_tag_counts->[ $_ ]->{ count } >= $got_tag_counts->[ $_ + 1 ]->{ count } ) }
       ( 0 .. ( $num_tag_counts - 2 ) );
 
-    $got_tag_counts      = [ sort { $a->{ tags_id } <=> $b->{ tags_id } } @{ $got_tag_counts } ];
-    $expected_tag_counts = [ sort { $a->{ tags_id } <=> $b->{ tags_id } } @{ $expected_tag_counts } ];
-
-    is_deeply( $got_tag_counts, $expected_tag_counts );
+    cmp_bag( $got_tag_counts, $expected_tag_counts );
 
     my $single_tag_count =
       MediaWords::Solr::TagCounts::query_tag_counts( $db, { q => "media_id:$query_media_id", limit => 1 } );
@@ -101,9 +101,7 @@ SQL
 
     $expected_tag_counts = [ grep { $_->{ tag_sets_id } == $query_tag_sets_id } @{ $expected_tag_counts } ];
 
-    $tag_set_tag_counts = [ sort { $a->{ tags_id } <=> $b->{ tags_id } } @{ $tag_set_tag_counts } ];
-
-    is_deeply( $tag_set_tag_counts, $expected_tag_counts );
+    cmp_bag( $tag_set_tag_counts, $expected_tag_counts );
 
 }
 
