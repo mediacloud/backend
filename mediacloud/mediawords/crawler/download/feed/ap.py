@@ -77,9 +77,10 @@ class AssociatedPressAPI:
 
         """
         url = 'https://api.ap.org/media/v/content/feed'
-        params = {}
-        params['apikey'] = self.api_key
+        api_method = 'feed'
+        params = {'apikey': self.api_key}
         params.update(kwargs)
+        self._check_ratelimit(api_method)
         feed_data = self._make_request(url,params)
         return json.loads(feed_data)['data']
 
