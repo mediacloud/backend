@@ -1,10 +1,16 @@
 #!/usr/bin/env perl
 
+use strict;
+use warnings;
+
+use Modern::Perl "2015";
+use MediaWords::CommonLibs;
+
 use Test::More;
 
+use MediaWords::DB;
 use MediaWords::Crawler::Engine;
 use MediaWords::Test::HashServer;
-use MediaWords::Test::DB;
 use MediaWords::Test::DB::Create;
 
 sub test_run_fetcher
@@ -39,25 +45,20 @@ sub test_run_fetcher
 
     $db->query( "insert into queued_downloads ( downloads_id ) select downloads_id from downloads" );
 
-    $crawler = MediaWords::Crawler::Engine->new();
+    my $crawler = MediaWords::Crawler::Engine->new();
 
     $crawler->run_fetcher( 1 );
 
-    $download = $db->find_by_id( 'downloads', $download->{ downloads_id } );
+    my $download = $db->find_by_id( 'downloads', $download->{ downloads_id } );
 
     is( $download->{ state }, 'success' );
 }
 
-sub run_db_tests
-{
-    my ( $db ) = @_;
-
-    test_run_fetcher( $db );
-}
-
 sub main
 {
-    MediaWords::Test::DB::test_on_test_database( \&run_db_tests );
+    my $db = MediaWords::DB::connect_to_db();
+
+    test_run_fetcher( $db );
 
     done_testing();
 }
