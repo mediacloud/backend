@@ -12,6 +12,8 @@ from typing import Any
 from bs4 import BeautifulSoup
 from mediawords.util.config import get_config
 import mediawords.util.web.user_agent
+import datetime
+import pytz
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -228,8 +230,8 @@ def _fetch_nitf_rendition(story: dict,
     return nitf_content
 
 def _process_stories(stories: list,
+                     max_lookback: int = None,
                      db: mediawords.db.DatabaseHandler = None,
-                     max_stories: int = None,
                      existing_guids: set = None) -> dict:
     """Internal method to process stories passed by the feed or search endpoint. For each story, the content
     of the story is fetched using the nitf rendition format. The stories are then formatted and returned as a dict
@@ -244,9 +246,7 @@ def _process_stories(stories: list,
         content: xml for item
 
     When a set of guids is passed via the existing_guids keyword parameter, that set is used to prevent fetching
-    previously ingested stories.
-
-    If max_stories is passed, this method will stop once it has processed this number of stories."""
+    previously ingested stories."""
 
     items = {}
 
@@ -301,59 +301,57 @@ def _process_stories(stories: list,
             logger.warning("No extended headline present for guid: {}. Setting description to an empty string.".format(guid))
             story_data['description'] = ''
         items[guid] = story_data
-        if max_stories is not None and len(items) == max_stories:
+        if max_lookback is not None and _publishdate_age(publish_date) > max_lookback:
+            logger.debug("Reached max_lookback limit (oldest story age is {:,} seconds old). Stopping.".format(_publishdate_age(publish_date)))
             break
 
     return items
 
-def _fetch_stories_using_search(db: mediawords.db.DatabaseHandler = None,
-                                max_stories: int = 100,
+def _fetch_stories_using_search(max_lookback: int,
+                                db: mediawords.db.DatabaseHandler = None,
                                 existing_guids: set = None) -> dict:
     """Internal method to fetch additional stories from the search endpoint. Normally, this endpoint is called
-    after the feed endpoint to gather additional stories (up to the max_stories limit). If the max_stories limit
-    is greater than the total number of stories that can be fetched from the search endpoint, this method will
-    continue gathering as many stories as possible and then return them all. A set of guids can be passed via
-    the existing_guids keyword parameter. This helps to return an accurate number of stories that are requested
-    via the max_stories parameters and helps prevents duplicate story uuids within the collection."""
+    after the feed endpoint to gather additional stories. If the max_stories limit is greater than the total
+    number of stories that can be fetched from the search endpoint, this method will continue gathering as many
+    stories as possible and then return them all. A set of guids can be passed via the existing_guids keyword
+    parameter. This helps to return an accurate number of stories that are requested via the max_stories
+    parameters and helps prevents duplicate story uuids within the collection."""
 
     items = {}
 
     params = {"sort":"versioncreated:desc","page_size":100}
-    current_story_count = 0
-    if existing_guids is not None:
-        current_story_count = len(existing_guids)
 
     while True:
 
-        limit_stories = None
-        if max_stories - current_story_count < 100:
-            limit_stories = max_stories - current_story_count
         search_data = _api.search(**params)
         if len(search_data['items']) == 0:
             break
         stories = search_data['items']
-        processed_stories = _process_stories(stories,db=db,existing_guids=existing_guids,max_stories=limit_stories)
+        processed_stories = _process_stories(stories,max_lookback,db=db,existing_guids=existing_guids)
         items.update(processed_stories)
+        oldest_story = max([_publishdate_age(item['publish_date']) for item in items.values()]) # Seconds since oldest creation time from feed endpoint
+        if oldest_story > max_lookback:
+            break
         next_page_params = _extract_url_parameters(search_data['next_page'])
         params.update(next_page_params)
-        if len(items) >= max_stories:
-            break
 
     return items
 
-def _fetch_stories_using_feed(db: mediawords.db.DatabaseHandler = None,
-                              max_stories: int = 100) -> dict:
+def _fetch_stories_using_feed(db: mediawords.db.DatabaseHandler = None) -> dict:
     """Internal method to fetch all stories from the feed endpoint"""
-    page_size = 100
-    if max_stories < 100:
-        page_size = max_stories
-    feed_data = _api.feed(page_size=page_size)
+    feed_data = _api.feed(page_size=100)
     stories = feed_data['items']
     items = _process_stories(stories,db=db)
     return items
 
+def _publishdate_age(publish_date: int) -> int:
+    """Internal method to get the age of the story's creation date in seconds"""
+    current_epoch = int(time.time())
+    publishdate_epoch = pytz.utc.localize(datetime.datetime.strptime(publish_date,"%Y-%m-%dT%H:%M:%Sz")).timestamp()
+    return current_epoch - publishdate_epoch
+
 def get_new_stories(db: mediawords.db.DatabaseHandler = None,
-                    max_stories: int = 100) -> list:
+                    max_lookback:int = 86400) -> list:
     """This method fetches the latest items from the AP feed and returns a list of dicts.
 
     Parameters:
@@ -376,13 +374,15 @@ def get_new_stories(db: mediawords.db.DatabaseHandler = None,
     global _api
     _api = AssociatedPressAPI()
     items = {} # list of dict items to return
-    feed_stories = _fetch_stories_using_feed(db,max_stories=max_stories)
+    feed_stories = _fetch_stories_using_feed(db=db)
     items.update(feed_stories)
-    if len(items) < max_stories:
-        remaining_story_count = max_stories - len(items)
-        logger.debug("Retrieved {} stories from the feed endpoint. The max_stories parameter is larger than the number of stories retrieved from the feed API. Fetching {} additional stories from the search endpoint.".format(len(items),remaining_story_count))
-        search_items = _fetch_stories_using_search(max_stories=remaining_story_count,existing_guids=set(items.keys()))
+    oldest_story = max([_publishdate_age(item['publish_date']) for item in items.values()]) # Seconds since oldest creation time from feed endpoint
+
+    if oldest_story < max_lookback:
+        logger.debug("Retrieved {} stories from the feed endpoint. The oldest story was {:,} seconds ago. Fetching older stories from search feed.".format(len(items),oldest_story))
+        search_items = _fetch_stories_using_search(max_lookback=max_lookback, db=db, existing_guids=set(items.keys()))
         items.update(search_items)
-    list_items = sorted(list(items.values()), key=lambda k: k['publish_date'],reverse=True)[:max_stories]
+
+    list_items = sorted(list(items.values()), key=lambda k: k['publish_date'],reverse=True)
     logger.info("Returning {} new stories.".format(len(list_items)))
     return list_items
