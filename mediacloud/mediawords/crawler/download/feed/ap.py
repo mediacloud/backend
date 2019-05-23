@@ -270,7 +270,7 @@ def _process_stories(stories: list,
         # Get story content
         content_uri = story['uri']
         content_params = _extract_url_parameters(content_uri)
-        logger.info("Fetching content for story (guid: {})".format(guid))
+        logger.debug("Fetching content for story (guid: {})".format(guid))
         content = _api.content(guid,**content_params)
         if content is None:
             continue
