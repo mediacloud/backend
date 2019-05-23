@@ -14,7 +14,6 @@ import mediawords
 from mediawords.util.config import get_config
 import mediawords.util.web.user_agent
 
-logging.basicConfig()
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
