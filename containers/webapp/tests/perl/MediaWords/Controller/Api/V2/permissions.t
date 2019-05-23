@@ -456,7 +456,7 @@ sub add_topic
 
 # for each path, test to make sure that at least a public key is required, then check to make sure the expected
 # permission is required for the path
-sub test_permissions($$)
+sub test_permissions($)
 {
     my ( $db ) = @_;
 

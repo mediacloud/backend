@@ -12,6 +12,7 @@ use URI::QueryParam;
 
 use MediaWords::DB;
 use MediaWords::DBI::Auth::ChangePassword;
+use MediaWords::DBI::Auth::Login;
 use MediaWords::DBI::Auth::Register;
 use MediaWords::DBI::Auth::ResetPassword;
 use MediaWords::Util::Mail;
