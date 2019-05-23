@@ -387,5 +387,3 @@ def get_new_stories(db: mediawords.db.DatabaseHandler = None,
     list_items = sorted(list(items.values()), key=lambda k: k['publish_date'],reverse=True)[:max_stories]
     logger.info("Returning {} new stories.".format(len(list_items)))
     return list_items
-
-stories = get_new_stories()
