@@ -11,6 +11,7 @@ use List::Util qw(first max maxstr min minstr reduce shuffle sum);
 use Moose;
 use namespace::autoclean;
 
+use MediaWords::DBI::Auth::Info;
 use MediaWords::DBI::Media::Lookup;
 use MediaWords::Solr;
 use MediaWords::TM::Snapshot::Views;

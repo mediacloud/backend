@@ -12,6 +12,7 @@ use URI::Escape;
 
 use MediaWords::DB;
 use MediaWords::Test::API;
+use MediaWords::DBI::Auth;
 
 # public and admin_read key users
 my $_public_user;

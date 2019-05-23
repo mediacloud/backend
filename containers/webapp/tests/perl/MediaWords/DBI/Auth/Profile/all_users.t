@@ -4,16 +4,14 @@ use warnings;
 use Modern::Perl '2015';
 use MediaWords::CommonLibs;
 
-use Readonly;
-use Test::More tests => 10;
-use Test::Deep;
+use Test::More;
 
 use MediaWords::DB;
 use MediaWords::DBI::Auth::Profile;
 use MediaWords::DBI::Auth::Register;
 use MediaWords::Util::Mail;
 
-sub test_user_info($)
+sub test_all_users($)
 {
     my ( $db ) = @_;
 
@@ -42,7 +40,10 @@ sub test_user_info($)
     };
     ok( !$@, "Unable to add user: $@" );
 
-    my $user = MediaWords::DBI::Auth::Info::user_info( $db, $email );
+    my $all_users = MediaWords::DBI::Auth::Profile::all_users( $db );
+    is( scalar( @{ $all_users } ), 1 );
+
+    my $user = $all_users->[ 0 ];
 
     is( $user->email(),                        $email );
     is( $user->full_name(),                    $full_name );
@@ -62,7 +63,9 @@ sub main
 
     my $db = MediaWords::DB::connect_to_db();
 
-    test_user_info( $db );
+    test_all_users( $db );
+
+    done_testing();
 }
 
 main();
