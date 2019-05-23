@@ -842,7 +842,6 @@ def _get_dup_story_groups(db: DatabaseHandler, topic: dict) -> list:
         """,
         {'a': topic['topics_id']}).hashes()
 
-
     story_groups = {}
     ignore_stories = {}
     for story_pair in story_pairs:
