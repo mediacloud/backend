@@ -2456,6 +2456,7 @@ create table snap.live_stories (
     url                         varchar(1024)   not null,
     guid                        varchar(1024)   not null,
     title                       text            not null,
+    normalized_title_hash       uuid            null,
     description                 text            null,
     publish_date                timestamp       not null,
     collect_date                timestamp       not null,
@@ -2467,16 +2468,19 @@ create index live_story_topic on snap.live_stories ( topics_id );
 create unique index live_stories_story on snap.live_stories ( topics_id, stories_id );
 create index live_stories_story_solo on snap.live_stories ( stories_id );
 create index live_stories_topic_story on snap.live_stories ( topic_stories_id );
+create index live_stories_title_hash 
+    on snap.live_stories ( topics_id, media_id, date_trunc('day', publish_date), normalized_title_hash );
 
 
 create function insert_live_story() returns trigger as $insert_live_story$
     begin
 
         insert into snap.live_stories
-            ( topics_id, topic_stories_id, stories_id, media_id, url, guid, title, description,
+            ( topics_id, topic_stories_id, stories_id, media_id, url, guid, title, normalized_title_hash, description,
                 publish_date, collect_date, full_text_rss, language )
             select NEW.topics_id, NEW.topic_stories_id, NEW.stories_id, s.media_id, s.url, s.guid,
-                    s.title, s.description, s.publish_date, s.collect_date, s.full_text_rss, s.language
+                    s.title, s.normalized_title_hash, s.description, s.publish_date, s.collect_date, s.full_text_rss,
+                    s.language
                 from topic_stories cs
                     join stories s on ( cs.stories_id = s.stories_id )
                 where
@@ -2498,6 +2502,7 @@ create or replace function update_live_story() returns trigger as $update_live_s
                 url = NEW.url,
                 guid = NEW.guid,
                 title = NEW.title,
+                normalized_title_hash = NEW.normalized_title_hash,
                 description = NEW.description,
                 publish_date = NEW.publish_date,
                 collect_date = NEW.collect_date,

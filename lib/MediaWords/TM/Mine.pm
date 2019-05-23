@@ -1037,6 +1037,12 @@ sub do_mine_topic ($$;$)
     # MediaWords::TM::Stories::merge_foreign_rss_stories( $db, $topic );
 
     update_topic_state( $db, $topic, "importing seed urls" );
+    if ( import_seed_urls( $db, $topic ) > $MIN_SEED_IMPORT_FOR_PREDUP_STORIES )
+    {
+        # merge dup stories before as well as after spidering to avoid extra spidering work
+        update_topic_state( $db, $topic, "merging duplicate stories" );
+        MediaWords::TM::Stories::find_and_merge_dup_stories( $db, $topic );
+    }
 
     unless ( $options->{ import_only } )
     {
@@ -1046,6 +1052,9 @@ sub do_mine_topic ($$;$)
         check_job_error_rate( $db, $topic );
 
         # merge dup media and stories again to catch dups from spidering
+        update_topic_state( $db, $topic, "merging duplicate stories" );
+        MediaWords::TM::Stories::find_and_merge_dup_stories( $db, $topic );
+
         update_topic_state( $db, $topic, "merging duplicate media stories" );
         MediaWords::TM::Stories::merge_dup_media_stories( $db, $topic );
 

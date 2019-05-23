@@ -21,7 +21,7 @@ class McAddStoryException(Exception):
     pass
 
 
-def _insert_story_urls(db: DatabaseHandler, story: dict, url: str) -> None:
+def insert_story_urls(db: DatabaseHandler, story: dict, url: str) -> None:
     """Insert the url and the normalize_url_lossy() version of the url into story_urls."""
     urls = (url, normalize_url_lossy(url))
 
@@ -94,7 +94,7 @@ def find_dup_story(db: DatabaseHandler, story: dict) -> bool:
     }).hash()
 
     if db_story:
-        [_insert_story_urls(db, story, u) for u in (story['url'], story['guid'])]
+        [insert_story_urls(db, story, u) for u in (story['url'], story['guid'])]
 
         return db_story
 
@@ -149,7 +149,7 @@ def add_story(db: DatabaseHandler, story: dict, feeds_id: int) -> Optional[dict]
 
     story['is_new'] = True
 
-    [_insert_story_urls(db, story, u) for u in (story['url'], story['guid'])]
+    [insert_story_urls(db, story, u) for u in (story['url'], story['guid'])]
 
     # this ugly query is necessary because on conflict doesnot work with partitioned feeds_stories_map
     db.query(

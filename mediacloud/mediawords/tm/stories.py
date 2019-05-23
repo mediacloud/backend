@@ -757,3 +757,120 @@ def copy_stories_to_topic(db: DatabaseHandler, source_topics_id: int, target_top
     db.query("insert into topic_seed_urls ( topics_id, url, stories_id, source ) select * from _tsu")
 
     db.query("drop table _stories; drop table _urls; drop table _tsu;")
+
+
+def _merge_dup_stories(db, topic, stories):
+    """Merge a list of stories into a single story, keeping the story with the most sentences."""
+    log.debug("merge dup stories")
+
+    stories_ids = [s['stories_id'] for s in stories]
+
+    story_sentence_counts = db.query(
+        """
+        select stories_id, count(*) sentence_count
+            from story_sentences
+            where stories_id = ANY(%(a)s)
+            group by stories_id
+        """,
+        {'a': stories_ids}).hashes()
+
+    ssc = {}
+
+    for s in stories:
+        ssc[s['stories_id']] = 0
+
+    for count in story_sentence_counts:
+        ssc[count['stories_id']] = count['sentence_count']
+
+    stories = sorted(stories, key=lambda x: ssc[x['stories_id']], reverse=True)
+
+    keep_story = stories.pop(0)
+
+    log.debug("duplicates: %s [%s %d]" % (keep_story['title'], keep_story['url'], keep_story['stories_id']))
+
+    [_merge_dup_story(db, topic, s, keep_story) for s in stories]
+
+
+def _add_missing_normalized_title_hashes(db: DatabaseHandler, topic: dict) -> None:
+    """Add a normalized_title_hash field for every stories row that is missing it for the given topic."""
+    db.begin()
+    db.query(
+        """
+        declare c cursor for
+            select stories_id from snap.live_stories where topics_id = %(a)s and normalized_title_hash is null
+        """,
+        {'a': topic['topics_id']})
+
+    log.info('adding normalized story titles ...')
+
+    # break this up into chunks instead of doing all topic stories at once via a simple sql query because we don't
+    # want to do a single giant transaction with millions of stories
+    while True:
+        stories_ids = db.query("fetch 100 from c").flat()
+        if len(stories_ids) < 1:
+            break
+
+        db.query(
+            """
+            update stories set normalized_title_hash = md5(get_normalized_title(title, media_id))::uuid
+                where stories_id = any( %(a)s )
+            """,
+            {'a': stories_ids})
+
+    db.commit()
+
+
+def _get_dup_story_groups(db: DatabaseHandler, topic: dict) -> list:
+    """Return a list of duplicate story groups.
+
+    Find all stories within a topic that have duplicate normalized titles with a given day and media_id.  Return a
+    list of story lists.  Each story list is a list of stories that are duplicated os each other.
+    """
+    story_pairs = db.query(
+        """
+        select a.stories_id stories_id_a, b.stories_id stories_id_b
+            from snap.live_stories a,
+                snap.live_stories b
+            where
+                a.topics_id = %(a)s and
+                a.topics_id = b.topics_id and
+                a.stories_id < b.stories_id and
+                a.media_id = b.media_id and
+                a.normalized_title_hash = b.normalized_title_hash and
+                date_trunc('day', a.publish_date) = date_trunc('day', b.publish_date)
+            order by stories_id_a, stories_id_b
+        """,
+        {'a': topic['topics_id']}).hashes()
+
+
+    story_groups = {}
+    ignore_stories = {}
+    for story_pair in story_pairs:
+        if story_pair['stories_id_b'] in ignore_stories:
+            continue
+
+        story_a = db.require_by_id('stories', story_pair['stories_id_a'])
+        story_b = db.require_by_id('stories', story_pair['stories_id_b'])
+
+        story_groups.setdefault(story_a['stories_id'], [story_a])
+        story_groups[story_a['stories_id']].append(story_b)
+
+        ignore_stories[story_b['stories_id']] = True
+
+    return list(story_groups.values())
+
+
+def find_and_merge_dup_stories(db: DatabaseHandler, topic: dict) -> None:
+    """Merge duplicate stories by media source within the topic.
+
+    This is a transitional routine that will not be necessary once the story_urls and stories.normalized_title_hash
+    fields have been generated for all historical stories.
+    """
+    log.info("adding normalized titles ...")
+    _add_missing_normalized_title_hashes(db, topic)
+
+    log.info("finding duplicate stories ...")
+    dup_story_groups = _get_dup_story_groups(db, topic)
+
+    log.info("merging %d duplicate story groups ..." % len(dup_story_groups))
+    [_merge_dup_stories(db, topic, g) for g in dup_story_groups]

@@ -589,3 +589,106 @@ class TestTMStoriesDB(mediawords.test.test_database.TestDatabaseWithSchemaTestCa
 
         for got_story in got_stories:
             assert got_story['media_id'] == new_medium['media_id']
+
+    def count_null_title_stories(self, topic: dict) -> int:
+        """Count the stories in the topic with a null normalized_title_hash."""
+        null_count = self.db().query(
+            """
+            select count(*)
+                from stories s
+                    join topic_stories ts using ( stories_id )
+                where
+                    ts.topics_id = %(a)s and
+                    s.normalized_title_hash is null
+            """,
+            {'a': topic['topics_id']}).flat()[0]
+
+        return null_count
+
+    def test_add_missing_normalized_title_hashes(self) -> None:
+        """Test _add_missing_normalized_title_hashes()."""
+        db = self.db()
+
+        topic = mediawords.test.db.create.create_test_topic(db, 'titles')
+        medium = mediawords.test.db.create.create_test_medium(db, 'titles')
+        feed = mediawords.test.db.create.create_test_feed(db, 'titles', medium=medium)
+
+        num_stories = 10
+        for i in range(num_stories):
+            story = mediawords.test.db.create.create_test_story(db, "titles " + str(i), feed=feed)
+            mediawords.tm.stories.add_to_topic_stories(db, story, topic)
+
+        # disable trigger so that we can actually set normalized_title_hash to null
+        db.query("alter table stories disable trigger stories_add_normalized_title")
+        db.query("update stories set normalized_title_hash = null")
+        db.query("alter table stories enable trigger stories_add_normalized_title")
+
+        assert self.count_null_title_stories(topic) == num_stories
+
+        mediawords.tm.stories._add_missing_normalized_title_hashes(db, topic)
+
+        assert self.count_null_title_stories(topic) == 0
+
+    def test_get_dup_story_groups(self) -> None:
+        """Test _get_dup_story_groups()."""
+        db = self.db()
+
+        topic = mediawords.test.db.create.create_test_topic(db, 'dupstories')
+        medium = mediawords.test.db.create.create_test_medium(db, 'dupstories')
+        feed = mediawords.test.db.create.create_test_feed(db, 'dupstories', medium=medium)
+
+        num_stories = 9
+        for i in range(num_stories):
+            story = mediawords.test.db.create.create_test_story(db, "dupstories " + str(i), feed=feed)
+            mediawords.tm.stories.add_to_topic_stories(db, story, topic)
+            modi = i % 3
+            divi = i // 3
+            if modi == 0:
+                db.update_by_id('stories', story['stories_id'], {'title': 'TITLE ' + str(divi)})
+            elif modi == 1:
+                db.update_by_id('stories', story['stories_id'], {'title': 'title ' + str(divi)})
+            else:
+                db.update_by_id('stories', story['stories_id'], {'Title': 'title ' + str(divi)})
+
+        dup_story_groups = mediawords.tm.stories._get_dup_story_groups(db, topic)
+
+        assert len(dup_story_groups) == 3
+
+        for dsg in dup_story_groups:
+            for story in dsg:
+                assert dsg[0]['title'].lower() == story['title'].lower()
+
+    def test_find_and_merge_dup_stories(self) -> None:
+        """Test find_and_merge_dup_stories()."""
+        db = self.db()
+
+        topic = mediawords.test.db.create.create_test_topic(db, 'dupstories')
+        medium = mediawords.test.db.create.create_test_medium(db, 'dupstories')
+        feed = mediawords.test.db.create.create_test_feed(db, 'dupstories', medium=medium)
+
+        num_stories = 9
+        for i in range(num_stories):
+            story = mediawords.test.db.create.create_test_story(db, "dupstories " + str(i), feed=feed)
+            mediawords.tm.stories.add_to_topic_stories(db, story, topic)
+            modi = i % 3
+            divi = i // 3
+            if modi == 0:
+                db.update_by_id('stories', story['stories_id'], {'title': 'TITLE ' + str(divi)})
+            elif modi == 1:
+                db.update_by_id('stories', story['stories_id'], {'title': 'title ' + str(divi)})
+            else:
+                db.update_by_id('stories', story['stories_id'], {'Title': 'title ' + str(divi)})
+
+        mediawords.tm.stories.find_and_merge_dup_stories(db, topic)
+
+        num_topic_stories = db.query(
+            "select count(*) from topic_stories where topics_id = %(a)s",
+            {'a': topic['topics_id']}).flat()[0]
+
+        assert num_topic_stories == 3
+
+        num_distinct_titles = db.query(
+            "select count(distinct normalized_title_hash) from snap.live_stories where topics_id = %(a)s",
+            {'a': topic['topics_id']}).flat()[0]
+
+        assert num_distinct_titles == 3
