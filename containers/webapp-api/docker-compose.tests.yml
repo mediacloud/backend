@@ -2,8 +2,8 @@ version: "3.7"
 
 services:
 
-    mc_webapp:
-        image: dockermediacloud/mediacloud-webapp:latest
+    mc_webapp_api:
+        image: dockermediacloud/mediacloud-webapp-api:latest
         stop_signal: SIGKILL
         env_file: ./../global.env.dist
         volumes:
@@ -12,7 +12,7 @@ services:
               target: /opt/mediacloud/bin/
             - type: bind
               source: ./src/
-              target: /opt/mediacloud/src/webapp/
+              target: /opt/mediacloud/src/webapp-api/
             - type: bind
               source: ./tests/
               target: /opt/mediacloud/tests/

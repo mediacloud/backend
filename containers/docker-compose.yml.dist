@@ -271,7 +271,7 @@ services:
             # Generates RSS report using data from PostgreSQL
             - net_postgresql
         volumes:
-            # Shared with "webapp" container:
+            # Shared with "webapp-httpd" container:
             - vol_daily_rss_dumps:/var/lib/daily_rss_dumps/
         deploy:
             # Only one instance
@@ -1247,23 +1247,19 @@ services:
                     memory: 2G
 
     #
-    # Webapp
-    # ------
+    # Webapp (HTTP server)
+    # --------------------
     #
-    mc_webapp:
+    mc_webapp_httpd:
         build:
-            context: ./webapp/
-        image: dockermediacloud/mediacloud-webapp:latest
-        env_file: global.env
+            context: ./webapp-httpd/
+        image: dockermediacloud/mediacloud-webapp-httpd:latest
         networks:
-            # Uses PostgreSQL to fetch / store data
-            - net_postgresql
-            # Adds Celery jobs
-            - net_rabbitmq
-            # Uses Solr for searching
-            - net_solr
-            # Sends email to new / existing users
-            - net_postfix
+            # Communicates with FastCGI workers
+            - net_webapp
+        ports:
+            # Publish webapp to the world
+            - "80"
         volumes:
             # Shared with "cron_generate_daily_rss_dumps" container:
             - vol_daily_rss_dumps:/mediacloud_webapp_static/rss_dumps/
@@ -1276,9 +1272,44 @@ services:
             resources:
                 limits:
                     # CPU core limit
-                    cpus: "8"
+                    cpus: "1"
                     # RAM limit
-                    memory: 16G
+                    memory: 512M
+
+    #
+    # Webapp (Plackup FastCGI workers)
+    # --------------------------------
+    #
+    mc_webapp_api:
+        build:
+            context: ./webapp-api/
+        image: dockermediacloud/mediacloud-webapp-api:latest
+        networks:
+            # Communicates with HTTP server
+            - net_webapp
+            # Uses PostgreSQL to fetch / store data
+            - net_postgresql
+            # Adds Celery jobs
+            - net_rabbitmq
+            # Uses Solr for searching
+            - net_solr
+            # Sends email to new / existing users
+            - net_postfix
+        expose:
+            # Plackup FastCGI worker port to be used by webapp_httpd
+            - "9090"
+        deploy:
+            # Starts multiple FastCGI workers
+            replicas: 8
+            # Auto-restart on crashes
+            restart_policy:
+                condition: on-failure
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: 1G
 
     #
     # Generate word2vec snapshot model
@@ -1361,6 +1392,10 @@ networks:
     net_postfix: {}
 
     #
+    # Webapp's HTTP server and FastCGI workers
+    net_webapp: {}
+
+    #
     # PostgreSQL-PgBouncer internal network
     # -------------------------------------
     #
@@ -1412,7 +1447,7 @@ volumes:
     vol_postfix_data: {}
 
     # Daily RSS dumps
-    # (shared between cron_generate_daily_rss_dumps and webapp)
+    # (shared between cron_generate_daily_rss_dumps and webapp-httpd)
     vol_daily_rss_dumps: {}
 
     # Munin's RRD data

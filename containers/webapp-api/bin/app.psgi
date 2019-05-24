@@ -5,4 +5,3 @@ use MediaWords;
 
 my $app = MediaWords->apply_default_middlewares(MediaWords->psgi_app);
 $app;
-
