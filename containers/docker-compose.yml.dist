@@ -19,9 +19,9 @@ services:
             # Annotator endpoint URL
             MC_CLIFF_ANNOTATOR_URL: ""
         depends_on:
-            - extract_and_vector
-            - postgresql_pgbouncer
-            - rabbitmq_server
+            - mc_extract_and_vector
+            - mc_postgresql_pgbouncer
+            - mc_rabbitmq_server
         networks:
             # Stores fetched raw annotation to PostgreSQL
             - net_postgresql
@@ -59,9 +59,9 @@ services:
             # Tag set to use for person name entities
             MC_CLIFF_PEOPLE_TAG_SET: "cliff_people"
         depends_on:
-            - cliff_fetch_annotation
-            - postgresql_pgbouncer
-            - rabbitmq_server
+            - mc_cliff_fetch_annotation
+            - mc_postgresql_pgbouncer
+            - mc_rabbitmq_server
         networks:
             # Fetches raw annotation, stores tags to PostgreSQL
             - net_postgresql
@@ -90,7 +90,7 @@ services:
         image: dockermediacloud/mediacloud-crawler-provider:latest
         env_file: global.env
         depends_on:
-            - postgresql_pgbouncer
+            - mc_postgresql_pgbouncer
         networks:
             # Writes provided downloads to PostgreSQL
             - net_postgresql
@@ -117,8 +117,8 @@ services:
         image: dockermediacloud/mediacloud-crawler-fetcher:latest
         env_file: global.env
         depends_on:
-            - postgresql_pgbouncer
-            - rabbitmq_server
+            - mc_postgresql_pgbouncer
+            - mc_rabbitmq_server
         networks:
             # Writes fetched downloads to PostgreSQL
             - net_postgresql
@@ -147,7 +147,7 @@ services:
         image: dockermediacloud/mediacloud-create-missing-partitions:latest
         env_file: global.env
         depends_on:
-            - postgresql_pgbouncer
+            - mc_postgresql_pgbouncer
         networks:
             # Creates partitions on PostgreSQL
             - net_postgresql
@@ -196,10 +196,10 @@ services:
         image: dockermediacloud/mediacloud-extract-and-vector:latest
         env_file: global.env
         depends_on:
-            - extract_article_from_page
-            - crawler
-            - postgresql_pgbouncer
-            - rabbitmq_server
+            - mc_extract_article_from_page
+            - mc_crawler
+            - mc_postgresql_pgbouncer
+            - mc_rabbitmq_server
         networks:
             # Fetches / stores extracted data to PostgreSQL
             - net_postgresql
@@ -235,9 +235,9 @@ services:
             # Timeout for API calls
             MC_FACEBOOK_TIMEOUT: "60"
         depends_on:
-            - extract_and_vector
-            - postgresql_pgbouncer
-            - rabbitmq_server
+            - mc_extract_and_vector
+            - mc_postgresql_pgbouncer
+            - mc_rabbitmq_server
         networks:
             # Stores Facebook stats in PostgreSQL
             - net_postgresql
@@ -266,7 +266,7 @@ services:
         image: dockermediacloud/mediacloud-cron-generate-daily-rss-dumps:latest
         env_file: global.env
         depends_on:
-            - postgresql_pgbouncer
+            - mc_postgresql_pgbouncer
         networks:
             # Generates RSS report using data from PostgreSQL
             - net_postgresql
@@ -321,7 +321,7 @@ services:
         image: dockermediacloud/mediacloud-cron-generate-user-summary:latest
         env_file: global.env
         depends_on:
-            - postgresql_pgbouncer
+            - mc_postgresql_pgbouncer
         networks:
             # Reads users from PostgreSQL
             - net_postgresql
@@ -351,8 +351,8 @@ services:
             # Stories to import into Solr on a single run
             MC_SOLR_IMPORT_MAX_QUEUED_STORIES: "100000"
         depends_on:
-            - postgresql_pgbouncer
-            - solr_shard
+            - mc_postgresql_pgbouncer
+            - mc_solr_shard
         networks:
             # Reads stories from PostgreSQL
             - net_postgresql
@@ -370,39 +370,6 @@ services:
                     cpus: "16"
                     # RAM limit
                     memory: 4G
-
-    #
-    # Import stories into Solr for testing
-    # ------------------------------------
-    #
-    # mc_import_solr_data_for_testing:
-    #     build:
-    #         context: ./import-solr-data-for-testing/
-    #     image: dockermediacloud/mediacloud-import-solr-data-for-testing:latest
-    #    env_file: global.env
-    #     environment:
-    #         # Stories to import into Solr on a single run
-    #         MC_SOLR_IMPORT_MAX_QUEUED_STORIES: "100000"
-    #     depends_on:
-    #         - postgresql_pgbouncer
-    #         - solr_shard
-    #     networks:
-    #         # Reads stories from PostgreSQL
-    #         - net_postgresql
-    #         # Imports stories to Solr
-    #         - net_solr
-    #     deploy:
-    #         # Only one instance
-    #         replicas: 1
-    #         # Auto-restart on crashes
-    #         restart_policy:
-    #             condition: on-failure
-    #         resources:
-    #             limits:
-    #                 # CPU core limit
-    #                 cpus: "16"
-    #                 # RAM limit
-    #                 memory: 4G
 
     #
     # Import stories by scraping Feedly
@@ -502,10 +469,10 @@ services:
             # NYTLabels annotator endpoint URL
             MC_NYTLABELS_ANNOTATOR_URL: ""
         depends_on:
-            - extract_and_vector
-            - predict_news_labels
-            - postgresql_pgbouncer
-            - rabbitmq_server
+            - mc_extract_and_vector
+            - mc_predict_news_labels
+            - mc_postgresql_pgbouncer
+            - mc_rabbitmq_server
         networks:
             # Accesses underlying NYT-Based News Tagger service
             - net_nytlabels_fetch_annotation_predict_news_labels
@@ -541,9 +508,9 @@ services:
             # Tag set to use for NYTLabels-derived tags
             MC_NYTLABELS_TAG_SET: "nyt_labels"
         depends_on:
-            - nytlabels_fetch_annotation
-            - postgresql_pgbouncer
-            - rabbitmq_server
+            - mc_nytlabels_fetch_annotation
+            - mc_postgresql_pgbouncer
+            - mc_rabbitmq_server
         networks:
             # Fetches raw annotation, stores tags to PostgreSQL
             - net_postgresql
@@ -572,7 +539,7 @@ services:
         image: dockermediacloud/mediacloud-postgresql-pgbouncer:latest
         env_file: global.env
         depends_on:
-            - postgresql_server
+            - mc_postgresql_server
         networks:
             # Exposed to the rest of the services through this network
             - net_postgresql
@@ -648,7 +615,7 @@ services:
         image: dockermediacloud/mediacloud-purge-object-caches:latest
         env_file: global.env
         depends_on:
-            - postgresql_pgbouncer
+            - mc_postgresql_pgbouncer
         networks:
             # Purges caches on PostgreSQL
             - net_postgresql
@@ -888,7 +855,7 @@ services:
             # (keep in sync with deploy/replicas)
             MC_SOLR_SHARD_COUNT: "24"
         depends_on:
-            - solr_zookeeper
+            - mc_solr_zookeeper
         networks:
             # Exposed to the rest of the services through this network
             - net_solr
@@ -953,7 +920,7 @@ services:
         image: dockermediacloud/mediacloud-topics-extract-story-links:latest
         env_file: global.env
         depends_on:
-            - extract_article_from_page
+            - mc_extract_article_from_page
         networks:
             # Fetches / stores topic links in PostgreSQL
             - net_postgresql
@@ -1141,7 +1108,7 @@ services:
         image: dockermediacloud/mediacloud-migrate-schema:latest
         env_file: global.env
         depends_on:
-            - postgresql_pgbouncer
+            - mc_postgresql_pgbouncer
         networks:
             # Manages PostgreSQL schema
             - net_postgresql
@@ -1168,9 +1135,9 @@ services:
         image: dockermediacloud/mediacloud-munin-node:latest
         depends_on:
             # Monitors data on PostgreSQL
-            - postgresql_pgbouncer
+            - mc_postgresql_pgbouncer
             # Monitors data on Solr
-            - solr_shard
+            - mc_solr_shard
         networks:
             # Communicates with Munin stats collector
             - net_munin
@@ -1201,7 +1168,7 @@ services:
         image: dockermediacloud/mediacloud-munin-cron:latest
         depends_on:
             # Reads data from Munin node
-            - munin_node
+            - mc_munin_node
         networks:
             # Communicates with Munin node
             - net_munin
@@ -1233,7 +1200,7 @@ services:
         image: dockermediacloud/mediacloud-munin-httpd:latest
         depends_on:
             # Reads data generated by Munin stats collector
-            - munin_cron
+            - mc_munin_cron
         volumes:
             # Shared with "munin_httpd" container:
             - vol_munin_data:/var/lib/munin/
@@ -1344,24 +1311,24 @@ services:
     # Portainer for cluster management
     # --------------------------------
     #
-    #mc_portainer:
-    #    image: portainer/portainer
-    #    ports:
-    #        # Web interface
-    #        - "9000:9000"
-    #    command: -H unix:///var/run/docker.sock
-    #    volumes:
-    #        - /var/run/docker.sock:/var/run/docker.sock
-    #        - vol_portainer_data:/data
-    #    deploy:
-    #        # Only one instance
-    #        replicas: 1
-    #        resources:
-    #            limits:
-    #                # CPU core limit
-    #                cpus: "1"
-    #                # RAM limit
-    #                memory: 1G
+    mc_portainer:
+       image: portainer/portainer
+       ports:
+           # Web interface
+           - "9000:9000"
+       command: -H unix:///var/run/docker.sock
+       volumes:
+           - /var/run/docker.sock:/var/run/docker.sock
+           - vol_portainer_data:/data
+       deploy:
+           # Only one instance
+           replicas: 1
+           resources:
+               limits:
+                   # CPU core limit
+                   cpus: "1"
+                   # RAM limit
+                   memory: 1G
 
 #
 # Networks
@@ -1457,5 +1424,5 @@ volumes:
     vol_munin_html: {}
 
     # Portainer data
-    #vol_portainer_data: {}
+    vol_portainer_data: {}
 
