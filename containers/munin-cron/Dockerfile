@@ -64,7 +64,7 @@ COPY bin/munin-cron.sh /
 
 # Reset cron jobs
 RUN \
-    echo "*/5 * * * * root /munin-cron.sh" > /etc/cron.d/munin && \
+    echo "*/5 * * * * root /munin-cron.sh 1> /dev/stdout 2> /dev/stderr" > /etc/cron.d/munin && \
     true
 
 # Volume for RRD data (shared with munin-httpd)
