@@ -19,14 +19,6 @@ RUN \
     rm -rf /var/www/* && \
     true
 
-# FIXME
-#
-# (optional) URL to redirect /login/register page to
-#apache2_redirect_login_register_url: https://tools.mediacloud.org/#/user/signup
-#
-# (optional) URL to redirect /login/forgot page to
-#apache2_redirect_login_forgot_url: https://tools.mediacloud.org/#/user/request-password-reset
-
 # Set up logging to STDOUT / STDERR
 RUN \
     rm -f /var/log/apache2/access.log && \
