@@ -81,8 +81,10 @@ def find_dup_story(db: DatabaseHandler, story: dict) -> bool:
     db_story = db.query("""
         SELECT *
         FROM stories
-        WHERE normalized_title_hash = md5( get_normalized_title( %(title)s, %(media_id)s ) )::uuid
-          AND media_id = %(media_id)s
+        WHERE
+            (md5(title) = md5(%(title)s OR
+                normalized_title_hash = md5( get_normalized_title( %(title)s, %(media_id)s ) )::uuid)
+            AND media_id = %(media_id)s
 
           -- We do the goofy " + interval '1 second'" to force postgres to use the stories_title_hash index
           AND date_trunc('day', publish_date)  + interval '1 second'
