@@ -1,0 +1,32 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+use FindBin;
+use lib $FindBin::Bin;
+
+use MediaWords::Munin;
+
+MediaWords::Munin::plugin({
+    title => 'Waiting queries: count',
+    info => 'Queries that are waiting for >1 minute: count',
+    vlabel => 'Count',
+    metrics => [
+        {
+            label => 'Waiting queries',
+            color => $COLOR1,
+            warning => { to => 20 },
+            value => sub {
+                my $db = shift;
+                return $db->query(<<SQL
+                    SELECT COUNT(1)
+                    FROM pg_stat_activity
+                    WHERE state NOT LIKE 'idle%'
+                      AND query_start < NOW() - '10 minutes'::interval
+SQL
+                )->flat->[0];
+            },
+        },
+    ],
+});

@@ -1,0 +1,43 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+use FindBin;
+use lib $FindBin::Bin;
+
+use MediaWords::Munin;
+use LWP::UserAgent;
+
+my $ua = LWP::UserAgent->new;
+$ua->timeout(10);
+
+# Squarespace doesn't like LWP::UserAgent's UA
+$ua->agent('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.133 Safari/537.36');
+
+MediaWords::Munin::plugin({
+    title => 'Websites',
+    info => 'Websites that are up',
+    vlabel => 'Up',
+    args => '--base 1000 --upper-limit 1 -l 0',
+    metrics => [
+        {
+            label => 'api.mediacloud.org',
+            suffix => 'api',
+            color => $COLOR3,
+            critical => { from => 1 },
+            value => sub {
+                my $response = $ua->get('https://api.mediacloud.org/api/v2/stories_public/list');
+
+                # Don't test whether request was successful (because it wasn't)
+                if ( $response->decoded_content =~ /Invalid API key or authentication cookie/i ) {
+                    # Up
+                    return 1;
+                } else {
+                    # Down
+                    return 0;
+                }
+            },
+        },
+    ],
+});

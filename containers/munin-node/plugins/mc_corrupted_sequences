@@ -1,0 +1,112 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+use FindBin;
+use lib $FindBin::Bin;
+
+use MediaWords::Munin;
+
+MediaWords::Munin::plugin({
+    title => 'Corrupted sequences',
+    info => 'Sequences where MAX(primary_key) > sequence\'s last value',
+    vlabel => 'Count',
+    metrics => [
+        {
+            label => 'Corrupted sequences',
+            color => $COLOR1,
+            critical => { to => 0 },
+            value => sub {
+                my $db = shift;
+
+                my $corrupted_sentences = $db->query(<<'SQL'
+
+                    CREATE OR REPLACE FUNCTION pg_temp.find_corrupted_sequences()
+                    RETURNS TABLE(
+                        tablename VARCHAR,
+                        maxid BIGINT,
+                        sequenceval BIGINT
+                    ) AS $$
+                    DECLARE
+                        r RECORD;
+                    BEGIN
+
+                        SET client_min_messages TO WARNING;
+                        DROP TABLE IF EXISTS temp_corrupted_sequences;
+                        CREATE TEMPORARY TABLE temp_corrupted_sequences (
+                            tablename VARCHAR NOT NULL UNIQUE,
+                            maxid BIGINT,
+                            sequenceval BIGINT
+                        ) ON COMMIT DROP;
+                        SET client_min_messages TO NOTICE;
+
+                        FOR r IN (
+
+                            -- Get all tables, their primary keys and serial sequence names
+                            SELECT t.relname AS tablename,
+                                   primarykey AS idcolumn,
+                                   pg_get_serial_sequence(t.relname, primarykey) AS serialsequence
+                            FROM pg_constraint AS c
+                                JOIN pg_class AS t ON c.conrelid = t.oid
+                                JOIN pg_namespace nsp ON nsp.oid = t.relnamespace
+                                JOIN (
+                                    SELECT a.attname AS primarykey,
+                                           i.indrelid
+                                    FROM pg_index AS i
+                                        JOIN pg_attribute AS a
+                                            ON a.attrelid = i.indrelid AND a.attnum = ANY(i.indkey)
+                                    WHERE i.indisprimary
+
+                                      -- Must be still live
+                                      AND NOT a.attisdropped
+
+                                ) AS pkey ON pkey.indrelid = t.relname::regclass
+                            WHERE conname LIKE '%_pkey'
+                              AND nsp.nspname = CURRENT_SCHEMA()
+
+                              -- Skip base tables for partitioned tables
+                              AND pg_get_serial_sequence(t.relname, primarykey) IS NOT NULL
+
+                            ORDER BY t.relname
+
+                        )
+                        LOOP
+
+                            -- Filter out the tables that have their max ID bigger than the last
+                            -- sequence value
+                            EXECUTE '
+                                INSERT INTO temp_corrupted_sequences
+                                    SELECT
+                                        tablename,
+                                        maxid,
+                                        sequenceval
+                                    FROM (
+                                        SELECT
+                                            ''' || r.tablename || ''' AS tablename,
+                                            MAX(' || r.idcolumn || ') AS maxid,
+                                            (SELECT last_value FROM ' || r.serialsequence || ') AS sequenceval
+                                        FROM ' || r.tablename || '
+                                    ) AS id_and_sequence
+                                    WHERE maxid > sequenceval
+                            ';
+
+                        END LOOP;
+
+                        RETURN QUERY
+                            SELECT *
+                            FROM temp_corrupted_sequences
+                            ORDER BY tablename;
+
+                    END
+                    $$
+                    LANGUAGE 'plpgsql';
+
+                    SELECT * FROM pg_temp.find_corrupted_sequences();
+SQL
+                )->hashes;
+                return scalar( @{ $corrupted_sentences } );
+            },
+        },
+    ],
+});

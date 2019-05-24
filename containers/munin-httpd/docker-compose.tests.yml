@@ -1,0 +1,101 @@
+version: "3.7"
+
+services:
+
+    mc_munin_httpd:
+        image: dockermediacloud/mediacloud-munin-httpd:latest
+        stop_signal: SIGKILL
+        ports:
+            # Expose to host
+            - "8081:80"
+        volumes:
+            - type: bind
+              source: ./lighttpd/
+              target: /etc/lighttpd/
+            # Shared with mc_munin_cron:
+            - vol_munin_data:/var/lib/munin/
+            - vol_munin_html:/var/cache/munin/www/
+        depends_on:
+            - mc_munin_cron
+
+    mc_munin_cron:
+        image: dockermediacloud/mediacloud-munin-cron:latest
+        stop_signal: SIGKILL
+        volumes:
+            - type: bind
+              source: ./../munin-cron/munin-conf.d/
+              target: /etc/munin/munin-conf.d/
+            # Shared with mc_munin_httpd:
+            - vol_munin_data:/var/lib/munin/
+            - vol_munin_html:/var/cache/munin/www/
+        depends_on:
+            - mc_munin_node
+
+    mc_munin_node:
+        image: dockermediacloud/mediacloud-munin-node:latest
+        stop_signal: SIGKILL
+        volumes:
+            - type: bind
+              source: ./../munin-node/plugins/
+              target: /etc/munin/plugins/
+        depends_on:
+            # Monitors a bunch of stuff on PostgreSQL
+            - mc_migrate_schema
+            # Monitors stuff on Solr too
+            - mc_solr_shard
+
+    mc_migrate_schema:
+        image: dockermediacloud/mediacloud-migrate-schema:latest
+        env_file: ./../global.env.dist
+        stop_signal: SIGKILL
+        depends_on:
+            - mc_postgresql_pgbouncer
+
+    mc_postgresql_pgbouncer:
+        image: dockermediacloud/mediacloud-postgresql-pgbouncer:latest
+        env_file: ./../global.env.dist
+        stop_signal: SIGKILL
+        expose:
+            - 6432
+        depends_on:
+            - mc_postgresql_server
+
+    mc_postgresql_server:
+        image: dockermediacloud/mediacloud-postgresql-server:latest
+        env_file: ./../global.env.dist
+        stop_signal: SIGKILL
+        expose:
+            - 5432
+        volumes:
+            - vol_postgresql_data:/var/lib/postgresql/11/main/
+
+    mc_solr_shard:
+        image: dockermediacloud/mediacloud-solr-shard:latest
+        env_file: ./../global.env.dist
+        stop_signal: SIGKILL
+        environment:
+            MC_SOLR_SHARD_COUNT: "1"
+        expose:
+            - 8983
+        volumes:
+            - vol_solr_shard_data:/var/lib/solr/
+        depends_on:
+            - mc_solr_zookeeper
+
+    mc_solr_zookeeper:
+        image: dockermediacloud/mediacloud-solr-zookeeper:latest
+        env_file: ./../global.env.dist
+        stop_signal: SIGKILL
+        expose:
+            - 2181
+            - 2888
+            - 3888
+        volumes:
+            - vol_solr_zookeeper_data:/var/lib/zookeeper/
+
+volumes:
+    vol_munin_data: {}
+    vol_munin_html: {}
+    vol_postgresql_data: {}
+    vol_solr_shard_data: {}
+    vol_solr_zookeeper_data: {}
