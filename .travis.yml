@@ -51,7 +51,7 @@ env:
     # Crimson Hexagon API key:
     #
     # * MC_CRIMSON_HEXAGON_API_KEY
-    secure: "QQ5o6mN3h4d417+8jL36QxDtbVW9xXQ+TjkfvOJsb9hgKyrcv0pV0UDn4Kpawto1wGYJnnG4YWxu8wfnd9gaOEwbygXzcHfvG6pe4adrKhvrjy3PhEmLHAs/19eL22975J9xTLQY7qJqVhyly1m64ZAlxCdvr+KdQZmsch5aDEY="
+    - secure: "QQ5o6mN3h4d417+8jL36QxDtbVW9xXQ+TjkfvOJsb9hgKyrcv0pV0UDn4Kpawto1wGYJnnG4YWxu8wfnd9gaOEwbygXzcHfvG6pe4adrKhvrjy3PhEmLHAs/19eL22975J9xTLQY7qJqVhyly1m64ZAlxCdvr+KdQZmsch5aDEY="
 
     # Univision API test credentials:
     # (disabled as currently the feed is empty)
