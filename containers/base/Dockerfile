@@ -50,8 +50,16 @@ RUN \
         # Sending mail via sendmail utility through mc_mail_postfix_server
         ssmtp \
         tzdata \
+        # Basic editor for files in container while debugging
+        # (full vim doesn't cut it because it's too big and also installs
+        # Python 3.5 which might interfere with a newer Python 3.7 that we use
+        # for our app)
+        vim-tiny \
     && \
     true
+
+# Symlink vim
+RUN ln -s /usr/bin/vim.tiny /usr/bin/vim
 
 # Copy rsyslog configuration
 COPY conf/rsyslog.conf /etc/
