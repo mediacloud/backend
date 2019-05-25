@@ -6,8 +6,8 @@ services:
         image: dockermediacloud/mediacloud-munin-httpd:latest
         stop_signal: SIGKILL
         ports:
-            # Expose to host
-            - "80:8081"
+            # Expose to host for debugging
+            - "8081:80"
         volumes:
             - type: bind
               source: ./lighttpd/

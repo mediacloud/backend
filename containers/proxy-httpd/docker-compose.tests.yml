@@ -7,8 +7,9 @@ services:
         environment:
             MC_PROXY_HTTPD_AUTH_USERS: "${MC_PROXY_HTTPD_AUTH_USERS}"
         ports:
+            # Expose to host for debugging
             - "80:8080"
-            - "443:4443"
+            - "4443:443"
         volumes:
             - type: bind
               source: ./nginx/

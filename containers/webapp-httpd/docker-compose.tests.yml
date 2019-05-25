@@ -6,7 +6,8 @@ services:
         image: dockermediacloud/mediacloud-webapp-httpd:latest
         stop_signal: SIGKILL
         ports:
-            - "80:8080"
+            # Expose to host for debugging
+            - "8080:80"
         depends_on:
             - mc_webapp_api
 
