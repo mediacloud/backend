@@ -22,11 +22,6 @@ services:
             - mc_extract_and_vector
             - mc_postgresql_pgbouncer
             - mc_rabbitmq_server
-        networks:
-            # Stores fetched raw annotation to PostgreSQL
-            - net_postgresql
-            # Celery worker
-            - net_rabbitmq
         deploy:
             # Worker count
             replicas: 4
@@ -62,11 +57,6 @@ services:
             - mc_cliff_fetch_annotation
             - mc_postgresql_pgbouncer
             - mc_rabbitmq_server
-        networks:
-            # Fetches raw annotation, stores tags to PostgreSQL
-            - net_postgresql
-            # Celery worker
-            - net_rabbitmq
         deploy:
             # Worker count
             replicas: 1
@@ -91,9 +81,6 @@ services:
         env_file: global.env
         depends_on:
             - mc_postgresql_pgbouncer
-        networks:
-            # Writes provided downloads to PostgreSQL
-            - net_postgresql
         deploy:
             # Only one instance
             replicas: 1
@@ -119,11 +106,6 @@ services:
         depends_on:
             - mc_postgresql_pgbouncer
             - mc_rabbitmq_server
-        networks:
-            # Writes fetched downloads to PostgreSQL
-            - net_postgresql
-            # Adds extractor jobs
-            - net_rabbitmq
         deploy:
             # Worker count
             replicas: 8
@@ -148,9 +130,6 @@ services:
         env_file: global.env
         depends_on:
             - mc_postgresql_pgbouncer
-        networks:
-            # Creates partitions on PostgreSQL
-            - net_postgresql
         deploy:
             # Only one instance
             replicas: 1
@@ -200,11 +179,6 @@ services:
             - mc_crawler
             - mc_postgresql_pgbouncer
             - mc_rabbitmq_server
-        networks:
-            # Fetches / stores extracted data to PostgreSQL
-            - net_postgresql
-            # Celery worker
-            - net_rabbitmq
         deploy:
             # Worker count
             replicas: 24
@@ -238,11 +212,6 @@ services:
             - mc_extract_and_vector
             - mc_postgresql_pgbouncer
             - mc_rabbitmq_server
-        networks:
-            # Stores Facebook stats in PostgreSQL
-            - net_postgresql
-            # Celery worker
-            - net_rabbitmq
         deploy:
             # Worker count
             replicas: 4
@@ -267,9 +236,6 @@ services:
         env_file: global.env
         depends_on:
             - mc_postgresql_pgbouncer
-        networks:
-            # Generates RSS report using data from PostgreSQL
-            - net_postgresql
         volumes:
             # Shared with "webapp-httpd" container:
             - vol_daily_rss_dumps:/var/lib/daily_rss_dumps/
@@ -295,9 +261,6 @@ services:
             context: ./cron-generate-media-health/
         image: dockermediacloud/mediacloud-cron-generate-media-health:latest
         env_file: global.env
-        networks:
-            # Generates media health report from PostgreSQL
-            - net_postgresql
         deploy:
             # Only one instance
             replicas: 1
@@ -322,9 +285,6 @@ services:
         env_file: global.env
         depends_on:
             - mc_postgresql_pgbouncer
-        networks:
-            # Reads users from PostgreSQL
-            - net_postgresql
         deploy:
             # Only one instance
             replicas: 1
@@ -353,11 +313,6 @@ services:
         depends_on:
             - mc_postgresql_pgbouncer
             - mc_solr_shard
-        networks:
-            # Reads stories from PostgreSQL
-            - net_postgresql
-            # Imports stories to Solr
-            - net_solr
         deploy:
             # Only one instance
             replicas: 1
@@ -405,11 +360,8 @@ services:
             context: ./mail-opendkim-server/
         image: dockermediacloud/mediacloud-mail-opendkim-server:latest
         env_file: global.env
-        networks:
-            # Accessed by Postfix only
-            - net_postfix_opendkim
-        # Expose OpenDKIM to host computer
         ports:
+            # Expose OpenDKIM to host computer
             - "12301"
         deploy:
             # Only one instance
@@ -433,11 +385,6 @@ services:
             context: ./mail-postfix-server/
         image: dockermediacloud/mediacloud-mail-postfix-server:latest
         env_file: global.env
-        networks:
-            # Exposed to the rest of the services through this network
-            - net_postfix
-            # Accesses underlying OpenDKIM instance
-            - net_postfix_opendkim
         expose:
             # Expose SMTP to mail senders
             - "25"
@@ -473,13 +420,6 @@ services:
             - mc_predict_news_labels
             - mc_postgresql_pgbouncer
             - mc_rabbitmq_server
-        networks:
-            # Accesses underlying NYT-Based News Tagger service
-            - net_nytlabels_fetch_annotation_predict_news_labels
-            # Stores fetched raw annotation to PostgreSQL
-            - net_postgresql
-            # Celery worker
-            - net_rabbitmq
         deploy:
             # Worker count
             replicas: 4
@@ -511,11 +451,6 @@ services:
             - mc_nytlabels_fetch_annotation
             - mc_postgresql_pgbouncer
             - mc_rabbitmq_server
-        networks:
-            # Fetches raw annotation, stores tags to PostgreSQL
-            - net_postgresql
-            # Celery worker
-            - net_rabbitmq
         deploy:
             # Worker count
             replicas: 1
@@ -540,11 +475,6 @@ services:
         env_file: global.env
         depends_on:
             - mc_postgresql_server
-        networks:
-            # Exposed to the rest of the services through this network
-            - net_postgresql
-            # Accesses underlying PostgreSQL instance
-            - net_postgresql_pgbouncer
         expose:
             - 6432
         deploy:
@@ -563,9 +493,6 @@ services:
             context: ./postgresql-server/
         image: dockermediacloud/mediacloud-postgresql-server:latest
         env_file: global.env
-        networks:
-            # Not in "net_postgresql" because accessed through PgBouncer
-            - net_postgresql_pgbouncer
         expose:
             - 5432
         volumes:
@@ -586,9 +513,6 @@ services:
             context: ./predict-news-labels/
         image: dockermediacloud/mediacloud-predict-news-labels:latest
         env_file: global.env
-        networks:
-            # Accessed by nytlabels_fetch_annotation only
-            - net_nytlabels_fetch_annotation_predict_news_labels
         expose:
             - 8080
         deploy:
@@ -616,9 +540,6 @@ services:
         env_file: global.env
         depends_on:
             - mc_postgresql_pgbouncer
-        networks:
-            # Purges caches on PostgreSQL
-            - net_postgresql
         deploy:
             # Only one instance
             replicas: 1
@@ -641,9 +562,6 @@ services:
             context: ./rabbitmq-server/
         image: dockermediacloud/mediacloud-rabbitmq-server:latest
         env_file: global.env
-        networks:
-            # Exposed to the rest of the services through this network
-            - net_rabbitmq
         expose:
             - 5672
             - 15672
@@ -671,9 +589,6 @@ services:
             context: ./cron-refresh-stats/
         image: dockermediacloud/mediacloud-cron-refresh-stats:latest
         env_file: global.env
-        networks:
-            # Refreshes stats on PostgreSQL
-            - net_postgresql
         deploy:
             # Only one instance
             replicas: 1
@@ -696,11 +611,6 @@ services:
             context: ./cron-rescrape-due-media/
         image: dockermediacloud/mediacloud-cron-rescrape-due-media:latest
         env_file: global.env
-        networks:
-            # Fetches media to rescrape from PostgreSQL
-            - net_postgresql
-            # Adds rescraping jobs to RabbitMQ
-            - net_rabbitmq
         deploy:
             # Only one instance
             replicas: 1
@@ -723,11 +633,6 @@ services:
             context: ./rescrape-media/
         image: dockermediacloud/mediacloud-rescrape-media:latest
         env_file: global.env
-        networks:
-            # Fetches media to rescrape from PostgreSQL
-            - net_postgresql
-            # Celery worker
-            - net_rabbitmq
         deploy:
             # Worker count
             replicas: 2
@@ -750,9 +655,6 @@ services:
             context: ./cron-rescraping-changes/
         image: dockermediacloud/mediacloud-cron-rescraping-changes:latest
         env_file: global.env
-        networks:
-            # Fetches media to rescrape from PostgreSQL
-            - net_postgresql
         deploy:
             # Only one instance
             replicas: 1
@@ -775,9 +677,6 @@ services:
             context: ./cron-set-media-primary-language/
         image: dockermediacloud/mediacloud-cron-set-media-primary-language:latest
         env_file: global.env
-        networks:
-            # Fetches media from PostgreSQL
-            - net_postgresql
         deploy:
             # Only one instance
             replicas: 1
@@ -800,9 +699,6 @@ services:
             context: ./cron-set-media-subject-country/
         image: dockermediacloud/mediacloud-cron-set-media-subject-country:latest
         env_file: global.env
-        networks:
-            # Fetches media from PostgreSQL
-            - net_postgresql
         deploy:
             # Only one instance
             replicas: 1
@@ -825,9 +721,6 @@ services:
             context: ./cron-print-long-running-job-states/
         image: dockermediacloud/mediacloud-cron-print-long-running-job-states:latest
         env_file: global.env
-        networks:
-            # Reads the states from PostgreSQL
-            - net_postgresql
         deploy:
             # Only one instance
             replicas: 1
@@ -856,11 +749,6 @@ services:
             MC_SOLR_SHARD_COUNT: "24"
         depends_on:
             - mc_solr_zookeeper
-        networks:
-            # Exposed to the rest of the services through this network
-            - net_solr
-            # Accesses underlying ZooKeeper instance
-            - net_solr_zookeeper
         expose:
             - 8983
         volumes:
@@ -888,9 +776,6 @@ services:
             context: ./solr-zookeeper/
         image: dockermediacloud/mediacloud-solr-zookeeper:latest
         env_file: global.env
-        networks:
-            # Not in "net_solr" because only Solr shards use it
-            - net_solr_zookeeper
         expose:
             - 2181
             - 2888
@@ -921,11 +806,6 @@ services:
         env_file: global.env
         depends_on:
             - mc_extract_article_from_page
-        networks:
-            # Fetches / stores topic links in PostgreSQL
-            - net_postgresql
-            # Celery worker
-            - net_rabbitmq
         deploy:
             # Worker count
             replicas: 32
@@ -948,11 +828,6 @@ services:
             context: ./topics-fetch-link/
         image: dockermediacloud/mediacloud-topics-fetch-link:latest
         env_file: global.env
-        networks:
-            # Fetches / stores links in PostgreSQL
-            - net_postgresql
-            # Celery worker
-            - net_rabbitmq
         deploy:
             # Worker count
             replicas: 8
@@ -984,11 +859,6 @@ services:
             MC_TWITTER_ACCESS_TOKEN: ""
             # Twitter API access token secret
             MC_TWITTER_ACCESS_TOKEN_SECRET: ""
-        networks:
-            # Fetches / stores URLs in PostgreSQL
-            - net_postgresql
-            # Celery worker
-            - net_rabbitmq
         deploy:
             # Worker count
             replicas: 8
@@ -1014,13 +884,6 @@ services:
         environment:
             # Crimson Hexagon API key
             MC_CRIMSON_HEXAGON_API_KEY: ""
-        networks:
-            # Fetches / stores links in PostgreSQL
-            - net_postgresql
-            # Uses Solr for seed queries and whatnot
-            - net_solr
-            # Celery worker
-            - net_rabbitmq
         deploy:
             # Worker count
             replicas: 4
@@ -1046,13 +909,6 @@ services:
         environment:
             # Crimson Hexagon API key
             MC_CRIMSON_HEXAGON_API_KEY: ""
-        networks:
-            # Fetches / stores links in PostgreSQL
-            - net_postgresql
-            # Uses Solr for seed queries and whatnot
-            - net_solr
-            # Celery worker
-            - net_rabbitmq
         deploy:
             # Worker count
             replicas: 4
@@ -1078,13 +934,6 @@ services:
         environment:
             # Not sure what this is.
             MC_TOPICS_SNAPSHOT_MODEL_REPS: "0"
-        networks:
-            # Fetches / stores links in PostgreSQL
-            - net_postgresql
-            # Uses Solr for story matching
-            - net_solr
-            # Celery worker
-            - net_rabbitmq
         deploy:
             # Worker count
             replicas: 2
@@ -1109,9 +958,6 @@ services:
         env_file: global.env
         depends_on:
             - mc_postgresql_pgbouncer
-        networks:
-            # Manages PostgreSQL schema
-            - net_postgresql
         deploy:
             # Only a single DDL script
             replicas: 1
@@ -1138,13 +984,6 @@ services:
             - mc_postgresql_pgbouncer
             # Monitors data on Solr
             - mc_solr_shard
-        networks:
-            # Communicates with Munin stats collector
-            - net_munin
-            # Accesses PostgreSQL
-            - net_postgresql
-            # Accesses Solr
-            - net_solr
         deploy:
             # Only a single instance
             replicas: 1
@@ -1169,9 +1008,6 @@ services:
         depends_on:
             # Reads data from Munin node
             - mc_munin_node
-        networks:
-            # Communicates with Munin node
-            - net_munin
         volumes:
             # Shared with "munin_httpd" container:
             - vol_munin_data:/var/lib/munin/
@@ -1228,11 +1064,6 @@ services:
             context: ./sitemap-fetch-media-pages/
         image: dockermediacloud/mediacloud-sitemap-fetch-media-pages:latest
         env_file: global.env
-        networks:
-            # Stores links to PostgreSQL
-            - net_postgresql
-            # Celery worker
-            - net_rabbitmq
         deploy:
             # Worker count
             replicas: 1
@@ -1254,17 +1085,6 @@ services:
         build:
             context: ./webapp-api/
         image: dockermediacloud/mediacloud-webapp-api:latest
-        networks:
-            # Communicates with HTTP server
-            - net_webapp
-            # Uses PostgreSQL to fetch / store data
-            - net_postgresql
-            # Adds Celery jobs
-            - net_rabbitmq
-            # Uses Solr for searching
-            - net_solr
-            # Sends email to new / existing users
-            - net_postfix
         expose:
             # Plackup FastCGI worker port to be used by webapp_httpd
             - "9090"
@@ -1289,9 +1109,6 @@ services:
         build:
             context: ./webapp-httpd/
         image: dockermediacloud/mediacloud-webapp-httpd:latest
-        networks:
-            # Communicates with FastCGI workers
-            - net_webapp
         expose:
             # Expose HTTP port to reverse proxy
             - "80"
@@ -1398,11 +1215,6 @@ services:
             context: ./word2vec-generate-snapshot-model/
         image: dockermediacloud/mediacloud-word2vec-generate-snapshot-model:latest
         env_file: global.env
-        networks:
-            # Fetches sentences / stores model in PostgreSQL
-            - net_postgresql
-            # Celery worker
-            - net_rabbitmq
         deploy:
             # Worker count
             replicas: 1
@@ -1438,70 +1250,6 @@ services:
                    cpus: "1"
                    # RAM limit
                    memory: 1G
-
-#
-# Networks
-# ========
-#
-networks:
-
-    #
-    # PostgreSQL client network
-    # -------------------------
-    #
-    net_postgresql: {}
-
-    #
-    # Solr client network
-    # -------------------
-    #
-    net_solr: {}
-
-    #
-    # RabbitMQ client network
-    # -----------------------
-    #
-    net_rabbitmq: {}
-
-    #
-    # Postfix client network
-    # ----------------------
-    #
-    net_postfix: {}
-
-    #
-    # Webapp's HTTP server and FastCGI workers
-    net_webapp: {}
-
-    #
-    # PostgreSQL-PgBouncer internal network
-    # -------------------------------------
-    #
-    net_postgresql_pgbouncer: {}
-
-    #
-    # Solr-Zookeeper internal network
-    # -------------------------------
-    #
-    net_solr_zookeeper: {}
-
-    #
-    # Postfix-OpenDKIM internal network
-    # ---------------------------------
-    #
-    net_postfix_opendkim: {}
-
-    #
-    # NYTLabels fetch annotation - NYT-Based News Tagger service internal network
-    # ---------------------------------------------------------------------------
-    #
-    net_nytlabels_fetch_annotation_predict_news_labels: {}
-
-    #
-    # Munin node + stats collector internal network
-    # ---------------------------------------------
-    net_munin: {}
-
 
 #
 # Volumes
