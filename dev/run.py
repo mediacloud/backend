@@ -67,28 +67,28 @@ def _project_name(container_name: str, command: str) -> str:
     return project_name
 
 
-def docker_run_commands(all_containers_dir: str, container_dirname: str, command: str) -> List[List[str]]:
+def docker_run_commands(all_apps_dir: str, app_dirname: str, command: str) -> List[List[str]]:
     """
     Return a list commands to execute in order to run a command in the main container within Compose environment.
 
-    :param all_containers_dir: Directory with container subdirectories.
-    :param container_dirname: Main container's directory name.
+    :param all_apps_dir: Directory with container subdirectories.
+    :param app_dirname: Main container's directory name.
     :param command: Command to run in the main container.
     :return: List of commands (as lists) to execute in order to run a command.
     """
-    if not os.path.isdir(all_containers_dir):
-        raise ValueError("Containers directory '{}' does not exist.".format(all_containers_dir))
+    if not os.path.isdir(all_apps_dir):
+        raise ValueError("Apps directory '{}' does not exist.".format(all_apps_dir))
 
-    all_containers_dir = os.path.abspath(all_containers_dir)
+    all_apps_dir = os.path.abspath(all_apps_dir)
 
-    main_container_dir = os.path.join(all_containers_dir, container_dirname)
+    main_container_dir = os.path.join(all_apps_dir, app_dirname)
 
     docker_compose_path = os.path.join(main_container_dir, DOCKER_COMPOSE_FILENAME)
     if not os.path.isfile(docker_compose_path):
         raise ValueError("docker-compose configuration was not found at '{}'.".format(docker_compose_path))
 
-    container_dirname = Path(main_container_dir).parts[-1]
-    container_name = "mc_" + container_dirname.replace('-', '_')
+    app_dirname = Path(main_container_dir).parts[-1]
+    container_name = "mc_" + app_dirname.replace('-', '_')
 
     try:
         _validate_docker_compose_yml(docker_compose_path=docker_compose_path, container_name=container_name)
@@ -148,12 +148,12 @@ class DockerRunArguments(DockerArguments):
     Arguments with a container directory name and command.
     """
 
-    def container_dirname(self) -> str:
+    def app_dirname(self) -> str:
         """
         Return main container's directory name.
         :return: Main container's directory name, e.g. 'common'.
         """
-        return self._args.container_dirname
+        return self._args.app_dirname
 
     def command(self) -> str:
         """
@@ -176,7 +176,7 @@ class DockerRunArgumentParser(DockerArgumentParser):
         :param description: Description of the script to print when "--help" is passed.
         """
         super().__init__(description=description)
-        self._parser.add_argument('container_dirname', type=str, help="Main container directory name, e.g. 'common'.")
+        self._parser.add_argument('app_dirname', type=str, help="Main app directory name, e.g. 'common'.")
         self._parser.add_argument('command', type=str, help="Command to run, e.g. '/bin/bash'.")
 
     def parse_arguments(self) -> DockerRunArguments:
@@ -192,7 +192,7 @@ if __name__ == '__main__':
     parser = DockerRunArgumentParser(description='Print commands to run an arbitrary command in Compose environment.')
     args = parser.parse_arguments()
 
-    for command_ in docker_run_commands(all_containers_dir=args.all_containers_dir(),
-                                        container_dirname=args.container_dirname(),
+    for command_ in docker_run_commands(all_apps_dir=args.all_apps_dir(),
+                                        app_dirname=args.app_dirname(),
                                         command=args.command()):
         print(' '.join(command_))

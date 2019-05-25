@@ -30,20 +30,20 @@ class DockerImageToBuild(object):
         self.tag = tag
 
 
-def _docker_images_to_build(all_containers_dir: str, conf: DockerHubConfiguration) -> List[DockerImageToBuild]:
+def _docker_images_to_build(all_apps_dir: str, conf: DockerHubConfiguration) -> List[DockerImageToBuild]:
     """
     Return an ordered list of Docker images to build.
 
-    :param all_containers_dir: Directory with container subdirectories.
+    :param all_apps_dir: Directory with app subdirectories.
     :param conf: Docker Hub configuration object.
     :return: List of Docker images to build in that order.
     """
 
     images_to_build = []
 
-    for dependency in docker_images(all_containers_dir=all_containers_dir, only_belonging_to_user=True, conf=conf):
+    for dependency in docker_images(all_apps_dir=all_apps_dir, only_belonging_to_user=True, conf=conf):
         container_name = container_dir_name_from_image_name(image_name=dependency, conf=conf)
-        container_path = os.path.join(all_containers_dir, container_name)
+        container_path = os.path.join(all_apps_dir, container_name)
 
         if not os.path.isdir(container_path):
             raise ValueError("Container path is not a directory: '{}'".format(container_path))
@@ -65,7 +65,7 @@ if __name__ == '__main__':
     args = parser.parse_arguments()
     conf_ = args.docker_hub_configuration()
 
-    for image in _docker_images_to_build(all_containers_dir=args.all_containers_dir(), conf=conf_):
+    for image in _docker_images_to_build(all_apps_dir=args.all_apps_dir(), conf=conf_):
         print('docker build --cache-from {image_name} --tag {image_name} {container_path}'.format(
             image_name=image.tag,
             container_path=image.path,

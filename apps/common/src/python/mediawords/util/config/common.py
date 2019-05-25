@@ -302,7 +302,7 @@ class UserAgentConfig(object):
 
 
 class CommonConfig(object):
-    """Global configuration (shared by all the containers)."""
+    """Global configuration (shared by all the apps)."""
 
     @staticmethod
     def database() -> DatabaseConfig:

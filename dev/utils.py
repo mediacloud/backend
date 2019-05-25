@@ -134,20 +134,20 @@ def _image_belongs_to_username(image_name: str, conf: DockerHubConfiguration) ->
     return image_name.startswith(conf.username + '/')
 
 
-def _container_dependency_map(all_containers_dir: str, conf: DockerHubConfiguration) -> Dict[str, str]:
+def _container_dependency_map(all_apps_dir: str, conf: DockerHubConfiguration) -> Dict[str, str]:
     """
     Determine which container depends on which parent image.
 
-    :param all_containers_dir: Directory with container subdirectories.
+    :param all_apps_dir: Directory with container subdirectories.
     :param conf: Docker Hub configuration object.
     :return: Map of dependent - dependency container directory names.
     """
-    if not os.path.isdir(all_containers_dir):
-        raise ValueError("All containers directory does not exist: '{}'".format(all_containers_dir))
+    if not os.path.isdir(all_apps_dir):
+        raise ValueError("All apps directory does not exist: '{}'".format(all_apps_dir))
 
     parent_images = {}
 
-    for container_path in glob.glob('{}/*'.format(all_containers_dir)):
+    for container_path in glob.glob('{}/*'.format(all_apps_dir)):
         if os.path.isdir(container_path):
             container_name = os.path.basename(container_path)
             image_name = _image_name_from_container_name(container_name=container_name, conf=conf)
@@ -200,29 +200,29 @@ def _ordered_container_dependencies(dependencies: Dict[str, str]) -> List[Set[st
     return tree
 
 
-def _ordered_dependencies_from_directory(all_containers_dir: str, conf: DockerHubConfiguration) -> List[Set[str]]:
+def _ordered_dependencies_from_directory(all_apps_dir: str, conf: DockerHubConfiguration) -> List[Set[str]]:
     """
     Return a list of sets of container names to build in order.
 
-    :param all_containers_dir: Directory with container subdirectories.
+    :param all_apps_dir: Directory with container subdirectories.
     :param conf: Docker Hub configuration object.
     :return: List of sets of container names in the order in which they should be built.
     """
-    dependency_map = _container_dependency_map(all_containers_dir=all_containers_dir, conf=conf)
+    dependency_map = _container_dependency_map(all_apps_dir=all_apps_dir, conf=conf)
     ordered_dependencies = _ordered_container_dependencies(dependency_map)
     return ordered_dependencies
 
 
-def docker_images(all_containers_dir: str, only_belonging_to_user: bool, conf: DockerHubConfiguration) -> List[str]:
+def docker_images(all_apps_dir: str, only_belonging_to_user: bool, conf: DockerHubConfiguration) -> List[str]:
     """
     Return a list of Docker images to pull / build / push in the correct order.
 
-    :param all_containers_dir: Directory with container subdirectories.
+    :param all_apps_dir: Directory with container subdirectories.
     :param only_belonging_to_user: If True, return only the images that belong to the configured user.
     :param conf: Docker Hub configuration object.
     :return: List of tagged Docker images to pull / build / push in the correct order.
     """
-    ordered_dependencies = _ordered_dependencies_from_directory(all_containers_dir=all_containers_dir, conf=conf)
+    ordered_dependencies = _ordered_dependencies_from_directory(all_apps_dir=all_apps_dir, conf=conf)
 
     images = []
 
@@ -256,13 +256,13 @@ class DockerArguments(object):
         """
         self._args = args
 
-    def all_containers_dir(self) -> str:
+    def all_apps_dir(self) -> str:
         """
         Return directory with container subdirectories.
 
         :return Directory with container subdirectories.
         """
-        return self._args.all_containers_dir
+        return self._args.all_apps_dir
 
 
 class DockerArgumentParser(object):
@@ -287,7 +287,7 @@ class DockerArgumentParser(object):
         )
 
         args = [
-            '-c', '--all_containers_dir',
+            '-c', '--all_apps_dir',
         ]
         kwargs = {
             'type': str,
@@ -295,9 +295,9 @@ class DockerArgumentParser(object):
         }
 
         pwd = os.path.dirname(os.path.realpath(__file__))
-        expected_containers_dir = os.path.join(pwd, '../', 'containers')
-        if os.path.isdir(expected_containers_dir):
-            kwargs['default'] = expected_containers_dir
+        expected_apps_dir = os.path.join(pwd, '../', 'apps')
+        if os.path.isdir(expected_apps_dir):
+            kwargs['default'] = expected_apps_dir
         else:
             kwargs['required'] = True
 
@@ -324,8 +324,8 @@ class DockerHubArguments(DockerArguments):
         :return: DockerHubConfiguration object.
         """
 
-        if not os.path.isfile(os.path.join(self.all_containers_dir(), 'docker-compose.yml.dist')):
-            raise ValueError("Invalid directory with container subdirectories '{}'.".format(self.all_containers_dir()))
+        if not os.path.isfile(os.path.join(self.all_apps_dir(), 'docker-compose.yml.dist')):
+            raise ValueError("Invalid directory with container subdirectories '{}'.".format(self.all_apps_dir()))
 
         return DockerHubConfiguration(
             username=self._args.dockerhub_user,

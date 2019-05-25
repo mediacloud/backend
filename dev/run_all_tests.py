@@ -32,18 +32,18 @@ def _find_files_with_pattern(directory: str, filename_pattern: Pattern) -> List[
     return sorted(found_files)
 
 
-def docker_all_tests_commands(all_containers_dir: str) -> List[List[str]]:
+def docker_all_tests_commands(all_apps_dir: str) -> List[List[str]]:
     """
-    Return list commands to execute in order to run all test files from all containers.
+    Return list commands to execute in order to run all test files from all apps.
 
-    :param all_containers_dir: Directory with container subdirectories.
-    :return: List of commands (as lists) to execute in order to run all test files from all containers.
+    :param all_apps_dir: Directory with container subdirectories.
+    :return: List of commands (as lists) to execute in order to run all test files from all apps.
     """
 
-    if not os.path.isdir(all_containers_dir):
-        raise ValueError("Containers directory '{}' does not exist.".format(all_containers_dir))
+    if not os.path.isdir(all_apps_dir):
+        raise ValueError("Apps directory '{}' does not exist.".format(all_apps_dir))
 
-    all_containers_dir = os.path.abspath(all_containers_dir)
+    all_apps_dir = os.path.abspath(all_apps_dir)
 
     pwd = os.path.dirname(os.path.realpath(__file__))
     run_test_script = os.path.join(pwd, RUN_TEST_SCRIPT_FILENAME)
@@ -54,7 +54,7 @@ def docker_all_tests_commands(all_containers_dir: str) -> List[List[str]]:
 
     commands = list()
 
-    for container_path in sorted(glob.glob('{}/*'.format(all_containers_dir))):
+    for container_path in sorted(glob.glob('{}/*'.format(all_apps_dir))):
         if os.path.isdir(container_path):
 
             tests_dir = os.path.join(container_path, 'tests')
@@ -80,7 +80,7 @@ def docker_all_tests_commands(all_containers_dir: str) -> List[List[str]]:
             for test_file in perl_tests + python_tests:
                 commands.append([
                     run_test_script,
-                    '--all_containers_dir', all_containers_dir,
+                    '--all_apps_dir', all_apps_dir,
                     test_file,
                 ])
 
@@ -88,8 +88,8 @@ def docker_all_tests_commands(all_containers_dir: str) -> List[List[str]]:
 
 
 if __name__ == '__main__':
-    parser = DockerArgumentParser(description='Print commands to run all tests found in all containers.')
+    parser = DockerArgumentParser(description='Print commands to run all tests found in all apps.')
     args = parser.parse_arguments()
 
-    for command_ in docker_all_tests_commands(all_containers_dir=args.all_containers_dir()):
+    for command_ in docker_all_tests_commands(all_apps_dir=args.all_apps_dir()):
         print('bash <(' + ' '.join(command_) + ')')

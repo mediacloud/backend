@@ -1,21 +1,21 @@
 [submodule "doc/api_2_0_spec/github-markdown-toc"]
 	path = doc/api_2_0_spec/github-markdown-toc
 	url = https://github.com/ekalinin/github-markdown-toc.git
-[submodule "containers/predict-news-labels/src/MediaCloud-NYT-News-Labeler"]
-	path = containers/predict-news-labels/src/MediaCloud-NYT-News-Labeler
+[submodule "apps/predict-news-labels/src/MediaCloud-NYT-News-Labeler"]
+	path = apps/predict-news-labels/src/MediaCloud-NYT-News-Labeler
 	url = https://github.com/mitmedialab/MediaCloud-NYT-News-Labeler.git
-[submodule "containers/common/src/python/mediawords/languages/hi/hindi-hunspell"]
-	path = containers/common/src/python/mediawords/languages/hi/hindi-hunspell
+[submodule "apps/common/src/python/mediawords/languages/hi/hindi-hunspell"]
+	path = apps/common/src/python/mediawords/languages/hi/hindi-hunspell
 	url = https://github.com/berkmancenter/mediacloud-hindi-hunspell.git
-[submodule "containers/common/src/perl/MediaWords/Util/Mail/Message/Templates/email-templates"]
-	path = containers/common/src/perl/MediaWords/Util/Mail/Message/Templates/email-templates
+[submodule "apps/common/src/perl/MediaWords/Util/Mail/Message/Templates/email-templates"]
+	path = apps/common/src/perl/MediaWords/Util/Mail/Message/Templates/email-templates
 	url = https://github.com/berkmancenter/mediacloud-email-templates.git
-[submodule "containers/common/src/python/mediawords/languages/ca/snowball_stemmer"]
-	path = containers/common/src/python/mediawords/languages/ca/snowball_stemmer
+[submodule "apps/common/src/python/mediawords/languages/ca/snowball_stemmer"]
+	path = apps/common/src/python/mediawords/languages/ca/snowball_stemmer
 	url = https://github.com/berkmancenter/mediacloud-catalan-stemmer.git
-[submodule "containers/common/src/python/mediawords/languages/lt/snowball_stemmer"]
-	path = containers/common/src/python/mediawords/languages/lt/snowball_stemmer
+[submodule "apps/common/src/python/mediawords/languages/lt/snowball_stemmer"]
+	path = apps/common/src/python/mediawords/languages/lt/snowball_stemmer
 	url = https://github.com/berkmancenter/mediacloud-lithuanian-stemmer.git
-[submodule "containers/common/src/python/snowball"]
-	path = containers/common/src/python/snowball
+[submodule "apps/common/src/python/snowball"]
+	path = apps/common/src/python/snowball
 	url = https://github.com/snowballstem/snowball.git

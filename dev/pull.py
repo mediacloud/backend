@@ -5,15 +5,15 @@ from typing import List
 from utils import DockerHubConfiguration, docker_images, DockerHubArgumentParser
 
 
-def _docker_images_to_pull(all_containers_dir: str, conf: DockerHubConfiguration) -> List[str]:
+def _docker_images_to_pull(all_apps_dir: str, conf: DockerHubConfiguration) -> List[str]:
     """
     Return an ordered list of Docker images to pull.
 
-    :param all_containers_dir: Directory with container subdirectories.
+    :param all_apps_dir: Directory with container subdirectories.
     :param conf: Docker Hub configuration object.
     :return: List of tagged Docker images to pull in that order.
     """
-    return docker_images(all_containers_dir=all_containers_dir, only_belonging_to_user=False, conf=conf)
+    return docker_images(all_apps_dir=all_apps_dir, only_belonging_to_user=False, conf=conf)
 
 
 if __name__ == '__main__':
@@ -22,5 +22,5 @@ if __name__ == '__main__':
     args = parser.parse_arguments()
     conf_ = args.docker_hub_configuration()
 
-    for image in _docker_images_to_pull(all_containers_dir=args.all_containers_dir(), conf=conf_):
+    for image in _docker_images_to_pull(all_apps_dir=args.all_apps_dir(), conf=conf_):
         print('docker pull {}'.format(image))

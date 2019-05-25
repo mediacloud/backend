@@ -78,7 +78,7 @@ install:
   # Build all images
   - ./dev/build.py | bash
 script:
-  # Run all test files in all containers
+  # Run all test files in all apps
   - true
 after_success:
   # Log in to Docker Hub

@@ -11,34 +11,34 @@ RUN_SCRIPT_FILENAME = 'run.py'
 """Script that will be called to run a single command in a Compose environment."""
 
 
-def docker_test_commands(all_containers_dir: str, test_file: str) -> List[List[str]]:
+def docker_test_commands(all_apps_dir: str, test_file: str) -> List[List[str]]:
     """
     Return list commands to execute in order to run all tests in a single test file.
 
-    :param all_containers_dir: Directory with container subdirectories.
+    :param all_apps_dir: Directory with container subdirectories.
     :param test_file: Perl or Python test file.
     :return: List of commands (as lists) to execute in order to run tests in a test file.
     """
     if not os.path.isfile(test_file):
         raise ValueError("Test file '{}' does not exist.".format(test_file))
-    if not os.path.isdir(all_containers_dir):
-        raise ValueError("Containers directory '{}' does not exist.".format(all_containers_dir))
+    if not os.path.isdir(all_apps_dir):
+        raise ValueError("Apps directory '{}' does not exist.".format(all_apps_dir))
 
-    all_containers_dir = os.path.abspath(all_containers_dir)
+    all_apps_dir = os.path.abspath(all_apps_dir)
     test_file = os.path.abspath(test_file)
 
-    if not test_file.startswith(all_containers_dir):
-        raise ValueError("Test file '{}' is not in containers directory '{}'.".format(test_file, all_containers_dir))
+    if not test_file.startswith(all_apps_dir):
+        raise ValueError("Test file '{}' is not in apps directory '{}'.".format(test_file, all_apps_dir))
 
     test_file_extension = os.path.splitext(test_file)[1]
     if test_file_extension not in ['.py', '.t']:
         raise ValueError("Test file '{}' doesn't look like one.".format(test_file))
 
-    test_file_relative_path = test_file[(len(all_containers_dir)):]
+    test_file_relative_path = test_file[(len(all_apps_dir)):]
     test_file_relative_path_dirs = Path(test_file_relative_path).parts
-    container_dirname = test_file_relative_path_dirs[1]
+    app_dirname = test_file_relative_path_dirs[1]
 
-    container_dir = os.path.join(all_containers_dir, container_dirname)
+    container_dir = os.path.join(all_apps_dir, app_dirname)
     tests_dir = os.path.join(container_dir, 'tests')
     if not os.path.isdir(tests_dir):
         raise ValueError("Test file '{}' is not located in '{}' subdirectory.".format(test_file, tests_dir))
@@ -63,8 +63,8 @@ def docker_test_commands(all_containers_dir: str, test_file: str) -> List[List[s
 
     commands.append([
         run_script,
-        '--all_containers_dir', all_containers_dir,
-        container_dirname,
+        '--all_apps_dir', all_apps_dir,
+        app_dirname,
         test_command,
     ])
 
@@ -113,5 +113,5 @@ if __name__ == '__main__':
     parser = DockerRunTestArgumentParser(description='Print commands to run tests in a single test file.')
     args = parser.parse_arguments()
 
-    for command_ in docker_test_commands(all_containers_dir=args.all_containers_dir(), test_file=args.test_file()):
+    for command_ in docker_test_commands(all_apps_dir=args.all_apps_dir(), test_file=args.test_file()):
         print('bash <(' + ' '.join([shlex.quote(c) for c in command_]) + ')')
