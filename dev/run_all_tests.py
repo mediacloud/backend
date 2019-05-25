@@ -8,7 +8,7 @@ from typing import List, Pattern
 
 from utils import DockerArgumentParser
 
-PRINT_TEST_COMMANDS_SCRIPT_FILENAME = 'print_run_test_commands.py'
+RUN_TEST_SCRIPT_FILENAME = 'run_test.py'
 """Script that will be called to run a single test."""
 
 
@@ -46,11 +46,11 @@ def docker_all_tests_commands(all_containers_dir: str) -> List[List[str]]:
     all_containers_dir = os.path.abspath(all_containers_dir)
 
     pwd = os.path.dirname(os.path.realpath(__file__))
-    print_test_commands_script = os.path.join(pwd, PRINT_TEST_COMMANDS_SCRIPT_FILENAME)
-    if not os.path.isfile(print_test_commands_script):
-        raise ValueError("Print test commands script '{}' does not exist.".format(print_test_commands_script))
-    if not os.access(print_test_commands_script, os.X_OK):
-        raise ValueError("Print test commands script '{}' is not executable.".format(print_test_commands_script))
+    run_test_script = os.path.join(pwd, RUN_TEST_SCRIPT_FILENAME)
+    if not os.path.isfile(run_test_script):
+        raise ValueError("Print test commands script '{}' does not exist.".format(run_test_script))
+    if not os.access(run_test_script, os.X_OK):
+        raise ValueError("Print test commands script '{}' is not executable.".format(run_test_script))
 
     commands = list()
 
@@ -79,7 +79,7 @@ def docker_all_tests_commands(all_containers_dir: str) -> List[List[str]]:
 
             for test_file in perl_tests + python_tests:
                 commands.append([
-                    print_test_commands_script,
+                    run_test_script,
                     '--all_containers_dir', all_containers_dir,
                     test_file,
                 ])

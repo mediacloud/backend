@@ -7,7 +7,7 @@ from typing import List
 
 from utils import DockerArgumentParser, DockerArguments
 
-PRINT_RUN_COMMANDS_SCRIPT_FILENAME = 'print_run_commands.py'
+RUN_SCRIPT_FILENAME = 'run.py'
 """Script that will be called to run a single command in a Compose environment."""
 
 
@@ -55,14 +55,14 @@ def docker_test_commands(all_containers_dir: str, test_file: str) -> List[List[s
         raise ValueError("Not sure how to run this test: {}".format(test_path_in_container))
 
     pwd = os.path.dirname(os.path.realpath(__file__))
-    print_run_commands_script = os.path.join(pwd, PRINT_RUN_COMMANDS_SCRIPT_FILENAME)
-    if not os.path.isfile(print_run_commands_script):
-        raise ValueError("Print run commands script '{}' does not exist.".format(print_run_commands_script))
-    if not os.access(print_run_commands_script, os.X_OK):
-        raise ValueError("Print run commands script '{}' is not executable.".format(print_run_commands_script))
+    run_script = os.path.join(pwd, RUN_SCRIPT_FILENAME)
+    if not os.path.isfile(run_script):
+        raise ValueError("Print run commands script '{}' does not exist.".format(run_script))
+    if not os.access(run_script, os.X_OK):
+        raise ValueError("Print run commands script '{}' is not executable.".format(run_script))
 
     commands.append([
-        print_run_commands_script,
+        run_script,
         '--all_containers_dir', all_containers_dir,
         container_dirname,
         test_command,

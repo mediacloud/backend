@@ -5,7 +5,7 @@ Print commands that will set up Compose environment, run a command, and then cle
 
 Usage example:
 
-    bash <(./build_tools/print_run_commands.py common bash)
+    bash <(./dev/run.py common bash)
 
 """
 

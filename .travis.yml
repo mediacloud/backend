@@ -73,10 +73,10 @@ before_install:
   #
   # Don't stop on a single failure because the image might not exist or a
   # network error might have happened.
-  - ./build_tools/print_pull_commands.py | bash || true
+  - ./dev/pull.py | bash || true
 install:
   # Build all images
-  - ./build_tools/print_build_commands.py | bash
+  - ./dev/build.py | bash
 script:
   # Run all test files in all containers
   - true
@@ -86,7 +86,7 @@ after_success:
 deploy:
   provider: script
   # Push all images to Docker Hub
-  script: ./build_tools/print_push_commands.py | bash
+  script: ./dev/push.py | bash
   # FIXME only push on a "release"
   on:
     branch: containers
