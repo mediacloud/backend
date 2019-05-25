@@ -15,7 +15,7 @@ services:
               source: ./nginx/
               target: /etc/nginx/
             # Shared with mc_proxy_cron_certbot:
-            - vol_proxy_letsencrypt:/etc/letsencrypt/
+            - vol_proxy_ssl_certs:/etc/letsencrypt/
         depends_on:
             - mc_proxy_cron_certbot
             - mc_webapp_httpd
@@ -31,7 +31,7 @@ services:
             MC_PROXY_CERTBOT_CLOUDFLARE_GLOBAL_API_KEY: "${MC_PROXY_CERTBOT_CLOUDFLARE_GLOBAL_API_KEY}"
         volumes:
             # Shared with mc_proxy_httpd:
-            - vol_proxy_letsencrypt:/etc/letsencrypt/
+            - vol_proxy_ssl_certs:/etc/letsencrypt/
 
     mc_webapp_httpd:
         image: dockermediacloud/mediacloud-webapp-httpd:latest
@@ -62,4 +62,4 @@ services:
            - "9000"
 
 volumes:
-    vol_proxy_letsencrypt: {}
+    vol_proxy_ssl_certs: {}
