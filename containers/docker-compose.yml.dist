@@ -408,7 +408,7 @@ services:
         networks:
             # Accessed by Postfix only
             - net_postfix_opendkim
-        # Expose OpenDKIM to host computer (so "ports" and not "expose")
+        # Expose OpenDKIM to host computer
         ports:
             - "12301"
         deploy:
@@ -1247,36 +1247,6 @@ services:
                     memory: 2G
 
     #
-    # Webapp (HTTP server)
-    # --------------------
-    #
-    mc_webapp_httpd:
-        build:
-            context: ./webapp-httpd/
-        image: dockermediacloud/mediacloud-webapp-httpd:latest
-        networks:
-            # Communicates with FastCGI workers
-            - net_webapp
-        ports:
-            # Publish webapp to the world
-            - "80"
-        volumes:
-            # Shared with "cron_generate_daily_rss_dumps" container:
-            - vol_daily_rss_dumps:/mediacloud_webapp_static/rss_dumps/
-        deploy:
-            # Only one instance
-            replicas: 1
-            # Auto-restart on crashes
-            restart_policy:
-                condition: on-failure
-            resources:
-                limits:
-                    # CPU core limit
-                    cpus: "1"
-                    # RAM limit
-                    memory: 512M
-
-    #
     # Webapp (Plackup FastCGI workers)
     # --------------------------------
     #
@@ -1312,6 +1282,114 @@ services:
                     memory: 1G
 
     #
+    # Webapp (HTTP server)
+    # --------------------
+    #
+    mc_webapp_httpd:
+        build:
+            context: ./webapp-httpd/
+        image: dockermediacloud/mediacloud-webapp-httpd:latest
+        networks:
+            # Communicates with FastCGI workers
+            - net_webapp
+        expose:
+            # Expose HTTP port to reverse proxy
+            - "80"
+        volumes:
+            # Shared with "cron_generate_daily_rss_dumps" container:
+            - vol_daily_rss_dumps:/mediacloud_webapp_static/rss_dumps/
+        deploy:
+            # Only one instance
+            replicas: 1
+            # Auto-restart on crashes
+            restart_policy:
+                condition: on-failure
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: 512M
+
+    #
+    # Cron job that updates Let's Encrypt certificates used by reverse proxy
+    # ----------------------------------------------------------------------
+    #
+    mc_proxy_cron_certbot:
+        build:
+            context: ./proxy-cron-certbot/
+        image: dockermediacloud/mediacloud-proxy-cron-certbot:latest
+        environment:
+            # Top-level domain to issue the certificate for
+            MC_PROXY_CERTBOT_DOMAIN: "testmediacloud.ml"
+            # Email for Let's Encrypt's notifications
+            MC_PROXY_CERTBOT_LETSENCRYPT_EMAIL: "linas@media.mit.edu"
+            # CloudFlare account email
+            MC_PROXY_CERTBOT_CLOUDFLARE_EMAIL: ""
+            # CloudFlare account global API key
+            MC_PROXY_CERTBOT_CLOUDFLARE_GLOBAL_API_KEY: ""
+        volumes:
+            # Shared with "proxy_httpd" container:
+            - vol_proxy_letsencrypt:/etc/letsencrypt/
+        deploy:
+            # Only one instance
+            replicas: 1
+            # Auto-restart on crashes
+            restart_policy:
+                condition: on-failure
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: 256M
+
+    #
+    # SSL terminating reverse proxy
+    # -----------------------------
+    #
+    mc_proxy_httpd:
+        build:
+            context: ./proxy-httpd/
+        image: dockermediacloud/mediacloud-proxy-httpd:latest
+        environment:
+            # Semicolon-separated user credentials for restricted webapps
+            # (Munin and Portainer); usernames and passwords separated by a
+            # colon, e.g.:
+            #
+            #     "username1:password1;username2:password2;username3:password3"
+            #
+            MC_PROXY_HTTPD_AUTH_USERS: ""
+        ports:
+            # HTTP and HTTPS ports
+            - "80"
+            - "443"
+        volumes:
+            # Shared with "proxy_cron_certbot" container:
+            - vol_proxy_letsencrypt:/etc/letsencrypt/
+        depends_on:
+            # Requires SSL certificate to run
+            - mc_proxy_cron_certbot
+            # Proxies to main app
+            - mc_webapp_httpd
+            # Proxies to Munin's web interface
+            - mc_munin_httpd
+            # Proxies to Portainer's web UI
+            - mc_portainer
+        deploy:
+            # Only one instance
+            replicas: 1
+            # Auto-restart on crashes
+            restart_policy:
+                condition: on-failure
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: 512M
+
+    #
     # Generate word2vec snapshot model
     # ----------------
     #
@@ -1343,8 +1421,8 @@ services:
     # --------------------------------
     #
     mc_portainer:
-       image: portainer/portainer
-       ports:
+       image: portainer/portainer:1.20.2
+       expose:
            # Web interface
            - "9000:9000"
        command: -H unix:///var/run/docker.sock
@@ -1457,6 +1535,9 @@ volumes:
     # Munin's generated HTML files
     # (shared between munin_cron and munin_httpd)
     vol_munin_html: {}
+
+    # Let's Encrypt certificates
+    vol_proxy_letsencrypt: {}
 
     # Portainer data
     vol_portainer_data: {}

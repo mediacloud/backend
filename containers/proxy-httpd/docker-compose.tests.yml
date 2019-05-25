@@ -1,0 +1,64 @@
+version: "3.7"
+
+services:
+
+    mc_proxy_httpd:
+        image: dockermediacloud/mediacloud-proxy-httpd:latest
+        environment:
+            MC_PROXY_HTTPD_AUTH_USERS: "${MC_PROXY_HTTPD_AUTH_USERS}"
+        ports:
+            - "80:8080"
+            - "443:4443"
+        volumes:
+            - type: bind
+              source: ./nginx/
+              target: /etc/nginx/
+            # Shared with mc_proxy_cron_certbot:
+            - vol_proxy_letsencrypt:/etc/letsencrypt/
+        depends_on:
+            - mc_proxy_cron_certbot
+            - mc_webapp_httpd
+            - mc_munin_httpd
+            - mc_portainer
+
+    mc_proxy_cron_certbot:
+        image: dockermediacloud/mediacloud-proxy-cron-certbot:latest
+        environment:
+            MC_PROXY_CERTBOT_DOMAIN: "testmediacloud.ml"
+            MC_PROXY_CERTBOT_LETSENCRYPT_EMAIL: "linas@media.mit.edu"
+            MC_PROXY_CERTBOT_CLOUDFLARE_EMAIL: "${MC_PROXY_CERTBOT_CLOUDFLARE_EMAIL}"
+            MC_PROXY_CERTBOT_CLOUDFLARE_GLOBAL_API_KEY: "${MC_PROXY_CERTBOT_CLOUDFLARE_GLOBAL_API_KEY}"
+        volumes:
+            # Shared with mc_proxy_httpd:
+            - vol_proxy_letsencrypt:/etc/letsencrypt/
+
+    mc_webapp_httpd:
+        image: dockermediacloud/mediacloud-webapp-httpd:latest
+        stop_signal: SIGKILL
+        expose:
+            - "80"
+        depends_on:
+            - mc_webapp_api
+
+    mc_webapp_api:
+        image: dockermediacloud/mediacloud-webapp-api:latest
+        stop_signal: SIGKILL
+        env_file: ./../global.env.dist
+        expose:
+            - "9090"
+        # Here and elsewhere, don't start any subservices via "depends_on"
+        # because we need to only make sure that /status page works
+
+    mc_munin_httpd:
+        image: dockermediacloud/mediacloud-munin-httpd:latest
+        stop_signal: SIGKILL
+        expose:
+            - "80"
+
+    mc_portainer:
+       image: portainer/portainer:1.20.2
+       expose:
+           - "9000"
+
+volumes:
+    vol_proxy_letsencrypt: {}
