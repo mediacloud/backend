@@ -59,8 +59,6 @@ services:
         stop_signal: SIGKILL
         expose:
             - 5432
-        volumes:
-            - vol_postgresql_data:/var/lib/postgresql/11/main/
 
     mc_rabbitmq_server:
         image: dockermediacloud/mediacloud-rabbitmq-server:latest
@@ -69,10 +67,3 @@ services:
         expose:
             - 5672
             - 15672
-        volumes:
-            - vol_rabbitmq_data:/var/lib/rabbitmq/
-
-volumes:
-    vol_postgresql_data: {}
-    vol_solr_shard_data: {}
-    vol_rabbitmq_data: {}
