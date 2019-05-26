@@ -67,3 +67,8 @@ services:
         expose:
             - 5672
             - 15672
+        deploy:
+            resources:
+                limits:
+                    cpus: "0.5"
+                    memory: 256M
