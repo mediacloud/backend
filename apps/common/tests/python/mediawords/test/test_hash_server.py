@@ -1,10 +1,11 @@
 import json
+import socket
+import time
 from typing import Union
 
 import pytest
 import requests
 from requests_futures.sessions import FuturesSession
-import time
 
 from mediawords.util.network import random_unused_port
 from mediawords.util.url import urls_are_equal
@@ -110,7 +111,7 @@ def test_http_hash_server():
     assert response_json == {
         'name': 'callback',
         'method': 'GET',
-        'url': 'http://localhost:%d/callback?a=b&c=d' % port,
+        'url': 'http://%s:%d/callback?a=b&c=d' % (_fqdn(), port),
         'content-type': None,
         'params': {
             'a': 'b',
@@ -138,7 +139,7 @@ def test_http_hash_server():
     assert response.status_code == HTTPStatus.OK
     assert response.content == b"foo bar \xf0\x90\x28\xbc"
 
-    assert urls_are_equal(url1=hs.page_url('/callback?a=b&c=d'), url2='http://localhost:%d/callback' % port)
+    assert urls_are_equal(url1=hs.page_url('/callback?a=b&c=d'), url2='http://%s:%d/callback' % (_fqdn(), port))
     with pytest.raises(McHashServerException):
         hs.page_url('/does-not-exist')
 
@@ -347,7 +348,15 @@ def test_start_delay() -> None:
     hs.stop()
 
 
+def __hostname_resolves(hostname: str) -> bool:
+    try:
+        socket.gethostbyname(hostname)
+        return True
+    except socket.error:
+        return False
+
+
 def test_fqdn():
     fq_hostname = _fqdn()
     assert fq_hostname != ''
-    assert hostname_resolves(fq_hostname) is True
+    assert __hostname_resolves(fq_hostname) is True

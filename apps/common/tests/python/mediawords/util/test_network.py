@@ -1,14 +1,8 @@
 import socket
 
 from mediawords.util.network import (
-    hostname_resolves, random_unused_port, tcp_port_is_open, wait_for_tcp_port_to_open,
+    random_unused_port, tcp_port_is_open, wait_for_tcp_port_to_open,
     wait_for_tcp_port_to_close)
-
-
-# noinspection SpellCheckingInspection
-def test_hostname_resolves():
-    assert hostname_resolves('www.mit.edu') is True
-    assert hostname_resolves('SHOULDNEVERRESOLVE-JKFSDHFKJSDJFKSD.mil') is False
 
 
 def test_tcp_port_is_open():

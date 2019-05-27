@@ -8,15 +8,6 @@ from mediawords.util.perl import decode_object_from_bytes_if_needed
 log = create_logger(__name__)
 
 
-def hostname_resolves(hostname: str) -> bool:
-    """Return True if hostname resolves to IP."""
-    try:
-        socket.gethostbyname(hostname)
-        return True
-    except socket.error:
-        return False
-
-
 def tcp_port_is_open(port: int, hostname: str = 'localhost') -> bool:
     """Test if TCP port is open."""
 
