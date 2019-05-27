@@ -549,7 +549,6 @@ Import stories from postgres to solr.
 Options:
 * update -- delete each story from solr before importing it (default true)
 * empty_queue -- keep running until stories queue table is entirely empty (default false)
-* jobs -- number of parallel import jobs to run (default 1)
 * throttle -- sleep this number of seconds between each block of stories (default 60)
 * full -- shortcut for: update=false, empty_queue=true, throttle=1; assume and optimize for static queue
 * stories_queue_table -- table from which to pull stories to import (default solr_import_stories)
@@ -559,9 +558,6 @@ The import will run in blocks of "max_queued_stories" at a time. The function
 will keep trying to find stories to import.  If there are less than
 $MIN_STORIES_TO_PROCESS stories to import, it will sleep for $throttle seconds
 and then look for more stories.
-
-If jobs is > 1, the database handle passed into this function will be corrupted and must not be used after calling
-this function.
 =cut
 
 sub import_data($;$)
@@ -587,10 +583,11 @@ sub import_data($;$)
         $options->{ update }       //= 0;
     }
 
+    my $jobs = MediaWords::Util::Config::SolrImport::jobs();
+
     my $update       = $options->{ update }       // 1;
     my $empty_queue  = $options->{ empty_queue }  // 0;
     my $throttle     = $options->{ throttle }     // $DEFAULT_THROTTLE;
-    my $jobs         = $options->{ jobs }         // 1;
     my $skip_logging = $options->{ skip_logging } // 0;
     my $daemon = $options->{ daemon } // 0;
 

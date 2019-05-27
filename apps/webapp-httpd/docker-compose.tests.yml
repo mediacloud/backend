@@ -115,6 +115,7 @@ services:
         image: dockermediacloud/mediacloud-import-solr-data-for-testing:latest
         env_file: ./../global.env.dist
         environment:
+            MC_SOLR_IMPORT_JOBS: 1
             MC_SOLR_IMPORT_MAX_QUEUED_STORIES: 100000
         stop_signal: SIGKILL
         depends_on:

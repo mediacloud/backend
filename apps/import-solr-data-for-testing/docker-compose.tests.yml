@@ -7,6 +7,7 @@ services:
         stop_signal: SIGKILL
         env_file: ./../global.env.dist
         environment:
+            MC_SOLR_IMPORT_JOBS: 1
             MC_SOLR_IMPORT_MAX_QUEUED_STORIES: 100000
         volumes:
             - type: bind
