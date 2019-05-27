@@ -3,56 +3,60 @@ from webapp.auth.login import login_with_email_password
 from webapp.auth.profile import regenerate_api_key
 from webapp.auth.register import add_user
 from webapp.auth.user import NewUser
+from webapp.test.dummy_emails import TestDoNotSendEmails
 
 
-def test_regenerate_api_key():
 
-    db = connect_to_db()
+class LoginWithAPIKeyInactiveUserTestCase(TestDoNotSendEmails):
 
-    email = 'test@user.login'
-    password = 'userlogin123'
-    full_name = 'Test user login'
-    ip_address = '1.2.3.4'
+    def test_regenerate_api_key(self):
 
-    add_user(
-        db=db,
-        new_user=NewUser(
-            email=email,
-            full_name=full_name,
-            notes='Test test test',
-            role_ids=[1],
-            active=True,
-            password=password,
-            password_repeat=password,
-            activation_url='',  # user is active, no need for activation URL
-        ),
-    )
+        db = connect_to_db()
 
-    # Get sample API keys
-    user = login_with_email_password(db=db, email=email, password=password, ip_address=ip_address)
-    assert user
+        email = 'test@user.login'
+        password = 'userlogin123'
+        full_name = 'Test user login'
+        ip_address = '1.2.3.4'
 
-    before_global_api_key = user.global_api_key()
-    assert before_global_api_key
+        add_user(
+            db=db,
+            new_user=NewUser(
+                email=email,
+                full_name=full_name,
+                notes='Test test test',
+                role_ids=[1],
+                active=True,
+                password=password,
+                password_repeat=password,
+                activation_url='',  # user is active, no need for activation URL
+            ),
+        )
 
-    before_per_ip_api_key = user.api_key_for_ip_address(ip_address=ip_address)
-    assert before_per_ip_api_key
+        # Get sample API keys
+        user = login_with_email_password(db=db, email=email, password=password, ip_address=ip_address)
+        assert user
 
-    assert before_global_api_key != before_per_ip_api_key
+        before_global_api_key = user.global_api_key()
+        assert before_global_api_key
 
-    # Regenerate API key, purge per-IP API keys
-    regenerate_api_key(db=db, email=email)
+        before_per_ip_api_key = user.api_key_for_ip_address(ip_address=ip_address)
+        assert before_per_ip_api_key
 
-    # Get sample API keys again
-    user = login_with_email_password(db=db, email=email, password=password, ip_address=ip_address)
-    assert user
+        assert before_global_api_key != before_per_ip_api_key
 
-    after_global_api_key = user.global_api_key()
-    assert after_global_api_key
+        # Regenerate API key, purge per-IP API keys
+        regenerate_api_key(db=db, email=email)
 
-    after_per_ip_api_key = user.api_key_for_ip_address(ip_address=ip_address)
-    assert after_per_ip_api_key
+        # Get sample API keys again
+        user = login_with_email_password(db=db, email=email, password=password, ip_address=ip_address)
+        assert user
 
-    # Make sure API keys are different
-    assert before_global_api_key != after_global_api_key
-    assert before_per_ip_api_key != after_per_ip_api_key
+        after_global_api_key = user.global_api_key()
+        assert after_global_api_key
+
+        after_per_ip_api_key = user.api_key_for_ip_address(ip_address=ip_address)
+        assert after_per_ip_api_key
+
+        # Make sure API keys are different
+        assert before_global_api_key != after_global_api_key
+        assert before_per_ip_api_key != after_per_ip_api_key
