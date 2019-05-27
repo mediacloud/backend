@@ -110,10 +110,6 @@ def docker_run_commands(all_apps_dir: str, app_dirname: str, command: str) -> Li
         '--force-recreate',
     ])
 
-    # Not "docker-compose run" because:
-    # * it doesn't recreate containers if they already exist
-    # * it doesn't clean up volumes after exit (additional "docker-compose down" is needed)
-    # * after command in the main container exits, it doesn't stop the rest of the containers
     commands.append([
         'docker-compose',
         '--project-name', project_name,
