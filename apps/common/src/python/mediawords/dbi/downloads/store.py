@@ -34,12 +34,6 @@ RAW_DOWNLOADS_POSTGRESQL_KVS_TABLE_NAME = 'raw_downloads'
 # PostgreSQL table name for storing the s3 raw downloads cache
 S3_RAW_DOWNLOADS_CACHE_TABLE_NAME = 'cache.s3_raw_downloads_cache'
 
-# these are initialized by calling the various get_*_story() functions below
-_inline_store = None
-_amazon_s3_store = None
-_postgresql_store = None
-_store_for_writing = None
-
 
 class McDBIDownloadsException(Exception):
     """Default exceptions for this package."""
@@ -56,26 +50,14 @@ def _default_amazon_s3_downloads_config() -> AmazonS3DownloadsConfig:
 
 def _get_inline_store() -> KeyValueStore:
     """Get lazy initialized database inline store."""
-    global _inline_store
-
-    if _inline_store is not None:
-        return _inline_store
-
-    _inline_store = DatabaseInlineStore()
-
-    return _inline_store
+    return DatabaseInlineStore()
 
 
 def _get_amazon_s3_store(
         amazon_s3_downloads_config: AmazonS3DownloadsConfig,
         download_storage_config: DownloadStorageConfig,
 ) -> KeyValueStore:
-    """Get lazy initialized amazon s3 store, with credentials from mediawords.yml."""
-    global _amazon_s3_store
-
-    if _amazon_s3_store:
-        return _amazon_s3_store
-
+    """Get lazy initialized amazon s3 store, with credentials from configuration."""
     if not amazon_s3_downloads_config.access_key_id():
         raise McDBIDownloadsException("Amazon S3 download store is not configured.")
 
@@ -88,11 +70,11 @@ def _get_amazon_s3_store(
 
     if download_storage_config.cache_s3():
         store_params['cache_table'] = S3_RAW_DOWNLOADS_CACHE_TABLE_NAME
-        _amazon_s3_store = CachedAmazonS3Store(**store_params)
+        amazon_s3_store = CachedAmazonS3Store(**store_params)
     else:
-        _amazon_s3_store = AmazonS3Store(**store_params)
+        amazon_s3_store = AmazonS3Store(**store_params)
 
-    return _amazon_s3_store
+    return amazon_s3_store
 
 
 def _get_postgresql_store(
@@ -100,27 +82,22 @@ def _get_postgresql_store(
         download_storage_config: DownloadStorageConfig,
 ) -> KeyValueStore:
     """Get lazy initialized postgresql store, with credentials from mediawords.yml."""
-    global _postgresql_store
-
-    if _postgresql_store is not None:
-        return _postgresql_store
-
-    _postgresql_store = PostgreSQLStore(table=RAW_DOWNLOADS_POSTGRESQL_KVS_TABLE_NAME)
+    postgresql_store = PostgreSQLStore(table=RAW_DOWNLOADS_POSTGRESQL_KVS_TABLE_NAME)
 
     if download_storage_config.fallback_postgresql_to_s3():
-        _postgresql_store = MultipleStoresStore(
+        postgresql_store = MultipleStoresStore(
             stores_for_reading=[
-                _postgresql_store,
+                postgresql_store,
                 _get_amazon_s3_store(
                     amazon_s3_downloads_config=amazon_s3_downloads_config,
                     download_storage_config=download_storage_config,
                 ),
             ],
             stores_for_writing=[
-                _postgresql_store,
+                postgresql_store,
             ])
 
-    return _postgresql_store
+    return postgresql_store
 
 
 def _get_store_for_writing(
@@ -128,10 +105,6 @@ def _get_store_for_writing(
         download_storage_config: DownloadStorageConfig,
 ) -> KeyValueStore:
     """Get MultiStoresStore for writing downloads."""
-    global _store_for_writing
-    if _store_for_writing is not None:
-        return _store_for_writing
-
     # Early sanity check on configuration
     download_storage_locations = download_storage_config.storage_locations()
 
@@ -159,9 +132,9 @@ def _get_store_for_writing(
 
         stores.append(store)
 
-    _store_for_writing = MultipleStoresStore(stores_for_writing=stores)
+    store_for_writing = MultipleStoresStore(stores_for_writing=stores)
 
-    return _store_for_writing
+    return store_for_writing
 
 
 def _get_store_for_reading(

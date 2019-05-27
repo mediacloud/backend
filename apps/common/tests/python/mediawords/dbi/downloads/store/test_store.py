@@ -34,9 +34,6 @@ class TestDownloadsStore(TestCase, TestCaseTextUtilities):
 
         assert isinstance(store, DatabaseInlineStore)
 
-        # make sure the store is a singleton
-        assert store is _get_inline_store()
-
     def test_get_amazon_s3_store(self) -> None:
         """Test _get_amazon_s3_store."""
 
@@ -52,10 +49,6 @@ class TestDownloadsStore(TestCase, TestCaseTextUtilities):
             download_storage_config=DoNotCacheS3DownloadStoreConfig(),
         )
         assert isinstance(store, AmazonS3Store)
-        assert store is _get_amazon_s3_store(
-            amazon_s3_downloads_config=amazon_s3_downloads_config,
-            download_storage_config=DoNotCacheS3DownloadStoreConfig(),
-        )
 
         class CacheS3DownloadStoreConfig(DownloadStorageConfig):
             @staticmethod
@@ -67,10 +60,6 @@ class TestDownloadsStore(TestCase, TestCaseTextUtilities):
             download_storage_config=CacheS3DownloadStoreConfig(),
         )
         assert isinstance(store, CachedAmazonS3Store)
-        assert store is _get_amazon_s3_store(
-            amazon_s3_downloads_config=amazon_s3_downloads_config,
-            download_storage_config=CacheS3DownloadStoreConfig(),
-        )
 
     def test_get_postgresql_store(self) -> None:
         """Test _get_postgresql_store."""
@@ -87,10 +76,6 @@ class TestDownloadsStore(TestCase, TestCaseTextUtilities):
             download_storage_config=DoNotFallbackToS3DownloadStorageConfig(),
         )
         assert isinstance(store, PostgreSQLStore)
-        assert store is _get_postgresql_store(
-            amazon_s3_downloads_config=amazon_s3_downloads_config,
-            download_storage_config=DoNotFallbackToS3DownloadStorageConfig(),
-        )
 
         class FallbackToS3DownloadStorageConfig(DownloadStorageConfig):
             @staticmethod
@@ -102,10 +87,6 @@ class TestDownloadsStore(TestCase, TestCaseTextUtilities):
             download_storage_config=FallbackToS3DownloadStorageConfig(),
         )
         assert isinstance(store, MultipleStoresStore)
-        assert store is _get_postgresql_store(
-            amazon_s3_downloads_config=amazon_s3_downloads_config,
-            download_storage_config=FallbackToS3DownloadStorageConfig(),
-        )
 
     def test_get_store_for_writing(self) -> None:
         """Test _get_store_for_writing."""
