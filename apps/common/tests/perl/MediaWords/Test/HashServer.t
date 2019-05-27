@@ -7,6 +7,8 @@ use Test::More tests => 15;
 use MediaWords::Util::Web;
 use MediaWords::Test::URLs;
 
+use Sys::Hostname;
+
 BEGIN
 {
     use_ok( 'MediaWords::Test::HashServer' );
@@ -60,7 +62,7 @@ sub main
 
     ok( $hs, 'hashserver object returned' );
 
-    is_urls( $hs->page_url( '/foo' ), "http://localhost:$_port/foo" );
+    is_urls( $hs->page_url( '/foo' ), "http://" . Sys::Hostname::hostname . ":$_port/foo" );
 
     $hs->start();
 
