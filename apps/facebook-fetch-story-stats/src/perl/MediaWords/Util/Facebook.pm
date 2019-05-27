@@ -22,7 +22,7 @@ use URI::QueryParam;
 use Data::Dumper;
 
 # Facebook Graph API version to use
-Readonly my $FACEBOOK_GRAPH_API_VERSION => 'v2.8';
+Readonly my $FACEBOOK_GRAPH_API_VERSION => 'v3.3';
 
 # Number of retries to do on temporary Facebook Graph API errors (such as rate limiting issues or API downtime)
 Readonly my $FACEBOOK_GRAPH_API_RETRY_COUNT => 22;
@@ -231,7 +231,10 @@ sub get_url_share_comment_counts
 
     # Make API request (https://developers.facebook.com/docs/graph-api/reference/url/)
     my $data;
-    eval { $data = api_request( '', [ { key => 'id', value => $url } ] ); };
+    eval { $data = api_request( '', [
+        { key => 'id', value => $url },
+        { key => 'fields', value => 'engagement' },
+    ] ); };
     if ( $@ )
     {
         my $error_message = $@;
@@ -260,8 +263,8 @@ sub get_url_share_comment_counts
         LOGDIE "Returned URL ($returned_url) is not the same as requested URL ($url)";
     }
 
-    my $share_count   = $data->{ share }->{ share_count }   // 0;
-    my $comment_count = $data->{ share }->{ comment_count } // 0;
+    my $share_count   = $data->{ engagement }->{ share_count }   // 0;
+    my $comment_count = $data->{ engagement }->{ comment_count } // 0;
 
     DEBUG "* Share count: $share_count, comment count: $comment_count";
 
