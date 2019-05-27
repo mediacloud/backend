@@ -6,5 +6,5 @@ class TestGetMedium(TestDownloadsDB):
     """Run tests that require database access."""
 
     def test_get_medium(self):
-        medium = get_medium(db=self.__db, download=self.test_download)
+        medium = get_medium(db=self._db, download=self.test_download)
         assert medium == self.test_medium

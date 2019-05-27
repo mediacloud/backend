@@ -7,7 +7,7 @@ class TestGetContentForFirstDownload(TestDownloadsDB):
 
     def test_get_content_for_first_download(self):
         content = get_content_for_first_download(
-            db=self.__db,
+            db=self._db,
             story=self.test_story,
         )
         assert content == self._TEST_CONTENT
