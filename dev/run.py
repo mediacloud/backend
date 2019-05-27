@@ -103,6 +103,7 @@ def docker_run_commands(all_apps_dir: str, app_dirname: str, command: str) -> Li
         'docker-compose',
         '--project-name', project_name,
         '--file', docker_compose_path,
+        '--compatibility',  # Add limits from "deploy" section to non-swarm deployment
         'up',
         '--no-start',
         '--renew-anon-volumes',
@@ -117,6 +118,7 @@ def docker_run_commands(all_apps_dir: str, app_dirname: str, command: str) -> Li
         'docker-compose',
         '--project-name', project_name,
         '--file', docker_compose_path,
+        '--compatibility',
         'run',
         container_name,
         command,
@@ -131,6 +133,7 @@ def docker_run_commands(all_apps_dir: str, app_dirname: str, command: str) -> Li
         'docker-compose',
         '--project-name', project_name,
         '--file', docker_compose_path,
+        '--compatibility',
         'down',
         '--volumes',
     ])
