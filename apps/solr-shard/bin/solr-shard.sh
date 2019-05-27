@@ -51,8 +51,12 @@ java_args=(
     -DnumShards=$MC_NUM_SHARDS
     -DzkClientTimeout=$MC_SOLR_ZOOKEEPER_TIMEOUT
     -Dmediacloud.luceneMatchVersion=$MC_SOLR_LUCENEMATCHVERSION
+    # Enable heap dumps on OOMs:
     -XX:+HeapDumpOnOutOfMemoryError
     -XX:HeapDumpPath=/var/lib/solr
+    # Use cgroup's memory limit
+    -XX:+UnlockExperimentalVMOptions
+    -XX:+UseCGroupMemoryLimitForHeap
     # Needed for resolving paths to JARs in solrconfig.xml
     -Dmediacloud.solr_dist_dir=/opt/solr
     -Dmediacloud.solr_webapp_dir=/opt/solr/server/solr-webapp
