@@ -8,7 +8,7 @@ MC_POSTGRESQL_DATA_DIR="/var/lib/postgresql/11/main/"
 MC_POSTGRESQL_CONF_PATH="/etc/postgresql/11/main/postgresql.conf"
 
 # Adjust configuration based on amount of RAM
-MC_RAM_SIZE=$(free -m | grep Mem | awk '{ print $2 }')
+MC_RAM_SIZE=$(/container_memory_limit.sh)
 MC_POSTGRESQL_CONF_SHARED_BUFFERS=$((MC_RAM_SIZE / 3))
 MC_POSTGRESQL_CONF_EFFECTIVE_CACHE_SIZE=$((MC_RAM_SIZE / 3))
 echo "shared_buffers = ${MC_POSTGRESQL_CONF_SHARED_BUFFERS}MB" >> "$MC_POSTGRESQL_CONF_PATH"

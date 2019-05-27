@@ -65,6 +65,9 @@ RUN ln -s /usr/bin/vim.tiny /usr/bin/vim
 COPY conf/rsyslog.conf /etc/
 COPY bin/rsyslog.inc.sh /
 
+# Copy memory limit helper
+COPY bin/container_memory_limit.sh /
+
 # Generate and set locale
 RUN \
     locale-gen en_US en_US.UTF-8 && \

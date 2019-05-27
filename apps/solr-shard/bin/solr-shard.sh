@@ -32,7 +32,7 @@ cp -R /opt/solr/server/* /var/lib/solr/
 cp -R /usr/src/solr/* /var/lib/solr/
 
 # Make Solr use 90% of available RAM allotted to the container
-MC_RAM_SIZE=$(free -m | grep Mem | awk '{ print $2 }')
+MC_RAM_SIZE=$(/container_memory_limit.sh)
 MC_SOLR_MX=$((MC_RAM_SIZE / 10 * 9))
 
 # Run Solr
