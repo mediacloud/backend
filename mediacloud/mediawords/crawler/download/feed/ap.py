@@ -293,6 +293,7 @@ def _process_stories(stories: list,
             logger.warning('No URL link found for guid {}. Using the story content URL instead.'.format(guid))
             story_data['url'] = content['renditions']['nitf']['href']
         publish_date = content['firstcreated'] # There is a first created date and a version created date (last edit datetime?)
+        publish_age = int(time.time() - _convert_publishdate_to_epoch(publish_date))
         story_data['text'] = soup.find('body.content').text
         story_data['title'] = content['headline']
         try:
@@ -301,8 +302,8 @@ def _process_stories(stories: list,
             logger.warning("No extended headline present for guid: {}. Setting description to an empty string.".format(guid))
             story_data['description'] = ''
         items[guid] = story_data
-        if max_lookback is not None and _publishdate_age(publish_date) > max_lookback:
-            logger.debug("Reached max_lookback limit (oldest story age is {:,} seconds old). Stopping.".format(_publishdate_age(publish_date)))
+        if max_lookback is not None and publish_age >  max_lookback:
+            logger.debug("Reached max_lookback limit (oldest story age is {:,} seconds old). Stopping.".format(publish_age))
             break
 
     return items
@@ -329,7 +330,7 @@ def _fetch_stories_using_search(max_lookback: int,
         stories = search_data['items']
         processed_stories = _process_stories(stories,max_lookback,db=db,existing_guids=existing_guids)
         items.update(processed_stories)
-        oldest_story = max([_publishdate_age(item['publish_date']) for item in items.values()]) # Seconds since oldest creation time from feed endpoint
+        oldest_story = max([int(time.time() - _convert_publishdate_to_epoch(item['publish_date'])) for item in items.values()]) # Seconds since oldest creation time from feed endpoint
         if oldest_story > max_lookback:
             break
         next_page_params = _extract_url_parameters(search_data['next_page'])
@@ -339,16 +340,16 @@ def _fetch_stories_using_search(max_lookback: int,
 
 def _fetch_stories_using_feed(db: mediawords.db.DatabaseHandler = None) -> dict:
     """Internal method to fetch all stories from the feed endpoint"""
-    feed_data = _api.feed(page_size=100)
+    feed_data = _api.feed(page_size=3)
     stories = feed_data['items']
     items = _process_stories(stories,db=db)
     return items
 
-def _publishdate_age(publish_date: int) -> int:
+def _convert_publishdate_to_epoch(publish_date: int) -> int:
     """Internal method to get the age of the story's creation date in seconds"""
     current_epoch = int(time.time())
     publishdate_epoch = pytz.utc.localize(datetime.datetime.strptime(publish_date,"%Y-%m-%dT%H:%M:%Sz")).timestamp()
-    return current_epoch - publishdate_epoch
+    return int(publishdate_epoch)
 
 def get_new_stories(db: mediawords.db.DatabaseHandler = None,
                     max_lookback:int = 86400) -> list:
@@ -376,7 +377,7 @@ def get_new_stories(db: mediawords.db.DatabaseHandler = None,
     items = {} # list of dict items to return
     feed_stories = _fetch_stories_using_feed(db=db)
     items.update(feed_stories)
-    oldest_story = max([_publishdate_age(item['publish_date']) for item in items.values()]) # Seconds since oldest creation time from feed endpoint
+    oldest_story = max([int(time.time() - _convert_publishdate_to_epoch(item['publish_date'])) for item in items.values()]) # Seconds since oldest creation time from feed endpoint
 
     if oldest_story < max_lookback:
         logger.debug("Retrieved {} stories from the feed endpoint. The oldest story was {:,} seconds ago. Fetching older stories from search feed.".format(len(items),oldest_story))
