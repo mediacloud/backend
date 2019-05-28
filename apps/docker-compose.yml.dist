@@ -363,9 +363,18 @@ services:
             context: ./mail-opendkim-server/
         image: dockermediacloud/mediacloud-mail-opendkim-server:latest
         env_file: global.env
+        environment:
+            # Top-level domain to use for signing emails, e.g. "mediacloud.org"
+            # (keep in sync with MC_MAIL_POSTFIX_DOMAIN)
+            MC_MAIL_OPENDKIM_DOMAIN: "testmediacloud.ml"
+            # Mail server hostname, e.g. "mail" for "mail.mediacloud.org"
+            # (keep in sync with MC_MAIL_POSTFIX_HOSTNAME)
+            MC_MAIL_OPENDKIM_HOSTNAME: "mail"
         ports:
             # Expose OpenDKIM to host computer
             - "12301"
+        volumes:
+            - vol_opendkim_config:/etc/opendkim/
         deploy:
             # Only one instance
             replicas: 1
@@ -388,11 +397,20 @@ services:
             context: ./mail-postfix-server/
         image: dockermediacloud/mediacloud-mail-postfix-server:latest
         env_file: global.env
+        environment:
+            # Top-level domain to use for signing emails, e.g. "mediacloud.org"
+            # (keep in sync with MC_MAIL_OPENDKIM_DOMAIN)
+            MC_MAIL_POSTFIX_DOMAIN: "testmediacloud.ml"
+            # Mail server hostname, e.g. "mail" for "mail.mediacloud.org"
+            # (keep in sync with MC_MAIL_OPENDKIM_HOSTNAME)
+            MC_MAIL_POSTFIX_HOSTNAME: "mail"
         expose:
             # Expose SMTP to mail senders
             - "25"
         volumes:
             - vol_postfix_data:/var/spool/postfix/
+            - vol_postfix_local_mail:/var/lib/mail/
+            - vol_postfix_queue:/var/spool/postfix/
         deploy:
             # Only one instance
             replicas: 1
@@ -1272,8 +1290,17 @@ volumes:
     # RabbitMQ data
     vol_rabbitmq_data: {}
 
+    # OpenDKIM configuration and keys
+    vol_opendkim_config: {}
+
     # Postfix data
     vol_postfix_data: {}
+
+    # Postfix local mail
+    vol_postfix_local_mail: {}
+
+    # Postfix mail queue
+    vol_postfix_queue: {}
 
     # Daily RSS dumps
     # (shared between cron_generate_daily_rss_dumps and webapp-httpd)

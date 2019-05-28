@@ -6,30 +6,44 @@ FROM dockermediacloud/mediacloud-base:latest
 
 # FIXME keep in sync with main-opendkim-server?
 ENV MC_MAIL_POSTFIX_MAILNAME "mail.mediacloud.org"
-ENV MC_MAIL_POSTFIX_OPENDKIM_HOST "mc_mail_opendkim_server"
 
-# Configure Postfix package
+# Install packages
 RUN \
     #
-    # Configure Postfix as Internet Site
-    echo "postfix postfix/main_mailer_type string 'Internet Site'" | debconf-set-selections && \
+    # Remove ssmtp (not compatible with Postfix)
+    apt-get -y remove ssmtp && \
     #
-    # Set Postfix hostname
-    echo "postfix postfix/mailname string ${MC_MAIL_POSTFIX_MAILNAME}" | debconf-set-selections && \
+    # Install Postfix
+    apt-get -y --no-install-recommends install postfix && \
     true
-
-# Install Postfix
-RUN apt-get -y --no-install-recommends install postfix
 
 # Configure Postfix
 RUN \
+    #
+    # Configure OpenDKIM
     postconf -e milter_protocol=2 && \
     postconf -e milter_default_action=accept && \
-    postconf -e smtpd_milters=inet:${MC_MAIL_POSTFIX_OPENDKIM_HOST}:12301 && \
-    postconf -e non_smtpd_milters=inet:${MC_MAIL_POSTFIX_OPENDKIM_HOST}:12301 && \
+    postconf -e smtpd_milters=inet:mc_mail_opendkim_server:12301 && \
+    postconf -e non_smtpd_milters=inet:mc_mail_opendkim_server:12301 && \
+    #
+    # Relay all emails with a non-localhost destination
+    postconf -e mydestination=localhost && \
+    #
+    # Accept email from Docker network
+    postconf -e mynetworks=0.0.0.0/0 && \
+    #
+    # Don't require TLS as local clients are trusted
+    postconf -e smtp_tls_security_level=may && \
+    postconf -e smtpd_tls_security_level=none && \
     true
 
-# Postfix data
+# Postfix data directory
+VOLUME /var/lib/postfix/
+
+# Local mail
+VOLUME /var/lib/mail/
+
+# Mail queue
 VOLUME /var/spool/postfix/
 
 # SMTP port
