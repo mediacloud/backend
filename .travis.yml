@@ -79,7 +79,7 @@ install:
   - ./dev/build.py | bash
 script:
   # Run all test files in all apps
-  - true
+  - ./dev/run_all_tests.py | parallel --jobs `nproc` --group
 after_success:
   # Log in to Docker Hub
   - echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
