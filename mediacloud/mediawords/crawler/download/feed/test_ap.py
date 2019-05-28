@@ -55,7 +55,6 @@ class TestAPFetcher(TestCase):
             mock_nitf_url = "https://api.ap.org/media/v/content/{guid}.{version}/download".format(guid=guid,version=version)
             content_mock_body = json.dumps(fixture_content_data[guid])
             nitf_mock_body = open("fixture_{guid}.nitf".format(guid=guid),"r").read().rstrip()
-            #print(nitf_mock_body)
 
             # Register mock content responses
             httpretty.register_uri(httpretty.GET, mock_content_url, adding_headers=MOCK_RESPONSE_HEADERS, body = content_mock_body)
