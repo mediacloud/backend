@@ -340,7 +340,7 @@ def _fetch_stories_using_search(max_lookback: int,
 
 def _fetch_stories_using_feed(db: mediawords.db.DatabaseHandler = None) -> dict:
     """Internal method to fetch all stories from the feed endpoint"""
-    feed_data = _api.feed(page_size=3)
+    feed_data = _api.feed(page_size=100)
     stories = feed_data['items']
     items = _process_stories(stories,db=db)
     return items
