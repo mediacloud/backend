@@ -21,6 +21,7 @@ services:
             - mc_webapp_httpd
             - mc_munin_httpd
             - mc_portainer
+            - mc_solr_shard
 
     mc_proxy_cron_certbot:
         image: dockermediacloud/mediacloud-proxy-cron-certbot:latest
@@ -60,6 +61,36 @@ services:
        image: portainer/portainer:1.20.2
        expose:
            - "9000"
+
+    mc_solr_shard:
+        image: dockermediacloud/mediacloud-solr-shard:latest
+        env_file: ./../global.env.dist
+        stop_signal: SIGKILL
+        environment:
+            MC_SOLR_SHARD_COUNT: "1"
+        expose:
+            - 8983
+        depends_on:
+            - mc_solr_zookeeper
+        deploy:
+            resources:
+                limits:
+                    cpus: "0.5"
+                    memory: 256M
+
+    mc_solr_zookeeper:
+        image: dockermediacloud/mediacloud-solr-zookeeper:latest
+        env_file: ./../global.env.dist
+        stop_signal: SIGKILL
+        expose:
+            - 2181
+            - 2888
+            - 3888
+        deploy:
+            resources:
+                limits:
+                    cpus: "0.5"
+                    memory: 256M
 
 volumes:
     vol_proxy_ssl_certs: {}
