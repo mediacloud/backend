@@ -40,16 +40,9 @@ services:
               target: /etc/munin/plugins/
         depends_on:
             # Monitors a bunch of stuff on PostgreSQL
-            - mc_migrate_schema
+            - mc_postgresql_pgbouncer
             # Monitors stuff on Solr too
             - mc_solr_shard
-
-    mc_migrate_schema:
-        image: dockermediacloud/mediacloud-migrate-schema:latest
-        env_file: ./../global.env.dist
-        stop_signal: SIGKILL
-        depends_on:
-            - mc_postgresql_pgbouncer
 
     mc_postgresql_pgbouncer:
         image: dockermediacloud/mediacloud-postgresql-pgbouncer:latest

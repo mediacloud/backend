@@ -13,27 +13,8 @@ class McConnectToDBException(Exception):
     pass
 
 
-def database_looks_empty(db: DatabaseHandler) -> bool:
-    """Returns True if the database looks empty."""
-    stories_tables = db.query("""
-        SELECT 1
-        FROM information_schema.tables 
-        WHERE table_schema = 'public'
-          AND table_name = 'stories' 
-    """).flat()
-    if len(stories_tables) > 0:
-        return False
-    else:
-        return True
-
-
-def connect_to_db(require_schema: bool = True) -> DatabaseHandler:
+def connect_to_db() -> DatabaseHandler:
     """Connect to PostgreSQL."""
-
-    if isinstance(require_schema, bytes):
-        require_schema = decode_object_from_bytes_if_needed(require_schema)
-
-    require_schema = bool(int(require_schema))
 
     db_config = CommonConfig.database()
     retries_config = db_config.retries()
@@ -55,10 +36,6 @@ def connect_to_db(require_schema: bool = True) -> DatabaseHandler:
             )
             if not db:
                 raise ValueError("Returned value is None.")
-
-            if require_schema:
-                if database_looks_empty(db):
-                    raise ValueError("Connection succeeded but the database is empty.")
 
         except Exception as ex:
 

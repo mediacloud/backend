@@ -28,7 +28,7 @@ services:
               source: ./../common/src/
               target: /opt/mediacloud/src/common/
         depends_on:
-            - mc_migrate_schema
+            - mc_postgresql_pgbouncer
             # 1) _add_tweet_story() calls generate_story()
             # 2) generate_story() calls _extract_story()
             # 3) _extract_story() runs a remote extraction job
@@ -49,13 +49,6 @@ services:
         stop_signal: SIGKILL
         expose:
             - 80
-
-    mc_migrate_schema:
-        image: dockermediacloud/mediacloud-migrate-schema:latest
-        env_file: ./../global.env.dist
-        stop_signal: SIGKILL
-        depends_on:
-            - mc_postgresql_pgbouncer
 
     mc_postgresql_pgbouncer:
         image: dockermediacloud/mediacloud-postgresql-pgbouncer:latest

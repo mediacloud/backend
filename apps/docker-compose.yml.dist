@@ -607,7 +607,7 @@ services:
         expose:
             - 5432
         volumes:
-            - vol_postgresql_data:/var/lib/postgresql/11/main/
+            - vol_postgresql_data:/var/lib/postgresql/
         deploy:
             # Only one instance
             replicas: 1
@@ -1180,32 +1180,6 @@ services:
                     cpus: "1"
                     # RAM limit
                     memory: 2G
-
-    #
-    # Migrate (install or update) database schema
-    # -------------------------------------------
-    #
-    mc_migrate_schema:
-        build:
-            context: ./migrate-schema/
-        image: dockermediacloud/mediacloud-migrate-schema:latest
-        networks:
-            - default
-        env_file: global.env
-        depends_on:
-            - mc_postgresql_pgbouncer
-        deploy:
-            # Only a single DDL script
-            replicas: 1
-            # Run only once, don't attempt to restart it
-            restart_policy:
-                condition: none
-            resources:
-                limits:
-                    # CPU core limit
-                    cpus: "1"
-                    # RAM limit
-                    memory: 256M
 
     #
     # Munin node

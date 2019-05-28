@@ -22,30 +22,43 @@ RUN \
     chown -R postgres:postgres /var/run/postgresql/11-main.pg_stat_tmp && \
     true
 
-# Update static configuration
-COPY conf/postgresql.conf /var/tmp/
-RUN cat /var/tmp/postgresql.conf >> /etc/postgresql/11/main/postgresql.conf
+# Write our own configuration
+RUN rm -rf /etc/postgresql/11/main/
+COPY conf/ /etc/postgresql/11/main/
+RUN chown postgres:postgres /etc/postgresql/11/main/postgresql-memory.conf
 
-# Allow mc_postgresql_pgbouncer to connect using a password
-RUN echo "host all mediacloud samenet md5" >> /etc/postgresql/11/main/pg_hba.conf
+# Copy helper scripts, schema, migrations
+RUN mkdir -p /opt/mediacloud/
+COPY bin/ /opt/mediacloud/bin/
+COPY schema/ /opt/mediacloud/schema/
 
-# Copy helper scripts
-COPY bin/postgresql_server.sh bin/initialize_postgresql_db.sh /
+USER postgres
 
-# Initialize data volume, create users and a database
+ENV PATH="/opt/mediacloud/bin:${PATH}"
+
+# Initialize data volume, create users, a database, and initialize it with
+# schema
 # If a new empty volume gets mounted to /var/lib/postgresql/ upon
 # container start, Docker will copy the files from the container to the volume
-RUN \
-    echo "Creating initial database..." && \
-    rm -rf /var/lib/postgresql/11/main/ && \
-    sudo su - postgres /initialize_postgresql_db.sh && \
-    echo "Done creating initial database." && \
-    true
+RUN initialize_schema.sh
+
+# Remove the init script so that someone doesn't accidentally run it in
+# production
+USER root
+RUN rm /opt/mediacloud/bin/initialize_schema.sh
+USER postgres
+
+# Make sure that we can connect via "psql" without sudoing into "postgres" user
+ENV PGHOST localhost
+ENV PGPORT 5432
+ENV PGUSER mediacloud
+ENV PGPASSWORD mediacloud
+ENV PGDATABASE mediacloud
 
 # PostgreSQL data
-VOLUME /var/lib/postgresql/11/main/
+VOLUME /var/lib/postgresql/
 
 # Server
 EXPOSE 5432
 
-CMD ["sudo", "su", "-", "postgres", "/postgresql_server.sh"]
+CMD ["/opt/mediacloud/bin/postgresql_server.sh"]

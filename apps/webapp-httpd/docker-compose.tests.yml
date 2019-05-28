@@ -18,7 +18,7 @@ services:
         expose:
             - "9090"
         depends_on:
-            - mc_migrate_schema
+            - mc_postgresql_pgbouncer
             - mc_solr_shard
             - mc_rabbitmq_server
             - mc_rescrape_media
@@ -27,13 +27,6 @@ services:
             - mc_topics_snapshot
             # Multiple tests import Solr data
             - mc_import_solr_data_for_testing
-
-    mc_migrate_schema:
-        image: dockermediacloud/mediacloud-migrate-schema:latest
-        env_file: ./../global.env.dist
-        stop_signal: SIGKILL
-        depends_on:
-            - mc_postgresql_pgbouncer
 
     mc_postgresql_pgbouncer:
         image: dockermediacloud/mediacloud-postgresql-pgbouncer:latest
@@ -119,5 +112,5 @@ services:
             MC_SOLR_IMPORT_MAX_QUEUED_STORIES: 100000
         stop_signal: SIGKILL
         depends_on:
-            - mc_migrate_schema
+            - mc_postgresql_pgbouncer
             - mc_solr_shard

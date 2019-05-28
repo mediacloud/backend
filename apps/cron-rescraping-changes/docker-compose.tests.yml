@@ -14,13 +14,6 @@ services:
               source: ./../common/src/
               target: /opt/mediacloud/src/common/
         depends_on:
-            - mc_migrate_schema
-
-    mc_migrate_schema:
-        image: dockermediacloud/mediacloud-migrate-schema:latest
-        env_file: ./../global.env.dist
-        stop_signal: SIGKILL
-        depends_on:
             - mc_postgresql_pgbouncer
 
     mc_postgresql_pgbouncer:

@@ -27,7 +27,7 @@ services:
               source: ./../common/src/
               target: /opt/mediacloud/src/common/
         depends_on:
-            - mc_migrate_schema
+            - mc_postgresql_pgbouncer
             # Uses extractor HTTP service directly to get raw extracted HTML:
             - mc_extract_article_from_page
 
@@ -37,13 +37,6 @@ services:
         stop_signal: SIGKILL
         expose:
             - 80
-
-    mc_migrate_schema:
-        image: dockermediacloud/mediacloud-migrate-schema:latest
-        env_file: ./../global.env.dist
-        stop_signal: SIGKILL
-        depends_on:
-            - mc_postgresql_pgbouncer
 
     mc_postgresql_pgbouncer:
         image: dockermediacloud/mediacloud-postgresql-pgbouncer:latest

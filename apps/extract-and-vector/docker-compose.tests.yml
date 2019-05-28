@@ -21,7 +21,7 @@ services:
               target: /opt/mediacloud/src/common/
         depends_on:
             - mc_extract_article_from_page
-            - mc_migrate_schema
+            - mc_postgresql_pgbouncer
             # process_extracted_story() will try to add story to CLIFF / NYTLabels queue:
             - mc_rabbitmq_server
 
@@ -31,13 +31,6 @@ services:
         stop_signal: SIGKILL
         expose:
             - 80
-
-    mc_migrate_schema:
-        image: dockermediacloud/mediacloud-migrate-schema:latest
-        env_file: ./../global.env.dist
-        stop_signal: SIGKILL
-        depends_on:
-            - mc_postgresql_pgbouncer
 
     mc_postgresql_pgbouncer:
         image: dockermediacloud/mediacloud-postgresql-pgbouncer:latest

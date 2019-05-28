@@ -25,7 +25,7 @@ services:
               source: ./../common/src/
               target: /opt/mediacloud/src/common/
         depends_on:
-            - mc_migrate_schema
+            - mc_postgresql_pgbouncer
             - mc_solr_shard
             - mc_rabbitmq_server
             - mc_import_solr_data_for_testing
@@ -38,15 +38,8 @@ services:
             MC_SOLR_IMPORT_MAX_QUEUED_STORIES: 100000
         stop_signal: SIGKILL
         depends_on:
-            - mc_migrate_schema
-            - mc_solr_shard
-
-    mc_migrate_schema:
-        image: dockermediacloud/mediacloud-migrate-schema:latest
-        env_file: ./../global.env.dist
-        stop_signal: SIGKILL
-        depends_on:
             - mc_postgresql_pgbouncer
+            - mc_solr_shard
 
     mc_postgresql_pgbouncer:
         image: dockermediacloud/mediacloud-postgresql-pgbouncer:latest
