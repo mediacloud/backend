@@ -7,7 +7,7 @@ import httpretty
 import mediawords.util.config
 import ap
 import time
-
+import os
 
 
 def test_ap_config_section() -> None:
@@ -33,6 +33,8 @@ class TestAPFetcher(TestCase):
 
     def setUp(self):
         """Setup Method"""
+        base_dir = os.path.dirname(os.path.realpath(__file__))
+        fixture_data_dir = '{base_dir}/ap_test_fixtures/'.format(base_dir=base_dir)
         self._api = ap.AssociatedPressAPI()
         ap._api = self._api
         MOCK_RESPONSE_HEADERS = {'Content-Type': 'application/json; charset=utf-8',
@@ -40,10 +42,12 @@ class TestAPFetcher(TestCase):
                                  'x-mediaapi-Q-secondsLeft': '30',
                                  'x-mediaapi-Q-used': '1/100'}
 
-        fixture_feed_data = open("test_ap_fixture_feed_data","r").read()
-        fixture_search_data = open("test_ap_fixture_search_data","r").read()
+        fixture_feed_data = open(fixture_data_dir + "test_ap_fixture_feed_data","r").read()
+        fixture_search_data = open(fixture_data_dir + "test_ap_fixture_search_data","r").read()
+        fixture_test_data = open(fixture_data_dir + "test_ap_fixture_test_data","r").read()
+        self.fixture_test_data = json.loads(fixture_test_data)
         self.fixture_data_stories = json.loads(fixture_feed_data)['data']['items']
-        fixture_content_data = json.loads(open("test_ap_fixture_content_data","r").read())
+        fixture_content_data = json.loads(open(fixture_data_dir + "test_ap_fixture_content_data","r").read())
         self.required_fields = set(['guid','url','publish_date','title','description','text','content'])
         self.present_guids = set()
 
@@ -55,7 +59,7 @@ class TestAPFetcher(TestCase):
             mock_content_url = "https://api.ap.org/media/v/content/{guid}".format(guid=guid)
             mock_nitf_url = "https://api.ap.org/media/v/content/{guid}.{version}/download".format(guid=guid,version=version)
             content_mock_body = json.dumps(fixture_content_data[guid])
-            nitf_mock_body = open("test_ap_fixture_{guid}.nitf".format(guid=guid),"r").read().rstrip()
+            nitf_mock_body = open(fixture_data_dir + "test_ap_fixture_{guid}.nitf".format(guid=guid),"r").read().rstrip()
 
             # Register mock content responses
             httpretty.register_uri(httpretty.GET, mock_content_url, adding_headers=MOCK_RESPONSE_HEADERS, body = content_mock_body)
@@ -73,13 +77,13 @@ class TestAPFetcher(TestCase):
 
 
     def test_fetch_nitf_rendition(self) -> None:
-        """Test fetching of nitf content and that it is valid XML"""
+        """Test fetching of nitf content and that it is valid XML and correct size"""
         story_item = self.fixture_data_stories[0]['item']
         nitf_content = ap._fetch_nitf_rendition(story_item)
+        actual_nitf_content_length = 2854
         soup = BeautifulSoup(nitf_content,features="html.parser")
         body_content = soup.find('body.content').text
-        assert body_content
-
+        assert len(body_content) == actual_nitf_content_length
 
     def test_process_stories(self) -> None:
         """Test that all stories are processed and all required fields are present"""
@@ -90,7 +94,12 @@ class TestAPFetcher(TestCase):
             assert guid in stories
 
         # Test that all required fields were returned for each story
-        for story in stories.values():
+        for guid, story in stories.items():
             for key in self.required_fields:
                 assert key in story
+
+        # Test that each field has the correctly parsed data
+        for guid, story in stories.items():
+            for key in self.required_fields:
+                assert self.fixture_test_data[guid][key] == story[key]
 
