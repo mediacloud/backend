@@ -1,0 +1,88 @@
+#
+# Doesn't work with dev/run.sh; for development, start it as such:
+#
+#     cd apps/solr-shard/
+#     docker-compose \
+#         --project-name mc_solr_shard-bash \
+#         --file docker-compose.tests.yml \
+#         --compatibility up \
+#         --renew-anon-volumes \
+#         --force-recreate
+#
+
+version: "3.7"
+
+# Base service for Solr shard
+x-mc_solr_shard_base:   &mc_solr_shard_base
+    image: dockermediacloud/mediacloud-solr-shard:latest
+    env_file: ./../global.env.dist
+    stop_signal: SIGKILL
+    environment:
+        MC_SOLR_SHARD_COUNT: "4"
+    networks:
+        - default
+    ports:
+        # Map to random port on the host for them not to clash
+        - "8983"
+    depends_on:
+        - mc_solr_zookeeper
+    networks:
+        default:
+            aliases:
+                # Make all services accessible via this hostname by doing
+                # round-robin among them
+                - mc_solr_shard
+    deploy:
+        # Every shard runs as it's own independent service
+        replicas: 1
+        resources:
+            limits:
+                cpus: "0.5"
+                memory: 256M
+
+services:
+
+    mc_solr_shard_01:
+        <<: *mc_solr_shard_base
+        volumes:
+            - vol_solr_shard_data_01:/var/lib/solr/
+
+    mc_solr_shard_02:
+        <<: *mc_solr_shard_base
+        volumes:
+            - vol_solr_shard_data_02:/var/lib/solr/
+
+    mc_solr_shard_03:
+        <<: *mc_solr_shard_base
+        volumes:
+            - vol_solr_shard_data_03:/var/lib/solr/
+
+    mc_solr_shard_04:
+        <<: *mc_solr_shard_base
+        volumes:
+            - vol_solr_shard_data_04:/var/lib/solr/
+
+    mc_solr_zookeeper:
+        image: dockermediacloud/mediacloud-solr-zookeeper:latest
+        env_file: ./../global.env.dist
+        stop_signal: SIGKILL
+        expose:
+            - 2181
+            - 2888
+            - 3888
+        networks:
+            - default
+        deploy:
+            resources:
+                limits:
+                    cpus: "0.5"
+                    memory: 256M
+
+networks:
+    default:
+
+volumes:
+    vol_solr_shard_data_01: {}
+    vol_solr_shard_data_02: {}
+    vol_solr_shard_data_03: {}
+    vol_solr_shard_data_04: {}

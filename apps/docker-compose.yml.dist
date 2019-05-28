@@ -1,6 +1,58 @@
 version: "3.7"
 
 #
+# Solr shard base service
+# =======================
+#
+# Solr shards are not easily replicatable (because resharding would have to be
+# done manually), also every Solr shard has to have its very own named volume
+# to write the data to, so instead of replicating Solr shards with
+# "deploy/replicas", we define every shard as its own independent service.
+#
+x-mc_solr_shard_base:   &mc_solr_shard_base
+    build:
+        context: ./solr-shard/
+    image: dockermediacloud/mediacloud-solr-shard:latest
+    env_file: global.env
+    environment:
+        # Shard count (every individual shard needs to know the total count)
+        #
+        # (keep in sync with how many shard services get actually defined in
+        # the "services" section, e.g. mc_solr_shard_01, mc_solr_shard_02,
+        # ..., mc_solr_shard_24)
+        MC_SOLR_SHARD_COUNT: "24"
+    depends_on:
+        - mc_solr_zookeeper
+    expose:
+        - 8983
+    networks:
+        default:
+            aliases:
+                # To make Solr clients be able to round-robin between the
+                # shards, all of the shard services get assigned the same
+                # "mc_solr_shard" network alias.
+                - mc_solr_shard
+    deploy:
+        # Every shard runs as its own independent, non-replicated service
+        replicas: 1
+        # Auto-restart on crashes
+        restart_policy:
+            condition: on-failure
+        resources:
+            limits:
+                # CPU core limit
+                #
+                # (each mcquery* has 32 cores and will be running 8 shards
+                # each, so 32 / 8 = 4)
+                cpus: "4"
+                # RAM limit
+                #
+                # (each mcquery* has 192 GB of RAM and will be running 8 shards
+                # each, so 192 / 8 = 24)
+                memory: 24G
+
+
+#
 # Services
 # ========
 #
@@ -14,6 +66,8 @@ services:
         build:
             context: ./cliff-fetch-annotation/
         image: dockermediacloud/mediacloud-cliff-fetch-annotation:latest
+        networks:
+            - default
         env_file: global.env
         environment:
             # Annotator endpoint URL
@@ -43,6 +97,8 @@ services:
         build:
             context: ./cliff-update-story-tags/
         image: dockermediacloud/mediacloud-cliff-update-story-tags:latest
+        networks:
+            - default
         env_file: global.env
         environment:
             # CLIFF version tag
@@ -78,6 +134,8 @@ services:
         build:
             context: ./crawler-provider/
         image: dockermediacloud/mediacloud-crawler-provider:latest
+        networks:
+            - default
         env_file: global.env
         depends_on:
             - mc_postgresql_pgbouncer
@@ -102,6 +160,8 @@ services:
         build:
             context: ./crawler-fetcher/
         image: dockermediacloud/mediacloud-crawler-fetcher:latest
+        networks:
+            - default
         env_file: global.env
         depends_on:
             - mc_postgresql_pgbouncer
@@ -127,6 +187,8 @@ services:
         build:
             context: ./create-missing-partitions/
         image: dockermediacloud/mediacloud-create-missing-partitions:latest
+        networks:
+            - default
         env_file: global.env
         depends_on:
             - mc_postgresql_pgbouncer
@@ -151,6 +213,8 @@ services:
         build:
             context: ./extract-article-from-page/
         image: dockermediacloud/mediacloud-extract-article-from-page:latest
+        networks:
+            - default
         env_file: global.env
         deploy:
             # Worker count
@@ -173,6 +237,8 @@ services:
         build:
             context: ./extract-and-vector/
         image: dockermediacloud/mediacloud-extract-and-vector:latest
+        networks:
+            - default
         env_file: global.env
         depends_on:
             - mc_extract_article_from_page
@@ -200,6 +266,8 @@ services:
         build:
             context: ./facebook-fetch-story-stats/
         image: dockermediacloud/mediacloud-facebook-fetch-story-stats:latest
+        networks:
+            - default
         env_file: global.env
         environment:
             # Facebook application ID
@@ -233,6 +301,8 @@ services:
         build:
             context: ./cron-generate-daily-rss-dumps/
         image: dockermediacloud/mediacloud-cron-generate-daily-rss-dumps:latest
+        networks:
+            - default
         env_file: global.env
         depends_on:
             - mc_postgresql_pgbouncer
@@ -260,6 +330,8 @@ services:
         build:
             context: ./cron-generate-media-health/
         image: dockermediacloud/mediacloud-cron-generate-media-health:latest
+        networks:
+            - default
         env_file: global.env
         deploy:
             # Only one instance
@@ -282,6 +354,8 @@ services:
         build:
             context: ./cron-generate-user-summary/
         image: dockermediacloud/mediacloud-cron-generate-user-summary:latest
+        networks:
+            - default
         env_file: global.env
         depends_on:
             - mc_postgresql_pgbouncer
@@ -306,6 +380,8 @@ services:
         build:
             context: ./import-solr-data/
         image: dockermediacloud/mediacloud-import-solr-data:latest
+        networks:
+            - default
         env_file: global.env
         environment:
             # Jobs (forks) to start for the import
@@ -315,7 +391,7 @@ services:
             MC_SOLR_IMPORT_MAX_QUEUED_STORIES: 100000
         depends_on:
             - mc_postgresql_pgbouncer
-            - mc_solr_shard
+            - mc_solr_shard_01
         deploy:
             # Only one instance
             replicas: 1
@@ -337,6 +413,8 @@ services:
         build:
             context: ./import-stories-feedly/
         image: dockermediacloud/mediacloud-import-stories-feedly:latest
+        networks:
+            - default
         env_file: global.env
         deploy:
             # Writes stories to PostgreSQL
@@ -362,6 +440,8 @@ services:
         build:
             context: ./mail-opendkim-server/
         image: dockermediacloud/mediacloud-mail-opendkim-server:latest
+        networks:
+            - default
         env_file: global.env
         environment:
             # Top-level domain to use for signing emails, e.g. "mediacloud.org"
@@ -396,6 +476,8 @@ services:
         build:
             context: ./mail-postfix-server/
         image: dockermediacloud/mediacloud-mail-postfix-server:latest
+        networks:
+            - default
         env_file: global.env
         environment:
             # Top-level domain to use for signing emails, e.g. "mediacloud.org"
@@ -432,6 +514,8 @@ services:
         build:
             context: ./nytlabels-fetch-annotation/
         image: dockermediacloud/mediacloud-nytlabels-fetch-annotation:latest
+        networks:
+            - default
         env_file: global.env
         environment:
             # NYTLabels annotator endpoint URL
@@ -462,6 +546,8 @@ services:
         build:
             context: ./nytlabels-update-story-tags/
         image: dockermediacloud/mediacloud-nytlabels-update-story-tags:latest
+        networks:
+            - default
         env_file: global.env
         environment:
             # NYTLabels version tag
@@ -493,6 +579,8 @@ services:
         build:
             context: ./postgresql-pgbouncer/
         image: dockermediacloud/mediacloud-postgresql-pgbouncer:latest
+        networks:
+            - default
         env_file: global.env
         depends_on:
             - mc_postgresql_server
@@ -513,6 +601,8 @@ services:
         build:
             context: ./postgresql-server/
         image: dockermediacloud/mediacloud-postgresql-server:latest
+        networks:
+            - default
         env_file: global.env
         expose:
             - 5432
@@ -533,6 +623,8 @@ services:
         build:
             context: ./predict-news-labels/
         image: dockermediacloud/mediacloud-predict-news-labels:latest
+        networks:
+            - default
         env_file: global.env
         expose:
             - 8080
@@ -558,6 +650,8 @@ services:
         build:
             context: ./purge-object-caches/
         image: dockermediacloud/mediacloud-purge-object-caches:latest
+        networks:
+            - default
         env_file: global.env
         depends_on:
             - mc_postgresql_pgbouncer
@@ -582,6 +676,8 @@ services:
         build:
             context: ./rabbitmq-server/
         image: dockermediacloud/mediacloud-rabbitmq-server:latest
+        networks:
+            - default
         env_file: global.env
         expose:
             - 5672
@@ -609,6 +705,8 @@ services:
         build:
             context: ./cron-refresh-stats/
         image: dockermediacloud/mediacloud-cron-refresh-stats:latest
+        networks:
+            - default
         env_file: global.env
         deploy:
             # Only one instance
@@ -631,6 +729,8 @@ services:
         build:
             context: ./cron-rescrape-due-media/
         image: dockermediacloud/mediacloud-cron-rescrape-due-media:latest
+        networks:
+            - default
         env_file: global.env
         deploy:
             # Only one instance
@@ -653,6 +753,8 @@ services:
         build:
             context: ./rescrape-media/
         image: dockermediacloud/mediacloud-rescrape-media:latest
+        networks:
+            - default
         env_file: global.env
         deploy:
             # Worker count
@@ -675,6 +777,8 @@ services:
         build:
             context: ./cron-rescraping-changes/
         image: dockermediacloud/mediacloud-cron-rescraping-changes:latest
+        networks:
+            - default
         env_file: global.env
         deploy:
             # Only one instance
@@ -697,6 +801,8 @@ services:
         build:
             context: ./cron-set-media-primary-language/
         image: dockermediacloud/mediacloud-cron-set-media-primary-language:latest
+        networks:
+            - default
         env_file: global.env
         deploy:
             # Only one instance
@@ -719,6 +825,8 @@ services:
         build:
             context: ./cron-set-media-subject-country/
         image: dockermediacloud/mediacloud-cron-set-media-subject-country:latest
+        networks:
+            - default
         env_file: global.env
         deploy:
             # Only one instance
@@ -741,6 +849,8 @@ services:
         build:
             context: ./cron-print-long-running-job-states/
         image: dockermediacloud/mediacloud-cron-print-long-running-job-states:latest
+        networks:
+            - default
         env_file: global.env
         deploy:
             # Only one instance
@@ -756,37 +866,128 @@ services:
                     memory: 256M
 
     #
-    # Solr shard
-    # ----------
+    # Solr shards 01-24
+    # -----------------
     #
-    mc_solr_shard:
-        build:
-            context: ./solr-shard/
-        image: dockermediacloud/mediacloud-solr-shard:latest
-        env_file: global.env
-        environment:
-            # Shard count
-            # (keep in sync with deploy/replicas)
-            MC_SOLR_SHARD_COUNT: "24"
-        depends_on:
-            - mc_solr_zookeeper
-        expose:
-            - 8983
+    mc_solr_shard_01:
+        <<: *mc_solr_shard_base
         volumes:
-            - vol_solr_shard_data:/var/lib/solr/
-        deploy:
-            # Shard count
-            # (keep in sync with environment/MC_SOLR_SHARD_COUNT)
-            replicas: 24
-            # Auto-restart on crashes
-            restart_policy:
-                condition: on-failure
-            resources:
-                limits:
-                    # CPU core limit
-                    cpus: "4"
-                    # RAM limit
-                    memory: 24G
+            - vol_solr_shard_data_01:/var/lib/solr/
+
+    mc_solr_shard_02:
+        <<: *mc_solr_shard_base
+        volumes:
+            - vol_solr_shard_data_02:/var/lib/solr/
+
+    mc_solr_shard_03:
+        <<: *mc_solr_shard_base
+        volumes:
+            - vol_solr_shard_data_03:/var/lib/solr/
+
+    mc_solr_shard_04:
+        <<: *mc_solr_shard_base
+        volumes:
+            - vol_solr_shard_data_04:/var/lib/solr/
+
+    mc_solr_shard_05:
+        <<: *mc_solr_shard_base
+        volumes:
+            - vol_solr_shard_data_05:/var/lib/solr/
+
+    mc_solr_shard_06:
+        <<: *mc_solr_shard_base
+        volumes:
+            - vol_solr_shard_data_06:/var/lib/solr/
+
+    mc_solr_shard_07:
+        <<: *mc_solr_shard_base
+        volumes:
+            - vol_solr_shard_data_07:/var/lib/solr/
+
+    mc_solr_shard_08:
+        <<: *mc_solr_shard_base
+        volumes:
+            - vol_solr_shard_data_08:/var/lib/solr/
+
+    mc_solr_shard_09:
+        <<: *mc_solr_shard_base
+        volumes:
+            - vol_solr_shard_data_09:/var/lib/solr/
+
+    mc_solr_shard_10:
+        <<: *mc_solr_shard_base
+        volumes:
+            - vol_solr_shard_data_10:/var/lib/solr/
+
+    mc_solr_shard_11:
+        <<: *mc_solr_shard_base
+        volumes:
+            - vol_solr_shard_data_11:/var/lib/solr/
+
+    mc_solr_shard_12:
+        <<: *mc_solr_shard_base
+        volumes:
+            - vol_solr_shard_data_12:/var/lib/solr/
+
+    mc_solr_shard_13:
+        <<: *mc_solr_shard_base
+        volumes:
+            - vol_solr_shard_data_13:/var/lib/solr/
+
+    mc_solr_shard_14:
+        <<: *mc_solr_shard_base
+        volumes:
+            - vol_solr_shard_data_14:/var/lib/solr/
+
+    mc_solr_shard_15:
+        <<: *mc_solr_shard_base
+        volumes:
+            - vol_solr_shard_data_15:/var/lib/solr/
+
+    mc_solr_shard_16:
+        <<: *mc_solr_shard_base
+        volumes:
+            - vol_solr_shard_data_16:/var/lib/solr/
+
+    mc_solr_shard_17:
+        <<: *mc_solr_shard_base
+        volumes:
+            - vol_solr_shard_data_17:/var/lib/solr/
+
+    mc_solr_shard_18:
+        <<: *mc_solr_shard_base
+        volumes:
+            - vol_solr_shard_data_18:/var/lib/solr/
+
+    mc_solr_shard_19:
+        <<: *mc_solr_shard_base
+        volumes:
+            - vol_solr_shard_data_19:/var/lib/solr/
+
+    mc_solr_shard_20:
+        <<: *mc_solr_shard_base
+        volumes:
+            - vol_solr_shard_data_20:/var/lib/solr/
+
+    mc_solr_shard_21:
+        <<: *mc_solr_shard_base
+        volumes:
+            - vol_solr_shard_data_21:/var/lib/solr/
+
+    mc_solr_shard_22:
+        <<: *mc_solr_shard_base
+        volumes:
+            - vol_solr_shard_data_22:/var/lib/solr/
+
+    mc_solr_shard_23:
+        <<: *mc_solr_shard_base
+        volumes:
+            - vol_solr_shard_data_23:/var/lib/solr/
+
+    mc_solr_shard_24:
+        <<: *mc_solr_shard_base
+        volumes:
+            - vol_solr_shard_data_24:/var/lib/solr/
 
     #
     # Solr ZooKeeper
@@ -796,6 +997,8 @@ services:
         build:
             context: ./solr-zookeeper/
         image: dockermediacloud/mediacloud-solr-zookeeper:latest
+        networks:
+            - default
         env_file: global.env
         expose:
             - 2181
@@ -824,6 +1027,8 @@ services:
         build:
             context: ./topics-extract-story-links/
         image: dockermediacloud/mediacloud-topics-extract-story-links:latest
+        networks:
+            - default
         env_file: global.env
         depends_on:
             - mc_extract_article_from_page
@@ -848,6 +1053,8 @@ services:
         build:
             context: ./topics-fetch-link/
         image: dockermediacloud/mediacloud-topics-fetch-link:latest
+        networks:
+            - default
         env_file: global.env
         deploy:
             # Worker count
@@ -870,6 +1077,8 @@ services:
         build:
             context: ./topics-fetch-twitter-urls/
         image: dockermediacloud/mediacloud-topics-fetch-twitter-urls:latest
+        networks:
+            - default
         env_file: global.env
         environment:
             # Twitter API consumer key
@@ -901,6 +1110,8 @@ services:
         build:
             context: ./topics-mine/
         image: dockermediacloud/mediacloud-topics-mine:latest
+        networks:
+            - default
         env_file: global.env
         environment:
             # Crimson Hexagon API key
@@ -926,6 +1137,8 @@ services:
         build:
             context: ./topics-mine-public/
         image: dockermediacloud/mediacloud-topics-mine-public:latest
+        networks:
+            - default
         env_file: global.env
         environment:
             # Crimson Hexagon API key
@@ -951,6 +1164,8 @@ services:
         build:
             context: ./topics-snapshot/
         image: dockermediacloud/mediacloud-topics-snapshot:latest
+        networks:
+            - default
         env_file: global.env
         environment:
             # Not sure what this is.
@@ -976,6 +1191,8 @@ services:
         build:
             context: ./migrate-schema/
         image: dockermediacloud/mediacloud-migrate-schema:latest
+        networks:
+            - default
         env_file: global.env
         depends_on:
             - mc_postgresql_pgbouncer
@@ -1000,11 +1217,13 @@ services:
         build:
             context: ./munin-node/
         image: dockermediacloud/mediacloud-munin-node:latest
+        networks:
+            - default
         depends_on:
             # Monitors data on PostgreSQL
             - mc_postgresql_pgbouncer
             # Monitors data on Solr
-            - mc_solr_shard
+            - mc_solr_shard_01
         deploy:
             # Only a single instance
             replicas: 1
@@ -1026,6 +1245,8 @@ services:
         build:
             context: ./munin-cron/
         image: dockermediacloud/mediacloud-munin-cron:latest
+        networks:
+            - default
         depends_on:
             # Reads data from Munin node
             - mc_munin_node
@@ -1055,6 +1276,8 @@ services:
         build:
             context: ./munin-httpd/
         image: dockermediacloud/mediacloud-munin-httpd:latest
+        networks:
+            - default
         depends_on:
             # Reads data generated by Munin stats collector
             - mc_munin_cron
@@ -1084,6 +1307,8 @@ services:
         build:
             context: ./sitemap-fetch-media-pages/
         image: dockermediacloud/mediacloud-sitemap-fetch-media-pages:latest
+        networks:
+            - default
         env_file: global.env
         deploy:
             # Worker count
@@ -1106,6 +1331,8 @@ services:
         build:
             context: ./webapp-api/
         image: dockermediacloud/mediacloud-webapp-api:latest
+        networks:
+            - default
         expose:
             # Plackup FastCGI worker port to be used by webapp_httpd
             - "9090"
@@ -1130,6 +1357,8 @@ services:
         build:
             context: ./webapp-httpd/
         image: dockermediacloud/mediacloud-webapp-httpd:latest
+        networks:
+            - default
         expose:
             # Expose HTTP port to reverse proxy
             - "80"
@@ -1157,6 +1386,8 @@ services:
         build:
             context: ./proxy-cron-certbot/
         image: dockermediacloud/mediacloud-proxy-cron-certbot:latest
+        networks:
+            - default
         environment:
             # Top-level domain to issue the certificate for
             MC_PROXY_CERTBOT_DOMAIN: "testmediacloud.ml"
@@ -1190,6 +1421,8 @@ services:
         build:
             context: ./proxy-httpd/
         image: dockermediacloud/mediacloud-proxy-httpd:latest
+        networks:
+            - default
         environment:
             # Semicolon-separated user credentials for restricted webapps
             # (Munin and Portainer); usernames and passwords separated by a
@@ -1235,6 +1468,8 @@ services:
         build:
             context: ./word2vec-generate-snapshot-model/
         image: dockermediacloud/mediacloud-word2vec-generate-snapshot-model:latest
+        networks:
+            - default
         env_file: global.env
         deploy:
             # Worker count
@@ -1255,6 +1490,8 @@ services:
     #
     mc_portainer:
        image: portainer/portainer:1.20.2
+        networks:
+            - default
        expose:
            # Web interface
            - "9000:9000"
@@ -1272,6 +1509,19 @@ services:
                    # RAM limit
                    memory: 1G
 
+
+#
+# Networks
+# ========
+#
+networks:
+
+    # Just throw anything to this network. Typically we wouldn't have to even
+    # define it here, but some services use aliases so every service has to be
+    # explicitly added to some sort of a network.
+    default:
+
+
 #
 # Volumes
 # =======
@@ -1282,7 +1532,30 @@ volumes:
     vol_postgresql_data: {}
 
     # Solr shard's data
-    vol_solr_shard_data: {}
+    vol_solr_shard_data_01: {}
+    vol_solr_shard_data_02: {}
+    vol_solr_shard_data_03: {}
+    vol_solr_shard_data_04: {}
+    vol_solr_shard_data_05: {}
+    vol_solr_shard_data_06: {}
+    vol_solr_shard_data_07: {}
+    vol_solr_shard_data_08: {}
+    vol_solr_shard_data_09: {}
+    vol_solr_shard_data_10: {}
+    vol_solr_shard_data_11: {}
+    vol_solr_shard_data_12: {}
+    vol_solr_shard_data_13: {}
+    vol_solr_shard_data_14: {}
+    vol_solr_shard_data_15: {}
+    vol_solr_shard_data_16: {}
+    vol_solr_shard_data_17: {}
+    vol_solr_shard_data_18: {}
+    vol_solr_shard_data_19: {}
+    vol_solr_shard_data_20: {}
+    vol_solr_shard_data_21: {}
+    vol_solr_shard_data_22: {}
+    vol_solr_shard_data_23: {}
+    vol_solr_shard_data_24: {}
 
     # ZooKeeper's data
     vol_solr_zookeeper_data: {}
