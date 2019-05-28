@@ -40,9 +40,10 @@ class TestAPFetcher(TestCase):
                                  'x-mediaapi-Q-secondsLeft': '30',
                                  'x-mediaapi-Q-used': '1/100'}
 
-        fixture_feed_data = open("fixture_feed_data","r").read()
+        fixture_feed_data = open("test_ap_fixture_feed_data","r").read()
+        fixture_search_data = open("test_ap_fixture_search_data","r").read()
         self.fixture_data_stories = json.loads(fixture_feed_data)['data']['items']
-        fixture_content_data = json.loads(open("fixture_content_data","r").read())
+        fixture_content_data = json.loads(open("test_ap_fixture_content_data","r").read())
         self.required_fields = set(['guid','url','publish_date','title','description','text','content'])
         self.present_guids = set()
 
@@ -54,7 +55,7 @@ class TestAPFetcher(TestCase):
             mock_content_url = "https://api.ap.org/media/v/content/{guid}".format(guid=guid)
             mock_nitf_url = "https://api.ap.org/media/v/content/{guid}.{version}/download".format(guid=guid,version=version)
             content_mock_body = json.dumps(fixture_content_data[guid])
-            nitf_mock_body = open("fixture_{guid}.nitf".format(guid=guid),"r").read().rstrip()
+            nitf_mock_body = open("test_ap_fixture_{guid}.nitf".format(guid=guid),"r").read().rstrip()
 
             # Register mock content responses
             httpretty.register_uri(httpretty.GET, mock_content_url, adding_headers=MOCK_RESPONSE_HEADERS, body = content_mock_body)
