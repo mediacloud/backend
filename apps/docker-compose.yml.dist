@@ -1004,8 +1004,6 @@ services:
             - 2181
             - 2888
             - 3888
-        volumes:
-            - vol_solr_zookeeper_data:/var/lib/zookeeper/
         deploy:
             # Only one instance
             replicas: 1
@@ -1556,9 +1554,6 @@ volumes:
     vol_solr_shard_data_22: {}
     vol_solr_shard_data_23: {}
     vol_solr_shard_data_24: {}
-
-    # ZooKeeper's data
-    vol_solr_zookeeper_data: {}
 
     # RabbitMQ data
     vol_rabbitmq_data: {}

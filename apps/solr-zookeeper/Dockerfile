@@ -20,8 +20,25 @@ RUN \
 # Copy configuration
 COPY conf/zoo.cfg /opt/zookeeper/conf/
 
-# ZooKeeper data
-VOLUME /var/lib/zookeeper/
+# Pre-initialize with Solr configuration
+COPY bin/init_solr_config.sh /
+RUN \
+    /init_solr_config.sh && \
+    #
+    # Move the "clean" ZooKeeper data directory to /var/lib/zookeeper-template/
+    # so that we could use a clean data directory (e.g. without Solr hostnames
+    # hardcoded) on every ZooKeeper start.
+    #
+    # We don't preserve ZooKeeper data volume because Solr shard hostnames keep
+    # on changing constantly so it's more painful than useful to make ZooKeeper
+    # figure out that said hostnames have changed - faster way is just to let
+    # ZooKeeper reread locations of shards on every start.
+    mv /var/lib/zookeeper/ /var/lib/zookeeper-template/ && \
+    #
+    true
+
+# Copy wrapper script
+COPY bin/zookeeper.sh /
 
 # ZooKeeper client port
 EXPOSE 2181
@@ -32,7 +49,5 @@ EXPOSE 2888
 # ZooKeeper election port
 EXPOSE 3888
 
-# Run ZooKeeper
-COPY bin/zookeeper.sh /
-
+# Start ZooKeeper
 CMD ["/zookeeper.sh"]
