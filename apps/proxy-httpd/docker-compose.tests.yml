@@ -22,6 +22,7 @@ services:
             - mc_munin_httpd
             - mc_portainer
             - mc_solr_shard
+            - mc_rabbitmq_server
 
     mc_proxy_cron_certbot:
         image: dockermediacloud/mediacloud-proxy-cron-certbot:latest
@@ -86,6 +87,19 @@ services:
             - 2181
             - 2888
             - 3888
+        deploy:
+            resources:
+                limits:
+                    cpus: "0.5"
+                    memory: 256M
+
+    mc_rabbitmq_server:
+        image: dockermediacloud/mediacloud-rabbitmq-server:latest
+        env_file: ./../global.env.dist
+        stop_signal: SIGKILL
+        expose:
+            - 5672
+            - 15672
         deploy:
             resources:
                 limits:
