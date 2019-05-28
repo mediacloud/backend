@@ -5,4 +5,4 @@ export WORKERS=1
 
 cd /usr/src/predict-news-labels/
 
-exec /usr/local/bin/gunicorn -b :8080 -t 900 app:app
+exec /usr/local/bin/gunicorn -b :80 -t 900 app:app

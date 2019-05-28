@@ -517,9 +517,6 @@ services:
         networks:
             - default
         env_file: global.env
-        environment:
-            # NYTLabels annotator endpoint URL
-            MC_NYTLABELS_ANNOTATOR_URL: ""
         depends_on:
             - mc_extract_and_vector
             - mc_predict_news_labels
@@ -627,11 +624,10 @@ services:
             - default
         env_file: global.env
         expose:
-            - 8080
+            - 80
         deploy:
             # Worker count
-            # FIXME disabled while containerization branch is in development because takes up a lot of RAM
-            replicas: 0
+            replicas: 1
             # Auto-restart on crashes
             restart_policy:
                 condition: on-failure

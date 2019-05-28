@@ -52,7 +52,7 @@ RUN \
     true
 
 # Tagger port
-EXPOSE 8080
+EXPOSE 80
 
 # Run tagger
 COPY bin/predict_news_labels.sh /

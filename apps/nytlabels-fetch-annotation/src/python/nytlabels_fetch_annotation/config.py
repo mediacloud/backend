@@ -7,4 +7,4 @@ class NYTLabelsFetcherConfig(object):
     @staticmethod
     def annotator_url() -> str:
         """Annotator URL (text parsing endpoint), e.g. "http://localhost/predict.json"."""
-        return env_value('MC_NYTLABELS_ANNOTATOR_URL')
+        return env_value('http://mc_predict_news_labels/predict.json')
