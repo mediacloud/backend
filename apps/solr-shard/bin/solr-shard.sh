@@ -54,9 +54,8 @@ java_args=(
     # Enable heap dumps on OOMs:
     -XX:+HeapDumpOnOutOfMemoryError
     -XX:HeapDumpPath=/var/lib/solr
-    # Use cgroup's memory limit
-    -XX:+UnlockExperimentalVMOptions
-    -XX:+UseCGroupMemoryLimitForHeap
+    # Use cgroup's memory / CPU limits
+    -XX:+UseContainerSupport
     # Needed for resolving paths to JARs in solrconfig.xml
     -Dmediacloud.solr_dist_dir=/opt/solr
     -Dmediacloud.solr_webapp_dir=/opt/solr/server/solr-webapp
