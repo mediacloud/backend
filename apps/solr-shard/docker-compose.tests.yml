@@ -32,13 +32,6 @@ x-mc_solr_shard_base:   &mc_solr_shard_base
                 # Make all services accessible via this hostname by doing
                 # round-robin among them
                 - mc_solr_shard
-    deploy:
-        # Every shard runs as it's own independent service
-        replicas: 1
-        resources:
-            limits:
-                cpus: "0.5"
-                memory: 256M
 
 services:
 
@@ -72,11 +65,6 @@ services:
             - 3888
         networks:
             - default
-        deploy:
-            resources:
-                limits:
-                    cpus: "0.5"
-                    memory: 256M
 
 networks:
     default:

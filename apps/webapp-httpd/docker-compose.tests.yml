@@ -54,11 +54,6 @@ services:
             - 8983
         depends_on:
             - mc_solr_zookeeper
-        deploy:
-            resources:
-                limits:
-                    cpus: "0.5"
-                    memory: 256M
 
     mc_solr_zookeeper:
         image: dockermediacloud/mediacloud-solr-zookeeper:latest
@@ -68,11 +63,6 @@ services:
             - 2181
             - 2888
             - 3888
-        deploy:
-            resources:
-                limits:
-                    cpus: "0.5"
-                    memory: 256M
 
     mc_rabbitmq_server:
         image: dockermediacloud/mediacloud-rabbitmq-server:latest
@@ -81,11 +71,6 @@ services:
         expose:
             - 5672
             - 15672
-        deploy:
-            resources:
-                limits:
-                    cpus: "0.5"
-                    memory: 256M
 
     mc_rescrape_media:
         image: dockermediacloud/mediacloud-rescrape-media:latest
