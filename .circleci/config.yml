@@ -1,67 +1,88 @@
 version: 2.1
 
+# Restore .git
+x-restore-cache: &restore-cache
+  restore_cache:
+    keys:
+      - v00001-source-{{ .Branch }}-{{ .Revision }}
+      - v00001-source-{{ .Branch }}-
+      - v00001-source-
+
+# Upgrade Docker
+x-upgrade-docker: &upgrade-docker
+  run:
+    name: Upgrade Docker
+    command: |
+      sudo service docker stop
+      sudo apt-get -y remove docker docker-engine docker.io containerd runc
+      sudo apt-get -y install apt-transport-https ca-certificates curl gnupg-agent software-properties-common
+      curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+      sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+      sudo apt-get -y update
+      sudo apt-get -y install docker-ce=18.06.3~ce~3-0~ubuntu
+
+# Install utilities
+x-install-utilities: &install-utilities
+  run:
+    name: Install utilities
+    command: |
+      # Use Python 3.5
+      pyenv global 3.5.2
+      # Install dependencies for python3-cryptography and parallel utility
+      sudo apt-get -y install libssl-dev libffi-dev parallel
+      # Install Pip
+      curl https://bootstrap.pypa.io/3.2/get-pip.py | python3
+      # python3-cryptography refuses to build with old setuptools
+      pip3 install -U setuptools
+      # Used for validating docker-compose.tests.yml
+      pip3 install PyYAML
+      pip3 install -U docker-compose
+      docker version
+      docker-compose version
+
+# Pull Git submodules
+x-pull-submodules: &pull-submodules
+  run:
+    name: Pull Git submodules
+    command: |
+      git submodule update --init --recursive
+
+# Cache .git for faster checkouts
+x-save-cache: &save-cache
+  save_cache:
+    key: v00001-source-{{ .Branch }}-{{ .Revision }}
+    paths:
+      - ".git"
+
+# Pull images for faster rebuilds / cache
+x-pull-images: &pull-images
+  run:
+    name: Pull images
+    command: |
+      # Don't stop on a single failure because the image might not exist or a
+      # network error might have happened.
+      ./dev/pull.py | bash || true
+
+# Split tests into chunks
+x-split-tests-into-chunks: &split-tests-into-chunks
+  run:
+    name: Run tests (chunk 1)
+    command: |
+      ./dev/run_all_tests.py > all_tests.txt
+      split -n l/4 all_tests.txt tests_chunk_
+      cat tests_chunk_aa | parallel --group
+
 jobs:
   build:
     machine: true
     steps:
-
-      # Restore .git
-      - restore_cache:
-          keys:
-            - v00001-source-{{ .Branch }}-{{ .Revision }}
-            - v00001-source-{{ .Branch }}-
-            - v00001-source-
-
-      - run:
-          name: Upgrade Docker
-          command: |
-            sudo service docker stop
-            sudo apt-get -y remove docker docker-engine docker.io containerd runc
-            sudo apt-get -y install apt-transport-https ca-certificates curl gnupg-agent software-properties-common
-            curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-            sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
-            sudo apt-get -y update
-            sudo apt-get -y install docker-ce=18.06.3~ce~3-0~ubuntu
-
-      - run:
-          name: Install utilities
-          command: |
-            # Use Python 3.5
-            pyenv global 3.5.2
-            # Install dependencies for python3-cryptography and parallel utility
-            sudo apt-get -y install libssl-dev libffi-dev parallel
-            # Install Pip
-            curl https://bootstrap.pypa.io/3.2/get-pip.py | python3
-            # python3-cryptography refuses to build with old setuptools
-            pip3 install -U setuptools
-            # Used for validating docker-compose.tests.yml
-            pip3 install PyYAML
-            pip3 install -U docker-compose
-            docker version
-            docker-compose version
-
-      # Check out repository
+      - *restore-cache
+      - *upgrade-docker
+      - *install-utilities
       - checkout
-
-      - run:
-          name: Pull Git submodules
-          command: |
-            git submodule update --init --recursive
-
-      # Cache .git for faster checkouts
-      - save_cache:
-          key: v00001-source-{{ .Branch }}-{{ .Revision }}
-          paths:
-            - ".git"
-
-      # Try to pull all the images that are about to be built from Docker Hub to be
-      # used for cache.
-      - run:
-          name: Pull previously built images
-          command: |
-            # Don't stop on a single failure because the image might not exist or a
-            # network error might have happened.
-            ./dev/pull.py | bash || true
+      - *pull-submodules
+      - *save-cache
+      - *pull-images
 
       - run:
           name: Build images
@@ -79,42 +100,74 @@ jobs:
   test_chunk_1:
     machine: true
     steps:
+      - *restore-cache
+      - *upgrade-docker
+      - *install-utilities
+      - checkout
+      - *pull-submodules
+      - *save-cache
+      - *pull-images
+
+      - *split-tests-into-chunks
 
       - run:
-          name: Run tests chunk 1
+          name: Run tests (chunk 1)
           command: |
-            docker images
-            sleep 60
+            cat tests_chunk_aa | parallel --group
 
-  test_chunk_2:
+  test_chunk_1:
     machine: true
     steps:
+      - *restore-cache
+      - *upgrade-docker
+      - *install-utilities
+      - checkout
+      - *pull-submodules
+      - *save-cache
+      - *pull-images
+
+      - *split-tests-into-chunks
 
       - run:
-          name: Run tests chunk 2
+          name: Run tests (chunk 2)
           command: |
-            docker images
-            sleep 60
+            cat tests_chunk_ab | parallel --group
 
   test_chunk_3:
     machine: true
     steps:
+      - *restore-cache
+      - *upgrade-docker
+      - *install-utilities
+      - checkout
+      - *pull-submodules
+      - *save-cache
+      - *pull-images
+
+      - *split-tests-into-chunks
 
       - run:
-          name: Run tests chunk 3
+          name: Run tests (chunk 3)
           command: |
-            docker images
-            sleep 60
+            cat tests_chunk_ac | parallel --group
 
   test_chunk_4:
     machine: true
     steps:
+      - *restore-cache
+      - *upgrade-docker
+      - *install-utilities
+      - checkout
+      - *pull-submodules
+      - *save-cache
+      - *pull-images
+
+      - *split-tests-into-chunks
 
       - run:
-          name: Run tests chunk 4
+          name: Run tests (chunk 4)
           command: |
-            docker images
-            sleep 60
+            cat tests_chunk_ad | parallel --group
 
 workflows:
   version: 2
