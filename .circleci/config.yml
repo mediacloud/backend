@@ -73,7 +73,7 @@ x-split-tests-into-chunks: &split-tests-into-chunks
       cat tests_chunk_aa | parallel --group
 
 jobs:
-  build:
+  pull_build_push:
     machine: true
     steps:
       - *restore-cache
@@ -171,18 +171,18 @@ jobs:
 
 workflows:
   version: 2
-  build_test_deploy:
+  pull_build_push_test:
     jobs:
-      - build
+      - pull_build_push
       - test_chunk_1:
           requires:
-            - build
+            - pull_build_push
       - test_chunk_2:
           requires:
-            - build
+            - pull_build_push
       - test_chunk_3:
           requires:
-            - build
+            - pull_build_push
       - test_chunk_4:
           requires:
-            - build
+            - pull_build_push
