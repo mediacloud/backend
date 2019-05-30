@@ -111,3 +111,6 @@ fabric.properties
 # PyCharm's Perl plugin
 _Deparsed_XSubs.pm
 
+# Split up tests
+all_tests.txt
+tests_chunk_*
