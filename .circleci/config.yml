@@ -16,7 +16,7 @@ jobs:
           name: Install utilities
           command: |
             # Use Python 3.5
-            pyenv versions | grep 3. | awk '{ print $2 }' | xargs pyenv global
+            pyenv global 3.5.2
             # Install dependencies for python3-cryptography and parallel utility
             sudo apt-get install -y libssl-dev libffi-dev parallel
             # Install Pip
