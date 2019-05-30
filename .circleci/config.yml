@@ -68,19 +68,45 @@ jobs:
           command: |
             ./dev/build.py | bash
 
-  test:
+  test_chunk_1:
     machine: true
-    # Chunks of tests
-    parallelism: 4
     steps:
 
       - run:
-          name: Run tests
+          name: Run tests chunk 1
           command: |
-            echo "Total nodes: ${CIRCLE_NODE_TOTAL}"
-            echo "Node index: ${CIRCLE_NODE_INDEX}"
-            echo "Docker images:"
             docker images
+            sleep 60
+
+  test_chunk_2:
+    machine: true
+    steps:
+
+      - run:
+          name: Run tests chunk 2
+          command: |
+            docker images
+            sleep 60
+
+  test_chunk_3:
+    machine: true
+    steps:
+
+      - run:
+          name: Run tests chunk 3
+          command: |
+            docker images
+            sleep 60
+
+  test_chunk_4:
+    machine: true
+    steps:
+
+      - run:
+          name: Run tests chunk 4
+          command: |
+            docker images
+            sleep 60
 
   deploy:
     machine: true
@@ -89,11 +115,14 @@ jobs:
       - run:
           name: Push images
           command: |
+            echo "Pushing images"
+            docker images
+            sleep 60
             # Log in to Docker Hub
-            echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+            #echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
             # Push all images to Docker Hub
             # FIXME move to build branch
-            ./dev/push.py | bash
+            #./dev/push.py | bash
 
 workflows:
   version: 2
