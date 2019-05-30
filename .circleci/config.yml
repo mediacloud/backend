@@ -15,12 +15,9 @@ jobs:
       - run:
           name: Install utilities
           command: |
-            # Upgrade docker-compose
-            pip3 install --quiet --upgrade docker-compose && docker-compose version
-            # Install PyYAML for docker-compose.yml validation
-            pip3 install --quiet PyYAML
-            # Install "parallel" utility
-            apt-get install -y parallel
+            apt-get install -y --no-install-recommends python3 python3-yaml parallel
+            pip3 install --quiet --upgrade docker-compose
+            docker-compose version
 
       # Check out repository
       - checkout
