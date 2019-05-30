@@ -15,8 +15,8 @@ jobs:
       - run:
           name: Install utilities
           command: |
-            apt-get install -y --no-install-recommends python3 python3-yaml parallel
-            pip3 install --quiet --upgrade docker-compose
+            sudo apt-get install -y python3 python3-yaml python3-pip parallel
+            sudo pip3 install --quiet --upgrade docker-compose
             docker-compose version
 
       # Check out repository
