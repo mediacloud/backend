@@ -112,7 +112,8 @@ fabric.properties
 _Deparsed_XSubs.pm
 
 # Split up tests
-all_tests.txt
+tests_all
+tests_chunk
 tests_chunk_*
 
 # parallel's job log
