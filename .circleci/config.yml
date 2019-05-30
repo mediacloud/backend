@@ -74,6 +74,7 @@ jobs:
             # Log in to Docker Hub
             echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
             # Push all images to Docker Hub
+            # FIXME move to build branch
             ./dev/push.py | bash
 
 workflows:
