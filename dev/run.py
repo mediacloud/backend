@@ -104,6 +104,7 @@ def docker_run_commands(all_apps_dir: str, app_dirname: str, command: str) -> Li
         '--project-name', project_name,
         '--file', docker_compose_path,
         '--compatibility',  # Add limits from "deploy" section to non-swarm deployment
+        '--no-ansi',        # ANSI colors don't work with our efforts to grep out docker-compose noise
         'up',
         '--no-start',
         '--renew-anon-volumes',
@@ -115,6 +116,7 @@ def docker_run_commands(all_apps_dir: str, app_dirname: str, command: str) -> Li
         '--project-name', project_name,
         '--file', docker_compose_path,
         '--compatibility',
+        '--no-ansi',
         'run',
         container_name,
         command,
@@ -130,6 +132,7 @@ def docker_run_commands(all_apps_dir: str, app_dirname: str, command: str) -> Li
         '--project-name', project_name,
         '--file', docker_compose_path,
         '--compatibility',
+        '--no-ansi',
         'down',
         '--volumes',
     ])
