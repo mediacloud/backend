@@ -1,0 +1,101 @@
+version: 2.1
+
+jobs:
+  build:
+    machine: true
+    steps:
+
+      # Restore .git
+      - restore_cache:
+          keys:
+            - v00001-source-{{ .Branch }}-{{ .Revision }}
+            - v00001-source-{{ .Branch }}-
+            - v00001-source-
+
+      - run:
+          name: Install utilities
+          command: |
+            # Upgrade docker-compose
+            pip3 install --quiet --upgrade docker-compose && docker-compose version
+            # Install PyYAML for docker-compose.yml validation
+            pip3 install --quiet PyYAML
+            # Install "parallel" utility
+            apt-get install -y parallel
+
+      # Check out repository
+      - checkout
+
+      - run:
+          name: Pull Git submodules
+          command: |
+            git submodule update --init --recursive
+
+      # Cache .git for faster checkouts
+      - save_cache:
+          key: v00001-source-{{ .Branch }}-{{ .Revision }}
+          paths:
+            - ".git"
+
+      # Try to pull all the images that are about to be built from Docker Hub to be
+      # used for cache.
+      - run:
+          name: Pull previously built images
+          command: |
+            # Don't stop on a single failure because the image might not exist or a
+            # network error might have happened.
+            ./dev/pull.py | bash || true
+
+      - run:
+          name: Build images
+          command: |
+            ./dev/build.py | bash
+
+  test:
+    machine: true
+    # Chunks of tests
+    parallelism: 4
+    steps:
+
+      - run:
+          name: Run tests
+          command: |
+            echo "Total nodes: ${CIRCLE_NODE_TOTAL}"
+            echo "Node index: ${CIRCLE_NODE_INDEX}"
+            echo "Docker images:"
+            docker images
+
+  deploy:
+    machine: true
+    steps:
+
+      - run:
+          name: Push images
+          command: |
+            # Log in to Docker Hub
+            echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+            # Push all images to Docker Hub
+            ./dev/push.py | bash
+
+workflows:
+  version: 2
+  build_test_deploy:
+    jobs:
+      - build
+      - test_chunk_1:
+          requires:
+            - build
+      - test_chunk_2:
+          requires:
+            - build
+      - test_chunk_3:
+          requires:
+            - build
+      - test_chunk_4:
+          requires:
+            - build
+      - deploy:
+          requires:
+            - test_chunk_1
+            - test_chunk_2
+            - test_chunk_3
+            - test_chunk_4
