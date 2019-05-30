@@ -15,10 +15,17 @@ jobs:
       - run:
           name: Install utilities
           command: |
+            # Use Python 3.5
+            pyenv versions | grep 3. | awk '{ print $2 }' | xargs pyenv global
+            # Install dependencies for python3-cryptography and parallel utility
             sudo apt-get install -y libssl-dev libffi-dev parallel
+            # Install Pip
             curl https://bootstrap.pypa.io/3.2/get-pip.py | python3
-            sudo pip3 install -U setuptools
-            sudo pip3 install docker-compose PyYAML
+            # python3-cryptography refuses to build with old setuptools
+            pip3 install -U setuptools
+            # Used for validating docker-compose.tests.yml
+            pip3 install PyYAML
+            pip3 install -U docker-compose
             docker version
             docker-compose version
 
