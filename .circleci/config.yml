@@ -70,7 +70,6 @@ x-split-tests-into-chunks: &split-tests-into-chunks
     command: |
       ./dev/run_all_tests.py > all_tests.txt
       split -n l/4 all_tests.txt tests_chunk_
-      cat tests_chunk_aa | parallel --group
 
 executors:
   machine-executor:
