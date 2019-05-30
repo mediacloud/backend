@@ -115,7 +115,7 @@ jobs:
           command: |
             cat tests_chunk_aa | parallel --group
 
-  test_chunk_1:
+  test_chunk_2:
     machine: true
     steps:
       - *restore-cache
