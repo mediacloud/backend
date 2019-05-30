@@ -72,9 +72,13 @@ x-split-tests-into-chunks: &split-tests-into-chunks
       split -n l/4 all_tests.txt tests_chunk_
       cat tests_chunk_aa | parallel --group
 
+executors:
+  machine-executor:
+    machine: true
+
 jobs:
   pull_build_push:
-    machine: true
+    executor: machine-executor
     steps:
       - *restore-cache
       - *upgrade-docker
@@ -97,9 +101,18 @@ jobs:
             # Push all images to Docker Hub
             ./dev/push.py | bash
 
+      - persist_to_workspace:
+          root: /var/lib/
+          paths:
+            - docker
+
   test_chunk_1:
-    machine: true
+    executor: machine-executor
     steps:
+
+      - attach_workspace:
+          at: /var
+
       - *restore-cache
       - *upgrade-docker
       - *install-utilities
@@ -116,8 +129,12 @@ jobs:
             cat tests_chunk_aa | parallel --group
 
   test_chunk_2:
-    machine: true
+    executor: machine-executor
     steps:
+
+      - attach_workspace:
+          at: /var
+
       - *restore-cache
       - *upgrade-docker
       - *install-utilities
@@ -134,8 +151,12 @@ jobs:
             cat tests_chunk_ab | parallel --group
 
   test_chunk_3:
-    machine: true
+    executor: machine-executor
     steps:
+
+      - attach_workspace:
+          at: /var
+
       - *restore-cache
       - *upgrade-docker
       - *install-utilities
@@ -152,8 +173,12 @@ jobs:
             cat tests_chunk_ac | parallel --group
 
   test_chunk_4:
-    machine: true
+    executor: machine-executor
     steps:
+
+      - attach_workspace:
+          at: /var
+
       - *restore-cache
       - *upgrade-docker
       - *install-utilities
