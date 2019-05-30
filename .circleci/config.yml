@@ -13,12 +13,21 @@ jobs:
             - v00001-source-
 
       - run:
+          name: Upgrade Docker
+          command: |
+            sudo apt-get -y remove docker docker-engine docker.io containerd runc
+            sudo apt-get -y install apt-transport-https ca-certificates curl gnupg-agent software-properties-common
+            curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+            sudo apt-get -y update
+            sudo apt-get -y install docker-ce docker-ce-cli containerd.io
+
+      - run:
           name: Install utilities
           command: |
             # Use Python 3.5
             pyenv global 3.5.2
             # Install dependencies for python3-cryptography and parallel utility
-            sudo apt-get install -y libssl-dev libffi-dev parallel
+            sudo apt-get -y install libssl-dev libffi-dev parallel
             # Install Pip
             curl https://bootstrap.pypa.io/3.2/get-pip.py | python3
             # python3-cryptography refuses to build with old setuptools
