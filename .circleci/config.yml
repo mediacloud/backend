@@ -71,13 +71,9 @@ x-split-tests-into-chunks: &split-tests-into-chunks
       ./dev/run_all_tests.py > all_tests.txt
       split -n l/4 all_tests.txt tests_chunk_
 
-executors:
-  machine-executor:
-    machine: true
-
 jobs:
   pull_build_push:
-    executor: machine-executor
+    machine: true
     steps:
       - *restore-cache
       - *upgrade-docker
@@ -100,18 +96,9 @@ jobs:
             # Push all images to Docker Hub
             ./dev/push.py | bash
 
-      - persist_to_workspace:
-          root: /var/lib/
-          paths:
-            - docker
-
   test_chunk_1:
-    executor: machine-executor
+    machine: true
     steps:
-
-      - attach_workspace:
-          at: /var
-
       - *restore-cache
       - *upgrade-docker
       - *install-utilities
@@ -128,12 +115,8 @@ jobs:
             cat tests_chunk_aa | parallel --group --joblog joblog.txt || { cat joblog.txt && exit 1; }
 
   test_chunk_2:
-    executor: machine-executor
+    machine: true
     steps:
-
-      - attach_workspace:
-          at: /var
-
       - *restore-cache
       - *upgrade-docker
       - *install-utilities
@@ -150,12 +133,8 @@ jobs:
             cat tests_chunk_ab | parallel --group --joblog joblog.txt || { cat joblog.txt && exit 1; }
 
   test_chunk_3:
-    executor: machine-executor
+    machine: true
     steps:
-
-      - attach_workspace:
-          at: /var
-
       - *restore-cache
       - *upgrade-docker
       - *install-utilities
@@ -172,12 +151,8 @@ jobs:
             cat tests_chunk_ac | parallel --group --joblog joblog.txt || { cat joblog.txt && exit 1; }
 
   test_chunk_4:
-    executor: machine-executor
+    machine: true
     steps:
-
-      - attach_workspace:
-          at: /var
-
       - *restore-cache
       - *upgrade-docker
       - *install-utilities
