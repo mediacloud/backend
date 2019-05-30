@@ -1,5 +1,5 @@
 from mediawords.key_value_store.amazon_s3 import AmazonS3Store
-from mediawords.key_value_store.test_amazon_s3_credentials import (
+from .amazon_s3_credentials import (
     TestAmazonS3CredentialsTestCase,
     get_test_s3_credentials,
 )

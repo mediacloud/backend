@@ -14,7 +14,7 @@ class TestFetchContent(TestDownloadsDB):
 
     def test_fetch_content(self) -> None:
         """Test fetch_content by manually storing using the PostgreSQL store and then trying to fetch it."""
-        db = self.__db
+        db = self._db
         with self.assertRaises(McDBIDownloadsException):
             fetch_content(db=db, download={})
 

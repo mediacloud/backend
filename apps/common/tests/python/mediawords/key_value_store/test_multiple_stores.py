@@ -1,11 +1,11 @@
 from mediawords.key_value_store.amazon_s3 import AmazonS3Store
 from mediawords.key_value_store.multiple_stores import MultipleStoresStore
 from mediawords.key_value_store.postgresql import PostgreSQLStore
-from mediawords.key_value_store.test_amazon_s3_credentials import (
+from .amazon_s3_credentials import (
     TestAmazonS3CredentialsTestCase,
     get_test_s3_credentials,
 )
-from mediawords.key_value_store.mock_download import TestMockDownloadTestCase
+from .mock_download import TestMockDownloadTestCase
 
 test_credentials = get_test_s3_credentials()
 

@@ -617,7 +617,7 @@ sub run_job_sync($$$$)
 
             if ( $correlation_id eq $celery_job_id )
             {
-                DEBUG( "Found results message with job ID '$celery_job_id'." );
+                TRACE( "Found results message with job ID '$celery_job_id'." );
                 $message = $queue_message;
                 last;
 

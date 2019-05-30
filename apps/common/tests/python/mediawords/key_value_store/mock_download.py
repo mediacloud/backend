@@ -1,7 +1,7 @@
 import abc
 
 from mediawords.db import DatabaseHandler
-from mediawords.key_value_store.test_key_value_store import TestKeyValueStoreTestCase
+from .key_value_store_tests import TestKeyValueStoreTestCase
 
 
 class TestMockDownloadTestCase(TestKeyValueStoreTestCase, metaclass=abc.ABCMeta):
@@ -31,4 +31,4 @@ class TestMockDownloadTestCase(TestKeyValueStoreTestCase, metaclass=abc.ABCMeta)
 
     def setUp(self):
         super().setUp()
-        self.__create_mock_download(db=self.db(), downloads_id=self._TEST_OBJECT_ID)
+        self.__create_mock_download(db=self._db, downloads_id=self._TEST_OBJECT_ID)

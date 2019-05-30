@@ -15,7 +15,7 @@ class TestDownloadsDB(TestCase):
     """Run tests that require database access."""
 
     __slots__ = [
-        '__db',
+        '_db',
     ]
 
     _TEST_CONTENT = '<script>ignore</script><p>foo</p>'

@@ -32,8 +32,8 @@ class TestStoreContent(TestDownloadsDB):
         )
 
         content = 'bat baz bar foo'
-        got_download = store_content(db=self.__db, download=self.test_download, content=content)
-        got_content = store.fetch_content(db=self.__db, object_id=self.test_download['downloads_id']).decode()
+        got_download = store_content(db=self._db, download=self.test_download, content=content)
+        got_content = store.fetch_content(db=self._db, object_id=self.test_download['downloads_id']).decode()
 
         assert got_content == content
         assert got_download['state'] == 'success'
@@ -42,8 +42,8 @@ class TestStoreContent(TestDownloadsDB):
 
         content = 'bat baz bar'
         self.test_download['state'] = 'feed_error'
-        got_download = store_content(db=self.__db, download=self.test_download, content=content)
-        got_content = store.fetch_content(db=self.__db, object_id=self.test_download['downloads_id']).decode()
+        got_download = store_content(db=self._db, download=self.test_download, content=content)
+        got_content = store.fetch_content(db=self._db, object_id=self.test_download['downloads_id']).decode()
 
         assert got_content == content
         assert got_download['state'] == 'feed_error'

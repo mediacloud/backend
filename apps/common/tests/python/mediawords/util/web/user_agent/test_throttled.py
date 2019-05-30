@@ -2,6 +2,8 @@
 
 import time
 
+import pytest
+
 from mediawords.db import connect_to_db
 from mediawords.test.hash_server import HashServer
 # noinspection PyProtectedMember
@@ -12,7 +14,7 @@ from mediawords.util.web.user_agent.throttled import (
 )
 
 
-def test_throttled_user_agent(self) -> None:
+def test_throttled_user_agent() -> None:
     """Test requests with throttling."""
 
     db = connect_to_db()
@@ -31,7 +33,8 @@ def test_throttled_user_agent(self) -> None:
 
     # fail because we're in the timeout
     ua = ThrottledUserAgent(db, domain_timeout=2)
-    self.assertRaises(McThrottledDomainException, ua.get, test_url)
+    with pytest.raises(McThrottledDomainException):
+        ua.get(test_url)
 
     # succeed because it's a different domain
     ua = ThrottledUserAgent(db, domain_timeout=2)
@@ -40,7 +43,8 @@ def test_throttled_user_agent(self) -> None:
 
     # still fail within the timeout
     ua = ThrottledUserAgent(db, domain_timeout=2)
-    self.assertRaises(McThrottledDomainException, ua.get, test_url)
+    with pytest.raises(McThrottledDomainException):
+        ua.get(test_url)
 
     time.sleep(2)
 
@@ -55,7 +59,8 @@ def test_throttled_user_agent(self) -> None:
 
     # but then fail within the new timeout period with a new object
     ua = ThrottledUserAgent(db, domain_timeout=2)
-    self.assertRaises(McThrottledDomainException, ua.get, test_url)
+    with pytest.raises(McThrottledDomainException):
+        ua.get(test_url)
 
     hs.stop()
 

@@ -21,6 +21,7 @@ use MediaWords::Test::Solr;
 use MediaWords::Util::SQL;
 use MediaWords::Util::Web;
 use MediaWords::JobManager::Job;
+use MediaWords::JobManager::AbstractStatefulJob;
 use MediaWords::Test::DB::Create;
 
 Readonly my $TEST_HTTP_SERVER_PORT => '3000';
@@ -167,9 +168,15 @@ sub test_media_links($)
 {
     my ( $db ) = @_;
 
-    my ( $timespans_id ) = $db->query( <<SQL )->flat();
-select timespans_id from timespans t where period = 'overall' and foci_id is null;
-SQL
+    # FIXME I don't know why, but if we pick timespans_id using the following
+    # (commented out) query, sometimes it gets a timespan without any stories
+    # whatsoever
+    #my ( $timespans_id ) = $db->query( <<SQL )->flat();
+    #select timespans_id from timespans t where period = 'overall' and foci_id is null;
+    #SQL
+
+    # What seems to work though is just hardcoding timespans_id
+    my $timespans_id = 1;
 
     my $limit = 1000;
 
@@ -184,20 +191,26 @@ SQL
 
     ok( scalar( @{ $expected_links } ) > 1, "test_media_links: more than one link" );
 
-    my $r = MediaWords::Test::API::test_get( '/api/v2/topics/1/media/links', { limit => $limit } );
+    my $r = MediaWords::Test::API::test_get( '/api/v2/topics/1/media/links', { limit => $limit, timespans_id => $timespans_id } );
 
     my $got_links = $r->{ links };
 
-    is_deeply( $got_links, $expected_links, "media_links: links returned" );
+    is_deeply( $got_links, $expected_links, "test_media_links: links returned" );
 }
 
 sub test_stories_links($)
 {
     my ( $db ) = @_;
 
-    my ( $timespans_id ) = $db->query( <<SQL )->flat();
-select timespans_id from timespans t where period = 'overall' and foci_id is null;
-SQL
+    # FIXME I don't know why, but if we pick timespans_id using the following
+    # (commented out) query, sometimes it gets a timespan without any stories
+    # whatsoever
+    #my ( $timespans_id ) = $db->query( <<SQL )->flat();
+    #select timespans_id from timespans t where period = 'overall' and foci_id is null;
+    #SQL
+
+    # What seems to work though is just hardcoding timespans_id
+    my $timespans_id = 1;
 
     my $limit = 1000;
 
@@ -212,11 +225,11 @@ SQL
 
     ok( scalar( @{ $expected_links } ) > 1, "test_stories_links: more than one link" );
 
-    my $r = MediaWords::Test::API::test_get( '/api/v2/topics/1/stories/links', { limit => $limit } );
+    my $r = MediaWords::Test::API::test_get( '/api/v2/topics/1/stories/links', { limit => $limit, timespans_id => $timespans_id } );
 
     my $got_links = $r->{ links };
 
-    is_deeply( $got_links, $expected_links, "stories_links: links returned" );
+    is_deeply( $got_links, $expected_links, "test_stories_links: links returned" );
 }
 
 sub test_story_list_count()
@@ -579,7 +592,11 @@ sub test_snapshots_generate($)
 
     ok( $r->{ job_state }, "$label return includes job_state" );
 
-    is( $r->{ job_state }->{ state }, $MediaWords::JobManager::AbstractStatefulJob::STATE_QUEUED, "$label state" );
+    ok(
+        $r->{ 'job_state' }->{ 'state' } eq $MediaWords::JobManager::AbstractStatefulJob::STATE_QUEUED or    #
+        $r->{ 'job_state' }->{ 'state' } eq $MediaWords::JobManager::AbstractStatefulJob::STATE_RUNNING,     #
+        "$label state"
+    );
     is( $r->{ job_state }->{ topics_id }, $topic->{ topics_id }, "$label topics_id" );
 
     $r = MediaWords::Test::API::test_get( "/api/v2/topics/$topics_id/snapshots/generate_status" );
