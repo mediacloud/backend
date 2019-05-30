@@ -114,3 +114,7 @@ _Deparsed_XSubs.pm
 # Split up tests
 all_tests.txt
 tests_chunk_*
+
+# parallel's job log
+joblog.txt
+

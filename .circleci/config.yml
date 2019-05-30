@@ -125,7 +125,7 @@ jobs:
       - run:
           name: Run tests (chunk 1)
           command: |
-            cat tests_chunk_aa | parallel --group
+            cat tests_chunk_aa | parallel --group --joblog joblog.txt || { cat joblog.txt && exit 1; }
 
   test_chunk_2:
     executor: machine-executor
@@ -147,7 +147,7 @@ jobs:
       - run:
           name: Run tests (chunk 2)
           command: |
-            cat tests_chunk_ab | parallel --group
+            cat tests_chunk_ab | parallel --group --joblog joblog.txt || { cat joblog.txt && exit 1; }
 
   test_chunk_3:
     executor: machine-executor
@@ -169,7 +169,7 @@ jobs:
       - run:
           name: Run tests (chunk 3)
           command: |
-            cat tests_chunk_ac | parallel --group
+            cat tests_chunk_ac | parallel --group --joblog joblog.txt || { cat joblog.txt && exit 1; }
 
   test_chunk_4:
     executor: machine-executor
@@ -191,7 +191,7 @@ jobs:
       - run:
           name: Run tests (chunk 4)
           command: |
-            cat tests_chunk_ad | parallel --group
+            cat tests_chunk_ad | parallel --group --joblog joblog.txt || { cat joblog.txt && exit 1; }
 
 workflows:
   version: 2
