@@ -94,3 +94,27 @@ jobs:
             # Push all images to Docker Hub
             # FIXME move to build branch
             ./dev/push.py | bash
+
+workflows:
+  version: 2
+  build_test_deploy:
+    jobs:
+      - build
+      - test_chunk_1:
+          requires:
+            - build
+      - test_chunk_2:
+          requires:
+            - build
+      - test_chunk_3:
+          requires:
+            - build
+      - test_chunk_4:
+          requires:
+            - build
+      - deploy:
+          requires:
+            - test_chunk_1
+            - test_chunk_2
+            - test_chunk_3
+            - test_chunk_4
