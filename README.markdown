@@ -37,8 +37,7 @@ For a brief roadmap of the code contained in this release, see
 Build Status
 ------------
 
-[![Build Status](https://travis-ci.org/berkmancenter/mediacloud.svg?branch=master)](https://travis-ci.org/berkmancenter/mediacloud) 
-[![Coverage Status](https://coveralls.io/repos/github/berkmancenter/mediacloud/badge.svg?branch=master)](https://coveralls.io/github/berkmancenter/mediacloud)
+[![CircleCI](https://circleci.com/gh/berkmancenter/mediacloud/tree/master.svg?style=svg)](https://circleci.com/gh/berkmancenter/mediacloud/tree/master)
 
 
 History of the Project
