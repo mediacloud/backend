@@ -59,8 +59,6 @@ def url_has_binary_extension(url: str) -> bool:
     # .html -> html
     ext = ext[1:]
 
-    log.warning("EXTENSION: '%s'" % ext)
-
     return ext in BINARY_EXTENSIONS
 
 
