@@ -280,7 +280,7 @@ class UserAgent(object):
                     archive_site_url=base_url,
                 )
                 if request_after_meta_redirect is not None:
-                    log.warning(
+                    log.debug(
                         "meta redirect from %s: %s" % (html_redirect_function, request_after_meta_redirect.url()))
                     if not urls_are_equal(url1=response_.request().url(), url2=request_after_meta_redirect.url()):
 

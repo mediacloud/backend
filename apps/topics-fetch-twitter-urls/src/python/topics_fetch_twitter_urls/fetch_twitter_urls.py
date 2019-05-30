@@ -154,7 +154,7 @@ def _add_tweet_story(db: DatabaseHandler, topic: dict, tweet: dict, topic_fetch_
     urls = get_tweet_urls(tweet)
     for url in urls:
         if skip_self_linked_domain_url(db, topic['topics_id'], story['url'], url):
-            log.info("skipping self linked domain url...")
+            log.debug("skipping self linked domain url...")
             continue
 
         topic_link = {

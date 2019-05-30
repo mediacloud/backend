@@ -26,7 +26,7 @@ class TestDatabaseHandler(TestCase):
 
         self.__db = connect_to_db()
 
-        log.info("Preparing test table 'kardashians'...")
+        log.debug("Preparing test table 'kardashians'...")
         self.__db.query("DROP TABLE IF EXISTS kardashians CASCADE")
         self.__db.query("""
             CREATE TABLE kardashians (
@@ -50,7 +50,7 @@ class TestDatabaseHandler(TestCase):
         """)
 
     def tearDown(self):
-        log.info("Tearing down...")
+        log.debug("Tearing down...")
         self.__db.query("DROP TABLE IF EXISTS kardashians CASCADE")
 
         # Test disconnect() too

@@ -251,7 +251,7 @@ sub test_str2time_21st_century()
         }
         $date_in_2061 =~ s/^\s+|\s+$//g;
 
-        DEBUG "Testing date '$date_in_2061'...";
+        TRACE "Testing date '$date_in_2061'...";
 
         my $timestamp = MediaWords::Util::DateTime::str2time_21st_century( $date_in_2061 );
         ok( $timestamp, "Date '$date_in_2061' is defined" );

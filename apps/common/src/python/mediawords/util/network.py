@@ -37,9 +37,9 @@ def wait_for_tcp_port_to_open(port: int,
     port_is_open = False
     for retry in range(retries):
         if retry == 0:
-            log.info("Trying to connect to %s:%d" % (hostname, port))
+            log.debug("Trying to connect to %s:%d" % (hostname, port))
         else:
-            log.info("Trying to connect to %s:%d, retry %d" % (hostname, port, retry))
+            log.debug("Trying to connect to %s:%d, retry %d" % (hostname, port, retry))
 
         if tcp_port_is_open(port, hostname):
             port_is_open = True
@@ -60,9 +60,9 @@ def wait_for_tcp_port_to_close(port: int,
     port_is_closed = False
     for retry in range(retries):
         if retry == 0:
-            log.info("Trying to connect to %s:%d" % (hostname, port))
+            log.debug("Trying to connect to %s:%d" % (hostname, port))
         else:
-            log.info("Trying to connect to %s:%d, retry %d" % (hostname, port, retry))
+            log.debug("Trying to connect to %s:%d, retry %d" % (hostname, port, retry))
 
         if tcp_port_is_open(port, hostname):
             time.sleep(delay)

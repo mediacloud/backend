@@ -533,7 +533,7 @@ class HashServer(object):
         if tcp_port_is_open(port=self.__port):
             raise McHashServerException("Port %d is already open." % self.__port)
 
-        log.info('Starting test web server %s:%d' % (self.__host, self.__port,))
+        log.debug('Starting test web server %s:%d' % (self.__host, self.__port,))
         log.debug('Pages: %s' % str(self.__pages))
 
         # "threading.Thread()" doesn't work with Perl callers
@@ -566,7 +566,7 @@ class HashServer(object):
             log.warning("HTTP server process is None.")
             return
 
-        log.info('Stopping test web server %s:%d' % (self.__host, self.__port,))
+        log.debug('Stopping test web server %s:%d' % (self.__host, self.__port,))
 
         # HTTP server itself is running in a fork, and it creates forks for every request which, at the point of killing
         # the server, might be in various states. So, we just SIGKILL all those PIDs in the most gruesome way.
