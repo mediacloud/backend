@@ -228,7 +228,6 @@ def current_git_branch_name() -> str:
         cwd=pwd,
         stdout=subprocess.PIPE,
     )
-    print(result.stdout)
     branch_name = result.stdout.decode('utf-8').strip()
     return branch_name
 
