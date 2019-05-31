@@ -2,7 +2,12 @@
 
 from typing import List
 
-from utils import DockerHubConfiguration, docker_images, DockerHubArgumentParser
+from utils import (
+    DockerHubConfiguration,
+    docker_images,
+    current_git_branch_name,
+    DockerHubArgumentParser,
+)
 
 
 def _docker_images_to_push(all_apps_dir: str, conf: DockerHubConfiguration) -> List[str]:
@@ -22,5 +27,7 @@ if __name__ == '__main__':
     args = parser.parse_arguments()
     conf_ = args.docker_hub_configuration()
 
+    branch = current_git_branch_name()
+
     for image in _docker_images_to_push(all_apps_dir=args.all_apps_dir(), conf=conf_):
-        print('docker push {}'.format(image))
+        print('docker push {}:{}'.format(image, branch))

@@ -2,6 +2,7 @@ import argparse
 import glob
 import os
 import re
+import subprocess
 from typing import Dict, List, Set
 
 
@@ -12,24 +13,18 @@ class DockerHubConfiguration(object):
 
     __slots__ = [
         'username',
-        'image_version',
     ]
 
-    def __init__(self, username: str, image_version: str):
+    def __init__(self, username: str):
         """
         Constructor.
 
         :param username: Docker Hub username where the images are hosted.
-        :param image_version: Version to add to the image tag.
         """
         if not re.match(r'^[\w\-_]+$', username):
             raise ValueError("Docker Hub username is invalid: {}".format(username))
 
-        if not re.match(r'^[\w\-_]+$', image_version):
-            raise ValueError("Image version is invalid: {}".format(image_version))
-
         self.username = username
-        self.image_version = image_version
 
 
 class DefaultDockerHubConfiguration(DockerHubConfiguration):
@@ -41,7 +36,7 @@ class DefaultDockerHubConfiguration(DockerHubConfiguration):
         """
         Initializes object with default values.
         """
-        super().__init__(username='dockermediacloud', image_version='latest')
+        super().__init__(username='dockermediacloud')
 
 
 def _image_name_from_container_name(container_name: str, conf: DockerHubConfiguration) -> str:
@@ -55,10 +50,9 @@ def _image_name_from_container_name(container_name: str, conf: DockerHubConfigur
     if not re.match(r'^[\w\-]+$', container_name):
         raise ValueError("Container name is invalid: {}".format(container_name))
 
-    return '{username}/{container_name}:{image_version}'.format(
+    return '{username}/{container_name}'.format(
         username=conf.username,
         container_name=container_name,
-        image_version=conf.image_version,
     )
 
 
@@ -77,10 +71,8 @@ def container_dir_name_from_image_name(image_name: str, conf: DockerHubConfigura
         raise ValueError("Image name '{}' is expected to start with '{}/'.".format(image_name, conf.username))
     container_name = container_name[len(expected_prefix):]
 
-    expected_suffix = ':' + conf.image_version
-    if not container_name.endswith(expected_suffix):
-        raise ValueError("Image name '{}' is expected to end with ':{}'.".format(image_name, conf.image_version))
-    container_name = container_name[:len(expected_suffix) * -1]
+    # Remove version
+    container_name = re.sub(r':(.+?)$', '', container_name)
 
     return container_name
 
@@ -105,6 +97,9 @@ def _docker_parent_image_name(dockerfile_path: str) -> str:
 
                 parent_image = match.group(1)
                 assert parent_image, "Parent image should be set at this point."
+
+                # Remove version tag
+                parent_image = re.sub(r':(.+?)$', '', parent_image)
 
                 return parent_image
 
@@ -226,6 +221,18 @@ def docker_images(all_apps_dir: str, only_belonging_to_user: bool, conf: DockerH
     return images
 
 
+def current_git_branch_name() -> str:
+    pwd = os.path.dirname(os.path.realpath(__file__))
+    result = subprocess.run(
+        ['git', 'rev-parse', '--abbrev-ref', 'HEAD'],
+        cwd=pwd,
+        stdout=subprocess.PIPE,
+    )
+    print(result.stdout)
+    branch_name = result.stdout.decode('utf-8').strip()
+    return branch_name
+
+
 class DockerArguments(object):
     """
     Basic arguments.
@@ -317,7 +324,6 @@ class DockerHubArguments(DockerArguments):
 
         return DockerHubConfiguration(
             username=self._args.dockerhub_user,
-            image_version=self._args.image_version,
         )
 
 
@@ -336,8 +342,6 @@ class DockerHubArgumentParser(DockerArgumentParser):
 
         self._parser.add_argument('-u', '--dockerhub_user', required=False, type=str, default=default_conf.username,
                                   help='Docker Hub user that is hosting the images.')
-        self._parser.add_argument('-s', '--image_version', required=False, type=str, default=default_conf.image_version,
-                                  help="Version to add to built images.")
 
     def parse_arguments(self) -> DockerHubArguments:
         """

@@ -3,7 +3,13 @@
 import os
 from typing import List
 
-from utils import DockerHubConfiguration, container_dir_name_from_image_name, docker_images, DockerHubArgumentParser
+from utils import (
+    DockerHubConfiguration,
+    container_dir_name_from_image_name,
+    docker_images,
+    current_git_branch_name,
+    DockerHubArgumentParser,
+)
 
 
 class DockerImageToBuild(object):
@@ -65,8 +71,11 @@ if __name__ == '__main__':
     args = parser.parse_arguments()
     conf_ = args.docker_hub_configuration()
 
+    branch = current_git_branch_name()
+
     for image in _docker_images_to_build(all_apps_dir=args.all_apps_dir(), conf=conf_):
-        print('docker build --cache-from {image_name} --tag {image_name} {container_path}'.format(
+        print('docker build --cache-from {image_name}:{branch} --tag {image_name}:{branch} --tag {image_name}:latest {container_path}'.format(
+            branch=branch,
             image_name=image.tag,
             container_path=image.path,
         ))

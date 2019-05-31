@@ -2,7 +2,12 @@
 
 from typing import List
 
-from utils import DockerHubConfiguration, docker_images, DockerHubArgumentParser
+from utils import (
+    DockerHubConfiguration,
+    docker_images,
+    current_git_branch_name,
+    DockerHubArgumentParser,
+)
 
 
 def _docker_images_to_pull(all_apps_dir: str, conf: DockerHubConfiguration) -> List[str]:
@@ -22,5 +27,15 @@ if __name__ == '__main__':
     args = parser.parse_arguments()
     conf_ = args.docker_hub_configuration()
 
+    branch = current_git_branch_name()
+
     for image in _docker_images_to_pull(all_apps_dir=args.all_apps_dir(), conf=conf_):
-        print('docker pull {}'.format(image))
+        # First try to pull the image for the current branch, and if that fails (e.g. the branch
+        # is new and it hasn't yet been built and tagged on Docker Hub), pull builds for "master"
+        # and tag them as if they were of the current branch
+        print(
+            'docker pull {image}:{branch} || {{ docker pull {image}:master && docker tag {image}:master {image}:{branch} }}'.format(
+                image=image,
+                branch=branch,
+            )
+        )
