@@ -76,19 +76,8 @@ x-split-tests-into-chunks: &split-tests-into-chunks
 x-run-chunk-tests: &run-chunk-tests
   run:
     name: Run chunk tests
-    # * Treat command as a single line (thus ">")
-    # * Remove lines with "Creating" / "Starting" / ... coming from docker-compose
-    # * On failures, print parallel's job log
-    command: >
-      cat tests_chunk
-      | parallel --group --joblog joblog.txt
-      2> >(
-          grep -v '^Creating'
-        | grep -v '^Starting'
-        | grep -v '^Stopping'
-        | grep -v '^Removing'
-        >&2
-      ) || { cat joblog.txt && exit 1; }
+    command: |
+      cat tests_chunk | parallel --group --joblog joblog.txt || { cat joblog.txt && exit 1; }
 
 
 jobs:
