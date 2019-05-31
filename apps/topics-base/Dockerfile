@@ -2,7 +2,7 @@
 # Base image for topic-related code
 #
 
-FROM dockermediacloud/mediacloud-common:latest
+FROM dockermediacloud/common:latest
 
 # Install dependencies
 RUN \

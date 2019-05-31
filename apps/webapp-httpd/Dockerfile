@@ -2,7 +2,7 @@
 # Webapp (HTTP server)
 #
 
-FROM dockermediacloud/mediacloud-base:latest
+FROM dockermediacloud/base:latest
 
 # Install Apache
 RUN \

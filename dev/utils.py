@@ -12,29 +12,23 @@ class DockerHubConfiguration(object):
 
     __slots__ = [
         'username',
-        'image_prefix',
         'image_version',
     ]
 
-    def __init__(self, username: str, image_prefix: str, image_version: str):
+    def __init__(self, username: str, image_version: str):
         """
         Constructor.
 
         :param username: Docker Hub username where the images are hosted.
-        :param image_prefix: Prefix to add to the image tag.
         :param image_version: Version to add to the image tag.
         """
         if not re.match(r'^[\w\-_]+$', username):
             raise ValueError("Docker Hub username is invalid: {}".format(username))
 
-        if not re.match(r'^[\w]+$', image_prefix):
-            raise ValueError("Image prefix is invalid: {}".format(image_prefix))
-
         if not re.match(r'^[\w\-_]+$', image_version):
             raise ValueError("Image version is invalid: {}".format(image_version))
 
         self.username = username
-        self.image_prefix = image_prefix
         self.image_version = image_version
 
 
@@ -47,7 +41,7 @@ class DefaultDockerHubConfiguration(DockerHubConfiguration):
         """
         Initializes object with default values.
         """
-        super().__init__(username='dockermediacloud', image_prefix='mediacloud', image_version='latest')
+        super().__init__(username='dockermediacloud', image_version='latest')
 
 
 def _image_name_from_container_name(container_name: str, conf: DockerHubConfiguration) -> str:
@@ -61,9 +55,8 @@ def _image_name_from_container_name(container_name: str, conf: DockerHubConfigur
     if not re.match(r'^[\w\-]+$', container_name):
         raise ValueError("Container name is invalid: {}".format(container_name))
 
-    return '{username}/{image_prefix}-{container_name}:{image_version}'.format(
+    return '{username}/{container_name}:{image_version}'.format(
         username=conf.username,
-        image_prefix=conf.image_prefix,
         container_name=container_name,
         image_version=conf.image_version,
     )
@@ -82,11 +75,6 @@ def container_dir_name_from_image_name(image_name: str, conf: DockerHubConfigura
     expected_prefix = conf.username + '/'
     if not container_name.startswith(expected_prefix):
         raise ValueError("Image name '{}' is expected to start with '{}/'.".format(image_name, conf.username))
-    container_name = container_name[len(expected_prefix):]
-
-    expected_prefix = conf.image_prefix + '-'
-    if not container_name.startswith(expected_prefix):
-        raise ValueError("Image name '{}' is expected to have prefix '{}-'.".format(image_name, conf.image_prefix))
     container_name = container_name[len(expected_prefix):]
 
     expected_suffix = ':' + conf.image_version
@@ -329,7 +317,6 @@ class DockerHubArguments(DockerArguments):
 
         return DockerHubConfiguration(
             username=self._args.dockerhub_user,
-            image_prefix=self._args.image_prefix,
             image_version=self._args.image_version,
         )
 
@@ -349,8 +336,6 @@ class DockerHubArgumentParser(DockerArgumentParser):
 
         self._parser.add_argument('-u', '--dockerhub_user', required=False, type=str, default=default_conf.username,
                                   help='Docker Hub user that is hosting the images.')
-        self._parser.add_argument('-p', '--image_prefix', required=False, type=str, default=default_conf.image_prefix,
-                                  help="Prefix to add to built images.")
         self._parser.add_argument('-s', '--image_version', required=False, type=str, default=default_conf.image_version,
                                   help="Version to add to built images.")
 

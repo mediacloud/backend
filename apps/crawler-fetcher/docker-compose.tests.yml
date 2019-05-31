@@ -2,8 +2,8 @@ version: "3.7"
 
 services:
 
-    mc_crawler_fetcher:
-        image: dockermediacloud/mediacloud-crawler-fetcher:latest
+    crawler-fetcher:
+        image: dockermediacloud/crawler-fetcher:latest
         stop_signal: SIGKILL
         env_file: ./../global.env.dist
         environment:
@@ -25,28 +25,28 @@ services:
               source: ./../common/src/
               target: /opt/mediacloud/src/common/
         depends_on:
-            - mc_postgresql_pgbouncer
+            - postgresql-pgbouncer
             # Fetcher's test will try to add downloaded downloads to extractor's queue
-            - mc_rabbitmq_server
+            - rabbitmq-server
 
-    mc_postgresql_pgbouncer:
-        image: dockermediacloud/mediacloud-postgresql-pgbouncer:latest
+    postgresql-pgbouncer:
+        image: dockermediacloud/postgresql-pgbouncer:latest
         env_file: ./../global.env.dist
         stop_signal: SIGKILL
         expose:
             - 6432
         depends_on:
-            - mc_postgresql_server
+            - postgresql-server
 
-    mc_postgresql_server:
-        image: dockermediacloud/mediacloud-postgresql-server:latest
+    postgresql-server:
+        image: dockermediacloud/postgresql-server:latest
         env_file: ./../global.env.dist
         stop_signal: SIGKILL
         expose:
             - 5432
 
-    mc_rabbitmq_server:
-        image: dockermediacloud/mediacloud-rabbitmq-server:latest
+    rabbitmq-server:
+        image: dockermediacloud/rabbitmq-server:latest
         env_file: ./../global.env.dist
         stop_signal: SIGKILL
         expose:

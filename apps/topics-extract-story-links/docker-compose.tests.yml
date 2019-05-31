@@ -2,8 +2,8 @@ version: "3.7"
 
 services:
 
-    mc_topics_extract_story_links:
-        image: dockermediacloud/mediacloud-topics-extract-story-links:latest
+    topics-extract-story-links:
+        image: dockermediacloud/topics-extract-story-links:latest
         stop_signal: SIGKILL
         env_file: ./../global.env.dist
         volumes:
@@ -27,28 +27,28 @@ services:
               source: ./../common/src/
               target: /opt/mediacloud/src/common/
         depends_on:
-            - mc_postgresql_pgbouncer
+            - postgresql-pgbouncer
             # Uses extractor HTTP service directly to get raw extracted HTML:
-            - mc_extract_article_from_page
+            - extract-article-from-page
 
-    mc_extract_article_from_page:
-        image: dockermediacloud/mediacloud-extract-article-from-page:latest
+    extract-article-from-page:
+        image: dockermediacloud/extract-article-from-page:latest
         env_file: ./../global.env.dist
         stop_signal: SIGKILL
         expose:
             - 80
 
-    mc_postgresql_pgbouncer:
-        image: dockermediacloud/mediacloud-postgresql-pgbouncer:latest
+    postgresql-pgbouncer:
+        image: dockermediacloud/postgresql-pgbouncer:latest
         env_file: ./../global.env.dist
         stop_signal: SIGKILL
         expose:
             - 6432
         depends_on:
-            - mc_postgresql_server
+            - postgresql-server
 
-    mc_postgresql_server:
-        image: dockermediacloud/mediacloud-postgresql-server:latest
+    postgresql-server:
+        image: dockermediacloud/postgresql-server:latest
         env_file: ./../global.env.dist
         stop_signal: SIGKILL
         expose:

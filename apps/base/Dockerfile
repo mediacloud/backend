@@ -47,7 +47,7 @@ RUN \
         netcat \
         # Some packages insist on logging to syslog
         rsyslog \
-        # Sending mail via sendmail utility through mc_mail_postfix_server
+        # Sending mail via sendmail utility through mail-postfix-server
         ssmtp \
         tzdata \
         # Basic editor for files in container while debugging
@@ -92,8 +92,8 @@ RUN \
 
 # Configure sSMTP to relay mail to Postfix
 RUN \
-    sed -i -e "s/^mailhub=.*/mailhub=mc_mail_postfix_server:25/" /etc/ssmtp/ssmtp.conf && \
-    echo "root:no-reply@mediacloud.org:mc_mail_postfix_server:25" >> /etc/ssmtp/revaliases && \
-    echo "mediacloud:no-reply@mediacloud.org:mc_mail_postfix_server:25" >> /etc/ssmtp/revaliases && \
+    sed -i -e "s/^mailhub=.*/mailhub=mail-postfix-server:25/" /etc/ssmtp/ssmtp.conf && \
+    echo "root:no-reply@mediacloud.org:mail-postfix-server:25" >> /etc/ssmtp/revaliases && \
+    echo "mediacloud:no-reply@mediacloud.org:mail-postfix-server:25" >> /etc/ssmtp/revaliases && \
     true
 

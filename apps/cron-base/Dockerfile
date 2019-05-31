@@ -3,7 +3,7 @@
 #
 # FIXME email the report
 
-FROM dockermediacloud/mediacloud-common:latest
+FROM dockermediacloud/common:latest
 
 # Install Cron
 RUN \

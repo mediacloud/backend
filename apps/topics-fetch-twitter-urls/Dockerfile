@@ -2,7 +2,7 @@
 # Fetch Twitter URLs
 #
 
-FROM dockermediacloud/mediacloud-topics-base:latest
+FROM dockermediacloud/topics-base:latest
 
 # Install Python dependencies
 COPY src/requirements.txt /var/tmp/

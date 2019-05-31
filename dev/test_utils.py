@@ -7,7 +7,7 @@ class TestUtils(TestCase):
 
     def test_container_dir_name_from_image_name(self):
         assert container_dir_name_from_image_name(
-            image_name='dockermediacloud/mediacloud-topics-fetch-twitter-urls:latest',
+            image_name='dockermediacloud/topics-fetch-twitter-urls:latest',
             conf=DefaultDockerHubConfiguration(),
         ) == 'topics-fetch-twitter-urls'
 

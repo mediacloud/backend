@@ -2,7 +2,7 @@
 # Generate retweet foci
 #
 
-FROM dockermediacloud/mediacloud-topics-base:latest
+FROM dockermediacloud/topics-base:latest
 
 # Copy worker script
 COPY bin /opt/mediacloud/bin

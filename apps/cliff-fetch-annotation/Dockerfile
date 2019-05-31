@@ -2,7 +2,7 @@
 # CLIFF fetch annotation worker
 #
 
-FROM dockermediacloud/mediacloud-cliff-base:latest
+FROM dockermediacloud/cliff-base:latest
 
 # Copy sources
 COPY src/ /opt/mediacloud/src/cliff-fetch-annotation/

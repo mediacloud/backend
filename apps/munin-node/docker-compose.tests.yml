@@ -2,8 +2,8 @@ version: "3.7"
 
 services:
 
-    mc_munin_node:
-        image: dockermediacloud/mediacloud-munin-node:latest
+    munin-node:
+        image: dockermediacloud/munin-node:latest
         stop_signal: SIGKILL
         volumes:
             - type: bind
@@ -11,28 +11,28 @@ services:
               target: /etc/munin/plugins/
         depends_on:
             # Monitors a bunch of stuff on PostgreSQL
-            - mc_postgresql_pgbouncer
+            - postgresql-pgbouncer
             # Monitors stuff on Solr too
-            - mc_solr_shard
+            - solr-shard
 
-    mc_postgresql_pgbouncer:
-        image: dockermediacloud/mediacloud-postgresql-pgbouncer:latest
+    postgresql-pgbouncer:
+        image: dockermediacloud/postgresql-pgbouncer:latest
         env_file: ./../global.env.dist
         stop_signal: SIGKILL
         expose:
             - 6432
         depends_on:
-            - mc_postgresql_server
+            - postgresql-server
 
-    mc_postgresql_server:
-        image: dockermediacloud/mediacloud-postgresql-server:latest
+    postgresql-server:
+        image: dockermediacloud/postgresql-server:latest
         env_file: ./../global.env.dist
         stop_signal: SIGKILL
         expose:
             - 5432
 
-    mc_solr_shard:
-        image: dockermediacloud/mediacloud-solr-shard:latest
+    solr-shard:
+        image: dockermediacloud/solr-shard:latest
         env_file: ./../global.env.dist
         stop_signal: SIGKILL
         environment:
@@ -40,10 +40,10 @@ services:
         expose:
             - 8983
         depends_on:
-            - mc_solr_zookeeper
+            - solr-zookeeper
 
-    mc_solr_zookeeper:
-        image: dockermediacloud/mediacloud-solr-zookeeper:latest
+    solr-zookeeper:
+        image: dockermediacloud/solr-zookeeper:latest
         env_file: ./../global.env.dist
         stop_signal: SIGKILL
         expose:

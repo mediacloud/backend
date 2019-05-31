@@ -2,7 +2,7 @@
 # Perl-Python code base
 #
 
-FROM dockermediacloud/mediacloud-base:latest
+FROM dockermediacloud/base:latest
 
 # Install Python
 RUN \

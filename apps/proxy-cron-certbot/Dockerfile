@@ -3,7 +3,7 @@
 # (have a look at credentials.inc.sh for configuration options)
 #
 
-FROM dockermediacloud/mediacloud-base:latest
+FROM dockermediacloud/base:latest
 
 # Install packages
 RUN \

@@ -2,7 +2,7 @@
 # Postfix server
 #
 
-FROM dockermediacloud/mediacloud-base:latest
+FROM dockermediacloud/base:latest
 
 # FIXME keep in sync with main-opendkim-server?
 ENV MC_MAIL_POSTFIX_MAILNAME "mail.mediacloud.org"
@@ -23,8 +23,8 @@ RUN \
     # Configure OpenDKIM
     postconf -e milter_protocol=2 && \
     postconf -e milter_default_action=accept && \
-    postconf -e smtpd_milters=inet:mc_mail_opendkim_server:12301 && \
-    postconf -e non_smtpd_milters=inet:mc_mail_opendkim_server:12301 && \
+    postconf -e smtpd_milters=inet:mail-opendkim-server:12301 && \
+    postconf -e non_smtpd_milters=inet:mail-opendkim-server:12301 && \
     #
     # Relay all emails with a non-localhost destination
     postconf -e mydestination=localhost && \

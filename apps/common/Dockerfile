@@ -2,7 +2,7 @@
 # Common Media Cloud code
 #
 
-FROM dockermediacloud/mediacloud-perl-python-base:latest
+FROM dockermediacloud/perl-python-base:latest
 
 # Install mecab-ipadic-neologd (for Japanese language tokenization) first because it's so large
 RUN \

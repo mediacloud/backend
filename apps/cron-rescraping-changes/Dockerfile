@@ -7,7 +7,7 @@
 #
 # FIXME disable initially
 
-FROM dockermediacloud/mediacloud-cron-base:latest
+FROM dockermediacloud/cron-base:latest
 
 # Copy worker script
 COPY bin /opt/mediacloud/bin

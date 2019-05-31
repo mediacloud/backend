@@ -2,7 +2,7 @@
 # Import stories from PostgreSQL to Solr for testing purposes
 #
 
-FROM dockermediacloud/mediacloud-import-solr-data:latest
+FROM dockermediacloud/import-solr-data:latest
 
 # Copy sources
 COPY src/ /opt/mediacloud/src/import-solr-data-for-testing/

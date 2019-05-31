@@ -2,7 +2,7 @@
 # Set media's subject country Cron job
 #
 
-FROM dockermediacloud/mediacloud-cron-base:latest
+FROM dockermediacloud/cron-base:latest
 
 # Copy sources
 COPY src/ /opt/mediacloud/src/cron-set-media-subject-country/

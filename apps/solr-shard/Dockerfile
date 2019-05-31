@@ -2,7 +2,7 @@
 # Solr shard
 #
 
-FROM dockermediacloud/mediacloud-solr-base:latest
+FROM dockermediacloud/solr-base:latest
 
 # Pre-fill data volume
 RUN \

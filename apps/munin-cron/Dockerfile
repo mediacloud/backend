@@ -2,7 +2,7 @@
 # Munin Cron stats collector
 #
 
-FROM dockermediacloud/mediacloud-base:latest
+FROM dockermediacloud/base:latest
 
 # Install packages
 RUN \
@@ -14,8 +14,6 @@ RUN \
     # (https://github.com/munin-monitoring/munin/issues/1109#issuecomment-449397665)
     apt-get -y --no-install-recommends install libio-socket-ssl-perl && \
     #
-    # Install patch for monkey-patching Munin
-    apt-get -y --no-install-recommends install patch && \
     true
 
 # Symlink logs to STDOUT
@@ -43,15 +41,6 @@ RUN \
 # Replace misc. configuration with our own
 RUN rm -rf /etc/munin/munin-conf.d/
 COPY munin-conf.d/ /etc/munin/munin-conf.d/
-
-# Monkey-patch Munin's source for it to accept hostnames with underscores
-#
-# We're sinning here as '_' is illegal in a hostname according to RFC but
-# Docker seems to work with underscores so for now let's just continue on
-# cheating. But then maybe Docker container names count as domain names of
-# sorts and not hostnames? I don't know really.)
-COPY patches/Config.pm.diff /var/tmp/
-RUN patch -p0 < /var/tmp/Config.pm.diff
 
 # Create directory for PID file
 RUN \

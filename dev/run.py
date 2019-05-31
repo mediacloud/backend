@@ -88,7 +88,7 @@ def docker_run_commands(all_apps_dir: str, app_dirname: str, command: str) -> Li
         raise ValueError("docker-compose configuration was not found at '{}'.".format(docker_compose_path))
 
     app_dirname = Path(main_container_dir).parts[-1]
-    container_name = "mc_" + app_dirname.replace('-', '_')
+    container_name = app_dirname
 
     try:
         _validate_docker_compose_yml(docker_compose_path=docker_compose_path, container_name=container_name)

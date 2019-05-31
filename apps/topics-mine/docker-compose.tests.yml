@@ -2,8 +2,8 @@ version: "3.7"
 
 services:
 
-    mc_topics_mine:
-        image: dockermediacloud/mediacloud-topics-mine:latest
+    topics-mine:
+        image: dockermediacloud/topics-mine:latest
         stop_signal: SIGKILL
         env_file: ./../global.env.dist
         environment:
@@ -33,62 +33,62 @@ services:
               source: ./../common/src/
               target: /opt/mediacloud/src/common/
         depends_on:
-            - mc_postgresql_pgbouncer
-            - mc_rabbitmq_server
-            - mc_topics_fetch_link
-            - mc_topics_extract_story_links
-            # 1) test_topics_mine.t calls mc_topics_fetch_link
-            # 2) mc_topics_fetch_link calls _try_fetch_topic_url()
+            - postgresql-pgbouncer
+            - rabbitmq-server
+            - topics-fetch-link
+            - topics-extract-story-links
+            # 1) test_topics_mine.t calls topics-fetch-link
+            # 2) topics-fetch-link calls _try_fetch_topic_url()
             # 3) _try_fetch_topic_url() calls generate_story()
             # 4) generate_story() calls _extract_story()
             # 5) _extract_story() runs a remote extraction job
-            - mc_extract_and_vector
+            - extract-and-vector
 
-    mc_extract_and_vector:
-        image: dockermediacloud/mediacloud-extract-and-vector:latest
+    extract-and-vector:
+        image: dockermediacloud/extract-and-vector:latest
         env_file: ./../global.env.dist
         stop_signal: SIGKILL
         depends_on:
-            - mc_postgresql_pgbouncer
-            - mc_extract_article_from_page
+            - postgresql-pgbouncer
+            - extract-article-from-page
 
-    mc_extract_article_from_page:
-        image: dockermediacloud/mediacloud-extract-article-from-page:latest
+    extract-article-from-page:
+        image: dockermediacloud/extract-article-from-page:latest
         env_file: ./../global.env.dist
         stop_signal: SIGKILL
         expose:
             - 80
 
-    mc_postgresql_pgbouncer:
-        image: dockermediacloud/mediacloud-postgresql-pgbouncer:latest
+    postgresql-pgbouncer:
+        image: dockermediacloud/postgresql-pgbouncer:latest
         env_file: ./../global.env.dist
         stop_signal: SIGKILL
         expose:
             - 6432
         depends_on:
-            - mc_postgresql_server
+            - postgresql-server
 
-    mc_postgresql_server:
-        image: dockermediacloud/mediacloud-postgresql-server:latest
+    postgresql-server:
+        image: dockermediacloud/postgresql-server:latest
         env_file: ./../global.env.dist
         stop_signal: SIGKILL
         expose:
             - 5432
 
-    mc_rabbitmq_server:
-        image: dockermediacloud/mediacloud-rabbitmq-server:latest
+    rabbitmq-server:
+        image: dockermediacloud/rabbitmq-server:latest
         env_file: ./../global.env.dist
         stop_signal: SIGKILL
         expose:
             - 5672
             - 15672
 
-    mc_topics_fetch_link:
-        image: dockermediacloud/mediacloud-topics-fetch-link:latest
+    topics-fetch-link:
+        image: dockermediacloud/topics-fetch-link:latest
         env_file: ./../global.env.dist
         stop_signal: SIGKILL
 
-    mc_topics_extract_story_links:
-        image: dockermediacloud/mediacloud-topics-extract-story-links:latest
+    topics-extract-story-links:
+        image: dockermediacloud/topics-extract-story-links:latest
         env_file: ./../global.env.dist
         stop_signal: SIGKILL

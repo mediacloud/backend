@@ -2,8 +2,8 @@ version: "3.7"
 
 services:
 
-    mc_webapp_api:
-        image: dockermediacloud/mediacloud-webapp-api:latest
+    webapp-api:
+        image: dockermediacloud/webapp-api:latest
         stop_signal: SIGKILL
         env_file: ./../global.env.dist
         volumes:
@@ -20,34 +20,34 @@ services:
               source: ./../common/src/
               target: /opt/mediacloud/src/common/
         depends_on:
-            - mc_postgresql_pgbouncer
-            - mc_solr_shard
-            - mc_rabbitmq_server
-            - mc_rescrape_media
-            - mc_word2vec_generate_snapshot_model
+            - postgresql-pgbouncer
+            - solr-shard
+            - rabbitmq-server
+            - rescrape-media
+            - word2vec-generate-snapshot-model
             # test_topics_api.t snapshots a topic
-            - mc_topics_snapshot
+            - topics-snapshot
             # Multiple tests import Solr data
-            - mc_import_solr_data_for_testing
+            - import-solr-data-for-testing
 
-    mc_postgresql_pgbouncer:
-        image: dockermediacloud/mediacloud-postgresql-pgbouncer:latest
+    postgresql-pgbouncer:
+        image: dockermediacloud/postgresql-pgbouncer:latest
         env_file: ./../global.env.dist
         stop_signal: SIGKILL
         expose:
             - 6432
         depends_on:
-            - mc_postgresql_server
+            - postgresql-server
 
-    mc_postgresql_server:
-        image: dockermediacloud/mediacloud-postgresql-server:latest
+    postgresql-server:
+        image: dockermediacloud/postgresql-server:latest
         env_file: ./../global.env.dist
         stop_signal: SIGKILL
         expose:
             - 5432
 
-    mc_solr_shard:
-        image: dockermediacloud/mediacloud-solr-shard:latest
+    solr-shard:
+        image: dockermediacloud/solr-shard:latest
         env_file: ./../global.env.dist
         stop_signal: SIGKILL
         environment:
@@ -55,10 +55,10 @@ services:
         expose:
             - 8983
         depends_on:
-            - mc_solr_zookeeper
+            - solr-zookeeper
 
-    mc_solr_zookeeper:
-        image: dockermediacloud/mediacloud-solr-zookeeper:latest
+    solr-zookeeper:
+        image: dockermediacloud/solr-zookeeper:latest
         env_file: ./../global.env.dist
         stop_signal: SIGKILL
         expose:
@@ -66,38 +66,38 @@ services:
             - 2888
             - 3888
 
-    mc_rabbitmq_server:
-        image: dockermediacloud/mediacloud-rabbitmq-server:latest
+    rabbitmq-server:
+        image: dockermediacloud/rabbitmq-server:latest
         env_file: ./../global.env.dist
         stop_signal: SIGKILL
         expose:
             - 5672
             - 15672
 
-    mc_rescrape_media:
-        image: dockermediacloud/mediacloud-rescrape-media:latest
+    rescrape-media:
+        image: dockermediacloud/rescrape-media:latest
         env_file: ./../global.env.dist
         stop_signal: SIGKILL
 
-    mc_word2vec_generate_snapshot_model:
-        image: dockermediacloud/mediacloud-word2vec-generate-snapshot-model:latest
+    word2vec-generate-snapshot-model:
+        image: dockermediacloud/word2vec-generate-snapshot-model:latest
         env_file: ./../global.env.dist
         stop_signal: SIGKILL
 
-    mc_topics_snapshot:
-        image: dockermediacloud/mediacloud-topics-snapshot:latest
+    topics-snapshot:
+        image: dockermediacloud/topics-snapshot:latest
         stop_signal: SIGKILL
         env_file: ./../global.env.dist
         environment:
             MC_TOPICS_SNAPSHOT_MODEL_REPS: "0"
 
-    mc_import_solr_data_for_testing:
-        image: dockermediacloud/mediacloud-import-solr-data-for-testing:latest
+    import-solr-data-for-testing:
+        image: dockermediacloud/import-solr-data-for-testing:latest
         env_file: ./../global.env.dist
         environment:
             MC_SOLR_IMPORT_JOBS: 1
             MC_SOLR_IMPORT_MAX_QUEUED_STORIES: 100000
         stop_signal: SIGKILL
         depends_on:
-            - mc_postgresql_pgbouncer
-            - mc_solr_shard
+            - postgresql-pgbouncer
+            - solr-shard

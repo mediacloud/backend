@@ -2,7 +2,7 @@
 # Import stories by fetching them from Feedly
 #
 
-FROM dockermediacloud/mediacloud-import-stories-base:latest
+FROM dockermediacloud/import-stories-base:latest
 
 # Install Perl dependencies
 COPY src/cpanfile /var/tmp/

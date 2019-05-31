@@ -28,7 +28,7 @@ class DatabaseConfig(object):
     def hostname() -> str:
         """Hostname."""
         # Container's name from docker-compose.yml
-        return "mc_postgresql_pgbouncer"
+        return "postgresql-pgbouncer"
 
     @staticmethod
     def port() -> int:
@@ -88,7 +88,7 @@ class RabbitMQConfig(object):
     def hostname() -> str:
         """Hostname."""
         # Container's name from docker-compose.yml
-        return "mc_rabbitmq_server"
+        return "rabbitmq-server"
 
     @staticmethod
     def port() -> int:
@@ -125,7 +125,7 @@ class SMTPConfig(object):
     def hostname() -> str:
         """Hostname."""
         # Container's name from docker-compose.yml
-        return 'mc_mail_postfix_server'
+        return 'mail-postfix-server'
 
     @staticmethod
     def port() -> int:
@@ -342,11 +342,11 @@ class CommonConfig(object):
     @staticmethod
     def solr_url() -> str:
         """Solr server URL."""
-        # "mc_solr_shard" container's name from docker-compose.yml; will round-robin between servers
-        return 'http://mc_solr_shard:8983/solr'
+        # "solr-shard" container's name from docker-compose.yml; will round-robin between servers
+        return 'http://solr-shard:8983/solr'
 
     @staticmethod
     def extractor_api_url() -> str:
         """URL of the extractor API."""
-        # "mc_extract_article_from_page" container's name from docker-compose.yml; will round-robin between servers
-        return "http://mc_extract_article_from_page/extract"
+        # "extract-article-from-page" container's name from docker-compose.yml; will round-robin between servers
+        return "http://extract-article-from-page/extract"

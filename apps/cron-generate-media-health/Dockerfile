@@ -2,7 +2,7 @@
 # Generate media health Cron job
 #
 
-FROM dockermediacloud/mediacloud-cron-base:latest
+FROM dockermediacloud/cron-base:latest
 
 # Copy sources
 COPY src/ /opt/mediacloud/src/cron-generate-media-health/

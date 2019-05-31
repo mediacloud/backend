@@ -2,7 +2,7 @@
 # PostgreSQL server
 #
 
-FROM dockermediacloud/mediacloud-postgresql-base:latest
+FROM dockermediacloud/postgresql-base:latest
 
 # Install packages
 RUN \

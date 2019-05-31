@@ -2,8 +2,8 @@ version: "3.7"
 
 services:
 
-    mc_word2vec_generate_snapshot_model:
-        image: dockermediacloud/mediacloud-word2vec-generate-snapshot-model:latest
+    word2vec-generate-snapshot-model:
+        image: dockermediacloud/word2vec-generate-snapshot-model:latest
         stop_signal: SIGKILL
         env_file: ./../global.env.dist
         volumes:
@@ -20,19 +20,19 @@ services:
               source: ./../common/src/
               target: /opt/mediacloud/src/common/
         depends_on:
-            - mc_postgresql_pgbouncer
+            - postgresql-pgbouncer
 
-    mc_postgresql_pgbouncer:
-        image: dockermediacloud/mediacloud-postgresql-pgbouncer:latest
+    postgresql-pgbouncer:
+        image: dockermediacloud/postgresql-pgbouncer:latest
         env_file: ./../global.env.dist
         stop_signal: SIGKILL
         expose:
             - 6432
         depends_on:
-            - mc_postgresql_server
+            - postgresql-server
 
-    mc_postgresql_server:
-        image: dockermediacloud/mediacloud-postgresql-server:latest
+    postgresql-server:
+        image: dockermediacloud/postgresql-server:latest
         env_file: ./../global.env.dist
         stop_signal: SIGKILL
         expose:

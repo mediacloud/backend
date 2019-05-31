@@ -2,7 +2,7 @@
 # Fetch sitemap pages worker
 #
 
-FROM dockermediacloud/mediacloud-common:latest
+FROM dockermediacloud/common:latest
 
 # Copy sources
 COPY src/ /opt/mediacloud/src/sitemap-fetch-media-pages/

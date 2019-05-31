@@ -2,7 +2,7 @@
 # NYT-based news tagger service
 #
 
-FROM dockermediacloud/mediacloud-base:latest
+FROM dockermediacloud/base:latest
 
 # Copy source
 RUN mkdir -p /usr/src/

@@ -2,7 +2,7 @@
 # NYTLabels base image
 #
 
-FROM dockermediacloud/mediacloud-common:latest
+FROM dockermediacloud/common:latest
 
 # Copy sources
 COPY src/ /opt/mediacloud/src/nytlabels-base/

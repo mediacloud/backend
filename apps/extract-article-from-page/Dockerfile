@@ -4,7 +4,7 @@
 # FIXME possibly add cache
 #
 
-FROM dockermediacloud/mediacloud-common:latest
+FROM dockermediacloud/common:latest
 
 # Install Python dependencies
 COPY src/requirements.txt /var/tmp/

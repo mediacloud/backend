@@ -2,7 +2,7 @@
 # Create missing PostgreSQL table partitions
 #
 
-FROM dockermediacloud/mediacloud-common:latest
+FROM dockermediacloud/common:latest
 
 COPY bin /opt/mediacloud/bin
 

@@ -2,7 +2,7 @@
 # Refresh stats Cron job
 #
 
-FROM dockermediacloud/mediacloud-cron-base:latest
+FROM dockermediacloud/cron-base:latest
 
 # Copy Cron script
 COPY bin /opt/mediacloud/bin

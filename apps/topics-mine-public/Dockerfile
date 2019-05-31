@@ -2,7 +2,7 @@
 # Mine public topic worker
 #
 
-FROM dockermediacloud/mediacloud-topics-mine:latest
+FROM dockermediacloud/topics-mine:latest
 
 # Copy sources
 COPY src/ /opt/mediacloud/src/topics-mine-public/

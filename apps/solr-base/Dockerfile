@@ -2,7 +2,7 @@
 # Solr base
 #
 
-FROM dockermediacloud/mediacloud-base:latest
+FROM dockermediacloud/base:latest
 
 # Solr version
 ENV MEDIACLOUD_SOLR_VERSION "6.5.0"

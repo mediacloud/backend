@@ -2,7 +2,7 @@
 # Base image for code that imports stories from arbitrary sources
 #
 
-FROM dockermediacloud/mediacloud-extract-and-vector:latest
+FROM dockermediacloud/extract-and-vector:latest
 
 # Copy sources
 COPY src/ /opt/mediacloud/src/import-stories-base/

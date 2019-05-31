@@ -2,8 +2,8 @@ version: "3.7"
 
 services:
 
-    mc_proxy_httpd:
-        image: dockermediacloud/mediacloud-proxy-httpd:latest
+    proxy-httpd:
+        image: dockermediacloud/proxy-httpd:latest
         environment:
             MC_PROXY_HTTPD_AUTH_USERS: "${MC_PROXY_HTTPD_AUTH_USERS}"
         ports:
@@ -14,37 +14,37 @@ services:
             - type: bind
               source: ./nginx/
               target: /etc/nginx/
-            # Shared with mc_proxy_cron_certbot:
+            # Shared with proxy-cron-certbot:
             - vol_proxy_ssl_certs:/etc/letsencrypt/
         depends_on:
-            - mc_proxy_cron_certbot
-            - mc_webapp_httpd
-            - mc_munin_httpd
-            - mc_portainer
-            - mc_solr_shard
-            - mc_rabbitmq_server
+            - proxy-cron-certbot
+            - webapp-httpd
+            - munin-httpd
+            - portainer
+            - solr-shard
+            - rabbitmq-server
 
-    mc_proxy_cron_certbot:
-        image: dockermediacloud/mediacloud-proxy-cron-certbot:latest
+    proxy-cron-certbot:
+        image: dockermediacloud/proxy-cron-certbot:latest
         environment:
             MC_PROXY_CERTBOT_DOMAIN: "testmediacloud.ml"
             MC_PROXY_CERTBOT_LETSENCRYPT_EMAIL: "linas@media.mit.edu"
             MC_PROXY_CERTBOT_CLOUDFLARE_EMAIL: "${MC_PROXY_CERTBOT_CLOUDFLARE_EMAIL}"
             MC_PROXY_CERTBOT_CLOUDFLARE_GLOBAL_API_KEY: "${MC_PROXY_CERTBOT_CLOUDFLARE_GLOBAL_API_KEY}"
         volumes:
-            # Shared with mc_proxy_httpd:
+            # Shared with proxy-httpd:
             - vol_proxy_ssl_certs:/etc/letsencrypt/
 
-    mc_webapp_httpd:
-        image: dockermediacloud/mediacloud-webapp-httpd:latest
+    webapp-httpd:
+        image: dockermediacloud/webapp-httpd:latest
         stop_signal: SIGKILL
         expose:
             - "80"
         depends_on:
-            - mc_webapp_api
+            - webapp-api
 
-    mc_webapp_api:
-        image: dockermediacloud/mediacloud-webapp-api:latest
+    webapp-api:
+        image: dockermediacloud/webapp-api:latest
         stop_signal: SIGKILL
         env_file: ./../global.env.dist
         expose:
@@ -52,19 +52,19 @@ services:
         # Here and elsewhere, don't start any subservices via "depends_on"
         # because we need to only make sure that /status page works
 
-    mc_munin_httpd:
-        image: dockermediacloud/mediacloud-munin-httpd:latest
+    munin-httpd:
+        image: dockermediacloud/munin-httpd:latest
         stop_signal: SIGKILL
         expose:
             - "80"
 
-    mc_portainer:
+    portainer:
        image: portainer/portainer:1.20.2
        expose:
            - "9000"
 
-    mc_solr_shard:
-        image: dockermediacloud/mediacloud-solr-shard:latest
+    solr-shard:
+        image: dockermediacloud/solr-shard:latest
         env_file: ./../global.env.dist
         stop_signal: SIGKILL
         environment:
@@ -72,10 +72,10 @@ services:
         expose:
             - 8983
         depends_on:
-            - mc_solr_zookeeper
+            - solr-zookeeper
 
-    mc_solr_zookeeper:
-        image: dockermediacloud/mediacloud-solr-zookeeper:latest
+    solr-zookeeper:
+        image: dockermediacloud/solr-zookeeper:latest
         env_file: ./../global.env.dist
         stop_signal: SIGKILL
         expose:
@@ -83,8 +83,8 @@ services:
             - 2888
             - 3888
 
-    mc_rabbitmq_server:
-        image: dockermediacloud/mediacloud-rabbitmq-server:latest
+    rabbitmq-server:
+        image: dockermediacloud/rabbitmq-server:latest
         env_file: ./../global.env.dist
         stop_signal: SIGKILL
         expose:

@@ -2,7 +2,7 @@
 # Crawler fetcher
 #
 
-FROM dockermediacloud/mediacloud-common:latest
+FROM dockermediacloud/common:latest
 
 # Install Perl dependencies
 COPY src/cpanfile /var/tmp/

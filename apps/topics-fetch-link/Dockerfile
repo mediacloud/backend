@@ -2,7 +2,7 @@
 # Fetch topic link worker
 #
 
-FROM dockermediacloud/mediacloud-topics-base:latest
+FROM dockermediacloud/topics-base:latest
 
 # Copy sources
 COPY src/ /opt/mediacloud/src/topics-fetch-link/

@@ -2,7 +2,7 @@
 # SSL terminating reverse proxy
 #
 
-FROM dockermediacloud/mediacloud-base:latest
+FROM dockermediacloud/base:latest
 
 # Install packages
 RUN \
