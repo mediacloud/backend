@@ -77,7 +77,7 @@ def container_dir_name_from_image_name(image_name: str, conf: DockerHubConfigura
     return container_name
 
 
-def _docker_parent_image_name(dockerfile_path: str) -> str:
+def _docker_parent_image_name(dockerfile_path: str, conf: DockerHubConfiguration) -> str:
     """
     Return Docker parent image name (FROM value) from a Dockerfile.
 
@@ -98,8 +98,9 @@ def _docker_parent_image_name(dockerfile_path: str) -> str:
                 parent_image = match.group(1)
                 assert parent_image, "Parent image should be set at this point."
 
-                # Remove version tag
-                parent_image = re.sub(r':(.+?)$', '', parent_image)
+                # Remove version tag if it's one of our own images
+                if parent_image.startswith(conf.username + '/'):
+                    parent_image = re.sub(r':(.+?)$', '', parent_image)
 
                 return parent_image
 
@@ -136,7 +137,10 @@ def _container_dependency_map(all_apps_dir: str, conf: DockerHubConfiguration) -
             image_name = _image_name_from_container_name(container_name=container_name, conf=conf)
 
             dockerfile_path = os.path.join(container_path, 'Dockerfile')
-            parent_docker_image = _docker_parent_image_name(dockerfile_path)
+            parent_docker_image = _docker_parent_image_name(
+                dockerfile_path=dockerfile_path,
+                conf=conf,
+            )
 
             parent_images[image_name] = parent_docker_image
 
