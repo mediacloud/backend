@@ -3,7 +3,7 @@
 #
 #     cd apps/solr-shard/
 #     docker-compose \
-#         --project-name solr-shard-bash \
+#         --project-name mc-solr-shard-bash \
 #         --file docker-compose.tests.yml \
 #         --compatibility up \
 #         --renew-anon-volumes \

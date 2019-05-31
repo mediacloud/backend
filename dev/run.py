@@ -62,7 +62,7 @@ def _project_name(container_name: str, command: str) -> str:
     sanitized_command = re.sub(r'\W+', '_', command, flags=re.ASCII).lower()
     sanitized_command = sanitized_command.strip('_')
 
-    project_name = '{}-{}'.format(container_name, sanitized_command)
+    project_name = 'mc-{}-{}'.format(container_name, sanitized_command)
 
     return project_name
 
