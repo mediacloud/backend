@@ -1,0 +1,44 @@
+stages:
+- stage: pull
+  jobs:
+  - job: docker_pull
+    pool:
+      vmImage: 'ubuntu-16.04'
+    steps:
+      - script: echo docker pull
+- stage: build
+  jobs:
+  - job: docker_build
+    pool:
+      vmImage: 'ubuntu-16.04'
+    steps:
+      - script: echo docker build
+- stage: test
+  jobs:
+  - job: docker_test_chunk_1
+    pool:
+      vmImage: 'ubuntu-16.04'
+    steps:
+      - script: echo docker test chunk 1
+  - job: docker_test_chunk_2
+    pool:
+      vmImage: 'ubuntu-16.04'
+    steps:
+      - script: echo docker test chunk 2
+  - job: docker_test_chunk_3
+    pool:
+      vmImage: 'ubuntu-16.04'
+    steps:
+      - script: echo docker test chunk 3
+  - job: docker_test_chunk_4
+    pool:
+      vmImage: 'ubuntu-16.04'
+    steps:
+      - script: echo docker test chunk 4
+- stage: push
+  jobs:
+  - job: docker_push
+    pool:
+      vmImage: 'ubuntu-16.04'
+    steps:
+      - script: echo docker push
