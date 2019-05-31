@@ -69,7 +69,17 @@ x-split-tests-into-chunks: &split-tests-into-chunks
   run:
     name: Split tests into chunks
     command: |
-      ./dev/run_all_tests.py > tests_all
+      #
+      # List all tests (commands) to be run in a file
+      ./dev/run_all_tests.py > tests_all_ordered
+      #
+      # Randomize test order so that both chunks run for about the same amount
+      # of time; use a fixed seed though to make it predictable which
+      # particular chunk of tests every test will run on:
+      shuf --random-source=<(openssl enc -aes-256-ctr -pass pass:"42" -nosalt </dev/zero 2>/dev/null) tests_all_ordered > tests_all
+      rm tests_all_ordered
+      #
+      # Split tests into 4 equal parts:
       split -n l/4 tests_all tests_chunk_
 
 # Run chunk tests
