@@ -111,6 +111,92 @@ jobs:
       - checkout
       - *pull-submodules
       - *save-cache
+      - *pull-images
+
+      - run:
+          name: Build images
+          command: |
+            ./dev/build.py | bash
+
+      - run:
+          name: Push images
+          command: |
+            # Log in to Docker Hub
+            echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+            # Push all images to Docker Hub
+            ./dev/push.py | bash
+
+  test_chunk_1:
+    machine: true
+    steps:
+      - *restore-cache
+      - *upgrade-docker
+      - *install-utilities
+      - checkout
+      - *pull-submodules
+      - *save-cache
+      - *pull-images
+
+      - *split-tests-into-chunks
+      - run:
+          name: Choose tests (chunk 1)
+          command: |
+            mv tests_chunk_aa tests_chunk
+      - *run-chunk-tests
+
+  test_chunk_2:
+    machine: true
+    steps:
+      - *restore-cache
+      - *upgrade-docker
+      - *install-utilities
+      - checkout
+      - *pull-submodules
+      - *save-cache
+      - *pull-images
+
+      - *split-tests-into-chunks
+      - run:
+          name: Choose tests (chunk 2)
+          command: |
+            mv tests_chunk_ab tests_chunk
+      - *run-chunk-tests
+
+  test_chunk_3:
+    machine: true
+    steps:
+      - *restore-cache
+      - *upgrade-docker
+      - *install-utilities
+      - checkout
+      - *pull-submodules
+      - *save-cache
+      - *pull-images
+
+      - *split-tests-into-chunks
+      - run:
+          name: Choose tests (chunk 3)
+          command: |
+            mv tests_chunk_ac tests_chunk
+      - *run-chunk-tests
+
+  test_chunk_4:
+    machine: true
+    steps:
+      - *restore-cache
+      - *upgrade-docker
+      - *install-utilities
+      - checkout
+      - *pull-submodules
+      - *save-cache
+      - *pull-images
+
+      - *split-tests-into-chunks
+      - run:
+          name: Choose tests (chunk 4)
+          command: |
+            mv tests_chunk_ad tests_chunk
+      - *run-chunk-tests
 
 
 workflows:
@@ -118,3 +204,15 @@ workflows:
   pull_build_push_test:
     jobs:
       - pull_build_push
+      - test_chunk_1:
+          requires:
+            - pull_build_push
+      - test_chunk_2:
+          requires:
+            - pull_build_push
+      - test_chunk_3:
+          requires:
+            - pull_build_push
+      - test_chunk_4:
+          requires:
+            - pull_build_push
