@@ -12,7 +12,7 @@ version: "3.7"
 x-solr-shard_base:   &solr-shard_base
     build:
         context: ./solr-shard/
-    image: dockermediacloud/solr-shard:latest
+    image: dockermediacloud/solr-shard:release
     env_file: global.env
     environment:
         # Shard count (every individual shard needs to know the total count)
@@ -65,7 +65,7 @@ services:
     cliff-fetch-annotation:
         build:
             context: ./cliff-fetch-annotation/
-        image: dockermediacloud/cliff-fetch-annotation:latest
+        image: dockermediacloud/cliff-fetch-annotation:release
         networks:
             - default
         env_file: global.env
@@ -96,7 +96,7 @@ services:
     cliff-update-story-tags:
         build:
             context: ./cliff-update-story-tags/
-        image: dockermediacloud/cliff-update-story-tags:latest
+        image: dockermediacloud/cliff-update-story-tags:release
         networks:
             - default
         env_file: global.env
@@ -133,7 +133,7 @@ services:
     crawler-provider:
         build:
             context: ./crawler-provider/
-        image: dockermediacloud/crawler-provider:latest
+        image: dockermediacloud/crawler-provider:release
         networks:
             - default
         env_file: global.env
@@ -159,7 +159,7 @@ services:
     crawler-fetcher:
         build:
             context: ./crawler-fetcher/
-        image: dockermediacloud/crawler-fetcher:latest
+        image: dockermediacloud/crawler-fetcher:release
         networks:
             - default
         env_file: global.env
@@ -186,7 +186,7 @@ services:
     create-missing-partitions:
         build:
             context: ./create-missing-partitions/
-        image: dockermediacloud/create-missing-partitions:latest
+        image: dockermediacloud/create-missing-partitions:release
         networks:
             - default
         env_file: global.env
@@ -212,7 +212,7 @@ services:
     extract-article-from-page:
         build:
             context: ./extract-article-from-page/
-        image: dockermediacloud/extract-article-from-page:latest
+        image: dockermediacloud/extract-article-from-page:release
         networks:
             - default
         env_file: global.env
@@ -236,7 +236,7 @@ services:
     extract-and-vector:
         build:
             context: ./extract-and-vector/
-        image: dockermediacloud/extract-and-vector:latest
+        image: dockermediacloud/extract-and-vector:release
         networks:
             - default
         env_file: global.env
@@ -264,7 +264,7 @@ services:
     facebook-fetch-story-stats:
         build:
             context: ./facebook-fetch-story-stats/
-        image: dockermediacloud/facebook-fetch-story-stats:latest
+        image: dockermediacloud/facebook-fetch-story-stats:release
         networks:
             - default
         env_file: global.env
@@ -299,7 +299,7 @@ services:
     cron-generate-daily-rss-dumps:
         build:
             context: ./cron-generate-daily-rss-dumps/
-        image: dockermediacloud/cron-generate-daily-rss-dumps:latest
+        image: dockermediacloud/cron-generate-daily-rss-dumps:release
         networks:
             - default
         env_file: global.env
@@ -328,7 +328,7 @@ services:
     cron-generate-media-health:
         build:
             context: ./cron-generate-media-health/
-        image: dockermediacloud/cron-generate-media-health:latest
+        image: dockermediacloud/cron-generate-media-health:release
         networks:
             - default
         env_file: global.env
@@ -352,7 +352,7 @@ services:
     cron-generate-user-summary:
         build:
             context: ./cron-generate-user-summary/
-        image: dockermediacloud/cron-generate-user-summary:latest
+        image: dockermediacloud/cron-generate-user-summary:release
         networks:
             - default
         env_file: global.env
@@ -378,7 +378,7 @@ services:
     import-solr-data:
         build:
             context: ./import-solr-data/
-        image: dockermediacloud/import-solr-data:latest
+        image: dockermediacloud/import-solr-data:release
         networks:
             - default
         env_file: global.env
@@ -411,7 +411,7 @@ services:
     import-stories-feedly:
         build:
             context: ./import-stories-feedly/
-        image: dockermediacloud/import-stories-feedly:latest
+        image: dockermediacloud/import-stories-feedly:release
         networks:
             - default
         env_file: global.env
@@ -438,7 +438,7 @@ services:
     mail-opendkim-server:
         build:
             context: ./mail-opendkim-server/
-        image: dockermediacloud/mail-opendkim-server:latest
+        image: dockermediacloud/mail-opendkim-server:release
         networks:
             - default
         env_file: global.env
@@ -474,7 +474,7 @@ services:
     mail-postfix-server:
         build:
             context: ./mail-postfix-server/
-        image: dockermediacloud/mail-postfix-server:latest
+        image: dockermediacloud/mail-postfix-server:release
         networks:
             - default
         env_file: global.env
@@ -512,7 +512,7 @@ services:
     nytlabels-fetch-annotation:
         build:
             context: ./nytlabels-fetch-annotation/
-        image: dockermediacloud/nytlabels-fetch-annotation:latest
+        image: dockermediacloud/nytlabels-fetch-annotation:release
         networks:
             - default
         env_file: global.env
@@ -541,7 +541,7 @@ services:
     nytlabels-update-story-tags:
         build:
             context: ./nytlabels-update-story-tags/
-        image: dockermediacloud/nytlabels-update-story-tags:latest
+        image: dockermediacloud/nytlabels-update-story-tags:release
         networks:
             - default
         env_file: global.env
@@ -574,7 +574,7 @@ services:
     postgresql-pgbouncer:
         build:
             context: ./postgresql-pgbouncer/
-        image: dockermediacloud/postgresql-pgbouncer:latest
+        image: dockermediacloud/postgresql-pgbouncer:release
         networks:
             - default
         env_file: global.env
@@ -596,7 +596,7 @@ services:
     postgresql-server:
         build:
             context: ./postgresql-server/
-        image: dockermediacloud/postgresql-server:latest
+        image: dockermediacloud/postgresql-server:release
         networks:
             - default
         env_file: global.env
@@ -618,7 +618,7 @@ services:
     predict-news-labels:
         build:
             context: ./predict-news-labels/
-        image: dockermediacloud/predict-news-labels:latest
+        image: dockermediacloud/predict-news-labels:release
         networks:
             - default
         env_file: global.env
@@ -644,7 +644,7 @@ services:
     purge-object-caches:
         build:
             context: ./purge-object-caches/
-        image: dockermediacloud/purge-object-caches:latest
+        image: dockermediacloud/purge-object-caches:release
         networks:
             - default
         env_file: global.env
@@ -670,7 +670,7 @@ services:
     rabbitmq-server:
         build:
             context: ./rabbitmq-server/
-        image: dockermediacloud/rabbitmq-server:latest
+        image: dockermediacloud/rabbitmq-server:release
         networks:
             - default
         env_file: global.env
@@ -699,7 +699,7 @@ services:
     cron-refresh-stats:
         build:
             context: ./cron-refresh-stats/
-        image: dockermediacloud/cron-refresh-stats:latest
+        image: dockermediacloud/cron-refresh-stats:release
         networks:
             - default
         env_file: global.env
@@ -723,7 +723,7 @@ services:
     cron-rescrape-due-media:
         build:
             context: ./cron-rescrape-due-media/
-        image: dockermediacloud/cron-rescrape-due-media:latest
+        image: dockermediacloud/cron-rescrape-due-media:release
         networks:
             - default
         env_file: global.env
@@ -747,7 +747,7 @@ services:
     rescrape-media:
         build:
             context: ./rescrape-media/
-        image: dockermediacloud/rescrape-media:latest
+        image: dockermediacloud/rescrape-media:release
         networks:
             - default
         env_file: global.env
@@ -771,7 +771,7 @@ services:
     cron-rescraping-changes:
         build:
             context: ./cron-rescraping-changes/
-        image: dockermediacloud/cron-rescraping-changes:latest
+        image: dockermediacloud/cron-rescraping-changes:release
         networks:
             - default
         env_file: global.env
@@ -795,7 +795,7 @@ services:
     cron-set-media-primary-language:
         build:
             context: ./cron-set-media-primary-language/
-        image: dockermediacloud/cron-set-media-primary-language:latest
+        image: dockermediacloud/cron-set-media-primary-language:release
         networks:
             - default
         env_file: global.env
@@ -819,7 +819,7 @@ services:
     cron-set-media-subject-country:
         build:
             context: ./cron-set-media-subject-country/
-        image: dockermediacloud/cron-set-media-subject-country:latest
+        image: dockermediacloud/cron-set-media-subject-country:release
         networks:
             - default
         env_file: global.env
@@ -843,7 +843,7 @@ services:
     cron-print-long-running-job-states:
         build:
             context: ./cron-print-long-running-job-states/
-        image: dockermediacloud/cron-print-long-running-job-states:latest
+        image: dockermediacloud/cron-print-long-running-job-states:release
         networks:
             - default
         env_file: global.env
@@ -991,7 +991,7 @@ services:
     solr-zookeeper:
         build:
             context: ./solr-zookeeper/
-        image: dockermediacloud/solr-zookeeper:latest
+        image: dockermediacloud/solr-zookeeper:release
         networks:
             - default
         env_file: global.env
@@ -1019,7 +1019,7 @@ services:
     topics-extract-story-links:
         build:
             context: ./topics-extract-story-links/
-        image: dockermediacloud/topics-extract-story-links:latest
+        image: dockermediacloud/topics-extract-story-links:release
         networks:
             - default
         env_file: global.env
@@ -1045,7 +1045,7 @@ services:
     topics-fetch-link:
         build:
             context: ./topics-fetch-link/
-        image: dockermediacloud/topics-fetch-link:latest
+        image: dockermediacloud/topics-fetch-link:release
         networks:
             - default
         env_file: global.env
@@ -1069,7 +1069,7 @@ services:
     topics-fetch-twitter-urls:
         build:
             context: ./topics-fetch-twitter-urls/
-        image: dockermediacloud/topics-fetch-twitter-urls:latest
+        image: dockermediacloud/topics-fetch-twitter-urls:release
         networks:
             - default
         env_file: global.env
@@ -1102,7 +1102,7 @@ services:
     topics-mine:
         build:
             context: ./topics-mine/
-        image: dockermediacloud/topics-mine:latest
+        image: dockermediacloud/topics-mine:release
         networks:
             - default
         env_file: global.env
@@ -1129,7 +1129,7 @@ services:
     topics-mine-public:
         build:
             context: ./topics-mine-public/
-        image: dockermediacloud/topics-mine-public:latest
+        image: dockermediacloud/topics-mine-public:release
         networks:
             - default
         env_file: global.env
@@ -1156,7 +1156,7 @@ services:
     topics-snapshot:
         build:
             context: ./topics-snapshot/
-        image: dockermediacloud/topics-snapshot:latest
+        image: dockermediacloud/topics-snapshot:release
         networks:
             - default
         env_file: global.env
@@ -1183,7 +1183,7 @@ services:
     munin-node:
         build:
             context: ./munin-node/
-        image: dockermediacloud/munin-node:latest
+        image: dockermediacloud/munin-node:release
         networks:
             - default
         depends_on:
@@ -1211,7 +1211,7 @@ services:
     munin-cron:
         build:
             context: ./munin-cron/
-        image: dockermediacloud/munin-cron:latest
+        image: dockermediacloud/munin-cron:release
         networks:
             - default
         depends_on:
@@ -1242,7 +1242,7 @@ services:
     munin-httpd:
         build:
             context: ./munin-httpd/
-        image: dockermediacloud/munin-httpd:latest
+        image: dockermediacloud/munin-httpd:release
         networks:
             - default
         depends_on:
@@ -1273,7 +1273,7 @@ services:
     sitemap-fetch-media-pages:
         build:
             context: ./sitemap-fetch-media-pages/
-        image: dockermediacloud/sitemap-fetch-media-pages:latest
+        image: dockermediacloud/sitemap-fetch-media-pages:release
         networks:
             - default
         env_file: global.env
@@ -1297,7 +1297,7 @@ services:
     webapp-api:
         build:
             context: ./webapp-api/
-        image: dockermediacloud/webapp-api:latest
+        image: dockermediacloud/webapp-api:release
         networks:
             - default
         expose:
@@ -1323,7 +1323,7 @@ services:
     webapp-httpd:
         build:
             context: ./webapp-httpd/
-        image: dockermediacloud/webapp-httpd:latest
+        image: dockermediacloud/webapp-httpd:release
         networks:
             - default
         expose:
@@ -1352,7 +1352,7 @@ services:
     proxy-cron-certbot:
         build:
             context: ./proxy-cron-certbot/
-        image: dockermediacloud/proxy-cron-certbot:latest
+        image: dockermediacloud/proxy-cron-certbot:release
         networks:
             - default
         environment:
@@ -1387,7 +1387,7 @@ services:
     proxy-httpd:
         build:
             context: ./proxy-httpd/
-        image: dockermediacloud/proxy-httpd:latest
+        image: dockermediacloud/proxy-httpd:release
         networks:
             - default
         environment:
@@ -1434,7 +1434,7 @@ services:
     word2vec-generate-snapshot-model:
         build:
             context: ./word2vec-generate-snapshot-model/
-        image: dockermediacloud/word2vec-generate-snapshot-model:latest
+        image: dockermediacloud/word2vec-generate-snapshot-model:release
         networks:
             - default
         env_file: global.env
