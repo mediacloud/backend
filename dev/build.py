@@ -74,7 +74,7 @@ if __name__ == '__main__':
     branch = current_git_branch_name()
 
     for image in _docker_images_to_build(all_apps_dir=args.all_apps_dir(), conf=conf_):
-        print('docker build --cache-from {image_name}:{branch} --tag {image_name}:{branch} --tag {image_name}:latest {container_path}'.format(
+        print('docker build --cache-from {image_name}:latest --tag {image_name}:{branch} --tag {image_name}:latest {container_path}'.format(
             branch=branch,
             image_name=image.tag,
             container_path=image.path,
