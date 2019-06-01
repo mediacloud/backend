@@ -32,14 +32,10 @@ steps:
 - script: sudo service docker start
   displayName: Start Docker
 
-# python3-cryptography refuses to build with old setuptools
-- script: pip3 install -U setuptools
-  displayName: Install setuptools
-
 - script: sudo apt-get -y install libssl-dev libffi-dev
   displayName: Install dependencies for python3-cryptography (required by docker-compose)
 
-- script: sudo pip3 install -U docker-compose
+- script: pip install -U docker-compose
   displayName: Upgrade docker-compose
 
 - script: uname -a
