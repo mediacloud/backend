@@ -233,6 +233,32 @@ def current_git_branch_name() -> str:
         stdout=subprocess.PIPE,
     )
     branch_name = result.stdout.decode('utf-8').strip()
+
+    # Azure Pipelines checks out a specific commit and sets it as HEAD, so find
+    # at least one branch that the commit belongs to
+    if branch_name == 'HEAD':
+
+        result = subprocess.run(
+            ['git', 'rev-parse', 'HEAD'],
+            cwd=pwd,
+            stdout=subprocess.PIPE,
+        )
+        last_commit_hash = result.stdout.decode('utf-8').strip()
+        assert len(last_commit_hash) == 40, "Last commit hash can't be empty."
+
+        result = subprocess.run(
+            ['git', 'name-rev', last_commit_hash],
+            cwd=pwd,
+            stdout=subprocess.PIPE,
+        )
+        branch_name = result.stdout.decode('utf-8').strip()
+        branch_name = re.split(r'\s', branch_name)[1]
+
+        if branch_name.startswith('remotes/origin/'):
+            branch_name = re.sub(r'^remotes/origin/', '', branch_name)
+
+        assert branch_name, "Branch name should be set."
+
     return branch_name
 
 
