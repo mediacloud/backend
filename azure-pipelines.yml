@@ -1,6 +1,7 @@
 stages:
 
 - stage: pull_build_push
+  displayName: Pull, build, push images
   jobs:
   - job: pull_build_push
     pool:
@@ -13,9 +14,12 @@ stages:
       - template: .azure-pipelines/template-push-images.yml
 
 - stage: run_tests
+  displayName: Run tests in chunks
+  dependsOn: pull_build_push
   jobs:
 
   - job: run_tests_chunk_1
+    displayName: Run tests in chunk 1
     pool:
       vmImage: 'ubuntu-16.04'
     steps:
@@ -30,6 +34,7 @@ stages:
           test_chunk_filename: "tests_chunk_aa"
 
   - job: run_tests_chunk_2
+    displayName: Run tests in chunk 2
     pool:
       vmImage: 'ubuntu-16.04'
     steps:
@@ -44,6 +49,7 @@ stages:
           test_chunk_filename: "tests_chunk_ab"
 
   - job: run_tests_chunk_3
+    displayName: Run tests in chunk 3
     pool:
       vmImage: 'ubuntu-16.04'
     steps:
@@ -58,6 +64,7 @@ stages:
           test_chunk_filename: "tests_chunk_ac"
 
   - job: run_tests_chunk_4
+    displayName: Run tests in chunk 4
     pool:
       vmImage: 'ubuntu-16.04'
     steps:
@@ -72,6 +79,7 @@ stages:
           test_chunk_filename: "tests_chunk_ad"
 
   - job: run_tests_chunk_5
+    displayName: Run tests in chunk 5
     pool:
       vmImage: 'ubuntu-16.04'
     steps:
