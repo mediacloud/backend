@@ -1,2 +1,3 @@
 steps:
 - script: ./dev/build.py | bash
+  displayName: Build images

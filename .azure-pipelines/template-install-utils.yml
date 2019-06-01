@@ -4,8 +4,9 @@ steps:
     versionSpec: "3.7"
     addToPath: true
 
-# Install dependencies for python3-cryptography and parallel utility
-- script: sudo apt-get -y install libssl-dev libffi-dev parallel
+- script: sudo apt-get -y install parallel
+  displayName: Install parallels
 
 # Install PyYAML for docker-compose.yml validation
 - script: sudo pip3 install PyYAML
+  displayName: Install PyYAML
