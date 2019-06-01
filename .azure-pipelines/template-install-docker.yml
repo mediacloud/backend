@@ -14,6 +14,10 @@ steps:
 - script: sudo apt-get -y update
 - script: sudo apt-get -y install docker-ce=5:18.09.2~3-0~ubuntu-xenial docker-ce-cli=5:18.09.2~3-0~ubuntu-xenial containerd.io
 - script: sudo service docker start
+
+# python3-cryptography refuses to build with old setuptools
+- script: pip3 install -U setuptools
+
 - script: sudo pip3 install -U docker-compose
 - script: uname -a
 - script: docker version
