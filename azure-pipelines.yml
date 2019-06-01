@@ -4,6 +4,7 @@ stages:
   displayName: Pull, build, push images
   jobs:
   - job: pull_build_push
+    displayName: Pull, build, push images
     pool:
       vmImage: 'ubuntu-16.04'
     steps:
