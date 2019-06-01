@@ -5,7 +5,7 @@ parameters:
 steps:
 
 # Run a selected chunk of tests in parallel, keep a log; on error, print out said log
-- script: cat ${{ parameters.test_chunk_filename }} | parallel --group --joblog joblog.txt || { cat joblog.txt && exit 1; }
+- script: cat ${{ parameters.test_chunk_filename }} | sort | parallel --group --joblog joblog.txt || { cat joblog.txt && exit 1; }
   displayName: Run tests from chunk ${{ parameters.test_chunk_filename }}
   env:
     # Map secrets to environment variables
