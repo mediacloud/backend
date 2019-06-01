@@ -16,7 +16,7 @@ steps:
     --random-source=<(openssl enc -aes-256-ctr -pass pass:"42" -nosalt </dev/zero 2>/dev/null)
     tests_all_ordered > tests_all &&
     rm tests_all_ordered
-  name: Randomize test order with fixed seed
+  displayName: Randomize test order with fixed seed
 
 # Split tests into 5 equal parts
 - script: split -n l/${{ parameters.test_chunk_count }} tests_all tests_chunk_
