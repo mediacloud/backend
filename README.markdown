@@ -37,7 +37,7 @@ For a brief roadmap of the code contained in this release, see
 Build Status
 ------------
 
-[![CircleCI](https://circleci.com/gh/berkmancenter/mediacloud/tree/master.svg?style=svg)](https://circleci.com/gh/berkmancenter/mediacloud/tree/master)
+[![Build Status](https://dev.azure.com/shirshegsm/mediacloud/_apis/build/status/mediacloud?branchName=containers)](https://dev.azure.com/shirshegsm/mediacloud/_build/latest?definitionId=1&branchName=containers)
 
 
 History of the Project

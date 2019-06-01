@@ -1,0 +1,20 @@
+parameters:
+  # How many chunks to split the tests into
+  test_chunk_count: "0"
+
+steps:
+
+# List all tests (commands) to be run in a file
+- script: ./dev/run_all_tests.py > tests_all_ordered
+
+# Randomize test order so that both chunks run for about the same amount of
+# time; use a fixed seed to make it predictable which particular chunk of tests
+# every test will run on
+- script: >
+    shuf
+    --random-source=<(openssl enc -aes-256-ctr -pass pass:"42" -nosalt </dev/zero 2>/dev/null)
+    tests_all_ordered > tests_all &&
+    rm tests_all_ordered
+
+# Split tests into 5 equal parts
+- script: split -n l/${{ parameters.test_chunk_count }} tests_all tests_chunk_
