@@ -8,8 +8,7 @@ stages:
     pool:
       vmImage: 'ubuntu-16.04'
     steps:
-      - checkout: self
-        submodules: recursive
+      - template: .azure-pipelines/template-checkout.yml
       - template: .azure-pipelines/template-install-utils.yml
       - template: .azure-pipelines/template-install-docker.yml
       - template: .azure-pipelines/template-pull-images.yml
@@ -26,6 +25,7 @@ stages:
     pool:
       vmImage: 'ubuntu-16.04'
     steps:
+      - template: .azure-pipelines/template-checkout.yml
       - template: .azure-pipelines/template-install-utils.yml
       - template: .azure-pipelines/template-install-docker.yml
       - template: .azure-pipelines/template-pull-images.yml
@@ -41,6 +41,7 @@ stages:
     pool:
       vmImage: 'ubuntu-16.04'
     steps:
+      - template: .azure-pipelines/template-checkout.yml
       - template: .azure-pipelines/template-install-utils.yml
       - template: .azure-pipelines/template-install-docker.yml
       - template: .azure-pipelines/template-pull-images.yml
@@ -56,6 +57,7 @@ stages:
     pool:
       vmImage: 'ubuntu-16.04'
     steps:
+      - template: .azure-pipelines/template-checkout.yml
       - template: .azure-pipelines/template-install-utils.yml
       - template: .azure-pipelines/template-install-docker.yml
       - template: .azure-pipelines/template-pull-images.yml
@@ -71,6 +73,7 @@ stages:
     pool:
       vmImage: 'ubuntu-16.04'
     steps:
+      - template: .azure-pipelines/template-checkout.yml
       - template: .azure-pipelines/template-install-utils.yml
       - template: .azure-pipelines/template-install-docker.yml
       - template: .azure-pipelines/template-pull-images.yml
@@ -86,6 +89,7 @@ stages:
     pool:
       vmImage: 'ubuntu-16.04'
     steps:
+      - template: .azure-pipelines/template-checkout.yml
       - template: .azure-pipelines/template-install-utils.yml
       - template: .azure-pipelines/template-install-docker.yml
       - template: .azure-pipelines/template-pull-images.yml
