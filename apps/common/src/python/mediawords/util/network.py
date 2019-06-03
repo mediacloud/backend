@@ -15,13 +15,19 @@ def tcp_port_is_open(port: int, hostname: str = 'localhost') -> bool:
 
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.settimeout(2)
-    result = sock.connect_ex((hostname, port))
+    try:
+        result = sock.connect_ex((hostname, port))
+    except socket.gaierror as ex:
+        log.warning(f"Unable to resolve {hostname}: {ex}")
+        return False
+
     if result == 0:
         try:
             sock.shutdown(socket.SHUT_RDWR)
         except OSError as ex:
             # Quiet down "OSError: [Errno 57] Socket is not connected"
             log.warning("Error while shutting down socket: %s" % str(ex))
+
     sock.close()
     return result == 0
 

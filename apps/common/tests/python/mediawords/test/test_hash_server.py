@@ -7,11 +7,10 @@ import pytest
 import requests
 from requests_futures.sessions import FuturesSession
 
-from mediawords.util.network import random_unused_port
+from mediawords.util.network import random_unused_port, tcp_port_is_open
 from mediawords.util.url import urls_are_equal
 from mediawords.test.hash_server import (
     HashServer,
-    tcp_port_is_open,
     HTTPStatus,
     McHashServerException,
     START_RANDOM_PORT,
