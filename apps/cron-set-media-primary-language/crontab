@@ -1,2 +1,2 @@
-# m h dom mon dow user    command
-16  2 *   *   *   root    /opt/mediacloud/bin/cron_set_media_primary_language.pl 1> /dev/stdout 2> /dev/stderr
+# m h dom mon dow user          command
+16  2 *   *   *   mediacloud    /opt/mediacloud/bin/cron_set_media_primary_language.pl 1> /dev/stdout 2> /dev/stderr

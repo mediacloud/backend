@@ -12,4 +12,6 @@ ENV PYTHONPATH="/opt/mediacloud/src/facebook-fetch-story-stats/python:${PYTHONPA
 # Copy worker script
 COPY bin /opt/mediacloud/bin
 
+USER mediacloud
+
 CMD ["facebook_fetch_story_stats_worker.pl"]

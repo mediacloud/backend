@@ -22,6 +22,8 @@ ENV PYTHONPATH="/opt/mediacloud/src/extract-article-from-page/python:${PYTHONPAT
 
 COPY bin /opt/mediacloud/bin
 
-EXPOSE 80
+EXPOSE 8080
 
-CMD ["extract_article_from_page_http_server.py", "--port", "80"]
+USER mediacloud
+
+CMD ["extract_article_from_page_http_server.py", "--port", "8080"]

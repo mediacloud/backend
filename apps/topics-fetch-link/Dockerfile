@@ -12,4 +12,6 @@ ENV PYTHONPATH="/opt/mediacloud/src/topics-fetch-link/python:${PYTHONPATH}"
 # Copy worker script
 COPY bin /opt/mediacloud/bin
 
+USER mediacloud
+
 CMD ["topics_fetch_link_worker.py"]

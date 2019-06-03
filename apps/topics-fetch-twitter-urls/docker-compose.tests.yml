@@ -48,7 +48,7 @@ services:
         env_file: ./../global.env.dist
         stop_signal: SIGKILL
         expose:
-            - 80
+            - 8080
 
     postgresql-pgbouncer:
         image: dockermediacloud/postgresql-pgbouncer:latest

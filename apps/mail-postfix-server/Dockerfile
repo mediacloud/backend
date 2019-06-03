@@ -4,9 +4,6 @@
 
 FROM dockermediacloud/base:latest
 
-# FIXME keep in sync with main-opendkim-server?
-ENV MC_MAIL_POSTFIX_MAILNAME "mail.mediacloud.org"
-
 # Install packages
 RUN \
     #
@@ -49,7 +46,9 @@ VOLUME /var/spool/postfix/
 # SMTP port
 EXPOSE 25
 
-# Start OpenDKIM
+# Copy wrapper script
 COPY bin/postfix.sh /
+
+# No USER because daemon will demote itself to "opendkim" user itself
 
 CMD ["/postfix.sh"]

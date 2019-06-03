@@ -27,7 +27,9 @@ EXPOSE 12301
 # Volume with configuration and keys
 VOLUME /etc/opendkim/
 
-# Start OpenDKIM
+# Copy wrapper script
 COPY bin/opendkim.sh /
+
+# No USER because daemon will demote itself to "opendkim" user itself
 
 CMD ["/opendkim.sh"]

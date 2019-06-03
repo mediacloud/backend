@@ -6,19 +6,8 @@
 set -u
 set -e
 
-# Set configuration
-export ZOOCFGDIR=/opt/zookeeper/conf    # no slash at the end
-export ZOOCFG=zoo.cfg
-
-
 # Start a temporary instance of ZooKeeper to upload config
-# (started listening to localhost only and on a different port for the clients
-# to think that ZooKeeper is fully up and running)
-TEMP_CONFIG=zoo-setup.cfg
-TEMP_CONFIG_PATH="$ZOOCFGDIR/$TEMP_CONFIG"
-cp "$ZOOCFGDIR/$ZOOCFG" "$TEMP_CONFIG_PATH"
-sed -i -e "s/^clientPortAddress=.*/clientPortAddress=127.0.0.1/" $TEMP_CONFIG_PATH
-ZOOCFG="$TEMP_CONFIG" /opt/zookeeper/bin/zkServer.sh start-foreground &
+/opt/zookeeper/bin/zkServer.sh start-foreground &
 while true; do
     echo "Waiting for ZooKeeper to start..."
     if nc -z -w 10 127.0.0.1 2181; then
@@ -54,6 +43,3 @@ done
 
 # Stop after initial configuration
 pkill java
-
-# Remove temporary configuration
-rm "$TEMP_CONFIG_PATH"

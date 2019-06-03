@@ -21,4 +21,6 @@ RUN \
 # Copy extractor worker
 COPY bin /opt/mediacloud/bin
 
+USER mediacloud
+
 CMD ["dump_table.pl"]

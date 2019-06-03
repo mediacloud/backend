@@ -51,16 +51,17 @@ RUN \
 # Copy wrapper script
 COPY bin/munin-cron.sh /
 
-# Reset cron jobs
-RUN \
-    echo "*/5 * * * * root /munin-cron.sh 1> /dev/stdout 2> /dev/stderr" > /etc/cron.d/munin && \
-    true
+# Overwrite crontab with our own
+COPY crontab /etc/cron.d/munin
 
 # Volume for RRD data (shared with munin-httpd)
 VOLUME /var/lib/munin/
 
 # Volume for generated HTML (shared with munin-httpd)
 VOLUME /var/cache/munin/www/
+
+# No USER because wrapper script needs to do some chowning first;
+# the command itself will be run as "munin" user
 
 # Set "cron" as default command to run
 CMD ["cron", "-f"]

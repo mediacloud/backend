@@ -1,2 +1,2 @@
-# m h dom mon dow user    command
-32  2 *   *   *   root    /opt/mediacloud/bin/cron_generate_media_health.pl 1> /dev/stdout 2> /dev/stderr
+# m h dom mon dow user          command
+32  2 *   *   *   mediacloud    /opt/mediacloud/bin/cron_generate_media_health.pl 1> /dev/stdout 2> /dev/stderr

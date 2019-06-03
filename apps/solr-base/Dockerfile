@@ -34,3 +34,6 @@ RUN \
 # Copy Solr configuration
 RUN mkdir -p /usr/src/
 COPY src/solr/ /usr/src/solr/
+
+# Add user that Solr will run as
+RUN useradd -ms /bin/bash solr

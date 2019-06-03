@@ -98,3 +98,6 @@ RUN \
 
 # Symlink Log::Log4perl configuration to where it's going to be found
 RUN ln -s /opt/mediacloud/src/common/perl/log4perl.conf /etc/log4perl.conf
+
+# Add user that will be used for running userland apps
+RUN useradd -ms /bin/bash mediacloud

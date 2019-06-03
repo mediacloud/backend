@@ -18,5 +18,7 @@ RUN \
 # Copy tools
 COPY bin /opt/mediacloud/bin
 
+USER mediacloud
+
 # Run the tool (ENTRYPOINT because the tool's path is to follow)
 ENTRYPOINT ["bash", "-c"]

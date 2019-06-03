@@ -17,4 +17,6 @@ EXPOSE 6432
 # Copy wrapper script
 COPY bin/pgbouncer.sh /
 
+# No USER because wrapper script will run service as "postgres" itself
+
 CMD ["/pgbouncer.sh"]

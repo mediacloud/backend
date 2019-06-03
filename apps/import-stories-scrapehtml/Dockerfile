@@ -22,3 +22,5 @@ RUN \
 COPY src/ /opt/mediacloud/src/import-stories-scrapehtml/
 ENV PERL5LIB="/opt/mediacloud/src/import-stories-scrapehtml/perl:${PERL5LIB}"
 ENV PYTHONPATH="/opt/mediacloud/src/import-stories-scrapehtml/python:${PYTHONPATH}"
+
+USER mediacloud

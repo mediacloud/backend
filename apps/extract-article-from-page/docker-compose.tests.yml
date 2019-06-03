@@ -7,7 +7,7 @@ services:
         stop_signal: SIGKILL
         env_file: ./../global.env.dist
         expose:
-            - 80
+            - 8080
         volumes:
             - type: bind
               source: ./bin/

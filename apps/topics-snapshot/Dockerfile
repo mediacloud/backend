@@ -26,4 +26,6 @@ ENV PYTHONPATH="/opt/mediacloud/src/topics-snapshot/python:${PYTHONPATH}"
 # Copy worker script
 COPY bin /opt/mediacloud/bin
 
+USER mediacloud
+
 CMD ["topics_snapshot_worker.pl"]

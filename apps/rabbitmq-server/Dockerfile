@@ -94,5 +94,7 @@ EXPOSE 5672
 # Web management
 EXPOSE 15672
 
+# No USER because RabbitMQ changes its user itself
+
 # Run RabbitMQ
 CMD ["rabbitmq-server"]

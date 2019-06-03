@@ -20,8 +20,16 @@ RUN \
 # Copy configuration
 COPY conf/zoo.cfg /opt/zookeeper/conf/
 
+COPY bin/init_solr_config.sh bin/zookeeper.sh /
+
+RUN \
+    mkdir -p /var/lib/zookeeper/ /var/lib/zookeeper-template/ && \
+    chown -R solr:solr /var/lib/zookeeper/ /var/lib/zookeeper-template/ && \
+    true
+
+USER solr
+
 # Pre-initialize with Solr configuration
-COPY bin/init_solr_config.sh /
 RUN \
     /init_solr_config.sh && \
     #
@@ -33,12 +41,9 @@ RUN \
     # on changing constantly so it's more painful than useful to make ZooKeeper
     # figure out that said hostnames have changed - faster way is just to let
     # ZooKeeper reread locations of shards on every start.
-    mv /var/lib/zookeeper/ /var/lib/zookeeper-template/ && \
+    mv /var/lib/zookeeper/* /var/lib/zookeeper-template/* && \
     #
     true
-
-# Copy wrapper script
-COPY bin/zookeeper.sh /
 
 # ZooKeeper client port
 EXPOSE 2181

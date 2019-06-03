@@ -40,6 +40,8 @@ ENV PYTHONPATH="/opt/mediacloud/src/webapp-api/python:${PYTHONPATH}"
 # Plackup port
 EXPOSE 9090
 
+USER mediacloud
+
 # Run Plackup
 CMD [                                           \
     "plackup",                                  \

@@ -12,4 +12,6 @@ ENV PYTHONPATH="/opt/mediacloud/src/export-tables-to-backup-crawler/python:${PYT
 # Copy exporter script
 COPY bin /opt/mediacloud/bin
 
+USER mediacloud
+
 CMD ["export_tables.py"]

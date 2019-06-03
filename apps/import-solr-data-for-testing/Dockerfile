@@ -12,4 +12,6 @@ ENV PYTHONPATH="/opt/mediacloud/src/import-solr-data-for-testing/python:${PYTHON
 # Copy worker script
 COPY bin /opt/mediacloud/bin
 
+USER mediacloud
+
 CMD ["import_solr_data_for_testing_worker.pl"]

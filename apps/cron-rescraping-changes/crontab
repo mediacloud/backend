@@ -1,2 +1,2 @@
-# m h dom mon dow user    command
-0   3 *   *   *   root    /opt/mediacloud/bin/cron_rescraping_changes.py 1> /dev/stdout 2> /dev/stderr
+# m h dom mon dow user          command
+0   3 *   *   *   mediacloud    /opt/mediacloud/bin/cron_rescraping_changes.py 1> /dev/stdout 2> /dev/stderr

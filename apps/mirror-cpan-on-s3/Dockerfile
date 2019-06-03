@@ -12,4 +12,6 @@ RUN \
 
 COPY bin/mirror-cpan-on-s3.sh /
 
+USER mediacloud
+
 CMD ["/mirror-cpan-on-s3.sh"]

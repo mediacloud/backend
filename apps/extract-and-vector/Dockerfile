@@ -12,4 +12,6 @@ ENV PYTHONPATH="/opt/mediacloud/src/extract-and-vector/python:${PYTHONPATH}"
 # Copy extractor worker
 COPY bin /opt/mediacloud/bin
 
+USER mediacloud
+
 CMD ["extract_and_vector_worker.py"]

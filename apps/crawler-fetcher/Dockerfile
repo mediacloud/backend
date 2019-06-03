@@ -25,4 +25,6 @@ ENV PYTHONPATH="/opt/mediacloud/src/crawler-fetcher/python:${PYTHONPATH}"
 
 COPY bin /opt/mediacloud/bin
 
+USER mediacloud
+
 CMD ["crawler-fetcher.pl"]

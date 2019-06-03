@@ -53,9 +53,14 @@ RUN \
     true
 
 # Create directory for PID file
-RUN mkdir -p /var/run/munin/
+RUN \
+    mkdir -p /var/run/munin/ && \
+    chown munin:munin /var/run/munin && \
+    true
 
 # Expose Munin node's port
 EXPOSE 4949
+
+# No USER because docs say that munin-node is supposed to be run as root
 
 CMD ["munin-node", "--debug"]

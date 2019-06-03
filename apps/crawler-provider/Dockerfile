@@ -11,4 +11,6 @@ ENV PYTHONPATH="/opt/mediacloud/src/crawler-provider/python:${PYTHONPATH}"
 
 COPY bin /opt/mediacloud/bin
 
+USER mediacloud
+
 CMD ["crawler-provider.py"]

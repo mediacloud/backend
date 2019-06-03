@@ -26,4 +26,6 @@ ENV PYTHONPATH="/opt/mediacloud/src/import-stories-feedly/python:${PYTHONPATH}"
 # Copy scraper script
 COPY bin /opt/mediacloud/bin
 
+USER mediacloud
+
 CMD ["scrape_feedly.pl", "--all"]

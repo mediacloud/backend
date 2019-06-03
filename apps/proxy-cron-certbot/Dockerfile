@@ -31,4 +31,6 @@ RUN chmod 0644 /etc/cron.d/certbot_renew
 # (used by proxy_httpd)
 VOLUME /etc/letsencrypt/
 
+# No USER because writes to /etc/letsencrypt/
+
 CMD ["cron_certbot.sh"]

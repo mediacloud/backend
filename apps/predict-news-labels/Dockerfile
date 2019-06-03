@@ -4,14 +4,8 @@
 
 FROM dockermediacloud/base:latest
 
-# Copy source
-RUN mkdir -p /usr/src/
-COPY src/MediaCloud-NYT-News-Labeler/ /usr/src/predict-news-labels/
-
-# Install tagger
+# Install Python 2.7 (Python 3 not yet supported by the service)
 RUN \
-    #
-    # Install Python 2.7 (Python 3 not yet supported by the service)
     apt-get -y --no-install-recommends install \
         build-essential \
         libhdf5-10 \
@@ -22,20 +16,14 @@ RUN \
         unzip \
     && \
     pip2 install --upgrade pip && \
-    #
-    # Install Python modules
-    pip2 install -r /usr/src/predict-news-labels/requirements.txt && \
-    #
-    # Cleanup to save some disk space
-    apt-get -y remove \
-        build-essential \
-        python2.7-dev \
-        python-pip \
-        # Don't uninstall python-setuptools because gunicorn uses it
-        # Don't uninstall unzip because it will be needed for unextracting models
-    && \
-    apt-get -y autoremove && \
-    apt-get -y clean && \
+    true
+
+# Install Python modules
+COPY src/MediaCloud-NYT-News-Labeler/requirements.txt /var/tmp/
+RUN \
+    cd /var/tmp/ && \
+    pip2 install -r requirements.txt && \
+    rm requirements.txt && \
     rm -rf /root/.cache/ && \
     true
 
@@ -45,6 +33,10 @@ RUN \
     rm /usr/local/share/nltk_data/tokenizers/punkt.zip && \
     true
 
+# Copy source
+RUN mkdir -p /usr/src/
+COPY src/MediaCloud-NYT-News-Labeler/ /usr/src/predict-news-labels/
+
 # Install models
 RUN \
     mkdir -p /usr/src/predict-news-labels/word2vec-GoogleNews-vectors/ && \
@@ -52,9 +44,13 @@ RUN \
     true
 
 # Tagger port
-EXPOSE 80
+EXPOSE 8080
 
-# Run tagger
-COPY bin/predict_news_labels.sh /
+# Docker Swarm manages worker count
+ENV WORKERS 1
 
-CMD ["/predict_news_labels.sh"]
+WORKDIR /usr/src/predict-news-labels/
+
+USER nobody
+
+CMD ["/usr/local/bin/gunicorn", "-b", ":8080", "-t", "900", "app:app"]

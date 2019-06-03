@@ -14,8 +14,13 @@ if [ ! -d /var/lib/zookeeper-template/ ]; then
     exit 1
 fi
 
-if [ -d /var/lib/zookeeper/ ]; then
-    rm -rf /var/lib/zookeeper
+if [ ! -d /var/lib/zookeeper/ ]; then
+    echo "ZooKeeper data directory does not exist."
+    exit 1
+fi
+
+if [ ! -z "$(ls -A /var/lib/zookeeper/)" ]; then
+	rm -rf /var/lib/zookeeper/*
 fi
 
 cp -R /var/lib/zookeeper-template/ /var/lib/zookeeper/

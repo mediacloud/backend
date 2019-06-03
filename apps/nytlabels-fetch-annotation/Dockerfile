@@ -12,4 +12,6 @@ ENV PYTHONPATH="/opt/mediacloud/src/nytlabels-fetch-annotation/python:${PYTHONPA
 # Copy worker script
 COPY bin /opt/mediacloud/bin
 
+USER mediacloud
+
 CMD ["nytlabels_fetch_annotation_worker.py"]

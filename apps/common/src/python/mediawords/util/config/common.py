@@ -349,4 +349,4 @@ class CommonConfig(object):
     def extractor_api_url() -> str:
         """URL of the extractor API."""
         # "extract-article-from-page" container's name from docker-compose.yml; will round-robin between servers
-        return "http://extract-article-from-page/extract"
+        return "http://extract-article-from-page:8080/extract"
