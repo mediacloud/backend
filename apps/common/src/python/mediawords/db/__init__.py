@@ -4,13 +4,9 @@ from mediawords.db.handler import DatabaseHandler
 from mediawords.util.config.common import CommonConfig
 from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_object_from_bytes_if_needed
+from mediawords.util.process import fatal_error
 
 log = create_logger(__name__)
-
-
-class McConnectToDBException(Exception):
-    """connect_to_db() exception."""
-    pass
 
 
 def connect_to_db() -> DatabaseHandler:
@@ -54,7 +50,14 @@ def connect_to_db() -> DatabaseHandler:
                 time.sleep(retries_config.sleep_between_attempts())
 
             else:
-                log.info("Out of retries, giving up...")
-                raise McConnectToDBException(error_message)
+                log.info("Out of retries, giving up and exiting...")
+
+                # Don't throw any exceptions because they might be caught by
+                # the try-catch block, and so the caller will just assume that
+                # there was something wrong with the input data and proceed
+                # with processing next item in the job queue (e.g. the next
+                # story). Instead, just quit and wait for someone to restart
+                # the whole app that requires database access.
+                fatal_error(error_message)
 
     return db
