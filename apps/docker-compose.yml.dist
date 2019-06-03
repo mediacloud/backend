@@ -35,9 +35,6 @@ x-solr-shard_base:   &solr-shard_base
     deploy:
         # Every shard runs as its own independent, non-replicated service
         replicas: 1
-        # Auto-restart on crashes
-        restart_policy:
-            condition: on-failure
         resources:
             limits:
                 # CPU core limit
@@ -79,9 +76,6 @@ services:
         deploy:
             # Worker count
             replicas: 4
-            # Auto-restart on crashes
-            restart_policy:
-                condition: on-failure
             resources:
                 limits:
                     # CPU core limit
@@ -117,8 +111,6 @@ services:
             # Worker count
             replicas: 1
             # Auto-restart on crashes
-            restart_policy:
-                condition: on-failure
             resources:
                 limits:
                     # CPU core limit
@@ -142,9 +134,6 @@ services:
         deploy:
             # Only one instance
             replicas: 1
-            # Auto-restart on crashes
-            restart_policy:
-                condition: on-failure
             resources:
                 limits:
                     # CPU core limit
@@ -169,9 +158,6 @@ services:
         deploy:
             # Worker count
             replicas: 8
-            # Auto-restart on crashes
-            restart_policy:
-                condition: on-failure
             resources:
                 limits:
                     # CPU core limit
@@ -195,9 +181,6 @@ services:
         deploy:
             # Only one instance
             replicas: 1
-            # Auto-restart on crashes
-            restart_policy:
-                condition: on-failure
             resources:
                 limits:
                     # CPU core limit
@@ -219,9 +202,6 @@ services:
         deploy:
             # Worker count
             replicas: 8
-            # Auto-restart on crashes
-            restart_policy:
-                condition: on-failure
             resources:
                 limits:
                     # CPU core limit
@@ -247,9 +227,6 @@ services:
         deploy:
             # Worker count
             replicas: 24
-            # Auto-restart on crashes
-            restart_policy:
-                condition: on-failure
             resources:
                 limits:
                     # CPU core limit
@@ -282,9 +259,6 @@ services:
         deploy:
             # Worker count
             replicas: 4
-            # Auto-restart on crashes
-            restart_policy:
-                condition: on-failure
             resources:
                 limits:
                     # CPU core limit
@@ -311,9 +285,6 @@ services:
         deploy:
             # Only one instance
             replicas: 1
-            # Auto-restart on crashes
-            restart_policy:
-                condition: on-failure
             resources:
                 limits:
                     # CPU core limit
@@ -335,9 +306,6 @@ services:
         deploy:
             # Only one instance
             replicas: 1
-            # Auto-restart on crashes
-            restart_policy:
-                condition: on-failure
             resources:
                 limits:
                     # CPU core limit
@@ -361,9 +329,6 @@ services:
         deploy:
             # Only one instance
             replicas: 1
-            # Auto-restart on crashes
-            restart_policy:
-                condition: on-failure
             resources:
                 limits:
                     # CPU core limit
@@ -394,9 +359,6 @@ services:
         deploy:
             # Only one instance
             replicas: 1
-            # Auto-restart on crashes
-            restart_policy:
-                condition: on-failure
             resources:
                 limits:
                     # CPU core limit
@@ -421,9 +383,6 @@ services:
         deploy:
             # Only one instance
             replicas: 1
-            # Auto-restart on crashes
-            restart_policy:
-                condition: on-failure
             resources:
                 limits:
                     # CPU core limit
@@ -457,9 +416,6 @@ services:
         deploy:
             # Only one instance
             replicas: 1
-            # Auto-restart on crashes
-            restart_policy:
-                condition: on-failure
             resources:
                 limits:
                     # CPU core limit
@@ -495,9 +451,6 @@ services:
         deploy:
             # Only one instance
             replicas: 1
-            # Auto-restart on crashes
-            restart_policy:
-                condition: on-failure
             resources:
                 limits:
                     # CPU core limit
@@ -524,9 +477,6 @@ services:
         deploy:
             # Worker count
             replicas: 4
-            # Auto-restart on crashes
-            restart_policy:
-                condition: on-failure
             resources:
                 limits:
                     # CPU core limit
@@ -557,9 +507,6 @@ services:
         deploy:
             # Worker count
             replicas: 1
-            # Auto-restart on crashes
-            restart_policy:
-                condition: on-failure
             resources:
                 limits:
                     # CPU core limit
@@ -585,9 +532,6 @@ services:
         deploy:
             # Only one instance
             replicas: 1
-            # Auto-restart on crashes
-            restart_policy:
-                condition: on-failure
 
     #
     # PostgreSQL server
@@ -607,9 +551,6 @@ services:
         deploy:
             # Only one instance
             replicas: 1
-            # Auto-restart on crashes
-            restart_policy:
-                condition: on-failure
 
     #
     # NYT-Based News Tagger service
@@ -627,9 +568,6 @@ services:
         deploy:
             # Worker count
             replicas: 1
-            # Auto-restart on crashes
-            restart_policy:
-                condition: on-failure
             resources:
                 limits:
                     # CPU core limit
@@ -653,9 +591,6 @@ services:
         deploy:
             # Only one instance
             replicas: 1
-            # Auto-restart on crashes
-            restart_policy:
-                condition: on-failure
             resources:
                 limits:
                     # CPU core limit
@@ -682,9 +617,6 @@ services:
         deploy:
             # Only one instance
             replicas: 1
-            # Auto-restart on crashes
-            restart_policy:
-                condition: on-failure
             resources:
                 limits:
                     # CPU core limit
@@ -706,9 +638,6 @@ services:
         deploy:
             # Only one instance
             replicas: 1
-            # Auto-restart on crashes
-            restart_policy:
-                condition: on-failure
             resources:
                 limits:
                     # CPU core limit
@@ -730,9 +659,6 @@ services:
         deploy:
             # Only one instance
             replicas: 1
-            # Auto-restart on crashes
-            restart_policy:
-                condition: on-failure
             resources:
                 limits:
                     # CPU core limit
@@ -754,9 +680,6 @@ services:
         deploy:
             # Worker count
             replicas: 2
-            # Auto-restart on crashes
-            restart_policy:
-                condition: on-failure
             resources:
                 limits:
                     # CPU core limit
@@ -778,9 +701,6 @@ services:
         deploy:
             # Only one instance
             replicas: 1
-            # Auto-restart on crashes
-            restart_policy:
-                condition: on-failure
             resources:
                 limits:
                     # CPU core limit
@@ -802,9 +722,6 @@ services:
         deploy:
             # Only one instance
             replicas: 1
-            # Auto-restart on crashes
-            restart_policy:
-                condition: on-failure
             resources:
                 limits:
                     # CPU core limit
@@ -826,9 +743,6 @@ services:
         deploy:
             # Only one instance
             replicas: 1
-            # Auto-restart on crashes
-            restart_policy:
-                condition: on-failure
             resources:
                 limits:
                     # CPU core limit
@@ -850,9 +764,6 @@ services:
         deploy:
             # Only one instance
             replicas: 1
-            # Auto-restart on crashes
-            restart_policy:
-                condition: on-failure
             resources:
                 limits:
                     # CPU core limit
@@ -1002,9 +913,6 @@ services:
         deploy:
             # Only one instance
             replicas: 1
-            # Auto-restart on crashes
-            restart_policy:
-                condition: on-failure
             resources:
                 limits:
                     # CPU core limit
@@ -1028,9 +936,6 @@ services:
         deploy:
             # Worker count
             replicas: 32
-            # Auto-restart on crashes
-            restart_policy:
-                condition: on-failure
             resources:
                 limits:
                     # CPU core limit
@@ -1052,9 +957,6 @@ services:
         deploy:
             # Worker count
             replicas: 8
-            # Auto-restart on crashes
-            restart_policy:
-                condition: on-failure
             resources:
                 limits:
                     # CPU core limit
@@ -1085,9 +987,6 @@ services:
         deploy:
             # Worker count
             replicas: 8
-            # Auto-restart on crashes
-            restart_policy:
-                condition: on-failure
             resources:
                 limits:
                     # CPU core limit
@@ -1112,9 +1011,6 @@ services:
         deploy:
             # Worker count
             replicas: 4
-            # Auto-restart on crashes
-            restart_policy:
-                condition: on-failure
             resources:
                 limits:
                     # CPU core limit
@@ -1139,9 +1035,6 @@ services:
         deploy:
             # Worker count
             replicas: 4
-            # Auto-restart on crashes
-            restart_policy:
-                condition: on-failure
             resources:
                 limits:
                     # CPU core limit
@@ -1166,9 +1059,6 @@ services:
         deploy:
             # Worker count
             replicas: 2
-            # Auto-restart on crashes
-            restart_policy:
-                condition: on-failure
             resources:
                 limits:
                     # CPU core limit
@@ -1194,9 +1084,6 @@ services:
         deploy:
             # Only a single instance
             replicas: 1
-            # Auto-restart on crashes
-            restart_policy:
-                condition: on-failure
             resources:
                 limits:
                     # CPU core limit
@@ -1225,9 +1112,6 @@ services:
         deploy:
             # Only a single instance
             replicas: 1
-            # Auto-restart on crashes
-            restart_policy:
-                condition: on-failure
             resources:
                 limits:
                     # CPU core limit
@@ -1256,9 +1140,6 @@ services:
         deploy:
             # Only a single instance
             replicas: 1
-            # Auto-restart on crashes
-            restart_policy:
-                condition: on-failure
             resources:
                 limits:
                     # CPU core limit
@@ -1280,9 +1161,6 @@ services:
         deploy:
             # Worker count
             replicas: 1
-            # Auto-restart on crashes
-            restart_policy:
-                condition: on-failure
             resources:
                 limits:
                     # CPU core limit
@@ -1306,9 +1184,6 @@ services:
         deploy:
             # Starts multiple FastCGI workers
             replicas: 8
-            # Auto-restart on crashes
-            restart_policy:
-                condition: on-failure
             resources:
                 limits:
                     # CPU core limit
@@ -1335,9 +1210,6 @@ services:
         deploy:
             # Only one instance
             replicas: 1
-            # Auto-restart on crashes
-            restart_policy:
-                condition: on-failure
             resources:
                 limits:
                     # CPU core limit
@@ -1370,9 +1242,6 @@ services:
         deploy:
             # Only one instance
             replicas: 1
-            # Auto-restart on crashes
-            restart_policy:
-                condition: on-failure
             resources:
                 limits:
                     # CPU core limit
@@ -1417,9 +1286,6 @@ services:
         deploy:
             # Only one instance
             replicas: 1
-            # Auto-restart on crashes
-            restart_policy:
-                condition: on-failure
             resources:
                 limits:
                     # CPU core limit
@@ -1441,9 +1307,6 @@ services:
         deploy:
             # Worker count
             replicas: 1
-            # Auto-restart on crashes
-            restart_policy:
-                condition: on-failure
             resources:
                 limits:
                     # CPU core limit
