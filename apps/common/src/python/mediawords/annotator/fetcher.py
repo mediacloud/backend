@@ -2,11 +2,14 @@ import abc
 from http import HTTPStatus
 from typing import Union
 
+from furl import furl
+
 from mediawords.annotator.store import JSONAnnotationStore
 from mediawords.db import DatabaseHandler
 from mediawords.dbi.stories.postprocess import story_is_english_and_has_sentences
 from mediawords.util.parse_json import decode_json
 from mediawords.util.log import create_logger
+from mediawords.util.network import wait_for_tcp_port_to_open
 from mediawords.util.perl import decode_object_from_bytes_if_needed
 from mediawords.util.process import fatal_error
 from mediawords.util.web.user_agent import Request, UserAgent
@@ -39,6 +42,13 @@ class JSONAnnotationFetcher(metaclass=abc.ABCMeta):
 
     # Requested text length limit (0 for no limit)
     __TEXT_LENGTH_LIMIT = 50 * 1024
+
+    __ANNOTATOR_SERVICE_TIMEOUT = 60 * 5
+    """Seconds to wait for the predict-news-labels service to start.
+
+    Wait for five minutes as those workers might take their time to load big heavy
+    models (e.g. Google News word2vec model in NYTLabels annotator).
+    """
 
     __slots__ = [
         '__annotation_store',
@@ -91,6 +101,28 @@ class JSONAnnotationFetcher(metaclass=abc.ABCMeta):
         except Exception as ex:
             # Assume that this is some sort of a programming error too
             fatal_error("Unable to create annotator request for text '%s': %s" % (text, str(ex),))
+
+        # Wait for the service's HTTP port to become open as the service might be
+        # still starting up somewhere
+        uri = furl(request.url())
+        hostname = str(uri.host)
+        port = int(uri.port)
+        assert hostname, f"URL hostname is not set for URL {url}"
+        assert port, f"API URL port is not set for URL {url}"
+
+        if not wait_for_tcp_port_to_open(
+            port=port,
+            hostname=hostname,
+            retries=self.__ANNOTATOR_SERVICE_TIMEOUT,
+        ):
+            # Instead of throwing an exception, just crash the whole application
+            # because there's no point in continuing on running it whatsoever.
+            fatal_error(
+                "Annotator service at {url} didn't come up in {timeout} seconds, exiting...".format(
+                    url=url,
+                    timeout=self.__ANNOTATOR_SERVICE_TIMEOUT,
+                )
+            )
 
         log.debug("Sending request to %s..." % request.url())
         response = ua.request(request)
