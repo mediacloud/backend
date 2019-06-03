@@ -34,7 +34,6 @@ x-solr-shard_base:   &solr-shard_base
                 - solr-shard
     deploy:
         # Every shard runs as its own independent, non-replicated service
-        replicas: 1
         resources:
             limits:
                 # CPU core limit
@@ -132,8 +131,6 @@ services:
         depends_on:
             - postgresql-pgbouncer
         deploy:
-            # Only one instance
-            replicas: 1
             resources:
                 limits:
                     # CPU core limit
@@ -179,8 +176,6 @@ services:
         depends_on:
             - postgresql-pgbouncer
         deploy:
-            # Only one instance
-            replicas: 1
             resources:
                 limits:
                     # CPU core limit
@@ -283,8 +278,6 @@ services:
             # Shared with "webapp-httpd" container:
             - vol_daily_rss_dumps:/var/lib/daily_rss_dumps/
         deploy:
-            # Only one instance
-            replicas: 1
             resources:
                 limits:
                     # CPU core limit
@@ -304,8 +297,6 @@ services:
             - default
         env_file: global.env
         deploy:
-            # Only one instance
-            replicas: 1
             resources:
                 limits:
                     # CPU core limit
@@ -327,8 +318,6 @@ services:
         depends_on:
             - postgresql-pgbouncer
         deploy:
-            # Only one instance
-            replicas: 1
             resources:
                 limits:
                     # CPU core limit
@@ -357,8 +346,6 @@ services:
             - postgresql-pgbouncer
             - solr-shard_01
         deploy:
-            # Only one instance
-            replicas: 1
             resources:
                 limits:
                     # CPU core limit
@@ -381,8 +368,6 @@ services:
             # Writes stories to PostgreSQL
             - net_postgresql
         deploy:
-            # Only one instance
-            replicas: 1
             resources:
                 limits:
                     # CPU core limit
@@ -414,8 +399,6 @@ services:
         volumes:
             - vol_opendkim_config:/etc/opendkim/
         deploy:
-            # Only one instance
-            replicas: 1
             resources:
                 limits:
                     # CPU core limit
@@ -449,8 +432,6 @@ services:
             - vol_postfix_local_mail:/var/lib/mail/
             - vol_postfix_queue:/var/spool/postfix/
         deploy:
-            # Only one instance
-            replicas: 1
             resources:
                 limits:
                     # CPU core limit
@@ -529,9 +510,6 @@ services:
             - postgresql-server
         expose:
             - 6432
-        deploy:
-            # Only one instance
-            replicas: 1
 
     #
     # PostgreSQL server
@@ -548,9 +526,6 @@ services:
             - 5432
         volumes:
             - vol_postgresql_data:/var/lib/postgresql/
-        deploy:
-            # Only one instance
-            replicas: 1
 
     #
     # NYT-Based News Tagger service
@@ -589,8 +564,6 @@ services:
         depends_on:
             - postgresql-pgbouncer
         deploy:
-            # Only one instance
-            replicas: 1
             resources:
                 limits:
                     # CPU core limit
@@ -615,8 +588,6 @@ services:
         volumes:
             - vol_rabbitmq_data:/var/lib/rabbitmq/
         deploy:
-            # Only one instance
-            replicas: 1
             resources:
                 limits:
                     # CPU core limit
@@ -636,8 +607,6 @@ services:
             - default
         env_file: global.env
         deploy:
-            # Only one instance
-            replicas: 1
             resources:
                 limits:
                     # CPU core limit
@@ -657,8 +626,6 @@ services:
             - default
         env_file: global.env
         deploy:
-            # Only one instance
-            replicas: 1
             resources:
                 limits:
                     # CPU core limit
@@ -699,8 +666,6 @@ services:
             - default
         env_file: global.env
         deploy:
-            # Only one instance
-            replicas: 1
             resources:
                 limits:
                     # CPU core limit
@@ -720,8 +685,6 @@ services:
             - default
         env_file: global.env
         deploy:
-            # Only one instance
-            replicas: 1
             resources:
                 limits:
                     # CPU core limit
@@ -741,8 +704,6 @@ services:
             - default
         env_file: global.env
         deploy:
-            # Only one instance
-            replicas: 1
             resources:
                 limits:
                     # CPU core limit
@@ -762,8 +723,6 @@ services:
             - default
         env_file: global.env
         deploy:
-            # Only one instance
-            replicas: 1
             resources:
                 limits:
                     # CPU core limit
@@ -911,8 +870,6 @@ services:
             - 2888
             - 3888
         deploy:
-            # Only one instance
-            replicas: 1
             resources:
                 limits:
                     # CPU core limit
@@ -1082,8 +1039,6 @@ services:
             # Monitors data on Solr
             - solr-shard_01
         deploy:
-            # Only a single instance
-            replicas: 1
             resources:
                 limits:
                     # CPU core limit
@@ -1110,8 +1065,6 @@ services:
             # Shared with "munin_httpd" container:
             - vol_munin_html:/var/cache/munin/www/
         deploy:
-            # Only a single instance
-            replicas: 1
             resources:
                 limits:
                     # CPU core limit
@@ -1138,8 +1091,6 @@ services:
             # Shared with "munin_httpd" container:
             - vol_munin_html:/var/cache/munin/www/
         deploy:
-            # Only a single instance
-            replicas: 1
             resources:
                 limits:
                     # CPU core limit
@@ -1159,8 +1110,6 @@ services:
             - default
         env_file: global.env
         deploy:
-            # Worker count
-            replicas: 1
             resources:
                 limits:
                     # CPU core limit
@@ -1182,7 +1131,7 @@ services:
             # Plackup FastCGI worker port to be used by webapp_httpd
             - "9090"
         deploy:
-            # Starts multiple FastCGI workers
+            # FastCGI workers
             replicas: 8
             resources:
                 limits:
@@ -1208,8 +1157,6 @@ services:
             # Shared with "cron_generate_daily_rss_dumps" container:
             - vol_daily_rss_dumps:/mediacloud_webapp_static/rss_dumps/
         deploy:
-            # Only one instance
-            replicas: 1
             resources:
                 limits:
                     # CPU core limit
@@ -1240,8 +1187,6 @@ services:
             # Shared with "proxy_httpd" container:
             - vol_proxy_ssl_certs:/etc/letsencrypt/
         deploy:
-            # Only one instance
-            replicas: 1
             resources:
                 limits:
                     # CPU core limit
@@ -1284,8 +1229,6 @@ services:
             # Proxies to Portainer's web UI
             - portainer
         deploy:
-            # Only one instance
-            replicas: 1
             resources:
                 limits:
                     # CPU core limit
@@ -1306,7 +1249,7 @@ services:
         env_file: global.env
         deploy:
             # Worker count
-            replicas: 1
+            replicas: 2
             resources:
                 limits:
                     # CPU core limit
@@ -1330,8 +1273,6 @@ services:
            - /var/run/docker.sock:/var/run/docker.sock
            - vol_portainer_data:/data
        deploy:
-           # Only one instance
-           replicas: 1
            resources:
                limits:
                    # CPU core limit
