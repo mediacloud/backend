@@ -1,0 +1,10 @@
+#
+# Docker version to install
+#
+# Older Docker versions have caching discrepancies, so we try to run the same version everywhere.
+#
+# Get a list of available versions by running:
+#
+#     apt-cache madison docker-ce
+#
+docker_version: "18.09.2"

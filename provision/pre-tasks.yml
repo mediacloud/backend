@@ -1,0 +1,45 @@
+#
+# Common tasks to be run before continuing with the rest of the playbook
+#
+
+- name: Ensure that Ansible itself is up-to-date
+  assert:
+    that: "ansible_version.full is version_compare('2.8.0', '>=')"
+    msg: "Please upgrade your Ansible to a newer version."
+  tags:
+    - pre-tasks
+    - always
+
+- name: Install Python for Ansible on Ubuntu
+  raw: if [ `uname` != 'Darwin' ]; then sudo apt-get -y install python3-simplejson; fi
+  register: install_python_result
+  changed_when: "'python3-simplejson is already the newest version' not in install_python_result.stdout and install_python_result.stdout != ''"
+  tags:
+    - pre-tasks
+    - always
+
+- name: Reload ansible_facts
+  setup:
+  tags:
+    - pre-tasks
+    - always
+
+- name: Display all variables / facts known for a host
+  debug:
+    var: hostvars[inventory_hostname]
+    verbosity: 3
+  tags:
+    - pre-tasks
+    - always
+
+- name: Install Aptitude  # https://github.com/ansible/ansible/issues/16884
+  command: apt-get -y install python3-minimal aptitude
+  args:
+    warn: off # Disable "Consider using apt module rather than running apt-get" warning
+  become: true
+  register: install_aptitude_result
+  changed_when: "'aptitude is already the newest version' not in install_aptitude_result.stdout"
+  when: ansible_distribution == 'Ubuntu'
+  tags:
+    - pre-tasks
+    - always

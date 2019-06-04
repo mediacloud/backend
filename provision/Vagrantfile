@@ -1,0 +1,57 @@
+#
+# Vagrant configuration for testing out Ansible provisioning playbook
+#
+
+Vagrant.configure("2") do |config|
+
+  config.vm.box = "ubuntu/bionic64"
+
+  config.vm.provider "virtualbox" do |v|
+    v.name = "mc_docker_swarm"
+    v.memory = 512
+    v.cpus = 1
+  end
+
+  N = 3
+  (1..N).each do |machine_id|
+    config.vm.define "machine#{machine_id}" do |machine|
+
+      machine.vm.hostname = "machine#{machine_id}"
+      machine.vm.network "private_network", ip: "192.168.77.#{20+machine_id}"
+
+      # Only execute once the Ansible provisioner when all the machines are up and ready.
+      if machine_id == N
+
+        machine.vm.provision :ansible do |ansible|
+
+          # Disable default limit to connect to all the machines
+          ansible.limit = "all"
+          ansible.playbook = "setup.yml"
+          ansible.compatibility_mode = "2.0"
+          ansible.raw_arguments = ["-vvv"]
+
+          ansible.groups = {
+
+            # Make machine1 and machine3 Docker swarm manager
+            "docker_swarm_managers" => ["machine1", "machine2"],
+
+            # machine3 would then be a sole worker
+            # (in reality, there would be only three or so managers and many workers, but here
+            # we want to test whether managers are able to join into a single swarm)
+            "docker_swarm_workers" => ["machine3"],
+
+            "all_groups:children" => ["docker_swarm_managers", "docker_swarm_workers"],
+
+            "all_groups:vars" => {
+
+              # Vagrant private network's interface:
+              "docker_swarm_advertise_interface" => "enp0s8",
+
+            },
+          }
+
+        end
+      end
+    end
+  end
+end

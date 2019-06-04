@@ -1,0 +1,26 @@
+#
+# Set up Media Cloud host system
+#
+
+- name: Set up host system
+  hosts: all
+  any_errors_fatal: true
+  gather_facts: no
+  pre_tasks:
+    - name: Include pre-tasks
+      include_tasks: pre-tasks.yml
+      tags: always
+  roles:
+    - docker
+
+- name: Set up swarm managers
+  hosts: "docker_swarm_managers"
+  any_errors_fatal: true
+  roles:
+    - docker-swarm-manager
+
+- name: Set up swarm workers
+  hosts: "docker_swarm_workers"
+  any_errors_fatal: true
+  roles:
+    - docker-swarm-worker

@@ -1,0 +1,31 @@
+- name: Inspect swarm on first manager
+  docker_swarm:
+    state: inspect
+  become: true
+  become_user: root
+  # Run only on the first host defined as a swarm manager:
+  delegate_to: "{{ groups.docker_swarm_managers[0] }}"
+  register: docker_swarm_info
+  tags:
+    - docker-swarm-worker
+
+- name: Set fact of worker join token
+  set_fact:
+    swarm_worker_join_token: "{{ docker_swarm_info.swarm_facts.JoinTokens.Worker }}"
+  # Register on all hosts:
+  run_once: true
+  tags:
+    - docker-swarm-worker
+
+- name: Add node to swarm
+  docker_swarm:
+    state: join
+    advertise_addr: "{{ docker_swarm_advertise_interface }}"
+    join_token: "{{ swarm_worker_join_token }}"
+    remote_addrs:
+      # IP address of first host in swarm manager group
+      - "{{ hostvars[groups.docker_swarm_managers[0]]['ansible_%s' % docker_swarm_advertise_interface]['ipv4']['address'] }}:2377"
+  become: true
+  become_user: root
+  tags:
+    - docker-swarm-worker
