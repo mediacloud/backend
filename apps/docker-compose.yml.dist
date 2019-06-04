@@ -31,8 +31,8 @@ x-solr-shard_base:   &solr-shard_base
         # Shard count (every individual shard needs to know the total count)
         #
         # (keep in sync with how many shard services get actually defined in
-        # the "services" section, e.g. solr-shard_01, solr-shard_02,
-        # ..., solr-shard_24)
+        # the "services" section, e.g. solr-shard-01, solr-shard-02,
+        # ..., solr-shard-24)
         MC_SOLR_SHARD_COUNT: "24"
     depends_on:
         - solr-zookeeper
@@ -362,7 +362,7 @@ services:
             MC_SOLR_IMPORT_MAX_QUEUED_STORIES: 100000
         depends_on:
             - postgresql-pgbouncer
-            - solr-shard_01
+            - solr-shard-01
         deploy:
             resources:
                 limits:
@@ -756,122 +756,122 @@ services:
     # Solr shards 01-24
     # -----------------
     #
-    solr-shard_01:
+    solr-shard-01:
         <<: *solr-shard_base
         volumes:
             - vol_solr_shard_data_01:/var/lib/solr/
 
-    solr-shard_02:
+    solr-shard-02:
         <<: *solr-shard_base
         volumes:
             - vol_solr_shard_data_02:/var/lib/solr/
 
-    solr-shard_03:
+    solr-shard-03:
         <<: *solr-shard_base
         volumes:
             - vol_solr_shard_data_03:/var/lib/solr/
 
-    solr-shard_04:
+    solr-shard-04:
         <<: *solr-shard_base
         volumes:
             - vol_solr_shard_data_04:/var/lib/solr/
 
-    solr-shard_05:
+    solr-shard-05:
         <<: *solr-shard_base
         volumes:
             - vol_solr_shard_data_05:/var/lib/solr/
 
-    solr-shard_06:
+    solr-shard-06:
         <<: *solr-shard_base
         volumes:
             - vol_solr_shard_data_06:/var/lib/solr/
 
-    solr-shard_07:
+    solr-shard-07:
         <<: *solr-shard_base
         volumes:
             - vol_solr_shard_data_07:/var/lib/solr/
 
-    solr-shard_08:
+    solr-shard-08:
         <<: *solr-shard_base
         volumes:
             - vol_solr_shard_data_08:/var/lib/solr/
 
-    solr-shard_09:
+    solr-shard-09:
         <<: *solr-shard_base
         volumes:
             - vol_solr_shard_data_09:/var/lib/solr/
 
-    solr-shard_10:
+    solr-shard-10:
         <<: *solr-shard_base
         volumes:
             - vol_solr_shard_data_10:/var/lib/solr/
 
-    solr-shard_11:
+    solr-shard-11:
         <<: *solr-shard_base
         volumes:
             - vol_solr_shard_data_11:/var/lib/solr/
 
-    solr-shard_12:
+    solr-shard-12:
         <<: *solr-shard_base
         volumes:
             - vol_solr_shard_data_12:/var/lib/solr/
 
-    solr-shard_13:
+    solr-shard-13:
         <<: *solr-shard_base
         volumes:
             - vol_solr_shard_data_13:/var/lib/solr/
 
-    solr-shard_14:
+    solr-shard-14:
         <<: *solr-shard_base
         volumes:
             - vol_solr_shard_data_14:/var/lib/solr/
 
-    solr-shard_15:
+    solr-shard-15:
         <<: *solr-shard_base
         volumes:
             - vol_solr_shard_data_15:/var/lib/solr/
 
-    solr-shard_16:
+    solr-shard-16:
         <<: *solr-shard_base
         volumes:
             - vol_solr_shard_data_16:/var/lib/solr/
 
-    solr-shard_17:
+    solr-shard-17:
         <<: *solr-shard_base
         volumes:
             - vol_solr_shard_data_17:/var/lib/solr/
 
-    solr-shard_18:
+    solr-shard-18:
         <<: *solr-shard_base
         volumes:
             - vol_solr_shard_data_18:/var/lib/solr/
 
-    solr-shard_19:
+    solr-shard-19:
         <<: *solr-shard_base
         volumes:
             - vol_solr_shard_data_19:/var/lib/solr/
 
-    solr-shard_20:
+    solr-shard-20:
         <<: *solr-shard_base
         volumes:
             - vol_solr_shard_data_20:/var/lib/solr/
 
-    solr-shard_21:
+    solr-shard-21:
         <<: *solr-shard_base
         volumes:
             - vol_solr_shard_data_21:/var/lib/solr/
 
-    solr-shard_22:
+    solr-shard-22:
         <<: *solr-shard_base
         volumes:
             - vol_solr_shard_data_22:/var/lib/solr/
 
-    solr-shard_23:
+    solr-shard-23:
         <<: *solr-shard_base
         volumes:
             - vol_solr_shard_data_23:/var/lib/solr/
 
-    solr-shard_24:
+    solr-shard-24:
         <<: *solr-shard_base
         volumes:
             - vol_solr_shard_data_24:/var/lib/solr/
@@ -1059,7 +1059,7 @@ services:
             # Monitors data on PostgreSQL
             - postgresql-pgbouncer
             # Monitors data on Solr
-            - solr-shard_01
+            - solr-shard-01
         deploy:
             resources:
                 limits:
@@ -1082,9 +1082,9 @@ services:
             # Reads data from Munin node
             - munin-node
         volumes:
-            # Shared with "munin_httpd" container:
+            # Shared with "munin-httpd" container:
             - vol_munin_data:/var/lib/munin/
-            # Shared with "munin_httpd" container:
+            # Shared with "munin-httpd" container:
             - vol_munin_html:/var/cache/munin/www/
         deploy:
             resources:
@@ -1111,9 +1111,9 @@ services:
             # Reads data generated by Munin stats collector
             - munin-cron
         volumes:
-            # Shared with "munin_httpd" container:
+            # Shared with "munin-cron" container:
             - vol_munin_data:/var/lib/munin/
-            # Shared with "munin_httpd" container:
+            # Shared with "munin-cron" container:
             - vol_munin_html:/var/cache/munin/www/
         deploy:
             resources:
@@ -1209,7 +1209,7 @@ services:
             # CloudFlare account global API key
             MC_PROXY_CERTBOT_CLOUDFLARE_GLOBAL_API_KEY: ""
         volumes:
-            # Shared with "proxy_httpd" container:
+            # Shared with "proxy-httpd" container:
             - vol_proxy_ssl_certs:/etc/letsencrypt/
         deploy:
             resources:
