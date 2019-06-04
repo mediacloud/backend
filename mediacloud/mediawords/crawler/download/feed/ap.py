@@ -10,12 +10,7 @@ from collections import defaultdict
 import urllib.parse as urlparse
 from typing import Any
 from bs4 import BeautifulSoup
-<<<<<<< HEAD
-=======
-from mediawords.util.config import get_config
-from mediawords import db
-import mediawords.util.web.user_agent
->>>>>>> pushshift/master
+
 import datetime
 import pytz
 
@@ -219,11 +214,7 @@ def _extract_url_parameters(url:str) -> dict:
     params = {k:v[0] for k,v in urlparse.parse_qs(parsed_content_uri.query).items()}
     return params
 
-<<<<<<< HEAD
 def _id_exists_in_db(db: DatabaseHandler,
-=======
-def _id_exists_in_db(db: db.DatabaseHandler,
->>>>>>> pushshift/master
                      guid:str) -> bool:
     """Internal method to check if item exists in the database."""
     guid_exists = db.query(
@@ -236,11 +227,7 @@ def _id_exists_in_db(db: db.DatabaseHandler,
     return False
 
 def _fetch_nitf_rendition(story: dict,
-<<<<<<< HEAD
                           db: DatabaseHandler = None) -> str:
-=======
-                          db: db.DatabaseHandler = None) -> str:
->>>>>>> pushshift/master
     """Internal method for fetching the nitf rendition story content. Returns the content for an nitf rendition."""
     guid = story['altids']['itemid']
     version = story['version']
@@ -253,11 +240,7 @@ def _fetch_nitf_rendition(story: dict,
 
 def _process_stories(stories: list,
                      max_lookback: int = None,
-<<<<<<< HEAD
                      db: DatabaseHandler = None,
-=======
-                     db: db.DatabaseHandler = None,
->>>>>>> pushshift/master
                      existing_guids: set = None) -> dict:
     """Internal method to process stories passed by the feed or search endpoint. For each story, the content
     of the story is fetched using the nitf rendition format. The stories are then formatted and returned as a dict
@@ -334,11 +317,7 @@ def _process_stories(stories: list,
     return items
 
 def _fetch_stories_using_search(max_lookback: int,
-<<<<<<< HEAD
                                 db: DatabaseHandler = None,
-=======
-                                db: db.DatabaseHandler = None,
->>>>>>> pushshift/master
                                 existing_guids: set = None) -> dict:
     """Internal method to fetch additional stories from the search endpoint. Normally, this endpoint is called
     after the feed endpoint to gather additional stories. If the max_stories limit is greater than the total
@@ -367,11 +346,7 @@ def _fetch_stories_using_search(max_lookback: int,
 
     return items
 
-<<<<<<< HEAD
 def _fetch_stories_using_feed(db: DatabaseHandler = None) -> dict:
-=======
-def _fetch_stories_using_feed(db: db.DatabaseHandler = None) -> dict:
->>>>>>> pushshift/master
     """Internal method to fetch all stories from the feed endpoint"""
     feed_data = _api.feed(page_size=100)
     stories = feed_data['items']
@@ -384,13 +359,8 @@ def _convert_publishdate_to_epoch(publish_date: int) -> int:
     publishdate_epoch = pytz.utc.localize(datetime.datetime.strptime(publish_date,"%Y-%m-%dT%H:%M:%Sz")).timestamp()
     return int(publishdate_epoch)
 
-<<<<<<< HEAD
 def get_new_stories(db: DatabaseHandler = None,
-                    max_lookback:int = 86400) -> list:
-=======
-def get_new_stories(db: db.DatabaseHandler = None,
                     max_lookback:int = 43200) -> list:
->>>>>>> pushshift/master
     """This method fetches the latest items from the AP feed and returns a list of dicts.
 
     Parameters:
@@ -399,7 +369,7 @@ def get_new_stories(db: db.DatabaseHandler = None,
         database and only fetch stories for uuids not present in the database. If no db handle
         is passed, the script will return all stories (up to the max 100 without pagination)
 
-        max_lookback: Maximum lookback in seconds (defaults to 12 hours). The get_new_stories()
+    max_lookback: Maximum lookback in seconds (defaults to 12 hours). The get_new_stories()
         method will stop searching when it finds a story in a return older than this value.
 
     Return Value:
