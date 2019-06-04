@@ -1268,23 +1268,23 @@ services:
     # --------------------------------
     #
     portainer:
-       image: portainer/portainer:1.20.2
+        image: portainer/portainer:1.20.2
         networks:
             - default
-       expose:
-           # Web interface
-           - "9000:9000"
-       command: -H unix:///var/run/docker.sock
-       volumes:
-           - /var/run/docker.sock:/var/run/docker.sock
-           - vol_portainer_data:/data
-       deploy:
-           resources:
-               limits:
-                   # CPU core limit
-                   cpus: "1"
-                   # RAM limit
-                   memory: 1G
+        expose:
+            # Web interface
+            - "9000:9000"
+        command: -H unix:///var/run/docker.sock
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock
+            - vol_portainer_data:/data
+        deploy:
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: 1G
 
 
 #
