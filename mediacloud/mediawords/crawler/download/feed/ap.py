@@ -10,15 +10,20 @@ from collections import defaultdict
 import urllib.parse as urlparse
 from typing import Any
 from bs4 import BeautifulSoup
-from mediawords.util.config import get_config
-import mediawords.util.web.user_agent
 import datetime
 import pytz
+
+from mediawords.db import DatabaseHandler
+from mediawords.util.config import get_config
+import mediawords.util.web.user_agent
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 _api = None
+
+# name of associated press media source
+AP_MEDIA_NAME = 'AP'
 
 class McAPError(Exception):
     """Base error class"""
@@ -208,17 +213,20 @@ def _extract_url_parameters(url:str) -> dict:
     params = {k:v[0] for k,v in urlparse.parse_qs(parsed_content_uri.query).items()}
     return params
 
-def _id_exists_in_db(db: mediawords.db.DatabaseHandler,
+def _id_exists_in_db(db: DatabaseHandler,
                      guid:str) -> bool:
     """Internal method to check if item exists in the database."""
-    guid_exists = db.query("select 1 from stories s join media m using (media_id) where m.name = 'AP' and s.guid = %(a)s", {'a': guid}).hash()
+    guid_exists = db.query(
+	"select 1 from stories s join media m using (media_id) where m.name = %(b)s and s.guid = %(a)s",
+	{'a': guid, 'b': AP_MEDIA_NAME}).hash()
+
     if guid_exists:
         logger.debug('Story with guid: {} is already in the database -- skipping story.')
         return True
     return False
 
 def _fetch_nitf_rendition(story: dict,
-                          db: mediawords.db.DatabaseHandler = None) -> str:
+                          db: DatabaseHandler = None) -> str:
     """Internal method for fetching the nitf rendition story content. Returns the content for an nitf rendition."""
     guid = story['altids']['itemid']
     version = story['version']
@@ -231,7 +239,7 @@ def _fetch_nitf_rendition(story: dict,
 
 def _process_stories(stories: list,
                      max_lookback: int = None,
-                     db: mediawords.db.DatabaseHandler = None,
+                     db: DatabaseHandler = None,
                      existing_guids: set = None) -> dict:
     """Internal method to process stories passed by the feed or search endpoint. For each story, the content
     of the story is fetched using the nitf rendition format. The stories are then formatted and returned as a dict
@@ -309,7 +317,7 @@ def _process_stories(stories: list,
     return items
 
 def _fetch_stories_using_search(max_lookback: int,
-                                db: mediawords.db.DatabaseHandler = None,
+                                db: DatabaseHandler = None,
                                 existing_guids: set = None) -> dict:
     """Internal method to fetch additional stories from the search endpoint. Normally, this endpoint is called
     after the feed endpoint to gather additional stories. If the max_stories limit is greater than the total
@@ -338,7 +346,7 @@ def _fetch_stories_using_search(max_lookback: int,
 
     return items
 
-def _fetch_stories_using_feed(db: mediawords.db.DatabaseHandler = None) -> dict:
+def _fetch_stories_using_feed(db: DatabaseHandler = None) -> dict:
     """Internal method to fetch all stories from the feed endpoint"""
     feed_data = _api.feed(page_size=100)
     stories = feed_data['items']
@@ -351,7 +359,7 @@ def _convert_publishdate_to_epoch(publish_date: int) -> int:
     publishdate_epoch = pytz.utc.localize(datetime.datetime.strptime(publish_date,"%Y-%m-%dT%H:%M:%Sz")).timestamp()
     return int(publishdate_epoch)
 
-def get_new_stories(db: mediawords.db.DatabaseHandler = None,
+def get_new_stories(db: DatabaseHandler = None,
                     max_lookback:int = 86400) -> list:
     """This method fetches the latest items from the AP feed and returns a list of dicts.
 
@@ -387,3 +395,47 @@ def get_new_stories(db: mediawords.db.DatabaseHandler = None,
     list_items = sorted(list(items.values()), key=lambda k: k['publish_date'],reverse=True)
     logger.info("Returning {} new stories.".format(len(list_items)))
     return list_items
+
+
+def get_and_add_new_stories(db: DatabaseHandler) -> None:
+    """Add stories as returend by get_new_stories() to the database."""
+
+    ap_stories = get_new_stories( db )
+    
+    ap_medium = db.query( "select * from media where name = %(a)s", {'a': AP_MEDIA_NAME} ).hash();
+    ap_feed = db.find_or_create('feeds', {'name': 'API Feed', 'active': False, 'type': 'syndicated'})
+
+    for ap_story in ap_stories:
+        story = {
+            'guid': ap_story['guid'],
+            'url': ap_story['url'],
+            'publish_date': ap_story['publish_date'],
+            'title': ap_story['title'],
+            'description': ap_story['description'],
+            'media_id': ap_medium['media_id']
+        }
+
+        story = mediawords.dbi.stories.stories.add_story(db, story, ap_feed['feeds_id'])
+
+        story_download = {
+            'state': 'success',
+            'url': ap_story['url'],
+            'feeds_id': ap_feed['feeds_id'],
+            'stories_id': story['stories_id'],
+            'type': 'content',
+            'priority': 0,
+            'sequence': 0,
+            'extracted': True
+	}
+
+        story_download = db.create('downloads', story_download)
+
+        download_text = {
+            'downloads_id': story_download['downloads_id'],
+            'download_text': ap_story['text']
+	}
+
+        download_text = db.create('download_texts', download_text)
+
+        mediawords.storyvectors.update_story_sentences_and_language(db, story)
+
