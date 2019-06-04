@@ -11,6 +11,7 @@ import urllib.parse as urlparse
 from typing import Any
 from bs4 import BeautifulSoup
 from mediawords.util.config import get_config
+from mediawords import db
 import mediawords.util.web.user_agent
 import datetime
 import pytz
@@ -208,7 +209,7 @@ def _extract_url_parameters(url:str) -> dict:
     params = {k:v[0] for k,v in urlparse.parse_qs(parsed_content_uri.query).items()}
     return params
 
-def _id_exists_in_db(db: mediawords.db.DatabaseHandler,
+def _id_exists_in_db(db: db.DatabaseHandler,
                      guid:str) -> bool:
     """Internal method to check if item exists in the database."""
     guid_exists = db.query("select 1 from stories s join media m using (media_id) where m.name = 'AP' and s.guid = %(a)s", {'a': guid}).hash()
@@ -218,7 +219,7 @@ def _id_exists_in_db(db: mediawords.db.DatabaseHandler,
     return False
 
 def _fetch_nitf_rendition(story: dict,
-                          db: mediawords.db.DatabaseHandler = None) -> str:
+                          db: db.DatabaseHandler = None) -> str:
     """Internal method for fetching the nitf rendition story content. Returns the content for an nitf rendition."""
     guid = story['altids']['itemid']
     version = story['version']
@@ -231,7 +232,7 @@ def _fetch_nitf_rendition(story: dict,
 
 def _process_stories(stories: list,
                      max_lookback: int = None,
-                     db: mediawords.db.DatabaseHandler = None,
+                     db: db.DatabaseHandler = None,
                      existing_guids: set = None) -> dict:
     """Internal method to process stories passed by the feed or search endpoint. For each story, the content
     of the story is fetched using the nitf rendition format. The stories are then formatted and returned as a dict
@@ -292,7 +293,6 @@ def _process_stories(stories: list,
         except:
             logger.warning('No URL link found for guid {}. Using the story content URL instead.'.format(guid))
             story_data['url'] = content['renditions']['nitf']['href']
-        publish_date = content['firstcreated'] # There is a first created date and a version created date (last edit datetime?)
         publish_age = int(time.time() - _convert_publishdate_to_epoch(publish_date))
         story_data['text'] = soup.find('body.content').text
         story_data['title'] = content['headline']
@@ -309,7 +309,7 @@ def _process_stories(stories: list,
     return items
 
 def _fetch_stories_using_search(max_lookback: int,
-                                db: mediawords.db.DatabaseHandler = None,
+                                db: db.DatabaseHandler = None,
                                 existing_guids: set = None) -> dict:
     """Internal method to fetch additional stories from the search endpoint. Normally, this endpoint is called
     after the feed endpoint to gather additional stories. If the max_stories limit is greater than the total
@@ -338,7 +338,7 @@ def _fetch_stories_using_search(max_lookback: int,
 
     return items
 
-def _fetch_stories_using_feed(db: mediawords.db.DatabaseHandler = None) -> dict:
+def _fetch_stories_using_feed(db: db.DatabaseHandler = None) -> dict:
     """Internal method to fetch all stories from the feed endpoint"""
     feed_data = _api.feed(page_size=100)
     stories = feed_data['items']
@@ -351,7 +351,7 @@ def _convert_publishdate_to_epoch(publish_date: int) -> int:
     publishdate_epoch = pytz.utc.localize(datetime.datetime.strptime(publish_date,"%Y-%m-%dT%H:%M:%Sz")).timestamp()
     return int(publishdate_epoch)
 
-def get_new_stories(db: mediawords.db.DatabaseHandler = None,
+def get_new_stories(db: db.DatabaseHandler = None,
                     max_lookback:int = 43200) -> list:
     """This method fetches the latest items from the AP feed and returns a list of dicts.
 
