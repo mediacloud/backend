@@ -352,7 +352,7 @@ def _convert_publishdate_to_epoch(publish_date: int) -> int:
     return int(publishdate_epoch)
 
 def get_new_stories(db: mediawords.db.DatabaseHandler = None,
-                    max_lookback:int = 86400) -> list:
+                    max_lookback:int = 43200) -> list:
     """This method fetches the latest items from the AP feed and returns a list of dicts.
 
     Parameters:
@@ -360,6 +360,9 @@ def get_new_stories(db: mediawords.db.DatabaseHandler = None,
         db: If a db handle is passed in, this method will check for existing uuids in the
         database and only fetch stories for uuids not present in the database. If no db handle
         is passed, the script will return all stories (up to the max 100 without pagination)
+
+        max_lookback: Maximum lookback in seconds (defaults to 12 hours). The get_new_stories()
+        method will stop searching when it finds a story in a return older than this value.
 
     Return Value:
     Each returned dict includes the following keys:
