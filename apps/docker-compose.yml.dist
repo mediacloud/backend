@@ -47,20 +47,43 @@ x-solr-shard_base:   &solr-shard_base
                 - solr-shard
     # Increase open file limit
     <<: *bigger-open-file-limit
-    deploy:
-        # Every shard runs as its own independent, non-replicated service
-        resources:
-            limits:
-                # CPU core limit
-                #
-                # (each mcquery* has 32 cores and will be running 8 shards
-                # each, so 32 / 8 = 4)
-                cpus: "4"
-                # RAM limit
-                #
-                # (each mcquery* has 192 GB of RAM and will be running 8 shards
-                # each, so 192 / 8 = 24)
-                memory: 24G
+
+# Default resources for every Solr shard
+x-solr-shard_base_deploy_resources:  &solr-shard_base_deploy_resources
+    # Every shard runs as its own independent, non-replicated service
+    resources:
+        limits:
+            # CPU core limit
+            #
+            # (each mcquery* has 32 cores and will be running 8 shards
+            # each, so 32 / 8 = 4)
+            cpus: "4"
+            # RAM limit
+            #
+            # (each mcquery* has 192 GB of RAM and will be running 8 shards
+            # each, so 192 / 8 = 24)
+            memory: 24G
+
+# Placement constraints for Solr shards that run on host #1 (e.g. mcquery1)
+x-solr-shard_base_deploy_placement_host1:   &solr-shard_base_deploy_placement_host1
+    placement:
+        constraints:
+            # Must run on the host with Solr data volume
+            - node.labels.role-solr-shards-host1 == true
+
+# Placement constraints for Solr shards that run on host #2 (e.g. mcquery2)
+x-solr-shard_base_deploy_placement_host2:   &solr-shard_base_deploy_placement_host2
+    placement:
+        constraints:
+            # Must run on the host with Solr data volume
+            - node.labels.role-solr-shards-host2 == true
+
+# Placement constraints for Solr shards that run on host #3 (e.g. mcquery4)
+x-solr-shard_base_deploy_placement_host3:   &solr-shard_base_deploy_placement_host3
+    placement:
+        constraints:
+            # Must run on the host with Solr data volume
+            - node.labels.role-solr-shards-host3 == true
 
 
 #
@@ -296,6 +319,11 @@ services:
             # Shared with "webapp-httpd" container:
             - vol_daily_rss_dumps:/var/lib/daily_rss_dumps/
         deploy:
+            placement:
+                constraints:
+                    # Must run on the same host as the webapp-httpd server because they will be
+                    # sharing the volume with generated static RSS dumps
+                    - node.labels.role-webapp-httpd == true
             resources:
                 limits:
                     # CPU core limit
@@ -417,6 +445,10 @@ services:
         volumes:
             - vol_opendkim_config:/etc/opendkim/
         deploy:
+            placement:
+                constraints:
+                    # Must run on the host with OpenDKIM data volume
+                    - node.labels.role-mail-opendkim == true
             resources:
                 limits:
                     # CPU core limit
@@ -450,6 +482,10 @@ services:
             - vol_postfix_local_mail:/var/lib/mail/
             - vol_postfix_queue:/var/spool/postfix/
         deploy:
+            placement:
+                constraints:
+                    # Must run on the host with Postfix data volume
+                    - node.labels.role-mail-postfix == true
             resources:
                 limits:
                     # CPU core limit
@@ -546,6 +582,11 @@ services:
             - vol_postgresql_data:/var/lib/postgresql/
         # Increase open file limit
         <<: *bigger-open-file-limit
+        deploy:
+            placement:
+                constraints:
+                    # Must run on the host with PostgreSQL data volume
+                    - node.labels.role-postgresql-server == true
 
     #
     # NYT-Based News Tagger service
@@ -561,6 +602,12 @@ services:
         expose:
             - 8080
         deploy:
+            placement:
+                constraints:
+                    # Workers don't necessarily *have* to run on the very same host,
+                    # but if they do, they'll be able to share a single mmap'ped dataset
+                    # and thus conserve memory
+                    - node.labels.role-predict-news-labels == true
             # Worker count
             replicas: 1
             resources:
@@ -610,6 +657,10 @@ services:
         # Increase open file limit
         <<: *bigger-open-file-limit
         deploy:
+            placement:
+                constraints:
+                    # Must run on the host with RabbitMQ data volume
+                    - node.labels.role-rabbitmq-server == true
             resources:
                 limits:
                     # CPU core limit
@@ -760,121 +811,193 @@ services:
         <<: *solr-shard_base
         volumes:
             - vol_solr_shard_data_01:/var/lib/solr/
+        deploy:
+            <<: *solr-shard_base_deploy_resources
+            <<: *solr-shard_base_deploy_placement_host1
 
     solr-shard-02:
         <<: *solr-shard_base
         volumes:
             - vol_solr_shard_data_02:/var/lib/solr/
+        deploy:
+            <<: *solr-shard_base_deploy_resources
+            <<: *solr-shard_base_deploy_placement_host1
 
     solr-shard-03:
         <<: *solr-shard_base
         volumes:
             - vol_solr_shard_data_03:/var/lib/solr/
+        deploy:
+            <<: *solr-shard_base_deploy_resources
+            <<: *solr-shard_base_deploy_placement_host1
 
     solr-shard-04:
         <<: *solr-shard_base
         volumes:
             - vol_solr_shard_data_04:/var/lib/solr/
+        deploy:
+            <<: *solr-shard_base_deploy_resources
+            <<: *solr-shard_base_deploy_placement_host1
 
     solr-shard-05:
         <<: *solr-shard_base
         volumes:
             - vol_solr_shard_data_05:/var/lib/solr/
+        deploy:
+            <<: *solr-shard_base_deploy_resources
+            <<: *solr-shard_base_deploy_placement_host1
 
     solr-shard-06:
         <<: *solr-shard_base
         volumes:
             - vol_solr_shard_data_06:/var/lib/solr/
+        deploy:
+            <<: *solr-shard_base_deploy_resources
+            <<: *solr-shard_base_deploy_placement_host1
 
     solr-shard-07:
         <<: *solr-shard_base
         volumes:
             - vol_solr_shard_data_07:/var/lib/solr/
+        deploy:
+            <<: *solr-shard_base_deploy_resources
+            <<: *solr-shard_base_deploy_placement_host1
 
     solr-shard-08:
         <<: *solr-shard_base
         volumes:
             - vol_solr_shard_data_08:/var/lib/solr/
+        deploy:
+            <<: *solr-shard_base_deploy_resources
+            <<: *solr-shard_base_deploy_placement_host1
 
     solr-shard-09:
         <<: *solr-shard_base
         volumes:
             - vol_solr_shard_data_09:/var/lib/solr/
+        deploy:
+            <<: *solr-shard_base_deploy_resources
+            <<: *solr-shard_base_deploy_placement_host2
 
     solr-shard-10:
         <<: *solr-shard_base
         volumes:
             - vol_solr_shard_data_10:/var/lib/solr/
+        deploy:
+            <<: *solr-shard_base_deploy_resources
+            <<: *solr-shard_base_deploy_placement_host2
 
     solr-shard-11:
         <<: *solr-shard_base
         volumes:
             - vol_solr_shard_data_11:/var/lib/solr/
+        deploy:
+            <<: *solr-shard_base_deploy_resources
+            <<: *solr-shard_base_deploy_placement_host2
 
     solr-shard-12:
         <<: *solr-shard_base
         volumes:
             - vol_solr_shard_data_12:/var/lib/solr/
+        deploy:
+            <<: *solr-shard_base_deploy_resources
+            <<: *solr-shard_base_deploy_placement_host2
 
     solr-shard-13:
         <<: *solr-shard_base
         volumes:
             - vol_solr_shard_data_13:/var/lib/solr/
+        deploy:
+            <<: *solr-shard_base_deploy_resources
+            <<: *solr-shard_base_deploy_placement_host2
 
     solr-shard-14:
         <<: *solr-shard_base
         volumes:
             - vol_solr_shard_data_14:/var/lib/solr/
+        deploy:
+            <<: *solr-shard_base_deploy_resources
+            <<: *solr-shard_base_deploy_placement_host2
 
     solr-shard-15:
         <<: *solr-shard_base
         volumes:
             - vol_solr_shard_data_15:/var/lib/solr/
+        deploy:
+            <<: *solr-shard_base_deploy_resources
+            <<: *solr-shard_base_deploy_placement_host2
 
     solr-shard-16:
         <<: *solr-shard_base
         volumes:
             - vol_solr_shard_data_16:/var/lib/solr/
+        deploy:
+            <<: *solr-shard_base_deploy_resources
+            <<: *solr-shard_base_deploy_placement_host2
 
     solr-shard-17:
         <<: *solr-shard_base
         volumes:
             - vol_solr_shard_data_17:/var/lib/solr/
+        deploy:
+            <<: *solr-shard_base_deploy_resources
+            <<: *solr-shard_base_deploy_placement_host3
 
     solr-shard-18:
         <<: *solr-shard_base
         volumes:
             - vol_solr_shard_data_18:/var/lib/solr/
+        deploy:
+            <<: *solr-shard_base_deploy_resources
+            <<: *solr-shard_base_deploy_placement_host3
 
     solr-shard-19:
         <<: *solr-shard_base
         volumes:
             - vol_solr_shard_data_19:/var/lib/solr/
+        deploy:
+            <<: *solr-shard_base_deploy_resources
+            <<: *solr-shard_base_deploy_placement_host3
 
     solr-shard-20:
         <<: *solr-shard_base
         volumes:
             - vol_solr_shard_data_20:/var/lib/solr/
+        deploy:
+            <<: *solr-shard_base_deploy_resources
+            <<: *solr-shard_base_deploy_placement_host3
 
     solr-shard-21:
         <<: *solr-shard_base
         volumes:
             - vol_solr_shard_data_21:/var/lib/solr/
+        deploy:
+            <<: *solr-shard_base_deploy_resources
+            <<: *solr-shard_base_deploy_placement_host3
 
     solr-shard-22:
         <<: *solr-shard_base
         volumes:
             - vol_solr_shard_data_22:/var/lib/solr/
+        deploy:
+            <<: *solr-shard_base_deploy_resources
+            <<: *solr-shard_base_deploy_placement_host3
 
     solr-shard-23:
         <<: *solr-shard_base
         volumes:
             - vol_solr_shard_data_23:/var/lib/solr/
+        deploy:
+            <<: *solr-shard_base_deploy_resources
+            <<: *solr-shard_base_deploy_placement_host3
 
     solr-shard-24:
         <<: *solr-shard_base
         volumes:
             - vol_solr_shard_data_24:/var/lib/solr/
+        deploy:
+            <<: *solr-shard_base_deploy_resources
+            <<: *solr-shard_base_deploy_placement_host3
 
     #
     # Solr ZooKeeper
@@ -1093,6 +1216,11 @@ services:
                     cpus: "1"
                     # RAM limit
                     memory: 512M
+        deploy:
+            placement:
+                constraints:
+                    # Must run on the same host as munin-httpd as they share two volumes
+                    - node.labels.role-munin-httpd == true
 
     #
     # Munin HTTP server
@@ -1122,6 +1250,11 @@ services:
                     cpus: "1"
                     # RAM limit
                     memory: 512M
+        deploy:
+            placement:
+                constraints:
+                    # Must run on the same host as munin-cron as they share two volumes
+                    - node.labels.role-munin-httpd == true
 
     #
     # Fetch sitemap pages from media
@@ -1182,6 +1315,10 @@ services:
             # Shared with "cron_generate_daily_rss_dumps" container:
             - vol_daily_rss_dumps:/mediacloud_webapp_static/rss_dumps/
         deploy:
+            placement:
+                constraints:
+                    # Has its own role due to a shared volume
+                    - node.labels.role-webapp-httpd == true
             resources:
                 limits:
                     # CPU core limit
@@ -1212,6 +1349,10 @@ services:
             # Shared with "proxy-httpd" container:
             - vol_proxy_ssl_certs:/etc/letsencrypt/
         deploy:
+            placement:
+                constraints:
+                    # Must run on the same host as proxy-httpd as they share a volume
+                    - node.labels.role-proxy-httpd == true
             resources:
                 limits:
                     # CPU core limit
@@ -1254,6 +1395,10 @@ services:
             # Proxies to Portainer's web UI
             - portainer
         deploy:
+            placement:
+                constraints:
+                    # Must run on the same host as proxy-cron-certbot as they share a volume
+                    - node.labels.role-proxy-httpd == true
             resources:
                 limits:
                     # CPU core limit
@@ -1298,6 +1443,10 @@ services:
             - /var/run/docker.sock:/var/run/docker.sock
             - vol_portainer_data:/data
         deploy:
+            placement:
+                constraints:
+                    # Must run on a host that has the data volume
+                    - node.labels.role-portainer == true
             resources:
                 limits:
                     # CPU core limit
@@ -1385,4 +1534,3 @@ volumes:
 
     # Portainer data
     vol_portainer_data: {}
-
