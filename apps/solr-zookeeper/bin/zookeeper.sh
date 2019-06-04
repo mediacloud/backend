@@ -23,6 +23,6 @@ if [ ! -z "$(ls -A /var/lib/zookeeper/)" ]; then
 	rm -rf /var/lib/zookeeper/*
 fi
 
-cp -R /var/lib/zookeeper-template/ /var/lib/zookeeper/
+cp -R /var/lib/zookeeper-template/* /var/lib/zookeeper/
 
 exec /opt/zookeeper/bin/zkServer.sh start-foreground

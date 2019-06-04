@@ -41,7 +41,7 @@ RUN \
     # on changing constantly so it's more painful than useful to make ZooKeeper
     # figure out that said hostnames have changed - faster way is just to let
     # ZooKeeper reread locations of shards on every start.
-    mv /var/lib/zookeeper/* /var/lib/zookeeper-template/* && \
+    mv /var/lib/zookeeper/* /var/lib/zookeeper-template/ && \
     #
     true
 
