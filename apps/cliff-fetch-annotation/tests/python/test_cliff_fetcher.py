@@ -1,13 +1,13 @@
 from typing import Union
 
 from mediawords.db import connect_to_db
-from cliff_fetch_annotation.fetcher import CLIFFAnnotatorFetcher
-from cliff_base.sample_data import sample_cliff_response
 from mediawords.test.hash_server import HashServer
-from cliff_fetch_annotation.config import CLIFFFetcherConfig
-from mediawords.util.parse_json import encode_json
 from mediawords.util.network import random_unused_port
+from mediawords.util.parse_json import encode_json
 from mediawords.util.sql import sql_now
+from cliff_base.sample_data import sample_cliff_response
+from cliff_fetch_annotation.fetcher import CLIFFAnnotatorFetcher
+from cliff_fetch_annotation.config import CLIFFFetcherConfig
 
 
 def test_cliff_annotator():
