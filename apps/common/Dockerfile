@@ -80,8 +80,8 @@ ENV PATH="/opt/mediacloud/bin:${PATH}"
 
 # Copy sources
 COPY src/ /opt/mediacloud/src/common/
-ENV PERL5LIB="/opt/mediacloud/src/common/perl:${PERL5LIB}"
-ENV PYTHONPATH="/opt/mediacloud/src/common/python:${PYTHONPATH}"
+ENV PERL5LIB="/opt/mediacloud/src/common/perl"
+ENV PYTHONPATH="/opt/mediacloud/src/common/python"
 
 # Test if submodules were checked out
 RUN \
