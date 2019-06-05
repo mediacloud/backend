@@ -8,7 +8,6 @@ FROM dockermediacloud/cliff-base:latest
 COPY src/ /opt/mediacloud/src/cliff-fetch-annotation/
 ENV PERL5LIB="/opt/mediacloud/src/cliff-fetch-annotation/perl:${PERL5LIB}"
 ENV PYTHONPATH="/opt/mediacloud/src/cliff-fetch-annotation/python:${PYTHONPATH}"
-USER mediacloud
 
 # Copy worker script
 COPY bin /opt/mediacloud/bin
