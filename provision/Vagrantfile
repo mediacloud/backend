@@ -24,6 +24,10 @@ Vagrant.configure("2") do |config|
 
         machine.vm.provision :ansible do |ansible|
 
+          # Workaround for passing a dictionary as a variable to set the labels:
+          # https://stackoverflow.com/a/36841704
+          require 'json'
+
           # Disable default limit to connect to all the machines
           ansible.limit = "all"
           ansible.playbook = "setup.yml"
@@ -47,6 +51,40 @@ Vagrant.configure("2") do |config|
               # Vagrant private network's interface:
               "docker_swarm_advertise_interface" => "enp0s8",
 
+            },
+          }
+
+          machine1_labels = {
+            "role-mail-opendkim" => "true",
+            "role-mail-postfix" => "true",
+            "role-munin-httpd" => "true",
+            "role-portainer" => "true",
+          }
+          machine2_labels = {
+            "role-postgresql-server" => "true",
+            "role-predict-news-labels" => "true",
+            "role-proxy-httpd" => "true",
+            "role-rabbitmq-server" => "true",
+          }
+          machine3_labels = {
+            "role-webapp-httpd" => "true",
+            "role-solr-shards-host1" => "true",
+            "role-solr-shards-host2" => "true",
+            "role-solr-shards-host3" => "true",
+          }
+
+          # Assign some labels just to test them out
+          ansible.host_vars = {
+            "machine1" => {
+              "docker_swarm_node_labels" => "'#{machine1_labels.to_json}'",
+            },
+
+            "machine2" => {
+              "docker_swarm_node_labels" => "'#{machine2_labels.to_json}'",
+            },
+
+            "machine3" => {
+              "docker_swarm_node_labels" => "'#{machine3_labels.to_json}'",
             },
           }
 

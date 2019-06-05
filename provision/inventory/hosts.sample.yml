@@ -1,3 +1,9 @@
+#
+# Sample inventory file for Ansible provisioning
+#
+# Copy this file to "hosts.yml" and modify as needed.
+#
+
 # All hosts
 all:
 
@@ -16,12 +22,57 @@ all:
       # Network interface the IP of which will be advertised to the rest of the swarm
       docker_swarm_advertise_interface: "eth0"
 
+      # Dictionary of labels to apply to this host
+      # (used for deployment constraints; on production, you might want to
+      # apply those labels to different hosts)
+      docker_swarm_node_labels:
+
+        # "mail-opendkim-server" container and its data volume
+        role-mail-opendkim: true
+
+        # "mail-postfix-server" container and its volume
+        role-mail-postfix: true
+
+        # "munin-cron", "munin-httpd" containers and their shared volumes
+        role-munin-httpd: true
+
+        # "portainer" container and its data volume
+        role-portainer: true
+
+        # "postgresql-server" container and its data volume
+        role-postgresql-server: true
+
+        # "predict-news-labels" container (try to run on the same host or a
+        # limited number of hosts to be able to share mmap'ped memory)
+        role-predict-news-labels: true
+
+        # "proxy-cron-certbot", "proxy-httpd" containers, their shared volume
+        # and publicly exposed ports
+        role-proxy-httpd: true
+
+        # "rabbitmq-server" container and its data volume
+        role-rabbitmq-server: true
+
+        # "cron-generate-daily-rss-dumps", "webapp-httpd" containers and their shared volume
+        role-webapp-httpd: true
+
+        # Solr shards from "solr-shard-01" to "solr-shard-8" (host #1)
+        role-solr-shards-host1: true
+
+        # Solr shards from "solr-shard-09" to "solr-shard-16" (host #2)
+        role-solr-shards-host2: true
+
+        # Solr shards from "solr-shard-17" to "solr-shard-24" (host #2)
+        role-solr-shards-host3: true
+
     "mcsample2":
       ansible_host: "mcsample2.media.mit.edu"
       ansible_user: "ubuntu"
       ansible_ssh_private_key_file: "~/.ssh/mcsample"
 
       docker_swarm_advertise_interface: "eth0"
+      docker_swarm_node_labels:
+
 
     "mcsample3":
       ansible_host: "mcsample3.media.mit.edu"
@@ -29,6 +80,8 @@ all:
       ansible_ssh_private_key_file: "~/.ssh/mcsample"
 
       docker_swarm_advertise_interface: "eth0"
+      docker_swarm_node_labels:
+
 
 # Group of 1-3 hosts that will serve as swarm managers
 # (for testing, use a single manager; for production, define 3 managers)
