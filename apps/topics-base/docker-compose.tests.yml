@@ -43,9 +43,6 @@ services:
         stop_signal: SIGKILL
         expose:
             - 6432
-        ports:
-            # Publish port to host for debugging and PyCharm access
-            - "127.0.0.1:6432:6432"
         depends_on:
             - postgresql-server
 
