@@ -31,6 +31,7 @@ all:
         role-mail-opendkim: true
 
         # "mail-postfix-server" container and its volume
+        # Make sure that DNS SPF record allows this host to send email.
         role-mail-postfix: true
 
         # "munin-cron", "munin-httpd" containers and their shared volumes
@@ -48,6 +49,7 @@ all:
 
         # "proxy-cron-certbot", "proxy-httpd" containers, their shared volume
         # and publicly exposed ports
+        # Make sure that DNS A record points to this host
         role-proxy-httpd: true
 
         # "rabbitmq-server" container and its data volume
