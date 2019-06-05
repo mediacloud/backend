@@ -78,7 +78,6 @@
 __pycache__
 celerybeat-schedule
 coverage.xml
-Dockerfile
 Icon
 local_settings.py
 Network Trash Folder
