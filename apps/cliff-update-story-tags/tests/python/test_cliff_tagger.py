@@ -1,12 +1,11 @@
 from mediawords.db import connect_to_db
 from mediawords.util.sql import sql_now
-from cliff_update_story_tags.cliff_tagger import CLIFFTagger
 from cliff_base.cliff_store import CLIFFAnnotatorStore
 from cliff_base.sample_data import sample_cliff_response, expected_cliff_tags
+from cliff_update_story_tags.cliff_tagger import CLIFFTagger
 
 
 def test_cliff_tagger():
-
     db = connect_to_db()
 
     media = db.create(table='media', insert_hash={
