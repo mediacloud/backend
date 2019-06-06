@@ -292,8 +292,11 @@ class TestAPFetcherDB(TestDatabaseWithSchemaTestCase):
         ap.get_and_add_new_stories(db)
 
         stories = db.query("select * from stories").hashes()
-
         assert len(stories) == len(ap_stories)
+
+        story_sentences = db.query("select * from story_sentences").hashes()
+        assert len(story_sentences) == len(ap_stories)
+
         for ap_story in ap_stories:
             got_story = db.query("select * from stories where title = %(a)s", {'a': ap_story['title']}).hash()
             assert got_story
