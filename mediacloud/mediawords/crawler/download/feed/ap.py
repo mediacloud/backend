@@ -188,6 +188,7 @@ class AssociatedPressAPI:
                     log.warning("Received a 403 (forbidden) response for {} -- skipping.".format(url))
                     return None
                 else:
+                    print(response.content)
                     log.warning("Received HTTP status code {} when fetching {}".format(response.status_code, url))
 
             retries -= 1
@@ -346,8 +347,9 @@ def _fetch_stories_using_search(max_lookback: int,
     parameters and helps prevents duplicate story uuids within the collection."""
 
     items = {}
-
-    params = {"sort": "versioncreated: desc", "page_size": 100}
+    params = {}
+    params['sort'] = 'versioncreated:desc'
+    params['page_size'] = 100
 
     while True:
 
@@ -384,7 +386,8 @@ def _convert_publishdate_to_epoch(publish_date: int) -> int:
 
 
 def get_new_stories(db: DatabaseHandler = None,
-                    max_lookback: int = 43200) -> list:
+                    min_lookback: int = 43200,
+                    max_lookback: int = 129600) -> list:
     """This method fetches the latest items from the AP feed and returns a list of dicts.
 
     Parameters:
@@ -393,7 +396,11 @@ def get_new_stories(db: DatabaseHandler = None,
         database and only fetch stories for uuids not present in the database. If no db handle
         is passed, the script will return all stories (up to the max 100 without pagination)
 
-    max_lookback: Maximum lookback in seconds (defaults to 12 hours). The get_new_stories()
+        min_lookback: The minimum cutoff in seconds for new stories. New stories must be older than
+        this value to be included in the return. If the firstcreated date of a story is younger
+        than this value, it will be removed from the returned list
+
+        max_lookback: Maximum lookback in seconds (defaults to 12 hours). The get_new_stories()
         method will stop searching when it finds a story in a return older than this value.
 
     Return Value:
@@ -409,6 +416,9 @@ def get_new_stories(db: DatabaseHandler = None,
     """
     global _api
     _api = AssociatedPressAPI()
+    start_time = time.time()
+    if min_lookback is not None and max_lookback is not None and max_lookback < min_lookback:
+        raise McAPError("max_lookback cannot be less than min_lookback")
     items = {}  # list of dict items to return
     feed_stories = _fetch_stories_using_feed(db=db)
     items.update(feed_stories)
@@ -422,6 +432,9 @@ def get_new_stories(db: DatabaseHandler = None,
         items.update(search_items)
 
     list_items = sorted(list(items.values()), key=lambda k: k['publish_date'], reverse=True)
+    if min_lookback is not None:
+        list_items[:] = [item for item in list_items
+                         if _convert_publishdate_to_epoch(item['publish_date']) < (start_time - min_lookback)]
     log.info("Returning {} new stories.".format(len(list_items)))
     return list_items
 
