@@ -262,7 +262,10 @@ create type feed_type AS ENUM (
     'web_page',
 
     -- Univision.com XML feed
-    'univision'
+    'univision',
+
+    -- custom associated press api
+    'ap'
 
 );
 
