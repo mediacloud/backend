@@ -131,6 +131,15 @@ class TestAPFetcher(TestCase):
             for key in self.required_fields:
                 assert self.fixture_test_data[guid][key] == story[key]
 
+    def test_min_max_exception(self) -> None:
+        """Test the get_new_stories() for proper exception of max_lookup being less than min_lookup"""
+        min_lookback = 86400
+        max_lookback = 43200
+        with self.assertRaises(ap.McAPError) as cm:
+            ap.get_new_stories(min_lookback=min_lookback, max_lookback=max_lookback)
+        err = cm.exception
+        self.assertEqual(str(err), 'max_lookback cannot be less than min_lookback')
+
     def test_get_new_stories(self) -> None:
         """Test the main public method get_new_stories() for proper max_lookback behavior"""
         MAX_LOOKBACK = 43200
