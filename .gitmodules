@@ -19,3 +19,6 @@
 [submodule "apps/common/src/python/snowball"]
 	path = apps/common/src/python/snowball
 	url = https://github.com/snowballstem/snowball.git
+[submodule "doc/images"]
+	path = doc/images
+	url = https://github.com/berkmancenter/mediacloud-docs-images.git
