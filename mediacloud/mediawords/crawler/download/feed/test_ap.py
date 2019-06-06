@@ -143,13 +143,13 @@ class TestAPFetcher(TestCase):
     def test_get_new_stories(self) -> None:
         """Test the main public method get_new_stories() for proper max_lookback behavior"""
         MAX_LOOKBACK = 43200
-
+        MIN_LOOKBACK = 1000
         # Change Feed Fixture data and content data so that all dates are younger than max_lookback
         fixture_feed_data = json.loads(self.fixture_feed_data)
 
         for item in fixture_feed_data['data']['items']:
             guid = item['item']['altids']['itemid']
-            mock_publish_date = epoch_to_publishdate(int(time.time()))
+            mock_publish_date = epoch_to_publishdate(int(time.time() - (MIN_LOOKBACK + 1)))
             item['item']['firstcreated'] = mock_publish_date
             self.fixture_content_data[guid]['data']['item']['firstcreated'] = mock_publish_date
             self.fixture_test_data[guid]['publish_date'] = mock_publish_date
@@ -249,8 +249,8 @@ class TestAPFetcher(TestCase):
 
         # There should only be 5 stories. The get_new_stories() method will stop processing stories once it reaches one
         # beyond the max_lookback and returns up to one story passed the max_lookback parameter
-        stories = ap.get_new_stories()
-        assert len(stories) == 5
+        stories = ap.get_new_stories(min_lookback=MIN_LOOKBACK, max_lookback=MAX_LOOKBACK)
+        assert len(stories) == 4
 
         # Test that all required fields were returned for each story
         for story in stories:
