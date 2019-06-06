@@ -41,56 +41,6 @@ def test_extract_url_parameters() -> None:
     assert ap._extract_url_parameters(url) == {'a': '5', 'b': 'abc'}
 
 
-def setup_mock_api(test: TestCase) -> None:
-    """Setup mock associate press api using httpretty."""
-    base_dir = os.path.dirname(os.path.realpath(__file__))
-    fixture_data_dir = '{base_dir}/ap_test_fixtures/'.format(base_dir=base_dir)
-    test._api = ap.AssociatedPressAPI()
-    ap._api = test._api
-    MOCK_RESPONSE_HEADERS = {'Content-Type': 'application/json; charset=utf-8',
-                             'x-mediaapi-Q-name': 'feed',
-                             'x-mediaapi-Q-secondsLeft': '30',
-                             'x-mediaapi-Q-used': '1/100'}
-
-    fixture_feed_data = open(fixture_data_dir + "test_ap_fixture_feed_data", "r").read()
-    fixture_test_data = open(fixture_data_dir + "test_ap_fixture_test_data", "r").read()
-    test.fixture_test_data = json.loads(fixture_test_data)
-    test.fixture_data_stories = json.loads(fixture_feed_data)['data']['items']
-    fixture_content_data = json.loads(open(fixture_data_dir + "test_ap_fixture_content_data", "r").read())
-    test.required_fields = set(['guid', 'url', 'publish_date', 'title', 'description', 'text', 'content'])
-    test.present_guids = set()
-
-    for item in test.fixture_data_stories:
-        story = item['item']
-        guid = story['altids']['itemid']
-        test.present_guids.add(guid)
-        version = story['version']
-        mock_content_url = "https://api.ap.org/media/v/content/{guid}".format(guid=guid)
-        mock_nitf_url = "https://api.ap.org/media/v/content/{}.{}/download".format(guid, version)
-        content_mock_body = json.dumps(fixture_content_data[guid])
-        nitf_mock_body = open(
-            fixture_data_dir + "test_ap_fixture_{guid}.nitf".format(guid=guid), "r").read().rstrip()
-
-        # Register mock content responses
-        httpretty.register_uri(
-            httpretty.GET,
-            mock_content_url,
-            adding_headers=MOCK_RESPONSE_HEADERS,
-            body=content_mock_body)
-
-        # Register mock nitf responses
-        httpretty.register_uri(httpretty.GET, mock_nitf_url,
-                               adding_headers=MOCK_RESPONSE_HEADERS, body=nitf_mock_body)
-
-    httpretty.enable()
-
-
-def teardown_mock_api(test: TestCase) -> None:
-    """Tear down Associarted Press mock api."""
-    httpretty.disable()
-    httpretty.reset()
-
-
 class TestAPFetcher(TestCase):
     """Test Class for AP Story Fetcher"""
 
@@ -121,6 +71,8 @@ class TestAPFetcher(TestCase):
 
     def setUp(self):
         """Setup Method"""
+        config = mediawords.util.config.get_config()
+        config['associated_press']['apikey'] = 'DUMMY'
         base_dir = os.path.dirname(os.path.realpath(__file__))
         self.fixture_data_dir = '{base_dir}/ap_test_fixtures/'.format(base_dir=base_dir)
         self._api = ap.AssociatedPressAPI()
@@ -149,7 +101,8 @@ class TestAPFetcher(TestCase):
 
     def tearDown(self) -> None:
         """Teardown method"""
-        teardown_mock_api(self)
+        httpretty.disable()
+        httpretty.reset()
 
     def test_fetch_nitf_rendition(self) -> None:
         """Test fetching of nitf content and that it is valid XML and correct size"""
@@ -296,24 +249,44 @@ class TestAPFetcher(TestCase):
                 assert key in story
 
 
+def mock_get_new_stories():
+    """Simple mock to return stories in the form returned by ap.get_new_stories()"""
+    stories = []
+    for i in range(10):
+        story = {
+            'url': "https://hosted.ap.org/story/%d" % i,
+            'guid': "https://hosted.ap.org/guid/%d" % i,
+            'title': "AP Story Title %d" % i,
+            'description': "AP Story Description %d" % i,
+            'publish_date': '2018-01-01 00:00:00',
+            'text': "here is some ap story text for story %d" % i,
+            'content': "<xml><body>here is some ap story text for story %d" % i
+        }
+        stories.append(story)
+
+    return stories
+
+
 class TestAPFetcherDB(TestDatabaseWithSchemaTestCase):
     """Test Class with AP mock api and database."""
 
-    def setUp(self) -> None:
-        super().setUp()
-        setup_mock_api(self)
-
-    def tearDown(self) -> None:
-        super().tearDown()
-        teardown_mock_api(self)
-
     def test_get_and_add_new_stories(self) -> None:
         """Test get_and_ad_new_stories()."""
-        return
         db = self.db()
+
+        db.create('media', {'url': 'ap.com', 'name': ap.AP_MEDIUM_NAME})
+
+        ap_stories = mock_get_new_stories()
+
+        ap.get_new_stories = lambda x: ap_stories
 
         ap.get_and_add_new_stories(db)
 
         stories = db.query("select * from stories").hashes()
 
-        assert len(stories) == len(self.fixture_data_stories) + 1
+        assert len(stories) == len(ap_stories)
+        for ap_story in ap_stories:
+            got_story = db.query("select * from stories where title = %(a)s", {'a': ap_story['title']}).hash()
+            assert got_story
+            for field in ['url', 'guid', 'description', 'publish_date']:
+                assert got_story[field] == ap_story[field]

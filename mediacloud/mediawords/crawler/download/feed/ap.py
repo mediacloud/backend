@@ -3,7 +3,6 @@
 import requests
 import json
 import time
-import logging
 import math
 from collections import defaultdict
 import urllib.parse as urlparse
@@ -13,16 +12,19 @@ import datetime
 import pytz
 
 from mediawords.db import DatabaseHandler
+import mediawords.dbi.stories.stories
+import mediawords.tm.stories
 from mediawords.util.config import get_config
+import mediawords.util.url
 import mediawords.util.web.user_agent
 
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+from mediawords.util.log import create_logger
+log = create_logger(__name__)
 
 _api = None
 
 # name of associated press media source
-AP_MEDIA_NAME = 'AP'
+AP_MEDIUM_NAME = 'AP'
 
 
 class McAPError(Exception):
@@ -57,7 +59,7 @@ class AssociatedPressAPI:
         if 'associated_press' in config:
             self.api_key = config['associated_press'].get('apikey')
 
-        if self.api_key is None:
+        if not self.api_key:
             raise McAPMissingAPIKey("API key configuration data missing for associated_press.")
 
     def feed(self, **kwargs) -> dict:
@@ -171,22 +173,22 @@ class AssociatedPressAPI:
         # Begin making request and retry up to retry limit
         while retries:
 
-            logger.debug("Making request to {} with parameters {}".format(url, params))
+            log.debug("Making request to {} with parameters {}".format(url, params))
 
             try:
                 response = requests.get(url, params=params, timeout=30)
             except Exception as e:
-                logger.warning("Encountered an exception while making request to {}. Exception info: {}".format(url, e))
+                log.warning("Encountered an exception while making request to {}. Exception info: {}".format(url, e))
             else:
                 if response.status_code == 200:
-                    logger.debug("Successfully retrieved {}".format(url))
+                    log.debug("Successfully retrieved {}".format(url))
                     self._update_ratelimit_info(response.headers)
                     return response.content
                 elif response.status_code == 403:
-                    logger.warning("Received a 403 (forbidden) response for {} -- skipping.".format(url))
+                    log.warning("Received a 403 (forbidden) response for {} -- skipping.".format(url))
                     return None
                 else:
-                    logger.warning("Received HTTP status code {} when fetching {}".format(response.status_code, url))
+                    log.warning("Received HTTP status code {} when fetching {}".format(response.status_code, url))
 
             retries -= 1
 
@@ -194,7 +196,7 @@ class AssociatedPressAPI:
                 raise McAPFetchError("Could not fetch {} after {} attempts. Giving up.".format(url, self.retry_limit))
 
             wait_time = (self.retry_limit - retries) ** 2
-            logger.info("Exponentially backing off for {} seconds.".format(wait_time))
+            log.info("Exponentially backing off for {} seconds.".format(wait_time))
             time.sleep(wait_time)
 
     def _check_ratelimit(self, api_method: str) -> None:
@@ -205,7 +207,7 @@ class AssociatedPressAPI:
             if (current_window_remaining < 1 and next_window > time.time()):
                 wait_time = math.ceil(self.ratelimit_info[api_method]['next_window'] - time.time())
                 if wait_time > 0:
-                    logger.info('Rate limit for {}. Sleeping {} before next API call'.format(api_method, wait_time))
+                    log.info('Rate limit for {}. Sleeping {} before next API call'.format(api_method, wait_time))
                     time.sleep(wait_time)
 
     def _update_ratelimit_info(self, headers):
@@ -230,10 +232,10 @@ def _id_exists_in_db(db: DatabaseHandler,
     """Internal method to check if item exists in the database."""
     guid_exists = db.query(
         "select 1 from stories s join media m using (media_id) where m.name = %(b)s and s.guid = %(a)s",
-        {'a': guid, 'b': AP_MEDIA_NAME}).hash()
+        {'a': guid, 'b': AP_MEDIUM_NAME}).hash()
 
     if guid_exists:
-        logger.debug('Story with guid: {} is already in the database -- skipping story.')
+        log.debug('Story with guid: {} is already in the database -- skipping story.')
         return True
     return False
 
@@ -246,7 +248,7 @@ def _fetch_nitf_rendition(story: dict,
     nitf_uri = story['renditions']['nitf']['href']
     nitf_params = _extract_url_parameters(nitf_uri)
     nitf_path = "{guid}.{version}/download".format(guid=guid, version=version)
-    logger.debug("Fetching story text using nitf rendition (guid: {})".format(guid))
+    log.debug("Fetching story text using nitf rendition (guid: {})".format(guid))
     nitf_content = _api.content(nitf_path, **nitf_params).decode()
     return nitf_content
 
@@ -285,15 +287,15 @@ def _process_stories(stories: list,
             continue
 
         if existing_guids is not None and guid in existing_guids:
-            logger.info("Story id {} was previously ingested -- skipping.".format(guid))
+            log.info("Story id {} was previously ingested -- skipping.".format(guid))
             continue
 
-        logger.info('Found new story (guid: {}, version: {})'.format(guid, version))
+        log.info('Found new story (guid: {}, version: {})'.format(guid, version))
 
         # Get story content
         content_uri = story['uri']
         content_params = _extract_url_parameters(content_uri)
-        logger.debug("Fetching content for story (guid: {})".format(guid))
+        log.debug("Fetching content for story (guid: {})".format(guid))
         content = _api.content(guid, **content_params)
         if content is None:
             continue
@@ -315,7 +317,7 @@ def _process_stories(stories: list,
             # This is held in an array which suggests more than one link for a story is possible?
             story_data['url'] = content['links'][0]['href']
         except Exception:
-            logger.warning('No URL link found for guid {}. Using the story content URL instead.'.format(guid))
+            log.warning('No URL link found for guid {}. Using the story content URL instead.'.format(guid))
             story_data['url'] = content['renditions']['nitf']['href']
         publish_age = int(time.time() - _convert_publishdate_to_epoch(publish_date))
         story_data['text'] = soup.find('body.content').text
@@ -323,11 +325,11 @@ def _process_stories(stories: list,
         try:
             story_data['description'] = content['headline_extended']
         except Exception:
-            logger.warning("No extended headline present for guid: {}. Setting description to ''.".format(guid))
+            log.warning("No extended headline present for guid: {}. Setting description to ''.".format(guid))
             story_data['description'] = ''
         items[guid] = story_data
         if max_lookback is not None and publish_age > max_lookback:
-            logger.debug("Reached max_lookback limit (oldest story age is {:,} seconds). Stopping.".format(publish_age))
+            log.debug("Reached max_lookback limit (oldest story age is {:,} seconds). Stopping.".format(publish_age))
             break
 
     return items
@@ -414,13 +416,13 @@ def get_new_stories(db: DatabaseHandler = None,
     oldest_story = max([int(time.time() - _convert_publishdate_to_epoch(i['publish_date'])) for i in items.values()])
 
     if oldest_story < max_lookback:
-        logger.debug(
+        log.debug(
             "Retrieved {} stories. Oldest story {:,} secs. Fetching older stories.".format(len(items), oldest_story))
         search_items = _fetch_stories_using_search(max_lookback=max_lookback, db=db, existing_guids=set(items.keys()))
         items.update(search_items)
 
     list_items = sorted(list(items.values()), key=lambda k: k['publish_date'], reverse=True)
-    logger.info("Returning {} new stories.".format(len(list_items)))
+    log.info("Returning {} new stories.".format(len(list_items)))
     return list_items
 
 
@@ -429,8 +431,15 @@ def get_and_add_new_stories(db: DatabaseHandler) -> None:
 
     ap_stories = get_new_stories(db)
 
-    ap_medium = db.query("select * from media where name = %(a)s", {'a': AP_MEDIA_NAME}).hash()
-    ap_feed = db.find_or_create('feeds', {'name': 'API Feed', 'active': False, 'type': 'syndicated'})
+    ap_medium = db.query("select * from media where name = %(a)s", {'a': AP_MEDIUM_NAME}).hash()
+    ap_feed = {
+        'media_id': ap_medium['media_id'],
+        'name': 'API Feed',
+        'active': False,
+        'type': 'syndicated',
+        'url': 'http://ap.com'
+    }
+    ap_feed = db.find_or_create('feeds', ap_feed)
 
     for ap_story in ap_stories:
         story = {
@@ -444,24 +453,14 @@ def get_and_add_new_stories(db: DatabaseHandler) -> None:
 
         story = mediawords.dbi.stories.stories.add_story(db, story, ap_feed['feeds_id'])
 
-        story_download = {
-            'state': 'success',
-            'url': ap_story['url'],
-            'feeds_id': ap_feed['feeds_id'],
-            'stories_id': story['stories_id'],
-            'type': 'content',
-            'priority': 0,
-            'sequence': 0,
-            'extracted': True
-        }
-
-        story_download = db.create('downloads', story_download)
+        story_download = mediawords.tm.stories.create_download_for_new_story(db, story, ap_feed)
 
         download_text = {
             'downloads_id': story_download['downloads_id'],
-            'download_text': ap_story['text']
+            'download_text': ap_story['text'],
+            'download_text_length': len(ap_story['text'])
         }
 
         download_text = db.create('download_texts', download_text)
 
-        mediawords.storyvectors.update_story_sentences_and_language(db, story)
+        mediawords.story_vectors.update_story_sentences_and_language(db, story)
