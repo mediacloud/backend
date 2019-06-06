@@ -285,6 +285,7 @@ def _process_stories(stories: list,
         # If DB handle was passed, check if this story has previously been retrieved (to avoid unnecessary API calls to
         # content endpoint)
         if db and _id_exists_in_db(db, guid):
+            log.info("Story id {} is in database -- skipping.".format(guid))
             continue
 
         if existing_guids is not None and guid in existing_guids:
@@ -432,6 +433,7 @@ def get_new_stories(db: DatabaseHandler = None,
         items.update(search_items)
 
     list_items = sorted(list(items.values()), key=lambda k: k['publish_date'], reverse=True)
+    log.info("Found {} new stories before applying min_lookback.".format(len(list_items)))
     if min_lookback is not None:
         list_items[:] = [item for item in list_items
                          if _convert_publishdate_to_epoch(item['publish_date']) < (start_time - min_lookback)]
@@ -474,6 +476,12 @@ def get_and_add_new_stories(db: DatabaseHandler) -> None:
             'download_text_length': len(ap_story['text'])
         }
 
-        download_text = db.create('download_texts', download_text)
+        db.query(
+            """
+            insert into download_texts (downloads_id, download_text, download_text_length)
+                values (%(downloads_id)s, %(download_text)s, %(download_text_length)s)
+            """,
+            download_text)
 
+        story['story_text'] = ap_story['text']
         mediawords.story_vectors.update_story_sentences_and_language(db, story)
