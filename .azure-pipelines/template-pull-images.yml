@@ -2,6 +2,6 @@
 steps:
 
 # Don't stop on a single failure because the image might not exist or a
-# network error might have happened.
-- script: ./dev/pull.py | bash || true
+# network error might have happened, so not "bash -e".
+- script: ./dev/pull.py | bash
   displayName: Pull images
