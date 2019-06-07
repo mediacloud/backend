@@ -615,7 +615,7 @@ services:
                     # CPU core limit
                     cpus: "1"
                     # RAM limit
-                    memory: 8G
+                    memory: 4G
 
     #
     # Purge PostgreSQL object caches

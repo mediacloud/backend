@@ -7,13 +7,13 @@ FROM dockermediacloud/base:latest
 # Install Python 2.7 (Python 3 not yet supported by the service)
 RUN \
     apt-get -y --no-install-recommends install \
+        brotli \
         build-essential \
         libhdf5-10 \
         python2.7 \
         python2.7-dev \
         python-pip \
         python-setuptools \
-        unzip \
     && \
     pip2 install --upgrade pip && \
     true
