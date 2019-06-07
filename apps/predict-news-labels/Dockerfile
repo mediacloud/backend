@@ -6,6 +6,8 @@ FROM dockermediacloud/base:latest
 
 # Install Python 2.7 (Python 3 not yet supported by the service)
 RUN \
+    # FIXME don't update APT every time
+    apt-get -y update && \
     apt-get -y --no-install-recommends install \
         brotli \
         build-essential \
