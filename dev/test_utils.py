@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from utils import container_dir_name_from_image_name, DefaultDockerHubConfiguration, _ordered_container_dependencies
+from utils import container_dir_name_from_image_name, _ordered_container_dependencies
 
 
 class TestUtils(TestCase):
@@ -8,7 +8,7 @@ class TestUtils(TestCase):
     def test_container_dir_name_from_image_name(self):
         assert container_dir_name_from_image_name(
             image_name='dockermediacloud/topics-fetch-twitter-urls:latest',
-            conf=DefaultDockerHubConfiguration(),
+            docker_hub_username='dockermediacloud',
         ) == 'topics-fetch-twitter-urls'
 
     def test_container_dependency_tree(self):

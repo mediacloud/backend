@@ -6,69 +6,36 @@ import subprocess
 from typing import Dict, List, Set
 
 
-class DockerHubConfiguration(object):
-    """
-    Docker Hub configuration.
-    """
-
-    __slots__ = [
-        'username',
-    ]
-
-    def __init__(self, username: str):
-        """
-        Constructor.
-
-        :param username: Docker Hub username where the images are hosted.
-        """
-        if not re.match(r'^[\w\-_]+$', username):
-            raise ValueError("Docker Hub username is invalid: {}".format(username))
-
-        self.username = username
-
-
-class DefaultDockerHubConfiguration(DockerHubConfiguration):
-    """
-    Default Docker Hub configuration.
-    """
-
-    def __init__(self):
-        """
-        Initializes object with default values.
-        """
-        super().__init__(username='dockermediacloud')
-
-
-def _image_name_from_container_name(container_name: str, conf: DockerHubConfiguration) -> str:
+def _image_name_from_container_name(container_name: str, docker_hub_username: str) -> str:
     """
     Convert container directory name to an image name.
 
     :param container_name: Container directory name.
-    :param conf: Docker Hub configuration object.
+    :param docker_hub_username: Docker Hub username.
     :return: Image name (with username, prefix and version).
     """
     if not re.match(r'^[\w\-]+$', container_name):
         raise ValueError("Container name is invalid: {}".format(container_name))
 
     return '{username}/{container_name}'.format(
-        username=conf.username,
+        username=docker_hub_username,
         container_name=container_name,
     )
 
 
-def container_dir_name_from_image_name(image_name: str, conf: DockerHubConfiguration) -> str:
+def container_dir_name_from_image_name(image_name: str, docker_hub_username: str) -> str:
     """
     Convert image name to a container directory name.
 
     :param image_name: Image name (with username, prefix and version).
-    :param conf: Docker Hub configuration object.
+    :param docker_hub_username: Docker Hub username.
     :return: Container directory name.
     """
     container_name = image_name
 
-    expected_prefix = conf.username + '/'
+    expected_prefix = docker_hub_username + '/'
     if not container_name.startswith(expected_prefix):
-        raise ValueError("Image name '{}' is expected to start with '{}/'.".format(image_name, conf.username))
+        raise ValueError("Image name '{}' is expected to start with '{}/'.".format(image_name, docker_hub_username))
     container_name = container_name[len(expected_prefix):]
 
     # Remove version
@@ -77,11 +44,12 @@ def container_dir_name_from_image_name(image_name: str, conf: DockerHubConfigura
     return container_name
 
 
-def _docker_parent_image_name(dockerfile_path: str, conf: DockerHubConfiguration) -> str:
+def _docker_parent_image_name(dockerfile_path: str, docker_hub_username: str) -> str:
     """
     Return Docker parent image name (FROM value) from a Dockerfile.
 
     :param dockerfile_path: Path to Dockerfile to parse.
+    :param docker_hub_username: Docker Hub username.
     :return: FROM value as found in the Dockerfile.
     """
     if not os.path.isfile(dockerfile_path):
@@ -99,7 +67,7 @@ def _docker_parent_image_name(dockerfile_path: str, conf: DockerHubConfiguration
                 assert parent_image, "Parent image should be set at this point."
 
                 # Remove version tag if it's one of our own images
-                if parent_image.startswith(conf.username + '/'):
+                if parent_image.startswith(docker_hub_username + '/'):
                     parent_image = re.sub(r':(.+?)$', '', parent_image)
 
                 return parent_image
@@ -107,23 +75,23 @@ def _docker_parent_image_name(dockerfile_path: str, conf: DockerHubConfiguration
     raise ValueError("No FROM clause found in {}.".format(dockerfile_path))
 
 
-def _image_belongs_to_username(image_name: str, conf: DockerHubConfiguration) -> bool:
+def _image_belongs_to_username(image_name: str, docker_hub_username: str) -> bool:
     """
     Determine whether an image is hosted under a given Docker Hub username and thus has to be built.
 
     :param image_name: Image name (with username, prefix and version).
-    :param conf: Docker Hub configuration object.
+    :param docker_hub_username: Docker Hub username.
     :return: True if image is to be hosted on a Docker Hub account pointed to in configuration.
     """
-    return image_name.startswith(conf.username + '/')
+    return image_name.startswith(docker_hub_username + '/')
 
 
-def _container_dependency_map(all_apps_dir: str, conf: DockerHubConfiguration) -> Dict[str, str]:
+def _container_dependency_map(all_apps_dir: str, docker_hub_username: str) -> Dict[str, str]:
     """
     Determine which container depends on which parent image.
 
     :param all_apps_dir: Directory with container subdirectories.
-    :param conf: Docker Hub configuration object.
+    :param docker_hub_username: Docker Hub username.
     :return: Map of dependent - dependency container directory names.
     """
     if not os.path.isdir(all_apps_dir):
@@ -134,12 +102,15 @@ def _container_dependency_map(all_apps_dir: str, conf: DockerHubConfiguration) -
     for container_path in glob.glob('{}/*'.format(all_apps_dir)):
         if os.path.isdir(container_path):
             container_name = os.path.basename(container_path)
-            image_name = _image_name_from_container_name(container_name=container_name, conf=conf)
+            image_name = _image_name_from_container_name(
+                container_name=container_name,
+                docker_hub_username=docker_hub_username,
+            )
 
             dockerfile_path = os.path.join(container_path, 'Dockerfile')
             parent_docker_image = _docker_parent_image_name(
                 dockerfile_path=dockerfile_path,
-                conf=conf,
+                docker_hub_username=docker_hub_username,
             )
 
             parent_images[image_name] = parent_docker_image
@@ -187,29 +158,32 @@ def _ordered_container_dependencies(dependencies: Dict[str, str]) -> List[Set[st
     return tree
 
 
-def _ordered_dependencies_from_directory(all_apps_dir: str, conf: DockerHubConfiguration) -> List[Set[str]]:
+def _ordered_dependencies_from_directory(all_apps_dir: str, docker_hub_username: str) -> List[Set[str]]:
     """
     Return a list of sets of container names to build in order.
 
     :param all_apps_dir: Directory with container subdirectories.
-    :param conf: Docker Hub configuration object.
+    :param docker_hub_username: Docker Hub username.
     :return: List of sets of container names in the order in which they should be built.
     """
-    dependency_map = _container_dependency_map(all_apps_dir=all_apps_dir, conf=conf)
+    dependency_map = _container_dependency_map(all_apps_dir=all_apps_dir, docker_hub_username=docker_hub_username)
     ordered_dependencies = _ordered_container_dependencies(dependency_map)
     return ordered_dependencies
 
 
-def docker_images(all_apps_dir: str, only_belonging_to_user: bool, conf: DockerHubConfiguration) -> List[str]:
+def docker_images(all_apps_dir: str, only_belonging_to_user: bool, docker_hub_username: str) -> List[str]:
     """
     Return a list of Docker images to pull / build / push in the correct order.
 
     :param all_apps_dir: Directory with container subdirectories.
     :param only_belonging_to_user: If True, return only the images that belong to the configured user.
-    :param conf: Docker Hub configuration object.
+    :param docker_hub_username: Docker Hub username.
     :return: List of tagged Docker images to pull / build / push in the correct order.
     """
-    ordered_dependencies = _ordered_dependencies_from_directory(all_apps_dir=all_apps_dir, conf=conf)
+    ordered_dependencies = _ordered_dependencies_from_directory(
+        all_apps_dir=all_apps_dir,
+        docker_hub_username=docker_hub_username,
+    )
 
     images = []
 
@@ -217,7 +191,7 @@ def docker_images(all_apps_dir: str, only_belonging_to_user: bool, conf: DockerH
         for dependency in sorted(level_dependencies):
 
             if only_belonging_to_user:
-                if not _image_belongs_to_username(image_name=dependency, conf=conf):
+                if not _image_belongs_to_username(image_name=dependency, docker_hub_username=docker_hub_username):
                     continue
 
             images.append(dependency)
@@ -280,6 +254,9 @@ class DockerArguments(object):
         """
         self._args = args
 
+        if not os.path.isfile(os.path.join(self.all_apps_dir(), 'docker-compose.yml.dist')):
+            raise ValueError("Invalid directory with container subdirectories '{}'.".format(self.all_apps_dir()))
+
     def all_apps_dir(self) -> str:
         """
         Return directory with container subdirectories.
@@ -341,19 +318,13 @@ class DockerHubArguments(DockerArguments):
     Arguments that include Docker Hub credentials.
     """
 
-    def docker_hub_configuration(self) -> DockerHubConfiguration:
+    def docker_hub_username(self) -> str:
         """
-        Return a Docker Hub configuration object from an argument parser object.
+        Return a Docker Hub username.
 
-        :return: DockerHubConfiguration object.
+        :return: Docker Hub username.
         """
-
-        if not os.path.isfile(os.path.join(self.all_apps_dir(), 'docker-compose.yml.dist')):
-            raise ValueError("Invalid directory with container subdirectories '{}'.".format(self.all_apps_dir()))
-
-        return DockerHubConfiguration(
-            username=self._args.dockerhub_user,
-        )
+        return self._args.dockerhub_user
 
 
 class DockerHubArgumentParser(DockerArgumentParser):
@@ -367,9 +338,7 @@ class DockerHubArgumentParser(DockerArgumentParser):
         """
         super().__init__(description=description)
 
-        default_conf = DefaultDockerHubConfiguration()
-
-        self._parser.add_argument('-u', '--dockerhub_user', required=False, type=str, default=default_conf.username,
+        self._parser.add_argument('-u', '--dockerhub_user', required=False, type=str, default='dockermediacloud',
                                   help='Docker Hub user that is hosting the images.')
 
     def parse_arguments(self) -> DockerHubArguments:
