@@ -18,11 +18,7 @@ use MediaWords::CommonLibs;
 use MediaWords::DB;
 use MediaWords::DBI::Downloads::Store;
 
-use FindBin;
 use Text::CSV_XS;
-
-require "$FindBin::Bin/raw_download_content_column.inc.pl";
-our $raw_download_content_column;
 
 sub main
 {
@@ -73,7 +69,7 @@ SQL
     ) or die "" . Text::CSV_XS->error_diag();
 
     # Append raw content as last column
-    $csv->combine( @{ $column_names }, $raw_download_content_column );
+    $csv->combine( @{ $column_names }, '_raw_download_content' );
     print $csv->string . "\n";
 
     my $n = 1;

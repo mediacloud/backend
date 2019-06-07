@@ -19,12 +19,8 @@ use MediaWords::DB;
 use MediaWords::Crawler::Engine;
 
 use Data::Dumper;
-use FindBin;
 use Readonly;
 use Text::CSV_XS;
-
-require "$FindBin::Bin/raw_download_content_column.inc.pl";
-our $raw_download_content_column;
 
 sub main
 {
@@ -73,8 +69,8 @@ sub main
         INFO "Importing download $n...";
         ++$n;
 
-        my $raw_download_content = $download->{ $raw_download_content_column };
-        delete $download->{ $raw_download_content_column };
+        my $raw_download_content = $download->{ '_raw_download_content' };
+        delete $download->{ '_raw_download_content' };
 
         # Cast some columns
         $download->{ feeds_id }   = $download->{ feeds_id }         ? int( $download->{ feeds_id } )   : undef;    # NULL
