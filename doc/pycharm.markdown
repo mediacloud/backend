@@ -191,6 +191,18 @@ To set up *Python Console*:
 
    ![](https://github.com/berkmancenter/mediacloud-docs-images/raw/master/docker-pycharm/console-02-running.png)
 
+## Configure default test runner
+
+PyCharm tries to auto-determine the default test runner for every app but sometimes fails to do so.
+
+To make sure that you'll be always using *pytest* to run tests:
+
+1. Open *Tools* -> *Python Integrated Tools* and make sure that *Default test runner:* is set to *pytest*.
+
+   ![](https://github.com/berkmancenter/mediacloud-docs-images/raw/master/docker-pycharm/default-test-runner-01-runner.png)
+
+2. From this point on, IDE will run every Python test using *pytest*.
+
 ## Configure SQL schema
 
 Without the SQL schema dialect and data source configuration, PyCharm will complain about not being able to identify the schema dialect and verify that objects referred to in various SQL queries do exist in the schema:
