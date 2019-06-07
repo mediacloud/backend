@@ -4,6 +4,8 @@
 
 FROM dockermediacloud/import-solr-data:latest
 
+USER root
+
 # Copy sources
 COPY src/ /opt/mediacloud/src/import-solr-data-for-testing/
 ENV PERL5LIB="/opt/mediacloud/src/import-solr-data-for-testing/perl:${PERL5LIB}"
