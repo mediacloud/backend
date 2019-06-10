@@ -1,6 +1,11 @@
 #
 # Set up Media Cloud host system
 #
+# Usage:
+#
+#   1) Set up inventory/hosts.yml using a sample.
+#   2) Run: ansible-playbook -vvv setup.yml
+#
 
 - name: Set up host system
   hosts: all
