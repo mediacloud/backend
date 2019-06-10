@@ -1,7 +1,25 @@
 #!/usr/bin/env python3
 
+"""
+Run a single test in a Docker Compose environment.
+
+Usage:
+
+    ./dev/run_test.py apps/common/tests/python/mediawords/test_db.py
+
+or:
+
+    ./dev/run_test.py apps/common/tests/perl/MediaWords/Solr.t
+
+This script can print the commands that are going to be run instead of running them itself:
+
+    ./dev/run_test.py -p apps/common/tests/perl/MediaWords/Solr.t
+
+"""
+
 import os
 import shlex
+import subprocess
 from pathlib import Path
 from typing import List
 
@@ -48,9 +66,15 @@ def docker_test_commands(all_apps_dir: str, test_file: str) -> List[List[str]]:
     test_path_in_container = '/opt/mediacloud/tests' + test_file[len(tests_dir):]
 
     if test_file.endswith('.py'):
-        test_command = 'py.test -s --verbose ' + test_path_in_container
+        test_command = [
+            'py.test', '-s', '-v',
+            test_path_in_container,
+        ]
     elif test_file.endswith('.t'):
-        test_command = 'prove ' + test_path_in_container
+        test_command = [
+            'prove',
+            test_path_in_container,
+        ]
     else:
         raise ValueError("Not sure how to run this test: {}".format(test_path_in_container))
 
@@ -61,12 +85,14 @@ def docker_test_commands(all_apps_dir: str, test_file: str) -> List[List[str]]:
     if not os.access(run_script, os.X_OK):
         raise ValueError("Print run commands script '{}' is not executable.".format(run_script))
 
-    commands.append([
-        run_script,
-        '--all_apps_dir', all_apps_dir,
-        app_dirname,
-        test_command,
-    ])
+    commands.append(
+        [
+            run_script,
+            '--all_apps_dir', all_apps_dir,
+            app_dirname,
+            '--',
+        ] + test_command
+    )
 
     return commands
 
@@ -97,8 +123,7 @@ class DockerRunTestArgumentParser(DockerArgumentParser):
         :param description: Description of the script to print when "--help" is passed.
         """
         super().__init__(description=description)
-        self._parser.add_argument('test_file',
-                                  help='Perl or Python test file.')
+        self._parser.add_argument('test_file', help='Perl or Python test file.')
 
     def parse_arguments(self) -> DockerRunTestArguments:
         """
@@ -114,4 +139,7 @@ if __name__ == '__main__':
     args = parser.parse_arguments()
 
     for command_ in docker_test_commands(all_apps_dir=args.all_apps_dir(), test_file=args.test_file()):
-        print('bash <(' + ' '.join([shlex.quote(c) for c in command_]) + ')')
+        if args.print_commands():
+            print(' '.join([shlex.quote(c) for c in command_]))
+        else:
+            subprocess.check_call(command_)

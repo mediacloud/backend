@@ -1,16 +1,25 @@
 #!/usr/bin/env python3
 
 """
-Print commands that will set up Compose environment, run a command, and then clean up said environment.
+Set up Docker Compose environment, run a command, and then clean up said environment.
 
-Usage example:
+Usage:
 
-    bash <(./dev/run.py common bash)
+    ./dev/run.py common bash
+
+or:
+
+    ./dev/run.py common -- py.test -v -s /path/to/test.py
+
+This script can print the commands that are going to be run instead of running them itself:
+
+    ./dev/run.py -p common bash
 
 """
 
 import os
 import re
+import subprocess
 from pathlib import Path
 from typing import List
 
@@ -51,7 +60,7 @@ def _validate_docker_compose_yml(docker_compose_path: str, container_name: str) 
             raise InvalidDockerComposeYMLException("No '{} key under 'services'.".format(container_name))
 
 
-def _project_name(container_name: str, command: str) -> str:
+def _project_name(container_name: str, command: List[str]) -> str:
     """
     Return docker-compose "project name" for a specific command.
 
@@ -59,6 +68,7 @@ def _project_name(container_name: str, command: str) -> str:
     :param command: Command to run in said container.
     :return: docker-compose project name.
     """
+    command = ' '.join(command)
     sanitized_command = re.sub(r'\W+', '_', command, flags=re.ASCII).lower()
     sanitized_command = sanitized_command.strip('_')
 
@@ -67,7 +77,7 @@ def _project_name(container_name: str, command: str) -> str:
     return project_name
 
 
-def docker_run_commands(all_apps_dir: str, app_dirname: str, command: str) -> List[List[str]]:
+def docker_run_commands(all_apps_dir: str, app_dirname: str, command: List[str]) -> List[List[str]]:
     """
     Return a list commands to execute in order to run a command in the main container within Compose environment.
 
@@ -99,20 +109,16 @@ def docker_run_commands(all_apps_dir: str, app_dirname: str, command: str) -> Li
 
     commands = list()
 
-    commands.append([
-        'docker-compose',
-        '--project-name', project_name,
-        '--file', docker_compose_path,
-        'run',
-        '--rm',
-        container_name,
-        command,
-    ])
-
-    # Store exit code to later send back to the caller
-    commands.append([
-        'CONTAINER_EXIT_CODE=$?',
-    ])
+    commands.append(
+        [
+            'docker-compose',
+            '--project-name', project_name,
+            '--file', docker_compose_path,
+            'run',
+            '--rm',
+            container_name,
+        ] + command
+    )
 
     commands.append([
         'docker-compose',
@@ -120,11 +126,6 @@ def docker_run_commands(all_apps_dir: str, app_dirname: str, command: str) -> Li
         '--file', docker_compose_path,
         'down',
         '--volumes',
-    ])
-
-    # Send back main container's exit code to the caller
-    commands.append([
-        'exit', '$CONTAINER_EXIT_CODE',
     ])
 
     return commands
@@ -150,6 +151,18 @@ class DockerRunArguments(DockerArguments):
         """
         return self._args.command
 
+    def args(self) -> List[str]:
+        """
+        Return arguments of the command to run in the main container.
+
+        :return: Arguments of the command to run in the main container.
+        """
+        return self._args.args
+
+    def concat_command_and_args(self) -> str:
+        """Return concatenated command and arguments."""
+        return ' '.join([self.command()] + self.args())
+
 
 class DockerRunArgumentParser(DockerArgumentParser):
     """
@@ -164,7 +177,8 @@ class DockerRunArgumentParser(DockerArgumentParser):
         """
         super().__init__(description=description)
         self._parser.add_argument('app_dirname', type=str, help="Main app directory name, e.g. 'common'.")
-        self._parser.add_argument('command', type=str, help="Command to run, e.g. '/bin/bash'.")
+        self._parser.add_argument('command', type=str, help="Command to run, e.g. 'bash'.")
+        self._parser.add_argument('args', type=str, nargs='*', help="Arguments to the command.")
 
     def parse_arguments(self) -> DockerRunArguments:
         """
@@ -179,7 +193,24 @@ if __name__ == '__main__':
     parser = DockerRunArgumentParser(description='Print commands to run an arbitrary command in Compose environment.')
     args = parser.parse_arguments()
 
-    for command_ in docker_run_commands(all_apps_dir=args.all_apps_dir(),
-                                        app_dirname=args.app_dirname(),
-                                        command=args.command()):
-        print(' '.join(command_))
+    commands_ = docker_run_commands(all_apps_dir=args.all_apps_dir(),
+                                    app_dirname=args.app_dirname(),
+                                    command=[args.command()] + args.args())
+
+    if args.print_commands():
+        for command_ in commands_:
+            print(' '.join(command_))
+
+    else:
+
+        # If command in "docker-compose run" fails, we'll store its exception here to later throw back to the user
+        last_exception = None
+
+        for command_ in commands_:
+            try:
+                subprocess.check_call(command_)
+            except subprocess.CalledProcessError as ex_:
+                last_exception = ex_
+
+        if last_exception:
+            raise last_exception

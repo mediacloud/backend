@@ -1,14 +1,25 @@
 #!/usr/bin/env python3
 
+"""
+(Re-)build Docker images for all apps, and tag them with both the name of the current Git branch and "latest".
+
+Usage:
+
+    ./dev/build.py
+
+This script can print the commands that are going to be run instead of running them itself:
+
+    ./dev/build.py -p | grep solr-shard | bash
+
+Make sure to run pull.py before rebuilding any images to increase the layer cache reuse.
+
+"""
+
 import os
+import subprocess
 from typing import List
 
-from utils import (
-    container_dir_name_from_image_name,
-    docker_images,
-    current_git_branch_name,
-    DockerHubArgumentParser,
-)
+from utils import container_dir_name_from_image_name, docker_images, current_git_branch_name, DockerHubArgumentParser
 
 
 class DockerImageToBuild(object):
@@ -79,15 +90,18 @@ if __name__ == '__main__':
 
     branch = current_git_branch_name()
 
-    for image in _docker_images_to_build(all_apps_dir=args.all_apps_dir(), docker_hub_username=docker_hub_username_):
-        print((
-            'docker build '
-            '--cache-from {image_name}:latest '
-            '--tag {image_name}:{branch} '
-            '--tag {image_name}:latest '
-            '{container_path}'
-        ).format(
-            branch=branch,
-            image_name=image.tag,
-            container_path=image.path,
-        ))
+    images = _docker_images_to_build(all_apps_dir=args.all_apps_dir(), docker_hub_username=docker_hub_username_)
+
+    for image in images:
+        command = [
+            'docker', 'build',
+            '--cache-from', '{}:latest'.format(image.tag),
+            '--tag', '{}:{}'.format(image.tag, branch),
+            '--tag', '{}:latest'.format(image.tag),
+            image.path,
+        ]
+
+        if args.print_commands():
+            print(' '.join(command))
+        else:
+            subprocess.check_call(command)

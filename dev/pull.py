@@ -1,5 +1,19 @@
 #!/usr/bin/env python3
 
+"""
+Pull pre-built Docker images for all apps, and tag them with both the name of the current Git branch and "latest".
+
+Usage:
+
+    ./dev/pull.py
+
+This script can print the commands that are going to be run instead of running them itself:
+
+    ./dev/pull.py -p | grep solr-shard | bash
+
+"""
+
+import subprocess
 from typing import List
 
 from utils import docker_images, current_git_branch_name, DockerHubArgumentParser
@@ -60,13 +74,18 @@ if __name__ == '__main__':
                 branch=branch,
             )
 
-            print(
-                pull_branch + ' || ' +
-                '{ ' + pull_master + ' && ' + tag_master_as_branch + '; }' +
-                ' && ' + tag_branch_as_latest
+            command = (
+                    pull_branch +
+                    ' || ' + '{ ' + pull_master + ' && ' + tag_master_as_branch + '; }' +
+                    ' && ' + tag_branch_as_latest
             )
 
         else:
 
             # Third-party image - just pull it
-            print('docker pull {}'.format(image))
+            command = 'docker pull {}'.format(image)
+
+        if args.print_commands():
+            print(command)
+        else:
+            subprocess.check_call(command, shell=True)

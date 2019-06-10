@@ -5,7 +5,7 @@ parameters:
 steps:
 
 # List all tests (commands) to be run in a file
-- script: ./dev/run_all_tests.py > tests_all_ordered
+- script: ./dev/run_all_tests.py --print_commands > tests_all_ordered
   displayName: Enumerate all tests
 
 # Randomize test order so that both chunks run for about the same amount of

@@ -1,5 +1,19 @@
 #!/usr/bin/env python3
 
+"""
+Push Docker images for all apps that are tagged with the name of the current Git branch.
+
+Usage:
+
+    ./dev/push.py
+
+This script can print the commands that are going to be run instead of running them itself:
+
+    ./dev/push.py -p | grep solr-shard | bash
+
+"""
+
+import subprocess
 from typing import List
 
 from utils import docker_images, current_git_branch_name, DockerHubArgumentParser
@@ -29,4 +43,9 @@ if __name__ == '__main__':
     branch = current_git_branch_name()
 
     for image in _docker_images_to_push(all_apps_dir=args.all_apps_dir(), docker_hub_username=docker_hub_username_):
-        print('docker push {}:{}'.format(image, branch))
+        command = ['docker', 'push', '{}:{}'.format(image, branch)]
+
+        if args.print_commands():
+            print(' '.join(command))
+        else:
+            subprocess.check_call(command)

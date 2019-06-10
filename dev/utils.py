@@ -1,3 +1,7 @@
+"""
+Various utilities for pull / build / push scripts.
+"""
+
 import argparse
 import glob
 import os
@@ -200,6 +204,11 @@ def docker_images(all_apps_dir: str, only_belonging_to_user: bool, docker_hub_us
 
 
 def current_git_branch_name() -> str:
+    """
+    Return Git branch name that the commit from HEAD belongs to.
+
+    :return: Best guess for a branch name that the latest commit belongs to.
+    """
     pwd = os.path.dirname(os.path.realpath(__file__))
     result = subprocess.run(
         ['git', 'rev-parse', '--abbrev-ref', 'HEAD'],
@@ -208,8 +217,8 @@ def current_git_branch_name() -> str:
     )
     branch_name = result.stdout.decode('utf-8').strip()
 
-    # Azure Pipelines checks out a specific commit and sets it as HEAD, so find
-    # at least one branch that the commit belongs to
+    # Azure Pipelines checks out a specific commit and sets it as HEAD, so find at least one branch that the commit
+    # belongs to
     if branch_name == 'HEAD':
 
         result = subprocess.run(
@@ -265,6 +274,14 @@ class DockerArguments(object):
         """
         return self._args.all_apps_dir
 
+    def print_commands(self) -> bool:
+        """
+        Return True if commands are to be printed to STDOUT instead of being executed.
+
+        :return: True if commands are to be printed instead of being executed.
+        """
+        return self._args.print_commands
+
 
 class DockerArgumentParser(object):
     """
@@ -303,6 +320,9 @@ class DockerArgumentParser(object):
             kwargs['required'] = True
 
         self._parser.add_argument(*args, **kwargs)
+
+        self._parser.add_argument('-p', '--print_commands', action='store_true',
+                                  help="Print commands that are to be executed instead of executing them.")
 
     def parse_arguments(self) -> DockerArguments:
         """

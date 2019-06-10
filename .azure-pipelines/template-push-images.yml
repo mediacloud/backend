@@ -9,5 +9,5 @@ steps:
     DOCKERHUB_PASSWORD: $(DOCKERHUB_PASSWORD)
 
 # Push all images to Docker Hub
-- script: ./dev/push.py | bash -e
+- script: ./dev/push.py
   displayName: Push images

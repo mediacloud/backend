@@ -1,8 +1,28 @@
 #!/usr/bin/env python3
 
+"""
+Run all Perl / Python tests in their own isolated Docker Compose environments.
+
+Usage:
+
+    ./dev/run_all_tests.py
+
+This script can print the commands that are going to be run instead of running them itself:
+
+    ./dev/run_all_tests.py -p | grep common
+
+Given that every test will be run in its own isolated environment, test runs can be parallelized to some extent, e.g. by
+using "parallel" utility:
+
+    ./dev/run_all_tests.py -p | parallel --group
+
+"""
+
 import glob
 import os
 import re
+import shlex
+import subprocess
 import sys
 from typing import List, Pattern
 
@@ -92,4 +112,7 @@ if __name__ == '__main__':
     args = parser.parse_arguments()
 
     for command_ in docker_all_tests_commands(all_apps_dir=args.all_apps_dir()):
-        print('bash <(' + ' '.join(command_) + ')')
+        if args.print_commands():
+            print(' '.join([shlex.quote(c) for c in command_]))
+        else:
+            subprocess.check_call(command_)
