@@ -468,6 +468,9 @@ def get_and_add_new_stories(db: DatabaseHandler) -> None:
 
         story = mediawords.dbi.stories.stories.add_story(db, story, ap_feed['feeds_id'])
 
+        if not story:
+            return
+
         story_download = mediawords.tm.stories.create_download_for_new_story(db, story, ap_feed)
 
         download_text = {

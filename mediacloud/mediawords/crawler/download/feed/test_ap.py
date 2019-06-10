@@ -302,3 +302,10 @@ class TestAPFetcherDB(TestDatabaseWithSchemaTestCase):
             assert got_story
             for field in ['url', 'guid', 'description', 'publish_date']:
                 assert got_story[field] == ap_story[field]
+
+        # try to add the same stories
+        ap.get_and_add_new_stories(db)
+
+        # should be same number of stories, since these new ones are dups
+        stories = db.query("select * from stories").hashes()
+        assert len(stories) == len(ap_stories)
