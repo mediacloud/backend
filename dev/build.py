@@ -9,7 +9,8 @@ Usage:
 
 This script can print the commands that are going to be run instead of running them itself:
 
-    ./dev/build.py -p | grep solr-shard | bash
+    # "bash -e" because we want to stop on the first error
+    ./dev/build.py -p | grep solr-shard | bash -e
 
 Make sure to run pull.py before rebuilding any images to increase the layer cache reuse.
 
@@ -104,4 +105,5 @@ if __name__ == '__main__':
         if args.print_commands():
             print(' '.join(command))
         else:
+            # Run build commands, stop at the first failed build
             subprocess.check_call(command)

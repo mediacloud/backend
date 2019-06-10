@@ -34,30 +34,30 @@ def _docker_images_to_pull(all_apps_dir: str, docker_hub_username: str) -> List[
     )
 
 
-if __name__ == '__main__':
+def _docker_pull_commands(all_apps_dir: str, git_branch: str, docker_hub_username: str) -> List[str]:
+    """
+    Return an ordered list of "docker pull" commands to run in order to pull all images.
 
-    parser = DockerHubArgumentParser(description='Print commands to pull all container images.')
-    args = parser.parse_arguments()
-    docker_hub_username_ = args.docker_hub_username()
+    :param all_apps_dir: Directory with container subdirectories.
+    :param git_branch: Current Git branch.
+    :param docker_hub_username: Docker Hub username.
+    :return: List of "docker pull" commands to run in order to pull all images.
+    """
+    commands = []
 
-    branch = current_git_branch_name()
-
-    for image in _docker_images_to_pull(all_apps_dir=args.all_apps_dir(), docker_hub_username=docker_hub_username_):
+    for image in _docker_images_to_pull(all_apps_dir=all_apps_dir, docker_hub_username=docker_hub_username):
 
         if image.startswith(docker_hub_username_ + '/'):
 
             # 1) First try to pull the image for the current branch
-            # 2) if that fails (e.g. the branch is new and it hasn't yet been built
-            #    and tagged on Docker Hub), pull builds for "master" and tag them
-            #    as if they were built from the current branch
-            # 3) Tag the branch image (which at this point was either built from
-            #    the branch or from "master") as "latest", i.e. mark them as the
-            #    latest local build to be later used for rebuilding and running
-            #    tests
+            # 2) if that fails (e.g. the branch is new and it hasn't yet been built and tagged on Docker Hub), pull
+            #    builds for "master" and tag them as if they were built from the current branch
+            # 3) Tag the branch image (which at this point was either built from the branch or from "master") as
+            #    "latest", i.e. mark them as the latest local build to be later used for rebuilding and running tests
 
             pull_branch = 'docker pull {image}:{branch}'.format(
                 image=image,
-                branch=branch,
+                branch=git_branch,
             )
 
             pull_master = 'docker pull {image}:master'.format(
@@ -66,12 +66,12 @@ if __name__ == '__main__':
 
             tag_master_as_branch = 'docker tag {image}:master {image}:{branch}'.format(
                 image=image,
-                branch=branch,
+                branch=git_branch,
             )
 
             tag_branch_as_latest = 'docker tag {image}:{branch} {image}:latest'.format(
                 image=image,
-                branch=branch,
+                branch=git_branch,
             )
 
             command = (
@@ -85,7 +85,36 @@ if __name__ == '__main__':
             # Third-party image - just pull it
             command = 'docker pull {}'.format(image)
 
-        if args.print_commands():
-            print(command)
-        else:
-            subprocess.check_call(command, shell=True)
+        commands.append(command)
+
+    return commands
+
+
+if __name__ == '__main__':
+    parser = DockerHubArgumentParser(description='Print commands to pull all container images.')
+    args = parser.parse_arguments()
+    docker_hub_username_ = args.docker_hub_username()
+
+    commands_ = _docker_pull_commands(
+        all_apps_dir=args.all_apps_dir(),
+        git_branch=current_git_branch_name(),
+        docker_hub_username=docker_hub_username_,
+    )
+
+    if args.print_commands():
+        for command_ in commands_:
+            print(command_)
+
+    else:
+        # Attempt to pull all images, don't stop at a single failure (the image for a specific branch might simply not
+        # exist yet), raise exception if at least one of the images couldn't get pulled
+        last_exception = None
+
+        for command_ in commands_:
+            try:
+                subprocess.check_call(command_, shell=True)
+            except subprocess.CalledProcessError as ex_:
+                last_exception = ex_
+
+        if last_exception:
+            raise last_exception

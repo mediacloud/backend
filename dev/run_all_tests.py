@@ -111,8 +111,21 @@ if __name__ == '__main__':
     parser = DockerArgumentParser(description='Print commands to run all tests found in all apps.')
     args = parser.parse_arguments()
 
-    for command_ in docker_all_tests_commands(all_apps_dir=args.all_apps_dir()):
-        if args.print_commands():
+    commands_ = docker_all_tests_commands(all_apps_dir=args.all_apps_dir())
+
+    if args.print_commands():
+        for command_ in commands_:
             print(' '.join([shlex.quote(c) for c in command_]))
-        else:
-            subprocess.check_call(command_)
+
+    else:
+        # Run all tests, don't stop at a single failure, raise exception if at least one of the tests failed
+        last_exception = None
+
+        for command_ in commands_:
+            try:
+                subprocess.check_call(command_)
+            except subprocess.CalledProcessError as ex_:
+                last_exception = ex_
+
+        if last_exception:
+            raise last_exception
