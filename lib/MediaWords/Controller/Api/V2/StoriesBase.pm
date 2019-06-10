@@ -82,7 +82,18 @@ SQL
     for my $download ( @{ $downloads } )
     {
         my $story = $story_lookup->{ $download->{ stories_id } };
-        my $content = MediaWords::DBI::Downloads::fetch_content( $db, $download );
+
+        my $content = undef;
+        eval {
+            $content = MediaWords::DBI::Downloads::fetch_content( $db, $download );
+        };
+        if ( $@ ) {
+            my $downloads_id = $download->{ downloads_id };
+            my $stories_id = $download->{ stories_id };
+
+            # The download might just not exist on S3 due to historical data losses and such
+            WARN "Unable to fetch content for download $downloads_id for story $stories_id: $@";
+        }
 
         $story->{ raw_first_download_file } = defined( $content ) ? $content : { missing => 'true' };
     }
