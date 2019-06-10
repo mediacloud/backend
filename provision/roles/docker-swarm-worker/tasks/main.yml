@@ -31,6 +31,7 @@
   tags:
     - docker-swarm-worker
 
+# The following might fail sometimes, so if it does, just rerun the playbook a couple of times:
 - name: Update labels of all nodes
   docker_node:
     hostname: "{{ item.ID }}"
