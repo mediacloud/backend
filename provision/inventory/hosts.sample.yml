@@ -28,44 +28,44 @@ all:
       docker_swarm_node_labels:
 
         # "mail-opendkim-server" container and its data volume
-        role-mail-opendkim: true
+        role-mail-opendkim: "true"
 
         # "mail-postfix-server" container and its volume
         # Make sure that DNS SPF record allows this host to send email.
-        role-mail-postfix: true
+        role-mail-postfix: "true"
 
         # "munin-cron", "munin-httpd" containers and their shared volumes
-        role-munin-httpd: true
+        role-munin-httpd: "true"
 
         # "portainer" container and its data volume
-        role-portainer: true
+        role-portainer: "true"
 
         # "postgresql-server" container and its data volume
-        role-postgresql-server: true
+        role-postgresql-server: "true"
 
         # "predict-news-labels" container (try to run on the same host or a
         # limited number of hosts to be able to share mmap'ped memory)
-        role-predict-news-labels: true
+        role-predict-news-labels: "true"
 
         # "proxy-cron-certbot", "proxy-httpd" containers, their shared volume
         # and publicly exposed ports
         # Make sure that DNS A record points to this host
-        role-proxy-httpd: true
+        role-proxy-httpd: "true"
 
         # "rabbitmq-server" container and its data volume
-        role-rabbitmq-server: true
+        role-rabbitmq-server: "true"
 
         # "cron-generate-daily-rss-dumps", "webapp-httpd" containers and their shared volume
-        role-webapp-httpd: true
+        role-webapp-httpd: "true"
 
         # Solr shards from "solr-shard-01" to "solr-shard-8" (host #1)
-        role-solr-shards-host1: true
+        role-solr-shards-host1: "true"
 
         # Solr shards from "solr-shard-09" to "solr-shard-16" (host #2)
-        role-solr-shards-host2: true
+        role-solr-shards-host2: "true"
 
         # Solr shards from "solr-shard-17" to "solr-shard-24" (host #2)
-        role-solr-shards-host3: true
+        role-solr-shards-host3: "true"
 
     "mcsample2":
       ansible_host: "mcsample2.media.mit.edu"
