@@ -126,6 +126,8 @@ def add_story(db: DatabaseHandler, story: dict, feeds_id: int, skip_checking_if_
 
     db.commit()
 
+    log.debug("added story: %s" % story['url'])
+
     return story
 
 
