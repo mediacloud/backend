@@ -26,6 +26,10 @@ _api = None
 # name of associated press media source
 AP_MEDIUM_NAME = 'AP'
 
+# default params for get_new_stories
+DEFAULT_MIN_LOOKBACK = 43200
+DEFAULT_MAX_LOOKBACK = 129600
+
 
 class McAPError(Exception):
     """Base error class"""
@@ -355,7 +359,7 @@ def _fetch_stories_using_search(max_lookback: int,
     while True:
 
         search_data = _api.search(**params)
-        if len(search_data['items']) == 0:
+        if len(search_data['items']) == 0 or 'next_page' not in search_data:
             break
         stories = search_data['items']
         processed_stories = _process_stories(stories, max_lookback, db=db, existing_guids=existing_guids)
@@ -364,7 +368,7 @@ def _fetch_stories_using_search(max_lookback: int,
         # Seconds since oldest creation time from feed endpoint
         vals = items.values()
         oldest_story = max([int(time.time() - _convert_publishdate_to_epoch(i['publish_date'])) for i in vals])
-        if oldest_story > max_lookback:
+        if max_lookback is not None and oldest_story > max_lookback:
             break
         next_page_params = _extract_url_parameters(search_data['next_page'])
         params.update(next_page_params)
@@ -387,8 +391,8 @@ def _convert_publishdate_to_epoch(publish_date: int) -> int:
 
 
 def get_new_stories(db: DatabaseHandler = None,
-                    min_lookback: int = 43200,
-                    max_lookback: int = 129600) -> list:
+                    min_lookback: int = DEFAULT_MIN_LOOKBACK,
+                    max_lookback: int = DEFAULT_MAX_LOOKBACK) -> list:
     """This method fetches the latest items from the AP feed and returns a list of dicts.
 
     Parameters:
@@ -426,7 +430,7 @@ def get_new_stories(db: DatabaseHandler = None,
     # Seconds since oldest creation time from feed endpoint
     oldest_story = max([int(time.time() - _convert_publishdate_to_epoch(i['publish_date'])) for i in items.values()])
 
-    if oldest_story < max_lookback:
+    if max_lookback is None or oldest_story < max_lookback:
         log.debug(
             "Retrieved {} stories. Oldest story {:,} secs. Fetching older stories.".format(len(items), oldest_story))
         search_items = _fetch_stories_using_search(max_lookback=max_lookback, db=db, existing_guids=set(items.keys()))
@@ -441,10 +445,13 @@ def get_new_stories(db: DatabaseHandler = None,
     return list_items
 
 
-def get_and_add_new_stories(db: DatabaseHandler) -> None:
+def get_and_add_new_stories(
+        db: DatabaseHandler,
+        min_lookback: int = DEFAULT_MIN_LOOKBACK,
+        max_lookback: int = DEFAULT_MAX_LOOKBACK) -> None:
     """Add stories as returend by get_new_stories() to the database."""
 
-    ap_stories = get_new_stories(db)
+    ap_stories = get_new_stories(db, min_lookback, max_lookback)
 
     ap_medium = db.query("select * from media where name = %(a)s", {'a': AP_MEDIUM_NAME}).hash()
     ap_feed = {
@@ -469,7 +476,7 @@ def get_and_add_new_stories(db: DatabaseHandler) -> None:
         story = mediawords.dbi.stories.stories.add_story(db, story, ap_feed['feeds_id'])
 
         if not story:
-            return
+            continue
 
         story_download = mediawords.tm.stories.create_download_for_new_story(db, story, ap_feed)
 
