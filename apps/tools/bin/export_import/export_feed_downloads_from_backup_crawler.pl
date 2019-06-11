@@ -5,8 +5,7 @@
 # Usage: on backup crawler, run:
 #
 #     # Export feed downloads to "mediacloud-feed-downloads.csv"
-#     ./script/run_in_env.sh \
-#         ./script/export_import/export_feed_downloads_from_backup_crawler.pl > mediacloud-feed-downloads.csv
+#     export_feed_downloads_from_backup_crawler.pl > mediacloud-feed-downloads.csv
 #
 
 use strict;

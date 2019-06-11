@@ -5,8 +5,7 @@
 # Usage: on production machine (database that is being imported to ), run:
 #
 #     # Import feed downloads from "mediacloud-feed-downloads.csv"
-#     ./script/run_in_env.sh \
-#         ./script/export_import/import_feed_downloads_to_db.pl mediacloud-feed-downloads.csv
+#     import_feed_downloads_to_db.pl mediacloud-feed-downloads.csv
 #
 
 use strict;

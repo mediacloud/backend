@@ -6,14 +6,16 @@
 # Usage
 # =====
 #
-#     ./script/run_in_env.sh ./script/manage_users.pl --help          # manager's help
+#     manage_users.pl --help          # manager's help
+#
 #     or
-#     ./script/run_in_env.sh ./script/manage_users.pl --action=...    # action's help
+#
+#     manage_users.pl --action=...    # action's help
 #
 # Add user
 # --------
 #
-#     ./script/run_in_env.sh ./script/manage_users.pl \
+#     manage_users.pl \
 #         --action=add \
 #         --email=jdoe@cyber.law.harvard.edu \
 #         --full_name="John Doe" \
@@ -29,7 +31,7 @@
 # Modify user
 # -----------
 #
-#     ./script/run_in_env.sh ./script/manage_users.pl \
+#     manage_users.pl \
 #         --action=modify \
 #         --email=jdoe@cyber.law.harvard.edu \
 #         [--full_name="John Doe"] \
@@ -49,28 +51,22 @@
 # Delete user
 # -----------
 #
-#     ./script/run_in_env.sh ./script/manage_users.pl \
-#         --action=delete \
-#         --email=jdoe@cyber.law.harvard.edu
+#     manage_users.pl --action=delete --email=jdoe@cyber.law.harvard.edu
 #
 # Show user information
 # ---------------------
 #
-#     ./script/run_in_env.sh ./script/manage_users.pl \
-#         --action=show \
-#         --email=jdoe@cyber.law.harvard.edu
+#     manage_users.pl --action=show --email=jdoe@cyber.law.harvard.edu
 #
 # List all users
 # --------------
 #
-#     ./script/run_in_env.sh ./script/manage_users.pl \
-#         --action=list
+#     manage_users.pl --action=list
 #
 # List all user roles
 # -------------------
 #
-#     ./script/run_in_env.sh ./script/manage_users.pl \
-#         --action=roles
+#     manage_users.pl --action=roles
 #
 
 use strict;

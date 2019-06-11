@@ -10,7 +10,7 @@ To add a user with an email address "your@email.com", full name "Your Name",
 described as "Media Cloud administrator", having an "admin" role and a
 "yourpassword123" password, run:
 
-    ./script/run_in_env.sh ./script/manage_users.pl \
+    manage_users.pl \
         --action=add \
         --email="your@email.com" \
         --full_name="Your Name" \
@@ -36,12 +36,12 @@ open script with a text editor and read the documentation on the top of the
 file. Alternatively, you can run:
 
     # user manager's help
-    ./script/run_in_env.sh ./script/manage_users.pl --help
+    manage_users.pl --help
 
 or
 
     # user manager action's help
-    ./script/run_in_env.sh ./script/manage_users.pl --action=...
+    manage_users.pl --action=...
 
 Authorization code
 -------------------

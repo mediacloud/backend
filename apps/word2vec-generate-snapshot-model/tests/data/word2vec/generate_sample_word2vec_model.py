@@ -20,11 +20,11 @@ def generate_sample_word2vec_model():
 
     1) Install gensim==3.2.0:
 
-        ./script/run_in_env.sh pip3 install gensim==3.2.0
+        pip3 install gensim==3.2.0
 
     2) Regenerate sample model with gensim==3.2.0:
 
-        ./script/run_in_env.sh ./tools/word2vec/generate_sample_word2vec_model.py
+        ./tests/data/word2vec/generate_sample_word2vec_model.py
 
     3) Commit the sample model to the source tree:
 
@@ -32,11 +32,11 @@ def generate_sample_word2vec_model():
 
     4) Install the newest gensim to test the model loading against:
 
-        ./script/run_in_env.sh pip3 install -U gensim
+        pip3 install -U gensim
 
     5) Run the test_load_word2vec_format() test in test_word2vec.py:
 
-        ./script/run_in_env.sh pytest mediacloud/mediawords/util/test_word2vec.py
+        pytest -s -v mediacloud/mediawords/util/test_word2vec.py
 
     """
     model_path = sample_word2vec_model_path()
