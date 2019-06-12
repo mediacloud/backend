@@ -88,6 +88,23 @@
   tags:
     - docker
 
+- name: Configure Docker logging
+  copy:
+    content: |
+      {
+        "log-driver": "json-file",
+        "log-opts": {
+          "max-size": "{{ docker_log_json_max_size }}",
+          "max-file": "{{ docker_log_json_max_file }}"
+        }
+      }
+    dest: /etc/docker/daemon.json
+  notify: "Restart Docker"
+  become: true
+  become_user: root
+  tags:
+    - docker    
+
 - name: Start Docker
   service:
     name: docker
