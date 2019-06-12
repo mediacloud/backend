@@ -10,11 +10,13 @@ from bs4 import BeautifulSoup
 
 import datetime
 import pytz
+import xmltodict
 
 from mediawords.db import DatabaseHandler
 import mediawords.dbi.stories.stories
 import mediawords.tm.stories
 from mediawords.util.config import get_config
+import mediawords.util.parse_html
 import mediawords.util.url
 import mediawords.util.web.user_agent
 
@@ -445,14 +447,8 @@ def get_new_stories(db: DatabaseHandler = None,
     return list_items
 
 
-def get_and_add_new_stories(
-        db: DatabaseHandler,
-        min_lookback: int = DEFAULT_MIN_LOOKBACK,
-        max_lookback: int = DEFAULT_MAX_LOOKBACK) -> None:
-    """Add stories as returend by get_new_stories() to the database."""
-
-    ap_stories = get_new_stories(db, min_lookback, max_lookback)
-
+def _import_ap_story(db: DatabaseHandler, ap_story: dict) -> None:
+    """Given a ap story return by get_new_stories(), add it to the database."""
     ap_medium = db.query("select * from media where name = %(a)s", {'a': AP_MEDIUM_NAME}).hash()
     ap_feed = {
         'media_id': ap_medium['media_id'],
@@ -463,35 +459,66 @@ def get_and_add_new_stories(
     }
     ap_feed = db.find_or_create('feeds', ap_feed)
 
-    for ap_story in ap_stories:
-        story = {
-            'guid': ap_story['guid'],
-            'url': ap_story['url'],
-            'publish_date': ap_story['publish_date'],
-            'title': ap_story['title'],
-            'description': ap_story['description'],
-            'media_id': ap_medium['media_id']
-        }
+    story = {
+        'guid': ap_story['guid'],
+        'url': ap_story['url'],
+        'publish_date': ap_story['publish_date'],
+        'title': ap_story['title'],
+        'description': ap_story['description'],
+        'media_id': ap_medium['media_id']
+    }
+    story = mediawords.dbi.stories.stories.add_story(db, story, ap_feed['feeds_id'])
 
-        story = mediawords.dbi.stories.stories.add_story(db, story, ap_feed['feeds_id'])
+    if not story:
+        return
 
-        if not story:
-            continue
+    story_download = mediawords.tm.stories.create_download_for_new_story(db, story, ap_feed)
 
-        story_download = mediawords.tm.stories.create_download_for_new_story(db, story, ap_feed)
+    download_text = {
+        'downloads_id': story_download['downloads_id'],
+        'download_text': ap_story['text'],
+        'download_text_length': len(ap_story['text'])
+    }
 
-        download_text = {
-            'downloads_id': story_download['downloads_id'],
-            'download_text': ap_story['text'],
-            'download_text_length': len(ap_story['text'])
-        }
+    db.query(
+        """
+        insert into download_texts (downloads_id, download_text, download_text_length)
+            values (%(downloads_id)s, %(download_text)s, %(download_text_length)s)
+        """,
+        download_text)
 
-        db.query(
-            """
-            insert into download_texts (downloads_id, download_text, download_text_length)
-                values (%(downloads_id)s, %(download_text)s, %(download_text_length)s)
-            """,
-            download_text)
+    story['story_text'] = ap_story['text']
+    mediawords.story_vectors.update_story_sentences_and_language(db, story)
 
-        story['story_text'] = ap_story['text']
-        mediawords.story_vectors.update_story_sentences_and_language(db, story)
+
+def get_and_add_new_stories(
+        db: DatabaseHandler,
+        min_lookback: int = DEFAULT_MIN_LOOKBACK,
+        max_lookback: int = DEFAULT_MAX_LOOKBACK) -> None:
+    """Add stories as returend by get_new_stories() to the database."""
+
+    ap_stories = get_new_stories(db, min_lookback, max_lookback)
+
+    [_import_ap_story(db, s) for s in ap_stories]
+
+
+def import_archive_file(db: mediawords.db.DatabaseHandler, file: str) -> None:
+    """Import ap story described by xml in file into database."""
+    with open(file) as fd:
+        xml = xmltodict.parse(fd.read())
+
+    entry = xml['sATOM']['entry']
+    body = entry['content']['nitf']['body']
+
+    story = {}
+    story['title'] = body['body.head']['hedline']['hl1']['#text']
+    story['publish_date'] = entry['updated']
+    story['description'] = body['body.head']['abstract']
+    story['url'] = entry['link']['@href']
+
+    story['guid'] = entry['id'].replace('urn:publicid:ap.org:', '')
+
+    content = xmltodict.unparse(body['body.content'])
+    story['text'] = mediawords.util.parse_html.html_strip(content)
+
+    _import_ap_story(db, story)

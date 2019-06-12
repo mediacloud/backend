@@ -287,7 +287,7 @@ class TestAPFetcherDB(TestDatabaseWithSchemaTestCase):
 
         ap_stories = mock_get_new_stories()
 
-        ap.get_new_stories = lambda x: ap_stories
+        ap.get_new_stories = lambda x, y, z: ap_stories
 
         ap.get_and_add_new_stories(db)
 
@@ -309,3 +309,30 @@ class TestAPFetcherDB(TestDatabaseWithSchemaTestCase):
         # should be same number of stories, since these new ones are dups
         stories = db.query("select * from stories").hashes()
         assert len(stories) == len(ap_stories)
+
+    def test_import_archive_file(self) -> None:
+        """Test import_archive_file()."""
+        db = self.db()
+
+        db.create('media', {'url': 'ap.com', 'name': ap.AP_MEDIUM_NAME})
+
+        base_dir = os.path.dirname(os.path.realpath(__file__))
+        xml_file = '%s/ap_test_fixtures/%s' % (base_dir, 'test_ap_fixture_archive.xml')
+
+        ap.import_archive_file(db, xml_file)
+
+        stories = db.query("select * from stories").hashes()
+
+        assert len(stories) == 1
+
+        story = stories[0]
+
+        assert story['title'] == 'Report: Far-right violence in Germany declined in 2017'
+        assert story['url'] == 'https://apnews.com/61a17439ecd940498124a2939a78c678'
+        assert story['guid'] == 'de9a436b796b41d5821509773f740fa0'
+        assert story['publish_date'] == '2019-02-11 21:00:41.206000'
+        assert story['description'][0:10] == 'German media are reporting a drop'[0:10]
+
+        download_text = db.query("select * from download_texts").hash()
+
+        assert download_text['download_text'][0:10] == 'BERLIN (AP'
