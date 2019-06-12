@@ -504,6 +504,8 @@ def get_and_add_new_stories(
 
 def import_archive_file(db: mediawords.db.DatabaseHandler, file: str) -> None:
     """Import ap story described by xml in file into database."""
+    log.debug("import ap file: %s" % file)
+
     with open(file) as fd:
         xml = xmltodict.parse(fd.read())
 
@@ -513,12 +515,17 @@ def import_archive_file(db: mediawords.db.DatabaseHandler, file: str) -> None:
     story = {}
     story['title'] = body['body.head']['hedline']['hl1']['#text']
     story['publish_date'] = entry['updated']
-    story['description'] = body['body.head']['abstract']
-    story['url'] = entry['link']['@href']
+    story['description'] = body['body.head'].get('abstract', story['title'])
 
     story['guid'] = entry['id'].replace('urn:publicid:ap.org:', '')
+    story['url'] = entry['link']['@href'] if 'link' in entry else 'http://apnews.com/invalid/%s' % story['guid']
 
-    content = xmltodict.unparse(body['body.content'])
+    # make sure body.content is the only child of body; otherwise the unparse comand below will faile
+    body_content = body.get('body.content', {})
+    content_block = body_content['block'] if body_content is not None else {}
+
+    content = xmltodict.unparse({'html': {'content': content_block}})
+
     story['text'] = mediawords.util.parse_html.html_strip(content)
 
     _import_ap_story(db, story)
