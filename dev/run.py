@@ -77,13 +77,14 @@ def _project_name(container_name: str, command: List[str]) -> str:
     return project_name
 
 
-def docker_run_commands(all_apps_dir: str, app_dirname: str, command: List[str]) -> List[List[str]]:
+def docker_run_commands(all_apps_dir: str, app_dirname: str, command: List[str], map_ports: bool) -> List[List[str]]:
     """
     Return a list commands to execute in order to run a command in the main container within Compose environment.
 
     :param all_apps_dir: Directory with container subdirectories.
     :param app_dirname: Main container's directory name.
     :param command: Command to run in the main container.
+    :param map_ports: True if containers' ports should be mapped to host machine (when configured in "ports:").
     :return: List of commands (as lists) to execute in order to run a command.
     """
     if not os.path.isdir(all_apps_dir):
@@ -109,6 +110,10 @@ def docker_run_commands(all_apps_dir: str, app_dirname: str, command: List[str])
 
     commands = list()
 
+    map_ports_args = []
+    if map_ports:
+        map_ports_args = ['--service-ports']
+
     commands.append(
         [
             'docker-compose',
@@ -116,6 +121,7 @@ def docker_run_commands(all_apps_dir: str, app_dirname: str, command: List[str])
             '--file', docker_compose_path,
             'run',
             '--rm',
+        ] + map_ports_args + [
             container_name,
         ] + command
     )
@@ -135,6 +141,13 @@ class DockerRunArguments(DockerArguments):
     """
     Arguments with a container directory name and command.
     """
+
+    def map_ports(self) -> bool:
+        """
+        Return True if ports configured in "ports:" should be mapped to host for all containers.
+        :return: True if ports configured in "ports:" should be mapped to host for all containers.
+        """
+        return self._args.map_ports
 
     def app_dirname(self) -> str:
         """
@@ -176,6 +189,8 @@ class DockerRunArgumentParser(DockerArgumentParser):
         :param description: Description of the script to print when "--help" is passed.
         """
         super().__init__(description=description)
+        self._parser.add_argument('-m', '--map_ports', action='store_true',
+                                  help="Map containers' ports to the host machine.")
         self._parser.add_argument('app_dirname', type=str, help="Main app directory name, e.g. 'common'.")
         self._parser.add_argument('command', type=str, help="Command to run, e.g. 'bash'.")
         self._parser.add_argument('args', type=str, nargs='*', help="Arguments to the command.")
@@ -193,9 +208,12 @@ if __name__ == '__main__':
     parser = DockerRunArgumentParser(description='Print commands to run an arbitrary command in Compose environment.')
     args = parser.parse_arguments()
 
-    commands_ = docker_run_commands(all_apps_dir=args.all_apps_dir(),
-                                    app_dirname=args.app_dirname(),
-                                    command=[args.command()] + args.args())
+    commands_ = docker_run_commands(
+        all_apps_dir=args.all_apps_dir(),
+        app_dirname=args.app_dirname(),
+        command=[args.command()] + args.args(),
+        map_ports=args.map_ports(),
+    )
 
     if args.print_commands():
         for command_ in commands_:
