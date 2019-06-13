@@ -23,8 +23,6 @@ x-bigger-open-file-limit:   &bigger-open-file-limit
 # "deploy/replicas", we define every shard as its own independent service.
 #
 x-solr-shard_base:   &solr-shard_base
-    build:
-        context: ./solr-shard/
     image: dockermediacloud/solr-shard:release
     env_file: global.env
     environment:
@@ -97,8 +95,6 @@ services:
     # ----------------------
     #
     cliff-fetch-annotation:
-        build:
-            context: ./cliff-fetch-annotation/
         image: dockermediacloud/cliff-fetch-annotation:release
         networks:
             - default
@@ -125,8 +121,6 @@ services:
     # -----------------------
     #
     cliff-update-story-tags:
-        build:
-            context: ./cliff-update-story-tags/
         image: dockermediacloud/cliff-update-story-tags:release
         networks:
             - default
@@ -160,8 +154,6 @@ services:
     # ----------------
     #
     crawler-provider:
-        build:
-            context: ./crawler-provider/
         image: dockermediacloud/crawler-provider:release
         networks:
             - default
@@ -181,8 +173,6 @@ services:
     # ---------------
     #
     crawler-fetcher:
-        build:
-            context: ./crawler-fetcher/
         image: dockermediacloud/crawler-fetcher:release
         networks:
             - default
@@ -205,8 +195,6 @@ services:
     # ------------------------------------
     #
     create-missing-partitions:
-        build:
-            context: ./create-missing-partitions/
         image: dockermediacloud/create-missing-partitions:release
         networks:
             - default
@@ -226,8 +214,6 @@ services:
     # -----------------------------------
     #
     extract-article-from-page:
-        build:
-            context: ./extract-article-from-page/
         image: dockermediacloud/extract-article-from-page:release
         networks:
             - default
@@ -250,8 +236,6 @@ services:
     # --------------------------
     #
     extract-and-vector:
-        build:
-            context: ./extract-and-vector/
         image: dockermediacloud/extract-and-vector:release
         networks:
             - default
@@ -275,8 +259,6 @@ services:
     # -------------------------------
     #
     facebook-fetch-story-stats:
-        build:
-            context: ./facebook-fetch-story-stats/
         image: dockermediacloud/facebook-fetch-story-stats:release
         networks:
             - default
@@ -307,8 +289,6 @@ services:
     # ---------------------------------
     #
     cron-generate-daily-rss-dumps:
-        build:
-            context: ./cron-generate-daily-rss-dumps/
         image: dockermediacloud/cron-generate-daily-rss-dumps:release
         networks:
             - default
@@ -336,8 +316,6 @@ services:
     # -------------------------------------
     #
     cron-generate-media-health:
-        build:
-            context: ./cron-generate-media-health/
         image: dockermediacloud/cron-generate-media-health:release
         networks:
             - default
@@ -355,8 +333,6 @@ services:
     # ---------------------------------------------
     #
     cron-generate-user-summary:
-        build:
-            context: ./cron-generate-user-summary/
         image: dockermediacloud/cron-generate-user-summary:release
         networks:
             - default
@@ -376,8 +352,6 @@ services:
     # ------------------------
     #
     import-solr-data:
-        build:
-            context: ./import-solr-data/
         image: dockermediacloud/import-solr-data:release
         networks:
             - default
@@ -404,8 +378,6 @@ services:
     # ---------------------------------
     #
     import-stories-feedly:
-        build:
-            context: ./import-stories-feedly/
         image: dockermediacloud/import-stories-feedly:release
         networks:
             - default
@@ -426,8 +398,6 @@ services:
     # ---------------
     #
     mail-opendkim-server:
-        build:
-            context: ./mail-opendkim-server/
         image: dockermediacloud/mail-opendkim-server:release
         networks:
             - default
@@ -461,8 +431,6 @@ services:
     # ---------------
     #
     mail-postfix-server:
-        build:
-            context: ./mail-postfix-server/
         image: dockermediacloud/mail-postfix-server:release
         networks:
             - default
@@ -498,8 +466,6 @@ services:
     # ----------------------
     #
     nytlabels-fetch-annotation:
-        build:
-            context: ./nytlabels-fetch-annotation/
         image: dockermediacloud/nytlabels-fetch-annotation:release
         networks:
             - default
@@ -524,8 +490,6 @@ services:
     # -----------------------
     #
     nytlabels-update-story-tags:
-        build:
-            context: ./nytlabels-update-story-tags/
         image: dockermediacloud/nytlabels-update-story-tags:release
         networks:
             - default
@@ -554,8 +518,6 @@ services:
     # ---------
     #
     postgresql-pgbouncer:
-        build:
-            context: ./postgresql-pgbouncer/
         image: dockermediacloud/postgresql-pgbouncer:release
         networks:
             - default
@@ -570,8 +532,6 @@ services:
     # -----------------
     #
     postgresql-server:
-        build:
-            context: ./postgresql-server/
         image: dockermediacloud/postgresql-server:release
         networks:
             - default
@@ -593,8 +553,6 @@ services:
     # -----------------------------
     #
     predict-news-labels:
-        build:
-            context: ./predict-news-labels/
         image: dockermediacloud/predict-news-labels:release
         networks:
             - default
@@ -622,8 +580,6 @@ services:
     # ------------------------------------
     #
     purge-object-caches:
-        build:
-            context: ./purge-object-caches/
         image: dockermediacloud/purge-object-caches:release
         networks:
             - default
@@ -643,8 +599,6 @@ services:
     # --------
     #
     rabbitmq-server:
-        build:
-            context: ./rabbitmq-server/
         image: dockermediacloud/rabbitmq-server:release
         networks:
             - default
@@ -673,8 +627,6 @@ services:
     # ----------------------
     #
     cron-refresh-stats:
-        build:
-            context: ./cron-refresh-stats/
         image: dockermediacloud/cron-refresh-stats:release
         networks:
             - default
@@ -692,8 +644,6 @@ services:
     # ----------------------------------------------
     #
     cron-rescrape-due-media:
-        build:
-            context: ./cron-rescrape-due-media/
         image: dockermediacloud/cron-rescrape-due-media:release
         networks:
             - default
@@ -711,8 +661,6 @@ services:
     # ----------------
     #
     rescrape-media:
-        build:
-            context: ./rescrape-media/
         image: dockermediacloud/rescrape-media:release
         networks:
             - default
@@ -732,8 +680,6 @@ services:
     # ----------------------------------
     #
     cron-rescraping-changes:
-        build:
-            context: ./cron-rescraping-changes/
         image: dockermediacloud/cron-rescraping-changes:release
         networks:
             - default
@@ -751,8 +697,6 @@ services:
     # -----------------------------------
     #
     cron-set-media-primary-language:
-        build:
-            context: ./cron-set-media-primary-language/
         image: dockermediacloud/cron-set-media-primary-language:release
         networks:
             - default
@@ -770,8 +714,6 @@ services:
     # -----------------------------------
     #
     cron-set-media-subject-country:
-        build:
-            context: ./cron-set-media-subject-country/
         image: dockermediacloud/cron-set-media-subject-country:release
         networks:
             - default
@@ -789,8 +731,6 @@ services:
     # -----------------------------
     #
     cron-print-long-running-job-states:
-        build:
-            context: ./cron-print-long-running-job-states/
         image: dockermediacloud/cron-print-long-running-job-states:release
         networks:
             - default
@@ -1004,8 +944,6 @@ services:
     # --------------
     #
     solr-zookeeper:
-        build:
-            context: ./solr-zookeeper/
         image: dockermediacloud/solr-zookeeper:release
         networks:
             - default
@@ -1027,8 +965,6 @@ services:
     # -------------------------------
     #
     topics-extract-story-links:
-        build:
-            context: ./topics-extract-story-links/
         image: dockermediacloud/topics-extract-story-links:release
         networks:
             - default
@@ -1050,8 +986,6 @@ services:
     # ----------------------
     #
     topics-fetch-link:
-        build:
-            context: ./topics-fetch-link/
         image: dockermediacloud/topics-fetch-link:release
         networks:
             - default
@@ -1071,8 +1005,6 @@ services:
     # ------------------
     #
     topics-fetch-twitter-urls:
-        build:
-            context: ./topics-fetch-twitter-urls/
         image: dockermediacloud/topics-fetch-twitter-urls:release
         networks:
             - default
@@ -1101,8 +1033,6 @@ services:
     # ------------
     #
     topics-mine:
-        build:
-            context: ./topics-mine/
         image: dockermediacloud/topics-mine:release
         networks:
             - default
@@ -1125,8 +1055,6 @@ services:
     # -------------------
     #
     topics-mine-public:
-        build:
-            context: ./topics-mine-public/
         image: dockermediacloud/topics-mine-public:release
         networks:
             - default
@@ -1149,8 +1077,6 @@ services:
     # ----------------
     #
     topics-snapshot:
-        build:
-            context: ./topics-snapshot/
         image: dockermediacloud/topics-snapshot:release
         networks:
             - default
@@ -1173,8 +1099,6 @@ services:
     # ----------
     #
     munin-node:
-        build:
-            context: ./munin-node/
         image: dockermediacloud/munin-node:release
         networks:
             - default
@@ -1196,8 +1120,6 @@ services:
     # --------------------------
     #
     munin-cron:
-        build:
-            context: ./munin-cron/
         image: dockermediacloud/munin-cron:release
         networks:
             - default
@@ -1226,8 +1148,6 @@ services:
     # -----------------
     #
     munin-httpd:
-        build:
-            context: ./munin-httpd/
         image: dockermediacloud/munin-httpd:release
         networks:
             - default
@@ -1259,8 +1179,6 @@ services:
     # ------------------------------
     #
     sitemap-fetch-media-pages:
-        build:
-            context: ./sitemap-fetch-media-pages/
         image: dockermediacloud/sitemap-fetch-media-pages:release
         networks:
             - default
@@ -1278,8 +1196,6 @@ services:
     # --------------------------------
     #
     webapp-api:
-        build:
-            context: ./webapp-api/
         image: dockermediacloud/webapp-api:release
         networks:
             - default
@@ -1301,8 +1217,6 @@ services:
     # --------------------
     #
     webapp-httpd:
-        build:
-            context: ./webapp-httpd/
         image: dockermediacloud/webapp-httpd:release
         networks:
             - default
@@ -1329,8 +1243,6 @@ services:
     # ----------------------------------------------------------------------
     #
     proxy-cron-certbot:
-        build:
-            context: ./proxy-cron-certbot/
         image: dockermediacloud/proxy-cron-certbot:release
         networks:
             - default
@@ -1363,8 +1275,6 @@ services:
     # -----------------------------
     #
     proxy-httpd:
-        build:
-            context: ./proxy-httpd/
         image: dockermediacloud/proxy-httpd:release
         networks:
             - default
@@ -1409,8 +1319,6 @@ services:
     # ----------------
     #
     word2vec-generate-snapshot-model:
-        build:
-            context: ./word2vec-generate-snapshot-model/
         image: dockermediacloud/word2vec-generate-snapshot-model:release
         networks:
             - default
