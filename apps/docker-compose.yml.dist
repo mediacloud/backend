@@ -103,7 +103,6 @@ services:
             # Annotator endpoint URL
             MC_CLIFF_ANNOTATOR_URL: ""
         depends_on:
-            - extract-and-vector
             - postgresql-pgbouncer
             - rabbitmq-server
         deploy:
@@ -135,7 +134,6 @@ services:
             # Tag set to use for person name entities
             MC_CLIFF_PEOPLE_TAG_SET: "cliff_people"
         depends_on:
-            - cliff-fetch-annotation
             - postgresql-pgbouncer
             - rabbitmq-server
         deploy:
@@ -271,7 +269,6 @@ services:
             # Timeout for API calls
             MC_FACEBOOK_TIMEOUT: "60"
         depends_on:
-            - extract-and-vector
             - postgresql-pgbouncer
             - rabbitmq-server
         deploy:
@@ -320,6 +317,8 @@ services:
         networks:
             - default
         env_file: global.env
+        depends_on:
+            - postgresql-pgbouncer
         deploy:
             resources:
                 limits:
@@ -384,7 +383,7 @@ services:
         env_file: global.env
         depends_on:
             # Writes stories to PostgreSQL
-            - net_postgresql
+            - postgresql-pgbouncer
         deploy:
             resources:
                 limits:
@@ -471,7 +470,6 @@ services:
             - default
         env_file: global.env
         depends_on:
-            - extract-and-vector
             - predict-news-labels
             - postgresql-pgbouncer
             - rabbitmq-server
@@ -500,7 +498,6 @@ services:
             # Tag set to use for NYTLabels-derived tags
             MC_NYTLABELS_TAG_SET: "nyt_labels"
         depends_on:
-            - nytlabels-fetch-annotation
             - postgresql-pgbouncer
             - rabbitmq-server
         deploy:
@@ -631,6 +628,8 @@ services:
         networks:
             - default
         env_file: global.env
+        depends_on:
+            - postgresql-pgbouncer
         deploy:
             resources:
                 limits:
@@ -648,6 +647,9 @@ services:
         networks:
             - default
         env_file: global.env
+        depends_on:
+            - postgresql-pgbouncer
+            - rabbitmq-server
         deploy:
             resources:
                 limits:
@@ -665,6 +667,9 @@ services:
         networks:
             - default
         env_file: global.env
+        depends_on:
+            - postgresql-pgbouncer
+            - rabbitmq-server
         deploy:
             # Worker count
             replicas: 2
@@ -684,6 +689,8 @@ services:
         networks:
             - default
         env_file: global.env
+        depends_on:
+            - postgresql-pgbouncer
         deploy:
             resources:
                 limits:
@@ -701,6 +708,8 @@ services:
         networks:
             - default
         env_file: global.env
+        depends_on:
+            - postgresql-pgbouncer
         deploy:
             resources:
                 limits:
@@ -718,6 +727,8 @@ services:
         networks:
             - default
         env_file: global.env
+        depends_on:
+            - postgresql-pgbouncer
         deploy:
             resources:
                 limits:
@@ -735,6 +746,8 @@ services:
         networks:
             - default
         env_file: global.env
+        depends_on:
+            - postgresql-pgbouncer
         deploy:
             resources:
                 limits:
@@ -1323,6 +1336,9 @@ services:
         networks:
             - default
         env_file: global.env
+        depends_on:
+            - postgresql-pgbouncer
+            - rabbitmq-server
         deploy:
             # Worker count
             replicas: 2
