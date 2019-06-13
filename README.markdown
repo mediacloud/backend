@@ -18,8 +18,6 @@ For very brief installation instructions, see [INSTALL.markdown](INSTALL.markdow
 
 Please send us a note at [info@mediacloud.org](info@mediacloud.org) if you are using any of this code or if you have any questions.  We are very interested in knowing who's using the code and for what.
 
-For a brief roadmap of the code contained in this release, see [repo-map.markdown](doc/repo-map.markdown).
-
 
 Build Status
 ------------
