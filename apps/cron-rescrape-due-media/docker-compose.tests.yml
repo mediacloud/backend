@@ -15,6 +15,7 @@ services:
               target: /opt/mediacloud/src/common/
         depends_on:
             - postgresql-pgbouncer
+            - rabbitmq-server
 
     postgresql-pgbouncer:
         image: dockermediacloud/postgresql-pgbouncer:latest
@@ -31,3 +32,11 @@ services:
         stop_signal: SIGKILL
         expose:
             - 5432
+
+    rabbitmq-server:
+        image: dockermediacloud/rabbitmq-server:latest
+        env_file: ./../global.env.dist
+        stop_signal: SIGKILL
+        expose:
+            - 5672
+            - 15672
