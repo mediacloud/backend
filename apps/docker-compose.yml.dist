@@ -97,7 +97,7 @@ services:
         image: dockermediacloud/cliff-fetch-annotation:release
         networks:
             - default
-        env_file: common/common.env
+        env_file: common.env
         environment:
             # Annotator endpoint URL
             MC_CLIFF_ANNOTATOR_URL: ""
@@ -122,7 +122,7 @@ services:
         image: dockermediacloud/cliff-update-story-tags:release
         networks:
             - default
-        env_file: common/common.env
+        env_file: common.env
         environment:
             # CLIFF version tag
             MC_CLIFF_VERSION_TAG: "cliff_clavin_v2.4.1"
@@ -154,7 +154,7 @@ services:
         image: dockermediacloud/crawler-provider:release
         networks:
             - default
-        env_file: common/common.env
+        env_file: common.env
         depends_on:
             - postgresql-pgbouncer
         deploy:
@@ -173,7 +173,7 @@ services:
         image: dockermediacloud/crawler-fetcher:release
         networks:
             - default
-        env_file: common/common.env
+        env_file: common.env
         depends_on:
             - postgresql-pgbouncer
             - rabbitmq-server
@@ -195,7 +195,7 @@ services:
         image: dockermediacloud/create-missing-partitions:release
         networks:
             - default
-        env_file: common/common.env
+        env_file: common.env
         depends_on:
             - postgresql-pgbouncer
         deploy:
@@ -214,7 +214,7 @@ services:
         image: dockermediacloud/extract-article-from-page:release
         networks:
             - default
-        env_file: common/common.env
+        env_file: common.env
         expose:
             # HTTP extraction service
             - 8080
@@ -236,7 +236,7 @@ services:
         image: dockermediacloud/extract-and-vector:release
         networks:
             - default
-        env_file: common/common.env
+        env_file: common.env
         depends_on:
             - extract-article-from-page
             - postgresql-pgbouncer
@@ -259,7 +259,7 @@ services:
         image: dockermediacloud/facebook-fetch-story-stats:release
         networks:
             - default
-        env_file: common/common.env
+        env_file: common.env
         environment:
             # Facebook application ID
             MC_FACEBOOK_APP_ID: ""
@@ -288,7 +288,7 @@ services:
         image: dockermediacloud/cron-generate-daily-rss-dumps:release
         networks:
             - default
-        env_file: common/common.env
+        env_file: common.env
         depends_on:
             - postgresql-pgbouncer
         volumes:
@@ -315,7 +315,7 @@ services:
         image: dockermediacloud/cron-generate-media-health:release
         networks:
             - default
-        env_file: common/common.env
+        env_file: common.env
         depends_on:
             - postgresql-pgbouncer
         deploy:
@@ -334,7 +334,7 @@ services:
         image: dockermediacloud/cron-generate-user-summary:release
         networks:
             - default
-        env_file: common/common.env
+        env_file: common.env
         depends_on:
             - postgresql-pgbouncer
         deploy:
@@ -353,7 +353,7 @@ services:
         image: dockermediacloud/import-solr-data:release
         networks:
             - default
-        env_file: common/common.env
+        env_file: common.env
         environment:
             # Jobs (forks) to start for the import
             # (keep in sync with CPU count)
@@ -379,7 +379,7 @@ services:
         image: dockermediacloud/import-stories-feedly:release
         networks:
             - default
-        env_file: common/common.env
+        env_file: common.env
         depends_on:
             # Writes stories to PostgreSQL
             - postgresql-pgbouncer
@@ -465,7 +465,7 @@ services:
         image: dockermediacloud/nytlabels-fetch-annotation:release
         networks:
             - default
-        env_file: common/common.env
+        env_file: common.env
         depends_on:
             - predict-news-labels
             - postgresql-pgbouncer
@@ -488,7 +488,7 @@ services:
         image: dockermediacloud/nytlabels-update-story-tags:release
         networks:
             - default
-        env_file: common/common.env
+        env_file: common.env
         environment:
             # NYTLabels version tag
             MC_NYTLABELS_VERSION_TAG: "nyt_labeller_v1.0.0"
@@ -581,7 +581,7 @@ services:
         image: dockermediacloud/purge-object-caches:release
         networks:
             - default
-        env_file: common/common.env
+        env_file: common.env
         depends_on:
             - postgresql-pgbouncer
         deploy:
@@ -627,7 +627,7 @@ services:
         image: dockermediacloud/cron-refresh-stats:release
         networks:
             - default
-        env_file: common/common.env
+        env_file: common.env
         depends_on:
             - postgresql-pgbouncer
         deploy:
@@ -646,7 +646,7 @@ services:
         image: dockermediacloud/cron-rescrape-due-media:release
         networks:
             - default
-        env_file: common/common.env
+        env_file: common.env
         depends_on:
             - postgresql-pgbouncer
             - rabbitmq-server
@@ -666,7 +666,7 @@ services:
         image: dockermediacloud/rescrape-media:release
         networks:
             - default
-        env_file: common/common.env
+        env_file: common.env
         depends_on:
             - postgresql-pgbouncer
             - rabbitmq-server
@@ -688,7 +688,7 @@ services:
         image: dockermediacloud/cron-rescraping-changes:release
         networks:
             - default
-        env_file: common/common.env
+        env_file: common.env
         depends_on:
             - postgresql-pgbouncer
         deploy:
@@ -707,7 +707,7 @@ services:
         image: dockermediacloud/cron-set-media-primary-language:release
         networks:
             - default
-        env_file: common/common.env
+        env_file: common.env
         depends_on:
             - postgresql-pgbouncer
         deploy:
@@ -726,7 +726,7 @@ services:
         image: dockermediacloud/cron-set-media-subject-country:release
         networks:
             - default
-        env_file: common/common.env
+        env_file: common.env
         depends_on:
             - postgresql-pgbouncer
         deploy:
@@ -745,7 +745,7 @@ services:
         image: dockermediacloud/cron-print-long-running-job-states:release
         networks:
             - default
-        env_file: common/common.env
+        env_file: common.env
         depends_on:
             - postgresql-pgbouncer
         deploy:
@@ -980,7 +980,7 @@ services:
         image: dockermediacloud/topics-extract-story-links:release
         networks:
             - default
-        env_file: common/common.env
+        env_file: common.env
         depends_on:
             - extract-article-from-page
         deploy:
@@ -1001,7 +1001,7 @@ services:
         image: dockermediacloud/topics-fetch-link:release
         networks:
             - default
-        env_file: common/common.env
+        env_file: common.env
         deploy:
             # Worker count
             replicas: 8
@@ -1020,7 +1020,7 @@ services:
         image: dockermediacloud/topics-fetch-twitter-urls:release
         networks:
             - default
-        env_file: common/common.env
+        env_file: common.env
         environment:
             # Twitter API consumer key
             MC_TWITTER_CONSUMER_KEY: ""
@@ -1048,7 +1048,7 @@ services:
         image: dockermediacloud/topics-mine:release
         networks:
             - default
-        env_file: common/common.env
+        env_file: common.env
         environment:
             # Crimson Hexagon API key
             MC_CRIMSON_HEXAGON_API_KEY: ""
@@ -1070,7 +1070,7 @@ services:
         image: dockermediacloud/topics-mine-public:release
         networks:
             - default
-        env_file: common/common.env
+        env_file: common.env
         environment:
             # Crimson Hexagon API key
             MC_CRIMSON_HEXAGON_API_KEY: ""
@@ -1092,7 +1092,7 @@ services:
         image: dockermediacloud/topics-snapshot:release
         networks:
             - default
-        env_file: common/common.env
+        env_file: common.env
         environment:
             # Not sure what this is.
             MC_TOPICS_SNAPSHOT_MODEL_REPS: "0"
@@ -1194,7 +1194,7 @@ services:
         image: dockermediacloud/sitemap-fetch-media-pages:release
         networks:
             - default
-        env_file: common/common.env
+        env_file: common.env
         deploy:
             resources:
                 limits:
@@ -1334,7 +1334,7 @@ services:
         image: dockermediacloud/word2vec-generate-snapshot-model:release
         networks:
             - default
-        env_file: common/common.env
+        env_file: common.env
         depends_on:
             - postgresql-pgbouncer
             - rabbitmq-server
