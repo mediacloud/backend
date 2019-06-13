@@ -112,7 +112,7 @@ services:
                     # CPU core limit
                     cpus: "1"
                     # RAM limit
-                    memory: 256M
+                    memory: "256M"
 
     #
     # CLIFF update story tags
@@ -144,7 +144,7 @@ services:
                     # CPU core limit
                     cpus: "1"
                     # RAM limit
-                    memory: 256M
+                    memory: "256M"
 
     #
     # Crawler provider
@@ -163,7 +163,7 @@ services:
                     # CPU core limit
                     cpus: "1"
                     # RAM limit
-                    memory: 1G
+                    memory: "1G"
 
     #
     # Crawler fetcher
@@ -185,7 +185,7 @@ services:
                     # CPU core limit
                     cpus: "1"
                     # RAM limit
-                    memory: 512M
+                    memory: "512M"
 
     #
     # Create missing PostgreSQL partitions
@@ -204,7 +204,7 @@ services:
                     # CPU core limit
                     cpus: "1"
                     # RAM limit
-                    memory: 256G
+                    memory: "256M"
 
     #
     # Extract article HTML from page HTML
@@ -226,7 +226,7 @@ services:
                     # CPU core limit
                     cpus: "1"
                     # RAM limit
-                    memory: 512M
+                    memory: "512M"
 
     #
     # Extract and vector stories
@@ -249,7 +249,7 @@ services:
                     # CPU core limit
                     cpus: "1"
                     # RAM limit
-                    memory: 256M
+                    memory: "256M"
 
     #
     # Fetch story stats from Facebook
@@ -278,7 +278,7 @@ services:
                     # CPU core limit
                     cpus: "1"
                     # RAM limit
-                    memory: 256M
+                    memory: "256M"
 
     #
     # Generate daily RSS dumps Cron job
@@ -305,7 +305,7 @@ services:
                     # CPU core limit
                     cpus: "1"
                     # RAM limit
-                    memory: 1G
+                    memory: "512M"
 
     #
     # Generate media health report Cron job
@@ -324,7 +324,7 @@ services:
                     # CPU core limit
                     cpus: "1"
                     # RAM limit
-                    memory: 256M
+                    memory: "256M"
 
     #
     # Generate daily / weekly user summary Cron job
@@ -343,7 +343,7 @@ services:
                     # CPU core limit
                     cpus: "1"
                     # RAM limit
-                    memory: 256M
+                    memory: "256M"
 
     #
     # Import stories into Solr
@@ -369,7 +369,7 @@ services:
                     # CPU core limit
                     cpus: "16"
                     # RAM limit
-                    memory: 4G
+                    memory: "4G"
 
     #
     # Import stories by scraping Feedly
@@ -389,7 +389,7 @@ services:
                     # CPU core limit
                     cpus: "1"
                     # RAM limit (uses quite a lot of it until it OOMs)
-                    memory: 4G
+                    memory: "4G"
 
     #
     # OpenDKIM server
@@ -421,7 +421,7 @@ services:
                     # CPU core limit
                     cpus: "1"
                     # RAM limit
-                    memory: 128M
+                    memory: "128M"
 
     #
     # Postfix server
@@ -455,7 +455,7 @@ services:
                     # CPU core limit
                     cpus: "1"
                     # RAM limit
-                    memory: 128M
+                    memory: "128M"
 
     #
     # NYTLabels fetch annotation
@@ -478,7 +478,7 @@ services:
                     # CPU core limit
                     cpus: "1"
                     # RAM limit
-                    memory: 256M
+                    memory: "256M"
 
     #
     # NYTLabels update story tags
@@ -505,7 +505,7 @@ services:
                     # CPU core limit
                     cpus: "1"
                     # RAM limit
-                    memory: 256M
+                    memory: "256M"
 
     #
     # PgBouncer
@@ -519,6 +519,13 @@ services:
             - postgresql-server
         expose:
             - 6432
+        deploy:
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "256M"
 
     #
     # PostgreSQL server
@@ -564,7 +571,7 @@ services:
                     # CPU core limit
                     cpus: "1"
                     # RAM limit
-                    memory: 4G
+                    memory: "4G"
 
     #
     # Purge PostgreSQL object caches
@@ -583,7 +590,7 @@ services:
                     # CPU core limit
                     cpus: "1"
                     # RAM limit
-                    memory: 256G
+                    memory: "256M"
 
     #
     # RabbitMQ
@@ -610,7 +617,7 @@ services:
                     # CPU core limit
                     cpus: "4"
                     # RAM limit
-                    memory: 8G
+                    memory: "2G"
 
     #
     # Refresh stats Cron job
@@ -629,7 +636,7 @@ services:
                     # CPU core limit
                     cpus: "1"
                     # RAM limit
-                    memory: 256M
+                    memory: "256M"
 
     #
     # Add due media to the rescraping queue Cron job
@@ -649,7 +656,7 @@ services:
                     # CPU core limit
                     cpus: "1"
                     # RAM limit
-                    memory: 256M
+                    memory: "256M"
 
     #
     # (Re)scrape media
@@ -671,7 +678,7 @@ services:
                     # CPU core limit
                     cpus: "1"
                     # RAM limit
-                    memory: 512M
+                    memory: "512M"
 
     #
     # Report rescraping changes Cron job
@@ -690,7 +697,7 @@ services:
                     # CPU core limit
                     cpus: "1"
                     # RAM limit
-                    memory: 256M
+                    memory: "256M"
 
     #
     # Set media primary language Cron job
@@ -709,7 +716,7 @@ services:
                     # CPU core limit
                     cpus: "1"
                     # RAM limit
-                    memory: 256M
+                    memory: "256M"
 
     #
     # Set media subject country Cron job
@@ -728,7 +735,7 @@ services:
                     # CPU core limit
                     cpus: "1"
                     # RAM limit
-                    memory: 256M
+                    memory: "256M"
 
     #
     # Print long running job states
@@ -747,7 +754,7 @@ services:
                     # CPU core limit
                     cpus: "1"
                     # RAM limit
-                    memory: 256M
+                    memory: "256M"
 
     #
     # Solr shards 01-24
@@ -963,7 +970,7 @@ services:
                     # CPU core limit
                     cpus: "1"
                     # RAM limit
-                    memory: 2G
+                    memory: "1G"
 
     #
     # Extract story links for a topic
@@ -984,7 +991,7 @@ services:
                     # CPU core limit
                     cpus: "1"
                     # RAM limit
-                    memory: 256M
+                    memory: "256M"
 
     #
     # Fetch link for a topic
@@ -1003,7 +1010,7 @@ services:
                     # CPU core limit
                     cpus: "1"
                     # RAM limit
-                    memory: 256M
+                    memory: "256M"
 
     #
     # Fetch Twitter URLs
@@ -1031,7 +1038,7 @@ services:
                     # CPU core limit
                     cpus: "1"
                     # RAM limit
-                    memory: 256M
+                    memory: "256M"
 
     #
     # Mine a topic
@@ -1053,7 +1060,7 @@ services:
                     # CPU core limit
                     cpus: "1"
                     # RAM limit
-                    memory: 2G
+                    memory: "2G"
 
     #
     # Mine a public topic
@@ -1075,7 +1082,7 @@ services:
                     # CPU core limit
                     cpus: "1"
                     # RAM limit
-                    memory: 2G
+                    memory: "2G"
 
     #
     # Snapshot a topic
@@ -1097,7 +1104,7 @@ services:
                     # CPU core limit
                     cpus: "1"
                     # RAM limit
-                    memory: 2G
+                    memory: "2G"
 
     #
     # Munin node
@@ -1118,7 +1125,7 @@ services:
                     # CPU core limit
                     cpus: "1"
                     # RAM limit
-                    memory: 512M
+                    memory: "512M"
 
     #
     # Munin Cron stats collector
@@ -1146,7 +1153,7 @@ services:
                     # CPU core limit
                     cpus: "1"
                     # RAM limit
-                    memory: 512M
+                    memory: "256M"
 
     #
     # Munin HTTP server
@@ -1177,7 +1184,7 @@ services:
                     # CPU core limit
                     cpus: "1"
                     # RAM limit
-                    memory: 512M
+                    memory: "256M"
 
     #
     # Fetch sitemap pages from media
@@ -1194,7 +1201,7 @@ services:
                     # CPU core limit
                     cpus: "1"
                     # RAM limit
-                    memory: 2G
+                    memory: "2G"
 
     #
     # Webapp (Plackup FastCGI workers)
@@ -1215,7 +1222,7 @@ services:
                     # CPU core limit
                     cpus: "1"
                     # RAM limit
-                    memory: 1G
+                    memory: "1G"
 
     #
     # Webapp (HTTP server)
@@ -1241,7 +1248,7 @@ services:
                     # CPU core limit
                     cpus: "1"
                     # RAM limit
-                    memory: 512M
+                    memory: "256M"
 
     #
     # Cron job that updates Let's Encrypt certificates used by reverse proxy
@@ -1273,7 +1280,7 @@ services:
                     # CPU core limit
                     cpus: "1"
                     # RAM limit
-                    memory: 256M
+                    memory: "256M"
 
     #
     # SSL terminating reverse proxy
@@ -1317,7 +1324,7 @@ services:
                     # CPU core limit
                     cpus: "1"
                     # RAM limit
-                    memory: 512M
+                    memory: "256M"
 
     #
     # Generate word2vec snapshot model
@@ -1339,7 +1346,7 @@ services:
                     # CPU core limit
                     cpus: "1"
                     # RAM limit
-                    memory: 2G
+                    memory: "2G"
 
     #
     # Portainer for cluster management
@@ -1366,7 +1373,7 @@ services:
                     # CPU core limit
                     cpus: "1"
                     # RAM limit
-                    memory: 1G
+                    memory: "1G"
 
 
 #
