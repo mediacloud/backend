@@ -26,7 +26,7 @@ RUN \
     true
 
 # CPAN mirror URL (CPAN, DarkPan or MiniCPAN)
-ENV MEDIACLOUD_PERL_CPAN_MIRROR "https://s3.amazonaws.com/mediacloud-minicpan/minicpan-20170824/"
+ENV MC_PERL_CPAN_MIRROR "https://s3.amazonaws.com/mediacloud-minicpan/minicpan-20170824/"
 
 # Use correct Python with Inline::Python
 ENV INLINE_PYTHON_EXECUTABLE /usr/bin/python3.7
@@ -41,7 +41,7 @@ RUN curl -L https://cpanmin.us | perl - App::cpanminus
 RUN \
     #
     # Install Inline
-    cpanm --mirror "$MEDIACLOUD_PERL_CPAN_MIRROR" --mirror-only Inline && \
+    cpanm --mirror "$MC_PERL_CPAN_MIRROR" --mirror-only Inline && \
     #
     # Install Inline::Python variant which die()s with tracebacks (stack traces)
     cpanm https://github.com/berkmancenter/mediacloud-inline-python-pm.git@v0.56.1-mediacloud && \
