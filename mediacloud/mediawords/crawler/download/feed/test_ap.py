@@ -330,7 +330,7 @@ class TestAPFetcherDB(TestDatabaseWithSchemaTestCase):
         assert story['title'] == 'Report: Far-right violence in Germany declined in 2017'
         assert story['url'] == 'https://apnews.com/61a17439ecd940498124a2939a78c678'
         assert story['guid'] == 'de9a436b796b41d5821509773f740fa0'
-        assert story['publish_date'] == '2019-02-11 21:00:41.206000'
+        assert story['publish_date'] == '2018-07-06 13:34:25'
         assert story['description'][0:10] == 'German media are reporting a drop'[0:10]
 
         download_text = db.query("select * from download_texts").hash()

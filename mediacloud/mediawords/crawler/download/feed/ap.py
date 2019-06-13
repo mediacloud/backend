@@ -514,7 +514,7 @@ def import_archive_file(db: mediawords.db.DatabaseHandler, file: str) -> None:
 
     story = {}
     story['title'] = body['body.head']['hedline']['hl1']['#text']
-    story['publish_date'] = entry['updated']
+    story['publish_date'] = entry['published']
     story['description'] = body['body.head'].get('abstract', story['title'])
 
     story['guid'] = entry['id'].replace('urn:publicid:ap.org:', '')
