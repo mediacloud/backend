@@ -17,7 +17,7 @@ This script can print the commands that are going to be run instead of running t
 import subprocess
 from typing import List
 
-from utils import docker_images, current_git_branch_name, DockerHubArgumentParser
+from utils import docker_images, docker_tag_from_current_git_branch_name, DockerHubArgumentParser
 
 
 def _docker_images_to_push(all_apps_dir: str, docker_hub_username: str) -> List[str]:
@@ -41,10 +41,10 @@ if __name__ == '__main__':
     args = parser.parse_arguments()
     docker_hub_username_ = args.docker_hub_username()
 
-    branch = current_git_branch_name()
+    image_tag = docker_tag_from_current_git_branch_name()
 
     for image in _docker_images_to_push(all_apps_dir=args.all_apps_dir(), docker_hub_username=docker_hub_username_):
-        command = ['docker', 'push', '{}:{}'.format(image, branch)]
+        command = ['docker', 'push', '{}:{}'.format(image, image_tag)]
 
         if args.print_commands():
             print(' '.join(command))

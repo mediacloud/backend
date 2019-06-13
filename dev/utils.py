@@ -203,7 +203,7 @@ def docker_images(all_apps_dir: str, only_belonging_to_user: bool, docker_hub_us
     return images
 
 
-def current_git_branch_name() -> str:
+def __current_git_branch_name() -> str:
     """
     Return Git branch name that the commit from HEAD belongs to.
 
@@ -243,6 +243,14 @@ def current_git_branch_name() -> str:
         assert branch_name, "Branch name should be set."
 
     return branch_name
+
+
+def docker_tag_from_current_git_branch_name() -> str:
+    """
+    Read the current Git branch name, and convert it to Docker tag.
+    :return: Docker tag.
+    """
+    return __current_git_branch_name().replace('/', '_')
 
 
 class DockerArguments(object):

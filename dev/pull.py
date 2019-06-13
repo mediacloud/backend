@@ -16,7 +16,7 @@ This script can print the commands that are going to be run instead of running t
 import subprocess
 from typing import List
 
-from utils import docker_images, current_git_branch_name, DockerHubArgumentParser
+from utils import docker_images, docker_tag_from_current_git_branch_name, DockerHubArgumentParser
 
 
 def _docker_images_to_pull(all_apps_dir: str, docker_hub_username: str) -> List[str]:
@@ -34,12 +34,12 @@ def _docker_images_to_pull(all_apps_dir: str, docker_hub_username: str) -> List[
     )
 
 
-def _docker_pull_commands(all_apps_dir: str, git_branch: str, docker_hub_username: str) -> List[str]:
+def _docker_pull_commands(all_apps_dir: str, image_tag: str, docker_hub_username: str) -> List[str]:
     """
     Return an ordered list of "docker pull" commands to run in order to pull all images.
 
     :param all_apps_dir: Directory with container subdirectories.
-    :param git_branch: Current Git branch.
+    :param image_tag: Docker image tag.
     :param docker_hub_username: Docker Hub username.
     :return: List of "docker pull" commands to run in order to pull all images.
     """
@@ -55,24 +55,10 @@ def _docker_pull_commands(all_apps_dir: str, git_branch: str, docker_hub_usernam
             # 3) Tag the branch image (which at this point was either built from the branch or from "master") as
             #    "latest", i.e. mark them as the latest local build to be later used for rebuilding and running tests
 
-            pull_branch = 'docker pull {image}:{branch}'.format(
-                image=image,
-                branch=git_branch,
-            )
-
-            pull_master = 'docker pull {image}:master'.format(
-                image=image,
-            )
-
-            tag_master_as_branch = 'docker tag {image}:master {image}:{branch}'.format(
-                image=image,
-                branch=git_branch,
-            )
-
-            tag_branch_as_latest = 'docker tag {image}:{branch} {image}:latest'.format(
-                image=image,
-                branch=git_branch,
-            )
+            pull_branch = 'docker pull {image}:{tag}'.format(image=image, tag=image_tag)
+            pull_master = 'docker pull {image}:master'.format(image=image)
+            tag_master_as_branch = 'docker tag {image}:master {image}:{tag}'.format(image=image, tag=image_tag)
+            tag_branch_as_latest = 'docker tag {image}:{tag} {image}:latest'.format(image=image, tag=image_tag)
 
             command = (
                     pull_branch +
@@ -97,7 +83,7 @@ if __name__ == '__main__':
 
     commands_ = _docker_pull_commands(
         all_apps_dir=args.all_apps_dir(),
-        git_branch=current_git_branch_name(),
+        image_tag=docker_tag_from_current_git_branch_name(),
         docker_hub_username=docker_hub_username_,
     )
 

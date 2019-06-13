@@ -20,7 +20,12 @@ import os
 import subprocess
 from typing import List
 
-from utils import container_dir_name_from_image_name, docker_images, current_git_branch_name, DockerHubArgumentParser
+from utils import (
+    container_dir_name_from_image_name,
+    docker_images,
+    docker_tag_from_current_git_branch_name,
+    DockerHubArgumentParser,
+)
 
 
 class DockerImageToBuild(object):
@@ -89,7 +94,7 @@ if __name__ == '__main__':
     args = parser.parse_arguments()
     docker_hub_username_ = args.docker_hub_username()
 
-    branch = current_git_branch_name()
+    image_tag = docker_tag_from_current_git_branch_name()
 
     images = _docker_images_to_build(all_apps_dir=args.all_apps_dir(), docker_hub_username=docker_hub_username_)
 
@@ -97,7 +102,7 @@ if __name__ == '__main__':
         command = [
             'docker', 'build',
             '--cache-from', '{}:latest'.format(image.tag),
-            '--tag', '{}:{}'.format(image.tag, branch),
+            '--tag', '{}:{}'.format(image.tag, image_tag),
             '--tag', '{}:latest'.format(image.tag),
             image.path,
         ]
