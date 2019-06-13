@@ -442,7 +442,7 @@ services:
             # Expose SMTP to mail senders
             - "25"
         volumes:
-            - vol_postfix_data:/var/spool/postfix/
+            - vol_postfix_data:/var/lib/postfix/
             - vol_postfix_local_mail:/var/lib/mail/
             - vol_postfix_queue:/var/spool/postfix/
         deploy:
