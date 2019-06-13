@@ -5,7 +5,7 @@ services:
     cliff-update-story-tags:
         image: dockermediacloud/cliff-update-story-tags:latest
         stop_signal: SIGKILL
-        env_file: ./../global.env.dist
+        env_file: ./../common/common.env.dist
         environment:
             MC_CLIFF_VERSION_TAG: "cliff_clavin_v2.4.1"
             MC_CLIFF_GEONAMES_TAG_SET: "cliff_geonames"
@@ -32,7 +32,6 @@ services:
 
     postgresql-pgbouncer:
         image: dockermediacloud/postgresql-pgbouncer:latest
-        env_file: ./../global.env.dist
         stop_signal: SIGKILL
         expose:
             - 6432
@@ -41,7 +40,6 @@ services:
 
     postgresql-server:
         image: dockermediacloud/postgresql-server:latest
-        env_file: ./../global.env.dist
         stop_signal: SIGKILL
         expose:
             - 5432

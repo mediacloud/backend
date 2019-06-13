@@ -5,7 +5,7 @@ services:
     nytlabels-update-story-tags:
         image: dockermediacloud/nytlabels-update-story-tags:latest
         stop_signal: SIGKILL
-        env_file: ./../global.env.dist
+        env_file: ./../common/common.env.dist
         environment:
             MC_NYTLABELS_VERSION_TAG: "nyt_labeller_v1.0.0"
             MC_NYTLABELS_TAG_SET: "nyt_labels"
@@ -30,7 +30,6 @@ services:
 
     postgresql-pgbouncer:
         image: dockermediacloud/postgresql-pgbouncer:latest
-        env_file: ./../global.env.dist
         stop_signal: SIGKILL
         expose:
             - 6432
@@ -39,7 +38,6 @@ services:
 
     postgresql-server:
         image: dockermediacloud/postgresql-server:latest
-        env_file: ./../global.env.dist
         stop_signal: SIGKILL
         expose:
             - 5432

@@ -46,7 +46,7 @@ services:
     webapp-api:
         image: dockermediacloud/webapp-api:latest
         stop_signal: SIGKILL
-        env_file: ./../global.env.dist
+        env_file: ./../common/common.env.dist
         expose:
             - "9090"
         # Here and elsewhere, don't start any subservices via "depends_on"
@@ -65,7 +65,6 @@ services:
 
     solr-shard:
         image: dockermediacloud/solr-shard:latest
-        env_file: ./../global.env.dist
         stop_signal: SIGKILL
         environment:
             MC_SOLR_SHARD_COUNT: "1"
@@ -76,7 +75,6 @@ services:
 
     solr-zookeeper:
         image: dockermediacloud/solr-zookeeper:latest
-        env_file: ./../global.env.dist
         stop_signal: SIGKILL
         expose:
             - 2181
@@ -85,7 +83,6 @@ services:
 
     rabbitmq-server:
         image: dockermediacloud/rabbitmq-server:latest
-        env_file: ./../global.env.dist
         stop_signal: SIGKILL
         expose:
             - 5672

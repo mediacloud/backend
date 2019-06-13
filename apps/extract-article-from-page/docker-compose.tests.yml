@@ -5,7 +5,7 @@ services:
     extract-article-from-page:
         image: dockermediacloud/extract-article-from-page:latest
         stop_signal: SIGKILL
-        env_file: ./../global.env.dist
+        env_file: ./../common/common.env.dist
         expose:
             - 8080
         volumes:

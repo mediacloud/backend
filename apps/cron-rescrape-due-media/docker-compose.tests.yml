@@ -5,7 +5,7 @@ services:
     cron-rescrape-due-media:
         image: dockermediacloud/cron-rescrape-due-media:latest
         stop_signal: SIGKILL
-        env_file: ./../global.env.dist
+        env_file: ./../common/common.env.dist
         volumes:
             - type: bind
               source: ./bin/
@@ -19,7 +19,6 @@ services:
 
     postgresql-pgbouncer:
         image: dockermediacloud/postgresql-pgbouncer:latest
-        env_file: ./../global.env.dist
         stop_signal: SIGKILL
         expose:
             - 6432
@@ -28,14 +27,12 @@ services:
 
     postgresql-server:
         image: dockermediacloud/postgresql-server:latest
-        env_file: ./../global.env.dist
         stop_signal: SIGKILL
         expose:
             - 5432
 
     rabbitmq-server:
         image: dockermediacloud/rabbitmq-server:latest
-        env_file: ./../global.env.dist
         stop_signal: SIGKILL
         expose:
             - 5672

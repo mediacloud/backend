@@ -27,7 +27,6 @@ services:
 
     postgresql-pgbouncer:
         image: dockermediacloud/postgresql-pgbouncer:latest
-        env_file: ./../global.env.dist
         stop_signal: SIGKILL
         expose:
             - 6432
@@ -36,14 +35,12 @@ services:
 
     postgresql-server:
         image: dockermediacloud/postgresql-server:latest
-        env_file: ./../global.env.dist
         stop_signal: SIGKILL
         expose:
             - 5432
 
     solr-shard:
         image: dockermediacloud/solr-shard:latest
-        env_file: ./../global.env.dist
         stop_signal: SIGKILL
         environment:
             MC_SOLR_SHARD_COUNT: "1"
@@ -54,7 +51,6 @@ services:
 
     solr-zookeeper:
         image: dockermediacloud/solr-zookeeper:latest
-        env_file: ./../global.env.dist
         stop_signal: SIGKILL
         expose:
             - 2181

@@ -4,7 +4,6 @@ services:
 
     postgresql-server:
         image: dockermediacloud/postgresql-server:latest
-        env_file: ./../global.env.dist
         stop_signal: SIGKILL
         ports:
             - "5432"

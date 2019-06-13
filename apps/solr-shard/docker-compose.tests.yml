@@ -15,7 +15,6 @@ version: "3.7"
 # Base service for Solr shard
 x-solr-shard_base:   &solr-shard_base
     image: dockermediacloud/solr-shard:latest
-    env_file: ./../global.env.dist
     stop_signal: SIGKILL
     environment:
         MC_SOLR_SHARD_COUNT: "4"
@@ -57,7 +56,6 @@ services:
 
     solr-zookeeper:
         image: dockermediacloud/solr-zookeeper:latest
-        env_file: ./../global.env.dist
         stop_signal: SIGKILL
         expose:
             - 2181

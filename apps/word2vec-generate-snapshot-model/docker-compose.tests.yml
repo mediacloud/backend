@@ -5,7 +5,7 @@ services:
     word2vec-generate-snapshot-model:
         image: dockermediacloud/word2vec-generate-snapshot-model:latest
         stop_signal: SIGKILL
-        env_file: ./../global.env.dist
+        env_file: ./../common/common.env.dist
         volumes:
             - type: bind
               source: ./bin/
@@ -24,7 +24,6 @@ services:
 
     postgresql-pgbouncer:
         image: dockermediacloud/postgresql-pgbouncer:latest
-        env_file: ./../global.env.dist
         stop_signal: SIGKILL
         expose:
             - 6432
@@ -33,7 +32,6 @@ services:
 
     postgresql-server:
         image: dockermediacloud/postgresql-server:latest
-        env_file: ./../global.env.dist
         stop_signal: SIGKILL
         expose:
             - 5432
