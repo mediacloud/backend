@@ -410,7 +410,7 @@ services:
         networks:
             - default
         env_file: global.env
-        deploy:
+        depends_on:
             # Writes stories to PostgreSQL
             - net_postgresql
         deploy:
@@ -1210,17 +1210,16 @@ services:
             # Shared with "munin-httpd" container:
             - vol_munin_html:/var/cache/munin/www/
         deploy:
+            placement:
+                constraints:
+                    # Must run on the same host as munin-httpd as they share two volumes
+                    - node.labels.role-munin-httpd
             resources:
                 limits:
                     # CPU core limit
                     cpus: "1"
                     # RAM limit
                     memory: 512M
-        deploy:
-            placement:
-                constraints:
-                    # Must run on the same host as munin-httpd as they share two volumes
-                    - node.labels.role-munin-httpd
 
     #
     # Munin HTTP server
@@ -1244,17 +1243,16 @@ services:
             # Shared with "munin-cron" container:
             - vol_munin_html:/var/cache/munin/www/
         deploy:
+            placement:
+                constraints:
+                    # Must run on the same host as munin-cron as they share two volumes
+                    - node.labels.role-munin-httpd
             resources:
                 limits:
                     # CPU core limit
                     cpus: "1"
                     # RAM limit
                     memory: 512M
-        deploy:
-            placement:
-                constraints:
-                    # Must run on the same host as munin-cron as they share two volumes
-                    - node.labels.role-munin-httpd
 
     #
     # Fetch sitemap pages from media
@@ -1437,7 +1435,7 @@ services:
             - default
         expose:
             # Web interface
-            - "9000:9000"
+            - "9000"
         command: -H unix:///var/run/docker.sock
         volumes:
             - /var/run/docker.sock:/var/run/docker.sock
