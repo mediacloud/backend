@@ -18,7 +18,9 @@ The back-end is a pretty big codebase and can be daunting to jump into.  You mig
 * [Hausa Stemmer](https://github.com/berkmancenter/mediacloud-hausastemmer) - Hausa language stemmer (Bimba et al., 2015).
 * [p5-Lingua-Stem-Snowball-Ca](https://github.com/berkmancenter/p5-Lingua-Stem-Snowball-Ca) - Perl interface to Snowball stemmer for the Catalan language.
 
-> **Note:** We are in the middle of a multi-yeear project to port this code from Perl to Python 3. If you see old Perl code, don't be scared! Be assured that we have a task in the queue to port it over eventually. We have some bindings that let them talk to each other.
+> **Note:** We are in the middle of a multi-year project to port this code from Perl to Python 3. If you see old Perl code, don't be scared! Be assured that we have a task in the queue to port it over eventually. We have some bindings that let them talk to each other.
+
+One reason that we recommend starting work on some of the smaller repos listed above is that working within the [core backend codebase](https://github.com/berkmancenter/mediacloud) requires installing the entire large platform on you dev machine.
 
 
 How Can I Contribute?
@@ -32,10 +34,6 @@ In this repo, and the others linked to above, look for issues marked with the `g
 ### Pull Requests
 
 In general, it is good practice to fork the repo to your account, make changes on a new branch named after the issue in some way, and then send us a PR back to the main repo.  One of us will review it and then send feedback.
-
-### Installing the Core Backend
-
-One reason that we recommend starting work on some of the smaller repos listed above is that working within the [core backend codebase](https://github.com/berkmancenter/mediacloud) requires installing the entire large platform on you dev machine.  If there is an issue you want to work on in that core backend code, the easiest way to install working version of the codebase with minimal impact on your dev machine is to use Vagrant, as described [here](https://github.com/berkmancenter/mediacloud/blob/master/doc/vagrant.markdown).
 
 ### Communicate with the Team
 

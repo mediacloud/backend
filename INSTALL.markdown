@@ -13,13 +13,6 @@ If you're running macOS, you'll need [Homebrew](http://mxcl.github.com/homebrew/
 **Note:** We recommend you create a new user to run and install Media Cloud. (The new user should have administrator access.) These instructions assume that the user running Media Cloud does not already have Perlbrew installed. Creating a new user is the safest way to ensure this is the case.
 
 
-## Install on Vagrant Instance
-
-We maintain a Vagrant configuration for getting Media Cloud up and running in an isolated instance (VirtualBox, EC2, VMWare, ...) quickly.
-
-Please see [doc/vagrant.markdown](doc/vagrant.markdown) for Vagrant installation instructions.
-
-
 ## Install Locally
 
 Users who are really impatient can just run a single script to execute the necessary commands to install media by running `./install.sh` from the Media Cloud root directory:
