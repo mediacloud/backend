@@ -19,9 +19,29 @@ sudo pip3 install --upgrade ansible
 
 echo "Setting up Docker..."
 cd provision/
-ansible-playbook --inventory="localhost," --connection=local --tags docker setup.yml
+ansible-playbook --inventory="localhost," --connection=local --tags=docker setup.yml
 
-# FIXME
-echo "Pulling images..."
+echo "Installing PyYAML..."
 sudo pip3 install --upgrade PyYAML
-./dev/pull.py
+
+cat << EOF
+
+Installation is complete!
+
+To pull pre-built app Docker images, run:
+
+    ./dev/pull.py
+
+To run Media Cloud in production, you might want to create docker-compose.yml
+(using apps/docker-compose.yml.dist as a template) to fit your needs and start
+all the services by running:
+
+    docker-compose up
+
+To start developing Media Cloud, you might want to start individual apps
+together with their dependencies using a Docker Compose testing environment
+defined in each app's docker-compose.tests.yml.
+
+Please refer to the documentation (docs/) for more information.
+
+EOF
