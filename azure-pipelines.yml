@@ -5,6 +5,8 @@ stages:
   jobs:
   - job: pull_build_push
     displayName: Pull, build, push images
+    # Full rebuilds might take a while
+    timeoutInMinutes: 100
     pool:
       vmImage: 'ubuntu-16.04'
     steps:
