@@ -22,7 +22,7 @@ Please send us a note at [info@mediacloud.org](info@mediacloud.org) if you are u
 Build Status
 ------------
 
-[![Build Status](https://dev.azure.com/shirshegsm/mediacloud/_apis/build/status/mediacloud?branchName=containers/master)](https://dev.azure.com/shirshegsm/mediacloud/_build/latest?definitionId=1&branchName=containers/master)
+[![Build Status](https://media-cloud.visualstudio.com/mc-backend/_apis/build/status/mediacloud?branchName=containers/release)](https://media-cloud.visualstudio.com/mc-backend/_build/latest?definitionId=1&branchName=containers/release)
 
 
 History of the Project
