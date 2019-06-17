@@ -45,13 +45,8 @@ x-solr-shard_base:   &solr-shard_base
     # Increase open file limit
     <<: *bigger-open-file-limit
 
-# Base "deploy section" for every Solr shard
-x-solr-shard_base_deploy_base:  &solr-shard_base_deploy_base
-    restart_policy:
-        # Don't autorestart Solr shards because if they have failed, they will
-        # probably fail again and instead we should go out and take a look into
-        # why exactly they are failing
-        condition: none
+# Default resources for every Solr shard
+x-solr-shard_base_deploy_resources:  &solr-shard_base_deploy_resources
     # Every shard runs as its own independent, non-replicated service
     resources:
         limits:
@@ -110,8 +105,6 @@ services:
             - postgresql-pgbouncer
             - rabbitmq-server
         deploy:
-            restart_policy:
-                condition: none
             # Worker count
             replicas: 4
             resources:
@@ -145,8 +138,7 @@ services:
         deploy:
             # Worker count
             replicas: 1
-            restart_policy:
-                condition: none
+            # Auto-restart on crashes
             resources:
                 limits:
                     # CPU core limit
@@ -166,8 +158,6 @@ services:
         depends_on:
             - postgresql-pgbouncer
         deploy:
-            restart_policy:
-                condition: none
             resources:
                 limits:
                     # CPU core limit
@@ -190,8 +180,6 @@ services:
         deploy:
             # Worker count
             replicas: 8
-            restart_policy:
-                condition: none
             resources:
                 limits:
                     # CPU core limit
@@ -211,8 +199,6 @@ services:
         depends_on:
             - postgresql-pgbouncer
         deploy:
-            restart_policy:
-                condition: none
             resources:
                 limits:
                     # CPU core limit
@@ -235,8 +221,6 @@ services:
         deploy:
             # Worker count
             replicas: 8
-            restart_policy:
-                condition: none
             resources:
                 limits:
                     # CPU core limit
@@ -260,8 +244,6 @@ services:
         deploy:
             # Worker count
             replicas: 24
-            restart_policy:
-                condition: none
             resources:
                 limits:
                     # CPU core limit
@@ -291,8 +273,6 @@ services:
         deploy:
             # Worker count
             replicas: 4
-            restart_policy:
-                condition: none
             resources:
                 limits:
                     # CPU core limit
@@ -315,8 +295,6 @@ services:
             # Shared with "webapp-httpd" container:
             - vol_daily_rss_dumps:/var/lib/daily_rss_dumps/
         deploy:
-            restart_policy:
-                condition: none
             placement:
                 constraints:
                     # Must run on the same host as the webapp-httpd server because they will be
@@ -341,8 +319,6 @@ services:
         depends_on:
             - postgresql-pgbouncer
         deploy:
-            restart_policy:
-                condition: none
             resources:
                 limits:
                     # CPU core limit
@@ -362,8 +338,6 @@ services:
         depends_on:
             - postgresql-pgbouncer
         deploy:
-            restart_policy:
-                condition: none
             resources:
                 limits:
                     # CPU core limit
@@ -390,8 +364,6 @@ services:
             - postgresql-pgbouncer
             - solr-shard-01
         deploy:
-            restart_policy:
-                condition: none
             resources:
                 limits:
                     # CPU core limit
@@ -412,8 +384,6 @@ services:
             # Writes stories to PostgreSQL
             - postgresql-pgbouncer
         deploy:
-            restart_policy:
-                condition: none
             resources:
                 limits:
                     # CPU core limit
@@ -442,8 +412,6 @@ services:
         volumes:
             - vol_opendkim_config:/etc/opendkim/
         deploy:
-            restart_policy:
-                condition: none
             placement:
                 constraints:
                     # Must run on the host with OpenDKIM data volume
@@ -478,8 +446,6 @@ services:
             - vol_postfix_local_mail:/var/lib/mail/
             - vol_postfix_queue:/var/spool/postfix/
         deploy:
-            restart_policy:
-                condition: none
             placement:
                 constraints:
                     # Must run on the host with Postfix data volume
@@ -507,8 +473,6 @@ services:
         deploy:
             # Worker count
             replicas: 4
-            restart_policy:
-                condition: none
             resources:
                 limits:
                     # CPU core limit
@@ -536,8 +500,6 @@ services:
         deploy:
             # Worker count
             replicas: 1
-            restart_policy:
-                condition: none
             resources:
                 limits:
                     # CPU core limit
@@ -558,8 +520,6 @@ services:
         expose:
             - 6432
         deploy:
-            restart_policy:
-                condition: none
             resources:
                 limits:
                     # CPU core limit
@@ -582,8 +542,6 @@ services:
         # Increase open file limit
         <<: *bigger-open-file-limit
         deploy:
-            restart_policy:
-                condition: none
             placement:
                 constraints:
                     # Must run on the host with PostgreSQL data volume
@@ -600,16 +558,14 @@ services:
         expose:
             - 8080
         deploy:
-            # Worker count
-            replicas: 1
-            restart_policy:
-                condition: none
             placement:
                 constraints:
                     # Workers don't necessarily *have* to run on the very same host,
                     # but if they do, they'll be able to share a single mmap'ped dataset
                     # and thus conserve memory
                     - node.labels.role-predict-news-labels == true
+            # Worker count
+            replicas: 1
             resources:
                 limits:
                     # CPU core limit
@@ -629,8 +585,6 @@ services:
         depends_on:
             - postgresql-pgbouncer
         deploy:
-            restart_policy:
-                condition: none
             resources:
                 limits:
                     # CPU core limit
@@ -654,8 +608,6 @@ services:
         # Increase open file limit
         <<: *bigger-open-file-limit
         deploy:
-            restart_policy:
-                condition: none
             placement:
                 constraints:
                     # Must run on the host with RabbitMQ data volume
@@ -679,8 +631,6 @@ services:
         depends_on:
             - postgresql-pgbouncer
         deploy:
-            restart_policy:
-                condition: none
             resources:
                 limits:
                     # CPU core limit
@@ -701,8 +651,6 @@ services:
             - postgresql-pgbouncer
             - rabbitmq-server
         deploy:
-            restart_policy:
-                condition: none
             resources:
                 limits:
                     # CPU core limit
@@ -725,8 +673,6 @@ services:
         deploy:
             # Worker count
             replicas: 2
-            restart_policy:
-                condition: none
             resources:
                 limits:
                     # CPU core limit
@@ -746,8 +692,6 @@ services:
         depends_on:
             - postgresql-pgbouncer
         deploy:
-            restart_policy:
-                condition: none
             resources:
                 limits:
                     # CPU core limit
@@ -767,8 +711,6 @@ services:
         depends_on:
             - postgresql-pgbouncer
         deploy:
-            restart_policy:
-                condition: none
             resources:
                 limits:
                     # CPU core limit
@@ -788,8 +730,6 @@ services:
         depends_on:
             - postgresql-pgbouncer
         deploy:
-            restart_policy:
-                condition: none
             resources:
                 limits:
                     # CPU core limit
@@ -809,8 +749,6 @@ services:
         depends_on:
             - postgresql-pgbouncer
         deploy:
-            restart_policy:
-                condition: none
             resources:
                 limits:
                     # CPU core limit
@@ -827,7 +765,7 @@ services:
         volumes:
             - vol_solr_shard_data_01:/var/lib/solr/
         deploy:
-            <<: *solr-shard_base_deploy_base
+            <<: *solr-shard_base_deploy_resources
             <<: *solr-shard_base_deploy_placement_host1
 
     solr-shard-02:
@@ -835,7 +773,7 @@ services:
         volumes:
             - vol_solr_shard_data_02:/var/lib/solr/
         deploy:
-            <<: *solr-shard_base_deploy_base
+            <<: *solr-shard_base_deploy_resources
             <<: *solr-shard_base_deploy_placement_host1
 
     solr-shard-03:
@@ -843,7 +781,7 @@ services:
         volumes:
             - vol_solr_shard_data_03:/var/lib/solr/
         deploy:
-            <<: *solr-shard_base_deploy_base
+            <<: *solr-shard_base_deploy_resources
             <<: *solr-shard_base_deploy_placement_host1
 
     solr-shard-04:
@@ -851,7 +789,7 @@ services:
         volumes:
             - vol_solr_shard_data_04:/var/lib/solr/
         deploy:
-            <<: *solr-shard_base_deploy_base
+            <<: *solr-shard_base_deploy_resources
             <<: *solr-shard_base_deploy_placement_host1
 
     solr-shard-05:
@@ -859,7 +797,7 @@ services:
         volumes:
             - vol_solr_shard_data_05:/var/lib/solr/
         deploy:
-            <<: *solr-shard_base_deploy_base
+            <<: *solr-shard_base_deploy_resources
             <<: *solr-shard_base_deploy_placement_host1
 
     solr-shard-06:
@@ -867,7 +805,7 @@ services:
         volumes:
             - vol_solr_shard_data_06:/var/lib/solr/
         deploy:
-            <<: *solr-shard_base_deploy_base
+            <<: *solr-shard_base_deploy_resources
             <<: *solr-shard_base_deploy_placement_host1
 
     solr-shard-07:
@@ -875,7 +813,7 @@ services:
         volumes:
             - vol_solr_shard_data_07:/var/lib/solr/
         deploy:
-            <<: *solr-shard_base_deploy_base
+            <<: *solr-shard_base_deploy_resources
             <<: *solr-shard_base_deploy_placement_host1
 
     solr-shard-08:
@@ -883,7 +821,7 @@ services:
         volumes:
             - vol_solr_shard_data_08:/var/lib/solr/
         deploy:
-            <<: *solr-shard_base_deploy_base
+            <<: *solr-shard_base_deploy_resources
             <<: *solr-shard_base_deploy_placement_host1
 
     solr-shard-09:
@@ -891,7 +829,7 @@ services:
         volumes:
             - vol_solr_shard_data_09:/var/lib/solr/
         deploy:
-            <<: *solr-shard_base_deploy_base
+            <<: *solr-shard_base_deploy_resources
             <<: *solr-shard_base_deploy_placement_host2
 
     solr-shard-10:
@@ -899,7 +837,7 @@ services:
         volumes:
             - vol_solr_shard_data_10:/var/lib/solr/
         deploy:
-            <<: *solr-shard_base_deploy_base
+            <<: *solr-shard_base_deploy_resources
             <<: *solr-shard_base_deploy_placement_host2
 
     solr-shard-11:
@@ -907,7 +845,7 @@ services:
         volumes:
             - vol_solr_shard_data_11:/var/lib/solr/
         deploy:
-            <<: *solr-shard_base_deploy_base
+            <<: *solr-shard_base_deploy_resources
             <<: *solr-shard_base_deploy_placement_host2
 
     solr-shard-12:
@@ -915,7 +853,7 @@ services:
         volumes:
             - vol_solr_shard_data_12:/var/lib/solr/
         deploy:
-            <<: *solr-shard_base_deploy_base
+            <<: *solr-shard_base_deploy_resources
             <<: *solr-shard_base_deploy_placement_host2
 
     solr-shard-13:
@@ -923,7 +861,7 @@ services:
         volumes:
             - vol_solr_shard_data_13:/var/lib/solr/
         deploy:
-            <<: *solr-shard_base_deploy_base
+            <<: *solr-shard_base_deploy_resources
             <<: *solr-shard_base_deploy_placement_host2
 
     solr-shard-14:
@@ -931,7 +869,7 @@ services:
         volumes:
             - vol_solr_shard_data_14:/var/lib/solr/
         deploy:
-            <<: *solr-shard_base_deploy_base
+            <<: *solr-shard_base_deploy_resources
             <<: *solr-shard_base_deploy_placement_host2
 
     solr-shard-15:
@@ -939,7 +877,7 @@ services:
         volumes:
             - vol_solr_shard_data_15:/var/lib/solr/
         deploy:
-            <<: *solr-shard_base_deploy_base
+            <<: *solr-shard_base_deploy_resources
             <<: *solr-shard_base_deploy_placement_host2
 
     solr-shard-16:
@@ -947,7 +885,7 @@ services:
         volumes:
             - vol_solr_shard_data_16:/var/lib/solr/
         deploy:
-            <<: *solr-shard_base_deploy_base
+            <<: *solr-shard_base_deploy_resources
             <<: *solr-shard_base_deploy_placement_host2
 
     solr-shard-17:
@@ -955,7 +893,7 @@ services:
         volumes:
             - vol_solr_shard_data_17:/var/lib/solr/
         deploy:
-            <<: *solr-shard_base_deploy_base
+            <<: *solr-shard_base_deploy_resources
             <<: *solr-shard_base_deploy_placement_host3
 
     solr-shard-18:
@@ -963,7 +901,7 @@ services:
         volumes:
             - vol_solr_shard_data_18:/var/lib/solr/
         deploy:
-            <<: *solr-shard_base_deploy_base
+            <<: *solr-shard_base_deploy_resources
             <<: *solr-shard_base_deploy_placement_host3
 
     solr-shard-19:
@@ -971,7 +909,7 @@ services:
         volumes:
             - vol_solr_shard_data_19:/var/lib/solr/
         deploy:
-            <<: *solr-shard_base_deploy_base
+            <<: *solr-shard_base_deploy_resources
             <<: *solr-shard_base_deploy_placement_host3
 
     solr-shard-20:
@@ -979,7 +917,7 @@ services:
         volumes:
             - vol_solr_shard_data_20:/var/lib/solr/
         deploy:
-            <<: *solr-shard_base_deploy_base
+            <<: *solr-shard_base_deploy_resources
             <<: *solr-shard_base_deploy_placement_host3
 
     solr-shard-21:
@@ -987,7 +925,7 @@ services:
         volumes:
             - vol_solr_shard_data_21:/var/lib/solr/
         deploy:
-            <<: *solr-shard_base_deploy_base
+            <<: *solr-shard_base_deploy_resources
             <<: *solr-shard_base_deploy_placement_host3
 
     solr-shard-22:
@@ -995,7 +933,7 @@ services:
         volumes:
             - vol_solr_shard_data_22:/var/lib/solr/
         deploy:
-            <<: *solr-shard_base_deploy_base
+            <<: *solr-shard_base_deploy_resources
             <<: *solr-shard_base_deploy_placement_host3
 
     solr-shard-23:
@@ -1003,7 +941,7 @@ services:
         volumes:
             - vol_solr_shard_data_23:/var/lib/solr/
         deploy:
-            <<: *solr-shard_base_deploy_base
+            <<: *solr-shard_base_deploy_resources
             <<: *solr-shard_base_deploy_placement_host3
 
     solr-shard-24:
@@ -1011,7 +949,7 @@ services:
         volumes:
             - vol_solr_shard_data_24:/var/lib/solr/
         deploy:
-            <<: *solr-shard_base_deploy_base
+            <<: *solr-shard_base_deploy_resources
             <<: *solr-shard_base_deploy_placement_host3
 
     #
@@ -1027,8 +965,6 @@ services:
             - 2888
             - 3888
         deploy:
-            restart_policy:
-                condition: none
             resources:
                 limits:
                     # CPU core limit
@@ -1050,8 +986,6 @@ services:
         deploy:
             # Worker count
             replicas: 32
-            restart_policy:
-                condition: none
             resources:
                 limits:
                     # CPU core limit
@@ -1071,8 +1005,6 @@ services:
         deploy:
             # Worker count
             replicas: 8
-            restart_policy:
-                condition: none
             resources:
                 limits:
                     # CPU core limit
@@ -1101,8 +1033,6 @@ services:
         deploy:
             # Worker count
             replicas: 8
-            restart_policy:
-                condition: none
             resources:
                 limits:
                     # CPU core limit
@@ -1125,8 +1055,6 @@ services:
         deploy:
             # Worker count
             replicas: 4
-            restart_policy:
-                condition: none
             resources:
                 limits:
                     # CPU core limit
@@ -1149,8 +1077,6 @@ services:
         deploy:
             # Worker count
             replicas: 4
-            restart_policy:
-                condition: none
             resources:
                 limits:
                     # CPU core limit
@@ -1173,8 +1099,6 @@ services:
         deploy:
             # Worker count
             replicas: 2
-            restart_policy:
-                condition: none
             resources:
                 limits:
                     # CPU core limit
@@ -1196,8 +1120,6 @@ services:
             # Monitors data on Solr
             - solr-shard-01
         deploy:
-            restart_policy:
-                condition: none
             resources:
                 limits:
                     # CPU core limit
@@ -1222,8 +1144,6 @@ services:
             # Shared with "munin-httpd" container:
             - vol_munin_html:/var/cache/munin/www/
         deploy:
-            restart_policy:
-                condition: none
             placement:
                 constraints:
                     # Must run on the same host as munin-httpd as they share two volumes
@@ -1255,8 +1175,6 @@ services:
             # Shared with "munin-cron" container:
             - vol_munin_html:/var/cache/munin/www/
         deploy:
-            restart_policy:
-                condition: none
             placement:
                 constraints:
                     # Must run on the same host as munin-cron as they share two volumes
@@ -1278,8 +1196,6 @@ services:
             - default
         env_file: common.env
         deploy:
-            restart_policy:
-                condition: none
             resources:
                 limits:
                     # CPU core limit
@@ -1301,8 +1217,6 @@ services:
         deploy:
             # FastCGI workers
             replicas: 8
-            restart_policy:
-                condition: none
             resources:
                 limits:
                     # CPU core limit
@@ -1325,8 +1239,6 @@ services:
             # Shared with "cron_generate_daily_rss_dumps" container:
             - vol_daily_rss_dumps:/mediacloud_webapp_static/static/rss_dumps/
         deploy:
-            restart_policy:
-                condition: none
             placement:
                 constraints:
                     # Has its own role due to a shared volume
@@ -1359,8 +1271,6 @@ services:
             # Shared with "proxy-httpd" container:
             - vol_proxy_ssl_certs:/etc/letsencrypt/
         deploy:
-            restart_policy:
-                condition: none
             placement:
                 constraints:
                     # Must run on the same host as proxy-httpd as they share a volume
@@ -1405,8 +1315,6 @@ services:
             # Proxies to Portainer's web UI
             - portainer
         deploy:
-            restart_policy:
-                condition: none
             placement:
                 constraints:
                     # Must run on the same host as proxy-cron-certbot as they share a volume
@@ -1433,8 +1341,6 @@ services:
         deploy:
             # Worker count
             replicas: 2
-            restart_policy:
-                condition: none
             resources:
                 limits:
                     # CPU core limit
@@ -1458,8 +1364,6 @@ services:
             - /var/run/docker.sock:/var/run/docker.sock
             - vol_portainer_data:/data
         deploy:
-            restart_policy:
-                condition: none
             placement:
                 constraints:
                     # Must run on a host that has the data volume
