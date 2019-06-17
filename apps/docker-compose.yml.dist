@@ -66,21 +66,21 @@ x-solr-shard_base_deploy_placement_host1:   &solr-shard_base_deploy_placement_ho
     placement:
         constraints:
             # Must run on the host with Solr data volume
-            - node.labels.role-solr-shards-host1=="true"
+            - node.labels.role-solr-shards-host1 == true
 
 # Placement constraints for Solr shards that run on host #2 (e.g. mcquery2)
 x-solr-shard_base_deploy_placement_host2:   &solr-shard_base_deploy_placement_host2
     placement:
         constraints:
             # Must run on the host with Solr data volume
-            - node.labels.role-solr-shards-host2=="true"
+            - node.labels.role-solr-shards-host2 == true
 
 # Placement constraints for Solr shards that run on host #3 (e.g. mcquery4)
 x-solr-shard_base_deploy_placement_host3:   &solr-shard_base_deploy_placement_host3
     placement:
         constraints:
             # Must run on the host with Solr data volume
-            - node.labels.role-solr-shards-host3=="true"
+            - node.labels.role-solr-shards-host3 == true
 
 
 #
@@ -299,7 +299,7 @@ services:
                 constraints:
                     # Must run on the same host as the webapp-httpd server because they will be
                     # sharing the volume with generated static RSS dumps
-                    - node.labels.role-webapp-httpd=="true"
+                    - node.labels.role-webapp-httpd == true
             resources:
                 limits:
                     # CPU core limit
@@ -415,7 +415,7 @@ services:
             placement:
                 constraints:
                     # Must run on the host with OpenDKIM data volume
-                    - node.labels.role-mail-opendkim=="true"
+                    - node.labels.role-mail-opendkim == true
             resources:
                 limits:
                     # CPU core limit
@@ -449,7 +449,7 @@ services:
             placement:
                 constraints:
                     # Must run on the host with Postfix data volume
-                    - node.labels.role-mail-postfix=="true"
+                    - node.labels.role-mail-postfix == true
             resources:
                 limits:
                     # CPU core limit
@@ -545,7 +545,7 @@ services:
             placement:
                 constraints:
                     # Must run on the host with PostgreSQL data volume
-                    - node.labels.role-postgresql-server=="true"
+                    - node.labels.role-postgresql-server == true
 
     #
     # NYT-Based News Tagger service
@@ -563,7 +563,7 @@ services:
                     # Workers don't necessarily *have* to run on the very same host,
                     # but if they do, they'll be able to share a single mmap'ped dataset
                     # and thus conserve memory
-                    - node.labels.role-predict-news-labels=="true"
+                    - node.labels.role-predict-news-labels == true
             # Worker count
             replicas: 1
             resources:
@@ -611,7 +611,7 @@ services:
             placement:
                 constraints:
                     # Must run on the host with RabbitMQ data volume
-                    - node.labels.role-rabbitmq-server=="true"
+                    - node.labels.role-rabbitmq-server == true
             resources:
                 limits:
                     # CPU core limit
@@ -1147,7 +1147,7 @@ services:
             placement:
                 constraints:
                     # Must run on the same host as munin-httpd as they share two volumes
-                    - node.labels.role-munin-httpd=="true"
+                    - node.labels.role-munin-httpd == true
             resources:
                 limits:
                     # CPU core limit
@@ -1178,7 +1178,7 @@ services:
             placement:
                 constraints:
                     # Must run on the same host as munin-cron as they share two volumes
-                    - node.labels.role-munin-httpd=="true"
+                    - node.labels.role-munin-httpd == true
             resources:
                 limits:
                     # CPU core limit
@@ -1242,7 +1242,7 @@ services:
             placement:
                 constraints:
                     # Has its own role due to a shared volume
-                    - node.labels.role-webapp-httpd=="true"
+                    - node.labels.role-webapp-httpd == true
             resources:
                 limits:
                     # CPU core limit
@@ -1274,7 +1274,7 @@ services:
             placement:
                 constraints:
                     # Must run on the same host as proxy-httpd as they share a volume
-                    - node.labels.role-proxy-httpd=="true"
+                    - node.labels.role-proxy-httpd == true
             resources:
                 limits:
                     # CPU core limit
@@ -1318,7 +1318,7 @@ services:
             placement:
                 constraints:
                     # Must run on the same host as proxy-cron-certbot as they share a volume
-                    - node.labels.role-proxy-httpd=="true"
+                    - node.labels.role-proxy-httpd == true
             resources:
                 limits:
                     # CPU core limit
@@ -1367,7 +1367,7 @@ services:
             placement:
                 constraints:
                     # Must run on a host that has the data volume
-                    - node.labels.role-portainer=="true"
+                    - node.labels.role-portainer == true
             resources:
                 limits:
                     # CPU core limit
