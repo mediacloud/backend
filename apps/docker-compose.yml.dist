@@ -1300,8 +1300,8 @@ services:
             MC_PROXY_HTTPD_AUTH_USERS: ""
         ports:
             # HTTP and HTTPS ports
-            - 80
-            - 443
+            - "80:80"
+            - "80:443"
         volumes:
             # Shared with "proxy_cron_certbot" container:
             - vol_proxy_ssl_certs:/etc/letsencrypt/
