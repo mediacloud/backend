@@ -1323,7 +1323,7 @@ services:
             - 80
         volumes:
             # Shared with "cron_generate_daily_rss_dumps" container:
-            - vol_daily_rss_dumps:/mediacloud_webapp_static/rss_dumps/
+            - vol_daily_rss_dumps:/mediacloud_webapp_static/static/rss_dumps/
         deploy:
             restart_policy:
                 condition: none

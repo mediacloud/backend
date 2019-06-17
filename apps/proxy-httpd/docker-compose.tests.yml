@@ -12,7 +12,10 @@ services:
             - "4443:443"
         volumes:
             - type: bind
-              source: ./nginx/
+              source: ./nginx/include/
+              target: /etc/nginx/include/
+            - type: bind
+              source: ./../nginx-base/nginx/
               target: /etc/nginx/
             # Shared with proxy-cron-certbot:
             - vol_proxy_ssl_certs:/etc/letsencrypt/

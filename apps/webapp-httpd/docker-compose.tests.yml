@@ -8,8 +8,28 @@ services:
         ports:
             # Expose to host for debugging
             - "8080:80"
+        volumes:
+            - type: bind
+              source: ./nginx/include/
+              target: /etc/nginx/include/
+            - type: bind
+              source: ./../nginx-base/nginx/
+              target: /etc/nginx/
+            # Shared with "cron-generate-daily-rss-dumps":
+            - vol_daily_rss_dumps:/mediacloud_webapp_static/static/rss_dumps/
         depends_on:
             - webapp-api
+            - cron-generate-daily-rss-dumps
+
+    cron-generate-daily-rss-dumps:
+        image: dockermediacloud/cron-generate-daily-rss-dumps:containers_release
+        stop_signal: SIGKILL
+        env_file: ./../common/common.env.dist
+        volumes:
+            # Shared with "webapp-httpd":
+            - vol_daily_rss_dumps:/var/lib/daily_rss_dumps/
+        depends_on:
+            - postgresql-pgbouncer
 
     webapp-api:
         image: dockermediacloud/webapp-api:latest
@@ -97,3 +117,6 @@ services:
         depends_on:
             - postgresql-pgbouncer
             - solr-shard
+
+volumes:
+    vol_daily_rss_dumps: {}

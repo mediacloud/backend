@@ -43,11 +43,4 @@ EXPOSE 9090
 USER mediacloud
 
 # Run Plackup
-CMD [                                           \
-    "plackup",                                  \
-     "--server", "FCGI",                        \
-     "--port", "9090",                          \
-     "--nproc", "1",                            \
-     "--manager", "MediaWords::MyFCgiManager",  \
-     "/opt/mediacloud/bin/app.psgi"             \
-]
+CMD ["plackup.sh"]
