@@ -114,25 +114,16 @@ def docker_run_commands(all_apps_dir: str, app_dirname: str, command: List[str],
     if map_ports:
         map_ports_args = ['--service-ports']
 
-    commands.append(
-        [
-            'docker-compose',
-            '--project-name', project_name,
-            '--file', docker_compose_path,
-            'run',
-            '--rm',
-        ] + map_ports_args + [
-            container_name,
-        ] + command
-    )
-
-    commands.append([
+    docker_compose = [
         'docker-compose',
         '--project-name', project_name,
         '--file', docker_compose_path,
-        'down',
-        '--volumes',
-    ])
+        # Enable support for "deploy:" in non-swarm mode
+        '--compatibility',
+    ]
+
+    commands.append(docker_compose + ['run', '--rm'] + map_ports_args + [container_name] + command)
+    commands.append(docker_compose + ['down', '--volumes'])
 
     return commands
 
