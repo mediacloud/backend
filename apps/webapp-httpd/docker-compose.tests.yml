@@ -27,6 +27,9 @@ services:
             - topics-snapshot
             # Multiple tests import Solr data
             - import-solr-data-for-testing
+        deploy:
+            # Try running multiple replicas to see whether FastCGI will be able to use them
+            replicas: 2
 
     postgresql-pgbouncer:
         image: dockermediacloud/postgresql-pgbouncer:latest
