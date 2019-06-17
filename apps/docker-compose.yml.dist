@@ -23,7 +23,7 @@ x-bigger-open-file-limit:   &bigger-open-file-limit
 # "deploy/replicas", we define every shard as its own independent service.
 #
 x-solr-shard_base:   &solr-shard_base
-    image: dockermediacloud/solr-shard:containers/release
+    image: dockermediacloud/solr-shard:containers_release
     environment:
         # Shard count (every individual shard needs to know the total count)
         #
@@ -94,7 +94,7 @@ services:
     # ----------------------
     #
     cliff-fetch-annotation:
-        image: dockermediacloud/cliff-fetch-annotation:containers/release
+        image: dockermediacloud/cliff-fetch-annotation:containers_release
         networks:
             - default
         env_file: common.env
@@ -119,7 +119,7 @@ services:
     # -----------------------
     #
     cliff-update-story-tags:
-        image: dockermediacloud/cliff-update-story-tags:containers/release
+        image: dockermediacloud/cliff-update-story-tags:containers_release
         networks:
             - default
         env_file: common.env
@@ -151,7 +151,7 @@ services:
     # ----------------
     #
     crawler-provider:
-        image: dockermediacloud/crawler-provider:containers/release
+        image: dockermediacloud/crawler-provider:containers_release
         networks:
             - default
         env_file: common.env
@@ -170,7 +170,7 @@ services:
     # ---------------
     #
     crawler-fetcher:
-        image: dockermediacloud/crawler-fetcher:containers/release
+        image: dockermediacloud/crawler-fetcher:containers_release
         networks:
             - default
         env_file: common.env
@@ -192,7 +192,7 @@ services:
     # ------------------------------------
     #
     create-missing-partitions:
-        image: dockermediacloud/create-missing-partitions:containers/release
+        image: dockermediacloud/create-missing-partitions:containers_release
         networks:
             - default
         env_file: common.env
@@ -211,7 +211,7 @@ services:
     # -----------------------------------
     #
     extract-article-from-page:
-        image: dockermediacloud/extract-article-from-page:containers/release
+        image: dockermediacloud/extract-article-from-page:containers_release
         networks:
             - default
         env_file: common.env
@@ -233,7 +233,7 @@ services:
     # --------------------------
     #
     extract-and-vector:
-        image: dockermediacloud/extract-and-vector:containers/release
+        image: dockermediacloud/extract-and-vector:containers_release
         networks:
             - default
         env_file: common.env
@@ -256,7 +256,7 @@ services:
     # -------------------------------
     #
     facebook-fetch-story-stats:
-        image: dockermediacloud/facebook-fetch-story-stats:containers/release
+        image: dockermediacloud/facebook-fetch-story-stats:containers_release
         networks:
             - default
         env_file: common.env
@@ -285,7 +285,7 @@ services:
     # ---------------------------------
     #
     cron-generate-daily-rss-dumps:
-        image: dockermediacloud/cron-generate-daily-rss-dumps:containers/release
+        image: dockermediacloud/cron-generate-daily-rss-dumps:containers_release
         networks:
             - default
         env_file: common.env
@@ -312,7 +312,7 @@ services:
     # -------------------------------------
     #
     cron-generate-media-health:
-        image: dockermediacloud/cron-generate-media-health:containers/release
+        image: dockermediacloud/cron-generate-media-health:containers_release
         networks:
             - default
         env_file: common.env
@@ -331,7 +331,7 @@ services:
     # ---------------------------------------------
     #
     cron-generate-user-summary:
-        image: dockermediacloud/cron-generate-user-summary:containers/release
+        image: dockermediacloud/cron-generate-user-summary:containers_release
         networks:
             - default
         env_file: common.env
@@ -350,7 +350,7 @@ services:
     # ------------------------
     #
     import-solr-data:
-        image: dockermediacloud/import-solr-data:containers/release
+        image: dockermediacloud/import-solr-data:containers_release
         networks:
             - default
         env_file: common.env
@@ -376,7 +376,7 @@ services:
     # ---------------------------------
     #
     import-stories-feedly:
-        image: dockermediacloud/import-stories-feedly:containers/release
+        image: dockermediacloud/import-stories-feedly:containers_release
         networks:
             - default
         env_file: common.env
@@ -396,7 +396,7 @@ services:
     # ---------------
     #
     mail-opendkim-server:
-        image: dockermediacloud/mail-opendkim-server:containers/release
+        image: dockermediacloud/mail-opendkim-server:containers_release
         networks:
             - default
         environment:
@@ -428,7 +428,7 @@ services:
     # ---------------
     #
     mail-postfix-server:
-        image: dockermediacloud/mail-postfix-server:containers/release
+        image: dockermediacloud/mail-postfix-server:containers_release
         networks:
             - default
         environment:
@@ -462,7 +462,7 @@ services:
     # ----------------------
     #
     nytlabels-fetch-annotation:
-        image: dockermediacloud/nytlabels-fetch-annotation:containers/release
+        image: dockermediacloud/nytlabels-fetch-annotation:containers_release
         networks:
             - default
         env_file: common.env
@@ -485,7 +485,7 @@ services:
     # -----------------------
     #
     nytlabels-update-story-tags:
-        image: dockermediacloud/nytlabels-update-story-tags:containers/release
+        image: dockermediacloud/nytlabels-update-story-tags:containers_release
         networks:
             - default
         env_file: common.env
@@ -512,7 +512,7 @@ services:
     # ---------
     #
     postgresql-pgbouncer:
-        image: dockermediacloud/postgresql-pgbouncer:containers/release
+        image: dockermediacloud/postgresql-pgbouncer:containers_release
         networks:
             - default
         depends_on:
@@ -532,7 +532,7 @@ services:
     # -----------------
     #
     postgresql-server:
-        image: dockermediacloud/postgresql-server:containers/release
+        image: dockermediacloud/postgresql-server:containers_release
         networks:
             - default
         expose:
@@ -552,7 +552,7 @@ services:
     # -----------------------------
     #
     predict-news-labels:
-        image: dockermediacloud/predict-news-labels:containers/release
+        image: dockermediacloud/predict-news-labels:containers_release
         networks:
             - default
         expose:
@@ -578,7 +578,7 @@ services:
     # ------------------------------------
     #
     purge-object-caches:
-        image: dockermediacloud/purge-object-caches:containers/release
+        image: dockermediacloud/purge-object-caches:containers_release
         networks:
             - default
         env_file: common.env
@@ -597,7 +597,7 @@ services:
     # --------
     #
     rabbitmq-server:
-        image: dockermediacloud/rabbitmq-server:containers/release
+        image: dockermediacloud/rabbitmq-server:containers_release
         networks:
             - default
         expose:
@@ -624,7 +624,7 @@ services:
     # ----------------------
     #
     cron-refresh-stats:
-        image: dockermediacloud/cron-refresh-stats:containers/release
+        image: dockermediacloud/cron-refresh-stats:containers_release
         networks:
             - default
         env_file: common.env
@@ -643,7 +643,7 @@ services:
     # ----------------------------------------------
     #
     cron-rescrape-due-media:
-        image: dockermediacloud/cron-rescrape-due-media:containers/release
+        image: dockermediacloud/cron-rescrape-due-media:containers_release
         networks:
             - default
         env_file: common.env
@@ -663,7 +663,7 @@ services:
     # ----------------
     #
     rescrape-media:
-        image: dockermediacloud/rescrape-media:containers/release
+        image: dockermediacloud/rescrape-media:containers_release
         networks:
             - default
         env_file: common.env
@@ -685,7 +685,7 @@ services:
     # ----------------------------------
     #
     cron-rescraping-changes:
-        image: dockermediacloud/cron-rescraping-changes:containers/release
+        image: dockermediacloud/cron-rescraping-changes:containers_release
         networks:
             - default
         env_file: common.env
@@ -704,7 +704,7 @@ services:
     # -----------------------------------
     #
     cron-set-media-primary-language:
-        image: dockermediacloud/cron-set-media-primary-language:containers/release
+        image: dockermediacloud/cron-set-media-primary-language:containers_release
         networks:
             - default
         env_file: common.env
@@ -723,7 +723,7 @@ services:
     # -----------------------------------
     #
     cron-set-media-subject-country:
-        image: dockermediacloud/cron-set-media-subject-country:containers/release
+        image: dockermediacloud/cron-set-media-subject-country:containers_release
         networks:
             - default
         env_file: common.env
@@ -742,7 +742,7 @@ services:
     # -----------------------------
     #
     cron-print-long-running-job-states:
-        image: dockermediacloud/cron-print-long-running-job-states:containers/release
+        image: dockermediacloud/cron-print-long-running-job-states:containers_release
         networks:
             - default
         env_file: common.env
@@ -957,7 +957,7 @@ services:
     # --------------
     #
     solr-zookeeper:
-        image: dockermediacloud/solr-zookeeper:containers/release
+        image: dockermediacloud/solr-zookeeper:containers_release
         networks:
             - default
         expose:
@@ -977,7 +977,7 @@ services:
     # -------------------------------
     #
     topics-extract-story-links:
-        image: dockermediacloud/topics-extract-story-links:containers/release
+        image: dockermediacloud/topics-extract-story-links:containers_release
         networks:
             - default
         env_file: common.env
@@ -998,7 +998,7 @@ services:
     # ----------------------
     #
     topics-fetch-link:
-        image: dockermediacloud/topics-fetch-link:containers/release
+        image: dockermediacloud/topics-fetch-link:containers_release
         networks:
             - default
         env_file: common.env
@@ -1017,7 +1017,7 @@ services:
     # ------------------
     #
     topics-fetch-twitter-urls:
-        image: dockermediacloud/topics-fetch-twitter-urls:containers/release
+        image: dockermediacloud/topics-fetch-twitter-urls:containers_release
         networks:
             - default
         env_file: common.env
@@ -1045,7 +1045,7 @@ services:
     # ------------
     #
     topics-mine:
-        image: dockermediacloud/topics-mine:containers/release
+        image: dockermediacloud/topics-mine:containers_release
         networks:
             - default
         env_file: common.env
@@ -1067,7 +1067,7 @@ services:
     # -------------------
     #
     topics-mine-public:
-        image: dockermediacloud/topics-mine-public:containers/release
+        image: dockermediacloud/topics-mine-public:containers_release
         networks:
             - default
         env_file: common.env
@@ -1089,7 +1089,7 @@ services:
     # ----------------
     #
     topics-snapshot:
-        image: dockermediacloud/topics-snapshot:containers/release
+        image: dockermediacloud/topics-snapshot:containers_release
         networks:
             - default
         env_file: common.env
@@ -1111,7 +1111,7 @@ services:
     # ----------
     #
     munin-node:
-        image: dockermediacloud/munin-node:containers/release
+        image: dockermediacloud/munin-node:containers_release
         networks:
             - default
         depends_on:
@@ -1132,7 +1132,7 @@ services:
     # --------------------------
     #
     munin-cron:
-        image: dockermediacloud/munin-cron:containers/release
+        image: dockermediacloud/munin-cron:containers_release
         networks:
             - default
         depends_on:
@@ -1160,7 +1160,7 @@ services:
     # -----------------
     #
     munin-httpd:
-        image: dockermediacloud/munin-httpd:containers/release
+        image: dockermediacloud/munin-httpd:containers_release
         networks:
             - default
         expose:
@@ -1191,7 +1191,7 @@ services:
     # ------------------------------
     #
     sitemap-fetch-media-pages:
-        image: dockermediacloud/sitemap-fetch-media-pages:containers/release
+        image: dockermediacloud/sitemap-fetch-media-pages:containers_release
         networks:
             - default
         env_file: common.env
@@ -1208,7 +1208,7 @@ services:
     # --------------------------------
     #
     webapp-api:
-        image: dockermediacloud/webapp-api:containers/release
+        image: dockermediacloud/webapp-api:containers_release
         networks:
             - default
         expose:
@@ -1229,7 +1229,7 @@ services:
     # --------------------
     #
     webapp-httpd:
-        image: dockermediacloud/webapp-httpd:containers/release
+        image: dockermediacloud/webapp-httpd:containers_release
         networks:
             - default
         expose:
@@ -1255,7 +1255,7 @@ services:
     # ----------------------------------------------------------------------
     #
     proxy-cron-certbot:
-        image: dockermediacloud/proxy-cron-certbot:containers/release
+        image: dockermediacloud/proxy-cron-certbot:containers_release
         networks:
             - default
         environment:
@@ -1287,7 +1287,7 @@ services:
     # -----------------------------
     #
     proxy-httpd:
-        image: dockermediacloud/proxy-httpd:containers/release
+        image: dockermediacloud/proxy-httpd:containers_release
         networks:
             - default
         environment:
@@ -1331,7 +1331,7 @@ services:
     # ----------------
     #
     word2vec-generate-snapshot-model:
-        image: dockermediacloud/word2vec-generate-snapshot-model:containers/release
+        image: dockermediacloud/word2vec-generate-snapshot-model:containers_release
         networks:
             - default
         env_file: common.env
