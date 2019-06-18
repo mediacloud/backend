@@ -9,10 +9,6 @@ all:
 
   hosts:
 
-    # Localhost
-    "localhost":
-     ansible_connection: local
-
     # Sample hosts to deploy to
     "mcsample1":
       ansible_host: "mcsample1.media.mit.edu"
