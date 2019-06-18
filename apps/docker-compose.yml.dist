@@ -582,6 +582,12 @@ services:
     #
     rabbitmq-server:
         image: dockermediacloud/rabbitmq-server:containers_release
+        # Docker doesn't reap zombie processes properly
+        # (https://blog.phusion.nl/2015/01/20/docker-and-the-pid-1-zombie-reaping-problem/)
+        # and Erlang gets SIGCHLD signals from Docker for whatever reason
+        # making it "forget" about reaping the zombies itself, so we have to
+        # run Tini (Docker's init) for this service:
+        init: true
         networks:
             - default
         expose:
