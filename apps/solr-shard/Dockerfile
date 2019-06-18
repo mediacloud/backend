@@ -19,6 +19,9 @@ RUN \
 	#
 	true
 
+# Update logger properties with our own
+COPY resources/log4j.properties /var/lib/solr/resources/log4j.properties
+
 # Solr data
 VOLUME /var/lib/solr/
 
