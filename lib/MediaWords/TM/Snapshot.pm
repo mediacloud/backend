@@ -384,13 +384,11 @@ select 1
     from topics t
         join snapshots s using ( topics_id )
     where
-        t.ch_monitor_id is not null and
+        t.platform = 'twitter' and
         s.snapshots_id = \$1
 SQL
 
-    $is_twitter_topic ||= 0;
-
-    return $is_twitter_topic;
+    return $is_twitter_topic || 0;
 }
 
 # write snapshot_period_stories table that holds list of all stories that should be included in the
@@ -640,7 +638,7 @@ create temporary table snapshot_story_link_counts $_temporary_tablespace as
         select
                 s.stories_id,
                 count( distinct ts.twitter_user ) as simple_tweet_count,
-                sum( ( num_ch_tweets::float + 1 ) / ( tweet_count + 1 ) ) as normalized_tweet_count
+                tweet_count as normalized_tweet_count
             from snapshot_tweet_stories ts
                 join snapshot_period_stories s using ( stories_id )
                 join snapshot_timespan_tweets tt using ( topic_tweets_id )
@@ -1726,7 +1724,7 @@ create temporary table snapshot_tweet_stories as
             where ttd.topics_id = \$1
     )
 
-    select topic_tweets_id, u.publish_date, twitter_user, stories_id, media_id, num_ch_tweets, tweet_count
+    select topic_tweets_id, u.publish_date, twitter_user, stories_id, media_id, tweet_count
         from topic_tweet_full_urls u
             join tweets_per_day tpd using ( topic_tweets_id )
             join snapshot_stories using ( stories_id )

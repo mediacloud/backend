@@ -47,73 +47,68 @@ MIN_TEST_TWITTER_USER_LENGTH = 3
 TEST_MONITOR_ID = 4667493813
 
 
-class MockCrimsonHexagon(ftt.AbstractCrimsonHexagon):
-    """Mock the CrimsonHexagon class in fetch_topic_tweets to return test data."""
+def mock_fetch_meta_tweets_from_ch(query: str, day: datetime.datetime) -> dict:
+    """
+    Return a mock ch response to the posts end point.
 
-    @staticmethod
-    def fetch_posts(ch_monitor_id: int, day: datetime.datetime) -> dict:
-        """
-        Return a mock ch response to the posts end point.
+    Generate the mock response by sending back data from a consistent but semirandom selection of
+    ch-posts-2016-01-0[12345].json.
+    """
+    assert MOCK_TWEETS_PER_DAY <= MAX_MOCK_TWEETS_PER_DAY
 
-        Generate the mock response by sending back data from a consistent but semirandom selection of
-        ch-posts-2016-01-0[12345].json.
-        """
-        assert MOCK_TWEETS_PER_DAY <= MAX_MOCK_TWEETS_PER_DAY
+    test_path = mediawords.util.paths.mc_root_path() + '/mediacloud/test-data/ch/'
+    filename = test_path + "ch-posts-" + day.strftime('%Y-%m-%d') + '.json'
+    with open(filename, 'r', encoding='utf-8') as fh:
+        json = fh.read()
 
-        test_path = mediawords.util.paths.mc_root_path() + '/mediacloud/test-data/ch/'
-        filename = test_path + "ch-posts-" + day.strftime('%Y-%m-%d') + '.json'
-        with open(filename, 'r', encoding='utf-8') as fh:
-            json = fh.read()
+    data = dict(decode_json(json))
 
-        data = dict(decode_json(json))
+    assert 'posts' in data
+    assert len(data['posts']) >= MOCK_TWEETS_PER_DAY
 
-        assert 'posts' in data
-        assert len(data['posts']) >= MOCK_TWEETS_PER_DAY
+    data['posts'] = data['posts'][0:MOCK_TWEETS_PER_DAY]
 
-        data['posts'] = data['posts'][0:MOCK_TWEETS_PER_DAY]
+    # replace tweets with the epoch of the start date so that we can infer the date of each tweet in
+    # tweet_urler_lookup below
+    i = 0
+    for ch_post in data['posts']:
+        ch_post['url'] = re.sub(r'status/(\d+)/', '/status/' + str(i), ch_post['url'])
+        i += 1
 
-        # replace tweets with the epoch of the start date so that we can infer the date of each tweet in
-        # tweet_urler_lookup below
-        i = 0
-        for ch_post in data['posts']:
-            ch_post['url'] = re.sub(r'status/(\d+)/', '/status/' + str(i), ch_post['url'])
-            i += 1
+    meta_tweets = data['posts']
+    [mt['tweet_id'] = mediawords.tm.fetch_topic_tweets._get_tweet_id_from_url(mt['url']) for mt in meta_tweets]
 
-        return data
+    return meta_tweets
 
 
-class MockTwitter(ftt.AbstractTwitter):
-    """Mock the Twitter class in ftt.to return test data."""
+def mock_fetch_100_tweets(ids: list) -> list:
+    """Return mocked test tweets."""
+    num_errors = (3 if (len(ids) > 10) else 0)
 
-    @staticmethod
-    def fetch_100_tweets(ids: list) -> list:
-        """Return mocked test tweets."""
-        num_errors = (3 if (len(ids) > 10) else 0)
+    # simulate twitter not being able to find some ids, which is typical
+    for i in range(num_errors):
+        ids.pop()
 
-        # simulate twitter not being able to find some ids, which is typical
-        for i in range(num_errors):
-            ids.pop()
+    tweets = []
+    for tweet_id in ids:
+        # restrict url and user ids to desired number
+        # include randomness so that the urls and users are not nearly collated
+        url_id = int(random.randint(1, int(tweet_id))) % NUM_MOCK_URLS
+        user_id = int(random.randint(1, int(tweet_id))) % NUM_MOCK_USERS
 
-        tweets = []
-        for tweet_id in ids:
-            # restrict url and user ids to desired number
-            # include randomness so that the urls and users are not nearly collated
-            url_id = int(random.randint(1, int(tweet_id))) % NUM_MOCK_URLS
-            user_id = int(random.randint(1, int(tweet_id))) % NUM_MOCK_USERS
+        test_url = "http://test.host/tweet_url?id=" + str(url_id)
 
-            test_url = "http://test.host/tweet_url?id=" + str(url_id)
+        # all we use is id, text, and created_by, so just test for those
+        tweets.append(
+            {
+                'id': tweet_id,
+                'text': "sample tweet for id id",
+                'created_at': '2018-12-13',
+                'user': {'screen_name': "user-" + str(user_id)},
+                'entities': {'urls': [{'expanded_url': test_url}]}
+            })
 
-            # all we use is id, text, and created_by, so just test for those
-            tweets.append(
-                {
-                    'id': tweet_id,
-                    'text': "sample tweet for id id",
-                    'created_at': '2018-12-13',
-                    'user': {'screen_name': "user-" + str(user_id)},
-                    'entities': {'urls': [{'expanded_url': test_url}]}
-                })
-
-        return tweets
+    return tweets
 
 
 def get_test_date_range() -> tuple:
@@ -129,9 +124,9 @@ def validate_topic_tweets(db: DatabaseHandler, topic_tweet_day: dict) -> None:
         {'a': topic_tweet_day['topic_tweet_days_id']}
     ).hashes()
 
-    # fetch_topic_tweets should have set num_ch_tweets to the total number of tweets
+    # fetch_topic_tweets should have set num_tweets to the total number of tweets
     assert len(topic_tweets) > 0
-    assert len(topic_tweets) == topic_tweet_day['num_ch_tweets']
+    assert len(topic_tweets) == topic_tweet_day['num_tweets']
 
     for topic_tweet in topic_tweets:
         tweet_data = dict(decode_json(topic_tweet['data']))
@@ -233,7 +228,9 @@ class TestFetchTopicTweets(TestDatabaseWithSchemaTestCase):
         topic['ch_monitor_id'] = 123456
         db.update_by_id('topics', topic['topics_id'], topic)
 
-        ftt.fetch_topic_tweets(db, topic['topics_id'], MockTwitter, MockCrimsonHexagon)
+        mediawords.tm.fetch_topic_tweets.fetch_meta_tweets_from_ch = mock_fetch_meta_tweets_from_ch
+        mediawords.tm.fetch_topic_tweets.fetch_100_tweets = mock_fetch_100_tweets
+        ftt.fetch_topic_tweets(db, topic['topics_id'])
 
         topic_tweet_days = db.query("select * from topic_tweet_days").hashes()
         assert len(topic_tweet_days) == LOCAL_DATE_RANGE + 1
