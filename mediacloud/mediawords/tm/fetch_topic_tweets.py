@@ -40,31 +40,33 @@ class McFetchTopicTweetDateFetchedException(Exception):
     pass
 
 
-class AbstractCrimsonHexagon(ABC):
-    """abstract class that fetches data from Crimson Hexagon."""
+class AbstractFetchUrls(ABC):
+    """abstract class that fetches list of twitter urls matching a query for a given day."""
 
     @staticmethod
     @abstractmethod
-    def fetch_posts(ch_monitor_id: int, day: datetime.datetime) -> dict:
+    def fetch_day(query: str, day: str) -> dict:
         """
-        Fetch the list of tweets from the ch api.
+        Fetch the list of tweet urlsfrom the ch api.
 
         Arguments:
-        ch_monitor_id - crimson hexagon monitor id
-        day - date for which to fetch posts
+        query - text query to pass through to underlying search interface
+        day - single day to search, in 2019-06-19 format
 
         Return:
-        list of ch posts directly decoded from the ch api json response
+        list of dicts, each of which must include a 'url' field
         """
         pass
 
 
-class CrimsonHexagon(AbstractCrimsonHexagon):
-    """class that fech_posts() method that can list posts via the Crimson Hexagon api."""
+class FetchUrlsFromCH(AbstractCrimsonHexagon):
+    """class that implements fech_day() method that can list tweet urls via the Crimson Hexagon api."""
 
     @staticmethod
-    def fetch_posts(ch_monitor_id: int, day: datetime.datetime) -> dict:
-        """Implement fetch_posts on ch api using the config data from mediawords.yml."""
+    def fetch_day(query: str, day: str) -> dict:
+        """Implement fetch_day on ch api using the config data from mediawords.yml."""
+        ch_monitor_id = int(query)
+
         ua = UserAgent()
         ua.set_max_size(100 * 1024 * 1024)
         ua.set_timeout(90)
