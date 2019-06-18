@@ -1,17 +1,5 @@
 version: "3.7"
 
-#
-# Bigger open file limit
-# ======================
-#
-# Apply this anchor in containers that need bigger open file limit (ulimit -n).
-#
-x-bigger-open-file-limit:   &bigger-open-file-limit
-    ulimits:
-        nofile:
-            soft: 65536
-            hard: 65536
-
 
 #
 # Solr shard base service
@@ -42,8 +30,6 @@ x-solr-shard_base:   &solr-shard_base
                 # shards, all of the shard services get assigned the same
                 # "solr-shard" network alias.
                 - solr-shard
-    # Increase open file limit
-    <<: *bigger-open-file-limit
 
 # Default resources for every Solr shard
 x-solr-shard_base_deploy_resources:  &solr-shard_base_deploy_resources
@@ -539,8 +525,6 @@ services:
             - 5432
         volumes:
             - vol_postgresql_data:/var/lib/postgresql/
-        # Increase open file limit
-        <<: *bigger-open-file-limit
         deploy:
             placement:
                 constraints:
@@ -605,8 +589,6 @@ services:
             - 15672
         volumes:
             - vol_rabbitmq_data:/var/lib/rabbitmq/
-        # Increase open file limit
-        <<: *bigger-open-file-limit
         deploy:
             placement:
                 constraints:
