@@ -1395,63 +1395,261 @@ networks:
 volumes:
 
     # PostgreSQL server's data
-    vol_postgresql_data: {}
+    vol_postgresql_data:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_postgresql_data
 
     # Solr shard's data
-    vol_solr_shard_data_01: {}
-    vol_solr_shard_data_02: {}
-    vol_solr_shard_data_03: {}
-    vol_solr_shard_data_04: {}
-    vol_solr_shard_data_05: {}
-    vol_solr_shard_data_06: {}
-    vol_solr_shard_data_07: {}
-    vol_solr_shard_data_08: {}
-    vol_solr_shard_data_09: {}
-    vol_solr_shard_data_10: {}
-    vol_solr_shard_data_11: {}
-    vol_solr_shard_data_12: {}
-    vol_solr_shard_data_13: {}
-    vol_solr_shard_data_14: {}
-    vol_solr_shard_data_15: {}
-    vol_solr_shard_data_16: {}
-    vol_solr_shard_data_17: {}
-    vol_solr_shard_data_18: {}
-    vol_solr_shard_data_19: {}
-    vol_solr_shard_data_20: {}
-    vol_solr_shard_data_21: {}
-    vol_solr_shard_data_22: {}
-    vol_solr_shard_data_23: {}
-    vol_solr_shard_data_24: {}
+    vol_solr_shard_data_01:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_solr_shard_data_01
+
+    vol_solr_shard_data_02:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_solr_shard_data_02
+
+    vol_solr_shard_data_03:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_solr_shard_data_03
+
+    vol_solr_shard_data_04:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_solr_shard_data_04
+
+    vol_solr_shard_data_05:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_solr_shard_data_05
+
+    vol_solr_shard_data_06:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_solr_shard_data_06
+
+    vol_solr_shard_data_07:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_solr_shard_data_07
+
+    vol_solr_shard_data_08:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_solr_shard_data_08
+
+    vol_solr_shard_data_09:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_solr_shard_data_09
+
+    vol_solr_shard_data_10:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_solr_shard_data_10
+
+    vol_solr_shard_data_11:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_solr_shard_data_11
+
+    vol_solr_shard_data_12:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_solr_shard_data_12
+
+    vol_solr_shard_data_13:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_solr_shard_data_13
+
+    vol_solr_shard_data_14:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_solr_shard_data_14
+
+    vol_solr_shard_data_15:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_solr_shard_data_15
+
+    vol_solr_shard_data_16:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_solr_shard_data_16
+
+    vol_solr_shard_data_17:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_solr_shard_data_17
+
+    vol_solr_shard_data_18:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_solr_shard_data_18
+
+    vol_solr_shard_data_19:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_solr_shard_data_19
+
+    vol_solr_shard_data_20:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_solr_shard_data_20
+
+    vol_solr_shard_data_21:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_solr_shard_data_21
+
+    vol_solr_shard_data_22:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_solr_shard_data_22
+
+    vol_solr_shard_data_23:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_solr_shard_data_23
+
+    vol_solr_shard_data_24:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_solr_shard_data_24
 
     # RabbitMQ data
-    vol_rabbitmq_data: {}
+    vol_rabbitmq_data:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_rabbitmq_data
 
     # OpenDKIM configuration and keys
-    vol_opendkim_config: {}
+    vol_opendkim_config:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_opendkim_config
 
     # Postfix data
-    vol_postfix_data: {}
+    vol_postfix_data:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_postfix_data
 
     # Postfix local mail
-    vol_postfix_local_mail: {}
+    vol_postfix_local_mail:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_postfix_local_mail
 
     # Postfix mail queue
-    vol_postfix_queue: {}
+    vol_postfix_queue:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_postfix_queue
 
     # Daily RSS dumps
     # (shared between cron_generate_daily_rss_dumps and webapp-httpd)
-    vol_daily_rss_dumps: {}
+    vol_daily_rss_dumps:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_daily_rss_dumps
 
     # Munin's RRD data
     # (shared between munin_cron and munin_httpd)
-    vol_munin_data: {}
+    vol_munin_data:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_munin_data
 
     # Munin's generated HTML files
     # (shared between munin_cron and munin_httpd)
-    vol_munin_html: {}
+    vol_munin_html:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_munin_html
 
     # Let's Encrypt certificates
-    vol_proxy_ssl_certs: {}
+    vol_proxy_ssl_certs:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_proxy_ssl_certs
 
     # Portainer data
-    vol_portainer_data: {}
+    vol_portainer_data:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_portainer_data
