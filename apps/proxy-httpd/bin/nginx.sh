@@ -20,7 +20,7 @@ while IFS=';' read -ra USERS; do
             USERNAME="${USER_CREDENTIALS[0]}"
             PASSWORD="${USER_CREDENTIALS[1]}"
             
-            htpasswd -bB /var/lib/mediacloud-htpasswd "${USERNAME}" "${PASSWORD}"
+            htpasswd -b /var/lib/mediacloud-htpasswd "${USERNAME}" "${PASSWORD}"
 
         done <<< "$USER"
 
