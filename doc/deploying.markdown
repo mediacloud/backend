@@ -138,3 +138,12 @@ docker stack deploy -c docker-compose.yml mediacloud
 ```
 
 To update services (e.g. after updating configuration in `docker-compose.yml` or pushing new container images), run the same command again.
+
+To stop all services by stopping and removing all the containers, run:
+
+```bash
+docker stack rm mediacloud
+```
+
+Despite the name, the command `docker stack rm` is not destructive as it stops and removes the containers only and leaves the volumes with data untouched.
+
