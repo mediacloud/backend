@@ -79,3 +79,5 @@ Total reclaimed space: <...>
 ```
 
 (Similarly, you can add add `-f` flag to this command too to skip the warning.)
+
+**Do not run `docker volume prune` on production!** Instead, opt for listing the volumes with `docker volume ls` and then removing them with `docker volume rm` individually.
