@@ -225,8 +225,17 @@ class TestFetchTopicTweets(TestDatabaseWithSchemaTestCase):
         test_dates = get_test_date_range()
         topic['start_date'] = test_dates[0]
         topic['end_date'] = test_dates[1]
-        topic['ch_monitor_id'] = 123456
         db.update_by_id('topics', topic['topics_id'], topic)
+
+        tsq = {
+            'topics_id': topic['topics_id'],
+            'platform': 'twitter',
+            'source': 'crimson_hexagon',
+            'query': 123456
+        }
+        db.create('topic_seed_queries', tsq)
+
+        db.update_by_id('topics', topic['topics_id'], {'platform': 'twitter'})
 
         mediawords.tm.fetch_topic_tweets.fetch_meta_tweets_from_ch = mock_fetch_meta_tweets_from_ch
         mediawords.tm.fetch_topic_tweets.fetch_100_tweets = mock_fetch_100_tweets
@@ -254,8 +263,16 @@ class TestFetchTopicTweets(TestDatabaseWithSchemaTestCase):
         db = self.db()
 
         topic = mediawords.test.db.create.create_test_topic(db, "test_remote_integration")
-        topic['ch_monitor_id'] = TEST_MONITOR_ID
-        db.update_by_id('topics', topic['topics_id'], topic)
+
+        tsq = {
+            'topics_id': topic['topics_id'],
+            'platform': 'twitter',
+            'source': 'crimson_hexagon',
+            'query': 123456
+        }
+        db.create('topic_seed_queries', tsq)
+
+        db.update_by_id('topics', topic['topics_id'], {'platform': 'twitter'})
 
         ttd_day = datetime.datetime(year=2016, month=1, day=1)
         ttd = ftt._add_topic_tweet_single_day(db, topic, ttd_day, ftt.CrimsonHexagon)

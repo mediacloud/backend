@@ -503,8 +503,15 @@ sub test_fetch_topic_tweets($)
 
     my $topic = MediaWords::Test::DB::Create::create_test_topic( $db, 'tweet topic' );
 
-    $topic->{ ch_monitor_id } = $CH_MONITOR_ID;
-    $db->update_by_id( 'topics', $topic->{ topics_id }, $topic );
+    my $tsq = {
+        topics_id => $topic->{ topics_id },
+        platform => 'twitter',
+        source => 'crimson_hexagon',
+        query => $CH_MONITOR_ID,
+    };
+    $db->create( 'topic_seed_queries', $tsq );
+
+    $db->update_by_id( 'topics', $topic->{ topics_id }, { platform => 'twitter' } );
 
     my ( $start_date, $end_date ) = get_test_date_range();
 
