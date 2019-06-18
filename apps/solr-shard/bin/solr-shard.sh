@@ -23,6 +23,16 @@ MC_SOLR_LUCENEMATCHVERSION="6.5.0"
 MC_RAM_SIZE=$(/container_memory_limit.sh)
 MC_SOLR_MX=$((MC_RAM_SIZE / 10 * 9))
 
+# Wait for ZooKeeper container to show up
+while true; do
+    echo "Waiting for ZooKeeper to start..."
+    if nc -z -w 10 solr-zookeeper 2181; then
+        break
+    else
+        sleep 1
+    fi
+done
+
 # Run Solr
 java_args=(
     -server
