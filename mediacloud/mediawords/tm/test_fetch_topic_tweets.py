@@ -76,7 +76,8 @@ def mock_fetch_meta_tweets_from_ch(query: str, day: datetime.datetime) -> dict:
         i += 1
 
     meta_tweets = data['posts']
-    [mt['tweet_id'] = mediawords.tm.fetch_topic_tweets._get_tweet_id_from_url(mt['url']) for mt in meta_tweets]
+    for mt in meta_tweets:
+        mt['tweet_id'] = mediawords.tm.fetch_topic_tweets.get_tweet_id_from_url(mt['url'])
 
     return meta_tweets
 
@@ -176,12 +177,12 @@ def validate_topic_tweet_urls(db: DatabaseHandler, topic: dict) -> None:
     assert total_json_urls == num_urls
 
 
-def test_post_matches_pattern() -> None:
+def test_tweet_matches_pattern() -> None:
     """Test _post_matches_pattern()."""
-    assert not ftt._post_matches_pattern({'pattern': 'foo'}, {'tweet': {'text': 'bar'}})
-    assert ftt._post_matches_pattern({'pattern': 'foo'}, {'tweet': {'text': 'foo bar'}})
-    assert ftt._post_matches_pattern({'pattern': 'foo'}, {'tweet': {'text': 'bar foo'}})
-    assert not ftt._post_matches_pattern({'pattern': 'foo'}, {})
+    assert not ftt._tweet_matches_pattern({'pattern': 'foo'}, {'tweet': {'text': 'bar'}})
+    assert ftt._tweet_matches_pattern({'pattern': 'foo'}, {'tweet': {'text': 'foo bar'}})
+    assert ftt._tweet_matches_pattern({'pattern': 'foo'}, {'tweet': {'text': 'bar foo'}})
+    assert not ftt._tweet_matches_pattern({'pattern': 'foo'}, {})
 
 
 @unittest.skipUnless(os.environ.get('MC_REMOTE_TESTS', False), "remote tests")
@@ -275,10 +276,12 @@ class TestFetchTopicTweets(TestDatabaseWithSchemaTestCase):
         db.update_by_id('topics', topic['topics_id'], {'platform': 'twitter'})
 
         ttd_day = datetime.datetime(year=2016, month=1, day=1)
-        ttd = ftt._add_topic_tweet_single_day(db, topic, ttd_day, ftt.CrimsonHexagon)
 
-        max_tweets = 200
-        ftt._fetch_tweets_for_day(db, ftt.Twitter, topic, ttd, max_tweets=max_tweets)
+        meta_tweets = ftt.fetch_meta_tweets(db, topic, ttd_day)
+        ttd = ftt._add_topic_tweet_single_day(db, topic, len(meta_tweets), ttd_day)
+
+        max_tweets = 100
+        ftt._fetch_tweets_for_day(db, ttd, meta_tweets, max_tweets=max_tweets)
 
         got_tts = db.query(
             "select * from topic_tweets where topic_tweet_days_id = %(a)s",

@@ -50,6 +50,7 @@ def get_tweet_id_from_url(url: str) -> str:
 
     return tweet_id
 
+
 def fetch_meta_tweets_from_archive_org(query: str, day: str) -> list:
     """Fetch day of tweets from archive.org"""
     ua = UserAgent()
@@ -76,7 +77,7 @@ def fetch_meta_tweets_from_archive_org(query: str, day: str) -> list:
     decoded_content = response.decoded_content()
 
     meta_tweets = []
-    for row in csv.reader(decoded_content.split("\n", delimiter="\t"))
+    for row in csv.reader(decoded_content.split("\n", delimiter="\t")):
         fields = 'user_name user_screen_name lang text timestamp_ms url',split(' ')
         meta_tweet = {}
         for i, field in enumerate(fields):
@@ -86,7 +87,7 @@ def fetch_meta_tweets_from_archive_org(query: str, day: str) -> list:
             log.warning("meta_tweet '%s' does not have a url" % str(row))
             continue
 
-        meta_tweet['tweet_id'] = _get_tweet_id_from_url(meta_tweet['url']
+        meta_tweet['tweet_id'] = _get_tweet_id_from_url(meta_tweet['url'])
 
         meta_tweets.append(meta_tweet)
 
@@ -131,7 +132,8 @@ def fetch_meta_tweets_from_ch(query: str, day: str) -> list:
 
     meta_tweets = d['posts']
 
-    [mt['tweet_id'] = _get_tweet_id_from_url(mt['url']) for mt in meta_tweets]
+    for my in meta_tweets:
+        mt['tweet_id'] = _get_tweet_id_from_url(mt['url'])
 
     return meta_tweets
 
@@ -171,7 +173,7 @@ def fetch_meta_tweets(db: DatabaseHandler, topic: dict, day: str) -> None:
     else:
         raise McFetchTopicTweetsDataException("Unknown topic_seed_queries source '%s'" % topic_seed_query['source'])
 
-    return _fmt(topic_seed_query['query'], day)
+    return fmt(topic_seed_query['query'], day)
 
 
 def fetch_100_tweets(tweet_ids: list) -> list:
@@ -189,12 +191,11 @@ def fetch_100_tweets(tweet_ids: list) -> list:
     return mediawords.util.twitter.fetch_100_tweets(tweet_ids)
 
 
-def _add_tweets_to_meta_tweets(twitter_class: typing.Type[AbstractTwitter], meta_tweets: list) -> None:
+def _add_tweets_to_meta_tweets(meta_tweets: list) -> None:
     """
     Given a set of meta_tweets, fetch data from twitter about each tweet and attach it under the tweet field.
 
     Arguments:
-    twitter_class - AbstractTwitter class
     meta_tweets - list of up to 100 dicts from as returned by fetch_meta_tweets()
 
     Return:
@@ -206,11 +207,12 @@ def _add_tweets_to_meta_tweets(twitter_class: typing.Type[AbstractTwitter], meta
     log.debug("fetching tweets for " + str(len(meta_tweets)) + " tweets")
 
     meta_tweet_lookup = {}
-    [meta_tweet_lookup[mt['tweet_id']] = mt for mt in meta_tweets]
+    for mt in meta_tweets:
+        meta_tweet_lookup[mt['tweet_id']] = mt
 
     tweet_ids = list(meta_tweet_lookup.keys())
 
-    tweets = twitter_class.fetch_100_tweets(tweet_ids)
+    tweets = fetch_100_tweets(tweet_ids)
 
     log.debug("fetched " + str(len(tweets)) + " tweets")
 
@@ -331,14 +333,15 @@ def _fetch_tweets_for_day(
     if (max_tweets is not None):
         meta_tweets = meta_tweets[0:max_tweets]
 
-    log.info("adding %d tweets for topic %s, day %s" % (len(meta_tweets), topic['topics_id'], topic_tweet_day['day']))
+    topics_id = topic_tweet_day['topics_id']
+    log.info("adding %d tweets for topic %s, day %s" % (len(meta_tweets), topics_id, topic_tweet_day['day']))
 
     # we can only get 100 posts at a time from twitter
     for i in range(0, len(meta_tweets), 100):
-        _add_tweets_to_meta_tweets(twitter_class, meta_tweets[i:i + 100])
+        _add_tweets_to_meta_tweets(meta_tweets[i:i + 100])
 
-    topic = db.require_by_id(db, topic_tweet_days['topics_id'])
-    meta_tweets = list(filter(lambda p: _post_matches_pattern(topic, p), meta_tweets))
+    topic = db.require_by_id('topics', topic_tweet_day['topics_id'])
+    meta_tweets = list(filter(lambda p: _tweet_matches_pattern(topic, p), meta_tweets))
 
     log.info("%d tweets remaining after match" % (len(meta_tweets)))
 
@@ -359,11 +362,7 @@ def _fetch_tweets_for_day(
     log.debug("done inserting into topic_tweets")
 
 
-def _add_topic_tweet_single_day(
-        db: DatabaseHandler,
-        topic: dict,
-        num_tweets: int,
-        day: datetime.datetime) -> dict:
+def _add_topic_tweet_single_day(db: DatabaseHandler, topic: dict, num_tweets: int, day: datetime.datetime) -> dict:
     """
     Add a row to topic_tweet_day if it does not already exist.
 
@@ -388,8 +387,6 @@ def _add_topic_tweet_single_day(
     if topic_tweet_day is not None:
         db.delete_by_id('topic_tweet_days', topic_tweet_day['topic_tweet_days_id'])
 
-    num_tweets = len(meta_tweets['posts'])
-
     topic_tweet_day = db.create(
         'topic_tweet_days',
         {
@@ -398,8 +395,6 @@ def _add_topic_tweet_single_day(
             'num_tweets': num_tweets,
             'tweets_fetched': False
         })
-
-    topic_tweet_day['meta_tweets'] = meta_tweets
 
     return topic_tweet_day
 
@@ -425,7 +420,7 @@ def fetch_topic_tweets(db: DatabaseHandler, topics_id: int) -> None:
     """
     topic = db.require_by_id('topics', topics_id)
 
-    if topic['platform'] ne 'twitter':
+    if topic['platform'] != 'twitter':
         raise(McFetchTopicTweetsDataException("Topic platform is not 'twitter'"))
 
     date = datetime.datetime.strptime(topic['start_date'], '%Y-%m-%d')
@@ -433,7 +428,7 @@ def fetch_topic_tweets(db: DatabaseHandler, topics_id: int) -> None:
     while date <= end_date:
         try:
             log.info("fetching tweets for %s" % date)
-            meta_tweets = fetch_meta_tweets(db, topic, day)
+            meta_tweets = fetch_meta_tweets(db, topic, date)
             topic_tweet_day = _add_topic_tweet_single_day(db, topic, len(meta_tweets), date)
             _fetch_tweets_for_day(db, topic_tweet_day, meta_tweets)
         except McFetchTopicTweetDateFetchedException:

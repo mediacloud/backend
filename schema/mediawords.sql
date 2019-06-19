@@ -1912,7 +1912,7 @@ create type topic_source_type AS enum ( 'mediacloud', 'crimson_hexagon', 'archiv
 
 create table topic_seed_queries (
     topic_seed_queries      serial primary key,
-    topics_id               int not null references toipcs on delete cascade,
+    topics_id               int not null references topics on delete cascade,
     source                  topic_source_type not null,
     platform                topic_platform_type not null,
     query                   text,
@@ -3233,7 +3233,7 @@ create view topic_tweet_full_urls as
     select distinct
             t.topics_id,
             tt.topic_tweets_id, tt.content, tt.publish_date, tt.twitter_user,
-            ttd.day, ttd.tweet_count, ttd.num_ch_tweets, ttd.tweets_fetched,
+            ttd.day, ttd.num_tweets, ttd.tweets_fetched,
             ttu.url, tsu.stories_id
         from
             topics t

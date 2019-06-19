@@ -22,7 +22,7 @@ alter table topics add platform topic_platform_type not null default 'web';
 create type topic_source_type AS enum ( 'mediacloud', 'crimson_hexagon', 'archive_org' );
 create table topic_seed_queries (
     topic_seed_queries      serial primary key,
-    topics_id               int not null references toipcs on delete cascade,
+    topics_id               int not null references topics on delete cascade,
     source                  topic_source_type not null,
     platform                topic_platform_type not null,
     query                   text,
@@ -40,6 +40,20 @@ alter table topics drop ch_monitor_id;
 
 alter table topic_tweet_days rename tweet_count to num_tweets;
 alter table topic_tweet_days drop num_ch_tweets;
+
+create view topic_tweet_full_urls as
+    select distinct
+            t.topics_id,
+            tt.topic_tweets_id, tt.content, tt.publish_date, tt.twitter_user,
+            ttd.day, ttd.num_tweets, ttd.tweets_fetched,
+            ttu.url, tsu.stories_id
+        from
+            topics t
+            join topic_tweet_days ttd on ( t.topics_id = ttd.topics_id )
+            join topic_tweets tt using ( topic_tweet_days_id )
+            join topic_tweet_urls ttu using ( topic_tweets_id )
+            left join topic_seed_urls tsu
+                on ( tsu.topics_id = t.topics_id and ttu.url = tsu.url );
 
 --
 -- 2 of 2. Reset the database version.
