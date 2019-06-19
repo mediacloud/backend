@@ -1,6 +1,6 @@
 """Use the Crimson Hexagon API to lookup tweets relevant to a topic, then fetch each of those tweets from twitter."""
 
-from abc import ABC, abstractmethod
+import csv
 import datetime
 import regex
 import typing
@@ -63,9 +63,9 @@ def fetch_meta_tweets_from_archive_org(query: str, day: str) -> list:
     day_arg = day.strftime('%Y-%m-%d')
     next_day_arg = next_day.strftime('%Y-%m-%d')
 
-    enc_query = urlencode(query)
+    enc_query = urlencode({'q': query, 'date_from': day_arg, 'date_to': next_day_arg})
 
-    url = "https://searchtweets.archivelab.org/?q=%s&date_from=%s&date_to=%s" % (enc_query, day_arg, next_day_arg)
+    url = "https://searchtweets.archivelab.org/export?" + enc_query
 
     log.debug("archive.org url: " + url)
 
@@ -77,8 +77,9 @@ def fetch_meta_tweets_from_archive_org(query: str, day: str) -> list:
     decoded_content = response.decoded_content()
 
     meta_tweets = []
-    for row in csv.reader(decoded_content.split("\n", delimiter="\t")):
-        fields = 'user_name user_screen_name lang text timestamp_ms url',split(' ')
+    lines = decoded_content.splitlines()[1:]
+    for row in csv.reader(lines, delimiter="\t"):
+        fields = 'user_name user_screen_name lang text timestamp_ms url'.split(' ')
         meta_tweet = {}
         for i, field in enumerate(fields):
             meta_tweet[field] = row[i]
@@ -87,11 +88,12 @@ def fetch_meta_tweets_from_archive_org(query: str, day: str) -> list:
             log.warning("meta_tweet '%s' does not have a url" % str(row))
             continue
 
-        meta_tweet['tweet_id'] = _get_tweet_id_from_url(meta_tweet['url'])
+        meta_tweet['tweet_id'] = get_tweet_id_from_url(meta_tweet['url'])
 
         meta_tweets.append(meta_tweet)
 
     return meta_tweets
+
 
 def fetch_meta_tweets_from_ch(query: str, day: str) -> list:
     """Fetch day of tweets from crimson hexagon"""
@@ -130,10 +132,10 @@ def fetch_meta_tweets_from_ch(query: str, day: str) -> list:
     if 'status' not in data or not data['status'] == 'success':
         raise McFetchTopicTweetsDataException("Unknown response status: " + str(data))
 
-    meta_tweets = d['posts']
+    meta_tweets = data['posts']
 
-    for my in meta_tweets:
-        mt['tweet_id'] = _get_tweet_id_from_url(mt['url'])
+    for mt in meta_tweets:
+        mt['tweet_id'] = get_tweet_id_from_url(mt['url'])
 
     return meta_tweets
 
@@ -144,7 +146,7 @@ def fetch_meta_tweets(db: DatabaseHandler, topic: dict, day: str) -> None:
     The meta tweets include meta data about the tweets but not the actual tweet data, which will be subsequently
     fetched from the twitter api.  The tweet metadata can differ according to the source, but each meta_tweet
     must include a 'tweet_id' field.
-    
+
     Args:
     db - db handle
     topic - topic dict
@@ -399,11 +401,11 @@ def _add_topic_tweet_single_day(db: DatabaseHandler, topic: dict, num_tweets: in
     return topic_tweet_day
 
 
-def fetch_topic_tweets(db: DatabaseHandler, topics_id: int) -> None:
+def fetch_topic_tweets(db: DatabaseHandler, topics_id: int, max_tweets_per_day: typing.Optional[int] = None) -> None:
     """For each day within the topic dates, fetch and store the tweets.
 
     This is the core function that fetches and stores data for twitter topics.  This function will break the
-    date range for the topic into individual days and fetch tweets matching thes twitter seed query for the 
+    date range for the topic into individual days and fetch tweets matching thes twitter seed query for the
     topic for each day.  This function will create a topic_tweet_day row for each day of tweets fetched,
     a topic_tweet row for each tweet fetched, and a topic_tweet_url row for each url found in a tweet.
 
@@ -414,6 +416,7 @@ def fetch_topic_tweets(db: DatabaseHandler, topics_id: int) -> None:
     Arguments:
     db - database handle
     topics_id - topic id
+    max_tweets_per_day - max tweets to fetch each day
 
     Return:
     None
@@ -430,7 +433,7 @@ def fetch_topic_tweets(db: DatabaseHandler, topics_id: int) -> None:
             log.info("fetching tweets for %s" % date)
             meta_tweets = fetch_meta_tweets(db, topic, date)
             topic_tweet_day = _add_topic_tweet_single_day(db, topic, len(meta_tweets), date)
-            _fetch_tweets_for_day(db, topic_tweet_day, meta_tweets)
+            _fetch_tweets_for_day(db, topic_tweet_day, meta_tweets, max_tweets_per_day)
         except McFetchTopicTweetDateFetchedException:
             pass
 
