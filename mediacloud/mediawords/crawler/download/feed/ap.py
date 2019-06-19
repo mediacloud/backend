@@ -26,7 +26,7 @@ log = create_logger(__name__)
 _api = None
 
 # name of associated press media source
-AP_MEDIUM_NAME = 'AP'
+AP_MEDIUM_NAME = 'The Associated Press'
 
 # default params for get_new_stories
 DEFAULT_MIN_LOOKBACK = 43200
