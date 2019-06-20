@@ -4,13 +4,6 @@
 
 FROM dockermediacloud/nginx-base:latest
 
-# Install packages
-RUN \
-    #
-    # Install htpasswd
-    apt-get -y --no-install-recommends install apache2-utils && \
-    true
-
 # Copy dhparams.pem file
 COPY nginx/dhparams.pem /etc/nginx/
 

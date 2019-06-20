@@ -4,8 +4,6 @@ services:
 
     proxy-httpd:
         image: dockermediacloud/proxy-httpd:latest
-        environment:
-            MC_PROXY_HTTPD_AUTH_USERS: "${MC_PROXY_HTTPD_AUTH_USERS}"
         ports:
             # Expose to host for debugging
             - "80:8080"
@@ -22,10 +20,6 @@ services:
         depends_on:
             - proxy-cron-certbot
             - webapp-httpd
-            - munin-httpd
-            - portainer
-            - solr-shard
-            - rabbitmq-server
 
     proxy-cron-certbot:
         image: dockermediacloud/proxy-cron-certbot:latest
@@ -54,42 +48,6 @@ services:
             - "9090"
         # Here and elsewhere, don't start any subservices via "depends_on"
         # because we need to only make sure that /status page works
-
-    munin-httpd:
-        image: dockermediacloud/munin-httpd:latest
-        stop_signal: SIGKILL
-        expose:
-            - "8080"
-
-    portainer:
-       image: portainer/portainer:1.20.2
-       expose:
-           - "9000"
-
-    solr-shard:
-        image: dockermediacloud/solr-shard:latest
-        stop_signal: SIGKILL
-        environment:
-            MC_SOLR_SHARD_COUNT: "1"
-        expose:
-            - 8983
-        depends_on:
-            - solr-zookeeper
-
-    solr-zookeeper:
-        image: dockermediacloud/solr-zookeeper:latest
-        stop_signal: SIGKILL
-        expose:
-            - 2181
-            - 2888
-            - 3888
-
-    rabbitmq-server:
-        image: dockermediacloud/rabbitmq-server:latest
-        stop_signal: SIGKILL
-        expose:
-            - 5672
-            - 15672
 
 volumes:
     vol_proxy_ssl_certs: {}

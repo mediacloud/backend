@@ -28,7 +28,7 @@ VOLUME /var/lib/munin/
 VOLUME /var/cache/munin/www/
 
 # Web server's port
-EXPOSE 8080
+EXPOSE 4948
 
 # Copy wrapper script
 COPY bin/munin-httpd.sh /
