@@ -13,6 +13,8 @@ import pytz
 import xmltodict
 
 from mediawords.db import DatabaseHandler
+from mediawords.dbi.stories.extractor_arguments import PyExtractorArguments
+import mediawords.dbi.stories.process
 import mediawords.dbi.stories.stories
 import mediawords.tm.stories
 from mediawords.util.config import get_config
@@ -493,7 +495,7 @@ def _import_ap_story(db: DatabaseHandler, ap_story: dict) -> None:
         download_text)
 
     story['story_text'] = ap_story['text']
-    mediawords.story_vectors.update_story_sentences_and_language(db, story)
+    mediawords.dbi.stories.process.process_extracted_story(db, story, PyExtractorArguments())
 
 
 def get_and_add_new_stories(
