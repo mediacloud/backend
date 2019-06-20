@@ -1349,7 +1349,6 @@ services:
         ports:
             # For connecting to through a SSH tunnel
             - "9000:9000"
-        command: -H unix:///var/run/docker.sock
         volumes:
             - vol_portainer_data:/data
         deploy:
