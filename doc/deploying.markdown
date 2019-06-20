@@ -8,7 +8,9 @@ To deploy your code changes, generally you would:
 
 ## Ports
 
-Hosts that participate in the same Docker swarm should be able to connect to each other using the [following protocols and ports](https://docs.docker.com/engine/swarm/swarm-tutorial/#open-protocols-and-ports-between-the-hosts):
+### Docker swarm
+
+Hosts that participate in the same Docker swarm should be able to connect **to each other** using the [following protocols and ports](https://docs.docker.com/engine/swarm/swarm-tutorial/#open-protocols-and-ports-between-the-hosts):
 
 * TCP/2376
 * TCP/2377
@@ -16,6 +18,13 @@ Hosts that participate in the same Docker swarm should be able to connect to eac
 * UDP/7946
 * UDP/4789
 * ESP (IP protocol 50)
+
+### Webapp
+
+Host that exposes webapp to the public will have to have the following ports open:
+
+* TCP/80
+* TCP/443
 
 ## ZFS pool
 
