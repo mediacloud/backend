@@ -1334,15 +1334,13 @@ services:
                     memory: "2G"
 
     #
-    # Portainer web UI for cluster management
-    # ---------------------------------------
+    # Portainer for cluster management
+    # --------------------------------
     #
     portainer:
         image: portainer/portainer:1.20.2
-        command: -H tcp://tasks.portainer_agent:9001 --tlsskipverify
         networks:
             - default
-            - portainer
         expose:
             # Web interface
             - "9000"
@@ -1351,37 +1349,13 @@ services:
             - "9000:9000"
         command: -H unix:///var/run/docker.sock
         volumes:
+            - /var/run/docker.sock:/var/run/docker.sock
             - vol_portainer_data:/data
         deploy:
             placement:
                 constraints:
                     # Must run on a host that has the data volume
                     - node.labels.role-portainer == true
-            resources:
-                limits:
-                    # CPU core limit
-                    cpus: "1"
-                    # RAM limit
-                    memory: "1G"
-
-    portainer_agent:
-        image: portainer/agent
-        environment:
-            # REQUIRED: Should be equal to the service name prefixed by "tasks." when
-            # deployed inside an overlay network
-            AGENT_CLUSTER_ADDR: tasks.portainer_agent
-            # AGENT_PORT: 9001
-            # LOG_LEVEL: debug
-        expose:
-            - "9001"
-        volumes:
-            - /var/run/docker.sock:/var/run/docker.sock
-            - /var/lib/docker/volumes:/var/lib/docker/volumes
-        networks:
-            - portainer
-        deploy:
-            # Run on every node
-            mode: global
             resources:
                 limits:
                     # CPU core limit
@@ -1400,11 +1374,6 @@ networks:
     # define it here, but some services use aliases so every service has to be
     # explicitly added to some sort of a network.
     default:
-
-    # Portainer agents' network
-    portainer:
-        driver: overlay
-        attachable: true
 
 
 #
