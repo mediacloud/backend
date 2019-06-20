@@ -26,7 +26,7 @@ log = create_logger(__name__)
 _api = None
 
 # name of associated press media source
-AP_MEDIUM_NAME = 'AP'
+AP_MEDIUM_NAME = 'The Associated Press'
 
 # default params for get_new_stories
 DEFAULT_MIN_LOOKBACK = 43200
@@ -361,7 +361,7 @@ def _fetch_stories_using_search(max_lookback: int,
     while True:
 
         search_data = _api.search(**params)
-        if len(search_data['items']) == 0 or 'next_page' not in search_data:
+        if len(search_data['items']) == 0:
             break
         stories = search_data['items']
         processed_stories = _process_stories(stories, max_lookback, db=db, existing_guids=existing_guids)
@@ -370,8 +370,13 @@ def _fetch_stories_using_search(max_lookback: int,
         # Seconds since oldest creation time from feed endpoint
         vals = items.values()
         oldest_story = max([int(time.time() - _convert_publishdate_to_epoch(i['publish_date'])) for i in vals])
+
         if max_lookback is not None and oldest_story > max_lookback:
             break
+
+        if 'next_page' not in search_data:
+            break
+
         next_page_params = _extract_url_parameters(search_data['next_page'])
         params.update(next_page_params)
 
