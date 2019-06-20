@@ -1339,7 +1339,7 @@ services:
     #
     portainer:
         image: portainer/portainer:1.21.0
-        command: -H tcp://tasks.portainer_agent:9001 --tlsskipverify
+        command: -H tcp://tasks.portainer-agent:9001 --tlsskipverify
         networks:
             - default
             - portainer
@@ -1364,14 +1364,14 @@ services:
                     # RAM limit
                     memory: "1G"
 
-    portainer_agent:
+    portainer-agent:
         image: portainer/agent:1.3.0
         networks:
             - portainer
         environment:
             # REQUIRED: Should be equal to the service name prefixed by "tasks." when
             # deployed inside an overlay network
-            AGENT_CLUSTER_ADDR: tasks.portainer_agent
+            AGENT_CLUSTER_ADDR: tasks.portainer-agent
             # AGENT_PORT: 9001
             # LOG_LEVEL: debug
         expose:
