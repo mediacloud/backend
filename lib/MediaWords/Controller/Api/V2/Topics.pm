@@ -467,7 +467,7 @@ sub add_seed_query_PUT
         topics_id => $topic->{ topics_id },
         platform => $data->{ platform },
         source => $data->{ source },
-        query => $data->{ query }
+        query => $data->{ query } . ''
     };
 
     $tsq = $db->find_or_create( 'topic_seed_queries', $tsq );
@@ -493,7 +493,7 @@ sub remove_seed_query_PUT
 
     die( "Must specify topic_seed_queries_id in input document" ) unless ( $topic_seed_queries_id );
 
-    $db->delete_by_id( 'topic_seed_queries', $topic_seed_query->{ topic_seed_queries_id } );
+    $db->delete_by_id( 'topic_seed_queries', $topic_seed_queries_id );
 
     $self->status_ok( $c, entity => { success => 1 } );
 }

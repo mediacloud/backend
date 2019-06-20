@@ -539,6 +539,7 @@ SQL
     }
 
     my ( $expected_num_tweets ) = $db->query( "select sum( num_tweets ) from topic_tweet_days" )->flat;
+    my ( $num_tweets_inserted ) = $db->query( "select count(*) from topic_tweets" )->flat;
     is( $num_tweets_inserted, $expected_num_tweets, "num of topic_tweets inserted" );
     ok( $num_tweets_inserted > 0, "num topic_tweets > 0" );
 

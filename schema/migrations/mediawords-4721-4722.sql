@@ -21,7 +21,7 @@ alter table topics add platform topic_platform_type not null default 'web';
 
 create type topic_source_type AS enum ( 'mediacloud', 'crimson_hexagon', 'archive_org' );
 create table topic_seed_queries (
-    topic_seed_queries      serial primary key,
+    topic_seed_queries_id   serial primary key,
     topics_id               int not null references topics on delete cascade,
     source                  topic_source_type not null,
     platform                topic_platform_type not null,
