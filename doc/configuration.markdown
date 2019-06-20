@@ -7,7 +7,7 @@ All names of the Media Cloud-specific configuration environment variables are pr
 Environment variables get set in two different files:
 
 * `global.env` (template: `global.env.dist`) – global configuration environment variables that will get set in all containers;
-* `docker-compose.yml` (template: `docker-compose.yml.dist`) – local configuration environment variables set per-container in the `environment:` section of service configuration.
+* `docker-compose.yml` (template: `docker-compose.dist.yml`) – local configuration environment variables set per-container in the `environment:` section of service configuration.
 
 ## Configuration classes
 

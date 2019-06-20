@@ -33,7 +33,7 @@ To pull pre-built app Docker images, run:
     ./dev/pull.py
 
 To run Media Cloud in production, you might want to create docker-compose.yml
-(using apps/docker-compose.yml.dist as a template) to fit your needs and start
+(using apps/docker-compose.dist.yml as a template) to fit your needs and start
 all the services by running:
 
     docker-compose up

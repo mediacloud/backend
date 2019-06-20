@@ -271,7 +271,7 @@ class DockerArguments(object):
         """
         self._args = args
 
-        if not os.path.isfile(os.path.join(self.all_apps_dir(), 'docker-compose.yml.dist')):
+        if not os.path.isfile(os.path.join(self.all_apps_dir(), 'docker-compose.dist.yml')):
             raise ValueError("Invalid directory with container subdirectories '{}'.".format(self.all_apps_dir()))
 
     def all_apps_dir(self) -> str:

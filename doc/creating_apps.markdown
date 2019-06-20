@@ -40,7 +40,7 @@ dockermediacloud/solr-base       latest      9185076145e3  6 days ago  704MB
 
  A single exception is the tag **`latest`** which has a special meaning - it always refers to the ***last pulled or built image from any branch**. Due to the ambiguous nature of the `latest` tag, **images tagged as `latest` are never to be pushed to the [Docker Hub repository](https://hub.docker.com/r/dockermediacloud/solr-shard/tags)** - `latest` is only to be used internally, for running code against development builds.
 
-As specified in the Docker Compose configuration template for production (`apps/docker-compose.yml.dist`), production environments always run images tagged with `release`, thus built from the `release` Git branch.
+As specified in the Docker Compose configuration template for production (`apps/docker-compose.dist.yml`), production environments always run images tagged with `release`, thus built from the `release` Git branch.
 
 ## App layout in container image
 
