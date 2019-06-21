@@ -3258,8 +3258,8 @@ create table snap.tweet_stories (
     twitter_user        varchar( 1024 ) not null,
     stories_id          int not null,
     media_id            int not null,
-    num_ch_tweets       int not null,
-    tweet_count         int not null
+    num_tweets          int not null
+
 );
 
 create index snap_tweet_stories on snap.tweet_stories ( snapshots_id );

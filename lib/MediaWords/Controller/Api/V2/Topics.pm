@@ -32,6 +32,8 @@ __PACKAGE__->config(
         spider        => { Does => [ qw( ~TopicsWriteAuthenticated ~Throttled ~Logged ) ] },
         spider_status => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
         reset         => { Does => [ qw( ~TopicsAdminAuthenticated ~Throttled ~Logged ) ] },
+        add_seed_query => { Does => [ qw( ~TopicsWriteAuthenticated ~Throttled ~Logged ) ] },
+        remove_seed_query => { Does => [ qw( ~TopicsWriteAuthenticated ~Throttled ~Logged ) ] },
     }
 );
 

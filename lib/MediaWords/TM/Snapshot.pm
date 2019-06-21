@@ -638,7 +638,7 @@ create temporary table snapshot_story_link_counts $_temporary_tablespace as
         select
                 s.stories_id,
                 count( distinct ts.twitter_user ) as simple_tweet_count,
-                tweet_count as normalized_tweet_count
+                count( distinct ts.twitter_user ) as normalized_tweet_count
             from snapshot_tweet_stories ts
                 join snapshot_period_stories s using ( stories_id )
                 join snapshot_timespan_tweets tt using ( topic_tweets_id )
@@ -1724,7 +1724,7 @@ create temporary table snapshot_tweet_stories as
             where ttd.topics_id = \$1
     )
 
-    select topic_tweets_id, u.publish_date, twitter_user, stories_id, media_id, tweet_count
+    select topic_tweets_id, u.publish_date, twitter_user, stories_id, media_id, num_tweets 
         from topic_tweet_full_urls u
             join tweets_per_day tpd using ( topic_tweets_id )
             join snapshot_stories using ( stories_id )

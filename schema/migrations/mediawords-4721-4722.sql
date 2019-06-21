@@ -55,6 +55,8 @@ create view topic_tweet_full_urls as
             left join topic_seed_urls tsu
                 on ( tsu.topics_id = t.topics_id and ttu.url = tsu.url );
 
+alter table snap.tweet_stories rename tweet_count to num_tweets;
+alter table snap.tweet_stories drop num_ch_tweets;
 --
 -- 2 of 2. Reset the database version.
 --
