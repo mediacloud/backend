@@ -67,7 +67,7 @@ x-common-configuration: &common-configuration
 
     # (Used by apps which inherit from "topics-base")
     # Comma-separated email addresses to inform about topic updates
-    MC_BASE_TOPIC_ALERT_EMAILS: "topicupdates@testmediacloud.ml, slackupdates@testmediacloud.ml"
+    MC_TOPICS_BASE_TOPIC_ALERT_EMAILS: "topicupdates@testmediacloud.ml, slackupdates@testmediacloud.ml"
 
 
 #

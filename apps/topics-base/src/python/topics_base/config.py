@@ -8,7 +8,7 @@ class TopicsBaseConfig(object):
     @staticmethod
     def topic_alert_emails() -> List[str]:
         """List of emails to which to send all topic alerts."""
-        emails = env_value('MC_BASE_TOPIC_ALERT_EMAILS', required=False, allow_empty_string=True)
+        emails = env_value('MC_TOPICS_BASE_TOPIC_ALERT_EMAILS', required=False, allow_empty_string=True)
         if emails is None:
             emails = "topicupdates@testmediacloud.ml, slackupdates@testmediacloud.ml"
         emails = emails.split(',')
