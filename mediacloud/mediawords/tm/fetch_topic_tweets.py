@@ -332,9 +332,6 @@ def _fetch_tweets_for_day(
     Return:
     None
     """
-    if topic_tweet_day['tweets_fetched']:
-        return
-
     if (max_tweets is not None):
         meta_tweets = meta_tweets[0:max_tweets]
 
@@ -404,6 +401,18 @@ def _add_topic_tweet_single_day(db: DatabaseHandler, topic: dict, num_tweets: in
     return topic_tweet_day
 
 
+def _topic_tweet_day_fetched(db: DatabaseHandler, topic: dict, day: str) -> bool:
+    """Return true if the topic_tweet_day exists and tweets_fetched is true."""
+    ttd = db.query(
+        "select * from topic_tweet_days where topics_id = %(a)s and day = %(b)s",
+        {'a': topic['topics_id'], 'b': day}).hash()
+
+    if not ttd:
+        return False
+
+    return ttd['tweets_fetched'] is True
+
+
 def fetch_topic_tweets(db: DatabaseHandler, topics_id: int, max_tweets_per_day: typing.Optional[int] = None) -> None:
     """For each day within the topic dates, fetch and store the tweets.
 
@@ -433,6 +442,10 @@ def fetch_topic_tweets(db: DatabaseHandler, topics_id: int, max_tweets_per_day: 
     end_date = datetime.datetime.strptime(topic['end_date'], '%Y-%m-%d')
     while date <= end_date:
         try:
+            if _topic_tweet_day_fetched(db, topic, date):
+                log.info("skipping complete day %s" % date)
+                continue
+
             log.info("fetching tweets for %s" % date)
             meta_tweets = fetch_meta_tweets(db, topic, date)
             topic_tweet_day = _add_topic_tweet_single_day(db, topic, len(meta_tweets), date)
