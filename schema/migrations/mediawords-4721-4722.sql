@@ -14,6 +14,10 @@
 -- 1 of 2. Import the output of 'apgdiff':
 --
 
+drop view topics_with_user_permission; 
+drop view controversies;
+drop view topic_tweet_full_urls;
+
 alter table topics drop twitter_topics_id;
 
 create type topic_platform_type AS enum ( 'web', 'twitter' );
@@ -32,14 +36,52 @@ create table topic_seed_queries (
 create index topic_seed_queries_topic on topic_seed_queries( topics_id );
 
 update topics set platform = 'twitter' where ch_monitor_id is not null;
-insert into topic_seed_queries
-	select topics_id, 'twitter', 'crimson_hexagon', ch_monitor_id
+insert into topic_seed_queries (topics_id, platform, source, query)
+	select topics_id, 'twitter', 'crimson_hexagon', ch_monitor_id::text
 		from topics where ch_monitor_id is not null;
 
 alter table topics drop ch_monitor_id;
 
 alter table topic_tweet_days rename tweet_count to num_tweets;
 alter table topic_tweet_days drop num_ch_tweets;
+
+alter table snap.tweet_stories rename tweet_count to num_tweets;
+alter table snap.tweet_stories drop num_ch_tweets;
+
+alter table snap.story_link_counts drop normalized_tweet_count;
+alter table snap.medium_link_counts drop normalized_tweet_count;
+
+create view controversies as select topics_id controversies_id, * from topics;
+create or replace view topics_with_user_permission as
+    with admin_users as (
+        select m.auth_users_id
+            from auth_roles r
+                join auth_users_roles_map m using ( auth_roles_id )
+            where
+                r.role = 'admin'
+    ),
+
+    read_admin_users as (
+        select m.auth_users_id
+            from auth_roles r
+                join auth_users_roles_map m using ( auth_roles_id )
+            where
+                r.role = 'admin-readonly'
+    )
+
+    select
+            t.*,
+            u.auth_users_id,
+            case
+                when ( exists ( select 1 from admin_users a where a.auth_users_id = u.auth_users_id ) ) then 'admin'
+                when ( tp.permission is not null ) then tp.permission::text
+                when ( t.is_public ) then 'read'
+                when ( exists ( select 1 from read_admin_users a where a.auth_users_id = u.auth_users_id ) ) then 'read'
+                else 'none' end
+                as user_permission
+        from topics t
+            join auth_users u on ( true )
+            left join topic_permissions tp using ( topics_id, auth_users_id );
 
 create view topic_tweet_full_urls as
     select distinct
@@ -54,12 +96,6 @@ create view topic_tweet_full_urls as
             join topic_tweet_urls ttu using ( topic_tweets_id )
             left join topic_seed_urls tsu
                 on ( tsu.topics_id = t.topics_id and ttu.url = tsu.url );
-
-alter table snap.tweet_stories rename tweet_count to num_tweets;
-alter table snap.tweet_stories drop num_ch_tweets;
-
-alter table snap.story_link_counts drop normalized_tweet_counts;
-alter table snap.medium_link_counts drop normalized_tweet_counts;
 --
 -- 2 of 2. Reset the database version.
 --
@@ -84,5 +120,4 @@ $$
 LANGUAGE 'plpgsql';
 
 SELECT set_database_schema_version();
-
 
