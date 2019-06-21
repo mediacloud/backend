@@ -405,7 +405,7 @@ def _topic_tweet_day_fetched(db: DatabaseHandler, topic: dict, day: str) -> bool
     """Return true if the topic_tweet_day exists and tweets_fetched is true."""
     ttd = db.query(
         "select * from topic_tweet_days where topics_id = %(a)s and day = %(b)s",
-        {'a': topic['topics_id'], 'b': day}).hash()
+        {'a': topic['topics_id'], 'b': str(day)}).hash()
 
     if not ttd:
         return False
@@ -442,14 +442,11 @@ def fetch_topic_tweets(db: DatabaseHandler, topics_id: int, max_tweets_per_day: 
     end_date = datetime.datetime.strptime(topic['end_date'], '%Y-%m-%d')
     while date <= end_date:
         try:
-            if _topic_tweet_day_fetched(db, topic, date):
-                log.info("skipping complete day %s" % date)
-                continue
-
             log.info("fetching tweets for %s" % date)
-            meta_tweets = fetch_meta_tweets(db, topic, date)
-            topic_tweet_day = _add_topic_tweet_single_day(db, topic, len(meta_tweets), date)
-            _fetch_tweets_for_day(db, topic_tweet_day, meta_tweets, max_tweets_per_day)
+            if not _topic_tweet_day_fetched(db, topic, date):
+                meta_tweets = fetch_meta_tweets(db, topic, date)
+                topic_tweet_day = _add_topic_tweet_single_day(db, topic, len(meta_tweets), date)
+                _fetch_tweets_for_day(db, topic_tweet_day, meta_tweets, max_tweets_per_day)
         except McFetchTopicTweetDateFetchedException:
             pass
 
