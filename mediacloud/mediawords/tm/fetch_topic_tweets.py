@@ -76,6 +76,9 @@ def fetch_meta_tweets_from_archive_org(query: str, day: str) -> list:
 
     decoded_content = response.decoded_content()
 
+    # sometimes we get null characters, which choke the csv module
+    decoded_content = decoded_content.replace('\x00', '')
+
     meta_tweets = []
     lines = decoded_content.splitlines()[1:]
     for row in csv.reader(lines, delimiter="\t"):
