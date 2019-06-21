@@ -87,14 +87,13 @@ Readonly my $MAX_LAYOUT_SOURCES => 2000;
 
 # attributes to include in gexf snapshot
 my $_media_static_gexf_attribute_types = {
-    url                    => 'string',
-    inlink_count           => 'integer',
-    story_count            => 'integer',
-    view_medium            => 'string',
-    media_type             => 'string',
-    facebook_share_count   => 'integer',
-    simple_tweet_count     => 'integer',
-    normalized_tweet_count => 'integer'
+    url                  => 'string',
+    inlink_count         => 'integer',
+    story_count          => 'integer',
+    view_medium          => 'string',
+    media_type           => 'string',
+    facebook_share_count => 'integer',
+    simple_tweet_count   => 'integer',
 };
 
 # all tables that get stored as snapshot_* for each spanshot
@@ -547,7 +546,7 @@ select s.stories_id, s.title, s.url,
         case when ( stm.tags_id is null ) then s.publish_date::text else 'undateable' end as publish_date,
         m.name media_name, m.url media_url, m.media_id,
         slc.media_inlink_count, slc.inlink_count, slc.outlink_count, slc.facebook_share_count,
-        slc.simple_tweet_count, slc.normalized_tweet_count
+        slc.simple_tweet_count
 	from snapshot_stories s
 	    join snapshot_media m on ( s.media_id = m.media_id )
 	    join snapshot_story_link_counts slc on ( s.stories_id = slc.stories_id )
@@ -637,8 +636,7 @@ create temporary table snapshot_story_link_counts $_temporary_tablespace as
     snapshot_twitter_counts as (
         select
                 s.stories_id,
-                count( distinct ts.twitter_user ) as simple_tweet_count,
-                count( distinct ts.twitter_user ) as normalized_tweet_count
+                count( distinct ts.twitter_user ) as simple_tweet_count
             from snapshot_tweet_stories ts
                 join snapshot_period_stories s using ( stories_id )
                 join snapshot_timespan_tweets tt using ( topic_tweets_id )
@@ -650,7 +648,6 @@ create temporary table snapshot_story_link_counts $_temporary_tablespace as
             coalesce( ilc.inlink_count, 0 ) inlink_count,
             coalesce( olc.outlink_count, 0 ) outlink_count,
             stc.simple_tweet_count,
-            stc.normalized_tweet_count,
             ss.facebook_share_count facebook_share_count
         from snapshot_period_stories ps
             left join snapshot_story_media_link_counts smlc using ( stories_id )
@@ -824,8 +821,7 @@ create temporary table snapshot_medium_link_counts $_temporary_tablespace as
                sum( slc.outlink_count) outlink_count,
                count(*) story_count,
                sum( slc.facebook_share_count ) facebook_share_count,
-               sum( slc.simple_tweet_count ) simple_tweet_count,
-               sum( slc.normalized_tweet_count ) normalized_tweet_count
+               sum( slc.simple_tweet_count ) simple_tweet_count
             from
                 snapshot_media m
                 join snapshot_stories s using ( media_id )
@@ -1213,8 +1209,7 @@ select distinct
         mlc.media_inlink_count inlink_count,
         mlc.story_count,
         mlc.facebook_share_count,
-        mlc.simple_tweet_count,
-        mlc.normalized_tweet_count
+        mlc.simple_tweet_count
     from snapshot_media_with_types m
         join snapshot_medium_link_counts mlc using ( media_id )
     where

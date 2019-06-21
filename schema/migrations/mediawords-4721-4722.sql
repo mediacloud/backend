@@ -57,6 +57,9 @@ create view topic_tweet_full_urls as
 
 alter table snap.tweet_stories rename tweet_count to num_tweets;
 alter table snap.tweet_stories drop num_ch_tweets;
+
+alter table snap.story_link_counts drop normalized_tweet_counts;
+alter table snap.medium_link_counts drop normalized_tweet_counts;
 --
 -- 2 of 2. Reset the database version.
 --

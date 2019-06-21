@@ -2342,8 +2342,7 @@ create table snap.story_link_counts (
 
     facebook_share_count                    int null,
 
-    simple_tweet_count                      int null,
-    normalized_tweet_count                  float null
+    simple_tweet_count                      int null
 );
 
 -- TODO: add complex foreign key to check that stories_id exists for the snapshot stories snapshot
@@ -2363,8 +2362,7 @@ create table snap.medium_link_counts (
 
     facebook_share_count            int null,
 
-    simple_tweet_count              int null,
-    normalized_tweet_count          float null
+    simple_tweet_count              int null
 );
 
 -- TODO: add complex foreign key to check that media_id exists for the snapshot media snapshot
