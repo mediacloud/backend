@@ -5,7 +5,6 @@ services:
     facebook-fetch-story-stats:
         image: dockermediacloud/facebook-fetch-story-stats:latest
         stop_signal: SIGKILL
-        env_file: ./../common/common.env.dist
         environment:
             MC_FACEBOOK_APP_ID: "${MC_FACEBOOK_APP_ID}"
             MC_FACEBOOK_APP_SECRET: "${MC_FACEBOOK_APP_SECRET}"

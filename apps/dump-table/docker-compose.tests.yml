@@ -5,7 +5,6 @@ services:
     dump-table:
         image: dockermediacloud/dump-table:latest
         stop_signal: SIGKILL
-        env_file: ./../common/common.env.dist
         volumes:
             - type: bind
               source: ./bin/

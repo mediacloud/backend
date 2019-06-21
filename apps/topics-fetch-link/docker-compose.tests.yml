@@ -5,7 +5,6 @@ services:
     topics-fetch-link:
         image: dockermediacloud/topics-fetch-link:latest
         stop_signal: SIGKILL
-        env_file: ./../common/common.env.dist
         volumes:
             - type: bind
               source: ./bin/
@@ -33,7 +32,6 @@ services:
 
     extract-and-vector:
         image: dockermediacloud/extract-and-vector:latest
-        env_file: ./../common/common.env.dist
         stop_signal: SIGKILL
         depends_on:
             - postgresql-pgbouncer
@@ -41,7 +39,6 @@ services:
 
     extract-article-from-page:
         image: dockermediacloud/extract-article-from-page:latest
-        env_file: ./../common/common.env.dist
         stop_signal: SIGKILL
         expose:
             - 8080

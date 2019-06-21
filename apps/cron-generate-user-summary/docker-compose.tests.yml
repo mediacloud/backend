@@ -5,7 +5,6 @@ services:
     cron-generate-user-summary:
         image: dockermediacloud/cron-generate-user-summary:latest
         stop_signal: SIGKILL
-        env_file: ./../common/common.env.dist
         volumes:
             - type: bind
               source: ./bin/

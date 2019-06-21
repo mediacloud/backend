@@ -5,7 +5,6 @@ services:
     cron-set-media-subject-country:
         image: dockermediacloud/cron-set-media-subject-country:latest
         stop_signal: SIGKILL
-        env_file: ./../common/common.env.dist
         volumes:
             - type: bind
               source: ./bin/

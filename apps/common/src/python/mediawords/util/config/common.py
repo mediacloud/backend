@@ -157,7 +157,9 @@ class DownloadStorageConfig(object):
     @staticmethod
     def storage_locations() -> List[str]:
         """Download storage locations."""
-        value = env_value('MC_DOWNLOADS_STORAGE_LOCATIONS')
+        value = env_value('MC_DOWNLOADS_STORAGE_LOCATIONS', required=False)
+        if value is None:
+            value = 'postgresql'
         locations = value.split(';')
         locations = [location.strip() for location in locations]
         if len(locations) == 0 and locations[0] == '':
@@ -167,19 +169,28 @@ class DownloadStorageConfig(object):
     @staticmethod
     def read_all_from_s3() -> bool:
         """Whether or not to read all non-inline downloads from S3."""
-        return bool(int(env_value('MC_DOWNLOADS_READ_ALL_FROM_S3', allow_empty_string=True)))
+        value = env_value('MC_DOWNLOADS_READ_ALL_FROM_S3', required=False, allow_empty_string=True)
+        if value is None:
+            value = 0
+        return bool(int(value))
 
     @staticmethod
     def fallback_postgresql_to_s3() -> bool:
         """Whether to fallback PostgreSQL downloads to Amazon S3.
 
         If the download doesn't exist in PostgreSQL storage, S3 will be tried instead."""
-        return bool(int(env_value('MC_DOWNLOADS_FALLBACK_POSTGRESQL_TO_S3', allow_empty_string=True)))
+        value = env_value('MC_DOWNLOADS_FALLBACK_POSTGRESQL_TO_S3', required=False, allow_empty_string=True)
+        if value is None:
+            value = 0
+        return bool(int(value))
 
     @staticmethod
     def cache_s3() -> bool:
         """Whether to enable local Amazon S3 download cache."""
-        return bool(int(env_value('MC_DOWNLOADS_CACHE_S3', allow_empty_string=True)))
+        value = env_value('MC_DOWNLOADS_CACHE_S3', allow_empty_string=True)
+        if value is None:
+            value = 0
+        return bool(int(value))
 
 
 class AuthenticatedDomain(object):
@@ -272,7 +283,7 @@ class UserAgentConfig(object):
     @staticmethod
     def blacklist_url_pattern() -> Optional[Pattern]:
         """URL pattern for which we should fail all of the HTTP(s) requests."""
-        pattern = env_value('MC_USERAGENT_BLACKLIST_URL_PATTERN', allow_empty_string=True)
+        pattern = env_value('MC_USERAGENT_BLACKLIST_URL_PATTERN', required=False, allow_empty_string=True)
         if pattern:
             pattern = re.compile(pattern, flags=re.IGNORECASE | re.UNICODE)
         else:
@@ -288,17 +299,26 @@ class UserAgentConfig(object):
     @staticmethod
     def parallel_get_num_parallel() -> int:
         """Parallel connection count."""
-        return int(env_value('MC_USERAGENT_PARALLEL_GET_NUM_PARALLEL'))
+        value = env_value('MC_USERAGENT_PARALLEL_GET_NUM_PARALLEL', required=False)
+        if value is None:
+            value = 10
+        return int(value)
 
     @staticmethod
     def parallel_get_timeout() -> int:
         """Connection timeout, in seconds."""
-        return int(env_value('MC_USERAGENT_PARALLEL_GET_TIMEOUT'))
+        value = env_value('MC_USERAGENT_PARALLEL_GET_TIMEOUT', required=False)
+        if value is None:
+            value = 90
+        return int(value)
 
     @staticmethod
     def parallel_get_per_domain_timeout() -> int:
         """Per-domain timeout, in seconds."""
-        return int(env_value('MC_USERAGENT_PARALLEL_GET_PER_DOMAIN_TIMEOUT'))
+        value = env_value('MC_USERAGENT_PARALLEL_GET_PER_DOMAIN_TIMEOUT', required=False)
+        if not value:
+            value = 1
+        return int(value)
 
 
 class CommonConfig(object):
@@ -337,7 +357,10 @@ class CommonConfig(object):
     @staticmethod
     def email_from_address() -> str:
         """'From:' email address when sending emails."""
-        return env_value('MC_EMAIL_FROM_ADDRESS')
+        value = env_value('MC_EMAIL_FROM_ADDRESS', required=False)
+        if value is None:
+            value = 'info@mediacloud.org'
+        return value
 
     @staticmethod
     def solr_url() -> str:

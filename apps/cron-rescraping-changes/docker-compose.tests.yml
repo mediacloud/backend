@@ -5,7 +5,6 @@ services:
     cron-rescraping-changes:
         image: dockermediacloud/cron-rescraping-changes:latest
         stop_signal: SIGKILL
-        env_file: ./../common/common.env.dist
         volumes:
             - type: bind
               source: ./bin/

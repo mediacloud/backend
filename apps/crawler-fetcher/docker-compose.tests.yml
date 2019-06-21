@@ -5,7 +5,6 @@ services:
     crawler-fetcher:
         image: dockermediacloud/crawler-fetcher:latest
         stop_signal: SIGKILL
-        env_file: ./../common/common.env.dist
         environment:
             MC_UNIVISION_CLIENT_ID: "${MC_UNIVISION_CLIENT_ID}"
             MC_UNIVISION_CLIENT_SECRET: "${MC_UNIVISION_CLIENT_SECRET}"

@@ -5,7 +5,6 @@ services:
     cliff-update-story-tags:
         image: dockermediacloud/cliff-update-story-tags:latest
         stop_signal: SIGKILL
-        env_file: ./../common/common.env.dist
         environment:
             MC_CLIFF_VERSION_TAG: "cliff_clavin_v2.4.1"
             MC_CLIFF_GEONAMES_TAG_SET: "cliff_geonames"

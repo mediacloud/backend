@@ -5,7 +5,6 @@ services:
     topics-mine:
         image: dockermediacloud/topics-mine:latest
         stop_signal: SIGKILL
-        env_file: ./../common/common.env.dist
         environment:
             MC_CRIMSON_HEXAGON_API_KEY: "${MC_CRIMSON_HEXAGON_API_KEY}"
         expose:
@@ -46,7 +45,6 @@ services:
 
     extract-and-vector:
         image: dockermediacloud/extract-and-vector:latest
-        env_file: ./../common/common.env.dist
         stop_signal: SIGKILL
         depends_on:
             - postgresql-pgbouncer
@@ -54,7 +52,6 @@ services:
 
     extract-article-from-page:
         image: dockermediacloud/extract-article-from-page:latest
-        env_file: ./../common/common.env.dist
         stop_signal: SIGKILL
         expose:
             - 8080
@@ -82,10 +79,8 @@ services:
 
     topics-fetch-link:
         image: dockermediacloud/topics-fetch-link:latest
-        env_file: ./../common/common.env.dist
         stop_signal: SIGKILL
 
     topics-extract-story-links:
         image: dockermediacloud/topics-extract-story-links:latest
-        env_file: ./../common/common.env.dist
         stop_signal: SIGKILL

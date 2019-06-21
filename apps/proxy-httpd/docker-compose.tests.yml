@@ -43,7 +43,6 @@ services:
     webapp-api:
         image: dockermediacloud/webapp-api:latest
         stop_signal: SIGKILL
-        env_file: ./../common/common.env.dist
         expose:
             - "9090"
         # Here and elsewhere, don't start any subservices via "depends_on"

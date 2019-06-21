@@ -5,7 +5,6 @@ services:
     import-stories-feedly:
         image: dockermediacloud/import-stories-feedly:latest
         stop_signal: SIGKILL
-        env_file: ./../common/common.env.dist
         volumes:
             - type: bind
               source: ./bin/

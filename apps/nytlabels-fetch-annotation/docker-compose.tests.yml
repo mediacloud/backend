@@ -5,7 +5,6 @@ services:
     nytlabels-fetch-annotation:
         image: dockermediacloud/nytlabels-fetch-annotation:latest
         stop_signal: SIGKILL
-        env_file: ./../common/common.env.dist
         volumes:
             - type: bind
               source: ./bin/

@@ -114,18 +114,12 @@ To provision multiple servers with Ansible:
 
 ## Configuration
 
-To start all Media Cloud's services in production, you'll need two files:
-
-* `docker-compose.yml` -- production's Docker Compose configuration
-* `common.env` -- configuration for `common`-derived images
-
-### `docker-compose.yml`
-
 Production's `docker-compose.yml` defines what services are started, how they are to be configured, and where they should store their data (if any).
 
 In the file, you might want to set the following:
 
-* Per-service environment variables (`environment:` section) that configure containers of every service
+* Common configuration variables (`x-common-configuration` section) that define global environment variables for apps derived from `common` base image.
+* Per-service configuration environment variables (`environment:` section of every service) that configure containers of every service
 * Replica counts (`deploy:replicas:` section) that set how many containers will every service start
 * Resource limits (`deploy:resources:limits:` section) that define the upper limit of resources (CPU, RAM) that every container might use
 * Named volumes list (`volumes:` section at the bottom at the file) that configure volume bindings to locations on the host computer
@@ -134,13 +128,11 @@ Template for production's `docker-compose.yml` file is available in `apps/docker
 
 ### `common` configuration
 
-Common configuration (`common.env`) defines global environment variables for apps derived from `common` base image.
 
-Template for `common`-derived images is available in `apps/common/common.env.dist`.
 
 ## Deploying
 
-To deploy services, change the current directory to the one with `docker-compose.yml` and `common.env` and then run:
+To deploy services, change the current directory to the one with production's `docker-compose.yml` and then run:
 
 ```bash
 docker stack deploy -c docker-compose.yml mediacloud

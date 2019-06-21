@@ -2,6 +2,75 @@ version: "3.7"
 
 
 #
+# Configuration for "common"-derived images
+# =========================================
+#
+x-common-configuration: &common-configuration
+
+    # One or more semicolon-separated storage methods to store downloads in.
+    #
+    # Supported locations:
+    #
+    # * "postgresql" -- store downloads in the PostgreSQL database,
+    #   "raw_downloads" table
+    # * "amazon_s3" -- store downloads in Amazon S3
+    #
+    # Default is "postgresql" which stores downloads directly in the PostgreSQL
+    # database.
+    #
+    # The path of the last download storage method listed below will be stored
+    # in "downloads.path" database column.
+    MC_DOWNLOADS_STORAGE_LOCATIONS: "postgresql"
+
+    # Read all non-inline ("content") downloads from S3
+    MC_DOWNLOADS_READ_ALL_FROM_S3: "0"
+
+    # Fallback PostgreSQL downloads to Amazon S3 (if download doesn't exist in
+    # PostgreSQL storage, S3 will be tried instead)
+    MC_DOWNLOADS_FALLBACK_POSTGRESQL_TO_S3: "0"
+
+    # Enable local Amazon S3 download cache
+    MC_DOWNLOADS_CACHE_S3: "0"
+
+    # (optional) S3 download storage access key ID
+    #MC_DOWNLOADS_AMAZON_S3_ACCESS_KEY_ID: "AKIAIOSFODNN7EXAMPLE"
+
+    # (optional) S3 download storage secret access key
+    #MC_DOWNLOADS_AMAZON_S3_SECRET_ACCESS_KEY: "wJalrXUtnFEMI/K7MDENG/bPxRfiCYzEXAMPLEKEY"
+
+    # (optional) S3 download storage bucket name
+    #MC_DOWNLOADS_AMAZON_S3_BUCKET_NAME: "mediacloud-downloads"
+
+    # (optional) S3 download storage directory name (prefix)
+    #MC_DOWNLOADS_AMAZON_S3_DIRECTORY_NAME: "downloads"
+
+    # "From:" email address when sending emails
+    MC_EMAIL_FROM_ADDRESS: "info@testmediacloud.ml"
+
+    # Fail all HTTP requests that match the following pattern, e.g.
+    # "^https?://[^/]*some-website.com"
+    MC_USERAGENT_BLACKLIST_URL_PATTERN: ""
+
+    # (optional) Semicolon-separated domains that might need HTTP auth credentials
+    # to work
+    # Example: "username:password@domain.com;username2:password2@domain2.org"
+    #MC_USERAGENT_AUTHENTICATED_DOMAINS: ""
+
+    # parallel_get() parallel connection count
+    MC_USERAGENT_PARALLEL_GET_NUM_PARALLEL: "10"
+
+    # parallel_get() connection timeout, in seconds
+    MC_USERAGENT_PARALLEL_GET_TIMEOUT: "90"
+
+    # parallel_get() per-domain timeout, in seconds
+    MC_USERAGENT_PARALLEL_GET_PER_DOMAIN_TIMEOUT: "1"
+
+    # (Used by apps which inherit from "topics-base")
+    # Comma-separated email addresses to inform about topic updates
+    MC_BASE_TOPIC_ALERT_EMAILS: "topicupdates@testmediacloud.ml, slackupdates@testmediacloud.ml"
+
+
+#
 # Solr shard base service
 # =======================
 #
@@ -83,8 +152,8 @@ services:
         image: dockermediacloud/cliff-fetch-annotation:containers_release
         networks:
             - default
-        env_file: common.env
         environment:
+            <<: *common-configuration
             # Annotator endpoint URL
             MC_CLIFF_ANNOTATOR_URL: ""
         depends_on:
@@ -108,8 +177,8 @@ services:
         image: dockermediacloud/cliff-update-story-tags:containers_release
         networks:
             - default
-        env_file: common.env
         environment:
+            <<: *common-configuration
             # CLIFF version tag
             MC_CLIFF_VERSION_TAG: "cliff_clavin_v2.4.1"
             # Tag set to use for geographical name entities
@@ -140,7 +209,8 @@ services:
         image: dockermediacloud/crawler-provider:containers_release
         networks:
             - default
-        env_file: common.env
+        environment:
+            <<: *common-configuration
         depends_on:
             - postgresql-pgbouncer
         deploy:
@@ -159,7 +229,8 @@ services:
         image: dockermediacloud/crawler-fetcher:containers_release
         networks:
             - default
-        env_file: common.env
+        environment:
+            <<: *common-configuration
         depends_on:
             - postgresql-pgbouncer
             - rabbitmq-server
@@ -181,84 +252,11 @@ services:
         image: dockermediacloud/create-missing-partitions:containers_release
         networks:
             - default
-        env_file: common.env
-        depends_on:
-            - postgresql-pgbouncer
-        deploy:
-            resources:
-                limits:
-                    # CPU core limit
-                    cpus: "1"
-                    # RAM limit
-                    memory: "256M"
-
-    #
-    # Extract article HTML from page HTML
-    # -----------------------------------
-    #
-    extract-article-from-page:
-        image: dockermediacloud/extract-article-from-page:containers_release
-        networks:
-            - default
-        env_file: common.env
-        expose:
-            # HTTP extraction service
-            - 8080
-        deploy:
-            # Worker count
-            replicas: 8
-            resources:
-                limits:
-                    # CPU core limit
-                    cpus: "1"
-                    # RAM limit
-                    memory: "512M"
-
-    #
-    # Extract and vector stories
-    # --------------------------
-    #
-    extract-and-vector:
-        image: dockermediacloud/extract-and-vector:containers_release
-        networks:
-            - default
-        env_file: common.env
-        depends_on:
-            - extract-article-from-page
-            - postgresql-pgbouncer
-            - rabbitmq-server
-        deploy:
-            # Worker count
-            replicas: 24
-            resources:
-                limits:
-                    # CPU core limit
-                    cpus: "1"
-                    # RAM limit
-                    memory: "256M"
-
-    #
-    # Fetch story stats from Facebook
-    # -------------------------------
-    #
-    facebook-fetch-story-stats:
-        image: dockermediacloud/facebook-fetch-story-stats:containers_release
-        networks:
-            - default
-        env_file: common.env
         environment:
-            # Facebook application ID
-            MC_FACEBOOK_APP_ID: ""
-            # Facebook application secret
-            MC_FACEBOOK_APP_SECRET: ""
-            # Timeout for API calls
-            MC_FACEBOOK_TIMEOUT: "60"
+            <<: *common-configuration
         depends_on:
             - postgresql-pgbouncer
-            - rabbitmq-server
         deploy:
-            # Worker count
-            replicas: 4
             resources:
                 limits:
                     # CPU core limit
@@ -274,7 +272,8 @@ services:
         image: dockermediacloud/cron-generate-daily-rss-dumps:containers_release
         networks:
             - default
-        env_file: common.env
+        environment:
+            <<: *common-configuration
         depends_on:
             - postgresql-pgbouncer
         volumes:
@@ -301,7 +300,8 @@ services:
         image: dockermediacloud/cron-generate-media-health:containers_release
         networks:
             - default
-        env_file: common.env
+        environment:
+            <<: *common-configuration
         depends_on:
             - postgresql-pgbouncer
         deploy:
@@ -320,10 +320,208 @@ services:
         image: dockermediacloud/cron-generate-user-summary:containers_release
         networks:
             - default
-        env_file: common.env
+        environment:
+            <<: *common-configuration
         depends_on:
             - postgresql-pgbouncer
         deploy:
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "256M"
+
+    #
+    # Print long running job states
+    # -----------------------------
+    #
+    cron-print-long-running-job-states:
+        image: dockermediacloud/cron-print-long-running-job-states:containers_release
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+        depends_on:
+            - postgresql-pgbouncer
+        deploy:
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "256M"
+
+    #
+    # Refresh stats Cron job
+    # ----------------------
+    #
+    cron-refresh-stats:
+        image: dockermediacloud/cron-refresh-stats:containers_release
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+        depends_on:
+            - postgresql-pgbouncer
+        deploy:
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "256M"
+
+    #
+    # Add due media to the rescraping queue Cron job
+    # ----------------------------------------------
+    #
+    cron-rescrape-due-media:
+        image: dockermediacloud/cron-rescrape-due-media:containers_release
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+        depends_on:
+            - postgresql-pgbouncer
+            - rabbitmq-server
+        deploy:
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "256M"
+
+    #
+    # Report rescraping changes Cron job
+    # ----------------------------------
+    #
+    cron-rescraping-changes:
+        image: dockermediacloud/cron-rescraping-changes:containers_release
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+        depends_on:
+            - postgresql-pgbouncer
+        deploy:
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "256M"
+
+    #
+    # Set media primary language Cron job
+    # -----------------------------------
+    #
+    cron-set-media-primary-language:
+        image: dockermediacloud/cron-set-media-primary-language:containers_release
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+        depends_on:
+            - postgresql-pgbouncer
+        deploy:
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "256M"
+
+    #
+    # Set media subject country Cron job
+    # -----------------------------------
+    #
+    cron-set-media-subject-country:
+        image: dockermediacloud/cron-set-media-subject-country:containers_release
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+        depends_on:
+            - postgresql-pgbouncer
+        deploy:
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "256M"
+
+    #
+    # Extract and vector stories
+    # --------------------------
+    #
+    extract-and-vector:
+        image: dockermediacloud/extract-and-vector:containers_release
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+        depends_on:
+            - extract-article-from-page
+            - postgresql-pgbouncer
+            - rabbitmq-server
+        deploy:
+            # Worker count
+            replicas: 24
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "256M"
+
+    #
+    # Extract article HTML from page HTML
+    # -----------------------------------
+    #
+    extract-article-from-page:
+        image: dockermediacloud/extract-article-from-page:containers_release
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+        expose:
+            # HTTP extraction service
+            - 8080
+        deploy:
+            # Worker count
+            replicas: 8
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "512M"
+
+    #
+    # Fetch story stats from Facebook
+    # -------------------------------
+    #
+    facebook-fetch-story-stats:
+        image: dockermediacloud/facebook-fetch-story-stats:containers_release
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+            # Facebook application ID
+            MC_FACEBOOK_APP_ID: ""
+            # Facebook application secret
+            MC_FACEBOOK_APP_SECRET: ""
+            # Timeout for API calls
+            MC_FACEBOOK_TIMEOUT: "60"
+        depends_on:
+            - postgresql-pgbouncer
+            - rabbitmq-server
+        deploy:
+            # Worker count
+            replicas: 4
             resources:
                 limits:
                     # CPU core limit
@@ -339,8 +537,8 @@ services:
         image: dockermediacloud/import-solr-data:containers_release
         networks:
             - default
-        env_file: common.env
         environment:
+            <<: *common-configuration
             # Jobs (forks) to start for the import
             # (keep in sync with CPU count)
             MC_SOLR_IMPORT_JOBS: 1
@@ -365,7 +563,8 @@ services:
         image: dockermediacloud/import-stories-feedly:containers_release
         networks:
             - default
-        env_file: common.env
+        environment:
+            <<: *common-configuration
         depends_on:
             # Writes stories to PostgreSQL
             - postgresql-pgbouncer
@@ -444,6 +643,89 @@ services:
                     memory: "128M"
 
     #
+    # Munin Cron stats collector
+    # --------------------------
+    #
+    munin-cron:
+        image: dockermediacloud/munin-cron:containers_release
+        networks:
+            - default
+        depends_on:
+            # Reads data from Munin node
+            - munin-node
+        volumes:
+            # Shared with "munin-httpd" container:
+            - vol_munin_data:/var/lib/munin/
+            # Shared with "munin-httpd" container:
+            - vol_munin_html:/var/cache/munin/www/
+        deploy:
+            placement:
+                constraints:
+                    # Must run on the same host as munin-httpd as they share two volumes
+                    - node.labels.role-munin-httpd == true
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "256M"
+
+    #
+    # Munin HTTP server
+    # -----------------
+    #
+    munin-httpd:
+        image: dockermediacloud/munin-httpd:containers_release
+        networks:
+            - default
+        expose:
+            # Web UIs port
+            - "4948"
+        ports:
+            # For connecting to through a SSH tunnel
+            - "4948:4948"
+        depends_on:
+            # Reads data generated by Munin stats collector
+            - munin-cron
+        volumes:
+            # Shared with "munin-cron" container:
+            - vol_munin_data:/var/lib/munin/
+            # Shared with "munin-cron" container:
+            - vol_munin_html:/var/cache/munin/www/
+        deploy:
+            placement:
+                constraints:
+                    # Must run on the same host as munin-cron as they share two volumes
+                    - node.labels.role-munin-httpd == true
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "256M"
+
+    #
+    # Munin node
+    # ----------
+    #
+    munin-node:
+        image: dockermediacloud/munin-node:containers_release
+        networks:
+            - default
+        depends_on:
+            # Monitors data on PostgreSQL
+            - postgresql-pgbouncer
+            # Monitors data on Solr
+            - solr-shard-01
+        deploy:
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "512M"
+
+    #
     # NYTLabels fetch annotation
     # ----------------------
     #
@@ -451,7 +733,8 @@ services:
         image: dockermediacloud/nytlabels-fetch-annotation:containers_release
         networks:
             - default
-        env_file: common.env
+        environment:
+            <<: *common-configuration
         depends_on:
             - predict-news-labels
             - postgresql-pgbouncer
@@ -474,8 +757,8 @@ services:
         image: dockermediacloud/nytlabels-update-story-tags:containers_release
         networks:
             - default
-        env_file: common.env
         environment:
+            <<: *common-configuration
             # NYTLabels version tag
             MC_NYTLABELS_VERSION_TAG: "nyt_labeller_v1.0.0"
             # Tag set to use for NYTLabels-derived tags
@@ -558,6 +841,70 @@ services:
                     memory: "4G"
 
     #
+    # Cron job that updates Let's Encrypt certificates used by reverse proxy
+    # ----------------------------------------------------------------------
+    #
+    proxy-cron-certbot:
+        image: dockermediacloud/proxy-cron-certbot:containers_release
+        networks:
+            - default
+        environment:
+            # Top-level domain to issue the certificate for
+            MC_PROXY_CERTBOT_DOMAIN: "testmediacloud.ml"
+            # Email for Let's Encrypt's notifications
+            MC_PROXY_CERTBOT_LETSENCRYPT_EMAIL: "linas@media.mit.edu"
+            # CloudFlare account email
+            MC_PROXY_CERTBOT_CLOUDFLARE_EMAIL: ""
+            # CloudFlare account global API key
+            MC_PROXY_CERTBOT_CLOUDFLARE_GLOBAL_API_KEY: ""
+        volumes:
+            # Shared with "proxy-httpd" container:
+            - vol_proxy_ssl_certs:/etc/letsencrypt/
+        deploy:
+            placement:
+                constraints:
+                    # Must run on the same host as proxy-httpd as they share a volume
+                    - node.labels.role-proxy-httpd == true
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "256M"
+
+    #
+    # SSL terminating reverse proxy
+    # -----------------------------
+    #
+    proxy-httpd:
+        image: dockermediacloud/proxy-httpd:containers_release
+        networks:
+            - default
+        ports:
+            # HTTP and HTTPS ports
+            - "80:80"
+            - "443:443"
+        volumes:
+            # Shared with "proxy_cron_certbot" container:
+            - vol_proxy_ssl_certs:/etc/letsencrypt/
+        depends_on:
+            # Requires SSL certificate to run
+            - proxy-cron-certbot
+            # Proxies to main app
+            - webapp-httpd
+        deploy:
+            placement:
+                constraints:
+                    # Must run on the same host as proxy-cron-certbot as they share a volume
+                    - node.labels.role-proxy-httpd == true
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "256M"
+
+    #
     # Purge PostgreSQL object caches
     # ------------------------------------
     #
@@ -565,7 +912,8 @@ services:
         image: dockermediacloud/purge-object-caches:containers_release
         networks:
             - default
-        env_file: common.env
+        environment:
+            <<: *common-configuration
         depends_on:
             - postgresql-pgbouncer
         deploy:
@@ -611,45 +959,6 @@ services:
                     memory: "2G"
 
     #
-    # Refresh stats Cron job
-    # ----------------------
-    #
-    cron-refresh-stats:
-        image: dockermediacloud/cron-refresh-stats:containers_release
-        networks:
-            - default
-        env_file: common.env
-        depends_on:
-            - postgresql-pgbouncer
-        deploy:
-            resources:
-                limits:
-                    # CPU core limit
-                    cpus: "1"
-                    # RAM limit
-                    memory: "256M"
-
-    #
-    # Add due media to the rescraping queue Cron job
-    # ----------------------------------------------
-    #
-    cron-rescrape-due-media:
-        image: dockermediacloud/cron-rescrape-due-media:containers_release
-        networks:
-            - default
-        env_file: common.env
-        depends_on:
-            - postgresql-pgbouncer
-            - rabbitmq-server
-        deploy:
-            resources:
-                limits:
-                    # CPU core limit
-                    cpus: "1"
-                    # RAM limit
-                    memory: "256M"
-
-    #
     # (Re)scrape media
     # ----------------
     #
@@ -657,7 +966,8 @@ services:
         image: dockermediacloud/rescrape-media:containers_release
         networks:
             - default
-        env_file: common.env
+        environment:
+            <<: *common-configuration
         depends_on:
             - postgresql-pgbouncer
             - rabbitmq-server
@@ -672,80 +982,22 @@ services:
                     memory: "512M"
 
     #
-    # Report rescraping changes Cron job
-    # ----------------------------------
+    # Fetch sitemap pages from media
+    # ------------------------------
     #
-    cron-rescraping-changes:
-        image: dockermediacloud/cron-rescraping-changes:containers_release
+    sitemap-fetch-media-pages:
+        image: dockermediacloud/sitemap-fetch-media-pages:containers_release
         networks:
             - default
-        env_file: common.env
-        depends_on:
-            - postgresql-pgbouncer
+        environment:
+            <<: *common-configuration
         deploy:
             resources:
                 limits:
                     # CPU core limit
                     cpus: "1"
                     # RAM limit
-                    memory: "256M"
-
-    #
-    # Set media primary language Cron job
-    # -----------------------------------
-    #
-    cron-set-media-primary-language:
-        image: dockermediacloud/cron-set-media-primary-language:containers_release
-        networks:
-            - default
-        env_file: common.env
-        depends_on:
-            - postgresql-pgbouncer
-        deploy:
-            resources:
-                limits:
-                    # CPU core limit
-                    cpus: "1"
-                    # RAM limit
-                    memory: "256M"
-
-    #
-    # Set media subject country Cron job
-    # -----------------------------------
-    #
-    cron-set-media-subject-country:
-        image: dockermediacloud/cron-set-media-subject-country:containers_release
-        networks:
-            - default
-        env_file: common.env
-        depends_on:
-            - postgresql-pgbouncer
-        deploy:
-            resources:
-                limits:
-                    # CPU core limit
-                    cpus: "1"
-                    # RAM limit
-                    memory: "256M"
-
-    #
-    # Print long running job states
-    # -----------------------------
-    #
-    cron-print-long-running-job-states:
-        image: dockermediacloud/cron-print-long-running-job-states:containers_release
-        networks:
-            - default
-        env_file: common.env
-        depends_on:
-            - postgresql-pgbouncer
-        deploy:
-            resources:
-                limits:
-                    # CPU core limit
-                    cpus: "1"
-                    # RAM limit
-                    memory: "256M"
+                    memory: "2G"
 
     #
     # Solr shards 01-24
@@ -974,7 +1226,8 @@ services:
         image: dockermediacloud/topics-extract-story-links:containers_release
         networks:
             - default
-        env_file: common.env
+        environment:
+            <<: *common-configuration
         depends_on:
             - extract-article-from-page
         deploy:
@@ -995,7 +1248,8 @@ services:
         image: dockermediacloud/topics-fetch-link:containers_release
         networks:
             - default
-        env_file: common.env
+        environment:
+            <<: *common-configuration
         deploy:
             # Worker count
             replicas: 8
@@ -1014,8 +1268,8 @@ services:
         image: dockermediacloud/topics-fetch-twitter-urls:containers_release
         networks:
             - default
-        env_file: common.env
         environment:
+            <<: *common-configuration
             # Twitter API consumer key
             MC_TWITTER_CONSUMER_KEY: ""
             # Twitter API consumer secret
@@ -1042,8 +1296,8 @@ services:
         image: dockermediacloud/topics-mine:containers_release
         networks:
             - default
-        env_file: common.env
         environment:
+            <<: *common-configuration
             # Crimson Hexagon API key
             MC_CRIMSON_HEXAGON_API_KEY: ""
         deploy:
@@ -1064,8 +1318,8 @@ services:
         image: dockermediacloud/topics-mine-public:containers_release
         networks:
             - default
-        env_file: common.env
         environment:
+            <<: *common-configuration
             # Crimson Hexagon API key
             MC_CRIMSON_HEXAGON_API_KEY: ""
         deploy:
@@ -1086,113 +1340,13 @@ services:
         image: dockermediacloud/topics-snapshot:containers_release
         networks:
             - default
-        env_file: common.env
         environment:
+            <<: *common-configuration
             # Not sure what this is.
             MC_TOPICS_SNAPSHOT_MODEL_REPS: "0"
         deploy:
             # Worker count
             replicas: 2
-            resources:
-                limits:
-                    # CPU core limit
-                    cpus: "1"
-                    # RAM limit
-                    memory: "2G"
-
-    #
-    # Munin node
-    # ----------
-    #
-    munin-node:
-        image: dockermediacloud/munin-node:containers_release
-        networks:
-            - default
-        depends_on:
-            # Monitors data on PostgreSQL
-            - postgresql-pgbouncer
-            # Monitors data on Solr
-            - solr-shard-01
-        deploy:
-            resources:
-                limits:
-                    # CPU core limit
-                    cpus: "1"
-                    # RAM limit
-                    memory: "512M"
-
-    #
-    # Munin Cron stats collector
-    # --------------------------
-    #
-    munin-cron:
-        image: dockermediacloud/munin-cron:containers_release
-        networks:
-            - default
-        depends_on:
-            # Reads data from Munin node
-            - munin-node
-        volumes:
-            # Shared with "munin-httpd" container:
-            - vol_munin_data:/var/lib/munin/
-            # Shared with "munin-httpd" container:
-            - vol_munin_html:/var/cache/munin/www/
-        deploy:
-            placement:
-                constraints:
-                    # Must run on the same host as munin-httpd as they share two volumes
-                    - node.labels.role-munin-httpd == true
-            resources:
-                limits:
-                    # CPU core limit
-                    cpus: "1"
-                    # RAM limit
-                    memory: "256M"
-
-    #
-    # Munin HTTP server
-    # -----------------
-    #
-    munin-httpd:
-        image: dockermediacloud/munin-httpd:containers_release
-        networks:
-            - default
-        expose:
-            # Web UIs port
-            - "4948"
-        ports:
-            # For connecting to through a SSH tunnel
-            - "4948:4948"
-        depends_on:
-            # Reads data generated by Munin stats collector
-            - munin-cron
-        volumes:
-            # Shared with "munin-cron" container:
-            - vol_munin_data:/var/lib/munin/
-            # Shared with "munin-cron" container:
-            - vol_munin_html:/var/cache/munin/www/
-        deploy:
-            placement:
-                constraints:
-                    # Must run on the same host as munin-cron as they share two volumes
-                    - node.labels.role-munin-httpd == true
-            resources:
-                limits:
-                    # CPU core limit
-                    cpus: "1"
-                    # RAM limit
-                    memory: "256M"
-
-    #
-    # Fetch sitemap pages from media
-    # ------------------------------
-    #
-    sitemap-fetch-media-pages:
-        image: dockermediacloud/sitemap-fetch-media-pages:containers_release
-        networks:
-            - default
-        env_file: common.env
-        deploy:
             resources:
                 limits:
                     # CPU core limit
@@ -1248,70 +1402,6 @@ services:
                     memory: "256M"
 
     #
-    # Cron job that updates Let's Encrypt certificates used by reverse proxy
-    # ----------------------------------------------------------------------
-    #
-    proxy-cron-certbot:
-        image: dockermediacloud/proxy-cron-certbot:containers_release
-        networks:
-            - default
-        environment:
-            # Top-level domain to issue the certificate for
-            MC_PROXY_CERTBOT_DOMAIN: "testmediacloud.ml"
-            # Email for Let's Encrypt's notifications
-            MC_PROXY_CERTBOT_LETSENCRYPT_EMAIL: "linas@media.mit.edu"
-            # CloudFlare account email
-            MC_PROXY_CERTBOT_CLOUDFLARE_EMAIL: ""
-            # CloudFlare account global API key
-            MC_PROXY_CERTBOT_CLOUDFLARE_GLOBAL_API_KEY: ""
-        volumes:
-            # Shared with "proxy-httpd" container:
-            - vol_proxy_ssl_certs:/etc/letsencrypt/
-        deploy:
-            placement:
-                constraints:
-                    # Must run on the same host as proxy-httpd as they share a volume
-                    - node.labels.role-proxy-httpd == true
-            resources:
-                limits:
-                    # CPU core limit
-                    cpus: "1"
-                    # RAM limit
-                    memory: "256M"
-
-    #
-    # SSL terminating reverse proxy
-    # -----------------------------
-    #
-    proxy-httpd:
-        image: dockermediacloud/proxy-httpd:containers_release
-        networks:
-            - default
-        ports:
-            # HTTP and HTTPS ports
-            - "80:80"
-            - "443:443"
-        volumes:
-            # Shared with "proxy_cron_certbot" container:
-            - vol_proxy_ssl_certs:/etc/letsencrypt/
-        depends_on:
-            # Requires SSL certificate to run
-            - proxy-cron-certbot
-            # Proxies to main app
-            - webapp-httpd
-        deploy:
-            placement:
-                constraints:
-                    # Must run on the same host as proxy-cron-certbot as they share a volume
-                    - node.labels.role-proxy-httpd == true
-            resources:
-                limits:
-                    # CPU core limit
-                    cpus: "1"
-                    # RAM limit
-                    memory: "256M"
-
-    #
     # Generate word2vec snapshot model
     # ----------------
     #
@@ -1319,7 +1409,8 @@ services:
         image: dockermediacloud/word2vec-generate-snapshot-model:containers_release
         networks:
             - default
-        env_file: common.env
+        environment:
+            <<: *common-configuration
         depends_on:
             - postgresql-pgbouncer
             - rabbitmq-server

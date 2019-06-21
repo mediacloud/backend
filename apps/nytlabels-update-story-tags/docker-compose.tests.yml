@@ -5,7 +5,6 @@ services:
     nytlabels-update-story-tags:
         image: dockermediacloud/nytlabels-update-story-tags:latest
         stop_signal: SIGKILL
-        env_file: ./../common/common.env.dist
         environment:
             MC_NYTLABELS_VERSION_TAG: "nyt_labeller_v1.0.0"
             MC_NYTLABELS_TAG_SET: "nyt_labels"

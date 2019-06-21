@@ -5,7 +5,6 @@ services:
     topics-extract-story-links:
         image: dockermediacloud/topics-extract-story-links:latest
         stop_signal: SIGKILL
-        env_file: ./../common/common.env.dist
         volumes:
             - type: bind
               source: ./bin/
@@ -33,7 +32,6 @@ services:
 
     extract-article-from-page:
         image: dockermediacloud/extract-article-from-page:latest
-        env_file: ./../common/common.env.dist
         stop_signal: SIGKILL
         expose:
             - 8080

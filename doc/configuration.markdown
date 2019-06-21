@@ -1,13 +1,8 @@
 # Configuration
 
-Apps get configured via environment variables that get set for every app's container. Apps derived from the `common` app share a set of global configuration environment variables defined in `apps/common/common.env`, and some apps have their own local configuration environment variables.
+Apps get configured via environment variables that get set for every app's container. Apps derived from the `common` app share a set of global configuration environment variables (defined at the top of production's `docker-compose.dist.yml`, in the `x-common-configuration` section), and some apps have their own local configuration environment variables.
 
 All names of the Media Cloud-specific configuration environment variables are prefixed with `MC_` (e.g. `MC_DOWNLOADS_CACHE_S3`).
-
-Environment variables get set in two different files:
-
-* `global.env` (template: `global.env.dist`) – global configuration environment variables that will get set in all containers;
-* `docker-compose.yml` (template: `docker-compose.dist.yml`) – local configuration environment variables set per-container in the `environment:` section of service configuration.
 
 ## Configuration classes
 

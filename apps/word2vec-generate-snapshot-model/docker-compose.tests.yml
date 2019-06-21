@@ -5,7 +5,6 @@ services:
     word2vec-generate-snapshot-model:
         image: dockermediacloud/word2vec-generate-snapshot-model:latest
         stop_signal: SIGKILL
-        env_file: ./../common/common.env.dist
         volumes:
             - type: bind
               source: ./bin/

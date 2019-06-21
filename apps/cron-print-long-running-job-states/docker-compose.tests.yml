@@ -5,7 +5,6 @@ services:
     cron-print-long-running-job-states:
         image: dockermediacloud/cron-print-long-running-job-states:latest
         stop_signal: SIGKILL
-        env_file: ./../common/common.env.dist
         volumes:
             - type: bind
               source: ./bin/

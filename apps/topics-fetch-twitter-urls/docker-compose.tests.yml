@@ -5,7 +5,6 @@ services:
     topics-fetch-twitter-urls:
         image: dockermediacloud/topics-fetch-twitter-urls:latest
         stop_signal: SIGKILL
-        env_file: ./../common/common.env.dist
         environment:
             MC_TWITTER_CONSUMER_KEY: "${MC_TWITTER_CONSUMER_KEY}"
             MC_TWITTER_CONSUMER_SECRET: "${MC_TWITTER_CONSUMER_SECRET}"
@@ -37,7 +36,6 @@ services:
 
     extract-and-vector:
         image: dockermediacloud/extract-and-vector:latest
-        env_file: ./../common/common.env.dist
         stop_signal: SIGKILL
         depends_on:
             - postgresql-pgbouncer
@@ -45,7 +43,6 @@ services:
 
     extract-article-from-page:
         image: dockermediacloud/extract-article-from-page:latest
-        env_file: ./../common/common.env.dist
         stop_signal: SIGKILL
         expose:
             - 8080

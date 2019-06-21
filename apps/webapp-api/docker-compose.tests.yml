@@ -5,7 +5,6 @@ services:
     webapp-api:
         image: dockermediacloud/webapp-api:latest
         stop_signal: SIGKILL
-        env_file: ./../common/common.env.dist
         volumes:
             - type: bind
               source: ./bin/
@@ -71,24 +70,20 @@ services:
 
     rescrape-media:
         image: dockermediacloud/rescrape-media:latest
-        env_file: ./../common/common.env.dist
         stop_signal: SIGKILL
 
     word2vec-generate-snapshot-model:
         image: dockermediacloud/word2vec-generate-snapshot-model:latest
-        env_file: ./../common/common.env.dist
         stop_signal: SIGKILL
 
     topics-snapshot:
         image: dockermediacloud/topics-snapshot:latest
         stop_signal: SIGKILL
-        env_file: ./../common/common.env.dist
         environment:
             MC_TOPICS_SNAPSHOT_MODEL_REPS: "0"
 
     import-solr-data-for-testing:
         image: dockermediacloud/import-solr-data-for-testing:latest
-        env_file: ./../common/common.env.dist
         environment:
             MC_SOLR_IMPORT_JOBS: 1
             MC_SOLR_IMPORT_MAX_QUEUED_STORIES: 100000
