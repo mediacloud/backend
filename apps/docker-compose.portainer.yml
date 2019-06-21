@@ -14,6 +14,7 @@ services:
             --tlsskipverify
             --admin-password mediacloud
             --logo https://mediacloud-portainer-logo.s3.amazonaws.com/portainer-logo/portainer-mediacloud.svg
+            --no-analytics
         networks:
             - portainer
         expose:
