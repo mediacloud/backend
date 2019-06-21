@@ -64,7 +64,7 @@ sub run_statefully($$;$)
     map { die( "$_ arg must be a list" ) unless ref( $args->{ $_ } ) eq ref( [] ) }
       ( qw/retweeted_users_a retweeted_users_b/ );
 
-    die( "topic '$topic->{ topics_id }' must be a twitter topic" ) unless ( $topic->{ ch_monitor_id } );
+    die( "topic '$topic->{ topics_id }' must be a twitter topic" ) unless ( $topic->{ platform } eq 'twitter' );
 
     MediaWords::TM::RetweeterScores::generate_retweeter_scores( $db, $topic, $name, $retweeted_users_a, $retweeted_users_b,
         $num_partitions, $match_type );

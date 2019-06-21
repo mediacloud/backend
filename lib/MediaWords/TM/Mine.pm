@@ -112,9 +112,9 @@ sub generate_topic_links
 
     my $topic_links = [];
 
-    if ( $topic->{ ch_monitor_id } )
+    if ( $topic->{ platform } ne 'web' )
     {
-        INFO( "skip link generation for twitter topic" );
+        INFO( "skip link generation for non web topic" );
         return;
     }
 
@@ -580,11 +580,10 @@ sub mine_topic_stories
 
     INFO( "mine topic stories" );
 
-    # check for twitter topic here as well as in generate_topic_links, because the below query grows very
-    # large without ever mining links
-    if ( $topic->{ ch_monitor_id } )
+    # skip for non-web topic, because the below query grows very large without ever mining links
+    if ( $topic->{ platform } ne 'web' )
     {
-        INFO( "skip link generation for twitter topic" );
+        INFO( "skip link generation for non-web topic" );
         return;
     }
 
@@ -837,7 +836,7 @@ sub import_solr_seed_query_month($$$)
 {
     my ( $db, $topic, $month_offset ) = @_;
 
-    return if ( $topic->{ ch_monitor_id } );
+    return unless ( $topic->{ platform } eq 'web' );
 
     my $max_stories = $topic->{ max_stories };
 
@@ -1073,45 +1072,6 @@ sub do_mine_topic ($$;$)
     }
 }
 
-# if twitter topic corresponding to the main topic does not already exist, create it
-sub find_or_create_twitter_topic($$)
-{
-    my ( $db, $parent_topic ) = @_;
-
-    INFO( "find or create twitter topic" );
-
-    my $twitter_topic = $db->query( <<SQL, $parent_topic->{ topics_id } )->hash;
-select * from topics where twitter_parent_topics_id = ?
-SQL
-
-    return $twitter_topic if ( $twitter_topic );
-
-    my $topic_tag_set = $db->create( 'tag_sets', { name => "topic $parent_topic->{ name } (twitter)" } );
-
-    $twitter_topic = {
-        twitter_parent_topics_id => $parent_topic->{ topics_id },
-        name                     => "$parent_topic->{ name } (twitter)",
-        pattern                  => '(none)',
-        solr_seed_query          => '(none)',
-        solr_seed_query_run      => 't',
-        description              => "twitter child topic of $parent_topic->{ name }",
-        topic_tag_sets_id        => $topic_tag_set->{ topic_tag_sets_id },
-        ch_monitor_id            => $parent_topic->{ ch_monitor_id }
-    };
-
-    my $topic = $db->create( 'topics', $twitter_topic );
-
-    my $parent_topic_dates =
-      $db->query( "select * from topics_with_dates where topics_id = ?", $parent_topic->{ topics_id } )->hash;
-
-    $db->query( <<SQL, $topic->{ topics_id }, $parent_topic->{ topics_id } );
-insert into topic_dates ( topics_id, boundary, start_date, end_date )
-    select \$1, true, start_date::date, end_date::date from topics_with_dates where topics_id = \$2
-SQL
-
-    return $topic;
-}
-
 # add the url parsed from a tweet to topics_seed_url
 sub add_tweet_seed_url
 {
@@ -1180,13 +1140,12 @@ SQL
     );
 }
 
-# if there is a ch_monitor_id for the given topic, fetch the twitter data from crimson hexagon and twitter
+# if this is a twitter topic, fetch the twitter data
 sub fetch_and_import_twitter_urls($$)
 {
     my ( $db, $topic ) = @_;
 
-    # only add  twitter data if there is a ch_monitor_id
-    return unless ( $topic->{ ch_monitor_id } );
+    return unless ( $topic->{ platform } eq 'twitter');
 
     MediaWords::TM::FetchTopicTweets::fetch_topic_tweets( $db, $topic->{ topics_id } );
 

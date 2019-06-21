@@ -47,73 +47,69 @@ MIN_TEST_TWITTER_USER_LENGTH = 3
 TEST_MONITOR_ID = 4667493813
 
 
-class MockCrimsonHexagon(ftt.AbstractCrimsonHexagon):
-    """Mock the CrimsonHexagon class in fetch_topic_tweets to return test data."""
+def mock_fetch_meta_tweets_from_ch(query: str, day: datetime.datetime) -> dict:
+    """
+    Return a mock ch response to the posts end point.
 
-    @staticmethod
-    def fetch_posts(ch_monitor_id: int, day: datetime.datetime) -> dict:
-        """
-        Return a mock ch response to the posts end point.
+    Generate the mock response by sending back data from a consistent but semirandom selection of
+    ch-posts-2016-01-0[12345].json.
+    """
+    assert MOCK_TWEETS_PER_DAY <= MAX_MOCK_TWEETS_PER_DAY
 
-        Generate the mock response by sending back data from a consistent but semirandom selection of
-        ch-posts-2016-01-0[12345].json.
-        """
-        assert MOCK_TWEETS_PER_DAY <= MAX_MOCK_TWEETS_PER_DAY
+    test_path = mediawords.util.paths.mc_root_path() + '/mediacloud/test-data/ch/'
+    filename = test_path + "ch-posts-" + day.strftime('%Y-%m-%d') + '.json'
+    with open(filename, 'r', encoding='utf-8') as fh:
+        json = fh.read()
 
-        test_path = mediawords.util.paths.mc_root_path() + '/mediacloud/test-data/ch/'
-        filename = test_path + "ch-posts-" + day.strftime('%Y-%m-%d') + '.json'
-        with open(filename, 'r', encoding='utf-8') as fh:
-            json = fh.read()
+    data = dict(decode_json(json))
 
-        data = dict(decode_json(json))
+    assert 'posts' in data
+    assert len(data['posts']) >= MOCK_TWEETS_PER_DAY
 
-        assert 'posts' in data
-        assert len(data['posts']) >= MOCK_TWEETS_PER_DAY
+    data['posts'] = data['posts'][0:MOCK_TWEETS_PER_DAY]
 
-        data['posts'] = data['posts'][0:MOCK_TWEETS_PER_DAY]
+    # replace tweets with the epoch of the start date so that we can infer the date of each tweet in
+    # tweet_urler_lookup below
+    i = 0
+    for ch_post in data['posts']:
+        ch_post['url'] = re.sub(r'status/(\d+)/', '/status/' + str(i), ch_post['url'])
+        i += 1
 
-        # replace tweets with the epoch of the start date so that we can infer the date of each tweet in
-        # tweet_urler_lookup below
-        i = 0
-        for ch_post in data['posts']:
-            ch_post['url'] = re.sub(r'status/(\d+)/', '/status/' + str(i), ch_post['url'])
-            i += 1
+    meta_tweets = data['posts']
+    for mt in meta_tweets:
+        mt['tweet_id'] = mediawords.tm.fetch_topic_tweets.get_tweet_id_from_url(mt['url'])
 
-        return data
+    return meta_tweets
 
 
-class MockTwitter(ftt.AbstractTwitter):
-    """Mock the Twitter class in ftt.to return test data."""
+def mock_fetch_100_tweets(ids: list) -> list:
+    """Return mocked test tweets."""
+    num_errors = (3 if (len(ids) > 10) else 0)
 
-    @staticmethod
-    def fetch_100_tweets(ids: list) -> list:
-        """Return mocked test tweets."""
-        num_errors = (3 if (len(ids) > 10) else 0)
+    # simulate twitter not being able to find some ids, which is typical
+    for i in range(num_errors):
+        ids.pop()
 
-        # simulate twitter not being able to find some ids, which is typical
-        for i in range(num_errors):
-            ids.pop()
+    tweets = []
+    for tweet_id in ids:
+        # restrict url and user ids to desired number
+        # include randomness so that the urls and users are not nearly collated
+        url_id = int(random.randint(1, int(tweet_id))) % NUM_MOCK_URLS
+        user_id = int(random.randint(1, int(tweet_id))) % NUM_MOCK_USERS
 
-        tweets = []
-        for tweet_id in ids:
-            # restrict url and user ids to desired number
-            # include randomness so that the urls and users are not nearly collated
-            url_id = int(random.randint(1, int(tweet_id))) % NUM_MOCK_URLS
-            user_id = int(random.randint(1, int(tweet_id))) % NUM_MOCK_USERS
+        test_url = "http://test.host/tweet_url?id=" + str(url_id)
 
-            test_url = "http://test.host/tweet_url?id=" + str(url_id)
+        # all we use is id, text, and created_by, so just test for those
+        tweets.append(
+            {
+                'id': tweet_id,
+                'text': "sample tweet for id id",
+                'created_at': '2018-12-13',
+                'user': {'screen_name': "user-" + str(user_id)},
+                'entities': {'urls': [{'expanded_url': test_url}]}
+            })
 
-            # all we use is id, text, and created_by, so just test for those
-            tweets.append(
-                {
-                    'id': tweet_id,
-                    'text': "sample tweet for id id",
-                    'created_at': '2018-12-13',
-                    'user': {'screen_name': "user-" + str(user_id)},
-                    'entities': {'urls': [{'expanded_url': test_url}]}
-                })
-
-        return tweets
+    return tweets
 
 
 def get_test_date_range() -> tuple:
@@ -129,9 +125,9 @@ def validate_topic_tweets(db: DatabaseHandler, topic_tweet_day: dict) -> None:
         {'a': topic_tweet_day['topic_tweet_days_id']}
     ).hashes()
 
-    # fetch_topic_tweets should have set num_ch_tweets to the total number of tweets
+    # fetch_topic_tweets should have set num_tweets to the total number of tweets
     assert len(topic_tweets) > 0
-    assert len(topic_tweets) == topic_tweet_day['num_ch_tweets']
+    assert len(topic_tweets) == topic_tweet_day['num_tweets']
 
     for topic_tweet in topic_tweets:
         tweet_data = dict(decode_json(topic_tweet['data']))
@@ -181,40 +177,12 @@ def validate_topic_tweet_urls(db: DatabaseHandler, topic: dict) -> None:
     assert total_json_urls == num_urls
 
 
-def test_post_matches_pattern() -> None:
+def test_tweet_matches_pattern() -> None:
     """Test _post_matches_pattern()."""
-    assert not ftt._post_matches_pattern({'pattern': 'foo'}, {'tweet': {'text': 'bar'}})
-    assert ftt._post_matches_pattern({'pattern': 'foo'}, {'tweet': {'text': 'foo bar'}})
-    assert ftt._post_matches_pattern({'pattern': 'foo'}, {'tweet': {'text': 'bar foo'}})
-    assert not ftt._post_matches_pattern({'pattern': 'foo'}, {})
-
-
-@unittest.skipUnless(os.environ.get('MC_REMOTE_TESTS', False), "remote tests")
-def test_ch_api() -> None:
-    """Test CrimsonHexagon.fetch_posts() by hitting the remote ch api."""
-    config = mediawords.util.config.get_config()
-
-    assert 'crimson_hexagon' in config, "crimson_hexagon section present in mediawords.yml"
-    for key in 'key'.split():
-        assert key in config['crimson_hexagon'], "crimson_hexagon." + key + " present in mediawords.yml"
-
-    test_monitor_id = TEST_MONITOR_ID
-    test_date = datetime.datetime(year=2016, month=1, day=1)
-
-    got_data = ftt.CrimsonHexagon.fetch_posts(test_monitor_id, test_date)
-
-    # sanity test even though we don't know how many posts we should get back, but we want to make sure it is more
-    # than 500 to make CH is not limiting us to the default 500 in their api
-    assert 'totalPostsAvailable' in got_data
-    assert got_data['totalPostsAvailable'] > MIN_TEST_CH_POSTS
-
-    assert 'posts' in got_data
-    got_posts = got_data['posts']
-    assert len(got_posts) > MIN_TEST_CH_POSTS
-
-    for post in got_posts:
-        assert 'url' in post
-        assert re.search(r'status/\d+', post['url'])
+    assert not ftt._tweet_matches_pattern({'pattern': 'foo'}, {'tweet': {'text': 'bar'}})
+    assert ftt._tweet_matches_pattern({'pattern': 'foo'}, {'tweet': {'text': 'foo bar'}})
+    assert ftt._tweet_matches_pattern({'pattern': 'foo'}, {'tweet': {'text': 'bar foo'}})
+    assert not ftt._tweet_matches_pattern({'pattern': 'foo'}, {})
 
 
 class TestFetchTopicTweets(TestDatabaseWithSchemaTestCase):
@@ -230,10 +198,21 @@ class TestFetchTopicTweets(TestDatabaseWithSchemaTestCase):
         test_dates = get_test_date_range()
         topic['start_date'] = test_dates[0]
         topic['end_date'] = test_dates[1]
-        topic['ch_monitor_id'] = 123456
         db.update_by_id('topics', topic['topics_id'], topic)
 
-        ftt.fetch_topic_tweets(db, topic['topics_id'], MockTwitter, MockCrimsonHexagon)
+        tsq = {
+            'topics_id': topic['topics_id'],
+            'platform': 'twitter',
+            'source': 'crimson_hexagon',
+            'query': 123456
+        }
+        db.create('topic_seed_queries', tsq)
+
+        db.update_by_id('topics', topic['topics_id'], {'platform': 'twitter'})
+
+        mediawords.tm.fetch_topic_tweets.fetch_meta_tweets_from_ch = mock_fetch_meta_tweets_from_ch
+        mediawords.tm.fetch_topic_tweets.fetch_100_tweets = mock_fetch_100_tweets
+        ftt.fetch_topic_tweets(db, topic['topics_id'])
 
         topic_tweet_days = db.query("select * from topic_tweet_days").hashes()
         assert len(topic_tweet_days) == LOCAL_DATE_RANGE + 1
@@ -251,27 +230,52 @@ class TestFetchTopicTweets(TestDatabaseWithSchemaTestCase):
 
         validate_topic_tweet_urls(db, topic)
 
-    @unittest.skipUnless(os.environ.get('MC_REMOTE_TESTS', False), "remote tests")
-    def test_remote_integration(self) -> None:
-        """Run santity test on remote apis by calling the internal functions that integrate the CH and twitter data."""
+    def _test_remote_integration(self, source, query, day) -> None:
+        """Run santity test on remote apis."""
         db = self.db()
 
         topic = mediawords.test.db.create.create_test_topic(db, "test_remote_integration")
-        topic['ch_monitor_id'] = TEST_MONITOR_ID
+
+        tsq = {
+            'topics_id': topic['topics_id'],
+            'platform': 'twitter',
+            'source': source,
+            'query': query
+        }
+        db.create('topic_seed_queries', tsq)
+
+        topic['platform'] = 'twitter'
+        topic['pattern'] = '.*'
+        topic['start_date'] = day
+        topic['end_date'] = day
         db.update_by_id('topics', topic['topics_id'], topic)
 
-        ttd_day = datetime.datetime(year=2016, month=1, day=1)
-        ttd = ftt._add_topic_tweet_single_day(db, topic, ttd_day, ftt.CrimsonHexagon)
-
+        # only fetch 200 tweets to make test quicker
         max_tweets = 200
-        ftt._fetch_tweets_for_day(db, ftt.Twitter, topic, ttd, max_tweets=max_tweets)
+        ftt.fetch_topic_tweets(db, topic['topics_id'], max_tweets)
 
-        got_tts = db.query(
-            "select * from topic_tweets where topic_tweet_days_id = %(a)s",
-            {'a': ttd['topic_tweet_days_id']}).hashes()
+        # ttd_day = datetime.datetime(year=2016, month=1, day=1)
+
+        # meta_tweets = ftt.fetch_meta_tweets(db, topic, ttd_day)
+        # ttd = ftt._add_topic_tweet_single_day(db, topic, len(meta_tweets), ttd_day)
+
+        # max_tweets = 100
+        # ftt._fetch_tweets_for_day(db, ttd, meta_tweets, max_tweets=max_tweets)
+
+        got_tts = db.query("select * from topic_tweets").hashes()
 
         # for old ch monitors, lots of the tweets may be deleted
         assert len(got_tts) > max_tweets / 10
 
         assert len(got_tts[0]['content']) > MIN_TEST_TWEET_LENGTH
         assert len(got_tts[0]['twitter_user']) > MIN_TEST_TWITTER_USER_LENGTH
+
+    @unittest.skipUnless(os.environ.get('MC_REMOTE_TESTS', False), "remote tests")
+    def test_ch_remote_integration(self) -> None:
+        """Test ch remote integration."""
+        self._test_remote_integration('crimson_hexagon', TEST_MONITOR_ID, '2016-01-01')
+
+    @unittest.skipUnless(os.environ.get('MC_REMOTE_TESTS', False), "remote tests")
+    def test_archive_remote_integration(self) -> None:
+        """Test archive.org remote integration."""
+        self._test_remote_integration('archive_org', 'harvard', '2019-01-01')

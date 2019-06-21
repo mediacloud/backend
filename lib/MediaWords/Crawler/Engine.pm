@@ -26,7 +26,6 @@ use warnings;
 use Data::Dumper;
 
 use MediaWords::Crawler::Download::Content;
-use MediaWords::Crawler::Download::Feed::AP;
 use MediaWords::Crawler::Download::Feed::Syndicated;
 use MediaWords::Crawler::Download::Feed::WebPage;
 use MediaWords::Crawler::Download::Feed::Univision;
@@ -80,10 +79,6 @@ sub handler_for_download($$;$)
         elsif ( $feed_type eq 'univision' )
         {
             $handler = MediaWords::Crawler::Download::Feed::Univision->new( $handler_args );
-        }
-        elsif ( $feed_type eq 'ap' )
-        {
-            $handler = MediaWords::Crawler::Download::Feed::AP->new( $handler_args );
         }
         else
         {
