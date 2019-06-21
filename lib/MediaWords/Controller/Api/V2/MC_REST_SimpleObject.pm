@@ -295,8 +295,6 @@ SQL
 
     $list = $c->dbis->query( $query, $last_id, $rows )->hashes;
 
-    print STDERR Dumper( map { $_->{ name } } @{ $list } );
-
     my $num_rows = scalar( @{ $list } );
 
     TRACE( "fetch_list last_id $last_id got $num_rows rows: $query" );

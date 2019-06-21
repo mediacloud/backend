@@ -32,11 +32,13 @@ __PACKAGE__->config(
         spider        => { Does => [ qw( ~TopicsWriteAuthenticated ~Throttled ~Logged ) ] },
         spider_status => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
         reset         => { Does => [ qw( ~TopicsAdminAuthenticated ~Throttled ~Logged ) ] },
+        add_seed_query => { Does => [ qw( ~TopicsWriteAuthenticated ~Throttled ~Logged ) ] },
+        remove_seed_query => { Does => [ qw( ~TopicsWriteAuthenticated ~Throttled ~Logged ) ] },
     }
 );
 
 Readonly::Scalar my $TOPICS_EDIT_FIELDS => [
-    qw/name solr_seed_query description max_iterations start_date end_date is_public ch_monitor_id twitter_topics_id max_stories is_logogram is_story_index_ready/
+    qw/name solr_seed_query description max_iterations start_date end_date platform is_public max_stories is_logogram is_story_index_ready/
 ];
 
 Readonly::Scalar my $JOB_STATE_FIELD_LIST =>
@@ -85,10 +87,9 @@ sub _get_topics_list($$$)    # sql clause for fields to query from job_states fo
                 t.state,
                 t.message,
                 t.is_public,
-                t.ch_monitor_id,
-                t.twitter_topics_id,
                 t.start_date,
                 t.end_date,
+                t.platform,
                 MIN(p.auth_users_id) AS auth_users_id,
                 MIN(p.user_permission) AS user_permission,
                 t.job_queue,
@@ -175,6 +176,8 @@ SQL
 SQL
         'job_states', 'topics_id'
     );
+
+    $topics = $db->attach_child_query( $topics, "select * from topic_seed_queries", 'job_states', 'topics_id' );
 
     return $topics;
 }
@@ -446,6 +449,55 @@ update topic_stories ts set link_mined = 'f'
 SQL
     }
 
+}
+
+sub add_seed_query: Chained( 'apibase' ) : ActionClass( 'MC_REST' )
+{
+}
+
+sub add_seed_query_PUT
+{
+    my ( $self, $c ) = @_;
+
+    my $data = $c->req->data;
+
+    my $db = $c->dbis;
+
+    my $topic = $db->require_by_id( 'topics', $c->stash->{ topics_id } );
+
+    my $tsq = {
+        topics_id => $topic->{ topics_id },
+        platform => $data->{ platform },
+        source => $data->{ source },
+        query => $data->{ query } . ''
+    };
+
+    $tsq = $db->find_or_create( 'topic_seed_queries', $tsq );
+
+    $self->status_ok( $c, entity => { topic_seed_query => $tsq } );
+}
+
+sub remove_seed_query: Chained( 'apibase' ) : ActionClass( 'MC_REST' )
+{
+}
+
+sub remove_seed_query_PUT
+{
+    my ( $self, $c ) = @_;
+
+    my $data = $c->req->data;
+
+    my $db = $c->dbis;
+
+    my $topic = $db->require_by_id( 'topics', $c->stash->{ topics_id } );
+
+    my $topic_seed_queries_id = $data->{ topic_seed_queries_id };
+
+    die( "Must specify topic_seed_queries_id in input document" ) unless ( $topic_seed_queries_id );
+
+    $db->delete_by_id( 'topic_seed_queries', $topic_seed_queries_id );
+
+    $self->status_ok( $c, entity => { success => 1 } );
 }
 
 sub update : Chained( 'apibase' ) : ActionClass( 'MC_REST' )
