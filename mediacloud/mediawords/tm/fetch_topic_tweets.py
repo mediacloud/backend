@@ -85,9 +85,9 @@ def fetch_meta_tweets_from_archive_org(query: str, day: str) -> list:
         fields = 'user_name user_screen_name lang text timestamp_ms url'.split(' ')
         meta_tweet = {}
         for i, field in enumerate(fields):
-            meta_tweet[field] = row[i]
+            meta_tweet[field] = row[i] if i < len(row) else ''
 
-        if 'url' not in meta_tweet:
+        if 'url' not in meta_tweet or meta_tweet['url'] == '':
             log.warning("meta_tweet '%s' does not have a url" % str(row))
             continue
 
