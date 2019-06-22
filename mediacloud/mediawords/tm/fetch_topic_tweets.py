@@ -263,8 +263,10 @@ def _store_tweet_and_urls(db: DatabaseHandler, topic_tweet_day: dict, meta_tweet
     Return:
     None
     """
+    log.debug("remove nulls")
     _remove_json_tree_nulls(meta_tweet)
 
+    log.debug("encode json")
     data_json = mediawords.util.parse_json.encode_json(meta_tweet)
 
     # null characters are not legal in json but for some reason get stuck in these tweets
@@ -279,6 +281,7 @@ def _store_tweet_and_urls(db: DatabaseHandler, topic_tweet_day: dict, meta_tweet
         'twitter_user': meta_tweet['tweet']['user']['screen_name']
     }
 
+    log.debug("insert topic tweet")
     topic_tweet = db.query(
         """
         insert into topic_tweets
@@ -289,8 +292,12 @@ def _store_tweet_and_urls(db: DatabaseHandler, topic_tweet_day: dict, meta_tweet
         """,
         topic_tweet).hash()
 
+    log.debug("get tweet urls")
     urls = mediawords.util.twitter.get_tweet_urls(meta_tweet['tweet'])
+    log.debug("insert tweet urls")
     _insert_tweet_urls(db, topic_tweet, urls)
+
+    log.debug("done")
 
 
 def regenerate_tweet_urls(db: dict, topic: dict) -> None:
