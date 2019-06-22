@@ -241,6 +241,15 @@ def _insert_tweet_urls(db: DatabaseHandler, topic_tweet: dict, urls: typing.List
             {'a': topic_tweet['topic_tweets_id'], 'b': url})
 
 
+def _remove_json_tree_nulls(d: dict):
+    """Recursively traverse json tree and remove nulls from all values."""
+    for k in d:
+        if isinstance(d[k], dict):
+            _remove_json_tree_nulls(d[k])
+        elif isinstance(d[k], str):
+            d[k] = d[k].replace('\x00', '')
+
+
 def _store_tweet_and_urls(db: DatabaseHandler, topic_tweet_day: dict, meta_tweet: dict) -> None:
     """
     Store the tweet in topic_tweets and its urls in topic_tweet_urls, using the data in meta_tweet.
@@ -254,11 +263,12 @@ def _store_tweet_and_urls(db: DatabaseHandler, topic_tweet_day: dict, meta_tweet
     Return:
     None
     """
+    _remove_json_tree_nulls(meta_tweet)
+
     data_json = mediawords.util.parse_json.encode_json(meta_tweet)
 
     # null characters are not legal in json but for some reason get stuck in these tweets
-    data_json = data_json.replace('\x00', '')
-    meta_tweet['tweet']['text'] = meta_tweet['tweet']['text'].replace('\x00', '')
+    # data_json = data_json.replace('\x00', '')
 
     topic_tweet = {
         'topic_tweet_days_id': topic_tweet_day['topic_tweet_days_id'],
