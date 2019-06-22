@@ -258,6 +258,7 @@ def _store_tweet_and_urls(db: DatabaseHandler, topic_tweet_day: dict, meta_tweet
 
     # null characters are not legal in json but for some reason get stuck in these tweets
     data_json = data_json.replace('\x00', '')
+    meta_tweet['tweet']['text'] = meta_tweet['tweet']['text'].replace('\x00', '')
 
     topic_tweet = {
         'topic_tweet_days_id': topic_tweet_day['topic_tweet_days_id'],
