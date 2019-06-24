@@ -29,6 +29,8 @@ sub add_stories_from_feed($$$$)
     my $feed = $db->find_by_id( 'feeds', $feeds_id );
 
     my $title = MediaWords::Util::ParseHTML::html_title( $decoded_content, '(no title)' );
+    $title .= '[' . MediaWords::Util::SQL::sql_now() . ']';
+
     my $guid = substr( time . ":" . $download->{ url }, 0, 1024 );
 
     my $new_story = {
@@ -39,8 +41,7 @@ sub add_stories_from_feed($$$$)
         title        => $title,
     };
 
-    Readonly my $skip_checking_if_new => 1;
-    my $story = MediaWords::DBI::Stories::add_story( $db, $new_story, $feeds_id, $skip_checking_if_new );
+    my $story = MediaWords::DBI::Stories::add_story( $db, $new_story, $feeds_id );
     unless ( defined $story )
     {
         LOGCONFESS "Failed to add story " . Dumper( $new_story );

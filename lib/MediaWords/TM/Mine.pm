@@ -1051,11 +1051,11 @@ sub do_mine_topic ($$;$)
         check_job_error_rate( $db, $topic );
 
         # merge dup media and stories again to catch dups from spidering
-        update_topic_state( $db, $topic, "merging duplicate media stories" );
-        MediaWords::TM::Stories::merge_dup_media_stories( $db, $topic );
-
         update_topic_state( $db, $topic, "merging duplicate stories" );
         MediaWords::TM::Stories::find_and_merge_dup_stories( $db, $topic );
+
+        update_topic_state( $db, $topic, "merging duplicate media stories" );
+        MediaWords::TM::Stories::merge_dup_media_stories( $db, $topic );
 
         update_topic_state( $db, $topic, "adding source link dates" );
         add_source_link_dates( $db, $topic );
