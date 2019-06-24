@@ -63,18 +63,22 @@ def find_dup_story(db: DatabaseHandler, story: dict) -> bool:
     db_story = db.query("""
         SELECT s.*
         FROM stories s
-            join story_urls su using ( stories_id )
         WHERE
-            (
-                s.guid = any( %(urls)s ) or
-                s.url = any( %(urls)s ) or
-                su.url = any( %(urls)s )
-            ) and
+            (s.guid = any( %(urls)s ) or s.url = any( %(urls)s)) and
             media_id = %(media_id)s
     """, {
         'urls': urls,
         'media_id': story['media_id'],
     }).hash()
+    if db_story:
+        return db_story
+
+    # make sure that postgres uses the story_urls_url index
+    db.query("create temporary table _u as select stories_id from story_urls where url = any( %(a)s )", {'a': urls})
+    db_story = db.query(
+        "select * from stories s join _u u using ( stories_id ) where media_id = %(a)s order by stories_id limit 1",
+        {'a': story['media_id']}).hash()
+    db.query("drop table _u")
     if db_story:
         return db_story
 
