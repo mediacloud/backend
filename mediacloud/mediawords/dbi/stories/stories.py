@@ -47,7 +47,7 @@ def find_dup_story(db: DatabaseHandler, story: dict) -> bool:
     source and:
 
     * has the same normalized title and has a publish_date within the same calendar week
-    * has a guid or url that is the same as the guid or url
+    * has a normalized guid or url that is the same as the normalized guid or url
 
     If a dup story is found, insert the url and guid into the story_urls table.
 
@@ -82,7 +82,7 @@ def find_dup_story(db: DatabaseHandler, story: dict) -> bool:
         SELECT *
         FROM stories
         WHERE
-            (md5(title) = md5(%(title)s OR
+            (md5(title) = md5(%(title)s) OR
                 normalized_title_hash = md5( get_normalized_title( %(title)s, %(media_id)s ) )::uuid)
             AND media_id = %(media_id)s
 
@@ -153,7 +153,7 @@ def add_story(db: DatabaseHandler, story: dict, feeds_id: int) -> Optional[dict]
 
     [insert_story_urls(db, story, u) for u in (story['url'], story['guid'])]
 
-    # this ugly query is necessary because on conflict doesnot work with partitioned feeds_stories_map
+    # on conflict does not work with partitioned feeds_stories_map
     db.query(
         """
         insert into feeds_stories_map_p ( feeds_id, stories_id )
