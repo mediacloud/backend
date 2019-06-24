@@ -56,8 +56,7 @@ sub _get_topic_tweet_day($)
         {
             topics_id      => $topic->{ topics_id },
             day            => '2017-01-01',
-            tweet_count    => 1,
-            num_ch_tweets  => 1,
+            num_tweets     => 1,
             tweets_fetched => $Inline::Python::Boolean::true
         }
     );

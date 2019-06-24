@@ -262,7 +262,10 @@ create type feed_type AS ENUM (
     'web_page',
 
     -- Univision.com XML feed
-    'univision'
+    'univision',
+
+    -- custom associated press api
+    'ap'
 
 );
 
@@ -1946,6 +1949,7 @@ create index solr_imported_stories_story on solr_imported_stories ( stories_id )
 create index solr_imported_stories_day on solr_imported_stories ( date_trunc( 'day', import_date ) );
 
 create type topics_job_queue_type AS ENUM ( 'mc', 'public' );
+create type topic_platform_type AS enum ( 'web', 'twitter' );
 
 create table topics (
     topics_id        serial primary key,
@@ -1963,17 +1967,14 @@ create table topics (
     start_date              date not null,
     end_date                date not null,
 
-    -- this is the id of a crimson hexagon monitor, not an internal database id
-    ch_monitor_id           bigint null,
+    -- platform that topic is analyzing
+    platform                topic_platform_type not null default 'web',
 
     -- job queue to use for spider and snapshot jobs for this topic
     job_queue               topics_job_queue_type not null,
 
     -- max stories allowed in the topic
     max_stories             int not null,
-
-    -- id of a twitter topic to use to generate snapshot twitter counts
-    twitter_topics_id int null references topics on delete set null,
 
     -- if false, we should refuse to spider this topic because the use has not confirmed the new story query syntax
     is_story_index_ready     boolean not null default true
@@ -1982,6 +1983,19 @@ create table topics (
 
 create unique index topics_name on topics( name );
 create unique index topics_media_type_tag_set on topics( media_type_tag_sets_id );
+
+create type topic_source_type AS enum ( 'mediacloud', 'crimson_hexagon', 'archive_org' );
+
+create table topic_seed_queries (
+    topic_seed_queries_id   serial primary key,
+    topics_id               int not null references topics on delete cascade,
+    source                  topic_source_type not null,
+    platform                topic_platform_type not null,
+    query                   text,
+    imported_date           timestamp
+);
+
+create index topic_seed_queries_topic on topic_seed_queries( topics_id );
 
 create table topic_dates (
     topic_dates_id    serial primary key,
@@ -2404,8 +2418,7 @@ create table snap.story_link_counts (
 
     facebook_share_count                    int null,
 
-    simple_tweet_count                      int null,
-    normalized_tweet_count                  float null
+    simple_tweet_count                      int null
 );
 
 -- TODO: add complex foreign key to check that stories_id exists for the snapshot stories snapshot
@@ -2425,8 +2438,7 @@ create table snap.medium_link_counts (
 
     facebook_share_count            int null,
 
-    simple_tweet_count              int null,
-    normalized_tweet_count          float null
+    simple_tweet_count              int null
 );
 
 -- TODO: add complex foreign key to check that media_id exists for the snapshot media snapshot
@@ -3264,8 +3276,7 @@ create table topic_tweet_days (
     topic_tweet_days_id     serial primary key,
     topics_id               int not null references topics on delete cascade,
     day                     date not null,
-    tweet_count             int not null,
-    num_ch_tweets           int not null,
+    num_tweets              int not null,
     tweets_fetched          boolean not null default false
 );
 
@@ -3301,7 +3312,7 @@ create view topic_tweet_full_urls as
     select distinct
             t.topics_id,
             tt.topic_tweets_id, tt.content, tt.publish_date, tt.twitter_user,
-            ttd.day, ttd.tweet_count, ttd.num_ch_tweets, ttd.tweets_fetched,
+            ttd.day, ttd.num_tweets, ttd.tweets_fetched,
             ttu.url, tsu.stories_id
         from
             topics t
@@ -3326,8 +3337,8 @@ create table snap.tweet_stories (
     twitter_user        varchar( 1024 ) not null,
     stories_id          int not null,
     media_id            int not null,
-    num_ch_tweets       int not null,
-    tweet_count         int not null
+    num_tweets          int not null
+
 );
 
 create index snap_tweet_stories on snap.tweet_stories ( snapshots_id );
