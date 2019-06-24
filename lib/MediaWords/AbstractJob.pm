@@ -321,7 +321,9 @@ use MediaWords::DB::Locks;
             my $lock_type = $self->get_run_lock_type();
             if ( !MediaWords::DB::Locks::get_session_lock( $db, $lock_type, $args->{ $run_lock_arg }, 0 ) )
             {
-                WARN( "Job with $run_lock_arg = $args->{ $run_lock_arg } is already running.  Exiting." );
+                my $message = "Job with $run_lock_arg = $args->{ $run_lock_arg } is already running.  Exiting.";
+                WARN( $message );
+                $self->_update_job_state( $db, 'error', $message );
                 return;
             }
             DEBUG( "Got run once lock for this job class." );
