@@ -284,6 +284,7 @@ def create_test_topic(db: DatabaseHandler, label: str) -> dict:
             'end_date': '2016-03-01',
             'job_queue': 'mc',
             'max_stories': 100000,
+            'platform': 'web'
         }
     )
 
