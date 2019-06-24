@@ -25,14 +25,14 @@ BEGIN
 
 __PACKAGE__->config(
     action => {
-        list          => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
-        single        => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
-        create        => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
-        update        => { Does => [ qw( ~TopicsWriteAuthenticated ~Throttled ~Logged ) ] },
-        spider        => { Does => [ qw( ~TopicsWriteAuthenticated ~Throttled ~Logged ) ] },
-        spider_status => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
-        reset         => { Does => [ qw( ~TopicsAdminAuthenticated ~Throttled ~Logged ) ] },
-        add_seed_query => { Does => [ qw( ~TopicsWriteAuthenticated ~Throttled ~Logged ) ] },
+        list              => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
+        single            => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
+        create            => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
+        update            => { Does => [ qw( ~TopicsWriteAuthenticated ~Throttled ~Logged ) ] },
+        spider            => { Does => [ qw( ~TopicsWriteAuthenticated ~Throttled ~Logged ) ] },
+        spider_status     => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
+        reset             => { Does => [ qw( ~TopicsAdminAuthenticated ~Throttled ~Logged ) ] },
+        add_seed_query    => { Does => [ qw( ~TopicsWriteAuthenticated ~Throttled ~Logged ) ] },
         remove_seed_query => { Does => [ qw( ~TopicsWriteAuthenticated ~Throttled ~Logged ) ] },
     }
 );
@@ -331,6 +331,7 @@ sub create_GET
 
     $topic->{ max_stories } ||= 100_000;
     $topic->{ is_logogram } ||= 0;
+    $topic->{ platform }    ||= 'web';
 
     $topic->{ pattern } =
       eval { MediaWords::Solr::Query::parse( $topic->{ solr_seed_query } )->re( $topic->{ is_logogram } ) };
@@ -451,7 +452,7 @@ SQL
 
 }
 
-sub add_seed_query: Chained( 'apibase' ) : ActionClass( 'MC_REST' )
+sub add_seed_query : Chained( 'apibase' ) : ActionClass( 'MC_REST' )
 {
 }
 
@@ -467,9 +468,9 @@ sub add_seed_query_PUT
 
     my $tsq = {
         topics_id => $topic->{ topics_id },
-        platform => $data->{ platform },
-        source => $data->{ source },
-        query => $data->{ query } . ''
+        platform  => $data->{ platform },
+        source    => $data->{ source },
+        query     => $data->{ query } . ''
     };
 
     $tsq = $db->find_or_create( 'topic_seed_queries', $tsq );
@@ -477,7 +478,7 @@ sub add_seed_query_PUT
     $self->status_ok( $c, entity => { topic_seed_query => $tsq } );
 }
 
-sub remove_seed_query: Chained( 'apibase' ) : ActionClass( 'MC_REST' )
+sub remove_seed_query : Chained( 'apibase' ) : ActionClass( 'MC_REST' )
 {
 }
 

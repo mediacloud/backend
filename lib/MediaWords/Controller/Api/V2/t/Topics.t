@@ -422,9 +422,9 @@ sub test_seed_queries
 
     my $tsq_input = {
         topics_id => $topics_id,
-        platform => 'twitter',
-        source => 'archive_org',
-        query => 'foo'
+        platform  => 'twitter',
+        source    => 'archive_org',
+        query     => 'foo'
     };
     test_put( "/api/v2/topics/$topics_id/add_seed_query", $tsq_input );
 
@@ -435,8 +435,7 @@ sub test_seed_queries
         is( $got_tsq->{ $field }, $tsq_input->{ $field }, "seed query $field value" );
     }
 
-    test_put( 
-        "/api/v2/topics/$topics_id/remove_seed_query", 
+    test_put( "/api/v2/topics/$topics_id/remove_seed_query",
         { topic_seed_queries_id => $got_tsq->{ topic_seed_queries_id } } );
 
     my ( $tsq_count ) = $db->query( "select count(*) from topic_seed_queries where topics_id = ?", $topics_id )->flat;
@@ -449,12 +448,12 @@ sub test_topics
 
     MediaWords::Test::API::setup_test_api_key( $db );
 
+    test_seed_queries( $db );
     test_update_query_scope( $db );
     test_set_stories_respidering( $db );
     test_topics_reset( $db );
     test_validate_max_stories( $db );
     test_is_mc_queue_user( $db );
-    test_seed_queries( $db );
 
     test_controversies( $db );
     test_controversy_dumps( $db );
