@@ -100,7 +100,7 @@ def find_dup_story(db: DatabaseHandler, story: dict) -> bool:
     }).hash()
 
     if db_story:
-        [insert_story_urls(db, story, u) for u in (story['url'], story['guid'])]
+        [insert_story_urls(db, db_story, u) for u in (story['url'], story['guid'])]
 
         return db_story
 
