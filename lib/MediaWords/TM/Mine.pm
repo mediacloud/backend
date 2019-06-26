@@ -173,7 +173,9 @@ SQL
         $last_change_time = time() if ( $num_queued_stories != $prev_num_queued_stories );
         if ( ( time() - $last_change_time ) > $JOB_POLL_TIMEOUT )
         {
-            LOGDIE( "Timed out waiting for story link extraction." );
+            my $queued_ids = $db->query( "select * from $queued_ids_table limit 5" )->flat();
+            my $ids_list = join( ', ', @{ $queued_ids } );
+            LOGDIE( "Timed out waiting for story link extraction ($ids_list)." );
         }
 
         INFO( "$num_queued_stories stories left in link extraction pool...." );
@@ -1145,7 +1147,7 @@ sub fetch_and_import_twitter_urls($$)
 {
     my ( $db, $topic ) = @_;
 
-    return unless ( $topic->{ platform } eq 'twitter');
+    return unless ( $topic->{ platform } eq 'twitter' );
 
     MediaWords::TM::FetchTopicTweets::fetch_topic_tweets( $db, $topic->{ topics_id } );
 
