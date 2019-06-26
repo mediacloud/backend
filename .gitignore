@@ -114,3 +114,8 @@ tests_chunk_*
 # parallel's job log
 joblog.txt
 
+# Leftover directories from non-containers branch
+/lib/
+/mediacloud/
+/ansible/
+
