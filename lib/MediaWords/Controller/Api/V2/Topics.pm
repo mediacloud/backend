@@ -95,7 +95,8 @@ sub _get_topics_list($$$)    # sql clause for fields to query from job_states fo
                 t.job_queue,
                 t.max_stories,
                 t.is_logogram,
-                t.is_story_index_ready
+                t.is_story_index_ready,
+                0 ch_monitor_id
             FROM topics AS t
                 JOIN topics_with_user_permission AS p USING (topics_id)
                 LEFT JOIN snapshots AS snap ON t.topics_id = snap.topics_id
