@@ -43,3 +43,9 @@ script/vagrant/temp-vagrant-mediacloud
 # Test coverage report
 .coverage
 coverage.json
+
+# Directories from "containers" branch
+apps/
+dev/
+doc/images/
+provision/
