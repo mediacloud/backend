@@ -31,14 +31,14 @@
   tags:
     - docker-swarm-worker
 
-# The following might fail sometimes, so if it does, just rerun the playbook a couple of times:
 - name: Update labels of all nodes
   docker_node:
-    hostname: "{{ item.ID }}"
-    # FIXME hopefully hostname reported by Docker will match the one in inventory
-    labels: "{{ hostvars[item.Hostname]['docker_swarm_node_labels'] }}"
+    # From every Ansible-provisioned host, get its "ansible_hostname", and find
+    # a swarm node ID from swarm info using said hostname
+    hostname: "{{ docker_swarm_info.nodes | selectattr('Hostname', 'equalto', hostvars[item].ansible_hostname) | map(attribute='ID') | join(',') }}"
+    labels: "{{ hostvars[item]['docker_swarm_node_labels'] }}"
     labels_state: replace
-  with_items: "{{ docker_swarm_info.nodes }}"
+  with_items: "{{ groups['all'] }}"
   # Run only on the first host defined as a swarm manager:
   delegate_to: "{{ groups.docker_swarm_managers[0] }}"
   become: true
