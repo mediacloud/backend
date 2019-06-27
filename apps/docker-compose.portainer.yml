@@ -1,6 +1,24 @@
 #
 # Portainer
 # =========
+#
+# Deploy by running:
+#
+#     docker stack deploy -c docker-compose.portainer.yml portainer
+#
+# on one of the Docker Swarm's managers (preferably the leader):
+#
+#     docker node ls | grep Leader
+#
+# Then, assuming that you have a SSH tunnel set up to remote's port 9000, go to:
+#
+#     http://localhost:9000/
+#
+# and log in with:
+#
+#     * username: admin
+#     * password: mediacloud
+#
 
 version: "3.7"
 
