@@ -9,10 +9,19 @@ services:
     # Web UI (run on a single server which has a label)
     portainer:
         image: portainer/portainer:1.21.0
+        #
+        # Hash the password:
+        #
+        # 1. Run:
+        #
+        #     htpasswd -nb -B admin mediacloud | cut -d ":" -f 2
+        #
+        # 2. Manually escape every '$' in hash by replacing it with '$$'.
+        #
         command: >-
             --host tcp://tasks.portainer-agent:9001
             --tlsskipverify
-            --admin-password mediacloud
+            --admin-password '$$2y$$05$$3//alNrPDHNFJAOQ2dRV/OUn.6SODhXtGo7zeP3nhYJRIfgByNPdC'
             --logo https://mediacloud-portainer-logo.s3.amazonaws.com/portainer-logo/portainer-mediacloud.svg
             --no-analytics
         networks:
