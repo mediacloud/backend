@@ -33,12 +33,13 @@ We use ZFS filesystems for storing container data on the host system (which gets
 ```bash
 sudo apt install -y zfsutils-linux
 
-# Replace /zfspool with a path to your disk device
+# SAMPLE DEPLOYMENTS ONLY: create an empty file to serve as a backing disk for a pool
 sudo dd if=/dev/zero of=/zfspool bs=1G count=10
 sudo chown root:root /zfspool
 sudo chmod 600 /zfspool
 
 # Create a single "space" ZFS pool for all data
+# (replace /zfspool with a path to your disk device)
 sudo zpool create space /zfspool
 
 # Create "space/mediacloud" ZFS filesystem for Media Cloud data
