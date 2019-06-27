@@ -1435,6 +1435,8 @@ networks:
     # define it here, but some services use aliases so every service has to be
     # explicitly added to some sort of a network.
     default:
+        driver: overlay
+        attachable: true
 
 
 #
