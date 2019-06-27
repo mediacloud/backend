@@ -127,10 +127,14 @@ def get_extracted_html(db: DatabaseHandler, story: dict) -> str:
 
 def get_links_from_story_text(db: DatabaseHandler, story: dict) -> typing.List[str]:
     """Get all urls that appear in the text or description of the story using a simple regex."""
+    # just get the first download, because the download_texts query plan breaks with multiple downloads,
+    # and multiple download stories are rare
     download_ids = db.query("""
         SELECT downloads_id
         FROM downloads
         WHERE stories_id = %(stories_id)s
+        ORDER BY downloads_id ASC
+        LIMIT 1
         """, {'stories_id': story['stories_id']}
     ).flat()
 
