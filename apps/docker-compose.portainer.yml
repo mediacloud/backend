@@ -95,6 +95,8 @@ networks:
 
     # Portainer agents' network
     portainer:
+        driver: overlay
+        attachable: true
 
 
 volumes:
