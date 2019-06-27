@@ -33,19 +33,19 @@ x-common-configuration: &common-configuration
     MC_DOWNLOADS_CACHE_S3: "0"
 
     # (optional) S3 download storage access key ID
-    MC_DOWNLOADS_AMAZON_S3_ACCESS_KEY_ID: "${MC_DOWNLOADS_AMAZON_S3_ACCESS_KEY_ID}"
+    #MC_DOWNLOADS_AMAZON_S3_ACCESS_KEY_ID: "AKIAIOSFODNN7EXAMPLE"
 
     # (optional) S3 download storage secret access key
-    MC_DOWNLOADS_AMAZON_S3_SECRET_ACCESS_KEY: "${MC_DOWNLOADS_AMAZON_S3_SECRET_ACCESS_KEY}"
+    #MC_DOWNLOADS_AMAZON_S3_SECRET_ACCESS_KEY: "wJalrXUtnFEMI/K7MDENG/bPxRfiCYzEXAMPLEKEY"
 
     # (optional) S3 download storage bucket name
-    MC_DOWNLOADS_AMAZON_S3_BUCKET_NAME: "${MC_DOWNLOADS_AMAZON_S3_BUCKET_NAME}"
+    #MC_DOWNLOADS_AMAZON_S3_BUCKET_NAME: "mediacloud-downloads"
 
     # (optional) S3 download storage directory name (prefix)
-    MC_DOWNLOADS_AMAZON_S3_DIRECTORY_NAME: "${MC_DOWNLOADS_AMAZON_S3_DIRECTORY_NAME}"
+    #MC_DOWNLOADS_AMAZON_S3_DIRECTORY_NAME: "downloads"
 
     # "From:" email address when sending emails
-    MC_EMAIL_FROM_ADDRESS: "${MC_EMAIL_FROM_ADDRESS}"
+    MC_EMAIL_FROM_ADDRESS: "info@testmediacloud.ml"
 
     # Fail all HTTP requests that match the following pattern, e.g.
     # "^https?://[^/]*some-website.com"
@@ -54,7 +54,7 @@ x-common-configuration: &common-configuration
     # (optional) Semicolon-separated domains that might need HTTP auth credentials
     # to work
     # Example: "username:password@domain.com;username2:password2@domain2.org"
-    MC_USERAGENT_AUTHENTICATED_DOMAINS: "${MC_USERAGENT_AUTHENTICATED_DOMAINS}"
+    #MC_USERAGENT_AUTHENTICATED_DOMAINS: ""
 
     # parallel_get() parallel connection count
     MC_USERAGENT_PARALLEL_GET_NUM_PARALLEL: "10"
@@ -67,7 +67,7 @@ x-common-configuration: &common-configuration
 
     # (Used by apps which inherit from "topics-base")
     # Comma-separated email addresses to inform about topic updates
-    MC_TOPICS_BASE_TOPIC_ALERT_EMAILS: "${MC_TOPICS_BASE_TOPIC_ALERT_EMAILS}"
+    MC_TOPICS_BASE_TOPIC_ALERT_EMAILS: "topicupdates@testmediacloud.ml, slackupdates@testmediacloud.ml"
 
 
 #
@@ -155,7 +155,7 @@ services:
         environment:
             <<: *common-configuration
             # Annotator endpoint URL
-            MC_CLIFF_ANNOTATOR_URL: "${MC_CLIFF_ANNOTATOR_URL}"
+            MC_CLIFF_ANNOTATOR_URL: ""
         depends_on:
             - postgresql-pgbouncer
             - rabbitmq-server
@@ -511,9 +511,9 @@ services:
         environment:
             <<: *common-configuration
             # Facebook application ID
-            MC_FACEBOOK_APP_ID: "${MC_FACEBOOK_APP_ID}"
+            MC_FACEBOOK_APP_ID: ""
             # Facebook application secret
-            MC_FACEBOOK_APP_SECRET: "${MC_FACEBOOK_APP_SECRET}"
+            MC_FACEBOOK_APP_SECRET: ""
             # Timeout for API calls
             MC_FACEBOOK_TIMEOUT: "60"
         depends_on:
@@ -854,9 +854,9 @@ services:
             # Email for Let's Encrypt's notifications
             MC_PROXY_CERTBOT_LETSENCRYPT_EMAIL: "linas@media.mit.edu"
             # CloudFlare account email
-            MC_PROXY_CERTBOT_CLOUDFLARE_EMAIL: "${MC_PROXY_CERTBOT_CLOUDFLARE_EMAIL}"
+            MC_PROXY_CERTBOT_CLOUDFLARE_EMAIL: ""
             # CloudFlare account global API key
-            MC_PROXY_CERTBOT_CLOUDFLARE_GLOBAL_API_KEY: "${MC_PROXY_CERTBOT_CLOUDFLARE_GLOBAL_API_KEY}"
+            MC_PROXY_CERTBOT_CLOUDFLARE_GLOBAL_API_KEY: ""
         volumes:
             # Shared with "proxy-httpd" container:
             - vol_proxy_ssl_certs:/etc/letsencrypt/
@@ -1271,13 +1271,13 @@ services:
         environment:
             <<: *common-configuration
             # Twitter API consumer key
-            MC_TWITTER_CONSUMER_KEY: "${MC_TWITTER_CONSUMER_KEY}"
+            MC_TWITTER_CONSUMER_KEY: ""
             # Twitter API consumer secret
-            MC_TWITTER_CONSUMER_SECRET: "${MC_TWITTER_CONSUMER_SECRET}"
+            MC_TWITTER_CONSUMER_SECRET: ""
             # Twitter API access token
-            MC_TWITTER_ACCESS_TOKEN: "${MC_TWITTER_ACCESS_TOKEN}"
+            MC_TWITTER_ACCESS_TOKEN: ""
             # Twitter API access token secret
-            MC_TWITTER_ACCESS_TOKEN_SECRET: "${MC_TWITTER_ACCESS_TOKEN_SECRET}"
+            MC_TWITTER_ACCESS_TOKEN_SECRET: ""
         deploy:
             # Worker count
             replicas: 8
@@ -1299,7 +1299,7 @@ services:
         environment:
             <<: *common-configuration
             # Crimson Hexagon API key
-            MC_CRIMSON_HEXAGON_API_KEY: "${MC_CRIMSON_HEXAGON_API_KEY}"
+            MC_CRIMSON_HEXAGON_API_KEY: ""
         deploy:
             # Worker count
             replicas: 4
@@ -1321,7 +1321,7 @@ services:
         environment:
             <<: *common-configuration
             # Crimson Hexagon API key
-            MC_CRIMSON_HEXAGON_API_KEY: "${MC_CRIMSON_HEXAGON_API_KEY}"
+            MC_CRIMSON_HEXAGON_API_KEY: ""
         deploy:
             # Worker count
             replicas: 4
