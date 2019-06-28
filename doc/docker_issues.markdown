@@ -81,3 +81,32 @@ Total reclaimed space: <...>
 (Similarly, you can add add `-f` flag to this command too to skip the warning.)
 
 **Do not run `docker volume prune` on production!** Instead, opt for listing the volumes with `docker volume ls` and then removing them with `docker volume rm` individually.
+
+## Container DNS seems to be able to resolve container hostnames but not external hosts
+
+By default, Docker Compose's internal network uses 10.0.0.0/24 subnet, meaning that containers get assigned IPs between 10.0.0.0 and 10.0.0.255. If your host machine(s) use the same or overlapping subnet to communicate between host machines, you might encounter problems, e.g. if the host machine's DNS server is available on the same subnet (as is the case on EC2 instances), Docker's own embedded DNS might not be able to forward DNS queries for external hosts to the DNS service on your host network (as there might exist a container within Docker's overlap network that has the very same IP address).
+
+To remediate that, either:
+
+1. Use a different private subnet in your host network, or
+
+2. Use a different private subnet in the overlay network created by Docker Compose by setting `ipam/config/subnet` in production `docker-compose.yml` file's `networks` section, e.g.:
+
+    ```yaml
+    networks:
+
+        default:
+
+            ipam:
+              config:
+                  # or "192.168.0.0/16", or something else altogether; just
+                  # make sure that the subnet will be able to "fit" enough IP
+                  # addresses for all of your containers (services and their
+                  # replicas)
+                  - subnet: "172.16.0.0/12"
+    ```
+
+# I encounter funky inter-node communication problems in a swarm
+
+If you encounter weird connectivity problems between nodes in a Docker Swarm, e.g. containers seem to be are able to connect to some containers but not the others, make sure that you've opened the required TCP and UDP ports between nodes as per deployment instructions.
+
