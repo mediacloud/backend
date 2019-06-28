@@ -25,8 +25,9 @@ Hosts that participate in the same Docker swarm should be able to connect **to e
 
 Host that exposes webapp to the public will have to have the following ports open:
 
-* TCP/80
-* TCP/443
+* TCP:
+  * 80
+  * 443
 
 ## ZFS pool
 
