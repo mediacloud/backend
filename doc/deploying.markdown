@@ -12,11 +12,13 @@ To deploy your code changes, generally you would:
 
 Hosts that participate in the same Docker swarm should be able to connect **to each other** using the [following protocols and ports](https://docs.docker.com/engine/swarm/swarm-tutorial/#open-protocols-and-ports-between-the-hosts):
 
-* TCP/2376
-* TCP/2377
-* TCP/7946
-* UDP/7946
-* UDP/4789
+* TCP:
+  * 2376
+  * 2377
+  * 7946
+* UDP:
+  * 7946
+  * 4789
 * ESP (IP protocol 50)
 
 ### Webapp
