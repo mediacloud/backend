@@ -130,11 +130,81 @@ In the file, you might want to set the following:
 
 Template for production's `docker-compose.yml` file is available in `apps/docker-compose.yml`.
 
-### `common` configuration
-
-
-
 ## Deploying
+
+## SSH port forwarding
+
+Both Media Cloud production's `docker-compose.yml` and Portainer's `docker-compose.portainer.yml` are configured to expose ports of certain apps to every node. Those ports are (to be) firewalled off from public access, but it might be useful to be able to access those services internally for debugging purposes. The services with published ports include (but might not be limited to):
+
+* Solr's webapp on port 8983
+* Munin's webapp on port 4948
+* RabbitMQ's webapp on port 15672
+* Portainer's webapp on port 9000
+
+To access those services, you might want to set up a SSH tunnel in your `~/.ssh/config` as follows:
+
+```
+Host mccore1
+    HostName <...>
+    User <...>
+    IdentityFile <...>
+
+    # solr-shard-01
+    LocalForward 8983 127.0.0.1:8983
+
+    # munin-httpd
+    LocalForward 4948 127.0.0.1:4948
+
+    # rabbitmq-server
+    LocalForward 15672 127.0.0.1:15672
+
+    # portainer
+    LocalForward 9000 127.0.0.1:9000
+```
+
+### Deploying with Portainer
+
+#### Deploy Portainer itself
+
+To be able to manage applications running on Docker Swarm using Portainer's web UI, you have to deploy Portainer itself.
+
+To deploy Portainer:
+
+1. Copy `apps/docker-compose.portainer.yml` to one of the swarm managers.
+
+2. Deploy the Portainer's stack in the swarm:
+
+   ```bash
+   docker stack deploy -c docker-compose.portainer.yml portainer
+   ```
+
+3. Assuming that you have SSH port forwarding set up as per example below, you should be able to connect to Portainer's web UI by opening the following URL:
+
+   http://localhost:9000/
+
+   and logging in with the following credentials:
+
+   * username: `admin`
+   * password: `mediacloud`
+
+#### Deploy Media Cloud using Portainer
+
+To deploy Media Cloud services using Portainer's web UI:
+
+1. Go to Portainer's web UI, select the `primary` endpoint, open a list of *Stacks* in the menu on the left, and click on *Add stack*;
+2. Name the stack `mediacloud`, and either:
+   * paste the contents of production's `docker-compose.yml` in the *Web editor* section, or
+   * upload the prepared `docker-compose.yml` from your computer in the *Upload* section, or
+   * make Portainer read production's `docker-compose.yml` from a private, authenticated Git repository in the *Repository* section;
+3. Don't set any *Environment variables*, it is expected that the production's `docker-compose.yml` will have everything explicitly set in the file itself;
+4. Click *Deploy the stack* and wait for the stack to deploy.
+
+#### Portainer's tips and gochas
+
+* To update a running stack with a newer production `docker-compose.yml`, open the *Editor* tab in the `mediacloud` stack page, update the Compose configuration, and click *Update the stack*;
+* Feel free to use Portainer's features to scale the services, update their configuration via environment variables, update resource limits, etc., using the web UI, just make sure to reflect the changes that you've made in the private authenticated Git repository with production `docker-compose.yml`.
+
+### Deploying manually
 
 To deploy services, change the current directory to the one with production's `docker-compose.yml` and then run:
 
