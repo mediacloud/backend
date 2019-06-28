@@ -203,6 +203,11 @@ To deploy Media Cloud services using Portainer's web UI:
 
 * To update a running stack with a newer production `docker-compose.yml`, open the *Editor* tab in the `mediacloud` stack page, update the Compose configuration, and click *Update the stack*;
 * Feel free to use Portainer's features to scale the services, update their configuration via environment variables, update resource limits, etc., using the web UI, just make sure to reflect the changes that you've made in the private authenticated Git repository with production `docker-compose.yml`.
+* Sometimes, after navigating your browser to the previous page with a list of containers, Portainer might show one or more duplicate containers for a non-replicated service, e.g.:
+
+    ![](https://github.com/berkmancenter/mediacloud-docs-images/raw/master/portainer/duplicate-containers.png)
+
+    This seems to be Portainer's bug. To see a correct number of service containers, click on the *Refresh* button at the top of the page (browser's page reload might not always work).
 
 ### Deploying manually
 
