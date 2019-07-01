@@ -390,7 +390,7 @@ SQL
     {
         my $stories_id           = $slc->{ stories_id };
         my $expected_tweet_count = scalar( keys( %{ $expected_story_tweet_users->{ $stories_id } } ) );
-        is( $slc->{ simple_tweet_count } || 0, $expected_tweet_count, "$label simple tweet count story $stories_id" );
+        is( $slc->{ post_count } || 0, $expected_tweet_count, "$label post count story $stories_id" );
     }
 }
 

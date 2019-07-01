@@ -89,10 +89,11 @@ class DatabaseResult(object):
                 log.debug('Warning while running query: %s' % str(ex))
 
         except psycopg2.ProgrammingError as ex:
+            message = (query_args[0][0:1024], query_args[1:])
             raise McDatabaseResultException(
                 'Invalid query: %(exception)s; query: %(query)s' % {
                     'exception': str(ex),
-                    'query': str(query_args),
+                    'query': str(message),
                 })
 
         except psycopg2.Error as ex:
@@ -115,10 +116,11 @@ class DatabaseResult(object):
                     })
 
         except Exception as ex:
+            message = (query_args[0][0:1024], query_args[1:])
             raise McDatabaseResultException(
                 'Invalid query (DBD::Pg -> psycopg2 query conversion?): %(exception)s; query: %(query)s' % {
                     'exception': str(ex),
-                    'query': str(query_args),
+                    'query': str(message),
                 })
 
         self.__cursor = cursor  # Cursor now holds results

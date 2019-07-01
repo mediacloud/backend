@@ -1,4 +1,4 @@
-"""Use the Crimson Hexagon API to lookup tweets relevant to a topic, then fetch each of those tweets from twitter."""
+"""Fetch topic posts """
 
 import csv
 import datetime
@@ -229,16 +229,16 @@ def _add_tweets_to_meta_tweets(meta_tweets: list) -> None:
             log.debug("no tweet fetched for url " + meta_tweet['url'])
 
 
-def _insert_tweet_urls(db: DatabaseHandler, topic_tweet: dict, urls: typing.List) -> typing.List:
-    """Insert list of urls into topic_tweet_urls."""
+def _insert_tweet_urls(db: DatabaseHandler, topic_post: dict, urls: typing.List) -> typing.List:
+    """Insert list of urls into topic_post_urls."""
     for url in urls:
         db.query(
             """
-            insert into topic_tweet_urls( topic_tweets_id, url )
+            insert into topic_post_urls( topic_posts_id, url )
                 values( %(a)s, %(b)s )
                 on conflict do nothing
             """,
-            {'a': topic_tweet['topic_tweets_id'], 'b': url})
+            {'a': topic_post['topic_posts_id'], 'b': url})
 
 
 def _remove_json_tree_nulls(d: dict):
@@ -250,14 +250,14 @@ def _remove_json_tree_nulls(d: dict):
             d[k] = d[k].replace('\x00', '')
 
 
-def _store_tweet_and_urls(db: DatabaseHandler, topic_tweet_day: dict, meta_tweet: dict) -> None:
+def _store_tweet_and_urls(db: DatabaseHandler, topic_post_day: dict, meta_tweet: dict) -> None:
     """
-    Store the tweet in topic_tweets and its urls in topic_tweet_urls, using the data in meta_tweet.
+    Store the tweet in topic_posts and its urls in topic_post_urls, using the data in meta_tweet.
 
     Arguments:
     db - database handler
     topic - topic dict
-    topic_tweet_day - topic_tweet_day dict
+    topic_post_day - topic_post_day dict
     meta_tweet - meta_tweet dict
 
     Return:
@@ -272,54 +272,55 @@ def _store_tweet_and_urls(db: DatabaseHandler, topic_tweet_day: dict, meta_tweet
     # null characters are not legal in json but for some reason get stuck in these tweets
     # data_json = data_json.replace('\x00', '')
 
-    topic_tweet = {
-        'topic_tweet_days_id': topic_tweet_day['topic_tweet_days_id'],
+    topic_post = {
+        'topic_post_days_id': topic_post_day['topic_post_days_id'],
         'data': data_json,
         'content': meta_tweet['tweet']['text'],
-        'tweet_id': meta_tweet['tweet_id'],
+        'post_id': meta_tweet['tweet_id'],
         'publish_date': meta_tweet['tweet']['created_at'],
-        'twitter_user': meta_tweet['tweet']['user']['screen_name']
+        'author': meta_tweet['tweet']['user']['screen_name'],
+        'channel': meta_tweet['tweet']['user']['screen_name']
     }
 
     log.debug("insert topic tweet")
-    topic_tweet = db.query(
+    topic_post = db.query(
         """
-        insert into topic_tweets
-            ( topic_tweet_days_id, data, content, tweet_id, publish_date, twitter_user )
+        insert into topic_posts
+            ( topic_post_days_id, data, content, post_id, publish_date, author, channel )
             values
-            ( %(topic_tweet_days_id)s, %(data)s, %(content)s, %(tweet_id)s, %(publish_date)s, %(twitter_user)s )
+            ( %(topic_post_days_id)s, %(data)s, %(content)s, %(post_id)s, %(publish_date)s, %(author)s, %(channel)s )
             returning *
         """,
-        topic_tweet).hash()
+        topic_post).hash()
 
     log.debug("get tweet urls")
     urls = mediawords.util.twitter.get_tweet_urls(meta_tweet['tweet'])
     log.debug("insert tweet urls")
-    _insert_tweet_urls(db, topic_tweet, urls)
+    _insert_tweet_urls(db, topic_post, urls)
 
     log.debug("done")
 
 
 def regenerate_tweet_urls(db: dict, topic: dict) -> None:
     """Reparse the tweet json for a given topic and try to reinsert all tweet urls."""
-    topic_tweets_ids = db.query(
+    topic_posts_ids = db.query(
         """
-        select tt.topic_tweets_id
-            from topic_tweets tt
-                join topic_tweet_days ttd using ( topic_tweet_days_id )
+        select tt.topic_posts_id
+            from topic_posts tt
+                join topic_post_days ttd using ( topic_post_days_id )
             where
                 topics_id = %(a)s
         """,
         {'a': topic['topics_id']}).flat()
 
-    for (i, topic_tweets_id) in enumerate(topic_tweets_ids):
+    for (i, topic_posts_id) in enumerate(topic_posts_ids):
         if i % 1000 == 0:
-            log.info('regenerate tweet urls: %d/%d' % (i, len(topic_tweets_ids)))
+            log.info('regenerate tweet urls: %d/%d' % (i, len(topic_posts_ids)))
 
-        topic_tweet = db.require_by_id('topic_tweets', topic_tweets_id)
-        data = mediawords.util.parse_json.decode_json(topic_tweet['data'])
+        topic_post = db.require_by_id('topic_posts', topic_posts_id)
+        data = mediawords.util.parse_json.decode_json(topic_post['data'])
         urls = mediawords.util.twitter.get_tweet_urls(data['tweet'])
-        _insert_tweet_urls(db, topic_tweet, urls)
+        _insert_tweet_urls(db, topic_post, urls)
 
 
 def _tweet_matches_pattern(topic: dict, meta_tweet: dict) -> bool:
@@ -332,18 +333,18 @@ def _tweet_matches_pattern(topic: dict, meta_tweet: dict) -> bool:
 
 def _fetch_tweets_for_day(
         db: DatabaseHandler,
-        topic_tweet_day: dict,
+        topic_post_day: dict,
         meta_tweets: list,
         max_tweets: typing.Optional[int] = None) -> None:
     """
     Fetch tweets for a single day.
 
-    If tweets_fetched is false for the given topic_tweet_days row, fetch the tweets for the given day by querying
+    If posts_fetched is false for the given topic_post_days row, fetch the tweets for the given day by querying
     the list of tweets and then fetching each tweet from twitter.
 
     Arguments:
     db - db handle
-    topic_tweet_day - topic_tweet_day dict
+    topic_post_day - topic_post_day dict
     meta_tweets - list of meta tweets found for day
     max_tweets - max tweets to fetch for a single day
 
@@ -353,82 +354,82 @@ def _fetch_tweets_for_day(
     if (max_tweets is not None):
         meta_tweets = meta_tweets[0:max_tweets]
 
-    topics_id = topic_tweet_day['topics_id']
-    log.info("adding %d tweets for topic %s, day %s" % (len(meta_tweets), topics_id, topic_tweet_day['day']))
+    topics_id = topic_post_day['topics_id']
+    log.info("adding %d tweets for topic %s, day %s" % (len(meta_tweets), topics_id, topic_post_day['day']))
 
     # we can only get 100 posts at a time from twitter
     for i in range(0, len(meta_tweets), 100):
         _add_tweets_to_meta_tweets(meta_tweets[i:i + 100])
 
-    topic = db.require_by_id('topics', topic_tweet_day['topics_id'])
+    topic = db.require_by_id('topics', topic_post_day['topics_id'])
     meta_tweets = list(filter(lambda p: _tweet_matches_pattern(topic, p), meta_tweets))
 
     log.info("%d tweets remaining after match" % (len(meta_tweets)))
 
     db.begin()
 
-    log.debug("inserting into topic_tweets ...")
+    log.debug("inserting into topic_posts ...")
 
-    [_store_tweet_and_urls(db, topic_tweet_day, meta_tweet) for meta_tweet in meta_tweets]
+    [_store_tweet_and_urls(db, topic_post_day, meta_tweet) for meta_tweet in meta_tweets]
 
-    topic_tweet_day['num_tweets'] = len(meta_tweets)
+    topic_post_day['num_posts'] = len(meta_tweets)
 
     db.query(
-        "update topic_tweet_days set tweets_fetched = true, num_tweets = %(a)s where topic_tweet_days_id = %(b)s",
-        {'a': topic_tweet_day['num_tweets'], 'b': topic_tweet_day['topic_tweet_days_id']})
+        "update topic_post_days set posts_fetched = true, num_posts = %(a)s where topic_post_days_id = %(b)s",
+        {'a': topic_post_day['num_posts'], 'b': topic_post_day['topic_post_days_id']})
 
     db.commit()
 
-    log.debug("done inserting into topic_tweets")
+    log.debug("done inserting into topic_posts")
 
 
-def _add_topic_tweet_single_day(db: DatabaseHandler, topic: dict, num_tweets: int, day: datetime.datetime) -> dict:
+def _add_topic_post_single_day(db: DatabaseHandler, topic: dict, num_posts: int, day: datetime.datetime) -> dict:
     """
-    Add a row to topic_tweet_day if it does not already exist.
+    Add a row to topic_post_day if it does not already exist.
 
     Arguments:
     db - database handle
     topic - topic dict
     day - date to fetch eg '2017-12-30'
-    num_tweets - number of tweets found for that day
+    num_posts - number of tweets found for that day
 
     Return:
     None
     """
     # the perl-python layer was segfaulting until I added the str() around day below -hal
-    topic_tweet_day = db.query(
-        "select * from topic_tweet_days where topics_id = %(a)s and day = %(b)s",
+    topic_post_day = db.query(
+        "select * from topic_post_days where topics_id = %(a)s and day = %(b)s",
         {'a': topic['topics_id'], 'b': str(day)}).hash()
 
-    if topic_tweet_day is not None and topic_tweet_day['tweets_fetched']:
+    if topic_post_day is not None and topic_post_day['posts_fetched']:
         raise McFetchTopicTweetDateFetchedException("tweets already fetched for day " + str(day))
 
     # if we have a ttd but had not finished fetching tweets, delete it and start over
-    if topic_tweet_day is not None:
-        db.delete_by_id('topic_tweet_days', topic_tweet_day['topic_tweet_days_id'])
+    if topic_post_day is not None:
+        db.delete_by_id('topic_post_days', topic_post_day['topic_post_days_id'])
 
-    topic_tweet_day = db.create(
-        'topic_tweet_days',
+    topic_post_day = db.create(
+        'topic_post_days',
         {
             'topics_id': topic['topics_id'],
             'day': day,
-            'num_tweets': num_tweets,
-            'tweets_fetched': False
+            'num_posts': num_posts,
+            'posts_fetched': False
         })
 
-    return topic_tweet_day
+    return topic_post_day
 
 
-def _topic_tweet_day_fetched(db: DatabaseHandler, topic: dict, day: str) -> bool:
-    """Return true if the topic_tweet_day exists and tweets_fetched is true."""
+def _topic_post_day_fetched(db: DatabaseHandler, topic: dict, day: str) -> bool:
+    """Return true if the topic_post_day exists and posts_fetched is true."""
     ttd = db.query(
-        "select * from topic_tweet_days where topics_id = %(a)s and day = %(b)s",
+        "select * from topic_post_days where topics_id = %(a)s and day = %(b)s",
         {'a': topic['topics_id'], 'b': str(day)}).hash()
 
     if not ttd:
         return False
 
-    return ttd['tweets_fetched'] is True
+    return ttd['posts_fetched'] is True
 
 
 def fetch_topic_tweets(db: DatabaseHandler, topics_id: int, max_tweets_per_day: typing.Optional[int] = None) -> None:
@@ -436,8 +437,8 @@ def fetch_topic_tweets(db: DatabaseHandler, topics_id: int, max_tweets_per_day: 
 
     This is the core function that fetches and stores data for twitter topics.  This function will break the
     date range for the topic into individual days and fetch tweets matching thes twitter seed query for the
-    topic for each day.  This function will create a topic_tweet_day row for each day of tweets fetched,
-    a topic_tweet row for each tweet fetched, and a topic_tweet_url row for each url found in a tweet.
+    topic for each day.  This function will create a topic_post_day row for each day of tweets fetched,
+    a topic_post row for each tweet fetched, and a topic_post_url row for each url found in a tweet.
 
     This function pulls metadata about the matching tweets from a search source (such as crimson hexagon or
     archive.org, as deteremined by the topic_seed_queries.source field) and then fetches the tweets returned
@@ -461,10 +462,10 @@ def fetch_topic_tweets(db: DatabaseHandler, topics_id: int, max_tweets_per_day: 
     while date <= end_date:
         try:
             log.info("fetching tweets for %s" % date)
-            if not _topic_tweet_day_fetched(db, topic, date):
+            if not _topic_post_day_fetched(db, topic, date):
                 meta_tweets = fetch_meta_tweets(db, topic, date)
-                topic_tweet_day = _add_topic_tweet_single_day(db, topic, len(meta_tweets), date)
-                _fetch_tweets_for_day(db, topic_tweet_day, meta_tweets, max_tweets_per_day)
+                topic_post_day = _add_topic_post_single_day(db, topic, len(meta_tweets), date)
+                _fetch_tweets_for_day(db, topic_post_day, meta_tweets, max_tweets_per_day)
         except McFetchTopicTweetDateFetchedException:
             pass
 
