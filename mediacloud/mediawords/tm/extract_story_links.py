@@ -27,7 +27,8 @@ IGNORE_LINK_PATTERN = (
     r'(?:unz.com)|(?:answers.com)|(?:downwithtyranny.com\/search)|(?:scoop\.?it)|(?:sco\.lt)|'
     r'(?:pronk.*\.wordpress\.com\/(?:tag|category))|(?:wn\.com)|(?:pinterest\.com\/pin\/create)|(?:feedblitz\.com)|'
     r'(?:atomz.com)|(?:unionpedia.org)|(?:http://politicalgraveyard.com)|(?:https?://api\.[^\/]+)|'
-    r'(?:www.rumormillnews.com)|(?:tvtropes.org/pmwiki)|(?:twitter.com/account/suspended)')
+    r'(?:www.rumormillnews.com)|(?:tvtropes.org/pmwiki)|(?:twitter.com/account/suspended)|'
+    r'(?:feedsportal.com)')
 
 
 def get_links_from_html(html: str) -> typing.List[str]:
@@ -114,7 +115,10 @@ def get_extracted_html(db: DatabaseHandler, story: dict) -> str:
 
     """
     download = db.query(
-        "select * from downloads where stories_id = %(a)s order by downloads_id limit 1",
+        """
+        with d as ( select * from downloads where stories_id = %(a)s ) -- goofy cte to avoid bad query plan
+            select * from d order by downloads_id limit 1
+        """,
         {'a': story['stories_id']}).hash()
 
     extractor_results = mediawords.dbi.downloads.extract(db, download, PyExtractorArguments(use_cache=True))
@@ -123,10 +127,14 @@ def get_extracted_html(db: DatabaseHandler, story: dict) -> str:
 
 def get_links_from_story_text(db: DatabaseHandler, story: dict) -> typing.List[str]:
     """Get all urls that appear in the text or description of the story using a simple regex."""
+    # just get the first download, because the download_texts query plan breaks with multiple downloads,
+    # and multiple download stories are rare
     download_ids = db.query("""
         SELECT downloads_id
         FROM downloads
         WHERE stories_id = %(stories_id)s
+        ORDER BY downloads_id ASC
+        LIMIT 1
         """, {'stories_id': story['stories_id']}
     ).flat()
 

@@ -89,7 +89,8 @@ sub create_test_data
             start_date          => '2014-04-01',
             end_date            => '2014-06-01',
             job_queue           => 'mc',
-            max_stories         => 100_000
+            max_stories         => 100_000,
+            platform            => 'web'
         }
     );
 
@@ -353,10 +354,11 @@ sub test_topics_crud($)
         is_public            => 1,
         is_logogram          => 0,
         is_story_index_ready => 1,
-        ch_monitor_id        => 123456,
         media_ids            => $media_ids,
         media_tags_ids       => $tags_ids,
         max_stories          => 1234,
+        platform             => 'web',
+        ch_monitor_id        => 0
     };
 
     my $r = MediaWords::Test::API::test_post( '/api/v2/topics/create', $input );
@@ -399,10 +401,11 @@ sub test_topics_crud($)
         is_public            => 0,
         is_logogram          => 0,
         is_story_index_ready => 0,
-        ch_monitor_id        => 1234567,
         media_ids            => $update_media_ids,
         media_tags_ids       => $update_tags_ids,
-        max_stories          => 2345
+        max_stories          => 2345,
+        platform             => 'twitter',
+        ch_monitor_id        => 0
     };
 
     $label = 'update topic';
@@ -438,19 +441,30 @@ sub test_topics_spider($)
     $topic = $db->update_by_id( 'topics', $topic->{ topics_id }, { solr_seed_query => 'BOGUSQUERYTORETURNOSTORIES' } );
     my $topics_id = $topic->{ topics_id };
 
-    my $r = MediaWords::Test::API::test_post( "/api/v2/topics/$topics_id/spider", {} );
+    my $snapshot = {
+        topics_id     => $topics_id,
+        snapshot_date => MediaWords::Util::SQL::sql_now(),
+        start_date    => $topic->{ start_date },
+        end_date      => $topic->{ end_date },
+    };
+    $snapshot = $db->create( 'snapshots', $snapshot );
+    my $snapshots_id = $snapshot->{ snapshots_id };
+
+    my $r = MediaWords::Test::API::test_post( "/api/v2/topics/$topics_id/spider", { snapshots_id => $snapshots_id } );
 
     ok( $r->{ job_state }, "spider return includes job_state" );
 
-    is( $r->{ job_state }->{ state }, $MediaWords::AbstractJob::STATE_QUEUED, "spider state" );
-    is( $r->{ job_state }->{ topics_id }, $topic->{ topics_id }, "spider topics_id" );
+    is( $r->{ job_state }->{ state },        $MediaWords::AbstractJob::STATE_QUEUED, "spider state" );
+    is( $r->{ job_state }->{ topics_id },    $topic->{ topics_id },                  "spider topics_id" );
+    is( $r->{ job_state }->{ snapshots_id }, $snapshots_id,                          "spider snapshots_id" );
 
     $r = MediaWords::Test::API::test_get( "/api/v2/topics/$topics_id/spider_status" );
 
     ok( $r->{ job_states }, "spider status return includes job_states" );
 
-    is( $r->{ job_states }->[ 0 ]->{ state }, $MediaWords::AbstractJob::STATE_QUEUED, "spider_status state" );
-    is( $r->{ job_states }->[ 0 ]->{ topics_id }, $topic->{ topics_id }, "spider_status topics_id" );
+    is( $r->{ job_states }->[ 0 ]->{ state },        $MediaWords::AbstractJob::STATE_QUEUED, "spider_status state" );
+    is( $r->{ job_states }->[ 0 ]->{ topics_id },    $topic->{ topics_id },                  "spider_status topics_id" );
+    is( $r->{ job_states }->[ 0 ]->{ snapshots_id }, $snapshots_id,                          "spider_status snapshots_id" );
 }
 
 # test topics/list
@@ -535,6 +549,25 @@ sub test_topics($)
     test_topics_spider( $db );
 }
 
+# test snapshots/create
+sub test_snapshots_create($)
+{
+    my ( $db ) = @_;
+
+    my $label = 'snapshot create';
+
+    my $topic = MediaWords::Test::DB::Create::create_test_topic( $db, $label );
+
+    my $r = test_post( "/api/v2/topics/$topic->{ topics_id }/snapshots/create", {} );
+
+    ok( $r->{ snapshot },                   "$label snapshot returned" );
+    ok( $r->{ snapshot }->{ snapshots_id }, "$label snapshots_id" );
+
+    my $snapshot = $db->find_by_id( "snapshots", $r->{ snapshot }->{ snapshots_id } );
+
+    ok( $snapshot, "snapshot created" );
+}
+
 # test snapshots/generate and /generate_status
 sub test_snapshots_generate($)
 {
@@ -569,6 +602,7 @@ sub test_snapshots($)
 {
     my ( $db ) = @_;
 
+    test_snapshots_create( $db );
     test_snapshots_generate( $db );
 }
 

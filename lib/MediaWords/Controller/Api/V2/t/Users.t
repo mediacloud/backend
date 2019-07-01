@@ -30,6 +30,7 @@ sub test_users($)
             notes             => "notes $i",
             password_hash     => 'x' x 137,
             max_topic_stories => $i,
+            has_consented     => 'false',
             active            => 'false'
         };
         $auth_user = $db->create( 'auth_users', $auth_user );
@@ -42,7 +43,7 @@ sub test_users($)
 
     my $r = MediaWords::Test::API::test_get( '/api/v2/users/list', {} );
 
-    my $fields = [ qw ( email full_name notes created_date max_topic_stories weekly_requests_limit ) ];
+    my $fields = [ qw ( email full_name notes created_date max_topic_stories weekly_requests_limit has_consented ) ];
     MediaWords::Test::DB::rows_match( $label, $r->{ users }, $expected_auth_users, "auth_users_id", $fields );
 
     $label = "users/single";
@@ -73,6 +74,7 @@ sub test_users($)
         full_name             => 'up date',
         notes                 => 'more notes',
         active                => 1,
+        has_consented         => 1,
         weekly_requests_limit => 123456,
         max_topic_stories     => 456789,
     };

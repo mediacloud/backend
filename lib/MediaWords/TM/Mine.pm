@@ -53,7 +53,7 @@ Readonly my $EXTRACT_STORY_LINKS_CHUNK_SIZE => 1000;
 Readonly my $SPIDER_LINKS_CHUNK_SIZE => 100_000;
 
 # die if the error rate for link fetch or link extract jobs is greater than this
-Readonly my $MAX_JOB_ERROR_RATE => 0.01;
+Readonly my $MAX_JOB_ERROR_RATE => 0.02;
 
 # timeout when polling for jobs to finish
 Readonly my $JOB_POLL_TIMEOUT => 3600;
@@ -112,9 +112,9 @@ sub generate_topic_links
 
     my $topic_links = [];
 
-    if ( $topic->{ ch_monitor_id } )
+    if ( $topic->{ platform } ne 'web' )
     {
-        INFO( "skip link generation for twitter topic" );
+        INFO( "skip link generation for non web topic" );
         return;
     }
 
@@ -173,7 +173,9 @@ SQL
         $last_change_time = time() if ( $num_queued_stories != $prev_num_queued_stories );
         if ( ( time() - $last_change_time ) > $JOB_POLL_TIMEOUT )
         {
-            LOGDIE( "Timed out waiting for story link extraction." );
+            my $queued_ids = $db->query( "select * from $queued_ids_table limit 5" )->flat();
+            my $ids_list = join( ', ', @{ $queued_ids } );
+            LOGDIE( "Timed out waiting for story link extraction ($ids_list)." );
         }
 
         INFO( "$num_queued_stories stories left in link extraction pool...." );
@@ -337,8 +339,8 @@ sub fetch_links
     my $max_requeue_jobs = 100;
     my $requeue_timeout  = 30;
 
-    # once the pool is this small, just requeue everything and exit
-    my $exit_pool_size = 25;
+    # once the pool is this small, just requeue everything with a 0 per site throttle
+    my $instant_queue_size = 25;
 
     # how many times to requeues everything if there is no change for $JOB_POLL_TIMEOUT seconds
     my $full_requeues     = 0;
@@ -370,16 +372,16 @@ SQL
 
         last if ( $num_pending_urls < 1 );
 
-        if ( $num_pending_urls <= $exit_pool_size )
+        if ( $num_pending_urls <= $instant_queue_size )
         {
             map { queue_topic_fetch_url( $db->require_by_id( 'topic_fetch_urls', $_ ), 0 ) } @{ $pending_url_ids };
-            last;
+            sleep( $JOB_POLL_WAIT );
+            next;
         }
 
         my $time_since_change = time() - $last_pending_change;
 
-        # for some reason, the fetch_link queue is occasionally losing a small number of jobs.  until we can
-        # find the cause of the bug, just requeue stray jobs a few times
+        # for some reason, the fetch_link queue is occasionally losing a small number of jobs.
         if (   ( $time_since_change > $requeue_timeout )
             && ( $requeues < $max_requeues )
             && ( $num_pending_urls < $max_requeue_jobs ) )
@@ -580,11 +582,10 @@ sub mine_topic_stories
 
     INFO( "mine topic stories" );
 
-    # check for twitter topic here as well as in generate_topic_links, because the below query grows very
-    # large without ever mining links
-    if ( $topic->{ ch_monitor_id } )
+    # skip for non-web topic, because the below query grows very large without ever mining links
+    if ( $topic->{ platform } ne 'web' )
     {
-        INFO( "skip link generation for twitter topic" );
+        INFO( "skip link generation for non-web topic" );
         return;
     }
 
@@ -837,7 +838,7 @@ sub import_solr_seed_query_month($$$)
 {
     my ( $db, $topic, $month_offset ) = @_;
 
-    return if ( $topic->{ ch_monitor_id } );
+    return unless ( $topic->{ platform } eq 'web' );
 
     my $max_stories = $topic->{ max_stories };
 
@@ -1017,7 +1018,6 @@ sub do_mine_topic ($$;$)
 {
     my ( $db, $topic, $options ) = @_;
 
-    # commenting this out until we deploy the story index
     # if ( !$topic->{ is_story_index_ready } )
     # {
     #     die( "refusing to run topic because is_story_index_ready is false" );
@@ -1053,11 +1053,11 @@ sub do_mine_topic ($$;$)
         check_job_error_rate( $db, $topic );
 
         # merge dup media and stories again to catch dups from spidering
-        update_topic_state( $db, $topic, "merging duplicate media stories" );
-        MediaWords::TM::Stories::merge_dup_media_stories( $db, $topic );
-
         update_topic_state( $db, $topic, "merging duplicate stories" );
         MediaWords::TM::Stories::find_and_merge_dup_stories( $db, $topic );
+
+        update_topic_state( $db, $topic, "merging duplicate media stories" );
+        MediaWords::TM::Stories::merge_dup_media_stories( $db, $topic );
 
         update_topic_state( $db, $topic, "adding source link dates" );
         add_source_link_dates( $db, $topic );
@@ -1068,48 +1068,10 @@ sub do_mine_topic ($$;$)
             fetch_social_media_data( $db, $topic );
 
             update_topic_state( $db, $topic, "snapshotting" );
-            MediaWords::Job::TM::SnapshotTopic->add_to_queue( { topics_id => $topic->{ topics_id } }, undef, $db );
+            my $snapshot_args = { topics_id => $topic->{ topics_id }, snapshots_id => $options->{ snapshots_id } };
+            MediaWords::Job::TM::SnapshotTopic->add_to_queue( $snapshot_args, undef, $db );
         }
     }
-}
-
-# if twitter topic corresponding to the main topic does not already exist, create it
-sub find_or_create_twitter_topic($$)
-{
-    my ( $db, $parent_topic ) = @_;
-
-    INFO( "find or create twitter topic" );
-
-    my $twitter_topic = $db->query( <<SQL, $parent_topic->{ topics_id } )->hash;
-select * from topics where twitter_parent_topics_id = ?
-SQL
-
-    return $twitter_topic if ( $twitter_topic );
-
-    my $topic_tag_set = $db->create( 'tag_sets', { name => "topic $parent_topic->{ name } (twitter)" } );
-
-    $twitter_topic = {
-        twitter_parent_topics_id => $parent_topic->{ topics_id },
-        name                     => "$parent_topic->{ name } (twitter)",
-        pattern                  => '(none)',
-        solr_seed_query          => '(none)',
-        solr_seed_query_run      => 't',
-        description              => "twitter child topic of $parent_topic->{ name }",
-        topic_tag_sets_id        => $topic_tag_set->{ topic_tag_sets_id },
-        ch_monitor_id            => $parent_topic->{ ch_monitor_id }
-    };
-
-    my $topic = $db->create( 'topics', $twitter_topic );
-
-    my $parent_topic_dates =
-      $db->query( "select * from topics_with_dates where topics_id = ?", $parent_topic->{ topics_id } )->hash;
-
-    $db->query( <<SQL, $topic->{ topics_id }, $parent_topic->{ topics_id } );
-insert into topic_dates ( topics_id, boundary, start_date, end_date )
-    select \$1, true, start_date::date, end_date::date from topics_with_dates where topics_id = \$2
-SQL
-
-    return $topic;
 }
 
 # add the url parsed from a tweet to topics_seed_url
@@ -1180,13 +1142,12 @@ SQL
     );
 }
 
-# if there is a ch_monitor_id for the given topic, fetch the twitter data from crimson hexagon and twitter
+# if this is a twitter topic, fetch the twitter data
 sub fetch_and_import_twitter_urls($$)
 {
     my ( $db, $topic ) = @_;
 
-    # only add  twitter data if there is a ch_monitor_id
-    return unless ( $topic->{ ch_monitor_id } );
+    return unless ( $topic->{ platform } eq 'twitter' );
 
     MediaWords::TM::FetchTopicTweets::fetch_topic_tweets( $db, $topic->{ topics_id } );
 
@@ -1207,7 +1168,7 @@ sub mine_topic ($$;$)
         MediaWords::TM::send_topic_alert( $db, $topic, "started topic spidering" );
     }
 
-    eval { do_mine_topic( $db, $topic ); };
+    eval { do_mine_topic( $db, $topic, $options ); };
     if ( $@ )
     {
         my $error = $@;

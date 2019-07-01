@@ -452,6 +452,93 @@ Response:
 }
 ```
 
+## `topics/<topics_id>/add_seed_query` (PUT)
+
+`https://api.mediacloud.org/api/v2/topics/<topics_id>/add_seed_query`
+
+Add a seed query to an existing topic.  If the same seed querty already exists, do nothing.  Returns the created
+or found seed query.
+
+### Query Parameters
+
+(no parameters)
+
+### Input Description
+
+| Field      | Description                              |
+| ---------- | ---------------------------------------- |
+| topics\_id | topic id |
+| platform   | platform for which to pull data: 'twitter' or 'web' |
+| source     | api to use as source for data: 'crimson\_hexagon' or 'archive\_org' |
+| query      | source specific query to return data |
+
+### Example
+
+Add a crimson hexagon twitter search:
+
+`https://api.mediacloud.org/api/v2/topics/1390/add_seed_query`
+
+Input:
+
+```json
+{
+    "topics_id": 1390,
+    "platform": "twitter",
+    "source": "crimson_hexagon",
+    "query": "1234567890"
+}
+```
+
+Response:
+
+```json
+{
+  "topic_seed_query":
+    {
+      "topic_seed_queries_id": 5437,
+      "topics_id": 1390,
+      "platform": "twitter",
+      "source": "crimson_hexagon",
+      "query": "1234567890"
+    }
+}
+```
+
+## `topics/<topics_id>/remove_seed_query` (PUT)
+
+`https://api.mediacloud.org/api/v2/topics/<topics_id>/remove_seed_query`
+
+Remove an existing topic seed query.
+
+### Query Parameters
+
+(no parameters)
+
+### Input Description
+
+| Field      | Description                              |
+| ---------- | ---------------------------------------- |
+| topic\_seed\_queries\_id | topic\_seed\_queries id |
+### Example
+
+Remove a seed query:
+
+`https://api.mediacloud.org/api/v2/topics/1390/remove_seed_query`
+
+Input:
+
+```json
+{
+    "topic_seed_queries_id": 5437
+}
+```
+
+Response:
+
+```json
+{ "success": 1 }
+```
+
 ## topics/<topics_id>/reset (PUT)
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/reset`
@@ -493,12 +580,18 @@ Response:
 
 Start a topic spidering job.
 
-Topic spidering is asynchronous.  Once the topic has started spidering, you cannot start another spidering job until the current one is complete. A call to this end point when a 'running' or 'queued' job already exists for the given topic
-will just return the state of the existing job.
+Topic spidering is asynchronous. If a snapshots\_id is sent as input, that snapshot will be used
+for the job; otherwise, a new snapshot will be created.
 
 ### Query Parameters
 
 (no parameters)
+
+### Input Description
+
+| Field      | Description                              |
+| ---------- | ---------------------------------------- |
+| snapshots\_id | id of snapshot associated with spidering job (optional) |
 
 ### Output Description
 
@@ -508,12 +601,12 @@ The call returns a `job_state` record with information about the state of the qu
 
 Start a topic spider for the 'U.S. 2016 Election' topic:
 
-`https://api.mediacloud.org/api/v2/topics/spider`
+`https://api.mediacloud.org/api/v2/topics/1404/spider`
 
 Input:
 
 ```json
-{ "topics_id": 1404 }
+{ "snapshots_id": 12345 }
 ```
 
 Response:
@@ -522,11 +615,14 @@ Response:
 {
     "job_state":
         {
-            "topics_id": 1404,
-            "job_states_id": 1,
-            "last_updated": "2017-01-26 14:27:04.781095",
+            "job_states_id": 425503,
+            "class": "MediaWords::Job::TM::SnapshotTopic",
+            "state": "queued",
             "message": null,
-            "state": "queued"
+            "last_updated": "2019-03-06 00:36:31.561966",
+            "args": "{\\"snapshots_id\\":12345,\\"topics_id\\":1404}",
+            "priority": "normal",
+            "hostname": "mcquery3"
         }
 }
 ```
@@ -616,6 +712,7 @@ Standard parameters accepted: link_id.
 | queue               | which job pool the topic runs in -- 'mc' for internal media cloud jobs and 'public' for public jobs |
 | max_stories         | max number of stories allowed in the topic |
 | owners              | list of users with 'admin' permissions for the topic |
+| job_states              | list of all job MineTopic and SnapshotTopic job states associated with the topic |}
 
 ### Example
 
@@ -656,6 +753,27 @@ Response:
                     "full_name": "Hal Roberts",
                     "topics_id": 672,
                 }
+            ],
+			"job_states":
+            [
+                {
+                  "class": "MediaWords::Job::TM::SnapshotTopic",
+                  "job_states_id": 425503,
+                  "last_updated": "2019-03-06 00:36:31.561966",
+                  "message": null,
+                  "snapshots_id": 3503,
+                  "state": "queued",
+                  "topics_id": 2424
+                },
+                {
+                  "class": "MediaWords::Job::TM::MineTopic",
+                  "job_states_id": 425488,
+                  "last_updated": "2019-03-06 00:36:31",
+                  "message": "",
+                  "snapshots_id": 3503,
+                  "state": "completed",
+                  "topics_id": 2424
+                },
             ]
         }
     ],
@@ -1782,6 +1900,45 @@ Response:
 
 Each *snapshot* contains a static copy of all data within a topic at the time the *snapshot* was made.  All data viewable by the Topics API must be viewed through a *snapshot*.
 
+## `snapshots/create` (POST)
+
+`https://api.mediacloud.org/api/v2/topics/<topics_id>/snapshots/create`
+
+Create a new but empty snapshot for the topic.  This call only creates an empty shell of a snapshot.  To fill it with
+data, you must pass the returned snapshots\_id to snapshots/generate or topic/spider.
+
+### Query Parameters
+
+(no parameters)
+
+### Input Description
+
+| Field | Description                              |
+| ----- | ---------------------------------------- |
+| note  | short text note about the snapshot; optional |
+
+### Output Description
+
+Returns the created snapshot, as in the example below.
+
+### Example
+
+Create a new snapshot for the 'U.S. 2016 Election' *topic*:
+
+`https://api.mediacloud.org/api/v2/topics/1344/snapshots/create`
+
+Response:
+
+```json
+{
+    "snapshot":
+        {
+            "snapshots_id": 1234,
+            "topics_id": 1404
+        }
+}
+```
+
 ## `snapshots/generate` (POST)
 
 `https://api.mediacloud.org/api/v2/topics/<topics_id>/snapshots/generate`
@@ -1798,9 +1955,12 @@ This is an asynchronous call.  The *snapshot* process will run in the background
 
 ### Input Description
 
+As elsewhere in the topics api, Input is passed to the end point as a json document.
+
 | Field | Description                              |
 | ----- | ---------------------------------------- |
 | note  | short text note about the snapshot; optional |
+| snapshots\_id | id of the snapshot to generate |
 
 ### Output Description
 

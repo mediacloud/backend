@@ -5,14 +5,12 @@ import furl
 import operator
 import os
 import re2
-import traceback
 import typing
 
 from mediawords.db import DatabaseHandler
 import mediawords.db.exceptions.handler
 import mediawords.dbi.downloads
 from mediawords.dbi.stories.extractor_arguments import PyExtractorArguments
-import mediawords.dbi.stories.dup
 import mediawords.dbi.stories.stories
 import mediawords.key_value_store.amazon_s3
 from mediawords.tm.guess_date import guess_date, GuessDateResult
@@ -234,9 +232,9 @@ with matching_stories as (
 
     select distinct(s.*) from stories s
             join media m on s.media_id = m.media_id
-            join topic_seed_urls csu on s.stories_id = csu.stories_id
+            join story_urls su on s.stories_id = su.stories_id
         where
-            csu.url = any ( %(a)s ) and
+            su.url = any ( %(a)s ) and
             m.foreign_rss_links = false
 )
 
@@ -395,15 +393,14 @@ def generate_story(
     else:
         story['publish_date'] = publish_date
 
-    try:
-        story = db.create('stories', story)
-    except mediawords.db.exceptions.handler.McUniqueConstraintException:
-        return mediawords.tm.stories.get_story_match(db=db, url=story['url'])
-    except Exception:
-        raise McTMStoriesException("Error adding story: %s" % traceback.format_exc())
+    story = mediawords.dbi.stories.stories.add_story(db, story, feed['feeds_id'])
 
     db.query(
-        "insert into stories_tags_map (stories_id, tags_id) values (%(a)s, %(b)s)",
+        """
+        insert into stories_tags_map (stories_id, tags_id)
+            select %(a)s, %(b)s where not exists (
+                select 1 from stories_tags_map where stories_id = %(a)s and tags_id = %(b)s )
+        """,
         {'a': story['stories_id'], 'b': spidered_tag['tags_id']})
 
     if publish_date is None:
@@ -411,13 +408,10 @@ def generate_story(
 
     log.debug("add story: %s; %s; %s; %d" % (story['title'], story['url'], story['publish_date'], story['stories_id']))
 
-    db.create('feeds_stories_map', {'stories_id': story['stories_id'], 'feeds_id': feed['feeds_id']})
-
-    download = create_download_for_new_story(db, story, feed)
-
-    mediawords.dbi.downloads.store_content(db, download, content)
-
-    _extract_story(db, story)
+    if story.get('is_new', False):
+        download = create_download_for_new_story(db, story, feed)
+        mediawords.dbi.downloads.store_content(db, download, content)
+        _extract_story(db, story)
 
     return story
 
@@ -558,12 +552,9 @@ def copy_story_to_new_medium(db: DatabaseHandler, topic: dict, old_story: dict, 
             insert into download_texts (downloads_id, download_text, download_text_length)
                 select %(a)s, dt.download_text, dt.download_text_length
                     from download_texts dt
-                        join downloads d on (dt.downloads_id = d.downloads_id)
-                    where d.stories_id = %(b)s
-                    order by d.downloads_id asc
-                    limit 1
+                    where dt.downloads_id = %(a)s
             """,
-            {'a': download['downloads_id'], 'b': old_story['stories_id']})
+            {'a': download['downloads_id']})
 
     db.query(
         """
@@ -730,6 +721,44 @@ def merge_dup_media_stories(db, topic):
     [merge_dup_media_story(db, topic, s) for s in dup_media_stories]
 
 
+def copy_stories_to_topic(db: DatabaseHandler, source_topics_id: int, target_topics_id: int) -> None:
+    """Copy stories from source_topics_id into seed_urls for target_topics_id."""
+    message = "copy_stories_to_topic: %s -> %s [%s]" % (source_topics_id, target_topics_id, datetime.datetime.now())
+
+    log.info("querying novel urls from source topic...")
+
+    db.query("set work_mem = '8GB'")
+
+    db.query(
+        """
+        create temporary table _stories as
+            select distinct stories_id from topic_seed_urls where topics_id = %(a)s and stories_id is not null;
+        create temporary table _urls as
+            select distinct url from topic_seed_urls where topics_id = %(a)s;
+        """,
+        {'a': target_topics_id})
+
+    db.query(
+        """
+        create temporary table _tsu as
+            select %(target)s topics_id, url, stories_id, %(message)s source
+                from snap.live_stories s
+                where
+                    s.topics_id = %(source)s and
+                    s.stories_id not in ( select stories_id from _stories ) and
+                    s.url not in ( select url from _urls )
+        """,
+        {'target': target_topics_id, 'source': source_topics_id, 'message': message})
+
+    (num_inserted,) = db.query("select count(*) from _tsu").flat()
+
+    log.info("inserting %d urls ..." % num_inserted)
+
+    db.query("insert into topic_seed_urls ( topics_id, url, stories_id, source ) select * from _tsu")
+
+    db.query("drop table _stories; drop table _urls; drop table _tsu;")
+
+
 def _merge_dup_stories(db, topic, stories):
     """Merge a list of stories into a single story, keeping the story with the most sentences."""
     log.debug("merge dup stories")
@@ -762,44 +791,85 @@ def _merge_dup_stories(db, topic, stories):
     [_merge_dup_story(db, topic, s, keep_story) for s in stories]
 
 
-def _get_topic_stories_by_medium(db: DatabaseHandler, topic: dict) -> dict:
-    """Return hash of { $media_id: stories } for the topic."""
-
-    stories = db.query(
+def _add_missing_normalized_title_hashes(db: DatabaseHandler, topic: dict) -> None:
+    """Add a normalized_title_hash field for every stories row that is missing it for the given topic."""
+    db.begin()
+    db.query(
         """
-        select s.stories_id, s.media_id, s.title, s.url, s.publish_date
-            from snap.live_stories s
-            where s.topics_id = %(a)s
+        declare c cursor for
+            select stories_id from snap.live_stories where topics_id = %(a)s and normalized_title_hash is null
+        """,
+        {'a': topic['topics_id']})
+
+    log.info('adding normalized story titles ...')
+
+    # break this up into chunks instead of doing all topic stories at once via a simple sql query because we don't
+    # want to do a single giant transaction with millions of stories
+    while True:
+        stories_ids = db.query("fetch 100 from c").flat()
+        if len(stories_ids) < 1:
+            break
+
+        db.query(
+            """
+            update stories set normalized_title_hash = md5(get_normalized_title(title, media_id))::uuid
+                where stories_id = any( %(a)s )
+            """,
+            {'a': stories_ids})
+
+    db.commit()
+
+
+def _get_dup_story_groups(db: DatabaseHandler, topic: dict) -> list:
+    """Return a list of duplicate story groups.
+
+    Find all stories within a topic that have duplicate normalized titles with a given day and media_id.  Return a
+    list of story lists.  Each story list is a list of stories that are duplicated os each other.
+    """
+    story_pairs = db.query(
+        """
+        select a.stories_id stories_id_a, b.stories_id stories_id_b
+            from snap.live_stories a,
+                snap.live_stories b
+            where
+                a.topics_id = %(a)s and
+                a.topics_id = b.topics_id and
+                a.stories_id < b.stories_id and
+                a.media_id = b.media_id and
+                a.normalized_title_hash = b.normalized_title_hash and
+                date_trunc('day', a.publish_date) = date_trunc('day', b.publish_date)
+            order by stories_id_a, stories_id_b
         """,
         {'a': topic['topics_id']}).hashes()
 
-    media_lookup = {}
-    for s in stories:
-        media_lookup.setdefault(s['media_id'], [])
-        media_lookup[s['media_id']].append(s)
+    story_groups = {}
+    ignore_stories = {}
+    for story_pair in story_pairs:
+        if story_pair['stories_id_b'] in ignore_stories:
+            continue
 
-    return media_lookup
+        story_a = db.require_by_id('stories', story_pair['stories_id_a'])
+        story_b = db.require_by_id('stories', story_pair['stories_id_b'])
+
+        story_groups.setdefault(story_a['stories_id'], [story_a])
+        story_groups[story_a['stories_id']].append(story_b)
+
+        ignore_stories[story_b['stories_id']] = True
+
+    return list(story_groups.values())
 
 
 def find_and_merge_dup_stories(db: DatabaseHandler, topic: dict) -> None:
-    """Merge duplicate stories ithin each media source by url and title."""
-    log.info("find and merge dup stories")
+    """Merge duplicate stories by media source within the topic.
 
-    for get_dup_stories in (
-        ['url', mediawords.dbi.stories.dup.get_medium_dup_stories_by_url],
-        ['title', mediawords.dbi.stories.dup.get_medium_dup_stories_by_title]
-    ):
+    This is a transitional routine that will not be necessary once the story_urls and stories.normalized_title_hash
+    fields have been generated for all historical stories.
+    """
+    log.info("adding normalized titles ...")
+    _add_missing_normalized_title_hashes(db, topic)
 
-        f_name = get_dup_stories[0]
-        f = get_dup_stories[1]
+    log.info("finding duplicate stories ...")
+    dup_story_groups = _get_dup_story_groups(db, topic)
 
-        # regenerate story list each time to capture previously merged stories
-        media_lookup = _get_topic_stories_by_medium(db, topic)
-
-        num_media = len(media_lookup.keys())
-
-        for i, (media_id, stories) in enumerate(media_lookup.items()):
-            if (i % 1000) == 0:
-                log.info("merging dup stories by %s: media [%d / %d]" % (f_name, i, num_media))
-            dup_stories = f(stories)
-            [_merge_dup_stories(db, topic, s) for s in dup_stories]
+    log.info("merging %d duplicate story groups ..." % len(dup_story_groups))
+    [_merge_dup_stories(db, topic, g) for g in dup_story_groups]

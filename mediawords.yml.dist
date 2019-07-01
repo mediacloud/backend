@@ -104,11 +104,16 @@ supervisor:
     # the defaults should work for a small dev setup, but you will want to increase
     # numprocs for some daemons depending on load.  you can also set some daemons
     # not to autostart -- for instance you might want to change crawler.autostart
-    # to "false" (without quotes) to prevent the crawler from starting automatically on a dev machine.
+    # to "false" (without quotes) to prevent the orawler from starting automatically on a dev machine.
     #programs:
 
-        #crawler:
+        #crawler_provider:
             #numprocs: 1
+            #autostart: true
+            #autorestart: false
+
+        #crawler_fetcher:
+            #numprocs: 3
             #autostart: true
             #autorestart: false
 
@@ -120,7 +125,6 @@ supervisor:
         # other configurable supervisor programs
         #import_solr_data
         #create_missing_partitions
-        #move_nonpartitioned_downloads_to_partitions
         #purge_object_caches
         #facebook_fetch_story_stats
         #sitemap_fetch_media_pages
@@ -175,13 +179,6 @@ supervisor_solr:
             # ZooKeeper host + port to connect shards to
             zookeeper_host: "localhost"
             zookeeper_port: 9983
-
-### SimilarWeb API
-similarweb:
-
-    ### API key, costs money, see at https://developer.similarweb.com/
-    api_key: ""
-
 
 ### CLIFF annotator
 cliff:
@@ -380,3 +377,5 @@ mediawords:
     # topic_alert_emails:
     #     - topicupdates@mediacloud.org
     #     - slackupdates@mediacloud.org
+associated_press:
+    apikey: ""

@@ -28,17 +28,17 @@ sub setup_test_api_key($)
     {
         $_test_api_key = MediaWords::Test::DB::Create::create_test_user( $db, 'api_key' );
 
-        #         $db->query( <<SQL );
-        # insert into auth_users_roles_map ( auth_users_id, auth_roles_id )
-        #     select a.auth_users_id, r.auth_roles_id
-        #         from auth_users a, auth_roles r
-        #         where
-        #             a.full_name = 'api_key' and
-        #             r.role = 'admin' and
-        #             not exists
-        #             ( select 1 from auth_users_roles_map
-        #                 where auth_users_id = a.auth_users_id and auth_roles_id = r.auth_roles_id )
-        # SQL
+        $db->query( <<SQL );
+insert into auth_users_roles_map ( auth_users_id, auth_roles_id )
+    select a.auth_users_id, r.auth_roles_id
+        from auth_users a, auth_roles r
+        where
+            a.full_name = 'api_key' and
+            r.role = 'admin' and
+            not exists
+            ( select 1 from auth_users_roles_map
+                where auth_users_id = a.auth_users_id and auth_roles_id = r.auth_roles_id )
+SQL
     }
 
     return $_test_api_key;

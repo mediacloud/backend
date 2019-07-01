@@ -2,6 +2,7 @@
   <dictionary name="pypt">
     <words>
       <w>abcdef</w>
+      <w>abyz</w>
       <w>annotatable</w>
       <w>ansible</w>
       <w>autoescape</w>
@@ -71,13 +72,17 @@
       <w>pystemmer</w>
       <w>pyyaml</w>
       <w>reenable</w>
+      <w>refetched</w>
+      <w>refetching</w>
       <w>regexes</w>
       <w>reimplement</w>
       <w>reindexed</w>
+      <w>retweet</w>
       <w>sbin</w>
       <w>scipy</w>
       <w>shortener</w>
       <w>shorteners</w>
+      <w>similarweb</w>
       <w>smtp</w>
       <w>sopa</w>
       <w>sql</w>
@@ -95,6 +100,7 @@
       <w>webapp</w>
       <w>webapps</w>
       <w>webserver</w>
+      <w>xmax</w>
       <w>yyyy</w>
     </words>
   </dictionary>

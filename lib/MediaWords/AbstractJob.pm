@@ -260,9 +260,11 @@ use MediaWords::DB::Locks;
 
         my $args_data = MediaWords::Util::ParseJSON::decode_json( $job_state->{ args } );
 
-        map { $args_data->{ $_ } = $update->{ $_ } } ( keys( %{ $update } ) );
+        my $json_data;
+        map { $json_data->{ $_ } = $args_data->{ $_ } } ( keys( %{ $args_data } ) );
+        map { $json_data->{ $_ } = $update->{ $_ } }    ( keys( %{ $update } ) );
 
-        my $args_json = MediaWords::Util::ParseJSON::encode_json( $args_data );
+        my $args_json = MediaWords::Util::ParseJSON::encode_json( $json_data );
 
         $db->update_by_id( 'job_states', $job_state->{ job_states_id }, { args => $args_json } );
 
@@ -280,7 +282,11 @@ use MediaWords::DB::Locks;
 
         my $job_state = $db->require_by_id( 'job_states', $job_states_id );
 
-        $job_state = $db->update_by_id( 'job_states', $job_state->{ job_states_id }, { message => $message } );
+        $job_state = $db->update_by_id(
+            'job_states',
+            $job_state->{ job_states_id },
+            { message => $message, last_updated => MediaWords::Util::SQL::sql_now() }
+        );
 
         $self->_update_table_state( $db, $job_state );
     }
@@ -315,7 +321,9 @@ use MediaWords::DB::Locks;
             my $lock_type = $self->get_run_lock_type();
             if ( !MediaWords::DB::Locks::get_session_lock( $db, $lock_type, $args->{ $run_lock_arg }, 0 ) )
             {
-                WARN( "Job with $run_lock_arg = $args->{ $run_lock_arg } is already running.  Exiting." );
+                my $message = "Job with $run_lock_arg = $args->{ $run_lock_arg } is already running.  Exiting.";
+                WARN( $message );
+                $self->_update_job_state( $db, 'error', $message );
                 return;
             }
             DEBUG( "Got run once lock for this job class." );

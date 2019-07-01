@@ -223,8 +223,7 @@ def _story_matches_topic(
             from story_sentences ss
                 join topics c on ( c.topics_id = %(a)s )
             where
-                ss.stories_id = %(b)s and
-                ( ( is_dup is null ) or not ss.is_dup )
+                ss.stories_id = %(b)s
         """,
         {'a': topic['topics_id'], 'b': story['stories_id']}).hash()
 
@@ -525,6 +524,10 @@ def fetch_topic_url(db: DatabaseHandler, topic_fetch_urls_id: int, domain_timeou
             if _is_not_topic_story(db, topic_fetch_url):
                 if _story_matches_topic(db, story, topic, redirect_url=redirect_url, assume_match=assume_match):
                     mediawords.tm.stories.add_to_topic_stories(db, story, topic)
+
+            # add redirect_url as a lookup url for the story, if it is different from the story url
+            if not redirect_url == topic_fetch_url['url']:
+                mediawords.dbi.stories.stories.insert_story_urls(db, story, redirect_url)
 
         if topic_fetch_url['topic_links_id'] and topic_fetch_url['stories_id']:
             try_update_topic_link_ref_stories_id(db, topic_fetch_url)

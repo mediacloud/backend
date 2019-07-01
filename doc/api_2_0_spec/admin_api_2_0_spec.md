@@ -519,7 +519,7 @@ Output:
         "show_on_media": 0,
         "show_on_stories": 0,
         "is_static": 0
-    }    
+    }
 }
 ```
 
@@ -558,7 +558,7 @@ Output:
         "show_on_media": 0,
         "show_on_stories": 0,
         "is_static": 0
-    }    
+    }
 }
 ```
 
@@ -689,7 +689,7 @@ Output:
       "url": "http://nytimes.com/new/feed",
       "type": "syndicated",
       "active": true
-    }    
+    }
 }
 ```
 
@@ -701,7 +701,7 @@ Output:
 
 ### Input Description
 
-See api/v2/feeds/create above.  The input document can contain any subset of fields.  The document must also include a `feeds_id` field.  The `media_id` field cannot be changed.  
+See api/v2/feeds/create above.  The input document can contain any subset of fields.  The document must also include a `feeds_id` field.  The `media_id` field cannot be changed.
 
 ### Example
 
@@ -728,7 +728,7 @@ Output:
       "url": "http://nytimes.com/new/feed",
       "type": "syndicated",
       "active": false
-    }    
+    }
 }
 ```
 
@@ -740,7 +740,7 @@ Output:
 | ------------------- | ----------------------------------- |
 | api/v2/feeds/scrape | scrape a media source for new feeds |
 
-This end point scrapes through the web site of the given media source to try to discover new feeds.  
+This end point scrapes through the web site of the given media source to try to discover new feeds.
 
 This call queues a scraping job on the backend, which can take a few minutes or a few hours to complete. You can
 check the status of the scraping process for a given media source by calling `api/v2/feeds/scrape_status`.  The call
@@ -779,7 +779,7 @@ Output:
             "state": "queued"
         }
     ]
-}    
+}
 ```
 
 ## api/v2/feeds/scrape_status
@@ -838,7 +838,7 @@ Output:
             "state": "queued"
         }
     ]
-}    
+}
 ```
 
 
@@ -1078,7 +1078,7 @@ See `api/v2/users/list` below for sample output.
 URL: https://api.mediacloud.org/api/v2/users/list?search=foo
 
 Output:
- 
+
 ```
 [
   {
@@ -1093,8 +1093,26 @@ Output:
       "email": "foo@foo.bar",
       "full_name": "Sample User",
       "max_topic_stories": 100000,
+      "has_consented": true,
       "weekly_requests_limit": 10000,
-      "notes": "For demonstrating the user api
+      "notes": "For demonstrating the user api",i
+      "requests": [
+        {
+          "auth_users_id": 6308,
+          "day": "2017-08-31",
+          "requests_count": 91
+        },
+        {
+          "auth_users_id": 6308,
+          "day": "2017-09-01",
+          "requests_count": 9
+        },
+        {
+          "auth_users_id": 6308,
+          "day": "2017-09-02",
+          "requests_count": 19
+        }
+      ],
       "roles": [
         {
           "auth_users_id": 6308,
@@ -1104,7 +1122,7 @@ Output:
     },
   ]
 ]
- 
+
 ```
 
 ## api/v2/users/update (PUT)
@@ -1113,7 +1131,7 @@ Output:
 | ------------------- | ------------------------------- |
 | api/v2/users/update | update an existing user |
 
-This call updates a single existing user. 
+This call updates a single existing user.
 
 ### Input Description
 
@@ -1127,6 +1145,7 @@ This call updates a single existing user.
 | roles             | list of permission roles |
 | max\_topic\_stories | max size of max\_stories setting for topics |
 | weekly\_requests\_limit | max number of requests per week |
+| has\_consented | has the user consented to the latest terms of service |
 
 The `roles` field should point to an array of strings, each of which is the
 'role' value for a role listed by `api/v2/users/list_roles`.  If the roles
@@ -1165,7 +1184,7 @@ Output:
 | ------------------- | ------------------------------- |
 | api/v2/users/delete | delete an existing user |
 
-This call deletes a single existing user. 
+This call deletes a single existing user.
 
 ### Input Description
 
@@ -1207,7 +1226,7 @@ none.
 URL: https://api.mediacloud.org/api/v2/users/list\_roles
 
 Output:
- 
+
 ```
 
 {
@@ -1249,6 +1268,6 @@ Output:
     }
   ]
 }
- 
+
 ```
 

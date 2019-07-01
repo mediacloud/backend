@@ -156,12 +156,11 @@
 
     - name: Install mecab-ipadic-neologd
       apt:
-        name: "{{item}}"
+        name:
+          - mecab
+          - mecab-ipadic-neologd
         state: present
         install_recommends: false
-      with_items:
-        - mecab
-        - mecab-ipadic-neologd
       become: true
       become_user: root
       tags:
@@ -178,44 +177,43 @@
 
 - name: Install system packages
   apt:
-    name: "{{item}}"
+    name:
+      - curl
+      - build-essential
+      - ca-certificates
+      - cpanminus
+      - curl
+      - expat
+      - g++
+      - gawk
+      - gcc
+      - hunspell
+      - libexpat1-dev
+      - libhunspell-dev
+      - libmecab-dev
+      - libre2-dev
+      - libtidy-dev
+      - libxml2-dev
+      - libxml2-dev
+      - libxslt1-dbg
+      - libxslt1-dev
+      - libxslt1.1
+      - libyaml-dev
+      - libssl-dev  # OpenSSL headers
+      - logrotate
+      - make
+      - netcat
+      - openjdk-8-jdk
+      - pkg-config
+      - python3-pip
+      - python2.7
+      - python2.7-dev
+      - "python{{ python_version }}"
+      - "python{{ python_version }}-dev"
+      - swig
+      - unzip
     state: present
     install_recommends: false
-  with_items:
-    - curl
-    - build-essential
-    - ca-certificates
-    - cpanminus
-    - curl
-    - expat
-    - g++
-    - gawk
-    - gcc
-    - hunspell
-    - libexpat1-dev
-    - libhunspell-dev
-    - libmecab-dev
-    - libre2-dev
-    - libtidy-dev
-    - libxml2-dev
-    - libxml2-dev
-    - libxslt1-dbg
-    - libxslt1-dev
-    - libxslt1.1
-    - libyaml-dev
-    - libssl-dev  # OpenSSL headers
-    - logrotate
-    - make
-    - netcat
-    - openjdk-8-jdk
-    - pkg-config
-    - python3-pip
-    - python2.7
-    - python2.7-dev
-    - "python{{ python_version }}"
-    - "python{{ python_version }}-dev"
-    - swig
-    - unzip
   become: true
   become_user: root
   tags:

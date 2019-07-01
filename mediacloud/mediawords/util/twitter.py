@@ -92,10 +92,19 @@ def fetch_100_tweets(tweet_ids: list) -> list:
     if len(tweet_ids) > 100:
         raise McFetchTweetsException('tried to fetch more than 100 tweets')
 
-    tweets = get_tweepy_api().statuses_lookup(tweet_ids, include_entities=True, trim_user=False)
+    if len(tweet_ids) == 0:
+        return []
+
+    tweets = get_tweepy_api().statuses_lookup(tweet_ids, include_entities=True, trim_user=False, tweet_mode='extended')
 
     # return simple list so that this can be mocked. relies on RawParser() in get_tweepy_api
-    return list(mediawords.util.parse_json.decode_json(tweets))
+    tweets = list(mediawords.util.parse_json.decode_json(tweets))
+
+    for tweet in tweets:
+        if 'full_text' in tweet:
+            tweet['text'] = tweet['full_text']
+
+    return tweets
 
 
 def parse_status_id_from_url(url: str) -> typing.Optional[str]:

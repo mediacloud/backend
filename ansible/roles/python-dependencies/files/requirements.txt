@@ -1,5 +1,5 @@
 # Deployments
-ansible==2.7.5
+ansible==2.7.8
 
 # Saner date / time management
 arrow==0.13.0
@@ -56,7 +56,7 @@ httpretty==0.9.6
 jieba==0.39
 
 # Parsing email templates
-Jinja2==2.10
+Jinja2==2.10.1
 
 # XML manipulations, HTML parsing
 lxml==4.3.0
@@ -138,4 +138,7 @@ tweepy==3.7.0
 url_normalize==1.4.1
 
 # Low level HTTP requests (with SSL certificate verification)
-urllib3[secure]==1.24.1
+urllib3[secure]==1.24.2
+
+# xml as dicts
+xmltodict==0.12.0

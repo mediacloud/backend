@@ -46,11 +46,13 @@ sub run_statefully($$;$)
     my $note       = $args->{ note };
     my $bot_policy = $args->{ bot_policy };
     my $periods    = $args->{ periods };
+    my $snapshots_id = $args->{ snapshots_id };
 
     die( "'topics_id' is undefined" ) unless ( defined $topics_id );
 
     # No transaction started because apparently snapshot_topic() does start one itself
-    my $snapshots_id = MediaWords::TM::Snapshot::snapshot_topic( $db, $topics_id, $note, $bot_policy, $periods );
+    $snapshots_id = MediaWords::TM::Snapshot::snapshot_topic( 
+        $db, $topics_id, $snapshots_id, $note, $bot_policy, $periods );
 
     INFO "Adding a new word2vec model generation job for snapshot $snapshots_id...";
     MediaWords::Job::Word2vec::GenerateSnapshotModel->add_to_queue( { snapshots_id => $snapshots_id } );

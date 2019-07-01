@@ -15,6 +15,7 @@ BEGIN { extends 'MediaWords::Controller::Api::V2::MC_Controller_REST' }
 
 __PACKAGE__->config(
     action => {
+        create          => { Does => [ qw( ~TopicsWriteAuthenticated ~Throttled ~Logged ) ] },
         list            => { Does => [ qw( ~TopicsReadAuthenticated ~Throttled ~Logged ) ] },
         generate        => { Does => [ qw( ~TopicsWriteAuthenticated ~Throttled ~Logged ) ] },
         generate_status => { Does => [ qw( ~TopicsReadAuthenticated ~Throttled ~Logged ) ] },
@@ -84,6 +85,32 @@ SQL
     $self->status_ok( $c, entity => { snapshots => $snapshots } );
 }
 
+sub create : Chained('apibase') : PathPart( 'snapshots/create' ) : Args(0) : ActionClass('MC_REST')
+{
+}
+
+sub create_GET
+{
+    my ( $self, $c ) = @_;
+
+    my $db = $c->dbis;
+
+    my $topics_id = $c->stash->{ topics_id };
+    my $topic = $db->require_by_id( 'topics', $topics_id );
+
+    my $data = $c->req->data;
+
+    my $note = $data->{ note } || '';
+
+    my $snapshot = $db->query( <<SQL, $note, 'created but not queued', $topics_id )->hash();
+insert into snapshots ( topics_id, snapshot_date, start_date, end_date, note, state )
+    select topics_id, now(), start_date, end_date, ?, ? from topics where topics_id = ?
+    returning *
+SQL
+
+    $self->status_ok( $c, entity => { snapshot => $snapshot } );
+}
+
 sub generate : Chained('apibase') : PathPart( 'snapshots/generate' ) : Args(0) : ActionClass('MC_REST')
 {
 }
@@ -95,29 +122,20 @@ sub generate_GET
     my $topics_id = $c->stash->{ topics_id };
 
     my $note = $c->req->data->{ post } || '' if ( $c->req->data );
+    my $snapshots_id = $c->req->data->{ snapshots_id } if ( $c->req->data );
 
     my $job_class = MediaWords::Job::TM::SnapshotTopic->name;
 
     my $db = $c->dbis;
 
-    my $job_state = $db->query( <<SQL, $topics_id, $job_class )->hash;
-select $JOB_STATE_FIELD_LIST
-    from pending_job_states
-    where
-        ( args->>'topics_id' )::int = \$1 and
-        class = \$2
-    order by job_states_id desc
-SQL
+    $db->begin;
+    MediaWords::Job::TM::SnapshotTopic->add_to_queue(
+        { snapshots_id => $snapshots_id, topics_id => $topics_id, note => $note },
+        undef, $db );
+    my $job_state = $db->query( "select $JOB_STATE_FIELD_LIST from job_states order by job_states_id desc limit 1" )->hash;
+    $db->commit;
 
-    if ( !$job_state )
-    {
-        $db->begin;
-        MediaWords::Job::TM::SnapshotTopic->add_to_queue( { topics_id => $topics_id, note => $note }, undef, $db );
-        $job_state = $db->query( "select $JOB_STATE_FIELD_LIST from job_states order by job_states_id desc limit 1" )->hash;
-        $db->commit;
-
-        die( "Unable to find job state from queued job" ) unless ( $job_state );
-    }
+    die( "Unable to find job state from queued job" ) unless ( $job_state );
 
     return $self->status_ok( $c, entity => { job_state => $job_state } );
 }

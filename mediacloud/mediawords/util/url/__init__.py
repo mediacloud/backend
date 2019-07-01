@@ -51,7 +51,7 @@ def fix_common_url_mistakes(url: str) -> Optional[str]:
     url = re.sub(r'(https?://)https?:?//', r"\1", url, flags=re.I)
 
     # Fix URLs with only one slash after "http" ("http:/www.")
-    url = re.sub(r'(https?:/)(www)', r"\1/\2", url, flags=re.I)
+    url = re.sub(r'(https?:/)(\w)', r"\1/\2", url, flags=re.I)
 
     # replace backslashes with forward
     url = re.sub(r'\\', r'/', url)
@@ -487,8 +487,6 @@ def get_url_distinctive_domain(url: str) -> str:
     try:
         url = decode_object_from_bytes_if_needed(url)
 
-        url = fix_common_url_mistakes(url)
-
         host = get_url_host(url)
         if host is None:
             return url
@@ -500,12 +498,9 @@ def get_url_distinctive_domain(url: str) -> str:
             # foo.co.uk -> foo.co.uk instead of co.uk
             parts = [str(name_parts[n - 2]), str(name_parts[n - 1]), str(name_parts[n])]
             domain = '.'.join(parts)
-        elif re.search(r'\.(edu|gov)$', host, re.I):
-            parts = [str(name_parts[n - 2]), str(name_parts[n - 1])]
-            domain = '.'.join(parts)
         elif re.search(
-                r'go.com|wordpress.com|blogspot|livejournal.com|privet.ru|wikia.com|feedburner.com'
-                r'|24open.ru|patch.com|tumblr.com', host, re.I
+                r'\.go\.com|\.wordpress\.com|\.blogspot\.|\.livejournal\.com|\.privet\.ru|\.wikia\.com'
+                r'|\.feedburner\.com|\.24open\.ru|\.patch\.com|\.tumblr\.com', host, re.I
         ):
             # identify sites in these domains as the whole host name (abcnews.go.com instead of go.com)
             domain = host
