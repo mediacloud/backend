@@ -10,13 +10,13 @@ from mediawords.db.exceptions.handler import McUpdateByIDException
 from mediawords.util.web.user_agent.throttled import McThrottledDomainException
 
 
-def testcontent_matches_topic() -> None:
+def test_content_matches_topic() -> None:
     """Test content_matches_topic()."""
-    assert mediawords.tm.fetch_link.content_matches_topic('foo', {'pattern': 'foo'})
-    assert mediawords.tm.fetch_link.content_matches_topic('FOO', {'pattern': 'foo'})
-    assert mediawords.tm.fetch_link.content_matches_topic('FOO', {'pattern': ' foo '})
-    assert not mediawords.tm.fetch_link.content_matches_topic('foo', {'pattern': 'bar'})
-    assert mediawords.tm.fetch_link.content_matches_topic('foo', {'pattern': 'bar'}, assume_match=True)
+    assert mediawords.tm.fetch_link.content_matches_topic('foo', {'topics_id': 1, 'pattern': 'foo'})
+    assert mediawords.tm.fetch_link.content_matches_topic('FOO', {'topics_id': 1, 'pattern': 'foo'})
+    assert mediawords.tm.fetch_link.content_matches_topic('FOO', {'topics_id': 1, 'pattern': ' foo '})
+    assert not mediawords.tm.fetch_link.content_matches_topic('foo', {'topics_id': 1, 'pattern': 'bar'})
+    assert mediawords.tm.fetch_link.content_matches_topic('foo', {'topics_id': 1, 'pattern': 'bar'}, assume_match=True)
 
 
 class TestTMFetchLinkDB(mediawords.test.test_database.TestDatabaseWithSchemaTestCase):
