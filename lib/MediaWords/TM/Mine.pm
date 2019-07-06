@@ -1014,6 +1014,7 @@ SQL
 # options:
 #   import_only - only run import_seed_urls and import_solr_seed and exit
 #   skip_post_processing - skip social media fetching and snapshotting
+#   snapshots_id - associate topic with the given existing snapshot
 sub do_mine_topic ($$;$)
 {
     my ( $db, $topic, $options ) = @_;
