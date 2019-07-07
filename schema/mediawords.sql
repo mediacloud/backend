@@ -24,7 +24,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4723;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4724;
 BEGIN
 
     -- Update / set database schema version
@@ -662,7 +662,8 @@ BEGIN
     -- Create +1 partition for future insertions
     SELECT COALESCE(MAX(stories_id), 0) + chunk_size FROM stories INTO max_stories_id;
 
-    FOR partition_stories_id IN 1..max_stories_id BY chunk_size LOOP
+    SELECT 1 INTO partition_stories_id;
+    WHILE partition_stories_id <= max_stories_id LOOP
         SELECT partition_by_stories_id_partition_name(
             base_table_name := base_table_name,
             stories_id := partition_stories_id
@@ -707,6 +708,8 @@ BEGIN
             RETURN NEXT target_table_name;
 
         END IF;
+
+        SELECT partition_stories_id + chunk_size INTO partition_stories_id;
     END LOOP;
 
     RETURN;
@@ -994,7 +997,8 @@ BEGIN
     -- Create +1 partition for future insertions
     SELECT COALESCE(MAX(downloads_id), 0) + chunk_size FROM downloads INTO max_downloads_id;
 
-    FOR partition_downloads_id IN 1..max_downloads_id BY chunk_size LOOP
+    SELECT 1 INTO partition_downloads_id;
+    WHILE partition_downloads_id <= max_downloads_id LOOP
         SELECT partition_by_downloads_id_partition_name(
             base_table_name := base_table_name,
             downloads_id := partition_downloads_id
@@ -1032,6 +1036,8 @@ BEGIN
             RETURN NEXT target_table_name;
 
         END IF;
+
+        SELECT partition_downloads_id + chunk_size INTO partition_downloads_id;
     END LOOP;
 
     RETURN;
