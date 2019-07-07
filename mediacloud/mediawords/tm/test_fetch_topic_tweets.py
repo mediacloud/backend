@@ -179,10 +179,10 @@ def validate_topic_tweet_urls(db: DatabaseHandler, topic: dict) -> None:
 
 def test_tweet_matches_pattern() -> None:
     """Test _post_matches_pattern()."""
-    assert not ftt._tweet_matches_pattern({'pattern': 'foo'}, {'tweet': {'text': 'bar'}})
-    assert ftt._tweet_matches_pattern({'pattern': 'foo'}, {'tweet': {'text': 'foo bar'}})
-    assert ftt._tweet_matches_pattern({'pattern': 'foo'}, {'tweet': {'text': 'bar foo'}})
-    assert not ftt._tweet_matches_pattern({'pattern': 'foo'}, {})
+    assert not ftt._tweet_matches_pattern({'topics_id': 1, 'pattern': 'foo'}, {'tweet': {'text': 'bar'}})
+    assert ftt._tweet_matches_pattern({'topics_id': 1, 'pattern': 'foo'}, {'tweet': {'text': 'foo bar'}})
+    assert ftt._tweet_matches_pattern({'topics_id': 1, 'pattern': 'foo'}, {'tweet': {'text': 'bar foo'}})
+    assert not ftt._tweet_matches_pattern({'topics_id': 1, 'pattern': 'foo'}, {})
 
 
 class TestFetchTopicTweets(TestDatabaseWithSchemaTestCase):
