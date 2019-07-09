@@ -229,7 +229,7 @@ sub get_url_share_comment_counts
 
     # Make API request (https://developers.facebook.com/docs/graph-api/reference/url/)
     my $data;
-    eval { $data = api_request( '', [ { key => 'id', value => $url } ] ); };
+    eval { $data = api_request( '', [ { key => 'fields', value => 'engagement' }, { key => 'id', value => $url } ] ); };
     if ( $@ )
     {
         my $error_message = $@;
@@ -258,8 +258,8 @@ sub get_url_share_comment_counts
         LOGDIE "Returned URL ($returned_url) is not the same as requested URL ($url)";
     }
 
-    my $share_count   = $data->{ share }->{ share_count }   // 0;
-    my $comment_count = $data->{ share }->{ comment_count } // 0;
+    my $share_count   = $data->{ engagement }->{ share_count }   // 0;
+    my $comment_count = $data->{ engagement }->{ comment_count } // 0;
 
     DEBUG "* Share count: $share_count, comment count: $comment_count";
 
