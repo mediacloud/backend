@@ -28,16 +28,12 @@ def insert_story_urls(db: DatabaseHandler, story: dict, url: str) -> None:
     for url in set(urls):
         # wastefully query for existence of url because jumping straight into the on conflict do nothing
         # insert below sometimes results in a deadlock
-        url_exists = db.query(
-            "select * from story_urls where stories_id = %(a)s and url = %(b)s",
-            {'a': story['stories_id'], 'b': url}).hash()
-
-        if url_exists:
-            return
-
         db.query(
             """
-            insert into story_urls (stories_id, url) values (%(a)s, %(b)s) on conflict (url, stories_id) do nothing
+            insert into story_urls (stories_id, url)
+                select %(a)s, %(b)s
+                    where not exists ( select 1 from story_urls where stories_id = %(a)s and url = %(b)s )
+                    on conflict (url, stories_id) do nothing
             """,
             {'a': story['stories_id'], 'b': url})
 
