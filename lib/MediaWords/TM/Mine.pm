@@ -333,11 +333,11 @@ sub fetch_links
 
     my $tfu_ids_table = $db->get_temporary_ids_table( [ map { int( $_->{ topic_fetch_urls_id } ) } @{ $tfus } ] );
 
-    # now poll waiting for the queue to clear
     my $requeues         = 0;
     my $max_requeues     = 10;
     my $max_requeue_jobs = 100;
     my $requeue_timeout  = 30;
+    my $instant_requeued = 0;
 
     # once the pool is this small, just requeue everything with a 0 per site throttle
     my $instant_queue_size = 25;
@@ -372,8 +372,10 @@ SQL
 
         last if ( $num_pending_urls < 1 );
 
-        if ( $num_pending_urls <= $instant_queue_size )
+        # if we only have a handful of job left, requeue them all once with a 0 domain throttle
+        if ( !$instant_requeued && ( $num_pending_urls <= $instant_queue_size ) )
         {
+            $instant_requeued = 1;
             map { queue_topic_fetch_url( $db->require_by_id( 'topic_fetch_urls', $_ ), 0 ) } @{ $pending_url_ids };
             sleep( $JOB_POLL_WAIT );
             next;
