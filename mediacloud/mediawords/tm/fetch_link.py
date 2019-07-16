@@ -185,11 +185,7 @@ def content_matches_topic(content: str, topic: dict, assume_match: bool = False)
     if isinstance(content, bytes):
         content = content.decode('utf8', 'backslashreplace')
 
-    log.info("matching content against topic %d pattern (%d characters)" % (topic['topics_id'], len(content)))
-
     r = re2.search(topic['pattern'], content, re2.I | re2.X | re2.S) is not None
-
-    log.info("matching done: %s" % str(r))
 
     return r
 
