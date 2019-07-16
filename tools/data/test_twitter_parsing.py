@@ -30,15 +30,25 @@ def find_tweets_in_story(story):
          tweet_url = tweet_url.replace('\u002F', '/')
          tweet_url = tweet_url.replace('\\u002F', '/')
          log.warning("twitter link: %s" % str(tweet_url))
-         m = re.search(r'twitter.com/([^/]+)/status/(\d+)', tweet_url)
+
+         m = re.search(r'twitter.com/([^/]+)/status/(\d+)',
+                       tweet_url)
          if m:
             (user, tweet_id) = m.groups()
             log.warning("[%s] %s" % (str(tweet_id), user))
-            tweet_dict[tweet_id] = user 
+
+            e = bool(re.search(r'twitter.com/' + user + r'/status/' + tweet_id +
+r'(\?ref_src=twsrc(%5E|\^)tfw)?"\s?(target="_blank")?[^"]*(async="[^"]*")?[^"]+\
+"(https:)?/?/?platform\.twitter\.com/widgets\.js', 
+                     story['content']))
+ 
+
+            log.warning(e)
+            tweet_dict[tweet_id] = [user, e]
          else:
             log.warning("TWEET NOT PARSED")
 
-    return tweet_dict     
+    return tweet_dict
 
 
 
@@ -70,13 +80,13 @@ def write_story_list_data(story_list):
 
 
 def main():
-    num_stories = 100
+    num_stories = 200
     twitter_stories = []
     key = os.environ['MC_KEY']
     mc = mediacloud.api.AdminMediaCloud(key)
 
-    # q = "tweet and stories_id:572029569"
-    q = "tweet"
+    q = "tweet and stories_id:761386501"
+    # q = "tweet"
     fq = "publish_year:[2012-01-01T00:00:00Z TO 2019-01-01T00:00:00Z]"
     stories = mc.storyList(solr_query=q, solr_filter=fq, rows=num_stories, sort='random', raw_1st_download=True)
     log.warning('%d total stories found' % len(stories))
@@ -94,7 +104,7 @@ def main():
         story['tweets'] = []
         for tweet_id in tweet_dict.keys():
             log.warning("tweet_id: %s" % tweet_id)
-            story['tweets'].append({'user': tweet_dict[tweet_id], 'id': tweet_id})
+            story['tweets'].append({'user': tweet_dict[tweet_id][0], 'id': tweet_id, 'embedded': tweet_dict[tweet_id][1]})
 
     write_story_list_data(twitter_stories)
 
