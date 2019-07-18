@@ -134,6 +134,9 @@ timeout_decorator==0.4.1
 # Twitter API client
 tweepy==3.7.0
 
+# Fetching and parsing website sitemap trees
+ultimate_sitemap_parser==0.4
+
 # Normalizing URLs
 url_normalize==1.4.1
 
