@@ -44,6 +44,9 @@ def add_colombia_media_to_sitemap_queue():
         552579, 558121, 559945, 563374, 565190, 565808, 567421, 651490, 651491, 651492, 651493, 651494, 655394, 655395,
         683226, 683288, 683554, 695708, 695709, 695710, 695711, 695712, 695713, 695715, 845114, 849762, 879769, 1180124,
         1195863, 1195913, 1207868, 1208757, 1265854,
+
+        # Extra media sources not in collection
+        326186, 855592, 879585, 851767,
     ]
     colombia_media_ids = sorted(colombia_media_ids)
     for media_id in colombia_media_ids:
