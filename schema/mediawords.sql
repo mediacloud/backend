@@ -1949,7 +1949,8 @@ create index solr_imported_stories_story on solr_imported_stories ( stories_id )
 create index solr_imported_stories_day on solr_imported_stories ( date_trunc( 'day', import_date ) );
 
 create type topics_job_queue_type AS ENUM ( 'mc', 'public' );
-create type topic_platform_type AS enum ( 'web', 'twitter' );
+create type topic_platform_type AS enum ( 'web', 'twitter', 'generic_post' );
+create type topic_mode_type AS enum ( 'web', 'web_sharing' );
 
 create table topics (
     topics_id        serial primary key,
@@ -1970,6 +1971,9 @@ create table topics (
     -- platform that topic is analyzing
     platform                topic_platform_type not null default 'web',
 
+    -- mode of analysis
+    mode                    topic_mode_type not null default 'web',
+
     -- job queue to use for spider and snapshot jobs for this topic
     job_queue               topics_job_queue_type not null,
 
@@ -1984,7 +1988,7 @@ create table topics (
 create unique index topics_name on topics( name );
 create unique index topics_media_type_tag_set on topics( media_type_tag_sets_id );
 
-create type topic_source_type AS enum ( 'mediacloud', 'crimson_hexagon', 'archive_org' );
+create type topic_source_type AS enum ( 'mediacloud', 'crimson_hexagon', 'archive_org', 'csv' );
 
 create table topic_seed_queries (
     topic_seed_queries_id   serial primary key,
@@ -3291,7 +3295,8 @@ create table topic_posts (
     content                 text not null,
     publish_date            timestamp not null,
     author                  varchar( 1024 ) not null,
-    channel                 varchar( 1024 ) not null
+    channel                 varchar( 1024 ) not null,
+    url                     text null
 );
 
 create unique index topic_posts_id on topic_posts( topic_post_days_id, post_id );
