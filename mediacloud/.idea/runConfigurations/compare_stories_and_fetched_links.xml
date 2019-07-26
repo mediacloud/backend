@@ -12,8 +12,8 @@
     <option name="ADD_CONTENT_ROOTS" value="true" />
     <option name="ADD_SOURCE_ROOTS" value="true" />
     <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-    <option name="SCRIPT_NAME" value="$PROJECT_DIR$/../tools/sitemap/compare_stories_and_fetched_links.py" />
-    <option name="PARAMETERS" value="$USER_HOME$/Downloads/sitemap_colombia/scratch.sitemap_colombia_stories.csv $USER_HOME$/Downloads/sitemap_colombia/scratch.sitemap_colombia_fetched_pages.csv" />
+    <option name="SCRIPT_NAME" value="$PROJECT_DIR$/../tools/sitemap/normalize_urls.py" />
+    <option name="PARAMETERS" value="$USER_HOME$/Downloads/sitemap_colombia/scratch.sitemap_colombia_stories.csv $USER_HOME$/Downloads/sitemap_colombia/scratch.sitemap_colombia_stories/" />
     <option name="SHOW_COMMAND_LINE" value="false" />
     <option name="EMULATE_TERMINAL" value="false" />
     <option name="MODULE_MODE" value="false" />

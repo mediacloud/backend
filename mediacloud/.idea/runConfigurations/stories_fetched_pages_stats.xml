@@ -13,7 +13,7 @@
     <option name="ADD_SOURCE_ROOTS" value="true" />
     <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
     <option name="SCRIPT_NAME" value="$PROJECT_DIR$/../tools/sitemap/stories_fetched_pages_stats.py" />
-    <option name="PARAMETERS" value="$USER_HOME$/Downloads/sitemap_colombia/sorted/scratch.sitemap_colombia_stories $USER_HOME$/Downloads/sitemap_colombia/sorted/scratch.sitemap_colombia_fetched_pages 1180124" />
+    <option name="PARAMETERS" value="$USER_HOME$/Downloads/sitemap_colombia/sorted/scratch.sitemap_colombia_stories $USER_HOME$/Downloads/sitemap_colombia/sorted/scratch.sitemap_colombia_fetched_pages 282345" />
     <option name="SHOW_COMMAND_LINE" value="false" />
     <option name="EMULATE_TERMINAL" value="false" />
     <option name="MODULE_MODE" value="false" />
