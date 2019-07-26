@@ -129,6 +129,15 @@ def test_normalize_url():
     ) == 'http://www.gocricket.com/news/sourav-ganguly/Sourav-Ganguly-exclusive-MS-Dhoni-must-reinvent-himself-to-' \
          'survive/articleshow_sg/40421328.cms'
 
+    # URLencoded parts
+    assert mc_url.normalize_url(
+        'https://www.elespectador.com/content/del-afán-no-queda-sino-el-cansancio'
+
+    ) == 'https://www.elespectador.com/content/del-af%C3%A1n-no-queda-sino-el-cansancio'
+    assert mc_url.normalize_url(
+        'https://www.elespectador.com/content/del-af%C3%A1n-no-queda-sino-el-cansancio'
+    ) == 'https://www.elespectador.com/content/del-af%C3%A1n-no-queda-sino-el-cansancio'
+
     # Multiple fragments
     assert mc_url.normalize_url(
         'HTTP://CYBER.LAW.HARVARD.EDU/node/9244#foo#bar'
