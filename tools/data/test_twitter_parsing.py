@@ -19,6 +19,9 @@ import mediawords.util.log
 log = mediawords.util.log.create_logger(__name__)
 
 
+def is_tweet_embedded():
+    pass
+
 
 def find_tweets_in_story(story):
     tweet_dict = {}
@@ -37,13 +40,23 @@ def find_tweets_in_story(story):
             (user, tweet_id) = m.groups()
             log.warning("[%s] %s" % (str(tweet_id), user))
 
-            e = bool(re.search(r'twitter.com/' + user + r'/status/' + tweet_id +
-r'(\?ref_src=twsrc(%5E|\^)tfw)?"\s?(target="_blank")?[^"]*(async="[^"]*")?[^"]+\
-"(https:)?/?/?platform\.twitter\.com/widgets\.js', 
-                     story['content']))
- 
 
-            log.warning(e)
+            e = bool(re.search(
+
+r'twitter-tweet[^/]+((?<=<)/p>[^/]+((?<=<)/p>[^/]+)?)?//' + tweet_url,
+
+                     story['content'])) or bool(re.search(
+
+r'@' + user + r'[^:]+://' + tweet_url,
+
+                     story['content'])) or bool(re.search(
+
+tweet_url + r'[^>]*>[^/]+(/a)?[^/]*(/p)?[^/]*(/blockquote)?[^/]*(/p)?[^/]*(/cdn-cdg/scripts/5c5dd728/cloudfare-static/email-decode\.min\.js)?[^/]*//?platform\.twitter\.com/widgets\.js', 
+
+                     story['content']))
+
+
+            log.warning("Embedded: " + str(e))
             tweet_dict[tweet_id] = [user, e]
          else:
             log.warning("TWEET NOT PARSED")
@@ -85,8 +98,8 @@ def main():
     key = os.environ['MC_KEY']
     mc = mediacloud.api.AdminMediaCloud(key)
 
-    q = "tweet and stories_id:761386501"
-    # q = "tweet"
+    # q = "tweet and stories_id:905151242"
+    q = "tweet"
     fq = "publish_year:[2012-01-01T00:00:00Z TO 2019-01-01T00:00:00Z]"
     stories = mc.storyList(solr_query=q, solr_filter=fq, rows=num_stories, sort='random', raw_1st_download=True)
     log.warning('%d total stories found' % len(stories))
@@ -109,6 +122,9 @@ def main():
     write_story_list_data(twitter_stories)
 
 
+
 main()
+
+
 
 
