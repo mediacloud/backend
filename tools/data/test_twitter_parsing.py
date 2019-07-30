@@ -43,15 +43,20 @@ def find_tweets_in_story(story):
 
             e = bool(re.search(
 
-r'twitter-tweet[^/]+((?<=<)/p>[^/]+((?<=<)/p>[^/]+)?)?//' + tweet_url,
+r'twitter-tweet[^/]+((?<=<)/p>[^/]+((?<=<)/p>[^/]+)?)?//' + 
+'twitter.com/' + user + '/status/' + tweet_id,
 
                      story['content'])) or bool(re.search(
 
-r'@' + user + r'[^:]+://' + tweet_url,
+r'@' + user + r'[^:]+://' + 
+'twitter.com/' + user + '/status/' + tweet_id,
 
                      story['content'])) or bool(re.search(
 
-tweet_url + r'[^>]*>[^/]+(/a)?[^/]*(/p)?[^/]*(/blockquote)?[^/]*(/p)?[^/]*(/cdn-cdg/scripts/5c5dd728/cloudfare-static/email-decode\.min\.js)?[^/]*//?platform\.twitter\.com/widgets\.js', 
+'twitter.com/' + user + '/status/' + tweet_id + 
+r'[^>]*>[^/]+(/a)?[^/]*(/p)?[^/]*(/blockquote)?[^/]*(/p)?\
+[^/]*(/cdn-cdg/scripts/5c5dd728/cloudfare-static/email-decode\.min\.js)?\
+[^/]*//?platform\.twitter\.com/widgets\.js', 
 
                      story['content']))
 
