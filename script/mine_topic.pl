@@ -29,7 +29,7 @@ sub main
         "import_only!"          => \$import_only,
         "direct_job!"           => \$direct_job,
         "skip_post_processing!" => \$skip_post_processing,
-        "snapshots_id!"         => \$snapshots_id
+        "snapshots_id=i"        => \$snapshots_id
     ) || return;
 
     my $args_list = [ qw(direct_job import_only skip_post_processing snapshots_id) ];
