@@ -22,14 +22,14 @@ log = mediawords.util.log.create_logger(__name__)
 
 
 
-def _find_if_tweet_is_embedded(user: str, tweet_id: str, tweet_source: str) -> bool:
+def _is_tweet_embedded(user: str, tweet_id: str, tweet_source: str) -> bool:
     """ Search whether or not a tweet that has been found is also embedded.
 
-user = the twitter handle attatched to the tweet
-tweet_id = the id of the tweet
-tweet_source = The body of text in which the tweet was originally found
+    user = the twitter handle attatched to the tweet
+    tweet_id = the id of the tweet
+    tweet_source = The body of text in which the tweet was originally found
 
-Returns a boolean for whether or not a tweet is embedded.
+    Returns a boolean for whether or not a tweet is embedded.
 
     """
 
