@@ -19,9 +19,6 @@ import mediawords.util.log
 log = mediawords.util.log.create_logger(__name__)
 
 
-def is_tweet_embedded():
-    pass
-
 
 def find_tweets_in_story(story):
     tweet_dict = {}
