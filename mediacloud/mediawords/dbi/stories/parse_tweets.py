@@ -33,31 +33,28 @@ def _is_tweet_embedded(user: str, tweet_id: str, tweet_source: str) -> bool:
 
     """
 
-    return bool(re.search(
+    twitter_tweet_match = bool(re.search(r'twitter-tweet[^/]+((?<=<)/p>[^/]+((?<=<)/p>[^/]+)?)?//'+
+                                         r'twitter\.com/' + user + '/status/' + tweet_id,
+                                         tweet_source))
 
-    r'twitter-tweet[^/]+((?<=<)/p>[^/]+((?<=<)/p>[^/]+)?)?//' +
-    'twitter\.com/' + user + '/status/' + tweet_id,
+    at_symbol_match = bool(re.search(r'@' + user + r'[^:]+://' + 
+                                     r'twitter\.com/' + user + '/status/' + tweet_id,
+                                     tweet_source))
 
-                     tweet_source)) or bool(re.search(
+    widget_link_match = bool(re.search(r'twitter\.com/' + user + '/status/' + tweet_id +
+                                       r'[^>]*>[^/]+(/a)?[^/]*(/p)?[^/]*(/blockquote)?[^/]*(/p)?[^/]*' + 
+                                       r'(/cdn-cdg/scripts/5c5dd728/cloudfare-static/email-decode\.min\.js)?' + 
+                                       r'[^/]*//?platform\.twitter\.com/widgets\.js',
+                                       tweet_source))
 
-r'@' + user + r'[^:]+://' +
-'twitter\.com/' + user + '/status/' + tweet_id,
-
-                     tweet_source)) or bool(re.search(
-
-'twitter.com/' + user + '/status/' + tweet_id +
-r'[^>]*>[^/]+(/a)?[^/]*(/p)?[^/]*(/blockquote)?[^/]*(/p)?\
-[^/]*(/cdn-cdg/scripts/5c5dd728/cloudfare-static/email-decode\.min\.js)?\
-[^/]*//?platform\.twitter\.com/widgets\.js',
-
-                     tweet_source))
+    return twitter_tweet_match or at_symbol_match or widget_link_match
 
 
 
 def find_tweets_in_html(story_content: str) -> list:
     """ Finds any tweets in a string of html.
 
-Returns a list of dicts for each of the tweets found in the inputed string.
+    Returns a list of dicts for each of the tweets found in the inputed string.
 
     """
 
@@ -67,8 +64,8 @@ Returns a list of dicts for each of the tweets found in the inputed string.
                             story_content)
 
     for tweet_url in tweet_urls:
-         tweet_url = tweet_url.replace('\u002F', '/')
-         tweet_url = tweet_url.replace('\\u002F', '/')
+         tweet_url = tweet_url.replace('\u002F', '/')  # This is here twice on purpose: 
+         tweet_url = tweet_url.replace('\\u002F', '/')  # some sites escape their backslashes for unicode characters
          log.debug("twitter link: %s" % str(tweet_url))
 
          m = re.search(r'twitter.com/([^/]+)/status/(\d+)',
@@ -78,19 +75,18 @@ Returns a list of dicts for each of the tweets found in the inputed string.
             log.debug("[%s] %s" % (str(tweet_id), user))
 
 
-            e = _find_if_tweet_is_embedded(user, tweet_id, story_content)
+            e = _is_tweet_embedded(user, tweet_id, story_content)
 
-
+            log.debug("User Handle: " + str(user))
+            log.debug("Tweet ID: " + str(tweet_id))
             log.debug("Embedded: " + str(e))
+
             tweet_list.append({'user': user, 'id': tweet_id, 'embedded': e})
 
          else:
             log.debug("TWEET NOT PARSED")
 
-    log.debug(tweet_list)
+    log.debug('Final twitter dictionary: ' + str(tweet_list))
     return tweet_list
-
-log.warning(find_tweets_in_html(r'dvanced Pikelet Threat 👩🏻‍💻🥞🦄✨ (@pikelet) &lt;a href=\\\"https://twitter.com/pikelet/status/1024205453788557312?ref_src=twsrc%5Etfw\\\">July 31, 2018&lt;/a>&lt;/blockquote>\\n&lt;script async src=\\\"https://platform.twitter.com/widgets.js\\\''))
-
 
 
