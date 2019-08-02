@@ -1,7 +1,8 @@
 from typing import Optional
 
 from usp.tree import sitemap_tree_for_homepage
-from usp.web_client.abstract_client import AbstractWebClient, AbstractWebClientResponse
+from usp.web_client.abstract_client import AbstractWebClient, AbstractWebClientSuccessResponse, \
+    RETRYABLE_HTTP_STATUS_CODES, WebClientErrorResponse, AbstractWebClientResponse
 
 from mediawords.db import DatabaseHandler
 from mediawords.util.log import create_logger
@@ -10,7 +11,7 @@ from mediawords.util.web.user_agent import UserAgent, Response
 log = create_logger(__name__)
 
 
-class _SitemapWebClientResponse(AbstractWebClientResponse):
+class _SitemapWebClientResponse(AbstractWebClientSuccessResponse):
     __slots__ = [
         '__ua_response',
     ]
@@ -46,9 +47,16 @@ class _SitemapWebClient(AbstractWebClient):
     def set_max_response_data_length(self, max_response_data_length: int) -> None:
         self.__ua.set_max_size(max_response_data_length)
 
-    def get(self, url: str) -> _SitemapWebClientResponse:
+    def get(self, url: str) -> AbstractWebClientResponse:
         ua_response = self.__ua.get(url)
-        return _SitemapWebClientResponse(ua_response=ua_response)
+
+        if ua_response.is_success():
+            return _SitemapWebClientResponse(ua_response=ua_response)
+        else:
+            return WebClientErrorResponse(
+                message=ua_response.status_line(),
+                retryable=ua_response.code() in RETRYABLE_HTTP_STATUS_CODES,
+            )
 
 
 # FIXME add test for this function

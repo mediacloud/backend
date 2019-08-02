@@ -489,6 +489,9 @@ def merge_foreign_rss_stories(db: DatabaseHandler, topic: dict) -> None:
         except Exception:
             pass
 
+        # postgres will complain if the content has a null in it
+        content = content.replace('\x00', '')
+
         db.begin()
         db.create('topic_seed_urls', {
             'url': story['url'],
