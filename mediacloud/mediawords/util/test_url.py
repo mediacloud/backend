@@ -26,6 +26,9 @@ def test_fix_common_url_mistakes():
 
         # Non-URLencoded space
         'http://www.ldeo.columbia.edu/~peter/ site/Home.html': 'http://www.ldeo.columbia.edu/~peter/%20site/Home.html',
+
+        # Missing scheme
+        '//foo.com/': 'http://foo.com/',
     }
 
     for orig_url, fixed_url in urls.items():
