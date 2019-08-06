@@ -26,7 +26,7 @@ use Readonly;
 use Time::Piece;
 
 use MediaWords::TM;
-use MediaWords::TM::FetchTopicTweets;
+use MediaWords::TM::FetchTopicPosts;
 use MediaWords::TM::GuessDate;
 use MediaWords::TM::Stories;
 use MediaWords::DB;
@@ -1152,7 +1152,7 @@ sub fetch_and_import_twitter_urls($$)
 
     return unless ( $topic->{ platform } eq 'twitter' );
 
-    MediaWords::TM::FetchTopicTweets::fetch_topic_tweets( $db, $topic->{ topics_id } );
+    MediaWords::TM::FetchTopicPosts::fetch_topic_posts( $db, $topic->{ topics_id } );
 
     seed_topic_with_tweet_urls( $db, $topic );
 }
