@@ -26,6 +26,9 @@ def test_fix_common_url_mistakes():
 
         # Non-URLencoded space
         'http://www.ldeo.columbia.edu/~peter/ site/Home.html': 'http://www.ldeo.columbia.edu/~peter/%20site/Home.html',
+
+        # Missing scheme
+        '//foo.com/': 'http://foo.com/',
     }
 
     for orig_url, fixed_url in urls.items():
@@ -128,6 +131,15 @@ def test_normalize_url():
         '-to-survive/articleshow_sg/40421328.cms?utm_source=facebook.com&utm_medium=referral'
     ) == 'http://www.gocricket.com/news/sourav-ganguly/Sourav-Ganguly-exclusive-MS-Dhoni-must-reinvent-himself-to-' \
          'survive/articleshow_sg/40421328.cms'
+
+    # URLencoded parts
+    assert mc_url.normalize_url(
+        'https://www.elespectador.com/content/del-afán-no-queda-sino-el-cansancio'
+
+    ) == 'https://www.elespectador.com/content/del-af%C3%A1n-no-queda-sino-el-cansancio'
+    assert mc_url.normalize_url(
+        'https://www.elespectador.com/content/del-af%C3%A1n-no-queda-sino-el-cansancio'
+    ) == 'https://www.elespectador.com/content/del-af%C3%A1n-no-queda-sino-el-cansancio'
 
     # Multiple fragments
     assert mc_url.normalize_url(

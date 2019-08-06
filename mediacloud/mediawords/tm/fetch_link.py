@@ -185,7 +185,9 @@ def content_matches_topic(content: str, topic: dict, assume_match: bool = False)
     if isinstance(content, bytes):
         content = content.decode('utf8', 'backslashreplace')
 
-    return re2.search(topic['pattern'], content, re2.I | re2.X | re2.S) is not None
+    r = re2.search(topic['pattern'], content, re2.I | re2.X | re2.S) is not None
+
+    return r
 
 
 def _story_matches_topic(
@@ -317,22 +319,31 @@ def _get_failed_url(db: DatabaseHandler, topics_id: int, url: str) -> typing.Opt
 
     urls = list({url, mediawords.util.url.normalize_url_lossy(url)})
 
+    # create temporary table first to make postgres do a topic_fetch_urls_url index scan followed
+    # by a simple filter of those results
+    db.query(
+        """
+        create temporary table _urls as
+            select * from topic_fetch_urls where md5(url) = any(array(select md5(unnest(%(a)s))))
+        """,
+        {'a': urls})
+
     failed_url = db.query(
         """
         select *
-            from topic_fetch_urls
+            from _urls
             where
                 topics_id = %(a)s and
-                state in (%(b)s, %(c)s) and
-                md5(url) = any(array(select md5(unnest(%(d)s))))
+                state in (%(b)s, %(c)s)
             limit 1
         """,
         {
             'a': topics_id,
             'b': FETCH_STATE_REQUEST_FAILED,
             'c': FETCH_STATE_CONTENT_MATCH_FAILED,
-            'd': urls
         }).hash()
+
+    db.query("drop table _urls")
 
     return failed_url
 

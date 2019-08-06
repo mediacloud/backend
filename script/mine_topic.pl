@@ -17,8 +17,7 @@ use MediaWords::Job::TM::MineTopic;
 
 sub main
 {
-    my ( $topic_opt, $import_only, $cache_broken_downloads, $direct_job, $skip_outgoing_foreign_rss_links,
-        $skip_post_processing );
+    my ( $topic_opt, $import_only, $direct_job, $skip_post_processing, $snapshots_id );
 
     binmode( STDOUT, 'utf8' );
     binmode( STDERR, 'utf8' );
@@ -26,16 +25,15 @@ sub main
     $| = 1;
 
     Getopt::Long::GetOptions(
-        "topic=s"                          => \$topic_opt,
-        "import_only!"                     => \$import_only,
-        "cache_broken_downloads!"          => \$cache_broken_downloads,
-        "direct_job!"                      => \$direct_job,
-        "skip_outgoing_foreign_rss_links!" => \$skip_outgoing_foreign_rss_links,
-        "skip_post_processing!"            => \$skip_post_processing
+        "topic=s"               => \$topic_opt,
+        "import_only!"          => \$import_only,
+        "direct_job!"           => \$direct_job,
+        "skip_post_processing!" => \$skip_post_processing,
+        "snapshots_id=i"        => \$snapshots_id
     ) || return;
 
-    my $optional_args =
-      join( ' ', map { "[ --$_ ]" } qw(direct_job import_only cache_broken_downloads skip_outgoing_foreign_rss_links) );
+    my $args_list = [ qw(direct_job import_only skip_post_processing snapshots_id) ];
+    my $optional_args = join( ' ', map { "[ --$_ ]" } @{ $args_list } );
     die( "usage: $0 --topic < id > $optional_args" ) unless ( $topic_opt );
 
     my $db = MediaWords::DB::connect_to_db;
@@ -51,10 +49,10 @@ sub main
         INFO "Processing topic $topics_id...";
 
         my $args = {
-            topics_id                       => $topics_id,
-            import_only                     => $import_only,
-            cache_broken_downloads          => $cache_broken_downloads,
-            skip_outgoing_foreign_rss_links => $skip_outgoing_foreign_rss_links
+            topics_id            => $topics_id,
+            import_only          => $import_only,
+            skip_post_processing => $skip_post_processing,
+            snapshots_id         => $snapshots_id,
         };
 
         if ( $direct_job )
