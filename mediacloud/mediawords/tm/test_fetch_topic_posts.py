@@ -75,7 +75,6 @@ def validate_topic_posts(db: DatabaseHandler, topic: dict, mock_posts: list) -> 
             from topic_posts tp
                 join topic_post_days tpd using ( topic_post_days_id )
             where topics_id = %(a)s
-            order by post_id
         """,
         {'a': topic['topics_id']}).hashes()
 
@@ -84,8 +83,13 @@ def validate_topic_posts(db: DatabaseHandler, topic: dict, mock_posts: list) -> 
     mock_posts = sorted(mock_posts, key=lambda x: x['post_id'])
 
     for i, mock_post in enumerate(mock_posts):
+        got_post = db.query(
+            "select * from topic_posts where post_id = %(a)s::text",
+            {'a': mock_post['post_id']}).hash()
+
+        assert got_post
+
         for field in ftp.POST_FIELDS:
-            got_post = got_posts[i]
             assert str(got_post.get(field, None)) == str(mock_post.get(field, None))
 
 
@@ -96,7 +100,9 @@ def validate_topic_post_urls(db: DatabaseHandler, topic: dict, mock_posts: list)
     assert num_urls == len(mock_posts)
 
     for mock_post in mock_posts:
-        topic_post = db.query("select * from topic_posts where post_id = %(a)s", {'a': mock_post['post_id']}).hash()
+        topic_post = db.query(
+            "select * from topic_posts where post_id = %(a)s::text",
+            {'a': mock_post['post_id']}).hash()
 
         assert topic_post is not None
 
