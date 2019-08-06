@@ -105,7 +105,7 @@ sub _add_timespans_to_stories
             story_link_count  => 1,
             medium_count      => 1,
             medium_link_count => 1,
-            tweet_count       => 1,
+            post_count        => 1,
             period            => 'overall'
 
         };
