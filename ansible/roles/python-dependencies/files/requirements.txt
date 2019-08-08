@@ -134,6 +134,9 @@ timeout_decorator==0.4.1
 # Twitter API client
 tweepy==3.7.0
 
+# Progress bars and such
+tqdm==4.32.2
+
 # Fetching and parsing website sitemap trees
 ultimate_sitemap_parser==0.5
 
