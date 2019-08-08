@@ -9,7 +9,7 @@
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
   <component name="PackageRequirementsSettings">
-    <option name="requirementsPath" value="" />
+    <option name="requirementsPath" value="$MODULE_DIR$/../ansible/roles/python-dependencies/files/requirements.txt" />
   </component>
   <component name="TestRunnerService">
     <option name="projectConfiguration" value="pytest" />
