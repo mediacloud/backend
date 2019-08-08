@@ -39,8 +39,8 @@ def train_news_article_model(training_sitemap_urls_file: str,
 
     log.info("Creating model...")
     model = Sequential()
-    model.add(Dense(12, input_dim=len(columns_to_read) - 1, activation='relu'))
-    model.add(Dense(8, activation='relu'))
+    model.add(Dense(round(column_count * 1.5), input_dim=column_count - 1, activation='relu'))
+    model.add(Dense(column_count - 1, activation='relu'))
     model.add(Dense(1, activation='sigmoid'))
 
     log.info("Compiling model...")
