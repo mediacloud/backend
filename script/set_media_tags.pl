@@ -32,23 +32,38 @@ sub main
 
     my $media_ids = [ sort { $a <=> $b } keys( %{ $media_lookup } ) ];
 
-    for my $media_id ( @{ $media_ids } )
+    my $media_ids_list = join( ',', @{ $media_ids } );
+
+    my $active_media_ids = $db->query( <<SQL )->flat();
+with active_media as (
+    select distinct media_id from feeds where media_id in ( $media_ids_list ) and active = 't'
+)
+
+select media_id
+    from media m
+        join active_media am using ( media_id )
+    where
+        exists ( select 1 from stories s where s.media_id = m.media_id offset 101 limit 1 )
+SQL
+
+    my $num_active_media = scalar( @{ $active_media_ids } );
+
+    DEBUG( "analyzing $num_active_media media ..." );
+
+    my $i = 0;
+    for my $media_id ( @{ $active_media_ids } )
     {
         my $medium = $db->require_by_id( 'media', $media_id );
 
-        if ( !MediaWords::DBI::Media::medium_is_ready_for_analysis( $db, $medium ) )
-        {
-            TRACE( "medium $medium->{ name } [ $medium->{ media_id } ]: NOT READY" );
-            next;
-        }
-
-        DEBUG( "medium $medium->{ name } [ $medium->{ media_id } ]" );
+        DEBUG( "medium $medium->{ name } $medium->{ media_id } [$i / $num_active_media]" );
 
         DEBUG( "analyzing language ..." );
         MediaWords::DBI::Media::PrimaryLanguage::set_primary_language( $db, $medium );
 
         DEBUG( "analyzing country ..." );
         MediaWords::DBI::Media::SubjectCountry::set_subject_country( $db, $medium );
+
+        $i++;
     }
 
 }

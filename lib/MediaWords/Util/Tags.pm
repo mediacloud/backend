@@ -63,6 +63,7 @@ SQL
 
     $db->query( <<SQL, $tag->{ tags_id }, $medium->{ media_id } );
 insert into media_tags_map ( tags_id, media_id ) values ( \$1, \$2 )
+    on conflict ( media_id, tags_id ) do nothing
 SQL
 
 }
