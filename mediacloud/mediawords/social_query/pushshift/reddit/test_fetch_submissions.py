@@ -63,6 +63,12 @@ class TestPushshiftRedditSubmissionFetcher(TestCase):
             for key in self.required_fields:
                 assert obj[key] is not None
 
+        # Check that selftext is appended to title for the content field if it is present
+        for obj in data:
+            if 'selfttext' in obj['data'] and obj['data']['selftext'] is not None:
+                correct_content = "{} {}".format(obj['data']['title'], obj['data']['selftext'])
+                assert obj['content'] == correct_content
+
     def test_pushshift_query_builder(self) -> None:
         """Test the internal Pushshift submission search query builder method"""
 

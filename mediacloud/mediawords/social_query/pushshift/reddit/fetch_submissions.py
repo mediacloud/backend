@@ -132,7 +132,13 @@ def _build_response(rows: list) -> list:
         obj = {}
         obj['post_id'] = _base36encode(int(row['_id']))
         obj['author'] = row['_source']['author']
-        obj['content'] = row['_source']['title']
+
+        # Build content field using title and selftext (if it exists)
+        content = row['_source']['title']
+        if 'selftext' in row['_source'] and row['_source']['selftext'] is not None:
+            content = "{} {}".format(content, row['_source']['selftext'])
+        obj['content'] = content
+
         obj['channel'] = row['_source']['subreddit']
         obj['publish_date'] = _convert_epoch_to_iso8601(row['_source']['created_utc'])
         row['_source']['subreddit_id'] = "t5_{}".format(_base36encode(int(row['_source']['subreddit_id'])))
