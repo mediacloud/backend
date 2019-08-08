@@ -7,6 +7,14 @@ def _has_number_in_string(string: str) -> bool:
 
 
 def url_points_to_news_article(url: str) -> bool:
+    """
+    Return True if URL looks like it's pointing to a news article.
+
+    Configured to work with sitemap-derived Colombian news sources only.
+
+    :param url: URL to test.
+    :return: True if URL looks like it's pointing to a news article.
+    """
     uri = urlparse(url)
     if uri.path == '/' or not uri.path:
         return False
