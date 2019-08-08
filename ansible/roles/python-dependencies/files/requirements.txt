@@ -122,11 +122,17 @@ requests==2.21.0
 # Asynchronous (parallell / concurrent) HTTP requests
 requests-futures==0.9.9
 
+# Clustering sitemap URLs
+scikit-learn==0.21.3
+
 # math package for forceatlas implementation
 scipy==1.2.0
 
 # Splitting text into sentences using Lingua::Sentence's method
 sentence_splitter==1.3
+
+# Training sitemap news article detection models
+tensorflow==1.14.0
 
 # Useful for timing out tests for which the failure case is a hard hang that does not respond to signals
 timeout_decorator==0.4.1
