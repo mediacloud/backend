@@ -27,7 +27,7 @@ def train_news_article_model(training_sitemap_urls_file: str,
         saved.
     """
 
-    epoch_count = 2  # FIXME how many epochs do we really want?
+    epoch_count = 150
 
     column_count = 17
     columns_to_read = [x + 1 for x in range(column_count)]
