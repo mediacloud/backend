@@ -46,6 +46,9 @@ furl==2.0.0
 # Word2vec topic models
 gensim==3.6.0
 
+# Saving trained models
+h5py==2.9.0
+
 # Stemming Hausa words
 hausastemmer==1.0
 
@@ -57,6 +60,9 @@ jieba==0.39
 
 # Parsing email templates
 Jinja2==2.10.1
+
+# Training sitemap news article detection models
+keras==2.2.4
 
 # XML manipulations, HTML parsing
 lxml==4.3.0
