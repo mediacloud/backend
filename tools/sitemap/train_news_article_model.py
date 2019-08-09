@@ -29,7 +29,7 @@ def train_news_article_model(training_sitemap_urls_file: str,
 
     epoch_count = 150
 
-    column_count = 17  # FIXME autodetect column count
+    column_count = 19  # FIXME autodetect column count
     columns_to_read = [x + 1 for x in range(column_count)]
 
     log.info(f"Loading training data from '{training_sitemap_urls_file}'...")

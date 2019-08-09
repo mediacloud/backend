@@ -65,6 +65,8 @@ class URLFeatureExtractor(object):
             self._path_has_chunk_that_looks_like_year(),
             self._path_has_chunk_that_looks_like_month(),
             self._path_has_chunk_that_looks_like_day(),
+            self._path_length(),
+            self._longest_path_part_length(),
             self._longest_path_part_from_start_index(),
             self._longest_path_part_from_end_index(),
             self._consecutive_number_only_path_part_count(),
@@ -209,6 +211,30 @@ class URLFeatureExtractor(object):
     #         return zlib.crc32(path_part.encode('utf-8', 'replace')) & 0xffffffff
     #     else:
     #         return 0
+
+    def _path_length(self) -> int:
+        """
+        Return path length.
+        :return:
+        """
+        path_length = 0
+        for path_part in self.__path:
+            path_part_length = len('-'.join(path_part))
+            path_length += path_part_length
+        path_length += len(self.__path) - 1
+        return path_length
+
+    def _longest_path_part_length(self) -> int:
+        """
+        Return length of longest path part.
+        :return:
+        """
+        longest_part_length = 0
+        for path_part in self.__path:
+            path_part_length = len('-'.join(path_part))
+            if path_part_length > longest_part_length:
+                longest_part_length = path_part_length
+        return longest_part_length
 
     def _longest_path_part_from_start_index(self) -> int:
         """
