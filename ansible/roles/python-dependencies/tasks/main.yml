@@ -65,8 +65,9 @@
     # 1) On OS X, Hunspell lies under /usr/local
     # 2) On Ubuntu, this is a no-op
     CFLAGS: "-I/usr/local/include"
-    CCFLAGS: "-I/usr/local/include"
-    CXXFLAGS: "-I/usr/local/include"
+    CCFLAGS: "-I/usr/local/include -std=c++98"
+    CXXFLAGS: "-I/usr/local/include -std=c++98"
+    CPPFLAGS: "-std=c++98"
     LDFLAGS: "-L/usr/local/lib"
   become: true
   become_user: "{{ mediacloud_user }}"
