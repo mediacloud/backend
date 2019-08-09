@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+import csv
 import os
 from typing import Optional
 
@@ -11,6 +12,20 @@ from numpy import loadtxt
 from mediawords.util.log import create_logger
 
 log = create_logger(__name__)
+
+
+def _csv_column_count(filename: str) -> int:
+    """
+    Return CSV column count.
+    :param filename: Path to CSV file.
+    :return: CSV column count.
+    """
+    with open(filename, mode='r') as f:
+        reader = csv.reader(f, delimiter="\t")
+        line = next(reader)
+        column_count = len(line)
+        assert column_count > 0, "Column count should be bigger than 0."
+        return column_count
 
 
 def train_news_article_model(training_sitemap_urls_file: str,
@@ -29,7 +44,14 @@ def train_news_article_model(training_sitemap_urls_file: str,
 
     epoch_count = 150
 
-    column_count = 19  # FIXME autodetect column count
+    column_count = _csv_column_count(training_sitemap_urls_file) - 1  # Skip URL column
+    log.info(f"Column count: {column_count}")
+
+    if evaluation_sitemap_urls_file:
+        assert column_count == _csv_column_count(
+            evaluation_sitemap_urls_file
+        ) - 1, "Evaluation dataset should have same column count as training dataset."
+
     columns_to_read = [x + 1 for x in range(column_count)]
 
     log.info(f"Loading training data from '{training_sitemap_urls_file}'...")
