@@ -145,7 +145,7 @@
 
     - name: Add mecab-ipadic-neologd APT repository
       apt_repository:
-        repo: "deb https://dl.bintray.com/pypt/mecab-ipadic-neologd-deb {{ ansible_lsb.codename | lower }} main"
+        repo: "deb https://dl.bintray.com/pypt/mecab-ipadic-neologd-deb xenial main"
         state: present
         filename: "bintray-pypt-mecab-ipadic-neologd"
         update_cache: yes
