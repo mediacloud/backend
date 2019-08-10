@@ -42,7 +42,7 @@ def train_news_article_model(training_sitemap_urls_file: str,
         saved.
     """
 
-    epoch_count = 150
+    epoch_count = 4
 
     column_count = _csv_column_count(training_sitemap_urls_file) - 1  # Skip URL column
     log.info(f"Column count: {column_count}")
