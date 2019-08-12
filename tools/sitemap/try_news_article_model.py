@@ -8,6 +8,7 @@ from keras.engine.saving import model_from_json
 
 from mediawords.util.log import create_logger
 from mediawords.util.sitemap.url_vectors import URLFeatureExtractor
+from mediawords.util.url import normalize_url
 
 log = create_logger(__name__)
 
@@ -97,6 +98,7 @@ def try_news_article_model(model_dir: str) -> None:
     ]
 
     for url in article_urls + not_article_urls:
+        url = normalize_url(url)
         url_vectors = URLFeatureExtractor(url).vectors()
 
         x = np.array([url_vectors])
