@@ -210,6 +210,8 @@ class URLFeatureExtractor(object):
             path_part_length = len('-'.join(path_part))
             path_length += path_part_length
         path_length += len(self.__path) - 1
+        if path_length < 0:
+            path_length = 0
         return path_length
 
     def _longest_path_part_length(self) -> int:
