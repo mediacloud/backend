@@ -140,6 +140,14 @@ def url_points_to_news_article(url: str) -> bool:
     elif '//lanacion.com.co' in url:
         if not re.search(r'/\d\d\d\d/\d\d/\d\d/', url):
             return False
+        if '/attachment-' in url:
+            return False
+        if '/image-' in url:
+            return False
+
+        # e.g. https://www.lanacion.com.co/2016/03/11/neiva-recibe-al-ramillete-real/attachment-images_2016_03_11_3/
+        if url.count('/') > 7:
+            return False
 
     elif '//todaycolombia.com' in url:
         if re.search(r'-\d+x\d+', url):
