@@ -76,7 +76,7 @@ class URLFeatureExtractor(object):
         ]
 
     @staticmethod
-    def __is_dec_hex_number(number: str) -> bool:
+    def _is_dec_hex_number(number: str) -> bool:
         """
         Whether or not argument is a decimal or hexadecimal number.
         :param number: Number.
@@ -103,7 +103,7 @@ class URLFeatureExtractor(object):
         :return:
         """
         for key in self.__query.keys():
-            if self.__is_dec_hex_number(key):
+            if self._is_dec_hex_number(key):
                 return True
         return False
 
@@ -114,7 +114,7 @@ class URLFeatureExtractor(object):
         """
         for key, values in self.__query.items():
             for value in values:
-                if self.__is_dec_hex_number(value):
+                if self._is_dec_hex_number(value):
                     return True
         return False
 
@@ -145,7 +145,7 @@ class URLFeatureExtractor(object):
         if len(self.__path[-1]) < last_path_chunk_index * -1:
             return False
 
-        return self.__is_dec_hex_number(self.__path[-1][last_path_chunk_index])
+        return self._is_dec_hex_number(self.__path[-1][last_path_chunk_index])
 
     def _path_ends_with_slash(self) -> bool:
         """
@@ -262,7 +262,7 @@ class URLFeatureExtractor(object):
 
             path_part_is_numbers_only = True
             for path_part_chunk in path_part:
-                if not self.__is_dec_hex_number(path_part_chunk):
+                if not self._is_dec_hex_number(path_part_chunk):
                     path_part_is_numbers_only = False
                     break
 
@@ -285,7 +285,7 @@ class URLFeatureExtractor(object):
 
         for path_part in self.__path:
             for path_part_chunk in path_part:
-                if self.__is_dec_hex_number(path_part_chunk):
+                if self._is_dec_hex_number(path_part_chunk):
                     number_only_chunks += 1
 
         return number_only_chunks
@@ -296,7 +296,7 @@ class URLFeatureExtractor(object):
         for path_part in path:
 
             for path_part_chunk in path_part:
-                if cls.__is_dec_hex_number(path_part_chunk):
+                if cls._is_dec_hex_number(path_part_chunk):
                     return path_part_index
 
             path_part_index += 1
