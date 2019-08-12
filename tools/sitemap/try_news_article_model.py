@@ -54,6 +54,19 @@ def try_news_article_model(model_dir: str) -> None:
         ),
         'https://www.kdnuggets.com/2016/10/machine-learning-detect-malicious-urls.html',
         'https://www.facebook.com/zuck/posts/10108280403736331',
+        'https://stackoverflow.com/questions/45310254/fixed-digits-after-decimal-with-f-strings',
+        'https://www.bbc.com/news/world-asia-china-49317975',
+        (
+            'https://www.huffpost.com/entry/acting-dhs-chief-concedes-timing-unfortunate-mississippi-ice-'
+            'raids_n_5d503738e4b0820e0af6d6ab'
+        ),
+        'https://www.foxnews.com/auto/jeffrey-epstein-former-cellmate-apparent-suicide-attempt',
+        'https://www.foxnews.com/media/officer-fox-friends-burger-king-worker-drew-pig',
+        (
+            'https://www.washingtonpost.com/national/angry-and-fearful-americans-struggle-to-talk-about-guns-and-race/'
+            '2019/08/11/d040c678-bad2-11e9-b3b4-2bb69e8c4e39_story.html'
+        ),
+        'https://www.wsj.com/articles/wealth-of-jeffrey-epsteins-brother-is-also-a-mystery-11565607148',
     ]
 
     not_article_urls = [
@@ -71,6 +84,16 @@ def try_news_article_model(model_dir: str) -> None:
         'http://example.com/tag/news/',
         'https://disqus.com/by/hussainahmedtariq/',
         'https://www.facebook.com/zuck',
+        'https://stackoverflow.com/questions/tagged/python-3.x',
+        'https://www.bbc.com/news/world/asia/china',
+        'https://www.huffpost.com/',
+        'https://www.huffpost.com/?guce_referrer=aHR0cDovL3d3dy5lYml6bWJhLmNvbS9hcnRpY2xlcy9uZXdzLXdlYnNpdGVz',
+        'https://www.foxnews.com/',
+        'https://www.foxnews.com/entertainment',
+        'https://www.foxnews.com/category/person/jeffrey-epstein',
+        'https://www.washingtonpost.com/national/investigations/',
+        'https://www.washingtonpost.com/national/investigations/?nid=top_nav_investigations',
+        'https://www.wsj.com/news/types/television-review',
     ]
 
     for url in article_urls + not_article_urls:
