@@ -38,28 +38,42 @@ def try_news_article_model(model_dir: str) -> None:
 
     log.info("Trying out model...")
 
-    urls = [
+    article_urls = [
+        'https://www.nytimes.com/2019/08/08/climate/climate-change-food-supply.html',
+        (
+            'https://www.delfi.lt/news/daily/lithuania/sunu-i-ligonine-isgabenes-pogrebnojus-kaltina-simasiu-mano-'
+            'vaikas-verkia-o-jie-politikuoja.d?id=81942177'
+        ),
+        (
+            'https://www.15min.lt/naujiena/aktualu/lietuva/astravo-atomineje-elektrineje-ivykus-rimtai-avarijai-'
+            'vilnieciu-nebutu-kur-evakuoti-56-1185646'
+        ),
+        (
+            'https://globalvoices.org/2019/08/07/two-universities-sign-historic-agreement-on-slavery-reparations-in-'
+            'the-caribbean/'
+        ),
+        'https://www.kdnuggets.com/2016/10/machine-learning-detect-malicious-urls.html',
+        'https://www.facebook.com/zuck/posts/10108280403736331',
+    ]
+
+    not_article_urls = [
         'https://www.nytimes.com/',
         'https://www.nytimes.com/section/business',
         'https://www.nytimes.com/newsletters',
-        'https://www.nytimes.com/2019/08/08/climate/climate-change-food-supply.html',
         'https://www.delfi.lt/',
-        'https://www.delfi.lt/news/daily/lithuania/sunu-i-ligonine-isgabenes-pogrebnojus-kaltina-simasiu-mano-vaikas-verkia-o-jie-politikuoja.d?id=81942177',
         'https://www.delfi.lt/krepsinis/turnyrai/europos-taure/',
         'https://www.15min.lt/naujienos/aktualu/pasaulis',
-        'https://www.15min.lt/naujiena/aktualu/lietuva/astravo-atomineje-elektrineje-ivykus-rimtai-avarijai-vilnieciu-nebutu-kur-evakuoti-56-1185646',
         'https://globalvoices.org/',
         'https://globalvoices.org/-/world/western-europe/',
         'https://globalvoices.org/-/world/western-europe,eastern-central-europe/',
-        'https://globalvoices.org/2019/08/07/two-universities-sign-historic-agreement-on-slavery-reparations-in-the-caribbean/',
         'https://facebook.com/globalvoicesonline/',
         'https://en.support.wordpress.com/posts/categories/',
         'http://example.com/tag/news/',
         'https://disqus.com/by/hussainahmedtariq/',
-        'https://www.kdnuggets.com/2016/10/machine-learning-detect-malicious-urls.html',
+        'https://www.facebook.com/zuck',
     ]
 
-    for url in urls:
+    for url in article_urls + not_article_urls:
         url_vectors = URLFeatureExtractor(url).vectors()
 
         x = np.array([url_vectors])
