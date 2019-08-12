@@ -200,18 +200,6 @@ class URLFeatureExtractor(object):
 
         return False
 
-    # def _path_part_hash(self, index: int) -> int:
-    #     """
-    #     Return CRC32 hash of path part, or 0 if no such part exists.
-    #     :param index: Index of path part.
-    #     :return:
-    #     """
-    #     if len(self.__path) > index:
-    #         path_part = '-'.join(self.__path[index])
-    #         return zlib.crc32(path_part.encode('utf-8', 'replace')) & 0xffffffff
-    #     else:
-    #         return 0
-
     def _path_length(self) -> int:
         """
         Return path length.
