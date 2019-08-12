@@ -64,8 +64,8 @@ def try_news_article_model(model_dir: str) -> None:
 
         x = np.array([url_vectors])
 
-        prediction = model.predict(x)
-        print(f"* {prediction} == {url}")
+        prediction = model.predict(x)[0][0]
+        print(f"* {prediction:.2f} == {url}")
 
 
 def main():
