@@ -24,7 +24,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4724;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4725;
 BEGIN
 
     -- Update / set database schema version
@@ -903,6 +903,11 @@ CREATE TABLE downloads_success_content
     ) FOR VALUES IN ('content')
     PARTITION BY RANGE (downloads_id);
 
+-- We need a separate unique index for the "download_texts" foreign key to be
+-- able to point to "downloads_success_content" partitions
+CREATE UNIQUE INDEX downloads_success_content_downloads_id
+    ON downloads_success_content (downloads_id);
+
 CREATE INDEX downloads_success_content_extracted
     ON downloads_success_content (extracted);
 
@@ -1544,8 +1549,16 @@ BEGIN
 
     FOREACH partition IN ARRAY created_partitions LOOP
 
-        RAISE NOTICE 'Altering created partition "%"...', partition;
+        RAISE NOTICE 'Adding foreign key to created partition "%"...', partition;
+        EXECUTE '
+            ALTER TABLE ' || partition || '
+                ADD CONSTRAINT ' || partition || '_downloads_id_fkey
+                FOREIGN KEY (downloads_id)
+                REFERENCES ' || REPLACE(partition, 'download_texts_p', 'downloads_success_content') || ' (downloads_id)
+                ON DELETE CASCADE;
+        ';
 
+        RAISE NOTICE 'Adding trigger to created partition "%"...', partition;
         EXECUTE '
             CREATE TRIGGER ' || partition || '_test_referenced_download_trigger
                 BEFORE INSERT OR UPDATE ON ' || partition || '
@@ -3184,6 +3197,10 @@ CREATE OR REPLACE FUNCTION create_missing_partitions()
 RETURNS VOID AS
 $$
 BEGIN
+
+    -- We have to create "downloads" partitions before "download_texts" ones
+    -- because "download_texts" will have a foreign key reference to
+    -- "downloads_success_content"
 
     RAISE NOTICE 'Creating partitions in "downloads_success_content" table...';
     PERFORM downloads_success_content_create_partitions();
