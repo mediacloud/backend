@@ -24,7 +24,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4724;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4725;
 BEGIN
 
     -- Update / set database schema version
@@ -1449,12 +1449,15 @@ end;
 $$ language plpgsql;
 
 -- efficiently query downloads_pending for the latest downloads_id per host.  postgres is not able to do this through
--- its normal query planning (it just does an index scan of the whole indesx).  this turns a query that 
+-- its normal query planning (it just does an index scan of the whole index).  this turns a query that 
 -- takes ~22 seconds for a 100 million row table into one that takes ~0.25 seconds
 create or replace function get_downloads_for_queue() returns table(downloads_id bigint) as $$
 declare
     pending_host record;
 begin
+    -- quick temp copy without dead row issues for querying in loop body below
+    create temporary table qd on commit drop as select * from queued_downloads;
+
     create temporary table pending_downloads (downloads_id bigint) on commit drop;
     for pending_host in
             WITH RECURSIVE t AS (
@@ -1469,7 +1472,7 @@ begin
             insert into pending_downloads
                 select dp.downloads_id
                     from downloads_pending dp
-                        left join queued_downloads qd on ( dp.downloads_id = qd.downloads_id )
+                        left join qd on ( dp.downloads_id = qd.downloads_id )
                     where 
                         host = pending_host.host and
                         qd.downloads_id is null
