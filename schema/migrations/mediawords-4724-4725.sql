@@ -27,6 +27,19 @@ WHERE downloads_id IN (
 );
 
 
+-- Delete download texts which are not successful content downloads (some
+-- extraction errors somehow ended up getting stored in "download_texts" as
+-- extracted text)
+DELETE FROM download_texts_np
+WHERE downloads_id IN (
+    SELECT download_texts_np.downloads_id
+    FROM download_texts_np
+        INNER JOIN downloads
+            ON download_texts_np.downloads_id = downloads.downloads_id
+    WHERE downloads.state != 'success'
+);
+
+
 -- Create index *only* on the base table (initially invalid)
 CREATE UNIQUE INDEX downloads_success_content_downloads_id
     ON ONLY downloads_success_content (downloads_id);
