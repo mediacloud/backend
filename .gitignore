@@ -118,4 +118,6 @@ joblog.txt
 /lib/
 /mediacloud/
 /ansible/
+/data/
+mediawords.yml
 
