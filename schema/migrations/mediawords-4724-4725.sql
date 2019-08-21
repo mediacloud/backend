@@ -10,43 +10,131 @@
 --
 -- You might need to import some additional schema diff files to reach the desired version.
 --
+
 --
 -- 1 of 2. Import the output of 'apgdiff':
 --
 
-create or replace function get_downloads_for_queue() returns table(downloads_id bigint) as $$
-declare
-    pending_host record;
-begin
-    -- quick temp copy without dead row issues for querying in loop body below
-    create temporary table qd on commit drop as select * from queued_downloads;
 
-    create temporary table pending_downloads (downloads_id bigint) on commit drop;
-    for pending_host in
-            WITH RECURSIVE t AS (
-               (SELECT host FROM downloads_pending ORDER BY host LIMIT 1)
-               UNION ALL
-               SELECT (SELECT host FROM downloads_pending WHERE host > t.host ORDER BY host LIMIT 1)
-               FROM t
-               WHERE t.host IS NOT NULL
-               )
-            SELECT host FROM t WHERE host IS NOT NULL
-        loop
-            insert into pending_downloads
-                select dp.downloads_id
-                    from downloads_pending dp
-                        left join qd on ( dp.downloads_id = qd.downloads_id )
-                    where 
-                        host = pending_host.host and
-                        qd.downloads_id is null
-                    order by priority, downloads_id desc nulls last
-                    limit 1;
-        end loop;
+-- Delete download texts which don't have references in "downloads" due to a missing foreign key
+DELETE FROM download_texts
+WHERE downloads_id IN (
+    SELECT download_texts.downloads_id
+    FROM download_texts
+        LEFT JOIN downloads
+            ON download_texts.downloads_id = downloads.downloads_id
+    WHERE downloads.downloads_id IS NULL
+);
 
-    return query select pd.downloads_id from pending_downloads pd;
- end;
 
-$$ language plpgsql;
+-- Delete download texts which are not successful content downloads (some
+-- extraction errors somehow ended up getting stored in "download_texts" as
+-- extracted text)
+DELETE FROM download_texts_np
+WHERE downloads_id IN (
+    SELECT download_texts_np.downloads_id
+    FROM download_texts_np
+        INNER JOIN downloads
+            ON download_texts_np.downloads_id = downloads.downloads_id
+    WHERE downloads.state != 'success'
+);
+
+
+-- Create index *only* on the base table (initially invalid)
+CREATE UNIQUE INDEX downloads_success_content_downloads_id
+    ON ONLY downloads_success_content (downloads_id);
+
+
+-- Create partition indexes and attach them to the base table's index to make it valid
+DO $$
+DECLARE
+    tables CURSOR FOR
+        SELECT tablename
+        FROM pg_tables
+        WHERE schemaname = 'public'
+          AND tablename LIKE 'downloads_success_content_%'
+        ORDER BY tablename;
+BEGIN
+    FOR table_record IN tables LOOP
+
+        -- Create index on one of the partitions
+        EXECUTE '
+            CREATE UNIQUE INDEX ' || table_record.tablename || '_downloads_id_idx
+                ON ' || table_record.tablename || ' (downloads_id);
+        ';
+
+        -- Attach the newly created index to base table
+        EXECUTE '
+            ALTER INDEX downloads_success_content_downloads_id
+                ATTACH PARTITION ' || table_record.tablename || '_downloads_id_idx;
+        ';
+
+    END LOOP;
+END
+$$;
+
+
+-- Add foreign key constraints from "download_texts" partitions to "downloads_success_content" partitions
+DO $$
+DECLARE
+    tables CURSOR FOR
+        SELECT tablename
+        FROM pg_tables
+        WHERE schemaname = 'public'
+          AND tablename LIKE 'download_texts_p_%'
+        ORDER BY tablename;
+BEGIN
+    FOR table_record IN tables LOOP
+
+        EXECUTE '
+            ALTER TABLE ' || table_record.tablename || '
+                ADD CONSTRAINT ' || table_record.tablename || '_downloads_id_fkey
+                FOREIGN KEY (downloads_id)
+                REFERENCES ' || REPLACE(table_record.tablename, 'download_texts_p', 'downloads_success_content') || ' (downloads_id)
+                ON DELETE CASCADE;
+        ';
+
+    END LOOP;
+END
+$$;
+
+
+CREATE OR REPLACE FUNCTION download_texts_p_create_partitions()
+RETURNS VOID AS
+$$
+DECLARE
+    created_partitions TEXT[];
+    partition TEXT;
+BEGIN
+
+    created_partitions := ARRAY(SELECT partition_by_downloads_id_create_partitions('download_texts_p'));
+
+    FOREACH partition IN ARRAY created_partitions LOOP
+
+        RAISE NOTICE 'Adding foreign key to created partition "%"...', partition;
+        EXECUTE '
+            ALTER TABLE ' || partition || '
+                ADD CONSTRAINT ' || partition || '_downloads_id_fkey
+                FOREIGN KEY (downloads_id)
+                REFERENCES ' || REPLACE(partition, 'download_texts_p', 'downloads_success_content') || ' (downloads_id)
+                ON DELETE CASCADE;
+        ';
+
+        RAISE NOTICE 'Adding trigger to created partition "%"...', partition;
+        EXECUTE '
+            CREATE TRIGGER ' || partition || '_test_referenced_download_trigger
+                BEFORE INSERT OR UPDATE ON ' || partition || '
+                FOR EACH ROW
+                EXECUTE PROCEDURE test_referenced_download_trigger(''downloads_id'');
+        ';
+
+    END LOOP;
+
+END;
+$$
+LANGUAGE plpgsql;
+
+
 --
 -- 2 of 2. Reset the database version.
 --
@@ -71,5 +159,3 @@ $$
 LANGUAGE 'plpgsql';
 
 SELECT set_database_schema_version();
-
-
