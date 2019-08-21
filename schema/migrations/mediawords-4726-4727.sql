@@ -14,6 +14,39 @@
 -- 1 of 2. Import the output of 'apgdiff':
 --
 
+create or replace function get_downloads_for_queue() returns table(downloads_id bigint) as $$
+declare
+    pending_host record;
+begin
+    -- quick temp copy without dead row issues for querying in loop body below
+    create temporary table qd on commit drop as select * from queued_downloads;
+
+    create temporary table pending_downloads (downloads_id bigint) on commit drop;
+    for pending_host in
+            WITH RECURSIVE t AS (
+               (SELECT host FROM downloads_pending ORDER BY host LIMIT 1)
+               UNION ALL
+               SELECT (SELECT host FROM downloads_pending WHERE host > t.host ORDER BY host LIMIT 1)
+               FROM t
+               WHERE t.host IS NOT NULL
+               )
+            SELECT host FROM t WHERE host IS NOT NULL
+        loop
+            insert into pending_downloads
+                select dp.downloads_id
+                    from downloads_pending dp
+                        left join qd on ( dp.downloads_id = qd.downloads_id )
+                    where 
+                        host = pending_host.host and
+                        qd.downloads_id is null
+                    order by priority, downloads_id desc nulls last
+                    limit 1;
+        end loop;
+
+    return query select pd.downloads_id from pending_downloads pd;
+ end;
+
+$$ language plpgsql;
 --
 -- 2 of 2. Reset the database version.
 --
