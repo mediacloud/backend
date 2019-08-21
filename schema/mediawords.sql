@@ -24,7 +24,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4726;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4725;
 BEGIN
 
     -- Update / set database schema version
@@ -903,11 +903,6 @@ CREATE TABLE downloads_success_content
     ) FOR VALUES IN ('content')
     PARTITION BY RANGE (downloads_id);
 
--- We need a separate unique index for the "download_texts" foreign key to be
--- able to point to "downloads_success_content" partitions
-CREATE UNIQUE INDEX downloads_success_content_downloads_id
-    ON downloads_success_content (downloads_id);
-
 CREATE INDEX downloads_success_content_extracted
     ON downloads_success_content (extracted);
 
@@ -1454,12 +1449,15 @@ end;
 $$ language plpgsql;
 
 -- efficiently query downloads_pending for the latest downloads_id per host.  postgres is not able to do this through
--- its normal query planning (it just does an index scan of the whole indesx).  this turns a query that 
+-- its normal query planning (it just does an index scan of the whole index).  this turns a query that 
 -- takes ~22 seconds for a 100 million row table into one that takes ~0.25 seconds
 create or replace function get_downloads_for_queue() returns table(downloads_id bigint) as $$
 declare
     pending_host record;
 begin
+    -- quick temp copy without dead row issues for querying in loop body below
+    create temporary table qd on commit drop as select * from queued_downloads;
+
     create temporary table pending_downloads (downloads_id bigint) on commit drop;
     for pending_host in
             WITH RECURSIVE t AS (
@@ -1474,7 +1472,7 @@ begin
             insert into pending_downloads
                 select dp.downloads_id
                     from downloads_pending dp
-                        left join queued_downloads qd on ( dp.downloads_id = qd.downloads_id )
+                        left join qd on ( dp.downloads_id = qd.downloads_id )
                     where 
                         host = pending_host.host and
                         qd.downloads_id is null
@@ -1549,16 +1547,8 @@ BEGIN
 
     FOREACH partition IN ARRAY created_partitions LOOP
 
-        RAISE NOTICE 'Adding foreign key to created partition "%"...', partition;
-        EXECUTE '
-            ALTER TABLE ' || partition || '
-                ADD CONSTRAINT ' || partition || '_downloads_id_fkey
-                FOREIGN KEY (downloads_id)
-                REFERENCES ' || REPLACE(partition, 'download_texts_p', 'downloads_success_content') || ' (downloads_id)
-                ON DELETE CASCADE;
-        ';
+        RAISE NOTICE 'Altering created partition "%"...', partition;
 
-        RAISE NOTICE 'Adding trigger to created partition "%"...', partition;
         EXECUTE '
             CREATE TRIGGER ' || partition || '_test_referenced_download_trigger
                 BEFORE INSERT OR UPDATE ON ' || partition || '
@@ -1677,76 +1667,6 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER download_texts_view_insert_update_delete_trigger
     INSTEAD OF INSERT OR UPDATE OR DELETE ON download_texts
     FOR EACH ROW EXECUTE PROCEDURE download_texts_view_insert_update_delete();
-
-
---
--- Move a chunk of download texts from a non-partitioned "download_texts_np" to a
--- partitioned "download_texts_p".
---
--- Expects starting and ending "download_texts_id" instead of a chunk size in order
--- to avoid index bloat that would happen when reading rows in sequential
--- chunks.
---
--- Returns number of rows that were moved.
---
--- Call this repeatedly to migrate all the data to the partitioned table.
-CREATE OR REPLACE FUNCTION move_chunk_of_nonpartitioned_download_texts_to_partitions(
-    start_download_texts_id INT,
-    end_download_texts_id INT
-)
-RETURNS INT AS $$
-
-DECLARE
-    moved_row_count INT;
-
-BEGIN
-
-    IF NOT (start_download_texts_id < end_download_texts_id) THEN
-        RAISE EXCEPTION '"end_download_texts_id" must be bigger than "start_download_texts_id".';
-    END IF;
-
-
-    PERFORM pid
-    FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
-    WHERE backend_type = 'autovacuum worker'
-      AND query ~ 'download_texts';
-
-    RAISE NOTICE
-        'Moving download texts of download_texts_id BETWEEN % AND % to the partitioned table...',
-        start_download_texts_id, end_download_texts_id;
-
-    -- Fetch and delete download texts within bounds
-    WITH deleted_rows AS (
-        DELETE FROM download_texts_np
-        WHERE download_texts_np_id BETWEEN start_download_texts_id AND end_download_texts_id
-        RETURNING download_texts_np.*
-    )
-
-    -- Insert rows to the partitioned table
-    INSERT INTO download_texts_p (
-        download_texts_p_id,
-        downloads_id,
-        download_text,
-        download_text_length
-    )
-    SELECT
-        download_texts_np_id,
-        downloads_id,
-        download_text,
-        download_text_length
-    FROM deleted_rows;
-
-    GET DIAGNOSTICS moved_row_count = ROW_COUNT;
-
-    RAISE NOTICE
-        'Done moving download texts of download_texts_id BETWEEN % AND % to the partitioned table, moved % rows.',
-        start_download_texts_id, end_download_texts_id, moved_row_count;
-
-    RETURN moved_row_count;
-
-END;
-$$
-LANGUAGE plpgsql;
 
 
 --
@@ -3267,10 +3187,6 @@ CREATE OR REPLACE FUNCTION create_missing_partitions()
 RETURNS VOID AS
 $$
 BEGIN
-
-    -- We have to create "downloads" partitions before "download_texts" ones
-    -- because "download_texts" will have a foreign key reference to
-    -- "downloads_success_content"
 
     RAISE NOTICE 'Creating partitions in "downloads_success_content" table...';
     PERFORM downloads_success_content_create_partitions();

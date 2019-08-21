@@ -169,7 +169,7 @@ sub run_fetcher
             }
             else
             {
-                sleep( 1 );
+                sleep( 10 );
             }
         };
 
