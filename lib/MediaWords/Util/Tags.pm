@@ -36,7 +36,16 @@ sub assign_singleton_tag_to_medium
 
     $tag->{ tag_sets_id } = $tag_set->{ tag_sets_id };
 
-    $tag = $db->find_or_create( 'tags', $tag );
+    # don't just use find_or_create here, because we want to find only on the actual tags.tag value, not the
+    # rest of the tag metadata
+    my $db_tag =
+      $db->query( "select * from tags where tag_sets_id = ? and tag = ?", $tag->{ tag_sets_id }, $tag->{ tag } )->hash();
+    if ( !$db_tag )
+    {
+        $db_tag = $db->create( 'tags', $tag );
+    }
+
+    $tag = $db_tag;
 
     # make sure we only update the tag in the db if necessary; otherwise we will trigger solr re-imports unnecessarily
     my $existing_tag = $db->query( <<SQL, $tag_set->{ tag_sets_id }, $medium->{ media_id } )->hash;
@@ -54,6 +63,7 @@ SQL
 
     $db->query( <<SQL, $tag->{ tags_id }, $medium->{ media_id } );
 insert into media_tags_map ( tags_id, media_id ) values ( \$1, \$2 )
+    on conflict ( media_id, tags_id ) do nothing
 SQL
 
 }
