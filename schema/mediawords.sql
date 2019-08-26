@@ -897,6 +897,11 @@ CREATE TABLE downloads_success_content
     ) FOR VALUES IN ('content')
     PARTITION BY RANGE (downloads_id);
 
+-- We need a separate unique index for the "download_texts" foreign key to be
+-- able to point to "downloads_success_content" partitions
+CREATE UNIQUE INDEX downloads_success_content_downloads_id
+    ON downloads_success_content (downloads_id);
+
 CREATE INDEX downloads_success_content_extracted
     ON downloads_success_content (extracted);
 
@@ -1525,6 +1530,7 @@ BEGIN
                 ON DELETE CASCADE;
         ';
 
+        RAISE NOTICE 'Adding trigger to created partition "%"...', partition;
         EXECUTE '
             CREATE TRIGGER ' || partition || '_test_referenced_download_trigger
                 BEFORE INSERT OR UPDATE ON ' || partition || '
@@ -1538,115 +1544,8 @@ END;
 $$
 LANGUAGE plpgsql;
 
--- Create initial "download_texts_p" partitions for empty database
-SELECT download_texts_p_create_partitions();
-
-
--- Make partitioned table's "download_texts_id" sequence start from where
--- non-partitioned table's sequence left off
-SELECT setval(
-    pg_get_serial_sequence('download_texts_p', 'download_texts_p_id'),
-    COALESCE(MAX(download_texts_np_id), 1), MAX(download_texts_np_id) IS NOT NULL
-) FROM download_texts_np;
-
-
--- Proxy view to join partitioned and non-partitioned "download_texts" tables
-CREATE OR REPLACE VIEW download_texts AS
-
-    -- Non-partitioned table
-    SELECT
-        download_texts_np_id::bigint AS download_texts_id,
-        downloads_id::bigint,
-        download_text,
-        download_text_length
-    FROM download_texts_np
-
-    UNION ALL
-
-    -- Partitioned table
-    SELECT
-        download_texts_p_id AS download_texts_id,
-        downloads_id,
-        download_text,
-        download_text_length
-    FROM download_texts_p;
-
--- Make RETURNING work with partitioned tables
--- (https://wiki.postgresql.org/wiki/INSERT_RETURNING_vs_Partitioning)
-ALTER VIEW download_texts
-    ALTER COLUMN download_texts_id
-    SET DEFAULT nextval(pg_get_serial_sequence('download_texts_p', 'download_texts_p_id'));
-
--- Prevent the next INSERT from failing
-SELECT nextval(pg_get_serial_sequence('download_texts_p', 'download_texts_p_id'));
-
-
--- Trigger that implements INSERT / UPDATE / DELETE behavior on "download_texts" view
-CREATE OR REPLACE FUNCTION download_texts_view_insert_update_delete() RETURNS trigger AS $$
-BEGIN
-
-    IF (TG_OP = 'INSERT') THEN
-
-        -- New rows go into the partitioned table only
-        INSERT INTO download_texts_p (
-            download_texts_p_id,
-            downloads_id,
-            download_text,
-            download_text_length
-        ) SELECT
-            NEW.download_texts_id,
-            NEW.downloads_id,
-            NEW.download_text,
-            NEW.download_text_length;
-
-        RETURN NEW;
-
-    ELSIF (TG_OP = 'UPDATE') THEN
-
-        -- Update both tables as one of them will have the row
-        UPDATE download_texts_np SET
-            download_texts_np_id = NEW.download_texts_id,
-            downloads_id = NEW.downloads_id,
-            download_text = NEW.download_text,
-            download_text_length = NEW.download_text_length
-        WHERE download_texts_np_id = OLD.download_texts_id;
-
-        UPDATE download_texts_p SET
-            download_texts_p_id = NEW.download_texts_id,
-            downloads_id = NEW.downloads_id,
-            download_text = NEW.download_text,
-            download_text_length = NEW.download_text_length
-        WHERE download_texts_p_id = OLD.download_texts_id;
-
-        RETURN NEW;
-
-    ELSIF (TG_OP = 'DELETE') THEN
-
-        -- Delete from both tables as one of them will have the row
-        DELETE FROM download_texts_np
-            WHERE download_texts_np_id = OLD.download_texts_id;
-
-        DELETE FROM download_texts_p
-            WHERE download_texts_p_id = OLD.download_texts_id;
-
-        -- Return deleted rows
-        RETURN OLD;
-
-    ELSE
-        RAISE EXCEPTION 'Unconfigured operation: %', TG_OP;
-
-    END IF;
-
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER download_texts_view_insert_update_delete_trigger
-    INSTEAD OF INSERT OR UPDATE OR DELETE ON download_texts
-    FOR EACH ROW EXECUTE PROCEDURE download_texts_view_insert_update_delete();
-=======
 -- Create initial "download_texts" partitions for empty database
 SELECT download_texts_create_partitions();
->>>>>>> master
 
 
 --
@@ -3167,6 +3066,10 @@ CREATE OR REPLACE FUNCTION create_missing_partitions()
 RETURNS VOID AS
 $$
 BEGIN
+
+    -- We have to create "downloads" partitions before "download_texts" ones
+    -- because "download_texts" will have a foreign key reference to
+    -- "downloads_success_content"
 
     RAISE NOTICE 'Creating partitions in "downloads_success_content" table...';
     PERFORM downloads_success_content_create_partitions();
