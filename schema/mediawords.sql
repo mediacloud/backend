@@ -24,7 +24,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4727;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4728;
 BEGIN
 
     -- Update / set database schema version
@@ -66,12 +66,6 @@ CREATE OR REPLACE FUNCTION half_md5(string TEXT) RETURNS bytea AS $$
     -- pgcrypto's functions are being referred with public schema prefix to make pg_upgrade work
     SELECT SUBSTRING(public.digest(string, 'md5'::text), 0, 9);
 $$ LANGUAGE SQL;
-
--- Helper for indexing nonpartitioned "downloads.downloads_id" as BIGINT for
--- faster casting
-CREATE FUNCTION to_bigint(p_integer INT) RETURNS BIGINT AS $$
-    SELECT p_integer::bigint;
-$$ LANGUAGE SQL IMMUTABLE;
 
 
 -- Returns true if table exists (and user has access to it)
@@ -1489,53 +1483,28 @@ $$ language plpgsql;
 -- Extracted plain text from every download
 --
 
--- Non-partitioned table
-CREATE TABLE download_texts_np (
-    download_texts_np_id    SERIAL  PRIMARY KEY,
-    downloads_id            INT     NOT NULL,
-    download_text           TEXT    NOT NULL,
-    download_text_length    INT     NOT NULL
-);
-
-CREATE UNIQUE INDEX download_texts_np_downloads_id_index
-    ON download_texts_np (downloads_id);
-
--- Temporary index to be used on JOINs with "downloads" with BIGINT primary key
-CREATE UNIQUE INDEX download_texts_np_downloads_id_bigint_index
-    ON download_texts_np (to_bigint(downloads_id));
-
-ALTER TABLE download_texts_np
-    ADD CONSTRAINT download_texts_np_length_is_correct
-    CHECK (length(download_text) = download_text_length);
-
-CREATE TRIGGER download_texts_np_test_referenced_download_trigger
-    BEFORE INSERT OR UPDATE ON download_texts_np
-    FOR EACH ROW
-    EXECUTE PROCEDURE test_referenced_download_trigger('downloads_id');
-
-
 -- Partitioned table
-CREATE TABLE download_texts_p (
-    download_texts_p_id     BIGSERIAL   NOT NULL,
+CREATE TABLE download_texts (
+    download_texts_id       BIGSERIAL   NOT NULL,
     downloads_id            BIGINT      NOT NULL,
     download_text           TEXT        NOT NULL,
     download_text_length    INT         NOT NULL,
 
     -- Partitions require a composite primary key
-    PRIMARY KEY (download_texts_p_id, downloads_id)
+    PRIMARY KEY (download_texts_id, downloads_id)
 
 ) PARTITION BY RANGE (downloads_id);
 
-CREATE UNIQUE INDEX download_texts_p_downloads_id
-    ON download_texts_p (downloads_id);
+CREATE UNIQUE INDEX download_texts_downloads_id
+    ON download_texts (downloads_id);
 
-ALTER TABLE download_texts_p
-    ADD CONSTRAINT download_texts_p_length_is_correct
+ALTER TABLE download_texts
+    ADD CONSTRAINT download_texts_length_is_correct
     CHECK (length(download_text) = download_text_length);
 
 
--- Create missing "download_texts_p" partitions
-CREATE OR REPLACE FUNCTION download_texts_p_create_partitions()
+-- Create missing "download_texts" partitions
+CREATE OR REPLACE FUNCTION download_texts_create_partitions()
 RETURNS VOID AS
 $$
 DECLARE
@@ -1543,11 +1512,18 @@ DECLARE
     partition TEXT;
 BEGIN
 
-    created_partitions := ARRAY(SELECT partition_by_downloads_id_create_partitions('download_texts_p'));
+    created_partitions := ARRAY(SELECT partition_by_downloads_id_create_partitions('download_texts'));
 
     FOREACH partition IN ARRAY created_partitions LOOP
 
-        RAISE NOTICE 'Altering created partition "%"...', partition;
+        RAISE NOTICE 'Adding foreign key to created partition "%"...', partition;
+        EXECUTE '
+            ALTER TABLE ' || partition || '
+                ADD CONSTRAINT ' || partition || '_downloads_id_fkey
+                FOREIGN KEY (downloads_id)
+                REFERENCES ' || REPLACE(partition, 'download_texts', 'downloads_success_content') || ' (downloads_id)
+                ON DELETE CASCADE;
+        ';
 
         EXECUTE '
             CREATE TRIGGER ' || partition || '_test_referenced_download_trigger
@@ -1667,6 +1643,10 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER download_texts_view_insert_update_delete_trigger
     INSTEAD OF INSERT OR UPDATE OR DELETE ON download_texts
     FOR EACH ROW EXECUTE PROCEDURE download_texts_view_insert_update_delete();
+=======
+-- Create initial "download_texts" partitions for empty database
+SELECT download_texts_create_partitions();
+>>>>>>> master
 
 
 --
@@ -3194,8 +3174,8 @@ BEGIN
     RAISE NOTICE 'Creating partitions in "downloads_success_feed" table...';
     PERFORM downloads_success_feed_create_partitions();
 
-    RAISE NOTICE 'Creating partitions in "download_texts_p" table...';
-    PERFORM download_texts_p_create_partitions();
+    RAISE NOTICE 'Creating partitions in "download_texts" table...';
+    PERFORM download_texts_create_partitions();
 
     RAISE NOTICE 'Creating partitions in "stories_tags_map_p" table...';
     PERFORM stories_tags_map_create_partitions();
