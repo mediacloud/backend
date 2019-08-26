@@ -209,37 +209,18 @@ sub _add_nested_data
         my $story_text_data = $db->query(
             <<SQL
 
-            -- "download_texts" INT -> BIGINT join hack: pre-select rows from
-            -- "download_texts" using a constant array, and then inter-join
-            -- them with the main query
-
-            WITH stories_download_texts AS (
-                SELECT *
-                FROM download_texts
-                WHERE downloads_id = ANY(
-                    ARRAY(
-                        SELECT downloads_id
-                        FROM downloads
-                        WHERE stories_id IN (
-                            SELECT id
-                            FROM $ids_table
-                        )
-                    )
-                )
-            )
-
             SELECT
                 s.stories_id,
                 s.full_text_rss,
                 CASE
                     WHEN BOOL_AND(s.full_text_rss) THEN s.title || E'.\n\n' || s.description
-                    ELSE string_agg(sdt.download_text, E'.\n\n'::text)
+                    ELSE string_agg(dt.download_text, E'.\n\n'::text)
                 END AS story_text
             FROM stories AS s
                 JOIN downloads AS d
                     ON s.stories_id = d.stories_id
-                LEFT JOIN stories_download_texts AS sdt
-                    ON d.downloads_id = sdt.downloads_id
+                LEFT JOIN download_texts AS dt
+                    ON d.downloads_id = dt.downloads_id
             WHERE s.stories_id IN (
                 SELECT id
                 FROM $ids_table

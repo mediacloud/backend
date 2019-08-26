@@ -24,7 +24,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4727;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4728;
 BEGIN
 
     -- Update / set database schema version
@@ -66,12 +66,6 @@ CREATE OR REPLACE FUNCTION half_md5(string TEXT) RETURNS bytea AS $$
     -- pgcrypto's functions are being referred with public schema prefix to make pg_upgrade work
     SELECT SUBSTRING(public.digest(string, 'md5'::text), 0, 9);
 $$ LANGUAGE SQL;
-
--- Helper for indexing nonpartitioned "downloads.downloads_id" as BIGINT for
--- faster casting
-CREATE FUNCTION to_bigint(p_integer INT) RETURNS BIGINT AS $$
-    SELECT p_integer::bigint;
-$$ LANGUAGE SQL IMMUTABLE;
 
 
 -- Returns true if table exists (and user has access to it)
@@ -1494,53 +1488,28 @@ $$ language plpgsql;
 -- Extracted plain text from every download
 --
 
--- Non-partitioned table
-CREATE TABLE download_texts_np (
-    download_texts_np_id    SERIAL  PRIMARY KEY,
-    downloads_id            INT     NOT NULL,
-    download_text           TEXT    NOT NULL,
-    download_text_length    INT     NOT NULL
-);
-
-CREATE UNIQUE INDEX download_texts_np_downloads_id_index
-    ON download_texts_np (downloads_id);
-
--- Temporary index to be used on JOINs with "downloads" with BIGINT primary key
-CREATE UNIQUE INDEX download_texts_np_downloads_id_bigint_index
-    ON download_texts_np (to_bigint(downloads_id));
-
-ALTER TABLE download_texts_np
-    ADD CONSTRAINT download_texts_np_length_is_correct
-    CHECK (length(download_text) = download_text_length);
-
-CREATE TRIGGER download_texts_np_test_referenced_download_trigger
-    BEFORE INSERT OR UPDATE ON download_texts_np
-    FOR EACH ROW
-    EXECUTE PROCEDURE test_referenced_download_trigger('downloads_id');
-
-
 -- Partitioned table
-CREATE TABLE download_texts_p (
-    download_texts_p_id     BIGSERIAL   NOT NULL,
+CREATE TABLE download_texts (
+    download_texts_id       BIGSERIAL   NOT NULL,
     downloads_id            BIGINT      NOT NULL,
     download_text           TEXT        NOT NULL,
     download_text_length    INT         NOT NULL,
 
     -- Partitions require a composite primary key
-    PRIMARY KEY (download_texts_p_id, downloads_id)
+    PRIMARY KEY (download_texts_id, downloads_id)
 
 ) PARTITION BY RANGE (downloads_id);
 
-CREATE UNIQUE INDEX download_texts_p_downloads_id
-    ON download_texts_p (downloads_id);
+CREATE UNIQUE INDEX download_texts_downloads_id
+    ON download_texts (downloads_id);
 
-ALTER TABLE download_texts_p
-    ADD CONSTRAINT download_texts_p_length_is_correct
+ALTER TABLE download_texts
+    ADD CONSTRAINT download_texts_length_is_correct
     CHECK (length(download_text) = download_text_length);
 
 
--- Create missing "download_texts_p" partitions
-CREATE OR REPLACE FUNCTION download_texts_p_create_partitions()
+-- Create missing "download_texts" partitions
+CREATE OR REPLACE FUNCTION download_texts_create_partitions()
 RETURNS VOID AS
 $$
 DECLARE
@@ -1548,7 +1517,7 @@ DECLARE
     partition TEXT;
 BEGIN
 
-    created_partitions := ARRAY(SELECT partition_by_downloads_id_create_partitions('download_texts_p'));
+    created_partitions := ARRAY(SELECT partition_by_downloads_id_create_partitions('download_texts'));
 
     FOREACH partition IN ARRAY created_partitions LOOP
 
@@ -1557,7 +1526,7 @@ BEGIN
             ALTER TABLE ' || partition || '
                 ADD CONSTRAINT ' || partition || '_downloads_id_fkey
                 FOREIGN KEY (downloads_id)
-                REFERENCES ' || REPLACE(partition, 'download_texts_p', 'downloads_success_content') || ' (downloads_id)
+                REFERENCES ' || REPLACE(partition, 'download_texts', 'downloads_success_content') || ' (downloads_id)
                 ON DELETE CASCADE;
         ';
 
@@ -1575,181 +1544,8 @@ END;
 $$
 LANGUAGE plpgsql;
 
--- Create initial "download_texts_p" partitions for empty database
-SELECT download_texts_p_create_partitions();
-
-
--- Make partitioned table's "download_texts_id" sequence start from where
--- non-partitioned table's sequence left off
-SELECT setval(
-    pg_get_serial_sequence('download_texts_p', 'download_texts_p_id'),
-    COALESCE(MAX(download_texts_np_id), 1), MAX(download_texts_np_id) IS NOT NULL
-) FROM download_texts_np;
-
-
--- Proxy view to join partitioned and non-partitioned "download_texts" tables
-CREATE OR REPLACE VIEW download_texts AS
-
-    -- Non-partitioned table
-    SELECT
-        download_texts_np_id::bigint AS download_texts_id,
-        downloads_id::bigint,
-        download_text,
-        download_text_length
-    FROM download_texts_np
-
-    UNION ALL
-
-    -- Partitioned table
-    SELECT
-        download_texts_p_id AS download_texts_id,
-        downloads_id,
-        download_text,
-        download_text_length
-    FROM download_texts_p;
-
--- Make RETURNING work with partitioned tables
--- (https://wiki.postgresql.org/wiki/INSERT_RETURNING_vs_Partitioning)
-ALTER VIEW download_texts
-    ALTER COLUMN download_texts_id
-    SET DEFAULT nextval(pg_get_serial_sequence('download_texts_p', 'download_texts_p_id'));
-
--- Prevent the next INSERT from failing
-SELECT nextval(pg_get_serial_sequence('download_texts_p', 'download_texts_p_id'));
-
-
--- Trigger that implements INSERT / UPDATE / DELETE behavior on "download_texts" view
-CREATE OR REPLACE FUNCTION download_texts_view_insert_update_delete() RETURNS trigger AS $$
-BEGIN
-
-    IF (TG_OP = 'INSERT') THEN
-
-        -- New rows go into the partitioned table only
-        INSERT INTO download_texts_p (
-            download_texts_p_id,
-            downloads_id,
-            download_text,
-            download_text_length
-        ) SELECT
-            NEW.download_texts_id,
-            NEW.downloads_id,
-            NEW.download_text,
-            NEW.download_text_length;
-
-        RETURN NEW;
-
-    ELSIF (TG_OP = 'UPDATE') THEN
-
-        -- Update both tables as one of them will have the row
-        UPDATE download_texts_np SET
-            download_texts_np_id = NEW.download_texts_id,
-            downloads_id = NEW.downloads_id,
-            download_text = NEW.download_text,
-            download_text_length = NEW.download_text_length
-        WHERE download_texts_np_id = OLD.download_texts_id;
-
-        UPDATE download_texts_p SET
-            download_texts_p_id = NEW.download_texts_id,
-            downloads_id = NEW.downloads_id,
-            download_text = NEW.download_text,
-            download_text_length = NEW.download_text_length
-        WHERE download_texts_p_id = OLD.download_texts_id;
-
-        RETURN NEW;
-
-    ELSIF (TG_OP = 'DELETE') THEN
-
-        -- Delete from both tables as one of them will have the row
-        DELETE FROM download_texts_np
-            WHERE download_texts_np_id = OLD.download_texts_id;
-
-        DELETE FROM download_texts_p
-            WHERE download_texts_p_id = OLD.download_texts_id;
-
-        -- Return deleted rows
-        RETURN OLD;
-
-    ELSE
-        RAISE EXCEPTION 'Unconfigured operation: %', TG_OP;
-
-    END IF;
-
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER download_texts_view_insert_update_delete_trigger
-    INSTEAD OF INSERT OR UPDATE OR DELETE ON download_texts
-    FOR EACH ROW EXECUTE PROCEDURE download_texts_view_insert_update_delete();
-
-
---
--- Move a chunk of download texts from a non-partitioned "download_texts_np" to a
--- partitioned "download_texts_p".
---
--- Expects starting and ending "download_texts_id" instead of a chunk size in order
--- to avoid index bloat that would happen when reading rows in sequential
--- chunks.
---
--- Returns number of rows that were moved.
---
--- Call this repeatedly to migrate all the data to the partitioned table.
-CREATE OR REPLACE FUNCTION move_chunk_of_nonpartitioned_download_texts_to_partitions(
-    start_download_texts_id INT,
-    end_download_texts_id INT
-)
-RETURNS INT AS $$
-
-DECLARE
-    moved_row_count INT;
-
-BEGIN
-
-    IF NOT (start_download_texts_id < end_download_texts_id) THEN
-        RAISE EXCEPTION '"end_download_texts_id" must be bigger than "start_download_texts_id".';
-    END IF;
-
-
-    PERFORM pid
-    FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
-    WHERE backend_type = 'autovacuum worker'
-      AND query ~ 'download_texts';
-
-    RAISE NOTICE
-        'Moving download texts of download_texts_id BETWEEN % AND % to the partitioned table...',
-        start_download_texts_id, end_download_texts_id;
-
-    -- Fetch and delete download texts within bounds
-    WITH deleted_rows AS (
-        DELETE FROM download_texts_np
-        WHERE download_texts_np_id BETWEEN start_download_texts_id AND end_download_texts_id
-        RETURNING download_texts_np.*
-    )
-
-    -- Insert rows to the partitioned table
-    INSERT INTO download_texts_p (
-        download_texts_p_id,
-        downloads_id,
-        download_text,
-        download_text_length
-    )
-    SELECT
-        download_texts_np_id,
-        downloads_id,
-        download_text,
-        download_text_length
-    FROM deleted_rows;
-
-    GET DIAGNOSTICS moved_row_count = ROW_COUNT;
-
-    RAISE NOTICE
-        'Done moving download texts of download_texts_id BETWEEN % AND % to the partitioned table, moved % rows.',
-        start_download_texts_id, end_download_texts_id, moved_row_count;
-
-    RETURN moved_row_count;
-
-END;
-$$
-LANGUAGE plpgsql;
+-- Create initial "download_texts" partitions for empty database
+SELECT download_texts_create_partitions();
 
 
 --
@@ -3281,8 +3077,8 @@ BEGIN
     RAISE NOTICE 'Creating partitions in "downloads_success_feed" table...';
     PERFORM downloads_success_feed_create_partitions();
 
-    RAISE NOTICE 'Creating partitions in "download_texts_p" table...';
-    PERFORM download_texts_p_create_partitions();
+    RAISE NOTICE 'Creating partitions in "download_texts" table...';
+    PERFORM download_texts_create_partitions();
 
     RAISE NOTICE 'Creating partitions in "stories_tags_map_p" table...';
     PERFORM stories_tags_map_create_partitions();
