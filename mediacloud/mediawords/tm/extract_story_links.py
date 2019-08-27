@@ -116,17 +116,15 @@ def get_extracted_html(db: DatabaseHandler, story: dict) -> str:
     """
     download = db.query(
         """
+        with d as (
+            select * from downloads
+                where
+                    stories_id = %(a)s and
+                    type = 'content' and
+                    state = 'success'
+        ) -- goofy cte to avoid bad query plan
 
-        SELECT *
-        FROM downloads
-        WHERE stories_id = %(a)s
-
-          -- Don't look into partitions that we don't have to look at
-          AND type = 'content'
-          AND state = 'success'
-
-        LIMIT 1
-
+        select * from d order by downloads_id limit 1
         """,
         {'a': story['stories_id']}).hash()
 
@@ -136,23 +134,25 @@ def get_extracted_html(db: DatabaseHandler, story: dict) -> str:
 
 def get_links_from_story_text(db: DatabaseHandler, story: dict) -> typing.List[str]:
     """Get all urls that appear in the text or description of the story using a simple regex."""
-    download_texts = db.query("""
+    # just get the first download, because the download_texts query plan breaks with multiple downloads,
+    # and multiple download stories are rare
+    download_ids = db.query("""
+        SELECT downloads_id
+        FROM downloads
+        WHERE stories_id = %(stories_id)s
+            AND type = 'content'
+            AND state = 'success'
+        ORDER BY downloads_id ASC
+        LIMIT 1
+        """, {'stories_id': story['stories_id']}
+    ).flat()
 
+    download_texts = db.query("""
         SELECT *
         FROM download_texts
-        WHERE downloads_id IN (
-            SELECT downloads_id
-            FROM downloads
-            WHERE stories_id = %(stories_id)s
-
-              -- Don't look into partitions that we don't have to look at
-              AND type = 'content'
-              AND state = 'success'
-
-        )
+        WHERE downloads_id = ANY(%(download_ids)s)
         ORDER BY download_texts_id
-
-        """, {'stories_id': story['stories_id']}
+        """, {'download_ids': download_ids}
     ).hashes()
 
     story_text = ' '.join([dt['download_text'] for dt in download_texts])
