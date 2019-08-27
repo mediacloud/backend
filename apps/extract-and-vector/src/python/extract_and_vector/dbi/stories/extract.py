@@ -27,7 +27,8 @@ def extract_and_process_story(db: DatabaseHandler,
         FROM downloads
         WHERE stories_id = %(stories_id)s
           AND type = 'content'
-        ORDER BY downloads_id
+          AND state = 'success'
+        ORDER BY downloads_id ASC
     """, {'stories_id': stories_id}).hashes()
 
     # MC_REWRITE_TO_PYTHON: Perlism
