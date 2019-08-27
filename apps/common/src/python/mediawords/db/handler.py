@@ -1,4 +1,6 @@
+import os
 import re
+import socket
 from typing import Union, List, Dict, Any
 
 import psycopg2
@@ -110,7 +112,16 @@ class DatabaseHandler(object):
         if not port:
             port = 5432
 
-        self.__conn = psycopg2.connect(host=host, port=port, user=username, password=password, database=database)
+        application_name = '%s %d' % (socket.gethostname(), os.getpid())
+
+        self.__conn = psycopg2.connect(
+            host=host,
+            port=port,
+            user=username,
+            password=password,
+            database=database,
+            application_name=application_name
+        )
 
         # Magic bits for psycopg2 to start supporting UTF-8
         psycopg2.extensions.register_type(psycopg2.extensions.UNICODE, self.__conn)

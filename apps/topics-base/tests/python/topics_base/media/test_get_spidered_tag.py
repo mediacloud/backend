@@ -1,8 +1,8 @@
 from mediawords.db import connect_to_db
 from topics_base.media import (
-	get_spidered_tag,
-	SPIDERED_TAG_TAG,
-	SPIDERED_TAG_SET,
+    get_spidered_tag,
+    SPIDERED_TAG_TAG,
+    SPIDERED_TAG_SET,
 )
 
 

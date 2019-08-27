@@ -26,7 +26,7 @@ cryptography==2.4.2
 CyHunspell==1.3.0
 
 # Guessing publication dates of stories
-date_guesser==2.1.1
+date_guesser==2.1.3
 
 # Stemming Hausa words
 hausastemmer==1.0

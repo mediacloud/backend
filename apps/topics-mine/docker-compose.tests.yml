@@ -7,6 +7,10 @@ services:
         stop_signal: SIGKILL
         environment:
             MC_CRIMSON_HEXAGON_API_KEY: "${MC_CRIMSON_HEXAGON_API_KEY}"
+            MC_TWITTER_CONSUMER_KEY: "${MC_TWITTER_CONSUMER_KEY}"
+            MC_TWITTER_CONSUMER_SECRET: "${MC_TWITTER_CONSUMER_SECRET}"
+            MC_TWITTER_ACCESS_TOKEN: "${MC_TWITTER_ACCESS_TOKEN}"
+            MC_TWITTER_ACCESS_TOKEN_SECRET: "${MC_TWITTER_ACCESS_TOKEN_SECRET}"
         expose:
             # test_tm_mine.t's test HTTP servers:
             - 8890

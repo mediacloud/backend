@@ -1093,6 +1093,7 @@ Output:
       "email": "foo@foo.bar",
       "full_name": "Sample User",
       "max_topic_stories": 100000,
+      "has_consented": true,
       "weekly_requests_limit": 10000,
       "notes": "For demonstrating the user api",i
       "requests": [
@@ -1144,6 +1145,7 @@ This call updates a single existing user.
 | roles             | list of permission roles |
 | max\_topic\_stories | max size of max\_stories setting for topics |
 | weekly\_requests\_limit | max number of requests per week |
+| has\_consented | has the user consented to the latest terms of service |
 
 The `roles` field should point to an array of strings, each of which is the
 'role' value for a role listed by `api/v2/users/list_roles`.  If the roles

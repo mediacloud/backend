@@ -13,7 +13,7 @@ to import stories from a given source.
 After the sub class identifies all story candidates, ImportStories looks for any
 duplicates among the story candidates and the existing stories in the media sources and only adds as stories
 the candidates with out existing duplicate stories.  The duplication check looks for matching normalized urls
-as well as matching title parts (see MediaWords::DBI::Stories::Dup::get_medium_dup_stories_by_<title|url>.
+as well as matching title parts.
 
 Each sub class needs to implement $self->get_new_stories(), which should return a set of story candidates
 for deduplication and date restriction by this super class.
@@ -205,89 +205,6 @@ SQL
     return $stories;
 }
 
-# give a list of dup stories returned by  MediaWords::DBI::Stories::Dup::get_medium_dup_stories_by_*, prune the
-# original list only to include one each of the sets of dup stories
-sub _prune_dup_stories($$)
-{
-    my ( $self, $stories, $dup_sets ) = @_;
-
-    my $remove_stories_lookup = {};
-
-    for my $dup_set ( @{ $dup_sets } )
-    {
-        # mark all stories in the dup set other than the first for removal
-        shift( @{ $dup_set } );
-        map { $remove_stories_lookup->{ $_->{ guid } } = 1 } @{ $dup_set };
-    }
-
-    my $pruned_stories = [];
-    map { push( @{ $pruned_stories }, $_ ) unless ( $remove_stories_lookup->{ $_->{ guid } } ) } @{ $stories };
-
-    DEBUG "pruned to " . scalar( @{ $pruned_stories } ) . " / " . scalar( @{ $stories } ) . " stories";
-
-    return $pruned_stories;
-}
-
-# dedup the stories from the import module first
-sub _dedup_imported_stories($$)
-{
-    my ( $self, $stories ) = @_;
-
-    my $url_dup_stories = MediaWords::DBI::Stories::Dup::get_medium_dup_stories_by_url( $self->db, $stories );
-
-    my $deduped_stories = $self->_prune_dup_stories( $stories, $url_dup_stories );
-
-    my $title_dup_stories = MediaWords::DBI::Stories::Dup::get_medium_dup_stories_by_title( $self->db, $deduped_stories, 1 );
-
-    return $self->_prune_dup_stories( $deduped_stories, $title_dup_stories );
-}
-
-# return a list of just the new stories that don't have a duplicate in the existing stories
-sub _dedup_new_stories
-{
-    my ( $self ) = @_;
-
-    my $new_stories      = $self->module_stories;
-    my $existing_stories = $self->existing_stories;
-
-    $new_stories = $self->_dedup_imported_stories( $new_stories );
-
-    my $all_stories = [ @{ $new_stories }, @{ $existing_stories } ];
-
-    my $all_dup_stories = MediaWords::DBI::Stories::Dup::get_medium_dup_stories_by_url( $self->db, $all_stories );
-    my $title_dup_stories = MediaWords::DBI::Stories::Dup::get_medium_dup_stories_by_title( $self->db, $all_stories, 1 );
-
-    push( @{ $all_dup_stories }, @{ $title_dup_stories } );
-
-    my $new_stories_lookup = {};
-    map { $new_stories_lookup->{ $_->{ url } } = $_ } @{ $new_stories };
-
-    my $dup_new_stories_lookup = {};
-    for my $dup_stories ( @{ $all_dup_stories } )
-    {
-        my $stories_id = 0;
-        map { $stories_id ||= $_->{ stories_id } } @{ $dup_stories };
-
-        for my $ds ( @{ $dup_stories } )
-        {
-            if ( $new_stories_lookup->{ $ds->{ url } } )
-            {
-                delete( $new_stories_lookup->{ $ds->{ url } } );
-                $dup_new_stories_lookup->{ $ds->{ url } } = $ds;
-                $ds->{ dup_stories_id } = $stories_id;
-            }
-        }
-
-    }
-
-    my $nondup_stories = [ values( %{ $new_stories_lookup } ) ];
-    my $dup_stories    = [ values( %{ $dup_new_stories_lookup } ) ];
-
-    DEBUG "_dedup_new_stories: " . scalar( @{ $nondup_stories } ) . " new / " . scalar( @{ $dup_stories } ) . " dup";
-
-    return ( $nondup_stories, $dup_stories );
-}
-
 # get a dummy feed just to hold the scraped stories because we have to give a feed to each new download
 sub _get_scrape_feed
 {
@@ -315,17 +232,6 @@ SQL
     $self->scrape_feed( $feed );
 
     return $feed;
-}
-
-# add story to a special 'scrape' feed
-sub _add_story_to_scrape_feed
-{
-    my ( $self, $story ) = @_;
-
-    $self->db->query( <<SQL, $self->_get_scrape_feed->{ feeds_id }, $story->{ stories_id } );
-insert into feeds_stories_map ( feeds_id, stories_id ) values ( ?, ? )
-SQL
-
 }
 
 # add and extract download for story
@@ -396,6 +302,8 @@ sub _add_new_stories
 
     DEBUG "adding new stories to db ..." if ( $self->debug );
 
+    my $scrape_feeds_id = $self->_get_scrape_feed()->{ feeds_id };
+
     my $total_stories = scalar( @{ $stories } );
     my $i             = 1;
 
@@ -410,26 +318,9 @@ sub _add_new_stories
         delete( $story->{ content } );
         delete( $story->{ normalized_url } );
 
-        eval { $story = $self->db->create( 'stories', $story ) };
-        if ( $@ )
-        {
-            # it's quicker to just rely on postgres to catch constrained dups than to check for them first
-            if ( $@ =~ /unique constraint "([^"]*)"/ )
-            {
-                DEBUG( "skipping postgres dup: $1" );
-            }
-            else
-            {
-                LOGCARP( $@ . " - " . Dumper( $story ) );
-            }
-
-            $self->db->rollback;
-            next;
-        }
+        $story = MediaWords::DBI::Stories::Stories::add_new( $self->db, $story, $scrape_feeds_id );
 
         $self->_add_scraped_stories_flag( $story );
-
-        $self->_add_story_to_scrape_feed( $story );
 
         $self->_add_story_download( $story, $content );
 
@@ -451,21 +342,6 @@ sub _print_stories
 $s->{ publish_date } - $s->{ title } [$s->{ url }]
 END
     }
-
-}
-
-# print list of deduped stories and dup stories
-sub _print_story_diffs
-{
-    my ( $self, $deduped_stories, $dup_stories ) = @_;
-
-    return unless ( $self->debug );
-
-    DEBUG "dup stories:";
-    $self->_print_stories( $dup_stories );
-
-    DEBUG "deduped stories:";
-    $self->_print_stories( $deduped_stories );
 
 }
 
@@ -540,17 +416,13 @@ sub scrape_stories
 
     my $dated_stories = $self->_get_stories_in_date_range( $new_stories );
 
-    my ( $deduped_new_stories, $dup_new_stories ) = $self->_dedup_new_stories();
-
-    $self->_print_story_diffs( $deduped_new_stories, $dup_new_stories ) if ( $self->debug );
-
     if ( $self->dry_run )
     {
-        return $deduped_new_stories;
+        return $dated_stories;
     }
     else
     {
-        return $self->_add_new_stories( $deduped_new_stories );
+        return $self->_add_new_stories( $dated_stories );
     }
 }
 

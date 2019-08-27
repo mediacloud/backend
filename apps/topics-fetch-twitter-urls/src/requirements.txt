@@ -1,5 +1,0 @@
-# Mocking tweepy responses
-requests_mock==1.6.0
-
-# Twitter API client
-tweepy==3.7.0

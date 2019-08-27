@@ -3,7 +3,6 @@ from .setup_test_extract import TestExtractDB
 
 
 class TestProcessDownloadForExtractor(TestExtractDB):
-    """Run tests that require database access."""
 
     def test_process_download_for_extractor(self):
         # Make sure nothing's extracted yet and download text is not to be found

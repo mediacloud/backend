@@ -71,7 +71,6 @@ The code that snapshots topics and performs analysis (aggregates link counts, ge
     5. For each story at the end point of a link from a topic story, the miner adds it to the topic if it matches the topic regex.
     6. The miner repeats (6.3) - (6.5) for all stories newly added to the topic, until no new stories are found or a maximum number of iterations is reached.
     7. The miner deduplicates stories based on duplicate media sources (found by walking through the `media.dup_media_id` values), duplicate titles, and duplicate URLs.
-        * Story title and URL deduplication is implemented in `MediaWords::DBI::Stories::Dup`, `get_medium_dup_stories_by_url` and `get_medium_dup_stories_by_title`.
 
 7. Manually deduplicate all media associated with a topic (as each new story is added, a media source has to found or created for it based on the URL host name, and often those media sources end up being duplicates, e.g. `articles.orlandosun.com` and `www.orlandosun.com`).  The below script remembers which media sources have already been reviewed for duplication at least once, so you will have review only media sources not previously reviewed.
 

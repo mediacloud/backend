@@ -71,6 +71,35 @@ x-common-configuration: &common-configuration
 
 
 #
+# Twitter API configuration
+# =========================
+#
+x-twitter-api-configuration: &twitter-api-configuration
+
+    # Twitter API consumer key
+    MC_TWITTER_CONSUMER_KEY: ""
+
+    # Twitter API consumer secret
+    MC_TWITTER_CONSUMER_SECRET: ""
+
+    # Twitter API access token
+    MC_TWITTER_ACCESS_TOKEN: ""
+
+    # Twitter API access token secret
+    MC_TWITTER_ACCESS_TOKEN_SECRET: ""
+
+
+#
+# Crimson Hexagon API configuration
+# =================================
+#
+x-crimson-hexagon-api-configuration: &crimson-hexagon-api-configuration
+
+    # Crimson Hexagon API key
+    MC_CRIMSON_HEXAGON_API_KEY: ""
+
+
+#
 # Solr shard base service
 # =======================
 #
@@ -202,6 +231,58 @@ services:
                     memory: "256M"
 
     #
+    # AP crawler
+    # ----------
+    #
+    crawler-ap:
+        image: dockermediacloud/crawler-ap:containers_release
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+            # AP API key
+            MC_CRAWLER_AP_API_KEY: ""
+        depends_on:
+            - postgresql-pgbouncer
+            - rabbitmq-server
+        deploy:
+            # Worker count
+            replicas: 1
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "512M"
+
+    #
+    # Crawler fetcher
+    # ---------------
+    #
+    crawler-fetcher:
+        image: dockermediacloud/crawler-fetcher:containers_release
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+            # Univision API client ID
+            MC_UNIVISION_CLIENT_ID: ""
+            # Univision API client secret (secret key)
+            MC_UNIVISION_CLIENT_SECRET: ""
+        depends_on:
+            - postgresql-pgbouncer
+            - rabbitmq-server
+        deploy:
+            # Worker count
+            replicas: 8
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "512M"
+
+    #
     # Crawler provider
     # ----------------
     #
@@ -220,29 +301,6 @@ services:
                     cpus: "1"
                     # RAM limit
                     memory: "1G"
-
-    #
-    # Crawler fetcher
-    # ---------------
-    #
-    crawler-fetcher:
-        image: dockermediacloud/crawler-fetcher:containers_release
-        networks:
-            - default
-        environment:
-            <<: *common-configuration
-        depends_on:
-            - postgresql-pgbouncer
-            - rabbitmq-server
-        deploy:
-            # Worker count
-            replicas: 8
-            resources:
-                limits:
-                    # CPU core limit
-                    cpus: "1"
-                    # RAM limit
-                    memory: "512M"
 
     #
     # Create missing PostgreSQL partitions
@@ -1270,17 +1328,31 @@ services:
             - default
         environment:
             <<: *common-configuration
-            # Twitter API consumer key
-            MC_TWITTER_CONSUMER_KEY: ""
-            # Twitter API consumer secret
-            MC_TWITTER_CONSUMER_SECRET: ""
-            # Twitter API access token
-            MC_TWITTER_ACCESS_TOKEN: ""
-            # Twitter API access token secret
-            MC_TWITTER_ACCESS_TOKEN_SECRET: ""
+            <<: *twitter-api-configuration
         deploy:
             # Worker count
             replicas: 8
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "256M"
+
+    #
+    # Generate retweeter scores
+    # -------------------------
+    #
+    topics-generate-retweeter-scores:
+        image: dockermediacloud/topics-generate-retweeter-scores:containers_release
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+            <<: *twitter-api-configuration
+        deploy:
+            # Worker count
+            replicas: 1
             resources:
                 limits:
                     # CPU core limit
@@ -1298,8 +1370,8 @@ services:
             - default
         environment:
             <<: *common-configuration
-            # Crimson Hexagon API key
-            MC_CRIMSON_HEXAGON_API_KEY: ""
+            <<: *twitter-api-configuration
+            <<: *crimson-hexagon-api-configuration
         deploy:
             # Worker count
             replicas: 4
@@ -1320,8 +1392,8 @@ services:
             - default
         environment:
             <<: *common-configuration
-            # Crimson Hexagon API key
-            MC_CRIMSON_HEXAGON_API_KEY: ""
+            <<: *twitter-api-configuration
+            <<: *crimson-hexagon-api-configuration
         deploy:
             # Worker count
             replicas: 4

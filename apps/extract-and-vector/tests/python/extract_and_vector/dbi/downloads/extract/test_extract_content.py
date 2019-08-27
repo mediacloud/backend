@@ -1,4 +1,3 @@
-import os
 from unittest import TestCase
 
 from mediawords.test.text import TestCaseTextUtilities

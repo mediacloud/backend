@@ -313,7 +313,7 @@ Response:
 | `tag_name`         | none    | Name of tag for which to return belonging media
 | `timespans_id`     | null    | Return media within the given timespan
 | `topic_mode`       | null    | If set to 'live', return media from live topics
-| `tags_id`          | null    | Return media associate with the given tag
+| `tags_id`          | null    | Return media associated with any of the given tags
 | `q`                | null    | Return media with at least one sentence that matches the Solr query
 | `include_dups`     | 0       | Include duplicate media among the results
 | `unhealthy` | none | Only return media that are currently marked as unhealthy (see mediahealth/list)
@@ -337,7 +337,8 @@ sorted by descending inlink_count within the timespan.  If `topic_mode` is set t
 
 If the `q` parameter is specified, return only media that include at least on sentence that matches the given Solr query.  For a description of the Solr query format, see the `stories_public/list` call.
 
-### Example
+All tags specified in the `tags\_id` parameter are OR'd together.  Additonal lists of tags can be specified in
+numbered tags_id lists, eg. `tags\_id\_1`. Each set of numbered tag lists will be AND'd together.
 
 URL: https://api.mediacloud.org/api/v2/media/list?last_media_id=1&rows=2
 

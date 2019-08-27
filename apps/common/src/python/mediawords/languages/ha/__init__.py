@@ -1,5 +1,6 @@
-import hausastemmer
 from typing import List
+
+import hausastemmer
 
 from mediawords.languages import McLanguageException, SpaceSeparatedWordsMixIn, StopWordsFromFileMixIn
 from mediawords.languages.en import EnglishLanguage

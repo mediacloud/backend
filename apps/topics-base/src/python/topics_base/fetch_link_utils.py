@@ -1,4 +1,5 @@
 import re2
+
 from mediawords.db import DatabaseHandler
 from mediawords.db.exceptions.handler import McUpdateByIDException
 
@@ -31,7 +32,9 @@ def content_matches_topic(content: str, topic: dict, assume_match: bool = False)
     if isinstance(content, bytes):
         content = content.decode('utf8', 'backslashreplace')
 
-    return re2.search(topic['pattern'], content, re2.I | re2.X | re2.S) is not None
+    r = re2.search(topic['pattern'], content, re2.I | re2.X | re2.S) is not None
+
+    return r
 
 
 def try_update_topic_link_ref_stories_id(db: DatabaseHandler, topic_fetch_url: dict) -> None:

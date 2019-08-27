@@ -452,6 +452,93 @@ Response:
 }
 ```
 
+## `topics/<topics_id>/add_seed_query` (PUT)
+
+`https://api.mediacloud.org/api/v2/topics/<topics_id>/add_seed_query`
+
+Add a seed query to an existing topic.  If the same seed querty already exists, do nothing.  Returns the created
+or found seed query.
+
+### Query Parameters
+
+(no parameters)
+
+### Input Description
+
+| Field      | Description                              |
+| ---------- | ---------------------------------------- |
+| topics\_id | topic id |
+| platform   | platform for which to pull data: 'twitter' or 'web' |
+| source     | api to use as source for data: 'crimson\_hexagon' or 'archive\_org' |
+| query      | source specific query to return data |
+
+### Example
+
+Add a crimson hexagon twitter search:
+
+`https://api.mediacloud.org/api/v2/topics/1390/add_seed_query`
+
+Input:
+
+```json
+{
+    "topics_id": 1390,
+    "platform": "twitter",
+    "source": "crimson_hexagon",
+    "query": "1234567890"
+}
+```
+
+Response:
+
+```json
+{
+  "topic_seed_query":
+    {
+      "topic_seed_queries_id": 5437,
+      "topics_id": 1390,
+      "platform": "twitter",
+      "source": "crimson_hexagon",
+      "query": "1234567890"
+    }
+}
+```
+
+## `topics/<topics_id>/remove_seed_query` (PUT)
+
+`https://api.mediacloud.org/api/v2/topics/<topics_id>/remove_seed_query`
+
+Remove an existing topic seed query.
+
+### Query Parameters
+
+(no parameters)
+
+### Input Description
+
+| Field      | Description                              |
+| ---------- | ---------------------------------------- |
+| topic\_seed\_queries\_id | topic\_seed\_queries id |
+### Example
+
+Remove a seed query:
+
+`https://api.mediacloud.org/api/v2/topics/1390/remove_seed_query`
+
+Input:
+
+```json
+{
+    "topic_seed_queries_id": 5437
+}
+```
+
+Response:
+
+```json
+{ "success": 1 }
+```
+
 ## topics/<topics_id>/reset (PUT)
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/reset`
@@ -493,8 +580,7 @@ Response:
 
 Start a topic spidering job.
 
-Topic spidering is asynchronous.  Once the topic has started spidering, you cannot start another spidering job until the current one is complete. A call to this end point when a 'running' or 'queued' job already exists for the given topic
-will just return the state of the existing job. If a snapshots\_id is sent as input, that snapshot will be used
+Topic spidering is asynchronous. If a snapshots\_id is sent as input, that snapshot will be used
 for the job; otherwise, a new snapshot will be created.
 
 ### Query Parameters

@@ -15,7 +15,6 @@ import_python_module( __PACKAGE__, 'mediawords.dbi.stories.stories' );
 
 use HTML::Entities;
 
-use MediaWords::Util::ParseHTML;
 use MediaWords::Util::SQL;
 use MediaWords::Util::URL;
 

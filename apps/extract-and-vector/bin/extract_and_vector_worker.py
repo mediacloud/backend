@@ -12,7 +12,6 @@ from extract_and_vector.story_vectors import medium_is_locked
 
 log = create_logger(__name__)
 
-
 QUEUE_NAME = 'MediaWords::Job::ExtractAndVector'
 """Queue name for extractor jobs."""
 
@@ -32,6 +31,8 @@ class McExtractAndVectorException(Exception):
 
 def run_extract_and_vector(stories_id: int, use_cache: bool = False, use_existing: bool = False) -> None:
     """Extract, vector and process a story."""
+
+    global _consecutive_requeues
 
     # MC_REWRITE_TO_PYTHON: remove after Python rewrite
     if isinstance(stories_id, bytes):

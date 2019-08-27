@@ -196,8 +196,7 @@ def _story_matches_topic(
             from story_sentences ss
                 join topics c on ( c.topics_id = %(a)s )
             where
-                ss.stories_id = %(b)s and
-                ( ( is_dup is null ) or not ss.is_dup )
+                ss.stories_id = %(b)s
         """,
         {'a': topic['topics_id'], 'b': story['stories_id']}).hash()
 
@@ -266,22 +265,31 @@ def _get_failed_url(db: DatabaseHandler, topics_id: int, url: str) -> Optional[d
 
     urls = list({url, normalize_url_lossy(url)})
 
+    # create temporary table first to make postgres do a topic_fetch_urls_url index scan followed
+    # by a simple filter of those results
+    db.query(
+        """
+        create temporary table _urls as
+            select * from topic_fetch_urls where md5(url) = any(array(select md5(unnest(%(a)s))))
+        """,
+        {'a': urls})
+
     failed_url = db.query(
         """
         select *
-            from topic_fetch_urls
+            from _urls
             where
                 topics_id = %(a)s and
-                state in (%(b)s, %(c)s) and
-                md5(url) = any(array(select md5(unnest(%(d)s))))
+                state in (%(b)s, %(c)s)
             limit 1
         """,
         {
             'a': topics_id,
             'b': FETCH_STATE_REQUEST_FAILED,
             'c': FETCH_STATE_CONTENT_MATCH_FAILED,
-            'd': urls
         }).hash()
+
+    db.query("drop table _urls")
 
     return failed_url
 
@@ -473,6 +481,10 @@ def fetch_topic_url(db: DatabaseHandler, topic_fetch_urls_id: int, domain_timeou
             if _is_not_topic_story(db, topic_fetch_url):
                 if _story_matches_topic(db, story, topic, redirect_url=redirect_url, assume_match=assume_match):
                     add_to_topic_stories(db, story, topic)
+
+            # add redirect_url as a lookup url for the story, if it is different from the story url
+            if not redirect_url == topic_fetch_url['url']:
+                mediawords.dbi.stories.stories.insert_story_urls(db, story, redirect_url)
 
         if topic_fetch_url['topic_links_id'] and topic_fetch_url['stories_id']:
             try_update_topic_link_ref_stories_id(db, topic_fetch_url)

@@ -85,18 +85,16 @@ sub add_stories_from_feed($$$$)
         return [];
     }
 
-    my $new_stories = [ grep { MediaWords::DBI::Stories::is_new( $db, $_ ) } @{ $stories } ];
-
-    TRACE( "add_stories_from_feed: new stories: " . scalar( @{ $new_stories } ) . " / " . scalar( @{ $stories } ) );
-
-    my $story_ids = [];
-    foreach my $story ( @{ $new_stories } )
+    my $new_story_ids = [];
+    foreach my $story ( @{ $stories } )
     {
         $story = MediaWords::DBI::Stories::add_story_and_content_download( $db, $story, $download );
-        push( @{ $story_ids }, $story->{ stories_id } );
+        push( @{ $new_story_ids }, $story->{ stories_id } ) if ( $story->{ is_new } );
     }
 
-    return $story_ids;
+    TRACE( "add_stories_from_feed: new stories: " . scalar( @{ $new_story_ids } ) . " / " . scalar( @{ $stories } ) );
+
+    return $new_story_ids;
 }
 
 sub return_stories_to_be_extracted_from_feed($$$$)
