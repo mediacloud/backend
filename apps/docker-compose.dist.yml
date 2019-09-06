@@ -784,6 +784,32 @@ services:
                     memory: "512M"
 
     #
+    # NYT-Based News Tagger service
+    # -----------------------------
+    #
+    nytlabels-annotator:
+        image: dockermediacloud/nytlabels-annotator:containers_release
+        networks:
+            - default
+        expose:
+            - 8080
+        deploy:
+            placement:
+                constraints:
+                    # Workers don't necessarily *have* to run on the very same host,
+                    # but if they do, they'll be able to share a single mmap'ped dataset
+                    # and thus conserve memory
+                    - node.labels.role-nytlabels-annotator == true
+            # Worker count
+            replicas: 1
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "4G"
+
+    #
     # NYTLabels fetch annotation
     # ----------------------
     #
@@ -794,7 +820,7 @@ services:
         environment:
             <<: *common-configuration
         depends_on:
-            - predict-news-labels
+            - nytlabels-annotator
             - postgresql-pgbouncer
             - rabbitmq-server
         deploy:
@@ -871,32 +897,6 @@ services:
                 constraints:
                     # Must run on the host with PostgreSQL data volume
                     - node.labels.role-postgresql-server == true
-
-    #
-    # NYT-Based News Tagger service
-    # -----------------------------
-    #
-    predict-news-labels:
-        image: dockermediacloud/predict-news-labels:containers_release
-        networks:
-            - default
-        expose:
-            - 8080
-        deploy:
-            placement:
-                constraints:
-                    # Workers don't necessarily *have* to run on the very same host,
-                    # but if they do, they'll be able to share a single mmap'ped dataset
-                    # and thus conserve memory
-                    - node.labels.role-predict-news-labels == true
-            # Worker count
-            replicas: 1
-            resources:
-                limits:
-                    # CPU core limit
-                    cpus: "1"
-                    # RAM limit
-                    memory: "4G"
 
     #
     # Cron job that updates Let's Encrypt certificates used by reverse proxy

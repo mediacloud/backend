@@ -33,15 +33,15 @@ all:
         # "munin-cron", "munin-httpd" containers and their shared volumes
         role-munin-httpd: "true"
 
+        # "nytlabels-annotator" container (try to run on the same host or a
+        # limited number of hosts to be able to share mmap'ped memory)
+        role-nytlabels-annotator: "true"
+
         # "portainer" container and its data volume
         role-portainer: "true"
 
         # "postgresql-server" container and its data volume
         role-postgresql-server: "true"
-
-        # "predict-news-labels" container (try to run on the same host or a
-        # limited number of hosts to be able to share mmap'ped memory)
-        role-predict-news-labels: "true"
 
         # "proxy-cron-certbot", "proxy-httpd" containers, their shared volume
         # and publicly exposed ports

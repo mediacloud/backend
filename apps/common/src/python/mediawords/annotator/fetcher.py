@@ -44,7 +44,7 @@ class JSONAnnotationFetcher(metaclass=abc.ABCMeta):
     __TEXT_LENGTH_LIMIT = 50 * 1024
 
     __ANNOTATOR_SERVICE_TIMEOUT = 60 * 5
-    """Seconds to wait for the predict-news-labels service to start.
+    """Seconds to wait for the nytlabels-annotator service to start.
 
     Wait for five minutes as those workers might take their time to load big heavy
     models (e.g. Google News word2vec model in NYTLabels annotator).

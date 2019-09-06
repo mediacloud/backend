@@ -48,8 +48,8 @@ This script can print the commands that are going to be run instead of running t
 # Pull only images with "solr-shard" string in their name
 $ ./dev/pull.py -p | grep solr-shard | bash
 
-# Pull everything *except* for the large "predict-news-labels" image
-$ ./dev/pull.py -p | grep -v predict-news-labels | bash
+# Pull everything *except* for the large "nytlabels-annotator" image
+$ ./dev/pull.py -p | grep -v nytlabels-annotator | bash
 ```
 
 ##`build.py` - build images

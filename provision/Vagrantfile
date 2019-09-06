@@ -61,8 +61,8 @@ Vagrant.configure("2") do |config|
             "role-portainer" => "true",
           }
           machine2_labels = {
+            "role-nytlabels-annotator" => "true",
             "role-postgresql-server" => "true",
-            "role-predict-news-labels" => "true",
             "role-proxy-httpd" => "true",
             "role-rabbitmq-server" => "true",
           }

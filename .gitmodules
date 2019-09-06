@@ -1,8 +1,8 @@
 [submodule "doc/api_2_0_spec/github-markdown-toc"]
 	path = doc/api_2_0_spec/github-markdown-toc
 	url = https://github.com/ekalinin/github-markdown-toc.git
-[submodule "apps/predict-news-labels/src/MediaCloud-NYT-News-Labeler"]
-	path = apps/predict-news-labels/src/MediaCloud-NYT-News-Labeler
+[submodule "apps/nytlabels-annotator/src/MediaCloud-NYT-News-Labeler"]
+	path = apps/nytlabels-annotator/src/MediaCloud-NYT-News-Labeler
 	url = https://github.com/mitmedialab/MediaCloud-NYT-News-Labeler.git
 [submodule "apps/common/src/python/mediawords/languages/hi/hindi-hunspell"]
 	path = apps/common/src/python/mediawords/languages/hi/hindi-hunspell
