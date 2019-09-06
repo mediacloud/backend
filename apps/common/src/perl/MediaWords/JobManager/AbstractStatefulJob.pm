@@ -179,7 +179,7 @@ around '__run' => sub {
 
     if ( $self->_job_is_already_running( $db, $args ) ) {
         my $run_lock_arg = $self->get_run_lock_arg();
-        my $message = "Job with $run_lock_arg = $args->{ $run_lock_arg } is already running.  Exiting.";
+        my $message = "Stateful job with $run_lock_arg = $args->{ $run_lock_arg } is already running.  Exiting.";
         WARN( $message );
         $self->_update_job_state( $db, 'error', $message );
         return;
@@ -199,7 +199,8 @@ around '__run' => sub {
 
         $self->_update_job_state( $db, $STATE_RUNNING );
 
-        $r = $self->$orig( $args );
+        my $skip_testing_for_lock = 1;
+        $r = $self->$orig( $args, $skip_testing_for_lock );
     };
 
     my $eval_error = $@;

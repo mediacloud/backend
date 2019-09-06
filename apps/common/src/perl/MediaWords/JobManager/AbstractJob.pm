@@ -83,16 +83,18 @@ sub _job_is_already_running($$;$)
 
 # set job state to $STATE_RUNNING, call run(), either catch any errors and set state to $STATE_ERROR and save
 # the error or set state to $STATE_COMPLETED
-sub __run($;$)
+sub __run($;$$)
 {
-    my ( $class, $args ) = @_;
+    my ( $class, $args, $skip_testing_for_lock ) = @_;
 
     my $db = MediaWords::DB::connect_to_db();
 
-    if ( $class->_job_is_already_running( $db, $args ) ) {
-        my $run_lock_arg = $class->get_run_lock_arg();
-        WARN( "Job with $run_lock_arg = $args->{ $run_lock_arg } is already running.  Exiting." );
-        return;
+    unless ( $skip_testing_for_lock ) {
+        if ( $class->_job_is_already_running( $db, $args ) ) {
+            my $run_lock_arg = $class->get_run_lock_arg();
+            WARN( "Stateless job with $run_lock_arg = $args->{ $run_lock_arg } is already running.  Exiting." );
+            return;
+        }
     }
 
     return $class->run( $args );

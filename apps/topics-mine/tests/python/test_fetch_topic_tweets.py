@@ -6,7 +6,6 @@ from mediawords.db import DatabaseHandler, connect_to_db
 from mediawords.test.db.create import create_test_topic
 from mediawords.util.parse_json import decode_json
 
-# noinspection PyProtectedMember
 from topics_mine.fetch_topic_tweets import fetch_topic_tweets, AbstractTweetFetcher, get_tweet_id_from_url
 
 # this is an estimate of the number of tweets per day included in the ch-posts-date.json files
@@ -78,7 +77,7 @@ class MockTweetFetcher(AbstractTweetFetcher):
         num_errors = (3 if (len(tweet_ids) > 10) else 0)
 
         # simulate twitter not being able to find some ids, which is typical
-        for i in range(num_errors):
+        for _ in range(num_errors):
             tweet_ids.pop()
 
         tweets = []

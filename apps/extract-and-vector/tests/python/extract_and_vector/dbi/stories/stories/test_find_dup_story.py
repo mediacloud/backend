@@ -1,20 +1,13 @@
 from mediawords.db import DatabaseHandler
-# noinspection PyProtectedMember
 from mediawords.dbi.stories.stories import find_dup_story
-from .setup_test_stories import TestStories
 from mediawords.test.db.create import create_test_story_stack
+from mediawords.util.text import random_string
 from mediawords.util.sql import increment_day
+
+from .setup_test_stories import TestStories
 
 
 class TestFindDupStory(TestStories):
-    __slots__ = [
-        'unique_string_generator',
-    ]
-
-    def new_unique_str(self) -> str:
-        """Return a new unique string each call."""
-        self.unique_string_generator += 1
-        return str(self.unique_string_generator)
 
     def test_find_dup_story(self):
 
@@ -35,24 +28,24 @@ class TestFindDupStory(TestStories):
             assert find_dup_story(
                 db=db,
                 story={**story_, **{
-                    'url': self.new_unique_str(),
-                    'guid': self.new_unique_str()
+                    'url': random_string(16),
+                    'guid': random_string(16),
                 }},
             ) == story_, "{} URL + GUID diff, title same".format(num_)
 
             assert find_dup_story(
                 db=db,
                 story={**story_, **{
-                    'url': self.new_unique_str(),
-                    'title': self.new_unique_str()
+                    'url': random_string(16),
+                    'title': random_string(16),
                 }},
             ) == story_, "{} title + URL diff, GUID same".format(num_)
 
             assert find_dup_story(
                 db=db,
                 story={**story_, **{
-                    'guid': self.new_unique_str(),
-                    'title': self.new_unique_str(),
+                    'guid': random_string(16),
+                    'title': random_string(16),
                 }},
             ) == story_, "{} title + GUID diff, URL same".format(num_)
 
@@ -60,16 +53,16 @@ class TestFindDupStory(TestStories):
                 db=db,
                 story={**story_, **{
                     'url': story_['url'].upper(),
-                    'guid': self.new_unique_str(),
-                    'title': self.new_unique_str(),
+                    'guid': random_string(16),
+                    'title': random_string(16),
                 }},
-            ) == story_, "{} title + GUID diff, nornmalized url same ".format(num_)
+            ) == story_, "{} title + GUID diff, normalized url same ".format(num_)
 
             assert find_dup_story(
                 db=db,
                 story={**story_, **{
-                    'url': self.new_unique_str(),
-                    'guid': self.new_unique_str(),
+                    'url': random_string(16),
+                    'guid': random_string(16),
                     'publish_date': increment_day(date=story['publish_date'], days=2),
                 }},
             ) is None, "{} date + 2 days".format(num_)
@@ -77,17 +70,17 @@ class TestFindDupStory(TestStories):
             assert find_dup_story(
                 db=db,
                 story={**story_, **{
-                    'url': self.new_unique_str(),
-                    'guid': self.new_unique_str(),
+                    'url': random_string(16),
+                    'guid': random_string(16),
                     'publish_date': increment_day(date=story['publish_date'], days=-2),
                 }},
             ) is None, "{} date - 2 days".format(num_)
 
             # verify that we can find dup story by the url or guid of a previously dup'd story
-            dup_url = self.new_unique_str()
-            dup_guid = self.new_unique_str()
+            dup_url = random_string(16)
+            dup_guid = random_string(16)
 
-            nondup_url = self.new_unique_str()
+            nondup_url = random_string(16)
             nondup_guid = 'bogus unique guid'
             nondup_title = 'bogus unique title'
 
@@ -115,4 +108,4 @@ class TestFindDupStory(TestStories):
             for feeds_name, stories in feeds.items():
                 for num in stories:
                     story = media[media_name]['feeds'][feeds_name]['stories'][str(num)]
-                    _test_story(db=self.db(), story_=story, num_=num)
+                    _test_story(db=self.db, story_=story, num_=num)

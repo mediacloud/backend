@@ -1,5 +1,7 @@
 from mediawords.db import connect_to_db
-from mediawords.test.db.create import create_test_medium, create_test_feed, create_download_for_feed
+from mediawords.dbi.downloads import create_download_for_new_story
+from mediawords.test.db.create import create_test_medium, create_test_feed, create_test_story
+
 from extract_and_vector.dbi.download_texts import create
 
 
@@ -8,7 +10,8 @@ def test_create():
 
     test_medium = create_test_medium(db, 'downloads test')
     test_feed = create_test_feed(db, 'downloads test', test_medium)
-    test_download = create_download_for_feed(db, test_feed)
+    test_story = create_test_story(db=db, feed=test_feed, label='test_story')
+    test_download = create_download_for_new_story(db=db, story=test_story, feed=test_feed)
 
     test_download['path'] = 'postgresql:foo'
     test_download['state'] = 'success'

@@ -430,7 +430,6 @@ create temporary table snapshot_story_link_counts as
             coalesce( ilc.inlink_count, 0 ) inlink_count,
             coalesce( olc.outlink_count, 0 ) outlink_count,
             stc.simple_tweet_count,
-            stc.normalized_tweet_count,
             ss.facebook_share_count facebook_share_count
         from snapshot_period_stories ps
             left join snapshot_story_media_link_counts smlc using ( stories_id )

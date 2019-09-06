@@ -425,7 +425,7 @@ sub test_seed_queries
         source    => 'archive_org',
         query     => 'foo'
     };
-    test_put( "/api/v2/topics/$topics_id/add_seed_query", $tsq_input );
+    MediaWords::Test::API::test_put( "/api/v2/topics/$topics_id/add_seed_query", $tsq_input );
 
     my $got_tsq = $db->query( "select * from topic_seed_queries where topics_id = ?", $topics_id )->hash();
 
@@ -434,7 +434,7 @@ sub test_seed_queries
         is( $got_tsq->{ $field }, $tsq_input->{ $field }, "seed query $field value" );
     }
 
-    test_put( "/api/v2/topics/$topics_id/remove_seed_query",
+    MediaWords::Test::API::test_put( "/api/v2/topics/$topics_id/remove_seed_query",
         { topic_seed_queries_id => $got_tsq->{ topic_seed_queries_id } } );
 
     my ( $tsq_count ) = $db->query( "select count(*) from topic_seed_queries where topics_id = ?", $topics_id )->flat;

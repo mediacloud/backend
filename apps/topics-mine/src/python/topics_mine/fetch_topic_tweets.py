@@ -92,7 +92,7 @@ class DefaultTweetFetcher(AbstractTweetFetcher):
         key = tm_config.crimson_hexagon_api_key()
 
         if not key:
-            raise McFetchTopicTweetsConfigException("no key in mediawords.yml at //crimson_hexagon/key.")
+            raise McFetchTopicTweetsConfigException("Crimson Hexagon API key is not set.")
 
         next_day = day + datetime.timedelta(days=1)
 
@@ -470,7 +470,7 @@ def fetch_topic_tweets(db: DatabaseHandler,
     topic = db.require_by_id('topics', topics_id)
 
     if topic['platform'] != 'twitter':
-        raise (McFetchTopicTweetsDataException("Topic platform is not 'twitter'"))
+        raise McFetchTopicTweetsDataException("Topic platform is not 'twitter'")
 
     date = datetime.datetime.strptime(topic['start_date'], '%Y-%m-%d')
     end_date = datetime.datetime.strptime(topic['end_date'], '%Y-%m-%d')
@@ -478,7 +478,7 @@ def fetch_topic_tweets(db: DatabaseHandler,
         try:
             log.info("fetching tweets for %s" % date)
             if not _topic_tweet_day_fetched(db, topic, date):
-                meta_tweets = fetch_meta_tweets(db, topic, date)
+                meta_tweets = fetch_meta_tweets(db=db, topic=topic, day=date, tweet_fetcher=tweet_fetcher)
                 topic_tweet_day = _add_topic_tweet_single_day(db, topic, len(meta_tweets), date)
 
                 _fetch_tweets_for_day(
