@@ -174,6 +174,27 @@ x-solr-shard_base_deploy_placement_host3:   &solr-shard_base_deploy_placement_ho
 services:
 
     #
+    # CLIFF annotator service
+    # -----------------------
+    #
+    cliff-annotator:
+        image: dockermediacloud/cliff-annotator:containers_release
+        networks:
+            - default
+        expose:
+            - 8080
+        deploy:
+            # Worker count
+            replicas: 1
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "4G"
+
+
+    #
     # CLIFF fetch annotation
     # ----------------------
     #
@@ -183,9 +204,8 @@ services:
             - default
         environment:
             <<: *common-configuration
-            # Annotator endpoint URL
-            MC_CLIFF_ANNOTATOR_URL: ""
         depends_on:
+            - cliff-annotator
             - postgresql-pgbouncer
             - rabbitmq-server
         deploy:
