@@ -14,7 +14,7 @@ ENV MEDIACLOUD_SOLR_VERSION "6.5.0"
 #
 RUN \
     mkdir -p /usr/lib/jvm/java-12-openjdk-amd64/ && \
-    curl -L "https://download.java.net/java/GA/jdk12.0.1/69cfe15208a647278a19ef0990eea691/12/GPL/openjdk-12.0.1_linux-x64_bin.tar.gz" \
+    curl -L "https://download.java.net/java/GA/jdk12.0.2/e482c34c86bd4bf8b56c0b35558996b9/10/GPL/openjdk-12.0.2_linux-x64_bin.tar.gz" \
         > /var/tmp/openjdk.tar.gz && \
     tar -zxf /var/tmp/openjdk.tar.gz -C /usr/lib/jvm/java-12-openjdk-amd64/ --strip 1 && \
     rm /var/tmp/openjdk.tar.gz && \
