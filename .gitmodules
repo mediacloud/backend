@@ -1,5 +1,5 @@
 [submodule "doc/api_2_0_spec/github-markdown-toc"]
-	path = doc/api_2_0_spec/github-markdown-toc
+	path = doc/github-markdown-toc
 	url = https://github.com/ekalinin/github-markdown-toc.git
 [submodule "apps/nytlabels-annotator/src/MediaCloud-NYT-News-Labeler"]
 	path = apps/nytlabels-annotator/src/MediaCloud-NYT-News-Labeler
