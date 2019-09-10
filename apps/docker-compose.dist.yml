@@ -762,6 +762,10 @@ services:
     #
     munin-cron:
         image: dockermediacloud/munin-cron:containers_release
+        # Docker doesn't reap zombie processes properly
+        # (https://blog.phusion.nl/2015/01/20/docker-and-the-pid-1-zombie-reaping-problem/),
+        # and Munin runs all kinds of plugins which might not take care of their children properly.
+        init: true
         networks:
             - default
         depends_on:
@@ -824,6 +828,10 @@ services:
     #
     munin-node:
         image: dockermediacloud/munin-node:containers_release
+        # Docker doesn't reap zombie processes properly
+        # (https://blog.phusion.nl/2015/01/20/docker-and-the-pid-1-zombie-reaping-problem/),
+        # and Munin runs all kinds of plugins which might not take care of their children properly.
+        init: true
         networks:
             - default
         depends_on:
