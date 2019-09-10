@@ -1,13 +1,23 @@
 #!/bin/bash
 #
 # Autogenerates Table of Contents from Markdown doc and inserts / updates it
-# into the document between given markers:
+# into the document between given markers.
+#
+# Usage:
+#
+# 1. Add the following markers to the top of a Markdown document that has to have ToC inserted:
 #
 #     <!-- MEDIACLOUD-TOC-START -->
 #
 #     This is where TOC will be inserted.
 #
 #     <!-- MEDIACLOUD-TOC-END -->
+#
+# 2. Run:
+#
+#    ./update_toc.sh your-document.md
+#
+# 3. Commit document with the updated ToC.
 #
 
 set -u
