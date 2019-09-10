@@ -1,3 +1,23 @@
+<!-- MEDIACLOUD-TOC-START -->
+
+Table of Contents
+=================
+
+   * [Creating apps](#creating-apps)
+      * [App names can't have underscores (_) in them](#app-names-cant-have-underscores-_-in-them)
+      * [Tag versions](#tag-versions)
+      * [App layout in container image](#app-layout-in-container-image)
+      * [Writing Dockerfiles](#writing-dockerfiles)
+         * [Run app's main script using unprivileged user](#run-apps-main-script-using-unprivileged-user)
+         * [Do "heavy" operations first, "volatile" operations last](#do-heavy-operations-first-volatile-operations-last)
+         * [Print logs to STDOUT and STDERR](#print-logs-to-stdout-and-stderr)
+         * [Don't store anything important in container itself](#dont-store-anything-important-in-container-itself)
+         * [Run only a single thing per container](#run-only-a-single-thing-per-container)
+
+----
+<!-- MEDIACLOUD-TOC-END -->
+
+
 # Creating apps
 
 Every app gets built to a Docker container image which then gets named with the app's name, e.g. `solr-zookeeper` app gets built to `dockermediacloud/solr-zookeeper` image to be later used for running the ZooKeeper from within the Docker Compose environment.

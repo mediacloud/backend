@@ -1,3 +1,18 @@
+<!-- MEDIACLOUD-TOC-START -->
+
+Table of Contents
+=================
+
+   * [Topics](#topics)
+      * [Basic flow of topic mapper](#basic-flow-of-topic-mapper)
+      * [Tables used by topic mapper](#tables-used-by-topic-mapper)
+      * [Detailed explanation of topic mapper process](#detailed-explanation-of-topic-mapper-process)
+      * [Mining vs. Snapshotting](#mining-vs-snapshotting)
+
+----
+<!-- MEDIACLOUD-TOC-END -->
+
+
 # Topics
 
 This document provides a high level overview of how the topic mapping system works and points to the pieces of code that perform specific functions.

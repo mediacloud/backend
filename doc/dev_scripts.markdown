@@ -1,3 +1,26 @@
+<!-- MEDIACLOUD-TOC-START -->
+
+Table of Contents
+=================
+
+   * [Developer scripts](#developer-scripts)
+      * [pull.py - pull images](#pullpy---pull-images)
+         * [Usage](#usage)
+      * [build.py - build images](#buildpy---build-images)
+         * [Usage](#usage-1)
+      * [push.py - push images](#pushpy---push-images)
+         * [Usage](#usage-2)
+      * [run.py - run command in app's testing environment](#runpy---run-command-in-apps-testing-environment)
+         * [Usage](#usage-3)
+      * [run_test.py - run test in app's testing environment](#run_testpy---run-test-in-apps-testing-environment)
+         * [Usage](#usage-4)
+      * [run_all_tests.py - run all tests in their respective app's testing environments](#run_all_testspy---run-all-tests-in-their-respective-apps-testing-environments)
+         * [Usage](#usage-5)
+
+----
+<!-- MEDIACLOUD-TOC-END -->
+
+
 # Developer scripts
 
 While you can get away with using vanilla Docker and running `docker` and `docker-compose` commands yourself, a bunch of developer scripts available under `dev/` should make it easier to do common everyday tasks.
@@ -52,7 +75,7 @@ $ ./dev/pull.py -p | grep solr-shard | bash
 $ ./dev/pull.py -p | grep -v nytlabels-annotator | bash
 ```
 
-##`build.py` - build images
+## `build.py` - build images
 
 (Re-)build Docker images for all apps, and tag them with both the name of the current Git branch and `latest`.
 

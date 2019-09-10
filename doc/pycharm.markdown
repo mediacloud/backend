@@ -1,3 +1,23 @@
+<!-- MEDIACLOUD-TOC-START -->
+
+Table of Contents
+=================
+
+   * [Configuring PyCharm with Docker](#configuring-pycharm-with-docker)
+      * [Install and configure Docker plugin](#install-and-configure-docker-plugin)
+      * [Add PyCharm plugins as project's dependencies](#add-pycharm-plugins-as-projects-dependencies)
+      * [Configure Python interpreter](#configure-python-interpreter)
+      * [Configure Dockerfile build](#configure-dockerfile-build)
+      * [Configure <em>pytest</em>](#configure-pytest)
+      * [Configure script run template](#configure-script-run-template)
+      * [Configure IDE's Python Console](#configure-ides-python-console)
+      * [Configure default test runner](#configure-default-test-runner)
+      * [Configure SQL schema](#configure-sql-schema)
+
+----
+<!-- MEDIACLOUD-TOC-END -->
+
+
 # Configuring PyCharm with Docker
 
 This tutorial details on how to set up [PyCharm Professional](https://www.jetbrains.com/pycharm/) to build, test and run Media Cloud apps using Docker and Docker Compose.

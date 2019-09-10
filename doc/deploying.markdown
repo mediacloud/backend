@@ -1,3 +1,28 @@
+<!-- MEDIACLOUD-TOC-START -->
+
+Table of Contents
+=================
+
+   * [Deploying](#deploying)
+      * [Ports](#ports)
+         * [Docker swarm](#docker-swarm)
+         * [Webapp](#webapp)
+      * [ZFS pool](#zfs-pool)
+      * [ZFS filesystems](#zfs-filesystems)
+      * [Provisioning](#provisioning)
+      * [Configuration](#configuration)
+      * [Deploying](#deploying-1)
+         * [SSH port forwarding](#ssh-port-forwarding)
+         * [Deploying with Portainer](#deploying-with-portainer)
+            * [Deploy Portainer itself](#deploy-portainer-itself)
+            * [Deploy Media Cloud using Portainer](#deploy-media-cloud-using-portainer)
+            * [Portainer's tips and gochas](#portainers-tips-and-gochas)
+         * [Deploying manually](#deploying-manually)
+
+----
+<!-- MEDIACLOUD-TOC-END -->
+
+
 # Deploying
 
 To deploy your code changes, generally you would:
@@ -132,7 +157,7 @@ Template for production's `docker-compose.yml` file is available in `apps/docker
 
 ## Deploying
 
-## SSH port forwarding
+### SSH port forwarding
 
 Both Media Cloud production's `docker-compose.yml` and Portainer's `docker-compose.portainer.yml` are configured to expose ports of certain apps to every node. Those ports are (to be) firewalled off from public access, but it might be useful to be able to access those services internally for debugging purposes. The services with published ports include (but might not be limited to):
 

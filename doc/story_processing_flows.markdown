@@ -1,3 +1,20 @@
+<!-- MEDIACLOUD-TOC-START -->
+
+Table of Contents
+=================
+
+   * [Story Processing Flow](#story-processing-flow)
+      * [Order of Operations](#order-of-operations)
+      * [Crawler](#crawler)
+      * [Extractor](#extractor)
+      * [Processed Stories ID](#processed-stories-id)
+      * [Solr Importer](#solr-importer)
+      * [NYT Themes](#nyt-themes)
+
+----
+<!-- MEDIACLOUD-TOC-END -->
+
+
 Story Processing Flow
 =====================
 

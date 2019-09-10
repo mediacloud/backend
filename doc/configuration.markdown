@@ -1,3 +1,17 @@
+<!-- MEDIACLOUD-TOC-START -->
+
+Table of Contents
+=================
+
+   * [Configuration](#configuration)
+      * [Configuration classes](#configuration-classes)
+      * [Adding new configuration](#adding-new-configuration)
+      * [Mocking configuration in tests](#mocking-configuration-in-tests)
+
+----
+<!-- MEDIACLOUD-TOC-END -->
+
+
 # Configuration
 
 Apps get configured via environment variables that get set for every app's container. Apps derived from the `common` app share a set of global configuration environment variables (defined at the top of production's `docker-compose.dist.yml`, in the `x-common-configuration` section), and some apps have their own local configuration environment variables.

@@ -1,3 +1,17 @@
+<!-- MEDIACLOUD-TOC-START -->
+
+Table of Contents
+=================
+
+   * [tools app](#tools-app)
+      * [Run tool in background](#run-tool-in-background)
+      * [Attach tool to existing network](#attach-tool-to-existing-network)
+      * [What is and isn't a "tool"](#what-is-and-isnt-a-tool)
+
+----
+<!-- MEDIACLOUD-TOC-END -->
+
+
 # `tools` app
 
 `tools` app contains miscellaneous one-off tools that don't carry enough "weight" to become its own app. All the tools get copied to `/opt/mediacloud/bin/` which is in `PATH` so one can run a specific tool as follows:
