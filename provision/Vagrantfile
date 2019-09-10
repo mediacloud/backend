@@ -59,18 +59,21 @@ Vagrant.configure("2") do |config|
             "role-mail-postfix" => "true",
             "role-munin-httpd" => "true",
             "role-portainer" => "true",
+            "role-misc-apps" => "true",
           }
           machine2_labels = {
             "role-nytlabels-annotator" => "true",
             "role-postgresql-server" => "true",
             "role-proxy-httpd" => "true",
             "role-rabbitmq-server" => "true",
+            "role-misc-apps" => "true",
           }
           machine3_labels = {
             "role-webapp-httpd" => "true",
             "role-solr-shards-host1" => "true",
             "role-solr-shards-host2" => "true",
             "role-solr-shards-host3" => "true",
+            "role-misc-apps" => "true",
           }
 
           # Assign some labels just to test them out
