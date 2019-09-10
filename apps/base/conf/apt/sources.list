@@ -1,0 +1,19 @@
+#
+# Use mirror closest to us
+#
+
+deb mirror://mirrors.ubuntu.com/mirrors.txt xenial main restricted
+
+deb mirror://mirrors.ubuntu.com/mirrors.txt xenial-updates main restricted
+
+deb mirror://mirrors.ubuntu.com/mirrors.txt xenial universe
+deb mirror://mirrors.ubuntu.com/mirrors.txt xenial-updates universe
+
+deb mirror://mirrors.ubuntu.com/mirrors.txt xenial multiverse
+deb mirror://mirrors.ubuntu.com/mirrors.txt xenial-updates multiverse
+
+deb mirror://mirrors.ubuntu.com/mirrors.txt xenial-backports main restricted universe multiverse
+
+deb http://security.ubuntu.com/ubuntu/ xenial-security main restricted
+deb http://security.ubuntu.com/ubuntu/ xenial-security universe
+deb http://security.ubuntu.com/ubuntu/ xenial-security multiverse

@@ -13,6 +13,9 @@ ENV DEBIAN_FRONTEND noninteractive
 ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US
 
+# Use mirror closest to us
+COPY conf/apt/sources.list /etc/apt/
+
 # Upgrade packages
 RUN \
     apt-get -y update && \
