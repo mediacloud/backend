@@ -1,6 +1,7 @@
 from mediawords.db import connect_to_db
 from mediawords.test.db.create import create_test_medium
 from mediawords.util.url import normalize_url_lossy
+
 # noinspection PyProtectedMember
 from topics_base.media import _update_media_normalized_urls
 

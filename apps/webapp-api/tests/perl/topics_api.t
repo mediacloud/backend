@@ -86,7 +86,8 @@ sub create_test_data($$)
             start_date          => '2014-04-01',
             end_date            => '2014-06-01',
             job_queue           => 'mc',
-            max_stories         => 100_000
+            max_stories         => 100_000,
+            platform            => 'web'
         }
     );
 
@@ -364,10 +365,11 @@ sub test_topics_crud($)
         is_public            => 1,
         is_logogram          => 0,
         is_story_index_ready => 1,
-        ch_monitor_id        => 123456,
         media_ids            => $media_ids,
         media_tags_ids       => $tags_ids,
         max_stories          => 1234,
+        platform             => 'web',
+        ch_monitor_id        => 0
     };
 
     my $r = MediaWords::Test::API::test_post( '/api/v2/topics/create', $input );
@@ -410,10 +412,11 @@ sub test_topics_crud($)
         is_public            => 0,
         is_logogram          => 0,
         is_story_index_ready => 0,
-        ch_monitor_id        => 1234567,
         media_ids            => $update_media_ids,
         media_tags_ids       => $update_tags_ids,
-        max_stories          => 2345
+        max_stories          => 2345,
+        platform             => 'twitter',
+        ch_monitor_id        => 0
     };
 
     $label = 'update topic';

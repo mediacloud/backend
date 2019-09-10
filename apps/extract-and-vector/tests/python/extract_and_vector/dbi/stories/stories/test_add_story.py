@@ -37,10 +37,13 @@ class TestAddStory(TestStories):
         ).hashes()
         assert len(feeds_stories_tag_mapping) == 1
 
-        # Try adding a duplicate story
-        added_story = add_story(db=self.db, story=story, feeds_id=feeds_id)
-        assert added_story is None
+        story_urls = self.db.query(
+            "select * from story_urls where stories_id = %(a)s",
+            {'a': added_story['stories_id']}).hashes()
+        assert len(story_urls) == 1
+        assert story_urls[0]['url'] == added_story['url']
 
-        # Try adding a duplicate story with explicit "is new" testing disabled
-        added_story = add_story(db=self.db, story=story, feeds_id=feeds_id, skip_checking_if_new=True)
-        assert added_story is None
+        # Try adding a duplicate story
+        dup_story = add_story(db=self.db, story=story, feeds_id=feeds_id)
+        assert dup_story is not None
+        assert dup_story['stories_id'] == added_story['stories_id']

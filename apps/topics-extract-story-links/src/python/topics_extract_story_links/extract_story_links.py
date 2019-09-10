@@ -101,19 +101,19 @@ def _get_extracted_html(db: DatabaseHandler, story: dict) -> str:
     and run the extractor on it.
 
     """
+    download = db.query(
+        """
+        with d as (
+            select * from downloads
+                where
+                    stories_id = %(a)s and
+                    type = 'content' and
+                    state = 'success'
+        ) -- goofy cte to avoid bad query plan
 
-    download = db.query("""
-        -- Goofy cte to avoid bad query plan
-        WITH d AS (
-            SELECT *
-            FROM downloads
-            WHERE stories_id = %(a)s
-        )
-        SELECT *
-        FROM d
-        ORDER BY downloads_id
-        LIMIT 1
-    """, {'a': story['stories_id']}).hash()
+        select * from d order by downloads_id limit 1
+        """,
+        {'a': story['stories_id']}).hash()
 
     html = fetch_content(db, download)
 
@@ -125,10 +125,16 @@ def _get_extracted_html(db: DatabaseHandler, story: dict) -> str:
 
 def _get_links_from_story_text(db: DatabaseHandler, story: dict) -> List[str]:
     """Get all urls that appear in the text or description of the story using a simple regex."""
+    # just get the first download, because the download_texts query plan breaks with multiple downloads,
+    # and multiple download stories are rare
     download_ids = db.query("""
         SELECT downloads_id
         FROM downloads
         WHERE stories_id = %(stories_id)s
+            AND type = 'content'
+            AND state = 'success'
+        ORDER BY downloads_id ASC
+        LIMIT 1
         """, {'stories_id': story['stories_id']}
                             ).flat()
 

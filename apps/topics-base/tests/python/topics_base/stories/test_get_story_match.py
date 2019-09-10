@@ -30,10 +30,13 @@ def test_get_story_match():
     assert get_story_match(db, 'http://foo.com', stories[3]['url'] + '#foo') == stories[3]
 
     # get_preferred_story - return only story with sentences
+    # noinspection SqlInsertValues
     db.query(
         """
         insert into story_sentences ( stories_id, media_id, publish_date, sentence, sentence_number )
-            select stories_id, media_id, publish_date, 'foo', 1 from stories where stories_id = %(a)s
+            select stories_id, media_id, publish_date, 'foo', 1
+            from stories
+            where stories_id = %(a)s
         """,
         {'a': stories[4]['stories_id']})
     # noinspection SqlWithoutWhere

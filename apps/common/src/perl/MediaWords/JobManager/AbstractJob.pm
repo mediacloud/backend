@@ -64,24 +64,37 @@ sub get_run_lock_type
     }
 }
 
+sub _job_is_already_running($$;$)
+{
+    my ( $self_or_class, $db, $args ) = @_;
+
+    # if a job for a run locked class is already running, exit without doinig anything.
+    if ( my $run_lock_arg = $self_or_class->get_run_lock_arg() )
+    {
+        my $lock_type = $self_or_class->get_run_lock_type();
+        unless ( MediaWords::DB::Locks::get_session_lock( $db, $lock_type, $args->{ $run_lock_arg }, 0 ) )
+        {
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
 # set job state to $STATE_RUNNING, call run(), either catch any errors and set state to $STATE_ERROR and save
 # the error or set state to $STATE_COMPLETED
-sub __run($;$)
+sub __run($;$$)
 {
-    my ( $class, $args ) = @_;
+    my ( $class, $args, $skip_testing_for_lock ) = @_;
 
     my $db = MediaWords::DB::connect_to_db();
 
-    # if a job for a run locked class is already running, exit without doinig anything.
-    if ( my $run_lock_arg = $class->get_run_lock_arg() )
-    {
-        my $lock_type = $class->get_run_lock_type();
-        unless ( MediaWords::DB::Locks::get_session_lock( $db, $lock_type, $args->{ $run_lock_arg }, 0 ) )
-        {
-            WARN( "Job with $run_lock_arg = $args->{ $run_lock_arg } is already running.  Exiting." );
+    unless ( $skip_testing_for_lock ) {
+        if ( $class->_job_is_already_running( $db, $args ) ) {
+            my $run_lock_arg = $class->get_run_lock_arg();
+            WARN( "Stateless job with $run_lock_arg = $args->{ $run_lock_arg } is already running.  Exiting." );
             return;
         }
-        DEBUG( "Got run once lock for this job class." );
     }
 
     return $class->run( $args );

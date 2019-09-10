@@ -5,6 +5,7 @@ use utf8;
 use Modern::Perl '2015';
 use MediaWords::CommonLibs;
 
+use Test::Deep;
 use Test::More;
 use Catalyst::Test 'MediaWords';
 use Readonly;
@@ -411,12 +412,42 @@ SQL
     ok( !$topic->{ message }, "topics_reset: null message" );
 }
 
+sub test_seed_queries
+{
+    my ( $db ) = @_;
+
+    my $topic = MediaWords::Test::DB::Create::create_test_topic( $db, 'seed' );
+    my $topics_id = $topic->{ topics_id };
+
+    my $tsq_input = {
+        topics_id => $topics_id,
+        platform  => 'twitter',
+        source    => 'archive_org',
+        query     => 'foo'
+    };
+    MediaWords::Test::API::test_put( "/api/v2/topics/$topics_id/add_seed_query", $tsq_input );
+
+    my $got_tsq = $db->query( "select * from topic_seed_queries where topics_id = ?", $topics_id )->hash();
+
+    for my $field ( keys( %{ $tsq_input } ) )
+    {
+        is( $got_tsq->{ $field }, $tsq_input->{ $field }, "seed query $field value" );
+    }
+
+    MediaWords::Test::API::test_put( "/api/v2/topics/$topics_id/remove_seed_query",
+        { topic_seed_queries_id => $got_tsq->{ topic_seed_queries_id } } );
+
+    my ( $tsq_count ) = $db->query( "select count(*) from topic_seed_queries where topics_id = ?", $topics_id )->flat;
+    is( $tsq_count, 0, "seed query count after remove" );
+}
+
 sub test_topics
 {
     my ( $db ) = @_;
 
     MediaWords::Test::API::setup_test_api_key( $db );
 
+    test_seed_queries( $db );
     test_update_query_scope( $db );
     test_set_stories_respidering( $db );
     test_topics_reset( $db );

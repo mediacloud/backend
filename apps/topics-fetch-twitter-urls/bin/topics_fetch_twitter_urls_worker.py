@@ -7,8 +7,9 @@ if they match the topic pattern.
 
 from mediawords.db import connect_to_db
 from mediawords.job import JobBroker
-from topics_fetch_twitter_urls.fetch_twitter_urls import fetch_twitter_urls_update_state
 from mediawords.util.log import create_logger
+
+from topics_fetch_twitter_urls.fetch_twitter_urls import fetch_twitter_urls_update_state
 
 log = create_logger(__name__)
 

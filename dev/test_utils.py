@@ -17,13 +17,13 @@ class TestUtils(TestCase):
             'crawler': 'common',
             'common': 'base',
             'base': 'ubuntu:16.04',
-            'predict-news-labels': 'base',
+            'nytlabels-annotator': 'base',
             'some-other-container': 'alpine:3.9',
         }
         expected_tree = [
             {'alpine:3.9', 'ubuntu:16.04'},
             {'base', 'some-other-container'},
-            {'common', 'predict-news-labels'},
+            {'common', 'nytlabels-annotator'},
             {'crawler', 'extract-and-vector'},
         ]
         got_tree = _ordered_container_dependencies(dependencies)

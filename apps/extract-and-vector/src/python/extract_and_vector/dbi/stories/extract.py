@@ -27,6 +27,7 @@ def extract_and_process_story(db: DatabaseHandler,
         FROM downloads
         WHERE stories_id = %(stories_id)s
           AND type = 'content'
+          AND state = 'success'
         ORDER BY downloads_id ASC
     """, {'stories_id': stories_id}).hashes()
 

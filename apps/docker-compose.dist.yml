@@ -71,6 +71,35 @@ x-common-configuration: &common-configuration
 
 
 #
+# Twitter API configuration
+# =========================
+#
+x-twitter-api-configuration: &twitter-api-configuration
+
+    # Twitter API consumer key
+    MC_TWITTER_CONSUMER_KEY: ""
+
+    # Twitter API consumer secret
+    MC_TWITTER_CONSUMER_SECRET: ""
+
+    # Twitter API access token
+    MC_TWITTER_ACCESS_TOKEN: ""
+
+    # Twitter API access token secret
+    MC_TWITTER_ACCESS_TOKEN_SECRET: ""
+
+
+#
+# Crimson Hexagon API configuration
+# =================================
+#
+x-crimson-hexagon-api-configuration: &crimson-hexagon-api-configuration
+
+    # Crimson Hexagon API key
+    MC_CRIMSON_HEXAGON_API_KEY: ""
+
+
+#
 # Solr shard base service
 # =======================
 #
@@ -139,10 +168,48 @@ x-solr-shard_base_deploy_placement_host3:   &solr-shard_base_deploy_placement_ho
 
 
 #
+# Misc. apps placement constraint
+# ===============================
+#
+# To be applied to every service that's not bound to run on a specific host.
+# This is needed to prevent misc. services from running on hosts which are to
+# be reserved for a particular service, e.g. we might want to run only
+# "postgresql-server" app on a specific server.
+#
+x-misc-apps_deploy_placement_constraints:   &misc-apps_deploy_placement_constraints
+    placement:
+        constraints:
+            # Must run on a host on which misc. apps are configured to run on
+            - node.labels.role-misc-apps == true
+
+
+#
 # Services
 # ========
 #
 services:
+
+    #
+    # CLIFF annotator service
+    # -----------------------
+    #
+    cliff-annotator:
+        image: dockermediacloud/cliff-annotator:containers_release
+        networks:
+            - default
+        expose:
+            - 8080
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            # Worker count
+            replicas: 1
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "4G"
+
 
     #
     # CLIFF fetch annotation
@@ -154,12 +221,12 @@ services:
             - default
         environment:
             <<: *common-configuration
-            # Annotator endpoint URL
-            MC_CLIFF_ANNOTATOR_URL: ""
         depends_on:
+            - cliff-annotator
             - postgresql-pgbouncer
             - rabbitmq-server
         deploy:
+            <<: *misc-apps_deploy_placement_constraints
             # Worker count
             replicas: 4
             resources:
@@ -191,6 +258,7 @@ services:
             - postgresql-pgbouncer
             - rabbitmq-server
         deploy:
+            <<: *misc-apps_deploy_placement_constraints
             # Worker count
             replicas: 1
             # Auto-restart on crashes
@@ -200,6 +268,60 @@ services:
                     cpus: "1"
                     # RAM limit
                     memory: "256M"
+
+    #
+    # AP crawler
+    # ----------
+    #
+    crawler-ap:
+        image: dockermediacloud/crawler-ap:containers_release
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+            # AP API key
+            MC_CRAWLER_AP_API_KEY: ""
+        depends_on:
+            - postgresql-pgbouncer
+            - rabbitmq-server
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            # Worker count
+            replicas: 1
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "512M"
+
+    #
+    # Crawler fetcher
+    # ---------------
+    #
+    crawler-fetcher:
+        image: dockermediacloud/crawler-fetcher:containers_release
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+            # Univision API client ID
+            MC_UNIVISION_CLIENT_ID: ""
+            # Univision API client secret (secret key)
+            MC_UNIVISION_CLIENT_SECRET: ""
+        depends_on:
+            - postgresql-pgbouncer
+            - rabbitmq-server
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            # Worker count
+            replicas: 8
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "512M"
 
     #
     # Crawler provider
@@ -214,35 +336,13 @@ services:
         depends_on:
             - postgresql-pgbouncer
         deploy:
+            <<: *misc-apps_deploy_placement_constraints
             resources:
                 limits:
                     # CPU core limit
                     cpus: "1"
                     # RAM limit
                     memory: "1G"
-
-    #
-    # Crawler fetcher
-    # ---------------
-    #
-    crawler-fetcher:
-        image: dockermediacloud/crawler-fetcher:containers_release
-        networks:
-            - default
-        environment:
-            <<: *common-configuration
-        depends_on:
-            - postgresql-pgbouncer
-            - rabbitmq-server
-        deploy:
-            # Worker count
-            replicas: 8
-            resources:
-                limits:
-                    # CPU core limit
-                    cpus: "1"
-                    # RAM limit
-                    memory: "512M"
 
     #
     # Create missing PostgreSQL partitions
@@ -257,6 +357,7 @@ services:
         depends_on:
             - postgresql-pgbouncer
         deploy:
+            <<: *misc-apps_deploy_placement_constraints
             resources:
                 limits:
                     # CPU core limit
@@ -305,6 +406,7 @@ services:
         depends_on:
             - postgresql-pgbouncer
         deploy:
+            <<: *misc-apps_deploy_placement_constraints
             resources:
                 limits:
                     # CPU core limit
@@ -325,6 +427,7 @@ services:
         depends_on:
             - postgresql-pgbouncer
         deploy:
+            <<: *misc-apps_deploy_placement_constraints
             resources:
                 limits:
                     # CPU core limit
@@ -345,6 +448,7 @@ services:
         depends_on:
             - postgresql-pgbouncer
         deploy:
+            <<: *misc-apps_deploy_placement_constraints
             resources:
                 limits:
                     # CPU core limit
@@ -365,6 +469,7 @@ services:
         depends_on:
             - postgresql-pgbouncer
         deploy:
+            <<: *misc-apps_deploy_placement_constraints
             resources:
                 limits:
                     # CPU core limit
@@ -386,6 +491,7 @@ services:
             - postgresql-pgbouncer
             - rabbitmq-server
         deploy:
+            <<: *misc-apps_deploy_placement_constraints
             resources:
                 limits:
                     # CPU core limit
@@ -406,6 +512,7 @@ services:
         depends_on:
             - postgresql-pgbouncer
         deploy:
+            <<: *misc-apps_deploy_placement_constraints
             resources:
                 limits:
                     # CPU core limit
@@ -426,6 +533,7 @@ services:
         depends_on:
             - postgresql-pgbouncer
         deploy:
+            <<: *misc-apps_deploy_placement_constraints
             resources:
                 limits:
                     # CPU core limit
@@ -446,6 +554,7 @@ services:
         depends_on:
             - postgresql-pgbouncer
         deploy:
+            <<: *misc-apps_deploy_placement_constraints
             resources:
                 limits:
                     # CPU core limit
@@ -468,6 +577,7 @@ services:
             - postgresql-pgbouncer
             - rabbitmq-server
         deploy:
+            <<: *misc-apps_deploy_placement_constraints
             # Worker count
             replicas: 24
             resources:
@@ -491,6 +601,7 @@ services:
             # HTTP extraction service
             - 8080
         deploy:
+            <<: *misc-apps_deploy_placement_constraints
             # Worker count
             replicas: 8
             resources:
@@ -520,6 +631,7 @@ services:
             - postgresql-pgbouncer
             - rabbitmq-server
         deploy:
+            <<: *misc-apps_deploy_placement_constraints
             # Worker count
             replicas: 4
             resources:
@@ -548,6 +660,7 @@ services:
             - postgresql-pgbouncer
             - solr-shard-01
         deploy:
+            <<: *misc-apps_deploy_placement_constraints
             resources:
                 limits:
                     # CPU core limit
@@ -569,6 +682,7 @@ services:
             # Writes stories to PostgreSQL
             - postgresql-pgbouncer
         deploy:
+            <<: *misc-apps_deploy_placement_constraints
             resources:
                 limits:
                     # CPU core limit
@@ -648,6 +762,10 @@ services:
     #
     munin-cron:
         image: dockermediacloud/munin-cron:containers_release
+        # Docker doesn't reap zombie processes properly
+        # (https://blog.phusion.nl/2015/01/20/docker-and-the-pid-1-zombie-reaping-problem/),
+        # and Munin runs all kinds of plugins which might not take care of their children properly.
+        init: true
         networks:
             - default
         depends_on:
@@ -710,6 +828,10 @@ services:
     #
     munin-node:
         image: dockermediacloud/munin-node:containers_release
+        # Docker doesn't reap zombie processes properly
+        # (https://blog.phusion.nl/2015/01/20/docker-and-the-pid-1-zombie-reaping-problem/),
+        # and Munin runs all kinds of plugins which might not take care of their children properly.
+        init: true
         networks:
             - default
         depends_on:
@@ -718,12 +840,39 @@ services:
             # Monitors data on Solr
             - solr-shard-01
         deploy:
+            <<: *misc-apps_deploy_placement_constraints
             resources:
                 limits:
                     # CPU core limit
                     cpus: "1"
                     # RAM limit
                     memory: "512M"
+
+    #
+    # NYT-Based News Tagger service
+    # -----------------------------
+    #
+    nytlabels-annotator:
+        image: dockermediacloud/nytlabels-annotator:containers_release
+        networks:
+            - default
+        expose:
+            - 8080
+        deploy:
+            placement:
+                constraints:
+                    # Workers don't necessarily *have* to run on the very same host,
+                    # but if they do, they'll be able to share a single mmap'ped dataset
+                    # and thus conserve memory
+                    - node.labels.role-nytlabels-annotator == true
+            # Worker count
+            replicas: 1
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "4G"
 
     #
     # NYTLabels fetch annotation
@@ -736,10 +885,11 @@ services:
         environment:
             <<: *common-configuration
         depends_on:
-            - predict-news-labels
+            - nytlabels-annotator
             - postgresql-pgbouncer
             - rabbitmq-server
         deploy:
+            <<: *misc-apps_deploy_placement_constraints
             # Worker count
             replicas: 4
             resources:
@@ -767,6 +917,7 @@ services:
             - postgresql-pgbouncer
             - rabbitmq-server
         deploy:
+            <<: *misc-apps_deploy_placement_constraints
             # Worker count
             replicas: 1
             resources:
@@ -789,6 +940,7 @@ services:
         expose:
             - 6432
         deploy:
+            <<: *misc-apps_deploy_placement_constraints
             resources:
                 limits:
                     # CPU core limit
@@ -813,32 +965,6 @@ services:
                 constraints:
                     # Must run on the host with PostgreSQL data volume
                     - node.labels.role-postgresql-server == true
-
-    #
-    # NYT-Based News Tagger service
-    # -----------------------------
-    #
-    predict-news-labels:
-        image: dockermediacloud/predict-news-labels:containers_release
-        networks:
-            - default
-        expose:
-            - 8080
-        deploy:
-            placement:
-                constraints:
-                    # Workers don't necessarily *have* to run on the very same host,
-                    # but if they do, they'll be able to share a single mmap'ped dataset
-                    # and thus conserve memory
-                    - node.labels.role-predict-news-labels == true
-            # Worker count
-            replicas: 1
-            resources:
-                limits:
-                    # CPU core limit
-                    cpus: "1"
-                    # RAM limit
-                    memory: "4G"
 
     #
     # Cron job that updates Let's Encrypt certificates used by reverse proxy
@@ -917,6 +1043,7 @@ services:
         depends_on:
             - postgresql-pgbouncer
         deploy:
+            <<: *misc-apps_deploy_placement_constraints
             resources:
                 limits:
                     # CPU core limit
@@ -972,6 +1099,7 @@ services:
             - postgresql-pgbouncer
             - rabbitmq-server
         deploy:
+            <<: *misc-apps_deploy_placement_constraints
             # Worker count
             replicas: 2
             resources:
@@ -992,6 +1120,7 @@ services:
         environment:
             <<: *common-configuration
         deploy:
+            <<: *misc-apps_deploy_placement_constraints
             resources:
                 limits:
                     # CPU core limit
@@ -1211,6 +1340,7 @@ services:
             - 2888
             - 3888
         deploy:
+            <<: *misc-apps_deploy_placement_constraints
             resources:
                 limits:
                     # CPU core limit
@@ -1231,6 +1361,7 @@ services:
         depends_on:
             - extract-article-from-page
         deploy:
+            <<: *misc-apps_deploy_placement_constraints
             # Worker count
             replicas: 32
             resources:
@@ -1251,6 +1382,7 @@ services:
         environment:
             <<: *common-configuration
         deploy:
+            <<: *misc-apps_deploy_placement_constraints
             # Worker count
             replicas: 8
             resources:
@@ -1270,17 +1402,33 @@ services:
             - default
         environment:
             <<: *common-configuration
-            # Twitter API consumer key
-            MC_TWITTER_CONSUMER_KEY: ""
-            # Twitter API consumer secret
-            MC_TWITTER_CONSUMER_SECRET: ""
-            # Twitter API access token
-            MC_TWITTER_ACCESS_TOKEN: ""
-            # Twitter API access token secret
-            MC_TWITTER_ACCESS_TOKEN_SECRET: ""
+            <<: *twitter-api-configuration
         deploy:
+            <<: *misc-apps_deploy_placement_constraints
             # Worker count
             replicas: 8
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "256M"
+
+    #
+    # Generate retweeter scores
+    # -------------------------
+    #
+    topics-generate-retweeter-scores:
+        image: dockermediacloud/topics-generate-retweeter-scores:containers_release
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+            <<: *twitter-api-configuration
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            # Worker count
+            replicas: 1
             resources:
                 limits:
                     # CPU core limit
@@ -1298,9 +1446,10 @@ services:
             - default
         environment:
             <<: *common-configuration
-            # Crimson Hexagon API key
-            MC_CRIMSON_HEXAGON_API_KEY: ""
+            <<: *twitter-api-configuration
+            <<: *crimson-hexagon-api-configuration
         deploy:
+            <<: *misc-apps_deploy_placement_constraints
             # Worker count
             replicas: 4
             resources:
@@ -1320,9 +1469,10 @@ services:
             - default
         environment:
             <<: *common-configuration
-            # Crimson Hexagon API key
-            MC_CRIMSON_HEXAGON_API_KEY: ""
+            <<: *twitter-api-configuration
+            <<: *crimson-hexagon-api-configuration
         deploy:
+            <<: *misc-apps_deploy_placement_constraints
             # Worker count
             replicas: 4
             resources:
@@ -1345,6 +1495,7 @@ services:
             # Not sure what this is.
             MC_TOPICS_SNAPSHOT_MODEL_REPS: "0"
         deploy:
+            <<: *misc-apps_deploy_placement_constraints
             # Worker count
             replicas: 2
             resources:
@@ -1366,6 +1517,7 @@ services:
             # Plackup FastCGI worker port to be used by webapp_httpd
             - "9090"
         deploy:
+            <<: *misc-apps_deploy_placement_constraints
             # FastCGI workers
             replicas: 8
             resources:
@@ -1415,6 +1567,7 @@ services:
             - postgresql-pgbouncer
             - rabbitmq-server
         deploy:
+            <<: *misc-apps_deploy_placement_constraints
             # Worker count
             replicas: 2
             resources:

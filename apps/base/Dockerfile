@@ -6,7 +6,8 @@
 #     docker build -t mediacloud-base .
 #
 
-FROM ubuntu:xenial-20190515
+# https://hub.docker.com/_/ubuntu?tab=tags&page=1
+FROM ubuntu:xenial-20190720
 
 ENV DEBIAN_FRONTEND noninteractive
 ENV LANG en_US.UTF-8

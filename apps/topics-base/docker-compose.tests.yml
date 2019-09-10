@@ -5,6 +5,12 @@ services:
     topics-base:
         image: dockermediacloud/topics-base:latest
         stop_signal: SIGKILL
+        environment:
+            # Tests call mock API endpoint and don't need API credentials
+            MC_TWITTER_ACCESS_TOKEN: "mock access token"
+            MC_TWITTER_ACCESS_TOKEN_SECRET: "mock access token secret"
+            MC_TWITTER_CONSUMER_KEY: "mock consumer key"
+            MC_TWITTER_CONSUMER_SECRET: "mock consumer secret"
         volumes:
             - type: bind
               source: ./src/

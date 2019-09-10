@@ -1,6 +1,7 @@
 from mediawords.db import connect_to_db
-# noinspection PyProtectedMember
 from mediawords.test.db.create import create_test_medium
+
+# noinspection PyProtectedMember
 from topics_base.media import _normalized_urls_out_of_date
 
 

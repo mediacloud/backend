@@ -43,9 +43,14 @@ def test_merge_foreign_rss_stories():
         store_content(db, download, story['title'])
         rss_stories.append(story)
 
+    # noinspection SqlInsertValues
     db.query(
-        "insert into topic_stories (stories_id, topics_id) select s.stories_id, %(a)s from stories s",
-        {'a': topic['topics_id']})
+        f"""
+            insert into topic_stories (stories_id, topics_id)
+                select s.stories_id, {int(topic['topics_id'])}
+                from stories s
+        """
+    )
 
     assert db.query("select count(*) from topic_stories").flat()[0] == num_stories + num_rss_stories
 

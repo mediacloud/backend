@@ -246,16 +246,14 @@ sub add_stories_from_feed($$$$)
         die "Error processing feed for $download->{ url }: $@";
     }
 
-    my $new_stories = [ grep { MediaWords::DBI::Stories::is_new( $db, $_ ) } @{ $stories } ];
-
-    my $story_ids = [];
-    foreach my $story ( @{ $new_stories } )
+    my $new_story_ids = [];
+    foreach my $story ( @{ $stories } )
     {
         $story = MediaWords::DBI::Stories::add_story_and_content_download( $db, $story, $download );
-        push( @{ $story_ids }, $story->{ stories_id } );
+        push( @{ $new_story_ids }, $story->{ stories_id } ) if ( $story->{ is_new } );
     }
 
-    return $story_ids;
+    return $new_story_ids;
 }
 
 sub return_stories_to_be_extracted_from_feed($$$$)

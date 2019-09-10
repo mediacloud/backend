@@ -16,7 +16,7 @@ from extract_and_vector.dbi.stories.process import process_extracted_story
 
 log = create_logger(__name__)
 
-# Mininmum content length to extract (assuming that it has some HTML in it)
+# Minimum content length to extract (assuming that it has some HTML in it)
 MIN_CONTENT_LENGTH_TO_EXTRACT = 4096
 
 # If the extracted text length is less than this, try finding content in javascript variable

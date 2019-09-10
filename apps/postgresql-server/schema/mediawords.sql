@@ -24,7 +24,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4720;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4728;
 BEGIN
 
     -- Update / set database schema version
@@ -66,12 +66,6 @@ CREATE OR REPLACE FUNCTION half_md5(string TEXT) RETURNS bytea AS $$
     -- pgcrypto's functions are being referred with public schema prefix to make pg_upgrade work
     SELECT SUBSTRING(public.digest(string, 'md5'::text), 0, 9);
 $$ LANGUAGE SQL;
-
--- Helper for indexing nonpartitioned "downloads.downloads_id" as BIGINT for
--- faster casting
-CREATE FUNCTION to_bigint(p_integer INT) RETURNS BIGINT AS $$
-    SELECT p_integer::bigint;
-$$ LANGUAGE SQL IMMUTABLE;
 
 
 -- Returns true if table exists (and user has access to it)
@@ -262,7 +256,10 @@ create type feed_type AS ENUM (
     'web_page',
 
     -- Univision.com XML feed
-    'univision'
+    'univision',
+
+    -- custom associated press api
+    'ap'
 
 );
 
@@ -475,6 +472,7 @@ create table stories (
     url                         varchar(1024)   not null,
     guid                        varchar(1024)   not null,
     title                       text            not null,
+    normalized_title_hash       uuid            null,
     description                 text            null,
     publish_date                timestamp       not null,
     collect_date                timestamp       not null default now(),
@@ -491,6 +489,74 @@ create index stories_md on stories(media_id, date_trunc('day'::text, publish_dat
 create index stories_language on stories(language);
 create index stories_title_hash on stories( md5( title ) );
 create index stories_publish_day on stories( date_trunc( 'day', publish_date ) );
+create index stories_normalized_title_hash on stories( media_id, normalized_title_hash );
+
+-- get normalized story title by breaking the title into parts by the separator characters :-| and  using
+-- the longest single part.  longest part must be at least 32 characters cannot be the same as the media source
+-- name.  also remove all html, punctuation and repeated spaces, lowecase, and limit to 1024 characters.
+CREATE OR REPLACE FUNCTION get_normalized_title(title text, title_media_id int)
+ RETURNS text
+ IMMUTABLE
+AS $function$
+declare
+        title_part text;
+        media_title text;
+begin
+
+        -- stupid simple html stripper to avoid html messing up title_parts
+        select into title regexp_replace(title, '<[^\<]*>', '', 'gi');
+        select into title regexp_replace(title, '\&#?[a-z0-9]*', '', 'gi');
+
+        select into title lower(title);
+        select into title regexp_replace(title,'(?:\- )|[:|]', 'SEPSEP', 'g');
+        select into title regexp_replace(title, '[[:punct:]]', '', 'g');
+        select into title regexp_replace(title, '\s+', ' ', 'g');
+        select into title substr(title, 0, 1024);
+
+        if title_media_id = 0 then
+            return title;
+        end if;
+
+        select into title_part part
+            from ( select regexp_split_to_table(title, ' *SEPSEP *') part ) parts
+            order by length(part) desc limit 1;
+
+        if title_part = title then
+            return title;
+        end if;
+
+        if length(title_part) < 32 then
+            return title;
+        end if;
+
+        select into media_title get_normalized_title(name, 0) from media where media_id = title_media_id;
+        if media_title = title_part then
+            return title;
+        end if;
+
+        return title_part;
+end
+$function$ language plpgsql;
+
+create function add_normalized_title_hash() returns trigger as $function$
+BEGIN
+
+    if ( TG_OP = 'update' ) then
+        if ( OLD.title = NEW.title ) then
+            return new;
+        end if;
+    end if;
+
+    select into NEW.normalized_title_hash md5( get_normalized_title( NEW.title, NEW.media_id ) )::uuid;
+    
+    return new;
+
+END
+
+$function$ language plpgsql;
+
+create trigger stories_add_normalized_title before insert or update
+    on stories for each row execute procedure add_normalized_title_hash();
 
 create function insert_solr_import_story() returns trigger as $insert_solr_import_story$
 DECLARE
@@ -531,7 +597,6 @@ create table stories_ap_syndicated (
 );
 
 create unique index stories_ap_syndicated_story on stories_ap_syndicated ( stories_id );
-
 
 --
 -- Partitioning tools for tables partitioned by "stories_id"
@@ -591,7 +656,8 @@ BEGIN
     -- Create +1 partition for future insertions
     SELECT COALESCE(MAX(stories_id), 0) + chunk_size FROM stories INTO max_stories_id;
 
-    FOR partition_stories_id IN 1..max_stories_id BY chunk_size LOOP
+    SELECT 1 INTO partition_stories_id;
+    WHILE partition_stories_id <= max_stories_id LOOP
         SELECT partition_by_stories_id_partition_name(
             base_table_name := base_table_name,
             stories_id := partition_stories_id
@@ -636,6 +702,8 @@ BEGIN
             RETURN NEXT target_table_name;
 
         END IF;
+
+        SELECT partition_stories_id + chunk_size INTO partition_stories_id;
     END LOOP;
 
     RETURN;
@@ -644,6 +712,15 @@ END;
 $$
 LANGUAGE plpgsql;
 
+-- list of all url or guid identifiers for each story
+create table story_urls (
+    story_urls_id   bigserial primary key,
+    stories_id      int references stories on delete cascade,
+    url             varchar(1024) not null
+);
+
+create unique index story_urls_url on story_urls ( url, stories_id );
+create index stories_story on story_urls ( stories_id );
 
 --
 -- Downloads
@@ -700,7 +777,6 @@ CREATE TABLE downloads (
     PRIMARY KEY (downloads_id, state, type)
 
 ) PARTITION BY LIST (state);
-
 
 -- Imitate a foreign key by testing if a download with an INSERTed / UPDATEd
 -- "downloads_id" exists in "downloads"
@@ -821,6 +897,11 @@ CREATE TABLE downloads_success_content
     ) FOR VALUES IN ('content')
     PARTITION BY RANGE (downloads_id);
 
+-- We need a separate unique index for the "download_texts" foreign key to be
+-- able to point to "downloads_success_content" partitions
+CREATE UNIQUE INDEX downloads_success_content_downloads_id
+    ON downloads_success_content (downloads_id);
+
 CREATE INDEX downloads_success_content_extracted
     ON downloads_success_content (extracted);
 
@@ -915,7 +996,8 @@ BEGIN
     -- Create +1 partition for future insertions
     SELECT COALESCE(MAX(downloads_id), 0) + chunk_size FROM downloads INTO max_downloads_id;
 
-    FOR partition_downloads_id IN 1..max_downloads_id BY chunk_size LOOP
+    SELECT 1 INTO partition_downloads_id;
+    WHILE partition_downloads_id <= max_downloads_id LOOP
         SELECT partition_by_downloads_id_partition_name(
             base_table_name := base_table_name,
             downloads_id := partition_downloads_id
@@ -953,6 +1035,8 @@ BEGIN
             RETURN NEXT target_table_name;
 
         END IF;
+
+        SELECT partition_downloads_id + chunk_size INTO partition_downloads_id;
     END LOOP;
 
     RETURN;
@@ -1364,12 +1448,15 @@ end;
 $$ language plpgsql;
 
 -- efficiently query downloads_pending for the latest downloads_id per host.  postgres is not able to do this through
--- its normal query planning (it just does an index scan of the whole indesx).  this turns a query that 
+-- its normal query planning (it just does an index scan of the whole index).  this turns a query that 
 -- takes ~22 seconds for a 100 million row table into one that takes ~0.25 seconds
 create or replace function get_downloads_for_queue() returns table(downloads_id bigint) as $$
 declare
     pending_host record;
 begin
+    -- quick temp copy without dead row issues for querying in loop body below
+    create temporary table qd on commit drop as select * from queued_downloads;
+
     create temporary table pending_downloads (downloads_id bigint) on commit drop;
     for pending_host in
             WITH RECURSIVE t AS (
@@ -1384,7 +1471,7 @@ begin
             insert into pending_downloads
                 select dp.downloads_id
                     from downloads_pending dp
-                        left join queued_downloads qd on ( dp.downloads_id = qd.downloads_id )
+                        left join qd on ( dp.downloads_id = qd.downloads_id )
                     where 
                         host = pending_host.host and
                         qd.downloads_id is null
@@ -1401,53 +1488,28 @@ $$ language plpgsql;
 -- Extracted plain text from every download
 --
 
--- Non-partitioned table
-CREATE TABLE download_texts_np (
-    download_texts_np_id    SERIAL  PRIMARY KEY,
-    downloads_id            INT     NOT NULL,
-    download_text           TEXT    NOT NULL,
-    download_text_length    INT     NOT NULL
-);
-
-CREATE UNIQUE INDEX download_texts_np_downloads_id_index
-    ON download_texts_np (downloads_id);
-
--- Temporary index to be used on JOINs with "downloads" with BIGINT primary key
-CREATE UNIQUE INDEX download_texts_np_downloads_id_bigint_index
-    ON download_texts_np (to_bigint(downloads_id));
-
-ALTER TABLE download_texts_np
-    ADD CONSTRAINT download_texts_np_length_is_correct
-    CHECK (length(download_text) = download_text_length);
-
-CREATE TRIGGER download_texts_np_test_referenced_download_trigger
-    BEFORE INSERT OR UPDATE ON download_texts_np
-    FOR EACH ROW
-    EXECUTE PROCEDURE test_referenced_download_trigger('downloads_id');
-
-
 -- Partitioned table
-CREATE TABLE download_texts_p (
-    download_texts_p_id     BIGSERIAL   NOT NULL,
+CREATE TABLE download_texts (
+    download_texts_id       BIGSERIAL   NOT NULL,
     downloads_id            BIGINT      NOT NULL,
     download_text           TEXT        NOT NULL,
     download_text_length    INT         NOT NULL,
 
     -- Partitions require a composite primary key
-    PRIMARY KEY (download_texts_p_id, downloads_id)
+    PRIMARY KEY (download_texts_id, downloads_id)
 
 ) PARTITION BY RANGE (downloads_id);
 
-CREATE UNIQUE INDEX download_texts_p_downloads_id
-    ON download_texts_p (downloads_id);
+CREATE UNIQUE INDEX download_texts_downloads_id
+    ON download_texts (downloads_id);
 
-ALTER TABLE download_texts_p
-    ADD CONSTRAINT download_texts_p_length_is_correct
+ALTER TABLE download_texts
+    ADD CONSTRAINT download_texts_length_is_correct
     CHECK (length(download_text) = download_text_length);
 
 
--- Create missing "download_texts_p" partitions
-CREATE OR REPLACE FUNCTION download_texts_p_create_partitions()
+-- Create missing "download_texts" partitions
+CREATE OR REPLACE FUNCTION download_texts_create_partitions()
 RETURNS VOID AS
 $$
 DECLARE
@@ -1455,12 +1517,20 @@ DECLARE
     partition TEXT;
 BEGIN
 
-    created_partitions := ARRAY(SELECT partition_by_downloads_id_create_partitions('download_texts_p'));
+    created_partitions := ARRAY(SELECT partition_by_downloads_id_create_partitions('download_texts'));
 
     FOREACH partition IN ARRAY created_partitions LOOP
 
-        RAISE NOTICE 'Altering created partition "%"...', partition;
+        RAISE NOTICE 'Adding foreign key to created partition "%"...', partition;
+        EXECUTE '
+            ALTER TABLE ' || partition || '
+                ADD CONSTRAINT ' || partition || '_downloads_id_fkey
+                FOREIGN KEY (downloads_id)
+                REFERENCES ' || REPLACE(partition, 'download_texts', 'downloads_success_content') || ' (downloads_id)
+                ON DELETE CASCADE;
+        ';
 
+        RAISE NOTICE 'Adding trigger to created partition "%"...', partition;
         EXECUTE '
             CREATE TRIGGER ' || partition || '_test_referenced_download_trigger
                 BEFORE INSERT OR UPDATE ON ' || partition || '
@@ -1474,111 +1544,8 @@ END;
 $$
 LANGUAGE plpgsql;
 
--- Create initial "download_texts_p" partitions for empty database
-SELECT download_texts_p_create_partitions();
-
-
--- Make partitioned table's "download_texts_id" sequence start from where
--- non-partitioned table's sequence left off
-SELECT setval(
-    pg_get_serial_sequence('download_texts_p', 'download_texts_p_id'),
-    COALESCE(MAX(download_texts_np_id), 1), MAX(download_texts_np_id) IS NOT NULL
-) FROM download_texts_np;
-
-
--- Proxy view to join partitioned and non-partitioned "download_texts" tables
-CREATE OR REPLACE VIEW download_texts AS
-
-    -- Non-partitioned table
-    SELECT
-        download_texts_np_id::bigint AS download_texts_id,
-        downloads_id::bigint,
-        download_text,
-        download_text_length
-    FROM download_texts_np
-
-    UNION ALL
-
-    -- Partitioned table
-    SELECT
-        download_texts_p_id AS download_texts_id,
-        downloads_id,
-        download_text,
-        download_text_length
-    FROM download_texts_p;
-
--- Make RETURNING work with partitioned tables
--- (https://wiki.postgresql.org/wiki/INSERT_RETURNING_vs_Partitioning)
-ALTER VIEW download_texts
-    ALTER COLUMN download_texts_id
-    SET DEFAULT nextval(pg_get_serial_sequence('download_texts_p', 'download_texts_p_id'));
-
--- Prevent the next INSERT from failing
-SELECT nextval(pg_get_serial_sequence('download_texts_p', 'download_texts_p_id'));
-
-
--- Trigger that implements INSERT / UPDATE / DELETE behavior on "download_texts" view
-CREATE OR REPLACE FUNCTION download_texts_view_insert_update_delete() RETURNS trigger AS $$
-BEGIN
-
-    IF (TG_OP = 'INSERT') THEN
-
-        -- New rows go into the partitioned table only
-        INSERT INTO download_texts_p (
-            download_texts_p_id,
-            downloads_id,
-            download_text,
-            download_text_length
-        ) SELECT
-            NEW.download_texts_id,
-            NEW.downloads_id,
-            NEW.download_text,
-            NEW.download_text_length;
-
-        RETURN NEW;
-
-    ELSIF (TG_OP = 'UPDATE') THEN
-
-        -- Update both tables as one of them will have the row
-        UPDATE download_texts_np SET
-            download_texts_np_id = NEW.download_texts_id,
-            downloads_id = NEW.downloads_id,
-            download_text = NEW.download_text,
-            download_text_length = NEW.download_text_length
-        WHERE download_texts_np_id = OLD.download_texts_id;
-
-        UPDATE download_texts_p SET
-            download_texts_p_id = NEW.download_texts_id,
-            downloads_id = NEW.downloads_id,
-            download_text = NEW.download_text,
-            download_text_length = NEW.download_text_length
-        WHERE download_texts_p_id = OLD.download_texts_id;
-
-        RETURN NEW;
-
-    ELSIF (TG_OP = 'DELETE') THEN
-
-        -- Delete from both tables as one of them will have the row
-        DELETE FROM download_texts_np
-            WHERE download_texts_np_id = OLD.download_texts_id;
-
-        DELETE FROM download_texts_p
-            WHERE download_texts_p_id = OLD.download_texts_id;
-
-        -- Return deleted rows
-        RETURN OLD;
-
-    ELSE
-        RAISE EXCEPTION 'Unconfigured operation: %', TG_OP;
-
-    END IF;
-
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER download_texts_view_insert_update_delete_trigger
-    INSTEAD OF INSERT OR UPDATE OR DELETE ON download_texts
-    FOR EACH ROW EXECUTE PROCEDURE download_texts_view_insert_update_delete();
+-- Create initial "download_texts" partitions for empty database
+SELECT download_texts_create_partitions();
 
 
 --
@@ -1870,6 +1837,7 @@ create index solr_imported_stories_story on solr_imported_stories ( stories_id )
 create index solr_imported_stories_day on solr_imported_stories ( date_trunc( 'day', import_date ) );
 
 create type topics_job_queue_type AS ENUM ( 'mc', 'public' );
+create type topic_platform_type AS enum ( 'web', 'twitter' );
 
 create table topics (
     topics_id        serial primary key,
@@ -1887,17 +1855,14 @@ create table topics (
     start_date              date not null,
     end_date                date not null,
 
-    -- this is the id of a crimson hexagon monitor, not an internal database id
-    ch_monitor_id           bigint null,
+    -- platform that topic is analyzing
+    platform                topic_platform_type not null default 'web',
 
     -- job queue to use for spider and snapshot jobs for this topic
     job_queue               topics_job_queue_type not null,
 
     -- max stories allowed in the topic
     max_stories             int not null,
-
-    -- id of a twitter topic to use to generate snapshot twitter counts
-    twitter_topics_id int null references topics on delete set null,
 
     -- if false, we should refuse to spider this topic because the use has not confirmed the new story query syntax
     is_story_index_ready     boolean not null default true
@@ -1906,6 +1871,19 @@ create table topics (
 
 create unique index topics_name on topics( name );
 create unique index topics_media_type_tag_set on topics( media_type_tag_sets_id );
+
+create type topic_source_type AS enum ( 'mediacloud', 'crimson_hexagon', 'archive_org' );
+
+create table topic_seed_queries (
+    topic_seed_queries_id   serial primary key,
+    topics_id               int not null references topics on delete cascade,
+    source                  topic_source_type not null,
+    platform                topic_platform_type not null,
+    query                   text,
+    imported_date           timestamp
+);
+
+create index topic_seed_queries_topic on topic_seed_queries( topics_id );
 
 create table topic_dates (
     topic_dates_id    serial primary key,
@@ -2328,8 +2306,7 @@ create table snap.story_link_counts (
 
     facebook_share_count                    int null,
 
-    simple_tweet_count                      int null,
-    normalized_tweet_count                  float null
+    simple_tweet_count                      int null
 );
 
 -- TODO: add complex foreign key to check that stories_id exists for the snapshot stories snapshot
@@ -2349,8 +2326,7 @@ create table snap.medium_link_counts (
 
     facebook_share_count            int null,
 
-    simple_tweet_count              int null,
-    normalized_tweet_count          float null
+    simple_tweet_count              int null
 );
 
 -- TODO: add complex foreign key to check that media_id exists for the snapshot media snapshot
@@ -2380,6 +2356,7 @@ create table snap.live_stories (
     url                         varchar(1024)   not null,
     guid                        varchar(1024)   not null,
     title                       text            not null,
+    normalized_title_hash       uuid            null,
     description                 text            null,
     publish_date                timestamp       not null,
     collect_date                timestamp       not null,
@@ -2391,16 +2368,19 @@ create index live_story_topic on snap.live_stories ( topics_id );
 create unique index live_stories_story on snap.live_stories ( topics_id, stories_id );
 create index live_stories_story_solo on snap.live_stories ( stories_id );
 create index live_stories_topic_story on snap.live_stories ( topic_stories_id );
+create index live_stories_title_hash 
+    on snap.live_stories ( topics_id, media_id, date_trunc('day', publish_date), normalized_title_hash );
 
 
 create function insert_live_story() returns trigger as $insert_live_story$
     begin
 
         insert into snap.live_stories
-            ( topics_id, topic_stories_id, stories_id, media_id, url, guid, title, description,
+            ( topics_id, topic_stories_id, stories_id, media_id, url, guid, title, normalized_title_hash, description,
                 publish_date, collect_date, full_text_rss, language )
             select NEW.topics_id, NEW.topic_stories_id, NEW.stories_id, s.media_id, s.url, s.guid,
-                    s.title, s.description, s.publish_date, s.collect_date, s.full_text_rss, s.language
+                    s.title, s.normalized_title_hash, s.description, s.publish_date, s.collect_date, s.full_text_rss,
+                    s.language
                 from topic_stories cs
                     join stories s on ( cs.stories_id = s.stories_id )
                 where
@@ -2422,6 +2402,7 @@ create or replace function update_live_story() returns trigger as $update_live_s
                 url = NEW.url,
                 guid = NEW.guid,
                 title = NEW.title,
+                normalized_title_hash = NEW.normalized_title_hash,
                 description = NEW.description,
                 publish_date = NEW.publish_date,
                 collect_date = NEW.collect_date,
@@ -2574,7 +2555,9 @@ CREATE TABLE auth_users (
 
     created_date                        timestamp not null default now(),
 
-    max_topic_stories                   int not null default 100000
+    max_topic_stories                   int not null default 100000,
+    
+    has_consented                       boolean not null default false
 );
 
 
@@ -3084,14 +3067,18 @@ RETURNS VOID AS
 $$
 BEGIN
 
+    -- We have to create "downloads" partitions before "download_texts" ones
+    -- because "download_texts" will have a foreign key reference to
+    -- "downloads_success_content"
+
     RAISE NOTICE 'Creating partitions in "downloads_success_content" table...';
     PERFORM downloads_success_content_create_partitions();
 
     RAISE NOTICE 'Creating partitions in "downloads_success_feed" table...';
     PERFORM downloads_success_feed_create_partitions();
 
-    RAISE NOTICE 'Creating partitions in "download_texts_p" table...';
-    PERFORM download_texts_p_create_partitions();
+    RAISE NOTICE 'Creating partitions in "download_texts" table...';
+    PERFORM download_texts_create_partitions();
 
     RAISE NOTICE 'Creating partitions in "stories_tags_map_p" table...';
     PERFORM stories_tags_map_create_partitions();
@@ -3181,8 +3168,7 @@ create table topic_tweet_days (
     topic_tweet_days_id     serial primary key,
     topics_id               int not null references topics on delete cascade,
     day                     date not null,
-    tweet_count             int not null,
-    num_ch_tweets           int not null,
+    num_tweets              int not null,
     tweets_fetched          boolean not null default false
 );
 
@@ -3218,7 +3204,7 @@ create view topic_tweet_full_urls as
     select distinct
             t.topics_id,
             tt.topic_tweets_id, tt.content, tt.publish_date, tt.twitter_user,
-            ttd.day, ttd.tweet_count, ttd.num_ch_tweets, ttd.tweets_fetched,
+            ttd.day, ttd.num_tweets, ttd.tweets_fetched,
             ttu.url, tsu.stories_id
         from
             topics t
@@ -3243,8 +3229,8 @@ create table snap.tweet_stories (
     twitter_user        varchar( 1024 ) not null,
     stories_id          int not null,
     media_id            int not null,
-    num_ch_tweets       int not null,
-    tweet_count         int not null
+    num_tweets          int not null
+
 );
 
 create index snap_tweet_stories on snap.tweet_stories ( snapshots_id );

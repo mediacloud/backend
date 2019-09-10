@@ -26,18 +26,20 @@ BEGIN
 
 __PACKAGE__->config(
     action => {
-        list          => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
-        single        => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
-        create        => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
-        update        => { Does => [ qw( ~TopicsWriteAuthenticated ~Throttled ~Logged ) ] },
-        spider        => { Does => [ qw( ~TopicsWriteAuthenticated ~Throttled ~Logged ) ] },
-        spider_status => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
-        reset         => { Does => [ qw( ~TopicsAdminAuthenticated ~Throttled ~Logged ) ] },
+        list              => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
+        single            => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
+        create            => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
+        update            => { Does => [ qw( ~TopicsWriteAuthenticated ~Throttled ~Logged ) ] },
+        spider            => { Does => [ qw( ~TopicsWriteAuthenticated ~Throttled ~Logged ) ] },
+        spider_status     => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
+        reset             => { Does => [ qw( ~TopicsAdminAuthenticated ~Throttled ~Logged ) ] },
+        add_seed_query    => { Does => [ qw( ~TopicsWriteAuthenticated ~Throttled ~Logged ) ] },
+        remove_seed_query => { Does => [ qw( ~TopicsWriteAuthenticated ~Throttled ~Logged ) ] },
     }
 );
 
 Readonly::Scalar my $TOPICS_EDIT_FIELDS => [
-    qw/name solr_seed_query description max_iterations start_date end_date is_public ch_monitor_id twitter_topics_id max_stories is_logogram is_story_index_ready/
+    qw/name solr_seed_query description max_iterations start_date end_date platform is_public max_stories is_logogram is_story_index_ready/
 ];
 
 Readonly::Scalar my $JOB_STATE_FIELD_LIST =>
@@ -86,16 +88,16 @@ sub _get_topics_list($$$)    # sql clause for fields to query from job_states fo
                 t.state,
                 t.message,
                 t.is_public,
-                t.ch_monitor_id,
-                t.twitter_topics_id,
                 t.start_date,
                 t.end_date,
+                t.platform,
                 MIN(p.auth_users_id) AS auth_users_id,
                 MIN(p.user_permission) AS user_permission,
                 t.job_queue,
                 t.max_stories,
                 t.is_logogram,
-                t.is_story_index_ready
+                t.is_story_index_ready,
+                0 ch_monitor_id
             FROM topics AS t
                 JOIN topics_with_user_permission AS p USING (topics_id)
                 LEFT JOIN snapshots AS snap ON t.topics_id = snap.topics_id
@@ -176,6 +178,8 @@ SQL
 SQL
         'job_states', 'topics_id'
     );
+
+    $topics = $db->attach_child_query( $topics, "select * from topic_seed_queries", 'job_states', 'topics_id' );
 
     return $topics;
 }
@@ -329,6 +333,7 @@ sub create_GET
 
     $topic->{ max_stories } ||= 100_000;
     $topic->{ is_logogram } ||= 0;
+    $topic->{ platform }    ||= 'web';
 
     $topic->{ pattern } =
       eval { MediaWords::Solr::Query::Parse::parse_solr_query( $topic->{ solr_seed_query } )->re( $topic->{ is_logogram } ) };
@@ -449,6 +454,55 @@ SQL
 
 }
 
+sub add_seed_query : Chained( 'apibase' ) : ActionClass( 'MC_REST' )
+{
+}
+
+sub add_seed_query_PUT
+{
+    my ( $self, $c ) = @_;
+
+    my $data = $c->req->data;
+
+    my $db = $c->dbis;
+
+    my $topic = $db->require_by_id( 'topics', $c->stash->{ topics_id } );
+
+    my $tsq = {
+        topics_id => $topic->{ topics_id },
+        platform  => $data->{ platform },
+        source    => $data->{ source },
+        query     => $data->{ query } . ''
+    };
+
+    $tsq = $db->find_or_create( 'topic_seed_queries', $tsq );
+
+    $self->status_ok( $c, entity => { topic_seed_query => $tsq } );
+}
+
+sub remove_seed_query : Chained( 'apibase' ) : ActionClass( 'MC_REST' )
+{
+}
+
+sub remove_seed_query_PUT
+{
+    my ( $self, $c ) = @_;
+
+    my $data = $c->req->data;
+
+    my $db = $c->dbis;
+
+    my $topic = $db->require_by_id( 'topics', $c->stash->{ topics_id } );
+
+    my $topic_seed_queries_id = $data->{ topic_seed_queries_id };
+
+    die( "Must specify topic_seed_queries_id in input document" ) unless ( $topic_seed_queries_id );
+
+    $db->delete_by_id( 'topic_seed_queries', $topic_seed_queries_id );
+
+    $self->status_ok( $c, entity => { success => 1 } );
+}
+
 sub update : Chained( 'apibase' ) : ActionClass( 'MC_REST' )
 {
 }
@@ -542,41 +596,29 @@ sub spider_GET
     my $topic = $db->require_by_id( 'topics', $topics_id );
     my $auth_users_id = $c->stash->{ api_auth }->user_id();
 
-    my $job_state = $db->query( <<SQL, $topics_id )->hash;
-select $JOB_STATE_FIELD_LIST
-    from pending_job_states
-    where
-        ( args->>'topics_id' )::int = \$1 and
-        class like 'MediaWords::Job::TM::MineTopic%'
-    order by job_states_id desc
-SQL
+    # wrap this in a transaction so that we're sure the last job added is the one we just added
+    $db->begin;
 
-    if ( !$job_state )
+    my $mine_args = { topics_id => $topics_id, snapshots_id => $snapshots_id };
+
+    if ( $topic->{ job_queue } eq 'mc' )
     {
-        # wrap this in a transaction so that we're sure the last job added is the one we just added
-        $db->begin;
-
-        my $mine_args = { topics_id => $topics_id, snapshots_id => $snapshots_id };
-
-        if ( $topic->{ job_queue } eq 'mc' )
-        {
-            MediaWords::JobManager::StatefulJob::add_to_queue( 'MediaWords::Job::TM::MineTopic', $mine_args );
-        }
-        elsif ( $topic->{ job_queue } eq 'public' )
-        {
-            MediaWords::JobManager::StatefulJob::add_to_queue( 'MediaWords::Job::TM::MineTopicPublic', $mine_args );
-        }
-        else
-        {
-            LOGDIE( "unknown job_queue type: $topic->{ job_queue }" );
-        }
-
-        $job_state = $db->query( "select $JOB_STATE_FIELD_LIST from job_states order by job_states_id desc limit 1" )->hash;
-
-        $db->commit;
-
-        die( "Unable to find job state from queued job" ) unless ( $job_state );
+        MediaWords::JobManager::StatefulJob::add_to_queue( 'MediaWords::Job::TM::MineTopic', $mine_args );
     }
+    elsif ( $topic->{ job_queue } eq 'public' )
+    {
+        MediaWords::JobManager::StatefulJob::add_to_queue( 'MediaWords::Job::TM::MineTopicPublic', $mine_args );
+    }
+    else
+    {
+        LOGDIE( "unknown job_queue type: $topic->{ job_queue }" );
+    }
+
+    my $job_state = $db->query( "select $JOB_STATE_FIELD_LIST from job_states order by job_states_id desc limit 1" )->hash;
+
+    $db->commit;
+
+    die( "Unable to find job state from queued job" ) unless ( $job_state );
 
     return $self->status_ok( $c, entity => { job_state => $job_state } );
 }

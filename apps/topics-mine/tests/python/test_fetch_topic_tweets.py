@@ -1,5 +1,3 @@
-"""test fetch_topic_tweets."""
-
 import datetime
 import random
 import re
@@ -8,12 +6,7 @@ from mediawords.db import DatabaseHandler, connect_to_db
 from mediawords.test.db.create import create_test_topic
 from mediawords.util.parse_json import decode_json
 
-# noinspection PyProtectedMember
-from topics_mine.fetch_topic_tweets import (
-    AbstractCrimsonHexagon,
-    AbstractTwitter,
-    fetch_topic_tweets,
-)
+from topics_mine.fetch_topic_tweets import fetch_topic_tweets, AbstractTweetFetcher, get_tweet_id_from_url
 
 # this is an estimate of the number of tweets per day included in the ch-posts-date.json files
 # this should not be edited other than to provide a better estimate
@@ -35,24 +28,16 @@ LOCAL_DATE_RANGE = 4
 NUM_MOCK_URLS = int((LOCAL_DATE_RANGE * MOCK_TWEETS_PER_DAY) / MOCK_TWEETS_PER_URL)
 NUM_MOCK_USERS = int((LOCAL_DATE_RANGE * MOCK_TWEETS_PER_DAY) / MOCK_TWEETS_PER_USER)
 
-# arbitrary tests for tweets / users so that we don't have to use fixtures
-MIN_TEST_CH_POSTS = 500
-MIN_TEST_TWEET_LENGTH = 10
-MIN_TEST_TWITTER_USER_LENGTH = 3
 
-# test crimson hexagon monitor id
-TEST_MONITOR_ID = 4667493813
+class MockTweetFetcher(AbstractTweetFetcher):
 
-
-class MockCrimsonHexagon(AbstractCrimsonHexagon):
-    """Mock the CrimsonHexagon class in fetch_topic_tweets to return test data."""
-
+    # noinspection PyUnusedLocal
     @staticmethod
-    def fetch_posts(ch_monitor_id: int, day: datetime.datetime) -> dict:
+    def fetch_meta_tweets_from_ch(query: str, day: datetime.datetime) -> list:
         """
         Return a mock ch response to the posts end point.
 
-        Generate the mock response by sending back data from a consistent but semirandom selection of
+        Generate the mock response by sending back data from a consistent but semi-random selection of
         ch-posts-2016-01-0[12345].json.
         """
         assert MOCK_TWEETS_PER_DAY <= MAX_MOCK_TWEETS_PER_DAY
@@ -76,23 +61,27 @@ class MockCrimsonHexagon(AbstractCrimsonHexagon):
             ch_post['url'] = re.sub(r'status/(\d+)/', '/status/' + str(i), ch_post['url'])
             i += 1
 
-        return data
+        meta_tweets = data['posts']
+        for mt in meta_tweets:
+            mt['tweet_id'] = get_tweet_id_from_url(mt['url'])
 
-
-class MockTwitter(AbstractTwitter):
-    """Mock the Twitter class in to return test data."""
+        return meta_tweets
 
     @staticmethod
-    def fetch_100_tweets(ids: list) -> list:
+    def fetch_meta_tweets_from_archive_org(query: str, day: datetime.datetime) -> list:
+        raise NotImplemented("This is supposed to not be called in a test?")
+
+    @staticmethod
+    def fetch_100_tweets(tweet_ids: list) -> list:
         """Return mocked test tweets."""
-        num_errors = (3 if (len(ids) > 10) else 0)
+        num_errors = (3 if (len(tweet_ids) > 10) else 0)
 
         # simulate twitter not being able to find some ids, which is typical
-        for i in range(num_errors):
-            ids.pop()
+        for _ in range(num_errors):
+            tweet_ids.pop()
 
         tweets = []
-        for tweet_id in ids:
+        for tweet_id in tweet_ids:
             # restrict url and user ids to desired number
             # include randomness so that the urls and users are not nearly collated
             url_id = int(random.randint(1, int(tweet_id))) % NUM_MOCK_URLS
@@ -126,9 +115,9 @@ def _validate_topic_tweets(db: DatabaseHandler, topic_tweet_day: dict) -> None:
         {'a': topic_tweet_day['topic_tweet_days_id']}
     ).hashes()
 
-    # fetch_topic_tweets should have set num_ch_tweets to the total number of tweets
+    # fetch_topic_tweets should have set num_tweets to the total number of tweets
     assert len(topic_tweets) > 0
-    assert len(topic_tweets) == topic_tweet_day['num_ch_tweets']
+    assert len(topic_tweets) == topic_tweet_day['num_tweets']
 
     for topic_tweet in topic_tweets:
         tweet_data = dict(decode_json(topic_tweet['data']))
@@ -178,8 +167,7 @@ def _validate_topic_tweet_urls(db: DatabaseHandler, topic: dict) -> None:
     assert total_json_urls == num_urls
 
 
-def test_fetch_topic_tweets():
-    """Run fetch_topic_tweet tests with test database."""
+def test_fetch_topic_tweets() -> None:
     db = connect_to_db()
     topic = create_test_topic(db, 'test')
 
@@ -188,10 +176,21 @@ def test_fetch_topic_tweets():
     test_dates = _get_test_date_range()
     topic['start_date'] = test_dates[0]
     topic['end_date'] = test_dates[1]
-    topic['ch_monitor_id'] = 123456
     db.update_by_id('topics', topic['topics_id'], topic)
 
-    fetch_topic_tweets(db, topic['topics_id'], MockTwitter, MockCrimsonHexagon)
+    tsq = {
+        'topics_id': topic['topics_id'],
+        'platform': 'twitter',
+        'source': 'crimson_hexagon',
+        'query': 123456
+    }
+    db.create('topic_seed_queries', tsq)
+
+    db.update_by_id('topics', topic['topics_id'], {'platform': 'twitter'})
+
+    mock_tweet_fetcher = MockTweetFetcher()
+
+    fetch_topic_tweets(db=db, topics_id=topic['topics_id'], tweet_fetcher=mock_tweet_fetcher)
 
     topic_tweet_days = db.query("select * from topic_tweet_days").hashes()
     assert len(topic_tweet_days) == LOCAL_DATE_RANGE + 1

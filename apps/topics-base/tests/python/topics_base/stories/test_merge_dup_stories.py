@@ -20,6 +20,7 @@ def test_merge_dup_stories():
         add_to_topic_stories(db, story, topic)
         stories.append(story)
         for j in range(i):
+            # noinspection SqlInsertValues
             db.query(
                 """
                 insert into story_sentences (stories_id, sentence_number, sentence, media_id, publish_date)

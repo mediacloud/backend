@@ -3,8 +3,7 @@ from extract_and_vector.dbi.stories.extractor_arguments import PyExtractorArgume
 from .setup_test_extract import TestExtractDB
 
 
-class TestExtractDB(TestExtractDB):
-    """Run tests that require database access."""
+class TestExtractAndCreateDownloadText(TestExtractDB):
 
     def test_extract_and_create_download_text(self):
         download_text = extract_and_create_download_text(

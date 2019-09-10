@@ -1,3 +1,36 @@
+<!-- MEDIACLOUD-TOC-START -->
+
+Table of Contents
+=================
+
+   * [Python guidelines](#python-guidelines)
+      * [Python Version](#python-version)
+      * [Code Style](#code-style)
+      * [Declare Function Parameter and Return Value Types](#declare-function-parameter-and-return-value-types)
+         * [Basic](#basic)
+         * [Subtypes](#subtypes)
+         * [Subtypes of Argument Functions](#subtypes-of-argument-functions)
+      * [Write documentation](#write-documentation)
+      * [Use dictionary-style arguments for psycopg2 queries](#use-dictionary-style-arguments-for-psycopg2-queries)
+      * [Throw Custom Exceptions](#throw-custom-exceptions)
+      * [Write Unit Tests](#write-unit-tests)
+      * [Use Nose's Test Naming Syntax](#use-noses-test-naming-syntax)
+         * [Keep unit tests in the same directory, prefix file names with test_](#keep-unit-tests-in-the-same-directory-prefix-file-names-with-test_)
+         * [Keep unit test functions separate](#keep-unit-test-functions-separate)
+         * [Test utility modules with a flat test files](#test-utility-modules-with-a-flat-test-files)
+         * [Test classes with test classes](#test-classes-with-test-classes)
+      * [Contain External Dependencies in Wrappers](#contain-external-dependencies-in-wrappers)
+   * [Perl Guidelines](#perl-guidelines)
+      * [File Prefix](#file-prefix)
+      * [Shebang Lines](#shebang-lines)
+      * [Code Formatting](#code-formatting)
+      * [Other Guidelines](#other-guidelines)
+   * [SQL Guidelines](#sql-guidelines)
+
+----
+<!-- MEDIACLOUD-TOC-END -->
+
+
 # Python guidelines
 
 ## Python Version

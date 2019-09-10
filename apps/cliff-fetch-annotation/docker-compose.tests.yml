@@ -5,8 +5,6 @@ services:
     cliff-fetch-annotation:
         image: dockermediacloud/cliff-fetch-annotation:latest
         stop_signal: SIGKILL
-        environment:
-            MC_CLIFF_ANNOTATOR_URL: "${MC_CLIFF_ANNOTATOR_URL}"
         volumes:
             - type: bind
               source: ./bin/

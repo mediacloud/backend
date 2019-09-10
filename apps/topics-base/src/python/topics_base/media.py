@@ -28,13 +28,11 @@ _GUESS_MEDIUM_RETRIES = 5
 
 class McTopicMediaException(Exception):
     """Exception arising from this package."""
-
     pass
 
 
 class McTopicMediaUniqueException(McTopicMediaException):
     """Exception raised when guess_medium is unable to find a unique name or url for a new media source."""
-
     pass
 
 
@@ -147,15 +145,15 @@ def lookup_medium(db: DatabaseHandler, url: str, name: str) -> typing.Optional[d
 
     nu = _normalize_url(url)
 
-    lookup_query = \
-        """
+    lookup_query = """
         select m.*
-            from media m
-            where
-                m.normalized_url = %(a)s and
-                foreign_rss_links = 'f'
-            order by dup_media_id asc nulls last, media_id asc
-        """
+        from media m
+        where m.normalized_url = %(a)s
+          and foreign_rss_links = 'f'
+        order by
+            dup_media_id nulls last,
+            media_id
+    """
 
     medium = db.query(lookup_query, {'a': nu}).hash()
 

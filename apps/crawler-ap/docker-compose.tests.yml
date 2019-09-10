@@ -1,0 +1,65 @@
+version: "3.7"
+
+services:
+
+    crawler-ap:
+        image: dockermediacloud/crawler-ap:latest
+        stop_signal: SIGKILL
+        environment:
+            # Tests will set their own dummy AP API key
+            MC_CRAWLER_AP_API_KEY: ""
+        volumes:
+            - type: bind
+              source: ./bin/
+              target: /opt/mediacloud/bin/
+            - type: bind
+              source: ./src/
+              target: /opt/mediacloud/src/crawler-ap/
+            - type: bind
+              source: ./tests/
+              target: /opt/mediacloud/tests/
+            - type: bind
+              source: ./../common/src/
+              target: /opt/mediacloud/src/common/
+        depends_on:
+            - postgresql-pgbouncer
+            # Fetcher's test will try to add downloaded downloads to extractor's queue
+            - rabbitmq-server
+            # Fetcher's test will try to extract the story and test the number of sentences
+            - extract-and-vector
+
+    extract-and-vector:
+        image: dockermediacloud/extract-and-vector:latest
+        stop_signal: SIGKILL
+        depends_on:
+            - extract-article-from-page
+            - postgresql-pgbouncer
+            # process_extracted_story() will try to add story to CLIFF / NYTLabels queue:
+            - rabbitmq-server
+
+    extract-article-from-page:
+        image: dockermediacloud/extract-article-from-page:latest
+        stop_signal: SIGKILL
+        expose:
+            - 8080
+
+    postgresql-pgbouncer:
+        image: dockermediacloud/postgresql-pgbouncer:latest
+        stop_signal: SIGKILL
+        expose:
+            - 6432
+        depends_on:
+            - postgresql-server
+
+    postgresql-server:
+        image: dockermediacloud/postgresql-server:latest
+        stop_signal: SIGKILL
+        expose:
+            - 5432
+
+    rabbitmq-server:
+        image: dockermediacloud/rabbitmq-server:latest
+        stop_signal: SIGKILL
+        expose:
+            - 5672
+            - 15672

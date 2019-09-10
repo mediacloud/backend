@@ -187,7 +187,7 @@ class DownloadStorageConfig(object):
     @staticmethod
     def cache_s3() -> bool:
         """Whether to enable local Amazon S3 download cache."""
-        value = env_value('MC_DOWNLOADS_CACHE_S3', allow_empty_string=True)
+        value = env_value('MC_DOWNLOADS_CACHE_S3', required=False, allow_empty_string=True)
         if value is None:
             value = 0
         return bool(int(value))

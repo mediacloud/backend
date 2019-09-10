@@ -6,7 +6,7 @@ from topics_base.stories import _get_story_with_most_sentences
 
 
 def test_get_story_with_most_sentences():
-    """Test _get_story_with_most_senences()."""
+    """Test _get_story_with_most_sentences()."""
     db = connect_to_db()
 
     medium = create_test_medium(db, "foo")

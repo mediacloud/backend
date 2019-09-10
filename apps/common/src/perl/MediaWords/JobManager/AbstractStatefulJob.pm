@@ -177,6 +177,14 @@ around '__run' => sub {
 
     my $r;
 
+    if ( $self->_job_is_already_running( $db, $args ) ) {
+        my $run_lock_arg = $self->get_run_lock_arg();
+        my $message = "Stateful job with $run_lock_arg = $args->{ $run_lock_arg } is already running.  Exiting.";
+        WARN( $message );
+        $self->_update_job_state( $db, 'error', $message );
+        return;
+    }
+
     eval {
         LOGCONFESS( "run() calls cannot be nested for stateful jobs" ) if ( $_current_job_states_id );
 
@@ -191,7 +199,8 @@ around '__run' => sub {
 
         $self->_update_job_state( $db, $STATE_RUNNING );
 
-        $r = $self->$orig( $args );
+        my $skip_testing_for_lock = 1;
+        $r = $self->$orig( $args, $skip_testing_for_lock );
     };
 
     my $eval_error = $@;

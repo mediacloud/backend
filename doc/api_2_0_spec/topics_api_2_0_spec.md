@@ -20,142 +20,156 @@ Table of Contents
          * [Query Parameters](#query-parameters-1)
          * [Input Description](#input-description-1)
          * [Example](#example-1)
-      * [topics/&lt;topics_id&gt;/reset (PUT)](#topicstopics_idreset-put)
+      * [topics/&lt;topics_id&gt;/add_seed_query (PUT)](#topicstopics_idadd_seed_query-put)
          * [Query Parameters](#query-parameters-2)
          * [Input Description](#input-description-2)
          * [Example](#example-2)
-      * [topics/&lt;topics_id&gt;/spider (POST)](#topicstopics_idspider-post)
+      * [topics/&lt;topics_id&gt;/remove_seed_query (PUT)](#topicstopics_idremove_seed_query-put)
          * [Query Parameters](#query-parameters-3)
-         * [Output Description](#output-description)
+         * [Input Description](#input-description-3)
          * [Example](#example-3)
-      * [topics/&lt;topics_id&gt;/spider_status](#topicstopics_idspider_status)
+      * [topics/&lt;topics_id&gt;/reset (PUT)](#topicstopics_idreset-put)
          * [Query Parameters](#query-parameters-4)
-         * [Output Description](#output-description-1)
+         * [Input Description](#input-description-4)
          * [Example](#example-4)
-      * [topics/list](#topicslist)
+      * [topics/&lt;topics_id&gt;/spider (POST)](#topicstopics_idspider-post)
          * [Query Parameters](#query-parameters-5)
-         * [Output Description](#output-description-2)
+         * [Input Description](#input-description-5)
+         * [Output Description](#output-description)
          * [Example](#example-5)
-      * [topics/single/&lt;topics_id&gt;](#topicssingletopics_id)
+      * [topics/&lt;topics_id&gt;/spider_status](#topicstopics_idspider_status)
          * [Query Parameters](#query-parameters-6)
-         * [Output Description](#output-description-3)
+         * [Output Description](#output-description-1)
          * [Example](#example-6)
+      * [topics/list](#topicslist)
+         * [Query Parameters](#query-parameters-7)
+         * [Output Description](#output-description-2)
+         * [Example](#example-7)
+      * [topics/single/&lt;topics_id&gt;](#topicssingletopics_id)
+         * [Query Parameters](#query-parameters-8)
+         * [Output Description](#output-description-3)
+         * [Example](#example-8)
    * [Permissions](#permissions-1)
       * [topics/permissions/user/list](#topicspermissionsuserlist)
-         * [Query Parameters](#query-parameters-7)
-         * [Output Description](#output-description-4)
-         * [Example](#example-7)
-      * [topics/&lt;topics_id&gt;/permissions/list](#topicstopics_idpermissionslist)
-         * [Query Parameters](#query-parameters-8)
-         * [Output Description](#output-description-5)
-         * [Example](#example-8)
-      * [topics/&lt;topics_id&gt;/permissions/update (PUT)](#topicstopics_idpermissionsupdate-put)
          * [Query Parameters](#query-parameters-9)
-         * [Input Description](#input-description-3)
-         * [Output Description](#output-description-6)
+         * [Output Description](#output-description-4)
          * [Example](#example-9)
+      * [topics/&lt;topics_id&gt;/permissions/list](#topicstopics_idpermissionslist)
+         * [Query Parameters](#query-parameters-10)
+         * [Output Description](#output-description-5)
+         * [Example](#example-10)
+      * [topics/&lt;topics_id&gt;/permissions/update (PUT)](#topicstopics_idpermissionsupdate-put)
+         * [Query Parameters](#query-parameters-11)
+         * [Input Description](#input-description-6)
+         * [Output Description](#output-description-6)
+         * [Example](#example-11)
    * [Stories](#stories)
       * [stories/list](#storieslist)
-         * [Query Parameters](#query-parameters-10)
+         * [Query Parameters](#query-parameters-12)
          * [Output Description](#output-description-7)
       * [stories/links](#storieslinks)
-         * [Query Parameters](#query-parameters-11)
-         * [Output Description](#output-description-8)
-         * [Example](#example-10)
-      * [stories/facebook](#storiesfacebook)
-         * [Query Parameters](#query-parameters-12)
-         * [Output Description](#output-description-9)
-         * [Example](#example-11)
-      * [stories/count](#storiescount)
          * [Query Parameters](#query-parameters-13)
-         * [Output Description](#output-description-10)
+         * [Output Description](#output-description-8)
          * [Example](#example-12)
+      * [stories/facebook](#storiesfacebook)
+         * [Query Parameters](#query-parameters-14)
+         * [Output Description](#output-description-9)
+         * [Example](#example-13)
+      * [stories/count](#storiescount)
+         * [Query Parameters](#query-parameters-15)
+         * [Output Description](#output-description-10)
+         * [Example](#example-14)
    * [Sentences](#sentences)
       * [sentences/count](#sentencescount)
    * [Media](#media)
       * [media/list](#medialist)
-         * [Query Parameters](#query-parameters-14)
-         * [Output Description](#output-description-11)
-         * [Example](#example-13)
-      * [media/links](#medialinks)
-         * [Query Parameters](#query-parameters-15)
-         * [Output Description](#output-description-12)
-         * [Example](#example-14)
-      * [media/map](#mediamap)
          * [Query Parameters](#query-parameters-16)
-         * [Output Description](#output-description-13)
+         * [Output Description](#output-description-11)
          * [Example](#example-15)
+      * [media/links](#medialinks)
+         * [Query Parameters](#query-parameters-17)
+         * [Output Description](#output-description-12)
+         * [Example](#example-16)
+      * [media/map](#mediamap)
+         * [Query Parameters](#query-parameters-18)
+         * [Output Description](#output-description-13)
+         * [Example](#example-17)
    * [Word Counts](#word-counts)
       * [wc/list](#wclist)
    * [Foci](#foci)
       * [Focal Techniques](#focal-techniques)
          * [Focal Technique: Boolean Query](#focal-technique-boolean-query)
       * [focal_set_definitions/create (POST)](#focal_set_definitionscreate-post)
-         * [Query Parameters](#query-parameters-17)
-         * [Input Description](#input-description-4)
-         * [Example](#example-16)
-      * [focal_set_definitions/&lt;focal_set_definitions_id&gt;/update (PUT)](#focal_set_definitionsfocal_set_definitions_idupdate-put)
-         * [Query Parameters](#query-parameters-18)
-         * [Input Parameters](#input-parameters)
-         * [Example](#example-17)
-      * [focal_set_definitions/&lt;focal_set_definitions_id&gt;/delete (PUT)](#focal_set_definitionsfocal_set_definitions_iddelete-put)
          * [Query Parameters](#query-parameters-19)
-         * [Output Description](#output-description-14)
-         * [Example](#example-18)
-      * [focal_set_definitions/list](#focal_set_definitionslist)
-         * [Query Parameters](#query-parameters-20)
-         * [Output Description](#output-description-15)
-         * [Example](#example-19)
-      * [focal_sets/list](#focal_setslist)
-         * [Query Parameters](#query-parameters-21)
-         * [Output Description](#output-description-16)
-         * [Example](#example-20)
-      * [focus_definitions/create (POST)](#focus_definitionscreate-post)
-         * [Query Parameters](#query-parameters-22)
-         * [Input Description](#input-description-5)
-         * [Example](#example-21)
-      * [focus_definitions/&lt;focus_definitions_id&gt;/update (PUT)](#focus_definitionsfocus_definitions_idupdate-put)
-         * [Query Parameters](#query-parameters-23)
-         * [Input Description](#input-description-6)
-         * [Example](#example-22)
-      * [focus_definitions/&lt;focus_definitions_id&gt;/delete (PUT)](#focus_definitionsfocus_definitions_iddelete-put)
-         * [Query Parameters](#query-parameters-24)
-         * [Output Description](#output-description-17)
-         * [Example](#example-23)
-      * [focus_definitions/list](#focus_definitionslist)
-         * [Query Parameters](#query-parameters-25)
-         * [Output Description](#output-description-18)
-         * [Example](#example-24)
-      * [foci/list](#focilist)
-         * [Query Parameters](#query-parameters-26)
-         * [Ouput Description](#ouput-description)
-         * [Example](#example-25)
-   * [Snapshots](#snapshots)
-      * [snapshots/generate (POST)](#snapshotsgenerate-post)
-         * [Query Parameters](#query-parameters-27)
          * [Input Description](#input-description-7)
-         * [Output Description](#output-description-19)
-         * [Example](#example-26)
-      * [snapshots/generate_status](#snapshotsgenerate_status)
-         * [Query Parameters](#query-parameters-28)
+         * [Example](#example-18)
+      * [focal_set_definitions/&lt;focal_set_definitions_id&gt;/update (PUT)](#focal_set_definitionsfocal_set_definitions_idupdate-put)
+         * [Query Parameters](#query-parameters-20)
+         * [Input Parameters](#input-parameters)
+         * [Example](#example-19)
+      * [focal_set_definitions/&lt;focal_set_definitions_id&gt;/delete (PUT)](#focal_set_definitionsfocal_set_definitions_iddelete-put)
+         * [Query Parameters](#query-parameters-21)
+         * [Output Description](#output-description-14)
+         * [Example](#example-20)
+      * [focal_set_definitions/list](#focal_set_definitionslist)
+         * [Query Parameters](#query-parameters-22)
+         * [Output Description](#output-description-15)
+         * [Example](#example-21)
+      * [focal_sets/list](#focal_setslist)
+         * [Query Parameters](#query-parameters-23)
+         * [Output Description](#output-description-16)
+         * [Example](#example-22)
+      * [focus_definitions/create (POST)](#focus_definitionscreate-post)
+         * [Query Parameters](#query-parameters-24)
          * [Input Description](#input-description-8)
-         * [Output Description](#output-description-20)
+         * [Example](#example-23)
+      * [focus_definitions/&lt;focus_definitions_id&gt;/update (PUT)](#focus_definitionsfocus_definitions_idupdate-put)
+         * [Query Parameters](#query-parameters-25)
+         * [Input Description](#input-description-9)
+         * [Example](#example-24)
+      * [focus_definitions/&lt;focus_definitions_id&gt;/delete (PUT)](#focus_definitionsfocus_definitions_iddelete-put)
+         * [Query Parameters](#query-parameters-26)
+         * [Output Description](#output-description-17)
+         * [Example](#example-25)
+      * [focus_definitions/list](#focus_definitionslist)
+         * [Query Parameters](#query-parameters-27)
+         * [Output Description](#output-description-18)
+         * [Example](#example-26)
+      * [foci/list](#focilist)
+         * [Query Parameters](#query-parameters-28)
+         * [Ouput Description](#ouput-description)
          * [Example](#example-27)
+   * [Snapshots](#snapshots)
+      * [snapshots/create (POST)](#snapshotscreate-post)
+         * [Query Parameters](#query-parameters-29)
+         * [Input Description](#input-description-10)
+         * [Output Description](#output-description-19)
+         * [Example](#example-28)
+      * [snapshots/generate (POST)](#snapshotsgenerate-post)
+         * [Query Parameters](#query-parameters-30)
+         * [Input Description](#input-description-11)
+         * [Output Description](#output-description-20)
+         * [Example](#example-29)
+      * [snapshots/generate_status](#snapshotsgenerate_status)
+         * [Query Parameters](#query-parameters-31)
+         * [Input Description](#input-description-12)
+         * [Output Description](#output-description-21)
+         * [Example](#example-30)
       * [snapshots/list](#snapshotslist)
          * [Query Paramaters](#query-paramaters)
-         * [Output Description](#output-description-21)
-         * [Example](#example-28)
+         * [Output Description](#output-description-22)
+         * [Example](#example-31)
       * [snapshots/&lt;snapshots_id&gt;/word2vec_model/&lt;models_id&gt; (GET)](#snapshotssnapshots_idword2vec_modelmodels_id-get)
          * [Required role](#required-role)
-         * [Output Description](#output-description-22)
+         * [Output Description](#output-description-23)
             * [Model was fetched](#model-was-fetched)
             * [Failed to fetch the model](#failed-to-fetch-the-model)
-         * [Example](#example-29)
+         * [Example](#example-32)
    * [Timespans](#timespans)
       * [timespans/list](#timespanslist)
-         * [Query Parameters](#query-parameters-29)
-         * [Output Description](#output-description-23)
-         * [Example](#example-30)
+         * [Query Parameters](#query-parameters-32)
+         * [Output Description](#output-description-24)
+         * [Example](#example-33)
 
 ----
 <!-- MEDIACLOUD-TOC-END -->
@@ -452,6 +466,93 @@ Response:
 }
 ```
 
+## `topics/<topics_id>/add_seed_query` (PUT)
+
+`https://api.mediacloud.org/api/v2/topics/<topics_id>/add_seed_query`
+
+Add a seed query to an existing topic.  If the same seed querty already exists, do nothing.  Returns the created
+or found seed query.
+
+### Query Parameters
+
+(no parameters)
+
+### Input Description
+
+| Field      | Description                              |
+| ---------- | ---------------------------------------- |
+| topics\_id | topic id |
+| platform   | platform for which to pull data: 'twitter' or 'web' |
+| source     | api to use as source for data: 'crimson\_hexagon' or 'archive\_org' |
+| query      | source specific query to return data |
+
+### Example
+
+Add a crimson hexagon twitter search:
+
+`https://api.mediacloud.org/api/v2/topics/1390/add_seed_query`
+
+Input:
+
+```json
+{
+    "topics_id": 1390,
+    "platform": "twitter",
+    "source": "crimson_hexagon",
+    "query": "1234567890"
+}
+```
+
+Response:
+
+```json
+{
+  "topic_seed_query":
+    {
+      "topic_seed_queries_id": 5437,
+      "topics_id": 1390,
+      "platform": "twitter",
+      "source": "crimson_hexagon",
+      "query": "1234567890"
+    }
+}
+```
+
+## `topics/<topics_id>/remove_seed_query` (PUT)
+
+`https://api.mediacloud.org/api/v2/topics/<topics_id>/remove_seed_query`
+
+Remove an existing topic seed query.
+
+### Query Parameters
+
+(no parameters)
+
+### Input Description
+
+| Field      | Description                              |
+| ---------- | ---------------------------------------- |
+| topic\_seed\_queries\_id | topic\_seed\_queries id |
+### Example
+
+Remove a seed query:
+
+`https://api.mediacloud.org/api/v2/topics/1390/remove_seed_query`
+
+Input:
+
+```json
+{
+    "topic_seed_queries_id": 5437
+}
+```
+
+Response:
+
+```json
+{ "success": 1 }
+```
+
 ## topics/<topics_id>/reset (PUT)
 
 `https://api.mediacloud.org/api/v2/topics/~topics_id~/reset`
@@ -493,8 +594,7 @@ Response:
 
 Start a topic spidering job.
 
-Topic spidering is asynchronous.  Once the topic has started spidering, you cannot start another spidering job until the current one is complete. A call to this end point when a 'running' or 'queued' job already exists for the given topic
-will just return the state of the existing job. If a snapshots\_id is sent as input, that snapshot will be used
+Topic spidering is asynchronous. If a snapshots\_id is sent as input, that snapshot will be used
 for the job; otherwise, a new snapshot will be created.
 
 ### Query Parameters

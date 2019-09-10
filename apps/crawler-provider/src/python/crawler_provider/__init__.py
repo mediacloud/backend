@@ -42,6 +42,9 @@ MAX_QUEUE_SIZE = 10 * 1000
 # sleep this many seconds between each queue attempt
 QUEUE_INTERVAL = 1
 
+# truncate table queued_downloads after this many seconds to avoid dead row bloat in the table
+QUEUE_TRUNCATE_INTERVAL = 3600
+
 
 def _timeout_stale_downloads(db: DatabaseHandler) -> None:
     """Move fetching downloads back to pending after STALE_DOWNLOAD_INTERVAL.
@@ -177,7 +180,12 @@ def run_provider(db: DatabaseHandler, daemon: bool = True) -> None:
     QUEUE_INTERVAL seconds because provide_download_ids only provides one downloads_id for each host.
     """
     last_queue_time = 0
+    last_queue_truncate_time = time.time()
     while True:
+        if time.time() - last_queue_truncate_time > QUEUE_TRUNCATE_INTERVAL:
+            db.query("truncate table queued_downloads")
+            last_queue_truncate_time = time.time()
+
         queue_size = db.query(
             "select count(*) from ( select 1 from queued_downloads limit %(a)s ) q",
             {'a': MAX_QUEUE_SIZE * 10}).flat()[0]

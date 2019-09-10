@@ -17,18 +17,20 @@ def _get_extracted_text(db: DatabaseHandler, story: dict) -> str:
 
     story = decode_object_from_bytes_if_needed(story)
 
-    # "download_texts" INT -> BIGINT join hack: convert parameter downloads_id to a constant array first
     download_texts = db.query("""
-        SELECT download_text
-        FROM download_texts
-        WHERE downloads_id = ANY(
-            ARRAY(
-                SELECT downloads_id
-                FROM downloads
-                WHERE stories_id = %(stories_id)s
-            )
-        )
-        ORDER BY downloads_id
+
+        SELECT dt.download_text
+        FROM downloads AS d
+            INNER JOIN download_texts AS dt
+                ON d.downloads_id = dt.downloads_id
+        WHERE d.stories_id = %(stories_id)s
+
+        -- Skip partitions which don't contain successful content downloads
+          AND d.type = 'content'
+          AND d.state = 'success'
+
+        ORDER BY d.downloads_id
+
     """, {'stories_id': story['stories_id']}).flat()
 
     return ".\n\n".join(download_texts)

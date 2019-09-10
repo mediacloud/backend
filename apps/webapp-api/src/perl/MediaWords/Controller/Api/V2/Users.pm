@@ -64,13 +64,16 @@ sub update_PUT
 
     my $user = $c->dbis->require_by_id( 'auth_users', $data->{ auth_users_id } );
 
-    my $update_fields = [ qw/email full_name notes active max_topic_stories/ ];
+    my $update_fields = [ qw/email full_name notes active max_topic_stories has_consented/ ];
 
     my $input = { map { $_ => $data->{ $_ } } grep { exists( $data->{ $_ } ) } @{ $update_fields } };
 
-    if ( defined( $input->{ active } ) )
+    for my $field ( 'active', 'has_consented' )
     {
-        $input->{ active } = normalize_boolean_for_db( $input->{ active } );
+        if ( defined( $input->{ $field } ) )
+        {
+            $input->{ $field } = normalize_boolean_for_db( $input->{ $field } );
+        }
     }
 
     my $db = $c->dbis;
@@ -118,7 +121,9 @@ sub _get_users_list($$)
     }
 
     my $users = $db->query( <<SQL, $limit, $offset )->hashes();
-        select auth_users_id, email, full_name, notes, active, created_date, max_topic_stories, weekly_requests_limit
+        select
+                auth_users_id, email, full_name, notes, active, created_date, max_topic_stories,
+                weekly_requests_limit, has_consented
             from auth_users au
                 join auth_user_limits aul using ( auth_users_id )
             where

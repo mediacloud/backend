@@ -1,6 +1,5 @@
 # noinspection PyUnusedLocal
 import re
-from typing import List
 from urllib.parse import parse_qs, urlparse
 
 import requests

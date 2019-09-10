@@ -7,6 +7,7 @@ from mediawords.languages.factory import LanguageFactory
 from mediawords.util.identify_language import language_code_for_text, identification_would_be_reliable
 from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_object_from_bytes_if_needed
+
 from extract_and_vector.dbi.stories.text import get_text_for_word_counts
 from extract_and_vector.dbi.stories.extractor_arguments import PyExtractorArguments
 

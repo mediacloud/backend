@@ -1,13 +1,9 @@
 # noinspection PyProtectedMember
-from extract_and_vector.dbi.downloads.extract import (
-	_set_extractor_results_cache,
-	_get_extractor_results_cache,
-)
+from extract_and_vector.dbi.downloads.extract import _set_extractor_results_cache, _get_extractor_results_cache
 from .setup_test_extract import TestExtractDB
 
 
 class TestExtractorCache(TestExtractDB):
-    """Run tests that require database access."""
 
     def test_extractor_cache(self) -> None:
         """Test set and get for extract cache."""

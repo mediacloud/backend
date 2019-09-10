@@ -74,15 +74,21 @@ Table of Contents
          * [Input Description](#input-description-12)
          * [Example](#example-17)
    * [Users](#users)
-      * [api/v2/users/list](#apiv2userslist)
+      * [api/v2/users/single/](#apiv2userssingle)
          * [Query Parameters](#query-parameters-8)
+         * [Output](#output)
+      * [api/v2/users/list](#apiv2userslist)
+         * [Query Parameters](#query-parameters-9)
          * [Example](#example-18)
       * [api/v2/users/update (PUT)](#apiv2usersupdate-put)
          * [Input Description](#input-description-13)
          * [Example](#example-19)
-      * [api/v2/users/list_roles](#apiv2userslist_roles)
-         * [Query Parameters](#query-parameters-9)
+      * [api/v2/users/delete (PUT)](#apiv2usersdelete-put)
+         * [Input Description](#input-description-14)
          * [Example](#example-20)
+      * [api/v2/users/list_roles](#apiv2userslist_roles)
+         * [Query Parameters](#query-parameters-10)
+         * [Example](#example-21)
 
 ----
 <!-- MEDIACLOUD-TOC-END -->
@@ -1093,6 +1099,7 @@ Output:
       "email": "foo@foo.bar",
       "full_name": "Sample User",
       "max_topic_stories": 100000,
+      "has_consented": true,
       "weekly_requests_limit": 10000,
       "notes": "For demonstrating the user api",i
       "requests": [
@@ -1144,6 +1151,7 @@ This call updates a single existing user.
 | roles             | list of permission roles |
 | max\_topic\_stories | max size of max\_stories setting for topics |
 | weekly\_requests\_limit | max number of requests per week |
+| has\_consented | has the user consented to the latest terms of service |
 
 The `roles` field should point to an array of strings, each of which is the
 'role' value for a role listed by `api/v2/users/list_roles`.  If the roles

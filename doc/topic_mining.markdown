@@ -1,3 +1,20 @@
+<!-- MEDIACLOUD-TOC-START -->
+
+Table of Contents
+=================
+
+   * [Topic Mining](#topic-mining)
+      * [Topic Spidering Pipeline](#topic-spidering-pipeline)
+         * [topic_run](#topic_run)
+         * [topic_mine_story](#topic_mine_story)
+         * [topic_fetch_link](#topic_fetch_link)
+         * [topic_add_story](#topic_add_story)
+         * [facebook_fetch_story_stats](#facebook_fetch_story_stats)
+
+----
+<!-- MEDIACLOUD-TOC-END -->
+
+
 # Topic Mining
 
 The Topic Mapper system uses link mining to provide richer data for a specific topic.  The topic is defined by a boolean query.  The topic mapper uses that boolean query to spider out from an initial set of seed stories found within the Media Cloud archive to discover more relevant stories on the open web and to add link network and social media metrics to set of stories matching that query.
