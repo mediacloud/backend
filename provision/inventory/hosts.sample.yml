@@ -7,101 +7,105 @@
 # All hosts
 all:
 
-  hosts:
+    hosts:
 
-    # Sample hosts to deploy to
-    "mcsample1":
-      ansible_host: "mcsample1.media.mit.edu"
-      ansible_user: "ubuntu"
-      ansible_ssh_private_key_file: "~/.ssh/mcsample"
+        # Sample hosts to deploy to
+        "mcsample1":
 
-      # Network interface the IP of which will be advertised to the rest of the swarm
-      docker_swarm_advertise_interface: "eth0"
+            ansible_host: "mcsample1.media.mit.edu"
+            ansible_user: "ubuntu"
+            ansible_ssh_private_key_file: "~/.ssh/mcsample"
 
-      # Dictionary of labels to apply to this host
-      # (used for deployment constraints; on production, you might want to
-      # apply those labels to different hosts)
-      docker_swarm_node_labels:
+            # Network interface the IP of which will be advertised to the rest of the swarm
+            docker_swarm_advertise_interface: "eth0"
 
-        # "mail-opendkim-server" container and its data volume
-        role-mail-opendkim: "true"
+            # Dictionary of labels to apply to this host
+            # (used for deployment constraints; on production, you might want to
+            # apply those labels to different hosts)
+            docker_swarm_node_labels:
 
-        # "mail-postfix-server" container and its volume
-        # Make sure that DNS SPF record allows this host to send email.
-        role-mail-postfix: "true"
+                # "mail-opendkim-server" container and its data volume
+                role-mail-opendkim: "true"
 
-        # "munin-cron", "munin-httpd" containers and their shared volumes
-        role-munin-httpd: "true"
+                # "mail-postfix-server" container and its volume
+                # Make sure that DNS SPF record allows this host to send email.
+                role-mail-postfix: "true"
 
-        # "nytlabels-annotator" container (try to run on the same host or a
-        # limited number of hosts to be able to share mmap'ped memory)
-        role-nytlabels-annotator: "true"
+                # "munin-cron", "munin-httpd" containers and their shared volumes
+                role-munin-httpd: "true"
 
-        # "portainer" container and its data volume
-        role-portainer: "true"
+                # "nytlabels-annotator" container (try to run on the same host or a
+                # limited number of hosts to be able to share mmap'ped memory)
+                role-nytlabels-annotator: "true"
 
-        # "postgresql-server" container and its data volume
-        role-postgresql-server: "true"
+                # "portainer" container and its data volume
+                role-portainer: "true"
 
-        # "proxy-cron-certbot", "proxy-httpd" containers, their shared volume
-        # and publicly exposed ports
-        # Make sure that DNS A record points to this host (other hosts have
-        # HTTP ports exposed too though), and that ports 80 and 443 are open on
-        # the firewall
-        role-proxy-httpd: "true"
+                # "postgresql-server" container and its data volume
+                role-postgresql-server: "true"
 
-        # "rabbitmq-server" container and its data volume
-        role-rabbitmq-server: "true"
+                # "proxy-cron-certbot", "proxy-httpd" containers, their shared volume
+                # and publicly exposed ports
+                # Make sure that DNS A record points to this host (other hosts have
+                # HTTP ports exposed too though), and that ports 80 and 443 are open on
+                # the firewall
+                role-proxy-httpd: "true"
 
-        # "cron-generate-daily-rss-dumps", "webapp-httpd" containers and their shared volume
-        role-webapp-httpd: "true"
+                # "rabbitmq-server" container and its data volume
+                role-rabbitmq-server: "true"
 
-        # Solr shards from "solr-shard-01" to "solr-shard-8" (host #1)
-        role-solr-shards-host1: "true"
+                # "cron-generate-daily-rss-dumps", "webapp-httpd" containers and their shared volume
+                role-webapp-httpd: "true"
 
-        # Solr shards from "solr-shard-09" to "solr-shard-16" (host #2)
-        role-solr-shards-host2: "true"
+                # Solr shards from "solr-shard-01" to "solr-shard-8" (host #1)
+                role-solr-shards-host1: "true"
 
-        # Solr shards from "solr-shard-17" to "solr-shard-24" (host #2)
-        role-solr-shards-host3: "true"
+                # Solr shards from "solr-shard-09" to "solr-shard-16" (host #2)
+                role-solr-shards-host2: "true"
 
-        # The rest of the apps
-        # Assign this role to hosts that are bound to run all the rest of the
-        # apps without a specific placement constraint. If you'd like to
-        # reserve a host for running only a single app (e.g.
-        # "postgresql-server" on a server dedicated to a database), remove this
-        # role from said server.
-        role-misc-apps: "true"
+                # Solr shards from "solr-shard-17" to "solr-shard-24" (host #2)
+                role-solr-shards-host3: "true"
 
-    "mcsample2":
-      ansible_host: "mcsample2.media.mit.edu"
-      ansible_user: "ubuntu"
-      ansible_ssh_private_key_file: "~/.ssh/mcsample"
-
-      docker_swarm_advertise_interface: "eth0"
-      docker_swarm_node_labels:
+                # The rest of the apps
+                # Assign this role to hosts that are bound to run all the rest of the
+                # apps without a specific placement constraint. If you'd like to
+                # reserve a host for running only a single app (e.g.
+                # "postgresql-server" on a server dedicated to a database), remove this
+                # role from said server.
+                role-misc-apps: "true"
 
 
-    "mcsample3":
-      ansible_host: "mcsample3.media.mit.edu"
-      ansible_user: "ubuntu"
-      ansible_ssh_private_key_file: "~/.ssh/mcsample"
+        "mcsample2":
 
-      docker_swarm_advertise_interface: "eth0"
-      docker_swarm_node_labels:
+            ansible_host: "mcsample2.media.mit.edu"
+            ansible_user: "ubuntu"
+            ansible_ssh_private_key_file: "~/.ssh/mcsample"
+
+            docker_swarm_advertise_interface: "eth0"
+            docker_swarm_node_labels:
+
+
+        "mcsample3":
+            ansible_host: "mcsample3.media.mit.edu"
+            ansible_user: "ubuntu"
+            ansible_ssh_private_key_file: "~/.ssh/mcsample"
+
+            docker_swarm_advertise_interface: "eth0"
+            docker_swarm_node_labels:
 
 
 # Group of 1-3 hosts that will serve as swarm managers
 # (for testing, use a single manager; for production, define 3 managers)
 docker_swarm_managers:
 
-  hosts:
-    "mcsample1":
+    hosts:
+        "mcsample1":
+
 
 # Group of 1-3 hosts that will serve as swarm workers
 # (hosts from the manager group don't have to be readded here)
 docker_swarm_workers:
 
-  hosts:
-    "mcsample2":
-    "mcsample3":
+    hosts:
+        "mcsample2":
+        "mcsample3":
