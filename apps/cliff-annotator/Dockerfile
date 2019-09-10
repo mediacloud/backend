@@ -98,6 +98,14 @@ RUN \
     chown -R www-data:www-data /usr/lib/tomcat7/work/Catalina/localhost/ && \
     true
 
+# Install Python 2 for running mock HTTP server
+# FIXME remove
+RUN apt-get -y --no-install-recommends install python-minimal
+
+# Copy mock HTTP server
+# FIXME remove
+COPY bin/mock_cliff_annotator.py /
+
 # Expose Tomcat 7's port
 EXPOSE 8080
 
@@ -108,4 +116,9 @@ USER www-data
 ENV JAVA_OPTS "-Xmx4096m"
 
 # Run Tomcat 7
-CMD ["catalina.sh", "run"]
+# FIXME uncomment
+# CMD ["catalina.sh", "run"]
+
+# Run mock HTTP server
+# FIXME remove
+CMD ["/mock_cliff_annotator.py"]
