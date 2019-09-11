@@ -958,6 +958,10 @@ services:
             - default
         expose:
             - 5432
+        # Allow up to 5 minutes for PostgreSQL to stop so that it manages to
+        # flush everything from WAL before quitting; this is supposed to speed
+        # up subsequent restart
+        stop_grace_period: 5m
         volumes:
             - vol_postgresql_data:/var/lib/postgresql/
         deploy:
