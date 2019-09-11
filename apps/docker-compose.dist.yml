@@ -1591,6 +1591,13 @@ networks:
         driver: overlay
         attachable: true
 
+        ipam:
+            driver: default
+            config:
+                # Docker (Compose?) sometimes defaults to a subnet with only
+                # 255 available addresses
+                - subnet: "10.1.0.1/16"
+
 
 #
 # Volumes
