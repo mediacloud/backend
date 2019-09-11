@@ -15,7 +15,7 @@ def test_generate_story():
 
     assert 'stories_id' in story
     assert story['title'] == 'foo bar'
-    assert story['publish_date'] == '2016-01-12 00:00:00'
+    assert story['publish_date'] == '2016-01-12 03:55:46'
     assert story['url'] == story_url
     assert story['guid'] == story_url
 
