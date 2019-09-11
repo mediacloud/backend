@@ -13,6 +13,13 @@ ENV DEBIAN_FRONTEND noninteractive
 ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US
 
+# It is likely that we'll run a Python script somewhere in the final app. By
+# default, Python will buffer lines print()ed to STDOUT / STDERR, and they
+# might end up in container's log after a delay and with a wrong timestamp
+# (e.g. log messages). So, disable such buffering altogether to all containers
+# by default.
+ENV PYTHONUNBUFFERED 1
+
 # Use mirror closest to us
 COPY conf/apt/sources.list /etc/apt/
 

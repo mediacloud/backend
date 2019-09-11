@@ -65,5 +65,4 @@ USER nobody
 
 # Run mock HTTP server
 # FIXME remove
-ENV PYTHONUNBUFFERED 1
 CMD ["/mock_nytlabels_annotator.py"]
