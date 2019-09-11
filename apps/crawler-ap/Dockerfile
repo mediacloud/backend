@@ -22,4 +22,4 @@ COPY bin /opt/mediacloud/bin
 
 USER mediacloud
 
-CMD ["crawler_ap.py"]
+CMD ["crawler_ap_worker.py"]

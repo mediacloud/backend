@@ -7,7 +7,7 @@ services:
         stop_signal: SIGKILL
         environment:
             # Tests will set their own dummy AP API key
-            MC_CRAWLER_AP_API_KEY: ""
+            MC_CRAWLER_AP_API_KEY: "dummy"
         volumes:
             - type: bind
               source: ./bin/
