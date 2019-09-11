@@ -105,5 +105,4 @@ ENV JAVA_OPTS "-Xmx4096m"
 
 # Run mock HTTP server
 # FIXME remove
-ENV PYTHONUNBUFFERED 1
 CMD ["/mock_cliff_annotator.py"]
