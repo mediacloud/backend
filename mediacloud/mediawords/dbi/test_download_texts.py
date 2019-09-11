@@ -1,5 +1,5 @@
 from mediawords.dbi.download_texts import create
-from mediawords.test.db.create import create_test_medium, create_test_feed, create_download_for_feed
+from mediawords.test.db.create import create_test_medium, create_test_feed, create_test_story, create_download_for_story
 from mediawords.test.test_database import TestDatabaseWithSchemaTestCase
 
 
@@ -11,7 +11,8 @@ class TestDownloadTexts(TestDatabaseWithSchemaTestCase):
 
         self.test_medium = create_test_medium(self.db(), 'downloads test')
         self.test_feed = create_test_feed(self.db(), 'downloads test', self.test_medium)
-        self.test_download = create_download_for_feed(self.db(), self.test_feed)
+        self.test_story = create_test_story(self.db(), 'downloads test', self.test_feed)
+        self.test_download = create_download_for_story(self.db(), self.test_feed, self.test_story)
 
         self.test_download['path'] = 'postgresql:foo'
         self.test_download['state'] = 'success'
