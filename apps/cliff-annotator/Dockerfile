@@ -84,7 +84,7 @@ RUN \
 
 # Install Python 2 for running mock HTTP server
 # FIXME remove
-RUN apt-get -y --no-install-recommends install python-minimal
+RUN apt-get -y --no-install-recommends install python
 
 # Copy mock HTTP server
 # FIXME remove
@@ -105,4 +105,5 @@ ENV JAVA_OPTS "-Xmx4096m"
 
 # Run mock HTTP server
 # FIXME remove
+ENV PYTHONUNBUFFERED 1
 CMD ["/mock_cliff_annotator.py"]
