@@ -958,6 +958,10 @@ services:
             - default
         expose:
             - 5432
+        # Allow up to 5 minutes for PostgreSQL to stop so that it manages to
+        # flush everything from WAL before quitting; this is supposed to speed
+        # up subsequent restart
+        stop_grace_period: 5m
         volumes:
             - vol_postgresql_data:/var/lib/postgresql/
         deploy:
@@ -1590,6 +1594,13 @@ networks:
     default:
         driver: overlay
         attachable: true
+
+        ipam:
+            driver: default
+            config:
+                # Docker (Compose?) sometimes defaults to a subnet with only
+                # 255 available addresses
+                - subnet: "10.1.0.1/16"
 
 
 #

@@ -58,6 +58,16 @@ ENV PGDATABASE mediacloud
 # PostgreSQL data
 VOLUME /var/lib/postgresql/
 
+# SIGTERM (Docker's default) will initiate PostgreSQL's "Smart Shutdown" mode
+# which will then wait for the current transactions to finish. If there are
+# active long-running queries, Docker will wait for "stop_grace_period", run
+# out of patience and SIGKILL the process, forcing PostgreSQL to recover the
+# database on restart.
+# So, instead we stop the database with SIGINT which triggers "Fast Shutdown":
+# active connections get terminated, and PostgreSQL shuts down considerably
+# faster and safer.
+STOPSIGNAL SIGINT
+
 # Server
 EXPOSE 5432
 
