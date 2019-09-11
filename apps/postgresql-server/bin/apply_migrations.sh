@@ -48,6 +48,7 @@ echo "New schema version: ${NEW_SCHEMA_VERSION}"
 "${MC_POSTGRESQL_BIN_DIR}/pg_ctl" \
     -o "-c config_file=${MC_POSTGRESQL_CONF_PATH} -p ${TEMP_PORT}" \
     -D "${MC_POSTGRESQL_DATA_DIR}" \
+    -t 600 \
     -w \
     start
 
@@ -117,4 +118,5 @@ fi
     -D "${MC_POSTGRESQL_DATA_DIR}" \
     -m fast \
     -w \
+    -t 600 \
     stop
