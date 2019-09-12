@@ -147,3 +147,28 @@
   become_user: root
   tags:
     - docker
+
+- name: Add PATH to Docker's Cron job
+  cron:
+    name: PATH
+    env: true
+    job: /usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+    cron_file: /etc/cron.d/docker-system-prune
+    user: root
+  become: true
+  become_user: root
+  tags:
+    - docker
+
+- name: Add Cron job to clean up old Docker images / containers / networks / cache
+  cron:
+    name: "Clean up old Docker images / containers / networks / cache"
+    job: "docker system prune -f > /dev/null"
+    cron_file: /etc/cron.d/docker-system-prune
+    user: root
+    # Nothing's wrong about running it even more often than daily:
+    special_time: hourly
+  become: true
+  become_user: root
+  tags:
+    - docker

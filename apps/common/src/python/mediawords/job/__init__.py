@@ -110,7 +110,7 @@ class JobBroker(object):
         # Concurrency is done by us, not Celery itself
         self.__app.conf.worker_concurrency = 1
 
-        self.__app.conf.broker_heartbeat = 10
+        self.__app.conf.broker_heartbeat = 0
 
         # https://tech.labs.oliverwyman.com/blog/2015/04/30/making-celery-play-nice-with-rabbitmq-and-bigwig/
         self.__app.conf.broker_transport_options = {'confirm_publish': True}

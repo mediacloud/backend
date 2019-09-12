@@ -154,11 +154,12 @@ sub _mq($)
                 $mq->connect(
                     $self->_hostname,
                     {
-                        user     => $self->_username,
-                        password => $self->_password,
-                        port     => $self->_port,
-                        vhost    => $self->_vhost,
-                        timeout  => $self->_timeout,
+                        user      => $self->_username,
+                        password  => $self->_password,
+                        port      => $self->_port,
+                        vhost     => $self->_vhost,
+                        timeout   => $self->_timeout,
+                        heartbeat => 0,
                     }
                 );
             };
