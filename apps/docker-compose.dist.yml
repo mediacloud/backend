@@ -737,6 +737,9 @@ services:
             # Mail server hostname, e.g. "mail" for "mail.mediacloud.org"
             # (keep in sync with MC_MAIL_OPENDKIM_HOSTNAME)
             MC_MAIL_POSTFIX_HOSTNAME: "mail"
+        depends_on:
+            # Signs emails using OpenDKIM
+            - mail-opendkim-server
         expose:
             # Expose SMTP to mail senders
             - "25"
