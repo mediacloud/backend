@@ -12,10 +12,19 @@ RUN \
     #
     # Install Postfix
     apt-get -y --no-install-recommends install postfix && \
+    #
+    # Create directories for storing Postfix's data and mail queue && \
+    mkdir -p /var/lib/postfix/data/ && \
+    mv /var/spool/postfix/ /var/lib/postfix/queue/ && \
+    chown -R postfix:postfix /var/lib/postfix/ && \
     true
 
 # Configure Postfix
 RUN \
+    #
+    # Set custom data and queue directories
+    postconf -e data_directory=/var/lib/postfix/data/ && \
+    postconf -e queue_directory=/var/lib/postfix/queue/ && \
     #
     # Configure OpenDKIM
     postconf -e milter_protocol=2 && \
@@ -34,14 +43,8 @@ RUN \
     postconf -e smtpd_tls_security_level=none && \
     true
 
-# Postfix data directory
+# Postfix data and queue directory
 VOLUME /var/lib/postfix/
-
-# Local mail
-VOLUME /var/lib/mail/
-
-# Mail queue
-VOLUME /var/spool/postfix/
 
 # SMTP port
 EXPOSE 25
@@ -49,6 +52,6 @@ EXPOSE 25
 # Copy wrapper script
 COPY bin/postfix.sh /
 
-# No USER because daemon will demote itself to "opendkim" user itself
+# No USER because daemon will demote itself to "postfix" user itself
 
 CMD ["/postfix.sh"]

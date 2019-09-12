@@ -742,8 +742,6 @@ services:
             - "25"
         volumes:
             - vol_postfix_data:/var/lib/postfix/
-            - vol_postfix_local_mail:/var/lib/mail/
-            - vol_postfix_queue:/var/spool/postfix/
         deploy:
             placement:
                 constraints:
@@ -1809,22 +1807,6 @@ volumes:
             type: none
             o: bind
             device: /space/mediacloud/vol_postfix_data
-
-    # Postfix local mail
-    vol_postfix_local_mail:
-        driver: local
-        driver_opts:
-            type: none
-            o: bind
-            device: /space/mediacloud/vol_postfix_local_mail
-
-    # Postfix mail queue
-    vol_postfix_queue:
-        driver: local
-        driver_opts:
-            type: none
-            o: bind
-            device: /space/mediacloud/vol_postfix_queue
 
     # Daily RSS dumps
     # (shared between cron_generate_daily_rss_dumps and webapp-httpd)
