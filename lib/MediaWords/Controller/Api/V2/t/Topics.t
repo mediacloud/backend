@@ -332,8 +332,11 @@ SQL
 
     my $start_date = '2017-01-01';
     my $end_date   = '2017-02-01';
-    $topic = $db->update_by_id( 'topics', $topic->{ topics_id },
-        { respider_stories => 'f', start_date => $start_date, end_date => $end_date } );
+    $topic = $db->update_by_id(
+        'topics',
+        $topic->{ topics_id },
+        { respider_stories => 'f', start_date => $start_date, end_date => $end_date }
+    );
 
     $db->query( <<SQL, $start_date, $medium->{ media_id } );
 update stories set publish_date = \$1 where media_id = \$2
@@ -349,14 +352,16 @@ update stories set publish_date = '2018-01-01'
     where stories_id in ( select stories_id from stories where media_id = ? order by stories_id desc limit 1 )
 SQL
 
-    my $respider_start_date = '2016-01-01';
-    my $respider_end_date = '2018-01-01';
+    my $old_start_date = $topic->{ start_date };
+    my $old_end_date   = $topic->{ end_date };
+    my $new_start_date = '2016-01-01';
+    my $new_end_date   = '2018-01-01';
     MediaWords::Controller::Api::V2::Topics::_set_stories_respidering( $db, $topic,
-        { start_date => $respider_start_date, end_date => $respider_end_date } );
+        { start_date => $new_start_date, end_date => $new_end_date } );
     $topic = $db->find_by_id( 'topics', $topic->{ topics_id } );
     ok( $topic->{ respider_stories }, "respider_stories set after date update" );
-    is( $topic->{ respider_start_date }, $respider_start_date, "respider_start_date set" );
-    is( $topic->{ respider_end_date }, $respider_end_date, "respider_end_date set" );
+    is( $topic->{ respider_start_date }, $old_start_date, "respider_start_date set" );
+    is( $topic->{ respider_end_date },   $old_end_date,   "respider_end_date set" );
 }
 
 sub test_topics_reset
