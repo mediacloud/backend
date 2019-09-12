@@ -18,9 +18,9 @@ alter table topics add respider_stories        boolean not null default false;
 alter table topics add respider_start_date     date null;
 alter table topics add respider_end_date       date null;
 
-alter table topics alter snapshots_id set null;
-alter table topics add archive_snapshots_id            int null references snapshots on delete cascade;
-alter table topics add constraint topics_snapshot 
+alter table timespans alter snapshots_id drop not null;
+alter table timespans add archive_snapshots_id            int null references snapshots on delete cascade;
+alter table timespans add constraint topics_snapshot 
     check ( ( snapshots_id is null and archive_snapshots_id is not null ) or 
         ( snapshots_id is not null and archive_snapshots_id is null ) );
 
