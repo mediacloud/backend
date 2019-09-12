@@ -1855,6 +1855,11 @@ create table topics (
     start_date              date not null,
     end_date                date not null,
 
+    -- if true, the topic_stories associated with this topic wilbe set to link_mined = 'f' on the next mining job
+    respider_stories        boolean not null default false,
+    respider_start_date     date null,
+    respider_end_date       date null,
+
     -- platform that topic is analyzing
     platform                topic_platform_type not null default 'web',
 
@@ -2107,8 +2112,14 @@ create unique index foci_set_name on foci ( focal_sets_id, name );
 -- individual timespans within a snapshot
 create table timespans (
     timespans_id serial primary key,
-    snapshots_id            int not null references snapshots on delete cascade,
-    foci_id     int null references foci,
+
+    -- timespan is an active part of this snapshot
+    snapshots_id                    int null references snapshots on delete cascade,
+
+    -- timespan is an archived part of this snapshot (and thus mostly not visible)
+    archive_snapshots_id            int null references snapshots on delete cascade,
+
+    foci_id                         int null references foci,
     start_date                      timestamp not null,
     end_date                        timestamp not null,
     period                          snap_period_type not null,
@@ -2121,8 +2132,13 @@ create table timespans (
     medium_link_count               int not null,
     tweet_count                     int not null,
 
-    tags_id                         int references tags -- keep on cascade to avoid accidental deletion
+    -- keep on cascade to avoid accidental deletion
+    tags_id                         int references tags,
+
+    check ( ( snapshots_id is null and archive_snapshots_id is not null ) or 
+        ( snapshots_id is not null and archive_snapshots_id is null ) )
 );
+
 
 create index timespans_snapshot on timespans ( snapshots_id );
 create unique index timespans_unique on timespans ( snapshots_id, foci_id, start_date, end_date, period );
