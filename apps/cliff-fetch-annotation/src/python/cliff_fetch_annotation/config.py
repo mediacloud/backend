@@ -1,6 +1,3 @@
-from mediawords.util.config import env_value
-
-
 class CLIFFFetcherConfig(object):
     """CLIFF fetcher configuration."""
 
