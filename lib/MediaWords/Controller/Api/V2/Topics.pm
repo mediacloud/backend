@@ -178,7 +178,7 @@ SQL
         'job_states', 'topics_id'
     );
 
-    $topics = $db->attach_child_query( $topics, "select * from topic_seed_queries", 'job_states', 'topics_id' );
+    $topics = $db->attach_child_query( $topics, "select * from topic_seed_queries", 'topic_seed_queries', 'topics_id' );
 
     return $topics;
 }
@@ -428,15 +428,21 @@ sub _set_stories_respidering($$$)
     my $update_start_date = $data->{ start_date } || $topic->{ start_date };
     if ( $update_start_date ne $topic->{ start_date } )
     {
-        $db->update_by_id( 'topics', $topic->{ topics_id }, 
-            { respider_stories => 't', respider_start_date => $topic->{ start_date } } );
+        $db->update_by_id(
+            'topics',
+            $topic->{ topics_id },
+            { respider_stories => 't', respider_start_date => $topic->{ start_date } }
+        );
     }
 
     my $update_end_date = $data->{ end_date } || $topic->{ end_date };
     if ( $update_end_date ne $topic->{ end_date } )
     {
-        $db->update_by_id( 'topics', $topic->{ topics_id }, 
-            { respider_stories => 't', respider_end_date => $topic->{ end_date } } );
+        $db->update_by_id(
+            'topics',
+            $topic->{ topics_id },
+            { respider_stories => 't', respider_end_date => $topic->{ end_date } }
+        );
     }
 }
 
