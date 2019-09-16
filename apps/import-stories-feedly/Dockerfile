@@ -18,6 +18,12 @@ RUN \
     rm -rf /root/.cpanm/ && \
     true
 
+# Create directory for cache
+RUN \
+    mkdir -p /var/cache/feedly_feed_stories/ && \
+    chown -R mediacloud:mediacloud /var/cache/feedly_feed_stories/ && \
+    true
+
 # Copy sources
 COPY src/ /opt/mediacloud/src/import-stories-feedly/
 ENV PERL5LIB="/opt/mediacloud/src/import-stories-feedly/perl:${PERL5LIB}"
