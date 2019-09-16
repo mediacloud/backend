@@ -20,7 +20,7 @@ RUN \
     true
 
 # Remove preinstalled Cron job
-RUN /etc/cron.d/certbot
+RUN rm /etc/cron.d/certbot
 
 # Copy Cron script
 COPY bin /opt/mediacloud/bin
