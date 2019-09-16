@@ -19,6 +19,9 @@ RUN \
     pip install certbot-dns-cloudflare && \
     true
 
+# Remove preinstalled Cron job
+RUN /etc/cron.d/certbot
+
 # Copy Cron script
 COPY bin /opt/mediacloud/bin
 ENV PATH "/opt/mediacloud/bin:${PATH}"
