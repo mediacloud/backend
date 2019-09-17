@@ -20,6 +20,8 @@ def fetch_posts(query: str, start_date: datetime, end_date: datetime) -> list:
     """Fetch day of tweets from crimson hexagon"""
     ch_monitor_id = int(query)
 
+    log.debug("crimson_hexagon_twitter.fetch_posts")
+
     ua = UserAgent()
     ua.set_max_size(100 * 1024 * 1024)
     ua.set_timeout(90)
@@ -60,4 +62,20 @@ def fetch_posts(query: str, start_date: datetime, end_date: datetime) -> list:
 
     add_tweets_to_meta_tweets(meta_tweets)
 
-    return meta_tweets
+    posts = []
+    for mt in meta_tweets:
+        log.warning("mt: %d" % mt['tweet_id'])
+        if 'tweet' in mt:
+            post = {
+                'post_id': mt['tweet_id'],
+                'data': mt,
+                'content': mt['tweet']['text'],
+                'publish_date': mt['tweet']['created_at'],
+                'author': mt['tweet']['user']['screen_name'],
+                'channel': mt['tweet']['user']['screen_name'],
+                'url': mt['url']
+            }
+
+            posts.append(post)
+
+    return posts

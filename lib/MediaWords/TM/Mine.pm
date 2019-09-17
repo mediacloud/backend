@@ -1012,6 +1012,40 @@ SQL
     }
 }
 
+
+# import seed urls.
+sub import_seed_url($$)
+{
+    my ( $db, $topic ) = @_;
+    
+    my $topic_seed_queries = $db->query(
+        "select * from topic_seed_queries where topics_id = ?", $topic->{ topics_id } )->hashes();
+
+    my $num_queries = scalar( @{ $topic_seed_queries } );
+
+    my $tsq = $num_queries ? $topic_seed_queries->[0] : undef;
+    
+    if ( $num_queries > 1 )
+    {
+        die( "only one topic seed query allowed per topic" );
+    }
+    elsif ( $num_queries == 0 )
+    {
+        update_topic_state( $db, $topic, "importing solr seed query" );
+        import_solr_seed_query( $db, $topic );
+        return;
+    }
+    elsif ( MediaWords::TM::FetchTopicPosts::get_fetch_posts_function( $tsq ) )
+    {
+        MediaWords::TM::FetchTopcPosts::fetch_topic_posts( $db, $topic->{ topics_id } );
+    }
+    else
+    {
+        die( "unable to import seet urls for platform/mode of seed query: " . Dumper( $tsq ) );
+    }
+}
+
+
 # mine the given topic for links and to recursively discover new stories on the web.
 # options:
 #   import_only - only run import_seed_urls and import_solr_seed and exit
@@ -1028,11 +1062,7 @@ sub do_mine_topic ($$;$)
 
     map { $options->{ $_ } ||= 0 } qw/import_only skip_post_processing test_mode/;
 
-    update_topic_state( $db, $topic, "fetching tweets" );
-    fetch_and_import_twitter_urls( $db, $topic );
-
-    update_topic_state( $db, $topic, "importing solr seed query" );
-    import_solr_seed_query( $db, $topic );
+    update_topic_state( $db, $topic, "importing seed urls" );
 
     # this may put entires into topic_seed_urls, so run it before import_seed_urls.
     # something is breaking trying to call this perl.  commenting out for time being since we only need

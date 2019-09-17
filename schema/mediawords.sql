@@ -2041,8 +2041,15 @@ create index solr_imported_stories_story on solr_imported_stories ( stories_id )
 create index solr_imported_stories_day on solr_imported_stories ( date_trunc( 'day', import_date ) );
 
 create type topics_job_queue_type AS ENUM ( 'mc', 'public' );
-create type topic_platform_type AS enum ( 'web', 'twitter', 'generic_post' );
-create type topic_mode_type AS enum ( 'web', 'web_sharing' );
+
+-- the platform is where the analyzed data lives (web, twitter, reddit, etc)
+create type topic_platform_type AS enum ( 'web', 'twitter', 'generic_post', 'mediacloud_topic' );
+
+-- the mode is how we analyze the data from the platform (as web pages, social media posts, url sharing posts, etc)
+create type topic_mode_type AS enum ( 'web', 'url_sharing' );
+
+-- the source is where we get the platforn data from
+create type topic_source_type AS enum ( 'mediacloud', 'crimson_hexagon', 'archive_org', 'csv' );
 
 create table topics (
     topics_id        serial primary key,
@@ -2079,8 +2086,6 @@ create table topics (
 
 create unique index topics_name on topics( name );
 create unique index topics_media_type_tag_set on topics( media_type_tag_sets_id );
-
-create type topic_source_type AS enum ( 'mediacloud', 'crimson_hexagon', 'archive_org', 'csv' );
 
 create table topic_seed_queries (
     topic_seed_queries_id   serial primary key,

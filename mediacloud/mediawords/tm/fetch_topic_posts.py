@@ -212,22 +212,32 @@ def _topic_post_day_fetched(db: DatabaseHandler, topic: dict, day: datetime) -> 
     return ttd['posts_fetched'] is True
 
 
-def fetch_posts(topic_seed_query: dict, start_date: datetime, end_date: datetime = None) -> list:
-    """Fetch the posts for the given topic_seed_queries row, for the described date range."""
+def get_fetch_posts_function(topic_seed_query: dict) -> typing.Optional[list]:
+    """get the fetch_posts function for the given topic_seed_query, or None.`"""
     source = topic_seed_query['source']
     platform = topic_seed_query['platform']
 
-    if end_date is None:
-        end_date = start_date
-
     if source == 'crimson_hexagon' and platform == 'twitter':
-        fetch = mediawords.posts.ch_twitter.fetch_posts
+        fetch = mediawords.posts.crimson_hexagon_twitter.fetch_posts
     elif source == 'archive_org' and platform == 'twitter':
-        fetch = mediawords.posts.archive_twitter.fetch_posts
+        fetch = mediawords.posts.archive_org_twitter.fetch_posts
     elif source == 'csv' and platform == 'generic_post':
         fetch = mediawords.posts.csv_generic.fetch_posts
     else:
-        msg = "Unknown source '%s'and platform '%s' for fetch_posts" % (source, platform)
+        fetch = None
+
+    return fetch
+
+
+def fetch_posts(topic_seed_query: dict, start_date: datetime, end_date: datetime = None) -> list:
+    """Fetch the posts for the given topic_seed_queries row, for the described date range."""
+    if end_date is None:
+        end_date = start_date
+
+    fetch = get_fetch_posts_function(topic_seed_query)
+
+    if not fetch:
+        msg = "Unable to find fetch_posts function for seed_query: %" % str(topic_seed_query)
         raise(McFetchTopicPostsDataException(msg))
 
     return fetch(topic_seed_query['query'], start_date, end_date)
@@ -251,7 +261,7 @@ def fetch_topic_posts(db: DatabaseHandler, topics_id: int, max_posts_per_day: ty
     """
     topic = db.require_by_id('topics', topics_id)
 
-    if topic['mode'] != 'web_sharing':
+    if topic['mode'] != 'url_sharing':
         raise(McFetchTopicPostsDataException("Topic mode is not 'sharing'"))
 
     topic_seed_queries = db.query(
@@ -265,8 +275,9 @@ def fetch_topic_posts(db: DatabaseHandler, topics_id: int, max_posts_per_day: ty
 
     date = datetime.datetime.strptime(topic['start_date'], '%Y-%m-%d')
     end_date = datetime.datetime.strptime(topic['end_date'], '%Y-%m-%d')
-    while date < end_date:
-        log.info("fetching posts for %s" % date)
+    log.warning("%s - %s" % (str(date), str(end_date)))
+    while date <= end_date:
+        log.debug("fetching posts for %s" % date)
         if not _topic_post_day_fetched(db, topic, date):
             posts = fetch_posts(topic_seed_query, date)
             topic_post_day = _add_topic_post_single_day(db, topic, len(posts), date)

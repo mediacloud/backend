@@ -125,9 +125,9 @@ class TestFetchTopicposts(TestDatabaseWithSchemaTestCase):
 
         topic['pattern'] = '.*'
         topic['platform'] = 'generic_post'
-        topic['mode'] = 'web_sharing'
+        topic['mode'] = 'url_sharing'
         topic['start_date'] = datetime.datetime.strptime(MOCK_START_DATE, '%Y-%m-%d')
-        topic['end_date'] = topic['start_date'] + datetime.timedelta(days=MOCK_DAYS)
+        topic['end_date'] = topic['start_date'] + datetime.timedelta(days=MOCK_DAYS - 1)
 
         db.update_by_id('topics', topic['topics_id'], topic)
 
@@ -165,16 +165,17 @@ class TestFetchTopicposts(TestDatabaseWithSchemaTestCase):
 
         tsq = {
             'topics_id': topic['topics_id'],
-            'platform': 'post',
+            'platform': 'twitter',
             'source': source,
             'query': query
         }
         db.create('topic_seed_queries', tsq)
 
-        topic['platform'] = 'post'
+        topic['platform'] = 'twitter'
         topic['pattern'] = '.*'
         topic['start_date'] = day
         topic['end_date'] = day
+        topic['mode'] = 'url_sharing'
         db.update_by_id('topics', topic['topics_id'], topic)
 
         # only fetch 200 posts to make test quicker
@@ -194,7 +195,7 @@ class TestFetchTopicposts(TestDatabaseWithSchemaTestCase):
         """Test ch remote integration."""
         self._test_remote_integration('crimson_hexagon', TEST_MONITOR_ID, '2016-01-01')
 
-    @unittest.skipUnless(os.environ.get('MC_REMOTE_TESTS', False), "remote tests")
-    def test_archive_remote_integration(self) -> None:
-        """Test archive.org remote integration."""
-        self._test_remote_integration('archive_org', 'harvard', '2019-01-01')
+    # @unittest.skipUnless(os.environ.get('MC_REMOTE_TESTS', False), "remote tests")
+    # def test_archive_remote_integration(self) -> None:
+    #     """Test archive.org remote integration."""
+    #     self._test_remote_integration('archive_org', 'harvard', '2019-01-01')
