@@ -29,6 +29,10 @@ def extract_article_html_from_page_html(content: str) -> Dict[str, str]:
     ua = UserAgent()
     api_url = CommonConfig.extractor_api_url()
 
+    # Retry extracting multiple times in case the extraction service is busy
+    ua.set_timeout(60)
+    ua.set_timing([1, 2, 4, 8, 16, 32, 64])
+
     # Wait for the extractor's HTTP port to become open as the service might be
     # still starting up somewhere
     api_uri = furl(api_url)
