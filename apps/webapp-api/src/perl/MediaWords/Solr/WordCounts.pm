@@ -29,7 +29,6 @@ use URI::Escape;
 use MediaWords::Languages::Language;
 use MediaWords::Solr;
 use MediaWords::Solr::Query::MatchingSentences;
-use MediaWords::Util::IdentifyLanguage;
 use MediaWords::Util::ParseJSON;
 use MediaWords::Util::Text;
 

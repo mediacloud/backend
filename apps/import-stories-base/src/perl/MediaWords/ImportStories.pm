@@ -35,6 +35,7 @@ use MediaWords::CommonLibs;
 use MediaWords::DBI::Downloads::Extract;
 use MediaWords::DBI::Downloads::Store;
 use MediaWords::Util::GuessDate;
+use MediaWords::Util::IdentifyLanguage;
 use MediaWords::Util::ParseHTML;
 use MediaWords::Util::SQL;
 use MediaWords::Util::Tags;
