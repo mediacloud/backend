@@ -89,8 +89,18 @@ SQL
 
     cmp_bag( $got_tag_counts, $expected_tag_counts );
 
-    my $single_tag_count =
-      MediaWords::Solr::TagCounts::query_tag_counts( $db, { q => "media_id:$query_media_id", limit => 1 } );
+    # Solr might not have committed tag counts just yet, so wait for the right count to appear
+    my $single_tag_count;
+    for ( my $x = 0; $x <= 10; ++$x ) {
+        $single_tag_count = MediaWords::Solr::TagCounts::query_tag_counts(  #
+            $db,                                                            #
+            { q => "media_id:$query_media_id", limit => 1 },                #
+        );                                                                  #
+        if ( $single_tag_count->[ 0 ]->{ tags_id } == $expected_tag_counts->[ 0 ]->{ tags_id }) {
+            last;
+        }
+        INFO "Retrying...";
+    }
 
     is( $single_tag_count->[ 0 ]->{ tags_id }, $expected_tag_counts->[ 0 ]->{ tags_id } );
     is( scalar( @{ $single_tag_count } ),      1 );
