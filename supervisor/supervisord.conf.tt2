@@ -159,17 +159,6 @@ serverurl = unix://%(here)s/supervisord.sock                ; use a unix:// URL 
     default_nice=12
 %]
 
-[% INCLUDE program_config
-    program='move_download_texts_rows_to_partitions'
-    command="./script/run_in_env.sh ./tools/db/move_download_texts_rows_to_partitions.py"
-    default_stopasgroup='true'
-    default_killasgroup='true'
-    default_autorestart='false'
-    default_autostart='true'
-    priority=5
-    default_nice=12
-%]
-
 ; Job brokers
 [group:job_broker]
 programs = rabbitmq

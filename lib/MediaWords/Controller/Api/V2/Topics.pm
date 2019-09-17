@@ -178,7 +178,7 @@ SQL
         'job_states', 'topics_id'
     );
 
-    $topics = $db->attach_child_query( $topics, "select * from topic_seed_queries", 'job_states', 'topics_id' );
+    $topics = $db->attach_child_query( $topics, "select * from topic_seed_queries", 'topic_seed_queries', 'topics_id' );
 
     return $topics;
 }
@@ -413,44 +413,37 @@ SQL
     return 0;
 }
 
-# if the query or dates have changed, set topic_stories.link_mined to false for the impacted stories so that
-# they will be respidered
+# if the query or dates have changed, set respider_stories in the topic to true so that the impacted
+# stories will be respidered during the next spider job.
 sub _set_stories_respidering($$$)
 {
     my ( $db, $topic, $data ) = @_;
 
     if ( $data->{ solr_seed_query } && ( $topic->{ solr_seed_query } ne $data->{ solr_seed_query } ) )
     {
-        $db->query( "update topic_stories set link_mined = 'f' where topics_id = ?", $topic->{ topics_id } );
+        $db->update_by_id( 'topics', $topic->{ topics_id }, { respider_stories => 't' } );
         return;
     }
 
     my $update_start_date = $data->{ start_date } || $topic->{ start_date };
     if ( $update_start_date ne $topic->{ start_date } )
     {
-        $db->query( <<SQL, $update_start_date, $topic->{ start_date }, $topic->{ topics_id } );
-update topic_stories ts set link_mined = 'f'
-    from stories s
-    where
-        ts.stories_id = s.stories_id and
-        s.publish_date between \$1 and ( \$2::date - '1 second'::interval ) and
-        ts.topics_id = \$3
-SQL
+        $db->update_by_id(
+            'topics',
+            $topic->{ topics_id },
+            { respider_stories => 't', respider_start_date => $topic->{ start_date } }
+        );
     }
 
     my $update_end_date = $data->{ end_date } || $topic->{ end_date };
     if ( $update_end_date ne $topic->{ end_date } )
     {
-        $db->query( <<SQL, $update_end_date, $topic->{ end_date }, $topic->{ topics_id } );
-update topic_stories ts set link_mined = 'f'
-    from stories s
-    where
-        ts.stories_id = s.stories_id and
-        s.publish_date between ( \$2::date + '1 second'::interval) and \$1 and
-        ts.topics_id = \$3
-SQL
+        $db->update_by_id(
+            'topics',
+            $topic->{ topics_id },
+            { respider_stories => 't', respider_end_date => $topic->{ end_date } }
+        );
     }
-
 }
 
 sub add_seed_query : Chained( 'apibase' ) : ActionClass( 'MC_REST' )

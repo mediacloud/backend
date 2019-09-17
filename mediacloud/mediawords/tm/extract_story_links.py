@@ -116,8 +116,15 @@ def get_extracted_html(db: DatabaseHandler, story: dict) -> str:
     """
     download = db.query(
         """
-        with d as ( select * from downloads where stories_id = %(a)s ) -- goofy cte to avoid bad query plan
-            select * from d order by downloads_id limit 1
+        with d as (
+            select * from downloads
+                where
+                    stories_id = %(a)s and
+                    type = 'content' and
+                    state = 'success'
+        ) -- goofy cte to avoid bad query plan
+
+        select * from d order by downloads_id limit 1
         """,
         {'a': story['stories_id']}).hash()
 
@@ -133,6 +140,8 @@ def get_links_from_story_text(db: DatabaseHandler, story: dict) -> typing.List[s
         SELECT downloads_id
         FROM downloads
         WHERE stories_id = %(stories_id)s
+            AND type = 'content'
+            AND state = 'success'
         ORDER BY downloads_id ASC
         LIMIT 1
         """, {'stories_id': story['stories_id']}

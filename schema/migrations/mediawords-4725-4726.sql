@@ -86,6 +86,13 @@ $$
 LANGUAGE plpgsql;
 
 
+-- Move all of the rows in a migration
+-- (obviously, this wouldn't work in a production so this migration is to be
+-- applied automatically only in the dev environments)
+SELECT move_chunk_of_nonpartitioned_download_texts_to_partitions(1, MAX(download_texts_np_id) + 1)
+FROM download_texts_np;
+
+
 --
 -- 2 of 2. Reset the database version.
 --

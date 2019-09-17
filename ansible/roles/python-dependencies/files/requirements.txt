@@ -68,7 +68,7 @@ mecab-python3==0.996.1
 networkx==2.2
 
 # Natural language processing, e.g. tokenization
-nltk==3.4
+nltk==3.4.5
 
 # numerical processing, required by ForceAtlas2
 numpy==1.16.0
