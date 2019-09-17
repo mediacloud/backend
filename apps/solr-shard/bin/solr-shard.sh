@@ -14,7 +14,7 @@ MC_SOLR_ZOOKEEPER_PORT=2181
 MC_SOLR_PORT=8983
 
 # Timeout in milliseconds at which Solr shard disconnects from ZooKeeper
-MC_SOLR_ZOOKEEPER_TIMEOUT=300000
+MC_SOLR_ZOOKEEPER_TIMEOUT=30000
 
 # <luceneMatchVersion> value
 MC_SOLR_LUCENEMATCHVERSION="6.5.0"
