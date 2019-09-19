@@ -48,4 +48,4 @@ exec opendkim \
     -x /etc/opendkim.conf \
     -u opendkim \
     -P /var/run/opendkim/opendkim.pid \
-    -p inet:12301@localhost
+    -p inet:12301
