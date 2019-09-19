@@ -12,7 +12,7 @@ RUN \
     true
 
 # Configure OpenDKIM socket
-RUN sed -i -e "s/^SOCKET=.*/SOCKET='inet:12301@localhost'/" /etc/default/opendkim
+RUN sed -i -e "s/^SOCKET=.*/SOCKET='inet:12301'/" /etc/default/opendkim
 
 # Remove vendor configuration
 RUN rm -rf /etc/opendkim/ /etc/opendkim.conf
