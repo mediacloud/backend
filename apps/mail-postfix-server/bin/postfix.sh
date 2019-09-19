@@ -20,5 +20,8 @@ source /rsyslog.inc.sh
 # Configure Postfix
 postconf -e hostname="${MC_MAIL_POSTFIX_HOSTNAME}.${MC_MAIL_POSTFIX_DOMAIN}"
 
+# Set the right permissions in the data volume
+chown -R postfix:postfix /var/lib/postfix/
+
 # Start Postfix
 exec /usr/lib/postfix/sbin/master -c /etc/postfix -d
