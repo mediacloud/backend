@@ -2,16 +2,36 @@ version: "3.7"
 
 services:
 
+    # Service to use for testing the mail service
+    #
+    # Usage:
+    #
+    #     host$ ./dev/run.py mail-postfix-server bash
+    #     container$ sendmail "your@email.com"
+    #
     mail-postfix-server:
+        image: dockermediacloud/common:latest
+        stop_signal: SIGKILL
+        depends_on:
+            - mail-postfix-server-actual
+
+    # Actual mail server, operating under "mail-postfix-server" alias
+    mail-postfix-server-actual:
         image: dockermediacloud/mail-postfix-server:latest
         stop_signal: SIGKILL
+        # "docker exec" into a container and run Postfix manually (/postfix.sh):
+        command: sleep infinity
+        # To be able to set /proc/sys/kernel/yama/ptrace_scope:
+        privileged: true
         environment:
             MC_MAIL_POSTFIX_DOMAIN: "testmediacloud.ml"
             MC_MAIL_POSTFIX_HOSTNAME: "mail"
         depends_on:
             - mail-opendkim-server
-        depends_on:
-            - mail-opendkim-server
+        networks:
+            default:
+                aliases:
+                    - mail-postfix-server
 
     mail-opendkim-server:
         image: dockermediacloud/mail-opendkim-server:containers_release
@@ -27,3 +47,7 @@ services:
             - type: bind
               source: ./../mail-opendkim-server/etc/opendkim/
               target: /etc/opendkim/
+
+networks:
+    default:
+        attachable: true
