@@ -1,0 +1,29 @@
+version: "3.7"
+
+services:
+
+    mail-postfix-server:
+        image: dockermediacloud/mail-postfix-server:latest
+        stop_signal: SIGKILL
+        environment:
+            MC_MAIL_POSTFIX_DOMAIN: "testmediacloud.ml"
+            MC_MAIL_POSTFIX_HOSTNAME: "mail"
+        depends_on:
+            - mail-opendkim-server
+        depends_on:
+            - mail-opendkim-server
+
+    mail-opendkim-server:
+        image: dockermediacloud/mail-opendkim-server:containers_release
+        environment:
+            MC_MAIL_OPENDKIM_DOMAIN: "testmediacloud.ml"
+            MC_MAIL_OPENDKIM_HOSTNAME: "mail"
+        expose:
+            - "12301"
+        volumes:
+            - type: bind
+              source: ./../mail-opendkim-server/etc/opendkim.conf
+              target: /etc/opendkim.conf
+            - type: bind
+              source: ./../mail-opendkim-server/etc/opendkim/
+              target: /etc/opendkim/
