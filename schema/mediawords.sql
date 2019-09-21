@@ -24,7 +24,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4729;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4730;
 BEGIN
 
     -- Update / set database schema version
@@ -1837,7 +1837,15 @@ create index solr_imported_stories_story on solr_imported_stories ( stories_id )
 create index solr_imported_stories_day on solr_imported_stories ( date_trunc( 'day', import_date ) );
 
 create type topics_job_queue_type AS ENUM ( 'mc', 'public' );
-create type topic_platform_type AS enum ( 'web', 'twitter' );
+
+-- the platform is where the analyzed data lives (web, twitter, reddit, etc)
+create type topic_platform_type AS enum ( 'web', 'twitter', 'generic_post', 'mediacloud_topic' );
+
+-- the mode is how we analyze the data from the platform (as web pages, social media posts, url sharing posts, etc)
+create type topic_mode_type AS enum ( 'web', 'url_sharing' );
+
+-- the source is where we get the platforn data from
+create type topic_source_type AS enum ( 'mediacloud', 'crimson_hexagon', 'archive_org', 'csv' );
 
 create table topics (
     topics_id        serial primary key,
@@ -1863,6 +1871,9 @@ create table topics (
     -- platform that topic is analyzing
     platform                topic_platform_type not null default 'web',
 
+    -- mode of analysis
+    mode                    topic_mode_type not null default 'web',
+
     -- job queue to use for spider and snapshot jobs for this topic
     job_queue               topics_job_queue_type not null,
 
@@ -1876,8 +1887,6 @@ create table topics (
 
 create unique index topics_name on topics( name );
 create unique index topics_media_type_tag_set on topics( media_type_tag_sets_id );
-
-create type topic_source_type AS enum ( 'mediacloud', 'crimson_hexagon', 'archive_org' );
 
 create table topic_seed_queries (
     topic_seed_queries_id   serial primary key,
@@ -2130,7 +2139,7 @@ create table timespans (
     story_link_count                int not null,
     medium_count                    int not null,
     medium_link_count               int not null,
-    tweet_count                     int not null,
+    post_count                      int not null,
 
     -- keep on cascade to avoid accidental deletion
     tags_id                         int references tags,
@@ -2322,7 +2331,7 @@ create table snap.story_link_counts (
 
     facebook_share_count                    int null,
 
-    simple_tweet_count                      int null
+    post_count                             int null
 );
 
 -- TODO: add complex foreign key to check that stories_id exists for the snapshot stories snapshot
@@ -2342,7 +2351,7 @@ create table snap.medium_link_counts (
 
     facebook_share_count            int null,
 
-    simple_tweet_count              int null
+    post_count              int null
 );
 
 -- TODO: add complex foreign key to check that media_id exists for the snapshot media snapshot
@@ -3180,76 +3189,79 @@ create or replace view topics_with_user_permission as
             left join topic_permissions tp using ( topics_id, auth_users_id );
 
 -- list of tweet counts and fetching statuses for each day of each topic
-create table topic_tweet_days (
-    topic_tweet_days_id     serial primary key,
+create table topic_post_days (
+    topic_post_days_id     serial primary key,
     topics_id               int not null references topics on delete cascade,
     day                     date not null,
-    num_tweets              int not null,
-    tweets_fetched          boolean not null default false
+    num_posts              int not null,
+    posts_fetched          boolean not null default false
 );
 
-create index topic_tweet_days_td on topic_tweet_days ( topics_id, day );
+create index topic_post_days_td on topic_post_days ( topics_id, day );
 
--- list of tweets associated with a given topic
-create table topic_tweets (
-    topic_tweets_id         serial primary key,
-    topic_tweet_days_id     int not null references topic_tweet_days on delete cascade,
-    data                    json not null,
-    tweet_id                varchar(256) not null,
+-- list of posts associated with a given topic
+create table topic_posts (
+    topic_posts_id          serial primary key,
+    topic_post_days_id      int not null references topic_post_days on delete cascade,
+    data                    jsonb not null,
+    post_id                 varchar( 1024 ) not null,
     content                 text not null,
     publish_date            timestamp not null,
-    twitter_user            varchar( 1024 ) not null
+    author                  varchar( 1024 ) not null,
+    channel                 varchar( 1024 ) not null,
+    url                     text null
 );
 
-create unique index topic_tweets_id on topic_tweets( topic_tweet_days_id, tweet_id );
-create index topic_tweet_topic_user on topic_tweets( topic_tweet_days_id, twitter_user );
+create unique index topic_posts_id on topic_posts( topic_post_days_id, post_id );
+create index topic_post_topic_author on topic_posts( topic_post_days_id, author );
+create index topic_post_topic_channel on topic_posts( topic_post_days_id, channel );
 
 -- urls parsed from topic tweets and imported into topic_seed_urls
-create table topic_tweet_urls (
-    topic_tweet_urls_id     serial primary key,
-    topic_tweets_id         int not null references topic_tweets on delete cascade,
+create table topic_post_urls (
+    topic_post_urls_id      serial primary key,
+    topic_posts_id          int not null references topic_posts on delete cascade,
     url                     varchar (1024) not null
 );
 
-create index topic_tweet_urls_url on topic_tweet_urls ( url );
-create unique index topic_tweet_urls_tt on topic_tweet_urls ( topic_tweets_id, url );
+create index topic_post_urls_url on topic_post_urls ( url );
+create unique index topic_post_urls_tt on topic_post_urls ( topic_posts_id, url );
 
--- view that joins together the related topic_tweets, topic_tweet_days, topic_tweet_urls, and topic_seed_urls tables
+-- view that joins together the related topic_posts, topic_post_days, topic_post_urls, and topic_seed_urls tables
 -- tables for convenient querying of topic twitter url data
-create view topic_tweet_full_urls as
+create view topic_post_full_urls as
     select distinct
             t.topics_id,
-            tt.topic_tweets_id, tt.content, tt.publish_date, tt.twitter_user,
-            ttd.day, ttd.num_tweets, ttd.tweets_fetched,
+            tt.topic_posts_id, tt.content, tt.publish_date, tt.author,
+            ttd.day, ttd.num_posts, ttd.posts_fetched,
             ttu.url, tsu.stories_id
         from
             topics t
-            join topic_tweet_days ttd on ( t.topics_id = ttd.topics_id )
-            join topic_tweets tt using ( topic_tweet_days_id )
-            join topic_tweet_urls ttu using ( topic_tweets_id )
+            join topic_post_days ttd on ( t.topics_id = ttd.topics_id )
+            join topic_posts tt using ( topic_post_days_id )
+            join topic_post_urls ttu using ( topic_posts_id )
             left join topic_seed_urls tsu
                 on ( tsu.topics_id = t.topics_id and ttu.url = tsu.url );
 
 
-create table snap.timespan_tweets (
-    topic_tweets_id     int not null references topic_tweets on delete cascade,
+create table snap.timespan_posts (
+    topic_posts_id     int not null references topic_posts on delete cascade,
     timespans_id        int not null references timespans on delete cascade
 );
 
-create unique index snap_timespan_tweets_u on snap.timespan_tweets( timespans_id, topic_tweets_id );
+create unique index snap_timespan_posts_u on snap.timespan_posts( timespans_id, topic_posts_id );
 
-create table snap.tweet_stories (
+create table snap.post_stories (
     snapshots_id        int not null references snapshots on delete cascade,
-    topic_tweets_id     int not null references topic_tweets on delete cascade,
+    topic_posts_id      int not null references topic_posts on delete cascade,
     publish_date        date not null,
-    twitter_user        varchar( 1024 ) not null,
+    author              varchar( 1024 ) not null,
     stories_id          int not null,
     media_id            int not null,
-    num_tweets          int not null
+    num_posts           int not null
 
 );
 
-create index snap_tweet_stories on snap.tweet_stories ( snapshots_id );
+create index snap_post_stories on snap.post_stories ( snapshots_id );
 
 create table media_stats_weekly (
     media_id        int not null references media on delete cascade,

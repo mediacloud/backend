@@ -388,9 +388,9 @@ SQL
 
     for my $slc ( @{ $story_link_counts } )
     {
-        my $stories_id           = $slc->{ stories_id };
-        my $expected_tweet_count = scalar( keys( %{ $expected_story_tweet_users->{ $stories_id } } ) );
-        is( $slc->{ simple_tweet_count } || 0, $expected_tweet_count, "$label simple tweet count story $stories_id" );
+        my $stories_id          = $slc->{ stories_id };
+        my $expected_post_count = scalar( keys( %{ $expected_story_tweet_users->{ $stories_id } } ) );
+        is( $slc->{ post_count } || 0, $expected_post_count, "$label post count story $stories_id" );
     }
 }
 
@@ -505,9 +505,9 @@ sub test_fetch_topic_tweets($)
 
     my $tsq = {
         topics_id => $topic->{ topics_id },
-        platform => 'twitter',
-        source => 'crimson_hexagon',
-        query => $CH_MONITOR_ID,
+        platform  => 'twitter',
+        source    => 'crimson_hexagon',
+        query     => $CH_MONITOR_ID,
     };
     $db->create( 'topic_seed_queries', $tsq );
 

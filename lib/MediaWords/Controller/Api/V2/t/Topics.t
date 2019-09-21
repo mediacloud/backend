@@ -186,7 +186,7 @@ sub test_controversy_dump_time_slices($)
     );
 
     my $metrics = [
-        qw/story_count story_link_count medium_count medium_link_count tweet_count /,
+        qw/story_count story_link_count medium_count medium_link_count post_count /,
         qw/model_num_media model_r2_mean model_r2_stddev/
     ];
     for my $i ( 1 .. 9 )
