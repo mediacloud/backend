@@ -96,10 +96,10 @@ sub _generate_retweeters($$$$)
 insert into retweeters ( retweeter_scores_id, twitter_user, retweeted_user )
     select distinct
             rs.retweeter_scores_id,
-            tt.twitter_user,
+            tt.author,
             lower( ru.u )
-        from topic_tweets tt
-            join topic_tweet_days ttd using ( topic_tweet_days_id )
+        from topic_posts tt
+            join topic_post_days ttd using ( topic_post_days_id )
             join retweeter_scores rs using ( topics_id )
             join ru on ( $join_condition )
         where
@@ -126,9 +126,9 @@ insert into retweeter_stories ( retweeter_scores_id, stories_id, retweeted_user,
             r.retweeted_user,
             count(*) share_count
         from retweeter_scores rs
-            join topic_tweet_full_urls ttfu using ( topics_id )
+            join topic_post_full_urls ttfu using ( topics_id )
             join retweeters r
-                on ( rs.retweeter_scores_id = r.retweeter_scores_id and r.twitter_user = ttfu.twitter_user )
+                on ( rs.retweeter_scores_id = r.retweeter_scores_id and r.twitter_user = ttfu.author )
             join stories s using ( stories_id )
             left join media_tags_map mtm on
                 ( mtm.media_id = s.media_id and mtm.tags_id = \$2 )
@@ -359,7 +359,7 @@ select
         gb.name group_b_name,
         mlc.media_inlink_count,
         mlc.story_count,
-        mlc.simple_tweet_count
+        mlc.post_count
     from retweeter_scores rs
         join retweeter_media rm using ( retweeter_scores_id )
         join media m using ( media_id )
