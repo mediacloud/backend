@@ -84,7 +84,7 @@ alter table topic_posts rename topic_tweets_id to topic_posts_id;
 alter table topic_posts rename topic_tweet_days_id to topic_post_days_id;
 alter table topic_posts rename tweet_id to post_id;
 alter table topic_posts rename twitter_user to author;
-alter table topic_posts add channel varchar( 1024 ) not null;
+alter table topic_posts add channel varchar( 1024 ) null;
 alter table topic_posts add url text null;
 
 create index topic_post_topic_channel on topic_posts( topic_post_days_id, channel );
