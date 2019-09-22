@@ -104,7 +104,5 @@ RUN \
 # Configure sSMTP to relay mail to Postfix
 RUN \
     sed -i -e "s/^mailhub=.*/mailhub=mail-postfix-server:25/" /etc/ssmtp/ssmtp.conf && \
-    echo "root:no-reply@mediacloud.org:mail-postfix-server:25" >> /etc/ssmtp/revaliases && \
-    echo "mediacloud:no-reply@mediacloud.org:mail-postfix-server:25" >> /etc/ssmtp/revaliases && \
     true
 
