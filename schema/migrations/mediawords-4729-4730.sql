@@ -14,15 +14,58 @@
 -- 1 of 2. Import the output of 'apgdiff':
 --
 
+drop view topics_with_user_permission;
+drop view controversies;
+
 alter table topics alter platform type text;
+alter table topics alter platform drop default;
 alter table topic_seed_queries alter platform type text;
 drop type topic_platform_type;
 create type topic_platform_type AS enum ( 'web', 'twitter', 'generic_post', 'mediacloud_topic' );
-alter table topics alter platform type topic_platform_type;
-alter table topic_seed_queries alter platform type topic_platform_typet;
+alter table topics alter platform type topic_platform_type using ( platform::topic_platform_type );
+alter table topics alter platform set default 'web';
+alter table topic_seed_queries alter platform type topic_platform_type using ( platform::topic_platform_type );
+
+create or replace view topics_with_user_permission as
+    with admin_users as (
+        select m.auth_users_id
+            from auth_roles r
+                join auth_users_roles_map m using ( auth_roles_id )
+            where
+                r.role = 'admin'
+    ),
+
+    read_admin_users as (
+        select m.auth_users_id
+            from auth_roles r
+                join auth_users_roles_map m using ( auth_roles_id )
+            where
+                r.role = 'admin-readonly'
+    )
+
+    select
+            t.*,
+            u.auth_users_id,
+            case
+                when ( exists ( select 1 from admin_users a where a.auth_users_id = u.auth_users_id ) ) then 'admin'
+                when ( tp.permission is not null ) then tp.permission::text
+                when ( t.is_public ) then 'read'
+                when ( exists ( select 1 from read_admin_users a where a.auth_users_id = u.auth_users_id ) ) then 'read'
+                else 'none' end
+                as user_permission
+        from topics t
+            join auth_users u on ( true )
+            left join topic_permissions tp using ( topics_id, auth_users_id );
+
+
+create view controversies as select topics_id controversies_id, * from topics;
+
+alter table topic_seed_queries alter source type text;
+drop type topic_source_type;
+create type topic_source_type AS enum ( 'mediacloud', 'crimson_hexagon', 'archive_org', 'csv' );
+alter table topic_seed_queries alter source type topic_source_type using ( source::topic_source_type );
 
 create type topic_mode_type AS enum ( 'web', 'url_sharing' );
-create type topic_source_type AS enum ( 'mediacloud', 'crimson_hexagon', 'archive_org', 'csv' );
 
 alter table topics add mode                    topic_mode_type not null default 'web';
 
