@@ -1012,18 +1012,18 @@ SQL
     }
 }
 
-# import urls from seed query
+# import urls from seed query 
 sub import_urls_from_seed_query($$)
 {
     my ( $db, $topic ) = @_;
-
-    my $topic_seed_queries =
-      $db->query( "select * from topic_seed_queries where topics_id = ?", $topic->{ topics_id } )->hashes();
+    
+    my $topic_seed_queries = $db->query(
+        "select * from topic_seed_queries where topics_id = ?", $topic->{ topics_id } )->hashes();
 
     my $num_queries = scalar( @{ $topic_seed_queries } );
 
-    my $tsq = $num_queries ? $topic_seed_queries->[ 0 ] : undef;
-
+    my $tsq = $num_queries ? $topic_seed_queries->[0] : undef;
+    
     if ( $num_queries > 1 )
     {
         die( "only one topic seed query allowed per topic" );
@@ -1053,7 +1053,7 @@ sub set_stories_respidering($$$)
     return unless ( $topic->{ respider_stories } );
 
     my $respider_start_date = $topic->{ respider_start_date };
-    my $respider_end_date   = $topic->{ respider_end_date };
+    my $respider_end_date = $topic->{ respider_end_date };
 
     if ( !$respider_start_date && !$respider_end_date )
     {
@@ -1106,14 +1106,12 @@ SQL
         }
     }
 
-    $db->update_by_id(
-        'topics',
-        $topic->{ topics_id },
-        { respider_stories => 'f', respider_start_date => undef, respider_end_date => undef }
-    );
+    $db->update_by_id( 'topics', $topic->{ topics_id },
+        { respider_stories => 'f', respider_start_date => undef, respider_end_date => undef } );
 
     $db->commit;
 }
+
 
 # mine the given topic for links and to recursively discover new stories on the web.
 # options:
