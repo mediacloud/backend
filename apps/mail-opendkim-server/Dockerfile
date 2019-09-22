@@ -19,7 +19,6 @@ RUN rm -rf /etc/opendkim/ /etc/opendkim.conf
 
 COPY etc/opendkim.conf /etc/
 COPY etc/opendkim/ /etc/opendkim/
-RUN mkdir -p /etc/opendkim/keys/
 
 # OpenDKIM port
 EXPOSE 12301
