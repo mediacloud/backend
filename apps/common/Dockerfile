@@ -100,4 +100,9 @@ RUN \
 RUN ln -s /opt/mediacloud/src/common/perl/log4perl.conf /etc/log4perl.conf
 
 # Add user that will be used for running userland apps
-RUN useradd -ms /bin/bash mediacloud
+RUN \
+    useradd -ms /bin/bash mediacloud && \
+    #
+    # Allow user to write to /dev/std[out|err]
+    usermod -a -G tty mediacloud && \
+    true
