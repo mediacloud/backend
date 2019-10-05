@@ -91,8 +91,6 @@ For example, to run PostgreSQL on `mcdb1`, all 24 Solr shards on `mcquery[1-3]` 
 sudo zfs create space/mediacloud/vol_rabbitmq_data
 sudo zfs create space/mediacloud/vol_opendkim_config
 sudo zfs create space/mediacloud/vol_postfix_data
-sudo zfs create space/mediacloud/vol_postfix_local_mail
-sudo zfs create space/mediacloud/vol_postfix_queue
 sudo zfs create space/mediacloud/vol_daily_rss_dumps
 sudo zfs create space/mediacloud/vol_munin_data
 sudo zfs create space/mediacloud/vol_munin_html
