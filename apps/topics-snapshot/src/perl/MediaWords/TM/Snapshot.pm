@@ -58,11 +58,11 @@ Readonly my $BOT_TWEETS_PER_DAY => 200;
 # all tables that get stored as snapshot_* for each spanshot
 my $_SNAPSHOT_TABLES = [
     qw/topic_stories topic_links_cross_media topic_media_codes
-      stories media stories_tags_map media_tags_map tags tag_sets tweet_stories/
+      stories media stories_tags_map media_tags_map tags tag_sets post_stories/
 ];
 
 # all tables that get stories as snapshot_* for each timespan
-my $_TIMESPAN_TABLES = [ qw/story_link_counts story_links medium_link_counts medium_links timespan_tweets/ ];
+my $_TIMESPAN_TABLES = [ qw/story_link_counts story_links medium_link_counts medium_links timespan_posts/ ];
 
 
 # update the job state args, catching any error caused by not running within a job
@@ -182,8 +182,8 @@ END
     return $date_clause;
 }
 
-# for a twitter topic, the only stories that should appear in the timespan are stories associated
-# with a tweet published during the timespan
+# for a social topic, the only stories that should appear in the timespan are stories associated
+# with a post published during the timespan
 sub _create_twitter_snapshot_period_stories($$)
 {
     my ( $db, $timespan ) = @_;
@@ -191,7 +191,7 @@ sub _create_twitter_snapshot_period_stories($$)
     $db->query( <<SQL, $timespan->{ timespans_id } );
 create temporary table snapshot_period_stories as
     select distinct stories_id
-        from snapshot_tweet_stories ts
+        from snapshot_post_stories ts
             join timespans t on ( timespans_id = \$1 )
         where
             ts.publish_date between t.start_date and t.end_date
@@ -307,22 +307,22 @@ sub _write_story_links_snapshot
             <<SQL
 create temporary table snapshot_story_links as
 
-    with tweet_stories as (
-        select s.media_id, s.stories_id, s.twitter_user, s.publish_date
-            from snapshot_tweet_stories s
-                join snapshot_timespan_tweets t using ( topic_tweets_id )
+    with post_stories as (
+        select s.media_id, s.stories_id, s.author, s.publish_date
+            from snapshot_post_stories s
+                join snapshot_timespan_posts t using ( topic_posts_id )
     ),
 
     coshared_links as (
         select
-                a.stories_id stories_id_a, a.twitter_user, b.stories_id stories_id_b
+                a.stories_id stories_id_a, a.author, b.stories_id stories_id_b
             from
-                tweet_stories a
-                join tweet_stories b using ( twitter_user )
+                post_stories a
+                join post_stories b using ( author )
             where
                 a.media_id <> b.media_id and
                 date_trunc( 'day', a.publish_date ) = date_trunc( 'day', b.publish_date )
-            group by a.stories_id, b.stories_id, a.twitter_user
+            group by a.stories_id, b.stories_id, a.author
     )
 
     select cs.stories_id_a source_stories_id, cs.stories_id_b ref_stories_id
@@ -354,11 +354,11 @@ END
     }
 }
 
-sub _write_timespan_tweets_snapshot
+sub _write_timespan_posts_snapshot
 {
     my ( $db, $timespan, $is_model ) = @_;
 
-    $db->query( "drop table if exists snapshot_timespan_tweets" );
+    $db->query( "drop table if exists snapshot_timespan_posts" ); 
 
     my $start_date_q = $db->quote( $timespan->{ start_date } );
     my $end_date_q   = $db->quote( $timespan->{ end_date } );
@@ -372,9 +372,9 @@ sub _write_timespan_tweets_snapshot
     my $topic    = $db->require_by_id( 'topics',    $snapshot->{ topics_id } );
 
     $db->query( <<SQL );
-create temporary table snapshot_timespan_tweets as
-    select distinct ts.topic_tweets_id
-        from snapshot_tweet_stories ts
+create temporary table snapshot_timespan_posts as
+    select distinct ts.topic_posts_id
+        from snapshot_post_stories ts
             join snapshot_period_stories s using ( stories_id )
             join snapshot_media m using ( media_id )
         where
@@ -384,7 +384,7 @@ SQL
 
     if ( !$is_model )
     {
-        _create_timespan_snapshot( $db, $timespan, 'timespan_tweets' );
+        _create_timespan_snapshot( $db, $timespan, 'timespan_posts' );
     }
 }
 
@@ -418,10 +418,10 @@ create temporary table snapshot_story_link_counts as
     snapshot_twitter_counts as (
         select
                 s.stories_id,
-                count( distinct ts.twitter_user ) as simple_tweet_count
-            from snapshot_tweet_stories ts
+                count( distinct ts.author ) as post_count
+            from snapshot_post_stories ts
                 join snapshot_period_stories s using ( stories_id )
-                join snapshot_timespan_tweets tt using ( topic_tweets_id )
+                join snapshot_timespan_posts tt using ( topic_posts_id )
             group by s.stories_id
     )
 
@@ -429,7 +429,7 @@ create temporary table snapshot_story_link_counts as
             coalesce( smlc.media_inlink_count, 0 ) media_inlink_count,
             coalesce( ilc.inlink_count, 0 ) inlink_count,
             coalesce( olc.outlink_count, 0 ) outlink_count,
-            stc.simple_tweet_count,
+            stc.post_count,
             ss.facebook_share_count facebook_share_count
         from snapshot_period_stories ps
             left join snapshot_story_media_link_counts smlc using ( stories_id )
@@ -486,7 +486,7 @@ create temporary table snapshot_medium_link_counts as
                sum( slc.outlink_count) outlink_count,
                count(*) story_count,
                sum( slc.facebook_share_count ) facebook_share_count,
-               sum( slc.simple_tweet_count ) simple_tweet_count
+               sum( slc.post_count ) post_count
             from
                 snapshot_media m
                 join snapshot_stories s using ( media_id )
@@ -551,7 +551,7 @@ SQL
     $timespan ||= $db->query( <<SQL, $snapshots_id, $start_date, $end_date, $period, $foci_id )->hash();
 insert into timespans
     ( snapshots_id, start_date, end_date, period, foci_id, 
-      story_count, story_link_count, medium_count, medium_link_count, tweet_count )
+      story_count, story_link_count, medium_count, medium_link_count, post_count )
     values ( \$1, \$2, \$3, \$4, \$5, 0, 0, 0, 0, 0 )
     returning *
 SQL
@@ -589,7 +589,7 @@ sub generate_timespan_data($$;$)
 
     _write_period_stories( $db, $timespan );
 
-    _write_timespan_tweets_snapshot( $db, $timespan );
+    _write_timespan_posts_snapshot( $db, $timespan );
 
     _write_story_links_snapshot( $db, $timespan, $is_model );
     _write_story_link_counts_snapshot( $db, $timespan, $is_model );
@@ -622,7 +622,7 @@ sub _update_timespan_counts($$;$)
 
     ( $timespan->{ medium_link_count } ) = $db->query( "select count(*) from snapshot_medium_links" )->flat;
 
-    ( $timespan->{ tweet_count } ) = $db->query( "select count(*) from snapshot_timespan_tweets" )->flat;
+    ( $timespan->{ post_count } ) = $db->query( "select count(*) from snapshot_timespan_posts" )->flat;
 
     return if ( $live );
 
@@ -906,19 +906,19 @@ END
     }
 
     $db->query( <<SQL, $tweet_topics_id );
-create temporary table snapshot_tweet_stories as
+create temporary table snapshot_post_stories as
     with tweets_per_day as (
-        select topic_tweets_id,
+        select topic_posts_id,
                 ( tt.data->'tweet'->'user'->>'statuses_count' ) ::int tweets,
                 extract( day from now() - ( tt.data->'tweet'->'user'->>'created_at' )::date ) days
-            from topic_tweets tt
-                join topic_tweet_days ttd using ( topic_tweet_days_id )
+            from topic_posts tt
+                join topic_post_days ttd using ( topic_post_days_id )
             where ttd.topics_id = \$1
     )
 
-    select topic_tweets_id, u.publish_date, twitter_user, stories_id, media_id, num_tweets
-        from topic_tweet_full_urls u
-            join tweets_per_day tpd using ( topic_tweets_id )
+    select topic_posts_id, u.publish_date, author, stories_id, media_id, num_posts
+        from topic_post_full_urls u
+            join tweets_per_day tpd using ( topic_posts_id )
             join snapshot_stories using ( stories_id )
         where
             topics_id = \$1 $bot_clause
@@ -928,7 +928,7 @@ SQL
 
     for my $table ( @{ _get_snapshot_tables() } )
     {
-        my $table_exists = $db->query( "select * from pg_class where relname = ?", $table )->hash;
+        my $table_exists = $db->query( "select * from pg_class where relname = 'snapshot_' || ?", $table )->hash;
         die( "snapshot not created for snapshot table: $table" ) unless ( $table_exists );
     }
 

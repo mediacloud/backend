@@ -45,7 +45,7 @@ select s.stories_id, s.title, s.url,
         case when ( stm.tags_id is null ) then s.publish_date::text else 'undateable' end as publish_date,
         m.name media_name, m.url media_url, m.media_id,
         slc.media_inlink_count, slc.inlink_count, slc.outlink_count, slc.facebook_share_count,
-        slc.simple_tweet_count
+        slc.post_count
     from snapshot_stories s
         join snapshot_media m on ( s.media_id = m.media_id )
         join snapshot_story_link_counts slc on ( s.stories_id = slc.stories_id )

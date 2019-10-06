@@ -94,7 +94,7 @@ sub _get_sort_clause
         inlink       => 'mlc.media_inlink_count',
         inlink_count => 'mlc.media_inlink_count',
         facebook     => 'mlc.facebook_share_count',
-        twitter      => 'mlc.simple_tweet_count'
+        twitter      => 'mlc.post_count'
     };
 
     my $sort_field = $sort_field_lookup->{ lc( $sort_param ) }
