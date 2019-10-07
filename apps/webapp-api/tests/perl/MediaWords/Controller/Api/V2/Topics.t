@@ -185,7 +185,7 @@ sub test_controversy_dump_time_slices($)
     );
 
     my $metrics = [
-        qw/story_count story_link_count medium_count medium_link_count tweet_count /,
+        qw/story_count story_link_count medium_count medium_link_count post_count /,
         qw/model_num_media model_r2_mean model_r2_stddev/
     ];
     for my $i ( 1 .. 9 )
@@ -319,17 +319,23 @@ SQL
     is( scalar( @{ $topic_stories } ), $num_stories );
 
     MediaWords::Controller::Api::V2::Topics::_set_stories_respidering( $db, $topic, { name => 'new respider name' } );
-    is( get_respider_count( $db, $topic ), 0, "respider count no scope update" );
+    $topic = $db->find_by_id( 'topics', $topic->{ topics_id } );
+    ok( !$topic->{ respider_stories }, "respider_stories not set after no scope pdate" );
 
     MediaWords::Controller::Api::V2::Topics::_set_stories_respidering( $db, $topic,
         { solr_seed_query => 'new respider name' } );
-    is( get_respider_count( $db, $topic ), $num_stories, "respider count query update" );
+    $topic = $db->find_by_id( 'topics', $topic->{ topics_id } );
+    ok( $topic->{ respider_stories }, "respider_stories set after query update" );
 
     $db->query( "update topic_stories set link_mined = 't' where topics_id = ?", $topic->{ topics_id } );
 
     my $start_date = '2017-01-01';
     my $end_date   = '2017-02-01';
-    $topic = $db->update_by_id( 'topics', $topic->{ topics_id }, { start_date => $start_date, end_date => $end_date } );
+    $topic = $db->update_by_id(
+        'topics',
+        $topic->{ topics_id },
+        { respider_stories => 'f', start_date => $start_date, end_date => $end_date }
+    );
 
     $db->query( <<SQL, $start_date, $medium->{ media_id } );
 update stories set publish_date = \$1 where media_id = \$2
@@ -345,9 +351,16 @@ update stories set publish_date = '2018-01-01'
     where stories_id in ( select stories_id from stories where media_id = ? order by stories_id desc limit 1 )
 SQL
 
+    my $old_start_date = $topic->{ start_date };
+    my $old_end_date   = $topic->{ end_date };
+    my $new_start_date = '2016-01-01';
+    my $new_end_date   = '2018-01-01';
     MediaWords::Controller::Api::V2::Topics::_set_stories_respidering( $db, $topic,
-        { start_date => '2016-01-01', end_date => '2018-01-01' } );
-    is( get_respider_count( $db, $topic ), 2, "respider count query update" );
+        { start_date => $new_start_date, end_date => $new_end_date } );
+    $topic = $db->find_by_id( 'topics', $topic->{ topics_id } );
+    ok( $topic->{ respider_stories }, "respider_stories set after date update" );
+    is( $topic->{ respider_start_date }, $old_start_date, "respider_start_date set" );
+    is( $topic->{ respider_end_date },   $old_end_date,   "respider_end_date set" );
 }
 
 sub test_topics_reset

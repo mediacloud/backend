@@ -24,7 +24,7 @@ services:
         # To be able to set /proc/sys/kernel/yama/ptrace_scope:
         privileged: true
         environment:
-            MC_MAIL_POSTFIX_DOMAIN: "testmediacloud.ml"
+            MC_MAIL_POSTFIX_DOMAIN: "mediacloud.org"
             MC_MAIL_POSTFIX_HOSTNAME: "mail"
         depends_on:
             - mail-opendkim-server
@@ -36,7 +36,7 @@ services:
     mail-opendkim-server:
         image: dockermediacloud/mail-opendkim-server:containers_release
         environment:
-            MC_MAIL_OPENDKIM_DOMAIN: "testmediacloud.ml"
+            MC_MAIL_OPENDKIM_DOMAIN: "mediacloud.org"
             MC_MAIL_OPENDKIM_HOSTNAME: "mail"
         expose:
             - "12301"

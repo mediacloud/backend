@@ -17,7 +17,7 @@ Readonly my $NUM_TWITTER_USERS   => 11;
 Readonly my $NUM_RETWEETED_USERS => 4;
 
 # cached test data
-my $_topic_tweet_day;
+my $_topic_post_day;
 my $_topic;
 
 sub _get_twitter_users
@@ -42,26 +42,26 @@ sub _get_topic($)
     return $_topic;
 }
 
-# return a topic_tweet_day row if it exists.  otherwise create one along with the parent topic
-sub _get_topic_tweet_day($)
+# return a topic_post_day row if it exists.  otherwise create one along with the parent topic
+sub _get_topic_post_day($)
 {
     my ( $db ) = @_;
 
-    return $_topic_tweet_day if ( $_topic_tweet_day );
+    return $_topic_post_day if ( $_topic_post_day );
 
     my $topic = _get_topic( $db );
 
-    $_topic_tweet_day = $db->create(
-        'topic_tweet_days',
+    $_topic_post_day = $db->create(
+        'topic_post_days',
         {
-            topics_id      => $topic->{ topics_id },
-            day            => '2017-01-01',
-            num_tweets     => 1,
-            tweets_fetched => $Inline::Python::Boolean::true
+            topics_id     => $topic->{ topics_id },
+            day           => '2017-01-01',
+            num_posts     => 1,
+            posts_fetched => $Inline::Python::Boolean::true
         }
     );
 
-    return $_topic_tweet_day;
+    return $_topic_post_day;
 
 }
 
@@ -84,36 +84,37 @@ sub user_is_retweeter($$)
     return ( ( twitter_user_num( $twitter_user ) % ( twitter_user_num( $retweeted_user ) + 1 ) ) == 0 ) ? 1 : 0;
 }
 
-# add rows to topic_tweets and topic_tweet_urls that mock a tweet of the given story by the given twitter_user as a
+# add rows to topic_posts and topic_post_urls that mock a tweet of the given story by the given twitter_user as a
 # retweet of the the given retweeted_user
-sub _add_topic_tweet($$$$)
+sub _add_topic_post($$$$)
 {
     my ( $db, $story, $twitter_user, $retweeted_user ) = @_;
 
-    my $topic_tweet_day = _get_topic_tweet_day( $db );
+    my $topic_post_day = _get_topic_post_day( $db );
 
     my $tweet_json =
       user_is_retweeter( $twitter_user, $retweeted_user )
       ? '{ "tweet": { "retweeted_status": { "user": { "screen_name": "' . $retweeted_user . '" } } } }'
       : '{ "foo": "bar" }';
 
-    my $topic_tweet = $db->create(
-        'topic_tweets',
+    my $topic_post = $db->create(
+        'topic_posts',
         {
-            topic_tweet_days_id => $topic_tweet_day->{ topic_tweet_days_id },
-            data                => $tweet_json,
-            tweet_id            => $story->{ stories_id },
-            content             => "tweet for $story->{ stories_id }",
-            publish_date        => '2017-01-01',
-            twitter_user        => $twitter_user
+            topic_post_days_id => $topic_post_day->{ topic_post_days_id },
+            data               => $tweet_json,
+            post_id            => $story->{ stories_id },
+            content            => "tweet for $story->{ stories_id }",
+            publish_date       => '2017-01-01',
+            author             => $twitter_user,
+            channel            => $twitter_user
         }
     );
 
-    my $topic_tweet_url = $db->create(
-        'topic_tweet_urls',
+    my $topic_post_url = $db->create(
+        'topic_post_urls',
         {
-            topic_tweets_id => $topic_tweet->{ topic_tweets_id },
-            url             => $story->{ url }
+            topic_posts_id => $topic_post->{ topic_posts_id },
+            url            => $story->{ url }
         }
     );
 
@@ -130,7 +131,7 @@ sub _add_topic_tweet($$$$)
     );
 }
 
-# add a topic_tweet to each story from an evenly distributed set of $NUM_TWITTER_USERS and $NUM_RETWEETED_USERS
+# add a topic_post to each story from an evenly distributed set of $NUM_TWITTER_USERS and $NUM_RETWEETED_USERS
 sub _add_tweets_to_stories($$)
 {
     my ( $db, $stories ) = @_;
@@ -147,7 +148,7 @@ sub _add_tweets_to_stories($$)
         $story->{ twitter_user }   = $twitter_users->[ $story->{ media_id } % $NUM_TWITTER_USERS ];
         $story->{ retweeted_user } = $retweeted_users->[ $i % $NUM_RETWEETED_USERS ];
 
-        _add_topic_tweet( $db, $story, $story->{ twitter_user }, $story->{ retweeted_user } );
+        _add_topic_post( $db, $story, $story->{ twitter_user }, $story->{ retweeted_user } );
 
         $i++;
     }

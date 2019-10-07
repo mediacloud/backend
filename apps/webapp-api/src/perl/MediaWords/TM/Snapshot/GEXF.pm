@@ -267,7 +267,7 @@ select distinct
         mlc.media_inlink_count inlink_count,
         mlc.story_count,
         mlc.facebook_share_count,
-        mlc.simple_tweet_count
+        mlc.post_count
     from snapshot_media_with_types m
         join snapshot_medium_link_counts mlc using ( media_id )
     where

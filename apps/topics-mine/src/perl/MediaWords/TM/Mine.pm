@@ -25,7 +25,7 @@ use List::Util;
 use Readonly;
 
 use MediaWords::TM::Alert;
-use MediaWords::TM::FetchTopicTweets;
+use MediaWords::TM::FetchTopicPosts;
 use MediaWords::TM::Stories;
 use MediaWords::DBI::Stories::GuessDate;
 use MediaWords::JobManager::Job;
@@ -597,7 +597,7 @@ SQL
 
 # import all topic_seed_urls that have not already been processed;
 # return 1 if new stories were added to the topic and 0 if not
-sub import_seed_urls
+sub import_seed_urls($$)
 {
     my ( $db, $topic ) = @_;
 
@@ -945,6 +945,107 @@ SQL
     }
 }
 
+# import urls from seed query 
+sub import_urls_from_seed_query($$)
+{
+    my ( $db, $topic ) = @_;
+    
+    my $topic_seed_queries = $db->query(
+        "select * from topic_seed_queries where topics_id = ?", $topic->{ topics_id } )->hashes();
+
+    my $num_queries = scalar( @{ $topic_seed_queries } );
+
+    my $tsq = $num_queries ? $topic_seed_queries->[0] : undef;
+    
+    if ( $num_queries > 1 )
+    {
+        die( "only one topic seed query allowed per topic" );
+    }
+    elsif ( $num_queries == 0 )
+    {
+        update_topic_state( $db, $topic, "importing solr seed query" );
+        import_solr_seed_query( $db, $topic );
+        return;
+    }
+    elsif ( MediaWords::TM::FetchTopicPosts::get_fetch_posts_function( $tsq ) )
+    {
+        MediaWords::TM::FetchTopicPosts::fetch_topic_posts( $db, $topic->{ topics_id } );
+    }
+    else
+    {
+        die( "unable to import seet urls for platform/mode of seed query: " . Dumper( $tsq ) );
+    }
+}
+
+# if the query or dates have changed, set topic_stories.link_mined to false for the impacted stories so that
+# they will be respidered
+sub set_stories_respidering($$$)
+{
+    my ( $db, $topic, $snapshots_id ) = @_;
+
+    return unless ( $topic->{ respider_stories } );
+
+    my $respider_start_date = $topic->{ respider_start_date };
+    my $respider_end_date = $topic->{ respider_end_date };
+
+    if ( !$respider_start_date && !$respider_end_date )
+    {
+        $db->query( "update topic_stories set link_mined = 'f' where topics_id = ?", $topic->{ topics_id } );
+        return;
+    }
+
+    $db->begin;
+
+    if ( $respider_start_date )
+    {
+        $db->query( <<SQL, $respider_start_date, $topic->{ start_date }, $topic->{ topics_id } );
+update topic_stories ts set link_mined = 'f'
+    from stories s
+    where
+        ts.stories_id = s.stories_id and
+        s.publish_date >= \$2 and 
+        s.publish_date <= \$1 and
+        ts.topics_id = \$3
+SQL
+        if ( $snapshots_id )
+        {
+            $db->update_by_id( 'snapshots', $snapshots_id, { start_date => $topic->{ start_date } } );
+            $db->query( <<SQL, $snapshots_id, $respider_start_date );
+update timespans set archive_snapshots_id = snapshots_id, snapshots_id = null
+    where snapshots_id = ? and start_date < ?
+SQL
+        }
+    }
+
+    if ( $respider_end_date )
+    {
+        $db->query( <<SQL, $respider_end_date, $topic->{ end_date }, $topic->{ topics_id } );
+update topic_stories ts set link_mined = 'f'
+    from stories s
+    where
+        ts.stories_id = s.stories_id and
+        s.publish_date >= \$1 and 
+        s.publish_date <= \$2 and
+        ts.topics_id = \$3
+SQL
+
+        if ( $snapshots_id )
+        {
+            $db->update_by_id( 'snapshots', $snapshots_id, { end_date => $topic->{ end_date } } );
+            $db->query( <<SQL, $snapshots_id, $respider_end_date );
+update timespans set archive_snapshots_id = snapshots_id, snapshots_id = null
+    where snapshots_id = ? and end_date > ?
+SQL
+        }
+    }
+
+    $db->update_by_id( 'topics', $topic->{ topics_id },
+        { respider_stories => 'f', respider_start_date => undef, respider_end_date => undef } );
+
+    $db->commit;
+}
+
+
 # mine the given topic for links and to recursively discover new stories on the web.
 # options:
 #   import_only - only run import_seed_urls and import_solr_seed and exit
@@ -961,11 +1062,11 @@ sub do_mine_topic ($$;$)
 
     map { $options->{ $_ } ||= 0 } qw/import_only skip_post_processing test_mode/;
 
-    update_topic_state( $db, $topic, "fetching tweets" );
-    fetch_and_import_twitter_urls( $db, $topic );
+    update_topic_state( $db, $topic, "importing seed urls" );
+    import_urls_from_seed_query( $db, $topic );
 
-    update_topic_state( $db, $topic, "importing solr seed query" );
-    import_solr_seed_query( $db, $topic );
+    update_topic_state( $db, $topic, "setting stories respidering..." );
+    set_stories_respidering( $db, $topic, $options->{ snapshots_id } );
 
     # this may put entires into topic_seed_urls, so run it before import_seed_urls.
     # something is breaking trying to call this perl.  commenting out for time being since we only need
@@ -1085,7 +1186,7 @@ sub fetch_and_import_twitter_urls($$)
 
     return unless ( $topic->{ platform } eq 'twitter' );
 
-    MediaWords::TM::FetchTopicTweets::fetch_topic_tweets( $db, $topic->{ topics_id } );
+    MediaWords::TM::FetchTopicPosts::fetch_topic_posts( $db, $topic->{ topics_id } );
 
     seed_topic_with_tweet_urls( $db, $topic );
 }

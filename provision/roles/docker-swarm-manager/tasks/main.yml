@@ -27,6 +27,14 @@
   tags:
     - docker-swarm-manager
 
+- name: Set fact of leader's advertised interface
+  set_fact:
+    leader_advertised_interface_manager: "{{ hostvars[groups.docker_swarm_managers[0]]['docker_swarm_advertise_interface'] }}"
+  # Register on all hosts:
+  run_once: true
+  tags:
+    - docker-swarm-manager
+
 - name: Add remaining managers to swarm
   docker_swarm:
     state: join
@@ -34,7 +42,7 @@
     join_token: "{{ swarm_manager_join_token }}"
     remote_addrs:
       # IP address of first host in swarm manager group
-      - "{{ hostvars[groups.docker_swarm_managers[0]]['ansible_%s' % docker_swarm_advertise_interface]['ipv4']['address'] }}:2377"
+      - "{{ hostvars[groups.docker_swarm_managers[0]]['ansible_%s' % leader_advertised_interface_manager]['ipv4']['address'] }}:2377"
   become: true
   become_user: root
   # Run only on hosts that didn't initialize the swarm:

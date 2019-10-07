@@ -14,7 +14,7 @@ our $MEDIA_STATIC_GEXF_ATTRIBUTE_TYPES = {
     view_medium            => 'string',
     media_type             => 'string',
     facebook_share_count   => 'integer',
-    simple_tweet_count     => 'integer',
+    post_count             => 'integer',
 };
 
 

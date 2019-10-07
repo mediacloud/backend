@@ -8,23 +8,11 @@ use MediaWords::CommonLibs;
 use MediaWords::DB;
 use MediaWords::Test::DB::Create;
 use MediaWords::TM::Mine;
-use MediaWords::TM::Stories;
 
-my $_topic_stories_medium_count = 0;
+use FindBin;
+use lib $FindBin::Bin;
 
-sub add_test_topic_stories($$$$)
-{
-    my ( $db, $topic, $num_stories, $label ) = @_;
-
-    my $medium = MediaWords::Test::DB::Create::create_test_medium( $db, "$label  " . $_topic_stories_medium_count++ );
-    my $feed = MediaWords::Test::DB::Create::create_test_feed( $db, $label, $medium );
-
-    for my $i ( 1 .. $num_stories )
-    {
-        my $story = MediaWords::Test::DB::Create::create_test_story( $db, "$label $i", $feed );
-        MediaWords::TM::Stories::add_to_topic_stories( $db, $story, $topic );
-    }
-}
+use AddTestTopicStories;
 
 sub test_die_if_max_stories_exceeded($)
 {
@@ -36,7 +24,7 @@ sub test_die_if_max_stories_exceeded($)
 
     $topic = $db->update_by_id( 'topics', $topic->{ topics_id }, { max_stories => 0 } );
 
-    add_test_topic_stories( $db, $topic, 101, $label );
+    AddTestTopicStories::add_test_topic_stories( $db, $topic, 101, $label );
 
     eval { MediaWords::TM::Mine::die_if_max_stories_exceeded( $db, $topic ); };
     ok( $@, "$label adding 101 stories to 0 max_stories topic generates error" );
@@ -45,16 +33,16 @@ sub test_die_if_max_stories_exceeded($)
 
     $topic = $db->update_by_id( 'topics', $topic->{ topics_id }, { max_stories => 100 } );
 
-    add_test_topic_stories( $db, $topic, 99, $label );
+    AddTestTopicStories::add_test_topic_stories( $db, $topic, 99, $label );
     eval { MediaWords::TM::Mine::die_if_max_stories_exceeded( $db, $topic ); };
     ok( !$@, "$label adding 999 stories to a 100 max_stories does not generate an error: $@" );
 
-    add_test_topic_stories( $db, $topic, 102, $label );
+    AddTestTopicStories::add_test_topic_stories( $db, $topic, 102, $label );
     eval { MediaWords::TM::Mine::die_if_max_stories_exceeded( $db, $topic ); };
     ok( $@, "$label adding 2001 stories to a 100 max_stories generates an error" );
 }
 
-sub main()
+sub main
 {
     my $db = MediaWords::DB::connect_to_db();
 
