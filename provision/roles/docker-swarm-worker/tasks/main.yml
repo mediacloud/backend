@@ -52,8 +52,6 @@
   # Sometimes the update fails with: rpc error: code = Unknown desc = update out of sequence:
   retries: 3
   delay: 3
-  register: result
-  until: result.rc == 0
   become: true
   become_user: root  
   tags:
