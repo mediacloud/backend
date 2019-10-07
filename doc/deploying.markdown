@@ -42,8 +42,8 @@ Hosts that participate in the same Docker swarm should be able to connect **to e
   * 2377
   * 7946
 * UDP:
-  * 7946
   * 4789
+  * 7946
 * ESP (IP protocol 50)
 
 ### Webapp
