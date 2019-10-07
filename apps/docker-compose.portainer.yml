@@ -1,0 +1,110 @@
+#
+# Portainer
+# =========
+#
+# Deploy by running:
+#
+#     docker stack deploy -c docker-compose.portainer.yml portainer
+#
+# on one of the Docker Swarm's managers (preferably the leader):
+#
+#     docker node ls | grep Leader
+#
+# Then, assuming that you have a SSH tunnel set up to remote's port 9000, go to:
+#
+#     http://localhost:9000/
+#
+# and log in with:
+#
+#     * username: admin
+#     * password: mediacloud
+#
+
+version: "3.7"
+
+services:
+
+    # Web UI (run on a single server which has a label)
+    portainer:
+        image: portainer/portainer:1.22.0
+        #
+        # Hash the password:
+        #
+        # 1. Run:
+        #
+        #     htpasswd -nb -B admin mediacloud | cut -d ":" -f 2
+        #
+        # 2. Manually escape every '$' in hash by replacing it with '$$'.
+        #
+        command: >-
+            --host tcp://tasks.portainer-agent:9001
+            --tlsskipverify
+            --admin-password '$$2y$$05$$3//alNrPDHNFJAOQ2dRV/OUn.6SODhXtGo7zeP3nhYJRIfgByNPdC'
+            --logo https://mediacloud-portainer-logo.s3.amazonaws.com/portainer-logo/portainer-mediacloud.svg
+            --no-analytics
+        networks:
+            - portainer
+        expose:
+            # Web interface
+            - "9000"
+        ports:
+            # For connecting to through a SSH tunnel
+            - "9000:9000"
+        volumes:
+            - vol_portainer_data:/data
+        deploy:
+            placement:
+                constraints:
+                    # Must run on a host that has the data volume
+                    - node.labels.role-portainer == true
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "1G"
+
+    # Agent (run on every server)
+    portainer-agent:
+        image: portainer/agent:1.4.0
+        networks:
+            - portainer
+        environment:
+            # REQUIRED: Should be equal to the service name prefixed by "tasks." when
+            # deployed inside an overlay network
+            AGENT_CLUSTER_ADDR: tasks.portainer-agent
+            # AGENT_PORT: 9001
+            # LOG_LEVEL: debug
+        expose:
+            - "9001"
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock
+            - /var/lib/docker/volumes:/var/lib/docker/volumes
+        deploy:
+            # Run on every node
+            mode: global
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "1G"
+
+
+networks:
+
+    # Portainer agents' network
+    portainer:
+        driver: overlay
+        attachable: true
+
+
+volumes:
+
+    # Portainer data
+    vol_portainer_data:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_portainer_data

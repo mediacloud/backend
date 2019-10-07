@@ -1,0 +1,151 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+use FindBin;
+use lib $FindBin::Bin;
+
+use MediaWords::Munin;
+
+my $db = MediaWords::Munin::postgresql_handler();
+
+# Recreating function is fast so we can just do it on every run.
+#
+# CREATE FUNCTION might lock out on DDL changes, but so will the queries that the function runs.
+$db->query(<<'SQL'
+
+CREATE OR REPLACE FUNCTION pg_temp.munin_get_primary_key_max_values()
+RETURNS TABLE (
+    schema_name TEXT,
+    table_name TEXT,
+    primary_key_column_name TEXT,
+    primary_key_column_type TEXT,
+    primary_key_column_max_value BIGINT,
+    primary_key_max_value BIGINT,
+    primary_key_percentage_fill SMALLINT
+) 
+AS $$
+
+DECLARE
+    r_table RECORD;
+    r_table_max_pkey RECORD;
+
+BEGIN
+
+    FOR r_table IN
+
+        SELECT
+            nspname AS schema_name,
+            pg_class.relname AS table_name,
+            pg_attribute.attname AS primary_key_column_name,
+            format_type(pg_attribute.atttypid, pg_attribute.atttypmod) AS primary_key_column_type,
+            pg_attribute.attlen AS primary_key_column_length,
+
+            -- https://www.postgresql.org/docs/current/static/datatype-numeric.html#DATATYPE-NUMERIC
+            -- (hardcoding seemed to be easier than pow()ing the number while trying to avoid BIGINT
+            -- overflow at the same time)
+            CASE
+                WHEN pg_attribute.attlen = 2 THEN 32767::bigint
+                WHEN pg_attribute.attlen = 4 THEN 2147483647::bigint
+                WHEN pg_attribute.attlen = 8 THEN 9223372036854775807::bigint
+            END AS primary_key_column_max_value
+
+        FROM pg_index, pg_class, pg_attribute, pg_namespace
+        WHERE indrelid = pg_class.oid
+          AND pg_class.relnamespace = pg_namespace.oid
+          AND pg_attribute.attrelid = pg_class.oid
+          AND pg_attribute.attnum = any(pg_index.indkey)
+
+          -- Must be still live
+          AND NOT pg_attribute.attisdropped
+
+          AND indisprimary
+
+          -- We only support validating those
+          AND format_type(pg_attribute.atttypid, pg_attribute.atttypmod) IN ('smallint', 'integer', 'bigint')
+
+          -- Skip temporary tables
+          AND pg_class.relpersistence != 't'
+
+          -- We hope that pg_toast can somehow manage itself, plus we can't access Toast's temporary tables
+          AND nspname NOT LIKE 'pg_toast%'
+
+        ORDER BY
+            schema_name,
+            table_name
+
+    LOOP
+
+        -- RAISE NOTICE '%.% (%)...', r_table.schema_name, r_table.table_name, r_table.primary_key_column_name;
+
+        EXECUTE '
+            SELECT COALESCE(MAX(' || r_table.primary_key_column_name ||'), 0)::bigint AS max_value
+            FROM ' || r_table.schema_name || '.' || r_table.table_name || '
+        ' INTO r_table_max_pkey;
+
+        -- RAISE NOTICE '%.% (%) = %',
+        --     r_table.schema_name, r_table.table_name, r_table.primary_key_column_name, r_table_max_pkey.max_value;
+
+        schema_name := r_table.schema_name;
+        table_name := r_table.table_name;
+        primary_key_column_name := r_table.primary_key_column_name;
+        primary_key_column_type := r_table.primary_key_column_type;
+        primary_key_column_max_value := r_table.primary_key_column_max_value;
+        primary_key_max_value := r_table_max_pkey.max_value;
+        SELECT (r_table_max_pkey.max_value / (r_table.primary_key_column_max_value / 100)) INTO primary_key_percentage_fill;
+
+        RETURN NEXT;
+
+    END LOOP;
+
+END
+$$
+LANGUAGE 'plpgsql';
+
+SQL
+);
+
+my $pk_max_values = $db->query(<<SQL
+
+SELECT
+    schema_name || '.' || table_name AS table,
+    primary_key_percentage_fill AS percentage
+FROM pg_temp.munin_get_primary_key_max_values()
+
+-- Track only the ones which have at least 1% fill because listing all of the
+-- tables would be overwhelming
+WHERE primary_key_percentage_fill > 0
+
+SQL
+)->hashes;
+
+my $metrics = [];
+
+my $colour_index = 0;
+
+foreach my $pk_max_value (@{ $pk_max_values }) {
+    my $metric = {
+        label => $pk_max_value->{ table },
+        suffix => $pk_max_value->{ table },
+
+        # "COLOUR", not "COLOR"
+        color => "COLOUR" . $colour_index,
+
+        warning => { to => 85 },
+        critical => { to => 90 },
+        value => sub {
+            return $pk_max_value->{ percentage };
+        },
+    };
+    ++$colour_index;
+    push( @{ $metrics }, $metric );
+}
+
+MediaWords::Munin::plugin({
+    title => 'PostgreSQL primary key overflow',
+    info => 'Percentage of table primary key fill',
+    vlabel => '% of fill',
+    args => '--upper-limit 100 -l 0',
+    metrics => $metrics,
+});

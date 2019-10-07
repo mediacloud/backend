@@ -1,0 +1,116 @@
+version: "3.7"
+
+services:
+
+    webapp-httpd:
+        image: dockermediacloud/webapp-httpd:latest
+        stop_signal: SIGKILL
+        ports:
+            # Expose to host for debugging
+            - "8080:80"
+        volumes:
+            - type: bind
+              source: ./nginx/include/
+              target: /etc/nginx/include/
+            - type: bind
+              source: ./../nginx-base/nginx/
+              target: /etc/nginx/
+            # Shared with "cron-generate-daily-rss-dumps":
+            - vol_daily_rss_dumps:/mediacloud_webapp_static/static/rss_dumps/
+        depends_on:
+            - webapp-api
+            - cron-generate-daily-rss-dumps
+
+    cron-generate-daily-rss-dumps:
+        image: dockermediacloud/cron-generate-daily-rss-dumps:latest
+        stop_signal: SIGKILL
+        volumes:
+            # Shared with "webapp-httpd":
+            - vol_daily_rss_dumps:/var/lib/daily_rss_dumps/
+        depends_on:
+            - postgresql-pgbouncer
+
+    webapp-api:
+        image: dockermediacloud/webapp-api:latest
+        stop_signal: SIGKILL
+        expose:
+            - "9090"
+        depends_on:
+            - postgresql-pgbouncer
+            - solr-shard
+            - rabbitmq-server
+            - rescrape-media
+            - word2vec-generate-snapshot-model
+            # test_topics_api.t snapshots a topic
+            - topics-snapshot
+            # Multiple tests import Solr data
+            - import-solr-data-for-testing
+        deploy:
+            # Try running multiple replicas to see whether FastCGI will be able to use them
+            replicas: 2
+
+    postgresql-pgbouncer:
+        image: dockermediacloud/postgresql-pgbouncer:latest
+        stop_signal: SIGKILL
+        expose:
+            - 6432
+        depends_on:
+            - postgresql-server
+
+    postgresql-server:
+        image: dockermediacloud/postgresql-server:latest
+        stop_signal: SIGKILL
+        expose:
+            - 5432
+
+    solr-shard:
+        image: dockermediacloud/solr-shard:latest
+        stop_signal: SIGKILL
+        environment:
+            MC_SOLR_SHARD_COUNT: "1"
+        expose:
+            - 8983
+        depends_on:
+            - solr-zookeeper
+
+    solr-zookeeper:
+        image: dockermediacloud/solr-zookeeper:latest
+        stop_signal: SIGKILL
+        expose:
+            - 2181
+            - 2888
+            - 3888
+
+    rabbitmq-server:
+        image: dockermediacloud/rabbitmq-server:latest
+        stop_signal: SIGKILL
+        expose:
+            - 5672
+            - 15672
+
+    rescrape-media:
+        image: dockermediacloud/rescrape-media:latest
+        stop_signal: SIGKILL
+
+    word2vec-generate-snapshot-model:
+        image: dockermediacloud/word2vec-generate-snapshot-model:latest
+        stop_signal: SIGKILL
+
+    topics-snapshot:
+        image: dockermediacloud/topics-snapshot:latest
+        stop_signal: SIGKILL
+        environment:
+            MC_TOPICS_SNAPSHOT_MODEL_REPS: "0"
+
+    import-solr-data-for-testing:
+        image: dockermediacloud/import-solr-data-for-testing:latest
+        environment:
+            MC_SOLR_IMPORT_JOBS: 1
+            MC_SOLR_IMPORT_MAX_QUEUED_STORIES: 100000
+        stop_signal: SIGKILL
+        depends_on:
+            - postgresql-pgbouncer
+            - solr-shard
+
+volumes:
+    vol_daily_rss_dumps: {}

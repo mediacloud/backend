@@ -1,0 +1,1847 @@
+version: "3.7"
+
+
+#
+# Configuration for "common"-derived images
+# =========================================
+#
+x-common-configuration: &common-configuration
+
+    # One or more semicolon-separated storage methods to store downloads in.
+    #
+    # Supported locations:
+    #
+    # * "postgresql" -- store downloads in the PostgreSQL database,
+    #   "raw_downloads" table
+    # * "amazon_s3" -- store downloads in Amazon S3
+    #
+    # Default is "postgresql" which stores downloads directly in the PostgreSQL
+    # database.
+    #
+    # The path of the last download storage method listed below will be stored
+    # in "downloads.path" database column.
+    MC_DOWNLOADS_STORAGE_LOCATIONS: "postgresql"
+
+    # Read all non-inline ("content") downloads from S3
+    MC_DOWNLOADS_READ_ALL_FROM_S3: "0"
+
+    # Fallback PostgreSQL downloads to Amazon S3 (if download doesn't exist in
+    # PostgreSQL storage, S3 will be tried instead)
+    MC_DOWNLOADS_FALLBACK_POSTGRESQL_TO_S3: "0"
+
+    # Enable local Amazon S3 download cache
+    MC_DOWNLOADS_CACHE_S3: "0"
+
+    # (optional) S3 download storage access key ID
+    #MC_DOWNLOADS_AMAZON_S3_ACCESS_KEY_ID: "AKIAIOSFODNN7EXAMPLE"
+
+    # (optional) S3 download storage secret access key
+    #MC_DOWNLOADS_AMAZON_S3_SECRET_ACCESS_KEY: "wJalrXUtnFEMI/K7MDENG/bPxRfiCYzEXAMPLEKEY"
+
+    # (optional) S3 download storage bucket name
+    #MC_DOWNLOADS_AMAZON_S3_BUCKET_NAME: "mediacloud-downloads"
+
+    # (optional) S3 download storage directory name (prefix)
+    #MC_DOWNLOADS_AMAZON_S3_DIRECTORY_NAME: "downloads"
+
+    # "From:" email address when sending emails
+    MC_EMAIL_FROM_ADDRESS: "info@mediacloud.org"
+
+    # Fail all HTTP requests that match the following pattern, e.g.
+    # "^https?://[^/]*some-website.com"
+    MC_USERAGENT_BLACKLIST_URL_PATTERN: ""
+
+    # (optional) Semicolon-separated domains that might need HTTP auth credentials
+    # to work
+    # Example: "username:password@domain.com;username2:password2@domain2.org"
+    #MC_USERAGENT_AUTHENTICATED_DOMAINS: ""
+
+    # parallel_get() parallel connection count
+    MC_USERAGENT_PARALLEL_GET_NUM_PARALLEL: "10"
+
+    # parallel_get() connection timeout, in seconds
+    MC_USERAGENT_PARALLEL_GET_TIMEOUT: "90"
+
+    # parallel_get() per-domain timeout, in seconds
+    MC_USERAGENT_PARALLEL_GET_PER_DOMAIN_TIMEOUT: "1"
+
+    # (Used by apps which inherit from "topics-base")
+    # Comma-separated email addresses to inform about topic updates
+    MC_TOPICS_BASE_TOPIC_ALERT_EMAILS: "topicupdates@mediacloud.org, slackupdates@mediacloud.org"
+
+
+#
+# Twitter API configuration
+# =========================
+#
+x-twitter-api-configuration: &twitter-api-configuration
+
+    # Twitter API consumer key
+    MC_TWITTER_CONSUMER_KEY: ""
+
+    # Twitter API consumer secret
+    MC_TWITTER_CONSUMER_SECRET: ""
+
+    # Twitter API access token
+    MC_TWITTER_ACCESS_TOKEN: ""
+
+    # Twitter API access token secret
+    MC_TWITTER_ACCESS_TOKEN_SECRET: ""
+
+
+#
+# Crimson Hexagon API configuration
+# =================================
+#
+x-crimson-hexagon-api-configuration: &crimson-hexagon-api-configuration
+
+    # Crimson Hexagon API key
+    MC_CRIMSON_HEXAGON_API_KEY: ""
+
+
+#
+# Solr shard base service
+# =======================
+#
+# Solr shards are not easily replicatable (because resharding would have to be
+# done manually), also every Solr shard has to have its very own named volume
+# to write the data to, so instead of replicating Solr shards with
+# "deploy/replicas", we define every shard as its own independent service.
+#
+x-solr-shard_base:   &solr-shard_base
+    image: dockermediacloud/solr-shard:release
+    environment:
+        # Shard count (every individual shard needs to know the total count)
+        #
+        # (keep in sync with how many shard services get actually defined in
+        # the "services" section, e.g. solr-shard-01, solr-shard-02,
+        # ..., solr-shard-24)
+        MC_SOLR_SHARD_COUNT: "24"
+    depends_on:
+        - solr-zookeeper
+    expose:
+        - "8983"
+    networks:
+        default:
+            aliases:
+                # To make Solr clients be able to round-robin between the
+                # shards, all of the shard services get assigned the same
+                # "solr-shard" network alias.
+                - solr-shard
+
+# Default resources for every Solr shard
+x-solr-shard_base_deploy_resources:  &solr-shard_base_deploy_resources
+    # Every shard runs as its own independent, non-replicated service
+    resources:
+        limits:
+            # CPU core limit
+            #
+            # (each mcquery* has 32 cores and will be running 8 shards
+            # each, so 32 / 8 = 4)
+            cpus: "4"
+            # RAM limit
+            #
+            # (each mcquery* has 192 GB of RAM and will be running 8 shards
+            # each, so 192 / 8 = 24)
+            memory: 24G
+
+# Placement constraints for Solr shards that run on host #1 (e.g. mcquery1)
+x-solr-shard_base_deploy_placement_host1:   &solr-shard_base_deploy_placement_host1
+    placement:
+        constraints:
+            # Must run on the host with Solr data volume
+            - node.labels.role-solr-shards-host1 == true
+
+# Placement constraints for Solr shards that run on host #2 (e.g. mcquery2)
+x-solr-shard_base_deploy_placement_host2:   &solr-shard_base_deploy_placement_host2
+    placement:
+        constraints:
+            # Must run on the host with Solr data volume
+            - node.labels.role-solr-shards-host2 == true
+
+# Placement constraints for Solr shards that run on host #3 (e.g. mcquery4)
+x-solr-shard_base_deploy_placement_host3:   &solr-shard_base_deploy_placement_host3
+    placement:
+        constraints:
+            # Must run on the host with Solr data volume
+            - node.labels.role-solr-shards-host3 == true
+
+
+#
+# Misc. apps placement constraint
+# ===============================
+#
+# To be applied to every service that's not bound to run on a specific host.
+# This is needed to prevent misc. services from running on hosts which are to
+# be reserved for a particular service, e.g. we might want to run only
+# "postgresql-server" app on a specific server.
+#
+x-misc-apps_deploy_placement_constraints:   &misc-apps_deploy_placement_constraints
+    placement:
+        constraints:
+            # Must run on a host on which misc. apps are configured to run on
+            - node.labels.role-misc-apps == true
+
+
+#
+# Services
+# ========
+#
+services:
+
+    #
+    # CLIFF annotator service
+    # -----------------------
+    #
+    cliff-annotator:
+        image: dockermediacloud/cliff-annotator:release
+        networks:
+            - default
+        expose:
+            - 8080
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            # Worker count
+            replicas: 1
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "4G"
+
+
+    #
+    # CLIFF fetch annotation
+    # ----------------------
+    #
+    cliff-fetch-annotation:
+        image: dockermediacloud/cliff-fetch-annotation:release
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+        depends_on:
+            - cliff-annotator
+            - postgresql-pgbouncer
+            - rabbitmq-server
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            # Worker count
+            replicas: 4
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "256M"
+
+    #
+    # CLIFF update story tags
+    # -----------------------
+    #
+    cliff-update-story-tags:
+        image: dockermediacloud/cliff-update-story-tags:release
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+            # CLIFF version tag
+            MC_CLIFF_VERSION_TAG: "cliff_clavin_v2.4.1"
+            # Tag set to use for geographical name entities
+            MC_CLIFF_GEONAMES_TAG_SET: "cliff_geonames"
+            # Tag set to use for organization name entities
+            MC_CLIFF_ORGANIZATIONS_TAG_SET: "cliff_organizations"
+            # Tag set to use for person name entities
+            MC_CLIFF_PEOPLE_TAG_SET: "cliff_people"
+        depends_on:
+            - postgresql-pgbouncer
+            - rabbitmq-server
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            # Worker count
+            replicas: 1
+            # Auto-restart on crashes
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "256M"
+
+    #
+    # AP crawler
+    # ----------
+    #
+    crawler-ap:
+        image: dockermediacloud/crawler-ap:release
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+            # AP API key
+            MC_CRAWLER_AP_API_KEY: ""
+        depends_on:
+            - postgresql-pgbouncer
+            - rabbitmq-server
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            # Worker count
+            replicas: 1
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "512M"
+
+    #
+    # Crawler fetcher
+    # ---------------
+    #
+    crawler-fetcher:
+        image: dockermediacloud/crawler-fetcher:release
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+            # Univision API client ID
+            MC_UNIVISION_CLIENT_ID: ""
+            # Univision API client secret (secret key)
+            MC_UNIVISION_CLIENT_SECRET: ""
+        depends_on:
+            - postgresql-pgbouncer
+            - rabbitmq-server
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            # Worker count
+            replicas: 8
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "512M"
+
+    #
+    # Crawler provider
+    # ----------------
+    #
+    crawler-provider:
+        image: dockermediacloud/crawler-provider:release
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+        depends_on:
+            - postgresql-pgbouncer
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "1G"
+
+    #
+    # Create missing PostgreSQL partitions
+    # ------------------------------------
+    #
+    create-missing-partitions:
+        image: dockermediacloud/create-missing-partitions:release
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+        depends_on:
+            - postgresql-pgbouncer
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "256M"
+
+    #
+    # Generate daily RSS dumps Cron job
+    # ---------------------------------
+    #
+    cron-generate-daily-rss-dumps:
+        image: dockermediacloud/cron-generate-daily-rss-dumps:release
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+        depends_on:
+            - postgresql-pgbouncer
+        volumes:
+            # Shared with "webapp-httpd" container:
+            - vol_daily_rss_dumps:/var/lib/daily_rss_dumps/
+        deploy:
+            placement:
+                constraints:
+                    # Must run on the same host as the webapp-httpd server because they will be
+                    # sharing the volume with generated static RSS dumps
+                    - node.labels.role-webapp-httpd == true
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "512M"
+
+    #
+    # Generate media health report Cron job
+    # -------------------------------------
+    #
+    cron-generate-media-health:
+        image: dockermediacloud/cron-generate-media-health:release
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+        depends_on:
+            - postgresql-pgbouncer
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "256M"
+
+    #
+    # Generate daily / weekly user summary Cron job
+    # ---------------------------------------------
+    #
+    cron-generate-user-summary:
+        image: dockermediacloud/cron-generate-user-summary:release
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+        depends_on:
+            - postgresql-pgbouncer
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "256M"
+
+    #
+    # Print long running job states
+    # -----------------------------
+    #
+    cron-print-long-running-job-states:
+        image: dockermediacloud/cron-print-long-running-job-states:release
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+        depends_on:
+            - postgresql-pgbouncer
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "256M"
+
+    #
+    # Refresh stats Cron job
+    # ----------------------
+    #
+    cron-refresh-stats:
+        image: dockermediacloud/cron-refresh-stats:release
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+        depends_on:
+            - postgresql-pgbouncer
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "256M"
+
+    #
+    # Add due media to the rescraping queue Cron job
+    # ----------------------------------------------
+    #
+    cron-rescrape-due-media:
+        image: dockermediacloud/cron-rescrape-due-media:release
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+        depends_on:
+            - postgresql-pgbouncer
+            - rabbitmq-server
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "256M"
+
+    #
+    # Report rescraping changes Cron job
+    # ----------------------------------
+    #
+    cron-rescraping-changes:
+        image: dockermediacloud/cron-rescraping-changes:release
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+        depends_on:
+            - postgresql-pgbouncer
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "256M"
+
+    #
+    # Set media primary language Cron job
+    # -----------------------------------
+    #
+    cron-set-media-primary-language:
+        image: dockermediacloud/cron-set-media-primary-language:release
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+        depends_on:
+            - postgresql-pgbouncer
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "256M"
+
+    #
+    # Set media subject country Cron job
+    # -----------------------------------
+    #
+    cron-set-media-subject-country:
+        image: dockermediacloud/cron-set-media-subject-country:release
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+        depends_on:
+            - postgresql-pgbouncer
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "256M"
+
+    #
+    # Extract and vector stories
+    # --------------------------
+    #
+    extract-and-vector:
+        image: dockermediacloud/extract-and-vector:release
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+        depends_on:
+            - extract-article-from-page
+            - postgresql-pgbouncer
+            - rabbitmq-server
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            # Worker count
+            replicas: 24
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "256M"
+
+    #
+    # Extract article HTML from page HTML
+    # -----------------------------------
+    #
+    extract-article-from-page:
+        image: dockermediacloud/extract-article-from-page:release
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+        expose:
+            # HTTP extraction service
+            - 8080
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            # Worker count
+            replicas: 8
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "512M"
+
+    #
+    # Fetch story stats from Facebook
+    # -------------------------------
+    #
+    facebook-fetch-story-stats:
+        image: dockermediacloud/facebook-fetch-story-stats:release
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+            # Facebook application ID
+            MC_FACEBOOK_APP_ID: ""
+            # Facebook application secret
+            MC_FACEBOOK_APP_SECRET: ""
+            # Timeout for API calls
+            MC_FACEBOOK_TIMEOUT: "60"
+        depends_on:
+            - postgresql-pgbouncer
+            - rabbitmq-server
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            # Worker count
+            replicas: 4
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "256M"
+
+    #
+    # Import stories into Solr
+    # ------------------------
+    #
+    import-solr-data:
+        image: dockermediacloud/import-solr-data:release
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+            # Jobs (forks) to start for the import
+            # (keep in sync with CPU count)
+            MC_SOLR_IMPORT_JOBS: 1
+            # Stories to import into Solr on a single run
+            MC_SOLR_IMPORT_MAX_QUEUED_STORIES: 100000
+        depends_on:
+            - postgresql-pgbouncer
+            - solr-shard-01
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "16"
+                    # RAM limit
+                    memory: "4G"
+
+    #
+    # Import stories by scraping Feedly
+    # ---------------------------------
+    #
+    import-stories-feedly:
+        image: dockermediacloud/import-stories-feedly:release
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+        depends_on:
+            # Writes stories to PostgreSQL
+            - postgresql-pgbouncer
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit (uses quite a lot of it until it OOMs)
+                    memory: "4G"
+
+    #
+    # OpenDKIM server
+    # ---------------
+    #
+    mail-opendkim-server:
+        image: dockermediacloud/mail-opendkim-server:release
+        networks:
+            - default
+        environment:
+            # Top-level domain to use for signing emails, e.g. "mediacloud.org"
+            # (keep in sync with MC_MAIL_POSTFIX_DOMAIN)
+            MC_MAIL_OPENDKIM_DOMAIN: "mediacloud.org"
+            # Mail server hostname, e.g. "mail" for "mail.mediacloud.org"
+            # (keep in sync with MC_MAIL_POSTFIX_HOSTNAME)
+            MC_MAIL_OPENDKIM_HOSTNAME: "mail"
+        expose:
+            # OpenDKIM port used by Postfix
+            - "12301"
+        volumes:
+            - vol_opendkim_config:/etc/opendkim/
+        deploy:
+            placement:
+                constraints:
+                    # Must run on the host with OpenDKIM data volume
+                    - node.labels.role-mail-opendkim == true
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "128M"
+
+    #
+    # Postfix server
+    # ---------------
+    #
+    mail-postfix-server:
+        image: dockermediacloud/mail-postfix-server:release
+        networks:
+            - default
+        environment:
+            # Top-level domain to use for signing emails, e.g. "mediacloud.org"
+            # (keep in sync with MC_MAIL_OPENDKIM_DOMAIN)
+            MC_MAIL_POSTFIX_DOMAIN: "mediacloud.org"
+            # Mail server hostname, e.g. "mail" for "mail.mediacloud.org"
+            # (keep in sync with MC_MAIL_OPENDKIM_HOSTNAME)
+            MC_MAIL_POSTFIX_HOSTNAME: "mail"
+        depends_on:
+            # Signs emails using OpenDKIM
+            - mail-opendkim-server
+        expose:
+            # Expose SMTP to mail senders
+            - "25"
+        volumes:
+            - vol_postfix_data:/var/lib/postfix/
+        deploy:
+            placement:
+                constraints:
+                    # Must run on the host with Postfix data volume
+                    - node.labels.role-mail-postfix == true
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "128M"
+
+    #
+    # Munin Cron stats collector
+    # --------------------------
+    #
+    munin-cron:
+        image: dockermediacloud/munin-cron:release
+        # Docker doesn't reap zombie processes properly
+        # (https://blog.phusion.nl/2015/01/20/docker-and-the-pid-1-zombie-reaping-problem/),
+        # and Munin runs all kinds of plugins which might not take care of their children properly.
+        init: true
+        networks:
+            - default
+        depends_on:
+            # Reads data from Munin node
+            - munin-node
+        volumes:
+            # Shared with "munin-httpd" container:
+            - vol_munin_data:/var/lib/munin/
+            # Shared with "munin-httpd" container:
+            - vol_munin_html:/var/cache/munin/www/
+        deploy:
+            placement:
+                constraints:
+                    # Must run on the same host as munin-httpd as they share two volumes
+                    - node.labels.role-munin-httpd == true
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "256M"
+
+    #
+    # Munin HTTP server
+    # -----------------
+    #
+    munin-httpd:
+        image: dockermediacloud/munin-httpd:release
+        networks:
+            - default
+        expose:
+            # Web UIs port
+            - "4948"
+        ports:
+            # For connecting to through a SSH tunnel
+            - "4948:4948"
+        depends_on:
+            # Reads data generated by Munin stats collector
+            - munin-cron
+        volumes:
+            # Shared with "munin-cron" container:
+            - vol_munin_data:/var/lib/munin/
+            # Shared with "munin-cron" container:
+            - vol_munin_html:/var/cache/munin/www/
+        deploy:
+            placement:
+                constraints:
+                    # Must run on the same host as munin-cron as they share two volumes
+                    - node.labels.role-munin-httpd == true
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "256M"
+
+    #
+    # Munin node
+    # ----------
+    #
+    munin-node:
+        image: dockermediacloud/munin-node:release
+        # Docker doesn't reap zombie processes properly
+        # (https://blog.phusion.nl/2015/01/20/docker-and-the-pid-1-zombie-reaping-problem/),
+        # and Munin runs all kinds of plugins which might not take care of their children properly.
+        init: true
+        networks:
+            - default
+        depends_on:
+            # Monitors data on PostgreSQL
+            - postgresql-pgbouncer
+            # Monitors data on Solr
+            - solr-shard-01
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "512M"
+
+    #
+    # NYT-Based News Tagger service
+    # -----------------------------
+    #
+    nytlabels-annotator:
+        image: dockermediacloud/nytlabels-annotator:release
+        networks:
+            - default
+        expose:
+            - 8080
+        deploy:
+            placement:
+                constraints:
+                    # Workers don't necessarily *have* to run on the very same host,
+                    # but if they do, they'll be able to share a single mmap'ped dataset
+                    # and thus conserve memory
+                    - node.labels.role-nytlabels-annotator == true
+            # Worker count
+            replicas: 1
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "4G"
+
+    #
+    # NYTLabels fetch annotation
+    # ----------------------
+    #
+    nytlabels-fetch-annotation:
+        image: dockermediacloud/nytlabels-fetch-annotation:release
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+        depends_on:
+            - nytlabels-annotator
+            - postgresql-pgbouncer
+            - rabbitmq-server
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            # Worker count
+            replicas: 4
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "256M"
+
+    #
+    # NYTLabels update story tags
+    # -----------------------
+    #
+    nytlabels-update-story-tags:
+        image: dockermediacloud/nytlabels-update-story-tags:release
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+            # NYTLabels version tag
+            MC_NYTLABELS_VERSION_TAG: "nyt_labeller_v1.0.0"
+            # Tag set to use for NYTLabels-derived tags
+            MC_NYTLABELS_TAG_SET: "nyt_labels"
+        depends_on:
+            - postgresql-pgbouncer
+            - rabbitmq-server
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            # Worker count
+            replicas: 1
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "256M"
+
+    #
+    # PgBouncer
+    # ---------
+    #
+    postgresql-pgbouncer:
+        image: dockermediacloud/postgresql-pgbouncer:release
+        networks:
+            - default
+        depends_on:
+            - postgresql-server
+        expose:
+            - 6432
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "256M"
+
+    #
+    # PostgreSQL server
+    # -----------------
+    #
+    postgresql-server:
+        image: dockermediacloud/postgresql-server:release
+        networks:
+            - default
+        expose:
+            - 5432
+        # Allow up to 5 minutes for PostgreSQL to stop so that it manages to
+        # flush everything from WAL before quitting; this is supposed to speed
+        # up subsequent restart
+        stop_grace_period: 5m
+        volumes:
+            - vol_postgresql_data:/var/lib/postgresql/
+        deploy:
+            placement:
+                constraints:
+                    # Must run on the host with PostgreSQL data volume
+                    - node.labels.role-postgresql-server == true
+
+    #
+    # Cron job that updates Let's Encrypt certificates used by reverse proxy
+    # ----------------------------------------------------------------------
+    #
+    proxy-cron-certbot:
+        image: dockermediacloud/proxy-cron-certbot:release
+        networks:
+            - default
+        environment:
+            # Top-level domain to issue the certificate for
+            MC_PROXY_CERTBOT_DOMAIN: "mediacloud.org"
+            # Email for Let's Encrypt's notifications
+            MC_PROXY_CERTBOT_LETSENCRYPT_EMAIL: "linas@media.mit.edu"
+            # CloudFlare account email
+            MC_PROXY_CERTBOT_CLOUDFLARE_EMAIL: ""
+            # CloudFlare account global API key
+            MC_PROXY_CERTBOT_CLOUDFLARE_GLOBAL_API_KEY: ""
+        volumes:
+            # Shared with "proxy-httpd" container:
+            - vol_proxy_ssl_certs:/etc/letsencrypt/
+        deploy:
+            placement:
+                constraints:
+                    # Must run on the same host as proxy-httpd as they share a volume
+                    - node.labels.role-proxy-httpd == true
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "256M"
+
+    #
+    # SSL terminating reverse proxy
+    # -----------------------------
+    #
+    proxy-httpd:
+        image: dockermediacloud/proxy-httpd:release
+        networks:
+            - default
+        ports:
+            # HTTP and HTTPS ports
+            - "80:80"
+            - "443:443"
+        volumes:
+            # Shared with "proxy_cron_certbot" container:
+            - vol_proxy_ssl_certs:/etc/letsencrypt/
+        depends_on:
+            # Requires SSL certificate to run
+            - proxy-cron-certbot
+            # Proxies to main app
+            - webapp-httpd
+        deploy:
+            placement:
+                constraints:
+                    # Must run on the same host as proxy-cron-certbot as they share a volume
+                    - node.labels.role-proxy-httpd == true
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "256M"
+
+    #
+    # Purge PostgreSQL object caches
+    # ------------------------------------
+    #
+    purge-object-caches:
+        image: dockermediacloud/purge-object-caches:release
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+        depends_on:
+            - postgresql-pgbouncer
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "256M"
+
+    #
+    # RabbitMQ
+    # --------
+    #
+    rabbitmq-server:
+        image: dockermediacloud/rabbitmq-server:release
+        # Docker doesn't reap zombie processes properly
+        # (https://blog.phusion.nl/2015/01/20/docker-and-the-pid-1-zombie-reaping-problem/)
+        # and Erlang gets SIGCHLD signals from Docker for whatever reason
+        # making it "forget" about reaping the zombies itself, so we have to
+        # run Tini (Docker's init) for this service:
+        init: true
+        networks:
+            - default
+        expose:
+            - "5672"
+            - "15672"
+        ports:
+            # For connecting to through a SSH tunnel
+            - "15672:15672"
+        volumes:
+            - vol_rabbitmq_data:/var/lib/rabbitmq/
+        deploy:
+            placement:
+                constraints:
+                    # Must run on the host with RabbitMQ data volume
+                    - node.labels.role-rabbitmq-server == true
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "4"
+                    # RAM limit
+                    memory: "2G"
+
+    #
+    # (Re)scrape media
+    # ----------------
+    #
+    rescrape-media:
+        image: dockermediacloud/rescrape-media:release
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+        depends_on:
+            - postgresql-pgbouncer
+            - rabbitmq-server
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            # Worker count
+            replicas: 2
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "512M"
+
+    #
+    # Fetch sitemap pages from media
+    # ------------------------------
+    #
+    sitemap-fetch-media-pages:
+        image: dockermediacloud/sitemap-fetch-media-pages:release
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "2G"
+
+    #
+    # Solr shards 01-24
+    # -----------------
+    #
+    solr-shard-01:
+        <<: *solr-shard_base
+        volumes:
+            - vol_solr_shard_data_01:/var/lib/solr/
+        ports:
+            # For connecting to through a SSH tunnel
+            - "8983:8983"
+        deploy:
+            <<: *solr-shard_base_deploy_resources
+            <<: *solr-shard_base_deploy_placement_host1
+
+    solr-shard-02:
+        <<: *solr-shard_base
+        volumes:
+            - vol_solr_shard_data_02:/var/lib/solr/
+        deploy:
+            <<: *solr-shard_base_deploy_resources
+            <<: *solr-shard_base_deploy_placement_host1
+
+    solr-shard-03:
+        <<: *solr-shard_base
+        volumes:
+            - vol_solr_shard_data_03:/var/lib/solr/
+        deploy:
+            <<: *solr-shard_base_deploy_resources
+            <<: *solr-shard_base_deploy_placement_host1
+
+    solr-shard-04:
+        <<: *solr-shard_base
+        volumes:
+            - vol_solr_shard_data_04:/var/lib/solr/
+        deploy:
+            <<: *solr-shard_base_deploy_resources
+            <<: *solr-shard_base_deploy_placement_host1
+
+    solr-shard-05:
+        <<: *solr-shard_base
+        volumes:
+            - vol_solr_shard_data_05:/var/lib/solr/
+        deploy:
+            <<: *solr-shard_base_deploy_resources
+            <<: *solr-shard_base_deploy_placement_host1
+
+    solr-shard-06:
+        <<: *solr-shard_base
+        volumes:
+            - vol_solr_shard_data_06:/var/lib/solr/
+        deploy:
+            <<: *solr-shard_base_deploy_resources
+            <<: *solr-shard_base_deploy_placement_host1
+
+    solr-shard-07:
+        <<: *solr-shard_base
+        volumes:
+            - vol_solr_shard_data_07:/var/lib/solr/
+        deploy:
+            <<: *solr-shard_base_deploy_resources
+            <<: *solr-shard_base_deploy_placement_host1
+
+    solr-shard-08:
+        <<: *solr-shard_base
+        volumes:
+            - vol_solr_shard_data_08:/var/lib/solr/
+        deploy:
+            <<: *solr-shard_base_deploy_resources
+            <<: *solr-shard_base_deploy_placement_host1
+
+    solr-shard-09:
+        <<: *solr-shard_base
+        volumes:
+            - vol_solr_shard_data_09:/var/lib/solr/
+        deploy:
+            <<: *solr-shard_base_deploy_resources
+            <<: *solr-shard_base_deploy_placement_host2
+
+    solr-shard-10:
+        <<: *solr-shard_base
+        volumes:
+            - vol_solr_shard_data_10:/var/lib/solr/
+        deploy:
+            <<: *solr-shard_base_deploy_resources
+            <<: *solr-shard_base_deploy_placement_host2
+
+    solr-shard-11:
+        <<: *solr-shard_base
+        volumes:
+            - vol_solr_shard_data_11:/var/lib/solr/
+        deploy:
+            <<: *solr-shard_base_deploy_resources
+            <<: *solr-shard_base_deploy_placement_host2
+
+    solr-shard-12:
+        <<: *solr-shard_base
+        volumes:
+            - vol_solr_shard_data_12:/var/lib/solr/
+        deploy:
+            <<: *solr-shard_base_deploy_resources
+            <<: *solr-shard_base_deploy_placement_host2
+
+    solr-shard-13:
+        <<: *solr-shard_base
+        volumes:
+            - vol_solr_shard_data_13:/var/lib/solr/
+        deploy:
+            <<: *solr-shard_base_deploy_resources
+            <<: *solr-shard_base_deploy_placement_host2
+
+    solr-shard-14:
+        <<: *solr-shard_base
+        volumes:
+            - vol_solr_shard_data_14:/var/lib/solr/
+        deploy:
+            <<: *solr-shard_base_deploy_resources
+            <<: *solr-shard_base_deploy_placement_host2
+
+    solr-shard-15:
+        <<: *solr-shard_base
+        volumes:
+            - vol_solr_shard_data_15:/var/lib/solr/
+        deploy:
+            <<: *solr-shard_base_deploy_resources
+            <<: *solr-shard_base_deploy_placement_host2
+
+    solr-shard-16:
+        <<: *solr-shard_base
+        volumes:
+            - vol_solr_shard_data_16:/var/lib/solr/
+        deploy:
+            <<: *solr-shard_base_deploy_resources
+            <<: *solr-shard_base_deploy_placement_host2
+
+    solr-shard-17:
+        <<: *solr-shard_base
+        volumes:
+            - vol_solr_shard_data_17:/var/lib/solr/
+        deploy:
+            <<: *solr-shard_base_deploy_resources
+            <<: *solr-shard_base_deploy_placement_host3
+
+    solr-shard-18:
+        <<: *solr-shard_base
+        volumes:
+            - vol_solr_shard_data_18:/var/lib/solr/
+        deploy:
+            <<: *solr-shard_base_deploy_resources
+            <<: *solr-shard_base_deploy_placement_host3
+
+    solr-shard-19:
+        <<: *solr-shard_base
+        volumes:
+            - vol_solr_shard_data_19:/var/lib/solr/
+        deploy:
+            <<: *solr-shard_base_deploy_resources
+            <<: *solr-shard_base_deploy_placement_host3
+
+    solr-shard-20:
+        <<: *solr-shard_base
+        volumes:
+            - vol_solr_shard_data_20:/var/lib/solr/
+        deploy:
+            <<: *solr-shard_base_deploy_resources
+            <<: *solr-shard_base_deploy_placement_host3
+
+    solr-shard-21:
+        <<: *solr-shard_base
+        volumes:
+            - vol_solr_shard_data_21:/var/lib/solr/
+        deploy:
+            <<: *solr-shard_base_deploy_resources
+            <<: *solr-shard_base_deploy_placement_host3
+
+    solr-shard-22:
+        <<: *solr-shard_base
+        volumes:
+            - vol_solr_shard_data_22:/var/lib/solr/
+        deploy:
+            <<: *solr-shard_base_deploy_resources
+            <<: *solr-shard_base_deploy_placement_host3
+
+    solr-shard-23:
+        <<: *solr-shard_base
+        volumes:
+            - vol_solr_shard_data_23:/var/lib/solr/
+        deploy:
+            <<: *solr-shard_base_deploy_resources
+            <<: *solr-shard_base_deploy_placement_host3
+
+    solr-shard-24:
+        <<: *solr-shard_base
+        volumes:
+            - vol_solr_shard_data_24:/var/lib/solr/
+        deploy:
+            <<: *solr-shard_base_deploy_resources
+            <<: *solr-shard_base_deploy_placement_host3
+
+    #
+    # Solr ZooKeeper
+    # --------------
+    #
+    solr-zookeeper:
+        image: dockermediacloud/solr-zookeeper:release
+        networks:
+            - default
+        expose:
+            - 2181
+            - 2888
+            - 3888
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "1G"
+
+    #
+    # Extract story links for a topic
+    # -------------------------------
+    #
+    topics-extract-story-links:
+        image: dockermediacloud/topics-extract-story-links:release
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+        depends_on:
+            - extract-article-from-page
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            # Worker count
+            replicas: 32
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "256M"
+
+    #
+    # Fetch link for a topic
+    # ----------------------
+    #
+    topics-fetch-link:
+        image: dockermediacloud/topics-fetch-link:release
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            # Worker count
+            replicas: 8
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "256M"
+
+    #
+    # Fetch Twitter URLs
+    # ------------------
+    #
+    topics-fetch-twitter-urls:
+        image: dockermediacloud/topics-fetch-twitter-urls:release
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+            <<: *twitter-api-configuration
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            # Worker count
+            replicas: 8
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "256M"
+
+    #
+    # Generate retweeter scores
+    # -------------------------
+    #
+    topics-generate-retweeter-scores:
+        image: dockermediacloud/topics-generate-retweeter-scores:release
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+            <<: *twitter-api-configuration
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            # Worker count
+            replicas: 1
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "256M"
+
+    #
+    # Mine a topic
+    # ------------
+    #
+    topics-mine:
+        image: dockermediacloud/topics-mine:release
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+            <<: *twitter-api-configuration
+            <<: *crimson-hexagon-api-configuration
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            # Worker count
+            replicas: 4
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "2G"
+
+    #
+    # Mine a public topic
+    # -------------------
+    #
+    topics-mine-public:
+        image: dockermediacloud/topics-mine-public:release
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+            <<: *twitter-api-configuration
+            <<: *crimson-hexagon-api-configuration
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            # Worker count
+            replicas: 4
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "2G"
+
+    #
+    # Snapshot a topic
+    # ----------------
+    #
+    topics-snapshot:
+        image: dockermediacloud/topics-snapshot:release
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+            # Not sure what this is.
+            MC_TOPICS_SNAPSHOT_MODEL_REPS: "0"
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            # Worker count
+            replicas: 2
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "2G"
+
+    #
+    # Webapp (Plackup FastCGI workers)
+    # --------------------------------
+    #
+    webapp-api:
+        image: dockermediacloud/webapp-api:release
+        networks:
+            - default
+        expose:
+            # Plackup FastCGI worker port to be used by webapp_httpd
+            - "9090"
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            # FastCGI workers
+            replicas: 8
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "1G"
+
+    #
+    # Webapp (HTTP server)
+    # --------------------
+    #
+    webapp-httpd:
+        image: dockermediacloud/webapp-httpd:release
+        networks:
+            - default
+        expose:
+            # Expose HTTP port to reverse proxy
+            - 80
+        volumes:
+            # Shared with "cron_generate_daily_rss_dumps" container:
+            - vol_daily_rss_dumps:/mediacloud_webapp_static/static/rss_dumps/
+        deploy:
+            placement:
+                constraints:
+                    # Has its own role due to a shared volume
+                    - node.labels.role-webapp-httpd == true
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "256M"
+
+    #
+    # Generate word2vec snapshot model
+    # ----------------
+    #
+    word2vec-generate-snapshot-model:
+        image: dockermediacloud/word2vec-generate-snapshot-model:release
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+        depends_on:
+            - postgresql-pgbouncer
+            - rabbitmq-server
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            # Worker count
+            replicas: 2
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "2G"
+
+
+#
+# Networks
+# ========
+#
+networks:
+
+    # Just throw anything to this network. Typically we wouldn't have to even
+    # define it here, but some services use aliases so every service has to be
+    # explicitly added to some sort of a network.
+    default:
+        driver: overlay
+        attachable: true
+
+        ipam:
+            driver: default
+            config:
+                # Docker (Compose?) sometimes defaults to a subnet with only
+                # 255 available addresses
+                - subnet: "10.1.0.1/16"
+
+
+#
+# Volumes
+# =======
+#
+volumes:
+
+    # PostgreSQL server's data
+    vol_postgresql_data:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_postgresql_data
+
+    # Solr shard's data
+    vol_solr_shard_data_01:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_solr_shard_data_01
+
+    vol_solr_shard_data_02:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_solr_shard_data_02
+
+    vol_solr_shard_data_03:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_solr_shard_data_03
+
+    vol_solr_shard_data_04:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_solr_shard_data_04
+
+    vol_solr_shard_data_05:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_solr_shard_data_05
+
+    vol_solr_shard_data_06:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_solr_shard_data_06
+
+    vol_solr_shard_data_07:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_solr_shard_data_07
+
+    vol_solr_shard_data_08:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_solr_shard_data_08
+
+    vol_solr_shard_data_09:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_solr_shard_data_09
+
+    vol_solr_shard_data_10:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_solr_shard_data_10
+
+    vol_solr_shard_data_11:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_solr_shard_data_11
+
+    vol_solr_shard_data_12:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_solr_shard_data_12
+
+    vol_solr_shard_data_13:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_solr_shard_data_13
+
+    vol_solr_shard_data_14:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_solr_shard_data_14
+
+    vol_solr_shard_data_15:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_solr_shard_data_15
+
+    vol_solr_shard_data_16:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_solr_shard_data_16
+
+    vol_solr_shard_data_17:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_solr_shard_data_17
+
+    vol_solr_shard_data_18:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_solr_shard_data_18
+
+    vol_solr_shard_data_19:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_solr_shard_data_19
+
+    vol_solr_shard_data_20:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_solr_shard_data_20
+
+    vol_solr_shard_data_21:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_solr_shard_data_21
+
+    vol_solr_shard_data_22:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_solr_shard_data_22
+
+    vol_solr_shard_data_23:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_solr_shard_data_23
+
+    vol_solr_shard_data_24:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_solr_shard_data_24
+
+    # RabbitMQ data
+    vol_rabbitmq_data:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_rabbitmq_data
+
+    # OpenDKIM configuration and keys
+    vol_opendkim_config:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_opendkim_config
+
+    # Postfix data
+    vol_postfix_data:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_postfix_data
+
+    # Daily RSS dumps
+    # (shared between cron_generate_daily_rss_dumps and webapp-httpd)
+    vol_daily_rss_dumps:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_daily_rss_dumps
+
+    # Munin's RRD data
+    # (shared between munin_cron and munin_httpd)
+    vol_munin_data:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_munin_data
+
+    # Munin's generated HTML files
+    # (shared between munin_cron and munin_httpd)
+    vol_munin_html:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_munin_html
+
+    # Let's Encrypt certificates
+    vol_proxy_ssl_certs:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_proxy_ssl_certs

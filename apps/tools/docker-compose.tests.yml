@@ -1,0 +1,57 @@
+version: "3.7"
+
+services:
+
+    tools:
+        image: dockermediacloud/tools:latest
+        stop_signal: SIGKILL
+        volumes:
+            - type: bind
+              source: ./bin/
+              target: /opt/mediacloud/bin/
+            - type: bind
+              source: ./../common/src/
+              target: /opt/mediacloud/src/common/
+        depends_on:
+            - postgresql-pgbouncer
+            - solr-shard
+            - rabbitmq-server
+
+    postgresql-pgbouncer:
+        image: dockermediacloud/postgresql-pgbouncer:latest
+        stop_signal: SIGKILL
+        expose:
+            - 6432
+        depends_on:
+            - postgresql-server
+
+    postgresql-server:
+        image: dockermediacloud/postgresql-server:latest
+        stop_signal: SIGKILL
+        expose:
+            - 5432
+
+    solr-shard:
+        image: dockermediacloud/solr-shard:latest
+        stop_signal: SIGKILL
+        environment:
+            MC_SOLR_SHARD_COUNT: "1"
+        expose:
+            - 8983
+        depends_on:
+            - solr-zookeeper
+
+    solr-zookeeper:
+        image: dockermediacloud/solr-zookeeper:latest
+        stop_signal: SIGKILL
+        expose:
+            - 2181
+            - 2888
+            - 3888
+
+    rabbitmq-server:
+        image: dockermediacloud/rabbitmq-server:latest
+        stop_signal: SIGKILL
+        expose:
+            - 5672
+            - 15672

@@ -1,0 +1,29 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+use FindBin;
+use lib $FindBin::Bin;
+
+use MediaWords::Munin;
+
+MediaWords::Munin::plugin({
+    title => 'Media count',
+    info => 'Number of rows in "media" table',
+    vlabel => 'Count',
+    metrics => [
+        {
+            label => 'Media count',
+            color => $COLOR1,
+            value => sub {
+                my $db = shift;
+                return $db->query(<<SQL
+                    SELECT COUNT(1)
+                    FROM media
+SQL
+                )->flat->[0];
+            },
+        },
+    ],
+});

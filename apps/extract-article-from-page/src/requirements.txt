@@ -1,0 +1,9 @@
+# Finding out which Readability version we're using
+pip==18.1
+
+# Extracting text from stories
+readability-lxml==0.7
+
+# Useful for timing out tests for which the failure case is a hard hang that does not respond to signals
+timeout_decorator==0.4.1
+

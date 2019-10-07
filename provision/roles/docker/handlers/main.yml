@@ -1,0 +1,8 @@
+- name: Restart Docker
+  service:
+    name: docker
+    state: restarted
+  become: true
+  become_user: root
+  tags:
+    - docker

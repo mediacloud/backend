@@ -1,0 +1,8 @@
+# Network analysis, used for graph layout
+networkx==2.2
+
+# Numerical processing, required by ForceAtlas2
+numpy==1.16.0
+
+# Math package for forceatlas implementation
+scipy==1.2.0

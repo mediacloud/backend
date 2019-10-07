@@ -1,0 +1,98 @@
+#
+# Vagrant configuration for testing out Ansible provisioning playbook
+#
+
+Vagrant.configure("2") do |config|
+
+  config.vm.box = "ubuntu/bionic64"
+
+  config.vm.provider "virtualbox" do |v|
+    v.memory = 512
+    v.cpus = 1
+  end
+
+  N = 3
+  (1..N).each do |machine_id|
+
+    config.vm.define "machine#{machine_id}" do |machine|
+
+      machine.vm.hostname = "machine#{machine_id}"
+      machine.vm.network "private_network", ip: "192.168.77.#{20+machine_id}"
+
+      # Only execute once the Ansible provisioner when all the machines are up and ready.
+      if machine_id == N
+
+        machine.vm.provision :ansible do |ansible|
+
+          # Workaround for passing a dictionary as a variable to set the labels:
+          # https://stackoverflow.com/a/36841704
+          require 'json'
+
+          # Disable default limit to connect to all the machines
+          ansible.limit = "all"
+          ansible.playbook = "setup.yml"
+          ansible.compatibility_mode = "2.0"
+          ansible.raw_arguments = ["-vvv"]
+
+          ansible.groups = {
+
+            # Make machine1 and machine3 Docker swarm manager
+            "docker_swarm_managers" => ["machine1", "machine2"],
+
+            # machine3 would then be a sole worker
+            # (in reality, there would be only three or so managers and many workers, but here
+            # we want to test whether managers are able to join into a single swarm)
+            "docker_swarm_workers" => ["machine3"],
+
+            "all_groups:children" => ["docker_swarm_managers", "docker_swarm_workers"],
+
+            "all_groups:vars" => {
+
+              # Vagrant private network's interface:
+              "docker_swarm_advertise_interface" => "enp0s8",
+
+            },
+          }
+
+          machine1_labels = {
+            "role-mail-opendkim" => "true",
+            "role-mail-postfix" => "true",
+            "role-munin-httpd" => "true",
+            "role-portainer" => "true",
+            "role-misc-apps" => "true",
+          }
+          machine2_labels = {
+            "role-nytlabels-annotator" => "true",
+            "role-postgresql-server" => "true",
+            "role-proxy-httpd" => "true",
+            "role-rabbitmq-server" => "true",
+            "role-misc-apps" => "true",
+          }
+          machine3_labels = {
+            "role-webapp-httpd" => "true",
+            "role-solr-shards-host1" => "true",
+            "role-solr-shards-host2" => "true",
+            "role-solr-shards-host3" => "true",
+            "role-misc-apps" => "true",
+          }
+
+          # Assign some labels just to test them out
+          ansible.host_vars = {
+            "machine1" => {
+              "docker_swarm_node_labels" => "'#{machine1_labels.to_json}'",
+            },
+
+            "machine2" => {
+              "docker_swarm_node_labels" => "'#{machine2_labels.to_json}'",
+            },
+
+            "machine3" => {
+              "docker_swarm_node_labels" => "'#{machine3_labels.to_json}'",
+            },
+          }
+
+        end
+      end
+    end
+  end
+end

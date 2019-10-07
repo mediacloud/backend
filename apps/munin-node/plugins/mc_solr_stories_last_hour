@@ -1,0 +1,35 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+use FindBin;
+use lib $FindBin::Bin;
+
+use MediaWords::Munin;
+
+MediaWords::Munin::plugin({
+    title => 'Solr stories in last hour (PostgreSQL)',
+    info => 'Solr imported stories in the last hour, as reported by PostgreSQL',
+    vlabel => 'Count',
+    metrics => [
+        {
+            label => 'Solr stories',
+            color => $COLOR2,
+            warning => { from => 2000, to => 2_000_000 },
+            critical => { from => 4000, to => 4_000_000 },
+            value => sub {
+                my $db = shift;
+                return $db->query(<<SQL
+                    SELECT COALESCE(SUM(num_stories), 0) AS imported_stories
+                    FROM (
+                        SELECT num_stories
+                        FROM solr_imports
+                        WHERE import_date >= NOW() - '1 hour'::interval
+                    ) AS last_imports
+SQL
+                )->flat->[0];
+            },
+        },
+    ],
+});

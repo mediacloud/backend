@@ -10,7 +10,7 @@ above describe how we administer our Solr cluster, including scripts we use to c
 Solr shards.
 
 The basic interaction between Solr and the rest of the platform is that we import any updated `story_sentences` into
-Solr from the PostgreSQL server every minute via the `imoport_solr_data` supervisord daemon.  That script finds which
+Solr from the PostgreSQL server every minute via the `imoport_solr_data`.  That script finds which
 stories to import by using the `solr_import_stories` postgres table.  Rows are added to that table by triggers
 associated with the `stories` and `stories_tags_map` tables.
 
@@ -41,7 +41,7 @@ allow much faster grouping and also gives us stored values without requiring ext
 `title` fields are not stored because storing the values takes about twice as much space (which also impacts
 performance because it requires more memory use).
 
-For more information about the Solr import process, see [MediaWords::Solr::Dump](lib/MediaWords/Solr/Dump.pm).
+For more information about the Solr import process, see `import-solr-data`.
 
 Reads from the Solr database are performed through the [MediaWords::Solr](lib/MediaWords/Solr.pm) module for Perl code
 in the codebase and through the API (which itself uses Solr.pm) by external clients.

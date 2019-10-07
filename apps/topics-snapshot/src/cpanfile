@@ -1,0 +1,2 @@
+requires 'Statistics::Basic';
+requires 'XML::Simple';

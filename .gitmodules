@@ -1,18 +1,27 @@
-[submodule "mediacloud/mediawords/languages/hi/hindi-hunspell"]
-	path = mediacloud/mediawords/languages/hi/hindi-hunspell
-	url = https://github.com/Shreeshrii/hindi-hunspell.git
-[submodule "doc/github-markdown-toc"]
-	path = doc/api_2_0_spec/github-markdown-toc
+[submodule "doc/api_2_0_spec/github-markdown-toc"]
+	path = doc/github-markdown-toc
 	url = https://github.com/ekalinin/github-markdown-toc.git
-[submodule "lib/MediaWords/Util/Mail/Message/Templates/email-templates"]
-	path = lib/MediaWords/Util/Mail/Message/Templates/email-templates
+[submodule "apps/nytlabels-annotator/src/MediaCloud-NYT-News-Labeler"]
+	path = apps/nytlabels-annotator/src/MediaCloud-NYT-News-Labeler
+	url = https://github.com/mitmedialab/MediaCloud-NYT-News-Labeler.git
+[submodule "apps/common/src/python/mediawords/languages/hi/hindi-hunspell"]
+	path = apps/common/src/python/mediawords/languages/hi/hindi-hunspell
+	url = https://github.com/berkmancenter/mediacloud-hindi-hunspell.git
+[submodule "apps/common/src/perl/MediaWords/Util/Mail/Message/Templates/email-templates"]
+	path = apps/common/src/perl/MediaWords/Util/Mail/Message/Templates/email-templates
 	url = https://github.com/berkmancenter/mediacloud-email-templates.git
-[submodule "mediacloud/snowball"]
-	path = mediacloud/snowball
-	url = https://github.com/snowballstem/snowball.git
-[submodule "mediacloud/mediawords/languages/ca/snowball_stemmer"]
-	path = mediacloud/mediawords/languages/ca/snowball_stemmer
+[submodule "apps/common/src/python/mediawords/languages/ca/snowball_stemmer"]
+	path = apps/common/src/python/mediawords/languages/ca/snowball_stemmer
 	url = https://github.com/berkmancenter/mediacloud-catalan-stemmer.git
-[submodule "mediacloud/mediawords/languages/lt/snowball_stemmer"]
-	path = mediacloud/mediawords/languages/lt/snowball_stemmer
+[submodule "apps/common/src/python/mediawords/languages/lt/snowball_stemmer"]
+	path = apps/common/src/python/mediawords/languages/lt/snowball_stemmer
 	url = https://github.com/berkmancenter/mediacloud-lithuanian-stemmer.git
+[submodule "apps/common/src/python/snowball"]
+	path = apps/common/src/python/snowball
+	url = https://github.com/snowballstem/snowball.git
+[submodule "doc/images"]
+	path = doc/images
+	url = https://github.com/berkmancenter/mediacloud-docs-images.git
+[submodule "apps/cliff-annotator/src/CLIFF"]
+	path = apps/cliff-annotator/src/CLIFF
+	url = https://github.com/berkmancenter/mediacloud-cliff-annotator.git

@@ -1,0 +1,2 @@
+# Word2vec topic models
+gensim==3.6.0

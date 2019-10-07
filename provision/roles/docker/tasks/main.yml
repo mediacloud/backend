@@ -1,0 +1,189 @@
+- name: Include variables
+  include_vars: ../vars/main.yml
+  tags:
+    - docker
+
+- name: Remove old Docker versions
+  apt:
+    name:
+      - containerd
+      - docker
+      - docker-engine
+      - docker.io
+      - runc
+    state: absent
+  become: true
+  become_user: root
+  tags:
+    - docker
+
+- name: Add Docker GPG key
+  apt_key:
+    url: "https://download.docker.com/linux/ubuntu/gpg"
+    state: present
+  become: true
+  become_user: root
+  tags:
+    - docker
+
+- name: Add Docker APT repository
+  apt_repository:
+    repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_lsb.codename | lower }} stable"
+    state: present
+    filename: "docker-ce"
+    update_cache: true
+  become: true
+  become_user: root
+  tags:
+    - docker
+
+- name: Find out specific Docker APT package version to install
+  shell: "apt-cache madison docker-ce | grep {{ docker_version }} | awk '{ print $3 }'"
+  changed_when: false
+  register: docker_apt_version
+  tags:
+    - docker
+
+- name: Print Docker APT version that will be installed
+  debug:
+    var: docker_apt_version.stdout
+  tags:
+    - docker
+
+- name: Make sure that Docker APT package version was found
+  fail:
+    msg: The system may not be provisioned according to the CMDB status.
+  when: docker_apt_version.stdout == ""
+  tags:
+    - docker
+
+- name: Install Docker
+  apt:
+    name:
+      - "docker-ce={{ docker_apt_version.stdout }}"
+      - "docker-ce-cli={{ docker_apt_version.stdout }}"
+      - "containerd.io"
+    state: present
+    install_recommends: false
+    
+    # Workaround to enable --allow-downgrades
+    # (systems that are being deployed to might have a newer version(s) installed)
+    force: true
+    force_apt_get: true
+
+  become: true
+  become_user: root
+  tags:
+    - docker
+
+- name: Prevent Docker from getting automatically upgraded
+  dpkg_selections:
+    name: "{{ item }}"
+    selection: hold
+  with_items:
+    - "docker-ce"
+    - "docker-ce-cli"
+  become: true
+  become_user: root
+  tags:
+    - docker
+
+- name: Configure Docker logging
+  copy:
+    content: |
+      {
+        "log-driver": "json-file",
+        "log-opts": {
+          "max-size": "{{ docker_log_json_max_size }}",
+          "max-file": "{{ docker_log_json_max_file }}"
+        }
+      }
+    dest: /etc/docker/daemon.json
+  notify: "Restart Docker"
+  become: true
+  become_user: root
+  tags:
+    - docker    
+
+- name: Start Docker
+  service:
+    name: docker
+    state: started
+  become: true
+  become_user: root
+  tags:
+    - docker
+
+# User might need to re-login afterwards
+- name: Allow current user to access Docker
+  user:
+    name: "{{ ansible_user_id }}"
+    groups: docker
+    append: true
+  become: true
+  become_user: root
+  tags:
+    - docker
+
+- name: Install Pip and Setuptools
+  apt:
+    name:
+      - python3-pip
+      # Required by docker-compose:
+      - python3-setuptools
+    state: present
+    install_recommends: false
+  become: true
+  become_user: root
+  tags:
+    - docker
+
+# For Ansible to be able to manage Docker swarms and such
+- name: "Install 'docker' Python module"
+  pip:
+    name: docker==3.7.3
+    state: present
+    # Use Python 3.5 explicitly in order to not mix it up with Python 3.7 from old, non-containerized system
+    # FIXME revert back to "pip3" after removing Python 3.7 from host system
+    executable: /usr/bin/pip3
+  become: true
+  become_user: root
+  tags:
+    - docker
+
+- name: Install docker-compose
+  pip:
+    name: docker-compose>=1.22.0
+    state: present
+    # Use Python 3.5 explicitly in order to not mix it up with Python 3.7 from old, non-containerized system
+    # FIXME revert back to "pip3" after removing Python 3.7 from host system
+    executable: /usr/bin/pip3
+  become: true
+  become_user: root
+  tags:
+    - docker
+
+- name: Add PATH to Docker's Cron job
+  cron:
+    name: PATH
+    env: true
+    job: /usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+    cron_file: /etc/cron.d/docker-system-prune
+    user: root
+  become: true
+  become_user: root
+  tags:
+    - docker
+
+- name: Add Cron job to clean up old Docker images / containers / networks / cache
+  cron:
+    name: "Clean up old Docker images / containers / networks / cache"
+    job: "docker system prune -f > /dev/null"
+    cron_file: /etc/cron.d/docker-system-prune
+    user: root
+    # Nothing's wrong about running it even more often than daily:
+    special_time: hourly
+  become: true
+  become_user: root
+  tags:
+    - docker

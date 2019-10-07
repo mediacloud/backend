@@ -1,3 +1,20 @@
+<!-- MEDIACLOUD-TOC-START -->
+
+Table of Contents
+=================
+
+   * [Story Processing Flow](#story-processing-flow)
+      * [Order of Operations](#order-of-operations)
+      * [Crawler](#crawler)
+      * [Extractor](#extractor)
+      * [Processed Stories ID](#processed-stories-id)
+      * [Solr Importer](#solr-importer)
+      * [NYT Themes](#nyt-themes)
+
+----
+<!-- MEDIACLOUD-TOC-END -->
+
+
 Story Processing Flow
 =====================
 
@@ -6,8 +23,7 @@ This document provides an overview of the data processing flow for each story.
 The overall process is documented in [story_processing_flow.pdf](diagrams/story_processing_flow.pdf).
 
 The story processing flow consists of five components: the crawler, the extractor, the solr
-import, and the geotagger.  The crawler and extractor all run via
-[supervisor](supervisor.markdown)  on the core media cloud server.  The extractor all run as jobs. The geotagger runs from a separate codebase on a separate server.  The Solr import process runs from
+import, and the geotagger. The extractor all run as jobs. The geotagger runs from a separate codebase on a separate server.  The Solr import process runs from
 the same code base but from a separate machine in the production media cloud setup.
 
 Media Cloud organizes its content collection around media sources, feeds, and stories.  Media sources are publications

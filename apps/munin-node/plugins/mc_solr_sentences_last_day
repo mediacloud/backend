@@ -1,0 +1,98 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+use FindBin;
+use lib $FindBin::Bin;
+
+use MediaWords::Munin;
+use JSON;
+use URI;
+use LWP::Simple qw($ua get);
+
+MediaWords::Munin::plugin({
+    title => 'Solr sentences in last day',
+    info => 'Solr imported sentences in the last day, as reported by Solr',
+    vlabel => 'Count',
+    metrics => [
+        {
+            label => 'Solr sentences',
+            color => $COLOR2,
+            warning => { from => sub {
+                if ( MediaWords::Munin::should_expect_weekend_traffic() ) {
+                    return 2_500_000;
+                } else {
+                    return 4_500_000;
+                }
+            } },
+            critical => { from => sub {
+                if ( MediaWords::Munin::should_expect_weekend_traffic() ) {
+                    return 2_000_000;
+                } else {
+                    return 4_000_000;
+                }
+            } },
+            value => sub {
+
+                my $db = shift;
+
+                my $solr_url = $ENV{ 'MC_SOLR_URL' };
+                unless ( defined $solr_url ) {
+                    say STDERR "Solr URL is not set, falling back to the default one.";
+                    $solr_url = 'http://127.0.0.1:7981/solr';
+                }
+
+                my $stories_id_from_last_day = $db->query(<<SQL
+                    SELECT stories_id AS stories_id_from_last_day
+                    FROM stories
+                    WHERE collect_date >= NOW() - '1 day'::interval
+                    ORDER BY collect_date
+                    LIMIT 1
+SQL
+                )->flat->[0];
+                unless ( defined $stories_id_from_last_day ) {
+                    print STDERR "No stories since yesterday\n";
+                    return 0;
+                }
+
+                my $solr_uri = URI->new( $solr_url )->canonical;
+                my @solr_path_segments = $solr_uri->path_segments;
+                push ( @solr_path_segments, 'collection1' );
+                push ( @solr_path_segments, 'select' );
+                $solr_uri->path_segments( @solr_path_segments );
+
+                $solr_uri->query_form(
+                    q => 'stories_id:[' . $stories_id_from_last_day . ' TO *]',
+                    rows => 0,
+                    wt => 'json',
+                    indent => 'true',
+                );
+
+                $ua->timeout( 10 );
+                my $response;
+                eval {
+                    $response = get( $solr_uri->as_string );
+                };
+                if ( $@ or (! $response )) {
+                    die "Unable to get response from Solr: $@\n";
+                }
+
+                my $json_response;
+                eval {
+                    $json_response = decode_json( $response );
+                };
+                if ( $@ or (! $json_response )) {
+                    die "Unable to decode JSON response: $@\n";
+                }
+
+                my $num_found = $json_response->{ response }->{ numFound };
+                unless ( defined $num_found ) {
+                    die "Unable to read /response/numFound key";
+                }
+                
+                return $num_found;
+            },
+        },
+    ],
+});

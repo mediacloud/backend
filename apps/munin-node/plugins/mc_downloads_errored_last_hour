@@ -1,0 +1,44 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+use FindBin;
+use lib $FindBin::Bin;
+
+use MediaWords::Munin;
+
+MediaWords::Munin::plugin({
+    title => 'Errored downloads in last hour (%)',
+    info => 'Downloads with state = "error" in the last hour (percentage)',
+    vlabel => '% of downloads',
+    scale => 'no',
+    args => '--upper-limit 100 -l 0',
+    metrics => [
+        {
+            label => '% of errored downloads',
+            color => $COLOR10,
+            warning => { to => 10 },    # 10%
+            critical => { to => 30 },   # 30%
+            value => sub {
+                my $db = shift;
+                return $db->query(<<SQL
+                    SELECT
+                        CASE
+                            WHEN all_downloads = 0 THEN 0.0
+                            ELSE ROUND(100.0 * errored_downloads / all_downloads, 1)
+                        END AS errored_percentage
+                    FROM (
+                        SELECT COUNT(1) AS all_downloads,
+                        COUNT(CASE WHEN state = 'error' THEN 1 ELSE null END) AS errored_downloads
+                        FROM downloads d
+                            join feeds f on ( f.feeds_id = d.feeds_id )
+                        WHERE download_time > NOW() - '1 hour'::interval
+                            and f.active = 't'
+                    ) AS all_err_downloads
+SQL
+                )->flat->[0];
+            },
+        },
+    ],
+});

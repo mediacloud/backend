@@ -1,0 +1,2 @@
+# m h dom mon dow user          command
+46  3 *   *   sun mediacloud    /opt/mediacloud/bin/cron_refresh_stats.pl 1> /dev/stdout 2> /dev/stderr

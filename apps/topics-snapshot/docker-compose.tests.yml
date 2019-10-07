@@ -1,0 +1,79 @@
+version: "3.7"
+
+services:
+
+    topics-snapshot:
+        image: dockermediacloud/topics-snapshot:latest
+        stop_signal: SIGKILL
+        environment:
+            MC_TOPICS_SNAPSHOT_MODEL_REPS: "0"
+        volumes:
+            - type: bind
+              source: ./bin/
+              target: /opt/mediacloud/bin/
+            - type: bind
+              source: ./src/
+              target: /opt/mediacloud/src/topics-snapshot/
+            - type: bind
+              source: ./tests/
+              target: /opt/mediacloud/tests/
+            - type: bind
+              source: ./../topics-base/src/
+              target: /opt/mediacloud/src/topics-base/
+            - type: bind
+              source: ./../common/src/
+              target: /opt/mediacloud/src/common/
+        depends_on:
+            - postgresql-pgbouncer
+            - solr-shard
+            - rabbitmq-server
+            - import-solr-data-for-testing
+
+    import-solr-data-for-testing:
+        image: dockermediacloud/import-solr-data-for-testing:latest
+        environment:
+            MC_SOLR_IMPORT_JOBS: 1
+            MC_SOLR_IMPORT_MAX_QUEUED_STORIES: 100000
+        stop_signal: SIGKILL
+        depends_on:
+            - postgresql-pgbouncer
+            - solr-shard
+
+    postgresql-pgbouncer:
+        image: dockermediacloud/postgresql-pgbouncer:latest
+        stop_signal: SIGKILL
+        expose:
+            - 6432
+        depends_on:
+            - postgresql-server
+
+    postgresql-server:
+        image: dockermediacloud/postgresql-server:latest
+        stop_signal: SIGKILL
+        expose:
+            - 5432
+
+    solr-shard:
+        image: dockermediacloud/solr-shard:latest
+        stop_signal: SIGKILL
+        environment:
+            MC_SOLR_SHARD_COUNT: "1"
+        expose:
+            - 8983
+        depends_on:
+            - solr-zookeeper
+
+    solr-zookeeper:
+        image: dockermediacloud/solr-zookeeper:latest
+        stop_signal: SIGKILL
+        expose:
+            - 2181
+            - 2888
+            - 3888
+
+    rabbitmq-server:
+        image: dockermediacloud/rabbitmq-server:latest
+        stop_signal: SIGKILL
+        expose:
+            - 5672
+            - 15672

@@ -1,0 +1,92 @@
+# Amazon S3
+boto3==1.9.78
+
+# HTML parsing and stripping
+beautifulsoup4==4.7.1
+
+# Job broker
+Celery==4.3
+
+# Detect encodings of web responses
+chardet==3.0.4
+
+# Language identification
+cld2-cffi==0.1.4
+
+# Colorful sentence diffs in unit tests
+colorama==0.4.1
+
+# Unit test coverage
+coverage==4.5.2
+
+# Some modules require latest version of this
+cryptography==2.4.2
+
+# Hindi stemming
+CyHunspell==1.3.0
+
+# Guessing publication dates of stories
+date_guesser==2.1.4
+
+# Stemming Hausa words
+hausastemmer==1.0
+
+# Code conventions
+flake8==3.6.0
+
+# URL manipulation
+furl==2.0.0
+
+# Chinese language tokenizer, stemmer, etc.
+jieba==0.39
+
+# Parsing email templates
+Jinja2==2.10.1
+
+# One of Celery's dependencies (here just for PyCharm to stop complaining)
+kombu==4.5.0
+
+# XML manipulations, HTML parsing
+lxml==4.3.0
+
+# Japanese language tokenizer, stemmer, etc.
+mecab-python3==0.996.1
+
+# Natural language processing, e.g. tokenization
+nltk==3.4.5
+
+# PostgreSQL access
+psycopg2-binary==2.7.6.1
+
+# Snowball stemmer (NLTK's implementation doesn't support Turkish)
+PyStemmer==1.3.0
+
+# Unit tests
+pytest==3.8.0
+
+# Test coverage
+pytest-cov==2.6.0
+
+# Timezone handling
+pytz==2018.9
+
+# Date parsing
+python-dateutil==2.7.5
+
+# Making HTTP requests
+requests==2.21.0
+
+# Asynchronous (parallell / concurrent) HTTP requests
+requests-futures==0.9.9
+
+# Splitting text into sentences using Lingua::Sentence's method
+sentence_splitter==1.3
+
+# Celery PostgreSQL result backend support
+sqlalchemy==1.3.3
+
+# Normalizing URLs
+url_normalize==1.4.1
+
+# Low level HTTP requests (with SSL certificate verification)
+urllib3[secure]==1.24.2

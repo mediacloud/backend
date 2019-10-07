@@ -1,0 +1,51 @@
+- name: Create swarm
+  docker_swarm:
+    state: present
+    advertise_addr: "{{ docker_swarm_advertise_interface }}"
+  become: true
+  become_user: root
+  # Run only on the first host defined as a swarm manager:
+  when: inventory_hostname == groups.docker_swarm_managers[0]
+  register: docker_swarm_info
+  tags:
+    - docker-swarm-manager
+
+- name: Print swarm information
+  debug:
+    var: docker_swarm_info
+    verbosity: 3
+  # Run only on the first host defined as a swarm manager:
+  when: inventory_hostname == groups.docker_swarm_managers[0]
+  tags:
+    - docker-swarm-manager
+
+- name: Set fact of manager join token
+  set_fact:
+    swarm_manager_join_token: "{{ docker_swarm_info.swarm_facts.JoinTokens.Manager }}"
+  # Register on all hosts:
+  run_once: true
+  tags:
+    - docker-swarm-manager
+
+- name: Set fact of leader's advertised interface
+  set_fact:
+    leader_advertised_interface_manager: "{{ hostvars[groups.docker_swarm_managers[0]]['docker_swarm_advertise_interface'] }}"
+  # Register on all hosts:
+  run_once: true
+  tags:
+    - docker-swarm-manager
+
+- name: Add remaining managers to swarm
+  docker_swarm:
+    state: join
+    advertise_addr: "{{ docker_swarm_advertise_interface }}"
+    join_token: "{{ swarm_manager_join_token }}"
+    remote_addrs:
+      # IP address of first host in swarm manager group
+      - "{{ hostvars[groups.docker_swarm_managers[0]]['ansible_%s' % leader_advertised_interface_manager]['ipv4']['address'] }}:2377"
+  become: true
+  become_user: root
+  # Run only on hosts that didn't initialize the swarm:
+  when: inventory_hostname != groups.docker_swarm_managers[0]
+  tags:
+    - docker-swarm-manager

@@ -1,0 +1,7 @@
+# m h dom mon dow user          command
+
+# Daily:
+34  4 *   *   *   mediacloud    /opt/mediacloud/bin/cron_generate_user_summary.pl 1> /dev/stdout 2> /dev/stderr
+
+# Weekly:
+22  5 *   *   sun mediacloud    /opt/mediacloud/bin/cron_generate_user_summary.pl --new 7 --activity 7 1> /dev/stdout 2> /dev/stderr

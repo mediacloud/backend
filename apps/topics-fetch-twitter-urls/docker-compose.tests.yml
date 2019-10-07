@@ -1,0 +1,69 @@
+version: "3.7"
+
+services:
+
+    topics-fetch-twitter-urls:
+        image: dockermediacloud/topics-fetch-twitter-urls:latest
+        stop_signal: SIGKILL
+        environment:
+            MC_TWITTER_CONSUMER_KEY: "${MC_TWITTER_CONSUMER_KEY}"
+            MC_TWITTER_CONSUMER_SECRET: "${MC_TWITTER_CONSUMER_SECRET}"
+            MC_TWITTER_ACCESS_TOKEN: "${MC_TWITTER_ACCESS_TOKEN}"
+            MC_TWITTER_ACCESS_TOKEN_SECRET: "${MC_TWITTER_ACCESS_TOKEN_SECRET}"
+        volumes:
+            - type: bind
+              source: ./bin/
+              target: /opt/mediacloud/bin/
+            - type: bind
+              source: ./src/
+              target: /opt/mediacloud/src/topics-fetch-twitter-urls/
+            - type: bind
+              source: ./tests/
+              target: /opt/mediacloud/tests/
+            - type: bind
+              source: ./../topics-base/src/
+              target: /opt/mediacloud/src/topics-base/
+            - type: bind
+              source: ./../common/src/
+              target: /opt/mediacloud/src/common/
+        depends_on:
+            - postgresql-pgbouncer
+            # 1) _add_tweet_story() calls generate_story()
+            # 2) generate_story() calls _extract_story()
+            # 3) _extract_story() runs a remote extraction job
+            - extract-and-vector
+            - rabbitmq-server
+
+    extract-and-vector:
+        image: dockermediacloud/extract-and-vector:latest
+        stop_signal: SIGKILL
+        depends_on:
+            - postgresql-pgbouncer
+            - extract-article-from-page
+
+    extract-article-from-page:
+        image: dockermediacloud/extract-article-from-page:latest
+        stop_signal: SIGKILL
+        expose:
+            - 8080
+
+    postgresql-pgbouncer:
+        image: dockermediacloud/postgresql-pgbouncer:latest
+        stop_signal: SIGKILL
+        expose:
+            - 6432
+        depends_on:
+            - postgresql-server
+
+    postgresql-server:
+        image: dockermediacloud/postgresql-server:latest
+        stop_signal: SIGKILL
+        expose:
+            - 5432
+
+    rabbitmq-server:
+        image: dockermediacloud/rabbitmq-server:latest
+        stop_signal: SIGKILL
+        expose:
+            - 5672
+            - 15672

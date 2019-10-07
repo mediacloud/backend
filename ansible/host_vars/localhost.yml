@@ -1,4 +1,0 @@
----
-
-# On localhost, we're assuming that the Media Cloud repo has been already checked out
-mediacloud_root: "{{ playbook_dir }}/../"
