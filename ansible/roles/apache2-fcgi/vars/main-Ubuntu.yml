@@ -1,8 +1,0 @@
-apache2_conf_path: /etc/apache2/
-apache2_conf_httpd_conf_path: /etc/apache2/apache2.conf
-apache2_modules_path: /usr/lib/apache2/modules/
-apache2_mod_fcgid_path: /usr/lib/apache2/modules/mod_fcgid.so
-apache2_log_path: /var/log/apache2
-apache2_http_port: 80
-apache2_https_port: 443
-apache2_conf_become: true

@@ -1,0 +1,3 @@
+requires 'Digest::SHA';
+requires 'Domain::PublicSuffix';
+requires 'HTML::LinkExtractor';

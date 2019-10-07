@@ -1,8 +1,0 @@
-# Ignore everything in this directory
-*
-# Except some files
-!.gitignore
-!README.md
-!index.html
-!rss_dumps
-

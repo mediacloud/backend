@@ -1,0 +1,48 @@
+# Replace installed Docker with a newer version
+# * 18.09.2 is what we run on Mac; 18.06 provided by APT repository is too old
+# * Installing from .tgz because APT package for a needed version is not available for Trusty
+steps:
+
+- task: UsePythonVersion@0
+  inputs:
+    versionSpec: "3.7"
+    addToPath: true
+
+- script: sudo service docker stop
+  displayName: Stop Docker
+
+- script: sudo apt-get -y remove docker docker-engine docker.io containerd runc
+  displayName: Remove old Docker
+
+- script: sudo apt-get -y install apt-transport-https ca-certificates curl gnupg-agent software-properties-common
+  displayName: Install utils for adding APT repository
+
+- script: curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+  displayName: Import Docker repository's GPG key
+
+- script: sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+  displayName: Add Docker APT repository
+
+- script: sudo apt-get -y update
+  displayName: Update APT package listing
+
+- script: sudo apt-get -y install docker-ce=5:18.09.2~3-0~ubuntu-xenial docker-ce-cli=5:18.09.2~3-0~ubuntu-xenial containerd.io
+  displayName: Install Docker
+
+- script: sudo service docker start
+  displayName: Start Docker
+
+- script: sudo apt-get -y install libssl-dev libffi-dev
+  displayName: Install dependencies for python3-cryptography (required by docker-compose)
+
+- script: pip install -U docker-compose
+  displayName: Upgrade docker-compose
+
+- script: uname -a
+  displayName: Print kernel version
+
+- script: docker version
+  displayName: Print Docker version
+
+- script: docker-compose version
+  displayName: Print docker-compose version

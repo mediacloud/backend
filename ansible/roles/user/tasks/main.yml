@@ -1,5 +1,0 @@
-- name: Create Media Cloud user
-  user:
-    name: "{{ mediacloud_user }}"
-  tags:
-    - user

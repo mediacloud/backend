@@ -1,0 +1,52 @@
+version: "3.7"
+
+services:
+
+    extract-and-vector:
+        image: dockermediacloud/extract-and-vector:latest
+        stop_signal: SIGKILL
+        volumes:
+            - type: bind
+              source: ./bin/
+              target: /opt/mediacloud/bin/
+            - type: bind
+              source: ./src/
+              target: /opt/mediacloud/src/extract-and-vector/
+            - type: bind
+              source: ./tests/
+              target: /opt/mediacloud/tests/
+            - type: bind
+              source: ./../common/src/
+              target: /opt/mediacloud/src/common/
+        depends_on:
+            - extract-article-from-page
+            - postgresql-pgbouncer
+            # process_extracted_story() will try to add story to CLIFF / NYTLabels queue:
+            - rabbitmq-server
+
+    extract-article-from-page:
+        image: dockermediacloud/extract-article-from-page:latest
+        stop_signal: SIGKILL
+        expose:
+            - 8080
+
+    postgresql-pgbouncer:
+        image: dockermediacloud/postgresql-pgbouncer:latest
+        stop_signal: SIGKILL
+        expose:
+            - 6432
+        depends_on:
+            - postgresql-server
+
+    postgresql-server:
+        image: dockermediacloud/postgresql-server:latest
+        stop_signal: SIGKILL
+        expose:
+            - 5432
+
+    rabbitmq-server:
+        image: dockermediacloud/rabbitmq-server:latest
+        stop_signal: SIGKILL
+        expose:
+            - 5672
+            - 15672

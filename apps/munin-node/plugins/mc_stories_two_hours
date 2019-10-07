@@ -1,0 +1,50 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+use FindBin;
+use lib $FindBin::Bin;
+
+use MediaWords::Munin;
+
+MediaWords::Munin::plugin({
+    title => 'Stories in last 2 hours',
+    info => 'Stories in the last 2 hours',
+    vlabel => 'Stories',
+    metrics => [
+        {
+            label => 'Stories',
+            color => $COLOR2,
+            warning => { from => 10_000 },
+            critical => { from => 5000 },
+            value => sub {
+                
+                my $db = shift;
+
+                my $story_count = $db->query(<<SQL
+                    SELECT (max_stories_id - stories_id_from_last_2_hours) AS stories_in_past_2_hours
+                    FROM (
+                        SELECT stories_id AS stories_id_from_last_2_hours
+                        FROM stories
+                        WHERE collect_date >= NOW() - '2 hours'::interval
+                        ORDER BY collect_date
+                        LIMIT 1
+                    ) AS s1,
+                    (
+                        SELECT MAX(stories_id) AS max_stories_id
+                        FROM stories
+                    ) AS s2
+SQL
+                )->flat->[0];
+
+                unless ( defined $story_count ) {
+                    print STDERR "No stories in last 2 hours.\n";
+                    return 0;
+                }
+
+                return $story_count;
+            },
+        },
+    ],
+});

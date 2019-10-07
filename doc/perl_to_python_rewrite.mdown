@@ -1,3 +1,28 @@
+<!-- MEDIACLOUD-TOC-START -->
+
+Table of Contents
+=================
+
+   * [Perl -&gt; Python rewrite caveats](#perl---python-rewrite-caveats)
+      * [General](#general)
+         * [Translate strings coming from Perl to Python as bytes](#translate-strings-coming-from-perl-to-python-as-bytes)
+         * [Add comment with MC_REWRITE_TO_PYTHON string near transitional code](#add-comment-with-mc_rewrite_to_python-string-near-transitional-code)
+         * [Don't attempt to modify values returned from Python](#dont-attempt-to-modify-values-returned-from-python)
+         * [Don't use @property in Python code that gets called by Perl](#dont-use-property-in-python-code-that-gets-called-by-perl)
+         * [Don't call Perl code from Python](#dont-call-perl-code-from-python)
+         * [Avoid using global module variables in Python](#avoid-using-global-module-variables-in-python)
+         * [Keep in mind that Python booleans get returned as Inline::Python::Boolean](#keep-in-mind-that-python-booleans-get-returned-as-inlinepythonboolean)
+      * [Database](#database)
+         * [Pass 't' or <code>'f'</code> instead of integers for boolean fields](#pass-t-or-f-instead-of-integers-for-boolean-fields)
+         * [Avoid using quote() on Perl side](#avoid-using-quote-on-perl-side)
+         * [Pass LIKE pattern string as a parameter](#pass-like-pattern-string-as-a-parameter)
+         * [Be wary about using literal \x in SQL queries](#be-wary-about-using-literal--in-sql-queries)
+         * [Don't use pass-by-reference trick to create()](#dont-use-pass-by-reference-trick-to-create)
+
+----
+<!-- MEDIACLOUD-TOC-END -->
+
+
 # Perl -> Python rewrite caveats
 
 ## General

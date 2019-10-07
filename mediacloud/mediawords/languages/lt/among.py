@@ -1,1 +1,0 @@
-../../../snowball/python/snowballstemmer/among.py

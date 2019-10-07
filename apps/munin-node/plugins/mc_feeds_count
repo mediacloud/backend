@@ -1,0 +1,29 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+use FindBin;
+use lib $FindBin::Bin;
+
+use MediaWords::Munin;
+
+MediaWords::Munin::plugin({
+    title => 'Feed count',
+    info => 'Number of rows in "feeds" table',
+    vlabel => 'Count',
+    metrics => [
+        {
+            label => 'Feed count',
+            color => $COLOR1,
+            value => sub {
+                my $db = shift;
+                return $db->query(<<SQL
+                    SELECT COUNT(1)
+                    FROM feeds
+SQL
+                )->flat->[0];
+            },
+        },
+    ],
+});

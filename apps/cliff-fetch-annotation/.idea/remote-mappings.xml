@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="RemoteMappingsManager">
+    <list>
+      <list>
+        <remote-mappings server-id="python@docker-compose://[/Users/pypt/Dropbox/etc-MediaCloud/trunk/apps/cliff-fetch-annotation/docker-compose.tests.yml]:cliff-fetch-annotation/python3" />
+      </list>
+    </list>
+  </component>
+</project>

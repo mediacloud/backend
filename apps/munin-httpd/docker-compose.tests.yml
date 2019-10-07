@@ -1,0 +1,81 @@
+version: "3.7"
+
+services:
+
+    munin-httpd:
+        image: dockermediacloud/munin-httpd:latest
+        stop_signal: SIGKILL
+        ports:
+            # Expose to host for debugging
+            - "8081:8080"
+        volumes:
+            - type: bind
+              source: ./lighttpd/
+              target: /etc/lighttpd/
+            # Shared with munin-cron:
+            - vol_munin_data:/var/lib/munin/
+            - vol_munin_html:/var/cache/munin/www/
+        depends_on:
+            - munin-cron
+
+    munin-cron:
+        image: dockermediacloud/munin-cron:latest
+        stop_signal: SIGKILL
+        volumes:
+            - type: bind
+              source: ./../munin-cron/munin-conf.d/
+              target: /etc/munin/munin-conf.d/
+            # Shared with munin-httpd:
+            - vol_munin_data:/var/lib/munin/
+            - vol_munin_html:/var/cache/munin/www/
+        depends_on:
+            - munin-node
+
+    munin-node:
+        image: dockermediacloud/munin-node:latest
+        stop_signal: SIGKILL
+        volumes:
+            - type: bind
+              source: ./../munin-node/plugins/
+              target: /etc/munin/plugins/
+        depends_on:
+            # Monitors a bunch of stuff on PostgreSQL
+            - postgresql-pgbouncer
+            # Monitors stuff on Solr too
+            - solr-shard
+
+    postgresql-pgbouncer:
+        image: dockermediacloud/postgresql-pgbouncer:latest
+        stop_signal: SIGKILL
+        expose:
+            - 6432
+        depends_on:
+            - postgresql-server
+
+    postgresql-server:
+        image: dockermediacloud/postgresql-server:latest
+        stop_signal: SIGKILL
+        expose:
+            - 5432
+
+    solr-shard:
+        image: dockermediacloud/solr-shard:latest
+        stop_signal: SIGKILL
+        environment:
+            MC_SOLR_SHARD_COUNT: "1"
+        expose:
+            - 8983
+        depends_on:
+            - solr-zookeeper
+
+    solr-zookeeper:
+        image: dockermediacloud/solr-zookeeper:latest
+        stop_signal: SIGKILL
+        expose:
+            - 2181
+            - 2888
+            - 3888
+
+volumes:
+    vol_munin_data: {}
+    vol_munin_html: {}

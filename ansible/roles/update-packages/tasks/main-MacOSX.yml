@@ -1,8 +1,0 @@
----
-
-- name: Update Homebrew
-  homebrew:
-    update_homebrew: yes
-  tags:
-    - update-packages
-    - update-packages-macosx

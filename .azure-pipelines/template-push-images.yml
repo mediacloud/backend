@@ -1,0 +1,13 @@
+steps:
+
+# Log in to Docker Hub
+- script: echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+  displayName: Log in to Docker Hub
+  env:
+    # Map Docker Hub credentials to environment variables
+    DOCKERHUB_USERNAME: $(DOCKERHUB_USERNAME)
+    DOCKERHUB_PASSWORD: $(DOCKERHUB_PASSWORD)
+
+# Push all images to Docker Hub
+- script: ./dev/push.py
+  displayName: Push images

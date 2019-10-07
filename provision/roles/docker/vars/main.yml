@@ -1,0 +1,20 @@
+#
+# Docker version to install
+#
+# Older Docker versions have caching discrepancies, so we try to run the same version everywhere.
+#
+# Get a list of available versions by running:
+#
+#     apt-cache madison docker-ce
+#
+docker_version: "18.09.2"
+
+#
+# Maximum size of container's log before it gets rolled
+# (https://docs.docker.com/config/containers/logging/json-file/)
+#
+docker_log_json_max_size: "128m"
+
+#
+# Maximum number of log files that can be present
+docker_log_json_max_file: "64"

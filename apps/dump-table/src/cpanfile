@@ -1,0 +1,2 @@
+requires 'Fcntl';
+requires 'Parallel::ForkManager';

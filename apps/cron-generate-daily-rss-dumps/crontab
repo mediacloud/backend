@@ -1,0 +1,5 @@
+# m h dom mon dow user          command
+#
+# Run as www-data to be able to write to /var/lib/daily_rss_dumps/:
+#
+6   1 *   *   *   www-data      /opt/mediacloud/bin/cron_generate_daily_rss_dumps.pl /var/lib/daily_rss_dumps/ 1> /dev/stdout 2> /dev/stderr

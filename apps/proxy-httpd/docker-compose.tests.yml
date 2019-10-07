@@ -1,0 +1,52 @@
+version: "3.7"
+
+services:
+
+    proxy-httpd:
+        image: dockermediacloud/proxy-httpd:latest
+        ports:
+            # Expose to host for debugging
+            - "80:8080"
+            - "4443:443"
+        volumes:
+            - type: bind
+              source: ./nginx/include/
+              target: /etc/nginx/include/
+            - type: bind
+              source: ./../nginx-base/nginx/
+              target: /etc/nginx/
+            # Shared with proxy-cron-certbot:
+            - vol_proxy_ssl_certs:/etc/letsencrypt/
+        depends_on:
+            - proxy-cron-certbot
+            - webapp-httpd
+
+    proxy-cron-certbot:
+        image: dockermediacloud/proxy-cron-certbot:latest
+        environment:
+            MC_PROXY_CERTBOT_DOMAIN: "mediacloud.org"
+            MC_PROXY_CERTBOT_LETSENCRYPT_EMAIL: "linas@media.mit.edu"
+            MC_PROXY_CERTBOT_CLOUDFLARE_EMAIL: "${MC_PROXY_CERTBOT_CLOUDFLARE_EMAIL}"
+            MC_PROXY_CERTBOT_CLOUDFLARE_GLOBAL_API_KEY: "${MC_PROXY_CERTBOT_CLOUDFLARE_GLOBAL_API_KEY}"
+        volumes:
+            # Shared with proxy-httpd:
+            - vol_proxy_ssl_certs:/etc/letsencrypt/
+
+    webapp-httpd:
+        image: dockermediacloud/webapp-httpd:latest
+        stop_signal: SIGKILL
+        expose:
+            - "80"
+        depends_on:
+            - webapp-api
+
+    webapp-api:
+        image: dockermediacloud/webapp-api:latest
+        stop_signal: SIGKILL
+        expose:
+            - "9090"
+        # Here and elsewhere, don't start any subservices via "depends_on"
+        # because we need to only make sure that /status page works
+
+volumes:
+    vol_proxy_ssl_certs: {}

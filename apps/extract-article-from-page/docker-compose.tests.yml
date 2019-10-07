@@ -1,0 +1,22 @@
+version: "3.7"
+
+services:
+
+    extract-article-from-page:
+        image: dockermediacloud/extract-article-from-page:latest
+        stop_signal: SIGKILL
+        expose:
+            - 8080
+        volumes:
+            - type: bind
+              source: ./bin/
+              target: /opt/mediacloud/bin/
+            - type: bind
+              source: ./src/
+              target: /opt/mediacloud/src/extract-article-from-page/
+            - type: bind
+              source: ./tests/
+              target: /opt/mediacloud/tests/
+            - type: bind
+              source: ./../common/src/
+              target: /opt/mediacloud/src/common/

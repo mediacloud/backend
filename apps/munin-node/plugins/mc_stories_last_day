@@ -1,0 +1,62 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+use FindBin;
+use lib $FindBin::Bin;
+
+use MediaWords::Munin;
+
+MediaWords::Munin::plugin({
+    title => 'Stories in last day',
+    info => 'Stories in the last day',
+    vlabel => 'Stories',
+    metrics => [
+        {
+            label => 'Stories',
+            color => $COLOR2,
+            warning => { from => sub {
+                if ( MediaWords::Munin::should_expect_weekend_traffic() ) {
+                    return 200_000;
+                } else {
+                    return 300_000;
+                }
+            } },
+            critical => { from => sub {
+                if ( MediaWords::Munin::should_expect_weekend_traffic() ) {
+                    return 150_000;
+                } else {
+                    return 250_000;
+                }
+            } },
+            value => sub {
+                
+                my $db = shift;
+
+                my $story_count = $db->query(<<SQL
+                    SELECT (max_stories_id - stories_id_from_last_day) AS stories_in_past_day
+                    FROM (
+                        SELECT stories_id AS stories_id_from_last_day
+                        FROM stories
+                        WHERE collect_date >= NOW() - '1 day'::interval
+                        ORDER BY collect_date
+                        LIMIT 1
+                    ) AS s1,
+                    (
+                        SELECT MAX(stories_id) AS max_stories_id
+                        FROM stories
+                    ) AS s2
+SQL
+                )->flat->[0];
+
+                unless ( defined $story_count ) {
+                    print STDERR "No stories since yesterday.\n";
+                    return 0;
+                }
+
+                return $story_count;
+            },
+        },
+    ],
+});

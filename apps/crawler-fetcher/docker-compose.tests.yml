@@ -1,0 +1,50 @@
+version: "3.7"
+
+services:
+
+    crawler-fetcher:
+        image: dockermediacloud/crawler-fetcher:latest
+        stop_signal: SIGKILL
+        environment:
+            MC_UNIVISION_CLIENT_ID: "${MC_UNIVISION_CLIENT_ID}"
+            MC_UNIVISION_CLIENT_SECRET: "${MC_UNIVISION_CLIENT_SECRET}"
+            # Used by Univision test only
+            MC_UNIVISION_TEST_URL: "${MC_UNIVISION_TEST_URL}"
+        volumes:
+            - type: bind
+              source: ./bin/
+              target: /opt/mediacloud/bin/
+            - type: bind
+              source: ./src/
+              target: /opt/mediacloud/src/crawler-fetcher/
+            - type: bind
+              source: ./tests/
+              target: /opt/mediacloud/tests/
+            - type: bind
+              source: ./../common/src/
+              target: /opt/mediacloud/src/common/
+        depends_on:
+            - postgresql-pgbouncer
+            # Fetcher's test will try to add downloaded downloads to extractor's queue
+            - rabbitmq-server
+
+    postgresql-pgbouncer:
+        image: dockermediacloud/postgresql-pgbouncer:latest
+        stop_signal: SIGKILL
+        expose:
+            - 6432
+        depends_on:
+            - postgresql-server
+
+    postgresql-server:
+        image: dockermediacloud/postgresql-server:latest
+        stop_signal: SIGKILL
+        expose:
+            - 5432
+
+    rabbitmq-server:
+        image: dockermediacloud/rabbitmq-server:latest
+        stop_signal: SIGKILL
+        expose:
+            - 5672
+            - 15672

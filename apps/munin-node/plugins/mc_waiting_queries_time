@@ -1,0 +1,32 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+use FindBin;
+use lib $FindBin::Bin;
+
+use MediaWords::Munin;
+
+MediaWords::Munin::plugin({
+    title => 'Waiting queries: total time',
+    info => 'Queries that are waiting for >1 minute: total time',
+    vlabel => 'Minutes',
+    metrics => [
+        {
+            label => 'Waiting queries',
+            color => $COLOR2,
+            warning => { to => 3600 },
+            value => sub {
+                my $db = shift;
+                return $db->query(<<SQL
+                    SELECT COALESCE(SUM((EXTRACT(epoch FROM (NOW() - query_start)) / 60)::int), 0) AS minutes_waiting
+                    FROM pg_stat_activity
+                    WHERE state NOT LIKE 'idle%'
+                      AND query_start < NOW() - '10 minute'::interval
+SQL
+                )->flat->[0];
+            },
+        },
+    ],
+});
