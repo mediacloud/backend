@@ -34,7 +34,7 @@ services:
                     - mail-postfix-server
 
     mail-opendkim-server:
-        image: dockermediacloud/mail-opendkim-server:containers_release
+        image: dockermediacloud/mail-opendkim-server:latest
         environment:
             MC_MAIL_OPENDKIM_DOMAIN: "mediacloud.org"
             MC_MAIL_OPENDKIM_HOSTNAME: "mail"

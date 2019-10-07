@@ -22,7 +22,7 @@ services:
             - cron-generate-daily-rss-dumps
 
     cron-generate-daily-rss-dumps:
-        image: dockermediacloud/cron-generate-daily-rss-dumps:containers_release
+        image: dockermediacloud/cron-generate-daily-rss-dumps:latest
         stop_signal: SIGKILL
         volumes:
             # Shared with "webapp-httpd":
