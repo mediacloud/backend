@@ -45,10 +45,6 @@ RUN \
     python2 /usr/src/predict-news-labels/download_models.py && \
     true
 
-# Copy mock HTTP server
-# FIXME remove
-COPY bin/mock_nytlabels_annotator.py /
-
 # Tagger port
 EXPOSE 8080
 
@@ -59,10 +55,4 @@ WORKDIR /usr/src/predict-news-labels/
 
 USER nobody
 
-# Run annotator
-# FIXME uncomment
-#CMD ["/usr/local/bin/gunicorn", "-b", ":8080", "-t", "900", "app:app"]
-
-# Run mock HTTP server
-# FIXME remove
-CMD ["/mock_nytlabels_annotator.py"]
+CMD ["/usr/local/bin/gunicorn", "-b", ":8080", "-t", "900", "app:app"]
