@@ -56,8 +56,8 @@ def _docker_pull_commands(all_apps_dir: str, image_tag: str, docker_hub_username
             #    "latest", i.e. mark them as the latest local build to be later used for rebuilding and running tests
 
             pull_branch = 'docker pull {image}:{tag}'.format(image=image, tag=image_tag)
-            pull_master = 'docker pull {image}:containers_master'.format(image=image)
-            tag_master_as_branch = 'docker tag {image}:containers_master {image}:{tag}'.format(image=image, tag=image_tag)
+            pull_master = 'docker pull {image}:master'.format(image=image)
+            tag_master_as_branch = 'docker tag {image}:master {image}:{tag}'.format(image=image, tag=image_tag)
             tag_branch_as_latest = 'docker tag {image}:{tag} {image}:latest'.format(image=image, tag=image_tag)
 
             command = (
