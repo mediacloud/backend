@@ -109,7 +109,7 @@ x-crimson-hexagon-api-configuration: &crimson-hexagon-api-configuration
 # "deploy/replicas", we define every shard as its own independent service.
 #
 x-solr-shard_base:   &solr-shard_base
-    image: dockermediacloud/solr-shard:containers_release
+    image: dockermediacloud/solr-shard:release
     environment:
         # Shard count (every individual shard needs to know the total count)
         #
@@ -194,7 +194,7 @@ services:
     # -----------------------
     #
     cliff-annotator:
-        image: dockermediacloud/cliff-annotator:containers_release
+        image: dockermediacloud/cliff-annotator:release
         networks:
             - default
         expose:
@@ -216,7 +216,7 @@ services:
     # ----------------------
     #
     cliff-fetch-annotation:
-        image: dockermediacloud/cliff-fetch-annotation:containers_release
+        image: dockermediacloud/cliff-fetch-annotation:release
         networks:
             - default
         environment:
@@ -241,7 +241,7 @@ services:
     # -----------------------
     #
     cliff-update-story-tags:
-        image: dockermediacloud/cliff-update-story-tags:containers_release
+        image: dockermediacloud/cliff-update-story-tags:release
         networks:
             - default
         environment:
@@ -274,7 +274,7 @@ services:
     # ----------
     #
     crawler-ap:
-        image: dockermediacloud/crawler-ap:containers_release
+        image: dockermediacloud/crawler-ap:release
         networks:
             - default
         environment:
@@ -300,7 +300,7 @@ services:
     # ---------------
     #
     crawler-fetcher:
-        image: dockermediacloud/crawler-fetcher:containers_release
+        image: dockermediacloud/crawler-fetcher:release
         networks:
             - default
         environment:
@@ -328,7 +328,7 @@ services:
     # ----------------
     #
     crawler-provider:
-        image: dockermediacloud/crawler-provider:containers_release
+        image: dockermediacloud/crawler-provider:release
         networks:
             - default
         environment:
@@ -349,7 +349,7 @@ services:
     # ------------------------------------
     #
     create-missing-partitions:
-        image: dockermediacloud/create-missing-partitions:containers_release
+        image: dockermediacloud/create-missing-partitions:release
         networks:
             - default
         environment:
@@ -370,7 +370,7 @@ services:
     # ---------------------------------
     #
     cron-generate-daily-rss-dumps:
-        image: dockermediacloud/cron-generate-daily-rss-dumps:containers_release
+        image: dockermediacloud/cron-generate-daily-rss-dumps:release
         networks:
             - default
         environment:
@@ -398,7 +398,7 @@ services:
     # -------------------------------------
     #
     cron-generate-media-health:
-        image: dockermediacloud/cron-generate-media-health:containers_release
+        image: dockermediacloud/cron-generate-media-health:release
         networks:
             - default
         environment:
@@ -419,7 +419,7 @@ services:
     # ---------------------------------------------
     #
     cron-generate-user-summary:
-        image: dockermediacloud/cron-generate-user-summary:containers_release
+        image: dockermediacloud/cron-generate-user-summary:release
         networks:
             - default
         environment:
@@ -440,7 +440,7 @@ services:
     # -----------------------------
     #
     cron-print-long-running-job-states:
-        image: dockermediacloud/cron-print-long-running-job-states:containers_release
+        image: dockermediacloud/cron-print-long-running-job-states:release
         networks:
             - default
         environment:
@@ -461,7 +461,7 @@ services:
     # ----------------------
     #
     cron-refresh-stats:
-        image: dockermediacloud/cron-refresh-stats:containers_release
+        image: dockermediacloud/cron-refresh-stats:release
         networks:
             - default
         environment:
@@ -482,7 +482,7 @@ services:
     # ----------------------------------------------
     #
     cron-rescrape-due-media:
-        image: dockermediacloud/cron-rescrape-due-media:containers_release
+        image: dockermediacloud/cron-rescrape-due-media:release
         networks:
             - default
         environment:
@@ -504,7 +504,7 @@ services:
     # ----------------------------------
     #
     cron-rescraping-changes:
-        image: dockermediacloud/cron-rescraping-changes:containers_release
+        image: dockermediacloud/cron-rescraping-changes:release
         networks:
             - default
         environment:
@@ -525,7 +525,7 @@ services:
     # -----------------------------------
     #
     cron-set-media-primary-language:
-        image: dockermediacloud/cron-set-media-primary-language:containers_release
+        image: dockermediacloud/cron-set-media-primary-language:release
         networks:
             - default
         environment:
@@ -546,7 +546,7 @@ services:
     # -----------------------------------
     #
     cron-set-media-subject-country:
-        image: dockermediacloud/cron-set-media-subject-country:containers_release
+        image: dockermediacloud/cron-set-media-subject-country:release
         networks:
             - default
         environment:
@@ -567,7 +567,7 @@ services:
     # --------------------------
     #
     extract-and-vector:
-        image: dockermediacloud/extract-and-vector:containers_release
+        image: dockermediacloud/extract-and-vector:release
         networks:
             - default
         environment:
@@ -592,7 +592,7 @@ services:
     # -----------------------------------
     #
     extract-article-from-page:
-        image: dockermediacloud/extract-article-from-page:containers_release
+        image: dockermediacloud/extract-article-from-page:release
         networks:
             - default
         environment:
@@ -616,7 +616,7 @@ services:
     # -------------------------------
     #
     facebook-fetch-story-stats:
-        image: dockermediacloud/facebook-fetch-story-stats:containers_release
+        image: dockermediacloud/facebook-fetch-story-stats:release
         networks:
             - default
         environment:
@@ -646,7 +646,7 @@ services:
     # ------------------------
     #
     import-solr-data:
-        image: dockermediacloud/import-solr-data:containers_release
+        image: dockermediacloud/import-solr-data:release
         networks:
             - default
         environment:
@@ -673,7 +673,7 @@ services:
     # ---------------------------------
     #
     import-stories-feedly:
-        image: dockermediacloud/import-stories-feedly:containers_release
+        image: dockermediacloud/import-stories-feedly:release
         networks:
             - default
         environment:
@@ -695,7 +695,7 @@ services:
     # ---------------
     #
     mail-opendkim-server:
-        image: dockermediacloud/mail-opendkim-server:containers_release
+        image: dockermediacloud/mail-opendkim-server:release
         networks:
             - default
         environment:
@@ -727,7 +727,7 @@ services:
     # ---------------
     #
     mail-postfix-server:
-        image: dockermediacloud/mail-postfix-server:containers_release
+        image: dockermediacloud/mail-postfix-server:release
         networks:
             - default
         environment:
@@ -762,7 +762,7 @@ services:
     # --------------------------
     #
     munin-cron:
-        image: dockermediacloud/munin-cron:containers_release
+        image: dockermediacloud/munin-cron:release
         # Docker doesn't reap zombie processes properly
         # (https://blog.phusion.nl/2015/01/20/docker-and-the-pid-1-zombie-reaping-problem/),
         # and Munin runs all kinds of plugins which might not take care of their children properly.
@@ -794,7 +794,7 @@ services:
     # -----------------
     #
     munin-httpd:
-        image: dockermediacloud/munin-httpd:containers_release
+        image: dockermediacloud/munin-httpd:release
         networks:
             - default
         expose:
@@ -828,7 +828,7 @@ services:
     # ----------
     #
     munin-node:
-        image: dockermediacloud/munin-node:containers_release
+        image: dockermediacloud/munin-node:release
         # Docker doesn't reap zombie processes properly
         # (https://blog.phusion.nl/2015/01/20/docker-and-the-pid-1-zombie-reaping-problem/),
         # and Munin runs all kinds of plugins which might not take care of their children properly.
@@ -854,7 +854,7 @@ services:
     # -----------------------------
     #
     nytlabels-annotator:
-        image: dockermediacloud/nytlabels-annotator:containers_release
+        image: dockermediacloud/nytlabels-annotator:release
         networks:
             - default
         expose:
@@ -880,7 +880,7 @@ services:
     # ----------------------
     #
     nytlabels-fetch-annotation:
-        image: dockermediacloud/nytlabels-fetch-annotation:containers_release
+        image: dockermediacloud/nytlabels-fetch-annotation:release
         networks:
             - default
         environment:
@@ -905,7 +905,7 @@ services:
     # -----------------------
     #
     nytlabels-update-story-tags:
-        image: dockermediacloud/nytlabels-update-story-tags:containers_release
+        image: dockermediacloud/nytlabels-update-story-tags:release
         networks:
             - default
         environment:
@@ -933,7 +933,7 @@ services:
     # ---------
     #
     postgresql-pgbouncer:
-        image: dockermediacloud/postgresql-pgbouncer:containers_release
+        image: dockermediacloud/postgresql-pgbouncer:release
         networks:
             - default
         depends_on:
@@ -954,7 +954,7 @@ services:
     # -----------------
     #
     postgresql-server:
-        image: dockermediacloud/postgresql-server:containers_release
+        image: dockermediacloud/postgresql-server:release
         networks:
             - default
         expose:
@@ -976,7 +976,7 @@ services:
     # ----------------------------------------------------------------------
     #
     proxy-cron-certbot:
-        image: dockermediacloud/proxy-cron-certbot:containers_release
+        image: dockermediacloud/proxy-cron-certbot:release
         networks:
             - default
         environment:
@@ -1008,7 +1008,7 @@ services:
     # -----------------------------
     #
     proxy-httpd:
-        image: dockermediacloud/proxy-httpd:containers_release
+        image: dockermediacloud/proxy-httpd:release
         networks:
             - default
         ports:
@@ -1040,7 +1040,7 @@ services:
     # ------------------------------------
     #
     purge-object-caches:
-        image: dockermediacloud/purge-object-caches:containers_release
+        image: dockermediacloud/purge-object-caches:release
         networks:
             - default
         environment:
@@ -1061,7 +1061,7 @@ services:
     # --------
     #
     rabbitmq-server:
-        image: dockermediacloud/rabbitmq-server:containers_release
+        image: dockermediacloud/rabbitmq-server:release
         # Docker doesn't reap zombie processes properly
         # (https://blog.phusion.nl/2015/01/20/docker-and-the-pid-1-zombie-reaping-problem/)
         # and Erlang gets SIGCHLD signals from Docker for whatever reason
@@ -1095,7 +1095,7 @@ services:
     # ----------------
     #
     rescrape-media:
-        image: dockermediacloud/rescrape-media:containers_release
+        image: dockermediacloud/rescrape-media:release
         networks:
             - default
         environment:
@@ -1119,7 +1119,7 @@ services:
     # ------------------------------
     #
     sitemap-fetch-media-pages:
-        image: dockermediacloud/sitemap-fetch-media-pages:containers_release
+        image: dockermediacloud/sitemap-fetch-media-pages:release
         networks:
             - default
         environment:
@@ -1337,7 +1337,7 @@ services:
     # --------------
     #
     solr-zookeeper:
-        image: dockermediacloud/solr-zookeeper:containers_release
+        image: dockermediacloud/solr-zookeeper:release
         networks:
             - default
         expose:
@@ -1358,7 +1358,7 @@ services:
     # -------------------------------
     #
     topics-extract-story-links:
-        image: dockermediacloud/topics-extract-story-links:containers_release
+        image: dockermediacloud/topics-extract-story-links:release
         networks:
             - default
         environment:
@@ -1381,7 +1381,7 @@ services:
     # ----------------------
     #
     topics-fetch-link:
-        image: dockermediacloud/topics-fetch-link:containers_release
+        image: dockermediacloud/topics-fetch-link:release
         networks:
             - default
         environment:
@@ -1402,7 +1402,7 @@ services:
     # ------------------
     #
     topics-fetch-twitter-urls:
-        image: dockermediacloud/topics-fetch-twitter-urls:containers_release
+        image: dockermediacloud/topics-fetch-twitter-urls:release
         networks:
             - default
         environment:
@@ -1424,7 +1424,7 @@ services:
     # -------------------------
     #
     topics-generate-retweeter-scores:
-        image: dockermediacloud/topics-generate-retweeter-scores:containers_release
+        image: dockermediacloud/topics-generate-retweeter-scores:release
         networks:
             - default
         environment:
@@ -1446,7 +1446,7 @@ services:
     # ------------
     #
     topics-mine:
-        image: dockermediacloud/topics-mine:containers_release
+        image: dockermediacloud/topics-mine:release
         networks:
             - default
         environment:
@@ -1469,7 +1469,7 @@ services:
     # -------------------
     #
     topics-mine-public:
-        image: dockermediacloud/topics-mine-public:containers_release
+        image: dockermediacloud/topics-mine-public:release
         networks:
             - default
         environment:
@@ -1492,7 +1492,7 @@ services:
     # ----------------
     #
     topics-snapshot:
-        image: dockermediacloud/topics-snapshot:containers_release
+        image: dockermediacloud/topics-snapshot:release
         networks:
             - default
         environment:
@@ -1515,7 +1515,7 @@ services:
     # --------------------------------
     #
     webapp-api:
-        image: dockermediacloud/webapp-api:containers_release
+        image: dockermediacloud/webapp-api:release
         networks:
             - default
         expose:
@@ -1537,7 +1537,7 @@ services:
     # --------------------
     #
     webapp-httpd:
-        image: dockermediacloud/webapp-httpd:containers_release
+        image: dockermediacloud/webapp-httpd:release
         networks:
             - default
         expose:
@@ -1563,7 +1563,7 @@ services:
     # ----------------
     #
     word2vec-generate-snapshot-model:
-        image: dockermediacloud/word2vec-generate-snapshot-model:containers_release
+        image: dockermediacloud/word2vec-generate-snapshot-model:release
         networks:
             - default
         environment:
