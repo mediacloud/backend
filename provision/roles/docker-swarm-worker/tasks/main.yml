@@ -18,6 +18,14 @@
   tags:
     - docker-swarm-worker
 
+- name: Set fact of leader's advertised interface
+  set_fact:
+    leader_advertised_interface_worker: "{{ hostvars[groups.docker_swarm_managers[0]]['docker_swarm_advertise_interface'] }}"
+  # Register on all hosts:
+  run_once: true
+  tags:
+    - docker-swarm-worker
+
 - name: Add node to swarm
   docker_swarm:
     state: join
@@ -25,7 +33,7 @@
     join_token: "{{ swarm_worker_join_token }}"
     remote_addrs:
       # IP address of first host in swarm manager group
-      - "{{ hostvars[groups.docker_swarm_managers[0]]['ansible_%s' % docker_swarm_advertise_interface]['ipv4']['address'] }}:2377"
+      - "{{ hostvars[groups.docker_swarm_managers[0]]['ansible_%s' % leader_advertised_interface_worker]['ipv4']['address'] }}:2377"
   become: true
   become_user: root
   tags:
