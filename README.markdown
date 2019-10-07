@@ -22,7 +22,7 @@ Please send us a note at [info@mediacloud.org](info@mediacloud.org) if you are u
 Build Status
 ------------
 
-[![Build Status](https://media-cloud.visualstudio.com/mc-backend/_apis/build/status/mediacloud?branchName=containers/release)](https://media-cloud.visualstudio.com/mc-backend/_build/latest?definitionId=1&branchName=containers/release)
+[![Build Status](https://media-cloud.visualstudio.com/mc-backend/_apis/build/status/mediacloud?branchName=release)](https://media-cloud.visualstudio.com/mc-backend/_build/latest?definitionId=1&branchName=release)
 
 
 History of the Project
