@@ -46,6 +46,17 @@ Hosts that participate in the same Docker swarm should be able to connect **to e
   * 7946
 * ESP (IP protocol 50)
 
+Sample UFW commands (assuming that `192.168.1.0/24` are Docker swarm nodes):
+
+```bash
+ufw allow from 192.168.1.0/24 to any port 2376 proto tcp comment "Media Cloud: Docker Swarm"
+ufw allow from 192.168.1.0/24 to any port 2377 proto tcp comment "Media Cloud: Docker Swarm"
+ufw allow from 192.168.1.0/24 to any port 7946 proto tcp comment "Media Cloud: Docker Swarm"
+ufw allow from 192.168.1.0/24 to any port 4789 proto udp comment "Media Cloud: Docker Swarm"
+ufw allow from 192.168.1.0/24 to any port 7946 proto udp comment "Media Cloud: Docker Swarm"
+ufw allow from 192.168.1.0/24 to any proto esp comment "Media Cloud: Docker Swarm"
+```
+
 ### Webapp
 
 Host that exposes webapp to the public will have to have the following ports open:
