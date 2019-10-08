@@ -54,6 +54,7 @@ x-common-configuration: &common-configuration
     # (optional) Semicolon-separated domains that might need HTTP auth credentials
     # to work
     # Example: "username:password@domain.com;username2:password2@domain2.org"
+    # Escape dollar signs ("$") by using double dollar signs ("$$").
     #MC_USERAGENT_AUTHENTICATED_DOMAINS: ""
 
     # parallel_get() parallel connection count
