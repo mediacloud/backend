@@ -50,6 +50,9 @@ RUN \
         htop \
         # Pinging other containers from within Compose environment
         iputils-ping \
+        # Sending mail via sendmail utility through mail-postfix-server
+        msmtp \
+        msmtp-mta \
         # Provides killall among other utilities
         psmisc \
         less \
@@ -58,8 +61,6 @@ RUN \
         netcat \
         # Some packages insist on logging to syslog
         rsyslog \
-        # Sending mail via sendmail utility through mail-postfix-server
-        ssmtp \
         tzdata \
         # Basic editor for files in container while debugging
         # (full vim doesn't cut it because it's too big and also installs
@@ -78,6 +79,9 @@ COPY bin/rsyslog.inc.sh /
 
 # Copy memory limit helper
 COPY bin/container_memory_limit.sh /
+
+# Copy MSMTP configuration
+COPY conf/msmtprc conf/msmtp-aliases /etc/
 
 # Generate and set locale
 RUN \
@@ -100,9 +104,3 @@ RUN \
     echo "* soft nofile 65536" >> /etc/security/limits.conf && \
     echo "* hard nofile 65536" >> /etc/security/limits.conf && \
     true
-
-# Configure sSMTP to relay mail to Postfix
-RUN \
-    sed -i -e "s/^mailhub=.*/mailhub=mail-postfix-server:25/" /etc/ssmtp/ssmtp.conf && \
-    true
-
