@@ -20,6 +20,9 @@ ENV LANGUAGE en_US
 # by default.
 ENV PYTHONUNBUFFERED 1
 
+# Don't create .pyc files
+ENV PYTHONDONTWRITEBYTECODE 1
+
 # Use mirror closest to us
 COPY conf/apt/sources.list /etc/apt/
 
