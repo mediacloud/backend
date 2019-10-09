@@ -35,6 +35,9 @@ RUN \
     # Relay all emails with a non-localhost destination
     postconf -e mydestination=localhost && \
     #
+    # Disable IPv6
+    postconf -e inet_protocols=ipv4 && \
+    #
     # Accept email from Docker network
     postconf -e mynetworks=0.0.0.0/0 && \
     #

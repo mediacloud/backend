@@ -1,0 +1,5 @@
+#
+# Where to send local mail to
+#
+
+default: info@mediacloud.org
