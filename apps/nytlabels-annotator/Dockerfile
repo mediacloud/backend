@@ -55,4 +55,4 @@ WORKDIR /usr/src/predict-news-labels/
 
 USER nobody
 
-CMD ["/usr/local/bin/gunicorn", "-b", ":8080", "-t", "900", "app:app"]
+CMD ["/usr/local/bin/gunicorn", "-b", ":8080", "-t", "900", "--preload", "app:app"]
