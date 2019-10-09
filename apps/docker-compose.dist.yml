@@ -51,11 +51,32 @@ x-common-configuration: &common-configuration
     # "^https?://[^/]*some-website.com"
     MC_USERAGENT_BLACKLIST_URL_PATTERN: ""
 
-    # (optional) Semicolon-separated domains that might need HTTP auth credentials
+    # (optional) JSON array of dictionaries of domains that might need HTTP auth credentials
     # to work
-    # Example: "username:password@domain.com;username2:password2@domain2.org"
-    # Escape dollar signs ("$") by using double dollar signs ("$$").
-    #MC_USERAGENT_AUTHENTICATED_DOMAINS: ""
+    #
+    # Example:
+    #
+    #     [
+    #         {
+    #             "domain": "domain.com",
+    #             "username": "username1",
+    #             "password": "password1"
+    #         },
+    #         {
+    #             "domain": "domain2.org",
+    #             "username": "username2",
+    #             "password": "password2"
+    #         }
+    #     ]
+    #
+    # Make sure to:
+    #
+    # * use double quotes instead of single quotes, as per JSON spec;
+    # * escape dollar signs ("$") by using double dollar signs ("$$"), if any.
+    #
+    MC_USERAGENT_AUTHENTICATED_DOMAINS: >-
+        [
+        ]
 
     # parallel_get() parallel connection count
     MC_USERAGENT_PARALLEL_GET_NUM_PARALLEL: "10"
