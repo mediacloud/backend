@@ -979,6 +979,15 @@ services:
         image: dockermediacloud/postgresql-server:release
         networks:
             - default
+        # Increase shared memory size:
+        #
+        # https://github.com/docker-library/docs/tree/master/postgres#caveats
+        #
+        # You might want to adjust this variable to match available RAM on your host:
+        #
+        # df -h /dev/shm
+        #
+        shm_size: 2G
         expose:
             - 5432
         # Allow up to 5 minutes for PostgreSQL to stop so that it manages to
