@@ -206,6 +206,16 @@ x-misc-apps_deploy_placement_constraints:   &misc-apps_deploy_placement_constrai
 
 
 #
+# Mitigate IPVS timeouts
+# ======================
+#
+# See https://success.docker.com/article/ipvs-connection-timeout-issue
+#
+x-endpoint-mode-dnsrr:   &endpoint-mode-dnsrr
+    endpoint_mode: dnsrr
+
+
+#
 # Services
 # ========
 #
@@ -223,6 +233,7 @@ services:
             - 8080
         deploy:
             <<: *misc-apps_deploy_placement_constraints
+            <<: *endpoint-mode-dnsrr
             # Worker count
             replicas: 1
             resources:
@@ -249,6 +260,7 @@ services:
             - rabbitmq-server
         deploy:
             <<: *misc-apps_deploy_placement_constraints
+            <<: *endpoint-mode-dnsrr
             # Worker count
             replicas: 4
             resources:
@@ -281,6 +293,7 @@ services:
             - rabbitmq-server
         deploy:
             <<: *misc-apps_deploy_placement_constraints
+            <<: *endpoint-mode-dnsrr
             # Worker count
             replicas: 1
             # Auto-restart on crashes
@@ -308,6 +321,7 @@ services:
             - rabbitmq-server
         deploy:
             <<: *misc-apps_deploy_placement_constraints
+            <<: *endpoint-mode-dnsrr
             # Worker count
             replicas: 1
             resources:
@@ -336,6 +350,7 @@ services:
             - rabbitmq-server
         deploy:
             <<: *misc-apps_deploy_placement_constraints
+            <<: *endpoint-mode-dnsrr
             # Worker count
             replicas: 8
             resources:
@@ -359,6 +374,7 @@ services:
             - postgresql-pgbouncer
         deploy:
             <<: *misc-apps_deploy_placement_constraints
+            <<: *endpoint-mode-dnsrr
             resources:
                 limits:
                     # CPU core limit
@@ -380,6 +396,7 @@ services:
             - postgresql-pgbouncer
         deploy:
             <<: *misc-apps_deploy_placement_constraints
+            <<: *endpoint-mode-dnsrr
             resources:
                 limits:
                     # CPU core limit
@@ -403,6 +420,7 @@ services:
             # Shared with "webapp-httpd" container:
             - vol_daily_rss_dumps:/var/lib/daily_rss_dumps/
         deploy:
+            <<: *endpoint-mode-dnsrr
             placement:
                 constraints:
                     # Must run on the same host as the webapp-httpd server because they will be
@@ -429,6 +447,7 @@ services:
             - postgresql-pgbouncer
         deploy:
             <<: *misc-apps_deploy_placement_constraints
+            <<: *endpoint-mode-dnsrr
             resources:
                 limits:
                     # CPU core limit
@@ -450,6 +469,7 @@ services:
             - postgresql-pgbouncer
         deploy:
             <<: *misc-apps_deploy_placement_constraints
+            <<: *endpoint-mode-dnsrr
             resources:
                 limits:
                     # CPU core limit
@@ -471,6 +491,7 @@ services:
             - postgresql-pgbouncer
         deploy:
             <<: *misc-apps_deploy_placement_constraints
+            <<: *endpoint-mode-dnsrr
             resources:
                 limits:
                     # CPU core limit
@@ -492,6 +513,7 @@ services:
             - postgresql-pgbouncer
         deploy:
             <<: *misc-apps_deploy_placement_constraints
+            <<: *endpoint-mode-dnsrr
             resources:
                 limits:
                     # CPU core limit
@@ -514,6 +536,7 @@ services:
             - rabbitmq-server
         deploy:
             <<: *misc-apps_deploy_placement_constraints
+            <<: *endpoint-mode-dnsrr
             resources:
                 limits:
                     # CPU core limit
@@ -535,6 +558,7 @@ services:
             - postgresql-pgbouncer
         deploy:
             <<: *misc-apps_deploy_placement_constraints
+            <<: *endpoint-mode-dnsrr
             resources:
                 limits:
                     # CPU core limit
@@ -556,6 +580,7 @@ services:
             - postgresql-pgbouncer
         deploy:
             <<: *misc-apps_deploy_placement_constraints
+            <<: *endpoint-mode-dnsrr
             resources:
                 limits:
                     # CPU core limit
@@ -577,6 +602,7 @@ services:
             - postgresql-pgbouncer
         deploy:
             <<: *misc-apps_deploy_placement_constraints
+            <<: *endpoint-mode-dnsrr
             resources:
                 limits:
                     # CPU core limit
@@ -600,6 +626,7 @@ services:
             - rabbitmq-server
         deploy:
             <<: *misc-apps_deploy_placement_constraints
+            <<: *endpoint-mode-dnsrr
             # Worker count
             replicas: 24
             resources:
@@ -624,6 +651,7 @@ services:
             - 8080
         deploy:
             <<: *misc-apps_deploy_placement_constraints
+            <<: *endpoint-mode-dnsrr
             # Worker count
             replicas: 8
             resources:
@@ -654,6 +682,7 @@ services:
             - rabbitmq-server
         deploy:
             <<: *misc-apps_deploy_placement_constraints
+            <<: *endpoint-mode-dnsrr
             # Worker count
             replicas: 4
             resources:
@@ -683,6 +712,7 @@ services:
             - solr-shard-01
         deploy:
             <<: *misc-apps_deploy_placement_constraints
+            <<: *endpoint-mode-dnsrr
             resources:
                 limits:
                     # CPU core limit
@@ -705,6 +735,7 @@ services:
             - postgresql-pgbouncer
         deploy:
             <<: *misc-apps_deploy_placement_constraints
+            <<: *endpoint-mode-dnsrr
             resources:
                 limits:
                     # CPU core limit
@@ -733,6 +764,7 @@ services:
         volumes:
             - vol_opendkim_config:/etc/opendkim/
         deploy:
+            <<: *endpoint-mode-dnsrr
             placement:
                 constraints:
                     # Must run on the host with OpenDKIM data volume
@@ -768,6 +800,7 @@ services:
         volumes:
             - vol_postfix_data:/var/lib/postfix/
         deploy:
+            <<: *endpoint-mode-dnsrr
             placement:
                 constraints:
                     # Must run on the host with Postfix data volume
@@ -800,6 +833,7 @@ services:
             # Shared with "munin-httpd" container:
             - vol_munin_html:/var/cache/munin/www/
         deploy:
+            <<: *endpoint-mode-dnsrr
             placement:
                 constraints:
                     # Must run on the same host as munin-httpd as they share two volumes
@@ -834,6 +868,7 @@ services:
             # Shared with "munin-cron" container:
             - vol_munin_html:/var/cache/munin/www/
         deploy:
+            <<: *endpoint-mode-dnsrr
             placement:
                 constraints:
                     # Must run on the same host as munin-cron as they share two volumes
@@ -864,6 +899,7 @@ services:
             - solr-shard-01
         deploy:
             <<: *misc-apps_deploy_placement_constraints
+            <<: *endpoint-mode-dnsrr
             resources:
                 limits:
                     # CPU core limit
@@ -882,6 +918,7 @@ services:
         expose:
             - 8080
         deploy:
+            <<: *endpoint-mode-dnsrr
             placement:
                 constraints:
                     # Workers don't necessarily *have* to run on the very same host,
@@ -913,6 +950,7 @@ services:
             - rabbitmq-server
         deploy:
             <<: *misc-apps_deploy_placement_constraints
+            <<: *endpoint-mode-dnsrr
             # Worker count
             replicas: 4
             resources:
@@ -941,6 +979,7 @@ services:
             - rabbitmq-server
         deploy:
             <<: *misc-apps_deploy_placement_constraints
+            <<: *endpoint-mode-dnsrr
             # Worker count
             replicas: 1
             resources:
@@ -964,6 +1003,7 @@ services:
             - 6432
         deploy:
             <<: *misc-apps_deploy_placement_constraints
+            <<: *endpoint-mode-dnsrr
             resources:
                 limits:
                     # CPU core limit
@@ -997,6 +1037,7 @@ services:
         volumes:
             - vol_postgresql_data:/var/lib/postgresql/
         deploy:
+            <<: *endpoint-mode-dnsrr
             placement:
                 constraints:
                     # Must run on the host with PostgreSQL data volume
@@ -1023,6 +1064,7 @@ services:
             # Shared with "proxy-httpd" container:
             - vol_proxy_ssl_certs:/etc/letsencrypt/
         deploy:
+            <<: *endpoint-mode-dnsrr
             placement:
                 constraints:
                     # Must run on the same host as proxy-httpd as they share a volume
@@ -1055,6 +1097,7 @@ services:
             # Proxies to main app
             - webapp-httpd
         deploy:
+            <<: *endpoint-mode-dnsrr
             placement:
                 constraints:
                     # Must run on the same host as proxy-cron-certbot as they share a volume
@@ -1080,6 +1123,7 @@ services:
             - postgresql-pgbouncer
         deploy:
             <<: *misc-apps_deploy_placement_constraints
+            <<: *endpoint-mode-dnsrr
             resources:
                 limits:
                     # CPU core limit
@@ -1110,6 +1154,7 @@ services:
         volumes:
             - vol_rabbitmq_data:/var/lib/rabbitmq/
         deploy:
+            <<: *endpoint-mode-dnsrr
             placement:
                 constraints:
                     # Must run on the host with RabbitMQ data volume
@@ -1136,6 +1181,7 @@ services:
             - rabbitmq-server
         deploy:
             <<: *misc-apps_deploy_placement_constraints
+            <<: *endpoint-mode-dnsrr
             # Worker count
             replicas: 2
             resources:
@@ -1157,6 +1203,7 @@ services:
             <<: *common-configuration
         deploy:
             <<: *misc-apps_deploy_placement_constraints
+            <<: *endpoint-mode-dnsrr
             resources:
                 limits:
                     # CPU core limit
@@ -1178,6 +1225,7 @@ services:
         deploy:
             <<: *solr-shard_base_deploy_resources
             <<: *solr-shard_base_deploy_placement_host1
+            <<: *endpoint-mode-dnsrr
 
     solr-shard-02:
         <<: *solr-shard_base
@@ -1186,6 +1234,7 @@ services:
         deploy:
             <<: *solr-shard_base_deploy_resources
             <<: *solr-shard_base_deploy_placement_host1
+            <<: *endpoint-mode-dnsrr
 
     solr-shard-03:
         <<: *solr-shard_base
@@ -1194,6 +1243,7 @@ services:
         deploy:
             <<: *solr-shard_base_deploy_resources
             <<: *solr-shard_base_deploy_placement_host1
+            <<: *endpoint-mode-dnsrr
 
     solr-shard-04:
         <<: *solr-shard_base
@@ -1202,6 +1252,7 @@ services:
         deploy:
             <<: *solr-shard_base_deploy_resources
             <<: *solr-shard_base_deploy_placement_host1
+            <<: *endpoint-mode-dnsrr
 
     solr-shard-05:
         <<: *solr-shard_base
@@ -1210,6 +1261,7 @@ services:
         deploy:
             <<: *solr-shard_base_deploy_resources
             <<: *solr-shard_base_deploy_placement_host1
+            <<: *endpoint-mode-dnsrr
 
     solr-shard-06:
         <<: *solr-shard_base
@@ -1218,6 +1270,7 @@ services:
         deploy:
             <<: *solr-shard_base_deploy_resources
             <<: *solr-shard_base_deploy_placement_host1
+            <<: *endpoint-mode-dnsrr
 
     solr-shard-07:
         <<: *solr-shard_base
@@ -1226,6 +1279,7 @@ services:
         deploy:
             <<: *solr-shard_base_deploy_resources
             <<: *solr-shard_base_deploy_placement_host1
+            <<: *endpoint-mode-dnsrr
 
     solr-shard-08:
         <<: *solr-shard_base
@@ -1234,6 +1288,7 @@ services:
         deploy:
             <<: *solr-shard_base_deploy_resources
             <<: *solr-shard_base_deploy_placement_host1
+            <<: *endpoint-mode-dnsrr
 
     solr-shard-09:
         <<: *solr-shard_base
@@ -1242,6 +1297,7 @@ services:
         deploy:
             <<: *solr-shard_base_deploy_resources
             <<: *solr-shard_base_deploy_placement_host2
+            <<: *endpoint-mode-dnsrr
 
     solr-shard-10:
         <<: *solr-shard_base
@@ -1250,6 +1306,7 @@ services:
         deploy:
             <<: *solr-shard_base_deploy_resources
             <<: *solr-shard_base_deploy_placement_host2
+            <<: *endpoint-mode-dnsrr
 
     solr-shard-11:
         <<: *solr-shard_base
@@ -1258,6 +1315,7 @@ services:
         deploy:
             <<: *solr-shard_base_deploy_resources
             <<: *solr-shard_base_deploy_placement_host2
+            <<: *endpoint-mode-dnsrr
 
     solr-shard-12:
         <<: *solr-shard_base
@@ -1266,6 +1324,7 @@ services:
         deploy:
             <<: *solr-shard_base_deploy_resources
             <<: *solr-shard_base_deploy_placement_host2
+            <<: *endpoint-mode-dnsrr
 
     solr-shard-13:
         <<: *solr-shard_base
@@ -1274,6 +1333,7 @@ services:
         deploy:
             <<: *solr-shard_base_deploy_resources
             <<: *solr-shard_base_deploy_placement_host2
+            <<: *endpoint-mode-dnsrr
 
     solr-shard-14:
         <<: *solr-shard_base
@@ -1282,6 +1342,7 @@ services:
         deploy:
             <<: *solr-shard_base_deploy_resources
             <<: *solr-shard_base_deploy_placement_host2
+            <<: *endpoint-mode-dnsrr
 
     solr-shard-15:
         <<: *solr-shard_base
@@ -1290,6 +1351,7 @@ services:
         deploy:
             <<: *solr-shard_base_deploy_resources
             <<: *solr-shard_base_deploy_placement_host2
+            <<: *endpoint-mode-dnsrr
 
     solr-shard-16:
         <<: *solr-shard_base
@@ -1298,6 +1360,7 @@ services:
         deploy:
             <<: *solr-shard_base_deploy_resources
             <<: *solr-shard_base_deploy_placement_host2
+            <<: *endpoint-mode-dnsrr
 
     solr-shard-17:
         <<: *solr-shard_base
@@ -1306,6 +1369,7 @@ services:
         deploy:
             <<: *solr-shard_base_deploy_resources
             <<: *solr-shard_base_deploy_placement_host3
+            <<: *endpoint-mode-dnsrr
 
     solr-shard-18:
         <<: *solr-shard_base
@@ -1314,6 +1378,7 @@ services:
         deploy:
             <<: *solr-shard_base_deploy_resources
             <<: *solr-shard_base_deploy_placement_host3
+            <<: *endpoint-mode-dnsrr
 
     solr-shard-19:
         <<: *solr-shard_base
@@ -1322,6 +1387,7 @@ services:
         deploy:
             <<: *solr-shard_base_deploy_resources
             <<: *solr-shard_base_deploy_placement_host3
+            <<: *endpoint-mode-dnsrr
 
     solr-shard-20:
         <<: *solr-shard_base
@@ -1330,6 +1396,7 @@ services:
         deploy:
             <<: *solr-shard_base_deploy_resources
             <<: *solr-shard_base_deploy_placement_host3
+            <<: *endpoint-mode-dnsrr
 
     solr-shard-21:
         <<: *solr-shard_base
@@ -1338,6 +1405,7 @@ services:
         deploy:
             <<: *solr-shard_base_deploy_resources
             <<: *solr-shard_base_deploy_placement_host3
+            <<: *endpoint-mode-dnsrr
 
     solr-shard-22:
         <<: *solr-shard_base
@@ -1346,6 +1414,7 @@ services:
         deploy:
             <<: *solr-shard_base_deploy_resources
             <<: *solr-shard_base_deploy_placement_host3
+            <<: *endpoint-mode-dnsrr
 
     solr-shard-23:
         <<: *solr-shard_base
@@ -1354,6 +1423,7 @@ services:
         deploy:
             <<: *solr-shard_base_deploy_resources
             <<: *solr-shard_base_deploy_placement_host3
+            <<: *endpoint-mode-dnsrr
 
     solr-shard-24:
         <<: *solr-shard_base
@@ -1362,6 +1432,7 @@ services:
         deploy:
             <<: *solr-shard_base_deploy_resources
             <<: *solr-shard_base_deploy_placement_host3
+            <<: *endpoint-mode-dnsrr
 
     #
     # Solr ZooKeeper
@@ -1377,6 +1448,7 @@ services:
             - 3888
         deploy:
             <<: *misc-apps_deploy_placement_constraints
+            <<: *endpoint-mode-dnsrr
             resources:
                 limits:
                     # CPU core limit
@@ -1398,6 +1470,7 @@ services:
             - extract-article-from-page
         deploy:
             <<: *misc-apps_deploy_placement_constraints
+            <<: *endpoint-mode-dnsrr
             # Worker count
             replicas: 32
             resources:
@@ -1419,6 +1492,7 @@ services:
             <<: *common-configuration
         deploy:
             <<: *misc-apps_deploy_placement_constraints
+            <<: *endpoint-mode-dnsrr
             # Worker count
             replicas: 8
             resources:
@@ -1441,6 +1515,7 @@ services:
             <<: *twitter-api-configuration
         deploy:
             <<: *misc-apps_deploy_placement_constraints
+            <<: *endpoint-mode-dnsrr
             # Worker count
             replicas: 8
             resources:
@@ -1463,6 +1538,7 @@ services:
             <<: *twitter-api-configuration
         deploy:
             <<: *misc-apps_deploy_placement_constraints
+            <<: *endpoint-mode-dnsrr
             # Worker count
             replicas: 1
             resources:
@@ -1486,6 +1562,7 @@ services:
             <<: *crimson-hexagon-api-configuration
         deploy:
             <<: *misc-apps_deploy_placement_constraints
+            <<: *endpoint-mode-dnsrr
             # Worker count
             replicas: 4
             resources:
@@ -1509,6 +1586,7 @@ services:
             <<: *crimson-hexagon-api-configuration
         deploy:
             <<: *misc-apps_deploy_placement_constraints
+            <<: *endpoint-mode-dnsrr
             # Worker count
             replicas: 4
             resources:
@@ -1532,6 +1610,7 @@ services:
             MC_TOPICS_SNAPSHOT_MODEL_REPS: "0"
         deploy:
             <<: *misc-apps_deploy_placement_constraints
+            <<: *endpoint-mode-dnsrr
             # Worker count
             replicas: 2
             resources:
@@ -1554,6 +1633,7 @@ services:
             - "9090"
         deploy:
             <<: *misc-apps_deploy_placement_constraints
+            <<: *endpoint-mode-dnsrr
             # FastCGI workers
             replicas: 8
             resources:
@@ -1578,6 +1658,7 @@ services:
             # Shared with "cron_generate_daily_rss_dumps" container:
             - vol_daily_rss_dumps:/mediacloud_webapp_static/static/rss_dumps/
         deploy:
+            <<: *endpoint-mode-dnsrr
             placement:
                 constraints:
                     # Has its own role due to a shared volume
@@ -1604,6 +1685,7 @@ services:
             - rabbitmq-server
         deploy:
             <<: *misc-apps_deploy_placement_constraints
+            <<: *endpoint-mode-dnsrr
             # Worker count
             replicas: 2
             resources:
