@@ -242,6 +242,9 @@ def __current_git_branch_name() -> str:
 
         assert branch_name, "Branch name should be set."
 
+    # Some Azure weirdness
+    branch_name = branch_name.replace('~1', '')
+
     return branch_name
 
 
