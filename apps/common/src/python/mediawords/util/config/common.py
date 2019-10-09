@@ -1,7 +1,12 @@
+import collections
 import re
 from typing import List, Pattern, Optional
 
 from mediawords.util.config import env_value, McConfigException
+from mediawords.util.parse_json import decode_json, McDecodeJSONException
+from mediawords.util.log import create_logger
+
+log = create_logger(__name__)
 
 
 class ConnectRetriesConfig(object):
@@ -237,40 +242,45 @@ class McConfigAuthenticatedDomainsException(McConfigException):
     pass
 
 
-def _authenticated_domains_from_string(value: Optional[str]) -> List[AuthenticatedDomain]:
+def _authenticated_domains_from_json(value: Optional[str]) -> List[AuthenticatedDomain]:
     """Parse the string and return a list of authenticated domains."""
+
+    if value is None:
+        return []
+
+    value = value.strip()
 
     if not value:
         return []
 
-    entries = value.split(';')
+    try:
+        entries = decode_json(value)
+    except McDecodeJSONException as ex:
+        # Don't leak JSON errors to exception which might possibly end up in a public error message
+        message = "Unable to decode authenticated domains."
+        log.error(f"{message}: {ex}")
+        raise McConfigAuthenticatedDomainsException(message)
 
     domains = []
 
+    if not isinstance(entries, collections.Iterable):
+        message = "Invalid JSON configuration"
+        log.error(f"{message}: root is not an iterable (a list)")
+        raise McConfigAuthenticatedDomainsException(message)
+
     for entry in entries:
-        entry = entry.strip()
 
-        if '@' not in entry:
-            raise McConfigAuthenticatedDomainsException("Entry doesn't contain '@' character.")
+        if not callable(getattr(entry, "get", None)):
+            message = "Invalid JSON configuration"
+            log.error(f"{message}: one of the items does not have get() (is not a dictionary)")
+            raise McConfigAuthenticatedDomainsException(message)
 
-        username_password, domain = entry.split('@', maxsplit=1)
-        if not username_password:
-            raise McConfigAuthenticatedDomainsException("Username + password can't be empty.")
-        if not domain:
-            raise McConfigAuthenticatedDomainsException("Domain can't be empty.")
-        if '@' in domain:
-            raise McConfigAuthenticatedDomainsException("Domain contains '@' character.")
+        domain = entry.get('domain', None)
+        username = entry.get('username', None)
+        password = entry.get('password', None)
 
-        if ':' not in username_password:
-            raise McConfigAuthenticatedDomainsException("Username + password doesn't contain ':' character.")
-
-        username, password = username_password.split(':', maxsplit=1)
-        if not username:
-            raise McConfigAuthenticatedDomainsException("Username is empty.")
-        if not password:
-            raise McConfigAuthenticatedDomainsException("Password is empty.")
-        if ':' in password:
-            raise McConfigAuthenticatedDomainsException("Password contains ':' character.")
+        if not (domain and username and password):
+            raise McConfigAuthenticatedDomainsException("Incomplete authentication credentials.")
 
         domains.append(AuthenticatedDomain(domain=domain, username=username, password=password))
 
@@ -294,7 +304,7 @@ class UserAgentConfig(object):
     def authenticated_domains() -> List[AuthenticatedDomain]:
         """List of authenticated domains."""
         value = env_value('MC_USERAGENT_AUTHENTICATED_DOMAINS', required=False, allow_empty_string=True)
-        return _authenticated_domains_from_string(value)
+        return _authenticated_domains_from_json(value)
 
     @staticmethod
     def parallel_get_num_parallel() -> int:
