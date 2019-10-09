@@ -30,10 +30,7 @@ VOLUME /var/cache/munin/www/
 # Web server's port
 EXPOSE 4948
 
-# Copy wrapper script
-COPY bin/munin-httpd.sh /
-
 # No USER because lighttpd is configured to run under "munin" user
 
 # Run lighttpd
-CMD ["/munin-httpd.sh"]
+CMD ["lighttpd", "-D", "-f", "/etc/lighttpd/lighttpd.conf"]
