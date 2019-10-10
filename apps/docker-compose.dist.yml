@@ -927,7 +927,7 @@ services:
                     # CPU core limit
                     cpus: "1"
                     # RAM limit
-                    memory: "6G"
+                    memory: "8G"
 
     #
     # NYTLabels fetch annotation
