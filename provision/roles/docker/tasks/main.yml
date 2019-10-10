@@ -57,12 +57,32 @@
   tags:
     - docker
 
-- name: Install Docker
+- name: Find out specific containerd.io APT package version to install
+  shell: "apt-cache madison containerd.io | grep {{ containerd_io_version }} | awk '{ print $3 }'"
+  changed_when: false
+  register: containerd_io_apt_version
+  tags:
+    - docker
+
+- name: Print containerd.io APT version that will be installed
+  debug:
+    var: containerd_io_apt_version.stdout
+  tags:
+    - docker
+
+- name: Make sure that containerd.io APT package version was found
+  fail:
+    msg: The system may not be provisioned according to the CMDB status.
+  when: containerd_io_apt_version.stdout == ""
+  tags:
+    - docker
+
+- name: Install Docker and containerd.io
   apt:
     name:
       - "docker-ce={{ docker_apt_version.stdout }}"
       - "docker-ce-cli={{ docker_apt_version.stdout }}"
-      - "containerd.io"
+      - "containerd.io={{ containerd_io_apt_version.stdout }}"
     state: present
     install_recommends: false
     
@@ -83,6 +103,7 @@
   with_items:
     - "docker-ce"
     - "docker-ce-cli"
+    - "containerd.io"
   become: true
   become_user: root
   tags:
