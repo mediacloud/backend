@@ -1,0 +1,23 @@
+version: "3.7"
+
+services:
+
+    rabbitmq-server-webapp-proxy:
+        image: dockermediacloud/rabbitmq-server-webapp-proxy:latest
+        stop_signal: SIGKILL
+        ports:
+            # Expose to host for debugging
+            - "15672:15672"
+        volumes:
+            - type: bind
+              source: ./nginx/include/
+              target: /etc/nginx/include/
+        depends_on:
+            - rabbitmq-server
+
+    rabbitmq-server:
+        image: dockermediacloud/rabbitmq-server:latest
+        stop_signal: SIGKILL
+        expose:
+            - 5672
+            - 15672

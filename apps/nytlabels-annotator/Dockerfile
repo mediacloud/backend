@@ -51,6 +51,11 @@ EXPOSE 8080
 # Docker Swarm manages worker count
 ENV WORKERS 1
 
+# GUnicorn takes its time with SIGKILL, so given that there's nothing that
+# critical running in a container (workers don't write to disk or anything),
+# we can just kill -9 containers
+STOPSIGNAL SIGTERM
+
 WORKDIR /usr/src/predict-news-labels/
 
 USER nobody

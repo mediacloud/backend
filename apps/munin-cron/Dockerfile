@@ -2,7 +2,7 @@
 # Munin Cron stats collector
 #
 
-FROM dockermediacloud/base:latest
+FROM dockermediacloud/cron-base:latest
 
 # Install packages
 RUN \
@@ -13,6 +13,9 @@ RUN \
     # Install one extra dependency to fix hostname resolution
     # (https://github.com/munin-monitoring/munin/issues/1109#issuecomment-449397665)
     apt-get -y --no-install-recommends install libio-socket-ssl-perl && \
+    #
+    # Allow user to write to /dev/std[out|err]
+    usermod -a -G tty munin && \
     #
     true
 
@@ -48,9 +51,6 @@ RUN \
     chown munin:munin /var/run/munin && \
     true
 
-# Copy wrapper script
-COPY bin/munin-cron.sh /
-
 # Overwrite crontab with our own
 COPY crontab /etc/cron.d/munin
 
@@ -60,8 +60,4 @@ VOLUME /var/lib/munin/
 # Volume for generated HTML (shared with munin-httpd)
 VOLUME /var/cache/munin/www/
 
-# No USER because wrapper script needs to do some chowning first;
-# the command itself will be run as "munin" user
-
-# Set "cron" as default command to run
-CMD ["cron", "-f"]
+# No USER because Cron will run the script as unprivileged user itself

@@ -1,3 +1,6 @@
+# Don't send no email
+MAILTO=""
+
 # m h dom mon dow user    command
 
 14  5 *   *   *   root    /opt/mediacloud/bin/renew_le_certs.sh 1> /dev/stdout 2> /dev/stderr

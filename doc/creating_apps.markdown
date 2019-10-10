@@ -192,17 +192,11 @@ To achieve that, you can:
   exec opendkim
   ```
 
-If you're running your app as an unprivileged user (and you should do so for many apps), the app might not have a permission to write to `/dev/stdout` and `/dev/stderr`, so you might have to `chmod` those locations before starting the main app in a wrapper script:
+If you're running your app as an unprivileged user (and you should do so for many apps), the app might not have a permission to write to `/dev/stdout` and `/dev/stderr`, so you might have to add the user to `tty` group to be able to access those:
 
-```bash
-#!/bin/bash
-
-set -e
-
-# Make sure "munin" user is able to write to STDOUT / STDERR
-chmod 666 /dev/stdout /dev/stderr
-
-exec lighttpd -D -f /etc/lighttpd/lighttpd.conf
+```dockerfile
+# Allow user to write to /dev/std[out|err]
+RUN usermod -a -G tty your_unprivileged_user
 ```
 
 ### Don't store anything important in container itself

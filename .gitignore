@@ -108,6 +108,7 @@ _Deparsed_XSubs.pm
 
 # Split up tests
 tests_all
+tests_all*
 tests_chunk
 tests_chunk_*
 

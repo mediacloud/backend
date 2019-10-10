@@ -13,5 +13,8 @@ RUN \
     rm -f /etc/cron.d/* && \
     true
 
-# Set "cron" as default command to run
-CMD ["cron", "-f"]
+# Copy wrapper script
+COPY bin/cron.sh /
+
+# Set wrapper script as default command to run
+CMD ["/cron.sh"]

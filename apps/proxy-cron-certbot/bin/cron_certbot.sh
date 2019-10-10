@@ -13,5 +13,5 @@ if [ ! -f /etc/letsencrypt/live/mediacloud.org/privkey.pem ]; then
 	/opt/mediacloud/bin/renew_le_certs.sh
 fi
 
-# Run Cron
-exec cron -f
+# Run Cron wrapper script from cron-base
+exec /cron.sh

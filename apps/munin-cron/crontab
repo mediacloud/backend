@@ -1,2 +1,5 @@
+# Don't send no email
+MAILTO=""
+
 # m h dom mon dow user          command
-*/5 * *   *   *   root          /munin-cron.sh 1> /dev/stdout 2> /dev/stderr
+*/5 * *   *   *   munin         /usr/bin/munin-cron --debug 1> /dev/stdout 2> /dev/stderr

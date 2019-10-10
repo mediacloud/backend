@@ -1,3 +1,6 @@
+# Don't send no email
+MAILTO=""
+
 # m h dom mon dow user          command
 
 # Daily:
