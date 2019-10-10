@@ -2,7 +2,7 @@
 # Munin Cron stats collector
 #
 
-FROM dockermediacloud/base:latest
+FROM dockermediacloud/cron-base:latest
 
 # Install packages
 RUN \
@@ -61,5 +61,3 @@ VOLUME /var/lib/munin/
 VOLUME /var/cache/munin/www/
 
 # No USER because Cron will run the script as unprivileged user itself
-
-CMD ["cron", "-f"]
