@@ -919,12 +919,6 @@ services:
             - 8080
         deploy:
             <<: *endpoint-mode-dnsrr
-            placement:
-                constraints:
-                    # Workers don't necessarily *have* to run on the very same host,
-                    # but if they do, they'll be able to share a single mmap'ped dataset
-                    # and thus conserve memory
-                    - node.labels.role-nytlabels-annotator == true
             # Worker count
             replicas: 1
             resources:
