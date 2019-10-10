@@ -1,3 +1,6 @@
+# Don't send no email
+MAILTO=""
+
 # m h dom mon dow user          command
 #
 # Run as www-data to be able to write to /var/lib/daily_rss_dumps/:
