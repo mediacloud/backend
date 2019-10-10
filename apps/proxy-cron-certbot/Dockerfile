@@ -3,13 +3,10 @@
 # (have a look at credentials.inc.sh for configuration options)
 #
 
-FROM dockermediacloud/base:latest
+FROM dockermediacloud/cron-base:latest
 
 # Install packages
 RUN \
-    #
-    # Install Cron
-    apt-get -y --no-install-recommends install cron && \
     #
     # Install Certbot
     apt-get -y --no-install-recommends install certbot && \
