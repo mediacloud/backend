@@ -918,6 +918,7 @@ services:
         expose:
             - 8080
         deploy:
+            <<: *misc-apps_deploy_placement_constraints
             <<: *endpoint-mode-dnsrr
             # Worker count
             replicas: 1
@@ -1173,6 +1174,9 @@ services:
             - "127.0.0.1:15672:15672"
         deploy:
             # DNSRR disabled as it's not supported with published ports.
+            <<: *misc-apps_deploy_placement_constraints
+            # Worker count
+            replicas: 1
             resources:
                 limits:
                     # CPU core limit
@@ -1465,6 +1469,9 @@ services:
             - "127.0.0.1:8983:8983"
         deploy:
             # DNSRR disabled as it's not supported with published ports.
+            <<: *misc-apps_deploy_placement_constraints
+            # Worker count
+            replicas: 1
             resources:
                 limits:
                     # CPU core limit
