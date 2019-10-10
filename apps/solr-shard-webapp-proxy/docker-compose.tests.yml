@@ -1,0 +1,44 @@
+version: "3.7"
+
+services:
+
+    solr-shard-webapp-proxy:
+        image: dockermediacloud/solr-shard-webapp-proxy:latest
+        networks:
+            - default
+        stop_signal: SIGKILL
+        ports:
+            # Expose to host for debugging
+            - "8983:8983"
+        volumes:
+            - type: bind
+              source: ./nginx/include/
+              target: /etc/nginx/include/
+        depends_on:
+            - solr-shard
+
+    solr-shard:
+        image: dockermediacloud/solr-shard:latest
+        networks:
+            default:
+                aliases:
+                    # Proxy will assume that the shard running in a 24 shard setup as solr-shard-01
+                    - solr-shard-01
+        stop_signal: SIGKILL
+        environment:
+            MC_SOLR_SHARD_COUNT: "1"
+        expose:
+            - 8983
+        depends_on:
+            - solr-zookeeper
+
+    solr-zookeeper:
+        image: dockermediacloud/solr-zookeeper:latest
+        stop_signal: SIGKILL
+        expose:
+            - 2181
+            - 2888
+            - 3888
+
+networks:
+    default:

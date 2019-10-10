@@ -868,6 +868,7 @@ services:
             # Shared with "munin-cron" container:
             - vol_munin_html:/var/cache/munin/www/
         deploy:
+            # DNSRR disabled as it's not supported with published ports.
             placement:
                 constraints:
                     # Must run on the same host as munin-cron as they share two volumes
@@ -1092,6 +1093,7 @@ services:
             # Proxies to main app
             - webapp-httpd
         deploy:
+            # DNSRR disabled as it's not supported with published ports.
             placement:
                 constraints:
                     # Must run on the same host as proxy-cron-certbot as they share a volume
@@ -1142,12 +1144,10 @@ services:
         expose:
             - "5672"
             - "15672"
-        ports:
-            # For connecting to through a SSH tunnel
-            - "15672:15672"
         volumes:
             - vol_rabbitmq_data:/var/lib/rabbitmq/
         deploy:
+            <<: *endpoint-mode-dnsrr
             placement:
                 constraints:
                     # Must run on the host with RabbitMQ data volume
@@ -1158,6 +1158,33 @@ services:
                     cpus: "4"
                     # RAM limit
                     memory: "2G"
+
+    #
+    # Proxy to RabbitMQ's management webapp
+    # -------------------------------------
+    #
+    # We'd like to expose the management webapp (port 15672) to host in order
+    # to access the webapp through a SSH tunnel, but then we couldn't use DNSRR
+    # endpoint mode for rabbitmq-server due to published ports, so we have to
+    # proxy to the webapp.
+    #
+    rabbitmq-server-webapp-proxy:
+        image: dockermediacloud/rabbitmq-server-webapp-proxy:release
+        networks:
+            - default
+        depends_on:
+            - rabbitmq-server
+        ports:
+            # For connecting to through a SSH tunnel
+            - "15672:15672"
+        deploy:
+            # DNSRR disabled as it's not supported with published ports.
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "256M"
 
     #
     # (Re)scrape media
@@ -1212,10 +1239,8 @@ services:
         <<: *solr-shard_base
         volumes:
             - vol_solr_shard_data_01:/var/lib/solr/
-        ports:
-            # For connecting to through a SSH tunnel
-            - "8983:8983"
         deploy:
+            <<: *endpoint-mode-dnsrr
             <<: *solr-shard_base_deploy_resources
             <<: *solr-shard_base_deploy_placement_host1
 
@@ -1224,6 +1249,7 @@ services:
         volumes:
             - vol_solr_shard_data_02:/var/lib/solr/
         deploy:
+            <<: *endpoint-mode-dnsrr
             <<: *solr-shard_base_deploy_resources
             <<: *solr-shard_base_deploy_placement_host1
 
@@ -1232,6 +1258,7 @@ services:
         volumes:
             - vol_solr_shard_data_03:/var/lib/solr/
         deploy:
+            <<: *endpoint-mode-dnsrr
             <<: *solr-shard_base_deploy_resources
             <<: *solr-shard_base_deploy_placement_host1
 
@@ -1240,6 +1267,7 @@ services:
         volumes:
             - vol_solr_shard_data_04:/var/lib/solr/
         deploy:
+            <<: *endpoint-mode-dnsrr
             <<: *solr-shard_base_deploy_resources
             <<: *solr-shard_base_deploy_placement_host1
 
@@ -1248,6 +1276,7 @@ services:
         volumes:
             - vol_solr_shard_data_05:/var/lib/solr/
         deploy:
+            <<: *endpoint-mode-dnsrr
             <<: *solr-shard_base_deploy_resources
             <<: *solr-shard_base_deploy_placement_host1
 
@@ -1256,6 +1285,7 @@ services:
         volumes:
             - vol_solr_shard_data_06:/var/lib/solr/
         deploy:
+            <<: *endpoint-mode-dnsrr
             <<: *solr-shard_base_deploy_resources
             <<: *solr-shard_base_deploy_placement_host1
 
@@ -1264,6 +1294,7 @@ services:
         volumes:
             - vol_solr_shard_data_07:/var/lib/solr/
         deploy:
+            <<: *endpoint-mode-dnsrr
             <<: *solr-shard_base_deploy_resources
             <<: *solr-shard_base_deploy_placement_host1
 
@@ -1272,6 +1303,7 @@ services:
         volumes:
             - vol_solr_shard_data_08:/var/lib/solr/
         deploy:
+            <<: *endpoint-mode-dnsrr
             <<: *solr-shard_base_deploy_resources
             <<: *solr-shard_base_deploy_placement_host1
 
@@ -1280,6 +1312,7 @@ services:
         volumes:
             - vol_solr_shard_data_09:/var/lib/solr/
         deploy:
+            <<: *endpoint-mode-dnsrr
             <<: *solr-shard_base_deploy_resources
             <<: *solr-shard_base_deploy_placement_host2
 
@@ -1288,6 +1321,7 @@ services:
         volumes:
             - vol_solr_shard_data_10:/var/lib/solr/
         deploy:
+            <<: *endpoint-mode-dnsrr
             <<: *solr-shard_base_deploy_resources
             <<: *solr-shard_base_deploy_placement_host2
 
@@ -1296,6 +1330,7 @@ services:
         volumes:
             - vol_solr_shard_data_11:/var/lib/solr/
         deploy:
+            <<: *endpoint-mode-dnsrr
             <<: *solr-shard_base_deploy_resources
             <<: *solr-shard_base_deploy_placement_host2
 
@@ -1304,6 +1339,7 @@ services:
         volumes:
             - vol_solr_shard_data_12:/var/lib/solr/
         deploy:
+            <<: *endpoint-mode-dnsrr
             <<: *solr-shard_base_deploy_resources
             <<: *solr-shard_base_deploy_placement_host2
 
@@ -1312,6 +1348,7 @@ services:
         volumes:
             - vol_solr_shard_data_13:/var/lib/solr/
         deploy:
+            <<: *endpoint-mode-dnsrr
             <<: *solr-shard_base_deploy_resources
             <<: *solr-shard_base_deploy_placement_host2
 
@@ -1320,6 +1357,7 @@ services:
         volumes:
             - vol_solr_shard_data_14:/var/lib/solr/
         deploy:
+            <<: *endpoint-mode-dnsrr
             <<: *solr-shard_base_deploy_resources
             <<: *solr-shard_base_deploy_placement_host2
 
@@ -1328,6 +1366,7 @@ services:
         volumes:
             - vol_solr_shard_data_15:/var/lib/solr/
         deploy:
+            <<: *endpoint-mode-dnsrr
             <<: *solr-shard_base_deploy_resources
             <<: *solr-shard_base_deploy_placement_host2
 
@@ -1336,6 +1375,7 @@ services:
         volumes:
             - vol_solr_shard_data_16:/var/lib/solr/
         deploy:
+            <<: *endpoint-mode-dnsrr
             <<: *solr-shard_base_deploy_resources
             <<: *solr-shard_base_deploy_placement_host2
 
@@ -1344,6 +1384,7 @@ services:
         volumes:
             - vol_solr_shard_data_17:/var/lib/solr/
         deploy:
+            <<: *endpoint-mode-dnsrr
             <<: *solr-shard_base_deploy_resources
             <<: *solr-shard_base_deploy_placement_host3
 
@@ -1352,6 +1393,7 @@ services:
         volumes:
             - vol_solr_shard_data_18:/var/lib/solr/
         deploy:
+            <<: *endpoint-mode-dnsrr
             <<: *solr-shard_base_deploy_resources
             <<: *solr-shard_base_deploy_placement_host3
 
@@ -1360,6 +1402,7 @@ services:
         volumes:
             - vol_solr_shard_data_19:/var/lib/solr/
         deploy:
+            <<: *endpoint-mode-dnsrr
             <<: *solr-shard_base_deploy_resources
             <<: *solr-shard_base_deploy_placement_host3
 
@@ -1368,6 +1411,7 @@ services:
         volumes:
             - vol_solr_shard_data_20:/var/lib/solr/
         deploy:
+            <<: *endpoint-mode-dnsrr
             <<: *solr-shard_base_deploy_resources
             <<: *solr-shard_base_deploy_placement_host3
 
@@ -1376,6 +1420,7 @@ services:
         volumes:
             - vol_solr_shard_data_21:/var/lib/solr/
         deploy:
+            <<: *endpoint-mode-dnsrr
             <<: *solr-shard_base_deploy_resources
             <<: *solr-shard_base_deploy_placement_host3
 
@@ -1384,6 +1429,7 @@ services:
         volumes:
             - vol_solr_shard_data_22:/var/lib/solr/
         deploy:
+            <<: *endpoint-mode-dnsrr
             <<: *solr-shard_base_deploy_resources
             <<: *solr-shard_base_deploy_placement_host3
 
@@ -1392,6 +1438,7 @@ services:
         volumes:
             - vol_solr_shard_data_23:/var/lib/solr/
         deploy:
+            <<: *endpoint-mode-dnsrr
             <<: *solr-shard_base_deploy_resources
             <<: *solr-shard_base_deploy_placement_host3
 
@@ -1400,8 +1447,36 @@ services:
         volumes:
             - vol_solr_shard_data_24:/var/lib/solr/
         deploy:
+            <<: *endpoint-mode-dnsrr
             <<: *solr-shard_base_deploy_resources
             <<: *solr-shard_base_deploy_placement_host3
+
+    #
+    # Proxy to Solr's management webapp
+    # -------------------------------------
+    #
+    # We'd like to expose the management webapp (port 8983) to host in order
+    # to access the webapp through a SSH tunnel, but then we couldn't use DNSRR
+    # endpoint mode for solr-shard-01 due to published ports, so we have to
+    # proxy to the webapp.
+    #
+    solr-shard-webapp-proxy:
+        image: dockermediacloud/solr-shard-webapp-proxy:release
+        networks:
+            - default
+        depends_on:
+            - solr-shard-01
+        ports:
+            # For connecting to through a SSH tunnel
+            - "8983:8983"
+        deploy:
+            # DNSRR disabled as it's not supported with published ports.
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "256M"
 
     #
     # Solr ZooKeeper
