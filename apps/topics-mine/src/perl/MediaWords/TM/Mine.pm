@@ -716,24 +716,21 @@ END
     }
 }
 
-# insert a list of topic seed urls, using efficient copy
+# insert a list of topic seed urls
 sub insert_topic_seed_urls
 {
     my ( $db, $topic_seed_urls ) = @_;
 
     INFO "inserting " . scalar( @{ $topic_seed_urls } ) . " topic seed urls ...";
 
-    my $columns = [ 'stories_id', 'url', 'topics_id', 'assume_match' ];
-
-    my $csv = Text::CSV_XS->new( { binary => 1 } );
-
-    my $copy_from = $db->copy_from( "COPY topic_seed_urls (" . join( ', ', @{ $columns } ) . ") FROM STDIN WITH CSV" );
-    for my $csu ( @{ $topic_seed_urls } )
+    $db->begin();
+    for my $tsu ( @{ $topic_seed_urls } )
     {
-        $csv->combine( map { $csu->{ $_ } } ( @{ $columns } ) );
-        $copy_from->put_line( $csv->string );
-    }
-    $copy_from->end();
+        my $insert_tsu;
+        map { $insert_tsu->{ $_ } = $tsu->{ $_ } } qw/stories_id url topics_id assume_match/;
+        $db->create( 'topic_seed_urls', $insert_tsu );
+    }        
+    $db->commit();
 }
 
 # import a single month of the solr seed query.  we do this to avoid giant queries that timeout in solr.
