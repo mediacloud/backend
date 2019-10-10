@@ -62,16 +62,19 @@ has '_vhost'    => ( is => 'rw', isa => 'Str' );
 has '_timeout'  => ( is => 'rw', isa => 'Int' );
 has '_retries'  => ( is => 'rw', isa => 'Int' );
 
-# "reply_to" queues for function name
+# RabbitMQ connection pool for every connection ID (PID + credentials)
+my %_rabbitmq_connection_for_connection_id;
+
+# "reply_to" queues for connection ID + function name
 #
 # We emulate Celery's RPC via RabbitMQ behavior in which results are being
 # stuffed in per-client result queues and can be retrieved only by the same
 # client that requested the job using run_remotely() or add_to_queue():
 #
 # http://docs.celeryproject.org/en/latest/userguide/tasks.html#rpc-result-backend-rabbitmq-qpid
-my $_reply_to_queues_for_function_name = {};
+my %_reply_to_queues_for_connection_id_function_name;
 
-# Memory-limited results cache for function name
+# Memory-limited results cache for connection ID + function name
 #
 # When fetching messages from "reply_to" queue for a specific name,
 # run_remotely() can't requeue messages that don't belong to a specific job ID
@@ -80,7 +83,7 @@ my $_reply_to_queues_for_function_name = {};
 #
 # It's not ideal that some job results might get invalidated but Celery does
 # that too (purges results deemed too old).
-my $_results_caches_for_function_name = {};
+my %_results_caches_for_connection_id_function_name;
 
 # Limits of results cache above
 Readonly my $RABBITMQ_RESULTS_CACHE_MAXCOUNT => 1024 * 100;
@@ -101,111 +104,152 @@ sub BUILD
     $self->_timeout( $args->{ timeout } // $RABBITMQ_DEFAULT_TIMEOUT );
     $self->_retries( $args->{ retries } // $RABBITMQ_DEFAULT_RETRIES );
 
+    # Connect to the current connection ID (PID + credentials)
     my $mq = $self->_mq();
 }
 
-# Returns RabbitMQ connection handler
+# Used to uniquely identify RabbitMQ connections (by connection credentials and
+# PID) so that we know when to reconnect
+sub _connection_identifier($)
+{
+    my $self = shift;
+
+    # Reconnect when running on a fork too
+    my $pid = $$;
+
+    return sprintf(
+        'PID=%d; hostname=%s; port=%d; username: %s; password=%s; vhost=%s, timeout=%d, retries=%d',
+        $pid,             $self->_hostname, $self->_port,    $self->_username,
+        $self->_password, $self->_vhost,    $self->_timeout, $self->_retries
+    );
+}
+
+# Returns RabbitMQ connection handler for the current connection ID
 sub _mq($)
 {
     my $self = shift;
 
-    # Connect to RabbitMQ, open channel
-    TRACE( "Connecting to RabbitMQ (hostname: " .
-          $self->_hostname . ", port: " . $self->_port . ", username: " . $self->_username . ")..." );
+    my $conn_id = $self->_connection_identifier();
 
-    # RabbitMQ might not yet be up at the time of connecting, so try for up to a minute
-    my $mq;
-    my $connected = 0;
-    my $last_error_message;
-    for ( my $retry = 0 ; $retry < $self->_retries ; ++$retry )
+    unless ( $_rabbitmq_connection_for_connection_id{ $conn_id } )
     {
-        eval {
-            if ( $retry > 0 )
-            {
-                DEBUG( "Retrying #$retry..." );
-            }
 
-            $mq = Net::AMQP::RabbitMQ->new();
-            $mq->connect(
-                $self->_hostname,
+        # Connect to RabbitMQ, open channel
+        DEBUG( "Connecting to RabbitMQ (hostname: " .
+              $self->_hostname . ", port: " . $self->_port . ", username: " . $self->_username . ")..." );
+
+        # RabbitMQ might not yet be up at the time of connecting, so try for up to a minute
+        my $mq;
+        my $connected = 0;
+        my $last_error_message;
+        for ( my $retry = 0 ; $retry < $self->_retries ; ++$retry )
+        {
+            eval {
+                if ( $retry > 0 )
                 {
-                    user      => $self->_username,
-                    password  => $self->_password,
-                    port      => $self->_port,
-                    vhost     => $self->_vhost,
-                    timeout   => $self->_timeout,
-                    heartbeat => 0,
+                    DEBUG( "Retrying #$retry..." );
                 }
-            );
+
+                $mq = Net::AMQP::RabbitMQ->new();
+                $mq->connect(
+                    $self->_hostname,
+                    {
+                        user      => $self->_username,
+                        password  => $self->_password,
+                        port      => $self->_port,
+                        vhost     => $self->_vhost,
+                        timeout   => $self->_timeout,
+                        heartbeat => 0,
+                    }
+                );
+            };
+            if ( $@ )
+            {
+                $last_error_message = $@;
+                WARN( "Unable to connect to RabbitMQ, will retry: $last_error_message" );
+                sleep( 1 );
+            }
+            else
+            {
+                $connected = 1;
+                last;
+            }
+        }
+        unless ( $connected )
+        {
+            LOGDIE( "Unable to connect to RabbitMQ, giving up: $last_error_message" );
+        }
+
+        my $channel_number = _channel_number();
+        unless ( $channel_number )
+        {
+            LOGDIE( "Channel number is unset." );
+        }
+
+        eval {
+            $mq->channel_open( $channel_number );
+
+            # Fetch one message at a time
+            $mq->basic_qos( $channel_number, { prefetch_count => 1 } );
         };
         if ( $@ )
         {
-            $last_error_message = $@;
-            WARN( "Unable to connect to RabbitMQ, will retry: $last_error_message" );
-            sleep( 1 );
+            LOGDIE( "Unable to open channel $channel_number: $@" );
         }
-        else
-        {
-            $connected = 1;
-            last;
-        }
-    }
-    unless ( $connected )
-    {
-        LOGDIE( "Unable to connect to RabbitMQ, giving up: $last_error_message" );
+
+        $_rabbitmq_connection_for_connection_id{ $conn_id }           = $mq;
+        $_reply_to_queues_for_connection_id_function_name{ $conn_id } = ();
+        $_results_caches_for_connection_id_function_name{ $conn_id }  = ();
     }
 
-    my $channel_number = _channel_number();
-    unless ( $channel_number )
-    {
-        LOGDIE( "Channel number is unset." );
-    }
-
-    eval {
-        $mq->channel_open( $channel_number );
-
-        # Fetch one message at a time
-        $mq->basic_qos( $channel_number, { prefetch_count => 1 } );
-    };
-    if ( $@ )
-    {
-        LOGDIE( "Unable to open channel $channel_number: $@" );
-    }
-
-    return $mq;
+    return $_rabbitmq_connection_for_connection_id{ $conn_id };
 }
 
-# Returns "reply_to" queue name for provided function name
+# Returns "reply_to" queue name for current connection and provided function name
 sub _reply_to_queue($$)
 {
     my ( $self, $function_name ) = @_;
 
-    unless ( $_reply_to_queues_for_function_name->{ $function_name } )
+    my $conn_id = $self->_connection_identifier();
+
+    unless ( defined $_reply_to_queues_for_connection_id_function_name{ $conn_id } )
     {
-        my $reply_to_queue = _random_uuid();
-        $_reply_to_queues_for_function_name->{ $function_name } = $reply_to_queue;
+        $_reply_to_queues_for_connection_id_function_name{ $conn_id } = ();
     }
 
-    return $_reply_to_queues_for_function_name->{ $function_name };
+    unless ( $_reply_to_queues_for_connection_id_function_name{ $conn_id }{ $function_name } )
+    {
+        my $reply_to_queue = _random_uuid();
+        $_reply_to_queues_for_connection_id_function_name{ $conn_id }{ $function_name } = $reply_to_queue;
+    }
+
+    return $_reply_to_queues_for_connection_id_function_name{ $conn_id }{ $function_name };
 }
 
-# Returns reference to results cache for provided function name
+# Returns reference to results cache for current connection and provided function name
 sub _results_cache_hashref($$)
 {
     my ( $self, $function_name ) = @_;
 
-    unless ( defined $_results_caches_for_function_name->{ $function_name } )
-    {
-        $_results_caches_for_function_name->{ $function_name } = {};
+    my $conn_id = $self->_connection_identifier();
 
-        tie %{ $_results_caches_for_function_name->{ $function_name } }, 'Tie::Cache',
+    unless ( defined $_results_caches_for_connection_id_function_name{ $conn_id } )
+    {
+        $_results_caches_for_connection_id_function_name{ $conn_id } = ();
+    }
+
+    unless ( defined $_results_caches_for_connection_id_function_name{ $conn_id }{ $function_name } )
+    {
+        $_results_caches_for_connection_id_function_name{ $conn_id }{ $function_name } = {};
+
+        tie %{ $_results_caches_for_connection_id_function_name{ $conn_id }{ $function_name } }, 'Tie::Cache',
           {
             MaxCount => $RABBITMQ_RESULTS_CACHE_MAXCOUNT,
             MaxBytes => $RABBITMQ_RESULTS_CACHE_MAXBYTES
           };
     }
 
-    return $_results_caches_for_function_name->{ $function_name };
+    return $_results_caches_for_connection_id_function_name{ $conn_id }{ $function_name };
 }
 
 # Channel number we should be talking to
