@@ -723,14 +723,12 @@ sub insert_topic_seed_urls
 
     INFO "inserting " . scalar( @{ $topic_seed_urls } ) . " topic seed urls ...";
 
-    $db->begin();
     for my $tsu ( @{ $topic_seed_urls } )
     {
         my $insert_tsu;
         map { $insert_tsu->{ $_ } = $tsu->{ $_ } } qw/stories_id url topics_id assume_match/;
         $db->create( 'topic_seed_urls', $insert_tsu );
     }        
-    $db->commit();
 }
 
 # import a single month of the solr seed query.  we do this to avoid giant queries that timeout in solr.
