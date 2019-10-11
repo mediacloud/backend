@@ -18,7 +18,7 @@ Table of Contents
 
 ```bash
 # Run "fetch_url.pl" command in "tools" container
-$ docker run -it dockermediacloud/tools:latest fetch_url.pl
+$ docker run -it dockermediacloud/tools:release fetch_url.pl
 usage: /opt/mediacloud/bin/fetch_url.pl < url > at /opt/mediacloud/bin/fetch_url.pl line 16.
 ```
 
@@ -28,7 +28,7 @@ If a specific tool has to run for a prolonged period of time, you can run it in 
 
 ```bash
 # Start printing the date every second in a "detached" mode
-$ docker run -d -it dockermediacloud/tools:latest "while true; do date; sleep 1; done" 
+$ docker run -d -it dockermediacloud/tools:release "while true; do date; sleep 1; done" 
 b519dab9d10bdd715f592fd841a3a5b9f508e52b3a4c27207a9a258cb0a7f3b1
 
 # Print the logs of the container and "follow" the log
@@ -59,7 +59,7 @@ cfeb15e2338f        mc-common-bash_default   bridge              local
 
 # (terminal 2) Using the "tools" image, start a new container with "bash" set as command and attach
 # it to the sample network that we've created in terminal 1
-$ docker run --network mc-common-bash_default -it dockermediacloud/tools:latest bash
+$ docker run --network mediacloud_default -it dockermediacloud/tools:release bash
 
 # Container is now connected to the network and is able to access containers in it
 mediacloud@24352eba1be1:/$ ping -c 1 postgresql-pgbouncer
@@ -69,6 +69,52 @@ PING postgresql-pgbouncer (172.18.0.6) 56(84) bytes of data.
 --- postgresql-pgbouncer ping statistics ---
 1 packets transmitted, 1 received, 0% packet loss, time 0ms
 rtt min/avg/max/mdev = 0.165/0.165/0.165/0.000 ms
+```
+
+## Notes
+
+### Tags
+
+As detailed in [Creating apps](creating_apps.markdown) document, the `latest` tag denotes the latest *locally* built image (and is never pushed to the image repository), and the rest of the tags map to Git branches that they were built from, e.g. `release`.
+
+So, when running a tool in production, you might want to use `dockermediacloud/tools` image tagged with `release` as it's the one that has been the latest "released" version of the `tools` repository:
+
+```bash
+#                                                                    vvvvvvv
+$ docker run --network mediacloud_default -it dockermediacloud/tools:release bash
+```
+
+However, if you're running a tool in your local dev environment and would like to use the most recently pulled / built `tools`, you might want to go for `latest` (assuming that you've just pulled / built the `tools` image):
+
+```bash
+#                                                                        vvvvvv
+$ docker run --network mc-common-bash_default -it dockermediacloud/tools:latest bash
+```
+
+### Network names
+
+In production, Docker Swarm uses a network called `mediacloud_default`, so to be able to access the rest of the services (e.g. PostgreSQL or Solr) from your `tools` container, you might want to connect to that:
+
+```bash
+#                      vvvvvvvvvvvvvvvvvv
+$ docker run --network mediacloud_default -it dockermediacloud/tools:release bash
+```
+
+However, if you're running a tool in your local dev environment and would like for it to attach to a testing Docker Compose environment started with `./dev/run.py`, you'll have to look up the network name first as it's different for every app and command that gets run in the app:
+
+```bash
+$ ./dev/run.py common bash
+<...>
+Creating network "mc-common-bash_default" with the default driver
+<...>
+
+$ docker network ls
+NETWORK ID          NAME                     DRIVER              SCOPE
+<...>
+1d388b04968e        mc-common-bash_default   bridge              local
+
+#                                                                        vvvvvv
+$ docker run --network mc-common-bash_default -it dockermediacloud/tools:latest bash
 ```
 
 ## What is and isn't a "tool"
