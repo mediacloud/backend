@@ -1,0 +1,12 @@
+# Ignore everything
+*
+
+# Except this file
+!.gitignore
+
+# ...and a small scaler file
+!scaler
+
+# ...and taxonomy files
+!*.json
+

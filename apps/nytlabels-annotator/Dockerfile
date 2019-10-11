@@ -2,62 +2,51 @@
 # NYT-based news tagger service
 #
 
-FROM dockermediacloud/base:latest
+FROM dockermediacloud/perl-python-base:latest
 
-# Install Python 2.7 (Python 3 not yet supported by the service)
 RUN \
-    # FIXME don't update APT every time
-    apt-get -y update && \
+    #
+    # Install dependencies
     apt-get -y --no-install-recommends install \
         brotli \
-        build-essential \
         libhdf5-10 \
-        python2.7 \
-        python2.7-dev \
-        python-pip \
-        python-setuptools \
     && \
-    pip2 install --upgrade pip && \
+    #
+    # Create directory for annotator
+    mkdir -p /usr/src/crappy-predict-news-labels/models/ && \
+    #
     true
 
-# Install Python modules
-COPY src/MediaCloud-NYT-News-Labeler/requirements.txt /var/tmp/
+WORKDIR /usr/src/crappy-predict-news-labels/
+
+# Download models
+# (get them first so that every code change doesn't trigger huge model redownload)
+COPY src/crappy-predict-news-labels/download_models.py /usr/src/crappy-predict-news-labels/
+RUN ./download_models.py
+
+# Install requirements
+# (do this first so that minor changes in the annotator's code don't trigger a full module reinstall)
+COPY src/crappy-predict-news-labels/requirements.txt /usr/src/crappy-predict-news-labels/
 RUN \
-    cd /var/tmp/ && \
-    pip2 install -r requirements.txt && \
-    rm requirements.txt && \
+    pip3 install -r requirements.txt && \
     rm -rf /root/.cache/ && \
     true
 
 # Install NLTK data
 RUN \
-    python2 -m nltk.downloader -d /usr/local/share/nltk_data punkt && \
+    python3 -m nltk.downloader -d /usr/local/share/nltk_data punkt && \
     rm /usr/local/share/nltk_data/tokenizers/punkt.zip && \
     true
 
-# Copy source
-RUN mkdir -p /usr/src/
-COPY src/MediaCloud-NYT-News-Labeler/ /usr/src/predict-news-labels/
-
-# Install models
-RUN \
-    mkdir -p /usr/src/predict-news-labels/word2vec-GoogleNews-vectors/ && \
-    python2 /usr/src/predict-news-labels/download_models.py && \
-    true
+# Copy the rest of the source
+COPY src/crappy-predict-news-labels/ /usr/src/crappy-predict-news-labels/
 
 # Tagger port
 EXPOSE 8080
 
-# Docker Swarm manages worker count
-ENV WORKERS 1
-
-# GUnicorn takes its time with SIGKILL, so given that there's nothing that
-# critical running in a container (workers don't write to disk or anything),
-# we can just kill -9 containers
+# We can just kill -9 the thing
 STOPSIGNAL SIGTERM
-
-WORKDIR /usr/src/predict-news-labels/
 
 USER nobody
 
-CMD ["/usr/local/bin/gunicorn", "-b", ":8080", "-t", "900", "--preload", "app:app"]
+CMD ["./nytlabels_http_server.py"]
