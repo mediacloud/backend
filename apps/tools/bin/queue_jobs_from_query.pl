@@ -11,6 +11,7 @@ use MediaWords::CommonLibs;
 use Getopt::Long;
 
 use MediaWords::DB;
+use MediaWords::JobManager::Job;
 
 sub main
 {
