@@ -23,7 +23,7 @@ def connect_to_db() -> DatabaseHandler:
 
         try:
 
-            log.info("Connecting to db...")
+            log.debug("Connecting to PostgreSQL...")
 
             db = DatabaseHandler(
                 host=db_config.hostname(),
