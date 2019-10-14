@@ -7,7 +7,7 @@ services:
         stop_signal: SIGKILL
         ports:
             # Expose to host for debugging
-            - "8081:8080"
+            - "4948:4948"
         volumes:
             - type: bind
               source: ./lighttpd/
