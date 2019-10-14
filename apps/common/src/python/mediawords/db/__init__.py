@@ -23,6 +23,8 @@ def connect_to_db() -> DatabaseHandler:
 
         try:
 
+            log.info("Connecting to db...")
+
             db = DatabaseHandler(
                 host=db_config.hostname(),
                 port=db_config.port(),
@@ -32,6 +34,9 @@ def connect_to_db() -> DatabaseHandler:
             )
             if not db:
                 raise ValueError("Returned value is None.")
+
+            # Return the database handler upon successful connection
+            break
 
         except Exception as ex:
 

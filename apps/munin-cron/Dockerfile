@@ -22,8 +22,6 @@ RUN \
 # Symlink logs to STDOUT
 RUN \
     rm /var/log/munin/*.log && \
-    ln -s /dev/stdout /var/log/munin/munin-cgi-graph.log && \
-    ln -s /dev/stdout /var/log/munin/munin-cgi-html.log && \
     ln -s /dev/stdout /var/log/munin/munin-html.log && \
     ln -s /dev/stdout /var/log/munin/munin-limits.log && \
     ln -s /dev/stdout /var/log/munin/munin-update.log && \
