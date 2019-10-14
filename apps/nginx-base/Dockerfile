@@ -16,5 +16,13 @@ RUN \
     true
 
 # Replace configuration with our own
-RUN rm -rf /etc/nginx/
-COPY nginx/ /etc/nginx/
+RUN \
+    rm -rf \
+        /etc/nginx/nginx.conf \
+        /etc/nginx/conf.d/ \
+        /etc/nginx/sites-available/ \
+        /etc/nginx/sites-enabled/ \
+        /etc/nginx/snippets/ \
+        && \
+    true
+COPY nginx/nginx.conf nginx/include/ /etc/nginx/
