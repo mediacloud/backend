@@ -4,8 +4,6 @@
 
 FROM dockermediacloud/nginx-base:latest
 
-# Copy 
-
 # Copy configuration
 COPY nginx/include/webapp-httpd.conf /etc/nginx/include/
 
