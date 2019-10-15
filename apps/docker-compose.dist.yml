@@ -144,12 +144,7 @@ x-solr-shard_base:   &solr-shard_base
     expose:
         - "8983"
     networks:
-        default:
-            aliases:
-                # To make Solr clients be able to round-robin between the
-                # shards, all of the shard services get assigned the same
-                # "solr-shard" network alias.
-                - solr-shard
+        - default
 
 # Default resources for every Solr shard
 x-solr-shard_base_deploy_resources:  &solr-shard_base_deploy_resources

@@ -37,7 +37,7 @@ ENV PGPASSWORD mediacloud
 ENV PGDATABASE mediacloud
 
 # Set Solr credentials
-ENV MC_SOLR_URL "http://solr-shard:8983/solr"
+ENV MC_SOLR_URL "http://solr-shard-1:8983/solr"
 
 # Configure Munin node
 RUN \
