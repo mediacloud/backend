@@ -42,7 +42,7 @@ services:
             # Monitors a bunch of stuff on PostgreSQL
             - postgresql-pgbouncer
             # Monitors stuff on Solr too
-            - solr-shard
+            - solr-shard-01
 
     postgresql-pgbouncer:
         image: dockermediacloud/postgresql-pgbouncer:latest
@@ -58,7 +58,7 @@ services:
         expose:
             - 5432
 
-    solr-shard:
+    solr-shard-01:
         image: dockermediacloud/solr-shard:latest
         stop_signal: SIGKILL
         environment:

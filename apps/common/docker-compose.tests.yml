@@ -19,7 +19,7 @@ services:
               target: /opt/mediacloud/tests/
         depends_on:
             - postgresql-pgbouncer
-            - solr-shard
+            - solr-shard-01
             - import-solr-data-for-testing
             - rabbitmq-server
 
@@ -31,7 +31,7 @@ services:
         stop_signal: SIGKILL
         depends_on:
             - postgresql-pgbouncer
-            - solr-shard
+            - solr-shard-01
 
     postgresql-pgbouncer:
         image: dockermediacloud/postgresql-pgbouncer:latest
@@ -47,7 +47,7 @@ services:
         expose:
             - 5432
 
-    solr-shard:
+    solr-shard-01:
         image: dockermediacloud/solr-shard:latest
         stop_signal: SIGKILL
         environment:
