@@ -18,6 +18,7 @@ RUN \
 # Replace configuration with our own
 RUN \
     rm -rf \
+        /etc/nginx/fastcgi.conf \
         /etc/nginx/nginx.conf \
         /etc/nginx/conf.d/ \
         /etc/nginx/sites-available/ \

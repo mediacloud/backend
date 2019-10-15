@@ -711,7 +711,7 @@ services:
             resources:
                 limits:
                     # CPU core limit
-                    cpus: "16"
+                    cpus: "1"
                     # RAM limit
                     memory: "4G"
 
