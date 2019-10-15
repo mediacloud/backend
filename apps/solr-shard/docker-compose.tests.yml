@@ -26,11 +26,7 @@ x-solr-shard_base:   &solr-shard_base
     depends_on:
         - solr-zookeeper
     networks:
-        default:
-            aliases:
-                # Make all services accessible via this hostname by doing
-                # round-robin among them
-                - solr-shard
+        - default
 
 services:
 

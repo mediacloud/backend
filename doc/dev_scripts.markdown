@@ -137,7 +137,7 @@ Creating network "mc-import-solr-data-bash_default" with the default driver
 Creating mc-import-solr-data-bash_postgresql-server_1 ... done
 Creating mc-import-solr-data-bash_rabbitmq-server_1   ... done
 Creating mc-import-solr-data-bash_solr-zookeeper_1    ... done
-Creating mc-import-solr-data-bash_solr-shard_1           ... done
+Creating mc-import-solr-data-bash_solr-shard-01_1        ... done
 Creating mc-import-solr-data-bash_postgresql-pgbouncer_1 ... done
 Creating mc-import-solr-data-bash_import-solr-data-for-testing_1 ... done
 mediacloud@884c21ca6997:/$ 
@@ -146,11 +146,11 @@ mediacloud@884c21ca6997:/$
 All the dependency containers will be accessible from this newly started development environment:
 
 ```bash
-mediacloud@884c21ca6997:/$ ping -c 1 solr-shard
-PING solr-shard (172.23.0.6) 56(84) bytes of data.
-64 bytes from mc-import-solr-data-bash_solr-shard_1.mc-import-solr-data-bash_default (172.23.0.6): icmp_seq=1 ttl=64 time=0.124 ms
+mediacloud@884c21ca6997:/$ ping -c 1 solr-shard-01
+PING solr-shard-01 (172.23.0.6) 56(84) bytes of data.
+64 bytes from mc-import-solr-data-bash_solr-shard-01_1.mc-import-solr-data-bash_default (172.23.0.6): icmp_seq=1 ttl=64 time=0.124 ms
 
---- solr-shard ping statistics ---
+--- solr-shard-01 ping statistics ---
 1 packets transmitted, 1 received, 0% packet loss, time 0ms
 rtt min/avg/max/mdev = 0.124/0.124/0.124/0.000 ms
 ```
@@ -162,13 +162,13 @@ mediacloud@884c21ca6997:/$ exit 0
 exit
 Stopping mc-import-solr-data-bash_import-solr-data-for-testing_1 ... done
 Stopping mc-import-solr-data-bash_postgresql-pgbouncer_1         ... done
-Stopping mc-import-solr-data-bash_solr-shard_1                   ... done
+Stopping mc-import-solr-data-bash_solr-shard-01_1                ... done
 Stopping mc-import-solr-data-bash_solr-zookeeper_1               ... done
 Stopping mc-import-solr-data-bash_postgresql-server_1            ... done
 Stopping mc-import-solr-data-bash_rabbitmq-server_1              ... done
 Removing mc-import-solr-data-bash_import-solr-data-for-testing_1 ... done
 Removing mc-import-solr-data-bash_postgresql-pgbouncer_1         ... done
-Removing mc-import-solr-data-bash_solr-shard_1                   ... done
+Removing mc-import-solr-data-bash_solr-shard-01_1                ... done
 Removing mc-import-solr-data-bash_solr-zookeeper_1               ... done
 Removing mc-import-solr-data-bash_postgresql-server_1            ... done
 Removing mc-import-solr-data-bash_rabbitmq-server_1              ... done

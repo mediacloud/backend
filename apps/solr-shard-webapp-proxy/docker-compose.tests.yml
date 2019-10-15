@@ -15,15 +15,12 @@ services:
               source: ./nginx/include/
               target: /etc/nginx/include/
         depends_on:
-            - solr-shard
+            - solr-shard-01
 
-    solr-shard:
+    solr-shard-01:
         image: dockermediacloud/solr-shard:latest
         networks:
-            default:
-                aliases:
-                    # Proxy will assume that the shard running in a 24 shard setup as solr-shard-01
-                    - solr-shard-01
+            - default
         stop_signal: SIGKILL
         environment:
             MC_SOLR_SHARD_COUNT: "1"

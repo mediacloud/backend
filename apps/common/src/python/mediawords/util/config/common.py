@@ -375,8 +375,8 @@ class CommonConfig(object):
     @staticmethod
     def solr_url() -> str:
         """Solr server URL."""
-        # "solr-shard" container's name from docker-compose.yml; will round-robin between servers
-        return 'http://solr-shard:8983/solr'
+        # "solr-shard-01" container's name from docker-compose.yml
+        return 'http://solr-shard-01:8983/solr'
 
     @staticmethod
     def extractor_api_url() -> str:
