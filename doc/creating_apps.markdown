@@ -153,7 +153,7 @@ To achieve that, you can:
 * Configure the app to write logs to `/dev/stdout` and / or `/dev/stderr`, e.g.:
 
   ```
-  # Write lighttpd's access log to /dev/stdout and error log to /dev/stderr
+  # Write access log to /dev/stdout and error log to /dev/stderr
   accesslog.filename = "/dev/stdout"
   server.errorlog    = "/dev/stderr"
   ```

@@ -22,7 +22,7 @@ certbot certonly \
     -m "${MC_PROXY_CERTBOT_LETSENCRYPT_EMAIL}" \
     -n
 
-# Update certificate for lighttpd / nginx
+# Update certificate for nginx
 cat \
     "/etc/letsencrypt/live/${MC_PROXY_CERTBOT_DOMAIN}/privkey.pem" \
     "/etc/letsencrypt/live/${MC_PROXY_CERTBOT_DOMAIN}/fullchain.pem" \

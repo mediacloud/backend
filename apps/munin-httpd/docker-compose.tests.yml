@@ -10,13 +10,25 @@ services:
             - "4948:4948"
         volumes:
             - type: bind
-              source: ./lighttpd/
-              target: /etc/lighttpd/
+              source: ./nginx/include/
+              target: /etc/nginx/include/
+            - type: bind
+              source: ./../nginx-base/nginx/nginx.conf
+              target: /etc/nginx/nginx.conf
             # Shared with munin-cron:
-            - vol_munin_data:/var/lib/munin/
             - vol_munin_html:/var/cache/munin/www/
         depends_on:
+            - munin-fastcgi-graph
             - munin-cron
+
+    munin-fastcgi-graph:
+        image: dockermediacloud/munin-fastcgi-graph:latest
+        stop_signal: SIGKILL
+        expose:
+            - 22334
+        volumes:
+            # Shared with munin-cron:
+            - vol_munin_data:/var/lib/munin/
 
     munin-cron:
         image: dockermediacloud/munin-cron:latest
@@ -25,8 +37,9 @@ services:
             - type: bind
               source: ./../munin-cron/munin-conf.d/
               target: /etc/munin/munin-conf.d/
-            # Shared with munin-httpd:
+            # Shared with munin-fastcgi-graph:
             - vol_munin_data:/var/lib/munin/
+            # Shared with munin-httpd:
             - vol_munin_html:/var/cache/munin/www/
         depends_on:
             - munin-node
