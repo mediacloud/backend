@@ -20,8 +20,9 @@ RUN \
     # Install Munin node
     apt-get -y --no-install-recommends install munin-node && \
     #
-    # Allow user to write to /dev/std[out|err]
-    usermod -a -G tty munin && \
+    # Create directory for PID file
+    mkdir -p /var/run/munin/ && \
+    chown munin:munin /var/run/munin && \
     #
     true
 
@@ -53,12 +54,6 @@ RUN \
     sed -i -e "s/^host .*/host 0.0.0.0/" /etc/munin/munin-node.conf && \
     # Allow everyone to connect
     echo "allow ^.*$" >> /etc/munin/munin-node.conf && \
-    true
-
-# Create directory for PID file
-RUN \
-    mkdir -p /var/run/munin/ && \
-    chown munin:munin /var/run/munin && \
     true
 
 # Expose Munin node's port

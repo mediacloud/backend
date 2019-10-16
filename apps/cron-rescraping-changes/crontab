@@ -2,4 +2,4 @@
 MAILTO=""
 
 # m h dom mon dow user          command
-0   3 *   *   *   mediacloud    /opt/mediacloud/bin/cron_rescraping_changes.py 1> /dev/stdout 2> /dev/stderr
+0   3 *   *   *   root          sudo -u mediacloud /opt/mediacloud/bin/cron_rescraping_changes.py 1> /proc/1/fd/1 2> /proc/1/fd/2

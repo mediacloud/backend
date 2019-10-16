@@ -2,4 +2,4 @@
 MAILTO=""
 
 # m h dom mon dow user          command
-16  2 *   *   *   mediacloud    /opt/mediacloud/bin/cron_set_media_primary_language.pl 1> /dev/stdout 2> /dev/stderr
+16  2 *   *   *   root          sudo -u mediacloud /opt/mediacloud/bin/cron_set_media_primary_language.pl 1> /proc/1/fd/1 2> /proc/1/fd/2
