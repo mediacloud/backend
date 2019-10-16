@@ -150,7 +150,7 @@ To achieve that, you can:
 
 * Configure the app log to STDOUT / STDERR directly, i.e. just print its log to the standard output;
 
-* Configure the app to write logs to `/dev/stdout` and / or `/dev/stderr`, e.g.:
+* If the app runs as `root` and log file locations are configurable, configure the app to write logs to `/dev/stdout` and / or `/dev/stderr`, e.g.:
 
   ```
   # Write access log to /dev/stdout and error log to /dev/stderr
@@ -158,7 +158,7 @@ To achieve that, you can:
   server.errorlog    = "/dev/stderr"
   ```
 
-* Replace the log file with symlink(s) to `/dev/stdout` and / or `/dev/stderr` at build time, e.g.:
+* If the app runs as `root` and log file locations are not configurable, replace the log file with symlink(s) to `/dev/stdout` and / or `/dev/stderr` at build time (in `Dockerfile`), e.g.:
 
   ```dockerfile
   # Set up Apache's logging to STDOUT / STDERR
@@ -170,12 +170,14 @@ To achieve that, you can:
       true
   ```
 
-* In Cron jobs, pipe the job's STDOUT to `/dev/stdout` and STDERR to `/dev/stderr`, e.g.:
+* If the app does not run as `root` (e.g. Cron jobs):
+  1. Demote the app to an unprivileged user using `sudo -u <username>`;
+  2. Pipe `sudo`'s STDOUT to `/proc/1/fd/1` (file descriptor 1 of process with PID 1) and STDERR to `/proc/1/fd/2` (file descriptor 2 of process with PID 1):
 
   ```
   # m h dom mon dow user    command
   
-  14  5 *   *   *   root    /opt/mediacloud/bin/renew_le_certs.sh 1> /dev/stdout 2> /dev/stderr
+  32  2 *   *   *   root    sudo -u mediacloud /opt/mediacloud/bin/cron_generate_media_health.pl 1> /proc/1/fd/1 2> /proc/1/fd/2
   ```
 
 * If the app insists on logging to syslog and can't be configured to log to a plain file, use `/rsyslog.inc.sh` helper in your wrapper script to start rsyslog before you start your app:
