@@ -20,8 +20,6 @@ RUN \
     # Install Munin node
     apt-get -y --no-install-recommends install munin-node && \
     #
-    # Allow user to write to /dev/std[out|err]
-    usermod -a -G tty munin && \
     #
     true
 

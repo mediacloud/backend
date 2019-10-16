@@ -16,9 +16,6 @@ RUN \
         libcgi-fast-perl \
     && \
     #
-    # Allow user to write to /dev/std[out|err]
-    usermod -a -G tty munin && \
-    #
     true
 
 # Replace lighttpd's configuration

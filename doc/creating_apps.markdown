@@ -192,13 +192,6 @@ To achieve that, you can:
   exec opendkim
   ```
 
-If you're running your app as an unprivileged user (and you should do so for many apps), the app might not have a permission to write to `/dev/stdout` and `/dev/stderr`, so you might have to add the user to `tty` group to be able to access those:
-
-```dockerfile
-# Allow user to write to /dev/std[out|err]
-RUN usermod -a -G tty your_unprivileged_user
-```
-
 ### Don't store anything important in container itself
 
 As per Docker's "philosophy", containers should be treated as being ephemeral, meaning that **one shouldn't write app's data to the container's filesystem** or rely on a specific container not being removed. In a typical deployment cycle, old containers derived from outdated codebases get stopped and removed while new containers created from updated images take their place.

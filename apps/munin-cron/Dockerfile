@@ -14,9 +14,6 @@ RUN \
     # (https://github.com/munin-monitoring/munin/issues/1109#issuecomment-449397665)
     apt-get -y --no-install-recommends install libio-socket-ssl-perl && \
     #
-    # Allow user to write to /dev/std[out|err]
-    usermod -a -G tty munin && \
-    #
     true
 
 # Symlink logs to STDOUT
