@@ -11,6 +11,11 @@ RUN \
     #
     # Default Cron jobs don't have to be run
     rm -f /etc/cron.d/* && \
+    rm -f /etc/cron.daily/* && \
+    rm -f /etc/cron.hourly/* && \
+    rm -f /etc/cron.monthly/* && \
+    rm -f /etc/cron.weekly/* && \
+    echo -n > /etc/crontab && \
     true
 
 # Copy wrapper script
