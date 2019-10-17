@@ -20,6 +20,7 @@ sub test_all_users($)
     my $notes                        = 'Test test test';
     my $weekly_requests_limit        = 123;
     my $weekly_requested_items_limit = 456;
+    my $max_topic_stories            = 789;
 
     eval {
 
@@ -35,6 +36,7 @@ sub test_all_users($)
             resource_limits              => MediaWords::DBI::Auth::User::Resources->new(
                 weekly_requests          => $weekly_requests_limit,
                 weekly_requested_items   => $weekly_requested_items_limit,
+                max_topic_stories        => $max_topic_stories,
             ),
         );
 
@@ -54,6 +56,7 @@ sub test_all_users($)
     ok( $user->resource_limits() );
     is( $user->resource_limits()->weekly_requests(),        $weekly_requests_limit );
     is( $user->resource_limits()->weekly_requested_items(), $weekly_requested_items_limit );
+    is( $user->resource_limits()->max_topic_stories(), $max_topic_stories );
     ok( $user->active() );
     ok( $user->global_api_key() );
     ok( $user->password_hash() );

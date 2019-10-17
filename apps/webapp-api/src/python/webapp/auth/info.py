@@ -34,6 +34,7 @@ def user_info(db: DatabaseHandler, email: str) -> CurrentUser:
                weekly_requested_items_sum,
                auth_user_limits.weekly_requests_limit,
                auth_user_limits.weekly_requested_items_limit,
+               auth_user_limits.max_topic_stories,
                auth_roles.auth_roles_id,
                auth_roles.role
 
@@ -87,9 +88,11 @@ def user_info(db: DatabaseHandler, email: str) -> CurrentUser:
         resource_limits=Resources(
             weekly_requests=first_row['weekly_requests_limit'],
             weekly_requested_items=first_row['weekly_requested_items_limit'],
+            max_topic_stories=first_row['max_topic_stories'],
         ),
         used_resources=Resources(
             weekly_requests=first_row['weekly_requests_sum'],
             weekly_requested_items=first_row['weekly_requested_items_sum'],
+            max_topic_stories=0,
         ),
     )

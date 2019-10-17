@@ -68,7 +68,8 @@ sub _user_profile_hash($$)
                     'used'  => $user->used_resources()->weekly_requested_items(),
                     'limit' => $user->resource_limits()->weekly_requested_items(),
                 }
-            }
+            },
+            'max_topic_stories' => $user->resource_limits()->max_topic_stories(),
         }
     };
 }

@@ -12,6 +12,7 @@ def test_all_users():
     notes = 'Test test test'
     weekly_requests_limit = 123
     weekly_requested_items_limit = 456
+    max_topic_stories = 789
 
     add_user(
         db=db,
@@ -27,6 +28,7 @@ def test_all_users():
             resource_limits=Resources(
                 weekly_requests=weekly_requests_limit,
                 weekly_requested_items=weekly_requested_items_limit,
+                max_topic_stories=max_topic_stories,
             ),
         ),
     )
@@ -43,6 +45,7 @@ def test_all_users():
     assert user.resource_limits()
     assert user.resource_limits().weekly_requests() == weekly_requests_limit
     assert user.resource_limits().weekly_requested_items() == weekly_requested_items_limit
+    assert user.resource_limits().max_topic_stories() == max_topic_stories
     assert user.active()
     assert user.global_api_key()
     assert user.password_hash()

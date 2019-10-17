@@ -17,28 +17,33 @@ class Resources(object):
     __slots__ = [
         '__weekly_requests',
         '__weekly_requested_items',
+        '__max_topic_stories',
     ]
 
-    def __init__(self, weekly_requests: int, weekly_requested_items: int):
+    def __init__(self,
+                 weekly_requests: Optional[int],
+                 weekly_requested_items: Optional[int],
+                 max_topic_stories: Optional[int]):
 
         if isinstance(weekly_requests, bytes):
             weekly_requests = decode_object_from_bytes_if_needed(weekly_requests)
         if isinstance(weekly_requested_items, bytes):
             weekly_requested_items = decode_object_from_bytes_if_needed(weekly_requested_items)
-
-        if weekly_requests is None:
-            raise McAuthUserException("Weekly requests is None.")
-        if weekly_requested_items is None:
-            raise McAuthUserException("Weekly requested items is None.")
+        if isinstance(max_topic_stories, bytes):
+            max_topic_stories = decode_object_from_bytes_if_needed(max_topic_stories)
 
         self.__weekly_requests = int(weekly_requests)
         self.__weekly_requested_items = int(weekly_requested_items)
+        self.__max_topic_stories = int(max_topic_stories)
 
-    def weekly_requests(self) -> int:
+    def weekly_requests(self) -> Optional[int]:
         return self.__weekly_requests
 
-    def weekly_requested_items(self) -> int:
+    def weekly_requested_items(self) -> Optional[int]:
         return self.__weekly_requested_items
+
+    def max_topic_stories(self) -> Optional[int]:
+        return self.__max_topic_stories
 
 
 class BaseUser(object):

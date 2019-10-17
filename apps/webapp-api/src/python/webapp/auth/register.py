@@ -163,6 +163,16 @@ def add_user(db: DatabaseHandler, new_user: NewUser) -> None:
                 'weekly_requested_items_limit': resource_limits.weekly_requested_items(),
             })
 
+        if resource_limits.max_topic_stories() is not None:
+            db.query("""
+                UPDATE auth_user_limits
+                SET max_topic_stories = %(max_topic_stories)s
+                WHERE auth_users_id = %(auth_users_id)s
+            """, {
+                'auth_users_id': user.user_id(),
+                'max_topic_stories': resource_limits.max_topic_stories(),
+            })
+
     # Subscribe to newsletter
     if new_user.subscribe_to_newsletter():
         db.create(table='auth_users_subscribe_to_newsletter', insert_hash={'auth_users_id': user.user_id()})

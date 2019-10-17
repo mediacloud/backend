@@ -5,7 +5,7 @@ use Modern::Perl '2015';
 use MediaWords::CommonLibs;
 
 use Readonly;
-use Test::More tests => 150;
+use Test::More tests => 151;
 use Test::Deep;
 
 use URI;
@@ -385,6 +385,10 @@ sub test_profile($)
     is(
         $actual_profile->{ limits }->{ weekly }->{ requested_items }->{ limit },    #
         $expected_profile->resource_limits()->weekly_requested_items(),             #
+    );
+    is(
+        $actual_profile->{ limits }->{ max_topic_stories },         #
+        $expected_profile->resource_limits()->max_topic_stories(),  #
     );
 }
 

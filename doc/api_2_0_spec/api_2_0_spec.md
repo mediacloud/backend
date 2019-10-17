@@ -1586,7 +1586,8 @@ None.
                 "used": "(integer) Weekly requested items count",
                 "limit": "(integer) Weekly requested items limit; 0 if no limit"
             }
-        }
+        },
+        "max_topic_stories": "(integer) Max. topic stories"
     }
 }
 ```

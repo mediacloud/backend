@@ -135,6 +135,7 @@ sub user_add($)
     my $user_password                     = undef;
     my $user_weekly_requests_limit        = undef;
     my $user_weekly_requested_items_limit = undef;
+    my $user_max_topic_stories_limit      = undef;
 
     my Readonly $user_add_usage = <<"EOF";
 Usage: $0 --action=add \
@@ -144,7 +145,8 @@ Usage: $0 --action=add \
     [--roles="query-create,media-edit,stories-edit"] \
     [--password="correct horse battery staple"] \
     [--weekly_requests_limit=10000] \
-    [--weekly_requested_items_limit=100000]
+    [--weekly_requested_items_limit=100000] \
+    [--max_topic_stories_limit=100000]
 EOF
 
     GetOptions(
@@ -154,7 +156,8 @@ EOF
         'roles:s'                        => \$user_roles,
         'password:s'                     => \$user_password,
         'weekly_requests_limit:i'        => \$user_weekly_requests_limit,
-        'weekly_requested_items_limit:i' => \$user_weekly_requested_items_limit
+        'weekly_requested_items_limit:i' => \$user_weekly_requested_items_limit,
+        'max_topic_stories_limit:i'      => \$user_max_topic_stories_limit,
     ) or die "$user_add_usage\n";
     die "$user_add_usage\n" unless ( $user_email and $user_full_name );
 
@@ -181,6 +184,7 @@ EOF
 
     $user_weekly_requests_limit        //= MediaWords::DBI::Auth::Limits::default_weekly_requests_limit( $db );
     $user_weekly_requested_items_limit //= MediaWords::DBI::Auth::Limits::default_weekly_requested_items_limit( $db );
+    $user_max_topic_stories_limit      //= MediaWords::DBI::Auth::Limits::default_max_topic_stories_limit( $db );
 
     # Read password if not set
     my $user_password_repeat = undef;
@@ -216,6 +220,7 @@ EOF
             resource_limits              => MediaWords::DBI::Auth::User::Resources->new(
                 weekly_requests          => $user_weekly_requests_limit,
                 weekly_requested_items   => $user_weekly_requested_items_limit,
+                max_topic_stories        => $user_max_topic_stories_limit,
             ),
         );
 
@@ -247,7 +252,8 @@ sub user_modify($)
         $user_password,                       #
         $user_set_password,                   #
         $user_weekly_requests_limit,          #
-        $user_weekly_requested_items_limit    #
+        $user_weekly_requested_items_limit,   #
+        $user_max_topic_stories_limit,        #
     );
 
     my Readonly $user_modify_usage = <<"EOF";
@@ -270,7 +276,8 @@ EOF
         'password:s'                     => \$user_password,
         'set-password'                   => \$user_set_password,
         'weekly_requests_limit:i'        => \$user_weekly_requests_limit,
-        'weekly_requested_items_limit:i' => \$user_weekly_requested_items_limit
+        'weekly_requested_items_limit:i' => \$user_weekly_requested_items_limit,
+        'max_topic_stories_limit:i'      => \$user_max_topic_stories_limit,
     ) or die "$user_modify_usage\n";
     die "$user_modify_usage\n" unless ( $user_email );
 
@@ -328,6 +335,7 @@ EOF
             resource_limits              => MediaWords::DBI::Auth::User::Resources->new(
                 weekly_requests          => $user_weekly_requests_limit,
                 weekly_requested_items   => $user_weekly_requested_items_limit,
+                max_topic_stories        => $user_max_topic_stories_limit,
             ),
         );
         MediaWords::DBI::Auth::Profile::update_user( $db, $existing_user );
@@ -424,6 +432,7 @@ sub user_show($)
     say "Global API key:   " . $db_user->global_api_key();
     say "Weekly requests limit:        " . $db_user->resource_limits()->weekly_requests();
     say "Weekly requested items limit: " . $db_user->resource_limits()->weekly_requested_items();
+    say "Max. topic stories limit: " . $db_user->resource_limits()->max_topic_stories();
 
     return 0;
 }

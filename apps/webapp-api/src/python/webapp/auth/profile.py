@@ -121,6 +121,17 @@ def update_user(db: DatabaseHandler, user_updates: ModifyUser) -> None:
                 'auth_users_id': user.user_id(),
             })
 
+        if resource_limits.max_topic_stories() is not None:
+            db.query("""
+                UPDATE auth_user_limits
+                SET max_topic_stories = %(max_topic_stories)s
+                WHERE auth_users_id = %(auth_users_id)s
+            """, {
+                'max_topic_stories': resource_limits.max_topic_stories(),
+                'auth_users_id': user.user_id(),
+            })
+
+
     if user_updates.role_ids() is not None:
         db.query("""
             DELETE FROM auth_users_roles_map

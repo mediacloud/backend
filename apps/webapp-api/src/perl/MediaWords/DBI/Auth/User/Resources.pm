@@ -31,10 +31,14 @@ sub new
     unless ( defined $args{ weekly_requested_items } ) {
         LOGCONFESS "weekly_requested_items is unset.";
     }
+    unless ( defined $args{ max_topic_stories } ) {
+        LOGCONFESS "max_topic_stories is unset.";
+    }
 
     my $python_object = MediaWords::DBI::Auth::User::Resources::PythonProxy::Resources->new(
         $args{ weekly_requests },
         $args{ weekly_requested_items },
+        $args{ max_topic_stories },
     );
 
     my $self = $class->from_python_object( $python_object );
@@ -73,4 +77,10 @@ sub weekly_requested_items($)
     return $self->{ _python_object }->weekly_requested_items();
 }
 
+sub max_topic_stories($)
+{
+    my ( $self ) = @_;
+
+    return $self->{ _python_object }->max_topic_stories();
+}
 1;

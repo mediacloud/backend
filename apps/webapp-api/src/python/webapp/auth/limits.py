@@ -43,6 +43,23 @@ def default_weekly_requested_items_limit(db: DatabaseHandler) -> int:
     return limit[0]
 
 
+def default_max_topic_stories_limit(db: DatabaseHandler) -> int:
+    """Get default max. topic stories limit."""
+
+    # noinspection SqlResolve
+    limit = db.query("""
+        SELECT column_default AS default_weekly_requested_items_limit
+        FROM information_schema.columns
+        WHERE (table_schema, table_name) = ('public', 'auth_user_limits')
+          AND column_name = 'max_topic_stories'
+    """).flat()
+
+    if not limit:
+        raise McAuthLimitsException("Unable to fetch default max. topic stories limit.")
+
+    return limit[0]
+
+
 def roles_exempt_from_user_limits() -> List[str]:
     """User roles that are not limited by the weekly requests / requested items limits."""
     return [UserRoles.admin(), UserRoles.admin_readonly()]
