@@ -1632,7 +1632,8 @@ URL: <https://api.mediacloud.org/api/v2/auth/profile>
                 "used": 2000,
                 "limit": 0
             }
-        }
+        },
+        "max_topic_stories": 10000
     }
 }
 ```
