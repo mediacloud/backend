@@ -27,11 +27,11 @@ class BaseUser(object):
 
     def __init__(self,
                  email: str,
-                 full_name: str = None,
-                 notes: str = None,
-                 active: bool = None,
-                 weekly_requests_limit: int = None,
-                 weekly_requested_items_limit: int = None):
+                 full_name: Optional[str] = None,
+                 notes: Optional[str] = None,
+                 active: Optional[bool] = None,
+                 weekly_requests_limit: Optional[int] = None,
+                 weekly_requested_items_limit: Optional[int] = None):
 
         email = decode_object_from_bytes_if_needed(email)
         full_name = decode_object_from_bytes_if_needed(full_name)
@@ -56,19 +56,19 @@ class BaseUser(object):
     def email(self) -> str:
         return self.__email.lower()
 
-    def full_name(self) -> str:
+    def full_name(self) -> Optional[str]:
         return self.__full_name
 
-    def notes(self) -> str:
+    def notes(self) -> Optional[str]:
         return self.__notes
 
-    def active(self) -> bool:
+    def active(self) -> Optional[bool]:
         return self.__active
 
-    def weekly_requests_limit(self) -> int:
+    def weekly_requests_limit(self) -> Optional[int]:
         return self.__weekly_requests_limit
 
-    def weekly_requested_items_limit(self) -> int:
+    def weekly_requested_items_limit(self) -> Optional[int]:
         return self.__weekly_requested_items_limit
 
 
@@ -83,14 +83,14 @@ class NewOrModifyUser(BaseUser):
 
     def __init__(self,
                  email: str,
-                 full_name: str = None,
-                 notes: str = None,
-                 active: bool = None,
-                 weekly_requests_limit: int = None,
-                 weekly_requested_items_limit: int = None,
-                 password: str = None,
-                 password_repeat: str = None,
-                 role_ids: List[int] = None):
+                 full_name: Optional[str] = None,
+                 notes: Optional[str] = None,
+                 active: Optional[bool] = None,
+                 weekly_requests_limit: Optional[int] = None,
+                 weekly_requested_items_limit: Optional[int] = None,
+                 password: Optional[str] = None,
+                 password_repeat: Optional[str] = None,
+                 role_ids: Optional[List[int]] = None):
         super().__init__(
             email=email,
             full_name=full_name,
@@ -116,13 +116,13 @@ class NewOrModifyUser(BaseUser):
         self.__password_repeat = password_repeat
         self.__role_ids = role_ids
 
-    def password(self) -> str:
+    def password(self) -> Optional[str]:
         return self.__password
 
-    def password_repeat(self) -> str:
+    def password_repeat(self) -> Optional[str]:
         return self.__password_repeat
 
-    def role_ids(self) -> List[int]:
+    def role_ids(self) -> Optional[List[int]]:
         return self.__role_ids
 
 
@@ -131,14 +131,14 @@ class ModifyUser(NewOrModifyUser):
 
     def __init__(self,
                  email: str,
-                 full_name: str = None,
-                 notes: str = None,
-                 active: bool = None,
-                 weekly_requests_limit: int = None,
-                 weekly_requested_items_limit: int = None,
-                 password: str = None,
-                 password_repeat: str = None,
-                 role_ids: List[int] = None):
+                 full_name: Optional[str] = None,
+                 notes: Optional[str] = None,
+                 active: Optional[bool] = None,
+                 weekly_requests_limit: Optional[int] = None,
+                 weekly_requested_items_limit: Optional[int] = None,
+                 password: Optional[str] = None,
+                 password_repeat: Optional[str] = None,
+                 role_ids: Optional[List[int]] = None):
 
         if role_ids is not None:
             if not isinstance(role_ids, list):
@@ -169,16 +169,16 @@ class NewUser(NewOrModifyUser):
 
     def __init__(self,
                  email: str,
-                 full_name: str = None,
-                 notes: str = None,
-                 active: bool = None,
-                 weekly_requests_limit: int = None,
-                 weekly_requested_items_limit: int = None,
-                 password: str = None,
-                 password_repeat: str = None,
-                 role_ids: List[int] = None,
-                 subscribe_to_newsletter: bool = None,
-                 activation_url: str = None):
+                 full_name: Optional[str] = None,
+                 notes: Optional[str] = None,
+                 active: Optional[bool] = None,
+                 weekly_requests_limit: Optional[int] = None,
+                 weekly_requested_items_limit: Optional[int] = None,
+                 password: Optional[str] = None,
+                 password_repeat: Optional[str] = None,
+                 role_ids: Optional[List[int]] = None,
+                 subscribe_to_newsletter: Optional[bool] = None,
+                 activation_url: Optional[str] = None):
 
         if not full_name:
             raise McAuthUserException("User full name is unset.")
@@ -222,10 +222,10 @@ class NewUser(NewOrModifyUser):
         self.__subscribe_to_newsletter = subscribe_to_newsletter
         self.__activation_url = activation_url
 
-    def subscribe_to_newsletter(self) -> bool:
+    def subscribe_to_newsletter(self) -> Optional[bool]:
         return self.__subscribe_to_newsletter
 
-    def activation_url(self) -> str:
+    def activation_url(self) -> Optional[str]:
         return self.__activation_url
 
 
@@ -237,7 +237,7 @@ class APIKey(object):
         '__ip_address',
     ]
 
-    def __init__(self, api_key: str, ip_address: str = None):
+    def __init__(self, api_key: str, ip_address: Optional[str] = None):
         api_key = decode_object_from_bytes_if_needed(api_key)
         ip_address = decode_object_from_bytes_if_needed(ip_address)
 
