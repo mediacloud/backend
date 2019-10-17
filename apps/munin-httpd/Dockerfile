@@ -2,31 +2,13 @@
 # Munin HTTP server
 #
 
-FROM dockermediacloud/base:latest
+FROM dockermediacloud/nginx-base:latest
 
-# Install packages
-RUN \
-    #
-    # Install Munin CGI scripts
-    apt-get -y --no-install-recommends install munin && \
-    #
-    # Install lighttpd and FastCGI libs
-    apt-get -y --no-install-recommends install \
-        lighttpd \
-        libcgi-fast-perl \
-    && \
-    #
-    # Allow user to write to /dev/std[out|err]
-    usermod -a -G tty munin && \
-    #
-    true
+# Install Munin's static web files, e.g. CSS stylesheets
+RUN apt-get -y --no-install-recommends install munin
 
-# Replace lighttpd's configuration
-RUN rm -rf /etc/lighttpd/
-COPY lighttpd/ /etc/lighttpd/
-
-# Volume for RRD data (shared with munin-cron)
-VOLUME /var/lib/munin/
+# Copy configuration
+COPY nginx/include/munin-httpd.conf /etc/nginx/include/
 
 # Volume for generated HTML (shared with munin-cron)
 VOLUME /var/cache/munin/www/
@@ -34,7 +16,7 @@ VOLUME /var/cache/munin/www/
 # Web server's port
 EXPOSE 4948
 
-# No USER because lighttpd is configured to run under "munin" user
+# No USER because Nginx runs as "nobody" by default
 
-# Run lighttpd
-CMD ["lighttpd", "-D", "-f", "/etc/lighttpd/lighttpd.conf"]
+# Run Nginx
+CMD ["nginx"]
