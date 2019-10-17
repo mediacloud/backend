@@ -2580,7 +2580,8 @@ CREATE TABLE auth_users (
 
     created_date                        timestamp not null default now(),
     
-    has_consented                       boolean not null default false
+    -- Whether or not the user has consented to the privacy policy
+    has_consented                       BOOLEAN NOT NULL DEFAULT false
 );
 
 
