@@ -28,11 +28,18 @@ sub test_users($)
             full_name         => "foo bar $i",
             notes             => "notes $i",
             password_hash     => 'x' x 137,
-            max_topic_stories => $i,
             has_consented     => 'false',
             active            => 'false'
         };
         $auth_user = $db->create( 'auth_users', $auth_user );
+
+        $db->query(<<SQL,
+            UPDATE auth_user_limits
+            SET max_topic_stories = ?
+            WHERE auth_users_id = ?
+SQL
+            $i, $auth_user->{ 'auth_users_id' }
+        );
     }
 
     my $expected_auth_users =
@@ -80,7 +87,7 @@ sub test_users($)
     $r = MediaWords::Test::API::test_put( '/api/v2/users/update', $input_data );
 
     my $updated_user = $db->query( <<SQL, $search_user->{ auth_users_id } )->hash();
-select au.*, aul.weekly_requests_limit
+select au.*, aul.max_topic_stories, aul.weekly_requests_limit
     from auth_users au
         join auth_user_limits aul using ( auth_users_id )
     where au.auth_users_id = ?
