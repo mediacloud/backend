@@ -42,6 +42,7 @@ sub test_user_info($)
 
     my $user = MediaWords::DBI::Auth::Info::user_info( $db, $email );
 
+    ok( $user->user_id() );
     is( $user->email(),                        $email );
     is( $user->full_name(),                    $full_name );
     is( $user->notes(),                        $notes );

@@ -1565,8 +1565,9 @@ None.
 
 ```json
 {
+    "auth_users_id": "(integer) User's unique ID (for uniquely identifying the user, try to rely on email though)",
     "email": "(string) users@email.address",
-    "full_name": "(string) User's Full Name",
+    "full_name": "(string) User's full name",
     "api_key": "(string) User's API key.",
     "notes": "(string) User's 'notes' field.",
     "created_date": "(ISO 8601 date) of when the user was created.",
@@ -1609,6 +1610,7 @@ URL: <https://api.mediacloud.org/api/v2/auth/profile>
 
 ```json
 {
+    "auth_users_id": 1,
     "email": "hroberts@cyber.law.harvard.edu",
     "full_name": "Hal Roberts",
     "api_key": "bae132d8de0e0565cc9b84ec022e367f71f6dabf",

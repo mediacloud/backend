@@ -46,8 +46,9 @@ sub _user_profile_hash($$)
     }
 
     return {
-        'email'     => $user->email(),
-        'full_name' => $user->full_name(),
+        'auth_users_id' => $user->user_id(),
+        'email'         => $user->email(),
+        'full_name'     => $user->full_name(),
 
         # Always return global (non-IP limited) API key because we don't know who is requesting
         # the profile (dashboard or the user itself)

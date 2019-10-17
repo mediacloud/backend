@@ -45,6 +45,7 @@ sub test_all_users($)
 
     my $user = $all_users->[ 0 ];
 
+    ok( $user->user_id() );
     is( $user->email(),                        $email );
     is( $user->full_name(),                    $full_name );
     is( $user->notes(),                        $notes );

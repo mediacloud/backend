@@ -34,6 +34,7 @@ def test_all_users():
 
     user = users[0]
     assert isinstance(user, CurrentUser)
+    assert user.user_id()
     assert user.email() == email
     assert user.full_name() == full_name
     assert user.notes() == notes

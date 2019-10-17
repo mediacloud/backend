@@ -43,6 +43,7 @@ def test_user_info():
     user = user_info(db=db, email=email)
 
     assert isinstance(user, CurrentUser)
+    assert user.user_id()
     assert user.email() == email
     assert user.full_name() == full_name
     assert user.notes() == notes
