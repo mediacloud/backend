@@ -24,7 +24,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4730;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4731;
 BEGIN
 
     -- Update / set database schema version
@@ -2702,7 +2702,7 @@ CREATE UNIQUE INDEX auth_user_request_daily_counts_email_day ON auth_user_reques
 -- User limits for logged + throttled controller actions
 CREATE TABLE auth_user_limits (
 
-    auth_user_limits_id             SERIAL      NOT NULL,
+    auth_user_limits_id             SERIAL      PRIMARY KEY NOT NULL,
 
     auth_users_id                   INTEGER     NOT NULL UNIQUE REFERENCES auth_users(auth_users_id)
                                                 ON DELETE CASCADE ON UPDATE CASCADE DEFERRABLE,
