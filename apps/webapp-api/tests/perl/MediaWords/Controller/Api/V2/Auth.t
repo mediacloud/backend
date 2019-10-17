@@ -370,12 +370,22 @@ sub test_profile($)
 
     is( $actual_profile->{ active }, $expected_profile->active() );
     cmp_deeply( $actual_profile->{ auth_roles }, $expected_profile->role_names() );
-    is( $actual_profile->{ limits }->{ weekly }->{ requests }->{ used },  $expected_profile->weekly_requests_sum() );
-    is( $actual_profile->{ limits }->{ weekly }->{ requests }->{ limit }, $expected_profile->weekly_requests_limit() );
-    is( $actual_profile->{ limits }->{ weekly }->{ requested_items }->{ used },
-        $expected_profile->weekly_requested_items_sum() );
-    is( $actual_profile->{ limits }->{ weekly }->{ requested_items }->{ limit },
-        $expected_profile->weekly_requested_items_limit() );
+    is(
+        $actual_profile->{ limits }->{ weekly }->{ requests }->{ used },    #
+        $expected_profile->used_resources()->weekly_requests(),             #
+    );
+    is(
+        $actual_profile->{ limits }->{ weekly }->{ requests }->{ limit },   #
+        $expected_profile->resource_limits()->weekly_requests(),            #
+    );
+    is(
+        $actual_profile->{ limits }->{ weekly }->{ requested_items }->{ used },     #
+        $expected_profile->used_resources()->weekly_requested_items(),              #
+    );
+    is(
+        $actual_profile->{ limits }->{ weekly }->{ requested_items }->{ limit },    #
+        $expected_profile->resource_limits()->weekly_requested_items(),             #
+    );
 }
 
 sub test_login($)

@@ -140,25 +140,28 @@ def add_user(db: DatabaseHandler, new_user: NewUser) -> None:
         raise McAuthRegisterException("Unable to create roles: %s" % str(ex))
 
     # Update limits (if they're defined)
-    if new_user.weekly_requests_limit() is not None:
-        db.query("""
-            UPDATE auth_user_limits
-            SET weekly_requests_limit = %(weekly_requests_limit)s
-            WHERE auth_users_id = %(auth_users_id)s
-        """, {
-            'auth_users_id': user.user_id(),
-            'weekly_requests_limit': new_user.weekly_requests_limit(),
-        })
+    resource_limits = new_user.resource_limits()
+    if resource_limits:
 
-    if new_user.weekly_requested_items_limit() is not None:
-        db.query("""
-            UPDATE auth_user_limits
-            SET weekly_requested_items_limit = %(weekly_requested_items_limit)s
-            WHERE auth_users_id = %(auth_users_id)s
-        """, {
-            'auth_users_id': user.user_id(),
-            'weekly_requested_items_limit': new_user.weekly_requested_items_limit(),
-        })
+        if resource_limits.weekly_requests() is not None:
+            db.query("""
+                UPDATE auth_user_limits
+                SET weekly_requests_limit = %(weekly_requests_limit)s
+                WHERE auth_users_id = %(auth_users_id)s
+            """, {
+                'auth_users_id': user.user_id(),
+                'weekly_requests_limit': resource_limits.weekly_requests(),
+            })
+
+        if resource_limits.weekly_requested_items() is not None:
+            db.query("""
+                UPDATE auth_user_limits
+                SET weekly_requested_items_limit = %(weekly_requested_items_limit)s
+                WHERE auth_users_id = %(auth_users_id)s
+            """, {
+                'auth_users_id': user.user_id(),
+                'weekly_requested_items_limit': resource_limits.weekly_requested_items(),
+            })
 
     # Subscribe to newsletter
     if new_user.subscribe_to_newsletter():

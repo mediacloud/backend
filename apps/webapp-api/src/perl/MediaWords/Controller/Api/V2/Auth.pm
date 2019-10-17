@@ -61,12 +61,12 @@ sub _user_profile_hash($$)
         'limits'       => {
             'weekly' => {
                 'requests' => {
-                    'used'  => $user->weekly_requests_sum(),
-                    'limit' => $user->weekly_requests_limit(),
+                    'used'  => $user->used_resources()->weekly_requests(),
+                    'limit' => $user->resource_limits()->weekly_requests(),
                 },
                 'requested_items' => {
-                    'used'  => $user->weekly_requested_items_sum(),
-                    'limit' => $user->weekly_requested_items_limit(),
+                    'used'  => $user->used_resources()->weekly_requested_items(),
+                    'limit' => $user->resource_limits()->weekly_requested_items(),
                 }
             }
         }

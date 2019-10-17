@@ -32,8 +32,10 @@ sub test_all_users($)
             password                     => 'userinfo',
             password_repeat              => 'userinfo',
             activation_url               => '',                              # user is active, no need for activation URL
-            weekly_requests_limit        => $weekly_requests_limit,
-            weekly_requested_items_limit => $weekly_requested_items_limit,
+            resource_limits              => MediaWords::DBI::Auth::User::Resources->new(
+                weekly_requests          => $weekly_requests_limit,
+                weekly_requested_items   => $weekly_requested_items_limit,
+            ),
         );
 
         MediaWords::DBI::Auth::Register::add_user( $db, $new_user );
@@ -49,8 +51,9 @@ sub test_all_users($)
     is( $user->email(),                        $email );
     is( $user->full_name(),                    $full_name );
     is( $user->notes(),                        $notes );
-    is( $user->weekly_requests_limit(),        $weekly_requests_limit );
-    is( $user->weekly_requested_items_limit(), $weekly_requested_items_limit );
+    ok( $user->resource_limits() );
+    is( $user->resource_limits()->weekly_requests(),        $weekly_requests_limit );
+    is( $user->resource_limits()->weekly_requested_items(), $weekly_requested_items_limit );
     ok( $user->active() );
     ok( $user->global_api_key() );
     ok( $user->password_hash() );

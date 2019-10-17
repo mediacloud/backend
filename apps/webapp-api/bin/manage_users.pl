@@ -213,8 +213,10 @@ EOF
             password                     => $user_password,
             password_repeat              => $user_password_repeat,
             activation_url               => '',                                   # user is active
-            weekly_requests_limit        => $user_weekly_requests_limit,
-            weekly_requested_items_limit => $user_weekly_requested_items_limit,
+            resource_limits              => MediaWords::DBI::Auth::User::Resources->new(
+                weekly_requests          => $user_weekly_requests_limit,
+                weekly_requested_items   => $user_weekly_requested_items_limit,
+            ),
         );
 
         MediaWords::DBI::Auth::Register::add_user( $db, $new_user );
@@ -323,8 +325,10 @@ EOF
             active                       => $user_is_active,
             password                     => $user_password,
             password_repeat              => $user_password_repeat,
-            weekly_requests_limit        => $user_weekly_requests_limit,
-            weekly_requested_items_limit => $user_weekly_requested_items_limit,
+            resource_limits              => MediaWords::DBI::Auth::User::Resources->new(
+                weekly_requests          => $user_weekly_requests_limit,
+                weekly_requested_items   => $user_weekly_requested_items_limit,
+            ),
         );
         MediaWords::DBI::Auth::Profile::update_user( $db, $existing_user );
     };
@@ -418,8 +422,8 @@ sub user_show($)
     say "Active:    " . ( $db_user->active() ? 'yes' : 'no' );
     say "Roles:     " . join( ',', @{ $db_user->role_names() } );
     say "Global API key:   " . $db_user->global_api_key();
-    say "Weekly requests limit:        " . $db_user->weekly_requests_limit();
-    say "Weekly requested items limit: " . $db_user->weekly_requested_items_limit();
+    say "Weekly requests limit:        " . $db_user->resource_limits()->weekly_requests();
+    say "Weekly requested items limit: " . $db_user->resource_limits()->weekly_requested_items();
 
     return 0;
 }

@@ -98,25 +98,28 @@ def update_user(db: DatabaseHandler, user_updates: ModifyUser) -> None:
             db.rollback()
             raise McAuthProfileException("Unable to change password: %s" % str(ex))
 
-    if user_updates.weekly_requests_limit() is not None:
-        db.query("""
-            UPDATE auth_user_limits
-            SET weekly_requests_limit = %(weekly_requests_limit)s
-            WHERE auth_users_id = %(auth_users_id)s
-        """, {
-            'weekly_requests_limit': user_updates.weekly_requests_limit(),
-            'auth_users_id': user.user_id(),
-        })
+    resource_limits = user_updates.resource_limits()
+    if resource_limits:
 
-    if user_updates.weekly_requested_items_limit() is not None:
-        db.query("""
-            UPDATE auth_user_limits
-            SET weekly_requested_items_limit = %(weekly_requested_items_limit)s
-            WHERE auth_users_id = %(auth_users_id)s
-        """, {
-            'weekly_requested_items_limit': user_updates.weekly_requested_items_limit(),
-            'auth_users_id': user.user_id(),
-        })
+        if resource_limits.weekly_requests() is not None:
+            db.query("""
+                UPDATE auth_user_limits
+                SET weekly_requests_limit = %(weekly_requests_limit)s
+                WHERE auth_users_id = %(auth_users_id)s
+            """, {
+                'weekly_requests_limit': resource_limits.weekly_requests(),
+                'auth_users_id': user.user_id(),
+            })
+
+        if resource_limits.weekly_requested_items() is not None:
+            db.query("""
+                UPDATE auth_user_limits
+                SET weekly_requested_items_limit = %(weekly_requested_items_limit)s
+                WHERE auth_users_id = %(auth_users_id)s
+            """, {
+                'weekly_requested_items_limit': resource_limits.weekly_requested_items(),
+                'auth_users_id': user.user_id(),
+            })
 
     if user_updates.role_ids() is not None:
         db.query("""

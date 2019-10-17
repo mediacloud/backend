@@ -3,7 +3,7 @@ import re
 from mediawords.db import connect_to_db
 from webapp.auth.info import user_info
 from webapp.auth.register import add_user
-from webapp.auth.user import NewUser, CurrentUser
+from webapp.auth.user import NewUser, CurrentUser, Resources
 
 
 def __looks_like_iso8601_date(date: str) -> bool:
@@ -35,8 +35,10 @@ def test_user_info():
             password='user_info',
             password_repeat='user_info',
             activation_url='',  # user is active, no need for activation URL
-            weekly_requests_limit=weekly_requests_limit,
-            weekly_requested_items_limit=weekly_requested_items_limit,
+            resource_limits=Resources(
+                weekly_requests=weekly_requests_limit,
+                weekly_requested_items=weekly_requested_items_limit,
+            ),
         ),
     )
 
@@ -47,8 +49,9 @@ def test_user_info():
     assert user.email() == email
     assert user.full_name() == full_name
     assert user.notes() == notes
-    assert user.weekly_requests_limit() == weekly_requests_limit
-    assert user.weekly_requested_items_limit() == weekly_requested_items_limit
+    assert user.resource_limits()
+    assert user.resource_limits().weekly_requests() == weekly_requests_limit
+    assert user.resource_limits().weekly_requested_items() == weekly_requested_items_limit
     assert user.active()
     assert user.created_date()
     assert __looks_like_iso8601_date(user.created_date())

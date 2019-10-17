@@ -1,6 +1,6 @@
 from mediawords.db import DatabaseHandler
 from mediawords.util.perl import decode_object_from_bytes_if_needed
-from webapp.auth.user import CurrentUser, Role, APIKey
+from webapp.auth.user import CurrentUser, Role, APIKey, Resources
 
 
 class McAuthInfoException(Exception):
@@ -84,8 +84,12 @@ def user_info(db: DatabaseHandler, email: str) -> CurrentUser:
         password_hash=first_row['password_hash'],
         roles=roles,
         api_keys=api_keys,
-        weekly_requests_limit=first_row['weekly_requests_limit'],
-        weekly_requested_items_limit=first_row['weekly_requested_items_limit'],
-        weekly_requests_sum=first_row['weekly_requests_sum'],
-        weekly_requested_items_sum=first_row['weekly_requested_items_sum'],
+        resource_limits=Resources(
+            weekly_requests=first_row['weekly_requests_limit'],
+            weekly_requested_items=first_row['weekly_requested_items_limit'],
+        ),
+        used_resources=Resources(
+            weekly_requests=first_row['weekly_requests_sum'],
+            weekly_requested_items=first_row['weekly_requested_items_sum'],
+        ),
     )

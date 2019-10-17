@@ -6,11 +6,9 @@ from webapp.auth.user import NewUser
 from webapp.test.dummy_emails import TestDoNotSendEmails
 
 
-
 class LoginWithAPIKeyInactiveUserTestCase(TestDoNotSendEmails):
 
     def test_regenerate_api_key(self):
-
         db = connect_to_db()
 
         email = 'test@user.login'
