@@ -12,6 +12,7 @@ class McAuthLimitsException(Exception):
 def default_weekly_requests_limit(db: DatabaseHandler) -> int:
     """Get default weekly request limit."""
 
+    # noinspection SqlResolve
     limit = db.query("""
         SELECT column_default AS default_weekly_requests_limit
         FROM information_schema.columns
@@ -28,6 +29,7 @@ def default_weekly_requests_limit(db: DatabaseHandler) -> int:
 def default_weekly_requested_items_limit(db: DatabaseHandler) -> int:
     """Get default weekly requested items limit."""
 
+    # noinspection SqlResolve
     limit = db.query("""
         SELECT column_default AS default_weekly_requested_items_limit
         FROM information_schema.columns
