@@ -1177,7 +1177,6 @@ URL: https://api.mediacloud.org/api/v2/tag_sets/list
 | `full_name`               | *(string)* Full name of new user.                                       |
 | `notes`                   | *(string)* User's explanation on how user intends to use Media Cloud.   |
 | `has_consented`           | *(integer)* Whether or not user has consented to our privacy policy.    |
-| `subscribe_to_newsletter` | *(integer)* Whether or not user wants to subscribe to our mailing list. |
 | `activation_url`          | *(string)* Client's URL used for user account activation.               |
 
 Asking user to re-enter password and comparing the two values is left to the client.
@@ -1221,7 +1220,6 @@ Input:
     "password": "qwerty1",
     "full_name": "Foo Bar",
     "notes": "Just feeling like it.",
-    "subscribe_to_newsletter": 1,
     "has_consented": 1,
     "activation_url": "https://dashboard.mediacloud.org/activate"
 }

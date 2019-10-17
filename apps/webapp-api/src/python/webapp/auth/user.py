@@ -197,7 +197,6 @@ class NewUser(NewOrModifyUser):
     """User object for user to be created by add_user()."""
 
     __slots__ = [
-        '__subscribe_to_newsletter',
         '__activation_url',
     ]
 
@@ -211,7 +210,6 @@ class NewUser(NewOrModifyUser):
                  password: Optional[str] = None,
                  password_repeat: Optional[str] = None,
                  role_ids: Optional[List[int]] = None,
-                 subscribe_to_newsletter: Optional[bool] = None,
                  activation_url: Optional[str] = None):
 
         if isinstance(has_consented, bytes):
@@ -253,17 +251,9 @@ class NewUser(NewOrModifyUser):
             role_ids=role_ids,
         )
 
-        if isinstance(subscribe_to_newsletter, bytes):
-            subscribe_to_newsletter = decode_object_from_bytes_if_needed(subscribe_to_newsletter)
-        subscribe_to_newsletter = bool(int(subscribe_to_newsletter or 0))
-
         activation_url = decode_object_from_bytes_if_needed(activation_url)
 
-        self.__subscribe_to_newsletter = subscribe_to_newsletter
         self.__activation_url = activation_url
-
-    def subscribe_to_newsletter(self) -> Optional[bool]:
-        return self.__subscribe_to_newsletter
 
     def activation_url(self) -> Optional[str]:
         return self.__activation_url

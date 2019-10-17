@@ -27,7 +27,6 @@ sub main()
                 to                      => $to,
                 full_name               => $full_name,
                 activation_url          => 'https://activate.com/activate.php',
-                subscribe_to_newsletter => 1,
             }
         );
         ok( $message );

@@ -5,7 +5,7 @@ use Modern::Perl '2015';
 use MediaWords::CommonLibs;
 
 use Readonly;
-use Test::More tests => 152;
+use Test::More tests => 151;
 use Test::Deep;
 
 use URI;
@@ -34,7 +34,6 @@ sub test_register($)
                 full_name               => 'Full Name',
                 has_consented           => 1,
                 notes                   => '',
-                subscribe_to_newsletter => 1,
                 activation_url          => 'https://activate.com/',
             }
         );
@@ -59,19 +58,6 @@ SQL
         eval { $user = MediaWords::DBI::Auth::Login::login_with_email_password( $db, $email, $password ); };
         ok( !$@ );
         is( $user->email(), $email );
-
-        # Confirm that user is subscribed to the newsletter
-        my ( $subscribed ) = $db->query(
-            <<SQL,
-            SELECT 1
-            FROM auth_users_subscribe_to_newsletter
-                INNER JOIN auth_users
-                    ON auth_users_subscribe_to_newsletter.auth_users_id = auth_users.auth_users_id
-            WHERE auth_users.email = ?
-SQL
-            $email
-        )->flat;
-        ok( $subscribed );
     }
 
     # Try registering duplicate user
@@ -85,7 +71,6 @@ SQL
                 full_name               => 'Full Name',
                 has_consented           => 1,
                 notes                   => '',
-                subscribe_to_newsletter => 1,
                 activation_url          => 'https://activate.com/',
             },
             $expect_error
@@ -113,7 +98,6 @@ sub test_activate($)
                     full_name               => 'Full Name',
                     has_consented           => 1,
                     notes                   => '',
-                    subscribe_to_newsletter => 1,
                     activation_url          => 'https://activate.com/',
                 }
             );
@@ -189,7 +173,6 @@ sub test_resend_activation_link($)
                 full_name               => 'Full Name',
                 has_consented           => 1,
                 notes                   => '',
-                subscribe_to_newsletter => 1,
                 activation_url          => $activation_url,
             }
         );
@@ -240,7 +223,6 @@ sub test_send_password_reset_link($)
                 full_name               => 'Full Name',
                 has_consented           => 1,
                 notes                   => '',
-                subscribe_to_newsletter => 1,
                 activation_url          => 'http://activation.com/',
             }
         );

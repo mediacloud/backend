@@ -23,20 +23,12 @@ sub new
         $args{ password },
         $args{ password_repeat },
         $args{ role_ids },
-        $args{ subscribe_to_newsletter },
         $args{ activation_url },
     );
 
     my $self = $class->SUPER::new( python_object => $python_object );
 
     return $self;
-}
-
-sub subscribe_to_newsletter($)
-{
-    my ( $self ) = @_;
-
-    return int( $self->{ _python_object }->subscribe_to_newsletter() );
 }
 
 sub activation_url($)

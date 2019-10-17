@@ -107,12 +107,6 @@ sub register : Local
         die "'notes' is undefined (should be at least an empty string).";
     }
 
-    my $subscribe_to_newsletter = $data->{ subscribe_to_newsletter };
-    unless ( defined $subscribe_to_newsletter )
-    {
-        die "'subscribe_to_newsletter' is undefined (should be at least an empty string).";
-    }
-
     my $has_consented = $data->{ has_consented };
     unless ( defined $has_consented )
     {
@@ -139,7 +133,6 @@ sub register : Local
             password                => $password,
             password_repeat         => $password,
             role_ids                => $role_ids,
-            subscribe_to_newsletter => $subscribe_to_newsletter,
 
             # User has to activate own account via email
             active         => 0,
@@ -213,10 +206,8 @@ sub resend_activation_link : Local
         die "'activation_url' does not look like a HTTP URL.";
     }
 
-    my $subscribe_to_newsletter = 1;
     eval {
-        MediaWords::DBI::Auth::Register::send_user_activation_token( $db, $email, $activation_url,
-            $subscribe_to_newsletter );
+        MediaWords::DBI::Auth::Register::send_user_activation_token( $db, $email, $activation_url );
     };
     if ( $@ )
     {

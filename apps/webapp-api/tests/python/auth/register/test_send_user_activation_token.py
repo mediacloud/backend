@@ -13,7 +13,6 @@ class SendUserActivationTokenTestCase(TestDoNotSendEmails):
         email = 'test@user.login'
         password = 'userlogin123'
         activation_url = 'http://activate.com/'
-        subscribe_to_newsletter = True
 
         add_user(
             db=db,
@@ -27,7 +26,6 @@ class SendUserActivationTokenTestCase(TestDoNotSendEmails):
                 password=password,
                 password_repeat=password,
                 activation_url='',  # user is active, no need for activation URL
-                subscribe_to_newsletter=subscribe_to_newsletter,
             ),
         )
 
@@ -36,7 +34,6 @@ class SendUserActivationTokenTestCase(TestDoNotSendEmails):
             db=db,
             email=email,
             activation_link=activation_url,
-            subscribe_to_newsletter=subscribe_to_newsletter,
         )
 
         # Nonexistent user (call shouldn't fail because we don't want to reveal which users are in the system so we
@@ -45,5 +42,4 @@ class SendUserActivationTokenTestCase(TestDoNotSendEmails):
             db=db,
             email='does@not.exist',
             activation_link=activation_url,
-            subscribe_to_newsletter=subscribe_to_newsletter,
         )

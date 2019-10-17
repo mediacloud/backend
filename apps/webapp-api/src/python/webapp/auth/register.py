@@ -45,16 +45,11 @@ def _generate_user_activation_token(db: DatabaseHandler, email: str, activation_
 
 def send_user_activation_token(db: DatabaseHandler,
                                email: str,
-                               activation_link: str,
-                               subscribe_to_newsletter: bool = False) -> None:
+                               activation_link: str) -> None:
     """Prepare for activation by emailing the activation token."""
 
     email = decode_object_from_bytes_if_needed(email)
     activation_link = decode_object_from_bytes_if_needed(activation_link)
-    if isinstance(subscribe_to_newsletter, bytes):
-        subscribe_to_newsletter = decode_object_from_bytes_if_needed(subscribe_to_newsletter)
-
-    subscribe_to_newsletter = bool(int(subscribe_to_newsletter))
 
     # Check if user exists
     try:
@@ -76,7 +71,6 @@ def send_user_activation_token(db: DatabaseHandler,
         to=email,
         full_name=full_name,
         activation_url=full_activation_link,
-        subscribe_to_newsletter=subscribe_to_newsletter
     )
     if not send_email(message):
         raise McAuthRegisterException('The user was created, but I was unable to send you an activation email.')
@@ -174,16 +168,11 @@ def add_user(db: DatabaseHandler, new_user: NewUser) -> None:
                 'max_topic_stories': resource_limits.max_topic_stories(),
             })
 
-    # Subscribe to newsletter
-    if new_user.subscribe_to_newsletter():
-        db.create(table='auth_users_subscribe_to_newsletter', insert_hash={'auth_users_id': user.user_id()})
-
     if not new_user.active():
         send_user_activation_token(
             db=db,
             email=new_user.email(),
             activation_link=new_user.activation_url(),
-            subscribe_to_newsletter=new_user.subscribe_to_newsletter(),
         )
 
     db.commit()

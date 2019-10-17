@@ -45,7 +45,6 @@ sub test_request_limit($)
                 full_name               => 'Full Name',
                 has_consented           => 1,
                 notes                   => '',
-                subscribe_to_newsletter => 1,
                 activation_url          => 'https://activate.com/',
             }
         );
