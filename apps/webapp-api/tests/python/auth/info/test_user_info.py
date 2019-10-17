@@ -30,6 +30,7 @@ def test_user_info():
         new_user=NewUser(
             email=email,
             full_name=full_name,
+            has_consented=True,
             notes=notes,
             role_ids=[1],
             active=True,
@@ -56,6 +57,7 @@ def test_user_info():
     assert user.resource_limits().weekly_requested_items() == weekly_requested_items_limit
     assert user.resource_limits().max_topic_stories() == max_topic_stories
     assert user.active()
+    assert user.has_consented()
     assert user.created_date()
     assert __looks_like_iso8601_date(user.created_date())
     assert user.global_api_key()

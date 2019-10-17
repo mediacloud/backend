@@ -31,6 +31,7 @@ sub test_user_info($)
             notes                        => $notes,
             role_ids                     => [ 1 ],
             active                       => 1,
+            has_consented                => 1,
             password                     => 'userinfo',
             password_repeat              => 'userinfo',
             activation_url               => '',                              # user is active, no need for activation URL
@@ -56,6 +57,7 @@ sub test_user_info($)
     is( $user->resource_limits()->weekly_requested_items(), $weekly_requested_items_limit );
     is( $user->resource_limits()->max_topic_stories(), $max_topic_stories );
     ok( $user->active() );
+    ok( $user->has_consented() );
     ok( $user->global_api_key() );
     ok( $user->password_hash() );
     ok( $user->has_role( 'admin' ) );

@@ -19,8 +19,9 @@
 #         --action=add \
 #         --email=jdoe@cyber.law.harvard.edu \
 #         --full_name="John Doe" \
-#         --notes="Media Cloud developer." \
-#         --roles="query-create,media-edit,stories-edit" \
+#         --has_consented|--has_not_consented \
+#         [--notes="Media Cloud developer."] \
+#         [--roles="query-create,media-edit,stories-edit"] \
 #         [--password="correct horse battery staple"] \
 #         [--weekly_requests_limit=10000] \
 #         [--weekly_requested_items_limit=100000]
@@ -37,6 +38,7 @@
 #         [--full_name="John Doe"] \
 #         [--notes="Media Cloud developer."] \
 #         [--active|--inactive] \
+#         [--has_consented|--has_not_consented] \
 #         [--roles="query-create,media-edit,stories-edit"] \
 #         [--password="correct horse battery staple" | --set-password] \
 #         [--weekly_requests_limit=10000] \
@@ -130,6 +132,8 @@ sub user_add($)
 
     my $user_email                        = undef;
     my $user_full_name                    = '';
+    my $user_has_consented                = undef;
+    my $user_has_not_consented            = undef;
     my $user_notes                        = '';
     my $user_roles                        = '';
     my $user_password                     = undef;
@@ -141,6 +145,7 @@ sub user_add($)
 Usage: $0 --action=add \
     --email=jdoe\@cyber.law.harvard.edu \
     --full_name="John Doe" \
+    --has_consented|--has_not_consented \
     [--notes="Media Cloud developer."] \
     [--roles="query-create,media-edit,stories-edit"] \
     [--password="correct horse battery staple"] \
@@ -152,6 +157,8 @@ EOF
     GetOptions(
         'email=s'                        => \$user_email,
         'full_name=s'                    => \$user_full_name,
+        'has_consented'                  => \$user_has_consented,
+        'has_not_consented'              => \$user_has_not_consented,
         'notes:s'                        => \$user_notes,
         'roles:s'                        => \$user_roles,
         'password:s'                     => \$user_password,
@@ -175,6 +182,10 @@ EOF
         }
 
         push( @{ $user_role_ids }, $user_role_id );
+    }
+
+    if ( $user_has_not_consented ) {
+        $user_has_consented = 0;
     }
 
     if ( scalar @{ $user_role_ids } == 0 )
@@ -214,6 +225,7 @@ EOF
             notes                        => $user_notes,
             role_ids                     => $user_role_ids,
             active                       => 1,
+            has_consented                => $user_has_consented,
             password                     => $user_password,
             password_repeat              => $user_password_repeat,
             activation_url               => '',                                   # user is active
@@ -245,6 +257,8 @@ sub user_modify($)
     my (
         $user_email,                          #
         $user_full_name,                      #
+        $user_has_consented,                  #
+        $user_has_not_consented,              #
         $user_notes,                          #
         $user_is_active,                      #
         $user_is_inactive,                    #
@@ -260,6 +274,7 @@ sub user_modify($)
 Usage: $0 --action=modify \
     --email=jdoe\@cyber.law.harvard.edu \
     [--full_name="John Doe"] \
+    [--has_consented|--has_not_consented] \
     [--notes="Media Cloud developer."] \
     [--active|--inactive] \
     [--roles="query-create,media-edit,stories-edit"] \
@@ -269,6 +284,8 @@ EOF
     GetOptions(
         'email=s'                        => \$user_email,
         'full_name:s'                    => \$user_full_name,
+        'has_consented'                  => \$user_has_consented,
+        'has_not_consented'              => \$user_has_not_consented,
         'notes:s'                        => \$user_notes,
         'active'                         => \$user_is_active,
         'inactive'                       => \$user_is_inactive,
@@ -307,6 +324,10 @@ EOF
         $user_is_active = 0;
     }
 
+    if ( defined $user_has_not_consented ) {
+        $user_has_consented = 0;
+    }
+
     my $user_password_repeat = $user_password;
     if ( $user_set_password )
     {
@@ -330,6 +351,7 @@ EOF
             notes                        => $user_notes,
             role_ids                     => $user_role_ids,
             active                       => $user_is_active,
+            has_consented                => $user_has_consented,
             password                     => $user_password,
             password_repeat              => $user_password_repeat,
             resource_limits              => MediaWords::DBI::Auth::User::Resources->new(
@@ -426,6 +448,7 @@ sub user_show($)
     say "User ID:          " . $db_user->user_id();
     say "Email (username): " . $db_user->email();
     say "Full name: " . $db_user->full_name();
+    say "Has consented: " . ( $db_user->has_consented() ? 'yes' : 'no' );
     say "Notes:     " . $db_user->notes();
     say "Active:    " . ( $db_user->active() ? 'yes' : 'no' );
     say "Roles:     " . join( ',', @{ $db_user->role_names() } );

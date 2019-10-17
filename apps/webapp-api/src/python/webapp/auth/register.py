@@ -119,6 +119,7 @@ def add_user(db: DatabaseHandler, new_user: NewUser) -> None:
             'full_name': new_user.full_name(),
             'notes': new_user.notes(),
             'active': bool(int(new_user.active())),
+            'has_consented': bool(int(new_user.has_consented())),
         }
     )
 

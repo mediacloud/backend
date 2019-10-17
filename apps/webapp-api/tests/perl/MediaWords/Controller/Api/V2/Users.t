@@ -26,6 +26,7 @@ sub test_users($)
         my $auth_user = {
             email             => "foo_$i\@foo.bar",
             full_name         => "foo bar $i",
+            has_consented     => 1,
             notes             => "notes $i",
             password_hash     => 'x' x 137,
             has_consented     => 'false',
@@ -80,7 +81,7 @@ SQL
         full_name             => 'up date',
         notes                 => 'more notes',
         active                => 1,
-        has_consented         => 1,
+        has_consented         => 0, # remove consent
         weekly_requests_limit => 123456,
         max_topic_stories     => 456789,
     };

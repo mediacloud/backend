@@ -54,11 +54,12 @@ sub _user_profile_hash($$)
         # the profile (dashboard or the user itself)
         'api_key' => $user->global_api_key(),
 
-        'notes'        => $user->notes(),
-        'created_date' => $user->created_date(),
-        'active'       => $user->active(),
-        'auth_roles'   => $user->role_names(),
-        'limits'       => {
+        'notes'         => $user->notes(),
+        'created_date'  => $user->created_date(),
+        'active'        => $user->active(),
+        'has_consented' => $user->has_consented(),
+        'auth_roles'    => $user->role_names(),
+        'limits'        => {
             'weekly' => {
                 'requests' => {
                     'used'  => $user->used_resources()->weekly_requests(),
@@ -112,6 +113,12 @@ sub register : Local
         die "'subscribe_to_newsletter' is undefined (should be at least an empty string).";
     }
 
+    my $has_consented = $data->{ has_consented };
+    unless ( defined $has_consented )
+    {
+        die "'has_consented' is undefined (should be at least an empty string).";
+    }
+
     my $activation_url = $data->{ activation_url };
     unless ( $activation_url )
     {
@@ -136,6 +143,8 @@ sub register : Local
 
             # User has to activate own account via email
             active         => 0,
+
+            has_consented  => $has_consented,
             activation_url => $activation_url,
         );
         MediaWords::DBI::Auth::Register::add_user( $db, $new_user );

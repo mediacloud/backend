@@ -19,6 +19,7 @@ class TestResetPassword(TestDoNotSendEmails):
             new_user=NewUser(
                 email=email,
                 full_name='Test user login',
+                has_consented=True,
                 notes='Test test test',
                 role_ids=[1],
                 active=True,

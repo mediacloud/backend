@@ -1176,6 +1176,7 @@ URL: https://api.mediacloud.org/api/v2/tag_sets/list
 | `password`                | *(string)* Password of new user.                                        |
 | `full_name`               | *(string)* Full name of new user.                                       |
 | `notes`                   | *(string)* User's explanation on how user intends to use Media Cloud.   |
+| `has_consented`           | *(integer)* Whether or not user has consented to our privacy policy.    |
 | `subscribe_to_newsletter` | *(integer)* Whether or not user wants to subscribe to our mailing list. |
 | `activation_url`          | *(string)* Client's URL used for user account activation.               |
 
@@ -1221,6 +1222,7 @@ Input:
     "full_name": "Foo Bar",
     "notes": "Just feeling like it.",
     "subscribe_to_newsletter": 1,
+    "has_consented": 1,
     "activation_url": "https://dashboard.mediacloud.org/activate"
 }
 ```
@@ -1572,6 +1574,7 @@ None.
     "notes": "(string) User's 'notes' field.",
     "created_date": "(ISO 8601 date) of when the user was created.",
     "active": "(integer) 1 if user is active (has activated account via email), 0 otherwise.",
+    "has_consented": "(integer) 1 if user has consented to our privacy policy, 0 otherwise.",
     "auth_roles": [
         "(string) user-role-1",
         "(string) user-role-2"
@@ -1618,6 +1621,7 @@ URL: <https://api.mediacloud.org/api/v2/auth/profile>
     "notes": "Media Cloud Geek",
     "created_date": "2017-03-24T03:23:47+00:00",
     "active": 1,
+    "has_consented": 1,
     "auth_roles": [
         "media-edit",
         "stories-edit"

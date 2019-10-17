@@ -57,6 +57,7 @@ class BaseUser(object):
         '__full_name',
         '__notes',
         '__active',
+        '__has_consented',
         '__resource_limits',
     ]
 
@@ -65,6 +66,7 @@ class BaseUser(object):
                  full_name: Optional[str] = None,
                  notes: Optional[str] = None,
                  active: Optional[bool] = None,
+                 has_consented: Optional[bool] = None,
                  resource_limits: Optional[Resources] = None):
 
         email = decode_object_from_bytes_if_needed(email)
@@ -72,6 +74,8 @@ class BaseUser(object):
         notes = decode_object_from_bytes_if_needed(notes)
         if isinstance(active, bytes):
             active = decode_object_from_bytes_if_needed(active)
+        if isinstance(has_consented, bytes):
+            has_consented = decode_object_from_bytes_if_needed(has_consented)
 
         if not email:
             raise McAuthUserException("User email is unset.")
@@ -80,6 +84,7 @@ class BaseUser(object):
         self.__full_name = full_name
         self.__notes = notes
         self.__active = bool(int(active))  # because bool(int('0')) == True
+        self.__has_consented = bool(int(has_consented))
         self.__resource_limits = resource_limits
 
     def email(self) -> str:
@@ -93,6 +98,9 @@ class BaseUser(object):
 
     def active(self) -> Optional[bool]:
         return self.__active
+
+    def has_consented(self) -> Optional[bool]:
+        return self.__has_consented
 
     def resource_limits(self) -> Optional[Resources]:
         return self.__resource_limits
@@ -112,6 +120,7 @@ class NewOrModifyUser(BaseUser):
                  full_name: Optional[str] = None,
                  notes: Optional[str] = None,
                  active: Optional[bool] = None,
+                 has_consented: Optional[bool] = None,
                  resource_limits: Optional[Resources] = None,
                  password: Optional[str] = None,
                  password_repeat: Optional[str] = None,
@@ -121,6 +130,7 @@ class NewOrModifyUser(BaseUser):
             full_name=full_name,
             notes=notes,
             active=active,
+            has_consented=has_consented,
             resource_limits=resource_limits,
         )
 
@@ -158,6 +168,7 @@ class ModifyUser(NewOrModifyUser):
                  full_name: Optional[str] = None,
                  notes: Optional[str] = None,
                  active: Optional[bool] = None,
+                 has_consented: Optional[bool] = None,
                  resource_limits: Optional[Resources] = None,
                  password: Optional[str] = None,
                  password_repeat: Optional[str] = None,
@@ -174,6 +185,7 @@ class ModifyUser(NewOrModifyUser):
             full_name=full_name,
             notes=notes,
             active=active,
+            has_consented=has_consented,
             resource_limits=resource_limits,
             password=password,
             password_repeat=password_repeat,
@@ -194,6 +206,7 @@ class NewUser(NewOrModifyUser):
                  full_name: Optional[str] = None,
                  notes: Optional[str] = None,
                  active: Optional[bool] = None,
+                 has_consented: Optional[bool] = None,
                  resource_limits: Optional[Resources] = None,
                  password: Optional[str] = None,
                  password_repeat: Optional[str] = None,
@@ -201,8 +214,14 @@ class NewUser(NewOrModifyUser):
                  subscribe_to_newsletter: Optional[bool] = None,
                  activation_url: Optional[str] = None):
 
+        if isinstance(has_consented, bytes):
+            has_consented = decode_object_from_bytes_if_needed(has_consented)
+
         if not full_name:
             raise McAuthUserException("User full name is unset.")
+
+        if has_consented is None:
+            raise McAuthUserException("User consent is unset.")
 
         if notes is None:
             raise McAuthUserException("User notes are undefined (should be at least an empty string).")
@@ -227,6 +246,7 @@ class NewUser(NewOrModifyUser):
             full_name=full_name,
             notes=notes,
             active=active,
+            has_consented=has_consented,
             resource_limits=resource_limits,
             password=password,
             password_repeat=password_repeat,
@@ -325,6 +345,7 @@ class CurrentUser(BaseUser):
                  full_name: str,
                  notes: str,
                  active: bool,
+                 has_consented: bool,
                  resource_limits: Resources,
                  user_id: int,
                  created_timestamp: int,
@@ -378,6 +399,7 @@ class CurrentUser(BaseUser):
             full_name=full_name,
             notes=notes,
             active=active,
+            has_consented=has_consented,
             resource_limits=resource_limits,
         )
 

@@ -43,6 +43,7 @@ sub test_request_limit($)
                 email                   => $email,
                 password                => $password,
                 full_name               => 'Full Name',
+                has_consented           => 1,
                 notes                   => '',
                 subscribe_to_newsletter => 1,
                 activation_url          => 'https://activate.com/',

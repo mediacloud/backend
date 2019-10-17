@@ -18,6 +18,7 @@ sub new
         $args{ full_name },
         $args{ notes },
         $args{ active },
+        $args{ has_consented },
         $args{ resource_limits }->{ _python_object },
         $args{ password },
         $args{ password_repeat },

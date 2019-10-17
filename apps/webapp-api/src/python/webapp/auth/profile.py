@@ -85,6 +85,16 @@ def update_user(db: DatabaseHandler, user_updates: ModifyUser) -> None:
             'email': user_updates.email(),
         })
 
+    if user_updates.has_consented() is not None:
+        db.query("""
+            UPDATE auth_users
+            SET has_consented = %(has_consented)s
+            WHERE email = %(email)s
+        """, {
+            'has_consented': bool(int(user_updates.has_consented())),
+            'email': user_updates.email(),
+        })
+
     if user_updates.password() is not None:
         try:
             change_password(
@@ -130,7 +140,6 @@ def update_user(db: DatabaseHandler, user_updates: ModifyUser) -> None:
                 'max_topic_stories': resource_limits.max_topic_stories(),
                 'auth_users_id': user.user_id(),
             })
-
 
     if user_updates.role_ids() is not None:
         db.query("""

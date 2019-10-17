@@ -393,6 +393,7 @@ sub find_or_add_test_user($$)
         my $new_user = MediaWords::DBI::Auth::User::NewUser->new(
             email           => $email,
             full_name       => $role,
+            has_consented   => 1,
             notes           => $role,
             role_ids        => $roles,
             active          => 1,

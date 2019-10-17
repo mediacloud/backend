@@ -68,6 +68,13 @@ sub active($)
     return int( $self->{ _python_object }->active() );
 }
 
+sub has_consented($)
+{
+    my ( $self ) = @_;
+
+    return int( $self->{ _python_object }->has_consented() );
+}
+
 sub resource_limits($)
 {
     my ( $self ) = @_;

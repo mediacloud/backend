@@ -25,6 +25,7 @@ sub test_change_password($)
         my $new_user = MediaWords::DBI::Auth::User::NewUser->new(
             email           => $email,
             full_name       => $full_name,
+            has_consented   => 1,
             notes           => 'Test test test',
             role_ids        => [ 1 ],
             active          => 1,
