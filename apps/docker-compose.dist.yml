@@ -426,7 +426,7 @@ services:
                     # CPU core limit
                     cpus: "1"
                     # RAM limit
-                    memory: "512M"
+                    memory: "2GB"
 
     #
     # Generate media health report Cron job
