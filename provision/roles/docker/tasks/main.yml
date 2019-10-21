@@ -38,7 +38,7 @@
     - docker
 
 - name: Find out specific Docker APT package version to install
-  shell: "apt-cache madison docker-ce | grep {{ docker_version }} | awk '{ print $3 }'"
+  shell: "apt-cache madison docker-ce | grep {{ docker_version }} | awk '{ print $3 }' | head -n 1"
   changed_when: false
   register: docker_apt_version
   tags:
@@ -58,7 +58,7 @@
     - docker
 
 - name: Find out specific containerd.io APT package version to install
-  shell: "apt-cache madison containerd.io | grep {{ containerd_io_version }} | awk '{ print $3 }'"
+  shell: "apt-cache madison containerd.io | grep {{ containerd_io_version }} | awk '{ print $3 }' | head -n 1"
   changed_when: false
   register: containerd_io_apt_version
   tags:

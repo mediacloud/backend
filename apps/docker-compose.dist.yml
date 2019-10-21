@@ -425,8 +425,8 @@ services:
                 limits:
                     # CPU core limit
                     cpus: "1"
-                    # RAM limit
-                    memory: "2GB"
+                    # It appears that sometimes the script has to do huge dumps, and it does all of it in RAM
+                    memory: "4GB"
 
     #
     # Generate media health report Cron job
