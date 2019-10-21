@@ -8,20 +8,20 @@
 
   Other Linux distributions, e.g. CentOS, should work fine but running Media Cloud on them is not supported. Windows hosts should technically work as well, but you're absolutely at your own here.
 
-* **Docker 18.09.2**.
+* **Docker 19.03.4**.
 
-  For the sake of your own sanity, make sure that you're running the same version of Docker as in production and testing environments. At the time of writing, said environments run Docker `18.09.2`.
+  For the sake of your own sanity, make sure that you're running the same version of Docker as in production and testing environments. At the time of writing, said environments run Docker `19.03.4`.
 
-  * To install a specific version of Docker on Ubuntu, refer to the [installation instructions](https://docs.docker.com/install/linux/docker-ce/ubuntu/#install-docker-ce-1) or just use our Ansible playbook which makes sure to install and hold `docker-ce` package at version 18.09.2:
+  * To install a specific version of Docker on Ubuntu, refer to the [installation instructions](https://docs.docker.com/install/linux/docker-ce/ubuntu/#install-docker-ce-1) or just use our Ansible playbook which makes sure to install and hold `docker-ce` package at version 19.03.4:
 
     ```bash
     cd provision/
     ansible-playbook --inventory='localhost,' --connection=local --tags docker setup.yml
     ```
 
-  * To install a specific version of Docker on macOS, download and install [Docker Desktop for Mac build 31259](https://download.docker.com/mac/stable/31259/Docker.dmg) which ships with Docker 18.09.2.
+  * To install a specific version of Docker on macOS, download and install [Docker Desktop for Mac build 31259](https://download.docker.com/mac/stable/38240/Docker.dmg) which ships with Docker 19.03.2.
 
-  * To install a specific version of Docker on Windows, download and install [Docker Desktop for Windows build 31259](https://download.docker.com/win/stable/31259/Docker%20for%20Windows%20Installer.exe) which ships with Docker 18.09.2.
+  * To install a specific version of Docker on Windows, download and install [Docker Desktop for Windows build 31259](https://download.docker.com/win/stable/37877/Docker%20Desktop%20Installer.exe) which ships with Docker 19.03.2.
 
 * **Docker Compose**.
 
