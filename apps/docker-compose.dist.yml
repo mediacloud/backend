@@ -1692,6 +1692,8 @@ services:
             - default
         environment:
             <<: *common-configuration
+            # Fetchers are not playing along nicely, let's find out why
+            MC_LOGGING_LEVEL: "DEBUG"
         deploy:
             <<: *misc-apps_deploy_placement_constraints
             <<: *endpoint-mode-dnsrr
