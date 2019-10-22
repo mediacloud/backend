@@ -21,15 +21,6 @@ services:
             - webapp-api
             - cron-generate-daily-rss-dumps
 
-    cron-generate-daily-rss-dumps:
-        image: dockermediacloud/cron-generate-daily-rss-dumps:latest
-        stop_signal: SIGKILL
-        volumes:
-            # Shared with "webapp-httpd":
-            - vol_daily_rss_dumps:/var/lib/daily_rss_dumps/
-        depends_on:
-            - postgresql-pgbouncer
-
     webapp-api:
         image: dockermediacloud/webapp-api:latest
         stop_signal: SIGKILL
@@ -48,6 +39,15 @@ services:
         deploy:
             # Try running multiple replicas to see whether FastCGI will be able to use them
             replicas: 2
+
+    cron-generate-daily-rss-dumps:
+        image: dockermediacloud/cron-generate-daily-rss-dumps:latest
+        stop_signal: SIGKILL
+        volumes:
+            # Shared with "webapp-httpd":
+            - vol_daily_rss_dumps:/var/lib/daily_rss_dumps/
+        depends_on:
+            - postgresql-pgbouncer
 
     postgresql-pgbouncer:
         image: dockermediacloud/postgresql-pgbouncer:latest
