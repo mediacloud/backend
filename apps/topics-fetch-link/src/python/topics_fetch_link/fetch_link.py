@@ -10,6 +10,7 @@ from dataclasses import dataclass
 from http import HTTPStatus
 
 from mediawords.db import DatabaseHandler
+from mediawords.dbi.stories.stories import insert_story_urls
 from mediawords.util.log import create_logger
 from mediawords.util.network import tcp_port_is_open
 from mediawords.util.perl import decode_object_from_bytes_if_needed
@@ -484,7 +485,7 @@ def fetch_topic_url(db: DatabaseHandler, topic_fetch_urls_id: int, domain_timeou
 
             # add redirect_url as a lookup url for the story, if it is different from the story url
             if not redirect_url == topic_fetch_url['url']:
-                mediawords.dbi.stories.stories.insert_story_urls(db, story, redirect_url)
+                insert_story_urls(db, story, redirect_url)
 
         if topic_fetch_url['topic_links_id'] and topic_fetch_url['stories_id']:
             try_update_topic_link_ref_stories_id(db, topic_fetch_url)
