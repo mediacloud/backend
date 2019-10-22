@@ -122,6 +122,48 @@ x-crimson-hexagon-api-configuration: &crimson-hexagon-api-configuration
 
 
 #
+# Default sysctl values
+# =====================
+#
+# Default sysctl values to set on all containers.
+#
+x-sysctl-defaults:  &sysctl-defaults
+    
+    # Enable TIME_WAIT socket reuse
+    net.ipv4.tcp_tw_reuse: "1"
+
+    # Disable TIME_WAIT socket recycling due to possible NAT problems
+    net.ipv4.tcp_tw_recycle: "0"
+
+    # Increase ephemeral port range to allow more client connections
+    net.ipv4.ip_local_port_range: "1024 65500"
+
+    # Decrease net.ipv4.tcp_fin_timeout to allow server to reuse closed connections faster
+    net.ipv4.tcp_fin_timeout: "30"
+
+    # Increase socket backlog
+    net.core.somaxconn: "4096"
+
+    # Increase TCP packet backlog
+    net.core.netdev_max_backlog: "65535"
+
+    # Increase max. number of remembered connection requests
+    net.ipv4.tcp_max_syn_backlog: "4096"
+
+    # Prevent SYN floods
+    net.ipv4.tcp_syncookies: "1"
+
+    # Start sending keep-alive packets sooner (useful for RabbitMQ and others)
+    net.ipv4.tcp_keepalive_time: "60"
+
+    # Send keep-alive packets more often (useful for RabbitMQ and others)
+    net.ipv4.tcp_keepalive_intvl: "15"
+
+    # Probe connections with keep-alive packets less times (useful for RabbitMQ and others)
+    net.ipv4.tcp_keepalive_probes: "4"
+
+
+#
 # Solr shard base service
 # =======================
 #
@@ -132,6 +174,8 @@ x-crimson-hexagon-api-configuration: &crimson-hexagon-api-configuration
 #
 x-solr-shard_base:   &solr-shard_base
     image: dockermediacloud/solr-shard:release
+    sysctls:
+        <<: *sysctl-defaults
     environment:
         # Shard count (every individual shard needs to know the total count)
         #
@@ -222,6 +266,8 @@ services:
     #
     cliff-annotator:
         image: dockermediacloud/cliff-annotator:release
+        sysctls:
+            <<: *sysctl-defaults
         networks:
             - default
         expose:
@@ -245,6 +291,8 @@ services:
     #
     cliff-fetch-annotation:
         image: dockermediacloud/cliff-fetch-annotation:release
+        sysctls:
+            <<: *sysctl-defaults
         networks:
             - default
         environment:
@@ -271,6 +319,8 @@ services:
     #
     cliff-update-story-tags:
         image: dockermediacloud/cliff-update-story-tags:release
+        sysctls:
+            <<: *sysctl-defaults
         networks:
             - default
         environment:
@@ -305,6 +355,8 @@ services:
     #
     crawler-ap:
         image: dockermediacloud/crawler-ap:release
+        sysctls:
+            <<: *sysctl-defaults
         networks:
             - default
         environment:
@@ -332,6 +384,8 @@ services:
     #
     crawler-fetcher:
         image: dockermediacloud/crawler-fetcher:release
+        sysctls:
+            <<: *sysctl-defaults
         networks:
             - default
         environment:
@@ -361,6 +415,8 @@ services:
     #
     crawler-provider:
         image: dockermediacloud/crawler-provider:release
+        sysctls:
+            <<: *sysctl-defaults
         networks:
             - default
         environment:
@@ -383,6 +439,8 @@ services:
     #
     create-missing-partitions:
         image: dockermediacloud/create-missing-partitions:release
+        sysctls:
+            <<: *sysctl-defaults
         networks:
             - default
         environment:
@@ -405,6 +463,8 @@ services:
     #
     cron-generate-daily-rss-dumps:
         image: dockermediacloud/cron-generate-daily-rss-dumps:release
+        sysctls:
+            <<: *sysctl-defaults
         networks:
             - default
         environment:
@@ -434,6 +494,8 @@ services:
     #
     cron-generate-media-health:
         image: dockermediacloud/cron-generate-media-health:release
+        sysctls:
+            <<: *sysctl-defaults
         networks:
             - default
         environment:
@@ -456,6 +518,8 @@ services:
     #
     cron-generate-user-summary:
         image: dockermediacloud/cron-generate-user-summary:release
+        sysctls:
+            <<: *sysctl-defaults
         networks:
             - default
         environment:
@@ -478,6 +542,8 @@ services:
     #
     cron-print-long-running-job-states:
         image: dockermediacloud/cron-print-long-running-job-states:release
+        sysctls:
+            <<: *sysctl-defaults
         networks:
             - default
         environment:
@@ -500,6 +566,8 @@ services:
     #
     cron-refresh-stats:
         image: dockermediacloud/cron-refresh-stats:release
+        sysctls:
+            <<: *sysctl-defaults
         networks:
             - default
         environment:
@@ -522,6 +590,8 @@ services:
     #
     cron-rescrape-due-media:
         image: dockermediacloud/cron-rescrape-due-media:release
+        sysctls:
+            <<: *sysctl-defaults
         networks:
             - default
         environment:
@@ -545,6 +615,8 @@ services:
     #
     cron-rescraping-changes:
         image: dockermediacloud/cron-rescraping-changes:release
+        sysctls:
+            <<: *sysctl-defaults
         networks:
             - default
         environment:
@@ -567,6 +639,8 @@ services:
     #
     cron-set-media-primary-language:
         image: dockermediacloud/cron-set-media-primary-language:release
+        sysctls:
+            <<: *sysctl-defaults
         networks:
             - default
         environment:
@@ -589,6 +663,8 @@ services:
     #
     cron-set-media-subject-country:
         image: dockermediacloud/cron-set-media-subject-country:release
+        sysctls:
+            <<: *sysctl-defaults
         networks:
             - default
         environment:
@@ -611,6 +687,8 @@ services:
     #
     extract-and-vector:
         image: dockermediacloud/extract-and-vector:release
+        sysctls:
+            <<: *sysctl-defaults
         networks:
             - default
         environment:
@@ -637,6 +715,8 @@ services:
     #
     extract-article-from-page:
         image: dockermediacloud/extract-article-from-page:release
+        sysctls:
+            <<: *sysctl-defaults
         networks:
             - default
         environment:
@@ -662,6 +742,8 @@ services:
     #
     facebook-fetch-story-stats:
         image: dockermediacloud/facebook-fetch-story-stats:release
+        sysctls:
+            <<: *sysctl-defaults
         networks:
             - default
         environment:
@@ -693,6 +775,8 @@ services:
     #
     import-solr-data:
         image: dockermediacloud/import-solr-data:release
+        sysctls:
+            <<: *sysctl-defaults
         networks:
             - default
         environment:
@@ -721,6 +805,8 @@ services:
     #
     import-stories-feedly:
         image: dockermediacloud/import-stories-feedly:release
+        sysctls:
+            <<: *sysctl-defaults
         networks:
             - default
         environment:
@@ -744,6 +830,8 @@ services:
     #
     mail-opendkim-server:
         image: dockermediacloud/mail-opendkim-server:release
+        sysctls:
+            <<: *sysctl-defaults
         networks:
             - default
         environment:
@@ -777,6 +865,8 @@ services:
     #
     mail-postfix-server:
         image: dockermediacloud/mail-postfix-server:release
+        sysctls:
+            <<: *sysctl-defaults
         networks:
             - default
         environment:
@@ -813,6 +903,8 @@ services:
     #
     munin-cron:
         image: dockermediacloud/munin-cron:release
+        sysctls:
+            <<: *sysctl-defaults
         # Docker doesn't reap zombie processes properly
         # (https://blog.phusion.nl/2015/01/20/docker-and-the-pid-1-zombie-reaping-problem/),
         # and Munin runs all kinds of plugins which might not take care of their children properly.
@@ -846,6 +938,8 @@ services:
     #
     munin-fastcgi-graph:
         image: dockermediacloud/munin-fastcgi-graph:release
+        sysctls:
+            <<: *sysctl-defaults
         networks:
             - default
         expose:
@@ -876,6 +970,8 @@ services:
     #
     munin-httpd:
         image: dockermediacloud/munin-httpd:release
+        sysctls:
+            <<: *sysctl-defaults
         networks:
             - default
         expose:
@@ -909,6 +1005,8 @@ services:
     #
     munin-node:
         image: dockermediacloud/munin-node:release
+        sysctls:
+            <<: *sysctl-defaults
         # Docker doesn't reap zombie processes properly
         # (https://blog.phusion.nl/2015/01/20/docker-and-the-pid-1-zombie-reaping-problem/),
         # and Munin runs all kinds of plugins which might not take care of their children properly.
@@ -936,6 +1034,8 @@ services:
     #
     nytlabels-annotator:
         image: dockermediacloud/nytlabels-annotator:release
+        sysctls:
+            <<: *sysctl-defaults
         networks:
             - default
         expose:
@@ -958,6 +1058,8 @@ services:
     #
     nytlabels-fetch-annotation:
         image: dockermediacloud/nytlabels-fetch-annotation:release
+        sysctls:
+            <<: *sysctl-defaults
         networks:
             - default
         environment:
@@ -984,6 +1086,8 @@ services:
     #
     nytlabels-update-story-tags:
         image: dockermediacloud/nytlabels-update-story-tags:release
+        sysctls:
+            <<: *sysctl-defaults
         networks:
             - default
         environment:
@@ -1013,6 +1117,8 @@ services:
     #
     postgresql-pgbouncer:
         image: dockermediacloud/postgresql-pgbouncer:release
+        sysctls:
+            <<: *sysctl-defaults
         networks:
             - default
         depends_on:
@@ -1035,6 +1141,8 @@ services:
     #
     postgresql-server:
         image: dockermediacloud/postgresql-server:release
+        sysctls:
+            <<: *sysctl-defaults
         networks:
             - default
         expose:
@@ -1063,6 +1171,8 @@ services:
     #
     proxy-cron-certbot:
         image: dockermediacloud/proxy-cron-certbot:release
+        sysctls:
+            <<: *sysctl-defaults
         networks:
             - default
         environment:
@@ -1096,6 +1206,8 @@ services:
     #
     proxy-httpd:
         image: dockermediacloud/proxy-httpd:release
+        sysctls:
+            <<: *sysctl-defaults
         networks:
             - default
         ports:
@@ -1129,6 +1241,8 @@ services:
     #
     purge-object-caches:
         image: dockermediacloud/purge-object-caches:release
+        sysctls:
+            <<: *sysctl-defaults
         networks:
             - default
         environment:
@@ -1151,6 +1265,8 @@ services:
     #
     rabbitmq-server:
         image: dockermediacloud/rabbitmq-server:release
+        sysctls:
+            <<: *sysctl-defaults
         # Docker doesn't reap zombie processes properly
         # (https://blog.phusion.nl/2015/01/20/docker-and-the-pid-1-zombie-reaping-problem/)
         # and Erlang gets SIGCHLD signals from Docker for whatever reason
@@ -1188,6 +1304,8 @@ services:
     #
     rabbitmq-server-webapp-proxy:
         image: dockermediacloud/rabbitmq-server-webapp-proxy:release
+        sysctls:
+            <<: *sysctl-defaults
         networks:
             - default
         depends_on:
@@ -1213,6 +1331,8 @@ services:
     #
     rescrape-media:
         image: dockermediacloud/rescrape-media:release
+        sysctls:
+            <<: *sysctl-defaults
         networks:
             - default
         environment:
@@ -1238,6 +1358,8 @@ services:
     #
     sitemap-fetch-media-pages:
         image: dockermediacloud/sitemap-fetch-media-pages:release
+        sysctls:
+            <<: *sysctl-defaults
         networks:
             - default
         environment:
@@ -1483,6 +1605,8 @@ services:
     #
     solr-shard-webapp-proxy:
         image: dockermediacloud/solr-shard-webapp-proxy:release
+        sysctls:
+            <<: *sysctl-defaults
         networks:
             - default
         depends_on:
@@ -1508,6 +1632,8 @@ services:
     #
     solr-zookeeper:
         image: dockermediacloud/solr-zookeeper:release
+        sysctls:
+            <<: *sysctl-defaults
         networks:
             - default
         expose:
@@ -1530,6 +1656,8 @@ services:
     #
     topics-extract-story-links:
         image: dockermediacloud/topics-extract-story-links:release
+        sysctls:
+            <<: *sysctl-defaults
         networks:
             - default
         environment:
@@ -1554,6 +1682,8 @@ services:
     #
     topics-fetch-link:
         image: dockermediacloud/topics-fetch-link:release
+        sysctls:
+            <<: *sysctl-defaults
         networks:
             - default
         environment:
@@ -1576,6 +1706,8 @@ services:
     #
     topics-fetch-twitter-urls:
         image: dockermediacloud/topics-fetch-twitter-urls:release
+        sysctls:
+            <<: *sysctl-defaults
         networks:
             - default
         environment:
@@ -1599,6 +1731,8 @@ services:
     #
     topics-generate-retweeter-scores:
         image: dockermediacloud/topics-generate-retweeter-scores:release
+        sysctls:
+            <<: *sysctl-defaults
         networks:
             - default
         environment:
@@ -1622,6 +1756,8 @@ services:
     #
     topics-mine:
         image: dockermediacloud/topics-mine:release
+        sysctls:
+            <<: *sysctl-defaults
         networks:
             - default
         environment:
@@ -1646,6 +1782,8 @@ services:
     #
     topics-mine-public:
         image: dockermediacloud/topics-mine-public:release
+        sysctls:
+            <<: *sysctl-defaults
         networks:
             - default
         environment:
@@ -1670,6 +1808,8 @@ services:
     #
     topics-snapshot:
         image: dockermediacloud/topics-snapshot:release
+        sysctls:
+            <<: *sysctl-defaults
         networks:
             - default
         environment:
@@ -1694,6 +1834,8 @@ services:
     #
     webapp-api:
         image: dockermediacloud/webapp-api:release
+        sysctls:
+            <<: *sysctl-defaults
         networks:
             - default
         expose:
@@ -1717,6 +1859,8 @@ services:
     #
     webapp-httpd:
         image: dockermediacloud/webapp-httpd:release
+        sysctls:
+            <<: *sysctl-defaults
         networks:
             - default
         expose:
@@ -1744,6 +1888,8 @@ services:
     #
     word2vec-generate-snapshot-model:
         image: dockermediacloud/word2vec-generate-snapshot-model:release
+        sysctls:
+            <<: *sysctl-defaults
         networks:
             - default
         environment:
