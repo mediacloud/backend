@@ -46,8 +46,15 @@ sub default : Private
 {
     my ( $self, $c ) = @_;
 
+    my $response = { 'error' => 'This API endpoint was not found.' };
+
+    # Catalyst expects bytes
+    my $json = encode_utf8( MediaWords::Util::ParseJSON::encode_json( $response ) );
+
     $c->response->status( HTTP_NOT_FOUND );
-    die "API endpoint was not found";
+    $c->response->content_type( 'application/json; charset=UTF-8' );
+    $c->response->content_length( bytes::length( $json ) );
+    $c->response->body( $json );
 }
 
 1;
