@@ -26,6 +26,16 @@ services:
         stop_signal: SIGKILL
         expose:
             - "9090"
+        volumes:
+            - type: bind
+              source: ./../webapp-api/bin/
+              target: /opt/mediacloud/bin/
+            - type: bind
+              source: ./../webapp-api/src/
+              target: /opt/mediacloud/src/webapp-api/
+            - type: bind
+              source: ./../common/src/
+              target: /opt/mediacloud/src/common/
         depends_on:
             - postgresql-pgbouncer
             - solr-shard-01
