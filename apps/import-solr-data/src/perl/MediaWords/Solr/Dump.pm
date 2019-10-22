@@ -201,7 +201,6 @@ sub _get_stories_json_from_db_single
         my $block_stories_ids_list = join( ',', @{ $block_stories_ids } );
 
         TRACE( "fetching stories ids: $block_stories_ids_list" );
-        $db->query( "SET LOCAL client_min_messages=warning" );
 
         my $stories = $db->query( <<SQL )->hashes();
 with _block_processed_stories as (
