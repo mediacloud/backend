@@ -1143,6 +1143,9 @@ services:
         image: dockermediacloud/postgresql-server:release
         sysctls:
             <<: *sysctl-defaults
+            # Adjust shared memory limits
+            kernel.shmmax: "2147483648" # 2 GB; keep in sync with volumes/tmpfs/size
+            kernel.shmall: "524288"     # kern.shmmax divided by `getconf PAGE_SIZE` (typically 4096)
         networks:
             - default
         expose:
@@ -1153,11 +1156,12 @@ services:
         stop_grace_period: 5m
         volumes:
             - vol_postgresql_data:/var/lib/postgresql/
-            # Increase shared memory size: https://github.com/docker-library/docs/tree/master/postgres#caveats
+            # Provide container with the shared memory that we've promised above:
+            # https://github.com/docker-library/docs/tree/master/postgres#caveats
             - type: tmpfs
               target: /dev/shm
               tmpfs:
-                size: 2147483648    # 2 GB
+                size: 2147483648        # 2 GB; keep in sync with sysctls/kern.shmmax
         deploy:
             <<: *endpoint-mode-dnsrr
             placement:
