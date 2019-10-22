@@ -3,7 +3,7 @@
 import datetime
 from typing import Optional
 
-import re2
+import re
 import time
 import traceback
 from dataclasses import dataclass
@@ -277,6 +277,7 @@ def _get_failed_url(db: DatabaseHandler, topics_id: int, url: str) -> Optional[d
 
     failed_url = db.query(
         """
+        -- noinspection SqlResolve
         select *
             from _urls
             where
@@ -290,6 +291,7 @@ def _get_failed_url(db: DatabaseHandler, topics_id: int, url: str) -> Optional[d
             'c': FETCH_STATE_CONTENT_MATCH_FAILED,
         }).hash()
 
+    # noinspection SqlResolve
     db.query("drop table _urls")
 
     return failed_url
@@ -309,7 +311,10 @@ def _ignore_link_pattern(url: Optional[str]) -> bool:
     p = IGNORE_LINK_PATTERN
     nu = normalize_url_lossy(url)
 
-    return re2.search(p, url, re2.I) or re2.search(p, nu, re2.I)
+    if re.search(p, url, re.I) or re.search(p, nu, re.I):
+        return True
+    else:
+        return False
 
 
 def _get_pending_state(topic_fetch_url: dict) -> str:
