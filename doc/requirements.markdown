@@ -19,7 +19,7 @@
     ansible-playbook --inventory='localhost,' --connection=local --tags docker setup.yml
     ```
 
-  * To install a specific version of Docker on macOS, download and install [Docker Desktop for Mac build 31259](https://download.docker.com/mac/stable/38240/Docker.dmg) which ships with Docker 19.03.2.
+  * To install a specific version of Docker on macOS, download and install [Docker Desktop for Mac build 39773](https://download.docker.com/mac/stable/39773/Docker.dmg) which ships with Docker 19.03.4.
 
   * To install a specific version of Docker on Windows, download and install [Docker Desktop for Windows build 31259](https://download.docker.com/win/stable/37877/Docker%20Desktop%20Installer.exe) which ships with Docker 19.03.2.
 
