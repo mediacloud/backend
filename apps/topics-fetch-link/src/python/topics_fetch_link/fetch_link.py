@@ -142,6 +142,7 @@ def _fetch_url(
             ua_response = ua.get_follow_http_html_redirects(url)
             response = FetchLinkResponse.from_useragent_response(url, ua_response)
         else:
+            log.warning(f"URL is not HTTP(s), returning dummy response: {url}")
             response = FetchLinkResponse(
                 url=url,
                 is_success=False,
@@ -330,32 +331,40 @@ def _try_fetch_topic_url(
         domain_timeout: Optional[int] = None) -> None:
     """Implement the logic of fetch_topic_url without the try: or the topic_fetch_url update."""
 
-    log.warning("_try_fetch_topic_url: %s" % topic_fetch_url['url'])
+    log.info(f"Trying to fetch topic URL {topic_fetch_url['url']}...")
 
     # don't reprocess already processed urls
     if topic_fetch_url['state'] not in (FETCH_STATE_PENDING, FETCH_STATE_REQUEUED):
+        log.info(f"URL's state '{topic_fetch_url['state']}' is not pending or requeued, not refetching")
         return
 
+    log.info("Checking ignore links...")
     _update_tfu_message(db, topic_fetch_url, "checking ignore links")
     if _ignore_link_pattern(topic_fetch_url['url']):
+        log.info("Link is to be ignored, returning")
         topic_fetch_url['state'] = FETCH_STATE_IGNORED
         topic_fetch_url['code'] = 403
         return
 
+    log.info("Checking failed URL...")
     _update_tfu_message(db, topic_fetch_url, "checking failed url")
     failed_url = _get_failed_url(db, topic_fetch_url['topics_id'], topic_fetch_url['url'])
     if failed_url:
+        log.info("URL is failed, returning")
         topic_fetch_url['state'] = failed_url['state']
         topic_fetch_url['code'] = failed_url['code']
         topic_fetch_url['message'] = failed_url['message']
         return
 
+    log.info("Checking self-linked domain...")
     _update_tfu_message(db, topic_fetch_url, "checking self linked domain")
     if skip_self_linked_domain(db, topic_fetch_url):
+        log.info("Link is self-linked domain, returning")
         topic_fetch_url['state'] = FETCH_STATE_SKIPPED
         topic_fetch_url['code'] = 403
         return
 
+    log.info(f"Fetching topic {topic_fetch_url['topics_id']}...")
     topic = db.require_by_id('topics', topic_fetch_url['topics_id'])
     topic_fetch_url['fetch_date'] = datetime.datetime.now()
 
@@ -363,32 +372,39 @@ def _try_fetch_topic_url(
 
     # this match is relatively expensive, so only do it on the first 'pending' request and not the potentially
     # spammy 'requeued' requests
+    log.info("Checking story match...")
     _update_tfu_message(db, topic_fetch_url, "checking story match")
     if topic_fetch_url['state'] == FETCH_STATE_PENDING:
+        log.info("URL is in pending state, getting story match...")
         story_match = get_story_match(db=db, url=topic_fetch_url['url'])
 
         # try to match the story before doing the expensive fetch
         if story_match is not None:
+            log.info(f"Matched story {story_match['stories_id']}, returning")
             topic_fetch_url['state'] = FETCH_STATE_STORY_MATCH
             topic_fetch_url['code'] = 200
             topic_fetch_url['stories_id'] = story_match['stories_id']
             return
 
     # check whether we want to delay fetching for another job, eg. fetch_twitter_urls
+    log.info("Checking for pending state...")
     pending_state = _get_pending_state(topic_fetch_url)
     if pending_state:
+        log.info("URL is in pending state, returning")
         topic_fetch_url['state'] = pending_state
         return
 
     # get content from either the seed or by fetching it
+    log.info("Checking seeded content...")
     _update_tfu_message(db, topic_fetch_url, "checking seeded content")
     response = _get_seeded_content(db, topic_fetch_url)
     if response is None:
+        log.info("Seeded content found, fetching URL...")
         _update_tfu_message(db, topic_fetch_url, "fetching content")
         response = _fetch_url(db, topic_fetch_url['url'], domain_timeout=domain_timeout)
-        log.debug("%d response returned for url: %s" % (response.code, topic_fetch_url['url']))
+        log.info(f"{response.code} response returned")
     else:
-        log.debug("seeded content found for url: %s" % topic_fetch_url['url'])
+        log.debug(f"Seeded content found for URL: {topic_fetch_url['url']}")
 
     content = response.content
 
@@ -396,11 +412,16 @@ def _try_fetch_topic_url(
     response_url = response.last_requested_url
 
     if fetched_url != response_url:
+        log.info(
+            f"Fetched URL {fetched_url} is not the same as response URL {response_url}, testing for ignore link pattern"
+        )
         if _ignore_link_pattern(response_url):
+            log.info("Ignore link pattern matched, returning")
             topic_fetch_url['state'] = FETCH_STATE_IGNORED
             topic_fetch_url['code'] = 403
             return
 
+        log.info("Checking story match for redirect URL...")
         _update_tfu_message(db, topic_fetch_url, "checking story match for redirect_url")
         story_match = get_story_match(db=db, url=fetched_url, redirect_url=response_url)
 
@@ -408,35 +429,55 @@ def _try_fetch_topic_url(
 
     assume_match = topic_fetch_url['assume_match']
 
+    log.info("Checking content match...")
     _update_tfu_message(db, topic_fetch_url, "checking content match")
     if not response.is_success:
+        log.info("Request failed")
         topic_fetch_url['state'] = FETCH_STATE_REQUEST_FAILED
         topic_fetch_url['message'] = response.message
     elif story_match is not None:
+        log.info(f"Story {story_match['stories_id']} matched")
         topic_fetch_url['state'] = FETCH_STATE_STORY_MATCH
         topic_fetch_url['stories_id'] = story_match['stories_id']
     elif not content_matches_topic(content=content, topic=topic, assume_match=assume_match):
+        log.info("Content matched")
         topic_fetch_url['state'] = FETCH_STATE_CONTENT_MATCH_FAILED
     else:
+        log.info("Nothing matched, generating story...")
+
         try:
             _update_tfu_message(db, topic_fetch_url, "generating story")
             url = response_url if response_url is not None else fetched_url
+
+            log.info("Creating story...")
             story = generate_story(db=db, content=content, url=url)
+            log.info(f"Created story {story['stories_id']}")
 
             topic_fetch_url['stories_id'] = story['stories_id']
             topic_fetch_url['state'] = FETCH_STATE_STORY_ADDED
 
         except McTMStoriesDuplicateException:
+
+            log.info("Duplicate story found, checking for story match on unique constraint error...")
+
             # may get a unique constraint error for the story addition within the media source.  that's fine
             # because it means the story is already in the database and we just need to match it again.
             _update_tfu_message(db, topic_fetch_url, "checking for story match on unique constraint error")
             topic_fetch_url['state'] = FETCH_STATE_STORY_MATCH
             story_match = get_story_match(db=db, url=fetched_url, redirect_url=response_url)
             if story_match is None:
-                raise McTMFetchLinkException("Unable to find matching story after unique constraint error.")
+                message = "Unable to find matching story after unique constraint error."
+                log.error(message)
+                raise McTMFetchLinkException(message)
+
+            log.info(f"Matched story {story_match['stories_id']}")
             topic_fetch_url['stories_id'] = story_match['stories_id']
 
+        log.info("Done generating story")
+
     _update_tfu_message(db, topic_fetch_url, "_try_fetch_url done")
+
+    log.info(f"Done trying to fetch topic URL {topic_fetch_url['url']}.")
 
 
 def fetch_topic_url(db: DatabaseHandler, topic_fetch_urls_id: int, domain_timeout: Optional[int] = None) -> None:
