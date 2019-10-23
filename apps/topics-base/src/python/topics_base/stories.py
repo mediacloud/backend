@@ -361,14 +361,26 @@ def generate_story(
     if len(url) < 1:
         raise McTMStoriesException("url must not be an empty string")
 
+    log.debug(f"Generating story from URL {url}...")
+
     url = url[0:MAX_URL_LENGTH]
 
+    log.debug(f"Guessing medium for URL {url}...")
     medium = guess_medium(db, url)
+    log.debug(f"Done guessing medium for URL {url}: {medium}")
+
+    log.debug(f"Getting spider feed for medium {medium}...")
     feed = get_spider_feed(db, medium)
+    log.debug(f"Done getting spider feed for medium {medium}: {feed}")
+
+    log.debug(f"Getting spidered tag...")
     spidered_tag = get_spidered_tag(db)
+    log.debug(f"Done getting spidered tag: {spidered_tag}")
 
     if title is None:
+        log.debug(f"Parsing HTML title...")
         title = html_title(content, url, MAX_TITLE_LENGTH)
+        log.debug(f"Done parsing HTML title: {title}")
 
     story = {
         'url': url,
@@ -384,14 +396,19 @@ def generate_story(
 
     date_guess = None
     if publish_date is None:
+        log.debug(f"Guessing date for URL {url}...")
         date_guess = guess_date(url, content)
+        log.debug(f"Done guessing date for URL {url}: {date_guess}")
+
         story['publish_date'] = date_guess.date if date_guess.found else fallback_date
         if story['publish_date'] is None:
             story['publish_date'] = datetime.datetime.now().isoformat()
     else:
         story['publish_date'] = publish_date
 
+    log.debug(f"Adding story {story}...")
     story = add_story(db, story, feed['feeds_id'])
+    log.debug(f"Done adding story {story}")
 
     db.query(
         """
@@ -407,14 +424,26 @@ def generate_story(
         {'a': story['stories_id'], 'b': spidered_tag['tags_id']})
 
     if publish_date is None:
+        log.debug(f"Assigning date guess tag...")
         assign_date_guess_tag(db, story, date_guess, fallback_date)
 
     log.debug("add story: %s; %s; %s; %d" % (story['title'], story['url'], story['publish_date'], story['stories_id']))
 
     if story.get('is_new', False):
+        log.debug("Story is new, creating download...")
         download = create_download_for_new_story(db, story, feed)
+
+        log.debug("Storing story content...")
         store_content(db, download, content)
+
+        log.debug("Extracting story...")
         _extract_story(story)
+        log.debug("Done extracting story")
+
+    else:
+        log.debug("Story is not new, skipping download storage and extraction")
+
+    log.debug(f"Done generating story from URL {url}")
 
     return story
 

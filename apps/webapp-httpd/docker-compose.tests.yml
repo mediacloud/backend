@@ -21,20 +21,21 @@ services:
             - webapp-api
             - cron-generate-daily-rss-dumps
 
-    cron-generate-daily-rss-dumps:
-        image: dockermediacloud/cron-generate-daily-rss-dumps:latest
-        stop_signal: SIGKILL
-        volumes:
-            # Shared with "webapp-httpd":
-            - vol_daily_rss_dumps:/var/lib/daily_rss_dumps/
-        depends_on:
-            - postgresql-pgbouncer
-
     webapp-api:
         image: dockermediacloud/webapp-api:latest
         stop_signal: SIGKILL
         expose:
             - "9090"
+        volumes:
+            - type: bind
+              source: ./../webapp-api/bin/
+              target: /opt/mediacloud/bin/
+            - type: bind
+              source: ./../webapp-api/src/
+              target: /opt/mediacloud/src/webapp-api/
+            - type: bind
+              source: ./../common/src/
+              target: /opt/mediacloud/src/common/
         depends_on:
             - postgresql-pgbouncer
             - solr-shard-01
@@ -48,6 +49,15 @@ services:
         deploy:
             # Try running multiple replicas to see whether FastCGI will be able to use them
             replicas: 2
+
+    cron-generate-daily-rss-dumps:
+        image: dockermediacloud/cron-generate-daily-rss-dumps:latest
+        stop_signal: SIGKILL
+        volumes:
+            # Shared with "webapp-httpd":
+            - vol_daily_rss_dumps:/var/lib/daily_rss_dumps/
+        depends_on:
+            - postgresql-pgbouncer
 
     postgresql-pgbouncer:
         image: dockermediacloud/postgresql-pgbouncer:latest
@@ -105,7 +115,6 @@ services:
     import-solr-data-for-testing:
         image: dockermediacloud/import-solr-data-for-testing:latest
         environment:
-            MC_SOLR_IMPORT_JOBS: 1
             MC_SOLR_IMPORT_MAX_QUEUED_STORIES: 100000
         stop_signal: SIGKILL
         depends_on:
