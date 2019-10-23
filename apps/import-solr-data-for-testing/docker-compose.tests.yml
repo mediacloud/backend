@@ -6,7 +6,6 @@ services:
         image: dockermediacloud/import-solr-data-for-testing:latest
         stop_signal: SIGKILL
         environment:
-            MC_SOLR_IMPORT_JOBS: 1
             MC_SOLR_IMPORT_MAX_QUEUED_STORIES: 100000
         volumes:
             - type: bind

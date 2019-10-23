@@ -781,9 +781,6 @@ services:
             - default
         environment:
             <<: *common-configuration
-            # Jobs (forks) to start for the import
-            # (keep in sync with CPU count)
-            MC_SOLR_IMPORT_JOBS: 1
             # Stories to import into Solr on a single run
             MC_SOLR_IMPORT_MAX_QUEUED_STORIES: 100000
         depends_on:

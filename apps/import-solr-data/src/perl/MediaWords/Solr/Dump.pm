@@ -37,9 +37,7 @@ use Data::Dumper;
 use Digest::MD5;
 use Encode;
 use FileHandle;
-use List::MoreUtils qw/natatime/;
 use List::Util;
-use Parallel::ForkManager;
 use Readonly;
 use URI;
 
@@ -274,12 +272,11 @@ SQL
 
 # get stories_json for import from db and import the resulting stories into solr.  return the list of stories_ids
 # imported.
-sub _import_stories_from_db_single($$)
+sub _import_stories($)
 {
-    my ( $db, $stories_ids ) = @_;
+    my ( $db ) = @_;
 
-    # if this is called as a threaded function, $db will be undef so that it can be recreated
-    $db //= MediaWords::DB::connect_to_db();
+    my $stories_ids = $db->query( "select distinct stories_id from delta_import_stories" )->flat;
 
     my $json = _get_stories_json_from_db_single( $db, $stories_ids );
 
@@ -295,35 +292,6 @@ sub _import_stories_from_db_single($$)
     _delete_stories_from_import_queue( $db, $stories_ids );
 
     return $json->{ stories_ids };
-}
-
-# this function does the meat of the work of querying story data from postgres and importing that data to solr
-sub _import_stories($$)
-{
-    my ( $db, $jobs ) = @_;
-
-    my $stories_ids = $db->query( "select distinct stories_id from delta_import_stories" )->flat;
-
-    if ( $jobs == 1 )
-    {
-        _import_stories_from_db_single( $db, $stories_ids );
-        return;
-    }
-
-    my $pm = Parallel::ForkManager->new( $jobs );
-
-    my $stories_per_job = int( scalar( @{ $stories_ids } ) / $jobs ) + 1;
-    my $iter = natatime( $stories_per_job, @{ $stories_ids } );
-    while ( my @job_stories_ids = $iter->() )
-    {
-        $pm->start() && next;
-        _import_stories_from_db_single( undef, \@job_stories_ids );
-        $pm->finish();
-    }
-
-    $pm->wait_all_children();
-
-    return;
 }
 
 # create the delta_import_stories temporary table and fill it from the stories_queue_table
@@ -582,8 +550,6 @@ sub import_data($;$)
         $options->{ update }       //= 0;
     }
 
-    my $jobs = MediaWords::Util::Config::SolrImport::jobs();
-
     my $update       = $options->{ update }       // 1;
     my $empty_queue  = $options->{ empty_queue }  // 0;
     my $throttle     = $options->{ throttle }     // $DEFAULT_THROTTLE;
@@ -624,10 +590,7 @@ sub import_data($;$)
             _delete_queued_stories( $db ) || die( "delete stories failed." );
         }
 
-        _import_stories( $db, $jobs );
-
-        # have to reconnect becaue import_stories may have forked, ruining existing db handles
-        $db = MediaWords::DB::connect_to_db() if ( $jobs > 1 );
+        _import_stories( $db );
 
         if ( !$skip_logging )
         {
