@@ -409,17 +409,12 @@ def generate_story(
     if publish_date is None:
         assign_date_guess_tag(db, story, date_guess, fallback_date)
 
-    log.debug("ADD STORY: %s; %s; %s; %d" % (story['title'], story['url'], story['publish_date'], story['stories_id']))
+    log.debug("add story: %s; %s; %s; %d" % (story['title'], story['url'], story['publish_date'], story['stories_id']))
 
     if story.get('is_new', False):
-        log.debug("CREATE DOWNLOAD")
         download = create_download_for_new_story(db, story, feed)
-        log.debug("STORE CONTENT")
         store_content(db, download, content)
-        log.debug("EXTRACT STORY")
         _extract_story(story)
-
-    log.debug("ADDED STORY")
 
     return story
 
