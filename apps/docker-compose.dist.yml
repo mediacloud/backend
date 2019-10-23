@@ -72,11 +72,14 @@ x-common-configuration: &common-configuration
     # Make sure to:
     #
     # * use double quotes instead of single quotes, as per JSON spec;
+    # * avoid double newlines as those would get parsed to a single newline and
+    #   break the environment variable export for Cron jobs;
     # * escape dollar signs ("$") by using double dollar signs ("$$"), if any.
     #
-    MC_USERAGENT_AUTHENTICATED_DOMAINS: >-
+    MC_USERAGENT_AUTHENTICATED_DOMAINS: '
         [
         ]
+    '
 
     # parallel_get() parallel connection count
     MC_USERAGENT_PARALLEL_GET_NUM_PARALLEL: "10"
