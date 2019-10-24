@@ -131,7 +131,7 @@ x-crimson-hexagon-api-configuration: &crimson-hexagon-api-configuration
 # Default sysctl values to set on all containers.
 #
 x-sysctl-defaults:  &sysctl-defaults
-    
+
     # Enable TIME_WAIT socket reuse
     net.ipv4.tcp_tw_reuse: "1"
 
