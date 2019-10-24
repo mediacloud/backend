@@ -1857,7 +1857,7 @@ services:
                     # CPU core limit
                     cpus: "1"
                     # RAM limit
-                    memory: "1G"
+                    memory: "2G"
 
     #
     # Webapp (HTTP server)
