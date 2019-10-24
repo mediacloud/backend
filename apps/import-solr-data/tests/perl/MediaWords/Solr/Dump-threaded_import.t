@@ -27,7 +27,7 @@ sub test_threaded_import($)
 
     MediaWords::Test::Solr::queue_all_stories( $db );
 
-    MediaWords::Solr::Dump::import_data( $db, { full => 1, jobs => 3, throttle => 0 } );
+    MediaWords::Solr::Dump::import_data( $db, { full => 1, throttle => 0 } );
 
     $db = MediaWords::DB::connect_to_db();
 

@@ -17,6 +17,16 @@ RUN \
         libwww-perl \
     && \
     #
+    # Upgrade IO::Socket::SSL to be able to connect to servers using newer TLS protocols (api.mediacloud.org)
+    apt-get -y --no-install-recommends install build-essential && \
+    apt-get -y --no-install-recommends install cpanminus && \
+    apt-get -y --no-install-recommends install libssl-dev && \
+    cpanm IO::Socket::SSL@2.066 && \
+    apt-get -y remove libssl-dev && \
+    apt-get -y remove cpanminus && \
+    apt-get -y remove build-essential && \
+    apt-get -y autoremove && \
+    #
     # Install Munin node
     apt-get -y --no-install-recommends install munin-node && \
     #

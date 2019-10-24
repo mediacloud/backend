@@ -98,6 +98,12 @@ networks:
         driver: overlay
         attachable: true
 
+        ipam:
+            driver: default
+            config:
+                # Use a specific subnet which is different from the one used by "mediacloud" stack
+                - subnet: "192.168.0.1/24"
+
 
 volumes:
 

@@ -35,19 +35,23 @@ requests that are being throttled. If we remove this check, that fetch_link pool
 postgres queries and requeues (or 64 tight loops!).
 
 It is less important for the extract_and_vector jobs because it is not as common for that queue to be filled up with
-jobs locked on a given media source. It does happen, though -- I added that nonblocking / requeueing code in the
+jobs locked on a given media source. It does happen, though -- I added that non-blocking / requeueing code in the
 first place because the extractor pool was sometimes getting all stuck waiting for a single media source.
 """
+
 
 class McFetchLinkJobException(Exception):
     """Exceptions dealing with job setup and routing."""
     pass
+
 
 def run_topics_fetch_link(topic_fetch_urls_id: int, domain_timeout: Optional[int] = None) -> None:
     """Fetch a link for a topic and either match it to an existing story or generate a story from it.
 
     Almost all of the interesting functionality here happens in fetch_topic_url(). The code here just deals with
     routing, including requeueing responses throttled by mediawords.util.web.user_agent.throttled."""
+    global _consecutive_requeues
+
     if isinstance(topic_fetch_urls_id, bytes):
         topic_fetch_urls_id = decode_object_from_bytes_if_needed(topic_fetch_urls_id)
     topic_fetch_urls_id = int(topic_fetch_urls_id)

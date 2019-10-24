@@ -28,11 +28,6 @@ sub _python_config()
     return MediaWords::Util::Config::SolrImport::PythonProxy::SolrImportConfig->new();
 }
 
-sub jobs()
-{
-    return _python_config()->jobs();
-}
-
 sub max_queued_stories()
 {
     return _python_config()->max_queued_stories();
