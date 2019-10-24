@@ -27,7 +27,7 @@ mkdir -p "${MC_POSTGRESQL_DATA_DIR}"
     -o "-c config_file=${MC_POSTGRESQL_CONF_PATH}" \
     -D "${MC_POSTGRESQL_DATA_DIR}" \
     -w \
-    -t 600 \
+    -t 1200 \
     start
 
 psql -v ON_ERROR_STOP=1 -c "CREATE USER mediacloud WITH PASSWORD 'mediacloud' SUPERUSER;"
@@ -56,7 +56,7 @@ psql -v ON_ERROR_STOP=1 -d mediacloud -f /opt/mediacloud/schema/mediawords.sql
     -D "${MC_POSTGRESQL_DATA_DIR}" \
     -m fast \
     -w \
-    -t 600 \
+    -t 1200 \
     stop
 
 # Create a file that will denote that we're running off a fresh data volume and
