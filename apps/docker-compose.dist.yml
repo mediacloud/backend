@@ -131,39 +131,12 @@ x-crimson-hexagon-api-configuration: &crimson-hexagon-api-configuration
 # Default sysctl values to set on all containers.
 #
 x-sysctl-defaults:  &sysctl-defaults
-    
-    # Enable TIME_WAIT socket reuse
-    net.ipv4.tcp_tw_reuse: "1"
-
-    # Disable TIME_WAIT socket recycling due to possible NAT problems
-    net.ipv4.tcp_tw_recycle: "0"
 
     # Increase ephemeral port range to allow more client connections
     net.ipv4.ip_local_port_range: "1024 65500"
 
-    # Decrease net.ipv4.tcp_fin_timeout to allow server to reuse closed connections faster
-    net.ipv4.tcp_fin_timeout: "30"
-
     # Increase socket backlog
     net.core.somaxconn: "4096"
-
-    # Increase TCP packet backlog
-    net.core.netdev_max_backlog: "65535"
-
-    # Increase max. number of remembered connection requests
-    net.ipv4.tcp_max_syn_backlog: "4096"
-
-    # Prevent SYN floods
-    net.ipv4.tcp_syncookies: "1"
-
-    # Start sending keep-alive packets sooner (useful for RabbitMQ and others)
-    net.ipv4.tcp_keepalive_time: "60"
-
-    # Send keep-alive packets more often (useful for RabbitMQ and others)
-    net.ipv4.tcp_keepalive_intvl: "15"
-
-    # Probe connections with keep-alive packets less times (useful for RabbitMQ and others)
-    net.ipv4.tcp_keepalive_probes: "4"
 
 
 #
@@ -1857,7 +1830,7 @@ services:
                     # CPU core limit
                     cpus: "1"
                     # RAM limit
-                    memory: "1G"
+                    memory: "2G"
 
     #
     # Webapp (HTTP server)
