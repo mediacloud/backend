@@ -46,9 +46,6 @@ def extract_article_html_from_page_html(content: str, config: Optional[CommonCon
     # Wait up to a minute for extraction to finish
     ua.set_timeout(EXTRACT_TIMEOUT)
 
-    # Retry extracting on failing HTTP status codes
-    ua.set_timing([1, 2, 4, 8])
-
     # Wait for the extractor's HTTP port to become open as the service might be still starting up somewhere
     api_uri = furl(api_url)
     api_url_hostname = str(api_uri.host)
@@ -95,7 +92,7 @@ def extract_article_html_from_page_html(content: str, config: Optional[CommonCon
 
     # Try extracting multiple times
     #
-    # UserAgent's set_timing() only retries on retryable HTTP status codes and doesn't retry on connection errors by
+    # UserAgent's set_timing() would only retry on retryable HTTP status codes and doesn't retry on connection errors by
     # default as such retries might have side effects, e.g. an API getting called multiple times. So, we retry
     # extracting the content a couple of times manually.
     http_response = None
