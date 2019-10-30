@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, Optional
 
 from furl import furl
 
@@ -27,11 +27,21 @@ class McExtractArticleFromPageException(Exception):
     pass
 
 
-def extract_article_html_from_page_html(content: str) -> Dict[str, str]:
+def extract_article_html_from_page_html(content: str, config: Optional[CommonConfig] = None) -> Dict[str, str]:
+    """
+    Using full page HTML as a parameter, extract part of HTML that contains the news article.
+    :param content: Full page HTML.
+    :param config: Optional CommonConfig object, useful for testing.
+    :return: Dictionary with HTML that contains the news article content ("extracted_html" key) and extractor version
+             tag ("extractor_version" key).
+    """
     content = decode_object_from_bytes_if_needed(content)
 
+    if not config:
+        config = CommonConfig()
+
     ua = UserAgent()
-    api_url = CommonConfig.extractor_api_url()
+    api_url = config.extractor_api_url()
 
     # Wait up to a minute for extraction to finish
     ua.set_timeout(EXTRACT_TIMEOUT)
