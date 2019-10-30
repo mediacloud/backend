@@ -1,3 +1,12 @@
+- name: Restart Journald
+  # Send HUP signal for the service to preserve old logs
+  shell: "killall -USR1 systemd-journald"
+  become: true
+  become_user: root
+  tags:
+    - docker
+    - journald
+
 - name: Restart Docker
   service:
     name: docker
@@ -6,3 +15,4 @@
   become_user: root
   tags:
     - docker
+    - dockerd

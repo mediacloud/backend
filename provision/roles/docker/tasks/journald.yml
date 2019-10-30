@@ -1,0 +1,128 @@
+- name: Create data directory for Journald log persistence
+  file:
+    path: /var/log/journal/
+    state: directory
+    owner: root
+    group: systemd-journal
+    # +s:
+    mode: 02755
+  notify: "Restart Journald"
+  become: true
+  become_user: root
+  tags:
+    - docker
+    - journald
+
+- name: Set Journald data directory's file access permissions
+  acl:
+    path: /var/log/journal/
+    entry: "{{ item }}"
+    state: present
+  with_items:
+    # Copied from live Ubuntu 18.04 machine:
+    - "group:adm:r-x"
+    - "mask::r-x"
+    - "default:user::rwx"
+    - "default:group::r-x"
+    - "default:group:adm:r-x"
+    - "default:mask::r-x"
+    - "default:other::r-x"
+  notify: "Restart Journald"
+  become: true
+  become_user: root
+  tags:
+    - docker
+    - journald
+
+- name: Force persistent Journald log storage
+  lineinfile:
+    dest: /etc/systemd/journald.conf
+    regexp: '^#?\s*?Storage=.*$'
+    line: "Storage=persistent"
+  notify: "Restart Journald"
+  become: true
+  become_user: root
+  tags:
+    - docker
+    - journald
+
+# Docker containers run using various UIDs
+- name: Don't split Journald logs by user
+  lineinfile:
+    dest: /etc/systemd/journald.conf
+    regexp: '^#?\s*?SplitMode=.*$'
+    line: "SplitMode=none"
+  notify: "Restart Journald"
+  become: true
+  become_user: root
+  tags:
+    - docker
+    - journald
+
+- name: Disable Journald rate limit interval (Ubuntu 16.04)
+  lineinfile:
+    dest: /etc/systemd/journald.conf
+    regexp: '^#?\s*?RateLimitInterval=.*$'
+    line: "RateLimitInterval=0"
+  notify: "Restart Journald"
+  become: true
+  become_user: root
+  tags:
+    - docker
+    - journald
+
+- name: Disable Journald rate limit interval (Ubuntu 18.04)
+  lineinfile:
+    dest: /etc/systemd/journald.conf
+    regexp: '^#?\s*?RateLimitIntervalSec=.*$'
+    line: "RateLimitIntervalSec=0"
+  notify: "Restart Journald"
+  become: true
+  become_user: root
+  tags:
+    - docker
+    - journald
+
+- name: Disable Journald rate limit burst
+  lineinfile:
+    dest: /etc/systemd/journald.conf
+    regexp: '^#?\s*?RateLimitBurst=.*$'
+    line: "RateLimitBurst=0"
+  notify: "Restart Journald"
+  become: true
+  become_user: root
+  tags:
+    - docker
+    - journald
+
+- name: Disable Journald forwarding to syslog
+  lineinfile:
+    dest: /etc/systemd/journald.conf
+    regexp: '^#?\s*?ForwardToSyslog=.*$'
+    line: "ForwardToSyslog=no"
+  notify: "Restart Journald"
+  become: true
+  become_user: root
+  tags:
+    - docker
+    - journald
+
+- name: Restart Journald if needed
+  meta: flush_handlers
+  become: true
+  become_user: root
+  tags:
+    - docker
+    - journald
+
+# User might need to re-login afterwards
+- name: Allow current user to access Journald
+  user:
+    name: "{{ ansible_user_id }}"
+    groups: "systemd-journal"
+    append: true
+  become: true
+  become_user: root
+  tags:
+    - docker
+    - journald
