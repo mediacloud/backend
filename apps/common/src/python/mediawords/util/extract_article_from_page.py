@@ -12,7 +12,6 @@ from mediawords.util.web.user_agent import Request, UserAgent
 
 log = create_logger(__name__)
 
-
 EXTRACTOR_SERVICE_TIMEOUT = 60
 """Seconds to wait for the extraction service to start."""
 
@@ -41,9 +40,9 @@ def extract_article_html_from_page_html(content: str) -> Dict[str, str]:
     assert api_url_port, f"API URL port is not set for URL {api_url}"
 
     if not wait_for_tcp_port_to_open(
-        port=api_url_port,
-        hostname=api_url_hostname,
-        retries=EXTRACTOR_SERVICE_TIMEOUT,
+            port=api_url_port,
+            hostname=api_url_hostname,
+            retries=EXTRACTOR_SERVICE_TIMEOUT,
     ):
         # Instead of throwing an exception, just crash the whole application
         # because there's no point in continuing on running it whatsoever:
