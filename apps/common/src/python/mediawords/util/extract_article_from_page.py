@@ -15,6 +15,12 @@ log = create_logger(__name__)
 EXTRACTOR_SERVICE_TIMEOUT = 60
 """Seconds to wait for the extraction service to start."""
 
+EXTRACT_TIMEOUT = 60
+"""Seconds to wait for extraction of a single story to complete."""
+
+EXTRACT_RETRIES = 3
+"""How many times to attempt extracting the same story."""
+
 
 class McExtractArticleFromPageException(Exception):
     """extract_article_html_from_page_html() exception."""
@@ -27,12 +33,13 @@ def extract_article_html_from_page_html(content: str) -> Dict[str, str]:
     ua = UserAgent()
     api_url = CommonConfig.extractor_api_url()
 
-    # Retry extracting multiple times in case the extraction service is busy
-    ua.set_timeout(60)
-    ua.set_timing([1, 2, 4, 8, 16, 32, 64])
+    # Wait up to a minute for extraction to finish
+    ua.set_timeout(EXTRACT_TIMEOUT)
 
-    # Wait for the extractor's HTTP port to become open as the service might be
-    # still starting up somewhere
+    # Retry extracting on failing HTTP status codes
+    ua.set_timing([1, 2, 4, 8])
+
+    # Wait for the extractor's HTTP port to become open as the service might be still starting up somewhere
     api_uri = furl(api_url)
     api_url_hostname = str(api_uri.host)
     api_url_port = int(api_uri.port)
@@ -76,9 +83,29 @@ def extract_article_html_from_page_html(content: str) -> Dict[str, str]:
     http_request.set_content_type('application/json; charset=utf-8')
     http_request.set_content(request_json)
 
-    http_response = ua.request(http_request)
-    if not http_response.is_success():
-        raise McExtractArticleFromPageException(f"Extraction failed: {http_response.decoded_content()}")
+    # Try extracting multiple times
+    #
+    # UserAgent's set_timing() only retries on retryable HTTP status codes and doesn't retry on connection errors by
+    # default as such retries might have side effects, e.g. an API getting called multiple times. So, we retry
+    # extracting the content a couple of times manually.
+    http_response = None
+    extraction_succeeded = False
+    for retry in range(EXTRACT_RETRIES):
+
+        if retry > 0:
+            log.warning(f"Retrying #{retry + 1}...")
+
+        http_response = ua.request(http_request)
+        if http_response.is_success():
+            extraction_succeeded = True
+            break
+        else:
+            log.error(f"Extraction attempt {retry + 1} failed: {http_response.decoded_content()}")
+
+    if not extraction_succeeded:
+        raise McExtractArticleFromPageException(
+            f"Extraction of {len(content)} characters; failed; last error: {http_response.decoded_content()}"
+        )
 
     response_json = http_response.decoded_content()
     response = decode_json(response_json)
