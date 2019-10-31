@@ -172,8 +172,15 @@ Both Media Cloud production's `docker-compose.yml` and Portainer's `docker-compo
 
 * Solr's webapp on port 8983
 * Munin's webapp on port 4948
-* RabbitMQ's webapp on port 15672
+* RabbitMQ's webapp on port 15672:
+    * username: `mediacloud`
+    * password: `mediacloud`
 * Portainer's webapp on port 9000
+    * username: `admin`
+    * password: `mediacloud`
+* pgAdmin on port 5050:
+    * username: `mediacloud@mediacloud.org`
+    * password: `mediacloud`
 
 To access those services, you might want to set up a SSH tunnel in your `~/.ssh/config` as follows:
 
@@ -194,6 +201,9 @@ Host mccore1
 
     # portainer
     LocalForward 9000 127.0.0.1:9000
+
+    # postgresql-pgadmin
+    LocalForward 5050 127.0.0.1:5050
 ```
 
 ### Deploying with Portainer
@@ -214,7 +224,7 @@ To deploy Portainer:
 
 3. Assuming that you have SSH port forwarding set up as per example below, you should be able to connect to Portainer's web UI by opening the following URL:
 
-   http://localhost:9000/
+   <http://localhost:9000/>
 
    and logging in with the following credentials:
 

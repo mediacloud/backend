@@ -1057,6 +1057,29 @@ services:
                     memory: "256M"
 
     #
+    # pgAdmin
+    # ---------
+    #
+    postgresql-pgadmin:
+        image: dockermediacloud/postgresql-pgadmin:release
+        <<: *sysctl-defaults
+        networks:
+            - default
+        depends_on:
+            - postgresql-server
+        ports:
+            # For connecting to through a SSH tunnel
+            - "5050:5050"
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "4"
+                    # RAM limit
+                    memory: "1024M"
+
+    #
     # PgBouncer
     # ---------
     #
