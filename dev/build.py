@@ -24,7 +24,7 @@ from utils import (
     container_dir_name_from_image_name,
     docker_images,
     docker_tag_from_current_git_branch_name,
-    DockerHubArgumentParser,
+    DockerHubPruneArgumentParser,
 )
 
 
@@ -36,20 +36,20 @@ class DockerImageToBuild(object):
     __slots__ = [
         'name',
         'path',
-        'tag',
+        'repository',
     ]
 
-    def __init__(self, name: str, path: str, tag: str):
+    def __init__(self, name: str, path: str, repository: str):
         """
         Constructor.
 
-        :param name: Container name.
-        :param path: Container directory to build the image from.
-        :param tag: Tag to add to the built image.
+        :param name: Container name, e.g. "common".
+        :param path: Container directory to build the image from, e.g. "../apps/topics-mine-public/".
+        :param repository: Repository name add to the built image, e.g. "dockermediacloud/common".
         """
         self.name = name
         self.path = path
-        self.tag = tag
+        self.repository = repository
 
 
 def _docker_images_to_build(all_apps_dir: str, docker_hub_username: str) -> List[DockerImageToBuild]:
@@ -81,7 +81,7 @@ def _docker_images_to_build(all_apps_dir: str, docker_hub_username: str) -> List
             DockerImageToBuild(
                 name=container_name,
                 path=container_path,
-                tag=dependency,
+                repository=dependency,
             )
         )
 
@@ -90,7 +90,7 @@ def _docker_images_to_build(all_apps_dir: str, docker_hub_username: str) -> List
 
 if __name__ == '__main__':
 
-    parser = DockerHubArgumentParser(description='Print commands to build all container images.')
+    parser = DockerHubPruneArgumentParser(description='Print commands to build all container images.')
     args = parser.parse_arguments()
     docker_hub_username_ = args.docker_hub_username()
 
@@ -99,16 +99,17 @@ if __name__ == '__main__':
     images = _docker_images_to_build(all_apps_dir=args.all_apps_dir(), docker_hub_username=docker_hub_username_)
 
     for image in images:
-        command = [
-            'docker', 'build',
-            '--cache-from', '{}:latest'.format(image.tag),
-            '--tag', '{}:{}'.format(image.tag, image_tag),
-            '--tag', '{}:latest'.format(image.tag),
-            image.path,
-        ]
+        command = "docker build --cache-from {repo}:latest --tag {repo}:{tag} --tag {repo}:latest {path}".format(
+            repo=image.repository,
+            tag=image_tag,
+            path=image.path,
+        )
+
+        if args.prune_images():
+            command += ' && docker image prune -f'
 
         if args.print_commands():
-            print(' '.join(command))
+            print(command)
         else:
             # Run build commands, stop at the first failed build
-            subprocess.check_call(command)
+            subprocess.check_call(command, shell=True)

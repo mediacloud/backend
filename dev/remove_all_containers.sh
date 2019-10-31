@@ -9,4 +9,3 @@ set -u
 set -e
 
 docker container ls -a | grep dockermediacloud/ | awk '{ print $1 }' | xargs docker container rm -f
-
