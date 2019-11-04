@@ -20,6 +20,7 @@ sub test_all_users($)
     my $notes                        = 'Test test test';
     my $weekly_requests_limit        = 123;
     my $weekly_requested_items_limit = 456;
+    my $max_topic_stories            = 789;
 
     eval {
 
@@ -29,11 +30,15 @@ sub test_all_users($)
             notes                        => $notes,
             role_ids                     => [ 1 ],
             active                       => 1,
+            has_consented                => 0,
             password                     => 'userinfo',
             password_repeat              => 'userinfo',
             activation_url               => '',                              # user is active, no need for activation URL
-            weekly_requests_limit        => $weekly_requests_limit,
-            weekly_requested_items_limit => $weekly_requested_items_limit,
+            resource_limits              => MediaWords::DBI::Auth::User::Resources->new(
+                weekly_requests          => $weekly_requests_limit,
+                weekly_requested_items   => $weekly_requested_items_limit,
+                max_topic_stories        => $max_topic_stories,
+            ),
         );
 
         MediaWords::DBI::Auth::Register::add_user( $db, $new_user );
@@ -45,12 +50,16 @@ sub test_all_users($)
 
     my $user = $all_users->[ 0 ];
 
+    ok( $user->user_id() );
     is( $user->email(),                        $email );
     is( $user->full_name(),                    $full_name );
     is( $user->notes(),                        $notes );
-    is( $user->weekly_requests_limit(),        $weekly_requests_limit );
-    is( $user->weekly_requested_items_limit(), $weekly_requested_items_limit );
+    ok( $user->resource_limits() );
+    is( $user->resource_limits()->weekly_requests(),        $weekly_requests_limit );
+    is( $user->resource_limits()->weekly_requested_items(), $weekly_requested_items_limit );
+    is( $user->resource_limits()->max_topic_stories(), $max_topic_stories );
     ok( $user->active() );
+    ok( ! $user->has_consented() );
     ok( $user->global_api_key() );
     ok( $user->password_hash() );
     ok( $user->has_role( 'admin' ) );

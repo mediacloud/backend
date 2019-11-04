@@ -255,6 +255,13 @@ sub _validate_max_stories($$$)
     my ( $db, $max_stories, $auth_users_id ) = @_;
 
     my $auth_user = $db->require_by_id( 'auth_users', $auth_users_id );
+    my $auth_user_limits = $db->query(<<SQL,
+        SELECT *
+        FROM auth_user_limits
+        WHERE auth_users_id = ?
+SQL
+        $auth_users_id
+    )->hash;
 
     my $admin_roles = [ $MediaWords::DBI::Auth::Roles::List::ADMIN, $MediaWords::DBI::Auth::Roles::List::ADMIN_READONLY ];
 
@@ -273,9 +280,9 @@ SQL
     # admins have no limit
     return if ( $is_admin );
 
-    if ( $max_stories > $auth_user->{ max_topic_stories } )
+    if ( $max_stories > $auth_user_limits->{ max_topic_stories } )
     {
-        die( "max_stories ($max_stories ) is greater than allowed for user ($auth_user->{ max_topic_stories })" );
+        die( "max_stories ($max_stories ) is greater than allowed for user ($auth_user_limits->{ max_topic_stories })" );
     }
 }
 

@@ -24,7 +24,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4730;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4733;
 BEGIN
 
     -- Update / set database schema version
@@ -2579,10 +2579,9 @@ CREATE TABLE auth_users (
     last_unsuccessful_login_attempt     TIMESTAMP NOT NULL DEFAULT TIMESTAMP 'epoch',
 
     created_date                        timestamp not null default now(),
-
-    max_topic_stories                   int not null default 100000,
     
-    has_consented                       boolean not null default false
+    -- Whether or not the user has consented to the privacy policy
+    has_consented                       BOOLEAN NOT NULL DEFAULT false
 );
 
 
@@ -2702,7 +2701,7 @@ CREATE UNIQUE INDEX auth_user_request_daily_counts_email_day ON auth_user_reques
 -- User limits for logged + throttled controller actions
 CREATE TABLE auth_user_limits (
 
-    auth_user_limits_id             SERIAL      NOT NULL,
+    auth_user_limits_id             SERIAL      PRIMARY KEY NOT NULL,
 
     auth_users_id                   INTEGER     NOT NULL UNIQUE REFERENCES auth_users(auth_users_id)
                                                 ON DELETE CASCADE ON UPDATE CASCADE DEFERRABLE,
@@ -2713,7 +2712,9 @@ CREATE TABLE auth_user_limits (
 
     -- Requested items (stories) limit (0 or belonging to 'admin' /
     -- 'admin-readonly' group = no limit)
-    weekly_requested_items_limit    INTEGER     NOT NULL DEFAULT 100000
+    weekly_requested_items_limit    INTEGER     NOT NULL DEFAULT 100000,
+
+    max_topic_stories               INTEGER     NOT NULL DEFAULT 100000
 
 );
 
@@ -2767,13 +2768,6 @@ CREATE TABLE auth_users_tag_sets_permissions (
 CREATE UNIQUE INDEX auth_users_tag_sets_permissions_auth_user_tag_set on  auth_users_tag_sets_permissions( auth_users_id , tag_sets_id );
 CREATE INDEX auth_users_tag_sets_permissions_auth_user         on  auth_users_tag_sets_permissions( auth_users_id );
 CREATE INDEX auth_users_tag_sets_permissions_tag_sets          on  auth_users_tag_sets_permissions( tag_sets_id );
-
-
--- Users to subscribe to groups.io mailing list
-CREATE TABLE auth_users_subscribe_to_newsletter (
-    auth_users_subscribe_to_newsletter_id SERIAL  PRIMARY KEY,
-    auth_users_id                         INTEGER NOT NULL REFERENCES auth_users (auth_users_id) ON DELETE CASCADE
-);
 
 
 --

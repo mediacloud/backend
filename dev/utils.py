@@ -379,3 +379,40 @@ class DockerHubArgumentParser(DockerArgumentParser):
         :return: DockerHubArguments object.
         """
         return DockerHubArguments(self._parser.parse_args())
+
+
+class DockerHubPruneArguments(DockerHubArguments):
+    """
+    Arguments that include Docker Hub credentials and whether to prune images.
+    """
+
+    def prune_images(self) -> bool:
+        """
+        Return True if images are to be pruned after pulling / building.
+
+        :return: True if images are to be pruned after pulling / building.
+        """
+        return self._args.prune_images
+
+
+class DockerHubPruneArgumentParser(DockerHubArgumentParser):
+    """Argument parser which requires Docker Hub credentials and allows users to prune images."""
+
+    def __init__(self, description: str):
+        """
+        Constructor.
+
+        :param description: Description of the script to print when "--help" is passed.
+        """
+        super().__init__(description=description)
+
+        self._parser.add_argument('-r', '--prune_images', action='store_true',
+                                  help='Prune images after pulling / building to clean up disk space immediately.')
+
+    def parse_arguments(self) -> DockerHubPruneArguments:
+        """
+        Parse arguments and return an object with parsed arguments.
+
+        :return: DockerHubPruneArguments object.
+        """
+        return DockerHubPruneArguments(self._parser.parse_args())

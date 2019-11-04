@@ -29,6 +29,7 @@ sub test_regenerate_api_key($)
             notes           => 'Test test test',
             role_ids        => [ 1 ],
             active          => 1,
+            has_consented   => 1,
             password        => $password,
             password_repeat => $password,
             activation_url  => '',                 # user is active, no need for activation URL

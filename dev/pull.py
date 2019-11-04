@@ -16,7 +16,7 @@ This script can print the commands that are going to be run instead of running t
 import subprocess
 from typing import List
 
-from utils import docker_images, docker_tag_from_current_git_branch_name, DockerHubArgumentParser
+from utils import docker_images, docker_tag_from_current_git_branch_name, DockerHubPruneArgumentParser
 
 
 def _docker_images_to_pull(all_apps_dir: str, docker_hub_username: str) -> List[str]:
@@ -34,13 +34,14 @@ def _docker_images_to_pull(all_apps_dir: str, docker_hub_username: str) -> List[
     )
 
 
-def _docker_pull_commands(all_apps_dir: str, image_tag: str, docker_hub_username: str) -> List[str]:
+def _docker_pull_commands(all_apps_dir: str, image_tag: str, docker_hub_username: str, prune_images: bool) -> List[str]:
     """
     Return an ordered list of "docker pull" commands to run in order to pull all images.
 
     :param all_apps_dir: Directory with container subdirectories.
     :param image_tag: Docker image tag.
     :param docker_hub_username: Docker Hub username.
+    :param prune_images: True if images are to be pruned after pulling each image to clean up disk space immediately.
     :return: List of "docker pull" commands to run in order to pull all images.
     """
     commands = []
@@ -71,13 +72,16 @@ def _docker_pull_commands(all_apps_dir: str, image_tag: str, docker_hub_username
             # Third-party image - just pull it
             command = 'docker pull {}'.format(image)
 
+        if prune_images:
+            command += ' && docker image prune -f'
+
         commands.append(command)
 
     return commands
 
 
 if __name__ == '__main__':
-    parser = DockerHubArgumentParser(description='Print commands to pull all container images.')
+    parser = DockerHubPruneArgumentParser(description='Print commands to pull all container images.')
     args = parser.parse_arguments()
     docker_hub_username_ = args.docker_hub_username()
 
@@ -85,6 +89,7 @@ if __name__ == '__main__':
         all_apps_dir=args.all_apps_dir(),
         image_tag=docker_tag_from_current_git_branch_name(),
         docker_hub_username=docker_hub_username_,
+        prune_images=args.prune_images(),
     )
 
     if args.print_commands():
