@@ -7,11 +7,13 @@
 #
 # 1) Run the script
 # 2) You will find a mirror of CPAN modules on https://s3.amazonaws.com/mediacloud-minicpan/minicpan-<YYYYMMDD>/
-# 3) Use S3 as CPAN mirror with cpanminus:
-# 
-#        cpanm \
-#            --mirror https://s3.amazonaws.com/mediacloud-minicpan/minicpan-<YYYYMMDD>/ \
-#            --mirror-only \
+# 3) Use S3 as CPAN mirror with CPM:
+#
+#        cpm install \
+#            --global \
+#            --resolver 02packages \
+#            --no-prebuilt \
+#            --mirror "$MC_PERL_CPAN_MIRROR" \
 #            Your::Module
 #
 

@@ -40,14 +40,9 @@ RUN \
 COPY src/cpanfile /var/tmp/
 RUN \
     cd /var/tmp/ && \
-    cpanm \
-        --mirror "$MC_PERL_CPAN_MIRROR" \
-        --mirror-only \
-        --notest \
-        --installdeps \
-        . && \
+    cpm install --global --resolver 02packages --no-prebuilt --mirror "$MC_PERL_CPAN_MIRROR" && \
     rm cpanfile && \
-    rm -rf /root/.cpanm/ && \
+    rm -rf /root/.perl-cpm/ && \
     true
 
 # Install Python dependencies
