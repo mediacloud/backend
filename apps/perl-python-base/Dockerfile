@@ -34,15 +34,36 @@ ENV INLINE_PYTHON_EXECUTABLE /usr/bin/python3.7
 # Install Git (for fetching patched Inline::Python) and Perl itself
 RUN apt-get -y --no-install-recommends install git perl
 
-# Install cpanminus
-RUN curl -L https://cpanmin.us | perl - App::cpanminus
+# Install CPM (newer rewrite of cpanminus with parallel support)
+RUN \
+    curl -fsSL --compressed https://raw.githubusercontent.com/skaji/cpm/0.988/cpm > /usr/bin/cpm && \
+    chmod +x /usr/bin/cpm && \
+    true
 
 # Install patched Inline::Perl
 RUN \
     #
     # Install Inline
-    cpanm --mirror "$MC_PERL_CPAN_MIRROR" --mirror-only Inline && \
+    cpm install \
+        --global \
+        --resolver 02packages \
+        --no-prebuilt \
+        --mirror "$MC_PERL_CPAN_MIRROR" \
+        # Explicitly run tests for this code module:
+        --test \
+        Inline && \
     #
     # Install Inline::Python variant which die()s with tracebacks (stack traces)
-    cpanm https://github.com/berkmancenter/mediacloud-inline-python-pm.git@v0.56.1-mediacloud && \
+    cpm install \
+        --global \
+        --resolver 02packages \
+        --no-prebuilt \
+        --mirror "$MC_PERL_CPAN_MIRROR" \
+        # Explicitly run tests for this code module:
+        --test \
+        https://github.com/berkmancenter/mediacloud-inline-python-pm.git@v0.56.2-mediacloud && \
+    #
+    # Cleanup
+    rm -rf /root/.perl-cpm/ && \
+    #
     true
