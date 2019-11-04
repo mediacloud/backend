@@ -18,10 +18,17 @@ services:
               source: ./tests/
               target: /opt/mediacloud/tests/
         depends_on:
+            - extract-article-from-page
             - postgresql-pgbouncer
             - solr-shard-01
             - import-solr-data-for-testing
             - rabbitmq-server
+
+    extract-article-from-page:
+        image: dockermediacloud/extract-article-from-page:latest
+        stop_signal: SIGKILL
+        expose:
+            - 8080
 
     import-solr-data-for-testing:
         image: dockermediacloud/import-solr-data-for-testing:latest
