@@ -57,7 +57,7 @@ RUN \
     mvn package && \
     #
     # Copy exploded WAR to Tomcat 7's webroot
-    mv webapp/target/cliff-2.4.2/ /usr/lib/tomcat7/webapps/cliff/ && \
+    mv webapp/target/cliff-2.5.0/ /usr/lib/tomcat7/webapps/cliff/ && \
     #
     # Cleanup
     mvn clean && \

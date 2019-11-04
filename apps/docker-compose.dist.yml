@@ -302,7 +302,7 @@ services:
         environment:
             <<: *common-configuration
             # CLIFF version tag
-            MC_CLIFF_VERSION_TAG: "cliff_clavin_v2.4.1"
+            MC_CLIFF_VERSION_TAG: "cliff_clavin_v2.5.0"
             # Tag set to use for geographical name entities
             MC_CLIFF_GEONAMES_TAG_SET: "cliff_geonames"
             # Tag set to use for organization name entities
