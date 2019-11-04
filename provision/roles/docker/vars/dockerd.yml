@@ -1,0 +1,47 @@
+#
+# Docker and containerd.io versions to install
+#
+# Older Docker versions have caching discrepancies, so we try to run the same version everywhere.
+#
+# Get a list of available versions by running:
+#
+#     apt-cache madison docker-ce
+#     apt-cache madison containerd.io
+#
+docker_version: "19.03.4"
+containerd_io_version: "1.2.10"
+
+#
+# Docker daemon configuration
+#
+# Dictionary gets converted to JSON and stored to /etc/docker/daemon.json.
+#
+docker_daemon_config:
+
+  # Log to journald for persistence between stack / service recreations:
+  log-driver: "journald"
+
+  log-opts:
+
+      # Tag log entries with "stack name/service name/container name/truncated container ID":
+      #
+      # * https://docs.docker.com/config/containers/logging/log_tags/
+      # * http://alexfu.it/2018/12/07/use-labels-in-docker-logging-tags/
+      # * https://stackoverflow.com/questions/32279519/escaping-double-curly-braces-in-ansible
+      # * https://yaml-multiline.info/
+      # * https://stackoverflow.com/questions/19168734/yaml-multiline-wrap-without-space/27282802
+      tag: "\
+        {% raw %}\
+          {{ if (index .ContainerLabels \"com.docker.stack.namespace\") }}\
+            {{ index .ContainerLabels \"com.docker.stack.namespace\" }}/\
+          {{ end }}\
+          {{ if (index .ContainerLabels \"com.docker.swarm.service.name\") }}\
+            {{ index .ContainerLabels \"com.docker.swarm.service.name\" }}/\
+          {{ end }}\
+          {{ .Name }}/\
+          {{ .ID }}\
+        {% endraw %}\
+      "
+
+  # Increase default shutdown timeout:
+  shutdown-timeout: 60
