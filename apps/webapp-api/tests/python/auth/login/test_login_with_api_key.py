@@ -19,6 +19,7 @@ def test_login_with_api_key():
         new_user=NewUser(
             email=email,
             full_name=full_name,
+            has_consented=True,
             notes='Test test test',
             role_ids=[1],
             active=True,

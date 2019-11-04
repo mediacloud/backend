@@ -45,16 +45,11 @@ def _generate_user_activation_token(db: DatabaseHandler, email: str, activation_
 
 def send_user_activation_token(db: DatabaseHandler,
                                email: str,
-                               activation_link: str,
-                               subscribe_to_newsletter: bool = False) -> None:
+                               activation_link: str) -> None:
     """Prepare for activation by emailing the activation token."""
 
     email = decode_object_from_bytes_if_needed(email)
     activation_link = decode_object_from_bytes_if_needed(activation_link)
-    if isinstance(subscribe_to_newsletter, bytes):
-        subscribe_to_newsletter = decode_object_from_bytes_if_needed(subscribe_to_newsletter)
-
-    subscribe_to_newsletter = bool(int(subscribe_to_newsletter))
 
     # Check if user exists
     try:
@@ -76,7 +71,6 @@ def send_user_activation_token(db: DatabaseHandler,
         to=email,
         full_name=full_name,
         activation_url=full_activation_link,
-        subscribe_to_newsletter=subscribe_to_newsletter
     )
     if not send_email(message):
         raise McAuthRegisterException('The user was created, but I was unable to send you an activation email.')
@@ -119,6 +113,7 @@ def add_user(db: DatabaseHandler, new_user: NewUser) -> None:
             'full_name': new_user.full_name(),
             'notes': new_user.notes(),
             'active': bool(int(new_user.active())),
+            'has_consented': bool(int(new_user.has_consented())),
         }
     )
 
@@ -140,36 +135,44 @@ def add_user(db: DatabaseHandler, new_user: NewUser) -> None:
         raise McAuthRegisterException("Unable to create roles: %s" % str(ex))
 
     # Update limits (if they're defined)
-    if new_user.weekly_requests_limit() is not None:
-        db.query("""
-            UPDATE auth_user_limits
-            SET weekly_requests_limit = %(weekly_requests_limit)s
-            WHERE auth_users_id = %(auth_users_id)s
-        """, {
-            'auth_users_id': user.user_id(),
-            'weekly_requests_limit': new_user.weekly_requests_limit(),
-        })
+    resource_limits = new_user.resource_limits()
+    if resource_limits:
 
-    if new_user.weekly_requested_items_limit() is not None:
-        db.query("""
-            UPDATE auth_user_limits
-            SET weekly_requested_items_limit = %(weekly_requested_items_limit)s
-            WHERE auth_users_id = %(auth_users_id)s
-        """, {
-            'auth_users_id': user.user_id(),
-            'weekly_requested_items_limit': new_user.weekly_requested_items_limit(),
-        })
+        if resource_limits.weekly_requests() is not None:
+            db.query("""
+                UPDATE auth_user_limits
+                SET weekly_requests_limit = %(weekly_requests_limit)s
+                WHERE auth_users_id = %(auth_users_id)s
+            """, {
+                'auth_users_id': user.user_id(),
+                'weekly_requests_limit': resource_limits.weekly_requests(),
+            })
 
-    # Subscribe to newsletter
-    if new_user.subscribe_to_newsletter():
-        db.create(table='auth_users_subscribe_to_newsletter', insert_hash={'auth_users_id': user.user_id()})
+        if resource_limits.weekly_requested_items() is not None:
+            db.query("""
+                UPDATE auth_user_limits
+                SET weekly_requested_items_limit = %(weekly_requested_items_limit)s
+                WHERE auth_users_id = %(auth_users_id)s
+            """, {
+                'auth_users_id': user.user_id(),
+                'weekly_requested_items_limit': resource_limits.weekly_requested_items(),
+            })
+
+        if resource_limits.max_topic_stories() is not None:
+            db.query("""
+                UPDATE auth_user_limits
+                SET max_topic_stories = %(max_topic_stories)s
+                WHERE auth_users_id = %(auth_users_id)s
+            """, {
+                'auth_users_id': user.user_id(),
+                'max_topic_stories': resource_limits.max_topic_stories(),
+            })
 
     if not new_user.active():
         send_user_activation_token(
             db=db,
             email=new_user.email(),
             activation_link=new_user.activation_url(),
-            subscribe_to_newsletter=new_user.subscribe_to_newsletter(),
         )
 
     db.commit()

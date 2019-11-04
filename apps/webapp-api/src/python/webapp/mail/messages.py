@@ -5,14 +5,12 @@ from mediawords.util.perl import decode_object_from_bytes_if_needed
 class AuthActivationNeededMessage(TemplateMessage):
     """Generate and return "activation needed" email message."""
 
-    def __init__(self, to: str, full_name: str, activation_url: str, subscribe_to_newsletter: bool):
+    def __init__(self, to: str, full_name: str, activation_url: str):
 
         if not full_name:
             raise McMailTemplatesException('"full_name" is not set.')
         if not activation_url:
             raise McMailTemplatesException('"activation_url" is not set.')
-        if subscribe_to_newsletter is None:
-            raise McMailTemplatesException('"subscribe_to_newsletter" is not set.')
 
         full_name = decode_object_from_bytes_if_needed(full_name)
         activation_url = decode_object_from_bytes_if_needed(activation_url)
@@ -24,7 +22,6 @@ class AuthActivationNeededMessage(TemplateMessage):
             attributes={
                 'full_name': full_name,
                 'activation_url': activation_url,
-                'subscribe_to_newsletter': bool(int(subscribe_to_newsletter)),
             }
         )
 

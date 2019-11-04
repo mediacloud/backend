@@ -27,6 +27,7 @@ sub test_add_user($)
                 MediaWords::DBI::Auth::User::NewUser->new(
                     email           => $email,
                     full_name       => $full_name,
+                    has_consented   => 1,
                     notes           => 'Test test test',
                     role_ids        => [ 1 ],
                     active          => 1,
@@ -59,6 +60,7 @@ sub test_add_user($)
                 MediaWords::DBI::Auth::User::NewUser->new(
                     email           => $email,
                     full_name       => $full_name,
+                    has_consented   => 1,
                     notes           => 'Test test test',
                     role_ids        => [ 1 ],
                     active          => 1,
@@ -79,6 +81,7 @@ sub test_add_user($)
                 MediaWords::DBI::Auth::User::NewUser->new(
                     email           => uc( $email ),
                     full_name       => $full_name,
+                    has_consented   => 1,
                     notes           => 'Test test test',
                     role_ids        => [ 1 ],
                     active          => 1,
@@ -99,6 +102,7 @@ sub test_add_user($)
                 MediaWords::DBI::Auth::User::NewUser->new(
                     email           => 'user123@email.com',
                     full_name       => $full_name,
+                    has_consented   => 1,
                     notes           => 'Test test test',
                     role_ids        => [ 1 ],
                     active          => 1,
@@ -119,6 +123,7 @@ sub test_add_user($)
                 MediaWords::DBI::Auth::User::NewUser->new(
                     email           => 'user456@email.com',
                     full_name       => $full_name,
+                    has_consented   => 1,
                     notes           => 'Test test test',
                     role_ids        => [ 42 ],
                     active          => 1,
@@ -139,6 +144,7 @@ sub test_add_user($)
                 MediaWords::DBI::Auth::User::NewUser->new(
                     email           => 'user789@email.com',
                     full_name       => $full_name,
+                    has_consented   => 1,
                     notes           => 'Test test test',
                     role_ids        => [ 42 ],
                     active          => 1,
@@ -159,6 +165,7 @@ sub test_add_user($)
                 MediaWords::DBI::Auth::User::NewUser->new(
                     email           => 'user784932@email.com',
                     full_name       => $full_name,
+                    has_consented   => 1,
                     notes           => 'Test test test',
                     role_ids        => [ 42 ],
                     active          => 0,

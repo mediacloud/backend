@@ -6,6 +6,8 @@ use warnings;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
+use MediaWords::DBI::Auth::User::Resources;
+
 {
     # Proxy to Python's implementation
     package MediaWords::DBI::Auth::User::AbstractUser::PythonProxy;
@@ -66,18 +68,18 @@ sub active($)
     return int( $self->{ _python_object }->active() );
 }
 
-sub weekly_requests_limit($)
+sub has_consented($)
 {
     my ( $self ) = @_;
 
-    return $self->{ _python_object }->weekly_requests_limit();
+    return int( $self->{ _python_object }->has_consented() );
 }
 
-sub weekly_requested_items_limit($)
+sub resource_limits($)
 {
     my ( $self ) = @_;
 
-    return $self->{ _python_object }->weekly_requested_items_limit();
+    return MediaWords::DBI::Auth::User::Resources->from_python_object( $self->{ _python_object }->resource_limits() );
 }
 
 1;

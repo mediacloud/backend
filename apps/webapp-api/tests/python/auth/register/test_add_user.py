@@ -19,6 +19,7 @@ class AddUserTestCase(TestDoNotSendEmails):
         new_user = NewUser(
             email=email,
             full_name=full_name,
+            has_consented=True,
             notes='Test test test',
             role_ids=[1],
             active=True,
@@ -53,6 +54,7 @@ class AddUserTestCase(TestDoNotSendEmails):
                 new_user=NewUser(
                     email=email.upper(),
                     full_name=full_name,
+                    has_consented=True,
                     notes='Test test test',
                     role_ids=[1],
                     active=True,
@@ -69,6 +71,7 @@ class AddUserTestCase(TestDoNotSendEmails):
                 new_user=NewUser(
                     email='user123@email.com',
                     full_name=full_name,
+                    has_consented=True,
                     notes='Test test test',
                     role_ids=[1],
                     active=True,
@@ -85,6 +88,7 @@ class AddUserTestCase(TestDoNotSendEmails):
                 new_user=NewUser(
                     email='user456@email.com',
                     full_name=full_name,
+                    has_consented=True,
                     notes='Test test test',
                     role_ids=[42],
                     active=True,
@@ -101,6 +105,7 @@ class AddUserTestCase(TestDoNotSendEmails):
                 new_user=NewUser(
                     email='user789@email.com',
                     full_name=full_name,
+                    has_consented=True,
                     notes='Test test test',
                     role_ids=[1],
                     active=True,
@@ -117,6 +122,7 @@ class AddUserTestCase(TestDoNotSendEmails):
                 new_user=NewUser(
                     email='user784932@email.com',
                     full_name=full_name,
+                    has_consented=True,
                     notes='Test test test',
                     role_ids=[1],
                     active=False,

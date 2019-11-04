@@ -3,7 +3,7 @@ import re
 from mediawords.db import connect_to_db
 from webapp.auth.info import user_info
 from webapp.auth.register import add_user
-from webapp.auth.user import NewUser, CurrentUser
+from webapp.auth.user import NewUser, CurrentUser, Resources
 
 
 def __looks_like_iso8601_date(date: str) -> bool:
@@ -23,32 +23,41 @@ def test_user_info():
     notes = 'Test test test'
     weekly_requests_limit = 123
     weekly_requested_items_limit = 456
+    max_topic_stories = 789
 
     add_user(
         db=db,
         new_user=NewUser(
             email=email,
             full_name=full_name,
+            has_consented=True,
             notes=notes,
             role_ids=[1],
             active=True,
             password='user_info',
             password_repeat='user_info',
             activation_url='',  # user is active, no need for activation URL
-            weekly_requests_limit=weekly_requests_limit,
-            weekly_requested_items_limit=weekly_requested_items_limit,
+            resource_limits=Resources(
+                weekly_requests=weekly_requests_limit,
+                weekly_requested_items=weekly_requested_items_limit,
+                max_topic_stories=max_topic_stories,
+            ),
         ),
     )
 
     user = user_info(db=db, email=email)
 
     assert isinstance(user, CurrentUser)
+    assert user.user_id()
     assert user.email() == email
     assert user.full_name() == full_name
     assert user.notes() == notes
-    assert user.weekly_requests_limit() == weekly_requests_limit
-    assert user.weekly_requested_items_limit() == weekly_requested_items_limit
+    assert user.resource_limits()
+    assert user.resource_limits().weekly_requests() == weekly_requests_limit
+    assert user.resource_limits().weekly_requested_items() == weekly_requested_items_limit
+    assert user.resource_limits().max_topic_stories() == max_topic_stories
     assert user.active()
+    assert user.has_consented()
     assert user.created_date()
     assert __looks_like_iso8601_date(user.created_date())
     assert user.global_api_key()

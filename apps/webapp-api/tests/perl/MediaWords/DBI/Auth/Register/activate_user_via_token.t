@@ -33,6 +33,7 @@ sub test_activate_user_via_token($)
                     notes           => 'Test test test',
                     role_ids        => [ 1 ],
                     active          => 0,                  # not active, needs to be activated
+                    has_consented   => 1,
                     password        => $password,
                     password_repeat => $password,
                     activation_url  => $activation_url,
