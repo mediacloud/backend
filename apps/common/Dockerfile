@@ -8,7 +8,8 @@ FROM dockermediacloud/perl-python-base:latest
 RUN \
     # Add repository for mecab-ipadic-neologd
     apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 379CE192D401AB61 && \
-    echo "deb https://dl.bintray.com/pypt/mecab-ipadic-neologd-deb xenial main" > /etc/apt/sources.list.d/mecab-ipadic-neologd.list && \
+    echo "deb https://dl.bintray.com/pypt/mecab-ipadic-neologd-deb xenial main" > \
+        /etc/apt/sources.list.d/mecab-ipadic-neologd.list && \
     apt-get -y update && \
     # Japanese language tokenization
     apt-get -y --no-install-recommends install libmecab-dev && \
@@ -65,6 +66,7 @@ RUN \
     pip3 install -r requirements.txt && \
     rm requirements.txt && \
     rm -rf /root/.cache/ && \
+    #
     true
 
 # Create directory where sources will be stored in
@@ -108,7 +110,4 @@ RUN \
 RUN ln -s /opt/mediacloud/src/common/perl/log4perl.conf /etc/log4perl.conf
 
 # Add user that will be used for running userland apps
-RUN \
-    useradd -ms /bin/bash mediacloud && \
-    #
-    true
+RUN useradd -ms /bin/bash mediacloud
