@@ -150,7 +150,7 @@ def sample_cliff_response() -> dict:
             ],
         },
         "status": "ok",
-        "version": "2.5.0",
+        "version": "2.6.0",
     }
 
 
@@ -232,8 +232,8 @@ def expected_cliff_tags() -> list:
             'tag_sets_name': 'geocoder_version',
             'tag_sets_label': 'geocoder_version',
             'tag_sets_description': 'CLIFF version the story was tagged with',
-            'tags_name': 'cliff_clavin_v2.5.0',
-            'tags_label': 'cliff_clavin_v2.5.0',
-            'tags_description': 'Story was tagged with \'cliff_clavin_v2.5.0\'',
+            'tags_name': 'cliff_clavin_v2.6.0',
+            'tags_label': 'cliff_clavin_v2.6.0',
+            'tags_description': 'Story was tagged with \'cliff_clavin_v2.6.0\'',
         },
     ]

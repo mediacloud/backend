@@ -6,7 +6,7 @@ class CLIFFTaggerConfig(object):
 
     @staticmethod
     def version_tag() -> str:
-        """CLIFF version tag, e.g. "cliff_clavin_v2.5.0"."""
+        """CLIFF version tag, e.g. "cliff_clavin_v2.6.0"."""
         return env_value('MC_CLIFF_VERSION_TAG')
 
     @staticmethod
