@@ -38,8 +38,10 @@ ENV PATH="/usr/lib/tomcat7/bin:${PATH}"
 RUN mkdir -p /usr/src/
 COPY src/ /usr/src/
 
-# Test if submodules were checked out
+# Build CLIFF
 RUN \
+    #
+    # Test if submodules were checked out
     if [ ! -f /usr/src/CLIFF/LICENSE ]; then \
         echo && \
         echo "Git submodules haven't been checked out, please run:" && \
@@ -49,10 +51,19 @@ RUN \
         echo "and then rebuild this container." && \
         echo && \
         exit 1; \
-    fi
-
-# Build CLIFF
-RUN \
+    fi && \
+    #
+    # Test if the builder machine has enough RAM
+    if [ $(/container_memory_limit.sh) -le 3900 ]; then \
+        echo && \
+        echo "The builder machine needs at least 4 GB of RAM to run CLIFF" && \
+        echo "annotator tests. Please increase RAM available to Docker or" && \
+        echo "try rebuilding on a bigger machine." && \
+        echo && \
+        exit 1; \
+    fi && \
+    #
+    # Build CLIFF
     cd /usr/src/CLIFF/ && \
     mvn package && \
     #
