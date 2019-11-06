@@ -98,7 +98,7 @@ sub _user_email_and_roles($$)
     my $db = $c->dbis;
 
     my $user_email = undef;
-    my @user_roles;
+    my $user_roles;
 
     my $api_key_param = $Catalyst::Authentication::Credential::MediaWords::APIKey::API_KEY_FIELD;
 
@@ -123,7 +123,7 @@ sub _user_email_and_roles($$)
         if ( $api_auth )
         {
             $user_email = $api_auth->email();
-            @user_roles = @{ $api_auth->role_names() };
+            $user_roles = $api_auth->role_names();
 
             $c->stash->{ api_auth } = $api_auth;
         }
@@ -136,7 +136,7 @@ sub _user_email_and_roles($$)
     {
 
         $user_email = $c->user->username;
-        @user_roles = $c->user->roles;
+        $user_roles = \@{ $c->user->roles };
 
     }
     else
@@ -144,7 +144,7 @@ sub _user_email_and_roles($$)
         TRACE( "user not logged in and key paramater not provided" );
     }
 
-    return ( $user_email, \@user_roles );
+    return ( $user_email, $user_roles );
 }
 
 # require one of the given roles for authentication.  return anything if one of the given roles is found. die if not.
