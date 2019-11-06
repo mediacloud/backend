@@ -25,6 +25,9 @@ RUN \
 # Write our own configuration
 RUN rm -rf /etc/postgresql/11/main/
 COPY conf/ /etc/postgresql/11/main/
+
+# update_memory_config.sh script should be able to write to the memory
+# configuration include file
 RUN chown postgres:postgres /etc/postgresql/11/main/postgresql-memory.conf
 
 # Copy helper scripts, schema, migrations

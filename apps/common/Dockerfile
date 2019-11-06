@@ -8,7 +8,8 @@ FROM dockermediacloud/perl-python-base:latest
 RUN \
     # Add repository for mecab-ipadic-neologd
     apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 379CE192D401AB61 && \
-    echo "deb https://dl.bintray.com/pypt/mecab-ipadic-neologd-deb xenial main" > /etc/apt/sources.list.d/mecab-ipadic-neologd.list && \
+    echo "deb https://dl.bintray.com/pypt/mecab-ipadic-neologd-deb xenial main" > \
+        /etc/apt/sources.list.d/mecab-ipadic-neologd.list && \
     apt-get -y update && \
     # Japanese language tokenization
     apt-get -y --no-install-recommends install libmecab-dev && \
@@ -65,6 +66,7 @@ RUN \
     pip3 install -r requirements.txt && \
     rm requirements.txt && \
     rm -rf /root/.cache/ && \
+    #
     true
 
 # Create directory where sources will be stored in
@@ -80,22 +82,32 @@ ENV PYTHONPATH="/opt/mediacloud/src/common/python"
 
 # Test if submodules were checked out
 RUN \
-    if [ ! -f /opt/mediacloud/src/common/python/mediawords/languages/lt/snowball_stemmer/LICENSE ]; then \
-        echo && \
-        echo "Git submodules haven't been checked out, please run:" && \
-        echo && \
-        echo "    git submodule update --init --recursive" && \
-        echo && \
-        echo "and then rebuild this container." && \
-        echo && \
-        exit 1; \
-    fi
+    for submodule_file in \
+        # Catalan stemmer
+        "python/mediawords/languages/ca/snowball_stemmer/stemmer.sbl"                           \
+        # Lithuanian stemmer
+        "python/mediawords/languages/lt/snowball_stemmer/lithuanian.sbl"                        \
+        # Hindi Hunspell dictionary for lemmatizing
+        "python/mediawords/languages/hi/hindi-hunspell/dict-hi_IN/hi_IN.dic"                    \
+        # Snowball main module
+        "python/snowball/python/snowballstemmer/basestemmer.py"                                 \
+        # Email templates
+        "perl/MediaWords/Util/Mail/Message/Templates/email-templates/activation_needed.html"    \
+    ; do \
+        if [ ! -f "/opt/mediacloud/src/common/${submodule_file}" ]; then \
+            echo && \
+            echo "Git submodules (file ${submodule_file}) haven't been checked out, please run:" && \
+            echo && \
+            echo "    git submodule update --init --recursive" && \
+            echo && \
+            echo "and then rebuild this image." && \
+            echo && \
+            exit 1; \
+        fi; \
+    done
 
 # Symlink Log::Log4perl configuration to where it's going to be found
 RUN ln -s /opt/mediacloud/src/common/perl/log4perl.conf /etc/log4perl.conf
 
 # Add user that will be used for running userland apps
-RUN \
-    useradd -ms /bin/bash mediacloud && \
-    #
-    true
+RUN useradd -ms /bin/bash mediacloud
