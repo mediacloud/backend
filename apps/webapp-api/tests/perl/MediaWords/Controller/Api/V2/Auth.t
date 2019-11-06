@@ -5,7 +5,7 @@ use Modern::Perl '2015';
 use MediaWords::CommonLibs;
 
 use Readonly;
-use Test::More tests => 151;
+use Test::More tests => 153;
 use Test::Deep;
 
 use URI;
@@ -358,6 +358,10 @@ sub test_profile($)
 
     is( $actual_profile->{ active }, $expected_profile->active() );
     is( $actual_profile->{ has_consented }, $expected_profile->has_consented() );
+
+    # Make sure both are arrayrefs
+    is( ref( $actual_profile->{ auth_roles } ), ref( [] ) );
+    is( ref( $expected_profile->role_names() ), ref( [] ) );
 
     cmp_deeply( $actual_profile->{ auth_roles }, $expected_profile->role_names() );
     is(

@@ -107,7 +107,9 @@ sub role_names($)
 {
     my ( $self ) = @_;
 
-    return $self->{ _python_object }->role_names();
+    my @role_names = $self->{ _python_object }->role_names();
+
+    return \@role_names;
 }
 
 1;
