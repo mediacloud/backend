@@ -30,17 +30,12 @@ sub new
     {
         die "'activation_url' is unset.";
     }
-    unless ( defined $args->{ subscribe_to_newsletter } )
-    {
-        die "'subscribe_to_newsletter' is undefined.";
-    }
 
     $self->{ python_message } =
       MediaWords::Util::Mail::Message::Templates::AuthActivationNeededMessage::AuthActivationNeededMessage->new(
         $args->{ to },
         $args->{ full_name },
         $args->{ activation_url },
-        $args->{ subscribe_to_newsletter }
       );
 
     return $self;

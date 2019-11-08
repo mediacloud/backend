@@ -46,28 +46,31 @@ sub _user_profile_hash($$)
     }
 
     return {
-        'email'     => $user->email(),
-        'full_name' => $user->full_name(),
+        'auth_users_id' => $user->user_id(),
+        'email'         => $user->email(),
+        'full_name'     => $user->full_name(),
 
         # Always return global (non-IP limited) API key because we don't know who is requesting
         # the profile (dashboard or the user itself)
         'api_key' => $user->global_api_key(),
 
-        'notes'        => $user->notes(),
-        'created_date' => $user->created_date(),
-        'active'       => $user->active(),
-        'auth_roles'   => $user->role_names(),
-        'limits'       => {
+        'notes'         => $user->notes(),
+        'created_date'  => $user->created_date(),
+        'active'        => $user->active(),
+        'has_consented' => $user->has_consented(),
+        'auth_roles'    => $user->role_names(),
+        'limits'        => {
             'weekly' => {
                 'requests' => {
-                    'used'  => $user->weekly_requests_sum(),
-                    'limit' => $user->weekly_requests_limit(),
+                    'used'  => $user->used_resources()->weekly_requests(),
+                    'limit' => $user->resource_limits()->weekly_requests(),
                 },
                 'requested_items' => {
-                    'used'  => $user->weekly_requested_items_sum(),
-                    'limit' => $user->weekly_requested_items_limit(),
+                    'used'  => $user->used_resources()->weekly_requested_items(),
+                    'limit' => $user->resource_limits()->weekly_requested_items(),
                 }
-            }
+            },
+            'max_topic_stories' => $user->resource_limits()->max_topic_stories(),
         }
     };
 }
@@ -104,10 +107,10 @@ sub register : Local
         die "'notes' is undefined (should be at least an empty string).";
     }
 
-    my $subscribe_to_newsletter = $data->{ subscribe_to_newsletter };
-    unless ( defined $subscribe_to_newsletter )
+    my $has_consented = $data->{ has_consented };
+    unless ( defined $has_consented )
     {
-        die "'subscribe_to_newsletter' is undefined (should be at least an empty string).";
+        die "'has_consented' is undefined (should be at least an empty string).";
     }
 
     my $activation_url = $data->{ activation_url };
@@ -130,10 +133,11 @@ sub register : Local
             password                => $password,
             password_repeat         => $password,
             role_ids                => $role_ids,
-            subscribe_to_newsletter => $subscribe_to_newsletter,
 
             # User has to activate own account via email
             active         => 0,
+
+            has_consented  => $has_consented,
             activation_url => $activation_url,
         );
         MediaWords::DBI::Auth::Register::add_user( $db, $new_user );
@@ -202,10 +206,8 @@ sub resend_activation_link : Local
         die "'activation_url' does not look like a HTTP URL.";
     }
 
-    my $subscribe_to_newsletter = 1;
     eval {
-        MediaWords::DBI::Auth::Register::send_user_activation_token( $db, $email, $activation_url,
-            $subscribe_to_newsletter );
+        MediaWords::DBI::Auth::Register::send_user_activation_token( $db, $email, $activation_url );
     };
     if ( $@ )
     {

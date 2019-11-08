@@ -1,3 +1,6 @@
 steps:
-- script: ./dev/build.py
+
+# Prune images after every rebuild because otherwise Azure instance might run
+# out of disk space on bigger rebuilds
+- script: ./dev/build.py --prune_images
   displayName: Build images

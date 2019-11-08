@@ -9,6 +9,7 @@ use MediaWords::CommonLibs;
 use MediaWords::DBI::Auth::User::AbstractUser;
 our @ISA = qw(MediaWords::DBI::Auth::User::AbstractUser);
 
+use MediaWords::DBI::Auth::User::Resources;
 use MediaWords::DBI::Auth::User::CurrentUser::APIKey;
 use MediaWords::DBI::Auth::User::CurrentUser::Role;
 
@@ -67,18 +68,11 @@ sub created_timestamp($)
     return $self->{ _python_object }->created_timestamp();
 }
 
-sub weekly_requests_sum($)
+sub used_resources($)
 {
     my ( $self ) = @_;
 
-    return $self->{ _python_object }->weekly_requests_sum();
-}
-
-sub weekly_requested_items_sum($)
-{
-    my ( $self ) = @_;
-
-    return $self->{ _python_object }->weekly_requested_items_sum();
+    return MediaWords::DBI::Auth::User::Resources->from_python_object( $self->{ _python_object }->used_resources() );
 }
 
 sub global_api_key($)
@@ -113,7 +107,9 @@ sub role_names($)
 {
     my ( $self ) = @_;
 
-    return $self->{ _python_object }->role_names();
+    my @role_names = $self->{ _python_object }->role_names();
+
+    return \@role_names;
 }
 
 1;

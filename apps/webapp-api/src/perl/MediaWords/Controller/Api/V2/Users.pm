@@ -64,7 +64,7 @@ sub update_PUT
 
     my $user = $c->dbis->require_by_id( 'auth_users', $data->{ auth_users_id } );
 
-    my $update_fields = [ qw/email full_name notes active max_topic_stories has_consented/ ];
+    my $update_fields = [ qw/email full_name notes active has_consented/ ];
 
     my $input = { map { $_ => $data->{ $_ } } grep { exists( $data->{ $_ } ) } @{ $update_fields } };
 
@@ -85,6 +85,14 @@ sub update_PUT
         $db->query(
             "update auth_user_limits set weekly_requests_limit = ? where auth_users_id = ?",
             $data->{ weekly_requests_limit },
+            $data->{ auth_users_id }
+        );
+    }
+
+    if ( exists( $data->{ max_topic_stories } ) ) {
+        $db->query(
+            "update auth_user_limits set max_topic_stories = ? where auth_users_id = ?",
+            $data->{ max_topic_stories },
             $data->{ auth_users_id }
         );
     }

@@ -5,7 +5,7 @@ use Modern::Perl '2015';
 use MediaWords::CommonLibs;
 
 use Readonly;
-use Test::More tests => 150;
+use Test::More tests => 153;
 use Test::Deep;
 
 use URI;
@@ -32,8 +32,8 @@ sub test_register($)
                 email                   => $email,
                 password                => $password,
                 full_name               => 'Full Name',
+                has_consented           => 1,
                 notes                   => '',
-                subscribe_to_newsletter => 1,
                 activation_url          => 'https://activate.com/',
             }
         );
@@ -58,19 +58,6 @@ SQL
         eval { $user = MediaWords::DBI::Auth::Login::login_with_email_password( $db, $email, $password ); };
         ok( !$@ );
         is( $user->email(), $email );
-
-        # Confirm that user is subscribed to the newsletter
-        my ( $subscribed ) = $db->query(
-            <<SQL,
-            SELECT 1
-            FROM auth_users_subscribe_to_newsletter
-                INNER JOIN auth_users
-                    ON auth_users_subscribe_to_newsletter.auth_users_id = auth_users.auth_users_id
-            WHERE auth_users.email = ?
-SQL
-            $email
-        )->flat;
-        ok( $subscribed );
     }
 
     # Try registering duplicate user
@@ -82,8 +69,8 @@ SQL
                 email                   => $email,
                 password                => $password,
                 full_name               => 'Full Name',
+                has_consented           => 1,
                 notes                   => '',
-                subscribe_to_newsletter => 1,
                 activation_url          => 'https://activate.com/',
             },
             $expect_error
@@ -109,8 +96,8 @@ sub test_activate($)
                     email                   => $email,
                     password                => $password,
                     full_name               => 'Full Name',
+                    has_consented           => 1,
                     notes                   => '',
-                    subscribe_to_newsletter => 1,
                     activation_url          => 'https://activate.com/',
                 }
             );
@@ -184,8 +171,8 @@ sub test_resend_activation_link($)
                 email                   => $email,
                 password                => $password,
                 full_name               => 'Full Name',
+                has_consented           => 1,
                 notes                   => '',
-                subscribe_to_newsletter => 1,
                 activation_url          => $activation_url,
             }
         );
@@ -234,8 +221,8 @@ sub test_send_password_reset_link($)
                 email                   => $email,
                 password                => $password,
                 full_name               => 'Full Name',
+                has_consented           => 1,
                 notes                   => '',
-                subscribe_to_newsletter => 1,
                 activation_url          => 'http://activation.com/',
             }
         );
@@ -283,6 +270,7 @@ sub test_reset_password($)
         MediaWords::DBI::Auth::User::NewUser->new(
             email           => $email,
             full_name       => 'Full Name',
+            has_consented   => 1,
             notes           => '',
             role_ids        => $role_ids,
             active          => 1,
@@ -369,13 +357,33 @@ sub test_profile($)
     like( $actual_profile->{ created_date }, qr/^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}:\d{2}[+-]\d{2}:\d{2}$/i );
 
     is( $actual_profile->{ active }, $expected_profile->active() );
+    is( $actual_profile->{ has_consented }, $expected_profile->has_consented() );
+
+    # Make sure both are arrayrefs
+    is( ref( $actual_profile->{ auth_roles } ), ref( [] ) );
+    is( ref( $expected_profile->role_names() ), ref( [] ) );
+
     cmp_deeply( $actual_profile->{ auth_roles }, $expected_profile->role_names() );
-    is( $actual_profile->{ limits }->{ weekly }->{ requests }->{ used },  $expected_profile->weekly_requests_sum() );
-    is( $actual_profile->{ limits }->{ weekly }->{ requests }->{ limit }, $expected_profile->weekly_requests_limit() );
-    is( $actual_profile->{ limits }->{ weekly }->{ requested_items }->{ used },
-        $expected_profile->weekly_requested_items_sum() );
-    is( $actual_profile->{ limits }->{ weekly }->{ requested_items }->{ limit },
-        $expected_profile->weekly_requested_items_limit() );
+    is(
+        $actual_profile->{ limits }->{ weekly }->{ requests }->{ used },    #
+        $expected_profile->used_resources()->weekly_requests(),             #
+    );
+    is(
+        $actual_profile->{ limits }->{ weekly }->{ requests }->{ limit },   #
+        $expected_profile->resource_limits()->weekly_requests(),            #
+    );
+    is(
+        $actual_profile->{ limits }->{ weekly }->{ requested_items }->{ used },     #
+        $expected_profile->used_resources()->weekly_requested_items(),              #
+    );
+    is(
+        $actual_profile->{ limits }->{ weekly }->{ requested_items }->{ limit },    #
+        $expected_profile->resource_limits()->weekly_requested_items(),             #
+    );
+    is(
+        $actual_profile->{ limits }->{ max_topic_stories },         #
+        $expected_profile->resource_limits()->max_topic_stories(),  #
+    );
 }
 
 sub test_login($)
@@ -391,6 +399,7 @@ sub test_login($)
             my $new_user = MediaWords::DBI::Auth::User::NewUser->new(
                 email           => $email,
                 full_name       => 'auth login',
+                has_consented   => 1,
                 notes           => '',
                 role_ids        => [ 1 ],
                 active          => 1,
@@ -440,6 +449,7 @@ SQL
             my $new_user = MediaWords::DBI::Auth::User::NewUser->new(
                 email           => $email,
                 full_name       => 'auth login',
+                has_consented   => 1,
                 notes           => '',
                 role_ids        => [ 1 ],
                 active          => 0,
@@ -473,6 +483,7 @@ sub test_change_password($)
         my $new_user = MediaWords::DBI::Auth::User::NewUser->new(
             email           => $email,
             full_name       => 'auth change_password',
+            has_consented   => 1,
             notes           => '',
             role_ids        => [ 1 ],
             active          => 1,
@@ -529,6 +540,7 @@ sub test_reset_api_key($)
         my $new_user = MediaWords::DBI::Auth::User::NewUser->new(
             email           => $email,
             full_name       => 'auth reset_api_key',
+            has_consented   => 1,
             notes           => '',
             role_ids        => [ 1 ],
             active          => 1,

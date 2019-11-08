@@ -2,12 +2,48 @@ import datetime
 from typing import List, Optional
 
 from mediawords.util.perl import decode_object_from_bytes_if_needed
+
 from webapp.auth.password import validate_new_password
 
 
 class McAuthUserException(Exception):
     """BaseUser exception."""
     pass
+
+
+class Resources(object):
+    """User's resources (either the resource limits or the counts of resources used up so far)."""
+
+    __slots__ = [
+        '__weekly_requests',
+        '__weekly_requested_items',
+        '__max_topic_stories',
+    ]
+
+    def __init__(self,
+                 weekly_requests: Optional[int],
+                 weekly_requested_items: Optional[int],
+                 max_topic_stories: Optional[int]):
+
+        if isinstance(weekly_requests, bytes):
+            weekly_requests = decode_object_from_bytes_if_needed(weekly_requests)
+        if isinstance(weekly_requested_items, bytes):
+            weekly_requested_items = decode_object_from_bytes_if_needed(weekly_requested_items)
+        if isinstance(max_topic_stories, bytes):
+            max_topic_stories = decode_object_from_bytes_if_needed(max_topic_stories)
+
+        self.__weekly_requests = int(weekly_requests)
+        self.__weekly_requested_items = int(weekly_requested_items)
+        self.__max_topic_stories = int(max_topic_stories)
+
+    def weekly_requests(self) -> Optional[int]:
+        return self.__weekly_requests
+
+    def weekly_requested_items(self) -> Optional[int]:
+        return self.__weekly_requested_items
+
+    def max_topic_stories(self) -> Optional[int]:
+        return self.__max_topic_stories
 
 
 class BaseUser(object):
@@ -21,27 +57,25 @@ class BaseUser(object):
         '__full_name',
         '__notes',
         '__active',
-        '__weekly_requests_limit',
-        '__weekly_requested_items_limit',
+        '__has_consented',
+        '__resource_limits',
     ]
 
     def __init__(self,
                  email: str,
-                 full_name: str = None,
-                 notes: str = None,
-                 active: bool = None,
-                 weekly_requests_limit: int = None,
-                 weekly_requested_items_limit: int = None):
+                 full_name: Optional[str] = None,
+                 notes: Optional[str] = None,
+                 active: Optional[bool] = None,
+                 has_consented: Optional[bool] = None,
+                 resource_limits: Optional[Resources] = None):
 
         email = decode_object_from_bytes_if_needed(email)
         full_name = decode_object_from_bytes_if_needed(full_name)
         notes = decode_object_from_bytes_if_needed(notes)
         if isinstance(active, bytes):
             active = decode_object_from_bytes_if_needed(active)
-        if isinstance(weekly_requests_limit, bytes):
-            weekly_requests_limit = decode_object_from_bytes_if_needed(weekly_requests_limit)
-        if isinstance(weekly_requested_items_limit, bytes):
-            weekly_requested_items_limit = decode_object_from_bytes_if_needed(weekly_requested_items_limit)
+        if isinstance(has_consented, bytes):
+            has_consented = decode_object_from_bytes_if_needed(has_consented)
 
         if not email:
             raise McAuthUserException("User email is unset.")
@@ -50,26 +84,26 @@ class BaseUser(object):
         self.__full_name = full_name
         self.__notes = notes
         self.__active = bool(int(active))  # because bool(int('0')) == True
-        self.__weekly_requests_limit = int(weekly_requests_limit or 0)
-        self.__weekly_requested_items_limit = int(weekly_requested_items_limit or 0)
+        self.__has_consented = bool(int(has_consented))
+        self.__resource_limits = resource_limits
 
     def email(self) -> str:
         return self.__email.lower()
 
-    def full_name(self) -> str:
+    def full_name(self) -> Optional[str]:
         return self.__full_name
 
-    def notes(self) -> str:
+    def notes(self) -> Optional[str]:
         return self.__notes
 
-    def active(self) -> bool:
+    def active(self) -> Optional[bool]:
         return self.__active
 
-    def weekly_requests_limit(self) -> int:
-        return self.__weekly_requests_limit
+    def has_consented(self) -> Optional[bool]:
+        return self.__has_consented
 
-    def weekly_requested_items_limit(self) -> int:
-        return self.__weekly_requested_items_limit
+    def resource_limits(self) -> Optional[Resources]:
+        return self.__resource_limits
 
 
 class NewOrModifyUser(BaseUser):
@@ -83,21 +117,21 @@ class NewOrModifyUser(BaseUser):
 
     def __init__(self,
                  email: str,
-                 full_name: str = None,
-                 notes: str = None,
-                 active: bool = None,
-                 weekly_requests_limit: int = None,
-                 weekly_requested_items_limit: int = None,
-                 password: str = None,
-                 password_repeat: str = None,
-                 role_ids: List[int] = None):
+                 full_name: Optional[str] = None,
+                 notes: Optional[str] = None,
+                 active: Optional[bool] = None,
+                 has_consented: Optional[bool] = None,
+                 resource_limits: Optional[Resources] = None,
+                 password: Optional[str] = None,
+                 password_repeat: Optional[str] = None,
+                 role_ids: Optional[List[int]] = None):
         super().__init__(
             email=email,
             full_name=full_name,
             notes=notes,
             active=active,
-            weekly_requests_limit=weekly_requests_limit,
-            weekly_requested_items_limit=weekly_requested_items_limit
+            has_consented=has_consented,
+            resource_limits=resource_limits,
         )
 
         password = decode_object_from_bytes_if_needed(password)
@@ -116,13 +150,13 @@ class NewOrModifyUser(BaseUser):
         self.__password_repeat = password_repeat
         self.__role_ids = role_ids
 
-    def password(self) -> str:
+    def password(self) -> Optional[str]:
         return self.__password
 
-    def password_repeat(self) -> str:
+    def password_repeat(self) -> Optional[str]:
         return self.__password_repeat
 
-    def role_ids(self) -> List[int]:
+    def role_ids(self) -> Optional[List[int]]:
         return self.__role_ids
 
 
@@ -131,14 +165,14 @@ class ModifyUser(NewOrModifyUser):
 
     def __init__(self,
                  email: str,
-                 full_name: str = None,
-                 notes: str = None,
-                 active: bool = None,
-                 weekly_requests_limit: int = None,
-                 weekly_requested_items_limit: int = None,
-                 password: str = None,
-                 password_repeat: str = None,
-                 role_ids: List[int] = None):
+                 full_name: Optional[str] = None,
+                 notes: Optional[str] = None,
+                 active: Optional[bool] = None,
+                 has_consented: Optional[bool] = None,
+                 resource_limits: Optional[Resources] = None,
+                 password: Optional[str] = None,
+                 password_repeat: Optional[str] = None,
+                 role_ids: Optional[List[int]] = None):
 
         if role_ids is not None:
             if not isinstance(role_ids, list):
@@ -151,8 +185,8 @@ class ModifyUser(NewOrModifyUser):
             full_name=full_name,
             notes=notes,
             active=active,
-            weekly_requests_limit=weekly_requests_limit,
-            weekly_requested_items_limit=weekly_requested_items_limit,
+            has_consented=has_consented,
+            resource_limits=resource_limits,
             password=password,
             password_repeat=password_repeat,
             role_ids=role_ids,
@@ -163,25 +197,29 @@ class NewUser(NewOrModifyUser):
     """User object for user to be created by add_user()."""
 
     __slots__ = [
-        '__subscribe_to_newsletter',
         '__activation_url',
     ]
 
     def __init__(self,
                  email: str,
-                 full_name: str = None,
-                 notes: str = None,
-                 active: bool = None,
-                 weekly_requests_limit: int = None,
-                 weekly_requested_items_limit: int = None,
-                 password: str = None,
-                 password_repeat: str = None,
-                 role_ids: List[int] = None,
-                 subscribe_to_newsletter: bool = None,
-                 activation_url: str = None):
+                 full_name: Optional[str] = None,
+                 notes: Optional[str] = None,
+                 active: Optional[bool] = None,
+                 has_consented: Optional[bool] = None,
+                 resource_limits: Optional[Resources] = None,
+                 password: Optional[str] = None,
+                 password_repeat: Optional[str] = None,
+                 role_ids: Optional[List[int]] = None,
+                 activation_url: Optional[str] = None):
+
+        if isinstance(has_consented, bytes):
+            has_consented = decode_object_from_bytes_if_needed(has_consented)
 
         if not full_name:
             raise McAuthUserException("User full name is unset.")
+
+        if has_consented is None:
+            raise McAuthUserException("User consent is unset.")
 
         if notes is None:
             raise McAuthUserException("User notes are undefined (should be at least an empty string).")
@@ -206,26 +244,18 @@ class NewUser(NewOrModifyUser):
             full_name=full_name,
             notes=notes,
             active=active,
-            weekly_requests_limit=weekly_requests_limit,
-            weekly_requested_items_limit=weekly_requested_items_limit,
+            has_consented=has_consented,
+            resource_limits=resource_limits,
             password=password,
             password_repeat=password_repeat,
             role_ids=role_ids,
         )
 
-        if isinstance(subscribe_to_newsletter, bytes):
-            subscribe_to_newsletter = decode_object_from_bytes_if_needed(subscribe_to_newsletter)
-        subscribe_to_newsletter = bool(int(subscribe_to_newsletter or 0))
-
         activation_url = decode_object_from_bytes_if_needed(activation_url)
 
-        self.__subscribe_to_newsletter = subscribe_to_newsletter
         self.__activation_url = activation_url
 
-    def subscribe_to_newsletter(self) -> bool:
-        return self.__subscribe_to_newsletter
-
-    def activation_url(self) -> str:
+    def activation_url(self) -> Optional[str]:
         return self.__activation_url
 
 
@@ -237,7 +267,7 @@ class APIKey(object):
         '__ip_address',
     ]
 
-    def __init__(self, api_key: str, ip_address: str = None):
+    def __init__(self, api_key: str, ip_address: Optional[str] = None):
         api_key = decode_object_from_bytes_if_needed(api_key)
         ip_address = decode_object_from_bytes_if_needed(ip_address)
 
@@ -291,8 +321,7 @@ class CurrentUser(BaseUser):
         '__api_keys',
         '__roles',
         '__created_timestamp',
-        '__weekly_requests_sum',
-        '__weekly_requested_items_sum',
+        '__used_resources',
 
         # Set by constructor
         '__global_api_key',
@@ -306,30 +335,24 @@ class CurrentUser(BaseUser):
                  full_name: str,
                  notes: str,
                  active: bool,
-                 weekly_requests_limit: int,
-                 weekly_requested_items_limit: int,
+                 has_consented: bool,
+                 resource_limits: Resources,
                  user_id: int,
                  created_timestamp: int,
                  roles: List[Role],
                  password_hash: str,
                  api_keys: List[APIKey],
-                 weekly_requests_sum: int,
-                 weekly_requested_items_sum: int):
+                 used_resources: Resources):
 
         if isinstance(user_id, bytes):
             user_id = decode_object_from_bytes_if_needed(user_id)
         if isinstance(created_timestamp, bytes):
             created_timestamp = decode_object_from_bytes_if_needed(created_timestamp)
-        if isinstance(weekly_requests_sum, bytes):
-            weekly_requests_sum = decode_object_from_bytes_if_needed(weekly_requests_sum)
-        if isinstance(weekly_requested_items_sum, bytes):
-            weekly_requested_items_sum = decode_object_from_bytes_if_needed(weekly_requested_items_sum)
 
         password_hash = decode_object_from_bytes_if_needed(password_hash)
 
         user_id = int(user_id)
         created_timestamp = int(created_timestamp)
-        weekly_requests_sum = int(weekly_requests_sum)
 
         if not user_id:
             raise McAuthUserException("User's ID is unset.")
@@ -355,25 +378,19 @@ class CurrentUser(BaseUser):
         if not isinstance(api_keys, list):
             raise McAuthUserException("List of API keys is not a list.")
 
-        if weekly_requests_sum is None:
-            raise McAuthUserException("Weekly requests sum is None.")
+        if resource_limits is None:
+            raise McAuthUserException("User resource limits is None.")
 
-        if weekly_requested_items_sum is None:
-            raise McAuthUserException("Weekly requested items sum is None.")
-
-        if weekly_requests_limit is None:
-            raise McAuthUserException("Weekly requests limit is None.")
-
-        if weekly_requested_items_limit is None:
-            raise McAuthUserException("Weekly requested items limit is None.")
+        if used_resources is None:
+            raise McAuthUserException("User used resources is None.")
 
         super().__init__(
             email=email,
             full_name=full_name,
             notes=notes,
             active=active,
-            weekly_requests_limit=weekly_requests_limit,
-            weekly_requested_items_limit=weekly_requested_items_limit
+            has_consented=has_consented,
+            resource_limits=resource_limits,
         )
 
         self.__user_id = user_id
@@ -381,8 +398,7 @@ class CurrentUser(BaseUser):
         self.__roles = roles
         self.__password_hash = password_hash
         self.__api_keys = api_keys
-        self.__weekly_requests_sum = weekly_requests_sum
-        self.__weekly_requested_items_sum = weekly_requested_items_sum
+        self.__used_resources = used_resources
 
         self.__ip_addresses_to_api_keys = dict()
         for api_key_object in api_keys:
@@ -413,11 +429,8 @@ class CurrentUser(BaseUser):
     def global_api_key(self) -> str:
         return self.__global_api_key
 
-    def weekly_requests_sum(self) -> int:
-        return self.__weekly_requests_sum
-
-    def weekly_requested_items_sum(self) -> int:
-        return self.__weekly_requested_items_sum
+    def used_resources(self) -> Resources:
+        return self.__used_resources
 
     def api_key_for_ip_address(self, ip_address: str) -> Optional[str]:
         ip_address = decode_object_from_bytes_if_needed(ip_address)

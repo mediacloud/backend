@@ -25,6 +25,7 @@ sub create_test_user($$)
             notes           => '',
             role_ids        => [ 1 ],
             active          => 1,
+            has_consented   => 1,
             password        => 'testtest',
             password_repeat => 'testtest',
             activation_url  => '',           # user is active, no need for activation URL

@@ -10,13 +10,11 @@ from webapp.mail.messages import (
 def test_auth_activation_needed_email():
     full_name = 'Foo Bar Baz & <script></script>'
     activation_url = 'https://activation.com/activate?ab=cd&ef=gh'
-    subscribe_to_newsletter = True
 
     message = AuthActivationNeededMessage(
         to='nowhere@mediacloud.org',
         full_name=full_name,
         activation_url=activation_url,
-        subscribe_to_newsletter=subscribe_to_newsletter,
     )
 
     assert message.subject is not None
