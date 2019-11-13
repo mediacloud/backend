@@ -7,6 +7,28 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 
+# all tables that get stored as snapshot_* for each spanshot
+my $_SNAPSHOT_TABLES = [
+    qw/topic_stories topic_links_cross_media topic_media_codes
+      stories media stories_tags_map media_tags_map tags tag_sets post_stories/
+];
+
+# all tables that get stories as snapshot_* for each timespan
+my $_TIMESPAN_TABLES = [ qw/story_link_counts story_links medium_link_counts medium_links timespan_posts/ ];
+
+
+# get the list of all timespan specific tables
+sub _get_timespan_tables
+{
+    return [ @{ $_TIMESPAN_TABLES } ];
+}
+
+# get the list of all snapshot tables
+sub get_snapshot_tables
+{
+    return [ @{ $_SNAPSHOT_TABLES } ];
+}
+
 # Setup snapshot_* views by creating views for the relevant snap.* tables.
 #
 # this is useful for writing queries on the snap.* tables without lots of ugly
@@ -62,7 +84,7 @@ sub setup_temporary_snapshot_views($$)
     # postgres prints lots of 'NOTICE's when deleting temp tables
     $db->set_print_warn( 0 );
 
-    for my $t ( @{ _get_snapshot_tables() } )
+    for my $t ( @{ get_snapshot_tables() } )
     {
         $db->query( <<"SQL" );
             CREATE TEMPORARY VIEW snapshot_$t AS

@@ -55,14 +55,6 @@ Readonly our $POLICY_BOTS_ALL  => 'all';
 # number of tweets per day to use as a threshold for bot filtering
 Readonly my $BOT_TWEETS_PER_DAY => 200;
 
-# all tables that get stored as snapshot_* for each spanshot
-my $_SNAPSHOT_TABLES = [
-    qw/topic_stories topic_links_cross_media topic_media_codes
-      stories media stories_tags_map media_tags_map tags tag_sets post_stories/
-];
-
-# all tables that get stories as snapshot_* for each timespan
-my $_TIMESPAN_TABLES = [ qw/story_link_counts story_links medium_link_counts medium_links timespan_posts/ ];
 
 
 # update the job state args, catching any error caused by not running within a job
@@ -83,18 +75,6 @@ sub _update_job_state_message($$)
         'MediaWords::Job::TM::SnapshotTopic',
         $message,
     );
-}
-
-# get the list of all snapshot tables
-sub _get_snapshot_tables
-{
-    return [ @{ $_SNAPSHOT_TABLES } ];
-}
-
-# get the list of all timespan specific tables
-sub _get_timespan_tables
-{
-    return [ @{ $_TIMESPAN_TABLES } ];
 }
 
 # remove stories from snapshot_period_stories that don't math solr query in the
@@ -926,7 +906,7 @@ SQL
 
     MediaWords::TM::Snapshot::Views::add_media_type_views( $db );
 
-    for my $table ( @{ _get_snapshot_tables() } )
+    for my $table ( @{ MediaWords::TM::Snapshot::Views::get_snapshot_tables() } )
     {
         my $table_exists = $db->query( "select * from pg_class where relname = 'snapshot_' || ?", $table )->hash;
         die( "snapshot not created for snapshot table: $table" ) unless ( $table_exists );
@@ -934,12 +914,12 @@ SQL
 
 }
 
-# generate snapshots for all of the _get_snapshot_tables() from the temporary snapshot tables
+# generate snapshots for all of the get_snapshot_tables() from the temporary snapshot tables
 sub _generate_snapshots_from_temporary_snapshot_tables
 {
     my ( $db, $cd ) = @_;
 
-    my $snapshot_tables = _get_snapshot_tables();
+    my $snapshot_tables = MediaWords::TM::Snapshot::Views::get_snapshot_tables();
 
     map { create_snap_snapshot( $db, $cd, $_ ) } @{ $snapshot_tables };
 }
