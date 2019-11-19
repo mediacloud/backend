@@ -7,7 +7,7 @@
 #
 
 # https://hub.docker.com/_/ubuntu?tab=tags&page=1
-FROM ubuntu:xenial-20191010
+FROM ubuntu:xenial-20191024
 
 ENV DEBIAN_FRONTEND noninteractive
 ENV LANG en_US.UTF-8
