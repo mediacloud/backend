@@ -286,24 +286,33 @@ sub list_GET
 
     my $pre_limit_order = $extra_clause ? '' : "$sort_clause limit $limit offset $offset";
 
-    $db->query( <<SQL, $timespans_id );
-create temporary table _topics_stories_slc as
-    select *
-        from snap.story_link_counts slc
-        where timespans_id = \$1 $extra_clause
-        $pre_limit_order
-SQL
+    my $stories = $db->query( <<"SQL",
 
-    my $stories = $db->query( <<SQL, $snapshots_id )->hashes;
-select s.*, slc.*, m.name media_name
-    from _topics_stories_slc slc
-        join snap.stories s on slc.stories_id = s.stories_id        
-        join snap.media m on s.media_id = m.media_id    
-    where 
-        s.snapshots_id = \$1      
-        and m.snapshots_id = \$1
-    $sort_clause
+        WITH _topics_stories_slc AS (
+            SELECT *
+            FROM snap.story_link_counts AS slc
+            WHERE timespans_id = \$1
+            $extra_clause
+            $pre_limit_order
+        )
+
+        SELECT
+            s.*,
+            slc.*,
+            m.name AS media_name
+        FROM _topics_stories_slc slc
+            JOIN snap.stories AS s
+                ON slc.stories_id = s.stories_id        
+            JOIN snap.media AS m
+                ON s.media_id = m.media_id    
+        WHERE s.snapshots_id = \$2
+          AND m.snapshots_id = \$2
+        
+        $sort_clause
+
 SQL
+        $timespans_id, $snapshots_id
+    )->hashes;
 
     $db->query( "drop table _topics_stories_slc" );
 
