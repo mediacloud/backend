@@ -22,3 +22,6 @@
 [submodule "apps/cliff-annotator/src/CLIFF"]
 	path = apps/cliff-annotator/src/CLIFF
 	url = https://github.com/mitmedialab/CLIFF.git
+[submodule "dev/quieter-docker-compose"]
+	path = dev/quieter-docker-compose
+	url = https://github.com/berkmancenter/mediacloud-docker-compose-just-quieter.git

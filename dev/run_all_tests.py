@@ -26,7 +26,7 @@ import subprocess
 import sys
 from typing import List, Pattern
 
-from utils import DockerArgumentParser
+from utils import DockerComposeArgumentParser
 
 RUN_TEST_SCRIPT_FILENAME = 'run_test.py'
 """Script that will be called to run a single test."""
@@ -52,11 +52,12 @@ def _find_files_with_pattern(directory: str, filename_pattern: Pattern) -> List[
     return sorted(found_files)
 
 
-def docker_all_tests_commands(all_apps_dir: str) -> List[List[str]]:
+def docker_all_tests_commands(all_apps_dir: str, verbose: bool) -> List[List[str]]:
     """
     Return list commands to execute in order to run all test files from all apps.
 
     :param all_apps_dir: Directory with container subdirectories.
+    :param verbose: True if Docker Compose output should be more verbose.
     :return: List of commands (as lists) to execute in order to run all test files from all apps.
     """
 
@@ -98,20 +99,27 @@ def docker_all_tests_commands(all_apps_dir: str) -> List[List[str]]:
                 ))
 
             for test_file in perl_tests + python_tests:
-                commands.append([
+                command = [
                     run_test_script,
-                    '--all_apps_dir', all_apps_dir,
-                    test_file,
-                ])
+                    '--all_apps_dir',
+                    all_apps_dir,
+                ]
+
+                if verbose:
+                    command.append('--verbose')
+
+                command.append(test_file)
+
+                commands.append(command)
 
     return commands
 
 
 if __name__ == '__main__':
-    parser = DockerArgumentParser(description='Print commands to run all tests found in all apps.')
+    parser = DockerComposeArgumentParser(description='Print commands to run all tests found in all apps.')
     args = parser.parse_arguments()
 
-    commands_ = docker_all_tests_commands(all_apps_dir=args.all_apps_dir())
+    commands_ = docker_all_tests_commands(all_apps_dir=args.all_apps_dir(), verbose=args.verbose())
 
     if args.print_commands():
         for command_ in commands_:
