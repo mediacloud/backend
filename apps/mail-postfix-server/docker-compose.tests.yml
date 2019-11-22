@@ -55,4 +55,4 @@ networks:
             driver: default
             config:
                 # Use same subnet as in production
-                - subnet: "10.1.0.1/16"
+                - subnet: "10.1.0.0/16"
