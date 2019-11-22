@@ -282,7 +282,9 @@ sub list_GET
     my $extra_clause = _get_extra_where_clause( $c, $timespans_id );
 
     my $offset = int( $c->req->params->{ offset } // 0 );
-    my $limit = int( $c->req->params->{ limit } );
+
+    $c->req->params->{ limit } = List::Util::min( int( $c->req->params->{ limit } // 1_000 ), 1_000_000 );
+    my $limit = $c->req->params->{ limit };
 
     my $pre_limit_order = $extra_clause ? '' : "$sort_clause limit $limit offset $offset";
 
