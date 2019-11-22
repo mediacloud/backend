@@ -13,9 +13,8 @@ jobs:
 
       - name: Check out repository
         uses: actions/checkout@v1
-
-      - name: Check out submodules
-        uses: textbook/git-checkout-submodule-action@2.0.0
+        with:
+          submodules: recursive
 
       - name: Set up Python
         uses: actions/setup-python@v1
