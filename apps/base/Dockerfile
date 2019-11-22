@@ -66,6 +66,9 @@ RUN \
         netcat \
         # Some packages insist on logging to syslog
         rsyslog \
+        # "mail" utility (which uses msmtp internally)
+        s-nail \
+        # Timezone data, used by many packages
         tzdata \
         # Basic editor for files in container while debugging
         # (full vim doesn't cut it because it's too big and also installs
