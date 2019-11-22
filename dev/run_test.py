@@ -23,18 +23,19 @@ import subprocess
 from pathlib import Path
 from typing import List
 
-from utils import DockerArgumentParser, DockerArguments
+from utils import DockerComposeArgumentParser, DockerComposeArguments
 
 RUN_SCRIPT_FILENAME = 'run.py'
 """Script that will be called to run a single command in a Compose environment."""
 
 
-def docker_test_commands(all_apps_dir: str, test_file: str) -> List[List[str]]:
+def docker_test_commands(all_apps_dir: str, test_file: str, verbose: bool) -> List[List[str]]:
     """
     Return list commands to execute in order to run all tests in a single test file.
 
     :param all_apps_dir: Directory with container subdirectories.
     :param test_file: Perl or Python test file.
+    :param verbose: True if Docker Compose output should be more verbose.
     :return: List of commands (as lists) to execute in order to run tests in a test file.
     """
     if not os.path.isfile(test_file):
@@ -85,19 +86,27 @@ def docker_test_commands(all_apps_dir: str, test_file: str) -> List[List[str]]:
     if not os.access(run_script, os.X_OK):
         raise ValueError("Print run commands script '{}' is not executable.".format(run_script))
 
-    commands.append(
+    command = [
+        run_script,
+        '--all_apps_dir', all_apps_dir,
+    ]
+
+    if verbose:
+        command.append('--verbose')
+
+    command.extend(
         [
-            run_script,
-            '--all_apps_dir', all_apps_dir,
             app_dirname,
             '--',
         ] + test_command
     )
 
+    commands.append(command)
+
     return commands
 
 
-class DockerRunTestArguments(DockerArguments):
+class DockerRunTestArguments(DockerComposeArguments):
     """
     Arguments with a test file path.
     """
@@ -111,7 +120,7 @@ class DockerRunTestArguments(DockerArguments):
         return self._args.test_file
 
 
-class DockerRunTestArgumentParser(DockerArgumentParser):
+class DockerRunTestArgumentParser(DockerComposeArgumentParser):
     """
     Argument parser that includes a path to test file.
     """
@@ -138,7 +147,11 @@ if __name__ == '__main__':
     parser = DockerRunTestArgumentParser(description='Print commands to run tests in a single test file.')
     args = parser.parse_arguments()
 
-    for command_ in docker_test_commands(all_apps_dir=args.all_apps_dir(), test_file=args.test_file()):
+    for command_ in docker_test_commands(
+            all_apps_dir=args.all_apps_dir(),
+            test_file=args.test_file(),
+            verbose=args.verbose()
+    ):
         if args.print_commands():
             print(' '.join([shlex.quote(c) for c in command_]))
         else:
