@@ -1,3 +1,11 @@
+#
+# If you're editing this file in a volume in production, do note that the
+# changes will be overriden next time OpenDKIM starts.
+#
+# To make your changes permanent, edit the file in a repository, commit your
+# changes and rebuild "mail-opendkim-server" image.
+#
+
 127.0.0.1
 ::1
 localhost
