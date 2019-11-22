@@ -59,14 +59,14 @@ RUN \
     #                                            (yes)   (yes)   (no)    (never) (100)
     # =================================================================================================
     postconf -M smtp/inet="      smtp      inet  n        -      n       -       -       smtpd"             && \
-    postconf -M pickup/unix="    pickup    unix  n       -       n       60      1       pickup"            && \
-    postconf -M cleanup/unix="   cleanup   unix  n       -       n       -       0       cleanup"            && \
+    postconf -M pickup/unix="    pickup    unix  n        -      n       60      1       pickup"            && \
+    postconf -M cleanup/unix="   cleanup   unix  n        -      n       -       0       cleanup"           && \
     postconf -M tlsmgr/unix="    tlsmgr    unix  -        -      n       1000?   1       tlsmgr"            && \
     postconf -M rewrite/unix="   rewrite   unix  -        -      n       -       -       trivial-rewrite"   && \
     postconf -M bounce/unix="    bounce    unix  -        -      n       -       0       bounce"            && \
     postconf -M defer/unix="     defer     unix  -        -      n       -       0       bounce"            && \
     postconf -M trace/unix="     trace     unix  -        -      n       -       0       bounce"            && \
-    postconf -M verify/unix="    verify    unix  -       -       n       -       1       verify"            && \
+    postconf -M verify/unix="    verify    unix  -        -      n       -       1       verify"            && \
     postconf -M flush/unix="     flush     unix  n        -      n       1000?   0       flush"             && \
     postconf -M smtp/unix="      smtp      unix  -        -      n       -       -       smtp"              && \
     postconf -M relay/unix="     relay     unix  -        -      n       -       -       smtp"              && \
