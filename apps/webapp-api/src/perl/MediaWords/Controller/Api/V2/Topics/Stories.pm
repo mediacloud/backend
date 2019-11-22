@@ -314,8 +314,6 @@ SQL
         $timespans_id, $snapshots_id
     )->hashes;
 
-    $db->query( "drop table _topics_stories_slc" );
-
     $stories = _add_foci_to_stories( $db, $timespan, $stories );
 
     MediaWords::DBI::Stories::GuessDate::add_date_is_reliable_to_stories( $db, $stories );
