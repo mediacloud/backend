@@ -1,0 +1,16 @@
+{
+    "Servers": {
+        "mediacloud": {
+            "Name": "postgresql-pgbouncer",
+            "Group": "Media Cloud",
+            "Host": "postgresql-pgbouncer",
+            "Port": 6432,
+            "Username": "mediacloud",
+            "PassFile": "mediacloud.pgpass",
+            "SSLMode": "disable",
+            "MaintenanceDB": "postgres",
+            "Comment": "Media Cloud PostgreSQL instance",
+            "Timeout": 60
+        }
+    }
+}
