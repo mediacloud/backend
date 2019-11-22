@@ -20,6 +20,9 @@ RUN rm -rf /etc/opendkim/ /etc/opendkim.conf
 COPY etc/opendkim.conf /etc/
 COPY etc/opendkim/ /etc/opendkim/
 
+# Copy TrustedHosts somewhere so that we could overwrite it in a volume with a wrapper script
+COPY etc/opendkim/TrustedHosts /var/lib/opendkim-TrustedHosts
+
 # OpenDKIM port
 EXPOSE 12301
 

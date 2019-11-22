@@ -1854,6 +1854,9 @@ networks:
             config:
                 # Docker (Compose?) sometimes defaults to a subnet with only
                 # 255 available addresses
+                #
+                # If you change this subnet, make sure that you update it
+                # elsewhere too, e.g. in "mail-opendkim-server"'s TrustedHosts
                 - subnet: "10.1.0.1/16"
 
 

@@ -21,6 +21,8 @@ echo "${MC_MAIL_OPENDKIM_HOSTNAME}._domainkey.${MC_MAIL_OPENDKIM_DOMAIN} ${MC_MA
 rm -f /etc/opendkim/SigningTable
 echo "*@${MC_MAIL_OPENDKIM_DOMAIN} ${MC_MAIL_OPENDKIM_HOSTNAME}._domainkey.${MC_MAIL_OPENDKIM_DOMAIN}" \
     > /etc/opendkim/SigningTable
+rm -f /etc/opendkim/TrustedHosts
+cp /var/lib/opendkim-TrustedHosts /etc/opendkim/TrustedHosts
 
 # Generate keys if those are missing
 if [ ! -f "/etc/opendkim/keys/${MC_MAIL_OPENDKIM_HOSTNAME}.private" ]; then
