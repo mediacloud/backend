@@ -51,6 +51,8 @@ RUN \
         ca-certificates \
         curl \
         htop \
+        # "ip" and similar utilities
+        iproute2 \
         # Pinging other containers from within Compose environment
         iputils-ping \
         # Sending mail via sendmail utility through mail-postfix-server
