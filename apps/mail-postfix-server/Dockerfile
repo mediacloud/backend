@@ -27,7 +27,7 @@ RUN \
     postconf -e queue_directory=/var/lib/postfix/queue/ && \
     #
     # Configure OpenDKIM
-    postconf -e milter_protocol=2 && \
+    postconf -e milter_protocol=6 && \
     postconf -e milter_default_action=accept && \
     postconf -e smtpd_milters=inet:mail-opendkim-server:12301 && \
     postconf -e non_smtpd_milters=inet:mail-opendkim-server:12301 && \
