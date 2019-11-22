@@ -1,0 +1,56 @@
+name: Pull, build, push, test
+
+on: [push]
+
+jobs:
+
+  pull_build_push:
+
+    name: Pull, build, push
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Check out repository
+        uses: actions/checkout@v1
+
+      - name: Check out submodules
+        uses: textbook/git-checkout-submodule-action@2.0.0
+
+      - name: Set up Python
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.5
+
+      - name: Upgrade Pip / setuptools
+        run: pip install -U pip setuptools wheel
+
+      - name: Install parallels
+        run: sudo apt-get -y install parallel
+
+      # Install PyYAML for docker-compose.yml validation
+      - name: Install PyYAML
+        run: pip install PyYAML
+
+      # FIXME upgrade Docker?
+
+      - name: Print kernel and Docker information
+        run: |
+          uname -a
+          docker version
+          docker-compose version
+
+      - name: Pull images
+        # Don't stop on a single failure because the image might not exist or a
+        # network error might have happened
+        run: ./dev/pull.py || { echo "One or more images couldn't be pulled"; }
+
+      - name: Build images
+        # Prune images after every rebuild because otherwise Azure instance might run
+        # out of disk space on bigger rebuilds
+        run: ./dev/build.py --prune_images
+
+      - name: Push images
+        run: |
+          echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+          # ./dev/push.py
