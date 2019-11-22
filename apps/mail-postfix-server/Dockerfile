@@ -19,6 +19,9 @@ RUN \
     chown -R postfix:postfix /var/lib/postfix/ && \
     true
 
+# Copy header filter regexes
+COPY header_checks /etc/postfix/
+
 # Configure Postfix
 RUN \
     #
@@ -40,6 +43,11 @@ RUN \
     #
     # Accept email from Docker network
     postconf -e mynetworks=10.1.0.0/16 && \
+    #
+    # Filter out "Received:" and some other headers
+    postconf -e header_checks=regexp:/etc/postfix/header_checks && \
+    postconf -e mime_header_checks=regexp:/etc/postfix/header_checks && \
+    postconf -e smtp_header_checks=regexp:/etc/postfix/header_checks && \
     #
     # Don't require TLS as local clients are trusted
     postconf -e smtp_tls_security_level=may && \
