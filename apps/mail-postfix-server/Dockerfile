@@ -39,7 +39,7 @@ RUN \
     postconf -e inet_protocols=ipv4 && \
     #
     # Accept email from Docker network
-    postconf -e mynetworks=10.1.0.1/16 && \
+    postconf -e mynetworks=10.1.0.0/16 && \
     #
     # Don't require TLS as local clients are trusted
     postconf -e smtp_tls_security_level=may && \
