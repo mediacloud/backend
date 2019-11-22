@@ -1,4 +1,6 @@
 127.0.0.1
+::1
+localhost
 mail-postfix-server
 10.1.*.*
 *.mediacloud_default
