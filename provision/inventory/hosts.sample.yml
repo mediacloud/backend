@@ -27,6 +27,9 @@ all:
                 # "mail-opendkim-server" container and its data volume
                 role-mail-opendkim: "true"
 
+                # PgAdmin container and its data volume
+                role-postgresql-pgadmin: "true"
+
                 # "mail-postfix-server" container and its volume
                 # Make sure that DNS SPF record allows this host to send email.
                 role-mail-postfix: "true"

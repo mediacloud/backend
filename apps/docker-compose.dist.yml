@@ -1083,7 +1083,10 @@ services:
         volumes:
             - vol_pgadmin_data:/var/lib/pgadmin/
         deploy:
-            <<: *misc-apps_deploy_placement_constraints
+            placement:
+                constraints:
+                    # Must run on a host with PgAdmin data volume
+                    - node.labels.role-postgresql-pgadmin == true
             resources:
                 limits:
                     # CPU core limit
