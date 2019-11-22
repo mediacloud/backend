@@ -1017,13 +1017,15 @@ The stories list call returns stories in the topic.
 | link_to_media_id     | null    | return only stories that link to stories in the given media |
 | link_from_media_id   | null    | return only stories that are linked from stories in the given media_id |
 | media_id             | null    | return only stories belonging to the given media_ids |
-| limit                | 20      | return the given number of stories       |
+| limit                | 1000    | return the given number of stories       |
 | link_id              | null    | return stories using the paging link     |
 
 The call will return an error if more than one of the following parameters are specified: `q`, `link_to_stories`, `link_from_stories_id`.  The `stories_id` and `media_id` parameters can be specified more than once to include stories from more than `stories_id` / `media_id`.
 
 The `sort` parameter will determine the order in which the stories are returned.  The `twitter` sort parameter
 will return randomly ordered results unless the topic is a twitter topic.
+
+`limit` is capped at 10,000,000 stories, but avoid getting that much to begin with.
 
 For a detailed description of the format of the query specified in `q` parameter, see the entry for [stories_public/list](api_2_0_spec.md) in the main API spec.
 
