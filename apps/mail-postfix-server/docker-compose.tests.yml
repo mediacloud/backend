@@ -51,3 +51,8 @@ services:
 networks:
     default:
         attachable: true
+        ipam:
+            driver: default
+            config:
+                # Use same subnet as in production
+                - subnet: "10.1.0.1/16"
