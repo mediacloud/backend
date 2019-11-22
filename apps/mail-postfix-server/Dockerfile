@@ -19,6 +19,9 @@ RUN \
     chown -R postfix:postfix /var/lib/postfix/ && \
     true
 
+# Copy header filter regexes
+COPY header_checks /etc/postfix/
+
 # Configure Postfix
 RUN \
     #
@@ -27,10 +30,14 @@ RUN \
     postconf -e queue_directory=/var/lib/postfix/queue/ && \
     #
     # Configure OpenDKIM
-    postconf -e milter_protocol=2 && \
+    postconf -e milter_protocol=6 && \
     postconf -e milter_default_action=accept && \
     postconf -e smtpd_milters=inet:mail-opendkim-server:12301 && \
     postconf -e non_smtpd_milters=inet:mail-opendkim-server:12301 && \
+    #
+    # Reset hostname set by build server
+    postconf -e hostname=to-be-changed-later-at-runtime && \
+    postconf -e myhostname=to-be-changed-later-at-runtime && \
     #
     # Relay all emails with a non-localhost destination
     postconf -e mydestination=localhost && \
@@ -39,7 +46,12 @@ RUN \
     postconf -e inet_protocols=ipv4 && \
     #
     # Accept email from Docker network
-    postconf -e mynetworks=0.0.0.0/0 && \
+    postconf -e mynetworks=10.1.0.0/16 && \
+    #
+    # Filter out "Received:" and some other headers
+    postconf -e header_checks=regexp:/etc/postfix/header_checks && \
+    postconf -e mime_header_checks=regexp:/etc/postfix/header_checks && \
+    postconf -e smtp_header_checks=regexp:/etc/postfix/header_checks && \
     #
     # Don't require TLS as local clients are trusted
     postconf -e smtp_tls_security_level=may && \
@@ -59,14 +71,14 @@ RUN \
     #                                            (yes)   (yes)   (no)    (never) (100)
     # =================================================================================================
     postconf -M smtp/inet="      smtp      inet  n        -      n       -       -       smtpd"             && \
-    postconf -M pickup/unix="    pickup    unix  n       -       n       60      1       pickup"            && \
-    postconf -M cleanup/unix="   cleanup   unix  n       -       n       -       0       cleanup"            && \
+    postconf -M pickup/unix="    pickup    unix  n        -      n       60      1       pickup"            && \
+    postconf -M cleanup/unix="   cleanup   unix  n        -      n       -       0       cleanup"           && \
     postconf -M tlsmgr/unix="    tlsmgr    unix  -        -      n       1000?   1       tlsmgr"            && \
     postconf -M rewrite/unix="   rewrite   unix  -        -      n       -       -       trivial-rewrite"   && \
     postconf -M bounce/unix="    bounce    unix  -        -      n       -       0       bounce"            && \
     postconf -M defer/unix="     defer     unix  -        -      n       -       0       bounce"            && \
     postconf -M trace/unix="     trace     unix  -        -      n       -       0       bounce"            && \
-    postconf -M verify/unix="    verify    unix  -       -       n       -       1       verify"            && \
+    postconf -M verify/unix="    verify    unix  -        -      n       -       1       verify"            && \
     postconf -M flush/unix="     flush     unix  n        -      n       1000?   0       flush"             && \
     postconf -M smtp/unix="      smtp      unix  -        -      n       -       -       smtp"              && \
     postconf -M relay/unix="     relay     unix  -        -      n       -       -       smtp"              && \
