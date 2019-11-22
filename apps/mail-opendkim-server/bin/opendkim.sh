@@ -7,37 +7,32 @@ if [ -z "$MC_MAIL_OPENDKIM_DOMAIN" ]; then
     exit 1
 fi
 
-if [ -z "$MC_MAIL_OPENDKIM_HOSTNAME" ]; then
-    echo "MC_MAIL_OPENDKIM_HOSTNAME (mail server hostname) is not set."
-    exit 1
-fi
-
 set -u
 
 # (Re)generate dynamic configuration
 rm -f /etc/opendkim/KeyTable
-echo "${MC_MAIL_OPENDKIM_HOSTNAME}._domainkey.${MC_MAIL_OPENDKIM_DOMAIN} ${MC_MAIL_OPENDKIM_DOMAIN}:${MC_MAIL_OPENDKIM_HOSTNAME}:/etc/opendkim/keys/${MC_MAIL_OPENDKIM_HOSTNAME}.private" \
+echo "mail._domainkey.${MC_MAIL_OPENDKIM_DOMAIN} ${MC_MAIL_OPENDKIM_DOMAIN}:mail:/etc/opendkim/keys/mail.private" \
     > /etc/opendkim/KeyTable
 rm -f /etc/opendkim/SigningTable
-echo "*@${MC_MAIL_OPENDKIM_DOMAIN} ${MC_MAIL_OPENDKIM_HOSTNAME}._domainkey.${MC_MAIL_OPENDKIM_DOMAIN}" \
+echo "*@${MC_MAIL_OPENDKIM_DOMAIN} mail._domainkey.${MC_MAIL_OPENDKIM_DOMAIN}" \
     > /etc/opendkim/SigningTable
 rm -f /etc/opendkim/TrustedHosts
 cp /var/lib/opendkim-TrustedHosts /etc/opendkim/TrustedHosts
 
 # Generate keys if those are missing
-if [ ! -f "/etc/opendkim/keys/${MC_MAIL_OPENDKIM_HOSTNAME}.private" ]; then
+if [ ! -f "/etc/opendkim/keys/mail.private" ]; then
     opendkim-genkey \
-        -s "${MC_MAIL_OPENDKIM_HOSTNAME}" \
+        -s "mail" \
         -d "${MC_MAIL_OPENDKIM_DOMAIN}" \
         -D /etc/opendkim/keys/
-    chown opendkim:opendkim "/etc/opendkim/keys/${MC_MAIL_OPENDKIM_HOSTNAME}.private"
+    chown opendkim:opendkim "/etc/opendkim/keys/mail.private"
 fi
 
 # Print public key before every run
 echo
 echo "Add the following DNS record to ${MC_MAIL_OPENDKIM_DOMAIN} domain if you haven't already:"
 echo
-cat "/etc/opendkim/keys/${MC_MAIL_OPENDKIM_HOSTNAME}.txt"
+cat "/etc/opendkim/keys/mail.txt"
 echo
 
 # Set up rsyslog for logging

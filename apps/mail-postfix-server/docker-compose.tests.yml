@@ -36,7 +36,6 @@ services:
         image: dockermediacloud/mail-opendkim-server:latest
         environment:
             MC_MAIL_OPENDKIM_DOMAIN: "testmediacloud.ml"
-            MC_MAIL_OPENDKIM_HOSTNAME: "mail"
         expose:
             - "12301"
         volumes:

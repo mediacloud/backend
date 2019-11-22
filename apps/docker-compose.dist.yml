@@ -789,11 +789,7 @@ services:
             - default
         environment:
             # Top-level domain to use for signing emails, e.g. "mediacloud.org"
-            # (keep in sync with MC_MAIL_POSTFIX_DOMAIN)
             MC_MAIL_OPENDKIM_DOMAIN: "mediacloud.org"
-            # Mail server hostname, e.g. "mail" for "mail.mediacloud.org"
-            # (keep in sync with MC_MAIL_POSTFIX_HOSTNAME)
-            MC_MAIL_OPENDKIM_HOSTNAME: "mail"
         expose:
             # OpenDKIM port used by Postfix
             - "12301"
