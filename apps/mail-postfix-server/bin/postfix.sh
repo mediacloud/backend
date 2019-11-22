@@ -2,13 +2,8 @@
 
 set -e
 
-if [ -z "$MC_MAIL_POSTFIX_DOMAIN" ]; then
-    echo "MC_MAIL_POSTFIX_DOMAIN (top-level domain to use for sending email) is not set."
-    exit 1
-fi
-
-if [ -z "$MC_MAIL_POSTFIX_HOSTNAME" ]; then
-    echo "MC_MAIL_POSTFIX_HOSTNAME (mail server hostname) is not set."
+if [ -z "$MC_MAIL_POSTFIX_FQDN" ]; then
+    echo "MC_MAIL_POSTFIX_FQDN (fully qualified domain to use for sending email) is not set."
     exit 1
 fi
 
@@ -18,7 +13,8 @@ set -u
 source /rsyslog.inc.sh
 
 # Configure Postfix
-postconf -e hostname="${MC_MAIL_POSTFIX_HOSTNAME}.${MC_MAIL_POSTFIX_DOMAIN}"
+postconf -e hostname="${MC_MAIL_POSTFIX_FQDN}"
+postconf -e myhostname="${MC_MAIL_POSTFIX_FQDN}"
 
 # Set the right permissions in the data volume
 chown -R postfix:postfix /var/lib/postfix/

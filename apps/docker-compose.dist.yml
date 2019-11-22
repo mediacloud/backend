@@ -822,12 +822,26 @@ services:
         networks:
             - default
         environment:
-            # Top-level domain to use for signing emails, e.g. "mediacloud.org"
-            # (keep in sync with MC_MAIL_OPENDKIM_DOMAIN)
-            MC_MAIL_POSTFIX_DOMAIN: "mediacloud.org"
-            # Mail server hostname, e.g. "mail" for "mail.mediacloud.org"
-            # (keep in sync with MC_MAIL_OPENDKIM_HOSTNAME)
-            MC_MAIL_POSTFIX_HOSTNAME: "mail"
+            # Fully qualified domain name of a host server that will be used for HELO messages.
+            #
+            # Must both resolve and have a PTR record, i.e. if an email sent by us arrives from
+            # 1.2.3.4, and that host has a hostname smtp.mediacloud.org, then both:
+            #
+            # 1) Sending IP address should have a PTR record that points to FQDN:
+            #
+            #     $ nslookup 1.2.3.4
+            #     <...>
+            #     4.3.2.1.in-addr.arpa  name = smtp.mediacloud.org
+            #
+            # 2) The FQDN should resolve to sending IP address:
+            #
+            #     $ nslookup smtp.mediacloud.org
+            #     <...>
+            #     Non-authoritative answer:
+            #     Name:   server.mediacloud.org
+            #     Address: 1.2.3.4
+            #
+            MC_MAIL_POSTFIX_FQDN: "smtp.mediacloud.org"
         depends_on:
             # Signs emails using OpenDKIM
             - mail-opendkim-server

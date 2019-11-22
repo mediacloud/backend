@@ -35,6 +35,10 @@ RUN \
     postconf -e smtpd_milters=inet:mail-opendkim-server:12301 && \
     postconf -e non_smtpd_milters=inet:mail-opendkim-server:12301 && \
     #
+    # Reset hostname set by build server
+    postconf -e hostname=to-be-changed-later-at-runtime && \
+    postconf -e myhostname=to-be-changed-later-at-runtime && \
+    #
     # Relay all emails with a non-localhost destination
     postconf -e mydestination=localhost && \
     #
