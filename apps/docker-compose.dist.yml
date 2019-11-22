@@ -1857,6 +1857,7 @@ networks:
                 #
                 # If you change this subnet, make sure that you update it
                 # elsewhere too, e.g. in "mail-opendkim-server"'s TrustedHosts
+                # or "mail-postfix-server" Dockerfile
                 - subnet: "10.1.0.1/16"
 
 
