@@ -751,8 +751,9 @@ services:
                 limits:
                     # CPU core limit
                     cpus: "1"
-                    # RAM limit
-                    memory: "4G"
+                    # If importer script is playing catch up and has to import
+                    # many stories at once, it will require more memory
+                    memory: "8G"
 
     #
     # Import stories by scraping Feedly
