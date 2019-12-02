@@ -114,7 +114,7 @@ jobs:
       # time; use a fixed seed to make it predictable which particular chunk of tests
       # every test will run on
       - name: Randomize test order with fixed seed
-        run: >
+        run: >-
           shuf
           --random-source=<(openssl enc -aes-256-ctr -pass pass:"42" -nosalt </dev/zero 2>/dev/null)
           tests_all_ordered > tests_all &&
@@ -122,20 +122,20 @@ jobs:
 
       - name: Split tests into equal parts
         # Assuming that there won't be more than 9 chunks here
-        run: >
+        run: >-
           split
-            --number=l/$TEST_CHUNK_COUNT
-            --numeric-suffixes=1
-            --suffix-length=1
-            tests_all
-            tests_chunk_
+          --number=l/$TEST_CHUNK_COUNT
+          --numeric-suffixes=1
+          --suffix-length=1
+          tests_all
+          tests_chunk_
 
       - name: Print tests that are going to be run in this chunk
         run: cat tests_chunk_${{ matrix.chunk_number }}
 
       # Run a selected chunk of tests in parallel, keep a log; on error, print out said log
       - name: Run tests
-        run: >
+        run: >-
           cat tests_chunk_${{ matrix.chunk_number }}
           | sort
           | parallel --timeout 600 --group --joblog joblog.txt
