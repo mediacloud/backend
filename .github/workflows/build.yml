@@ -67,7 +67,7 @@ jobs:
     strategy:
 
       # Try running all tests even if some of them fail
-      fail-fast: no
+      fail-fast: false
 
       matrix:
         # Keep in sync with "env/TEST_CHUNK_COUNT"
