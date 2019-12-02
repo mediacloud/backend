@@ -49,7 +49,8 @@ jobs:
         # out of disk space on bigger rebuilds
         run: ./dev/build.py --prune_images
 
+      # FIXME
       - name: Push images
         run: |
           echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
-          # ./dev/push.py
+          ./dev/push.py -p
