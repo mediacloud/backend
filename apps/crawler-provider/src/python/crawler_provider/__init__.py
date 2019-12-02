@@ -160,9 +160,46 @@ def provide_download_ids(db: DatabaseHandler) -> None:
 
     log.info("querying pending downloads ...")
 
-    # get one downloads_id per host, ordered by priority asc, downloads_id desc, do this through a plpgsql
-    # function because that's the only way to avoid an index scan of the entire (host, priority, downloads_id) index
-    downloads_ids = db.query("select get_downloads_for_queue() downloads_id").flat()
+    # get one downloads_id per host, ordered by priority asc, downloads_id desc
+    downloads_ids = db.query("""
+
+        -- This "WITH RECURSIVE" trick works faster than "SELECT DISTINCT host
+        -- FROM downloads_pending" with lots of dead rows in the table
+        WITH pending_hosts AS (
+            WITH RECURSIVE t AS (
+                (SELECT host FROM downloads_pending ORDER BY host LIMIT 1)
+                UNION ALL
+                SELECT (SELECT host FROM downloads_pending WHERE host > t.host ORDER BY host LIMIT 1)
+                FROM t
+                WHERE t.host IS NOT NULL
+            )
+            SELECT host FROM t WHERE host IS NOT NULL
+        )
+
+        SELECT dp.downloads_id
+        FROM pending_hosts,
+
+        -- Get a top download for every host
+        LATERAL (
+            SELECT downloads_id
+            FROM downloads_pending
+            WHERE downloads_pending.host = pending_hosts.host
+              AND NOT EXISTS (
+
+                -- Not queued yet
+                SELECT 1
+                FROM queued_downloads
+                WHERE queued_downloads.downloads_id = downloads_pending.downloads_id
+
+              )
+            ORDER BY
+                downloads_pending.host,
+                priority,
+                downloads_id DESC NULLS LAST
+            LIMIT 1
+        ) AS dp
+
+    """).flat()
 
     log.info("provide downloads host downloads: %d" % len(downloads_ids))
 
