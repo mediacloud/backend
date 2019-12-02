@@ -65,11 +65,13 @@ jobs:
       TEST_CHUNK_COUNT: 5
 
     strategy:
+
+      # Try running all tests even if some of them fail
+      fail-fast: no
+
       matrix:
         # Keep in sync with "env/TEST_CHUNK_COUNT"
         chunk_number: [1, 2, 3, 4, 5]
-        # Try running all tests even if some of them fail
-        fail-fast: false
 
     steps:
 
