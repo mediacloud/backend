@@ -87,7 +87,7 @@ def find_dup_story(db: DatabaseHandler, story: dict) -> Optional[dict]:
         SELECT *
         FROM stories
             JOIN matching_stories USING (stories_id)
-        WHERE stories_id.media_id = %(media_id)s
+        WHERE media_id = %(media_id)s
         ORDER BY stories_id
         LIMIT 1
 
