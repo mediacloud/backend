@@ -2,50 +2,6 @@ name: Pull, build, push, test
 
 on: [push]
 
-# ---
-
-x-step-checkout:  &step-checkout
-  name: Check out repository
-  uses: actions/checkout@v1
-  with:
-    submodules: recursive
-
-x-step-python:  &step-python
-  name: Set up Python
-  uses: actions/setup-python@v1
-  with:
-    python-version: 3.5
-
-x-step-pip-setuptools:  &step-pip-setuptools
-  name: Upgrade Pip / setuptools
-  run: pip install -U pip setuptools wheel
-
-x-step-parallel:  &step-parallel
-  name: Install parallel
-  run: sudo apt-get -y install parallel
-
-# Install PyYAML for docker-compose.yml validation
-x-step-pyyaml:  &step-pyyaml
-  name: Install PyYAML
-  run: pip install PyYAML
-
-# FIXME upgrade Docker?
-
-x-step-print-env: &step-print-env
-  name: Print kernel and Docker information
-  run: |
-    uname -a
-    docker version
-    docker-compose version
-
-x-step-pull-images: &step-pull-images
-  name: Pull images
-  # Don't stop on a single failure because the image might not exist or a
-  # network error might have happened
-  run: ./dev/pull.py || { echo "One or more images couldn't be pulled"; }
-
-# ---
-
 jobs:
 
   pull_build_push:
@@ -54,13 +10,39 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - <<: *step-checkout
-      - <<: *step-python
-      - <<: *step-pip-setuptools
-      - <<: *step-parallel      
-      - <<: *step-pyyaml
-      - <<: *step-print-env
-      - <<: *step-pull-images
+
+      - name: Check out repository
+        uses: actions/checkout@v1
+        with:
+          submodules: recursive
+
+      - name: Set up Python
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.5
+
+      - name: Upgrade Pip / setuptools
+        run: pip install -U pip setuptools wheel
+
+      - name: Install parallel
+        run: sudo apt-get -y install parallel
+
+      # Install PyYAML for docker-compose.yml validation
+      - name: Install PyYAML
+        run: pip install PyYAML
+
+      # FIXME upgrade Docker?
+
+      - name: Print kernel and Docker information
+        run: |
+          uname -a
+          docker version
+          docker-compose version
+
+      - name: Pull images
+        # Don't stop on a single failure because the image might not exist or a
+        # network error might have happened
+        run: ./dev/pull.py || { echo "One or more images couldn't be pulled"; }
 
       - name: Build images
         # Prune images after every rebuild because otherwise Azure instance might run
@@ -88,13 +70,39 @@ jobs:
         chunk_number: [1, 2, 3, 4, 5]
 
     steps:
-      - <<: *step-checkout
-      - <<: *step-python
-      - <<: *step-pip-setuptools
-      - <<: *step-parallel      
-      - <<: *step-pyyaml
-      - <<: *step-print-env
-      - <<: *step-pull-images
+      
+      - name: Check out repository
+        uses: actions/checkout@v1
+        with:
+          submodules: recursive
+
+      - name: Set up Python
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.5
+
+      - name: Upgrade Pip / setuptools
+        run: pip install -U pip setuptools wheel
+
+      - name: Install parallel
+        run: sudo apt-get -y install parallel
+
+      # Install PyYAML for docker-compose.yml validation
+      - name: Install PyYAML
+        run: pip install PyYAML
+
+      # FIXME upgrade Docker?
+
+      - name: Print kernel and Docker information
+        run: |
+          uname -a
+          docker version
+          docker-compose version
+
+      - name: Pull images
+        # Don't stop on a single failure because the image might not exist or a
+        # network error might have happened
+        run: ./dev/pull.py || { echo "One or more images couldn't be pulled"; }
 
       # List all tests (commands) to be run into a file
       - name: Enumerate all tests
