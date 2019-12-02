@@ -27,6 +27,10 @@ jobs:
       - name: Install parallel
         run: sudo apt-get -y install parallel
 
+      # We need it as a Python module
+      - name: Install docker-compose
+        run: pip install docker-compose
+
       # Install PyYAML for docker-compose.yml validation
       - name: Install PyYAML
         run: pip install PyYAML
@@ -90,6 +94,10 @@ jobs:
 
       - name: Install parallel
         run: sudo apt-get -y install parallel
+
+      # We need it as a Python module
+      - name: Install docker-compose
+        run: pip install docker-compose
 
       # Install PyYAML for docker-compose.yml validation
       - name: Install PyYAML
