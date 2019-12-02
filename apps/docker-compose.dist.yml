@@ -751,8 +751,9 @@ services:
                 limits:
                     # CPU core limit
                     cpus: "1"
-                    # RAM limit
-                    memory: "4G"
+                    # If importer script is playing catch up and has to import
+                    # many stories at once, it will require more memory
+                    memory: "8G"
 
     #
     # Import stories by scraping Feedly
@@ -2112,7 +2113,7 @@ volumes:
         driver_opts:
             type: none
             o: bind
-            device: /space/mediacloud/vol_pgadmin_data        
+            device: /space/mediacloud/vol_pgadmin_data
 
     # Daily RSS dumps
     # (shared between cron_generate_daily_rss_dumps and webapp-httpd)
