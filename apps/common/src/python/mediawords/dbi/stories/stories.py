@@ -75,14 +75,28 @@ def find_dup_story(db: DatabaseHandler, story: dict) -> Optional[dict]:
     if db_story:
         return db_story
 
-    # make sure that postgres uses the story_urls_url index
-    db.query("create temporary table _u as select stories_id from story_urls where url = any( %(a)s )", {'a': urls})
-    # noinspection SqlResolve,SqlCheckUsingColumns
-    db_story = db.query(
-        "select * from stories s join _u u using ( stories_id ) where media_id = %(a)s order by stories_id limit 1",
-        {'a': story['media_id']}).hash()
-    # noinspection SqlResolve
-    db.query("drop table _u")
+    db_story = db.query("""
+
+        -- Make sure that postgres uses the story_urls_url index
+        WITH matching_stories AS (
+            SELECT stories_id
+            FROM story_urls
+            WHERE url = ANY(%(story_urls)s)
+        )
+
+        SELECT *
+        FROM stories
+            JOIN matching_stories USING (stories_id)
+        WHERE stories_id.media_id = %(media_id)s
+        ORDER BY stories_id
+        LIMIT 1
+
+        """, {
+            'story_urls': urls,
+            'media_id': story['media_id'],
+        }
+    ).hash()
+
     if db_story:
         return db_story
 
