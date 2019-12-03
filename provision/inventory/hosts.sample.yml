@@ -37,6 +37,9 @@ all:
                 # "portainer" container and its data volume
                 role-portainer: "true"
 
+                # PgAdmin container and its data volume
+                role-postgresql-pgadmin: "true"
+
                 # "postgresql-server" container and its data volume
                 role-postgresql-server: "true"
 

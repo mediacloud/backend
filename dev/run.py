@@ -25,7 +25,7 @@ from typing import List
 
 # Given that docker-compose is present, we assume that PyYAML is installed
 
-from utils import DockerArgumentParser, DockerArguments
+from utils import DockerComposeArguments, DockerComposeArgumentParser
 
 try:
     from yaml import safe_load as load_yaml
@@ -34,6 +34,9 @@ except ModuleNotFoundError:
 
 DOCKER_COMPOSE_FILENAME = 'docker-compose.tests.yml'
 """Filename of 'docker-compose.yml' used for development and running tests."""
+
+DOCKER_COMPOSE_WRAPPER_FILENAME = 'quieter-docker-compose/docker-compose-just-quieter'
+""""docker-compose" wrapper filename."""
 
 
 class InvalidDockerComposeYMLException(Exception):
@@ -77,7 +80,13 @@ def _project_name(container_name: str, command: List[str]) -> str:
     return project_name
 
 
-def docker_run_commands(all_apps_dir: str, app_dirname: str, command: List[str], map_ports: bool) -> List[List[str]]:
+def docker_run_commands(
+        all_apps_dir: str,
+        app_dirname: str,
+        command: List[str],
+        map_ports: bool,
+        verbose: bool,
+) -> List[List[str]]:
     """
     Return a list commands to execute in order to run a command in the main container within Compose environment.
 
@@ -85,10 +94,18 @@ def docker_run_commands(all_apps_dir: str, app_dirname: str, command: List[str],
     :param app_dirname: Main container's directory name.
     :param command: Command to run in the main container.
     :param map_ports: True if containers' ports should be mapped to host machine (when configured in "ports:").
+    :param verbose: True if Docker Compose output should be more verbose.
     :return: List of commands (as lists) to execute in order to run a command.
     """
     if not os.path.isdir(all_apps_dir):
         raise ValueError("Apps directory '{}' does not exist.".format(all_apps_dir))
+
+    pwd = os.path.dirname(os.path.realpath(__file__))
+    docker_compose_wrapper_script = os.path.join(pwd, DOCKER_COMPOSE_WRAPPER_FILENAME)
+    if not os.path.isfile(docker_compose_wrapper_script):
+        raise ValueError("Docker Compose wrapper script '{}' does not exist.".format(docker_compose_wrapper_script))
+    if not os.access(docker_compose_wrapper_script, os.X_OK):
+        raise ValueError("Docker Compose wrapper script '{}' is not executable.".format(docker_compose_wrapper_script))
 
     all_apps_dir = os.path.abspath(all_apps_dir)
 
@@ -114,10 +131,16 @@ def docker_run_commands(all_apps_dir: str, app_dirname: str, command: List[str],
     if map_ports:
         map_ports_args = ['--service-ports']
 
+    if verbose:
+        log_level = 'INFO'
+    else:
+        log_level = 'WARNING'
+
     docker_compose = [
-        'docker-compose',
+        docker_compose_wrapper_script,
         '--project-name', project_name,
         '--file', docker_compose_path,
+        '--log-level', log_level,
         # Enable support for "deploy:" in non-swarm mode
         '--compatibility',
     ]
@@ -128,7 +151,7 @@ def docker_run_commands(all_apps_dir: str, app_dirname: str, command: List[str],
     return commands
 
 
-class DockerRunArguments(DockerArguments):
+class DockerRunArguments(DockerComposeArguments):
     """
     Arguments with a container directory name and command.
     """
@@ -168,7 +191,7 @@ class DockerRunArguments(DockerArguments):
         return ' '.join([self.command()] + self.args())
 
 
-class DockerRunArgumentParser(DockerArgumentParser):
+class DockerRunArgumentParser(DockerComposeArgumentParser):
     """
     Argument parser that includes a command to run.
     """
@@ -204,6 +227,7 @@ if __name__ == '__main__':
         app_dirname=args.app_dirname(),
         command=[args.command()] + args.args(),
         map_ports=args.map_ports(),
+        verbose=args.verbose(),
     )
 
     if args.print_commands():

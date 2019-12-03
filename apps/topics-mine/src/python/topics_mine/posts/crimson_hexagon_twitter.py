@@ -66,7 +66,7 @@ class CrimsonHexagonTwitterPostFetcher(AbstractPostFetcher):
 
         posts = []
         for mt in meta_tweets:
-            log.warning("mt: %d" % mt['tweet_id'])
+            log.debug("mt: %d" % mt['tweet_id'])
             if 'tweet' in mt:
                 post = {
                     'post_id': mt['tweet_id'],

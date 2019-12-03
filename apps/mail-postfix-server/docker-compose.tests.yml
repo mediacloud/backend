@@ -24,8 +24,7 @@ services:
         # To be able to set /proc/sys/kernel/yama/ptrace_scope:
         privileged: true
         environment:
-            MC_MAIL_POSTFIX_DOMAIN: "mediacloud.org"
-            MC_MAIL_POSTFIX_HOSTNAME: "mail"
+            MC_MAIL_POSTFIX_FQDN: "mail.testmediacloud.ml"
         depends_on:
             - mail-opendkim-server
         networks:
@@ -36,8 +35,7 @@ services:
     mail-opendkim-server:
         image: dockermediacloud/mail-opendkim-server:latest
         environment:
-            MC_MAIL_OPENDKIM_DOMAIN: "mediacloud.org"
-            MC_MAIL_OPENDKIM_HOSTNAME: "mail"
+            MC_MAIL_OPENDKIM_DOMAIN: "testmediacloud.ml"
         expose:
             - "12301"
         volumes:
@@ -51,3 +49,8 @@ services:
 networks:
     default:
         attachable: true
+        ipam:
+            driver: default
+            config:
+                # Use same subnet as in production
+                - subnet: "10.1.0.0/16"

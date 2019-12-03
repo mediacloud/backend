@@ -7,7 +7,7 @@
 #
 
 # https://hub.docker.com/_/ubuntu?tab=tags&page=1
-FROM ubuntu:xenial-20191010
+FROM ubuntu:xenial-20191024
 
 ENV DEBIAN_FRONTEND noninteractive
 ENV LANG en_US.UTF-8
@@ -51,6 +51,8 @@ RUN \
         ca-certificates \
         curl \
         htop \
+        # "ip" and similar utilities
+        iproute2 \
         # Pinging other containers from within Compose environment
         iputils-ping \
         # Sending mail via sendmail utility through mail-postfix-server
@@ -64,6 +66,9 @@ RUN \
         netcat \
         # Some packages insist on logging to syslog
         rsyslog \
+        # "mail" utility (which uses msmtp internally)
+        s-nail \
+        # Timezone data, used by many packages
         tzdata \
         # Basic editor for files in container while debugging
         # (full vim doesn't cut it because it's too big and also installs

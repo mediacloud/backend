@@ -267,33 +267,26 @@ def _get_failed_url(db: DatabaseHandler, topics_id: int, url: str) -> Optional[d
 
     urls = list({url, normalize_url_lossy(url)})
 
-    # create temporary table first to make postgres do a topic_fetch_urls_url index scan followed
-    # by a simple filter of those results
-    db.query(
-        """
-        create temporary table _urls as
-            select * from topic_fetch_urls where md5(url) = any(array(select md5(unnest(%(a)s))))
-        """,
-        {'a': urls})
-
     failed_url = db.query(
         """
-        -- noinspection SqlResolve
-        select *
-            from _urls
-            where
-                topics_id = %(a)s and
-                state in (%(b)s, %(c)s)
-            limit 1
+            WITH _urls AS (
+                SELECT *
+                FROM topic_fetch_urls
+                WHERE md5(url) = any(array(select md5(unnest(%(urls)s))))
+            )
+            SELECT *
+            FROM _urls
+            WHERE topics_id = %(topics_id)s
+              AND state IN (%(fetch_state_1)s, %(fetch_state_2)s)
+            LIMIT 1
         """,
         {
-            'a': topics_id,
-            'b': FETCH_STATE_REQUEST_FAILED,
-            'c': FETCH_STATE_CONTENT_MATCH_FAILED,
-        }).hash()
-
-    # noinspection SqlResolve
-    db.query("drop table _urls")
+            'urls': urls,
+            'topics_id': topics_id,
+            'fetch_state_1': FETCH_STATE_REQUEST_FAILED,
+            'fetch_state_2': FETCH_STATE_CONTENT_MATCH_FAILED,
+        }
+    ).hash()
 
     return failed_url
 

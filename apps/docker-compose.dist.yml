@@ -751,8 +751,9 @@ services:
                 limits:
                     # CPU core limit
                     cpus: "1"
-                    # RAM limit
-                    memory: "4G"
+                    # If importer script is playing catch up and has to import
+                    # many stories at once, it will require more memory
+                    memory: "8G"
 
     #
     # Import stories by scraping Feedly
@@ -789,11 +790,7 @@ services:
             - default
         environment:
             # Top-level domain to use for signing emails, e.g. "mediacloud.org"
-            # (keep in sync with MC_MAIL_POSTFIX_DOMAIN)
             MC_MAIL_OPENDKIM_DOMAIN: "mediacloud.org"
-            # Mail server hostname, e.g. "mail" for "mail.mediacloud.org"
-            # (keep in sync with MC_MAIL_POSTFIX_HOSTNAME)
-            MC_MAIL_OPENDKIM_HOSTNAME: "mail"
         expose:
             # OpenDKIM port used by Postfix
             - "12301"
@@ -822,12 +819,26 @@ services:
         networks:
             - default
         environment:
-            # Top-level domain to use for signing emails, e.g. "mediacloud.org"
-            # (keep in sync with MC_MAIL_OPENDKIM_DOMAIN)
-            MC_MAIL_POSTFIX_DOMAIN: "mediacloud.org"
-            # Mail server hostname, e.g. "mail" for "mail.mediacloud.org"
-            # (keep in sync with MC_MAIL_OPENDKIM_HOSTNAME)
-            MC_MAIL_POSTFIX_HOSTNAME: "mail"
+            # Fully qualified domain name of a host server that will be used for HELO messages.
+            #
+            # Must both resolve and have a PTR record, i.e. if an email sent by us arrives from
+            # 1.2.3.4, and that host has a hostname smtp.mediacloud.org, then both:
+            #
+            # 1) Sending IP address should have a PTR record that points to FQDN:
+            #
+            #     $ nslookup 1.2.3.4
+            #     <...>
+            #     4.3.2.1.in-addr.arpa  name = smtp.mediacloud.org
+            #
+            # 2) The FQDN should resolve to sending IP address:
+            #
+            #     $ nslookup smtp.mediacloud.org
+            #     <...>
+            #     Non-authoritative answer:
+            #     Name:   server.mediacloud.org
+            #     Address: 1.2.3.4
+            #
+            MC_MAIL_POSTFIX_FQDN: "smtp.mediacloud.org"
         depends_on:
             # Signs emails using OpenDKIM
             - mail-opendkim-server
@@ -1055,6 +1066,34 @@ services:
                     cpus: "1"
                     # RAM limit
                     memory: "256M"
+
+    #
+    # pgAdmin
+    # ---------
+    #
+    postgresql-pgadmin:
+        image: dockermediacloud/postgresql-pgadmin:release
+        <<: *sysctl-defaults
+        networks:
+            - default
+        depends_on:
+            - postgresql-server
+        ports:
+            # For connecting to through a SSH tunnel
+            - "5050:5050"
+        volumes:
+            - vol_pgadmin_data:/var/lib/pgadmin/
+        deploy:
+            placement:
+                constraints:
+                    # Must run on a host with PgAdmin data volume
+                    - node.labels.role-postgresql-pgadmin == true
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "4"
+                    # RAM limit
+                    memory: "1024M"
 
     #
     # PgBouncer
@@ -1854,7 +1893,11 @@ networks:
             config:
                 # Docker (Compose?) sometimes defaults to a subnet with only
                 # 255 available addresses
-                - subnet: "10.1.0.1/16"
+                #
+                # If you change this subnet, make sure that you update it
+                # elsewhere too, e.g. in "mail-opendkim-server"'s TrustedHosts
+                # or "mail-postfix-server" Dockerfile
+                - subnet: "10.1.0.0/16"
 
 
 #
@@ -2063,6 +2106,14 @@ volumes:
             type: none
             o: bind
             device: /space/mediacloud/vol_postfix_data
+
+    # PgAdmin data
+    vol_pgadmin_data:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_pgadmin_data
 
     # Daily RSS dumps
     # (shared between cron_generate_daily_rss_dumps and webapp-httpd)

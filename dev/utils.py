@@ -344,6 +344,43 @@ class DockerArgumentParser(object):
         return DockerArguments(self._parser.parse_args())
 
 
+class DockerComposeArguments(DockerArguments):
+    """
+    Arguments for scripts that use Docker Compose.
+    """
+
+    def verbose(self) -> bool:
+        """
+        Return True if docker-compose's output should be more verbose.
+
+        :return: True if docker-compose's output should be more verbose.
+        """
+        return self._args.verbose
+
+
+class DockerComposeArgumentParser(DockerArgumentParser):
+    """Argument parser for scripts that use Docker Compose."""
+
+    def __init__(self, description: str):
+        """
+        Constructor.
+
+        :param description: Description of the script to print when "--help" is passed.
+        """
+        super().__init__(description=description)
+
+        self._parser.add_argument('-v', '--verbose', action='store_true',
+                                  help='Print messages about starting and stopping containers.')
+
+    def parse_arguments(self) -> DockerComposeArguments:
+        """
+        Parse arguments and return an object with parsed arguments.
+
+        :return: DockerComposeArguments object.
+        """
+        return DockerComposeArguments(self._parser.parse_args())
+
+
 class DockerHubArguments(DockerArguments):
     """
     Arguments that include Docker Hub credentials.
