@@ -958,13 +958,25 @@ sub import_urls_from_seed_query($$)
     }
     elsif ( $num_queries == 0 )
     {
+        DEBUG( "import seed urls from solr" );
         update_topic_state( $db, $topic, "importing solr seed query" );
         import_solr_seed_query( $db, $topic );
         return;
     }
-    elsif ( MediaWords::TM::FetchTopicPosts::get_fetch_posts_function( $tsq ) )
+    elsif ( MediaWords::TM::FetchTopicPosts::get_post_fetcher( $tsq ) )
     {
+        DEBUG( "import seed urls from fetch_topic_posts" );
         MediaWords::TM::FetchTopicPosts::fetch_topic_posts( $db, $topic->{ topics_id } );
+        $db->query( <<SQL, $topic->{ topics_id } );
+insert into topic_seed_urls ( url, topics_id, assume_match, source )
+    select distinct tpu.url, tpd.topics_id, true, 'fetch_topic_posts'
+        from
+            topic_post_urls tpu
+            join topic_posts tp using ( topic_posts_id )
+            join topic_post_days tpd using ( topic_post_days_id )
+        where
+            tpd.topics_id = ?
+SQL
     }
     else
     {

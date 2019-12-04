@@ -140,12 +140,12 @@ def _store_posts_for_day(db: DatabaseHandler, topic_post_day: dict, posts: list)
     None
     """
     topics_id = topic_post_day['topics_id']
-    log.info("adding %d tweets for topic %s, day %s" % (len(posts), topics_id, topic_post_day['day']))
+    log.info("adding %d posts for topic %s, day %s" % (len(posts), topics_id, topic_post_day['day']))
 
     topic = db.require_by_id('topics', topic_post_day['topics_id'])
     posts = list(filter(lambda p: content_matches_topic(p['content'], topic), posts))
 
-    log.info("%d tweets remaining after match" % (len(posts)))
+    log.info("%d posts remaining after match" % (len(posts)))
 
     db.begin()
 
@@ -233,7 +233,7 @@ def get_post_fetcher(topic_seed_query: dict) -> Optional[AbstractPostFetcher]:
 def fetch_posts(topic_seed_query: dict, start_date: datetime, end_date: datetime = None) -> list:
     """Fetch the posts for the given topic_seed_queries row, for the described date range."""
     if end_date is None:
-        end_date = start_date
+        end_date = start_date + datetime.timedelta(days=1) - datetime.timedelta(seconds=1) 
 
     fetcher = get_post_fetcher(topic_seed_query)
 
@@ -275,7 +275,6 @@ def fetch_topic_posts(db: DatabaseHandler, topics_id: int) -> None:
 
     date = datetime.datetime.strptime(topic['start_date'], '%Y-%m-%d')
     end_date = datetime.datetime.strptime(topic['end_date'], '%Y-%m-%d')
-    log.warning("%s - %s" % (str(date), str(end_date)))
     while date <= end_date:
         log.debug("fetching posts for %s" % date)
         if not _topic_post_day_fetched(db, topic, date):

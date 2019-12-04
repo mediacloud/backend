@@ -2,6 +2,7 @@
 
 import csv
 import datetime
+from dateutil import parser
 import io
 
 from mediawords.util.log import create_logger
@@ -47,17 +48,18 @@ class CSVStaticPostFetcher(AbstractPostFetcher):
         """Return posts from a csv that are within the given date range."""
         all_posts = self._get_dicts_from_csv_string(query)
 
-        posts = []
-        for p in all_posts:
-            if str(start_date) <= p['publish_date'] <= str(end_date):
-                posts.append(p)
-
         required_fields = ['content', 'author', 'channel', 'content', 'publish_date', 'post_id']
-        for post in posts:
+        for post in all_posts:
             for field in required_fields:
                 if field not in post:
                     raise McPostsGenericDataException(f"Missing required field: {field}")
-
+            
             post['data'] = {}
+
+        posts = []
+        for p in all_posts:
+            if start_date <= parser.parse(p['publish_date']) <= end_date:
+                posts.append(p)
+
 
         return posts
