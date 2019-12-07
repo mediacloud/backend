@@ -6,6 +6,7 @@ import typing
 from collections import defaultdict
 import datetime as dt
 import dateutil.parser
+import pytz
 
 from mediawords.util.log import create_logger
 log = create_logger(__name__)
@@ -28,7 +29,7 @@ def _convert_epoch_to_iso8601(epoch: int) -> str:
 
 def _convert_iso8601_to_epoch(iso8601: str) -> int:
     '''Convert ISO 8601 format to epoch'''
-    epoch = dateutil.parser.parse(iso8601).strftime('%s')
+    epoch = dateutil.parser.parse(iso8601).astimezone(pytz.utc).strftime('%s')
     return epoch
 
 

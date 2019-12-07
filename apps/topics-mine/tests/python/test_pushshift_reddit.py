@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
+import dateutil.parser
 import os
+import pytz
 import topics_mine.posts.pushshift_reddit as fetch_submissions
 from unittest import TestCase
 import httpretty
@@ -92,12 +94,15 @@ class TestPushshiftRedditSubmissionFetcher(TestCase):
         # Check that query object has an integer random seed
         assert isinstance(es_query['query']['function_score']['random_score']['seed'], int)
 
+        start_epoch = dateutil.parser.parse(START_DATE).astimezone(pytz.utc).strftime("%s")
+        end_epoch = dateutil.parser.parse(END_DATE).astimezone(pytz.utc).strftime("%s")
+
         # Check that date ranges are correct
         for obj in es_query['query']['function_score']['query']['bool']['must']:
             if 'range' in obj and 'gte' in obj['range']['created_utc']:
-                assert obj['range']['created_utc']['gte'] == '1546300800'
+                assert obj['range']['created_utc']['gte'] == start_epoch
             elif 'range' in obj and 'lt' in obj['range']['created_utc']:
-                assert obj['range']['created_utc']['lt'] == '1561939200'
+                assert obj['range']['created_utc']['lt'] == end_epoch
 
         # Check that both title and selftext fields are included in the search
         for obj in es_query['query']['function_score']['query']['bool']['must']:
