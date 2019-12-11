@@ -4,9 +4,7 @@ import json
 import time
 import typing
 from collections import defaultdict
-import datetime as dt
-import dateutil.parser
-import pytz
+import datetime
 
 from mediawords.util.log import create_logger
 log = create_logger(__name__)
@@ -24,13 +22,7 @@ class McPushshiftSubmissionFetchError(McPushshiftError):
 
 def _convert_epoch_to_iso8601(epoch: int) -> str:
     '''Convert epoch to UTC ISO 8601 format'''
-    return dt.datetime.utcfromtimestamp(epoch).strftime("%Y-%m-%d %H:%M:%S")
-
-
-def _convert_iso8601_to_epoch(iso8601: str) -> int:
-    '''Convert ISO 8601 format to epoch'''
-    epoch = dateutil.parser.parse(iso8601).astimezone(pytz.utc).strftime('%s')
-    return epoch
+    return datetime.datetime.utcfromtimestamp(epoch).strftime("%Y-%m-%d %H:%M:%S")
 
 
 def _base36encode(number: int) -> str:
@@ -80,8 +72,8 @@ def _make_pushshift_api_request(es_query: dict) -> dict:
 
 
 def _pushshift_query_builder(query: str = None,
-                             start_date: str = None,
-                             end_date: str = None,
+                             start_date: datetime = None,
+                             end_date: datetime = None,
                              sort_field: str = None,
                              size: int = 100,
                              randomize: bool = True,
@@ -113,12 +105,10 @@ def _pushshift_query_builder(query: str = None,
     filters.append(sqs)
 
     if start_date is not None:
-        start_date = _convert_iso8601_to_epoch(start_date)
-        filters.append({'range': {'created_utc': {'gte': start_date}}})
+        filters.append({'range': {'created_utc': {'gte': start_date.timestamp()}}})
 
     if end_date is not None:
-        end_date = _convert_iso8601_to_epoch(end_date)
-        filters.append({'range': {'created_utc': {'lt': end_date}}})
+        filters.append({'range': {'created_utc': {'lt': end_date.timestamp()}}})
 
     return q
 
@@ -150,7 +140,11 @@ def _build_response(rows: list) -> list:
     return results
 
 
-def query_reddit_submissions(query: str, start_date: str, end_date: str, sample: typing.Optional[int] = None) -> list:
+def query_reddit_submissions(
+        query: str,
+        start_date: datetime,
+        end_date: datetime,
+        sample: typing.Optional[int] = None) -> list:
     """Fetch submissions from Pushshift using POST calls to the Elasticsearch backend
 
         Parameters:

@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 
-import dateutil.parser
+import datetime
 import os
-import pytz
 import topics_mine.posts.pushshift_reddit as fetch_submissions
 from unittest import TestCase
 import httpretty
@@ -49,8 +48,8 @@ class TestPushshiftRedditSubmissionFetcher(TestCase):
     def test_query_reddit_submissions(self) -> None:
         """Test that all submissions results are processed and all required fields are present"""
         data = fetch_submissions.query_reddit_submissions(query="trump",
-                                                          start_date="2019-01-01",
-                                                          end_date="2019-09-01",
+                                                          start_date=datetime.datetime(2019,1,1),
+                                                          end_date=datetime.datetime(2019,1,1),
                                                           sample=250)
 
         # Check that the number of samples returned is the number requested
@@ -78,8 +77,8 @@ class TestPushshiftRedditSubmissionFetcher(TestCase):
         QUERY = "trump"
         QUERY_SIZE = 100
         RANDOMIZE = True
-        START_DATE = "2019-01-01"
-        END_DATE = "2019-07-01"
+        START_DATE = datetime.datetime(2019, 1, 1, 0, 0)
+        END_DATE = datetime.datetime(2019, 7, 1, 0, 0)
 
         es_query = fetch_submissions._pushshift_query_builder(query=QUERY,
                                                               size=QUERY_SIZE,
@@ -94,15 +93,12 @@ class TestPushshiftRedditSubmissionFetcher(TestCase):
         # Check that query object has an integer random seed
         assert isinstance(es_query['query']['function_score']['random_score']['seed'], int)
 
-        start_epoch = dateutil.parser.parse(START_DATE).astimezone(pytz.utc).strftime("%s")
-        end_epoch = dateutil.parser.parse(END_DATE).astimezone(pytz.utc).strftime("%s")
-
         # Check that date ranges are correct
         for obj in es_query['query']['function_score']['query']['bool']['must']:
             if 'range' in obj and 'gte' in obj['range']['created_utc']:
-                assert obj['range']['created_utc']['gte'] == start_epoch
+                assert obj['range']['created_utc']['gte'] == START_DATE.timestamp()
             elif 'range' in obj and 'lt' in obj['range']['created_utc']:
-                assert obj['range']['created_utc']['lt'] == end_epoch
+                assert obj['range']['created_utc']['lt'] == END_DATE.timestamp()
 
         # Check that both title and selftext fields are included in the search
         for obj in es_query['query']['function_score']['query']['bool']['must']:
