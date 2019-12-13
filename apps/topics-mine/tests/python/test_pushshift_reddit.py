@@ -2,9 +2,10 @@
 
 import datetime
 import os
-import topics_mine.posts.pushshift_reddit as fetch_submissions
+from topics_mine.posts.pushshift_reddit import PushshiftRedditPostFetcher as prpf
 from unittest import TestCase
 import httpretty
+
 
 from mediawords.util.log import create_logger
 log = create_logger(__name__)
@@ -12,7 +13,7 @@ log = create_logger(__name__)
 
 def test_epoch_conversion():
     """Test epoch conversion to UTC datetime."""
-    iso_8601_date = fetch_submissions._convert_epoch_to_iso8601(1540000000)
+    iso_8601_date = prpf._convert_epoch_to_iso8601(1540000000)
     print(iso_8601_date)
     assert iso_8601_date == "2018-10-20 01:46:40"
 
@@ -47,10 +48,10 @@ class TestPushshiftRedditSubmissionFetcher(TestCase):
 
     def test_query_reddit_submissions(self) -> None:
         """Test that all submissions results are processed and all required fields are present"""
-        data = fetch_submissions.query_reddit_submissions(query="trump",
-                                                          start_date=datetime.datetime(2019,1,1),
-                                                          end_date=datetime.datetime(2019,1,1),
-                                                          sample=250)
+        data = prpf.fetch_posts(query="trump",
+                start_date=datetime.datetime(2019,1,1),
+                end_date=datetime.datetime(2019,1,1),
+                sample=250)
 
         # Check that the number of samples returned is the number requested
         assert len(data) == 250
@@ -80,11 +81,12 @@ class TestPushshiftRedditSubmissionFetcher(TestCase):
         START_DATE = datetime.datetime(2019, 1, 1, 0, 0)
         END_DATE = datetime.datetime(2019, 7, 1, 0, 0)
 
-        es_query = fetch_submissions._pushshift_query_builder(query=QUERY,
-                                                              size=QUERY_SIZE,
-                                                              randomize=RANDOMIZE,
-                                                              start_date=START_DATE,
-                                                              end_date=END_DATE)
+        es_query = prpf._pushshift_query_builder(
+                query=QUERY,
+                size=QUERY_SIZE,
+                randomize=RANDOMIZE,
+                start_date=START_DATE,
+                end_date=END_DATE)
 
         # Check that size parameter is present and matches requested size
         assert 'size' in es_query
