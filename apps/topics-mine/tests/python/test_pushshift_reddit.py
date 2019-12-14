@@ -23,23 +23,8 @@ class TestPushshiftRedditSubmissionFetcher(TestCase):
 
     def setUp(self):
         """Setup Method"""
-        base_dir = os.path.dirname(os.path.realpath(__file__))
-
-
-
-        self.MOCK_RESPONSE_HEADERS = {'Content-Type': 'application/json; charset=utf-8'}
-        self.MOCK_SUBMISSION_ENDPOINT_URL = 'https://mediacloud.pushshift.io/rs/_search'
-
-        self.fixture_data = open(base_dir + "/trump_search_response.json", "r").read()
-
         self.required_fields = set(['post_id', 'content', 'publish_date',
                                     'author', 'channel', 'data'])
-        self.present_guids = set()
-
-        # Register Feed mock endpoint
-        httpretty.register_uri(httpretty.GET, self.MOCK_SUBMISSION_ENDPOINT_URL,
-                               adding_headers=self.MOCK_RESPONSE_HEADERS, body=self.fixture_data)
-        httpretty.enable()
 
     def tearDown(self) -> None:
         """Teardown method"""
@@ -50,6 +35,7 @@ class TestPushshiftRedditSubmissionFetcher(TestCase):
         """Test that all submissions results are processed and all required fields are present"""
 
         fetcher = prpf()
+        fetcher.enable_mock_data()
 
         data = fetcher.fetch_posts(query="trump",
                 start_date=datetime.datetime(2019,1,1),

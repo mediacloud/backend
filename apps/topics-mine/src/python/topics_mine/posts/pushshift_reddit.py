@@ -1,10 +1,13 @@
-import requests
-import string
-import json
-import time
-import typing
 from collections import defaultdict
 import datetime
+import json
+import os
+import requests
+import string
+import time
+import typing
+
+import httpretty
 
 from topics_mine.posts import AbstractPostFetcher
 
@@ -145,6 +148,20 @@ class PushshiftRedditPostFetcher(AbstractPostFetcher):
             results.append(obj)
 
         return results
+
+    def enable_mock_data(self) -> None:
+        """Setup fetch_posts to return mock data, useful for testing."""
+        base_dir = os.path.dirname(os.path.realpath(__file__))
+
+        MOCK_RESPONSE_HEADERS = {'Content-Type': 'application/json; charset=utf-8'}
+        MOCK_SUBMISSION_ENDPOINT_URL = 'https://mediacloud.pushshift.io/rs/_search'
+
+        fixture_data = open(base_dir + "/pushshift_reddit_mock.json", "r").read()
+
+        # Register Feed mock endpoint
+        httpretty.register_uri(httpretty.GET, MOCK_SUBMISSION_ENDPOINT_URL,
+                               adding_headers=MOCK_RESPONSE_HEADERS, body=fixture_data)
+        httpretty.enable()
 
     def fetch_posts(
             self,
