@@ -71,7 +71,8 @@ class PushshiftRedditPostFetcher(AbstractPostFetcher):
                 log.warning("Total shards: {}, successful shards: {}, failed shards: {}".format(shard_info['total'],
                     shard_info['successful'],
                     shard_info['failed']))
-                return data['hits']['hits']
+
+            return data['hits']['hits']
         else:
             raise McPushshiftSubmissionFetchError(r.content)
 
@@ -125,7 +126,7 @@ class PushshiftRedditPostFetcher(AbstractPostFetcher):
 
         for row in rows:
             obj = {}
-            obj['post_id'] = _base36encode(int(row['_id']))
+            obj['post_id'] = PushshiftRedditPostFetcher._base36encode(int(row['_id']))
             obj['author'] = row['_source']['author']
 
             # Build content field using title and selftext (if it exists)
@@ -135,8 +136,9 @@ class PushshiftRedditPostFetcher(AbstractPostFetcher):
             obj['content'] = content
 
             obj['channel'] = row['_source']['subreddit']
-            obj['publish_date'] = _convert_epoch_to_iso8601(row['_source']['created_utc'])
-            row['_source']['subreddit_id'] = "t5_{}".format(_base36encode(int(row['_source']['subreddit_id'])))
+            obj['publish_date'] = PushshiftRedditPostFetcher._convert_epoch_to_iso8601(row['_source']['created_utc'])
+            base36_subreddit_id = PushshiftRedditPostFetcher._base36encode(int(row['_source']['subreddit_id']))
+            row['_source']['subreddit_id'] = "t5_{}".format(base36_subreddit_id)
             obj['data'] = row['_source']
             obj['data']['id'] = obj['post_id']
             obj['data']['name'] = "t3_{}".format(obj['post_id'])
@@ -144,8 +146,8 @@ class PushshiftRedditPostFetcher(AbstractPostFetcher):
 
         return results
 
-    @staticmethod
     def fetch_posts(
+            self,
             query: str,
             start_date: datetime,
             end_date: datetime,
@@ -172,8 +174,8 @@ class PushshiftRedditPostFetcher(AbstractPostFetcher):
 
         """
 
-        es_query = _pushshift_query_builder(query, start_date, end_date, size=sample)
-        es_results = _make_pushshift_api_request(es_query)
-        results = _build_response(es_results)
+        es_query = self._pushshift_query_builder(query, start_date, end_date, size=sample)
+        es_results = self._make_pushshift_api_request(es_query)
+        results = self._build_response(es_results)
 
         return results

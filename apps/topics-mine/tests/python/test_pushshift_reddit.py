@@ -46,9 +46,12 @@ class TestPushshiftRedditSubmissionFetcher(TestCase):
         httpretty.disable()
         httpretty.reset()
 
-    def test_query_reddit_submissions(self) -> None:
+    def test_fetch_posts(self) -> None:
         """Test that all submissions results are processed and all required fields are present"""
-        data = prpf.fetch_posts(query="trump",
+
+        fetcher = prpf()
+
+        data = fetcher.fetch_posts(query="trump",
                 start_date=datetime.datetime(2019,1,1),
                 end_date=datetime.datetime(2019,1,1),
                 sample=250)
