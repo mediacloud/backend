@@ -124,7 +124,7 @@ def py_giant_component(edges: list) -> list:
 
     weak_graphs = nx.weakly_connected_component_subgraphs(graph)
 
-    if len(weak_graphs) < 1:
+    if len(list(weak_graphs)) < 1:
         return []
 
     graph = max(weak_graphs, key=len)
