@@ -122,6 +122,11 @@ def py_giant_component(edges: list) -> list:
     [graph.add_node(id) for id in ids]
     [graph.add_edge(edge[0], edge[1]) for edge in edges]
 
-    graph = max(nx.weakly_connected_component_subgraphs(graph), key=len)
+    weak_graphs = nx.weakly_connected_component_subgraphs(graph)
+
+    if len(weak_graphs) < 1:
+        return []
+
+    graph = max(weak_graphs, key=len)
 
     return list(graph.edges())
