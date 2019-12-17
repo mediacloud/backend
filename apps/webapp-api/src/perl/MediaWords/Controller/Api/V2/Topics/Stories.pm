@@ -97,10 +97,10 @@ sub _get_extra_where_clause($$)
 
     my $clauses = [];
 
-    if ( my $media_id = int( $c->req->params->{ media_id } // 0 ) )
+    if ( my $media_id = $c->req->params->{ media_id } )
     {
         my $media_ids = ref( $media_id ) ? $media_id : [ $media_id ];
-        my $media_ids_list = join( ',', map { int( $_ ) } @{ $media_ids } );
+        my $media_ids_list = join( ',', map { int( $_ ) } @{ $media_ids } ) || '-1';
         push( @{ $clauses }, <<SQL );
 exists (
     select s.stories_id
@@ -114,7 +114,7 @@ exists (
 SQL
     }
 
-    if ( my $stories_id = int( $c->req->params->{ stories_id } // 0 ) )
+    if ( my $stories_id = $c->req->params->{ stories_id } )
     {
         my $stories_ids = ref( $stories_id ) ? $stories_id : [ $stories_id ];
         my $stories_ids_list = join( ',', map { int( $_ ) } @{ $stories_ids } ) || '-1';
