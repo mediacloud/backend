@@ -931,10 +931,26 @@ sub _create_snapshot_row ($$$$;$$)
 
     $note //= '';
 
-    my $cd = $db->query( <<END, $topic->{ topics_id }, $start_date, $end_date, $note, $bot_policy )->hash;
+    my $topics_id = $topic->{ topics_id };
+
+    my $tsqs = $db->query( 'select * from topic_seed_queries where topics_id = ?', $topics_id )->hashes();
+
+    my $topic_media_tags = $db->query( "select * from topics_media_tags_map where topics_id = ?", $topics_id )->hashes;
+    my $topic_media = $db->query( "select * from topics_media_map where topics_id = ?", $topics_id )->hashes;
+
+    my $seed_queries = {
+        topic => $topic,
+        topic_media => $topic_media,
+        topic_media_tags => $topic_media_tags,
+        topic_seed_queries => $tsqs
+    };
+
+    my $seed_queries_json = MediaWords::Util::ParseJSON::encode_json( $seed_queries );
+
+    my $cd = $db->query( <<END, $topics_id, $start_date, $end_date, $note, $bot_policy, $seed_queries_json )->hash;
 insert into snapshots
-    ( topics_id, start_date, end_date, snapshot_date, note, bot_policy )
-    values ( ?, ?, ?, now(), ?, ?)
+    ( topics_id, start_date, end_date, snapshot_date, note, bot_policy, seed_queries )
+    values ( ?, ?, ?, now(), ?, ?, ? )
     returning *
 END
 
