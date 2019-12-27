@@ -1747,6 +1747,36 @@ services:
                     memory: "2G"
 
     #
+    # Hal's "manual" election topic container
+    # ---------------------------------------
+    #
+    topics-mine-election:
+        image: dockermediacloud/topics-mine:release
+        # Someone is to "docker exec" into this service's container manually
+        command: sleep infinity
+        <<: *sysctl-defaults
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+            <<: *twitter-api-configuration
+            <<: *crimson-hexagon-api-configuration
+        deploy:
+            <<: *endpoint-mode-dnsrr
+            # Run on the same server as the webserver
+            placement:
+                constraints:
+                    - node.labels.role-webapp-httpd == true
+            # Only a single container
+            replicas: 1
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "2G"
+
+    #
     # Mine a public topic
     # -------------------
     #
