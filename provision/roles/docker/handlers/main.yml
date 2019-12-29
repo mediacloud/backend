@@ -1,6 +1,9 @@
 - name: Restart Journald
-  # Send HUP signal for the service to preserve old logs
-  shell: "killall -USR1 systemd-journald"
+  # "killall -USR1 systemd-journald" would preserve logs written to far to
+  # transient storage, but it doesn't reload certain configuration changes
+  systemd:
+    name: systemd-journald
+    state: restarted
   become: true
   become_user: root
   tags:
