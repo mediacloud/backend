@@ -634,26 +634,25 @@ END
         my $seed_urls_chunk = [ @{ $seed_urls }[ $i .. $end ] ];
         add_new_links_chunk( $db, $topic, 0, $seed_urls_chunk );
 
-        my $ids_table = $db->get_temporary_ids_table( [ map { $_->{ topic_seed_urls_id } } @{ $seed_urls_chunk } ] );
+        my $ids_list = join( ',', map { int( $_->{ topic_seed_urls_id } ) } @{ $seed_urls_chunk } );
 
         # update topic_seed_urls that were actually fetched
         $db->query( <<SQL );
 update topic_seed_urls tsu
     set stories_id = tfu.stories_id
-    from topic_fetch_urls tfu, $ids_table ids
+    from topic_fetch_urls tfu
     where
         tsu.topics_id = tfu.topics_id and
         md5(tsu.url) = md5(tfu.url) and
-        tsu.topic_seed_urls_id = ids.id
+        tsu.topic_seed_urls_id in ( $ids_list )
 SQL
 
         # now update the topic_seed_urls that were matched
         $db->query( <<SQL );
 update topic_seed_urls tsu
     set processed = 't'
-    from $ids_table ids
     where
-        tsu.topic_seed_urls_id = ids.id and
+        tsu.topic_seed_urls_id in ( $ids_list ) and
         processed = 'f'
 SQL
 
