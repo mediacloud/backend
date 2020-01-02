@@ -9,8 +9,39 @@ import re
 import subprocess
 from typing import Dict, List, Set
 
+try:
+    from yaml import safe_load as load_yaml
+except ModuleNotFoundError:
+    raise ImportError("Please install PyYAML.")
 
 DOCKERHUB_USER = 'dockermediacloud'
+
+
+class InvalidDockerComposeYMLException(Exception):
+    """Exception that gets thrown on docker-compose.yml errors."""
+
+
+def load_validate_docker_compose_yaml(docker_compose_path: str) -> dict:
+    """
+    Load and validate docker-compose.yml, throw exception on errors.
+    :param docker_compose_path: Path to docker-compose.yml
+    :return Parsed docker-compose.yml.
+    """
+
+    if not os.path.isfile(docker_compose_path):
+        raise InvalidDockerComposeYMLException("YAML file does not exist: {}".format(docker_compose_path))
+
+    with open(docker_compose_path, mode='r', encoding='utf-8') as f:
+
+        try:
+            yaml_root = load_yaml(f)
+        except Exception as ex:
+            raise InvalidDockerComposeYMLException("Unable to load YAML file: {}".format(ex))
+
+        if 'services' not in yaml_root:
+            raise InvalidDockerComposeYMLException("No 'services' key under root.")
+
+    return yaml_root
 
 
 def _image_name_from_container_name(container_name: str) -> str:
