@@ -9,37 +9,69 @@ import re
 import subprocess
 from typing import Dict, List, Set
 
+try:
+    from yaml import safe_load as load_yaml
+except ModuleNotFoundError:
+    raise ImportError("Please install PyYAML.")
 
-def _image_name_from_container_name(container_name: str, docker_hub_username: str) -> str:
+DOCKERHUB_USER = 'dockermediacloud'
+
+
+class InvalidDockerComposeYMLException(Exception):
+    """Exception that gets thrown on docker-compose.yml errors."""
+
+
+def load_validate_docker_compose_yaml(docker_compose_path: str) -> dict:
+    """
+    Load and validate docker-compose.yml, throw exception on errors.
+    :param docker_compose_path: Path to docker-compose.yml
+    :return Parsed docker-compose.yml.
+    """
+
+    if not os.path.isfile(docker_compose_path):
+        raise InvalidDockerComposeYMLException("YAML file does not exist: {}".format(docker_compose_path))
+
+    with open(docker_compose_path, mode='r', encoding='utf-8') as f:
+
+        try:
+            yaml_root = load_yaml(f)
+        except Exception as ex:
+            raise InvalidDockerComposeYMLException("Unable to load YAML file: {}".format(ex))
+
+        if 'services' not in yaml_root:
+            raise InvalidDockerComposeYMLException("No 'services' key under root.")
+
+    return yaml_root
+
+
+def _image_name_from_container_name(container_name: str) -> str:
     """
     Convert container directory name to an image name.
 
     :param container_name: Container directory name.
-    :param docker_hub_username: Docker Hub username.
     :return: Image name (with username, prefix and version).
     """
     if not re.match(r'^[\w\-]+$', container_name):
         raise ValueError("Container name is invalid: {}".format(container_name))
 
     return '{username}/{container_name}'.format(
-        username=docker_hub_username,
+        username=DOCKERHUB_USER,
         container_name=container_name,
     )
 
 
-def container_dir_name_from_image_name(image_name: str, docker_hub_username: str) -> str:
+def container_dir_name_from_image_name(image_name: str) -> str:
     """
     Convert image name to a container directory name.
 
     :param image_name: Image name (with username, prefix and version).
-    :param docker_hub_username: Docker Hub username.
     :return: Container directory name.
     """
     container_name = image_name
 
-    expected_prefix = docker_hub_username + '/'
+    expected_prefix = DOCKERHUB_USER + '/'
     if not container_name.startswith(expected_prefix):
-        raise ValueError("Image name '{}' is expected to start with '{}/'.".format(image_name, docker_hub_username))
+        raise ValueError("Image name '{}' is expected to start with '{}/'.".format(image_name, DOCKERHUB_USER))
     container_name = container_name[len(expected_prefix):]
 
     # Remove version
@@ -48,12 +80,11 @@ def container_dir_name_from_image_name(image_name: str, docker_hub_username: str
     return container_name
 
 
-def _docker_parent_image_name(dockerfile_path: str, docker_hub_username: str) -> str:
+def _docker_parent_image_name(dockerfile_path: str) -> str:
     """
     Return Docker parent image name (FROM value) from a Dockerfile.
 
     :param dockerfile_path: Path to Dockerfile to parse.
-    :param docker_hub_username: Docker Hub username.
     :return: FROM value as found in the Dockerfile.
     """
     if not os.path.isfile(dockerfile_path):
@@ -71,7 +102,7 @@ def _docker_parent_image_name(dockerfile_path: str, docker_hub_username: str) ->
                 assert parent_image, "Parent image should be set at this point."
 
                 # Remove version tag if it's one of our own images
-                if parent_image.startswith(docker_hub_username + '/'):
+                if parent_image.startswith(DOCKERHUB_USER + '/'):
                     parent_image = re.sub(r':(.+?)$', '', parent_image)
 
                 return parent_image
@@ -79,23 +110,21 @@ def _docker_parent_image_name(dockerfile_path: str, docker_hub_username: str) ->
     raise ValueError("No FROM clause found in {}.".format(dockerfile_path))
 
 
-def _image_belongs_to_username(image_name: str, docker_hub_username: str) -> bool:
+def _image_belongs_to_username(image_name: str) -> bool:
     """
     Determine whether an image is hosted under a given Docker Hub username and thus has to be built.
 
     :param image_name: Image name (with username, prefix and version).
-    :param docker_hub_username: Docker Hub username.
     :return: True if image is to be hosted on a Docker Hub account pointed to in configuration.
     """
-    return image_name.startswith(docker_hub_username + '/')
+    return image_name.startswith(DOCKERHUB_USER + '/')
 
 
-def _container_dependency_map(all_apps_dir: str, docker_hub_username: str) -> Dict[str, str]:
+def _container_dependency_map(all_apps_dir: str) -> Dict[str, str]:
     """
     Determine which container depends on which parent image.
 
     :param all_apps_dir: Directory with container subdirectories.
-    :param docker_hub_username: Docker Hub username.
     :return: Map of dependent - dependency container directory names.
     """
     if not os.path.isdir(all_apps_dir):
@@ -108,13 +137,11 @@ def _container_dependency_map(all_apps_dir: str, docker_hub_username: str) -> Di
             container_name = os.path.basename(container_path)
             image_name = _image_name_from_container_name(
                 container_name=container_name,
-                docker_hub_username=docker_hub_username,
             )
 
             dockerfile_path = os.path.join(container_path, 'Dockerfile')
             parent_docker_image = _docker_parent_image_name(
                 dockerfile_path=dockerfile_path,
-                docker_hub_username=docker_hub_username,
             )
 
             parent_images[image_name] = parent_docker_image
@@ -162,31 +189,28 @@ def _ordered_container_dependencies(dependencies: Dict[str, str]) -> List[Set[st
     return tree
 
 
-def _ordered_dependencies_from_directory(all_apps_dir: str, docker_hub_username: str) -> List[Set[str]]:
+def _ordered_dependencies_from_directory(all_apps_dir: str) -> List[Set[str]]:
     """
     Return a list of sets of container names to build in order.
 
     :param all_apps_dir: Directory with container subdirectories.
-    :param docker_hub_username: Docker Hub username.
     :return: List of sets of container names in the order in which they should be built.
     """
-    dependency_map = _container_dependency_map(all_apps_dir=all_apps_dir, docker_hub_username=docker_hub_username)
+    dependency_map = _container_dependency_map(all_apps_dir=all_apps_dir)
     ordered_dependencies = _ordered_container_dependencies(dependency_map)
     return ordered_dependencies
 
 
-def docker_images(all_apps_dir: str, only_belonging_to_user: bool, docker_hub_username: str) -> List[str]:
+def docker_images(all_apps_dir: str, only_belonging_to_user: bool) -> List[str]:
     """
     Return a list of Docker images to pull / build / push in the correct order.
 
     :param all_apps_dir: Directory with container subdirectories.
     :param only_belonging_to_user: If True, return only the images that belong to the configured user.
-    :param docker_hub_username: Docker Hub username.
     :return: List of tagged Docker images to pull / build / push in the correct order.
     """
     ordered_dependencies = _ordered_dependencies_from_directory(
         all_apps_dir=all_apps_dir,
-        docker_hub_username=docker_hub_username,
     )
 
     images = []
@@ -195,7 +219,7 @@ def docker_images(all_apps_dir: str, only_belonging_to_user: bool, docker_hub_us
         for dependency in sorted(level_dependencies):
 
             if only_belonging_to_user:
-                if not _image_belongs_to_username(image_name=dependency, docker_hub_username=docker_hub_username):
+                if not _image_belongs_to_username(image_name=dependency):
                     continue
 
             images.append(dependency)
@@ -381,44 +405,7 @@ class DockerComposeArgumentParser(DockerArgumentParser):
         return DockerComposeArguments(self._parser.parse_args())
 
 
-class DockerHubArguments(DockerArguments):
-    """
-    Arguments that include Docker Hub credentials.
-    """
-
-    def docker_hub_username(self) -> str:
-        """
-        Return a Docker Hub username.
-
-        :return: Docker Hub username.
-        """
-        return self._args.dockerhub_user
-
-
-class DockerHubArgumentParser(DockerArgumentParser):
-    """Argument parser which requires Docker Hub credentials."""
-
-    def __init__(self, description: str):
-        """
-        Constructor.
-
-        :param description: Description of the script to print when "--help" is passed.
-        """
-        super().__init__(description=description)
-
-        self._parser.add_argument('-u', '--dockerhub_user', required=False, type=str, default='dockermediacloud',
-                                  help='Docker Hub user that is hosting the images.')
-
-    def parse_arguments(self) -> DockerHubArguments:
-        """
-        Parse arguments and return an object with parsed arguments.
-
-        :return: DockerHubArguments object.
-        """
-        return DockerHubArguments(self._parser.parse_args())
-
-
-class DockerHubPruneArguments(DockerHubArguments):
+class DockerHubPruneArguments(DockerArguments):
     """
     Arguments that include Docker Hub credentials and whether to prune images.
     """
@@ -432,7 +419,7 @@ class DockerHubPruneArguments(DockerHubArguments):
         return self._args.prune_images
 
 
-class DockerHubPruneArgumentParser(DockerHubArgumentParser):
+class DockerHubPruneArgumentParser(DockerArgumentParser):
     """Argument parser which requires Docker Hub credentials and allows users to prune images."""
 
     def __init__(self, description: str):
