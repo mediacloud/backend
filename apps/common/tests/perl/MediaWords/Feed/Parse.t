@@ -6,7 +6,7 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use Test::NoWarnings;
-use Test::More tests => 38;
+use Test::More tests => 36;
 
 use_ok( 'MediaWords::Feed::Parse' );
 
@@ -128,7 +128,6 @@ sub main()
     binmode $builder->failure_output, ":utf8";
     binmode $builder->todo_output,    ":utf8";
 
-    test_empty_feed();
     test_rss_feed();
     test_atom_feed();
 }
