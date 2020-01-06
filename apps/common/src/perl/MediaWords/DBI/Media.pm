@@ -45,7 +45,7 @@ SQL
             die "Parsing failed: $@";
         }
 
-        unless ( $parse_feed ) {
+        unless ( $parsed_feed ) {
             die "Parsed feed is empty, probably the parsing failed.";
         }
     };
