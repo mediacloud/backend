@@ -10,8 +10,10 @@ use warnings;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
+use MediaWords::Feed::Parse;
+use MediaWords::Util::Web::UserAgent;
+
 use Readonly;
-use XML::FeedPP;
 
 # add a feed with the given url to the medium if the feed does not already exist and
 # if the feed validates
@@ -25,8 +27,32 @@ SQL
 
     return if $feed_exists;
 
-    eval { XML::FeedPP->new( $feed_url ) };
-    return if ( $@ );
+    eval {
+        my $ua = MediaWords::Util::Web::UserAgent->new();
+        $ua->set_timeout( 30 );
+        my $response = $ua->get( $feed_url );
+
+        unless ( $response->is_success() ) {
+            die "Unable to fetch feed: " . $response->status_line();
+        }
+
+        my $feed_xml = $response->decoded_content();
+        my $parsed_feed = undef;
+        eval {
+            $parsed_feed = MediaWords::Feed::Parse::parse_feed( $feed_xml );
+        };
+        if ( $@ ) {
+            die "Parsing failed: $@";
+        }
+
+        unless ( $parse_feed ) {
+            die "Parsed feed is empty, probably the parsing failed.";
+        }
+    };
+    if ( $@ ) {
+        WARN "Unable to add feed from URL $feed_url: $@";
+        return;
+    }
 
     $db->create( 'feeds', { media_id => $medium->{ media_id }, name => 'csv imported feed', url => $feed_url } );
 }
