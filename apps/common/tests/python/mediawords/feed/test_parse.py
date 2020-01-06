@@ -3,6 +3,32 @@ import re
 from mediawords.feed.parse import parse_feed
 
 
+def test_invalid_feeds():
+    # noinspection PyTypeChecker
+    assert parse_feed(None) is None, "Parsing None should have returned None."
+    assert parse_feed('') is None, "Parsing empty string should have returned None."
+    assert parse_feed('   ') is None, "Parsing whitespace should have returned None."
+
+    assert parse_feed("""
+        <html>
+        <head>
+            <title>Acme News</title>
+            <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+        </head>
+        <body>
+            <h1>Acme News</h1>
+            <p>
+                Blah blah yada yada.
+            </p>
+            <hr />
+            <p>
+                This page is totally not a valid RSS / Atom feed.
+            </p>
+        </body>
+        </html>
+    """) is None, "Parsing HTML should have returned None."
+
+
 def test_empty_feed():
     feed_text = """
 <?xml version="1.0" encoding="UTF-8"?>

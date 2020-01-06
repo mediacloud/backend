@@ -157,9 +157,16 @@ class SyndicatedFeed(object):
         # If we pass "feedparser" a simple string, it might interpret it as a URL and start fetching untrusted things
         assert hasattr(content_stream, 'read'), "Input must be a stream."
 
-        # assert False, "HELLO 1"
-
         parsed_feed = feedparser.parse(content_stream)
+
+        # "feedparser" goes as far as to consider a whitespace-filled string a valid feed. Some feeds might be
+        # malformed, especially big ones (for example, some misconfigured CDNs get bored of sending us back a response
+        # and cut us off in the middle of XML). To get the best of both worlds (allow "feedparser" to understand
+        # malformed feeds and for it to *not* consider HTML pages as valid feeds), we test for whether the module
+        # managed to determine the type of the feed, i.e. whether it's RSS, Atom, or CDF (whatever that is). If not,
+        # then we assume that the feed is something funky and it's not worth it to proceed with it.
+        if not parsed_feed.get('version', ''):
+            raise Exception("Feed type was not determined, not proceeding further.")
 
         self.__title = None
         feed = parsed_feed.get('feed', None)
@@ -202,6 +209,10 @@ def parse_feed(content: Union[str, bytes]) -> Optional[SyndicatedFeed]:
     #
     # * No "fix Atom content element encoding" as I wasn't sure what it did, and it didn't have any tests to cover the
     #   functionality.
+
+    if not content:
+        log.warning("Feed XML is unset.")
+        return None
 
     if not isinstance(content, bytes):
         content = content.encode('utf-8', errors='replace')
