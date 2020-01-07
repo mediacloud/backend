@@ -1805,6 +1805,8 @@ services:
         <<: *sysctl-defaults
         networks:
             - default
+        environment:
+            <<: *common-configuration
         expose:
             # Plackup FastCGI worker port to be used by webapp_httpd
             - "9090"
