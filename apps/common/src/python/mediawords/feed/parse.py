@@ -10,6 +10,7 @@ from typing import Optional, List, Union
 import feedparser
 
 from mediawords.util.log import create_logger
+from mediawords.util.parse_html import html_strip
 from mediawords.util.sql import get_sql_date_from_epoch
 from mediawords.util.url import is_homepage_url
 
@@ -34,7 +35,14 @@ class SyndicatedFeedItem(object):
         return self.__parsed_feed_entry.get('title', None)
 
     def description(self) -> Optional[str]:
-        """Return item description or content."""
+        """
+        Return item description or content with HTML stripped.
+
+        Prefers Atom's <content> or RSS's <content:encoded> as those are potentially longer; falls back to
+        <description>.
+        """
+
+        description = None
 
         # Atom's "<content>"
         content = self.__parsed_feed_entry.get('content', None)
@@ -43,14 +51,20 @@ class SyndicatedFeedItem(object):
                 content = content[0]
                 content_value = content.get('value', None)
                 if content_value:
-                    return content_value
+                    description = content_value
 
-        # RSS's "<content:encoded>"
-        content_encoded = self.__parsed_feed_entry.get('content:encoded', None)
-        if content_encoded:
-            return content_encoded
+        if not description:
+            # RSS's "<content:encoded>"
+            content_encoded = self.__parsed_feed_entry.get('content:encoded', None)
+            if content_encoded:
+                description = content_encoded
 
-        description = self.__parsed_feed_entry.get('description', None)
+        if not description:
+            description = self.__parsed_feed_entry.get('description', None)
+
+        if description:
+            description = html_strip(description)
+
         return description
 
     def _parsed_publish_date(self) -> Optional[tuple]:
