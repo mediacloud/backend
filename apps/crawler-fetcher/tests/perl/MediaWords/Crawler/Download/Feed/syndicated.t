@@ -201,6 +201,12 @@ __END_TEST_CASE__
 
 sub main()
 {
+    # Test::More UTF-8 output
+    my $builder = Test::More->builder;
+    binmode $builder->output,         ":utf8";
+    binmode $builder->failure_output, ":utf8";
+    binmode $builder->todo_output,    ":utf8";
+
     my $db = MediaWords::DB::connect_to_db();
 
     test_get_stories_from_syndicated_feed( $db );
