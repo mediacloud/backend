@@ -5,11 +5,13 @@
 FROM dockermediacloud/postgresql-base:latest
 
 # Install PgBouncer
-RUN apt-get -y --no-install-recommends install pgbouncer
+RUN \
+    apt-get -y --no-install-recommends install pgbouncer && \
+    rm -rf /etc/pgbouncer && \
+    true
 
 # Copy configuration
-COPY conf/pgbouncer.ini /etc/pgbouncer/
-COPY conf/userlist.txt /etc/pgbouncer/
+COPY conf/ /etc/pgbouncer/
 
 # Server
 EXPOSE 6432
