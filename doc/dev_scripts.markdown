@@ -16,6 +16,8 @@ Table of Contents
          * [Usage](#usage-4)
       * [run_all_tests.py - run all tests in their respective app's testing environments](#run_all_testspy---run-all-tests-in-their-respective-apps-testing-environments)
          * [Usage](#usage-5)
+      * [print_docker_run_in_stack.py - print <code>docker run</code> command that would join the production stack](#print_docker_run_in_stackpy---print-docker-run-command-that-would-join-the-production-stack)
+         * [Usage](#usage-6)
 
 ----
 <!-- MEDIACLOUD-TOC-END -->
@@ -27,7 +29,7 @@ While you can get away with using vanilla Docker and running `docker` and `docke
 
 Every script supports a `-h` argument which prints some rudimentary description on how to use the script.
 
-Also, every script has `-p` argument which, when passed, will print Docker or Docker Compose commands that are to be run instead of running them itself. This might be useful for:
+Also, almost every script (`print_docker_run_in_stack.py` being a notable exception) has `-p` argument which, when passed, will print Docker or Docker Compose commands that are to be run instead of running them itself. This might be useful for:
 
 * **Debugging and learning** - `./dev/run.py -p common bash` would print a list of Docker Compose commands that would set up a new Compose environment using `common`'s `docker-compose.tests.yml`, run `bash` in it, and lastly destroy said environment.
 * **Cherry-picking which commands to run** - `./dev/pull.py -p | grep solr` will print a list of commands to pull only the container images that have a string `solr` in their name; `./dev/pull.py -p | grep solr | bash` would run the commands instead of just printing them.
@@ -233,3 +235,39 @@ and / or to parallelize tests with `parallel` utility:
 # of every command to "joblog.txt"
 $ ./dev/run_all_tests.py -p | parallel --jobs 4 --group --joblog joblog.txt
 ```
+
+
+## `print_docker_run_in_stack.py` - print `docker run` command that would join the production stack
+
+Print a `docker run` command that would:
+
+* Start a new container using a given service's image name and production environment variables;
+* Join said container to the production Docker stack.
+
+### Usage
+
+To get a command that would start a new container using `topics-mine` image (assuming that your production `docker-compose.yml` is available at `~/production-docker-config/docker-compose.yml`), run:
+
+```shell
+$ ./dev/print_docker_run_in_stack.py ~/production-docker-config/docker-compose.yml topics-mine
+```
+
+which will then print:
+
+```
+Here's a "docker run" command that will:
+
+* Start a new container using "topics-mine" service's image and environment variables;
+* Make the container join "mediacloud" Docker stack;
+* Run "bash" in said container:
+    
+ docker run -it --network mediacloud_default -e MC_DOWNLOADS_STORAGE_LOCATIONS=amazon_s3 -e MC_DOWNLOADS_READ_ALL_FROM_S3=1 -e MC_DOWNLOADS_FALLBACK_POSTGRESQL_TO_S3=1 -e MC_DOWNLOADS_CACHE_S3=0 -e MC_DOWNLOADS_AMAZON_S3_ACCESS_KEY_ID=<...> -e MC_DOWNLOADS_AMAZON_S3_SECRET_ACCESS_KEY=<...> -e MC_DOWNLOADS_AMAZON_S3_BUCKET_NAME=<...> -e MC_DOWNLOADS_AMAZON_S3_DIRECTORY_NAME=<...> -e MC_EMAIL_FROM_ADDRESS=<...> -e MC_USERAGENT_BLACKLIST_URL_PATTERN=<...> -e MC_USERAGENT_AUTHENTICATED_DOMAINS=<...> -e MC_USERAGENT_PARALLEL_GET_NUM_PARALLEL=<...> -e MC_USERAGENT_PARALLEL_GET_TIMEOUT=30 -e MC_USERAGENT_PARALLEL_GET_PER_DOMAIN_TIMEOUT=1 -e MC_TOPICS_BASE_TOPIC_ALERT_EMAILS=<...> -e MC_TWITTER_CONSUMER_KEY=<...> -e MC_TWITTER_CONSUMER_SECRET=<...> -e MC_TWITTER_ACCESS_TOKEN=<...> -e MC_TWITTER_ACCESS_TOKEN_SECRET=<...> -e MC_CRIMSON_HEXAGON_API_KEY=<...> dockermediacloud/topics-mine:release bash
+
+Make sure to:
+
+* Preserve a single whitespace in front of the command so that the command doesn't get logged in shell history;
+* Verify that you're starting a container using a correct image tag, e.g. "release".  
+
+```
+
+You can then copy a `docker run` command generated on your local development computer to a chosen production server and run it to start a new `topics-mine` container together with the configuration environment variables and the production network.
