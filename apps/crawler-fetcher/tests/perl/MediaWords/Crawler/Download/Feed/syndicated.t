@@ -1,6 +1,8 @@
 # test MediaWords::Crawler::Download::Feed::Syndicated against manually extracted downloads
 
 use strict;
+use warnings;
+use utf8;
 
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
