@@ -89,7 +89,7 @@ __END_TEST_CASE__
                     'title' => 'Why Life is Too Short for Spiral Notebooks',
                     'guid'  => 'http://blogs.law.harvard.edu/dlarochelle/?p=350',
                     'description' =>
-'One of the things that I learned in 2011 is that spiral notebooks should be avoid where ever possible.'
+'One of the things that I learned in 2011 is that spiral notebooks should be avoid where ever possible. This post will detail why I’ve switched to using wireless bound notebooks exclusively.'
                 }
             ]
         },
@@ -164,7 +164,7 @@ __END_TEST_CASE__
                     'title' => '(no title)',
                     'guid'  => 'http://blogs.law.harvard.edu/dlarochelle/?p=350',
                     'description' =>
-'One of the things that I learned in 2011 is that spiral notebooks should be avoid where ever possible.'
+'One of the things that I learned in 2011 is that spiral notebooks should be avoid where ever possible. This post will detail why I’ve switched to using wireless bound notebooks exclusively.'
                 }
             ]
         },
