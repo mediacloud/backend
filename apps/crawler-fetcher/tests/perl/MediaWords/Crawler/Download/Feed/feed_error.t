@@ -58,7 +58,7 @@ sub test_invalid_feed($)
     my $pages = {
 
         # Feed with XML error
-        '/foo' => '<rss version="2.0"><kim_kardashian></rss>',
+        '/foo' => '<kim_kardashian>',
     };
 
     my $hs = MediaWords::Test::HashServer->new( $HTTP_PORT, $pages );
