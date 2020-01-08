@@ -39,13 +39,14 @@ use MediaWords::CommonLibs;
 use List::Util;
 use Readonly;
 
+use MediaWords::DBI::Activities;
+use MediaWords::DBI::Snapshots;
+use MediaWords::JobManager::Job;
 use MediaWords::Solr;
 use MediaWords::TM::Alert;
 use MediaWords::TM::Model;
 use MediaWords::TM::Snapshot::Views;
 use MediaWords::Util::SQL;
-use MediaWords::DBI::Activities;
-use MediaWords::JobManager::Job;
 
 # possible values of snapshots.bot_policy
 Readonly our $POLICY_NO_BOTS   => 'no bots';
@@ -924,41 +925,6 @@ sub _generate_snapshots_from_temporary_snapshot_tables
     map { create_snap_snapshot( $db, $cd, $_ ) } @{ $snapshot_tables };
 }
 
-# create the snapshot row for the current snapshot
-sub _create_snapshot_row ($$$$;$$)
-{
-    my ( $db, $topic, $start_date, $end_date, $note, $bot_policy ) = @_;
-
-    $note //= '';
-
-    my $topics_id = $topic->{ topics_id };
-
-    my $tsqs = $db->query( 'select * from topic_seed_queries where topics_id = ?', $topics_id )->hashes();
-
-    my $topic_media_tags = $db->query( "select * from topics_media_tags_map where topics_id = ?", $topics_id )->hashes;
-    my $topic_media = $db->query( "select * from topics_media_map where topics_id = ?", $topics_id )->hashes;
-
-    my $seed_queries = {
-        topic => $topic,
-        topic_media => $topic_media,
-        topic_media_tags => $topic_media_tags,
-        topic_seed_queries => $tsqs
-    };
-
-    my $seed_queries_json = MediaWords::Util::ParseJSON::encode_json( $seed_queries );
-
-    my $cd = $db->query( <<END, $topics_id, $start_date, $end_date, $note, $bot_policy, $seed_queries_json )->hash;
-insert into snapshots
-    ( topics_id, start_date, end_date, snapshot_date, note, bot_policy, seed_queries )
-    values ( ?, ?, ?, now(), ?, ?, ? )
-    returning *
-END
-
-    $cd->{ topic } = $topic;
-
-    return $cd;
-}
-
 # generate period spanshots for each period / focus / timespan combination
 sub _generate_period_focus_snapshots ( $$$ )
 {
@@ -1057,7 +1023,7 @@ sub snapshot_topic ($$;$$$$)
     my $snap =
         $snapshots_id
       ? $db->require_by_id( 'snapshots', $snapshots_id )
-      : _create_snapshot_row( $db, $topic, $start_date, $end_date, $note, $bot_policy );
+      : MediaWords::DBI::Snapshots::create_snapshot_row( $db, $topic, $start_date, $end_date, $note, $bot_policy );
 
     _update_job_state_args( $db, { snapshots_id => $snap->{ snapshots_id } } );
     _update_job_state_message( $db, "snapshotting data" );

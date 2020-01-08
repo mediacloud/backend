@@ -58,7 +58,8 @@ sub list_GET
             note,
             state,
             searchable,
-            message
+            message,
+            seed_queries
         FROM snapshots
         WHERE topics_id = \$1
         ORDER BY snapshots_id DESC
@@ -101,11 +102,7 @@ sub create_GET
 
     my $note = $data->{ note } || '';
 
-    my $snapshot = $db->query( <<SQL, $note, 'created but not queued', $topics_id )->hash();
-insert into snapshots ( topics_id, snapshot_date, start_date, end_date, note, state )
-    select topics_id, now(), start_date, end_date, ?, ? from topics where topics_id = ?
-    returning *
-SQL
+    my $snapshot = MediaWords::DBI::Snapshots::create_snapshot_row( $db, $topic );
 
     $self->status_ok( $c, entity => { snapshot => $snapshot } );
 }
