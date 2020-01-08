@@ -2,6 +2,7 @@
 Parse RSS / Atom feeds.
 """
 
+import calendar
 import io
 import re
 import time
@@ -94,16 +95,15 @@ class SyndicatedFeedItem(object):
         return iso8601_date
 
     def publish_date_sql(self) -> Optional[str]:
-        """Return item publication date as a PostgreSQL-formatted string."""
+        """Return item publication date as a PostgreSQL-formatted string in a local timezone."""
         postgresql_date = None
 
         published_tuple = self._parsed_publish_date()
         if published_tuple:
             # FIXME unfortunately, Perl's implementation would make the timezone vanish, so dates & times would get
-            # stored in machine's timezone in PostgreSQL (America/New_York in production). We haven't added timezone to
-            # stories.publish_date column yet so we have to keep the present buggy behavior here.
-            timestamp = int(time.mktime(published_tuple))
-
+            # stored in machine's timezone in PostgreSQL (which is set to America/New_York in production). We haven't
+            # added timezone to stories.publish_date column yet so we have to keep the present buggy behavior here.
+            timestamp = int(calendar.timegm(published_tuple))
             postgresql_date = get_sql_date_from_epoch(timestamp)
 
         return postgresql_date
