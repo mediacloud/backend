@@ -14,6 +14,7 @@ use Test::More;
 
 use MediaWords::DB;
 use MediaWords::DBI::Auth::Roles;
+use MediaWords::DBI::Snapshots;
 use MediaWords::Solr::Query::Parse;
 use MediaWords::Test::API;
 use MediaWords::Test::Rows;
@@ -126,6 +127,7 @@ sub create_test_data($$)
     }
 
     $topic_media_sources = MediaWords::Test::DB::Create::add_content_to_test_story_stack( $test_db, $topic_media_sources );
+
 
     MediaWords::JobManager::Job::run_remotely( 'MediaWords::Job::TM::SnapshotTopic', { topics_id => $topic->{ topics_id } } );
 
@@ -596,8 +598,8 @@ sub test_snapshots_generate($)
     ok( $r->{ job_state }, "$label return includes job_state" );
 
     ok(
-        $r->{ 'job_state' }->{ 'state' } eq $MediaWords::JobManager::AbstractStatefulJob::STATE_QUEUED or    #
-        $r->{ 'job_state' }->{ 'state' } eq $MediaWords::JobManager::AbstractStatefulJob::STATE_RUNNING,     #
+        ( $r->{ 'job_state' }->{ 'state' } eq $MediaWords::JobManager::AbstractStatefulJob::STATE_QUEUED  ) or
+        ( $r->{ 'job_state' }->{ 'state' } eq $MediaWords::JobManager::AbstractStatefulJob::STATE_RUNNING ),
         "$label state"
     );
     is( $r->{ job_state }->{ topics_id }, $topic->{ topics_id }, "$label topics_id" );
@@ -614,6 +616,60 @@ sub test_snapshots_generate($)
     is( $r->{ job_states }->[ 0 ]->{ topics_id }, $topic->{ topics_id }, "$label topics_id" );
 }
 
+# test snapshots/list call
+sub test_snapshots_list($)
+{
+    my ( $db ) = @_;
+
+    my $label = "snapshots list";
+
+    my $topic = MediaWords::Test::DB::Create::create_test_topic( $db, $label );
+
+    my $topics_id = $topic->{ topics_id };
+
+    my $tsq = {
+        source => 'csv',
+        platform => 'generic_post',
+        topics_id => $topics_id,
+        query => 'test query'
+    };
+    $tsq = $db->create( 'topic_seed_queries', $tsq );
+
+    my $expected_snapshot = MediaWords::DBI::Snapshots::create_snapshot_row( $db, $topic, '2018-01-01', '2019-01-01');
+
+    my $r = MediaWords::Test::API::test_get( "/api/v2/topics/$topics_id/snapshots/list" );
+
+    my $got_snapshots = $r->{ snapshots };
+
+    is( scalar( @{ $got_snapshots } ), 1, "$label number of snapshots" );
+
+    my $got_snapshot = $got_snapshots->[ 0 ];
+
+    for my $field ( qw/snapshots_id note state message snapshot_date searchable/ )
+    {
+        is( $got_snapshot->{ $field }, $expected_snapshot->{ $field }, "$label snapshot field $field" );
+    }
+
+    ok( $got_snapshot->{ word2vec_models } );
+
+    ok( $got_snapshot->{ seed_queries } );
+    ok( $got_snapshot->{ seed_queries }->{ topic } );
+
+    for my $field ( qw/topics_id sold_seed_query solr_seed_query_run start_date end_date/ )
+    {
+        is( $got_snapshot->{ seed_queries }->{ topic }->{ $field }, $topic->{ $field } );
+    }
+
+    ok( $got_snapshot->{ seed_queries }->{ topic_seed_queries } );
+    is( scalar( @{ $got_snapshot->{ seed_queries }->{ topic_seed_queries } } ), 1 );
+
+    for my $field ( qw/platform source query topics_id/ )
+    {
+        is( $got_snapshot->{ seed_queries }->{ topic_seed_queries }->[ 0 ]->{ $field }, $tsq->{ $field } );
+    }
+}
+
+
 # test snapshots/* calls
 sub test_snapshots($)
 {
@@ -621,6 +677,7 @@ sub test_snapshots($)
 
     test_snapshots_create( $db );
     test_snapshots_generate( $db );
+    test_snapshots_list( $db );
 }
 
 # test stories/facebook list

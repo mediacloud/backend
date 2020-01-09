@@ -6,6 +6,11 @@ Table of Contents
    * [tools app](#tools-app)
       * [Run tool in background](#run-tool-in-background)
       * [Attach tool to existing network](#attach-tool-to-existing-network)
+         * [In development](#in-development)
+         * [In production](#in-production)
+      * [Notes](#notes)
+         * [Tags](#tags)
+         * [Network names](#network-names)
       * [What is and isn't a "tool"](#what-is-and-isnt-a-tool)
 
 ----
@@ -41,7 +46,10 @@ Tue Jun 11 08:33:03 EDT 2019
 
 ## Attach tool to existing network
 
-If a tool is expected to access an existing Docker Compose environment (e.g. you want to run a tool against a production database), you can attach the tool container to said environment's network:
+
+### In development
+
+If a tool is expected to access an existing Docker Compose environment, you can attach the tool container to said environment's network:
 
 ```bash
 # (terminal 1) Create a sample network to attach to
@@ -59,7 +67,7 @@ cfeb15e2338f        mc-common-bash_default   bridge              local
 
 # (terminal 2) Using the "tools" image, start a new container with "bash" set as command and attach
 # it to the sample network that we've created in terminal 1
-$ docker run --network mediacloud_default -it dockermediacloud/tools:release bash
+$ docker run --network mc-common-bash_default -it dockermediacloud/tools:release bash
 
 # Container is now connected to the network and is able to access containers in it
 mediacloud@24352eba1be1:/$ ping -c 1 postgresql-pgbouncer
@@ -70,6 +78,13 @@ PING postgresql-pgbouncer (172.18.0.6) 56(84) bytes of data.
 1 packets transmitted, 1 received, 0% packet loss, time 0ms
 rtt min/avg/max/mdev = 0.165/0.165/0.165/0.000 ms
 ```
+
+### In production
+
+If you'd like to run a one-off `tools` (or any other) container in production, you might want to not only join the right production network but also set the configuration environment variables in the container.
+
+For that purpose, consider using `print_docker_run_in_stack.py` script; please see [Developer scripts](dev_scripts.markdown).
+
 
 ## Notes
 

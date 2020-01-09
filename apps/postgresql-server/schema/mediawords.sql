@@ -24,7 +24,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4733;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4734;
 BEGIN
 
     -- Update / set database schema version
@@ -2068,7 +2068,8 @@ create table snapshots (
     state                   text not null default 'queued',
     message                 text null,
     searchable              boolean not null default false,
-    bot_policy              bot_policy_type null
+    bot_policy              bot_policy_type null,
+    seed_queries            jsonb
 );
 
 create index snapshots_topic on snapshots ( topics_id );

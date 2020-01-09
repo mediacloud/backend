@@ -482,9 +482,17 @@ or found seed query.
 | Field      | Description                              |
 | ---------- | ---------------------------------------- |
 | topics\_id | topic id |
-| platform   | platform for which to pull data: 'twitter' or 'web' |
-| source     | api to use as source for data: 'crimson\_hexagon' or 'archive\_org' |
+| platform   | platform for which to pull data |
+| source     | api to use as source for data |
 | query      | source specific query to return data |
+
+Below is a list of the currently supported source / platform combinations.  This list will change as we add support
+for more sources and platforms.
+
+| Source | Platform |
+---------------------
+| crimson\_hexagon | twitter |
+| csv | generic\_post |
 
 ### Example
 

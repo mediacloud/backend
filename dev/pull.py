@@ -16,39 +16,36 @@ This script can print the commands that are going to be run instead of running t
 import subprocess
 from typing import List
 
-from utils import docker_images, docker_tag_from_current_git_branch_name, DockerHubPruneArgumentParser
+from utils import docker_images, docker_tag_from_current_git_branch_name, DockerHubPruneArgumentParser, DOCKERHUB_USER
 
 
-def _docker_images_to_pull(all_apps_dir: str, docker_hub_username: str) -> List[str]:
+def _docker_images_to_pull(all_apps_dir: str) -> List[str]:
     """
     Return an ordered list of Docker images to pull.
 
     :param all_apps_dir: Directory with container subdirectories.
-    :param docker_hub_username: Docker Hub username.
     :return: List of tagged Docker images to pull in that order.
     """
     return docker_images(
         all_apps_dir=all_apps_dir,
         only_belonging_to_user=False,
-        docker_hub_username=docker_hub_username,
     )
 
 
-def _docker_pull_commands(all_apps_dir: str, image_tag: str, docker_hub_username: str, prune_images: bool) -> List[str]:
+def _docker_pull_commands(all_apps_dir: str, image_tag: str, prune_images: bool) -> List[str]:
     """
     Return an ordered list of "docker pull" commands to run in order to pull all images.
 
     :param all_apps_dir: Directory with container subdirectories.
     :param image_tag: Docker image tag.
-    :param docker_hub_username: Docker Hub username.
     :param prune_images: True if images are to be pruned after pulling each image to clean up disk space immediately.
     :return: List of "docker pull" commands to run in order to pull all images.
     """
     commands = []
 
-    for image in _docker_images_to_pull(all_apps_dir=all_apps_dir, docker_hub_username=docker_hub_username):
+    for image in _docker_images_to_pull(all_apps_dir=all_apps_dir):
 
-        if image.startswith(docker_hub_username_ + '/'):
+        if image.startswith(DOCKERHUB_USER + '/'):
 
             # 1) First try to pull the image for the current branch
             # 2) if that fails (e.g. the branch is new and it hasn't yet been built and tagged on Docker Hub), pull
@@ -83,12 +80,10 @@ def _docker_pull_commands(all_apps_dir: str, image_tag: str, docker_hub_username
 if __name__ == '__main__':
     parser = DockerHubPruneArgumentParser(description='Print commands to pull all container images.')
     args = parser.parse_arguments()
-    docker_hub_username_ = args.docker_hub_username()
 
     commands_ = _docker_pull_commands(
         all_apps_dir=args.all_apps_dir(),
         image_tag=docker_tag_from_current_git_branch_name(),
-        docker_hub_username=docker_hub_username_,
         prune_images=args.prune_images(),
     )
 
