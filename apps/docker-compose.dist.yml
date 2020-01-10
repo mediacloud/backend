@@ -1068,6 +1068,53 @@ services:
                     memory: "256M"
 
     #
+    # Fetch story podcast episode and store it in GCS
+    # -----------------------------------------------
+    #
+    podcast-fetch-episode:
+        image: dockermediacloud/podcast-fetch-episode:release
+        <<: *sysctl-defaults
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+            # GCS bucket name
+            MC_GCS_BUCKET_NAME: "mediacloud-story-podcast-episodes"
+            # GCS path prefix
+            MC_GCS_PATH_PREFIX: "episodes"
+            # GCS authentication JSON string
+            # (make sure to read about adding multiline strings to YAML under
+            # MC_USERAGENT_AUTHENTICATED_DOMAINS)
+            MC_GCS_CREDENTIALS_JSON_STRING: '
+                {
+                    "type": "service_account",
+                    "project_id": "example",
+                    "private_key_id": "7f169a21d3f80974364bcf09f2047ea0efb5683a",
+                    "private_key": "-----BEGIN PRIVATE KEY-----\n<...>\n-----END PRIVATE KEY-----\n",
+                    "client_email": "example@example.iam.gserviceaccount.com",
+                    "client_id": "123",
+                    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+                    "token_uri": "https://oauth2.googleapis.com/token",
+                    "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+                    "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/example%40example.iam.gserviceaccount.com"
+                }
+            '
+        depends_on:
+            - postgresql-pgbouncer
+            - rabbitmq-server
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            <<: *endpoint-mode-dnsrr
+            # Worker count
+            replicas: 1
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "1G"
+
+    #
     # pgAdmin
     # ---------
     #
