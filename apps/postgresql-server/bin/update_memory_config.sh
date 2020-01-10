@@ -5,7 +5,7 @@ set -e
 
 MC_POSTGRESQL_BIN_DIR="/usr/lib/postgresql/11/bin/"
 MC_POSTGRESQL_DATA_DIR="/var/lib/postgresql/11/main/"
-MC_POSTGRESQL_MEMORY_CONF_PATH="/etc/postgresql/11/main/postgresql-memory.conf"
+MC_POSTGRESQL_MEMORY_CONF_PATH="/var/run/postgresql/postgresql-memory.conf"
 
 # Adjust configuration based on amount of RAM
 MC_RAM_SIZE=$(/container_memory_limit.sh)

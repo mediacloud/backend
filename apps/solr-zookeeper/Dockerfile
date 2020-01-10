@@ -15,10 +15,12 @@ RUN \
         > /var/tmp/zookeeper.tgz && \
     mkdir -p /opt/zookeeper/ && \
     tar -zxf /var/tmp/zookeeper.tgz -C /opt/zookeeper --strip 1 && \
-    rm /var/tmp/zookeeper.tgz
+    rm /var/tmp/zookeeper.tgz && \
+    rm -rf /opt/zookeeper/conf/ && \
+    true
 
 # Copy configuration
-COPY conf/zoo.cfg /opt/zookeeper/conf/
+COPY conf/ /opt/zookeeper/conf/
 
 COPY bin/init_solr_config.sh bin/zookeeper.sh /
 

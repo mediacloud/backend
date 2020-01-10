@@ -34,21 +34,33 @@ services:
         <<: *solr-shard_base
         volumes:
             - vol_solr_shard_data_01:/var/lib/solr/
+            - type: bind
+              source: ./bin/solr-shard.sh
+              target: /solr-shard.sh
 
     solr-shard_02:
         <<: *solr-shard_base
         volumes:
             - vol_solr_shard_data_02:/var/lib/solr/
+            - type: bind
+              source: ./bin/solr-shard.sh
+              target: /solr-shard.sh
 
     solr-shard_03:
         <<: *solr-shard_base
         volumes:
             - vol_solr_shard_data_03:/var/lib/solr/
+            - type: bind
+              source: ./bin/solr-shard.sh
+              target: /solr-shard.sh
 
     solr-shard_04:
         <<: *solr-shard_base
         volumes:
             - vol_solr_shard_data_04:/var/lib/solr/
+            - type: bind
+              source: ./bin/solr-shard.sh
+              target: /solr-shard.sh
 
     solr-zookeeper:
         image: dockermediacloud/solr-zookeeper:latest
@@ -59,6 +71,13 @@ services:
             - 3888
         networks:
             - default
+        volumes:
+            - type: bind
+              source: ./../solr-zookeeper/conf/
+              target: /opt/zookeeper/conf/
+            - type: bind
+              source: ./../solr-zookeeper/bin/zookeeper.sh
+              target: /zookeeper.sh
 
 networks:
     default:
