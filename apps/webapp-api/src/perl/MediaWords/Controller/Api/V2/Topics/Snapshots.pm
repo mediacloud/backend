@@ -8,6 +8,7 @@ use base 'Catalyst::Controller';
 use Moose;
 use namespace::autoclean;
 
+use MediaWords::DBI::Snapshots;
 use MediaWords::KeyValueStore::PostgreSQL;
 
 BEGIN { extends 'MediaWords::Controller::Api::V2::MC_Controller_REST' }
