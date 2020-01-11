@@ -2078,7 +2078,8 @@ Return a list of all completed *snapshots* in the given *topic*.
 | state           | state of the snapshotting process      |
 | message         | more detailed message about the state of the snapshotting process |
 | searchable      | boolean indicating whether timespans are searchable yet |
-| word2vec_models | List of word2vec models generated for the snapshot |
+| word2vec_models | list of word2vec models generated for the snapshot |
+| seed\_queries   | snapshot of the state of the topics, topics\_media, topics\_media\_tags, and topic\_seed\_queries rows for the topic at the time of the snapshot |
 
 The state indicates the state of the current snapshot process, including but not limited to 'completed' for a snapshot
 whose process has successfully completed and 'error' for a snapshot that failed for some reason.
@@ -2096,22 +2097,87 @@ Response:
 
 ```json
 {
-    "snapshots":
-    [
+  "snapshots": [
+    {
+      "snapshot_date": "2020-01-10 17:36:57.514396",
+      "snapshots_id": 4216,
+      "state": "completed",
+      "message": "",
+      "note": "",
+      "searchable": true,
+      "word2vec_models": [
         {
-            "snapshots_id": 6789,
-            "snapshot_date": "2016-09-29 18:14:47.481252",
-            "note": "final snapshot for paper analysis",
-            "state": "completed",
-            "word2vec_models": [
-               {
-                  "models_id": 1,
-                  "creation_date": "2018-01-31 20:59:57.559360"
-               }
-            ]
+          "creation_date": "2020-01-10 18:28:20.708794",
+          "models_id": 2628,
+          "snapshots_id": 4216
         }
-    ]
+      ],
+      "seed_queries": {
+        "topic": {
+          "description": "coverage of the october 2018 central american migrant caravan",
+          "end_date": "2019-06-22",
+          "import_twitter_urls": false,
+          "is_logogram": false,
+          "is_public": false,
+          "is_story_index_ready": false,
+          "job_queue": "mc",
+          "max_iterations": 15,
+          "max_stories": 100000,
+          "media_type_tag_sets_id": null,
+          "message": "",
+          "mode": "web",
+          "name": "caravan",
+          "num_iterations": 15,
+          "pattern": "caravan",
+          "platform": "web",
+          "process_with_bitly": false,
+          "respider_end_date": null,
+          "respider_start_date": null,
+          "respider_stories": false,
+          "solr_seed_query": "caravan",
+          "solr_seed_query_run": true,
+          "start_date": "2018-10-11",
+          "state": "completed",
+          "topics_id": 2584,
+          "url_pattern": null
+        },
+        "topic_media": [],
+        "topic_media_tags": [
+          {
+            "tags_id": 9360524,
+            "topics_id": 2584
+          },
+          {
+            "tags_id": 9360523,
+            "topics_id": 2584
+          },
+          {
+            "tags_id": 9360522,
+            "topics_id": 2584
+          },
+          {
+            "tags_id": 9360520,
+            "topics_id": 2584
+          },
+          {
+            "tags_id": 9360521,
+            "topics_id": 2584
+          },
+          {
+            "tags_id": 57078150,
+            "topics_id": 2584
+          },
+          {
+            "tags_id": 58722749,
+            "topics_id": 2584
+          }
+        ],
+        "topic_seed_queries": []
+      },
+    },
+  ]
 }
+
 ```
 
 
