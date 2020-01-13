@@ -24,7 +24,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4734;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4735;
 BEGIN
 
     -- Update / set database schema version
@@ -1850,8 +1850,8 @@ create type topic_source_type AS enum ( 'mediacloud', 'crimson_hexagon', 'archiv
 create table topics (
     topics_id        serial primary key,
     name                    varchar(1024) not null,
-    pattern                 text not null,
-    solr_seed_query         text not null,
+    pattern                 text,
+    solr_seed_query         text,
     solr_seed_query_run     boolean not null default false,
     description             text not null,
     media_type_tag_sets_id  int references tag_sets,

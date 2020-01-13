@@ -340,6 +340,40 @@ sub _test_sort($$$$)
     is_deeply( $actual_stories_inlink_counts, $expected_counts, 'expected stories' );
 }
 
+# test empty topic creation
+sub test_topics_create_empty($)
+{
+    my ( $db ) = @_;
+
+    my $label = "create empty topic";
+
+    my $input = {
+        name                 => "$label name ",
+        description          => "$label description",
+        max_iterations       => 0,
+        start_date           => '2016-01-01',
+        end_date             => '2017-01-01',
+        is_public            => 1,
+        is_logogram          => 0,
+        is_story_index_ready => 1,
+        max_stories          => 1234,
+        platform             => 'web',
+        ch_monitor_id        => 0
+    };
+
+    my $r = MediaWords::Test::API::test_post( '/api/v2/topics/create', $input );
+
+    ok( $r->{ topics }, "$label JSON includes topics" );
+    my $got_topic = $r->{ topics }->[ 0 ];
+
+    my $exists_in_db = $db->find_by_id( "topics", $got_topic->{ topics_id } );
+    ok( $exists_in_db, "$label topic exists in db" );
+
+    my $test_fields =
+      [ qw/name description max_ierations start_date end_date is_public ch_monitor_id max_stories/ ];
+    map { is( $got_topic->{ $_ }, $input->{ $_ }, "$label $_" ) } @{ $test_fields };
+}
+
 # test topics create and update
 sub test_topics_crud($)
 {
@@ -558,6 +592,7 @@ sub test_topics($)
     my ( $db ) = @_;
 
     test_topics_list( $db );
+    test_topics_create_empty( $db );
     test_topics_crud( $db );
     test_topics_spider( $db );
 }
