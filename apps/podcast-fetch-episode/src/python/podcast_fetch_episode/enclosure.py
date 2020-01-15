@@ -1,5 +1,5 @@
 import dataclasses
-from typing import Optional
+from typing import Optional, Dict, Any
 
 from furl import furl
 
@@ -19,7 +19,7 @@ MAX_ENCLOSURE_SIZE = 1024 * 1024 * 500
 @dataclasses.dataclass
 class StoryEnclosure(object):
     """Single story enclosure derived from feed's <enclosure /> element."""
-    podcast_story_enclosures_id: int
+    story_enclosures_id: int
     url: str
     mime_type: Optional[str]
     length: Optional[int]
@@ -53,17 +53,26 @@ class StoryEnclosure(object):
                 return True
         return False
 
+    @classmethod
+    def from_db_row(cls, db_row: Dict[str, Any]) -> 'StoryEnclosure':
+        return cls(
+            story_enclosures_id=db_row['story_enclosures_id'],
+            url=db_row['url'],
+            mime_type=db_row['mime_type'],
+            length=db_row['length'],
+        )
+
 
 def podcast_viable_enclosure_for_story(db: DatabaseHandler, stories_id: int) -> Optional[StoryEnclosure]:
     """Fetch all enclosures, find and return the one that looks like a podcast episode the most (or None)."""
     story_enclosures_dicts = db.query("""
         SELECT *
-        FROM podcast_story_enclosures
+        FROM story_enclosures
         WHERE stories_id = %(stories_id)s
 
         -- Returning by insertion order so the enclosures listed earlier will have a better chance of being considered
         -- episodes  
-        ORDER BY podcast_story_enclosures_id
+        ORDER BY story_enclosures_id
     """, {
         'stories_id': stories_id,
     }).hashes()
@@ -76,12 +85,7 @@ def podcast_viable_enclosure_for_story(db: DatabaseHandler, stories_id: int) -> 
 
     for enclosure_dict in story_enclosures_dicts:
         if is_http_url(enclosure_dict['url']):
-            story_enclosures.append(StoryEnclosure(
-                podcast_story_enclosures_id=enclosure_dict['podcast_story_enclosures_id'],
-                url=enclosure_dict['url'],
-                mime_type=enclosure_dict['mime_type'],
-                length=enclosure_dict['length'],
-            ))
+            story_enclosures.append(StoryEnclosure.from_db_row(db_row=enclosure_dict))
 
     chosen_enclosure = None
 

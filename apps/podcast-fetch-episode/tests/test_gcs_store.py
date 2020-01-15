@@ -1,4 +1,3 @@
-import datetime
 import os
 import tempfile
 from unittest import TestCase
@@ -9,6 +8,8 @@ from podcast_fetch_episode.config import PodcastFetchEpisodeConfig
 from podcast_fetch_episode.exceptions import McPodcastMisconfiguredGCSException
 
 from podcast_fetch_episode.gcs_store import GCSStore
+
+from .config_random_gcs_prefix import RandomPathPrefixConfig
 
 
 class TestGCSStore(TestCase):
@@ -59,17 +60,6 @@ class TestGCSStore(TestCase):
         assert gcs.object_uri(object_id='a') == f'gs://{config.gcs_bucket_name()}/foo/bar/a'
 
     def test_store_exists_delete(self):
-        class RandomPathPrefixConfig(PodcastFetchEpisodeConfig):
-            _RANDOM_PREFIX = None
-
-            @staticmethod
-            def gcs_path_prefix() -> str:
-                if not RandomPathPrefixConfig._RANDOM_PREFIX:
-                    date = datetime.datetime.utcnow().replace(microsecond=0).isoformat()
-                    date = date.replace(':', '_')
-                    RandomPathPrefixConfig._RANDOM_PREFIX = f'tests-{date}'
-                return RandomPathPrefixConfig._RANDOM_PREFIX
-
         config = RandomPathPrefixConfig()
         gcs = GCSStore(config=config)
 

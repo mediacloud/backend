@@ -97,7 +97,7 @@ class GCSStore(object):
             blob.reload()
 
         except NotFound as ex:
-            log.warning(f"Object '{object_id}' was not found: {ex}")
+            log.debug(f"Object '{object_id}' was not found: {ex}")
             exists = False
 
         except Exception as ex:

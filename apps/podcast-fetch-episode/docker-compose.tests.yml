@@ -7,7 +7,8 @@ services:
         stop_signal: SIGKILL
         environment:
             MC_GCS_BUCKET_NAME: "${MC_GCS_BUCKET_NAME}"
-            MC_GCS_PATH_PREFIX: "${MC_GCS_PATH_PREFIX}"
+            # Dev/test environment doesn't use "MC_GCS_PATH_PREFIX" environment variable as it creates a different,
+            # timestamped prefix for every test that's run
             MC_GCS_CREDENTIALS_JSON_STRING: "${MC_GCS_CREDENTIALS_JSON_STRING}"
         volumes:
             - type: bind

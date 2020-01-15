@@ -1,6 +1,7 @@
 import os
 import shutil
 import tempfile
+from typing import Optional
 
 from mediawords.db import DatabaseHandler
 from mediawords.util.identify_language import language_code_for_text, identification_would_be_reliable
@@ -8,6 +9,7 @@ from mediawords.util.log import create_logger
 from mediawords.util.parse_html import html_strip
 
 from podcast_fetch_episode.bcp47_lang import iso_639_1_code_to_bcp_47_identifier
+from podcast_fetch_episode.config import PodcastFetchEpisodeConfig
 from podcast_fetch_episode.enclosure import podcast_viable_enclosure_for_story, MAX_ENCLOSURE_SIZE
 from podcast_fetch_episode.exceptions import (
     McStoryNotFoundException,
@@ -34,7 +36,34 @@ def _cleanup_temp_dir(temp: TranscodeTempDirAndFile) -> None:
         raise McPodcastFileStoreFailureException(f"Unable to remove temporary directory: {ex}")
 
 
-def fetch_and_store_episode(db: DatabaseHandler, stories_id: int) -> None:
+def fetch_and_store_episode(db: DatabaseHandler,
+                            stories_id: int,
+                            config: Optional[PodcastFetchEpisodeConfig] = None) -> None:
+    """
+    Choose a viable story enclosure for podcast, fetch it, transcode if needed, store to GCS, and record to DB.
+
+    1) Determines the episode's likely language by looking into its title and description, converts the language code to
+       BCP 47;
+    1) Using enclosures from "story_enclosures", chooses the one that looks like a podcast episode the most;
+    2) Fetches the chosen enclosure;
+    3) Transcodes the file (if needed) by:
+        a) converting it to an audio format that the Speech API can support, and / or
+        b) discarding video stream from the media file, and / or
+        c) discarding other audio streams from the media file;
+    5) Reads the various parameters, e.g. sample rate, of the episode audio file;
+    4) Uploads the episode audio file to Google Cloud Storage;
+    5) Adds a row to "podcast_episodes".
+
+    Adding a job to submit the newly created episode to Speech API (by adding a RabbitMQ job) is up to the caller.
+
+    :param db: Database handler.
+    :param stories_id: Story ID for the story to operate on.
+    :param config: (optional) Podcast fetcher configuration object (useful for testing).
+    """
+
+    if not config:
+        config = PodcastFetchEpisodeConfig()
+
     story = db.find_by_id(table='stories', object_id=stories_id)
     if not story:
         raise McStoryNotFoundException(f"Story {stories_id} was not found.")
@@ -103,8 +132,8 @@ def fetch_and_store_episode(db: DatabaseHandler, stories_id: int) -> None:
 
     # Store input file to GCS
     try:
-        gcs = GCSStore()
-        gs_uri = gcs.store_object(
+        gcs = GCSStore(config=config)
+        gcs_uri = gcs.store_object(
             local_file_path=input_file_obj.temp_full_path,
             object_id=str(stories_id),
             mime_type=best_audio_stream.audio_codec_class.mime_type(),
@@ -127,7 +156,7 @@ def fetch_and_store_episode(db: DatabaseHandler, stories_id: int) -> None:
         db.query("""
             INSERT INTO podcast_episodes (
                 stories_id,
-                podcast_story_enclosures_id,
+                story_enclosures_id,
                 gcs_uri,
                 duration,
                 codec,
@@ -136,7 +165,7 @@ def fetch_and_store_episode(db: DatabaseHandler, stories_id: int) -> None:
                 bcp47_language_code
             ) VALUES (
                 %(stories_id)s,
-                %(podcast_story_enclosures_id)s,
+                %(story_enclosures_id)s,
                 %(gcs_uri)s,
                 %(duration)s,
                 %(codec)s,
@@ -144,7 +173,7 @@ def fetch_and_store_episode(db: DatabaseHandler, stories_id: int) -> None:
                 %(sample_rate)s,
                 %(bcp47_language_code)s            
             ) ON CONFLICT (stories_id) DO UPDATE SET
-                podcast_story_enclosures_id = %(podcast_story_enclosures_id)s,
+                story_enclosures_id = %(story_enclosures_id)s,
                 gcs_uri = %(gcs_uri)s,
                 duration = %(duration)s,
                 codec = %(codec)s,
@@ -153,8 +182,8 @@ def fetch_and_store_episode(db: DatabaseHandler, stories_id: int) -> None:
                 bcp47_language_code = %(bcp47_language_code)s
         """, {
             'stories_id': stories_id,
-            'podcast_story_enclosures_id': best_enclosure.podcast_story_enclosures_id,
-            'gcs_uri': gs_uri,
+            'story_enclosures_id': best_enclosure.story_enclosures_id,
+            'gcs_uri': gcs_uri,
             'duration': best_audio_stream.duration,
             'codec': best_audio_stream.audio_codec_class.postgresql_enum_value(),
             'audio_channel_count': best_audio_stream.audio_channel_count,

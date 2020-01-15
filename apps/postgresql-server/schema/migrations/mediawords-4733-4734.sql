@@ -18,26 +18,26 @@
 --
 -- Enclosures added to the story's feed item
 --
-CREATE TABLE podcast_story_enclosures (
-    podcast_story_enclosures_id BIGSERIAL   PRIMARY KEY,
-    stories_id                  INT         NOT NULL REFERENCES stories (stories_id) ON DELETE CASCADE,
+CREATE TABLE story_enclosures (
+    story_enclosures_id     BIGSERIAL   PRIMARY KEY,
+    stories_id              INT         NOT NULL REFERENCES stories (stories_id) ON DELETE CASCADE,
 
     -- Podcast enclosure URL
-    url                         TEXT        NOT NULL,
+    url                     TEXT        NOT NULL,
 
     -- RSS spec says that enclosure's "length" and "type" are required too but
     -- I guess some podcasts don't care that much about specs so both are
     -- allowed to be NULL:
 
     -- MIME type as reported by <enclosure />
-    mime_type                   CITEXT      NULL,
+    mime_type               CITEXT      NULL,
 
     -- Length in bytes as reported by <enclosure />
-    length                      BIGINT      NULL
+    length                  BIGINT      NULL
 );
 
-CREATE UNIQUE INDEX podcast_story_enclosures_stories_id_url
-    ON podcast_story_enclosures (stories_id, url);
+CREATE UNIQUE INDEX story_enclosures_stories_id_url
+    ON story_enclosures (stories_id, url);
 
 
 --
@@ -55,48 +55,48 @@ CREATE TYPE podcast_episodes_audio_codec AS ENUM (
 
 
 --
--- Podcast episodes for stories as derived from enclosures
+-- Podcast story episodes (derived from enclosures)
 --
 CREATE TABLE podcast_episodes (
-    podcast_episodes_id             BIGSERIAL   PRIMARY KEY,
-    stories_id                      INT         NOT NULL REFERENCES stories (stories_id) ON DELETE CASCADE,
+    podcast_episodes_id     BIGSERIAL   PRIMARY KEY,
+    stories_id              INT         NOT NULL REFERENCES stories (stories_id) ON DELETE CASCADE,
 
     -- Enclosure that the episode was derived from
-    podcast_story_enclosures_id     BIGINT      NOT NULL
-                                                    REFERENCES podcast_story_enclosures (podcast_story_enclosures_id)
-                                                    ON DELETE CASCADE,
+    story_enclosures_id     BIGINT      NOT NULL
+                                            REFERENCES story_enclosures (story_enclosures_id)
+                                            ON DELETE CASCADE,
 
     -- Google Cloud Storage URI where the audio file is located at
-    gcs_uri                         TEXT        NOT NULL
-                                                    CONSTRAINT gcs_uri_prefix
-                                                    CHECK(gcs_uri LIKE 'gs://'),
+    gcs_uri                 TEXT        NOT NULL
+                                            CONSTRAINT gcs_uri_has_gs_prefix
+                                            CHECK(gcs_uri LIKE 'gs://%'),
 
     -- Duration (in seconds)
-    duration                        INT         NOT NULL
-                                                    CONSTRAINT duration_is_positive
-                                                    CHECK(duration > 0),
+    duration                INT         NOT NULL
+                                            CONSTRAINT duration_is_positive
+                                            CHECK(duration > 0),
 
     -- Audio codec as determined by transcoder
-    codec                           podcast_episodes_audio_codec  NOT NULL,
+    codec                   podcast_episodes_audio_codec  NOT NULL,
 
     -- Audio channel count as determined by transcoder
-    audio_channel_count             SMALLINT    NOT NULL
-                                                    CONSTRAINT audio_channel_count_is_positive
-                                                    CHECK(audio_channel_count > 0),
+    audio_channel_count     SMALLINT    NOT NULL
+                                            CONSTRAINT audio_channel_count_is_positive
+                                            CHECK(audio_channel_count > 0),
 
     -- Audio sample rate (Hz) as determined by transcoder
-    sample_rate                     INT         NOT NULL
-                                                    CONSTRAINT sample_rate_looks_reasonable
-                                                    CHECK(sample_rate > 1000),
+    sample_rate             INT         NOT NULL
+                                            CONSTRAINT sample_rate_looks_reasonable
+                                            CHECK(sample_rate > 1000),
 
     -- BCP 47 language identifier
     -- (https://cloud.google.com/speech-to-text/docs/languages)
-    bcp47_language_code             TEXT        NOT NULL
-                                                    CONSTRAINT bcp47_language_code_looks_reasonable
-                                                    CHECK(
-                                                        bcp47_language_code LIKE '%-%'
-                                                      OR bcp47_language_code = 'zh'
-                                                    )
+    bcp47_language_code     TEXT        NOT NULL
+                                            CONSTRAINT bcp47_language_code_looks_reasonable
+                                            CHECK(
+                                                bcp47_language_code LIKE '%-%'
+                                             OR bcp47_language_code = 'zh'
+                                            )
 
 );
 
