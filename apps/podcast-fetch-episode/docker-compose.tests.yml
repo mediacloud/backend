@@ -6,10 +6,10 @@ services:
         image: dockermediacloud/podcast-fetch-episode:latest
         stop_signal: SIGKILL
         environment:
-            MC_GCS_BUCKET_NAME: "${MC_GCS_BUCKET_NAME}"
-            # Dev/test environment doesn't use "MC_GCS_PATH_PREFIX" environment variable as it creates a different,
+            MC_GC_STORAGE_BUCKET_NAME: "${MC_GC_STORAGE_BUCKET_NAME}"
+            # Dev/test environment doesn't use "MC_GC_STORAGE_PATH_PREFIX" environment variable as it creates a different,
             # timestamped prefix for every test that's run
-            MC_GCS_CREDENTIALS_JSON_STRING: "${MC_GCS_CREDENTIALS_JSON_STRING}"
+            MC_GC_AUTH_JSON_STRING: "${MC_GC_AUTH_JSON_STRING}"
         volumes:
             - type: bind
               source: ./bin/

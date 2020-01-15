@@ -8,6 +8,7 @@ from google.cloud.exceptions import NotFound
 # noinspection PyPackageRequirements
 from google.cloud.storage import Blob, Bucket
 
+from mediawords.util.config.common import CommonConfig
 from mediawords.util.log import create_logger
 
 from podcast_fetch_episode.config import PodcastFetchEpisodeConfig
@@ -39,9 +40,12 @@ class GCSStore(object):
         """Lazy-loaded bucket."""
         if not self.__bucket_internal:
 
+            common_config = CommonConfig()
+            google_cloud_config = common_config.google_cloud()
+
             try:
                 storage_client = storage.Client.from_service_account_json(
-                    self.__config.gcs_application_credentials_json_path(),
+                    google_cloud_config.auth_json_path(),
                 )
                 self.__bucket_internal = storage_client.get_bucket(self.__config.gcs_bucket_name())
             except Exception as ex:

@@ -1078,14 +1078,14 @@ services:
             - default
         environment:
             <<: *common-configuration
-            # GCS bucket name
-            MC_GCS_BUCKET_NAME: "mediacloud-story-podcast-episodes"
-            # GCS path prefix
-            MC_GCS_PATH_PREFIX: "episodes"
-            # GCS authentication JSON string
+            # Google Cloud Storage bucket name for storing episode audio files
+            MC_GC_STORAGE_BUCKET_NAME: "mediacloud-story-podcast-episodes"
+            # Google Cloud Storage path prefix for storing episode audio files
+            MC_GC_STORAGE_PATH_PREFIX: "episodes"
+            # Google Cloud authentication JSON string
             # (make sure to read about adding multiline strings to YAML under
             # MC_USERAGENT_AUTHENTICATED_DOMAINS)
-            MC_GCS_CREDENTIALS_JSON_STRING: '
+            MC_GC_AUTH_JSON_STRING: '
                 {
                     "type": "service_account",
                     "project_id": "example",
