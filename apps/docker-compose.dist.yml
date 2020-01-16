@@ -1116,6 +1116,31 @@ services:
                     memory: "1G"
 
     #
+    # Poll due operations and submit them to "podcast-fetch-transcription"
+    # --------------------------------------------------------------------
+    podcast-fetch-transcription:
+        image: dockermediacloud/podcast-fetch-transcription:release
+        <<: *sysctl-defaults
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+        depends_on:
+            - postgresql-pgbouncer
+            - rabbitmq-server
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            <<: *endpoint-mode-dnsrr
+            # Worker count
+            replicas: 1
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "256M"
+
+    #
     # Submit a Speech API operation for a podcast episode
     # ---------------------------------------------------
     podcast-submit-operation:
