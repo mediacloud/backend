@@ -39,6 +39,9 @@ SPIDER_FEED_NAME = 'Spider Feed'
 
 BINARY_EXTENSIONS = 'jpg pdf doc mp3 mp4 zip png docx'.split()
 
+# how long to wait for extractor before raising an exception
+MAX_EXTRACTOR_WAIT = 600
+
 
 class McTMStoriesException(Exception):
     """Default exception for package."""
@@ -67,7 +70,7 @@ def url_has_binary_extension(url: str) -> bool:
     return ext in BINARY_EXTENSIONS
 
 
-def _extract_story(story: dict) -> None:
+def _extract_story(db: DatabaseHandler, story: dict) -> None:
     """Process the story through the extractor."""
 
     if url_has_binary_extension(story['url']):
@@ -76,11 +79,26 @@ def _extract_story(story: dict) -> None:
     if re2.search(r'livejournal.com\/(tag|profile)', story['url'], re2.I):
         return
 
-    JobBroker(queue_name='MediaWords::Job::ExtractAndVector').run_remotely(
+    JobBroker(queue_name='MediaWords::Job::ExtractAndVector').add_to_queue(
         stories_id=story['stories_id'],
         use_cache=True,
         use_existing=True,
     )
+
+    i = 0
+    extracted = False
+    while not extracted and i < MAX_EXTRACTOR_WAIT:
+        extracted = db.query(
+            "select * from downloads where stories_id = %(a)s and not extracted",
+            {'a': story['stories_id']}).hash() 
+        if i > 0:
+            log.debug("waiting for extraction job to complete ...")
+            time.sleep(1)
+
+        i += 1
+
+    if not extracted:
+        raise McTMStoriesException("timed out wfter %d seconds aiting for story extraction" % i)
 
 
 def _get_story_with_most_sentences(db: DatabaseHandler, stories: list) -> dict:
@@ -437,7 +455,7 @@ def generate_story(
         store_content(db, download, content)
 
         log.debug("Extracting story...")
-        _extract_story(story)
+        _extract_story(db, story)
         log.debug("Done extracting story")
 
     else:
