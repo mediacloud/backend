@@ -3847,3 +3847,37 @@ CREATE TABLE podcast_episodes (
 -- Only one episode per story
 CREATE UNIQUE INDEX podcast_episodes_stories_id
     ON podcast_episodes (stories_id);
+
+
+--
+-- Podcast episode transcription operations
+--
+CREATE TABLE podcast_episode_operations (
+    podcast_episode_operations_id   BIGSERIAL   PRIMARY KEY,
+    stories_id                      INT         NOT NULL REFERENCES stories (stories_id) ON DELETE CASCADE,
+
+    -- Podcast that is being transcribed
+    podcast_episodes_id     BIGINT  NOT NULL
+                                        REFERENCES podcast_episodes (podcast_episodes_id)
+                                        ON DELETE CASCADE,
+
+    -- Speech API operation ID to be used for retrieving transcription
+    speech_operation_id     TEXT    NOT NULL,
+
+    -- The soonest timestamp when this operation's results should be attempted to be fetched
+    fetch_results_at        TIMESTAMP WITH TIME ZONE    NOT NULL
+
+);
+
+-- Only one operation per story
+CREATE UNIQUE INDEX podcast_episode_operations_stories_id
+    ON podcast_episode_operations (stories_id);
+
+-- Only one operation per episode
+CREATE UNIQUE INDEX podcast_episode_operations_podcast_episodes_id
+    ON podcast_episode_operations (podcast_episodes_id);
+
+-- "podcast-poll-due-operations" will poll for due operations for the "podcast-fetch-transcription"
+-- to attempt at fetching
+CREATE INDEX podcast_episode_operations_fetch_results_at
+    ON podcast_episode_operations (fetch_results_at);
