@@ -20,7 +20,7 @@ services:
               target: /opt/mediacloud/src/common/
         depends_on:
             - postgresql-pgbouncer
-            - rabbitmq-server
+            # We don't need "rabbitmq-server" to run tests
 
     postgresql-pgbouncer:
         image: dockermediacloud/postgresql-pgbouncer:latest
@@ -35,10 +35,3 @@ services:
         stop_signal: SIGKILL
         expose:
             - 5432
-
-    rabbitmq-server:
-        image: dockermediacloud/rabbitmq-server:latest
-        stop_signal: SIGKILL
-        expose:
-            - 5672
-            - 15672
