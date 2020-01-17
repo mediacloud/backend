@@ -1,8 +1,5 @@
 import collections
-import hashlib
-import os
 import re
-import tempfile
 from typing import List, Pattern, Optional
 
 from mediawords.util.config import env_value, McConfigException
@@ -334,96 +331,6 @@ class UserAgentConfig(object):
         return int(value)
 
 
-class GoogleCloudConfig(object):
-    """Google Cloud API configuration."""
-
-    @staticmethod
-    def auth_json_path() -> str:
-        """
-        Path to authentication credentials JSON file for connecting to Google Cloud.
-
-        Reads the configuration from environment file, writes it to a temporary file (if it doesn't exist yet), returns
-        its path.
-
-        To get the JSON file with authentication credentials, you need to create a service account first:
-
-        1) Create a new Google Cloud project:
-
-            https://console.cloud.google.com/projectcreate
-
-        2) Install Google Cloud SDK:
-
-            https://cloud.google.com/sdk/install
-
-        for example, run:
-
-            brew install google-cloud-sdk
-            source '/usr/local/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/path.zsh.inc'
-            source '/usr/local/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/completion.zsh.inc'
-
-        on macOS.
-
-        3) Log Google Cloud SDK to your Google Cloud account:
-
-            gcloud auth login
-
-        4) Update Google Cloud SDK components, if needed:
-
-            gcloud components update
-
-        5) Choose a default Google Cloud SDK project:
-
-            gcloud config set project PROJECT_ID
-
-        where PROJECT_ID is your Google Cloud project ID which can be found in:
-
-            https://console.cloud.google.com/iam-admin/settings
-
-        6) Create a service account that would serve a particular purpose:
-
-            gcloud iam service-accounts create mc-do-something-specific \
-                --display-name="Do something specific" \
-                --description="Used to do something specific on Google Cloud"
-
-        7) Generate authentication JSON credentials:
-
-            gcloud iam service-accounts keys create \
-                mc-do-something-specific.json \
-                --iam-account mc-do-something-specific@mc-project-name.iam.gserviceaccount.com
-
-        12) Copy contents of "mc-do-something-specific.json" to MC_GC_AUTH_JSON_STRING environment variable that's set
-        for a particular app using Google Cloud services.
-
-        Please note that before using a particular cloud service with a service account, you'll also have to:
-
-        a) Enable said service for a project:
-
-            gcloud services enable <...>.googleapis.com
-
-        b) Allow the service account to access that particular service somehow; for example, to let the service account
-        access a particular bucket on Google Cloud Storage, you'll have to run:
-
-            gsutil acl ch \
-                -u mc-do-something-specific@mc-project-name.iam.gserviceaccount.com:O \
-                gs://mc-some-bucket
-
-        :return: Path to authentication credentials JSON file to use for from_service_account_json().
-        """
-        json_string = env_value(name='MC_GC_AUTH_JSON_STRING')
-
-        # Try decoding
-        decode_json(json_string)
-
-        json_string_sha1 = hashlib.sha1(json_string.encode('utf-8')).hexdigest()
-        json_path = os.path.join(tempfile.gettempdir(), f"{json_string_sha1}.json")
-
-        if not os.path.isfile(json_path):
-            with open(json_path, mode='w') as f:
-                f.write(json_string)
-
-        return json_path
-
-
 class CommonConfig(object):
     """Global configuration (shared by all the apps)."""
 
@@ -476,8 +383,3 @@ class CommonConfig(object):
         """URL of the extractor API."""
         # "extract-article-from-page" container's name from docker-compose.yml; will round-robin between servers
         return "http://extract-article-from-page:8080/extract"
-
-    @staticmethod
-    def google_cloud() -> GoogleCloudConfig:
-        """Google Cloud configuration."""
-        return GoogleCloudConfig()

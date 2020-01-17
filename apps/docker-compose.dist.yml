@@ -143,6 +143,34 @@ x-sysctl-defaults:  &sysctl-defaults
 
 
 #
+# Google Cloud for podcast transcription common configuration
+# ===========================================================
+#
+x-podcast-google-cloud-configuration:    &podcast-google-cloud-configuration
+
+    # Google Cloud authentication JSON string for a service account that
+    # uploads episodes to Google Cloud Storage; refer to
+    # doc/podcasts_gc_auth.markdown for instructions on how to create such an
+    # account.
+    #
+    # (Escape multiline strings properly as detailed under MC_USERAGENT_AUTHENTICATED_DOMAINS.)
+    MC_PODCAST_GC_AUTH_JSON_STRING: '
+        {
+            "type": "service_account",
+            "project_id": "example",
+            "private_key_id": "7f169a21d3f80974364bcf09f2047ea0efb5683a",
+            "private_key": "-----BEGIN PRIVATE KEY-----\n<...>\n-----END PRIVATE KEY-----\n",
+            "client_email": "example@example.iam.gserviceaccount.com",
+            "client_id": "123",
+            "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+            "token_uri": "https://oauth2.googleapis.com/token",
+            "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+            "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/example%40example.iam.gserviceaccount.com"
+        }
+    '
+
+
+#
 # Solr shard base service
 # =======================
 #
@@ -1078,28 +1106,11 @@ services:
             - default
         environment:
             <<: *common-configuration
+            <<: *podcast-google-cloud-configuration
             # Google Cloud Storage bucket name for storing episode audio files
-            MC_GC_STORAGE_BUCKET_NAME: "mediacloud-story-podcast-episodes"
+            MC_PODCAST_FETCH_EPISODE_BUCKET_NAME: "mediacloud-story-podcast-episodes"
             # Google Cloud Storage path prefix for storing episode audio files
-            MC_GC_STORAGE_PATH_PREFIX: "episodes"
-            # Google Cloud authentication JSON string for a service account that
-            # uploads episodes to Google Cloud Storage
-            # (make sure to read about adding multiline strings to YAML under
-            # MC_USERAGENT_AUTHENTICATED_DOMAINS)
-            MC_GC_AUTH_JSON_STRING: '
-                {
-                    "type": "service_account",
-                    "project_id": "example",
-                    "private_key_id": "7f169a21d3f80974364bcf09f2047ea0efb5683a",
-                    "private_key": "-----BEGIN PRIVATE KEY-----\n<...>\n-----END PRIVATE KEY-----\n",
-                    "client_email": "example@example.iam.gserviceaccount.com",
-                    "client_id": "123",
-                    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-                    "token_uri": "https://oauth2.googleapis.com/token",
-                    "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-                    "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/example%40example.iam.gserviceaccount.com"
-                }
-            '
+            MC_PODCAST_FETCH_EPISODE_PATH_PREFIX: "episodes"
         depends_on:
             - postgresql-pgbouncer
             - rabbitmq-server
@@ -1116,10 +1127,36 @@ services:
                     memory: "1G"
 
     #
-    # Poll due operations and submit them to "podcast-fetch-transcription"
-    # --------------------------------------------------------------------
-    podcast-fetch-transcription:
-        image: dockermediacloud/podcast-fetch-transcription:release
+    # Fetch finished transcripts and store them locally
+    # -------------------------------------------------
+    podcast-fetch-transcript:
+        image: dockermediacloud/podcast-fetch-transcript:release
+        <<: *sysctl-defaults
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+            <<: *podcast-google-cloud-configuration
+        depends_on:
+            - postgresql-pgbouncer
+            - rabbitmq-server
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            <<: *endpoint-mode-dnsrr
+            # Worker count
+            replicas: 1
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "256M"
+
+    #
+    # Poll due operations and submit them to "podcast-fetch-transcript"
+    # -----------------------------------------------------------------
+    podcast-poll-due-operations:
+        image: dockermediacloud/podcast-poll-due-operations:release
         <<: *sysctl-defaults
         networks:
             - default
@@ -1150,24 +1187,7 @@ services:
             - default
         environment:
             <<: *common-configuration
-            # Google Cloud authentication JSON string for a service account that
-            # submits Speech API operations
-            # (make sure to read about adding multiline strings to YAML under
-            # MC_USERAGENT_AUTHENTICATED_DOMAINS)
-            MC_GC_AUTH_JSON_STRING: '
-                {
-                    "type": "service_account",
-                    "project_id": "example",
-                    "private_key_id": "7f169a21d3f80974364bcf09f2047ea0efb5683a",
-                    "private_key": "-----BEGIN PRIVATE KEY-----\n<...>\n-----END PRIVATE KEY-----\n",
-                    "client_email": "example@example.iam.gserviceaccount.com",
-                    "client_id": "123",
-                    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-                    "token_uri": "https://oauth2.googleapis.com/token",
-                    "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-                    "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/example%40example.iam.gserviceaccount.com"
-                }
-            '
+            <<: *podcast-google-cloud-configuration
         depends_on:
             - postgresql-pgbouncer
             - rabbitmq-server

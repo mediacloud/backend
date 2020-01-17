@@ -28,3 +28,6 @@
 [submodule "apps/podcast-fetch-episode/tests/data/media-samples"]
 	path = apps/podcast-fetch-episode/tests/data/media-samples
 	url = https://github.com/berkmancenter/mediacloud-podcast-media-samples.git
+[submodule "apps/podcast-fetch-transcript/tests/data/media-samples"]
+	path = apps/podcast-fetch-transcript/tests/data/media-samples
+	url = https://github.com/berkmancenter/mediacloud-podcast-media-samples.git

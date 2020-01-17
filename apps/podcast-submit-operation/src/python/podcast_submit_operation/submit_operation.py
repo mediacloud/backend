@@ -9,9 +9,9 @@ from google.cloud.speech_v1p1beta1 import SpeechClient
 from google.cloud.speech_v1p1beta1.proto.cloud_speech_pb2 import RecognitionConfig
 
 from mediawords.db import DatabaseHandler
-from mediawords.util.config.common import CommonConfig
 from mediawords.util.log import create_logger
 
+from podcast_submit_operation.config import PodcastSubmitOperationConfig
 from podcast_submit_operation.exceptions import (
     McPodcastNoEpisodesException,
     McPodcastDatabaseErrorException,
@@ -85,7 +85,10 @@ class PodcastEpisode(object):
     @property
     def codec(self) -> RecognitionConfig.AudioEncoding:
         try:
-            encoding_obj = getattr(RecognitionConfig.AudioEncoding, self.__codec)
+            if self.__codec in {'FLAC16', 'FLAC24'}:
+                encoding_obj = RecognitionConfig.AudioEncoding.FLAC
+            else:
+                encoding_obj = getattr(RecognitionConfig.AudioEncoding, self.__codec)
         except Exception as ex:
             raise McPodcastInvalidInputException(f"Invalid codec '{self.__codec}': {ex}")
 
@@ -118,32 +121,6 @@ def submit_transcribe_operation(db: DatabaseHandler, stories_id: int) -> None:
     * stores the operation's ID to "podcast_episode_operations together with the earliest date at which the
       transcription should be attempted to be fetched.
 
-    To configure a Google Cloud service account for transcription operations:
-
-    1) Enable Speech API for the project:
-
-        gcloud services enable speech.googleapis.com
-
-    2) Create a separate service account for submitting transcription operations:
-
-        gcloud iam service-accounts create mc-transcribe-episodes \
-            --display-name="Transcribe podcast episodes" \
-            --description="Submit podcast episode audio files for transcription, fetch transcription results"
-
-    3) Allow the service account to read objects from a bucket with episode audio files:
-
-        gsutil acl ch \
-            -u mc-transcribe-episodes@mc-podcast-transcription-test.iam.gserviceaccount.com:R \
-            gs://mc-podcast-episodes-audio-files-test
-
-    4) Generate authentication credentials JSON for the service account:
-
-        gcloud iam service-accounts keys create \
-            mc-transcribe-episodes.json \
-            --iam-account mc-transcribe-episodes@mc-podcast-transcription-test.iam.gserviceaccount.com
-
-    5) Copy contents of "mc-transcribe-episodes.json" to MC_GC_AUTH_JSON_STRING environment variable.
-
     :param db: Database handler.
     :param stories_id: Story the podcast episode of which to transcribe.
     """
@@ -175,9 +152,8 @@ def submit_transcribe_operation(db: DatabaseHandler, stories_id: int) -> None:
         )
 
     try:
-        common_config = CommonConfig()
-        google_cloud_config = common_config.google_cloud()
-        client = SpeechClient.from_service_account_json(google_cloud_config.auth_json_path())
+        config = PodcastSubmitOperationConfig()
+        client = SpeechClient.from_service_account_json(config.gc_auth_json_file())
     except Exception as ex:
         raise McPodcastMisconfiguredSpeechAPIException(f"Unable to create Speech API client: {ex}")
 

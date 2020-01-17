@@ -68,7 +68,7 @@ def test_fetch_and_store_episode():
     episode = episodes[0]
     assert episode['stories_id'] == stories_id
     assert episode['story_enclosures_id'] == story_enclosure['story_enclosures_id']
-    assert episode['gcs_uri'] == f"gs://{config.gcs_bucket_name()}/{config.gcs_path_prefix()}/{stories_id}"
+    assert episode['gcs_uri'] == f"gs://{config.gc_storage_bucket_name()}/{config.gc_storage_path_prefix()}/{stories_id}"
     assert episode['duration'] > 0
     assert episode['codec'] == 'MP3'
     assert episode['audio_channel_count'] == 2

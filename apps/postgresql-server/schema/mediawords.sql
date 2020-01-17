@@ -3877,7 +3877,7 @@ CREATE UNIQUE INDEX podcast_episode_operations_stories_id
 CREATE UNIQUE INDEX podcast_episode_operations_podcast_episodes_id
     ON podcast_episode_operations (podcast_episodes_id);
 
--- "podcast-poll-due-operations" will poll for due operations for the "podcast-fetch-transcription"
+-- "podcast-poll-due-operations" will poll for due operations for the "podcast-fetch-transcript"
 -- to attempt at fetching
 CREATE INDEX podcast_episode_operations_fetch_results_at
     ON podcast_episode_operations (fetch_results_at);

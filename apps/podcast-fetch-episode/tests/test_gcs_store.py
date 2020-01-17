@@ -42,22 +42,22 @@ class TestGCSStore(TestCase):
         class NoPathPrefixConfig(PodcastFetchEpisodeConfig):
 
             @staticmethod
-            def gcs_path_prefix() -> str:
+            def gc_storage_path_prefix() -> str:
                 return ''
 
         config = NoPathPrefixConfig()
         gcs = GCSStore(config=config)
-        assert gcs.object_uri(object_id='a') == f'gs://{config.gcs_bucket_name()}/a'
+        assert gcs.object_uri(object_id='a') == f'gs://{config.gc_storage_bucket_name()}/a'
 
         class MultiPathPrefixConfig(PodcastFetchEpisodeConfig):
 
             @staticmethod
-            def gcs_path_prefix() -> str:
+            def gc_storage_path_prefix() -> str:
                 return '//foo/bar//'
 
         config = MultiPathPrefixConfig()
         gcs = GCSStore(config=config)
-        assert gcs.object_uri(object_id='a') == f'gs://{config.gcs_bucket_name()}/foo/bar/a'
+        assert gcs.object_uri(object_id='a') == f'gs://{config.gc_storage_bucket_name()}/foo/bar/a'
 
     def test_store_exists_delete(self):
         config = RandomPathPrefixConfig()

@@ -8,7 +8,7 @@ class RandomPathPrefixConfig(PodcastFetchEpisodeConfig):
     _RANDOM_PREFIX = None
 
     @staticmethod
-    def gcs_path_prefix() -> str:
+    def gc_storage_path_prefix() -> str:
         if not RandomPathPrefixConfig._RANDOM_PREFIX:
             date = datetime.datetime.utcnow().isoformat()
             date = date.replace(':', '_')

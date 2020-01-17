@@ -8,7 +8,6 @@ from google.cloud.exceptions import NotFound
 # noinspection PyPackageRequirements
 from google.cloud.storage import Blob, Bucket
 
-from mediawords.util.config.common import CommonConfig
 from mediawords.util.log import create_logger
 
 from podcast_fetch_episode.config import PodcastFetchEpisodeConfig
@@ -40,17 +39,12 @@ class GCSStore(object):
         """Lazy-loaded bucket."""
         if not self.__bucket_internal:
 
-            common_config = CommonConfig()
-            google_cloud_config = common_config.google_cloud()
-
             try:
-                storage_client = storage.Client.from_service_account_json(
-                    google_cloud_config.auth_json_path(),
-                )
-                self.__bucket_internal = storage_client.get_bucket(self.__config.gcs_bucket_name())
+                storage_client = storage.Client.from_service_account_json(self.__config.gc_auth_json_file())
+                self.__bucket_internal = storage_client.get_bucket(self.__config.gc_storage_bucket_name())
             except Exception as ex:
                 raise McPodcastGCSStoreFailureException(
-                    f"Unable to get GCS bucket '{self.__config.gcs_bucket_name()}': {ex}"
+                    f"Unable to get GCS bucket '{self.__config.gc_storage_bucket_name()}': {ex}"
                 )
 
         return self.__bucket_internal
@@ -75,7 +69,7 @@ class GCSStore(object):
         if not object_id:
             raise McPodcastMisconfiguredGCSException("Object ID is unset.")
 
-        remote_path = self._remote_path(path_prefix=self.__config.gcs_path_prefix(), object_id=object_id)
+        remote_path = self._remote_path(path_prefix=self.__config.gc_storage_path_prefix(), object_id=object_id)
         blob = self._bucket.blob(remote_path)
         return blob
 
@@ -178,8 +172,8 @@ class GCSStore(object):
             raise McPodcastMisconfiguredGCSException("Object ID is unset.")
 
         uri = "gs://{host}/{remote_path}".format(
-            host=self.__config.gcs_bucket_name(),
-            remote_path=self._remote_path(path_prefix=self.__config.gcs_path_prefix(), object_id=object_id),
+            host=self.__config.gc_storage_bucket_name(),
+            remote_path=self._remote_path(path_prefix=self.__config.gc_storage_path_prefix(), object_id=object_id),
         )
 
         return uri

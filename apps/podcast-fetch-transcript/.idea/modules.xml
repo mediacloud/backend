@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/podcast-fetch-transcription.iml" filepath="$PROJECT_DIR$/.idea/podcast-fetch-transcription.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/podcast-fetch-transcript.iml" filepath="$PROJECT_DIR$/.idea/podcast-fetch-transcript.iml" />
     </modules>
   </component>
 </project>

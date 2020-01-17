@@ -1,0 +1,108 @@
+version: "3.7"
+
+services:
+
+    podcast-fetch-transcript:
+        image: dockermediacloud/podcast-fetch-transcript:latest
+        stop_signal: SIGKILL
+        environment:
+            MC_PODCAST_GC_AUTH_JSON_STRING: "${MC_PODCAST_GC_AUTH_JSON_STRING}"
+        expose:
+            # "test_full_chain.py" test server's port
+            - 8080
+        volumes:
+            - type: bind
+              source: ./bin/
+              target: /opt/mediacloud/bin/
+            - type: bind
+              source: ./src/
+              target: /opt/mediacloud/src/podcast-fetch-transcript/
+            - type: bind
+              source: ./tests/
+              target: /opt/mediacloud/tests/
+            - type: bind
+              source: ./../common/src/
+              target: /opt/mediacloud/src/common/
+        depends_on:
+            - podcast-fetch-episode
+            - podcast-submit-operation
+            - postgresql-pgbouncer
+            - rabbitmq-server
+
+    podcast-fetch-episode:
+        image: dockermediacloud/podcast-fetch-episode:latest
+        stop_signal: SIGKILL
+        environment:
+            MC_PODCAST_GC_AUTH_JSON_STRING: "${MC_PODCAST_GC_AUTH_JSON_STRING}"
+            MC_PODCAST_FETCH_EPISODE_BUCKET_NAME: "${MC_PODCAST_FETCH_EPISODE_BUCKET_NAME}"
+            MC_PODCAST_FETCH_EPISODE_PATH_PREFIX: "audio-files/"
+        volumes:
+            - type: bind
+              source: ./../podcast-fetch-episode/bin/
+              target: /opt/mediacloud/bin/
+            - type: bind
+              source: ./../podcast-fetch-episode/src/
+              target: /opt/mediacloud/src/podcast-fetch-episode/
+            - type: bind
+              source: ./../common/src/
+              target: /opt/mediacloud/src/common/
+        depends_on:
+            - postgresql-pgbouncer
+            - rabbitmq-server
+
+    podcast-submit-operation:
+        image: dockermediacloud/podcast-submit-operation:latest
+        stop_signal: SIGKILL
+        environment:
+            MC_PODCAST_GC_AUTH_JSON_STRING: "${MC_PODCAST_GC_AUTH_JSON_STRING}"
+        volumes:
+            - type: bind
+              source: ./../podcast-submit-operation/bin/
+              target: /opt/mediacloud/bin/
+            - type: bind
+              source: ./../podcast-submit-operation/src/
+              target: /opt/mediacloud/src/podcast-submit-operation/
+            - type: bind
+              source: ./../common/src/
+              target: /opt/mediacloud/src/common/
+        depends_on:
+            - postgresql-pgbouncer
+            - rabbitmq-server
+
+    podcast-poll-due-operations:
+        image: dockermediacloud/podcast-poll-due-operations:latest
+        stop_signal: SIGKILL
+        volumes:
+            - type: bind
+              source: ./../podcast-poll-due-operations/bin/
+              target: /opt/mediacloud/bin/
+            - type: bind
+              source: ./../podcast-poll-due-operations/src/
+              target: /opt/mediacloud/src/podcast-poll-due-operations/
+            - type: bind
+              source: ./../common/src/
+              target: /opt/mediacloud/src/common/
+        depends_on:
+            - postgresql-pgbouncer
+            - rabbitmq-server
+
+    postgresql-pgbouncer:
+        image: dockermediacloud/postgresql-pgbouncer:latest
+        stop_signal: SIGKILL
+        expose:
+            - 6432
+        depends_on:
+            - postgresql-server
+
+    postgresql-server:
+        image: dockermediacloud/postgresql-server:latest
+        stop_signal: SIGKILL
+        expose:
+            - 5432
+
+    rabbitmq-server:
+        image: dockermediacloud/rabbitmq-server:latest
+        stop_signal: SIGKILL
+        expose:
+            - 5672
+            - 15672

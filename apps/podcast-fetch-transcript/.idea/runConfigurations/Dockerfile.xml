@@ -2,12 +2,12 @@
   <configuration default="false" name="Dockerfile" type="docker-deploy" factoryName="dockerfile" server-name="mediacloud">
     <deployment type="dockerfile">
       <settings>
-        <option name="buildCliOptions" value="--cache-from dockermediacloud/podcast-fetch-transcription:latest" />
+        <option name="buildCliOptions" value="--cache-from dockermediacloud/podcast-fetch-transcript:latest" />
         <option name="buildOnly" value="true" />
         <option name="command" value="" />
         <option name="containerName" value="" />
         <option name="entrypoint" value="" />
-        <option name="imageTag" value="dockermediacloud/podcast-fetch-transcription:latest" />
+        <option name="imageTag" value="dockermediacloud/podcast-fetch-transcript:latest" />
         <option name="commandLineOptions" value="" />
         <option name="sourceFilePath" value="Dockerfile" />
       </settings>
