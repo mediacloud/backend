@@ -70,7 +70,6 @@ def poll_for_due_operations(stop_after_first_empty_chunk: bool = False,
         db.begin()
 
         log.info("Polling...")
-        # FIXME don't delete the row, instead write it down somewhere
         due_operations = db.query("""
             DELETE FROM podcast_episode_operations
             WHERE stories_id IN (
