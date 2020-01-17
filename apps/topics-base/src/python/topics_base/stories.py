@@ -3,6 +3,7 @@
 import datetime
 import operator
 import os
+import time
 from typing import Optional
 
 import furl
@@ -86,10 +87,10 @@ def _extract_story(db: DatabaseHandler, story: dict) -> None:
     )
 
     i = 0
-    extracted = False
-    while not extracted and i < MAX_EXTRACTOR_WAIT:
-        extracted = db.query(
-            "select * from downloads where stories_id = %(a)s and not extracted",
+    processed = False
+    while not processed and i < MAX_EXTRACTOR_WAIT:
+        processed = db.query(
+            "select * from processed_stories where stories_id = %(a)s",
             {'a': story['stories_id']}).hash() 
         if i > 0:
             log.debug("waiting for extraction job to complete ...")
@@ -97,7 +98,7 @@ def _extract_story(db: DatabaseHandler, story: dict) -> None:
 
         i += 1
 
-    if not extracted:
+    if not processed:
         raise McTMStoriesException("timed out wfter %d seconds aiting for story extraction" % i)
 
 
