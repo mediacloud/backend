@@ -26,6 +26,7 @@ services:
         depends_on:
             - podcast-fetch-episode
             - podcast-submit-operation
+            # No "podcast-poll-due-operations" as we'll just go ahead and fetch it ourselves
             - postgresql-pgbouncer
             - rabbitmq-server
 
@@ -62,23 +63,6 @@ services:
             - type: bind
               source: ./../podcast-submit-operation/src/
               target: /opt/mediacloud/src/podcast-submit-operation/
-            - type: bind
-              source: ./../common/src/
-              target: /opt/mediacloud/src/common/
-        depends_on:
-            - postgresql-pgbouncer
-            - rabbitmq-server
-
-    podcast-poll-due-operations:
-        image: dockermediacloud/podcast-poll-due-operations:latest
-        stop_signal: SIGKILL
-        volumes:
-            - type: bind
-              source: ./../podcast-poll-due-operations/bin/
-              target: /opt/mediacloud/bin/
-            - type: bind
-              source: ./../podcast-poll-due-operations/src/
-              target: /opt/mediacloud/src/podcast-poll-due-operations/
             - type: bind
               source: ./../common/src/
               target: /opt/mediacloud/src/common/

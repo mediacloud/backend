@@ -19,11 +19,6 @@ class McOperationNotFoundException(_AbstractMcPodcastFetchTranscriptException):
     pass
 
 
-class McOperationStillInProgressException(_AbstractMcPodcastFetchTranscriptException):
-    """Exception thrown when a transcription operation is still in progress and we should try later."""
-    pass
-
-
 # ---
 
 class McPodcastFetchTranscriptHardException(_AbstractMcPodcastFetchTranscriptException):
@@ -33,4 +28,14 @@ class McPodcastFetchTranscriptHardException(_AbstractMcPodcastFetchTranscriptExc
 
 class McMisconfiguredSpeechAPIException(McPodcastFetchTranscriptHardException):
     """Exception thrown when we receive something we didn't expect from Speech API."""
+    pass
+
+
+class McTranscriptionReturnedErrorException(McPodcastFetchTranscriptHardException):
+    """
+    Exception thrown when Speech API explicitly returns an error state.
+
+    When Speech API returns with an error, it's unclear whether it was us who have messed up or
+    something is (temporarily) wrong on their end, so on the safe side we throw a "hard" exception.
+    """
     pass

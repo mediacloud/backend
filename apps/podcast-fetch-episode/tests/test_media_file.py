@@ -16,7 +16,13 @@ from podcast_fetch_episode.media_file import (
 MEDIA_SAMPLES_PATH = '/opt/mediacloud/tests/data/media-samples/samples/'
 assert os.path.isdir(MEDIA_SAMPLES_PATH), f"Directory with media samples '{MEDIA_SAMPLES_PATH}' should exist."
 
-SAMPLE_FILENAMES = [f for f in os.listdir(MEDIA_SAMPLES_PATH) if os.path.isfile(os.path.join(MEDIA_SAMPLES_PATH, f))]
+SAMPLE_FILENAMES = [
+    f for f in os.listdir(MEDIA_SAMPLES_PATH)
+
+    # Skip the long audio recording as it takes a few seconds more to transcode it and it really doesn't test anything
+    # at this point
+    if os.path.isfile(os.path.join(MEDIA_SAMPLES_PATH, f)) and 'nixon_speech-' not in f
+]
 assert SAMPLE_FILENAMES, f"There should be some sample files available in {MEDIA_SAMPLES_PATH}."
 assert [f for f in SAMPLE_FILENAMES if '.mp3' in f], f"There should be at least one .mp3 file in {MEDIA_SAMPLES_PATH}."
 assert not [f for f in SAMPLE_FILENAMES if '/' in f], f"There can't be any paths in {SAMPLE_FILENAMES}."
