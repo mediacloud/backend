@@ -1125,6 +1125,11 @@ services:
                     cpus: "1"
                     # RAM limit
                     memory: "1G"
+            restart_policy:
+                # Automatically restart on non-zero exit codes only instead of on any exit
+                condition: on-failure
+                # Autorestart up to three times
+                max_attempts: 3
 
     #
     # Fetch finished transcripts and store them locally
@@ -1151,6 +1156,11 @@ services:
                     cpus: "1"
                     # RAM limit
                     memory: "256M"
+            restart_policy:
+                # Automatically restart on non-zero exit codes only instead of on any exit
+                condition: on-failure
+                # Autorestart up to three times
+                max_attempts: 3
 
     #
     # Poll due operations and submit them to "podcast-fetch-transcript"
@@ -1176,6 +1186,11 @@ services:
                     cpus: "1"
                     # RAM limit
                     memory: "256M"
+            restart_policy:
+                # Automatically restart on non-zero exit codes only instead of on any exit
+                condition: on-failure
+                # Autorestart up to three times
+                max_attempts: 3
 
     #
     # Submit a Speech API operation for a podcast episode
@@ -1202,6 +1217,11 @@ services:
                     cpus: "1"
                     # RAM limit
                     memory: "256M"
+            restart_policy:
+                # Automatically restart on non-zero exit codes only instead of on any exit
+                condition: on-failure
+                # Autorestart up to three times
+                max_attempts: 3
 
     #
     # pgAdmin
