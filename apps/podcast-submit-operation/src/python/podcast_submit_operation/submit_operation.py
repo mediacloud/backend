@@ -52,7 +52,6 @@ class PodcastEpisode(object):
         '__gcs_uri',
         '__duration',
         '__codec',
-        '__audio_channel_count',
         '__sample_rate',
         '__bcp47_language_code',
     ]
@@ -62,7 +61,6 @@ class PodcastEpisode(object):
         self.__gcs_uri = db_row['gcs_uri']
         self.__duration = db_row['duration']
         self.__codec = db_row['codec']
-        self.__audio_channel_count = db_row['audio_channel_count']
         self.__sample_rate = db_row['sample_rate']
         self.__bcp47_language_code = db_row['bcp47_language_code']
 
@@ -93,12 +91,6 @@ class PodcastEpisode(object):
             raise McPodcastInvalidInputException(f"Invalid codec '{self.__codec}': {ex}")
 
         return encoding_obj
-
-    @property
-    def audio_channel_count(self) -> int:
-        if not self.__audio_channel_count:
-            raise McPodcastInvalidInputException("Audio channel count is unset or zero.")
-        return self.__audio_channel_count
 
     @property
     def sample_rate(self) -> int:
@@ -161,8 +153,8 @@ def submit_transcribe_operation(db: DatabaseHandler, stories_id: int) -> None:
         config = RecognitionConfig(
             encoding=episode.codec,
             sample_rate_hertz=episode.sample_rate,
-            # We always set the channel count to 1 and disable separate recognition per channel as our inputs are simply
-            # stereo audio files and do not have separate speakers per audio channel.
+            # We always set the channel count to 1 and disable separate recognition per channel as our inputs are all
+            # mono audio files and do not have separate speakers per audio channel.
             audio_channel_count=1,
             enable_separate_recognition_per_channel=False,
             language_code=episode.bcp47_language_code,

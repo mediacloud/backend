@@ -104,4 +104,6 @@ def test_full_chain():
 
     # Now let's do our thing and try to fetch the transcript
     transcripts = fetch_speech_api_transcripts(speech_operation_id=operations[0]['speech_operation_id'])
-    print(transcripts)
+    assert len(transcripts) == 1
+    assert len(transcripts[0].alternatives) == 1
+    assert transcripts[0].alternatives[0].text.lower() == 'kim kardashian'

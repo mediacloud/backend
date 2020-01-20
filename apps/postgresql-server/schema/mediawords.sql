@@ -3790,8 +3790,7 @@ CREATE UNIQUE INDEX story_enclosures_stories_id_url
 --
 CREATE TYPE podcast_episodes_audio_codec AS ENUM (
     'LINEAR16',
-    'FLAC16',
-    'FLAC24',
+    'FLAC',
     'MULAW',
     'OGG_OPUS',
     'MP3'
@@ -3823,11 +3822,6 @@ CREATE TABLE podcast_episodes (
     -- Audio codec as determined by transcoder
     codec                   podcast_episodes_audio_codec  NOT NULL,
 
-    -- Audio channel count as determined by transcoder
-    audio_channel_count     SMALLINT    NOT NULL
-                                            CONSTRAINT audio_channel_count_is_positive
-                                            CHECK(audio_channel_count > 0),
-
     -- Audio sample rate (Hz) as determined by transcoder
     sample_rate             INT         NOT NULL
                                             CONSTRAINT sample_rate_looks_reasonable
@@ -3835,7 +3829,7 @@ CREATE TABLE podcast_episodes (
 
     -- BCP 47 language identifier
     -- (https://cloud.google.com/speech-to-text/docs/languages)
-    bcp47_language_code     TEXT        NOT NULL
+    bcp47_language_code     CITEXT      NOT NULL
                                             CONSTRAINT bcp47_language_code_looks_reasonable
                                             CHECK(
                                                 bcp47_language_code LIKE '%-%'

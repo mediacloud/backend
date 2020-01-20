@@ -11,7 +11,7 @@ from podcast_fetch_episode.gcs_store import GCSStore
 
 from .config_random_gcs_prefix import RandomPathPrefixConfig
 
-TEST_MP3_PATH = '/opt/mediacloud/tests/data/media-samples/samples/kim_kardashian-mp3.mp3'
+TEST_MP3_PATH = '/opt/mediacloud/tests/data/media-samples/samples/kim_kardashian-mp3-mono.mp3'
 assert os.path.isfile(TEST_MP3_PATH), f"Test MP3 file '{TEST_MP3_PATH}' should exist."
 
 
@@ -59,8 +59,8 @@ def test_fetch_and_store_episode():
         'length': len(test_mp3_data),
     })
 
-    config = RandomPathPrefixConfig()
-    fetch_and_store_episode(db=db, stories_id=stories_id, config=config)
+    conf = RandomPathPrefixConfig()
+    fetch_and_store_episode(db=db, stories_id=stories_id, config=conf)
 
     episodes = db.select(table='podcast_episodes', what_to_select='*').hashes()
     assert len(episodes), f"Only one episode is expected."
@@ -68,13 +68,12 @@ def test_fetch_and_store_episode():
     episode = episodes[0]
     assert episode['stories_id'] == stories_id
     assert episode['story_enclosures_id'] == story_enclosure['story_enclosures_id']
-    assert episode['gcs_uri'] == f"gs://{config.gc_storage_bucket_name()}/{config.gc_storage_path_prefix()}/{stories_id}"
+    assert episode['gcs_uri'] == f"gs://{conf.gc_storage_bucket_name()}/{conf.gc_storage_path_prefix()}/{stories_id}"
     assert episode['duration'] > 0
     assert episode['codec'] == 'MP3'
-    assert episode['audio_channel_count'] == 2
     assert episode['sample_rate'] == 44100
     assert episode['bcp47_language_code'] == 'en-US'
 
     # Try removing test object
-    gcs = GCSStore(config=config)
+    gcs = GCSStore(config=conf)
     gcs.delete_object(object_id=str(stories_id))

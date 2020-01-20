@@ -35,7 +35,6 @@ def test_submit_transcribe_operation():
         'duration': 60 * 60,
 
         'codec': 'MP3',
-        'audio_channel_count': 2,
         'sample_rate': 44100,
         'bcp47_language_code': 'en-US',
     })

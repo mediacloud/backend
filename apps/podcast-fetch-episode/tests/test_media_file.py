@@ -1,4 +1,5 @@
 import hashlib
+import inspect
 import os
 
 import pytest
@@ -22,6 +23,8 @@ assert not [f for f in SAMPLE_FILENAMES if '/' in f], f"There can't be any paths
 
 
 def test_media_file_info():
+    at_least_one_stereo_file_found = False
+
     for filename in SAMPLE_FILENAMES:
 
         input_file_path = os.path.join(MEDIA_SAMPLES_PATH, filename)
@@ -46,6 +49,11 @@ def test_media_file_info():
             if media_info.audio_streams:
                 for stream in media_info.audio_streams:
                     assert stream.duration > 0, f"File's '{filename}' stream's {stream} duration should be positive."
+                    if stream.audio_channel_count > 1:
+                        at_least_one_stereo_file_found = True
+
+    # We expect to be able to test out stereo -> mono mixing
+    assert at_least_one_stereo_file_found, "At least one of the input test files should be a stereo audio file."
 
 
 def _file_sha1_hash(file_path: str) -> str:
@@ -85,16 +93,30 @@ def test_transcode_media_file_if_needed():
         else:
             output_media_file = transcode_media_file_if_needed(input_media_file=input_media_file)
 
-            assert output_media_file, "Output media file was set."
+            assert output_media_file, f"Output media file was set for filename '{filename}'."
 
             output_file_info = media_file_info(media_file_path=output_media_file.temp_full_path)
 
             assert not output_file_info.has_video_streams, f"There should be no video streams in '{filename}'."
             assert len(output_file_info.audio_streams) == 1, f"There should be only one audio stream in '{filename}'."
+
+            audio_stream = output_file_info.audio_streams[0]
+            assert audio_stream.audio_codec_class, f"Audio codec class is set for filename '{filename}'."
+            assert inspect.isclass(audio_stream.audio_codec_class), f"Audio codec is a class for filename '{filename}'."
             assert issubclass(
-                output_file_info.audio_streams[0].audio_codec_class,
+                audio_stream.audio_codec_class,
                 AbstractAudioCodec,
             ), f"Processed '{filename}' should be in one of the supported codecs."
+            assert audio_stream.audio_channel_count == 1, f"Output file should be only mono for filename '{filename}'."
+
+            if '-mp3-mono' in filename:
+                assert (
+                        output_media_file.temp_full_path == input_media_file.temp_full_path
+                ), "Mono MP3 file shouldn't have been transcoded."
+            else:
+                assert (
+                        output_media_file.temp_full_path != input_media_file.temp_full_path
+                ), f"File '{filename}' should have been transcoded."
 
         after_sha1_hash = _file_sha1_hash(input_file_path)
 

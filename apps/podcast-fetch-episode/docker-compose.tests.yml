@@ -10,6 +10,7 @@ services:
             MC_PODCAST_FETCH_EPISODE_BUCKET_NAME: "${MC_PODCAST_FETCH_EPISODE_BUCKET_NAME}"
             # Dev/test environments don't use "MC_PODCAST_FETCH_EPISODE_PATH_PREFIX" environment
             # variable as they create a different, timestamped prefix for every test run.
+            MC_LOGGING_LEVEL: "DEBUG"
         volumes:
             - type: bind
               source: ./bin/

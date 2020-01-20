@@ -54,35 +54,16 @@ class Linear16AudioCodec(AbstractAudioCodec):
         return 'audio/wav'
 
 
-class FLAC16AudioCodec(AbstractAudioCodec):
+class FLACAudioCodec(AbstractAudioCodec):
 
     @classmethod
     def postgresql_enum_value(cls) -> str:
-        return 'FLAC16'
+        return 'FLAC'
 
     @classmethod
     def ffmpeg_stream_is_this_codec(cls, ffmpeg_stream: Dict[str, Any]) -> bool:
-        return ffmpeg_stream['codec_name'] == 'flac' and ffmpeg_stream['sample_fmt'] == 's16'
-
-    @classmethod
-    def ffmpeg_container_format(cls) -> str:
-        return 'flac'
-
-    @classmethod
-    def mime_type(cls) -> str:
-        return 'audio/flac'
-
-
-class FLAC24AudioCodec(AbstractAudioCodec):
-
-    @classmethod
-    def postgresql_enum_value(cls) -> str:
-        return 'FLAC24'
-
-    @classmethod
-    def ffmpeg_stream_is_this_codec(cls, ffmpeg_stream: Dict[str, Any]) -> bool:
-        # "ffmpeg -i" says "s32 (24 bit)"
-        return ffmpeg_stream['codec_name'] == 'flac' and ffmpeg_stream['sample_fmt'] == 's32'
+        # FLAC 16 bit gets reported as "s16", and FLAC 24 bit as "s32 (24 bit)"
+        return ffmpeg_stream['codec_name'] == 'flac' and ffmpeg_stream['sample_fmt'] in ('s16', 's32')
 
     @classmethod
     def ffmpeg_container_format(cls) -> str:

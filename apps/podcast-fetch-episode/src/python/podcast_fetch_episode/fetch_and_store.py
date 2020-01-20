@@ -160,7 +160,6 @@ def fetch_and_store_episode(db: DatabaseHandler,
                 gcs_uri,
                 duration,
                 codec,
-                audio_channel_count,
                 sample_rate,
                 bcp47_language_code
             ) VALUES (
@@ -169,7 +168,6 @@ def fetch_and_store_episode(db: DatabaseHandler,
                 %(gcs_uri)s,
                 %(duration)s,
                 %(codec)s,
-                %(audio_channel_count)s,
                 %(sample_rate)s,
                 %(bcp47_language_code)s            
             ) ON CONFLICT (stories_id) DO UPDATE SET
@@ -177,7 +175,6 @@ def fetch_and_store_episode(db: DatabaseHandler,
                 gcs_uri = %(gcs_uri)s,
                 duration = %(duration)s,
                 codec = %(codec)s,
-                audio_channel_count = %(audio_channel_count)s,
                 sample_rate = %(sample_rate)s,
                 bcp47_language_code = %(bcp47_language_code)s
         """, {
@@ -186,7 +183,6 @@ def fetch_and_store_episode(db: DatabaseHandler,
             'gcs_uri': gcs_uri,
             'duration': best_audio_stream.duration,
             'codec': best_audio_stream.audio_codec_class.postgresql_enum_value(),
-            'audio_channel_count': best_audio_stream.audio_channel_count,
             'sample_rate': best_audio_stream.sample_rate,
             'bcp47_language_code': bcp_47_language_code,
         })

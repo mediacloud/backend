@@ -12,8 +12,7 @@ from mediawords.util.log import create_logger
 from podcast_fetch_episode.audio_codecs import (
     AbstractAudioCodec,
     Linear16AudioCodec,
-    FLAC16AudioCodec,
-    FLAC24AudioCodec,
+    FLACAudioCodec,
     MULAWAudioCodec,
     OggOpusAudioCodec,
     MP3AudioCodec,
@@ -28,8 +27,7 @@ log = create_logger(__name__)
 
 _SUPPORTED_CODEC_CLASSES = {
     Linear16AudioCodec,
-    FLAC16AudioCodec,
-    FLAC24AudioCodec,
+    FLACAudioCodec,
     MULAWAudioCodec,
     OggOpusAudioCodec,
     MP3AudioCodec,
@@ -45,7 +43,7 @@ class MediaFileInfoAudioStream(object):
     """FFmpeg internal stream index."""
 
     audio_codec_class: Optional[Type[AbstractAudioCodec]]
-    """Audio codec class if the stream is one of the supported types, None otherwise."""
+    """Audio codec class if the stream is one of the supported types and has single (mono) channel, None otherwise."""
 
     duration: int
     """Duration (in seconds)."""
@@ -105,12 +103,23 @@ def media_file_info(media_file_path: str) -> MediaFileInfo:
     for stream in file_info['streams']:
         if stream['codec_type'] == 'audio':
 
+            try:
+                audio_channel_count = int(stream['channels'])
+                if audio_channel_count == 0:
+                    raise Exception("Audio channel count is 0")
+            except Exception as ex:
+                log.warning(f"Unable to read audio channel count from stream {stream}: {ex}")
+                # Just skip this stream if we can't figure it out
+                continue
+
             audio_codec_class = None
 
-            for codec in _SUPPORTED_CODEC_CLASSES:
-                if codec.ffmpeg_stream_is_this_codec(ffmpeg_stream=stream):
-                    audio_codec_class = codec
-                    break
+            # We'll need to transcode audio files with more than one channel count anyway
+            if audio_channel_count == 1:
+                for codec in _SUPPORTED_CODEC_CLASSES:
+                    if codec.ffmpeg_stream_is_this_codec(ffmpeg_stream=stream):
+                        audio_codec_class = codec
+                        break
 
             try:
 
@@ -146,7 +155,7 @@ def media_file_info(media_file_path: str) -> MediaFileInfo:
                     ffmpeg_stream_index=stream['index'],
                     audio_codec_class=audio_codec_class,
                     duration=duration,
-                    audio_channel_count=int(stream['channels']),
+                    audio_channel_count=audio_channel_count,
                     sample_rate=int(stream['sample_rate']),
                 )
                 audio_streams.append(audio_stream)
@@ -184,11 +193,14 @@ def transcode_media_file_if_needed(input_media_file: TranscodeTempDirAndFile) ->
     """
     Transcode file (if needed) to something that Speech API will support.
 
-    * If input has video stream, it will be discarded.
+    * If input has a video stream, it will be discarded;
     * If input has more than one audio stream, others will be discarded leaving only one (preferably the one that Speech
-      API can support).
+      API can support);
     * If input doesn't have an audio stream in Speech API-supported codec, it will be transcoded to lossless
-      FLAC 16 bit in order to preserve quality.
+      FLAC 16 bit in order to preserve quality;
+    * If the chosen audio stream has multiple channels (e.g. stereo or 5.1), it will be mixed into a single (mono)
+      channel as Speech API supports multi-channel recognition only when different voices speak into each of the
+      channels.
 
     :param input_media_file: Temporary directory and input media file to consider transcoding.
     :return: Either the same 'input_media_file' if file wasn't transcoded, or new TranscodeTempDirAndFile() if it was.
@@ -215,6 +227,7 @@ def transcode_media_file_if_needed(input_media_file: TranscodeTempDirAndFile) ->
 
         # Test if there is more than one audio stream
         if len(media_info.audio_streams) > 1:
+            log.info(f"Found other audio streams besides the supported one, will discard those")
 
             ffmpeg_args.extend(['-f', supported_audio_stream.audio_codec_class.ffmpeg_container_format()])
 
@@ -222,11 +235,11 @@ def transcode_media_file_if_needed(input_media_file: TranscodeTempDirAndFile) ->
             ffmpeg_args.extend(['-map', '0:a'])
 
             for stream in media_info.audio_streams:
-                # Deselect only the unsupported streams
+                # Deselect the unsupported streams
                 if stream != supported_audio_stream:
                     ffmpeg_args.extend(['-map', f'-0:a:{stream.ffmpeg_stream_index}'])
 
-    # If a stream of a supported codec was not found, try
+    # If a stream of a supported codec was not found, transcode it to FLAC 16 bit in order to not lose any quality
     else:
         log.info(f"None of the audio streams are supported by the Speech API, will transcode to FLAC")
 
@@ -237,6 +250,9 @@ def transcode_media_file_if_needed(input_media_file: TranscodeTempDirAndFile) ->
         ffmpeg_args.extend(['-acodec', 'flac'])
         ffmpeg_args.extend(['-f', 'flac'])
         ffmpeg_args.extend(['-sample_fmt', 's16'])
+
+        # Ensure that we end up with mono audio
+        ffmpeg_args.extend(['-ac', '1'])
 
     # If there's video in the file (e.g. video), remove it
     if media_info.has_video_streams:
