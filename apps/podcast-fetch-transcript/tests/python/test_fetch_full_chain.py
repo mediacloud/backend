@@ -2,14 +2,14 @@ import time
 
 from mediawords.util.log import create_logger
 
-from podcast_fetch_transcript.fetch_transcript import fetch_speech_transcript
+from podcast_fetch_transcript.fetch import fetch_transcript
 
-from .setup_full_chain import AbstractFullChainTestCase
+from .setup_fetch import AbstractFetchTranscriptTestCase
 
 log = create_logger(__name__)
 
 
-class FullChainTestCase(AbstractFullChainTestCase):
+class FullChainTestCase(AbstractFetchTranscriptTestCase):
     """Test the full chain against a small audio file."""
 
     @classmethod
@@ -41,7 +41,7 @@ class FullChainTestCase(AbstractFullChainTestCase):
         for x in range(1, 60 + 1):
             log.info(f"Waiting for transcript to be finished (#{x})...")
 
-            transcript = fetch_speech_transcript(speech_operation_id=self.operations[0]['speech_operation_id'])
+            transcript = fetch_transcript(speech_operation_id=self.operations[0]['speech_operation_id'])
             if transcript:
                 log.info("Transcript is here!")
                 break

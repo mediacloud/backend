@@ -14,7 +14,7 @@ from mediawords.util.log import create_logger
 log = create_logger(__name__)
 
 
-class AbstractFullChainTestCase(TestCase, metaclass=abc.ABCMeta):
+class AbstractFetchTranscriptTestCase(TestCase, metaclass=abc.ABCMeta):
     __slots__ = [
         'db',
         'hs',

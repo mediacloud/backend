@@ -60,7 +60,7 @@ class Transcript(object):
     """List of ordered utterances in a transcript."""
 
 
-def fetch_speech_transcript(speech_operation_id: str) -> Optional[Transcript]:
+def fetch_transcript(speech_operation_id: str) -> Optional[Transcript]:
     """
     Attempt fetching a Speech API transcript for a given operation ID.
 
@@ -118,7 +118,7 @@ def fetch_speech_transcript(speech_operation_id: str) -> Optional[Transcript]:
             for alternative in result.alternatives:
                 alternatives.append(
                     UtteranceAlternative(
-                        text=alternative.transcript,
+                        text=alternative.transcript.strip(),
                         confidence=alternative.confidence,
                     )
                 )

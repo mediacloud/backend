@@ -5,16 +5,16 @@ import pytest
 
 from mediawords.util.log import create_logger
 
-from podcast_fetch_transcript.fetch_transcript import fetch_speech_transcript
+from podcast_fetch_transcript.fetch import fetch_transcript
 
-from .setup_full_chain import AbstractFullChainTestCase
+from .setup_fetch import AbstractFetchTranscriptTestCase
 
 log = create_logger(__name__)
 
 
 @pytest.mark.skipif('MC_PODCAST_FETCH_TRANSCRIPT_RUN_COSTLY_TEST' not in os.environ,
                     reason="Costly; each run costs about 60 / 4 * 0.009 = $0.14")
-class LongAudioTestCase(AbstractFullChainTestCase):
+class LongAudioTestCase(AbstractFetchTranscriptTestCase):
     """Test the full chain against a long audio file to try out whether podcast-fetch-transcript manages to back off."""
 
     # FIXME it will overwrite object "1" in GCS
@@ -47,7 +47,7 @@ class LongAudioTestCase(AbstractFullChainTestCase):
         for x in range(1, 12 + 1):
             log.info(f"Waiting for transcript to be finished (#{x})...")
 
-            transcript = fetch_speech_transcript(speech_operation_id=self.operations[0]['speech_operation_id'])
+            transcript = fetch_transcript(speech_operation_id=self.operations[0]['speech_operation_id'])
             if transcript:
                 log.info("Transcript is here!")
                 break
