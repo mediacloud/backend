@@ -115,6 +115,9 @@ def _get_extracted_html(db: DatabaseHandler, story: dict) -> str:
         """,
         {'a': story['stories_id']}).hash()
 
+    if not download:
+        return ''
+
     html = fetch_content(db, download)
 
     extract = extract_article_html_from_page_html(html)
