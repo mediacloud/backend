@@ -14,6 +14,9 @@ services:
             - type: bind
               source: ./nginx/include/
               target: /etc/nginx/include/
+            - type: bind
+              source: ./../nginx-base/nginx/nginx.conf
+              target: /etc/nginx/nginx.conf
         depends_on:
             - solr-shard-01
 
@@ -26,6 +29,13 @@ services:
             MC_SOLR_SHARD_COUNT: "1"
         expose:
             - 8983
+        volumes:
+            - type: bind
+              source: ./../solr-base/src/solr/
+              target: /usr/src/solr/
+            - type: bind
+              source: ./../solr-shard/bin/solr-shard.sh
+              target: /solr-shard.sh
         depends_on:
             - solr-zookeeper
 
@@ -36,6 +46,13 @@ services:
             - 2181
             - 2888
             - 3888
+        volumes:
+            - type: bind
+              source: ./../solr-zookeeper/conf/
+              target: /opt/zookeeper/conf/
+            - type: bind
+              source: ./../solr-zookeeper/bin/zookeeper.sh
+              target: /zookeeper.sh
 
 networks:
     default:

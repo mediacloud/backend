@@ -61,13 +61,11 @@ RUN \
 RUN \
     apt-get -y --no-install-recommends install "rabbitmq-server=3.7.7-1" && \
     apt-mark hold rabbitmq-server && \
+    rm -rf /etc/rabbitmq/ && \
     true
 
 # Copy configuration
-COPY --chown=rabbitmq:rabbitmq conf/* /etc/rabbitmq/
-
-# Copy scripts
-COPY bin/initialize_rabbitmq_db.sh /
+COPY --chown=rabbitmq:rabbitmq conf/ /etc/rabbitmq/
 
 # Set node name
 ENV RABBITMQ_NODENAME="mediacloud@localhost"
@@ -79,10 +77,12 @@ ENV RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS="+A 512"
 # RabbitMQ more quickly
 # If a new empty volume gets mounted to /var/lib/rabbitmq/mnesia/ upon
 # container start, Docker will copy the files from the container to the volume
+COPY bin/initialize_rabbitmq_db.sh /
 RUN \
     echo "Creating initial database..." && \
     /initialize_rabbitmq_db.sh && \
     echo "Done creating initial database." && \
+    rm /initialize_rabbitmq_db.sh && \
     true
 
 # Mnesia database

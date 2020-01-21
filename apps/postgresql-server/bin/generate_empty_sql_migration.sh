@@ -3,7 +3,7 @@
 set -u
 set -e
 
-SCHEMA_DIR="/opt/mediacloud/schema/"
+SCHEMA_DIR="apps/postgresql-server/schema"
 MEDIAWORDS_SQL_PATH="$SCHEMA_DIR/mediawords.sql"
 
 if [ ! -e "$MEDIAWORDS_SQL_PATH" ]; then

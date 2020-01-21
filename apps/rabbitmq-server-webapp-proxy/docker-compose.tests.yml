@@ -12,6 +12,9 @@ services:
             - type: bind
               source: ./nginx/include/
               target: /etc/nginx/include/
+            - type: bind
+              source: ./../nginx-base/nginx/nginx.conf
+              target: /etc/nginx/nginx.conf
         depends_on:
             - rabbitmq-server
 
@@ -21,3 +24,7 @@ services:
         expose:
             - 5672
             - 15672
+        volumes:
+            - type: bind
+              source: ./../rabbitmq-server/conf/
+              target: /etc/rabbitmq/
