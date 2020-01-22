@@ -56,6 +56,15 @@ services:
         volumes:
             # Shared with "webapp-httpd":
             - vol_daily_rss_dumps:/var/lib/daily_rss_dumps/
+            - type: bind
+              source: ./../cron-generate-daily-rss-dumps/bin/
+              target: /opt/mediacloud/bin/
+            - type: bind
+              source: ./../cron-base/bin/cron.sh
+              target: /cron.sh
+            - type: bind
+              source: ./../common/src/
+              target: /opt/mediacloud/src/common/
         depends_on:
             - postgresql-pgbouncer
 
@@ -64,6 +73,10 @@ services:
         stop_signal: SIGKILL
         expose:
             - 6432
+        volumes:
+            - type: bind
+              source: ./../postgresql-pgbouncer/conf/
+              target: /etc/pgbouncer/
         depends_on:
             - postgresql-server
 
@@ -72,6 +85,16 @@ services:
         stop_signal: SIGKILL
         expose:
             - 5432
+        volumes:
+            - type: bind
+              source: ./../postgresql-server/bin/
+              target: /opt/mediacloud/bin/
+            - type: bind
+              source: ./../postgresql-server/schema/
+              target: /opt/mediacloud/schema/
+            - type: bind
+              source: ./../postgresql-server/conf/
+              target: /etc/postgresql/11/main/
 
     solr-shard-01:
         image: dockermediacloud/solr-shard:latest
@@ -80,6 +103,13 @@ services:
             MC_SOLR_SHARD_COUNT: "1"
         expose:
             - 8983
+        volumes:
+            - type: bind
+              source: ./../solr-base/src/solr/
+              target: /usr/src/solr/
+            - type: bind
+              source: ./../solr-shard/bin/solr-shard.sh
+              target: /solr-shard.sh
         depends_on:
             - solr-zookeeper
 
@@ -90,6 +120,13 @@ services:
             - 2181
             - 2888
             - 3888
+        volumes:
+            - type: bind
+              source: ./../solr-zookeeper/conf/
+              target: /opt/zookeeper/conf/
+            - type: bind
+              source: ./../solr-zookeeper/bin/zookeeper.sh
+              target: /zookeeper.sh
 
     rabbitmq-server:
         image: dockermediacloud/rabbitmq-server:latest
@@ -97,26 +134,86 @@ services:
         expose:
             - 5672
             - 15672
+        volumes:
+            - type: bind
+              source: ./../rabbitmq-server/conf/
+              target: /etc/rabbitmq/
 
     rescrape-media:
         image: dockermediacloud/rescrape-media:latest
         stop_signal: SIGKILL
+        volumes:
+            - type: bind
+              source: ./../rescrape-media/bin/
+              target: /opt/mediacloud/bin/
+            - type: bind
+              source: ./../rescrape-media/src/
+              target: /opt/mediacloud/src/rescrape-media/
+            - type: bind
+              source: ./../common/src/
+              target: /opt/mediacloud/src/common/
+        depends_on:
+            - postgresql-pgbouncer
+            - rabbitmq-server
 
     word2vec-generate-snapshot-model:
         image: dockermediacloud/word2vec-generate-snapshot-model:latest
         stop_signal: SIGKILL
+        volumes:
+            - type: bind
+              source: ./../word2vec-generate-snapshot-model/bin/
+              target: /opt/mediacloud/bin/
+            - type: bind
+              source: ./../word2vec-generate-snapshot-model/src/
+              target: /opt/mediacloud/src/word2vec-generate-snapshot-model/
+            - type: bind
+              source: ./../common/src/
+              target: /opt/mediacloud/src/common/
+        depends_on:
+            - postgresql-pgbouncer
 
     topics-snapshot:
         image: dockermediacloud/topics-snapshot:latest
         stop_signal: SIGKILL
         environment:
             MC_TOPICS_SNAPSHOT_MODEL_REPS: "0"
+        volumes:
+            - type: bind
+              source: ./../topics-snapshot/bin/
+              target: /opt/mediacloud/bin/
+            - type: bind
+              source: ./../topics-snapshot/src/
+              target: /opt/mediacloud/src/topics-snapshot/
+            - type: bind
+              source: ./../topics-base/src/
+              target: /opt/mediacloud/src/topics-base/
+            - type: bind
+              source: ./../common/src/
+              target: /opt/mediacloud/src/common/
+        depends_on:
+            - postgresql-pgbouncer
+            - solr-shard-01
+            - rabbitmq-server
+            - import-solr-data-for-testing
 
     import-solr-data-for-testing:
         image: dockermediacloud/import-solr-data-for-testing:latest
         environment:
             MC_SOLR_IMPORT_MAX_QUEUED_STORIES: 100000
         stop_signal: SIGKILL
+        volumes:
+            - type: bind
+              source: ./../import-solr-data-for-testing/bin/
+              target: /opt/mediacloud/bin/
+            - type: bind
+              source: ./../import-solr-data-for-testing/src/
+              target: /opt/mediacloud/src/import-solr-data-for-testing/
+            - type: bind
+              source: ./../import-solr-data/src/
+              target: /opt/mediacloud/src/import-solr-data/
+            - type: bind
+              source: ./../common/src/
+              target: /opt/mediacloud/src/common/
         depends_on:
             - postgresql-pgbouncer
             - solr-shard-01

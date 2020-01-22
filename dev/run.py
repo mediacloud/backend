@@ -25,42 +25,18 @@ from typing import List
 
 # Given that docker-compose is present, we assume that PyYAML is installed
 
-from utils import DockerComposeArguments, DockerComposeArgumentParser
-
-try:
-    from yaml import safe_load as load_yaml
-except ModuleNotFoundError:
-    raise ImportError("Please install PyYAML.")
+from utils import (
+    DockerComposeArguments,
+    DockerComposeArgumentParser,
+    load_validate_docker_compose_yaml,
+    InvalidDockerComposeYMLException,
+)
 
 DOCKER_COMPOSE_FILENAME = 'docker-compose.tests.yml'
 """Filename of 'docker-compose.yml' used for development and running tests."""
 
 DOCKER_COMPOSE_WRAPPER_FILENAME = 'quieter-docker-compose/docker-compose-just-quieter'
 """"docker-compose" wrapper filename."""
-
-
-class InvalidDockerComposeYMLException(Exception):
-    """Exception that gets thrown on docker-compose.yml errors."""
-
-
-def _validate_docker_compose_yml(docker_compose_path: str, container_name: str) -> None:
-    """
-    Validate docker-compose.yml, throw exception on errors
-    :param docker_compose_path: Path to docker-compose.yml
-    """
-
-    with open(docker_compose_path, mode='r', encoding='utf-8') as f:
-
-        try:
-            yaml_root = load_yaml(f)
-        except Exception as ex:
-            raise InvalidDockerComposeYMLException("Unable to load YAML file: {}".format(ex))
-
-        if 'services' not in yaml_root:
-            raise InvalidDockerComposeYMLException("No 'services' key under root.")
-
-        if container_name not in yaml_root['services']:
-            raise InvalidDockerComposeYMLException("No '{} key under 'services'.".format(container_name))
 
 
 def _project_name(container_name: str, command: List[str]) -> str:
@@ -118,10 +94,9 @@ def docker_run_commands(
     app_dirname = Path(main_container_dir).parts[-1]
     container_name = app_dirname
 
-    try:
-        _validate_docker_compose_yml(docker_compose_path=docker_compose_path, container_name=container_name)
-    except InvalidDockerComposeYMLException as ex:
-        raise ValueError("docker-compose configuration in '{}' is invalid: {}".format(docker_compose_path, ex))
+    docker_compose_contents = load_validate_docker_compose_yaml(docker_compose_path=docker_compose_path)
+    if container_name not in docker_compose_contents['services']:
+        raise InvalidDockerComposeYMLException("No '{} key under 'services'.".format(container_name))
 
     project_name = _project_name(container_name=container_name, command=command)
 

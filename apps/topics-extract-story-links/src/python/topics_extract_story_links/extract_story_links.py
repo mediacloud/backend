@@ -7,7 +7,7 @@ from typing import List
 from bs4 import BeautifulSoup
 
 from mediawords.db import DatabaseHandler
-from mediawords.dbi.downloads.store import fetch_content
+from mediawords.dbi.downloads.store import fetch_content, McDBIDownloadsException
 from mediawords.key_value_store.amazon_s3 import McAmazonS3StoreException
 from mediawords.util.extract_article_from_page import extract_article_html_from_page_html
 from mediawords.util.log import create_logger
@@ -115,6 +115,9 @@ def _get_extracted_html(db: DatabaseHandler, story: dict) -> str:
         """,
         {'a': story['stories_id']}).hash()
 
+    if not download:
+        return ''
+
     html = fetch_content(db, download)
 
     extract = extract_article_html_from_page_html(html)
@@ -189,7 +192,7 @@ def _get_links_from_story(db: DatabaseHandler, story: dict) -> List[str]:
         links = list(link_lookup.values())
 
         return links
-    except McAmazonS3StoreException:
+    except (McAmazonS3StoreException, McDBIDownloadsException):
         # we expect the fetch_content() to fail occasionally
         return []
 

@@ -26,9 +26,12 @@ RUN \
 RUN rm -rf /etc/postgresql/11/main/
 COPY conf/ /etc/postgresql/11/main/
 
-# update_memory_config.sh script should be able to write to the memory
-# configuration include file
-RUN chown postgres:postgres /etc/postgresql/11/main/postgresql-memory.conf
+# This is where "update_memory_config.sh" script will write its memory settings
+# which it will auto-determine from available RAM on every run.
+RUN \
+    touch /var/run/postgresql/postgresql-memory.conf && \
+    chown postgres:postgres /var/run/postgresql/postgresql-memory.conf && \
+    true
 
 # Copy helper scripts, schema, migrations
 RUN mkdir -p /opt/mediacloud/

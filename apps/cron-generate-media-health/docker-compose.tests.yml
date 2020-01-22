@@ -16,6 +16,9 @@ services:
               source: ./tests/
               target: /opt/mediacloud/tests/
             - type: bind
+              source: ./../cron-base/bin/cron.sh
+              target: /cron.sh
+            - type: bind
               source: ./../common/src/
               target: /opt/mediacloud/src/common/
         depends_on:
@@ -26,6 +29,10 @@ services:
         stop_signal: SIGKILL
         expose:
             - 6432
+        volumes:
+            - type: bind
+              source: ./../postgresql-pgbouncer/conf/
+              target: /etc/pgbouncer/
         depends_on:
             - postgresql-server
 
@@ -34,3 +41,13 @@ services:
         stop_signal: SIGKILL
         expose:
             - 5432
+        volumes:
+            - type: bind
+              source: ./../postgresql-server/bin/
+              target: /opt/mediacloud/bin/
+            - type: bind
+              source: ./../postgresql-server/schema/
+              target: /opt/mediacloud/schema/
+            - type: bind
+              source: ./../postgresql-server/conf/
+              target: /etc/postgresql/11/main/

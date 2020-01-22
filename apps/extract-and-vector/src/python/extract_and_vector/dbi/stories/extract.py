@@ -17,10 +17,6 @@ def extract_and_process_story(db: DatabaseHandler,
 
     stories_id = story['stories_id']
 
-    use_transaction = not db.in_transaction()
-    if use_transaction:
-        db.begin()
-
     log.debug("Fetching downloads for story {}...".format(stories_id))
     downloads = db.query("""
         SELECT *
@@ -41,6 +37,3 @@ def extract_and_process_story(db: DatabaseHandler,
 
     log.debug("Processing extracted story {}...".format(stories_id))
     process_extracted_story(db=db, story=story, extractor_args=extractor_args)
-
-    if use_transaction:
-        db.commit()
