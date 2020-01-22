@@ -75,6 +75,56 @@ Readonly my $MAX_CONSECUTIVE_ERRORS => 3;
 # $MAX_CONSECUTIVE_ERROR_1 times.
 my $_num_consecutive_errors = 0;
 
+# process a response error from facebook within api_request
+sub _process_facebook_error($$)
+{
+    my ( $decoded_content, $data ) = @_;
+
+    $_num_consecutive_errors++;
+
+    # occasionally fb returns a 'something went wrong' or blank 500 page that we don't want to kill the worker
+    if ( !$data && ( !$decoded_content || ( $decoded_content =~ /something went wrong/ ) ) )
+    {
+        $data = {};
+        $data->{ error } = { message => 'something went wrong', type => 'html_error_page', code => 500 };
+    }
+
+    unless ( $data )
+    {
+        # Error response is not in JSON
+        LOGDIE "Unable to decode JSON from response; JSON content: $decoded_content";
+    }
+
+    unless ( defined $data->{ error } )
+    {
+        # 'error' key is not present in returned JSON
+        LOGDIE 'No "error" key in returned error: ' . Dumper( $data );
+    }
+
+    my $error_message = $data->{ error }->{ message };
+    my $error_type    = $data->{ error }->{ type };
+    my $error_code    = $data->{ error }->{ code } + 0;
+
+    DEBUG "API error: ($error_code $error_type) $error_message";
+
+    # for some reason, facebook consistently returns errors for some urls, so just return a 0 count for a
+    # given url until we have run into $MAX_CONSECUTIVE_ERRORS in a row
+    if ( $_num_consecutive_errors > $MAX_CONSECUTIVE_ERRORS )
+    {
+        LOGDIE( "more than $MAX_CONSECUTIVE_ERRORS consecutive errors: ($error_type $error_message)" );
+    }
+
+    DEBUG "Return 0 count";
+
+    return { zero => 1 };
+}
+
+# reset _num_consecutive_errors to 0
+sub _reset_consecutive_errors()
+{
+    $_num_consecutive_errors = 0;
+}
+
 # Make Facebook API request
 # Returns resulting JSON on success, LOGDIE()s on error
 sub api_request($$)
@@ -142,45 +192,11 @@ sub api_request($$)
         }
         else
         {
-            # occasionally fb returns a 'something went wrong' 500 page that we don't want to kill the worker
-            if ( !$data && ( $decoded_content =~ /something went wrong/ ) )
-            {
-                $data = {};
-                $data->{ error } = { message => 'something went wrong', type => 'html_error_page', code => 500 };
-            }
-
-            unless ( $data )
-            {
-                # Error response is not in JSON
-                LOGDIE "Unable to decode JSON from response; JSON content: $decoded_content";
-            }
-
-            unless ( defined $data->{ error } )
-            {
-                # 'error' key is not present in returned JSON
-                LOGDIE 'No "error" key in returned error: ' . Dumper( $data );
-            }
-
-            my $error_message = $data->{ error }->{ message };
-            my $error_type    = $data->{ error }->{ type };
-            my $error_code    = $data->{ error }->{ code } + 0;
-
-            DEBUG "API error: ($error_code $error_type) $error_message";
-
-            # for some reason, facebook consistently returns errors for some urls, so just return a 0 count for a
-            # given url until we have run into $MAX_CONSECUTIVE_ERRORS in a row
-            if ( ++$_num_consecutive_errors > $MAX_CONSECUTIVE_ERRORS )
-            {
-                LOGDIE( "more than $MAX_CONSECUTIVE_ERRORS consecutive errors: ($error_type $error_message)" );
-            }
-
-            DEBUG "Return 0 count";
-
-            return { zero => 1 };
+           return  _process_facebook_error( $decoded_content, $data );
         }
     }
 
-    $_num_consecutive_errors = 0;
+    _reset_consecutive_errors();
 
     unless ( $decoded_content )
     {
