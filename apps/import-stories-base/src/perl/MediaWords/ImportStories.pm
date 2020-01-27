@@ -311,7 +311,6 @@ sub _add_new_stories
     my $added_stories = [];
     for my $story ( @{ $stories } )
     {
-        $self->db->begin;
         DEBUG "story: " . $i++ . " / $total_stories";
 
         my $content = $story->{ content };
@@ -326,7 +325,6 @@ sub _add_new_stories
         $self->_add_story_download( $story, $content );
 
         push( @{ $added_stories }, $story );
-        $self->db->commit;
     }
 
     return $added_stories;
