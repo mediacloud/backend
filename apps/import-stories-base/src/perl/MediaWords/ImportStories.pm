@@ -34,6 +34,7 @@ use Encode;
 use MediaWords::CommonLibs;
 use MediaWords::DBI::Downloads::Extract;
 use MediaWords::DBI::Downloads::Store;
+use MediaWords::DBI::Stories;
 use MediaWords::Util::GuessDate;
 use MediaWords::Util::IdentifyLanguage;
 use MediaWords::Util::ParseHTML;
@@ -318,7 +319,7 @@ sub _add_new_stories
         delete( $story->{ content } );
         delete( $story->{ normalized_url } );
 
-        $story = MediaWords::DBI::Stories::Stories::add_new( $self->db, $story, $scrape_feeds_id );
+        $story = MediaWords::DBI::Stories::add_story( $self->db, $story, $scrape_feeds_id );
 
         $self->_add_scraped_stories_flag( $story );
 
