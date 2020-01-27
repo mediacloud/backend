@@ -1,11 +1,16 @@
 """Fetch twitter posts from crimson hexagon."""
 
 import datetime
+import dateutil
+from urllib.parse import parse_qs, urlparse
 
-from mediawords.util.parse_json import decode_json
+import requests_mock
+
+from mediawords.util.parse_json import decode_json, encode_json
 from mediawords.util.web.user_agent import UserAgent
 from mediawords.util.log import create_logger
 
+import topics_base.twitter as twitter
 from topics_mine.config import TopicsMineConfig
 from topics_mine.posts import AbstractPostFetcher
 from topics_mine.posts.twitter.helpers import add_tweets_to_meta_tweets, get_tweet_id_from_url
@@ -17,12 +22,102 @@ class McPostsCHTwitterDataException(Exception):
     """exception indicating an error in the external data fetched by this module."""
     pass
 
+def _mock_ch_posts(request, context) -> str:
+    """Mock crimson hexagon api call for requests_mock."""
+    params = parse_qs(urlparse(request.url).query)
+
+    log.warning(params)
+
+    start_date = dateutil.parser.parse(params['start'][0])
+    end_date = dateutil.parser.parse(params['end'][0])
+
+    fetcher = CrimsonHexagonTwitterPostFetcher()
+
+    posts = fetcher.get_mock_data()
+
+    posts = fetcher.filter_posts_for_date_range(posts, start_date, end_date)
+
+    ch_posts = []
+    for post in posts:
+        url = 'http://twitter.com/%s/status/%s' % (post['author'], post['post_id'])
+        p = """\
+{
+  "url": "%s",
+  "title": "",
+  "type": "Twitter",
+  "language": "en",
+  "assignedCategoryId": 25841371963,
+  "assignedEmotionId": 25841371954,
+  "categoryScores": [
+    {
+      "categoryId": 25841371962,
+      "categoryName": "Basic Neutral",
+      "score": 0
+    },
+    {
+      "categoryId": 25841371963,
+      "categoryName": "Basic Negative",
+      "score": 1
+    },
+    {
+      "categoryId": 25841371960,
+      "categoryName": "Basic Positive",
+      "score": 0
+    }
+  ],
+  "emotionScores": [
+    {
+      "emotionId": 25841371954,
+      "emotionName": "Disgust",
+      "score": 0.4
+    },
+    {
+      "emotionId": 25841371955,
+      "emotionName": "Joy",
+      "score": 0.01
+    },
+    {
+      "emotionId": 25841371958,
+      "emotionName": "Neutral",
+      "score": 0.01
+    },
+    {
+      "emotionId": 25841371959,
+      "emotionName": "Fear",
+      "score": 0.09
+    },
+    {
+      "emotionId": 25841371956,
+      "emotionName": "Sadness",
+      "score": 0.22
+    },
+    {
+      "emotionId": 25841371957,
+      "emotionName": "Anger",
+      "score": 0.16
+    },
+    {
+      "emotionId": 25841371961,
+      "emotionName": "Surprise",
+      "score": 0.12
+    }
+  ]
+}\
+        """ % url
+        ch_posts.append(p)
+
+    context.status_code = 200
+    context.headers = {'Content-Type': 'application/json; charset=UTF-8'}
+
+    json = '{"status": "success", "posts":[%s]}' % ',\n'.join(ch_posts) 
+
+    return json
+
 
 class CrimsonHexagonTwitterPostFetcher(AbstractPostFetcher):
 
-    # noinspection PyMethodMayBeStatic
-    def fetch_posts(self, query: str, start_date: datetime, end_date: datetime) -> list:
-        """Fetch day of tweets from crimson hexagon"""
+    def _get_content_from_api(self, query: str, start_date: datetime, end_date: datetime) -> str:
+        """Fetch the posts data from thw ch api and return the http response content."""
         ch_monitor_id = int(query)
 
         log.debug("crimson_hexagon_twitter.fetch_posts")
@@ -50,7 +145,16 @@ class CrimsonHexagonTwitterPostFetcher(AbstractPostFetcher):
         if not response.is_success():
             raise McPostsCHTwitterDataException("error fetching posts: " + response.decoded_content())
 
-        decoded_content = response.decoded_content()
+        return response.decoded_content()
+
+    def _add_ch_mocker(self, m) -> None:
+        """Add mocker for ch api call via requests_mock object."""
+        m.get('https://api.crimsonhexagon.com/api/monitor/posts', text=_mock_ch_posts)
+
+    # noinspection PyMethodMayBeStatic
+    def _fetch_posts_raw(self, query: str, start_date: datetime, end_date: datetime) -> list:
+        """Fetch day of tweets from crimson hexagon and twitter."""
+        decoded_content = self._get_content_from_api(query, start_date, end_date)
 
         data = dict(decode_json(decoded_content))
 
@@ -81,3 +185,15 @@ class CrimsonHexagonTwitterPostFetcher(AbstractPostFetcher):
                 posts.append(post)
 
         return posts
+
+    # noinspection PyMethodMayBeStatic
+    def fetch_posts(self, query: str, start_date: datetime, end_date: datetime) -> list:
+        """Fetch tweets from ch and twitter.  Setup mocking if self.mock_enabled."""
+        if self.mock_enabled:
+            with requests_mock.Mocker() as m:
+                twitter.add_mockers(m)
+                self._add_ch_mocker(m)
+                return self._fetch_posts_raw(query, start_date, end_date)
+
+        else:
+            return self._fetch_posts_raw(query, start_date, end_date)

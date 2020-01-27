@@ -2,8 +2,9 @@
 
 import tweepy
 from tweepy.parsers import RawParser
+from urllib.parse import urlparse, parse_qs
 
-from mediawords.util.parse_json import decode_json
+from mediawords.util.parse_json import encode_json, decode_json
 from mediawords.util.log import create_logger
 from topics_base.config import TopicsBaseConfig
 
@@ -88,3 +89,57 @@ def fetch_100_tweets(tweet_ids: list) -> list:
             tweet['text'] = tweet['full_text']
 
     return tweets
+
+
+def _mock_users(request, context) -> str:
+    """Mock twitter /statuses/lookup response for requests_mock."""
+    params = parse_qs(request.body)
+
+    screen_names = params['screen_name'][0].split(',')
+
+    users = []
+    for i, screen_name in enumerate(screen_names):
+        user = {
+            'id': str(i),
+            'name': 'user %d' % i,
+            'screen_name': screen_name,
+            'description': "test description for user %d" % i}
+        users.append(user)
+
+    context.status_code = 200
+    context.headers = {'Content-Type': 'application/json; charset=UTF-8'}
+
+    return encode_json(users)
+
+
+def _mock_statuses(request, context) -> str:
+    """Mock twitter /statuses/lookup response for requests_mock."""
+    params = parse_qs(urlparse(request.url).query)
+
+    ids = params['id'][0].split(',')
+
+    tweets = []
+    for tweet_id in ids:
+        tweet = {
+            'id': int(tweet_id),
+            'id_str': str(tweet_id),
+            'text': 'content %s' % tweet_id,
+            'user': {'screen_name': 'user_%s' % tweet_id},
+            'created_at': 'Thu Apr 06 15:24:15 +0000 2019',
+            'place': {},
+            'entitites': {}}
+
+        tweets.append(tweet)
+
+    json = encode_json(tweets)
+
+    context.status_code = 200
+    context.headers = {'Content-Type': 'application/json; charset=UTF-8'}
+
+    return json
+
+
+def add_mockers(m) -> None:
+    """Setup request_mock adapter to mock twitter status and user api requests."""
+    m.post("https://api.twitter.com/1.1/users/lookup.json", text=_mock_users)
+    m.get("https://api.twitter.com/1.1/statuses/lookup.json", text=_mock_statuses)
