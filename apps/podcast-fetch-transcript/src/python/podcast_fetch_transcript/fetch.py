@@ -4,7 +4,7 @@ from typing import List, Optional
 # noinspection PyPackageRequirements
 from google.api_core.exceptions import InvalidArgument, NotFound, GoogleAPICallError
 # noinspection PyPackageRequirements
-from google.api_core.operation import from_gapic
+from google.api_core.operation import from_gapic, Operation
 # noinspection PyPackageRequirements
 from google.api_core.operations_v1 import OperationsClient
 # noinspection PyPackageRequirements
@@ -88,7 +88,7 @@ def fetch_transcript(speech_operation_id: str) -> Optional[Transcript]:
         raise McMisconfiguredSpeechAPIException(f"Operation is unset.")
 
     try:
-        gapic_operation = from_gapic(
+        gapic_operation: Operation = from_gapic(
             operation,
             operations_client,
             cloud_speech_pb2.LongRunningRecognizeResponse,
@@ -96,6 +96,11 @@ def fetch_transcript(speech_operation_id: str) -> Optional[Transcript]:
         )
     except Exception as ex:
         raise McMisconfiguredSpeechAPIException(f"Unable to create GAPIC operation: {ex}")
+
+    log.debug(f"GAPIC operation: {gapic_operation}")
+    log.debug(f"Operation metadata: {gapic_operation.metadata}")
+    log.debug(f"Operation is done: {gapic_operation.done()}")
+    log.debug(f"Operation error: {gapic_operation.done()}")
 
     try:
         operation_is_done = gapic_operation.done()
