@@ -374,7 +374,7 @@ class HashServer(object):
                 if isinstance(response, str):
                     response = str.encode(response)
 
-                log.debug("Raw callback response: %s" % str(response))
+                # log.debug("Raw callback response: %s" % str(response))
 
                 if b"\r\n\r\n" not in response:
                     raise McHashServerException("Response must include both HTTP headers and data, separated by CRLF.")
