@@ -90,11 +90,16 @@ def _extract_story(db: DatabaseHandler, story: dict) -> None:
     processed = False
     while not processed and i < MAX_EXTRACTOR_WAIT:
         processed = db.query(
-            "select * from processed_stories where stories_id = %(a)s",
+            """
+            select
+                exists ( select * from story_sentences where stories_id = %(a)s )
+                or
+                exists ( select * from processed_stories where stories_id = %(a)s )
+            """,
             {'a': story['stories_id']}).hash() 
         if i > 0:
             log.debug("waiting for extraction job to complete ...")
-            time.sleep(1)
+            time.sleep(1) if i > 10 else time.sleep(1/(10-i))
 
         i += 1
 
