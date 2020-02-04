@@ -13,7 +13,7 @@ log = create_logger(__name__)
 
 
 @pytest.mark.skipif('MC_PODCAST_FETCH_TRANSCRIPT_RUN_COSTLY_TEST' not in os.environ,
-                    reason="Costly; each run costs about 60 / 4 * 0.009 = $0.14")
+                    reason="Costly; each run costs about 60 / 4 * 0.009 = $0.04")
 class LongAudioTestCase(AbstractFetchTranscriptTestCase):
     """Test the full chain against a long audio file to try out whether podcast-fetch-transcript manages to back off."""
 
