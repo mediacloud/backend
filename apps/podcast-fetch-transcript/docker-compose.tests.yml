@@ -8,7 +8,6 @@ services:
         environment:
             MC_PODCAST_GC_AUTH_JSON_STRING: "${MC_PODCAST_GC_AUTH_JSON_STRING}"
             MC_PODCAST_FETCH_TRANSCRIPT_RUN_COSTLY_TEST: "${MC_PODCAST_FETCH_TRANSCRIPT_RUN_COSTLY_TEST}"
-            MC_LOGGING_LEVEL: "DEBUG"
         expose:
             # "test_full_chain.py" test server's port
             - 8080
