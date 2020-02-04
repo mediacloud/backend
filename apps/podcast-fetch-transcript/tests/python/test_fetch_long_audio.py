@@ -5,7 +5,7 @@ import pytest
 
 from mediawords.util.log import create_logger
 
-from podcast_fetch_transcript.fetch import fetch_transcript
+from podcast_fetch_transcript.handler import DefaultHandler
 
 from .setup_fetch import AbstractFetchTranscriptTestCase
 
@@ -41,12 +41,14 @@ class LongAudioTestCase(AbstractFetchTranscriptTestCase):
     def test_long_audio(self):
         transcript = None
 
+        handler = DefaultHandler()
+
         # Input audio file is 1m0s, so wait for at least two minutes
         for x in range(1, 12 + 1):
             log.info(f"Waiting for transcript to be finished (#{x})...")
 
             podcast_episode_transcript_fetches_id = self.transcript_fetches[0]['podcast_episode_transcript_fetches_id']
-            transcript = fetch_transcript(
+            transcript = handler.fetch_transcript(
                 db=self.db,
                 podcast_episode_transcript_fetches_id=podcast_episode_transcript_fetches_id
             )

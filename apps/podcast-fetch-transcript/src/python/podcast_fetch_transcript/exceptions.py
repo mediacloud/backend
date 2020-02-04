@@ -14,11 +14,6 @@ class McPodcastFetchTranscriptSoftException(_AbstractMcPodcastFetchTranscriptExc
     pass
 
 
-class McOperationNotFoundException(_AbstractMcPodcastFetchTranscriptException):
-    """Exception thrown when a transcription operation was not found for a particular operation ID."""
-    pass
-
-
 # ---
 
 class McPodcastFetchTranscriptHardException(_AbstractMcPodcastFetchTranscriptException):
@@ -26,8 +21,18 @@ class McPodcastFetchTranscriptHardException(_AbstractMcPodcastFetchTranscriptExc
     pass
 
 
+class McOperationNotFoundException(McPodcastFetchTranscriptHardException):
+    """Exception thrown when a transcription operation was not found for a particular operation ID."""
+    pass
+
+
 class McDatabaseNotFoundException(McPodcastFetchTranscriptHardException):
     """Exception thrown when we can't find something in the database that we've expected to find."""
+    pass
+
+
+class McDatabaseErrorException(McPodcastFetchTranscriptHardException):
+    """Exception thrown when a database raises an error."""
     pass
 
 
