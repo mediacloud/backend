@@ -2,7 +2,6 @@ from typing import List, Dict, Any
 
 from mediawords.db import DatabaseHandler
 from mediawords.dbi.downloads.store import get_media_id
-from mediawords.dbi.stories.stories import add_story_and_content_download
 from mediawords.feed.parse import parse_feed
 from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_object_from_bytes_if_needed
@@ -11,6 +10,7 @@ from crawler_fetcher.exceptions import McCrawlerFetcherSoftError
 from crawler_fetcher.handler import AbstractDownloadHandler
 from crawler_fetcher.handlers.default.fetch_mixin import DefaultFetchMixin
 from crawler_fetcher.handlers.feed import AbstractDownloadFeedHandler
+from crawler_fetcher.new_story import add_story_and_content_download
 from crawler_fetcher.stories_checksum import stories_checksum_matches_feed
 
 log = create_logger(__name__)
