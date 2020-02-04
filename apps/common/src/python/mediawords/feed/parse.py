@@ -18,6 +18,36 @@ from mediawords.util.url import is_homepage_url
 log = create_logger(__name__)
 
 
+class SyndicatedFeedItemEnclosure(object):
+    """
+    Parsed feed item's enclosure.
+
+    Extracted from exactly one <enclosure> in RSS, one or more <link rel="enclosure" /> in Atom.
+    """
+
+    __slots__ = [
+        '__parsed_feed_entry_enclosure',
+    ]
+
+    def __init__(self, parsed_feed_entry_enclosure):
+        self.__parsed_feed_entry_enclosure = parsed_feed_entry_enclosure
+
+    def url(self) -> Optional[str]:
+        """Enclosure's URL, if set; None otherwise."""
+        return self.__parsed_feed_entry_enclosure.get('href', None)
+
+    def length(self) -> Optional[int]:
+        """Enclosure's declared length, if set; None otherwise."""
+        length = self.__parsed_feed_entry_enclosure.get('length', None)
+        if length is not None:
+            length = int(length)
+        return length
+
+    def mime_type(self) -> Optional[str]:
+        """Enclosure's declared MIME type, if set; None otherwise."""
+        return self.__parsed_feed_entry_enclosure.get('type', None)
+
+
 class SyndicatedFeedItem(object):
     """Parsed feed item (entry) object."""
 
@@ -157,6 +187,17 @@ class SyndicatedFeedItem(object):
             guid = None
 
         return guid
+
+    def enclosures(self) -> List[SyndicatedFeedItemEnclosure]:
+        """
+        Return feed item's enclosures (typically one or more media files linked from the feed item).
+        """
+
+        enclosures = []
+        for enclosure in self.__parsed_feed_entry.enclosures:
+            enclosures.append(SyndicatedFeedItemEnclosure(parsed_feed_entry_enclosure=enclosure))
+
+        return enclosures
 
 
 class SyndicatedFeed(object):
