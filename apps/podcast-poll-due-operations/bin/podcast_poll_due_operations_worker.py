@@ -9,10 +9,9 @@ from podcast_poll_due_operations.due_operations import poll_for_due_operations, 
 class JobBrokerFetchTranscriptQueue(AbstractFetchTranscriptQueue):
     """Add fetch transcript jobs to job broker's queue."""
 
-    def add_to_queue(self, stories_id: int, speech_operation_id: str) -> None:
+    def add_to_queue(self, podcast_episode_transcript_fetches_id: int) -> None:
         JobBroker(queue_name='MediaWords::Job::Podcast::FetchTranscript').add_to_queue(
-            stories_id=stories_id,
-            speech_operation_id=speech_operation_id,
+            podcast_episode_transcript_fetches_id=podcast_episode_transcript_fetches_id,
         )
 
 

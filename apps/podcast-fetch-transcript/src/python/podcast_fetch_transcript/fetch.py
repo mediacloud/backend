@@ -11,12 +11,14 @@ from google.api_core.operations_v1 import OperationsClient
 from google.cloud.speech_v1p1beta1 import SpeechClient
 # noinspection PyPackageRequirements
 from google.cloud.speech_v1p1beta1.proto import cloud_speech_pb2
+from mediawords.db import DatabaseHandler
 
 from mediawords.util.log import create_logger
 
 from podcast_fetch_transcript.config import PodcastFetchTranscriptConfig
 
 from podcast_fetch_transcript.exceptions import (
+    McDatabaseNotFoundException,
     McMisconfiguredSpeechAPIException,
     McOperationNotFoundException,
     McTranscriptionReturnedErrorException,
@@ -56,17 +58,44 @@ class Utterance(object):
 class Transcript(object):
     """A single transcript."""
 
+    stories_id: int
+    """Story ID."""
+
     utterances: List[Utterance]
     """List of ordered utterances in a transcript."""
 
 
-def fetch_transcript(speech_operation_id: str) -> Optional[Transcript]:
+def fetch_transcript(db: DatabaseHandler, podcast_episode_transcript_fetches_id: int) -> Optional[Transcript]:
     """
     Attempt fetching a Speech API transcript for a given operation ID.
 
-    :param speech_operation_id: Speech API operation ID.
+    :param db: Database handler.
+    :param podcast_episode_transcript_fetches_id: Transcript fetch attempt ID.
     :return: None if transcript is not finished yet, a Transcript object otherwise.
     """
+
+    transcript_fetch = db.find_by_id(
+        table='podcast_episode_transcript_fetches',
+        object_id=podcast_episode_transcript_fetches_id,
+    )
+    if not transcript_fetch:
+        raise McDatabaseNotFoundException(
+            f"Unable to find transcript fetch with ID {podcast_episode_transcript_fetches_id}"
+        )
+    podcast_episodes_id = transcript_fetch['podcast_episodes_id']
+
+    episode = db.find_by_id(table='podcast_episodes', object_id=podcast_episodes_id)
+    if not episode:
+        raise McDatabaseNotFoundException(
+            f"Unable to find podcast episode with ID {podcast_episodes_id}"
+        )
+
+    stories_id = episode['stories_id']
+    speech_operation_id = episode['speech_operation_id']
+
+    if not speech_operation_id:
+        raise McMisconfiguredSpeechAPIException(f"Speech ID for podcast episode {podcast_episodes_id} is unset.")
+
     try:
         config = PodcastFetchTranscriptConfig()
         client = SpeechClient.from_service_account_json(config.gc_auth_json_file())
@@ -145,4 +174,4 @@ def fetch_transcript(speech_operation_id: str) -> Optional[Transcript]:
             f"Unable to read transcript for operation '{speech_operation_id}': {ex}"
         )
 
-    return Transcript(utterances=utterances)
+    return Transcript(stories_id=stories_id, utterances=utterances)

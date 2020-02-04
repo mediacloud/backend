@@ -17,8 +17,6 @@ log = create_logger(__name__)
 class LongAudioTestCase(AbstractFetchTranscriptTestCase):
     """Test the full chain against a long audio file to try out whether podcast-fetch-transcript manages to back off."""
 
-    # FIXME it will overwrite object "1" in GCS
-
     @classmethod
     def input_media_path(cls) -> str:
         return '/opt/mediacloud/tests/data/media-samples/samples/nixon_speech-vorbis-1m.ogg'
@@ -47,7 +45,12 @@ class LongAudioTestCase(AbstractFetchTranscriptTestCase):
         for x in range(1, 12 + 1):
             log.info(f"Waiting for transcript to be finished (#{x})...")
 
-            transcript = fetch_transcript(speech_operation_id=self.operations[0]['speech_operation_id'])
+            podcast_episode_transcript_fetches_id = self.transcript_fetches[0]['podcast_episode_transcript_fetches_id']
+            transcript = fetch_transcript(
+                db=self.db,
+                podcast_episode_transcript_fetches_id=podcast_episode_transcript_fetches_id
+            )
+
             if transcript:
                 log.info("Transcript is here!")
                 break
@@ -57,6 +60,7 @@ class LongAudioTestCase(AbstractFetchTranscriptTestCase):
         print(transcript)
 
         assert transcript
+        assert transcript.stories_id
         assert len(transcript.utterances) > 0
         assert len(transcript.utterances[0].alternatives) > 0
         assert 'evening' in transcript.utterances[0].alternatives[0].text.lower()

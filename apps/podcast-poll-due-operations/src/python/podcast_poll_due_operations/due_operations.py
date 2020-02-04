@@ -17,12 +17,11 @@ class AbstractFetchTranscriptQueue(object, metaclass=abc.ABCMeta):
     """
 
     @abc.abstractmethod
-    def add_to_queue(self, stories_id: int, speech_operation_id: str) -> None:
+    def add_to_queue(self, podcast_episode_transcript_fetches_id: int) -> None:
         """
         Add story ID to "podcast-fetch-transcript" job queue.
 
-        :param stories_id: Story ID to add to the queue.
-        :param speech_operation_id: Speech API operation ID.
+        :param podcast_episode_transcript_fetches_id: Transcript fetch ID.
         """
         raise NotImplemented("Abstract method")
 
@@ -53,24 +52,24 @@ def poll_for_due_operations(fetch_transcript_queue: AbstractFetchTranscriptQueue
 
         db = connect_to_db()
 
-        db.begin()
-
         log.info("Polling...")
         due_operations = db.query("""
-            DELETE FROM podcast_episode_operations
-            WHERE stories_id IN (
-                SELECT stories_id
-                FROM podcast_episode_operations
-                WHERE fetch_results_at <= NOW()
+            SELECT
+                podcast_episode_transcript_fetches_id,
+                add_to_queue_at
+            FROM podcast_episode_transcript_fetches
+            
+            -- Transcript fetch is due
+            WHERE add_to_queue_at <= NOW()
+            
+            -- Transcript fetch wasn't added to the job broker's queue yet
+              AND podcast_episode_transcript_was_added_to_queue(added_to_queue_at) = 'f'
+            
+            -- Get the oldest operations first
+            ORDER BY add_to_queue_at
 
-                -- Get the oldest operations first
-                ORDER BY fetch_results_at
-
-                -- Don't fetch too much of stories at once
-                LIMIT %(stories_chunk_size)s
-            )
-
-            RETURNING stories_id, speech_operation_id
+            -- Don't fetch too much of stories at once
+            LIMIT %(stories_chunk_size)s
         """, {
             'stories_chunk_size': stories_chunk_size,
         }).hashes()
@@ -81,26 +80,29 @@ def poll_for_due_operations(fetch_transcript_queue: AbstractFetchTranscriptQueue
                 log.info(f"Adding {len(due_operations)} due operations to the transcription fetch queue...")
 
                 for operation in due_operations:
-                    log.debug((
-                        f"Adding story {operation['stories_id']} (operation {operation['speech_operation_id']}) "
-                        "to the transcription fetch queue..."
-                    ))
-                    fetch_transcript_queue.add_to_queue(
-                        stories_id=operation['stories_id'],
-                        speech_operation_id=operation['speech_operation_id'],
+                    podcast_episode_transcript_fetches_id = operation['podcast_episode_transcript_fetches_id']
+                    log.debug(
+                        f"Adding fetch ID {podcast_episode_transcript_fetches_id} to the transcription fetch queue..."
                     )
+                    fetch_transcript_queue.add_to_queue(
+                        podcast_episode_transcript_fetches_id=podcast_episode_transcript_fetches_id,
+                    )
+
+                    # Update "added_to_queue_at" individually in case RabbitMQ decides to fail on us
+                    db.query("""
+                        UPDATE podcast_episode_transcript_fetches
+                        SET added_to_queue_at = NOW()
+                        WHERE podcast_episode_transcript_fetches_id = %(podcast_episode_transcript_fetches_id)s
+                    """, {
+                        'podcast_episode_transcript_fetches_id': podcast_episode_transcript_fetches_id,
+                    })
 
                 log.info(f"Done adding {len(due_operations)} due operations to the transcription fetch queue")
             except Exception as ex:
-                db.rollback()
 
                 raise McJobBrokerErrorException(f"Unable to add one or more stories the the job queue: {ex}")
 
-            db.commit()
-
         else:
-
-            db.commit()
 
             if stop_after_first_empty_chunk:
                 log.info(f"No due story IDs found, stopping...")

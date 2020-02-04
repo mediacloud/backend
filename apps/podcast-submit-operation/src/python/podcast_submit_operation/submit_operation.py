@@ -32,14 +32,6 @@ MAX_RETRIES = 10
 DELAY_BETWEEN_RETRIES = 5
 """How long to wait (in seconds) between retries."""
 
-FETCH_RESULTS_AT_DURATION_MULTIPLIER = 1.1
-"""
-How soon to expect the transcription results to become available in relation to episode's duration.
-
-For example, if the episode's duration is 60 minutes, and the multiplier is 1.1, the transcription results fetch will
-first be attempted after 60 * 1.1 = 66 minutes.
-"""
-
 
 class PodcastEpisode(object):
     """
@@ -48,6 +40,7 @@ class PodcastEpisode(object):
     Postprocesses database row from "podcast_episodes" and does some extra checks.
     """
     __slots__ = [
+        '__stories_id',
         '__podcast_episodes_id',
         '__gcs_uri',
         '__duration',
@@ -56,13 +49,18 @@ class PodcastEpisode(object):
         '__bcp47_language_code',
     ]
 
-    def __init__(self, db_row: Dict[str, Any]):
+    def __init__(self, stories_id: int, db_row: Dict[str, Any]):
+        self.__stories_id = stories_id
         self.__podcast_episodes_id = db_row['podcast_episodes_id']
         self.__gcs_uri = db_row['gcs_uri']
         self.__duration = db_row['duration']
         self.__codec = db_row['codec']
         self.__sample_rate = db_row['sample_rate']
         self.__bcp47_language_code = db_row['bcp47_language_code']
+
+    @property
+    def stories_id(self) -> int:
+        return self.__stories_id
 
     @property
     def podcast_episodes_id(self) -> int:
@@ -83,10 +81,7 @@ class PodcastEpisode(object):
     @property
     def codec(self) -> RecognitionConfig.AudioEncoding:
         try:
-            if self.__codec in {'FLAC16', 'FLAC24'}:
-                encoding_obj = RecognitionConfig.AudioEncoding.FLAC
-            else:
-                encoding_obj = getattr(RecognitionConfig.AudioEncoding, self.__codec)
+            encoding_obj = getattr(RecognitionConfig.AudioEncoding, self.__codec)
         except Exception as ex:
             raise McPodcastInvalidInputException(f"Invalid codec '{self.__codec}': {ex}")
 
@@ -105,16 +100,13 @@ class PodcastEpisode(object):
         return self.__bcp47_language_code
 
 
-def submit_transcribe_operation(db: DatabaseHandler, stories_id: int) -> None:
+def get_podcast_episode(db: DatabaseHandler, stories_id: int) -> PodcastEpisode:
     """
-    Submit a Speech API long running operation to transcribe a podcast episode.
-
-    * submits a Speech API long running operation to transcribe a story's podcast episode;
-    * stores the operation's ID to "podcast_episode_operations together with the earliest date at which the
-      transcription should be attempted to be fetched.
+    Get podcast episode object for story ID.
 
     :param db: Database handler.
-    :param stories_id: Story the podcast episode of which to transcribe.
+    :param stories_id: Story ID.
+    :return: Podcast episode object.
     """
     try:
         podcast_episodes = db.select(
@@ -134,7 +126,7 @@ def submit_transcribe_operation(db: DatabaseHandler, stories_id: int) -> None:
         raise McPodcastDatabaseErrorException(f"There's more than one podcast episode for story {stories_id}")
 
     try:
-        episode = PodcastEpisode(db_row=podcast_episodes[0])
+        episode = PodcastEpisode(stories_id=stories_id, db_row=podcast_episodes[0])
     except Exception as ex:
         raise McPodcastInvalidInputException(f"Invalid episode for story {stories_id}: {ex}")
 
@@ -142,6 +134,17 @@ def submit_transcribe_operation(db: DatabaseHandler, stories_id: int) -> None:
         raise McPodcastEpisodeTooLongException(
             f"Story's {stories_id} podcast episode is too long ({episode.duration} seconds)."
         )
+
+    return episode
+
+
+def submit_transcribe_operation(episode: PodcastEpisode) -> int:
+    """
+    Submit a Speech API long running operation to transcribe a podcast episode.
+
+    :param episode: Podcast episode object.
+    :return Operation's ID to use for fetching operation results.
+    """
 
     try:
         config = PodcastSubmitOperationConfig()
@@ -177,7 +180,7 @@ def submit_transcribe_operation(db: DatabaseHandler, stories_id: int) -> None:
     except Exception as ex:
         raise McPodcastMisconfiguredSpeechAPIException(f"Unable to initialize Speech API configuration: {ex}")
 
-    log.info(f"Submitting a Speech API operation for story {stories_id}...")
+    log.info(f"Submitting a Speech API operation for story {episode.stories_id}...")
     speech_operation = None
     for attempt in range(1, MAX_RETRIES + 1):
 
@@ -210,27 +213,6 @@ def submit_transcribe_operation(db: DatabaseHandler, stories_id: int) -> None:
     except Exception as ex:
         raise McPodcastMisconfiguredSpeechAPIException(f"Unable to get operation name: {ex}")
 
-    log.info(f"Submitted Speech API operation '{operation_id}' for story {stories_id}")
+    log.info(f"Submitted Speech API operation '{operation_id}' for story {episode.stories_id}")
 
-    try:
-        fetch_results_interval = f"{int(episode.duration + FETCH_RESULTS_AT_DURATION_MULTIPLIER)} seconds"
-        db.query("""
-            INSERT INTO podcast_episode_operations (
-                stories_id,
-                podcast_episodes_id,
-                speech_operation_id,
-                fetch_results_at
-            ) VALUES (
-                %(stories_id)s,
-                %(podcast_episodes_id)s,
-                %(speech_operation_id)s,
-                NOW() + INTERVAL %(fetch_results_interval)s
-            )
-        """, {
-            'stories_id': stories_id,
-            'podcast_episodes_id': episode.podcast_episodes_id,
-            'speech_operation_id': operation_id,
-            'fetch_results_interval': fetch_results_interval,
-        })
-    except Exception as ex:
-        raise McPodcastDatabaseErrorException(f"Unable to add operation to the database: {ex}")
+    return operation_id

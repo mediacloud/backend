@@ -26,6 +26,11 @@ class McPodcastFetchTranscriptHardException(_AbstractMcPodcastFetchTranscriptExc
     pass
 
 
+class McDatabaseNotFoundException(McPodcastFetchTranscriptHardException):
+    """Exception thrown when we can't find something in the database that we've expected to find."""
+    pass
+
+
 class McMisconfiguredSpeechAPIException(McPodcastFetchTranscriptHardException):
     """Exception thrown when we receive something we didn't expect from Speech API."""
     pass

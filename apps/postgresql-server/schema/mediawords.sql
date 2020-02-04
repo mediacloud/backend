@@ -3805,7 +3805,7 @@ CREATE TABLE podcast_episodes (
     podcast_episodes_id     BIGSERIAL   PRIMARY KEY,
     stories_id              INT         NOT NULL REFERENCES stories (stories_id) ON DELETE CASCADE,
 
-    -- Enclosure that the episode was derived from
+    -- Enclosure that's considered to point to a podcast episode
     story_enclosures_id     BIGINT      NOT NULL
                                             REFERENCES story_enclosures (story_enclosures_id)
                                             ON DELETE CASCADE,
@@ -3835,7 +3835,11 @@ CREATE TABLE podcast_episodes (
                                             CHECK(
                                                 bcp47_language_code LIKE '%-%'
                                              OR bcp47_language_code = 'zh'
-                                            )
+                                            ),
+
+    -- Speech API operation ID to be used for retrieving transcription; if NULL,
+    -- transcription job hasn't been submitted yet
+    speech_operation_id     TEXT        NULL
 
 );
 
@@ -3843,36 +3847,75 @@ CREATE TABLE podcast_episodes (
 CREATE UNIQUE INDEX podcast_episodes_stories_id
     ON podcast_episodes (stories_id);
 
+CREATE UNIQUE INDEX podcast_episodes_story_enclosures_id
+    ON podcast_episodes (story_enclosures_id);
+
+CREATE UNIQUE INDEX podcast_episodes_stories_id_story_enclosures_id
+    ON podcast_episodes (stories_id, story_enclosures_id);
+
+
+-- Result of an attempt to fetch the transcript
+CREATE TYPE podcast_episode_transcript_fetch_result AS ENUM (
+
+    -- Operation was not yet finished yet at the time of fetching
+    'in_progress',
+
+    -- Operation was finished and transcription has succeeded
+    'success',
+
+    -- Operation was finished but the transcription has failed
+    'error'
+
+);
+
 
 --
--- Podcast episode transcription operations
+-- Attempts to fetch podcast episode transcript
+-- (we might need to try fetching the operation's results multiple times)
 --
-CREATE TABLE podcast_episode_operations (
-    podcast_episode_operations_id   BIGSERIAL   PRIMARY KEY,
-    stories_id                      INT         NOT NULL REFERENCES stories (stories_id) ON DELETE CASCADE,
+CREATE TABLE podcast_episode_transcript_fetches (
+    podcast_episode_transcript_fetches_id   BIGSERIAL   PRIMARY KEY,
 
     -- Podcast that is being transcribed
     podcast_episodes_id     BIGINT  NOT NULL
                                         REFERENCES podcast_episodes (podcast_episodes_id)
                                         ON DELETE CASCADE,
 
-    -- Speech API operation ID to be used for retrieving transcription
-    speech_operation_id     TEXT    NOT NULL,
+    -- Timestamp for when a fetch job should be added to the job broker's queue the soonest
+    add_to_queue_at     TIMESTAMP WITH TIME ZONE                NOT NULL,
 
-    -- The soonest timestamp when this operation's results should be attempted to be fetched
-    fetch_results_at        TIMESTAMP WITH TIME ZONE    NOT NULL
+    -- Timestamp for when a fetch job was added to the job broker's queue;
+    -- if NULL, a fetch job was never added to the queue
+    added_to_queue_at   TIMESTAMP WITH TIME ZONE                NULL,
+
+    -- Timestamp when the operation's results were attempted to be fetched by the worker;
+    -- if NULL, the results weren't attempted to be fetched yet
+    fetched_at      TIMESTAMP WITH TIME ZONE                    NULL,
+
+    -- Result of the fetch attempt;
+    -- if NULL, the operation fetch didn't happen yet
+    result          podcast_episode_transcript_fetch_result     NULL,
+
+    -- If result = 'error', error message that happened with the fetch attempt
+    error_message   TEXT                                        NULL
 
 );
 
--- Only one operation per story
-CREATE UNIQUE INDEX podcast_episode_operations_stories_id
-    ON podcast_episode_operations (stories_id);
 
--- Only one operation per episode
-CREATE UNIQUE INDEX podcast_episode_operations_podcast_episodes_id
-    ON podcast_episode_operations (podcast_episodes_id);
+-- Function that returns true if results were attempted at being fetched
+CREATE FUNCTION podcast_episode_transcript_was_added_to_queue(p_added_to_queue_at TIMESTAMP WITH TIME ZONE)
+RETURNS BOOL AS $$
 
--- "podcast-poll-due-operations" will poll for due operations for the "podcast-fetch-transcript"
--- to attempt at fetching
-CREATE INDEX podcast_episode_operations_fetch_results_at
-    ON podcast_episode_operations (fetch_results_at);
+    SELECT CASE WHEN p_added_to_queue_at::timestamp IS NULL THEN false ELSE true END;
+
+$$ LANGUAGE SQL IMMUTABLE;
+
+
+CREATE INDEX podcast_episode_transcript_fetches_podcast_episodes_id
+    ON podcast_episode_transcript_fetches (podcast_episodes_id);
+
+CREATE UNIQUE INDEX podcast_episode_transcript_fetches_due
+    ON podcast_episode_transcript_fetches (
+        add_to_queue_at,
+        podcast_episode_transcript_was_added_to_queue(added_to_queue_at)
+    );

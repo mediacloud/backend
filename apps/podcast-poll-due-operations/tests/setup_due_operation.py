@@ -37,24 +37,19 @@ class SetupTestOperation(TestCase, metaclass=abc.ABCMeta):
             'gcs_uri': 'gs://whatever',
             'duration': 1,
             'codec': 'MP3',
-            'audio_channel_count': 2,
             'sample_rate': 44100,
             'bcp47_language_code': 'en-US',
+            'speech_operation_id': 'foo',
         })
 
         self.db.query("""
-            INSERT INTO podcast_episode_operations (
-                stories_id,
+            INSERT INTO podcast_episode_transcript_fetches (
                 podcast_episodes_id,
-                speech_operation_id,
-                fetch_results_at
+                add_to_queue_at
             ) VALUES (
-                %(stories_id)s,
                 %(podcast_episodes_id)s,
-                'foo',
                 NOW()
             )
         """, {
-            'stories_id': stories_id,
             'podcast_episodes_id': episode['podcast_episodes_id'],
         })

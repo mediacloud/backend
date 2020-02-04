@@ -1,11 +1,7 @@
-import datetime
-
-from dateutil.parser import parse as parse_date
-import pytz
-
 from mediawords.db import connect_to_db
 from mediawords.test.db.create import create_test_medium, create_test_feed, create_test_story
-from podcast_submit_operation.submit_operation import submit_transcribe_operation
+
+from podcast_submit_operation.submit_operation import get_podcast_episode, submit_transcribe_operation
 
 
 def test_submit_transcribe_operation():
@@ -26,12 +22,12 @@ def test_submit_transcribe_operation():
         'length': 100000,
     })
 
-    episode = db.insert(table='podcast_episodes', insert_hash={
+    db.insert(table='podcast_episodes', insert_hash={
         'stories_id': stories_id,
         'story_enclosures_id': enclosure['story_enclosures_id'],
         'gcs_uri': test_gcs_uri,
 
-        # We lie about the duration because we want to test whether 'fetch_results_at' will be set way into the future
+        # We lie about the duration because we want to test whether 'add_to_queue_at' will be set way into the future
         'duration': 60 * 60,
 
         'codec': 'MP3',
@@ -39,13 +35,6 @@ def test_submit_transcribe_operation():
         'bcp47_language_code': 'en-US',
     })
 
-    submit_transcribe_operation(db=db, stories_id=stories_id)
-
-    operations = db.select(table='podcast_episode_operations', what_to_select='*').hashes()
-    assert len(operations) == 1
-
-    operation = operations[0]
-    assert operation['stories_id'] == stories_id
-    assert operation['podcast_episodes_id'] == episode['podcast_episodes_id']
-    assert operation['speech_operation_id']
-    assert parse_date(operation['fetch_results_at']) >= datetime.datetime.now(pytz.utc)
+    episode = get_podcast_episode(db=db, stories_id=stories_id)
+    speech_operation_id = submit_transcribe_operation(episode=episode)
+    assert speech_operation_id

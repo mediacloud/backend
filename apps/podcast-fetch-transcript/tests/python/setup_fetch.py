@@ -1,5 +1,6 @@
 import abc
 import os
+import random
 import socket
 import time
 from typing import Union
@@ -7,7 +8,7 @@ from unittest import TestCase
 
 from mediawords.db import connect_to_db
 from mediawords.job import JobBroker
-from mediawords.test.db.create import create_test_medium, create_test_feed, create_test_story
+from mediawords.test.db.create import create_test_medium, create_test_feed
 from mediawords.test.hash_server import HashServer
 from mediawords.util.log import create_logger
 
@@ -19,7 +20,7 @@ class AbstractFetchTranscriptTestCase(TestCase, metaclass=abc.ABCMeta):
         'db',
         'hs',
         'stories_id',
-        'operations',
+        'transcript_fetches',
     ]
 
     @classmethod
@@ -59,9 +60,48 @@ class AbstractFetchTranscriptTestCase(TestCase, metaclass=abc.ABCMeta):
 
         test_medium = create_test_medium(db=self.db, label='test')
         test_feed = create_test_feed(db=self.db, label='test', medium=test_medium)
-        test_story = create_test_story(db=self.db, label=self.story_title_description(), feed=test_feed)
 
-        self.stories_id = test_story['stories_id']
+        # Add a story with a random ID to decrease the chance that object in GCS will collide with another test running
+        # at the same time
+        self.stories_id = random.randint(1, 2147483647 - 1)
+
+        self.db.query("""
+            INSERT INTO stories (
+                stories_id,
+                media_id,
+                url,
+                guid,
+                title,
+                description,
+                publish_date,
+                collect_date,
+                full_text_rss
+            ) VALUES (
+                %(stories_id)s,
+                %(media_id)s,
+                'http://story.test/',
+                'guid://story.test/',
+                'story',
+                'description',
+                '2016-10-15 08:00:00',
+                '2016-10-15 10:00:00',
+                true
+            )
+        """, {
+            'stories_id': self.stories_id,
+            'media_id': test_feed['media_id'],
+        })
+
+        # Create missing partitions for "feeds_stories_map"
+        self.db.query('SELECT create_missing_partitions()')
+
+        self.db.create(
+            table='feeds_stories_map',
+            insert_hash={
+                'feeds_id': int(test_feed['feeds_id']),
+                'stories_id': self.stories_id,
+            }
+        )
 
         assert os.path.isfile(self.input_media_path()), f"Test media file '{self.input_media_path()}' should exist."
 
@@ -119,19 +159,22 @@ class AbstractFetchTranscriptTestCase(TestCase, metaclass=abc.ABCMeta):
         assert episodes, f"Episode didn't show up in {total_time} seconds."
 
         # Wait for "podcast-submit-operation" to submit Speech API operation
-        # FIXME race condition here
-        self.operations = None
+        self.transcript_fetches = None
         for x in range(1, self.retries_per_step() + 1):
-            log.info(f"Waiting for operation to appear (#{x})...")
+            log.info(f"Waiting for transcript fetch to appear (#{x})...")
 
-            self.operations = self.db.select(table='podcast_episode_operations', what_to_select='*').hashes()
-            if self.operations:
-                log.info(f"Operation is here!")
+            self.transcript_fetches = self.db.select(
+                table='podcast_episode_transcript_fetches',
+                what_to_select='*'
+            ).hashes()
+
+            if self.transcript_fetches:
+                log.info(f"Transcript fetch is here!")
                 break
 
             time.sleep(self.seconds_between_retries())
 
-        assert self.operations, f"Operation didn't show up in {total_time} seconds."
+        assert self.transcript_fetches, f"Operation didn't show up in {total_time} seconds."
 
     def tearDown(self) -> None:
         super().tearDown()
