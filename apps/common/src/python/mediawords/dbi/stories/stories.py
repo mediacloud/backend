@@ -42,7 +42,7 @@ def _get_story_url_variants(story: dict) -> list:
     return urls
 
 
-def find_dup_story(db: DatabaseHandler, story: dict) -> Optional[dict]:
+def _find_dup_story(db: DatabaseHandler, story: dict) -> Optional[dict]:
     """Return existing duplicate story within the same media source.
 
     Search for a story that is a duplicate of the given story.  A story is a duplicate if it shares the same media
@@ -143,7 +143,7 @@ def add_story(db: DatabaseHandler, story: dict, feeds_id: int) -> Optional[dict]
 
     db.query("LOCK TABLE stories IN ROW EXCLUSIVE MODE")
 
-    db_story = find_dup_story(db, story)
+    db_story = _find_dup_story(db, story)
     if db_story:
         log.debug("found existing dup story: %s [%s]" % (story['title'], story['url']))
         db.commit()
