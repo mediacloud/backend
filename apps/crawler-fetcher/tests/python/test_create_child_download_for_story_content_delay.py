@@ -1,6 +1,7 @@
-from .setup_test_stories import TestStories
 # noinspection PyProtectedMember
-from mediawords.dbi.stories.stories import _create_child_download_for_story
+from crawler_fetcher.new_story import _create_child_download_for_story
+
+from .setup_test_stories import TestStories
 
 
 class TestCreateChildDownloadForStoryContentDelay(TestStories):
