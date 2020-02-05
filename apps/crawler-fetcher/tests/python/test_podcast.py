@@ -6,6 +6,7 @@ from crawler_fetcher.handlers.feed_podcast import (
 
 
 def test_get_feed_url_from_itunes_podcasts_url():
+    # noinspection PyTypeChecker
     assert _get_feed_url_from_itunes_podcasts_url(None) is None
     assert _get_feed_url_from_itunes_podcasts_url('') == ''
     assert _get_feed_url_from_itunes_podcasts_url('http://www.example.com/') == 'http://www.example.com/'
@@ -23,14 +24,24 @@ def test_get_feed_url_from_itunes_podcasts_url():
 
 
 def test_get_feed_url_from_google_podcasts_url():
+    # noinspection PyTypeChecker
     assert _get_feed_url_from_google_podcasts_url(None) is None
     assert _get_feed_url_from_google_podcasts_url('') == ''
     assert _get_feed_url_from_google_podcasts_url('http://www.example.com/') == 'http://www.example.com/'
     assert _get_feed_url_from_google_podcasts_url('totally not an URL') == 'totally not an URL'
 
+    ra_feed_url = 'https://www.residentadvisor.net/xml/podcast.xml'
+
     ra_google_url = (
         'https://podcasts.google.com/?feed=aHR0cHM6Ly93d3cucmVzaWRlbnRhZHZpc29yLm5ldC94bWwvcG9kY2FzdC54bWw&'
         'ved=0CAAQ4aUDahcKEwiot6W5hrnnAhUAAAAAHQAAAAAQAQ&hl=lt'
     )
-    ra_feed_url = 'https://www.residentadvisor.net/xml/podcast.xml'
+    assert _get_feed_url_from_google_podcasts_url(ra_google_url) == ra_feed_url
+
+    # Test with URL that point to a specific episode
+    ra_google_url = (
+        'https://podcasts.google.com/?feed=aHR0cHM6Ly93d3cucmVzaWRlbnRhZHZpc29yLm5ldC94bWwvcG9kY2FzdC54bWw&'
+        'episode=aHR0cDovL3d3dy5yZXNpZGVudGFkdmlzb3IubmV0L3BvZGNhc3QtZXBpc29kZS5hc3B4P2lkPTcxNA&'
+        'ved=0CAIQkfYCahcKEwjwsNLrmLvnAhUAAAAAHQAAAAAQAQ&hl=lt'
+    )
     assert _get_feed_url_from_google_podcasts_url(ra_google_url) == ra_feed_url

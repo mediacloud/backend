@@ -94,6 +94,17 @@ def _get_feed_url_from_google_podcasts_url(url: str) -> str:
         log.debug(f"URL '{url}' is not Google Podcasts URL.")
         return url
 
+    if 'feed' not in uri.args:
+        log.error(f"URL '{url}' doesn't have 'feed' parameter.")
+
+    # Remove the rest of the arguments because they might lead to an episode page which doesn't have "data-feed"
+    args = list(uri.args.keys())
+    for arg in args:
+        if arg != 'feed':
+            del uri.args[arg]
+
+    url = str(uri.url)
+
     ua = UserAgent()
     res = ua.get(url)
     if not res.is_success():
