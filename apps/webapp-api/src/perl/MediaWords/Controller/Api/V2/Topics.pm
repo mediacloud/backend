@@ -320,7 +320,7 @@ sub create_GET
 
     my $db = $c->dbis;
 
-    $self->require_fields( $c, [ qw/name solr_seed_query description start_date end_date/ ] );
+    $self->require_fields( $c, [ qw/name description start_date end_date/ ] );
 
     my $data = $c->req->data;
 
@@ -331,29 +331,30 @@ sub create_GET
 
     _validate_max_stories( $db, $data->{ max_stories }, $auth_users_id );
 
-    if ( !( scalar( @{ $media_ids } ) || scalar( @{ $media_tags_ids } ) ) )
-    {
-        die( "must include either media_ids or mmedia_tags_ids" );
-    }
-
     my $topic = { map { $_ => $data->{ $_ } } @{ $TOPICS_EDIT_FIELDS } };
 
     $topic->{ max_stories } ||= 100_000;
     $topic->{ is_logogram } ||= 0;
     $topic->{ platform }    ||= 'web';
 
-    $topic->{ pattern } =
-      eval { MediaWords::Solr::Query::Parse::parse_solr_query( $topic->{ solr_seed_query } )->re( $topic->{ is_logogram } ) };
-    die( "unable to translate solr query to topic pattern: $@" ) if ( $@ );
+    if ( $topic->{ solr_seed_query } )
+    {
+        eval
+        {
+            my $parser = MediaWords::Solr::Query::Parse::parse_solr_query( $topic->{ solr_seed_query } );
+            $topic->{ pattern } = $parser->re( $topic->{ is_logogram } );
+        };
+        die( "unable to translate solr query to topic pattern: $@" ) if ( $@ );
+
+        my $full_q = MediaWords::Solr::Query::get_full_solr_query_for_topic( $db, $topic, $media_ids, $media_tags_ids );
+        my $num_stories = eval { MediaWords::Solr::get_num_found( $db, $full_q ) };
+        die( "invalid solr query: $@" ) if ( $@ );
+    }
 
     $topic->{ is_public }            = normalize_boolean_for_db( $topic->{ is_public } );
     $topic->{ is_logogram }          = normalize_boolean_for_db( $topic->{ is_logogram } );
     $topic->{ is_story_index_ready } = normalize_boolean_for_db( $topic->{ is_story_index_ready } );
     $topic->{ solr_seed_query_run }  = normalize_boolean_for_db( $topic->{ solr_seed_query_run } );
-
-    my $full_solr_query = MediaWords::Solr::Query::get_full_solr_query_for_topic( $db, $topic, $media_ids, $media_tags_ids );
-    my $num_stories = eval { MediaWords::Solr::get_num_found( $db, $full_solr_query ) };
-    die( "invalid solr query: $@" ) if ( $@ );
 
     $topic->{ job_queue } = _is_mc_queue_user( $db, $auth_users_id ) ? 'mc' : 'public';
 
@@ -515,11 +516,6 @@ sub update_PUT
 
     my $media_ids      = $data->{ media_ids };
     my $media_tags_ids = $data->{ media_tags_ids };
-
-    if ( $media_ids && $media_tags_ids && !( scalar( @{ $media_ids } ) || scalar( @{ $media_tags_ids } ) ) )
-    {
-        die( "media_ids and media_tags_ids cannot both be empty" );
-    }
 
     my $db = $c->dbis;
 
