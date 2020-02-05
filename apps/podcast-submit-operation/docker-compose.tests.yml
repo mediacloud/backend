@@ -6,7 +6,7 @@ services:
         image: dockermediacloud/podcast-submit-operation:latest
         stop_signal: SIGKILL
         environment:
-            MC_PODCAST_GC_AUTH_JSON_STRING: "${MC_PODCAST_GC_AUTH_JSON_STRING}"
+            MC_PODCAST_GC_AUTH_JSON_BASE64: "${MC_PODCAST_GC_AUTH_JSON_BASE64}"
         volumes:
             - type: bind
               source: ./bin/

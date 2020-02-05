@@ -6,7 +6,7 @@ services:
         image: dockermediacloud/podcast-fetch-episode:latest
         stop_signal: SIGKILL
         environment:
-            MC_PODCAST_GC_AUTH_JSON_STRING: "${MC_PODCAST_GC_AUTH_JSON_STRING}"
+            MC_PODCAST_GC_AUTH_JSON_BASE64: "${MC_PODCAST_GC_AUTH_JSON_BASE64}"
             MC_PODCAST_FETCH_EPISODE_BUCKET_NAME: "${MC_PODCAST_FETCH_EPISODE_BUCKET_NAME}"
             # Dev/test environments don't use "MC_PODCAST_FETCH_EPISODE_PATH_PREFIX" environment
             # variable as they create a different, timestamped prefix for every test run.

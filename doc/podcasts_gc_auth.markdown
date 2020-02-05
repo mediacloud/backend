@@ -90,4 +90,10 @@ In order to transcribe podcast episodes using Google Cloud's Speech API, you'll 
         --iam-account mc-transcribe-podcasts-test@mc-podcast-transcription-test.iam.gserviceaccount.com
     ```
 
-13. Copy contents of `mc-transcribe-podcasts-test.json` to `MC_PODCAST_GC_AUTH_JSON_STRING` environment variable that's set for apps using Google Cloud services for podcast transcription.
+13. Encode contents of `mc-transcribe-podcasts-test.json` to Base64:
+
+    ```shell
+    base64 mc-transcribe-podcasts-test.json
+    ```
+
+13. Copy the resulting Base64-encoded string to `MC_PODCAST_GC_AUTH_JSON_BASE64` environment variable that's set for apps using Google Cloud services for podcast transcription.

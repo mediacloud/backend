@@ -148,25 +148,28 @@ x-sysctl-defaults:  &sysctl-defaults
 #
 x-podcast-google-cloud-configuration:    &podcast-google-cloud-configuration
 
-    # Google Cloud authentication JSON string for a service account that
-    # uploads episodes to Google Cloud Storage; refer to
+    # Base64-encoded Google Cloud authentication JSON file for a service account that
+    # uploads episodes to Google Cloud Storage and submits Speech API jobs; refer to
     # doc/podcasts_gc_auth.markdown for instructions on how to create such an
     # account.
     #
-    # (Escape multiline strings properly as detailed under MC_USERAGENT_AUTHENTICATED_DOMAINS.)
-    MC_PODCAST_GC_AUTH_JSON_STRING: '
-        {
-            "type": "service_account",
-            "project_id": "example",
-            "private_key_id": "7f169a21d3f80974364bcf09f2047ea0efb5683a",
-            "private_key": "-----BEGIN PRIVATE KEY-----\n<...>\n-----END PRIVATE KEY-----\n",
-            "client_email": "example@example.iam.gserviceaccount.com",
-            "client_id": "123",
-            "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-            "token_uri": "https://oauth2.googleapis.com/token",
-            "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-            "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/example%40example.iam.gserviceaccount.com"
-        }
+    # How to generate Base64 encoded credentials:
+    #
+    #     $ base64 mediacloud-service-account-credentials.json
+    #
+    MC_PODCAST_GC_AUTH_JSON_BASE64: '
+        ewogICAgInR5cGUiOiAic2VydmljZV9hY2NvdW50IiwKICAgICJwcm9qZWN0X2lkIjogImV
+        4YW1wbGUiLAogICAgInByaXZhdGVfa2V5X2lkIjogIjdmMTY5YTIxZDNmODA5NzQzNjRiY2
+        YwOWYyMDQ3ZWEwZWZiNTY4M2EiLAogICAgInByaXZhdGVfa2V5IjogIi0tLS0tQkVHSU4gU
+        FJJVkFURSBLRVktLS0tLVxuPC4uLj5cbi0tLS0tRU5EIFBSSVZBVEUgS0VZLS0tLS1cbiIs
+        CiAgICAiY2xpZW50X2VtYWlsIjogImV4YW1wbGVAZXhhbXBsZS5pYW0uZ3NlcnZpY2VhY2N
+        vdW50LmNvbSIsCiAgICAiY2xpZW50X2lkIjogIjEyMyIsCiAgICAiYXV0aF91cmkiOiAiaH
+        R0cHM6Ly9hY2NvdW50cy5nb29nbGUuY29tL28vb2F1dGgyL2F1dGgiLAogICAgInRva2VuX
+        3VyaSI6ICJodHRwczovL29hdXRoMi5nb29nbGVhcGlzLmNvbS90b2tlbiIsCiAgICAiYXV0
+        aF9wcm92aWRlcl94NTA5X2NlcnRfdXJsIjogImh0dHBzOi8vd3d3Lmdvb2dsZWFwaXMuY29
+        tL29hdXRoMi92MS9jZXJ0cyIsCiAgICAiY2xpZW50X3g1MDlfY2VydF91cmwiOiAiaHR0cH
+        M6Ly93d3cuZ29vZ2xlYXBpcy5jb20vcm9ib3QvdjEvbWV0YWRhdGEveDUwOS9leGFtcGxlJ
+        TQwZXhhbXBsZS5pYW0uZ3NlcnZpY2VhY2NvdW50LmNvbSIKfQ==
     '
 
 

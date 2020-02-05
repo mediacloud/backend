@@ -6,7 +6,7 @@ services:
         image: dockermediacloud/podcast-fetch-transcript:latest
         stop_signal: SIGKILL
         environment:
-            MC_PODCAST_GC_AUTH_JSON_STRING: "${MC_PODCAST_GC_AUTH_JSON_STRING}"
+            MC_PODCAST_GC_AUTH_JSON_BASE64: "${MC_PODCAST_GC_AUTH_JSON_BASE64}"
             MC_PODCAST_FETCH_TRANSCRIPT_RUN_COSTLY_TEST: "${MC_PODCAST_FETCH_TRANSCRIPT_RUN_COSTLY_TEST}"
         expose:
             # "test_full_chain.py" test server's port
@@ -35,7 +35,7 @@ services:
         image: dockermediacloud/podcast-fetch-episode:latest
         stop_signal: SIGKILL
         environment:
-            MC_PODCAST_GC_AUTH_JSON_STRING: "${MC_PODCAST_GC_AUTH_JSON_STRING}"
+            MC_PODCAST_GC_AUTH_JSON_BASE64: "${MC_PODCAST_GC_AUTH_JSON_BASE64}"
             MC_PODCAST_FETCH_EPISODE_BUCKET_NAME: "${MC_PODCAST_FETCH_EPISODE_BUCKET_NAME}"
             MC_PODCAST_FETCH_EPISODE_PATH_PREFIX: "audio-files/"
         volumes:
@@ -56,7 +56,7 @@ services:
         image: dockermediacloud/podcast-submit-operation:latest
         stop_signal: SIGKILL
         environment:
-            MC_PODCAST_GC_AUTH_JSON_STRING: "${MC_PODCAST_GC_AUTH_JSON_STRING}"
+            MC_PODCAST_GC_AUTH_JSON_BASE64: "${MC_PODCAST_GC_AUTH_JSON_BASE64}"
         volumes:
             - type: bind
               source: ./../podcast-submit-operation/bin/

@@ -1,3 +1,4 @@
+import base64
 import hashlib
 import os
 import tempfile
@@ -46,7 +47,7 @@ def env_value(name: str, required: bool = True, allow_empty_string: bool = False
     return value
 
 
-def file_with_env_value(name: str, allow_empty_string: bool = False) -> str:
+def file_with_env_value(name: str, allow_empty_string: bool = False, encoded_with_base64: bool = False) -> str:
     """
     Write the value of an environment variable to a temporary file and return a path to it.
 
@@ -56,18 +57,26 @@ def file_with_env_value(name: str, allow_empty_string: bool = False) -> str:
 
     :param name: Environment variable name.
     :param allow_empty_string: If False, will raise if environment variable is set to an empty string.
+    :param encoded_with_base64: If True, environment variable's contents will be decoded from Base64.
     :return: Path to a temporary file with environment variable value's contents.
     """
 
     value = env_value(name=name, required=True, allow_empty_string=allow_empty_string)
 
+    if encoded_with_base64:
+        value = value.strip()
+        value = base64.b64decode(value)
+    else:
+        # Convert to 'bytes' in any case
+        value = value.encode('utf-8')
+
     # Always store the environment variable under the same name in order not to litter the temporary directory with a
     # bunch of random files created on every call to this function
-    value_sha1 = hashlib.sha1(value.encode('utf-8')).hexdigest()
+    value_sha1 = hashlib.sha1(value).hexdigest()
     temp_file_path = os.path.join(tempfile.gettempdir(), f"{value_sha1}")
 
     # Always overwrite the contents of the file because the last write might have failed for whatever reason
-    with open(temp_file_path, mode='w') as f:
+    with open(temp_file_path, mode='wb') as f:
         f.write(value)
 
     return temp_file_path

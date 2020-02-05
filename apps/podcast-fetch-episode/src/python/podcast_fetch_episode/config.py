@@ -9,7 +9,7 @@ class PodcastFetchEpisodeConfig(object):
     @staticmethod
     def gc_auth_json_file() -> str:
         """Return path to Google Cloud authentication JSON file."""
-        return file_with_env_value(name='MC_PODCAST_GC_AUTH_JSON_STRING')
+        return file_with_env_value(name='MC_PODCAST_GC_AUTH_JSON_BASE64', encoded_with_base64=True)
 
     @staticmethod
     def gc_storage_bucket_name() -> str:
