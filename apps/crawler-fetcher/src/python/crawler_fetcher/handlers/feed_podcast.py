@@ -2,9 +2,9 @@ import re
 from typing import List
 
 from furl import furl
+
 from mediawords.db import DatabaseHandler
 from mediawords.job import JobBroker
-
 from mediawords.util.log import create_logger
 from mediawords.util.parse_json import decode_json
 from mediawords.util.web.user_agent import UserAgent
@@ -116,6 +116,7 @@ def _get_feed_url_from_google_podcasts_url(url: str) -> str:
 
 
 class DownloadFeedPodcastHandler(DownloadFeedSyndicatedHandler):
+    """Handler for 'podcast' feed downloads."""
 
     @classmethod
     def _download_url(cls, download: dict) -> str:
