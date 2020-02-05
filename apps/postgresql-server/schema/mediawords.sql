@@ -259,7 +259,10 @@ create type feed_type AS ENUM (
     'univision',
 
     -- custom associated press api
-    'ap'
+    'ap',
+
+    -- Podcast feed
+    'podcast'
 
 );
 

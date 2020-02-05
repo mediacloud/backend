@@ -16,6 +16,7 @@ from mediawords.util.perl import decode_object_from_bytes_if_needed
 from crawler_fetcher.exceptions import McCrawlerFetcherHardError, McCrawlerFetcherSoftError
 from crawler_fetcher.handler import AbstractDownloadHandler
 from crawler_fetcher.handlers.content import DownloadContentHandler
+from crawler_fetcher.handlers.feed_podcast import DownloadFeedPodcastHandler
 from crawler_fetcher.handlers.feed_syndicated import DownloadFeedSyndicatedHandler
 from crawler_fetcher.handlers.feed_univision import DownloadFeedUnivisionHandler
 from crawler_fetcher.handlers.feed_web_page import DownloadFeedWebPageHandler
@@ -46,6 +47,8 @@ def handler_for_download(db: DatabaseHandler, download: dict) -> AbstractDownloa
             handler = DownloadFeedWebPageHandler()
         elif feed_type == 'univision':
             handler = DownloadFeedUnivisionHandler()
+        elif feed_type == 'podcast':
+            handler = DownloadFeedPodcastHandler()
         else:
             # Unknown feed type is a hard error as we don't types that we don't know about to be there
             raise McCrawlerFetcherHardError(

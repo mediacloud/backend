@@ -15,6 +15,9 @@
 --
 
 
+ALTER TYPE feed_type ADD VALUE 'podcast';
+
+
 --
 -- Enclosures added to the story's feed item
 --
