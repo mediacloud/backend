@@ -112,10 +112,22 @@ class DownloadFeedSyndicatedHandler(DefaultFetchMixin, AbstractDownloadFeedHandl
         new_story_ids = []
         for story in stories:
 
+            # FIXME None of the helpers like keys they don't know about
+            story_without_enclosures = story.copy()
+            story_without_enclosures.pop('enclosures')
+
             if self._add_content_download_for_new_stories():
-                added_story = add_story_and_content_download(db=db, story=story, parent_download=download)
+                added_story = add_story_and_content_download(
+                    db=db,
+                    story=story_without_enclosures,
+                    parent_download=download,
+                )
             else:
-                added_story = add_story(db=db, story=story, feeds_id=download['feeds_id'])
+                added_story = add_story(
+                    db=db,
+                    story=story_without_enclosures,
+                    feeds_id=download['feeds_id'],
+                )
 
             stories_id = added_story['stories_id']
             story_is_new = added_story.get('is_new', False)
