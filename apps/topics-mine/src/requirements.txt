@@ -1,2 +1,2 @@
-# http mocking for tests
-httpretty==0.9.7
+# jinja2 for templating test mock data
+jinja2=2.11.1

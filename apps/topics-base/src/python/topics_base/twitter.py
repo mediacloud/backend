@@ -1,5 +1,6 @@
 """Routines for interacting with twitter api and data."""
 
+import dateutil.parser
 import tweepy
 from tweepy.parsers import RawParser
 from urllib.parse import urlparse, parse_qs
@@ -7,6 +8,7 @@ from urllib.parse import urlparse, parse_qs
 from mediawords.util.parse_json import encode_json, decode_json
 from mediawords.util.log import create_logger
 from topics_base.config import TopicsBaseConfig
+from topics_base.posts import get_mock_post
 
 log = create_logger(__name__)
 
@@ -120,11 +122,16 @@ def _mock_statuses(request, context) -> str:
 
     tweets = []
     for tweet_id in ids:
+        tweet_id = int(tweet_id)
+        post = get_mock_post(tweet_id)
+
+        created_at = dateutil.parser.parse(post['publish_date']).ctime()
+
         tweet = {
-            'id': int(tweet_id),
+            'id': tweet_id,
             'id_str': str(tweet_id),
-            'text': 'content %s' % tweet_id,
-            'user': {'screen_name': 'user_%s' % tweet_id},
+            'text': post['content'],
+            'user': {'screen_name': post['author']},
             'created_at': 'Thu Apr 06 15:24:15 +0000 2019',
             'place': {},
             'entitites': {}}

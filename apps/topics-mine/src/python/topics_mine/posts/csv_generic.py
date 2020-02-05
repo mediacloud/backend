@@ -7,6 +7,7 @@ import io
 
 from mediawords.util.log import create_logger
 
+from topics_base.posts import get_mock_data, filter_posts_for_date_range
 from topics_mine.posts import AbstractPostFetcher
 
 log = create_logger(__name__)
@@ -44,10 +45,10 @@ class CSVStaticPostFetcher(AbstractPostFetcher):
 
         return list(csv.DictReader(csv_io))
 
-    def fetch_posts(self, query: str, start_date: datetime, end_date: datetime) -> list:
+    def fetch_posts_from_api(self, query: str, start_date: datetime, end_date: datetime) -> list:
         """Return posts from a csv that are within the given date range."""
         if self.mock_enabled:
-            query = self._get_csv_string_from_dicts(self.get_mock_data())
+            query = self._get_csv_string_from_dicts(get_mock_data())
 
         all_posts = self._get_dicts_from_csv_string(query)
 
@@ -60,6 +61,6 @@ class CSVStaticPostFetcher(AbstractPostFetcher):
             post['data'] = {}
             post['post_id'] = int(post['post_id'])
 
-        posts = self.filter_posts_for_date_range(posts, start_date, end_date)
+        posts = filter_posts_for_date_range(all_posts, start_date, end_date)
 
         return posts

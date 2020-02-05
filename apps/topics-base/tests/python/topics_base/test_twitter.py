@@ -31,4 +31,3 @@ def test_fetch_100_tweets() -> None:
 
     for (i, tweet) in enumerate(got_tweets):
         assert(tweet['id_str'] == str(i))
-        assert(tweet['text'] == 'content %d' % i)

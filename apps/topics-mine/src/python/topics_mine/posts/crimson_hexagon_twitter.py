@@ -10,6 +10,7 @@ from mediawords.util.parse_json import decode_json, encode_json
 from mediawords.util.web.user_agent import UserAgent
 from mediawords.util.log import create_logger
 
+from topics_base.posts import get_mock_data
 import topics_base.twitter as twitter
 from topics_mine.config import TopicsMineConfig
 from topics_mine.posts import AbstractPostFetcher
@@ -26,16 +27,10 @@ def _mock_ch_posts(request, context) -> str:
     """Mock crimson hexagon api call for requests_mock."""
     params = parse_qs(urlparse(request.url).query)
 
-    log.warning(params)
-
     start_date = dateutil.parser.parse(params['start'][0])
     end_date = dateutil.parser.parse(params['end'][0])
 
-    fetcher = CrimsonHexagonTwitterPostFetcher()
-
-    posts = fetcher.get_mock_data()
-
-    posts = fetcher.filter_posts_for_date_range(posts, start_date, end_date)
+    posts = get_mock_data(start_date, end_date)
 
     ch_posts = []
     for post in posts:
@@ -130,8 +125,6 @@ class CrimsonHexagonTwitterPostFetcher(AbstractPostFetcher):
         config = TopicsMineConfig()
         api_key = config.crimson_hexagon_api_key()
 
-        end_date = end_date + datetime.timedelta(days=1)
-
         start_arg = start_date.strftime('%Y-%m-%d')
         end_arg = end_date.strftime('%Y-%m-%d')
 
@@ -147,12 +140,8 @@ class CrimsonHexagonTwitterPostFetcher(AbstractPostFetcher):
 
         return response.decoded_content()
 
-    def _add_ch_mocker(self, m) -> None:
-        """Add mocker for ch api call via requests_mock object."""
-        m.get('https://api.crimsonhexagon.com/api/monitor/posts', text=_mock_ch_posts)
-
     # noinspection PyMethodMayBeStatic
-    def _fetch_posts_raw(self, query: str, start_date: datetime, end_date: datetime) -> list:
+    def fetch_posts_from_api(self, query: str, start_date: datetime, end_date: datetime) -> list:
         """Fetch day of tweets from crimson hexagon and twitter."""
         decoded_content = self._get_content_from_api(query, start_date, end_date)
 
@@ -168,6 +157,8 @@ class CrimsonHexagonTwitterPostFetcher(AbstractPostFetcher):
 
         add_tweets_to_meta_tweets(meta_tweets)
 
+        publish_date = dateutil.parser.parse(mt['tweet']['created_at']).isoformat()
+
         posts = []
         for mt in meta_tweets:
             log.debug("mt: %d" % mt['tweet_id'])
@@ -176,7 +167,7 @@ class CrimsonHexagonTwitterPostFetcher(AbstractPostFetcher):
                     'post_id': mt['tweet_id'],
                     'data': mt,
                     'content': mt['tweet']['text'],
-                    'publish_date': mt['tweet']['created_at'],
+                    'publish_date': publish_date,
                     'author': mt['tweet']['user']['screen_name'],
                     'channel': mt['tweet']['user']['screen_name'],
                     'url': mt['url']
@@ -186,14 +177,15 @@ class CrimsonHexagonTwitterPostFetcher(AbstractPostFetcher):
 
         return posts
 
-    # noinspection PyMethodMayBeStatic
-    def fetch_posts(self, query: str, start_date: datetime, end_date: datetime) -> list:
+    def setup_mock_data(self, mocker: requests_mock.Mocker) -> None:
         """Fetch tweets from ch and twitter.  Setup mocking if self.mock_enabled."""
-        if self.mock_enabled:
-            with requests_mock.Mocker() as m:
-                twitter.add_mockers(m)
-                self._add_ch_mocker(m)
-                return self._fetch_posts_raw(query, start_date, end_date)
+        # add the mocker for the ch api calls
+        mocker.get('https://api.crimsonhexagon.com/api/monitor/posts', text=_mock_ch_posts)
+        # seaprately we need to add the mocker for the twitter api calls
+        twitter.add_mockers(mocker)
 
-        else:
-            return self._fetch_posts_raw(query, start_date, end_date)
+    def validate_mock_post(self, got_post: dict, expected_post: dict) -> None:
+        """Ignore channel when validating mock post because twitter just copies the author into the channel field."""
+        for field in ('post_id', 'author', 'content'):
+            log.debug("%s: %s <-> %s" % (field, got_post[field], expected_post[field]))
+            assert got_post[field] == expected_post[field], "field %s does not match" % field

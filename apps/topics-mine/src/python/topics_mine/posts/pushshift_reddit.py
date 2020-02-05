@@ -1,5 +1,6 @@
 from collections import defaultdict
 import datetime
+import dateutil.parser
 import json
 import os
 import requests
@@ -7,8 +8,10 @@ import string
 import time
 import typing
 
-import httpretty
+from jinja2 import Template
+import requests_mock
 
+from topics_base.posts import get_mock_data
 from topics_mine.posts import AbstractPostFetcher
 
 from mediawords.util.log import create_logger
@@ -23,6 +26,47 @@ class McPushshiftError(Exception):
 class McPushshiftSubmissionFetchError(McPushshiftError):
     '''Pushshift Submission Fetch exception error.'''
     pass
+
+#{'query': {'function_score': {'random_score': {'seed': 1580848451258}, 'query': {'bool': {'must': [{'simple_query_string': {'query': '123', 'fields': ['title', 'selftext'], 'default_operator': 'and'}}, {'range': {'created_utc': {'gte': 1546318800.0}}}, {'range': {'created_utc': {'lt': 1554868800.0}}}]}}}}}
+
+
+def _mock_pushshift(request, context) -> str:
+    """Mock response from pushshift based on posts.get_mock_data."""
+    filters = request.json()['query']['function_score']['query']['bool']['must']
+
+    start_date = None
+    end_date = None
+    for filter in filters:
+        if not 'range' in filter:
+            continue
+
+        created_utc = filter['range']['created_utc']
+
+        if 'gte' in created_utc:
+            start_date = datetime.datetime.fromtimestamp(created_utc['gte'])
+        elif 'lt' in created_utc:
+            end_date = datetime.datetime.fromtimestamp(created_utc['lt'])
+
+    assert((end_date is not None) and (start_date is not None))
+
+    base_dir = os.path.dirname(os.path.realpath(__file__))
+    response_template_file = base_dir + "/pushshift_response.json.jinja"
+
+    posts = get_mock_data(start_date, end_date)
+
+    for post in posts:
+        post['publish_epoch'] = dateutil.parser.parse(post['publish_date']).timestamp()
+
+    with open(response_template_file) as f:
+        template = Template(f.read())
+        response_json = template.render(posts=posts)
+
+    log.warning(response_json)
+
+    context.status_code = 200
+    context.headers = {'Content-Type': 'application/json; charset=UTF-8'}
+
+    return response_json
 
 
 class PushshiftRedditPostFetcher(AbstractPostFetcher):
@@ -129,7 +173,8 @@ class PushshiftRedditPostFetcher(AbstractPostFetcher):
 
         for row in rows:
             obj = {}
-            obj['post_id'] = PushshiftRedditPostFetcher._base36encode(int(row['_id']))
+            #obj['post_id'] = PushshiftRedditPostFetcher._base36encode(int(row['_id']))
+            obj['post_id'] = int(row['_id'])
             obj['author'] = row['_source']['author']
 
             # Build content field using title and selftext (if it exists)
@@ -149,21 +194,20 @@ class PushshiftRedditPostFetcher(AbstractPostFetcher):
 
         return results
 
-    def enable_mock_data(self) -> None:
-        """Setup fetch_posts to return mock data, useful for testing."""
-        base_dir = os.path.dirname(os.path.realpath(__file__))
+    def setup_mock_data(self, mocker: requests_mock.Mocker) -> None:
+        """Setup mock handler for pushshift requests."""
+        url = 'https://mediacloud.pushshift.io/rs/_search'
+        mocker.get(url, text=_mock_pushshift)
 
-        MOCK_RESPONSE_HEADERS = {'Content-Type': 'application/json; charset=utf-8'}
-        MOCK_SUBMISSION_ENDPOINT_URL = 'https://mediacloud.pushshift.io/rs/_search'
+    def validate_mock_post(self, got_post: dict, expected_post: dict) -> None:
+        """Use title + content for the content field."""
+        for field in ('post_id', 'author', 'channel'):
+            log.warning("%s: %s <-> %s" % (field, got_post[field], expected_post[field]))
+            assert got_post[field] == expected_post[field], "field %s does not match" % field
 
-        fixture_data = open(base_dir + "/pushshift_reddit_mock.json", "r").read()
+        assert got_post['content'] == "Title %s" % expected_post['content']
 
-        # Register Feed mock endpoint
-        httpretty.register_uri(httpretty.GET, MOCK_SUBMISSION_ENDPOINT_URL,
-                               adding_headers=MOCK_RESPONSE_HEADERS, body=fixture_data)
-        httpretty.enable()
-
-    def fetch_posts(
+    def fetch_posts_from_api(
             self,
             query: str,
             start_date: datetime,
@@ -192,7 +236,9 @@ class PushshiftRedditPostFetcher(AbstractPostFetcher):
         """
 
         es_query = self._pushshift_query_builder(query, start_date, end_date, size=sample)
+        log.debug("pushshift reddit query: %s" % es_query)
         es_results = self._make_pushshift_api_request(es_query)
         results = self._build_response(es_results)
 
         return results
+
