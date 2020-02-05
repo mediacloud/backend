@@ -148,7 +148,7 @@ class DownloadFeedSyndicatedHandler(DefaultFetchMixin, AbstractDownloadFeedHandl
                 # Append to the list of newly added storyes
                 new_story_ids.append(stories_id)
 
-        log.debug(f"add_stories_from_feed: new stories: {len(new_story_ids)} / {len(stories)}")
+        log.info(f"add_stories_from_feed: new stories: {len(new_story_ids)} / {len(stories)}")
 
         return new_story_ids
 
