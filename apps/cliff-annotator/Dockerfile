@@ -17,7 +17,7 @@ RUN \
 # (can't use APT because we didn't install Java through it)
 RUN \
     mkdir -p /usr/lib/maven/ && \
-    curl -L "http://mirror.cogentco.com/pub/apache/maven/maven-3/3.6.2/binaries/apache-maven-3.6.2-bin.tar.gz" \
+    curl -L "https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/3.6.2/apache-maven-3.6.2-bin.tar.gz" \
         > /var/tmp/maven.tar.gz && \
     tar -zxf /var/tmp/maven.tar.gz -C /usr/lib/maven/ --strip 1 && \
     rm /var/tmp/maven.tar.gz && \
@@ -27,7 +27,7 @@ ENV PATH="/usr/lib/maven/bin:${PATH}"
 # Install Tomcat 7
 RUN \
     mkdir -p /usr/lib/tomcat7/ && \
-    curl -L "http://mirror.cogentco.com/pub/apache/tomcat/tomcat-7/v7.0.96/bin/apache-tomcat-7.0.96.tar.gz" \
+    curl -L "https://archive.apache.org/dist/tomcat/tomcat-7/v7.0.96/bin/apache-tomcat-7.0.96.tar.gz" \
         > /var/tmp/tomcat7.tar.gz && \
     tar -zxf /var/tmp/tomcat7.tar.gz -C /usr/lib/tomcat7/ --strip 1 && \
     rm /var/tmp/tomcat7.tar.gz && \
