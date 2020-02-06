@@ -11,7 +11,6 @@ from typing import Optional, List, Union
 import feedparser
 
 from mediawords.util.log import create_logger
-from mediawords.util.parse_html import html_strip
 from mediawords.util.sql import get_sql_date_from_epoch
 from mediawords.util.url import is_homepage_url
 
@@ -37,7 +36,7 @@ class SyndicatedFeedItem(object):
 
     def description(self) -> Optional[str]:
         """
-        Return item description or content with HTML stripped.
+        Return item description or content.
 
         Prefers Atom's <content> or RSS's <content:encoded> as those are potentially longer; falls back to
         <description>.
@@ -63,8 +62,7 @@ class SyndicatedFeedItem(object):
         if not description:
             description = self.__parsed_feed_entry.get('description', None)
 
-        if description:
-            description = html_strip(description)
+        # Don't strip HTML (old Perl implementation didn't do that)
 
         return description
 
