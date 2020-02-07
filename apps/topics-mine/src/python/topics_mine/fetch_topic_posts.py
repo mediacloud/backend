@@ -262,7 +262,7 @@ def fetch_topic_posts(db: DatabaseHandler, topics_id: int) -> None:
     topic = db.require_by_id('topics', topics_id)
 
     if topic['mode'] != 'url_sharing':
-        raise McFetchTopicPostsDataException("Topic mode is not 'sharing'")
+        raise McFetchTopicPostsDataException("Topic mode is not 'url_sharing'")
 
     topic_seed_queries = db.query(
         "select * from topic_seed_queries where topics_id = %(a)s",

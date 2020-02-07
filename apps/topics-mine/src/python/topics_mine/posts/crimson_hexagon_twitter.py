@@ -157,12 +157,12 @@ class CrimsonHexagonTwitterPostFetcher(AbstractPostFetcher):
 
         add_tweets_to_meta_tweets(meta_tweets)
 
-        publish_date = dateutil.parser.parse(mt['tweet']['created_at']).isoformat()
-
         posts = []
         for mt in meta_tweets:
             log.debug("mt: %d" % mt['tweet_id'])
             if 'tweet' in mt:
+                publish_date = dateutil.parser.parse(mt['tweet']['created_at']).isoformat()
+
                 post = {
                     'post_id': str(mt['tweet_id']),
                     'data': mt,

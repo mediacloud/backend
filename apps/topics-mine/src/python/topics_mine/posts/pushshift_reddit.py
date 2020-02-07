@@ -102,14 +102,20 @@ class PushshiftRedditPostFetcher(AbstractPostFetcher):
     def _make_pushshift_api_request(es_query: dict) -> dict:
         '''Pushshift API method to request data from Pushshift API'''
 
+        es_query_json = json.dumps(es_query)
+
+        log.debug("pushshift es query: %s" % es_query_json)
+
         headers = {'user-agent': 'mediacloud',
                 'content-type': 'application/json'}
         url = 'https://mediacloud.pushshift.io/rs/_search'
-        r = requests.get(url, headers=headers, data=json.dumps(es_query))
+        r = requests.get(url, headers=headers, data=es_query_json)
 
         if r.status_code == 200:
             data = r.json()
             shard_info = data['_shards']
+
+            log.debug("pushshift es response: %s" % data)
 
             # Make sure all shards returned data
             if (shard_info['total'] != shard_info['successful']) or shard_info['failed'] > 0:
@@ -126,13 +132,15 @@ class PushshiftRedditPostFetcher(AbstractPostFetcher):
             start_date: datetime = None,
             end_date: datetime = None,
             sort_field: str = None,
-            size: int = 100,
+            size: int = 10000, 
             randomize: bool = True,
             sort_dir: str = "desc") -> list:
 
         '''Pushshift Elasticsearch query builder'''
 
         q = defaultdict(dict)
+
+        size = 10000 if size is None else size
         q['size'] = size
 
         # Add Random sampling component if requested
@@ -156,10 +164,10 @@ class PushshiftRedditPostFetcher(AbstractPostFetcher):
         filters.append(sqs)
 
         if start_date is not None:
-            filters.append({'range': {'created_utc': {'gte': start_date.timestamp()}}})
+            filters.append({'range': {'created_utc': {'gte': int(start_date.timestamp())}}})
 
         if end_date is not None:
-            filters.append({'range': {'created_utc': {'lt': end_date.timestamp()}}})
+            filters.append({'range': {'created_utc': {'lt': int(end_date.timestamp())}}})
 
         return q
 
@@ -237,7 +245,6 @@ class PushshiftRedditPostFetcher(AbstractPostFetcher):
         """
 
         es_query = self._pushshift_query_builder(query, start_date, end_date, size=sample)
-        log.debug("pushshift reddit query: %s" % es_query)
         es_results = self._make_pushshift_api_request(es_query)
         results = self._build_response(es_results)
 
