@@ -122,7 +122,7 @@ def _test_feed_contents(feed_contents: str) -> None:
 
     assert second_item.guid() == 'http://www.example.com/second_item.html', "Second item GUID."
     assert second_item.guid_if_valid() == 'http://www.example.com/second_item.html', "Second item valid GUID."
-    assert second_item.description() == 'This is a second item.', "Second item description."
+    assert second_item.description() == '<strong>This is a second item.</strong>', "Second item description with HTML."
 
 
 def test_rss_feed():
@@ -148,7 +148,9 @@ def test_rss_feed():
             <link>http://www.example.com/second_item.html</link>
             <pubDate>Wed, 14 Dec 2016 04:05:01 GMT</pubDate>
             <guid isPermaLink="false">http://www.example.com/second_item.html</guid>   <!-- Even though it is a link -->
-            <content:encoded><![CDATA[This is a second item.]]></content:encoded>   <!-- Instead of description -->
+            
+            <!-- Instead of description: -->
+            <content:encoded><![CDATA[<strong>This is a second item.</strong>]]></content:encoded>
         </item>
     </channel>
 </rss>
@@ -185,7 +187,7 @@ def test_atom_feed():
             <name>Foo Bar</name>
         </author>
         <updated>2016-12-14T04:05:01Z</updated>
-        <summary><![CDATA[This is a second item.]]></summary>
+        <summary><![CDATA[<strong>This is a second item.</strong>]]></summary>
     </entry>
 </feed>
     """
@@ -223,7 +225,7 @@ def test_rdf_feed():
     <item rdf:about="http://www.example.com/second_item.html">
         <title>ɯǝʇı puoɔǝS</title>
         <link>http://www.example.com/second_item.html</link>
-        <description>This is a second item.</description>
+        <description><![CDATA[<strong>This is a second item.</strong>]]></description>
         <dc:date>2016-12-14T04:05:01Z</dc:date>
     </item>
 
