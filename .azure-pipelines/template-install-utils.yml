@@ -7,6 +7,9 @@ steps:
 - script: pip install -U pip setuptools wheel
   displayName: Upgrade Pip / setuptools
 
+- script: sudo apt-get -y update
+  displayName: Update APT listing
+
 - script: sudo apt-get -y install parallel
   displayName: Install parallels
 
