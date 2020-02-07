@@ -126,7 +126,7 @@ class CrimsonHexagonTwitterPostFetcher(AbstractPostFetcher):
         api_key = config.crimson_hexagon_api_key()
 
         start_arg = start_date.strftime('%Y-%m-%d')
-        end_arg = end_date.strftime('%Y-%m-%d')
+        end_arg = (end_date + datetime.timedelta(days=1)).strftime('%Y-%m-%d')
 
         url = ("https://api.crimsonhexagon.com/api/monitor/posts?auth=%s&id=%d&start=%s&end=%s&extendLimit=true" %
                (api_key, ch_monitor_id, start_arg, end_arg))
