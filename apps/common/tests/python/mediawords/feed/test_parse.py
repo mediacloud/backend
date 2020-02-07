@@ -192,6 +192,46 @@ def test_atom_feed():
     _test_feed_contents(atom_feed)
 
 
+def test_rdf_feed():
+    rdf_feed = """
+<?xml version="1.0" encoding="UTF-8"?>
+
+<rdf:RDF
+    xmlns:dc="http://purl.org/dc/elements/1.1/"
+    xmlns="http://purl.org/rss/1.0/"
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+
+    <channel rdf:about="http://www.example.com/about">
+        <title>Test feed</title>
+        <link>http://www.example.com/</link>
+        <description>This is a test feed.</description>
+        <items xmlns="http://apache.org/cocoon/i18n/2.1">
+            <rdf:Seq>
+                <rdf:li rdf:resource="http://www.example.com/first_item.html"/>
+                <rdf:li rdf:resource="http://www.example.com/second_item.html"/>
+            </rdf:Seq>
+        </items>
+        <dc:date>2016-12-14T04:00:00Z</dc:date>
+    </channel>
+
+    <item rdf:about="http://www.example.com/first_item.html">
+        <title>First item</title>
+        <link>http://www.example.com/first_item.html</link>
+        <description>This is a first item.</description>
+        <dc:date>2016-12-14T04:04:01Z</dc:date>
+    </item>
+    <item rdf:about="http://www.example.com/second_item.html">
+        <title>ɯǝʇı puoɔǝS</title>
+        <link>http://www.example.com/second_item.html</link>
+        <description>This is a second item.</description>
+        <dc:date>2016-12-14T04:05:01Z</dc:date>
+    </item>
+
+</rdf:RDF>
+    """
+    _test_feed_contents(rdf_feed)
+
+
 def test_rss_weird_dates():
     weird_dates = [
         'Mon, 01 Jan 0001 00:00:00 +0100',
