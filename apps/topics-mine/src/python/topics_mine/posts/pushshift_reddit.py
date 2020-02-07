@@ -103,7 +103,7 @@ class PushshiftRedditPostFetcher(AbstractPostFetcher):
         '''Pushshift API method to request data from Pushshift API'''
 
         headers = {'user-agent': 'mediacloud',
-                'content-type': 'application/json'}
+                'content-type': 'application/json; charset=UTF-8'}
         url = 'https://mediacloud.pushshift.io/rs/_search'
         r = requests.get(url, headers=headers, data=json.dumps(es_query))
 
