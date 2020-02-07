@@ -68,15 +68,19 @@ class SyndicatedFeedItem(object):
 
     def _parsed_publish_date(self) -> Optional[tuple]:
 
-        published_parsed = self.__parsed_feed_entry.get('published_parsed', None)
-        if published_parsed:
-            return published_parsed
+        date = self.__parsed_feed_entry.get('published_parsed', None)
+        if not date:
+            date = self.__parsed_feed_entry.get('updated_parsed', None)
 
-        updated_parsed = self.__parsed_feed_entry.get('updated_parsed', None)
-        if updated_parsed:
-            return updated_parsed
+        if date:
 
-        return None
+            # We might be parsing some really old dates (e.g. NYTimes historical archive), and maybe some weird stuff
+            # which is dated in the future for whatever reason, so allow stuff between Gutenberg and Star Trek
+            year = date[0]
+            if not 1450 < year < 2300:
+                date = None
+
+        return date
 
     def publish_date(self) -> Optional[str]:
         """

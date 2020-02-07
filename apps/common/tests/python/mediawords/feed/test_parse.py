@@ -1,5 +1,7 @@
 import re
 
+from dateutil.parser import parse as parse_date
+
 from mediawords.feed.parse import parse_feed
 
 
@@ -188,3 +190,49 @@ def test_atom_feed():
 </feed>
     """
     _test_feed_contents(atom_feed)
+
+
+def test_rss_weird_dates():
+    weird_dates = [
+        'Mon, 01 Jan 0001 00:00:00 +0100',
+        '1875-09-17T00:00:00Z',
+    ]
+
+    at_least_one_valid_date_parsed = False
+
+    for date in weird_dates:
+
+        rss_feed = f"""
+            <rss version="2.0">
+                <channel>
+                    <title>Weird dates</title>
+                    <link>https://www.example.com/</link>
+                    <description>Weird dates</description>
+                    <item>
+                        <title>Weird date</title>
+                        <link>https://www.example.com/weird-date</link>
+                        <description>Weird date</description>
+                        <pubDate>{date}</pubDate>
+                    </item>
+                </channel>
+            </rss>
+        """
+
+        feed = parse_feed(rss_feed)
+        assert feed, "Feed was parsed."
+
+        for item in feed.items():
+
+            if item.publish_date():
+
+                at_least_one_valid_date_parsed = True
+
+                # Try parsing the date
+                try:
+                    parse_date(item.publish_date())
+                except Exception as ex:
+                    assert False, f"Unable to parse date {item.publish_date()}: {ex}"
+
+                assert re.match(r'^\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d$', item.publish_date_sql())
+
+    assert at_least_one_valid_date_parsed
