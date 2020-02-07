@@ -164,7 +164,7 @@ class CrimsonHexagonTwitterPostFetcher(AbstractPostFetcher):
             log.debug("mt: %d" % mt['tweet_id'])
             if 'tweet' in mt:
                 post = {
-                    'post_id': mt['tweet_id'],
+                    'post_id': str(mt['tweet_id']),
                     'data': mt,
                     'content': mt['tweet']['text'],
                     'publish_date': publish_date,

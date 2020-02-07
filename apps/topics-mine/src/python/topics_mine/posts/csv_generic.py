@@ -59,7 +59,7 @@ class CSVStaticPostFetcher(AbstractPostFetcher):
                     raise McPostsGenericDataException(f"Missing required field: {field}")
             
             post['data'] = {}
-            post['post_id'] = int(post['post_id'])
+            post['post_id'] =str(post['post_id'])
 
         posts = filter_posts_for_date_range(all_posts, start_date, end_date)
 

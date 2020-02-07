@@ -2,7 +2,7 @@ import datetime
 import dateutil
 
 # mock data numbers
-NUM_MOCK_POST_DAYS = 1
+NUM_MOCK_POST_DAYS = 100
 NUM_MOCK_POSTS_PER_DAY = 10
 NUM_MOCK_POSTS = NUM_MOCK_POST_DAYS * NUM_MOCK_POSTS_PER_DAY
 NUM_MOCK_AUTHORS = NUM_MOCK_POSTS / 100
@@ -30,15 +30,16 @@ def get_mock_post(post_id: int) -> dict:
     day_interval = int(post_id / NUM_MOCK_POST_DAYS)
     publish_date = datetime.datetime.strptime(MOCK_START_DATE, '%Y-%m-%d') + datetime.timedelta(days=day_interval)
 
-    author_id = post_id % NUM_MOCK_AUTHORS
-    channel_id = post_id % NUM_MOCK_CHANNELS
+    author_id = int(post_id % NUM_MOCK_AUTHORS)
+    channel_id = int(post_id % NUM_MOCK_CHANNELS)
 
     d = {
             'content': 'mock content %s' % str(post_id),
             'author': 'mock author %s' % str(author_id),
             'channel': 'mock channel %s' % str(channel_id),
             'publish_date': str(publish_date),
-            'post_id': post_id}
+            'post_id': str(post_id)
+        }
 
     return d
 

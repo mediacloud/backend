@@ -61,8 +61,6 @@ def _mock_pushshift(request, context) -> str:
         template = Template(f.read())
         response_json = template.render(posts=posts)
 
-    log.warning(response_json)
-
     context.status_code = 200
     context.headers = {'Content-Type': 'application/json; charset=UTF-8'}
 
@@ -173,8 +171,10 @@ class PushshiftRedditPostFetcher(AbstractPostFetcher):
 
         for row in rows:
             obj = {}
-            #obj['post_id'] = PushshiftRedditPostFetcher._base36encode(int(row['_id']))
-            obj['post_id'] = int(row['_id'])
+
+            # reddit sends post_id as a base35 int, but pushshift returnst that id as a base10 id.  we convert it 
+            # back so that that post_id we store will work with reddit
+            obj['post_id'] = PushshiftRedditPostFetcher._base36encode(int(row['_id']))
             obj['author'] = row['_source']['author']
 
             # Build content field using title and selftext (if it exists)
@@ -201,10 +201,11 @@ class PushshiftRedditPostFetcher(AbstractPostFetcher):
 
     def validate_mock_post(self, got_post: dict, expected_post: dict) -> None:
         """Use title + content for the content field."""
-        for field in ('post_id', 'author', 'channel'):
-            log.warning("%s: %s <-> %s" % (field, got_post[field], expected_post[field]))
+        for field in ('author', 'channel'):
+            log.debug("%s: %s <-> %s" % (field, got_post[field], expected_post[field]))
             assert got_post[field] == expected_post[field], "field %s does not match" % field
 
+        assert got_post['post_id'] == PushshiftRedditPostFetcher._base36encode(int(expected_post['post_id']))
         assert got_post['content'] == "Title %s" % expected_post['content']
 
     def fetch_posts_from_api(
