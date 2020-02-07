@@ -13,17 +13,6 @@ RUN \
     rm -rf /root/.perl-cpm/ && \
     true
 
-# Install Python dependencies
-COPY src/requirements.txt /var/tmp/
-RUN \
-    cd /var/tmp/ && \
-    #
-    # Install the rest of the stuff
-    pip3 install -r requirements.txt && \
-    rm requirements.txt && \
-    rm -rf /root/.cache/ && \
-    true
-
 # Copy sources
 COPY src/ /opt/mediacloud/src/topics-mine/
 ENV PERL5LIB="/opt/mediacloud/src/topics-mine/perl:${PERL5LIB}"
