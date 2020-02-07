@@ -1,0 +1,2 @@
+# jinja2 for templating test mock data
+jinja2=2.11.1
