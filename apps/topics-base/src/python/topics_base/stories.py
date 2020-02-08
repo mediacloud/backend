@@ -9,6 +9,9 @@ from typing import Optional
 import furl
 import re2
 
+from extract_and_vector.dbi.stories.extractor_arguments import PyExtractorArguments
+from extract_and_vector.dbi.stories.extract import extract_and_process_story
+
 from mediawords.db import DatabaseHandler
 from mediawords.dbi.downloads import create_download_for_new_story
 from mediawords.dbi.downloads.store import McDBIDownloadsException, fetch_content, store_content
@@ -80,31 +83,10 @@ def _extract_story(db: DatabaseHandler, story: dict) -> None:
     if re2.search(r'livejournal.com\/(tag|profile)', story['url'], re2.I):
         return
 
-    JobBroker(queue_name='MediaWords::Job::ExtractAndVector').add_to_queue(
-        stories_id=story['stories_id'],
-        use_cache=True,
-        use_existing=True,
-    )
+    log.info("extracting story ...")
 
-    i = 0
-    processed = False
-    while not processed and i < MAX_EXTRACTOR_WAIT:
-        processed = db.query(
-            """
-            select 1 where
-                exists ( select * from story_sentences where stories_id = %(a)s )
-                or
-                exists ( select * from processed_stories where stories_id = %(a)s )
-            """,
-            {'a': story['stories_id']}).hash() 
-        if i > 0:
-            log.debug("waiting for extraction job to complete ...")
-            time.sleep(1) if i >= 10 else time.sleep(1/(10-i))
-
-        i += 1
-
-    if not processed:
-        raise McTMStoriesException("timed out wfter %d seconds aiting for story extraction" % i)
+    extractor_args = PyExtractorArguments(use_cache=True, use_existing=True)
+    extract_and_process_story(db=db, story=story, extractor_args=extractor_args)
 
 
 def _get_story_with_most_sentences(db: DatabaseHandler, stories: list) -> dict:
