@@ -46,6 +46,9 @@ BINARY_EXTENSIONS = 'jpg pdf doc mp3 mp4 zip png docx'.split()
 # how long to wait for extractor before raising an exception
 MAX_EXTRACTOR_WAIT = 600
 
+# how many seconds to poll to make sure we can fetch stored content
+STORE_CONTENT_TIMEOUT = 10
+
 
 class McTMStoriesException(Exception):
     """Default exception for package."""
@@ -344,6 +347,30 @@ def get_spider_feed(db: DatabaseHandler, medium: dict) -> dict:
     })
 
 
+def store_and_verify_content(db: DatabaseHandler, download: dict, content: str) -> None:
+    """Call store content and then poll verifying that the content has been stored.
+
+    Only return once we have verified that the content has been stored.  Raise an error after a
+    timeout if the content is not found.  It seems like S3 content is not available for fetching until a small
+    delay after writing it.  This function makes sure the content is there once the store operation is done.
+    """
+    store_content(db, download, content)
+
+    tries = 0
+    while True:
+        try:
+            fetch_content(db, download)
+            break
+        except Exception as e:
+            if tries > STORE_CONTENT_TIMEOUT:
+                raise e
+
+            log.debug("story_and_verify_content: waiting to retry verification (%d) ..." % tries)
+            tries += 1
+            time.sleep(1)
+
+
+
 def generate_story(
         db: DatabaseHandler,
         url: str,
@@ -440,7 +467,7 @@ def generate_story(
         download = create_download_for_new_story(db, story, feed)
 
         log.debug("Storing story content...")
-        store_content(db, download, content)
+        store_and_verify_content(db, download, content)
 
         log.debug("Extracting story...")
         _extract_story(db, story)

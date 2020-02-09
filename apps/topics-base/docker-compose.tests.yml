@@ -21,6 +21,9 @@ services:
             - type: bind
               source: ./../common/src/
               target: /opt/mediacloud/src/common/
+            - type: bind
+              source: ./../extract-and-vector/src/
+              target: /opt/mediacloud/src/extract-and-vector/
         depends_on:
             - postgresql-pgbouncer
             - rabbitmq-server
