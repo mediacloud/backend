@@ -176,7 +176,11 @@ def test_atom_feed():
         <author>
             <name>Foo Bar</name>
         </author>
-        <updated>2016-12-14T04:04:01Z</updated>
+
+        <!- If both "published" and "updated" are set, we expect the feed parser to still use "published" -->
+        <published>2016-12-14T04:04:01Z</published>
+        <updated>2016-12-14T04:08:01Z</updated>
+
         <summary>This is a first item.</summary>
     </entry>
     <entry>
@@ -186,7 +190,10 @@ def test_atom_feed():
         <author>
             <name>Foo Bar</name>
         </author>
+
+        <!-- If only "updated" is set, feed parser should use "updated" -->
         <updated>2016-12-14T04:05:01Z</updated>
+
         <summary><![CDATA[<strong>This is a second item.</strong>]]></summary>
     </entry>
 </feed>
