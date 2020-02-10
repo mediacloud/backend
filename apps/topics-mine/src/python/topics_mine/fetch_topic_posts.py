@@ -53,11 +53,17 @@ def _remove_json_tree_nulls(d: dict) -> None:
 
 def _get_post_urls(post: dict) -> list:
     """Given a post, return a list of urls included in the post."""
-    if 'urls' in post:
+    # let the underlying module pass the urls in a field rather than parsing them out
+    try:
         return post['urls']
+    except:
+        pass
 
-    if 'tweet' in post:
-        return get_tweet_urls(post['tweet'])
+    # for ch tweets, find the tweets in the tweet payload so that we get the expanded urls rather than ti.co's
+    if 'data' in post['data'] and 'tweet' in post['data']['data']:
+        return get_tweet_urls(post['data']['data']['tweet'])
+    elif 'tweet' in post['data']:
+        return get_tweet_urls(post['data']['tweet'])
 
     links = []
     for url in re.findall(r'https?://[^\s\")]+', post['content']):
@@ -123,7 +129,7 @@ def regenerate_post_urls(db: DatabaseHandler, topic: dict) -> None:
 
         topic_post = db.require_by_id('topic_posts', topic_posts_id)
         data = decode_json(topic_post['data'])
-        urls = get_tweet_urls(data['tweet'])
+        urls = get_tweet_urls(data['data']['tweet'])
         _insert_post_urls(db, topic_post, urls)
 
 
@@ -140,12 +146,12 @@ def _store_posts_for_day(db: DatabaseHandler, topic_post_day: dict, posts: list)
     None
     """
     topics_id = topic_post_day['topics_id']
-    log.info("adding %d tweets for topic %s, day %s" % (len(posts), topics_id, topic_post_day['day']))
+    log.info("adding %d posts for topic %s, day %s" % (len(posts), topics_id, topic_post_day['day']))
 
     topic = db.require_by_id('topics', topic_post_day['topics_id'])
     posts = list(filter(lambda p: content_matches_topic(p['content'], topic), posts))
 
-    log.info("%d tweets remaining after match" % (len(posts)))
+    log.info("%d posts remaining after match" % (len(posts)))
 
     db.begin()
 
@@ -233,7 +239,7 @@ def get_post_fetcher(topic_seed_query: dict) -> Optional[AbstractPostFetcher]:
 def fetch_posts(topic_seed_query: dict, start_date: datetime, end_date: datetime = None) -> list:
     """Fetch the posts for the given topic_seed_queries row, for the described date range."""
     if end_date is None:
-        end_date = start_date
+        end_date = start_date + datetime.timedelta(days=1) - datetime.timedelta(seconds=1) 
 
     fetcher = get_post_fetcher(topic_seed_query)
 
@@ -262,7 +268,7 @@ def fetch_topic_posts(db: DatabaseHandler, topics_id: int) -> None:
     topic = db.require_by_id('topics', topics_id)
 
     if topic['mode'] != 'url_sharing':
-        raise McFetchTopicPostsDataException("Topic mode is not 'sharing'")
+        raise McFetchTopicPostsDataException("Topic mode is not 'url_sharing'")
 
     topic_seed_queries = db.query(
         "select * from topic_seed_queries where topics_id = %(a)s",
@@ -275,7 +281,6 @@ def fetch_topic_posts(db: DatabaseHandler, topics_id: int) -> None:
 
     date = datetime.datetime.strptime(topic['start_date'], '%Y-%m-%d')
     end_date = datetime.datetime.strptime(topic['end_date'], '%Y-%m-%d')
-    log.warning("%s - %s" % (str(date), str(end_date)))
     while date <= end_date:
         log.debug("fetching posts for %s" % date)
         if not _topic_post_day_fetched(db, topic, date):

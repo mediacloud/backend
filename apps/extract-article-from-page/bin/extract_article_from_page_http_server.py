@@ -51,7 +51,7 @@ class ServerHandler(BaseHTTPRequestHandler):
         encoded_json_response = json_response.encode("UTF-8", errors="replace")
 
         self.send_response(status)
-        self.send_header("Content-Type", "application/json; encoding=UTF-8")
+        self.send_header("Content-Type", "application/json; charset=UTF-8")
         self.send_header("Content-Length", len(encoded_json_response))
         self.end_headers()
 
