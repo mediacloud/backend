@@ -9,6 +9,9 @@ from typing import Optional
 import furl
 import re2
 
+from extract_and_vector.dbi.stories.extractor_arguments import PyExtractorArguments
+from extract_and_vector.dbi.stories.extract import extract_and_process_story
+
 from mediawords.db import DatabaseHandler
 from mediawords.dbi.downloads import create_download_for_new_story
 from mediawords.dbi.downloads.store import McDBIDownloadsException, fetch_content, store_content
@@ -42,6 +45,9 @@ BINARY_EXTENSIONS = 'jpg pdf doc mp3 mp4 zip png docx'.split()
 
 # how long to wait for extractor before raising an exception
 MAX_EXTRACTOR_WAIT = 600
+
+# how many seconds to poll to make sure we can fetch stored content
+STORE_CONTENT_TIMEOUT = 10
 
 
 class McTMStoriesException(Exception):
@@ -80,31 +86,10 @@ def _extract_story(db: DatabaseHandler, story: dict) -> None:
     if re2.search(r'livejournal.com\/(tag|profile)', story['url'], re2.I):
         return
 
-    JobBroker(queue_name='MediaWords::Job::ExtractAndVector').add_to_queue(
-        stories_id=story['stories_id'],
-        use_cache=True,
-        use_existing=True,
-    )
+    log.info("extracting story ...")
 
-    i = 0
-    processed = False
-    while not processed and i < MAX_EXTRACTOR_WAIT:
-        processed = db.query(
-            """
-            select
-                exists ( select * from story_sentences where stories_id = %(a)s )
-                or
-                exists ( select * from processed_stories where stories_id = %(a)s )
-            """,
-            {'a': story['stories_id']}).hash() 
-        if i > 0:
-            log.debug("waiting for extraction job to complete ...")
-            time.sleep(1) if i > 10 else time.sleep(1/(10-i))
-
-        i += 1
-
-    if not processed:
-        raise McTMStoriesException("timed out wfter %d seconds aiting for story extraction" % i)
+    extractor_args = PyExtractorArguments(use_cache=True, use_existing=True)
+    extract_and_process_story(db=db, story=story, extractor_args=extractor_args)
 
 
 def _get_story_with_most_sentences(db: DatabaseHandler, stories: list) -> dict:
@@ -362,6 +347,30 @@ def get_spider_feed(db: DatabaseHandler, medium: dict) -> dict:
     })
 
 
+def store_and_verify_content(db: DatabaseHandler, download: dict, content: str) -> None:
+    """Call store content and then poll verifying that the content has been stored.
+
+    Only return once we have verified that the content has been stored.  Raise an error after a
+    timeout if the content is not found.  It seems like S3 content is not available for fetching until a small
+    delay after writing it.  This function makes sure the content is there once the store operation is done.
+    """
+    store_content(db, download, content)
+
+    tries = 0
+    while True:
+        try:
+            fetch_content(db, download)
+            break
+        except Exception as e:
+            if tries > STORE_CONTENT_TIMEOUT:
+                raise e
+
+            log.debug("story_and_verify_content: waiting to retry verification (%d) ..." % tries)
+            tries += 1
+            time.sleep(1)
+
+
+
 def generate_story(
         db: DatabaseHandler,
         url: str,
@@ -458,7 +467,7 @@ def generate_story(
         download = create_download_for_new_story(db, story, feed)
 
         log.debug("Storing story content...")
-        store_content(db, download, content)
+        store_and_verify_content(db, download, content)
 
         log.debug("Extracting story...")
         _extract_story(db, story)

@@ -11,7 +11,6 @@ from typing import Optional, List, Union
 import feedparser
 
 from mediawords.util.log import create_logger
-from mediawords.util.parse_html import html_strip
 from mediawords.util.sql import get_sql_date_from_epoch
 from mediawords.util.url import is_homepage_url
 
@@ -37,7 +36,7 @@ class SyndicatedFeedItem(object):
 
     def description(self) -> Optional[str]:
         """
-        Return item description or content with HTML stripped.
+        Return item description or content.
 
         Prefers Atom's <content> or RSS's <content:encoded> as those are potentially longer; falls back to
         <description>.
@@ -63,22 +62,25 @@ class SyndicatedFeedItem(object):
         if not description:
             description = self.__parsed_feed_entry.get('description', None)
 
-        if description:
-            description = html_strip(description)
+        # Don't strip HTML (old Perl implementation didn't do that)
 
         return description
 
     def _parsed_publish_date(self) -> Optional[tuple]:
 
-        published_parsed = self.__parsed_feed_entry.get('published_parsed', None)
-        if published_parsed:
-            return published_parsed
+        date = self.__parsed_feed_entry.get('published_parsed', None)
+        if not date:
+            date = self.__parsed_feed_entry.get('updated_parsed', None)
 
-        updated_parsed = self.__parsed_feed_entry.get('updated_parsed', None)
-        if updated_parsed:
-            return updated_parsed
+        if date:
 
-        return None
+            # We might be parsing some really old dates (e.g. NYTimes historical archive), and maybe some weird stuff
+            # which is dated in the future for whatever reason, so allow stuff between Gutenberg and Star Trek
+            year = date[0]
+            if not 1450 < year < 2300:
+                date = None
+
+        return date
 
     def publish_date(self) -> Optional[str]:
         """

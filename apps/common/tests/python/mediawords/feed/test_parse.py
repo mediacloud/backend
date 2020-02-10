@@ -1,5 +1,7 @@
 import re
 
+from dateutil.parser import parse as parse_date
+
 from mediawords.feed.parse import parse_feed
 
 
@@ -120,7 +122,7 @@ def _test_feed_contents(feed_contents: str) -> None:
 
     assert second_item.guid() == 'http://www.example.com/second_item.html', "Second item GUID."
     assert second_item.guid_if_valid() == 'http://www.example.com/second_item.html', "Second item valid GUID."
-    assert second_item.description() == 'This is a second item.', "Second item description."
+    assert second_item.description() == '<strong>This is a second item.</strong>', "Second item description with HTML."
 
 
 def test_rss_feed():
@@ -146,7 +148,9 @@ def test_rss_feed():
             <link>http://www.example.com/second_item.html</link>
             <pubDate>Wed, 14 Dec 2016 04:05:01 GMT</pubDate>
             <guid isPermaLink="false">http://www.example.com/second_item.html</guid>   <!-- Even though it is a link -->
-            <content:encoded><![CDATA[This is a second item.]]></content:encoded>   <!-- Instead of description -->
+            
+            <!-- Instead of description: -->
+            <content:encoded><![CDATA[<strong>This is a second item.</strong>]]></content:encoded>
         </item>
     </channel>
 </rss>
@@ -172,7 +176,11 @@ def test_atom_feed():
         <author>
             <name>Foo Bar</name>
         </author>
-        <updated>2016-12-14T04:04:01Z</updated>
+
+        <!- If both "published" and "updated" are set, we expect the feed parser to still use "published" -->
+        <published>2016-12-14T04:04:01Z</published>
+        <updated>2016-12-14T04:08:01Z</updated>
+
         <summary>This is a first item.</summary>
     </entry>
     <entry>
@@ -182,9 +190,98 @@ def test_atom_feed():
         <author>
             <name>Foo Bar</name>
         </author>
+
+        <!-- If only "updated" is set, feed parser should use "updated" -->
         <updated>2016-12-14T04:05:01Z</updated>
-        <summary><![CDATA[This is a second item.]]></summary>
+
+        <summary><![CDATA[<strong>This is a second item.</strong>]]></summary>
     </entry>
 </feed>
     """
     _test_feed_contents(atom_feed)
+
+
+def test_rdf_feed():
+    rdf_feed = """
+<?xml version="1.0" encoding="UTF-8"?>
+
+<rdf:RDF
+    xmlns:dc="http://purl.org/dc/elements/1.1/"
+    xmlns="http://purl.org/rss/1.0/"
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+
+    <channel rdf:about="http://www.example.com/about">
+        <title>Test feed</title>
+        <link>http://www.example.com/</link>
+        <description>This is a test feed.</description>
+        <items xmlns="http://apache.org/cocoon/i18n/2.1">
+            <rdf:Seq>
+                <rdf:li rdf:resource="http://www.example.com/first_item.html"/>
+                <rdf:li rdf:resource="http://www.example.com/second_item.html"/>
+            </rdf:Seq>
+        </items>
+        <dc:date>2016-12-14T04:00:00Z</dc:date>
+    </channel>
+
+    <item rdf:about="http://www.example.com/first_item.html">
+        <title>First item</title>
+        <link>http://www.example.com/first_item.html</link>
+        <description>This is a first item.</description>
+        <dc:date>2016-12-14T04:04:01Z</dc:date>
+    </item>
+    <item rdf:about="http://www.example.com/second_item.html">
+        <title>ɯǝʇı puoɔǝS</title>
+        <link>http://www.example.com/second_item.html</link>
+        <description><![CDATA[<strong>This is a second item.</strong>]]></description>
+        <dc:date>2016-12-14T04:05:01Z</dc:date>
+    </item>
+
+</rdf:RDF>
+    """
+    _test_feed_contents(rdf_feed)
+
+
+def test_rss_weird_dates():
+    weird_dates = [
+        'Mon, 01 Jan 0001 00:00:00 +0100',
+        '1875-09-17T00:00:00Z',
+    ]
+
+    at_least_one_valid_date_parsed = False
+
+    for date in weird_dates:
+
+        rss_feed = f"""
+            <rss version="2.0">
+                <channel>
+                    <title>Weird dates</title>
+                    <link>https://www.example.com/</link>
+                    <description>Weird dates</description>
+                    <item>
+                        <title>Weird date</title>
+                        <link>https://www.example.com/weird-date</link>
+                        <description>Weird date</description>
+                        <pubDate>{date}</pubDate>
+                    </item>
+                </channel>
+            </rss>
+        """
+
+        feed = parse_feed(rss_feed)
+        assert feed, "Feed was parsed."
+
+        for item in feed.items():
+
+            if item.publish_date():
+
+                at_least_one_valid_date_parsed = True
+
+                # Try parsing the date
+                try:
+                    parse_date(item.publish_date())
+                except Exception as ex:
+                    assert False, f"Unable to parse date {item.publish_date()}: {ex}"
+
+                assert re.match(r'^\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d$', item.publish_date_sql())
+
+    assert at_least_one_valid_date_parsed
