@@ -16,39 +16,11 @@ def test_epoch_conversion():
     print(iso_8601_date)
     assert iso_8601_date == "2018-10-20 01:46:40"
 
+
 def test_fetch_posts() -> None:
     """Test fetch_posts."""
     prpf().test_mock_data(query='123')
 
-    # def foo_test_fetch_posts(self) -> None:
-    #     """Test that all submissions results are processed and all required fields are present"""
-
-    #     fetcher = prpf()
-    #     fetcher.enable_mock_data()
-
-    #     data = fetcher.fetch_posts(query="trump",
-    #             start_date=datetime.datetime(2019,1,1),
-    #             end_date=datetime.datetime(2019,1,1),
-    #             sample=250)
-
-    #     # Check that the number of samples returned is the number requested
-    #     assert len(data) == 250
-
-    #     # Check that all necessary fields are returned with each object
-    #     for obj in data:
-    #         for key in self.required_fields:
-    #             assert key in obj
-
-    #     # Check that all returned fields have non-null values
-    #     for obj in data:
-    #         for key in self.required_fields:
-    #             assert obj[key] is not None
-
-    #     # Check that selftext is appended to title for the content field if it is present
-    #     for obj in data:
-    #         if 'selfttext' in obj['data'] and obj['data']['selftext'] is not None:
-    #             correct_content = "{} {}".format(obj['data']['title'], obj['data']['selftext'])
-    #             assert obj['content'] == correct_content
 
 def test_pushshift_query_builder() -> None:
     """Test the internal Pushshift submission search query builder method"""
