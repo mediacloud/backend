@@ -208,7 +208,7 @@ sub query_encoded_json($$;$)
 
     $params->{ fq } = [ map { _insert_collection_media_ids( $db, $_ ) } @{ $params->{ fq } } ];
 
-    my $response_content = MediaWords::Solr::Request::solr_request( 'select', {}, $params, 'application/x-www-form-urlencoded' );
+    my $response_content = MediaWords::Solr::Request::solr_request( 'select', {}, $params, 'application/x-www-form-urlencoded; charset=utf-8' );
 
     return $response_content;
 }

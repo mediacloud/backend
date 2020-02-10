@@ -136,13 +136,6 @@ sub set_content($$)
 {
     my ( $self, $content ) = @_;
 
-    $self->{ _request }->set_content( $content );
-}
-
-sub set_content_utf8($$)
-{
-    my ( $self, $content ) = @_;
-
     # All strings in Python are Unicode already, so we'll need to do this
     # encoding step only for Perl
     if ( ref( $content ) eq ref( {} ) )
@@ -151,13 +144,25 @@ sub set_content_utf8($$)
         my $post_items = [];
         for my $key ( keys( %{ $content } ) )
         {
-            my $enc_key = uri_escape( encode_utf8( $key ) );
+            my $enc_key = $key;
+            if ( Encode::is_utf8( $enc_key ) ) {
+                $enc_key = encode_utf8( $enc_key );
+            }
+
+            $enc_key = uri_escape( $enc_key );
+
             my $data    = $content->{ $key };
             next unless ( $data );
             $data = [ $data ] unless ( ref( $data ) eq ref( [] ) );
             for my $datum ( @{ $data } )
             {
-                my $enc_datum = uri_escape( encode_utf8( $datum ) );
+                my $enc_datum = $datum;
+                if ( Encode::is_utf8( $enc_datum ) ) {
+                    $enc_datum = encode_utf8( $enc_datum );
+                }
+
+                $enc_datum = uri_escape( $enc_datum );
+
                 push( @{ $post_items }, "$enc_key=$enc_datum" );
             }
         }
@@ -166,7 +171,10 @@ sub set_content_utf8($$)
     }
     else
     {
-        $content = encode_utf8( $content );
+        if ( Encode::is_utf8( $content ) ) {
+            $content = encode_utf8( $content );
+        }
+
     }
 
     $self->{ _request }->set_content( $content );
