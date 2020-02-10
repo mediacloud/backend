@@ -13,8 +13,7 @@ stages:
       - template: .azure-pipelines/template-checkout.yml
       - template: .azure-pipelines/template-install-utils.yml
       - template: .azure-pipelines/template-install-docker.yml
-      # FIXME: full "release" rebuild runs out of disk space
-      #- template: .azure-pipelines/template-pull-images.yml
+      - template: .azure-pipelines/template-pull-images.yml
       - template: .azure-pipelines/template-build-images.yml
       - template: .azure-pipelines/template-push-images.yml
 
