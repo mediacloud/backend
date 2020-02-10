@@ -4,6 +4,7 @@ import datetime
 import dateutil.parser
 import pytz
 import re
+import statistics
 
 import mediawords.db
 
@@ -53,7 +54,16 @@ def run_single_platform_test(test: dict) -> None:
         publish_date = dateutil.parser.parse(got_post['publish_date']).replace(tzinfo=None)
         assert publish_date >= got_start_date and publish_date <= got_end_date
         assert re.search(test['pattern'], got_post['content'], re.I)
+        assert len(got_post['content']) > 0
+        assert len(got_post['author']) > 0
+        assert len(got_post['channel']) > 0
+        assert len(got_post['data']) > 0
 
+    assert len(set([p['content'] for p in got_posts])) > len(got_posts) / 10
+    assert len(set([p['author'] for p in got_posts])) > len(got_posts) / 10
+    assert len(set([p['channel'] for p in got_posts])) > len(got_posts) / 100
+
+    assert statistics.mean([len(p['content']) for p in got_posts]) > 80
 
 def test_remote_platforms() -> None:
     """Test each remote platform / source combination."""
