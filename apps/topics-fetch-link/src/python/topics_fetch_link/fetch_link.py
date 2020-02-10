@@ -192,7 +192,7 @@ def _story_matches_topic(
     if redirect_url and content_matches_topic(redirect_url, topic):
         return True
 
-    story = db.query(
+    ss = db.query(
         """
         select string_agg(' ', sentence) as text
             from story_sentences ss
@@ -202,7 +202,7 @@ def _story_matches_topic(
         """,
         {'a': topic['topics_id'], 'b': story['stories_id']}).hash()
 
-    if content_matches_topic(story['text'], topic):
+    if content_matches_topic(ss['text'], topic):
         return True
 
 
@@ -519,7 +519,9 @@ def fetch_topic_url(db: DatabaseHandler, topic_fetch_urls_id: int, domain_timeou
             redirect_url = topic_fetch_url['url']
             assume_match = topic_fetch_url['assume_match']
             if _is_not_topic_story(db, topic_fetch_url):
+                log.info("is not topic story")
                 if _story_matches_topic(db, story, topic, redirect_url=redirect_url, assume_match=assume_match):
+                    log.info("adding story to topic...")
                     add_to_topic_stories(db, story, topic)
 
             # add redirect_url as a lookup url for the story, if it is different from the story url
