@@ -216,8 +216,7 @@ if __name__ == '__main__':
 
         for command_ in commands_:
             try:
-                if subprocess.call(command_):
-                    print("run.py subprocess exited with an error.")
+                subprocess.check_call(command_)
             except subprocess.CalledProcessError as ex_:
                 last_exception = ex_
 
