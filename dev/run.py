@@ -20,6 +20,7 @@ This script can print the commands that are going to be run instead of running t
 import os
 import re
 import subprocess
+import sys
 from pathlib import Path
 from typing import List
 
@@ -211,14 +212,14 @@ if __name__ == '__main__':
 
     else:
 
-        # If command in "docker-compose run" fails, we'll store its exception here to later throw back to the user
-        last_exception = None
+        # If command in "docker-compose run" fails, we'll store its exit code here to later throw back to the user
+        last_non_zero_exit_code = 0
 
         for command_ in commands_:
-            try:
-                subprocess.check_call(command_)
-            except subprocess.CalledProcessError as ex_:
-                last_exception = ex_
+            exit_code = subprocess.call(command_)
+            if exit_code:
+                last_non_zero_exit_code = exit_code
 
-        if last_exception:
-            raise last_exception
+        if last_non_zero_exit_code:
+            sys.stderr.write("Subprocess returned non-zero exit status {}.\n".format(last_non_zero_exit_code))
+            sys.exit(last_non_zero_exit_code)
