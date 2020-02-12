@@ -1853,18 +1853,18 @@ data = r.json()
 
 ```python
 media = []
-start = 0
+last_media_id = 0
 rows  = 100
 while True:
-    params = { 'start': start, 'rows': rows, 'key': MY_KEY }
-    print "start:{} rows:{}".format( start, rows)
+    params = { 'last_media_id': last_media_id, 'rows': rows, 'key': MY_KEY }
+    print "last_media_id:{} rows:{}".format( last_media_id, rows)
     r = requests.get( 'https://api.mediacloud.org/api/v2/media/list', params = params, headers = { 'Accept': 'application/json'} )
     data = r.json()
 
     if len(data) == 0:
         break
 
-    start += rows
+    last_media_id = data[-1]['media_id']
     media.extend( data )
 
 fieldnames = [
