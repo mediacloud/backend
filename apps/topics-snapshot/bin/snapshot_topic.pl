@@ -9,6 +9,7 @@ use MediaWords::CommonLibs;
 use Getopt::Long;
 
 use MediaWords::DB;
+use MediaWords::Job::TM::SnapshotTopic;
 use MediaWords::TM::CLI;
 
 sub main
