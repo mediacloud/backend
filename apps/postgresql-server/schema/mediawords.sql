@@ -1839,13 +1839,38 @@ create index solr_imported_stories_day on solr_imported_stories ( date_trunc( 'd
 create type topics_job_queue_type AS ENUM ( 'mc', 'public' );
 
 -- the platform is where the analyzed data lives (web, twitter, reddit, etc)
-create type topic_platform_type AS enum ( 'web', 'twitter', 'generic_post', 'mediacloud_topic' );
+create table topic_platforms (
+    topic_platforms_id      serial primary key,
+    name                    varchar(1024) not null unique,
+    description             text not null
+);
+insert into topic_platforms (name, description) values
+    ('web', 'pages on the open web'),
+    ('twitter', 'tweets from twitter.com'),
+    ('generic_post', 'generic social media post, useful for importing data'),
+    ('reddit', 'submission and comments from reddit.com');
 
 -- the mode is how we analyze the data from the platform (as web pages, social media posts, url sharing posts, etc)
-create type topic_mode_type AS enum ( 'web', 'url_sharing' );
+create table topic_modes (
+    topic_modes_id          serial primary key,
+    name                    varchar(1024) not null unique,
+    description             text not null
+);
+insert into topic_modes ( name, description ) values
+    ('web', 'analyze urls using hyperlinks as network edges'),
+    ('url_sharing', 'analyze urls shared on social media using co-sharing as network edges');
 
 -- the source is where we get the platforn data from
-create type topic_source_type AS enum ( 'mediacloud', 'crimson_hexagon', 'archive_org', 'csv' );
+create table topic_sources (
+    topic_sources_id        serial primary key,
+    name                    varchar(1024) not null unique,
+    description             text not null
+);
+insert into topic_sources ( name, description ) values
+    ('mediacloud', 'import from the mediacloud.org archive'),
+    ('crimson_hexagon', 'import from the crimsonhexagon.com forsight api'),
+    ('csv', 'import generic posts directly from csv'),
+    ('pushshift', 'import from the pushshift.io api');
 
 create table topics (
     topics_id        serial primary key,
@@ -1869,10 +1894,10 @@ create table topics (
     respider_end_date       date null,
 
     -- platform that topic is analyzing
-    platform                topic_platform_type not null default 'web',
+    platform                varchar(1024) not null references topic_platforms(name),
 
     -- mode of analysis
-    mode                    topic_mode_type not null default 'web',
+    mode                    varchar(1024) not null references topic_modes(name),
 
     -- job queue to use for spider and snapshot jobs for this topic
     job_queue               topics_job_queue_type not null,
@@ -1891,8 +1916,8 @@ create unique index topics_media_type_tag_set on topics( media_type_tag_sets_id 
 create table topic_seed_queries (
     topic_seed_queries_id   serial primary key,
     topics_id               int not null references topics on delete cascade,
-    source                  topic_source_type not null,
-    platform                topic_platform_type not null,
+    source                  varchar(1024) not null references topic_sources(name),
+    platform                varchar(1024) not null references topic_platforms(name),
     query                   text,
     imported_date           timestamp
 );
