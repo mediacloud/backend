@@ -1854,7 +1854,7 @@ data = r.json()
 ```python
 media = []
 last_media_id = 0
-rows  = 100
+rows  = 1000
 while True:
     params = { 'last_media_id': last_media_id, 'rows': rows, 'key': MY_KEY }
     print "last_media_id:{} rows:{}".format( last_media_id, rows)
