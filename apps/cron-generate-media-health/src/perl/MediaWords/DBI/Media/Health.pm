@@ -24,6 +24,31 @@ Readonly my $HEALTHY_VOLUME_RATIO => 0.25;
 
 Readonly my $START_DATE => '2011-01-01';
 
+# udpate media_stats table with all sentences since the last time we ran this function
+sub _update_media_stats
+{
+    my ( $db ) = @_;
+
+    my ( $ss_id ) = $db->query( "select value from database_variables where name = 'media_health_last_ss_id'" )->flat;
+    $ss_id = int( $ss_id );
+    
+
+    $db->query( <<SQL
+with new_media_stats as (
+    select
+            media_id,
+            count( distinct stories_id ) num_stories,
+            count( distinct story_sentenes_id ) num_sentences,
+            date_trunc( 'day', publish_date) publish_day
+        from
+            story_sentences ss
+        where
+            ss.story_sentences_id > $ss_id
+        group by media_id
+SQL
+
+}
+
 # aggregate media_stats into media_stats_weekly table, which is a dense table that includes
 # 0 counts for each media source for each week for which there is no data
 sub _generate_media_stats_weekly
@@ -193,6 +218,8 @@ sub _generate_media_health_table
     my ( $db ) = @_;
 
     _create_crawled_media( $db );
+
+    _update_media_stats( $db );
 
     _generate_media_stats_weekly( $db );
     _generate_media_expected_volume( $db );
