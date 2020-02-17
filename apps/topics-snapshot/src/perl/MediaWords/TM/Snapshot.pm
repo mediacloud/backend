@@ -192,7 +192,7 @@ sub _create_link_snapshot_period_stories($$)
     $db->query( <<END );
 create or replace temporary view snapshot_undateable_stories as
 select distinct s.stories_id
-    from snapshot_stories s, snapshot_stories_tags_map stm, snapshot_tags t, snapshot_tag_sets ts
+    from snapshot_stories s, snapshot_stories_tags_map stm, tags t, tag_sets ts
     where s.stories_id = stm.stories_id and
         stm.tags_id = t.tags_id and
         t.tag_sets_id = ts.tag_sets_id and
@@ -848,29 +848,6 @@ create temporary table snapshot_media_tags_map as
     select mtm.*
     from media_tags_map mtm, snapshot_media dm
     where mtm.media_id = dm.media_id
-END
-
-    $db->query( <<END );
-create temporary table snapshot_tags as
-    select distinct t.* from tags t where t.tags_id in
-        ( select a.tags_id
-            from tags a
-                join snapshot_media_tags_map amtm on ( a.tags_id = amtm.tags_id )
-
-          union
-
-          select b.tags_id
-            from tags b
-                join snapshot_stories_tags_map bstm on ( b.tags_id = bstm.tags_id )
-        )
-
-END
-
-    $db->query( <<END );
-create temporary table snapshot_tag_sets as
-    select ts.*
-        from tag_sets ts
-        where ts.tag_sets_id in ( select tag_sets_id from snapshot_tags )
 END
 
     my $tweet_topics_id = $topic->{ topics_id };

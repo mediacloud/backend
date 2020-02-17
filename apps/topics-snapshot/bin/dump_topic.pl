@@ -134,8 +134,8 @@ sub main
 select mtm.media_id, t.tags_id, t.tag, t.label, t.tag_sets_id, ts.name tag_set_name
     from snapshot_medium_link_counts mlc
         join snapshot_media_tags_map mtm using ( media_id )
-        join snapshot_tags t using ( tags_id )
-        join snapshot_tag_sets ts using ( tag_sets_id )
+        join tags t using ( tags_id )
+        join tag_sets ts using ( tag_sets_id )
 SQL
     write_file( "medium_tags_${ timespans_id }.csv", \$medium_tags_csv );
 }

@@ -2290,25 +2290,6 @@ create table snap.stories_tags_map
 create index stories_tags_map_story on snap.stories_tags_map ( snapshots_id, stories_id );
 create index stories_tags_map_tag on snap.stories_tags_map ( snapshots_id, tags_id );
 
-create table snap.tags (
-    snapshots_id    int not null    references snapshots on delete cascade,
-    tags_id                 int,
-    tag_sets_id             int,
-    tag                     varchar(512),
-    label                   text,
-    description             text
-);
-create index tags_id on snap.tags ( snapshots_id, tags_id );
-
-create table snap.tag_sets (
-    snapshots_id    int not null    references snapshots on delete cascade,
-    tag_sets_id             int,
-    name                    varchar(512),
-    label                   text,
-    description             text
-);
-create index tag_sets_id on snap.tag_sets ( snapshots_id, tag_sets_id );
-
 -- story -> story links within a timespan
 create table snap.story_links (
     timespans_id         int not null

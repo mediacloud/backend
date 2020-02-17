@@ -10,7 +10,7 @@ use MediaWords::CommonLibs;
 # all tables that get stored as snapshot_* for each spanshot
 my $_SNAPSHOT_TABLES = [
     qw/topic_stories topic_links_cross_media topic_media_codes
-      stories media stories_tags_map media_tags_map tags tag_sets post_stories/
+      stories media stories_tags_map media_tags_map post_stories/
 ];
 
 # all tables that get stories as snapshot_* for each timespan
@@ -45,7 +45,6 @@ sub get_snapshot_tables
 # * snapshot_topic_links_cross_media
 # * snapshot_stories_tags_map
 # * snapshot_stories_tags_map
-# * snapshot_tag_sets
 # * snapshot_media_with_types
 #
 # The data in each of these views consists of data related to all of the
@@ -149,9 +148,9 @@ sub add_media_type_views
             FROM snapshot_media AS m
 
                 LEFT JOIN (
-                    snapshot_tags AS ut
+                    tags AS ut
 
-                        JOIN snapshot_tag_sets AS uts
+                        JOIN tag_sets AS uts
                             ON ut.tag_sets_id = uts.tag_sets_id
                            AND uts.name = 'media_type'
 
@@ -161,7 +160,7 @@ sub add_media_type_views
                 ) ON m.media_id = umtm.media_id
 
                 LEFT JOIN (
-                    snapshot_tags AS ct
+                    tags AS ct
 
                         JOIN snapshot_media_tags_map AS cmtm
                             ON cmtm.tags_id = ct.tags_id
