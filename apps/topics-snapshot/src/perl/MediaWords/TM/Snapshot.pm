@@ -776,6 +776,32 @@ sub create_snap_snapshot
     _create_snapshot( $db, $cd, 'snapshots_id', $table );
 }
 
+# create snapshot_stories_tags_map in chunks because doing it in one big go uses a seq scan and is very slow
+# for bit topics
+sub _create_snapshot_stories_tags_map($)
+{
+    my ( $db ) = @_;
+
+    $db->query( "create temporary table snapshot_stories_tags_map as select * from stories_tags_map limit 0" );
+
+    $db->query( "create index if not exists snapshot_stories_story on snapshot_stories ( stories_id )" );
+    
+    # 10k is the biggest number for which postgres will return an index scan
+    my $block_size = 10_000;
+    for ( my $i = 0; 1; $i++ )
+    {
+        my $offset = $i * $block_size;
+        my $num_rows = $db->query( <<SQL )->rows;
+insert into snapshot_stories_tags_map
+    select stm.* from stories_tags_map stm
+        where stm.stories_id in 
+            ( select stories_id from snapshot_stories order by stories_id asc limit $block_size offset $offset )
+SQL
+
+        last if ( $num_rows == 0 );
+    }
+}
+
 # generate temporary snapshot_* tables for the specified snapshot for each of the snapshot_tables.
 # these are the tables that apply to the whole snapshot.
 sub _write_temporary_snapshot_tables($$$)
@@ -836,12 +862,8 @@ create temporary table snapshot_topic_links_cross_media as
         where cl.topics_id = ? and r.media_id <> s.media_id
 END
 
-    $db->query( <<END );
-create temporary table snapshot_stories_tags_map as
-    select stm.*
-    from stories_tags_map stm, snapshot_stories ds
-    where stm.stories_id = ds.stories_id
-END
+
+    _create_snapshot_stories_tags_map( $db );
 
     $db->query( <<END );
 create temporary table snapshot_media_tags_map as
