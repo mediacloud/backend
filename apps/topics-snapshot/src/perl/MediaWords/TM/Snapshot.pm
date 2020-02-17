@@ -36,6 +36,7 @@ use warnings;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
+use List::MoreUtils qw(natatime);
 use List::Util;
 use Readonly;
 
@@ -784,21 +785,20 @@ sub _create_snapshot_stories_tags_map($)
 
     $db->query( "create temporary table snapshot_stories_tags_map as select * from stories_tags_map limit 0" );
 
-    $db->query( "create index if not exists snapshot_stories_story on snapshot_stories ( stories_id )" );
-    
+    my $stories_ids = $db->query( "select stories_id from snapshot_stories order by stories_id" )->flat;
+
     # 10k is the biggest number for which postgres will return an index scan
-    my $block_size = 10_000;
-    for ( my $i = 0; 1; $i++ )
+    my $chunk_size = 10_000;
+    my $iter = natatime( $chunk_size, @{ $stories_ids } );
+
+    while ( my $chunk_stories_ids = $iter->() )
     {
-        my $offset = $i * $block_size;
-        my $num_rows = $db->query( <<SQL )->rows;
+        my $stories_ids_list = join( ',', map { int( $_ ) } @{ $stories_ids } );
+        $db->query( <<SQL )->rows;
 insert into snapshot_stories_tags_map
     select stm.* from stories_tags_map stm
-        where stm.stories_id in 
-            ( select stories_id from snapshot_stories order by stories_id asc limit $block_size offset $offset )
+        where stm.stories_id in ( $stories_ids_list )
 SQL
-
-        last if ( $num_rows == 0 );
     }
 }
 
