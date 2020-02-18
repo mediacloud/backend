@@ -79,7 +79,7 @@ def test_get_stories_from_podcast_feed():
         ),
         'title': '(no title)',
         'guid': 'http://blogs.law.harvard.edu/dlarochelle/?p=350',
-        'description': 'Spiral notebooks should be avoided.',
+        'description': '<p>Spiral notebooks should be avoided.</p>',
         'full_text_rss': False,
         'language': None,
     }
