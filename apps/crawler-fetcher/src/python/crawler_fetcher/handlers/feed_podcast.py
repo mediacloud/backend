@@ -25,7 +25,7 @@ def _get_feed_url_from_itunes_podcasts_url(url: str) -> str:
 
     uri = furl(url)
 
-    if uri.host != 'podcasts.apple.com':
+    if uri.host not in {'podcasts.apple.com', 'itunes.apple.com'}:
         log.debug(f"URL '{url}' is not iTunes Podcasts URL.")
         return url
 

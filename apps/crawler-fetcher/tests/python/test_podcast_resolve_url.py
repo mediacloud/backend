@@ -22,6 +22,11 @@ def test_get_feed_url_from_itunes_podcasts_url():
     ra_feed_url = 'https://www.residentadvisor.net/xml/podcast.xml'
     assert _get_feed_url_from_itunes_podcasts_url(ra_itunes_url) == ra_feed_url
 
+    # Try old style URL
+    ra_itunes_url = 'https://itunes.apple.com/lt/podcast/ra-podcast/id129673441'
+    ra_feed_url = 'https://www.residentadvisor.net/xml/podcast.xml'
+    assert _get_feed_url_from_itunes_podcasts_url(ra_itunes_url) == ra_feed_url
+
 
 def test_get_feed_url_from_google_podcasts_url():
     # noinspection PyTypeChecker
