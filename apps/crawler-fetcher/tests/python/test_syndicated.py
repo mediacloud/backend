@@ -88,7 +88,7 @@ def test_get_stories_from_syndicated_feed():
                     ),
                     'title': 'Why Life is Too Short for Spiral Notebooks',
                     'guid': 'http://blogs.law.harvard.edu/dlarochelle/?p=350',
-                    'description': 'Spiral notebooks should be avoided.',
+                    'description': '<p>Spiral notebooks should be avoided.</p>',
                     'enclosures': [],
                 },
             ],
@@ -171,7 +171,7 @@ def test_get_stories_from_syndicated_feed():
                     ),
                     'title': '(no title)',
                     'guid': 'http://blogs.law.harvard.edu/dlarochelle/?p=350',
-                    'description': 'Spiral notebooks should be avoided.',
+                    'description': '<p>Spiral notebooks should be avoided.</p>',
                     'enclosures': [
                         {
                             'url': 'https://www.example.com/item.mp3',
