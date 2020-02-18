@@ -1,4 +1,0 @@
-requires 'Date::Parse';
-requires 'Digest::SHA';
-requires 'File::Path';
-requires 'HTTP::Daemon';

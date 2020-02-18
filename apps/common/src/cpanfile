@@ -1,6 +1,5 @@
 requires 'Array::Compare';
 requires 'Data::Dumper';
-requires 'Date::Parse';
 requires 'DateTime';
 requires 'DateTime::TimeZone';
 requires 'File::ReadBackwards';
@@ -18,7 +17,6 @@ requires 'LWP::Protocol::https';
 requires 'LWP::UserAgent';
 requires 'Modern::Perl';
 requires 'Moose';
-requires 'MooseX::Singleton';
 requires 'Net::AMQP::RabbitMQ';
 requires 'Readonly';
 requires 'Readonly::XS';
