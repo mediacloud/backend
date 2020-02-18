@@ -48,7 +48,8 @@ def add_story_and_content_download(db: DatabaseHandler, story: dict, parent_down
 
     story = add_story(db=db, story=story, feeds_id=parent_download['feeds_id'])
 
-    if story.get('is_new', False):
-        _create_child_download_for_story(db=db, story=story, parent_download=parent_download)
+    if story:
+        if story.get('is_new', False):
+            _create_child_download_for_story(db=db, story=story, parent_download=parent_download)
 
     return story

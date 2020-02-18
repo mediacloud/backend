@@ -90,10 +90,10 @@ def _find_dup_story(db: DatabaseHandler, story: dict) -> Optional[dict]:
         LIMIT 1
 
         """, {
-            'story_urls': urls,
-            'media_id': story['media_id'],
-        }
-    ).hash()
+        'story_urls': urls,
+        'media_id': story['media_id'],
+    }
+                        ).hash()
 
     if db_story:
         return db_story
@@ -151,7 +151,9 @@ def add_story(db: DatabaseHandler, story: dict, feeds_id: int) -> Optional[dict]
 
     if story.get('full_text_rss', None) is None:
         story['full_text_rss'] = medium.get('full_text_rss', False) or False
-        if len(story.get('description', '')) == 0:
+
+        # Description can be None
+        if not story.get('description', None):
             story['full_text_rss'] = False
 
     try:

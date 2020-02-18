@@ -207,8 +207,9 @@ class DownloadFeedUnivisionHandler(AbstractDownloadFeedHandler, AbstractDownload
 
         for story in stories:
             story = add_story_and_content_download(db=db, story=story, parent_download=download)
-            if story.get('is_new', None):
-                story_ids.append(story['stories_id'])
+            if story:
+                if story.get('is_new', None):
+                    story_ids.append(story['stories_id'])
 
         return story_ids
 
