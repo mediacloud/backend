@@ -47,6 +47,9 @@ def test_get_stories_from_podcast_feed():
             <creativeCommons:license>http://creativecommons.org/licenses/by-sa/3.0/</creativeCommons:license>
 
             <enclosure url="https://www.example.com/item.mp3" length="123456789" type="audio/mpeg" />
+            
+            <!-- Another enclosure with an identical URL -->
+            <enclosure url="https://www.example.com/item.mp3" length="123456789" type="audio/*" />
 
         </item>
         <item>

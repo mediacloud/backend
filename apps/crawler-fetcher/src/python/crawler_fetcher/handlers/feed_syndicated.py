@@ -141,7 +141,13 @@ class DownloadFeedSyndicatedHandler(DefaultFetchMixin, AbstractDownloadFeedHandl
                     for enclosure in story['enclosures']:
                         # ...provided that the URL is set
                         if enclosure['url']:
-                            db.insert(table='story_enclosures', insert_hash={
+                            db.query("""
+                                INSERT INTO story_enclosures (stories_id, url, mime_type, length)
+                                VALUES (%(stories_id)s, %(url)s, %(mime_type)s, %(length)s)
+                                
+                                -- Some stories have multiple enclosures pointing to the same URL
+                                ON CONFLICT (stories_id, url) DO NOTHING
+                            """, {
                                 'stories_id': stories_id,
                                 'url': enclosure['url'],
                                 'mime_type': enclosure['mime_type'],
