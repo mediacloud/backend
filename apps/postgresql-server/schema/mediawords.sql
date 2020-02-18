@@ -24,7 +24,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4735;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4736;
 BEGIN
 
     -- Update / set database schema version
@@ -2206,6 +2206,7 @@ create table story_statistics (
 
     facebook_share_count        int         null,
     facebook_comment_count      int         null,
+    facebook_reaction_count     int         null,
     facebook_api_collect_date   timestamp   null,
     facebook_api_error          text        null
 );
