@@ -31,20 +31,34 @@ sub _update_media_stats
 
     my ( $ss_id ) = $db->query( "select value from database_variables where name = 'media_health_last_ss_id'" )->flat;
     $ss_id = int( $ss_id );
-    
 
-    $db->query( <<SQL
-with new_media_stats as (
+    my ( $max_ss_id ) = $db->query( "select max(story_sentences_id) from story_sentences" )->flat;
+    $max_ss_id = int( $max_ss_id );
+    
+    $db->query( <<SQL );
+insert into media_stats as old ( media_id, num_stories, num_sentences, stat_date )
+
     select
             media_id,
             count( distinct stories_id ) num_stories,
-            count( distinct story_sentenes_id ) num_sentences,
-            date_trunc( 'day', publish_date) publish_day
+            count( distinct story_sentences_id ) num_sentences,
+            date_trunc( 'day', publish_date) stat_date
         from
             story_sentences ss
         where
-            ss.story_sentences_id > $ss_id
-        group by media_id
+            ss.story_sentences_id between $ss_id and $max_ss_id
+        group by media_id, stat_date
+
+    on conflict ( media_id, stat_date ) do update set
+        num_stories = old.num_stories + EXCLUDED.num_stories, 
+        num_sentences = old.num_sentences + EXCLUDED.num_sentences
+SQL
+
+    $db->query( <<SQL );
+insert into database_variables ( name, value ) 
+    values ( 'media_health_last_ss_id', $max_ss_id )
+    on conflict ( name )
+        do update set value = EXCLUDED.value
 SQL
 
 }
