@@ -8,7 +8,6 @@ services:
         environment:
             MC_FACEBOOK_APP_ID: "${MC_FACEBOOK_APP_ID}"
             MC_FACEBOOK_APP_SECRET: "${MC_FACEBOOK_APP_SECRET}"
-            MC_FACEBOOK_TIMEOUT: 60
         volumes:
             - type: bind
               source: ./bin/

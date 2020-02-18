@@ -31,17 +31,6 @@ The set of tables snapshotted at the time of each snapshot is stored in `MediaWo
 
 During each snapshot, all of the fields are copied from each of those tables along with a `snapshots_id` field pointing to the snapshot for which the table was snapshotted.
 
-For example, the `snap.tags` table definition is:
-
-Column         |          Type          | Modifiers
----------------|------------------------|-----------
-`snapshots_id` | integer                | not null
-`tags_id`      | integer                |
-`tag_sets_id`  | integer                |
-`tag`          | character varying(512) |
-`label`        | text                   |
-`description`  | text                   |
-
 During the snapshot process, we also do analysis and aggregation of the data, mostly so that we only have to do it once. This analysis work includes counting links for media sources and stories and generating link network graphs. Unlike the snapshotted tables above, for which we simple copy the data in the snapshotted table, for these analysis tables we are creating new data during the snapshot that depends on the particular timespan.  
 
 This allows us, for example, to store the `inlink_count` for each story consisting of just links coming from stories within a specific date range in the `snap.story_link_counts` tables.
