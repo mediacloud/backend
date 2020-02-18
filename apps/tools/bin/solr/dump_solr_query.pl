@@ -5,6 +5,7 @@
 use strict;
 use warnings;
 
+use File::Slurp;
 use Text::CSV_XS;
 
 use MediaWords::CommonLibs;
@@ -18,6 +19,11 @@ sub main
     my ( $q, $fq ) = @ARGV;
 
     die( "usage: $0 <solr query> [<solr filter query>]" ) unless ( $q );
+
+    if ( $q =~ /\.txt$/ )
+    {
+        $q = File::Slurp::read_file( $q );
+    }
 
     my $db = MediaWords::DB::connect_to_db();
 
