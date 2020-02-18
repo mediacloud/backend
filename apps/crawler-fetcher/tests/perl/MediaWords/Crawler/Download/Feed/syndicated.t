@@ -1,6 +1,8 @@
 # test MediaWords::Crawler::Download::Feed::Syndicated against manually extracted downloads
 
 use strict;
+use warnings;
+use utf8;
 
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
@@ -87,7 +89,7 @@ __END_TEST_CASE__
                     'title' => 'Why Life is Too Short for Spiral Notebooks',
                     'guid'  => 'http://blogs.law.harvard.edu/dlarochelle/?p=350',
                     'description' =>
-'One of the things that I learned in 2011 is that spiral notebooks should be avoid where ever possible.'
+'One of the things that I learned in 2011 is that spiral notebooks should be avoid where ever possible. This post will detail why I’ve switched to using wireless bound notebooks exclusively.'
                 }
             ]
         },
@@ -162,7 +164,7 @@ __END_TEST_CASE__
                     'title' => '(no title)',
                     'guid'  => 'http://blogs.law.harvard.edu/dlarochelle/?p=350',
                     'description' =>
-'One of the things that I learned in 2011 is that spiral notebooks should be avoid where ever possible.'
+'One of the things that I learned in 2011 is that spiral notebooks should be avoid where ever possible. This post will detail why I’ve switched to using wireless bound notebooks exclusively.'
                 }
             ]
         },
@@ -201,6 +203,12 @@ __END_TEST_CASE__
 
 sub main()
 {
+    # Test::More UTF-8 output
+    my $builder = Test::More->builder;
+    binmode $builder->output,         ":utf8";
+    binmode $builder->failure_output, ":utf8";
+    binmode $builder->todo_output,    ":utf8";
+
     my $db = MediaWords::DB::connect_to_db();
 
     test_get_stories_from_syndicated_feed( $db );
