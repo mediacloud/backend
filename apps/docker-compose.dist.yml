@@ -711,8 +711,6 @@ services:
             MC_FACEBOOK_APP_ID: ""
             # Facebook application secret
             MC_FACEBOOK_APP_SECRET: ""
-            # Timeout for API calls
-            MC_FACEBOOK_TIMEOUT: "60"
         depends_on:
             - postgresql-pgbouncer
             - rabbitmq-server
@@ -721,6 +719,11 @@ services:
             <<: *endpoint-mode-dnsrr
             # Worker count
             replicas: 4
+            restart_policy:
+                # Automatically restart on non-zero exit codes only instead of on any exit
+                condition: on-failure
+                # Autorestart up to three times
+                max_attempts: 3
             resources:
                 limits:
                     # CPU core limit

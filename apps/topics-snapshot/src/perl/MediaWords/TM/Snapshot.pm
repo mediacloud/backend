@@ -36,6 +36,7 @@ use warnings;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
+use List::MoreUtils qw(natatime);
 use List::Util;
 use Readonly;
 
@@ -192,7 +193,7 @@ sub _create_link_snapshot_period_stories($$)
     $db->query( <<END );
 create or replace temporary view snapshot_undateable_stories as
 select distinct s.stories_id
-    from snapshot_stories s, snapshot_stories_tags_map stm, snapshot_tags t, snapshot_tag_sets ts
+    from snapshot_stories s, snapshot_stories_tags_map stm, tags t, tag_sets ts
     where s.stories_id = stm.stories_id and
         stm.tags_id = t.tags_id and
         t.tag_sets_id = ts.tag_sets_id and
@@ -776,6 +777,31 @@ sub create_snap_snapshot
     _create_snapshot( $db, $cd, 'snapshots_id', $table );
 }
 
+# create snapshot_stories_tags_map in chunks because doing it in one big go uses a seq scan and is very slow
+# for bit topics
+sub _create_snapshot_stories_tags_map($)
+{
+    my ( $db ) = @_;
+
+    $db->query( "create temporary table snapshot_stories_tags_map as select * from stories_tags_map limit 0" );
+
+    my $stories_ids = $db->query( "select stories_id from snapshot_stories order by stories_id" )->flat;
+
+    # 10k is the biggest number for which postgres will return an index scan
+    my $chunk_size = 10_000;
+    my $iter = natatime( $chunk_size, @{ $stories_ids } );
+
+    while ( my $chunk_stories_ids = $iter->() )
+    {
+        my $stories_ids_list = join( ',', map { int( $_ ) } @{ $stories_ids } );
+        $db->query( <<SQL )->rows;
+insert into snapshot_stories_tags_map
+    select stm.* from stories_tags_map stm
+        where stm.stories_id in ( $stories_ids_list )
+SQL
+    }
+}
+
 # generate temporary snapshot_* tables for the specified snapshot for each of the snapshot_tables.
 # these are the tables that apply to the whole snapshot.
 sub _write_temporary_snapshot_tables($$$)
@@ -836,41 +862,14 @@ create temporary table snapshot_topic_links_cross_media as
         where cl.topics_id = ? and r.media_id <> s.media_id
 END
 
-    $db->query( <<END );
-create temporary table snapshot_stories_tags_map as
-    select stm.*
-    from stories_tags_map stm, snapshot_stories ds
-    where stm.stories_id = ds.stories_id
-END
+
+    _create_snapshot_stories_tags_map( $db );
 
     $db->query( <<END );
 create temporary table snapshot_media_tags_map as
     select mtm.*
     from media_tags_map mtm, snapshot_media dm
     where mtm.media_id = dm.media_id
-END
-
-    $db->query( <<END );
-create temporary table snapshot_tags as
-    select distinct t.* from tags t where t.tags_id in
-        ( select a.tags_id
-            from tags a
-                join snapshot_media_tags_map amtm on ( a.tags_id = amtm.tags_id )
-
-          union
-
-          select b.tags_id
-            from tags b
-                join snapshot_stories_tags_map bstm on ( b.tags_id = bstm.tags_id )
-        )
-
-END
-
-    $db->query( <<END );
-create temporary table snapshot_tag_sets as
-    select ts.*
-        from tag_sets ts
-        where ts.tag_sets_id in ( select tag_sets_id from snapshot_tags )
 END
 
     my $tweet_topics_id = $topic->{ topics_id };
