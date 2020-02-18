@@ -662,10 +662,17 @@ Output:
 | media_id  | id of the parent medium (required)                                                     |
 | name      | human readable name for the feed                                                       |
 | url       | feed URL (required)                                                                    |
-| type      | Feed type, e.g. `syndicated` or `web_page`                                             |
+| type      | Feed type, e.g. `syndicated`, `web_page`, `podcast` or something else                  |
 | active    | `true` if the feed is to be active (has to be fetched periodically), `false` otherwise |
 
-This call adds a new feed to an existing media source.  The `syndicated` feed `type` should be used for RSS, RDF, and ATOM feeds.  The `web_page` feed `type` will just download the given URL once a week and treat the URL as a new story each time.  The `active = true` (the default) will cause the feed to be regularly crawled.  Feeds should be added with `active = false` if they are functional and may have been crawled at one point but are no longer crawled now (for instance, feeds that have not had a new story in many months are sometimes marked as inactive).  Feeds should be deactivated (`active` should be set to `false`) if they are being added merely to indicate to the automatic feed scraping process that the given URL should not be added to the given media source as a feed.
+This call adds a new feed to an existing media source.
+
+* The `syndicated` feed `type` should be used for RSS / Atom feeds.
+* The `web_page` feed `type` will just download the given URL once a week and treat the URL as a new story each time.
+* The `podcast` feed `type` will treat a RSS / Atom feed as a podcast feed and attempt to transcribe enclosed media files to text.
+* There are other, more specialized, types too.
+
+The `active = true` (the default) will cause the feed to be regularly crawled.  Feeds should be added with `active = false` if they are functional and may have been crawled at one point but are no longer crawled now (for instance, feeds that have not had a new story in many months are sometimes marked as inactive).  Feeds should be deactivated (`active` should be set to `false`) if they are being added merely to indicate to the automatic feed scraping process that the given URL should not be added to the given media source as a feed.
 
 ### Example
 

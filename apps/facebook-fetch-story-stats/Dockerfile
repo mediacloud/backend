@@ -14,4 +14,4 @@ COPY bin /opt/mediacloud/bin
 
 USER mediacloud
 
-CMD ["facebook_fetch_story_stats_worker.pl"]
+CMD ["facebook_fetch_story_stats_worker.py"]

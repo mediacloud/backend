@@ -25,9 +25,6 @@ RUN \
     # Required by "cld2-cffi" Python module
     apt-get -y --no-install-recommends install libffi-dev && \
     #
-    # Required by XML::LibXML
-    apt-get -y --no-install-recommends install libxml2-dev && \
-    #
     # OpenSSL headers for various SSL modules
     apt-get -y --no-install-recommends install libssl-dev && \
     #

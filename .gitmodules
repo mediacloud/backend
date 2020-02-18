@@ -25,3 +25,9 @@
 [submodule "dev/quieter-docker-compose"]
 	path = dev/quieter-docker-compose
 	url = https://github.com/berkmancenter/mediacloud-docker-compose-just-quieter.git
+[submodule "apps/podcast-fetch-episode/tests/data/media-samples"]
+	path = apps/podcast-fetch-episode/tests/data/media-samples
+	url = https://github.com/berkmancenter/mediacloud-podcast-media-samples.git
+[submodule "apps/podcast-fetch-transcript/tests/data/media-samples"]
+	path = apps/podcast-fetch-transcript/tests/data/media-samples
+	url = https://github.com/berkmancenter/mediacloud-podcast-media-samples.git

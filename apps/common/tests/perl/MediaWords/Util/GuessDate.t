@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 18;
+use Test::More tests => 17;
 use Test::NoWarnings;
 use Test::Deep;
 
@@ -11,14 +11,13 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 use Readonly;
 
-# Integer constants (in case Date::Parse::str2time fails)
+# Integer constants (in case str2time() fails)
 Readonly my $TIMESTAMP_12_00_GMT => 1326801600;    # Tue, 17 Jan 2012 12:00:00 GMT (UTC); for dates without time / timezone
 Readonly my $TIMESTAMP_12_00_EST => 1326819600;    # Tue, 17 Jan 2012 12:00:00 EST (-05:00)
 
 BEGIN { use_ok 'MediaWords::Util::GuessDate' }
 BEGIN { use_ok 'MediaWords::Util::Web' }
 BEGIN { use_ok 'MediaWords::Util::GuessDate::Result' }
-BEGIN { use_ok 'Date::Parse' }
 
 # Returns URL dating result
 sub _gr($;$)
