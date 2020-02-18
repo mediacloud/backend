@@ -2,7 +2,7 @@ from typing import List, Dict, Any
 
 from mediawords.db import DatabaseHandler
 from mediawords.dbi.downloads.store import get_media_id
-from mediawords.dbi.stories.stories import add_story_and_content_download
+from mediawords.dbi.stories.stories import add_story
 from mediawords.feed.parse import parse_feed
 from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_object_from_bytes_if_needed
@@ -11,6 +11,7 @@ from crawler_fetcher.exceptions import McCrawlerFetcherSoftError
 from crawler_fetcher.handler import AbstractDownloadHandler
 from crawler_fetcher.handlers.default.fetch_mixin import DefaultFetchMixin
 from crawler_fetcher.handlers.feed import AbstractDownloadFeedHandler
+from crawler_fetcher.new_story import add_story_and_content_download
 from crawler_fetcher.stories_checksum import stories_checksum_matches_feed
 
 log = create_logger(__name__)
@@ -18,6 +19,16 @@ log = create_logger(__name__)
 
 class DownloadFeedSyndicatedHandler(DefaultFetchMixin, AbstractDownloadFeedHandler, AbstractDownloadHandler):
     """Handler for 'syndicated' feed downloads."""
+
+    @classmethod
+    def _add_content_download_for_new_stories(cls) -> bool:
+        """
+        Return True if class should add a content download for newly added stories.
+
+        Subclasses might decide to override this helper if they are planning to fetch story's content some other way,
+        i.e. not with "crawler-fetcher".
+        """
+        return True
 
     @classmethod
     def _get_stories_from_syndicated_feed(cls,
@@ -52,6 +63,15 @@ class DownloadFeedSyndicatedHandler(DefaultFetchMixin, AbstractDownloadFeedHandl
             if not publish_date:
                 publish_date = download_time
 
+            enclosures = []
+
+            for enclosure in item.enclosures():
+                enclosures.append({
+                    'url': enclosure.url(),
+                    'mime_type': enclosure.mime_type(),
+                    'length': enclosure.length(),
+                })
+
             story = {
                 'url': url,
                 'guid': guid,
@@ -59,6 +79,7 @@ class DownloadFeedSyndicatedHandler(DefaultFetchMixin, AbstractDownloadFeedHandl
                 'publish_date': publish_date,
                 'title': title,
                 'description': description,
+                'enclosures': enclosures,
             }
             stories.append(story)
 
@@ -90,11 +111,44 @@ class DownloadFeedSyndicatedHandler(DefaultFetchMixin, AbstractDownloadFeedHandl
 
         new_story_ids = []
         for story in stories:
-            story = add_story_and_content_download(db=db, story=story, parent_download=download)
-            if story.get('is_new', None):
-                new_story_ids.append(story['stories_id'])
 
-        log.debug(f"add_stories_from_feed: new stories: {len(new_story_ids)} / {len(stories)}")
+            # FIXME None of the helpers like keys they don't know about
+            story_without_enclosures = story.copy()
+            story_without_enclosures.pop('enclosures')
+
+            if self._add_content_download_for_new_stories():
+                added_story = add_story_and_content_download(
+                    db=db,
+                    story=story_without_enclosures,
+                    parent_download=download,
+                )
+            else:
+                added_story = add_story(
+                    db=db,
+                    story=story_without_enclosures,
+                    feeds_id=download['feeds_id'],
+                )
+
+            stories_id = added_story['stories_id']
+            story_is_new = added_story.get('is_new', False)
+
+            if story_is_new:
+
+                # Add all of the enclosures
+                for enclosure in story['enclosures']:
+                    # ...provided that the URL is set
+                    if enclosure['url']:
+                        db.insert(table='story_enclosures', insert_hash={
+                            'stories_id': stories_id,
+                            'url': enclosure['url'],
+                            'mime_type': enclosure['mime_type'],
+                            'length': enclosure['length'],
+                        })
+
+                # Append to the list of newly added storyes
+                new_story_ids.append(stories_id)
+
+        log.info(f"add_stories_from_feed: new stories: {len(new_story_ids)} / {len(stories)}")
 
         return new_story_ids
 

@@ -3,7 +3,6 @@ from typing import List, Dict, Any
 
 from mediawords.db import DatabaseHandler
 from mediawords.dbi.downloads.store import get_media_id
-from mediawords.dbi.stories.stories import add_story_and_content_download
 from mediawords.util.log import create_logger
 from mediawords.util.parse_json import decode_json
 from mediawords.util.perl import decode_object_from_bytes_if_needed
@@ -17,6 +16,7 @@ from crawler_fetcher.config import CrawlerConfig
 from crawler_fetcher.exceptions import McCrawlerFetcherHardError, McCrawlerFetcherSoftError
 from crawler_fetcher.handler import AbstractDownloadHandler
 from crawler_fetcher.handlers.feed import AbstractDownloadFeedHandler
+from crawler_fetcher.new_story import add_story_and_content_download
 from crawler_fetcher.str2time import str2time_21st_century
 
 log = create_logger(__name__)

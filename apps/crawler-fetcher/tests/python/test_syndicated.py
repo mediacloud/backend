@@ -89,11 +89,12 @@ def test_get_stories_from_syndicated_feed():
                     'title': 'Why Life is Too Short for Spiral Notebooks',
                     'guid': 'http://blogs.law.harvard.edu/dlarochelle/?p=350',
                     'description': 'Spiral notebooks should be avoided.',
+                    'enclosures': [],
                 },
             ],
         ),
         _TestFeedStory(
-            test_name='no title or time',
+            test_name='no title or time plus enclosure',
             media_id=1,
             publish_date=_convert_to_local_time_zone(db=db, sql_date='2012-01-09 06:20:10-0'),
             feed_input="""
@@ -134,6 +135,9 @@ def test_get_stories_from_syndicated_feed():
                             <wfw:commentRss>https://blogs.law.harvard.edu/dlarochelle/2012/01/09/why-life-is-too-short-for-spiral-notebooks/feed/</wfw:commentRss>
                             <slash:comments>0</slash:comments>
                             <creativeCommons:license>http://creativecommons.org/licenses/by-sa/3.0/</creativeCommons:license>
+                            
+                            <enclosure url="https://www.example.com/item.mp3" length="123456789" type="audio/mpeg" />
+
                         </item>
                         <item>
                             <title>Skipped Item</title>
@@ -151,7 +155,7 @@ def test_get_stories_from_syndicated_feed():
                             </content:encoded>
                             <wfw:commentRss>https://blogs.law.harvard.edu/dlarochelle/2012/01/09/why-life-is-too-short-for-spiral-notebooks/feed/</wfw:commentRss>
                             <slash:comments>0</slash:comments>
-                        <creativeCommons:license>http://creativecommons.org/licenses/by-sa/3.0/</creativeCommons:license>
+                        <creativeCommons:license>http://creativecommons.org/licenses/by-sa/3.0/</creativeCommons:license>                        
                         </item>
                     </channel>
                 </rss>
@@ -168,6 +172,13 @@ def test_get_stories_from_syndicated_feed():
                     'title': '(no title)',
                     'guid': 'http://blogs.law.harvard.edu/dlarochelle/?p=350',
                     'description': 'Spiral notebooks should be avoided.',
+                    'enclosures': [
+                        {
+                            'url': 'https://www.example.com/item.mp3',
+                            'length': 123456789,
+                            'mime_type': 'audio/mpeg',
+                        }
+                    ],
                 }
             ],
         ),

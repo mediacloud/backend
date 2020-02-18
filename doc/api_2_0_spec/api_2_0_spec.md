@@ -473,12 +473,18 @@ Response:
 
 # Feeds
 
-A feed is either a syndicated feed, such as an RSS feed, or a single web page.  Each feed is downloaded between once
-an hour and once a day depending on traffic.  Each time a syndicated feed is downloaded, each new URL found in the feed is
-added to the feed's media source as a story.  Each time a web page feed is downloaded, that web page itself is added as
-a story for the feed's media source.
+A feed could be one of the following types:
 
-Each feed belongs to a single media source.  Each story can belong to one or more feeds from the same media source.
+* **`syndicated` feed** - a RSS / Atom feed. Each time a `syndicated` feed is downloaded, each new URL found in the feed is
+added to the feed's media source as a story.
+* **`web_page` feed** - homepage of the main website. Each time a web page feed is downloaded, that web page itself is added as a story for the feed's media source.
+* **`univision` feed** - a special format feed for collecting Univision.com's data.
+* **`ap` feed** - a special format feed for collecting Associated Press data.
+* **`podcast` feed** - a RSS / Atom feed the enclosure of which is treated as a podcast episode and gets transcribed to text.
+
+Each feed is downloaded between once an hour and once a day depending on traffic.
+
+Each feed belongs to a single media source. Each story can belong to one or more feeds from the same media source.
 
 ## api/v2/feeds/single
 

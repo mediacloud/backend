@@ -201,6 +201,126 @@ def test_atom_feed():
     _test_feed_contents(atom_feed)
 
 
+def test_rss_enclosure():
+    rss_feed = """
+<?xml version="1.0" encoding="UTF-8"?>
+<rss xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd"
+xmlns:content="http://purl.org/rss/1.0/modules/content/"
+xmlns:atom="http://www.w3.org/2005/Atom" version="2.0">
+    <channel>
+        <title>Channel title</title>
+        <lastBuildDate>Tue, 04 Feb 2020 16:01:20 -0500</lastBuildDate>
+        <link>https://www.example.com/</link>
+        <language>en</language>
+        <copyright>&#x2117; &amp; &#xA9; 2020 Channel copyright</copyright>
+        <itunes:subtitle><![CDATA[Channel description]]></itunes:subtitle>
+        <itunes:author>Channel author</itunes:author>
+        <itunes:summary><![CDATA[Channel summary]]></itunes:summary>
+        <itunes:type>episodic</itunes:type>
+        <itunes:explicit>false</itunes:explicit>
+        <description><![CDATA[Channel description]]></description>
+        <itunes:owner>
+            <itunes:name>Channel author</itunes:name>
+            <itunes:email>example@example.com</itunes:email>
+        </itunes:owner>
+        <image>
+            <url>https://www.example.com/image.jpg</url>
+            <title>Channel title</title>
+            <link>https://www.example.com/</link>
+        </image>
+        <itunes:image href="https://www.example.com/image.jpg" />
+        <itunes:category text="Comedy" />
+        
+        <item>
+            <itunes:title>Item iTunes title</itunes:title>
+            <title>Item title</title>
+            <description><![CDATA[<p>Item description</p>]]></description>
+            <link><![CDATA[http://www.example.com/item]]></link>
+            <content:encoded><![CDATA[<p>Item description</p>]]></content:encoded>
+            <itunes:author>Item author</itunes:author>
+            <itunes:summary></itunes:summary>
+            <enclosure url="https://www.example.com/item.mp3" length="123456789" type="audio/mpeg" />
+            <guid isPermaLink="false">example.com-item</guid>
+            <pubDate>Sat, 01 Feb 2020 10:00:00 -0500</pubDate>
+            <itunes:duration>4479</itunes:duration>
+            <itunes:keywords></itunes:keywords>
+            <itunes:season></itunes:season>
+            <itunes:episode></itunes:episode>
+            <itunes:episodeType>full</itunes:episodeType>
+            <itunes:explicit>false</itunes:explicit>
+        </item>
+    </channel>
+</rss>
+    """
+
+    feed = parse_feed(rss_feed)
+    assert feed, "Feed was parsed."
+
+    assert len(feed.items()) == 1, "Exactly one item has to be found."
+    item = feed.items()[0]
+
+    assert len(item.enclosures()) == 1, "Exactly one enclosure has to be found."
+    enclosure = item.enclosures()[0]
+
+    assert enclosure.url() == "https://www.example.com/item.mp3"
+    assert enclosure.length() == 123456789
+    assert enclosure.mime_type() == "audio/mpeg"
+
+
+def test_atom_enclosures():
+    atom_feed = """
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <title>Channel title</title>
+    <updated>2003-12-13T18:30:02Z</updated>
+    <link href="https://www.example.com/" />
+    <id>urn:uuid:60a76c80-d399-11d9-b93C-0003939e0af6</id>
+    <author>
+        <name>Item author</name>
+    </author>
+  
+    <entry>
+        <title>Item title</title>
+        <link href="http://www.example.com/item" />
+        <id>urn:uuid:1225c695-cfb8-4ebb-aaaa-80da344efa6a</id>
+        <summary>Item description</summary>
+        <updated>2003-12-13T18:30:02Z</updated>
+        
+        <link rel="enclosure"
+            type="audio/mpeg"
+            title="MP3 file"
+            href="https://www.example.com/item.mp3"
+            length="123456789" />
+        <link rel="enclosure"
+            type="audio/mp4"
+            title="M4A file"
+            href="https://www.example.com/item.m4a"
+            length="234567890" />
+
+    </entry>
+
+</feed>
+    """
+
+    feed = parse_feed(atom_feed)
+    assert feed, "Feed was parsed."
+
+    assert len(feed.items()) == 1, "Exactly one item has to be found."
+    item = feed.items()[0]
+
+    assert len(item.enclosures()) == 2, "Two enclosures have to be found."
+
+    enclosure_1 = item.enclosures()[0]
+    assert enclosure_1.url() == "https://www.example.com/item.mp3"
+    assert enclosure_1.length() == 123456789
+    assert enclosure_1.mime_type() == "audio/mpeg"
+
+    enclosure_2 = item.enclosures()[1]
+    assert enclosure_2.url() == "https://www.example.com/item.m4a"
+    assert enclosure_2.length() == 234567890
+    assert enclosure_2.mime_type() == "audio/mp4"
+
+
 def test_rdf_feed():
     rdf_feed = """
 <?xml version="1.0" encoding="UTF-8"?>
