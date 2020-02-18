@@ -777,29 +777,26 @@ sub create_snap_snapshot
     _create_snapshot( $db, $cd, 'snapshots_id', $table );
 }
 
-# create snapshot_stories_tags_map in chunks because doing it in one big go uses a seq scan and is very slow
-# for bit topics
-sub _create_snapshot_stories_tags_map($)
+sub _create_snapshot_stories_tags_map($$)
 {
-    my ( $db ) = @_;
+    my ( $db, $snapshot ) = @_;
 
     $db->query( "create temporary table snapshot_stories_tags_map as select * from stories_tags_map limit 0" );
 
-    my $stories_ids = $db->query( "select stories_id from snapshot_stories order by stories_id" )->flat;
-
-    # 10k is the biggest number for which postgres will return an index scan
-    my $chunk_size = 10_000;
-    my $iter = natatime( $chunk_size, @{ $stories_ids } );
-
-    while ( my $chunk_stories_ids = $iter->() )
-    {
-        my $stories_ids_list = join( ',', map { int( $_ ) } @{ $stories_ids } );
-        $db->query( <<SQL )->rows;
-insert into snapshot_stories_tags_map
-    select stm.* from stories_tags_map stm
-        where stm.stories_id in ( $stories_ids_list )
+    $db->query( <<SQL, $snapshot->{ snapshots_id } );
+insert into snapshot_stories_tags_map ( stories_id, tags_id )
+    select stories_id, tags_id from snap.stories_tags_map where snapshots_id = ?
 SQL
-    }
+
+    $db->query( <<SQL );
+insert into snapshot_stories_tags_map ( stories_id, tags_id )
+    with _new_stories as (
+        select stories_id from snapshot_stories where stories_id not in (
+            select stories_id from snapshot_stories_tags_map )
+    )
+
+    select stories_id, tags_id from stories_tags_map where stories_id in ( select stories_id from _new_stories )
+SQL
 }
 
 # generate temporary snapshot_* tables for the specified snapshot for each of the snapshot_tables.
@@ -863,7 +860,7 @@ create temporary table snapshot_topic_links_cross_media as
 END
 
 
-    _create_snapshot_stories_tags_map( $db );
+    _create_snapshot_stories_tags_map( $db, $snapshot );
 
     $db->query( <<END );
 create temporary table snapshot_media_tags_map as
