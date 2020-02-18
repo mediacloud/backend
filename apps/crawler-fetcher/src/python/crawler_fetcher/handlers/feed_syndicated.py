@@ -129,24 +129,27 @@ class DownloadFeedSyndicatedHandler(DefaultFetchMixin, AbstractDownloadFeedHandl
                     feeds_id=download['feeds_id'],
                 )
 
-            stories_id = added_story['stories_id']
-            story_is_new = added_story.get('is_new', False)
+            # We might have received None due to a GUID conflict
+            if added_story:
 
-            if story_is_new:
+                stories_id = added_story['stories_id']
+                story_is_new = added_story.get('is_new', False)
 
-                # Add all of the enclosures
-                for enclosure in story['enclosures']:
-                    # ...provided that the URL is set
-                    if enclosure['url']:
-                        db.insert(table='story_enclosures', insert_hash={
-                            'stories_id': stories_id,
-                            'url': enclosure['url'],
-                            'mime_type': enclosure['mime_type'],
-                            'length': enclosure['length'],
-                        })
+                if story_is_new:
 
-                # Append to the list of newly added storyes
-                new_story_ids.append(stories_id)
+                    # Add all of the enclosures
+                    for enclosure in story['enclosures']:
+                        # ...provided that the URL is set
+                        if enclosure['url']:
+                            db.insert(table='story_enclosures', insert_hash={
+                                'stories_id': stories_id,
+                                'url': enclosure['url'],
+                                'mime_type': enclosure['mime_type'],
+                                'length': enclosure['length'],
+                            })
+
+                    # Append to the list of newly added storyes
+                    new_story_ids.append(stories_id)
 
         log.info(f"add_stories_from_feed: new stories: {len(new_story_ids)} / {len(stories)}")
 
