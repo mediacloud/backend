@@ -283,7 +283,7 @@ sub _import_stories($)
     my ( $import_url, $import_params ) = _get_import_url_params();
 
     DEBUG "importing " . scalar( @{ $json->{ stories_ids } } ) . " stories into solr ...";
-    eval { MediaWords::Solr::Request::solr_request( $import_url, $import_params, $json->{ json }, 'application/json' ); };
+    eval { MediaWords::Solr::Request::solr_request( $import_url, $import_params, $json->{ json }, 'application/json; charset=utf-8' ); };
     die( "error importing to solr: $@" ) if ( $@ );
 
     TRACE( "committing solr index changes ..." );

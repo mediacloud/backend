@@ -23,7 +23,6 @@ import os
 import re
 import shlex
 import subprocess
-import sys
 from typing import List, Pattern
 
 from utils import DockerComposeArgumentParser
@@ -80,10 +79,6 @@ def docker_all_tests_commands(all_apps_dir: str, verbose: bool) -> List[List[str
 
             tests_dir = os.path.join(container_path, 'tests')
             if not os.path.isdir(tests_dir):
-                print("Skipping '{container_path}' as it has no '{tests_dir}' subdirectory.".format(
-                    container_path=container_path,
-                    tests_dir=tests_dir,
-                ), file=sys.stderr)
                 continue
 
             perl_tests_dir = os.path.join(tests_dir, 'perl')

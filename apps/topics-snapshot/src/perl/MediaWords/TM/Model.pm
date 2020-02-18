@@ -87,7 +87,7 @@ sub __sample_guessed_date_stories
 select * from
 (
     select s.*
-        from snapshot_stories s, snapshot_tags t, snapshot_tag_sets ts, snapshot_stories_tags_map stm
+        from snapshot_stories s, tags t, tag_sets ts, snapshot_stories_tags_map stm
         where s.stories_id = stm.stories_id and
             t.tags_id = stm.tags_id and
             t.tag_sets_id = ts.tag_sets_id and
@@ -97,7 +97,7 @@ select * from
     except
 
     select s.*
-        from snapshot_stories s, snapshot_tags t, snapshot_tag_sets ts, snapshot_stories_tags_map stm
+        from snapshot_stories s, tags t, tag_sets ts, snapshot_stories_tags_map stm
         where s.stories_id = stm.stories_id and
             t.tags_id = stm.tags_id and
             t.tag_sets_id = ts.tag_sets_id and
@@ -130,7 +130,7 @@ sub __tweak_undateable_story
 
     $db->query( <<END, $story->{ stories_id } );
 delete from snapshot_stories_tags_map stm
-    using snapshot_tags t, snapshot_tag_sets ts
+    using tags t, tag_sets ts
     where stm.stories_id = ? and
         stm.tags_id = t.tags_id and
         t.tag_sets_id = ts.tag_sets_id and
@@ -149,7 +149,7 @@ sub __tweak_undateable_stories
 select * from
 (
     select s.*
-        from snapshot_stories s, snapshot_tags t, snapshot_tag_sets ts, snapshot_stories_tags_map stm
+        from snapshot_stories s, tags t, tag_sets ts, snapshot_stories_tags_map stm
         where s.stories_id = stm.stories_id and
             t.tags_id = stm.tags_id and
             t.tag_sets_id = ts.tag_sets_id and
@@ -159,7 +159,7 @@ select * from
     except
 
     select s.*
-        from snapshot_stories s, snapshot_tags t, snapshot_tag_sets ts, snapshot_stories_tags_map stm
+        from snapshot_stories s, tags t, tag_sets ts, snapshot_stories_tags_map stm
         where s.stories_id = stm.stories_id and
             t.tags_id = stm.tags_id and
             t.tag_sets_id = ts.tag_sets_id and
@@ -392,7 +392,6 @@ sub get_all_models_top_media ($$)
 
     # these make the data tweaking process and other operations much faster
     $db->query( 'CREATE INDEX IF NOT EXISTS snapshot_stories_story ON snapshot_stories ( stories_id )' );
-    $db->query( 'CREATE INDEX IF NOT EXISTS snapshot_tags_tag ON snapshot_tags ( tags_id )' );
     $db->query( 'CREATE INDEX IF NOT EXISTS snapshot_stories_tags_map_story ON snapshot_stories_tags_map ( stories_id )' );
 
     print "running models: ";

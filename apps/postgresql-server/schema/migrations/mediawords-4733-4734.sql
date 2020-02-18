@@ -14,9 +14,7 @@
 -- 1 of 2. Import the output of 'apgdiff':
 --
 
-
-ALTER TABLE story_statistics
-    ADD COLUMN facebook_reaction_count INT NULL;
+alter table snapshots add    seed_queries            jsonb null;
 
 
 --
@@ -43,3 +41,5 @@ $$
 LANGUAGE 'plpgsql';
 
 SELECT set_database_schema_version();
+
+

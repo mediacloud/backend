@@ -246,19 +246,19 @@ sub create_and_queue_topic_fetch_urls($$$)
 
 sub _fetch_twitter_urls($$$)
 {
-    my ( $db, $topic, $tfu_ids_table ) = @_;
+    my ( $db, $topic, $tfu_ids_list ) = @_;
 
     my $twitter_tfu_ids = $db->query( <<SQL )->flat();
 select topic_fetch_urls_id
     from topic_fetch_urls tfu
-        join $tfu_ids_table ids on ( tfu.topic_fetch_urls_id = ids.id )
     where
-        tfu.state = 'tweet pending'
+        tfu.state = 'tweet pending' and
+        tfu.topic_fetch_urls_id in ( $tfu_ids_list )
 SQL
 
     return unless ( scalar( @{ $twitter_tfu_ids } ) > 0 );
 
-    $tfu_ids_table = $db->get_temporary_ids_table( $twitter_tfu_ids );
+    my $tfu_ids_table = $db->get_temporary_ids_table( $twitter_tfu_ids );
 
     MediaWords::JobManager::Job::add_to_queue( 'MediaWords::Job::TM::FetchTwitterUrls', { topic_fetch_urls_ids => $twitter_tfu_ids } );
 
@@ -309,7 +309,7 @@ sub fetch_links
 
     INFO( "waiting for fetch link queue: $num_queued_links queued" );
 
-    my $tfu_ids_table = $db->get_temporary_ids_table( [ map { int( $_->{ topic_fetch_urls_id } ) } @{ $tfus } ] );
+    my $tfu_ids_list = join( ',', map { int( $_->{ topic_fetch_urls_id } ) } @{ $tfus } );
 
     my $requeues         = 0;
     my $max_requeues     = 10;
@@ -332,7 +332,7 @@ sub fetch_links
 select *, coalesce( fetch_date::text, 'null' ) fetch_date
     from topic_fetch_urls
     where
-        topic_fetch_urls_id in ( select id from $tfu_ids_table ) and
+        topic_fetch_urls_id in ( $tfu_ids_list ) and
         state in ( 'pending', 'requeued' )
 SQL
 
@@ -397,7 +397,7 @@ SQL
         sleep( $JOB_POLL_WAIT );
     }
 
-    _fetch_twitter_urls( $db, $topic, $tfu_ids_table );
+    _fetch_twitter_urls( $db, $topic, $tfu_ids_list );
 
     INFO( "fetch_links: update topic seed urls" );
     $db->query( <<SQL );
@@ -407,12 +407,12 @@ update topic_seed_urls tsu
     where
         tfu.url = tsu.url and
         tfu.stories_id is not null and
-        tfu.topic_fetch_urls_id in ( select id from $tfu_ids_table ) and
+        tfu.topic_fetch_urls_id in ( $tfu_ids_list ) and
         tfu.topics_id = tsu.topics_id
 SQL
 
     my $completed_tfus = $db->query( <<SQL )->hashes();
-select * from topic_fetch_urls where topic_fetch_urls_id in ( select id from $tfu_ids_table )
+select * from topic_fetch_urls where topic_fetch_urls_id in ( $tfu_ids_list )
 SQL
 
     INFO( "completed fetch link queue" );
@@ -634,26 +634,25 @@ END
         my $seed_urls_chunk = [ @{ $seed_urls }[ $i .. $end ] ];
         add_new_links_chunk( $db, $topic, 0, $seed_urls_chunk );
 
-        my $ids_table = $db->get_temporary_ids_table( [ map { $_->{ topic_seed_urls_id } } @{ $seed_urls_chunk } ] );
+        my $ids_list = join( ',', map { int( $_->{ topic_seed_urls_id } ) } @{ $seed_urls_chunk } );
 
         # update topic_seed_urls that were actually fetched
         $db->query( <<SQL );
 update topic_seed_urls tsu
     set stories_id = tfu.stories_id
-    from topic_fetch_urls tfu, $ids_table ids
+    from topic_fetch_urls tfu
     where
         tsu.topics_id = tfu.topics_id and
         md5(tsu.url) = md5(tfu.url) and
-        tsu.topic_seed_urls_id = ids.id
+        tsu.topic_seed_urls_id in ( $ids_list )
 SQL
 
         # now update the topic_seed_urls that were matched
         $db->query( <<SQL );
 update topic_seed_urls tsu
     set processed = 't'
-    from $ids_table ids
     where
-        tsu.topic_seed_urls_id = ids.id and
+        tsu.topic_seed_urls_id in ( $ids_list ) and
         processed = 'f'
 SQL
 
@@ -958,13 +957,25 @@ sub import_urls_from_seed_query($$)
     }
     elsif ( $num_queries == 0 )
     {
+        DEBUG( "import seed urls from solr" );
         update_topic_state( $db, $topic, "importing solr seed query" );
         import_solr_seed_query( $db, $topic );
         return;
     }
-    elsif ( MediaWords::TM::FetchTopicPosts::get_fetch_posts_function( $tsq ) )
+    elsif ( MediaWords::TM::FetchTopicPosts::get_post_fetcher( $tsq ) )
     {
+        DEBUG( "import seed urls from fetch_topic_posts" );
         MediaWords::TM::FetchTopicPosts::fetch_topic_posts( $db, $topic->{ topics_id } );
+        $db->query( <<SQL, $topic->{ topics_id } );
+insert into topic_seed_urls ( url, topics_id, assume_match, source )
+    select distinct tpu.url, tpd.topics_id, true, 'fetch_topic_posts'
+        from
+            topic_post_urls tpu
+            join topic_posts tp using ( topic_posts_id )
+            join topic_post_days tpd using ( topic_post_days_id )
+        where
+            tpd.topics_id = ?
+SQL
     }
     else
     {

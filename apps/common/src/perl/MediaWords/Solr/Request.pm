@@ -185,7 +185,7 @@ sub solr_request($$;$$)
         $request = MediaWords::Util::Web::UserAgent::Request->new( 'POST', $abs_url );
         $request->set_header( 'Content-Type',   $content_type );
         $request->set_header( 'Content-Length', bytes::length( $content ) );
-        $request->set_content_utf8( $content );
+        $request->set_content( $content );
     }
     else
     {

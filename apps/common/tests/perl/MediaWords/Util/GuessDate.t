@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 19;
+use Test::More tests => 18;
 use Test::NoWarnings;
 use Test::Deep;
 
@@ -87,11 +87,6 @@ sub test_not_found()
         _gr_url( 'http://en.wikipedia.org/wiki/1980s_in_fashion' )->{ result },
         $MediaWords::Util::GuessDate::Result::NOT_FOUND,
         'Wikipedia URL'
-    );
-    is(
-        _gr_url( 'https://www.phpbb.com/community/viewforum.php?f=14' )->{ result },
-        $MediaWords::Util::GuessDate::Result::NOT_FOUND,
-        'phpBB forum'
     );
     is(
         _gr_url( 'https://twitter.com/ladygaga' )->{ result },

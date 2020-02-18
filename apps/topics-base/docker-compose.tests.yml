@@ -21,6 +21,9 @@ services:
             - type: bind
               source: ./../common/src/
               target: /opt/mediacloud/src/common/
+            - type: bind
+              source: ./../extract-and-vector/src/
+              target: /opt/mediacloud/src/extract-and-vector/
         depends_on:
             - postgresql-pgbouncer
             - rabbitmq-server
@@ -30,6 +33,16 @@ services:
     extract-and-vector:
         image: dockermediacloud/extract-and-vector:latest
         stop_signal: SIGKILL
+        volumes:
+            - type: bind
+              source: ./../extract-and-vector/bin/
+              target: /opt/mediacloud/bin/
+            - type: bind
+              source: ./../extract-and-vector/src/
+              target: /opt/mediacloud/src/extract-and-vector/
+            - type: bind
+              source: ./../common/src/
+              target: /opt/mediacloud/src/common/
         depends_on:
             - postgresql-pgbouncer
             - extract-article-from-page
@@ -39,12 +52,26 @@ services:
         stop_signal: SIGKILL
         expose:
             - 8080
+        volumes:
+            - type: bind
+              source: ./../extract-article-from-page/bin/
+              target: /opt/mediacloud/bin/
+            - type: bind
+              source: ./../extract-article-from-page/src/
+              target: /opt/mediacloud/src/extract-article-from-page/
+            - type: bind
+              source: ./../common/src/
+              target: /opt/mediacloud/src/common/
 
     postgresql-pgbouncer:
         image: dockermediacloud/postgresql-pgbouncer:latest
         stop_signal: SIGKILL
         expose:
             - 6432
+        volumes:
+            - type: bind
+              source: ./../postgresql-pgbouncer/conf/
+              target: /etc/pgbouncer/
         depends_on:
             - postgresql-server
 
@@ -53,6 +80,16 @@ services:
         stop_signal: SIGKILL
         expose:
             - 5432
+        volumes:
+            - type: bind
+              source: ./../postgresql-server/bin/
+              target: /opt/mediacloud/bin/
+            - type: bind
+              source: ./../postgresql-server/schema/
+              target: /opt/mediacloud/schema/
+            - type: bind
+              source: ./../postgresql-server/conf/
+              target: /etc/postgresql/11/main/
 
     rabbitmq-server:
         image: dockermediacloud/rabbitmq-server:latest
@@ -60,3 +97,7 @@ services:
         expose:
             - 5672
             - 15672
+        volumes:
+            - type: bind
+              source: ./../rabbitmq-server/conf/
+              target: /etc/rabbitmq/

@@ -24,7 +24,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4734;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4736;
 BEGIN
 
     -- Update / set database schema version
@@ -1850,8 +1850,8 @@ create type topic_source_type AS enum ( 'mediacloud', 'crimson_hexagon', 'archiv
 create table topics (
     topics_id        serial primary key,
     name                    varchar(1024) not null,
-    pattern                 text not null,
-    solr_seed_query         text not null,
+    pattern                 text,
+    solr_seed_query         text,
     solr_seed_query_run     boolean not null default false,
     description             text not null,
     media_type_tag_sets_id  int references tag_sets,
@@ -2068,7 +2068,8 @@ create table snapshots (
     state                   text not null default 'queued',
     message                 text null,
     searchable              boolean not null default false,
-    bot_policy              bot_policy_type null
+    bot_policy              bot_policy_type null,
+    seed_queries            jsonb
 );
 
 create index snapshots_topic on snapshots ( topics_id );
@@ -2289,25 +2290,6 @@ create table snap.stories_tags_map
 );
 create index stories_tags_map_story on snap.stories_tags_map ( snapshots_id, stories_id );
 create index stories_tags_map_tag on snap.stories_tags_map ( snapshots_id, tags_id );
-
-create table snap.tags (
-    snapshots_id    int not null    references snapshots on delete cascade,
-    tags_id                 int,
-    tag_sets_id             int,
-    tag                     varchar(512),
-    label                   text,
-    description             text
-);
-create index tags_id on snap.tags ( snapshots_id, tags_id );
-
-create table snap.tag_sets (
-    snapshots_id    int not null    references snapshots on delete cascade,
-    tag_sets_id             int,
-    name                    varchar(512),
-    label                   text,
-    description             text
-);
-create index tag_sets_id on snap.tag_sets ( snapshots_id, tag_sets_id );
 
 -- story -> story links within a timespan
 create table snap.story_links (

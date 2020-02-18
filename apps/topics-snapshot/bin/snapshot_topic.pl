@@ -9,11 +9,12 @@ use MediaWords::CommonLibs;
 use Getopt::Long;
 
 use MediaWords::DB;
+use MediaWords::Job::TM::SnapshotTopic;
 use MediaWords::TM::CLI;
 
 sub main
 {
-    my ( $topic_opt, $note, $bot_policy, $periods );
+    my ( $topic_opt, $note, $bot_policy, $periods, $snapshots_id );
 
     binmode( STDOUT, 'utf8' );
     binmode( STDERR, 'utf8' );
@@ -25,7 +26,8 @@ sub main
         "topic=s"      => \$topic_opt,
         "note=s"       => \$note,
         "bot_policy=s" => \$bot_policy,
-        "period=s"     => $periods
+        "period=s"     => $periods,
+        "snapshots_id=i" => \$snapshots_id
     ) || return;
 
     die( "Usage: $0 --topic < id >" ) unless ( $topic_opt );
@@ -44,7 +46,8 @@ sub main
             topics_id  => $topics_id,
             note       => $note,
             bot_policy => $bot_policy,
-            periods    => $periods
+            periods    => $periods,
+            snapshots_id => $snapshots_id
         };
 
         MediaWords::Job::TM::SnapshotTopic->run( $args );

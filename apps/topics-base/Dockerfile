@@ -2,7 +2,9 @@
 # Base image for topic-related code
 #
 
-FROM dockermediacloud/common:latest
+FROM dockermediacloud/extract-and-vector:latest
+
+USER root
 
 # Install dependencies
 RUN \
