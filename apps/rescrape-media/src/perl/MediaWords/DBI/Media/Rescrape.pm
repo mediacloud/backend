@@ -13,7 +13,6 @@ use MediaWords::CommonLibs;
 use MediaWords::Util::Log;
 
 use MediaWords::DBI::Media;
-use MediaWords::DBI::Feeds;
 use MediaWords::Util::URL;
 use MediaWords::Feed::Scrape;
 
@@ -85,7 +84,14 @@ EOF
         {
             INFO "Disabling 'web_page' feed ID " .
               $active_webpage_feed->{ feeds_id } . " because syndicated feeds were found";
-            MediaWords::DBI::Feeds::disable_feed( $db, $active_webpage_feed->{ feeds_id } );
+            $db->query(
+                <<EOF,
+                UPDATE feeds
+                SET active = 'f'
+                WHERE feeds_id = ?
+EOF
+                $active_webpage_feed->{ feeds_id }
+            );
         }
     }
 
