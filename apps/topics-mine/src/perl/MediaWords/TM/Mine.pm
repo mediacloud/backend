@@ -811,6 +811,7 @@ select 1
         left join story_statistics ss on ( cs.stories_id = ss.stories_id )
     where
         cs.topics_id = ? and
+        ss.facebook_api_error is null and
         (
             ss.stories_id is null or
             ss.facebook_share_count is null or
