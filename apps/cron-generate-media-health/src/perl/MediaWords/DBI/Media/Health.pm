@@ -30,10 +30,10 @@ sub _update_media_stats
     my ( $db ) = @_;
 
     my ( $ss_id ) = $db->query( "select value from database_variables where name = 'media_health_last_ss_id'" )->flat;
-    $ss_id = int( $ss_id );
+    $ss_id = defined( $ss_id ) ? int( $ss_id ) : 0;
 
     my ( $max_ss_id ) = $db->query( "select max(story_sentences_id) from story_sentences" )->flat;
-    $max_ss_id = int( $max_ss_id );
+    $max_ss_id = defined( $max_ss_id ) ? int( $max_ss_id ) : 0;
     
     $db->query( <<SQL );
 insert into media_stats as old ( media_id, num_stories, num_sentences, stat_date )
