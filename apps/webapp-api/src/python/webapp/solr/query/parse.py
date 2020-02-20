@@ -697,9 +697,9 @@ def __get_token_type(token: str) -> TokenType:
 def _get_raw_tokens(query: str) -> List[str]:
     """Tokenize a single string into a list of string tokens."""
     return regex.findall(r"""(?x)
-        \w[\w\-\*]* |
+        \w[\w\-*]* |
         \"[^\"]*\" |
-        [\(\)\-\!\+\~\/\*]
+        [()\-!+~/*]
         """, query)
 
 
