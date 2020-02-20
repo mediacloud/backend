@@ -679,6 +679,14 @@ def test_inclusive_re():
 
     # Hindi query in quotes
     __validate_inclusive_re(
+        '"मोदी"',
+        '(?: (?:^|\\w)मोदी )',
+    )
+    __validate_inclusive_re(
+        '("मोदी")',
+        '(?: (?:^|\\w)मोदी )',
+    )
+    __validate_inclusive_re(
         '("मोदी") AND (( tags_id_media:(34412118 38379954)))',
         '(?: (?: (?:^|\\w)मोदी ) )',
     )
