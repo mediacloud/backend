@@ -20,11 +20,13 @@ create table database_variables (
     value               varchar(1024)   not null
 );
 
+create unique index database_variables_name on database_variables ( name );
+
 CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4737;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4738;
 BEGIN
 
     -- Update / set database schema version
@@ -204,6 +206,8 @@ create table media_stats (
     stat_date                   date        not null
 );
 
+create unique index media_stats_medium_date on media_stats( media_id, stat_date );
+
 --
 -- Returns true if media has active RSS feeds
 --
@@ -244,8 +248,6 @@ END;
 $$
 LANGUAGE 'plpgsql';
 
-
-create index media_stats_medium on media_stats( media_id );
 
 create type feed_type AS ENUM (
 
@@ -1717,103 +1719,6 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER story_sentences_view_insert_update_delete_trigger
     INSTEAD OF INSERT OR UPDATE OR DELETE ON story_sentences
     FOR EACH ROW EXECUTE PROCEDURE story_sentences_view_insert_update_delete();
-
-
--- update media stats table for new story. create the media / day row if needed.
-CREATE OR REPLACE FUNCTION insert_story_media_stats() RETURNS trigger AS $$
-BEGIN
-
-    INSERT INTO media_stats ( media_id, num_stories, num_sentences, stat_date )
-        SELECT NEW.media_id, 0, 0, date_trunc( 'day', NEW.publish_date )
-        WHERE NOT EXISTS (
-            SELECT 1
-            FROM media_stats
-            WHERE media_id = NEW.media_id
-              AND stat_date = date_trunc( 'day', NEW.publish_date )
-        );
-
-    UPDATE media_stats
-    SET num_stories = num_stories + 1
-    WHERE media_id = NEW.media_id
-      AND stat_date = date_trunc( 'day', NEW.publish_date );
-
-    RETURN NEW;
-
-END;
-
-$$ LANGUAGE plpgsql;
-
-
-create trigger stories_insert_story_media_stats after insert
-    on stories for each row execute procedure insert_story_media_stats();
-
-
--- update media stats and story_sentences tables for updated story date
-CREATE FUNCTION update_story_media_stats() RETURNS trigger AS $$
-
-DECLARE
-    new_date DATE;
-    old_date DATE;
-
-BEGIN
-
-    SELECT date_trunc( 'day', NEW.publish_date ) INTO new_date;
-    SELECT date_trunc( 'day', OLD.publish_date ) INTO old_date;
-
-    IF ( new_date != old_date ) THEN
-
-        UPDATE media_stats
-        SET num_stories = num_stories - 1
-        WHERE media_id = NEW.media_id
-          AND stat_date = old_date;
-
-        INSERT INTO media_stats ( media_id, num_stories, num_sentences, stat_date )
-            SELECT NEW.media_id, 0, 0, date_trunc( 'day', NEW.publish_date )
-            WHERE NOT EXISTS (
-                SELECT 1
-                FROM media_stats
-                WHERE media_id = NEW.media_id
-                  AND stat_date = date_trunc( 'day', NEW.publish_date )
-            );
-
-        UPDATE media_stats
-        SET num_stories = num_stories + 1
-        WHERE media_id = NEW.media_id
-          AND stat_date = new_date;
-
-        UPDATE story_sentences
-        SET publish_date = new_date
-        WHERE stories_id = OLD.stories_id;
-
-    END IF;
-
-    RETURN NEW;
-END;
-
-$$ LANGUAGE plpgsql;
-
-
-create trigger stories_update_story_media_stats after update
-    on stories for each row execute procedure update_story_media_stats();
-
-
--- update media stats table for deleted story
-CREATE FUNCTION delete_story_media_stats() RETURNS trigger AS $$
-BEGIN
-
-    UPDATE media_stats
-    SET num_stories = num_stories - 1
-    WHERE media_id = OLD.media_id
-      AND stat_date = date_trunc( 'day', OLD.publish_date );
-
-    RETURN NEW;
-
-END;
-$$ LANGUAGE plpgsql;
-
-
-create trigger story_delete_story_media_stats after delete
-    on stories for each row execute procedure delete_story_media_stats();
 
 create table solr_imports (
     solr_imports_id     serial primary key,

@@ -31,23 +31,7 @@ sub test_media_health
 
     # move all stories to yesterday so that they get included in today's media_health stats
     $db->query( "update stories set publish_date = now() - interval '1 day'" );
-
-    $db->query( <<SQL );
-update media_stats ms set num_sentences = q.num_sentences, num_stories = q.num_stories
-    from (
-        select
-                count( distinct story_sentences_id ) num_sentences,
-                count( distinct stories_id ) num_stories,
-                media_id,
-                publish_date::date stat_date
-            from
-                story_sentences
-            group by media_id, publish_date::date
-        ) q
-    where
-        ms.media_id = q.media_id and
-        ms.stat_date = q.stat_date
-SQL
+    $db->query( "update story_sentences set publish_date = now() - interval '1 day'" );
 
     MediaWords::DBI::Media::Health::generate_media_health( $db );
 
