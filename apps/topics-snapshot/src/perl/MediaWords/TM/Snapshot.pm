@@ -777,6 +777,7 @@ sub create_snap_snapshot
     _create_snapshot( $db, $cd, 'snapshots_id', $table );
 }
 
+# add only the stories that aren't already in snapshot_stories_tags_map
 sub _create_snapshot_stories_tags_map($$)
 {
     my ( $db, $snapshot ) = @_;
@@ -787,16 +788,21 @@ sub _create_snapshot_stories_tags_map($$)
 insert into snapshot_stories_tags_map ( stories_id, tags_id )
     select stories_id, tags_id from snap.stories_tags_map where snapshots_id = ?
 SQL
-
-    $db->query( <<SQL );
-insert into snapshot_stories_tags_map ( stories_id, tags_id )
-    with _new_stories as (
-        select stories_id from snapshot_stories where stories_id not in (
-            select stories_id from snapshot_stories_tags_map )
-    )
-
-    select stories_id, tags_id from stories_tags_map where stories_id in ( select stories_id from _new_stories )
+    
+    my $new_stories_ids = $db->query( <<SQL )->flat;
+select stories_id from snapshot_stories where stories_id not in (
+    select stories_id from snapshot_stories_tags_map )
 SQL
+
+    for my $new_stories_id ( @{ $new_stories_ids } )
+    {
+        my $tags_ids = $db->query( "select tags_id from stories_tags_map where stories_id = ?", $new_stories_id )->flat;
+        return unless @{ $tags_ids };
+
+        my $values_list = join( ',', map { "($new_stories_id, $_)" } @{ $tags_ids } );
+
+        $db->query( "insert into snapshot_stories_tags_map ( stories_id, tags_id ) values $values_list" );
+    }   
 }
 
 # generate temporary snapshot_* tables for the specified snapshot for each of the snapshot_tables.
