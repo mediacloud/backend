@@ -7,7 +7,33 @@ from webapp.solr.query.parse import (
     McSolrQueryParseSyntaxException,
     McSolrEmptyQueryException,
     WORD_BOUNDARY_REGEX,
+    _get_raw_tokens,
 )
+
+
+def test_get_raw_tokens():
+    assert _get_raw_tokens('foo') == ['foo']
+    assert _get_raw_tokens('( foo )') == ['(', 'foo', ')']
+    assert _get_raw_tokens('foo and ( bar baz )') == ['foo', 'and', '(', 'bar', 'baz', ')']
+    assert _get_raw_tokens(
+        '( ( ( a or b ) and c ) or ( d or ( f or ( g and h ) ) ) )'
+    ) == [
+               '(', '(', '(', 'a', 'or', 'b', ')', 'and', 'c', ')', 'or', '(', 'd', 'or', '(', 'f', 'or', '(', 'g',
+               'and', 'h', ')', ')', ')', ')',
+           ]
+    assert _get_raw_tokens('!( foo and bar )') == ['!', '(', 'foo', 'and', 'bar', ')']
+    assert _get_raw_tokens('( foo -( bar and baz ) )') == ['(', 'foo', '-', '(', 'bar', 'and', 'baz', ')', ')']
+    assert _get_raw_tokens('"foo bar-baz"') == ['"foo bar-baz"']
+    assert _get_raw_tokens('( 1 or 2 or "foo bar-baz" ) and "foz fot"') == [
+        '(', '1', 'or', '2', 'or', '"foo bar-baz"', ')', 'and', '"foz fot"',
+    ]
+    assert _get_raw_tokens('media_id:1 and foo') == ['media_id', '1', 'and', 'foo']
+    assert _get_raw_tokens('baz and ( foo:( 1 2 3 ) and bar:[ 1 2 3 ] )') == [
+        'baz', 'and', '(', 'foo', '(', '1', '2', '3', ')', 'and', 'bar', '1', '2', '3', ')',
+    ]
+    assert _get_raw_tokens('foo +bar baz') == ['foo', '+', 'bar', 'baz']
+    assert _get_raw_tokens('foo*') == ['foo*']
+    assert _get_raw_tokens('( foo* bar ) and baz*') == ['(', 'foo*', 'bar', ')', 'and', 'baz*']
 
 
 def test_tsquery():

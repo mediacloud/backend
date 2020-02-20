@@ -693,16 +693,13 @@ def __get_token_type(token: str) -> TokenType:
         raise McSolrQueryParseSyntaxException("unrecognized token '%s'" % str(token))
 
 
-def __get_raw_tokens(query: str) -> List[str]:
+def _get_raw_tokens(query: str) -> List[str]:
     """Tokenize a single string into a list of string tokens."""
-    tokenize_re = \
-        r"""(?x)
+    return re.findall(r"""(?x)
         \w[\w\-\*]* |
         \"[^\"]*\" |
         [\(\)\-\!\+\~\/\*]
-        """
-
-    return re.findall(tokenize_re, query)
+        """, query)
 
 
 def __get_tokens(query: str) -> List[Token]:
@@ -730,7 +727,7 @@ def __get_tokens(query: str) -> List[Token]:
 
     log.debug("filtered query: " + query)
 
-    raw_tokens = __get_raw_tokens(query)
+    raw_tokens = _get_raw_tokens(query)
 
     for raw_token in raw_tokens:
         log.debug("raw token '%s'" % raw_token)
