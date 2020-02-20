@@ -36,6 +36,7 @@ use warnings;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
+use List::MoreUtils qw(natatime);
 use List::Util;
 use Readonly;
 
@@ -776,6 +777,34 @@ sub create_snap_snapshot
     _create_snapshot( $db, $cd, 'snapshots_id', $table );
 }
 
+# add only the stories that aren't already in snapshot_stories_tags_map
+sub _create_snapshot_stories_tags_map($$)
+{
+    my ( $db, $snapshot ) = @_;
+
+    $db->query( "create temporary table snapshot_stories_tags_map as select * from stories_tags_map limit 0" );
+
+    $db->query( <<SQL, $snapshot->{ snapshots_id } );
+insert into snapshot_stories_tags_map ( stories_id, tags_id )
+    select stories_id, tags_id from snap.stories_tags_map where snapshots_id = ?
+SQL
+    
+    my $new_stories_ids = $db->query( <<SQL )->flat;
+select stories_id from snapshot_stories where stories_id not in (
+    select stories_id from snapshot_stories_tags_map )
+SQL
+
+    for my $new_stories_id ( @{ $new_stories_ids } )
+    {
+        my $tags_ids = $db->query( "select tags_id from stories_tags_map where stories_id = ?", $new_stories_id )->flat;
+        return unless @{ $tags_ids };
+
+        my $values_list = join( ',', map { "($new_stories_id, $_)" } @{ $tags_ids } );
+
+        $db->query( "insert into snapshot_stories_tags_map ( stories_id, tags_id ) values $values_list" );
+    }   
+}
+
 # generate temporary snapshot_* tables for the specified snapshot for each of the snapshot_tables.
 # these are the tables that apply to the whole snapshot.
 sub _write_temporary_snapshot_tables($$$)
@@ -836,12 +865,8 @@ create temporary table snapshot_topic_links_cross_media as
         where cl.topics_id = ? and r.media_id <> s.media_id
 END
 
-    $db->query( <<END );
-create temporary table snapshot_stories_tags_map as
-    select stm.*
-    from stories_tags_map stm, snapshot_stories ds
-    where stm.stories_id = ds.stories_id
-END
+
+    _create_snapshot_stories_tags_map( $db, $snapshot );
 
     $db->query( <<END );
 create temporary table snapshot_media_tags_map as

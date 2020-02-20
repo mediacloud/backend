@@ -1,10 +1,7 @@
 requires 'Array::Compare';
 requires 'Data::Dumper';
-requires 'Date::Parse';
 requires 'DateTime';
 requires 'DateTime::TimeZone';
-requires 'Devel::Cover';
-requires 'Devel::Cover::Report::Coveralls';
 requires 'File::ReadBackwards';
 requires 'File::Slurp';
 requires 'File::Temp';
@@ -20,7 +17,6 @@ requires 'LWP::Protocol::https';
 requires 'LWP::UserAgent';
 requires 'Modern::Perl';
 requires 'Moose';
-requires 'MooseX::Singleton';
 requires 'Net::AMQP::RabbitMQ';
 requires 'Readonly';
 requires 'Readonly::XS';
@@ -38,8 +34,6 @@ requires 'URI';
 requires 'URI::Escape';
 requires 'URI::QueryParam';
 requires 'UUID::Tiny';
-requires 'XML::FeedPP';
-requires 'XML::LibXML';
 # Our code doesn't use it, but one of the dependencies attempts to load it and
 # fails silently spitting out weird errors
 requires 'YAML::XS';
