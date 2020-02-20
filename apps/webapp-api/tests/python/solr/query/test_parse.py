@@ -2,6 +2,7 @@ import re
 
 import pytest
 
+# noinspection PyProtectedMember
 from webapp.solr.query.parse import (
     parse_solr_query,
     McSolrQueryParseSyntaxException,
@@ -34,6 +35,12 @@ def test_get_raw_tokens():
     assert _get_raw_tokens('foo +bar baz') == ['foo', '+', 'bar', 'baz']
     assert _get_raw_tokens('foo*') == ['foo*']
     assert _get_raw_tokens('( foo* bar ) and baz*') == ['(', 'foo*', 'bar', ')', 'and', 'baz*']
+
+    # Hindi query in quotes
+    assert _get_raw_tokens('मोदी') == ['मोदी']
+    assert _get_raw_tokens('("मोदी") AND (( tags_id_media:(34412118 38379954)))') == [
+        '(', '"मोदी"', ')', 'AND', '(', '(', 'tags_id_media', '(', '34412118', '38379954', ')', ')', ')',
+    ]
 
 
 def test_tsquery():
@@ -71,6 +78,10 @@ def test_tsquery():
     # single term
     __validate_tsquery('foo', 'foo')
     __validate_tsquery('( foo )', 'foo')
+
+    # Hindi query in quotes
+    __validate_tsquery('मोदी', 'मोदी')
+    __validate_tsquery('("मोदी") AND (( tags_id_media:(34412118 38379954)))', '( ( मोदी ) )')
 
     # simple boolean
     __validate_tsquery('foo and bar', '( foo  & bar )')
@@ -291,6 +302,9 @@ def test_re():
     # single term
     __validate_re('foo', r'[[:<:]]foo')
     __validate_re('( foo )', r'[[:<:]]foo')
+
+    # Hindi query in quotes
+    __validate_re('("मोदी") AND (( tags_id_media:(34412118 38379954)))', '(?:^|\\w)मोदी')
 
     # simple boolean
     __validate_re('foo and bar', r'(?: (?: [[:<:]]foo .* [[:<:]]bar ) | (?: [[:<:]]bar .* [[:<:]]foo ) )')
@@ -662,6 +676,12 @@ def test_inclusive_re():
     # single term
     __validate_inclusive_re('foo', '[[:<:]]foo')
     __validate_inclusive_re('( foo )', '[[:<:]]foo')
+
+    # Hindi query in quotes
+    __validate_inclusive_re(
+        '("मोदी") AND (( tags_id_media:(34412118 38379954)))',
+        '(?: (?: (?:^|\\w)मोदी ) )',
+    )
 
     # simple boolean
     __validate_inclusive_re('foo and bar', '(?: [[:<:]]foo | [[:<:]]bar )')

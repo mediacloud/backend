@@ -3,7 +3,8 @@
 import abc
 import enum
 import inspect
-import re
+
+import regex
 
 from typing import List, Callable, Union
 
@@ -238,7 +239,7 @@ class TermNode(ParseNode):
         if self.phrase:
             dequoted_phrase = self.term[1:-1]
             operands = []
-            for term in re.split(r'\W+', dequoted_phrase):
+            for term in regex.split(r'\W+', dequoted_phrase):
                 if term:
                     operands.append(TermNode(term))
 
@@ -257,24 +258,24 @@ class TermNode(ParseNode):
             term = term[1:-1]
 
             # ignore wildcards, since the regex ignores the end of the word anyway
-            term = re.sub(r'\*', '', term)
+            term = regex.sub(r'\*', '', term)
 
             # should already be lower case, but make sure
             term = term.lower()
 
             space_place_holder = 'SPACEPLACEHOLDER'
-            # replace spaces with placeholder text so that we can replace it with [[:space:]] after the re.sub below
-            term = re.sub(r'\s+', space_place_holder, term)
+            # replace spaces with placeholder text so that we can replace it with [[:space:]] after the regex.sub below
+            term = regex.sub(r'\s+', space_place_holder, term)
 
-            # escape special characters.  re.escape() escapes everything that is not
+            # escape special characters.  regex.escape() escapes everything that is not
             # ascii alnum, which confuses the postgres reg ex engine
-            term = re.sub(r"\W", r"\\\g<0>", term)
+            term = regex.sub(r"\W", r"\\\g<0>", term)
 
             if inclusive:
                 words = term.split(space_place_holder)
                 return OrNode(list(map(lambda x: TermNode(x), words))).get_re()
             elif self.proximity is None:
-                term = re.sub(space_place_holder, '[[:space:]]+', term)
+                term = regex.sub(space_place_holder, '[[:space:]]+', term)
                 return WORD_BOUNDARY_REGEX + term
             else:
                 # proximity searches do not care about order, so we need to change this to an and node, which will
@@ -284,9 +285,9 @@ class TermNode(ParseNode):
         elif term == '':
             return '.*'
         else:
-            # escape special characters.  re.escape() escapes everything that is not
+            # escape special characters.  regex.escape() escapes everything that is not
             # ascii alnum, which confuses the postgres reg ex engine
-            term = WORD_BOUNDARY_REGEX + re.sub(r"\W", r"\\\g<0>", term)
+            term = WORD_BOUNDARY_REGEX + regex.sub(r"\W", r"\\\g<0>", term)
             return term
 
     def get_inclusive_re(self, operands: List[AbstractParseNode] = None) -> str:
@@ -556,7 +557,7 @@ def __parse_tokens(tokens: List[Token], want_type: List[TokenType] = None) -> Pa
             want_type = [TokenType.CLOSE, TokenType.AND, TokenType.OR, TokenType.PLUS]
 
             if ((len(tokens) >= 2) and (tokens[0].token_type == TokenType.PROXIMITY) and (
-                    tokens[1].token_type == TokenType.TERM) and (re.search(r'^\d+$', tokens[1].token_value))):
+                    tokens[1].token_type == TokenType.TERM) and (regex.search(r'^\d+$', tokens[1].token_value))):
                 tokens.pop(0)
                 distance_token = tokens.pop(0)
                 clause = TermNode(token.token_value, phrase=True, proximity=int(distance_token.token_value))
@@ -586,7 +587,7 @@ def __parse_tokens(tokens: List[Token], want_type: List[TokenType] = None) -> Pa
 
         elif token.token_type == TokenType.FIELD:
             want_type = [TokenType.CLOSE, TokenType.AND, TokenType.OR, TokenType.PLUS]
-            field_name = re.sub(FIELD_PLACEHOLDER, '', token.token_value)
+            field_name = regex.sub(FIELD_PLACEHOLDER, '', token.token_value)
             next_token = tokens.pop(0)
             if next_token.token_type == TokenType.OPEN:
                 field_clause = __parse_tokens(
@@ -687,7 +688,7 @@ def __get_token_type(token: str) -> TokenType:
         return TokenType.NOOP
     elif token.endswith(FIELD_PLACEHOLDER):
         return TokenType.FIELD
-    if re.match(r'^\w[\w\-\*]*$', token):
+    if regex.match(r'^\w[\w\-\*]*$', token):
         return TokenType.TERM
     else:
         raise McSolrQueryParseSyntaxException("unrecognized token '%s'" % str(token))
@@ -695,7 +696,7 @@ def __get_token_type(token: str) -> TokenType:
 
 def _get_raw_tokens(query: str) -> List[str]:
     """Tokenize a single string into a list of string tokens."""
-    return re.findall(r"""(?x)
+    return regex.findall(r"""(?x)
         \w[\w\-\*]* |
         \"[^\"]*\" |
         [\(\)\-\!\+\~\/\*]
@@ -711,19 +712,19 @@ def __get_tokens(query: str) -> List[Token]:
     query = query.lower()
 
     # remove {!complexphrase foo=bar} type solr qualifiers
-    query = re.sub(r'{![^\}]*\}', '', query)
+    query = regex.sub(r'{![^\}]*\}', '', query)
 
-    if re.search(r'\*\w', query):
+    if regex.search(r'\*\w', query):
         raise McSolrQueryParseSyntaxException("* can only appear by itself or at the end of a term")
 
     # solr treats 's as spaces any way
     query = query.replace("'", " ")
 
     # we can't support solr range searches, and they break the tokenizer, so just regexp them away
-    query = re.sub(r'\w+:\[[^\]]*\]', NOOP_PLACEHOLDER, query)
+    query = regex.sub(r'\w+:\[[^\]]*\]', NOOP_PLACEHOLDER, query)
 
     # we want to include ':' at the end of field names, but tokenizer wants to make it a separate token
-    query = re.sub(':', FIELD_PLACEHOLDER + ' ', query)
+    query = regex.sub(':', FIELD_PLACEHOLDER + ' ', query)
 
     log.debug("filtered query: " + query)
 
