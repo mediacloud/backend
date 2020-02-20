@@ -206,6 +206,8 @@ create table media_stats (
     stat_date                   date        not null
 );
 
+create unique index media_stats_medium_date on media_stats( media_id, stat_date );
+
 --
 -- Returns true if media has active RSS feeds
 --
@@ -246,8 +248,6 @@ END;
 $$
 LANGUAGE 'plpgsql';
 
-
-create unique index media_stats_medium_date on media_stats( media_id, stat_date );
 
 create type feed_type AS ENUM (
 
