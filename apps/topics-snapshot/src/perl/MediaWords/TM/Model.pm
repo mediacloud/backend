@@ -360,12 +360,12 @@ sub print_model_matches
             my $model_rank = $model_medium_ranks->{ $clean_media_id };
             if ( __model_rank_within_error_interval( $clean_rank, $model_rank ) )
             {
-                INFO "+";
+                TRACE "+";
             }
             else
             {
                 my $model_rank_display = defined( $model_rank ) ? $model_rank : 'NA';
-                INFO "- [ $clean_media_id: $clean_rank / $model_rank_display ]";
+                TRACE "- [ $clean_media_id: $clean_rank / $model_rank_display ]";
                 $match = 0;
             }
         }

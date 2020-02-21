@@ -150,8 +150,8 @@ SQL
     my $last_change_time        = time();
     while ( 1 )
     {
-        my ( $num_queued_stories ) = $db->query( <<SQL, $topic->{ topics_id } )->flat();
-select count(*)
+        my $queued_stories = $db->query( <<SQL, $topic->{ topics_id } )->flat();
+select stories_id
     from topic_stories
     where
         stories_id in ( select id from $queued_ids_table ) and
@@ -159,13 +159,12 @@ select count(*)
         link_mined = 'f'
 SQL
 
-        last if ( $num_queued_stories == 0 );
+        last unless ( scalar( @{ $queued_stories } ) );
 
         $last_change_time = time() if ( $num_queued_stories != $prev_num_queued_stories );
         if ( ( time() - $last_change_time ) > $JOB_POLL_TIMEOUT )
         {
-            my $queued_ids = $db->query( "select * from $queued_ids_table limit 5" )->flat();
-            my $ids_list = join( ', ', @{ $queued_ids } );
+            my $ids_list = join( ', ', @{ $queued_stories } );
             LOGDIE( "Timed out waiting for story link extraction ($ids_list)." );
         }
 
