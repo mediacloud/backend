@@ -805,6 +805,65 @@ SQL
     }   
 }
 
+# create snapshot_topic_stories, which defines a superset of the stories to be included in the topic.
+# if the topic.only_snapshot_engaged_stories is true, prune stories to only those that
+# have a minium number of inlinks, fb shares, or twitter shares
+sub _create_snapshot_topic_stories($$)
+{
+    my ( $db, $topic ) = @_;
+
+    if ( !$topic->{ only_snapshot_engaged_stories } )
+    {
+        $db->query( <<SQL, $topic->{ topics_id } );
+create temporary table snapshot_topic_stories as
+    select cs.*
+        from topic_stories cs
+        where cs.topics_id = ?
+SQL
+    }
+    else
+    {
+        $db->query( <<SQL, $topic->{ topics_id } );
+create temporary table snapshot_topic_stories as 
+
+with link_stories as (
+    select ts.stories_id
+        from topic_links tl
+            join topic_stories ts on ( ts.stories_id = tl.ref_stories_id and ts.topics_id = tl.topics_id )
+        where
+            tl.topics_id = \$1
+),
+
+fb_stories as (
+    select ss.stories_id
+        from topic_stories ts
+            join story_statistics ss using ( stories_id )
+        where
+            ts.topics_id = \$1 and
+            ss.facebook_share_count >= 100
+),
+
+post_stories as (
+    select ts.stories_id
+        from topic_stories ts
+        where 
+            ts.topics_id = \$1 and
+            exists (select 1 from snap.story_link_counts where stories_id = ts.stories_id and post_count >= 10)
+)
+
+select ts.*
+    from topic_stories ts
+    where
+        topics_id = \$1 and
+        stories_id in ( 
+            select stories_id from link_stories  union
+            select stories_id from fb_stories union
+            select stories_id from post_stories
+        )
+SQL
+    }
+}
+
 # generate temporary snapshot_* tables for the specified snapshot for each of the snapshot_tables.
 # these are the tables that apply to the whole snapshot.
 sub _write_temporary_snapshot_tables($$$)
@@ -813,12 +872,7 @@ sub _write_temporary_snapshot_tables($$$)
 
     my $topics_id = $topic->{ topics_id };
 
-    $db->query( <<END, $topics_id );
-create temporary table snapshot_topic_stories as
-    select cs.*
-        from topic_stories cs
-        where cs.topics_id = ?
-END
+    _create_snapshot_topic_stories( $db, $topic );
 
     $db->query( <<END, $topics_id );
 create temporary table snapshot_topic_media_codes as

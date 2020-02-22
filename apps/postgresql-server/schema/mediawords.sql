@@ -26,7 +26,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4738;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4739;
 BEGIN
 
     -- Update / set database schema version
@@ -1789,8 +1789,10 @@ create table topics (
     max_stories             int not null,
 
     -- if false, we should refuse to spider this topic because the use has not confirmed the new story query syntax
-    is_story_index_ready     boolean not null default true
+    is_story_index_ready     boolean not null default true,
 
+    -- if true, snapshots are pruned to only stories with a minimum level of engagements (links, shares, etc)
+    only_snapshot_engaged_stories   boolean not null default false
 );
 
 create unique index topics_name on topics( name );
