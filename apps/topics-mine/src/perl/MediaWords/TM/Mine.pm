@@ -159,7 +159,9 @@ select stories_id
         link_mined = 'f'
 SQL
 
-        last unless ( scalar( @{ $queued_stories } ) );
+        my $num_queued_stories = scalar( @{ $queued_stories } );
+
+        last unless ( $num_queued_stories );
 
         $last_change_time = time() if ( $num_queued_stories != $prev_num_queued_stories );
         if ( ( time() - $last_change_time ) > $JOB_POLL_TIMEOUT )
