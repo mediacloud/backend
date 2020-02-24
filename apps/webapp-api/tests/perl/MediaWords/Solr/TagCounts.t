@@ -84,10 +84,10 @@ select c count, t.*, ts.name tag_set_name, ts.label tag_set_label
 SQL
 
     my $num_tag_counts = scalar( @{ $got_tag_counts } );
-    map { ok( $got_tag_counts->[ $_ ]->{ count } >= $got_tag_counts->[ $_ + 1 ]->{ count } ) }
+    map { ok( $got_tag_counts->[ $_ ]->{ count } >= $got_tag_counts->[ $_ + 1 ]->{ count }, "Individual tag counts" ) }
       ( 0 .. ( $num_tag_counts - 2 ) );
 
-    cmp_bag( $got_tag_counts, $expected_tag_counts );
+    cmp_bag( $got_tag_counts, $expected_tag_counts, "Tag counts" );
 
     # Solr might not have committed tag counts just yet, so wait for the right count to appear
     my $single_tag_count;
@@ -102,8 +102,8 @@ SQL
         INFO "Retrying...";
     }
 
-    is( $single_tag_count->[ 0 ]->{ tags_id }, $expected_tag_counts->[ 0 ]->{ tags_id } );
-    is( scalar( @{ $single_tag_count } ),      1 );
+    is( $single_tag_count->[ 0 ]->{ tags_id }, $expected_tag_counts->[ 0 ]->{ tags_id }, "Tag count's tag ID" );
+    is( scalar( @{ $single_tag_count } ),      1, "Single tag count" );
 
     my $query_tag_sets_id  = $got_tag_counts->[ -1 ]->{ tag_sets_id };
     my $tag_set_tag_counts = MediaWords::Solr::TagCounts::query_tag_counts( $db,
@@ -111,7 +111,7 @@ SQL
 
     $expected_tag_counts = [ grep { $_->{ tag_sets_id } == $query_tag_sets_id } @{ $expected_tag_counts } ];
 
-    cmp_bag( $tag_set_tag_counts, $expected_tag_counts );
+    cmp_bag( $tag_set_tag_counts, $expected_tag_counts, "Tag set tag counts" );
 
 }
 
