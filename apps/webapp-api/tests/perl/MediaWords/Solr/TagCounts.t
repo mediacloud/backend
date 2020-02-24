@@ -100,6 +100,7 @@ SQL
             last;
         }
         INFO "Retrying...";
+        sleep( 1 );
     }
 
     is( $single_tag_count->[ 0 ]->{ tags_id }, $expected_tag_counts->[ 0 ]->{ tags_id }, "Tag count's tag ID" );
