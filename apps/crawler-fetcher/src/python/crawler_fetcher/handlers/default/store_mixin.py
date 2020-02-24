@@ -111,7 +111,7 @@ class DefaultStoreMixin(AbstractDownloadHandler, metaclass=abc.ABCMeta):
             return
 
         supported_content_types_regex = re.compile(r'text|html|xml|rss|atom|application/json', flags=re.IGNORECASE)
-        if re.search(supported_content_types_regex, response.content_type()):
+        if re.search(supported_content_types_regex, response.content_type() or ''):
             content = response.decoded_content()
         else:
             content = '(unsupported content type)'
