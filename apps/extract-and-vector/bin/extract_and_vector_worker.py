@@ -69,16 +69,12 @@ def run_extract_and_vector(stories_id: int, use_cache: bool = False, use_existin
 
     log.info("Extracting story {}...".format(stories_id))
 
-    db.begin()
-
     try:
         extractor_args = PyExtractorArguments(use_cache=use_cache, use_existing=use_existing)
         extract_and_process_story(db=db, story=story, extractor_args=extractor_args)
 
     except Exception as ex:
         raise McExtractAndVectorException("Extractor died while extracting story {}: {}".format(stories_id, ex))
-
-    db.commit()
 
     log.info("Done extracting story {}.".format(stories_id))
 

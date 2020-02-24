@@ -208,17 +208,6 @@ def _insert_story_sentences(
     log.debug("Removing advisory lock on media ID {}...".format(media_id))
     db.query("SELECT pg_advisory_unlock(%(media_id)s)", {'media_id': media_id})
 
-    db.query("""
-        UPDATE media_stats
-        SET num_sentences = num_sentences + %(inserted_sentence_count)s
-        WHERE media_id = %(media_id)s
-          AND stat_date = %(publish_date)s::date
-    """, {
-        'inserted_sentence_count': len(inserted_sentences),
-        'media_id': media_id,
-        'publish_date': story['publish_date'],
-    })
-
     return inserted_sentences
 
 
@@ -285,25 +274,13 @@ def _update_ap_syndicated(db: DatabaseHandler,
 
 
 def _delete_story_sentences(db: DatabaseHandler, story: dict) -> None:
-    """Delete any existing stories for the given story and also update media_stats to adjust for the deletion."""
+    """Delete any existing stories for the given story."""
     story = decode_object_from_bytes_if_needed(story)
 
-    num_deleted = db.query("""
+    db.query("""
         DELETE FROM story_sentences
         WHERE stories_id = %(stories_id)s
-    """, {'stories_id': story['stories_id']}).rows()
-
-    if num_deleted > 0:
-        db.query("""
-            UPDATE media_stats
-            SET num_sentences = num_sentences - %(num_deleted)s
-            WHERE media_id = %(media_id)s
-              AND stat_date = %(publish_date)s::date
-        """, {
-            'num_deleted': num_deleted,
-            'media_id': story['media_id'],
-            'publish_date': story['publish_date'],
-        })
+    """, {'stories_id': story['stories_id']})
 
 
 def update_story_sentences_and_language(db: DatabaseHandler,

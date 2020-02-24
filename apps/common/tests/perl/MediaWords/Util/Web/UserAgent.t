@@ -6,7 +6,7 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use Test::Deep;
-use Test::More tests => 133;
+use Test::More tests => 139;
 
 use Encode;
 use File::Temp qw/ tempdir tempfile /;
@@ -1289,7 +1289,7 @@ sub test_post()
     {
         my $request = MediaWords::Util::Web::UserAgent::Request->new( 'POST', $url );
         $request->set_content_type( 'application/x-www-form-urlencoded; charset=utf-8' );
-        $request->set_content_utf8( 'ą=č&ė=ž' );
+        $request->set_content( 'ą=č&ė=ž' );
 
         my $response = $ua->request( $request );
 
@@ -1314,10 +1314,65 @@ sub test_post()
     {
         my $request = MediaWords::Util::Web::UserAgent::Request->new( 'POST', $url );
         $request->set_content_type( 'application/x-www-form-urlencoded; charset=utf-8' );
-        $request->set_content_utf8(
+        $request->set_content(
             {
                 'ą' => 'č',
                 'ė' => 'ž',
+            }
+        );
+
+        my $response = $ua->request( $request );
+
+        ok( $response->is_success() );
+        is_urls( $response->request()->url(), $TEST_HTTP_SERVER_URL . '/test-post' );
+
+        my $decoded_json = MediaWords::Util::ParseJSON::decode_json( $response->decoded_content() );
+        cmp_deeply(
+            $decoded_json,
+            {
+                'method'       => 'POST',
+                'content-type' => 'application/x-www-form-urlencoded; charset=utf-8',
+                'content'      => {
+                    'ą' => 'č',
+                    'ė' => 'ž',
+                },
+            }
+        );
+    }
+
+    # UTF-8 encoded string request
+    {
+        my $request = MediaWords::Util::Web::UserAgent::Request->new( 'POST', $url );
+        $request->set_content_type( 'application/x-www-form-urlencoded; charset=utf-8' );
+        $request->set_content( encode_utf8( 'ą=č&ė=ž' ) );
+
+        my $response = $ua->request( $request );
+
+        ok( $response->is_success() );
+        is_urls( $response->request()->url(), $TEST_HTTP_SERVER_URL . '/test-post' );
+
+        my $decoded_json = MediaWords::Util::ParseJSON::decode_json( $response->decoded_content() );
+        cmp_deeply(
+            $decoded_json,
+            {
+                'method'       => 'POST',
+                'content-type' => 'application/x-www-form-urlencoded; charset=utf-8',
+                'content'      => {
+                    'ą' => 'č',
+                    'ė' => 'ž',
+                },
+            }
+        );
+    }
+
+    # UTF-8 encoded hashref request
+    {
+        my $request = MediaWords::Util::Web::UserAgent::Request->new( 'POST', $url );
+        $request->set_content_type( 'application/x-www-form-urlencoded; charset=utf-8' );
+        $request->set_content(
+            {
+                encode_utf8( 'ą' ) => encode_utf8( 'č' ),
+                encode_utf8( 'ė' ) => encode_utf8( 'ž' ),
             }
         );
 

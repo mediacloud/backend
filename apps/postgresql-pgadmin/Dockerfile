@@ -4,9 +4,10 @@
 
 FROM dockermediacloud/postgresql-base:latest
 
+# Copy pgAdmin4's requirements
+COPY pgadmin-requirements.txt /var/tmp/
+
 RUN \
-    # FIXME
-    apt-get -y update && \
     #
     # Install PostgreSQL utilities to do backups etc.
     apt-get -y --no-install-recommends install postgresql-client-11 && \
@@ -22,8 +23,16 @@ RUN \
     # Install temporary dependencies to be able to build pgAdmin
     apt-get -y --no-install-recommends install build-essential python3-dev libffi-dev && \
     #
+    # Install pgAdmin's requirements
+    cd /var/tmp/ && \
+    pip3 install -r pgadmin-requirements.txt && \
+    rm pgadmin-requirements.txt && \
+    #
     # Install pgAdmin
-    pip3 install https://ftp.postgresql.org/pub/pgadmin/pgadmin4/v4.14/pip/pgadmin4-4.14-py2.py3-none-any.whl && \
+    pip3 install https://ftp.postgresql.org/pub/pgadmin/pgadmin4/v4.18/pip/pgadmin4-4.18-py2.py3-none-any.whl && \
+    #
+    # Install Gunicorn for serving web pages
+    pip3 install gunicorn==19.9.0 && \
     #
     # Remove temporary dependencies
     apt-get -y remove build-essential python3-dev libffi-dev && \
@@ -33,9 +42,6 @@ RUN \
     rm -rf /root/.cache/ && \
     #
     true
-
-# Install Gunicorn for serving web pages
-RUN pip3 install gunicorn==19.9.0
 
 # Some utilities assume that some version of Python is available as "python"
 RUN ln -s /usr/bin/python3 /usr/bin/python

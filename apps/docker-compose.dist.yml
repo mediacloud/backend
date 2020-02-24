@@ -143,6 +143,37 @@ x-sysctl-defaults:  &sysctl-defaults
 
 
 #
+# Google Cloud for podcast transcription common configuration
+# ===========================================================
+#
+x-podcast-google-cloud-configuration:    &podcast-google-cloud-configuration
+
+    # Base64-encoded Google Cloud authentication JSON file for a service account that
+    # uploads episodes to Google Cloud Storage and submits Speech API jobs; refer to
+    # doc/podcasts_gc_auth.markdown for instructions on how to create such an
+    # account.
+    #
+    # How to generate Base64 encoded credentials:
+    #
+    #     $ base64 mediacloud-service-account-credentials.json
+    #
+    MC_PODCAST_GC_AUTH_JSON_BASE64: '
+        ewogICAgInR5cGUiOiAic2VydmljZV9hY2NvdW50IiwKICAgICJwcm9qZWN0X2lkIjogImV
+        4YW1wbGUiLAogICAgInByaXZhdGVfa2V5X2lkIjogIjdmMTY5YTIxZDNmODA5NzQzNjRiY2
+        YwOWYyMDQ3ZWEwZWZiNTY4M2EiLAogICAgInByaXZhdGVfa2V5IjogIi0tLS0tQkVHSU4gU
+        FJJVkFURSBLRVktLS0tLVxuPC4uLj5cbi0tLS0tRU5EIFBSSVZBVEUgS0VZLS0tLS1cbiIs
+        CiAgICAiY2xpZW50X2VtYWlsIjogImV4YW1wbGVAZXhhbXBsZS5pYW0uZ3NlcnZpY2VhY2N
+        vdW50LmNvbSIsCiAgICAiY2xpZW50X2lkIjogIjEyMyIsCiAgICAiYXV0aF91cmkiOiAiaH
+        R0cHM6Ly9hY2NvdW50cy5nb29nbGUuY29tL28vb2F1dGgyL2F1dGgiLAogICAgInRva2VuX
+        3VyaSI6ICJodHRwczovL29hdXRoMi5nb29nbGVhcGlzLmNvbS90b2tlbiIsCiAgICAiYXV0
+        aF9wcm92aWRlcl94NTA5X2NlcnRfdXJsIjogImh0dHBzOi8vd3d3Lmdvb2dsZWFwaXMuY29
+        tL29hdXRoMi92MS9jZXJ0cyIsCiAgICAiY2xpZW50X3g1MDlfY2VydF91cmwiOiAiaHR0cH
+        M6Ly93d3cuZ29vZ2xlYXBpcy5jb20vcm9ib3QvdjEvbWV0YWRhdGEveDUwOS9leGFtcGxlJ
+        TQwZXhhbXBsZS5pYW0uZ3NlcnZpY2VhY2NvdW50LmNvbSIKfQ==
+    '
+
+
+#
 # Solr shard base service
 # =======================
 #
@@ -711,8 +742,6 @@ services:
             MC_FACEBOOK_APP_ID: ""
             # Facebook application secret
             MC_FACEBOOK_APP_SECRET: ""
-            # Timeout for API calls
-            MC_FACEBOOK_TIMEOUT: "60"
         depends_on:
             - postgresql-pgbouncer
             - rabbitmq-server
@@ -721,6 +750,11 @@ services:
             <<: *endpoint-mode-dnsrr
             # Worker count
             replicas: 4
+            restart_policy:
+                # Automatically restart on non-zero exit codes only instead of on any exit
+                condition: on-failure
+                # Autorestart up to three times
+                max_attempts: 3
             resources:
                 limits:
                     # CPU core limit
@@ -751,8 +785,9 @@ services:
                 limits:
                     # CPU core limit
                     cpus: "1"
-                    # RAM limit
-                    memory: "4G"
+                    # If importer script is playing catch up and has to import
+                    # many stories at once, it will require more memory
+                    memory: "8G"
 
     #
     # Import stories by scraping Feedly
@@ -1065,6 +1100,134 @@ services:
                     cpus: "1"
                     # RAM limit
                     memory: "256M"
+
+    #
+    # Fetch story podcast episode and store it in GCS
+    # -----------------------------------------------
+    #
+    podcast-fetch-episode:
+        image: dockermediacloud/podcast-fetch-episode:release
+        <<: *sysctl-defaults
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+            <<: *podcast-google-cloud-configuration
+            # Google Cloud Storage bucket name for storing episode audio files
+            MC_PODCAST_FETCH_EPISODE_BUCKET_NAME: "mediacloud-story-podcast-episodes"
+            # Google Cloud Storage path prefix for storing episode audio files
+            MC_PODCAST_FETCH_EPISODE_PATH_PREFIX: "episodes"
+        depends_on:
+            - postgresql-pgbouncer
+            - rabbitmq-server
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            <<: *endpoint-mode-dnsrr
+            # Worker count
+            replicas: 1
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "1G"
+            restart_policy:
+                # Automatically restart on non-zero exit codes only instead of on any exit
+                condition: on-failure
+                # Autorestart up to three times
+                max_attempts: 3
+
+    #
+    # Fetch finished transcripts and store them locally
+    # -------------------------------------------------
+    podcast-fetch-transcript:
+        image: dockermediacloud/podcast-fetch-transcript:release
+        <<: *sysctl-defaults
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+            <<: *podcast-google-cloud-configuration
+        depends_on:
+            - postgresql-pgbouncer
+            - rabbitmq-server
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            <<: *endpoint-mode-dnsrr
+            # Worker count
+            replicas: 1
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "256M"
+            restart_policy:
+                # Automatically restart on non-zero exit codes only instead of on any exit
+                condition: on-failure
+                # Autorestart up to three times
+                max_attempts: 3
+
+    #
+    # Poll due operations and submit them to "podcast-fetch-transcript"
+    # -----------------------------------------------------------------
+    podcast-poll-due-operations:
+        image: dockermediacloud/podcast-poll-due-operations:release
+        <<: *sysctl-defaults
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+        depends_on:
+            - postgresql-pgbouncer
+            - rabbitmq-server
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            <<: *endpoint-mode-dnsrr
+            # Worker count
+            replicas: 1
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "256M"
+            restart_policy:
+                # Automatically restart on non-zero exit codes only instead of on any exit
+                condition: on-failure
+                # Autorestart up to three times
+                max_attempts: 3
+
+    #
+    # Submit a Speech API operation for a podcast episode
+    # ---------------------------------------------------
+    podcast-submit-operation:
+        image: dockermediacloud/podcast-submit-operation:release
+        <<: *sysctl-defaults
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+            <<: *podcast-google-cloud-configuration
+        depends_on:
+            - postgresql-pgbouncer
+            - rabbitmq-server
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            <<: *endpoint-mode-dnsrr
+            # Worker count
+            replicas: 1
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "256M"
+            restart_policy:
+                # Automatically restart on non-zero exit codes only instead of on any exit
+                condition: on-failure
+                # Autorestart up to three times
+                max_attempts: 3
 
     #
     # pgAdmin
@@ -1804,6 +1967,8 @@ services:
         <<: *sysctl-defaults
         networks:
             - default
+        environment:
+            <<: *common-configuration
         expose:
             # Plackup FastCGI worker port to be used by webapp_httpd
             - "9090"

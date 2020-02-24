@@ -116,13 +116,11 @@ sub add_extra_data
     return $stories;
 }
 
-# give the story ids in $ids_table, query the db for a list of stories_ids each with an
+# give the story ids in $ids_list, query the db for a list of stories_ids each with an
 # ap_stories_id present if the story is syndicated from some ap story
 sub _get_ap_stories_ids
 {
-    my ( $db, $ids_table ) = @_;
-
-    $db->query( "ANALYZE $ids_table" );
+    my ( $db, $ids_list ) = @_;
 
     my $ap_media_id = $db->query( "SELECT media_id FROM media WHERE name = 'Associated Press - Full Feed'" )->flat;
     return [] if ( $ap_media_id );
@@ -139,7 +137,7 @@ sub _get_ap_stories_ids
                     ON md5(ss.sentence) = md5(ap.sentence)
                    AND ap.media_id = $ap_media_id
             WHERE ss.media_id != $ap_media_id
-              AND ss.stories_id IN (SELECT id FROM $ids_table)
+              AND ss.stories_id IN ( $ids_list )
               AND length(ss.sentence) > 32
         ),
 
@@ -155,11 +153,10 @@ sub _get_ap_stories_ids
         )
 
         SELECT
-            ids.id AS stories_id,
-            ap.ap_stories_id
-        FROM $ids_table AS ids
-            LEFT JOIN min_ap_sentences AS ap
-                ON ids.id = ap.stories_id
+            stories_id,
+            ap_stories_id
+        FROM min_ap_sentences AS ap
+	WHERE stories_id in ( $ids_list )
 SQL
     )->hashes;
 
@@ -203,7 +200,7 @@ sub _add_nested_data
 
     return [] unless ( scalar @{ $stories } );
 
-    my $ids_table = $db->get_temporary_ids_table( [ map { int( $_->{ stories_id } ) } @{ $stories } ] );
+    my $ids_list = join( ',', map { int( $_->{ stories_id } ) } @{ $stories } );
 
     if ( int( $self->{ show_text } // 0 ) )
     {
@@ -223,10 +220,7 @@ sub _add_nested_data
                     ON s.stories_id = d.stories_id
                 LEFT JOIN download_texts AS dt
                     ON d.downloads_id = dt.downloads_id
-            WHERE s.stories_id IN (
-                SELECT id
-                FROM $ids_table
-            )
+            WHERE s.stories_id IN ( $ids_list )
             GROUP BY s.stories_id
 
 SQL
@@ -251,7 +245,7 @@ SQL
             FROM stories AS s
                 JOIN downloads AS d
                     ON s.stories_id = d.stories_id
-            WHERE s.stories_id IN (SELECT id FROM $ids_table )
+            WHERE s.stories_id IN ( $ids_list )
             GROUP BY s.stories_id
 SQL
         )->hashes;
@@ -265,7 +259,7 @@ SQL
             <<SQL
             SELECT *
             FROM story_sentences
-            WHERE stories_id IN ( SELECT id FROM $ids_table )
+            WHERE stories_id IN ( $ids_list )
             ORDER BY sentence_number
 SQL
         )->hashes;
@@ -276,7 +270,7 @@ SQL
 
     if ( int( $self->{ show_ap_stories_id } // 0 ) )
     {
-        my $ap_stories_ids = _get_ap_stories_ids( $db, $ids_table );
+        my $ap_stories_ids = _get_ap_stories_ids( $db, $ids_list );
 
         $stories = MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $ap_stories_ids );
     }
@@ -290,12 +284,11 @@ SQL
             ts.tag_sets_id,
             ts.name AS tag_set
         FROM stories_tags_map AS s
-            JOIN $ids_table AS i
-                ON s.stories_id = i.id
             JOIN tags AS t
                 ON t.tags_id = s.tags_id
             JOIN tag_sets AS ts
                 ON ts.tag_sets_id = t.tag_sets_id
+        WHERE stories_id in ( $ids_list )
         ORDER BY t.tags_id
 SQL
     )->hashes;
@@ -315,7 +308,7 @@ SQL
                 fsm.stories_id
             FROM feeds AS f
                 JOIN feeds_stories_map AS fsm USING (feeds_id)
-            WHERE fsm.stories_id IN (SELECT id FROM $ids_table)
+            WHERE fsm.stories_id IN ( $ids_list )
             ORDER BY f.feeds_id
 SQL
         )->hashes;

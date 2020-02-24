@@ -1,11 +1,9 @@
-import datetime
 from typing import Optional
 
 from mediawords.db import DatabaseHandler
 from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_object_from_bytes_if_needed
-from mediawords.util.sql import get_sql_date_from_epoch
-from mediawords.util.url import get_url_host, normalize_url_lossy
+from mediawords.util.url import normalize_url_lossy
 
 log = create_logger(__name__)
 
@@ -23,16 +21,45 @@ def insert_story_urls(db: DatabaseHandler, story: dict, url: str) -> None:
     urls = (url, normalize_url_lossy(url))
 
     for url in set(urls):
-        # wastefully query for existence of url because jumping straight into the on conflict do nothing
-        # insert below sometimes results in a deadlock
-        db.query(
-            """
-            insert into story_urls (stories_id, url)
-                select %(a)s, %(b)s
-                    where not exists ( select 1 from story_urls where stories_id = %(a)s and url = %(b)s )
-                    on conflict (url, stories_id) do nothing
-            """,
-            {'a': story['stories_id'], 'b': url})
+
+        # FIXME some URLs are overly encoded, e.g.:
+        #
+        # http://dinamani.com/india/2020/feb/19/%E0%AE%85%E0%AE%AF%E0%AF%8B%E0
+        # %AE%A4%E0%AF%8D%E0%AE%A4%E0%AE%BF%E0%AE%AF%E0%AE%BF%E0%AE%B2%E0%AF
+        # %8D-%E0%AE%AA%E0%AE%BE%E0%AE%AA%E0%AE%BE%E0%AF%8D-%E0%AE%AE%E0%AE%9A
+        # %E0%AF%82%E0%AE%A4%E0%AE%BF%E0%AE%AF%E0%AF%88-%E0%AE%9A%E0%AF%81%E0
+        # %AE%B1%E0%AF%8D%E0%AE%B1%E0%AE%BF%E0%AE%AF%E0%AF%81%E0%AE%B3%E0%AF
+        # %8D%E0%AE%B3-%E0%AE%AE%E0%AE%AF%E0%AE%BE%E0%AE%A9%E0%AE%A4%E0%AF%8D
+        # %E0%AE%A4%E0%AF%88-%E0%AE%B5%E0%AE%BF%E0%AE%9F%E0%AF%8D%E0%AE%9F%E0
+        # %AF%81%E0%AE%B5%E0%AF%88%E0%AE%95%E0%AF%8D%E0%AE%95-%E0%AE%B5%E0%AF
+        # %87%E0%AE%A3%E0%AF%8D%E0%AE%9F%E0%AF%81%E0%AE%AE%E0%AF%8D-%E0%AE%B0
+        # %E0%AE%BE%E0%AE%AE%E0%AE%BE%E0%AF%8D-%E0%AE%95%E0%AF%8B%E0%AE%AF%E0
+        # %AE%BF%E0%AE%B2%E0%AF%8D-%E0%AE%85%E0%AE%B1%E0%AE%95%E0%AF%8D%E0%AE
+        # %95%E0%AE%9F%E0%AF%8D%E0%AE%9F%E0%AE%B3%E0%AF%88%E0%AE%95%E0%AF%8D
+        # %E0%AE%95%E0%AF%81-%E0%AE%AE%E0%AF%82%E0%AE%A4%E0%AF%8D%E0%AE%A4-
+        # %E0%AE%B5%E0%AE%B4%E0%AE%95%E0%AF%8D%E0%AE%95%E0%AF%81%E0%AE%B0%E0
+        # %AF%88%E0%AE%9E%E0%AE%BE%E0%AF%8D-%E0%AE%95%E0%AE%9F%E0%AE%BF%E0%AE
+        # %A4%E0%AE%AE%E0%AF%8D-3361308.html
+        #
+        # We might benefit from decoding the path in such URLs so that it fits
+        # within 1024 characters, and perhaps more importantly, the
+        # deduplication works better:
+        #
+        # http://dinamani.com/india/2020/feb/19/அயோத்தியில்-பாபா்-மசூதியை-சுற்றி
+        # யுள்ள-மயானத்தை-விட்டுவைக்க-வேண்டும்-ராமா்-கோயில்-அறக்கட்டளைக்கு-மூத்த-வழ
+        # க்குரைஞா்-கடிதம்-3361308.html
+        if len(url) <= MAX_URL_LENGTH:
+
+            # wastefully query for existence of url because jumping straight into the on conflict do nothing
+            # insert below sometimes results in a deadlock
+            db.query(
+                """
+                insert into story_urls (stories_id, url)
+                    select %(a)s, %(b)s
+                        where not exists ( select 1 from story_urls where stories_id = %(a)s and url = %(b)s )
+                        on conflict (url, stories_id) do nothing
+                """,
+                {'a': story['stories_id'], 'b': url})
 
 
 def _get_story_url_variants(story: dict) -> list:
@@ -42,7 +69,7 @@ def _get_story_url_variants(story: dict) -> list:
     return urls
 
 
-def find_dup_story(db: DatabaseHandler, story: dict) -> Optional[dict]:
+def _find_dup_story(db: DatabaseHandler, story: dict) -> Optional[dict]:
     """Return existing duplicate story within the same media source.
 
     Search for a story that is a duplicate of the given story.  A story is a duplicate if it shares the same media
@@ -75,14 +102,28 @@ def find_dup_story(db: DatabaseHandler, story: dict) -> Optional[dict]:
     if db_story:
         return db_story
 
-    # make sure that postgres uses the story_urls_url index
-    db.query("create temporary table _u as select stories_id from story_urls where url = any( %(a)s )", {'a': urls})
-    # noinspection SqlResolve,SqlCheckUsingColumns
-    db_story = db.query(
-        "select * from stories s join _u u using ( stories_id ) where media_id = %(a)s order by stories_id limit 1",
-        {'a': story['media_id']}).hash()
-    # noinspection SqlResolve
-    db.query("drop table _u")
+    db_story = db.query("""
+
+        -- Make sure that postgres uses the story_urls_url index
+        WITH matching_stories AS (
+            SELECT stories_id
+            FROM story_urls
+            WHERE url = ANY(%(story_urls)s)
+        )
+
+        SELECT *
+        FROM stories
+            JOIN matching_stories USING (stories_id)
+        WHERE media_id = %(media_id)s
+        ORDER BY stories_id
+        LIMIT 1
+
+        """, {
+        'story_urls': urls,
+        'media_id': story['media_id'],
+    }
+                        ).hash()
+
     if db_story:
         return db_story
 
@@ -129,7 +170,7 @@ def add_story(db: DatabaseHandler, story: dict, feeds_id: int) -> Optional[dict]
 
     db.query("LOCK TABLE stories IN ROW EXCLUSIVE MODE")
 
-    db_story = find_dup_story(db, story)
+    db_story = _find_dup_story(db, story)
     if db_story:
         log.debug("found existing dup story: %s [%s]" % (story['title'], story['url']))
         db.commit()
@@ -139,8 +180,14 @@ def add_story(db: DatabaseHandler, story: dict, feeds_id: int) -> Optional[dict]
 
     if story.get('full_text_rss', None) is None:
         story['full_text_rss'] = medium.get('full_text_rss', False) or False
-        if len(story.get('description', '')) == 0:
+
+        # Description can be None
+        if not story.get('description', None):
             story['full_text_rss'] = False
+
+    if len(story['url']) >= MAX_URL_LENGTH:
+        log.error(f"Story's URL is too long: {story['url']}")
+        return None
 
     try:
         story = db.create(table='stories', insert_hash=story)
@@ -173,51 +220,5 @@ def add_story(db: DatabaseHandler, story: dict, feeds_id: int) -> Optional[dict]
     db.commit()
 
     log.debug("added story: %s" % story['url'])
-
-    return story
-
-
-def _create_child_download_for_story(db: DatabaseHandler, story: dict, parent_download: dict) -> None:
-    """Create a pending download for the story's URL."""
-    story = decode_object_from_bytes_if_needed(story)
-    parent_download = decode_object_from_bytes_if_needed(parent_download)
-
-    download = {
-        'feeds_id': parent_download['feeds_id'],
-        'stories_id': story['stories_id'],
-        'parent': parent_download['downloads_id'],
-        'url': story['url'],
-        'host': get_url_host(story['url']),
-        'type': 'content',
-        'sequence': 1,
-        'state': 'pending',
-        'priority': parent_download['priority'],
-        'extracted': False,
-    }
-
-    content_delay = db.query("""
-        SELECT content_delay
-        FROM media
-        WHERE media_id = %(media_id)s
-    """, {'media_id': story['media_id']}).flat()[0]
-    if content_delay:
-        # Delay download of content this many hours. his is useful for sources that are likely to significantly change
-        # content in the hours after it is first published.
-        now = int(datetime.datetime.now(datetime.timezone.utc).timestamp())
-        download_at_timestamp = now + (content_delay * 60 * 60)
-        download['download_time'] = get_sql_date_from_epoch(download_at_timestamp)
-
-    db.create(table='downloads', insert_hash=download)
-
-
-def add_story_and_content_download(db: DatabaseHandler, story: dict, parent_download: dict) -> Optional[dict]:
-    """If the story is new, add it to the database and also add a pending download for the story content."""
-    story = decode_object_from_bytes_if_needed(story)
-    parent_download = decode_object_from_bytes_if_needed(parent_download)
-
-    story = add_story(db=db, story=story, feeds_id=parent_download['feeds_id'])
-
-    if story.get('is_new', False):
-        _create_child_download_for_story(db=db, story=story, parent_download=parent_download)
 
     return story

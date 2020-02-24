@@ -12,6 +12,9 @@ services:
             - type: bind
               source: ./pgadmin.sh
               target: /pgadmin.sh
+            - type: bind
+              source: ./mediacloud.pgpass
+              target: /var/lib/pgadmin/storage/mediacloud_mediacloud.org/mediacloud.pgpass
         depends_on:
             - postgresql-pgbouncer
 
@@ -20,6 +23,10 @@ services:
         stop_signal: SIGKILL
         expose:
             - 6432
+        volumes:
+            - type: bind
+              source: ./../postgresql-pgbouncer/conf/
+              target: /etc/pgbouncer/
         depends_on:
             - postgresql-server
 
@@ -28,3 +35,13 @@ services:
         stop_signal: SIGKILL
         expose:
             - 5432
+        volumes:
+            - type: bind
+              source: ./../postgresql-server/bin/
+              target: /opt/mediacloud/bin/
+            - type: bind
+              source: ./../postgresql-server/schema/
+              target: /opt/mediacloud/schema/
+            - type: bind
+              source: ./../postgresql-server/conf/
+              target: /etc/postgresql/11/main/

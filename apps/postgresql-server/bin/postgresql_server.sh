@@ -14,6 +14,9 @@ MC_POSTGRESQL_CONF_PATH="/etc/postgresql/11/main/postgresql.conf"
 if [ -e /var/lib/postgresql/first_run ]; then
     echo "Skipping schema migrations on first run..."
     rm /var/lib/postgresql/first_run
+elif [ ! -z ${MC_POSTGRESQL_SKIP_MIGRATIONS+x} ]; then
+    # Used for verifying whether ZFS backup snapshot works
+    echo "Skipping schema migrations because 'MC_POSTGRESQL_SKIP_MIGRATIONS' is set."
 else
     echo "Applying schema migrations..."
     /opt/mediacloud/bin/apply_migrations.sh

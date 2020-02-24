@@ -27,8 +27,8 @@ sub _add_partisan_code_to_snapshot_media
     my $partisan_tags = $db->query( <<END )->hashes;
 select dmtm.*, dt.tag
     from snapshot_media_tags_map dmtm
-        join snapshot_tags dt on ( dmtm.tags_id = dt.tags_id )
-        join snapshot_tag_sets dts on ( dts.tag_sets_id = dt.tag_sets_id )
+        join tags dt on ( dmtm.tags_id = dt.tags_id )
+        join tag_sets dts on ( dts.tag_sets_id = dt.tag_sets_id )
     where
         dts.name = 'collection' and
         dt.tag like 'partisan_2012_%'
@@ -51,8 +51,8 @@ sub _add_partisan_retweet_to_snapshot_media
     my $partisan_tags = $db->query( <<END )->hashes;
 select dmtm.*, dt.tag
     from snapshot_media_tags_map dmtm
-        join snapshot_tags dt on ( dmtm.tags_id = dt.tags_id )
-        join snapshot_tag_sets dts on ( dts.tag_sets_id = dt.tag_sets_id )
+        join tags dt on ( dmtm.tags_id = dt.tags_id )
+        join tag_sets dts on ( dts.tag_sets_id = dt.tag_sets_id )
     where
         dts.name = 'retweet_partisanship_2016_count_10'
 END
@@ -74,8 +74,8 @@ sub _add_fake_news_to_snapshot_media
     my $tags = $db->query( <<END )->hashes;
 select dmtm.*, dt.tag
     from snapshot_media_tags_map dmtm
-        join snapshot_tags dt on ( dmtm.tags_id = dt.tags_id )
-        join snapshot_tag_sets dts on ( dts.tag_sets_id = dt.tag_sets_id )
+        join tags dt on ( dmtm.tags_id = dt.tags_id )
+        join tag_sets dts on ( dts.tag_sets_id = dt.tag_sets_id )
     where
         dts.name = 'collection' and
         dt.tag = 'fake_news_20170112'

@@ -7,8 +7,7 @@ class TestUtils(TestCase):
 
     def test_container_dir_name_from_image_name(self):
         assert container_dir_name_from_image_name(
-            image_name='dockermediacloud/topics-fetch-twitter-urls:latest',
-            docker_hub_username='dockermediacloud',
+            image_name='dockermediacloud/topics-fetch-twitter-urls:latest'
         ) == 'topics-fetch-twitter-urls'
 
     def test_container_dependency_tree(self):

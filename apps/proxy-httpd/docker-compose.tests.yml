@@ -29,6 +29,12 @@ services:
             MC_PROXY_CERTBOT_CLOUDFLARE_EMAIL: "${MC_PROXY_CERTBOT_CLOUDFLARE_EMAIL}"
             MC_PROXY_CERTBOT_CLOUDFLARE_GLOBAL_API_KEY: "${MC_PROXY_CERTBOT_CLOUDFLARE_GLOBAL_API_KEY}"
         volumes:
+            - type: bind
+              source: ./../proxy-cron-certbot/bin/
+              target: /opt/mediacloud/bin/
+            - type: bind
+              source: ./../cron-base/bin/cron.sh
+              target: /cron.sh
             # Shared with proxy-httpd:
             - vol_proxy_ssl_certs:/etc/letsencrypt/
 
@@ -37,6 +43,14 @@ services:
         stop_signal: SIGKILL
         expose:
             - "80"
+        volumes:
+            - type: bind
+              source: ./../webapp-httpd/nginx/include/
+              target: /etc/nginx/include/
+            - type: bind
+              source: ./../nginx-base/nginx/nginx.conf
+              target: /etc/nginx/nginx.conf
+            # No "cron-generate-daily-rss-dumps" for the test setup
         depends_on:
             - webapp-api
 
@@ -45,6 +59,16 @@ services:
         stop_signal: SIGKILL
         expose:
             - "9090"
+        volumes:
+            - type: bind
+              source: ./../webapp-api/bin/
+              target: /opt/mediacloud/bin/
+            - type: bind
+              source: ./../webapp-api/src/
+              target: /opt/mediacloud/src/webapp-api/
+            - type: bind
+              source: ./../common/src/
+              target: /opt/mediacloud/src/common/
         # Here and elsewhere, don't start any subservices via "depends_on"
         # because we need to only make sure that /status page works
 

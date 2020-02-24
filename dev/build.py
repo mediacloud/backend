@@ -52,26 +52,18 @@ class DockerImageToBuild(object):
         self.repository = repository
 
 
-def _docker_images_to_build(all_apps_dir: str, docker_hub_username: str) -> List[DockerImageToBuild]:
+def _docker_images_to_build(all_apps_dir: str) -> List[DockerImageToBuild]:
     """
     Return an ordered list of Docker images to build.
 
     :param all_apps_dir: Directory with app subdirectories.
-    :param docker_hub_username: Docker Hub username.
     :return: List of Docker images to build in that order.
     """
 
     images_to_build = []
 
-    for dependency in docker_images(
-            all_apps_dir=all_apps_dir,
-            only_belonging_to_user=True,
-            docker_hub_username=docker_hub_username,
-    ):
-        container_name = container_dir_name_from_image_name(
-            image_name=dependency,
-            docker_hub_username=docker_hub_username,
-        )
+    for dependency in docker_images(all_apps_dir=all_apps_dir, only_belonging_to_user=True):
+        container_name = container_dir_name_from_image_name(image_name=dependency)
         container_path = os.path.join(all_apps_dir, container_name)
 
         if not os.path.isdir(container_path):
@@ -92,11 +84,10 @@ if __name__ == '__main__':
 
     parser = DockerHubPruneArgumentParser(description='Print commands to build all container images.')
     args = parser.parse_arguments()
-    docker_hub_username_ = args.docker_hub_username()
 
     image_tag = docker_tag_from_current_git_branch_name()
 
-    images = _docker_images_to_build(all_apps_dir=args.all_apps_dir(), docker_hub_username=docker_hub_username_)
+    images = _docker_images_to_build(all_apps_dir=args.all_apps_dir())
 
     for image in images:
         command = "docker build --cache-from {repo}:latest --tag {repo}:{tag} --tag {repo}:latest {path}".format(

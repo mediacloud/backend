@@ -9,6 +9,7 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use Encode;
+use File::Path;
 use File::Slurp;
 use Getopt::Long;
 
@@ -70,7 +71,13 @@ sub dump_stories_to_dir
         DEBUG( "fetching content for $stories_id ..." );
 
         my $content = get_content( $db, $stories_id, $content_type ) || '';
-        File::Slurp::write_file( "$dir/$stories_id.txt", encode( 'utf8', $content ) );
+
+        my $padded_stories_id = sprintf( "%012d", $stories_id );
+        my $dirs = [ $padded_stories_id =~ m/../g ];
+        my $path = $dir . '/' . join( '/', @{ $dirs } );
+        File::Path::make_path( $path );
+
+        File::Slurp::write_file( "$path/$padded_stories_id.txt", encode( 'utf8', $content ) );
 
         DEBUG( "wrote content length " . length( $content ) );
     }
@@ -79,15 +86,17 @@ sub dump_stories_to_dir
 # do a test run of the text extractor
 sub main
 {
-    my ( $query, $dir, $content_type );
+    my ( $query, $filter_query, $dir, $content_type );
 
     GetOptions(
         'query|q=s'        => \$query,
+        'filter_query|fq=s'=> \$filter_query,
         'dir|d=s'          => \$dir,
         'content_type|c=s' => \$content_type
     ) || die( "error parsing options" );
 
-    die( "usage: $0 -q <solr or sql query> -d <output dir> [-c text|sentences|raw]" ) unless ( $query && $dir );
+    die( "usage: $0 -q <solr or sql query> -d <output dir> [-c text|sentences|raw] [-fq filter query]" )
+        unless ( $query && $dir );
 
     $content_type ||= 'sentences';
 
@@ -104,7 +113,8 @@ sub main
     {
         DEBUG( "running solr search ..." );
 
-        $stories_ids = MediaWords::Solr::search_for_stories_ids( $db, { q => $query, rows => $MAX_ROWS } );
+        my $params = { q => $query, fq => $filter_query, rows => $MAX_ROWS };
+        $stories_ids = MediaWords::Solr::search_for_stories_ids( $db, $params );
     }
 
     DEBUG( "found " . scalar( @{ $stories_ids } ) . " stories" );

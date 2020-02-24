@@ -1,0 +1,57 @@
+version: "3.7"
+
+services:
+
+    podcast-fetch-episode:
+        image: dockermediacloud/podcast-fetch-episode:latest
+        stop_signal: SIGKILL
+        environment:
+            MC_PODCAST_GC_AUTH_JSON_BASE64: "${MC_PODCAST_GC_AUTH_JSON_BASE64}"
+            MC_PODCAST_FETCH_EPISODE_BUCKET_NAME: "${MC_PODCAST_FETCH_EPISODE_BUCKET_NAME}"
+            # Dev/test environments don't use "MC_PODCAST_FETCH_EPISODE_PATH_PREFIX" environment
+            # variable as they create a different, timestamped prefix for every test run.
+            MC_LOGGING_LEVEL: "DEBUG"
+        volumes:
+            - type: bind
+              source: ./bin/
+              target: /opt/mediacloud/bin/
+            - type: bind
+              source: ./src/
+              target: /opt/mediacloud/src/podcast-fetch-episode/
+            - type: bind
+              source: ./tests/
+              target: /opt/mediacloud/tests/
+            - type: bind
+              source: ./../common/src/
+              target: /opt/mediacloud/src/common/
+        depends_on:
+            - postgresql-pgbouncer
+            # We don't need "rabbitmq-server" to run tests
+
+    postgresql-pgbouncer:
+        image: dockermediacloud/postgresql-pgbouncer:latest
+        stop_signal: SIGKILL
+        expose:
+            - 6432
+        volumes:
+            - type: bind
+              source: ./../postgresql-pgbouncer/conf/
+              target: /etc/pgbouncer/
+        depends_on:
+            - postgresql-server
+
+    postgresql-server:
+        image: dockermediacloud/postgresql-server:latest
+        stop_signal: SIGKILL
+        expose:
+            - 5432
+        volumes:
+            - type: bind
+              source: ./../postgresql-server/bin/
+              target: /opt/mediacloud/bin/
+            - type: bind
+              source: ./../postgresql-server/schema/
+              target: /opt/mediacloud/schema/
+            - type: bind
+              source: ./../postgresql-server/conf/
+              target: /etc/postgresql/11/main/

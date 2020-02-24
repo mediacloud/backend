@@ -1,0 +1,82 @@
+{
+  "took": 232,
+  "timed_out": false,
+  "_shards": {
+    "total": 20,
+    "successful": 20,
+    "skipped": 0,
+    "failed": 0
+  },
+  "hits": {
+    "total": 923890,
+    "max_score": 22.55629,
+    "hits": [
+      {% for post in posts %}
+      {
+        "_index": "rs_deltad",
+        "_type": "submissions",
+        "_id": "{{post.post_id}}",
+        "_score": 22.55629,
+        "_source": {
+          "link_flair_richtext": [],
+          "link_flair_background_color": "",
+          "author_flair_richtext": [],
+          "over_18": false,
+          "total_awards_received": 0,
+          "subreddit": "{{post.channel}}",
+          "subreddit_id": 5451831,
+          "num_comments": 4,
+          "score": 0,
+          "whitelist_status": "no_ads",
+          "is_robot_indexable": true,
+          "spoiler": false,
+          "id": {{post.post_id}},
+          "created_utc": {{post.publish_epoch}},
+          "locked": false,
+          "link_flair_template_id": "48183108-e8f4-11e6-afd8-0eec2c76ba62",
+          "thumbnail": "self",
+          "author": "{{post.author}}",
+          "link_flair_text_color": "dark",
+          "gildings": {},
+          "updated_utc": 1561955030,
+          "is_video": false,
+          "is_original_content": false,
+          "domain": "self.The_Donald",
+          "retrieved_on": 1561868655,
+          "no_follow": true,
+          "author_flair_type": "text",
+          "media_only": false,
+          "permalink": "/r/The_Donald/comments/c790fn/trump_bad/",
+          "wls": 0,
+          "pinned": false,
+          "author_patreon_flair": false,
+          "title": "Title",
+          "send_replies": true,
+          "num_crossposts": 0,
+          "can_mod_post": false,
+          "is_self": true,
+          "author_fullname": "{{post.author}}",
+          "link_flair_css_class": "ladiesnite",
+          "link_flair_text": "LADIES NITE",
+          "selftext": "{{post.content}}",
+          "is_meta": false,
+          "subreddit_type": "public",
+          "is_crosspostable": false,
+          "subreddit_subscribers": 768094,
+          "url": "https://www.reddit.com/r/The_Donald/comments/{{post.post_id}}",
+          "parent_whitelist_status": "no_ads",
+          "stickied": false,
+          "all_awardings": [],
+          "link_flair_type": "text",
+          "pwls": 0,
+          "contest_mode": false,
+          "is_reddit_media_domain": false
+        }
+      }
+      {%- if not loop.last -%}
+      ,
+      {% endif %}
+      {% endfor %}
+    ]
+  }
+}
