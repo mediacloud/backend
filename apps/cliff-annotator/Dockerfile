@@ -7,30 +7,24 @@ FROM dockermediacloud/java-base:latest
 # Download and extract CLAVIN's geonames index
 RUN \
     mkdir -p /etc/cliff2/IndexDirectory/ && \
-    curl -L "https://github.com/berkmancenter/mediacloud-clavin-build-geonames-index/releases/download/2019-09-06/IndexDirectory.tar.gz" \
-        > /var/tmp/clavin-geonames-index.tar.gz && \
-    tar -zxf /var/tmp/clavin-geonames-index.tar.gz -C /etc/cliff2/IndexDirectory/ --strip 1 && \
-    rm /var/tmp/clavin-geonames-index.tar.gz && \
+    curl --fail --location --retry 3 --retry-delay 5 "https://github.com/berkmancenter/mediacloud-clavin-build-geonames-index/releases/download/2019-09-06/IndexDirectory.tar.gz" | \
+        tar -zx -C /etc/cliff2/IndexDirectory/ --strip 1 && \
     true
 
 # Install Maven for building CLIFF
 # (can't use APT because we didn't install Java through it)
 RUN \
     mkdir -p /usr/lib/maven/ && \
-    curl -L "https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/3.6.2/apache-maven-3.6.2-bin.tar.gz" \
-        > /var/tmp/maven.tar.gz && \
-    tar -zxf /var/tmp/maven.tar.gz -C /usr/lib/maven/ --strip 1 && \
-    rm /var/tmp/maven.tar.gz && \
+    curl --fail --location --retry 3 --retry-delay 5 "https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/3.6.2/apache-maven-3.6.2-bin.tar.gz" | \
+        tar -zx -C /usr/lib/maven/ --strip 1 && \
     true
 ENV PATH="/usr/lib/maven/bin:${PATH}"
 
 # Install Tomcat 7
 RUN \
     mkdir -p /usr/lib/tomcat7/ && \
-    curl -L "https://archive.apache.org/dist/tomcat/tomcat-7/v7.0.96/bin/apache-tomcat-7.0.96.tar.gz" \
-        > /var/tmp/tomcat7.tar.gz && \
-    tar -zxf /var/tmp/tomcat7.tar.gz -C /usr/lib/tomcat7/ --strip 1 && \
-    rm /var/tmp/tomcat7.tar.gz && \
+    curl --fail --location --retry 3 --retry-delay 5 "https://archive.apache.org/dist/tomcat/tomcat-7/v7.0.96/bin/apache-tomcat-7.0.96.tar.gz" | \
+        tar -zx -C /usr/lib/tomcat7/ --strip 1 && \
     true
 ENV PATH="/usr/lib/tomcat7/bin:${PATH}"
 
