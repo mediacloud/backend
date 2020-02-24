@@ -265,7 +265,7 @@ def transcode_media_file_if_needed(input_media_file: TranscodeTempDirAndFile) ->
         temp_filename = 'transcoded_file'
 
         try:
-            temp_dir = tempfile.mkdtemp()
+            temp_dir = tempfile.mkdtemp('media_file')
         except Exception as ex:
             raise McPodcastFileStoreFailureException(f"Unable to create temporary directory: {ex}")
 
