@@ -241,7 +241,7 @@ def __current_git_branch_name() -> str:
     )
     branch_name = result.stdout.decode('utf-8').strip()
 
-    # Azure Pipelines checks out a specific commit and sets it as HEAD, so find at least one branch that the commit
+    # CI might check out a specific commit and sets it as HEAD, so find at least one branch that the commit
     # belongs to
     if branch_name == 'HEAD':
 
@@ -266,7 +266,7 @@ def __current_git_branch_name() -> str:
 
         assert branch_name, "Branch name should be set."
 
-    # Some Azure weirdness
+    # Some CI weirdness
     branch_name = branch_name.replace('~1', '')
 
     return branch_name

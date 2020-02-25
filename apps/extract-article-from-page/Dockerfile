@@ -17,8 +17,8 @@ RUN \
 
 # Copy sources
 COPY src/ /opt/mediacloud/src/extract-article-from-page/
-ENV PERL5LIB="/opt/mediacloud/src/extract-article-from-page/perl:${PERL5LIB}"
-ENV PYTHONPATH="/opt/mediacloud/src/extract-article-from-page/python:${PYTHONPATH}"
+ENV PERL5LIB="/opt/mediacloud/src/extract-article-from-page/perl:${PERL5LIB}" \
+    PYTHONPATH="/opt/mediacloud/src/extract-article-from-page/python:${PYTHONPATH}"
 
 COPY bin /opt/mediacloud/bin
 

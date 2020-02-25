@@ -59,7 +59,7 @@ RUN mkdir -p /var/lib/pgadmin/storage/mediacloud_mediacloud.org/
 COPY mediacloud.pgpass /var/lib/pgadmin/storage/mediacloud_mediacloud.org
 RUN chmod 0600 /var/lib/pgadmin/storage/mediacloud_mediacloud.org/mediacloud.pgpass
 # Set environment variable for "pg_dump" and similar utilities to use
-ENV PGPASSFILE /var/lib/pgadmin/storage/mediacloud_mediacloud.org/mediacloud.pgpass
+ENV PGPASSFILE=/var/lib/pgadmin/storage/mediacloud_mediacloud.org/mediacloud.pgpass
 
 # Set up pgAdmin
 COPY mediacloud-servers.json /var/tmp/

@@ -42,15 +42,17 @@ RUN \
 RUN rm -rf /etc/munin/plugins/
 COPY plugins/ /etc/munin/plugins/
 
-# Set PostgreSQL credentials for plugins
-ENV PGHOST postgresql-pgbouncer
-ENV PGPORT 6432
-ENV PGUSER mediacloud
-ENV PGPASSWORD mediacloud
-ENV PGDATABASE mediacloud
-
-# Set Solr credentials
-ENV MC_SOLR_URL "http://solr-shard-01:8983/solr"
+ENV \
+    #
+    # Set PostgreSQL credentials for plugins
+    PGHOST=postgresql-pgbouncer \
+    PGPORT=6432 \
+    PGUSER=mediacloud \
+    PGPASSWORD=mediacloud \
+    PGDATABASE=mediacloud \
+    #
+    # Set Solr credentials
+    MC_SOLR_URL="http://solr-shard-01:8983/solr"
 
 # Configure Munin node
 RUN \

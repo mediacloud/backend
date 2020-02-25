@@ -63,7 +63,7 @@ class AbstractFetchTranscriptTestCase(TestCase, metaclass=abc.ABCMeta):
 
         # Add a story with a random ID to decrease the chance that object in GCS will collide with another test running
         # at the same time
-        self.stories_id = random.randint(1, 2147483647 - 1)
+        self.stories_id = random.randint(1, 1000000)
 
         self.db.query("""
             INSERT INTO stories (

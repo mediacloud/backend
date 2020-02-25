@@ -11,10 +11,8 @@ FROM dockermediacloud/base:latest
 #
 RUN \
     mkdir -p /usr/lib/jvm/java-12-openjdk-amd64/ && \
-    curl -L "https://download.java.net/java/GA/jdk12.0.2/e482c34c86bd4bf8b56c0b35558996b9/10/GPL/openjdk-12.0.2_linux-x64_bin.tar.gz" \
-        > /var/tmp/openjdk.tar.gz && \
-    tar -zxf /var/tmp/openjdk.tar.gz -C /usr/lib/jvm/java-12-openjdk-amd64/ --strip 1 && \
-    rm /var/tmp/openjdk.tar.gz && \
+    curl --fail --location --retry 3 --retry-delay 5 "https://download.java.net/java/GA/jdk12.0.2/e482c34c86bd4bf8b56c0b35558996b9/10/GPL/openjdk-12.0.2_linux-x64_bin.tar.gz" | \
+        tar -zx -C /usr/lib/jvm/java-12-openjdk-amd64/ --strip 1 && \
     update-alternatives --install /usr/bin/java java /usr/lib/jvm/java-12-openjdk-amd64/bin/java 1 && \
     update-alternatives --install /usr/bin/javac javac /usr/lib/jvm/java-12-openjdk-amd64/bin/javac 1 && \
     #

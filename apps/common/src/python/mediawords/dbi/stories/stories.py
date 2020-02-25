@@ -21,16 +21,45 @@ def insert_story_urls(db: DatabaseHandler, story: dict, url: str) -> None:
     urls = (url, normalize_url_lossy(url))
 
     for url in set(urls):
-        # wastefully query for existence of url because jumping straight into the on conflict do nothing
-        # insert below sometimes results in a deadlock
-        db.query(
-            """
-            insert into story_urls (stories_id, url)
-                select %(a)s, %(b)s
-                    where not exists ( select 1 from story_urls where stories_id = %(a)s and url = %(b)s )
-                    on conflict (url, stories_id) do nothing
-            """,
-            {'a': story['stories_id'], 'b': url})
+
+        # FIXME some URLs are overly encoded, e.g.:
+        #
+        # http://dinamani.com/india/2020/feb/19/%E0%AE%85%E0%AE%AF%E0%AF%8B%E0
+        # %AE%A4%E0%AF%8D%E0%AE%A4%E0%AE%BF%E0%AE%AF%E0%AE%BF%E0%AE%B2%E0%AF
+        # %8D-%E0%AE%AA%E0%AE%BE%E0%AE%AA%E0%AE%BE%E0%AF%8D-%E0%AE%AE%E0%AE%9A
+        # %E0%AF%82%E0%AE%A4%E0%AE%BF%E0%AE%AF%E0%AF%88-%E0%AE%9A%E0%AF%81%E0
+        # %AE%B1%E0%AF%8D%E0%AE%B1%E0%AE%BF%E0%AE%AF%E0%AF%81%E0%AE%B3%E0%AF
+        # %8D%E0%AE%B3-%E0%AE%AE%E0%AE%AF%E0%AE%BE%E0%AE%A9%E0%AE%A4%E0%AF%8D
+        # %E0%AE%A4%E0%AF%88-%E0%AE%B5%E0%AE%BF%E0%AE%9F%E0%AF%8D%E0%AE%9F%E0
+        # %AF%81%E0%AE%B5%E0%AF%88%E0%AE%95%E0%AF%8D%E0%AE%95-%E0%AE%B5%E0%AF
+        # %87%E0%AE%A3%E0%AF%8D%E0%AE%9F%E0%AF%81%E0%AE%AE%E0%AF%8D-%E0%AE%B0
+        # %E0%AE%BE%E0%AE%AE%E0%AE%BE%E0%AF%8D-%E0%AE%95%E0%AF%8B%E0%AE%AF%E0
+        # %AE%BF%E0%AE%B2%E0%AF%8D-%E0%AE%85%E0%AE%B1%E0%AE%95%E0%AF%8D%E0%AE
+        # %95%E0%AE%9F%E0%AF%8D%E0%AE%9F%E0%AE%B3%E0%AF%88%E0%AE%95%E0%AF%8D
+        # %E0%AE%95%E0%AF%81-%E0%AE%AE%E0%AF%82%E0%AE%A4%E0%AF%8D%E0%AE%A4-
+        # %E0%AE%B5%E0%AE%B4%E0%AE%95%E0%AF%8D%E0%AE%95%E0%AF%81%E0%AE%B0%E0
+        # %AF%88%E0%AE%9E%E0%AE%BE%E0%AF%8D-%E0%AE%95%E0%AE%9F%E0%AE%BF%E0%AE
+        # %A4%E0%AE%AE%E0%AF%8D-3361308.html
+        #
+        # We might benefit from decoding the path in such URLs so that it fits
+        # within 1024 characters, and perhaps more importantly, the
+        # deduplication works better:
+        #
+        # http://dinamani.com/india/2020/feb/19/அயோத்தியில்-பாபா்-மசூதியை-சுற்றி
+        # யுள்ள-மயானத்தை-விட்டுவைக்க-வேண்டும்-ராமா்-கோயில்-அறக்கட்டளைக்கு-மூத்த-வழ
+        # க்குரைஞா்-கடிதம்-3361308.html
+        if len(url) <= MAX_URL_LENGTH:
+
+            # wastefully query for existence of url because jumping straight into the on conflict do nothing
+            # insert below sometimes results in a deadlock
+            db.query(
+                """
+                insert into story_urls (stories_id, url)
+                    select %(a)s, %(b)s
+                        where not exists ( select 1 from story_urls where stories_id = %(a)s and url = %(b)s )
+                        on conflict (url, stories_id) do nothing
+                """,
+                {'a': story['stories_id'], 'b': url})
 
 
 def _get_story_url_variants(story: dict) -> list:
@@ -155,6 +184,10 @@ def add_story(db: DatabaseHandler, story: dict, feeds_id: int) -> Optional[dict]
         # Description can be None
         if not story.get('description', None):
             story['full_text_rss'] = False
+
+    if len(story['url']) >= MAX_URL_LENGTH:
+        log.error(f"Story's URL is too long: {story['url']}")
+        return None
 
     try:
         story = db.create(table='stories', insert_hash=story)

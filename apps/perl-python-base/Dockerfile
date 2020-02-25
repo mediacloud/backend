@@ -25,11 +25,13 @@ RUN \
     rm -rf /root/.cache/ && \
     true
 
-# CPAN mirror URL (CPAN, DarkPan or MiniCPAN)
-ENV MC_PERL_CPAN_MIRROR "https://s3.amazonaws.com/mediacloud-minicpan/minicpan-20170824/"
-
-# Use correct Python with Inline::Python
-ENV INLINE_PYTHON_EXECUTABLE /usr/bin/python3.7
+ENV \
+    #
+    # CPAN mirror URL (CPAN, DarkPan or MiniCPAN)
+    MC_PERL_CPAN_MIRROR="https://s3.amazonaws.com/mediacloud-minicpan/minicpan-20170824/" \
+    #
+    # Use correct Python with Inline::Python
+    INLINE_PYTHON_EXECUTABLE=/usr/bin/python3.7
 
 # Install Git (for fetching patched Inline::Python) and Perl itself
 RUN apt-get -y --no-install-recommends install git perl

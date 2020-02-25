@@ -6,8 +6,8 @@ FROM dockermediacloud/cron-base:latest
 
 # Copy sources
 COPY src/ /opt/mediacloud/src/cron-set-media-subject-country/
-ENV PERL5LIB="/opt/mediacloud/src/cron-set-media-subject-country/perl:${PERL5LIB}"
-ENV PYTHONPATH="/opt/mediacloud/src/cron-set-media-subject-country/python:${PYTHONPATH}"
+ENV PERL5LIB="/opt/mediacloud/src/cron-set-media-subject-country/perl:${PERL5LIB}" \
+    PYTHONPATH="/opt/mediacloud/src/cron-set-media-subject-country/python:${PYTHONPATH}"
 
 # Copy Cron script
 COPY bin /opt/mediacloud/bin
