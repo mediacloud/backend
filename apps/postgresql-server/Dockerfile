@@ -40,7 +40,15 @@ COPY schema/ /opt/mediacloud/schema/
 
 USER postgres
 
-ENV PATH="/opt/mediacloud/bin:${PATH}"
+ENV \
+    PATH="/opt/mediacloud/bin:${PATH}" \
+    #
+    # Make sure that we can connect via "psql" without sudoing into "postgres" user
+    PGHOST=localhost \
+    PGPORT=5432 \
+    PGUSER=mediacloud \
+    PGPASSWORD=mediacloud \
+    PGDATABASE=mediacloud
 
 # Initialize data volume, create users, a database, and initialize it with
 # schema
@@ -53,13 +61,6 @@ RUN initialize_schema.sh
 USER root
 RUN rm /opt/mediacloud/bin/initialize_schema.sh
 USER postgres
-
-# Make sure that we can connect via "psql" without sudoing into "postgres" user
-ENV PGHOST localhost
-ENV PGPORT 5432
-ENV PGUSER mediacloud
-ENV PGPASSWORD mediacloud
-ENV PGDATABASE mediacloud
 
 # PostgreSQL data
 VOLUME /var/lib/postgresql/

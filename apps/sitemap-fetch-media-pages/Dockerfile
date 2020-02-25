@@ -15,8 +15,8 @@ RUN \
 
 # Copy sources
 COPY src/ /opt/mediacloud/src/sitemap-fetch-media-pages/
-ENV PERL5LIB="/opt/mediacloud/src/sitemap-fetch-media-pages/perl:${PERL5LIB}"
-ENV PYTHONPATH="/opt/mediacloud/src/sitemap-fetch-media-pages/python:${PYTHONPATH}"
+ENV PERL5LIB="/opt/mediacloud/src/sitemap-fetch-media-pages/perl:${PERL5LIB}" \
+    PYTHONPATH="/opt/mediacloud/src/sitemap-fetch-media-pages/python:${PYTHONPATH}"
 
 # Copy worker script
 COPY bin /opt/mediacloud/bin

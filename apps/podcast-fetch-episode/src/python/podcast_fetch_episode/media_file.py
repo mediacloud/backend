@@ -2,6 +2,7 @@ import dataclasses
 import subprocess
 import math
 import os
+import shutil
 import tempfile
 from typing import Type, Optional, List
 
@@ -264,7 +265,7 @@ def transcode_media_file_if_needed(input_media_file: TranscodeTempDirAndFile) ->
         temp_filename = 'transcoded_file'
 
         try:
-            temp_dir = tempfile.mkdtemp()
+            temp_dir = tempfile.mkdtemp('media_file')
         except Exception as ex:
             raise McPodcastFileStoreFailureException(f"Unable to create temporary directory: {ex}")
 
@@ -282,6 +283,8 @@ def transcode_media_file_if_needed(input_media_file: TranscodeTempDirAndFile) ->
             log.info(f"Done transcoding {input_media_file.temp_full_path} to {temp_file_path}")
 
         except Exception as ex:
+
+            shutil.rmtree(temp_dir)
 
             raise McPodcastFileIsInvalidException(f"Unable to transcode {input_media_file.temp_full_path}: {ex}")
 

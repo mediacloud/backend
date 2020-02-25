@@ -1,7 +1,0 @@
-# Pull images for faster rebuilds / cache
-steps:
-
-# Don't stop on a single failure because the image might not exist or a
-# network error might have happened
-- script: ./dev/pull.py || { echo "One or more images couldn't be pulled"; }
-  displayName: Pull images

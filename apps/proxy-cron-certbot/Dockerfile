@@ -21,7 +21,7 @@ RUN rm /etc/cron.d/certbot
 
 # Copy Cron script
 COPY bin /opt/mediacloud/bin
-ENV PATH "/opt/mediacloud/bin:${PATH}"
+ENV PATH="/opt/mediacloud/bin:${PATH}"
 
 # Add Cron job
 ADD crontab /etc/cron.d/certbot_renew

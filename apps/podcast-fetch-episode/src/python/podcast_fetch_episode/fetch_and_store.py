@@ -95,7 +95,7 @@ def fetch_and_store_episode(db: DatabaseHandler,
         raise McPodcastEnclosureTooBigException(f"Chosen enclosure {best_enclosure} is too big.")
 
     try:
-        temp_dir = tempfile.mkdtemp()
+        temp_dir = tempfile.mkdtemp('fetch_and_store')
     except Exception as ex:
         raise McPodcastFileStoreFailureException(f"Unable to create temporary directory: {ex}")
 

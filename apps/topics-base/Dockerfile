@@ -27,5 +27,5 @@ RUN \
 
 # Copy sources
 COPY src/ /opt/mediacloud/src/topics-base/
-ENV PERL5LIB="/opt/mediacloud/src/topics-base/perl:${PERL5LIB}"
-ENV PYTHONPATH="/opt/mediacloud/src/topics-base/python:${PYTHONPATH}"
+ENV PERL5LIB="/opt/mediacloud/src/topics-base/perl:${PERL5LIB}" \
+    PYTHONPATH="/opt/mediacloud/src/topics-base/python:${PYTHONPATH}"

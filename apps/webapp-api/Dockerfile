@@ -29,8 +29,8 @@ COPY bin /opt/mediacloud/bin
 
 # Copy sources
 COPY src/ /opt/mediacloud/src/webapp-api/
-ENV PERL5LIB="/opt/mediacloud/src/webapp-api/perl:${PERL5LIB}"
-ENV PYTHONPATH="/opt/mediacloud/src/webapp-api/python:${PYTHONPATH}"
+ENV PERL5LIB="/opt/mediacloud/src/webapp-api/perl:${PERL5LIB}" \
+    PYTHONPATH="/opt/mediacloud/src/webapp-api/python:${PYTHONPATH}"
 
 # Plackup port
 EXPOSE 9090

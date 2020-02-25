@@ -15,8 +15,8 @@ RUN \
 
 # Copy sources
 COPY src/ /opt/mediacloud/src/rescrape-media/
-ENV PERL5LIB="/opt/mediacloud/src/rescrape-media/perl:${PERL5LIB}"
-ENV PYTHONPATH="/opt/mediacloud/src/rescrape-media/python:${PYTHONPATH}"
+ENV PERL5LIB="/opt/mediacloud/src/rescrape-media/perl:${PERL5LIB}" \
+    PYTHONPATH="/opt/mediacloud/src/rescrape-media/python:${PYTHONPATH}"
 
 # Copy worker script
 COPY bin /opt/mediacloud/bin

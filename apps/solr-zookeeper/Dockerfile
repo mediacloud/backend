@@ -7,15 +7,13 @@
 FROM dockermediacloud/solr-base:latest
 
 # ZooKeeper version
-ENV MEDIACLOUD_ZOOKEEPER_VERSION "3.4.10"
+ENV MEDIACLOUD_ZOOKEEPER_VERSION="3.4.10"
 
 # Download and extract ZooKeeper
 RUN \
-    curl -L "https://archive.apache.org/dist/zookeeper/zookeeper-${MEDIACLOUD_ZOOKEEPER_VERSION}/zookeeper-${MEDIACLOUD_ZOOKEEPER_VERSION}.tar.gz" \
-        > /var/tmp/zookeeper.tgz && \
     mkdir -p /opt/zookeeper/ && \
-    tar -zxf /var/tmp/zookeeper.tgz -C /opt/zookeeper --strip 1 && \
-    rm /var/tmp/zookeeper.tgz && \
+    curl --fail --location --retry 3 --retry-delay 5 "https://archive.apache.org/dist/zookeeper/zookeeper-${MEDIACLOUD_ZOOKEEPER_VERSION}/zookeeper-${MEDIACLOUD_ZOOKEEPER_VERSION}.tar.gz" | \
+        tar -zx -C /opt/zookeeper/ --strip 1 && \
     rm -rf /opt/zookeeper/conf/ && \
     true
 
