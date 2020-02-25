@@ -6,8 +6,8 @@ FROM dockermediacloud/nytlabels-base:latest
 
 # Copy sources
 COPY src/ /opt/mediacloud/src/nytlabels-fetch-annotation/
-ENV PERL5LIB="/opt/mediacloud/src/nytlabels-fetch-annotation/perl:${PERL5LIB}"
-ENV PYTHONPATH="/opt/mediacloud/src/nytlabels-fetch-annotation/python:${PYTHONPATH}"
+ENV PERL5LIB="/opt/mediacloud/src/nytlabels-fetch-annotation/perl:${PERL5LIB}" \
+    PYTHONPATH="/opt/mediacloud/src/nytlabels-fetch-annotation/python:${PYTHONPATH}"
 
 # Copy worker script
 COPY bin /opt/mediacloud/bin

@@ -6,8 +6,8 @@ FROM dockermediacloud/common:latest
 
 # Copy sources
 COPY src/ /opt/mediacloud/src/podcast-poll-due-operations/
-ENV PERL5LIB="/opt/mediacloud/src/podcast-poll-due-operations/perl:${PERL5LIB}"
-ENV PYTHONPATH="/opt/mediacloud/src/podcast-poll-due-operations/python:${PYTHONPATH}"
+ENV PERL5LIB="/opt/mediacloud/src/podcast-poll-due-operations/perl:${PERL5LIB}" \
+    PYTHONPATH="/opt/mediacloud/src/podcast-poll-due-operations/python:${PYTHONPATH}"
 
 # Copy worker script
 COPY bin /opt/mediacloud/bin

@@ -7,7 +7,7 @@
 FROM dockermediacloud/solr-base:latest
 
 # ZooKeeper version
-ENV MEDIACLOUD_ZOOKEEPER_VERSION "3.4.10"
+ENV MEDIACLOUD_ZOOKEEPER_VERSION="3.4.10"
 
 # Download and extract ZooKeeper
 RUN \

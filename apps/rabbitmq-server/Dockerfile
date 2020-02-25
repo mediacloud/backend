@@ -67,11 +67,13 @@ RUN \
 # Copy configuration
 COPY --chown=rabbitmq:rabbitmq conf/ /etc/rabbitmq/
 
-# Set node name
-ENV RABBITMQ_NODENAME="mediacloud@localhost"
-
-# Increase I/O thread pool size to accommodate for a bigger number of connections
-ENV RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS="+A 512"
+ENV \
+    #
+    # Set node name
+    RABBITMQ_NODENAME="mediacloud@localhost" \
+    #
+    # Increase I/O thread pool size to accommodate for a bigger number of connections
+    RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS="+A 512"
 
 # Create an initial database that we can use to initialize a fresh copy of
 # RabbitMQ more quickly

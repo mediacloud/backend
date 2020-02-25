@@ -18,8 +18,8 @@ RUN \
 
 # Copy sources
 COPY src/ /opt/mediacloud/src/podcast-fetch-episode/
-ENV PERL5LIB="/opt/mediacloud/src/podcast-fetch-episode/perl:${PERL5LIB}"
-ENV PYTHONPATH="/opt/mediacloud/src/podcast-fetch-episode/python:${PYTHONPATH}"
+ENV PERL5LIB="/opt/mediacloud/src/podcast-fetch-episode/perl:${PERL5LIB}" \
+    PYTHONPATH="/opt/mediacloud/src/podcast-fetch-episode/python:${PYTHONPATH}"
 
 # Copy worker script
 COPY bin /opt/mediacloud/bin

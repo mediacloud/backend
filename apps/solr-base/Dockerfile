@@ -5,7 +5,7 @@
 FROM dockermediacloud/java-base:latest
 
 # Solr version
-ENV MEDIACLOUD_SOLR_VERSION "6.5.0"
+ENV MEDIACLOUD_SOLR_VERSION="6.5.0"
 
 # Download and extract Solr
 # (distribution needed for running both Solr itself and ZooKeeper)

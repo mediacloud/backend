@@ -4,6 +4,11 @@
 
 FROM dockermediacloud/java-base:latest
 
+ENV PATH="/usr/lib/maven/bin:/usr/lib/tomcat7/bin:${PATH}" \
+    #
+    # Annotator requires some more RAM
+    JAVA_OPTS="-Xmx4096m"
+
 # Download and extract CLAVIN's geonames index
 RUN \
     mkdir -p /etc/cliff2/IndexDirectory/ && \
@@ -18,7 +23,6 @@ RUN \
     curl --fail --location --retry 3 --retry-delay 5 "https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/3.6.2/apache-maven-3.6.2-bin.tar.gz" | \
         tar -zx -C /usr/lib/maven/ --strip 1 && \
     true
-ENV PATH="/usr/lib/maven/bin:${PATH}"
 
 # Install Tomcat 7
 RUN \
@@ -26,7 +30,6 @@ RUN \
     curl --fail --location --retry 3 --retry-delay 5 "https://archive.apache.org/dist/tomcat/tomcat-7/v7.0.96/bin/apache-tomcat-7.0.96.tar.gz" | \
         tar -zx -C /usr/lib/tomcat7/ --strip 1 && \
     true
-ENV PATH="/usr/lib/tomcat7/bin:${PATH}"
 
 # Copy source
 RUN mkdir -p /usr/src/
@@ -92,9 +95,6 @@ EXPOSE 8080
 
 # Change to non-privileged user
 USER www-data
-
-# Annotator requires some more RAM
-ENV JAVA_OPTS "-Xmx4096m"
 
 # Run Tomcat 7
 CMD ["catalina.sh", "run"]
