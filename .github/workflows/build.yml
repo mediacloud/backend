@@ -52,7 +52,7 @@ jobs:
         run: ./dev/pull.py || { echo "One or more images couldn't be pulled"; }
 
       - name: Build images
-        # Prune images after every rebuild because otherwise Azure instance might run
+        # Prune images after every rebuild because otherwise CI instance might run
         # out of disk space on bigger rebuilds
         run: ./dev/build.py --prune_images
 
