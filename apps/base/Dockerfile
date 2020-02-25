@@ -10,7 +10,7 @@
 FROM ubuntu:xenial-20200212
 
 ENV DEBIAN_FRONTEND=noninteractive \
-    LANG en_US.UTF-8 \
+    LANG=en_US.UTF-8 \
     LANGUAGE=en_US \
     #
     # It is likely that we'll run a Python script somewhere in the final app. By
