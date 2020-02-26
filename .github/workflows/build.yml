@@ -39,6 +39,15 @@ jobs:
       - name: Install PyYAML
         run: pip install PyYAML
 
+      - name: Install BuildKit
+        run: |
+          mkdir -p ~/.docker/cli-plugins
+          curl -o ~/.docker/cli-plugins/docker-buildx https://github.com/docker/buildx/releases/download/v0.3.1/buildx-v0.3.1.linux-amd64
+          chmod a+x ~/.docker/cli-plugins/docker-buildx
+
+      - name: Create builder instance
+        run: docker buildx create --name mediacloud --platform linux/amd64 --driver docker-container --use
+
       # FIXME upgrade Docker?
 
       - name: Print kernel and Docker information
