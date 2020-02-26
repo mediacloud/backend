@@ -65,10 +65,9 @@ jobs:
       - name: Build images
         # Prune images after every rebuild because otherwise CI instance might run
         # out of disk space on bigger rebuilds
-        # FIXME skip nytlabels-annotator due to its size
         run: |
           echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
-          ./dev/build.py --prune_images -p | grep -v nytlabels-annotator | bash
+          ./dev/build.py --prune_images -p | bash
 
   run_tests:
 
