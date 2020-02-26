@@ -47,21 +47,13 @@ jobs:
           docker version
           docker-compose version
 
-      - name: Pull images
-        # Don't stop on a single failure because the image might not exist or a
-        # network error might have happened
-        run: ./dev/pull.py || { echo "One or more images couldn't be pulled"; }
-
       - name: Build images
         # Prune images after every rebuild because otherwise CI instance might run
         # out of disk space on bigger rebuilds
         # FIXME skip nytlabels-annotator due to its size
-        run: ./dev/build.py --prune_images -p | grep -v nytlabels-annotator | bash
-
-      - name: Push images
         run: |
           echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
-          ./dev/push.py
+          ./dev/build.py --prune_images -p | grep -v nytlabels-annotator | bash
 
   run_tests:
 

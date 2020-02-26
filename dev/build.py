@@ -90,14 +90,31 @@ if __name__ == '__main__':
     images = _docker_images_to_build(all_apps_dir=args.all_apps_dir())
 
     for image in images:
-        command = "docker build --cache-from {repo}:latest --tag {repo}:{tag} --tag {repo}:latest {path}".format(
-            repo=image.repository,
-            tag=image_tag,
-            path=image.path,
-        )
+        cache_repo = image.repository.replace("/", "/cache-")
+
+        command = [
+
+            # Enable Docker BuildKit first
+            'DOCKER_CLI_EXPERIMENTAL=enabled',
+            'DOCKER_BUILDKIT=1',
+
+            'docker', 'buildx', 'build',
+            '--cache-from=type=registry,ref={}'.format(cache_repo),
+            '--cache-to=type=registry,ref={},mode=max'.format(cache_repo),
+            '--tag', '{repo}:{tag}'.format(repo=image.repository, tag=image_tag),
+            '--tag', '{repo}:latest'.format(repo=image.repository),
+            '--push',
+            '--progress=plain',
+            image.path,
+        ]
 
         if args.prune_images():
-            command += ' && docker image prune -f'
+            command.extend([
+                '&&',
+                'docker', 'image', 'prune', '-f',
+            ])
+
+        command = ' '.join(command)
 
         if args.print_commands():
             print(command)
