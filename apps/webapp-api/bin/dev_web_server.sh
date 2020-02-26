@@ -2,13 +2,14 @@
 
 # start simple http server hosting the api, for manual testing of the api
 
+PORT="$1"
+
 if [ -z "$PORT" ]; then
     PORT=9999
 fi
 
 exec plackup \
-    --server HTTP::Simple::Server \
-    --port $PORT
-    --nproc 1 \
-    --access-log /dev/stdout \
+    --server HTTP::Server::Simple \
+    --port $PORT \
+    --manager MediaWords::MyFCgiManager \
     /opt/mediacloud/bin/app.psgi
