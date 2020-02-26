@@ -47,11 +47,11 @@ jobs:
       - name: Install BuildKit
         run: |
           mkdir -p ~/.docker/cli-plugins
-          curl -o ~/.docker/cli-plugins/docker-buildx https://github.com/docker/buildx/releases/download/v0.3.1/buildx-v0.3.1.linux-amd64
+          curl -Lo ~/.docker/cli-plugins/docker-buildx https://github.com/docker/buildx/releases/download/v0.3.1/buildx-v0.3.1.linux-amd64
           chmod a+x ~/.docker/cli-plugins/docker-buildx
 
       - name: Create builder instance
-        run: docker buildx create --name mediacloud --platform linux/amd64 --driver docker-container --use
+        run: ~/.docker/cli-plugins/docker-buildx create --name mediacloud --platform linux/amd64 --driver docker-container --use
 
       # FIXME upgrade Docker?
 
@@ -60,6 +60,7 @@ jobs:
           uname -a
           docker version
           docker-compose version
+          docker plugin ls
 
       - name: Build images
         # Prune images after every rebuild because otherwise CI instance might run

@@ -98,7 +98,7 @@ if __name__ == '__main__':
             'DOCKER_CLI_EXPERIMENTAL=enabled',
             'DOCKER_BUILDKIT=1',
 
-            'docker', 'buildx', 'build',
+            '~/.docker/cli-plugins/docker-buildx', 'build',
             '--cache-from=type=registry,ref={}'.format(cache_repo),
             '--cache-to=type=registry,ref={},mode=max'.format(cache_repo),
             '--tag', '{repo}:{tag}'.format(repo=image.repository, tag=image_tag),
