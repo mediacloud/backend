@@ -7,9 +7,12 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use MediaWords::TM::Snapshot::ExtraFields;
+use MediaWords::TM::Snapshot::Views;
 use MediaWords::Util::Colors;
 
 use Date::Format;
+use Encode;
+use File::Slurp;
 use Readonly;
 use XML::Simple;
 
@@ -26,6 +29,9 @@ Readonly my $MIN_NODE_SIZE => 2;
 # only layout the gexf export if there are fewer than this number of sources in the graph
 Readonly my $MAX_LAYOUT_SOURCES => 2000;
 
+# platform media ids to exclude from monthly gexf dumps
+Readonly my $PLATFORM_MEDIA_IDS =>
+  [ 18362, 18346, 18370, 61164, 269331, 73449, 62926, 21936, 5816, 4429, 20448, 67324, 351789, 22299, 135076, 25373 ];
 
 # get a description for the gexf file export
 sub _get_gexf_description($$)
@@ -210,7 +216,7 @@ sub _layout_gexf($)
 {
     my ( $gexf ) = @_;
 
-    my $nodes = $gexf->{ graph }->[ 0 ]->{ nodes }->{ node };
+    my $nodes = $gexf->{ graph }->[ 0 ]->{ nodes }->{ node } || [];
 
     my $layout;
 
@@ -277,6 +283,8 @@ select distinct
     limit ?
 END
 
+    return '<gexf></gexf>' unless scalar( @{ $media } );
+
     MediaWords::TM::Snapshot::ExtraFields::add_extra_fields_to_snapshot_media( $db, $timespan, $media );
 
     my $gexf = {
@@ -312,6 +320,9 @@ END
     }
 
     my $edges = _get_weighted_edges( $db, $media, $options );
+
+    return '<gexf></gexf>' unless scalar( @{ $edges } );
+
     $graph->{ edges }->{ edge } = $edges;
 
     my $edge_lookup;
@@ -360,4 +371,62 @@ END
     return $xml;
 }
 
+# geneate overall and monthly gexf dumps for the given topics, excluding platform media ids
+sub generate_monthly_gexfs($$) 
+{
+    my ( $db, $topics_ids ) = @_;
+
+    my $topics = [];
+    for my $topics_id ( @{ $topics_ids } )
+    {
+        push( @{ $topics}, $db->require_by_id( 'topics', int( $topics_id ) ) );
+    }
+
+    for my $topic ( @{ $topics } )
+    {
+        my $overall_timespan = $db->query( <<SQL, $topic->{ topics_id } )->hash;
+select timespan.*, snap.topics_id
+   from timespans timespan
+       join snapshots snap on ( snap.snapshots_id = timespan.snapshots_id )
+   where
+       snap.topics_id = ? and
+       timespan.period = 'overall' and
+       timespan.foci_id is null
+   order by snap.snapshot_date desc
+SQL
+
+        my $monthly_timespans = $db->query( <<SQL, $overall_timespan->{ snapshots_id } )->hashes;
+select * from timespans where snapshots_id = \$1 and period = 'monthly' and foci_id is null order by start_date asc
+SQL
+
+        for my $timespan ( $overall_timespan, @{ $monthly_timespans } )
+        {
+
+            DEBUG( "generating timespan $timespan->{ period } $timespan->{ start_date } ..." );
+
+            MediaWords::TM::Snapshot::Views::setup_temporary_snapshot_views( $db, $timespan );
+
+            my $gexf = get_gexf_snapshot(
+                $db,
+                $timespan,
+                {
+                    max_media         => 100_000,
+                    exclude_media_ids => $PLATFORM_MEDIA_IDS,
+                    color_field       => 'partisan_retweet',
+                    include_weights   => 1
+                }
+            );
+
+            MediaWords::TM::Snapshot::Views::discard_temp_tables_and_views( $db );
+
+            my $topics_id = $topic->{ topics_id };
+            my $period    = $timespan->{ period };
+            my $date      = substr( $timespan->{ start_date }, 0, 10 );
+
+            my $filename = "topic_${ topics_id }_${ period }_${ date }.gexf";
+
+            File::Slurp::write_file( $filename, encode_utf8( $gexf ) );
+        }
+    }
+}
 1;
