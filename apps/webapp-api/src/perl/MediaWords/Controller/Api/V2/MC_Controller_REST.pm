@@ -116,6 +116,10 @@ sub end : Private
             $c->response->status( HTTP_INTERNAL_SERVER_ERROR );
         }
         $c->response->content_type( 'application/json; charset=UTF-8' );
+
+        # Catalyst expects bytes
+        $body = encode_utf8( $body );
+
         $c->response->body( $body );
 
         $c->clear_errors;

@@ -54,7 +54,9 @@ class AbstractDownloadFeedHandler(DefaultStoreMixin, AbstractDownloadHandler, me
 
         try:
             added_story_ids = self.add_stories_from_feed(db=db, download=download, content=content)
-            story_ids_to_extract = self.add_stories_from_feed(db=db, download=download, content=content)
+            story_ids_to_extract = self.return_stories_to_be_extracted_from_feed(
+                db=db, download=download, content=content,
+            )
 
         except Exception as ex:
 
