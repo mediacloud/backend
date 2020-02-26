@@ -90,7 +90,6 @@ if __name__ == '__main__':
     images = _docker_images_to_build(all_apps_dir=args.all_apps_dir())
 
     for image in images:
-        cache_repo = image.repository.replace("/", "/cache-")
 
         command = [
 
@@ -99,8 +98,8 @@ if __name__ == '__main__':
             'DOCKER_BUILDKIT=1',
 
             '~/.docker/cli-plugins/docker-buildx', 'build',
-            '--cache-from=type=registry,ref={}'.format(cache_repo),
-            '--cache-to=type=registry,ref={},mode=max'.format(cache_repo),
+            '--cache-from=type=registry,ref={}'.format(image.repository),
+            '--cache-to=type=inline,mode=max',
             '--tag', '{repo}:{tag}'.format(repo=image.repository, tag=image_tag),
             '--tag', '{repo}:latest'.format(repo=image.repository),
             '--push',
