@@ -95,7 +95,7 @@ if __name__ == '__main__':
         command = [
 
             # Enable Docker BuildKit first
-            # 'DOCKER_CLI_EXPERIMENTAL=enabled',
+            'DOCKER_CLI_EXPERIMENTAL=enabled',
             'DOCKER_BUILDKIT=1',
 
             'docker', 'buildx', 'build',
