@@ -166,6 +166,11 @@ def add_story(db: DatabaseHandler, story: dict, feeds_id: int) -> Optional[dict]
     if db.in_transaction():
         raise McAddStoryException("add_story() can't be run from within transaction.")
 
+    # PostgreSQL is not a fan of NULL bytes in strings
+    for key in story.keys():
+        if isinstance(story[key], str):
+            story[key] = story[key].replace('\x00', '')
+
     db.begin()
 
     db.query("LOCK TABLE stories IN ROW EXCLUSIVE MODE")
@@ -203,7 +208,7 @@ def add_story(db: DatabaseHandler, story: dict, feeds_id: int) -> Optional[dict]
             return None
 
         else:
-            raise McAddStoryException("Error adding story: {}\nStory: {}".format(str(ex), str(story)))
+            raise McAddStoryException("Error while adding story: {}\nStory: {}".format(str(ex), str(story)))
 
     story['is_new'] = True
 
