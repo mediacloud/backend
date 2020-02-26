@@ -26,7 +26,7 @@ services:
 
     # Web UI (run on a single server which has a label)
     portainer:
-        image: portainer/portainer:1.22.1
+        image: portainer/portainer:1.23.1
         #
         # Hash the password:
         #

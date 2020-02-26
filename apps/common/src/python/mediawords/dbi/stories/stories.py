@@ -187,6 +187,7 @@ def add_story(db: DatabaseHandler, story: dict, feeds_id: int) -> Optional[dict]
 
     if len(story['url']) >= MAX_URL_LENGTH:
         log.error(f"Story's URL is too long: {story['url']}")
+        db.commit()
         return None
 
     try:
