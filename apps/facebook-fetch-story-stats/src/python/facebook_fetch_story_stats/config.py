@@ -13,6 +13,11 @@ class FacebookConfig(object):
             return False
 
     @staticmethod
+    def api_endpoint() -> str:
+        """API endpoint to use, together with version."""
+        return "https://graph.facebook.com/v5.0/"
+
+    @staticmethod
     def app_id() -> str:
         """App ID."""
         return env_value('MC_FACEBOOK_APP_ID')
@@ -23,7 +28,6 @@ class FacebookConfig(object):
         return env_value('MC_FACEBOOK_APP_SECRET')
 
     @staticmethod
-    def timeout() -> int:
-        """Timeout."""
-        # FIXME probably hardcode somewhere
-        return int(env_value('MC_FACEBOOK_TIMEOUT'))
+    def seconds_to_wait_between_retries() -> int:
+        """How many seconds to wait between retries on temporary errors."""
+        return 60

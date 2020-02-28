@@ -15,8 +15,8 @@ RUN \
 
 # Copy sources
 COPY src/ /opt/mediacloud/src/crawler-ap/
-ENV PERL5LIB="/opt/mediacloud/src/crawler-ap/perl:${PERL5LIB}"
-ENV PYTHONPATH="/opt/mediacloud/src/crawler-ap/python:${PYTHONPATH}"
+ENV PERL5LIB="/opt/mediacloud/src/crawler-ap/perl:${PERL5LIB}" \
+    PYTHONPATH="/opt/mediacloud/src/crawler-ap/python:${PYTHONPATH}"
 
 COPY bin /opt/mediacloud/bin
 

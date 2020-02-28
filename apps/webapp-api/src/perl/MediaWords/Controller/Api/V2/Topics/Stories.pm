@@ -60,7 +60,7 @@ sub links_GET
 
     my $db = $c->dbis;
 
-    $c->req->params->{ limit } = List::Util::min( int( $c->req->params->{ limit } // 1_000 ), 1_000_000 );
+    $c->req->params->{ limit } = List::Util::min( int( $c->req->params->{ limit } // 1_000 ), 1_000 );
     my $limit = $c->req->params->{ limit };
 
     MediaWords::DBI::ApiLinks::process_and_stash_link( $c );
@@ -311,6 +311,8 @@ sub list_GET
           AND m.snapshots_id = \$2
         
         $sort_clause
+
+	    limit $limit
 
 SQL
         $timespans_id, $snapshots_id

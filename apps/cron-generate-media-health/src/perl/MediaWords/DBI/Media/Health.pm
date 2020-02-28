@@ -24,6 +24,45 @@ Readonly my $HEALTHY_VOLUME_RATIO => 0.25;
 
 Readonly my $START_DATE => '2011-01-01';
 
+# udpate media_stats table with all sentences since the last time we ran this function
+sub _update_media_stats
+{
+    my ( $db ) = @_;
+
+    my ( $ss_id ) = $db->query( "select value from database_variables where name = 'media_health_last_ss_id'" )->flat;
+    $ss_id = defined( $ss_id ) ? int( $ss_id ) : 0;
+
+    my ( $max_ss_id ) = $db->query( "select max(story_sentences_id) from story_sentences" )->flat;
+    $max_ss_id = defined( $max_ss_id ) ? int( $max_ss_id ) : 0;
+    
+    $db->query( <<SQL );
+insert into media_stats as old ( media_id, num_stories, num_sentences, stat_date )
+
+    select
+            media_id,
+            count( distinct stories_id ) num_stories,
+            count( distinct story_sentences_id ) num_sentences,
+            date_trunc( 'day', publish_date) stat_date
+        from
+            story_sentences ss
+        where
+            ss.story_sentences_id between $ss_id and $max_ss_id
+        group by media_id, stat_date
+
+    on conflict ( media_id, stat_date ) do update set
+        num_stories = old.num_stories + EXCLUDED.num_stories, 
+        num_sentences = old.num_sentences + EXCLUDED.num_sentences
+SQL
+
+    $db->query( <<SQL );
+insert into database_variables ( name, value ) 
+    values ( 'media_health_last_ss_id', $max_ss_id )
+    on conflict ( name )
+        do update set value = EXCLUDED.value
+SQL
+
+}
+
 # aggregate media_stats into media_stats_weekly table, which is a dense table that includes
 # 0 counts for each media source for each week for which there is no data
 sub _generate_media_stats_weekly
@@ -193,6 +232,8 @@ sub _generate_media_health_table
     my ( $db ) = @_;
 
     _create_crawled_media( $db );
+
+    _update_media_stats( $db );
 
     _generate_media_stats_weekly( $db );
     _generate_media_expected_volume( $db );

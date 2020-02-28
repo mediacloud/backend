@@ -23,6 +23,7 @@ Table of Contents
       * [topics/&lt;topics_id&gt;/add_seed_query (PUT)](#topicstopics_idadd_seed_query-put)
          * [Query Parameters](#query-parameters-2)
          * [Input Description](#input-description-2)
+      * [| Source | Platform |](#-source--platform-)
          * [Example](#example-2)
       * [topics/&lt;topics_id&gt;/remove_seed_query (PUT)](#topicstopics_idremove_seed_query-put)
          * [Query Parameters](#query-parameters-3)

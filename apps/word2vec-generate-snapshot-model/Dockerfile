@@ -15,8 +15,8 @@ RUN \
 
 # Copy sources
 COPY src/ /opt/mediacloud/src/word2vec-generate-snapshot-model/
-ENV PERL5LIB="/opt/mediacloud/src/word2vec-generate-snapshot-model/perl:${PERL5LIB}"
-ENV PYTHONPATH="/opt/mediacloud/src/word2vec-generate-snapshot-model/python:${PYTHONPATH}"
+ENV PERL5LIB="/opt/mediacloud/src/word2vec-generate-snapshot-model/perl:${PERL5LIB}" \
+    PYTHONPATH="/opt/mediacloud/src/word2vec-generate-snapshot-model/python:${PYTHONPATH}"
 
 # Copy worker script
 COPY bin /opt/mediacloud/bin

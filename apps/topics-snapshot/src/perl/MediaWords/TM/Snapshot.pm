@@ -36,6 +36,7 @@ use warnings;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
+use List::MoreUtils qw(natatime);
 use List::Util;
 use Readonly;
 
@@ -192,7 +193,7 @@ sub _create_link_snapshot_period_stories($$)
     $db->query( <<END );
 create or replace temporary view snapshot_undateable_stories as
 select distinct s.stories_id
-    from snapshot_stories s, snapshot_stories_tags_map stm, snapshot_tags t, snapshot_tag_sets ts
+    from snapshot_stories s, snapshot_stories_tags_map stm, tags t, tag_sets ts
     where s.stories_id = stm.stories_id and
         stm.tags_id = t.tags_id and
         t.tag_sets_id = ts.tag_sets_id and
@@ -776,6 +777,93 @@ sub create_snap_snapshot
     _create_snapshot( $db, $cd, 'snapshots_id', $table );
 }
 
+# add only the stories that aren't already in snapshot_stories_tags_map
+sub _create_snapshot_stories_tags_map($$)
+{
+    my ( $db, $snapshot ) = @_;
+
+    $db->query( "create temporary table snapshot_stories_tags_map as select * from stories_tags_map limit 0" );
+
+    $db->query( <<SQL, $snapshot->{ snapshots_id } );
+insert into snapshot_stories_tags_map ( stories_id, tags_id )
+    select stories_id, tags_id from snap.stories_tags_map where snapshots_id = ?
+SQL
+    
+    my $new_stories_ids = $db->query( <<SQL )->flat;
+select stories_id from snapshot_stories where stories_id not in (
+    select stories_id from snapshot_stories_tags_map )
+SQL
+
+    for my $new_stories_id ( @{ $new_stories_ids } )
+    {
+        my $tags_ids = $db->query( "select tags_id from stories_tags_map where stories_id = ?", $new_stories_id )->flat;
+        return unless @{ $tags_ids };
+
+        my $values_list = join( ',', map { "($new_stories_id, $_)" } @{ $tags_ids } );
+
+        $db->query( "insert into snapshot_stories_tags_map ( stories_id, tags_id ) values $values_list" );
+    }   
+}
+
+# create snapshot_topic_stories, which defines a superset of the stories to be included in the topic.
+# if the topic.only_snapshot_engaged_stories is true, prune stories to only those that
+# have a minium number of inlinks, fb shares, or twitter shares
+sub _create_snapshot_topic_stories($$)
+{
+    my ( $db, $topic ) = @_;
+
+    if ( !$topic->{ only_snapshot_engaged_stories } )
+    {
+        $db->query( <<SQL, $topic->{ topics_id } );
+create temporary table snapshot_topic_stories as
+    select cs.*
+        from topic_stories cs
+        where cs.topics_id = ?
+SQL
+    }
+    else
+    {
+        $db->query( <<SQL, $topic->{ topics_id } );
+create temporary table snapshot_topic_stories as 
+
+with link_stories as (
+    select ts.stories_id
+        from topic_links tl
+            join topic_stories ts on ( ts.stories_id = tl.ref_stories_id and ts.topics_id = tl.topics_id )
+        where
+            tl.topics_id = \$1
+),
+
+fb_stories as (
+    select ss.stories_id
+        from topic_stories ts
+            join story_statistics ss using ( stories_id )
+        where
+            ts.topics_id = \$1 and
+            ss.facebook_share_count >= 100
+),
+
+post_stories as (
+    select ts.stories_id
+        from topic_stories ts
+        where 
+            ts.topics_id = \$1 and
+            exists (select 1 from snap.story_link_counts where stories_id = ts.stories_id and post_count >= 10)
+)
+
+select ts.*
+    from topic_stories ts
+    where
+        topics_id = \$1 and
+        stories_id in ( 
+            select stories_id from link_stories  union
+            select stories_id from fb_stories union
+            select stories_id from post_stories
+        )
+SQL
+    }
+}
+
 # generate temporary snapshot_* tables for the specified snapshot for each of the snapshot_tables.
 # these are the tables that apply to the whole snapshot.
 sub _write_temporary_snapshot_tables($$$)
@@ -784,12 +872,7 @@ sub _write_temporary_snapshot_tables($$$)
 
     my $topics_id = $topic->{ topics_id };
 
-    $db->query( <<END, $topics_id );
-create temporary table snapshot_topic_stories as
-    select cs.*
-        from topic_stories cs
-        where cs.topics_id = ?
-END
+    _create_snapshot_topic_stories( $db, $topic );
 
     $db->query( <<END, $topics_id );
 create temporary table snapshot_topic_media_codes as
@@ -836,41 +919,14 @@ create temporary table snapshot_topic_links_cross_media as
         where cl.topics_id = ? and r.media_id <> s.media_id
 END
 
-    $db->query( <<END );
-create temporary table snapshot_stories_tags_map as
-    select stm.*
-    from stories_tags_map stm, snapshot_stories ds
-    where stm.stories_id = ds.stories_id
-END
+
+    _create_snapshot_stories_tags_map( $db, $snapshot );
 
     $db->query( <<END );
 create temporary table snapshot_media_tags_map as
     select mtm.*
     from media_tags_map mtm, snapshot_media dm
     where mtm.media_id = dm.media_id
-END
-
-    $db->query( <<END );
-create temporary table snapshot_tags as
-    select distinct t.* from tags t where t.tags_id in
-        ( select a.tags_id
-            from tags a
-                join snapshot_media_tags_map amtm on ( a.tags_id = amtm.tags_id )
-
-          union
-
-          select b.tags_id
-            from tags b
-                join snapshot_stories_tags_map bstm on ( b.tags_id = bstm.tags_id )
-        )
-
-END
-
-    $db->query( <<END );
-create temporary table snapshot_tag_sets as
-    select ts.*
-        from tag_sets ts
-        where ts.tag_sets_id in ( select tag_sets_id from snapshot_tags )
 END
 
     my $tweet_topics_id = $topic->{ topics_id };

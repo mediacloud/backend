@@ -125,7 +125,7 @@ sub test_data_request($$$;$)
     my $json = MediaWords::Util::ParseJSON::encode_json( $data );
 
     my $request = HTTP::Request->new( $method, $url );
-    $request->header( 'Content-Type' => 'application/json' );
+    $request->header( 'Content-Type' => 'application/json; charset=UTF-8' );
     $request->content( $json );
 
     my $label = "method=$method URL=$url data=$json expect_error=$expect_error";

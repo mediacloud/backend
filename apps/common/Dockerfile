@@ -25,9 +25,6 @@ RUN \
     # Required by "cld2-cffi" Python module
     apt-get -y --no-install-recommends install libffi-dev && \
     #
-    # Required by XML::LibXML
-    apt-get -y --no-install-recommends install libxml2-dev && \
-    #
     # OpenSSL headers for various SSL modules
     apt-get -y --no-install-recommends install libssl-dev && \
     #
@@ -72,13 +69,14 @@ RUN \
 # Create directory where sources will be stored in
 RUN mkdir -p /opt/mediacloud/src/ /opt/mediacloud/tests/
 
-# /opt/mediacloud/bin is where container images are expected to store executables
-ENV PATH="/opt/mediacloud/bin:${PATH}"
-
 # Copy sources
 COPY src/ /opt/mediacloud/src/common/
-ENV PERL5LIB="/opt/mediacloud/src/common/perl"
-ENV PYTHONPATH="/opt/mediacloud/src/common/python"
+
+ENV PERL5LIB="/opt/mediacloud/src/common/perl" \
+    PYTHONPATH="/opt/mediacloud/src/common/python" \
+    #
+    # /opt/mediacloud/bin is where container images are expected to store executables
+    PATH="/opt/mediacloud/bin:${PATH}"
 
 # Test if submodules were checked out
 RUN \

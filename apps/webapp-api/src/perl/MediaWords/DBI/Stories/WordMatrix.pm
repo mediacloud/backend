@@ -6,29 +6,30 @@ use warnings;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
+use List::MoreUtils qw(natatime);
+
 use MediaWords::Solr::WordCounts;
 
 # get a postgres cursor that will return the concatenated story_sentences for each of the given stories_ids.  use
 # $sentence_separator to join the sentences for each story.
-sub _get_story_word_matrix_cursor($$$)
+sub _get_story_word_matrix_rows($$$)
 {
     my ( $db, $stories_ids, $sentence_separator ) = @_;
 
-    my $cursor = 'story_text';
+    return [] unless ( @{ $stories_ids } );
 
-    $stories_ids = [ map { int( $_ ) } @{ $stories_ids } ];
+    my $stories_ids_list = join( ',', map { int( $_ ) } @{ $stories_ids } );
 
     my $ids_table = $db->get_temporary_ids_table( $stories_ids );
-    $db->query( <<SQL, $sentence_separator );
-declare $cursor cursor for
-    select stories_id, language, string_agg( sentence, \$1 ) story_text
-        from story_sentences
-        where stories_id in ( select id from $ids_table )
-        group by stories_id, language
-        order by stories_id, language
+    my $rows = $db->query( <<SQL, $sentence_separator )->hashes;
+select stories_id, language, string_agg( sentence, \$1 ) story_text
+    from story_sentences
+    where stories_id in ( $stories_ids_list )
+    group by stories_id, language
+    order by stories_id, language
 SQL
 
-    return $cursor;
+    return $rows;
 }
 
 # Given a list of stories_ids, generate a matrix consisting of the vector of word stem counts for each stories_id on each
@@ -72,12 +73,13 @@ sub get_story_word_matrix($$;$)
     $db->begin if ( $use_transaction );
 
     my $sentence_separator = 'SPLITSPLIT';
-    my $story_text_cursor = _get_story_word_matrix_cursor( $db, $stories_ids, $sentence_separator );
+    my $story_text_cursor = 
 
     my $word_matrix = {};
-    while ( my $stories = $db->query( "fetch 100 from $story_text_cursor" )->hashes )
+    my $iter = natatime( 100, @{ $stories_ids } );
+    while ( my @chunk_stories_ids = $iter->() )
     {
-        last unless ( @{ $stories } );
+        my $stories = _get_story_word_matrix_rows( $db, \@chunk_stories_ids, $sentence_separator );
 
         for my $story ( @{ $stories } )
         {
