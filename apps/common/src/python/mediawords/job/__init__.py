@@ -112,6 +112,9 @@ class JobBroker(object):
 
         self.__app.conf.broker_heartbeat = 0
 
+        # Acknowledge tasks after they get run, not before
+        self.__app.conf.task_acks_late = 1
+
         # https://tech.labs.oliverwyman.com/blog/2015/04/30/making-celery-play-nice-with-rabbitmq-and-bigwig/
         self.__app.conf.broker_transport_options = {'confirm_publish': True}
 

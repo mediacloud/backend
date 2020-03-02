@@ -45,6 +45,8 @@ class TestDownloadHandler(TestCase, metaclass=abc.ABCMeta):
         handler = handler_for_download(db=self.db, download=download)
 
         response = handler.fetch_download(db=self.db, download=download)
+        assert response
+
         handler.store_response(db=self.db, download=download, response=response)
 
         download = self.db.find_by_id(table='downloads', object_id=downloads_id)
