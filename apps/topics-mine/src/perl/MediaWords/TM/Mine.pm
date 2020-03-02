@@ -765,9 +765,9 @@ sub import_solr_seed_query_month($$$)
 {
     my ( $db, $topic, $month_offset ) = @_;
 
-    return unless ( $topic->{ platform } eq 'web' );
+    return 0 unless ( $topic->{ platform } eq 'web' );
 
-    return unless ( _import_month_within_respider_date( $topic, $month_offset ) );
+    return 1 unless ( _import_month_within_respider_date( $topic, $month_offset ) );
 
     my $max_stories = $topic->{ max_stories };
 
