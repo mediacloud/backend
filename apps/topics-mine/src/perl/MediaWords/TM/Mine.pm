@@ -761,8 +761,6 @@ sub import_solr_seed_query_month($$$)
 
     INFO "adding " . scalar( @{ $stories } ) . " stories to topic_seed_urls";
 
-    $db->begin;
-
     my $topic_seed_urls = [];
     for my $story ( @{ $stories } )
     {
@@ -778,8 +776,6 @@ sub import_solr_seed_query_month($$$)
     }
 
     insert_topic_seed_urls( $db, $topic_seed_urls );
-
-    $db->commit if $db->in_transaction();
 
     return 1;
 }
@@ -1002,8 +998,6 @@ sub set_stories_respidering($$$)
         return;
     }
 
-    $db->begin;
-
     if ( $respider_start_date )
     {
         $db->query( <<SQL, $respider_start_date, $topic->{ start_date }, $topic->{ topics_id } );
@@ -1049,8 +1043,6 @@ SQL
 
     $db->update_by_id( 'topics', $topic->{ topics_id },
         { respider_stories => 'f', respider_start_date => undef, respider_end_date => undef } );
-
-    $db->commit;
 }
 
 
