@@ -108,7 +108,11 @@ SQL
         push( @{ $tag_counts }, $tag );
     }
 
-    $tag_counts = [ sort { $b->{ count } <=> $a->{ count } } @{ $tag_counts } ];
+    # Sort by count (desc.) first, then by tags_id (asc.) to get more predictable results
+    $tag_counts = [ sort {
+        $b->{ count } <=> $a->{ count } or  #
+        $a->{ tags_id } <=> $b->{ tags_id } #
+    } @{ $tag_counts } ];
 
     return $tag_counts;
 }

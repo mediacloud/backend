@@ -268,6 +268,9 @@ def __current_git_branch_name() -> str:
 
     # Some CI weirdness
     branch_name = branch_name.replace('~1', '')
+    branch_name = branch_name.replace('~2', '')
+    branch_name = branch_name.replace('^1', '')
+    branch_name = branch_name.replace('^2', '')
 
     return branch_name
 

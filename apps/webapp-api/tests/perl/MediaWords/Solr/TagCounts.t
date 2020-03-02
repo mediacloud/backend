@@ -80,7 +80,7 @@ select c count, t.*, ts.name tag_set_name, ts.label tag_set_label
     from tags t
         join tag_sets ts using ( tag_sets_id )
         join tag_counts tc using ( tags_id )
-    order by c desc limit 100
+    order by c desc, t.tags_id asc limit 100
 SQL
 
     my $num_tag_counts = scalar( @{ $got_tag_counts } );
@@ -90,18 +90,10 @@ SQL
     cmp_bag( $got_tag_counts, $expected_tag_counts, "Tag counts" );
 
     # Solr might not have committed tag counts just yet, so wait for the right count to appear
-    my $single_tag_count;
-    for ( my $x = 0; $x <= 20; ++$x ) {
-        $single_tag_count = MediaWords::Solr::TagCounts::query_tag_counts(  #
-            $db,                                                            #
-            { q => "media_id:$query_media_id", limit => 1 },                #
-        );                                                                  #
-        if ( $single_tag_count->[ 0 ]->{ tags_id } == $expected_tag_counts->[ 0 ]->{ tags_id }) {
-            last;
-        }
-        INFO "Retrying...";
-        sleep( 1 );
-    }
+    my $single_tag_count = MediaWords::Solr::TagCounts::query_tag_counts(   #
+        $db,                                                                #
+        { q => "media_id:$query_media_id", limit => 1 },                    #
+    );
 
     is( $single_tag_count->[ 0 ]->{ tags_id }, $expected_tag_counts->[ 0 ]->{ tags_id }, "Tag count's tag ID" );
     is( scalar( @{ $single_tag_count } ),      1, "Single tag count" );
