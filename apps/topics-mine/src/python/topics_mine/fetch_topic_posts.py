@@ -145,10 +145,10 @@ def _store_posts_for_day(db: DatabaseHandler, topic_post_day: dict, posts: list)
     Return:
     None
     """
-    topics_id = topic_post_day['topics_id']
-    log.info("adding %d posts for topic %s, day %s" % (len(posts), topics_id, topic_post_day['day']))
+    log.info("adding %d posts for day %s" % (len(posts), topic_post_day['day']))
 
-    topic = db.require_by_id('topics', topic_post_day['topics_id'])
+    tsq = db.require_by_id('topic_seed_queries', topic_post_day['topic_seed_queries_id'])
+    topic = db.require_by_id('topics', tsq['topics_id'])
     posts = list(filter(lambda p: content_matches_topic(p['content'], topic), posts))
 
     log.info("%d posts remaining after match" % (len(posts)))
@@ -170,13 +170,13 @@ def _store_posts_for_day(db: DatabaseHandler, topic_post_day: dict, posts: list)
     log.debug("done inserting into topic_posts")
 
 
-def _add_topic_post_single_day(db: DatabaseHandler, topic: dict, num_posts: int, day: datetime) -> dict:
+def _add_topic_post_single_day(db: DatabaseHandler, topic_seed_query: dict, num_posts: int, day: datetime) -> dict:
     """
     Add a row to topic_post_day if it does not already exist.
 
     Arguments:
     db - database handle
-    topic - topic dict
+    topic_seed_query - topic_seed_query dict
     day - date to fetch eg '2017-12-30'
     num_posts - number of posts found for that day
 
@@ -185,8 +185,8 @@ def _add_topic_post_single_day(db: DatabaseHandler, topic: dict, num_posts: int,
     """
     # the perl-python layer was segfaulting until I added the str() around day below -hal
     topic_post_day = db.query(
-        "select * from topic_post_days where topics_id = %(a)s and day = %(b)s",
-        {'a': topic['topics_id'], 'b': str(day)}).hash()
+        "select * from topic_post_days where topic_seed_queries_id = %(a)s and day = %(b)s",
+        {'a': topic_seed_query['topic_seed_queries_id'], 'b': str(day)}).hash()
 
     if topic_post_day is not None and topic_post_day['posts_fetched']:
         raise McFetchTopicPostsDataException("tweets already fetched for day " + str(day))
@@ -198,7 +198,7 @@ def _add_topic_post_single_day(db: DatabaseHandler, topic: dict, num_posts: int,
     topic_post_day = db.create(
         'topic_post_days',
         {
-            'topics_id': topic['topics_id'],
+            'topic_seed_queries_id': topic_seed_query['topic_seed_queries_id'],
             'day': day,
             'num_posts': num_posts,
             'posts_fetched': False
@@ -207,11 +207,11 @@ def _add_topic_post_single_day(db: DatabaseHandler, topic: dict, num_posts: int,
     return topic_post_day
 
 
-def _topic_post_day_fetched(db: DatabaseHandler, topic: dict, day: datetime) -> bool:
+def _topic_post_day_fetched(db: DatabaseHandler, topic_seed_query: dict, day: datetime) -> bool:
     """Return true if the topic_post_day exists and posts_fetched is true."""
     ttd = db.query(
-        "select * from topic_post_days where topics_id = %(a)s and day = %(b)s",
-        {'a': topic['topics_id'], 'b': str(day)}).hash()
+        "select * from topic_post_days where topic_seed_queries_id = %(a)s and day = %(b)s",
+        {'a': topic_seed_query['topic_seed_queries_id'], 'b': str(day)}).hash()
 
     if not ttd:
         return False
@@ -250,7 +250,7 @@ def fetch_posts(topic_seed_query: dict, start_date: datetime, end_date: datetime
     return fetcher.fetch_posts(query=topic_seed_query['query'], start_date=start_date, end_date=end_date)
 
 
-def fetch_topic_posts(db: DatabaseHandler, topics_id: int) -> None:
+def fetch_topic_posts(db: DatabaseHandler, topic_seed_query: dict) -> None:
     """For each day within the topic dates, fetch and store posts returned by the topic_seed_query.
 
     This is the core function that fetches and stores data for sharing topics.  This function will break the
@@ -265,17 +265,10 @@ def fetch_topic_posts(db: DatabaseHandler, topics_id: int) -> None:
     Return:
     None
     """
-    topic = db.require_by_id('topics', topics_id)
+    topic = db.require_by_id('topics', topic_seed_query['topics_id'])
 
     if topic['mode'] != 'url_sharing':
         raise McFetchTopicPostsDataException("Topic mode is not 'url_sharing'")
-
-    topic_seed_queries = db.query(
-        "select * from topic_seed_queries where topics_id = %(a)s",
-        {'a': topics_id}).hashes()
-
-    if not len(topic_seed_queries) == 1:
-        raise McFetchTopicPostsDataException("Topic must have exactly one topic_seed_queries row")
 
     topic_seed_query = topic_seed_queries[0]
 
@@ -283,9 +276,9 @@ def fetch_topic_posts(db: DatabaseHandler, topics_id: int) -> None:
     end_date = datetime.datetime.strptime(topic['end_date'], '%Y-%m-%d')
     while date <= end_date:
         log.debug("fetching posts for %s" % date)
-        if not _topic_post_day_fetched(db, topic, date):
+        if not _topic_post_day_fetched(db, topic_seed_query, date):
             posts = fetch_posts(topic_seed_query, date)
-            topic_post_day = _add_topic_post_single_day(db, topic, len(posts), date)
+            topic_post_day = _add_topic_post_single_day(db, topic_seed_query, len(posts), date)
             _store_posts_for_day(db, topic_post_day, posts)
 
         date = date + datetime.timedelta(days=1)

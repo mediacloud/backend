@@ -103,6 +103,7 @@ insert into retweeters ( retweeter_scores_id, twitter_user, retweeted_user )
             lower( ru.u )
         from topic_posts tt
             join topic_post_days ttd using ( topic_post_days_id )
+            join topic_seed_queries tsq using ( topic_seed_queries_id )
             join retweeter_scores rs using ( topics_id )
             join ru on ( $join_condition )
         where

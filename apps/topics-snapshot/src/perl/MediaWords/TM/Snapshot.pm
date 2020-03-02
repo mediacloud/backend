@@ -950,7 +950,8 @@ create temporary table snapshot_post_stories as
                 extract( day from now() - ( tt.data->'tweet'->'user'->>'created_at' )::date ) days
             from topic_posts tt
                 join topic_post_days ttd using ( topic_post_days_id )
-            where ttd.topics_id = \$1
+                join topic_seed_queries tsq using ( topic_seed_queries_id )
+            where tsq.topics_id = \$1
     )
 
     select topic_posts_id, u.publish_date, author, stories_id, media_id, num_posts
