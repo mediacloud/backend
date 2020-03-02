@@ -8,13 +8,18 @@ class McConnectException(McDatabaseHandlerException):
     pass
 
 
-class McSchemaIsUpToDateException(McDatabaseHandlerException):
-    """schema_is_up_to_date() exception."""
+class McQueryException(McDatabaseHandlerException):
+    """query() exception."""
     pass
 
 
-class McQueryException(McDatabaseHandlerException):
-    """query() exception."""
+class McTransactionRollbackError(McQueryException):
+    """Error causing transaction rollback (deadlocks, serialization failures, etc.)"""
+    pass
+
+
+class McTupleAlreadyMovedError(McTransactionRollbackError):
+    """Error thrown on 'tuple to be locked was already moved to another partition due to concurrent update' error."""
     pass
 
 
