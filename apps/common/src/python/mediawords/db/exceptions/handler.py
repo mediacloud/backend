@@ -13,6 +13,16 @@ class McQueryException(McDatabaseHandlerException):
     pass
 
 
+class McTransactionRollbackError(McQueryException):
+    """Error causing transaction rollback (deadlocks, serialization failures, etc.)"""
+    pass
+
+
+class McTupleAlreadyMovedError(McTransactionRollbackError):
+    """Error thrown on 'tuple to be locked was already moved to another partition due to concurrent update' error."""
+    pass
+
+
 class McPrimaryKeyColumnException(McDatabaseHandlerException):
     """primary_key_column() exception."""
     pass
