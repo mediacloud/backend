@@ -118,6 +118,7 @@ def regenerate_post_urls(db: DatabaseHandler, topic: dict) -> None:
         select tt.topic_posts_id
             from topic_posts tt
                 join topic_post_days ttd using ( topic_post_days_id )
+                join topic_seed_queries tsg using ( topic_seed_queries_id )
             where
                 topics_id = %(a)s
         """,
@@ -267,12 +268,8 @@ def fetch_topic_posts(db: DatabaseHandler, topic_seed_query: dict) -> None:
     """
     topic = db.require_by_id('topics', topic_seed_query['topics_id'])
 
-    if topic['mode'] != 'url_sharing':
-        raise McFetchTopicPostsDataException("Topic mode is not 'url_sharing'")
-
-    topic_seed_query = topic_seed_queries[0]
-
     date = datetime.datetime.strptime(topic['start_date'], '%Y-%m-%d')
+
     end_date = datetime.datetime.strptime(topic['end_date'], '%Y-%m-%d')
     while date <= end_date:
         log.debug("fetching posts for %s" % date)

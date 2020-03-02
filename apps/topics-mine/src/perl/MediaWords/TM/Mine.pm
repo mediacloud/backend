@@ -951,7 +951,7 @@ sub import_urls_from_seed_queries($$)
 
     my $num_queries = scalar( @{ $topic_seed_queries } );
 
-    if ( ( $num_queries <> 1 ) && ( $topic->{ mode } eq 'url_sharing' ))
+    if ( ( $num_queries != 1 ) && ( $topic->{ mode } eq 'url_sharing' ))
     {
         die( "exactly one topic seed query required per url_sharing topic" );
     }
@@ -984,10 +984,6 @@ insert into topic_seed_urls ( url, topics_id, assume_match, source, topic_seed_q
         where
             tsq.topics_id = ?
 SQL
-    }
-    else
-    {
-    }
 }
 
 # if the query or dates have changed, set topic_stories.link_mined to false for the impacted stories so that

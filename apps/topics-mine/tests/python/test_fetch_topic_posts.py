@@ -63,6 +63,7 @@ def _validate_topic_posts(db: DatabaseHandler, topic: dict, mock_posts: list) ->
         select *
             from topic_posts tp
                 join topic_post_days tpd using ( topic_post_days_id )
+                join topic_seed_queries tsq using ( topic_seed_queries_id )
             where topics_id = %(a)s
         """,
         {'a': topic['topics_id']}).hashes()
@@ -122,11 +123,11 @@ def test_fetch_topic_posts() -> None:
     mock_posts_csv = CSVStaticPostFetcher()._get_csv_string_from_dicts(mock_posts)
 
     tsq = {'topics_id': topic['topics_id'], 'platform': 'generic_post', 'source': 'csv', 'query': mock_posts_csv}
-    db.create('topic_seed_queries', tsq)
+    tsq = db.create('topic_seed_queries', tsq)
 
     db.update_by_id('topics', topic['topics_id'], {'platform': 'generic_post'})
 
-    fetch_topic_posts(db, topic['topics_id'])
+    fetch_topic_posts(db, tsq)
 
     topic_post_days = db.query("select * from topic_post_days").hashes()
     assert len(topic_post_days) == MOCK_DAYS
@@ -135,8 +136,8 @@ def test_fetch_topic_posts() -> None:
     test_days = [start_date + datetime.timedelta(days=x) for x in range(0, MOCK_DAYS)]
     for d in test_days:
         topic_post_day = db.query(
-            "select * from topic_post_days where topics_id = %(a)s and day = %(b)s",
-            {'a': topic['topics_id'], 'b': d}
+            "select * from topic_post_days where topic_seed_queries_id = %(a)s and day = %(b)s",
+            {'a': tsq['topic_seed_queries_id'], 'b': d}
         ).hash()
         assert topic_post_day is not None
 
