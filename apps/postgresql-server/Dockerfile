@@ -40,6 +40,12 @@ COPY schema/ /opt/mediacloud/schema/
 
 USER postgres
 
+# Initialize data volume, create users, a database, and initialize it with
+# schema
+# If a new empty volume gets mounted to /var/lib/postgresql/ upon
+# container start, Docker will copy the files from the container to the volume
+RUN /opt/mediacloud/bin/initialize_schema.sh
+
 ENV \
     PATH="/opt/mediacloud/bin:${PATH}" \
     #
@@ -49,12 +55,6 @@ ENV \
     PGUSER=mediacloud \
     PGPASSWORD=mediacloud \
     PGDATABASE=mediacloud
-
-# Initialize data volume, create users, a database, and initialize it with
-# schema
-# If a new empty volume gets mounted to /var/lib/postgresql/ upon
-# container start, Docker will copy the files from the container to the volume
-RUN initialize_schema.sh
 
 # Remove the init script so that someone doesn't accidentally run it in
 # production
