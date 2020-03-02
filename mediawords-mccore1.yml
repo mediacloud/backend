@@ -1,0 +1,381 @@
+---
+name: MediaWords
+
+### database settings. at least one database connection must be defined
+database:
+
+    # production
+    - label: database
+      type: "pg"
+      host: "mcdb1-private"
+      port: 6432
+      user: "mediacloud"
+      pass: "Omomric2"
+      db: "mediacloud"
+
+#    - label: database readonly
+#      db: mediacloud
+#      type: "pg"
+#      host: "mcdb1-private"
+#      user: mediacloud_ro
+#      pass: 82twobDufPof
+
+### Amazon S3 connection settings
+amazon_s3:
+
+    ### Bucket for storing downloads
+    downloads:
+        access_key_id     : "AKIAJTUSOK6MW743NFZQ"
+        secret_access_key : "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"
+        bucket_name       : "mediacloud-downloads-backup"
+        directory_name    : "downloads"
+
+crimson_hexagon:
+    key: "-DWWKbXhpbW13z3vgCYu_xaF5AG3D3A3qAJ41qyawPw"
+
+twitter:
+   consumer_key: "fWKCpGie8lfa1PtUswnZunjrU"
+   consumer_secret: "g3FY3SPbaky4GZqw0oYF3EU930KUY0qEkspaMJ2LUVPnXfyj1U"
+   access_token: "38100863-3ZzLK4MLj3EkBJrqdNglUydNDFYjBDT1Jb0YYLIfC"
+   access_token_secret: "tBZrtkxIjEgd4AX1RtquzMJLy1FbAK6LmzKBliTFAcHud"
+
+### SimilarWeb API
+similarweb:
+
+    ### API key, costs money, see at https://developer.similarweb.com/
+    api_key: "4624583fd939261b54d304bfcc293598"
+
+supervisor:
+    start_no_supervisor_programs: false
+    programs:
+        crawler:
+            numprocs: 192
+            autostart: true
+        solr:
+            autostart: false
+        import_solr_data:
+            # Runs on mcquery1
+            autostart: false
+        move_nonpartitioned_downloads_to_partitions:
+            autostart: false
+        extract_and_vector:
+            numprocs: 32
+            autostart: true
+        twitter_fetch_story_stats:
+            numprocs: 4
+            autostart: true
+        facebook_fetch_story_stats:
+            numprocs: 4
+            autostart: true
+        cliff_fetch_annotation:
+            numprocs: 4
+            autostart: true
+        cliff_update_story_tags:
+            numprocs: 2
+            autostart: true
+        nyt_labels_fetch_annotation:
+            numprocs: 4
+            autostart: true
+        nyt_labels_update_story_tags:
+            numprocs: 2
+            autostart: true
+        rescrape_media:
+            numprocs: 4
+            autostart: true
+        rabbitmq:
+            autostart: false
+        reextract_stories_without_readability_tag:
+            autostart: false
+        scrape_feedly:
+            autostart: true
+        topic_mine:
+            numprocs: 4
+            autostart: false
+        topic_mine_public:
+            numprocs: 4
+            autostart: false
+        topic_snapshot:
+            numprocs: 2
+            autostart: false
+        extract_story_links:
+            numprocs: 1
+            autostart: false
+        fetch_link:
+            numprocs: 1
+            autostart: false
+
+        # Standalone Solr instance
+        solr_standalone:
+            autostart: false
+
+        # Solr cluster: ZooKeeper instance
+        solr_cluster_zookeeper:
+            autostart: false
+
+        # Solr cluster: Solr shards
+        # (Don't set "numprocs" here, adjust "cluster_shard_count" / "local_shard_count" instead.)
+        solr_shard:
+            autostart: false
+
+        queue_media_solr_exports:
+            autostart: false
+
+        word2vec_generate_snapshot_model:
+            autostart: true
+            numprocs: 4
+
+        sitemap_fetch_media_pages:
+            autostart: false
+
+### Solr server, when running as a Supervisor service
+#supervisor_solr:
+
+    ### Standalone Solr instance
+    #standalone:
+
+        # JVM heap size (-Xmx)
+        #jvm_heap_size: "256m"
+
+    ### Solr cluster
+    #cluster:
+
+        ### ZooKeeper instance
+        #zookeeper:
+
+            ### Address to bind to
+            #listen: "0.0.0.0"
+
+            ### Port to listen to
+            #port: 9983
+
+        ### Solr shards
+        #shards:
+
+            # Total number of local shards
+            #local_shard_count: 2
+
+            # Total number of shards across the cluster ("numShards")
+            #cluster_shard_count: 2
+
+            # JVM heap size for a single shard (-Xmx)
+            #jvm_heap_size: "256m"
+
+            # ZooKeeper host + port to connect shards to
+            #zookeeper_host: "localhost"
+            #zookeeper_port: 9983
+
+### Job manager (MediaCloud::JobManager) configuration
+job_manager:
+
+    ### When uncommented, will use RabbitMQ as job broker
+    rabbitmq:
+
+        ### RabbitMQ client configuration
+        ### (both workers and clients will use this key)
+        client:
+
+            ### Connection credentials
+            hostname: "mcservices4"
+            # not the default 5672:
+            port: 5673
+            username: "mediacloud"
+            password: "mediacloud"
+            vhost: "/mediacloud"
+            timeout: 60
+
+        ### RabbitMQ server configuration
+        ### (rabbitmq_wrapper.sh will use this for starting up an instance of
+        ### RabbitMQ)
+        server:
+
+            ### To disable your very own RabbitMQ instance managed by Supervisord,
+            ### set the below to "false" (without quotes). Default is "true".
+            enabled: false
+
+            ### Host to listen to. You can set the above parameter to an empty string
+            ### so that RabbitMQ will accept connections from anywhere; however, it is
+            ### highly advised use to secure channels (e.g. a SSH tunnel) to make RabbitMQ
+            ### accessible from "outside" instead. Default is "127.0.0.1".
+            listen: ""
+
+            ### Port to use for RabbitMQ. Default port for vendor-provided RabbitMQ
+            ### deployments is 5672, but Media Cloud runs its own Gearman instance via
+            ### Supervisord. Default is 5673.
+            port: 5673
+
+            ### Node name
+            node_name: "mediacloud@localhost"
+
+            ### User credentials and vhost to create upon start (instead of "guest")
+            username: "mediacloud"
+            password: "mediacloud"
+            vhost: "/mediacloud"
+
+### CLIFF annotator
+cliff:
+
+    ### Enable CLIFF processing
+    ### If enabled, CLIFF processing will happen after every "content"
+    ### download extraction
+    enabled: true
+
+    ### Annotator URL (text parsing endpoint), e.g. "http://localhost:8080/cliff-2.3.0/parse/text"
+    annotator_url: "http://civicprod.media.mit.edu:8080/cliff-2.4.1/parse/text"
+
+    ### CLIFF version tag, e.g. "cliff_clavin_v2.3.0"; will be added under
+    ### "geocoder_version" tag set
+    cliff_version_tag: "cliff_clavin_v2.4.1"
+
+    ### CLIFF geographical names tag set, e.g. "cliff_geonames";
+    ### tags with names such as "geonames_<countryGeoNameId>" will be added
+    ### under this tag set
+    cliff_geonames_tag_set: "mc-geocoder@media.mit.edu"
+
+    ### CLIFF organizations tag set, e.g. "cliff_organizations"; tags with
+    ### names of organizations such as "United Nations" will be added under
+    ### this tag set
+    cliff_organizations_tag_set: "cliff_organizations"
+
+    ### CLIFF people tag set, e.g. "cliff_people"; tags with names of people
+    ### such as "Einstein" will be added under this tag set
+    cliff_people_tag_set: "cliff_people"
+
+### NYTLabels annotator
+nytlabels:
+
+    ### Enable NYTLabels processing
+    ### If enabled, NYTLabels processing will happen after every "content"
+    ### download extraction
+    enabled: true
+
+    ### Annotator URL (text parsing endpoint), e.g. "http://localhost/predict.json"
+    #annotator_url: "http://predict-news-labels.um-dokku.media.mit.edu/predict.json"
+    annotator_url: "http://mcdb2.media.mit.edu:8000/predict.json"
+
+    ### NYTLabels version tag, e.g. "nytlabels_clavin_v2.3.0"; will be added under
+    ### "geocoder_version" tag set
+    nytlabels_version_tag: "nyt_labeller_v1.0.0"
+
+    ### NYTLabels tag set, e.g. "nyt_labels"; tags with names such as
+    ### "hurricane" will be added under this tag set
+    nytlabels_labels_tag_set: "nyt_labels"
+
+
+### Facebook API
+facebook:
+
+    ### Enable Facebook processing
+    enabled: true
+
+    ## App ID
+    app_id: "1984130155145003"
+
+    ## App Secret
+    app_secret: "a704700bb34099edcde222a229f8397d"
+
+    ## Request timeout
+    #timeout: 60
+
+### Univision.com feed credentials
+univision:
+    ### Client ID
+    client_id: "28e654ed0e009ee71c0d3e4bc716686b19af51a7"
+
+    ### Client Secret (Secret Key)
+    client_secret: "184f330efbbb3bd3b5c51060255cc65f3e8b784c"
+
+### Email configuration
+mail:
+
+    # "From:" email address that is being set in emails sent by Media Cloud
+    from_address: "noreply@mediacloud.org"
+
+    ### (optional) SMTP configuration
+    smtp:
+
+        ### SMTP host
+        host: "localhost"
+
+        ### SMTP port
+        port: 25
+
+        ### Use STARTTLS? If you enable that, you probably want to change the port to 587.
+        starttls: false
+
+        ### (optional) SMTP login credentials
+        username: ""
+        password: ""
+
+mediawords:
+    
+    ### parent directory of the content/ directory with all downloaded content is stored
+    data_dir: "/home/mediacloud/mediacloud/data"
+
+    ### HTTP user agent and the email address of the owner of the bot
+    user_agent: "mediawords bot (http://cyber.law.harvard.edu)"
+    owner: "info@mediacloud.org"
+
+    crawler_authenticated_domains:
+          - domain: "ap.org"
+            user: "berkmancenter_webfeeds"
+            password: "@Pwf$97257"
+
+    ### Uncomment one or more storage methods to store downloads to; default is just "tar"
+    download_storage_locations:
+        ## first off, write download to S3 because backup script is disabled while we're importing downloads to external database
+        - amazon_s3
+        ## then, write download to PostgreSQL (external) database so that a correct "downloads.path" gets written
+        #- postgresql
+
+    ### Read all non-inline ("content") downloads from S3
+    read_all_downloads_from_s3 : true
+
+    ### Uncomment to fallback PostgreSQL downloads to Amazon S3 (if download
+    ### doesn't exist in PostgreSQL storage, S3 will be tried instead)
+    fallback_postgresql_downloads_to_s3 : true
+
+    ### Enable local Amazon S3 download caching?
+    cache_s3_downloads : false
+
+    # Uncomment to cause feeds to be downloaded and stories but not processed for stories.
+    # Generally the only reason you would want to do this is to run a backup crawler
+    #do_not_process_feeds: true
+
+    # Uncommit to speed up slow queries by setting the Postgresql work_mem parameter to this value
+    # By default the initial Postgresql value of work_mem is used
+    large_work_mem: "3GB"
+    
+    # downloads id under which to strip all non-ascii characters
+    ascii_hack_downloads_id: 63708887
+
+    # url for solr word counting url
+    #solr_wc_url: "http://mcquery2.media.mit.edu/api/v2/wc/list"
+    #solr_wc_key: "9268ba08cdb6e63dde08d3c23b0d04cb26d893ac046efc842fbe530e71dd19e0"
+    
+    # url for solr queries
+    solr_url:
+        - http://mcquery2.media.mit.edu:7983/solr
+
+    # Solr importer configuration
+    #solr_import:
+        # Stories to import into Solr on a single run
+        #max_queued_stories: 100000
+
+    # No idea what this is really.
+    max_solr_seed_query_stories: 500000
+
+    # increment wc_cache_version to invalidate existing cache
+    wc_cache_version: 4
+
+    # settings for mediawords_web_store.pl script that does in process parallel fetching
+    web_store_num_parallel: 50
+    web_store_timeout: 30
+    #web_store_per_domain_timeout: 1
+
+    blacklist_url_pattern: "^https?://[^/]*elvocero.com"
+
+    topic_alert_emails:
+        - "hroberts@cyber.law.harvard.edu"
+        - "g2u7o2w0m6i1f0a9@mediaclouddev.slack.com"
+
+    
