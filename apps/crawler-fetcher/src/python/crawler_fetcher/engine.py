@@ -81,13 +81,19 @@ def _fetch_and_handle_download(db: DatabaseHandler, download: dict, handler: Abs
     response = handler.fetch_download(db=db, download=download)
     fetch_timer.stop()
 
-    store_timer = Timer('store').start()
-    try:
-        handler.store_response(db=db, download=download, response=response)
-    except Exception as ex:
-        log.error(f"Error in handle_response() for downloads_id {downloads_id} {url}: {ex}")
-        raise ex
-    store_timer.stop()
+    if response:
+
+        store_timer = Timer('store').start()
+        try:
+            handler.store_response(db=db, download=download, response=response)
+        except Exception as ex:
+            log.error(f"Error in handle_response() for downloads_id {downloads_id} {url}: {ex}")
+            raise ex
+        store_timer.stop()
+
+    else:
+
+        log.warning(f"Response for download {downloads_id} is None")
 
     log.info(f"Fetch done: {downloads_id} {url}")
 
