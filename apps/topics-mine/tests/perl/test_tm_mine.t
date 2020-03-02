@@ -342,7 +342,7 @@ sub create_topic($$)
             end_date            => $end_date,
             job_queue           => 'mc',
             max_stories         => 100_000,
-
+            platform            => 'web'
         }
     );
 

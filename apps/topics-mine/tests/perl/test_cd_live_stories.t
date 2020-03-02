@@ -87,7 +87,8 @@ sub test_live_stories
         start_date          => '2017-01-01',
         end_date            => '2017-02-01',
         job_queue           => 'mc',
-        max_stories         => 100_000
+        max_stories         => 100_000,
+        platform            => 'web'
     };
     $topic_a = $db->create( 'topics', $topic_a );
 
@@ -100,7 +101,8 @@ sub test_live_stories
         start_date          => '2017-01-01',
         end_date            => '2017-02-01',
         job_queue           => 'mc',
-        max_stories         => 100_000
+        max_stories         => 100_000,
+        platform            => 'web'
     };
     $topic_b = $db->create( 'topics', $topic_b );
 
