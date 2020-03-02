@@ -1,4 +1,5 @@
 import abc
+from typing import Optional
 
 from mediawords.db import DatabaseHandler
 from mediawords.util.log import create_logger
@@ -11,7 +12,7 @@ class AbstractDownloadHandler(object, metaclass=abc.ABCMeta):
     """Abstract download handler."""
 
     @abc.abstractmethod
-    def fetch_download(self, db: DatabaseHandler, download: dict) -> Response:
+    def fetch_download(self, db: DatabaseHandler, download: dict) -> Optional[Response]:
         """Fetch the download and return the response.
 
         In addition to the basic HTTP request with the user agent options supplied by UserAgent() object, the
@@ -21,6 +22,9 @@ class AbstractDownloadHandler(object, metaclass=abc.ABCMeta):
         * Follow <meta /> refresh redirects in the response content;
         * Add domain specific HTTP auth specified in configuration;
         * Implement a very limited amount of site specific fixes.
+
+        Return Response if the download had to be fetched and was, in fact, fetched; or return None if the download
+        shouldn't / couldn't be fetched for whatever reason but no error is to be reported.
         """
         raise NotImplemented("Abstract method.")
 

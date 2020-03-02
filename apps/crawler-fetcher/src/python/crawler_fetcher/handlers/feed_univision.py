@@ -1,14 +1,14 @@
 import hashlib
 from typing import List, Dict, Any
 
+from crawler_fetcher.handlers.default.fetch_mixin import DefaultFetchMixin
 from mediawords.db import DatabaseHandler
 from mediawords.dbi.downloads.store import get_media_id
 from mediawords.util.log import create_logger
 from mediawords.util.parse_json import decode_json
 from mediawords.util.perl import decode_object_from_bytes_if_needed
-from mediawords.util.sql import sql_now, get_sql_date_from_epoch
+from mediawords.util.sql import get_sql_date_from_epoch
 from mediawords.util.url import is_http_url
-from mediawords.util.web.user_agent import Response, UserAgent, Request
 
 from furl import furl
 
@@ -22,7 +22,7 @@ from crawler_fetcher.str2time import str2time_21st_century
 log = create_logger(__name__)
 
 
-class DownloadFeedUnivisionHandler(AbstractDownloadFeedHandler, AbstractDownloadHandler):
+class DownloadFeedUnivisionHandler(DefaultFetchMixin, AbstractDownloadFeedHandler, AbstractDownloadHandler):
     __slots__ = [
         '__crawler_config',
     ]
@@ -111,20 +111,13 @@ class DownloadFeedUnivisionHandler(AbstractDownloadFeedHandler, AbstractDownload
             http_method=http_method,
         )
 
-    def fetch_download(self, db: DatabaseHandler, download: dict) -> Response:
-        download = decode_object_from_bytes_if_needed(download)
+    def _download_url(self, download: dict) -> str:
+        url = download['url']
 
-        download['download_time'] = sql_now()
-        download['state'] = 'fetching'
+        # Return URL with Univision's credentials
+        url_with_credentials = self._api_request_url_with_signature_from_config(api_url=url)
 
-        db.update_by_id(table='downloads', object_id=download['downloads_id'], update_hash=download)
-
-        ua = UserAgent()
-        url_with_credentials = self._api_request_url_with_signature_from_config(api_url=download['url'])
-        request = Request(method='GET', url=url_with_credentials)
-        response = ua.request(request)
-
-        return response
+        return url_with_credentials
 
     @classmethod
     def _get_stories_from_univision_feed(cls, content: str, media_id: int) -> List[Dict[str, Any]]:

@@ -148,6 +148,8 @@ class AbstractUnivisionTest(object, metaclass=abc.ABCMeta):
         handler = DownloadFeedUnivisionHandler(crawler_config=self._mock_crawler_config())
 
         response = handler.fetch_download(db=self.db, download=download)
+        assert response
+
         handler.store_response(db=self.db, download=download, response=response)
 
         download = self.db.find_by_id(table='downloads', object_id=download['downloads_id'])
