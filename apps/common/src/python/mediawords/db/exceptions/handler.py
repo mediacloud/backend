@@ -8,11 +8,6 @@ class McConnectException(McDatabaseHandlerException):
     pass
 
 
-class McSchemaIsUpToDateException(McDatabaseHandlerException):
-    """schema_is_up_to_date() exception."""
-    pass
-
-
 class McQueryException(McDatabaseHandlerException):
     """query() exception."""
     pass
