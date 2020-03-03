@@ -86,6 +86,12 @@ select insert_platform_source_pair( 'twitter', 'crimson_hexagon' );
 select insert_platform_source_pair( 'generic_post', 'csv' );
 select insert_platform_source_pair( 'reddit', 'pushshift' );
 
+drop view controversies;
+drop view controversy_dumps;
+drop view controversy_dump_time_slices;
+
+drop view topics_with_user_permission;
+
 drop view topic_post_full_urls;
 
 alter table topics alter platform type text;
@@ -117,7 +123,7 @@ alter table topic_post_days drop topics_id;
 
 alter table topic_post_days alter topic_seed_queries_id set not null;
 
-create index topic_post_days_td on ( topic_seed_queries_id, day );
+create index topic_post_days_td on topic_post_days ( topic_seed_queries_id, day );
 
 create view topic_post_full_urls as
     select distinct
@@ -133,6 +139,36 @@ create view topic_post_full_urls as
             join topic_post_urls ttu using ( topic_posts_id )
             left join topic_seed_urls tsu
                 on ( tsu.topics_id = t.topics_id and ttu.url = tsu.url );
+
+create or replace view topics_with_user_permission as                                                                   
+    with admin_users as (                                                                                               
+        select m.auth_users_id                                                                                          
+            from auth_roles r                                                                                           
+                join auth_users_roles_map m using ( auth_roles_id )                                                     
+            where                                                                                                       
+                r.role = 'admin'                                                                                        
+    ),                                                                                                                  
+                                                                                                                        
+    read_admin_users as (                                                                                               
+        select m.auth_users_id                                                                                          
+            from auth_roles r                                                                                           
+                join auth_users_roles_map m using ( auth_roles_id )                                                     
+            where                                                                                                       
+                r.role = 'admin-readonly'                                                                               
+    )                                                                                                                   
+                                                                                                                        
+    select                                                                                                              
+            t.*,                                                                                                        
+            u.auth_users_id,                                                                                            
+            case                                                                                                        
+                when ( exists ( select 1 from admin_users a where a.auth_users_id = u.auth_users_id ) ) then 'admin'                     when ( tp.permission is not null ) then tp.permission::text                                             
+                when ( t.is_public ) then 'read'                                                                        
+                when ( exists ( select 1 from read_admin_users a where a.auth_users_id = u.auth_users_id ) ) then 'read'                 else 'none' end                                                                                         
+                as user_permission                                                                                      
+        from topics t                                                                                                   
+            join auth_users u on ( true )                                                                               
+            left join topic_permissions tp using ( topics_id, auth_users_id ); 
+
 
 drop type topic_platform_type;
 drop type topic_source_type;
