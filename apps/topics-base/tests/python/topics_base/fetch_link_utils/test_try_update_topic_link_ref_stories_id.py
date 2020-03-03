@@ -1,7 +1,7 @@
 import pytest
 
 from mediawords.db import connect_to_db
-from mediawords.db.exceptions.handler import McUpdateByIDException
+from mediawords.db.exceptions.result import McDatabaseResultException
 from mediawords.test.db.create import (
     create_test_medium,
     create_test_feed,
@@ -68,5 +68,5 @@ def test_try_update_topic_link_ref_stories_id():
     # now generate an non-unique error and make sure we get an error
     bogus_tfu = {'topic_links_id': 0, 'topics_id': 'nan', 'stories_id': 'nan'}
 
-    with pytest.raises(McUpdateByIDException):
+    with pytest.raises(McDatabaseResultException):
         try_update_topic_link_ref_stories_id(db, bogus_tfu)

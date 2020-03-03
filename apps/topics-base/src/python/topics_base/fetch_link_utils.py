@@ -1,7 +1,7 @@
 import re2
 
 from mediawords.db import DatabaseHandler
-from mediawords.db.exceptions.handler import McUpdateByIDException
+from mediawords.db.exceptions.result import McDatabaseResultException
 
 
 def content_matches_topic(content: str, topic: dict, assume_match: bool = False) -> bool:
@@ -55,7 +55,7 @@ def try_update_topic_link_ref_stories_id(db: DatabaseHandler, topic_fetch_url: d
             'topic_links',
             topic_fetch_url['topic_links_id'],
             {'ref_stories_id': topic_fetch_url['stories_id']})
-    except McUpdateByIDException as e:
+    except McDatabaseResultException as e:
         # the query will throw a unique constraint error if stories_id,ref_stories already exists.  it's quicker
         # to just catch and ignore the error than to try to avoid id
         if 'unique constraint "topic_links_scr"' not in str(e):
