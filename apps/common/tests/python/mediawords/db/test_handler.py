@@ -6,9 +6,7 @@ import pytest
 from mediawords.db import connect_to_db
 from mediawords.db.exceptions.handler import McPrimaryKeyColumnException
 from mediawords.db.exceptions.result import McDatabaseResultException
-from mediawords.db.handler import (
-    McUpdateByIDException, McCreateException, McRequireByIDException, McUniqueConstraintException,
-)
+from mediawords.db.handler import McRequireByIDException, McUniqueConstraintException
 from mediawords.util.log import create_logger
 
 log = create_logger(__name__)
@@ -476,7 +474,7 @@ class TestDatabaseHandler(TestCase):
         assert '_ignored_key' not in row_hash
 
         # Nonexistent column
-        with pytest.raises(McUpdateByIDException):
+        with pytest.raises(McDatabaseResultException):
             self.__db.update_by_id('kardashians', 4, {'does_not': 'exist'})
 
     def test_delete_by_id(self):
@@ -495,7 +493,7 @@ class TestDatabaseHandler(TestCase):
         assert str(row['dob']) == '1979-11-06'
 
         # Nonexistent column
-        with pytest.raises(McCreateException):
+        with pytest.raises(McDatabaseResultException):
             self.__db.create('kardashians', {'does_not': 'exist'})
 
         # unique constraint
@@ -548,7 +546,7 @@ class TestDatabaseHandler(TestCase):
             END;
             $$ LANGUAGE plpgsql;
 
-            CREATE TRIGGER create_updatable_view_celebrities_view_insert_update_delete_trigger
+            CREATE TRIGGER celebrities_view_insert_update_delete_trigger
                 INSTEAD OF INSERT OR UPDATE OR DELETE ON create_updatable_view_celebrities
                 FOR EACH ROW EXECUTE PROCEDURE create_updatable_view_celebrities_view_insert_update_delete();
         """)
@@ -564,7 +562,7 @@ class TestDatabaseHandler(TestCase):
         assert str(row['dob']) == '1979-11-06'
 
         # Nonexistent column
-        with pytest.raises(McCreateException):
+        with pytest.raises(McDatabaseResultException):
             self.__db.create('create_updatable_view_celebrities', {
                 'does_not': 'exist',
 

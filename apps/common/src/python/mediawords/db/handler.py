@@ -386,10 +386,7 @@ class DatabaseHandler(object):
         sql += "WHERE %s = " % primary_key_column
         sql += "%(__object_id)s"  # "%(__object_id)s" to be resolved by psycopg2, not Python
 
-        try:
-            self.query(sql, update_hash)
-        except Exception as ex:
-            raise McUpdateByIDException("Unable to UPDATE hash '%s': %s" % (str(update_hash), str(ex)))
+        self.query(sql, update_hash)
 
         updated_row = self.find_by_id(table=table, object_id=object_id)
 
@@ -469,11 +466,7 @@ class DatabaseHandler(object):
                     'exception': str(ex),
                 })
             else:
-                raise McCreateException("Unable to INSERT into '%(table)s' data '%(data)s': %(exception)s" % {
-                    'table': table,
-                    'data': str(insert_hash),
-                    'exception': str(ex),
-                })
+                raise ex
 
         if last_inserted_id is None or len(last_inserted_id) == 0:
             raise McCreateException("Last inserted ID was not found")
