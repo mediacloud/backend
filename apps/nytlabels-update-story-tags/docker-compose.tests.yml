@@ -4,6 +4,7 @@ services:
 
     nytlabels-update-story-tags:
         image: dockermediacloud/nytlabels-update-story-tags:latest
+        init: true
         stop_signal: SIGKILL
         environment:
             MC_NYTLABELS_VERSION_TAG: "nyt_labeller_v1.0.0"
@@ -29,6 +30,7 @@ services:
 
     postgresql-pgbouncer:
         image: dockermediacloud/postgresql-pgbouncer:latest
+        init: true
         stop_signal: SIGKILL
         expose:
             - 6432
@@ -41,6 +43,7 @@ services:
 
     postgresql-server:
         image: dockermediacloud/postgresql-server:latest
+        init: true
         stop_signal: SIGKILL
         expose:
             - 5432

@@ -4,6 +4,7 @@ services:
 
     export-tables-to-backup-crawler:
         image: dockermediacloud/export-tables-to-backup-crawler:latest
+        init: true
         stop_signal: SIGKILL
         volumes:
             - type: bind
@@ -23,6 +24,7 @@ services:
 
     postgresql-pgbouncer:
         image: dockermediacloud/postgresql-pgbouncer:latest
+        init: true
         stop_signal: SIGKILL
         expose:
             - 6432
@@ -35,6 +37,7 @@ services:
 
     postgresql-server:
         image: dockermediacloud/postgresql-server:latest
+        init: true
         stop_signal: SIGKILL
         expose:
             - 5432

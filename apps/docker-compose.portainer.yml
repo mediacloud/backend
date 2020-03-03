@@ -27,6 +27,7 @@ services:
     # Web UI (run on a single server which has a label)
     portainer:
         image: portainer/portainer:1.23.1
+        init: true
         #
         # Hash the password:
         #
@@ -67,6 +68,7 @@ services:
     # Agent (run on every server)
     portainer-agent:
         image: portainer/agent:1.5.1
+        init: true
         networks:
             - portainer
         environment:
