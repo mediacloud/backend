@@ -389,7 +389,7 @@ class DatabaseHandler(object):
         try:
             self.query(sql, update_hash)
         except Exception as ex:
-            raise McUpdateByIDException("Update to UPDATE hash '%s': %s" % (str(update_hash), str(ex)))
+            raise McUpdateByIDException("Unable to UPDATE hash '%s': %s" % (str(update_hash), str(ex)))
 
         updated_row = self.find_by_id(table=table, object_id=object_id)
 

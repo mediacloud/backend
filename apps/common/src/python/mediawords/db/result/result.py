@@ -7,8 +7,10 @@ import time
 from typing import Dict, List, Any
 
 import psycopg2
+from psycopg2.extensions import TransactionRollbackError
 from psycopg2.extras import DictCursor
 
+from mediawords.db.exceptions.handler import McTransactionRollbackError, McTupleAlreadyMovedError
 from mediawords.db.exceptions.result import McDatabaseResultException, McDatabaseResultTextException
 from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_object_from_bytes_if_needed
@@ -98,17 +100,23 @@ class DatabaseResult(object):
 
         except psycopg2.Error as ex:
 
+            ex_class = McDatabaseResultException
+            if isinstance(ex, TransactionRollbackError):
+                ex_class = McTransactionRollbackError
+                if 'tuple to be locked was already moved to another partition due to concurrent update' in str(ex):
+                    ex_class = McTupleAlreadyMovedError
+
             try:
                 mogrified_query = cursor.mogrify(*query_args)
             except Exception as ex:
                 # Can't mogrify
-                raise McDatabaseResultException(
+                raise ex_class(
                     'Query failed: %(exception)s; query: %(query)s' % {
                         'exception': str(ex),
                         'query': str(query_args),
                     })
             else:
-                raise McDatabaseResultException(
+                raise ex_class(
                     'Query failed: %(exception)s; query: %(query)s; mogrified query: %(mogrified_query)s' % {
                         'exception': str(ex),
                         'query': str(query_args),

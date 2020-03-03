@@ -9,11 +9,14 @@ FROM dockermediacloud/cron-base:latest
 RUN \
     #
     # Install Certbot
-    apt-get -y --no-install-recommends install certbot && \
+    apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 7BF576066ADA65728FC7E70A8C47BE8E75BCA694 && \
+    echo "deb http://ppa.launchpad.net/certbot/certbot/ubuntu xenial main" > /etc/apt/sources.list.d/certbot.list && \
+    apt-get -y update && \
+    apt-get -y --no-install-recommends install certbot python3-certbot-dns-cloudflare && \
     #
-    # Install CloudFlare plugin
-    apt-get -y --no-install-recommends install python-pip && \
-    pip install certbot-dns-cloudflare && \
+    # Make sure Certbot appears to be working
+    certbot --version && \
+    #
     true
 
 # Remove preinstalled Cron job

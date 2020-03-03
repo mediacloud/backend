@@ -731,12 +731,43 @@ sub insert_topic_seed_urls
     }        
 }
 
+# return true if the given month offset is within the dates that should be respidered.  always return true 
+# if there are not respider dates
+sub _import_month_within_respider_date($$)
+{
+    my ( $topic, $month_offset ) = @_;
+
+    my $start_date = $topic->{ respider_start_date } || '';;
+    my $end_date = $topic->{ respider_end_date } || '';
+
+    return 1 unless ( $topic->{ respider_stories } && ( $start_date || $end_date ) );
+
+    my $month_date = Time::Piece->strptime( $topic->{ start_date }, "%Y-%m-%d" )->add_months( $month_offset );
+
+    if ( $end_date )
+    {
+        my $end_date = Time::Piece->strptime( $end_date, "%Y-%m-%d" )->add_months( -1 );
+        return 1 if ( $month_date > $end_date );
+    }
+
+    if ( $start_date )
+    {
+        my $start_date = Time::Piece->strptime( $start_date, "%Y-%m-%d" );
+        return 1 if ( $month_date < $start_date );
+    }
+
+    return 0;
+}
+
+
 # import a single month of the solr seed query.  we do this to avoid giant queries that timeout in solr.
 sub import_solr_seed_query_month($$$)
 {
     my ( $db, $topic, $month_offset ) = @_;
 
-    return unless ( $topic->{ platform } eq 'web' );
+    return 0 unless ( $topic->{ platform } eq 'web' );
+
+    return 1 unless ( _import_month_within_respider_date( $topic, $month_offset ) );
 
     my $max_stories = $topic->{ max_stories };
 
@@ -761,8 +792,6 @@ sub import_solr_seed_query_month($$$)
 
     INFO "adding " . scalar( @{ $stories } ) . " stories to topic_seed_urls";
 
-    $db->begin;
-
     my $topic_seed_urls = [];
     for my $story ( @{ $stories } )
     {
@@ -778,8 +807,6 @@ sub import_solr_seed_query_month($$$)
     }
 
     insert_topic_seed_urls( $db, $topic_seed_urls );
-
-    $db->commit if $db->in_transaction();
 
     return 1;
 }
@@ -1003,8 +1030,6 @@ sub set_stories_respidering($$$)
         return;
     }
 
-    $db->begin;
-
     if ( $respider_start_date )
     {
         $db->query( <<SQL, $respider_start_date, $topic->{ start_date }, $topic->{ topics_id } );
@@ -1050,8 +1075,6 @@ SQL
 
     $db->update_by_id( 'topics', $topic->{ topics_id },
         { respider_stories => 'f', respider_start_date => undef, respider_end_date => undef } );
-
-    $db->commit;
 }
 
 
@@ -1204,6 +1227,10 @@ sub fetch_and_import_twitter_urls($$)
 sub mine_topic ($$;$)
 {
     my ( $db, $topic, $options ) = @_;
+
+    # the topic spider can sit around for long periods doing solr queries, so we need to make sure the postgres
+    # connection does not get timed out
+    $db->query( "set idle_in_transaction_session_timeout = 0" );
 
     my $prev_test_mode = $_test_mode;
 
