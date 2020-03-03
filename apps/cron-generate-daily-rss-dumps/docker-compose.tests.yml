@@ -4,6 +4,7 @@ services:
 
     cron-generate-daily-rss-dumps:
         image: dockermediacloud/cron-generate-daily-rss-dumps:latest
+        init: true
         stop_signal: SIGKILL
         volumes:
             - type: bind
@@ -20,6 +21,7 @@ services:
 
     postgresql-pgbouncer:
         image: dockermediacloud/postgresql-pgbouncer:latest
+        init: true
         stop_signal: SIGKILL
         expose:
             - 6432
@@ -32,6 +34,7 @@ services:
 
     postgresql-server:
         image: dockermediacloud/postgresql-server:latest
+        init: true
         stop_signal: SIGKILL
         expose:
             - 5432

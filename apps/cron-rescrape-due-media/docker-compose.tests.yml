@@ -4,6 +4,7 @@ services:
 
     cron-rescrape-due-media:
         image: dockermediacloud/cron-rescrape-due-media:latest
+        init: true
         stop_signal: SIGKILL
         volumes:
             - type: bind
@@ -21,6 +22,7 @@ services:
 
     postgresql-pgbouncer:
         image: dockermediacloud/postgresql-pgbouncer:latest
+        init: true
         stop_signal: SIGKILL
         expose:
             - 6432
@@ -33,6 +35,7 @@ services:
 
     postgresql-server:
         image: dockermediacloud/postgresql-server:latest
+        init: true
         stop_signal: SIGKILL
         expose:
             - 5432
@@ -49,6 +52,7 @@ services:
 
     rabbitmq-server:
         image: dockermediacloud/rabbitmq-server:latest
+        init: true
         stop_signal: SIGKILL
         expose:
             - 5672

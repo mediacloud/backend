@@ -1,5 +1,4 @@
 import os
-import signal
 
 import psutil
 
@@ -25,18 +24,22 @@ def fatal_error(message: str) -> None:
 
     # If a Celery worker calls fatal_error(), it doesn't manage to kill the parent process because Celery forks new
     # processes to run the actual job. So, find the parent process and send it a signal too for it to shut down.
-    parent_pid = os.getppid()
-    for proc in psutil.process_iter():
-        if proc.pid == parent_pid:
-            parent_command = proc.cmdline()
-            if 'python3' in parent_command[0].lower():
-                parent_group_id = os.getpgid(parent_pid)
+    parent_proc = psutil.Process(os.getppid())
+    parent_command = parent_proc.cmdline()
+    if 'python3' in parent_command[0].lower():
 
-                log.warning(f"Killing parent PID {parent_pid}, group {parent_group_id} ({str(parent_command)}) too")
+        # Kill the children first (except for ourselves) and then go for the parent
+        # Go straight for SIGKILL as "acks_late" is set so unfinished jobs should get restarted properly
+        for child in parent_proc.children(recursive=True):
+            # Don't kill ourselves just yet
+            if child.pid != os.getpid():
+                log.warning(f"Killing child with PID {child.pid} ({str(child.cmdline())})")
+                child.kill()
 
-                # Kill the whole group; also, go straight for SIGKILL as "acks_late" is set so unfinished jobs should
-                # get restarted properly
-                os.killpg(parent_group_id, signal.SIGKILL)
+        log.warning(f"Killing parent with PID {parent_proc.pid} ({str(parent_command)})")
+        parent_proc.kill()
+
+    log.warning(f"Killing ourselves with PID {os.getpid()}")
 
     # noinspection PyProtectedMember
     os._exit(1)

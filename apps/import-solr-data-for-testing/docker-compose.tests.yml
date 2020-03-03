@@ -4,6 +4,7 @@ services:
 
     import-solr-data-for-testing:
         image: dockermediacloud/import-solr-data-for-testing:latest
+        init: true
         stop_signal: SIGKILL
         environment:
             MC_SOLR_IMPORT_MAX_QUEUED_STORIES: 100000
@@ -27,6 +28,7 @@ services:
 
     postgresql-pgbouncer:
         image: dockermediacloud/postgresql-pgbouncer:latest
+        init: true
         stop_signal: SIGKILL
         expose:
             - 6432
@@ -39,6 +41,7 @@ services:
 
     postgresql-server:
         image: dockermediacloud/postgresql-server:latest
+        init: true
         stop_signal: SIGKILL
         expose:
             - 5432
@@ -55,6 +58,7 @@ services:
 
     solr-shard-01:
         image: dockermediacloud/solr-shard:latest
+        init: true
         stop_signal: SIGKILL
         environment:
             MC_SOLR_SHARD_COUNT: "1"
@@ -72,6 +76,7 @@ services:
 
     solr-zookeeper:
         image: dockermediacloud/solr-zookeeper:latest
+        init: true
         stop_signal: SIGKILL
         expose:
             - 2181
@@ -87,6 +92,7 @@ services:
 
     rabbitmq-server:
         image: dockermediacloud/rabbitmq-server:latest
+        init: true
         stop_signal: SIGKILL
         expose:
             - 5672

@@ -4,6 +4,7 @@ services:
 
     facebook-fetch-story-stats:
         image: dockermediacloud/facebook-fetch-story-stats:latest
+        init: true
         stop_signal: SIGKILL
         environment:
             MC_FACEBOOK_APP_ID: "${MC_FACEBOOK_APP_ID}"
@@ -27,6 +28,7 @@ services:
 
     postgresql-pgbouncer:
         image: dockermediacloud/postgresql-pgbouncer:latest
+        init: true
         stop_signal: SIGKILL
         expose:
             - 6432
@@ -39,6 +41,7 @@ services:
 
     postgresql-server:
         image: dockermediacloud/postgresql-server:latest
+        init: true
         stop_signal: SIGKILL
         expose:
             - 5432
@@ -55,6 +58,7 @@ services:
 
     rabbitmq-server:
         image: dockermediacloud/rabbitmq-server:latest
+        init: true
         stop_signal: SIGKILL
         expose:
             - 5672

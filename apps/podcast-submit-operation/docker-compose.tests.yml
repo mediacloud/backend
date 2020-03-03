@@ -4,6 +4,7 @@ services:
 
     podcast-submit-operation:
         image: dockermediacloud/podcast-submit-operation:latest
+        init: true
         stop_signal: SIGKILL
         environment:
             MC_PODCAST_GC_AUTH_JSON_BASE64: "${MC_PODCAST_GC_AUTH_JSON_BASE64}"
@@ -26,6 +27,7 @@ services:
 
     postgresql-pgbouncer:
         image: dockermediacloud/postgresql-pgbouncer:latest
+        init: true
         stop_signal: SIGKILL
         expose:
             - 6432
@@ -38,6 +40,7 @@ services:
 
     postgresql-server:
         image: dockermediacloud/postgresql-server:latest
+        init: true
         stop_signal: SIGKILL
         expose:
             - 5432
