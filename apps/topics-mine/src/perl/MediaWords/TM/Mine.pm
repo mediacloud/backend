@@ -969,7 +969,7 @@ SQL
 }
 
 # import urls from seed query 
-sub import_urls_from_seed_query($$)
+sub import_urls_from_seed_queries($$)
 {
     my ( $db, $topic ) = @_;
     
@@ -978,38 +978,39 @@ sub import_urls_from_seed_query($$)
 
     my $num_queries = scalar( @{ $topic_seed_queries } );
 
-    my $tsq = $num_queries ? $topic_seed_queries->[0] : undef;
-    
-    if ( $num_queries > 1 )
+    if ( ( $num_queries != 1 ) && ( $topic->{ mode } eq 'url_sharing' ))
     {
-        die( "only one topic seed query allowed per topic" );
+        die( "exactly one topic seed query required per url_sharing topic" );
     }
-    elsif ( $num_queries == 0 )
+
+    if ( $topic->{ mode } eq 'web' )
     {
         DEBUG( "import seed urls from solr" );
         update_topic_state( $db, $topic, "importing solr seed query" );
         import_solr_seed_query( $db, $topic );
-        return;
     }
-    elsif ( MediaWords::TM::FetchTopicPosts::get_post_fetcher( $tsq ) )
+
+    for my $tsq ( @{ $topic_seed_queries } )
     {
-        DEBUG( "import seed urls from fetch_topic_posts" );
-        MediaWords::TM::FetchTopicPosts::fetch_topic_posts( $db, $topic->{ topics_id } );
-        $db->query( <<SQL, $topic->{ topics_id } );
-insert into topic_seed_urls ( url, topics_id, assume_match, source )
-    select distinct tpu.url, tpd.topics_id, true, 'fetch_topic_posts'
+        my $tsq_dump = Dumper( $tsq );
+        my $fetcher = MediaWords::TM::FetchTopicPosts::get_post_fetcher( $tsq ); 
+        die( "unable to import seed urls for platform/source of seed query: $tsq_dump" ) unless ( $fetcher );
+
+        DEBUG( "import seed urls from fetch_topic_posts:\n$tsq_dump" );
+        MediaWords::TM::FetchTopicPosts::fetch_topic_posts( $db, $tsq );
+    }
+
+    $db->query( <<SQL, $topic->{ topics_id } );
+insert into topic_seed_urls ( url, topics_id, assume_match, source, topic_seed_queries_id )
+    select distinct tpu.url, tsq.topics_id, true, 'topic_seed_queries ', tsq.topic_seed_queries_id
         from
             topic_post_urls tpu
             join topic_posts tp using ( topic_posts_id )
             join topic_post_days tpd using ( topic_post_days_id )
+            join topic_seed_queries tsq using ( topic_seed_queries_id )
         where
-            tpd.topics_id = ?
+            tsq.topics_id = ?
 SQL
-    }
-    else
-    {
-        die( "unable to import seet urls for platform/mode of seed query: " . Dumper( $tsq ) );
-    }
 }
 
 # if the query or dates have changed, set topic_stories.link_mined to false for the impacted stories so that
@@ -1094,7 +1095,7 @@ sub do_mine_topic ($$;$)
     map { $options->{ $_ } ||= 0 } qw/import_only skip_post_processing test_mode/;
 
     update_topic_state( $db, $topic, "importing seed urls" );
-    import_urls_from_seed_query( $db, $topic );
+    import_urls_from_seed_queries( $db, $topic );
 
     update_topic_state( $db, $topic, "setting stories respidering..." );
     set_stories_respidering( $db, $topic, $options->{ snapshots_id } );

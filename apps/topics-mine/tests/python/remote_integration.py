@@ -18,7 +18,7 @@ def validate_remote_integration(db: DatabaseHandler, source: str, query: str, da
         'source': source,
         'query': query
     }
-    db.create('topic_seed_queries', tsq)
+    tsq = db.create('topic_seed_queries', tsq)
 
     topic['platform'] = 'twitter'
     topic['pattern'] = '.*'
@@ -27,7 +27,7 @@ def validate_remote_integration(db: DatabaseHandler, source: str, query: str, da
     topic['mode'] = 'url_sharing'
     db.update_by_id('topics', topic['topics_id'], topic)
 
-    fetch_topic_posts(db, topic['topics_id'])
+    fetch_topic_posts(db, tsq)
 
     got_tts = db.query("select * from topic_posts").hashes()
 

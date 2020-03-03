@@ -103,6 +103,7 @@ my $_url_permission_types = {
     '/api/v2/topics/focus_definitions/delete'     => 'topics_write',
     '/api/v2/topics/focus_definitions/list'       => 'topics_read',
     '/api/v2/topics/focus_definitions/update'     => 'topics_write',
+    '/api/v2/topics/info'                         => 'public',
     '/api/v2/topics/list'                         => 'public',
     '/api/v2/topics/media/list'                   => 'topics_read',
     '/api/v2/topics/media/links'                  => 'topics_read',

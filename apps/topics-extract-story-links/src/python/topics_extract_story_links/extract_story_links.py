@@ -243,7 +243,7 @@ def extract_links_for_topic_story(
             topic_link = {
                 'topics_id': topic['topics_id'],
                 'stories_id': story['stories_id'],
-                'url': link
+                'url': link[0:1023]
             }
 
             db.create('topic_links', topic_link)

@@ -26,6 +26,7 @@ BEGIN
 
 __PACKAGE__->config(
     action => {
+        info              => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
         list              => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
         single            => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
         create            => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
@@ -91,6 +92,7 @@ sub _get_topics_list($$$)    # sql clause for fields to query from job_states fo
                 t.start_date,
                 t.end_date,
                 t.platform,
+                t.mode,
                 MIN(p.auth_users_id) AS auth_users_id,
                 MIN(p.user_permission) AS user_permission,
                 t.job_queue,
@@ -673,4 +675,36 @@ sub reset_PUT
     $self->status_ok( $c, entity => { success => 1 } );
 }
 
+sub info : Local : ActionClass('MC_REST')
+{
+}
+
+sub info_GET 
+{
+    my ( $self, $c ) = @_;
+
+    my $db = $c->dbis;
+
+    my $info = {};
+
+    $info->{ topic_modes } = $db->query( "select * from topic_modes order by name" )->hashes;
+    $info->{ topic_platforms } = $db->query( "select * from topic_platforms order by name" )->hashes;
+    $info->{ topic_sources } = $db->query( "select * from topic_sources order by name" )->hashes;
+    $info->{ topic_platforms_sources_map } = $db->query( <<SQL )->hashes;
+select 
+        tp.topic_platforms_id,
+        tp.name platform_name,
+        tp.description platform_description,
+        ts.topic_sources_id,
+        ts.name source_name,
+        ts.description source_description
+    from topic_platforms tp
+        join topic_platforms_sources_map tpsm using ( topic_platforms_id )
+        join topic_sources ts using ( topic_sources_id )
+    order by ts.name, tp.name
+SQL
+
+    $self->status_ok( $c, entity => { info => $info } );
+
+}
 1;

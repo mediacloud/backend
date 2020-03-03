@@ -86,8 +86,6 @@ def _extract_story(db: DatabaseHandler, story: dict) -> None:
     if re2.search(r'livejournal.com\/(tag|profile)', story['url'], re2.I):
         return
 
-    log.debug("extracting story ...")
-
     extractor_args = PyExtractorArguments(use_cache=True, use_existing=True)
     extract_and_process_story(db=db, story=story, extractor_args=extractor_args)
 

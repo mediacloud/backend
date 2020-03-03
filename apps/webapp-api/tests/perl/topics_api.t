@@ -821,6 +821,30 @@ SQL
     is_deeply( $expected_media_ids, $got_media_ids, "media/list q search: topic $topic->{ topics_id }, search word $search_word" );
 }
 
+sub test_info($)
+{
+    my ( $db ) = @_;
+
+    my $r = MediaWords::Test::API::test_get( "/api/v2/topics/info", {} );
+
+
+    ok( $r->{ info } );
+    ok( $r->{ info }->{ topic_platforms } );
+    ok( $r->{ info }->{ topic_sources } );
+    ok( $r->{ info }->{ topic_platforms_sources_map } );
+    ok( $r->{ info }->{ topic_modes } );
+
+    my ( $num_sources) = $db->query( "select count(*) from topic_sources" )->flat;
+    my ( $num_platforms) = $db->query( "select count(*) from topic_platforms" )->flat;
+    my ( $num_modes) = $db->query( "select count(*) from topic_modes" )->flat;
+    my ( $num_psms) = $db->query( "select count(*) from topic_platforms_sources_map" )->flat;
+
+    is( scalar( @{ $r->{ info }->{ topic_sources } } ), $num_sources );
+    is( scalar( @{ $r->{ info }->{ topic_platforms } } ), $num_platforms );
+    is( scalar( @{ $r->{ info }->{ topic_modes } } ), $num_modes );
+    is( scalar( @{ $r->{ info }->{ topic_platforms_sources_map } } ), $num_psms )
+}
+
 sub test_topics_api($)
 {
     my $db = shift;
@@ -855,6 +879,7 @@ sub test_topics_api($)
     test_stories_count( $db );
     test_stories_links( $db );
     test_media_links( $db );
+    test_info( $db );
 }
 
 sub main

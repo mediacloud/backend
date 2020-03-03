@@ -51,10 +51,19 @@ sub _get_topic_post_day($)
 
     my $topic = _get_topic( $db );
 
+    my $topic_seed_query = $db->create(
+        'topic_seed_queries',
+        {
+            topics_id => $topic->{ topics_id },
+            platform => "generic_post",
+            source => "csv"
+        }
+    );
+
     $_topic_post_day = $db->create(
         'topic_post_days',
         {
-            topics_id     => $topic->{ topics_id },
+            topic_seed_queries_id => $topic_seed_query->{ topic_seed_queries_id },
             day           => '2017-01-01',
             num_posts     => 1,
             posts_fetched => $Inline::Python::Boolean::true
