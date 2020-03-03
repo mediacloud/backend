@@ -4,6 +4,7 @@ services:
 
     proxy-httpd:
         image: dockermediacloud/proxy-httpd:latest
+        init: true
         ports:
             # Expose to host for debugging
             - "80:8080"
@@ -23,6 +24,7 @@ services:
 
     proxy-cron-certbot:
         image: dockermediacloud/proxy-cron-certbot:latest
+        init: true
         environment:
             MC_PROXY_CERTBOT_DOMAIN: "mediacloud.org"
             MC_PROXY_CERTBOT_LETSENCRYPT_EMAIL: "linas@media.mit.edu"
@@ -40,6 +42,7 @@ services:
 
     webapp-httpd:
         image: dockermediacloud/webapp-httpd:latest
+        init: true
         stop_signal: SIGKILL
         expose:
             - "80"
@@ -56,6 +59,7 @@ services:
 
     webapp-api:
         image: dockermediacloud/webapp-api:latest
+        init: true
         stop_signal: SIGKILL
         expose:
             - "9090"

@@ -4,6 +4,7 @@ services:
 
     topics-generate-retweeter-scores:
         image: dockermediacloud/topics-generate-retweeter-scores:latest
+        init: true
         stop_signal: SIGKILL
         volumes:
             - type: bind
@@ -26,6 +27,7 @@ services:
 
     extract-and-vector:
         image: dockermediacloud/extract-and-vector:latest
+        init: true
         stop_signal: SIGKILL
         volumes:
             - type: bind
@@ -43,6 +45,7 @@ services:
 
     extract-article-from-page:
         image: dockermediacloud/extract-article-from-page:latest
+        init: true
         stop_signal: SIGKILL
         expose:
             - 8080
@@ -59,6 +62,7 @@ services:
 
     postgresql-pgbouncer:
         image: dockermediacloud/postgresql-pgbouncer:latest
+        init: true
         stop_signal: SIGKILL
         expose:
             - 6432
@@ -71,6 +75,7 @@ services:
 
     postgresql-server:
         image: dockermediacloud/postgresql-server:latest
+        init: true
         stop_signal: SIGKILL
         expose:
             - 5432
@@ -87,6 +92,7 @@ services:
 
     rabbitmq-server:
         image: dockermediacloud/rabbitmq-server:latest
+        init: true
         stop_signal: SIGKILL
         expose:
             - 5672

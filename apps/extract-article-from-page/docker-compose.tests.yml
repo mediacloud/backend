@@ -4,6 +4,7 @@ services:
 
     extract-article-from-page:
         image: dockermediacloud/extract-article-from-page:latest
+        init: true
         stop_signal: SIGKILL
         expose:
             - 8080
