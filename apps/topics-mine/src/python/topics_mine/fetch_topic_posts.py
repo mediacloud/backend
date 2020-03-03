@@ -39,7 +39,7 @@ def _insert_post_urls(db: DatabaseHandler, topic_post: dict, urls: list) -> None
                 values( %(a)s, %(b)s )
                 on conflict do nothing
             """,
-            {'a': topic_post['topic_posts_id'], 'b': url})
+            {'a': topic_post['topic_posts_id'], 'b': url[0:1023]})
 
 
 def _remove_json_tree_nulls(d: dict) -> None:
