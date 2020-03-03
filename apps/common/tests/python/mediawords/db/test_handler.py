@@ -546,7 +546,7 @@ class TestDatabaseHandler(TestCase):
             END;
             $$ LANGUAGE plpgsql;
 
-            CREATE TRIGGER create_updatable_view_celebrities_view_insert_update_delete_trigger
+            CREATE TRIGGER celebrities_view_insert_update_delete_trigger
                 INSTEAD OF INSERT OR UPDATE OR DELETE ON create_updatable_view_celebrities
                 FOR EACH ROW EXECUTE PROCEDURE create_updatable_view_celebrities_view_insert_update_delete();
         """)
