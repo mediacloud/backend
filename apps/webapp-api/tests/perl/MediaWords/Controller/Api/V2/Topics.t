@@ -100,127 +100,6 @@ SQL
     }
 }
 
-# test controversies/list and single
-sub test_controversies($)
-{
-    my ( $db ) = @_;
-
-    my $label = "controversies/list";
-
-    map { MediaWords::Test::DB::Create::create_test_topic( $db, "$label $_" ) } ( 1 .. 10 );
-
-    my $expected_topics = $db->query( "select *, topics_id controversies_id from topics" )->hashes;
-
-    my $got_controversies = MediaWords::Test::API::test_get( '/api/v2/controversies/list', {} );
-
-    my $fields = [ qw/controversies_id name pattern solr_seed_query description max_iterations/ ];
-    MediaWords::Test::Rows::rows_match( $label, $got_controversies, $expected_topics, "controversies_id", $fields );
-
-    $label = "controversies/single";
-
-    my $expected_single = $expected_topics->[ 0 ];
-
-    my $got_controversy = MediaWords::Test::API::test_get( '/api/v2/controversies/single/' . $expected_single->{ topics_id }, {} );
-    MediaWords::Test::Rows::rows_match( $label, $got_controversy, [ $expected_single ], 'controversies_id', $fields );
-}
-
-# test controversy_dumps/list and single
-sub test_controversy_dumps($)
-{
-    my ( $db ) = @_;
-
-    my $label = "controversy_dumps/list";
-
-    my $topic = MediaWords::Test::DB::Create::create_test_topic( $db, $label );
-
-    for my $i ( 1 .. 10 )
-    {
-        $db->create(
-            'snapshots',
-            {
-                topics_id     => $topic->{ topics_id },
-                snapshot_date => '2017-01-01',
-                start_date    => '2016-01-01',
-                end_date      => '2017-01-01',
-                note          => "snapshot $i"
-            }
-        );
-    }
-
-    my $expected_snapshots = $db->query( <<SQL, $topic->{ topics_id } )->hashes;
-select *, topics_id controversies_id, snapshots_id controversy_dumps_id
-    from snapshots
-    where topics_id = ?
-SQL
-
-    my $got_cds = MediaWords::Test::API::test_get( '/api/v2/controversy_dumps/list', { controversies_id => $topic->{ topics_id } } );
-
-    my $fields = [ qw/controversies_id controversy_dumps_id start_date end_date note/ ];
-    MediaWords::Test::Rows::rows_match( $label, $got_cds, $expected_snapshots, 'controversy_dumps_id', $fields );
-
-    $label = 'controversy_dumps/single';
-
-    my $expected_snapshot = $expected_snapshots->[ 0 ];
-
-    my $got_cd = MediaWords::Test::API::test_get( '/api/v2/controversy_dumps/single/' . $expected_snapshot->{ snapshots_id }, {} );
-    MediaWords::Test::Rows::rows_match( $label, $got_cd, [ $expected_snapshot ], 'controversy_dumps_id', $fields );
-}
-
-# test controversy_dump_time_slices/list and single
-sub test_controversy_dump_time_slices($)
-{
-    my ( $db ) = @_;
-
-    my $label = "controversy_dump_time_slices/list";
-
-    my $topic = MediaWords::Test::DB::Create::create_test_topic( $db, $label );
-    my $snapshot = $db->create(
-        'snapshots',
-        {
-            topics_id     => $topic->{ topics_id },
-            snapshot_date => '2017-01-01',
-            start_date    => '2016-01-01',
-            end_date      => '2017-01-01',
-        }
-    );
-
-    my $metrics = [
-        qw/story_count story_link_count medium_count medium_link_count post_count /,
-        qw/model_num_media model_r2_mean model_r2_stddev/
-    ];
-    for my $i ( 1 .. 9 )
-    {
-        my $timespan = {
-            snapshots_id => $snapshot->{ snapshots_id },
-            start_date   => '2016-01-0' . $i,
-            end_date     => '2017-01-0' . $i,
-            period       => 'custom'
-        };
-
-        map { $timespan->{ $_ } = $i * length( $_ ) } @{ $metrics };
-        $db->create( 'timespans', $timespan );
-    }
-
-    my $expected_timespans = $db->query( <<SQL, $snapshot->{ snapshots_id } )->hashes;
-select *, snapshots_id controversy_dumps_id, timespans_id controversy_dump_time_slices_id
-    from timespans
-    where snapshots_id = ?
-SQL
-
-    my $got_cdtss =
-      MediaWords::Test::API::test_get( '/api/v2/controversy_dump_time_slices/list', { controversy_dumps_id => $snapshot->{ snapshots_id } } );
-
-    my $fields = [ qw/controversy_dumps_id start_date end_date period/, @{ $metrics } ];
-    MediaWords::Test::Rows::rows_match( $label, $got_cdtss, $expected_timespans, 'controversy_dump_time_slices_id', $fields );
-
-    $label = 'controversy_dump_time_slices/single';
-
-    my $expected_timespan = $expected_timespans->[ 0 ];
-
-    my $got_cdts = MediaWords::Test::API::test_get( '/api/v2/controversy_dump_time_slices/single/' . $expected_timespan->{ timespans_id }, {} );
-    MediaWords::Test::Rows::rows_match( $label, $got_cdts, [ $expected_timespan ], 'controversy_dump_time_slices_id', $fields );
-}
-
 sub test_update_query_scope($)
 {
     my ( $db ) = @_;
@@ -466,10 +345,6 @@ sub test_topics
     test_topics_reset( $db );
     test_validate_max_stories( $db );
     test_is_mc_queue_user( $db );
-
-    test_controversies( $db );
-    test_controversy_dumps( $db );
-    test_controversy_dump_time_slices( $db );
 }
 
 sub main
