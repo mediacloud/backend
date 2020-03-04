@@ -313,11 +313,19 @@ def _get_url_stats(url: str, config: Optional[FacebookConfig] = None) -> Faceboo
 
     response_url = str(response_url)
 
+    try:
+        response_url = canonical_url(response_url)
+    except Exception as ex:
+        raise McFacebookInvalidURLException(
+            url=response_url,
+            error_message=f"Unable to canonicalize response URL: {ex}",
+        )
+
     # Facebook API returns a numeric ID for a URL that's a Facebook page
     if not response_url.isdigit():
 
         # Verify that we got stats for the right URL
-        if canonical_url(response_url) != url:
+        if response_url != url:
             raise McFacebookUnexpectedAPIResponseException(
                 response=data,
                 error_message=f"Response URL ({response_url}) is not the same as request URL ({url})",
