@@ -63,3 +63,16 @@ def test_pushshift_query_builder() -> None:
 
             # Assert query is correct for requested search terms
             assert obj['simple_query_string']['query'] == QUERY
+
+def test_get_post_urls() -> None:
+    """test get_post_urls"""
+    expected_urls = ['http://foo.bar/' + str(i) for i in range(100)]
+
+    posts = [{'content': u} for u in urls]
+
+    posts.append({'content': 'http://reddit.com/foo'})
+    posts.append({'content': 'https://np.reddit.com/foo/bar'})
+
+    got_urls = prpf().get_post_urls(posts)
+
+    assert(got_urls == expected_urls)

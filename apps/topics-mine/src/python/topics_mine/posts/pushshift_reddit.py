@@ -27,8 +27,6 @@ class McPushshiftSubmissionFetchError(McPushshiftError):
     '''Pushshift Submission Fetch exception error.'''
     pass
 
-#{'query': {'function_score': {'random_score': {'seed': 1580848451258}, 'query': {'bool': {'must': [{'simple_query_string': {'query': '123', 'fields': ['title', 'selftext'], 'default_operator': 'and'}}, {'range': {'created_utc': {'gte': 1546318800.0}}}, {'range': {'created_utc': {'lt': 1554868800.0}}}]}}}}}
-
 
 def _mock_pushshift(request, context) -> str:
     """Mock response from pushshift based on posts.get_mock_data."""
@@ -250,3 +248,11 @@ class PushshiftRedditPostFetcher(AbstractPostFetcher):
 
         return results
 
+    def get_post_urls(self, post: dict) -> list:
+        """parse urls out of post.  omit any reddit.com urls."""
+        urls = super().get_post_urls(post)
+
+        # we don't want to track reddit urls on reddit
+        urls = filter(lambda u: not re.match(r'https?://.*\.reddit.com/', u))
+
+        return urls

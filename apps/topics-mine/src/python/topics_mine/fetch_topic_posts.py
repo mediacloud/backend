@@ -81,10 +81,8 @@ def _store_post_and_urls(db: DatabaseHandler, topic_post_day: dict, post: dict) 
     log.debug("insert topic post")
     topic_post = db.create('topic_posts', topic_post)
 
-    urls = _get_post_urls(post)
-
     log.debug("insert tweet urls")
-    _insert_post_urls(db, topic_post, urls)
+    _insert_post_urls(db, topic_post, post['urls'])
 
     log.debug("done")
 
