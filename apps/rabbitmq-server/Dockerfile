@@ -26,7 +26,7 @@ RUN apt-get -y update
 # and check "apt-cache policy erlang-nox | rabbitmq-server" for available
 # versions)
 RUN \
-    export ERLANG_APT_PACKAGE_VERSION="1:21.0.6-1" && \
+    export ERLANG_APT_PACKAGE_VERSION="1:22.2.7-1" && \
     apt-get -y --no-install-recommends install \
         "erlang-asn1=$ERLANG_APT_PACKAGE_VERSION" \
         "erlang-base=$ERLANG_APT_PACKAGE_VERSION" \
@@ -59,7 +59,7 @@ RUN \
 
 # Install and hold a specific version of RabbitMQ
 RUN \
-    apt-get -y --no-install-recommends install "rabbitmq-server=3.7.7-1" && \
+    apt-get -y --no-install-recommends install "rabbitmq-server=3.8.2-1" && \
     apt-mark hold rabbitmq-server && \
     rm -rf /etc/rabbitmq/ && \
     true
