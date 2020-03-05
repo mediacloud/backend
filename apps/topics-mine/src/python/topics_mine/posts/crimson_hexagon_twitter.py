@@ -189,3 +189,12 @@ class CrimsonHexagonTwitterPostFetcher(AbstractPostFetcher):
         for field in ('post_id', 'author', 'content'):
             log.debug("%s: %s <-> %s" % (field, got_post[field], expected_post[field]))
             assert got_post[field] == expected_post[field], "field %s does not match" % field
+
+    def get_post_urls(self, post: dict) -> list:
+        """Given a post, return a list of urls included in the post."""
+        if 'data' in post['data'] and 'tweet' in post['data']['data']:
+            return get_tweet_urls(post['data']['data']['tweet'])
+        elif 'tweet' in post['data']:
+            return get_tweet_urls(post['data']['tweet'])
+	else:
+            return super().get_post_urls(post)

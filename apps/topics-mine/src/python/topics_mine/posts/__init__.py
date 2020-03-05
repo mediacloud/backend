@@ -70,3 +70,15 @@ class AbstractPostFetcher(object, metaclass=abc.ABCMeta):
 
         else:
             return self.fetch_posts_from_api(query, start_date, end_date)
+
+    def get_post_urls(self, post: dict) -> list:
+        """Given a post, return a list of urls included in the post."""
+        # let the underlying module pass the urls in a field rather than parsing them out
+        links = []
+        for url in re.findall(r'https?://[^\s\")]+', post['content']):
+            url = re.sub(r'\W+$', '', url)
+            links.append(url)
+
+        return links
+
+
