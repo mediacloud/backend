@@ -466,6 +466,121 @@ Response:
   ]
 }
 ```
+## `topics/info` (GET)
+
+`https://api.mediacloud.org/api/v2/topics/info
+
+Get a list of modes, sources, and platforms supported by media cloud.
+
+### Query Parameters
+
+(no parameters)
+
+### Example
+
+`https://api.mediacloud.org/api/v2/topics/info`
+
+Nore that the below response is only an example.  The data returned by this call will change over time.
+
+Response:
+
+```json
+{
+  "info": {
+    "topic_modes": [
+      {
+        "description": "analyze urls shared on social media using co-sharing as network edges",
+        "name": "url_sharing",
+        "topic_modes_id": 2
+      },
+      {
+        "description": "analyze urls using hyperlinks as network edges",
+        "name": "web",
+        "topic_modes_id": 1
+      }
+    ],
+    "topic_platforms": [
+      {
+        "description": "generic social media posts",
+        "name": "generic_post",
+        "topic_platforms_id": 3
+      },
+      {
+        "description": "submissions and comments from reddit.com",
+        "name": "reddit",
+        "topic_platforms_id": 4
+      },
+      {
+        "description": "tweets from twitter.com",
+        "name": "twitter",
+        "topic_platforms_id": 2
+      },
+      {
+        "description": "pages on the open web",
+        "name": "web",
+        "topic_platforms_id": 1
+      }
+    ],
+    "topic_platforms_sources_map": [
+      {
+        "platform_description": "tweets from twitter.com",
+        "platform_name": "twitter",
+        "source_description": "import from the crimsonhexagon.com forsight api, only accessible to internal media cloud team",
+        "source_name": "crimson_hexagon",
+        "topic_platforms_id": 2,
+        "topic_sources_id": 2
+      },
+      {
+        "platform_description": "generic social media posts",
+        "platform_name": "generic_post",
+        "source_description": "import generic posts directly from csv",
+        "source_name": "csv",
+        "topic_platforms_id": 3,
+        "topic_sources_id": 3
+      },
+      {
+        "platform_description": "pages on the open web",
+        "platform_name": "web",
+        "source_description": "import from the mediacloud.org archive",
+        "source_name": "mediacloud",
+        "topic_platforms_id": 1,
+        "topic_sources_id": 1
+      },
+      {
+        "platform_description": "submissions and comments from reddit.com",
+        "platform_name": "reddit",
+        "source_description": "import from the pushshift.io api",
+        "source_name": "pushshift",
+        "topic_platforms_id": 4,
+        "topic_sources_id": 4
+      }
+    ],
+    "topic_sources": [
+      {
+        "description": "import from the crimsonhexagon.com forsight api, only accessible to internal media cloud team",
+        "name": "crimson_hexagon",
+        "topic_sources_id": 2
+      },
+      {
+        "description": "import generic posts directly from csv",
+        "name": "csv",
+        "topic_sources_id": 3
+      },
+      {
+        "description": "import from the mediacloud.org archive",
+        "name": "mediacloud",
+        "topic_sources_id": 1
+      },
+      {
+        "description": "import from the pushshift.io api",
+        "name": "pushshift",
+        "topic_sources_id": 4
+      }
+    ]
+  }
+}
+```
+
 
 ## `topics/<topics_id>/add_seed_query` (PUT)
 
@@ -487,13 +602,7 @@ or found seed query.
 | source     | api to use as source for data |
 | query      | source specific query to return data |
 
-Below is a list of the currently supported source / platform combinations.  This list will change as we add support
-for more sources and platforms.
-
-| Source | Platform |
----------------------
-| crimson\_hexagon | twitter |
-| csv | generic\_post |
+To get the list of allowed sources and platforms, see the topics/info end point.
 
 ### Example
 
