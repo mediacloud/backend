@@ -3,6 +3,7 @@ import datetime
 import dateutil.parser
 import json
 import os
+import re
 import requests
 import string
 import time
@@ -248,3 +249,11 @@ class PushshiftRedditPostFetcher(AbstractPostFetcher):
 
         return results
 
+    def get_post_urls(self, post: dict) -> list:
+        """parse urls out of post.  omit any reddit.com urls."""
+        urls = super().get_post_urls(post)
+
+        # we don't want to track reddit urls on reddit
+        urls = list(filter(lambda u: not re.match(r'https?://.*\.?reddit.com/', u), urls))
+
+        return urls
