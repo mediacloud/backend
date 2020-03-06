@@ -2,9 +2,10 @@
 
 import datetime
 import os
-from topics_mine.posts.pushshift_reddit import PushshiftRedditPostFetcher as prpf
+import re
 from unittest import TestCase
 
+from topics_mine.posts.pushshift_reddit import PushshiftRedditPostFetcher as prpf
 
 from mediawords.util.log import create_logger
 log = create_logger(__name__)
@@ -68,11 +69,13 @@ def test_get_post_urls() -> None:
     """test get_post_urls"""
     expected_urls = ['http://foo.bar/' + str(i) for i in range(100)]
 
-    posts = [{'content': u} for u in urls]
+    posts = [{'content': u} for u in expected_urls]
 
     posts.append({'content': 'http://reddit.com/foo'})
     posts.append({'content': 'https://np.reddit.com/foo/bar'})
 
-    got_urls = prpf().get_post_urls(posts)
+    got_urls = []
+    for post in posts:
+        got_urls.extend(prpf().get_post_urls(post))
 
     assert(got_urls == expected_urls)

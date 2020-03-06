@@ -10,6 +10,7 @@ import mediawords.db
 
 from topics_mine.posts.crimson_hexagon_twitter import CrimsonHexagonTwitterPostFetcher
 from topics_mine.posts.pushshift_reddit import PushshiftRedditPostFetcher
+from topics_mine.posts.googler_web import GooglerWebPostFetcher
 
 from mediawords.util.log import create_logger
 
@@ -44,6 +45,7 @@ def run_single_platform_test(fetcher, query, pattern, day, min_posts, max_posts)
 
     assert statistics.mean([len(p['content']) for p in got_posts]) > 80
 
+
 def test_crimson_hexagon_twitter() -> None:
     run_single_platform_test(
             fetcher=CrimsonHexagonTwitterPostFetcher(),
@@ -63,4 +65,14 @@ def test_pushshift_reddit() -> None:
             day='2020-01-01',
             min_posts=1000,
             max_posts=3000
+        )
+
+def test_googler_web() -> None:
+    run_single_platform_test(
+            fetcher=GooglerWebPostFetcher(),
+            query='trump',
+            pattern='trump',
+            day='2020-01-01',
+            min_posts=50,
+            max_posts=100
         )

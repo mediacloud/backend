@@ -1,6 +1,7 @@
 import abc
 import datetime
 import dateutil.parser
+import re
 
 import requests_mock
 
@@ -72,13 +73,12 @@ class AbstractPostFetcher(object, metaclass=abc.ABCMeta):
             posts = self.fetch_posts_from_api(query, start_date, end_date)
 
         for post in posts:
-            post['url'] = self.get_post_urls(post)
+            post['urls'] = self.get_post_urls(post)
 
         return posts
 
     def get_post_urls(self, post: dict) -> list:
         """Given a post, return a list of urls included in the post."""
-        # let the underlying module pass the urls in a field rather than parsing them out
         links = []
         for url in re.findall(r'https?://[^\s\")]+', post['content']):
             url = re.sub(r'\W+$', '', url)
