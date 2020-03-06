@@ -7,18 +7,18 @@ import re
 import statistics
 
 import mediawords.db
-
-from topics_mine.posts.crimson_hexagon_twitter import CrimsonHexagonTwitterPostFetcher
-from topics_mine.posts.pushshift_reddit import PushshiftRedditPostFetcher
-from topics_mine.posts.googler_web import GooglerWebPostFetcher
+import topics_mine.fetch_topic_posts
 
 from mediawords.util.log import create_logger
 
 log = create_logger(__name__)
 
 
-def run_single_platform_test(fetcher, query, pattern, day, min_posts, max_posts) -> None:
+def run_single_platform_test(source, platform, query, pattern, day, min_posts, max_posts) -> None:
     """Run test for a single platform / source.""" 
+    fetcher = topics_mine.fetch_topic_posts.get_post_fetcher({'source': source, 'platform': platform})
+    assert fetcher, "%s %s fetcher exists" % (source, platform)
+
     start_date = dateutil.parser.parse(day)
     end_date = start_date + datetime.timedelta(days=1) - datetime.timedelta(seconds=1) 
 
@@ -48,7 +48,8 @@ def run_single_platform_test(fetcher, query, pattern, day, min_posts, max_posts)
 
 def test_crimson_hexagon_twitter() -> None:
     run_single_platform_test(
-            fetcher=CrimsonHexagonTwitterPostFetcher(),
+            source='crimson_hexagon',
+            platform='twitter',
             query=32780805819,
             pattern='.*',
             day='2017-08-17',
@@ -59,7 +60,8 @@ def test_crimson_hexagon_twitter() -> None:
 
 def test_pushshift_reddit() -> None:
     run_single_platform_test(
-            fetcher=PushshiftRedditPostFetcher(),
+            source='pushshift',
+            platform='reddit',
             query='trump',
             pattern='trump',
             day='2020-01-01',
@@ -67,9 +69,11 @@ def test_pushshift_reddit() -> None:
             max_posts=3000
         )
 
+
 def test_googler_web() -> None:
     run_single_platform_test(
-            fetcher=GooglerWebPostFetcher(),
+            source='google',
+            platform='web',
             query='trump',
             pattern='trump',
             day='2020-01-01',
