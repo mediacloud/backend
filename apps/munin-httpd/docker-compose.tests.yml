@@ -4,6 +4,7 @@ services:
 
     munin-httpd:
         image: dockermediacloud/munin-httpd:latest
+        init: true
         stop_signal: SIGKILL
         ports:
             # Expose to host for debugging
@@ -23,6 +24,7 @@ services:
 
     munin-fastcgi-graph:
         image: dockermediacloud/munin-fastcgi-graph:latest
+        init: true
         stop_signal: SIGKILL
         expose:
             - 22334
@@ -32,6 +34,7 @@ services:
 
     munin-cron:
         image: dockermediacloud/munin-cron:latest
+        init: true
         stop_signal: SIGKILL
         volumes:
             - type: bind
@@ -46,6 +49,7 @@ services:
 
     munin-node:
         image: dockermediacloud/munin-node:latest
+        init: true
         stop_signal: SIGKILL
         volumes:
             - type: bind
@@ -59,6 +63,7 @@ services:
 
     postgresql-pgbouncer:
         image: dockermediacloud/postgresql-pgbouncer:latest
+        init: true
         stop_signal: SIGKILL
         expose:
             - 6432
@@ -71,6 +76,7 @@ services:
 
     postgresql-server:
         image: dockermediacloud/postgresql-server:latest
+        init: true
         stop_signal: SIGKILL
         expose:
             - 5432
@@ -87,6 +93,7 @@ services:
 
     solr-shard-01:
         image: dockermediacloud/solr-shard:latest
+        init: true
         stop_signal: SIGKILL
         environment:
             MC_SOLR_SHARD_COUNT: "1"
@@ -104,6 +111,7 @@ services:
 
     solr-zookeeper:
         image: dockermediacloud/solr-zookeeper:latest
+        init: true
         stop_signal: SIGKILL
         expose:
             - 2181

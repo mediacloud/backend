@@ -27,7 +27,8 @@ _ACCELERATED_DOMAINS = {
     't.co',
     'google.com',
     'doi.org',
-    'archive.org'
+    'archive.org',
+    'reddit.com'
 }
 
 # Divide the normal domain timeout by this for accelerated URLs
@@ -70,8 +71,8 @@ class ThrottledUserAgent(UserAgent):
         """
         Execute domain throttled version of mediawords.util.web.user_agent.UserAgent.request.
 
-        Before executing the request, the method will check whether a request has been made for this domain within the
-        last self.domain_timeout seconds.  If so, the call will raise a McThrottledDomainException.
+        Before executing the request, the method will check whether a request has been made for this domain within
+        the last self.domain_timeout seconds.  If so, the call will raise a McThrottledDomainException.
         Otherwise, the method will mark the time for this domain request in a postgres table and then execute
         UserAgent.request().
 
@@ -90,7 +91,7 @@ class ThrottledUserAgent(UserAgent):
                 domain_timeout = max(1, int(self.domain_timeout / _ACCELERATED_DOMAIN_SPEEDUP_FACTOR))
 
             # this postgres function returns true if we are allowed to make the request and false otherwise. this
-            # function does not use a table lock, so some extra requests might sneak through, but that's better than
+            # function does not use a table lock, so some extra requests might sneak through, but thats better than
             # dealing with a lock.  we use a postgres function to make the the race condition as rare as possible.
             got_domain_lock = self.db.query(
                 "select get_domain_web_requests_lock(%s, %s)",

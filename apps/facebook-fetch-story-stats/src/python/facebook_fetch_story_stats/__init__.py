@@ -317,7 +317,8 @@ def _get_url_stats(url: str, config: Optional[FacebookConfig] = None) -> Faceboo
     if not response_url.isdigit():
 
         # Verify that we got stats for the right URL
-        if canonical_url(response_url) != url:
+        # FIXME for whatever reason 'url' does get un-canonicalized at this point
+        if response_url != url and canonical_url(response_url) != canonical_url(url):
             raise McFacebookUnexpectedAPIResponseException(
                 response=data,
                 error_message=f"Response URL ({response_url}) is not the same as request URL ({url})",

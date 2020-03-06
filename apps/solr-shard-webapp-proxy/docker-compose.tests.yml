@@ -4,6 +4,7 @@ services:
 
     solr-shard-webapp-proxy:
         image: dockermediacloud/solr-shard-webapp-proxy:latest
+        init: true
         networks:
             - default
         stop_signal: SIGKILL
@@ -22,6 +23,7 @@ services:
 
     solr-shard-01:
         image: dockermediacloud/solr-shard:latest
+        init: true
         networks:
             - default
         stop_signal: SIGKILL
@@ -41,6 +43,7 @@ services:
 
     solr-zookeeper:
         image: dockermediacloud/solr-zookeeper:latest
+        init: true
         stop_signal: SIGKILL
         expose:
             - 2181

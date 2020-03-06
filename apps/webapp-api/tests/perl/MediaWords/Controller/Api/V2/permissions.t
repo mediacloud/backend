@@ -450,6 +450,7 @@ sub add_topic
         end_date        => '2017-02-01',
         job_queue       => 'mc',
         max_stories     => 100_000,
+        platform        => 'web'
     };
 
     $topic = $db->create( 'topics', $topic );
