@@ -296,7 +296,9 @@ def _get_url_stats(url: str, config: Optional[FacebookConfig] = None) -> Faceboo
         if error_type == 'GraphMethodException' and 'Unsupported get request' in error_message:
             # Non-fatal permissions error for this specific URL
             raise McFacebookInvalidURLException(url=url, error_message=error_message)
-
+        elif error_type == 'OAuthException' and re.match(r'facebook.com', url):
+            # some facebook pages consistently return a permissions error
+            raise McFacebookInvalidURLException(url=url, error_message=error_message)
         else:
             # Everything else is considered a fatal error by us as we don't know what exactly happened
             raise McFacebookErrorAPIResponseException(
