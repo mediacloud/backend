@@ -564,8 +564,14 @@ def merge_foreign_rss_stories(db: DatabaseHandler, topic: dict) -> None:
         })
 
         db.query(
-            "delete from topic_stories where stories_id = %(a)s and topics_id = %(b)s",
+            """
+            update topic_links set ref_stories_id = null, link_spidered = 'f'
+                where topics_id = %(b)s and ref_stories_id = %(a)s
+            """,
             {'a': story['stories_id'], 'b': topic['topics_id']})
+
+        db.query(
+            "delete from topic_stories where stories_id = %(a)s and topics_id = %(b)s",
         db.commit()
 
 
