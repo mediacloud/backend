@@ -4,8 +4,9 @@ import csv
 import datetime
 import dateutil.parser
 import io
-import subprocess
 import re
+import subprocess
+import time
 
 from mediawords.util.log import create_logger
 from mediawords.util.parse_json import encode_json, decode_json
@@ -16,6 +17,8 @@ from topics_mine.posts import AbstractPostFetcher
 
 log = create_logger(__name__)
 
+# number of seconds to wait after a google request
+GOOGLE_REQUEST_DELAY=600
 
 class McPostsGenericDataException(Exception):
     """exception indicating an error in the data for generic posts."""
@@ -23,6 +26,7 @@ class McPostsGenericDataException(Exception):
 
 
 class GooglerWebPostFetcher(AbstractPostFetcher):
+    last_google_request_epoch = 0
 
     def _get_mock_json(self, start_date: datetime, end_date: datetime):
         """return json in googler format derived from get_mock_data()."""
@@ -57,6 +61,14 @@ class GooglerWebPostFetcher(AbstractPostFetcher):
         if self.mock_enabled:
             googler_json = self._get_mock_json(start_date, end_date)
         else:
+            now = time.time()
+            if now - self.last_google_request_epoch < GOOGLE_REQUEST_DELAY:
+                delay = GOOGLE_REQUEST_DELAY - (now - self.last_google_request_epoch)
+                log.info("waiting %d seconds to make google request..." % delay)
+                time.sleep(delay)
+
+            self.last_google_request_epoch = time.time()
+
             start_query = "after:" + start_date.strftime("%Y-%m-%d")
             end_query = "before:" + (end_date + datetime.timedelta(days=1)).strftime("%Y-%m-%d")
 
