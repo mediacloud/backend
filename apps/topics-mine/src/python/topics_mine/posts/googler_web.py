@@ -18,7 +18,10 @@ from topics_mine.posts import AbstractPostFetcher
 log = create_logger(__name__)
 
 # number of seconds to wait after a google request
-GOOGLE_REQUEST_DELAY=600
+GOOGLE_REQUEST_DELAY = 600
+
+# last time a google request was made
+_last_google_request_epoch = 0
 
 class McPostsGenericDataException(Exception):
     """exception indicating an error in the data for generic posts."""
@@ -61,13 +64,14 @@ class GooglerWebPostFetcher(AbstractPostFetcher):
         if self.mock_enabled:
             googler_json = self._get_mock_json(start_date, end_date)
         else:
+            global _last_google_request_epoch
             now = time.time()
-            if now - self.last_google_request_epoch < GOOGLE_REQUEST_DELAY:
-                delay = GOOGLE_REQUEST_DELAY - (now - self.last_google_request_epoch)
+            if now - _last_google_request_epoch < GOOGLE_REQUEST_DELAY:
+                delay = GOOGLE_REQUEST_DELAY - (now - _last_google_request_epoch)
                 log.info("waiting %d seconds to make google request..." % delay)
                 time.sleep(delay)
 
-            self.last_google_request_epoch = time.time()
+            _last_google_request_epoch = time.time()
 
             start_query = "after:" + start_date.strftime("%Y-%m-%d")
             end_query = "before:" + (end_date + datetime.timedelta(days=1)).strftime("%Y-%m-%d")
