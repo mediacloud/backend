@@ -572,6 +572,7 @@ def merge_foreign_rss_stories(db: DatabaseHandler, topic: dict) -> None:
 
         db.query(
             "delete from topic_stories where stories_id = %(a)s and topics_id = %(b)s",
+            {'a': story['stories_id'], 'b': topic['topics_id']})
         db.commit()
 
 
