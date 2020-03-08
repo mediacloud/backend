@@ -122,6 +122,13 @@ def _get_extracted_html(db: DatabaseHandler, story: dict) -> str:
 
     html = fetch_content(db, download)
 
+    # avoid extracting large binary files
+    if '<' not in html[0:1000]:
+        if 'http' in html:
+            return html[0:1000000]
+        else:
+            return ''
+
     extract = extract_content(html)
     extracted_html = extract['extracted_html']
 
