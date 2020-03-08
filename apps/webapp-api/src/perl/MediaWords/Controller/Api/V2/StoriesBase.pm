@@ -293,7 +293,7 @@ SQL
                     ON t.tags_id = s.tags_id
                 JOIN tag_sets AS ts
                     ON ts.tag_sets_id = t.tag_sets_id
-            WHERE stories_id in ( $ids_list )
+            WHERE stories_id in ( $chunk_ids_list )
             ORDER BY t.tags_id
 SQL
         )->hashes;
