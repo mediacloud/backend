@@ -41,7 +41,7 @@ log = create_logger(__name__)
 
 SPIDER_FEED_NAME = 'Spider Feed'
 
-BINARY_EXTENSIONS = 'jpg pdf doc mp3 mp4 zip png docx'.split()
+BINARY_EXTENSIONS = 'jpg pdf doc mp3 mp4 zip png docx gif mov'.split()
 
 # how long to wait for extractor before raising an exception
 MAX_EXTRACTOR_WAIT = 600

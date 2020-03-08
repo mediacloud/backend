@@ -6,10 +6,12 @@ from typing import List
 
 from bs4 import BeautifulSoup
 
+from extract_and_vector.dbi.downloads.extract import extract_content
+
 from mediawords.db import DatabaseHandler
 from mediawords.dbi.downloads.store import fetch_content, McDBIDownloadsException
 from mediawords.key_value_store.amazon_s3 import McAmazonS3StoreException
-from mediawords.util.extract_article_from_page import extract_article_html_from_page_html
+
 from mediawords.util.log import create_logger
 from mediawords.util.url import is_http_url, normalize_url_lossy
 from topics_base.domains import skip_self_linked_domain_url, increment_domain_links
@@ -120,7 +122,7 @@ def _get_extracted_html(db: DatabaseHandler, story: dict) -> str:
 
     html = fetch_content(db, download)
 
-    extract = extract_article_html_from_page_html(html)
+    extract = extract_content(html)
     extracted_html = extract['extracted_html']
 
     return extracted_html
