@@ -134,10 +134,10 @@ class UserAgent(object):
     __DEFAULT_TIMEOUT = 20
 
     # HTTP "From:" header
-    __OWNER = 'mediawords@cyber.law.harvard.edu'
+    __OWNER = 'info@mediacloud.org'
 
     # HTTP "User-Agent:" header
-    __USER_AGENT = 'mediawords bot (http://cyber.law.harvard.edu)'
+    __USER_AGENT = 'mediacloud bot for open academic research (http://mediacloud.org)'
 
     __slots__ = [
 
