@@ -216,14 +216,14 @@ END
     $db->query( "drop view snapshot_undateable_stories" );
 }
 
-# return true if the topic of the timespan is not a url_sharing topic
+# return true if the topic of the timespan is not a web topic
 sub _topic_is_url_sharing_topic
 {
     my ( $db, $timespan ) = @_;
 
-    my $mode = _get_topic_mode( $db, $timespan );
+    my $platform = _get_topic_platform( $db, $timespan );
 
-    return $mode ne 'web';
+    return $platform ne 'web';
 }
 
 # write snapshot_period_stories table that holds list of all stories that should be included in the
@@ -270,16 +270,16 @@ sub update_timespan
     $db->update_by_id( 'timespans', $timespan->{ timespans_id }, { $field => $val } );
 }
 
-# get the mode for the topic associated with the timespan
-sub _get_topic_mode
+# get the platform for the topic associated with the timespan
+sub _get_topic_platform
 {
     my ( $db, $timespan ) = @_;
 
-    my ( $mode ) = $db->query( <<SQL, $timespan->{ snapshots_id } )->flat;
-select mode from topics t join snapshots s using ( topics_id ) where snapshots_id = ?
+    my ( $platform ) = $db->query( <<SQL, $timespan->{ snapshots_id } )->flat;
+select platform from topics t join snapshots s using ( topics_id ) where snapshots_id = ?
 SQL
 
-    return $mode;
+    return $platform;
 
 }
 
@@ -289,12 +289,12 @@ sub _write_story_links_snapshot
 
     $db->query( "drop table if exists snapshot_story_links" );
 
-    my $mode = _get_topic_mode( $db, $timespan );
+    my $platform = _get_topic_platform( $db, $timespan );
 
-    if ( $mode ne 'web' )
+    if ( $platform ne 'web' )
     {
         my $date_clause = "1=1";
-        if ( $mode eq 'twitter' )
+        if ( $platform eq 'twitter' )
         {
             $date_clause = "date_trunc( 'day', a.publish_date ) = date_trunc( 'day', b.publish_date )";
         }
