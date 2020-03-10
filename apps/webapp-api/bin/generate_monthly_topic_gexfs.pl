@@ -11,8 +11,18 @@ use MediaWords::CommonLibs;
 use Encode;
 use File::Slurp;
 
+use MediaWords::DB;
 use MediaWords::TM::Snapshot::GEXF;
 use MediaWords::TM::Snapshot::Views;
+
+sub main 
+{
+    my $db = MediaWords::DB::connect_to_db();
+
+    my $topics_ids = [ map { int( $_ ) } @ARGV ];
+
+    MediaWords::TM::Snapshot::GEXF::generate_monthly_gexfs( $db, $topics_ids );
+}
 
 
 main();
