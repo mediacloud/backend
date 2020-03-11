@@ -64,10 +64,8 @@ class CSVStaticPostFetcher(AbstractPostFetcher):
         url = query
         cache = shelve.open(filename=SHELVE_CACHE_FILE, writeback=True)
         if url in cache:
-            log.warning('CACHE HIT')
             query = cache[url]
         else:
-            log.warning('CACHE MISS')
             ua = mediawords.util.web.user_agent.UserAgent()
             ua.set_max_size(1024 * 1024 * 1024)
             response = ua.get(url)
