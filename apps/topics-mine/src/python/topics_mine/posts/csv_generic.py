@@ -4,6 +4,10 @@ import csv
 import datetime
 from dateutil import parser
 import io
+import uuid
+
+import mediawords.util.url
+import mediawords.util.web.user_agent
 
 from mediawords.util.log import create_logger
 
@@ -50,15 +54,30 @@ class CSVStaticPostFetcher(AbstractPostFetcher):
         if self.mock_enabled:
             query = self._get_csv_string_from_dicts(get_mock_data())
 
+        if mediawords.util.url.is_http_url(query):
+            ua = mediawords.util.web.user_agent.UserAgent()
+            ua.set_max_size(1024 * 1024 * 1024)
+            response = ua.get(query)
+            if not response.is_success():
+                raise McPostsGenericDataException("Unable to fetch query url: %s" % response.as_string())
+
+            query = response.decoded_content()
+
         all_posts = self._get_dicts_from_csv_string(query)
 
-        required_fields = ['content', 'author', 'channel', 'content', 'publish_date', 'post_id']
+        required_fields = ['content', 'author', 'publish_date']
         for post in all_posts:
             for field in required_fields:
                 if field not in post:
                     raise McPostsGenericDataException(f"Missing required field: {field}")
             
             post['data'] = {}
+            if 'channel' not in post:
+                post['channel'] = post['author']
+
+            if 'post_id' not in post:
+                post['post_id'] = uuid.uuid4().hex
+
             post['post_id'] =str(post['post_id'])
 
         posts = filter_posts_for_date_range(all_posts, start_date, end_date)
