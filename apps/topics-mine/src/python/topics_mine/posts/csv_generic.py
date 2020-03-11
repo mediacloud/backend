@@ -4,6 +4,7 @@ import csv
 import datetime
 from dateutil import parser
 import io
+import shelve
 import uuid
 
 import mediawords.util.url
@@ -15,6 +16,9 @@ from topics_base.posts import get_mock_data, filter_posts_for_date_range
 from topics_mine.posts import AbstractPostFetcher
 
 log = create_logger(__name__)
+
+# http request cache
+SHELVE_CACHE_FILE="/tmp/csv_generic_shelf_cache.dbm"
 
 
 class McPostsGenericDataException(Exception):
@@ -49,19 +53,41 @@ class CSVStaticPostFetcher(AbstractPostFetcher):
 
         return list(csv.DictReader(csv_io))
 
+    def _fetch_csv_from_url_query(self, query: str) -> str:
+        """If the query is a url, fetch it and use that as the url.
+
+        Cache the url fetch so that we don't refetch the same url for many days.
+        """
+        if not  mediawords.util.url.is_http_url(query):
+            return query 
+
+        url = query
+        cache = shelve.open(filename=SHELVE_CACHE_FILE, writeback=True)
+        if url in cache:
+            log.warning('CACHE HIT')
+            query = cache[url]
+        else:
+            log.warning('CACHE MISS')
+            ua = mediawords.util.web.user_agent.UserAgent()
+            ua.set_max_size(1024 * 1024 * 1024)
+            response = ua.get(url)
+            if not response.is_success():
+                raise McPostsGenericDataException("Unable to fetch query url: %s" % response.as_string())
+
+            query = response.decoded_content()
+
+            cache[url] = query
+            cache.sync()
+            cache.close()
+
+        return query
+
     def fetch_posts_from_api(self, query: str, start_date: datetime, end_date: datetime) -> list:
         """Return posts from a csv that are within the given date range."""
         if self.mock_enabled:
             query = self._get_csv_string_from_dicts(get_mock_data())
 
-        if mediawords.util.url.is_http_url(query):
-            ua = mediawords.util.web.user_agent.UserAgent()
-            ua.set_max_size(1024 * 1024 * 1024)
-            response = ua.get(query)
-            if not response.is_success():
-                raise McPostsGenericDataException("Unable to fetch query url: %s" % response.as_string())
-
-            query = response.decoded_content()
+        query = self._fetch_csv_from_url_query(query)
 
         all_posts = self._get_dicts_from_csv_string(query)
 
