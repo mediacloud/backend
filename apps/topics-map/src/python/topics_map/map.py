@@ -141,7 +141,7 @@ def run_fa2_layout(graph):
             "/usr/bin/java",
             "-Djava.awt.headless=true",
             "-Xmx8g", 
-            "-cp", "/opt/fa2l/java-fa2/forceatlas2.jar:/opt/fa2l/java-fa2/gephi-toolkit-0.9.2-all.jar",
+            "-cp", "/opt/fa2l/forceatlas2.jar:/opt/fa2l/gephi-toolkit-0.9.2-all.jar",
             "kco.forceatlas2.Main",
             "--input", input_file,
             "--targetChangePerNode", "0.5",
@@ -387,12 +387,14 @@ def draw_labels(graph):
 
     max_size = sorted_sizes[0]
 
+    emphasis_threshold = 50
+
     for i, node_size in enumerate(sorted_sizes):
         n, size = node_size
 
         relative_size = size / max_size
-        weight = 'bold' if i < 50 else 'normal'
-        alpha = 1.0 if i == < 50 else 0.5
+        weight = 'bold' if i < emphasis_threshold else 'normal'
+        alpha = 1.0 if i < emphasis_threshold else 0.5
 
         nx.draw_networkx_labels(
             G=graph,
