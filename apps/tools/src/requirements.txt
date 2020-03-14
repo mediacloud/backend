@@ -1,2 +1,14 @@
 # Network analysis, used for graph layout
-networkx==2.2
+networkx==1.11
+
+# python notebooks
+jupyter==1.0.0
+
+# force atlas 2 layouts
+fa2==0.3.5
+
+# plotting
+matplotlib==3.2.0
+
+# gsoc mc fa2 implementation
+mediaviz==0.1.2

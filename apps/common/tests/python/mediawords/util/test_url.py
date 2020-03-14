@@ -257,6 +257,7 @@ def test_is_shortened_url() -> None:
         'http://feeds.feedburner.com/~ff/businessinsider?a=AAU_77_kuWM:T_8wA0qh0C4:gIN9vFwOqvQ'
     )
     assert mc_url.is_shortened_url('https://archive.is/o/m1k2A/https://foo.com')
+    assert mc_url.is_shortened_url('http://ihe.art/OqtGwwL')
 
 
 # noinspection SpellCheckingInspection

@@ -35,7 +35,10 @@ def get_tweet_urls(tweet: dict) -> List[str]:
         if tweet is None:
             continue
 
-        tweet_urls = [u['expanded_url'] for u in tweet['entities']['urls']]
-        urls = list(set(urls) | set(tweet_urls))
+        if 'entities' in tweet and 'urls' in tweet['entities']:
+            tweet_urls = [u['expanded_url'] for u in tweet['entities']['urls']]
+            urls = list(set(urls) | set(tweet_urls))
+        else:
+            urls = []
 
     return urls

@@ -14,6 +14,7 @@ from topics_mine.posts.archive_org_twitter import ArchiveOrgPostFetcher
 from topics_mine.posts.crimson_hexagon_twitter import CrimsonHexagonTwitterPostFetcher
 from topics_mine.posts.csv_generic import CSVStaticPostFetcher
 from topics_mine.posts.pushshift_reddit import PushshiftRedditPostFetcher
+from topics_mine.posts.googler_web import GooglerWebPostFetcher
 
 log = create_logger(__name__)
 
@@ -52,28 +53,6 @@ def _remove_json_tree_nulls(d: dict) -> None:
             d[k] = d[k].replace('\x00', '')
 
 
-def _get_post_urls(post: dict) -> list:
-    """Given a post, return a list of urls included in the post."""
-    # let the underlying module pass the urls in a field rather than parsing them out
-    try:
-        return post['urls']
-    except:
-        pass
-
-    # for ch tweets, find the tweets in the tweet payload so that we get the expanded urls rather than ti.co's
-    if 'data' in post['data'] and 'tweet' in post['data']['data']:
-        return get_tweet_urls(post['data']['data']['tweet'])
-    elif 'tweet' in post['data']:
-        return get_tweet_urls(post['data']['tweet'])
-
-    links = []
-    for url in re.findall(r'https?://[^\s\")]+', post['content']):
-        url = re.sub(r'\W+$', '', url)
-        links.append(url)
-
-    return links
-
-
 def _store_post_and_urls(db: DatabaseHandler, topic_post_day: dict, post: dict) -> None:
     """
     Store the tweet in topic_posts and its urls in topic_post_urls, using the data in post.
@@ -104,10 +83,8 @@ def _store_post_and_urls(db: DatabaseHandler, topic_post_day: dict, post: dict) 
     log.debug("insert topic post")
     topic_post = db.create('topic_posts', topic_post)
 
-    urls = _get_post_urls(post)
-
     log.debug("insert tweet urls")
-    _insert_post_urls(db, topic_post, urls)
+    _insert_post_urls(db, topic_post, post['urls'])
 
     log.debug("done")
 
@@ -228,12 +205,12 @@ def get_post_fetcher(topic_seed_query: dict) -> Optional[AbstractPostFetcher]:
 
     if source == 'crimson_hexagon' and platform == 'twitter':
         fetch = CrimsonHexagonTwitterPostFetcher()
-    elif source == 'archive_org' and platform == 'twitter':
-        fetch = ArchiveOrgPostFetcher()
     elif source == 'csv' and platform == 'generic_post':
         fetch = CSVStaticPostFetcher()
     elif source == 'pushshift' and platform == 'reddit':
         fetch = PushshiftRedditPostFetcher()
+    elif source == 'google' and platform == 'web':
+        fetch = GooglerWebPostFetcher()
     else:
         fetch = None
 

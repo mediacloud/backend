@@ -10,4 +10,5 @@ IGNORE_LINK_PATTERN = (
     r'(?:pronk.*\.wordpress\.com\/(?:tag|category))|(?:wn\.com)|(?:pinterest\.com\/pin\/create)|(?:feedblitz\.com)|'
     r'(?:atomz.com)|(?:unionpedia.org)|(?:http://politicalgraveyard.com)|(?:https?://api\.[^\/]+)|'
     r'(?:www.rumormillnews.com)|(?:tvtropes.org/pmwiki)|(?:twitter.com/account/suspended)|'
-    r'(?:feedsportal.com)')
+    r'(?:feedsportal.com)|(?:misuse.ncbi.nlm.nih.gov/error/abuse.shtml)|'
+    r'(?:assets.feedblitzstatic.com/images/blank.gif)|(?:accounts.google.com/ServiceLogin)')

@@ -26,7 +26,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4740;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4741;
 BEGIN
 
     -- Update / set database schema version
@@ -1788,7 +1788,8 @@ insert into topic_sources ( name, description ) values
     ('mediacloud', 'import from the mediacloud.org archive'),
     ('crimson_hexagon', 'import from the crimsonhexagon.com forsight api, only accessible to internal media cloud team'),
     ('csv', 'import generic posts directly from csv'),
-    ('pushshift', 'import from the pushshift.io api');
+    ('pushshift', 'import from the pushshift.io api'),
+    ('google', 'import from search results on google');
 
 -- the pairs of platforms / sources for which the platform can fetch data
 create table topic_platforms_sources_map (
@@ -1817,6 +1818,7 @@ select insert_platform_source_pair( 'web', 'mediacloud' );
 select insert_platform_source_pair( 'twitter', 'crimson_hexagon' );
 select insert_platform_source_pair( 'generic_post', 'csv' );
 select insert_platform_source_pair( 'reddit', 'pushshift' );
+select insert_platform_source_pair( 'web', 'google' );
 
 create table topics (
     topics_id        serial primary key,

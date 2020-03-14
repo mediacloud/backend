@@ -141,6 +141,7 @@ URL_SHORTENER_HOSTNAMES = {
     'hurl.ws',
     'icanhaz.com',
     'idek.net',
+    'ihe.art',
     'ilix.in',
     'inreply.to',
     'is.gd',

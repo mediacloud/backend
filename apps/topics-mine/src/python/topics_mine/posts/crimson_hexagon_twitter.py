@@ -12,6 +12,7 @@ from mediawords.util.log import create_logger
 
 from topics_base.posts import get_mock_data
 import topics_base.twitter as twitter
+from topics_base.twitter_url import get_tweet_urls 
 from topics_mine.config import TopicsMineConfig
 from topics_mine.posts import AbstractPostFetcher
 from topics_mine.posts.twitter.helpers import add_tweets_to_meta_tweets, get_tweet_id_from_url
@@ -189,3 +190,12 @@ class CrimsonHexagonTwitterPostFetcher(AbstractPostFetcher):
         for field in ('post_id', 'author', 'content'):
             log.debug("%s: %s <-> %s" % (field, got_post[field], expected_post[field]))
             assert got_post[field] == expected_post[field], "field %s does not match" % field
+
+    def get_post_urls(self, post: dict) -> list:
+        """Given a post, return a list of urls included in the post."""
+        if 'data' in post['data'] and 'tweet' in post['data']['data']:
+            return get_tweet_urls(post['data']['data']['tweet'])
+        elif 'tweet' in post['data']:
+            return get_tweet_urls(post['data']['tweet'])
+        else:
+            return super().get_post_urls(post)

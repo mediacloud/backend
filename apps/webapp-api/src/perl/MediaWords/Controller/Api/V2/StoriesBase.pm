@@ -7,6 +7,7 @@ use base 'Catalyst::Controller';
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
+use List::MoreUtils qw(natatime);
 use List::Util;
 use Moose;
 use namespace::autoclean;
@@ -275,25 +276,30 @@ SQL
         $stories = MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $ap_stories_ids );
     }
 
-    my $tag_data = $db->query(
-        <<SQL
-        SELECT
-            s.stories_id::int,
-            t.tags_id,
-            t.tag,
-            ts.tag_sets_id,
-            ts.name AS tag_set
-        FROM stories_tags_map AS s
-            JOIN tags AS t
-                ON t.tags_id = s.tags_id
-            JOIN tag_sets AS ts
-                ON ts.tag_sets_id = t.tag_sets_id
-        WHERE stories_id in ( $ids_list )
-        ORDER BY t.tags_id
+    my $iter = natatime(100, @{ $stories } );
+    while ( my @chunk_stories = $iter->() )
+    {
+        my $chunk_ids_list = join( ',', map { int( $_->{ stories_id } ) } @chunk_stories );
+        my $tag_data = $db->query(
+            <<SQL
+            SELECT
+                s.stories_id::int,
+                t.tags_id,
+                t.tag,
+                ts.tag_sets_id,
+                ts.name AS tag_set
+            FROM stories_tags_map AS s
+                JOIN tags AS t
+                    ON t.tags_id = s.tags_id
+                JOIN tag_sets AS ts
+                    ON ts.tag_sets_id = t.tag_sets_id
+            WHERE stories_id in ( $chunk_ids_list )
+            ORDER BY t.tags_id
 SQL
-    )->hashes;
+        )->hashes;
 
-    $stories = MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $tag_data, 'story_tags' );
+        $stories = MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $tag_data, 'story_tags' );
+    }
 
     if ( int( $self->{ show_feeds } // 0 ) )
     {

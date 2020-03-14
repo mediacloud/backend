@@ -216,21 +216,14 @@ END
     $db->query( "drop view snapshot_undateable_stories" );
 }
 
-# return true if the topic of the timespan is a twitter_topic
-sub _topic_is_twitter_topic
+# return true if the topic of the timespan is not a web topic
+sub _topic_is_url_sharing_topic
 {
     my ( $db, $timespan ) = @_;
 
-    my ( $is_twitter_topic ) = $db->query( <<SQL, $timespan->{ snapshots_id } )->flat;
-select 1
-    from topics t
-        join snapshots s using ( topics_id )
-    where
-        t.platform = 'twitter' and
-        s.snapshots_id = \$1
-SQL
+    my $platform = _get_topic_platform( $db, $timespan );
 
-    return $is_twitter_topic || 0;
+    return $platform ne 'web';
 }
 
 # write snapshot_period_stories table that holds list of all stories that should be included in the
@@ -251,7 +244,7 @@ sub _write_period_stories
 create temporary table snapshot_period_stories as select stories_id from snapshot_stories
 END
     }
-    elsif ( _topic_is_twitter_topic( $db, $timespan ) )
+    elsif ( _topic_is_url_sharing_topic( $db, $timespan ) )
     {
         _create_twitter_snapshot_period_stories( $db, $timespan );
     }
@@ -277,14 +270,35 @@ sub update_timespan
     $db->update_by_id( 'timespans', $timespan->{ timespans_id }, { $field => $val } );
 }
 
+# get the platform for the topic associated with the timespan
+sub _get_topic_platform
+{
+    my ( $db, $timespan ) = @_;
+
+    my ( $platform ) = $db->query( <<SQL, $timespan->{ snapshots_id } )->flat;
+select platform from topics t join snapshots s using ( topics_id ) where snapshots_id = ?
+SQL
+
+    return $platform;
+
+}
+
 sub _write_story_links_snapshot
 {
     my ( $db, $timespan, $is_model ) = @_;
 
     $db->query( "drop table if exists snapshot_story_links" );
 
-    if ( _topic_is_twitter_topic( $db, $timespan ) )
+    my $platform = _get_topic_platform( $db, $timespan );
+
+    if ( $platform ne 'web' )
     {
+        my $date_clause = "1=1";
+        if ( $platform eq 'twitter' )
+        {
+            $date_clause = "date_trunc( 'day', a.publish_date ) = date_trunc( 'day', b.publish_date )";
+        }
+
         $db->query(
             <<SQL
 create temporary table snapshot_story_links as
@@ -303,7 +317,7 @@ create temporary table snapshot_story_links as
                 join post_stories b using ( author )
             where
                 a.media_id <> b.media_id and
-                date_trunc( 'day', a.publish_date ) = date_trunc( 'day', b.publish_date )
+                $date_clause
             group by a.stories_id, b.stories_id, a.author
     )
 

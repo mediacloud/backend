@@ -31,7 +31,10 @@ def test_get_links_from_html():
     test_links('<a href="http://apidomain.com">', ['http://apidomain.com'])
     test_links('<a href="http://www.rumormillnews.com/cgi-bin/forum.cgi?noframes;read=54990">', [])
     test_links('<a href="http://tvtropes.org/pmwiki/pmwiki.php/Main/ClockTower">', [])
-    test_links('<a href=https://twitter.com/account/suspended">', [])
+    test_links('<a href="https://twitter.com/account/suspended">', [])
+    test_links('<a href="https://misuse.ncbi.nlm.nih.gov/error/abuse.shtml">', [])
+    test_links('<a href="https://assets.feedblitzstatic.com/images/blank.gif">', [])
+    test_links('<a href="https://accounts.google.com/ServiceLogin">', [])
 
     # sanity test to make sure that we are able to get all of the links from a real html page
     filename = '/opt/mediacloud/tests/data/html-strip/strip.html'

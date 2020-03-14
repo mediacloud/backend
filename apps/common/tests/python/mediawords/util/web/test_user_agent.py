@@ -143,8 +143,8 @@ class TestUserAgentTestCase(TestCase):
         assert response.is_success() is True
         assert urls_are_equal(url1=response.request().url(), url2=test_url)
 
-        expected_user_agent = 'mediawords bot (http://cyber.law.harvard.edu)'
-        expected_from = 'mediawords@cyber.law.harvard.edu'
+        expected_user_agent = 'mediacloud bot for open academic research (http://mediacloud.org)'
+        expected_from = 'info@mediacloud.org'
 
         decoded_json = decode_json(response.decoded_content())
         assert decoded_json == {

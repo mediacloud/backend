@@ -41,7 +41,7 @@ log = create_logger(__name__)
 
 SPIDER_FEED_NAME = 'Spider Feed'
 
-BINARY_EXTENSIONS = 'jpg pdf doc mp3 mp4 zip png docx'.split()
+BINARY_EXTENSIONS = 'jpg pdf doc mp3 mp4 zip png docx gif mov'.split()
 
 # how long to wait for extractor before raising an exception
 MAX_EXTRACTOR_WAIT = 600
@@ -562,6 +562,13 @@ def merge_foreign_rss_stories(db: DatabaseHandler, topic: dict) -> None:
             'source': 'merge_foreign_rss_stories',
             'content': content
         })
+
+        db.query(
+            """
+            update topic_links set ref_stories_id = null, link_spidered = 'f'
+                where topics_id = %(b)s and ref_stories_id = %(a)s
+            """,
+            {'a': story['stories_id'], 'b': topic['topics_id']})
 
         db.query(
             "delete from topic_stories where stories_id = %(a)s and topics_id = %(b)s",

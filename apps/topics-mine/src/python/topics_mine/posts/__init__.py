@@ -1,6 +1,7 @@
 import abc
 import datetime
 import dateutil.parser
+import re
 
 import requests_mock
 
@@ -66,7 +67,23 @@ class AbstractPostFetcher(object, metaclass=abc.ABCMeta):
             with requests_mock.Mocker() as m:
                 # add the mocker for the ch api calls
                 self.setup_mock_data(m)
-                return self.fetch_posts_from_api(query, start_date, end_date)
+                posts = self.fetch_posts_from_api(query, start_date, end_date)
 
         else:
-            return self.fetch_posts_from_api(query, start_date, end_date)
+            posts = self.fetch_posts_from_api(query, start_date, end_date)
+
+        for post in posts:
+            post['urls'] = self.get_post_urls(post)
+
+        return posts
+
+    def get_post_urls(self, post: dict) -> list:
+        """Given a post, return a list of urls included in the post."""
+        links = []
+        for url in re.findall(r'https?://[^\s\")]+', post['content']):
+            url = re.sub(r'\W+$', '', url)
+            links.append(url)
+
+        return links
+
+
