@@ -11,6 +11,8 @@ import uuid
 import matplotlib.pyplot as plt
 import networkx as nx
 
+from mediawords.util.colors import get_consistent_color
+
 from mediawords.util.log import create_logger
 
 log = create_logger(__name__)
@@ -181,15 +183,8 @@ def assign_colors(db, graph):
     For now, this just assigns a color based on the partisan_retweet categorization, but it should support
     other options, or at least not use partisan_retweet if it is not a U.S. topic.
     """
-    partisan_retweet = nx.get_node_attributes(graph, 'partisan_retweet')
-    
-    color_sets = db.query("select * from color_sets where color_set = 'partisan_retweet'").hashes()
-
-    color_lookup = {cs['id']: cs['color'] for cs in color_sets}
-
-    colors = {n: {'color': color_lookup[partisan_retweet[n]]} for n in graph.nodes}
-
-    nx.set_node_attributes(graph, colors)
+    for n in graph.nodes:
+        graph.nodes[n]['color'] = get_consistent_color(db, 'partisan_retweet', graph.nodes[n]['partisan_retweet'])
 
 
 def assign_sizes(graph, attribute, scale):
@@ -292,7 +287,7 @@ def get_labels_by_attribute(graph, label_attribute, rank_attribute, iteration, n
 #             alpha=alpha
 #         )
         
-def assign_labels(graph, attribute):
+def assign_labels(graph, attribute='name'):
     """Assign a 'label' attribute to each node as the value of the given attribute.
 
     Truncate all labels at 16 characters.
@@ -338,9 +333,8 @@ def rotate_right_to_right(graph):
             max_sum_x = sum_x
             best_rotation = rotation
     
-    positons = {n:{'position': rotate(positions[n][0], positions[n][1], best_rotation)} for n in graph.nodes()}
-
-    nx.set_node_attributes(graph, positions)
+    for n in graph.nodes:
+        graph.nodes[n]['position'] = rotate(positions[n][0], positions[n][1], best_rotation)
 
 
 def scale_until_no_overlap(graph):
@@ -348,6 +342,7 @@ def scale_until_no_overlap(graph):
     
     Return sizes with the smallest non-overlap expansion, up to 3x.
     """
+    return
     positions = nx.get_node_attributes(graph, 'position')
     sizes = nx.get_node_attributes(graph, 'size')
 
@@ -360,8 +355,8 @@ def scale_until_no_overlap(graph):
         for i in range(len(graph.nodes()) - 1):
             collision = False
             for j in range(i + 1, len(graph.nodes())):
-                a = graph.nodes()[i]
-                b = graph.nodes()[j]
+                a = graph.nodes[i]
+                b = graph.nodes[j]
                 distance = math.sqrt((positions[a][0] - positions[b][0])**2 + (positions[a][1] - positions[b][1])**2)
                 if distance < (expanded_sizes[a] + expanded_sizes[b] + 10):
                     collision = True
@@ -381,11 +376,11 @@ def scale_until_no_overlap(graph):
 def draw_labels(graph):
     """Draw node labels, using font size proportional to node size."""
     labels = nx.get_node_attributes(graph, 'label')
-    positions = nx.get_node_attributes(graph, 'label')
+    positions = nx.get_node_attributes(graph, 'position')
 
     sorted_sizes = sorted(nx.get_node_attributes(graph, 'size').items(), key=lambda n: n[1], reverse=True)
 
-    max_size = sorted_sizes[0]
+    max_size = sorted_sizes[0][1]
 
     emphasis_threshold = 50
 
@@ -399,7 +394,7 @@ def draw_labels(graph):
         nx.draw_networkx_labels(
             G=graph,
             pos=positions,
-            labels=[labels[n]],
+            labels={n: labels[n]},
             font_size=4 * relative_size,
             font_weight=weight,
             alpha=alpha
@@ -414,8 +409,10 @@ def draw_graph(graph):
     Return the data of the resulting svg file.
     """
     positions = nx.get_node_attributes(graph, 'position')
-    colors = nx.get_node_attributes(graph, 'color').values()
-    sizes = nx.get_node_attributes(graph, 'size')
+    colors = ['#' + c for c in nx.get_node_attributes(graph, 'color').values()]
+    sizes = list(nx.get_node_attributes(graph, 'size').values())
+
+    log.warning("sizes: %s" % str(sizes))
 
     fig = plt.figure(figsize=(10,10))
     fig.set_facecolor('#FFFFFF')
@@ -482,8 +479,8 @@ def generate_and_layout_graph(db, timespans_id):
     
     assign_sizes(graph, 'media_inlink_count', 250)
 
-    scale_until_no_overlap(graph, positions, node_sizes)
-    rotate_right_to_right(graph, positions)
+    scale_until_no_overlap(graph)
+    rotate_right_to_right(graph)
 
     assign_labels(graph)
 
@@ -494,7 +491,7 @@ def generate_and_draw_graph(db, timespans_id):
     """Generate, layout, and draw a graph of the media network for the given timespan."""
     graph = generate_and_layout_graph(db, timespans_id)
 
-    draw_graph(graph)
+    return draw_graph(graph)
 
 # caravan
 #timespans_id = 825739

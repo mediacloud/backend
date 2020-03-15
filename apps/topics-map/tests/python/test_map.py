@@ -54,9 +54,10 @@ class TestMap(TestCase):
             """
         )
 
-        tag_set = db.create('tag_sets', {'name': 'retweet_partisanship_2016_count_10'})
-        tag = db.create('tags', {'tag_sets_id': tag_set['tag_sets_id'], tag['right']})
-        db.create('color_sets', {'color': 'bb0404', 'color_set': 'partisan_retweet', 'id': 'right'})
+        tag_set = db.find_or_create('tag_sets', {'name': 'retweet_partisanship_2016_count_10'})
+        tag = db.find_or_create('tags', {'tag_sets_id': tag_set['tag_sets_id'], 'tag': 'right'})
+        db.find_or_create('color_sets', {'color': 'bb0404', 'color_set': 'partisan_retweet', 'id': 'right'})
+        db.find_or_create('color_sets', {'color': '', 'color_set': 'partisan_retweet', 'id': 'right'})
 
         db.query(
             "insert into media_tags_map (media_id, tags_id) select media_id, %(a)s from media",
@@ -164,4 +165,14 @@ class TestMap(TestCase):
     def test_generate_and_draw_graph(self):
         db = self.db
 
-        generate_and_draw_graph(db, self.timespan['timespans_id'])
+        svg = generate_and_draw_graph(db, self.timespan['timespans_id'])
+
+        assert len(svg) > 100 * len(self.connected_media)
+
+        f = open('/tmp/test.svg', 'w')
+
+        f.write(str(svg))
+
+        for m in self.connected_media:
+            assert m['name'] in str(svg)
+
