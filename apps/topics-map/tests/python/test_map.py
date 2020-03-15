@@ -1,6 +1,9 @@
 from unittest import TestCase
 
+import networkx as nx
+
 import mediawords.db
+import topics_map.map
 from topics_map.map import *
 from mediawords.test.db.create import create_test_medium, create_test_topic, create_test_timespan
 
@@ -15,6 +18,7 @@ class TestMap(TestCase):
         db = self.db
 
         db.query("delete from media")
+        db.query("delete from topics")
 
         self.connected_media = []
         for i in range(NUM_CONNECTED_MEDIA):
@@ -23,6 +27,8 @@ class TestMap(TestCase):
         self.disconnected_media = []
         for i in range(NUM_DISCONNECTED_MEDIA):
             self.disconnected_media.append(create_test_medium(db, 'disconnected %d' %i))
+
+        self.all_media = self.connected_media + self.disconnected_media
 
         self.topic = create_test_topic(db, 'foo')
         self.timespan = create_test_timespan(db, self.topic)
@@ -41,20 +47,121 @@ class TestMap(TestCase):
             """
             insert into snap.medium_link_counts
                 (timespans_id, media_id,
-                    inlink_count, outlink_count, story_count, media_inlink_count, sum_media_inlink_count)
-                select timespans_id, media_id, 1, 1, 1, 1, 1
+                    media_inlink_count, outlink_count, story_count, inlink_count, sum_media_inlink_count)
+                select timespans_id, media_id, media_id, 1, 1, 1, 1
                     from timespans t
                         cross join media m
             """
         )
 
+        tag_set = db.create('tag_sets', {'name': 'retweet_partisanship_2016_count_10'})
+        tag = db.create('tags', {'tag_sets_id': tag_set['tag_sets_id'], tag['right']})
+        db.create('color_sets', {'color': 'bb0404', 'color_set': 'partisan_retweet', 'id': 'right'})
+
+        db.query(
+            "insert into media_tags_map (media_id, tags_id) select media_id, %(a)s from media",
+            {'a': tag['tags_id']}
+        )
+
     def test_get_media_network(self):
         db = self.db
 
+        got_media = get_media_network(db, self.timespan['timespans_id'])
+
+        assert len(got_media) == len(self.all_media)
+
+        for m in got_media:
+            assert m['media_id'] in [m['media_id'] for m in self.all_media]
+
+    def test_get_media_graph(self):
+        db = self.db
+
         media = get_media_network(db, self.timespan['timespans_id'])
+        graph = get_media_graph(db, media)
 
-        assert len(media) == len(self.connected_media + self.disconnected_media)
+        assert len(graph.nodes) == len(self.all_media)
+        assert len(graph.edges) == len(self.connected_media) - 1
 
-        for m in self.connected_media:
-            assert m['media_id'] in [m['media_id'] for m in self.connected_media]
+        media_id_attributes = nx.get_node_attributes(graph, 'media_id').items()
+        assert len(media_id_attributes) == len(self.all_media)
+        for (node, media_id) in media_id_attributes:
+            assert node == media_id
 
+        name_attributes = nx.get_node_attributes(graph, 'name').items()
+        assert len(name_attributes) == len(self.all_media)
+        for (node, name) in name_attributes:
+            assert len(name) > 0
+
+        media_inlink_count_attributes = nx.get_node_attributes(graph, 'media_inlink_count').items()
+        assert len(media_inlink_count_attributes) == len(self.all_media)
+        for (node, count) in media_inlink_count_attributes:
+            assert count > 0
+
+    def test_remoove_platforms_from_graph(self):
+        db = self.db
+
+        media = get_media_network(db, self.timespan['timespans_id'])
+        graph = get_media_graph(db, media)
+
+        topics_map.map.PLATFORM_MEDIA_IDS = [self.disconnected_media[0]['media_id'],]
+
+        graph = remove_platforms_from_graph(graph)
+
+        assert len(graph.nodes) == len(self.all_media) - 1
+
+        assert self.disconnected_media[0]['media_id'] not in graph.nodes
+
+    def test_get_giant_component(self):
+        db = self.db
+
+        media = get_media_network(db, self.timespan['timespans_id'])
+        graph = get_media_graph(db, media)
+
+        assert len(graph.nodes) == len(self.all_media)
+
+        graph = get_giant_component(graph)
+
+        assert len(graph.nodes) == len(self.connected_media)
+
+    def test_run_fa2_layout(self):
+        db = self.db
+
+        graph = generate_graph(db, self.timespan['timespans_id'])
+
+        run_fa2_layout(graph)
+
+        positions = nx.get_node_attributes(graph, 'position')
+
+        for n in graph.nodes:
+            assert len(positions[n]) == 2
+
+    def test_get_display_subgraph_by_attribute(self):
+        db = self.db
+
+        graph = generate_graph(db, self.timespan['timespans_id'])
+
+        num_display_nodes = 10
+
+        graph = get_display_subgraph_by_attribute(graph, 'media_inlink_count', num_display_nodes)
+
+        assert len(graph.nodes) == num_display_nodes
+
+
+    def test_prune_graph_by_distance(self):
+        db = self.db
+
+        media = get_media_network(db, self.timespan['timespans_id'])
+        graph = get_media_graph(db, media)
+
+        assert len(graph.nodes) == len(self.all_media)
+
+        run_fa2_layout(graph)
+
+        graph = prune_graph_by_distance(graph)
+
+        assert len(graph.nodes) == len(self.connected_media)
+
+    def test_generate_and_draw_graph(self):
+        db = self.db
+
+        generate_and_draw_graph(db, self.timespan['timespans_id'])

@@ -19,6 +19,9 @@ log = create_logger(__name__)
 PLATFORM_MEDIA_IDS = \
    [18362, 18346, 18370, 61164, 269331, 73449, 62926, 21936, 5816, 4429, 20448, 67324, 351789, 22299, 135076, 25373]
 
+class McMapError(Exception): 
+    pass
+
 def add_partisan_retweet_to_snapshot_media(db, timespans_id, media):
     """Add partisan_retweet field to list of snapshotted media."""
     label = 'partisan_retweet'
@@ -78,8 +81,6 @@ def get_media_network(db, timespans_id):
 
 def get_media_graph(db, media):
     """Get a networkx graph describing the media network of the topic."""
-    media = get_media_network(db, timespans_id)
-    
     graph = nx.Graph()
     
     [graph.add_node(m['media_id']) for m in media]
@@ -100,7 +101,7 @@ def get_media_graph(db, media):
     return graph
 
 
-def remove_platforms_from_graph(db, graph):
+def remove_platforms_from_graph(graph):
     """Remove nodes in PLATFORM_MEDIA_IDS from the graph.
     
     Return the resulting subgraph.
@@ -135,7 +136,7 @@ def run_fa2_layout(graph):
     
     log.info("running layout...")
         
-    p = subprocess.Popen(
+    output = subprocess.check_output(
         [
             "/usr/bin/nice",
             "/usr/bin/java",
@@ -149,14 +150,10 @@ def run_fa2_layout(graph):
             "--directed",
             "--2d"
         ],
-        stdout=subprocess.PIPE,
-        bufsize=1,
-        universal_newlines=True
     )
 
-    for line in p.stdout:
-        log.info(line, end='')
-        
+    log.info("fa2 layout: %s" % str(output))
+
     f = open(output_file)
     lines = f.readlines()
     
@@ -165,10 +162,13 @@ def run_fa2_layout(graph):
     positions = {}
     for line in lines:
         (i, x, y) = line.split()
-        positions[i] = {'position': [x, y]}
-
-    nx.set_node_attributes(graph, positions)
         
+        i = int(i)
+        x = float(x)
+        y = float(y)
+
+        graph.nodes[i]['position'] = [x, y]
+
     os.remove(input_file)
     os.remove(output_file)
 
@@ -187,7 +187,7 @@ def assign_colors(db, graph):
 
     color_lookup = {cs['id']: cs['color'] for cs in color_sets}
 
-    colors = {n: {'color': color_lookup[partisan_rewteet[n]]} for n in graph.nodes}
+    colors = {n: {'color': color_lookup[partisan_retweet[n]]} for n in graph.nodes}
 
     nx.set_node_attributes(graph, colors)
 
@@ -231,7 +231,7 @@ def prune_graph_by_distance(graph):
     function computes the mean distances from the center of the graph and removes
     any nodes that are more than 2.5x the average distance.
     """
-    positions = nx.get_node_attributes(graph, 'positions')
+    positions = nx.get_node_attributes(graph, 'position')
     center_x = sum([positions[n][0] for n in graph.nodes()]) / len(graph.nodes())
     center_y = sum([positions[n][1] for n in graph.nodes()]) / len(graph.nodes())
     
@@ -440,14 +440,19 @@ def draw_graph(graph):
     return buf.read()
 
 
-def generate_and_layout_graph(db, timespans_id):
-    """Generate and layout a graph of the network of media for the given timespan."""
+def get_giant_component(graph):
+    """Return the giant component subgraph of the graph."""
+    return graph.subgraph(sorted(nx.connected_components(graph), key=len)[-1])
+
+
+def generate_graph(db, timespans_id):
+    """Generate a graph of the network of media for the given timespan, but do not layout."""
     media = get_media_network(db, timespans_id)
     graph = get_media_graph(db, media)
 
     log.info("initial graph: %d nodes" % len(graph.nodes()))
 
-    graph = graph.subgraph(sorted(nx.connected_components(graph), key=len)[-1])
+    graph = get_giant_component(graph)
 	
     log.info("graph after giant component: %d nodes" % len(graph.nodes()))
 
@@ -455,6 +460,15 @@ def generate_and_layout_graph(db, timespans_id):
 
     log.info("graph after platform removal: %d nodes" % len(graph.nodes()))
 
+    return graph
+
+
+def generate_and_layout_graph(db, timespans_id):
+    """Generate and layout a graph of the network of media for the given timespan.
+    
+    The layout algorithm is force atlas 2, and the resulting is 'position' attribute added to each node.
+    """
+    graph = generate_graph(db, timespans_id)
     # run layout with all nodes in giant component, before reducing to smaler number to display
     run_fa2_layout(graph) 
 
