@@ -162,9 +162,9 @@ sub main
     my $media_csv = _get_media_csv( $db, $timespan );
     write_file( "media_${ timespans_id }.csv", \$media_csv );
 
-    DEBUG( "dumping story links ..." );
-    my $story_links_csv = _get_story_links_csv( $db, $timespan );
-    write_file( "story_links_${ timespans_id }.csv", \$story_links_csv );
+    # DEBUG( "dumping story links ..." );
+    # my $story_links_csv = _get_story_links_csv( $db, $timespan );
+    # write_file( "story_links_${ timespans_id }.csv", \$story_links_csv );
 
     DEBUG( "dumping medium_links ..." );
     my $medium_links_csv = _get_medium_links_csv( $db, $timespan );
