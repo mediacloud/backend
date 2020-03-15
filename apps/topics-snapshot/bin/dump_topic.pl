@@ -40,7 +40,7 @@ sub _get_stories_csv
 {
     my ( $db, $timespan ) = @_;
 
-    my $csv = MediaWords::Util::CSV::get_query_as_csv( $db, <<END );
+    my $res = $db->query( <<END );
 select s.stories_id, s.title, s.url,
         case when ( stm.tags_id is null ) then s.publish_date::text else 'undateable' end as publish_date,
         m.name media_name, m.url media_url, m.media_id,
@@ -57,7 +57,48 @@ select s.stories_id, s.title, s.url,
     order by slc.media_inlink_count desc
 END
 
-    return $csv;
+	my $story_post_counts = $db->query( <<END, $timespan->{ timespans_id } )->hashes;
+with counts as (
+    select 
+            count(*) post_count, ts.stories_id, tsu.topic_seed_queries_id 
+        from snapshot_stories ts 
+            join topic_seed_urls tsu using ( stories_id ) 
+            join topic_post_days tpd using ( topic_seed_queries_id )
+            join timespans t using ( snapshots_id )
+        where 
+            t.timespans_id = ? and
+            ( 
+                ( period = 'overall' ) or
+                ( tpd.day between t.start_date and t.end_date )
+            )
+        group by stories_id, topic_seed_queries_id 
+) 
+
+select *
+    from counts c 
+        join topic_seed_queries tsq using ( topic_seed_queries_id);
+END
+
+    my $fields = $res->columns;
+
+    my $stories = $res->hashes;
+
+    my $stories_lookup = {};
+    map { $stories_lookup->{ $_->{ stories_id } } = $_ } @{ $stories };
+
+    my $fields_lookup = {};
+
+    for my $spc ( @{ $story_post_counts } )
+    {
+        my $story = $stories_lookup->{ $spc->{ stories_id } };
+        my $label = "$spc->{ platform }_$spc->{ source }_$spc->{ topic_seed_queries_id }";
+        $fields_lookup->{ $label } = 1;
+        $story->{ $label } = $spc->{ count }
+    }
+
+    push( @{ $fields }, keys( %{ $fields_lookup } ) );
+
+    return MediaWords::Util::CSV::get_hashes_as_encoded_csv( $stories, $fields );;
 }
 
 # Get an encoded csv snapshot of the medium_links in the given timespan.
