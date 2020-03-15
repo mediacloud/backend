@@ -1,4 +1,4 @@
-from webapp.util.colors import analogous_color
+from mediawords.util.colors import analogous_color
 
 
 def test_analogous_color():

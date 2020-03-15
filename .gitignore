@@ -122,3 +122,5 @@ joblog.txt
 /data/
 mediawords*.yml
 
+# test.log variations
+test*.log

@@ -1,5 +1,5 @@
 from mediawords.db import connect_to_db
-from webapp.util.colors import get_consistent_color
+from mediawords.util.colors import get_consistent_color
 
 
 def test_get_consistent_color():

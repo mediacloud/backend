@@ -292,6 +292,45 @@ def create_test_topic(db: DatabaseHandler, label: str) -> dict:
     )
 
 
+def create_test_snapshot(db: DatabaseHandler, topic: dict) -> dict:
+    """Create simple snapshot for testing."""
+    return db.create(
+        table='snapshots',
+        insert_hash={
+            'topics_id': topic['topics_id'],
+            'snapshot_date': topic['end_date'],
+            'start_date': topic['start_date'],
+            'end_date': topic['end_date']
+        }
+    )
+
+
+def create_test_timespan(db: DatabaseHandler, topic: dict=None, snapshot: dict=None) -> dict:
+    """Create simple timespans for testing.
+
+    Mast pass either topic or snapshot or both. If a snapshot is not passed, create one.
+    """
+    assert topic is not None or snapshot is not None
+
+    if not snapshot:
+        snapshot = create_test_snapshot(db, topic)
+
+    return db.create(
+        table='timespans',
+        insert_hash={
+            'snapshots_id': snapshot['snapshots_id'],
+            'start_date': snapshot['start_date'],
+            'end_date': snapshot['end_date'],
+            'period': 'overall',
+            'story_count': 0,
+            'story_link_count': 0,
+            'medium_count': 0,
+            'medium_link_count': 0,
+            'post_count': 0
+        }
+    )
+
+
 def _get_test_content() -> str:
     """Generate 1 - 10 paragraphs of 1 - 5 sentences of random text that looks like a human language.
 
