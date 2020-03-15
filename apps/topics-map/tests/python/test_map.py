@@ -162,16 +162,13 @@ class TestMap(TestCase):
 
         assert len(graph.nodes) == len(self.connected_media)
 
+
     def test_generate_and_draw_graph(self):
         db = self.db
 
         svg = generate_and_draw_graph(db, self.timespan['timespans_id'])
 
         assert len(svg) > 100 * len(self.connected_media)
-
-        f = open('/tmp/test.svg', 'w')
-
-        f.write(str(svg))
 
         for m in self.connected_media:
             assert m['name'] in str(svg)
