@@ -208,7 +208,7 @@ SQL
     $self->status_ok( $c, entity => $entity );
 }
 
-sub new_map
+sub _new_map
 {
     my ( $self, $c ) = @_;
 
@@ -229,7 +229,9 @@ SQL
         svg => 'image/svg'
     };
 
-    my $content_type = $types->{ format };
+    my $content_type = $types->{ $format };
+
+    die( "unknown format: $format" ) unless $content_type;
 
     my $filename = "topic_map_$timespan->{ timespans_id }.$format";
 
