@@ -235,7 +235,6 @@ SQL
 
     $c->response->header( "Content-Disposition" => "attachment;filename=$filename" );
     $c->response->content_type( $content_type );
-    $c->response->content_length( bytes::length( $map->{ content } ) );
     $c->response->body( $map->{ content } );
 }
 
