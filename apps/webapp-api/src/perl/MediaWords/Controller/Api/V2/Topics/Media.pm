@@ -208,6 +208,37 @@ SQL
     $self->status_ok( $c, entity => $entity );
 }
 
+sub new_map
+{
+    my ( $self, $c ) = @_;
+
+    my $db = $c->dbis;
+
+    my $timespan = MediaWords::DBI::Timespans::set_timespans_id_param( $c );
+
+    my $format = $c->req->params->{ format };
+
+    my $map = $db->query( <<SQL, $timespan->{ timespans_id }, $format )->hash;
+select * from timespan_maps where timespans_id = ? and format = ?
+SQL
+
+    die( "no maps found for timespan $timespan->{ timespans_id } with format $format" ) unless $map;
+
+    my $types = {
+        gexf => 'text/gexf; charset=UTF-8',
+        svg => 'image/svg'
+    };
+
+    my $content_type = $types->{ format };
+
+    my $filename = "topic_map_$timespan->{ timespans_id }.$format";
+
+    $c->response->header( "Content-Disposition" => "attachment;filename=$filename" );
+    $c->response->content_type( $content_type );
+    $c->response->content_length( bytes::length( $map->{ content } ) );
+    $c->response->body( $map->{ content } );
+}
+
 sub map : Chained('media') : Args(0) : ActionClass('MC_REST')
 {
 
@@ -217,7 +248,14 @@ sub map_GET
 {
     my ( $self, $c ) = @_;
 
-    my $timespan             = MediaWords::DBI::Timespans::set_timespans_id_param( $c );
+
+    if ( my $format  = $c->req->params->{ format } )
+    {
+        return $self->_new_map( $c );
+    }
+
+    my $timespan = MediaWords::DBI::Timespans::set_timespans_id_param( $c );
+
     my $color_field          = $c->req->params->{ color_field } || 'media_type';
     my $num_media            = int( $c->req->params->{ num_media } // 500 );
     my $include_weights      = int( $c->req->params->{ include_weights } // 0 );
