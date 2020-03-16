@@ -2129,6 +2129,16 @@ create table timespans (
 create index timespans_snapshot on timespans ( snapshots_id );
 create unique index timespans_unique on timespans ( snapshots_id, foci_id, start_date, end_date, period );
 
+create table timespan_maps (
+    timespan_maps_id                serial primary key,
+    timespans_id                    int not null references timespans on delete cascade,
+    options                         jsonb not null,
+    content                         bytea not null,
+    format                          varchar(1024) not null
+);
+
+create index topic_maps_timespan on timespan_maps ( timespans_id );
+
 create table timespan_files (
     timespan_files_id                   serial primary key,
     timespans_id int not null references timespans on delete cascade,

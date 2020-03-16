@@ -11,7 +11,7 @@ import uuid
 import matplotlib.pyplot as plt
 import networkx as nx
 
-from mediawords.util.colors import get_consistent_color
+from mediawords.util.colors import get_consistent_color, hex_to_rgb
 
 from mediawords.util.log import create_logger
 
@@ -401,7 +401,7 @@ def draw_labels(graph):
         )
 
 
-def draw_graph(graph):
+def draw_graph(graph, graph_format='svg'):
     """Draw the graph using matplotlib.
 
     Use the position, color, size, and label node attributes from the graph.
@@ -411,8 +411,6 @@ def draw_graph(graph):
     positions = nx.get_node_attributes(graph, 'position')
     colors = ['#' + c for c in nx.get_node_attributes(graph, 'color').values()]
     sizes = list(nx.get_node_attributes(graph, 'size').values())
-
-    log.warning("sizes: %s" % str(sizes))
 
     fig = plt.figure(figsize=(10,10))
     fig.set_facecolor('#FFFFFF')
@@ -431,7 +429,7 @@ def draw_graph(graph):
     plt.axis('off')
 
     buf = io.BytesIO()
-    fig.savefig(buf, format='svg')
+    fig.savefig(buf, format=graph_format)
     buf.seek(0)
 
     return buf.read()
@@ -470,10 +468,10 @@ def generate_and_layout_graph(db, timespans_id):
     run_fa2_layout(graph) 
 
     graph = get_display_subgraph_by_attribute(graph, 'media_inlink_count', 1000)
-    log.warning("graph after attribute ranking: %d nodes" % len(graph.nodes()))
+    log.info("graph after attribute ranking: %d nodes" % len(graph.nodes()))
 
     graph = prune_graph_by_distance(graph)        
-    log.warning("graph after far flung node pruning: %d nodes" % len(graph.nodes()))
+    log.info("graph after far flung node pruning: %d nodes" % len(graph.nodes()))
 
     assign_colors(db, graph)
     
@@ -492,6 +490,70 @@ def generate_and_draw_graph(db, timespans_id):
     graph = generate_and_layout_graph(db, timespans_id)
 
     return draw_graph(graph)
+
+
+def write_gexf(graph):
+    """Return a gexf representation of the graph.
+
+    Convert position, color, and size into viz:position and viz:color as expected for gexf.
+    """
+    for n in graph.nodes:
+        (r, g, b) = hex_to_rgb(graph.nodes[n]['color'])
+        graph.nodes[n]['viz'] = {
+            'r': r,
+            'g': g,
+            'b': b,
+            'x': graph.nodes[n]['position'][0],
+            'y': graph.nodes[n]['position'][1],
+            'size': graph.nodes[n]['size']
+        }
+
+    export_graph = graph.copy()
+    for node in export_graph.nodes(data=True):
+        for key in ('position', 'color', 'size', 'links'):
+            if key in node[1]:
+                del node[1][key]
+    
+    buf = io.BytesIO()
+
+    nx.write_gexf(export_graph, buf)
+
+    buf.seek(0)
+
+    return buf.read()
+
+
+def create_timespan_map(db, timespans_id, content, graph_format):
+    """Create a timespans_map row."""
+    db.begin()
+
+    db.query(
+        "delete from timespan_maps where timespans_id = %(a)s and format = %(b)s",
+        {'a': timespans_id, 'b': graph_format}
+    )
+
+    timespan_map = {
+        'timespans_id': timespans_id,
+        'options': '{}',
+        'format': graph_format,
+        'content': content
+    }
+
+    db.create('timespan_maps', timespan_map)
+
+    db.commit()
+
+
+def generate_and_store_maps(db, timespans_id):
+    """Generate and layout graph and store various formats of the graph in timespans_maps."""
+    graph = generate_and_layout_graph(db, timespans_id)
+
+    gexf = write_gexf(graph)
+    create_timespan_map(db, timespans_id, gexf, 'gexf')
+
+    for graph_format in ('svg', ):
+        image = draw_graph(graph, graph_format=graph_format)
+        create_timespan_map(db, timespans_id, image, graph_format)
 
 # caravan
 #timespans_id = 825739

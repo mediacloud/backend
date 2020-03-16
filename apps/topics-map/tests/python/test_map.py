@@ -1,3 +1,4 @@
+from lxml import etree
 from unittest import TestCase
 
 import networkx as nx
@@ -173,3 +174,30 @@ class TestMap(TestCase):
         for m in self.connected_media:
             assert m['name'] in str(svg)
 
+
+    def test_write_gexf(self):
+        db = self.db
+
+        graph = generate_and_layout_graph(db, self.timespan['timespans_id'])
+
+        gexf = write_gexf(graph)
+
+        assert len(gexf) > 100 * len(self.connected_media)
+
+    def test_generate_and_store_maps(self):
+        db = self.db
+
+        generate_and_store_maps(db, self.timespan['timespans_id'])
+
+        timespan_maps = db.query(
+            "select * from timespan_maps where timespans_id = %(a)s",
+            {'a': self.timespan['timespans_id']}
+        ).hashes()
+
+        formats = ('gexf', 'svg')
+
+        assert len(timespan_maps) == len(formats)
+
+        for map in timespan_maps:
+            assert map['format'] in formats
+            assert len(map['content']) > 100 * len(self.connected_media)
