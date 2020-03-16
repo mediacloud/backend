@@ -865,10 +865,12 @@ SQL
         format => 'gexf',
         content => $gexf_content
     };
+    $db->create( 'timespan_maps', $timespan_map );
 
-    my $uri = URI->new();
+    my $uri = URI->new( "/api/v2/topics/$topic->{ topics_id }/media/map" );
     $uri->query_param( timespans_id => $timespans_id );
-    $uri->query_param( 'key', MediaWords::Test::API::get_test_api_key() );
+    $uri->query_param( format => 'gexf' );
+    $uri->query_param( 'key'=> MediaWords::Test::API::get_test_api_key() );
 
     # Catalyst::Test::request
     my $response = request( $uri->as_string );
@@ -877,7 +879,7 @@ SQL
 
     my $gexf = $response->decoded_content;
 
-    ok( $gexf = $gexf_content );
+    is( $gexf, $gexf_content );
 }
 
 

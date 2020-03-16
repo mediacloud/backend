@@ -196,7 +196,7 @@ def assign_sizes(graph, attribute, scale):
     """
     node_values = nx.get_node_attributes(graph, attribute).items()
         
-    max_value = max([n[0] for n in node_values])
+    max_value = max([n[1] for n in node_values])
 
     sizes = {n[0]: {'size': ( n[1] / max_value ) * scale} for n in node_values}
         
