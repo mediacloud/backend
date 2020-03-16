@@ -1517,9 +1517,12 @@ The media list call returns a gexf formatted network map of the media in the top
 | num_media      | 500  | number of media to map, sorted by media inlinks |
 | include_weights | false | include weights on edges (default is to use a weight of 1 for every edge) |
 | num_links_per_medium | null | if set, only inclue the top num_links_per_media out links from each medium, sorted by medium_link_counts.link_count and then inlink_count of the target medium |
-
+| format | return new implementation of map with layout in one of these formats: 'gexf', 'svg' |
 
 Standard parameters accepted: snapshots_id, foci_id, timespans_id.
+
+If format is specified, use a new implementation of the map generation that lays out the map using 
+the force atlas 2 algorithm.  For this implementation, the api returns the requested format directly;
 
 ### Output Description
 
