@@ -463,6 +463,7 @@ def draw_graph(graph, graph_format='svg'):
     else:
         buf = io.BytesIO()
         fig.savefig(buf, format=graph_format)
+        plt.close(fig)
         buf.seek(0)
         return buf.read()
 
