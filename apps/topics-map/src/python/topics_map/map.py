@@ -84,9 +84,10 @@ def get_media_network(db, timespans_id):
         media_lookup[medium['media_id']] = medium
         
     for medium_link in medium_links:
-        medium = media_lookup[medium_link['source_media_id']]
-        medium.setdefault('links', [])
-        medium['links'].append(medium_link)
+        if medium_link['source_media_id'] in media_lookup:
+            medium = media_lookup[medium_link['source_media_id']]
+            medium.setdefault('links', [])
+            medium['links'].append(medium_link)
         
     add_partisan_retweet_to_snapshot_media(db, timespans_id, media)
         
