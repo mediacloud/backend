@@ -31,6 +31,9 @@ RUN \
     # Install pgAdmin
     pip3 install https://ftp.postgresql.org/pub/pgadmin/pgadmin4/v4.19/pip/pgadmin4-4.19-py2.py3-none-any.whl && \
     #
+    # Install newer psutil without vulnerabilities
+    pip3 install psutil==5.7.0 && \
+    #
     # Install Gunicorn for serving web pages
     pip3 install gunicorn==20.0.4 && \
     #
