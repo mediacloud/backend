@@ -263,8 +263,6 @@ def prune_graph_by_distance(graph):
     mean_distance = sorted(distance_map.values())[int(len(distance_map.values()) / 2)]
     max_distance = mean_distance * 2
 
-    log.warning(mean_distance)
-    
     include_nodes = []
     for node in graph.nodes():
         if distance_map[node] <= max_distance:
