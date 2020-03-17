@@ -22,6 +22,7 @@ __PACKAGE__->config(
         links => { Does => [ qw( ~TopicsReadAuthenticated ~Throttled ~Logged ) ] },
         list  => { Does => [ qw( ~TopicsReadAuthenticated ~Throttled ~Logged ) ] },
         map   => { Does => [ qw( ~TopicsReadAuthenticated ~Throttled ~Logged ) ] },
+        list_maps   => { Does => [ qw( ~TopicsReadAuthenticated ~Throttled ~Logged ) ] },
     }
 );
 
@@ -216,13 +217,22 @@ sub _new_map
 
     my $timespan = MediaWords::DBI::Timespans::set_timespans_id_param( $c );
 
+    my $timespan_maps_id = $c->req->params->{ timespan_maps_id };
     my $format = $c->req->params->{ format };
 
-    my $map = $db->query( <<SQL, $timespan->{ timespans_id }, $format )->hash;
+    my $map;
+    if ( $timespan_maps_id )
+    {
+        $map = $db->require_by_id( 'timespan_maps', $timespan_maps_id );
+    }
+    else
+    {
+        $map = $db->query( <<SQL, $timespan->{ timespans_id }, $format )->hash;
 select * from timespan_maps where timespans_id = ? and format = ?
 SQL
+        die( "no maps found for timespan $timespan->{ timespans_id } with format $format" ) unless $map;
+    }
 
-    die( "no maps found for timespan $timespan->{ timespans_id } with format $format" ) unless $map;
 
     my $types = {
         gexf => 'text/gexf; charset=UTF-8',
@@ -233,7 +243,7 @@ SQL
 
     die( "unknown format: $format" ) unless $content_type;
 
-    my $filename = "topic_map_$timespan->{ timespans_id }.$format";
+    my $filename = "topic_map_$map->{ timespan_maps_id }.$format";
 
     $c->response->header( "Content-Disposition" => "attachment;filename=$filename" );
     $c->response->content_type( $content_type );
@@ -250,7 +260,8 @@ sub map_GET
     my ( $self, $c ) = @_;
 
 
-    if ( my $format  = $c->req->params->{ format } )
+
+    if ( $c->req->params->{ format } || $c->req->params->{ timespan_maps_id } )
     {
         return $self->_new_map( $c );
     }
@@ -293,6 +304,28 @@ sub map_GET
     $c->response->content_type( 'text/gexf; charset=UTF-8' );
     $c->response->content_length( bytes::length( $gexf ) );
     $c->response->body( $gexf );
+}
+
+sub list_maps : Chained('media') : Args(0) : ActionClass('MC_REST')
+{
+}
+
+sub list_maps_GET
+{
+    my ( $self, $c ) = @_;
+
+    my $timespan = MediaWords::DBI::Timespans::set_timespans_id_param( $c );
+
+    my $db = $c->dbis;
+
+    my $timespan_maps = $db->query( <<SQL, $timespan->{ timespans_id } )->hashes;
+select timespan_maps_id, timespans_id, options, format, length(content) content_length
+    from timespan_maps
+    where timespans_id = ?
+    order by timespans_id
+SQL
+
+    $self->status_ok( $c, entity => { timespan_maps => $timespan_maps } );
 }
 
 1;

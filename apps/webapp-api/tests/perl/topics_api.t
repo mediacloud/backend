@@ -865,7 +865,7 @@ SQL
         format => 'gexf',
         content => $gexf_content
     };
-    $db->create( 'timespan_maps', $timespan_map );
+    $timespan_map = $db->create( 'timespan_maps', $timespan_map );
 
     my $uri = URI->new( "/api/v2/topics/$topic->{ topics_id }/media/map" );
     $uri->query_param( timespans_id => $timespans_id );
@@ -880,6 +880,15 @@ SQL
     my $gexf = $response->decoded_content;
 
     is( $gexf, $gexf_content );
+
+    my $r = MediaWords::Test::API::test_get(
+        "/api/v2/topics/$topic->{ topics_id }/media/list_maps",
+        { timespans_id => $timespans_id }
+    );
+
+    my $got_maps = $r->{ timespan_maps };
+
+    is( $got_maps->[ 0 ]->{ timespan_maps_id }, $timespan_map->{ timespan_maps_id } );
 }
 
 
