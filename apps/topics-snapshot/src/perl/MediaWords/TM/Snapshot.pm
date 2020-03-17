@@ -598,6 +598,10 @@ sub generate_timespan_data($$;$)
 
     MediaWords::TM::Model::print_model_matches( $db, $timespan, $all_models_top_media );
     MediaWords::TM::Model::update_model_correlation( $db, $timespan, $all_models_top_media );
+
+    INFO "Adding a new topics-map job for timespan";
+    my $timespans_id = $timespan->{ timespans_id };
+    MediaWords::JobManager::Job::add_to_queue( 'MediaWords::Job::TM::Map', { timespans_id => $timespans_id } );
 }
 
 # Update story_count, story_link_count, medium_count, and medium_link_count

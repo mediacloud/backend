@@ -54,6 +54,7 @@ sub run($;$)
 
     INFO "Adding a new word2vec model generation job for snapshot $snapshots_id...";
     MediaWords::JobManager::Job::add_to_queue( 'MediaWords::Job::Word2vec::GenerateSnapshotModel', { snapshots_id => $snapshots_id } );
+
 }
 
 no Moose;    # gets rid of scaffolding

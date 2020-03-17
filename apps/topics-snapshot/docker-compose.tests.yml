@@ -29,6 +29,7 @@ services:
             - solr-shard-01
             - rabbitmq-server
             - import-solr-data-for-testing
+            - topics-map
 
     import-solr-data-for-testing:
         image: dockermediacloud/import-solr-data-for-testing:latest
@@ -52,6 +53,23 @@ services:
         depends_on:
             - postgresql-pgbouncer
             - solr-shard-01
+
+    topics-map:
+        image: dockermediacloud/topics-map:latest
+        init: true
+        stop_signal: SIGKILL
+        volumes:
+            - type: bind
+              source: ./../topics-map/bin/
+              target: /opt/mediacloud/bin/
+            - type: bind
+              source: ./../topics-map/src/
+              target: /opt/mediacloud/src/topics-map/
+            - type: bind
+              source: ./../common/src/
+              target: /opt/mediacloud/src/common/
+        depends_on:
+            - postgresql-pgbouncer
 
     postgresql-pgbouncer:
         image: dockermediacloud/postgresql-pgbouncer:latest

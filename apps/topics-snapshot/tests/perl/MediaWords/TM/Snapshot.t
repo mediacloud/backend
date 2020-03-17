@@ -128,6 +128,11 @@ SQL
     my $slc = $db->query( "select * from snap.story_link_counts where timespans_id = ?", $timespans_id )->hashes;
 
     is( scalar( @{ $slc } ), $NUM_STORIES, "story link counts" );
+
+    # allow a bit of time for the timespan maps to generate
+    sleep( 5 );
+    my $timespan_map = $db->query( "select * from timespan_maps where timespans_id = ?", $timespans_id )->hash();
+    ok( $timespan_map, "timespan_map generated" );
 }
 
 sub main

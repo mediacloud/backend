@@ -8,10 +8,12 @@ import os
 import subprocess
 import uuid
 
+import community
 import matplotlib.pyplot as plt
 import networkx as nx
 
 from mediawords.util.colors import get_consistent_color, hex_to_rgb
+from mediawords.util.parse_json import encode_json
 
 from mediawords.util.log import create_logger
 
@@ -20,6 +22,16 @@ log = create_logger(__name__)
 # list of platform media sources, which are excluded from maps by default
 PLATFORM_MEDIA_IDS = \
    [18362, 18346, 18370, 61164, 269331, 73449, 62926, 21936, 5816, 4429, 20448, 67324, 351789, 22299, 135076, 25373]
+
+# create matplotlib figure with figsize(PLOT_SIZE, PLOT_SIZE)
+PLOT_SIZE = 18
+
+# estimated dpi of plot
+PLOT_DPI = 600
+
+# size of the largest node
+MAX_NODE_SIZE = 800
+
 
 class McMapError(Exception): 
     pass
@@ -150,6 +162,8 @@ def run_fa2_layout(graph):
             "--targetChangePerNode", "0.5",
             "--output", output_template,
             "--directed",
+            #"--scalingRatio", "10",
+            #"--gravity", "100",
             "--2d"
         ],
     )
@@ -175,7 +189,7 @@ def run_fa2_layout(graph):
     os.remove(output_file)
 
 
-def assign_colors(db, graph):
+def assign_colors(db, graph, color_by='community'):
     """Assign a 'color' attribute to each node in the graph.
 
     Each color will be in '#FFFFFF' format.
@@ -183,20 +197,25 @@ def assign_colors(db, graph):
     For now, this just assigns a color based on the partisan_retweet categorization, but it should support
     other options, or at least not use partisan_retweet if it is not a U.S. topic.
     """
+    log.warning('assign colors by %s' % color_by)
     for n in graph.nodes:
-        graph.nodes[n]['color'] = get_consistent_color(db, 'partisan_retweet', graph.nodes[n]['partisan_retweet'])
+        value = str(graph.nodes[n].get(color_by, 'null'))
+        graph.nodes[n]['color'] = get_consistent_color(db, color_by, value)
 
 
-def assign_sizes(graph, attribute, scale):
+def assign_sizes(graph, attribute, scale=MAX_NODE_SIZE):
     """Assign a 'size' attribute to each node in the graph, according to the given attribute.
 
     Assumes that the attribute has only numbers as values.  Assign 'scale' as the size of the node
     with the largest value for that attribute, and assign proportionally smaller sizes for the rest
     of the nodes.
     """
+    if len(graph.nodes) < 1:
+        return
+
     node_values = nx.get_node_attributes(graph, attribute).items()
         
-    max_value = max([n[1] for n in node_values])
+    max_value = max([n[1] for n in node_values]) + 1
 
     sizes = {n[0]: {'size': ( n[1] / max_value ) * scale} for n in node_values}
         
@@ -226,6 +245,9 @@ def prune_graph_by_distance(graph):
     function computes the mean distances from the center of the graph and removes
     any nodes that are more than 2.5x the average distance.
     """
+    if len(graph.nodes) == 0:
+        return graph
+
     positions = nx.get_node_attributes(graph, 'position')
     center_x = sum([positions[n][0] for n in graph.nodes()]) / len(graph.nodes())
     center_y = sum([positions[n][1] for n in graph.nodes()]) / len(graph.nodes())
@@ -238,7 +260,9 @@ def prune_graph_by_distance(graph):
         distance_map[node] = distance
     
     mean_distance = sorted(distance_map.values())[int(len(distance_map.values()) / 2)]
-    max_distance = mean_distance * 2.5
+    max_distance = mean_distance * 2
+
+    log.warning(mean_distance)
     
     include_nodes = []
     for node in graph.nodes():
@@ -270,23 +294,6 @@ def get_labels_by_attribute(graph, label_attribute, rank_attribute, iteration, n
     return {n: labels[n] for n in nodes}
 
 
-# def draw_labels(graph, positions):
-#     num_cohorts = 20
-#     num_labeled_cohorts = 20
-#     cohort_size = int(len(graph.nodes()) / num_cohorts)
-#     for i in range(num_labeled_cohorts):
-#         labels = get_labels_by_attribute(graph, 'name', 'media_inlink_count', i, cohort_size)
-#         weight = 'bold' if i == 0 else 'normal'
-#         alpha = 1.0 if i == 0 else 0.5
-#         nx.draw_networkx_labels(
-#             G=graph,
-#             pos=positions,
-#             labels=labels,
-#             font_size=3 / (i + 1),
-#             font_weight=weight,
-#             alpha=alpha
-#         )
-        
 def assign_labels(graph, attribute='name'):
     """Assign a 'label' attribute to each node as the value of the given attribute.
 
@@ -337,65 +344,87 @@ def rotate_right_to_right(graph):
         graph.nodes[n]['position'] = rotate(positions[n][0], positions[n][1], best_rotation)
 
 
+def get_pixel_positions(positions):
+    """Given graph coordinates, convert to pixels within the matlplotlib figure.
+
+    Positions for matplotlib are relative, so we need to convert to actual pixels to be able
+    to determine whether there are overlaps based on node size.
+    """
+    max_x = max([p[0] for p in positions.values()])
+    min_x = min([p[0] for p in positions.values()])
+    max_y = max([p[1] for p in positions.values()])
+    min_y = min([p[1] for p in positions.values()])
+
+    delta_x = max_x - min_x
+    delta_y = max_y - min_y
+
+    total_pixels = PLOT_SIZE * PLOT_DPI
+
+    pixel_positions = {}
+    for k in positions.keys():
+        (x, y) = positions[k]
+        xpix = ((x - min_x) / delta_x) * total_pixels
+        ypix = ((y - min_y) / delta_y) * total_pixels
+        pixel_positions[k] = (xpix, ypix)
+
+    return pixel_positions
+
+
 def scale_until_no_overlap(graph):
     """Expand the positions until there are no overlaps among the top 50 nodes.
     
     Return sizes with the smallest non-overlap expansion, up to 3x.
     """
-    return
-    positions = nx.get_node_attributes(graph, 'position')
+    pixels = get_pixel_positions(nx.get_node_attributes(graph, 'position'))
     sizes = nx.get_node_attributes(graph, 'size')
 
-    min_size = sorted(sizes.values(), reverse=True)[49]
+    ranks = nx.get_node_attributes(graph, 'size')
+    top_nodes = [n[0] for n in sorted(ranks.items(), key=lambda x: x[1], reverse=True)][0:50]
     
     expansion = 1
-    while expansion < 3:
-        expanded_sizes = {n: sizes[n] * expansion for n in graph.nodes}
-        
-        for i in range(len(graph.nodes()) - 1):
+    while expansion < 9:
+        nodes_list = top_nodes
+        for i in range(len(nodes_list) - 1):
             collision = False
-            for j in range(i + 1, len(graph.nodes())):
-                a = graph.nodes[i]
-                b = graph.nodes[j]
-                distance = math.sqrt((positions[a][0] - positions[b][0])**2 + (positions[a][1] - positions[b][1])**2)
-                if distance < (expanded_sizes[a] + expanded_sizes[b] + 10):
+            for j in range(i + 1, len(nodes_list)):
+                a = nodes_list[i]
+                b = nodes_list[j]
+                distance = math.sqrt((pixels[a][0] - pixels[b][0])**2 + (pixels[a][1] - pixels[b][1])**2)
+                if distance < (sizes[a] * expansion + sizes[b] * expansion):
                     collision = True
                     break
             
             if collision:
                 break
         
-        if not collision:
+        if collision:
             break
         else:
             expansion += 0.1
 
-    nx.set_node_attributes(graph, {n: {'size': sizes[n] * expansion} for n in graph.nodes})
+    log.info("scale to avoid overlap: %d" % expansion)
+
+    for n in graph.nodes:
+        graph.nodes[n]['size'] = sizes[n] * (expansion - 0.1)
 
 
 def draw_labels(graph):
-    """Draw node labels, using font size proportional to node size."""
-    labels = nx.get_node_attributes(graph, 'label')
+    """Draw labels, sizing by cohorts."""
     positions = nx.get_node_attributes(graph, 'position')
-
-    sorted_sizes = sorted(nx.get_node_attributes(graph, 'size').items(), key=lambda n: n[1], reverse=True)
-
-    max_size = sorted_sizes[0][1]
-
-    emphasis_threshold = 50
-
-    for i, node_size in enumerate(sorted_sizes):
-        n, size = node_size
-
-        relative_size = size / max_size
-        weight = 'bold' if i < emphasis_threshold else 'normal'
-        alpha = 1.0 if i < emphasis_threshold else 0.5
+    num_cohorts = 30
+    num_labeled_cohorts = num_cohorts
+    cohort_size = int(len(graph.nodes()) / num_cohorts)
+    for i in range(num_labeled_cohorts):
+        labels = get_labels_by_attribute(graph, 'name', 'media_inlink_count', i, cohort_size)
+        weight = 'bold' if i == 0 else 'normal'
+        alpha = 1.0 if i == 0 else 0.5
+        font_size = 8 if i == 0 else 2
 
         nx.draw_networkx_labels(
             G=graph,
             pos=positions,
-            labels={n: labels[n]},
-            font_size=4 * relative_size,
+            labels=labels,
+            font_size=font_size,
             font_weight=weight,
             alpha=alpha
         )
@@ -412,7 +441,7 @@ def draw_graph(graph, graph_format='svg'):
     colors = ['#' + c for c in nx.get_node_attributes(graph, 'color').values()]
     sizes = list(nx.get_node_attributes(graph, 'size').values())
 
-    fig = plt.figure(figsize=(10,10))
+    fig = plt.figure(figsize=(PLOT_SIZE, PLOT_SIZE))
     fig.set_facecolor('#FFFFFF')
 
     nx.draw_networkx_nodes(
@@ -428,16 +457,20 @@ def draw_graph(graph, graph_format='svg'):
         
     plt.axis('off')
 
-    buf = io.BytesIO()
-    fig.savefig(buf, format=graph_format)
-    buf.seek(0)
-
-    return buf.read()
+    if graph_format == 'draw':
+        fig.show()
+    else:
+        buf = io.BytesIO()
+        fig.savefig(buf, format=graph_format)
+        buf.seek(0)
+        return buf.read()
 
 
 def get_giant_component(graph):
     """Return the giant component subgraph of the graph."""
-    return graph.subgraph(sorted(nx.connected_components(graph), key=len)[-1])
+    components = sorted(nx.connected_components(graph), key=len)
+
+    return graph.subgraph(components[-1]) if len(components) > 0 else graph
 
 
 def generate_graph(db, timespans_id):
@@ -458,7 +491,17 @@ def generate_graph(db, timespans_id):
     return graph
 
 
-def generate_and_layout_graph(db, timespans_id):
+def assign_communities(graph):
+    """Run louvain community detection and assign result to 'community' attribute for each node."""
+    resolution = 1.5
+    log.warning("generating communities with resolution %d..." % resolution)
+    communities = community.best_partition(graph=graph, resolution=resolution)
+
+    for n in graph.nodes:
+        graph.nodes[n]['community'] = communities[n]
+
+
+def generate_and_layout_graph(db, timespans_id, **kwargs):
     """Generate and layout a graph of the network of media for the given timespan.
     
     The layout algorithm is force atlas 2, and the resulting is 'position' attribute added to each node.
@@ -473,11 +516,12 @@ def generate_and_layout_graph(db, timespans_id):
     graph = prune_graph_by_distance(graph)        
     log.info("graph after far flung node pruning: %d nodes" % len(graph.nodes()))
 
-    assign_colors(db, graph)
-    
-    assign_sizes(graph, 'media_inlink_count', 250)
+    assign_communities(graph)
 
-    scale_until_no_overlap(graph)
+    assign_colors(db, graph, **kwargs)
+    
+    assign_sizes(graph, 'media_inlink_count')
+    
     rotate_right_to_right(graph)
 
     assign_labels(graph)
@@ -485,11 +529,11 @@ def generate_and_layout_graph(db, timespans_id):
     return graph
 
 
-def generate_and_draw_graph(db, timespans_id):
+def generate_and_draw_graph(db, timespans_id, graph_format='svg'):
     """Generate, layout, and draw a graph of the media network for the given timespan."""
     graph = generate_and_layout_graph(db, timespans_id)
 
-    return draw_graph(graph)
+    return draw_graph(graph, graph_format=graph_format)
 
 
 def write_gexf(graph):
@@ -523,18 +567,21 @@ def write_gexf(graph):
     return buf.read()
 
 
-def create_timespan_map(db, timespans_id, content, graph_format):
+def create_timespan_map(db, timespans_id, content, graph_format, color_by):
     """Create a timespans_map row."""
     db.begin()
 
+    options = {'color_by': color_by}
+    options_json = encode_json(options)
+
     db.query(
-        "delete from timespan_maps where timespans_id = %(a)s and format = %(b)s",
-        {'a': timespans_id, 'b': graph_format}
+        "delete from timespan_maps where timespans_id = %(a)s and format = %(b)s and options = %(c)s",
+        {'a': timespans_id, 'b': graph_format, 'c': options_json}
     )
 
     timespan_map = {
         'timespans_id': timespans_id,
-        'options': '{}',
+        'options': options_json,
         'format': graph_format,
         'content': content
     }
@@ -548,22 +595,11 @@ def generate_and_store_maps(db, timespans_id):
     """Generate and layout graph and store various formats of the graph in timespans_maps."""
     graph = generate_and_layout_graph(db, timespans_id)
 
-    gexf = write_gexf(graph)
-    create_timespan_map(db, timespans_id, gexf, 'gexf')
+    for color_by in ('community', 'partisan_retweet'):
+        assign_colors(db, graph, color_by=color_by)
 
-    for graph_format in ('svg', ):
-        image = draw_graph(graph, graph_format=graph_format)
-        create_timespan_map(db, timespans_id, image, graph_format)
+        gexf = write_gexf(graph)
+        create_timespan_map(db, timespans_id, gexf, 'gexf', color_by)
 
-# caravan
-#timespans_id = 825739
-
-# corona
-# timespans_id = 883849
-
-# election twitter
-#timespans_id = 881901
-
-# election web
-#timespans_id = 883131
-
+        image = draw_graph(graph, graph_format='svg')
+        create_timespan_map(db, timespans_id, image, 'svg', color_by)

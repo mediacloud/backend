@@ -37,4 +37,4 @@ COPY bin /opt/mediacloud/bin
 
 USER mediacloud
 
-CMD ["topics_map_worker.pl"]
+CMD ["topics_map_worker.py"]
