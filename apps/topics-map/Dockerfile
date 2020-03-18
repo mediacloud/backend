@@ -4,16 +4,14 @@
 
 FROM dockermediacloud/common:latest
 
-
-# install wget
-RUN  apt-get -y install wget
-
-# install fa2l java libs
+# Install fa2l java libs
 RUN \
 	mkdir /opt/fa2l && \
 	cd /opt/fa2l && \
-	wget --quiet 'https://github.com/klarman-cell-observatory/forceatlas2/releases/download/1.0.3/forceatlas2.jar' && \
-	wget --quiet 'https://github.com/klarman-cell-observatory/forceatlas2/releases/download/1.0.3/gephi-toolkit-0.9.2-all.jar' && \
+	curl --fail --location --retry 3 --retry-delay 5 --output "forceatlas2.jar" \
+		"https://github.com/klarman-cell-observatory/forceatlas2/releases/download/1.0.3/forceatlas2.jar" && \
+	curl --fail --location --retry 3 --retry-delay 5 --output "gephi-toolkit-0.9.2-all.jar" \
+		"https://github.com/klarman-cell-observatory/forceatlas2/releases/download/1.0.3/gephi-toolkit-0.9.2-all.jar" && \
 	true
 
 # install java 
