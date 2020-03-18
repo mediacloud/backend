@@ -153,7 +153,7 @@ def run_fa2_layout(graph):
         
     output = subprocess.check_output(
         [
-            "/usr/bin/java",
+            "java",
             "-Djava.awt.headless=true",
             "-Xmx8g", 
             "-cp", "/opt/fa2l/forceatlas2.jar:/opt/fa2l/gephi-toolkit.jar",
