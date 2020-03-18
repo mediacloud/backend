@@ -7,21 +7,22 @@ import math
 import os
 import subprocess
 import uuid
+from typing import Optional, List
 
 import community
 import matplotlib.pyplot as plt
 import networkx as nx
 
 from mediawords.util.colors import get_consistent_color, hex_to_rgb
-from mediawords.util.parse_json import encode_json
-
 from mediawords.util.log import create_logger
+from mediawords.util.parse_json import encode_json
 
 log = create_logger(__name__)
 
 # list of platform media sources, which are excluded from maps by default
-PLATFORM_MEDIA_IDS = \
-   [18362, 18346, 18370, 61164, 269331, 73449, 62926, 21936, 5816, 4429, 20448, 67324, 351789, 22299, 135076, 25373]
+DEFAULT_PLATFORM_MEDIA_IDS = [
+    18362, 18346, 18370, 61164, 269331, 73449, 62926, 21936, 5816, 4429, 20448, 67324, 351789, 22299, 135076, 25373,
+]
 
 # create matplotlib figure with figsize(PLOT_SIZE, PLOT_SIZE)
 PLOT_SIZE = 18
@@ -33,8 +34,9 @@ PLOT_DPI = 600
 MAX_NODE_SIZE = 800
 
 
-class McMapError(Exception): 
+class McMapError(Exception):
     pass
+
 
 def add_partisan_retweet_to_snapshot_media(db, timespans_id, media):
     """Add partisan_retweet field to list of snapshotted media."""
@@ -59,7 +61,7 @@ select dmtm.*, dt.tag
     for medium in media:
         medium[label] = partisan_map.get(medium['media_id'], 'null')
 
-        
+
 def get_media_network(db, timespans_id):
     """Get a network of media and edges for the topic."""
     media = db.query(
@@ -72,34 +74,34 @@ def get_media_network(db, timespans_id):
         """,
         {'a': timespans_id}
     ).hashes()
-    
+
     medium_links = db.query(
         "select * from snap.medium_links where timespans_id = %(a)s",
         {'a': timespans_id}
     ).hashes()
-    
+
     media_lookup = {m['media_id']: m for m in media}
 
     for medium in media:
         media_lookup[medium['media_id']] = medium
-        
+
     for medium_link in medium_links:
         if medium_link['source_media_id'] in media_lookup:
             medium = media_lookup[medium_link['source_media_id']]
             medium.setdefault('links', [])
             medium['links'].append(medium_link)
-        
+
     add_partisan_retweet_to_snapshot_media(db, timespans_id, media)
-        
+
     return media
 
 
-def get_media_graph(db, media):
+def get_media_graph(media):
     """Get a networkx graph describing the media network of the topic."""
     graph = nx.Graph()
-    
+
     [graph.add_node(m['media_id']) for m in media]
-    
+
     media_lookup = {m['media_id']: m for m in media}
 
     nx.set_node_attributes(graph, media_lookup)
@@ -112,16 +114,20 @@ def get_media_graph(db, media):
                     e['ref_media_id'],
                     weight=e['link_count']
                 )
-            
+
     return graph
 
 
-def remove_platforms_from_graph(graph):
+def remove_platforms_from_graph(graph, platform_media_ids: Optional[List[int]] = None):
     """Remove nodes in PLATFORM_MEDIA_IDS from the graph.
     
     Return the resulting subgraph.
     """
-    platform_lookup = {id: True for id in PLATFORM_MEDIA_IDS}
+
+    if not platform_media_ids:
+        platform_media_ids = DEFAULT_PLATFORM_MEDIA_IDS
+
+    platform_lookup = {media_id: True for media_id in platform_media_ids}
     include_nodes = []
 
     for node in graph.nodes():
@@ -141,29 +147,29 @@ def run_fa2_layout(graph):
     input_file = "/tmp/media-%s.gexf" % uuid.uuid4().hex
     output_template = "/tmp/media-%s" % uuid.uuid4().hex
     output_file = "%s.txt" % output_template
-    
+
     export_graph = graph.copy()
     for node in export_graph.nodes(data=True):
         for key in list(node[1].keys()):
             del node[1][key]
 
     nx.write_gexf(export_graph, input_file)
-    
+
     log.info("running layout...")
-        
+
     output = subprocess.check_output(
         [
             "java",
             "-Djava.awt.headless=true",
-            "-Xmx8g", 
+            "-Xmx8g",
             "-cp", "/opt/fa2l/forceatlas2.jar:/opt/fa2l/gephi-toolkit.jar",
             "kco.forceatlas2.Main",
             "--input", input_file,
             "--targetChangePerNode", "0.5",
             "--output", output_template,
             "--directed",
-            #"--scalingRatio", "10",
-            #"--gravity", "100",
+            # "--scalingRatio", "10",
+            # "--gravity", "100",
             "--2d"
         ],
     )
@@ -172,13 +178,12 @@ def run_fa2_layout(graph):
 
     f = open(output_file)
     lines = f.readlines()
-    
+
     del lines[0]
-    
-    positions = {}
+
     for line in lines:
         (i, x, y) = line.split()
-        
+
         i = int(i)
         x = float(x)
         y = float(y)
@@ -214,27 +219,27 @@ def assign_sizes(graph, attribute, scale=MAX_NODE_SIZE):
         return
 
     node_values = nx.get_node_attributes(graph, attribute).items()
-        
+
     max_value = max([n[1] for n in node_values]) + 1
 
-    sizes = {n[0]: {'size': ( n[1] / max_value ) * scale} for n in node_values}
-        
+    sizes = {n[0]: {'size': (n[1] / max_value) * scale} for n in node_values}
+
     nx.set_node_attributes(graph, sizes)
 
 
 def get_display_subgraph_by_attribute(graph, attribute, num_nodes):
     """Get a subgraph with only the top num_nodes nodes by attribute."""
     nodes_with_values = nx.get_node_attributes(graph, attribute).items()
-    
+
     sorted_nodes_with_values = sorted(nodes_with_values, key=lambda n: n[1], reverse=True)
-    
+
     include_node_ids = [n[0] for n in sorted_nodes_with_values[0:num_nodes]]
-    
+
     include_nodes = []
     for node in graph.nodes():
         if node in include_node_ids:
             include_nodes.append(node)
-    
+
     return graph.subgraph(include_nodes)
 
 
@@ -251,25 +256,25 @@ def prune_graph_by_distance(graph):
     positions = nx.get_node_attributes(graph, 'position')
     center_x = sum([positions[n][0] for n in graph.nodes()]) / len(graph.nodes())
     center_y = sum([positions[n][1] for n in graph.nodes()]) / len(graph.nodes())
-    
+
     distance_map = {}
     for node in graph.nodes():
         node_x = positions[node][0]
         node_y = positions[node][1]
-        distance = math.sqrt((node_x - center_x)**2 + (node_y - center_y)**2)
+        distance = math.sqrt((node_x - center_x) ** 2 + (node_y - center_y) ** 2)
         distance_map[node] = distance
-    
+
     mean_distance = sorted(distance_map.values())[int(len(distance_map.values()) / 2)]
     max_distance = mean_distance * 2
 
-    log.warning(mean_distance)
-    
+    log.warning(f"Mean distance: {mean_distance}")
+
     include_nodes = []
     for node in graph.nodes():
         if distance_map[node] <= max_distance:
             include_nodes.append(node)
-            
-    return graph.subgraph(include_nodes) 
+
+    return graph.subgraph(include_nodes)
 
 
 def get_labels_by_attribute(graph, label_attribute, rank_attribute, iteration, num_labels):
@@ -280,17 +285,17 @@ def get_labels_by_attribute(graph, label_attribute, rank_attribute, iteration, n
     Return a dict of {node: label}.
     """
     offset = iteration * num_labels
-    
+
     ranks = nx.get_node_attributes(graph, rank_attribute)
-    
+
     nodes = [n[0] for n in sorted(ranks.items(), key=lambda x: x[1], reverse=True)][offset:offset + num_labels]
-    
+
     labels = nx.get_node_attributes(graph, label_attribute)
-    
+
     max_label_size = 16
     for k in labels.keys():
         labels[k] = labels[k][0:max_label_size] + '..' if len(labels[k]) > max_label_size else labels[k]
-    
+
     return {n: labels[n] for n in nodes}
 
 
@@ -300,25 +305,25 @@ def assign_labels(graph, attribute='name'):
     Truncate all labels at 16 characters.
     """
     labels = nx.get_node_attributes(graph, attribute)
-    
+
     max_label_size = 16
     for k in labels.keys():
         labels[k] = labels[k][0:max_label_size] + '..' if len(labels[k]) > max_label_size else labels[k]
 
-    nx.set_node_attributes(graph, {n: {'label': labels[n]} for n in graph.nodes}) 
+    nx.set_node_attributes(graph, {n: {'label': labels[n]} for n in graph.nodes})
 
 
 def rotate(x, y, d):
     """Rotate the point around (0,0) by d degrees"""
     r = math.radians(d)
-    
+
     cosr = math.cos(r)
     sinr = math.sin(r)
 
     rx = (cosr * x) - (sinr * y)
     ry = (sinr * x) + (cosr * y)
-    
-    return (rx, ry)
+
+    return rx, ry
 
 
 def rotate_right_to_right(graph):
@@ -330,16 +335,16 @@ def rotate_right_to_right(graph):
     right_nodes = list(filter(lambda n: partisan[n] == 'right', graph.nodes()))
 
     positions = nx.get_node_attributes(graph, 'position')
-    
+
     best_rotation = 0
     max_sum_x = 0
     for rotation in range(0, 350, 10):
-        rotated_positions = {n:rotate(positions[n][0], positions[n][1], rotation) for n in right_nodes}
+        rotated_positions = {n: rotate(positions[n][0], positions[n][1], rotation) for n in right_nodes}
         sum_x = sum([p[0] for p in rotated_positions.values()])
         if sum_x > max_sum_x:
             max_sum_x = sum_x
             best_rotation = rotation
-    
+
     for n in graph.nodes:
         graph.nodes[n]['position'] = rotate(positions[n][0], positions[n][1], best_rotation)
 
@@ -380,8 +385,9 @@ def scale_until_no_overlap(graph):
 
     ranks = nx.get_node_attributes(graph, 'size')
     top_nodes = [n[0] for n in sorted(ranks.items(), key=lambda x: x[1], reverse=True)][0:50]
-    
+
     expansion = 1
+    collision = None
     while expansion < 9:
         nodes_list = top_nodes
         for i in range(len(nodes_list) - 1):
@@ -389,14 +395,14 @@ def scale_until_no_overlap(graph):
             for j in range(i + 1, len(nodes_list)):
                 a = nodes_list[i]
                 b = nodes_list[j]
-                distance = math.sqrt((pixels[a][0] - pixels[b][0])**2 + (pixels[a][1] - pixels[b][1])**2)
+                distance = math.sqrt((pixels[a][0] - pixels[b][0]) ** 2 + (pixels[a][1] - pixels[b][1]) ** 2)
                 if distance < (sizes[a] * expansion + sizes[b] * expansion):
                     collision = True
                     break
-            
+
             if collision:
                 break
-        
+
         if collision:
             break
         else:
@@ -454,7 +460,7 @@ def draw_graph(graph, graph_format='svg'):
     )
 
     draw_labels(graph)
-        
+
     plt.axis('off')
 
     if graph_format == 'draw':
@@ -477,12 +483,12 @@ def get_giant_component(graph):
 def generate_graph(db, timespans_id):
     """Generate a graph of the network of media for the given timespan, but do not layout."""
     media = get_media_network(db, timespans_id)
-    graph = get_media_graph(db, media)
+    graph = get_media_graph(media)
 
     log.info("initial graph: %d nodes" % len(graph.nodes()))
 
     graph = get_giant_component(graph)
-	
+
     log.info("graph after giant component: %d nodes" % len(graph.nodes()))
 
     graph = remove_platforms_from_graph(graph)
@@ -509,20 +515,20 @@ def generate_and_layout_graph(db, timespans_id, **kwargs):
     """
     graph = generate_graph(db, timespans_id)
     # run layout with all nodes in giant component, before reducing to smaler number to display
-    run_fa2_layout(graph) 
+    run_fa2_layout(graph)
 
     graph = get_display_subgraph_by_attribute(graph, 'media_inlink_count', 1000)
     log.info("graph after attribute ranking: %d nodes" % len(graph.nodes()))
 
-    graph = prune_graph_by_distance(graph)        
+    graph = prune_graph_by_distance(graph)
     log.info("graph after far flung node pruning: %d nodes" % len(graph.nodes()))
 
     assign_communities(graph)
 
     assign_colors(db, graph, **kwargs)
-    
+
     assign_sizes(graph, 'media_inlink_count')
-    
+
     rotate_right_to_right(graph)
 
     assign_labels(graph)
@@ -558,7 +564,7 @@ def write_gexf(graph):
         for key in ('position', 'color', 'size', 'links'):
             if key in node[1]:
                 del node[1][key]
-    
+
     buf = io.BytesIO()
 
     nx.write_gexf(export_graph, buf)

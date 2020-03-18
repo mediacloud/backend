@@ -2,9 +2,6 @@
 
 """Topic Mapper job that generates timespan_maps for a timespans or all timespans in a snapshot."""
 
-import time
-from typing import Optional
-
 from mediawords.db import connect_to_db
 from mediawords.job import JobBroker
 from topics_map.map import generate_and_store_maps
@@ -15,12 +12,15 @@ log = create_logger(__name__)
 
 QUEUE_NAME = 'MediaWords::Job::TM::Map'
 
+_consecutive_requeues = None
+
+
 class McTopicMapJobException(Exception):
     """Exceptions dealing with job setup and routing."""
     pass
 
 
-def run_job(snapshots_id: int=None, timespans_id: int=None) -> None:
+def run_job(snapshots_id: int = None, timespans_id: int = None) -> None:
     """Generate and store network maps for either a single timespan or all timespans in a snapshot."""
     global _consecutive_requeues
 

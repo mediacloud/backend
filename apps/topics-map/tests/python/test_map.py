@@ -1,20 +1,33 @@
-from lxml import etree
 from unittest import TestCase
 
 import networkx as nx
 
-import mediawords.db
-import topics_map.map
-from topics_map.map import *
+from mediawords.db import connect_to_db
 from mediawords.test.db.create import create_test_medium, create_test_topic, create_test_timespan
+
+from topics_map.map import (
+    get_media_network,
+    get_media_graph,
+    remove_platforms_from_graph,
+    get_giant_component,
+    generate_graph,
+    run_fa2_layout,
+    get_display_subgraph_by_attribute,
+    prune_graph_by_distance,
+    generate_and_draw_graph,
+    generate_and_layout_graph,
+    write_gexf,
+    generate_and_store_maps,
+)
 
 NUM_CONNECTED_MEDIA = 100
 NUM_DISCONNECTED_MEDIA = 10
 
+
 class TestMap(TestCase):
 
     def setUp(self):
-        self.db = mediawords.db.connect_to_db()
+        self.db = connect_to_db()
 
         db = self.db
 
@@ -24,10 +37,10 @@ class TestMap(TestCase):
         self.connected_media = []
         for i in range(NUM_CONNECTED_MEDIA):
             self.connected_media.append(create_test_medium(db, 'connected %d' % i))
-            
+
         self.disconnected_media = []
         for i in range(NUM_DISCONNECTED_MEDIA):
-            self.disconnected_media.append(create_test_medium(db, 'disconnected %d' %i))
+            self.disconnected_media.append(create_test_medium(db, 'disconnected %d' % i))
 
         self.all_media = self.connected_media + self.disconnected_media
 
@@ -105,9 +118,7 @@ class TestMap(TestCase):
         media = get_media_network(db, self.timespan['timespans_id'])
         graph = get_media_graph(db, media)
 
-        topics_map.map.PLATFORM_MEDIA_IDS = [self.disconnected_media[0]['media_id'],]
-
-        graph = remove_platforms_from_graph(graph)
+        graph = remove_platforms_from_graph(graph=graph, platform_media_ids=[self.disconnected_media[0]['media_id'], ])
 
         assert len(graph.nodes) == len(self.all_media) - 1
 
@@ -148,7 +159,6 @@ class TestMap(TestCase):
 
         assert len(graph.nodes) == num_display_nodes
 
-
     def test_prune_graph_by_distance(self):
         db = self.db
 
@@ -163,7 +173,6 @@ class TestMap(TestCase):
 
         assert len(graph.nodes) == len(self.connected_media)
 
-
     def test_generate_and_draw_graph(self):
         db = self.db
 
@@ -172,7 +181,6 @@ class TestMap(TestCase):
         assert len(svg) > 100 * len(self.connected_media)
 
         assert '<svg' in svg
-
 
     def test_write_gexf(self):
         db = self.db
@@ -197,6 +205,6 @@ class TestMap(TestCase):
 
         assert len(timespan_maps) == 2 * len(formats)
 
-        for map in timespan_maps:
-            assert map['format'] in formats
-            assert len(map['content']) > 100 * len(self.connected_media)
+        for ts_map in timespan_maps:
+            assert ts_map['format'] in formats
+            assert len(ts_map['content']) > 100 * len(self.connected_media)
