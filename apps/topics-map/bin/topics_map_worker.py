@@ -37,25 +37,19 @@ def run_job(snapshots_id: int=None, timespans_id: int=None) -> None:
     if (snapshots_id and timespans_id) or (not snapshots_id and not timespans_id):
         raise McTopicMapJobException("exactly one of snapshots_id or timespans_id must be set.")
 
+    db = connect_to_db()
 
     if snapshots_id:
-        db = connect_to_db()
         timespans_ids = db.query(
             "select timespans_id from timespans where snapshots_id = %(a)s",
             {'a': snapshots_id}
         ).flat()
-        db.disconnect()
     else:
         timespans_ids = (timespans_id,)
 
-
     for timespans_id in timespans_ids:
         log.info("generating maps for timespan %s" % timespans_id)
-
-        # connect and disconnect every time so that we don't have a single very long connection
-        db = connect_to_db()
         generate_and_store_maps(db, timespans_id)
-        db.disconnect()
 
 
 if __name__ == '__main__':
