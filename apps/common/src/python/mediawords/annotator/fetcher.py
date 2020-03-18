@@ -107,8 +107,8 @@ class JSONAnnotationFetcher(metaclass=abc.ABCMeta):
         uri = furl(request.url())
         hostname = str(uri.host)
         port = int(uri.port)
-        assert hostname, f"URL hostname is not set for URL {url}"
-        assert port, f"API URL port is not set for URL {url}"
+        assert hostname, f"URL hostname is not set for URL {request.url()}"
+        assert port, f"API URL port is not set for URL {request.url()}"
 
         if not wait_for_tcp_port_to_open(
                 port=port,
@@ -118,10 +118,8 @@ class JSONAnnotationFetcher(metaclass=abc.ABCMeta):
             # Instead of throwing an exception, just crash the whole application
             # because there's no point in continuing on running it whatsoever.
             fatal_error(
-                "Annotator service at {url} didn't come up in {timeout} seconds, exiting...".format(
-                    url=url,
-                    timeout=self.__ANNOTATOR_SERVICE_TIMEOUT,
-                )
+                f"Annotator service at {request.url()} didn't come up in {self.__ANNOTATOR_SERVICE_TIMEOUT} seconds, "
+                f"exiting..."
             )
 
         log.debug("Sending request to %s..." % request.url())
