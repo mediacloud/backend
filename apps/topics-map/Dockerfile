@@ -10,7 +10,7 @@ RUN \
     cd /opt/fa2l && \
     curl --fail --location --retry 3 --retry-delay 5 --output "forceatlas2.jar" \
         "https://github.com/klarman-cell-observatory/forceatlas2/releases/download/1.0.3/forceatlas2.jar" && \
-    curl --fail --location --retry 3 --retry-delay 5 --output "gephi-toolkit-0.9.2-all.jar" \
+    curl --fail --location --retry 3 --retry-delay 5 --output "gephi-toolkit.jar" \
         "https://github.com/klarman-cell-observatory/forceatlas2/releases/download/1.0.3/gephi-toolkit-0.9.2-all.jar" && \
     true
 

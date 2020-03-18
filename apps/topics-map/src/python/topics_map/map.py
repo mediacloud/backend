@@ -157,7 +157,7 @@ def run_fa2_layout(graph):
             "/usr/bin/java",
             "-Djava.awt.headless=true",
             "-Xmx8g", 
-            "-cp", "/opt/fa2l/forceatlas2.jar:/opt/fa2l/gephi-toolkit-0.9.2-all.jar",
+            "-cp", "/opt/fa2l/forceatlas2.jar:/opt/fa2l/gephi-toolkit.jar",
             "kco.forceatlas2.Main",
             "--input", input_file,
             "--targetChangePerNode", "0.5",
