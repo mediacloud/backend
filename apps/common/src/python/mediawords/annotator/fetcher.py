@@ -111,9 +111,9 @@ class JSONAnnotationFetcher(metaclass=abc.ABCMeta):
         assert port, f"API URL port is not set for URL {url}"
 
         if not wait_for_tcp_port_to_open(
-            port=port,
-            hostname=hostname,
-            retries=self.__ANNOTATOR_SERVICE_TIMEOUT,
+                port=port,
+                hostname=hostname,
+                retries=self.__ANNOTATOR_SERVICE_TIMEOUT,
         ):
             # Instead of throwing an exception, just crash the whole application
             # because there's no point in continuing on running it whatsoever.
