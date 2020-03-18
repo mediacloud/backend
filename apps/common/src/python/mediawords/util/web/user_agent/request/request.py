@@ -154,7 +154,7 @@ class Request(object):
             content = urlencode(content, doseq=True)
 
         if isinstance(content, str):
-            content = content.encode('utf-8')
+            content = content.encode('utf-8', errors='replace')
 
         if not isinstance(content, bytes):
             raise McUserAgentRequestException("Content must be 'bytes' at this point: %s" % str(content))
