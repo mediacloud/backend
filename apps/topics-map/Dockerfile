@@ -4,6 +4,9 @@
 
 FROM dockermediacloud/common:latest
 
+# Install Java
+RUN apt-get -y --no-install-recommends install openjdk-8-jre-headless
+
 # Install fa2l Java libs
 RUN \
     mkdir /opt/fa2l && \
@@ -13,9 +16,6 @@ RUN \
     curl --fail --location --retry 3 --retry-delay 5 --output "gephi-toolkit.jar" \
         "https://github.com/klarman-cell-observatory/forceatlas2/releases/download/1.0.3/gephi-toolkit-0.9.2-all.jar" && \
     true
-
-# Install Java
-RUN apt-get -y --no-install-recommends install openjdk-8-jre-headless
 
 # Install Python dependencies
 COPY src/requirements.txt /var/tmp/
