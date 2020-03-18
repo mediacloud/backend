@@ -177,16 +177,6 @@ SQL
     }
 
     {
-        # search_for_media
-        my $media_id       = $test_stories->[ 0 ]->{ media_id };
-        my $expected_media = $db->query( "select * from media where media_id = ?", $media_id )->hashes;
-        my $got_media      = MediaWords::Solr::search_for_media( $db, { q => "media_id:$media_id" } );
-
-        my $fields = [ qw/url name/ ];
-        MediaWords::Test::Rows::rows_match( 'search_for_media', $got_media, $expected_media, 'media_id', $fields );
-    }
-
-    {
         eval { MediaWords::Solr::query( $db, { q => "publish_date:[foo TO bar]" } ) };
         ok( $@ =~ /range queries are not allowed/, "range queries not allowed: '$@'" );
     }
