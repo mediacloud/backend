@@ -6,13 +6,13 @@ FROM dockermediacloud/common:latest
 
 # Install fa2l java libs
 RUN \
-	mkdir /opt/fa2l && \
-	cd /opt/fa2l && \
-	curl --fail --location --retry 3 --retry-delay 5 --output "forceatlas2.jar" \
-		"https://github.com/klarman-cell-observatory/forceatlas2/releases/download/1.0.3/forceatlas2.jar" && \
-	curl --fail --location --retry 3 --retry-delay 5 --output "gephi-toolkit-0.9.2-all.jar" \
-		"https://github.com/klarman-cell-observatory/forceatlas2/releases/download/1.0.3/gephi-toolkit-0.9.2-all.jar" && \
-	true
+    mkdir /opt/fa2l && \
+    cd /opt/fa2l && \
+    curl --fail --location --retry 3 --retry-delay 5 --output "forceatlas2.jar" \
+        "https://github.com/klarman-cell-observatory/forceatlas2/releases/download/1.0.3/forceatlas2.jar" && \
+    curl --fail --location --retry 3 --retry-delay 5 --output "gephi-toolkit-0.9.2-all.jar" \
+        "https://github.com/klarman-cell-observatory/forceatlas2/releases/download/1.0.3/gephi-toolkit-0.9.2-all.jar" && \
+    true
 
 # install java 
 RUN  apt-get -y install openjdk-8-jre-headless
