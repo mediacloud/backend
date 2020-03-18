@@ -36,45 +36,6 @@ use MediaWords::Util::Web;
 use List::MoreUtils qw/ uniq /;
 
 
-# numFound from last query() call, accessible get get_last_num_found
-my $_last_num_found;
-
-=head2 get_last_num_found
-
-Get the number of sentences found from the last solr query run in this process.  This function does not perform a solr
-query but instead just references a stored variable.
-
-=cut
-
-sub get_last_num_found
-{
-    return $_last_num_found;
-}
-
-# set _last_num_found for get_last_num_found
-sub _set_last_num_found
-{
-    my ( $res ) = @_;
-
-    if ( defined( $res->{ response }->{ numFound } ) )
-    {
-        $_last_num_found = $res->{ response }->{ numFound };
-    }
-    elsif ( $res->{ grouped } )
-    {
-        my $group_key = ( keys( %{ $res->{ grouped } } ) )[ 0 ];
-
-        $_last_num_found = $res->{ grouped }->{ $group_key }->{ matches };
-    }
-    else
-    {
-        $_last_num_found = undef;
-    }
-
-    TRACE( ( $_last_num_found ? $_last_num_found : 0 ) . " matches found." );
-
-}
-
 # convert any and, or, or not operations in the argument to uppercase.  if the argument is a ref, call self on all
 # elements of the list.
 sub _uppercase_boolean_operators
