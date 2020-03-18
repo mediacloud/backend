@@ -1,5 +1,6 @@
 import abc
 from http import HTTPStatus
+import time
 from typing import Union
 
 from furl import furl
@@ -122,8 +123,35 @@ class JSONAnnotationFetcher(metaclass=abc.ABCMeta):
                 f"exiting..."
             )
 
-        response = ua.request(request)
         log.debug(f"Sending request to {request.url()}...")
+
+        # Try requesting a few times because sometimes it throws a connection error, e.g.:
+        #
+        #   WARNING mediawords.util.web.user_agent: Client-side error while processing request <PreparedRequest [POST]>:
+        #   ('Connection aborted.', ConnectionResetError(104, 'Connection reset by peer'))
+        #   WARNING mediawords.annotator.fetcher: Request failed: ('Connection aborted.', ConnectionResetError(104,
+        #   'Connection reset by peer'))
+        #   ERROR mediawords.util.process: User agent error: 400 Client-side error: ('Connection aborted.',
+        #   ConnectionResetError(104, 'Connection reset by peer'))
+        response = None
+        retries = 60
+        sleep_between_retries = 1
+        for retry in range(1, retries + 1):
+
+            if retry > 1:
+                log.warning(f"Retrying ({retry} / {retries})...")
+
+            response = ua.request(request)
+
+            if response.is_success():
+                break
+            else:
+                if response.error_is_client_side():
+                    log.error(f"Request failed on the client side: {response.decoded_content()}")
+                    time.sleep(sleep_between_retries)
+                else:
+                    break
+
         log.debug("Response received.")
 
         # Force UTF-8 encoding on the response because the server might not always
