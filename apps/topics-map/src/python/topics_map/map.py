@@ -7,11 +7,12 @@ import math
 import os
 import subprocess
 import uuid
-from typing import Optional, List
+from typing import Optional, List, Dict, Any, Tuple
 
 import community
 import matplotlib.pyplot as plt
 import networkx as nx
+from mediawords.db import DatabaseHandler
 
 from mediawords.util.colors import get_consistent_color, hex_to_rgb
 from mediawords.util.log import create_logger
@@ -38,7 +39,7 @@ class McMapError(Exception):
     pass
 
 
-def add_partisan_retweet_to_snapshot_media(db, timespans_id, media):
+def add_partisan_retweet_to_snapshot_media(db: DatabaseHandler, timespans_id: int, media: List[Dict[str, Any]]) -> None:
     """Add partisan_retweet field to list of snapshotted media."""
     label = 'partisan_retweet'
 
@@ -62,7 +63,7 @@ select dmtm.*, dt.tag
         medium[label] = partisan_map.get(medium['media_id'], 'null')
 
 
-def get_media_network(db, timespans_id):
+def get_media_network(db: DatabaseHandler, timespans_id: int) -> List[Dict[str, Any]]:
     """Get a network of media and edges for the topic."""
     media = db.query(
         """
@@ -91,12 +92,12 @@ def get_media_network(db, timespans_id):
             medium.setdefault('links', [])
             medium['links'].append(medium_link)
 
-    add_partisan_retweet_to_snapshot_media(db, timespans_id, media)
+    add_partisan_retweet_to_snapshot_media(db=db, timespans_id=timespans_id, media=media)
 
     return media
 
 
-def get_media_graph(media):
+def get_media_graph(media: List[Dict[str, Any]]) -> nx.Graph:
     """Get a networkx graph describing the media network of the topic."""
     graph = nx.Graph()
 
@@ -118,7 +119,7 @@ def get_media_graph(media):
     return graph
 
 
-def remove_platforms_from_graph(graph, platform_media_ids: Optional[List[int]] = None):
+def remove_platforms_from_graph(graph: nx.Graph, platform_media_ids: Optional[List[int]] = None) -> nx.Graph:
     """Remove nodes in PLATFORM_MEDIA_IDS from the graph.
     
     Return the resulting subgraph.
@@ -137,7 +138,7 @@ def remove_platforms_from_graph(graph, platform_media_ids: Optional[List[int]] =
     return graph.subgraph(include_nodes)
 
 
-def run_fa2_layout(graph):
+def run_fa2_layout(graph: nx.Graph) -> None:
     """Generate force atlas 2 layout for the graph.
 
     Run an external java library on the graph to assign a position to each node.
@@ -194,7 +195,7 @@ def run_fa2_layout(graph):
     os.remove(output_file)
 
 
-def assign_colors(db, graph, color_by='community'):
+def assign_colors(db: DatabaseHandler, graph: nx.Graph, color_by: str) -> None:
     """Assign a 'color' attribute to each node in the graph.
 
     Each color will be in '#FFFFFF' format.
@@ -208,7 +209,7 @@ def assign_colors(db, graph, color_by='community'):
         graph.nodes[n]['color'] = get_consistent_color(db, color_by, value)
 
 
-def assign_sizes(graph, attribute, scale=MAX_NODE_SIZE):
+def assign_sizes(graph: nx.Graph, attribute: str, scale: int = MAX_NODE_SIZE) -> None:
     """Assign a 'size' attribute to each node in the graph, according to the given attribute.
 
     Assumes that the attribute has only numbers as values.  Assign 'scale' as the size of the node
@@ -227,7 +228,7 @@ def assign_sizes(graph, attribute, scale=MAX_NODE_SIZE):
     nx.set_node_attributes(graph, sizes)
 
 
-def get_display_subgraph_by_attribute(graph, attribute, num_nodes):
+def get_display_subgraph_by_attribute(graph: nx.Graph, attribute: str, num_nodes: int) -> nx.Graph:
     """Get a subgraph with only the top num_nodes nodes by attribute."""
     nodes_with_values = nx.get_node_attributes(graph, attribute).items()
 
@@ -243,7 +244,7 @@ def get_display_subgraph_by_attribute(graph, attribute, num_nodes):
     return graph.subgraph(include_nodes)
 
 
-def prune_graph_by_distance(graph):
+def prune_graph_by_distance(graph: nx.Graph) -> nx.Graph:
     """Get a subgraph with far flung nodes pruned.
     
     Many graphs end up with a few far flung nodes that distort the whole map.  This
@@ -277,7 +278,11 @@ def prune_graph_by_distance(graph):
     return graph.subgraph(include_nodes)
 
 
-def get_labels_by_attribute(graph, label_attribute, rank_attribute, iteration, num_labels):
+def get_labels_by_attribute(graph: nx.Graph,
+                            label_attribute: str,
+                            rank_attribute: str,
+                            iteration: int,
+                            num_labels: int) -> Dict[int, str]:
     """Get the num_labels labels according to rank_attribute, starting at the offset iteration * num_labels.
     
     Also truncate each label to a max length of 16.
@@ -299,7 +304,7 @@ def get_labels_by_attribute(graph, label_attribute, rank_attribute, iteration, n
     return {n: labels[n] for n in nodes}
 
 
-def assign_labels(graph, attribute='name'):
+def assign_labels(graph: nx.Graph, attribute: str = 'name'):
     """Assign a 'label' attribute to each node as the value of the given attribute.
 
     Truncate all labels at 16 characters.
@@ -313,7 +318,7 @@ def assign_labels(graph, attribute='name'):
     nx.set_node_attributes(graph, {n: {'label': labels[n]} for n in graph.nodes})
 
 
-def rotate(x, y, d):
+def rotate(x: int, y: int, d: int) -> Tuple[float, float]:
     """Rotate the point around (0,0) by d degrees"""
     r = math.radians(d)
 
@@ -326,7 +331,7 @@ def rotate(x, y, d):
     return rx, ry
 
 
-def rotate_right_to_right(graph):
+def rotate_right_to_right(graph: nx.Graph) -> None:
     """Rotate the graph so that the partisan_retweet:right nodes are to the right.
     
     Assign the rotated positions to the graph nodes.
@@ -339,17 +344,17 @@ def rotate_right_to_right(graph):
     best_rotation = 0
     max_sum_x = 0
     for rotation in range(0, 350, 10):
-        rotated_positions = {n: rotate(positions[n][0], positions[n][1], rotation) for n in right_nodes}
+        rotated_positions = {n: rotate(x=positions[n][0], y=positions[n][1], d=rotation) for n in right_nodes}
         sum_x = sum([p[0] for p in rotated_positions.values()])
         if sum_x > max_sum_x:
             max_sum_x = sum_x
             best_rotation = rotation
 
     for n in graph.nodes:
-        graph.nodes[n]['position'] = rotate(positions[n][0], positions[n][1], best_rotation)
+        graph.nodes[n]['position'] = rotate(x=positions[n][0], y=positions[n][1], d=best_rotation)
 
 
-def get_pixel_positions(positions):
+def get_pixel_positions(positions: Dict[int, Tuple[float, float]]) -> Dict[int, Tuple[float, float]]:
     """Given graph coordinates, convert to pixels within the matlplotlib figure.
 
     Positions for matplotlib are relative, so we need to convert to actual pixels to be able
@@ -375,12 +380,12 @@ def get_pixel_positions(positions):
     return pixel_positions
 
 
-def scale_until_no_overlap(graph):
+def scale_until_no_overlap(graph: nx.Graph) -> None:
     """Expand the positions until there are no overlaps among the top 50 nodes.
     
     Return sizes with the smallest non-overlap expansion, up to 3x.
     """
-    pixels = get_pixel_positions(nx.get_node_attributes(graph, 'position'))
+    pixels = get_pixel_positions(positions=nx.get_node_attributes(graph, 'position'))
     sizes = nx.get_node_attributes(graph, 'size')
 
     ranks = nx.get_node_attributes(graph, 'size')
@@ -414,14 +419,20 @@ def scale_until_no_overlap(graph):
         graph.nodes[n]['size'] = sizes[n] * (expansion - 0.1)
 
 
-def draw_labels(graph):
+def draw_labels(graph: nx.Graph) -> None:
     """Draw labels, sizing by cohorts."""
     positions = nx.get_node_attributes(graph, 'position')
     num_cohorts = 30
     num_labeled_cohorts = num_cohorts
     cohort_size = int(len(graph.nodes()) / num_cohorts)
     for i in range(num_labeled_cohorts):
-        labels = get_labels_by_attribute(graph, 'name', 'media_inlink_count', i, cohort_size)
+        labels = get_labels_by_attribute(
+            graph=graph,
+            label_attribute='name',
+            rank_attribute='media_inlink_count',
+            iteration=i,
+            num_labels=cohort_size,
+        )
         weight = 'bold' if i == 0 else 'normal'
         alpha = 1.0 if i == 0 else 0.5
         font_size = 8 if i == 0 else 2
@@ -436,7 +447,7 @@ def draw_labels(graph):
         )
 
 
-def draw_graph(graph, graph_format='svg'):
+def draw_graph(graph: nx.Graph, graph_format: str = 'svg') -> bytes:
     """Draw the graph using matplotlib.
 
     Use the position, color, size, and label node attributes from the graph.
@@ -459,7 +470,7 @@ def draw_graph(graph, graph_format='svg'):
         alpha=0.7
     )
 
-    draw_labels(graph)
+    draw_labels(graph=graph)
 
     plt.axis('off')
 
@@ -473,32 +484,32 @@ def draw_graph(graph, graph_format='svg'):
         return buf.read()
 
 
-def get_giant_component(graph):
+def get_giant_component(graph: nx.Graph) -> nx.Graph:
     """Return the giant component subgraph of the graph."""
     components = sorted(nx.connected_components(graph), key=len)
 
     return graph.subgraph(components[-1]) if len(components) > 0 else graph
 
 
-def generate_graph(db, timespans_id):
+def generate_graph(db: DatabaseHandler, timespans_id: int) -> nx.Graph:
     """Generate a graph of the network of media for the given timespan, but do not layout."""
-    media = get_media_network(db, timespans_id)
-    graph = get_media_graph(media)
+    media = get_media_network(db=db, timespans_id=timespans_id)
+    graph = get_media_graph(media=media)
 
     log.info("initial graph: %d nodes" % len(graph.nodes()))
 
-    graph = get_giant_component(graph)
+    graph = get_giant_component(graph=graph)
 
     log.info("graph after giant component: %d nodes" % len(graph.nodes()))
 
-    graph = remove_platforms_from_graph(graph)
+    graph = remove_platforms_from_graph(graph=graph)
 
     log.info("graph after platform removal: %d nodes" % len(graph.nodes()))
 
     return graph
 
 
-def assign_communities(graph):
+def assign_communities(graph: nx.Graph) -> None:
     """Run louvain community detection and assign result to 'community' attribute for each node."""
     resolution = 1.5
     log.warning("generating communities with resolution %d..." % resolution)
@@ -508,42 +519,42 @@ def assign_communities(graph):
         graph.nodes[n]['community'] = communities[n]
 
 
-def generate_and_layout_graph(db, timespans_id, **kwargs):
+def generate_and_layout_graph(db: DatabaseHandler, timespans_id: int, color_by: str = 'community') -> nx.Graph:
     """Generate and layout a graph of the network of media for the given timespan.
     
     The layout algorithm is force atlas 2, and the resulting is 'position' attribute added to each node.
     """
-    graph = generate_graph(db, timespans_id)
+    graph = generate_graph(db=db, timespans_id=timespans_id)
     # run layout with all nodes in giant component, before reducing to smaler number to display
-    run_fa2_layout(graph)
+    run_fa2_layout(graph=graph)
 
-    graph = get_display_subgraph_by_attribute(graph, 'media_inlink_count', 1000)
+    graph = get_display_subgraph_by_attribute(graph=graph, attribute='media_inlink_count', num_nodes=1000)
     log.info("graph after attribute ranking: %d nodes" % len(graph.nodes()))
 
-    graph = prune_graph_by_distance(graph)
+    graph = prune_graph_by_distance(graph=graph)
     log.info("graph after far flung node pruning: %d nodes" % len(graph.nodes()))
 
-    assign_communities(graph)
+    assign_communities(graph=graph)
 
-    assign_colors(db, graph, **kwargs)
+    assign_colors(db=db, graph=graph, color_by=color_by)
 
-    assign_sizes(graph, 'media_inlink_count')
+    assign_sizes(graph=graph, attribute='media_inlink_count')
 
-    rotate_right_to_right(graph)
+    rotate_right_to_right(graph=graph)
 
-    assign_labels(graph)
+    assign_labels(graph=graph)
 
     return graph
 
 
-def generate_and_draw_graph(db, timespans_id, graph_format='svg'):
+def generate_and_draw_graph(db: DatabaseHandler, timespans_id: int, graph_format: str = 'svg') -> bytes:
     """Generate, layout, and draw a graph of the media network for the given timespan."""
-    graph = generate_and_layout_graph(db, timespans_id)
+    graph = generate_and_layout_graph(db=db, timespans_id=timespans_id)
 
-    return draw_graph(graph, graph_format=graph_format)
+    return draw_graph(graph=graph, graph_format=graph_format)
 
 
-def write_gexf(graph):
+def write_gexf(graph: nx.Graph) -> bytes:
     """Return a gexf representation of the graph.
 
     Convert position, color, and size into viz:position and viz:color as expected for gexf.
@@ -574,7 +585,11 @@ def write_gexf(graph):
     return buf.read()
 
 
-def create_timespan_map(db, timespans_id, content, graph_format, color_by):
+def create_timespan_map(db: DatabaseHandler,
+                        timespans_id: int,
+                        content: bytes,
+                        graph_format: str,
+                        color_by: str) -> None:
     """Create a timespans_map row."""
     db.begin()
 
@@ -598,15 +613,15 @@ def create_timespan_map(db, timespans_id, content, graph_format, color_by):
     db.commit()
 
 
-def generate_and_store_maps(db, timespans_id):
+def generate_and_store_maps(db: DatabaseHandler, timespans_id: int) -> None:
     """Generate and layout graph and store various formats of the graph in timespans_maps."""
-    graph = generate_and_layout_graph(db, timespans_id)
+    graph = generate_and_layout_graph(db=db, timespans_id=timespans_id)
 
     for color_by in ('community', 'partisan_retweet'):
-        assign_colors(db, graph, color_by=color_by)
+        assign_colors(db=db, graph=graph, color_by=color_by)
 
-        gexf = write_gexf(graph)
-        create_timespan_map(db, timespans_id, gexf, 'gexf', color_by)
+        gexf = write_gexf(graph=graph)
+        create_timespan_map(db=db, timespans_id=timespans_id, content=gexf, graph_format='gexf', color_by=color_by)
 
-        image = draw_graph(graph, graph_format='svg')
-        create_timespan_map(db, timespans_id, image, 'svg', color_by)
+        image = draw_graph(graph=graph, graph_format='svg')
+        create_timespan_map(db=db, timespans_id=timespans_id, content=image, graph_format='svg', color_by=color_by)

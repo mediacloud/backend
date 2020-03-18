@@ -81,7 +81,7 @@ class TestMap(TestCase):
     def test_get_media_network(self):
         db = self.db
 
-        got_media = get_media_network(db, self.timespan['timespans_id'])
+        got_media = get_media_network(db=db, timespans_id=self.timespan['timespans_id'])
 
         assert len(got_media) == len(self.all_media)
 
@@ -91,8 +91,8 @@ class TestMap(TestCase):
     def test_get_media_graph(self):
         db = self.db
 
-        media = get_media_network(db, self.timespan['timespans_id'])
-        graph = get_media_graph(db, media)
+        media = get_media_network(db=db, timespans_id=self.timespan['timespans_id'])
+        graph = get_media_graph(db=db, media=media)
 
         assert len(graph.nodes) == len(self.all_media)
         assert len(graph.edges) == len(self.connected_media) - 1
@@ -115,8 +115,8 @@ class TestMap(TestCase):
     def test_remoove_platforms_from_graph(self):
         db = self.db
 
-        media = get_media_network(db, self.timespan['timespans_id'])
-        graph = get_media_graph(db, media)
+        media = get_media_network(db=db, timespans_id=self.timespan['timespans_id'])
+        graph = get_media_graph(db=db, media=media)
 
         graph = remove_platforms_from_graph(graph=graph, platform_media_ids=[self.disconnected_media[0]['media_id'], ])
 
@@ -127,21 +127,21 @@ class TestMap(TestCase):
     def test_get_giant_component(self):
         db = self.db
 
-        media = get_media_network(db, self.timespan['timespans_id'])
-        graph = get_media_graph(db, media)
+        media = get_media_network(db=db, timespans_id=self.timespan['timespans_id'])
+        graph = get_media_graph(db=db, media=media)
 
         assert len(graph.nodes) == len(self.all_media)
 
-        graph = get_giant_component(graph)
+        graph = get_giant_component(graph=graph)
 
         assert len(graph.nodes) == len(self.connected_media)
 
     def test_run_fa2_layout(self):
         db = self.db
 
-        graph = generate_graph(db, self.timespan['timespans_id'])
+        graph = generate_graph(db=db, timespans_id=self.timespan['timespans_id'])
 
-        run_fa2_layout(graph)
+        run_fa2_layout(graph=graph)
 
         positions = nx.get_node_attributes(graph, 'position')
 
@@ -151,32 +151,36 @@ class TestMap(TestCase):
     def test_get_display_subgraph_by_attribute(self):
         db = self.db
 
-        graph = generate_graph(db, self.timespan['timespans_id'])
+        graph = generate_graph(db=db, timespans_id=self.timespan['timespans_id'])
 
         num_display_nodes = 10
 
-        graph = get_display_subgraph_by_attribute(graph, 'media_inlink_count', num_display_nodes)
+        graph = get_display_subgraph_by_attribute(
+            graph=graph,
+            attribute='media_inlink_count',
+            num_nodes=num_display_nodes,
+        )
 
         assert len(graph.nodes) == num_display_nodes
 
     def test_prune_graph_by_distance(self):
         db = self.db
 
-        media = get_media_network(db, self.timespan['timespans_id'])
-        graph = get_media_graph(db, media)
+        media = get_media_network(db=db, timespans_id=self.timespan['timespans_id'])
+        graph = get_media_graph(db=db, media=media)
 
         assert len(graph.nodes) == len(self.all_media)
 
-        run_fa2_layout(graph)
+        run_fa2_layout(graph=graph)
 
-        graph = prune_graph_by_distance(graph)
+        graph = prune_graph_by_distance(graph=graph)
 
         assert len(graph.nodes) == len(self.connected_media)
 
     def test_generate_and_draw_graph(self):
         db = self.db
 
-        svg = generate_and_draw_graph(db, self.timespan['timespans_id']).decode('UTF-8')
+        svg = generate_and_draw_graph(db=db, timespans_id=self.timespan['timespans_id']).decode('UTF-8')
 
         assert len(svg) > 100 * len(self.connected_media)
 
@@ -185,7 +189,7 @@ class TestMap(TestCase):
     def test_write_gexf(self):
         db = self.db
 
-        graph = generate_and_layout_graph(db, self.timespan['timespans_id'])
+        graph = generate_and_layout_graph(db=db, timespans_id=self.timespan['timespans_id'])
 
         gexf = write_gexf(graph)
 
@@ -194,7 +198,7 @@ class TestMap(TestCase):
     def test_generate_and_store_maps(self):
         db = self.db
 
-        generate_and_store_maps(db, self.timespan['timespans_id'])
+        generate_and_store_maps(db=db, timespans_id=self.timespan['timespans_id'])
 
         timespan_maps = db.query(
             "select * from timespan_maps where timespans_id = %(a)s",
