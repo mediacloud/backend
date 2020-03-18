@@ -153,7 +153,6 @@ def run_fa2_layout(graph):
         
     output = subprocess.check_output(
         [
-            "/usr/bin/nice",
             "/usr/bin/java",
             "-Djava.awt.headless=true",
             "-Xmx8g", 
