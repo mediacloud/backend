@@ -197,8 +197,6 @@ sub query($$;$)
         die( "Error received from solr: '$json'" );
     }
 
-    _set_last_num_found( $data );
-
     return $data;
 }
 
