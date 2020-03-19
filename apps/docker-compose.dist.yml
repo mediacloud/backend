@@ -1932,6 +1932,30 @@ services:
                     memory: "256M"
 
     #
+    # Map topic (FIXME what does it mean?)
+    # ------------------------------------
+    #
+    topics-map:
+        image: dockermediacloud/topics-map:release
+        <<: *sysctl-defaults
+        init: true
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            <<: *endpoint-mode-dnsrr
+            # Worker count
+            replicas: 1
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "8G"
+
+    #
     # Mine a topic
     # ------------
     #
