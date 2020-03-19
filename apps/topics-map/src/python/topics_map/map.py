@@ -35,10 +35,6 @@ MAX_NODE_SIZE = 800
 """size of the largest node"""
 
 
-class McMapError(Exception):
-    pass
-
-
 def add_partisan_retweet_to_snapshot_media(db: DatabaseHandler, timespans_id: int, media: List[Dict[str, Any]]) -> None:
     """Add partisan_retweet field to list of snapshotted media."""
     label = 'partisan_retweet'
