@@ -45,14 +45,15 @@ def add_partisan_retweet_to_snapshot_media(db: DatabaseHandler, timespans_id: in
 
     partisan_tags = db.query(
         """
-select dmtm.*, dt.tag
-    from snap.media_tags_map dmtm
-        join tags dt on ( dmtm.tags_id = dt.tags_id )
-        join tag_sets dts on ( dts.tag_sets_id = dt.tag_sets_id )
-        join timespans t using ( snapshots_id )
-    where
-        dts.name = 'retweet_partisanship_2016_count_10' and
-        t.timespans_id = %(a)s
+            SELECT
+                dmtm.*,
+                dt.tag
+            FROM snap.media_tags_map AS dmtm
+                JOIN tags AS dt ON ( dmtm.tags_id = dt.tags_id )
+                JOIN tag_sets AS dts ON ( dts.tag_sets_id = dt.tag_sets_id )
+                JOIN timespans AS t USING ( snapshots_id )
+            WHERE dts.name = 'retweet_partisanship_2016_count_10'
+              AND t.timespans_id = %(a)s
         """,
         {'a': timespans_id}
     ).hashes()
@@ -67,9 +68,12 @@ def get_media_network(db: DatabaseHandler, timespans_id: int) -> List[Dict[str, 
     """Get a network of media and edges for the topic."""
     media = db.query(
         """
-        select m.media_id, m.name, mlc.media_inlink_count
-            from media m
-                join snap.medium_link_counts mlc using ( media_id )
+            SELECT
+                m.media_id,
+                m.name,
+                mlc.media_inlink_count
+            FROM media AS m
+                JOIN snap.medium_link_counts AS mlc USING ( media_id )
             where
                 mlc.timespans_id = %(a)s
         """,
@@ -77,7 +81,7 @@ def get_media_network(db: DatabaseHandler, timespans_id: int) -> List[Dict[str, 
     ).hashes()
 
     medium_links = db.query(
-        "select * from snap.medium_links where timespans_id = %(a)s",
+        "SELECT * FROM snap.medium_links WHERE timespans_id = %(a)s",
         {'a': timespans_id}
     ).hashes()
 
@@ -597,7 +601,12 @@ def create_timespan_map(db: DatabaseHandler,
     options_json = encode_json(options)
 
     db.query(
-        "delete from timespan_maps where timespans_id = %(a)s and format = %(b)s and options = %(c)s",
+        """
+            DELETE FROM timespan_maps
+            WHERE timespans_id = %(a)s
+              AND format = %(b)s
+              AND options = %(c)s
+        """,
         {'a': timespans_id, 'b': graph_format, 'c': options_json}
     )
 
