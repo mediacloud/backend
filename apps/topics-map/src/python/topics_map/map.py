@@ -6,7 +6,7 @@ import io
 import math
 import os
 import subprocess
-import uuid
+import tempfile
 from typing import Optional, List, Dict, Any, Tuple
 
 import community
@@ -145,57 +145,57 @@ def run_fa2_layout(graph: nx.Graph) -> None:
 
     Assign a 'position' attribute to each node in the graph that is a [x, y] tuple.
     """
-    input_file = f"/tmp/media-{uuid.uuid4().hex}.gexf"
-    output_template = f"/tmp/media-{uuid.uuid4().hex}"
-    output_file = f"{output_template}.txt"
 
-    export_graph = graph.copy()
-    for node in export_graph.nodes(data=True):
-        for key in list(node[1].keys()):
-            del node[1][key]
+    with tempfile.TemporaryDirectory('topic_map') as temp_dir:
 
-    nx.write_gexf(export_graph, input_file)
+        input_file = os.path.join(temp_dir, 'input.gexf')
+        output_template = os.path.join(temp_dir, 'output')
+        output_file = output_template + ".txt"
 
-    log.info("running layout...")
+        export_graph = graph.copy()
+        for node in export_graph.nodes(data=True):
+            for key in list(node[1].keys()):
+                del node[1][key]
 
-    output = subprocess.check_output(
-        [
-            "java",
-            "-Djava.awt.headless=true",
-            "-Xmx8g",
-            "-cp", "/opt/fa2l/forceatlas2.jar:/opt/fa2l/gephi-toolkit.jar",
-            "kco.forceatlas2.Main",
-            "--input", input_file,
-            "--targetChangePerNode", "0.5",
-            "--output", output_template,
-            "--directed",
-            # "--scalingRatio", "10",
-            # "--gravity", "100",
-            "--2d"
-        ],
-    )
+        nx.write_gexf(export_graph, input_file)
 
-    assert isinstance(output, bytes)
-    output = output.decode('utf-8', errors='replace')
+        log.info("running layout...")
 
-    log.info(f"fa2 layout: {str(output)}")
+        output = subprocess.check_output(
+            [
+                "java",
+                "-Djava.awt.headless=true",
+                "-Xmx8g",
+                "-cp", "/opt/fa2l/forceatlas2.jar:/opt/fa2l/gephi-toolkit.jar",
+                "kco.forceatlas2.Main",
+                "--input", input_file,
+                "--targetChangePerNode", "0.5",
+                "--output", output_template,
+                "--directed",
+                # "--scalingRatio", "10",
+                # "--gravity", "100",
+                "--2d"
+            ],
+        )
 
-    f = open(output_file)
-    lines = f.readlines()
+        assert isinstance(output, bytes)
+        output = output.decode('utf-8', errors='replace')
 
-    del lines[0]
+        log.info(f"fa2 layout: {str(output)}")
 
-    for line in lines:
-        (i, x, y) = line.split()
+        f = open(output_file)
+        lines = f.readlines()
 
-        i = int(i)
-        x = float(x)
-        y = float(y)
+        del lines[0]
 
-        graph.nodes[i]['position'] = [x, y]
+        for line in lines:
+            (i, x, y) = line.split()
 
-    os.remove(input_file)
-    os.remove(output_file)
+            i = int(i)
+            x = float(x)
+            y = float(y)
+
+            graph.nodes[i]['position'] = [x, y]
 
 
 def assign_colors(db: DatabaseHandler, graph: nx.Graph, color_by: str) -> None:
