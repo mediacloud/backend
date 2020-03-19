@@ -145,9 +145,9 @@ def run_fa2_layout(graph: nx.Graph) -> None:
 
     Assign a 'position' attribute to each node in the graph that is a [x, y] tuple.
     """
-    input_file = "/tmp/media-%s.gexf" % uuid.uuid4().hex
-    output_template = "/tmp/media-%s" % uuid.uuid4().hex
-    output_file = "%s.txt" % output_template
+    input_file = f"/tmp/media-{uuid.uuid4().hex}.gexf"
+    output_template = f"/tmp/media-{uuid.uuid4().hex}"
+    output_file = f"{output_template}.txt"
 
     export_graph = graph.copy()
     for node in export_graph.nodes(data=True):
@@ -175,7 +175,7 @@ def run_fa2_layout(graph: nx.Graph) -> None:
         ],
     )
 
-    log.info("fa2 layout: %s" % str(output))
+    log.info(f"fa2 layout: {str(output)}")
 
     f = open(output_file)
     lines = f.readlines()
@@ -203,7 +203,7 @@ def assign_colors(db: DatabaseHandler, graph: nx.Graph, color_by: str) -> None:
     For now, this just assigns a color based on the partisan_retweet categorization, but it should support
     other options, or at least not use partisan_retweet if it is not a U.S. topic.
     """
-    log.warning('assign colors by %s' % color_by)
+    log.warning(f'assign colors by {color_by}')
     for n in graph.nodes:
         value = str(graph.nodes[n].get(color_by, 'null'))
         graph.nodes[n]['color'] = get_consistent_color(db, color_by, value)
@@ -413,7 +413,7 @@ def scale_until_no_overlap(graph: nx.Graph) -> None:
         else:
             expansion += 0.1
 
-    log.info("scale to avoid overlap: %d" % expansion)
+    log.info(f"scale to avoid overlap: {expansion}")
 
     for n in graph.nodes:
         graph.nodes[n]['size'] = sizes[n] * (expansion - 0.1)
@@ -496,15 +496,15 @@ def generate_graph(db: DatabaseHandler, timespans_id: int) -> nx.Graph:
     media = get_media_network(db=db, timespans_id=timespans_id)
     graph = get_media_graph(media=media)
 
-    log.info("initial graph: %d nodes" % len(graph.nodes()))
+    log.info(f"initial graph: {len(graph.nodes())} nodes")
 
     graph = get_giant_component(graph=graph)
 
-    log.info("graph after giant component: %d nodes" % len(graph.nodes()))
+    log.info(f"graph after giant component: {len(graph.nodes())} nodes")
 
     graph = remove_platforms_from_graph(graph=graph)
 
-    log.info("graph after platform removal: %d nodes" % len(graph.nodes()))
+    log.info(f"graph after platform removal: {len(graph.nodes())} nodes")
 
     return graph
 
@@ -512,7 +512,7 @@ def generate_graph(db: DatabaseHandler, timespans_id: int) -> nx.Graph:
 def assign_communities(graph: nx.Graph) -> None:
     """Run louvain community detection and assign result to 'community' attribute for each node."""
     resolution = 1.5
-    log.warning("generating communities with resolution %d..." % resolution)
+    log.warning(f"generating communities with resolution {resolution}...")
     communities = community.best_partition(graph=graph, resolution=resolution)
 
     for n in graph.nodes:
@@ -529,10 +529,10 @@ def generate_and_layout_graph(db: DatabaseHandler, timespans_id: int, color_by: 
     run_fa2_layout(graph=graph)
 
     graph = get_display_subgraph_by_attribute(graph=graph, attribute='media_inlink_count', num_nodes=1000)
-    log.info("graph after attribute ranking: %d nodes" % len(graph.nodes()))
+    log.info(f"graph after attribute ranking: {len(graph.nodes())} nodes")
 
     graph = prune_graph_by_distance(graph=graph)
-    log.info("graph after far flung node pruning: %d nodes" % len(graph.nodes()))
+    log.info(f"graph after far flung node pruning: {len(graph.nodes())} nodes")
 
     assign_communities(graph=graph)
 
