@@ -12,8 +12,8 @@ from typing import Optional, List, Dict, Any, Tuple
 import community
 import matplotlib.pyplot as plt
 import networkx as nx
-from mediawords.db import DatabaseHandler
 
+from mediawords.db import DatabaseHandler
 from mediawords.util.colors import get_consistent_color, hex_to_rgb
 from mediawords.util.log import create_logger
 from mediawords.util.parse_json import encode_json
