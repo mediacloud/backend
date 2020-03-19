@@ -179,6 +179,9 @@ def run_fa2_layout(graph: nx.Graph) -> None:
         ],
     )
 
+    assert isinstance(output, bytes)
+    output = output.decode('utf-8', errors='replace')
+
     log.info(f"fa2 layout: {str(output)}")
 
     f = open(output_file)
