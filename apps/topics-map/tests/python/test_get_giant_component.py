@@ -9,7 +9,7 @@ class TestGetGiantComponent(TestMap):
         db = self.db
 
         media = get_media_network(db=db, timespans_id=self.timespan['timespans_id'])
-        graph = get_media_graph(db=db, media=media)
+        graph = get_media_graph(media=media)
 
         assert len(graph.nodes) == len(self.all_media)
 

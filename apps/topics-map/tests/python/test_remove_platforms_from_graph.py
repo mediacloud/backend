@@ -9,7 +9,7 @@ class TestRemovePlatformsFromGraph(TestMap):
         db = self.db
 
         media = get_media_network(db=db, timespans_id=self.timespan['timespans_id'])
-        graph = get_media_graph(db=db, media=media)
+        graph = get_media_graph(media=media)
 
         graph = remove_platforms_from_graph(graph=graph, platform_media_ids=[self.disconnected_media[0]['media_id'], ])
 
