@@ -45,7 +45,7 @@ def run_job(snapshots_id: int = None, timespans_id: int = None) -> None:
             {'a': snapshots_id}
         ).flat()
     else:
-        timespans_ids = (timespans_id,)
+        timespans_ids = [timespans_id]
 
     for timespans_id in timespans_ids:
         log.info("generating maps for timespan %s" % timespans_id)
