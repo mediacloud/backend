@@ -34,7 +34,7 @@ def run_job(snapshots_id: int = None, timespans_id: int = None) -> None:
     if timespans_id is not None:
         timespans_id = int(timespans_id)
 
-    if (snapshots_id and timespans_id) or (not snapshots_id and not timespans_id):
+    if bool(snapshots_id) == bool(timespans_id):
         raise McTopicMapJobException("exactly one of snapshots_id or timespans_id must be set.")
 
     db = connect_to_db()
