@@ -8,7 +8,7 @@ class TestGenerateAndStoreMaps(TestMap):
     def test_generate_and_store_maps(self):
         db = self.db
 
-        generate_and_store_maps(db=db, timespans_id=self.timespan['timespans_id'])
+        generate_and_store_maps(db=db, timespans_id=self.timespan['timespans_id'], memory_limit_mb=512)
 
         timespan_maps = db.query(
             "SELECT * FROM timespan_maps WHERE timespans_id = %(a)s",

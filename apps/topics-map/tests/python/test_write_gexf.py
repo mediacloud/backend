@@ -8,7 +8,7 @@ class TestWriteGEXF(TestMap):
     def test_write_gexf(self):
         db = self.db
 
-        graph = generate_and_layout_graph(db=db, timespans_id=self.timespan['timespans_id'])
+        graph = generate_and_layout_graph(db=db, timespans_id=self.timespan['timespans_id'], memory_limit_mb=512)
 
         gexf = write_gexf(graph)
 

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 """Topic Mapper job that generates timespan_maps for a timespans or all timespans in a snapshot."""
+import argparse
 
 from mediawords.db import connect_to_db
 from mediawords.job import JobBroker
@@ -14,6 +15,9 @@ QUEUE_NAME = 'MediaWords::Job::TM::Map'
 
 _consecutive_requeues = None
 
+_memory_limit_mb = None
+"""Memory limit (MB) for Java subprocess."""
+
 
 class McTopicMapJobException(Exception):
     """Exceptions dealing with job setup and routing."""
@@ -23,6 +27,7 @@ class McTopicMapJobException(Exception):
 def run_job(snapshots_id: int = None, timespans_id: int = None) -> None:
     """Generate and store network maps for either a single timespan or all timespans in a snapshot."""
     global _consecutive_requeues
+    global _memory_limit_mb
 
     if isinstance(snapshots_id, bytes):
         snapshots_id = decode_object_from_bytes_if_needed(snapshots_id)
@@ -49,9 +54,17 @@ def run_job(snapshots_id: int = None, timespans_id: int = None) -> None:
 
     for timespans_id in timespans_ids:
         log.info("generating maps for timespan %s" % timespans_id)
-        generate_and_store_maps(db, timespans_id)
+        generate_and_store_maps(db=db, timespans_id=timespans_id, memory_limit_mb=_memory_limit_mb)
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description="Run topics map worker.")
+    parser.add_argument("-m", "--memory_limit_mb", type=int, required=True,
+                        help="Memory limit (MB) for Java subprocess")
+    args = parser.parse_args()
+
+    _memory_limit_mb = args.memory_limit_mb
+    assert _memory_limit_mb, "Memory limit is not set (no idea what to set -Xmx to)."
+
     app = JobBroker(queue_name=QUEUE_NAME)
     app.start_worker(handler=run_job)

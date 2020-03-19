@@ -138,7 +138,7 @@ def remove_platforms_from_graph(graph: nx.Graph, platform_media_ids: Optional[Li
     return graph.subgraph(include_nodes)
 
 
-def run_fa2_layout(graph: nx.Graph) -> None:
+def run_fa2_layout(graph: nx.Graph, memory_limit_mb: int) -> None:
     """Generate force atlas 2 layout for the graph.
 
     Run an external java library on the graph to assign a position to each node.
@@ -165,7 +165,7 @@ def run_fa2_layout(graph: nx.Graph) -> None:
             [
                 "java",
                 "-Djava.awt.headless=true",
-                "-Xmx8g",
+                f"-Xmx{memory_limit_mb}m",
                 "-cp", "/opt/fa2l/forceatlas2.jar:/opt/fa2l/gephi-toolkit.jar",
                 "kco.forceatlas2.Main",
                 "--input", input_file,
@@ -520,14 +520,17 @@ def assign_communities(graph: nx.Graph) -> None:
         graph.nodes[n]['community'] = communities[n]
 
 
-def generate_and_layout_graph(db: DatabaseHandler, timespans_id: int, color_by: str = 'community') -> nx.Graph:
+def generate_and_layout_graph(db: DatabaseHandler,
+                              timespans_id: int,
+                              memory_limit_mb: int,
+                              color_by: str = 'community') -> nx.Graph:
     """Generate and layout a graph of the network of media for the given timespan.
     
     The layout algorithm is force atlas 2, and the resulting is 'position' attribute added to each node.
     """
     graph = generate_graph(db=db, timespans_id=timespans_id)
     # run layout with all nodes in giant component, before reducing to smaler number to display
-    run_fa2_layout(graph=graph)
+    run_fa2_layout(graph=graph, memory_limit_mb=memory_limit_mb)
 
     graph = get_display_subgraph_by_attribute(graph=graph, attribute='media_inlink_count', num_nodes=1000)
     log.info(f"graph after attribute ranking: {len(graph.nodes())} nodes")
@@ -548,9 +551,12 @@ def generate_and_layout_graph(db: DatabaseHandler, timespans_id: int, color_by: 
     return graph
 
 
-def generate_and_draw_graph(db: DatabaseHandler, timespans_id: int, graph_format: str = 'svg') -> bytes:
+def generate_and_draw_graph(db: DatabaseHandler,
+                            timespans_id: int,
+                            memory_limit_mb: int,
+                            graph_format: str = 'svg') -> bytes:
     """Generate, layout, and draw a graph of the media network for the given timespan."""
-    graph = generate_and_layout_graph(db=db, timespans_id=timespans_id)
+    graph = generate_and_layout_graph(db=db, timespans_id=timespans_id, memory_limit_mb=memory_limit_mb)
 
     return draw_graph(graph=graph, graph_format=graph_format)
 
@@ -619,9 +625,9 @@ def create_timespan_map(db: DatabaseHandler,
     db.commit()
 
 
-def generate_and_store_maps(db: DatabaseHandler, timespans_id: int) -> None:
+def generate_and_store_maps(db: DatabaseHandler, timespans_id: int, memory_limit_mb: int) -> None:
     """Generate and layout graph and store various formats of the graph in timespans_maps."""
-    graph = generate_and_layout_graph(db=db, timespans_id=timespans_id)
+    graph = generate_and_layout_graph(db=db, timespans_id=timespans_id, memory_limit_mb=memory_limit_mb)
 
     for color_by in ('community', 'partisan_retweet'):
         assign_colors(db=db, graph=graph, color_by=color_by)

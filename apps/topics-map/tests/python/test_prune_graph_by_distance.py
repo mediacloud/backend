@@ -13,7 +13,7 @@ class TestPruneGraphByDistance(TestMap):
 
         assert len(graph.nodes) == len(self.all_media)
 
-        run_fa2_layout(graph=graph)
+        run_fa2_layout(graph=graph, memory_limit_mb=512)
 
         graph = prune_graph_by_distance(graph=graph)
 

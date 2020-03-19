@@ -12,7 +12,7 @@ class TestRunFa2Layout(TestMap):
 
         graph = generate_graph(db=db, timespans_id=self.timespan['timespans_id'])
 
-        run_fa2_layout(graph=graph)
+        run_fa2_layout(graph=graph, memory_limit_mb=512)
 
         positions = nx.get_node_attributes(graph, 'position')
 
