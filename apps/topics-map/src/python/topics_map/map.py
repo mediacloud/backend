@@ -20,19 +20,19 @@ from mediawords.util.parse_json import encode_json
 
 log = create_logger(__name__)
 
-# list of platform media sources, which are excluded from maps by default
 DEFAULT_PLATFORM_MEDIA_IDS = [
     18362, 18346, 18370, 61164, 269331, 73449, 62926, 21936, 5816, 4429, 20448, 67324, 351789, 22299, 135076, 25373,
 ]
+"""list of platform media sources, which are excluded from maps by default"""
 
-# create matplotlib figure with figsize(PLOT_SIZE, PLOT_SIZE)
 PLOT_SIZE = 18
+"""create matplotlib figure with figsize(PLOT_SIZE, PLOT_SIZE)"""
 
-# estimated dpi of plot
 PLOT_DPI = 600
+"""estimated dpi of plot"""
 
-# size of the largest node
 MAX_NODE_SIZE = 800
+"""size of the largest node"""
 
 
 class McMapError(Exception):
