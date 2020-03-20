@@ -201,7 +201,7 @@ sub query_solr($$)
 # given a list of array refs, each of which points to a list
 # of ids, return a list of all ids that appear in all of the
 # lists
-sub _get_intersection_of_id_array_refs
+sub _get_intersection_of_lists
 {
     return [] unless ( @_ );
 
@@ -255,7 +255,7 @@ sub _get_stories_ids_from_stories_only_q
 
         return undef unless ( $a_stories_ids && $b_stories_ids );
 
-        return _get_intersection_of_id_array_refs( $a_stories_ids, $b_stories_ids );
+        return _get_intersection_of_lists( $a_stories_ids, $b_stories_ids );
     }
 
     if ( $q =~ /^stories_id:(\d+)$/ )
@@ -320,7 +320,7 @@ sub _get_stories_ids_from_stories_only_params
     # if there are stories_ids only fqs and a '*:*' q, just use the fqs
     if ( @{ $stories_ids_lists } && ( $q eq '*:*' ) )
     {
-        $r = _get_intersection_of_id_array_refs( @{ $stories_ids_lists } );
+        $r = _get_intersection_of_lists( @{ $stories_ids_lists } );
     }
 
     # if there were no fqs and a '*:*' q, return undef
@@ -336,7 +336,7 @@ sub _get_stories_ids_from_stories_only_params
 
         return undef unless ( $stories_ids );
 
-        $r = _get_intersection_of_id_array_refs( $stories_ids, @{ $stories_ids_lists } );
+        $r = _get_intersection_of_lists( $stories_ids, @{ $stories_ids_lists } );
     }
 
     splice( @{ $r }, 0, $start ) if ( defined( $start ) );
