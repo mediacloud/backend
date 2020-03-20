@@ -41,7 +41,7 @@ sub test_import($)
     my $test_stories = $db->query( "select * from stories order by md5( stories_id::text )" )->hashes;
 
     {
-        my $got_num_solr_stories = MediaWords::Solr::get_num_found( $db, { q => '*:*' } );
+        my $got_num_solr_stories = MediaWords::Solr::get_solr_num_found( $db, { q => '*:*' } );
         is( $got_num_solr_stories, scalar( @{ $test_stories } ), "total number of stories in solr" );
 
         my $solr_import = $db->query( "select * from solr_imports" )->hash;

@@ -500,7 +500,7 @@ sub count_GET
     }
     else
     {
-        my $num_found = MediaWords::Solr::get_num_found( $c->dbis, { q => $q, fq => $fq } );
+        my $num_found = MediaWords::Solr::get_solr_num_found( $c->dbis, { q => $q, fq => $fq } );
         $response = { count => $num_found };
     }
 

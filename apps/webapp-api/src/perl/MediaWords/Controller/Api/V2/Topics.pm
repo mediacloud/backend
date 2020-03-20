@@ -349,7 +349,7 @@ sub create_GET
         die( "unable to translate solr query to topic pattern: $@" ) if ( $@ );
 
         my $full_q = MediaWords::Solr::Query::get_full_solr_query_for_topic( $db, $topic, $media_ids, $media_tags_ids );
-        my $num_stories = eval { MediaWords::Solr::get_num_found( $db, $full_q ) };
+        my $num_stories = eval { MediaWords::Solr::get_solr_num_found( $db, $full_q ) };
         die( "invalid solr query: $@" ) if ( $@ );
     }
 
@@ -542,7 +542,7 @@ sub update_PUT
         $topic->{ solr_seed_query } = $update->{ solr_seed_query };
 
         my $full_solr_query = MediaWords::Solr::Query::get_full_solr_query_for_topic( $db, $topic, $media_ids, $media_tags_ids );
-        my $num_stories = eval { MediaWords::Solr::get_num_found( $db, $full_solr_query ) };
+        my $num_stories = eval { MediaWords::Solr::get_solr_num_found( $db, $full_solr_query ) };
         die( "invalid solr query: $@" ) if ( $@ );
     }
 

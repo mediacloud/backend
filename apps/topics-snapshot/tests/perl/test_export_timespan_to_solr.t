@@ -34,12 +34,12 @@ sub test_timespan_export($)
 
     MediaWords::Test::Solr::setup_test_index( $db );
 
-    my $num_solr_stories = MediaWords::Solr::get_num_found( $db, { q => '*:*' } );
+    my $num_solr_stories = MediaWords::Solr::get_solr_num_found( $db, { q => '*:*' } );
     ok( $num_solr_stories > 0, "total number of solr stories is greater than 0" );
 
     my $topic_media_id = $media->{ medium_1 }->{ media_id };
 
-    my $num_topic_medium_stories = MediaWords::Solr::get_num_found( $db, { q => "media_id:$topic_media_id" } );
+    my $num_topic_medium_stories = MediaWords::Solr::get_solr_num_found( $db, { q => "media_id:$topic_media_id" } );
     ok( $num_topic_medium_stories > 0, "number of topic medium stories is greater than 0" );
 
     $db->query( <<SQL, $topic->{ topics_id }, $topic_media_id );
@@ -49,7 +49,7 @@ SQL
 
     MediaWords::Job::TM::SnapshotTopic->run( { topics_id => $topic->{ topics_id } } );
 
-    $num_solr_stories = MediaWords::Solr::get_num_found( $db, { q => 'timespans_id:1' } );
+    $num_solr_stories = MediaWords::Solr::get_solr_num_found( $db, { q => 'timespans_id:1' } );
     is( $num_solr_stories, 0, "number of solr stories before snapshot import" );
 
     my ( $num_solr_exported_stories ) = $db->query( "select count(*) from solr_import_stories" )->flat;
@@ -63,7 +63,7 @@ SQL
         { empty_queue => 1 },   #
     );
 
-    my $num_topic_stories = MediaWords::Solr::get_num_found( $db, { q => "timespans_id:$timespan->{ timespans_id }" } );
+    my $num_topic_stories = MediaWords::Solr::get_solr_num_found( $db, { q => "timespans_id:$timespan->{ timespans_id }" } );
     is( $num_topic_stories, $num_topic_medium_stories, "topic stories after snapshot" );
 
     my $focus_stories_id = $media->{ story_1 }->{ stories_id };
@@ -92,8 +92,8 @@ select *
     order by timespans_id desc limit 1
 SQL
 
-    my $focus_story_stories    = MediaWords::Solr::get_num_found( $db, { q => "stories_id:$focus_stories_id" } );
-    my $focus_timespan_stories = MediaWords::Solr::get_num_found( $db, { q => "timespans_id:$focus_timespans_id" } );
+    my $focus_story_stories    = MediaWords::Solr::get_solr_num_found( $db, { q => "stories_id:$focus_stories_id" } );
+    my $focus_timespan_stories = MediaWords::Solr::get_solr_num_found( $db, { q => "timespans_id:$focus_timespans_id" } );
 
     is( $focus_timespan_stories, $focus_story_stories, "focus timespan stories" );
 }

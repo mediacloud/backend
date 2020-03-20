@@ -43,12 +43,12 @@ sub test_import_utf8($)
     MediaWords::Test::Solr::setup_test_index( $db );
 
     {
-        my $num_solr_stories = MediaWords::Solr::get_num_found( $db, { 'q' => 'title:ąžuolas' } );
+        my $num_solr_stories = MediaWords::Solr::get_solr_num_found( $db, { 'q' => 'title:ąžuolas' } );
         ok( $num_solr_stories > 0, "UTF-8 stories were found by title" );
     }
 
     {
-        my $num_solr_stories = MediaWords::Solr::get_num_found( $db, { 'q' => 'text:beržas' } );
+        my $num_solr_stories = MediaWords::Solr::get_solr_num_found( $db, { 'q' => 'text:beržas' } );
         ok( $num_solr_stories > 0, "UTF-8 stories were found by text" );
     }
 }

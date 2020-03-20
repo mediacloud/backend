@@ -411,13 +411,13 @@ sub search_solr_for_processed_stories_ids($$$$$;$)
     return $ps_ids;
 }
 
-=head2 get_num_found( $db, $params )
+=head2 get_solr_num_found( $db, $params )
 
 Execute the query and return only the number of documents found.
 
 =cut
 
-sub get_num_found ($$)
+sub get_solr_num_found ($$)
 {
     my ( $db, $params ) = @_;
 

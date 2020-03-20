@@ -135,10 +135,10 @@ sub run_solr_tests($)
     }
 
     {
-        # get_num_found
+        # get_solr_num_found
         my ( $expected_num_stories ) = $db->query( "select count(*) from stories" )->flat;
-        my $got_num_stories = MediaWords::Solr::get_num_found( $db, { q => '*:*' } );
-        is( $got_num_stories, $expected_num_stories, 'get_num_found' );
+        my $got_num_stories = MediaWords::Solr::get_solr_num_found( $db, { q => '*:*' } );
+        is( $got_num_stories, $expected_num_stories, 'get_solr_num_found' );
     }
 
     {
