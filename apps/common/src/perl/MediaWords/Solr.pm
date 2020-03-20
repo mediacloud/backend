@@ -111,14 +111,12 @@ SQL
     return $q;
 }
 
-=head2 query_encoded_json( $db, $params, $c )
+=head2 query_encoded_json( $db, $params )
 
 Execute a query on the solr server using the given params.  Return a maximum of 1 million sentences.
 
 The $params argument is a hash of the cgi args to solr, detailed here:
 https://wiki.apache.org/solr/CommonQueryParameters.
-
-The $c argument is optional and is used to pass the solr response back up to catalyst in the case of an error.
 
 The query ($params->{ q }) is transformed: lower case boolean operators are uppercased to make
 solr recognize them as boolean queries.
@@ -129,9 +127,9 @@ https://wiki.apache.org/solr/SolJSON
 
 =cut
 
-sub query_encoded_json($$;$)
+sub query_encoded_json($$)
 {
-    my ( $db, $params, $c ) = @_;
+    my ( $db, $params ) = @_;
 
     unless ( $params )
     {
@@ -173,17 +171,17 @@ sub query_encoded_json($$;$)
     return $response_content;
 }
 
-=head2 query( $db, $params, $c )
+=head2 query( $db, $params )
 
 Same as query_encoded_json but returns a perl hash of the decoded json.
 
 =cut
 
-sub query($$;$)
+sub query($$)
 {
-    my ( $db, $params, $c ) = @_;
+    my ( $db, $params ) = @_;
 
-    my $json = query_encoded_json( $db, $params, $c );
+    my $json = query_encoded_json( $db, $params );
 
     my $data;
     eval { $data = MediaWords::Util::ParseJSON::decode_json( $json ) };
