@@ -2,17 +2,13 @@
 Do GET / POST requests to Solr.
 """
 
+import abc
 import time
 from typing import Dict, Union, Optional
 from urllib.parse import urlencode
 
 from furl import furl
 
-from mediawords.solr.request.exceptions import (
-    McSolrRequestDidNotStartInTimeException,
-    McSolrRequestQueryErrorException,
-    McSolrRequestInvalidParamsException,
-)
 from mediawords.util.config.common import CommonConfig
 from mediawords.util.log import create_logger
 from mediawords.util.parse_json import decode_json, encode_json
@@ -26,6 +22,36 @@ __SOLR_STARTUP_TIMEOUT = 2 * 60
 
 __QUERY_HTTP_TIMEOUT = 15 * 60
 """Timeout of a single HTTP query."""
+
+
+class _AbstractSolrRequestException(Exception, metaclass=abc.ABCMeta):
+    """Abstract .solr.request exception."""
+    pass
+
+
+class _AbstractSolrRequestConnectionErrorException(_AbstractSolrRequestException):
+    """Problems with Solr connectivity."""
+    pass
+
+
+class McSolrRequestDidNotStartInTimeException(_AbstractSolrRequestConnectionErrorException):
+    """Exception thrown when Solr didn't manage to start in time."""
+    pass
+
+
+class _AbstractSolrRequestQueryErrorException(_AbstractSolrRequestException):
+    """Problems with Solr query."""
+    pass
+
+
+class McSolrRequestQueryErrorException(_AbstractSolrRequestQueryErrorException):
+    """Solr query failed."""
+    pass
+
+
+class McSolrRequestInvalidParamsException(_AbstractSolrRequestQueryErrorException):
+    """solr_request() received invalid parameters."""
+    pass
 
 
 def __wait_for_solr_to_start(config: Optional[CommonConfig]) -> None:
