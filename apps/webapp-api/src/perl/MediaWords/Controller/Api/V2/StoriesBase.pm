@@ -367,7 +367,7 @@ SQL
 
     my $sort = $c->req->param( 'sort' );
 
-    return MediaWords::Solr::search_for_processed_stories_ids( $db, $q, $fq, $last_id, $rows, $sort );
+    return MediaWords::Solr::search_solr_for_processed_stories_ids( $db, $q, $fq, $last_id, $rows, $sort );
 }
 
 sub _fetch_list($$$$$$)

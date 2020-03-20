@@ -142,17 +142,17 @@ sub run_solr_tests($)
     }
 
     {
-        # search_for_processed_stories_ids
+        # search_solr_for_processed_stories_ids
         my $first_story = $db->query( <<SQL )->hash;
 select * from processed_stories order by processed_stories_id asc limit 1
 SQL
 
-        my $got_processed_stories_ids = MediaWords::Solr::search_for_processed_stories_ids( $db, '*:*', undef, 0, 1 );
-        is( scalar( @{ $got_processed_stories_ids } ), 1, "search_for_processed_stories_ids count" );
+        my $got_processed_stories_ids = MediaWords::Solr::search_solr_for_processed_stories_ids( $db, '*:*', undef, 0, 1 );
+        is( scalar( @{ $got_processed_stories_ids } ), 1, "search_solr_for_processed_stories_ids count" );
         is(
             $got_processed_stories_ids->[ 0 ],
             $first_story->{ processed_stories_id },
-            "search_for_processed_stories_ids id"
+            "search_solr_for_processed_stories_ids id"
         );
     }
 
