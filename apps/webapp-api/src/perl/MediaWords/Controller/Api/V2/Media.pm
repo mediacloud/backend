@@ -214,7 +214,7 @@ sub get_extra_where_clause
     if ( my $q = $c->req->params->{ q } )
     {
         my $solr_params = { q => $q };
-        my $media_ids = MediaWords::Solr::search_for_media_ids( $db, $solr_params );
+        my $media_ids = MediaWords::Solr::search_solr_for_media_ids( $db, $solr_params );
 
         $media_ids = [ map { int( $_ ) } @{ $media_ids } ];
 

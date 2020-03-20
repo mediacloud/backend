@@ -429,13 +429,13 @@ sub get_solr_num_found ($$)
     return $res->{ response }->{ numFound };
 }
 
-=head2 search_for_media_ids( $db, $params )
+=head2 search_solr_for_media_ids( $db, $params )
 
 Return all of the media ids that match the solr query.
 
 =cut
 
-sub search_for_media_ids ($$)
+sub search_solr_for_media_ids ($$)
 {
     my ( $db, $params ) = @_;
 

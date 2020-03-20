@@ -59,7 +59,7 @@ sub _get_extra_where_clause($$)
     if ( my $q = $c->req->params->{ q } )
     {
         $q = "timespans_id:$timespans_id and ( $q )";
-        my $media_ids = MediaWords::Solr::search_for_media_ids( $c->dbis, { q => $q } );
+        my $media_ids = MediaWords::Solr::search_solr_for_media_ids( $c->dbis, { q => $q } );
         my $media_ids_list = join( ',', map { int( $_ ) } ( @{ $media_ids }, -1 ) );
         push( @{ $clauses }, "m.media_id in ( $media_ids_list )" );
     }
