@@ -27,6 +27,7 @@ use Readonly;
 use MediaWords::TM::Alert;
 use MediaWords::TM::FetchTopicPosts;
 use MediaWords::TM::Stories;
+use MediaWords::DBI::Stories;
 use MediaWords::DBI::Stories::GuessDate;
 use MediaWords::JobManager::Job;
 use MediaWords::JobManager::StatefulJob;
@@ -759,6 +760,22 @@ sub _import_month_within_respider_date($$)
     return 0;
 }
 
+# Call search_for_stories_ids() above and then query PostgreSQL for the stories returned by Solr.
+# Include stories.* and media_name as the returned fields.
+sub __search_for_stories($$)
+{
+    my ( $db, $params ) = @_;
+
+    my $stories_ids = MediaWords::Solr::search_for_stories_ids( $db, $params );
+
+    my $stories = [ map { { stories_id => $_ } } @{ $stories_ids } ];
+
+    $stories = MediaWords::DBI::Stories::attach_story_meta_data_to_stories( $db, $stories );
+
+    $stories = [ grep { $_->{ url } } @{ $stories } ];
+
+    return $stories;
+}
 
 # import a single month of the solr seed query.  we do this to avoid giant queries that timeout in solr.
 sub import_solr_seed_query_month($$$)
@@ -783,7 +800,7 @@ sub import_solr_seed_query_month($$$)
     INFO "import solr seed query month offset $month_offset";
     $solr_query->{ rows } = $max_stories;
 
-    my $stories = MediaWords::Solr::search_for_stories( $db, $solr_query );
+    my $stories = __search_for_stories( $db, $solr_query );
 
     if ( scalar( @{ $stories } ) > $max_returned_stories )
     {

@@ -371,28 +371,6 @@ sub search_for_stories_ids ($$)
     return $stories_ids;
 }
 
-=head2 search_for_stories( $db, $params )
-
-Call search_for_stories_ids() above and then query postgres for the stories returned by solr.  Include stories.* and
-media_name as the returned fields.
-
-=cut
-
-sub search_for_stories ($$)
-{
-    my ( $db, $params ) = @_;
-
-    my $stories_ids = search_for_stories_ids( $db, $params );
-
-    my $stories = [ map { { stories_id => $_ } } @{ $stories_ids } ];
-
-    $stories = MediaWords::DBI::Stories::attach_story_meta_data_to_stories( $db, $stories );
-
-    $stories = [ grep { $_->{ url } } @{ $stories } ];
-
-    return $stories;
-}
-
 =head2 search_for_processed_stories_ids( $db, $q, $fq, $last_ps_id, $num_stories, $sort )
 
 Return the first $num_stories processed_stories_id that match the given query, sorted by processed_stories_id and with
