@@ -1932,8 +1932,8 @@ services:
                     memory: "256M"
 
     #
-    # Map topic (FIXME what does it mean?)
-    # ------------------------------------
+    # Generate maps for a topic
+    # -------------------------
     #
     topics-map:
         image: dockermediacloud/topics-map:release
@@ -1947,12 +1947,12 @@ services:
             <<: *misc-apps_deploy_placement_constraints
             <<: *endpoint-mode-dnsrr
             # Worker count
-            replicas: 1
+            replicas: 2
             resources:
                 limits:
-                    # CPU core limit
-                    cpus: "1"
-                    # RAM limit
+                    # CPU core limit - big jobs require lots of parallel processing or else take hours
+                    cpus: "8"
+                    # RAM limit - big network analysis jobs require lots of memory or else crash
                     memory: "8G"
 
     #
