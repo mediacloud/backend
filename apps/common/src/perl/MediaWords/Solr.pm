@@ -9,7 +9,7 @@ use MediaWords::CommonLibs;
 
 =head1 SYNOPSIS
 
-    my $results = MediaWords::Solr::query( $db, { q => 'obama' } );
+    my $results = MediaWords::Solr::query_solr( $db, { q => 'obama' } );
 
     my $sentences = $results->{ response }->{ docs };
     map { say "found sentence id: $_->{ story_sentences_id }" } @{ $sentencs };
@@ -171,13 +171,13 @@ sub __query_encoded_json($$)
     return $response_content;
 }
 
-=head2 query( $db, $params )
+=head2 query_solr( $db, $params )
 
 Same as __query_encoded_json but returns a perl hash of the decoded json.
 
 =cut
 
-sub query($$)
+sub query_solr($$)
 {
     my ( $db, $params ) = @_;
 
@@ -364,7 +364,7 @@ sub search_for_stories_ids ($$)
 
     $p->{ fl } = 'stories_id';
 
-    my $response = query( $db, $p );
+    my $response = query_solr( $db, $p );
 
     my $stories_ids = [ map { $_->{ stories_id } } @{ $response->{ response }->{ docs } } ];
 
@@ -404,7 +404,7 @@ sub search_for_processed_stories_ids($$$$$;$)
         $params->{ fq } = [ @{ $params->{ fq } }, "processed_stories_id:[$min_ps_id TO *]" ];
     }
 
-    my $response = query( $db, $params );
+    my $response = query_solr( $db, $params );
 
     my $ps_ids = [ map { $_->{ processed_stories_id } } @{ $response->{ response }->{ docs } } ];
 
@@ -424,7 +424,7 @@ sub get_num_found ($$)
     $params = { %{ $params } };
     $params->{ rows } = 0;
 
-    my $res = query( $db, $params );
+    my $res = query_solr( $db, $params );
 
     return $res->{ response }->{ numFound };
 }
@@ -448,7 +448,7 @@ sub search_for_media_ids ($$)
     $p->{ 'facet.mincount' } = 1;
     $p->{ rows }             = 0;
 
-    my $response = query( $db, $p );
+    my $response = query_solr( $db, $p );
 
     my $counts = $response->{ facet_counts }->{ facet_fields }->{ media_id };
 

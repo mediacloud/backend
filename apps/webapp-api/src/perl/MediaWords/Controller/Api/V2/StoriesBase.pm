@@ -460,7 +460,7 @@ sub _get_date_counts
     $params->{ 'facet.mincount' } = 1;
     $params->{ rows }             = 0;
 
-    my $solr_response = MediaWords::Solr::query( $c->dbis, $params, $c );
+    my $solr_response = MediaWords::Solr::query_solr( $c->dbis, $params, $c );
 
     my $facet_counts = $solr_response->{ facet_counts }->{ facet_fields }->{ $facet_field };
 

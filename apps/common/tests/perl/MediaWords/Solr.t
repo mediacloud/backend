@@ -164,7 +164,7 @@ SQL
     }
 
     {
-        eval { MediaWords::Solr::query( $db, { q => "publish_date:[foo TO bar]" } ) };
+        eval { MediaWords::Solr::query_solr( $db, { q => "publish_date:[foo TO bar]" } ) };
         ok( $@ =~ /range queries are not allowed/, "range queries not allowed: '$@'" );
     }
 }

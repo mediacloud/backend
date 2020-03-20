@@ -28,7 +28,7 @@ sub test_story_query($$$;$)
 
     my $expected_stories_id = $expected_story->{ stories_id };
 
-    my $r = MediaWords::Solr::query( $db, { q => "$q and stories_id:$expected_stories_id", rows => 1_000_000 } );
+    my $r = MediaWords::Solr::query_solr( $db, { q => "$q and stories_id:$expected_stories_id", rows => 1_000_000 } );
 
     my $docs = $r->{ response }->{ docs };
 
