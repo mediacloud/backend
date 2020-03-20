@@ -345,13 +345,13 @@ sub _get_stories_ids_from_stories_only_params
     return $r;
 }
 
-=head2 search_for_stories_ids( $db, $params )
+=head2 search_solr_for_stories_ids( $db, $params )
 
 Return a list of all of the stories_ids that match the solr query.  Using solr side grouping on the stories_id field.
 
 =cut
 
-sub search_for_stories_ids ($$)
+sub search_solr_for_stories_ids ($$)
 {
     my ( $db, $params ) = @_;
 

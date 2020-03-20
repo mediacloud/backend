@@ -157,10 +157,10 @@ SQL
     }
 
     {
-        # search_for_stories_ids
+        # search_solr_for_stories_ids
         my $story = pop( @{ $test_stories } );
-        my $got_stories_ids = MediaWords::Solr::search_for_stories_ids( $db, { q => "stories_id:$story->{ stories_id }" } );
-        is_deeply( $got_stories_ids, [ $story->{ stories_id } ], "search_for_stories_ids" );
+        my $got_stories_ids = MediaWords::Solr::search_solr_for_stories_ids( $db, { q => "stories_id:$story->{ stories_id }" } );
+        is_deeply( $got_stories_ids, [ $story->{ stories_id } ], "search_solr_for_stories_ids" );
     }
 
     {

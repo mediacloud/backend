@@ -760,13 +760,13 @@ sub _import_month_within_respider_date($$)
     return 0;
 }
 
-# Call search_for_stories_ids() above and then query PostgreSQL for the stories returned by Solr.
+# Call search_solr_for_stories_ids() above and then query PostgreSQL for the stories returned by Solr.
 # Include stories.* and media_name as the returned fields.
 sub __search_for_stories($$)
 {
     my ( $db, $params ) = @_;
 
-    my $stories_ids = MediaWords::Solr::search_for_stories_ids( $db, $params );
+    my $stories_ids = MediaWords::Solr::search_solr_for_stories_ids( $db, $params );
 
     my $stories = [ map { { stories_id => $_ } } @{ $stories_ids } ];
 

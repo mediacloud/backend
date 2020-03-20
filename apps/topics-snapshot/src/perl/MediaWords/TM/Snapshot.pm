@@ -118,7 +118,7 @@ sub _restrict_period_stories_to_focus
         $solr_q = "( $solr_q ) and stories_id:( $stories_ids_list )";
 
         my $solr_stories_ids =
-          eval { MediaWords::Solr::search_for_stories_ids( $db, { rows => 1000000, q => $solr_q } ) };
+          eval { MediaWords::Solr::search_solr_for_stories_ids( $db, { rows => 1000000, q => $solr_q } ) };
         if ( $@ )
         {
             # sometimes solr throws a NullException error on one of these queries; retrying with smaller
