@@ -25,7 +25,6 @@ use List::Util;
 use Time::HiRes qw(gettimeofday tv_interval);
 use URI::Escape;
 
-use MediaWords::DBI::Stories;
 use MediaWords::Solr::Query;
 use MediaWords::Solr::Request;
 use MediaWords::Util::Config::Common;
