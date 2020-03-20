@@ -345,6 +345,24 @@ sub _get_stories_ids_from_stories_only_params
     return $r;
 }
 
+=head2 get_solr_num_found( $db, $params )
+
+Execute the query and return only the number of documents found.
+
+=cut
+
+sub get_solr_num_found ($$)
+{
+    my ( $db, $params ) = @_;
+
+    $params = { %{ $params } };
+    $params->{ rows } = 0;
+
+    my $res = query_solr( $db, $params );
+
+    return $res->{ response }->{ numFound };
+}
+
 =head2 search_solr_for_stories_ids( $db, $params )
 
 Return a list of all of the stories_ids that match the solr query.  Using solr side grouping on the stories_id field.
@@ -409,24 +427,6 @@ sub search_solr_for_processed_stories_ids($$$$$;$)
     my $ps_ids = [ map { $_->{ processed_stories_id } } @{ $response->{ response }->{ docs } } ];
 
     return $ps_ids;
-}
-
-=head2 get_solr_num_found( $db, $params )
-
-Execute the query and return only the number of documents found.
-
-=cut
-
-sub get_solr_num_found ($$)
-{
-    my ( $db, $params ) = @_;
-
-    $params = { %{ $params } };
-    $params->{ rows } = 0;
-
-    my $res = query_solr( $db, $params );
-
-    return $res->{ response }->{ numFound };
 }
 
 =head2 search_solr_for_media_ids( $db, $params )
