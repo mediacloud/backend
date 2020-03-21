@@ -477,12 +477,14 @@ def draw_graph(graph: nx.Graph, graph_format: str = 'svg') -> bytes:
 
     plt.axis('off')
 
-    buf = io.BytesIO()
-    fig.savefig(buf, format=graph_format)
-    plt.close(fig)
-    buf.seek(0)
-
-    return buf.read()
+    if graph_format == 'draw':
+        fig.show()
+    else:
+        buf = io.BytesIO()
+        fig.savefig(buf, format=graph_format)
+        plt.close(fig)
+        buf.seek(0)
+        return buf.read()
 
 
 def get_giant_component(graph: nx.Graph) -> nx.Graph:
