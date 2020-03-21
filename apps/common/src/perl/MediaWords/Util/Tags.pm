@@ -12,34 +12,6 @@ use MediaWords::CommonLibs;
 
 import_python_module( __PACKAGE__, 'mediawords.util.tags' );
 
-# lookup the tag given the tag_set:tag format.  create it if it does not already exist
-sub lookup_or_create_tag
-{
-    my ( $db, $tag_name ) = @_;
-
-    if ( $tag_name !~ /^([^:]*):(.*)$/ )
-    {
-        WARN "Unable to parse tag name '$tag_name'";
-        return undef;
-    }
-
-    my ( $tag_set_name, $tag_tag ) = ( $1, $2 );
-
-    my $tag_set = __lookup_or_create_tag_set( $db, $tag_set_name );
-    my $tag = $db->find_or_create( 'tags', { tag => $tag_tag, tag_sets_id => $tag_set->{ tag_sets_id } } );
-
-    return $tag;
-}
-
-# lookup the tag_set given.  create it if it does not already exist
-sub __lookup_or_create_tag_set
-{
-    my ( $db, $tag_set_name ) = @_;
-
-    my $tag_set = $db->find_or_create( 'tag_sets', { name => $tag_set_name } );
-
-    return $tag_set;
-}
 
 # assign the given tag in the given tag_set to the given medium.  if the tag or tag_set does not exist, create it.
 sub assign_singleton_tag_to_medium
