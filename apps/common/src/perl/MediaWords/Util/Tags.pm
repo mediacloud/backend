@@ -10,23 +10,7 @@ use warnings;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-# lookup the tag given the tag_set:tag format
-sub lookup_tag
-{
-    my ( $db, $tag_name ) = @_;
-
-    if ( $tag_name !~ /^([^:]*):(.*)$/ )
-    {
-        WARN "Unable to parse tag name '$tag_name'";
-        return undef;
-    }
-
-    my ( $tag_set_name, $tag ) = ( $1, $2 );
-
-    return $db->query(
-        "select t.* from tags t, tag_sets ts where t.tag_sets_id = ts.tag_sets_id " . "    and t.tag = ? and ts.name = ?",
-        $tag, $tag_set_name )->hash;
-}
+import_python_module( __PACKAGE__, 'mediawords.util.tags' );
 
 # lookup the tag given the tag_set:tag format.  create it if it does not already exist
 sub lookup_or_create_tag
