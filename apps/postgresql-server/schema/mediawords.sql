@@ -2052,7 +2052,7 @@ create index snapshots_topic on snapshots ( topics_id );
 
 create type snap_period_type AS ENUM ( 'overall', 'weekly', 'monthly', 'custom' );
 
-create type focal_technique_type as enum ( 'Boolean Query' );
+create type focal_technique_type as enum ( 'Boolean Query', 'URL Sharing' );
 
 create table focal_set_definitions (
     focal_set_definitions_id    serial primary key,
@@ -3179,22 +3179,26 @@ create table topic_post_urls (
 create index topic_post_urls_url on topic_post_urls ( url );
 create unique index topic_post_urls_tt on topic_post_urls ( topic_posts_id, url );
 
--- view that joins together the related topic_posts, topic_post_days, topic_post_urls, and topic_seed_urls tables
--- tables for convenient querying of topic twitter url data
-create view topic_post_full_urls as
-    select distinct
-            t.topics_id,
-            tt.topic_posts_id, tt.content, tt.publish_date, tt.author,
-            ttd.day, ttd.num_posts, ttd.posts_fetched,
-            ttu.url, tsu.stories_id
+-- view that joins together the chain of tables from topic_seed_queries all the way through to
+-- topic_stories, so that you get back a topics_id, topic_posts_id stories_id, and topic_seed_queries_id in each
+-- row to track which stories came from which posts in which seed queries
+create view topic_post_stories as
+    select 
+            tsq.topics_id,
+            tp.topic_posts_id, tp.content, tp.publish_date, tp.author, tp.channel, tp.data,
+            tpd.topic_seed_queries_id,
+            ts.stories_id,
+            tpu.url
         from
-            topics t
-            join topic_seed_queries tsq using ( topics_id )
-            join topic_post_days ttd using ( topic_seed_queries_id )
-            join topic_posts tt using ( topic_post_days_id )
-            join topic_post_urls ttu using ( topic_posts_id )
-            left join topic_seed_urls tsu
-                on ( tsu.topics_id = t.topics_id and ttu.url = tsu.url );
+            topic_seed_queries tsq
+            join topic_post_days tpd using ( topic_seed_queries_id )
+            join topic_posts tp using ( topic_post_days_id )
+            join topic_post_urls tpu using ( topic_posts_id )
+            join topic_seed_urls tsu
+                on ( tsu.topics_id = tsq.topics_id and tsu.url = tpu.url )
+            join topic_stories ts 
+                on ( ts.topics_id = tsq.topics_id and ts.stories_id = tsu.stories_id );
+
 
 
 create table snap.timespan_posts (
@@ -3203,19 +3207,6 @@ create table snap.timespan_posts (
 );
 
 create unique index snap_timespan_posts_u on snap.timespan_posts( timespans_id, topic_posts_id );
-
-create table snap.post_stories (
-    snapshots_id        int not null references snapshots on delete cascade,
-    topic_posts_id      int not null references topic_posts on delete cascade,
-    publish_date        date not null,
-    author              varchar( 1024 ) not null,
-    stories_id          int not null,
-    media_id            int not null,
-    num_posts           int not null
-
-);
-
-create index snap_post_stories on snap.post_stories ( snapshots_id );
 
 create table media_stats_weekly (
     media_id        int not null references media on delete cascade,
