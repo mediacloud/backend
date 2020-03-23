@@ -845,6 +845,53 @@ sub test_info($)
     is( scalar( @{ $r->{ info }->{ topic_platforms_sources_map } } ), $num_psms )
 }
 
+sub test_new_map($)
+{
+    my ( $db ) = @_;
+
+    my $timespan = $db->query( "select * from timespans limit 1" )->hash;
+
+    my $timespans_id = $timespan->{ timespans_id };
+
+    my $topic = $db->query( <<SQL, $timespan->{ snapshots_id } )->hash;
+select * from topics t join snapshots s using ( topics_id ) where snapshots_id = ?
+SQL
+
+    my $gexf_content = '<gexf>foo</gexf>';
+
+    my $timespan_map = {
+        timespans_id => $timespans_id,
+        options => '{}',
+        format => 'gexf',
+        content => $gexf_content
+    };
+    $timespan_map = $db->create( 'timespan_maps', $timespan_map );
+
+    my $uri = URI->new( "/api/v2/topics/$topic->{ topics_id }/media/map" );
+    $uri->query_param( timespans_id => $timespans_id );
+    $uri->query_param( format => 'gexf' );
+    $uri->query_param( 'key'=> MediaWords::Test::API::get_test_api_key() );
+
+    # Catalyst::Test::request
+    my $response = request( $uri->as_string );
+
+    ok( $response );
+
+    my $gexf = $response->decoded_content;
+
+    is( $gexf, $gexf_content );
+
+    my $r = MediaWords::Test::API::test_get(
+        "/api/v2/topics/$topic->{ topics_id }/media/list_maps",
+        { timespans_id => $timespans_id }
+    );
+
+    my $got_maps = $r->{ timespan_maps };
+
+    is( $got_maps->[ 0 ]->{ timespan_maps_id }, $timespan_map->{ timespan_maps_id } );
+}
+
+
 sub test_topics_api($)
 {
     my $db = shift;
@@ -880,6 +927,8 @@ sub test_topics_api($)
     test_stories_links( $db );
     test_media_links( $db );
     test_info( $db );
+
+    test_new_map( $db );
 }
 
 sub main

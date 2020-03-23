@@ -1,4 +1,4 @@
-from webapp.util.colors import hex_to_rgb
+from mediawords.util.colors import hex_to_rgb
 
 
 def test_hex_to_rgb():

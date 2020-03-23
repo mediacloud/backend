@@ -29,10 +29,13 @@ RUN \
     rm pgadmin-requirements.txt && \
     #
     # Install pgAdmin
-    pip3 install https://ftp.postgresql.org/pub/pgadmin/pgadmin4/v4.18/pip/pgadmin4-4.18-py2.py3-none-any.whl && \
+    pip3 install https://ftp.postgresql.org/pub/pgadmin/pgadmin4/v4.19/pip/pgadmin4-4.19-py2.py3-none-any.whl && \
+    #
+    # Install newer psutil without vulnerabilities
+    pip3 install psutil==5.7.0 && \
     #
     # Install Gunicorn for serving web pages
-    pip3 install gunicorn==19.9.0 && \
+    pip3 install gunicorn==20.0.4 && \
     #
     # Remove temporary dependencies
     apt-get -y remove build-essential python3-dev libffi-dev && \

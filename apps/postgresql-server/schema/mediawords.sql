@@ -26,7 +26,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4741;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4742;
 BEGIN
 
     -- Update / set database schema version
@@ -2128,6 +2128,16 @@ create table timespans (
 
 create index timespans_snapshot on timespans ( snapshots_id );
 create unique index timespans_unique on timespans ( snapshots_id, foci_id, start_date, end_date, period );
+
+create table timespan_maps (
+    timespan_maps_id                serial primary key,
+    timespans_id                    int not null references timespans on delete cascade,
+    options                         jsonb not null,
+    content                         bytea not null,
+    format                          varchar(1024) not null
+);
+
+create index topic_maps_timespan on timespan_maps ( timespans_id );
 
 create table timespan_files (
     timespan_files_id                   serial primary key,

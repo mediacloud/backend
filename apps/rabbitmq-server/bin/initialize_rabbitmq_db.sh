@@ -11,7 +11,7 @@ set -e
 # RabbitMQ is fully up and running)
 TEMP_PORT=12345
 RABBITMQ_NODE_PORT=$TEMP_PORT rabbitmq-server &
-while true; do
+for i in {1..120}; do
     echo "Waiting for RabbitMQ to start..."
     if nc -z -w 10 127.0.0.1 $TEMP_PORT; then
         break

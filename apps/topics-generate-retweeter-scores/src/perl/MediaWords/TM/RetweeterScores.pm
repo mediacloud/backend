@@ -126,21 +126,21 @@ sub _generate_retweeter_stories($$)
 insert into retweeter_stories ( retweeter_scores_id, stories_id, retweeted_user, share_count )
     select
             rs.retweeter_scores_id,
-            ttfu.stories_id,
+            tps.stories_id,
             r.retweeted_user,
             count(*) share_count
         from retweeter_scores rs
-            join topic_post_full_urls ttfu using ( topics_id )
+            join topic_post_stories tps using ( topics_id )
             join retweeters r
-                on ( rs.retweeter_scores_id = r.retweeter_scores_id and r.twitter_user = ttfu.author )
+                on ( rs.retweeter_scores_id = r.retweeter_scores_id and r.twitter_user = tps.author )
             join stories s using ( stories_id )
             left join media_tags_map mtm on
                 ( mtm.media_id = s.media_id and mtm.tags_id = \$2 )
         where
             rs.retweeter_scores_id = \$1 and
-            ttfu.stories_id is not null and
+            tps.stories_id is not null and
             mtm.tags_id is null -- eliminate platform stories
-        group by rs.retweeter_scores_id, ttfu.stories_id, r.retweeted_user
+        group by rs.retweeter_scores_id, tps.stories_id, r.retweeted_user
 SQL
 
 }

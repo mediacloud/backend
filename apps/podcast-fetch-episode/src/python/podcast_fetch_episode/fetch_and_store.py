@@ -91,8 +91,9 @@ def fetch_and_store_episode(db: DatabaseHandler,
     if not best_enclosure:
         raise McPodcastNoViableStoryEnclosuresException(f"There were no viable enclosures found for story {stories_id}")
 
-    if best_enclosure.length > MAX_ENCLOSURE_SIZE:
-        raise McPodcastEnclosureTooBigException(f"Chosen enclosure {best_enclosure} is too big.")
+    if best_enclosure.length:
+        if best_enclosure.length > MAX_ENCLOSURE_SIZE:
+            raise McPodcastEnclosureTooBigException(f"Chosen enclosure {best_enclosure} is too big.")
 
     try:
         temp_dir = tempfile.mkdtemp('fetch_and_store')

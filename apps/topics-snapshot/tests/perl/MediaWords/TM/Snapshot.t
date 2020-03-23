@@ -151,6 +151,11 @@ SQL
     is( scalar( @{ $slc } ), $NUM_STORIES, "story link counts" );
 
     validate_sharing_timespan( $db );
+
+    # allow a bit of time for the timespan maps to generate
+    sleep( 2 );
+    my $timespan_map = $db->query( "select * from timespan_maps where timespans_id = ?", $timespans_id )->hash();
+    ok( $timespan_map, "timespan_map generated" );
 }
 
 sub main
