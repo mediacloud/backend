@@ -439,18 +439,39 @@ sub _process_worker_message($$$)
 
     my $payload;
     eval { $payload = $json->decode( $payload_json ); };
-    if ( $@ or ( !$payload ) or ( ref( $payload ) ne ref( {} ) ) )
+
+    if ( $@ or ( !$payload ) )
     {
-        LOGDIE( 'Unable to decode payload JSON: ' . $@ );
+        LOGDIE( 'Unable to decode payload JSON: ' . $@ . '; JSON: ' . Dumper( $payload_json ) );
     }
 
-    if ( $payload->{ task } ne $function_name )
-    {
-        LOGDIE( "Task name is not '$function_name'; maybe you're using same queue for multiple types of jobs?" );
-    }
+    my ( $celery_job_id, $args );
+    if ( ref( $payload ) eq ref( {} ) ) {
 
-    my $celery_job_id = $payload->{ id };
-    my $args          = $payload->{ kwargs };
+        if ( $payload->{ task } ne $function_name )
+        {
+            LOGDIE( "Task name is not '$function_name'; maybe you're using same queue for multiple types of jobs?" );
+        }
+
+        $celery_job_id = $payload->{ id };
+        $args          = $payload->{ kwargs };
+
+    } elsif ( ref( $payload ) eq ref( [] ) ) {
+
+        # At some point Celery (the Python implementation) decided that they're
+        # just going to change the format of messages without any backward compatibility
+        if ( scalar( @{ $payload } ) != 3 ) {
+            LOGDIE( "Unsupported payload: " . Dumper( $payload ) );
+        }
+
+        $celery_job_id = $message->{ props }->{ headers }->{ id };
+        $args = $payload->[ 1 ];
+
+    } else {
+
+        LOGDIE( "Payload is not an arrayref nor a hashref: $payload_json");
+
+    }
 
     # Do the job
     my $job_result;
@@ -658,7 +679,7 @@ sub run_job_sync($$$$)
     eval { $payload = $json->decode( $payload_json ); };
     if ( $@ or ( !$payload ) or ( ref( $payload ) ne ref( {} ) ) )
     {
-        LOGDIE( 'Unable to decode payload JSON: ' . $@ );
+        LOGDIE( 'Unable to decode payload JSON: ' . $@ . '; JSON: ' . Dumper( $payload_json ) );
     }
 
     if ( $payload->{ task_id } ne $celery_job_id )
