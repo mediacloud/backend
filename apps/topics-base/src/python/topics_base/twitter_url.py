@@ -41,4 +41,6 @@ def get_tweet_urls(tweet: dict) -> List[str]:
         else:
             urls = []
 
+    urls = list(filter(lambda x: not re.match(r'https?://[^/]*twitter.com', x), urls))
+
     return urls

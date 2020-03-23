@@ -42,6 +42,27 @@ sub add_test_seed_query($$)
     return $db->create( 'topic_seed_queries', $tsq );
 }
 
+# validate that a url sharing focus and timespan are created
+sub validate_sharing_timespan
+{
+    my ( $db ) = @_;
+
+    my $topic_seed_queries = $db->query( "select * from topic_seed_queries" )->hashes;
+
+    for my $tsq ( @{ $topic_seed_queries } )
+    {
+        my $got_focus = $db->query( <<SQL, $tsq->{ topic_seed_queries_id } )->hash;
+select * from foci where (arguments->>'topic_seed_queries_id')::int = ?
+SQL
+       ok( $got_focus );
+
+       my $got_timespan = $db->query( <<SQL, $got_focus->{ foci_id } )->hash;
+select * from timespans where period = 'overall' and foci_id = ?
+SQL
+       ok( $got_timespan );
+   }
+}
+
 sub test_snapshot($)
 {
     my ( $db ) = @_;
@@ -118,7 +139,7 @@ SQL
     is( scalar( @{ $snapshot_stories } ), $NUM_STORIES , "snapshot stories" );
 
     my $timespan = $db->query( <<SQL, $snapshots_id )->hash;
-select * from timespans where snapshots_id = ? and period = 'overall'
+select * from timespans where snapshots_id = ? and period = 'overall' and foci_id is null
 SQL
 
     ok( $timespan, "overall timespan created" );
@@ -129,8 +150,10 @@ SQL
 
     is( scalar( @{ $slc } ), $NUM_STORIES, "story link counts" );
 
+    validate_sharing_timespan( $db );
+
     # allow a bit of time for the timespan maps to generate
-    sleep( 5 );
+    sleep( 2 );
     my $timespan_map = $db->query( "select * from timespan_maps where timespans_id = ?", $timespans_id )->hash();
     ok( $timespan_map, "timespan_map generated" );
 }

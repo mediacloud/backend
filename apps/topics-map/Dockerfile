@@ -4,20 +4,18 @@
 
 FROM dockermediacloud/common:latest
 
+# Install Java
+RUN apt-get -y --no-install-recommends install openjdk-8-jre-headless
 
-# install wget
-RUN  apt-get -y install wget
-
-# install fa2l java libs
+# Install fa2l Java libs
 RUN \
-	mkdir /opt/fa2l && \
-	cd /opt/fa2l && \
-	wget --quiet 'https://github.com/klarman-cell-observatory/forceatlas2/releases/download/1.0.3/forceatlas2.jar' && \
-	wget --quiet 'https://github.com/klarman-cell-observatory/forceatlas2/releases/download/1.0.3/gephi-toolkit-0.9.2-all.jar' && \
-	true
-
-# install java 
-RUN  apt-get -y install openjdk-8-jre-headless
+    mkdir /opt/fa2l && \
+    cd /opt/fa2l && \
+    curl --fail --location --retry 3 --retry-delay 5 --output "forceatlas2.jar" \
+        "https://github.com/klarman-cell-observatory/forceatlas2/releases/download/1.0.3/forceatlas2.jar" && \
+    curl --fail --location --retry 3 --retry-delay 5 --output "gephi-toolkit.jar" \
+        "https://github.com/klarman-cell-observatory/forceatlas2/releases/download/1.0.3/gephi-toolkit-0.9.2-all.jar" && \
+    true
 
 # Install Python dependencies
 COPY src/requirements.txt /var/tmp/
@@ -37,4 +35,4 @@ COPY bin /opt/mediacloud/bin
 
 USER mediacloud
 
-CMD ["topics_map_worker.py"]
+CMD ["topics_map_worker_wrapper.sh"]
