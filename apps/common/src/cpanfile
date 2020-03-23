@@ -17,7 +17,7 @@ requires 'LWP::Protocol::https';
 requires 'LWP::UserAgent';
 requires 'Modern::Perl';
 requires 'Moose';
-requires 'Net::AMQP::RabbitMQ';
+# A patched version of Net::AMQP::RabbitMQ gets installed separately
 requires 'Readonly';
 requires 'Readonly::XS';
 requires 'Regexp::Common';

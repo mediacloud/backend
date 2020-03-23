@@ -43,6 +43,20 @@ RUN \
     rm -rf /root/.perl-cpm/ && \
     true
 
+# Install patched Net::AMQP::RabbitMQ
+RUN \
+    cd /var/tmp/ && \
+    cpm install --global --resolver 02packages --no-prebuilt --mirror "$MC_PERL_CPAN_MIRROR" Module::CAPIMaker && \
+    git clone https://github.com/berkmancenter/mediacloud-net-amqp-rabbitmq && \
+    cd mediacloud-net-amqp-rabbitmq/ && \
+    git checkout amqp_field_kind_void && \
+    git submodule update --init --recursive && \
+    perl Makefile.PL && \
+    make install && \
+    cd /var/tmp && \
+    rm -rf mediacloud-net-amqp-rabbitmq && \
+    true
+
 # Install Python dependencies
 COPY src/requirements.txt /var/tmp/
 
