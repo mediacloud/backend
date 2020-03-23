@@ -305,18 +305,18 @@ sub _create_url_sharing_story_links($$)
     my $topic_seed_queries_id = _get_timespan_seed_query( $db, $timespan );
 
     # query the pairs of cross-media stories with the shortest time between shares by the same author
-    $db->query( <<SQL, $topic_seed_queries_id );
+    $db->query( <<SQL );
 create temporary table _post_stories as
-    select s.media_id, s.stories_id, tps.author, tp.publish_date
+    select s.media_id, s.stories_id, tps.author, tps.publish_date
         from topic_post_stories tps
             join snapshot_timespan_posts using ( topic_posts_id )
-            join stories s using ( stories_id )
+            join stories s using ( stories_id );
 
 create index _post_stories_auth on _post_stories ( author );
 
 create temporary table snapshot_story_links as
 
-    with num_stories as ( select count( distinct storie_id ) stories_count from _post_stories ),
+    with num_stories as ( select count( distinct stories_id ) stories_count from _post_stories ),
 
     dated_story_pairs as (
         select
@@ -423,9 +423,10 @@ create temporary table snapshot_story_link_counts as
     snapshot_post_counts as (
         select
                 tps.stories_id,
-                count( distinct tps.author ) as post_count
-            from snapshot_timespan_posts tp
+                count( distinct tp.author ) as post_count
+            from snapshot_timespan_posts stp
                 join topic_post_stories tps using ( topic_posts_id )
+                join topic_posts tp using ( topic_posts_id )
             group by tps.stories_id
     )
 
@@ -600,7 +601,7 @@ sub generate_timespan_data($$;$)
     _write_medium_links_snapshot( $db, $timespan, $is_model );
     _write_medium_link_counts_snapshot( $db, $timespan, $is_model );
 
-    _update_timespan_counts( $db, $timespan );( $db, $timespan, $is_model );
+    _update_timespan_counts( $db, $timespan );
     _write_medium_links_snapshot( $db, $timespan, $is_model );
     _write_medium_link_counts_snapshot( $db, $timespan, $is_model );
 
@@ -992,13 +993,57 @@ sub _generate_snapshots_from_temporary_snapshot_tables
     map { create_snap_snapshot( $db, $cd, $_ ) } @{ $snapshot_tables };
 }
 
+# create focal_set and foci for all of the url sharing platforms present in seed queries for the topic. return foci.
+sub _create_url_sharing_foci
+{
+    my ( $db, $snapshot ) = @_;
+
+    my $focal_set = {
+        snapshots_id => $snapshot->{ snapshots_id },
+        name => $TECHNIQUE_SHARING,
+        description => 'Subtopics for analysis of url cosharing on urls collected by platform seed queries.',
+        focal_technique =>  'URL Sharing'
+    };
+    $focal_set = $db->find_or_create( 'focal_sets', $focal_set );
+
+    my $tsqs = $db->query( "select * from topic_seed_queries where topics_id = ?", $snapshot->{ topics_id } )->hashes;
+
+    my $foci = [];
+    for my $tsq ( @{ $tsqs } )
+    {
+        next unless ( grep { $tsq->{ platform } eq $_ } @{ $URL_SHARING_PLATFORMS } );
+
+        my $focal_sets_id = $focal_set->{ focal_sets_id };
+        my $topic_seed_queries_id = $tsq->{ topic_seed_queries_id };
+
+        my $existing_focus = $db->query( <<SQL, $focal_sets_id, $topic_seed_queries_id )->hash;
+select * from foci where focal_sets_id = ? and ( arguments->>'topic_seed_queries_id' )::int = ?::int        
+SQL
+        if ( !$existing_focus )
+        {
+            my $arguments = { mode => 'url_sharing', topic_seed_queries_id => $topic_seed_queries_id };
+
+            my $focus = {
+                focal_sets_id => $focal_sets_id,
+                name => $tsq->{ platform },
+                description => "Subtopic for analysis of url cosharing on urls collected from $tsq->{ platform }",
+                arguments => MediaWords::Util::ParseJSON::encode_json( $arguments )
+            };
+            my $focus = $db->create( 'foci', $focus );
+            push( @{ $foci }, $focus );
+        }
+    }
+
+    return $foci;
+}
+
 # generate period spanshots for each period / focus / timespan combination
 sub _generate_period_focus_snapshots ( $$$ )
 {
     my ( $db, $snapshot, $periods ) = @_;
 
-    my $fsds = $db->query( <<SQL, $snapshot->{ topics_id } )->hashes;
-select * from focal_set_definitions where topics_id = ? and focal_technique = 'Boolean Query'
+    my $fsds = $db->query( <<SQL, $snapshot->{ topics_id }, $TECHNIQUE_BOOLEAN )->hashes;
+select * from focal_set_definitions where topics_id = ? and focal_technique = ?
 SQL
 
     for my $fsd ( @{ $fsds } )
@@ -1025,6 +1070,13 @@ SQL
             map { _generate_period_snapshot( $db, $snapshot, $_, $focus ) } @{ $periods };
         }
     }
+
+    my $sharing_foci = _create_url_sharing_foci( $db, $snapshot );
+
+    for my $focus ( @{ $sharing_foci } )
+    {
+        map { _generate_period_snapshot( $db, $snapshot, $_, $focus ) } @{ $periods };
+    }
 }
 
 # put all stories in this dump in solr_extra_import_stories for export to solr
@@ -1049,46 +1101,6 @@ sub _validate_periods($$)
     for my $period ( @{ $allowed_periods } )
     {
         die( "unknown period: '$period'" ) unless ( grep { $period eq $_ } @{ $allowed_periods } );
-    }
-}
-
-# create focal_set and foci for all of the url sharing platforms present in seed queries for the topic
-sub _create_url_sharing_foci
-{
-    my ( $db, $snapshot ) = @_;
-
-    my $focal_set = {
-        snapshots_id => $snapshot->{ snapshots_id },
-        name => $TECHNIQUE_SHARING,
-        description => 'Subtopics for analysis of url cosharing on urls collected by platform seed queries.',
-        focal_technique =>  'URL Sharing'
-    };
-    $focal_set = $db->find_or_create( 'focal_sets', $focal_set );
-
-    my $tsqs = $db->query( "select * from topic_seed_queries where topics_id = ?", $snapshot->{ topics_id } )->hashes;
-
-    for my $tsq ( @{ $tsqs } )
-    {
-        next unless ( grep { $tsq->{ platform } eq $_ } @{ $URL_SHARING_PLATFORMS } );
-
-        my $focal_sets_id = $focal_set->{ focal_sets_id };
-        my $topic_seed_queries_id = $tsq->{ topic_seed_queries_id };
-
-        my $existing_focus = $db->query( <<SQL, $focal_sets_id, $topic_seed_queries_id )->hash;
-select * from foci where focal_sets_id = ? and ( arguments->>'topic_seed_queries_id' )::int = ?::int        
-SQL
-        if ( !$existing_focus )
-        {
-            my $arguments = { mode => 'url_sharing', topic_seed_queries_id => $topic_seed_queries_id };
-
-            my $focus = {
-                focal_sets_id => $focal_sets_id,
-                name => $tsq->{ platform },
-                description => "Subtopic for analysis of url cosharing on urls collected from $tsq->{ platform }",
-                arguments => MediaWords::Util::ParseJSON::encode_json( $arguments )
-            };
-            $db->create( 'foci', $focus );
-        }
     }
 }
 
@@ -1120,7 +1132,6 @@ sub snapshot_topic ($$;$$$$)
         die( "url_sharing topics are no longer supported." );
     }
 
-
     $db->set_print_warn( 0 );    # avoid noisy, extraneous postgres notices from drops
 
     # Log activity that's about to start
@@ -1136,8 +1147,6 @@ sub snapshot_topic ($$;$$$$)
         $snapshots_id
       ? $db->require_by_id( 'snapshots', $snapshots_id )
       : MediaWords::DBI::Snapshots::create_snapshot_row( $db, $topic, $start_date, $end_date, $note, $bot_policy );
-
-    _create_url_sharing_foci( $db, $snap );
 
     _update_job_state_args( $db, { snapshots_id => $snap->{ snapshots_id } } );
     _update_job_state_message( $db, "snapshotting data" );
