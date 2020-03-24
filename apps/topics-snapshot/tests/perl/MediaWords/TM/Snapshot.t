@@ -10,9 +10,11 @@ use MediaWords::DB;
 use MediaWords::Job::TM::SnapshotTopic;
 use MediaWords::TM::Stories;
 use MediaWords::Test::DB::Create;
+use MediaWords::Util::CSV;
 use MediaWords::Util::ParseJSON;
 
 my $NUM_STORIES = 100;
+my $NUM_TSQ_STORIES = 10;
 
 sub add_test_topic_stories($$$$)
 {
@@ -37,9 +39,48 @@ sub add_test_seed_query($$)
         source => 'csv',
         platform => 'generic_post',
         topics_id => $topic->{ topics_id },
-        query => 'test query'
+        query => 'foo'
     };
-    return $db->create( 'topic_seed_queries', $tsq );
+    $tsq = $db->create( 'topic_seed_queries', $tsq );
+
+    my $stories = $db->query( "select * from stories limit ?", $NUM_TSQ_STORIES )->hashes;
+
+    my $tpd = {
+        topic_seed_queries_id => $tsq->{ topic_seed_queries_id },
+        day => $topic->{ start_date },
+        num_posts => 1
+    };
+    $tpd = $db->create( 'topic_post_days', $tpd );
+
+    for my $story ( @{ $stories } )
+    {
+        my $tp = {
+            topic_post_days_id => $tpd->{ topic_post_days_id },
+            post_id => $story->{ stories_id },
+            content => 'foo',
+            author => 'foo',
+            publish_date => $topic->{ start_date },
+            data => '{}',
+            channel => 'foo'
+        };
+        $tp = $db->create( 'topic_posts', $tp );
+
+        my $tpu = {
+            topic_posts_id => $tp->{ topic_posts_id },
+            url => $story->{ url },
+        };
+        $tpu = $db->create( 'topic_post_urls', $tpu );
+
+        my $tsu = {
+            topics_id => $topic->{ topics_id },
+            topic_seed_queries_id => $tsq->{ topic_seed_queries_id },
+            url => $story->{ url },
+            stories_id => $story->{ stories_id }
+        };
+        $tsu = $db->create( 'topic_seed_urls', $tsu );
+    }
+
+    return $tsq;
 }
 
 # validate that a url sharing focus and timespan are created
@@ -60,6 +101,12 @@ SQL
 select * from timespans where period = 'overall' and foci_id = ?
 SQL
        ok( $got_timespan );
+
+       my $got_story_link_counts = $db->query( <<SQL, $got_timespan->{ timespans_id } )->hashes;
+select * from snap.story_link_counts where timespans_id = ?
+SQL
+
+       is( scalar( @{ $got_story_link_counts } ), $NUM_TSQ_STORIES );
    }
 }
 
@@ -152,9 +199,15 @@ SQL
 
     validate_sharing_timespan( $db );
 
+    my $timespan_map;
     # allow a bit of time for the timespan maps to generate
-    sleep( 2 );
-    my $timespan_map = $db->query( "select * from timespan_maps where timespans_id = ?", $timespans_id )->hash();
+    for my $i (1 .. 5)
+    {
+        $timespan_map = $db->query( "select * from timespan_maps where timespans_id = ?", $timespans_id )->hash();
+        last if ( $timespan_map );
+        sleep( 1 );
+    }
+
     ok( $timespan_map, "timespan_map generated" );
 }
 

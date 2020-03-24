@@ -1907,31 +1907,6 @@ services:
                     memory: "256M"
 
     #
-    # Generate retweeter scores
-    # -------------------------
-    #
-    topics-generate-retweeter-scores:
-        image: dockermediacloud/topics-generate-retweeter-scores:release
-        <<: *sysctl-defaults
-        init: true
-        networks:
-            - default
-        environment:
-            <<: *common-configuration
-            <<: *twitter-api-configuration
-        deploy:
-            <<: *misc-apps_deploy_placement_constraints
-            <<: *endpoint-mode-dnsrr
-            # Worker count
-            replicas: 1
-            resources:
-                limits:
-                    # CPU core limit
-                    cpus: "1"
-                    # RAM limit
-                    memory: "256M"
-
-    #
     # Generate maps for a topic
     # -------------------------
     #
