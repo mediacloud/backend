@@ -380,7 +380,7 @@ sub _write_timespan_posts_snapshot
 
     $db->query( <<SQL, $topic_seed_queries_id, $timespan->{ start_date }, $timespan->{ end_date } );
 create temporary table snapshot_timespan_posts as
-    select topic_posts_id
+    select distinct topic_posts_id
         from topic_post_stories
         where
             topic_seed_queries_id = ? and
