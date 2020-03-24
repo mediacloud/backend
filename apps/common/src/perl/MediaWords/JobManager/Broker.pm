@@ -69,22 +69,6 @@ Returns string job ID that can be used to track the job.
 
 requires 'run_job_async';
 
-=head2 C<$self-E<gt>job_id_from_handle($job)>
-
-Return string job identifier for handle.
-
-Parameters:
-
-=over 4
-
-=item * Job handle or identifier
-
-=back
-
-=cut
-
-requires 'job_id_from_handle';
-
 no Moose;    # gets rid of scaffolding
 
 1;

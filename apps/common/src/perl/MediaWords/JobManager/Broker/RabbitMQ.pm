@@ -789,13 +789,6 @@ sub _run_job_on_rabbitmq($$$$$)
     return $celery_job_id;
 }
 
-sub job_id_from_handle($$)
-{
-    my ( $self, $job_handle ) = @_;
-
-    return $job_handle;
-}
-
 no Moose;    # gets rid of scaffolding
 
 1;
