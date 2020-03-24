@@ -77,6 +77,6 @@ def test_googler_web() -> None:
             query='trump',
             pattern='trump',
             day='2020-01-01',
-            min_posts=50,
+            min_posts=25,
             max_posts=100
         )

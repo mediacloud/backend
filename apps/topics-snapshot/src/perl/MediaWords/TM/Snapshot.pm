@@ -90,7 +90,7 @@ sub _get_timespan_seed_query($$)
 {
     my ( $db, $timespan ) = @_;
 
-    my ( $topic_seed_queries_id ) = $db->query( <<SQL, $timespan->{ timespans_id }, $TECHNIQUE_SHARING )->flat;
+    my ( $topic_seed_queries_id ) = $db->query( <<SQL, $timespan->{ foci_id }, $TECHNIQUE_SHARING )->flat;
 select f.arguments->>'topic_seed_queries_id'
     from foci f
         join focal_sets fs using ( focal_sets_id )
@@ -196,7 +196,7 @@ sub _create_url_sharing_snapshot_period_stories($$)
 
     $db->query( <<SQL, $topic_seed_queries_id, $timespan->{ start_date }, $timespan->{ end_date } );
 create temporary table snapshot_period_stories as
-    select stories_id
+    select distinct stories_id
         from topic_post_stories
         where
             topic_seed_queries_id = ? and
@@ -1025,11 +1025,11 @@ SQL
 
             my $focus = {
                 focal_sets_id => $focal_sets_id,
-                name => $tsq->{ platform },
+                name => "$tsq->{ platform } [$tsq->{ topic_seed_queries_id }]",
                 description => "Subtopic for analysis of url cosharing on urls collected from $tsq->{ platform }",
                 arguments => MediaWords::Util::ParseJSON::encode_json( $arguments )
             };
-            my $focus = $db->create( 'foci', $focus );
+            $focus = $db->create( 'foci', $focus );
             push( @{ $foci }, $focus );
         }
     }
