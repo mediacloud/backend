@@ -14,11 +14,11 @@
 -- 1 of 2. Import the output of 'apgdiff':
 --
 
-alter table snap.story_link_counts alter post_count rename to author_count;
+alter table snap.story_link_counts rename post_count to author_count;
 alter table snap.story_link_counts add post_count int null;
 alter table snap.story_link_counts add channel_count int null;
 
-alter table snap.medium_link_counts alter post_count rename to sum_author_count;
+alter table snap.medium_link_counts rename post_count to sum_author_count;
 alter table sanp.medium_link_counts add sum_post_count int null;
 alter table snap.medium_link_counts add sum_channel_count int null;
 
