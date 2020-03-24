@@ -123,7 +123,7 @@ sub _restrict_period_stories_to_boolean_focus($$)
     }
     my $all_stories_ids      = [ @{ $snapshot_period_stories_ids } ];
     my $matching_stories_ids = [];
-    my $chunk_size           = 1000;
+    my $chunk_size           = 100000;
     my $min_chunk_size       = 10;
     my $max_solr_errors      = 25;
     my $solr_error_count     = 0;
@@ -140,7 +140,7 @@ sub _restrict_period_stories_to_boolean_focus($$)
         $solr_q = "( $solr_q ) and stories_id:( $stories_ids_list )";
 
         my $solr_stories_ids =
-          eval { MediaWords::Solr::search_for_stories_ids( $db, { rows => 1000000, q => $solr_q } ) };
+          eval { MediaWords::Solr::search_for_stories_ids( $db, { rows => 10000000, q => $solr_q } ) };
         if ( $@ )
         {
             # sometimes solr throws a NullException error on one of these queries; retrying with smaller
