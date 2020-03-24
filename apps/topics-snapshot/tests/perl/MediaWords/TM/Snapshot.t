@@ -201,7 +201,7 @@ SQL
 
     my $timespan_map;
     # allow a bit of time for the timespan maps to generate
-    for my $i (1 .. 5)
+    for my $i ( 1 .. 5 )
     {
         $timespan_map = $db->query( "select * from timespan_maps where timespans_id = ?", $timespans_id )->hash();
         last if ( $timespan_map );

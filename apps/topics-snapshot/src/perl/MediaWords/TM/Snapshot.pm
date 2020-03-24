@@ -1042,6 +1042,13 @@ sub _generate_period_focus_snapshots ( $$$ )
 {
     my ( $db, $snapshot, $periods ) = @_;
 
+    my $sharing_foci = _create_url_sharing_foci( $db, $snapshot );
+
+    for my $focus ( @{ $sharing_foci } )
+    {
+        map { _generate_period_snapshot( $db, $snapshot, $_, $focus ) } @{ $periods };
+    }
+
     my $fsds = $db->query( <<SQL, $snapshot->{ topics_id }, $TECHNIQUE_BOOLEAN )->hashes;
 select * from focal_set_definitions where topics_id = ? and focal_technique = ?
 SQL
@@ -1069,13 +1076,6 @@ insert into foci ( name, description, arguments, focal_sets_id )
 SQL
             map { _generate_period_snapshot( $db, $snapshot, $_, $focus ) } @{ $periods };
         }
-    }
-
-    my $sharing_foci = _create_url_sharing_foci( $db, $snapshot );
-
-    for my $focus ( @{ $sharing_foci } )
-    {
-        map { _generate_period_snapshot( $db, $snapshot, $_, $focus ) } @{ $periods };
     }
 }
 
