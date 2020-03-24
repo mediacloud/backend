@@ -10,10 +10,11 @@ use Moose;
 use namespace::autoclean;
 
 use MediaWords::DBI::ApiLinks;
+use MediaWords::DBI::Snapshots;
+use MediaWords::DBI::Timespans;
 use MediaWords::Solr;
 use MediaWords::TM::Snapshot::GEXF;
 use MediaWords::TM::Snapshot::Views;
-use MediaWords::DBI::Timespans;
 
 BEGIN { extends 'MediaWords::Controller::Api::V2::MC_Controller_REST' }
 
@@ -131,6 +132,18 @@ END
     map { $_->{ media_source_tags } = $tags_lookup->{ $_->{ media_id } } || [] } @{ $media };
 }
 
+# add url sharing counts to the media
+sub _add_counts_to_media($$$)
+{
+    my ( $db, $timespan, $media ) = @_;
+
+    my $counts = MediaWords::DBI::Snapshots::get_medium_counts( $db, $timespan, $media );
+
+    my $tags_lookup = {};
+    map { push( @{ $tags_lookup->{ $_->{ media_id } } }, $_ ) } @{ $counts };
+    map { $_->{ url_sharing_counts } = $tags_lookup->{ $_->{ media_id } } || [] } @{ $media };
+}
+
 sub list_GET
 {
     my ( $self, $c ) = @_;
@@ -168,6 +181,7 @@ select *
 SQL
 
     _add_tags_to_media( $db, $media );
+    _add_counts_to_media( $db, $timespan, $media );
 
     my $entity = { media => $media };
 

@@ -12,6 +12,7 @@ use Readonly;
 
 use MediaWords::DBI::ApiLinks;
 use MediaWords::Solr;
+use MediaWords::DBI::Snapshots;
 use MediaWords::DBI::Timespans;
 use MediaWords::DBI::Stories::GuessDate;
 
@@ -207,35 +208,23 @@ sub _add_foci_to_stories($$$)
 {
     my ( $db, $timespan, $stories ) = @_;
 
-    # enumerate the stories ids to get a decent query plan
-    my $stories_ids_list = join( ',', map { $_->{ stories_id } } @{ $stories } ) || '-1';
-
-    my $foci = $db->query( <<SQL, $timespan->{ timespans_id } )->hashes;
-select
-        slc.stories_id,
-        f.foci_id,
-        f.name,
-        fs.name focal_set_name
-    from snap.story_link_counts slc
-        join timespans a on ( a.timespans_id = slc.timespans_id )
-        join timespans b on
-            ( a.snapshots_id = b.snapshots_id and
-                a.start_date = b.start_date and
-                a.end_date = b.end_date and
-                a.period = b.period )
-        join foci f on ( f.foci_id = b.foci_id )
-        join focal_sets fs on ( f.focal_sets_id = fs.focal_sets_id )
-        join snap.story_link_counts slcb on
-            ( slcb.stories_id = slc.stories_id and
-                slcb.timespans_id = b.timespans_id )
-    where
-        slc.stories_id in ( $stories_ids_list ) and
-        a.timespans_id = \$1
-SQL
+	my $foci = MediaWords::DBI::Snapshots::get_story_foci( $db, $timespan, $stories );
 
     $stories = MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $foci, 'foci' );
 
     return $stories;
+}
+
+# add post/author/comment counts to each story for each seed query
+sub _add_url_sharing_counts_to_stories($$$)
+{
+    my ( $db, $timespan, $stories ) = @_;
+
+	my $counts = MediaWords::DBI::Snapshots::get_story_counts( $db, $timespan, $stories );
+
+    $stories = MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $counts, 'url_sharing_counts' );
+
+	return $stories;
 }
 
 # accept sort_param of inlink, facebook, or twitter and
@@ -322,6 +311,7 @@ SQL
     )->hashes;
 
     $stories = _add_foci_to_stories( $db, $timespan, $stories );
+    $stories = _add_url_sharing_counts_to_stories( $db, $timespan, $stories );
 
     MediaWords::DBI::Stories::GuessDate::add_date_is_reliable_to_stories( $db, $stories );
 
