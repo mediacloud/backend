@@ -199,9 +199,15 @@ SQL
 
     validate_sharing_timespan( $db );
 
+    my $timespan_map;
     # allow a bit of time for the timespan maps to generate
-    sleep( 2 );
-    my $timespan_map = $db->query( "select * from timespan_maps where timespans_id = ?", $timespans_id )->hash();
+    for my $i (1 .. 5)
+    {
+        $timespan_map = $db->query( "select * from timespan_maps where timespans_id = ?", $timespans_id )->hash();
+        last if ( $timespan_map );
+        sleep( 1 );
+    }
+
     ok( $timespan_map, "timespan_map generated" );
 }
 
