@@ -1128,7 +1128,7 @@ The stories list call returns stories in the topic.
 | Parameter            | Default | Notes                                    |
 | -------------------- | ------- | ---------------------------------------- |
 | q                    | null    | if specified, return only stories that match the given Solr query |
-| sort                 | inlink  | possible values: `inlink`, `facebook`, `twitter` |
+| sort                 | inlink  | possible values: `inlink`, `facebook`, `post_count`, `author_count`, `channel_count` |
 | stories_id           | null    | return only stories matching these stories_ids |
 | link_to_stories_id   | null    | return only stories from other media that link to the given stories_id |
 | link_from_stories_id | null    | return only stories from other media that are linked from the given stories_id |
@@ -1140,8 +1140,7 @@ The stories list call returns stories in the topic.
 
 The call will return an error if more than one of the following parameters are specified: `q`, `link_to_stories`, `link_from_stories_id`.  The `stories_id` and `media_id` parameters can be specified more than once to include stories from more than `stories_id` / `media_id`.
 
-The `sort` parameter will determine the order in which the stories are returned.  The `twitter` sort parameter
-will return randomly ordered results unless the topic is a twitter topic.
+The `sort` parameter will determine the order in which the stories are returned.
 
 `limit` is capped at 10,000,000 stories, but avoid getting that much to begin with.
 
@@ -1379,7 +1378,7 @@ The media list call returns the list of media in the topic.
 | Parameter | Default | Notes                                    |
 | --------- | ------- | ---------------------------------------- |
 | media_id  | null    | return only the specified media          |
-| sort      | inlink  | possible values: `inlink`, `facebook`, `twitter` |
+| sort      | inlink  | possible values: `random`, `inlink`, `facebook`, `sum_post_count`, `sum_author_count`, `sum_channel_count` |
 | name      | null    | search for media with the given name     |
 | limit     | 20      | return the given number of media         |
 | link_id   | null    | return media using the paging link       |
@@ -1391,8 +1390,7 @@ If the `name` parameter is specified, the call returns only media sources that m
 
 If the `q` parameter is specified, the call returns only media sources for which at least one story matches the given solr query.
 
-The `sort` parameter will determine the order in which the stories are returned.  The `twitter` sort parameter
-will return randomly ordered results unless the topic is a twitter topic.
+The `sort` parameter will determine the order in which the stories are returned.
 
 Standard parameters accepted: snapshots_id, foci_id, timespans_id, limit, link_id.
 

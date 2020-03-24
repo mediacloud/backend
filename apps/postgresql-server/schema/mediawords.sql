@@ -26,7 +26,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4743;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4744;
 BEGIN
 
     -- Update / set database schema version
@@ -2300,7 +2300,9 @@ create table snap.story_link_counts (
 
     facebook_share_count                    int null,
 
-    post_count                             int null
+    post_count                              int null,
+    author_count                            int null,
+    channel_count                           int null
 );
 
 -- TODO: add complex foreign key to check that stories_id exists for the snapshot stories snapshot
@@ -2320,7 +2322,9 @@ create table snap.medium_link_counts (
 
     facebook_share_count            int null,
 
-    post_count              int null
+    sum_post_count                  int null,
+    sum_author_count                int null,
+    sum_channel_count               int null
 );
 
 -- TODO: add complex foreign key to check that media_id exists for the snapshot media snapshot
