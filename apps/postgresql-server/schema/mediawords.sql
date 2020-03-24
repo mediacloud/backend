@@ -3910,3 +3910,6 @@ CREATE TABLE celery_tasks (
     date_done   TIMESTAMP WITHOUT TIME ZONE NULL,
     traceback   TEXT                        NULL
 );
+
+CREATE SEQUENCE task_id_sequence AS BIGINT;
+

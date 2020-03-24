@@ -31,6 +31,8 @@ CREATE TABLE celery_tasks (
     traceback   TEXT                        NULL
 );
 
+CREATE SEQUENCE task_id_sequence AS BIGINT;
+
 
 --
 -- 2 of 2. Reset the database version.
