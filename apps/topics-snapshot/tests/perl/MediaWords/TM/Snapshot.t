@@ -16,6 +16,9 @@ use MediaWords::Util::ParseJSON;
 my $NUM_STORIES = 100;
 my $NUM_TSQ_STORIES = 10;
 
+my $NUM_AUTHORS = 7;
+my $NUM_CHANNELS = 3;
+
 sub add_test_topic_stories($$$$)
 {
     my ( $db, $topic, $num_stories, $label ) = @_;
@@ -52,16 +55,21 @@ sub add_test_seed_query($$)
     };
     $tpd = $db->create( 'topic_post_days', $tpd );
 
-    for my $story ( @{ $stories } )
+    my $authors = [ map { "author $_" } ( 1 .. $NUM_AUTHORS ) ];
+    my $channels = [ map { "channel $_" } ( 1 .. $NUM_CHANNELS ) ];
+
+    while ( my ( $i, $story ) = each ( @{ $stories } ) )
     {
+        my $author = $authors->[ $i % $NUM_AUTHORS ];
+        my $channel = $channels->[ $i % $NUM_CHANNELS ];
         my $tp = {
             topic_post_days_id => $tpd->{ topic_post_days_id },
             post_id => $story->{ stories_id },
             content => 'foo',
-            author => 'foo',
+            author => $author,
             publish_date => $topic->{ start_date },
             data => '{}',
-            channel => 'foo'
+            channel => $channel
         };
         $tp = $db->create( 'topic_posts', $tp );
 
@@ -107,6 +115,15 @@ select * from snap.story_link_counts where timespans_id = ?
 SQL
 
        is( scalar( @{ $got_story_link_counts } ), $NUM_TSQ_STORIES );
+
+       my $got_story_link_count_counts = $db->query( <<SQL, $got_timespan->{ timespans_id } )->hashes;
+select * from snap.story_link_counts
+    where timespans_id = ? and post_count = 1 and author_count = 1 and channel_count = 1
+SQL
+
+       is( scalar( @{ $got_story_link_count_counts } ), $NUM_TSQ_STORIES );
+
+
    }
 }
 
