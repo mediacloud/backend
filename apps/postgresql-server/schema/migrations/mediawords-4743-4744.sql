@@ -24,7 +24,7 @@ alter table snap.story_link_counts add channel_count int null;
 --create index story_link_counts_channel on snap.story_link_counts ( timespans_id, channel_count desc nulls last);
 
 alter table snap.medium_link_counts rename post_count to sum_author_count;
-alter table sanp.medium_link_counts add sum_post_count int null;
+alter table snap.medium_link_counts add sum_post_count int null;
 alter table snap.medium_link_counts add sum_channel_count int null;
 
 --create index medium_link_counts_fb on snap.medium_link_counts ( timespans_id, facebook_share_count desc nulls last);
