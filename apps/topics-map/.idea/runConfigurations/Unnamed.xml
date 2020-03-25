@@ -1,13 +1,13 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Dockerfile" type="docker-deploy" factoryName="dockerfile" server-name="mediacloud">
+  <configuration default="false" name="Unnamed" type="docker-deploy" factoryName="dockerfile" server-name="mediacloud">
     <deployment type="dockerfile">
       <settings>
-        <option name="buildCliOptions" value="--cache-from dockermediacloud/topics-generate-retweeter-scores:latest" />
+        <option name="buildCliOptions" value="--cache-from dockermediacloud/topics-map:latest" />
         <option name="buildOnly" value="true" />
         <option name="command" value="" />
         <option name="containerName" value="" />
         <option name="entrypoint" value="" />
-        <option name="imageTag" value="dockermediacloud/topics-generate-retweeter-scores:latest" />
+        <option name="imageTag" value="dockermediacloud/topics-map:latest" />
         <option name="commandLineOptions" value="" />
         <option name="sourceFilePath" value="Dockerfile" />
       </settings>

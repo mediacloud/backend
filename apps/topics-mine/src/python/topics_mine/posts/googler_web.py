@@ -76,9 +76,9 @@ class GooglerWebPostFetcher(AbstractPostFetcher):
             start_query = "after:" + start_date.strftime("%Y-%m-%d")
             end_query = "before:" + (end_date + datetime.timedelta(days=1)).strftime("%Y-%m-%d")
 
-            full_query = "query %s %s" % (start_query, end_query)
+            full_query = "%s %s %s" % (query, start_query, end_query)
 
-            googler_json = subprocess.check_output(["googler", "--json", "-n 100", query])
+            googler_json = subprocess.check_output(["googler", "--json", "-n 100", full_query])
 
         links = decode_json(googler_json)
 

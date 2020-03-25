@@ -54,6 +54,10 @@ RUN \
 # Copy the rest of the source
 COPY src/crappy-predict-news-labels/ /usr/src/crappy-predict-news-labels/
 
+# Set PYTHONPATH and PATH so that PyCharm is able to resolve dependencies
+ENV PYTHONPATH="/usr/src/crappy-predict-news-labels:${PYTHONPATH}" \
+    PATH="/usr/src/crappy-predict-news-labels:${PATH}"
+
 # Tagger port
 EXPOSE 8080
 
@@ -62,4 +66,4 @@ STOPSIGNAL SIGTERM
 
 USER nobody
 
-CMD ["./nytlabels_http_server.py"]
+CMD ["nytlabels_http_server.py"]

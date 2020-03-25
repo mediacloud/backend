@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
 
 """Topic Mapper job that generates timespan_maps for a timespans or all timespans in a snapshot."""
-
-import time
-from typing import Optional
+import argparse
 
 from mediawords.db import connect_to_db
 from mediawords.job import JobBroker
@@ -15,14 +13,21 @@ log = create_logger(__name__)
 
 QUEUE_NAME = 'MediaWords::Job::TM::Map'
 
+_consecutive_requeues = None
+
+_memory_limit_mb = None
+"""Memory limit (MB) for Java subprocess."""
+
+
 class McTopicMapJobException(Exception):
     """Exceptions dealing with job setup and routing."""
     pass
 
 
-def run_job(snapshots_id: int=None, timespans_id: int=None) -> None:
+def run_job(snapshots_id: int = None, timespans_id: int = None) -> None:
     """Generate and store network maps for either a single timespan or all timespans in a snapshot."""
     global _consecutive_requeues
+    global _memory_limit_mb
 
     if isinstance(snapshots_id, bytes):
         snapshots_id = decode_object_from_bytes_if_needed(snapshots_id)
@@ -34,30 +39,32 @@ def run_job(snapshots_id: int=None, timespans_id: int=None) -> None:
     if timespans_id is not None:
         timespans_id = int(timespans_id)
 
-    if (snapshots_id and timespans_id) or (not snapshots_id and not timespans_id):
+    if bool(snapshots_id) == bool(timespans_id):
         raise McTopicMapJobException("exactly one of snapshots_id or timespans_id must be set.")
 
+    db = connect_to_db()
 
     if snapshots_id:
-        db = connect_to_db()
         timespans_ids = db.query(
             "select timespans_id from timespans where snapshots_id = %(a)s",
             {'a': snapshots_id}
         ).flat()
-        db.disconnect()
     else:
-        timespans_ids = (timespans_id,)
-
+        timespans_ids = [timespans_id]
 
     for timespans_id in timespans_ids:
         log.info("generating maps for timespan %s" % timespans_id)
-
-        # connect and disconnect every time so that we don't have a single very long connection
-        db = connect_to_db()
-        generate_and_store_maps(db, timespans_id)
-        db.disconnect()
+        generate_and_store_maps(db=db, timespans_id=timespans_id, memory_limit_mb=_memory_limit_mb)
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description="Run topics map worker.")
+    parser.add_argument("-m", "--memory_limit_mb", type=int, required=True,
+                        help="Memory limit (MB) for Java subprocess")
+    args = parser.parse_args()
+
+    _memory_limit_mb = args.memory_limit_mb
+    assert _memory_limit_mb, "Memory limit is not set (no idea what to set -Xmx to)."
+
     app = JobBroker(queue_name=QUEUE_NAME)
     app.start_worker(handler=run_job)
