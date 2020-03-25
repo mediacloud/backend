@@ -26,7 +26,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4743;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4744;
 BEGIN
 
     -- Update / set database schema version
@@ -2300,12 +2300,18 @@ create table snap.story_link_counts (
 
     facebook_share_count                    int null,
 
-    post_count                             int null
+    post_count                              int null,
+    author_count                            int null,
+    channel_count                           int null
 );
 
 -- TODO: add complex foreign key to check that stories_id exists for the snapshot stories snapshot
 create index story_link_counts_ts on snap.story_link_counts ( timespans_id, stories_id );
 create index story_link_counts_story on snap.story_link_counts ( stories_id );
+create index story_link_counts_fb on snap.story_link_counts ( timespans_id, facebook_share_count desc nulls last );
+create index story_link_counts_post on snap.story_link_counts ( timespans_id, post_count desc nulls last);
+create index story_link_counts_author on snap.story_link_counts ( timespans_id, author_count desc nulls last);
+create index story_link_counts_channel on snap.story_link_counts ( timespans_id, channel_count desc nulls last);
 
 -- links counts for media within a timespan
 create table snap.medium_link_counts (
@@ -2320,11 +2326,17 @@ create table snap.medium_link_counts (
 
     facebook_share_count            int null,
 
-    post_count              int null
+    sum_post_count                  int null,
+    sum_author_count                int null,
+    sum_channel_count               int null
 );
 
 -- TODO: add complex foreign key to check that media_id exists for the snapshot media snapshot
 create index medium_link_counts_medium on snap.medium_link_counts ( timespans_id, media_id );
+create index medium_link_counts_fb on snap.medium_link_counts ( timespans_id, facebook_share_count desc nulls last);
+create index medium_link_counts_sum_post on snap.medium_link_counts ( timespans_id, sum_post_count desc nulls last);
+create index medium_link_counts_sum_author on snap.medium_link_counts ( timespans_id, sum_author_count desc nulls last);
+create index medium_link_counts_sum_channel on snap.medium_link_counts ( timespans_id, sum_channel_count desc nulls last);
 
 create table snap.medium_links (
     timespans_id int not null

@@ -423,7 +423,9 @@ create temporary table snapshot_story_link_counts as
     snapshot_post_counts as (
         select
                 tps.stories_id,
-                count( distinct tp.author ) as post_count
+                count( * ) as post_count,
+                count( distinct tp.author ) as author_count,
+                count( distinct tp.channel ) as channel_count
             from snapshot_timespan_posts stp
                 join topic_post_stories tps using ( topic_posts_id )
                 join topic_posts tp using ( topic_posts_id )
@@ -435,6 +437,8 @@ create temporary table snapshot_story_link_counts as
             coalesce( ilc.inlink_count, 0 ) inlink_count,
             coalesce( olc.outlink_count, 0 ) outlink_count,
             stc.post_count,
+            stc.author_count,
+            stc.channel_count,
             ss.facebook_share_count facebook_share_count
         from snapshot_period_stories ps
             left join snapshot_story_media_link_counts smlc using ( stories_id )
@@ -491,7 +495,9 @@ create temporary table snapshot_medium_link_counts as
                sum( slc.outlink_count) outlink_count,
                count(*) story_count,
                sum( slc.facebook_share_count ) facebook_share_count,
-               sum( slc.post_count ) post_count
+               sum( slc.post_count ) sum_post_count,
+               sum( slc.author_count ) sum_author_count,
+               sum( slc.channel_count ) sum_channel_count
             from
                 snapshot_media m
                 join snapshot_stories s using ( media_id )
