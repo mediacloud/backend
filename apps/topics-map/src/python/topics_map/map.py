@@ -567,7 +567,11 @@ def write_gexf(graph):
     return buf.read()
 
 
-def create_timespan_map(db, timespans_id, content, graph_format, color_by):
+def store_map(db: DatabaseHandler,
+        timespans_id: int,
+        content: bytes,
+        graph_format: str,
+        color_by: str) -> None:
     """Create a timespans_map row."""
     db.begin()
 
@@ -582,13 +586,24 @@ def create_timespan_map(db, timespans_id, content, graph_format, color_by):
     timespan_map = {
         'timespans_id': timespans_id,
         'options': options_json,
-        'format': graph_format,
-        'content': content
+        'format': graph_format
     }
 
     db.create('timespan_maps', timespan_map)
 
     db.commit()
+
+    content_types = {
+        'svg' => 'image/svg+xml',
+        'gexf' => 'xml/gexf'
+    }
+    content_type = content_types[graph_format]
+
+    store_content(db, TIMESPAN_MAPS_TYPE, timespan_map['timespan_maps_id'], content, content_type)
+
+    url = get_content_url(TIMESPAN_MAPS_TYPE, timespan_map['timespan_maps_id'])
+
+    db.update_by_id('timespan_maps', timespan_map['timespan_maps_id'], {'url': url})
 
 
 def generate_and_store_maps(db, timespans_id):
@@ -598,8 +613,8 @@ def generate_and_store_maps(db, timespans_id):
     for color_by in ('community', 'partisan_retweet'):
         assign_colors(db, graph, color_by=color_by)
 
-        gexf = write_gexf(graph)
-        create_timespan_map(db, timespans_id, gexf, 'gexf', color_by)
+        gexf = write_gexf(graph=graph)
+        store_map(db=db, timespans_id=timespans_id, content=gexf, graph_format='gexf', color_by=color_by)
 
-        image = draw_graph(graph, graph_format='svg')
-        create_timespan_map(db, timespans_id, image, 'svg', color_by)
+        image = draw_graph(graph=graph, graph_format='svg')
+        store_map(db=db, timespans_id=timespans_id, content=image, graph_format='svg', color_by=color_by)
