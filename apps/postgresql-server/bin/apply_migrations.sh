@@ -66,6 +66,7 @@ if (( "${OLD_SCHEMA_VERSION}" == "${NEW_SCHEMA_VERSION}" )); then
     echo "Schema is up-to-date, nothing to do."
 elif (( "${OLD_SCHEMA_VERSION}" > "${NEW_SCHEMA_VERSION}" )); then
     echo "Schema is newer in the database, go write a migration and rebuild this image."
+    echo "old version: $OLD_SCHEMA_VERSION, new_version: $NEW_SCHEMA_VERSION"
     exit 1
 else
     echo "Upgrading from ${OLD_SCHEMA_VERSION} to ${NEW_SCHEMA_VERSION}..."
