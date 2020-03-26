@@ -17,6 +17,7 @@ from mediawords.db import DatabaseHandler
 from mediawords.util.colors import get_consistent_color, hex_to_rgb
 from mediawords.util.log import create_logger
 from mediawords.util.parse_json import encode_json
+from mediawords.util.public_s3_store import store_content, get_content_url, TIMESPAN_MAPS_TYPE
 
 log = create_logger(__name__)
 
@@ -270,8 +271,6 @@ def prune_graph_by_distance(graph: nx.Graph) -> nx.Graph:
 
     mean_distance = sorted(distance_map.values())[int(len(distance_map.values()) / 2)]
     max_distance = mean_distance * 2
-
-    log.warning(f"Mean distance: {mean_distance}")
 
     include_nodes = []
     for node in graph.nodes():
@@ -594,11 +593,11 @@ def write_gexf(graph: nx.Graph) -> bytes:
     return buf.read()
 
 
-def create_timespan_map(db: DatabaseHandler,
-                        timespans_id: int,
-                        content: bytes,
-                        graph_format: str,
-                        color_by: str) -> None:
+def store_map(db: DatabaseHandler,
+        timespans_id: int,
+        content: bytes,
+        graph_format: str,
+        color_by: str) -> None:
     """Create a timespans_map row."""
     db.begin()
 
@@ -618,13 +617,23 @@ def create_timespan_map(db: DatabaseHandler,
     timespan_map = {
         'timespans_id': timespans_id,
         'options': options_json,
-        'format': graph_format,
-        'content': content
+        'format': graph_format
     }
-
-    db.create('timespan_maps', timespan_map)
+    timespan_map = db.create('timespan_maps', timespan_map)
 
     db.commit()
+
+    content_types = {
+        'svg': 'image/svg+xml',
+        'gexf': 'xml/gexf'
+    }
+    content_type = content_types[graph_format]
+
+    store_content(db, TIMESPAN_MAPS_TYPE, timespan_map['timespan_maps_id'], content, content_type)
+
+    url = get_content_url(db, TIMESPAN_MAPS_TYPE, timespan_map['timespan_maps_id'])
+
+    db.update_by_id('timespan_maps', timespan_map['timespan_maps_id'], {'url': url})
 
 
 def generate_and_store_maps(db: DatabaseHandler, timespans_id: int, memory_limit_mb: int) -> None:
@@ -634,8 +643,8 @@ def generate_and_store_maps(db: DatabaseHandler, timespans_id: int, memory_limit
     for color_by in ('community', 'partisan_retweet'):
         assign_colors(db=db, graph=graph, color_by=color_by)
 
-        gexf = write_gexf(graph=graph)
-        create_timespan_map(db=db, timespans_id=timespans_id, content=gexf, graph_format='gexf', color_by=color_by)
+        image = write_gexf(graph=graph)
+        store_map(db=db, timespans_id=timespans_id, content=image, graph_format='gexf', color_by=color_by)
 
         image = draw_graph(graph=graph, graph_format='svg')
-        create_timespan_map(db=db, timespans_id=timespans_id, content=image, graph_format='svg', color_by=color_by)
+        store_map(db=db, timespans_id=timespans_id, content=image, graph_format='svg', color_by=color_by)
