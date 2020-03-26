@@ -6,6 +6,11 @@ services:
         image: dockermediacloud/topics-map:latest
         init: true
         stop_signal: SIGKILL
+        environment:
+            MC_PUBLIC_AMAZON_S3_ACCESS_KEY_ID: "${MC_PUBLIC_AMAZON_S3_ACCESS_KEY_ID}"
+            MC_PUBLIC_AMAZON_S3_SECRET_ACCESS_KEY: "${MC_PUBLIC_AMAZON_S3_SECRET_ACCESS_KEY}"
+            MC_PUBLIC_AMAZON_S3_BUCKET_NAME: "${MC_PUBLIC_AMAZON_S3_BUCKET_NAME}"
+            MC_PUBLIC_AMAZON_S3_SALT: "${MC_PUBLIC_AMAZON_S3_SALT}"
         volumes:
             - type: bind
               source: ./bin/

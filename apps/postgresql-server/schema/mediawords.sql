@@ -2133,7 +2133,7 @@ create table timespan_maps (
     timespan_maps_id                serial primary key,
     timespans_id                    int not null references timespans on delete cascade,
     options                         jsonb not null,
-    content                         bytea not null,
+    url                             text null,
     format                          varchar(1024) not null
 );
 

@@ -17,6 +17,7 @@ from mediawords.db import DatabaseHandler
 from mediawords.util.colors import get_consistent_color, hex_to_rgb
 from mediawords.util.log import create_logger
 from mediawords.util.parse_json import encode_json
+from mediawords.util.public_s3_store import store_content, get_content_url, TIMESPAN_MAPS_TYPE
 
 log = create_logger(__name__)
 
@@ -271,11 +272,6 @@ def prune_graph_by_distance(graph: nx.Graph) -> nx.Graph:
     mean_distance = sorted(distance_map.values())[int(len(distance_map.values()) / 2)]
     max_distance = mean_distance * 2
 
-<<<<<<< HEAD
-=======
-    log.warning(f"Mean distance: {mean_distance}")
-
->>>>>>> master
     include_nodes = []
     for node in graph.nodes():
         if distance_map[node] <= max_distance:
@@ -623,20 +619,19 @@ def store_map(db: DatabaseHandler,
         'options': options_json,
         'format': graph_format
     }
-
-    db.create('timespan_maps', timespan_map)
+    timespan_map = db.create('timespan_maps', timespan_map)
 
     db.commit()
 
     content_types = {
-        'svg' => 'image/svg+xml',
-        'gexf' => 'xml/gexf'
+        'svg': 'image/svg+xml',
+        'gexf': 'xml/gexf'
     }
     content_type = content_types[graph_format]
 
     store_content(db, TIMESPAN_MAPS_TYPE, timespan_map['timespan_maps_id'], content, content_type)
 
-    url = get_content_url(TIMESPAN_MAPS_TYPE, timespan_map['timespan_maps_id'])
+    url = get_content_url(db, TIMESPAN_MAPS_TYPE, timespan_map['timespan_maps_id'])
 
     db.update_by_id('timespan_maps', timespan_map['timespan_maps_id'], {'url': url})
 

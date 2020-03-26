@@ -1,3 +1,5 @@
+import re
+
 from topics_map.map import generate_and_store_maps
 
 from .setup_test_map import TestMap
@@ -21,4 +23,4 @@ class TestGenerateAndStoreMaps(TestMap):
 
         for ts_map in timespan_maps:
             assert ts_map['format'] in formats
-            assert len(ts_map['content']) > 100 * len(self.connected_media)
+            assert re.match(r'https://.*.s3.amazonaws.com/test/[0-9]+/.*/[0-9]+', ts_map['url'])
