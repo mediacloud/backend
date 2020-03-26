@@ -60,4 +60,22 @@ sub get_query_as_csv
     return $csv_string;
 }
 
+# return csv as a list of hashes
+sub get_encoded_csv_as_hashes
+{
+    my ( $csv ) = @_;
+
+    return [] if ( length( $csv ) == 0 );
+
+    my $c = Text::CSV_XS->new( { binary => 1 } );
+
+    my $decoded_csv = Encode::decode( 'utf-8', $csv );
+
+    open my $fh, "<", \$decoded_csv;
+
+    $c->column_names( $c->getline( $fh ) );
+
+    return $c->getline_hr_all( $fh );
+}
+
 1;
