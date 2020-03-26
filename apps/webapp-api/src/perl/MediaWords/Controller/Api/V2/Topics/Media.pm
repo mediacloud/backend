@@ -336,7 +336,7 @@ sub list_maps_GET
     my $db = $c->dbis;
 
     my $timespan_maps = $db->query( <<SQL, $timespan->{ timespans_id } )->hashes;
-select timespan_maps_id, timespans_id, options, format, length(content) content_length
+select timespan_maps_id, timespans_id, options, format, url, length(content) content_length
     from timespan_maps
     where timespans_id = ?
     order by timespans_id
