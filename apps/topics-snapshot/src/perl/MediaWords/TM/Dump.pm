@@ -16,6 +16,7 @@ use MediaWords::DBI::Snapshots;
 use MediaWords::TM::Snapshot::ExtraFields;
 use MediaWords::TM::Snapshot::Views;
 use MediaWords::Util::CSV;
+use MediaWords::Util::PublicS3Store;
 
 # Get an encoded csv snapshot of the story links for the given timespan.
 sub get_story_links_csv($$)
@@ -132,13 +133,14 @@ END
     return $csv;
 }
 
+# get the metadata only for topic posts within the current timespan
 sub get_topic_posts_csv($$)
 {
     my ( $db, $timespan ) = @_;
 
     my $csv = MediaWords::Util::CSV::get_query_as_csv( $db, <<SQL );
 select 
-        tpd.topic_seed_queries_id, tp.topic_posts_id, tp.publish_date, tp.author, tp.channel, tp.url, tp.content
+        tpd.topic_seed_queries_id, tp.topic_posts_id, tp.publish_date, tp.author, tp.channel, tp.url
     from topic_post_days tpd
         join topic_posts tp using ( topic_post_days_id )
 		join snapshot_timespan_posts using ( topic_posts_id )
@@ -147,7 +149,7 @@ SQL
     return $csv;
 }
 
-sub get_topic_post_stories_csv($$)
+sub get_post_stories_csv($$)
 {
     my ( $db, $timespan ) = @_;
 
@@ -163,15 +165,24 @@ sub store_file($$$$)
 {
     my ( $db, $timespan, $name, $content ) = @_;
 
-    my $dir = "dumps/$timespan->{ timespans_id }";
+    my $object_id = "$timespan->{ timespans_id }-$name";
+    my $object_type = $MediaWords::Util::PublicS3Store::TIMESPAN_FILES_TYPE;
 
-    File::Path::make_path( $dir );
+    MediaWords::Util::PublicS3Store::store_content( $db, $object_type, $object_id, $content, 'text/csv' );
 
-    my $filename = "$dir/$name.csv";
+    my $url = MediaWords::Util::PublicS3Store::get_content_url( $db, $object_type, $object_id );
 
-    File::Slurp::write_file( $filename, $content );
+    $db->query( <<SQL, $timespan->{ timespans_id }, $name, $url );
+insert into timespan_files ( timespans_id, name, url )
+    values ( ?, ?, ? )
+    on conflict ( timespans_id, name ) do update set
+        url = excluded.url
+SQL
+
 }
 
+# generate various dumps for a single timespan and store them in s3, with the public urls
+# stored in timespan_files
 sub dump_timespan($$)
 {
     my ( $db, $timespan ) = @_;
@@ -189,19 +200,19 @@ sub dump_timespan($$)
 
     DEBUG( "dumping story links ..." );
     my $story_links_csv = get_story_links_csv( $db, $timespan );
-    store_file( $db, $timespan, "story links", $story_links_csv );
+    store_file( $db, $timespan, "story_links", $story_links_csv );
  
     DEBUG( "dumping medium_links ..." );
     my $medium_links_csv = get_medium_links_csv( $db, $timespan );
-    store_file( $db, $timespan, "medium links", $medium_links_csv );
+    store_file( $db, $timespan, "medium_links", $medium_links_csv );
 
     DEBUG ( "dump topic posts ...");
     my $topic_posts_csv = get_topic_posts_csv( $db, $timespan );
-    store_file( $db, $timespan, "topic posts", $topic_posts_csv );
+    store_file( $db, $timespan, "topic_posts", $topic_posts_csv );
 
     DEBUG ( "dump topic post stories ...");
-    my $topic_post_stories_csv = get_topic_post_stories_csv( $db, $timespan );
-    store_file( $db, $timespan, "topic posts", $topic_post_stories_csv );
+    my $topic_post_stories_csv = get_post_stories_csv( $db, $timespan );
+    store_file( $db, $timespan, "post_stories", $topic_post_stories_csv );
 
     $db->query( "discard temp" );
 }

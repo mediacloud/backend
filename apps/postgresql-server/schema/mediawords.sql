@@ -2142,22 +2142,21 @@ create index topic_maps_timespan on timespan_maps ( timespans_id );
 
 create table timespan_files (
     timespan_files_id                   serial primary key,
-    timespans_id int not null references timespans on delete cascade,
-    file_name                       text,
-    file_content                    text
+    timespans_id                        int not null references timespans on delete cascade,
+    name                                text,
+    url                                 text
 );
 
-create index timespan_files_timespan on timespan_files ( timespans_id );
+create unique index timespan_files_timespan_name on timespan_files ( timespans_id, name );
 
-create table snap_files (
-    snap_files_id                     serial primary key,
-    snapshots_id            int not null references snapshots on delete cascade,
-    file_name                       text,
-    file_content                    text
+create table snapshot_files (
+    snap_files_id                       serial primary key,
+    snapshots_id                        int not null references snapshots on delete cascade,
+    name                                text,
+    url                                 text
 );
 
-create index snap_files_cd on snap_files ( snapshots_id );
-
+create unique index snapshot_files_snapshot_name on snapshot_files ( snapshots_id, name );
 
 -- schema to hold the various snapshot snapshot tables
 CREATE SCHEMA snap;

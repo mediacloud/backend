@@ -205,7 +205,8 @@ class AmazonS3Store(KeyValueStore):
             db: DatabaseHandler,
             object_id: int,
             content: Union[str, bytes],
-            content_type: str='binary/octet-stream') -> str:
+            content_type: str='binary/octet-stream',
+            content_encoding: str='identity') -> str:
         """Write object to Amazon S3."""
 
         object_id = self._prepare_object_id(object_id)
@@ -240,7 +241,7 @@ class AmazonS3Store(KeyValueStore):
 
             try:
                 o = self.__object_for_object_id(object_id)
-                o.put(Body=content, ContentType=content_type)
+                o.put(Body=content, ContentType=content_type, ContentEncoding=content_encoding)
                 write_was_successful = True
 
             except Exception as ex:

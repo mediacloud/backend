@@ -4,6 +4,7 @@ use warnings;
 use Modern::Perl '2015';
 use MediaWords::CommonLibs;
 
+use Encode;
 use Readonly;
 use Test::More;
 
@@ -15,8 +16,44 @@ use MediaWords::TM::Snapshot::Views;
 use MediaWords::Test::DB::Create;
 use MediaWords::Util::CSV;
 
-Readonly my $NUM_MEDIA => 10;
-Readonly my $NUM_STORIES_PER_MEDIUM => 50;
+Readonly my $NUM_MEDIA => 5;
+Readonly my $NUM_STORIES_PER_MEDIUM => 10;
+
+
+sub validate_timespan_file
+{
+    my ( $db, $timespan, $name, $num_expected_rows ) = @_;
+
+    my $label = $timespan->{ foci_id } ? "url sharing timespan" : "overall timespan";
+
+    $label .= " $name";
+
+    my $timespan_file = $db->query( <<SQL, $timespan->{ timespans_id }, $name )->hash;
+select * from timespan_files where timespans_id = ? and name = ?
+SQL
+
+    ok( $timespan_file, "$label file exists" );
+    
+    my $ua = MediaWords::Util::Web::UserAgent->new();
+
+    my $response = $ua->get( $timespan_file->{ url } );
+
+    ok( $response->is_success, "$label url response is success" );
+
+    my $content = $response->decoded_content();
+    my $encoded_content = Encode::encode( 'utf-8', $content );
+
+    my $got_rows = MediaWords::Util::CSV::get_encoded_csv_as_hashes( $encoded_content );
+
+    if ( defined( $num_expected_rows ) )
+    {
+        is( scalar( @{ $got_rows } ), $num_expected_rows, "$label expected rows" );
+    }
+    else
+    {
+        ok( scalar( @{ $got_rows } ) > 0, "$label expected rows" );
+    }
+}
 
 
 sub main
@@ -34,41 +71,21 @@ sub main
 
     my $timespan = $db->query( "select * from timespans where period = 'overall' and foci_id is null" )->hash;
 
-    MediaWords::TM::Snapshot::Views::setup_temporary_snapshot_views( $db, $timespan );
+    MediaWords::TM::Dump::dump_timespan( $db, $timespan );
 
-    my $stories_csv = MediaWords::TM::Dump::get_stories_csv( $db, $timespan );
-    my $got_stories = MediaWords::Util::CSV::get_encoded_csv_as_hashes( $stories_csv );
-    is( scalar( @{ $got_stories } ), $num_stories );
-
-    my $media_csv = MediaWords::TM::Dump::get_media_csv( $db, $timespan );
-    my $got_media = MediaWords::Util::CSV::get_encoded_csv_as_hashes( $media_csv );
-    is( scalar( @{ $got_media } ), $NUM_MEDIA );
-
-    my $story_links_csv = MediaWords::TM::Dump::get_story_links_csv( $db, $timespan );
-    my $got_story_links = MediaWords::Util::CSV::get_encoded_csv_as_hashes( $story_links_csv );
-    is( scalar( @{ $got_story_links } ), $num_stories );
-
-    my $medium_links_csv = MediaWords::TM::Dump::get_medium_links_csv( $db, $timespan );
-    my $got_medium_links = MediaWords::Util::CSV::get_encoded_csv_as_hashes( $medium_links_csv );
-    ok( scalar( @{ $got_medium_links } ) > 0 );
-
-    my $topic_posts_csv = MediaWords::TM::Dump::get_topic_posts_csv( $db, $timespan );
-    my $got_topic_posts = MediaWords::Util::CSV::get_encoded_csv_as_hashes( $topic_posts_csv );
-    is( scalar( @{ $got_topic_posts } ), 0 );
-
-    $db->query( "discard temp" );
+    validate_timespan_file( $db, $timespan, 'stories', $num_stories );
+    validate_timespan_file( $db, $timespan, 'media', $NUM_MEDIA );
+    validate_timespan_file( $db, $timespan, 'story_links', $num_stories );
+    validate_timespan_file( $db, $timespan, 'medium_links' );
+    validate_timespan_file( $db, $timespan, 'post_stories', 0 );
+    validate_timespan_file( $db, $timespan, 'topic_posts', 0 );
 
     my $post_timespan = $db->query( "select * from timespans where period = 'overall' and foci_id is not null" )->hash;
 
-    MediaWords::TM::Snapshot::Views::setup_temporary_snapshot_views( $db, $post_timespan );
+    MediaWords::TM::Dump::dump_timespan( $db, $post_timespan );
 
-    my $topic_posts_csv = MediaWords::TM::Dump::get_topic_posts_csv( $db, $post_timespan );
-    my $got_topic_posts = MediaWords::Util::CSV::get_encoded_csv_as_hashes( $topic_posts_csv );
-    is( scalar( @{ $got_topic_posts } ), $num_posts );
-
-    my $topic_post_stories_csv = MediaWords::TM::Dump::get_topic_post_stories_csv( $db, $post_timespan );
-    my $got_topic_post_stories = MediaWords::Util::CSV::get_encoded_csv_as_hashes( $topic_post_stories_csv );
-    is( scalar( @{ $got_topic_post_stories } ), $num_posts );
+    validate_timespan_file( $db, $post_timespan, 'topic_posts', $num_posts );
+    validate_timespan_file( $db, $post_timespan, 'post_stories', $num_posts );
 
     done_testing();
 }
