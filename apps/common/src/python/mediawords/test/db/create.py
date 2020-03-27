@@ -1,3 +1,5 @@
+import datetime
+import dateutil.parser
 import random
 import re
 
@@ -290,6 +292,94 @@ def create_test_topic(db: DatabaseHandler, label: str) -> dict:
             'platform': 'web'
         }
     )
+
+
+def create_test_topic_stories(
+        db: DatabaseHandler, 
+        topic: dict, 
+        num_media: int=10, 
+        num_stories_per_medium: int=10) -> None:
+    """Fill topic with test stories in num_media with one cross media link per medium."""
+    for mi in range(num_media):
+        medium = create_test_medium(db, f'medium {mi}')
+        feed = create_test_feed(db, f'feed {mi}', medium)
+        
+        for si in range(num_stories_per_medium):
+            story = create_test_story(db, f'story {mi} {si}', feed)
+            db.create('topic_stories', {'topics_id': topic['topics_id'], 'stories_id': story['stories_id']})
+
+    db.query(
+        """
+        insert into topic_links ( topics_id, stories_id, url, ref_stories_id )
+            select %(a)s, a.stories_id, b.url, b.stories_id
+                from stories a
+                    join stories b on ( a.media_id <> b.media_id )
+                limit %(b)s
+        """,
+        {'a': topic['topics_id'], 'b': num_media * num_stories_per_medium})
+
+
+def create_test_topic_posts(
+        db: DatabaseHandler,
+        topic: dict,
+        num_posts_per_day: int=10) -> int:
+    """Fill topic with topic_posts. Return the number of posts created."""
+    date = dateutil.parser.parse(topic['start_date'])
+    end_date = dateutil.parser.parse(topic['end_date'])
+
+    tsq = {
+        'topics_id': topic['topics_id'],
+        'source': 'csv',
+        'platform': 'generic_post',
+        'query': 'foo'
+    }
+    tsq = db.create('topic_seed_queries', tsq)
+
+    stories = db.query( "select * from snap.live_stories where topics_id = %(a)s", {'a': topic['topics_id']}).hashes()
+
+    num_posts = 0
+    while date < end_date:
+        tpd = {
+            'topic_seed_queries_id': tsq['topic_seed_queries_id'],
+            'day': date.strftime('%Y-%m-%d'),
+            'num_posts': 1
+        }
+        tpd = db.create('topic_post_days', tpd)
+
+        for i in range(num_posts_per_day):
+            author_num = i % 5
+            channel_num = i % 3
+            topic_post = {
+                'topic_post_days_id': tpd['topic_post_days_id'],
+                'post_id': i,
+                'content': f'content {i}',
+                'author': f'author {author_num}',
+                'channel': f'channel {channel_num}',
+                'publish_date': date.strftime('%Y-%m-%d'),
+                'data': '{}'
+            }
+            topic_post = db.create('topic_posts', topic_post)
+
+            post_story = stories[num_posts % len(stories)]
+            tpu = {
+                'topic_posts_id': topic_post['topic_posts_id'],
+                'url': post_story['url']
+            }
+            tpu = db.create('topic_post_urls', tpu)
+
+            tsu = {
+                'topics_id': topic['topics_id'],
+                'url': post_story['url'],
+                'stories_id': post_story['stories_id'],
+                'topic_seed_queries_id': tsq['topic_seed_queries_id']
+            }
+            tsu = db.create('topic_seed_urls', tsu)
+
+            num_posts += 1
+
+        date = date + datetime.timedelta(days=1)
+
+    return num_posts
 
 
 def create_test_snapshot(db: DatabaseHandler, topic: dict) -> dict:

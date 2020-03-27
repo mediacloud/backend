@@ -42,6 +42,7 @@ use Readonly;
 
 use MediaWords::DBI::Activities;
 use MediaWords::DBI::Snapshots;
+use MediaWords::JobManager::AbstractStatefulJob;
 use MediaWords::JobManager::Job;
 use MediaWords::Solr;
 use MediaWords::TM::Alert;
@@ -304,39 +305,78 @@ sub _create_url_sharing_story_links($$)
 
     my $topic_seed_queries_id = _get_timespan_seed_query( $db, $timespan );
 
-    # query the pairs of cross-media stories with the shortest time between shares by the same author
+    # get and index a list of post-story-shares with publish dat and author
     $db->query( <<SQL );
 create temporary table _post_stories as
-    select s.media_id, s.stories_id, tps.author, tps.publish_date
+    select s.media_id, s.stories_id, tps.author, tps.publish_date, extract( epoch from tps.publish_date ) epoch
         from topic_post_stories tps
             join snapshot_timespan_posts using ( topic_posts_id )
             join stories s using ( stories_id );
 
-create index _post_stories_auth on _post_stories ( author );
+create index _post_stories_auth on _post_stories ( author, epoch );
+SQL
 
+    my ( $num_stories ) = $db->query( "select count( distinct stories_id ) from _post_stories" )->flat();
+    my $story_pairs_limit = $num_stories * 2;
+
+    # start trying to get no more than $story_pairs_limit matches using a year long interval.  if the limit is
+    # reached, try a smaller interval.  keep trying until the limit is not reached.  this protects us from the query
+    # runing into a query bomb that runs forever if there are lots of stories and a small set of shared authors.
+    my $interval = 86400 * 365;
+    my $found_interval = 0;
+    while ( $interval > 0 )
+    {
+        $db->query( "drop table if exists _dated_story_pairs" );
+        $db->query( <<SQL, $interval, $story_pairs_limit );
+create temporary table _dated_story_pairs as 
+    select
+            a.stories_id stories_id_a,
+            b.stories_id stories_id_b,
+            abs( a.epoch - b.epoch ) date_diff
+        from
+            _post_stories a
+            join _post_stories b using ( author )
+        where
+            a.media_id <> b.media_id and
+            a.stories_id > b.stories_id and
+            a.epoch between b.epoch - \$1 and b.epoch + \$1
+        limit \$2
+SQL
+            
+        my ( $num_dated_story_pairs ) = $db->query( "select count(*) from _dated_story_pairs" )->flat();
+        if ( $num_dated_story_pairs < $story_pairs_limit )
+        {
+            INFO( "Found correct interval $interval with $num_dated_story_pairs / $story_pairs_limit pairs" );
+            $found_interval = 1;
+            last;
+        }
+
+        DEBUG( "Trying smaller interval: $interval (found $num_dated_story_pairs / $story_pairs_limit )" );
+
+        $interval = int( $interval / 2 );
+        $interval = ( $interval < 43200 ) ? 0 : $interval;
+    }
+
+    # if we never found an interval with few enough pairs, just cowardly refuse to create story links,
+    # since there is no reasonable way to do so if we have too many pairs even with a 0 interval
+    if ( !$found_interval )
+    {
+        WARN( "Unable to find minimum interval for dated story pairs. Using empty story_links" );
+        $db->query( "truncate table _dated_story_pairs" );
+    }
+
+    # query the pairs of cross-media stories with the shortest time between shares by the same author
+    $db->query( <<SQL, $num_stories );
 create temporary table snapshot_story_links as
-
-    with num_stories as ( select count( distinct stories_id ) stories_count from _post_stories ),
-
-    dated_story_pairs as (
-        select
-                a.stories_id stories_id_a,
-                b.stories_id stories_id_b,
-                abs( extract( epoch from a.publish_date ) - extract( epoch from b.publish_date ) ) date_diff
-            from
-                _post_stories a
-                join _post_stories b using ( author )
-            where
-                a.media_id <> b.media_id and
-                a.stories_id > b.stories_id
-    )
-
     select stories_id_a source_stories_id, stories_id_b ref_stories_id, min(date_diff) min_date_diff
-        from dated_story_pairs
+        from _dated_story_pairs
         group by stories_id_a, stories_id_b
-        order by min_date_diff asc limit ( select stories_count from num_stories );
+        order by min_date_diff asc limit ?
+SQL
 
+    $db->query( <<SQL );
 drop table _post_stories;
+drop table _dated_story_pairs;
 SQL
 }
 

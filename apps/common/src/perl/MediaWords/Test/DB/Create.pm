@@ -87,6 +87,18 @@ sub create_test_topic($$)
     return python_deep_copy( $return_value );
 }
 
+sub create_test_topic_stories($$$$)
+{
+    my $return_value = MediaWords::Test::DB::Create::PythonProxy::create_test_topic_stories( @_ );
+    return python_deep_copy( $return_value );
+}
+
+sub create_test_topic_posts($$)
+{
+    my $return_value = MediaWords::Test::DB::Create::PythonProxy::create_test_topic_posts( @_ );
+    return python_deep_copy( $return_value );
+}
+
 sub create_test_snapshot($$)
 {
     my ( $db, $topic ) = @_;
