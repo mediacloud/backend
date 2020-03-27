@@ -370,9 +370,12 @@ def get_and_store_story_stats(db: DatabaseHandler, story: dict) -> FacebookURLSt
 
     story_stats = db.query("select * from story_statistics where stories_id = %(a)s", {'a': story['stories_id']}).hash()
 
-    if story_stats is not None and len(story_stats.get('facebook_api_error', '')) > 0:
-        message ='refusing to fetch story %d with error: %s' % (story['stories_id'], story_stats['facebook_api_error'])
-        raise McFacebookSoftFailureException(message)
+    try:
+        if len(story_stats.get('facebook_api_error', '')) > 0:
+            message ='ignore story %d with error: %s' % (story['stories_id'], story_stats['facebook_api_error'])
+            raise McFacebookSoftFailureException(message)
+    except Exception:
+        pass
 
     try:
         stats = _get_url_stats(url=story_url)
