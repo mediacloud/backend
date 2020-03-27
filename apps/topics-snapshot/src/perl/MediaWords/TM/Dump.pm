@@ -136,14 +136,12 @@ sub get_topic_posts_csv($$)
 {
     my ( $db, $timespan ) = @_;
 
-    my $csv = MediaWords::Util::CSV::get_query_as_csv( $db, <<SQL, $timespan->{ start_date }, $timespan->{ end_date } );
+    my $csv = MediaWords::Util::CSV::get_query_as_csv( $db, <<SQL );
 select 
         tpd.topic_seed_queries_id, tp.topic_posts_id, tp.publish_date, tp.author, tp.channel, tp.url, tp.content
-    from topic_seed_queries tsq
-        join topic_post_days tpd using ( topic_seed_queries_id )
+    from topic_post_days tpd
         join topic_posts tp using ( topic_post_days_id )
-    where
-        tpd.day >= ? and tpd.day < ?
+		join snapshot_timespan_posts using ( topic_posts_id )
 SQL
 
     return $csv;
@@ -200,6 +198,10 @@ sub dump_timespan($$)
     DEBUG ( "dump topic posts ...");
     my $topic_posts_csv = get_topic_posts_csv( $db, $timespan );
     store_file( $db, $timespan, "topic posts", $topic_posts_csv );
+
+    DEBUG ( "dump topic post stories ...");
+    my $topic_post_stories_csv = get_topic_post_stories_csv( $db, $timespan );
+    store_file( $db, $timespan, "topic posts", $topic_post_stories_csv );
 
     $db->query( "discard temp" );
 }
