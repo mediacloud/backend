@@ -54,13 +54,17 @@ sub main
 
     my $topic_posts_csv = MediaWords::TM::Dump::get_topic_posts_csv( $db, $timespan );
     my $got_topic_posts = MediaWords::Util::CSV::get_encoded_csv_as_hashes( $topic_posts_csv );
-    is( scalar( @{ $got_topic_posts } ), $num_posts );
+    is( scalar( @{ $got_topic_posts } ), 0 );
 
     $db->query( "discard temp" );
 
     my $post_timespan = $db->query( "select * from timespans where period = 'overall' and foci_id is not null" )->hash;
 
     MediaWords::TM::Snapshot::Views::setup_temporary_snapshot_views( $db, $post_timespan );
+
+    my $topic_posts_csv = MediaWords::TM::Dump::get_topic_posts_csv( $db, $post_timespan );
+    my $got_topic_posts = MediaWords::Util::CSV::get_encoded_csv_as_hashes( $topic_posts_csv );
+    is( scalar( @{ $got_topic_posts } ), $num_posts );
 
     my $topic_post_stories_csv = MediaWords::TM::Dump::get_topic_post_stories_csv( $db, $post_timespan );
     my $got_topic_post_stories = MediaWords::Util::CSV::get_encoded_csv_as_hashes( $topic_post_stories_csv );
