@@ -7,9 +7,14 @@ package MediaWords::TM::Dump;
 use strict;
 use warnings;
 
+use File::Path;
+use File::Slurp;
+
 use MediaWords::CommonLibs;
 
+use MediaWords::DBI::Snapshots;
 use MediaWords::TM::Snapshot::ExtraFields;
+use MediaWords::TM::Snapshot::Views;
 use MediaWords::Util::CSV;
 
 # Get an encoded csv snapshot of the story links for the given timespan.
@@ -149,7 +154,7 @@ sub get_topic_post_stories_csv($$)
     my ( $db, $timespan ) = @_;
 
     my $csv = MediaWords::Util::CSV::get_query_as_csv( $db, <<SQL );
-select topic_posts_id, stories_id from snapshot_timespan_posts join topic_post_stories using ( topic_posts_id )
+select distinct topic_posts_id, stories_id from snapshot_timespan_posts join topic_post_stories using ( topic_posts_id )
 SQL
 
     return $csv;
@@ -160,20 +165,16 @@ sub store_file($$$$)
 {
     my ( $db, $timespan, $name, $content ) = @_;
 
-    my $dir = "dumps/$timespan";
+    my $dir = "dumps/$timespan->{ timespans_id }";
 
     File::Path::make_path( $dir );
 
     my $filename = "$dir/$name.csv";
 
-    my $fh = open( $filename, 'w' ) || die( "Unable to open file: $!" );
-
-    print( $fh, $content );
-
-    close( $fh );
+    File::Slurp::write_file( $filename, $content );
 }
 
-sub dump_topic($$)
+sub dump_timespan($$)
 {
     my ( $db, $timespan ) = @_;
 
@@ -190,15 +191,17 @@ sub dump_topic($$)
 
     DEBUG( "dumping story links ..." );
     my $story_links_csv = get_story_links_csv( $db, $timespan );
-    store_file( $db, $timespan, "story links", $media_csv );
+    store_file( $db, $timespan, "story links", $story_links_csv );
  
     DEBUG( "dumping medium_links ..." );
     my $medium_links_csv = get_medium_links_csv( $db, $timespan );
-    store_file( $db, $timespan, "medium links", $media_csv );
+    store_file( $db, $timespan, "medium links", $medium_links_csv );
 
     DEBUG ( "dump topic posts ...");
     my $topic_posts_csv = get_topic_posts_csv( $db, $timespan );
-    store_file( $db, $timespan, "topic_posts", $topic_posts_csv );
+    store_file( $db, $timespan, "topic posts", $topic_posts_csv );
+
+    $db->query( "discard temp" );
 }
 
 1;

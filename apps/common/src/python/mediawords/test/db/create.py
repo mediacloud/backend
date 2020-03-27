@@ -305,7 +305,7 @@ def create_test_topic_stories(
         feed = create_test_feed(db, f'feed {mi}', medium)
         
         for si in range(num_stories_per_medium):
-            story = create_test_story(db, f'story {si}', feed)
+            story = create_test_story(db, f'story {mi} {si}', feed)
             db.create('topic_stories', {'topics_id': topic['topics_id'], 'stories_id': story['stories_id']})
 
     db.query(
@@ -375,7 +375,8 @@ def create_test_topic_posts(
             }
             tsu = db.create('topic_seed_urls', tsu)
 
-        num_posts += num_posts_per_day
+            num_posts += 1
+
         date = date + datetime.timedelta(days=1)
 
     return num_posts

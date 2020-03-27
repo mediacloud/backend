@@ -351,7 +351,7 @@ SQL
             last;
         }
 
-        INFO( "Trying smaller interval for_dated_story_pairs: $interval" );
+        DEBUG( "Trying smaller interval: $interval (found $num_dated_story_pairs / $story_pairs_limit )" );
 
         $interval = int( $interval / 2 );
         $interval = ( $interval < 43200 ) ? 0 : $interval;
