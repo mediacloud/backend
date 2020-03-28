@@ -78,7 +78,11 @@ class PostgreSQLStore(KeyValueStore):
 
         return content
 
-    def store_content(self, db: DatabaseHandler, object_id: int, content: Union[str, bytes]) -> str:
+    def store_content(self,
+            db: DatabaseHandler,
+            object_id: int,
+            content: Union[str, bytes],
+            content_type: str='binary/octet-stream') -> str:
         """Write object to PostgreSQL table."""
 
         object_id = self._prepare_object_id(object_id)

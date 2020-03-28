@@ -17,7 +17,7 @@ from mediawords.db import DatabaseHandler
 from mediawords.util.colors import get_consistent_color, hex_to_rgb
 from mediawords.util.log import create_logger
 from mediawords.util.parse_json import encode_json
-from mediawords.util.public_s3_store import store_content, get_content_url, TIMESPAN_MAPS_TYPE
+from mediawords.util.public_store import store_content, get_content_url, TIMESPAN_MAPS_TYPE
 
 log = create_logger(__name__)
 

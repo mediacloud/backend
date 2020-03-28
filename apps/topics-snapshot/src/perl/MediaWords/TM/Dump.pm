@@ -16,6 +16,7 @@ use MediaWords::DBI::Snapshots;
 use MediaWords::TM::Snapshot::ExtraFields;
 use MediaWords::TM::Snapshot::Views;
 use MediaWords::Util::CSV;
+use MediaWords::Util::ParseJSON;
 use MediaWords::Util::PublicS3Store;
 
 # Get an encoded csv snapshot of the story links for the given timespan.
@@ -161,7 +162,7 @@ SQL
 }
 
 
-sub store_file($$$$)
+sub store_timespan_file($$$$)
 {
     my ( $db, $timespan, $name, $content ) = @_;
 
@@ -187,34 +188,92 @@ sub dump_timespan($$)
 {
     my ( $db, $timespan ) = @_;
 
-    DEBUG( "setting up snapshot ..." );
-    MediaWords::TM::Snapshot::Views::setup_temporary_snapshot_views( $db, $timespan );
-
     DEBUG( "dumping stories ..." );
     my $stories_csv = get_stories_csv( $db, $timespan );
-    store_file( $db, $timespan, "stories", $stories_csv );
+    store_timespan_file( $db, $timespan, "stories", $stories_csv );
 
     DEBUG( "dumping media ..." );
     my $media_csv = get_media_csv( $db, $timespan );
-    store_file( $db, $timespan, "media", $media_csv );
+    store_timespan_file( $db, $timespan, "media", $media_csv );
 
     DEBUG( "dumping story links ..." );
     my $story_links_csv = get_story_links_csv( $db, $timespan );
-    store_file( $db, $timespan, "story_links", $story_links_csv );
+    store_timespan_file( $db, $timespan, "story_links", $story_links_csv );
  
     DEBUG( "dumping medium_links ..." );
     my $medium_links_csv = get_medium_links_csv( $db, $timespan );
-    store_file( $db, $timespan, "medium_links", $medium_links_csv );
+    store_timespan_file( $db, $timespan, "medium_links", $medium_links_csv );
 
     DEBUG ( "dump topic posts ...");
     my $topic_posts_csv = get_topic_posts_csv( $db, $timespan );
-    store_file( $db, $timespan, "topic_posts", $topic_posts_csv );
+    store_timespan_file( $db, $timespan, "topic_posts", $topic_posts_csv );
 
     DEBUG ( "dump topic post stories ...");
     my $topic_post_stories_csv = get_post_stories_csv( $db, $timespan );
-    store_file( $db, $timespan, "post_stories", $topic_post_stories_csv );
+    store_timespan_file( $db, $timespan, "post_stories", $topic_post_stories_csv );
+}
 
-    $db->query( "discard temp" );
+sub get_topic_posts_ndjson
+{
+    my ( $db, $snapshot ) = @_;
+
+    $db->begin;
+
+    $db->query( <<SQL, $snapshot->{ snapshots_id } );
+declare posts cursor for
+    with _snapshot_posts as (
+        select distinct topic_posts_id
+            from snap.timespan_posts stp
+                join timespans t using ( timespans_id )
+            where 
+                t.snapshots_id = ?
+    )
+                
+    select tp.* from topic_posts tp join _snapshot_posts sp using ( topic_posts_id )
+SQL
+
+    my $ndjson = '';
+    while ( 1 )
+    {
+        my $posts = $db->query( "fetch 1000 from posts" )->hashes();
+
+        last unless ( @{ $posts } );
+
+        $ndjson .= join( '', map { MediaWords::Util::ParseJSON::encode_json( $_ ) . '' } @{ $posts } );
+    }
+
+    $db->commit;
+
+    return $ndjson;
+}
+
+sub store_snapshot_file($$$$)
+{
+    my ( $db, $snapshot, $name, $content ) = @_;
+
+    my $object_id = "$snapshot->{ snapshots_id }-$name";
+    my $object_type = $MediaWords::Util::PublicS3Store::SNAPSHOT_FILES_TYPE;
+
+    MediaWords::Util::PublicS3Store::store_content( $db, $object_type, $object_id, $content, 'application/x-ndjson' );
+
+    my $url = MediaWords::Util::PublicS3Store::get_content_url( $db, $object_type, $object_id );
+
+    $db->query( <<SQL, $snapshot->{ snapshots_id }, $name, $url );
+insert into snapshot_files ( snapshots_id, name, url )
+    values ( ?, ?, ? )
+    on conflict ( snapshots_id, name ) do update set
+        url = excluded.url
+SQL
+
+}
+
+# generate dumps at the snapshot level and store then in s3, with the public urls stored in snapshot_files
+sub dump_snapshot($$)
+{
+    my  ( $db, $snapshot ) = @_;
+
+    my $topic_posts_json = get_topic_posts_ndjson( $db, $snapshot );
+    store_snapshot_file( $db, $snapshot, 'topic_posts', $topic_posts_json );
 }
 
 1;

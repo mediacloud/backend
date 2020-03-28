@@ -30,7 +30,7 @@ class KeyValueStore(metaclass=abc.ABCMeta):
         raise NotImplementedError("Abstract method.")
 
     @abc.abstractmethod
-    def store_content(self, db: DatabaseHandler, object_id: int, content: Union[str, bytes]) -> str:
+    def store_content(self, db: DatabaseHandler, object_id: int, content: Union[str, bytes], content_type: str) -> str:
         """Write object (str or bytes). Returns path to the object on success, raises on error."""
         raise NotImplementedError("Abstract method.")
 

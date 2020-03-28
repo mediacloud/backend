@@ -205,8 +205,7 @@ class AmazonS3Store(KeyValueStore):
             db: DatabaseHandler,
             object_id: int,
             content: Union[str, bytes],
-            content_type: str='binary/octet-stream',
-            content_encoding: str='identity') -> str:
+            content_type: str='binary/octet-stream') -> str:
         """Write object to Amazon S3."""
 
         object_id = self._prepare_object_id(object_id)
@@ -231,6 +230,8 @@ class AmazonS3Store(KeyValueStore):
             raise McAmazonS3StoreException("Content is None after compression for object ID %d" % object_id)
         if not isinstance(content, bytes):
             raise McAmazonS3StoreException("Content is not bytes after compression for object ID %d" % object_id)
+
+        content_encoding = 'gzip' if self.__compression == KeyValueStore.Compression.GZIP else 'identity'
 
         # S3 sometimes times out when writing, so we'll try to read several times
         write_was_successful = False

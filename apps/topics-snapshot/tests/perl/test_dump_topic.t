@@ -20,27 +20,28 @@ Readonly my $NUM_MEDIA => 5;
 Readonly my $NUM_STORIES_PER_MEDIUM => 10;
 
 
-sub validate_timespan_file
+sub validate_file
 {
-    my ( $db, $timespan, $name, $num_expected_rows ) = @_;
+    my ( $table, $db, $row_id, $name, $num_expected_rows ) = @_;
 
-    my $label = $timespan->{ foci_id } ? "url sharing timespan" : "overall timespan";
+    my $label .= "$table [$row_id] $name";
 
-    $label .= " $name";
-
-    my $timespan_file = $db->query( <<SQL, $timespan->{ timespans_id }, $name )->hash;
-select * from timespan_files where timespans_id = ? and name = ?
+    my $file = $db->query( <<SQL, $row_id, $name )->hash;
+select * from ${table}_files where ${table}s_id = ? and name = ?
 SQL
 
-    ok( $timespan_file, "$label file exists" );
+    ok( $file, "$label file exists" );
     
     my $ua = MediaWords::Util::Web::UserAgent->new();
 
-    my $response = $ua->get( $timespan_file->{ url } );
+    my $response = $ua->get( $file->{ url } );
 
     ok( $response->is_success, "$label url response is success" );
 
     my $content = $response->decoded_content();
+
+    return unless ( $response->content_type() eq 'text/csv' );
+
     my $encoded_content = Encode::encode( 'utf-8', $content );
 
     my $got_rows = MediaWords::Util::CSV::get_encoded_csv_as_hashes( $encoded_content );
@@ -55,6 +56,15 @@ SQL
     }
 }
 
+sub validate_timespan_file
+{
+    validate_file( 'timespan', @_ );
+}
+
+sub validate_snapshot_file
+{
+    validate_file( 'snapshot', @_ );
+}
 
 sub main
 {
@@ -71,21 +81,29 @@ sub main
 
     my $timespan = $db->query( "select * from timespans where period = 'overall' and foci_id is null" )->hash;
 
-    MediaWords::TM::Dump::dump_timespan( $db, $timespan );
+    MediaWords::TM::Snapshot::Views::setup_temporary_snapshot_views( $db, $timespan );
 
-    validate_timespan_file( $db, $timespan, 'stories', $num_stories );
-    validate_timespan_file( $db, $timespan, 'media', $NUM_MEDIA );
-    validate_timespan_file( $db, $timespan, 'story_links', $num_stories );
-    validate_timespan_file( $db, $timespan, 'medium_links' );
-    validate_timespan_file( $db, $timespan, 'post_stories', 0 );
-    validate_timespan_file( $db, $timespan, 'topic_posts', 0 );
+    validate_timespan_file( $db, $timespan->{ timespans_id }, 'stories', $num_stories );
+    validate_timespan_file( $db, $timespan->{ timespans_id }, 'media', $NUM_MEDIA );
+    validate_timespan_file( $db, $timespan->{ timespans_id }, 'story_links', $num_stories );
+    validate_timespan_file( $db, $timespan->{ timespans_id }, 'medium_links' );
+    validate_timespan_file( $db, $timespan->{ timespans_id }, 'post_stories', 0 );
+    validate_timespan_file( $db, $timespan->{ timespans_id }, 'topic_posts', 0 );
+
+    $db->query( "discard temp" );
 
     my $post_timespan = $db->query( "select * from timespans where period = 'overall' and foci_id is not null" )->hash;
 
-    MediaWords::TM::Dump::dump_timespan( $db, $post_timespan );
+    MediaWords::TM::Snapshot::Views::setup_temporary_snapshot_views( $db, $post_timespan );
 
-    validate_timespan_file( $db, $post_timespan, 'topic_posts', $num_posts );
-    validate_timespan_file( $db, $post_timespan, 'post_stories', $num_posts );
+    validate_timespan_file( $db, $post_timespan->{ timespans_id }, 'topic_posts', $num_posts );
+    validate_timespan_file( $db, $post_timespan->{ timespans_id }, 'post_stories', $num_posts );
+
+    $db->query( "discard temp" );
+
+    my $snapshot = $db->require_by_id( 'snapshots', $post_timespan->{ snapshots_id } );
+
+    validate_snapshot_file( $db, $snapshot->{ snapshots_id }, 'topic_posts', $num_posts );
 
     done_testing();
 }

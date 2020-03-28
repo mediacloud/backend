@@ -1108,6 +1108,16 @@ LANGUAGE SQL;
 SELECT downloads_success_feed_create_partitions();
 
 
+-- table for postgresql storage type for mediawords.util.public_store.py
+create table public_objects (
+    public_objects_id   bigserial   primary key,
+    object_id           numeric not null,
+    raw_data            bytea not null
+);
+
+create unique index public_objects_id on public_objects ( object_id );
+
+
 --
 -- Raw downloads stored in the database
 -- (if the "postgresql" download storage method is enabled)

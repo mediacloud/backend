@@ -694,9 +694,9 @@ sub _update_timespan_counts($$;$)
 # generate the snapshot timespans for the given period, dates, and tag
 sub _generate_timespan($$$$$$)
 {
-    my ( $db, $cd, $start_date, $end_date, $period, $focus ) = @_;
+    my ( $db, $snapshot, $start_date, $end_date, $period, $focus ) = @_;
 
-    my $timespan = _create_timespan( $db, $cd, $start_date, $end_date, $period, $focus );
+    my $timespan = _create_timespan( $db, $snapshot, $start_date, $end_date, $period, $focus );
 
     my $snapshot_label = "${ period }: ${ start_date } - ${ end_date } ";
     $snapshot_label .= "[ $focus->{ name } ]" if ( $focus );
@@ -1163,11 +1163,9 @@ sub _validate_periods($$)
 # Returns snapshots_id of the provided or newly created snapshot.
 sub snapshot_topic ($$;$$$$)
 {
-    my ( $db, $topics_id, $snapshots_id, $note, $bot_policy, $periods ) = @_;
+    my ( $db, $topics_id, $snapshots_id, $note, $bot_policy ) = @_;
 
-    my $allowed_periods = [ qw(custom overall weekly monthly) ];
-
-    $periods = $allowed_periods if ( !$periods || !@{ $periods } );
+    my $periods = [ qw(custom overall weekly monthly) ];
 
     _validate_periods( $periods, $allowed_periods );
 
