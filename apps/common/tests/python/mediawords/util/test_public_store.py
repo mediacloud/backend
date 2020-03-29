@@ -1,5 +1,5 @@
 import mediawords.db
-from mediawords.util.public_s3_store import *
+from mediawords.util.public_store import *
 from mediawords.util.web.user_agent import UserAgent
 
 def test_store_fetch() -> None:
@@ -17,8 +17,3 @@ def test_store_fetch() -> None:
     assert got_content == test_content
 
     url = get_content_url(db, TIMESPAN_MAPS_TYPE, test_content_id)
-    response = UserAgent().get(url)
-
-    assert response.is_success
-    assert response.decoded_content() == test_content.decode('utf-8')
-    assert response.content_type() == test_content_type

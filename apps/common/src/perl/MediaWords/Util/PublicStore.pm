@@ -1,4 +1,4 @@
-package MediaWords::Util::PublicS3Store;
+package MediaWords::Util::PublicStore;
 
 #
 # Store and fetch content from the public s3 store
