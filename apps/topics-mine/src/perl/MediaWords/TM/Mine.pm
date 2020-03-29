@@ -51,13 +51,16 @@ Readonly my $SPIDER_LINKS_CHUNK_SIZE => 100_000;
 Readonly my $MAX_JOB_ERROR_RATE => 0.02;
 
 # timeout when polling for jobs to finish
-Readonly my $JOB_POLL_TIMEOUT => 3600;
+Readonly my $JOB_POLL_TIMEOUT => 600;
 
 # number of seconds to wait when polling for jobs to finish
 Readonly my $JOB_POLL_WAIT => 5;
 
 # if more than this many seed urls are imported, dedup stories before as well as after spidering
 Readonly my $MIN_SEED_IMPORT_FOR_PREDUP_STORIES => 50_000;
+
+# how man link extraction jobs per 1000 can we ignore if they hang
+Readonly my $MAX_LINK_EXTRACTION_TIMEOUT => 3;
 
 # if mine_topic is run with the test_mode option, set this true and do not try to queue extractions
 my $_test_mode;
@@ -142,21 +145,15 @@ SQL
 
     my $queued_ids_table = $db->get_temporary_ids_table( $queued_stories_ids );
 
-    # poll every $sleep_time seconds waiting for the jobs to complete.  die if the number of stories left to process
-    # has not shrunk for $large_timeout seconds.  warn but continue if the number of stories left to process
-    # is only 5% of the total and short_timeout has passed (this is to make the topic not hang entirely because
-    # of one link extractor job error).
+    # poll every $JOB_POLL_WAIT seconds waiting for the jobs to complete.  die if the number of stories left to process
+    # has not shrunk for $JOB_POLL_TIMEOUT seconds. 
     my $prev_num_queued_stories = scalar( @{ $stories } );
     my $last_change_time        = time();
     while ( 1 )
     {
         my $queued_stories = $db->query( <<SQL, $topic->{ topics_id } )->flat();
-select stories_id
-    from topic_stories
-    where
-        stories_id in ( select id from $queued_ids_table ) and
-        topics_id = ? and
-        link_mined = 'f'
+select stories_id from topic_stories
+    where stories_id in ( select id from $queued_ids_table ) and topics_id = ? and link_mined = 'f'
 SQL
 
         my $num_queued_stories = scalar( @{ $queued_stories } );
@@ -167,7 +164,14 @@ SQL
         if ( ( time() - $last_change_time ) > $JOB_POLL_TIMEOUT )
         {
             my $ids_list = join( ', ', @{ $queued_stories } );
-            LOGDIE( "Timed out waiting for story link extraction ($ids_list)." );
+            if ( $num_queued_stories > $MAX_LINK_EXTRACTION_TIMEOUT )
+            {
+                LOGDIE( "Timed out waiting for story link extraction ($ids_list)." );
+            }
+
+            $db->query( <<SQL, $topic->{ topics_id } );
+update topic_stories set link_mine_error = 'time out' where stories_id in ( $ids_list ) and topics_id = ?
+SQL
         }
 
         INFO( "$num_queued_stories stories left in link extraction pool...." );
@@ -178,10 +182,7 @@ SQL
 
     $db->query( <<SQL, $topic->{ topics_id } );
 update topic_stories set link_mined = 't'
-    where
-        stories_id in ( select id from $stories_ids_table ) and
-        topics_id = ? and
-        link_mined = 'f'
+    where stories_id in ( select id from $stories_ids_table ) and topics_id = ? and link_mined = 'f'
 SQL
 
     $db->query( "discard temp" );
