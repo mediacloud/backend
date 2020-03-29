@@ -8,10 +8,8 @@ services:
         stop_signal: SIGKILL
         environment:
             MC_TOPICS_SNAPSHOT_MODEL_REPS: "0"
-            MC_PUBLIC_AMAZON_S3_ACCESS_KEY_ID: "${MC_PUBLIC_AMAZON_S3_ACCESS_KEY_ID}"
-            MC_PUBLIC_AMAZON_S3_SECRET_ACCESS_KEY: "${MC_PUBLIC_AMAZON_S3_SECRET_ACCESS_KEY}"
-            MC_PUBLIC_AMAZON_S3_BUCKET_NAME: "${MC_PUBLIC_AMAZON_S3_BUCKET_NAME}"
-            MC_PUBLIC_AMAZON_S3_SALT: "${MC_PUBLIC_AMAZON_S3_SALT}"
+            MC_PUBLIC_STORE_TYPE: "postgresql"
+            MC_PUBLIC_STORE_SALT: "foo"
         volumes:
             - type: bind
               source: ./bin/

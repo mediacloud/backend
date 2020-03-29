@@ -17,7 +17,7 @@ use MediaWords::TM::Snapshot::ExtraFields;
 use MediaWords::TM::Snapshot::Views;
 use MediaWords::Util::CSV;
 use MediaWords::Util::ParseJSON;
-use MediaWords::Util::PublicS3Store;
+use MediaWords::Util::PublicStore;
 
 # Get an encoded csv snapshot of the story links for the given timespan.
 sub get_story_links_csv($$)
@@ -162,16 +162,25 @@ SQL
 }
 
 
+# get the object_id with which to store the file
+sub get_store_object_id
+{
+    my ( $id, $name ) = @_;
+
+    return "$id-$name";
+}
+
+
 sub store_timespan_file($$$$)
 {
     my ( $db, $timespan, $name, $content ) = @_;
 
-    my $object_id = "$timespan->{ timespans_id }-$name";
-    my $object_type = $MediaWords::Util::PublicS3Store::TIMESPAN_FILES_TYPE;
+    my $object_id = get_store_object_id( $timespan->{ timespans_id }, $name );
+    my $object_type = 'timespan_files';
 
-    MediaWords::Util::PublicS3Store::store_content( $db, $object_type, $object_id, $content, 'text/csv' );
+    MediaWords::Util::PublicStore::store_content( $db, $object_type, $object_id, $content, 'text/csv' );
 
-    my $url = MediaWords::Util::PublicS3Store::get_content_url( $db, $object_type, $object_id );
+    my $url = MediaWords::Util::PublicStore::get_content_url( $db, $object_type, $object_id );
 
     $db->query( <<SQL, $timespan->{ timespans_id }, $name, $url );
 insert into timespan_files ( timespans_id, name, url )
@@ -251,12 +260,12 @@ sub store_snapshot_file($$$$)
 {
     my ( $db, $snapshot, $name, $content ) = @_;
 
-    my $object_id = "$snapshot->{ snapshots_id }-$name";
-    my $object_type = $MediaWords::Util::PublicS3Store::SNAPSHOT_FILES_TYPE;
+    my $object_id = get_store_object_id( $snapshot->{ snapshots_id }, $name );
+    my $object_type = 'snapshot_files';
 
-    MediaWords::Util::PublicS3Store::store_content( $db, $object_type, $object_id, $content, 'application/x-ndjson' );
+    MediaWords::Util::PublicStore::store_content( $db, $object_type, $object_id, $content, 'application/x-ndjson' );
 
-    my $url = MediaWords::Util::PublicS3Store::get_content_url( $db, $object_type, $object_id );
+    my $url = MediaWords::Util::PublicStore::get_content_url( $db, $object_type, $object_id );
 
     $db->query( <<SQL, $snapshot->{ snapshots_id }, $name, $url );
 insert into snapshot_files ( snapshots_id, name, url )

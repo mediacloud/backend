@@ -4,6 +4,10 @@ from mediawords.db import DatabaseHandler
 from mediawords.key_value_store import KeyValueStore, McKeyValueStoreException
 from mediawords.util.perl import decode_object_from_bytes_if_needed
 
+from mediawords.util.log import create_logger
+
+log = create_logger(__name__)
+
 
 class McPostgreSQLStoreException(McKeyValueStoreException):
     """PostgreSQL key-value store exception."""

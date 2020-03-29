@@ -1107,16 +1107,33 @@ LANGUAGE SQL;
 -- Create initial "downloads_success_feed" partitions for empty database
 SELECT downloads_success_feed_create_partitions();
 
+-- table for object types used for mediawords.util.public_store
+create schema public_store;
 
--- table for postgresql storage type for mediawords.util.public_store.py
-create table public_objects (
-    public_objects_id   bigserial   primary key,
-    object_id           numeric not null,
+
+create table public_store.timespan_files (
+    timespan_files_id   bigserial   primary key,
+    object_id           bigint not null,
     raw_data            bytea not null
 );
 
-create unique index public_objects_id on public_objects ( object_id );
+create unique index timespan_files_id on public_store.timespan_files ( object_id );
 
+create table public_store.snapshot_files (
+    snapshot_files_id   bigserial   primary key,
+    object_id           bigint not null,
+    raw_data            bytea not null
+);
+
+create unique index snapshot_files_id on public_store.snapshot_files ( object_id );
+
+create table public_store.timespan_maps (
+    timespan_maps_id   bigserial   primary key,
+    object_id           bigint not null,
+    raw_data            bytea not null
+);
+
+create unique index timespan_maps_id on public_store.timespan_maps ( object_id );
 
 --
 -- Raw downloads stored in the database

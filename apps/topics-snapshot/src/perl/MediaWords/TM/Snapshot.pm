@@ -46,6 +46,7 @@ use MediaWords::JobManager::AbstractStatefulJob;
 use MediaWords::JobManager::Job;
 use MediaWords::Solr;
 use MediaWords::TM::Alert;
+use MediaWords::TM::Dump;
 use MediaWords::TM::Model;
 use MediaWords::TM::Snapshot::Views;
 use MediaWords::Util::ParseJSON;
@@ -661,6 +662,8 @@ sub generate_timespan_data($$;$)
     INFO "Adding a new topics-map job for timespan";
     my $timespans_id = $timespan->{ timespans_id };
     MediaWords::JobManager::Job::add_to_queue( 'MediaWords::Job::TM::Map', { timespans_id => $timespans_id } );
+
+    MediaWords::TM::Dump::dump_timespan( $db, $timespan );
 }
 
 # Update story_count, story_link_count, medium_count, and medium_link_count
@@ -1140,16 +1143,6 @@ SQL
 }
 
 # die if each of the $periods is not among the $allowed_periods
-sub _validate_periods($$)
-{
-    my ( $periods, $allowed_periods ) = @_;
-
-    for my $period ( @{ $allowed_periods } )
-    {
-        die( "unknown period: '$period'" ) unless ( grep { $period eq $_ } @{ $allowed_periods } );
-    }
-}
-
 # Create a snapshot for the given topic.  Optionally pass a note and/or a bot_policy field to the created snapshot.
 #
 # The bot_policy should be one of 'all', 'no bots', or 'only bots' indicating for twitter topics whether and how to
@@ -1166,8 +1159,6 @@ sub snapshot_topic ($$;$$$$)
     my ( $db, $topics_id, $snapshots_id, $note, $bot_policy ) = @_;
 
     my $periods = [ qw(custom overall weekly monthly) ];
-
-    _validate_periods( $periods, $allowed_periods );
 
     my $topic = $db->require_by_id( 'topics', $topics_id );
 
@@ -1203,6 +1194,8 @@ sub snapshot_topic ($$;$$$$)
     map { _generate_period_snapshot( $db, $snap, $_, undef ) } ( @{ $periods } );
 
     _generate_period_focus_snapshots( $db, $snap, $periods );
+
+    MediaWords::TM::Dump::dump_snapshot( $db, $snap );
 
     _update_job_state_message( $db, "finalizing snapshot" );
 
