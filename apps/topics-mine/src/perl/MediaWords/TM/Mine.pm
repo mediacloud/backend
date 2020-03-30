@@ -60,7 +60,7 @@ Readonly my $JOB_POLL_WAIT => 5;
 Readonly my $MIN_SEED_IMPORT_FOR_PREDUP_STORIES => 50_000;
 
 # how man link extraction jobs per 1000 can we ignore if they hang
-Readonly my $MAX_LINK_EXTRACTION_TIMEOUT => 3;
+Readonly my $MAX_LINK_EXTRACTION_TIMEOUT => 10;
 
 # if mine_topic is run with the test_mode option, set this true and do not try to queue extractions
 my $_test_mode;
@@ -172,6 +172,7 @@ SQL
             $db->query( <<SQL, $topic->{ topics_id } );
 update topic_stories set link_mine_error = 'time out' where stories_id in ( $ids_list ) and topics_id = ?
 SQL
+            last;
         }
 
         INFO( "$num_queued_stories stories left in link extraction pool...." );
