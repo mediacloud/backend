@@ -18,7 +18,7 @@ from topics_mine.posts import AbstractPostFetcher
 log = create_logger(__name__)
 
 # number of seconds to wait after a google request
-GOOGLE_REQUEST_DELAY = 600
+GOOGLE_REQUEST_DELAY = 120
 
 # last time a google request was made
 _last_google_request_epoch = 0
