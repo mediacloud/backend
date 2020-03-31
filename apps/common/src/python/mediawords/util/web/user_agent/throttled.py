@@ -29,7 +29,8 @@ _ACCELERATED_DOMAINS = {
     'doi.org',
     'archive.org',
     'reddit.com',
-    'youtube.com'
+    'youtube.com',
+    'instagram.com'
 }
 
 # Divide the normal domain timeout by this for accelerated URLs
