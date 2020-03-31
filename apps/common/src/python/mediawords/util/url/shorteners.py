@@ -53,6 +53,7 @@ URL_SHORTENER_HOSTNAMES = {
     'budurl.com',
     'buk.me',
     'burnurl.com',
+    'c212.net',
     'c-o.in',
     'canurl.com',
     'chilp.it',
