@@ -2177,7 +2177,7 @@ create table timespan_files (
 create unique index timespan_files_timespan_name on timespan_files ( timespans_id, name );
 
 create table snapshot_files (
-    snap_files_id                       serial primary key,
+    snapshot_files_id                       serial primary key,
     snapshots_id                        int not null references snapshots on delete cascade,
     name                                text,
     url                                 text

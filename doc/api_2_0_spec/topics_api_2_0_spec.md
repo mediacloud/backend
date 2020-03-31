@@ -976,6 +976,82 @@ Response:
 }
 ```
 
+## `topics/<topics_id>/list_timespan_files`
+
+`https://api.mediacloud.org/api/v2/topics/<topics_id>/list_timespan_files`
+
+List all timespan\_files associated with the given timespan.  Timespan files are dumps made by the spider
+during the snapshotting process.
+
+### Query Parameters
+
+(no parameters)
+
+### Output Description
+
+| Field      | Description                              |
+| ---------- | :--------------------------------------- |
+| timespans\_id      | id of associated timespan |
+| name  | name of file |
+| url | public url of file |
+
+### Example
+
+`https://api.mediacloud.org/api/v2/topics/123/list_timespan_files`
+
+Response:
+
+```json
+{
+  "timespan_files":
+  [
+    {
+      "timespans_id":123",
+      "name": "stories",
+      "url": "http://foo.bar/123"
+    }
+  ]
+}
+
+## `topics/<topics_id>/list_snapshot_files`
+
+`https://api.mediacloud.org/api/v2/topics/<topics_id>/list_snapshot_files`
+
+List all snapshot\_files associated with the given snapshot.  Snapshot files are dumps made by the spider
+during the snapshotting process. Snapshot files are only accessible by users with admin access.
+
+### Query Parameters
+
+(no parameters)
+
+### Output Description
+
+| Field      | Description                              |
+| ---------- | :--------------------------------------- |
+| snapshots\_id      | id of associated snapshot |
+| name  | name of file |
+| url | public url of file |
+
+### Example
+
+`https://api.mediacloud.org/api/v2/topics/123/list_snapshot_files`
+
+Response:
+
+```json
+{
+  "snapshot_files":
+  [
+    {
+      "snapshots_id":123",
+      "name": "topic_posts",
+      "url": "http://foo.bar/123"
+    }
+  ]
+}
+```
+
+
 # Permissions
 
 ## `topics/permissions/user/list`
