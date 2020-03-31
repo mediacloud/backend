@@ -300,6 +300,24 @@ SQL
     }
 }
 
+# list a sample of the pending urls for fetching
+sub show_pending_urls($)
+{
+    my ( $pending_urls ) = @_;
+
+    my $num_pending_urls = scalar( @{ $pending_urls } );
+
+    my $num_printed_urls = List::Util::min( $num_pending_urls, 3 );
+
+    my @shuffled_ids = List::Util::shuffle( 0 .. ( $num_pending_urls - 1 ) );
+
+    for my $id ( @shuffled_ids[ 0 .. ( $num_printed_urls - 1 ) ] )
+    {
+        my $url = $pending_urls->[ $id ];
+        INFO( "pending url: $url->{ url } [$url->{ state }: $url->{ fetch_date }]" );
+    }
+}
+
 # fetch the given links by creating topic_fetch_urls rows and sending them to the FetchLink queue
 # for processing.  wait for the queue to complete and returnt the resulting topic_fetch_urls.
 sub fetch_links
@@ -345,11 +363,7 @@ SQL
 
         INFO( "waiting for fetch link queue: $num_pending_urls links remaining ..." );
 
-        # useful in debugging for showing lingering urls
-        if ( ( $num_pending_urls <= 5 ) && ( $last_num_pending_urls != $num_pending_urls ) )
-        {
-            map { INFO( "pending url: $_->{ url } [$_->{ state }: $_->{ fetch_date }]" ) } @{ $pending_urls };
-        }
+        show_pending_urls( $pending_urls );
 
         last if ( $num_pending_urls < 1 );
 
