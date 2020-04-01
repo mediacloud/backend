@@ -1,6 +1,6 @@
 import pytest
 
-from mediawords.util.text import McRandomStringException, random_string
+from mediawords.util.text import McRandomStringException, random_string, escape_for_repr
 
 
 def test_random_string():
@@ -18,3 +18,11 @@ def test_random_string():
     assert len(string_2) == length
     assert string_1.isalnum()
     assert string_2.isalnum()
+
+
+def test_escape_for_repr():
+    assert escape_for_repr(None) == "None"
+    assert escape_for_repr('a') == "'a'"
+    assert escape_for_repr(1) == "1"
+    assert escape_for_repr(1.23) == "1.23"
+    assert escape_for_repr(b'abcdef') == "b'abcdef'"
