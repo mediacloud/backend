@@ -205,8 +205,6 @@ def solr_request(path: str,
     # Solr might still be starting up so wait for it to expose the collections list
     __wait_for_solr_to_start(config=config)
 
-    log.debug(f"Requesting URL: {abs_url}...")
-
     if content:
 
         if not content_type:
@@ -227,6 +225,8 @@ def solr_request(path: str,
     else:
 
         request = Request(method='GET', url=abs_url)
+
+    log.debug(f"Sending Solr request: {request}")
 
     response = ua.request(request)
 
