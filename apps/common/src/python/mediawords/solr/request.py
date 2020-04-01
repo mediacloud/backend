@@ -4,11 +4,12 @@ Do GET / POST requests to Solr.
 
 import abc
 import time
-from typing import Dict, Union, Optional
+from typing import Union, Optional
 from urllib.parse import urlencode
 
 from furl import furl
 
+from mediawords.solr.params import SolrParams
 from mediawords.util.config.common import CommonConfig
 from mediawords.util.log import create_logger
 from mediawords.util.parse_json import decode_json, encode_json
@@ -151,8 +152,8 @@ def __solr_error_message_from_response(response: Response) -> str:
 
 
 def solr_request(path: str,
-                 params: Optional[Dict[str, Union[str, int]]] = None,
-                 content: Optional[Union[str, Dict[str, Union[str, int]]]] = None,
+                 params: SolrParams = None,
+                 content: Union[str, SolrParams] = None,
                  content_type: Optional[str] = None,
                  config: Optional[CommonConfig] = None) -> str:
     """
