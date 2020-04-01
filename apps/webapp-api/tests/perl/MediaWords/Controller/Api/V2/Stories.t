@@ -9,13 +9,13 @@ use Test::More;
 use Test::Deep;
 
 use MediaWords::DB;
+use MediaWords::Job::Broker;
 use MediaWords::Test::API;
 use MediaWords::Test::Rows;
 use MediaWords::Test::Solr;
 use MediaWords::Test::Types;
 use MediaWords::Test::DB::Create;
 use MediaWords::DBI::Downloads::Store;
-use MediaWords::JobManager::Job;
 
 Readonly my $NUM_MEDIA            => 3;
 Readonly my $NUM_FEEDS_PER_MEDIUM => 2;
@@ -267,10 +267,7 @@ sub test_stories_count_split($)
 update stories set publish_date = '2017-01-01'::date + ( ( stories_id % 27 )::text || ' days' )::interval
 SQL
 
-    MediaWords::JobManager::Job::run_remotely(  #
-        'MediaWords::Job::ImportSolrDataForTesting',  #
-        { throttle => 0 },   #
-    );
+    MediaWords::Job::Broker->new( 'MediaWords::Job::ImportSolrDataForTesting' )->run_remotely( { throttle => 0 } );
 
     my $date_counts = $db->query( "select publish_date, count(*) as count from stories group by publish_date" )->hashes;
 

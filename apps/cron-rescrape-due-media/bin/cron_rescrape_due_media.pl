@@ -15,7 +15,7 @@ use Readonly;
 use Getopt::Long;
 
 use MediaWords::DB;
-use MediaWords::JobManager::StatefulJob;
+use MediaWords::Job::StatefulBroker;
 
 sub main
 {
@@ -84,7 +84,7 @@ EOF
     INFO "Media count to be rescraped: " . scalar( @{ $due_media } );
     foreach my $media ( @{ $due_media } )
     {
-        MediaWords::JobManager::StatefulJob::add_to_queue( 'MediaWords::Job::RescrapeMedia', { media_id => $media->{ media_id } } );
+        MediaWords::Job::StatefulBroker->new( 'MediaWords::Job::RescrapeMedia' )->add_to_queue( { media_id => $media->{ media_id } } );
     }
 }
 

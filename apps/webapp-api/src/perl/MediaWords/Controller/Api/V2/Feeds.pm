@@ -4,8 +4,9 @@ use MediaWords::CommonLibs;
 
 use strict;
 use warnings;
+
 use MediaWords::Controller::Api::V2::MC_REST_SimpleObject;
-use MediaWords::JobManager::StatefulJob;
+use MediaWords::Job::StatefulBroker;
 
 use Moose;
 use namespace::autoclean;
@@ -118,7 +119,7 @@ SQL
     if ( !$job_state )
     {
         $db->begin;
-        MediaWords::JobManager::StatefulJob::add_to_queue( $job_class, { media_id => $data->{ media_id } } );
+        MediaWords::Job::StatefulBroker->new( $job_class )->add_to_queue( { media_id => $data->{ media_id } } );
         $job_state = $db->query( "select $JOB_STATE_FIELD_LIST from job_states order by job_states_id desc limit 1" )->hash;
         $db->commit;
 

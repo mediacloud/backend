@@ -16,7 +16,7 @@ use namespace::autoclean;
 use MediaWords::Solr;
 use MediaWords::Solr::Query;
 use MediaWords::Solr::Query::Parse;
-use MediaWords::JobManager::StatefulJob;
+use MediaWords::Job::StatefulBroker;
 
 BEGIN
 {
@@ -599,18 +599,21 @@ sub spider_GET
 
     my $mine_args = { topics_id => $topics_id, snapshots_id => $snapshots_id };
 
+    my $queue_name = undef;
     if ( $topic->{ job_queue } eq 'mc' )
     {
-        MediaWords::JobManager::StatefulJob::add_to_queue( 'MediaWords::Job::TM::MineTopic', $mine_args );
+        $queue_name = 'MediaWords::Job::TM::MineTopic';
     }
     elsif ( $topic->{ job_queue } eq 'public' )
     {
-        MediaWords::JobManager::StatefulJob::add_to_queue( 'MediaWords::Job::TM::MineTopicPublic', $mine_args );
+        $queue_name = 'MediaWords::Job::TM::MineTopicPublic';
     }
     else
     {
         LOGDIE( "unknown job_queue type: $topic->{ job_queue }" );
     }
+
+    MediaWords::Job::StatefulBroker->new( $queue_name )->add_to_queue( $mine_args );
 
     my $job_state = $db->query( "select $JOB_STATE_FIELD_LIST from job_states order by job_states_id desc limit 1" )->hash;
 

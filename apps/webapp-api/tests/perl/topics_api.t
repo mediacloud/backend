@@ -15,14 +15,15 @@ use Test::More;
 use MediaWords::DB;
 use MediaWords::DBI::Auth::Roles;
 use MediaWords::DBI::Snapshots;
+use MediaWords::Job::Broker;
+use MediaWords::Job::State;
+use MediaWords::Job::StatefulBroker;
 use MediaWords::Solr::Query::Parse;
 use MediaWords::Test::API;
 use MediaWords::Test::Rows;
 use MediaWords::Test::Solr;
 use MediaWords::Util::SQL;
 use MediaWords::Util::Web;
-use MediaWords::JobManager::Job;
-use MediaWords::JobManager::AbstractStatefulJob;
 use MediaWords::Test::DB::Create;
 
 Readonly my $TEST_HTTP_SERVER_PORT => '3000';
@@ -129,15 +130,12 @@ sub create_test_data($$)
     $topic_media_sources = MediaWords::Test::DB::Create::add_content_to_test_story_stack( $test_db, $topic_media_sources );
 
 
-    MediaWords::JobManager::Job::run_remotely( 'MediaWords::Job::TM::SnapshotTopic', { topics_id => $topic->{ topics_id } } );
+    MediaWords::Job::StatefulBroker->new( 'MediaWords::Job::TM::SnapshotTopic' )->run_remotely( { topics_id => $topic->{ topics_id } } );
 
     MediaWords::Test::Solr::setup_test_index( $test_db );
 
     # FIXME commented out because we're probably doing the same thing twice
-    # MediaWords::JobManager::Job::run_remotely(  #
-    #     'MediaWords::Job::ImportSolrDataForTesting',  #
-    #     { throttle => 0 },   #
-    # );
+    # MediaWords::Job::Broker->new( 'MediaWords::Job::ImportSolrDataForTesting' )->run_remotely( { throttle => 0 } );
 }
 
 sub test_media_list($)
@@ -501,7 +499,7 @@ sub test_topics_spider($)
 
     ok( $r->{ job_state }, "spider return includes job_state" );
 
-    is( $r->{ job_state }->{ state },        $MediaWords::JobManager::AbstractStatefulJob::STATE_QUEUED, "spider state" );
+    is( $r->{ job_state }->{ state },        $MediaWords::Job::State::STATE_QUEUED,  "spider state" );
     is( $r->{ job_state }->{ topics_id },    $topic->{ topics_id },                  "spider topics_id" );
     is( $r->{ job_state }->{ snapshots_id }, $snapshots_id,                          "spider snapshots_id" );
 
@@ -509,7 +507,7 @@ sub test_topics_spider($)
 
     ok( $r->{ job_states }, "spider status return includes job_states" );
 
-    is( $r->{ job_states }->[ 0 ]->{ state },        $MediaWords::JobManager::AbstractStatefulJob::STATE_QUEUED, "spider_status state" );
+    is( $r->{ job_states }->[ 0 ]->{ state },        $MediaWords::Job::State::STATE_QUEUED,  "spider_status state" );
     is( $r->{ job_states }->[ 0 ]->{ topics_id },    $topic->{ topics_id },                  "spider_status topics_id" );
     is( $r->{ job_states }->[ 0 ]->{ snapshots_id }, $snapshots_id,                          "spider_status snapshots_id" );
 }
@@ -633,8 +631,8 @@ sub test_snapshots_generate($)
     ok( $r->{ job_state }, "$label return includes job_state" );
 
     ok(
-        ( $r->{ 'job_state' }->{ 'state' } eq $MediaWords::JobManager::AbstractStatefulJob::STATE_QUEUED  ) or
-        ( $r->{ 'job_state' }->{ 'state' } eq $MediaWords::JobManager::AbstractStatefulJob::STATE_RUNNING ),
+        ( $r->{ 'job_state' }->{ 'state' } eq $MediaWords::Job::State::STATE_QUEUED  ) or
+        ( $r->{ 'job_state' }->{ 'state' } eq $MediaWords::Job::State::STATE_RUNNING ),
         "$label state"
     );
     is( $r->{ job_state }->{ topics_id }, $topic->{ topics_id }, "$label topics_id" );

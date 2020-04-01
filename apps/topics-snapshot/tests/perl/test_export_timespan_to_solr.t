@@ -12,7 +12,7 @@ use MediaWords::DB;
 use MediaWords::DBI::Topics;
 use MediaWords::TM::Snapshot;
 use MediaWords::Test::Solr;
-use MediaWords::JobManager::Job;
+use MediaWords::Job::Broker;
 use MediaWords::Test::DB::Create;
 use MediaWords::Job::TM::SnapshotTopic;
 
@@ -58,10 +58,7 @@ SQL
 
     my $timespan = MediaWords::DBI::Topics::get_latest_overall_timespan( $db, $topic->{ topics_id } );
 
-    MediaWords::JobManager::Job::run_remotely(  #
-        'MediaWords::Job::ImportSolrDataForTesting',  #
-        { empty_queue => 1 },   #
-    );
+    MediaWords::Job::Broker->new( 'MediaWords::Job::ImportSolrDataForTesting' )->run_remotely( { empty_queue => 1 } );
 
     my $num_topic_stories = MediaWords::Solr::get_solr_num_found( $db, { q => "timespans_id:$timespan->{ timespans_id }" } );
     is( $num_topic_stories, $num_topic_medium_stories, "topic stories after snapshot" );
@@ -78,10 +75,7 @@ SQL
 
     MediaWords::Job::TM::SnapshotTopic->run( { topics_id => $topic->{ topics_id } } );
 
-    MediaWords::JobManager::Job::run_remotely(  #
-        'MediaWords::Job::ImportSolrDataForTesting',  #
-        { empty_queue => 1 },   #
-    );
+    MediaWords::Job::Broker->new( 'MediaWords::Job::ImportSolrDataForTesting' )->run_remotely( { empty_queue => 1 } );
 
     my ( $focus_timespans_id ) = $db->query( <<SQL )->flat;
 select *

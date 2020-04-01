@@ -29,12 +29,11 @@ use MediaWords::TM::FetchTopicPosts;
 use MediaWords::TM::Stories;
 use MediaWords::DBI::Stories;
 use MediaWords::DBI::Stories::GuessDate;
-use MediaWords::JobManager::Job;
-use MediaWords::JobManager::StatefulJob;
+use MediaWords::Job::Broker;
+use MediaWords::Job::StatefulJobBroker;
 use MediaWords::Solr;
 use MediaWords::Solr::Query;
 use MediaWords::Util::SQL;
-use MediaWords::JobManager::AbstractStatefulJob;
 
 # total time to wait for fetching of social media metrics
 Readonly my $MAX_SOCIAL_MEDIA_FETCH_TIME => ( 60 * 60 * 24 );
@@ -64,16 +63,24 @@ Readonly my $MIN_SEED_IMPORT_FOR_PREDUP_STORIES => 50_000;
 my $_test_mode;
 
 # update topics.state in the database
-sub update_topic_state($$$;$)
+sub update_topic_state($$$)
 {
-    my ( $db, $topic, $message ) = @_;
+    my ( $db, $state_updater, $message ) = @_;
 
     INFO( "update topic state: $message" );
 
-    eval { MediaWords::JobManager::AbstractStatefulJob::update_job_state_message( $db, 'MediaWords::Job::TM::MineTopic', $message ) };
+    unless ( $state_updater ) {
+        # Shouldn't happen but let's just test it here
+        ERROR "State updater is unset.";
+        return;
+    }
+
+    eval {
+        $state_updater->update_job_state_message( $db, $message );
+    };
     if ( $@ )
     {
-        die "error updating job state: $@";
+        die "Error updating job state: $@";
     }
 }
 
@@ -131,8 +138,7 @@ SQL
 
         push( @{ $queued_stories_ids }, $story->{ stories_id } );
 
-        MediaWords::JobManager::Job::add_to_queue(
-            'MediaWords::Job::TM::ExtractStoryLinks',                                       #
+        MediaWords::Job::Broker->new( 'MediaWords::Job::TM::ExtractStoryLinks' )->add_to_queue(
             { stories_id => $story->{ stories_id }, topics_id => $topic->{ topics_id } },   #
         );
 
@@ -211,8 +217,7 @@ sub queue_topic_fetch_url($;$)
 
     $domain_timeout //= $_test_mode ? 0 : undef;
 
-    MediaWords::JobManager::Job::add_to_queue(
-        'MediaWords::Job::TM::FetchLink',
+    MediaWords::Job::Broker->new( 'MediaWords::Job::TM::FetchLink' )->add_to_queue(
         {
             topic_fetch_urls_id => $tfu->{ topic_fetch_urls_id },
             domain_timeout      => $domain_timeout
@@ -262,7 +267,9 @@ SQL
 
     my $tfu_ids_table = $db->get_temporary_ids_table( $twitter_tfu_ids );
 
-    MediaWords::JobManager::Job::add_to_queue( 'MediaWords::Job::TM::FetchTwitterUrls', { topic_fetch_urls_ids => $twitter_tfu_ids } );
+    MediaWords::Job::Broker->new( 'MediaWords::Job::TM::FetchTwitterUrls' )->add_to_queue(
+        { topic_fetch_urls_ids => $twitter_tfu_ids }
+    );
 
     INFO( "waiting for fetch twitter urls job for " . scalar( @{ $twitter_tfu_ids } ) . " urls" );
 
@@ -458,9 +465,9 @@ sub save_metrics($$$$$)
 }
 
 # call add_new_links in chunks of $ADD_NEW_LINKS_CHUNK_SIZE so we don't lose too much work when we restart the spider
-sub add_new_links($$$$)
+sub add_new_links($$$$$)
 {
-    my ( $db, $topic, $iteration, $new_links ) = @_;
+    my ( $db, $topic, $iteration, $new_links, $state_updater ) = @_;
 
     INFO( "add new links" );
 
@@ -479,7 +486,7 @@ sub add_new_links($$$$)
     {
         my $start_time = time;
 
-        update_topic_state( $db, $topic, "$spider_progress; iteration links: $i / $num_links" );
+        update_topic_state( $db, $state_updater, "$spider_progress; iteration links: $i / $num_links" );
 
         my $end = List::Util::min( $i + $ADD_NEW_LINKS_CHUNK_SIZE - 1, $#{ $shuffled_links } );
         add_new_links_chunk( $db, $topic, $iteration, [ @{ $shuffled_links }[ $i .. $end ] ] );
@@ -493,9 +500,9 @@ sub add_new_links($$$$)
 
 # find any links for the topic of this iteration or less that have not already been spidered and call
 # add_new_links on them.
-sub spider_new_links
+sub spider_new_links($$$$)
 {
-    my ( $db, $topic, $iteration ) = @_;
+    my ( $db, $topic, $iteration, $state_updater ) = @_;
 
     for ( my $i = 0 ; ; $i++ )
     {
@@ -515,12 +522,12 @@ END
 
         last unless ( @{ $new_links } );
 
-        add_new_links( $db, $topic, $iteration, $new_links );
+        add_new_links( $db, $topic, $iteration, $new_links, $state_updater );
     }
 }
 
 # get short text description of spidering progress
-sub get_spider_progress_description
+sub get_spider_progress_description($$$$)
 {
     my ( $db, $topic, $iteration, $total_links ) = @_;
 
@@ -545,16 +552,16 @@ SQL
 }
 
 # run the spider over any new links, for $num_iterations iterations
-sub run_spider
+sub run_spider($$$)
 {
-    my ( $db, $topic ) = @_;
+    my ( $db, $topic, $state_updater ) = @_;
 
     INFO( "run spider" );
 
     # before we run the spider over links, we need to make sure links have been generated for all existing stories
     mine_topic_stories( $db, $topic );
 
-    map { spider_new_links( $db, $topic, $topic->{ max_iterations } ) } ( 1 .. $topic->{ max_iterations } );
+    map { spider_new_links( $db, $topic, $topic->{ max_iterations }, $state_updater ) } ( 1 .. $topic->{ max_iterations } );
 }
 
 # mine for links any stories in topic_stories for this topic that have not already been mined
@@ -599,9 +606,9 @@ SQL
 
 # import all topic_seed_urls that have not already been processed;
 # return 1 if new stories were added to the topic and 0 if not
-sub import_seed_urls($$)
+sub import_seed_urls($$$)
 {
-    my ( $db, $topic ) = @_;
+    my ( $db, $topic, $state_updater ) = @_;
 
     INFO( "import seed urls" );
 
@@ -630,7 +637,7 @@ END
     {
         my $start_time = time;
 
-        update_topic_state( $db, $topic, "importing seed urls: $i / $num_urls" );
+        update_topic_state( $db, $state_updater, "importing seed urls: $i / $num_urls" );
 
         my $end = List::Util::min( $i + $ADD_NEW_LINKS_CHUNK_SIZE - 1, $#{ $seed_urls } );
         my $seed_urls_chunk = [ @{ $seed_urls }[ $i .. $end ] ];
@@ -900,7 +907,7 @@ END
             or !defined( $ss->{ facebook_comment_count } ) )
         {
             DEBUG( "Adding job for story $stories_id" );
-            MediaWords::JobManager::Job::add_to_queue( 'MediaWords::Job::Facebook::FetchStoryStats', $args );
+            MediaWords::Job::Broker->new( 'MediaWords::Job::Facebook::FetchStoryStats' )->add_to_queue( $args );
         }
     }
 }
@@ -986,9 +993,9 @@ SQL
 }
 
 # import urls from seed query 
-sub import_urls_from_seed_queries($$)
+sub import_urls_from_seed_queries($$$)
 {
-    my ( $db, $topic ) = @_;
+    my ( $db, $topic, $state_updater ) = @_;
     
     my $topic_seed_queries = $db->query(
         "select * from topic_seed_queries where topics_id = ?", $topic->{ topics_id } )->hashes();
@@ -1003,7 +1010,7 @@ sub import_urls_from_seed_queries($$)
     if ( $topic->{ mode } eq 'web' )
     {
         DEBUG( "import seed urls from solr" );
-        update_topic_state( $db, $topic, "importing solr seed query" );
+        update_topic_state( $db, $state_updater, "importing solr seed query" );
         import_solr_seed_query( $db, $topic );
     }
 
@@ -1100,9 +1107,9 @@ SQL
 #   import_only - only run import_seed_urls and import_solr_seed and exit
 #   skip_post_processing - skip social media fetching and snapshotting
 #   snapshots_id - associate topic with the given existing snapshot
-sub do_mine_topic ($$;$)
+sub do_mine_topic($$;$$)
 {
-    my ( $db, $topic, $options ) = @_;
+    my ( $db, $topic, $options, $state_updater ) = @_;
 
     # if ( !$topic->{ is_story_index_ready } )
     # {
@@ -1111,51 +1118,51 @@ sub do_mine_topic ($$;$)
 
     map { $options->{ $_ } ||= 0 } qw/import_only skip_post_processing test_mode/;
 
-    update_topic_state( $db, $topic, "importing seed urls" );
-    import_urls_from_seed_queries( $db, $topic );
+    update_topic_state( $db, $state_updater, "importing seed urls" );
+    import_urls_from_seed_queries( $db, $topic, $state_updater );
 
-    update_topic_state( $db, $topic, "setting stories respidering..." );
+    update_topic_state( $db, $state_updater, "setting stories respidering..." );
     set_stories_respidering( $db, $topic, $options->{ snapshots_id } );
 
     # this may put entires into topic_seed_urls, so run it before import_seed_urls.
     # something is breaking trying to call this perl.  commenting out for time being since we only need
     # this when we very rarely change the foreign_rss_links field of a media source - hal
-    # update_topic_state( $db, $topic, "merging foreign rss stories" );
+    # update_topic_state( $db, $state_updater, "merging foreign rss stories" );
     # MediaWords::TM::Stories::merge_foreign_rss_stories( $db, $topic );
 
-    update_topic_state( $db, $topic, "importing seed urls" );
-    if ( import_seed_urls( $db, $topic ) > $MIN_SEED_IMPORT_FOR_PREDUP_STORIES )
+    update_topic_state( $db, $state_updater, "importing seed urls" );
+    if ( import_seed_urls( $db, $topic, $state_updater ) > $MIN_SEED_IMPORT_FOR_PREDUP_STORIES )
     {
         # merge dup stories before as well as after spidering to avoid extra spidering work
-        update_topic_state( $db, $topic, "merging duplicate stories" );
+        update_topic_state( $db, $state_updater, "merging duplicate stories" );
         MediaWords::TM::Stories::find_and_merge_dup_stories( $db, $topic );
     }
 
     unless ( $options->{ import_only } )
     {
-        update_topic_state( $db, $topic, "running spider" );
+        update_topic_state( $db, $state_updater, "running spider" );
         run_spider( $db, $topic );
 
         check_job_error_rate( $db, $topic );
 
         # merge dup media and stories again to catch dups from spidering
-        update_topic_state( $db, $topic, "merging duplicate stories" );
+        update_topic_state( $db, $state_updater, "merging duplicate stories" );
         MediaWords::TM::Stories::find_and_merge_dup_stories( $db, $topic );
 
-        update_topic_state( $db, $topic, "merging duplicate media stories" );
+        update_topic_state( $db, $state_updater, "merging duplicate media stories" );
         MediaWords::TM::Stories::merge_dup_media_stories( $db, $topic );
 
-        update_topic_state( $db, $topic, "adding source link dates" );
+        update_topic_state( $db, $state_updater, "adding source link dates" );
         add_source_link_dates( $db, $topic );
 
         if ( !$options->{ skip_post_processing } )
         {
-            update_topic_state( $db, $topic, "fetching social media data" );
+            update_topic_state( $db, $state_updater, "fetching social media data" );
             fetch_social_media_data( $db, $topic );
 
-            update_topic_state( $db, $topic, "snapshotting" );
+            update_topic_state( $db, $state_updater, "snapshotting" );
             my $snapshot_args = { topics_id => $topic->{ topics_id }, snapshots_id => $options->{ snapshots_id } };
-            MediaWords::JobManager::StatefulJob::add_to_queue( 'MediaWords::Job::TM::SnapshotTopic', $snapshot_args );
+            MediaWords::Job::StatefulJobBroker->new( 'MediaWords::Job::TM::SnapshotTopic' )->add_to_queue( $snapshot_args );
         }
     }
 }
@@ -1241,9 +1248,9 @@ sub fetch_and_import_twitter_urls($$)
 }
 
 # wrap do_mine_topic in eval and handle errors and state
-sub mine_topic ($$;$)
+sub mine_topic ($$;$$)
 {
-    my ( $db, $topic, $options ) = @_;
+    my ( $db, $topic, $options, $state_updater ) = @_;
 
     # the topic spider can sit around for long periods doing solr queries, so we need to make sure the postgres
     # connection does not get timed out
@@ -1258,7 +1265,7 @@ sub mine_topic ($$;$)
         MediaWords::TM::Alert::send_topic_alert( $db, $topic, "started topic spidering" );
     }
 
-    eval { do_mine_topic( $db, $topic, $options ); };
+    eval { do_mine_topic( $db, $topic, $options, $state_updater ); };
     if ( $@ )
     {
         my $error = $@;

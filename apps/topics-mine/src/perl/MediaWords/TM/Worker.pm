@@ -1,4 +1,4 @@
-package MediaWords::Job::TM::MineTopic;
+package MediaWords::TM::Worker;
 
 #
 # Run through stories found for the given topic and find all the links in
@@ -20,36 +20,20 @@ package MediaWords::Job::TM::MineTopic;
 use strict;
 use warnings;
 
-use Moose;
-with 'MediaWords::JobManager::AbstractStatefulJob';
-
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use MediaWords::DB;
+use MediaWords::Job::Lock;
+use MediaWords::Job::State;
+use MediaWords::Job::State::ExtraTable;
+use MediaWords::Job::StatefulBroker;
 use MediaWords::TM::Mine;
 
-# only run one job for each topic at a time
-sub get_run_lock_arg
-{
-    return 'topics_id';
-}
 
-# define this here so that MineTopicPublic operates on the same lock
-sub get_run_lock_type
+sub _run_job($)
 {
-    return 'MediaWords::Job::TM::MineTopic';
-}
-
-sub get_state_table_info
-{
-    return { table => 'topics', state => 'state', message => 'message' };
-}
-
-# Run job
-sub run($;$)
-{
-    my ( $self, $args ) = @_;
+    my $args = shift;
 
     my $db = MediaWords::DB::connect_to_db();
 
@@ -61,9 +45,15 @@ sub run($;$)
     my $test_mode                       = $args->{ test_mode } // 0;
     my $snapshots_id                    = $args->{ snapshots_id } // undef;
 
+    my $state_updater                   = $args->{ state_updater };
+
     unless ( $topics_id )
     {
         die "'topics_id' is not set.";
+    }
+
+    unless ( $state_updater ) {
+        die "State updater is not set.";
     }
 
     my $topic = $db->find_by_id( 'topics', $topics_id )
@@ -78,9 +68,28 @@ sub run($;$)
         snapshots_id                    => $snapshots_id
     };
 
-    MediaWords::TM::Mine::mine_topic( $db, $topic, $options );
+    MediaWords::TM::Mine::mine_topic( $db, $topic, $options, $state_updater );
 }
 
-no Moose;    # gets rid of scaffolding
+sub start_topics_mine_worker($)
+{
+    my $queue_name = shift;
+
+    my $app = MediaWords::Job::StatefulBroker->new( $queue_name );
+
+    my $lock = MediaWords::Job::Lock->new(
+
+        # Define this here so that ::MineTopicPublic operates on the same lock
+        'MediaWords::Job::TM::MineTopic',
+
+        # Only run one job for each topic at a time
+        'topics_id',
+
+    );
+
+    my $extra_table = MediaWords::Job::State::ExtraTable->new( 'topics', 'state', 'message' );
+    my $state = MediaWords::Job::State->new( $extra_table );
+    $app->start_worker( \&_run_job, $lock, $state );
+}
 
 1;

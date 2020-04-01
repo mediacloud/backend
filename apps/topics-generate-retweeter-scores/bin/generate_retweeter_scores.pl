@@ -14,7 +14,7 @@ use File::Slurp;
 use Getopt::Long;
 
 use MediaWords::TM::CLI;
-use MediaWords::JobManager::Job;
+use MediaWords::Job::Broker;
 
 sub main
 {
@@ -89,7 +89,7 @@ sub main
         }
         else
         {
-            MediaWords::JobManager::Job::add_to_queue( 'MediaWords::Job::GenerateRetweeterScores', $args );
+            MediaWords::Job::Broker->new( 'MediaWords::Job::GenerateRetweeterScores' )->add_to_queue( $args );
         }
 
         INFO "Done processing topic $topics_id.";
