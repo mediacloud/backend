@@ -5,6 +5,7 @@ from urllib.parse import urlencode
 from typing import Union, Dict, Optional, Any
 
 from mediawords.util.perl import decode_object_from_bytes_if_needed
+from mediawords.util.text import escape_for_repr
 from mediawords.util.url import fix_common_url_mistakes, is_http_url
 
 
@@ -53,6 +54,21 @@ class Request(object):
                 self.set_header(name=key, value=value)
         if content:
             self.set_content(content)
+
+    def __repr__(self):
+        out = ""
+
+        out += f"{self.__class__.__name__}("
+        out += f"method={escape_for_repr(self.__method)}, "
+        out += f"url={escape_for_repr(self.__url)}, "
+        out += f"auth_username={escape_for_repr(self.__auth_username)}, "
+        out += f"auth_password={escape_for_repr(self.__auth_password)}, "
+        out += f"headers={escape_for_repr(self.__headers)}, "
+        out += f"content={escape_for_repr(self.__data)}"
+        out += ")"
+
+        return out
+
     @staticmethod
     def from_requests_prepared_request(requests_prepared_request: requests.PreparedRequest):
         """Create request from requests's PreparedRequest object."""
