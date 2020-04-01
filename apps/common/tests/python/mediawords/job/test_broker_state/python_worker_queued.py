@@ -8,7 +8,6 @@ from mediawords.util.log import create_logger
 
 log = create_logger(__name__)
 
-
 if __name__ == '__main__':
     log.info(f"Starting 'queued' Python worker...")
 
