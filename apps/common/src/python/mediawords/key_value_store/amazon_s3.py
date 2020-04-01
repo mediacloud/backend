@@ -231,7 +231,7 @@ class AmazonS3Store(KeyValueStore):
         if not isinstance(content, bytes):
             raise McAmazonS3StoreException("Content is not bytes after compression for object ID %d" % object_id)
 
-        content_encoding = 'gzip' if self.__compression == KeyValueStore.Compression.GZIP else 'identity'
+        content_encoding = 'gzip' if self.__compression_method == KeyValueStore.Compression.GZIP else 'identity'
 
         # S3 sometimes times out when writing, so we'll try to read several times
         write_was_successful = False
