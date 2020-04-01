@@ -35,9 +35,12 @@ sub test_story_query($$$;$)
 
     die( "no response.docs found in solr results: " . Dumper( $r ) ) unless ( $docs );
 
+    my $expected_stories_ids = [ $expected_stories_id ];
     my $got_stories_ids = [ map { $_->{ stories_id } } @{ $docs } ];
 
     is_deeply( $got_stories_ids, [ $expected_stories_id ], "$label: $q" );
+
+    is_deeply( $got_stories_ids, $expected_stories_ids, "$label: $q" );
 }
 
 1;
