@@ -56,39 +56,62 @@ class JobLock(object):
         return self.__lock_arg
 
 
-class JobState(object):
-    """Job state configuration."""
+class JobStateExtraTable(object):
+    """Job state configuration for reporting state to an extra table."""
 
     __slots__ = [
-        '__table',
+        '__table_name',
         '__state_column',
         '__message_column',
     ]
 
-    def __init__(self, table: str, state_column: str, message_column: str):
-        table = decode_object_from_bytes_if_needed(table)
+    def __init__(self, table_name: str, state_column: str, message_column: str):
+        table_name = decode_object_from_bytes_if_needed(table_name)
         state_column = decode_object_from_bytes_if_needed(state_column)
         message_column = decode_object_from_bytes_if_needed(message_column)
 
-        assert table, "State table is not set."
-        assert state_column, "State column is not set."
-        assert message_column, "Message column is not set."
+        assert table_name, "Extra state table name is not set."
+        assert state_column, "Extra state column is not set."
+        assert message_column, "Extra message column is not set."
 
-        self.__table = table
+        self.__table_name = table_name
         self.__state_column = state_column
         self.__message_column = message_column
 
-    def table(self) -> str:
-        """Return table name where state will be stored, e.g. "retweeter_scores"."""
-        return self.__table
+    def table_name(self) -> str:
+        """Return table name where extra state will be stored, e.g. "retweeter_scores"."""
+        return self.__table_name
 
     def state_column(self) -> str:
-        """Return table column name where state will be stored, e.g. "state"."""
+        """Return table column name where extra state will be stored, e.g. "state"."""
         return self.__state_column
 
     def message_column(self) -> str:
         """Return table column name where message will be stored, e.g. "message"."""
         return self.__message_column
+
+
+class JobState(object):
+    """Job state configuration."""
+
+    __slots__ = [
+        '__extra_table',
+    ]
+
+    def __init__(self, extra_table: Optional[JobStateExtraTable] = None):
+        """
+        Constructor.
+
+        :param extra_table: (Optional) If set, state will be reported to one extra table in addition to "job_states".
+        """
+        if extra_table:
+            assert isinstance(extra_table, JobStateExtraTable)
+
+        self.__extra_table = extra_table
+
+    def extra_table(self) -> Optional[JobStateExtraTable]:
+        """Return extra table state configuration if it's set or None otherwise."""
+        return self.__extra_table
 
 
 def _create_queued_job_state(db: DatabaseHandler, queue_name: str, args: Dict[str, Any]) -> Dict[str, Any]:
@@ -147,20 +170,26 @@ class StateUpdater(object):
             log.error(f"Unable to decode args from job state {job_state}: {ex}")
             return
 
-        id_field = self.__state_config.table() + '_id'
-        id_value = args.get(id_field, None)
-        if not id_value:
-            # Sometimes there is not a relevant <table>_id until some of the code in run() has run, for instance
-            # SnapshotTopic needs to create the snapshot.
-            log.warning(f"Unable to get ID value for field '{id_field}' from job state {job_state}")
-            return None
+        extra_table = self.__state_config.extra_table()
+        if extra_table:
 
-        update = {
-            self.__state_config.state_column(): job_state.get('state', None),
-            self.__state_config.message_column(): job_state.get('message', None),
-        }
+            id_field = extra_table.table_name() + '_id'
+            id_value = args.get(id_field, None)
+            if not id_value:
+                # Sometimes there is not a relevant <table>_id until some of the code in run() has run, for instance
+                # SnapshotTopic needs to create the snapshot.
+                log.warning(f"Unable to get ID value for field '{id_field}' from job state {job_state}")
+                return None
 
-        db.update_by_id(table=self.__state_config.table(), object_id=id_value, update_hash=update)
+            update = {
+                extra_table.state_column(): job_state.get('state', None),
+                extra_table.message_column(): job_state.get('message', None),
+            }
+
+            db.update_by_id(table=extra_table.table_name(), object_id=id_value, update_hash=update)
+
+        else:
+            log.debug("Extra table for storing state is not configured.")
 
     def update_job_state(self, db: DatabaseHandler, state: str, message: Optional[str] = ''):
         """
@@ -439,9 +468,6 @@ class JobBroker(object):
         args = decode_object_from_bytes_if_needed(args)
         kwargs = decode_object_from_bytes_if_needed(kwargs)
 
-        # Can't call _create_queued_job_state() here because caller doesn't know anything about whether job has to
-        # report the state
-
         result = self.__app.send_task(self.__queue_name, args=args, kwargs=kwargs)
 
         job_id = result.id
@@ -590,7 +616,7 @@ class StatefulJobBroker(JobBroker):
 
         return super().run_remotely(*args, **kwargs)
 
-    def start_worker(self, handler: Callable, state: Optional[JobState] = None, lock: Optional[JobLock] = None):
+    def start_worker(self, handler: Callable, lock: Optional[JobLock] = None, state: JobState = None):
         """
         Start processing stateful jobs.
 
@@ -600,6 +626,11 @@ class StatefulJobBroker(JobBroker):
         """
 
         if not state:
-            raise McStatefulJobBrokerStateUnconfiguredException("State is unset.")
+            raise McStatefulJobBrokerStateUnconfiguredException(
+                "You're using StatefulBroker but state is not configured."
+            )
+
+        if not isinstance(state, JobState):
+            raise McStatefulJobBrokerStateUnconfiguredException("Job state configuration is not JobState.")
 
         self._start_worker_impl(handler=handler, lock=lock, state=state)

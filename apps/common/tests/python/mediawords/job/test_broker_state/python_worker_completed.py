@@ -4,7 +4,7 @@
 
 from typing import Optional
 
-from mediawords.job import StatefulJobBroker, JobState, StateUpdater
+from mediawords.job import StatefulJobBroker, JobState, JobStateExtraTable, StateUpdater
 from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_object_from_bytes_if_needed
 
@@ -33,8 +33,10 @@ if __name__ == '__main__':
     app.start_worker(
         handler=run_job,
         state=JobState(
-            table='test_job_states',
-            state_column='state',
-            message_column='message',
+            extra_table=JobStateExtraTable(
+                table_name='test_job_states',
+                state_column='state',
+                message_column='message',
+            ),
         ),
     )

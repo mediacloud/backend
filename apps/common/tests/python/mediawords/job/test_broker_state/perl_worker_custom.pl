@@ -12,6 +12,7 @@ use MediaWords::CommonLibs;
 use MediaWords::DB;
 use MediaWords::Job::StatefulBroker;
 use MediaWords::Job::State;
+use MediaWords::Job::State::ExtraTable;
 
 
 sub run_job($)
@@ -44,7 +45,8 @@ sub main()
     my $app = MediaWords::Job::StatefulBroker->new( 'TestPerlWorkerStateCustom' );
 
     my $lock = undef;
-    my $state = MediaWords::Job::State->new( 'test_job_states', 'state', 'message' );
+    my $extra_table = MediaWords::Job::State::ExtraTable->new( 'test_job_states', 'state', 'message' );
+    my $state = MediaWords::Job::State->new( $extra_table );
     $app->start_worker( \&run_job, $lock, $state );
 }
 

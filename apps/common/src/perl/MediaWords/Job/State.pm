@@ -10,6 +10,8 @@ use warnings;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
+use MediaWords::Job::State::ExtraTable;
+
 use Readonly;
 
 Readonly our $STATE_QUEUED => 'queued';
@@ -18,49 +20,29 @@ Readonly our $STATE_COMPLETED => 'completed';
 Readonly our $STATE_ERROR => 'error';
 
 
-sub new($$$)
+sub new($;$)
 {
-    my ( $class, $table, $state_column, $message_column ) = @_;
+    my ( $class, $extra_table ) = @_;
 
     my $self = {};
     bless $self, $class;
 
-    unless ( $table ) {
-        LOGDIE "Table is not set.";
-    }
-    unless ( $state_column ) {
-        LOGDIE "State column is not set.";
-    }
-    unless ( $message_column ) {
-        LOGDIE "Message column is not set.";
+    if ( $extra_table ) {
+        unless ( ref( $extra_table ) eq 'MediaWords::Job::State::ExtraTable' ) {
+            LOGDIE "Extra table configuration is not MediaWords::Job::State::ExtraTable";
+        }
     }
 
-    $self->{ _table } = $table;
-    $self->{ _state_column } = $state_column;
-    $self->{ _message_column } = $message_column;
+    $self->{ _extra_table } = $extra_table;
 
     return $self;
 }
 
-sub table($)
+sub extra_table($)
 {
     my $self = shift;
 
-    return $self->{ _table };
-}
-
-sub state_column($)
-{
-    my $self = shift;
-
-    return $self->{ _state_column };
-}
-
-sub message_column($)
-{
-    my $self = shift;
-
-    return $self->{ _message_column };
+    return $self->{ _extra_table };
 }
 
 1;

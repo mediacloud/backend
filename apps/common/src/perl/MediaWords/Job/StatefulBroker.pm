@@ -17,7 +17,7 @@ use Inline Python => <<'PYTHON';
 
 from typing import Dict, Callable, Type, Any, Optional
 
-from mediawords.job import StatefulJobBroker, JobLock, JobState
+from mediawords.job import StatefulJobBroker, JobLock, JobState, JobStateExtraTable
 from mediawords.util.perl import decode_object_from_bytes_if_needed
 
 
@@ -64,15 +64,24 @@ class PerlStatefulJobBroker(StatefulJobBroker):
         else:
             lock = None
 
-        # Recreate JobState object from Perl argument
-        if state:
-            state = JobState(
-                table=state.table(),
-                state_column=state.state_column(),
-                message_column=state.message_column(),
+        if not state:
+            raise Exception("You're using StatefulBroker but state is not configured.")
+
+        # Recreate JobStateExtraTable object from Perl argument
+        extra_table = state.extra_table()
+        if extra_table:
+            extra_table = JobStateExtraTable(
+                table_name=extra_table.table_name(),
+                state_column=extra_table.state_column(),
+                message_column=extra_table.message_column(),
             )
         else:
-            state = None
+            extra_table = None
+
+        # Recreate JobState object from Perl argument
+        state = JobState(
+            extra_table=extra_table,
+        )
 
         super().start_worker(handler=worker_wrapper, lock=lock, state=state)
 
@@ -164,10 +173,12 @@ sub start_worker($$;$$)
             LOGDIE "Job lock configuration is not of type MediaWords::Job::Lock.";
         }
     }
-    if ( $state ) {
-        unless ( ref( $state ) eq 'MediaWords::Job::State' ) {
-            LOGDIE "Job state configuration is not of type MediaWords::Job::State.";
-        }
+
+    unless ( $state ) {
+        LOGDIE "You're using StatefulBroker but state is not configured.";
+    }
+    unless ( ref( $state ) eq 'MediaWords::Job::State' ) {
+        LOGDIE "Job state configuration is not of type MediaWords::Job::State.";
     }
 
     $self->{ _app }->start_worker( $handler, $lock, $state );
