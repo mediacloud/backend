@@ -11,7 +11,6 @@ services:
             MC_DOWNLOADS_AMAZON_S3_SECRET_ACCESS_KEY: "${MC_DOWNLOADS_AMAZON_S3_SECRET_ACCESS_KEY}"
             MC_DOWNLOADS_AMAZON_S3_BUCKET_NAME: "${MC_DOWNLOADS_AMAZON_S3_BUCKET_NAME}"
             MC_DOWNLOADS_AMAZON_S3_DIRECTORY_NAME: "${MC_DOWNLOADS_AMAZON_S3_DIRECTORY_NAME}"
-            MC_LOGGING_LEVEL: "DEBUG"
         volumes:
             - type: bind
               source: ./src/
@@ -46,7 +45,6 @@ services:
     import-solr-data-for-testing:
         image: dockermediacloud/import-solr-data-for-testing:latest
         init: true
-        # command: sleep 1000
         environment:
             MC_SOLR_IMPORT_MAX_QUEUED_STORIES: 100000
         stop_signal: SIGKILL
@@ -102,8 +100,6 @@ services:
             MC_SOLR_SHARD_COUNT: "1"
         expose:
             - 8983
-        ports:
-            - 8983
         volumes:
             - type: bind
               source: ./../solr-base/src/solr/
@@ -135,9 +131,6 @@ services:
         init: true
         stop_signal: SIGKILL
         expose:
-            - 5672
-            - 15672
-        ports:
             - 5672
             - 15672
         volumes:
