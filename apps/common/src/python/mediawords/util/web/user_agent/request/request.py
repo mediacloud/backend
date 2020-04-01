@@ -1,4 +1,5 @@
-import email
+from email.parser import HeaderParser as EmailHeaderParser
+
 import requests
 from urllib.parse import urlencode
 from typing import Union, Dict
@@ -127,7 +128,7 @@ class Request(object):
             return None
 
         # Parse "type/subtype" out of "type/subtype; param=value; ..."
-        header_parser = email.parser.HeaderParser()
+        header_parser = EmailHeaderParser()
         message = header_parser.parsestr("Content-Type: %s" % content_type)
         content_type = message.get_content_type()
         return content_type
