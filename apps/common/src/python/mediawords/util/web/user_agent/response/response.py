@@ -1,5 +1,5 @@
 import codecs
-import email
+from email.parser import HeaderParser as EmailHeaderParser
 
 import chardet
 from http import HTTPStatus
@@ -220,7 +220,7 @@ class Response(object):
             return None
 
         # Parse "type/subtype" out of "type/subtype; param=value; ..."
-        header_parser = email.parser.HeaderParser()
+        header_parser = EmailHeaderParser()
         message = header_parser.parsestr("Content-Type: %s" % content_type)
         content_type = message.get_content_type()
         return content_type
