@@ -22,7 +22,7 @@ def run_job(test_job_states_id: int, x: int, y: int, state_updater: Optional[Sta
     x = int(x)
     y = int(y)
 
-    log.info(f"Starting 'error' Python worker (test job state ID: {test_job_states_id})...")
+    log.info(f"Running job in 'error' Python worker (test job state ID: {test_job_states_id})...")
 
     raise Exception("Well, it didn't work")
 

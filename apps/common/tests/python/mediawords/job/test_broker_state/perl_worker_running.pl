@@ -24,7 +24,7 @@ sub run_job($)
     my $y = $args->{ 'y' };
     my $state_updater = $args->{ 'state_updater' };
 
-    INFO "Starting 'running' Perl worker (test job state ID: $test_job_states_id)...";
+    INFO "Running job in 'running' Perl worker (test job state ID: $test_job_states_id)...";
 
     # Sleep indefinitely to keep the job in "running" state
     while ( 1 ) {

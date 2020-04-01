@@ -24,7 +24,7 @@ def run_job(test_job_states_id: int, x: int, y: int, state_updater: Optional[Sta
     x = int(x)
     y = int(y)
 
-    log.info(f"Starting 'running' Python worker (test job state ID: {test_job_states_id})...")
+    log.info(f"Running job in 'running' Python worker (test job state ID: {test_job_states_id})...")
 
     # Sleep indefinitely to keep the job in "running" state
     while True:

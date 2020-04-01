@@ -28,7 +28,7 @@ def run_job(test_job_states_id: int, x: int, y: int, state_updater: Optional[Sta
     assert state_updater, "State updater is set."
     assert isinstance(state_updater, StateUpdater), "State updater is of the StateUpdater class."
 
-    log.info(f"Starting 'custom' Python worker (test job state ID: {test_job_states_id})...")
+    log.info(f"Running job in 'custom' Python worker (test job state ID: {test_job_states_id})...")
 
     db = connect_to_db()
 

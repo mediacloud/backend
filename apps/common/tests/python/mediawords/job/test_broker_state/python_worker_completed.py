@@ -23,7 +23,7 @@ def run_job(test_job_states_id: int, x: int, y: int, state_updater: Optional[Sta
     x = int(x)
     y = int(y)
 
-    log.info(f"Starting 'completed' Python worker (test job state ID: {test_job_states_id})...")
+    log.info(f"Running job in 'completed' Python worker (test job state ID: {test_job_states_id})...")
 
     return x + y
 

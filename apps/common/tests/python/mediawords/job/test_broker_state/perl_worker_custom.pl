@@ -28,7 +28,7 @@ sub run_job($)
         LOGDIE "State updater is not set.";
     }
 
-    INFO "Starting 'custom' Perl worker (test job state ID: $test_job_states_id)...";
+    INFO "Running job in 'custom' Perl worker (test job state ID: $test_job_states_id)...";
 
     my $db = MediaWords::DB::connect_to_db();
 

@@ -23,7 +23,7 @@ sub run_job($)
     my $y = $args->{ 'y' };
     my $state_updater = $args->{ 'state_updater' };
 
-    INFO "Starting 'error' Perl worker (test job state ID: $test_job_states_id)...";
+    INFO "Running job in 'error' Perl worker (test job state ID: $test_job_states_id)...";
 
     die "Well, it didn't work";
 }
