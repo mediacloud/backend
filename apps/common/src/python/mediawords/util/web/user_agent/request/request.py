@@ -2,7 +2,7 @@ from email.parser import HeaderParser as EmailHeaderParser
 
 import requests
 from urllib.parse import urlencode
-from typing import Union, Dict, Optional, Any
+from typing import Union, Dict, Optional
 
 from mediawords.util.perl import decode_object_from_bytes_if_needed
 from mediawords.util.text import escape_for_repr
