@@ -5,7 +5,7 @@ from typing import List, Optional, Type
 
 from mediawords.db import connect_to_db
 from mediawords.job import JobBroker, StatefulJobBroker
-from mediawords.job.states import STATE_COMPLETED, STATE_ERROR, STATE_RUNNING
+from mediawords.job.states import STATE_COMPLETED, STATE_ERROR, STATE_RUNNING, STATE_QUEUED
 from mediawords.util.log import create_logger
 from mediawords.util.parse_json import decode_json
 
@@ -38,6 +38,10 @@ class TestBrokerState(AbstractBrokerTestCase):
                 queue_name='TestPerlWorkerStateRunning',
                 worker_path=f"{workers_path}/perl_worker_running.pl"
             ),
+            Worker(
+                queue_name='TestPerlWorkerStateQueued',
+                worker_path=f"{workers_path}/perl_worker_queued.pl"
+            ),
 
             Worker(
                 queue_name='TestPythonWorkerStateCompleted',
@@ -54,6 +58,10 @@ class TestBrokerState(AbstractBrokerTestCase):
             Worker(
                 queue_name='TestPythonWorkerStateRunning',
                 worker_path=f"{workers_path}/python_worker_running.py"
+            ),
+            Worker(
+                queue_name='TestPythonWorkerStateQueued',
+                worker_path=f"{workers_path}/python_worker_queued.py"
             ),
 
         ]
@@ -119,6 +127,12 @@ class TestBrokerState(AbstractBrokerTestCase):
                 expected_state=STATE_RUNNING,
                 expected_message='',
             ),
+            self._WorkerTypeToTest(
+                queue_name_ends_with='Queued',
+                expected_result=None,  # never starts
+                expected_state=STATE_QUEUED,
+                expected_message='',
+            ),
         ]
 
         for worker_type in worker_types:
@@ -154,18 +168,20 @@ class TestBrokerState(AbstractBrokerTestCase):
                 job_state = job_states[0]
 
                 assert job_state['state'] == worker_type.expected_state, f"Job state for worker {worker}"
-                assert worker_type.expected_message in job_state['message'], f"Job message for worker {worker}"
-                assert job_state['last_updated'], f"Job's last updated for worker {worker}"
-                assert decode_json(job_state['args']) == kwargs, f"Job's arguments for worker {worker}"
-                assert job_state['hostname'] == socket.gethostname(), f"Job's hostname for worker {worker}"
 
-                custom_table_states = self.DB.select(table='test_job_states', what_to_select='*').hashes()
-                assert len(custom_table_states) == 1, f"Custom table states count for worker {worker}"
-                custom_table_state = custom_table_states[0]
+                if worker_type.expected_state != STATE_QUEUED:
+                    assert worker_type.expected_message in job_state['message'], f"Job message for worker {worker}"
+                    assert job_state['last_updated'], f"Job's last updated for worker {worker}"
+                    assert decode_json(job_state['args']) == kwargs, f"Job's arguments for worker {worker}"
+                    assert job_state['hostname'] == socket.gethostname(), f"Job's hostname for worker {worker}"
 
-                assert custom_table_state['state'] == worker_type.expected_state, (
-                    f"Custom table state for worker {worker}"
-                )
-                assert worker_type.expected_message in custom_table_state['message'], (
-                    f"Custom table message for worker {worker}"
-                )
+                    custom_table_states = self.DB.select(table='test_job_states', what_to_select='*').hashes()
+                    assert len(custom_table_states) == 1, f"Custom table states count for worker {worker}"
+                    custom_table_state = custom_table_states[0]
+
+                    assert custom_table_state['state'] == worker_type.expected_state, (
+                        f"Custom table state for worker {worker}"
+                    )
+                    assert worker_type.expected_message in custom_table_state['message'], (
+                        f"Custom table message for worker {worker}"
+                    )

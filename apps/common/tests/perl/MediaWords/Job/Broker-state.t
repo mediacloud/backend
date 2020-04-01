@@ -44,6 +44,10 @@ sub worker_paths()
             'queue_name' => 'TestPerlWorkerStateRunning',
             'worker_path' => "$workers_path/perl_worker_running.pl",
         },
+        {
+            'queue_name' => 'TestPerlWorkerStateQueued',
+            'worker_path' => "$workers_path/perl_worker_queued.pl",
+        },
 
         {
             'queue_name' => 'TestPythonWorkerStateCompleted',
@@ -60,6 +64,10 @@ sub worker_paths()
         {
             'queue_name' => 'TestPythonWorkerStateRunning',
             'worker_path' => "$workers_path/python_worker_running.py",
+        },
+        {
+            'queue_name' => 'TestPythonWorkerStateQueued',
+            'worker_path' => "$workers_path/python_worker_queued.py",
         },
 
     ];
@@ -117,6 +125,12 @@ SQL
             'expected_state' => $MediaWords::Job::State::STATE_RUNNING,
             'expected_message' => '',
         },
+        {
+            'queue_name_ends_with' => 'Queued',
+            'expected_result' => undef, # never starts
+            'expected_state' => $MediaWords::Job::State::STATE_QUEUED,
+            'expected_message' => '',
+        },
     ];
 
     for my $worker_type ( @{ $worker_types } ) {
@@ -168,18 +182,21 @@ SQL
             my $job_state = $job_states->[ 0 ];
 
             is( $job_state->{ 'state' }, $worker_type->{ 'expected_state' }, "Job state for worker " . Dumper( $worker_type ) . ", row: " . Dumper( $job_state ) );
-            my $expected_message = $worker_type->{ 'expected_message' };
-            like( $job_state->{ 'message' }, qr/\Q$expected_message\E/, "Job message for worker " . Dumper( $worker_type ) );
-            ok( $job_state->{ 'last_updated' }, "Job's last updated for worker " . Dumper( $worker_type ) );
-            is_deeply( MediaWords::Util::ParseJSON::decode_json( $job_state->{ 'args' }), $kwargs, "Job's arguments for worker " . Dumper( $worker_type ) );
-            is( $job_state->{ 'hostname' }, Sys::Hostname::hostname, "Job's hostname for worker " . Dumper( $worker_type ) );
 
-            my $custom_table_states = $db->select( 'test_job_states', '*' )->hashes();
-            is( scalar( @{ $custom_table_states }), 1, "Custom table states count for worker " . Dumper( $worker_type ) );
-            my $custom_table_state = $custom_table_states->[ 0 ];
+            if ( $worker_type->{ 'expected_state' } ne $MediaWords::Job::State::STATE_QUEUED ) {
+                my $expected_message = $worker_type->{ 'expected_message' };
+                like( $job_state->{ 'message' }, qr/\Q$expected_message\E/, "Job message for worker " . Dumper( $worker_type ) );
+                ok( $job_state->{ 'last_updated' }, "Job's last updated for worker " . Dumper( $worker_type ) );
+                is_deeply( MediaWords::Util::ParseJSON::decode_json( $job_state->{ 'args' }), $kwargs, "Job's arguments for worker " . Dumper( $worker_type ) );
+                is( $job_state->{ 'hostname' }, Sys::Hostname::hostname, "Job's hostname for worker " . Dumper( $worker_type ) );
 
-            is( $custom_table_state->{ 'state' }, $worker_type->{ 'expected_state' }, "Custom table state for worker " . Dumper( $worker_type ) . ", row: " . Dumper( $job_state ) );
-            like( $custom_table_state->{ 'message' }, qr/\Q$expected_message\E/, "Custom table message for worker " . Dumper( $worker_type ) );
+                my $custom_table_states = $db->select( 'test_job_states', '*' )->hashes();
+                is( scalar( @{ $custom_table_states }), 1, "Custom table states count for worker " . Dumper( $worker_type ) );
+                my $custom_table_state = $custom_table_states->[ 0 ];
+
+                is( $custom_table_state->{ 'state' }, $worker_type->{ 'expected_state' }, "Custom table state for worker " . Dumper( $worker_type ) . ", row: " . Dumper( $job_state ) );
+                like( $custom_table_state->{ 'message' }, qr/\Q$expected_message\E/, "Custom table message for worker " . Dumper( $worker_type ) );
+            }
         }
 
     }
