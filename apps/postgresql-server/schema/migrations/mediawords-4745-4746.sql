@@ -14,7 +14,7 @@
 -- 1 of 2. Import the output of 'apgdiff':
 --
 
-drop table timespan_files;
+drop table if exists timespan_files;
 create table timespan_files (
     timespan_files_id                   serial primary key,
     timespans_id                        int not null references timespans on delete cascade,
@@ -24,7 +24,7 @@ create table timespan_files (
 
 create unique index timespan_files_timespan_name on timespan_files ( timespans_id, name );
 
-drop table snapshot_files;
+drop table if exists snapshot_files;
 create table snapshot_files (
     snapshot_files_id                       serial primary key,
     snapshots_id                        int not null references snapshots on delete cascade,
