@@ -1010,7 +1010,7 @@ sub _generate_snapshots_from_temporary_snapshot_tables
 }
 
 # generate period spanshots for each period / focus / timespan combination
-sub _generate_period_focus_snapshot($$$;$)
+sub _generate_period_focus_snapshots($$$;$)
 {
     my ( $db, $snapshot, $periods, $state_updater ) = @_;
 
