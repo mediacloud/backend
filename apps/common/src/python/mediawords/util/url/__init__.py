@@ -376,7 +376,7 @@ def normalize_url_lossy(url: str) -> Optional[str]:
     return url
 
 
-def is_shortened_url(<a href="https://accounts.google.com/ServiceLogin">url: str) -> bool:
+def is_shortened_url(url: str) -> bool:
     """Returns true if URL is a shortened URL (e.g. with Bit.ly)."""
     url = decode_object_from_bytes_if_needed(url)
     if url is None:
