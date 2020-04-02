@@ -14,7 +14,7 @@ use MediaWords::TM::Snapshot;
 use MediaWords::Test::Solr;
 use MediaWords::Job::Broker;
 use MediaWords::Test::DB::Create;
-use MediaWords::Job::TM::SnapshotTopic;
+use MediaWords::DB::Snapshot;
 
 sub test_timespan_export($)
 {
@@ -47,7 +47,7 @@ insert into topic_stories ( topics_id, stories_id )
     select \$1, stories_id from stories where media_id = \$2
 SQL
 
-    MediaWords::Job::TM::SnapshotTopic->run( { topics_id => $topic->{ topics_id } } );
+    MediaWords::TM::Snapshot::snapshot_topic( $db, $topic->{ topics_id } );
 
     $num_solr_stories = MediaWords::Solr::get_solr_num_found( $db, { q => 'timespans_id:1' } );
     is( $num_solr_stories, 0, "number of solr stories before snapshot import" );
@@ -73,7 +73,7 @@ insert into focus_definitions ( name, description, arguments, focal_set_definiti
     select \$1, \$2, ( '{ "query": ' || to_json( \$3::text ) || ' }' )::json, \$4
 SQL
 
-    MediaWords::Job::TM::SnapshotTopic->run( { topics_id => $topic->{ topics_id } } );
+    MediaWords::TM::Snapshot::snapshot_topic( $db, $topic->{ topics_id } );
 
     MediaWords::Job::Broker->new( 'MediaWords::Job::ImportSolrDataForTesting' )->run_remotely( { empty_queue => 1 } );
 

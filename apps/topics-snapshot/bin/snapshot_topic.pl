@@ -9,8 +9,9 @@ use MediaWords::CommonLibs;
 use Getopt::Long;
 
 use MediaWords::DB;
-use MediaWords::Job::TM::SnapshotTopic;
+use MediaWords::Job::Broker;
 use MediaWords::TM::CLI;
+use MediaWords::TM::Snapshot;
 
 sub main
 {
@@ -42,15 +43,13 @@ sub main
     for my $topic ( @{ $topics } )
     {
         my $topics_id = $topic->{ topics_id };
-        my $args      = {
-            topics_id  => $topics_id,
-            note       => $note,
-            bot_policy => $bot_policy,
-            periods    => $periods,
-            snapshots_id => $snapshots_id
-        };
+ 
+        $snapshots_id = MediaWords::TM::Snapshot::snapshot_topic(
+            $db, $topics_id, $snapshots_id, $note, $bot_policy, $periods
+        );
 
-        MediaWords::Job::TM::SnapshotTopic->run( $args );
+        INFO "Adding a new word2vec model generation job for snapshot $snapshots_id...";
+        MediaWords::Job::Broker->new( 'MediaWords::Job::Word2vec::GenerateSnapshotModel' )->add_to_queue( { snapshots_id => $snapshots_id } );
     }
 
 }

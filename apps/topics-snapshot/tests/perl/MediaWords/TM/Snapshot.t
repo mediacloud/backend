@@ -7,7 +7,7 @@ use MediaWords::CommonLibs;
 use Test::More;
 
 use MediaWords::DB;
-use MediaWords::Job::TM::SnapshotTopic;
+use MediaWords::TM::Snapshot;
 use MediaWords::TM::Stories;
 use MediaWords::Test::DB::Create;
 use MediaWords::Util::ParseJSON;
@@ -79,7 +79,7 @@ SQL
         $db->create( 'topic_links', $topic_link );
     }
 
-    MediaWords::Job::TM::SnapshotTopic->run( { topics_id => $topics_id } );
+    MediaWords::TM::Snapshot::snapshot_topic( $db, $topics_id );
 
     my $got_snapshot = $db->query( "select * from snapshots where topics_id = ?", $topic->{ topics_id } )->hash;
 

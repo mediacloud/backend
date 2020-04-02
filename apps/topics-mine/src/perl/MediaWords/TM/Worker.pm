@@ -31,7 +31,7 @@ use MediaWords::Job::StatefulBroker;
 use MediaWords::TM::Mine;
 
 
-sub _run_job($)
+sub run_job($)
 {
     my $args = shift;
 
@@ -89,7 +89,7 @@ sub start_topics_mine_worker($)
 
     my $extra_table = MediaWords::Job::State::ExtraTable->new( 'topics', 'state', 'message' );
     my $state = MediaWords::Job::State->new( $extra_table );
-    $app->start_worker( \&_run_job, $lock, $state );
+    $app->start_worker( \&run_job, $lock, $state );
 }
 
 1;
