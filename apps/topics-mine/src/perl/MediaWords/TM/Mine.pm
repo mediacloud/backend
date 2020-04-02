@@ -465,7 +465,7 @@ sub save_metrics($$$$$)
 }
 
 # call add_new_links in chunks of $ADD_NEW_LINKS_CHUNK_SIZE so we don't lose too much work when we restart the spider
-sub add_new_links($$$$$)
+sub add_new_links($$$$;$)
 {
     my ( $db, $topic, $iteration, $new_links, $state_updater ) = @_;
 
@@ -500,7 +500,7 @@ sub add_new_links($$$$$)
 
 # find any links for the topic of this iteration or less that have not already been spidered and call
 # add_new_links on them.
-sub spider_new_links($$$$)
+sub spider_new_links($$$;$)
 {
     my ( $db, $topic, $iteration, $state_updater ) = @_;
 
@@ -552,7 +552,7 @@ SQL
 }
 
 # run the spider over any new links, for $num_iterations iterations
-sub run_spider($$$)
+sub run_spider($$;$)
 {
     my ( $db, $topic, $state_updater ) = @_;
 
@@ -606,7 +606,7 @@ SQL
 
 # import all topic_seed_urls that have not already been processed;
 # return 1 if new stories were added to the topic and 0 if not
-sub import_seed_urls($$$)
+sub import_seed_urls($$;$)
 {
     my ( $db, $topic, $state_updater ) = @_;
 
@@ -993,7 +993,7 @@ SQL
 }
 
 # import urls from seed query 
-sub import_urls_from_seed_queries($$$)
+sub import_urls_from_seed_queries($$;$)
 {
     my ( $db, $topic, $state_updater ) = @_;
     

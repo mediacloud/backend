@@ -642,7 +642,7 @@ sub _update_timespan_counts($$;$)
 }
 
 # generate the snapshot timespans for the given period, dates, and tag
-sub _generate_timespan($$$$$$$)
+sub _generate_timespan($$$$$$;$)
 {
     my ( $db, $cd, $start_date, $end_date, $period, $focus, $state_updater ) = @_;
 
@@ -687,7 +687,7 @@ sub _truncate_to_start_of_month ($)
 }
 
 # generate snapshots for the periods in topic_dates
-sub _generate_custom_period_snapshot($$$$)
+sub _generate_custom_period_snapshot($$$;$)
 {
     my ( $db, $cd, $focus, $state_updater ) = @_;
 
@@ -704,7 +704,7 @@ END
 }
 
 # generate snapshot for the given period (overall, monthly, weekly, or custom) and the given tag
-sub _generate_period_snapshot($$$$$)
+sub _generate_period_snapshot($$$$;$)
 {
     my ( $db, $cd, $period, $focus, $state_updater ) = @_;
 
@@ -1010,7 +1010,7 @@ sub _generate_snapshots_from_temporary_snapshot_tables
 }
 
 # generate period spanshots for each period / focus / timespan combination
-sub _generate_period_focus_snapshot($$$$)
+sub _generate_period_focus_snapshot($$$;$)
 {
     my ( $db, $snapshot, $periods, $state_updater ) = @_;
 
