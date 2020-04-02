@@ -17,6 +17,9 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Clean up disk space
+        run: ./.github/free-up-disk-space.sh
+
       - name: Set up Python
         uses: actions/setup-python@v1
         with:
@@ -89,6 +92,9 @@ jobs:
         uses: actions/checkout@v1
         with:
           submodules: recursive
+
+      - name: Clean up disk space
+        run: ./.github/free-up-disk-space.sh
 
       - name: Set up Python
         uses: actions/setup-python@v1
