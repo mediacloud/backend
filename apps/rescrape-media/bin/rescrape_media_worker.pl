@@ -9,6 +9,7 @@ use MediaWords::CommonLibs;
 use MediaWords::DB;
 use MediaWords::DBI::Media::Rescrape;
 use MediaWords::Job::StatefulBroker;
+use MediaWords::Job::State;
 
 
 sub run_job($)
