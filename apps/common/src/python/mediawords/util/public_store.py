@@ -29,14 +29,14 @@ SNAPSHOT_FILES_TYPE = 'snapshot_files'
 def get_object_hash(object_id: str) -> int:
     """Hash the object_id with a salt so that it is not discoverable."""
     salt = env_value('MC_PUBLIC_STORE_SALT')
+    store_type = env_value('MC_PUBLIC_STORE_TYPE')
 
     key = "%s-%s" % (salt, object_id)
 
     big_int = int(hashlib.md5(key.encode('utf-8')).hexdigest(), 16)
 
     # return just 64 bits of the hash, because that's all the postgresql store can handle
-    return big_int & 0xFFFFFFFF
-
+    return big_int & 0xFFFFFFFFFFFFFFF if store_type == 'postgresql' else big_int
 
 def _get_test_directory_name_from_db(db) -> str:
     """Get or generate an s3 directory name from the database.
