@@ -30,7 +30,7 @@ use MediaWords::TM::Stories;
 use MediaWords::DBI::Stories;
 use MediaWords::DBI::Stories::GuessDate;
 use MediaWords::Job::Broker;
-use MediaWords::Job::StatefulJobBroker;
+use MediaWords::Job::StatefulBroker;
 use MediaWords::Solr;
 use MediaWords::Solr::Query;
 use MediaWords::Util::SQL;
@@ -1162,7 +1162,7 @@ sub do_mine_topic($$;$$)
 
             update_topic_state( $db, $state_updater, "snapshotting" );
             my $snapshot_args = { topics_id => $topic->{ topics_id }, snapshots_id => $options->{ snapshots_id } };
-            MediaWords::Job::StatefulJobBroker->new( 'MediaWords::Job::TM::SnapshotTopic' )->add_to_queue( $snapshot_args );
+            MediaWords::Job::StatefulBroker->new( 'MediaWords::Job::TM::SnapshotTopic' )->add_to_queue( $snapshot_args );
         }
     }
 }
