@@ -23,6 +23,7 @@ use MediaWords::CommonLibs;
 use Getopt::Long;
 use List::Util;
 use Readonly;
+use Time::Piece;
 
 use MediaWords::TM::Alert;
 use MediaWords::TM::FetchTopicPosts;

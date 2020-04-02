@@ -1,2 +1,3 @@
 requires 'Date::Format';
 requires 'Text::Lorem::More';
+requires 'Time::Piece';
