@@ -44,16 +44,16 @@ x-common-configuration: &common-configuration
     # (optional) S3 download storage directory name (prefix)
     #MC_DOWNLOADS_AMAZON_S3_DIRECTORY_NAME: "downloads"
    
-	# amazon config for the public store (topic_maps, timespan_files, snapshot_files)
-	#MC_PUBLIC_AMAZON_S3_ACCESS_KEY_ID: "ASFASDF"
-	#MC_PUBLIC_AMAZON_S3_SECRET_ACCESS_KEY: "ASDFASDFADFADSF"
-	#MC_PUBLIC_AMAZON_S3_BUCKET_NAME: "mediacloud-public"
+    # amazon config for the public store (topic_maps, timespan_files, snapshot_files)
+    #MC_PUBLIC_AMAZON_S3_ACCESS_KEY_ID: "ASFASDF"
+    #MC_PUBLIC_AMAZON_S3_SECRET_ACCESS_KEY: "ASDFASDFADFADSF"
+    #MC_PUBLIC_AMAZON_S3_BUCKET_NAME: "mediacloud-public"
 
-	# set to 's3' for production after setting the above info or set to 'postgresql' for testing
-	MC_PUBLIC_STORE_TYPE: "s3"
+    # set to 's3' for production after setting the above info or set to 'postgresql' for testing
+    MC_PUBLIC_STORE_TYPE: "s3"
 
-	# this should be a large random value so that the urls generate by the public store cannot be guessed
-	MC_PUBLIC_STORE_SALT: "GENERATE_UNIQUE_SALT"
+    # this should be a large random value so that the urls generate by the public store cannot be guessed
+    MC_PUBLIC_STORE_SALT: "GENERATE_UNIQUE_SALT"
 
 
     # "From:" email address when sending emails
