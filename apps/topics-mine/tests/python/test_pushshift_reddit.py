@@ -71,6 +71,9 @@ def test_get_post_urls() -> None:
 
     posts = [{'content': u} for u in expected_urls]
 
+    # add a couple of reddit links to make sure they don't get returned
+    posts[0]['content'] += " http://reddit.com/foo/bar https://np.reddit.com/foo/bar/baz"
+
     got_urls = []
     for post in posts:
         got_urls.extend(prpf().get_post_urls(post))

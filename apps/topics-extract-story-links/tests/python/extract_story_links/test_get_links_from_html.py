@@ -35,6 +35,7 @@ def test_get_links_from_html():
     test_links('<a href="https://misuse.ncbi.nlm.nih.gov/error/abuse.shtml">', [])
     test_links('<a href="https://assets.feedblitzstatic.com/images/blank.gif">', [])
     test_links('<a href="https://accounts.google.com/ServiceLogin">', [])
+    test_links('<a href="http://network.wwe.com/video/v92665683/milestone/526767283">', [])
 
     # sanity test to make sure that we are able to get all of the links from a real html page
     filename = '/opt/mediacloud/tests/data/html-strip/strip.html'
@@ -42,6 +43,6 @@ def test_get_links_from_html():
         html = fh.read()
 
     links = _get_links_from_html(html)
-    assert len(links) == 300
+    assert len(links) == 310
     for link in links:
         assert is_http_url(link)

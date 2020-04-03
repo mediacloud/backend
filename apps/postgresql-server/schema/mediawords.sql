@@ -26,7 +26,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4746;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4747;
 BEGIN
 
     -- Update / set database schema version
@@ -3613,10 +3613,10 @@ create unlogged table domain_web_requests (
 
 create index domain_web_requests_domain on domain_web_requests ( domain );
 
--- return false if there is a request for the given domain within the last domain_timeout_arg seconds.  otherwise
+-- return false if there is a request for the given domain within the last domain_timeout_arg milliseconds.  otherwise
 -- return true and insert a row into domain_web_request for the domain.  this function does not lock the table and
 -- so may allow some parallel requests through.
-create or replace function get_domain_web_requests_lock( domain_arg text, domain_timeout_arg int ) returns boolean as $$
+create or replace function get_domain_web_requests_lock( domain_arg text, domain_timeout_arg float ) returns boolean as $$
 begin
 
 -- we don't want this table to grow forever or to have to manage it externally, so just truncate about every
@@ -3633,7 +3633,7 @@ if exists (
         from domain_web_requests
         where
             domain = domain_arg and
-            extract( epoch from now() - request_time ) < domain_timeout_arg
+            extract( epoch from now() - request_time ) < domain_timeout_arg 
     ) then
 
     return false;
