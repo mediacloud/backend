@@ -329,8 +329,9 @@ def _get_stories_ids_from_stories_only_params(params: SolrParams) -> Optional[Li
 
     # Return None if there are any unrecognized params
     param_keys = set(list(params.keys()))
-    if not param_keys.issubset({'q', 'fq', 'start', 'rows'}):
-        log.error(f"Parameters have unrecognized keys; all keys: {param_keys}")
+    allowed_params = {'q', 'fq', 'start', 'rows'}
+    if not param_keys.issubset(allowed_params):
+        log.error(f"Parameters have unrecognized keys: {param_keys - allowed_params}; all keys: {param_keys}")
         return None
 
     if not q:
