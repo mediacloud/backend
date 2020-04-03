@@ -14,7 +14,7 @@ use MediaWords::TM::Snapshot;
 use MediaWords::Test::Solr;
 use MediaWords::Job::Broker;
 use MediaWords::Test::DB::Create;
-use MediaWords::DB::Snapshot;
+use MediaWords::TM::Snapshot;
 
 sub test_timespan_export($)
 {
