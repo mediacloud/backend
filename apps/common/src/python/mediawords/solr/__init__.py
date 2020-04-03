@@ -148,6 +148,9 @@ def _insert_collection_media_ids(db: DatabaseHandler, q: str) -> str:
 
         return media_clause
 
+    if not q:
+        return q
+
     q = re.sub(r'(tags_id_media|collections_id):(\d+|\([^)]*\)|\[[^\]]*\])', get_media_ids_clause, q)
 
     return q
@@ -211,8 +214,10 @@ def query_solr(db: DatabaseHandler, params: SolrParams) -> Dict[str, Any]:
     params['q'] = _uppercase_boolean_operators(params['q'])
     params['fq'] = _uppercase_boolean_operators(params['fq'])
 
-    params['q'] = _insert_collection_media_ids(db=db, q=params['q'])
-    params['fq'] = [_insert_collection_media_ids(db=db, q=_) for _ in params['fq']]
+    if params['q']:
+        params['q'] = _insert_collection_media_ids(db=db, q=params['q'])
+    if params['fq']:
+        params['fq'] = [_insert_collection_media_ids(db=db, q=_) for _ in params['fq']]
 
     response_json = solr_request(
         path='select',
