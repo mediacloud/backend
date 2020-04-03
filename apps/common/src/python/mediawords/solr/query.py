@@ -66,6 +66,8 @@ def get_full_solr_query_for_topic(db: DatabaseHandler,
 
     Return None if the 'month_offset' puts the query start date beyond the topic end date. Otherwise return dictionary
     in the form of { 'q': query, 'fq': filter_query }.
+
+    FIXME topic passed as a parameter might not even exist yet, e.g. this gets called as part of topics/create.
     """
     topic = decode_object_from_bytes_if_needed(topic)
     media_ids = decode_object_from_bytes_if_needed(media_ids)
@@ -85,25 +87,27 @@ def get_full_solr_query_for_topic(db: DatabaseHandler,
     solr_query = f"( {topic['solr_seed_query']} )"
 
     media_clauses = []
-    topics_id = topic['topics_id']
+    topics_id = topic.get('topics_id', None)
 
-    if not media_ids:
-        media_ids = db.query("""
-            SELECT media_id
-            FROM topics_media_map
-            WHERE topics_id = %(topics_id)s
-        """, {'topics_id': topics_id}).flat()
+    if topics_id:
+
+        if not media_ids:
+            media_ids = db.query("""
+                SELECT media_id
+                FROM topics_media_map
+                WHERE topics_id = %(topics_id)s
+            """, {'topics_id': topics_id}).flat()
+
+        if not media_tags_ids:
+            media_tags_ids = db.query("""
+                SELECT tags_id
+                FROM topics_media_tags_map
+                WHERE topics_id = %(topics_id)s
+            """, {'topics_id': topics_id}).flat()
 
     if media_ids:
         media_ids_list = ' '.join([str(_) for _ in media_ids])
         media_clauses.append(f"media_id:( {media_ids_list} )")
-
-    if not media_tags_ids:
-        media_tags_ids = db.query("""
-            SELECT tags_id
-            FROM topics_media_tags_map
-            WHERE topics_id = %(topics_id)s
-        """, {'topics_id': topics_id}).flat()
 
     if media_tags_ids:
         media_tags_ids_list = ' '.join([str(_) for _ in media_tags_ids])
