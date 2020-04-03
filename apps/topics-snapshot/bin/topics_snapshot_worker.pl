@@ -10,7 +10,7 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use MediaWords::DB;
-use MediaWords::Job::Broker;
+use MediaWords::Job::StatefulBroker;
 use MediaWords::Job::Lock;
 use MediaWords::Job::State;
 use MediaWords::Job::State::ExtraTable;
@@ -49,7 +49,7 @@ sub run_job($)
 
 sub main()
 {
-    my $app = MediaWords::Job::Broker->new( 'MediaWords::Job::TM::SnapshotTopic' );
+    my $app = MediaWords::Job::StatefulBroker->new( 'MediaWords::Job::TM::SnapshotTopic' );
 
     # Only run one job for each topic at a time
     my $lock = MediaWords::Job::Lock->new( 'MediaWords::Job::TM::SnapshotTopic', 'topics_id' );
