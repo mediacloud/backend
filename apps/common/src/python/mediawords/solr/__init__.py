@@ -197,7 +197,8 @@ def query_solr(db: DatabaseHandler, params: SolrParams) -> Dict[str, Any]:
     if 'q' not in params:
         params['q'] = ''
 
-    if 'fq' not in params:
+    # "fq" might be nonexistent or None
+    if not params.get('fq', None):
         params['fq'] = []
 
     if not isinstance(params['fq'], list):
