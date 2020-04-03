@@ -35,7 +35,8 @@ __ignore_link_patterns = [
     r'misuse\.ncbi\.nlm\.nih\.gov/error/abuse\.shtml', # we get blocked by nih, and everything ends up here
     r'assets\.feedblitzstatic\.com/images/blank\.gif',
     r'accounts\.google\.com/ServiceLogin',
-    r'network.wwe.com/video', # wwe videos just redirect to front page
+    r'network\.wwe\.com/video', # wwe videos just redirect to front page
+    r'goldfish\.me/',
 ]
 
 IGNORE_LINK_PATTERN = '|'.join(["(?:%s)" % p for p in __ignore_link_patterns])
