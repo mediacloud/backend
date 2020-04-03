@@ -35,7 +35,7 @@ _ACCELERATED_DOMAINS = {
 }
 
 # timeout to use for accelerated domains and shortened urls
-_ACCELERATED_TIMEOUT = 0.1
+_ACCELERATED_TIMEOUT = 0.5
 
 # timeout for shortened urls that are not also accelerated domains
 _SHORTENED_TIMEOUT = 1
