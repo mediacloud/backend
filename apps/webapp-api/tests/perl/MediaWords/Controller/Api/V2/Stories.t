@@ -254,7 +254,7 @@ sub test_stories_count($)
 
     $r = MediaWords::Test::API::test_get( '/api/v2/stories_public/count', { q => "stories_id:($stories_ids_list)" } );
 
-    is( $r->{ count }, scalar( @{ $stories } ), "stories/count count" );
+    is( $r->{ count }, scalar( @{ $stories } ), "stories_public/count count" );
 }
 
 sub test_stories_count_split($)
