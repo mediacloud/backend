@@ -39,8 +39,6 @@ SQL
 
     my $content = MediaWords::Util::PublicStore::fetch_content( $db, $content_type, $object_id );
 
-    ok( $content );
-
     my $got_rows = MediaWords::Util::CSV::get_encoded_csv_as_hashes( $content );
 
     if ( defined( $num_expected_rows ) )
