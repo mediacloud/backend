@@ -59,8 +59,11 @@ Readonly my $JOB_POLL_WAIT => 5;
 # if more than this many seed urls are imported, dedup stories before as well as after spidering
 Readonly my $MIN_SEED_IMPORT_FOR_PREDUP_STORIES => 50_000;
 
-# how man link extraction jobs per 1000 can we ignore if they hang
+# how many link extraction jobs per 1000 can we ignore if they hang
 Readonly my $MAX_LINK_EXTRACTION_TIMEOUT => 10;
+
+# how long to wait to timeout link extraction
+Readonly my $LINK_EXTRACTION_POLL_TIMEOUT => 60;
 
 # if mine_topic is run with the test_mode option, set this true and do not try to queue extractions
 my $_test_mode;
@@ -146,7 +149,7 @@ SQL
     my $queued_ids_table = $db->get_temporary_ids_table( $queued_stories_ids );
 
     # poll every $JOB_POLL_WAIT seconds waiting for the jobs to complete.  die if the number of stories left to process
-    # has not shrunk for $JOB_POLL_TIMEOUT seconds. 
+    # has not shrunk for $EXTRACTION_POLL_TIMEOUT seconds. 
     my $prev_num_queued_stories = scalar( @{ $stories } );
     my $last_change_time        = time();
     while ( 1 )
@@ -161,7 +164,7 @@ SQL
         last unless ( $num_queued_stories );
 
         $last_change_time = time() if ( $num_queued_stories != $prev_num_queued_stories );
-        if ( ( time() - $last_change_time ) > $JOB_POLL_TIMEOUT )
+        if ( ( time() - $last_change_time ) > $LINK_EXTRACTION_POLL_TIMEOUT )
         {
             my $ids_list = join( ', ', @{ $queued_stories } );
             if ( $num_queued_stories > $MAX_LINK_EXTRACTION_TIMEOUT )
