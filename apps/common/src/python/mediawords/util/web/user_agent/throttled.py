@@ -16,26 +16,27 @@ log = create_logger(__name__)
 # default amount of time in between requests
 _DEFAULT_DOMAIN_TIMEOUT = 10
 
+# timeout to use for accelerated domains and shortened urls
+_DEFAULT_ACCELERATED_TIMEOUT = 0.5
+
 # Domains (in addition to all shortened URLs) for which the throttling will be less intense
 _ACCELERATED_DOMAINS = {
-    'twitter.com',
-    'wikipedia.org',
-    'feeds.feedburner.com',
-    'facebook.com',
-    'wp.com',
-    'amazonaws.com',
-    't.co',
-    'google.com',
-    'doi.org',
-    'archive.org',
-    'reddit.com',
-    #'youtube.com', we were getting 429s for about 10% of youtube urls
-    'instagram.com',
-    'yahoo.com'
+    'twitter.com': _DEFAULT_ACCELERATED_TIMEOUT,
+    'wikipedia.org': _DEFAULT_ACCELERATED_TIMEOUT,
+    'feeds.feedburner.com': _DEFAULT_ACCELERATED_TIMEOUT,
+    'facebook.com': _DEFAULT_ACCELERATED_TIMEOUT,
+    'wp.com': _DEFAULT_ACCELERATED_TIMEOUT,
+    'amazonaws.com': _DEFAULT_ACCELERATED_TIMEOUT,
+    't.co': _DEFAULT_ACCELERATED_TIMEOUT,
+    'google.com': _DEFAULT_ACCELERATED_TIMEOUT,
+    'doi.org': _DEFAULT_ACCELERATED_TIMEOUT,
+    'archive.org': _DEFAULT_ACCELERATED_TIMEOUT,
+    'reddit.com': _DEFAULT_ACCELERATED_TIMEOUT,
+    'youtube.com': 2,
+    'instagram.com': _DEFAULT_ACCELERATED_TIMEOUT,
+    'yahoo.com': _DEFAULT_ACCELERATED_TIMEOUT,
+    'congress.gov': _DEFAULT_ACCELERATED_TIMEOUT,
 }
-
-# timeout to use for accelerated domains and shortened urls
-_ACCELERATED_TIMEOUT = 0.5
 
 # timeout for shortened urls that are not also accelerated domains
 _SHORTENED_TIMEOUT = 1
@@ -93,7 +94,7 @@ class ThrottledUserAgent(UserAgent):
 
             domain_timeout = self.domain_timeout
             if domain in _ACCELERATED_DOMAINS:
-                domain_timeout = _ACCELERATED_TIMEOUT
+                domain_timeout = _ACCELERATED_DOMAINS[domain]
             elif is_shortened_url(request.url()):
                 domain_timeout = _SHORTENED_TIMEOUT
 
