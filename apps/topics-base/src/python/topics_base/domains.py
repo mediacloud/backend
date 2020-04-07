@@ -12,7 +12,7 @@ log = create_logger(__name__)
 MAX_SELF_LINKS = 200
 
 # regex for urls that should always be skipped if the domain is linking to itself
-SKIP_SELF_LINK_RE = r'\/(?:tag|category|author|search|congress.gov|nih.gov)'
+SKIP_SELF_LINK_RE = r'\/(?:tag|category|author|search|congress.gov|nih.gov|wikinews.org)'
 
 
 def increment_domain_links(db: DatabaseHandler, topic_link: dict) -> None:
