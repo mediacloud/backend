@@ -248,7 +248,7 @@ SQL
 
         last unless ( @{ $posts } );
 
-        $ndjson .= join( "\n", map { MediaWords::Util::ParseJSON::encode_json( $_ ) . '' } @{ $posts } );
+        $ndjson .= join( '',map { MediaWords::Util::ParseJSON::encode_json( $_ ) . "\n" } @{ $posts } );
     }
 
     $db->commit;

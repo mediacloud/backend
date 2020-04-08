@@ -39,15 +39,25 @@ SQL
 
     my $content = MediaWords::Util::PublicStore::fetch_content( $db, $content_type, $object_id );
 
-    my $got_rows = MediaWords::Util::CSV::get_encoded_csv_as_hashes( $content );
+    if ( $table eq 'timespan' )
+    {
+        my $got_rows = MediaWords::Util::CSV::get_encoded_csv_as_hashes( $content );
 
-    if ( defined( $num_expected_rows ) )
-    {
-        is( scalar( @{ $got_rows } ), $num_expected_rows, "$label expected rows" );
+        if ( defined( $num_expected_rows ) )
+        {
+            is( scalar( @{ $got_rows } ), $num_expected_rows, "$label expected rows" );
+        }
+        else
+        {
+            ok( scalar( @{ $got_rows } ) > 0, "$label expected rows" );
+        }
     }
-    else
+    elsif ( $table eq 'snapshot' )
     {
-        ok( scalar( @{ $got_rows } ) > 0, "$label expected rows" );
+        my $got_lines = 0;
+        ++$got_lines while $content =~ /\n/g;
+
+        is( $got_lines, $num_expected_rows );
     }
 }
 
@@ -98,7 +108,7 @@ sub main
 
     my $snapshot = $db->require_by_id( 'snapshots', $post_timespan->{ snapshots_id } );
 
-    #validate_snapshot_file( $db, $snapshot->{ snapshots_id }, 'topic_posts', $num_posts );
+    validate_snapshot_file( $db, $snapshot->{ snapshots_id }, 'topic_posts', $num_posts );
 
     done_testing();
 }
