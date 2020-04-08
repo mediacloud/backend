@@ -238,7 +238,10 @@ declare posts cursor for
                 t.snapshots_id = ?
     )
                 
-    select tp.* from topic_posts tp join _snapshot_posts sp using ( topic_posts_id )
+    select tp.*, tpd.topic_seed_queries_id
+        from topic_posts tp
+            join topic_post_days tpd using ( topic_post_days_id ) 
+            join _snapshot_posts sp using ( topic_posts_id )
 SQL
 
     my $ndjson = '';
