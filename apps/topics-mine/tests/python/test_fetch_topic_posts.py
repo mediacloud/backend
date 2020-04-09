@@ -44,12 +44,15 @@ def _get_mock_posts() -> list:
 
         test_url = "http://test.host/post_url?id=" + str(url_id)
 
+        hindi_foo_bar = 'फू बार';
+        mandarin_author = 'មិត្ត ១០០ ឆ្នាំ';
+
         posts.append({
             'post_id': post_id,
-            'content': "sample post for id id %s" % test_url,
+            'content': "%s sample post for id id %s" % (hindi_foo_bar, test_url),
             'publish_date': publish_date,
             'url': test_url,
-            'author': 'user-%s' % user_id,
+            'author': '%s user-%s' % (mandarin_author, user_id),
             'channel': 'channel-%s' % user_id,
         })
 

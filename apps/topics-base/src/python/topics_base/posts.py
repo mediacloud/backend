@@ -33,9 +33,12 @@ def get_mock_post(post_id: int) -> dict:
     author_id = int(post_id % NUM_MOCK_AUTHORS)
     channel_id = int(post_id % NUM_MOCK_CHANNELS)
 
+    hindi_foo_bar = 'फू बार';
+    mandarin_author = 'មិត្ត ១០០ ឆ្នាំ';
+
     d = {
-            'content': 'mock content %s' % str(post_id),
-            'author': 'mock author %s' % str(author_id),
+            'content': 'mock content %s %s' % (hindi_foo_bar, str(post_id)),
+            'author': 'mock author %s %s' % (mandarin_author, str(author_id)),
             'channel': 'mock channel %s' % str(channel_id),
             'publish_date': str(publish_date),
             'post_id': str(post_id)

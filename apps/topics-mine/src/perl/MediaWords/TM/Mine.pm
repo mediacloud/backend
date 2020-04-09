@@ -1011,7 +1011,7 @@ sub import_urls_from_seed_queries($$)
 
     for my $tsq ( @{ $topic_seed_queries } )
     {
-        my $tsq_dump = Dumper( $tsq );
+        my $tsq_dump = $tsq->{ topic_seed_queries_id };
         my $fetcher = MediaWords::TM::FetchTopicPosts::get_post_fetcher( $tsq ); 
         die( "unable to import seed urls for platform/source of seed query: $tsq_dump" ) unless ( $fetcher );
 
