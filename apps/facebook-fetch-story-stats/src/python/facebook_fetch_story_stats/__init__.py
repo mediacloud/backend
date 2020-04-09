@@ -152,10 +152,8 @@ def _api_request(node: str, params: Dict[str, Union[str, List[str]]], config: Fa
         decoded_content = response.decoded_content()
 
         if not decoded_content:
-            # I guess API caching servers can respond with blank pages once in a while -- let's retry on those
-            last_api_error = f"Decoded content is empty."
-            log.error(last_api_error)
-            continue
+            # some stories consistenty return empty content, so just return a soft error and move on
+            raise McFacebookSoftFailureException("Decoded content is empty.")
 
         try:
             data = decode_json(decoded_content)
