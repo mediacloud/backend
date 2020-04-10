@@ -13,7 +13,7 @@ from topics_mine.posts import AbstractPostFetcher
 from topics_mine.posts.archive_org_twitter import ArchiveOrgPostFetcher
 from topics_mine.posts.crimson_hexagon_twitter import CrimsonHexagonTwitterPostFetcher
 from topics_mine.posts.csv_generic import CSVStaticPostFetcher
-from topics_mine.posts.postgres_generic import CSVStaticPostFetcher
+from topics_mine.posts.postgres_generic import PostgresPostFetcher
 from topics_mine.posts.pushshift_reddit import PushshiftRedditPostFetcher
 from topics_mine.posts.googler_web import GooglerWebPostFetcher
 
@@ -207,7 +207,7 @@ def get_post_fetcher(topic_seed_query: dict) -> Optional[AbstractPostFetcher]:
     if source == 'crimson_hexagon' and platform == 'twitter':
         fetch = CrimsonHexagonTwitterPostFetcher()
     elif source == 'postgres' and platform == 'generic_post':
-        fetch =PostgresPostFetcher()
+        fetch = PostgresPostFetcher()
     elif source == 'csv' and platform == 'generic_post':
         fetch = CSVStaticPostFetcher()
     elif source == 'pushshift' and platform == 'reddit':
