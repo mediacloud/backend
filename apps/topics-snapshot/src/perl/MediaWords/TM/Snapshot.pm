@@ -914,21 +914,12 @@ with link_stories as (
             tl.topics_id = \$1
 ),
 
-fb_stories as (
-    select ss.stories_id
-        from topic_stories ts
-            join story_statistics ss using ( stories_id )
-        where
-            ts.topics_id = \$1 and
-            ss.facebook_share_count >= 100
-),
-
 post_stories as (
-    select ts.stories_id
-        from topic_stories ts
-        where 
-            ts.topics_id = \$1 and
-            exists (select 1 from snap.story_link_counts where stories_id = ts.stories_id and post_count >= 10)
+    select tps.stories_id
+        from topic_post_stories tps
+        where tps.topics_id = \$1
+        group by topic_seed_queries_id, stories_id
+        having count(*) >= 10
 )
 
 select ts.*
@@ -937,7 +928,6 @@ select ts.*
         topics_id = \$1 and
         stories_id in ( 
             select stories_id from link_stories  union
-            select stories_id from fb_stories union
             select stories_id from post_stories
         )
 SQL
