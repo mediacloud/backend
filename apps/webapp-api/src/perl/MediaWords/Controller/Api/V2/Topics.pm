@@ -473,6 +473,11 @@ sub add_seed_query_PUT
 
     my $topic = $db->require_by_id( 'topics', $c->stash->{ topics_id } );
 
+    if ( $data->{ platform } eq 'postgres' )
+    {
+        die( "postgres source seed queries must be added manually." );
+    }
+
     my $tsq = {
         topics_id => $topic->{ topics_id },
         platform  => $data->{ platform },

@@ -3,6 +3,7 @@
 import datetime
 from dateutil import parser
 import io
+import re
 import uuid
 
 import mediawords.db
@@ -51,6 +52,9 @@ class PostgresPostFetcher(AbstractPostFetcher):
             query = self._insert_mock_data(db, get_mock_data())
 
         table = query
+
+        if re.search(r'[^[a-z][A-Z][0-9]_]', table):
+            raise McPostgresGenericDataException(f'illegal table name: {table}')
 
         posts = db.query(
             f"""
