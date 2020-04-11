@@ -1032,48 +1032,64 @@ sub _generate_snapshots_from_temporary_snapshot_tables
     map { create_snap_snapshot( $db, $cd, $_ ) } @{ $snapshot_tables };
 }
 
-# create focal_set and foci for all of the url sharing platforms present in seed queries for the topic. return foci.
-sub _create_url_sharing_foci
+# create focal_set and focus definitons for the url sharing platforms present in seed queries for the topic
+sub _update_url_sharing_focus_definitions($$)
 {
     my ( $db, $snapshot ) = @_;
 
-    my $focal_set = {
-        snapshots_id => $snapshot->{ snapshots_id },
+    my $tsqs = $db->query( "select * from topic_seed_queries where topics_id = ?", $snapshot->{ topics_id } )->hashes;
+
+    if ( !@{ $tsqs } )
+    {
+        $db->quuery( <<SQL, $TECHNIQUE_SHARING, $snapshot->{ topics_id } );
+delete from focus_definitions where focal_technique = ? and topics_id = ?
+SQL
+        return;
+    }
+
+    my $fsd = {
+        topics_id => $snapshot->{ topics_id },
         name => $TECHNIQUE_SHARING,
         description => 'Subtopics for analysis of url cosharing on urls collected by platform seed queries.',
         focal_technique =>  'URL Sharing'
     };
-    $focal_set = $db->find_or_create( 'focal_sets', $focal_set );
+    $fsd = $db->find_or_create( 'focal_set_definitions', $fsd );
 
-    my $tsqs = $db->query( "select * from topic_seed_queries where topics_id = ?", $snapshot->{ topics_id } )->hashes;
-
-    my $foci = [];
     for my $tsq ( @{ $tsqs } )
     {
         next unless ( grep { $tsq->{ platform } eq $_ } @{ $URL_SHARING_PLATFORMS } );
 
-        my $focal_sets_id = $focal_set->{ focal_sets_id };
+        my $fsd_id = $fsd->{ focal_set_definitions_id };
         my $topic_seed_queries_id = $tsq->{ topic_seed_queries_id };
 
-        my $existing_focus = $db->query( <<SQL, $focal_sets_id, $topic_seed_queries_id )->hash;
-select * from foci where focal_sets_id = ? and ( arguments->>'topic_seed_queries_id' )::int = ?::int        
+        my $existing_fd = $db->query( <<SQL, $fsd_id, $topic_seed_queries_id )->hash;
+select *
+    from focus_definitions
+    where focal_set_definitions_id = ? and
+        ( arguments->>'topic_seed_queries_id' )::int = ?::int        
 SQL
-        if ( !$existing_focus )
+        if ( !$existing_fd )
         {
             my $arguments = { mode => 'url_sharing', topic_seed_queries_id => $topic_seed_queries_id };
 
-            my $focus = {
-                focal_sets_id => $focal_sets_id,
+            my $fd = {
+                focal_set_definitions_id => $fsd->{ focal_set_definitions_id },
                 name => "$tsq->{ platform } [$tsq->{ topic_seed_queries_id }]",
                 description => "Subtopic for analysis of url cosharing on urls collected from $tsq->{ platform }",
                 arguments => MediaWords::Util::ParseJSON::encode_json( $arguments )
             };
-            $focus = $db->create( 'foci', $focus );
-            push( @{ $foci }, $focus );
+            $fd = $db->create( 'focus_definitions', $fd );
         }
     }
 
-    return $foci;
+    $db->query( <<SQL, $fsd->{ focal_set_definitions_id } );
+delete from focus_definitions fd 
+    where
+        focal_set_definitions_id = ? and
+        not exists (
+            select 1 from topic_seed_queries tsq
+                where tsq.topic_seed_queries_id::text = fd.arguments->>'topic_seed_queries_id' )
+SQL
 }
 
 # generate period spanshots for each period / focus / timespan combination
@@ -1081,15 +1097,10 @@ sub _generate_period_focus_snapshots ( $$$ )
 {
     my ( $db, $snapshot, $periods ) = @_;
 
-    my $sharing_foci = _create_url_sharing_foci( $db, $snapshot );
+    _update_url_sharing_focus_definitions( $db, $snapshot );
 
-    for my $focus ( @{ $sharing_foci } )
-    {
-        map { _generate_period_snapshot( $db, $snapshot, $_, $focus ) } @{ $periods };
-    }
-
-    my $fsds = $db->query( <<SQL, $snapshot->{ topics_id }, $TECHNIQUE_BOOLEAN )->hashes;
-select * from focal_set_definitions where topics_id = ? and focal_technique = ?
+    my $fsds = $db->query( <<SQL, $snapshot->{ topics_id } )->hashes;
+select * from focal_set_definitions where topics_id = ?
 SQL
 
     for my $fsd ( @{ $fsds } )
