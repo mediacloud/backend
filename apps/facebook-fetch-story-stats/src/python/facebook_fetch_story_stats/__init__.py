@@ -20,6 +20,7 @@ from facebook_fetch_story_stats.exceptions import (
     McFacebookInvalidURLException,
     McFacebookUnexpectedAPIResponseException,
     McFacebookErrorAPIResponseException,
+    McFacebookSoftFailureException,
 )
 
 log = create_logger(__name__)
