@@ -651,7 +651,13 @@ END
         update_topic_state( $db, $topic, "importing seed urls: $i / $num_urls" );
 
         my $end = List::Util::min( $i + $ADD_NEW_LINKS_CHUNK_SIZE - 1, $#{ $seed_urls } );
-        my $seed_urls_chunk = [ @{ $seed_urls }[ $i .. $end ] ];
+
+        # verify that the seed urls are still there and not processed, in case we have mucked with them while spidering
+        my $urls_ids_list = join( ',', map { int( $_->{ topic_seed_urls_id } ) } @{ $seed_urls }[ $i .. $end] );
+        my $seed_urls_chunk = $db->query( <<SQL )->hashes();
+select * from topic_seed_urls where topic_seed_urls_id in ( $urls_ids_list ) and not processed
+SQL
+
         add_new_links_chunk( $db, $topic, 0, $seed_urls_chunk );
 
         my $ids_list = join( ',', map { int( $_->{ topic_seed_urls_id } ) } @{ $seed_urls_chunk } );
