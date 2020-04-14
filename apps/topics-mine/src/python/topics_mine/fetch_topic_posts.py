@@ -221,7 +221,10 @@ def get_post_fetcher(topic_seed_query: dict) -> Optional[AbstractPostFetcher]:
 
 
 def fetch_posts(topic_seed_query: dict, start_date: datetime, end_date: datetime = None) -> list:
-    """Fetch the posts for the given topic_seed_queries row, for the described date range."""
+    """Fetch the posts for the given topic_seed_queries row, for the described date range.
+    
+    Remove any urls that match topic_seed_query['ignore_pattern'].
+    """
     if end_date is None:
         end_date = start_date + datetime.timedelta(days=1) - datetime.timedelta(seconds=1) 
 
@@ -231,7 +234,16 @@ def fetch_posts(topic_seed_query: dict, start_date: datetime, end_date: datetime
         msg = f"Unable to find fetch_posts fetcher for seed_query: {topic_seed_query}"
         raise McFetchTopicPostsDataException(msg)
 
-    return fetcher.fetch_posts(query=topic_seed_query['query'], start_date=start_date, end_date=end_date)
+    posts = fetcher.fetch_posts(query=topic_seed_query['query'], start_date=start_date, end_date=end_date)
+
+    ignore_pattern = topic_seed_query['ignore_pattern']
+
+    if ignore_pattern is not None and len(ignore_pattern) > 0:
+        log.debug('ignoring links that match pattern "{pattern}"')
+        for post in posts:
+            post['urls'] = list(filter(lambda x: not re.search(ignore_pattern, x, flags=re.IGNORECASE), post['urls']))
+
+    return posts
 
 
 def fetch_topic_posts(db: DatabaseHandler, topic_seed_query: dict) -> None:

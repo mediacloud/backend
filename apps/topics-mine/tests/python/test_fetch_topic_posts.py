@@ -44,12 +44,15 @@ def _get_mock_posts() -> list:
 
         test_url = "http://test.host/post_url?id=" + str(url_id)
 
+        # this one should get ignored by the topic_seed_query['ignore_pattern']
+        ignore_url = "http://ignore.test/" + str(url_id)
+
         hindi_foo_bar = 'फू बार';
         mandarin_author = 'មិត្ត ១០០ ឆ្នាំ';
 
         posts.append({
             'post_id': post_id,
-            'content': "%s sample post for id id %s" % (hindi_foo_bar, test_url),
+            'content': "%s sample post for id id %s %s" % (hindi_foo_bar, test_url, ignore_url),
             'publish_date': publish_date,
             'url': test_url,
             'author': '%s user-%s' % (mandarin_author, user_id),
@@ -125,7 +128,12 @@ def test_fetch_topic_posts() -> None:
 
     mock_posts_csv = CSVStaticPostFetcher()._get_csv_string_from_dicts(mock_posts)
 
-    tsq = {'topics_id': topic['topics_id'], 'platform': 'generic_post', 'source': 'csv', 'query': mock_posts_csv}
+    tsq = {
+        'topics_id': topic['topics_id'],
+        'platform': 'generic_post',
+        'source': 'csv',
+        'ignore_pattern': 'ignore',
+        'query': mock_posts_csv}
     tsq = db.create('topic_seed_queries', tsq)
 
     db.update_by_id('topics', topic['topics_id'], {'platform': 'generic_post'})
