@@ -1027,7 +1027,7 @@ sub import_urls_from_seed_queries($$)
 
     $db->query( <<SQL, $topic->{ topics_id } );
 insert into topic_seed_urls ( url, topics_id, assume_match, source, topic_seed_queries_id )
-    select distinct tpu.url, tsq.topics_id, true, 'topic_seed_queries ', tsq.topic_seed_queries_id
+    select distinct tpu.url, tsq.topics_id, false, 'topic_seed_queries ', tsq.topic_seed_queries_id
         from
             topic_post_urls tpu
             join topic_posts tp using ( topic_posts_id )
