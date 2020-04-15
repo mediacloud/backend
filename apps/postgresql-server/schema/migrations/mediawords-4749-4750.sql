@@ -14,7 +14,7 @@
 -- 1 of 2. Import the output of 'apgdiff':
 --
 
-alter table topic_post_days rename num_stored to num_posts_stored;
+alter table topic_post_days rename num_posts to num_posts_stored;
 alter table topic_post_days add num_posts_fetched int;
 
 update topic_post_days set num_posts_fetched = num_posts_stored;
