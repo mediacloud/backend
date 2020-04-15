@@ -197,6 +197,13 @@ def _insert_story_sentences(
         dedup_sentences_statement=dedup_sentences_statement,
     )
 
+    # sometimes the big story_sentences query below deadlocks sticks in an idle state, holding this lock so we set a
+    # short idle timeout for postgres just while we do this query. the timeout should not kick in while the 
+    # big story_sentences query is actively processing, so we can set it pretty short. we usually set this timeout
+    # to 0 globally, but just to be safe store and reset the pre-existing value.
+    idle_timeout = db.query("show idle_in_transaction_session_timeout").flat()[0]
+    db.query("set idle_in_transaction_session_timeout = 5000")
+
     log.debug("Adding advisory lock on media ID {}...".format(media_id))
     db.query("SELECT pg_advisory_lock(%(media_id)s)", {'media_id': media_id})
 
@@ -207,6 +214,8 @@ def _insert_story_sentences(
 
     log.debug("Removing advisory lock on media ID {}...".format(media_id))
     db.query("SELECT pg_advisory_unlock(%(media_id)s)", {'media_id': media_id})
+
+    db.query("set idle_in_transaction_session_timeout = %(a)s", {'a': idle_timeout})
 
     return inserted_sentences
 
