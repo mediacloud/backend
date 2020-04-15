@@ -1041,8 +1041,8 @@ sub _update_url_sharing_focus_definitions($$)
 
     if ( !@{ $tsqs } )
     {
-        $db->quuery( <<SQL, $TECHNIQUE_SHARING, $snapshot->{ topics_id } );
-delete from focus_definitions where focal_technique = ? and topics_id = ?
+        $db->query( <<SQL, $TECHNIQUE_SHARING, $snapshot->{ topics_id } );
+delete from focal_set_definitions where focal_technique = ? and topics_id = ?
 SQL
         return;
     }
@@ -1092,16 +1092,18 @@ delete from focus_definitions fd
 SQL
 }
 
-# generate period spanshots for each period / focus / timespan combination
-sub _generate_period_focus_snapshots ( $$$ )
+# generate foci from focus definitions, includling updating focus_definitions to include url sharing foci
+sub _generate_period_foci($$)
 {
-    my ( $db, $snapshot, $periods ) = @_;
+    my ( $db, $snapshot ) = @_;
 
     _update_url_sharing_focus_definitions( $db, $snapshot );
 
     my $fsds = $db->query( <<SQL, $snapshot->{ topics_id } )->hashes;
 select * from focal_set_definitions where topics_id = ?
 SQL
+
+    my $foci = [];
 
     for my $fsd ( @{ $fsds } )
     {
@@ -1124,8 +1126,24 @@ insert into foci ( name, description, arguments, focal_sets_id )
     on conflict ( focal_sets_id, name ) do update set focal_sets_id = \$2
     returning *
 SQL
-            map { _generate_period_snapshot( $db, $snapshot, $_, $focus ) } @{ $periods };
+
+            push( @{ $foci }, $focus );
         }
+    }
+
+    return $foci;
+}
+
+# generate period spanshots for each period / focus / timespan combination
+sub _generate_period_focus_snapshots ( $$$ )
+{
+    my ( $db, $snapshot, $periods ) = @_;
+
+    my $foci = _generate_period_foci( $db, $snapshot );
+
+    for my $focus ( @{ $foci } )
+    {
+        map { _generate_period_snapshot( $db, $snapshot, $_, $focus ) } @{ $periods };
     }
 }
 

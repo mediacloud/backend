@@ -342,7 +342,8 @@ def create_test_topic_posts(
         tpd = {
             'topic_seed_queries_id': tsq['topic_seed_queries_id'],
             'day': date.strftime('%Y-%m-%d'),
-            'num_posts': 1
+            'num_posts_stored': num_posts_per_day,
+            'num_posts_fetched': num_posts_per_day,
         }
         tpd = db.create('topic_post_days', tpd)
 

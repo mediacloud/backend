@@ -105,7 +105,8 @@ SQL
     my $tpd = {
         topic_seed_queries_id => $tsq->{ topic_seed_queries_id },
         day => $post_story->{ publish_date },
-        num_posts => 0,
+        num_posts_stored => 0,
+        num_posts_fetched => 0,
     };
     $tpd = $db->create( 'topic_post_days', $tpd );
 

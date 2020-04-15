@@ -51,7 +51,8 @@ sub add_test_seed_query($$)
     my $tpd = {
         topic_seed_queries_id => $tsq->{ topic_seed_queries_id },
         day => $topic->{ start_date },
-        num_posts => 1
+        num_posts_stored => 1,
+        num_posts_fetched => 1,
     };
     $tpd = $db->create( 'topic_post_days', $tpd );
 

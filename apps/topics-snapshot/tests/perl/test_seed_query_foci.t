@@ -33,7 +33,21 @@ sub main
         push( @{ $topic_seed_queries }, $db->create( 'topic_seed_queries', $topic_seed_query ) );
     }
 
-    my $got_foci = MediaWords::TM::Snapshot::_create_url_sharing_foci( $db, $snapshot );
+    MediaWords::TM::Snapshot::_generate_period_foci( $db, $snapshot );
+
+    my $got_fds = $db->query( <<SQL )->hashes();
+select fd.*
+    from focus_definitions fd
+        join focal_set_definitions fsd using (focal_set_definitions_id)
+    where
+        focal_technique = 'URL Sharing'
+SQL
+
+    is( scalar( @{ $got_fds } ), $num_seed_queries );
+
+    my $got_foci = $db->query( <<SQL )->hashes();
+select f.* from foci f join focal_sets fs using ( focal_sets_id ) where fs.focal_technique = 'URL Sharing'
+SQL
 
     is( scalar( @{ $got_foci } ), $num_seed_queries );
 

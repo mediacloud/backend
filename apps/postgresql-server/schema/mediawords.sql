@@ -26,7 +26,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4749;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4750;
 BEGIN
 
     -- Update / set database schema version
@@ -3198,7 +3198,8 @@ create table topic_post_days (
     topic_post_days_id     serial primary key,
     topic_seed_queries_id  int not null references topic_seed_queries on delete cascade,
     day                    date not null,
-    num_posts              int not null,
+    num_posts_stored       int not null,
+    num_posts_fetched      int not null,
     posts_fetched          boolean not null default false
 );
 
