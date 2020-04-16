@@ -47,6 +47,7 @@ URL_SHORTENER_HOSTNAMES = {
     'bit.ly',
     'bizj.us',
     'bkite.com',
+    'bloom.bg',
     'bloat.me',
     'bravo.ly',
     'bsa.ly',
