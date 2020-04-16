@@ -33,6 +33,10 @@ sub main
     print STDERR "found " . scalar( @{ $stories_ids } ) . " stories\n";
 
     my $fields = [ qw/stories_id title url publish_date media_id media_name media_url/ ];
+    if ( $q =~ /timespans_id:(\d+)/ )
+    {                                                                                                               
+        push( @{ $fields }, qw/media_inlink_count inlink_count outlink_count facebook_share_count/ );                  
+    }  
 
     my $csv = Text::CSV_XS->new( { binary => 1 } );
 
@@ -56,7 +60,8 @@ SQL
         {                                                                                                               
 			my $timespans_id = $1;
             my $slc = $db->query( <<SQL, $timespans_id )->hashes;                                                       
-select slc.* from snap.story_link_counts slc where timespans_id = ? and stories_id in ( select id from $ids_table )         
+select slc.* from snap.story_link_counts slc
+    where timespans_id = ? and stories_id in ( select id from $ids_table )         
 SQL
             MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $slc );                                      
             push( @{ $fields }, qw/media_inlink_count inlink_count outlink_count facebook_share_count/ );                  
