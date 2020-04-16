@@ -334,6 +334,7 @@ URL_SHORTENER_HOSTNAMES = {
     'tr.my',
     'tra.kz',
     'traceurl.com',
+    'trib.al',
     'trunc.it',
     'turo.us',
     'tweetburner.com',
