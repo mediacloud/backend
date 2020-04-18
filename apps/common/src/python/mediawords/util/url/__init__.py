@@ -316,6 +316,35 @@ def normalize_url(url: str) -> str:
 
     return url
 
+def normalize_youtube_url(url: str) -> str:
+    """Convert various youtube video urls into a standard form.
+
+    We download a lot of youtube urls and can only attempt one every couple of seconds, or else
+    youtube returns 429s.  So it's important to normalize youtube urls as well as possible to avoid
+    hitting youtube whenever possible.
+    """
+    watch_match = re.match(r'https?://[^/]*youtube.com/watch\?v=([^&]+)', url, re.IGNORECASE)
+    if watch_match:
+        return f'https://www.youtube.com/watch?v={watch_match.group(1)}'
+
+    embed_match = re.match(r'https?://[^/]*youtube.com/embed/([^\?]+)', url, re.IGNORECASE)
+    if embed_match:
+        return f'https://www.youtube.com/watch?v={embed_match.group(1)}'
+
+    channel_match = re.match(r'https?://[^/]*youtube.com/channel/([^\?]+)', url, re.IGNORECASE)
+    if channel_match:
+        return f'https://www.youtube.com/channel/{channel_match.group(1)}'
+
+    user_match = re.match(r'https?://[^/]*youtube.com/user/([^\?]+)', url, re.IGNORECASE)
+    if user_match:
+        return f'https://www.youtube.com/user/{user_match.group(1)}'
+
+    generic_match = re.match(r'https?://[^/]*youtube.com/(.*)', url, re.IGNORECASE)
+    if generic_match:
+        return f'https://www.youtube.com/{generic_match.group(1)}'
+
+    return url
+
 
 # noinspection SpellCheckingInspection
 def normalize_url_lossy(url: str) -> Optional[str]:
@@ -338,6 +367,8 @@ def normalize_url_lossy(url: str) -> Optional[str]:
     url = fix_common_url_mistakes(url)
 
     url = url.lower()
+
+    url = normalize_youtube_url(url)
 
     # make archive.is links look like the destination link
     url = re.sub(r'^https://archive.is/[a-z0-9]/[a-z0-9]+/(.*)', r'\1', url, flags=re.I)
