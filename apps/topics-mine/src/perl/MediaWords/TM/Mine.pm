@@ -232,6 +232,10 @@ sub create_and_queue_topic_fetch_urls($$$)
     my $tfus = [];
     for my $link ( @{ $fetch_links } )
     {
+        if ( $link->{ topic_links_id } && !$db->find_by_id( 'topic_links', $link->{ topic_links_id } ) )
+        {
+            next;
+        }
         my $tfu = $db->create(
             'topic_fetch_urls',
             {
