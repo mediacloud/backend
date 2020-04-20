@@ -1,5 +1,6 @@
 use strict;
 use warnings;
+use utf8;
 
 use Modern::Perl '2015';
 use MediaWords::CommonLibs;
@@ -19,6 +20,8 @@ use MediaWords::Util::ParseJSON;
 Readonly my $NUM_MEDIA            => 5;
 Readonly my $NUM_FEEDS_PER_MEDIUM => 2;
 Readonly my $NUM_STORIES_PER_FEED => 10;
+
+Readonly my $UTF8_PREFIX => '𝑇ℎ𝑖𝑠 𝑝𝑎𝑟𝑡 𝑜𝑓 𝑡ℎ𝑒 𝑠𝑒𝑛𝑡𝑒𝑛𝑐𝑒 𝑖𝑠 𝑈𝑇𝐹-8 ';
 
 sub test_sentences_list($)
 {
@@ -49,6 +52,14 @@ sub main
         $NUM_STORIES_PER_FEED );
 
     $media = MediaWords::Test::DB::Create::add_content_to_test_story_stack( $db, $media );
+
+    # Prepend some UTF-8 to every sentence to test out Unicode support
+    $db->query(<<SQL,
+        UPDATE story_sentences
+        SET sentence = CONCAT(?, sentence)
+SQL
+        $UTF8_PREFIX . ''
+    );
 
     MediaWords::Test::Solr::setup_test_index( $db );
 
