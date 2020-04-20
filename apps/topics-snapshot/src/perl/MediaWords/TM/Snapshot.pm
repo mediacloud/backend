@@ -355,7 +355,7 @@ SQL
         DEBUG( "Trying smaller interval: $interval (found $num_dated_story_pairs / $story_pairs_limit )" );
 
         $interval = int( $interval / 2 );
-        $interval = ( $interval < 43200 ) ? 0 : $interval;
+        $interval = ( $interval < 14400 ) ? 0 : $interval;
     }
 
     # if we never found an interval with few enough pairs, just cowardly refuse to create story links,

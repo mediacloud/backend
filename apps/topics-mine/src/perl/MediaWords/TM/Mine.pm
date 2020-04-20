@@ -796,6 +796,11 @@ sub import_solr_seed_query_month($$$)
 
     return 0 unless ( $topic->{ platform } eq 'web' );
 
+    my $solr_query = MediaWords::Solr::Query::get_full_solr_query_for_topic( $db, $topic, undef, undef, $month_offset );
+
+    # this should return undef once the month_offset gets too big
+    return undef unless ( $solr_query );
+
     return 1 unless ( _import_month_within_respider_date( $topic, $month_offset ) );
 
     my $max_stories = $topic->{ max_stories };
@@ -803,11 +808,6 @@ sub import_solr_seed_query_month($$$)
     # if solr maxes out on returned stories, it returns a few documents less than the rows= parameter, so we
     # assume that we hit the solr max if we are within 5% of the ma stories
     my $max_returned_stories = $max_stories * 0.95;
-
-    my $solr_query = MediaWords::Solr::Query::get_full_solr_query_for_topic( $db, $topic, undef, undef, $month_offset );
-
-    # this should return undef once the month_offset gets too big
-    return undef unless ( $solr_query );
 
     INFO "import solr seed query month offset $month_offset";
     $solr_query->{ rows } = $max_stories;
