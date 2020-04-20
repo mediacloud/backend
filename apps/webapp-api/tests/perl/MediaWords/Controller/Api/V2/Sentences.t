@@ -20,26 +20,6 @@ Readonly my $NUM_MEDIA            => 5;
 Readonly my $NUM_FEEDS_PER_MEDIUM => 2;
 Readonly my $NUM_STORIES_PER_FEED => 10;
 
-sub test_sentences_count($)
-{
-    my ( $db ) = @_;
-
-    my $label = "sentences/count";
-
-    my $stories = $db->query( "select * from stories order by stories_id asc limit 10" )->hashes;
-    my $stories_ids = [ map { $_->{ stories_id } } @{ $stories } ];
-    ok( scalar( @{ $stories_ids } ) );
-    my $ss = $db->query( 'select * from story_sentences where stories_id in ( ?? )', @{ $stories_ids } )->hashes;
-
-    my $stories_ids_list = join( ' ', @{ $stories_ids } );
-    my $r = MediaWords::Test::API::test_get( '/api/v2/sentences/count', { q => "stories_id:($stories_ids_list)" } );
-
-    # we import titles as sentences as well as the sentences themselves, so expect them in the count
-    my $expected_count = scalar( @{ $ss } ) + 10;
-
-    is( $r->{ count }, $expected_count, "$label count" );
-}
-
 sub test_sentences_list($)
 {
     my ( $db ) = @_;
@@ -74,8 +54,6 @@ sub main
 
     MediaWords::Test::API::setup_test_api_key( $db );
 
-    # test_sentences_count( $db );
-    # test_sentences_field_count( $db );
     test_sentences_list( $db );
 
     done_testing();
