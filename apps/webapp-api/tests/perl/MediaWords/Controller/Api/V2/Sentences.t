@@ -61,9 +61,9 @@ SQL
     MediaWords::Test::Rows::rows_match( $label, $got_ss, $expected_ss, 'story_sentences_id', $fields );
 }
 
-sub test_sentences($)
+sub main
 {
-    my ( $db ) = @_;
+    my $db = MediaWords::DB::connect_to_db();
 
     my $media = MediaWords::Test::DB::Create::create_test_story_stack_numerated( $db, $NUM_MEDIA, $NUM_FEEDS_PER_MEDIUM,
         $NUM_STORIES_PER_FEED );
@@ -77,13 +77,6 @@ sub test_sentences($)
     # test_sentences_count( $db );
     # test_sentences_field_count( $db );
     test_sentences_list( $db );
-}
-
-sub main
-{
-    my $db = MediaWords::DB::connect_to_db();
-
-    test_sentences( $db );
 
     done_testing();
 }
