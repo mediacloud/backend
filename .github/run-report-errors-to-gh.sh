@@ -21,9 +21,8 @@ exec 5>&1
 # 1) Run command
 # 2) Log both STDOUT and STDERR to CMD_OUTPUT
 # 3) Copy command's output to FD 5
-#   3.1) Replace ':' from output to '%3A' to avoid GitHub reporting fake annotations
 # 5) Exit with original command's exit status to be able to use it later
-CMD_OUTPUT=$($@ 2>&1 | tee >(cat - | sed -e 's/:/%3A/g' >&5); exit ${PIPESTATUS[0]})
+CMD_OUTPUT=$($@ 2>&1 | tee >(cat - >&5); exit ${PIPESTATUS[0]})
 CMD_STATUS=$?
 
 if [ $CMD_STATUS -ne 0 ]; then
@@ -34,9 +33,7 @@ if [ $CMD_STATUS -ne 0 ]; then
     # Escape some special characters
     CMD_OUTPUT="${CMD_OUTPUT//$'\r'/%0D}"
     CMD_OUTPUT="${CMD_OUTPUT//$'\n'/%0A}"
-    CMD_OUTPUT="${CMD_OUTPUT//$']'/%5D}"
-    CMD_OUTPUT="${CMD_OUTPUT//$':'/%3A}"
-    CMD_OUTPUT="${CMD_OUTPUT//$';'/%3B}"
+    CMD_OUTPUT="${CMD_OUTPUT//$'::'/%3A%3A}"
 
     # Try to identify filename of a test that was run; assume that the test
     # filename is more likely to be at the end of array
