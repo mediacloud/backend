@@ -41,12 +41,22 @@ if [ $CMD_STATUS -ne 0 ]; then
     # Try to identify filename of a test that was run; assume that the test
     # filename is more likely to be at the end of array
     TEST_FILENAME="UNKNOWN_TEST"
-    for (( i=$#; i>0; i-- )); do
-        arg="${!i}"
-        if [ -f "${arg}" ]; then
-            TEST_FILENAME="${arg}"
-            break
-        fi
+    for (( arg_idx=$#; arg_idx>0; arg_idx-- )); do
+        arg="${!arg_idx}"
+
+        # Argument might be a whole command, e.g. "./dev/run_test.py ..."
+        IFS=', ' read -r -a subargs <<< "$arg"
+
+        for (( subarg_idx=${#subargs[@]}-1 ; subarg_idx>=0 ; subarg_idx-- )) ; do
+
+            subarg="${subargs[subarg_idx]}"
+
+            if [ -f "${subarg}" ]; then
+                TEST_FILENAME="${subarg}"
+                break
+            fi
+
+        done
     done
 
     # Print GitHub Actions annotation
