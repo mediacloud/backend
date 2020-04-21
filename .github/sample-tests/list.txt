@@ -1,4 +1,0 @@
-.github/sample-tests/test-1.sh
-.github/sample-tests/test-2.sh
-.github/sample-tests/test-3-failing.sh
-.github/sample-tests/test-4.sh
