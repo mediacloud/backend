@@ -38,8 +38,19 @@ if [ $CMD_STATUS -ne 0 ]; then
     CMD_OUTPUT="${CMD_OUTPUT//$':'/%3A}"
     CMD_OUTPUT="${CMD_OUTPUT//$';'/%3B}"
 
+    # Try to identify filename of a test that was run; assume that the test
+    # filename is more likely to be at the end of array
+    TEST_FILENAME="UNKNOWN_TEST"
+    for (( i=$#; i>0; i-- )); do
+        arg="${!i}"
+        if [ -f "${arg}" ]; then
+            TEST_FILENAME="${arg}"
+            break
+        fi
+    done
+
     # Print GitHub Actions annotation
-    echo "::error file=FIXME.js::$CMD_OUTPUT"
+    echo "::error file=${TEST_FILENAME}::${CMD_OUTPUT}"
 fi
 
 exit $CMD_STATUS
