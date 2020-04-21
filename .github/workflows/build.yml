@@ -19,6 +19,4 @@ jobs:
 
       - name: Try setting some annotations
         run: |
-          echo "::debug file=app.js,line=1::Entered octocatAddition method"
-          echo "::warning file=app.js,line=1,col=5::Missing semicolon"
-          echo "::error file=app.js,line=10,col=15::Something went wrong"
+          echo "::error file=app.js,line=10,col=15::First line%0ASecond line%0AThird line"
