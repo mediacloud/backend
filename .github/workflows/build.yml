@@ -97,7 +97,7 @@ jobs:
         run: >-
           cat tests_chunk_${{ matrix.chunk_number }}
           | sort
-          | parallel --timeout 600 --group --joblog joblog.txt --max-args 1 --xargs ./.github/run-report-errors-to-gh.sh
+          | parallel --group --joblog joblog.txt --max-args 1 --xargs ./.github/run-report-errors-to-gh.sh ./.github/run-timeout-in-10-mins.sh
           || { cat joblog.txt && exit 1; }
         env:
           # Map secrets to environment variables
