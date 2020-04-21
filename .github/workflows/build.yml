@@ -20,6 +20,6 @@ jobs:
       - name: Run sample tests
         run: >-
           cat .github/sample-tests/list.txt
-          | parallel --group --joblog joblog.txt
+          | parallel --group --joblog joblog.txt --max-args 1 --xargs ./.github/run-report-errors-to-gh.sh
           || { cat joblog.txt && exit 1; }
         #   echo "::error file=app.js,line=10,col=15::First line%0ASecond line%0AThird line"
