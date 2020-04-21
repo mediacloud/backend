@@ -125,24 +125,30 @@ sub _restrict_period_stories_to_boolean_focus($$)
     }
     my $all_stories_ids      = [ @{ $snapshot_period_stories_ids } ];
     my $matching_stories_ids = [];
-    my $chunk_size           = 100000;
+    my $chunk_size           = 10000;
     my $min_chunk_size       = 10;
-    my $max_solr_errors      = 25;
+    my $max_solr_errors      = 10;
     my $solr_error_count     = 0;
 
+    my $i = 0;
     while ( @{ $all_stories_ids } )
     {
+        my $stories_count = scalar( @{ $all_stories_ids } );
+        DEBUG( "remaining stories: $stories_count" );
+
         my $chunk_stories_ids = [];
-        my $chunk_size = List::Util::min( $chunk_size, scalar( @{ $all_stories_ids } ) );
+        $chunk_size = List::Util::min( $chunk_size, scalar( @{ $all_stories_ids } ) );
         map { push( @{ $chunk_stories_ids }, shift( @{ $all_stories_ids } ) ) } ( 1 .. $chunk_size );
 
         die( "focus boolean query '$solr_q' must include non-space character" ) unless ( $solr_q =~ /[^[:space:]]/ );
 
         my $stories_ids_list = join( ' ', @{ $chunk_stories_ids } );
-        $solr_q = "( $solr_q ) and stories_id:( $stories_ids_list )";
+        my $chunk_solr_q = "( $solr_q ) and stories_id:( $stories_ids_list )";
+
+        DEBUG( "solr query: " . substr( $chunk_solr_q, 0, 128 ) );
 
         my $solr_stories_ids =
-          eval { MediaWords::Solr::search_for_stories_ids( $db, { rows => 10000000, q => $solr_q } ) };
+          eval { MediaWords::Solr::search_for_stories_ids( $db, { rows => 10000000, q => $chunk_solr_q } ) };
         if ( $@ )
         {
             # sometimes solr throws a NullException error on one of these queries; retrying with smaller
@@ -154,10 +160,14 @@ sub _restrict_period_stories_to_boolean_focus($$)
 
             $chunk_size = List::Util::max( $chunk_size / 2, $min_chunk_size );
             unshift( @{ $all_stories_ids }, @{ $chunk_stories_ids } );
-            sleep( int( 2**( 1 * ( $solr_error_count / 5 ) ) ) );
+
+            my $sleep_time = 2 ** $solr_error_count;
+
+            DEBUG( "solr error # $solr_error_count, new chunk size: $chunk_size, sleeping $sleep_time ...\n$@" );
         }
         else
         {
+            DEBUG( "solr stories found: " . scalar( @{ $solr_stories_ids } ) );
             push( @{ $matching_stories_ids }, @{ $solr_stories_ids } );
         }
     }

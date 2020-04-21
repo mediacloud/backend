@@ -9,15 +9,19 @@ use Test::More;
 use MediaWords::DB;
 use MediaWords::Job::TM::SnapshotTopic;
 use MediaWords::TM::Stories;
+use MediaWords::Test::Solr;
 use MediaWords::Test::DB::Create;
 use MediaWords::Util::CSV;
 use MediaWords::Util::ParseJSON;
 
 my $NUM_STORIES = 100;
 my $NUM_TSQ_STORIES = 10;
+my $NUM_FOCUS_STORIES = 50;
 
 my $NUM_AUTHORS = 7;
 my $NUM_CHANNELS = 3;
+
+my $FOCUS_CONTENT = 'focuscontentmatch';
 
 sub add_test_topic_stories($$$$)
 {
@@ -31,7 +35,16 @@ sub add_test_topic_stories($$$$)
         my $story = MediaWords::Test::DB::Create::create_test_story( $db, "$label $i", $feed );
         MediaWords::TM::Stories::add_to_topic_stories( $db, $story, $topic );
         $db->update_by_id( 'stories', $story->{ stories_id }, { publish_date => $topic->{ start_date } } );
+
+        if ( $i <= $NUM_FOCUS_STORIES )
+        {
+            $story->{ content } = $FOCUS_CONTENT;
+        }
+
+        MediaWords::Test::DB::Create::add_content_to_test_story( $db, $story, $feed );
     }
+
+    MediaWords::Test::Solr::setup_test_index( $db );
 }
 
 sub add_test_seed_query($$)
@@ -128,6 +141,57 @@ SQL
    }
 }
 
+sub add_boolean_query_focus($$)
+{
+    my ( $db, $topic ) = @_;
+
+    my $fsd = {
+        topics_id => $topic->{ topics_id },
+        name => 'boolean query set',
+        description => 'boolean query set',
+        focal_technique => 'Boolean Query'
+    };
+    $fsd = $db->create( 'focal_set_definitions', $fsd );
+
+    my $fd = {
+        focal_set_definitions_id => $fsd->{ focal_set_definitions_id },
+        name => 'boolean query',
+        description => 'boolean query',
+        arguments => MediaWords::Util::ParseJSON::encode_json( { query => $FOCUS_CONTENT } ),
+    };
+    $fd = $db->create( 'focus_definitions', $fd );
+
+    return $fd;
+}
+
+sub validate_query_focus($$)
+{
+    my ( $db, $snapshot ) = @_;
+
+    my $got_focus = $db->query( <<SQL, $snapshot->{ snapshots_id } )->hash();
+select f.*
+    from foci f
+        join focal_sets fd using ( focal_sets_id )
+    where
+        fd.focal_technique = 'Boolean Query' and
+        fd.snapshots_id = ?
+SQL
+
+    ok( $got_focus, "query focus exists after snapshot" );
+
+    my $got_timespan = $db->query( <<SQL, $snapshot->{ snapshots_id }, $got_focus->{ foci_id } )->hash();
+select t.* from timespans t where snapshots_id = ? and foci_id = ? and period = 'overall'
+SQL
+
+    ok( $got_timespan );
+
+    my $got_stories = $db->query( <<SQL, $got_timespan->{ timespans_id } )->hashes();
+select slc.* from snap.story_link_counts slc where timespans_id = ?
+SQL
+
+    is( scalar( @{ $got_stories } ), $NUM_FOCUS_STORIES, "correct number of stories in focus timespan" );
+}
+
 sub test_snapshot($)
 {
     my ( $db ) = @_;
@@ -164,6 +228,8 @@ SQL
         };
         $db->create( 'topic_links', $topic_link );
     }
+
+    add_boolean_query_focus( $db, $topic );
 
     MediaWords::Job::TM::SnapshotTopic->run( { topics_id => $topics_id } );
 
@@ -216,6 +282,8 @@ SQL
     is( scalar( @{ $slc } ), $NUM_STORIES, "story link counts" );
 
     validate_sharing_timespan( $db );
+
+    validate_query_focus( $db, $got_snapshot );
 
     my $timespan_map;
     # allow a bit of time for the timespan maps to generate
