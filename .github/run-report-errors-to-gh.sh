@@ -37,7 +37,7 @@ if [ $CMD_STATUS -ne 0 ]; then
 
     # Try to identify filename of a test that was run; assume that the test
     # filename is more likely to be at the end of array
-    TEST_FILENAME="UNKNOWN_TEST"
+    TEST_FILENAME=""
     for (( arg_idx=$#; arg_idx>0; arg_idx-- )); do
         arg="${!arg_idx}"
 
@@ -54,7 +54,19 @@ if [ $CMD_STATUS -ne 0 ]; then
             fi
 
         done
+
+        if [ ! -z "$TEST_FILENAME" ]; then
+            break
+        fi
+
     done
+
+    if [ -z "$TEST_FILENAME" ]; then
+        TEST_FILENAME="UNKNOWN_TEST"
+    fi
+
+    PWD=$(pwd)
+    TEST_FILENAME=$(echo ${TEST_FILENAME} | sed "s|${PWD}/||g")
 
     # Print GitHub Actions annotation
     echo "::error file=${TEST_FILENAME}::${CMD_OUTPUT}"
