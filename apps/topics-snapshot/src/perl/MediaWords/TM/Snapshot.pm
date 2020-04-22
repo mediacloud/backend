@@ -52,19 +52,17 @@ use MediaWords::TM::Snapshot::Views;
 use MediaWords::Util::ParseJSON;
 use MediaWords::Util::SQL;
 
-# possible values of snapshots.bot_policy
-Readonly our $POLICY_NO_BOTS   => 'no bots';
-Readonly our $POLICY_ONLY_BOTS => 'only bots';
-Readonly our $POLICY_BOTS_ALL  => 'all';
-
-# number of tweets per day to use as a threshold for bot filtering
-Readonly my $BOT_TWEETS_PER_DAY => 200;
-
 # list of platforms for which we should run url sharing timespans
 Readonly my $URL_SHARING_PLATFORMS => [ qw/twitter reddit generic_post/ ];
 
 Readonly my $TECHNIQUE_BOOLEAN => 'Boolean Query';
 Readonly my $TECHNIQUE_SHARING => 'URL Sharing';
+
+# only include posts in a topic that have fewer than this propotion of the total shares
+Readonly my $AUTHOR_COUNT_MAX_SHARE => 0.01;
+
+# but don't elimiate any authors with fewer than this many shares
+Readonly my $AUTHOR_COUNT_MIN_CUTOFF => 100;
 
 # update the job state args, catching any error caused by not running within a job
 sub _update_job_state_args($$)
@@ -427,15 +425,27 @@ sub _write_timespan_posts_snapshot
 
     $db->query( "drop table if exists snapshot_timespan_posts" ); 
 
-    my $topic_seed_queries_id = _get_timespan_seed_query( $db, $timespan );
+    my $tsq_id = _get_timespan_seed_query( $db, $timespan );
 
-    $db->query( <<SQL, $topic_seed_queries_id, $timespan->{ start_date }, $timespan->{ end_date } );
+    my $start_date = $timespan->{ start_date };
+    my $end_date = $timespan->{ end_date };
+
+    # get all posts that should be included in the timespan.  eliminiate authors that are too prolific to avoid bots
+    $db->query( <<SQL, $tsq_id, $start_date, $end_date, $AUTHOR_COUNT_MIN_CUTOFF, $AUTHOR_COUNT_MAX_SHARE );
 create temporary table snapshot_timespan_posts as
+    with _all_topic_post_stories as (
+        select
+                count(*) over ( partition by author ) as author_count,
+                *
+            from topic_post_stories
+            where
+                topic_seed_queries_id = ? and
+                publish_date >= ? and publish_date < ?
+    )
+    
     select distinct topic_posts_id
-        from topic_post_stories
-        where
-            topic_seed_queries_id = ? and
-            publish_date >= ? and publish_date < ?
+        from _all_topic_post_stories
+        where author_count < greatest( ?, ( select count(*) from _all_topic_post_stories ) * ? )
 SQL
 
     if ( !$is_model )
@@ -1011,17 +1021,6 @@ END
 
     my $tweet_topics_id = $topic->{ topics_id };
 
-    my $bot_clause = '';
-    my $bot_policy = $snapshot->{ bot_policy } || $POLICY_NO_BOTS;
-    if ( $bot_policy eq $POLICY_NO_BOTS )
-    {
-        $bot_clause = "and ( ( coalesce( tweets, 0 ) / coalesce( days, 1 ) ) < $BOT_TWEETS_PER_DAY )";
-    }
-    elsif ( $bot_policy eq $POLICY_ONLY_BOTS )
-    {
-        $bot_clause = "and ( ( coalesce( tweets, 0 ) / coalesce( days, 1 ) ) >= $BOT_TWEETS_PER_DAY )";
-    }
-
     MediaWords::TM::Snapshot::Views::add_media_type_views( $db );
 
     for my $table ( @{ MediaWords::TM::Snapshot::Views::get_snapshot_tables() } )
@@ -1171,21 +1170,14 @@ SQL
     $db->update_by_id( 'snapshots', $cd->{ snapshots_id }, { searchable => 'f' } );
 }
 
-# die if each of the $periods is not among the $allowed_periods
-# Create a snapshot for the given topic.  Optionally pass a note and/or a bot_policy field to the created snapshot.
-#
-# The bot_policy should be one of 'all', 'no bots', or 'only bots' indicating for twitter topics whether and how to
-# filter for bots (a bot is defined as any user tweeting more than 200 post per day).
-#
-# The periods should be a list of periods to include in the snapshot, where the allowed periods are custom,
-# overall, weekly, and monthly.  If periods is not specificied or is empty, all periods will be generated.
+# Create a snapshot for the given topic.  
 #
 # If a snapshots_id is provided, use the existing snapshot.  Otherwise, create a new one.
 #
 # Returns snapshots_id of the provided or newly created snapshot.
 sub snapshot_topic ($$;$$$$)
 {
-    my ( $db, $topics_id, $snapshots_id, $note, $bot_policy ) = @_;
+    my ( $db, $topics_id, $snapshots_id, $note ) = @_;
 
     my $periods = [ qw(custom overall weekly monthly) ];
 
@@ -1210,7 +1202,7 @@ sub snapshot_topic ($$;$$$$)
     my $snap =
         $snapshots_id
       ? $db->require_by_id( 'snapshots', $snapshots_id )
-      : MediaWords::DBI::Snapshots::create_snapshot_row( $db, $topic, $start_date, $end_date, $note, $bot_policy );
+      : MediaWords::DBI::Snapshots::create_snapshot_row( $db, $topic, $start_date, $end_date, $note );
 
     _update_job_state_args( $db, { snapshots_id => $snap->{ snapshots_id } } );
     _update_job_state_message( $db, "snapshotting data" );
