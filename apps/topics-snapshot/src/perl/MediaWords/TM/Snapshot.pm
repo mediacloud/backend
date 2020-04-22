@@ -125,7 +125,7 @@ sub _restrict_period_stories_to_boolean_focus($$)
     }
     my $all_stories_ids      = [ @{ $snapshot_period_stories_ids } ];
     my $matching_stories_ids = [];
-    my $chunk_size           = 10000;
+    my $chunk_size           = 100000;
     my $min_chunk_size       = 10;
     my $max_solr_errors      = 10;
     my $solr_error_count     = 0;
@@ -319,8 +319,8 @@ sub _create_url_sharing_story_links($$)
     # get and index a list of post-story-shares with publish dat and author
     $db->query( <<SQL );
 create temporary table _post_stories as
-    select s.media_id, s.stories_id, tps.author, tps.publish_date, extract( epoch from tps.publish_date ) epoch
-        from topic_post_stories tps
+    select distinct s.media_id, s.stories_id, tp.author, tp.publish_date, extract( epoch from tp.publish_date ) epoch
+        from topic_post_stories tp
             join snapshot_timespan_posts using ( topic_posts_id )
             join stories s using ( stories_id );
 
