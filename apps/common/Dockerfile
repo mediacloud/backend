@@ -69,6 +69,9 @@ RUN \
 # Create directory where sources will be stored in
 RUN mkdir -p /opt/mediacloud/src/ /opt/mediacloud/tests/
 
+# Create convenience link
+RUN ln -s /opt/mediacloud /mc
+
 # Copy sources
 COPY src/ /opt/mediacloud/src/common/
 
