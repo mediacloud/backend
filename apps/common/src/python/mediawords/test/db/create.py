@@ -348,8 +348,8 @@ def create_test_topic_posts(
         tpd = db.create('topic_post_days', tpd)
 
         for i in range(num_posts_per_day):
-            author_num = i % 5
-            channel_num = i % 3
+            author_num = i 
+            channel_num = i % num_posts_per_day
             topic_post = {
                 'topic_post_days_id': tpd['topic_post_days_id'],
                 'post_id': i,
@@ -372,7 +372,8 @@ def create_test_topic_posts(
                 'topics_id': topic['topics_id'],
                 'url': post_story['url'],
                 'stories_id': post_story['stories_id'],
-                'topic_seed_queries_id': tsq['topic_seed_queries_id']
+                'topic_seed_queries_id': tsq['topic_seed_queries_id'],
+                'topic_post_urls_id': tpu['topic_post_urls_id']
             }
             tsu = db.create('topic_seed_urls', tsu)
 

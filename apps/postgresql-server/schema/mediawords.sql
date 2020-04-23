@@ -26,7 +26,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4750;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4751;
 BEGIN
 
     -- Update / set database schema version
@@ -2019,25 +2019,6 @@ CREATE VIEW topic_links_cross_media AS
       AND cs.stories_id = cl.ref_stories_id
       AND cs.topics_id = cl.topics_id;
 
-create table topic_seed_urls (
-    topic_seed_urls_id        serial primary key,
-    topics_id                int not null references topics on delete cascade,
-    url                             text,
-    source                          text,
-    stories_id                      int references stories on delete cascade,
-    processed                       boolean not null default false,
-    assume_match                    boolean not null default false,
-    content                         text,
-    guid                            text,
-    title                           text,
-    publish_date                    text,
-    topic_seed_queries_id           int
-);
-
-create index topic_seed_urls_topic on topic_seed_urls( topics_id );
-create index topic_seed_urls_url on topic_seed_urls( url );
-create index topic_seed_urls_story on topic_seed_urls ( stories_id );
-
 create table topic_fetch_urls(
     topic_fetch_urls_id         bigserial primary key,
     topics_id                   int not null references topics on delete cascade,
@@ -3232,6 +3213,26 @@ create table topic_post_urls (
 create index topic_post_urls_url on topic_post_urls ( url );
 create unique index topic_post_urls_tt on topic_post_urls ( topic_posts_id, url );
 
+create table topic_seed_urls (
+    topic_seed_urls_id        serial primary key,
+    topics_id                int not null references topics on delete cascade,
+    url                             text,
+    source                          text,
+    stories_id                      int references stories on delete cascade,
+    processed                       boolean not null default false,
+    assume_match                    boolean not null default false,
+    content                         text,
+    guid                            text,
+    title                           text,
+    publish_date                    text,
+    topic_seed_queries_id           int references topic_seed_queries on delete cascade,
+    topic_post_urls_id              int references topic_post_urls on delete cascade
+);
+
+create index topic_seed_urls_topic on topic_seed_urls( topics_id );
+create index topic_seed_urls_url on topic_seed_urls( url );
+create index topic_seed_urls_story on topic_seed_urls ( stories_id );
+
 -- view that joins together the chain of tables from topic_seed_queries all the way through to
 -- topic_stories, so that you get back a topics_id, topic_posts_id stories_id, and topic_seed_queries_id in each
 -- row to track which stories came from which posts in which seed queries
@@ -3241,14 +3242,13 @@ create view topic_post_stories as
             tp.topic_posts_id, tp.content, tp.publish_date, tp.author, tp.channel, tp.data,
             tpd.topic_seed_queries_id,
             ts.stories_id,
-            tpu.url
+            tpu.url, tpu.topic_post_urls_id
         from
             topic_seed_queries tsq
             join topic_post_days tpd using ( topic_seed_queries_id )
             join topic_posts tp using ( topic_post_days_id )
             join topic_post_urls tpu using ( topic_posts_id )
-            join topic_seed_urls tsu
-                on ( tsu.topics_id = tsq.topics_id and tsu.url = tpu.url )
+            join topic_seed_urls tsu using ( topic_post_urls_id )
             join topic_stories ts 
                 on ( ts.topics_id = tsq.topics_id and ts.stories_id = tsu.stories_id );
 
