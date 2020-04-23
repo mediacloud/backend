@@ -47,6 +47,41 @@ sub add_test_topic_stories($$$$)
     MediaWords::Test::Solr::setup_test_index( $db );
 }
 
+sub add_topic_post_story
+{
+    my ( $db, $topic, $tpd, $story, $post_id, $author ) = @_;
+
+    $author //= "author " . $post_id % $NUM_AUTHORS;
+
+    my $channel = "channel " . $post_id % $NUM_CHANNELS;
+
+    my $tp = {
+        topic_post_days_id => $tpd->{ topic_post_days_id },
+        post_id => $post_id,
+        content => 'foo',
+        author => $author,
+        publish_date => $topic->{ start_date },
+        data => '{}',
+        channel => $channel
+    };
+    $tp = $db->create( 'topic_posts', $tp );
+
+    my $tpu = {
+        topic_posts_id => $tp->{ topic_posts_id },
+        url => $story->{ url },
+    };
+    $tpu = $db->create( 'topic_post_urls', $tpu );
+
+    my $tsu = {
+        topics_id => $topic->{ topics_id },
+        topic_seed_queries_id => $tpd->{ topic_seed_queries_id },
+        url => $story->{ url },
+        stories_id => $story->{ stories_id },
+        topic_post_urls_id => $tpu->{ topic_post_urls_id },
+    };
+    $tsu = $db->create( 'topic_seed_urls', $tsu );
+}
+
 sub add_test_seed_query($$)
 {
     my ( $db, $topic ) = @_;
@@ -69,37 +104,16 @@ sub add_test_seed_query($$)
     };
     $tpd = $db->create( 'topic_post_days', $tpd );
 
-    my $authors = [ map { "author $_" } ( 1 .. $NUM_AUTHORS ) ];
-    my $channels = [ map { "channel $_" } ( 1 .. $NUM_CHANNELS ) ];
-
     while ( my ( $i, $story ) = each ( @{ $stories } ) )
     {
-        my $author = $authors->[ $i % $NUM_AUTHORS ];
-        my $channel = $channels->[ $i % $NUM_CHANNELS ];
-        my $tp = {
-            topic_post_days_id => $tpd->{ topic_post_days_id },
-            post_id => $story->{ stories_id },
-            content => 'foo',
-            author => $author,
-            publish_date => $topic->{ start_date },
-            data => '{}',
-            channel => $channel
-        };
-        $tp = $db->create( 'topic_posts', $tp );
+        add_topic_post_story( $db, $topic, $tpd, $story, $i );
+    }
 
-        my $tpu = {
-            topic_posts_id => $tp->{ topic_posts_id },
-            url => $story->{ url },
-        };
-        $tpu = $db->create( 'topic_post_urls', $tpu );
-
-        my $tsu = {
-            topics_id => $topic->{ topics_id },
-            topic_seed_queries_id => $tsq->{ topic_seed_queries_id },
-            url => $story->{ url },
-            stories_id => $story->{ stories_id }
-        };
-        $tsu = $db->create( 'topic_seed_urls', $tsu );
+    # now add enough posts from a single author that they should all be ignores
+    for my $i ( 1 .. 200 )
+    {
+        my $post_id = scalar( @{ $stories } ) + $i;
+        add_topic_post_story( $db, $topic, $tpd, $stories->[ 0 ], $post_id, 'bot author' );
     }
 
     return $tsq;
@@ -136,8 +150,6 @@ select * from snap.story_link_counts
 SQL
 
        is( scalar( @{ $got_story_link_count_counts } ), $NUM_TSQ_STORIES );
-
-
    }
 }
 
