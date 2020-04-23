@@ -35,11 +35,76 @@ PLOT_DPI = 600
 MAX_NODE_SIZE = 800
 """size of the largest node"""
 
+def add_story_tags_to_media(db: DatabaseHandler, media: list, timespans_id: int, tag_set_name: str) -> None:
+    """Add fields to media based on counts of story tags for the given tag set."""
+    media_tag_counts = db.query(
+        """
+        select media_id, t.tag, count(*) count
+            from scratch.covid_stories stm
+                join snap.story_link_counts slc using ( stories_id )
+                join tags t using ( tags_id )
+                join tag_sets using ( tag_sets_id )
+                join stories s using ( stories_id )
+            where
+                name = %(b)s and
+                slc.timespans_id = %(a)s
+            group by media_id, t.tag
+        """,
+        {'a': timespans_id, 'b': tag_set_name}).hashes()
 
-def add_partisan_retweet_to_snapshot_media(db: DatabaseHandler, timespans_id: int, media: List[Dict[str, Any]]) -> None:
-    """Add partisan_retweet field to list of snapshotted media."""
-    label = 'partisan_retweet'
+    media_lookup = {m['media_id']: m for m in media}
+    
+    for mtc in media_tag_counts:
+        field = "%s-%s" % (tag_set_name, mtc['tag'])
+        mtc['field'] = field
+        media_lookup[mtc['media_id']][field] = mtc['count']
+        
+    fields = set([mtc['field'] for mtc in media_tag_counts])
+    
+    for n in graph.nodes:
+        for field in fields:
+            media_lookup[n].setdefault(field, 0)
+            
 
+def add_tag_to_media(
+        db: DatabaseHandler,
+        media: List[Dict[str, Any]],
+        tag_set_name: str,
+        field_name: str) -> None:
+    """Add field to media based on tag association from the given tag set.
+    
+    Use live data from media_tags_map instead of from snap.media_tags_map.
+    """
+    partisan_tags = db.query(
+        """
+            SELECT
+                mtm.*,
+                dt.tag
+            FROM media_tags_map AS mtm
+                JOIN tags AS dt ON ( mtm.tags_id = dt.tags_id )
+                JOIN tag_sets AS dts ON ( dts.tag_sets_id = dt.tag_sets_id )
+            WHERE 
+                dts.name = %(a)s
+        """,
+        {'a': tag_set_name}
+    ).hashes()
+
+    partisan_map = {pt['media_id']: pt['tag'] for pt in partisan_tags}
+
+    for medium in media:
+        medium[field_name] = partisan_map.get(medium['media_id'], 'null')
+
+
+def add_tag_to_snapshot_media(
+        db: DatabaseHandler,
+        timespans_id: int,
+        media: List[Dict[str, Any]],
+        tag_set_name: str,
+        field_name: str) -> None:
+    """Add field to media based on tag association from the given tag set.
+    
+    Use snapshotted data from snap.media_tags_map.
+    """
     partisan_tags = db.query(
         """
             SELECT
@@ -49,16 +114,17 @@ def add_partisan_retweet_to_snapshot_media(db: DatabaseHandler, timespans_id: in
                 JOIN tags AS dt ON ( dmtm.tags_id = dt.tags_id )
                 JOIN tag_sets AS dts ON ( dts.tag_sets_id = dt.tag_sets_id )
                 JOIN timespans AS t USING ( snapshots_id )
-            WHERE dts.name = 'retweet_partisanship_2016_count_10'
-              AND t.timespans_id = %(a)s
+            WHERE 
+                dts.name = %(b)s
+                AND t.timespans_id = %(a)s
         """,
-        {'a': timespans_id}
+        {'a': timespans_id, 'b': tag_set_name}
     ).hashes()
 
     partisan_map = {pt['media_id']: pt['tag'] for pt in partisan_tags}
 
     for medium in media:
-        medium[label] = partisan_map.get(medium['media_id'], 'null')
+        medium[field_name] = partisan_map.get(medium['media_id'], 'null')
 
 
 def get_media_network(db: DatabaseHandler, timespans_id: int) -> List[Dict[str, Any]]:
@@ -93,7 +159,14 @@ def get_media_network(db: DatabaseHandler, timespans_id: int) -> List[Dict[str, 
             medium.setdefault('links', [])
             medium['links'].append(medium_link)
 
-    add_partisan_retweet_to_snapshot_media(db=db, timespans_id=timespans_id, media=media)
+    tag_fields = {
+        'retweet_partisanship_2016_count_10': 'partisan_retweet',
+        'twitter_partisanship': 'twitter_partisanship',
+        'pub_country': 'pub_country',
+        'primary_language': 'primary_langage',
+    }
+    for tag_set, label in tag_fields.items():
+        add_tag_to_snapshot_media(db, timespans_id, media, tag_set, label)
 
     return media
 
@@ -204,8 +277,7 @@ def assign_colors(db: DatabaseHandler, graph: nx.Graph, color_by: str) -> None:
 
     Each color will be in '#FFFFFF' format.
 
-    For now, this just assigns a color based on the partisan_retweet categorization, but it should support
-    other options, or at least not use partisan_retweet if it is not a U.S. topic.
+    Assign colors according to the color_by attribute.
     """
     log.warning(f'assign colors by {color_by}')
     for n in graph.nodes:
@@ -640,7 +712,7 @@ def generate_and_store_maps(db: DatabaseHandler, timespans_id: int, memory_limit
     """Generate and layout graph and store various formats of the graph in timespans_maps."""
     graph = generate_and_layout_graph(db=db, timespans_id=timespans_id, memory_limit_mb=memory_limit_mb)
 
-    for color_by in ('community', 'partisan_retweet'):
+    for color_by in ('community', 'retweet_partisanship', 'twitter_partisanship'):
         assign_colors(db=db, graph=graph, color_by=color_by)
 
         image = write_gexf(graph=graph)
