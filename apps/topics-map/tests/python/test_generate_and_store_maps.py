@@ -23,7 +23,7 @@ class TestGenerateAndStoreMaps(TestMap):
 
         formats = ('gexf', 'svg')
 
-        assert len(timespan_maps) == 2 * len(formats)
+        assert len(timespan_maps) == 3 * len(formats)
 
         for ts_map in timespan_maps:
             log.warning(ts_map['url'])
