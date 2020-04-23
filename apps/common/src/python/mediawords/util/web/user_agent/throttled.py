@@ -38,6 +38,7 @@ _ACCELERATED_DOMAINS = {
     'yimg.com': _DEFAULT_ACCELERATED_TIMEOUT,
     'congress.gov': _DEFAULT_ACCELERATED_TIMEOUT,
     'goldfish.me': _DEFAULT_ACCELERATED_TIMEOUT,
+    'trib.al': 0.1,
 }
 
 # timeout for shortened urls that are not also accelerated domains
