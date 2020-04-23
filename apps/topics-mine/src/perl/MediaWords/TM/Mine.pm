@@ -1043,8 +1043,10 @@ insert into topic_seed_urls ( url, topics_id, assume_match, source, topic_seed_q
             join topic_posts tp using ( topic_posts_id )
             join topic_post_days tpd using ( topic_post_days_id )
             join topic_seed_queries tsq using ( topic_seed_queries_id )
+            left join topic_seed_urls tsu using ( topic_post_urls_id )
         where
-            tsq.topics_id = ?
+            tsq.topics_id = ? and
+            tsu.topic_seed_urls_id is null
 SQL
 }
 
