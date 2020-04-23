@@ -17,7 +17,7 @@
 alter table topic_seed_urls add topic_post_urls_id int references topic_post_urls on delete cascade;
 
 alter table topic_seed_urls add constraint topic_seed_urls_query
-    foreign key ( topic_seed_urls_id ) references topic_seed_urls on delete cascade;
+    foreign key ( topic_seed_queries_id ) references topic_seed_queries on delete cascade;
 
 create or replace view topic_post_stories as
     select 
