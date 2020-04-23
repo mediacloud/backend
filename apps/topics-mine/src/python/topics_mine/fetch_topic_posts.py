@@ -335,13 +335,11 @@ def _reduce_db_posts_to_query_sample(
             continue
 
         log.info(f'deleting {num_posts_to_delete} posts from {tpd["day"]} to match query sample ratio')
-        db.query(
-            """
-            delete from topic_posts where topic_posts_id in (
-                select topic_posts_id from topic_posts where topic_post_days_id = %(a)s order by random() limit %(b)s)
-            """,
-            {'a': tpd['topic_post_days_id'], 'b': num_posts_to_delete})
-
+        tps = db.query(
+            "select topic_posts_id from topic_posts where topic_post_days_id = %(a)s order by random() limit %(b)s",
+            {'a': tpd['topic_post_days_id'], 'b': num_posts_to_delete}).hashes()
+        for tp in tps:
+            db.delete_by_id('topic_posts', tp['topic_posts_id'])
 
         db.query(
             """
