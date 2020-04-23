@@ -431,21 +431,13 @@ sub _write_timespan_posts_snapshot
     my $end_date = $timespan->{ end_date };
 
     # get all posts that should be included in the timespan.  eliminiate authors that are too prolific to avoid bots
-    $db->query( <<SQL, $tsq_id, $start_date, $end_date, $AUTHOR_COUNT_MIN_CUTOFF, $AUTHOR_COUNT_MAX_SHARE );
+    $db->query( <<SQL, $tsq_id, $start_date, $end_date );
 create temporary table snapshot_timespan_posts as
-    with _all_topic_post_stories as (
-        select
-                count(*) over ( partition by author ) as author_count,
-                *
-            from topic_post_stories
-            where
-                topic_seed_queries_id = ? and
-                publish_date >= ? and publish_date < ?
-    )
-    
     select distinct topic_posts_id
-        from _all_topic_post_stories
-        where author_count < greatest( ?, ( select count(*) from _all_topic_post_stories ) * ? )
+        from snapshot_topic_post_stories
+        where
+            topic_seed_queries_id = ? and
+            publish_date >= ? and publish_date < ?
 SQL
 
     if ( !$is_model )
@@ -488,7 +480,7 @@ create temporary table snapshot_story_link_counts as
                 count( distinct tp.author ) as author_count,
                 count( distinct tp.channel ) as channel_count
             from snapshot_timespan_posts stp
-                join topic_post_stories tps using ( topic_posts_id )
+                join snapshot_topic_post_stories tps using ( topic_posts_id )
                 join topic_posts tp using ( topic_posts_id )
             group by tps.stories_id
     )
@@ -936,7 +928,7 @@ with link_stories as (
 
 post_stories as (
     select tps.stories_id
-        from topic_post_stories tps
+        from snapshot_topic_post_stories tps
         where tps.topics_id = \$1
         group by topic_seed_queries_id, stories_id
         having count(*) >= 10
@@ -971,32 +963,35 @@ create temporary table snapshot_topic_media_codes as
         where cmc.topics_id = ?
 END
 
+    DEBUG( "creating snapshot_stories ..." );
     $db->query( <<SQL,
-        CREATE TEMPORARY TABLE snapshot_stories AS
-            SELECT
-                s.stories_id,
-                s.media_id,
-                s.url,
-                s.guid,
-                s.title,
-                s.publish_date,
-                s.collect_date,
-                s.full_text_rss,
-                s.language
-            FROM snap.live_stories AS s
-                JOIN snapshot_topic_stories AS dcs
-                    ON s.stories_id = dcs.stories_id
-                   AND s.topics_id = ?
+CREATE TEMPORARY TABLE snapshot_stories AS
+    SELECT
+        s.stories_id,
+        s.media_id,
+        s.url,
+        s.guid,
+        s.title,
+        s.publish_date,
+        s.collect_date,
+        s.full_text_rss,
+        s.language
+    FROM snap.live_stories AS s
+        JOIN snapshot_topic_stories AS dcs
+            ON s.stories_id = dcs.stories_id
+           AND s.topics_id = ?
 SQL
         $topics_id
     );
 
+    DEBUG( "creating snapshot_media ..." );
     $db->query( <<END );
 create temporary table snapshot_media as
     select m.* from media m
         where m.media_id in ( select media_id from snapshot_stories )
 END
 
+    DEBUG( "creating snapshot_topic_links_cross_media" );
     $db->query( <<END, $topics_id );
 create temporary table snapshot_topic_links_cross_media as
     select s.stories_id, r.stories_id ref_stories_id, cl.url, cs.topics_id, cl.topic_links_id
@@ -1010,6 +1005,7 @@ create temporary table snapshot_topic_links_cross_media as
 END
 
 
+    DEBUG( "creating snapshot_stories_tags_map ..." );
     _create_snapshot_stories_tags_map( $db, $snapshot );
 
     $db->query( <<END );
@@ -1018,6 +1014,22 @@ create temporary table snapshot_media_tags_map as
     from media_tags_map mtm, snapshot_media dm
     where mtm.media_id = dm.media_id
 END
+
+    DEBUG( "creating snapshot_topic_post_stories ..." );
+    $db->query( <<SQL, $AUTHOR_COUNT_MIN_CUTOFF, $AUTHOR_COUNT_MAX_SHARE );
+create temporary table snapshot_topic_post_stories as
+    with _all_topic_post_stories as (
+        select
+                count(*) over ( partition by author, topic_seed_queries_id ) as author_count,
+                count(*) over ( partition by topic_seed_queries_id ) as query_count,
+                *
+            from topic_post_stories
+    )
+    
+    select *
+        from _all_topic_post_stories
+        where author_count < greatest( ?, query_count * ? )
+SQL
 
     my $tweet_topics_id = $topic->{ topics_id };
 
