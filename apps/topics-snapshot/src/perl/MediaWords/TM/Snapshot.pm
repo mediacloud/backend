@@ -318,9 +318,9 @@ sub _create_url_sharing_story_links($$)
     $db->query( <<SQL );
 create temporary table _post_stories as
     select distinct s.media_id, s.stories_id, tp.author, tp.publish_date, extract( epoch from tp.publish_date ) epoch
-        from topic_post_stories tp
+        from snapshot_topic_post_stories tp
             join snapshot_timespan_posts using ( topic_posts_id )
-            join stories s using ( stories_id );
+            join snapshot_stories s using ( stories_id );
 
 create index _post_stories_auth on _post_stories ( author, epoch );
 SQL
