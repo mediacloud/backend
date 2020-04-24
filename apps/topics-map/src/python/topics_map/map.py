@@ -35,42 +35,57 @@ PLOT_DPI = 600
 MAX_NODE_SIZE = 800
 """size of the largest node"""
 
-def add_story_tags_to_media(db: DatabaseHandler, media: list, timespans_id: int, tag_set_name: str) -> None:
+def add_story_tags_to_graph(db: DatabaseHandler, graph: nx.graph, timespans_id: int, tag_set_name: str) -> None:
     """Add fields to media based on counts of story tags for the given tag set."""
+    log.warning("add story tags to graph: " + tag_set_name)
+    db.query(
+        """
+        create temporary table _tag_counts as 
+            select media_id, t.tag, t.tag_sets_id, count(*) count
+                from scratch.map_stories_tags_map stm
+                    join snap.story_link_counts slc using ( stories_id )
+                    join tags t using ( tags_id )
+                    join stories s using ( stories_id )
+                where
+                    slc.timespans_id = %(a)s
+                group by media_id, t.tag, t.tag_sets_id
+        """,
+        {'a': timespans_id, 'b': tag_set_name})
+
     media_tag_counts = db.query(
         """
-        select media_id, t.tag, count(*) count
-            from scratch.covid_stories stm
-                join snap.story_link_counts slc using ( stories_id )
-                join tags t using ( tags_id )
-                join tag_sets using ( tag_sets_id )
-                join stories s using ( stories_id )
+        select media_id, t.tag, count
+            from _tag_counts t
+                join tag_sets ts using ( tag_sets_id )
             where
-                name = %(b)s and
-                slc.timespans_id = %(a)s
-            group by media_id, t.tag
+                ts.name = %(a)s
         """,
-        {'a': timespans_id, 'b': tag_set_name}).hashes()
+        {'a': tag_set_name}).hashes()
 
-    media_lookup = {m['media_id']: m for m in media}
+    db.query("drop table _tag_counts")
+
+    count_lookup = {n: {} for n in graph.nodes}
     
     for mtc in media_tag_counts:
         field = "%s-%s" % (tag_set_name, mtc['tag'])
         mtc['field'] = field
-        media_lookup[mtc['media_id']][field] = mtc['count']
+
+        media_id = mtc['media_id']
+
+        count_lookup.setdefault(media_id, {})
+        count_lookup[media_id][field] = mtc['count']
         
     fields = set([mtc['field'] for mtc in media_tag_counts])
+    log.warning(fields)
     
     for n in graph.nodes:
         for field in fields:
-            media_lookup[n].setdefault(field, 0)
-            
+            count_lookup[n].setdefault(field, 0)
 
-def add_tag_to_media(
-        db: DatabaseHandler,
-        media: List[Dict[str, Any]],
-        tag_set_name: str,
-        field_name: str) -> None:
+    nx.set_node_attributes(graph, count_lookup)
+
+
+def add_tag_to_graph(db: DatabaseHandler, graph: nx.graph, tag_set_name: str, field_name: str) -> None:
     """Add field to media based on tag association from the given tag set.
     
     Use live data from media_tags_map instead of from snap.media_tags_map.
@@ -89,11 +104,12 @@ def add_tag_to_media(
         {'a': tag_set_name}
     ).hashes()
 
-    partisan_map = {pt['media_id']: pt['tag'] for pt in partisan_tags}
+    tag_map = {pt['media_id']: {field_name: pt['tag']} for pt in partisan_tags}
 
-    for medium in media:
-        medium[field_name] = partisan_map.get(medium['media_id'], 'null')
+    for n in graph.nodes:
+        tag_map.setdefault(n, {field_name: 'null'})
 
+    nx.set_node_attributes(graph, tag_map)
 
 def add_tag_to_snapshot_media(
         db: DatabaseHandler,
@@ -272,7 +288,15 @@ def run_fa2_layout(graph: nx.Graph, memory_limit_mb: int) -> None:
             graph.nodes[i]['position'] = [x, y]
 
 
-def assign_colors(db: DatabaseHandler, graph: nx.Graph, color_by: str) -> None:
+def int_or_zero(value: str) -> int:
+    """Try to convert the str to an int.  Return 0 if the conversion raises an error."""
+    try:
+        return int(value)
+    except ValueError:
+        return 0
+
+
+def assign_colors(db: DatabaseHandler, graph: nx.Graph, color_by: str, boolean: bool=False) -> None:
     """Assign a 'color' attribute to each node in the graph.
 
     Each color will be in '#FFFFFF' format.
@@ -282,7 +306,10 @@ def assign_colors(db: DatabaseHandler, graph: nx.Graph, color_by: str) -> None:
     log.warning(f'assign colors by {color_by}')
     for n in graph.nodes:
         value = str(graph.nodes[n].get(color_by, 'null'))
-        graph.nodes[n]['color'] = get_consistent_color(db, color_by, value)
+        if boolean:
+            graph.nodes[n]['color'] = 'b4771f' if int_or_zero(value) > 0 else 'dddddd'
+        else:
+            graph.nodes[n]['color'] = get_consistent_color(db, color_by, value)
 
 
 def assign_sizes(graph: nx.Graph, attribute: str, scale: int = MAX_NODE_SIZE) -> None:

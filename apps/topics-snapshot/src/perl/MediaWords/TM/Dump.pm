@@ -155,7 +155,8 @@ sub get_post_stories_csv($$)
     my ( $db, $timespan ) = @_;
 
     my $csv = MediaWords::Util::CSV::get_query_as_csv( $db, <<SQL );
-select distinct topic_posts_id, stories_id from snapshot_timespan_posts join topic_post_stories using ( topic_posts_id )
+select distinct topic_posts_id, stories_id
+    from snapshot_timespan_posts join snapshot_topic_post_stories using ( topic_posts_id )
 SQL
 
     return $csv;
