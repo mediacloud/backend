@@ -928,7 +928,7 @@ with link_stories as (
 
 post_stories as (
     select tps.stories_id
-        from snapshot_topic_post_stories tps
+        from topic_post_stories tps
         where tps.topics_id = \$1
         group by topic_seed_queries_id, stories_id
         having count(*) >= 10
