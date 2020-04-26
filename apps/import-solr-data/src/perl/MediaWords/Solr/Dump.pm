@@ -462,12 +462,12 @@ sub _delete_stories_from_import_queue
 
     return unless ( @{ $stories_ids } );
 
-    my $stories_ids_list = join( ',', @{ $stories_ids } );
+    my $id_table = $db->get_temporary_ids_table( $stories_ids );
 
     $db->query(
         <<SQL
         DELETE FROM $stories_queue_table
-        WHERE stories_id IN ($stories_ids_list)
+        WHERE stories_id IN ( select id from $id_table )
 SQL
     );
 }
