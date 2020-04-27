@@ -26,7 +26,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4751;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4752;
 BEGIN
 
     -- Update / set database schema version
@@ -3232,6 +3232,7 @@ create table topic_seed_urls (
 create index topic_seed_urls_topic on topic_seed_urls( topics_id );
 create index topic_seed_urls_url on topic_seed_urls( url );
 create index topic_seed_urls_story on topic_seed_urls ( stories_id );
+create unique index topic_seed_urls_tpu on topic_seed_urls ( topic_post_urls_id );
 
 -- view that joins together the chain of tables from topic_seed_queries all the way through to
 -- topic_stories, so that you get back a topics_id, topic_posts_id stories_id, and topic_seed_queries_id in each
