@@ -1,5 +1,6 @@
-import ciso8601
 import datetime
+import dateutil.parser
+
 
 # mock data numbers
 NUM_MOCK_POST_DAYS = 100
@@ -15,7 +16,7 @@ def filter_posts_for_date_range(all_posts: list, start_date: datetime, end_date:
     """Return a list of only the posts for which publish_date is between start_date and end_date, inclusive.""" 
     posts = []
     for p in all_posts:
-        publish_date = ciso8601.parse_datetime(p['publish_date'])
+        publish_date = dateutil.parser.parse(p['publish_date'])
         if start_date <= publish_date <= end_date:
             posts.append(p)
 
