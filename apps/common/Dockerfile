@@ -80,6 +80,9 @@ RUN \
     #
     true
 
+# Create convenience link
+RUN ln -s /opt/mediacloud /mc
+
 # Copy sources
 COPY src/ /opt/mediacloud/src/common/
 

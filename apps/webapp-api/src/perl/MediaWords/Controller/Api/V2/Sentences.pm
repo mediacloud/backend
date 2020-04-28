@@ -10,7 +10,6 @@ use Encode;
 use List::Util qw(first max maxstr min minstr reduce shuffle sum);
 use Moose;
 use namespace::autoclean;
-use JSON::XS;
 use Readonly;
 
 use MediaWords::Solr;
@@ -119,11 +118,15 @@ sub list_GET
 
     MediaWords::Util::ParseJSON::numify_fields( $sentences, [ qw/stories_id story_sentences_id/ ] );
 
-    #this uses inline python json, which is very slow for large objects
-    #$self->status_ok( $c, entity => $sentences );
-    #
+    Readonly my $json_pretty => 0;
+    my $json = MediaWords::Util::ParseJSON::encode_json( $sentences, $json_pretty );
+
+    # Catalyst expects bytes
+    $json = encode_utf8( $json );
+
     $c->response->content_type( 'application/json; charset=UTF-8' );
-    $c->response->body( encode_utf8( JSON::XS::encode_json( $sentences ) ) );
+    $c->response->content_length( bytes::length( $json ) );
+    $c->response->body( $json );
 }
 
 sub count : Local : ActionClass('MC_REST')

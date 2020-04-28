@@ -18,7 +18,7 @@ from topics_mine.posts import AbstractPostFetcher
 log = create_logger(__name__)
 
 # number of seconds to wait after a google request
-GOOGLE_REQUEST_DELAY = 600
+GOOGLE_REQUEST_DELAY = 120
 
 # last time a google request was made
 _last_google_request_epoch = 0
@@ -76,9 +76,9 @@ class GooglerWebPostFetcher(AbstractPostFetcher):
             start_query = "after:" + start_date.strftime("%Y-%m-%d")
             end_query = "before:" + (end_date + datetime.timedelta(days=1)).strftime("%Y-%m-%d")
 
-            full_query = "query %s %s" % (start_query, end_query)
+            full_query = "%s %s %s" % (query, start_query, end_query)
 
-            googler_json = subprocess.check_output(["googler", "--json", "-n 100", query])
+            googler_json = subprocess.check_output(["googler", "--json", "-n 100", full_query])
 
         links = decode_json(googler_json)
 

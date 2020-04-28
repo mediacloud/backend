@@ -11,6 +11,7 @@ use Text::CSV_XS;
 use MediaWords::CommonLibs;
 
 use MediaWords::DB;
+use MediaWords::DBI::Stories;
 use MediaWords::Solr;
 use List::MoreUtils qw/natatime/;
 
@@ -32,6 +33,10 @@ sub main
     print STDERR "found " . scalar( @{ $stories_ids } ) . " stories\n";
 
     my $fields = [ qw/stories_id title url publish_date media_id media_name media_url/ ];
+    if ( $q =~ /timespans_id:(\d+)/ )
+    { 
+        push( @{ $fields }, qw/media_inlink_count inlink_count outlink_count facebook_share_count/ ); 
+    } 
 
     my $csv = Text::CSV_XS->new( { binary => 1 } );
 
@@ -51,6 +56,15 @@ select s.stories_id, s.title, s.url, s.publish_date, s.media_id, m.name media_na
         join media m using ( media_id )
         join $ids_table i on ( i.id = s.stories_id )
 SQL
+        if ( $q =~ /timespans_id:(\d+)/ ) 
+        { 
+			my $timespans_id = $1;
+            my $slc = $db->query( <<SQL, $timespans_id )->hashes; 
+select slc.* from snap.story_link_counts slc
+    where timespans_id = ? and stories_id in ( select id from $ids_table ) 
+SQL
+            MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $slc ); 
+        } 
 
         for my $story ( @{ $stories } )
         {

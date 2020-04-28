@@ -10,7 +10,7 @@ use MediaWords::CommonLibs;
 # all tables that get stored as snapshot_* for each spanshot
 my $_SNAPSHOT_TABLES = [
     qw/topic_stories topic_links_cross_media topic_media_codes
-      stories media stories_tags_map media_tags_map post_stories/
+      stories media stories_tags_map media_tags_map/
 ];
 
 # all tables that get stories as snapshot_* for each timespan

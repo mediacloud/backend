@@ -52,13 +52,19 @@ Readonly my $SPIDER_LINKS_CHUNK_SIZE => 100_000;
 Readonly my $MAX_JOB_ERROR_RATE => 0.02;
 
 # timeout when polling for jobs to finish
-Readonly my $JOB_POLL_TIMEOUT => 3600;
+Readonly my $JOB_POLL_TIMEOUT => 600;
 
 # number of seconds to wait when polling for jobs to finish
 Readonly my $JOB_POLL_WAIT => 5;
 
 # if more than this many seed urls are imported, dedup stories before as well as after spidering
 Readonly my $MIN_SEED_IMPORT_FOR_PREDUP_STORIES => 50_000;
+
+# how many link extraction jobs per 1000 can we ignore if they hang
+Readonly my $MAX_LINK_EXTRACTION_TIMEOUT => 10;
+
+# how long to wait to timeout link extraction
+Readonly my $LINK_EXTRACTION_POLL_TIMEOUT => 60;
 
 # if mine_topic is run with the test_mode option, set this true and do not try to queue extractions
 my $_test_mode;
@@ -150,21 +156,15 @@ SQL
 
     my $queued_ids_table = $db->get_temporary_ids_table( $queued_stories_ids );
 
-    # poll every $sleep_time seconds waiting for the jobs to complete.  die if the number of stories left to process
-    # has not shrunk for $large_timeout seconds.  warn but continue if the number of stories left to process
-    # is only 5% of the total and short_timeout has passed (this is to make the topic not hang entirely because
-    # of one link extractor job error).
+    # poll every $JOB_POLL_WAIT seconds waiting for the jobs to complete.  die if the number of stories left to process
+    # has not shrunk for $EXTRACTION_POLL_TIMEOUT seconds. 
     my $prev_num_queued_stories = scalar( @{ $stories } );
     my $last_change_time        = time();
     while ( 1 )
     {
         my $queued_stories = $db->query( <<SQL, $topic->{ topics_id } )->flat();
-select stories_id
-    from topic_stories
-    where
-        stories_id in ( select id from $queued_ids_table ) and
-        topics_id = ? and
-        link_mined = 'f'
+select stories_id from topic_stories
+    where stories_id in ( select id from $queued_ids_table ) and topics_id = ? and link_mined = 'f'
 SQL
 
         my $num_queued_stories = scalar( @{ $queued_stories } );
@@ -172,10 +172,18 @@ SQL
         last unless ( $num_queued_stories );
 
         $last_change_time = time() if ( $num_queued_stories != $prev_num_queued_stories );
-        if ( ( time() - $last_change_time ) > $JOB_POLL_TIMEOUT )
+        if ( ( time() - $last_change_time ) > $LINK_EXTRACTION_POLL_TIMEOUT )
         {
             my $ids_list = join( ', ', @{ $queued_stories } );
-            LOGDIE( "Timed out waiting for story link extraction ($ids_list)." );
+            if ( $num_queued_stories > $MAX_LINK_EXTRACTION_TIMEOUT )
+            {
+                LOGDIE( "Timed out waiting for story link extraction ($ids_list)." );
+            }
+
+            $db->query( <<SQL, $topic->{ topics_id } );
+update topic_stories set link_mine_error = 'time out' where stories_id in ( $ids_list ) and topics_id = ?
+SQL
+            last;
         }
 
         INFO( "$num_queued_stories stories left in link extraction pool...." );
@@ -186,10 +194,7 @@ SQL
 
     $db->query( <<SQL, $topic->{ topics_id } );
 update topic_stories set link_mined = 't'
-    where
-        stories_id in ( select id from $stories_ids_table ) and
-        topics_id = ? and
-        link_mined = 'f'
+    where stories_id in ( select id from $stories_ids_table ) and topics_id = ? and link_mined = 'f'
 SQL
 
     $db->query( "discard temp" );
@@ -234,6 +239,10 @@ sub create_and_queue_topic_fetch_urls($$$)
     my $tfus = [];
     for my $link ( @{ $fetch_links } )
     {
+        if ( $link->{ topic_links_id } && !$db->find_by_id( 'topic_links', $link->{ topic_links_id } ) )
+        {
+            next;
+        }
         my $tfu = $db->create(
             'topic_fetch_urls',
             {
@@ -307,6 +316,24 @@ SQL
     }
 }
 
+# list a sample of the pending urls for fetching
+sub show_pending_urls($)
+{
+    my ( $pending_urls ) = @_;
+
+    my $num_pending_urls = scalar( @{ $pending_urls } );
+
+    my $num_printed_urls = List::Util::min( $num_pending_urls, 3 );
+
+    my @shuffled_ids = List::Util::shuffle( 0 .. ( $num_pending_urls - 1 ) );
+
+    for my $id ( @shuffled_ids[ 0 .. ( $num_printed_urls - 1 ) ] )
+    {
+        my $url = $pending_urls->[ $id ];
+        INFO( "pending url: $url->{ url } [$url->{ state }: $url->{ fetch_date }]" );
+    }
+}
+
 # fetch the given links by creating topic_fetch_urls rows and sending them to the FetchLink queue
 # for processing.  wait for the queue to complete and returnt the resulting topic_fetch_urls.
 sub fetch_links
@@ -352,11 +379,7 @@ SQL
 
         INFO( "waiting for fetch link queue: $num_pending_urls links remaining ..." );
 
-        # useful in debugging for showing lingering urls
-        if ( ( $num_pending_urls <= 5 ) && ( $last_num_pending_urls != $num_pending_urls ) )
-        {
-            map { INFO( "pending url: $_->{ url } [$_->{ state }: $_->{ fetch_date }]" ) } @{ $pending_urls };
-        }
+        show_pending_urls( $pending_urls );
 
         last if ( $num_pending_urls < 1 );
 
@@ -641,7 +664,13 @@ END
         update_topic_state( $db, $state_updater, "importing seed urls: $i / $num_urls" );
 
         my $end = List::Util::min( $i + $ADD_NEW_LINKS_CHUNK_SIZE - 1, $#{ $seed_urls } );
-        my $seed_urls_chunk = [ @{ $seed_urls }[ $i .. $end ] ];
+
+        # verify that the seed urls are still there and not processed, in case we have mucked with them while spidering
+        my $urls_ids_list = join( ',', map { int( $_->{ topic_seed_urls_id } ) } @{ $seed_urls }[ $i .. $end] );
+        my $seed_urls_chunk = $db->query( <<SQL )->hashes();
+select * from topic_seed_urls where topic_seed_urls_id in ( $urls_ids_list ) and not processed
+SQL
+
         add_new_links_chunk( $db, $topic, 0, $seed_urls_chunk );
 
         my $ids_list = join( ',', map { int( $_->{ topic_seed_urls_id } ) } @{ $seed_urls_chunk } );
@@ -792,6 +821,11 @@ sub import_solr_seed_query_month($$$)
 
     return 0 unless ( $topic->{ platform } eq 'web' );
 
+    my $solr_query = MediaWords::Solr::Query::get_full_solr_query_for_topic( $db, $topic, undef, undef, $month_offset );
+
+    # this should return undef once the month_offset gets too big
+    return undef unless ( $solr_query );
+
     return 1 unless ( _import_month_within_respider_date( $topic, $month_offset ) );
 
     my $max_stories = $topic->{ max_stories };
@@ -799,11 +833,6 @@ sub import_solr_seed_query_month($$$)
     # if solr maxes out on returned stories, it returns a few documents less than the rows= parameter, so we
     # assume that we hit the solr max if we are within 5% of the ma stories
     my $max_returned_stories = $max_stories * 0.95;
-
-    my $solr_query = MediaWords::Solr::Query::get_full_solr_query_for_topic( $db, $topic, undef, undef, $month_offset );
-
-    # this should return undef once the month_offset gets too big
-    return undef unless ( $solr_query );
 
     INFO "import solr seed query month offset $month_offset";
     $solr_query->{ rows } = $max_stories;
@@ -1017,7 +1046,7 @@ sub import_urls_from_seed_queries($$;$)
 
     for my $tsq ( @{ $topic_seed_queries } )
     {
-        my $tsq_dump = Dumper( $tsq );
+        my $tsq_dump = $tsq->{ topic_seed_queries_id };
         my $fetcher = MediaWords::TM::FetchTopicPosts::get_post_fetcher( $tsq ); 
         die( "unable to import seed urls for platform/source of seed query: $tsq_dump" ) unless ( $fetcher );
 
@@ -1026,15 +1055,22 @@ sub import_urls_from_seed_queries($$;$)
     }
 
     $db->query( <<SQL, $topic->{ topics_id } );
-insert into topic_seed_urls ( url, topics_id, assume_match, source, topic_seed_queries_id )
-    select distinct tpu.url, tsq.topics_id, true, 'topic_seed_queries ', tsq.topic_seed_queries_id
+insert into topic_seed_urls ( url, topics_id, assume_match, source, topic_seed_queries_id, topic_post_urls_id )
+    select distinct
+            tpu.url,
+            tsq.topics_id,
+            false,
+            'topic_seed_queries', 
+            tsq.topic_seed_queries_id,
+            tpu.topic_post_urls_id
         from
             topic_post_urls tpu
             join topic_posts tp using ( topic_posts_id )
             join topic_post_days tpd using ( topic_post_days_id )
             join topic_seed_queries tsq using ( topic_seed_queries_id )
         where
-            tsq.topics_id = ?
+            tsq.topics_id = ? 
+        on conflict ( topic_post_urls_id ) do nothing
 SQL
 }
 
@@ -1166,86 +1202,6 @@ sub do_mine_topic($$;$$)
             MediaWords::Job::StatefulBroker->new( 'MediaWords::Job::TM::SnapshotTopic' )->add_to_queue( $snapshot_args );
         }
     }
-}
-
-# add the url parsed from a tweet to topics_seed_url
-sub add_tweet_seed_url
-{
-    my ( $db, $topic, $url ) = @_;
-
-    my $existing_seed_url = $db->query( <<SQL, $topic->{ topics_id }, $url );
-select * from topic_seed_urls where topics_id = ? and url = ?
-SQL
-
-    if ( $existing_seed_url )
-    {
-        $db->update_by_id( 'topic_seed_urls', $existing_seed_url->{ topic_seed_urls_id }, { assume_match => 't' } );
-    }
-    else
-    {
-        $db->create(
-            'topic_seed_urls',
-            {
-                topics_id    => $topic->{ topics_id },
-                url          => $url,
-                assume_match => 't',
-                source       => 'twitter',
-            }
-        );
-    }
-}
-
-# insert all topic_tweet_urls into topic_seed_urls for twitter child toic
-sub seed_topic_with_tweet_urls($$)
-{
-    my ( $db, $topic ) = @_;
-
-    INFO( "seed topic with tweet urls" );
-
-    # update any already existing urls to be assume_match = 't'
-    $db->query( <<SQL, $topic->{ topics_id } );
-update topic_seed_urls tsu
-    set assume_match = 't', processed = 'f'
-    from
-        topic_tweet_full_urls ttfu
-    where
-        ttfu.topics_id = tsu.topics_id  and
-        ttfu.url = tsu.url and
-        tsu.topics_id = \$1 and
-        assume_match = false
-SQL
-
-    # now insert any topic_tweet_urls that are not already in the topic_seed_urls.
-    # ignore pb.twimg.com urls because they are almost all images and their servers hang the downloader
-    # when we try to download them en masse
-    $db->query(
-        <<SQL,
-        INSERT INTO topic_seed_urls ( topics_id, url, assume_match, source )
-            SELECT DISTINCT ttfu.topics_id, ttfu.url, true, 'twitter'
-            FROM topic_tweet_full_urls ttfu
-            WHERE ttfu.topics_id = \$1
-              AND ttfu.url NOT IN (
-                SELECT url
-                FROM topic_seed_urls
-                WHERE topics_id = \$1
-              )
-              AND not ttfu.url like 'https://twitter.com%'
-              AND not ttfu.url like '%pbs.twimg.com%'
-SQL
-        $topic->{ topics_id }
-    );
-}
-
-# if this is a twitter topic, fetch the twitter data
-sub fetch_and_import_twitter_urls($$)
-{
-    my ( $db, $topic ) = @_;
-
-    return unless ( $topic->{ platform } eq 'twitter' );
-
-    MediaWords::TM::FetchTopicPosts::fetch_topic_posts( $db, $topic->{ topics_id } );
-
-    seed_topic_with_tweet_urls( $db, $topic );
 }
 
 # wrap do_mine_topic in eval and handle errors and state

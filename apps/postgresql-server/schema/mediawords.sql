@@ -26,7 +26,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4743;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4753;
 BEGIN
 
     -- Update / set database schema version
@@ -1107,6 +1107,33 @@ LANGUAGE SQL;
 -- Create initial "downloads_success_feed" partitions for empty database
 SELECT downloads_success_feed_create_partitions();
 
+-- table for object types used for mediawords.util.public_store
+create schema public_store;
+
+
+create table public_store.timespan_files (
+    timespan_files_id   bigserial   primary key,
+    object_id           bigint not null,
+    raw_data            bytea not null
+);
+
+create unique index timespan_files_id on public_store.timespan_files ( object_id );
+
+create table public_store.snapshot_files (
+    snapshot_files_id   bigserial   primary key,
+    object_id           bigint not null,
+    raw_data            bytea not null
+);
+
+create unique index snapshot_files_id on public_store.snapshot_files ( object_id );
+
+create table public_store.timespan_maps (
+    timespan_maps_id   bigserial   primary key,
+    object_id           bigint not null,
+    raw_data            bytea not null
+);
+
+create unique index timespan_maps_id on public_store.timespan_maps ( object_id );
 
 --
 -- Raw downloads stored in the database
@@ -1788,6 +1815,7 @@ insert into topic_sources ( name, description ) values
     ('mediacloud', 'import from the mediacloud.org archive'),
     ('crimson_hexagon', 'import from the crimsonhexagon.com forsight api, only accessible to internal media cloud team'),
     ('csv', 'import generic posts directly from csv'),
+    ('postgres', 'import generic posts from a postgres table'),
     ('pushshift', 'import from the pushshift.io api'),
     ('google', 'import from search results on google');
 
@@ -1817,6 +1845,7 @@ $$ language sql;
 select insert_platform_source_pair( 'web', 'mediacloud' );
 select insert_platform_source_pair( 'twitter', 'crimson_hexagon' );
 select insert_platform_source_pair( 'generic_post', 'csv' );
+select insert_platform_source_pair( 'generic_post', 'postgres' );
 select insert_platform_source_pair( 'reddit', 'pushshift' );
 select insert_platform_source_pair( 'web', 'google' );
 
@@ -1869,7 +1898,8 @@ create table topic_seed_queries (
     source                  varchar(1024) not null references topic_sources(name),
     platform                varchar(1024) not null references topic_platforms(name),
     query                   text,
-    imported_date           timestamp
+    imported_date           timestamp,
+    ignore_pattern          text
 );
 
 create index topic_seed_queries_topic on topic_seed_queries( topics_id );
@@ -1989,25 +2019,6 @@ CREATE VIEW topic_links_cross_media AS
       AND cs.stories_id = cl.ref_stories_id
       AND cs.topics_id = cl.topics_id;
 
-create table topic_seed_urls (
-    topic_seed_urls_id        serial primary key,
-    topics_id                int not null references topics on delete cascade,
-    url                             text,
-    source                          text,
-    stories_id                      int references stories on delete cascade,
-    processed                       boolean not null default false,
-    assume_match                    boolean not null default false,
-    content                         text,
-    guid                            text,
-    title                           text,
-    publish_date                    text,
-    topic_seed_queries_id           int
-);
-
-create index topic_seed_urls_topic on topic_seed_urls( topics_id );
-create index topic_seed_urls_url on topic_seed_urls( url );
-create index topic_seed_urls_story on topic_seed_urls ( stories_id );
-
 create table topic_fetch_urls(
     topic_fetch_urls_id         bigserial primary key,
     topics_id                   int not null references topics on delete cascade,
@@ -2052,7 +2063,7 @@ create index snapshots_topic on snapshots ( topics_id );
 
 create type snap_period_type AS ENUM ( 'overall', 'weekly', 'monthly', 'custom' );
 
-create type focal_technique_type as enum ( 'Boolean Query' );
+create type focal_technique_type as enum ( 'Boolean Query', 'URL Sharing' );
 
 create table focal_set_definitions (
     focal_set_definitions_id    serial primary key,
@@ -2133,7 +2144,8 @@ create table timespan_maps (
     timespan_maps_id                serial primary key,
     timespans_id                    int not null references timespans on delete cascade,
     options                         jsonb not null,
-    content                         bytea not null,
+    content                         bytea null,
+    url                             text null,
     format                          varchar(1024) not null
 );
 
@@ -2141,22 +2153,21 @@ create index topic_maps_timespan on timespan_maps ( timespans_id );
 
 create table timespan_files (
     timespan_files_id                   serial primary key,
-    timespans_id int not null references timespans on delete cascade,
-    file_name                       text,
-    file_content                    text
+    timespans_id                        int not null references timespans on delete cascade,
+    name                                text,
+    url                                 text
 );
 
-create index timespan_files_timespan on timespan_files ( timespans_id );
+create unique index timespan_files_timespan_name on timespan_files ( timespans_id, name );
 
-create table snap_files (
-    snap_files_id                     serial primary key,
-    snapshots_id            int not null references snapshots on delete cascade,
-    file_name                       text,
-    file_content                    text
+create table snapshot_files (
+    snapshot_files_id                       serial primary key,
+    snapshots_id                        int not null references snapshots on delete cascade,
+    name                                text,
+    url                                 text
 );
 
-create index snap_files_cd on snap_files ( snapshots_id );
-
+create unique index snapshot_files_snapshot_name on snapshot_files ( snapshots_id, name );
 
 -- schema to hold the various snapshot snapshot tables
 CREATE SCHEMA snap;
@@ -2300,12 +2311,18 @@ create table snap.story_link_counts (
 
     facebook_share_count                    int null,
 
-    post_count                             int null
+    post_count                              int null,
+    author_count                            int null,
+    channel_count                           int null
 );
 
 -- TODO: add complex foreign key to check that stories_id exists for the snapshot stories snapshot
 create index story_link_counts_ts on snap.story_link_counts ( timespans_id, stories_id );
 create index story_link_counts_story on snap.story_link_counts ( stories_id );
+create index story_link_counts_fb on snap.story_link_counts ( timespans_id, facebook_share_count desc nulls last );
+create index story_link_counts_post on snap.story_link_counts ( timespans_id, post_count desc nulls last);
+create index story_link_counts_author on snap.story_link_counts ( timespans_id, author_count desc nulls last);
+create index story_link_counts_channel on snap.story_link_counts ( timespans_id, channel_count desc nulls last);
 
 -- links counts for media within a timespan
 create table snap.medium_link_counts (
@@ -2320,11 +2337,17 @@ create table snap.medium_link_counts (
 
     facebook_share_count            int null,
 
-    post_count              int null
+    sum_post_count                  int null,
+    sum_author_count                int null,
+    sum_channel_count               int null
 );
 
 -- TODO: add complex foreign key to check that media_id exists for the snapshot media snapshot
 create index medium_link_counts_medium on snap.medium_link_counts ( timespans_id, media_id );
+create index medium_link_counts_fb on snap.medium_link_counts ( timespans_id, facebook_share_count desc nulls last);
+create index medium_link_counts_sum_post on snap.medium_link_counts ( timespans_id, sum_post_count desc nulls last);
+create index medium_link_counts_sum_author on snap.medium_link_counts ( timespans_id, sum_author_count desc nulls last);
+create index medium_link_counts_sum_channel on snap.medium_link_counts ( timespans_id, sum_channel_count desc nulls last);
 
 create table snap.medium_links (
     timespans_id int not null
@@ -3156,7 +3179,8 @@ create table topic_post_days (
     topic_post_days_id     serial primary key,
     topic_seed_queries_id  int not null references topic_seed_queries on delete cascade,
     day                    date not null,
-    num_posts              int not null,
+    num_posts_stored       int not null,
+    num_posts_fetched      int not null,
     posts_fetched          boolean not null default false
 );
 
@@ -3189,22 +3213,46 @@ create table topic_post_urls (
 create index topic_post_urls_url on topic_post_urls ( url );
 create unique index topic_post_urls_tt on topic_post_urls ( topic_posts_id, url );
 
--- view that joins together the related topic_posts, topic_post_days, topic_post_urls, and topic_seed_urls tables
--- tables for convenient querying of topic twitter url data
-create view topic_post_full_urls as
-    select distinct
-            t.topics_id,
-            tt.topic_posts_id, tt.content, tt.publish_date, tt.author,
-            ttd.day, ttd.num_posts, ttd.posts_fetched,
-            ttu.url, tsu.stories_id
+create table topic_seed_urls (
+    topic_seed_urls_id        serial primary key,
+    topics_id                int not null references topics on delete cascade,
+    url                             text,
+    source                          text,
+    stories_id                      int references stories on delete cascade,
+    processed                       boolean not null default false,
+    assume_match                    boolean not null default false,
+    content                         text,
+    guid                            text,
+    title                           text,
+    publish_date                    text,
+    topic_seed_queries_id           int references topic_seed_queries on delete cascade,
+    topic_post_urls_id              int references topic_post_urls on delete cascade
+);
+
+create index topic_seed_urls_topic on topic_seed_urls( topics_id );
+create index topic_seed_urls_url on topic_seed_urls( url );
+create index topic_seed_urls_story on topic_seed_urls ( stories_id );
+create unique index topic_seed_urls_tpu on topic_seed_urls ( topic_post_urls_id );
+
+-- view that joins together the chain of tables from topic_seed_queries all the way through to
+-- topic_stories, so that you get back a topics_id, topic_posts_id stories_id, and topic_seed_queries_id in each
+-- row to track which stories came from which posts in which seed queries
+create view topic_post_stories as
+    select 
+            tsq.topics_id,
+            tp.topic_posts_id, tp.content, tp.publish_date, tp.author, tp.channel, tp.data,
+            tpd.topic_seed_queries_id,
+            ts.stories_id,
+            tpu.url, tpu.topic_post_urls_id
         from
-            topics t
-            join topic_seed_queries tsq using ( topics_id )
-            join topic_post_days ttd using ( topic_seed_queries_id )
-            join topic_posts tt using ( topic_post_days_id )
-            join topic_post_urls ttu using ( topic_posts_id )
-            left join topic_seed_urls tsu
-                on ( tsu.topics_id = t.topics_id and ttu.url = tsu.url );
+            topic_seed_queries tsq
+            join topic_post_days tpd using ( topic_seed_queries_id )
+            join topic_posts tp using ( topic_post_days_id )
+            join topic_post_urls tpu using ( topic_posts_id )
+            join topic_seed_urls tsu using ( topic_post_urls_id )
+            join topic_stories ts 
+                on ( ts.topics_id = tsq.topics_id and ts.stories_id = tsu.stories_id );
+
 
 
 create table snap.timespan_posts (
@@ -3213,19 +3261,6 @@ create table snap.timespan_posts (
 );
 
 create unique index snap_timespan_posts_u on snap.timespan_posts( timespans_id, topic_posts_id );
-
-create table snap.post_stories (
-    snapshots_id        int not null references snapshots on delete cascade,
-    topic_posts_id      int not null references topic_posts on delete cascade,
-    publish_date        date not null,
-    author              varchar( 1024 ) not null,
-    stories_id          int not null,
-    media_id            int not null,
-    num_posts           int not null
-
-);
-
-create index snap_post_stories on snap.post_stories ( snapshots_id );
 
 create table media_stats_weekly (
     media_id        int not null references media on delete cascade,
@@ -3583,10 +3618,10 @@ create unlogged table domain_web_requests (
 
 create index domain_web_requests_domain on domain_web_requests ( domain );
 
--- return false if there is a request for the given domain within the last domain_timeout_arg seconds.  otherwise
+-- return false if there is a request for the given domain within the last domain_timeout_arg milliseconds.  otherwise
 -- return true and insert a row into domain_web_request for the domain.  this function does not lock the table and
 -- so may allow some parallel requests through.
-create or replace function get_domain_web_requests_lock( domain_arg text, domain_timeout_arg int ) returns boolean as $$
+create or replace function get_domain_web_requests_lock( domain_arg text, domain_timeout_arg float ) returns boolean as $$
 begin
 
 -- we don't want this table to grow forever or to have to manage it externally, so just truncate about every
@@ -3603,7 +3638,7 @@ if exists (
         from domain_web_requests
         where
             domain = domain_arg and
-            extract( epoch from now() - request_time ) < domain_timeout_arg
+            extract( epoch from now() - request_time ) < domain_timeout_arg 
     ) then
 
     return false;

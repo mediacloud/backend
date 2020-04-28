@@ -14,26 +14,37 @@
 -- 1 of 2. Import the output of 'apgdiff':
 --
 
+alter table focal_sets alter focal_technique type text;
+alter table focal_set_definitions alter focal_technique type text;
 
-CREATE TABLE celery_groups (
-    id          INTEGER                     NOT NULL    PRIMARY KEY,
-    taskset_id  CHARACTER VARYING(155)      NULL        UNIQUE,
-    result      BYTEA                       NULL,
-    date_done   TIMESTAMP WITHOUT TIME ZONE NULL
-);
+drop type focal_technique_type;
 
-CREATE TABLE celery_tasks (
-    id          INTEGER                     NOT NULL    PRIMARY KEY,
-    task_id     CHARACTER VARYING(155)      NULL        UNIQUE,
-    status      CHARACTER VARYING(50)       NULL,
-    result      BYTEA                       NULL,
-    date_done   TIMESTAMP WITHOUT TIME ZONE NULL,
-    traceback   TEXT                        NULL
-);
+create type focal_technique_type as enum ( 'Boolean Query', 'URL Sharing' );
 
-CREATE SEQUENCE task_id_sequence AS BIGINT;
+alter table focal_sets alter focal_technique type focal_technique_type using focal_technique::focal_technique_type;
+alter table focal_set_definitions alter focal_technique type focal_technique_type
+    using focal_technique::focal_technique_type;
 
+drop view topic_post_full_urls;
 
+create view topic_post_stories as
+    select 
+            tsq.topics_id,
+            tp.topic_posts_id, tp.content, tp.publish_date, tp.author, tp.channel, tp.data,
+            tpd.topic_seed_queries_id,
+            ts.stories_id,
+            tpu.url
+        from
+            topic_seed_queries tsq
+            join topic_post_days tpd using ( topic_seed_queries_id )
+            join topic_posts tp using ( topic_post_days_id )
+            join topic_post_urls tpu using ( topic_posts_id )
+            join topic_seed_urls tsu
+                on ( tsu.topics_id = tsq.topics_id and tsu.url = tpu.url )
+            join topic_stories ts 
+                on ( ts.topics_id = tsq.topics_id and ts.stories_id = tsu.stories_id );
+
+drop table snap.post_stories;
 --
 -- 2 of 2. Reset the database version.
 --
@@ -58,3 +69,5 @@ $$
 LANGUAGE 'plpgsql';
 
 SELECT set_database_schema_version();
+
+

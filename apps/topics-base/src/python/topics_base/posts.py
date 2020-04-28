@@ -1,5 +1,6 @@
 import datetime
-import dateutil
+import dateutil.parser
+
 
 # mock data numbers
 NUM_MOCK_POST_DAYS = 100
@@ -15,7 +16,8 @@ def filter_posts_for_date_range(all_posts: list, start_date: datetime, end_date:
     """Return a list of only the posts for which publish_date is between start_date and end_date, inclusive.""" 
     posts = []
     for p in all_posts:
-        if start_date <= dateutil.parser.parse(p['publish_date']) <= end_date:
+        publish_date = dateutil.parser.parse(p['publish_date'])
+        if start_date <= publish_date <= end_date:
             posts.append(p)
 
     return posts
@@ -33,9 +35,12 @@ def get_mock_post(post_id: int) -> dict:
     author_id = int(post_id % NUM_MOCK_AUTHORS)
     channel_id = int(post_id % NUM_MOCK_CHANNELS)
 
+    hindi_foo_bar = 'फू बार';
+    mandarin_author = 'មិត្ត ១០០ ឆ្នាំ';
+
     d = {
-            'content': 'mock content %s' % str(post_id),
-            'author': 'mock author %s' % str(author_id),
+            'content': 'mock content %s %s' % (hindi_foo_bar, str(post_id)),
+            'author': 'mock author %s %s' % (mandarin_author, str(author_id)),
             'channel': 'mock channel %s' % str(channel_id),
             'publish_date': str(publish_date),
             'post_id': str(post_id)

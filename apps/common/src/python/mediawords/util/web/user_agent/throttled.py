@@ -16,24 +16,33 @@ log = create_logger(__name__)
 # default amount of time in between requests
 _DEFAULT_DOMAIN_TIMEOUT = 10
 
+# timeout to use for accelerated domains and shortened urls
+_DEFAULT_ACCELERATED_TIMEOUT = 0.5
+
 # Domains (in addition to all shortened URLs) for which the throttling will be less intense
 _ACCELERATED_DOMAINS = {
-    'twitter.com',
-    'wikipedia.org',
-    'feeds.feedburner.com',
-    'facebook.com',
-    'wp.com',
-    'amazonaws.com',
-    't.co',
-    'google.com',
-    'doi.org',
-    'archive.org',
-    'reddit.com'
+    'twitter.com': _DEFAULT_ACCELERATED_TIMEOUT,
+    'wikipedia.org': _DEFAULT_ACCELERATED_TIMEOUT,
+    'feeds.feedburner.com': _DEFAULT_ACCELERATED_TIMEOUT,
+    'facebook.com': _DEFAULT_ACCELERATED_TIMEOUT,
+    'wp.com': _DEFAULT_ACCELERATED_TIMEOUT,
+    'amazonaws.com': _DEFAULT_ACCELERATED_TIMEOUT,
+    't.co': _DEFAULT_ACCELERATED_TIMEOUT,
+    'google.com': _DEFAULT_ACCELERATED_TIMEOUT,
+    'doi.org': _DEFAULT_ACCELERATED_TIMEOUT,
+    'archive.org': _DEFAULT_ACCELERATED_TIMEOUT,
+    'reddit.com': _DEFAULT_ACCELERATED_TIMEOUT,
+    'youtube.com': 2,
+    'instagram.com': _DEFAULT_ACCELERATED_TIMEOUT,
+    'yahoo.com': _DEFAULT_ACCELERATED_TIMEOUT,
+    'yimg.com': _DEFAULT_ACCELERATED_TIMEOUT,
+    'congress.gov': _DEFAULT_ACCELERATED_TIMEOUT,
+    'goldfish.me': _DEFAULT_ACCELERATED_TIMEOUT,
+    'trib.al': 0.1,
 }
 
-# Divide the normal domain timeout by this for accelerated URLs
-_ACCELERATED_DOMAIN_SPEEDUP_FACTOR = 10
-
+# timeout for shortened urls that are not also accelerated domains
+_SHORTENED_TIMEOUT = 1
 
 class McThrottledDomainException(Exception):
     """Exception raised when a ThrottledUserAgent request fails to get a domain request lock."""
@@ -87,8 +96,10 @@ class ThrottledUserAgent(UserAgent):
             domain = mediawords.util.url.get_url_distinctive_domain(request.url())
 
             domain_timeout = self.domain_timeout
-            if domain_timeout > 1 and (is_shortened_url(request.url()) or domain in _ACCELERATED_DOMAINS):
-                domain_timeout = max(1, int(self.domain_timeout / _ACCELERATED_DOMAIN_SPEEDUP_FACTOR))
+            if domain in _ACCELERATED_DOMAINS:
+                domain_timeout = _ACCELERATED_DOMAINS[domain]
+            elif is_shortened_url(request.url()):
+                domain_timeout = _SHORTENED_TIMEOUT
 
             # this postgres function returns true if we are allowed to make the request and false otherwise. this
             # function does not use a table lock, so some extra requests might sneak through, but thats better than

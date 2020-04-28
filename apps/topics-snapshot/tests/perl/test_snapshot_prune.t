@@ -65,7 +65,7 @@ SQL
 
     my $stories = $db->query( "select * from stories order by stories_id" )->hashes;
 
-    my ( $outlink_story, $inlink_story, $fb_story, $post_story) = @{ $stories };
+    my ( $outlink_story, $inlink_story, $post_story) = @{ $stories };
 
     my $topic_link = {
         topics_id => $topics_id,
@@ -73,11 +73,6 @@ SQL
         url => $inlink_story->{ url },
         ref_stories_id => $inlink_story->{ stories_id } };
     $db->create( 'topic_links', $topic_link );
-
-    my $ss = {
-        stories_id => $fb_story->{ stories_id },
-        facebook_share_count => 100 };
-    $db->create( 'story_statistics', $ss );
 
     my $post_snapshot = {
         topics_id => $topics_id,
@@ -99,11 +94,49 @@ SQL
         post_count => 10 };
     $post_timespan = $db->create( 'timespans', $post_timespan );
 
-    $db->query( <<SQL, $post_timespan->{ timespans_id }, $post_story->{ stories_id } );
-insert into snap.story_link_counts
-    ( timespans_id, stories_id, inlink_count, outlink_count, media_inlink_count, post_count )
-    values ( ?, ?, 0, 0, 0, 10 )
-SQL
+    my $tsq = {
+        topics_id => $topics_id,
+        query => 'foo', 
+        source => 'csv',
+        platform => 'generic_post'
+    };
+    $tsq = $db->create( 'topic_seed_queries', $tsq );
+
+    my $tpd = {
+        topic_seed_queries_id => $tsq->{ topic_seed_queries_id },
+        day => $post_story->{ publish_date },
+        num_posts_stored => 0,
+        num_posts_fetched => 0,
+    };
+    $tpd = $db->create( 'topic_post_days', $tpd );
+
+    for my $i ( 1 .. 10 )
+    {
+        my $tp = {
+            topic_post_days_id => $tpd->{ topic_post_days_id },
+            content => 'foo',
+            author => 'foo', 
+            channel => 'foo',
+            publish_date => $post_story->{ publish_date },
+            post_id => $i,
+            data => '{}',
+        };
+        $tp = $db->create( 'topic_posts', $tp );
+
+        my $tpu = {
+            topic_posts_id => $tp->{ topic_posts_id },
+            url => $post_story->{ url }
+        };
+        $tpu = $db->create( 'topic_post_urls', $tpu );
+
+        my $tsu = {
+            topics_id => $topics_id,
+            topic_seed_queries_id => $tsq->{ topic_seed_queries_id },
+            url => $post_story->{ url },
+            stories_id => $post_story->{ stories_id },
+        };
+        $tsu = $db->create( 'topic_seed_urls', $tsu );
+    }
 
     MediaWords::TM::Snapshot::snapshot_topic( $db, $topics_id );
 
@@ -116,7 +149,7 @@ select * from snap.stories where snapshots_id = ?
 SQL
 
 
-    is( scalar( @{ $got_stories } ), 3, "number of pruned stories" );
+    is( scalar( @{ $got_stories } ), 2, "number of pruned stories" );
 }
 
 sub main

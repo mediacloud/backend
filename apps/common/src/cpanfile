@@ -20,7 +20,6 @@ requires 'Test::Class';
 requires 'Test::Deep';
 requires 'Test::Differences';
 requires 'Test::NoWarnings';
-requires 'Text::CSV_XS';
 requires 'Text::Trim';
 requires 'Text::WordDiff';
 requires 'URI';

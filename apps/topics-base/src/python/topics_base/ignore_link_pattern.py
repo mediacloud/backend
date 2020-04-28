@@ -1,14 +1,42 @@
-# ignore any list that match the below patterns.  the sites below are most social sharing button links of
+# ignore any list that match the below patterns\.  the sites below are most social sharing button links of
 # various kinds, along with some content spam sites and a couple of sites that confuse the spider with too
-# many domain alternatives.
-IGNORE_LINK_PATTERN = (
-    r'(?:www.addtoany.com)|(?:novostimira.com)|(?:ads\.pheedo)|(?:www.dailykos.com\/user)|'
-    r'(?:livejournal.com\/(?:tag|profile))|(?:sfbayview.com\/tag)|(?:absoluteastronomy.com)|'
-    r'(?:\/share.*http)|(?:digg.com\/submit)|(?:facebook.com.*mediacontentsharebutton)|'
-    r'(?:feeds.wordpress.com\/.*\/go)|(?:sharetodiaspora.github.io\/)|(?:iconosquare.com)|'
-    r'(?:unz.com)|(?:answers.com)|(?:downwithtyranny.com\/search)|(?:scoop\.?it)|(?:sco\.lt)|'
-    r'(?:pronk.*\.wordpress\.com\/(?:tag|category))|(?:wn\.com)|(?:pinterest\.com\/pin\/create)|(?:feedblitz\.com)|'
-    r'(?:atomz.com)|(?:unionpedia.org)|(?:http://politicalgraveyard.com)|(?:https?://api\.[^\/]+)|'
-    r'(?:www.rumormillnews.com)|(?:tvtropes.org/pmwiki)|(?:twitter.com/account/suspended)|'
-    r'(?:feedsportal.com)|(?:misuse.ncbi.nlm.nih.gov/error/abuse.shtml)|'
-    r'(?:assets.feedblitzstatic.com/images/blank.gif)|(?:accounts.google.com/ServiceLogin)')
+# many domain alternatives\.
+__ignore_link_patterns = [
+    r'www\.addtoany\.com',
+    r'novostimira\.com',
+    r'ads\.pheedo',
+    r'www\.dailykos\.com/user',
+    r'livejournal\.com/(?:tag|profile)',
+    r'sfbayview\.com/tag',
+    r'absoluteastronomy\.com',
+    r'/share\.*http',
+    r'digg\.com/submit',
+    r'facebook\.com\.*mediacontentsharebutton',
+    r'feeds\.wordpress\.com/.*\/go',
+    r'sharetodiaspora\.github\.io\/',
+    r'iconosquare\.com'
+    r'unz\.com',
+    r'answers\.com',
+    r'downwithtyranny\.com\/search',
+    r'scoop\.?it',
+    r'sco\.lt',
+    r'pronk\.*\.wordpress\.com\/(?:tag|category)',
+    r'[\./]wn\.com',
+    r'pinterest\.com/pin/create',
+    r'feedblitz\\.com',
+    r'atomz\.com',
+    r'unionpedia\.org',
+    r'https?://politicalgraveyard\.com',
+    r'https?://api\.[^\/]+',
+    r'www\.rumormillnews\.com',
+    r'tvtropes\.org/pmwiki',
+    r'twitter\.com/account/suspended',
+    r'feedsportal\.com',
+    r'misuse\.ncbi\.nlm\.nih\.gov/error/abuse\.shtml', # we get blocked by nih, and everything ends up here
+    r'assets\.feedblitzstatic\.com/images/blank\.gif',
+    r'accounts\.google\.com/ServiceLogin',
+    r'network\.wwe\.com/video', # wwe videos just redirect to front page
+    r'goldfish\.me/',
+]
+
+IGNORE_LINK_PATTERN = '|'.join(["(?:%s)" % p for p in __ignore_link_patterns])

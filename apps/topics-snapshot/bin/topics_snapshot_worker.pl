@@ -26,8 +26,6 @@ sub run_job($)
 
     my $topics_id  = $args->{ topics_id };
     my $note       = $args->{ note };
-    my $bot_policy = $args->{ bot_policy };
-    my $periods    = $args->{ periods };
     my $snapshots_id = $args->{ snapshots_id };
 
     my $state_updater = $args->{ state_updater };
@@ -40,7 +38,7 @@ sub run_job($)
 
     # No transaction started because apparently snapshot_topic() does start one itself
     $snapshots_id = MediaWords::TM::Snapshot::snapshot_topic(
-        $db, $topics_id, $snapshots_id, $note, $bot_policy, $periods, $state_updater
+        $db, $topics_id, $snapshots_id, $note, $state_updater
     );
 
     INFO "Adding a new word2vec model generation job for snapshot $snapshots_id...";

@@ -20,6 +20,7 @@ from facebook_fetch_story_stats.exceptions import (
     McFacebookInvalidURLException,
     McFacebookUnexpectedAPIResponseException,
     McFacebookErrorAPIResponseException,
+    McFacebookSoftFailureException,
 )
 
 log = create_logger(__name__)
@@ -152,10 +153,8 @@ def _api_request(node: str, params: Dict[str, Union[str, List[str]]], config: Fa
         decoded_content = response.decoded_content()
 
         if not decoded_content:
-            # I guess API caching servers can respond with blank pages once in a while -- let's retry on those
-            last_api_error = f"Decoded content is empty."
-            log.error(last_api_error)
-            continue
+            # some stories consistenty return empty content, so just return a soft error and move on
+            raise McFacebookSoftFailureException("Decoded content is empty.")
 
         try:
             data = decode_json(decoded_content)
@@ -367,6 +366,15 @@ def get_and_store_story_stats(db: DatabaseHandler, story: dict) -> FacebookURLSt
 
     stats = None
     thrown_exception = None
+
+    story_stats = db.query("select * from story_statistics where stories_id = %(a)s", {'a': story['stories_id']}).hash()
+
+    try:
+        if len(story_stats.get('facebook_api_error', '')) > 0:
+            message ='ignore story %d with error: %s' % (story['stories_id'], story_stats['facebook_api_error'])
+            raise McFacebookSoftFailureException(message)
+    except Exception:
+        pass
 
     try:
         stats = _get_url_stats(url=story_url)

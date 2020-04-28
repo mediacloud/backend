@@ -1,2 +1,3 @@
 requires 'Statistics::Basic';
+requires 'Text::CSV_XS';
 requires 'XML::Simple';

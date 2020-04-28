@@ -46,19 +46,23 @@ use MediaWords::Job::Broker;
 use MediaWords::Job::State;
 use MediaWords::Solr;
 use MediaWords::TM::Alert;
+use MediaWords::TM::Dump;
 use MediaWords::TM::Model;
 use MediaWords::TM::Snapshot::Views;
+use MediaWords::Util::ParseJSON;
 use MediaWords::Util::SQL;
 
-# possible values of snapshots.bot_policy
-Readonly our $POLICY_NO_BOTS   => 'no bots';
-Readonly our $POLICY_ONLY_BOTS => 'only bots';
-Readonly our $POLICY_BOTS_ALL  => 'all';
+# list of platforms for which we should run url sharing timespans
+Readonly my $URL_SHARING_PLATFORMS => [ qw/twitter reddit generic_post/ ];
 
-# number of tweets per day to use as a threshold for bot filtering
-Readonly my $BOT_TWEETS_PER_DAY => 200;
+Readonly my $TECHNIQUE_BOOLEAN => 'Boolean Query';
+Readonly my $TECHNIQUE_SHARING => 'URL Sharing';
 
+# only include posts in a topic that have fewer than this propotion of the total shares
+Readonly my $AUTHOR_COUNT_MAX_SHARE => 0.01;
 
+# but don't elimiate any authors with fewer than this many shares
+Readonly my $AUTHOR_COUNT_MIN_CUTOFF => 100;
 
 # update the job state args, catching any error caused by not running within a job
 sub _update_job_state_args($$$)
@@ -88,15 +92,34 @@ sub _update_job_state_message($$$)
     $state_updater->update_job_state_message( $db, $message );
 }
 
-# remove stories from snapshot_period_stories that don't math solr query in the
-# associated focus, if any
-sub _restrict_period_stories_to_focus
+# given a timespans, return the topic_seed_queries_id associated with the parent focus, if any.
+# return if no such focal_set exists.
+sub _get_timespan_seed_query($$)
 {
     my ( $db, $timespan ) = @_;
 
-    return unless ( $timespan->{ foci_id } );
+    my ( $topic_seed_queries_id ) = $db->query( <<SQL, $timespan->{ foci_id }, $TECHNIQUE_SHARING )->flat;
+select f.arguments->>'topic_seed_queries_id'
+    from foci f
+        join focal_sets fs using ( focal_sets_id )
+    where
+        f.foci_id = ? and
+        fs.focal_technique = ?
+SQL
 
-    my $qs = $db->query( "select *, arguments->>'query' query from foci where foci_id = ?", $timespan->{ foci_id } )->hash;
+    return $topic_seed_queries_id ? int( $topic_seed_queries_id ) : undef;
+}
+
+# remove stories from snapshot_period_stories that don't match solr query in the associated focus, if any
+sub _restrict_period_stories_to_boolean_focus($$)
+{
+    my ( $db, $timespan ) = @_;
+
+    my $focus = $db->require_by_id( 'foci', $timespan->{ foci_id } );
+
+    my $arguments = MediaWords::Util::ParseJSON::decode_json( $focus->{ arguments } );
+
+    my $solr_q = $arguments->{ query };
 
     my $snapshot_period_stories_ids = $db->query( "select stories_id from snapshot_period_stories" )->flat;
 
@@ -108,26 +131,30 @@ sub _restrict_period_stories_to_focus
     }
     my $all_stories_ids      = [ @{ $snapshot_period_stories_ids } ];
     my $matching_stories_ids = [];
-    my $chunk_size           = 1000;
+    my $chunk_size           = 100000;
     my $min_chunk_size       = 10;
-    my $max_solr_errors      = 25;
+    my $max_solr_errors      = 10;
     my $solr_error_count     = 0;
 
+    my $i = 0;
     while ( @{ $all_stories_ids } )
     {
-        my $chunk_stories_ids = [];
-        my $chunk_size = List::Util::min( $chunk_size, scalar( @{ $all_stories_ids } ) );
-        map { push( @{ $chunk_stories_ids }, shift( @{ $all_stories_ids } ) ) } ( 1 .. $chunk_size );
+        my $stories_count = scalar( @{ $all_stories_ids } );
+        DEBUG( "remaining stories: $stories_count" );
 
-        my $solr_q = $qs->{ query };
+        my $chunk_stories_ids = [];
+        $chunk_size = List::Util::min( $chunk_size, scalar( @{ $all_stories_ids } ) );
+        map { push( @{ $chunk_stories_ids }, shift( @{ $all_stories_ids } ) ) } ( 1 .. $chunk_size );
 
         die( "focus boolean query '$solr_q' must include non-space character" ) unless ( $solr_q =~ /[^[:space:]]/ );
 
         my $stories_ids_list = join( ' ', @{ $chunk_stories_ids } );
-        $solr_q = "( $solr_q ) and stories_id:( $stories_ids_list )";
+        my $chunk_solr_q = "( $solr_q ) and stories_id:( $stories_ids_list )";
+
+        DEBUG( "solr query: " . substr( $chunk_solr_q, 0, 128 ) );
 
         my $solr_stories_ids =
-          eval { MediaWords::Solr::search_solr_for_stories_ids( $db, { rows => 1000000, q => $solr_q } ) };
+          eval { MediaWords::Solr::search_solr_for_stories_ids( $db, { 'rows' => 10000000, 'q' => $chunk_solr_q } ) };
         if ( $@ )
         {
             # sometimes solr throws a NullException error on one of these queries; retrying with smaller
@@ -139,10 +166,14 @@ sub _restrict_period_stories_to_focus
 
             $chunk_size = List::Util::max( $chunk_size / 2, $min_chunk_size );
             unshift( @{ $all_stories_ids }, @{ $chunk_stories_ids } );
-            sleep( int( 2**( 1 * ( $solr_error_count / 5 ) ) ) );
+
+            my $sleep_time = 2 ** $solr_error_count;
+
+            DEBUG( "solr error # $solr_error_count, new chunk size: $chunk_size, sleeping $sleep_time ...\n$@" );
         }
         else
         {
+            DEBUG( "solr stories found: " . scalar( @{ $solr_stories_ids } ) );
             push( @{ $matching_stories_ids }, @{ $solr_stories_ids } );
         }
     }
@@ -173,19 +204,21 @@ END
     return $date_clause;
 }
 
-# for a social topic, the only stories that should appear in the timespan are stories associated
+# for a url sharing timespan, the only stories that should appear in the timespan are stories associated
 # with a post published during the timespan
-sub _create_twitter_snapshot_period_stories($$)
+sub _create_url_sharing_snapshot_period_stories($$)
 {
     my ( $db, $timespan ) = @_;
 
-    $db->query( <<SQL, $timespan->{ timespans_id } );
+    my $topic_seed_queries_id = _get_timespan_seed_query( $db, $timespan );
+
+    $db->query( <<SQL, $topic_seed_queries_id, $timespan->{ start_date }, $timespan->{ end_date } );
 create temporary table snapshot_period_stories as
     select distinct stories_id
-        from snapshot_post_stories ts
-            join timespans t on ( timespans_id = \$1 )
+        from topic_post_stories
         where
-            ts.publish_date between t.start_date and t.end_date
+            topic_seed_queries_id = ? and
+            publish_date >= ? and publish_date < ?
 SQL
 }
 
@@ -198,6 +231,12 @@ SQL
 sub _create_link_snapshot_period_stories($$)
 {
     my ( $db, $timespan ) = @_;
+
+    if ( $timespan->{ period } eq 'overall' )
+    {
+        $db->query( "create temporary table snapshot_period_stories as select stories_id from snapshot_stories" );
+        return;
+    }
 
     $db->query( <<END );
 create or replace temporary view snapshot_undateable_stories as
@@ -226,13 +265,17 @@ END
 }
 
 # return true if the topic of the timespan is not a web topic
-sub _topic_is_url_sharing_topic
+sub _timespan_is_url_sharing
 {
     my ( $db, $timespan ) = @_;
 
-    my $platform = _get_topic_platform( $db, $timespan );
+    return undef unless $timespan->{ foci_id };
 
-    return $platform ne 'web';
+    my ( $technique ) = $db->query( <<SQL, $timespan->{ foci_id } )->flat;
+select focal_technique from focal_sets fs join foci using ( focal_sets_id ) where foci_id = ?
+SQL
+
+    return $technique eq $TECHNIQUE_SHARING;
 }
 
 # write snapshot_period_stories table that holds list of all stories that should be included in the
@@ -247,28 +290,22 @@ sub _write_period_stories
 
     $db->query( "drop table if exists snapshot_period_stories" );
 
-    if ( !$timespan || ( $timespan->{ period } eq 'overall' ) )
+    if ( _timespan_is_url_sharing( $db, $timespan ) )
     {
-        $db->query( <<END );
-create temporary table snapshot_period_stories as select stories_id from snapshot_stories
-END
-    }
-    elsif ( _topic_is_url_sharing_topic( $db, $timespan ) )
-    {
-        _create_twitter_snapshot_period_stories( $db, $timespan );
+        _create_url_sharing_snapshot_period_stories( $db, $timespan );
     }
     else
     {
         _create_link_snapshot_period_stories( $db, $timespan );
+
+        if ( $timespan->{ foci_id } )
+        {
+            _restrict_period_stories_to_boolean_focus( $db, $timespan );
+        }
     }
 
     my ( $num_period_stories ) = $db->query( "select count(*) from snapshot_period_stories" )->flat;
     DEBUG( "num_period_stories: $num_period_stories" );
-
-    if ( $timespan->{ foci_id } )
-    {
-        _restrict_period_stories_to_focus( $db, $timespan );
-    }
 }
 
 # convenience function to update a field in the timespan table
@@ -279,17 +316,85 @@ sub update_timespan
     $db->update_by_id( 'timespans', $timespan->{ timespans_id }, { $field => $val } );
 }
 
-# get the platform for the topic associated with the timespan
-sub _get_topic_platform
+sub _create_url_sharing_story_links($$)
 {
     my ( $db, $timespan ) = @_;
 
-    my ( $platform ) = $db->query( <<SQL, $timespan->{ snapshots_id } )->flat;
-select platform from topics t join snapshots s using ( topics_id ) where snapshots_id = ?
+    my $topic_seed_queries_id = _get_timespan_seed_query( $db, $timespan );
+
+    # get and index a list of post-story-shares with publish dat and author
+    $db->query( <<SQL );
+create temporary table _post_stories as
+    select distinct s.media_id, s.stories_id, tp.author, tp.publish_date, extract( epoch from tp.publish_date ) epoch
+        from snapshot_topic_post_stories tp
+            join snapshot_timespan_posts using ( topic_posts_id )
+            join snapshot_stories s using ( stories_id );
+
+create index _post_stories_auth on _post_stories ( author, epoch );
 SQL
 
-    return $platform;
+    my ( $num_stories ) = $db->query( "select count( distinct stories_id ) from _post_stories" )->flat();
+    my $story_pairs_limit = $num_stories * 2;
 
+    # start trying to get no more than $story_pairs_limit matches using a year long interval.  if the limit is
+    # reached, try a smaller interval.  keep trying until the limit is not reached.  this protects us from the query
+    # runing into a query bomb that runs forever if there are lots of stories and a small set of shared authors.
+    my $interval = 86400 * 365;
+    my $found_interval = 0;
+    while ( $interval > 0 )
+    {
+        $db->query( "drop table if exists _dated_story_pairs" );
+        $db->query( <<SQL, $interval, $story_pairs_limit );
+create temporary table _dated_story_pairs as 
+    select
+            a.stories_id stories_id_a,
+            b.stories_id stories_id_b,
+            abs( a.epoch - b.epoch ) date_diff
+        from
+            _post_stories a
+            join _post_stories b using ( author )
+        where
+            a.media_id <> b.media_id and
+            a.stories_id > b.stories_id and
+            a.epoch between b.epoch - \$1 and b.epoch + \$1
+        limit \$2
+SQL
+            
+        my ( $num_dated_story_pairs ) = $db->query( "select count(*) from _dated_story_pairs" )->flat();
+        if ( $num_dated_story_pairs < $story_pairs_limit )
+        {
+            INFO( "Found correct interval $interval with $num_dated_story_pairs / $story_pairs_limit pairs" );
+            $found_interval = 1;
+            last;
+        }
+
+        DEBUG( "Trying smaller interval: $interval (found $num_dated_story_pairs / $story_pairs_limit )" );
+
+        $interval = int( $interval / 2 );
+        $interval = ( $interval < 14400 ) ? 0 : $interval;
+    }
+
+    # if we never found an interval with few enough pairs, just cowardly refuse to create story links,
+    # since there is no reasonable way to do so if we have too many pairs even with a 0 interval
+    if ( !$found_interval )
+    {
+        WARN( "Unable to find minimum interval for dated story pairs. Using empty story_links" );
+        $db->query( "truncate table _dated_story_pairs" );
+    }
+
+    # query the pairs of cross-media stories with the shortest time between shares by the same author
+    $db->query( <<SQL, $num_stories );
+create temporary table snapshot_story_links as
+    select stories_id_a source_stories_id, stories_id_b ref_stories_id, min(date_diff) min_date_diff
+        from _dated_story_pairs
+        group by stories_id_a, stories_id_b
+        order by min_date_diff asc limit ?
+SQL
+
+    $db->query( <<SQL );
+drop table _post_stories;
+drop table _dated_story_pairs;
+SQL
 }
 
 sub _write_story_links_snapshot
@@ -298,43 +403,9 @@ sub _write_story_links_snapshot
 
     $db->query( "drop table if exists snapshot_story_links" );
 
-    my $platform = _get_topic_platform( $db, $timespan );
-
-    if ( $platform ne 'web' )
+    if ( _timespan_is_url_sharing( $db, $timespan ) )
     {
-        my $date_clause = "1=1";
-        if ( $platform eq 'twitter' )
-        {
-            $date_clause = "date_trunc( 'day', a.publish_date ) = date_trunc( 'day', b.publish_date )";
-        }
-
-        $db->query(
-            <<SQL
-create temporary table snapshot_story_links as
-
-    with post_stories as (
-        select s.media_id, s.stories_id, s.author, s.publish_date
-            from snapshot_post_stories s
-                join snapshot_timespan_posts t using ( topic_posts_id )
-    ),
-
-    coshared_links as (
-        select
-                a.stories_id stories_id_a, a.author, b.stories_id stories_id_b
-            from
-                post_stories a
-                join post_stories b using ( author )
-            where
-                a.media_id <> b.media_id and
-                $date_clause
-            group by a.stories_id, b.stories_id, a.author
-    )
-
-    select cs.stories_id_a source_stories_id, cs.stories_id_b ref_stories_id
-        from coshared_links cs
-        group by cs.stories_id_a, cs.stories_id_b
-SQL
-        );
+        _create_url_sharing_story_links( $db, $timespan );
     }
     else
     {
@@ -350,9 +421,6 @@ create temporary table snapshot_story_links as
 END
     }
 
-    # re-enable above to prevent post-dated links
-    #          ss.publish_date > rs.publish_date - interval '1 day' and
-
     if ( !$is_model )
     {
         _create_timespan_snapshot( $db, $timespan, 'story_links' );
@@ -365,26 +433,19 @@ sub _write_timespan_posts_snapshot
 
     $db->query( "drop table if exists snapshot_timespan_posts" ); 
 
-    my $start_date_q = $db->quote( $timespan->{ start_date } );
-    my $end_date_q   = $db->quote( $timespan->{ end_date } );
+    my $tsq_id = _get_timespan_seed_query( $db, $timespan );
 
-    my $date_clause =
-      $timespan->{ period } eq 'overall'
-      ? '1=1'
-      : "publish_date between $start_date_q and $end_date_q";
+    my $start_date = $timespan->{ start_date };
+    my $end_date = $timespan->{ end_date };
 
-    my $snapshot = $db->require_by_id( 'snapshots', $timespan->{ snapshots_id } );
-    my $topic    = $db->require_by_id( 'topics',    $snapshot->{ topics_id } );
-
-    $db->query( <<SQL );
+    # get all posts that should be included in the timespan.  eliminiate authors that are too prolific to avoid bots
+    $db->query( <<SQL, $tsq_id, $start_date, $end_date );
 create temporary table snapshot_timespan_posts as
-    select distinct ts.topic_posts_id
-        from snapshot_post_stories ts
-            join snapshot_period_stories s using ( stories_id )
-            join snapshot_media m using ( media_id )
+    select distinct topic_posts_id
+        from snapshot_topic_post_stories
         where
-            m.url not like '%twitter.com%' and
-            $date_clause
+            topic_seed_queries_id = ? and
+            publish_date >= ? and publish_date < ?
 SQL
 
     if ( !$is_model )
@@ -420,14 +481,16 @@ create temporary table snapshot_story_link_counts as
             group by sml.ref_stories_id
     ),
 
-    snapshot_twitter_counts as (
+    snapshot_post_counts as (
         select
-                s.stories_id,
-                count( distinct ts.author ) as post_count
-            from snapshot_post_stories ts
-                join snapshot_period_stories s using ( stories_id )
-                join snapshot_timespan_posts tt using ( topic_posts_id )
-            group by s.stories_id
+                tps.stories_id,
+                count( * ) as post_count,
+                count( distinct tp.author ) as author_count,
+                count( distinct tp.channel ) as channel_count
+            from snapshot_timespan_posts stp
+                join snapshot_topic_post_stories tps using ( topic_posts_id )
+                join topic_posts tp using ( topic_posts_id )
+            group by tps.stories_id
     )
 
     select distinct ps.stories_id,
@@ -435,6 +498,8 @@ create temporary table snapshot_story_link_counts as
             coalesce( ilc.inlink_count, 0 ) inlink_count,
             coalesce( olc.outlink_count, 0 ) outlink_count,
             stc.post_count,
+            stc.author_count,
+            stc.channel_count,
             ss.facebook_share_count facebook_share_count
         from snapshot_period_stories ps
             left join snapshot_story_media_link_counts smlc using ( stories_id )
@@ -456,7 +521,7 @@ create temporary table snapshot_story_link_counts as
                 ) olc on ( ps.stories_id = olc.stories_id )
             left join story_statistics ss
                 on ss.stories_id = ps.stories_id
-            left join snapshot_twitter_counts stc
+            left join snapshot_post_counts stc
                 on stc.stories_id = ps.stories_id
 END
 
@@ -491,7 +556,9 @@ create temporary table snapshot_medium_link_counts as
                sum( slc.outlink_count) outlink_count,
                count(*) story_count,
                sum( slc.facebook_share_count ) facebook_share_count,
-               sum( slc.post_count ) post_count
+               sum( slc.post_count ) sum_post_count,
+               sum( slc.author_count ) sum_author_count,
+               sum( slc.channel_count ) sum_channel_count
             from
                 snapshot_media m
                 join snapshot_stories s using ( media_id )
@@ -602,6 +669,10 @@ sub generate_timespan_data($$;$)
     _write_medium_link_counts_snapshot( $db, $timespan, $is_model );
 
     _update_timespan_counts( $db, $timespan );
+    _write_medium_links_snapshot( $db, $timespan, $is_model );
+    _write_medium_link_counts_snapshot( $db, $timespan, $is_model );
+
+    _update_timespan_counts( $db, $timespan );
 
     $all_models_top_media ||= [ MediaWords::TM::Model::get_top_media_link_counts( $db, $timespan ) ];
 
@@ -610,7 +681,10 @@ sub generate_timespan_data($$;$)
 
     INFO "Adding a new topics-map job for timespan";
     my $timespans_id = $timespan->{ timespans_id };
+
     MediaWords::Job::Broker->new( 'MediaWords::Job::TM::Map' )->add_to_queue( { timespans_id => $timespans_id } );
+
+    MediaWords::TM::Dump::dump_timespan( $db, $timespan );
 }
 
 # Update story_count, story_link_count, medium_count, and medium_link_count
@@ -644,9 +718,9 @@ sub _update_timespan_counts($$;$)
 # generate the snapshot timespans for the given period, dates, and tag
 sub _generate_timespan($$$$$$;$)
 {
-    my ( $db, $cd, $start_date, $end_date, $period, $focus, $state_updater ) = @_;
+    my ( $db, $snapshot, $start_date, $end_date, $period, $focus, $state_updater ) = @_;
 
-    my $timespan = _create_timespan( $db, $cd, $start_date, $end_date, $period, $focus );
+    my $timespan = _create_timespan( $db, $snapshot, $start_date, $end_date, $period, $focus );
 
     my $snapshot_label = "${ period }: ${ start_date } - ${ end_date } ";
     $snapshot_label .= "[ $focus->{ name } ]" if ( $focus );
@@ -861,21 +935,12 @@ with link_stories as (
             tl.topics_id = \$1
 ),
 
-fb_stories as (
-    select ss.stories_id
-        from topic_stories ts
-            join story_statistics ss using ( stories_id )
-        where
-            ts.topics_id = \$1 and
-            ss.facebook_share_count >= 100
-),
-
 post_stories as (
-    select ts.stories_id
-        from topic_stories ts
-        where 
-            ts.topics_id = \$1 and
-            exists (select 1 from snap.story_link_counts where stories_id = ts.stories_id and post_count >= 10)
+    select tps.stories_id
+        from topic_post_stories tps
+        where tps.topics_id = \$1
+        group by topic_seed_queries_id, stories_id
+        having count(*) >= 10
 )
 
 select ts.*
@@ -884,7 +949,6 @@ select ts.*
         topics_id = \$1 and
         stories_id in ( 
             select stories_id from link_stories  union
-            select stories_id from fb_stories union
             select stories_id from post_stories
         )
 SQL
@@ -908,32 +972,35 @@ create temporary table snapshot_topic_media_codes as
         where cmc.topics_id = ?
 END
 
+    DEBUG( "creating snapshot_stories ..." );
     $db->query( <<SQL,
-        CREATE TEMPORARY TABLE snapshot_stories AS
-            SELECT
-                s.stories_id,
-                s.media_id,
-                s.url,
-                s.guid,
-                s.title,
-                s.publish_date,
-                s.collect_date,
-                s.full_text_rss,
-                s.language
-            FROM snap.live_stories AS s
-                JOIN snapshot_topic_stories AS dcs
-                    ON s.stories_id = dcs.stories_id
-                   AND s.topics_id = ?
+CREATE TEMPORARY TABLE snapshot_stories AS
+    SELECT
+        s.stories_id,
+        s.media_id,
+        s.url,
+        s.guid,
+        s.title,
+        s.publish_date,
+        s.collect_date,
+        s.full_text_rss,
+        s.language
+    FROM snap.live_stories AS s
+        JOIN snapshot_topic_stories AS dcs
+            ON s.stories_id = dcs.stories_id
+           AND s.topics_id = ?
 SQL
         $topics_id
     );
 
+    DEBUG( "creating snapshot_media ..." );
     $db->query( <<END );
 create temporary table snapshot_media as
     select m.* from media m
         where m.media_id in ( select media_id from snapshot_stories )
 END
 
+    DEBUG( "creating snapshot_topic_links_cross_media" );
     $db->query( <<END, $topics_id );
 create temporary table snapshot_topic_links_cross_media as
     select s.stories_id, r.stories_id ref_stories_id, cl.url, cs.topics_id, cl.topic_links_id
@@ -947,6 +1014,7 @@ create temporary table snapshot_topic_links_cross_media as
 END
 
 
+    DEBUG( "creating snapshot_stories_tags_map ..." );
     _create_snapshot_stories_tags_map( $db, $snapshot );
 
     $db->query( <<END );
@@ -956,38 +1024,23 @@ create temporary table snapshot_media_tags_map as
     where mtm.media_id = dm.media_id
 END
 
-    my $tweet_topics_id = $topic->{ topics_id };
-
-    my $bot_clause = '';
-    my $bot_policy = $snapshot->{ bot_policy } || $POLICY_NO_BOTS;
-    if ( $bot_policy eq $POLICY_NO_BOTS )
-    {
-        $bot_clause = "and ( ( coalesce( tweets, 0 ) / coalesce( days, 1 ) ) < $BOT_TWEETS_PER_DAY )";
-    }
-    elsif ( $bot_policy eq $POLICY_ONLY_BOTS )
-    {
-        $bot_clause = "and ( ( coalesce( tweets, 0 ) / coalesce( days, 1 ) ) >= $BOT_TWEETS_PER_DAY )";
-    }
-
-    $db->query( <<SQL, $tweet_topics_id );
-create temporary table snapshot_post_stories as
-    with tweets_per_day as (
-        select topic_posts_id,
-                ( tt.data->'tweet'->'user'->>'statuses_count' ) ::int tweets,
-                extract( day from now() - ( tt.data->'tweet'->'user'->>'created_at' )::date ) days
-            from topic_posts tt
-                join topic_post_days ttd using ( topic_post_days_id )
-                join topic_seed_queries tsq using ( topic_seed_queries_id )
-            where tsq.topics_id = \$1
+    DEBUG( "creating snapshot_topic_post_stories ..." );
+    $db->query( <<SQL, $AUTHOR_COUNT_MIN_CUTOFF, $AUTHOR_COUNT_MAX_SHARE );
+create temporary table snapshot_topic_post_stories as
+    with _all_topic_post_stories as (
+        select
+                count(*) over ( partition by author, topic_seed_queries_id ) as author_count,
+                count(*) over ( partition by topic_seed_queries_id ) as query_count,
+                *
+            from topic_post_stories
     )
-
-    select topic_posts_id, u.publish_date, author, stories_id, media_id, num_posts
-        from topic_post_full_urls u
-            join tweets_per_day tpd using ( topic_posts_id )
-            join snapshot_stories using ( stories_id )
-        where
-            topics_id = \$1 $bot_clause
+    
+    select *
+        from _all_topic_post_stories
+        where author_count < greatest( ?, query_count * ? )
 SQL
+
+    my $tweet_topics_id = $topic->{ topics_id };
 
     MediaWords::TM::Snapshot::Views::add_media_type_views( $db );
 
@@ -1009,14 +1062,78 @@ sub _generate_snapshots_from_temporary_snapshot_tables
     map { create_snap_snapshot( $db, $cd, $_ ) } @{ $snapshot_tables };
 }
 
-# generate period spanshots for each period / focus / timespan combination
-sub _generate_period_focus_snapshots($$$;$)
+# create focal_set and focus definitons for the url sharing platforms present in seed queries for the topic
+sub _update_url_sharing_focus_definitions($$)
 {
-    my ( $db, $snapshot, $periods, $state_updater ) = @_;
+    my ( $db, $snapshot ) = @_;
+
+    my $tsqs = $db->query( "select * from topic_seed_queries where topics_id = ?", $snapshot->{ topics_id } )->hashes;
+
+    if ( !@{ $tsqs } )
+    {
+        $db->query( <<SQL, $TECHNIQUE_SHARING, $snapshot->{ topics_id } );
+delete from focal_set_definitions where focal_technique = ? and topics_id = ?
+SQL
+        return;
+    }
+
+    my $fsd = {
+        topics_id => $snapshot->{ topics_id },
+        name => $TECHNIQUE_SHARING,
+        description => 'Subtopics for analysis of url cosharing on urls collected by platform seed queries.',
+        focal_technique =>  'URL Sharing'
+    };
+    $fsd = $db->find_or_create( 'focal_set_definitions', $fsd );
+
+    for my $tsq ( @{ $tsqs } )
+    {
+        next unless ( grep { $tsq->{ platform } eq $_ } @{ $URL_SHARING_PLATFORMS } );
+
+        my $fsd_id = $fsd->{ focal_set_definitions_id };
+        my $topic_seed_queries_id = $tsq->{ topic_seed_queries_id };
+
+        my $existing_fd = $db->query( <<SQL, $fsd_id, $topic_seed_queries_id )->hash;
+select *
+    from focus_definitions
+    where focal_set_definitions_id = ? and
+        ( arguments->>'topic_seed_queries_id' )::int = ?::int        
+SQL
+        if ( !$existing_fd )
+        {
+            my $arguments = { mode => 'url_sharing', topic_seed_queries_id => $topic_seed_queries_id };
+
+            my $fd = {
+                focal_set_definitions_id => $fsd->{ focal_set_definitions_id },
+                name => "$tsq->{ platform } [$tsq->{ topic_seed_queries_id }]",
+                description => "Subtopic for analysis of url cosharing on urls collected from $tsq->{ platform }",
+                arguments => MediaWords::Util::ParseJSON::encode_json( $arguments )
+            };
+            $fd = $db->create( 'focus_definitions', $fd );
+        }
+    }
+
+    $db->query( <<SQL, $fsd->{ focal_set_definitions_id } );
+delete from focus_definitions fd 
+    where
+        focal_set_definitions_id = ? and
+        not exists (
+            select 1 from topic_seed_queries tsq
+                where tsq.topic_seed_queries_id::text = fd.arguments->>'topic_seed_queries_id' )
+SQL
+}
+
+# generate foci from focus definitions, includling updating focus_definitions to include url sharing foci
+sub _generate_period_foci($$)
+{
+    my ( $db, $snapshot ) = @_;
+
+    _update_url_sharing_focus_definitions( $db, $snapshot );
 
     my $fsds = $db->query( <<SQL, $snapshot->{ topics_id } )->hashes;
-select * from focal_set_definitions where topics_id = ? and focal_technique = 'Boolean Query'
+select * from focal_set_definitions where topics_id = ?
 SQL
+
+    my $foci = [];
 
     for my $fsd ( @{ $fsds } )
     {
@@ -1039,8 +1156,24 @@ insert into foci ( name, description, arguments, focal_sets_id )
     on conflict ( focal_sets_id, name ) do update set focal_sets_id = \$2
     returning *
 SQL
-            map { _generate_period_snapshot( $db, $snapshot, $_, $focus, $state_updater ) } @{ $periods };
+
+            push( @{ $foci }, $focus );
         }
+    }
+
+    return $foci;
+}
+
+# generate period spanshots for each period / focus / timespan combination
+sub _generate_period_focus_snapshots($$$;$)
+{
+    my ( $db, $snapshot, $periods, $state_updater ) = @_;
+
+    my $foci = _generate_period_foci( $db, $snapshot );
+
+    for my $focus ( @{ $foci } )
+    {
+        map { _generate_period_snapshot( $db, $snapshot, $_, $focus, $state_updater ) } @{ $periods };
     }
 }
 
@@ -1058,40 +1191,23 @@ SQL
     $db->update_by_id( 'snapshots', $cd->{ snapshots_id }, { searchable => 'f' } );
 }
 
-# die if each of the $periods is not among the $allowed_periods
-sub _validate_periods($$)
-{
-    my ( $periods, $allowed_periods ) = @_;
-
-    for my $period ( @{ $allowed_periods } )
-    {
-        die( "unknown period: '$period'" ) unless ( grep { $period eq $_ } @{ $allowed_periods } );
-    }
-}
-
-# Create a snapshot for the given topic.  Optionally pass a note and/or a bot_policy field to the created snapshot.
-#
-# The bot_policy should be one of 'all', 'no bots', or 'only bots' indicating for twitter topics whether and how to
-# filter for bots (a bot is defined as any user tweeting more than 200 post per day).
-#
-# The periods should be a list of periods to include in the snapshot, where the allowed periods are custom,
-# overall, weekly, and monthly.  If periods is not specificied or is empty, all periods will be generated.
+# Create a snapshot for the given topic.  
 #
 # If a snapshots_id is provided, use the existing snapshot.  Otherwise, create a new one.
 #
 # Returns snapshots_id of the provided or newly created snapshot.
-sub snapshot_topic($$;$$$$$)
+sub snapshot_topic($$;$$$)
 {
-    my ( $db, $topics_id, $snapshots_id, $note, $bot_policy, $periods, $state_updater ) = @_;
+    my ( $db, $topics_id, $snapshots_id, $note, $state_updater ) = @_;
 
-    my $allowed_periods = [ qw(custom overall weekly monthly) ];
+    my $periods = [ qw(custom overall weekly monthly) ];
 
-    $periods = $allowed_periods if ( !$periods || !@{ $periods } );
+    my $topic = $db->require_by_id( 'topics', $topics_id );
 
-    _validate_periods( $periods, $allowed_periods );
-
-    my $topic = $db->find_by_id( 'topics', $topics_id )
-      || die( "Unable to find topic '$topics_id'" );
+    if ( $topic->{ mode } eq 'url_sharing' )
+    {
+        die( "url_sharing topics are no longer supported." );
+    }
 
     $db->set_print_warn( 0 );    # avoid noisy, extraneous postgres notices from drops
 
@@ -1107,7 +1223,7 @@ sub snapshot_topic($$;$$$$$)
     my $snap =
         $snapshots_id
       ? $db->require_by_id( 'snapshots', $snapshots_id )
-      : MediaWords::DBI::Snapshots::create_snapshot_row( $db, $topic, $start_date, $end_date, $note, $bot_policy );
+      : MediaWords::DBI::Snapshots::create_snapshot_row( $db, $topic, $start_date, $end_date, $note );
 
     _update_job_state_args( $db, $state_updater, { snapshots_id => $snap->{ snapshots_id } } );
     _update_job_state_message( $db, $state_updater, "snapshotting data" );
@@ -1120,6 +1236,8 @@ sub snapshot_topic($$;$$$$$)
     map { _generate_period_snapshot( $db, $snap, $_, undef ) } ( @{ $periods } );
 
     _generate_period_focus_snapshots( $db, $snap, $periods, $state_updater );
+
+    MediaWords::TM::Dump::dump_snapshot( $db, $snap );
 
     _update_job_state_message( $db, $state_updater, "finalizing snapshot" );
 

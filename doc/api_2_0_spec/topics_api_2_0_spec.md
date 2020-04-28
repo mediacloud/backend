@@ -976,6 +976,82 @@ Response:
 }
 ```
 
+## `topics/<topics_id>/list_timespan_files`
+
+`https://api.mediacloud.org/api/v2/topics/<topics_id>/list_timespan_files`
+
+List all timespan\_files associated with the given timespan.  Timespan files are dumps made by the spider
+during the snapshotting process.
+
+### Query Parameters
+
+(no parameters)
+
+### Output Description
+
+| Field      | Description                              |
+| ---------- | :--------------------------------------- |
+| timespans\_id      | id of associated timespan |
+| name  | name of file |
+| url | public url of file |
+
+### Example
+
+`https://api.mediacloud.org/api/v2/topics/123/list_timespan_files`
+
+Response:
+
+```json
+{
+  "timespan_files":
+  [
+    {
+      "timespans_id":123",
+      "name": "stories",
+      "url": "http://foo.bar/123"
+    }
+  ]
+}
+
+## `topics/<topics_id>/list_snapshot_files`
+
+`https://api.mediacloud.org/api/v2/topics/<topics_id>/list_snapshot_files`
+
+List all snapshot\_files associated with the given snapshot.  Snapshot files are dumps made by the spider
+during the snapshotting process. Snapshot files are only accessible by users with admin access.
+
+### Query Parameters
+
+(no parameters)
+
+### Output Description
+
+| Field      | Description                              |
+| ---------- | :--------------------------------------- |
+| snapshots\_id      | id of associated snapshot |
+| name  | name of file |
+| url | public url of file |
+
+### Example
+
+`https://api.mediacloud.org/api/v2/topics/123/list_snapshot_files`
+
+Response:
+
+```json
+{
+  "snapshot_files":
+  [
+    {
+      "snapshots_id":123",
+      "name": "topic_posts",
+      "url": "http://foo.bar/123"
+    }
+  ]
+}
+```
+
+
 # Permissions
 
 ## `topics/permissions/user/list`
@@ -1128,7 +1204,7 @@ The stories list call returns stories in the topic.
 | Parameter            | Default | Notes                                    |
 | -------------------- | ------- | ---------------------------------------- |
 | q                    | null    | if specified, return only stories that match the given Solr query |
-| sort                 | inlink  | possible values: `inlink`, `facebook`, `twitter` |
+| sort                 | inlink  | possible values: `inlink`, `facebook`, `post_count`, `author_count`, `channel_count` |
 | stories_id           | null    | return only stories matching these stories_ids |
 | link_to_stories_id   | null    | return only stories from other media that link to the given stories_id |
 | link_from_stories_id | null    | return only stories from other media that are linked from the given stories_id |
@@ -1140,8 +1216,7 @@ The stories list call returns stories in the topic.
 
 The call will return an error if more than one of the following parameters are specified: `q`, `link_to_stories`, `link_from_stories_id`.  The `stories_id` and `media_id` parameters can be specified more than once to include stories from more than `stories_id` / `media_id`.
 
-The `sort` parameter will determine the order in which the stories are returned.  The `twitter` sort parameter
-will return randomly ordered results unless the topic is a twitter topic.
+The `sort` parameter will determine the order in which the stories are returned.
 
 `limit` is capped at 10,000,000 stories, but avoid getting that much to begin with.
 
@@ -1379,7 +1454,7 @@ The media list call returns the list of media in the topic.
 | Parameter | Default | Notes                                    |
 | --------- | ------- | ---------------------------------------- |
 | media_id  | null    | return only the specified media          |
-| sort      | inlink  | possible values: `inlink`, `facebook`, `twitter` |
+| sort      | inlink  | possible values: `random`, `inlink`, `facebook`, `sum_post_count`, `sum_author_count`, `sum_channel_count` |
 | name      | null    | search for media with the given name     |
 | limit     | 20      | return the given number of media         |
 | link_id   | null    | return media using the paging link       |
@@ -1391,8 +1466,7 @@ If the `name` parameter is specified, the call returns only media sources that m
 
 If the `q` parameter is specified, the call returns only media sources for which at least one story matches the given solr query.
 
-The `sort` parameter will determine the order in which the stories are returned.  The `twitter` sort parameter
-will return randomly ordered results unless the topic is a twitter topic.
+The `sort` parameter will determine the order in which the stories are returned.
 
 Standard parameters accepted: snapshots_id, foci_id, timespans_id, limit, link_id.
 

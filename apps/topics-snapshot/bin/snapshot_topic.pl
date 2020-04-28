@@ -15,7 +15,7 @@ use MediaWords::TM::Snapshot;
 
 sub main
 {
-    my ( $topic_opt, $note, $bot_policy, $periods, $snapshots_id );
+    my ( $topic_opt, $note, $snapshots_id );
 
     binmode( STDOUT, 'utf8' );
     binmode( STDERR, 'utf8' );
@@ -26,8 +26,6 @@ sub main
     Getopt::Long::GetOptions(
         "topic=s"      => \$topic_opt,
         "note=s"       => \$note,
-        "bot_policy=s" => \$bot_policy,
-        "period=s"     => $periods,
         "snapshots_id=i" => \$snapshots_id
     ) || return;
 
@@ -45,7 +43,7 @@ sub main
         my $topics_id = $topic->{ topics_id };
  
         $snapshots_id = MediaWords::TM::Snapshot::snapshot_topic(
-            $db, $topics_id, $snapshots_id, $note, $bot_policy, $periods
+            $db, $topics_id, $snapshots_id, $note,
         );
 
         INFO "Adding a new word2vec model generation job for snapshot $snapshots_id...";

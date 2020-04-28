@@ -392,7 +392,7 @@ def _try_fetch_topic_url(
     _update_tfu_message(db, topic_fetch_url, "checking seeded content")
     response = _get_seeded_content(db, topic_fetch_url)
     if response is None:
-        log.info("Seeded content found, fetching URL...")
+        log.info("Seeded content not found, fetching URL...")
         _update_tfu_message(db, topic_fetch_url, "fetching content")
         response = _fetch_url(db, topic_fetch_url['url'], domain_timeout=domain_timeout)
         log.info(f"{response.code} response returned")

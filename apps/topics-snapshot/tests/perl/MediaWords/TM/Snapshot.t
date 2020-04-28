@@ -9,10 +9,18 @@ use Test::More;
 use MediaWords::DB;
 use MediaWords::TM::Snapshot;
 use MediaWords::TM::Stories;
+use MediaWords::Test::Solr;
 use MediaWords::Test::DB::Create;
 use MediaWords::Util::ParseJSON;
 
 my $NUM_STORIES = 100;
+my $NUM_TSQ_STORIES = 10;
+my $NUM_FOCUS_STORIES = 50;
+
+my $NUM_AUTHORS = 7;
+my $NUM_CHANNELS = 3;
+
+my $FOCUS_CONTENT = 'focuscontentmatch';
 
 sub add_test_topic_stories($$$$)
 {
@@ -26,7 +34,51 @@ sub add_test_topic_stories($$$$)
         my $story = MediaWords::Test::DB::Create::create_test_story( $db, "$label $i", $feed );
         MediaWords::TM::Stories::add_to_topic_stories( $db, $story, $topic );
         $db->update_by_id( 'stories', $story->{ stories_id }, { publish_date => $topic->{ start_date } } );
+
+        if ( $i <= $NUM_FOCUS_STORIES )
+        {
+            $story->{ content } = $FOCUS_CONTENT;
+        }
+
+        MediaWords::Test::DB::Create::add_content_to_test_story( $db, $story, $feed );
     }
+
+    MediaWords::Test::Solr::setup_test_index( $db );
+}
+
+sub add_topic_post_story
+{
+    my ( $db, $topic, $tpd, $story, $post_id, $author ) = @_;
+
+    $author //= "author " . $post_id % $NUM_AUTHORS;
+
+    my $channel = "channel " . $post_id % $NUM_CHANNELS;
+
+    my $tp = {
+        topic_post_days_id => $tpd->{ topic_post_days_id },
+        post_id => $post_id,
+        content => 'foo',
+        author => $author,
+        publish_date => $topic->{ start_date },
+        data => '{}',
+        channel => $channel
+    };
+    $tp = $db->create( 'topic_posts', $tp );
+
+    my $tpu = {
+        topic_posts_id => $tp->{ topic_posts_id },
+        url => $story->{ url },
+    };
+    $tpu = $db->create( 'topic_post_urls', $tpu );
+
+    my $tsu = {
+        topics_id => $topic->{ topics_id },
+        topic_seed_queries_id => $tpd->{ topic_seed_queries_id },
+        url => $story->{ url },
+        stories_id => $story->{ stories_id },
+        topic_post_urls_id => $tpu->{ topic_post_urls_id },
+    };
+    $tsu = $db->create( 'topic_seed_urls', $tsu );
 }
 
 sub add_test_seed_query($$)
@@ -37,9 +89,118 @@ sub add_test_seed_query($$)
         source => 'csv',
         platform => 'generic_post',
         topics_id => $topic->{ topics_id },
-        query => 'test query'
+        query => 'foo'
     };
-    return $db->create( 'topic_seed_queries', $tsq );
+    $tsq = $db->create( 'topic_seed_queries', $tsq );
+
+    my $stories = $db->query( "select * from stories limit ?", $NUM_TSQ_STORIES )->hashes;
+
+    my $tpd = {
+        topic_seed_queries_id => $tsq->{ topic_seed_queries_id },
+        day => $topic->{ start_date },
+        num_posts_stored => 1,
+        num_posts_fetched => 1,
+    };
+    $tpd = $db->create( 'topic_post_days', $tpd );
+
+    while ( my ( $i, $story ) = each ( @{ $stories } ) )
+    {
+        add_topic_post_story( $db, $topic, $tpd, $story, $i );
+    }
+
+    # now add enough posts from a single author that they should all be ignores
+    for my $i ( 1 .. 200 )
+    {
+        my $post_id = scalar( @{ $stories } ) + $i;
+        add_topic_post_story( $db, $topic, $tpd, $stories->[ 0 ], $post_id, 'bot author' );
+    }
+
+    return $tsq;
+}
+
+# validate that a url sharing focus and timespan are created
+sub validate_sharing_timespan
+{
+    my ( $db ) = @_;
+
+    my $topic_seed_queries = $db->query( "select * from topic_seed_queries" )->hashes;
+
+    for my $tsq ( @{ $topic_seed_queries } )
+    {
+        my $got_focus = $db->query( <<SQL, $tsq->{ topic_seed_queries_id } )->hash;
+select * from foci where (arguments->>'topic_seed_queries_id')::int = ?
+SQL
+       ok( $got_focus );
+
+       my $got_timespan = $db->query( <<SQL, $got_focus->{ foci_id } )->hash;
+select * from timespans where period = 'overall' and foci_id = ?
+SQL
+       ok( $got_timespan );
+
+       my $got_story_link_counts = $db->query( <<SQL, $got_timespan->{ timespans_id } )->hashes;
+select * from snap.story_link_counts where timespans_id = ?
+SQL
+
+       is( scalar( @{ $got_story_link_counts } ), $NUM_TSQ_STORIES );
+
+       my $got_story_link_count_counts = $db->query( <<SQL, $got_timespan->{ timespans_id } )->hashes;
+select * from snap.story_link_counts
+    where timespans_id = ? and post_count = 1 and author_count = 1 and channel_count = 1
+SQL
+
+       is( scalar( @{ $got_story_link_count_counts } ), $NUM_TSQ_STORIES );
+   }
+}
+
+sub add_boolean_query_focus($$)
+{
+    my ( $db, $topic ) = @_;
+
+    my $fsd = {
+        topics_id => $topic->{ topics_id },
+        name => 'boolean query set',
+        description => 'boolean query set',
+        focal_technique => 'Boolean Query'
+    };
+    $fsd = $db->create( 'focal_set_definitions', $fsd );
+
+    my $fd = {
+        focal_set_definitions_id => $fsd->{ focal_set_definitions_id },
+        name => 'boolean query',
+        description => 'boolean query',
+        arguments => MediaWords::Util::ParseJSON::encode_json( { query => $FOCUS_CONTENT } ),
+    };
+    $fd = $db->create( 'focus_definitions', $fd );
+
+    return $fd;
+}
+
+sub validate_query_focus($$)
+{
+    my ( $db, $snapshot ) = @_;
+
+    my $got_focus = $db->query( <<SQL, $snapshot->{ snapshots_id } )->hash();
+select f.*
+    from foci f
+        join focal_sets fd using ( focal_sets_id )
+    where
+        fd.focal_technique = 'Boolean Query' and
+        fd.snapshots_id = ?
+SQL
+
+    ok( $got_focus, "query focus exists after snapshot" );
+
+    my $got_timespan = $db->query( <<SQL, $snapshot->{ snapshots_id }, $got_focus->{ foci_id } )->hash();
+select t.* from timespans t where snapshots_id = ? and foci_id = ? and period = 'overall'
+SQL
+
+    ok( $got_timespan );
+
+    my $got_stories = $db->query( <<SQL, $got_timespan->{ timespans_id } )->hashes();
+select slc.* from snap.story_link_counts slc where timespans_id = ?
+SQL
+
+    is( scalar( @{ $got_stories } ), $NUM_FOCUS_STORIES, "correct number of stories in focus timespan" );
 }
 
 sub test_snapshot($)
@@ -78,6 +239,8 @@ SQL
         };
         $db->create( 'topic_links', $topic_link );
     }
+
+    add_boolean_query_focus( $db, $topic );
 
     MediaWords::TM::Snapshot::snapshot_topic( $db, $topics_id );
 
@@ -118,7 +281,7 @@ SQL
     is( scalar( @{ $snapshot_stories } ), $NUM_STORIES , "snapshot stories" );
 
     my $timespan = $db->query( <<SQL, $snapshots_id )->hash;
-select * from timespans where snapshots_id = ? and period = 'overall'
+select * from timespans where snapshots_id = ? and period = 'overall' and foci_id is null
 SQL
 
     ok( $timespan, "overall timespan created" );
@@ -129,9 +292,19 @@ SQL
 
     is( scalar( @{ $slc } ), $NUM_STORIES, "story link counts" );
 
+    validate_sharing_timespan( $db );
+
+    validate_query_focus( $db, $got_snapshot );
+
+    my $timespan_map;
     # allow a bit of time for the timespan maps to generate
-    sleep( 5 );
-    my $timespan_map = $db->query( "select * from timespan_maps where timespans_id = ?", $timespans_id )->hash();
+    for my $i ( 1 .. 5 )
+    {
+        $timespan_map = $db->query( "select * from timespan_maps where timespans_id = ?", $timespans_id )->hash();
+        last if ( $timespan_map );
+        sleep( 1 );
+    }
+
     ok( $timespan_map, "timespan_map generated" );
 }
 

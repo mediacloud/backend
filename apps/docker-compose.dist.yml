@@ -43,6 +43,18 @@ x-common-configuration: &common-configuration
 
     # (optional) S3 download storage directory name (prefix)
     #MC_DOWNLOADS_AMAZON_S3_DIRECTORY_NAME: "downloads"
+   
+    # amazon config for the public store (topic_maps, timespan_files, snapshot_files)
+    #MC_PUBLIC_AMAZON_S3_ACCESS_KEY_ID: "ASFASDF"
+    #MC_PUBLIC_AMAZON_S3_SECRET_ACCESS_KEY: "ASDFASDFADFADSF"
+    #MC_PUBLIC_AMAZON_S3_BUCKET_NAME: "mediacloud-public"
+
+    # set to 's3' for production after setting the above info or set to 'postgresql' for testing
+    MC_PUBLIC_STORE_TYPE: "s3"
+
+    # this should be a large random value so that the urls generate by the public store cannot be guessed
+    MC_PUBLIC_STORE_SALT: "GENERATE_UNIQUE_SALT"
+
 
     # "From:" email address when sending emails
     MC_EMAIL_FROM_ADDRESS: "info@mediacloud.org"
@@ -1907,29 +1919,28 @@ services:
                     memory: "256M"
 
     #
-    # Generate retweeter scores
+    # Generate maps for a topic
     # -------------------------
     #
-    topics-generate-retweeter-scores:
-        image: dockermediacloud/topics-generate-retweeter-scores:release
+    topics-map:
+        image: dockermediacloud/topics-map:release
         <<: *sysctl-defaults
         init: true
         networks:
             - default
         environment:
             <<: *common-configuration
-            <<: *twitter-api-configuration
         deploy:
             <<: *misc-apps_deploy_placement_constraints
             <<: *endpoint-mode-dnsrr
             # Worker count
-            replicas: 1
+            replicas: 2
             resources:
                 limits:
-                    # CPU core limit
-                    cpus: "1"
-                    # RAM limit
-                    memory: "256M"
+                    # CPU core limit - big jobs require lots of parallel processing or else take hours
+                    cpus: "8"
+                    # RAM limit - big network analysis jobs require lots of memory or else crash
+                    memory: "8G"
 
     #
     # Mine a topic

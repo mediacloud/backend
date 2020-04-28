@@ -4,6 +4,10 @@ from mediawords.db import DatabaseHandler
 from mediawords.key_value_store import KeyValueStore, McKeyValueStoreException
 from mediawords.util.perl import decode_object_from_bytes_if_needed
 
+from mediawords.util.log import create_logger
+
+log = create_logger(__name__)
+
 
 class McPostgreSQLStoreException(McKeyValueStoreException):
     """PostgreSQL key-value store exception."""
@@ -78,7 +82,11 @@ class PostgreSQLStore(KeyValueStore):
 
         return content
 
-    def store_content(self, db: DatabaseHandler, object_id: int, content: Union[str, bytes]) -> str:
+    def store_content(self,
+            db: DatabaseHandler,
+            object_id: int,
+            content: Union[str, bytes],
+            content_type: str='binary/octet-stream') -> str:
         """Write object to PostgreSQL table."""
 
         object_id = self._prepare_object_id(object_id)

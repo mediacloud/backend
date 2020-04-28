@@ -1,3 +1,4 @@
+import mimetypes
 import os
 from typing import Union
 
@@ -201,7 +202,22 @@ class AmazonS3Store(KeyValueStore):
 
         return content
 
-    def store_content(self, db: DatabaseHandler, object_id: int, content: Union[str, bytes]) -> str:
+    def __get_content_disposition(self, object_id: int, content_type: str) -> str:
+        """Get an http content disposition header that adds an appropriate file extension."""
+        extension = mimetypes.guess_extension(content_type)
+
+        if extension:
+            filename = "%d.%s" % (object_id, extension)
+        else:
+            filename = str(object_id)
+
+        return 'filename="%s"' % filename
+
+    def store_content(self,
+            db: DatabaseHandler,
+            object_id: int,
+            content: Union[str, bytes],
+            content_type: str='binary/octet-stream') -> str:
         """Write object to Amazon S3."""
 
         object_id = self._prepare_object_id(object_id)
@@ -227,6 +243,10 @@ class AmazonS3Store(KeyValueStore):
         if not isinstance(content, bytes):
             raise McAmazonS3StoreException("Content is not bytes after compression for object ID %d" % object_id)
 
+        content_encoding = 'gzip' if self.__compression_method == KeyValueStore.Compression.GZIP else 'identity'
+
+        content_disposition = self.__get_content_disposition(object_id, content_type)
+
         # S3 sometimes times out when writing, so we'll try to read several times
         write_was_successful = False
         for retry in range(self.__WRITE_ATTEMPTS):
@@ -236,7 +256,11 @@ class AmazonS3Store(KeyValueStore):
 
             try:
                 o = self.__object_for_object_id(object_id)
-                o.put(Body=content)
+                o.put(
+                    Body=content,
+                    ContentType=content_type,
+                    ContentDisposition=content_disposition,
+                    ContentEncoding=content_encoding)
                 write_was_successful = True
 
             except Exception as ex:

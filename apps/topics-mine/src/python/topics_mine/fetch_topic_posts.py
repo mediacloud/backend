@@ -1,4 +1,5 @@
 import datetime
+import random
 import re
 from typing import Optional
 
@@ -13,6 +14,7 @@ from topics_mine.posts import AbstractPostFetcher
 from topics_mine.posts.archive_org_twitter import ArchiveOrgPostFetcher
 from topics_mine.posts.crimson_hexagon_twitter import CrimsonHexagonTwitterPostFetcher
 from topics_mine.posts.csv_generic import CSVStaticPostFetcher
+from topics_mine.posts.postgres_generic import PostgresPostFetcher
 from topics_mine.posts.pushshift_reddit import PushshiftRedditPostFetcher
 from topics_mine.posts.googler_web import GooglerWebPostFetcher
 
@@ -20,6 +22,9 @@ log = create_logger(__name__)
 
 # list of fields to copy from fetched posts to the topic_posts row
 POST_FIELDS = ('content', 'post_id', 'author', 'channel', 'publish_date', 'url')
+
+# scale the posts so that the max stored for each day is this
+MAX_POSTS_PER_DAY = 10000
 
 
 class McFetchTopicPostsDataException(Exception):
@@ -112,6 +117,52 @@ def regenerate_post_urls(db: DatabaseHandler, topic: dict) -> None:
         _insert_post_urls(db, topic_post, urls)
 
 
+def _get_query_sample_ratio(
+        db: DatabaseHandler,
+        topic_seed_queries_id: int,
+        max_posts_per_day: int=MAX_POSTS_PER_DAY) -> float:
+    """Get the sample ratio for the topic_seed_query.
+
+    The sample ratio is the minimum value of the tpd.num_posts_stored / tpd.num posts_fetched.
+
+    We sample down the posts collected so that we only collect MAX_POSTS_PER_DAY for each day, to preserve resources.
+    """
+    sample_ratio = db.query(
+        """
+        select min(least(num_posts_stored::float, %(b)s::float) / greatest(num_posts_fetched, 1))
+            from topic_post_days where topic_seed_queries_id = %(a)s and num_posts_stored > 0
+        """,
+        {'a': topic_seed_queries_id, 'b': max_posts_per_day}).flat()[0]
+
+    if sample_ratio is None or sample_ratio >= 1:
+        sample_ratio = 1
+
+    return sample_ratio
+
+
+def _reduce_posts_to_query_sample(
+        db: DatabaseHandler,
+        topic_post_day: dict,
+        posts: list,
+        max_posts_per_day: int=MAX_POSTS_PER_DAY) -> list:
+    """Reduce posts to random sample of posts by _get_query_sample_ratio()."""
+    num_posts_fetched = len(posts)
+
+    query_sample_ratio = _get_query_sample_ratio(
+        db=db,
+        topic_seed_queries_id=topic_post_day['topic_seed_queries_id'],
+        max_posts_per_day=max_posts_per_day)
+
+    day_sample_ratio = min([query_sample_ratio, float(max_posts_per_day) / max(num_posts_fetched, 1)])
+    
+    if day_sample_ratio < 1:
+        num_sampled_posts = int(day_sample_ratio * num_posts_fetched)
+        log.info(f'sampling down from {num_posts_fetched} to {num_sampled_posts} posts ({day_sample_ratio * 100}%)')
+        posts = random.sample(posts, num_sampled_posts)
+
+    return posts
+
+
 def _store_posts_for_day(db: DatabaseHandler, topic_post_day: dict, posts: list) -> None:
     """
     Store posts for a single day.
@@ -130,7 +181,11 @@ def _store_posts_for_day(db: DatabaseHandler, topic_post_day: dict, posts: list)
     topic = db.require_by_id('topics', tsq['topics_id'])
     posts = list(filter(lambda p: content_matches_topic(p['content'], topic), posts))
 
-    log.info("%d posts remaining after match" % (len(posts)))
+    num_posts_fetched = len(posts)
+
+    log.info(f"{num_posts_fetched} posts remaining after match")
+
+    posts = _reduce_posts_to_query_sample(db, topic_post_day, posts)
 
     db.begin()
 
@@ -138,11 +193,12 @@ def _store_posts_for_day(db: DatabaseHandler, topic_post_day: dict, posts: list)
 
     [_store_post_and_urls(db, topic_post_day, meta_tweet) for meta_tweet in posts]
 
-    topic_post_day['num_posts'] = len(posts)
-
     db.query(
-        "update topic_post_days set posts_fetched = true, num_posts = %(a)s where topic_post_days_id = %(b)s",
-        {'a': topic_post_day['num_posts'], 'b': topic_post_day['topic_post_days_id']})
+        """
+        update topic_post_days set posts_fetched = true, num_posts_stored = %(a)s, num_posts_fetched = %(b)s
+            where topic_post_days_id = %(c)s
+        """,
+        {'a': len(posts), 'b': num_posts_fetched, 'c': topic_post_day['topic_post_days_id']})
 
     db.commit()
 
@@ -179,7 +235,8 @@ def _add_topic_post_single_day(db: DatabaseHandler, topic_seed_query: dict, num_
         {
             'topic_seed_queries_id': topic_seed_query['topic_seed_queries_id'],
             'day': day,
-            'num_posts': num_posts,
+            'num_posts_stored': num_posts,
+            'num_posts_fetched': num_posts,
             'posts_fetched': False
         })
 
@@ -205,6 +262,8 @@ def get_post_fetcher(topic_seed_query: dict) -> Optional[AbstractPostFetcher]:
 
     if source == 'crimson_hexagon' and platform == 'twitter':
         fetch = CrimsonHexagonTwitterPostFetcher()
+    elif source == 'postgres' and platform == 'generic_post':
+        fetch = PostgresPostFetcher()
     elif source == 'csv' and platform == 'generic_post':
         fetch = CSVStaticPostFetcher()
     elif source == 'pushshift' and platform == 'reddit':
@@ -218,7 +277,10 @@ def get_post_fetcher(topic_seed_query: dict) -> Optional[AbstractPostFetcher]:
 
 
 def fetch_posts(topic_seed_query: dict, start_date: datetime, end_date: datetime = None) -> list:
-    """Fetch the posts for the given topic_seed_queries row, for the described date range."""
+    """Fetch the posts for the given topic_seed_queries row, for the described date range.
+    
+    Remove any urls that match topic_seed_query['ignore_pattern'].
+    """
     if end_date is None:
         end_date = start_date + datetime.timedelta(days=1) - datetime.timedelta(seconds=1) 
 
@@ -228,7 +290,64 @@ def fetch_posts(topic_seed_query: dict, start_date: datetime, end_date: datetime
         msg = f"Unable to find fetch_posts fetcher for seed_query: {topic_seed_query}"
         raise McFetchTopicPostsDataException(msg)
 
-    return fetcher.fetch_posts(query=topic_seed_query['query'], start_date=start_date, end_date=end_date)
+    posts = fetcher.fetch_posts(query=topic_seed_query['query'], start_date=start_date, end_date=end_date)
+
+    ignore_pattern = topic_seed_query['ignore_pattern']
+
+    if ignore_pattern is not None and len(ignore_pattern) > 0:
+        log.debug('ignoring links that match pattern "{pattern}"')
+        for post in posts:
+            post['urls'] = list(filter(lambda x: not re.search(ignore_pattern, x, flags=re.IGNORECASE), post['urls']))
+
+    return posts
+
+
+def _reduce_db_posts_to_query_sample(
+        db: DatabaseHandler,
+        topic_seed_query: dict,
+        max_posts_per_day: int=MAX_POSTS_PER_DAY) -> None:
+    """Remove topic_posts so that the ratio of tpd.num_posts_stored/tpd.num_posts_fetched equals the query sample ratio.
+
+    See _get_query_sample_ratio() for definition of the sample ratio.  The intent of the query sample ratio is to 
+    make sure that no day has more than max_posts_per_day and also that we are using the same sample ratio for every
+    day in the query.
+    """
+    topic_seed_queries_id = topic_seed_query['topic_seed_queries_id']
+
+    query_sample_ratio = _get_query_sample_ratio(
+        db=db,
+        topic_seed_queries_id=topic_seed_queries_id,
+        max_posts_per_day=max_posts_per_day)
+
+    tpds = db.query(
+        """
+        select *
+            from topic_post_days
+            where 
+                num_posts_stored::float / greatest(num_posts_fetched, 1) > %(a)s and
+                topic_seed_queries_id = %(b)s
+        """,
+        {'a': query_sample_ratio, 'b': topic_seed_query['topic_seed_queries_id']}).hashes()
+
+    for tpd in tpds:
+        num_posts_to_delete = tpd['num_posts_stored'] - int(query_sample_ratio * tpd['num_posts_fetched'])
+        if num_posts_to_delete <= 1:
+            continue
+
+        log.info(f'deleting {num_posts_to_delete} posts from {tpd["day"]} to match query sample ratio')
+        tps = db.query(
+            "select topic_posts_id from topic_posts where topic_post_days_id = %(a)s order by random() limit %(b)s",
+            {'a': tpd['topic_post_days_id'], 'b': num_posts_to_delete}).hashes()
+        for tp in tps:
+            db.delete_by_id('topic_posts', tp['topic_posts_id'])
+
+        db.query(
+            """
+            update topic_post_days
+                set num_posts_stored = ( select count(*) from topic_posts where topic_post_days_id = %(a)s )
+                where topic_post_days_id = %(a)s
+            """,
+            {'a': tpd['topic_post_days_id']})
 
 
 def fetch_topic_posts(db: DatabaseHandler, topic_seed_query: dict) -> None:
@@ -259,3 +378,5 @@ def fetch_topic_posts(db: DatabaseHandler, topic_seed_query: dict) -> None:
             _store_posts_for_day(db, topic_post_day, posts)
 
         date = date + datetime.timedelta(days=1)
+
+    _reduce_db_posts_to_query_sample(db, topic_seed_query)

@@ -630,11 +630,10 @@ sub test_snapshots_generate($)
 
     ok( $r->{ job_state }, "$label return includes job_state" );
 
-    ok(
-        ( $r->{ 'job_state' }->{ 'state' } eq $MediaWords::Job::State::STATE_QUEUED  ) or
-        ( $r->{ 'job_state' }->{ 'state' } eq $MediaWords::Job::State::STATE_RUNNING ),
-        "$label state"
-    );
+    my $queued = $r->{ job_state }->{ state } eq $MediaWords::Job::State::STATE_QUEUED;
+    my $running = $r->{ job_state }->{ state } eq $MediaWords::Job::State::STATE_RUNNING;
+    ok( $queued || $running, "$label state" );
+
     is( $r->{ job_state }->{ topics_id }, $topic->{ topics_id }, "$label topics_id" );
 
     $r = MediaWords::Test::API::test_get( "/api/v2/topics/$topics_id/snapshots/generate_status" );
@@ -889,6 +888,41 @@ SQL
     is( $got_maps->[ 0 ]->{ timespan_maps_id }, $timespan_map->{ timespan_maps_id } );
 }
 
+sub test_files($)
+{
+    my ( $db ) = @_;
+
+    my $timespan = $db->query( "select * from timespans limit 1" )->hash;
+
+    my $timespans_id = $timespan->{ timespans_id };
+
+    my $snapshot = $db->require_by_id( 'snapshots', $timespan->{ snapshots_id } );
+
+    my $num_files = 10;
+
+    for my $i ( 1 .. $num_files )
+    {
+        $db->create( 'timespan_files', { timespans_id => $timespans_id,  name => "foo $i", url => 'foo' } );
+
+    }
+
+    my $response = MediaWords::Test::API::test_get( "/api/v2/topics/$snapshot->{ topics_id }/list_timespan_files" );
+
+    ok( $response->{ timespan_files } );
+    is( scalar( @{ $response->{ timespan_files } } ), $num_files );
+
+    for my $i ( 1 .. $num_files )
+    {
+        $db->create( 'snapshot_files', { snapshots_id => $timespans_id,  name => "foo $i", url => 'foo' } );
+
+    }
+
+    $response = MediaWords::Test::API::test_get( "/api/v2/topics/$snapshot->{ topics_id }/list_snapshot_files" );
+
+    ok( $response->{ snapshot_files } );
+    is( scalar( @{ $response->{ snapshot_files } } ), $num_files );
+}
+
 
 sub test_topics_api($)
 {
@@ -927,6 +961,7 @@ sub test_topics_api($)
     test_info( $db );
 
     test_new_map( $db );
+    test_files( $db );
 }
 
 sub main

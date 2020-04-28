@@ -6,14 +6,12 @@ services:
         image: dockermediacloud/topics-map:latest
         init: true
         stop_signal: SIGKILL
-        expose:
-            # test_tm_mine.t's test HTTP servers:
-            - 8890
-            - 8891
-            - 8892
-            - 8893
-            - 8894
-            - 8895
+        environment:
+            MC_PUBLIC_AMAZON_S3_ACCESS_KEY_ID: "${MC_PUBLIC_AMAZON_S3_ACCESS_KEY_ID}"
+            MC_PUBLIC_AMAZON_S3_SECRET_ACCESS_KEY: "${MC_PUBLIC_AMAZON_S3_SECRET_ACCESS_KEY}"
+            MC_PUBLIC_AMAZON_S3_BUCKET_NAME: "${MC_PUBLIC_AMAZON_S3_BUCKET_NAME}"
+            MC_PUBLIC_STORE_TYPE: "postgresql"
+            MC_PUBLIC_STORE_SALT: "foo"
         volumes:
             - type: bind
               source: ./bin/

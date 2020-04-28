@@ -28,6 +28,8 @@ __PACKAGE__->config(
     action => {
         info              => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
         list              => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
+        list_timespan_files => { Does => [ qw(~TopicsReadAuthenticated ~Throttled ~Logged ) ] },
+        list_snapshot_files => { Does => [ qw(~AdminAuthenticated ~Throttled ~Logged ) ] },
         single            => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
         create            => { Does => [ qw( ~PublicApiKeyAuthenticated ~Throttled ~Logged ) ] },
         update            => { Does => [ qw( ~TopicsWriteAuthenticated ~Throttled ~Logged ) ] },
@@ -471,6 +473,11 @@ sub add_seed_query_PUT
 
     my $topic = $db->require_by_id( 'topics', $c->stash->{ topics_id } );
 
+    if ( $data->{ platform } eq 'postgres' )
+    {
+        die( "postgres source seed queries must be added manually." );
+    }
+
     my $tsq = {
         topics_id => $topic->{ topics_id },
         platform  => $data->{ platform },
@@ -710,4 +717,49 @@ SQL
     $self->status_ok( $c, entity => { info => $info } );
 
 }
+
+sub list_timespan_files : Chained( 'apibase' ) : ActionClass( 'MC_REST' )
+{
+
+}
+
+sub list_timespan_files_GET
+{
+    my ( $self, $c ) = @_;
+
+    MediaWords::DBI::ApiLinks::process_and_stash_link( $c );
+
+    my $db = $c->dbis;
+
+    my $timespan = MediaWords::DBI::Timespans::set_timespans_id_param( $c );
+
+    my $timespan_files = $db->query( <<SQL, $timespan->{ timespans_id } )->hashes;
+select * from timespan_files where timespans_id = ? order by timespan_files_id
+SQL
+
+    $self->status_ok( $c, entity => { timespan_files => $timespan_files } );
+}
+
+sub list_snapshot_files : Chained( 'apibase' ) : ActionClass( 'MC_REST' )
+{
+
+}
+
+sub list_snapshot_files_GET
+{
+    my ( $self, $c ) = @_;
+
+    MediaWords::DBI::ApiLinks::process_and_stash_link( $c );
+
+    my $db = $c->dbis;
+
+    my $timespan = MediaWords::DBI::Timespans::set_timespans_id_param( $c );
+
+    my $snapshot_files = $db->query( <<SQL, $timespan->{ snapshots_id } )->hashes;
+select * from snapshot_files where snapshots_id = ? order by snapshot_files_id
+SQL
+
+    $self->status_ok( $c, entity => { snapshot_files => $snapshot_files } );
+}
+
 1;
