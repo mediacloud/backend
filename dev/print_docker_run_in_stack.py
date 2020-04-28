@@ -92,6 +92,7 @@ def _print_warning_message(message: str) -> None:
 
 
 if __name__ == '__main__':
+    # noinspection PyTypeChecker
     parser = argparse.ArgumentParser(
         description="Print 'docker run' command to run a new container in a Docker stack.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,

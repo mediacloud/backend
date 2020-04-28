@@ -337,6 +337,7 @@ class DockerArgumentParser(object):
 
         :param description: Description of the script to print when "--help" is passed.
         """
+        # noinspection PyTypeChecker
         self._parser = argparse.ArgumentParser(
             description=description,
             formatter_class=argparse.ArgumentDefaultsHelpFormatter,
