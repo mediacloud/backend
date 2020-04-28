@@ -898,29 +898,33 @@ sub test_files($)
 
     my $snapshot = $db->require_by_id( 'snapshots', $timespan->{ snapshots_id } );
 
-    my $num_files = 10;
-
-    for my $i ( 1 .. $num_files )
-    {
-        $db->create( 'timespan_files', { timespans_id => $timespans_id,  name => "foo $i", url => 'foo' } );
-
-    }
-
     my $response = MediaWords::Test::API::test_get( "/api/v2/topics/$snapshot->{ topics_id }/list_timespan_files" );
 
+    my $expected_file_names_found = {
+        'stories' => 0,
+        'media' => 0,
+        'story_links' => 0,
+        'medium_links' => 0,
+        'topic_posts' => 0,
+        'post_stories' => 0,
+    };
+
     ok( $response->{ timespan_files } );
-    is( scalar( @{ $response->{ timespan_files } } ), $num_files );
-
-    for my $i ( 1 .. $num_files )
-    {
-        $db->create( 'snapshot_files', { snapshots_id => $timespans_id,  name => "foo $i", url => 'foo' } );
-
+    is( scalar( @{ $response->{ timespan_files } } ), scalar( keys %{ $expected_file_names_found } ) );
+    for my $row ( @{ $response->{ timespan_files } } ) {
+        my $file_name = $row->{ 'name' };
+        ok( defined $expected_file_names_found->{ $file_name }, "Unknown file name '$file_name'" );
+        ++$expected_file_names_found->{ $file_name };
+    }
+    for my $key (keys %{ $expected_file_names_found } ) {
+        is( $expected_file_names_found->{ $key }, 1, "Single file with name '$key' is expected" );
     }
 
     $response = MediaWords::Test::API::test_get( "/api/v2/topics/$snapshot->{ topics_id }/list_snapshot_files" );
 
     ok( $response->{ snapshot_files } );
-    is( scalar( @{ $response->{ snapshot_files } } ), $num_files );
+    is( scalar( @{ $response->{ snapshot_files } } ), 1 );
+    is( $response->{ snapshot_files }->[ 0 ]->{ 'name' }, 'topic_posts' );
 }
 
 
