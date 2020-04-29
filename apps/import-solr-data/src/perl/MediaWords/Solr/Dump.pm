@@ -478,7 +478,7 @@ sub _maybe_production_solr
 {
     my ( $db ) = @_;
 
-    my $num_sentences = MediaWords::Solr::get_num_found( $db, { q => '*:*', rows => 0 } );
+    my $num_sentences = MediaWords::Solr::get_solr_num_found( $db, { q => '*:*', rows => 0 } );
 
     die( "Unable to query solr for number of sentences" ) unless ( defined( $num_sentences ) );
 

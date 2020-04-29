@@ -4,6 +4,15 @@
 
 FROM dockermediacloud/common:latest
 
+# Install Perl dependencies
+COPY src/cpanfile /var/tmp/
+RUN \
+    cd /var/tmp/ && \
+    cpm install --global --resolver 02packages --no-prebuilt --mirror "$MC_PERL_CPAN_MIRROR" && \
+    rm cpanfile && \
+    rm -rf /root/.perl-cpm/ && \
+    true
+
 # Install Python dependencies
 COPY src/requirements.txt /var/tmp/
 RUN \

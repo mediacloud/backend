@@ -14,7 +14,6 @@ use File::Slurp;
 use HTTP::Status qw(:constants);
 use Readonly;
 use Data::Dumper;
-use File::ReadBackwards;
 use URI;
 use URI::Escape;
 use URI::QueryParam;

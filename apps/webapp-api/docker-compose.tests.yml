@@ -147,6 +147,8 @@ services:
         stop_signal: SIGKILL
         environment:
             MC_TOPICS_SNAPSHOT_MODEL_REPS: "0"
+            MC_PUBLIC_STORE_TYPE: "postgresql"
+            MC_PUBLIC_STORE_SALT: "foo"
         volumes:
             - type: bind
               source: ./../topics-snapshot/bin/
@@ -176,9 +178,6 @@ services:
             - type: bind
               source: ./../import-solr-data-for-testing/bin/
               target: /opt/mediacloud/bin/
-            - type: bind
-              source: ./../import-solr-data-for-testing/src/
-              target: /opt/mediacloud/src/import-solr-data-for-testing/
             - type: bind
               source: ./../import-solr-data/src/
               target: /opt/mediacloud/src/import-solr-data/

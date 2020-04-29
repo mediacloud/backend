@@ -11,26 +11,23 @@ use MediaWords::CommonLibs;
 use Getopt::Long;
 
 use MediaWords::DB;
-use MediaWords::JobManager::Job;
+use MediaWords::Job::Broker;
 
 sub main
 {
-    my ( $query, $jobs, $priority );
+    my ( $query, $jobs );
 
     $jobs = [];
 
     Getopt::Long::GetOptions(
         "query=s"    => \$query,
         "job=s"      => $jobs,
-        "priority=s" => \$priority
     ) || die( "error parsing command line options" );
 
-    die( "usage: $0 --query <postgres query> --job <job name> [ --job <job name> --priority <high|normal|low> ]" )
+    die( "usage: $0 --query <postgres query> --job <job name> [ --job <job name> ]" )
       unless ( $query && scalar( @{ $jobs } ) );
 
     die( "illegal job name" ) if ( grep { $_ =~ /[^a-z0-9:]/i } @{ $jobs } );
-
-    $priority ||= 'normal';
 
     my $db = MediaWords::DB::connect_to_db();
 
@@ -48,7 +45,7 @@ sub main
         for my $job ( @{ $jobs } )
         {
             DEBUG( "queueing [$i / $num_rows]: $job $id" );
-            MediaWords::JobManager::Job::add_to_queue( "MediaWords::Job::$job", $row, $priority );
+            MediaWords::Job::Broker->new( "MediaWords::Job::$job" )->add_to_queue( $row );
             die( "error adding to $job queue: $@\n" . Dumper( $row ) ) if ( $@ );
         }
     }

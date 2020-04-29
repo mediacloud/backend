@@ -10,6 +10,7 @@ use Catalyst::Test 'MediaWords';
 use Readonly;
 
 use MediaWords::DB;
+use MediaWords::Job::Broker;
 use MediaWords::Test::API;
 use MediaWords::Test::Solr;
 use MediaWords::Test::DB::Create;
@@ -95,7 +96,7 @@ SQL
     }
 
     # Add model generation job
-    MediaWords::JobManager::Job::add_to_queue( 'MediaWords::Job::Word2vec::GenerateSnapshotModel', { snapshots_id => $snapshots_id } );
+    MediaWords::Job::Broker->new( 'MediaWords::Job::Word2vec::GenerateSnapshotModel' )->add_to_queue( { snapshots_id => $snapshots_id } );
 
     # Wait for model to appear
     my $found_models_id = undef;

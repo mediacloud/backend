@@ -18,11 +18,10 @@ To import stories into Solr from within the test file:
 
 2. In the test, add a job to the `MediaWords::Job::ImportSolrDataForTesting` queue and wait for it to complete using `run_remotely()` helper, e.g.:
 
-   ```perl
-   MediaWords::JobManager::Job::run_remotely(
-       'MediaWords::Job::ImportSolrDataForTesting',
-       { throttle => 0 },
-   );
-   ```
+    ```perl
+    use MediaWords::Job::Broker;
+
+    MediaWords::Job::Broker->new( 'MediaWords::Job::ImportSolrDataForTesting' )->run_remotely( { throttle => 0 } );
+    ```
 
 If you use `MediaWords::Test::Solr::setup_test_index()` helper to import test stories to Solr, it will do the importing for you.

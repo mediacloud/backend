@@ -376,7 +376,12 @@ class CommonConfig(object):
     def solr_url() -> str:
         """Solr server URL."""
         # "solr-shard-01" container's name from docker-compose.yml
-        return 'http://solr-shard-01:8983/solr'
+        url = 'http://solr-shard-01:8983/solr'
+
+        # Solr doesn't like extra slashes apparently
+        url = re.sub(r'/+$', '', url)
+
+        return url
 
     @staticmethod
     def extractor_api_url() -> str:

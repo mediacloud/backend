@@ -10,7 +10,7 @@ use Getopt::Long;
 
 use MediaWords::DB;
 use MediaWords::TM::CLI;
-use MediaWords::Job::TM::MineTopic;
+use MediaWords::TM::Mine;
 
 sub main
 {
@@ -60,7 +60,7 @@ SQL
             snapshots_id         => $snapshots_id,
         };
 
-        MediaWords::Job::TM::MineTopic->run( $args );
+        MediaWords::TM::Mine::mine_topic( $db, $topic, $args );
 
         INFO "Done processing topic $topics_id.";
     }

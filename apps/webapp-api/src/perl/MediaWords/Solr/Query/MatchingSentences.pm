@@ -38,7 +38,7 @@ sub query_matching_sentences($$;$)
 {
     my ( $db, $params, $random_limit ) = @_;
 
-    my $stories_ids = MediaWords::Solr::search_for_stories_ids( $db, $params );
+    my $stories_ids = MediaWords::Solr::search_solr_for_stories_ids( $db, $params );
 
     # sort stories_ids so that chunks below will pull close blocks of stories_ids where possible
     $stories_ids = [ sort { $a <=> $b } @{ $stories_ids } ];

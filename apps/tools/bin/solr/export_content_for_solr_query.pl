@@ -114,7 +114,7 @@ sub main
         DEBUG( "running solr search ..." );
 
         my $params = { q => $query, fq => $filter_query, rows => $MAX_ROWS };
-        $stories_ids = MediaWords::Solr::search_for_stories_ids( $db, $params );
+        $stories_ids = MediaWords::Solr::search_solr_for_stories_ids( $db, $params );
     }
 
     DEBUG( "found " . scalar( @{ $stories_ids } ) . " stories" );

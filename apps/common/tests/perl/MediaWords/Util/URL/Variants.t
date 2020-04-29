@@ -11,7 +11,6 @@ use Test::More tests => 15;
 
 use Readonly;
 use HTTP::Status qw(:constants);
-use HTTP::Response;
 use Data::Dumper;
 
 use MediaWords::DB;

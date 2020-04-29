@@ -10,17 +10,17 @@ use MediaWords::CommonLibs;
 use Data::Dumper;
 use File::Slurp;
 
+use MediaWords::TM::Dump;
 use MediaWords::TM::Snapshot::ExtraFields;
 use MediaWords::TM::Snapshot::Views;
 use MediaWords::DB;
-use MediaWords::Util::CSV;
 
 # Get an encoded csv snapshot of the story links for the given timespan.
 sub _get_story_links_csv
 {
     my ( $db, $timespan ) = @_;
 
-    my $csv = MediaWords::Util::CSV::get_query_as_csv( $db, <<END );
+    my $csv = MediaWords::TM::Dump::_get_query_as_csv( $db, <<END );
 select distinct sl.source_stories_id source_stories_id, ss.title source_title, ss.url source_url,
         sm.name source_media_name, sm.url source_media_url, sm.media_id source_media_id,
         sl.ref_stories_id ref_stories_id, rs.title ref_title, rs.url ref_url, rm.name ref_media_name, rm.url ref_media_url,
@@ -100,7 +100,7 @@ END
 
     push( @{ $fields }, keys( %{ $fields_lookup } ) );
 
-    my $csv = MediaWords::Util::CSV::get_hashes_as_encoded_csv( $stories, $fields );
+    my $csv = MediaWords::TM::Dump::_get_hashes_as_encoded_csv( $stories, $fields );
 
     return $csv;
 }
@@ -110,7 +110,7 @@ sub _get_medium_links_csv
 {
     my ( $db, $timespan ) = @_;
 
-    my $csv = MediaWords::Util::CSV::get_query_as_csv( $db, <<END );
+    my $csv = MediaWords::TM::Dump::_get_query_as_csv( $db, <<END );
 select ml.source_media_id, sm.name source_name, sm.url source_url,
         ml.ref_media_id, rm.name ref_name, rm.url ref_url, ml.link_count
     from snapshot_medium_links ml, media sm, media rm
@@ -139,7 +139,7 @@ END
 
     push( @{ $fields }, @{ $extra_fields } );
 
-    my $csv = MediaWords::Util::CSV::get_hashes_as_encoded_csv( $media, $fields );
+    my $csv = MediaWords::TM::Dump::_get_hashes_as_encoded_csv( $media, $fields );
 
     return $csv;
 }
@@ -175,7 +175,7 @@ sub main
     write_file( "medium_links_${ timespans_id }.csv", \$medium_links_csv );
 
     DEBUG( "dumping medium_tags ..." );
-    my $medium_tags_csv = MediaWords::Util::CSV::get_query_as_csv( $db, <<SQL );
+    my $medium_tags_csv = MediaWords::TM::Dump::_get_query_as_csv( $db, <<SQL );
 select mtm.media_id, t.tags_id, t.tag, t.label, t.tag_sets_id, ts.name tag_set_name
     from snapshot_medium_link_counts mlc
         join snapshot_media_tags_map mtm using ( media_id )

@@ -42,8 +42,8 @@ use Readonly;
 
 use MediaWords::DBI::Activities;
 use MediaWords::DBI::Snapshots;
-use MediaWords::JobManager::AbstractStatefulJob;
-use MediaWords::JobManager::Job;
+use MediaWords::Job::Broker;
+use MediaWords::Job::State;
 use MediaWords::Solr;
 use MediaWords::TM::Alert;
 use MediaWords::TM::Dump;
@@ -65,23 +65,31 @@ Readonly my $AUTHOR_COUNT_MAX_SHARE => 0.01;
 Readonly my $AUTHOR_COUNT_MIN_CUTOFF => 100;
 
 # update the job state args, catching any error caused by not running within a job
-sub _update_job_state_args($$)
+sub _update_job_state_args($$$)
 {
-    my ( $db, $args ) = @_;
+    my ( $db, $state_updater, $args ) = @_;
 
-    MediaWords::JobManager::AbstractStatefulJob::update_job_state_args( $db, 'MediaWords::Job::TM::SnapshotTopic', $args );
+    unless ( $state_updater ) {
+        # Shouldn't happen but let's check nonetheless
+        ERROR "State updater is unset.";
+        return;
+    }
+
+    $state_updater->update_job_state_args( $db, $args );
 }
 
 # update the job state message, catching any error caused by not running within a job
-sub _update_job_state_message($$)
+sub _update_job_state_message($$$)
 {
-    my ( $db, $message ) = @_;
+    my ( $db, $state_updater, $message ) = @_;
 
-    MediaWords::JobManager::AbstractStatefulJob::update_job_state_message(
-        $db,
-        'MediaWords::Job::TM::SnapshotTopic',
-        $message,
-    );
+    unless ( $state_updater ) {
+        # Shouldn't happen but let's check nonetheless
+        ERROR "State updater is unset.";
+        return;
+    }
+
+    $state_updater->update_job_state_message( $db, $message );
 }
 
 # given a timespans, return the topic_seed_queries_id associated with the parent focus, if any.
@@ -146,7 +154,7 @@ sub _restrict_period_stories_to_boolean_focus($$)
         DEBUG( "solr query: " . substr( $chunk_solr_q, 0, 128 ) );
 
         my $solr_stories_ids =
-          eval { MediaWords::Solr::search_for_stories_ids( $db, { rows => 10000000, q => $chunk_solr_q } ) };
+          eval { MediaWords::Solr::search_solr_for_stories_ids( $db, { 'rows' => 10000000, 'q' => $chunk_solr_q } ) };
         if ( $@ )
         {
             # sometimes solr throws a NullException error on one of these queries; retrying with smaller
@@ -673,7 +681,8 @@ sub generate_timespan_data($$;$)
 
     INFO "Adding a new topics-map job for timespan";
     my $timespans_id = $timespan->{ timespans_id };
-    MediaWords::JobManager::Job::add_to_queue( 'MediaWords::Job::TM::Map', { timespans_id => $timespans_id } );
+
+    MediaWords::Job::Broker->new( 'MediaWords::Job::TM::Map' )->add_to_queue( { timespans_id => $timespans_id } );
 
     MediaWords::TM::Dump::dump_timespan( $db, $timespan );
 }
@@ -707,9 +716,9 @@ sub _update_timespan_counts($$;$)
 }
 
 # generate the snapshot timespans for the given period, dates, and tag
-sub _generate_timespan($$$$$$)
+sub _generate_timespan($$$$$$;$)
 {
-    my ( $db, $snapshot, $start_date, $end_date, $period, $focus ) = @_;
+    my ( $db, $snapshot, $start_date, $end_date, $period, $focus, $state_updater ) = @_;
 
     my $timespan = _create_timespan( $db, $snapshot, $start_date, $end_date, $period, $focus );
 
@@ -718,7 +727,7 @@ sub _generate_timespan($$$$$$)
 
     DEBUG( "generating $snapshot_label ..." );
 
-    _update_job_state_message( $db, "snapshotting $snapshot_label" );
+    _update_job_state_message( $db, $state_updater, "snapshotting $snapshot_label" );
 
     DEBUG( "generating snapshot data ..." );
     generate_timespan_data( $db, $timespan );
@@ -752,9 +761,9 @@ sub _truncate_to_start_of_month ($)
 }
 
 # generate snapshots for the periods in topic_dates
-sub _generate_custom_period_snapshot ($$$ )
+sub _generate_custom_period_snapshot($$$;$)
 {
-    my ( $db, $cd, $focus ) = @_;
+    my ( $db, $cd, $focus, $state_updater ) = @_;
 
     my $topic_dates = $db->query( <<END, $cd->{ topics_id } )->hashes;
 select * from topic_dates where topics_id = ? order by start_date, end_date
@@ -764,14 +773,14 @@ END
     {
         my $start_date = $topic_date->{ start_date };
         my $end_date   = $topic_date->{ end_date };
-        _generate_timespan( $db, $cd, $start_date, $end_date, 'custom', $focus );
+        _generate_timespan( $db, $cd, $start_date, $end_date, 'custom', $focus, $state_updater );
     }
 }
 
 # generate snapshot for the given period (overall, monthly, weekly, or custom) and the given tag
-sub _generate_period_snapshot($$$$)
+sub _generate_period_snapshot($$$$;$)
 {
-    my ( $db, $cd, $period, $focus ) = @_;
+    my ( $db, $cd, $period, $focus, $state_updater ) = @_;
 
     my $start_date = $cd->{ start_date };
     my $end_date   = $cd->{ end_date };
@@ -808,7 +817,7 @@ sub _generate_period_snapshot($$$$)
     }
     elsif ( $period eq 'custom' )
     {
-        _generate_custom_period_snapshot( $db, $cd, $focus );
+        _generate_custom_period_snapshot( $db, $cd, $focus, $state_updater );
     }
     else
     {
@@ -1156,15 +1165,15 @@ SQL
 }
 
 # generate period spanshots for each period / focus / timespan combination
-sub _generate_period_focus_snapshots ( $$$ )
+sub _generate_period_focus_snapshots($$$;$)
 {
-    my ( $db, $snapshot, $periods ) = @_;
+    my ( $db, $snapshot, $periods, $state_updater ) = @_;
 
     my $foci = _generate_period_foci( $db, $snapshot );
 
     for my $focus ( @{ $foci } )
     {
-        map { _generate_period_snapshot( $db, $snapshot, $_, $focus ) } @{ $periods };
+        map { _generate_period_snapshot( $db, $snapshot, $_, $focus, $state_updater ) } @{ $periods };
     }
 }
 
@@ -1187,9 +1196,9 @@ SQL
 # If a snapshots_id is provided, use the existing snapshot.  Otherwise, create a new one.
 #
 # Returns snapshots_id of the provided or newly created snapshot.
-sub snapshot_topic ($$;$$$$)
+sub snapshot_topic($$;$$$)
 {
-    my ( $db, $topics_id, $snapshots_id, $note ) = @_;
+    my ( $db, $topics_id, $snapshots_id, $note, $state_updater ) = @_;
 
     my $periods = [ qw(custom overall weekly monthly) ];
 
@@ -1216,8 +1225,8 @@ sub snapshot_topic ($$;$$$$)
       ? $db->require_by_id( 'snapshots', $snapshots_id )
       : MediaWords::DBI::Snapshots::create_snapshot_row( $db, $topic, $start_date, $end_date, $note );
 
-    _update_job_state_args( $db, { snapshots_id => $snap->{ snapshots_id } } );
-    _update_job_state_message( $db, "snapshotting data" );
+    _update_job_state_args( $db, $state_updater, { snapshots_id => $snap->{ snapshots_id } } );
+    _update_job_state_message( $db, $state_updater, "snapshotting data" );
 
     _write_temporary_snapshot_tables( $db, $topic, $snap );
 
@@ -1226,18 +1235,18 @@ sub snapshot_topic ($$;$$$$)
     # generate null focus timespan snapshots
     map { _generate_period_snapshot( $db, $snap, $_, undef ) } ( @{ $periods } );
 
-    _generate_period_focus_snapshots( $db, $snap, $periods );
+    _generate_period_focus_snapshots( $db, $snap, $periods, $state_updater );
 
     MediaWords::TM::Dump::dump_snapshot( $db, $snap );
 
-    _update_job_state_message( $db, "finalizing snapshot" );
+    _update_job_state_message( $db, $state_updater, "finalizing snapshot" );
 
     _export_stories_to_solr( $db, $snap );
 
     MediaWords::TM::Snapshot::Views::discard_temp_tables_and_views( $db );
 
     # update this manually because snapshot_topic might be called directly from mine_topic()
-    $db->update_by_id( 'snapshots', $snap->{ snapshots_id }, { state => $MediaWords::JobManager::AbstractStatefulJob::STATE_COMPLETED } );
+    $db->update_by_id( 'snapshots', $snap->{ snapshots_id }, { state => $MediaWords::Job::State::STATE_COMPLETED } );
     MediaWords::TM::Alert::send_topic_alert( $db, $topic, "new topic snapshot is ready" );
 
     return $snap->{ snapshots_id };

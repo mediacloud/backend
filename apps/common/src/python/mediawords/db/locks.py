@@ -8,7 +8,7 @@ log = create_logger(__name__)
 
 """
 This package just has constants that can be passed to the first value of the postgres pg_advisory_*lock functions.
-If you are using an advistory lock, you should use the two key version and use a constant from this package to
+If you are using an advisory lock, you should use the two key version and use a constant from this package to
 avoid conflicts.
 """
 
@@ -19,7 +19,11 @@ LOCK_TYPES = {
     'MediaWords::Job::TM::MineTopic': 12,
     'MediaWords::Job::TM::SnapshotTopic': 13,
     'MediaWords::TM::Media::media_normalized_urls': 14,
-    'MediaWords::Crawler::Engine::run_fetcher': 15
+    'MediaWords::Crawler::Engine::run_fetcher': 15,
+
+    # Testing lock types
+    'TestPerlWorkerLock': 900,
+    'TestPythonWorkerLock': 901,
 }
 
 
@@ -91,6 +95,7 @@ def list_session_locks(db: mediawords.db.DatabaseHandler, lock_type: str) -> lis
 
     lock_type_id = LOCK_TYPES[lock_type]
 
+    # noinspection SqlResolve
     return db.query(
         "select objid from pg_locks where locktype = 'advisory' and classid = %(a)s",
         {'a': lock_type_id}).flat()

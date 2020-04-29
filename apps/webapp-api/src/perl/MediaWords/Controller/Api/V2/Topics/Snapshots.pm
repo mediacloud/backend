@@ -9,6 +9,7 @@ use Moose;
 use namespace::autoclean;
 
 use MediaWords::DBI::Snapshots;
+use MediaWords::Job::StatefulBroker;
 use MediaWords::KeyValueStore::PostgreSQL;
 
 BEGIN { extends 'MediaWords::Controller::Api::V2::MC_Controller_REST' }
@@ -127,8 +128,7 @@ sub generate_GET
 
     $db->begin;
 
-    MediaWords::JobManager::StatefulJob::add_to_queue(
-        'MediaWords::Job::TM::SnapshotTopic',
+    MediaWords::Job::StatefulBroker->new( 'MediaWords::Job::TM::SnapshotTopic' )->add_to_queue(
         { snapshots_id => $snapshots_id, topics_id => $topics_id, note => $note },
     );
     my $job_state = $db->query( "select $JOB_STATE_FIELD_LIST from job_states order by job_states_id desc limit 1" )->hash;

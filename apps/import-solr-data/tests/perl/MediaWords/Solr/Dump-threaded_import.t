@@ -32,7 +32,7 @@ sub test_threaded_import($)
     $db = MediaWords::DB::connect_to_db();
 
     my ( $test_stories_size ) = $db->query( "select count(*) from stories" )->flat;
-    is( MediaWords::Solr::get_num_found( $db, { q => '*:*' } ), $test_stories_size, "stories threaded import" );
+    is( MediaWords::Solr::get_solr_num_found( $db, { q => '*:*' } ), $test_stories_size, "stories threaded import" );
 
     my $story = pop( @{ $test_stories } );
     MediaWords::Test::Solr::test_story_query( $db, "*:*", $story );

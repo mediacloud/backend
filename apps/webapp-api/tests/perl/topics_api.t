@@ -15,14 +15,15 @@ use Test::More;
 use MediaWords::DB;
 use MediaWords::DBI::Auth::Roles;
 use MediaWords::DBI::Snapshots;
+use MediaWords::Job::Broker;
+use MediaWords::Job::State;
+use MediaWords::Job::StatefulBroker;
 use MediaWords::Solr::Query::Parse;
 use MediaWords::Test::API;
 use MediaWords::Test::Rows;
 use MediaWords::Test::Solr;
 use MediaWords::Util::SQL;
 use MediaWords::Util::Web;
-use MediaWords::JobManager::Job;
-use MediaWords::JobManager::AbstractStatefulJob;
 use MediaWords::Test::DB::Create;
 
 Readonly my $TEST_HTTP_SERVER_PORT => '3000';
@@ -129,15 +130,12 @@ sub create_test_data($$)
     $topic_media_sources = MediaWords::Test::DB::Create::add_content_to_test_story_stack( $test_db, $topic_media_sources );
 
 
-    MediaWords::JobManager::Job::run_remotely( 'MediaWords::Job::TM::SnapshotTopic', { topics_id => $topic->{ topics_id } } );
+    MediaWords::Job::StatefulBroker->new( 'MediaWords::Job::TM::SnapshotTopic' )->run_remotely( { topics_id => $topic->{ topics_id } } );
 
     MediaWords::Test::Solr::setup_test_index( $test_db );
 
     # FIXME commented out because we're probably doing the same thing twice
-    # MediaWords::JobManager::Job::run_remotely(  #
-    #     'MediaWords::Job::ImportSolrDataForTesting',  #
-    #     { throttle => 0 },   #
-    # );
+    # MediaWords::Job::Broker->new( 'MediaWords::Job::ImportSolrDataForTesting' )->run_remotely( { throttle => 0 } );
 }
 
 sub test_media_list($)
@@ -501,7 +499,7 @@ sub test_topics_spider($)
 
     ok( $r->{ job_state }, "spider return includes job_state" );
 
-    is( $r->{ job_state }->{ state },        $MediaWords::JobManager::AbstractStatefulJob::STATE_QUEUED, "spider state" );
+    is( $r->{ job_state }->{ state },        $MediaWords::Job::State::STATE_QUEUED,  "spider state" );
     is( $r->{ job_state }->{ topics_id },    $topic->{ topics_id },                  "spider topics_id" );
     is( $r->{ job_state }->{ snapshots_id }, $snapshots_id,                          "spider snapshots_id" );
 
@@ -509,7 +507,7 @@ sub test_topics_spider($)
 
     ok( $r->{ job_states }, "spider status return includes job_states" );
 
-    is( $r->{ job_states }->[ 0 ]->{ state },        $MediaWords::JobManager::AbstractStatefulJob::STATE_QUEUED, "spider_status state" );
+    is( $r->{ job_states }->[ 0 ]->{ state },        $MediaWords::Job::State::STATE_QUEUED,  "spider_status state" );
     is( $r->{ job_states }->[ 0 ]->{ topics_id },    $topic->{ topics_id },                  "spider_status topics_id" );
     is( $r->{ job_states }->[ 0 ]->{ snapshots_id }, $snapshots_id,                          "spider_status snapshots_id" );
 }
@@ -632,8 +630,8 @@ sub test_snapshots_generate($)
 
     ok( $r->{ job_state }, "$label return includes job_state" );
 
-    my $queued = $r->{ job_state }->{ state } eq 'queued';
-    my $running = $r->{ job_state }->{ state } eq 'running';
+    my $queued = $r->{ job_state }->{ state } eq $MediaWords::Job::State::STATE_QUEUED;
+    my $running = $r->{ job_state }->{ state } eq $MediaWords::Job::State::STATE_RUNNING;
     ok( $queued || $running, "$label state" );
 
     is( $r->{ job_state }->{ topics_id }, $topic->{ topics_id }, "$label topics_id" );
@@ -900,29 +898,33 @@ sub test_files($)
 
     my $snapshot = $db->require_by_id( 'snapshots', $timespan->{ snapshots_id } );
 
-    my $num_files = 10;
-
-    for my $i ( 1 .. $num_files )
-    {
-        $db->create( 'timespan_files', { timespans_id => $timespans_id,  name => "foo $i", url => 'foo' } );
-
-    }
-
     my $response = MediaWords::Test::API::test_get( "/api/v2/topics/$snapshot->{ topics_id }/list_timespan_files" );
 
+    my $expected_file_names_found = {
+        'stories' => 0,
+        'media' => 0,
+        'story_links' => 0,
+        'medium_links' => 0,
+        'topic_posts' => 0,
+        'post_stories' => 0,
+    };
+
     ok( $response->{ timespan_files } );
-    is( scalar( @{ $response->{ timespan_files } } ), $num_files );
-
-    for my $i ( 1 .. $num_files )
-    {
-        $db->create( 'snapshot_files', { snapshots_id => $timespans_id,  name => "foo $i", url => 'foo' } );
-
+    is( scalar( @{ $response->{ timespan_files } } ), scalar( keys %{ $expected_file_names_found } ) );
+    for my $row ( @{ $response->{ timespan_files } } ) {
+        my $file_name = $row->{ 'name' };
+        ok( defined $expected_file_names_found->{ $file_name }, "Unknown file name '$file_name'" );
+        ++$expected_file_names_found->{ $file_name };
+    }
+    for my $key (keys %{ $expected_file_names_found } ) {
+        is( $expected_file_names_found->{ $key }, 1, "Single file with name '$key' is expected" );
     }
 
     $response = MediaWords::Test::API::test_get( "/api/v2/topics/$snapshot->{ topics_id }/list_snapshot_files" );
 
     ok( $response->{ snapshot_files } );
-    is( scalar( @{ $response->{ snapshot_files } } ), $num_files );
+    is( scalar( @{ $response->{ snapshot_files } } ), 1 );
+    is( $response->{ snapshot_files }->[ 0 ]->{ 'name' }, 'topic_posts' );
 }
 
 

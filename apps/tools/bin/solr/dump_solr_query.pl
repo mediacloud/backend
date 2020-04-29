@@ -28,7 +28,7 @@ sub main
 
     my $db = MediaWords::DB::connect_to_db();
 
-    my $stories_ids = MediaWords::Solr::search_for_stories_ids( $db, { q => $q, fq => $fq, rows => 10_000_000 } );
+    my $stories_ids = MediaWords::Solr::search_solr_for_stories_ids( $db, { q => $q, fq => $fq, rows => 10_000_000 } );
 
     print STDERR "found " . scalar( @{ $stories_ids } ) . " stories\n";
 

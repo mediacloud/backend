@@ -365,9 +365,12 @@ SQL
     my $fq = $c->req->params->{ fq } || [];
     $fq = [ $fq ] unless ( ref( $fq ) );
 
-    my $sort = $c->req->param( 'sort' );
+    my $sort_by_random = 0;
+    if ( $c->req->param( 'sort' ) eq 'random' ) {
+        $sort_by_random = 1;
+    }
 
-    return MediaWords::Solr::search_for_processed_stories_ids( $db, $q, $fq, $last_id, $rows, $sort );
+    return MediaWords::Solr::search_solr_for_processed_stories_ids( $db, $q, $fq, $last_id, $rows, $sort_by_random );
 }
 
 sub _fetch_list($$$$$$)
@@ -460,7 +463,7 @@ sub _get_date_counts
     $params->{ 'facet.mincount' } = 1;
     $params->{ rows }             = 0;
 
-    my $solr_response = MediaWords::Solr::query( $c->dbis, $params, $c );
+    my $solr_response = MediaWords::Solr::query_solr( $c->dbis, $params );
 
     my $facet_counts = $solr_response->{ facet_counts }->{ facet_fields }->{ $facet_field };
 
@@ -500,7 +503,7 @@ sub count_GET
     }
     else
     {
-        my $num_found = MediaWords::Solr::get_num_found( $c->dbis, { q => $q, fq => $fq } );
+        my $num_found = MediaWords::Solr::get_solr_num_found( $c->dbis, { q => $q, fq => $fq } );
         $response = { count => $num_found };
     }
 
@@ -540,7 +543,7 @@ sub word_matrix_GET
     $rows = List::Util::min( $rows, 100_000 );
 
     my $stories_ids =
-      MediaWords::Solr::search_for_stories_ids( $db, { q => $q, fq => $fq, rows => $rows, sort => 'random_1 asc' } );
+      MediaWords::Solr::search_solr_for_stories_ids( $db, { q => $q, fq => $fq, rows => $rows, sort => 'random_1 asc' } );
 
     my ( $word_matrix, $word_list ) = MediaWords::DBI::Stories::WordMatrix::get_story_word_matrix( $db, $stories_ids );
 

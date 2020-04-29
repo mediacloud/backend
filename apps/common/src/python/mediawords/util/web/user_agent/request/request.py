@@ -1,9 +1,11 @@
-import email
+from email.parser import HeaderParser as EmailHeaderParser
+
 import requests
 from urllib.parse import urlencode
-from typing import Union, Dict
+from typing import Union, Dict, Optional
 
 from mediawords.util.perl import decode_object_from_bytes_if_needed
+from mediawords.util.text import escape_for_repr
 from mediawords.util.url import fix_common_url_mistakes, is_http_url
 
 
@@ -25,7 +27,13 @@ class Request(object):
         '__data',
     ]
 
-    def __init__(self, method: str, url):
+    def __init__(self,
+                 method: str,
+                 url: str,
+                 auth_username: Optional[str] = None,
+                 auth_password: Optional[str] = None,
+                 headers: Optional[Dict[str, str]] = None,
+                 content: Optional[Union[str, bytes, Dict[str, str], Dict[bytes, bytes]]] = None):
         """Constructor."""
         self.__method = None
         self.__url = None
@@ -36,6 +44,30 @@ class Request(object):
 
         self.set_method(method)
         self.set_url(url)
+
+        if auth_username:
+            self.set_auth_username(auth_username)
+        if auth_password:
+            self.set_auth_password(auth_password)
+        if headers:
+            for key, value in headers.items():
+                self.set_header(name=key, value=value)
+        if content:
+            self.set_content(content)
+
+    def __repr__(self):
+        out = ""
+
+        out += f"{self.__class__.__name__}("
+        out += f"method={escape_for_repr(self.__method)}, "
+        out += f"url={escape_for_repr(self.__url)}, "
+        out += f"auth_username={escape_for_repr(self.__auth_username)}, "
+        out += f"auth_password={escape_for_repr(self.__auth_password)}, "
+        out += f"headers={escape_for_repr(self.__headers)}, "
+        out += f"content={escape_for_repr(self.__data)}"
+        out += ")"
+
+        return out
 
     @staticmethod
     def from_requests_prepared_request(requests_prepared_request: requests.PreparedRequest):
@@ -127,7 +159,7 @@ class Request(object):
             return None
 
         # Parse "type/subtype" out of "type/subtype; param=value; ..."
-        header_parser = email.parser.HeaderParser()
+        header_parser = EmailHeaderParser()
         message = header_parser.parsestr("Content-Type: %s" % content_type)
         content_type = message.get_content_type()
         return content_type
@@ -154,7 +186,7 @@ class Request(object):
             content = urlencode(content, doseq=True)
 
         if isinstance(content, str):
-            content = content.encode('utf-8')
+            content = content.encode('utf-8', errors='replace')
 
         if not isinstance(content, bytes):
             raise McUserAgentRequestException("Content must be 'bytes' at this point: %s" % str(content))

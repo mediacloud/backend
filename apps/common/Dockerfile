@@ -66,8 +66,19 @@ RUN \
     #
     true
 
-# Create directory where sources will be stored in
-RUN mkdir -p /opt/mediacloud/src/ /opt/mediacloud/tests/
+# Add user that will be used for running userland apps
+RUN useradd -ms /bin/bash mediacloud
+
+RUN \
+    #
+    # Create directory where sources will be stored in
+    mkdir -p /opt/mediacloud/src/ /opt/mediacloud/tests/ && \
+    #
+    # Create directory where Perl's Inline module will store its stuff && \
+    mkdir -p /perl-inline/ && \
+    chown -R mediacloud:mediacloud /perl-inline/ && \
+    #
+    true
 
 # Create convenience link
 RUN ln -s /opt/mediacloud /mc
@@ -77,6 +88,8 @@ COPY src/ /opt/mediacloud/src/common/
 
 ENV PERL5LIB="/opt/mediacloud/src/common/perl" \
     PYTHONPATH="/opt/mediacloud/src/common/python" \
+    #
+    PERL_INLINE_DIRECTORY="/perl-inline/" \
     #
     # /opt/mediacloud/bin is where container images are expected to store executables
     PATH="/opt/mediacloud/bin:${PATH}"
@@ -109,6 +122,3 @@ RUN \
 
 # Symlink Log::Log4perl configuration to where it's going to be found
 RUN ln -s /opt/mediacloud/src/common/perl/log4perl.conf /etc/log4perl.conf
-
-# Add user that will be used for running userland apps
-RUN useradd -ms /bin/bash mediacloud
