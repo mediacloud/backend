@@ -9,3 +9,9 @@
   tags:
     - docker
     - dockerd
+
+- name: Include iptables tasks
+  include_tasks: iptables.yml
+  tags:
+    - docker
+    - iptables
