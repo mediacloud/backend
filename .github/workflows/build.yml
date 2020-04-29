@@ -14,6 +14,7 @@ jobs:
 
       - name: Test IPv6
         run: |
+          ip addr show
           ping6 -c 4 www.google.com || echo "ping6 failed."
           curl --ipv6 --max-time 10 https://www.google.com/ || echo "curl failed"
           sudo nc -l 12345 || echo "nc failed"
