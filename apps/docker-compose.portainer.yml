@@ -50,6 +50,7 @@ services:
             - "9000"
         ports:
             # For connecting to through a SSH tunnel
+            # MAKE SURE to BLOCK THIS PORT in provision/roles/docker/tasks/iptables.yml
             - "9000:9000"
         volumes:
             - vol_portainer_data:/data
