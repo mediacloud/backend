@@ -46,7 +46,7 @@ sub test_import_stories_queue_table($)
         }
     );
 
-    is( MediaWords::Solr::get_num_found( $db, { q => '*:*' } ), $test_stories_size, "stories after queue import" );
+    is( MediaWords::Solr::get_solr_num_found( $db, { q => '*:*' } ), $test_stories_size, "stories after queue import" );
 
     my ( $post_num_solr_imports )          = $db->query( "select count(*) from solr_imports" )->flat;
     my ( $post_num_solr_imported_stories ) = $db->query( "select count(*) from solr_imported_stories" )->flat;

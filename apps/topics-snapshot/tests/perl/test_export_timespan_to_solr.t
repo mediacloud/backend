@@ -12,9 +12,9 @@ use MediaWords::DB;
 use MediaWords::DBI::Topics;
 use MediaWords::TM::Snapshot;
 use MediaWords::Test::Solr;
-use MediaWords::JobManager::Job;
+use MediaWords::Job::Broker;
 use MediaWords::Test::DB::Create;
-use MediaWords::Job::TM::SnapshotTopic;
+use MediaWords::TM::Snapshot;
 
 sub test_timespan_export($)
 {
@@ -34,12 +34,12 @@ sub test_timespan_export($)
 
     MediaWords::Test::Solr::setup_test_index( $db );
 
-    my $num_solr_stories = MediaWords::Solr::get_num_found( $db, { q => '*:*' } );
+    my $num_solr_stories = MediaWords::Solr::get_solr_num_found( $db, { q => '*:*' } );
     ok( $num_solr_stories > 0, "total number of solr stories is greater than 0" );
 
     my $topic_media_id = $media->{ medium_1 }->{ media_id };
 
-    my $num_topic_medium_stories = MediaWords::Solr::get_num_found( $db, { q => "media_id:$topic_media_id" } );
+    my $num_topic_medium_stories = MediaWords::Solr::get_solr_num_found( $db, { q => "media_id:$topic_media_id" } );
     ok( $num_topic_medium_stories > 0, "number of topic medium stories is greater than 0" );
 
     $db->query( <<SQL, $topic->{ topics_id }, $topic_media_id );
@@ -47,9 +47,9 @@ insert into topic_stories ( topics_id, stories_id )
     select \$1, stories_id from stories where media_id = \$2
 SQL
 
-    MediaWords::Job::TM::SnapshotTopic->run( { topics_id => $topic->{ topics_id } } );
+    MediaWords::TM::Snapshot::snapshot_topic( $db, $topic->{ topics_id } );
 
-    $num_solr_stories = MediaWords::Solr::get_num_found( $db, { q => 'timespans_id:1' } );
+    $num_solr_stories = MediaWords::Solr::get_solr_num_found( $db, { q => 'timespans_id:1' } );
     is( $num_solr_stories, 0, "number of solr stories before snapshot import" );
 
     my ( $num_solr_exported_stories ) = $db->query( "select count(*) from solr_import_stories" )->flat;
@@ -58,12 +58,9 @@ SQL
 
     my $timespan = MediaWords::DBI::Topics::get_latest_overall_timespan( $db, $topic->{ topics_id } );
 
-    MediaWords::JobManager::Job::run_remotely(  #
-        'MediaWords::Job::ImportSolrDataForTesting',  #
-        { empty_queue => 1 },   #
-    );
+    MediaWords::Job::Broker->new( 'MediaWords::Job::ImportSolrDataForTesting' )->run_remotely( { empty_queue => 1 } );
 
-    my $num_topic_stories = MediaWords::Solr::get_num_found( $db, { q => "timespans_id:$timespan->{ timespans_id }" } );
+    my $num_topic_stories = MediaWords::Solr::get_solr_num_found( $db, { q => "timespans_id:$timespan->{ timespans_id }" } );
     is( $num_topic_stories, $num_topic_medium_stories, "topic stories after snapshot" );
 
     my $focus_stories_id = $media->{ story_1 }->{ stories_id };
@@ -76,12 +73,9 @@ insert into focus_definitions ( name, description, arguments, focal_set_definiti
     select \$1, \$2, ( '{ "query": ' || to_json( \$3::text ) || ' }' )::json, \$4
 SQL
 
-    MediaWords::Job::TM::SnapshotTopic->run( { topics_id => $topic->{ topics_id } } );
+    MediaWords::TM::Snapshot::snapshot_topic( $db, $topic->{ topics_id } );
 
-    MediaWords::JobManager::Job::run_remotely(  #
-        'MediaWords::Job::ImportSolrDataForTesting',  #
-        { empty_queue => 1 },   #
-    );
+    MediaWords::Job::Broker->new( 'MediaWords::Job::ImportSolrDataForTesting' )->run_remotely( { empty_queue => 1 } );
 
     my ( $focus_timespans_id ) = $db->query( <<SQL )->flat;
 select *
@@ -92,8 +86,8 @@ select *
     order by timespans_id desc limit 1
 SQL
 
-    my $focus_story_stories    = MediaWords::Solr::get_num_found( $db, { q => "stories_id:$focus_stories_id" } );
-    my $focus_timespan_stories = MediaWords::Solr::get_num_found( $db, { q => "timespans_id:$focus_timespans_id" } );
+    my $focus_story_stories    = MediaWords::Solr::get_solr_num_found( $db, { q => "stories_id:$focus_stories_id" } );
+    my $focus_timespan_stories = MediaWords::Solr::get_solr_num_found( $db, { q => "timespans_id:$focus_timespans_id" } );
 
     is( $focus_timespan_stories, $focus_story_stories, "focus timespan stories" );
 }

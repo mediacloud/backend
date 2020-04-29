@@ -7,24 +7,75 @@ package MediaWords::TM::Dump;
 use strict;
 use warnings;
 
+use Encode;
 use File::Path;
 use File::Slurp;
+use Text::CSV_XS;
 
 use MediaWords::CommonLibs;
 
 use MediaWords::DBI::Snapshots;
 use MediaWords::TM::Snapshot::ExtraFields;
 use MediaWords::TM::Snapshot::Views;
-use MediaWords::Util::CSV;
 use MediaWords::Util::ParseJSON;
 use MediaWords::Util::PublicStore;
+
+
+# return an encoded csv file representing a list of hashes.
+# if $fields is specified, use it as a list of field names and
+# snapshot the fields in the specified order.  otherwise, just
+# get the field names from the hash in the first row (with
+# semi-random order)
+sub _get_hashes_as_encoded_csv
+{
+    my ( $hashes, $fields ) = @_;
+
+    my $output = '';
+    if ( @{ $hashes } )
+    {
+        my $csv = Text::CSV_XS->new( { binary => 1 } );
+
+        my $keys = $fields || [ keys( %{ $hashes->[ 0 ] } ) ];
+        $csv->combine( @{ $keys } );
+
+        $output .= $csv->string . "\n";
+
+        for my $hash ( @{ $hashes } )
+        {
+            $csv->combine( map { $hash->{ $_ } } @{ $keys } );
+
+            $output .= $csv->string . "\n";
+        }
+    }
+
+    my $encoded_output = Encode::encode( 'utf-8', $output );
+
+    return $encoded_output;
+}
+
+# Given a database handle and a query string and some parameters, execute the query with the parameters
+# and return the results as a csv with the fields in the query order
+sub _get_query_as_csv
+{
+    my ( $db, $query, @params ) = @_;
+
+    my $res = $db->query( $query, @params );
+
+    my $fields = $res->columns;
+
+    my $data = $res->hashes;
+
+    my $csv_string = _get_hashes_as_encoded_csv( $data, $fields );
+
+    return $csv_string;
+}
 
 # Get an encoded csv snapshot of the story links for the given timespan.
 sub get_story_links_csv($$)
 {
     my ( $db ) = @_;
 
-    my $csv = MediaWords::Util::CSV::get_query_as_csv( $db, "select * from snapshot_story_links" );
+    my $csv = _get_query_as_csv( $db, "select * from snapshot_story_links" );
 
     return $csv;
 }
@@ -75,7 +126,7 @@ END
 
     push( @{ $fields }, sort keys( %{ $fields_lookup } ) );
 
-    my $csv = MediaWords::Util::CSV::get_hashes_as_encoded_csv( $stories, $fields );
+    my $csv = _get_hashes_as_encoded_csv( $stories, $fields );
 
     return $csv;
 }
@@ -85,7 +136,7 @@ sub get_medium_links_csv($$)
 {
     my ( $db, $timespan ) = @_;
 
-    my $csv = MediaWords::Util::CSV::get_query_as_csv( $db, "select * from snapshot_medium_links" );
+    my $csv = _get_query_as_csv( $db, "select * from snapshot_medium_links" );
 
     return $csv;
 }
@@ -129,7 +180,7 @@ END
 
     push( @{ $fields }, sort keys( %{ $fields_lookup } ) );
 
-    my $csv = MediaWords::Util::CSV::get_hashes_as_encoded_csv( $media, $fields );
+    my $csv = _get_hashes_as_encoded_csv( $media, $fields );
 
     return $csv;
 }
@@ -139,7 +190,7 @@ sub get_topic_posts_csv($$)
 {
     my ( $db, $timespan ) = @_;
 
-    my $csv = MediaWords::Util::CSV::get_query_as_csv( $db, <<SQL );
+    my $csv = _get_query_as_csv( $db, <<SQL );
 select 
         tpd.topic_seed_queries_id, tp.topic_posts_id, tp.publish_date, tp.author, tp.channel, tp.url
     from topic_post_days tpd
@@ -154,7 +205,7 @@ sub get_post_stories_csv($$)
 {
     my ( $db, $timespan ) = @_;
 
-    my $csv = MediaWords::Util::CSV::get_query_as_csv( $db, <<SQL );
+    my $csv = _get_query_as_csv( $db, <<SQL );
 select distinct topic_posts_id, stories_id
     from snapshot_timespan_posts join snapshot_topic_post_stories using ( topic_posts_id )
 SQL

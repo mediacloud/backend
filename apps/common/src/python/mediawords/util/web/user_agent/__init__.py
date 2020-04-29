@@ -1,4 +1,5 @@
 import multiprocessing
+import multiprocessing.pool
 import io
 import re
 import time
@@ -502,7 +503,23 @@ class UserAgent(object):
 
             url_blocks[block_i].append(url_stack.pop())
 
-        pool = multiprocessing.Pool(processes=num_parallel)
+        # Using ThreadPool instead of Pool because this sometimes gets called from a Celery worker, and if it does,
+        # it might fail with:
+        #
+        # Traceback (most recent call last):
+        #   File "/opt/mediacloud/src/common/python/mediawords/util/web/user_agent/__init__.py", line 505, in parallel_get
+        #     pool = multiprocessing.Pool(processes=num_parallel)
+        #   File "/usr/lib/python3.7/multiprocessing/context.py", line 119, in Pool
+        #     context=self.get_context())
+        #   File "/usr/lib/python3.7/multiprocessing/pool.py", line 176, in __init__
+        #     self._repopulate_pool()
+        #   File "/usr/lib/python3.7/multiprocessing/pool.py", line 241, in _repopulate_pool
+        #     w.start()
+        #   File "/usr/lib/python3.7/multiprocessing/process.py", line 110, in start
+        #     'daemonic processes are not allowed to have children'
+        # AssertionError: daemonic processes are not allowed to have children
+        #
+        pool = multiprocessing.pool.ThreadPool(processes=num_parallel)
 
         all_results = []
         for i, url_block in url_blocks.items():

@@ -26,7 +26,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4752;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4753;
 BEGIN
 
     -- Update / set database schema version
@@ -3358,7 +3358,7 @@ create table mediacloud_stats (
     total_sentences         bigint not null
 );
 
--- job states as implemented in MediaWords::JobManager::AbstractJob
+-- job states as implemented in mediawords.job.StatefulJobBroker
 create table job_states (
     job_states_id           serial primary key,
 
@@ -3923,3 +3923,28 @@ CREATE UNIQUE INDEX podcast_episode_transcript_fetches_due
         add_to_queue_at,
         podcast_episode_transcript_was_added_to_queue(added_to_queue_at)
     );
+
+
+--
+-- Celery job results
+-- (configured as self.__app.conf.database_table_names; schema is dictated by Celery + SQLAlchemy)
+--
+
+CREATE TABLE celery_groups (
+    id          INTEGER                     NOT NULL    PRIMARY KEY,
+    taskset_id  CHARACTER VARYING(155)      NULL        UNIQUE,
+    result      BYTEA                       NULL,
+    date_done   TIMESTAMP WITHOUT TIME ZONE NULL
+);
+
+CREATE TABLE celery_tasks (
+    id          INTEGER                     NOT NULL    PRIMARY KEY,
+    task_id     CHARACTER VARYING(155)      NULL        UNIQUE,
+    status      CHARACTER VARYING(50)       NULL,
+    result      BYTEA                       NULL,
+    date_done   TIMESTAMP WITHOUT TIME ZONE NULL,
+    traceback   TEXT                        NULL
+);
+
+CREATE SEQUENCE task_id_sequence AS BIGINT;
+

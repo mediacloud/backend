@@ -1,5 +1,6 @@
 import random
 import string as py_string
+from typing import Any
 
 
 class McRandomStringException(Exception):
@@ -16,3 +17,27 @@ def random_string(length: int) -> str:
     r = random.SystemRandom()
     rand_str = ''.join(r.choice(chars) for _ in range(length))
     return rand_str
+
+
+def escape_for_repr(value: Any) -> str:
+    """
+    Escape value for returning in __repr__().
+
+    :param value: Value to escape.
+    :return: Escaped value usable in __repr__().
+    """
+
+    # FIXME probably not too secure, plus not every Python type is supported here
+
+    if value is None:
+        value = 'None'
+    else:
+        if isinstance(value, str):
+            value = value.replace("'", "\\'")
+            value = "'" + value + "'"
+        elif isinstance(value, int) or isinstance(value, float):
+            value = str(value)
+        else:
+            value = value.__repr__()
+
+    return value

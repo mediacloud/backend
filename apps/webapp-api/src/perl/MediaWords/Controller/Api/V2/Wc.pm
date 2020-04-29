@@ -38,7 +38,7 @@ sub list_GET : PathPrefix( '/api' )
 {
     my ( $self, $c ) = @_;
 
-    my $sample_size = int( $c->req->params->{ sample_size } // 0 );
+    my $sample_size = int( $c->req->params->{ sample_size } // 1000 );
 
     if ( $sample_size and $sample_size > 100_000 )
     {

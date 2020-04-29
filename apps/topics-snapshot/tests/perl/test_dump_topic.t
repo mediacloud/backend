@@ -7,6 +7,7 @@ use MediaWords::CommonLibs;
 use Encode;
 use Readonly;
 use Test::More;
+use Text::CSV_XS;
 
 use MediaWords::DB;
 use MediaWords::DBI::Topics;
@@ -14,12 +15,29 @@ use MediaWords::TM::Dump;
 use MediaWords::TM::Snapshot;
 use MediaWords::TM::Snapshot::Views;
 use MediaWords::Test::DB::Create;
-use MediaWords::Util::CSV;
 use MediaWords::Util::PublicStore;
 
 Readonly my $NUM_MEDIA => 5;
 Readonly my $NUM_STORIES_PER_MEDIUM => 10;
 
+
+# return csv as a list of hashes
+sub _get_encoded_csv_as_hashes
+{
+    my ( $csv ) = @_;
+
+    return [] if ( length( $csv ) == 0 );
+
+    my $c = Text::CSV_XS->new( { binary => 1 } );
+
+    my $decoded_csv = Encode::decode( 'utf-8', $csv );
+
+    open my $fh, "<", \$decoded_csv;
+
+    $c->column_names( $c->getline( $fh ) );
+
+    return $c->getline_hr_all( $fh );
+}
 
 sub validate_file
 {
@@ -41,7 +59,7 @@ SQL
 
     if ( $table eq 'timespan' )
     {
-        my $got_rows = MediaWords::Util::CSV::get_encoded_csv_as_hashes( $content );
+        my $got_rows = _get_encoded_csv_as_hashes( $content );
 
         if ( defined( $num_expected_rows ) )
         {

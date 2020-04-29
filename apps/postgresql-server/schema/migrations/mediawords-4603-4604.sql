@@ -14,7 +14,7 @@
 -- 1 of 2. Import the output of 'apgdiff':
 --
 
--- job states as implemented in MediaWords::JobManager::AbstractStatefulJob
+-- job states as implemented in mediawords.job.StatefulJobBroker
 create table job_states (
     job_states_id           serial primary key,
 

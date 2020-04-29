@@ -6,6 +6,10 @@ use warnings;
 use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
-use MediaWords::JobManager::Worker;
 
-MediaWords::JobManager::Worker::start_worker( 'MediaWords::Job::TM::MineTopic' );
+sub main()
+{
+    MediaWords::TM::Worker::start_topics_mine_worker( 'MediaWords::Job::TM::MineTopic' );
+}
+
+main();

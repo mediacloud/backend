@@ -55,9 +55,6 @@ services:
               source: ./../import-solr-data-for-testing/bin/
               target: /opt/mediacloud/bin/
             - type: bind
-              source: ./../import-solr-data-for-testing/src/
-              target: /opt/mediacloud/src/import-solr-data-for-testing/
-            - type: bind
               source: ./../import-solr-data/src/
               target: /opt/mediacloud/src/import-solr-data/
             - type: bind
