@@ -14,14 +14,14 @@
 -- 1 of 2. Import the output of 'apgdiff':
 --
 
-CREATE TABLE celery_groups (
+CREATE TABLE IF NOT EXISTS celery_groups (
     id          INTEGER                     NOT NULL    PRIMARY KEY,
     taskset_id  CHARACTER VARYING(155)      NULL        UNIQUE,
     result      BYTEA                       NULL,
     date_done   TIMESTAMP WITHOUT TIME ZONE NULL
 );
 
-CREATE TABLE celery_tasks (
+CREATE TABLE IF NOT EXISTS celery_tasks (
     id          INTEGER                     NOT NULL    PRIMARY KEY,
     task_id     CHARACTER VARYING(155)      NULL        UNIQUE,
     status      CHARACTER VARYING(50)       NULL,
@@ -30,7 +30,7 @@ CREATE TABLE celery_tasks (
     traceback   TEXT                        NULL
 );
 
-CREATE SEQUENCE task_id_sequence AS BIGINT;
+CREATE SEQUENCE IF NOT EXISTS task_id_sequence AS BIGINT;
 
 
 --
