@@ -15,9 +15,13 @@ use namespace::autoclean;
 
 use Data::Dumper;
 use HTTP::Status qw(:constants);
+use Readonly;
 
 use Catalyst::Authentication::Credential::MediaWords::APIKey;
 use MediaWords::DBI::Auth;
+
+Readonly our $INVALID_API_KEY_MESSAGE => 'Invalid API key or authentication cookie. Access denied.';
+
 
 # test whether the authenticated user has $permission_type access to the topic in the path of the currently requested
 # url.   Queries the topics_with_user_permission view to determine the permissions for the current user.
@@ -37,7 +41,7 @@ sub _test_for_topic_permission
     unless ( $user_email and $user_roles )
     {
         $c->response->status( HTTP_FORBIDDEN );
-        die 'Invalid API key or authentication cookie. Access denied.';
+        die $INVALID_API_KEY_MESSAGE;
     }
 
     my $topic = $c->dbis->query( <<SQL, $topics_id, $user_email )->hash;
@@ -156,7 +160,7 @@ sub _require_role($$$)
     unless ( $user_email and $user_roles )
     {
         $c->response->status( HTTP_FORBIDDEN );
-        die 'Invalid API key or authentication cookie. Access denied.';
+        die $INVALID_API_KEY_MESSAGE;
     }
 
     for my $role ( @{ $roles } )
