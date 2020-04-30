@@ -21,8 +21,6 @@ sub main
     binmode( STDERR, 'utf8' );
     $| = 1;
 
-    $periods = [];
-
     Getopt::Long::GetOptions(
         "topic=s"      => \$topic_opt,
         "note=s"       => \$note,

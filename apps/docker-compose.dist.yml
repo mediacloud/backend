@@ -1011,6 +1011,7 @@ services:
             - "4948"
         ports:
             # For connecting to through a SSH tunnel
+            # MAKE SURE to BLOCK THIS PORT in provision/roles/docker/tasks/iptables.yml
             - "4948:4948"
         depends_on:
             # Uses FastCGI worker to generate graphs
@@ -1288,6 +1289,7 @@ services:
             - postgresql-server
         ports:
             # For connecting to through a SSH tunnel
+            # MAKE SURE to BLOCK THIS PORT in provision/roles/docker/tasks/iptables.yml
             - "5050:5050"
         volumes:
             - vol_pgadmin_data:/var/lib/pgadmin/
@@ -1403,7 +1405,7 @@ services:
         networks:
             - default
         ports:
-            # HTTP and HTTPS ports
+            # Public HTTP and HTTPS ports
             - "80:80"
             - "443:443"
         volumes:
@@ -1503,6 +1505,7 @@ services:
             - rabbitmq-server
         ports:
             # For connecting to through a SSH tunnel
+            # MAKE SURE to BLOCK THIS PORT in provision/roles/docker/tasks/iptables.yml
             - "15672:15672"
         deploy:
             # DNSRR disabled as it's not supported with published ports.
@@ -1804,6 +1807,7 @@ services:
             - solr-shard-01
         ports:
             # For connecting to through a SSH tunnel
+            # MAKE SURE to BLOCK THIS PORT in provision/roles/docker/tasks/iptables.yml
             - "8983:8983"
         deploy:
             # DNSRR disabled as it's not supported with published ports.
