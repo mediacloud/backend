@@ -21,7 +21,7 @@ use Catalyst::Authentication::Credential::MediaWords::APIKey;
 use MediaWords::DBI::Auth;
 
 Readonly our $INVALID_API_KEY_MESSAGE => <<EOF;
-Invalid API key. All API keys were reset on April 30, 2020, so make sure you are using a new one.'
+Invalid API key. All API keys were reset on May 1, 2020, so make sure you are using a new one.'
 EOF
 
 
