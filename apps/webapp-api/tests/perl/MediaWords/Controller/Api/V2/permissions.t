@@ -13,7 +13,6 @@ use URI::Escape;
 use MediaWords::DB;
 use MediaWords::Test::API;
 use MediaWords::DBI::Auth;
-use MediaWords::ActionRole::AbstractAuthenticatedActionRole;
 
 # public and admin_read key users
 my $_public_user;
@@ -221,7 +220,7 @@ sub test_key_required($)
     {
         my $method = $response->request->method;
         is( $response->code, 403, "test_key_required 403: $url $method" );
-        my $expected_message = $MediaWords::ActionRole::AbstractAuthenticatedActionRole::INVALID_API_KEY_MESSAGE . '';
+        my $expected_message = 'Invalid API key.';
         ok( $response->decoded_content =~ /\Q$expected_message\E/, "test_key_required message: $url $method: expected: $expected_message; actual: " . $response->decoded_content );
     }
 }
