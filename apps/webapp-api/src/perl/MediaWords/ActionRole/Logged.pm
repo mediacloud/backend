@@ -33,7 +33,7 @@ around execute => sub {
         unless ( $user_email and $user_roles )
         {
             $c->response->status( HTTP_FORBIDDEN );
-            die 'Invalid API key or authentication cookie. Access denied.';
+            die $MediaWords::ActionRole::AbstractAuthenticatedActionRole::INVALID_API_KEY_MESSAGE;
         }
 
         my $requested_items_count = $c->stash->{ $NUMBER_OF_REQUESTED_ITEMS_KEY } // 1;
