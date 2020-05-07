@@ -27,7 +27,7 @@ around execute => sub {
         unless ( $user_email and $user_roles )
         {
             $c->response->status( HTTP_FORBIDDEN );
-            die 'Invalid API key or authentication cookie. Access denied.';
+            die $MediaWords::ActionRole::AbstractAuthenticatedActionRole::INVALID_API_KEY_MESSAGE;
         }
     };
     if ( $@ )

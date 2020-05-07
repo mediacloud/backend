@@ -220,7 +220,8 @@ sub test_key_required($)
     {
         my $method = $response->request->method;
         is( $response->code, 403, "test_key_required 403: $url $method" );
-        ok( $response->decoded_content =~ /Invalid API key/, "test_key_required message: $url $method" );
+        my $expected_message = 'Invalid API key.';
+        ok( $response->decoded_content =~ /\Q$expected_message\E/, "test_key_required message: $url $method: expected: $expected_message; actual: " . $response->decoded_content );
     }
 }
 
