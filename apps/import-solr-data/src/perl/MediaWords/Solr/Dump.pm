@@ -433,10 +433,9 @@ sub _delete_queued_stories($)
     $stories_ids = $db->query( <<SQL )->flat();
 select stories_id
     from $stories_queue_table q
-        left join stories s using ( stories_id )
     where
-        s.stories_id is null and
-        q.stories_id in ( $stories_ids_list )
+        q.stories_id in ( $stories_ids_list ) and not exists
+        ( select 1 from stories s where s.stories_id = q.stories_id )
     order by q.stories_id
 SQL
 
