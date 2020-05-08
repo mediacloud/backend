@@ -423,9 +423,24 @@ sub _delete_queued_stories($)
 
     return 1 unless ( $stories_ids && scalar @{ $stories_ids } );
 
-    $stories_ids = [ sort { $a <=> $b } @{ $stories_ids } ];
+    my $stories_queue_table = _get_stories_queue_table();
 
     my $max_chunk_size = 5000;
+
+    my $stories_ids_list = join(',', map { int( $_ ) } @{ $stories_ids } );
+
+    # only delete stories that no longer exist in postgres, because we import with overwrite=true
+    $stories_ids = $db->query( <<SQL )->flat();
+select stories_id
+    from $stories_queue_table q
+        left join stories s using ( stories_id )
+    where
+        s.stories_id is null and
+        q.stories_id in ( $stories_ids_list )
+    order by q.stories_id
+SQL
+
+    DEBUG( "deleting " . scalar( @{ $stories_ids } ) . " stories_ids" );
 
     while ( @{ $stories_ids } )
     {
@@ -586,7 +601,6 @@ sub import_data($;$)
 
         if ( $update )
         {
-            INFO "deleting updated stories ...";
             _delete_queued_stories( $db ) || die( "delete stories failed." );
         }
 
