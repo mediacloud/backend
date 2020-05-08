@@ -5,6 +5,7 @@
 use strict;
 use warnings;
 
+use Encode;
 use File::Slurp;
 use Text::CSV_XS;
 

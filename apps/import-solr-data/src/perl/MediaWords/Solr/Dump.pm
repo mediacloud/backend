@@ -315,7 +315,7 @@ sub _get_import_url_params
 {
     my $url_params = {
         'commit'    => 'false',
-        'overwrite' => 'false',
+        'overwrite' => 'true',
     };
 
     return ( 'update', $url_params );
