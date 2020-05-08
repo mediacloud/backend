@@ -279,6 +279,7 @@ sub list_GET
     my $limit = $c->req->params->{ limit };
 
     my $pre_limit_order = $extra_clause ? '' : "$sort_clause limit $limit offset $offset";
+    my $post_limit_offset =  $extra_clause ? "offset $offset" : '';
 
     my $stories = $db->query( <<"SQL",
 
@@ -305,6 +306,7 @@ sub list_GET
         $sort_clause
 
 	    limit $limit
+        $post_limit_offset
 
 SQL
         $timespans_id, $snapshots_id
