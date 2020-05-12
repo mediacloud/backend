@@ -1191,6 +1191,19 @@ SQL
     $db->update_by_id( 'snapshots', $cd->{ snapshots_id }, { searchable => 'f' } );
 }
 
+# return list of periods to snapshot, using either topic.snapshot_periods or the default list of all periods
+sub _get_snapshot_periods($)
+{
+    my ( $topic ) = @_;
+
+    if ( my $snapshot_periods = $topic->{ snapshot_periods } )
+    {
+        return [ split( lc( $snapshot_periods ) ) ];
+    }
+
+    return [ qw(custom overall weekly monthly) ];
+}
+
 # Create a snapshot for the given topic.  
 #
 # If a snapshots_id is provided, use the existing snapshot.  Otherwise, create a new one.
@@ -1200,9 +1213,9 @@ sub snapshot_topic($$;$$$)
 {
     my ( $db, $topics_id, $snapshots_id, $note, $state_updater ) = @_;
 
-    my $periods = [ qw(custom overall weekly monthly) ];
-
     my $topic = $db->require_by_id( 'topics', $topics_id );
+
+    my $periods = _get_snapshot_periods( $topic );
 
     if ( $topic->{ mode } eq 'url_sharing' )
     {

@@ -26,7 +26,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4753;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4754;
 BEGIN
 
     -- Update / set database schema version
@@ -1869,6 +1869,9 @@ create table topics (
     respider_stories        boolean not null default false,
     respider_start_date     date null,
     respider_end_date       date null,
+
+    -- space separate list of periods to snapshot
+    snapshot_periods        text null,
 
     -- platform that topic is analyzing
     platform                varchar(1024) not null references topic_platforms(name),
