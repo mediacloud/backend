@@ -79,4 +79,6 @@ SELECT set_database_schema_version();
 
 echo "$SQL" > "$MIGRATION_FILE"
 
+git add "$MIGRATION_FILE"
+
 echo "Generated $MIGRATION_FILE"

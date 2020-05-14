@@ -26,7 +26,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4754;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4755;
 BEGIN
 
     -- Update / set database schema version
@@ -479,7 +479,7 @@ create table stories (
     title                       text            not null,
     normalized_title_hash       uuid            null,
     description                 text            null,
-    publish_date                timestamp       not null,
+    publish_date                timestamp       null,
     collect_date                timestamp       not null default now(),
     full_text_rss               boolean         not null default 'f',
     language                    varchar(3)      null   -- 2- or 3-character ISO 690 language code; empty if unknown, NULL if unset
@@ -1591,7 +1591,7 @@ CREATE TABLE story_sentences_p (
     sentence_number         INT         NOT NULL,
     sentence                TEXT        NOT NULL,
     media_id                INT         NOT NULL,
-    publish_date            TIMESTAMP   NOT NULL,
+    publish_date            TIMESTAMP   NULL,
 
     -- 2- or 3-character ISO 690 language code; empty if unknown, NULL if unset
     language                VARCHAR(3)  NULL,
@@ -2192,7 +2192,7 @@ create table snap.stories (
     url                         varchar(1024)   not null,
     guid                        varchar(1024)   not null,
     title                       text            not null,
-    publish_date                timestamp       not null,
+    publish_date                timestamp       null,
     collect_date                timestamp       not null,
     full_text_rss               boolean         not null default 'f',
     language                    varchar(3)      null   -- 2- or 3-character ISO 690 language code; empty if unknown, NULL if unset
@@ -2378,7 +2378,7 @@ create table snap.live_stories (
     title                       text            not null,
     normalized_title_hash       uuid            null,
     description                 text            null,
-    publish_date                timestamp       not null,
+    publish_date                timestamp       null,
     collect_date                timestamp       not null,
     full_text_rss               boolean         not null default 'f',
     language                    varchar(3)      null   -- 2- or 3-character ISO 690 language code; empty if unknown, NULL if unset

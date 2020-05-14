@@ -134,6 +134,7 @@ SQL
             topic_seed_queries_id => $tsq->{ topic_seed_queries_id },
             url => $post_story->{ url },
             stories_id => $post_story->{ stories_id },
+            topic_post_urls_id => $tpu->{ topic_post_urls_id }
         };
         $tsu = $db->create( 'topic_seed_urls', $tsu );
     }
@@ -147,7 +148,6 @@ SQL
     my $got_stories = $db->query( <<SQL, $got_snapshot->{ snapshots_id } )->hashes;
 select * from snap.stories where snapshots_id = ?
 SQL
-
 
     is( scalar( @{ $got_stories } ), 2, "number of pruned stories" );
 }
