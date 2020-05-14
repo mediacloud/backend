@@ -160,6 +160,12 @@ sub single_GET
         die "ID must be positive.";
     }
 
+    # really big numbers eventually get treated as the numeric type in postgres, which triggers a seq scan
+    if ( $id > 2**64 )
+    {
+        die "ID cannot be greater than 64 bits";
+    }
+
     my $id_field = $table_name . "_id";
 
     my $query = "select * from $table_name where $id_field = ? ";
