@@ -1198,7 +1198,10 @@ sub _get_snapshot_periods($)
 
     if ( my $snapshot_periods = $topic->{ snapshot_periods } )
     {
-        return [ split( lc( $snapshot_periods ) ) ];
+       my $periods = [ split( ' ', lc( $snapshot_periods ) ) ];
+       DEBUG( "limit periods to: " . join( ' ', @{ $periods } ) );
+
+       return $periods;
     }
 
     return [ qw(custom overall weekly monthly) ];
