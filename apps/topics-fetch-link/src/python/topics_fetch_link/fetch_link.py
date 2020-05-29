@@ -192,17 +192,13 @@ def _story_matches_topic(
     if redirect_url and content_matches_topic(redirect_url, topic):
         return True
 
-    ss = db.query(
-        """
-        select string_agg(' ', sentence) as text
-            from story_sentences ss
-                join topics c on ( c.topics_id = %(a)s )
-            where
-                ss.stories_id = %(b)s
-        """,
-        {'a': topic['topics_id'], 'b': story['stories_id']}).hash()
+    sentences = db.query(
+        "select sentence from story_sentences where stories_id = %(a)s",
+        {'a': story['stories_id']}).flat()
 
-    if content_matches_topic(ss['text'], topic):
+    text = ' '.join(sentences)
+
+    if content_matches_topic(text, topic):
         return True
 
 
