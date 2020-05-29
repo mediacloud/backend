@@ -139,10 +139,6 @@ sub generate_story
     {
         $story->{ publish_date } = $date_guess->{ date };
     }
-    else
-    {
-        $story->{ publish_date } = MediaWords::Util::SQL::sql_now();
-    }
 
     $story->{ content } = $content;
 
