@@ -165,6 +165,11 @@
 - name: Install Pip and Setuptools
   apt:
     name:
+      # Required for building CFFI
+      - build-essential
+      - python3-dev
+      - libffi-dev
+      - libssl-dev
       - python3-pip
       # Required by docker-compose:
       - python3-setuptools
