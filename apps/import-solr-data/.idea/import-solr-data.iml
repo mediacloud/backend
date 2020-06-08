@@ -1,12 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <module type="PYTHON_MODULE" version="4">
   <component name="NewModuleRootManager">
-    <content url="file://$MODULE_DIR$" />
-    <orderEntry type="jdk" jdkName="Remote Python 3.7.3 Docker Compose (import-solr-data at [/Users/pypt/Dropbox/etc-MediaCloud/trunk/apps/import-solr-data/docker-compose.tests.yml])" jdkType="Python SDK" />
+    <perl5>
+      <path value="$MODULE_DIR$/tests/perl" type="perl-library" />
+      <path value="$MODULE_DIR$/src/perl" type="perl-library" />
+    </perl5>
+    <content url="file://$MODULE_DIR$">
+      <sourceFolder url="file://$MODULE_DIR$/src/python" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/bin" isTestSource="false" />
+    </content>
+    <orderEntry type="jdk" jdkName="Remote Python 3.7.7 Docker Compose (import-solr-data at [/home/pypt/Dropbox/etc-MediaCloud/trunk/apps/import-solr-data/docker-compose.tests.yml])" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
   <component name="TestRunnerService">
-    <option name="projectConfiguration" value="pytest" />
     <option name="PROJECT_TEST_RUNNER" value="pytest" />
   </component>
 </module>
