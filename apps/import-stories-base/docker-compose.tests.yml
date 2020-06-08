@@ -1,0 +1,22 @@
+version: "3.7"
+
+services:
+
+    import-stories-base:
+        image: dockermediacloud/import-stories-base:latest
+        init: true
+        stop_signal: SIGKILL
+        volumes:
+            - type: bind
+              source: ./src/
+              target: /opt/mediacloud/src/import-stories-base/
+            - type: bind
+              source: ./tests/
+              target: /opt/mediacloud/tests/
+            - type: bind
+              source: ./../import-stories-base/bin/
+              target: /opt/mediacloud/bin/
+            - type: bind
+              source: ./../common/src/
+              target: /opt/mediacloud/src/common/
+
