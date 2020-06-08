@@ -1,8 +1,13 @@
 #
 # Base image for apps that use Java
 #
+# Adapted from https://github.com/docker-library/openjdk/blob/master/14/jdk/Dockerfile
+#
 
 FROM dockermediacloud/base:latest
+
+# Install prerequisites
+RUN apt-get -y --no-install-recommends install binutils fontconfig libfreetype6 p11-kit
 
 # Install OpenJDK 14 with Docker support improvements:
 #
@@ -22,4 +27,18 @@ RUN \
     #
     true
 
+# Set JAVA_HOME
 ENV JAVA_HOME /usr/lib/jvm/java-14-openjdk-amd64/
+
+# Add script that will keep system and Java certificates up-to-date and in sync
+COPY docker-openjdk.update.d.sh /etc/ca-certificates/update.d/openjdk
+
+RUN \
+    #
+    # https://github.com/docker-library/openjdk/issues/331#issuecomment-498834472
+    find "$JAVA_HOME/lib" -name '*.so' -exec dirname '{}' ';' | sort -u > /etc/ld.so.conf.d/openjdk.conf && \
+    ldconfig && \
+    #
+    # Sync certificates
+    chmod +x /etc/ca-certificates/update.d/openjdk && \
+    /etc/ca-certificates/update.d/openjdk
