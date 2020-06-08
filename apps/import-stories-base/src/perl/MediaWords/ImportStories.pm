@@ -29,6 +29,7 @@ use MediaWords::CommonLibs;
 use Moose::Role;
 
 use Data::Dumper;
+use Date::Manip;
 use Encode;
 
 use MediaWords::CommonLibs;
@@ -102,6 +103,8 @@ has 'scrape_feed' => ( is => 'rw', isa => 'Ref', required => 0 );
 has 'module_stories'   => ( is => 'rw', isa => 'Ref', required => 0 );
 has 'existing_stories' => ( is => 'rw', isa => 'Ref', required => 0 );
 
+has 'date_pattern' => ( is => 'rw', isa => 'Str', required => 0 );
+
 # sub class must implement $self->get_new_stories(), which returns story objects that have not yet
 # been inserted into the db
 requires 'get_new_stories';
@@ -115,6 +118,52 @@ requires 'get_new_stories';
 Given the content, generate a story hash
 
 =cut
+
+# if there is a $self->{ date_pattern }, match that pattern in the content and return the corresponding iso date
+sub parse_date_pattern($$)
+{
+    my ( $self, $content ) = @_;
+
+    my $date_pattern = $self->{ date_pattern };
+
+    WARN( "date pattern: $date_pattern / $content" );
+
+    return unless ( $date_pattern );
+
+    return unless ( $content =~ /$self->{ date_pattern }/i );
+
+    my $date_text = $1;
+
+    WARN( "date_text: $date_text" );
+
+    my $date = Date::Manip::ParseDate( $date_text );
+
+    WARN( "date: $date" );
+
+    return unless ( $date );
+
+    # Date:Manip returns dates in YYYYMMDDHH:MN:SS format
+    return substr( $date, 0, 4 ) . '-' . substr( $date, 4, 2 ) . '-' . substr( $date, 6, 2 ) . ' ' . 
+        substr( $date, 8, 2 ) . ':' . substr( $date, 11, 2 ) . ':' . substr( $date, 14, 2 );
+}
+
+# get the story date either using $self->{ date_pattern } or standard date guessing
+sub get_story_date($$$)
+{
+    my ( $self, $content, $url ) = @_;
+
+    my $parsed_date = $self->parse_date_pattern( $content );
+
+    return $parsed_date if ( $parsed_date );
+
+    my $date_guess = MediaWords::Util::GuessDate::guess_date( $url, $content );
+    if ( $date_guess->{ result } eq $MediaWords::Util::GuessDate::Result::FOUND )
+    {
+       return $date_guess->{ date };
+    }
+
+    return undef;
+}
 
 sub generate_story
 {
@@ -134,13 +183,7 @@ sub generate_story
         content      => $content
     };
 
-    my $date_guess = MediaWords::Util::GuessDate::guess_date( $story->{ url }, $content );
-    if ( $date_guess->{ result } eq $MediaWords::Util::GuessDate::Result::FOUND )
-    {
-        $story->{ publish_date } = $date_guess->{ date };
-    }
-
-    $story->{ content } = $content;
+    $story->{ publish_date } = $self->get_story_date( $content, $url );
 
     return $story;
 }
