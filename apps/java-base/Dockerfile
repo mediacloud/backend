@@ -27,8 +27,9 @@ RUN \
     #
     true
 
-# Set JAVA_HOME
-ENV JAVA_HOME /usr/lib/jvm/java-14-openjdk-amd64/
+ENV JAVA_HOME=/usr/lib/jvm/java-14-openjdk-amd64/ \
+    # Use cgroup's memory / CPU limits
+    JDK_JAVA_OPTIONS="-XX:+UseContainerSupport"
 
 # Add script that will keep system and Java certificates up-to-date and in sync
 COPY docker-openjdk.update.d.sh /etc/ca-certificates/update.d/openjdk

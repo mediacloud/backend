@@ -49,8 +49,6 @@ java_args=(
     -DnumShards="${MC_SOLR_SHARD_COUNT}"
     -DzkClientTimeout="${MC_SOLR_ZOOKEEPER_TIMEOUT}"
     -Dmediacloud.luceneMatchVersion="${MC_SOLR_LUCENEMATCHVERSION}"
-    # Use cgroup's memory / CPU limits
-    -XX:+UseContainerSupport
     # Needed for resolving paths to JARs in solrconfig.xml
     -Dmediacloud.solr_dist_dir=/opt/solr
     -Dmediacloud.solr_webapp_dir=/opt/solr/server/solr-webapp
