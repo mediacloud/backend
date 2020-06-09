@@ -126,19 +126,13 @@ sub parse_date_pattern($$)
 
     my $date_pattern = $self->{ date_pattern };
 
-    WARN( "date pattern: $date_pattern / $content" );
-
     return unless ( $date_pattern );
 
     return unless ( $content =~ /$self->{ date_pattern }/i );
 
     my $date_text = $1;
 
-    WARN( "date_text: $date_text" );
-
     my $date = Date::Manip::ParseDate( $date_text );
-
-    WARN( "date: $date" );
 
     return unless ( $date );
 
