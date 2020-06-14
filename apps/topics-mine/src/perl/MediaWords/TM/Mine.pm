@@ -21,6 +21,7 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use Getopt::Long;
+use List::MoreUtils;
 use List::Util;
 use Readonly;
 use Time::Piece;
@@ -96,6 +97,8 @@ sub update_topic_state($$$)
 sub story_within_topic_date_range
 {
     my ( $db, $topic, $story ) = @_;
+
+    return 1 unless ( $story->{ publish_date } );
 
     my $story_date = substr( $story->{ publish_date }, 0, 10 );
 
@@ -717,42 +720,38 @@ SQL
     return scalar( @{ $seed_urls } );
 }
 
-# look for any stories in the topic tagged with a date method of 'current_time' and
-# assign each the earliest source link date if any source links exist
-sub add_source_link_dates
+# look for any stories marked as undateable change the date to null
+sub null_undateable_stories
 {
     my ( $db, $topic ) = @_;
 
-    INFO( "add source link dates" );
+    my $tags = $db->query( <<SQL )->hashes();
+select t.* from tags t join tag_sets ts using ( tag_sets_id ) where ts.name = 'date_invalid'
+SQL
 
-    my $stories = $db->query( <<END, $topic->{ topics_id } )->hashes;
-select s.* from stories s, topic_stories cs, tag_sets ts, tags t, stories_tags_map stm
-    where s.stories_id = cs.stories_id and cs.topics_id = ? and
-        stm.stories_id = s.stories_id and stm.tags_id = t.tags_id and
-        t.tag_sets_id = ts.tag_sets_id and
-        t.tag in ( 'current_time' ) and ts.name = 'date_guess_method'
-END
+    my $tags_ids_list = join( ',', map { int( $_->{ tags_id } ) } @{ $tags } ); 
 
-    for my $story ( @{ $stories } )
+    my $stories_ids = $db->query( <<SQL, $topic->{ topics_id } )->flat();
+select stories_id from snap.live_stories where publish_date is not null and topics_id = ?
+SQL
+
+    my $iter = List::MoreUtils::natatime( 1000, @{ $stories_ids } );
+
+    while  ( my @chunk_stories_ids = $iter->() )
     {
-        my $source_link = $db->query( <<END, $topic->{ topics_id }, $story->{ stories_id } )->hash;
-select cl.*, s.publish_date
-        from topic_links cl
-            join stories s on ( cl.stories_id = s.stories_id )
-    where
-        cl.topics_id = ? and
-        cl.ref_stories_id = ?
-    order by cl.topic_links_id asc
-END
-
-        next unless ( $source_link );
-
-        $db->query( <<END, $source_link->{ publish_date }, $story->{ stories_id } );
-update stories set publish_date = ? where stories_id = ?
-END
-        MediaWords::DBI::Stories::GuessDate::assign_date_guess_method( $db, $story, 'source_link' );
+        my $stories_ids_list = join( ',', map { int( $_ ) } @chunk_stories_ids );
+        $db->query( <<SQL );
+update stories set publish_date = null
+    from stories_tags_map stm 
+    where 
+        s.stories_id = stm.stories_id and 
+        stm.tags_id in ( $tags_ids_list ) and
+        s.stories_id in ( $stories_ids_list ) and
+        s.publish_date is null
+SQL
     }
 }
+
 
 # insert a list of topic seed urls
 sub insert_topic_seed_urls
@@ -1148,11 +1147,6 @@ sub do_mine_topic($$;$$)
 {
     my ( $db, $topic, $options, $state_updater ) = @_;
 
-    # if ( !$topic->{ is_story_index_ready } )
-    # {
-    #     die( "refusing to run topic because is_story_index_ready is false" );
-    # }
-
     map { $options->{ $_ } ||= 0 } qw/import_only skip_post_processing test_mode/;
 
     update_topic_state( $db, $state_updater, "importing seed urls" );
@@ -1189,8 +1183,8 @@ sub do_mine_topic($$;$$)
         update_topic_state( $db, $state_updater, "merging duplicate media stories" );
         MediaWords::TM::Stories::merge_dup_media_stories( $db, $topic );
 
-        update_topic_state( $db, $state_updater, "adding source link dates" );
-        add_source_link_dates( $db, $topic );
+        update_topic_state( $db, $state_updater, "nulling undateable stories" );
+        null_undateable_stories( $db, $topic );
 
         if ( !$options->{ skip_post_processing } )
         {
