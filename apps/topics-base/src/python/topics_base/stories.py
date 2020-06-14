@@ -431,9 +431,7 @@ def generate_story(
         date_guess = guess_date(url, content)
         log.debug(f"Done guessing date for URL {url}: {date_guess}")
 
-        story['publish_date'] = date_guess.date if date_guess.found else fallback_date
-        if story['publish_date'] is None:
-            story['publish_date'] = datetime.datetime.now().isoformat()
+        story['publish_date'] = date_guess.date if date_guess.found else None
     else:
         story['publish_date'] = publish_date
 
