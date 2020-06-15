@@ -741,7 +741,7 @@ SQL
     {
         my $stories_ids_list = join( ',', map { int( $_ ) } @chunk_stories_ids );
         $db->query( <<SQL );
-update stories set publish_date = null
+update stories s set publish_date = null
     from stories_tags_map stm 
     where 
         s.stories_id = stm.stories_id and 
