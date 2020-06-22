@@ -99,22 +99,18 @@ sub _add_stories_to_import
     # first import any stories from snapshotted topics so that those snapshots become searchable ASAP.
     # do this as a separate query because I couldn't figure out a single query that resulted in a reasonable
     # postgres query plan given a very large stories queue table
-    my $num_queued_stories = 0;
-    if ( !$full )
-    {
-        my $num_queued_stories = $db->query(
-            <<"SQL",
-            INSERT INTO delta_import_stories (stories_id)
-                SELECT sies.stories_id
-                FROM $stories_queue_table sies
-                    join snap.stories ss using ( stories_id )
-                    join snapshots s on ( ss.snapshots_id = s.snapshots_id and not s.searchable )
-                ORDER BY sies.stories_id
-                LIMIT ?
+    my $num_queued_stories = $db->query(
+        <<"SQL",
+        INSERT INTO delta_import_stories (stories_id)
+            SELECT sies.stories_id
+            FROM $stories_queue_table sies
+                join snap.stories ss using ( stories_id )
+                join snapshots s on ( ss.snapshots_id = s.snapshots_id and not s.searchable )
+            ORDER BY sies.stories_id
+            LIMIT ?
 SQL
-            $max_queued_stories
-        )->rows;
-    }
+        $max_queued_stories
+    )->rows;
 
     INFO "added $num_queued_stories topic stories to the import";
 
