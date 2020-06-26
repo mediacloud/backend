@@ -80,13 +80,21 @@ def _store_post_and_urls(db: DatabaseHandler, topic_post_day: dict, post: dict) 
     # null characters are not legal in json but for some reason get stuck in these tweets
     # data_json = data_json.replace('\x00', '')
 
-    topic_post = {'topic_post_days_id': topic_post_day['topic_post_days_id'], 'data': data_json}
+    data = {}
 
     for field in POST_FIELDS:
-        topic_post[field] = post.get(field, None)
+        data[field] = post.get(field, None)
 
-    log.debug("insert topic post")
-    topic_post = db.create('topic_posts', topic_post)
+    data['topic_post_days_id'] = topic_post_day['topic_post_days_id']
+    data['data'] = data_json
+
+    topic_post = db.query(
+        "select * from topic_posts where topic_post_days_id = %(a)s and post_id = %(b)s",
+        {'a': topic_post_day['topic_post_days_id'], 'b': data['post_id']}).hash()
+
+    if not topic_post:
+        log.debug("insert topic post")
+        topic_post = db.create('topic_posts', data)
 
     log.debug("insert tweet urls")
     _insert_post_urls(db, topic_post, post['urls'])
