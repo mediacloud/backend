@@ -1,5 +1,0 @@
-# Don't send no email
-MAILTO=""
-
-# m h  dom mon dow user         command
-6   19 *   *   *   root         sudo -u mediacloud /opt/mediacloud/bin/cron_print_long_running_job_states.py 1> /proc/1/fd/1 2> /proc/1/fd/2
