@@ -327,6 +327,9 @@ def _reduce_db_posts_to_query_sample(
         topic_seed_queries_id=topic_seed_queries_id,
         max_posts_per_day=max_posts_per_day)
 
+    # add a buffer factor so that we don't ratchet down a tiny bit every time this runs.
+    query_sample_ratio = query_sample_ratio + 0.01;
+
     tpds = db.query(
         """
         select *
