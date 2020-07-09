@@ -306,6 +306,7 @@ def create_test_topic_stories(
         
         for si in range(num_stories_per_medium):
             story = create_test_story(db, f'story {mi} {si}', feed)
+            db.update_by_id('stories', story['stories_id'], {'publish_date': topic['start_date']})
             db.create('topic_stories', {'topics_id': topic['topics_id'], 'stories_id': story['stories_id']})
 
     db.query(

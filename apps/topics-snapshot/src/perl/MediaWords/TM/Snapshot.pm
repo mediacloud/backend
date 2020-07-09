@@ -194,11 +194,8 @@ sub _get_period_stories_date_where_clause
     my ( $timespan ) = @_;
 
     my $date_clause = <<END;
-( ( s.publish_date between \$1::timestamp and \$2::timestamp - interval '1 second'
-      and s.stories_id not in ( select stories_id from snapshot_undateable_stories ) ) or
-  ( ss.publish_date between \$1::timestamp and \$2::timestamp - interval '1 second'
-      and ss.stories_id not in ( select stories_id from snapshot_undateable_stories ) )
-)
+( ( s.publish_date between \$1::timestamp and \$2::timestamp - interval '1 second' ) or 
+  ( ss.publish_date between \$1::timestamp and \$2::timestamp - interval '1 second' ) )
 END
 
     return $date_clause;
@@ -238,17 +235,6 @@ sub _create_link_snapshot_period_stories($$)
         return;
     }
 
-    $db->query( <<END );
-create or replace temporary view snapshot_undateable_stories as
-select distinct s.stories_id
-    from snapshot_stories s, snapshot_stories_tags_map stm, tags t, tag_sets ts
-    where s.stories_id = stm.stories_id and
-        stm.tags_id = t.tags_id and
-        t.tag_sets_id = ts.tag_sets_id and
-        ts.name = 'date_invalid' and
-        t.tag = 'undateable'
-END
-
     my $date_where_clause = _get_period_stories_date_where_clause( $timespan );
 
     $db->query( <<"END", $timespan->{ start_date }, $timespan->{ end_date } );
@@ -258,10 +244,10 @@ select distinct s.stories_id
         left join snapshot_topic_links_cross_media cl on ( cl.ref_stories_id = s.stories_id )
         left join snapshot_stories ss on ( cl.stories_id = ss.stories_id )
     where
-        $date_where_clause
+        ( s.publish_date between \$1::timestamp and \$2::timestamp - interval '1 second' ) or 
+        ( ss.publish_date between \$1::timestamp and \$2::timestamp - interval '1 second' ) 
 END
 
-    $db->query( "drop view snapshot_undateable_stories" );
 }
 
 # return true if the topic of the timespan is not a web topic
@@ -409,16 +395,28 @@ sub _write_story_links_snapshot
     }
     else
     {
-        $db->query( <<END );
+        my $query = <<END;
 create temporary table snapshot_story_links as
     select distinct cl.stories_id source_stories_id, cl.ref_stories_id
 	    from snapshot_topic_links_cross_media cl
             join snapshot_period_stories sps on ( cl.stories_id = sps.stories_id )
+            join snapshot_stories s on ( sps.stories_id = s.stories_id )
             join snapshot_period_stories rps on ( cl.ref_stories_id = rps.stories_id )
             left join stories_ap_syndicated sap on ( sps.stories_id = sap.stories_id )
     	where
             ( ( sap.ap_syndicated is null ) or ( sap.ap_syndicated = false ) )
 END
+
+        if ( $timespan->{ period } eq 'overall' )
+        {
+            $db->query( <<END, $timespan->{ start_date }, $timespan->{ end_date } );
+$query and ( s.publish_date between \$1::timestamp and \$2::timestamp - interval '1 second' )
+END
+        }
+        else
+        {
+            $db->query( $query );
+        }
     }
 
     if ( !$is_model )
