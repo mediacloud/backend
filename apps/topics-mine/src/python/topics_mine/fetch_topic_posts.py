@@ -89,7 +89,7 @@ def _store_post_and_urls(db: DatabaseHandler, topic_post_day: dict, post: dict) 
     data['data'] = data_json
 
     topic_post = db.query(
-        "select * from topic_posts where topic_post_days_id = %(a)s and post_id = %(b)s",
+            "select * from topic_posts where topic_post_days_id = %(a)s and post_id = %(b)s::text",
         {'a': topic_post_day['topic_post_days_id'], 'b': data['post_id']}).hash()
 
     if not topic_post:
