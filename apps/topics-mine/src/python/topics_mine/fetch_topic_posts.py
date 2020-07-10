@@ -23,9 +23,6 @@ log = create_logger(__name__)
 # list of fields to copy from fetched posts to the topic_posts row
 POST_FIELDS = ('content', 'post_id', 'author', 'channel', 'publish_date', 'url')
 
-# scale the posts so that the max stored for each day is this
-MAX_POSTS_PER_DAY = 10000
-
 
 class McFetchTopicPostsDataException(Exception):
     """exception indicating an error in the external data fetched by this module."""
@@ -125,52 +122,6 @@ def regenerate_post_urls(db: DatabaseHandler, topic: dict) -> None:
         _insert_post_urls(db, topic_post, urls)
 
 
-def _get_query_sample_ratio(
-        db: DatabaseHandler,
-        topic_seed_queries_id: int,
-        max_posts_per_day: int=MAX_POSTS_PER_DAY) -> float:
-    """Get the sample ratio for the topic_seed_query.
-
-    The sample ratio is the minimum value of the tpd.num_posts_stored / tpd.num posts_fetched.
-
-    We sample down the posts collected so that we only collect MAX_POSTS_PER_DAY for each day, to preserve resources.
-    """
-    sample_ratio = db.query(
-        """
-        select min(least(num_posts_stored::float, %(b)s::float) / greatest(num_posts_fetched, 1))
-            from topic_post_days where topic_seed_queries_id = %(a)s and num_posts_stored > 0
-        """,
-        {'a': topic_seed_queries_id, 'b': max_posts_per_day}).flat()[0]
-
-    if sample_ratio is None or sample_ratio >= 1:
-        sample_ratio = 1
-
-    return sample_ratio
-
-
-def _reduce_posts_to_query_sample(
-        db: DatabaseHandler,
-        topic_post_day: dict,
-        posts: list,
-        max_posts_per_day: int=MAX_POSTS_PER_DAY) -> list:
-    """Reduce posts to random sample of posts by _get_query_sample_ratio()."""
-    num_posts_fetched = len(posts)
-
-    query_sample_ratio = _get_query_sample_ratio(
-        db=db,
-        topic_seed_queries_id=topic_post_day['topic_seed_queries_id'],
-        max_posts_per_day=max_posts_per_day)
-
-    day_sample_ratio = min([query_sample_ratio, float(max_posts_per_day) / max(num_posts_fetched, 1)])
-    
-    if day_sample_ratio < 1:
-        num_sampled_posts = int(day_sample_ratio * num_posts_fetched)
-        log.info(f'sampling down from {num_posts_fetched} to {num_sampled_posts} posts ({day_sample_ratio * 100}%)')
-        posts = random.sample(posts, num_sampled_posts)
-
-    return posts
-
-
 def _store_posts_for_day(db: DatabaseHandler, topic_post_day: dict, posts: list) -> None:
     """
     Store posts for a single day.
@@ -192,8 +143,6 @@ def _store_posts_for_day(db: DatabaseHandler, topic_post_day: dict, posts: list)
     num_posts_fetched = len(posts)
 
     log.info(f"{num_posts_fetched} posts remaining after match")
-
-    posts = _reduce_posts_to_query_sample(db, topic_post_day, posts)
 
     db.begin()
 
@@ -310,57 +259,6 @@ def fetch_posts(topic_seed_query: dict, start_date: datetime, end_date: datetime
     return posts
 
 
-def _reduce_db_posts_to_query_sample(
-        db: DatabaseHandler,
-        topic_seed_query: dict,
-        max_posts_per_day: int=MAX_POSTS_PER_DAY) -> None:
-    """Remove topic_posts so that the ratio of tpd.num_posts_stored/tpd.num_posts_fetched equals the query sample ratio.
-
-    See _get_query_sample_ratio() for definition of the sample ratio.  The intent of the query sample ratio is to 
-    make sure that no day has more than max_posts_per_day and also that we are using the same sample ratio for every
-    day in the query.
-    """
-    topic_seed_queries_id = topic_seed_query['topic_seed_queries_id']
-
-    query_sample_ratio = _get_query_sample_ratio(
-        db=db,
-        topic_seed_queries_id=topic_seed_queries_id,
-        max_posts_per_day=max_posts_per_day)
-
-    # add a buffer factor so that we don't ratchet down a tiny bit every time this runs.
-    query_sample_ratio = query_sample_ratio + 0.01;
-
-    tpds = db.query(
-        """
-        select *
-            from topic_post_days
-            where 
-                num_posts_stored::float / greatest(num_posts_fetched, 1) > %(a)s and
-                topic_seed_queries_id = %(b)s
-        """,
-        {'a': query_sample_ratio, 'b': topic_seed_query['topic_seed_queries_id']}).hashes()
-
-    for tpd in tpds:
-        num_posts_to_delete = tpd['num_posts_stored'] - int(query_sample_ratio * tpd['num_posts_fetched'])
-        if num_posts_to_delete <= 1:
-            continue
-
-        log.info(f'deleting {num_posts_to_delete} posts from {tpd["day"]} to match query sample ratio')
-        tps = db.query(
-            "select topic_posts_id from topic_posts where topic_post_days_id = %(a)s order by random() limit %(b)s",
-            {'a': tpd['topic_post_days_id'], 'b': num_posts_to_delete}).hashes()
-        for tp in tps:
-            db.delete_by_id('topic_posts', tp['topic_posts_id'])
-
-        db.query(
-            """
-            update topic_post_days
-                set num_posts_stored = ( select count(*) from topic_posts where topic_post_days_id = %(a)s )
-                where topic_post_days_id = %(a)s
-            """,
-            {'a': tpd['topic_post_days_id']})
-
-
 def fetch_topic_posts(db: DatabaseHandler, topic_seed_query: dict) -> None:
     """For each day within the topic dates, fetch and store posts returned by the topic_seed_query.
 
@@ -389,5 +287,3 @@ def fetch_topic_posts(db: DatabaseHandler, topic_seed_query: dict) -> None:
             _store_posts_for_day(db, topic_post_day, posts)
 
         date = date + datetime.timedelta(days=1)
-
-    _reduce_db_posts_to_query_sample(db, topic_seed_query)
