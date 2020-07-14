@@ -407,7 +407,7 @@ create temporary table snapshot_story_links as
             ( ( sap.ap_syndicated is null ) or ( sap.ap_syndicated = false ) )
 END
 
-        if ( $timespan->{ period } eq 'overall' )
+        if ( $timespan->{ period } ne 'overall' )
         {
             $db->query( <<END, $timespan->{ start_date }, $timespan->{ end_date } );
 $query and ( s.publish_date between \$1::timestamp and \$2::timestamp - interval '1 second' )
