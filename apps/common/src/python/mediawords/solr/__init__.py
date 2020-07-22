@@ -225,9 +225,9 @@ def query_solr(db: DatabaseHandler, params: SolrParams) -> Dict[str, Any]:
     #     params['q'] = f"{{!complexphrase inOrder=false}} {params['q']}"
 
     params['q'] = _uppercase_boolean_operators(params['q'])
-    params['q'] = _uppercase_boolean_operators(params['q'])
+    params['fq'] = _uppercase_boolean_operators(params['fq'])
 
-    params['fq'] = _replace_smart_quotes(params['fq'])
+    params['q'] = _replace_smart_quotes(params['q'])
     params['fq'] = _replace_smart_quotes(params['fq'])
 
     if params['q']:
