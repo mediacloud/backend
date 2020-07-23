@@ -1140,7 +1140,7 @@ sub do_mine_topic($$;$$)
     unless ( $options->{ import_only } )
     {
         update_topic_state( $db, $state_updater, "running spider" );
-        run_spider( $db, $topic );
+        run_spider( $db, $topic, $state_updater );
 
         check_job_error_rate( $db, $topic );
 
