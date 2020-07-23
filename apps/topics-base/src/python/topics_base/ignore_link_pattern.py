@@ -37,6 +37,7 @@ __ignore_link_patterns = [
     r'accounts\.google\.com/ServiceLogin',
     r'network\.wwe\.com/video', # wwe videos just redirect to front page
     r'goldfish\.me/',
+    r'uscode\.house\.gov/quicksearch', # political topics try to download entire database
 ]
 
 IGNORE_LINK_PATTERN = '|'.join(["(?:%s)" % p for p in __ignore_link_patterns])

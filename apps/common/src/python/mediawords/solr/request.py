@@ -58,7 +58,8 @@ class McSolrRequestInvalidParamsException(_AbstractSolrRequestQueryErrorExceptio
 def __wait_for_solr_to_start(config: Optional[CommonConfig]) -> None:
     """Wait for Solr to start and collections to become available, if needed."""
 
-    sample_select_url = f"{config.solr_url()}/mediacloud/select?q=*.*&rows=1&wt=json"
+    # search for an empty or rare term here because searching for *:* sometimes causes a timeout for some reason
+    sample_select_url = f"{config.solr_url()}/mediacloud/select?q=BOGUSQUERYTHATRETURNSNOTHINGNADA&rows=1&wt=json"
 
     connected = False
 

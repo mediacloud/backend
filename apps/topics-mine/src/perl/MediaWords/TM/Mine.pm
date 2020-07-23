@@ -720,38 +720,6 @@ SQL
     return scalar( @{ $seed_urls } );
 }
 
-# look for any stories marked as undateable change the date to null
-sub null_undateable_stories
-{
-    my ( $db, $topic ) = @_;
-
-    my $tags = $db->query( <<SQL )->hashes();
-select t.* from tags t join tag_sets ts using ( tag_sets_id ) where ts.name = 'date_invalid'
-SQL
-
-    my $tags_ids_list = join( ',', map { int( $_->{ tags_id } ) } @{ $tags } ); 
-
-    my $stories_ids = $db->query( <<SQL, $topic->{ topics_id } )->flat();
-select stories_id from snap.live_stories where publish_date is not null and topics_id = ?
-SQL
-
-    my $iter = List::MoreUtils::natatime( 1000, @{ $stories_ids } );
-
-    while  ( my @chunk_stories_ids = $iter->() )
-    {
-        my $stories_ids_list = join( ',', map { int( $_ ) } @chunk_stories_ids );
-        $db->query( <<SQL );
-update stories s set publish_date = null
-    from stories_tags_map stm 
-    where 
-        s.stories_id = stm.stories_id and 
-        stm.tags_id in ( $tags_ids_list ) and
-        s.stories_id in ( $stories_ids_list ) and
-        s.publish_date is null
-SQL
-    }
-}
-
 
 # insert a list of topic seed urls
 sub insert_topic_seed_urls
@@ -1182,9 +1150,6 @@ sub do_mine_topic($$;$$)
 
         update_topic_state( $db, $state_updater, "merging duplicate media stories" );
         MediaWords::TM::Stories::merge_dup_media_stories( $db, $topic );
-
-        update_topic_state( $db, $state_updater, "nulling undateable stories" );
-        null_undateable_stories( $db, $topic );
 
         if ( !$options->{ skip_post_processing } )
         {
