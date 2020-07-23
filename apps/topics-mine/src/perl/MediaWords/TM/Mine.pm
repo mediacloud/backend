@@ -420,9 +420,11 @@ SQL
             }
             else
             {
-                splice( @{ $pending_url_ids }, 10 );
-                my $ids_list = join( ', ', @{ $pending_url_ids } );
-                die( "Timed out waiting for fetch_link queue ($ids_list)" );
+                for my $id ( @{ $pending_url_ids } )
+                {
+                    $db->update_by_id( 'topic_fetch_urls', $id, { state => 'error', message => 'timed out' } );
+                }
+                INFO( "timed out " . scalar( @{ $pending_url_ids } ) . " urls" );
             }
         }
 
