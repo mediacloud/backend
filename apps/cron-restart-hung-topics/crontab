@@ -1,0 +1,7 @@
+# Don't send no email
+MAILTO=""
+
+# m h dom mon dow user          command
+#
+# Run as www-data to be able to write to /var/lib/daily_rss_dumps/:
+6   1 *   *   *   root          sudo -u www-data /opt/mediacloud/bin/cron_generate_daily_rss_dumps.pl /var/lib/daily_rss_dumps/ 1> /proc/1/fd/1 2> /proc/1/fd/2
