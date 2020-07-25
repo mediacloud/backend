@@ -400,10 +400,12 @@ def get_solr_num_found(db: DatabaseHandler, params: SolrParams) -> int:
     params = copy.deepcopy(params)
 
     params['rows'] = 0
+    params['json.facet'] = '{x:"hll(stories_id)"}'
 
     res = query_solr(db=db, params=params)
 
-    num_found = res['response']['numFound']
+    # if count is 0, there is no value for x
+    num_found = res['facets']['x'] if res['facets']['count'] > 0 else 0
 
     return num_found
 

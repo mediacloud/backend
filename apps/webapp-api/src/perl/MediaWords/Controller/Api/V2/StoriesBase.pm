@@ -454,30 +454,29 @@ sub _get_date_counts
 
     my $facet_field = "publish_$split_period";
 
+    my $json_facet = <<END;
+{categories:{sort: index, type:terms, field: publish_$split_period, limit: 1000000, facet:{x:"hll(stories_id)"}}}
+END
+
     my $params;
-    $params->{ q }                = $q;
-    $params->{ fq }               = $fq;
-    $params->{ facet }            = 'true';
-    $params->{ 'facet.field' }    = $facet_field;
-    $params->{ 'facet.limit' }    = -1;
-    $params->{ 'facet.mincount' } = 1;
-    $params->{ rows }             = 0;
+    $params->{ q }            = $q;
+    $params->{ fq }           = $fq;
+    $params->{ rows }         = 0;
+    $params->{ 'json.facet' } = $json_facet;
 
     my $solr_response = MediaWords::Solr::query_solr( $c->dbis, $params );
 
-    my $facet_counts = $solr_response->{ facet_counts }->{ facet_fields }->{ $facet_field };
+    my $facet_counts = $solr_response->{ facets }->{ categories }->{ buckets };
 
-    die "Number of elements in 'counts' is not even." unless ( scalar( @{ $facet_counts } ) % 2 == 0 );
-
-    my $date_counts       = [];
-    my %date_count_lookup = @{ $facet_counts };
-    while ( my ( $date, $count ) = each( %date_count_lookup ) )
+    my $date_counts = [];
+    for my $facet_count ( @{ $facet_counts } )
     {
+        my $date = $facet_count->{ val };
+        my $count = $facet_count->{ x };
+
         $date =~ s/(.*)T(.*)Z$/$1 $2/;
         push( @{ $date_counts }, { date => $date, count => $count } );
     }
-
-    $date_counts = [ sort { $a->{ date } cmp $b->{ date } } @{ $date_counts } ];
 
     return $date_counts;
 }
