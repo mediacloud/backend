@@ -49,10 +49,9 @@ def test_generate_story():
         db=db,
         url='http://fallback.date',
         content='foo',
-        fallback_date='2011-11-11',
     )
 
-    assert story['publish_date'] == '2011-11-11 00:00:00'
+    assert story['publish_date'] == None
 
     matched_story = generate_story(db, story['url'], 'foo')
     assert matched_story['stories_id'] == story['stories_id']
