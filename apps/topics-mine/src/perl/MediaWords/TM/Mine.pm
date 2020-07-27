@@ -53,7 +53,7 @@ Readonly my $SPIDER_LINKS_CHUNK_SIZE => 100_000;
 Readonly my $MAX_JOB_ERROR_RATE => 0.02;
 
 # timeout when polling for jobs to finish
-Readonly my $JOB_POLL_TIMEOUT => 600;
+Readonly my $JOB_POLL_TIMEOUT => 300;
 
 # number of seconds to wait when polling for jobs to finish
 Readonly my $JOB_POLL_WAIT => 5;
@@ -352,7 +352,7 @@ sub fetch_links
     my $tfu_ids_list = join( ',', map { int( $_->{ topic_fetch_urls_id } ) } @{ $tfus } );
 
     my $requeues         = 0;
-    my $max_requeues     = 10;
+    my $max_requeues     = 1;
     my $max_requeue_jobs = 100;
     my $requeue_timeout  = 30;
     my $instant_requeued = 0;
@@ -362,7 +362,7 @@ sub fetch_links
 
     # how many times to requeues everything if there is no change for $JOB_POLL_TIMEOUT seconds
     my $full_requeues     = 0;
-    my $max_full_requeues = 2;
+    my $max_full_requeues = 1;
 
     my $last_pending_change   = time();
     my $last_num_pending_urls = 0;
