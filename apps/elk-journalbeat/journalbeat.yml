@@ -1,0 +1,34 @@
+path.home: /opt/journalbeat/
+
+logging.to_stderr: true
+
+logging.metrics.enabled: false
+
+# Will be set by the wrapper script
+#name:
+
+# Will be set by the wrapper script
+#max_procs:
+
+
+# ---
+
+journalbeat.inputs:
+  
+  - paths: []
+    seek: cursor
+    tags: ["journald"]
+
+
+# ---
+
+processors:
+
+  # Host metadata is not useful as "host" is a container in this case
+  # - add_host_metadata: ~
+
+
+# ---
+
+output.logstash:
+  hosts: ["elk-logstash:5044"]

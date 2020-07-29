@@ -65,6 +65,9 @@ all:
                 # Solr shards from "solr-shard-17" to "solr-shard-24" (host #2)
                 role-solr-shards-host3: "true"
 
+                # ELK log aggregator
+                role-elk-aggregator: "true"
+
                 # The rest of the apps
                 # Assign this role to hosts that are bound to run all the rest of the
                 # apps without a specific placement constraint. If you'd like to

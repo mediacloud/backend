@@ -1,0 +1,134 @@
+node.name: elk-logstash
+
+
+log:
+
+  # Options for log.level:
+  #   * fatal
+  #   * error
+  #   * warn
+  #   * info (default)
+  #   * debug
+  #   * trace
+  #
+  level: info
+
+  format: plain
+
+
+path:
+
+  #data:
+
+  # Where to fetch the pipeline configuration for the main pipeline
+  config: /opt/logstash/config/elk-mediacloud.conf
+
+  # If using queue.type: persisted, the directory path where the data files will be stored.
+  # Default is path.data/queue
+  #
+  #queue:
+
+  # If using dead_letter_queue.enable: true, the directory path where the data files will be stored.
+  # Default is path.data/dead_letter_queue
+  #
+  #path.dead_letter_queue:
+
+  #path.logs:
+
+  # Where to find custom plugins
+  #path.plugins: []
+
+
+pipeline:
+  id: elk-mediacloud
+
+  # Worker count will be set by wrapper script
+  #workers: 2
+
+  #batch:
+
+    # How many events to retrieve from inputs before sending to filters+workers
+    #size: 125
+
+    # How long to wait in milliseconds while polling for the next event
+    # before dispatching an undersized batch to filters+outputs
+    #delay: 50
+
+  # Force Logstash to exit during shutdown even if there are still inflight
+  # events in memory. By default, logstash will refuse to quit until all
+  # received events have been pushed to the outputs.
+  #
+  # WARNING: enabling this can lead to data loss during shutdown
+  #unsafe_shutdown: false
+
+  # Set the pipeline event ordering. Options are "auto" (the default), "true" or "false".
+  # "auto" will  automatically enable ordering if the 'pipeline.workers' setting
+  # is also set to '1'.
+  # "true" will enforce ordering on the pipeline and prevent logstash from starting
+  # if there are multiple workers.
+  # "false" will disable any extra processing necessary for preserving ordering.
+  ordered: auto
+
+  # Flag to output log lines of each pipeline in its separate log file. Each log filename contains the pipeline.name
+  # Default is false
+  #separate_logs: false
+
+
+queue:
+
+  # Internal queuing model, "memory" for legacy in-memory based queuing and
+  # "persisted" for disk-based acked queueing. Defaults is memory
+  type: persisted
+
+  # If using queue.type: persisted, the page data files size. The queue data consists of
+  # append-only data files separated into pages. Default is 64mb
+  page_capacity: 64mb
+
+  # If using queue.type: persisted, the maximum number of unread events in the queue.
+  # Default is 0 (unlimited)
+  max_events: 0
+
+  # If using queue.type: persisted, the total capacity of the queue in number of bytes.
+  # If you would like more unacked events to be buffered in Logstash, you can increase the
+  # capacity using this setting. Please make sure your disk drive has capacity greater than
+  # the size specified here. If both max_bytes and max_events are specified, Logstash will pick
+  # whichever criteria is reached first
+  # Default is 1024mb or 1gb
+  max_bytes: 1024mb
+
+  checkpoint:
+
+    # If using queue.type: persisted, the maximum number of acked events before forcing a checkpoint
+    # Default is 1024, 0 for unlimited
+    #
+    acks: 1024
+
+    # If using queue.type: persisted, the maximum number of written events before forcing a checkpoint
+    # Default is 1024, 0 for unlimited
+    writes: 1024
+
+    # If using queue.type: persisted, the interval in milliseconds when a checkpoint is forced on the head page
+    # Default is 1000, 0 for no periodic checkpoint.
+    #
+    interval: 1000
+
+
+dead_letter_queue:
+
+  # Flag to turn on dead-letter queue.
+  enable: true
+
+  # If using dead_letter_queue.enable: true, the maximum size of each dead letter queue. Entries
+  # will be dropped if they would increase the size of the dead letter queue beyond this setting.
+  # Default is 1024mb
+  max_bytes: 1024mb
+
+
+http:
+
+  # Bind address for the metrics REST endpoint
+  host: "0.0.0.0"
+
+  # Bind port for the metrics REST endpoint, this option also accept a range
+  # (9600-9700) and logstash will pick up the first available ports.
+  port: 9600

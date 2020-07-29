@@ -1,3 +1,9 @@
+- name: Include sysctl tasks
+  include_tasks: sysctl.yml
+  tags:
+    - docker
+    - sysctl
+
 - name: Include Journald tasks
   include_tasks: journald.yml
   tags:

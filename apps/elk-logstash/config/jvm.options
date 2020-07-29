@@ -1,0 +1,57 @@
+#
+# -Xmx and -Xms both get set at runtime
+#
+
+# Container compatibility stuff
+-Dls.cgroup.cpuacct.path.override=/
+-Dls.cgroup.cpu.path.override=/
+
+## GC configuration
+#-XX:+UseConcMarkSweepGC
+#-XX:CMSInitiatingOccupancyFraction=75
+#-XX:+UseCMSInitiatingOccupancyOnly
+
+## G1GC Configuration (borrowed from Elasticsearch)
+14-:-XX:+UseG1GC
+14-:-XX:G1ReservePercent=25
+14-:-XX:InitiatingHeapOccupancyPercent=30
+
+# set to headless, just in case
+-Djava.awt.headless=true
+
+# ensure UTF-8 encoding by default (e.g. filenames)
+-Dfile.encoding=UTF-8
+
+# Turn on JRuby invokedynamic
+-Djruby.compile.invokedynamic=true
+# Force Compilation
+-Djruby.jit.threshold=0
+# Make sure joni regexp interruptability is enabled
+-Djruby.regexp.interruptible=true
+
+# generate a heap dump when an allocation from the Java heap fails
+# heap dumps are created in the working directory of the JVM
+-XX:+HeapDumpOnOutOfMemoryError
+
+# specify an alternative path for heap dumps; ensure the directory exists and
+# has sufficient space
+-XX:HeapDumpPath=/opt/logstash/data/jvm-heapdumps/
+
+# Log JVM errors to STDERR
+-XX:+ErrorFileToStderr
+
+# JDK 9+ GC logging
+#
+# Log to STDERR:
+#
+# 9-:-Xlog:gc*,gc+age=trace,safepoint:stderr:utctime,pid,tags:
+#
+# ...or log to file:
+#
+9-:-Xlog:gc*,gc+age=trace,safepoint:file=/opt/logstash/data/jvm-gc-logs/gc.log:utctime,pid,tags:filecount=32,filesize=64m
+
+# Entropy source for randomness
+-Djava.security.egd=file:/dev/urandom
+
+# Copy the logging context from parent threads to children
+-Dlog4j2.isThreadContextMapInheritable=true

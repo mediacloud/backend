@@ -1,0 +1,59 @@
+path.home: /opt/filebeat/
+
+logging.to_stderr: true
+
+logging.metrics.enabled: false
+
+recursive_glob.enabled: true
+
+# Will be set by the wrapper script
+#name:
+
+# Will be set by the wrapper script
+#max_procs:
+
+
+# ---
+
+filebeat.config.modules:
+  path: ${path.config}/modules.d/*.yml
+  reload.enabled: false
+
+
+# ---
+
+filebeat.inputs:
+
+  # Host system logs
+  - type: log
+    paths:
+      - "/var/log/**/*.log"
+    exclude_files: ['\.gz$']
+    tags: ["var_log"]
+
+  # Docker containers
+  - type: container
+    paths:
+      - "/var/lib/docker/containers/*/*.log"
+    tags: ["containers"]
+
+
+# ---
+
+processors:
+
+  # Host metadata is not useful as "host" is a container in this case
+  # - add_host_metadata: ~
+
+  - add_docker_metadata:
+      host: "unix:///var/run/docker.sock"
+
+  - decode_json_fields:
+      fields: ["message"]
+      target: "json"
+      overwrite_keys: true
+
+# ---
+
+output.logstash:
+  hosts: ["elk-logstash:5044"]

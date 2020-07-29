@@ -704,6 +704,175 @@ services:
                     memory: "256M"
 
     #
+    # ELK Elasticsearch (log indexing)
+    # --------------------------------
+    #
+    elk-elasticsearch:
+        image: dockermediacloud/elk-elasticsearch:release
+        <<: *sysctl-defaults
+        init: true
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+        expose:
+            # HTTP transport
+            - "9200"
+            # TCP transport
+            - "9300"
+        ulimits:
+            # https://www.elastic.co/guide/en/elasticsearch/reference/current/max-number-of-threads.html
+            nproc: 4096
+            # https://www.elastic.co/guide/en/elasticsearch/reference/current/file-descriptors.html
+            nofile:
+                soft: 65535
+                hard: 65535
+        volumes:
+            - vol_elk_elasticsearch_data:/var/lib/elasticsearch/
+        deploy:
+            <<: *endpoint-mode-dnsrr
+            placement:
+                constraints:
+                    # Must run on the host with ELK Elasticsearch data volume
+                    - node.labels.role-elk-aggregator == true
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "2"
+                    # RAM limit
+                    memory: "8G"
+
+    #
+    # ELK Filebeat (plain text log collection)
+    # ----------------------------------------
+    #
+    elk-filebeat:
+        image: dockermediacloud/elk-filebeat:release
+        <<: *sysctl-defaults
+        init: true
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+        ulimits:
+            # Increase open file limit as there might be many containers to track
+            nofile:
+                soft: 65535
+                hard: 65535
+        volumes:
+            # Mount log directories, Docker directories and socket for Filebeat to
+            # be able to read logs
+            - /etc/hostname:/etc/hostname:ro
+            - /etc/machine-id:/etc/machine-id:ro
+            - /var/log/:/var/log/:ro
+            - /var/lib/docker/:/var/lib/docker/:ro
+            - /var/run/docker.sock:/var/run/docker.sock
+        deploy:
+            <<: *endpoint-mode-dnsrr
+            # Run on every node to be able to collect logs from each
+            mode: global
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "1G"
+
+    #
+    # ELK Journalbeat (journald log collection)
+    # -----------------------------------------
+    #
+    elk-journalbeat:
+        image: dockermediacloud/elk-journalbeat:release
+        <<: *sysctl-defaults
+        init: true
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+        ulimits:
+            # Increase open file limit as there might be many files to track
+            nofile:
+                soft: 65535
+                hard: 65535
+        volumes:
+            # Mount journald log directory for Journalbeat to be able to read logs
+            - /etc/hostname:/etc/hostname:ro
+            - /etc/machine-id:/etc/machine-id:ro
+            - /var/log/journal/:/var/log/journal/:ro
+            # - /run/systemd:/run/systemd/:ro
+        deploy:
+            <<: *endpoint-mode-dnsrr
+            # Run on every node to be able to collect logs from each
+            mode: global
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "1G"
+
+    #
+    # ELK Kibana (web UI)
+    # ------------------------------
+    #
+    elk-kibana:
+        image: dockermediacloud/elk-kibana:release
+        <<: *sysctl-defaults
+        init: true
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+        expose:
+            # Web server
+            - "5601"
+        ports:
+            # For connecting to through a SSH tunnel
+            # MAKE SURE to BLOCK THIS PORT in provision/roles/docker/tasks/iptables.yml
+            - "5601:5601"
+        deploy:
+            <<: *endpoint-mode-dnsrr
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "2"
+                    # RAM limit
+                    memory: "8G"
+
+    #
+    # ELK Logstash (log aggregation)
+    # ------------------------------
+    #
+    elk-logstash:
+        image: dockermediacloud/elk-logstash:release
+        <<: *sysctl-defaults
+        init: true
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+        expose:
+            # Beats log ingestion
+            - "5044"
+            # Metrics REST endpoint
+            - "9600"
+        volumes:
+            - vol_elk_logstash_data:/opt/logstash/data/
+        deploy:
+            <<: *endpoint-mode-dnsrr
+            placement:
+                constraints:
+                    # Must run on the host with ELK Elasticsearch data volume
+                    - node.labels.role-elk-aggregator == true
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "2"
+                    # RAM limit
+                    memory: "8G"
+
+    #
     # Extract and vector stories
     # --------------------------
     #
@@ -2382,3 +2551,19 @@ volumes:
             type: none
             o: bind
             device: /space/mediacloud/vol_proxy_ssl_certs
+
+    # ELK Elasticsearch log index
+    vol_elk_logstash_data:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_elk_logstash_data
+
+    # ELK Elasticsearch log index
+    vol_elk_elasticsearch_data:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_elk_elasticsearch_data

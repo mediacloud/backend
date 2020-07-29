@@ -1,0 +1,107 @@
+version: "3.7"
+
+services:
+
+    elk-kibana:
+        image: dockermediacloud/elk-kibana:latest
+        init: true
+        stop_signal: SIGKILL
+        expose:
+            - "5601"
+        ports:
+            # Expose to host for debugging
+            - "5601:5601"
+        depends_on:
+            - elk-elasticsearch
+
+    elk-elasticsearch:
+        image: dockermediacloud/elk-elasticsearch:latest
+        init: true
+        stop_signal: SIGKILL
+        expose:
+            - "9200"
+            - "9300"
+        ports:
+            # Expose to host for debugging
+            - "9200:9200"
+            - "9300:9300"
+        volumes:
+            - type: bind
+              source: ./../elk-elasticsearch/bin/elasticsearch.sh
+              target: /opt/elasticsearch/bin/elasticsearch.sh
+            - type: bind
+              source: ./../elk-elasticsearch/config/
+              target: /opt/elasticsearch/config/
+        # Limit CPUs and RAM for the process to not get too greedy
+        deploy:
+            resources:
+                limits:
+                    cpus: "2"
+                    memory: "2G"
+        depends_on:
+            - elk-logstash
+
+    elk-logstash:
+        image: dockermediacloud/elk-logstash:latest
+        init: true
+        stop_signal: SIGKILL
+        expose:
+            - "5044"
+            - "9600"
+        ports:
+            # Expose to host for debugging
+            - "5044:5044"
+            - "9600:9600"
+        volumes:
+            - type: bind
+              source: ./../elk-logstash/bin/logstash.sh
+              target: /opt/logstash/bin/logstash.sh
+            - type: bind
+              source: ./../elk-logstash/config/
+              target: /opt/logstash/config/
+        depends_on:
+            - elk-filebeat
+            - elk-journalbeat
+
+    elk-filebeat:
+        image: dockermediacloud/elk-filebeat:latest
+        init: true
+        stop_signal: SIGKILL
+        volumes:
+            - type: bind
+              source: ./../elk-filebeat/filebeat.yml
+              target: /opt/filebeat/filebeat.yml
+              read_only: true
+            - type: bind
+              source: ./../elk-filebeat/filebeat.sh
+              target: /opt/filebeat/filebeat.sh
+              read_only: true
+            # Mount log directories, Docker directories and socket for Filebeat to
+            # be able to read logs
+            - /etc/hostname:/etc/hostname:ro
+            - /etc/machine-id:/etc/machine-id:ro
+            - /var/log/:/var/log/:ro
+            - /var/lib/docker/:/var/lib/docker/:ro
+            - /var/run/docker.sock:/var/run/docker.sock
+
+    elk-journalbeat:
+        image: dockermediacloud/elk-journalbeat:latest
+        init: true
+        stop_signal: SIGKILL
+        # Enable to be able to use strace:
+        #cap_add:
+        #  - SYS_PTRACE
+        volumes:
+            - type: bind
+              source: ./../elk-journalbeat/journalbeat.yml
+              target: /opt/journalbeat/journalbeat.yml
+              read_only: true
+            - type: bind
+              source: ./../elk-journalbeat/journalbeat.sh
+              target: /opt/journalbeat/journalbeat.sh
+              read_only: true
+            # Mount journald log directory for Journalbeat to be able to read logs
+            - /etc/hostname:/etc/hostname:ro
+            # Hostname and journald's directory must match
+            - ./../elk-journalbeat/journald-log-sample/etc/machine-id:/etc/machine-id:ro
+            - ./../elk-journalbeat/journald-log-sample/var/log/journal/:/var/log/journal/:ro
