@@ -13,6 +13,17 @@ logging.metrics.enabled: false
 
 # ---
 
+setup.template.settings:
+  index.number_of_shards: 1
+
+setup.dashboards.enabled: true
+
+setup.kibana:
+  host: "elk-kibana:5601"
+
+
+# ---
+
 journalbeat.inputs:
   
   - paths: []

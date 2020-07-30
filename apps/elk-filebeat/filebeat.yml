@@ -15,6 +15,17 @@ recursive_glob.enabled: true
 
 # ---
 
+setup.template.settings:
+  index.number_of_shards: 1
+
+setup.dashboards.enabled: true
+
+setup.kibana:
+  host: "elk-kibana:5601"
+
+
+# ---
+
 filebeat.config.modules:
   path: ${path.config}/modules.d/*.yml
   reload.enabled: false

@@ -6,7 +6,7 @@ FROM dockermediacloud/java-base:latest
 
 # Install Kibana
 # (https://www.elastic.co/downloads/kibana-oss)
-ENV ELK_KIBANA_VERSION=7.7.1
+ENV ELK_KIBANA_VERSION=7.8.1
 RUN \
     mkdir -p /opt/kibana/ && \
     curl --fail --location --retry 3 --retry-delay 5 "https://artifacts.elastic.co/downloads/kibana/kibana-oss-${ELK_KIBANA_VERSION}-linux-x86_64.tar.gz" | \
