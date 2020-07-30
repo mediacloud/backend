@@ -55,5 +55,5 @@ processors:
 
 # ---
 
-output.logstash:
-  hosts: ["elk-logstash:5044"]
+output.elasticsearch:
+  hosts: ["elk-elasticsearch:9200"]

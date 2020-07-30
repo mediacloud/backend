@@ -734,7 +734,7 @@ services:
             placement:
                 constraints:
                     # Must run on the host with ELK Elasticsearch data volume
-                    - node.labels.role-elk-aggregator == true
+                    - node.labels.role-elk-elasticsearch == true
             resources:
                 limits:
                     # CPU core limit
@@ -833,38 +833,6 @@ services:
             - "5601:5601"
         deploy:
             <<: *endpoint-mode-dnsrr
-            resources:
-                limits:
-                    # CPU core limit
-                    cpus: "2"
-                    # RAM limit
-                    memory: "8G"
-
-    #
-    # ELK Logstash (log aggregation)
-    # ------------------------------
-    #
-    elk-logstash:
-        image: dockermediacloud/elk-logstash:release
-        <<: *sysctl-defaults
-        init: true
-        networks:
-            - default
-        environment:
-            <<: *common-configuration
-        expose:
-            # Beats log ingestion
-            - "5044"
-            # Metrics REST endpoint
-            - "9600"
-        volumes:
-            - vol_elk_logstash_data:/opt/logstash/data/
-        deploy:
-            <<: *endpoint-mode-dnsrr
-            placement:
-                constraints:
-                    # Must run on the host with ELK Elasticsearch data volume
-                    - node.labels.role-elk-aggregator == true
             resources:
                 limits:
                     # CPU core limit
@@ -2551,14 +2519,6 @@ volumes:
             type: none
             o: bind
             device: /space/mediacloud/vol_proxy_ssl_certs
-
-    # ELK Elasticsearch log index
-    vol_elk_logstash_data:
-        driver: local
-        driver_opts:
-            type: none
-            o: bind
-            device: /space/mediacloud/vol_elk_logstash_data
 
     # ELK Elasticsearch log index
     vol_elk_elasticsearch_data:

@@ -28,19 +28,3 @@ docker_daemon_config:
   log-opts:
     max-size: "100m"
     max-file: "4"
-
-    # Add a label with "stack name/service name/container name/truncated container ID".
-    #
-    # It will be later be parsed into separate fields by elk-logstash.
-    #
-    # * https://docs.docker.com/config/containers/logging/log_tags/
-    # * http://alexfu.it/2018/12/07/use-labels-in-docker-logging-tags/
-    # * https://stackoverflow.com/questions/32279519/escaping-double-curly-braces-in-ansible
-    # * https://yaml-multiline.info/
-    # * https://stackoverflow.com/questions/19168734/yaml-multiline-wrap-without-space/27282802
-    tag: "\
-      {{ index .ContainerLabels \"com.docker.stack.namespace\" }}/\
-      {{ index .ContainerLabels \"com.docker.swarm.service.name\" }}/\
-      {{ .Name }}/\
-      {{ .ID }}\
-    "

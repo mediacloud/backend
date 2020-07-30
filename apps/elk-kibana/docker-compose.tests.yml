@@ -39,27 +39,6 @@ services:
                     cpus: "2"
                     memory: "2G"
         depends_on:
-            - elk-logstash
-
-    elk-logstash:
-        image: dockermediacloud/elk-logstash:latest
-        init: true
-        stop_signal: SIGKILL
-        expose:
-            - "5044"
-            - "9600"
-        ports:
-            # Expose to host for debugging
-            - "5044:5044"
-            - "9600:9600"
-        volumes:
-            - type: bind
-              source: ./../elk-logstash/bin/logstash.sh
-              target: /opt/logstash/bin/logstash.sh
-            - type: bind
-              source: ./../elk-logstash/config/
-              target: /opt/logstash/config/
-        depends_on:
             - elk-filebeat
             - elk-journalbeat
 
