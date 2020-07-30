@@ -25,7 +25,8 @@ fi
 
 EXPECTED_JOURNALD_MACHINE_DIR="/var/log/journal/$(cat /etc/machine-id)"
 if [ ! -d "${EXPECTED_JOURNALD_MACHINE_DIR}" ]; then
-    echo "journald's expected machine directory ${EXPECTED_JOURNALD_MACHINE_DIR} was not found; /etc/machine-id mismatch?"
+    echo "journald's expected machine directory ${EXPECTED_JOURNALD_MACHINE_DIR} was not found;"
+    echo "/etc/machine-id mismatch?"
     exit 1
 fi
 
