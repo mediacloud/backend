@@ -5,11 +5,11 @@
 FROM dockermediacloud/base:latest
 
 # Install Filebeat
-# (https://www.elastic.co/downloads/beats/filebeat-oss)
+# (https://www.elastic.co/downloads/beats/filebeat)
 ENV ELK_FILEBEAT_VERSION=7.8.1
 RUN \
     mkdir -p /opt/filebeat/ && \
-    curl --fail --location --retry 3 --retry-delay 5 "https://artifacts.elastic.co/downloads/beats/filebeat/filebeat-oss-${ELK_FILEBEAT_VERSION}-linux-x86_64.tar.gz" | \
+    curl --fail --location --retry 3 --retry-delay 5 "https://artifacts.elastic.co/downloads/beats/filebeat/filebeat-${ELK_FILEBEAT_VERSION}-linux-x86_64.tar.gz" | \
         tar -zx -C /opt/filebeat/ --strip 1 && \
     true
 
