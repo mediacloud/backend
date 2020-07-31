@@ -3,8 +3,6 @@
 set -u
 set -e
 
-cat /proc/mounts
-
 if ! grep -qs '/etc/hostname ' /proc/mounts; then
     echo "/etc/hostname is not mounted."
     exit 1
@@ -30,6 +28,16 @@ if [ ! -S "/var/run/docker.sock" ]; then
     echo "/var/run/docker.sock is not mounted."
     exit 1
 fi
+
+# We need Kibana to be up to be able to preload it with dashboards
+# for i in {1..120}; do
+#     echo "Waiting for Kibana to start..."
+#     if curl --fail --silent http://elk-kibana:5601/api/status; then
+#         break
+#     else
+#         sleep 1
+#     fi
+# done
 
 exec /opt/filebeat/filebeat \
     -E name=$(cat /etc/hostname) \

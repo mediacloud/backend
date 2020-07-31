@@ -6,6 +6,12 @@ services:
         image: dockermediacloud/elk-kibana:latest
         init: true
         stop_signal: SIGKILL
+        networks:
+          default:
+            aliases:
+              # Make sure we always can be resolved as elk-kibana independently
+              # from how this service's container gets named
+              - elk-kibana
         expose:
             - "5601"
         ports:
@@ -18,6 +24,8 @@ services:
         image: dockermediacloud/elk-elasticsearch:latest
         init: true
         stop_signal: SIGKILL
+        networks:
+          - default
         expose:
             - "9200"
             - "9300"
@@ -46,6 +54,8 @@ services:
         image: dockermediacloud/elk-filebeat:latest
         init: true
         stop_signal: SIGKILL
+        networks:
+          - default
         volumes:
             - type: bind
               source: ./../elk-filebeat/filebeat.yml
@@ -67,6 +77,8 @@ services:
         image: dockermediacloud/elk-journalbeat:latest
         init: true
         stop_signal: SIGKILL
+        networks:
+          - default
         # Enable to be able to use strace:
         #cap_add:
         #  - SYS_PTRACE
@@ -84,3 +96,7 @@ services:
             # Hostname and journald's directory must match
             - ./../elk-journalbeat/journald-log-sample/etc/machine-id:/etc/machine-id:ro
             - ./../elk-journalbeat/journald-log-sample/var/log/journal/:/var/log/journal/:ro
+
+networks:
+  # Define a network to be able to define aliases
+  default:
