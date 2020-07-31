@@ -37,5 +37,8 @@ EXPOSE 5601
 
 USER elk
 
+# Pre-optimize plugins
+RUN /opt/kibana/bin/kibana --optimize
+
 # Run Kibana via wrapper script
 CMD ["/opt/kibana/bin/kibana.sh"]
