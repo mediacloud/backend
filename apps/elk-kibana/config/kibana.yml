@@ -137,6 +137,20 @@ monitoring.ui.enabled: false
 xpack.infra.enabled: false
 
 
+uiSettings:
+  overrides:
+    dateFormat:dow: "Monday"
+    dateFormat:tz: "America/New_York"
+    indexPattern:placeholder: "something-*"
+    notifications:banner: >
+      Hello, Media Clouder!
+      If you're about to restore an index that's more than one month old,
+      ILM might decide to [purge it right away](https://www.elastic.co/guide/en/elasticsearch/reference/current/ilm-stop.html),
+      so make sure to stop ILM before restoring an old index (execute `POST /_ilm/stop` in
+      [Console](/app/kibana#/dev_tools/console)). and don't forget to restart
+      ILM (`POST /_ilm/start`) after you're done with the index.
+
+
 # Adapted from https://github.com/elastic/dockerfiles/blob/7.8/kibana/bin/kibana-docker#L267
 #
 # The virtual file /proc/self/cgroup should list the current cgroup

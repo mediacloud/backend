@@ -715,6 +715,11 @@ services:
             - default
         environment:
             <<: *common-configuration
+            # S3 credentials for Elasticsearch snapshot storage:
+            MC_ELK_ELASTICSEARCH_SNAPSHOT_S3_ACCESS_KEY_ID: "AKIAIOSFODNN7EXAMPLE"
+            MC_ELK_ELASTICSEARCH_SNAPSHOT_S3_SECRET_ACCESS_KEY: "wJalrXUtnFEMI/K7MDENG/bPxRfiCYzEXAMPLEKEY"
+            MC_ELK_ELASTICSEARCH_SNAPSHOT_S3_BUCKET_NAME: "mediacloud-test-elk-elasticsearch-snapshots"
+            MC_ELK_ELASTICSEARCH_SNAPSHOT_S3_PATH_PREFIX: "snapshots"
         expose:
             # HTTP transport
             - "9200"

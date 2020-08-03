@@ -24,6 +24,20 @@ services:
         image: dockermediacloud/elk-elasticsearch:latest
         init: true
         stop_signal: SIGKILL
+        environment:
+            # S3 credentials for Elasticsearch snapshot storage:
+            #
+            MC_ELK_ELASTICSEARCH_SNAPSHOT_S3_ACCESS_KEY_ID: "${MC_ELK_ELASTICSEARCH_SNAPSHOT_S3_ACCESS_KEY_ID}"
+            MC_ELK_ELASTICSEARCH_SNAPSHOT_S3_SECRET_ACCESS_KEY: "${MC_ELK_ELASTICSEARCH_SNAPSHOT_S3_SECRET_ACCESS_KEY}"
+            MC_ELK_ELASTICSEARCH_SNAPSHOT_S3_BUCKET_NAME: "${MC_ELK_ELASTICSEARCH_SNAPSHOT_S3_BUCKET_NAME}"
+            MC_ELK_ELASTICSEARCH_SNAPSHOT_S3_PATH_PREFIX: "${MC_ELK_ELASTICSEARCH_SNAPSHOT_S3_PATH_PREFIX}"
+
+            # Same credentials set to random values:
+            #
+            # MC_ELK_ELASTICSEARCH_SNAPSHOT_S3_ACCESS_KEY_ID: "foo"
+            # MC_ELK_ELASTICSEARCH_SNAPSHOT_S3_SECRET_ACCESS_KEY: "bar"
+            # MC_ELK_ELASTICSEARCH_SNAPSHOT_S3_BUCKET_NAME: "baz"
+            # MC_ELK_ELASTICSEARCH_SNAPSHOT_S3_PATH_PREFIX: "xyz"
         networks:
           - default
         expose:
