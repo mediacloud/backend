@@ -129,6 +129,14 @@ telemetry.enabled: false
 xpack.reporting.capture.browser.chromium.disableSandbox: true
 
 
+# Disable Kibana's monitoring as it's noisy and probably not too useful
+monitoring.enabled: false
+monitoring.ui.enabled: false
+
+# Metrics is also not too useful
+xpack.infra.enabled: false
+
+
 # Adapted from https://github.com/elastic/dockerfiles/blob/7.8/kibana/bin/kibana-docker#L267
 #
 # The virtual file /proc/self/cgroup should list the current cgroup
