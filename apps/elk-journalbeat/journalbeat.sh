@@ -30,6 +30,12 @@ if [ ! -d "${EXPECTED_JOURNALD_MACHINE_DIR}" ]; then
     exit 1
 fi
 
+# Make sure current version of journalctl is able to read the mounted data
+if ! journalctl --header | grep -q 'Machine ID:'; then
+    echo "journalctl doesn't seem to be able to read logs; systemd version mismatch?"
+    exit 1
+fi
+
 # We need Kibana to be up to be able to preload it with dashboards
 # for i in {1..120}; do
 #     echo "Waiting for Kibana to start..."
