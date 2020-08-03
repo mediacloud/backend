@@ -120,6 +120,15 @@ telemetry.allowChangingOptInStatus: false
 
 telemetry.enabled: false
 
+
+# Reporting plugin uses headless Chromium which requires CAP_SYS_ADMIN, so it's better
+# to just not have any Chromium sandboxing at all by comparison:
+#
+# https://www.elastic.co/guide/en/kibana/current/reporting-chromium-sandbox.html
+#
+xpack.reporting.capture.browser.chromium.disableSandbox: true
+
+
 # Adapted from https://github.com/elastic/dockerfiles/blob/7.8/kibana/bin/kibana-docker#L267
 #
 # The virtual file /proc/self/cgroup should list the current cgroup
