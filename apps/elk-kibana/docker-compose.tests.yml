@@ -63,6 +63,7 @@ services:
         depends_on:
             - elk-filebeat
             - elk-journalbeat
+            - elk-auditbeat
 
     elk-filebeat:
         image: dockermediacloud/elk-filebeat:latest
@@ -110,6 +111,36 @@ services:
             # Hostname and journald's directory must match
             - ./../elk-journalbeat/journald-log-sample/etc/machine-id:/etc/machine-id:ro
             - ./../elk-journalbeat/journald-log-sample/var/log/journal/:/var/log/journal/:ro
+
+    elk-auditbeat:
+        image: dockermediacloud/elk-auditbeat:latest
+        init: true
+        stop_signal: SIGKILL
+        networks:
+          - default
+        pid: host
+        cap_add:
+         - AUDIT_READ
+         - AUDIT_CONTROL
+        volumes:
+            - type: bind
+              source: ./../elk-auditbeat/auditbeat.yml
+              target: /opt/auditbeat/auditbeat.yml
+              read_only: true
+            - type: bind
+              source: ./../elk-auditbeat/auditbeat.sh
+              target: /opt/auditbeat/auditbeat.sh
+              read_only: true
+            # Mount all the stuff that Auditbeat uses
+            - /etc/hostname:/etc/hostname:ro
+            - /etc/machine-id:/etc/machine-id:ro
+            - /sys/:/sys/:ro
+            - /bin/:/opt/auditbeat/host/bin/:ro
+            - /usr/bin/:/opt/auditbeat/host/usr/bin/:ro
+            - /sbin/:/opt/auditbeat/host/sbin/:ro
+            - /usr/sbin/:/opt/auditbeat/host/usr/sbin/:ro
+            - /etc/:/opt/auditbeat/host/etc/:ro
+            - /var/log/:/opt/auditbeat/host/var/log/:ro
 
 networks:
   # Define a network to be able to define aliases

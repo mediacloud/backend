@@ -1,0 +1,116 @@
+path.home: /opt/auditbeat/
+
+# Will be set by the wrapper script
+#name:
+
+# Will be set by the wrapper script
+#max_procs:
+
+logging.level: info
+
+logging.to_stderr: true
+
+logging.to_files: false
+
+logging.metrics.enabled: false
+
+monitoring.enabled: false
+
+tags: ["auditd"]
+
+# ---
+
+setup.template.settings:
+  index.number_of_shards: 1
+
+# setup.dashboards.enabled: true
+
+# setup.kibana:
+#   host: "elk-kibana:5601"
+
+
+# ---
+
+auditbeat.modules:
+
+- module: auditd
+  audit_rules: |
+
+    # 32 bit syscalls
+    -a always,exit -F arch=b32 -S all -F key=32bit-abi
+
+    ## Executions.
+    #-a always,exit -F arch=b64 -S execve,execveat -k exec
+
+    ## External access (warning: these can be expensive to audit).
+    #-a always,exit -F arch=b64 -S accept,bind,connect -F key=external-access
+
+    ## Identity changes.
+    -w /opt/auditbeat/host/etc/group -p wa -k identity
+    -w /opt/auditbeat/host/etc/passwd -p wa -k identity
+    -w /opt/auditbeat/host/etc/gshadow -p wa -k identity
+
+    ## Unauthorized access attempts.
+    -a always,exit -F arch=b64 -S open,creat,truncate,ftruncate,openat,open_by_handle_at -F exit=-EACCES -k access
+    -a always,exit -F arch=b64 -S open,creat,truncate,ftruncate,openat,open_by_handle_at -F exit=-EPERM -k access
+
+- module: file_integrity
+  paths:
+  - /opt/auditbeat/host/bin
+  - /opt/auditbeat/host/usr/bin
+  - /opt/auditbeat/host/sbin
+  - /opt/auditbeat/host/usr/sbin
+  - /opt/auditbeat/host/etc
+
+- module: system
+  datasets:
+
+    # Disabled as we don't want to track what the Auditbeat container itself is
+    # doing
+    #- host    # General host information, e.g. uptime, IPs
+
+    - login   # User logins, logouts, and system boots.
+
+    # Disabled as we don't care about container's own packages
+    #- package
+
+    # Disabled because doesn't work properly in a container
+    #- process # Started and stopped processes
+
+    # Disabled as it adds quite a bit of overhead, datapoints and requires too
+    # many permissions
+    #- socket  # Opened and closed sockets
+
+    # Disabled as there's no way to set paths to /etc/passwd and /etc/shadow,
+    # plus auditd module will track it itself
+    - user    # User information
+
+  # How often datasets send state updates with the
+  # current state of the system (e.g. all currently
+  # running processes, all open sockets).
+  state.period: 12h
+
+  # Enabled by default. Auditbeat will read password fields in
+  # /etc/passwd and /etc/shadow and store a hash locally to
+  # detect any changes.
+  #user.detect_password_changes: true
+
+  # File patterns of the login record files.
+  login.wtmp_file_pattern: /opt/auditbeat/host/var/log/wtmp*
+  login.btmp_file_pattern: /opt/auditbeat/host/var/log/btmp*
+
+
+# ---
+
+processors:
+
+  # Host metadata is not useful as "host" is a container in this case
+  # - add_host_metadata: ~
+  # - add_cloud_metadata: ~
+  - add_docker_metadata: ~
+
+
+# ---
+
+output.elasticsearch:
+  hosts: ["elk-elasticsearch:9200"]
