@@ -40,7 +40,7 @@ cat << EOF > /var/tmp/create-repository.json
   }
 }
 EOF
-curl -XPUT "http://127.0.0.2:${ES_TEMP_PORT}/_snapshot/elk_logs" \
+curl -XPUT "http://127.0.0.1:${ES_TEMP_PORT}/_snapshot/elk_logs" \
     --fail \
     -H "Content-Type: application/json" \
     -d @/var/tmp/create-repository.json
@@ -62,7 +62,7 @@ cat << EOF > /var/tmp/create-policy.json
   }
 }
 EOF
-curl -XPUT "http://127.0.0.2:${ES_TEMP_PORT}/_slm/policy/nightly-s3-snapshots" \
+curl -XPUT "http://127.0.0.1:${ES_TEMP_PORT}/_slm/policy/nightly-s3-snapshots" \
     --fail \
     -H "Content-Type: application/json" \
     -d @/var/tmp/create-policy.json
@@ -92,7 +92,7 @@ cat << EOF > /var/tmp/create-ilm-rule.json
   }
 }
 EOF
-curl -XPUT "http://127.0.0.2:${ES_TEMP_PORT}/_ilm/policy/delete-month-old-indices" \
+curl -XPUT "http://127.0.0.1:${ES_TEMP_PORT}/_ilm/policy/delete-month-old-indices" \
     --fail \
     -H "Content-Type: application/json" \
     -d @/var/tmp/create-ilm-rule.json
