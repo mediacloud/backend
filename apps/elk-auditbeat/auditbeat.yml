@@ -31,6 +31,13 @@ setup.template.settings:
 
 # ---
 
+setup.ilm.enabled: true
+setup.ilm.policy_file: /opt/auditbeat/auditbeat-ilm.json
+setup.ilm.overwrite: true
+
+
+# ---
+
 auditbeat.modules:
 
 - module: auditd

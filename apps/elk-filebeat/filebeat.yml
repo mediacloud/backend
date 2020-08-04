@@ -26,6 +26,13 @@ setup.template.settings:
 
 # ---
 
+setup.ilm.enabled: true
+setup.ilm.policy_file: /opt/filebeat/filebeat-ilm.json
+setup.ilm.overwrite: true
+
+
+# ---
+
 filebeat.config.modules:
   path: ${path.config}/modules.d/*.yml
   reload.enabled: false

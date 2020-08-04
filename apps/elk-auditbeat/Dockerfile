@@ -15,6 +15,7 @@ RUN \
 
 # Copy over configuration
 COPY auditbeat.yml /opt/auditbeat/
+COPY auditbeat-ilm.json /opt/auditbeat/
 RUN \
     # chown elk:elk /opt/auditbeat/auditbeat.yml && \
     chmod go-w /opt/auditbeat/auditbeat.yml && \

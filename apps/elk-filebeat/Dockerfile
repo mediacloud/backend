@@ -18,6 +18,7 @@ RUN \
 
 # Copy over configuration
 COPY filebeat.yml /opt/filebeat/
+COPY filebeat-ilm.json /opt/filebeat/
 RUN \
     # chown elk:elk /opt/filebeat/filebeat.yml && \
     chmod go-w /opt/filebeat/filebeat.yml && \

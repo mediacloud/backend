@@ -18,6 +18,7 @@ RUN \
 
 # Copy over configuration
 COPY journalbeat.yml /opt/journalbeat/
+COPY journalbeat-ilm.json /opt/journalbeat/
 RUN \
     # chown elk:elk /opt/journalbeat/journalbeat.yml && \
     chmod go-w /opt/journalbeat/journalbeat.yml && \

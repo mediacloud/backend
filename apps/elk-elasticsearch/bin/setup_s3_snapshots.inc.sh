@@ -70,36 +70,6 @@ rm /var/tmp/create-policy.json
 echo "Done creating nightly snapshot policy."
 
 
-echo "Creating ILM rule to delete month old indices..."
-cat << EOF > /var/tmp/create-ilm-rule.json
-{
-  "policy": {
-    "phases": {
-      "hot": {
-        "actions": {
-          "set_priority": {
-            "priority": null
-          }
-        }
-      },
-      "delete": {
-        "min_age": "30d",
-        "actions": {
-          "delete": {}
-        }
-      }
-    }
-  }
-}
-EOF
-curl -XPUT "http://127.0.0.1:${ES_TEMP_PORT}/_ilm/policy/delete-month-old-indices" \
-    --fail \
-    -H "Content-Type: application/json" \
-    -d @/var/tmp/create-ilm-rule.json
-rm /var/tmp/create-ilm-rule.json
-echo "Done creating ILM rule to delete month old indices."
-
-
 echo "Stopping Elasticsearch after snapshot setup..."
 killall java
 while pgrep java > /dev/null; do
