@@ -7,11 +7,11 @@ services:
         init: true
         stop_signal: SIGKILL
         networks:
-          default:
-            aliases:
-              # Make sure we always can be resolved as elk-kibana independently
-              # from how this service's container gets named
-              - elk-kibana
+            default:
+                aliases:
+                    # Make sure we always can be resolved as elk-kibana independently
+                    # from how this service's container gets named
+                    - elk-kibana
         expose:
             - "5601"
         ports:
@@ -39,7 +39,7 @@ services:
             # MC_ELK_ELASTICSEARCH_SNAPSHOT_S3_BUCKET_NAME: "baz"
             # MC_ELK_ELASTICSEARCH_SNAPSHOT_S3_PATH_PREFIX: "xyz"
         networks:
-          - default
+            - default
         expose:
             - "9200"
             - "9300"
@@ -70,7 +70,7 @@ services:
         init: true
         stop_signal: SIGKILL
         networks:
-          - default
+            - default
         volumes:
             - type: bind
               source: ./../elk-filebeat/filebeat.yml
@@ -93,7 +93,7 @@ services:
         init: true
         stop_signal: SIGKILL
         networks:
-          - default
+            - default
         # Enable to be able to use strace:
         #cap_add:
         #  - SYS_PTRACE
@@ -117,11 +117,11 @@ services:
         init: true
         stop_signal: SIGKILL
         networks:
-          - default
+            - default
         pid: host
         cap_add:
-         - AUDIT_READ
-         - AUDIT_CONTROL
+            - AUDIT_READ
+            - AUDIT_CONTROL
         volumes:
             - type: bind
               source: ./../elk-auditbeat/auditbeat.yml
@@ -143,5 +143,5 @@ services:
             - /var/log/:/opt/auditbeat/host/var/log/:ro
 
 networks:
-  # Define a network to be able to define aliases
-  default:
+    # Define a network to be able to define aliases
+    default:
