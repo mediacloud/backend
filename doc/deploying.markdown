@@ -140,7 +140,7 @@ To provision multiple servers with Ansible:
 1. In the `provision/inventory/` directory, copy `hosts.sample.yml` to `hosts.yml` and:
     * Add hostnames of servers that will make up a swarm.
     * Configure how to connect to every server (`ansible_user`, `ansible_ssh_private_key_file`, ...)
-    * Set the name of the ethernet interface the IP of which will be used to advertise the host (node) to the rest of the swarm (`docker_swarm_advertise_interface`). Ideally, this should be an ethernet interface that connects the host to a private network between servers.
+    * Set `docker_swarm_advertise_ip_or_if` to either the IP of which will be used to advertise the host (node) to the rest of the swarm, or the ethernet interface the IP of which should be read. Ideally, this should be an ethernet interface that connects the host to a private network between servers.
     * Define labels for every node (`docker_swarm_node_labels`) that will be used by production `docker-compose.yml` to determine which server should be used to run particular services (ones that use / share a volume or `mmap()`ped RAM).
     * Elect three swarm managers among the servers (`docker_swarm_managers`) and add the rest as workers (`docker_swarm_workers`).
 2. In the `provision/` directory, run:

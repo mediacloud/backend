@@ -14,7 +14,10 @@
 -- 1 of 2. Import the output of 'apgdiff':
 --
 
-alter table topics add snapshot_periods text null;
+
+ALTER TABLE topics
+    ADD COLUMN IF NOT EXISTS snapshot_periods TEXT NULL;
+
 
 --
 -- 2 of 2. Reset the database version.
@@ -40,5 +43,3 @@ $$
 LANGUAGE 'plpgsql';
 
 SELECT set_database_schema_version();
-
-
