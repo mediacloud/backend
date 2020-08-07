@@ -148,7 +148,13 @@ x-sysctl-defaults:  &sysctl-defaults
     sysctls:
 
         # Increase ephemeral port range to allow more client connections
-        - net.ipv4.ip_local_port_range="1024 65500"
+        #
+        # FIXME doesn't seem to work anymore:
+        #
+        #     write sysctl key net.ipv4.ip_local_port_range: write /proc/sys/net/ipv4/ip_local_port_range:
+        #     invalid argument\\\"\": unknown
+        #
+        #- net.ipv4.ip_local_port_range="1024 65500"
 
         # Increase socket backlog
         - net.core.somaxconn=4096
