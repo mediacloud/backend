@@ -30,6 +30,7 @@ echo -n "$MC_ELK_ELASTICSEARCH_SNAPSHOT_S3_ACCESS_KEY_ID" | \
 echo -n "$MC_ELK_ELASTICSEARCH_SNAPSHOT_S3_SECRET_ACCESS_KEY" | \
     /opt/elasticsearch/bin/elasticsearch-keystore add s3.client.elk_logs.secret_key --stdin --force
 
+# Set up automatic snapshots if needed
 if [ ! -f /var/lib/elasticsearch/s3-snapshots-setup ]; then
     echo "Setting up S3 snapshots on first run..."
     source /opt/elasticsearch/bin/setup_s3_snapshots.inc.sh
