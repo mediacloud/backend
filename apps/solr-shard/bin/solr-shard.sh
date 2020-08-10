@@ -22,6 +22,7 @@ MC_SOLR_LUCENEMATCHVERSION="6.5.0"
 # Make Solr use 90% of available RAM allotted to the container
 MC_RAM_SIZE=$(/container_memory_limit.sh)
 MC_SOLR_MX=$((MC_RAM_SIZE / 10 * 9))
+MC_SOLR_MS=$((MC_RAM_SIZE / 10 * 9))
 
 # Wait for ZooKeeper container to show up
 while true; do
@@ -37,6 +38,7 @@ done
 java_args=(
     -server
     "-Xmx${MC_SOLR_MX}m"
+    "-Xms${MC_SOLR_MS}m"
     -Djava.util.logging.config.file=file:///var/lib/solr/resources/log4j.properties
     -Djetty.base=/var/lib/solr
     -Djetty.home=/var/lib/solr
