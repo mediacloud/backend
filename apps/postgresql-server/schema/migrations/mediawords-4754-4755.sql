@@ -16,7 +16,7 @@
 
 
 alter table stories alter publish_date drop not null;
-alter table story_sentences alter publish_date drop not null;
+alter table story_sentences_p alter column publish_date drop not null;
 alter table snap.stories alter publish_date drop not null;
 alter table snap.live_stories alter publish_date drop not null;
 

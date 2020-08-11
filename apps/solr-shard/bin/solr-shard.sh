@@ -19,7 +19,7 @@ MC_SOLR_ZOOKEEPER_TIMEOUT=30000
 # <luceneMatchVersion> value
 MC_SOLR_LUCENEMATCHVERSION="6.5.0"
 
-# Make Solr use 40-70% of available RAM allotted to the container
+# Make Solr's heap use 40-70% of available RAM allotted to the container
 MC_RAM_SIZE=$(/container_memory_limit.sh)
 MC_SOLR_MX=$((MC_RAM_SIZE / 10 * 7))
 MC_SOLR_MS=$((MC_RAM_SIZE / 10 * 4))
@@ -33,6 +33,8 @@ while true; do
         sleep 1
     fi
 done
+
+mkdir -p /var/lib/solr/jvm-oom-heapdumps/
 
 # Run Solr
 java_args=(
@@ -53,6 +55,11 @@ java_args=(
     -Dmediacloud.luceneMatchVersion="${MC_SOLR_LUCENEMATCHVERSION}"
     # Use cgroup's memory / CPU limits
     -XX:+UseContainerSupport
+    # Store heap dumps on OOM errors
+    -XX:+HeapDumpOnOutOfMemoryError
+    -XX:HeapDumpPath=/var/lib/solr/jvm-oom-heapdumps/
+    # Stop running on OOM
+    -XX:+CrashOnOutOfMemoryError
     # Needed for resolving paths to JARs in solrconfig.xml
     -Dmediacloud.solr_dist_dir=/opt/solr
     -Dmediacloud.solr_webapp_dir=/opt/solr/server/solr-webapp

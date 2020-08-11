@@ -2127,6 +2127,15 @@ networks:
         driver: overlay
         attachable: true
 
+        # Enable encryption as we communicate over public network:
+        #
+        # * https://docs.docker.com/network/overlay/#encrypt-traffic-on-an-overlay-network
+        # * https://forums.docker.com/t/configuring-encryption-for-swarm-overlay-network-in-compose/29469/2
+        #
+        # FIXME consider switching off after migration
+        driver_opts:
+            encrypted: "true"
+
         ipam:
             driver: default
             config:
