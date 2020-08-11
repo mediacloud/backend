@@ -19,7 +19,7 @@ MC_SOLR_ZOOKEEPER_TIMEOUT=30000
 # <luceneMatchVersion> value
 MC_SOLR_LUCENEMATCHVERSION="6.5.0"
 
-# Make Solr use 40-70% of available RAM allotted to the container
+# Make Solr's heap use 40-70% of available RAM allotted to the container
 MC_RAM_SIZE=$(/container_memory_limit.sh)
 MC_SOLR_MX=$((MC_RAM_SIZE / 10 * 7))
 MC_SOLR_MS=$((MC_RAM_SIZE / 10 * 4))
