@@ -36,6 +36,11 @@ CREATE TABLE celery_tasks (
 );
 
 
+-- This refers to the 4754-4755 migration, but we might want to rerun it in
+-- production
+ALTER TABLE story_sentences_p ALTER COLUMN publish_date DROP NOT NULL;
+
+
 --
 -- 2 of 2. Reset the database version.
 --
