@@ -26,7 +26,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4755;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4756;
 BEGIN
 
     -- Update / set database schema version
@@ -3934,14 +3934,14 @@ CREATE UNIQUE INDEX podcast_episode_transcript_fetches_due
 --
 
 CREATE TABLE celery_groups (
-    id          INTEGER                     NOT NULL    PRIMARY KEY,
+    id          BIGINT                      NOT NULL    PRIMARY KEY,
     taskset_id  CHARACTER VARYING(155)      NULL        UNIQUE,
     result      BYTEA                       NULL,
     date_done   TIMESTAMP WITHOUT TIME ZONE NULL
 );
 
 CREATE TABLE celery_tasks (
-    id          INTEGER                     NOT NULL    PRIMARY KEY,
+    id          BIGINT                      NOT NULL    PRIMARY KEY,
     task_id     CHARACTER VARYING(155)      NULL        UNIQUE,
     status      CHARACTER VARYING(50)       NULL,
     result      BYTEA                       NULL,
