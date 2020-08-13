@@ -1,3 +1,11 @@
+# Needed by ipaddr()
+- name: Install netaddr
+  local_action:
+    module: pip
+    name: netaddr
+  tags:
+    - docker
+
 - name: Include Journald tasks
   include_tasks: journald.yml
   tags:

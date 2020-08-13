@@ -49,7 +49,6 @@ Vagrant.configure("2") do |config|
             "all_groups:vars" => {
 
               # Vagrant private network's interface:
-              "docker_swarm_advertise_interface" => "enp0s8",
 
             },
           }
@@ -79,14 +78,23 @@ Vagrant.configure("2") do |config|
           ansible.host_vars = {
             "machine1" => {
               "docker_swarm_node_labels" => "'#{machine1_labels.to_json}'",
+
+              # Define IP address explicitly
+              "docker_swarm_advertise_ip_or_if" => "192.168.77.21",
             },
 
             "machine2" => {
               "docker_swarm_node_labels" => "'#{machine2_labels.to_json}'",
+
+              # Read IP address from interface
+              "docker_swarm_advertise_ip_or_if" => "enp0s8",
             },
 
             "machine3" => {
               "docker_swarm_node_labels" => "'#{machine3_labels.to_json}'",
+
+              # Define IP address explicitly
+              "docker_swarm_advertise_ip_or_if" => "192.168.77.23",
             },
           }
 

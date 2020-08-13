@@ -17,7 +17,7 @@ all:
             ansible_ssh_private_key_file: "~/.ssh/mcsample"
 
             # Network interface the IP of which will be advertised to the rest of the swarm
-            docker_swarm_advertise_interface: "eth0"
+            docker_swarm_advertise_ip_or_if: "eth0"
 
             # Dictionary of labels to apply to this host
             # (used for deployment constraints; on production, you might want to
@@ -80,7 +80,7 @@ all:
             ansible_user: "ubuntu"
             ansible_ssh_private_key_file: "~/.ssh/mcsample"
 
-            docker_swarm_advertise_interface: "eth0"
+            docker_swarm_advertise_ip_or_if: "eth0"
             docker_swarm_node_labels:
 
 
@@ -89,7 +89,7 @@ all:
             ansible_user: "ubuntu"
             ansible_ssh_private_key_file: "~/.ssh/mcsample"
 
-            docker_swarm_advertise_interface: "eth0"
+            docker_swarm_advertise_ip_or_if: "eth0"
             docker_swarm_node_labels:
 
 
