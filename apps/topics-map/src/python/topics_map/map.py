@@ -633,7 +633,7 @@ def get_default_size_attribute(db: DatabaseHandler, timespans_id: int) -> str:
     focus = db.require_by_id('foci', timespan['foci_id'])
     focal_set = db.require_by_id('focal_sets', focus['focal_sets_id'])
 
-    if focus['focal_technique'] == 'URL Sharing':
+    if focal_set['focal_technique'] == 'URL Sharing':
         return 'author_count'
     else:
         return 'media_inlink_count'
