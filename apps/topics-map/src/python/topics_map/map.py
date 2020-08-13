@@ -150,7 +150,10 @@ def get_media_network(db: DatabaseHandler, timespans_id: int) -> List[Dict[str, 
             SELECT
                 m.media_id,
                 m.name,
-                mlc.media_inlink_count
+                mlc.media_inlink_count,
+                coalesce(0, mlc.sum_post_count) post_count,
+                coalesce(0, mlc.sum_author_count) author_count,
+                coalesce(0, mlc.sum_channel_count) channel_count
             FROM media AS m
                 JOIN snap.medium_link_counts AS mlc USING ( media_id )
             where
@@ -530,7 +533,7 @@ def draw_labels(graph: nx.Graph) -> None:
         labels = get_labels_by_attribute(
             graph=graph,
             label_attribute='name',
-            rank_attribute='media_inlink_count',
+            rank_attribute='size',
             iteration=i,
             num_labels=cohort_size,
         )
@@ -620,6 +623,22 @@ def assign_communities(graph: nx.Graph) -> None:
         graph.nodes[n]['community'] = communities[n]
 
 
+def get_default_size_attribute(db: DatabaseHandler, timespans_id: int) -> str:
+    """Return size attribute based on whether the timespan belongs to a url sharing subtopic."""
+    timespan = db.require_by_id('timespans', timespans_id)
+
+    if timespan['foci_id'] is None:
+        return 'media_inlink_count'
+
+    focus = db.require_by_id('foci', timespan['foci_id'])
+    focal_set = db.require_by_id('focal_sets', focus['focal_sets_id'])
+
+    if focus['focal_technique'] == 'URL Sharing':
+        return 'author_count'
+    else:
+        return 'media_inlink_count'
+
+
 def generate_and_layout_graph(db: DatabaseHandler,
                               timespans_id: int,
                               memory_limit_mb: int,
@@ -642,7 +661,8 @@ def generate_and_layout_graph(db: DatabaseHandler,
 
     assign_colors(db=db, graph=graph, color_by=color_by)
 
-    assign_sizes(graph=graph, attribute='media_inlink_count')
+    size_attribute = get_default_size_attribute(db, timespans_id)
+    assign_sizes(graph=graph, attribute=size_attribute)
 
     rotate_right_to_right(graph=graph)
 
