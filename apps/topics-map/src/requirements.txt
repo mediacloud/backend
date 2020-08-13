@@ -2,3 +2,4 @@
 matplotlib==3.2.1
 networkx==2.4
 python-louvain==0.13
+xmltodict==0.12.0
