@@ -151,9 +151,9 @@ def get_media_network(db: DatabaseHandler, timespans_id: int) -> List[Dict[str, 
                 m.media_id,
                 m.name,
                 mlc.media_inlink_count,
-                coalesce(0, mlc.sum_post_count) post_count,
-                coalesce(0, mlc.sum_author_count) author_count,
-                coalesce(0, mlc.sum_channel_count) channel_count
+                coalesce(mlc.sum_post_count, 0) post_count,
+                coalesce(mlc.sum_author_count, 0) author_count,
+                coalesce(mlc.sum_channel_count, 0) channel_count
             FROM media AS m
                 JOIN snap.medium_link_counts AS mlc USING ( media_id )
             where
