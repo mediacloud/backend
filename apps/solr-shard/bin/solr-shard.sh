@@ -53,15 +53,6 @@ java_args=(
     -DnumShards="${MC_SOLR_SHARD_COUNT}"
     -DzkClientTimeout="${MC_SOLR_ZOOKEEPER_TIMEOUT}"
     -Dmediacloud.luceneMatchVersion="${MC_SOLR_LUCENEMATCHVERSION}"
-    #
-    # Cache DNS only for a second to be able to resolve new IPs of shards and
-    # ZooKeeper if they change
-    #
-    # FIXME: replace with networkaddress.cache.ttl and
-    # networkaddress.cache.negative.ttl properties
-    #
-    -Dsun.net.inetaddr.ttl=10
-    -Dsun.net.inetaddr.negative.ttl=10
     # Use cgroup's memory / CPU limits
     -XX:+UseContainerSupport
     # Store heap dumps on OOM errors
