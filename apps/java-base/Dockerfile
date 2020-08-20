@@ -68,3 +68,11 @@ RUN \
 # Install our own security profile
 COPY mediacloud-java.security /
 ENV JDK_JAVA_OPTIONS="$JDK_JAVA_OPTIONS -Djava.security.properties=/mediacloud-java.security"
+
+# Test if Java is still working after all the cleanup
+RUN \
+    echo 'public class Main { public static void main(String[] args) { System.out.println("Java works!"); } }' > /var/tmp/Main.java && \
+    javac /var/tmp/Main.java && \
+    java -classpath /var/tmp/ Main && \
+    rm /var/tmp/Main.* && \
+    true
