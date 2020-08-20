@@ -23,3 +23,7 @@ RUN \
     true
 
 ENV JAVA_HOME /usr/lib/jvm/java-12-openjdk-amd64/
+
+# Install our own security profile
+COPY mediacloud-java.security /
+ENV JDK_JAVA_OPTIONS="$JDK_JAVA_OPTIONS -Djava.security.properties=/mediacloud-java.security"

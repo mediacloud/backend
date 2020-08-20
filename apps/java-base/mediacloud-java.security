@@ -1,0 +1,10 @@
+#
+# Media Cloud Java security profile
+# ---------------------------------
+#
+
+# Disable DNS cache as Java will use networking mostly to talk to other
+# containers, and if they go down, we don't want Java to cache their hostnames
+# indefinitely (which is the default)
+networkaddress.cache.ttl=0
+networkaddress.cache.negative.ttl=0
