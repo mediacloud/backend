@@ -881,7 +881,7 @@ Response:
             [
                 {
                     "auth_users_id": 1,
-                    "email": "hroberts@cyber.law.harvard.edu",
+                    "email": "hroberts@mediacloud.org",
                     "full_name": "Hal Roberts",
                     "topics_id": 672,
                 }
@@ -966,7 +966,7 @@ Response:
             [
                 {
                     "auth_users_id": 1,
-                    "email": "hroberts@cyber.law.harvard.edu",
+                    "email": "hroberts@mediacloud.org",
                     "full_name": "Hal Roberts",
                     "topics_id": 672,
                 }
@@ -1085,7 +1085,7 @@ Response:
   "permissions":
   [
     {
-      "email": "hroberts@cyber.law.harvard.edu",
+      "email": "hroberts@mediacloud.org",
       "topics_id": 1390,
      "permission": "admin"
     }
@@ -1120,7 +1120,7 @@ Response:
   "permissions":
   [
     {
-      "email": "hroberts@cyber.law.harvard.edu",
+      "email": "hroberts@mediacloud.org",
       "topics_id": 1390,
      "permission": "admin"
     },

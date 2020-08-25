@@ -616,7 +616,7 @@ class McFQDNException(Exception):
 
 
 def _fqdn() -> str:
-    """Return Fully Qualified Domain Name (hostname -f), e.g. mcquery2.media.mit.edu."""
+    """Return Fully Qualified Domain Name (hostname -f), e.g. mcquery2.mediacloud.org."""
     # socket.getfqdn() returns goofy results
     hostname = socket.getaddrinfo(socket.gethostname(), 0, flags=socket.AI_CANONNAME)[0][3]
     if hostname is None or len(hostname) == 0:

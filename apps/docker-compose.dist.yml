@@ -1379,7 +1379,7 @@ services:
             # Top-level domain to issue the certificate for
             MC_PROXY_CERTBOT_DOMAIN: "mediacloud.org"
             # Email for Let's Encrypt's notifications
-            MC_PROXY_CERTBOT_LETSENCRYPT_EMAIL: "linas@media.mit.edu"
+            MC_PROXY_CERTBOT_LETSENCRYPT_EMAIL: "system@mediacloud.org"
             # CloudFlare account email
             MC_PROXY_CERTBOT_CLOUDFLARE_EMAIL: ""
             # CloudFlare account global API key

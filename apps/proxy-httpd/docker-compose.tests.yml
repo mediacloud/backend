@@ -27,7 +27,7 @@ services:
         init: true
         environment:
             MC_PROXY_CERTBOT_DOMAIN: "mediacloud.org"
-            MC_PROXY_CERTBOT_LETSENCRYPT_EMAIL: "linas@media.mit.edu"
+            MC_PROXY_CERTBOT_LETSENCRYPT_EMAIL: "linas@mediacloud.org"
             MC_PROXY_CERTBOT_CLOUDFLARE_EMAIL: "${MC_PROXY_CERTBOT_CLOUDFLARE_EMAIL}"
             MC_PROXY_CERTBOT_CLOUDFLARE_GLOBAL_API_KEY: "${MC_PROXY_CERTBOT_CLOUDFLARE_GLOBAL_API_KEY}"
         volumes:
