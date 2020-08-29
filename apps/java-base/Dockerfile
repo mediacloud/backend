@@ -4,17 +4,30 @@
 
 FROM dockermediacloud/base:latest
 
-# Install OpenJDK 12 with Docker support improvements:
-#
-# * https://bugs.openjdk.java.net/browse/JDK-8146115
-# * https://jdk.java.net/12/
-#
+ENV JAVA_HOME /usr/lib/jvm/java-12-openjdk-amd64/
+
 RUN \
-    mkdir -p /usr/lib/jvm/java-12-openjdk-amd64/ && \
+    #
+    # Download and install OpenJDK 12 with Docker support improvements:
+    #
+    # * https://bugs.openjdk.java.net/browse/JDK-8146115
+    # * https://jdk.java.net/12/
+    #
+    mkdir -p "${JAVA_HOME}" && \
     curl --fail --location --retry 3 --retry-delay 5 "https://download.java.net/java/GA/jdk12.0.2/e482c34c86bd4bf8b56c0b35558996b9/10/GPL/openjdk-12.0.2_linux-x64_bin.tar.gz" | \
-        tar -zx -C /usr/lib/jvm/java-12-openjdk-amd64/ --strip 1 && \
-    update-alternatives --install /usr/bin/java java /usr/lib/jvm/java-12-openjdk-amd64/bin/java 1 && \
-    update-alternatives --install /usr/bin/javac javac /usr/lib/jvm/java-12-openjdk-amd64/bin/javac 1 && \
+        tar -zx -C "${JAVA_HOME}" --strip 1 && \
+    update-alternatives --install /usr/bin/java java "${JAVA_HOME}/bin/java" 1 && \
+    update-alternatives --install /usr/bin/javac javac "${JAVA_HOME}/bin/javac" 1 && \
+    #
+    # Remove source code
+    #
+    rm "${JAVA_HOME}/lib/src.zip" && \
+    #
+    # https://github.com/docker-library/openjdk/issues/331#issuecomment-498834472
+    #
+    find "$JAVA_HOME/lib" -name '*.so' -exec dirname '{}' ';' | \
+        sort -u > /etc/ld.so.conf.d/docker-openjdk.conf && \
+    ldconfig && \
     #
     # https://github.com/docker-library/openjdk/issues/212#issuecomment-420979840
     # https://openjdk.java.net/jeps/341
@@ -22,4 +35,14 @@ RUN \
     #
     true
 
-ENV JAVA_HOME /usr/lib/jvm/java-12-openjdk-amd64/
+# Install our own security profile
+COPY mediacloud-java.security /
+ENV JDK_JAVA_OPTIONS="$JDK_JAVA_OPTIONS -Djava.security.properties=/mediacloud-java.security"
+
+# Test if Java is still working
+RUN \
+    echo 'public class Main { public static void main(String[] args) { System.out.println("Java works!"); } }' > /var/tmp/Main.java && \
+    javac /var/tmp/Main.java && \
+    java -classpath /var/tmp/ Main && \
+    rm /var/tmp/Main.* && \
+    true
