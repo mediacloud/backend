@@ -298,6 +298,9 @@ def _get_url_stats(url: str, config: Optional[FacebookConfig] = None) -> Faceboo
         elif error_type == 'OAuthException' and error_message == 'An unknown error has occurred.':
             # some urls consistently return this error.  true permissions errors don't return 'unknown error' message.
             raise McFacebookInvalidURLException(url=url, error_message=error_message)
+        elif error_type == 'OAuthException' and 'facebook.com' in error_message:
+            # facebook urls require permissions we don't have
+            raise McFacebookInvalidURLException(url=url, error_message=error_message)
         else:
             # Everything else is considered a fatal error by us as we don't know what exactly happened
             raise McFacebookErrorAPIResponseException(
