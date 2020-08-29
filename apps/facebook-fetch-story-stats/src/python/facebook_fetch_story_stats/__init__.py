@@ -290,13 +290,13 @@ def _get_url_stats(url: str, config: Optional[FacebookConfig] = None) -> Faceboo
 
         error = data['error']
         error_type = error.get('type', 'unknown type')
-        error_message = error.get('type', 'unknown message')
+        error_message = error.get('message', 'unknown message')
 
         if error_type == 'GraphMethodException' and 'Unsupported get request' in error_message:
             # Non-fatal permissions error for this specific URL
             raise McFacebookInvalidURLException(url=url, error_message=error_message)
-        elif error_type == 'OAuthException' and 'facebook.com' in url:
-            # some facebook pages consistently return a permissions error
+        elif error_type == 'OAuthException' and error_message == 'An unknown error has occurred.':
+            # some urls consistently return this error.  true permissions errors don't return 'unknown error' message.
             raise McFacebookInvalidURLException(url=url, error_message=error_message)
         else:
             # Everything else is considered a fatal error by us as we don't know what exactly happened
