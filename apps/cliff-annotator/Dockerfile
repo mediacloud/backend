@@ -12,7 +12,7 @@ ENV PATH="/usr/lib/maven/bin:/usr/lib/tomcat7/bin:${PATH}" \
 # Download and extract CLAVIN's geonames index
 RUN \
     mkdir -p /etc/cliff2/IndexDirectory/ && \
-    curl --fail --location --retry 3 --retry-delay 5 "https://github.com/berkmancenter/mediacloud-clavin-build-geonames-index/releases/download/2019-09-06/IndexDirectory.tar.gz" | \
+    curl --fail --location --retry 3 --retry-delay 5 "https://github.com/mediacloud/clavin-build-geonames-index/releases/download/2019-09-06/IndexDirectory.tar.gz" | \
         tar -zx -C /etc/cliff2/IndexDirectory/ --strip 1 && \
     true
 

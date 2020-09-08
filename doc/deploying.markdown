@@ -28,7 +28,7 @@ Table of Contents
 To deploy your code changes, generally you would:
 
 1. Merge changes into `release` Git branch and `git push` the branch;
-2. Wait for the [continuous integration system](https://github.com/berkmancenter/mediacloud/actions) to pull images, rebuild the ones that have changed, and push the updated images to [Docker Hub](https://hub.docker.com/u/dockermediacloud) repository;
+2. Wait for the [continuous integration system](https://github.com/mediacloud/backend/actions) to pull images, rebuild the ones that have changed, and push the updated images to [Docker Hub](https://hub.docker.com/u/dockermediacloud) repository;
 3. Using either Portainer or Docker CLI, pull the updated images from the Docker Hub repository and recreate app containers for which the images have been modified.
 
 ## Ports

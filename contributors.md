@@ -20,7 +20,7 @@ The back-end is a pretty big codebase and can be daunting to jump into.  You mig
 
 > **Note:** We are in the middle of a multi-year project to port this code from Perl to Python 3. If you see old Perl code, don't be scared! Be assured that we have a task in the queue to port it over eventually. We have some bindings that let them talk to each other.
 
-One reason that we recommend starting work on some of the smaller repos listed above is that working within the [core backend codebase](https://github.com/berkmancenter/mediacloud) requires installing the entire large platform on you dev machine.
+One reason that we recommend starting work on some of the smaller repos listed above is that working within the [core backend codebase](https://github.com/mediacloud/backend) requires installing the entire large platform on you dev machine.
 
 
 How Can I Contribute?

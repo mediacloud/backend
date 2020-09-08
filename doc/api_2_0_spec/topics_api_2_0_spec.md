@@ -1403,7 +1403,7 @@ Return the number of stories that match the query.
 | --------- | ------- | ----------------------------------- |
 | q         | null    | count stories that match this query |
 
-For a detailed description of the format of the query specified in `q` parameter, see the entry for [stories_public/list](https://github.com/berkmancenter/mediacloud/blob/release/doc/api_2_0_spec/api_2_0_spec.md#apiv2stories_publiclist) in the main API spec.
+For a detailed description of the format of the query specified in `q` parameter, see the entry for [stories_public/list](https://github.com/mediacloud/backend/blob/release/doc/api_2_0_spec/api_2_0_spec.md#apiv2stories_publiclist) in the main API spec.
 
 Standard parameters accepted : snapshots_id, foci_id, timespans_id, limit.
 
@@ -1439,7 +1439,7 @@ This call behaves exactly like the main API sentences/count call, except:
 - This call only searches within the given snapshot
 - This call accepts the standard topics parameters: snapshots_id, foci_id, timespans_id
 
-For details about this end point, including parameters, output, and examples, see the [main API](https://github.com/berkmancenter/mediacloud/blob/release/doc/api_2_0_spec/api_2_0_spec.md#apiv2sentencescount).
+For details about this end point, including parameters, output, and examples, see the [main API](https://github.com/mediacloud/backend/blob/release/doc/api_2_0_spec/api_2_0_spec.md#apiv2sentencescount).
 
 # Media
 
@@ -1642,7 +1642,7 @@ This call behaves exactly like the main API wc/list call, except:
 * This call only searches within the given snapshot
 * This call accepts the standard topics parameters: snapshots_id, foci_id, timespans_id
 
-For details about this end point, including parameters, output, and examples, see the [main API](https://github.com/berkmancenter/mediacloud/blob/release/doc/api_2_0_spec/api_2_0_spec.md#apiv2wclist).
+For details about this end point, including parameters, output, and examples, see the [main API](https://github.com/mediacloud/backend/blob/release/doc/api_2_0_spec/api_2_0_spec.md#apiv2wclist).
 
 
 # Foci
