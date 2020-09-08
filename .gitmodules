@@ -24,7 +24,7 @@
 	url = https://github.com/mediacloud/cliff-annotator.git
 [submodule "dev/quieter-docker-compose"]
 	path = dev/quieter-docker-compose
-	url = https://github.com/berkmancenter/mediacloud-docker-compose-just-quieter.git
+	url = https://github.com/mediacloud/docker-compose-just-quieter.git
 [submodule "apps/podcast-fetch-episode/tests/data/media-samples"]
 	path = apps/podcast-fetch-episode/tests/data/media-samples
 	url = https://github.com/mediacloud/podcast-media-samples.git
