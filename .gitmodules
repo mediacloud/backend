@@ -33,4 +33,4 @@
 	url = https://github.com/berkmancenter/mediacloud-podcast-media-samples.git
 [submodule "apps/elk-journalbeat/journald-log-sample"]
 	path = apps/elk-journalbeat/journald-log-sample
-	url = https://github.com/berkmancenter/mediacloud-journald-log-sample.git
+	url = https://github.com/mediacloud/journald-log-sample.git
