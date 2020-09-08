@@ -6,7 +6,7 @@
 	url = https://github.com/berkmancenter/mediacloud-hindi-hunspell.git
 [submodule "apps/common/src/perl/MediaWords/Util/Mail/Message/Templates/email-templates"]
 	path = apps/common/src/perl/MediaWords/Util/Mail/Message/Templates/email-templates
-	url = https://github.com/berkmancenter/mediacloud-email-templates.git
+	url = https://github.com/mediacloud/email-templates.git
 [submodule "apps/common/src/python/mediawords/languages/ca/snowball_stemmer"]
 	path = apps/common/src/python/mediawords/languages/ca/snowball_stemmer
 	url = https://github.com/berkmancenter/mediacloud-catalan-stemmer.git
