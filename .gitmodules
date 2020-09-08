@@ -12,7 +12,7 @@
 	url = https://github.com/mediacloud/catalan-stemmer.git
 [submodule "apps/common/src/python/mediawords/languages/lt/snowball_stemmer"]
 	path = apps/common/src/python/mediawords/languages/lt/snowball_stemmer
-	url = https://github.com/berkmancenter/mediacloud-lithuanian-stemmer.git
+	url = https://github.com/mediacloud/lithuanian-stemmer.git
 [submodule "apps/common/src/python/snowball"]
 	path = apps/common/src/python/snowball
 	url = https://github.com/snowballstem/snowball.git
