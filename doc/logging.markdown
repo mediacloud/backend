@@ -2,7 +2,7 @@
 
 ## Python
 
-Logging facilities are located in [`mediawords.util.log`](https://github.com/berkmancenter/mediacloud/blob/master/mediacloud/mediawords/util/log.py). Import the `create_logger()` factory:
+Logging facilities are located in [`mediawords.util.log`](https://github.com/mediacloud/backend/blob/master/mediacloud/mediawords/util/log.py). Import the `create_logger()` factory:
 
 ```python
 from mediawords.util.log import create_logger

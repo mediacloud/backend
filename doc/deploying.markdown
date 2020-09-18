@@ -28,7 +28,7 @@ Table of Contents
 To deploy your code changes, generally you would:
 
 1. Merge changes into `release` Git branch and `git push` the branch;
-2. Wait for the [continuous integration system](https://github.com/berkmancenter/mediacloud/actions) to pull images, rebuild the ones that have changed, and push the updated images to [Docker Hub](https://hub.docker.com/u/dockermediacloud) repository;
+2. Wait for the [continuous integration system](https://github.com/mediacloud/backend/actions) to pull images, rebuild the ones that have changed, and push the updated images to [Docker Hub](https://hub.docker.com/u/dockermediacloud) repository;
 3. Using either Portainer or Docker CLI, pull the updated images from the Docker Hub repository and recreate app containers for which the images have been modified.
 
 ## Ports
@@ -250,7 +250,7 @@ To deploy Media Cloud services using Portainer's web UI:
 * Feel free to use Portainer's features to scale the services, update their configuration via environment variables, update resource limits, etc., using the web UI, just make sure to reflect the changes that you've made in the private authenticated Git repository with production `docker-compose.yml`.
 * Sometimes, after navigating your browser to the previous page with a list of containers, Portainer might show one or more duplicate containers for a non-replicated service, e.g.:
 
-    ![](https://github.com/berkmancenter/mediacloud-docs-images/raw/master/portainer/duplicate-containers.png)
+    ![](https://github.com/mediacloud/backend-docs-images/raw/master/portainer/duplicate-containers.png)
 
     This seems to be Portainer's bug. To see a correct number of service containers, click on the *Refresh* button at the top of the page (browser's page reload might not always work).
 

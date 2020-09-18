@@ -22,7 +22,7 @@ Please send us a note at [info@mediacloud.org](info@mediacloud.org) if you are u
 Build Status
 ------------
 
-![Pull, build, push, test](https://github.com/berkmancenter/mediacloud/workflows/Pull,%20build,%20push,%20test/badge.svg)
+![Pull, build, push, test](https://github.com/mediacloud/backend/workflows/Pull,%20build,%20push,%20test/badge.svg)
 
 
 History of the Project

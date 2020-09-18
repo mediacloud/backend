@@ -26,7 +26,7 @@ Welcome to Media Cloud API!
 
 To get your API key and see the spec, head to:
 
-https://github.com/berkmancenter/mediacloud/blob/master/doc/api_2_0_spec/api_2_0_spec.md
+https://github.com/mediacloud/backend/blob/master/doc/api_2_0_spec/api_2_0_spec.md
 
 This particular API endpoint ('/') is not authenticated and does nothing.
 EOF
