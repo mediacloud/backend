@@ -71,6 +71,9 @@ class Response(object):
         self.__previous_response = None
         self.__request = None
 
+    def __repr__(self) -> str:
+        return repr(self.__requests_response)
+
     def code(self) -> int:
         """Return HTTP status code, e.g. 200."""
         return self.__requests_response.status_code
