@@ -26,7 +26,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4756;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4757;
 BEGIN
 
     -- Update / set database schema version
@@ -1814,6 +1814,7 @@ create unique index topic_sources_name on topic_sources(name);
 insert into topic_sources ( name, description ) values
     ('mediacloud', 'import from the mediacloud.org archive'),
     ('crimson_hexagon', 'import from the crimsonhexagon.com forsight api, only accessible to internal media cloud team'),
+    ('brandwatch', 'import from the brandwatch api, only accessible to internal media cloud team'),
     ('csv', 'import generic posts directly from csv'),
     ('postgres', 'import generic posts from a postgres table'),
     ('pushshift', 'import from the pushshift.io api'),
