@@ -5,7 +5,7 @@ boto3==1.9.78
 beautifulsoup4==4.7.1
 
 # Job broker
-Celery==4.3
+Celery==4.3.1
 
 # Detect encodings of web responses
 chardet==3.0.4
