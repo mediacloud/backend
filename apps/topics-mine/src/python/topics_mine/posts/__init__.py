@@ -50,7 +50,6 @@ class AbstractPostFetcher(object, metaclass=abc.ABCMeta):
 
         assert len(got_posts) == len(expected_posts)
         for i, got_post in enumerate(got_posts):
-            log.warning(got_post)
             self.validate_mock_post(got_post, expected_posts[i])
 
     def setup_mock_data(self, mocker: requests_mock.Mocker) -> None:

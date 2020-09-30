@@ -6,6 +6,10 @@ from topics_base.twitter import fetch_100_tweets
 
 log = create_logger(__name__)
 
+class McTwitterUrlException(Exception):
+    """thrown if we can parse a given twitter url for the status id"""
+    pass
+
 
 def add_tweets_to_meta_tweets(meta_tweets: list) -> None:
     """
@@ -45,6 +49,6 @@ def get_tweet_id_from_url(url: str) -> int:
     try:
         tweet_id = int(re.search(r'/status(?:es)?/(\d+)', url).group(1))
     except AttributeError:
-        raise ValueError("Unable to parse id from tweet url: " + url)
+        raise McTwitterUrlException("Unable to parse id from tweet url: " + url)
 
     return tweet_id
