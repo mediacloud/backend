@@ -183,7 +183,7 @@ $
 To pass arguments to the command that is to be run in the main container, prefix the whole command with `--`:
 
 ```bash
-$ ./dev/run.py import-solr-data -- py.test -s -v /opt/mediacloud/tests/python/mediawords/test_db.py
+$ ./dev/run.py common -- py.test -s -v /opt/mediacloud/tests/python/mediawords/test_db.py
 ```
 
 Similarly to `pull.py` script, this script can print the commands that are going to be run instead of running them itself if you pass it the `-p` argument. You can use this capability for debugging purposes.
