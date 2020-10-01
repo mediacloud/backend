@@ -60,3 +60,8 @@ If you're going to develop and test Media Cloud on your machine, you'll need to 
   ```bash
   $ brew install parallel
   ```
+
+* **Submodules**.
+  ```bash
+  $ git submodule update --init --recursive
+  ```
