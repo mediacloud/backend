@@ -62,7 +62,6 @@ Vagrant.configure("2") do |config|
           }
           machine2_labels = {
             "role-postgresql-server" => "true",
-            "role-proxy-httpd" => "true",
             "role-rabbitmq-server" => "true",
             "role-misc-apps" => "true",
           }
