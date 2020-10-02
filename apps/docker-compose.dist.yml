@@ -2320,11 +2320,3 @@ volumes:
             type: none
             o: bind
             device: /space/mediacloud/vol_munin_html
-
-    # Let's Encrypt certificates
-    vol_proxy_ssl_certs:
-        driver: local
-        driver_opts:
-            type: none
-            o: bind
-            device: /space/mediacloud/vol_proxy_ssl_certs

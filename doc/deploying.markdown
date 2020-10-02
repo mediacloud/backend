@@ -105,7 +105,6 @@ sudo zfs create space/mediacloud/vol_postfix_data
 sudo zfs create space/mediacloud/vol_daily_rss_dumps
 sudo zfs create space/mediacloud/vol_munin_data
 sudo zfs create space/mediacloud/vol_munin_html
-sudo zfs create space/mediacloud/vol_proxy_ssl_certs
 sudo zfs create space/mediacloud/vol_portainer_data
 sudo zfs create space/mediacloud/vol_pgadmin_data
 
