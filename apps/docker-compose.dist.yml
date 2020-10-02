@@ -1366,76 +1366,6 @@ services:
                     - node.labels.role-postgresql-server == true
 
     #
-    # Cron job that updates Let's Encrypt certificates used by reverse proxy
-    # ----------------------------------------------------------------------
-    #
-    proxy-cron-certbot:
-        image: dockermediacloud/proxy-cron-certbot:release
-        <<: *sysctl-defaults
-        init: true
-        networks:
-            - default
-        environment:
-            # Top-level domain to issue the certificate for
-            MC_PROXY_CERTBOT_DOMAIN: "mediacloud.org"
-            # Email for Let's Encrypt's notifications
-            MC_PROXY_CERTBOT_LETSENCRYPT_EMAIL: "system@mediacloud.org"
-            # CloudFlare account email
-            MC_PROXY_CERTBOT_CLOUDFLARE_EMAIL: ""
-            # CloudFlare account global API key
-            MC_PROXY_CERTBOT_CLOUDFLARE_GLOBAL_API_KEY: ""
-        volumes:
-            # Shared with "proxy-httpd" container:
-            - vol_proxy_ssl_certs:/etc/letsencrypt/
-        deploy:
-            <<: *endpoint-mode-dnsrr
-            placement:
-                constraints:
-                    # Must run on the same host as proxy-httpd as they share a volume
-                    - node.labels.role-proxy-httpd == true
-            resources:
-                limits:
-                    # CPU core limit
-                    cpus: "1"
-                    # RAM limit
-                    memory: "256M"
-
-    #
-    # SSL terminating reverse proxy
-    # -----------------------------
-    #
-    proxy-httpd:
-        image: dockermediacloud/proxy-httpd:release
-        <<: *sysctl-defaults
-        init: true
-        networks:
-            - default
-        ports:
-            # Public HTTP and HTTPS ports
-            - "80:80"
-            - "443:443"
-        volumes:
-            # Shared with "proxy_cron_certbot" container:
-            - vol_proxy_ssl_certs:/etc/letsencrypt/
-        depends_on:
-            # Requires SSL certificate to run
-            - proxy-cron-certbot
-            # Proxies to main app
-            - webapp-httpd
-        deploy:
-            # DNSRR disabled as it's not supported with published ports.
-            placement:
-                constraints:
-                    # Must run on the same host as proxy-cron-certbot as they share a volume
-                    - node.labels.role-proxy-httpd == true
-            resources:
-                limits:
-                    # CPU core limit
-                    cpus: "1"
-                    # RAM limit
-                    memory: "256M"
-
-    #
     # Purge PostgreSQL object caches
     # ------------------------------------
     #
@@ -2067,14 +1997,15 @@ services:
         init: true
         networks:
             - default
-        expose:
-            # Expose HTTP port to reverse proxy
-            - 80
+        ports:
+            # Public HTTP port
+            # (SSL is done by Nginx running on bastion host)
+            - "80:80"
         volumes:
             # Shared with "cron_generate_daily_rss_dumps" container:
             - vol_daily_rss_dumps:/mediacloud_webapp_static/static/rss_dumps/
         deploy:
-            <<: *endpoint-mode-dnsrr
+            # DNSRR disabled as it's not supported with published ports.
             placement:
                 constraints:
                     # Has its own role due to a shared volume

@@ -43,13 +43,6 @@ all:
                 # "postgresql-server" container and its data volume
                 role-postgresql-server: "true"
 
-                # "proxy-cron-certbot", "proxy-httpd" containers, their shared volume
-                # and publicly exposed ports
-                # Make sure that DNS A record points to this host (other hosts have
-                # HTTP ports exposed too though), and that ports 80 and 443 are open on
-                # the firewall
-                role-proxy-httpd: "true"
-
                 # "rabbitmq-server" container and its data volume
                 role-rabbitmq-server: "true"
 
