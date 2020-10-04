@@ -137,30 +137,6 @@ x-crimson-hexagon-api-configuration: &crimson-hexagon-api-configuration
 
 
 #
-# Default sysctl values
-# =====================
-#
-# Default sysctl values to set on all containers.
-#
-x-sysctl-defaults:  &sysctl-defaults
-
-    # Has to be a list because dictionaries are not supported by Portainer as of today
-    sysctls:
-
-        # Increase ephemeral port range to allow more client connections
-        #
-        # FIXME doesn't seem to work anymore:
-        #
-        #     write sysctl key net.ipv4.ip_local_port_range: write /proc/sys/net/ipv4/ip_local_port_range:
-        #     invalid argument\\\"\": unknown
-        #
-        #- net.ipv4.ip_local_port_range="1024 65500"
-
-        # Increase socket backlog
-        - net.core.somaxconn=4096
-
-
-#
 # Google Cloud for podcast transcription common configuration
 # ===========================================================
 #
@@ -202,7 +178,6 @@ x-podcast-google-cloud-configuration:    &podcast-google-cloud-configuration
 #
 x-solr-shard_base:   &solr-shard_base
     image: dockermediacloud/solr-shard:release
-    <<: *sysctl-defaults
     init: true
     environment:
         # Shard count (every individual shard needs to know the total count)
@@ -294,7 +269,6 @@ services:
     #
     cliff-annotator:
         image: dockermediacloud/cliff-annotator:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -319,7 +293,6 @@ services:
     #
     cliff-fetch-annotation:
         image: dockermediacloud/cliff-fetch-annotation:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -347,7 +320,6 @@ services:
     #
     cliff-update-story-tags:
         image: dockermediacloud/cliff-update-story-tags:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -383,7 +355,6 @@ services:
     #
     crawler-ap:
         image: dockermediacloud/crawler-ap:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -412,7 +383,6 @@ services:
     #
     crawler-fetcher:
         image: dockermediacloud/crawler-fetcher:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -443,7 +413,6 @@ services:
     #
     crawler-provider:
         image: dockermediacloud/crawler-provider:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -467,7 +436,6 @@ services:
     #
     create-missing-partitions:
         image: dockermediacloud/create-missing-partitions:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -491,7 +459,6 @@ services:
     #
     cron-generate-daily-rss-dumps:
         image: dockermediacloud/cron-generate-daily-rss-dumps:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -522,7 +489,6 @@ services:
     #
     cron-generate-media-health:
         image: dockermediacloud/cron-generate-media-health:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -546,7 +512,6 @@ services:
     #
     cron-generate-user-summary:
         image: dockermediacloud/cron-generate-user-summary:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -570,7 +535,6 @@ services:
     #
     cron-print-long-running-job-states:
         image: dockermediacloud/cron-print-long-running-job-states:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -594,7 +558,6 @@ services:
     #
     cron-refresh-stats:
         image: dockermediacloud/cron-refresh-stats:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -618,7 +581,6 @@ services:
     #
     cron-rescrape-due-media:
         image: dockermediacloud/cron-rescrape-due-media:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -643,7 +605,6 @@ services:
     #
     cron-rescraping-changes:
         image: dockermediacloud/cron-rescraping-changes:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -667,7 +628,6 @@ services:
     #
     cron-set-media-primary-language:
         image: dockermediacloud/cron-set-media-primary-language:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -691,7 +651,6 @@ services:
     #
     cron-set-media-subject-country:
         image: dockermediacloud/cron-set-media-subject-country:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -715,7 +674,6 @@ services:
     #
     extract-and-vector:
         image: dockermediacloud/extract-and-vector:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -743,7 +701,6 @@ services:
     #
     extract-article-from-page:
         image: dockermediacloud/extract-article-from-page:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -770,7 +727,6 @@ services:
     #
     facebook-fetch-story-stats:
         image: dockermediacloud/facebook-fetch-story-stats:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -806,7 +762,6 @@ services:
     #
     import-solr-data:
         image: dockermediacloud/import-solr-data:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -834,7 +789,6 @@ services:
     #
     import-stories-feedly:
         image: dockermediacloud/import-stories-feedly:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -859,7 +813,6 @@ services:
     #
     mail-opendkim-server:
         image: dockermediacloud/mail-opendkim-server:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -890,7 +843,6 @@ services:
     #
     mail-postfix-server:
         image: dockermediacloud/mail-postfix-server:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -942,7 +894,6 @@ services:
     #
     munin-cron:
         image: dockermediacloud/munin-cron:release
-        <<: *sysctl-defaults
         # Docker doesn't reap zombie processes properly
         # (https://blog.phusion.nl/2015/01/20/docker-and-the-pid-1-zombie-reaping-problem/),
         # and Munin runs all kinds of plugins which might not take care of their children properly.
@@ -976,7 +927,6 @@ services:
     #
     munin-fastcgi-graph:
         image: dockermediacloud/munin-fastcgi-graph:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -1008,7 +958,6 @@ services:
     #
     munin-httpd:
         image: dockermediacloud/munin-httpd:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -1044,7 +993,6 @@ services:
     #
     munin-node:
         image: dockermediacloud/munin-node:release
-        <<: *sysctl-defaults
         # Docker doesn't reap zombie processes properly
         # (https://blog.phusion.nl/2015/01/20/docker-and-the-pid-1-zombie-reaping-problem/),
         # and Munin runs all kinds of plugins which might not take care of their children properly.
@@ -1072,7 +1020,6 @@ services:
     #
     nytlabels-annotator:
         image: dockermediacloud/nytlabels-annotator:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -1096,7 +1043,6 @@ services:
     #
     nytlabels-fetch-annotation:
         image: dockermediacloud/nytlabels-fetch-annotation:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -1124,7 +1070,6 @@ services:
     #
     nytlabels-update-story-tags:
         image: dockermediacloud/nytlabels-update-story-tags:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -1155,7 +1100,6 @@ services:
     #
     podcast-fetch-episode:
         image: dockermediacloud/podcast-fetch-episode:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -1191,7 +1135,6 @@ services:
     # -------------------------------------------------
     podcast-fetch-transcript:
         image: dockermediacloud/podcast-fetch-transcript:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -1223,7 +1166,6 @@ services:
     # -----------------------------------------------------------------
     podcast-poll-due-operations:
         image: dockermediacloud/podcast-poll-due-operations:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -1254,7 +1196,6 @@ services:
     # ---------------------------------------------------
     podcast-submit-operation:
         image: dockermediacloud/podcast-submit-operation:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -1287,7 +1228,6 @@ services:
     #
     postgresql-pgadmin:
         image: dockermediacloud/postgresql-pgadmin:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -1317,7 +1257,6 @@ services:
     #
     postgresql-pgbouncer:
         image: dockermediacloud/postgresql-pgbouncer:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -1341,7 +1280,6 @@ services:
     #
     postgresql-server:
         image: dockermediacloud/postgresql-server:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -1371,7 +1309,6 @@ services:
     #
     purge-object-caches:
         image: dockermediacloud/purge-object-caches:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -1395,7 +1332,6 @@ services:
     #
     rabbitmq-server:
         image: dockermediacloud/rabbitmq-server:release
-        <<: *sysctl-defaults
         # Docker doesn't reap zombie processes properly
         # (https://blog.phusion.nl/2015/01/20/docker-and-the-pid-1-zombie-reaping-problem/)
         # and Erlang gets SIGCHLD signals from Docker for whatever reason
@@ -1433,7 +1369,6 @@ services:
     #
     rabbitmq-server-webapp-proxy:
         image: dockermediacloud/rabbitmq-server-webapp-proxy:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -1461,7 +1396,6 @@ services:
     #
     rescrape-media:
         image: dockermediacloud/rescrape-media:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -1488,7 +1422,6 @@ services:
     #
     sitemap-fetch-media-pages:
         image: dockermediacloud/sitemap-fetch-media-pages:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -1735,7 +1668,6 @@ services:
     #
     solr-shard-webapp-proxy:
         image: dockermediacloud/solr-shard-webapp-proxy:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -1763,7 +1695,6 @@ services:
     #
     solr-zookeeper:
         image: dockermediacloud/solr-zookeeper:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -1787,7 +1718,6 @@ services:
     #
     topics-extract-story-links:
         image: dockermediacloud/topics-extract-story-links:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -1813,7 +1743,6 @@ services:
     #
     topics-fetch-link:
         image: dockermediacloud/topics-fetch-link:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -1839,7 +1768,6 @@ services:
     #
     topics-fetch-twitter-urls:
         image: dockermediacloud/topics-fetch-twitter-urls:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -1864,7 +1792,6 @@ services:
     #
     topics-map:
         image: dockermediacloud/topics-map:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -1888,7 +1815,6 @@ services:
     #
     topics-mine:
         image: dockermediacloud/topics-mine:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -1914,7 +1840,6 @@ services:
     #
     topics-mine-public:
         image: dockermediacloud/topics-mine-public:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -1940,7 +1865,6 @@ services:
     #
     topics-snapshot:
         image: dockermediacloud/topics-snapshot:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -1966,7 +1890,6 @@ services:
     #
     webapp-api:
         image: dockermediacloud/webapp-api:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -1993,7 +1916,6 @@ services:
     #
     webapp-httpd:
         image: dockermediacloud/webapp-httpd:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -2023,7 +1945,6 @@ services:
     #
     word2vec-generate-snapshot-model:
         image: dockermediacloud/word2vec-generate-snapshot-model:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
