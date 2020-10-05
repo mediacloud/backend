@@ -43,7 +43,7 @@ def add_tweets_to_meta_tweets(meta_tweets: list) -> None:
 def get_tweet_id_from_url(url: str) -> int:
     """Parse the tweet id from a twitter status url."""
     try:
-        tweet_id = int(re.search(r'/status(?:es)?/(\d+)', url).group(1))
+        tweet_id = int(re.search(r'/status/(\d+)', url).group(1))
     except AttributeError:
         raise ValueError("Unable to parse id from tweet url: " + url)
 

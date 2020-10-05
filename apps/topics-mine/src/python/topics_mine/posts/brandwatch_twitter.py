@@ -22,8 +22,6 @@ from topics_mine.posts.twitter.helpers import add_tweets_to_meta_tweets, get_twe
 
 log = create_logger(__name__)
 
-"""number of posts to fetch at a time from brandwatch"""
-PAGE_SIZE=5000
 
 class McPostsBWTwitterQueryException(Exception):
     """exception indicating an error in the query sent to this module."""
@@ -130,8 +128,8 @@ class BrandwatchTwitterPostFetcher(AbstractPostFetcher):
             (project_id, query_id) = query.split('-')
             project_id = int(project_id)
             query_id = int(query_id)
-        except Exception:
-            raise McPostsBWTwitterQueryException(
+        except:
+            raise MCPostsBWTitterQueryException(
                 f"Unable to parse query '{query}', should be in 123-456, where 123 is project id and 456 is query id.")
 
         log.debug("brandwatch_twitter.fetch_posts")
@@ -143,15 +141,15 @@ class BrandwatchTwitterPostFetcher(AbstractPostFetcher):
         start_arg = start_date.strftime('%Y-%m-%d')
         end_arg = (end_date + datetime.timedelta(days=1)).strftime('%Y-%m-%d')
 
-        cursor = next_cursor if next_cursor is not None else ''
+        cursor = next_cusor if next_cursor is not None else ''
 
         url = (
             f"https://api.brandwatch.com/projects/{project_id}/data/mentions?"
             f"queryId={query_id}&startDate={start_arg}&endDate={end_arg}&"
-            f"pageSize={PAGE_SIZE}&orderBy=date&orderDirection=asc&"
+            f"pageSize=100&orderBy=date&orderDirection=asc&"
             f"access_token={api_key}&cursor={cursor}")
 
-        log.debug("brandwatch url: " + url)
+        log.warning("brandwatch url: " + url)
 
         response = ua.get(url)
 
@@ -176,12 +174,14 @@ class BrandwatchTwitterPostFetcher(AbstractPostFetcher):
             data = self._fetch_posts_from_api_single_page(query, start_date, end_date, next_cursor)
             meta_tweets = meta_tweets + data['results']
             if 'nextCursor' in data:
-                next_cursor = data['nextCursor']
+                next_cursor = data['next_cursor']
             else:
                 break
 
         if 'results' not in data:
             raise McPostsBWTwitterDataException("Unknown response status: " + str(data))
+
+        meta_tweets = data['results']
 
         for mt in meta_tweets:
             mt['tweet_id'] = get_tweet_id_from_url(mt['url'])
