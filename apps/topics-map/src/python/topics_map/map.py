@@ -301,7 +301,7 @@ def int_or_zero(value: str) -> int:
         return 0
 
 
-def assign_colors(db: DatabaseHandler, graph: nx.Graph, color_by: str, bool: bool=False) -> None:
+def assign_colors(db: DatabaseHandler, graph: nx.Graph, color_by: str, boolean: bool=False) -> None:
     """Assign a 'color' attribute to each node in the graph.
 
     Each color will be in '#FFFFFF' format.
@@ -311,7 +311,7 @@ def assign_colors(db: DatabaseHandler, graph: nx.Graph, color_by: str, bool: boo
     log.warning(f'assign colors by {color_by}')
     for n in graph.nodes:
         value = str(graph.nodes[n].get(color_by, 'null'))
-        if bool:
+        if boolean:
             graph.nodes[n]['color'] = 'b4771f' if int_or_zero(value) > 0 else 'dddddd'
         else:
             graph.nodes[n]['color'] = get_consistent_color(db, color_by, value)
@@ -597,7 +597,7 @@ def get_giant_component(graph: nx.Graph) -> nx.Graph:
     return graph.subgraph(components[-1]) if len(components) > 0 else graph
 
 
-def generate_graph(db: DatabaseHandler, timespans_id: int, remove_platforms: bool = True) -> nx.Graph:
+def generate_graph(db: DatabaseHandler, timespans_id: int) -> nx.Graph:
     """Generate a graph of the network of media for the given timespan, but do not layout."""
     media = get_media_network(db=db, timespans_id=timespans_id)
     graph = get_media_graph(media=media)
@@ -608,10 +608,9 @@ def generate_graph(db: DatabaseHandler, timespans_id: int, remove_platforms: boo
 
     log.info(f"graph after giant component: {len(graph.nodes())} nodes")
 
-    if remove_platforms:
-        graph = remove_platforms_from_graph(graph=graph)
+    graph = remove_platforms_from_graph(graph=graph)
 
-        log.info(f"graph after platform removal: {len(graph.nodes())} nodes")
+    log.info(f"graph after platform removal: {len(graph.nodes())} nodes")
 
     return graph
 
@@ -645,13 +644,12 @@ def get_default_size_attribute(db: DatabaseHandler, timespans_id: int) -> str:
 def generate_and_layout_graph(db: DatabaseHandler,
                               timespans_id: int,
                               memory_limit_mb: int,
-                              remove_platforms: bool = True,
                               color_by: str = 'community') -> nx.Graph:
     """Generate and layout a graph of the network of media for the given timespan.
     
     The layout algorithm is force atlas 2, and the resulting is 'position' attribute added to each node.
     """
-    graph = generate_graph(db=db, timespans_id=timespans_id, remove_platforms=remove_platforms)
+    graph = generate_graph(db=db, timespans_id=timespans_id)
     # run layout with all nodes in giant component, before reducing to smaler number to display
     run_fa2_layout(graph=graph, memory_limit_mb=memory_limit_mb)
 
