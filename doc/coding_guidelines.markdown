@@ -39,7 +39,7 @@ Tests are run on travis using Python 3.7, though improvements to keep up with mo
 
 ## Code Style
 
-Run `flake8 mediacloud/mediawords` to ensure your code follows our style guide. This is also run on travis.
+Follow PEP 8 guidelines.
 
 ## Declare Function Parameter and Return Value Types
 
