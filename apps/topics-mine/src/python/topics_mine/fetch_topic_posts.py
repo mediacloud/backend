@@ -12,7 +12,6 @@ from topics_base.twitter_url import get_tweet_urls
 
 from topics_mine.posts import AbstractPostFetcher
 from topics_mine.posts.archive_org_twitter import ArchiveOrgPostFetcher
-from topics_mine.posts.brandwatch_twitter import BrandwatchTwitterPostFetcher
 from topics_mine.posts.crimson_hexagon_twitter import CrimsonHexagonTwitterPostFetcher
 from topics_mine.posts.csv_generic import CSVStaticPostFetcher
 from topics_mine.posts.postgres_generic import PostgresPostFetcher
@@ -218,9 +217,7 @@ def get_post_fetcher(topic_seed_query: dict) -> Optional[AbstractPostFetcher]:
     source = topic_seed_query['source']
     platform = topic_seed_query['platform']
 
-    if source == 'brandwatch' and platform == 'twitter':
-        fetch = BrandwatchTwitterPostFetcher()
-    elif source == 'crimson_hexagon' and platform == 'twitter':
+    if source == 'crimson_hexagon' and platform == 'twitter':
         fetch = CrimsonHexagonTwitterPostFetcher()
     elif source == 'postgres' and platform == 'generic_post':
         fetch = PostgresPostFetcher()
