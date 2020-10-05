@@ -759,17 +759,9 @@ def store_map(db: DatabaseHandler,
     db.update_by_id('timespan_maps', timespan_map['timespan_maps_id'], {'url': url})
 
 
-def generate_and_store_maps(
-        db: DatabaseHandler,
-        timespans_id: int,
-        memory_limit_mb: int,
-        remove_platforms: bool = True) -> None:
+def generate_and_store_maps(db: DatabaseHandler, timespans_id: int, memory_limit_mb: int) -> None:
     """Generate and layout graph and store various formats of the graph in timespans_maps."""
-    graph = generate_and_layout_graph(
-        db=db,
-        timespans_id=timespans_id,
-        memory_limit_mb=memory_limit_mb,
-        remove_platforms=remove_platforms)
+    graph = generate_and_layout_graph(db=db, timespans_id=timespans_id, memory_limit_mb=memory_limit_mb)
 
     for color_by in ('community', 'retweet_partisanship', 'twitter_partisanship'):
         assign_colors(db=db, graph=graph, color_by=color_by)
