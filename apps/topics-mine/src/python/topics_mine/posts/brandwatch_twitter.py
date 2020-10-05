@@ -18,7 +18,7 @@ import topics_base.twitter as twitter
 from topics_base.twitter_url import get_tweet_urls 
 from topics_mine.config import TopicsMineConfig
 from topics_mine.posts import AbstractPostFetcher
-from topics_mine.posts.twitter.helpers import add_tweets_to_meta_tweets, get_tweet_id_from_url, McTwitterUrlException
+from topics_mine.posts.twitter.helpers import add_tweets_to_meta_tweets, get_tweet_id_from_url
 
 log = create_logger(__name__)
 
@@ -184,14 +184,7 @@ class BrandwatchTwitterPostFetcher(AbstractPostFetcher):
             raise McPostsBWTwitterDataException("Unknown response status: " + str(data))
 
         for mt in meta_tweets:
-            try:
-                mt['tweet_id'] = get_tweet_id_from_url(mt['url'])
-            except McTwitterUrlException:
-                raise McPostsBWTwitterQueryException(
-                    """
-                    Unable to parse tweet url %s. Make sure brandwatch query only includes twitter as a source.
-                    """ % mt['url'])
-
+            mt['tweet_id'] = get_tweet_id_from_url(mt['url'])
 
         add_tweets_to_meta_tweets(meta_tweets)
 
