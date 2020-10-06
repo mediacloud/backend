@@ -688,69 +688,69 @@ class UserAgent(object):
         )
         response = UserAgent.UserAgentResponse(requests_response=requests_response,
                                                error_is_client_side=False)
-#        try:
-#            requests_response = self.__session.send(
-#                request=requests_prepared_request,
-#                timeout=self.timeout(),
-#
-#                # To be able to enforce max_size
-#                stream=True,
-#            )
-#
-#        except requests.TooManyRedirects as ex:
-#
-#            # On too many redirects, return the last fetched page (just like LWP::UserAgent does)
-#            log.warning("Exceeded max. redirects for URL %s" % requests_prepared_request.url)
-#            response = UserAgent.UserAgentResponse(requests_response=ex.response,
-#                                                   error_is_client_side=False)
-#
-#        except requests.Timeout as ex:
-#
-#            log.warning("Timeout for URL %s" % requests_prepared_request.url)
-#
-#            requests_response = requests.Response()
-#            requests_response.status_code = HTTPStatus.REQUEST_TIMEOUT.value
-#            requests_response.reason = HTTPStatus.REQUEST_TIMEOUT.phrase
-#            requests_response.request = requests_prepared_request
-#
-#            requests_response.history = []
-#
-#            requests_response.raw = urllib3_http_response_from_exception(ex)
-#
-#            # We treat timeouts as client-side errors too because we can retry on them
-#            response = UserAgent.UserAgentResponse(requests_response=requests_response,
-#                                                   error_is_client_side=True)
-#
-#        except Exception as ex:
-#
-#            # Client-side error
-#            log.warning(
-#                "Client-side error while processing request %s: %s" % (str(requests_prepared_request), str(ex),)
-#            )
-#
-#            requests_response = requests.Response()
-#            requests_response.status_code = HTTPStatus.BAD_REQUEST.value
-#            requests_response.reason = "Client-side error"
-#            requests_response.request = requests_prepared_request
-#
-#            # Previous request / response chain is not built for client-side errored requests
-#            requests_response.history = []
-#
-#            requests_response.headers = {
-#                # LWP::UserAgent compatibility
-#                'Client-Warning': 'Client-side error',
-#            }
-#
-#            requests_response.raw = urllib3_http_response_from_exception(ex)
-#
-#            response = UserAgent.UserAgentResponse(requests_response=requests_response,
-#                                                   error_is_client_side=True)
-#
-#        else:
-#
-#            response = UserAgent.UserAgentResponse(requests_response=requests_response,
-#                                                   error_is_client_side=False)
-#
+        try:
+            requests_response = self.__session.send(
+                request=requests_prepared_request,
+                timeout=self.timeout(),
+
+                # To be able to enforce max_size
+                stream=True,
+            )
+
+        except requests.TooManyRedirects as ex:
+
+            # On too many redirects, return the last fetched page (just like LWP::UserAgent does)
+            log.warning("Exceeded max. redirects for URL %s" % requests_prepared_request.url)
+            response = UserAgent.UserAgentResponse(requests_response=ex.response,
+                                                   error_is_client_side=False)
+
+        except requests.Timeout as ex:
+
+            log.warning("Timeout for URL %s" % requests_prepared_request.url)
+
+            requests_response = requests.Response()
+            requests_response.status_code = HTTPStatus.REQUEST_TIMEOUT.value
+            requests_response.reason = HTTPStatus.REQUEST_TIMEOUT.phrase
+            requests_response.request = requests_prepared_request
+
+            requests_response.history = []
+
+            requests_response.raw = urllib3_http_response_from_exception(ex)
+
+            # We treat timeouts as client-side errors too because we can retry on them
+            response = UserAgent.UserAgentResponse(requests_response=requests_response,
+                                                   error_is_client_side=True)
+
+        except Exception as ex:
+
+            # Client-side error
+            log.warning(
+                "Client-side error while processing request %s: %s" % (str(requests_prepared_request), str(ex),)
+            )
+
+            requests_response = requests.Response()
+            requests_response.status_code = HTTPStatus.BAD_REQUEST.value
+            requests_response.reason = "Client-side error"
+            requests_response.request = requests_prepared_request
+
+            # Previous request / response chain is not built for client-side errored requests
+            requests_response.history = []
+
+            requests_response.headers = {
+                # LWP::UserAgent compatibility
+                'Client-Warning': 'Client-side error',
+            }
+
+            requests_response.raw = urllib3_http_response_from_exception(ex)
+
+            response = UserAgent.UserAgentResponse(requests_response=requests_response,
+                                                   error_is_client_side=True)
+
+        else:
+
+            response = UserAgent.UserAgentResponse(requests_response=requests_response,
+                                                   error_is_client_side=False)
+
         return response
 
     def request(self, request: Request) -> Response:
