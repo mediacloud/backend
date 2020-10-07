@@ -679,6 +679,15 @@ class UserAgent(object):
                 preload_content=False,
             )
 
+        requests_response = self.__session.send(
+            request=requests_prepared_request,
+            timeout=self.timeout(),
+
+            # To be able to enforce max_size
+            stream=True,
+        )
+        response = UserAgent.UserAgentResponse(requests_response=requests_response,
+                                               error_is_client_side=False)
         try:
             requests_response = self.__session.send(
                 request=requests_prepared_request,
@@ -765,6 +774,7 @@ class UserAgent(object):
         try:
             user_agent_response = self.__execute_request(requests_prepared_request)
         except Exception as ex:
+            raise ex
             raise McRequestException("Unable to execute request %s: %s" % (str(requests_prepared_request), str(ex),))
 
         if user_agent_response.requests_response is None:
