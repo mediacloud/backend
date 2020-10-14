@@ -679,15 +679,6 @@ class UserAgent(object):
                 preload_content=False,
             )
 
-        requests_response = self.__session.send(
-            request=requests_prepared_request,
-            timeout=self.timeout(),
-
-            # To be able to enforce max_size
-            stream=True,
-        )
-        response = UserAgent.UserAgentResponse(requests_response=requests_response,
-                                               error_is_client_side=False)
         try:
             requests_response = self.__session.send(
                 request=requests_prepared_request,
