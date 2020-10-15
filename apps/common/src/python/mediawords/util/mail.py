@@ -13,6 +13,8 @@ log = create_logger(__name__)
 # Environment variable that, when set, will prevent the package from actually sending the email
 __ENV_MAIL_DO_NO_SEND = 'MEDIACLOUD_MAIL_DO_NOT_SEND'
 
+# queue a list of test messages sent for validation
+_sent_test_messages = []
 
 class McSendEmailException(Exception):
     """send_email() exception."""
@@ -25,6 +27,10 @@ def enable_test_mode():
 
 def disable_test_mode():
     del os.environ[__ENV_MAIL_DO_NO_SEND]
+
+
+def sent_test_messages():
+    return _sent_test_messages
 
 
 def test_mode_is_enabled() -> bool:
@@ -123,6 +129,7 @@ def send_email(message: Message) -> bool:
             mime_message.attach(message_part)
 
         if test_mode_is_enabled():
+            _sent_test_messages.append(message)
             log.info("Test mode is enabled, not actually sending any email.")
             log.debug("Omitted email:\n\n%s" % mime_message.as_string())
 
