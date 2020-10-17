@@ -6,7 +6,6 @@ import pytest
 
 from mediawords.db import connect_to_db
 from mediawords.test.db.create import create_download_for_feed
-from mediawords.util.parse_json import decode_json
 from mediawords.util.web.user_agent import UserAgent
 
 from crawler_fetcher.config import CrawlerConfig
@@ -120,7 +119,7 @@ class AbstractUnivisionTest(object, metaclass=abc.ABCMeta):
         json_string = response.decoded_content()
         assert json_string, 'JSON response is not empty'
 
-        json = decode_json(json_string)
+        json = response.decoded_json()
         assert json.get('status', None) == 'success', "JSON response was successful"
         assert 'data' in json, 'JSON response has "data" key'
 
