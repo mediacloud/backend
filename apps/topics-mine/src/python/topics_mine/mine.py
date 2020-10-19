@@ -7,13 +7,8 @@ manages the children jobs to fetch and extract links, to fetch social media data
 the topic mining process is described in doc/topic_mining.markdown.
 
 """
+from time import sleep, time
 
-from mediawords.util.log import create_logger
-log = create_logger(__name__)
-
-import mediawords.tm.alert
-import mediawords.tm.fetchtopicposts
-import mediawords.tm.stories
 import mediawords.dbi.stories
 import mediawords.dbi.stories.guessdate
 import mediawords.job.broker
@@ -21,18 +16,25 @@ import mediawords.job.statefulbroker
 import mediawords.solr
 import mediawords.solr.query
 import mediawords.util.sql
+import topics_base.alert
+import topics_base.fetch_topic_posts
+import topics_base.stories
+
+from mediawords.util.log import create_logger
+log = create_logger(__name__)
+
 
 # total time to wait for fetching of social media metrics
 MAX_SOCIAL_MEDIA_FETCH_TIME = (60 * 60 * 24)
 
 # add new links in chunks of this size
-ADD_NEW_LINKS_CHUNK_SIZE = 10_000
+ADD_NEW_LINKS_CHUNK_SIZE = 10000
 
 # extract story links in chunks of this size
 EXTRACT_STORY_LINKS_CHUNK_SIZE = 1000
 
 # query this many topic_links at a time to spider
-SPIDER_LINKS_CHUNK_SIZE = 100_000
+SPIDER_LINKS_CHUNK_SIZE = 100000
 
 # die if the error rate for link fetch or link extract jobs is greater than this
 MAX_JOB_ERROR_RATE = 0.02
@@ -44,7 +46,7 @@ JOB_POLL_TIMEOUT = 300
 JOB_POLL_WAIT = 5
 
 # if more than this many seed urls are imported, dedup stories before as well as after spidering
-MIN_SEED_IMPORT_FOR_PREDUP_STORIES = 50_000
+MIN_SEED_IMPORT_FOR_PREDUP_STORIES = 50000
 
 # how many link extraction jobs per 1000 can we ignore if they hang
 MAX_LINK_EXTRACTION_TIMEOUT = 10
@@ -60,80 +62,76 @@ def update_topic_state(db, state_updater, message):
 
     log.info("update topic state: message")
 
-    unless (state_updater) {
+    if not state_updater:
         # Shouldn't happen but let's just test it here
-        ERROR "State updater is unset."
+        log.warning("State updater is unset.")
         return
 
-    eval {
-        state_updater.update_job_state_message(db, message)
+    state_updater.update_job_state_message(db, message)
 
-    if $@:
-
-        die "Error updating job state: $@"
 
 # return true if the publish date of the story is within 7 days of the topic date range or if the
 def story_within_topic_date_range(db, topic, story):
     """ story is undateable"""
 
     if not story['publish_date']:
-
         return 1
 
-    story_date = substr(story['publish_date'], 0, 10)
+    story_date = (story['publish_date'])[0:10]
 
     start_date = topic['start_date']
     start_date = mediawords.util.sql.increment_day(start_date, -7)
-    start_date = substr(start_date, 0, 10)
+    start_date = start_date[0:10]
 
     end_date = topic['end_date']
     end_date = mediawords.util.sql.increment_day(end_date, 7)
-    end_date = substr(end_date, 0, 10)
+    end_date = end_date[0:10]
 
-    if (story_date ge start_date) and (story_date le end_date):
-
+    if (story_date >= start_date) and (story_date <= end_date):
         return 1
 
     return mediawords.dbi.stories.guessdate.is_undateable(db, story)
 
-# submit jobs to extract links from the given stories and then poll to wait for the stories to be processed within
 def generate_topic_links(db, topic, stories):
-    """ the jobs pool"""
+    """
+    submit jobs to extract links from the given stories and then poll to wait for the stories to be processed 
+    within the jobs pool
+    """
 
-    INFO "generate topic links: " . len(stories)
+    log.info(f"generate topic links: {len(stories)}")
 
     topic_links = []
 
-    if topic['platform'] ne 'web':
-
+    if topic['platform'] <> 'web':
         log.info("skip link generation for non web topic")
         return
 
-    stories_ids_table = db.get_temporary_ids_table([map { _['stories_id'] } stories])
+    stories_ids_table = db.get_temporary_ids_table([s['stories_id'] for s in stories])
 
-    db.query(<<SQL, topic['topics_id'])
-update topic_stories set link_mined = 'f'
-        where
-            stories_id in (select id from stories_ids_table) and
-            topics_id = ? and
-            link_mined = 't'
-SQL
+    db.query(
+        """
+        update topic_stories set link_mined = 'f'
+            where
+                stories_id in (select id from stories_ids_table) and
+                topics_id = %(a)s and
+                link_mined = 't'
+        """,
+        {'a': topic['topics_id']})
 
     queued_stories_ids = []
     for story in stories:
-
         if not story_within_topic_date_range(db, topic, story):
             next
 
-        push(queued_stories_ids, story['stories_id'])
+        queued_stories_ids.append(story['stories_id'])
 
-        mediawords.job.broker.new('mediawords.job.tm.extractstorylinks').add_to_queue(
+        mediawords.job.broker.new('MediaWords.Job.TM.ExtractStoryLinks').add_to_queue(
             { 'stories_id': story['stories_id'], topics_id => topic['topics_id'] },   #
         )
 
-        log.debug("queued link extraction for story story['title'] story['url'].")
+        log.debug(f"queued link extraction for story {story['title']} {story['url']}.")
 
-    log.info("waiting for " . len( queued_stories_ids) . " link extraction jobs to finish" )
+    log.info(f"waiting for {len(queued_stories_ids)} link extraction jobs to finish")
 
     queued_ids_table = db.get_temporary_ids_table(queued_stories_ids)
 
@@ -141,117 +139,121 @@ SQL
     # has not shrunk for EXTRACTION_POLL_TIMEOUT seconds. 
     prev_num_queued_stories = len(stories)
     last_change_time = time()
-    while 1:
-
-        queued_stories = db.query(<<SQL, topic['topics_id']).flat()
-select stories_id from topic_stories
-    where stories_id in (select id from queued_ids_table) and topics_id = ? and link_mined = 'f'
-SQL
+    while True:
+        queued_stories = db.query(
+            """
+            select stories_id from topic_stories
+                where stories_id in (select id from queued_ids_table) and topics_id = %(a)s and link_mined = 'f'
+            """,
+            {'a': topic['topics_id']}).flat()
 
         num_queued_stories = len(queued_stories)
 
         if not num_queued_stories:
+            break
 
-            last
-
-        if num_queued_stories not = prev_num_queued_stories:
-
+        if num_queued_stories <> prev_num_queued_stories:
             last_change_time = time()
-        if ( ( time() - last_change_time ) > LINK_EXTRACTION_POLL_TIMEOUT )
 
-            ids_list = join(', ', queued_stories)
+        if (time() - last_change_time) > LINK_EXTRACTION_POLL_TIMEOUT:
+            ids_list = ','.join(queued_stories)
             if num_queued_stories > MAX_LINK_EXTRACTION_TIMEOUT:
+                raise MCTopicMineError(f"Timed out waiting for story link extraction ({ids_list}).")
 
-                LOGDIE( "Timed out waiting for story link extraction (ids_list)." )
+            db.query(
+                """
+                update topic_stories set link_mine_error = 'time out'
+                    where stories_id = any(%(b)s)  and topics_id = %(a)s
+                """,
+                {'a': topic['topics_id'], 'b': queued_stories})
 
-            db.query(<<SQL, topic['topics_id'])
-update topic_stories set link_mine_error = 'time out' where stories_id in (ids_list) and topics_id = ?
-SQL
-            last
+            break
 
-        log.info("num_queued_stories stories left in link extraction pool....")
+        log.info(f"{num_queued_stories} stories left in link extraction pool....")
 
         prev_num_queued_stories = num_queued_stories
         sleep(JOB_POLL_WAIT)
 
-    db.query(<<SQL, topic['topics_id'])
-update topic_stories set link_mined = 't'
-    where stories_id in (select id from stories_ids_table) and topics_id = ? and link_mined = 'f'
-SQL
+    db.query(
+        """
+        update topic_stories set link_mined = 't'
+            where stories_id in (select id from stories_ids_table) and topics_id = %(a)s and link_mined = 'f'
+        """,
+        {'a': topic['topics_id']})
 
     db.query("discard temp")
 
-# die() with an appropriate error if topic_stories > topics.max_stories because this check is expensive and we don't
-def die_if_max_stories_exceeded(db, topic):
-    """ care if the topic goes over by a few thousand stories, we only actually run the check randmly 1/1000 of the time"""
 
-    my (num_topic_stories) = db.query(<<SQL, topic['topics_id']).flat
-select count(*) from topic_stories where topics_id = ?
-SQL
+def die_if_max_stories_exceeded(db, topic):
+    """
+    raise an MCTopicMineMaxStoriesException topic_stories > topics.max_stories.
+    """ 
+
+    num_topic_stories = db.query(
+        "select count(*) from topic_stories where topics_id = %(a)s",
+        {'a': topic['topics_id';]}).flat()[0]
 
     if num_topic_stories > topic['max_stories']:
+        raise MCTopicMineMaxStoriesException(f"{num_topic_stories stories} > {topic['max_stories']}")
 
-        LOGDIE("topic has num_topic_stories stories, which exceeds topic max stories of topic['max_stories']")
 
 def queue_topic_fetch_url(tfu, domain_timeout):
     """ add the topic_fetch_url to the fetch_link job queue.  try repeatedly on failure."""
 
-    domain_timeout //= _test_mode ? 0 : undef
+    domain_timeout = 0 if _test_mode else None
 
-    mediawords.job.broker.new('mediawords.job.tm.fetchlink').add_to_queue(
-
-            'topic_fetch_urls_id': tfu['topic_fetch_urls_id'],
-            'domain_timeout': domain_timeout
-
-    )
+    JobBroker(queue_name='MediaWords::Job::TM::FetchLink').add_to_queue(
+            topic_fetch_urls_id=tfu['topic_fetch_urls_id'],
+            domain_timeout=domain_timeout)
 
 def create_and_queue_topic_fetch_urls(db, topic, fetch_links):
-    """ create topic_fetch_urls rows correpsonding to the links and queue a FetchLink job for each.  return the tfu rows."""
-
+    """
+    create topic_fetch_urls rows correpsonding to the links and queue a FetchLink job for each.  
+    
+    return the tfu rows.
+    """
     tfus = []
     for link in fetch_links:
-
-        if (link['topic_links_id'] and not db.find_by_id( 'topic_links', link['topic_links_id']) )
-
+        if link['topic_links_id'] and not db.find_by_id( 'topic_links', link['topic_links_id']):
             next
 
-        tfu = db.create(
-            'topic_fetch_urls',
+        tfu = {
+            'topics_id': topic['topics_id'],
+            'url': link['url'],
+            'state': 'pending',
+            'assume_match': mediawords.util.python.normalize_boolean_for_db(link['assume_match']),
+            'topic_links_id': link['topic_links_id']}
+        tfu = db.create('topic_fetch_urls', tfu)
 
-                'topics_id': topic['topics_id'],
-                'url': link['url'],
-                'state': 'pending',
-                'assume_match': mediawords.util.python.normalize_boolean_for_db(link['assume_match']),
-                'topic_links_id': link['topic_links_id'],
-
-        )
-        push(tfus, tfu)
+        tfus.append(tfu)
 
         queue_topic_fetch_url(tfu)
 
     return tfus
 
-def _fetch_twitter_urls(db, topic, tfu_ids_list):
 
-    twitter_tfu_ids = db.query(<<SQL).flat()
-select topic_fetch_urls_id
-    from topic_fetch_urls tfu
-    where
-        tfu.state = 'tweet pending' and
-        tfu.topic_fetch_urls_id in (tfu_ids_list)
-SQL
+def _fetch_twitter_urls(db: DatabaseHandler, topic: dict, tfu_ids: list) -> None
+    """
+    Send topic_fetch_urls to fetch_twitter_urls queue and wait for the jobs to complete.
+    """
+    twitter_tfu_ids = db.query(
+        """
+        select topic_fetch_urls_id
+            from topic_fetch_urls tfu
+            where
+                tfu.state = 'tweet pending' and
+                tfu.topic_fetch_urls_id = any(%(a)s)
+        """, {'a': tfu_ids}).flat()
 
-    if not len(twitter_tfu_ids) > 0:
-
+    if not twitter_tfu_ids:
         return
 
     tfu_ids_table = db.get_temporary_ids_table(twitter_tfu_ids)
 
-    mediawords.job.broker.new('mediawords.job.tm.fetchtwitterurls').add_to_queue(
-        { 'topic_fetch_urls_ids': twitter_tfu_ids }
-    )
+    JobBroker(queue_name='MediaWords::Job::TM::FetchTwitterUrls').add_to_queue(
+        { 'topic_fetch_urls_ids': twitter_tfu_ids})
 
-    log.info("waiting for fetch twitter urls job for " . len( twitter_tfu_ids) . " urls" )
+    log.info(f"waiting for fetch twitter urls job for {len(twitter_tfu_ids)} urls")
 
     # poll every sleep_time seconds waiting for the jobs to complete.  die if the number of stories left to process
     # has not shrunk for large_timeout seconds.  warn but continue if the number of stories left to process
@@ -259,58 +261,55 @@ SQL
     # of one link extractor job error).
     prev_num_queued_urls = len(twitter_tfu_ids)
     last_change_time = time()
-    while 1:
-
-        queued_tfus = db.query(<<SQL).hashes()
-select tfu.*
-    from topic_fetch_urls tfu
-        join tfu_ids_table ids on (tfu.topic_fetch_urls_id = ids.id)
-    where
-        state in ('tweet pending')
-SQL
+    while True:
+        queued_tfus = db.query(
+            """
+            select tfu.*
+                from topic_fetch_urls tfu
+                    join tfu_ids_table ids on (tfu.topic_fetch_urls_id = ids.id)
+                where
+                    state in ('tweet pending')
+            """).hashes()
 
         num_queued_urls = len(queued_tfus)
 
         if num_queued_urls == 0:
+            break
 
-            last
-
-        if num_queued_urls not = prev_num_queued_urls:
+        if num_queued_urls <> prev_num_queued_urls:
             last_change_time = time()
-        if ( ( time() - last_change_time ) > JOB_POLL_TIMEOUT )
 
-            LOGDIE("Timed out waiting for twitter fetching.\n" . Dumper( queued_tfus) )
+        if (time() - last_change_time) > JOB_POLL_TIMEOUT):
+            raise McTopicMineTimeoutError(f"Timed out waiting for twitter fetching {queued_tfus}")
 
-        log.info("num_queued_urls twitter urls left to fetch ...")
+        log.info(f"{num_queued_urls} twitter urls left to fetch ...")
 
         prev_num_queued_urls = num_queued_urls
         sleep(JOB_POLL_WAIT)
 
-def show_pending_urls(pending_urls):
-    """ list a sample of the pending urls for fetching"""
-
+def list_pending_urls(pending_urls: list) -> str:
+    """list a sample of the pending urls for fetching"""
     num_pending_urls = len(pending_urls)
 
-    num_printed_urls = List::Util::min(num_pending_urls, 3)
+    num_printed_urls = min(num_pending_urls, 3)
 
-    my shuffled_ids = List::Util::shuffle(0 .. ( num_pending_urls - 1) )
+    urls = shuffle(num_pending_urls)[0:num_printed_urls]
 
-    for id (shuffled_ids[ 0 .. in num_printed_urls - 1) ]:
+    return "\n".join([f"pending url: {url['url']} [{url['state']}: {url['fetch_date']}]" for url in urls])
 
-        url = pending_urls->[id]
-        log.info("pending url: url['url'] [url['state']: url['fetch_date']]")
-
-# fetch the given links by creating topic_fetch_urls rows and sending them to the FetchLink queue
-def fetch_links(db, topic, fetch_links):
-    """ for processing.  wait for the queue to complete and returnt the resulting topic_fetch_urls."""
+def fetch_links(db: DatabaseHandle, topic: dict, fetch_links: dict) -> None:
+    """
+    fetch the given links by creating topic_fetch_urls rows and sending them to the FetchLink queue
+    for processing.  wait for the queue to complete and returnt the resulting topic_fetch_urls.
+    """
 
     log.info("fetch_links: queue links")
     tfus = create_and_queue_topic_fetch_urls(db, topic, fetch_links)
     num_queued_links = len(fetch_links)
 
-    log.info("waiting for fetch link queue: num_queued_links queued")
+    log.info(f"waiting for fetch link queue: {num_queued_links} queued")
 
-    tfu_ids_list = join(',', map { int( _['topic_fetch_urls_id']) } tfus )
+    tfu_ids = [tfu['topic_fetch_urls_id'] for tfu in tfus]
 
     requeues = 0
     max_requeues = 1
@@ -327,68 +326,59 @@ def fetch_links(db, topic, fetch_links):
 
     last_pending_change = time()
     last_num_pending_urls = 0
-    while 1:
+    while True:
+        pending_urls = db.query(
+            """
+            select *, coalesce(fetch_date::text, 'null') fetch_date
+                from topic_fetch_urls
+                where
+                    topic_fetch_urls_id = any(%(a)s) and
+                    state in ('pending', 'requeued')
+            """,
+            {'a': tfu_ids}).hashes()
 
-        pending_urls = db.query(<<SQL).hashes()
-select *, coalesce(fetch_date::text, 'null') fetch_date
-    from topic_fetch_urls
-    where
-        topic_fetch_urls_id in (tfu_ids_list) and
-        state in ('pending', 'requeued')
-SQL
-
-        pending_url_ids = [map { _['topic_fetch_urls_id'] } pending_urls]
+        pending_url_ids = [u['topic_fetch_urls_id'] for u in pending_urls]
 
         num_pending_urls = len(pending_url_ids)
 
-        log.info("waiting for fetch link queue: num_pending_urls links remaining ...")
-
-        show_pending_urls(pending_urls)
+        log.info(f"waiting for fetch link queue: {num_pending_urls} links remaining ...")
+        log.info(list_pending_urls(pending_urls))
 
         if num_pending_urls < 1:
-
-            last
+            break
 
         # if we only have a handful of job left, requeue them all once with a 0 domain throttle
-        if (not instant_requeued and ( num_pending_urls <= instant_queue_size) )
-
+        if not instant_requeued and num_pending_urls <= instant_queue_size:
             instant_requeued = 1
-            map { queue_topic_fetch_url(db.require_by_id( 'topic_fetch_urls', _), 0 ) } pending_url_ids
+            [queue_topic_fetch_url(db.require_by_id( 'topic_fetch_urls', id), 0) for id in pending_url_ids]
             sleep(JOB_POLL_WAIT)
-            next
+            continue
 
         time_since_change = time() - last_pending_change
 
         # for some reason, the fetch_link queue is occasionally losing a small number of jobs.
-        if   (time_since_change > requeue_timeout:
-            and ( requeues < max_requeues)
-            and (num_pending_urls < max_requeue_jobs) )
-
-            log.info("requeueing fetch_link num_pending_urls jobs ... [requeue requeues]")
+        if (time_since_change > requeue_timeout and 
+                requeues < max_requeues and 
+                num_pending_urls < max_requeue_jobs):
+            log.info(f"requeueing fetch_link {num_pending_urls} jobs ... [{requeue} requeues]")
 
             # requeue with a domain_timeout of 0 so that requeued urls can ignore throttling
-            map { queue_topic_fetch_url(db.require_by_id( 'topic_fetch_urls', _), 0 ) } pending_url_ids
-            ++requeues
+            [queue_topic_fetch_url(db.require_by_id( 'topic_fetch_urls', id), 0) for id in pending_url_ids]
+            requeues += 1
             last_pending_change = time()
 
         if time_since_change > JOB_POLL_TIMEOUT:
-
             if full_requeues < max_full_requeues:
-
-                map { queue_topic_fetch_url(db.require_by_id( 'topic_fetch_urls', _) ) } pending_url_ids
-                ++full_requeues
+                [queue_topic_fetch_url(db.require_by_id( 'topic_fetch_urls', id)) for id in pending_url_ids]
+                full_requeues += 1
                 last_pending_change = time()
-
             else
-
                 for id in pending_url_ids:
+                    db.update_by_id('topic_fetch_urls', id, {'state': 'error', message => 'timed out'})
 
-                    db.update_by_id('topic_fetch_urls', id, { 'state': 'error', message => 'timed out' })
-
-                log.info("timed out " . len( pending_url_ids) . " urls" )
+                log.info(f"timed out {len(pending_url_ids)} urls")
 
         if num_pending_urls < last_num_pending_urls:
-
             last_pending_change = time()
 
         last_num_pending_urls = num_pending_urls
@@ -398,38 +388,41 @@ SQL
     _fetch_twitter_urls(db, topic, tfu_ids_list)
 
     log.info("fetch_links: update topic seed urls")
-    db.query(<<SQL)
-update topic_seed_urls tsu
-    set stories_id = tfu.stories_id, processed = 't'
-    from topic_fetch_urls tfu
-    where
-        tfu.url = tsu.url and
-        tfu.stories_id is not null and
-        tfu.topic_fetch_urls_id in (tfu_ids_list) and
-        tfu.topics_id = tsu.topics_id
-SQL
+    db.query(
+        """
+        update topic_seed_urls tsu
+            set stories_id = tfu.stories_id, processed = 't'
+            from topic_fetch_urls tfu
+            where
+                tfu.url = tsu.url and
+                tfu.stories_id is not null and
+                tfu.topic_fetch_urls_id in (tfu_ids_list) and
+                tfu.topics_id = tsu.topics_id
+        """)
 
-    completed_tfus = db.query(<<SQL).hashes()
-select * from topic_fetch_urls where topic_fetch_urls_id in (tfu_ids_list)
-SQL
+    completed_tfus = db.query(
+        "select * from topic_fetch_urls where topic_fetch_urls_id = any(%(a)s)",
+        {'a':  tfu_ids}).hashes()
 
     log.info("completed fetch link queue")
 
     return completed_tfus
 
-# download any unmatched link in new_links, add it as a story, extract it, add any links to the topic_links list.
-# each hash within new_links can either be a topic_links hash or simply a hash with a { url } field.  if
-# the link is a topic_links hash, the topic_link will be updated in the database to point ref_stories_id
 def add_new_links_chunk(db, topic, iteration, new_links):
-    """ to the new link story.  For each link, set the { story } field to the story found or created for the link."""
+    """
+    download any unmatched link in new_links, add it as a story, extract it, add any links to the topic_links list.
 
+    each hash within new_links can either be a topic_links hash or simply a hash with a { url } field.  if
+    the link is a topic_links hash, the topic_link will be updated in the database to point ref_stories_id
+    to the new link story.  For each link, set the { story } field to the story found or created for the link.
+    """
     die_if_max_stories_exceeded(db, topic)
 
     log.info("add_new_links_chunk: fetch_links")
     topic_fetch_urls = fetch_links(db, topic, new_links)
 
     log.info("add_new_links_chunk: mark topic links spidered")
-    link_ids = [grep { _ } map { _['topic_links_id'] } new_links]
+    link_ids = [l['topic_links_id'] for l in new_links if l['topic_links_id']]
     db.query(<<SQL, link_ids)
 update topic_links set link_spidered = 't' where topic_links_id = any(?)
 SQL
@@ -922,12 +915,12 @@ def import_urls_from_seed_queries(db, topic, state_updater):
     for tsq in topic_seed_queries:
 
         tsq_dump = tsq['topic_seed_queries_id']
-        fetcher = mediawords.tm.fetchtopicposts.get_post_fetcher(tsq) 
+        fetcher = topics_base.fetch_topic_posts.get_post_fetcher(tsq) 
         if not fetcher:
             die("unable to import seed urls for platform/source of seed query: tsq_dump")
 
         log.debug("import seed urls from fetch_topic_posts:\ntsq_dump")
-        mediawords.tm.fetchtopicposts.fetch_topic_posts(db, tsq)
+        topics_base.fetch_topic_posts.fetch_topic_posts(db, tsq)
 
     db.query(<<SQL, topic['topics_id'])
 insert into topic_seed_urls (url, topics_id, assume_match, source, topic_seed_queries_id, topic_post_urls_id)
@@ -1025,14 +1018,14 @@ def do_mine_topic(db, topic, options, state_updater):
     # something is breaking trying to call this perl.  commenting out for time being since we only need
     # this when we very rarely change the foreign_rss_links field of a media source - hal
     # update_topic_state(db, state_updater, "merging foreign rss stories")
-    # mediawords.tm.stories.merge_foreign_rss_stories(db, topic)
+    # topics_base.stories.merge_foreign_rss_stories(db, topic)
 
     update_topic_state(db, state_updater, "importing seed urls")
     if (import_seed_urls( db, topic, state_updater) > MIN_SEED_IMPORT_FOR_PREDUP_STORIES )
 
         # merge dup stories before as well as after spidering to avoid extra spidering work
         update_topic_state(db, state_updater, "merging duplicate stories")
-        mediawords.tm.stories.find_and_merge_dup_stories(db, topic)
+        topics_base.stories.find_and_merge_dup_stories(db, topic)
 
     unless (options['import_only'])
 
@@ -1043,10 +1036,10 @@ def do_mine_topic(db, topic, options, state_updater):
 
         # merge dup media and stories again to catch dups from spidering
         update_topic_state(db, state_updater, "merging duplicate stories")
-        mediawords.tm.stories.find_and_merge_dup_stories(db, topic)
+        topics_base.stories.find_and_merge_dup_stories(db, topic)
 
         update_topic_state(db, state_updater, "merging duplicate media stories")
-        mediawords.tm.stories.merge_dup_media_stories(db, topic)
+        topics_base.stories.merge_dup_media_stories(db, topic)
 
         if not options['skip_post_processing']:
 
@@ -1072,13 +1065,13 @@ def mine_topic(db, topic, options, state_updater):
 
     if topic['state'] ne 'running':
 
-        mediawords.tm.alert.send_topic_alert(db, topic, "started topic spidering")
+        topics_base.alert.send_topic_alert(db, topic, "started topic spidering")
 
     eval { do_mine_topic(db, topic, options, state_updater) }
     if $@:
 
         error = $@
-        mediawords.tm.alert.send_topic_alert(db, topic, "aborted topic spidering due to error")
+        topics_base.alert.send_topic_alert(db, topic, "aborted topic spidering due to error")
         LOGDIE(error)
 
     _test_mode = prev_test_mode
