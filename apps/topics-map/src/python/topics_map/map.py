@@ -442,7 +442,7 @@ def rotate_right_to_right(graph: nx.Graph) -> None:
     
     Assign the rotated positions to the graph nodes.
     """
-    partisan = nx.get_node_attributes(graph, 'partisan_retweet')
+    partisan = nx.get_node_attributes(graph, 'twitter_partisanship')
     right_nodes = list(filter(lambda n: partisan[n] == 'right', graph.nodes()))
 
     positions = nx.get_node_attributes(graph, 'position')
