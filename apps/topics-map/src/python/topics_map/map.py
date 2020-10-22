@@ -799,7 +799,7 @@ def generate_map_variants(
         memory_limit_mb=memory_limit_mb,
         remove_platforms=remove_platforms)
 
-    [add_attribute_to_graph(graph=graph, attribute_data=a) for a in attributes]
+    [add_attribute_to_graph(graph=graph, attribute=a) for a in attributes]
 
     if size_bys is None:
         size_bys = [None]
