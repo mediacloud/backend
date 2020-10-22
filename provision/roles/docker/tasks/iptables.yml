@@ -1,6 +1,21 @@
 #
 # Docker Swarm publishes ports on all hosts and doesn't support "ip_to_bind_to:host_port:container_port" syntax, and UFW 
 
+# Webapp is only accessible through Nginx proxy:
+- name: Deny connections to webapp's unsecured HTTP server
+  iptables:
+    # Insert before RETURN
+    action: insert
+    chain: DOCKER-USER
+    protocol: tcp
+    destination_port: 8082
+    jump: DROP
+  become: true
+  become_user: root
+  tags:
+    - docker
+    - iptables
+
 - name: Deny connections to Munin HTTP server
   iptables:
     # Insert before RETURN
