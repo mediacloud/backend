@@ -442,7 +442,7 @@ def rotate_right_to_right(graph: nx.Graph) -> None:
     
     Assign the rotated positions to the graph nodes.
     """
-    partisan = nx.get_node_attributes(graph, 'twitter_partisanship')
+    partisan = nx.get_node_attributes(graph, 'partisan_retweet')
     right_nodes = list(filter(lambda n: partisan[n] == 'right', graph.nodes()))
 
     positions = nx.get_node_attributes(graph, 'position')
@@ -646,7 +646,8 @@ def generate_and_layout_graph(db: DatabaseHandler,
                               timespans_id: int,
                               memory_limit_mb: int,
                               remove_platforms: bool = True,
-                              color_by: str = 'community') -> nx.Graph:
+                              color_by: str = 'community',
+                              size_by: Optional[str] = None) -> nx.Graph:
     """Generate and layout a graph of the network of media for the given timespan.
     
     The layout algorithm is force atlas 2, and the resulting is 'position' attribute added to each node.
@@ -665,8 +666,10 @@ def generate_and_layout_graph(db: DatabaseHandler,
 
     assign_colors(db=db, graph=graph, color_by=color_by)
 
-    size_attribute = get_default_size_attribute(db, timespans_id)
-    assign_sizes(graph=graph, attribute=size_attribute)
+    if size_by is None:
+        size_by = get_default_size_attribute(db, timespans_id)
+
+    assign_sizes(graph=graph, attribute=size_by)
 
     rotate_right_to_right(graph=graph)
 
@@ -757,6 +760,64 @@ def store_map(db: DatabaseHandler,
     url = get_content_url(db, TIMESPAN_MAPS_TYPE, timespan_map['timespan_maps_id'])
 
     db.update_by_id('timespan_maps', timespan_map['timespan_maps_id'], {'url': url})
+
+
+def add_attribute_to_graph(graph: nx.Graph, attribute: dict) -> None:
+    """
+    Given an attribute_data dict, attach the data in the dict to each associated node in the graph.
+
+    attribute_data should be a dict in the form of:
+        {'name': 'name_of_attribute',
+         'data': {media_id_1: value, media_id_2: value}}
+    """
+    data = attribute['data']
+    name = attribute['name']
+
+    graph_attributes = {d['media_id']: {name: d['value']} for d in data}
+
+    for n in graph.nodes:
+        graph_attributes.setdefault(n, {name: 'null'})
+
+    nx.set_node_attributes(graph, graph_attributes)
+
+def generate_map_variants(
+        db: DatabaseHandler,
+        timespans_id: int,
+        memory_limit_mb: int,
+        remove_platforms: bool = True,
+        attributes: list = [],
+        size_bys: Optional[list] = None,
+        color_bys: Optional[list] = None) -> iter:
+    """
+    Layout a map for the given timespans_id and generate variants for the listed sizes and colors.
+
+    Returns an iterator of dicts, each with 'format', 'options', and 'content' keys.
+    """
+    graph = generate_and_layout_graph(
+        db=db,
+        timespans_id=timespans_id,
+        memory_limit_mb=memory_limit_mb,
+        remove_platforms=remove_platforms)
+
+    [add_attribute_to_graph(graph=graph, attribute_data=a) for a in attributes]
+
+    if size_bys is None:
+        size_bys = [None]
+
+    if color_bys is None:
+        color_bys = ['community']
+
+    for size_by in size_bys:
+        assign_sizes(graph=graph, attribute=size_by)
+
+        for color_by in color_bys:
+            assign_colors(db=db, graph=graph, color_by=color_by)
+
+            content = write_gexf(graph=graph)
+            yield {'size_by': size_by, 'color_by': color_by, 'format': 'gexf', 'content': content}
+
+            content = draw_graph(graph=graph, graph_format='svg')
+            yield {'size_by': size_by, 'color_by': color_by, 'format': 'svg', 'content': content}
 
 
 def generate_and_store_maps(
