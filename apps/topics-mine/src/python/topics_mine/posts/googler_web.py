@@ -64,6 +64,9 @@ class GooglerWebPostFetcher(AbstractPostFetcher):
         if self.mock_enabled:
             googler_json = self._get_mock_json(start_date, end_date)
         else:
+            # disabling this for now because googler seems not to return results any more
+            log.warning('google support disabled')
+            return [];
             global _last_google_request_epoch
             now = time.time()
             if now - _last_google_request_epoch < GOOGLE_REQUEST_DELAY:
