@@ -9,6 +9,19 @@ fi
 
 set -u
 
+# If we're running off a ZFS partition and its ARC cache size is not limited,
+# we're very likely to run out of RAM after a while, so it's better not to run
+# at all and insist user on updating zfs_arc_max
+if grep -qs /var/lib/solr /proc/mounts; then
+    if df -t zfs /var/lib/solr > /dev/null 2>&1; then
+        if [ $(cat /sys/module/zfs/parameters/zfs_arc_max) -eq "0" ]; then
+            echo "zfs_arc_max is not limited; please set it to 10% of available"
+            echo "RAM or a similar figure."
+            exit 1
+        fi
+    fi
+fi
+
 MC_SOLR_ZOOKEEPER_HOST="solr-zookeeper"
 MC_SOLR_ZOOKEEPER_PORT=2181
 MC_SOLR_PORT=8983
