@@ -65,7 +65,7 @@ Readonly my $MIN_SEED_IMPORT_FOR_PREDUP_STORIES => 50_000;
 Readonly my $MAX_LINK_EXTRACTION_TIMEOUT => 10;
 
 # how long to wait to timeout link extraction
-Readonly my $LINK_EXTRACTION_POLL_TIMEOUT => 60;
+Readonly my $LINK_EXTRACTION_POLL_TIMEOUT => 600;
 
 # if mine_topic is run with the test_mode option, set this true and do not try to queue extractions
 my $_test_mode;
