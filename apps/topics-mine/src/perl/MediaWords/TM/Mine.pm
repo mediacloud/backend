@@ -533,25 +533,42 @@ sub spider_new_links($$$;$)
 {
     my ( $db, $topic, $iteration, $state_updater ) = @_;
 
-    for ( my $i = 0 ; ; $i++ )
+    while ( 1 )
     {
-        INFO( "spider new links chunk: $i" );
+        INFO( "querying new links ..." );
 
-        my $new_links = $db->query( <<END, $iteration, $topic->{ topics_id }, $SPIDER_LINKS_CHUNK_SIZE )->hashes;
-select tl.* from topic_links tl, topic_stories ts
-    where
-        tl.link_spidered = 'f' and
-        tl.stories_id = ts.stories_id and
-        ( ts.iteration <= \$1 or ts.iteration = 1000 ) and
-        ts.topics_id = \$2 and
-        tl.topics_id = \$2
+        $db->query( "drop table if exists _new_links" );
 
-    limit \$3
+        my $num_new_links = $db->query( <<END, $iteration, $topic->{ topics_id } )->rows();
+create temporary table _new_links as 
+    select tl.* 
+        from topic_links tl, topic_stories ts
+        where
+            tl.link_spidered = 'f' and
+            tl.stories_id = ts.stories_id and
+            ( ts.iteration <= \$1 or ts.iteration = 1000 ) and
+            ts.topics_id = \$2 and
+            tl.topics_id = \$2
+        order by random()
 END
 
-        last unless ( @{ $new_links } );
+        $db->query( "create index _new_links_tl on _new_links ( topic_links_id )" );
 
-        add_new_links( $db, $topic, $iteration, $new_links, $state_updater );
+        last if ( $num_new_links < 1 );
+
+        INFO( "found $num_new_links new links" );
+
+        while ( 1 )
+        {
+            my $new_links = $db->query( "select * from _new_links limit ?", $SPIDER_LINKS_CHUNK_SIZE )->hashes();
+
+            last unless ( @{ $new_links } );
+
+            add_new_links( $db, $topic, $iteration, $new_links, $state_updater );
+
+            my $ids_table = $db->get_temporary_ids_table( [ map { $_->{ topic_links_id } } @{ $new_links } ] );
+            $db->query( "delete from _new_links where topic_links_id in (select id from $ids_table)" );
+        }   
     }
 }
 
