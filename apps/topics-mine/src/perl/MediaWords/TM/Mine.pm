@@ -53,7 +53,7 @@ Readonly my $SPIDER_LINKS_CHUNK_SIZE => 100_000;
 Readonly my $MAX_JOB_ERROR_RATE => 0.02;
 
 # timeout when polling for jobs to finish
-Readonly my $JOB_POLL_TIMEOUT => 300;
+Readonly my $JOB_POLL_TIMEOUT => 600;
 
 # number of seconds to wait when polling for jobs to finish
 Readonly my $JOB_POLL_WAIT => 5;
@@ -412,7 +412,11 @@ SQL
 
         if ( $time_since_change > $JOB_POLL_TIMEOUT )
         {
-            if ( $full_requeues < $max_full_requeues )
+            if ( $num_pending_urls > $max_requeue_jobs )
+            {
+                die( "timed out waiting for fetch_link jobs: " . scalar( @{ $pending_url_ids } ) );
+            }
+            elsif ( $full_requeues < $max_full_requeues )
             {
                 map { queue_topic_fetch_url( $db->require_by_id( 'topic_fetch_urls', $_ ) ) } @{ $pending_url_ids };
                 ++$full_requeues;
@@ -422,7 +426,7 @@ SQL
             {
                 for my $id ( @{ $pending_url_ids } )
                 {
-                    $db->update_by_id( 'topic_fetch_urls', $id, { state => 'error', message => 'timed out' } );
+                    $db->update_by_id( 'topic_fetch_urls', $id, { state => 'python error', message => 'timed out' } );
                 }
                 INFO( "timed out " . scalar( @{ $pending_url_ids } ) . " urls" );
             }
@@ -566,8 +570,8 @@ END
 
             add_new_links( $db, $topic, $iteration, $new_links, $state_updater );
 
-            my $ids_table = $db->get_temporary_ids_table( [ map { $_->{ topic_links_id } } @{ $new_links } ] );
-            $db->query( "delete from _new_links where topic_links_id in (select id from $ids_table)" );
+            my $tl_ids_list = join( ',', map { $_->{ topic_links_id } } @{ $new_links } );
+            $db->query( "delete from _new_links where topic_links_id in ($tl_ids_list)" );
         }   
     }
 }
