@@ -199,8 +199,7 @@ SQL
 update topic_stories set link_mined = 't'
     where stories_id in ( select id from $stories_ids_table ) and topics_id = ? and link_mined = 'f'
 SQL
-
-    $db->query( "discard temp" );
+    $db->query( "drop table $stories_ids_table" );
 }
 
 # die() with an appropriate error if topic_stories > topics.max_stories; because this check is expensive and we don't
@@ -568,10 +567,9 @@ END
 
             last unless ( @{ $new_links } );
 
-            add_new_links( $db, $topic, $iteration, $new_links, $state_updater );
-
             my $tl_ids_list = join( ',', map { $_->{ topic_links_id } } @{ $new_links } );
             $db->query( "delete from _new_links where topic_links_id in ($tl_ids_list)" );
+            add_new_links( $db, $topic, $iteration, $new_links, $state_updater );
         }   
     }
 }
