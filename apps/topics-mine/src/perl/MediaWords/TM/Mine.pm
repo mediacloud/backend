@@ -267,6 +267,9 @@ sub _fetch_twitter_urls($$$)
 {
     my ( $db, $topic, $tfu_ids_list ) = @_;
 
+    # we run into quota limitations with twitter sometimes and need a longer timeout
+    my $twitter_poll_timeout = $JOB_POLL_TIMEOUT * 5;
+
     my $twitter_tfu_ids = $db->query( <<SQL )->flat();
 select topic_fetch_urls_id
     from topic_fetch_urls tfu
@@ -306,7 +309,7 @@ SQL
         last if ( $num_queued_urls == 0 );
 
         $last_change_time = time() if ( $num_queued_urls != $prev_num_queued_urls );
-        if ( ( time() - $last_change_time ) > $JOB_POLL_TIMEOUT )
+        if ( ( time() - $last_change_time ) > $twitter_poll_timeout )
         {
             LOGDIE( "Timed out waiting for twitter fetching.\n" . Dumper( $queued_tfus ) );
         }
