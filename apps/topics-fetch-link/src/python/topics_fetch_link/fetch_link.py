@@ -265,16 +265,13 @@ def _get_failed_url(db: DatabaseHandler, topics_id: int, url: str) -> Optional[d
 
     failed_url = db.query(
         """
-            WITH _urls AS (
-                SELECT *
-                FROM topic_fetch_urls
-                WHERE md5(url) = any(array(select md5(unnest(%(urls)s))))
-            )
-            SELECT *
-            FROM _urls
-            WHERE topics_id = %(topics_id)s
-              AND state IN (%(fetch_state_1)s, %(fetch_state_2)s)
-            LIMIT 1
+        SELECT *
+        FROM topic_fetch_urls
+        WHERE 
+            md5(url) = any(array(select md5(unnest(%(urls)s)))) and
+            topics_id = %(topics_id)s and
+            state IN (%(fetch_state_1)s, %(fetch_state_2)s)
+        LIMIT 1
         """,
         {
             'urls': urls,
