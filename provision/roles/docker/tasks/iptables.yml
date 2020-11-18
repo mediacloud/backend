@@ -16,6 +16,34 @@
     - docker
     - iptables
 
+- name: Deny connections to unsecured CLIFF annotator
+  iptables:
+    # Insert before RETURN
+    action: insert
+    chain: DOCKER-USER
+    protocol: tcp
+    destination_port: 8090
+    jump: DROP
+  become: true
+  become_user: root
+  tags:
+    - docker
+    - iptables
+
+- name: Deny connections to unsecured NYTLabels annotator
+  iptables:
+    # Insert before RETURN
+    action: insert
+    chain: DOCKER-USER
+    protocol: tcp
+    destination_port: 8091
+    jump: DROP
+  become: true
+  become_user: root
+  tags:
+    - docker
+    - iptables
+
 - name: Deny connections to Munin HTTP server
   iptables:
     # Insert before RETURN

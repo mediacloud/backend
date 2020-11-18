@@ -286,6 +286,33 @@ services:
                     # RAM limit
                     memory: "6G"
 
+    #
+    # Webapp proxy to CLIFF annotator service
+    # ---------------------------------------
+    #
+    cliff-annotator-webapp-proxy:
+        image: dockermediacloud/cliff-annotator-webapp-proxy:release
+        init: true
+        networks:
+            - default
+        depends_on:
+            - cliff-annotator
+        ports:
+            # Public HTTP port
+            # (SSL is done by Nginx running on bastion host)
+            # MAKE SURE to BLOCK THIS PORT in provision/roles/docker/tasks/iptables.yml
+            - "8090:8080"
+        deploy:
+            # DNSRR disabled as it's not supported with published ports.
+            <<: *misc-apps_deploy_placement_constraints
+            # Worker count
+            replicas: 1
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "256M"
 
     #
     # CLIFF fetch annotation
@@ -1036,6 +1063,34 @@ services:
                     cpus: "1"
                     # RAM limit
                     memory: "8G"
+
+    #
+    # Webapp proxy to NYTLabels annotator service
+    # -------------------------------------------
+    #
+    nytlabels-annotator-webapp-proxy:
+        image: dockermediacloud/nytlabels-annotator-webapp-proxy:release
+        init: true
+        networks:
+            - default
+        depends_on:
+            - nytlabels-annotator
+        ports:
+            # Public HTTP port
+            # (SSL is done by Nginx running on bastion host)
+            # MAKE SURE to BLOCK THIS PORT in provision/roles/docker/tasks/iptables.yml
+            - "8091:8080"
+        deploy:
+            # DNSRR disabled as it's not supported with published ports.
+            <<: *misc-apps_deploy_placement_constraints
+            # Worker count
+            replicas: 1
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "256M"
 
     #
     # NYTLabels fetch annotation
