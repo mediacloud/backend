@@ -4,32 +4,26 @@
 
 FROM dockermediacloud/base:latest
 
-ENV JAVA_HOME=/usr/lib/jvm/java-14-openjdk-amd64/
+ENV JAVA_HOME=/usr/lib/jvm/java-15-openjdk-amd64/
 
 # Install prerequisites
 RUN apt-get -y --no-install-recommends install binutils fontconfig libfreetype6 p11-kit
 
-# Install OpenJDK 14 with Docker support improvements:
+# Install OpenJDK 15 with Docker support improvements:
 #
 # * https://bugs.openjdk.java.net/browse/JDK-8146115
-# * https://jdk.java.net/14/
+# * https://jdk.java.net/15/
 #
 RUN \
-    #
-    # Download and install OpenJDK 12 with Docker support improvements:
-    #
-    # * https://bugs.openjdk.java.net/browse/JDK-8146115
-    # * https://jdk.java.net/12/
-    #
     mkdir -p "${JAVA_HOME}" && \
-    curl --fail --location --retry 3 --retry-delay 5 "https://download.java.net/java/GA/jdk14.0.1/664493ef4a6946b186ff29eb326336a2/7/GPL/openjdk-14.0.1_linux-x64_bin.tar.gz" | \
+    curl --fail --location --retry 3 --retry-delay 5 "https://download.java.net/java/GA/jdk15.0.1/51f4f36ad4ef43e39d0dfdbaf6549e32/9/GPL/openjdk-15.0.1_linux-x64_bin.tar.gz" | \
         tar -zx -C "${JAVA_HOME}" --strip 1 && \
     update-alternatives --install /usr/bin/java java "${JAVA_HOME}/bin/java" 1 && \
     update-alternatives --install /usr/bin/javac javac "${JAVA_HOME}/bin/javac" 1 && \
     #
     # Remove source code
     #
-    rm "${JAVA_HOME}/lib/src.zip" && \
+    find "$JAVA_HOME" -name src.zip -delete && \
     #
     # https://github.com/docker-library/openjdk/issues/331#issuecomment-498834472
     #
