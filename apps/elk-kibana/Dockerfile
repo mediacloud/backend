@@ -5,9 +5,7 @@
 FROM dockermediacloud/java-base:latest
 
 # Install headless Chromium dependencies (needed for Reporting)
-# FIXME remove apt-get -y update
 RUN \
-    apt-get -y update && \
     apt-get -y --no-install-recommends install \
         ca-certificates \
         fonts-freefont-ttf \
