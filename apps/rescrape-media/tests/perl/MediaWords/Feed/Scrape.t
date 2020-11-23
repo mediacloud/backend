@@ -1330,7 +1330,7 @@ HTML
             Our RSS feeds:
             </p>
             <ul>
-                <li><a href="http://feeds2.feedburner.com/localhost">Wile E. Coyote</a></li> <!-- This one should be declared as main feed -->
+                <li><a href="http://feeds.rssboard.org/rssboard">Wile E. Coyote</a></li> <!-- This one should be declared as main feed -->
                 <li><a href="http://quotidianohome.feedsportal.com/c/33327/f/565662/index.rss">The Road Runner</a></li> <!-- This one should *not* be declared a main feed -->
             </ul>
 HTML
@@ -1338,8 +1338,8 @@ HTML
 
     my $expected_links = [
         {
-            'url'  => 'http://feeds2.feedburner.com/localhost',
-            'name' => '127.0.0.1 » 127.0.0.1',
+            'url'  => 'http://feeds.rssboard.org/rssboard',
+            'name' => 'RSS Advisory Board',
             'type' => 'syndicated',
         },
     ];
@@ -1353,6 +1353,9 @@ HTML
     $hs->stop();
 
     cmp_bag( $feed_links, $expected_links, 'test_rss_external_feeds feed_links' );
+    WARN( Dumper( $feed_links ) );
+    WARN( Dumper( $expected_links ) );
+
 }
 
 sub test_get_feed_links()
@@ -1625,7 +1628,9 @@ sub main
     test_web_page_feed();
     test_bad_medium_url();
 
+
     Test::NoWarnings::had_no_warnings();
+
 }
 
 main();

@@ -148,7 +148,7 @@ Parameters:
 C<tm_mine_topic>.
 
 =item * C<$user> - User that initiated the activity, either: a) user's email,
-e.g. C<jdoe@cyber.law.harvard.edu>, or b) system username if the activity was
+e.g. C<jdoe@mediacloud.org>, or b) system username if the activity was
 initiated from the shell and not from the web UI, e.g. C<system:jdoe>.
 
 =item * C<$object_id> - integer ID of an object (e.g. story ID, media ID) that

@@ -88,7 +88,7 @@ sub get_story_counts($$$)
 {
     my ( $db, $timespan, $stories ) = @_;
 
-    my $stories_ids_list = join( ',', map { $_->{ stories_id } } @{ $stories } ) || '-1';
+    my $stories_ids_list = join( ',', map { int( $_->{ stories_id } // 0 ) } @{ $stories } ) || -1;
 
     my $counts = $db->query( <<SQL, $timespan->{ timespans_id } )->hashes;
 select
@@ -104,6 +104,7 @@ select
         join focal_sets fs on ( fs.focal_sets_id = f.focal_sets_id and fs.focal_technique = 'URL Sharing' )
         join snap.story_link_counts b on ( b.timespans_id = bt.timespans_id and b.stories_id = a.stories_id )
     where  
+        b.stories_id in ( $stories_ids_list ) and
         a.timespans_id = ?
 SQL
 
@@ -115,7 +116,7 @@ sub get_medium_counts($$$)
 {
     my ( $db, $timespan, $media ) = @_;
 
-    my $media_ids_list = join( ',', map { $_->{ media_id } } @{ $media } ) || '-1';
+    my $media_ids_list = join( ',', map { int( $_->{ media_id } // 0 ) } @{ $media } ) || -1;
 
     my $counts = $db->query( <<SQL, $timespan->{ timespans_id } )->hashes;
 select
@@ -131,6 +132,7 @@ select
         join focal_sets fs on ( fs.focal_sets_id = f.focal_sets_id and fs.focal_technique = 'URL Sharing' )
         join snap.medium_link_counts b on ( b.timespans_id = bt.timespans_id and b.media_id = a.media_id )
     where  
+        b.media_id in ( $media_ids_list ) and 
         a.timespans_id = ?
 SQL
 

@@ -17,7 +17,7 @@
 #
 #     manage_users.pl \
 #         --action=add \
-#         --email=jdoe@cyber.law.harvard.edu \
+#         --email=jdoe@mediacloud.org \
 #         --full_name="John Doe" \
 #         --has_consented|--has_not_consented \
 #         [--notes="Media Cloud developer."] \
@@ -34,7 +34,7 @@
 #
 #     manage_users.pl \
 #         --action=modify \
-#         --email=jdoe@cyber.law.harvard.edu \
+#         --email=jdoe@mediacloud.org \
 #         [--full_name="John Doe"] \
 #         [--notes="Media Cloud developer."] \
 #         [--active|--inactive] \
@@ -53,12 +53,12 @@
 # Delete user
 # -----------
 #
-#     manage_users.pl --action=delete --email=jdoe@cyber.law.harvard.edu
+#     manage_users.pl --action=delete --email=jdoe@mediacloud.org
 #
 # Show user information
 # ---------------------
 #
-#     manage_users.pl --action=show --email=jdoe@cyber.law.harvard.edu
+#     manage_users.pl --action=show --email=jdoe@mediacloud.org
 #
 # List all users
 # --------------
@@ -143,7 +143,7 @@ sub user_add($)
 
     my Readonly $user_add_usage = <<"EOF";
 Usage: $0 --action=add \
-    --email=jdoe\@cyber.law.harvard.edu \
+    --email=jdoe\@mediacloud.org \
     --full_name="John Doe" \
     --has_consented|--has_not_consented \
     [--notes="Media Cloud developer."] \
@@ -272,7 +272,7 @@ sub user_modify($)
 
     my Readonly $user_modify_usage = <<"EOF";
 Usage: $0 --action=modify \
-    --email=jdoe\@cyber.law.harvard.edu \
+    --email=jdoe\@mediacloud.org \
     [--full_name="John Doe"] \
     [--has_consented|--has_not_consented] \
     [--notes="Media Cloud developer."] \
@@ -380,7 +380,7 @@ sub user_delete($)
 
     my $user_email = undef;
 
-    my Readonly $user_delete_usage = "Usage: $0" . ' --action=delete' . ' --email=jdoe@cyber.law.harvard.edu';
+    my Readonly $user_delete_usage = "Usage: $0" . ' --action=delete' . ' --email=jdoe@mediacloud.org';
 
     GetOptions( 'email=s' => \$user_email, ) or die "$user_delete_usage\n";
     die "$user_delete_usage\n" unless ( $user_email );
@@ -431,7 +431,7 @@ sub user_show($)
 
     my $user_email = undef;
 
-    my Readonly $user_show_usage = "Usage: $0" . ' --action=show' . ' --email=jdoe@cyber.law.harvard.edu';
+    my Readonly $user_show_usage = "Usage: $0" . ' --action=show' . ' --email=jdoe@mediacloud.org';
 
     GetOptions( 'email=s' => \$user_email, ) or die "$user_show_usage\n";
     die "$user_show_usage\n" unless ( $user_email );

@@ -21,6 +21,7 @@ use Modern::Perl "2015";
 use MediaWords::CommonLibs;
 
 use Getopt::Long;
+use List::MoreUtils;
 use List::Util;
 use Readonly;
 use Time::Piece;
@@ -64,7 +65,7 @@ Readonly my $MIN_SEED_IMPORT_FOR_PREDUP_STORIES => 50_000;
 Readonly my $MAX_LINK_EXTRACTION_TIMEOUT => 10;
 
 # how long to wait to timeout link extraction
-Readonly my $LINK_EXTRACTION_POLL_TIMEOUT => 60;
+Readonly my $LINK_EXTRACTION_POLL_TIMEOUT => 600;
 
 # if mine_topic is run with the test_mode option, set this true and do not try to queue extractions
 my $_test_mode;
@@ -96,6 +97,8 @@ sub update_topic_state($$$)
 sub story_within_topic_date_range
 {
     my ( $db, $topic, $story ) = @_;
+
+    return 1 unless ( $story->{ publish_date } );
 
     my $story_date = substr( $story->{ publish_date }, 0, 10 );
 
@@ -196,8 +199,7 @@ SQL
 update topic_stories set link_mined = 't'
     where stories_id in ( select id from $stories_ids_table ) and topics_id = ? and link_mined = 'f'
 SQL
-
-    $db->query( "discard temp" );
+    $db->query( "drop table $stories_ids_table" );
 }
 
 # die() with an appropriate error if topic_stories > topics.max_stories; because this check is expensive and we don't
@@ -265,6 +267,9 @@ sub _fetch_twitter_urls($$$)
 {
     my ( $db, $topic, $tfu_ids_list ) = @_;
 
+    # we run into quota limitations with twitter sometimes and need a longer timeout
+    my $twitter_poll_timeout = $JOB_POLL_TIMEOUT * 5;
+
     my $twitter_tfu_ids = $db->query( <<SQL )->flat();
 select topic_fetch_urls_id
     from topic_fetch_urls tfu
@@ -304,7 +309,7 @@ SQL
         last if ( $num_queued_urls == 0 );
 
         $last_change_time = time() if ( $num_queued_urls != $prev_num_queued_urls );
-        if ( ( time() - $last_change_time ) > $JOB_POLL_TIMEOUT )
+        if ( ( time() - $last_change_time ) > $twitter_poll_timeout )
         {
             LOGDIE( "Timed out waiting for twitter fetching.\n" . Dumper( $queued_tfus ) );
         }
@@ -349,7 +354,7 @@ sub fetch_links
     my $tfu_ids_list = join( ',', map { int( $_->{ topic_fetch_urls_id } ) } @{ $tfus } );
 
     my $requeues         = 0;
-    my $max_requeues     = 10;
+    my $max_requeues     = 1;
     my $max_requeue_jobs = 100;
     my $requeue_timeout  = 30;
     my $instant_requeued = 0;
@@ -359,7 +364,7 @@ sub fetch_links
 
     # how many times to requeues everything if there is no change for $JOB_POLL_TIMEOUT seconds
     my $full_requeues     = 0;
-    my $max_full_requeues = 2;
+    my $max_full_requeues = 1;
 
     my $last_pending_change   = time();
     my $last_num_pending_urls = 0;
@@ -409,7 +414,11 @@ SQL
 
         if ( $time_since_change > $JOB_POLL_TIMEOUT )
         {
-            if ( $full_requeues < $max_full_requeues )
+            if ( $num_pending_urls > $max_requeue_jobs )
+            {
+                die( "timed out waiting for fetch_link jobs: " . scalar( @{ $pending_url_ids } ) );
+            }
+            elsif ( $full_requeues < $max_full_requeues )
             {
                 map { queue_topic_fetch_url( $db->require_by_id( 'topic_fetch_urls', $_ ) ) } @{ $pending_url_ids };
                 ++$full_requeues;
@@ -417,9 +426,11 @@ SQL
             }
             else
             {
-                splice( @{ $pending_url_ids }, 10 );
-                my $ids_list = join( ', ', @{ $pending_url_ids } );
-                die( "Timed out waiting for fetch_link queue ($ids_list)" );
+                for my $id ( @{ $pending_url_ids } )
+                {
+                    $db->update_by_id( 'topic_fetch_urls', $id, { state => 'python error', message => 'timed out' } );
+                }
+                INFO( "timed out " . scalar( @{ $pending_url_ids } ) . " urls" );
             }
         }
 
@@ -528,25 +539,41 @@ sub spider_new_links($$$;$)
 {
     my ( $db, $topic, $iteration, $state_updater ) = @_;
 
-    for ( my $i = 0 ; ; $i++ )
+    while ( 1 )
     {
-        INFO( "spider new links chunk: $i" );
+        INFO( "querying new links ..." );
 
-        my $new_links = $db->query( <<END, $iteration, $topic->{ topics_id }, $SPIDER_LINKS_CHUNK_SIZE )->hashes;
-select tl.* from topic_links tl, topic_stories ts
-    where
-        tl.link_spidered = 'f' and
-        tl.stories_id = ts.stories_id and
-        ( ts.iteration <= \$1 or ts.iteration = 1000 ) and
-        ts.topics_id = \$2 and
-        tl.topics_id = \$2
+        $db->query( "drop table if exists _new_links" );
 
-    limit \$3
+        my $num_new_links = $db->query( <<END, $iteration, $topic->{ topics_id } )->rows();
+create temporary table _new_links as 
+    select tl.* 
+        from topic_links tl, topic_stories ts
+        where
+            tl.link_spidered = 'f' and
+            tl.stories_id = ts.stories_id and
+            ( ts.iteration <= \$1 or ts.iteration = 1000 ) and
+            ts.topics_id = \$2 and
+            tl.topics_id = \$2
+        order by random()
 END
 
-        last unless ( @{ $new_links } );
+        $db->query( "create index _new_links_tl on _new_links ( topic_links_id )" );
 
-        add_new_links( $db, $topic, $iteration, $new_links, $state_updater );
+        last if ( $num_new_links < 1 );
+
+        INFO( "found $num_new_links new links" );
+
+        while ( 1 )
+        {
+            my $new_links = $db->query( "select * from _new_links limit ?", $SPIDER_LINKS_CHUNK_SIZE )->hashes();
+
+            last unless ( @{ $new_links } );
+
+            my $tl_ids_list = join( ',', map { $_->{ topic_links_id } } @{ $new_links } );
+            $db->query( "delete from _new_links where topic_links_id in ($tl_ids_list)" );
+            add_new_links( $db, $topic, $iteration, $new_links, $state_updater );
+        }   
     }
 }
 
@@ -717,42 +744,6 @@ SQL
     return scalar( @{ $seed_urls } );
 }
 
-# look for any stories in the topic tagged with a date method of 'current_time' and
-# assign each the earliest source link date if any source links exist
-sub add_source_link_dates
-{
-    my ( $db, $topic ) = @_;
-
-    INFO( "add source link dates" );
-
-    my $stories = $db->query( <<END, $topic->{ topics_id } )->hashes;
-select s.* from stories s, topic_stories cs, tag_sets ts, tags t, stories_tags_map stm
-    where s.stories_id = cs.stories_id and cs.topics_id = ? and
-        stm.stories_id = s.stories_id and stm.tags_id = t.tags_id and
-        t.tag_sets_id = ts.tag_sets_id and
-        t.tag in ( 'current_time' ) and ts.name = 'date_guess_method'
-END
-
-    for my $story ( @{ $stories } )
-    {
-        my $source_link = $db->query( <<END, $topic->{ topics_id }, $story->{ stories_id } )->hash;
-select cl.*, s.publish_date
-        from topic_links cl
-            join stories s on ( cl.stories_id = s.stories_id )
-    where
-        cl.topics_id = ? and
-        cl.ref_stories_id = ?
-    order by cl.topic_links_id asc
-END
-
-        next unless ( $source_link );
-
-        $db->query( <<END, $source_link->{ publish_date }, $story->{ stories_id } );
-update stories set publish_date = ? where stories_id = ?
-END
-        MediaWords::DBI::Stories::GuessDate::assign_date_guess_method( $db, $story, 'source_link' );
-    }
-}
 
 # insert a list of topic seed urls
 sub insert_topic_seed_urls
@@ -1148,11 +1139,6 @@ sub do_mine_topic($$;$$)
 {
     my ( $db, $topic, $options, $state_updater ) = @_;
 
-    # if ( !$topic->{ is_story_index_ready } )
-    # {
-    #     die( "refusing to run topic because is_story_index_ready is false" );
-    # }
-
     map { $options->{ $_ } ||= 0 } qw/import_only skip_post_processing test_mode/;
 
     update_topic_state( $db, $state_updater, "importing seed urls" );
@@ -1178,7 +1164,7 @@ sub do_mine_topic($$;$$)
     unless ( $options->{ import_only } )
     {
         update_topic_state( $db, $state_updater, "running spider" );
-        run_spider( $db, $topic );
+        run_spider( $db, $topic, $state_updater );
 
         check_job_error_rate( $db, $topic );
 
@@ -1188,9 +1174,6 @@ sub do_mine_topic($$;$$)
 
         update_topic_state( $db, $state_updater, "merging duplicate media stories" );
         MediaWords::TM::Stories::merge_dup_media_stories( $db, $topic );
-
-        update_topic_state( $db, $state_updater, "adding source link dates" );
-        add_source_link_dates( $db, $topic );
 
         if ( !$options->{ skip_post_processing } )
         {

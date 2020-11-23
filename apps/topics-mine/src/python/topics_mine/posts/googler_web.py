@@ -18,7 +18,7 @@ from topics_mine.posts import AbstractPostFetcher
 log = create_logger(__name__)
 
 # number of seconds to wait after a google request
-GOOGLE_REQUEST_DELAY = 120
+GOOGLE_REQUEST_DELAY = 600
 
 # last time a google request was made
 _last_google_request_epoch = 0
@@ -64,6 +64,9 @@ class GooglerWebPostFetcher(AbstractPostFetcher):
         if self.mock_enabled:
             googler_json = self._get_mock_json(start_date, end_date)
         else:
+            # disabling this for now because googler seems not to return results any more
+            log.warning('google support disabled')
+            return [];
             global _last_google_request_epoch
             now = time.time()
             if now - _last_google_request_epoch < GOOGLE_REQUEST_DELAY:

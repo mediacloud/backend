@@ -137,24 +137,6 @@ x-crimson-hexagon-api-configuration: &crimson-hexagon-api-configuration
 
 
 #
-# Default sysctl values
-# =====================
-#
-# Default sysctl values to set on all containers.
-#
-x-sysctl-defaults:  &sysctl-defaults
-
-    # Has to be a list because dictionaries are not supported by Portainer as of today
-    sysctls:
-
-        # Increase ephemeral port range to allow more client connections
-        - net.ipv4.ip_local_port_range="1024 65500"
-
-        # Increase socket backlog
-        - net.core.somaxconn=4096
-
-
-#
 # Google Cloud for podcast transcription common configuration
 # ===========================================================
 #
@@ -196,7 +178,6 @@ x-podcast-google-cloud-configuration:    &podcast-google-cloud-configuration
 #
 x-solr-shard_base:   &solr-shard_base
     image: dockermediacloud/solr-shard:release
-    <<: *sysctl-defaults
     init: true
     environment:
         # Shard count (every individual shard needs to know the total count)
@@ -288,7 +269,6 @@ services:
     #
     cliff-annotator:
         image: dockermediacloud/cliff-annotator:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -306,6 +286,33 @@ services:
                     # RAM limit
                     memory: "6G"
 
+    #
+    # Webapp proxy to CLIFF annotator service
+    # ---------------------------------------
+    #
+    cliff-annotator-webapp-proxy:
+        image: dockermediacloud/cliff-annotator-webapp-proxy:release
+        init: true
+        networks:
+            - default
+        depends_on:
+            - cliff-annotator
+        ports:
+            # Public HTTP port
+            # (SSL is done by Nginx running on bastion host)
+            # MAKE SURE to BLOCK THIS PORT in provision/roles/docker/tasks/iptables.yml
+            - "8090:8080"
+        deploy:
+            # DNSRR disabled as it's not supported with published ports.
+            <<: *misc-apps_deploy_placement_constraints
+            # Worker count
+            replicas: 1
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "256M"
 
     #
     # CLIFF fetch annotation
@@ -313,7 +320,6 @@ services:
     #
     cliff-fetch-annotation:
         image: dockermediacloud/cliff-fetch-annotation:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -341,7 +347,6 @@ services:
     #
     cliff-update-story-tags:
         image: dockermediacloud/cliff-update-story-tags:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -377,7 +382,6 @@ services:
     #
     crawler-ap:
         image: dockermediacloud/crawler-ap:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -406,7 +410,6 @@ services:
     #
     crawler-fetcher:
         image: dockermediacloud/crawler-fetcher:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -437,7 +440,6 @@ services:
     #
     crawler-provider:
         image: dockermediacloud/crawler-provider:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -461,7 +463,6 @@ services:
     #
     create-missing-partitions:
         image: dockermediacloud/create-missing-partitions:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -485,7 +486,6 @@ services:
     #
     cron-generate-daily-rss-dumps:
         image: dockermediacloud/cron-generate-daily-rss-dumps:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -516,7 +516,6 @@ services:
     #
     cron-generate-media-health:
         image: dockermediacloud/cron-generate-media-health:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -540,7 +539,6 @@ services:
     #
     cron-generate-user-summary:
         image: dockermediacloud/cron-generate-user-summary:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -564,7 +562,6 @@ services:
     #
     cron-print-long-running-job-states:
         image: dockermediacloud/cron-print-long-running-job-states:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -588,7 +585,6 @@ services:
     #
     cron-refresh-stats:
         image: dockermediacloud/cron-refresh-stats:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -612,7 +608,6 @@ services:
     #
     cron-rescrape-due-media:
         image: dockermediacloud/cron-rescrape-due-media:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -637,7 +632,6 @@ services:
     #
     cron-rescraping-changes:
         image: dockermediacloud/cron-rescraping-changes:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -661,7 +655,6 @@ services:
     #
     cron-set-media-primary-language:
         image: dockermediacloud/cron-set-media-primary-language:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -685,7 +678,6 @@ services:
     #
     cron-set-media-subject-country:
         image: dockermediacloud/cron-set-media-subject-country:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -709,7 +701,6 @@ services:
     #
     elk-auditbeat:
         image: dockermediacloud/elk-auditbeat:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -754,7 +745,6 @@ services:
     #
     elk-elasticsearch:
         image: dockermediacloud/elk-elasticsearch:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -798,7 +788,6 @@ services:
     #
     elk-filebeat:
         image: dockermediacloud/elk-filebeat:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -834,7 +823,6 @@ services:
     #
     elk-journalbeat:
         image: dockermediacloud/elk-journalbeat:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -868,7 +856,6 @@ services:
     #
     elk-kibana:
         image: dockermediacloud/elk-kibana:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -896,7 +883,6 @@ services:
     #
     extract-and-vector:
         image: dockermediacloud/extract-and-vector:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -924,7 +910,6 @@ services:
     #
     extract-article-from-page:
         image: dockermediacloud/extract-article-from-page:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -951,7 +936,6 @@ services:
     #
     facebook-fetch-story-stats:
         image: dockermediacloud/facebook-fetch-story-stats:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -987,7 +971,6 @@ services:
     #
     import-solr-data:
         image: dockermediacloud/import-solr-data:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -1015,7 +998,6 @@ services:
     #
     import-stories-feedly:
         image: dockermediacloud/import-stories-feedly:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -1040,7 +1022,6 @@ services:
     #
     mail-opendkim-server:
         image: dockermediacloud/mail-opendkim-server:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -1071,7 +1052,6 @@ services:
     #
     mail-postfix-server:
         image: dockermediacloud/mail-postfix-server:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -1123,7 +1103,6 @@ services:
     #
     munin-cron:
         image: dockermediacloud/munin-cron:release
-        <<: *sysctl-defaults
         # Docker doesn't reap zombie processes properly
         # (https://blog.phusion.nl/2015/01/20/docker-and-the-pid-1-zombie-reaping-problem/),
         # and Munin runs all kinds of plugins which might not take care of their children properly.
@@ -1157,7 +1136,6 @@ services:
     #
     munin-fastcgi-graph:
         image: dockermediacloud/munin-fastcgi-graph:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -1189,7 +1167,6 @@ services:
     #
     munin-httpd:
         image: dockermediacloud/munin-httpd:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -1225,7 +1202,6 @@ services:
     #
     munin-node:
         image: dockermediacloud/munin-node:release
-        <<: *sysctl-defaults
         # Docker doesn't reap zombie processes properly
         # (https://blog.phusion.nl/2015/01/20/docker-and-the-pid-1-zombie-reaping-problem/),
         # and Munin runs all kinds of plugins which might not take care of their children properly.
@@ -1253,7 +1229,6 @@ services:
     #
     nytlabels-annotator:
         image: dockermediacloud/nytlabels-annotator:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -1272,12 +1247,39 @@ services:
                     memory: "8G"
 
     #
+    # Webapp proxy to NYTLabels annotator service
+    # -------------------------------------------
+    #
+    nytlabels-annotator-webapp-proxy:
+        image: dockermediacloud/nytlabels-annotator-webapp-proxy:release
+        init: true
+        networks:
+            - default
+        depends_on:
+            - nytlabels-annotator
+        ports:
+            # Public HTTP port
+            # (SSL is done by Nginx running on bastion host)
+            # MAKE SURE to BLOCK THIS PORT in provision/roles/docker/tasks/iptables.yml
+            - "8091:8080"
+        deploy:
+            # DNSRR disabled as it's not supported with published ports.
+            <<: *misc-apps_deploy_placement_constraints
+            # Worker count
+            replicas: 1
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "256M"
+
+    #
     # NYTLabels fetch annotation
     # ----------------------
     #
     nytlabels-fetch-annotation:
         image: dockermediacloud/nytlabels-fetch-annotation:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -1305,7 +1307,6 @@ services:
     #
     nytlabels-update-story-tags:
         image: dockermediacloud/nytlabels-update-story-tags:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -1336,7 +1337,6 @@ services:
     #
     podcast-fetch-episode:
         image: dockermediacloud/podcast-fetch-episode:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -1372,7 +1372,6 @@ services:
     # -------------------------------------------------
     podcast-fetch-transcript:
         image: dockermediacloud/podcast-fetch-transcript:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -1404,7 +1403,6 @@ services:
     # -----------------------------------------------------------------
     podcast-poll-due-operations:
         image: dockermediacloud/podcast-poll-due-operations:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -1435,7 +1433,6 @@ services:
     # ---------------------------------------------------
     podcast-submit-operation:
         image: dockermediacloud/podcast-submit-operation:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -1468,7 +1465,6 @@ services:
     #
     postgresql-pgadmin:
         image: dockermediacloud/postgresql-pgadmin:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -1498,7 +1494,6 @@ services:
     #
     postgresql-pgbouncer:
         image: dockermediacloud/postgresql-pgbouncer:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -1522,7 +1517,6 @@ services:
     #
     postgresql-server:
         image: dockermediacloud/postgresql-server:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -1547,82 +1541,11 @@ services:
                     - node.labels.role-postgresql-server == true
 
     #
-    # Cron job that updates Let's Encrypt certificates used by reverse proxy
-    # ----------------------------------------------------------------------
-    #
-    proxy-cron-certbot:
-        image: dockermediacloud/proxy-cron-certbot:release
-        <<: *sysctl-defaults
-        init: true
-        networks:
-            - default
-        environment:
-            # Top-level domain to issue the certificate for
-            MC_PROXY_CERTBOT_DOMAIN: "mediacloud.org"
-            # Email for Let's Encrypt's notifications
-            MC_PROXY_CERTBOT_LETSENCRYPT_EMAIL: "linas@media.mit.edu"
-            # CloudFlare account email
-            MC_PROXY_CERTBOT_CLOUDFLARE_EMAIL: ""
-            # CloudFlare account global API key
-            MC_PROXY_CERTBOT_CLOUDFLARE_GLOBAL_API_KEY: ""
-        volumes:
-            # Shared with "proxy-httpd" container:
-            - vol_proxy_ssl_certs:/etc/letsencrypt/
-        deploy:
-            <<: *endpoint-mode-dnsrr
-            placement:
-                constraints:
-                    # Must run on the same host as proxy-httpd as they share a volume
-                    - node.labels.role-proxy-httpd == true
-            resources:
-                limits:
-                    # CPU core limit
-                    cpus: "1"
-                    # RAM limit
-                    memory: "256M"
-
-    #
-    # SSL terminating reverse proxy
-    # -----------------------------
-    #
-    proxy-httpd:
-        image: dockermediacloud/proxy-httpd:release
-        <<: *sysctl-defaults
-        init: true
-        networks:
-            - default
-        ports:
-            # Public HTTP and HTTPS ports
-            - "80:80"
-            - "443:443"
-        volumes:
-            # Shared with "proxy_cron_certbot" container:
-            - vol_proxy_ssl_certs:/etc/letsencrypt/
-        depends_on:
-            # Requires SSL certificate to run
-            - proxy-cron-certbot
-            # Proxies to main app
-            - webapp-httpd
-        deploy:
-            # DNSRR disabled as it's not supported with published ports.
-            placement:
-                constraints:
-                    # Must run on the same host as proxy-cron-certbot as they share a volume
-                    - node.labels.role-proxy-httpd == true
-            resources:
-                limits:
-                    # CPU core limit
-                    cpus: "1"
-                    # RAM limit
-                    memory: "256M"
-
-    #
     # Purge PostgreSQL object caches
     # ------------------------------------
     #
     purge-object-caches:
         image: dockermediacloud/purge-object-caches:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -1646,7 +1569,6 @@ services:
     #
     rabbitmq-server:
         image: dockermediacloud/rabbitmq-server:release
-        <<: *sysctl-defaults
         # Docker doesn't reap zombie processes properly
         # (https://blog.phusion.nl/2015/01/20/docker-and-the-pid-1-zombie-reaping-problem/)
         # and Erlang gets SIGCHLD signals from Docker for whatever reason
@@ -1684,7 +1606,6 @@ services:
     #
     rabbitmq-server-webapp-proxy:
         image: dockermediacloud/rabbitmq-server-webapp-proxy:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -1712,7 +1633,6 @@ services:
     #
     rescrape-media:
         image: dockermediacloud/rescrape-media:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -1739,7 +1659,6 @@ services:
     #
     sitemap-fetch-media-pages:
         image: dockermediacloud/sitemap-fetch-media-pages:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -1986,7 +1905,6 @@ services:
     #
     solr-shard-webapp-proxy:
         image: dockermediacloud/solr-shard-webapp-proxy:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -2014,7 +1932,6 @@ services:
     #
     solr-zookeeper:
         image: dockermediacloud/solr-zookeeper:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -2038,7 +1955,6 @@ services:
     #
     topics-extract-story-links:
         image: dockermediacloud/topics-extract-story-links:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -2064,7 +1980,6 @@ services:
     #
     topics-fetch-link:
         image: dockermediacloud/topics-fetch-link:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -2090,7 +2005,6 @@ services:
     #
     topics-fetch-twitter-urls:
         image: dockermediacloud/topics-fetch-twitter-urls:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -2115,7 +2029,6 @@ services:
     #
     topics-map:
         image: dockermediacloud/topics-map:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -2139,7 +2052,6 @@ services:
     #
     topics-mine:
         image: dockermediacloud/topics-mine:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -2165,7 +2077,6 @@ services:
     #
     topics-mine-public:
         image: dockermediacloud/topics-mine-public:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -2191,7 +2102,6 @@ services:
     #
     topics-snapshot:
         image: dockermediacloud/topics-snapshot:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -2217,7 +2127,6 @@ services:
     #
     webapp-api:
         image: dockermediacloud/webapp-api:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -2244,18 +2153,19 @@ services:
     #
     webapp-httpd:
         image: dockermediacloud/webapp-httpd:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
-        expose:
-            # Expose HTTP port to reverse proxy
-            - 80
+        ports:
+            # Public HTTP port
+            # (SSL is done by Nginx running on bastion host)
+            # MAKE SURE to BLOCK THIS PORT in provision/roles/docker/tasks/iptables.yml
+            - "8082:80"
         volumes:
             # Shared with "cron_generate_daily_rss_dumps" container:
             - vol_daily_rss_dumps:/mediacloud_webapp_static/static/rss_dumps/
         deploy:
-            <<: *endpoint-mode-dnsrr
+            # DNSRR disabled as it's not supported with published ports.
             placement:
                 constraints:
                     # Has its own role due to a shared volume
@@ -2273,7 +2183,6 @@ services:
     #
     word2vec-generate-snapshot-model:
         image: dockermediacloud/word2vec-generate-snapshot-model:release
-        <<: *sysctl-defaults
         init: true
         networks:
             - default
@@ -2307,6 +2216,15 @@ networks:
     default:
         driver: overlay
         attachable: true
+
+        # Enable encryption as we communicate over public network:
+        #
+        # * https://docs.docker.com/network/overlay/#encrypt-traffic-on-an-overlay-network
+        # * https://forums.docker.com/t/configuring-encryption-for-swarm-overlay-network-in-compose/29469/2
+        #
+        # FIXME consider switching off after migration
+        driver_opts:
+            encrypted: "true"
 
         ipam:
             driver: default
@@ -2561,14 +2479,6 @@ volumes:
             type: none
             o: bind
             device: /space/mediacloud/vol_munin_html
-
-    # Let's Encrypt certificates
-    vol_proxy_ssl_certs:
-        driver: local
-        driver_opts:
-            type: none
-            o: bind
-            device: /space/mediacloud/vol_proxy_ssl_certs
 
     # ELK Elasticsearch log index
     vol_elk_elasticsearch_data:

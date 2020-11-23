@@ -150,7 +150,12 @@ def get_media_network(db: DatabaseHandler, timespans_id: int) -> List[Dict[str, 
             SELECT
                 m.media_id,
                 m.name,
-                mlc.media_inlink_count
+                mlc.media_inlink_count,
+                coalesce(mlc.sum_post_count, 0) post_count,
+                coalesce(mlc.sum_author_count, 0) author_count,
+                coalesce(mlc.sum_channel_count, 0) channel_count,
+                mlc.story_count,
+                coalesce(mlc.facebook_share_count, 0) facebook_share_count
             FROM media AS m
                 JOIN snap.medium_link_counts AS mlc USING ( media_id )
             where
@@ -296,7 +301,7 @@ def int_or_zero(value: str) -> int:
         return 0
 
 
-def assign_colors(db: DatabaseHandler, graph: nx.Graph, color_by: str, boolean: bool=False) -> None:
+def assign_colors(db: DatabaseHandler, graph: nx.Graph, color_by: str, bool: bool=False) -> None:
     """Assign a 'color' attribute to each node in the graph.
 
     Each color will be in '#FFFFFF' format.
@@ -306,7 +311,7 @@ def assign_colors(db: DatabaseHandler, graph: nx.Graph, color_by: str, boolean: 
     log.warning(f'assign colors by {color_by}')
     for n in graph.nodes:
         value = str(graph.nodes[n].get(color_by, 'null'))
-        if boolean:
+        if bool:
             graph.nodes[n]['color'] = 'b4771f' if int_or_zero(value) > 0 else 'dddddd'
         else:
             graph.nodes[n]['color'] = get_consistent_color(db, color_by, value)
@@ -530,7 +535,7 @@ def draw_labels(graph: nx.Graph) -> None:
         labels = get_labels_by_attribute(
             graph=graph,
             label_attribute='name',
-            rank_attribute='media_inlink_count',
+            rank_attribute='size',
             iteration=i,
             num_labels=cohort_size,
         )
@@ -592,7 +597,7 @@ def get_giant_component(graph: nx.Graph) -> nx.Graph:
     return graph.subgraph(components[-1]) if len(components) > 0 else graph
 
 
-def generate_graph(db: DatabaseHandler, timespans_id: int) -> nx.Graph:
+def generate_graph(db: DatabaseHandler, timespans_id: int, remove_platforms: bool = True) -> nx.Graph:
     """Generate a graph of the network of media for the given timespan, but do not layout."""
     media = get_media_network(db=db, timespans_id=timespans_id)
     graph = get_media_graph(media=media)
@@ -603,9 +608,10 @@ def generate_graph(db: DatabaseHandler, timespans_id: int) -> nx.Graph:
 
     log.info(f"graph after giant component: {len(graph.nodes())} nodes")
 
-    graph = remove_platforms_from_graph(graph=graph)
+    if remove_platforms:
+        graph = remove_platforms_from_graph(graph=graph)
 
-    log.info(f"graph after platform removal: {len(graph.nodes())} nodes")
+        log.info(f"graph after platform removal: {len(graph.nodes())} nodes")
 
     return graph
 
@@ -620,15 +626,33 @@ def assign_communities(graph: nx.Graph) -> None:
         graph.nodes[n]['community'] = communities[n]
 
 
+def get_default_size_attribute(db: DatabaseHandler, timespans_id: int) -> str:
+    """Return size attribute based on whether the timespan belongs to a url sharing subtopic."""
+    timespan = db.require_by_id('timespans', timespans_id)
+
+    if timespan['foci_id'] is None:
+        return 'media_inlink_count'
+
+    focus = db.require_by_id('foci', timespan['foci_id'])
+    focal_set = db.require_by_id('focal_sets', focus['focal_sets_id'])
+
+    if focal_set['focal_technique'] == 'URL Sharing':
+        return 'author_count'
+    else:
+        return 'media_inlink_count'
+
+
 def generate_and_layout_graph(db: DatabaseHandler,
                               timespans_id: int,
                               memory_limit_mb: int,
-                              color_by: str = 'community') -> nx.Graph:
+                              remove_platforms: bool = True,
+                              color_by: str = 'community',
+                              size_by: Optional[str] = None) -> nx.Graph:
     """Generate and layout a graph of the network of media for the given timespan.
     
     The layout algorithm is force atlas 2, and the resulting is 'position' attribute added to each node.
     """
-    graph = generate_graph(db=db, timespans_id=timespans_id)
+    graph = generate_graph(db=db, timespans_id=timespans_id, remove_platforms=remove_platforms)
     # run layout with all nodes in giant component, before reducing to smaler number to display
     run_fa2_layout(graph=graph, memory_limit_mb=memory_limit_mb)
 
@@ -642,7 +666,10 @@ def generate_and_layout_graph(db: DatabaseHandler,
 
     assign_colors(db=db, graph=graph, color_by=color_by)
 
-    assign_sizes(graph=graph, attribute='media_inlink_count')
+    if size_by is None:
+        size_by = get_default_size_attribute(db, timespans_id)
+
+    assign_sizes(graph=graph, attribute=size_by)
 
     rotate_right_to_right(graph=graph)
 
@@ -735,9 +762,75 @@ def store_map(db: DatabaseHandler,
     db.update_by_id('timespan_maps', timespan_map['timespan_maps_id'], {'url': url})
 
 
-def generate_and_store_maps(db: DatabaseHandler, timespans_id: int, memory_limit_mb: int) -> None:
+def add_attribute_to_graph(graph: nx.Graph, attribute: dict) -> None:
+    """
+    Given an attribute_data dict, attach the data in the dict to each associated node in the graph.
+
+    attribute_data should be a dict in the form of:
+        {'name': 'name_of_attribute',
+         'data': {media_id_1: value, media_id_2: value}}
+    """
+    data = attribute['data']
+    name = attribute['name']
+
+    graph_attributes = {d['media_id']: {name: d['value']} for d in data}
+
+    for n in graph.nodes:
+        graph_attributes.setdefault(n, {name: 'null'})
+
+    nx.set_node_attributes(graph, graph_attributes)
+
+def generate_map_variants(
+        db: DatabaseHandler,
+        timespans_id: int,
+        memory_limit_mb: int,
+        remove_platforms: bool = True,
+        attributes: list = [],
+        size_bys: Optional[list] = None,
+        color_bys: Optional[list] = None) -> iter:
+    """
+    Layout a map for the given timespans_id and generate variants for the listed sizes and colors.
+
+    Returns an iterator of dicts, each with 'format', 'options', and 'content' keys.
+    """
+    graph = generate_and_layout_graph(
+        db=db,
+        timespans_id=timespans_id,
+        memory_limit_mb=memory_limit_mb,
+        remove_platforms=remove_platforms)
+
+    [add_attribute_to_graph(graph=graph, attribute=a) for a in attributes]
+
+    if size_bys is None:
+        size_bys = [None]
+
+    if color_bys is None:
+        color_bys = ['community']
+
+    for size_by in size_bys:
+        assign_sizes(graph=graph, attribute=size_by)
+
+        for color_by in color_bys:
+            assign_colors(db=db, graph=graph, color_by=color_by)
+
+            content = write_gexf(graph=graph)
+            yield {'size_by': size_by, 'color_by': color_by, 'format': 'gexf', 'content': content}
+
+            content = draw_graph(graph=graph, graph_format='svg')
+            yield {'size_by': size_by, 'color_by': color_by, 'format': 'svg', 'content': content}
+
+
+def generate_and_store_maps(
+        db: DatabaseHandler,
+        timespans_id: int,
+        memory_limit_mb: int,
+        remove_platforms: bool = True) -> None:
     """Generate and layout graph and store various formats of the graph in timespans_maps."""
-    graph = generate_and_layout_graph(db=db, timespans_id=timespans_id, memory_limit_mb=memory_limit_mb)
+    graph = generate_and_layout_graph(
+        db=db,
+        timespans_id=timespans_id,
+        memory_limit_mb=memory_limit_mb,
+        remove_platforms=remove_platforms)
 
     for color_by in ('community', 'retweet_partisanship', 'twitter_partisanship'):
         assign_colors(db=db, graph=graph, color_by=color_by)

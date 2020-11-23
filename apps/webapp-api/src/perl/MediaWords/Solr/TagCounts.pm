@@ -56,24 +56,22 @@ sub query_tag_counts($$)
 
     $tag_sets_id = int( $tag_sets_id );
 
+    my $json_facet = <<END;
+{categories:{type:terms, field: tags_id_stories, limit: $limit, facet:{x:"hll(stories_id)"}}}
+END
+
     my $solr_params = {};
     $solr_params->{ q }                = $q;
     $solr_params->{ fq }               = $fq;
     $solr_params->{ rows }             = 0;
-    $solr_params->{ facet }            = 'true';
-    $solr_params->{ 'facet.field' }    = 'tags_id_stories';
-    $solr_params->{ 'facet.mincount' } = 1;
-    $solr_params->{ 'facet.limit' }    = int( $limit );
+    $solr_params->{ 'json.facet' }     = $json_facet;
 
     my $response = MediaWords::Solr::query_solr( $db, $solr_params );
 
-    my $tags_id_counts_list = $response->{ facet_counts }->{ facet_fields }->{ tags_id_stories };
+    my $facet_counts = $response->{ facets }->{ categories }->{ buckets };
 
     my $tags_id_counts = {};
-    for ( my $i = 0 ; $i < @{ $tags_id_counts_list } ; $i += 2 )
-    {
-        $tags_id_counts->{ $tags_id_counts_list->[ $i ] } = $tags_id_counts_list->[ $i + 1 ];
-    }
+    map { $tags_id_counts->{ $_->{ val } } = $_->{ x } } @{ $facet_counts };
 
     my $tags_ids_list = join( ',', keys( %{ $tags_id_counts } ), -1 );
 
@@ -82,15 +80,6 @@ sub query_tag_counts($$)
     {
         $tag_set_clause = "tag_sets_id = $tag_sets_id";
     }
-
-    INFO( Dumper( $db->query( <<SQL )->flat ) );
-explain select t.*, ts.name tag_set_name, ts.label tag_set_label
-    from tags t
-        join tag_sets ts using ( tag_sets_id )
-    where
-        t.tags_id in ( $tags_ids_list ) and
-        $tag_set_clause
-SQL
 
     my $tags = $db->query( <<SQL )->hashes;
 select t.*, ts.name tag_set_name, ts.label tag_set_label

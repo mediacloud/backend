@@ -57,7 +57,7 @@ def test_is_http_url():
     assert not mc_url.is_http_url('ftp://ftp.freebsd.org/pub/FreeBSD/')
 
     assert mc_url.is_http_url('http://cyber.law.harvard.edu/about')
-    assert mc_url.is_http_url('https://github.com/berkmancenter/mediacloud')
+    assert mc_url.is_http_url('https://github.com/mediacloud/backend')
 
     funky_url = ('http://Las%20Vegas%20mass%20shooting%20raises'
                  '%20new%20doubts%20about%20safety%20of%20live%20entertainment')

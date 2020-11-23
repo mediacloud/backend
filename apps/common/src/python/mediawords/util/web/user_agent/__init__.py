@@ -765,6 +765,7 @@ class UserAgent(object):
         try:
             user_agent_response = self.__execute_request(requests_prepared_request)
         except Exception as ex:
+            raise ex
             raise McRequestException("Unable to execute request %s: %s" % (str(requests_prepared_request), str(ex),))
 
         if user_agent_response.requests_response is None:

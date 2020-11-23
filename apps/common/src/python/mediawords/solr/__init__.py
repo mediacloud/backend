@@ -156,6 +156,18 @@ def _insert_collection_media_ids(db: DatabaseHandler, q: str) -> str:
     return q
 
 
+def _replace_smart_quotes(query: Union[List[str], str]) -> Union[List[str], str]:
+    """
+    Replace smart quotes with straight versions so that solr will treat them correctly.
+    """
+    if query is None:
+        return None
+    elif isinstance(query, list):
+        return [_replace_smart_quotes(_) for _ in query]
+    elif isinstance(query, str):
+        return query.replace(u"\u201c", '"').replace(u"\u201d", '"')
+
+
 def query_solr(db: DatabaseHandler, params: SolrParams) -> Dict[str, Any]:
     """
     Execute a query on the Solr server using the given parameters. Return a maximum of 1 million sentences.
@@ -214,6 +226,9 @@ def query_solr(db: DatabaseHandler, params: SolrParams) -> Dict[str, Any]:
 
     params['q'] = _uppercase_boolean_operators(params['q'])
     params['fq'] = _uppercase_boolean_operators(params['fq'])
+
+    params['q'] = _replace_smart_quotes(params['q'])
+    params['fq'] = _replace_smart_quotes(params['fq'])
 
     if params['q']:
         params['q'] = _insert_collection_media_ids(db=db, q=params['q'])
@@ -385,10 +400,12 @@ def get_solr_num_found(db: DatabaseHandler, params: SolrParams) -> int:
     params = copy.deepcopy(params)
 
     params['rows'] = 0
+    params['json.facet'] = '{x:"hll(stories_id)"}'
 
     res = query_solr(db=db, params=params)
 
-    num_found = res['response']['numFound']
+    # if count is 0, there is no value for x
+    num_found = res['facets']['x'] if res['facets']['count'] > 0 else 0
 
     return num_found
 

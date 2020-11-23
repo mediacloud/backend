@@ -1619,7 +1619,7 @@ URL: <https://api.mediacloud.org/api/v2/auth/profile>
 ```json
 {
     "auth_users_id": 1,
-    "email": "hroberts@cyber.law.harvard.edu",
+    "email": "hroberts@mediacloud.org",
     "full_name": "Hal Roberts",
     "api_key": "bae132d8de0e0565cc9b84ec022e367f71f6dabf",
     "notes": "Media Cloud Geek",

@@ -5,6 +5,7 @@
 FROM dockermediacloud/common:latest
 
 # Install Java
+RUN apt-get update
 RUN apt-get -y --no-install-recommends install openjdk-8-jre-headless
 
 # Install fa2l Java libs

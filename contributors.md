@@ -14,13 +14,12 @@ The back-end is a pretty big codebase and can be daunting to jump into.  You mig
 * [Date Guesser](https://github.com/mitmedialab/date_guesser) - A library to extract a publication date from a web page, along with a measure of the accuracy.
 * [NYT Theme Labeler](https://github.com/mitmedialab/MediaCloud-NYT-News-Labeler) - Tag news stories based on models trained on the NYT corpus.
 * [CLIFF](https://github.com/mitmedialab/CLIFF) - A lightweight server to allow HTTP requests to the Stanford Named Entity Recognized and a heavily modified CLAVIN geoparser.
-* [Multilingual Sentence Splitter](https://github.com/berkmancenter/mediacloud-sentence-splitter) - Text to sentence splitter using heuristic algorithm by Philipp Koehn and Josh Schroeder.
-* [Hausa Stemmer](https://github.com/berkmancenter/mediacloud-hausastemmer) - Hausa language stemmer (Bimba et al., 2015).
-* [p5-Lingua-Stem-Snowball-Ca](https://github.com/berkmancenter/p5-Lingua-Stem-Snowball-Ca) - Perl interface to Snowball stemmer for the Catalan language.
+* [Multilingual Sentence Splitter](https://github.com/mediacloud/sentence-splitter) - Text to sentence splitter using heuristic algorithm by Philipp Koehn and Josh Schroeder.
+* [Hausa Stemmer](https://github.com/mediacloud/hausastemmer) - Hausa language stemmer (Bimba et al., 2015).
 
 > **Note:** We are in the middle of a multi-year project to port this code from Perl to Python 3. If you see old Perl code, don't be scared! Be assured that we have a task in the queue to port it over eventually. We have some bindings that let them talk to each other.
 
-One reason that we recommend starting work on some of the smaller repos listed above is that working within the [core backend codebase](https://github.com/berkmancenter/mediacloud) requires installing the entire large platform on you dev machine.
+One reason that we recommend starting work on some of the smaller repos listed above is that working within the [core backend codebase](https://github.com/mediacloud/backend) requires installing the entire large platform on you dev machine.
 
 
 How Can I Contribute?

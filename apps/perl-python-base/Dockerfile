@@ -63,7 +63,7 @@ RUN \
         --mirror "$MC_PERL_CPAN_MIRROR" \
         # Explicitly run tests for this code module:
         --test \
-        https://github.com/berkmancenter/mediacloud-inline-python-pm.git@v0.56.2-mediacloud && \
+        https://github.com/mediacloud/inline-python-pm.git@v0.56.2-mediacloud && \
     #
     # Cleanup
     rm -rf /root/.perl-cpm/ && \

@@ -14,7 +14,7 @@ sub test_stem($)
 {
     my $lang = shift;
 
-    # https://github.com/berkmancenter/mediacloud-hausastemmer/blob/develop/tests/ref_stems/with_dict_lookup.py
+    # https://github.com/mediacloud/hausastemmer/blob/develop/tests/ref_stems/with_dict_lookup.py
     my $tokens_and_stems = {
 
         'ababen'  => 'ababe',

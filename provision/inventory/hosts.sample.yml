@@ -12,12 +12,12 @@ all:
         # Sample hosts to deploy to
         "mcsample1":
 
-            ansible_host: "mcsample1.media.mit.edu"
+            ansible_host: "mcsample1.mediacloud.org"
             ansible_user: "ubuntu"
             ansible_ssh_private_key_file: "~/.ssh/mcsample"
 
             # Network interface the IP of which will be advertised to the rest of the swarm
-            docker_swarm_advertise_interface: "eth0"
+            docker_swarm_advertise_ip_or_if: "eth0"
 
             # Dictionary of labels to apply to this host
             # (used for deployment constraints; on production, you might want to
@@ -42,13 +42,6 @@ all:
 
                 # "postgresql-server" container and its data volume
                 role-postgresql-server: "true"
-
-                # "proxy-cron-certbot", "proxy-httpd" containers, their shared volume
-                # and publicly exposed ports
-                # Make sure that DNS A record points to this host (other hosts have
-                # HTTP ports exposed too though), and that ports 80 and 443 are open on
-                # the firewall
-                role-proxy-httpd: "true"
 
                 # "rabbitmq-server" container and its data volume
                 role-rabbitmq-server: "true"
@@ -79,20 +72,20 @@ all:
 
         "mcsample2":
 
-            ansible_host: "mcsample2.media.mit.edu"
+            ansible_host: "mcsample2.mediacloud.org"
             ansible_user: "ubuntu"
             ansible_ssh_private_key_file: "~/.ssh/mcsample"
 
-            docker_swarm_advertise_interface: "eth0"
+            docker_swarm_advertise_ip_or_if: "eth0"
             docker_swarm_node_labels:
 
 
         "mcsample3":
-            ansible_host: "mcsample3.media.mit.edu"
+            ansible_host: "mcsample3.mediacloud.org"
             ansible_user: "ubuntu"
             ansible_ssh_private_key_file: "~/.ssh/mcsample"
 
-            docker_swarm_advertise_interface: "eth0"
+            docker_swarm_advertise_ip_or_if: "eth0"
             docker_swarm_node_labels:
 
 

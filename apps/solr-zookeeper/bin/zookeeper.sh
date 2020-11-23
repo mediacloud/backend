@@ -7,7 +7,12 @@ set -e
 export ZOOCFGDIR=/opt/zookeeper/conf    # no slash at the end
 export ZOOCFG=zoo.cfg
 export ZOO_LOG_DIR=/var/lib/zookeeper   # no slash at the end
-export SERVER_JVMFLAGS="-Dlog4j.configuration=file:///opt/zookeeper/conf/log4j.properties"
+
+export SERVER_JVMFLAGS=""
+
+# Custom logging configuration
+export SERVER_JVMFLAGS="${SERVER_JVMFLAGS} -Dlog4j.configuration=file:///opt/zookeeper/conf/log4j.properties"
+
 
 if [ ! -d /var/lib/zookeeper-template/ ]; then
     echo "ZooKeeper template data directory does not exist."

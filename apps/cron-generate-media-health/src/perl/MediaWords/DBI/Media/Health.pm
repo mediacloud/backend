@@ -46,7 +46,8 @@ insert into media_stats as old ( media_id, num_stories, num_sentences, stat_date
         from
             story_sentences ss
         where
-            ss.story_sentences_id between $ss_id and $max_ss_id
+            ss.story_sentences_id between $ss_id and $max_ss_id and
+            ss.publish_date is not null
         group by media_id, stat_date
 
     on conflict ( media_id, stat_date ) do update set

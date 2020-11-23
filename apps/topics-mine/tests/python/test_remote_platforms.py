@@ -46,6 +46,18 @@ def run_single_platform_test(source, platform, query, pattern, day, min_posts, m
     assert statistics.mean([len(p['content']) for p in got_posts]) > 80
 
 
+def test_brandwatch_twitter() -> None:
+    run_single_platform_test(
+            source='brandwatch',
+            platform='twitter',
+            query='1998295792-2000353908',
+            pattern='.*',
+            day='2020-08-17',
+            min_posts=9000,
+            max_posts=11000
+        )
+
+
 def test_crimson_hexagon_twitter() -> None:
     run_single_platform_test(
             source='crimson_hexagon',

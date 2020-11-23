@@ -26,7 +26,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4755;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4758;
 BEGIN
 
     -- Update / set database schema version
@@ -167,6 +167,7 @@ create table media (
 create unique index media_name on media(name);
 create unique index media_url on media(url);
 create index media_normalized_url on media(normalized_url);
+create index media_name_fts on media using gin(to_tsvector('english', name));
 
 -- Media feed rescraping state
 CREATE TABLE media_rescraping (
@@ -1814,6 +1815,7 @@ create unique index topic_sources_name on topic_sources(name);
 insert into topic_sources ( name, description ) values
     ('mediacloud', 'import from the mediacloud.org archive'),
     ('crimson_hexagon', 'import from the crimsonhexagon.com forsight api, only accessible to internal media cloud team'),
+    ('brandwatch', 'import from the brandwatch api, only accessible to internal media cloud team'),
     ('csv', 'import generic posts directly from csv'),
     ('postgres', 'import generic posts from a postgres table'),
     ('pushshift', 'import from the pushshift.io api'),
@@ -3934,14 +3936,14 @@ CREATE UNIQUE INDEX podcast_episode_transcript_fetches_due
 --
 
 CREATE TABLE celery_groups (
-    id          INTEGER                     NOT NULL    PRIMARY KEY,
+    id          BIGINT                      NOT NULL    PRIMARY KEY,
     taskset_id  CHARACTER VARYING(155)      NULL        UNIQUE,
     result      BYTEA                       NULL,
     date_done   TIMESTAMP WITHOUT TIME ZONE NULL
 );
 
 CREATE TABLE celery_tasks (
-    id          INTEGER                     NOT NULL    PRIMARY KEY,
+    id          BIGINT                      NOT NULL    PRIMARY KEY,
     task_id     CHARACTER VARYING(155)      NULL        UNIQUE,
     status      CHARACTER VARYING(50)       NULL,
     result      BYTEA                       NULL,

@@ -3,34 +3,34 @@
 	url = https://github.com/ekalinin/github-markdown-toc.git
 [submodule "apps/common/src/python/mediawords/languages/hi/hindi-hunspell"]
 	path = apps/common/src/python/mediawords/languages/hi/hindi-hunspell
-	url = https://github.com/berkmancenter/mediacloud-hindi-hunspell.git
+	url = https://github.com/mediacloud/hindi-hunspell.git
 [submodule "apps/common/src/perl/MediaWords/Util/Mail/Message/Templates/email-templates"]
 	path = apps/common/src/perl/MediaWords/Util/Mail/Message/Templates/email-templates
-	url = https://github.com/berkmancenter/mediacloud-email-templates.git
+	url = https://github.com/mediacloud/email-templates.git
 [submodule "apps/common/src/python/mediawords/languages/ca/snowball_stemmer"]
 	path = apps/common/src/python/mediawords/languages/ca/snowball_stemmer
-	url = https://github.com/berkmancenter/mediacloud-catalan-stemmer.git
+	url = https://github.com/mediacloud/catalan-stemmer.git
 [submodule "apps/common/src/python/mediawords/languages/lt/snowball_stemmer"]
 	path = apps/common/src/python/mediawords/languages/lt/snowball_stemmer
-	url = https://github.com/berkmancenter/mediacloud-lithuanian-stemmer.git
+	url = https://github.com/mediacloud/lithuanian-stemmer.git
 [submodule "apps/common/src/python/snowball"]
 	path = apps/common/src/python/snowball
 	url = https://github.com/snowballstem/snowball.git
 [submodule "doc/images"]
 	path = doc/images
-	url = https://github.com/berkmancenter/mediacloud-docs-images.git
+	url = https://github.com/mediacloud/backend-docs-images.git
 [submodule "apps/cliff-annotator/src/CLIFF"]
 	path = apps/cliff-annotator/src/CLIFF
-	url = https://github.com/mitmedialab/CLIFF.git
+	url = https://github.com/mediacloud/cliff-annotator.git
 [submodule "dev/quieter-docker-compose"]
 	path = dev/quieter-docker-compose
-	url = https://github.com/berkmancenter/mediacloud-docker-compose-just-quieter.git
+	url = https://github.com/mediacloud/docker-compose-just-quieter.git
 [submodule "apps/podcast-fetch-episode/tests/data/media-samples"]
 	path = apps/podcast-fetch-episode/tests/data/media-samples
-	url = https://github.com/berkmancenter/mediacloud-podcast-media-samples.git
+	url = https://github.com/mediacloud/podcast-media-samples.git
 [submodule "apps/podcast-fetch-transcript/tests/data/media-samples"]
 	path = apps/podcast-fetch-transcript/tests/data/media-samples
-	url = https://github.com/berkmancenter/mediacloud-podcast-media-samples.git
+	url = https://github.com/mediacloud/podcast-media-samples.git
 [submodule "apps/elk-journalbeat/journald-log-sample"]
 	path = apps/elk-journalbeat/journald-log-sample
 	url = https://github.com/mediacloud/journald-log-sample.git

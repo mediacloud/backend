@@ -28,7 +28,7 @@ Table of Contents
 To deploy your code changes, generally you would:
 
 1. Merge changes into `release` Git branch and `git push` the branch;
-2. Wait for the [continuous integration system](https://github.com/berkmancenter/mediacloud/actions) to pull images, rebuild the ones that have changed, and push the updated images to [Docker Hub](https://hub.docker.com/u/dockermediacloud) repository;
+2. Wait for the [continuous integration system](https://github.com/mediacloud/backend/actions) to pull images, rebuild the ones that have changed, and push the updated images to [Docker Hub](https://hub.docker.com/u/dockermediacloud) repository;
 3. Using either Portainer or Docker CLI, pull the updated images from the Docker Hub repository and recreate app containers for which the images have been modified.
 
 ## Ports
@@ -105,7 +105,6 @@ sudo zfs create space/mediacloud/vol_postfix_data
 sudo zfs create space/mediacloud/vol_daily_rss_dumps
 sudo zfs create space/mediacloud/vol_munin_data
 sudo zfs create space/mediacloud/vol_munin_html
-sudo zfs create space/mediacloud/vol_proxy_ssl_certs
 sudo zfs create space/mediacloud/vol_portainer_data
 sudo zfs create space/mediacloud/vol_pgadmin_data
 
@@ -140,7 +139,7 @@ To provision multiple servers with Ansible:
 1. In the `provision/inventory/` directory, copy `hosts.sample.yml` to `hosts.yml` and:
     * Add hostnames of servers that will make up a swarm.
     * Configure how to connect to every server (`ansible_user`, `ansible_ssh_private_key_file`, ...)
-    * Set the name of the ethernet interface the IP of which will be used to advertise the host (node) to the rest of the swarm (`docker_swarm_advertise_interface`). Ideally, this should be an ethernet interface that connects the host to a private network between servers.
+    * Set `docker_swarm_advertise_ip_or_if` to either the IP of which will be used to advertise the host (node) to the rest of the swarm, or the ethernet interface the IP of which should be read. Ideally, this should be an ethernet interface that connects the host to a private network between servers.
     * Define labels for every node (`docker_swarm_node_labels`) that will be used by production `docker-compose.yml` to determine which server should be used to run particular services (ones that use / share a volume or `mmap()`ped RAM).
     * Elect three swarm managers among the servers (`docker_swarm_managers`) and add the rest as workers (`docker_swarm_workers`).
 2. In the `provision/` directory, run:
@@ -250,7 +249,7 @@ To deploy Media Cloud services using Portainer's web UI:
 * Feel free to use Portainer's features to scale the services, update their configuration via environment variables, update resource limits, etc., using the web UI, just make sure to reflect the changes that you've made in the private authenticated Git repository with production `docker-compose.yml`.
 * Sometimes, after navigating your browser to the previous page with a list of containers, Portainer might show one or more duplicate containers for a non-replicated service, e.g.:
 
-    ![](https://github.com/berkmancenter/mediacloud-docs-images/raw/master/portainer/duplicate-containers.png)
+    ![](https://github.com/mediacloud/backend-docs-images/raw/master/portainer/duplicate-containers.png)
 
     This seems to be Portainer's bug. To see a correct number of service containers, click on the *Refresh* button at the top of the page (browser's page reload might not always work).
 

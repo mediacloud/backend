@@ -998,7 +998,7 @@ Output:
 ```json
 [
   {
-    "email": "hroberts@cyber.law.harvard.edu",
+    "email": "hroberts@mediacloud.org",
     "auth_users_id": 123,
     "url": "http://mediacloud.org",
     "feed_url": "http://mediacloud.org/feed/",

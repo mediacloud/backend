@@ -14,6 +14,9 @@ RUN \
 	# Copy Solr configuration to data directory
 	cp -R /usr/src/solr/* /var/lib/solr/ && \
 	#
+	# Create directory for JVM heapdumps
+	mkdir -p /var/lib/solr/jvm-oom-heapdumps/ && \
+	#
 	# Make sure Solr can write to data directory
 	chown -R solr:solr /var/lib/solr/ && \
 	#
