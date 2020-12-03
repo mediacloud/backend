@@ -64,16 +64,6 @@ fi
 #     exit 1
 # fi
 
-# # We need Kibana to be up to be able to preload it with dashboards
-# for i in {1..120}; do
-#     echo "Waiting for Kibana to start..."
-#     if curl --fail --silent http://elk-kibana:5601/api/status; then
-#         break
-#     else
-#         sleep 1
-#     fi
-# done
-
 exec /opt/auditbeat/auditbeat \
     -E name=$(cat /etc/hostname) \
     -E max_procs=$(/container_cpu_limit.sh) \

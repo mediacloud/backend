@@ -23,7 +23,10 @@ tags: ["auditd"]
 setup.template.settings:
   index.number_of_shards: 1
 
-# setup.dashboards.enabled: true
+# Preloading Kibana with sample dashboards is disabled as they're not
+# particularly useful
+
+# setup.dashboards.enabled: false
 
 # setup.kibana:
 #   host: "elk-kibana:5601"
