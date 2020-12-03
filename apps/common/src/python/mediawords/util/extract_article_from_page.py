@@ -5,7 +5,7 @@ from furl import furl
 from mediawords.util.config.common import CommonConfig
 from mediawords.util.log import create_logger
 from mediawords.util.network import wait_for_tcp_port_to_open
-from mediawords.util.parse_json import encode_json, decode_json
+from mediawords.util.parse_json import encode_json
 from mediawords.util.perl import decode_object_from_bytes_if_needed
 from mediawords.util.process import fatal_error
 from mediawords.util.web.user_agent import Request, UserAgent
@@ -114,8 +114,7 @@ def extract_article_html_from_page_html(content: str, config: Optional[CommonCon
             f"Extraction of {len(content)} characters; failed; last error: {http_response.decoded_content()}"
         )
 
-    response_json = http_response.decoded_content()
-    response = decode_json(response_json)
+    response = http_response.decoded_json()
 
     assert 'extracted_html' in response, "Response is expected to have 'extracted_html' key."
     assert 'extractor_version' in response, "Response is expected to have 'extractor_version' key."

@@ -12,7 +12,7 @@ from furl import furl
 from mediawords.solr.params import SolrParams
 from mediawords.util.config.common import CommonConfig
 from mediawords.util.log import create_logger
-from mediawords.util.parse_json import decode_json, encode_json
+from mediawords.util.parse_json import encode_json
 from mediawords.util.perl import decode_object_from_bytes_if_needed
 from mediawords.util.web.user_agent import UserAgent, Response, Request
 
@@ -81,7 +81,7 @@ def __wait_for_solr_to_start(config: Optional[CommonConfig]) -> None:
                 raise Exception("Response is empty.")
 
             try:
-                result = decode_json(response.decoded_content())
+                result = response.decoded_json()
             except Exception as ex:
                 raise Exception(f"Unable to decode response: {ex}")
 
@@ -128,7 +128,7 @@ def __solr_error_message_from_response(response: Response) -> str:
 
                 solr_response_json = {}
                 try:
-                    solr_response_json = decode_json(solr_response_maybe_json)
+                    solr_response_json = response.decoded_json()
                 except Exception as ex:
                     log.debug(f"Unable to parse Solr error response: {ex}; raw response: {solr_response_maybe_json}")
 
