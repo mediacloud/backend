@@ -13,11 +13,6 @@ if ! grep -qs '/etc/machine-id ' /proc/mounts; then
     exit 1
 fi
 
-# if ! grep -qs '/run/systemd ' /proc/mounts; then
-#     echo "/run/systemd/ is not mounted."
-#     exit 1
-# fi
-
 if ! grep -qs '/var/log/journal ' /proc/mounts; then
     echo "/var/log/journal/ is not mounted."
     exit 1
@@ -35,16 +30,6 @@ if ! journalctl --header | grep -q 'Machine ID:'; then
     echo "journalctl doesn't seem to be able to read logs; systemd version mismatch?"
     exit 1
 fi
-
-# We need Kibana to be up to be able to preload it with dashboards
-# for i in {1..120}; do
-#     echo "Waiting for Kibana to start..."
-#     if curl --fail --silent http://elk-kibana:5601/api/status; then
-#         break
-#     else
-#         sleep 1
-#     fi
-# done
 
 exec /opt/journalbeat/journalbeat \
     -E name=$(cat /etc/hostname) \
