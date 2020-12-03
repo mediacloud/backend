@@ -90,7 +90,7 @@ auditbeat.modules:
 
     # Disabled as there's no way to set paths to /etc/passwd and /etc/shadow,
     # plus auditd module will track it itself
-    - user    # User information
+    #- user    # User information
 
   # How often datasets send state updates with the
   # current state of the system (e.g. all currently
