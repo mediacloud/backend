@@ -151,7 +151,7 @@ uiSettings:
       ILM (`POST /_ilm/start`) after you're done with the index.
 
 
-# Adapted from https://github.com/elastic/dockerfiles/blob/7.8/kibana/bin/kibana-docker#L267
+# Adapted from https://github.com/elastic/kibana/blob/31014bfc9aa7df1ad71803d2be6bf23232fcbb02/src/dev/build/tasks/os_packages/docker_generator/resources/bin/kibana-docker#L291
 #
 # The virtual file /proc/self/cgroup should list the current cgroup
 # membership. For each hierarchy, you can follow the cgroup path from
@@ -165,5 +165,5 @@ uiSettings:
 # cpu.cgroup.path.override and cpuacct.cgroup.path.override.
 # Therefore, we set this value here so that cgroup statistics are
 # available for the container this process will run in.
-cpu.cgroup.path.override: /
-cpuacct.cgroup.path.override: /
+ops.cGroupOverrides.cpuPath: /
+ops.cGroupOverrides.cpuAcctPath: /

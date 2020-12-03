@@ -74,7 +74,6 @@ RUN useradd -ms /bin/bash elk
 RUN \
     mkdir -p /opt/kibana/config/ && \
     chown elk:elk /opt/kibana/data/ && \
-    chown -R elk:elk /opt/kibana/optimize/ && \
     true
 
 # Copy over configuration
@@ -90,9 +89,6 @@ COPY bin/kibana.sh /opt/kibana/bin/
 EXPOSE 5601
 
 USER elk
-
-# Pre-optimize plugins (supposedly)
-RUN /opt/kibana/bin/kibana --optimize
 
 # Run Kibana via wrapper script
 CMD ["/opt/kibana/bin/kibana.sh"]
