@@ -6,7 +6,7 @@ FROM dockermediacloud/java-base:latest
 
 # Install Elasticsearch
 # (https://www.elastic.co/downloads/elasticsearch-no-jdk)
-ENV ELK_ELASTICSEARCH_VERSION=7.8.1
+ENV ELK_ELASTICSEARCH_VERSION=7.10.0
 RUN \
     mkdir -p /opt/elasticsearch/ && \
     curl --fail --location --retry 3 --retry-delay 5 "https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-${ELK_ELASTICSEARCH_VERSION}-no-jdk-linux-x86_64.tar.gz" | \

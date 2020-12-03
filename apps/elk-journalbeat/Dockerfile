@@ -6,7 +6,7 @@ FROM dockermediacloud/base:latest
 
 # Install Journalbeat
 # (https://www.elastic.co/downloads/beats/journalbeat)
-ENV ELK_JOURNALBEAT_VERSION=7.8.1
+ENV ELK_JOURNALBEAT_VERSION=7.10.0
 RUN \
     mkdir -p /opt/journalbeat/ && \
     curl --fail --location --retry 3 --retry-delay 5 "https://artifacts.elastic.co/downloads/beats/journalbeat/journalbeat-${ELK_JOURNALBEAT_VERSION}-linux-x86_64.tar.gz" | \
