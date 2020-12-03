@@ -40,6 +40,29 @@ filebeat.config.modules:
 
 # ---
 
+filebeat.modules:
+
+  - module: system
+    syslog:
+      enabled: true
+      var.paths: ["/var/log/syslog*"]
+    auth:
+      enabled: true
+      var.paths: ["/var/log/auth.log*"]
+
+  # SSL terminating proxy
+  - module: nginx
+    access:
+      enabled: true
+      var.paths:
+        - "/var/log/nginx/**/access.log*"
+    error:
+      enabled: true
+      var.paths:
+        - "/var/log/nginx/**/error.log*"
+
+# ---
+
 filebeat.inputs:
 
   # Host system logs
