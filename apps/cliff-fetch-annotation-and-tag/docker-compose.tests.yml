@@ -1,0 +1,61 @@
+version: "3.7"
+
+services:
+
+    cliff-fetch-annotation-and-tag:
+        image: dockermediacloud/cliff-fetch-annotation-and-tag:latest
+        init: true
+        stop_signal: SIGKILL
+        environment:
+            MC_CLIFF_VERSION_TAG: "cliff_clavin_v2.6.1"
+            MC_CLIFF_GEONAMES_TAG_SET: "cliff_geonames"
+            MC_CLIFF_ORGANIZATIONS_TAG_SET: "cliff_organizations"
+            MC_CLIFF_PEOPLE_TAG_SET: "cliff_people"
+        volumes:
+            - type: bind
+              source: ./bin/
+              target: /opt/mediacloud/bin/
+            - type: bind
+              source: ./src/
+              target: /opt/mediacloud/src/cliff-fetch-annotation-and-tag/
+            - type: bind
+              source: ./tests/
+              target: /opt/mediacloud/tests/
+#            - type: bind
+#              source: ./../cliff-base/src/
+#              target: /opt/mediacloud/src/cliff-base/
+            - type: bind
+              source: ./../common/src/
+              target: /opt/mediacloud/src/common/
+        depends_on:
+            - postgresql-pgbouncer
+
+    postgresql-pgbouncer:
+        image: dockermediacloud/postgresql-pgbouncer:latest
+        init: true
+        stop_signal: SIGKILL
+        expose:
+            - 6432
+        volumes:
+            - type: bind
+              source: ./../postgresql-pgbouncer/conf/
+              target: /etc/pgbouncer/
+        depends_on:
+            - postgresql-server
+
+    postgresql-server:
+        image: dockermediacloud/postgresql-server:latest
+        init: true
+        stop_signal: SIGKILL
+        expose:
+            - 5432
+        volumes:
+            - type: bind
+              source: ./../postgresql-server/bin/
+              target: /opt/mediacloud/bin/
+            - type: bind
+              source: ./../postgresql-server/schema/
+              target: /opt/mediacloud/schema/
+            - type: bind
+              source: ./../postgresql-server/conf/
+              target: /etc/postgresql/11/main/
