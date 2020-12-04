@@ -8,6 +8,7 @@ the topic mining process is described in doc/topic_mining.markdown.
 """
 
 import datetime
+import random
 from time import sleep, time
 from typing import Optional
 
@@ -198,7 +199,7 @@ def die_if_max_stories_exceeded(db, topic):
         raise McTopicMineError(f"{num_topic_stories} stories > {topic['max_stories']}")
 
 
-def queue_topic_fetch_url(tfu, domain_timeout):
+def queue_topic_fetch_url(tfu:dict, domainm_timeout:Optional[int] = None):
     """ add the topic_fetch_url to the fetch_link job queue.  try repeatedly on failure."""
 
     domain_timeout = 0 if _test_mode else None
@@ -208,7 +209,7 @@ def queue_topic_fetch_url(tfu, domain_timeout):
             domain_timeout=domain_timeout)
 
 
-def create_and_queue_topic_fetch_urls(db, topic, fetch_links):
+def create_and_queue_topic_fetch_urls(db:DatabaseHandler, topic:dict, fetch_links:list) -> list:
     """
     create topic_fetch_urls rows correpsonding to the links and queue a FetchLink job for each.
 
@@ -216,15 +217,20 @@ def create_and_queue_topic_fetch_urls(db, topic, fetch_links):
     """
     tfus = []
     for link in fetch_links:
-        if link['topic_links_id'] and not db.find_by_id('topic_links', link['topic_links_id']):
+        topic_links_id = link.get('topic_links_id', None)
+        assume_match = link.get('assume_match', False)
+
+        # if this link has an associated topics_link row but that row has been deleted, ignore it.
+        # this can be used to delete spam urls from topic_links during the spidering process.
+        if topic_links_id and not db.find_by_id('topic_links', topic_links_id):
             next
 
         tfu = {
             'topics_id': topic['topics_id'],
             'url': link['url'],
             'state': 'pending',
-            'assume_match': mediawords.util.python.normalize_boolean_for_db(link['assume_match']),
-            'topic_links_id': link['topic_links_id']}
+            'assume_match': assume_match,
+            'topic_links_id': topic_links_id}
         tfu = db.create('topic_fetch_urls', tfu)
 
         tfus.append(tfu)
@@ -253,7 +259,7 @@ def _fetch_twitter_urls(db: DatabaseHandler, topic: dict, tfu_ids: list) -> None
     tfu_ids_table = db.get_temporary_ids_table(twitter_tfu_ids)
 
     JobBroker(queue_name='MediaWords::Job::TM::FetchTwitterUrls').add_to_queue(
-        {'topic_fetch_urls_ids': twitter_tfu_ids})
+        topic_fetch_urls_ids=twitter_tfu_ids)
 
     log.info(f"waiting for fetch twitter urls job for {len(twitter_tfu_ids)} urls")
 
@@ -297,7 +303,8 @@ def list_pending_urls(pending_urls: list) -> str:
 
     num_printed_urls = min(num_pending_urls, 3)
 
-    urls = shuffle(num_pending_urls)[0:num_printed_urls]
+    random.shuffle(pending_urls)
+    urls = pending_urls[0:num_printed_urls]
 
     return "\n".join([f"pending url: {url['url']} [{url['state']}: {url['fetch_date']}]" for url in urls])
 
@@ -305,7 +312,7 @@ def list_pending_urls(pending_urls: list) -> str:
 def fetch_links(db: DatabaseHandler, topic: dict, fetch_links: dict) -> None:
     """
     fetch the given links by creating topic_fetch_urls rows and sending them to the FetchLink queue
-    for processing.  wait for the queue to complete and returnt the resulting topic_fetch_urls.
+    for processing.  wait for the queue to complete and return the resulting topic_fetch_urls.
     """
 
     log.info("fetch_links: queue links")
@@ -390,7 +397,7 @@ def fetch_links(db: DatabaseHandler, topic: dict, fetch_links: dict) -> None:
 
         sleep(JOB_POLL_WAIT)
 
-    _fetch_twitter_urls(db, topic, tfu_ids_list)
+    _fetch_twitter_urls(db, topic, tfu_ids)
 
     log.info("fetch_links: update topic seed urls")
     db.query(
@@ -401,9 +408,10 @@ def fetch_links(db: DatabaseHandler, topic: dict, fetch_links: dict) -> None:
             where
                 tfu.url = tsu.url and
                 tfu.stories_id is not null and
-                tfu.topic_fetch_urls_id in (tfu_ids_list) and
+                tfu.topic_fetch_urls_id = any(%(a)s) and
                 tfu.topics_id = tsu.topics_id
-        """)
+        """,
+        {'a': tfu_ids})
 
     completed_tfus = db.query(
         "select * from topic_fetch_urls where topic_fetch_urls_id = any(%(a)s)",

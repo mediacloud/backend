@@ -68,7 +68,7 @@ def docker_test_commands(all_apps_dir: str, test_file: str, verbose: bool) -> Li
 
     if test_file.endswith('.py'):
         test_command = [
-                'py.test', '-s', '-p no:warnings' ,
+                'py.test', '-s', '-vv',
 
             # Disable cache because it won't be preserved
             '-p', 'no:cacheprovider',

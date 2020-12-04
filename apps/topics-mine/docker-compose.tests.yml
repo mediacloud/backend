@@ -40,6 +40,7 @@ services:
             - postgresql-pgbouncer
             - rabbitmq-server
             - topics-fetch-link
+            - topics-fetch-twitter-urls
             - topics-extract-story-links
             # 1) test_topics_mine.t calls topics-fetch-link
             # 2) topics-fetch-link calls _try_fetch_topic_url()
@@ -124,6 +125,27 @@ services:
             - type: bind
               source: ./../rabbitmq-server/conf/
               target: /etc/rabbitmq/
+
+    topics-fetch-twitter-urls:
+        image: dockermediacloud/topics-fetch-twitter-urls:latest
+        init: true
+        stop_signal: SIGKILL
+        volumes:
+            - type: bind
+              source: ./../topics-fetch-twitter-urls/bin/
+              target: /opt/mediacloud/bin/
+            - type: bind
+              source: ./../topics-fetch-twitter-urls/src/
+              target: /opt/mediacloud/src/topics-fetch-twitter-urls/
+            - type: bind
+              source: ./../topics-base/src/
+              target: /opt/mediacloud/src/topics-base/
+            - type: bind
+              source: ./../common/src/
+              target: /opt/mediacloud/src/common/
+        depends_on:
+            - postgresql-pgbouncer
+            - rabbitmq-server
 
     topics-fetch-link:
         image: dockermediacloud/topics-fetch-link:latest
