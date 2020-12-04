@@ -484,7 +484,7 @@ def add_new_links(db:DatabaseHandler, topic:dict, iteration:int, new_links:list,
     mine_topic_stories(db, topic)
 
 
-def get_new_links(iteration: int, topics_id: int) -> list:
+def get_new_links(db: DatabaseHandler, iteration: int, topics_id: int) -> list:
     """query the database for new links from stories below the given iteration."""
 
     new_links = db.query(
@@ -513,7 +513,7 @@ def spider_new_links(db, topic, iteration, state_updater):
     while True:
         log.info(f"spider new links chunk: {i}")
 
-        new_links = get_new_links(iteration, topic['topics_id'])
+        new_links = get_new_links(db, iteration, topic['topics_id'])
 
         if not new_links:
             break
