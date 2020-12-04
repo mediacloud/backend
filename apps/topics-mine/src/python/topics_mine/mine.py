@@ -10,7 +10,7 @@ the topic mining process is described in doc/topic_mining.markdown.
 import datetime
 import random
 from time import sleep, time
-from typing import Optional
+from typing import Optional, Callable
 
 from mediawords.db import DatabaseHandler
 import mediawords.dbi.stories
@@ -124,7 +124,7 @@ def generate_topic_links(db: DatabaseHandler, topic: dict, stories: list):
     queued_stories_ids = []
     for story in stories:
         if not story_within_topic_date_range(topic, story):
-            next
+            continue
 
         queued_stories_ids.append(story['stories_id'])
 
@@ -223,7 +223,7 @@ def create_and_queue_topic_fetch_urls(db:DatabaseHandler, topic:dict, fetch_link
         # if this link has an associated topics_link row but that row has been deleted, ignore it.
         # this can be used to delete spam urls from topic_links during the spidering process.
         if topic_links_id and not db.find_by_id('topic_links', topic_links_id):
-            next
+            continue
 
         tfu = {
             'topics_id': topic['topics_id'],
@@ -456,7 +456,7 @@ def save_metrics(db, topic, iteration, num_links, elapsed_time):
     db.create('topic_spider_metrics', topic_spider_metric)
 
 
-def add_new_links(db, topic, iteration, new_links, state_updater):
+def add_new_links(db:DatabaseHandler, topic:dict, iteration:int, new_links:list, state_updater:Callable) -> None:
     """call add_new_links in chunks of ADD_NEW_LINKS_CHUNK_SIZE"""
     log.info("add new links")
 
@@ -469,14 +469,14 @@ def add_new_links(db, topic, iteration, new_links, state_updater):
 
     i = 0
     while i < num_links:
-        start_time = time
+        start_time = time()
 
         update_topic_state(db, state_updater, f"spider_progress iteration links: {i} / {num_links}")
 
-        chunk_links = new_links[i, i + ADD_NEW_LINKS_CHUNK_SIZE]
+        chunk_links = new_links[i:i + ADD_NEW_LINKS_CHUNK_SIZE]
         add_new_links_chunk(db, topic, iteration, chunk_links)
 
-        elapsed_time = time - start_time
+        elapsed_time = time() - start_time
         save_metrics(db, topic, iteration, len(chunk_links), elapsed_time)
 
         i += ADD_NEW_LINKS_CHUNK_SIZE
@@ -516,7 +516,7 @@ def spider_new_links(db, topic, iteration, state_updater):
         new_links = get_new_links(iteration, topic['topics_id'])
 
         if not new_links:
-            last
+            break
 
         add_new_links(db, topic, iteration, new_links, state_updater)
 
@@ -580,14 +580,14 @@ def mine_topic_stories(db, topic):
                     ts.link_mined = false and
                     ts.topics_id = %(a)s
                 limit %(b)s
-            """, {'a': topic['topics_id'], 'b': EXTRACT_STORT_LINKS_CHUNK_SIZE}).hashes()
+            """, {'a': topic['topics_id'], 'b': EXTRACT_STORY_LINKS_CHUNK_SIZE}).hashes()
 
         num_stories = len(stories)
 
         generate_topic_links(db, topic, stories)
 
         if num_stories < EXTRACT_STORY_LINKS_CHUNK_SIZE:
-            last
+            break
 
 
 def import_seed_urls(db, topic, state_updater):

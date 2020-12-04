@@ -19,15 +19,5 @@ def test_fetch_links():
 
     fetch_links(db, topic, links)
 
-    log.warning(db.query("select * from topic_fetch_urls").hashes())
-    return
-
-    # if every url passed to the queue gets tagged with a url error, that means they all got processed
-    # by the fetch-twitter-urls pool
-    count_processed_tfus = db.query(
-        """
-        select count(*) from topic_fetch_urls
-            where state = 'python error' and message like '%McFetchTwitterUrlsDataException%'
-        """).flat()[0]
-
+    count_processed_tfus = db.query("select count(*) from topic_fetch_urls where state = 'request failed'").flat()[0]
     assert count_processed_tfus == num_urls
