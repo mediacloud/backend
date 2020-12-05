@@ -50,7 +50,7 @@ Jinja2==2.10.1
 kombu==4.5.0
 
 # XML manipulations, HTML parsing
-lxml==4.3.0
+lxml==4.6.2
 
 # Japanese language tokenizer, stemmer, etc.
 mecab-python3==0.996.1
@@ -59,7 +59,7 @@ mecab-python3==0.996.1
 nltk==3.4.5
 
 # PostgreSQL access
-psycopg2-binary==2.7.6.1
+psycopg2-binary==2.8.6
 
 # Process information
 psutil==5.7.0
@@ -80,7 +80,7 @@ pytz==2018.9
 python-dateutil==2.7.5
 
 # Making HTTP requests
-requests==2.21.0
+requests==2.25.0
 
 # Asynchronous (parallell / concurrent) HTTP requests
 requests-futures==0.9.9

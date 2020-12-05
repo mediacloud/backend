@@ -29,7 +29,7 @@ def _default_models_dir() -> str:
     """
     pwd = os.path.dirname(os.path.abspath(__file__))
     models_dir = os.path.join(pwd, 'models')
-    assert os.path.isdir(models_dir), "Models path should be directory: %s" % models_dir
+    assert os.path.isdir(models_dir), f"Models path should be directory: {models_dir}"
     return models_dir
 
 
@@ -64,11 +64,11 @@ class _BaseLoader(object, metaclass=abc.ABCMeta):
         if not models_dir:
             models_dir = _default_models_dir()
         if not os.path.isdir(models_dir):
-            raise MissingModelsException("Models directory does not exist at %s" % models_dir)
+            raise MissingModelsException(f"Models directory does not exist at {models_dir}")
 
-        print("Loading model %s..." % self.__class__.__name__)
+        print(f"Loading model {self.__class__.__name__}...")
         self._initialize_model(models_dir=models_dir)
-        print("Loaded model %s." % self.__class__.__name__)
+        print(f"Loaded model {self.__class__.__name__}.")
 
 
 class _BaseModel(_BaseLoader, metaclass=abc.ABCMeta):
@@ -99,9 +99,9 @@ class Word2vecModel(_BaseModel):
         vectors_npy_path = os.path.join(models_dir, self._BASE_NAME + '.vectors.npy')
 
         if not os.path.isfile(vectors_bin_path):
-            raise MissingModelsException("Vectors .bin file does not exist at %s" % vectors_bin_path)
+            raise MissingModelsException(f"Vectors .bin file does not exist at {vectors_bin_path}")
         if not os.path.isfile(vectors_npy_path):
-            raise MissingModelsException("Vectors .npy file does not exist at %s" % vectors_npy_path)
+            raise MissingModelsException(f"Vectors .npy file does not exist at {vectors_npy_path}")
 
         self._model = gensim.models.KeyedVectors.load(vectors_bin_path)
 
@@ -131,7 +131,7 @@ class Scaler(_BaseLoader):
         # Load pre-trained scaler used by all the models
         scaler_path = os.path.join(models_dir, 'scaler')
         if not os.path.isfile(scaler_path):
-            raise MissingModelsException("Scaler was not found in %s" % scaler_path)
+            raise MissingModelsException(f"Scaler was not found in {scaler_path}")
 
         with open(os.path.join(models_dir, "scaler"), mode='rb') as scaler_file:
             self._scaler = pickle.load(scaler_file, encoding='latin1')
@@ -169,13 +169,13 @@ class _TopicDetectionBaseModel(_BaseModel, metaclass=abc.ABCMeta):
         model_basename = self._model_basename()
         assert model_basename, "Model basename is empty."
 
-        json_model_path = os.path.join(models_dir, '%s.json' % model_basename)
-        hdf5_model_path = os.path.join(models_dir, '%s.hdf5' % model_basename)
+        json_model_path = os.path.join(models_dir, f'{model_basename}.json')
+        hdf5_model_path = os.path.join(models_dir, f'{model_basename}.hdf5')
 
         if not os.path.isfile(json_model_path):
-            raise MissingModelsException("JSON model was not found in %s" % json_model_path)
+            raise MissingModelsException(f"JSON model was not found in {json_model_path}")
         if not os.path.isfile(hdf5_model_path):
-            raise MissingModelsException("HDF5 model was not found in %s" % hdf5_model_path)
+            raise MissingModelsException(f"HDF5 model was not found in {hdf5_model_path}")
 
         with open(json_model_path, 'r') as data_file:
             self._keras_model = load_model(hdf5_model_path)

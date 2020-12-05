@@ -1,5 +1,5 @@
 # Python 3 compatible version of Google's re2 library (requires libre2-dev system package)
-# (untagged and unreleased 0.2.23 version which builds on Python 3.7)
+# (untagged and unreleased 0.2.23 version which builds on Python 3)
 -e git+https://github.com/andreasvc/pyre2.git@3e01eba6ba3eabd1359ef5e16c938c8866deea70#egg=re2
 
 # Mocking tweepy responses

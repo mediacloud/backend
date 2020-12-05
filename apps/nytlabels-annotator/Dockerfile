@@ -2,14 +2,14 @@
 # NYT-based news tagger service
 #
 
-FROM dockermediacloud/perl-python-base:latest
+FROM dockermediacloud/base:latest
 
 RUN \
     #
-    # Install dependencies
+    # Install model fetch dependencies
     apt-get -y --no-install-recommends install \
         brotli \
-        libhdf5-10 \
+        libhdf5-103 \
     && \
     #
     # Create directory for annotator
@@ -36,6 +36,41 @@ RUN curl --fail --location --retry 3 --retry-delay 5 "$MODEL_URL/descriptors_wit
 RUN curl --fail --location --retry 3 --retry-delay 5 "$MODEL_URL/just_taxonomies.hdf5.br" | \
         brotli -d > just_taxonomies.hdf5
 
+# Install Python 3.7
+# (we need TensorFlow 1.x, and that version of the module doesn't support
+# Python 3.8: https://github.com/tensorflow/tensorflow/issues/34302)
+RUN \
+    apt-key adv --keyserver keyserver.ubuntu.com --recv-keys F23C5A6CF475977595C89F51BA6932366A755776 && \
+    echo "deb http://ppa.launchpad.net/deadsnakes/ppa/ubuntu focal main" > /etc/apt/sources.list.d/deadsnakes.list && \
+    apt-get update && \
+    apt-get -y --no-install-recommends install \
+        build-essential \
+        python3.7 \
+        python3.7-dev \
+    && \
+    #
+    # We don't install Python 3.5 via APT's "python3" package but want to make
+    # Python 3.7 be available via "python3" binary
+    ln -s /usr/bin/python3.7 /usr/bin/python3 && \
+    ln -s /usr/lib/python3.7/ /usr/lib/python3/ && \
+    #
+    # Install Pip
+    curl https://bootstrap.pypa.io/get-pip.py | sudo -H python3.7 && \
+    rm -rf /root/.cache/ && \
+    true
+
+# Install Python module dependencies
+RUN \
+    apt-get -y --no-install-recommends install \
+        #
+        # scipy seems to be looking for Fortran compiler, no idea why
+        gfortran \
+        libblas-dev \
+        liblapack-dev \
+    && \
+    #
+    true
+
 # Install requirements
 # (do this first so that minor changes in the annotator's code don't trigger a full module reinstall)
 WORKDIR /usr/src/crappy-predict-news-labels/
@@ -45,7 +80,7 @@ RUN \
     rm -rf /root/.cache/ && \
     true
 
-# # Install NLTK data
+# Install NLTK data
 RUN \
     python3 -m nltk.downloader -d /usr/local/share/nltk_data punkt && \
     rm /usr/local/share/nltk_data/tokenizers/punkt.zip && \

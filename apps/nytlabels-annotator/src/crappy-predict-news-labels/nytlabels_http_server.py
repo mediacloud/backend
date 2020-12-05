@@ -17,7 +17,8 @@ from nytlabels import (
     DescriptorsAllModel,
     DescriptorsWithTaxonomiesModel,
     JustTaxonomiesModel,
-    Scaler)
+    Scaler,
+)
 
 # Models
 MODEL_600 = None
@@ -63,20 +64,20 @@ class NYTLabelsRequestHandler(BaseHTTPRequestHandler):
         assert MODEL_WITH_TAX, "MODEL_WITH_TAX is not loaded."
         assert MODEL_JUST_TAX, "MODEL_JUST_TAX is not loaded."
 
-    def __respond(self, http_status: HTTPStatus, response: Union[dict, list]):
-        self.send_response(http_status.value)
+    def __respond(self, http_status: int, response: Union[dict, list]):
+        self.send_response(http_status)
         self.send_header('Content-Type', 'application/json; charset=UTF-8')
         self.end_headers()
         self.wfile.write(json.dumps(response).encode('utf-8'))
 
-    def __respond_with_error(self, http_status: HTTPStatus, message: str):
+    def __respond_with_error(self, http_status: int, message: str):
         self.__respond(http_status=http_status, response={'error': message})
 
     def do_GET(self):
-        self.__respond_with_error(http_status=HTTPStatus.BAD_REQUEST, message='GET requests are not supported.')
+        self.__respond_with_error(http_status=HTTPStatus.BAD_REQUEST.value, message='GET requests are not supported.')
 
     def do_HEAD(self):
-        self.__respond_with_error(http_status=HTTPStatus.BAD_REQUEST, message='HEAD requests are not supported.')
+        self.__respond_with_error(http_status=HTTPStatus.BAD_REQUEST.value, message='HEAD requests are not supported.')
 
     @staticmethod
     def _predict(text: str) -> Dict[str, List[Dict[str, str]]]:
@@ -109,31 +110,32 @@ class NYTLabelsRequestHandler(BaseHTTPRequestHandler):
     def do_POST(self):
         content_length = int(self.headers.get('Content-Length', 0))
         if not content_length:
-            self.__respond_with_error(http_status=HTTPStatus.BAD_REQUEST, message="Content-Length is not set.")
+            self.__respond_with_error(http_status=HTTPStatus.BAD_REQUEST.value, message="Content-Length is not set.")
             return
 
         post_body = self.rfile.read(content_length)
         if not post_body:
-            self.__respond_with_error(http_status=HTTPStatus.BAD_REQUEST, message="Unable to read POST body.")
+            self.__respond_with_error(http_status=HTTPStatus.BAD_REQUEST.value, message="Unable to read POST body.")
             return
 
         try:
             payload = json.loads(post_body)
         except Exception as ex:
             self.__respond_with_error(
-                http_status=HTTPStatus.BAD_REQUEST,
-                message="Unable to decode request JSON: %s" % str(ex),
+                http_status=HTTPStatus.BAD_REQUEST.value,
+                message=f"Unable to decode request JSON: {ex}",
             )
             return
 
         if not isinstance(payload, dict):
-            self.__respond_with_error(http_status=HTTPStatus.BAD_REQUEST, message="Payload JSON is not a dictionary.")
+            self.__respond_with_error(http_status=HTTPStatus.BAD_REQUEST.value,
+                                      message="Payload JSON is not a dictionary.")
             return
 
         text = payload.get('text', None)
         if text is None:
             self.__respond_with_error(
-                http_status=HTTPStatus.BAD_REQUEST,
+                http_status=HTTPStatus.BAD_REQUEST.value,
                 message="Payload doesn't have 'text' attribute.",
             )
             return
@@ -142,8 +144,8 @@ class NYTLabelsRequestHandler(BaseHTTPRequestHandler):
             result = self._predict(text)
         except Exception as ex:
             self.__respond_with_error(
-                http_status=HTTPStatus.INTERNAL_SERVER_ERROR,
-                message="Unable to run models against text: %s" % str(ex),
+                http_status=HTTPStatus.INTERNAL_SERVER_ERROR.value,
+                message=f"Unable to run models against text: {ex}",
             )
             return
 
@@ -169,17 +171,17 @@ def run(port: int = 8080):
 
     print("Running self-test...\n")
     for model in [MODEL_600, MODEL_3000, MODEL_ALL, MODEL_WITH_TAX, MODEL_JUST_TAX]:
-        print("Model %s:" % model.__class__.__name__)
+        print(f"Model {model.__class__.__name__}:")
         predictions = model.predict(SELF_TEST_INPUT)
         for prediction in predictions:
-            print("  * Label: %s, score: %2.6f" % (prediction.label, prediction.score,))
-        assert len(predictions), "Some predictions should be returned by %s" % model.__class__.__name__
+            print(f"  * Label: {prediction.label}, score: {prediction.score:.6f}")
+        assert len(predictions), f"Some predictions should be returned by {model.__class__.__name__}"
         print()
     print("Done running self-test.")
 
     server_address = ('', port)
     httpd = HTTPServer(server_address, NYTLabelsRequestHandler)
-    print('Starting NYTLabels annotator on port %d...' % port)
+    print(f'Starting NYTLabels annotator on port {port}...')
     httpd.serve_forever()
 
 

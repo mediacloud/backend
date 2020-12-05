@@ -2,18 +2,18 @@
 # Use mirror closest to us
 #
 
-deb mirror://mirrors.ubuntu.com/mirrors.txt xenial main restricted
+deb mirror://mirrors.ubuntu.com/mirrors.txt focal main restricted
 
-deb mirror://mirrors.ubuntu.com/mirrors.txt xenial-updates main restricted
+deb mirror://mirrors.ubuntu.com/mirrors.txt focal-updates main restricted
 
-deb mirror://mirrors.ubuntu.com/mirrors.txt xenial universe
-deb mirror://mirrors.ubuntu.com/mirrors.txt xenial-updates universe
+deb mirror://mirrors.ubuntu.com/mirrors.txt focal universe
+deb mirror://mirrors.ubuntu.com/mirrors.txt focal-updates universe
 
-deb mirror://mirrors.ubuntu.com/mirrors.txt xenial multiverse
-deb mirror://mirrors.ubuntu.com/mirrors.txt xenial-updates multiverse
+deb mirror://mirrors.ubuntu.com/mirrors.txt focal multiverse
+deb mirror://mirrors.ubuntu.com/mirrors.txt focal-updates multiverse
 
-deb mirror://mirrors.ubuntu.com/mirrors.txt xenial-backports main restricted universe multiverse
+deb mirror://mirrors.ubuntu.com/mirrors.txt focal-backports main restricted universe multiverse
 
-deb http://security.ubuntu.com/ubuntu/ xenial-security main restricted
-deb http://security.ubuntu.com/ubuntu/ xenial-security universe
-deb http://security.ubuntu.com/ubuntu/ xenial-security multiverse
+deb http://security.ubuntu.com/ubuntu/ focal-security main restricted
+deb http://security.ubuntu.com/ubuntu/ focal-security universe
+deb http://security.ubuntu.com/ubuntu/ focal-security multiverse

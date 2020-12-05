@@ -7,7 +7,7 @@
 #
 
 # https://hub.docker.com/_/ubuntu?tab=tags&page=1
-FROM ubuntu:xenial-20201014
+FROM ubuntu:focal-20201106
 
 ENV DEBIAN_FRONTEND=noninteractive \
     LANG=en_US.UTF-8 \
@@ -51,6 +51,8 @@ RUN \
         ca-certificates \
         curl \
         htop \
+        # apt-key
+        gnupg \
         # "ip" and similar utilities
         iproute2 \
         # Pinging other containers from within Compose environment
@@ -71,9 +73,7 @@ RUN \
         # Timezone data, used by many packages
         tzdata \
         # Basic editor for files in container while debugging
-        # (full vim doesn't cut it because it's too big and also installs
-        # Python 3.5 which might interfere with a newer Python 3.7 that we use
-        # for our app)
+        # (full vim is too big)
         vim-tiny \
     && \
     true

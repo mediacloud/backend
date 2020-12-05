@@ -6,31 +6,35 @@ FROM dockermediacloud/perl-python-base:latest
 
 # Install mecab-ipadic-neologd (for Japanese language tokenization) first because it's so large
 RUN \
-    # Add repository for mecab-ipadic-neologd
-    apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 379CE192D401AB61 && \
-    echo "deb https://dl.bintray.com/pypt/mecab-ipadic-neologd-deb xenial main" > \
-        /etc/apt/sources.list.d/mecab-ipadic-neologd.list && \
-    apt-get -y update && \
-    # Japanese language tokenization
-    apt-get -y --no-install-recommends install libmecab-dev && \
-    apt-get -y --no-install-recommends install swig && \
-    apt-get -y --no-install-recommends install mecab && \
-    apt-get -y --no-install-recommends install mecab-ipadic-neologd && \
-    #
+    apt-get -y --no-install-recommends install \
+        libmecab-dev \
+        swig \
+        mecab \
+    && \
+    curl --fail --location --retry 3 --retry-delay 5 \
+        "https://github.com/mediacloud/mecab-ipadic-neologd-prebuilt/releases/download/20201204-2/mecab-ipadic-utf8.deb" \
+        > /var/tmp/mecab-ipadic-neologd.deb && \
+    dpkg -i /var/tmp/mecab-ipadic-neologd.deb && \
+    rm /var/tmp/mecab-ipadic-neologd.deb && \
     true
 
 # Install the rest of the dependencies
 RUN \
-    #
-    # Required by "cld2-cffi" Python module
-    apt-get -y --no-install-recommends install libffi-dev && \
-    #
-    # OpenSSL headers for various SSL modules
-    apt-get -y --no-install-recommends install libssl-dev && \
-    #
-    # Hindi stemming with Hunspell
-    apt-get -y --no-install-recommends install hunspell && \
-    apt-get -y --no-install-recommends install libhunspell-dev && \
+    apt-get -y --no-install-recommends install \
+        #
+        # Required by "cld2-cffi" Python module
+        libffi-dev \
+        #
+        # OpenSSL headers for various SSL modules
+        libssl-dev \
+        #
+        # Required by "lxml" Python module
+        libxml2-dev \
+        #
+        # Hindi stemming with Hunspell
+        hunspell \
+        libhunspell-dev \
+    && \
     #
     true
 
@@ -56,7 +60,7 @@ RUN \
     # and Pip is unable to figure out that it has to install Cython first from
     # requirements.txt; also, PyStemmer doesn't build correctly withou Cython
     # installed beforehand
-    pip3 install Cython==0.28.5 && \
+    pip3 install Cython==0.29.21 && \
     \
     #
     # Install the rest
