@@ -71,6 +71,12 @@ RUN \
     #
     true
 
+# Install numpy before scipy
+RUN \
+    pip3 install numpy==1.16.5 && \
+    rm -rf /root/.cache/ && \
+    true
+
 # Install requirements
 # (do this first so that minor changes in the annotator's code don't trigger a full module reinstall)
 WORKDIR /usr/src/crappy-predict-news-labels/
