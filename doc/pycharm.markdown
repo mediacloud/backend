@@ -185,7 +185,7 @@ In addition to tests, you might want to run any other Python script in the Docke
 
 To configure script run template to use Docker Compose Python interpreter:
 
-1. Open *Run* -> *Edit Configurations…* menu item, and at the tree menu at the left select *Templates* -> *Python tests*.
+1. Open *Run* -> *Edit Configurations…* menu item, and at the tree menu at the left select *Templates* -> *Python*.
 
 2. Update the script run template by adding custom environment variables and an external build tool just like how it's done in the *pytest* run configuration (see *Configure pytest* section above):
 

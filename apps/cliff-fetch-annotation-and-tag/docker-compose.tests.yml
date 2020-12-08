@@ -21,9 +21,6 @@ services:
             - type: bind
               source: ./tests/
               target: /opt/mediacloud/tests/
-#            - type: bind
-#              source: ./../cliff-base/src/
-#              target: /opt/mediacloud/src/cliff-base/
             - type: bind
               source: ./../common/src/
               target: /opt/mediacloud/src/common/

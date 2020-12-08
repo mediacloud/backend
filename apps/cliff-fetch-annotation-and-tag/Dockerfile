@@ -10,6 +10,4 @@ COPY bin /opt/mediacloud/bin
 
 USER mediacloud
 
-# TODO: merge these files
-CMD ["cliff_fetch_annotation_worker.py"]
-CMD ["cliff_update_story_tags_worker.py"]
+CMD ["cliff_tags_from_annotation_worker.py"]
