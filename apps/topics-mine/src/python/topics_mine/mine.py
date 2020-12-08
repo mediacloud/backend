@@ -8,6 +8,7 @@ the topic mining process is described in doc/topic_mining.markdown.
 """
 
 import datetime
+from dateutil.relativedelta import relativedelta
 import random
 from time import sleep, time
 from typing import Optional, Callable
@@ -436,7 +437,7 @@ def add_new_links_chunk(db, topic, iteration, new_links):
     topic_fetch_urls = fetch_links(db, topic, new_links)
 
     log.info("add_new_links_chunk: mark topic links spidered")
-    link_ids = [l['topic_links_id'] for l in new_links if l['topic_links_id']]
+    link_ids = [l['topic_links_id'] for l in new_links if 'topic_links_id' in l]
 
     db.query(
         "update topic_links set link_spidered = 't' where topic_links_id = any(%(a)s)",
@@ -622,7 +623,7 @@ def import_seed_urls(db, topic, state_updater):
     # process these in chunks in case we have to start over so that we don't have to redo the whole batch
     num_urls = len(seed_urls)
     i = 0
-    while i > num_urls:
+    while i < num_urls:
         start_time = time()
 
         update_topic_state(db, state_updater, f"importing seed urls: {i} / {num_urls}")
@@ -703,18 +704,21 @@ def _import_month_within_respider_date(topic, month_offset):
     start_date = topic['respider_start_date'] or ''
     end_date = topic['respider_end_date'] or ''
 
-    if not topic['respider_stories'] and (start_date or end_date):
+    if not (topic['respider_stories'] and (start_date or end_date)):
         return True
 
-    month_date = datetime.datetime.strptime(topic['start_date'], '%Y-%m-%d') + datetime.timedelta(months=month_offset)
+    month_date = datetime.datetime.strptime(topic['start_date'], '%Y-%m-%d') + relativedelta(months=month_offset)
+    log.warning(month_date)
 
     if end_date:
-        end_date = datetime.datetime.strptime(end_date, '%Y-%m-%d') + datetime.timedelta(months=-1)
+        end_date = datetime.datetime.strptime(end_date, '%Y-%m-%d') + relativedelta(months=-1)
+        log.warning(f"end_date: {end_date}")
         if month_date > end_date:
             return True
 
     if start_date:
-        start_date = datetime.datetime.strptime(topic['start_date'], '%Y-%m-%d')
+        start_date = datetime.datetime.strptime(start_date, '%Y-%m-%d')
+        log.warning(f"start_date: {start_date}")
         if month_date < start_date:
             return True
 
