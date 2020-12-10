@@ -1,3 +1,7 @@
+#
+# CLIFF fetch annotation + tag worker
+#
+
 FROM dockermediacloud/common:latest
 
 # Copy sources
