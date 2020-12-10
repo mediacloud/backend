@@ -4,8 +4,8 @@
     <option name="INTERPRETER_OPTIONS" value="" />
     <option name="PARENT_ENVS" value="true" />
     <envs>
-      <env name="PERL5LIB" value="/opt/mediacloud/src/export-tables-to-backup-crawler/perl:/opt/mediacloud/src/cliff-base/perl:/opt/mediacloud/src/common/perl" />
-      <env name="PYTHONPATH" value="/opt/mediacloud/src/export-tables-to-backup-crawler/python:/opt/mediacloud/src/cliff-base/python:/opt/mediacloud/src/common/python" />
+      <env name="PERL5LIB" value="/opt/mediacloud/src/export-tables-to-backup-crawler/perl:/opt/mediacloud/src/common/perl" />
+      <env name="PYTHONPATH" value="/opt/mediacloud/src/export-tables-to-backup-crawler/python:/opt/mediacloud/src/common/python" />
     </envs>
     <option name="SDK_HOME" value="" />
     <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/tests/python" />

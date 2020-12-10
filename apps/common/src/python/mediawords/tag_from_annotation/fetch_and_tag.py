@@ -162,7 +162,7 @@ class TagsFromJSONAnnotation(metaclass=abc.ABCMeta):
         #
         #   WARNING mediawords.util.web.user_agent: Client-side error while processing request <PreparedRequest [POST]>:
         #   ('Connection aborted.', ConnectionResetError(104, 'Connection reset by peer'))
-        #   WARNING mediawords.annotator.fetcher: Request failed: ('Connection aborted.', ConnectionResetError(104,
+        #   WARNING mediawords.tag_from_annotation.fetch_and_tag: Request failed: ('Connection aborted.', ConnectionResetError(104,
         #   'Connection reset by peer'))
         #   ERROR mediawords.util.process: User agent error: 400 Client-side error: ('Connection aborted.',
         #   ConnectionResetError(104, 'Connection reset by peer'))
