@@ -9,7 +9,7 @@ from mediawords.util.web.user_agent import Request
 log = create_logger(__name__)
 
 class CLIFFTagsFromAnnotation(TagsFromJSONAnnotation):
-    """Fetch CLIFF annotation and use it to generate story tags"""
+    """Fetch CLIFF annotation and uses it to generate/store story tags"""
 
     # CLIFF version tag set
     __CLIFF_VERSION_TAG_SET = 'geocoder_version'

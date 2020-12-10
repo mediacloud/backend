@@ -15,7 +15,7 @@ class McCLIFFTagsFromAnnotationJobException(Exception):
 
 
 def run_cliff_tags_from_annotation(stories_id: int) -> None:
-    """Fetch story's CLIFF annotation and generates/stores tags"""
+    """Fetch story's CLIFF annotation and uses it to generate/store tags"""
     if isinstance(stories_id, bytes):
         stories_id = decode_object_from_bytes_if_needed(stories_id)
 
@@ -41,7 +41,7 @@ def run_cliff_tags_from_annotation(stories_id: int) -> None:
         )
 
     log.info("Adding story ID %d to NYTLabels fetch queue..." % stories_id)
-    JobBroker(queue_name='MediaWords::Job::NYTLabels::FetchAnnotation').add_to_queue(stories_id=stories_id)
+    JobBroker(queue_name='MediaWords::Job::NYTLabels::TagsFromAnnotation').add_to_queue(stories_id=stories_id)
 
     log.info("Finished updating tags for story ID %d" % stories_id)
 
