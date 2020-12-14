@@ -26,11 +26,13 @@ def test_import_solr_seed_query_month():
 
     # distribute one story each day.  this is kludgy but should work from a fresh databse with
     # sequential stories_ids.  assumes that there are fewer stories than days in the date range above
-    db.query(
-        "update stories set publish_date = %(a)s + ((stories_id::text || ' days')::interval)",
-        {'a': topic['start_date']})
+    stories = db.query("select * from stories").hashes()
+    for (i, story) in enumerate(stories):
+        db.query(
+                "update stories set publish_date = %(a)s::timestamp + ((%(b)s || ' days')::interval)",
+            {'a': topic['start_date'], 'b': i})
 
-    setup_test_index()
+    setup_test_index(db)
 
     i = 0
     while import_solr_seed_query_month(db, topic, i):

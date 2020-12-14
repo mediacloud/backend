@@ -48,6 +48,8 @@ services:
             # 4) generate_story() calls _extract_story()
             # 5) _extract_story() runs a remote extraction job
             - extract-and-vector
+            - solr-shard-01
+            - import-solr-data-for-testing
 
     extract-and-vector:
         image: dockermediacloud/extract-and-vector:latest
@@ -194,3 +196,58 @@ services:
             - postgresql-pgbouncer
             # Uses extractor HTTP service directly to get raw extracted HTML:
             - extract-article-from-page
+
+    import-solr-data-for-testing:
+        image: dockermediacloud/import-solr-data-for-testing:latest
+        init: true
+        environment:
+            MC_SOLR_IMPORT_MAX_QUEUED_STORIES: 100000
+        stop_signal: SIGKILL
+        volumes:
+            - type: bind
+              source: ./../import-solr-data-for-testing/bin/
+              target: /opt/mediacloud/bin/
+            - type: bind
+              source: ./../import-solr-data/src/
+              target: /opt/mediacloud/src/import-solr-data/
+            - type: bind
+              source: ./../common/src/
+              target: /opt/mediacloud/src/common/
+        depends_on:
+            - postgresql-pgbouncer
+            - solr-shard-01
+
+    solr-shard-01:
+        image: dockermediacloud/solr-shard:latest
+        init: true
+        stop_signal: SIGKILL
+        environment:
+            MC_SOLR_SHARD_COUNT: "1"
+        expose:
+            - 8983
+        volumes:
+            - type: bind
+              source: ./../solr-base/src/solr/
+              target: /usr/src/solr/
+            - type: bind
+              source: ./../solr-shard/bin/solr-shard.sh
+              target: /solr-shard.sh
+        depends_on:
+            - solr-zookeeper
+
+    solr-zookeeper:
+        image: dockermediacloud/solr-zookeeper:latest
+        init: true
+        stop_signal: SIGKILL
+        expose:
+            - 2181
+            - 2888
+            - 3888
+        volumes:
+            - type: bind
+              source: ./../solr-zookeeper/conf/
+              target: /opt/zookeeper/conf/
+            - type: bind
+              source: ./../solr-zookeeper/bin/zookeeper.sh
+              target: /zookeeper.sh
+
