@@ -17,6 +17,7 @@ from topics_mine.posts.crimson_hexagon_twitter import CrimsonHexagonTwitterPostF
 from topics_mine.posts.csv_generic import CSVStaticPostFetcher
 from topics_mine.posts.postgres_generic import PostgresPostFetcher
 from topics_mine.posts.pushshift_reddit import PushshiftRedditPostFetcher
+from topics_mine.posts.pushshift_twitter import PushshiftTwitterPostFetcher
 from topics_mine.posts.googler_web import GooglerWebPostFetcher
 
 log = create_logger(__name__)
@@ -228,6 +229,8 @@ def get_post_fetcher(topic_seed_query: dict) -> Optional[AbstractPostFetcher]:
         fetch = CSVStaticPostFetcher()
     elif source == 'pushshift' and platform == 'reddit':
         fetch = PushshiftRedditPostFetcher()
+    elif source == 'pushshift' and platform == 'twitter':
+        fetch = PushshiftTwitterPostFetcher()
     elif source == 'google' and platform == 'web':
         fetch = GooglerWebPostFetcher()
     else:

@@ -26,7 +26,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4758;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4759;
 BEGIN
 
     -- Update / set database schema version
@@ -1846,6 +1846,7 @@ $$ language sql;
 
 select insert_platform_source_pair( 'web', 'mediacloud' );
 select insert_platform_source_pair( 'twitter', 'crimson_hexagon' );
+select insert_platform_source_pair( 'twitter', 'pushshift');
 select insert_platform_source_pair( 'generic_post', 'csv' );
 select insert_platform_source_pair( 'generic_post', 'postgres' );
 select insert_platform_source_pair( 'reddit', 'pushshift' );

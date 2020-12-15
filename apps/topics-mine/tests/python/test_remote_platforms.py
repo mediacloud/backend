@@ -82,6 +82,18 @@ def test_pushshift_reddit() -> None:
         )
 
 
+def test_pushshift_twitter() -> None:
+    run_single_platform_test(
+            source='pushshift',
+            platform='twitter',
+            query='covid',
+            pattern='covid',
+            day='2020-03-01',
+            min_posts=6000,
+            max_posts=7000
+        )
+   
+
 def test_googler_web() -> None:
     run_single_platform_test(
             source='google',
