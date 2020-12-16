@@ -6,7 +6,6 @@ from furl import furl
 from mediawords.db import DatabaseHandler
 from mediawords.job import JobBroker
 from mediawords.util.log import create_logger
-from mediawords.util.parse_json import decode_json
 from mediawords.util.web.user_agent import UserAgent
 
 from crawler_fetcher.handlers.feed_syndicated import DownloadFeedSyndicatedHandler
@@ -48,7 +47,7 @@ def _get_feed_url_from_itunes_podcasts_url(url: str) -> str:
         return url
 
     try:
-        res_dict = decode_json(res.decoded_content())
+        res_dict = res.decoded_json()
         if not isinstance(res_dict, dict):
             raise Exception("Result is not a dictionary")
     except Exception as ex:
