@@ -12,6 +12,9 @@ ENV PERL5LIB="/opt/mediacloud/src/nytlabels-fetch-annotation-and-tag/perl:${PERL
 # Copy worker script
 COPY bin /opt/mediacloud/bin
 
+# Make worker script executable 
+RUN chmod +x /opt/mediacloud/bin/nytlabels_tags_from_annotation_worker.py
+
 USER mediacloud
 
 CMD ["nytlabels_tags_from_annotation_worker.py"]

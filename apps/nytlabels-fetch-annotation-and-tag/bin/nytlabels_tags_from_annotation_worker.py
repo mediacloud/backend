@@ -48,5 +48,5 @@ def run_nytlabels_tags_from_annotation(stories_id: int) -> None:
 
 
 if __name__ == '__main__':
-    app = JobBroker(queue_name='MediaWords::Job::NYTLabels::TagsFromAnnotation')
+    app = JobBroker(queue_name='MediaWords::Job::NYTLabels::FetchAnnotationAndTag')
     app.start_worker(handler=run_nytlabels_tags_from_annotation)

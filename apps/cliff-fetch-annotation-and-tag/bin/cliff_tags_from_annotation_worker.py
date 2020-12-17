@@ -41,11 +41,11 @@ def run_cliff_tags_from_annotation(stories_id: int) -> None:
         )
 
     log.info("Adding story ID %d to NYTLabels fetch queue..." % stories_id)
-    JobBroker(queue_name='MediaWords::Job::NYTLabels::TagsFromAnnotation').add_to_queue(stories_id=stories_id)
+    JobBroker(queue_name='MediaWords::Job::NYTLabels::FetchAnnotationAndTag').add_to_queue(stories_id=stories_id)
 
     log.info("Finished updating tags for story ID %d" % stories_id)
 
 
 if __name__ == '__main__':
-    app = JobBroker(queue_name='MediaWords::Job::CLIFF::TagsFromAnnotation')
+    app = JobBroker(queue_name='MediaWords::Job::CLIFF::FetchAnnotationAndTag')
     app.start_worker(handler=run_cliff_tags_from_annotation)
