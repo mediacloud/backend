@@ -542,7 +542,7 @@ def get_spider_progress_description(db, topic, iteration, total_links):
         {'a': topics_id}).flat()[0]
 
     return (
-        f"spidering iteration: {iteration} stories last iteration / total: " +
+        f"spidering iteration: {iteration} stories last iteration / total: "
         f"{stories_last_iteration} / {total_stories} links queued: {queued_links} iteration links: {total_links}"
     )
 
@@ -691,7 +691,7 @@ def insert_topic_seed_urls(db, topic_seed_urls):
     log.info(f"inserting {len(topic_seed_urls)} topic seed urls ...")
 
     for tsu in topic_seed_urls:
-        insert_tsu = {f: tsup[f] for f in ('stories_id', 'url', 'topics_id', 'assume_match')}
+        insert_tsu = {f: tsu[f] for f in ('stories_id', 'url', 'topics_id', 'assume_match')}
         db.create('topic_seed_urls', insert_tsu)
 
 
@@ -725,18 +725,14 @@ def _import_month_within_respider_date(topic, month_offset):
     return False
 
 
-def _search_for_stories(db, params):
-    """Call search_solr_for_stories_ids() above and then query PostgreSQL for the stories returned by Solr.
+def _search_for_stories_urls(db, params):
+    """Call search_solr_for_stories_ids() and then query postgres for the stories urls.
 
-    Include stories.* and media_name as the returned fields."""
+    Return dicts with stories_id and url fields."""
 
     stories_ids = mediawords.solr.search_solr_for_stories_ids(db, params)
 
-    stories = {'stories_id': i for i in stories_ids}
-
-    stories = mediawords.dbi.stories.attach_story_meta_data_to_stories(db, stories)
-
-    stories = [s for s in stories if s['url']]
+    stories = db.query("select stories_id,url from stories where stories_id = any(%(a)s)", {'a': stories_ids}).hashes()
 
     return stories
 
@@ -766,7 +762,7 @@ def import_solr_seed_query_month(db, topic, month_offset):
     log.info(f"import solr seed query month offset {month_offset}")
     solr_query['rows'] = max_stories
 
-    stories = _search_for_stories(db, solr_query)
+    stories = _search_for_stories_urls(db, solr_query)
 
     if len(stories) > max_returned_stories:
         raise McTopicMineError(f"solr_seed_query returned more than {max_returned_stories} stories")
