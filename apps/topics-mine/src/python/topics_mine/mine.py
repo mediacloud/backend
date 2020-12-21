@@ -843,14 +843,15 @@ def _add_topic_stories_to_facebook_queue(db, topic):
         log.debug("No stories found for topic 'topic['name']'")
 
     for ss in stories:
-        if (ss['facebook_api_error']
-                or not defined(ss['facebook_api_collect_date'])
-                or not defined(ss['facebook_share_count'])
-                or not defined(ss['facebook_comment_count'])):
-            log.debug(f"Adding job for story {stories_id}")
+        if (ss['facebook_api_error'] or
+                ss['facebook_api_collect_date'] is None or
+                ss['facebook_share_count'] is None or
+                ss['facebook_comment_count'] is None):
+            log.debug(f"Adding job for story {ss['stories_id']}")
             args = {'stories_id': ss['stories_id']}
 
-            JobBroker(queue_name='MediaWords::Job::Facebook::FetchStoryStats').add_to_queue(args)
+            JobBroker(queue_name='MediaWords::Job::Facebook::FetchStoryStats').add_to_queue(
+                stories_id=ss['stories_id'])
 
 
 def fetch_social_media_data(db, topic):
@@ -872,7 +873,7 @@ def fetch_social_media_data(db, topic):
     for i in range(retries):
         if all_facebook_data_fetched(db, topic):
             return
-        time.sleep(poll_wait)
+        sleep(poll_wait)
 
     raise McTopicMineError("Timed out waiting for social media data")
 

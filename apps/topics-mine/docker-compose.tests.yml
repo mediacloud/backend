@@ -50,6 +50,7 @@ services:
             - extract-and-vector
             - solr-shard-01
             - import-solr-data-for-testing
+            - facebook-fetch-story-stats
 
     extract-and-vector:
         image: dockermediacloud/extract-and-vector:latest
@@ -250,4 +251,29 @@ services:
             - type: bind
               source: ./../solr-zookeeper/bin/zookeeper.sh
               target: /zookeeper.sh
+
+    facebook-fetch-story-stats:
+        image: dockermediacloud/facebook-fetch-story-stats:latest
+        init: true
+        stop_signal: SIGKILL
+        environment:
+            MC_FACEBOOK_APP_ID: "IGNORE NOT NEEDED"
+            MC_FACEBOOK_APP_SECRET: "IGNORE NOT NEEEDED"
+        volumes:
+            - type: bind
+              source: ./../facebook-fetch-story-stats/bin/
+              target: /opt/mediacloud/bin/
+            - type: bind
+              source: ./../facebook-fetch-story-stats/src/
+              target: /opt/mediacloud/src/facebook-fetch-story-stats/
+            - type: bind
+              source: ./../facebook-fetch-story-stats/tests/
+              target: /opt/mediacloud/tests/
+            - type: bind
+              source: ./../common/src/
+              target: /opt/mediacloud/src/common/
+        depends_on:
+            - postgresql-pgbouncer
+            - rabbitmq-server
+
 
