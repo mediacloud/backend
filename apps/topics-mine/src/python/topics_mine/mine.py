@@ -929,15 +929,9 @@ def import_urls_from_seed_queries(db, topic, state_updater):
         "select * from topic_seed_queries where topics_id = %(a)s",
         {'a': topic['topics_id']}).hashes()
 
-    num_queries = len(topic_seed_queries)
-
-    if num_queries != 1 and topic['mode'] == 'url_sharing':
-        raise McTopicMineError("exactly one topic seed query required per url_sharing topic")
-
-    if topic['mode'] == 'web':
-        log.debug("import seed urls from solr")
-        update_topic_state(db, state_updater, "importing solr seed query")
-        import_solr_seed_query(db, topic)
+    log.debug("import seed urls from solr")
+    update_topic_state(db, state_updater, "importing solr seed query")
+    import_solr_seed_query(db, topic)
 
     for tsq in topic_seed_queries:
         tsq_dump = tsq['topic_seed_queries_id']
