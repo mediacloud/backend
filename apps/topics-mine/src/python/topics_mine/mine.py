@@ -935,12 +935,12 @@ def import_urls_from_seed_queries(db, topic, state_updater):
 
     for tsq in topic_seed_queries:
         tsq_dump = tsq['topic_seed_queries_id']
-        fetcher = topics_base.fetch_topic_posts.get_post_fetcher(tsq)
+        fetcher = topics_mine.fetch_topic_posts.get_post_fetcher(tsq)
         if not fetcher:
             raise McTopicMineError(f"unable to import seed urls for platform/source of seed query: {tsq_dump}")
 
         log.debug(f"import seed urls from fetch_topic_posts:\n{tsq_dump}")
-        topics_base.fetch_topic_posts.fetch_topic_posts(db, tsq)
+        topics_mine.fetch_topic_posts.fetch_topic_posts(db, tsq)
 
     db.query(
         """
