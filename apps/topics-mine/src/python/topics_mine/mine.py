@@ -1011,7 +1011,7 @@ def set_stories_respidering(db, topic, snapshots_id):
                     s.publish_date <= %(b)s and
                     ts.topics_id = %(c)s
             """,
-            {'a': respider_end_date, 'b': topic['end_date'], 'b': topic['topics_id']})
+            {'a': respider_end_date, 'b': topic['end_date'], 'c': topic['topics_id']})
 
         if snapshots_id:
             db.update_by_id('snapshots', snapshots_id, {'end_date': topic['end_date']})
