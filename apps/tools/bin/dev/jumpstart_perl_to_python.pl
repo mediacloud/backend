@@ -119,6 +119,12 @@ sub main
     # eq -> ==
     $code =~ s/ eq / == /g;
 
+    # undef to None
+    $code =~ s/undef/None/g;
+
+    # add paerns to common db methods
+    $code =~ s/(hash(es)?|flat)$/$1()/;
+
     print $code;
 }
 
