@@ -112,8 +112,25 @@ def _get_feed_url_from_google_podcasts_url(url: str) -> str:
 
     html = res.decoded_content()
 
-    # <div jsname="<...>" jscontroller="<...>" jsaction="<...>" data-feed="<...>">
-    match = re.search(r'data-feed="(https?://.+?)"', html, flags=re.IGNORECASE)
+    # check whether this is an individual episode URL rather than the show's Google Podcasts homepage; the feed URL
+    # doesn't appear on individual episode pages, so we need to spider to the show's Google Podcasts homepage to get it
+
+    if re.search(r'a class="ik7nMd" jsname="w58EXe"', html, flags=re.IGNORECASE):
+        show_url_match = re.search(r'<a class="ik7nMd" jsname="w58EXe" href=".(/feed/?.+?)"', html, flags=re.IGNORECASE)
+        if not show_url_match:
+            log.error(f"Feed URL was not found on episode's Google Podcasts page.")
+            return url
+        else:
+            res = ua.get(f"https://podcasts.google.com{show_url_match.group(1)}")
+            if not res.is_success():
+                log.error(f"Unable to fetch Google Podcasts feed URL: {res.status_line()}")
+                return url
+            else:
+                html = res.decoded_content()
+
+    # get show's feed URL from its Google Podcasts homepage
+
+    match = re.search(r'jsdata=" sXVOpf;_;1 U89mvc;(https?://.+?);2"', html, flags=re.IGNORECASE)
     if not match:
         log.error(f"Feed URL was not found in Google Podcasts feed page.")
         return url
