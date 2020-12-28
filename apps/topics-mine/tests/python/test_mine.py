@@ -45,9 +45,13 @@ def generate_content_for_site(site):
         </html>
         """
 
+def randindex(n):
+    """generate a random int >=  0 and < n."""
+    return random.randint(0, n - 1)
+
 def generate_content_for_page(site, page):
     num_links = len(page['links'])
-    num_paragraphs = int(random.randint(1, 10) + 3) + num_links
+    num_paragraphs = int(randindex(10) + 3) + num_links
 
     paragraphs = []
 
@@ -55,12 +59,12 @@ def generate_content_for_page(site, page):
         text = lorem_sentences(5)
         if i < num_links:
             html_link = get_html_link(page['links'][i])
-            text += " html_link"
+            text += f" {html_link}"
 
         paragraphs.append(text)
 
-    if random.randint(0, 1) < 1:
-        paragraphs.append(lorem.sentence() + " TOPIC_PATTERN")
+    if randindex(2) < 1:
+        paragraphs.append(lorem.sentence() + f" {TOPIC_PATTERN}")
         page['matches_topic'] = 1
 
     dead_link_text = lorem_sentences(5)
@@ -82,7 +86,6 @@ def generate_content_for_page(site, page):
     """
 
 def generate_content_for_sites(sites):
-
     for site in sites:
         site['content'] = generate_content_for_site(site)
 
@@ -106,13 +109,13 @@ def get_test_sites():
             'port': port,
             'id': site_id,
             'url': f"http://{host}:{port}/",
-            'title': "site {site_id}",
+            'title': f"site {site_id}",
             'pages': []
         }
 
-        num_pages = int(random.randint(1, NUM_PAGES_PER_SITE)) + 1
+        num_pages = int(randindex(NUM_PAGES_PER_SITE)) + 1
         for page_id in range(num_pages):
-            date = mediawords.util.sql.get_sql_date_from_epoch(time.time() - (random.randint(1, 365) * 86400))
+            date = mediawords.util.sql.get_sql_date_from_epoch(time.time() - (randindex(365) * 86400))
 
             path = f"page-{page_id}"
 
@@ -122,7 +125,8 @@ def get_test_sites():
                 'url': f"{site['url']}{path}",
                 'title': f"page {page_id}",
                 'pubish_date': date,
-                'links': []
+                'links': [],
+                'matches_topic': False
             }
 
             pages.append(page)
@@ -131,9 +135,9 @@ def get_test_sites():
         sites.append(site)
 
     for page in pages:
-        num_links = int(random.randint(1, NUM_LINKS_PER_PAGE))
+        num_links = int(randindex(NUM_LINKS_PER_PAGE))
         for link_id in range(num_links):
-            linked_page_id = int(random.randint(1, len(pages)))
+            linked_page_id = int(randindex(len(pages)))
             linked_page = pages[linked_page_id]
 
             if not mediawords.util.url.urls_are_equal(page['url'], linked_page['url']):
@@ -208,7 +212,7 @@ def seed_unlinked_urls(db, topic, sites):
 
     seed_pages = []
     for page in all_pages:
-        if non_seeded_url_lookup[page['url']]:
+        if non_seeded_url_lookup.get(page['url'], False):
             log.debug(f"non seeded url: {page['url']}")
         else:
             log.debug(f"seed url: {page['url']}")
@@ -250,21 +254,23 @@ def validate_topic_stories(db, topic, sites):
                 join stories s on (s.stories_id = cs.stories_id)
             where cs.topics_id = %(a)s
         """,
-        {'a': topic['topics_id']})
+        {'a': topic['topics_id']}).hashes()
 
     all_pages = []
     [all_pages.extend(s['pages']) for s in sites]
 
-    log.debug(f"ALL PAGES: {len(all_pages)}")
+    log.warning(f"ALL PAGES: {len(all_pages)}")
 
     topic_pages = [p for p in all_pages if p['matches_topic']]
 
-    log.debug(f"TOPIC PAGES: {len(topic_pages)}")
+    log.warning(f"TOPIC PAGES: {len(topic_pages)}")
 
-    topic_pages_lookup = {'url': s for s in topic_stories}
+    topic_pages_lookup = {s['url']: s for s in topic_stories}
+
+    log.warning(f"TOPIC PAGES LOOKUP: {len(topic_pages_lookup)}")
 
     for topic_story in topic_stories:
-        assert topic_pages_lookup[topic_story['url']]
+        assert topic_pages_lookup.get(topic_story['url'], False)
         del topic_pages_lookup[topic_story['url']]
 
     assert len(topic_pages_lookup) == 0
@@ -286,20 +292,24 @@ def validate_topic_stories(db, topic, sites):
 
     assert pending_count == 0, f"After waiting {WAIT_PENDING_SECONDS} some URLs are still in 'pending' state"
 
-    dead_link_count = db.query( "select count(*) from topic_fetch_urls where state ='request failed'" ).flat()[0]
-    assert dead_link_count== len( topic_pages), "dead link count"
+    dead_link_count = db.query( "select count(*) from topic_fetch_urls where state ='request failed'").flat()[0]
+    dead_pages_count = db.query("select count(*) from topic_fetch_urls where url like '%dead%'").flat()[0]
 
-    if dead_link_count != len(topic_pages):
+    if dead_link_count != dead_pages_count:
         fetch_states = db.query("select count(*), state from topic_fetch_urls group by state" ).hashes()
         log.warning(f"fetch states: {fetch_states}")
 
         fetch_errors = db.query("select * from topic_fetch_urls where state = 'python error'").hashes()
         log.warning(f"fetch errors: {fetch_errors}")
 
+    assert dead_link_count == dead_pages_count, "dead link count"
+
 def validate_topic_links(db, topic, sites):
     cid = topic['topics_id']
 
-    cl = db.query("select * from topic_links").hashes()
+    topic_links = db.query("select * from topic_links").hashes()
+
+    log.warning(f"TOPIC LINKS: {len(topic_links)}")
 
     all_pages = []
     [all_pages.extend(s['pages']) for s in sites]
@@ -328,10 +338,10 @@ def validate_topic_links(db, topic, sites):
 
     topic_spider_metric = db.query(
         "select sum(links_processed) links_processed from topic_spider_metrics where topics_id = %(a)s",
-        {'a': cid}).hashes()
+        {'a': cid}).hash()
 
     assert topic_spider_metric,"topic spider metrics exist"
-    assert topic_spider_metric['links_processed'] > len(cl), "metrics links_processed greater than topic_links"
+    assert topic_spider_metric['links_processed'] > len(topic_links), "metrics links_processed greater than topic_links"
 
 def validate_for_errors(db):
     """ test that no errors exist in the topics or snapshots tables"""
@@ -351,7 +361,7 @@ def validate_spider_results(db, topic, sites):
 def get_site_structure(sites):
     meta_sites = []
     for site in sites:
-        meta_site = {'url': site['url'] }
+        meta_site = {'url': site['url'], 'pages': []}
         for page in site['pages']:
             meta_page = {'url': page['url'], 'matches_topic': page['matches_topic'], 'links': []}
             [meta_page['links'].append(l['url']) for l in page['links']]
@@ -375,7 +385,7 @@ def test_mine():
 
     sites = get_test_sites()
 
-    log.debiug(f"SITE STRUCTURE {get_site_structure(sites)}")
+    log.debug(f"SITE STRUCTURE {get_site_structure(sites)}")
 
     add_site_media(db, sites)
 
@@ -385,15 +395,12 @@ def test_mine():
 
     topic = create_topic(db, sites)
 
-    mine_args = {
-        'topics_id': topic['topics_id'],
-        'skip_post_processing': 1,
-        'cache_broken_downloads': 0,
-        'import_only': 0,
-        'skip_outgoing_foreign_rss_links': 0,
-        'test_mode': 1}
+    topics_mine.mine.DOMAIN_TIMEOUT = 0
 
-    topics_mine.mine.mine_topic(db, topic, mine_args)
+    topics_mine.mine.mine_topic(
+        db=db,
+        topic=topic,
+        skip_post_processing=True)
 
     validate_spider_results(db, topic, sites)
 

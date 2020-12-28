@@ -57,9 +57,8 @@ MAX_LINK_EXTRACTION_TIMEOUT = 10
 # how long to wait to timeout link extraction
 LINK_EXTRACTION_POLL_TIMEOUT = 60
 
-# if mine_topic is run with the test_mode option, set this true and do not try to queue extractions
-_test_mode = None
-
+# domain timeout for link fetching
+DOMAIN_TIMEOUT = None
 
 class McTopicMineError(Exception):
     pass
@@ -203,11 +202,9 @@ def die_if_max_stories_exceeded(db, topic):
 def queue_topic_fetch_url(tfu:dict, domainm_timeout:Optional[int] = None):
     """ add the topic_fetch_url to the fetch_link job queue.  try repeatedly on failure."""
 
-    domain_timeout = 0 if _test_mode else None
-
     JobBroker(queue_name='MediaWords::Job::TM::FetchLink').add_to_queue(
             topic_fetch_urls_id=tfu['topic_fetch_urls_id'],
-            domain_timeout=domain_timeout)
+            domain_timeout=DOMAIN_TIMEOUT)
 
 
 def create_and_queue_topic_fetch_urls(db:DatabaseHandler, topic:dict, fetch_links:list) -> list:
@@ -859,10 +856,6 @@ def fetch_social_media_data(db, topic):
 
     log.info("fetch social media data")
 
-    # test spider should be able to run with job broker, so we skip social media collection
-    if _test_mode:
-        return
-
     cid = topic['topics_id']
 
     _add_topic_stories_to_facebook_queue(db, topic)
@@ -1028,7 +1021,7 @@ def set_stories_respidering(db, topic, snapshots_id):
         {'respider_stories': 'f', 'respider_start_date': None, 'respider_end_date': None})
 
 
-def do_mine_topic(db, topic, options, state_updater):
+def do_mine_topic(db, topic, options):
     """ mine the given topic for links and to recursively discover new stories on the web.
 
     options:
@@ -1037,7 +1030,9 @@ def do_mine_topic(db, topic, options, state_updater):
       snapshots_id - associate topic with the given existing snapshot
     """
 
-    [options.setdfault(f, None) for f in 'import_only skip_post_processing test_mode'.split()]
+    [options.setdefault(f, None) for f in 'state_updater import_only skip_post_processing snapshots_id'.split()]
+
+    state_updater = options['state_updater']
 
     update_topic_state(db, state_updater, "importing seed urls")
     import_urls_from_seed_queries(db, topic, state_updater)
@@ -1079,24 +1074,18 @@ def do_mine_topic(db, topic, options, state_updater):
             StatefulJobBroker(queue_name='MediaWords::Job::TM::SnapshotTopic').add_to_queue(snapshot_args)
 
 
-def mine_topic(db, topic, options, state_updater):
+def mine_topic(db, topic, **options):
     """ wrap do_mine_topic in try and handle errors and state"""
 
     # the topic spider can sit around for long periods doing solr queries, so we need to make sure the postgres
     # connection does not get timed out
     db.query("set idle_in_transaction_session_timeout = 0")
 
-    prev_test_mode = _test_mode
-
-    _test_mode = options.get('test_mode', False)
-
     if topic['state'] != 'running':
         topics_base.alert.send_topic_alert(db, topic, "started topic spidering")
 
     try:
-        do_mine_topic(db, topic, options, state_updater)
-    except Error as e:
+        do_mine_topic(db, topic, options)
+    except Exception as e:
         topics_base.alert.send_topic_alert(db, topic, "aborted topic spidering due to error")
         raise e
-
-    _test_mode = prev_test_mode
