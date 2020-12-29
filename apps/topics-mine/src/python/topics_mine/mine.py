@@ -14,6 +14,7 @@ from time import sleep, time
 from typing import Optional, Callable
 
 from mediawords.db import DatabaseHandler
+from mediawords.db.locks import get_session_lock, release_session_lock
 import mediawords.dbi.stories
 from mediawords.job import JobBroker, StatefulJobBroker, StateUpdater
 import mediawords.solr
@@ -26,6 +27,8 @@ import topics_mine.fetch_topic_posts
 from mediawords.util.log import create_logger
 log = create_logger(__name__)
 
+# lock_type to send to get_session_lock
+LOCK_TYPE = 'MediaWords::Job::TM::MineTopic'
 
 # total time to wait for fetching of social media metrics
 MAX_SOCIAL_MEDIA_FETCH_TIME = (60 * 60 * 24)
@@ -43,7 +46,7 @@ SPIDER_LINKS_CHUNK_SIZE = 100000
 MAX_JOB_ERROR_RATE = 0.02
 
 # timeout when polling for jobs to finish
-JOB_POLL_TIMEOUT = 300
+JOB_POLL_TIMEOUT = 600
 
 # number of seconds to wait when polling for jobs to finish
 JOB_POLL_WAIT = 5
@@ -55,7 +58,7 @@ MIN_SEED_IMPORT_FOR_PREDUP_STORIES = 50000
 MAX_LINK_EXTRACTION_TIMEOUT = 10
 
 # how long to wait to timeout link extraction
-LINK_EXTRACTION_POLL_TIMEOUT = 60
+LINK_EXTRACTION_POLL_TIMEOUT = 600
 
 # domain timeout for link fetching
 DOMAIN_TIMEOUT = None
@@ -184,7 +187,7 @@ def generate_topic_links(db: DatabaseHandler, topic: dict, stories: list):
         """,
         {'a': topic['topics_id']})
 
-    db.query("discard temp")
+    db.query(f"drop table {stories_ids_table}")
 
 
 def die_if_max_stories_exceeded(db, topic):
@@ -242,6 +245,9 @@ def _fetch_twitter_urls(db: DatabaseHandler, topic: dict, tfu_ids: list) -> None
     """
     Send topic_fetch_urls to fetch_twitter_urls queue and wait for the jobs to complete.
     """
+    # we run into quota limitations sometimes and need a longer timeout
+    twitter_poll_timeout = JOB_POLL_TIMEOUT * 5
+
     twitter_tfu_ids = db.query(
         """
         select topic_fetch_urls_id
@@ -286,7 +292,7 @@ def _fetch_twitter_urls(db: DatabaseHandler, topic: dict, tfu_ids: list) -> None
         if num_queued_urls != prev_num_queued_urls:
             last_change_time = time()
 
-        if (time() - last_change_time) > JOB_POLL_TIMEOUT:
+        if (time() - last_change_time) > twitter_poll_timeout:
             raise McTopicMineError(f"Timed out waiting for twitter fetching {queued_tfus}")
 
         log.info(f"{num_queued_urls} twitter urls left to fetch ...")
@@ -378,13 +384,15 @@ def fetch_links(db: DatabaseHandler, topic: dict, fetch_links: dict) -> None:
             last_pending_change = time()
 
         if time_since_change > JOB_POLL_TIMEOUT:
-            if full_requeues < max_full_requeues:
+            if num_pending_urls > max_requeue_jobs:
+                raise McTopicMineError("Timed out waiting for fetch link queue")
+            elif full_requeues < max_full_requeues:
                 [queue_topic_fetch_url(db.require_by_id('topic_fetch_urls', id)) for id in pending_url_ids]
                 full_requeues += 1
                 last_pending_change = time()
             else:
                 for id in pending_url_ids:
-                    db.update_by_id('topic_fetch_urls', id, {'state': 'error', 'message': 'timed out'})
+                    db.update_by_id('topic_fetch_urls', id, {'state': 'python error', 'message': 'timed out'})
 
                 log.info(f"timed out {len(pending_url_ids)} urls")
 
@@ -507,17 +515,41 @@ def get_new_links(db: DatabaseHandler, iteration: int, topics_id: int) -> list:
 def spider_new_links(db, topic, iteration, state_updater):
     """call add_new_links on topic_links for which link_spidered is false."""
 
-    i = 0
     while True:
-        log.info(f"spider new links chunk: {i}")
+        log.info("querying new links ...")
 
-        new_links = get_new_links(db, iteration, topic['topics_id'])
+        db.query("drop table if exists _new_links")
 
-        if not new_links:
+        num_new_links = db.query(
+            """
+            create temporary table _new_links as 
+                select tl.* 
+                    from topic_links tl, topic_stories ts
+                    where
+                        tl.link_spidered = 'f' and
+                        tl.stories_id = ts.stories_id and
+                        (ts.iteration <= %(a)s or ts.iteration = 1000) and
+                        ts.topics_id = %(b)s and
+                        tl.topics_id = %(b)s 
+                    order by random()
+            """,
+            {'a': iteration, 'b': topic['topics_id']}).rows()
+
+        db.query("create index _new_links_tl on _new_links (topic_links_id)")
+
+        if num_new_links < 1:
             break
 
-        add_new_links(db, topic, iteration, new_links, state_updater)
+        log.info(f"found {num_new_links} new links")
 
+        while True:
+            new_links = db.query("select * from _new_links limit %(a)s", {'a': SPIDER_LINKS_CHUNK_SIZE}).hashes()
+            if not new_links:
+                break
+
+            tl_ids = [n['topic_links_id'] for n in new_links]
+            db.query("delete from _new_links where topic_links_id = any(%(a)s)", {'a': tl_ids})
+            add_new_links(db, topic, iteration, new_links, state_updater)
 
 def get_spider_progress_description(db, topic, iteration, total_links):
     """get short text description of spidering progress"""
@@ -1028,8 +1060,8 @@ def do_mine_topic(db, topic, options):
       import_only - only run import_seed_urls and import_solr_seed and exit
       skip_post_processing - skip social media fetching and snapshotting
       snapshots_id - associate topic with the given existing snapshot
+      state_updater - object that implements mediawords.job.StateUpdater
     """
-
     [options.setdefault(f, None) for f in 'state_updater import_only skip_post_processing snapshots_id'.split()]
 
     state_updater = options['state_updater']
@@ -1084,8 +1116,34 @@ def mine_topic(db, topic, **options):
     if topic['state'] != 'running':
         topics_base.alert.send_topic_alert(db, topic, "started topic spidering")
 
+    get_session_lock(db=db, lock_type=LOCK_TYPE, lock_id=topic['topics_id'])
+
     try:
         do_mine_topic(db, topic, options)
     except Exception as e:
         topics_base.alert.send_topic_alert(db, topic, "aborted topic spidering due to error")
         raise e
+
+    release_session_lock(db=db, lock_type=LOCK_TYPE, lock_id=topic['topics_id'])
+
+
+def run_worker_job(topics_id: int, snapshots_id: Optional[int] = None) -> None:
+    """run a topics-mine worker job."""
+    if isinstance(snapshots_id, bytes):
+        snapshots_id = decode_object_from_bytes_if_needed(snapshots_id)
+    if snapshots_id is not None:
+        snapshots_id = int(snapshots_id)
+
+    if isinstance(topics_id, bytes):
+        topics_id = decode_object_from_bytes_if_needed(topics_id)
+    if topics_id is not None:
+        topics_id = int(topics_id)
+
+    if not bool(topics_id):
+        raise McTopicMineException("topics_id must be set")
+
+    db = connect_to_db()
+
+    topic = db.require_by_id('topics', topics_id)
+
+    mine_topic(db=db, topic=topic, snapshots_id=snapshots_id)
