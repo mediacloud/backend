@@ -259,15 +259,15 @@ def validate_topic_stories(db, topic, sites):
     all_pages = []
     [all_pages.extend(s['pages']) for s in sites]
 
-    log.warning(f"ALL PAGES: {len(all_pages)}")
+    log.info(f"ALL PAGES: {len(all_pages)}")
 
     topic_pages = [p for p in all_pages if p['matches_topic']]
 
-    log.warning(f"TOPIC PAGES: {len(topic_pages)}")
+    log.info(f"TOPIC PAGES: {len(topic_pages)}")
 
     topic_pages_lookup = {s['url']: s for s in topic_stories}
 
-    log.warning(f"TOPIC PAGES LOOKUP: {len(topic_pages_lookup)}")
+    log.info(f"TOPIC PAGES LOOKUP: {len(topic_pages_lookup)}")
 
     for topic_story in topic_stories:
         assert topic_pages_lookup.get(topic_story['url'], False)
@@ -297,10 +297,10 @@ def validate_topic_stories(db, topic, sites):
 
     if dead_link_count != dead_pages_count:
         fetch_states = db.query("select count(*), state from topic_fetch_urls group by state" ).hashes()
-        log.warning(f"fetch states: {fetch_states}")
+        log.info(f"fetch states: {fetch_states}")
 
         fetch_errors = db.query("select * from topic_fetch_urls where state = 'python error'").hashes()
-        log.warning(f"fetch errors: {fetch_errors}")
+        log.info(f"fetch errors: {fetch_errors}")
 
     assert dead_link_count == dead_pages_count, "dead link count"
 
@@ -309,7 +309,7 @@ def validate_topic_links(db, topic, sites):
 
     topic_links = db.query("select * from topic_links").hashes()
 
-    log.warning(f"TOPIC LINKS: {len(topic_links)}")
+    log.info(f"TOPIC LINKS: {len(topic_links)}")
 
     all_pages = []
     [all_pages.extend(s['pages']) for s in sites]

@@ -6,7 +6,7 @@ from topics_mine.mine import run_worker_job
 
 log = create_logger(__name__)
 
-QUEUE_NAME = 'MediaWords::Job::TM::Mine'
+QUEUE_NAME = 'MediaWords::Job::TM::MineTopic'
 
 if __name__ == '__main__':
     app = JobBroker(queue_name=QUEUE_NAME)

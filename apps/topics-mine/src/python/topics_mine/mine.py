@@ -190,7 +190,7 @@ def generate_topic_links(db: DatabaseHandler, topic: dict, stories: list):
     db.query(f"drop table {stories_ids_table}")
 
 
-def die_if_max_stories_exceeded(db, topic):
+def die_if_max_stories_exceeded(db: DatabaseHandler, topic: dict) -> None:
     """
     raise an MCTopicMineMaxStoriesException topic_stories > topics.max_stories.
     """
@@ -202,7 +202,7 @@ def die_if_max_stories_exceeded(db, topic):
         raise McTopicMineError(f"{num_topic_stories} stories > {topic['max_stories']}")
 
 
-def queue_topic_fetch_url(tfu:dict, domainm_timeout:Optional[int] = None):
+def queue_topic_fetch_url(tfu: dict, domainm_timeout: Optional[int] = None):
     """ add the topic_fetch_url to the fetch_link job queue.  try repeatedly on failure."""
 
     JobBroker(queue_name='MediaWords::Job::TM::FetchLink').add_to_queue(
@@ -210,7 +210,7 @@ def queue_topic_fetch_url(tfu:dict, domainm_timeout:Optional[int] = None):
             domain_timeout=DOMAIN_TIMEOUT)
 
 
-def create_and_queue_topic_fetch_urls(db:DatabaseHandler, topic:dict, fetch_links:list) -> list:
+def create_and_queue_topic_fetch_urls(db: DatabaseHandler, topic: dict, fetch_links: list) -> list:
     """
     create topic_fetch_urls rows correpsonding to the links and queue a FetchLink job for each.
 
@@ -428,7 +428,7 @@ def fetch_links(db: DatabaseHandler, topic: dict, fetch_links: dict) -> None:
     return completed_tfus
 
 
-def add_new_links_chunk(db, topic, iteration, new_links):
+def add_new_links_chunk(db: DatabaseHandler, topic: dict, iteration: int, new_links: list) -> None:
     """
     download any unmatched link in new_links, add it as a story, extract it, add any links to the topic_links list.
 
@@ -449,7 +449,7 @@ def add_new_links_chunk(db, topic, iteration, new_links):
         {'a': link_ids})
 
 
-def save_metrics(db, topic, iteration, num_links, elapsed_time):
+def save_metrics(db: DatabaseHandler, topic: dict, iteration: int, num_links: int, elapsed_time: int) -> None:
     """save a row in the topic_spider_metrics table to track performance of spider"""
 
     topic_spider_metric = {
@@ -512,7 +512,8 @@ def get_new_links(db: DatabaseHandler, iteration: int, topics_id: int) -> list:
     return new_links
 
 
-def spider_new_links(db, topic, iteration, state_updater):
+def spider_new_links(
+        db: DatabaseHandler, topic: dict, iteration: int, state_updater: Optional[StateUpdater]) -> None:
     """call add_new_links on topic_links for which link_spidered is false."""
 
     while True:
@@ -551,7 +552,7 @@ def spider_new_links(db, topic, iteration, state_updater):
             db.query("delete from _new_links where topic_links_id = any(%(a)s)", {'a': tl_ids})
             add_new_links(db, topic, iteration, new_links, state_updater)
 
-def get_spider_progress_description(db, topic, iteration, total_links):
+def get_spider_progress_description(db: DatabaseHandler, topic: dict, iteration: int, total_links: int) -> str:
     """get short text description of spidering progress"""
 
     log.info("get spider progress description")
@@ -576,7 +577,7 @@ def get_spider_progress_description(db, topic, iteration, total_links):
     )
 
 
-def run_spider(db, topic, state_updater):
+def run_spider(db: DatabaseHandler, topic: dict, state_updater: Optional[StateUpdater]) -> None:
     """run the spider over any new links, for num_iterations iterations"""
     log.info("run spider")
 
@@ -587,7 +588,7 @@ def run_spider(db, topic, state_updater):
     [spider_new_links(db, topic, iterations, state_updater) for i in range(iterations)]
 
 
-def mine_topic_stories(db, topic):
+def mine_topic_stories(db: DatabaseHandler, topic: dict) -> None:
     """ mine for links any stories in topic_stories for this topic that have not already been mined"""
     log.info("mine topic stories")
 
@@ -620,10 +621,10 @@ def mine_topic_stories(db, topic):
             break
 
 
-def import_seed_urls(db, topic, state_updater):
+def import_seed_urls(db: DatabaseHandler, topic: dict, state_updater: Optional[StateUpdater]) -> int:
     """ import all topic_seed_urls that have not already been processed
 
-    return 1 if new stories were added to the topic and 0 if not
+    return number of seed urls imported
     """
     log.info("import seed urls")
 
@@ -715,7 +716,7 @@ def import_seed_urls(db, topic, state_updater):
     return len(seed_urls)
 
 
-def insert_topic_seed_urls(db, topic_seed_urls):
+def insert_topic_seed_urls(db: DatabaseHandler, topic_seed_urls: list) -> None:
     """ insert a list of topic seed urls"""
     log.info(f"inserting {len(topic_seed_urls)} topic seed urls ...")
 
@@ -724,7 +725,7 @@ def insert_topic_seed_urls(db, topic_seed_urls):
         db.create('topic_seed_urls', insert_tsu)
 
 
-def _import_month_within_respider_date(topic, month_offset):
+def _import_month_within_respider_date(topic: dict, month_offset: int) -> bool:
     """ return True if the given month offset is within the dates that should be respidered.
 
     always return True if there are no respider dates
@@ -754,7 +755,7 @@ def _import_month_within_respider_date(topic, month_offset):
     return False
 
 
-def _search_for_stories_urls(db, params):
+def _search_for_stories_urls(db: DatabaseHandler, params: dict) -> list:
     """Call search_solr_for_stories_ids() and then query postgres for the stories urls.
 
     Return dicts with stories_id and url fields."""
@@ -766,7 +767,7 @@ def _search_for_stories_urls(db, params):
     return stories
 
 
-def import_solr_seed_query_month(db, topic, month_offset):
+def import_solr_seed_query_month(db: DatabaseHandler, topic: dict, month_offset: int) -> bool:
     """ import a single month of the solr seed query.  we do this to avoid giant queries that timeout in solr.
 
     return True if the month_offset is valid for the topic."""
@@ -812,7 +813,7 @@ def import_solr_seed_query_month(db, topic, month_offset):
     return True
 
 
-def import_solr_seed_query(db, topic):
+def import_solr_seed_query(db: DatabaseHandler, topic: dict) -> None:
     """ import stories into topic_seed_urls from solr by running topic['solr_seed_query'] against solr.
 
     if the solr query has already been imported, do nothing."""
@@ -830,7 +831,7 @@ def import_solr_seed_query(db, topic):
     db.query("update topics set solr_seed_query_run = 't' where topics_id = %(a)s", {'a': topic['topics_id']})
 
 
-def all_facebook_data_fetched(db, topic):
+def all_facebook_data_fetched(db: DatabaseHandler, topic: dict) -> bool:
     """ return True if there are no stories without facebook data"""
 
     null_facebook_story = db.query(
@@ -854,7 +855,7 @@ def all_facebook_data_fetched(db, topic):
     return null_facebook_story is None
 
 
-def _add_topic_stories_to_facebook_queue(db, topic):
+def _add_topic_stories_to_facebook_queue(db: DatabaseHandler, topic: dict) -> None:
     """ add all topic stories without facebook data to the queue"""
     topics_id = topic['topics_id']
 
@@ -883,7 +884,7 @@ def _add_topic_stories_to_facebook_queue(db, topic):
                 stories_id=ss['stories_id'])
 
 
-def fetch_social_media_data(db, topic):
+def fetch_social_media_data(db: DatabaseHandler, topic: dict) -> None:
     """ send jobs to fetch facebook data for all stories that don't yet have it"""
 
     log.info("fetch social media data")
@@ -903,7 +904,7 @@ def fetch_social_media_data(db, topic):
     raise McTopicMineError("Timed out waiting for social media data")
 
 
-def check_job_error_rate(db, topic):
+def check_job_error_rate(db: DatabaseHandler, topic: dict) -> None:
     """ raise an error if error rate for link extraction or link fetching is too high"""
 
     log.info("check job error rate")
@@ -947,7 +948,7 @@ def check_job_error_rate(db, topic):
         raise McTopicMineError(f"link error rate of {link_error_rate} is greater than {MAX_JOB_ERROR_RATE}")
 
 
-def import_urls_from_seed_queries(db, topic, state_updater):
+def import_urls_from_seed_queries(db: DatabaseHandler, topic: dict, state_updater: Optional[StateUpdater]) -> None:
     """ import urls from seed query """
 
     topic_seed_queries = db.query(
@@ -990,7 +991,7 @@ def import_urls_from_seed_queries(db, topic, state_updater):
         {'a': topic['topics_id']})
 
 
-def set_stories_respidering(db, topic, snapshots_id):
+def set_stories_respidering(db: DatabaseHandler, topic: dict, snapshots_id: int) -> None:
     """ if the query or dates have changed, set topic_stories.link_mined to false so they will be respidered"""
 
     if not topic['respider_stories']:
@@ -1053,7 +1054,7 @@ def set_stories_respidering(db, topic, snapshots_id):
         {'respider_stories': 'f', 'respider_start_date': None, 'respider_end_date': None})
 
 
-def do_mine_topic(db, topic, options):
+def do_mine_topic(db: DatabaseHandler, topic: dict, options: dict) -> None:
     """ mine the given topic for links and to recursively discover new stories on the web.
 
     options:
@@ -1106,7 +1107,7 @@ def do_mine_topic(db, topic, options):
             StatefulJobBroker(queue_name='MediaWords::Job::TM::SnapshotTopic').add_to_queue(snapshot_args)
 
 
-def mine_topic(db, topic, **options):
+def mine_topic(db: DatabaseHandler, topic: dict, **options: dict) -> None:
     """ wrap do_mine_topic in try and handle errors and state"""
 
     # the topic spider can sit around for long periods doing solr queries, so we need to make sure the postgres
