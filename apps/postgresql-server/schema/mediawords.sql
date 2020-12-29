@@ -26,7 +26,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4757;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4759;
 BEGIN
 
     -- Update / set database schema version
@@ -167,6 +167,7 @@ create table media (
 create unique index media_name on media(name);
 create unique index media_url on media(url);
 create index media_normalized_url on media(normalized_url);
+create index media_name_fts on media using gin(to_tsvector('english', name));
 
 -- Media feed rescraping state
 CREATE TABLE media_rescraping (
@@ -675,6 +676,12 @@ BEGIN
             SELECT (partition_stories_id / chunk_size) * chunk_size INTO stories_id_start;
             SELECT ((partition_stories_id / chunk_size) + 1) * chunk_size INTO stories_id_end;
 
+            -- Kill all autovacuums before proceeding with DDL changes
+            PERFORM pid
+            FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
+            WHERE backend_type = 'autovacuum worker'
+              AND query ~ 'stories';
+
             EXECUTE '
                 CREATE TABLE ' || target_table_name || ' (
 
@@ -1014,6 +1021,12 @@ BEGIN
 
             SELECT (partition_downloads_id / chunk_size) * chunk_size INTO downloads_id_start;
             SELECT ((partition_downloads_id / chunk_size) + 1) * chunk_size INTO downloads_id_end;
+
+            -- Kill all autovacuums before proceeding with DDL changes
+            PERFORM pid
+            FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
+            WHERE backend_type = 'autovacuum worker'
+              AND query ~ 'downloads';
 
             EXECUTE '
                 CREATE TABLE ' || target_table_name || '

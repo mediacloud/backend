@@ -8,7 +8,7 @@ from urllib.parse import parse_qs, urlparse, quote
 import requests_mock
 
 from mediawords.util.config import env_value
-from mediawords.util.parse_json import decode_json, encode_json
+from mediawords.util.parse_json import encode_json
 from mediawords.util.web.user_agent import UserAgent
 from mediawords.util.web.user_agent.request.request import Request
 from mediawords.util.log import create_logger
@@ -110,9 +110,7 @@ def _get_api_key() -> str:
     if not response.is_success():
         raise McPostsBWTwitterDataException("error fetching posts: " + response.decoded_content())
 
-    json = response.decoded_content()
-
-    data = dict(decode_json(json))
+    data = dict(response.decoded_json())
 
     try:
         _get_api_key.api_key = data['access_token']
@@ -158,9 +156,7 @@ class BrandwatchTwitterPostFetcher(AbstractPostFetcher):
         if not response.is_success():
             raise McPostsBWTwitterDataException(f"error fetching posts: {response.code()} {response.status_line()}")
 
-        json = response.decoded_content()
-
-        data = dict(decode_json(json))
+        data = dict(response.decoded_json())
 
         if 'results' not in data:
             raise McPostsBWTwitterDataException("error parsing response: " + json)

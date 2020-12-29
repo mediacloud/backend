@@ -7,7 +7,6 @@ from furl import furl
 
 from mediawords.db import DatabaseHandler
 from mediawords.util.log import create_logger
-from mediawords.util.parse_json import decode_json
 from mediawords.util.perl import decode_object_from_bytes_if_needed
 from mediawords.util.url import is_http_url, fix_common_url_mistakes, canonical_url
 from mediawords.util.web.user_agent import UserAgent
@@ -157,7 +156,7 @@ def _api_request(node: str, params: Dict[str, Union[str, List[str]]], config: Fa
             raise McFacebookSoftFailureException("Decoded content is empty.")
 
         try:
-            data = decode_json(decoded_content)
+            data = response.decoded_json()
         except Exception as ex:
 
             if 'something went wrong' in decoded_content:

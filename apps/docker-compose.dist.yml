@@ -286,6 +286,33 @@ services:
                     # RAM limit
                     memory: "6G"
 
+    #
+    # Webapp proxy to CLIFF annotator service
+    # ---------------------------------------
+    #
+    cliff-annotator-webapp-proxy:
+        image: dockermediacloud/cliff-annotator-webapp-proxy:release
+        init: true
+        networks:
+            - default
+        depends_on:
+            - cliff-annotator
+        ports:
+            # Public HTTP port
+            # (SSL is done by Nginx running on bastion host)
+            # MAKE SURE to BLOCK THIS PORT in provision/roles/docker/tasks/iptables.yml
+            - "8090:8080"
+        deploy:
+            # DNSRR disabled as it's not supported with published ports.
+            <<: *misc-apps_deploy_placement_constraints
+            # Worker count
+            replicas: 1
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "256M"
 
     #
     # CLIFF fetch annotation
@@ -326,7 +353,7 @@ services:
         environment:
             <<: *common-configuration
             # CLIFF version tag
-            MC_CLIFF_VERSION_TAG: "cliff_clavin_v2.6.0"
+            MC_CLIFF_VERSION_TAG: "cliff_clavin_v2.6.1"
             # Tag set to use for geographical name entities
             MC_CLIFF_GEONAMES_TAG_SET: "cliff_geonames"
             # Tag set to use for organization name entities
@@ -1036,6 +1063,34 @@ services:
                     cpus: "1"
                     # RAM limit
                     memory: "8G"
+
+    #
+    # Webapp proxy to NYTLabels annotator service
+    # -------------------------------------------
+    #
+    nytlabels-annotator-webapp-proxy:
+        image: dockermediacloud/nytlabels-annotator-webapp-proxy:release
+        init: true
+        networks:
+            - default
+        depends_on:
+            - nytlabels-annotator
+        ports:
+            # Public HTTP port
+            # (SSL is done by Nginx running on bastion host)
+            # MAKE SURE to BLOCK THIS PORT in provision/roles/docker/tasks/iptables.yml
+            - "8091:8080"
+        deploy:
+            # DNSRR disabled as it's not supported with published ports.
+            <<: *misc-apps_deploy_placement_constraints
+            # Worker count
+            replicas: 1
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "256M"
 
     #
     # NYTLabels fetch annotation
@@ -1922,7 +1977,8 @@ services:
         ports:
             # Public HTTP port
             # (SSL is done by Nginx running on bastion host)
-            - "80:80"
+            # MAKE SURE to BLOCK THIS PORT in provision/roles/docker/tasks/iptables.yml
+            - "8082:80"
         volumes:
             # Shared with "cron_generate_daily_rss_dumps" container:
             - vol_daily_rss_dumps:/mediacloud_webapp_static/static/rss_dumps/
