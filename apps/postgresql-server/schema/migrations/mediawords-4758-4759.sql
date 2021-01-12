@@ -56,7 +56,7 @@ BEGIN
             SELECT ((partition_stories_id / chunk_size) + 1) * chunk_size INTO stories_id_end;
 
             -- Kill all autovacuums before proceeding with DDL changes
-            SELECT pid
+            PERFORM pid
             FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
             WHERE backend_type = 'autovacuum worker'
               AND query ~ 'stories';
@@ -145,7 +145,7 @@ BEGIN
             SELECT ((partition_downloads_id / chunk_size) + 1) * chunk_size INTO downloads_id_end;
 
             -- Kill all autovacuums before proceeding with DDL changes
-            SELECT pid
+            PERFORM pid
             FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
             WHERE backend_type = 'autovacuum worker'
               AND query ~ 'downloads';
