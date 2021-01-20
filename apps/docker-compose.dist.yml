@@ -266,6 +266,8 @@ services:
     #
     # CLIFF annotator service
     # -----------------------
+    # HTTP service with machine learning model that does named entity recognition (names, places, brandnames, etc.
+    # see https://github.com/mediacloud/backend/blob/master/apps/cliff-base/src/python/cliff_base/sample_data.py for a list.
     #
     cliff-annotator:
         image: dockermediacloud/cliff-annotator:release
@@ -317,6 +319,7 @@ services:
     #
     # CLIFF fetch annotation
     # ----------------------
+    # fetches named entities from cliff-annotator, stores them in a PostgreSQL table as a compressed blob.
     #
     cliff-fetch-annotation:
         image: dockermediacloud/cliff-fetch-annotation:release
@@ -344,6 +347,7 @@ services:
     #
     # CLIFF update story tags
     # -----------------------
+    #  fetches compressed blob from PostgreSQL table, parses JSON, tags stories with entities
     #
     cliff-update-story-tags:
         image: dockermediacloud/cliff-update-story-tags:release
@@ -379,6 +383,8 @@ services:
     #
     # AP crawler
     # ----------
+    # worker that (used to) fetch content via Associated Press API;
+    # long broken, but could serve as a reference for how to ingest content from various "custom" APIs
     #
     crawler-ap:
         image: dockermediacloud/crawler-ap:release
@@ -407,6 +413,8 @@ services:
     #
     # Crawler fetcher
     # ---------------
+    # Polls the PostgreSQL table managed by crawler-provider and fetches downloads enqueued on that table,
+    # stores their content, adds extract-and-vector jobs to get the content extracted;
     #
     crawler-fetcher:
         image: dockermediacloud/crawler-fetcher:release
@@ -437,6 +445,7 @@ services:
     #
     # Crawler provider
     # ----------------
+    # using the feeds table, manages PostgreSQL table with a queue of (RSS) feeds / news articles (stories) to be fetched.
     #
     crawler-provider:
         image: dockermediacloud/crawler-provider:release
@@ -460,6 +469,7 @@ services:
     #
     # Create missing PostgreSQL partitions
     # ------------------------------------
+    # Lingers around and tries to create missing PostgreSQL table partitions for the upcoming rows;
     #
     create-missing-partitions:
         image: dockermediacloud/create-missing-partitions:release
@@ -483,6 +493,7 @@ services:
     #
     # Generate daily RSS dumps Cron job
     # ---------------------------------
+    # dumps all stories collected every day into an RSS feed for external users to download;
     #
     cron-generate-daily-rss-dumps:
         image: dockermediacloud/cron-generate-daily-rss-dumps:release
@@ -513,6 +524,7 @@ services:
     #
     # Generate media health report Cron job
     # -------------------------------------
+    # generates daily (?) media health reports, i.e. tries to find out which media sources are dead;
     #
     cron-generate-media-health:
         image: dockermediacloud/cron-generate-media-health:release
@@ -536,6 +548,7 @@ services:
     #
     # Generate daily / weekly user summary Cron job
     # ---------------------------------------------
+    # generates daily report of new users who have signed up
     #
     cron-generate-user-summary:
         image: dockermediacloud/cron-generate-user-summary:release
@@ -559,6 +572,7 @@ services:
     #
     # Print long running job states
     # -----------------------------
+    # Tries to periodically identify which Celery jobs are running for a long time, and if they are, which "state" have they reported last;
     #
     cron-print-long-running-job-states:
         image: dockermediacloud/cron-print-long-running-job-states:release
@@ -582,6 +596,7 @@ services:
     #
     # Refresh stats Cron job
     # ----------------------
+    # updates some daily stats (https://github.com/mediacloud/backend/blob/master/apps/common/src/perl/MediaWords/DBI/Stats.pm)
     #
     cron-refresh-stats:
         image: dockermediacloud/cron-refresh-stats:release
@@ -605,6 +620,8 @@ services:
     #
     # Add due media to the rescraping queue Cron job
     # ----------------------------------------------
+    # Periodically adds new rescrape-media Celery jobs for every media source
+    # so that we would become aware of new / updated / deleted RSS feeds in each of these media sources;
     #
     cron-rescrape-due-media:
         image: dockermediacloud/cron-rescrape-due-media:release
@@ -629,6 +646,7 @@ services:
     #
     # Report rescraping changes Cron job
     # ----------------------------------
+    # Prints reports on how well cron-rescrape-due-media did its job;
     #
     cron-rescraping-changes:
         image: dockermediacloud/cron-rescraping-changes:release
@@ -652,6 +670,8 @@ services:
     #
     # Set media primary language Cron job
     # -----------------------------------
+    # Identifies media sources for which we haven't determined their "primary language"
+    # (e.g. English for BBC UK or French for Le Monde) and tries to do that.
     #
     cron-set-media-primary-language:
         image: dockermediacloud/cron-set-media-primary-language:release
@@ -675,6 +695,7 @@ services:
     #
     # Set media subject country Cron job
     # -----------------------------------
+    # Identifies media sources for which we haven't determined their countries and tries to do that.
     #
     cron-set-media-subject-country:
         image: dockermediacloud/cron-set-media-subject-country:release
@@ -698,6 +719,8 @@ services:
     #
     # Extract and vector stories
     # --------------------------
+    # Tries to extract plain text from HTML pages of news articles (stories) fetched by crawler-fetcher,
+    # determines each story's language, tokenizes it into sentences to do deduplication;
     #
     extract-and-vector:
         image: dockermediacloud/extract-and-vector:release
@@ -725,6 +748,7 @@ services:
     #
     # Extract article HTML from page HTML
     # -----------------------------------
+    # HTTP service that does the actual HTML -> plain text extracting;
     #
     extract-article-from-page:
         image: dockermediacloud/extract-article-from-page:release
@@ -751,6 +775,7 @@ services:
     #
     # Fetch story stats from Facebook
     # -------------------------------
+    # Fetches Facebook statistics (IIRC share and comment counts) for newly added stories
     #
     facebook-fetch-story-stats:
         image: dockermediacloud/facebook-fetch-story-stats:release
@@ -786,6 +811,7 @@ services:
     #
     # Import stories into Solr
     # ------------------------
+    # Daemon process which periodically imports new stories to Solr
     #
     import-solr-data:
         image: dockermediacloud/import-solr-data:release
@@ -813,6 +839,7 @@ services:
     #
     # Import stories by scraping Feedly
     # ---------------------------------
+    # One-off script (not a service) that imports stories from Feedly;
     #
     import-stories-feedly:
         image: dockermediacloud/import-stories-feedly:release
@@ -837,6 +864,7 @@ services:
     #
     # OpenDKIM server
     # ---------------
+    # Signs emails sent out with mail-postfix-server with DKIM(DomainKeys Identified Mail);
     #
     mail-opendkim-server:
         image: dockermediacloud/mail-opendkim-server:release
@@ -867,6 +895,7 @@ services:
     #
     # Postfix server
     # ---------------
+    # SMTP server which listens on port 25 and sends emails from the rest of the system (registration form, various periodic reports, monitoring alerts, etc.)
     #
     mail-postfix-server:
         image: dockermediacloud/mail-postfix-server:release
@@ -918,6 +947,7 @@ services:
     #
     # Munin Cron stats collector
     # --------------------------
+    # Munin's (our monitoring system's) Cron script which fetches the monitored stats every 5 minutes;
     #
     munin-cron:
         image: dockermediacloud/munin-cron:release
@@ -951,6 +981,7 @@ services:
     #
     # Munin FastCGI graph generator
     # -----------------------------
+    # FastCGI workers for Munin's HTTP webapp;
     #
     munin-fastcgi-graph:
         image: dockermediacloud/munin-fastcgi-graph:release
@@ -1017,6 +1048,7 @@ services:
     #
     # Munin node
     # ----------
+    # Munin's stat collector
     #
     munin-node:
         image: dockermediacloud/munin-node:release
@@ -1044,6 +1076,8 @@ services:
     #
     # NYT-Based News Tagger service
     # -----------------------------
+    # Somewhat similar to CLIFF, this service tries to guess what the story is about, e.g. US elections, gardening, Nairobi, the Moon, etc.;
+    # works with English language content only
     #
     nytlabels-annotator:
         image: dockermediacloud/nytlabels-annotator:release
@@ -1095,6 +1129,7 @@ services:
     #
     # NYTLabels fetch annotation
     # ----------------------
+    # Same like with cliff-fetch-annotation, just with NYTLabels;
     #
     nytlabels-fetch-annotation:
         image: dockermediacloud/nytlabels-fetch-annotation:release
@@ -1122,6 +1157,7 @@ services:
     #
     # NYTLabels update story tags
     # -----------------------
+    # Same like with cliff-update-story-tags, just with NYTLabels;
     #
     nytlabels-update-story-tags:
         image: dockermediacloud/nytlabels-update-story-tags:release
@@ -1152,6 +1188,10 @@ services:
     #
     # Fetch story podcast episode and store it in GCS
     # -----------------------------------------------
+    # Fetches audio files of podcasts (from podcast feeds),
+    # transcribes them to something that Google's speech detection can understand (e.g. WAV),
+    # tries to guess the language from the podcast episode's description;
+    # uploads it to Google Cloud's object store, adds podcast-submit-operation job;
     #
     podcast-fetch-episode:
         image: dockermediacloud/podcast-fetch-episode:release
@@ -1188,6 +1228,9 @@ services:
     #
     # Fetch finished transcripts and store them locally
     # -------------------------------------------------
+    # Fetches transcripts from Google Cloud's speech API, stores them locally;
+    # if the transcript is not done yet, makes sure that podcast-poll-due-operations will add a new podcast-fetch-transcript job after a few minutes;
+    #
     podcast-fetch-transcript:
         image: dockermediacloud/podcast-fetch-transcript:release
         init: true
@@ -1219,6 +1262,9 @@ services:
     #
     # Poll due operations and submit them to "podcast-fetch-transcript"
     # -----------------------------------------------------------------
+    #  Polls a PostgreSQL table for speech transcription operations (added by podcast-submit-operation)
+    #  which should be done by now (assumes that it will take Google 1 min to transcribe 1 min of speech), adds jobs to podcast-fetch-transcript;
+    #
     podcast-poll-due-operations:
         image: dockermediacloud/podcast-poll-due-operations:release
         init: true
@@ -1249,6 +1295,8 @@ services:
     #
     # Submit a Speech API operation for a podcast episode
     # ---------------------------------------------------
+    # Adds a new speech transcription job for each podcast story;
+    #
     podcast-submit-operation:
         image: dockermediacloud/podcast-submit-operation:release
         init: true
@@ -1280,6 +1328,7 @@ services:
     #
     # pgAdmin
     # ---------
+    # pgAdmin4 instance to manage PostgreSQL
     #
     postgresql-pgadmin:
         image: dockermediacloud/postgresql-pgadmin:release
@@ -1309,6 +1358,7 @@ services:
     #
     # PgBouncer
     # ---------
+    # pgBouncer instance that does connection pooling in front of postgresql-server.
     #
     postgresql-pgbouncer:
         image: dockermediacloud/postgresql-pgbouncer:release
@@ -1361,6 +1411,7 @@ services:
     #
     # Purge PostgreSQL object caches
     # ------------------------------------
+    # We use (or at least used to use) a few PostgreSQL tables to do some object caching (think Redis), so this script periodically cleans up said cache
     #
     purge-object-caches:
         image: dockermediacloud/purge-object-caches:release
@@ -1384,6 +1435,7 @@ services:
     #
     # RabbitMQ
     # --------
+    # RabbitMQ server, the backbone of the Celery-based jobs system
     #
     rabbitmq-server:
         image: dockermediacloud/rabbitmq-server:release
@@ -1448,6 +1500,8 @@ services:
     #
     # (Re)scrape media
     # ----------------
+    #  For each new / updated (by cron-rescrape-due-media service) media source,
+    #  crawls their webpage a bit in an attempt to find RSS / Atom feeds that we could then set up for periodic fetching.
     #
     rescrape-media:
         image: dockermediacloud/rescrape-media:release
@@ -1474,6 +1528,7 @@ services:
     #
     # Fetch sitemap pages from media
     # ------------------------------
+    # Part of our sitemap XML ingestion experiment
     #
     sitemap-fetch-media-pages:
         image: dockermediacloud/sitemap-fetch-media-pages:release
@@ -1747,6 +1802,7 @@ services:
     #
     # Solr ZooKeeper
     # --------------
+    # ZooKeeper which manages Solr's configuration, keeps track of live shards, etc.
     #
     solr-zookeeper:
         image: dockermediacloud/solr-zookeeper:release
