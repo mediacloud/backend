@@ -98,6 +98,9 @@ ENV PERL5LIB="/opt/mediacloud/src/common/perl" \
     # /opt/mediacloud/bin is where container images are expected to store executables
     PATH="/opt/mediacloud/bin:${PATH}"
 
+# MC_REWRITE_TO_PYTHON: Perl + Inline::Python + Python 3.8 insists on looking for libraries only under /lib and not /usr/lib
+ENV PYTHONPATH="${PYTHONPATH}:/usr/lib/python38.zip:/usr/lib/python3.8:/usr/lib/python3.8/lib-dynload:/usr/local/lib/python3.8/dist-packages:/usr/lib/python3/dist-packages"
+
 # Test if submodules were checked out
 RUN \
     for submodule_file in \
