@@ -4,12 +4,10 @@ Prediction models.
 
 import abc
 import os
-import json
-import pickle
 from typing import List
 
 import gensim
-from keras.models import load_model
+import onnxruntime
 from nltk.tokenize import word_tokenize
 import numpy as np
 
@@ -92,17 +90,17 @@ class Word2vecModel(_BaseModel):
         '_model',
     ]
 
-    _BASE_NAME = "GoogleNews-vectors-negative300.keyedvectors.bin"
+    _BASE_NAME = "GoogleNews-vectors-negative300.keyedvectors"
 
     def _initialize_model(self, models_dir: str) -> None:
         vectors_bin_path = os.path.join(models_dir, self._BASE_NAME)
         vectors_npy_path = os.path.join(models_dir, self._BASE_NAME + '.vectors.npy')
 
         if not os.path.isfile(vectors_bin_path):
-            raise MissingModelsException(f"Vectors .bin file does not exist at {vectors_bin_path}")
+            raise MissingModelsException(f"Vectors file does not exist at {vectors_bin_path}")
         if not os.path.isfile(vectors_npy_path):
             raise MissingModelsException(f"Vectors .npy file does not exist at {vectors_npy_path}")
-
+        gensim.models.keyedvectors.Word2VecKeyedVectors
         self._model = gensim.models.KeyedVectors.load(vectors_bin_path)
 
     def predict(self, text: str, max_predictions: int = DEFAULT_MAX_PREDICTIONS) -> List[Prediction]:
@@ -129,12 +127,11 @@ class Scaler(_BaseLoader):
         :param models_dir: Directory to where models are to be found.
         """
         # Load pre-trained scaler used by all the models
-        scaler_path = os.path.join(models_dir, 'scaler')
+        scaler_path = os.path.join(models_dir, 'scaler.onnx')
         if not os.path.isfile(scaler_path):
             raise MissingModelsException(f"Scaler was not found in {scaler_path}")
 
-        with open(os.path.join(models_dir, "scaler"), mode='rb') as scaler_file:
-            self._scaler = pickle.load(scaler_file, encoding='latin1')
+        self._scaler = onnxruntime.InferenceSession(scaler_path)
 
     def raw_scaler(self):
         return self._scaler
@@ -146,7 +143,7 @@ class _TopicDetectionBaseModel(_BaseModel, metaclass=abc.ABCMeta):
     __slots__ = [
         '_raw_word2vec_model',
         '_raw_scaler',
-        '_keras_model',
+        '_model',
         '_labels',
     ]
 
@@ -169,17 +166,16 @@ class _TopicDetectionBaseModel(_BaseModel, metaclass=abc.ABCMeta):
         model_basename = self._model_basename()
         assert model_basename, "Model basename is empty."
 
-        json_model_path = os.path.join(models_dir, f'{model_basename}.json')
-        hdf5_model_path = os.path.join(models_dir, f'{model_basename}.hdf5')
+        model_path = os.path.join(models_dir, f'{model_basename}.onnx')
+        model_labels = os.path.join(models_dir, f'{model_basename}.txt')
 
-        if not os.path.isfile(json_model_path):
-            raise MissingModelsException(f"JSON model was not found in {json_model_path}")
-        if not os.path.isfile(hdf5_model_path):
-            raise MissingModelsException(f"HDF5 model was not found in {hdf5_model_path}")
+        if not os.path.isfile(model_path):
+            raise MissingModelsException(f"Model was not found in {model_path}")
+        if not os.path.isfile(model_labels):
+            raise MissingModelsException(f"Model labels were not found in {model_labels}")
 
-        with open(json_model_path, 'r') as data_file:
-            self._keras_model = load_model(hdf5_model_path)
-            self._labels = json.load(data_file)
+        self._model = onnxruntime.InferenceSession(model_path)
+        self._labels = open(model_labels, 'r').read().splitlines()
 
     def __init__(self, word2vec_model: Word2vecModel, scaler, models_dir: str = None):
         assert word2vec_model, "word2vec model is unset."
@@ -191,37 +187,28 @@ class _TopicDetectionBaseModel(_BaseModel, metaclass=abc.ABCMeta):
         super().__init__(models_dir=models_dir)
 
     def predict(self, text: str, max_predictions: int = DEFAULT_MAX_PREDICTIONS) -> List[Prediction]:
-        if type(self._keras_model.input) == list:
-            _, sample_length, embedding_size = self._keras_model.input_shape[0]
-        else:
-            _, sample_length, embedding_size = self._keras_model.input_shape
 
-        words = [w.lower() for w in word_tokenize(text)
-                 if w not in self._PUNCTUATION][:sample_length]
+        _, sample_length, embedding_size = self._model.get_inputs()[0].shape
+        assert embedding_size == self._raw_scaler.get_inputs()[0].shape[1]
+
+        words = [w.lower() for w in word_tokenize(text) if w not in self._PUNCTUATION][:sample_length]
         x_matrix = np.zeros((1, sample_length, embedding_size))
 
         for i, w in enumerate(words):
             if w in self._raw_word2vec_model:
                 word_vector = self._raw_word2vec_model[w].reshape(1, -1)
-                scaled_vector = self._raw_scaler.transform(word_vector, copy=True)[0]
+                scaled_vector = self._raw_scaler.run(None, {self._raw_scaler.get_inputs()[0].name: word_vector})[0][0]
                 x_matrix[0][i] = scaled_vector
 
-        if type(self._keras_model.input) == list:
-            x = [x_matrix] * len(self._keras_model.input)
-        else:
-            x = [x_matrix]
+        x = {node.name: x_matrix.astype(np.float32) for node in self._model.get_inputs()}
 
-        y_predicted = self._keras_model.predict(x)
+        y_predicted = self._model.run(None, x)[0]
 
         zipped = zip(self._labels, y_predicted[0])
 
         raw_predictions = sorted(zipped, key=lambda elem: elem[1], reverse=True)
 
-        predictions = [
-            # Filter out 'count' in all_descriptors.json
-            Prediction(label=x[0] if isinstance(x[0], str) else x[0]['word'], score=x[1])
-            for x in raw_predictions[:max_predictions]
-        ]
+        predictions = [Prediction(label=x[0], score=x[1]) for x in raw_predictions[:max_predictions]]
 
         return predictions
 

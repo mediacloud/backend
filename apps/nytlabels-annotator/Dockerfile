@@ -9,7 +9,6 @@ RUN \
     # Install model fetch dependencies
     apt-get -y --no-install-recommends install \
         brotli \
-        libhdf5-103 \
     && \
     #
     # Create directory for annotator
@@ -20,65 +19,52 @@ RUN \
 # Download and extract models
 # (get them first so that every code change doesn't trigger huge model redownload)
 WORKDIR /usr/src/crappy-predict-news-labels/models/
-ENV MODEL_URL="https://mediacloud-nytlabels-data.s3.amazonaws.com/predict-news-labels-keyedvectors"
-RUN curl --fail --location --retry 3 --retry-delay 5 "$MODEL_URL/GoogleNews-vectors-negative300.keyedvectors.bin.br" | \
-        brotli -d > GoogleNews-vectors-negative300.keyedvectors.bin
-RUN curl --fail --location --retry 3 --retry-delay 5 "$MODEL_URL/GoogleNews-vectors-negative300.keyedvectors.bin.vectors.npy.br" | \
-        brotli -d > GoogleNews-vectors-negative300.keyedvectors.bin.vectors.npy
-RUN curl --fail --location --retry 3 --retry-delay 5 "$MODEL_URL/all_descriptors.hdf5.br" | \
-        brotli -d > all_descriptors.hdf5
-RUN curl --fail --location --retry 3 --retry-delay 5 "$MODEL_URL/descriptors_3000.hdf5.br" | \
-        brotli -d > descriptors_3000.hdf5
-RUN curl --fail --location --retry 3 --retry-delay 5 "$MODEL_URL/descriptors_600.hdf5.br" | \
-        brotli -d > descriptors_600.hdf5
-RUN curl --fail --location --retry 3 --retry-delay 5 "$MODEL_URL/descriptors_with_taxonomies.hdf5.br" | \
-        brotli -d > descriptors_with_taxonomies.hdf5
-RUN curl --fail --location --retry 3 --retry-delay 5 "$MODEL_URL/just_taxonomies.hdf5.br" | \
-        brotli -d > just_taxonomies.hdf5
+ENV MODEL_URL="https://mediacloud-nytlabels-data.s3.amazonaws.com/predict-news-labels-onnx"
 
-# Install Python 3.7
-# (we need TensorFlow 1.x, and that version of the module doesn't support
-# Python 3.8: https://github.com/tensorflow/tensorflow/issues/34302)
-RUN \
-    apt-key adv --keyserver keyserver.ubuntu.com --recv-keys F23C5A6CF475977595C89F51BA6932366A755776 && \
-    echo "deb http://ppa.launchpad.net/deadsnakes/ppa/ubuntu focal main" > /etc/apt/sources.list.d/deadsnakes.list && \
-    apt-get update && \
-    apt-get -y --no-install-recommends install \
-        build-essential \
-        python3.7 \
-        python3.7-dev \
-    && \
-    #
-    # We don't install Python 3.5 via APT's "python3" package but want to make
-    # Python 3.7 be available via "python3" binary
-    ln -s /usr/bin/python3.7 /usr/bin/python3 && \
-    ln -s /usr/lib/python3.7/ /usr/lib/python3/ && \
-    #
-    # Install Pip
-    curl https://bootstrap.pypa.io/get-pip.py | sudo -H python3.7 && \
-    rm -rf /root/.cache/ && \
-    true
+RUN curl --fail --location --retry 3 --retry-delay 5 "$MODEL_URL/GoogleNews-vectors-negative300.keyedvectors.br" | \
+        brotli -d > GoogleNews-vectors-negative300.keyedvectors
+RUN curl --fail --location --retry 3 --retry-delay 5 "$MODEL_URL/GoogleNews-vectors-negative300.keyedvectors.vectors.npy.br" | \
+        brotli -d > GoogleNews-vectors-negative300.keyedvectors.vectors.npy
 
-# Install Python module dependencies
+RUN curl --fail --location --retry 3 --retry-delay 5 "$MODEL_URL/scaler.onnx" > scaler.onnx
+
+RUN curl --fail --location --retry 3 --retry-delay 5 "$MODEL_URL/all_descriptors.onnx.br" | \
+        brotli -d > all_descriptors.onnx
+RUN curl --fail --location --retry 3 --retry-delay 5 "$MODEL_URL/all_descriptors.txt.br" | \
+        brotli -d > all_descriptors.txt
+
+RUN curl --fail --location --retry 3 --retry-delay 5 "$MODEL_URL/descriptors_3000.onnx.br" | \
+        brotli -d > descriptors_3000.onnx
+RUN curl --fail --location --retry 3 --retry-delay 5 "$MODEL_URL/descriptors_3000.txt.br" | \
+        brotli -d > descriptors_3000.txt
+
+RUN curl --fail --location --retry 3 --retry-delay 5 "$MODEL_URL/descriptors_600.onnx.br" | \
+        brotli -d > descriptors_600.onnx
+RUN curl --fail --location --retry 3 --retry-delay 5 "$MODEL_URL/descriptors_600.txt.br" | \
+        brotli -d > descriptors_600.txt
+
+RUN curl --fail --location --retry 3 --retry-delay 5 "$MODEL_URL/descriptors_with_taxonomies.onnx.br" | \
+        brotli -d > descriptors_with_taxonomies.onnx
+RUN curl --fail --location --retry 3 --retry-delay 5 "$MODEL_URL/descriptors_with_taxonomies.txt.br" | \
+        brotli -d > descriptors_with_taxonomies.txt
+
+RUN curl --fail --location --retry 3 --retry-delay 5 "$MODEL_URL/just_taxonomies.onnx.br" | \
+        brotli -d > just_taxonomies.onnx
+RUN curl --fail --location --retry 3 --retry-delay 5 "$MODEL_URL/just_taxonomies.txt.br" | \
+        brotli -d > just_taxonomies.txt
+
+# Install Python
 RUN \
     apt-get -y --no-install-recommends install \
-        #
-        # scipy seems to be looking for Fortran compiler, no idea why
-        gfortran \
-        libblas-dev \
-        liblapack-dev \
+        python3 \
+        python3-dev \
+        python3-pip \
     && \
-    #
-    true
-
-# Install numpy before scipy
-RUN \
-    pip3 install numpy==1.16.5 && \
-    rm -rf /root/.cache/ && \
     true
 
 # Install requirements
-# (do this first so that minor changes in the annotator's code don't trigger a full module reinstall)
+# (do this first so that minor changes in the annotator's code don't trigger a
+# full module reinstall)
 WORKDIR /usr/src/crappy-predict-news-labels/
 COPY src/crappy-predict-news-labels/requirements.txt /usr/src/crappy-predict-news-labels/
 RUN \
