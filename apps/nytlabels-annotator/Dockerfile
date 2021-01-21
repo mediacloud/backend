@@ -19,34 +19,34 @@ RUN \
 WORKDIR /usr/src/crappy-predict-news-labels/models/
 ENV MODEL_URL="https://mediacloud-nytlabels-data.s3.amazonaws.com/predict-news-labels-onnx"
 
-RUN curl --fail --location --retry 3 --retry-delay 5 "$MODEL_URL/GoogleNews-vectors-negative300.shelve.br" | \
+RUN /dl_to_stdout.sh "$MODEL_URL/GoogleNews-vectors-negative300.shelve.br" | \
         brotli -d > GoogleNews-vectors-negative300.shelve
 
-RUN curl --fail --location --retry 3 --retry-delay 5 "$MODEL_URL/scaler.onnx" > scaler.onnx
+RUN /dl_to_stdout.sh "$MODEL_URL/scaler.onnx" > scaler.onnx
 
-RUN curl --fail --location --retry 3 --retry-delay 5 "$MODEL_URL/all_descriptors.onnx.br" | \
+RUN /dl_to_stdout.sh "$MODEL_URL/all_descriptors.onnx.br" | \
         brotli -d > all_descriptors.onnx
-RUN curl --fail --location --retry 3 --retry-delay 5 "$MODEL_URL/all_descriptors.txt.br" | \
+RUN /dl_to_stdout.sh "$MODEL_URL/all_descriptors.txt.br" | \
         brotli -d > all_descriptors.txt
 
-RUN curl --fail --location --retry 3 --retry-delay 5 "$MODEL_URL/descriptors_3000.onnx.br" | \
+RUN /dl_to_stdout.sh "$MODEL_URL/descriptors_3000.onnx.br" | \
         brotli -d > descriptors_3000.onnx
-RUN curl --fail --location --retry 3 --retry-delay 5 "$MODEL_URL/descriptors_3000.txt.br" | \
+RUN /dl_to_stdout.sh "$MODEL_URL/descriptors_3000.txt.br" | \
         brotli -d > descriptors_3000.txt
 
-RUN curl --fail --location --retry 3 --retry-delay 5 "$MODEL_URL/descriptors_600.onnx.br" | \
+RUN /dl_to_stdout.sh "$MODEL_URL/descriptors_600.onnx.br" | \
         brotli -d > descriptors_600.onnx
-RUN curl --fail --location --retry 3 --retry-delay 5 "$MODEL_URL/descriptors_600.txt.br" | \
+RUN /dl_to_stdout.sh "$MODEL_URL/descriptors_600.txt.br" | \
         brotli -d > descriptors_600.txt
 
-RUN curl --fail --location --retry 3 --retry-delay 5 "$MODEL_URL/descriptors_with_taxonomies.onnx.br" | \
+RUN /dl_to_stdout.sh "$MODEL_URL/descriptors_with_taxonomies.onnx.br" | \
         brotli -d > descriptors_with_taxonomies.onnx
-RUN curl --fail --location --retry 3 --retry-delay 5 "$MODEL_URL/descriptors_with_taxonomies.txt.br" | \
+RUN /dl_to_stdout.sh "$MODEL_URL/descriptors_with_taxonomies.txt.br" | \
         brotli -d > descriptors_with_taxonomies.txt
 
-RUN curl --fail --location --retry 3 --retry-delay 5 "$MODEL_URL/just_taxonomies.onnx.br" | \
+RUN /dl_to_stdout.sh "$MODEL_URL/just_taxonomies.onnx.br" | \
         brotli -d > just_taxonomies.onnx
-RUN curl --fail --location --retry 3 --retry-delay 5 "$MODEL_URL/just_taxonomies.txt.br" | \
+RUN /dl_to_stdout.sh "$MODEL_URL/just_taxonomies.txt.br" | \
         brotli -d > just_taxonomies.txt
 
 # Install Python

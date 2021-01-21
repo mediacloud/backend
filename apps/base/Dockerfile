@@ -85,8 +85,8 @@ RUN ln -s /usr/bin/vim.tiny /usr/bin/vim
 COPY conf/rsyslog.conf /etc/
 COPY bin/rsyslog.inc.sh /
 
-# Copy memory limit helper
-COPY bin/container_memory_limit.sh /
+# Copy helper scripts
+COPY bin/container_memory_limit.sh bin/dl_to_stdout.sh /
 
 # Copy MSMTP configuration
 COPY conf/msmtprc conf/msmtp-aliases /etc/

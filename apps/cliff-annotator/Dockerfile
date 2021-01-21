@@ -12,7 +12,7 @@ ENV PATH="/usr/lib/maven/bin:/usr/lib/tomcat7/bin:${PATH}" \
 # Download and extract CLAVIN's geonames index
 RUN \
     mkdir -p /etc/cliff2/IndexDirectory/ && \
-    curl --fail --location --retry 3 --retry-delay 5 "https://github.com/mediacloud/clavin-build-geonames-index/releases/download/2020-11-25/IndexDirectory.tar.gz" | \
+    /dl_to_stdout.sh "https://github.com/mediacloud/clavin-build-geonames-index/releases/download/2020-11-25/IndexDirectory.tar.gz" | \
         tar -zx -C /etc/cliff2/IndexDirectory/ --strip 1 && \
     true
 
@@ -20,14 +20,14 @@ RUN \
 # (can't use APT because we didn't install Java through it)
 RUN \
     mkdir -p /usr/lib/maven/ && \
-    curl --fail --location --retry 3 --retry-delay 5 "https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/3.6.2/apache-maven-3.6.2-bin.tar.gz" | \
+    /dl_to_stdout.sh "https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/3.6.2/apache-maven-3.6.2-bin.tar.gz" | \
         tar -zx -C /usr/lib/maven/ --strip 1 && \
     true
 
 # Install Tomcat 7
 RUN \
     mkdir -p /usr/lib/tomcat7/ && \
-    curl --fail --location --retry 3 --retry-delay 5 "https://archive.apache.org/dist/tomcat/tomcat-7/v7.0.96/bin/apache-tomcat-7.0.96.tar.gz" | \
+    /dl_to_stdout.sh "https://archive.apache.org/dist/tomcat/tomcat-7/v7.0.96/bin/apache-tomcat-7.0.96.tar.gz" | \
         tar -zx -C /usr/lib/tomcat7/ --strip 1 && \
     true
 

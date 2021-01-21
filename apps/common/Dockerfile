@@ -11,7 +11,7 @@ RUN \
         swig \
         mecab \
     && \
-    curl --fail --location --retry 3 --retry-delay 5 \
+    /dl_to_stdout.sh \
         "https://github.com/mediacloud/mecab-ipadic-neologd-prebuilt/releases/download/20201204-2/mecab-ipadic-utf8.deb" \
         > /var/tmp/mecab-ipadic-neologd.deb && \
     dpkg -i /var/tmp/mecab-ipadic-neologd.deb && \
