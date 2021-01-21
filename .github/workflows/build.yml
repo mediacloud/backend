@@ -23,7 +23,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v1
         with:
-          python-version: 3.5
+          python-version: 3.8
 
       - name: Upgrade Pip / setuptools
         run: pip install -U pip setuptools wheel
@@ -99,7 +99,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v1
         with:
-          python-version: 3.5
+          python-version: 3.8
 
       - name: Upgrade Pip / setuptools
         run: pip install -U pip setuptools wheel
