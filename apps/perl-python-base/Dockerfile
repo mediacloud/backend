@@ -27,7 +27,7 @@ RUN apt-get -y --no-install-recommends install git perl
 
 # Install CPM (newer rewrite of cpanminus with parallel support)
 RUN \
-    curl -fsSL --compressed https://raw.githubusercontent.com/skaji/cpm/0.988/cpm > /usr/bin/cpm && \
+    /dl_to_stdout.sh https://raw.githubusercontent.com/skaji/cpm/0.988/cpm > /usr/bin/cpm && \
     chmod +x /usr/bin/cpm && \
     true
 

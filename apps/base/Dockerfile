@@ -35,6 +35,7 @@ RUN \
 
 # Install system packages that the base image is missing in a "magic" order
 RUN \
+    apt-get -y --no-install-recommends install ca-certificates && \
     apt-get -y --no-install-recommends install apt-utils && \
     apt-get -y --no-install-recommends install apt-transport-https && \
     apt-get -y --no-install-recommends install acl && \
@@ -47,8 +48,6 @@ RUN \
     apt-get -y --no-install-recommends install \
         # Quicker container debugging
         bash-completion \
-        # Some of the packages might want to use SSL
-        ca-certificates \
         curl \
         htop \
         # apt-key
