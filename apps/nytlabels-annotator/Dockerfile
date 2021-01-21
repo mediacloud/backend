@@ -7,9 +7,7 @@ FROM dockermediacloud/base:latest
 RUN \
     #
     # Install model fetch dependencies
-    apt-get -y --no-install-recommends install \
-        brotli \
-    && \
+    apt-get -y --no-install-recommends install brotli && \
     #
     # Create directory for annotator
     mkdir -p /usr/src/crappy-predict-news-labels/models/ && \
@@ -21,10 +19,8 @@ RUN \
 WORKDIR /usr/src/crappy-predict-news-labels/models/
 ENV MODEL_URL="https://mediacloud-nytlabels-data.s3.amazonaws.com/predict-news-labels-onnx"
 
-RUN curl --fail --location --retry 3 --retry-delay 5 "$MODEL_URL/GoogleNews-vectors-negative300.keyedvectors.br" | \
-        brotli -d > GoogleNews-vectors-negative300.keyedvectors
-RUN curl --fail --location --retry 3 --retry-delay 5 "$MODEL_URL/GoogleNews-vectors-negative300.keyedvectors.vectors.npy.br" | \
-        brotli -d > GoogleNews-vectors-negative300.keyedvectors.vectors.npy
+RUN curl --fail --location --retry 3 --retry-delay 5 "$MODEL_URL/GoogleNews-vectors-negative300.shelve.br" | \
+        brotli -d > GoogleNews-vectors-negative300.shelve
 
 RUN curl --fail --location --retry 3 --retry-delay 5 "$MODEL_URL/scaler.onnx" > scaler.onnx
 
@@ -59,6 +55,9 @@ RUN \
         python3 \
         python3-dev \
         python3-pip \
+        #
+        # Needed by "shelve" module:
+        python3-gdbm \
     && \
     true
 

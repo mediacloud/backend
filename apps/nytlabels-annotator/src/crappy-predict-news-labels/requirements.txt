@@ -1,12 +1,9 @@
 click==7.1.2
-gensim==3.8.3
 joblib==1.0.0
 nltk==3.5
 numpy==1.19.5
 onnxruntime==1.6.0
 protobuf==3.14.0
 regex==2020.11.13
-scipy==1.6.0
 six==1.15.0
-smart-open==4.1.2
 tqdm==4.56.0
