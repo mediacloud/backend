@@ -14,8 +14,21 @@ RUN \
     #
     # Upgrade Pip
     pip3 install -U pip && \
+    #
     # https://github.com/pypa/pip/issues/5221#issuecomment-382069604
     hash -r pip3 && \
+    apt-get -y --no-install-recommends install build-essential python3-dev libffi-dev libpq-dev && \
+    #
+    # Install package to manage schema migrations
+    pip3 install yandex-pgmigrate==1.0.6 && \
+    #
+    # Remove temporary dependencies
+    apt-get -y remove build-essential python3-dev libffi-dev libpq-dev && \
+    #
+    # Cleanup
+    apt-get -y autoremove && \
+    rm -rf /root/.cache/ && \
+    #
     true
 
 # Make some run directories
@@ -33,12 +46,6 @@ COPY conf/ /etc/postgresql/11/main/
 RUN \
     touch /var/run/postgresql/postgresql-memory.conf && \
     chown postgres:postgres /var/run/postgresql/postgresql-memory.conf && \
-    true
-
-# Install package to manage schema migrations
-RUN \
-    pip3 install yandex-pgmigrate==1.0.6 && \
-    rm -rf /root/.cache/ && \
     true
 
 # Copy helper scripts, schema, migrations, pgmigrate callbacks/config
