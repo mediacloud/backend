@@ -50,6 +50,9 @@ jobs:
           docker version
           docker-compose version
 
+      - name: Log in to Docker Hub
+        run: echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+
       - name: Pull images
         # Don't stop on a single failure because the image might not exist or a
         # network error might have happened
@@ -61,9 +64,7 @@ jobs:
         run: ./dev/build.py --prune_images
 
       - name: Push images
-        run: |
-          echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
-          ./dev/push.py
+        run: ./dev/push.py
 
   run_tests:
 
@@ -121,6 +122,9 @@ jobs:
           uname -a
           docker version
           docker-compose version
+
+      - name: Log in to Docker Hub
+        run: echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
 
       - name: Pull images
         # Don't stop on a single failure because the image might not exist or a
