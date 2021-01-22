@@ -7,7 +7,7 @@
 #
 
 # https://hub.docker.com/_/ubuntu?tab=tags&page=1
-FROM ubuntu:focal-20201106
+FROM ubuntu:focal-20210119
 
 ENV DEBIAN_FRONTEND=noninteractive \
     LANG=en_US.UTF-8 \
