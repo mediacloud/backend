@@ -49,6 +49,23 @@ RUN /dl_to_stdout.sh "$MODEL_URL/just_taxonomies.onnx.br" | \
 RUN /dl_to_stdout.sh "$MODEL_URL/just_taxonomies.txt.br" | \
         brotli -d > just_taxonomies.txt
 
+# Install NLTK data
+RUN \
+    apt-get -y --no-install-recommends install unzip && \
+    mkdir -p /usr/local/share/nltk_data/tokenizers/punkt/PY3/ && \
+    /dl_to_stdout.sh "https://raw.githubusercontent.com/nltk/nltk_data/gh-pages/packages/tokenizers/punkt.zip" \
+        > /var/tmp/punkt.zip && \
+    cd /var/tmp/ && \
+    unzip punkt.zip && \
+    rm punkt.zip && \
+    cd /var/tmp/punkt/ && \
+    cp english.pickle /usr/local/share/nltk_data/tokenizers/punkt/ && \
+    cp PY3/english.pickle /usr/local/share/nltk_data/tokenizers/punkt/PY3/ && \
+    cd / && \
+    rm -rf /var/tmp/punkt/ && \
+    apt-get -y remove unzip && \
+    true
+
 # Install Python
 RUN \
     apt-get -y --no-install-recommends install \
@@ -69,12 +86,6 @@ COPY src/crappy-predict-news-labels/requirements.txt /usr/src/crappy-predict-new
 RUN \
     pip3 install -r requirements.txt && \
     rm -rf /root/.cache/ && \
-    true
-
-# Install NLTK data
-RUN \
-    python3 -m nltk.downloader -d /usr/local/share/nltk_data punkt && \
-    rm /usr/local/share/nltk_data/tokenizers/punkt.zip && \
     true
 
 # Copy the rest of the source
