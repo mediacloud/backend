@@ -35,8 +35,8 @@ CREATE DATABASE mediacloud WITH
 EOF
 psql -v ON_ERROR_STOP=1 -c "${CREATE_DB_SQL}"
 
-# Initialize with schema
-psql -v ON_ERROR_STOP=1 -d mediacloud
+# # Initialize with schema
+# psql -v ON_ERROR_STOP=1 -d mediacloud
 
 # Stop PostgreSQL
 "${MC_POSTGRESQL_BIN_DIR}/pg_ctl" \

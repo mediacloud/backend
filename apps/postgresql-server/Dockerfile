@@ -41,22 +41,19 @@ RUN \
     rm -rf /root/.cache/ && \
     true
 
-# Copy helper scripts, schema, migrations
-COPY bin/* /opt/postgresql-server/bin/
-COPY schema/ /opt/postgresql-server/schema/
+# Copy helper scripts, schema, migrations, pgmigrate callbacks/config
+RUN mkdir -p /opt/mediacloud/
+COPY bin/ /opt/mediacloud/bin/
+COPY callbacks/ /opt/mediacloud/callbacks/
+COPY migrations/ /opt/mediacloud/migrations/
+COPY migrations.yml /opt/mediacloud/migrations.yml
 
-# Initialize data volume, create users, a database, and initialize it with
-# schema
+USER postgres
+
+# Initialize data volume, create users + database
 # If a new empty volume gets mounted to /var/lib/postgresql/ upon
 # container start, Docker will copy the files from the container to the volume
-USER postgres
-RUN /opt/postgresql-server/bin/initialize_schema.sh
-
-# Remove the init script so that someone doesn't accidentally run it in
-# production
-USER root
-RUN rm /opt/postgresql-server/bin/initialize_schema.sh
-USER postgres
+RUN /opt/mediacloud/bin/initialize_db.sh
 
 ENV \
     PATH="/opt/postgresql-server/bin:${PATH}" \
@@ -67,6 +64,12 @@ ENV \
     PGUSER=mediacloud \
     PGPASSWORD=mediacloud \
     PGDATABASE=mediacloud
+
+# Remove the init script so that someone doesn't accidentally run it in
+# production
+USER root
+RUN rm /opt/mediacloud/bin/initialize_db.sh
+USER postgres
 
 # PostgreSQL data
 VOLUME /var/lib/postgresql/
