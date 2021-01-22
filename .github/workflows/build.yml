@@ -58,8 +58,7 @@ jobs:
       - name: Build images
         # Prune images after every rebuild because otherwise CI instance might run
         # out of disk space on bigger rebuilds
-        # FIXME skip nytlabels-annotator due to its size
-        run: ./dev/build.py --prune_images -p | grep -v nytlabels-annotator | bash
+        run: ./dev/build.py --prune_images
 
       - name: Push images
         run: |
