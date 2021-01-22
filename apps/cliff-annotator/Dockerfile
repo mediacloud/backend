@@ -62,13 +62,13 @@ RUN \
     #
     # Build CLIFF
     cd /usr/src/CLIFF/ && \
-    mvn package && \
+    mvn --no-transfer-progress package && \
     #
     # Copy exploded WAR to Tomcat 7's webroot
     mv webapp/target/cliff-2.6.1/ /usr/lib/tomcat7/webapps/cliff/ && \
     #
     # Cleanup
-    mvn clean && \
+    mvn -q clean && \
     rm -rf ~/.m2/ && \
     true
 
