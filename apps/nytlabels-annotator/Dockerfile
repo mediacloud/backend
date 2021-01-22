@@ -19,8 +19,8 @@ RUN \
 WORKDIR /usr/src/crappy-predict-news-labels/models/
 ENV MODEL_URL="https://mediacloud-nytlabels-data.s3.amazonaws.com/predict-news-labels-onnx"
 
-RUN /dl_to_stdout.sh "$MODEL_URL/GoogleNews-vectors-negative300.shelve.br" | \
-        brotli -d > GoogleNews-vectors-negative300.shelve
+RUN /dl_to_stdout.sh "$MODEL_URL/GoogleNews-vectors-negative300.stripped.shelve.br" | \
+        brotli -d > GoogleNews-vectors-negative300.stripped.shelve
 
 RUN /dl_to_stdout.sh "$MODEL_URL/scaler.onnx" > scaler.onnx
 

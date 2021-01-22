@@ -47,7 +47,7 @@ class _Predictor(object):
 
         print("Loading scaler and word2vec...")
         self.text2vectors = Text2ScaledVectors(
-            word2vec_shelve_path=os.path.join(models_dir, 'GoogleNews-vectors-negative300.shelve'),
+            word2vec_shelve_path=os.path.join(models_dir, 'GoogleNews-vectors-negative300.stripped.shelve'),
             scaler_path=os.path.join(models_dir, 'scaler.onnx'),
         )
         print("Scaler and word2vec loaded.")

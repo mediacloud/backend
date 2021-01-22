@@ -21,7 +21,7 @@ from gensim.models import KeyedVectors
 
 if __name__ == '__main__':
 
-    sh_vectors_path = 'GoogleNews-vectors-negative300.shelve'
+    sh_vectors_path = 'GoogleNews-vectors-negative300.stripped.shelve'
 
     if os.path.isfile(sh_vectors_path):
         os.unlink(sh_vectors_path)
@@ -32,7 +32,8 @@ if __name__ == '__main__':
     word2vec = model.wv
 
     for term in word2vec.vocab.keys():
-        vectors[term] = word2vec.vectors[word2vec.vocab[term].index].tobytes()
+        if '/' not in term and '_' not in term:
+            vectors[term] = word2vec.vectors[word2vec.vocab[term].index].tobytes()
 
     vectors.sync()
 
