@@ -38,6 +38,12 @@ psql -v ON_ERROR_STOP=1 -c "${CREATE_DB_SQL}"
 # # Initialize with schema
 # psql -v ON_ERROR_STOP=1 -d mediacloud
 
+# run migrations with pgmigrate package
+cd /opt/mediacloud && pgmigrate -t latest migrate
+
+# # dump schema file for reference in development
+# pg_dump --dbname=mediacloud --username=mediacloud
+
 # Stop PostgreSQL
 "${MC_POSTGRESQL_BIN_DIR}/pg_ctl" \
     -D "${MC_POSTGRESQL_DATA_DIR}" \

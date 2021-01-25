@@ -26,11 +26,7 @@ fi
     -w \
     start
 
-# run migrations with pgmigrate package
-/opt/mediacloud/pgmigrate -t latest migrate
-
-# dump schema file (very useful for reference in development)
-pg_dump > /mediawords.sql
+# apply migrations
 
 # Stop PostgreSQL
 "${MC_POSTGRESQL_BIN_DIR}/pg_ctl" \

@@ -54,6 +54,7 @@ COPY bin/ /opt/mediacloud/bin/
 COPY callbacks/ /opt/mediacloud/callbacks/
 COPY migrations/ /opt/mediacloud/migrations/
 COPY migrations.yml /opt/mediacloud/migrations.yml
+RUN cd /opt/mediacloud
 
 USER postgres
 

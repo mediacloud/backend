@@ -3,4 +3,4 @@ callbacks:
         - callbacks/beforeEach
     afterEach:
         - callbacks/afterEach
-conn: dbname=mediawords
+conn: dbname=mediacloud user=mediacloud password=mediacloud host=localhost
