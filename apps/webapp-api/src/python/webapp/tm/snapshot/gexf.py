@@ -111,6 +111,14 @@ def py_layout_gexf(gexf: str) -> Dict:
     return int_layout
 
 
+def __weakly_connected_component_subgraphs(G, copy=True):
+    for c in nx.weakly_connected_components(G):
+        if copy:
+            yield G.subgraph(c).copy()
+        else:
+            yield G.subgraph(c)
+
+
 def py_giant_component(edges: list) -> list:
     """Accept a list of edges as pairs of ids and return only the edges that are within the giant component."""
     ids = []
@@ -122,7 +130,7 @@ def py_giant_component(edges: list) -> list:
     [graph.add_node(id) for id in ids]
     [graph.add_edge(edge[0], edge[1]) for edge in edges]
 
-    weak_graphs = list(nx.weakly_connected_component_subgraphs(graph))
+    weak_graphs = list(__weakly_connected_component_subgraphs(graph))
 
     if len(weak_graphs) < 1:
         return []
