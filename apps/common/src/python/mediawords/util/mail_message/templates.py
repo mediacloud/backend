@@ -92,10 +92,7 @@ class TemplateMessage(Message):
             if len(line):
                 lines.append(line.strip())
 
-        if not len(lines) == 1:
-            raise McMailTemplatesException('"%s" spans across more than one line' % content_title_block_name)
-
-        content_title = lines[0].strip()
+        content_title = ' '.join(lines).strip()
         if len(content_title) == 0:
             raise McMailTemplatesException('"%s" is empty.' % content_title_block_name)
 
