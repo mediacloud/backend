@@ -65,7 +65,7 @@ psutil==5.8.0
 PyStemmer==2.0.1
 
 # Unit tests
-pytest==3.8.0
+pytest==6.2.2
 
 # Timezone handling
 pytz==2020.5
