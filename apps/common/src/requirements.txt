@@ -5,7 +5,10 @@ boto3==1.16.59
 beautifulsoup4==4.9.3
 
 # Job broker
-Celery==5.0.5
+# (Celery 5.x changed behaviour in how tasks get registered which would require
+# mediawords/job/ to be rewritten from the ground up so we're not going that
+# far here)
+Celery==4.4.7
 
 # Detect encodings of web responses
 chardet==4.0.0
@@ -44,7 +47,7 @@ jieba==0.42.1
 Jinja2==2.11.2
 
 # One of Celery's dependencies (here just for PyCharm to stop complaining)
-kombu==5.0.2
+kombu==4.6.11
 
 # XML manipulations, HTML parsing
 lxml==4.6.2
