@@ -1368,7 +1368,7 @@ class TestUserAgentTestCase(TestCase):
 
         assert response.is_success() is False
         assert urls_are_equal(url1=response.request().url(), url2='%s/first' % self.__test_url)
-        assert "encoding with 'idna' codec failed" in response.decoded_content()
+        assert "Failed to parse:" in response.decoded_content()
 
     def test_parallel_get(self):
         """parallel_get()."""
