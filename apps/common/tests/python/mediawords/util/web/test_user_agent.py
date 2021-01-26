@@ -364,8 +364,8 @@ class TestUserAgentTestCase(TestCase):
             '/valid-non-utf-8-no-charset': {
 
                 # Let's see if UA manages to guess the encoding
-                'header': 'Content-Type: application/json',
-                'content': b"{'text': '\xca\xb1\xd5\xfe\x2d\x2d\xc8\xcb\xc3\xf1\xcd\xf8'}",
+                'header': 'Content-Type: text/plain',
+                'content': b"\xca\xb1\xd5\xfe\x2d\x2d\xc8\xcb\xc3\xf1\xcd\xf8",
             },
         }
 
@@ -380,7 +380,7 @@ class TestUserAgentTestCase(TestCase):
 
         assert response.is_success() is True
         assert urls_are_equal(url1=response.request().url(), url2=test_url)
-        assert response.decoded_content() == "{'text': '时政--人民网'}"
+        assert response.decoded_content() == "时政--人民网"
 
     def test_get_non_utf8_invalid_charset(self):
         """Non-UTF-8 content with invalid encoding."""
