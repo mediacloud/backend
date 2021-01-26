@@ -10,7 +10,7 @@ from mediawords.util.parse_json import encode_json
 # noinspection PyUnusedLocal
 def mock_users_lookup(request: requests.PreparedRequest, context) -> str:
     """Mock twitter /users/lookup response."""
-    params = parse_qs(request.body)
+    params = parse_qs(urlparse(request.url).query)
 
     screen_names = params['screen_name'][0].split(',')
 
