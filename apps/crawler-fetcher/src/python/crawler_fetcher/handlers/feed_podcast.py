@@ -124,7 +124,7 @@ def _get_feed_url_from_google_podcasts_url(url: str) -> str:
             html = res.decoded_content()
 
     # get show's feed URL from its Google Podcasts homepage
-    match = re.search(r'c-data id="i3" jsdata=".*(https?://.+?);[0-9]', html, flags=re.IGNORECASE)
+    match = re.search(r'c-data id="i3" jsdata=".*(https?://.+?);2', html, flags=re.IGNORECASE)
     if not match:
         log.error(f"Feed URL was not found in Google Podcasts feed page.")
         return url
