@@ -73,10 +73,14 @@ ENV \
     PGPASSWORD=mediacloud \
     PGDATABASE=mediacloud
 
-# Remove the init script so that someone doesn't accidentally run it in
-# production
+# Remove the init script so that someone doesn't accidentally run it in production
 USER root
 RUN rm /opt/mediacloud/bin/initialize_db.sh
+
+FROM scratch as export-stage
+COPY --from=build /tmp/mediawords.sql ./
+
+FROM build
 USER postgres
 
 # PostgreSQL data

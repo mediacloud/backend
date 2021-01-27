@@ -27,6 +27,7 @@ fi
     start
 
 # apply migrations
+cd /opt/mediacloud && pgmigrate -t latest migrate
 
 # Stop PostgreSQL
 "${MC_POSTGRESQL_BIN_DIR}/pg_ctl" \
