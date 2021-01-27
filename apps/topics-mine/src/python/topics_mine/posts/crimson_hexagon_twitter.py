@@ -3,6 +3,7 @@
 import datetime
 import dateutil
 from urllib.parse import parse_qs, urlparse
+from typing import Optional
 
 import requests_mock
 
@@ -142,9 +143,11 @@ class CrimsonHexagonTwitterPostFetcher(AbstractPostFetcher):
         return response.decoded_content()
 
     # noinspection PyMethodMayBeStatic
-    def fetch_posts_from_api(self, query: str, start_date: datetime, end_date: datetime) -> list:
+    def fetch_posts_from_api(self, query: str, start_date: datetime, end_date: datetime, sample: Optional[int] = None) -> list:
         """Fetch day of tweets from crimson hexagon and twitter."""
         decoded_content = self._get_content_from_api(query, start_date, end_date)
+
+        assert sample is None, "Sampling is not implemented."
 
         data = dict(decode_json(decoded_content))
 

@@ -15,7 +15,7 @@ from mediawords.util.log import create_logger
 log = create_logger(__name__)
 
 
-def run_single_platform_test(source, platform, query, pattern, day, min_posts: int, max_posts: Optional[int] = None) -> None:
+def run_single_platform_test(source, platform, query, pattern, day, min_posts: int, max_posts: Optional[int] = None, sample: Optional[int] = None) -> None:
     """Run test for a single platform / source.""" 
     fetcher = topics_mine.fetch_topic_posts.get_post_fetcher({'source': source, 'platform': platform})
     assert fetcher, "%s %s fetcher exists" % (source, platform)
@@ -23,7 +23,7 @@ def run_single_platform_test(source, platform, query, pattern, day, min_posts: i
     start_date = dateutil.parser.parse(day)
     end_date = start_date + datetime.timedelta(days=1) - datetime.timedelta(seconds=1) 
 
-    got_posts = fetcher.fetch_posts(query=query, start_date=start_date, end_date=end_date)
+    got_posts = fetcher.fetch_posts(query=query, start_date=start_date, end_date=end_date, sample=sample)
 
     assert len(got_posts) >= min_posts
     if max_posts is not None:
@@ -56,7 +56,8 @@ def test_brandwatch_twitter() -> None:
             query='1998295792-2000353908',
             pattern='.*',
             day='2020-08-17',
-            min_posts=9000,
+            min_posts=1000,
+            sample=1000,
         )
 
 

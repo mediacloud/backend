@@ -4,6 +4,7 @@ import datetime
 import dateutil
 import re
 from urllib.parse import parse_qs, urlparse, quote
+from typing import Optional
 
 import requests_mock
 
@@ -172,17 +173,25 @@ class BrandwatchTwitterPostFetcher(AbstractPostFetcher):
         return data
 
     # noinspection PyMethodMayBeStatic
-    def fetch_posts_from_api(self, query: str, start_date: datetime, end_date: datetime) -> list:
+    def fetch_posts_from_api(
+        self,
+        query: str,
+        start_date: datetime,
+        end_date: datetime,
+        sample: Optional[int] = None,
+    ) -> list:
         """Fetch day of tweets from crimson hexagon and twitter."""
         meta_tweets = []
         next_cursor = None
         while True:
             data = self._fetch_posts_from_api_single_page(query, start_date, end_date, next_cursor)
             meta_tweets = meta_tweets + data['results']
-            if 'nextCursor' in data:
-                next_cursor = data['nextCursor']
-            else:
+            log.debug(f"Sample: {sample}; meta_tweets: {len(meta_tweets)}")
+
+            if 'nextCursor' not in data or (sample is not None and len(meta_tweets) >= sample):
                 break
+            else:
+                next_cursor = data['nextCursor']
 
         if 'results' not in data:
             raise McPostsBWTwitterDataException("Unknown response status: " + str(data))

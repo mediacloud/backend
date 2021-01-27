@@ -6,6 +6,7 @@ from dateutil import parser
 import io
 import shelve
 import uuid
+from typing import Optional
 
 import mediawords.util.url
 import mediawords.util.web.user_agent
@@ -49,10 +50,12 @@ class CSVStaticPostFetcher(AbstractPostFetcher):
 
         return list(csv.DictReader(csv_io))
 
-    def fetch_posts_from_api(self, query: str, start_date: datetime, end_date: datetime) -> list:
+    def fetch_posts_from_api(self, query: str, start_date: datetime, end_date: datetime, sample: Optional[int] = None) -> list:
         """Return posts from a csv that are within the given date range."""
         if self.mock_enabled:
             query = self._get_csv_string_from_dicts(get_mock_data())
+
+        assert sample is None, "Sampling is not implemented."
 
         all_posts = self._get_dicts_from_csv_string(query)
 

@@ -5,6 +5,7 @@ from dateutil import parser
 import io
 import re
 import uuid
+from typing import Optional
 
 import mediawords.db
 from mediawords.db.handler import DatabaseHandler
@@ -44,9 +45,11 @@ class PostgresPostFetcher(AbstractPostFetcher):
 
         return table
 
-    def fetch_posts_from_api(self, query: str, start_date: datetime, end_date: datetime) -> list:
+    def fetch_posts_from_api(self, query: str, start_date: datetime, end_date: datetime, sample: Optional[int] = None) -> list:
         """Return posts from a csv that are within the given date range."""
         db = mediawords.db.connect_to_db()
+
+        assert sample is None, "Sampling is not implemented."
 
         if self.mock_enabled:
             query = self._insert_mock_data(db, get_mock_data())
