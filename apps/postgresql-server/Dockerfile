@@ -77,10 +77,6 @@ ENV \
 USER root
 RUN rm /opt/mediacloud/bin/initialize_db.sh
 
-FROM scratch as export-stage
-COPY --from=build /tmp/mediawords.sql ./
-
-FROM build
 USER postgres
 
 # PostgreSQL data

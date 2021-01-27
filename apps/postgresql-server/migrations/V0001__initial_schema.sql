@@ -4,7 +4,7 @@
 
 -- main schema
 CREATE SCHEMA IF NOT EXISTS public;
-
+COMMENT ON SCHEMA public IS 'main schema for MediaWords database';
 
 CREATE OR REPLACE LANGUAGE plpgsql;
 
@@ -59,6 +59,8 @@ $$
 LANGUAGE 'plpgsql' IMMUTABLE
   COST 10;
 
+COMMENT ON FUNCTION week_start_date (day date) IS 'Need b/c date_trunc("week", date) is not immutable; 
+see http://www.mentby.com/Group/pgsql-general/datetrunc-on-date-is-immutable.html';
 
 -- Returns first 64 bits (16 characters) of MD5 hash
 --
@@ -69,6 +71,9 @@ CREATE OR REPLACE FUNCTION half_md5(string TEXT) RETURNS bytea AS $$
     SELECT SUBSTRING(public.digest(string, 'md5'::text), 0, 9);
 $$ LANGUAGE SQL;
 
+COMMENT ON FUNCTION half_md5 (string TEXT) IS 'Returns first 64 bits (16 characters) of MD5 hash; 
+useful for reducing index sizes (e.g. in story_sentences.sentence) where 64 bits of entropy is not enough
+pgcrypto functions are being referred with public schema prefix to make pg_upgrade work';
 
 -- Returns true if table exists (and user has access to it)
 -- Table name might be with ("public.stories") or without ("stories") schema.
@@ -100,6 +105,8 @@ END;
 $$
 LANGUAGE plpgsql;
 
+COMMENT ON FUNCTION table_exists (target_table_name VARCHAR) IS 'Returns true if table exists 
+(and user has access to it). Table name might be with ("public.stories") or without ("stories") schema.';
 
 --
 -- Common partitioning tools
@@ -164,6 +171,15 @@ create table media (
     CONSTRAINT media_self_dup CHECK ( dup_media_id IS NULL OR dup_media_id <> media_id )
 );
 
+COMMENT ON COLUMN media.foreign_rss_links IS 'ndicates that the media source includes a substantial 
+number of links in its feeds that are not its own. These media sources cause problems for the 
+topic mapper spider, which finds those foreign rss links an thinks that the urls belong to the 
+parent media source.';
+COMMENT ON COLUMN media.content_delay IS 'Delay content downloads for this media source for (int) hours';
+COMMENT ON COLUMN media.editor_notes IS 'notes for internal MC consumption (e.g. "added this for yochai")';
+COMMENT ON COLUMN media.public_notes IS 'notes for public consumption (e.g. "leading dissident paper in antarctica")';
+COMMENT ON COLUMN media.is_monitored IS 'if true, indicates that MC closely monitors health of this source';
+
 create unique index media_name on media(name);
 create unique index media_url on media(url);
 create index media_normalized_url on media(normalized_url);
@@ -193,6 +209,9 @@ $$
    END;
 $$
 LANGUAGE 'plpgsql';
+
+COMMENT ON FUNCTION media_rescraping_add_initial_state_trigger () IS 'Insert new rows to "media_rescraping" 
+for each new row in "media"';
 
 CREATE TRIGGER media_rescraping_add_initial_state_trigger
     AFTER INSERT ON media
@@ -249,6 +268,7 @@ END;
 $$
 LANGUAGE 'plpgsql';
 
+COMMENT ON FUNCTION media_has_active_syndicated_feeds (param_media_id INT) IS 'true if media has active rss feeds';
 
 create type feed_type AS ENUM (
 
@@ -316,6 +336,9 @@ CREATE TABLE feeds_after_rescraping (
     url                         VARCHAR(1024)   NOT NULL,
     type                        feed_type       NOT NULL DEFAULT 'syndicated'
 );
+
+COMMENT ON TABLE feeds_after_rescraping IS 'feeds for media item discovered after (re)scraping';
+
 CREATE INDEX feeds_after_rescraping_media_id ON feeds_after_rescraping(media_id);
 CREATE INDEX feeds_after_rescraping_name ON feeds_after_rescraping(name);
 CREATE UNIQUE INDEX feeds_after_rescraping_url ON feeds_after_rescraping(url, media_id);
@@ -355,6 +378,8 @@ END;
 $$
 LANGUAGE 'plpgsql';
 
+COMMENT ON FUNCTION feed_is_stale (param_feeds_id INT) IS '-- Feed is "stale" (has not provided a new story in some time)
+-- Not to be confused with "stale feeds" in extractor!';
 
 create table tag_sets (
     tag_sets_id            serial            primary key,
@@ -376,6 +401,11 @@ create table tag_sets (
 
     CONSTRAINT tag_sets_name_not_empty CHECK (((name)::text <> ''::text))
 );
+
+COMMENT ON COLUMN tag_sets.show_on_media IS 'should public interfaces show this as an option for
+searching media sources?';
+COMMENT ON COLUMN tag_sets.show_on_stories IS 'should public interfaces show this as an option 
+for search stories?';
 
 create unique index tag_sets_name on tag_sets (name);
 
@@ -406,6 +436,13 @@ create table tags (
 %'::text)))),
         CONSTRAINT tag_not_empty CHECK (((tag)::text <> ''::text))
 );
+
+COMMENT ON COLUMN tags.show_on_media IS 'should public interfaces show this as an option for
+searching media sources?';
+COMMENT ON COLUMN tags.show_on_stories IS 'should public interfaces show this as an option 
+for search stories?';
+COMMENT ON COLUMN tags.is_static IS 'if true, users can expect this tag and its associations 
+not to change in major ways';
 
 create index tags_tag_sets_id ON tags (tag_sets_id);
 create unique index tags_tag on tags (tag, tag_sets_id);
@@ -486,6 +523,10 @@ create table stories (
     language                    varchar(3)      null   -- 2- or 3-character ISO 690 language code; empty if unknown, NULL if unset
 );
 
+COMMENT ON TABLE stories IS 'stories (news articles)';
+COMMENT ON COLUMN stories.languages IS '2- or 3-character ISO 690 
+language code; empty if unknown, NULL if unset';
+
 create index stories_media_id on stories (media_id);
 create unique index stories_guid on stories(guid, media_id);
 create index stories_url on stories (url);
@@ -543,6 +584,11 @@ begin
         return title_part;
 end
 $function$ language plpgsql;
+
+COMMENT ON FUNCTION get_normalized_title (title text, title_media_id int) IS 'get normalized story title by breaking the title into parts by 
+the separator characters :-| and  using the longest single part. longest part must be at least 32 characters, 
+cannot be the same as the media source name.  also remove all html, punctuation and repeated spaces, 
+lowecase, and limit to 1024 characters.';
 
 create function add_normalized_title_hash() returns trigger as $function$
 BEGIN
@@ -616,6 +662,8 @@ BEGIN
 END; $$
 LANGUAGE plpgsql IMMUTABLE;
 
+COMMENT ON FUNCTION partition_by_stories_id_chunk_size () IS 'Return partition size for every table 
+that is partitioned by "stories_id"';
 
 -- Return partition table name for a given base table name and "stories_id"
 CREATE OR REPLACE FUNCTION partition_by_stories_id_partition_name(
@@ -633,6 +681,9 @@ BEGIN
 END;
 $$
 LANGUAGE plpgsql IMMUTABLE;
+
+COMMENT ON FUNCTION partition_by_stories_id_partition_name (base_table_name TEXT, stories_id BIGINT) IS 'Return 
+partition table name for a given base table name and "stories_id"';
 
 -- Create missing partitions for tables partitioned by "stories_id", returning
 -- a list of created partition tables
@@ -724,6 +775,9 @@ END;
 $$
 LANGUAGE plpgsql;
 
+COMMENT ON FUNCTION partition_by_stories_id_create_partitions (base_table_name TEXT) IS 'Create missing partitions for 
+tables partitioned by "stories_id", returning a list of created partition tables';
+
 -- list of all url or guid identifiers for each story
 create table story_urls (
     story_urls_id   bigserial primary key,
@@ -733,6 +787,8 @@ create table story_urls (
 
 create unique index story_urls_url on story_urls ( url, stories_id );
 create index stories_story on story_urls ( stories_id );
+
+COMMENT ON TABLE story_urls IS 'list of all url or guid identifiers for each story';
 
 --
 -- Downloads
@@ -832,6 +888,11 @@ END;
 $$
 LANGUAGE plpgsql;
 
+COMMENT ON FUNCTION test_referenced_download_trigger () IS 'Imitate a foreign key by testing if a download 
+with an INSERTed / UPDATEd "downloads_id" exists in "downloads." Partitioned tables do not support foreign 
+keys being pointed to them, so this trigger achieves the same referential integrity for tables that point 
+to "downloads". Column name from NEW (NEW.<column_name>) that contains the INSERTed / UPDATEd "downloads_id" 
+should be passed as an trigger argument.';
 
 CREATE INDEX downloads_parent
     ON downloads (parent);
@@ -914,6 +975,9 @@ CREATE TABLE downloads_success_content
 CREATE UNIQUE INDEX downloads_success_content_downloads_id
     ON downloads_success_content (downloads_id);
 
+COMMENT ON INDEX downloads_success_content_downloads_id IS 'We need a separate unique index for the 
+"download_texts" foreign key to be able to point to "downloads_success_content" partitions';
+
 CREATE INDEX downloads_success_content_extracted
     ON downloads_success_content (extracted);
 
@@ -962,6 +1026,8 @@ BEGIN
 END; $$
 LANGUAGE plpgsql IMMUTABLE;
 
+COMMENT ON FUNCTION partition_by_downloads_id_chunk_size () IS 
+'Return partition size for every table that is partitioned by "downloads_id"';
 
 -- Return partition table name for a given base table name and "downloads_id"
 CREATE OR REPLACE FUNCTION partition_by_downloads_id_partition_name(
@@ -979,6 +1045,9 @@ BEGIN
 END;
 $$
 LANGUAGE plpgsql IMMUTABLE;
+
+COMMENT ON FUNCTION partition_by_downloads_id_partition_name (base_table_name TEXT, downloads_id BIGINT) IS 'Return 
+partition table name for a given base table name and "downloads_id"';
 
 -- Create missing partitions for tables partitioned by "downloads_id", returning
 -- a list of created partition tables
@@ -1063,6 +1132,9 @@ END;
 $$
 LANGUAGE plpgsql;
 
+COMMENT ON FUNCTION partition_by_downloads_id_create_partitions (base_table_name TEXT) IS 'Create 
+missing partitions for tables partitioned by "downloads_id", returning a list of 
+created partition tables';
 
 -- Create subpartitions of "downloads_success_feed" or "downloads_success_content"
 CREATE OR REPLACE FUNCTION downloads_create_subpartitions(base_table_name TEXT)
@@ -1092,6 +1164,8 @@ END;
 $$
 LANGUAGE plpgsql;
 
+COMMENT ON FUNCTION downloads_create_subpartitions (base_table_name TEXT) IS 'Create 
+subpartitions of "downloads_success_feed" or "downloads_success_content"';
 
 -- Create missing "downloads_success_content" partitions
 CREATE OR REPLACE FUNCTION downloads_success_content_create_partitions()
@@ -1102,6 +1176,9 @@ $$
 
 $$
 LANGUAGE SQL;
+
+COMMENT ON FUNCTION downloads_success_content_create_partitions () IS 'Create 
+missing "downloads_success_content" partitions';
 
 -- Create initial "downloads_success_content" partitions for empty database
 SELECT downloads_success_content_create_partitions();
@@ -1117,12 +1194,16 @@ $$
 $$
 LANGUAGE SQL;
 
+COMMENT ON FUNCTION downloads_success_feed_create_partitions () IS 'Create missing 
+"downloads_success_feed" partitions';
+
 -- Create initial "downloads_success_feed" partitions for empty database
 SELECT downloads_success_feed_create_partitions();
 
 -- table for object types used for mediawords.util.public_store
 create schema public_store;
 
+COMMENT ON SCHEMA public_store IS 'table for object types used for mediawords.util.public_store';
 
 create table public_store.timespan_files (
     timespan_files_id   bigserial   primary key,
@@ -1160,6 +1241,11 @@ CREATE TABLE raw_downloads (
 
     raw_data            BYTEA       NOT NULL
 );
+
+COMMENT ON TABLE raw_downloads IS 'Raw downloads stored in the database (if 
+the "postgresql" download storage method is enabled)';
+COMMENT ON COLUMN raw_downloads.object_id IS '"downloads_id" from "downloads"';
+
 CREATE UNIQUE INDEX raw_downloads_object_id
     ON raw_downloads (object_id);
 
@@ -1173,6 +1259,8 @@ CREATE TRIGGER raw_downloads_test_referenced_download_trigger
     FOR EACH ROW
     EXECUTE PROCEDURE test_referenced_download_trigger('object_id');
 
+COMMENT ON COLUMN raw_downlaods.raw_data IS 'Do not attempt to compress BLOBs in 
+"raw_data" because they are going to becompressed already';
 
 --
 -- Feed -> story map
@@ -1187,6 +1275,11 @@ CREATE TABLE feeds_stories_map_p (
     feeds_id                  INT         NOT NULL,
     stories_id                INT         NOT NULL
 );
+
+COMMENT ON TABLE feeds_stories_map_p IS '"Master" table (no indexes, no foreign keys as 
+they will be ineffective)';
+COMMENT ON COLUMN feeds_stories_map_p.feeds_stories_map_p_id IS "PRIMARY KEY on master table 
+needed for database handler's primary_key_column() method to work";
 
 -- Note: "INSERT ... RETURNING *" doesn't work with the trigger, please use
 -- "feeds_stories_map" view instead
@@ -1207,6 +1300,10 @@ BEGIN
 END;
 $$
 LANGUAGE plpgsql;
+
+COMMENT ON FUNCTION feeds_stories_map_p_insert_trigger () IS 'Note: "INSERT ... RETURNING *" does not 
+work with the trigger, please use "feeds_stories_map" view instead. target_table_name 
+= partition table name (e.g. "feeds_stories_map_01")';
 
 CREATE TRIGGER feeds_stories_map_p_insert_trigger
     BEFORE INSERT ON feeds_stories_map_p
@@ -1246,6 +1343,9 @@ END;
 $$
 LANGUAGE plpgsql;
 
+COMMENT ON FUNCTION feeds_stories_map_create_partitions () IS 'Create missing 
+"feeds_stories_map_p" partitions';
+
 -- Create initial "feeds_stories_map_p" partitions for empty database
 SELECT feeds_stories_map_create_partitions();
 
@@ -1259,6 +1359,9 @@ CREATE OR REPLACE VIEW feeds_stories_map AS
         stories_id
     FROM feeds_stories_map_p;
 
+COMMENT ON VIEW feeds_stories_map IS 'Proxy view to "feeds_stories_map_p" 
+to make RETURNING work with partitioned tables
+ (https://wiki.postgresql.org/wiki/INSERT_RETURNING_vs_Partitioning)';
 
 -- Make RETURNING work with partitioned tables
 -- (https://wiki.postgresql.org/wiki/INSERT_RETURNING_vs_Partitioning)
@@ -1310,6 +1413,10 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+COMMENT ON FUNCTION feeds_stories_map_view_insert_update_delete () IS 'Trigger that 
+implements INSERT / UPDATE / DELETE behavior on "feeds_stories_map" view. By INSERTing 
+into the master table (feeds_stories_map_p), we are letting triggers choose the correct partition.';
+
 CREATE TRIGGER feeds_stories_map_view_insert_update_delete_trigger
     INSTEAD OF INSERT OR UPDATE OR DELETE ON feeds_stories_map
     FOR EACH ROW EXECUTE PROCEDURE feeds_stories_map_view_insert_update_delete();
@@ -1330,6 +1437,10 @@ CREATE TABLE stories_tags_map_p (
     tags_id                 INT         NOT NULL
 );
 
+COMMENT ON TABLE stories_tags_map_p IS '"Master" table (no indexes, 
+no foreign keys as they will be ineffective)';
+COMMENT ON COLUMN stories_tags_map_p.stories_tags_map_p_id IS "PRIMARY KEY on 
+master table needed for database handler's primary_key_column() method to work";
 
 -- Create missing "stories_tags_map" partitions
 CREATE OR REPLACE FUNCTION stories_tags_map_create_partitions()
@@ -1365,6 +1476,9 @@ END;
 $$
 LANGUAGE plpgsql;
 
+COMMENT ON FUNCTION stories_tags_map_create_partitions () IS 'Create missing "stories_tags_map" 
+partitions, add extra foreign keys / constraints to the newly created partitions';
+
 -- Create initial "stories_tags_map" partitions for empty database
 SELECT stories_tags_map_create_partitions();
 
@@ -1389,6 +1503,8 @@ END;
 $$
 LANGUAGE plpgsql;
 
+COMMENT ON FUNCTION stories_tags_map_p_upsert_trigger () IS 'Upsert row into correct partition';
+
 CREATE TRIGGER stories_tags_map_p_upsert_trigger
     BEFORE INSERT ON stories_tags_map_p
     FOR EACH ROW EXECUTE PROCEDURE stories_tags_map_p_upsert_trigger();
@@ -1408,6 +1524,8 @@ CREATE OR REPLACE VIEW stories_tags_map AS
         tags_id
     FROM stories_tags_map_p;
 
+COMMENT ON VIEW stories_tags_map IS 'Proxy view to "stories_tags_map_p" to make RETURNING work
+with partitioned tables';
 
 -- Make RETURNING work with partitioned tables
 -- (https://wiki.postgresql.org/wiki/INSERT_RETURNING_vs_Partitioning)
@@ -1458,6 +1576,10 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+COMMENT ON FUNCTION stories_tags_map_view_insert_update_delete () IS 'Trigger 
+that implements INSERT / UPDATE / DELETE behavior on "stories_tags_map" view. By 
+INSERTing into the master table, we are letting triggers choose the correct partition.';
+
 CREATE TRIGGER stories_tags_map_view_insert_update_delete
     INSTEAD OF INSERT OR UPDATE OR DELETE ON stories_tags_map
     FOR EACH ROW EXECUTE PROCEDURE stories_tags_map_view_insert_update_delete();
@@ -1491,6 +1613,10 @@ begin
 end;
 
 $$ language plpgsql;
+
+COMMENT ON FUNCTION pop_queued_download () IS 'do this as a plpgsql function 
+because it wraps it in the necessary transaction without having to know whether 
+the calling context is in a transaction';
 
 -- efficiently query downloads_pending for the latest downloads_id per host.  postgres is not able to do this through
 -- its normal query planning (it just does an index scan of the whole index).  this turns a query that 
@@ -1528,6 +1654,11 @@ begin
  end;
 
 $$ language plpgsql;
+
+COMMENT ON FUNCTION get_downloads_for_queue () IS 'efficiently query downloads_pending 
+for the latest downloads_id per host.  postgres is not able to do this through its 
+normal query planning (it just does an index scan of the whole index). this turns 
+a query that  takes ~22 seconds for a 100 million row table into one that takes ~0.25 seconds';
 
 --
 -- Extracted plain text from every download
@@ -1589,6 +1720,8 @@ END;
 $$
 LANGUAGE plpgsql;
 
+COMMENT ON FUNCTION download_texts_create_partitions () IS 'Create missing "download_texts" partitions';
+
 -- Create initial "download_texts" partitions for empty database
 SELECT download_texts_create_partitions();
 
@@ -1624,6 +1757,18 @@ CREATE TABLE story_sentences_p (
     is_dup                   BOOLEAN    NULL
 );
 
+COMMENT ON TABLE story_sentences_p IS 'Master table for individual sentences of stories
+(no indexes, no foreign keys as they will be ineffective)';
+COMMENT ON COLUMN story_sentences_p.language IS '2- or 3-character ISO 690 
+language code; empty if unknown, NULL if unset';
+COMMENT ON COLUMN story_sentences_p.is_dup IS 'Set to true for every sentence for 
+which a duplicate sentence was found in a future story (even though that duplicate sentence 
+was not added to the table). We only use is_dup in the topic spidering, but I think it is critical
+there. It is there because the first time I tried to run a spider on a broadly popular topic, 
+it was unusable because of the amount of irrelevant content. When I dug in, I found that stories 
+were getting included because of matches on boilerplate content that was getting duped out of 
+most stories but not the first time it appeared. So I added the check to remove stories that match 
+on a dup sentence, even if it is the dup sentence, and things cleaned up.';
 
 -- Note: "INSERT ... RETURNING *" doesn't work with the trigger, please use
 -- "story_sentences" view instead
@@ -1644,6 +1789,9 @@ BEGIN
 END;
 $$
 LANGUAGE plpgsql;
+
+COMMENT ON FUNCTION story_sentences_p_insert_trigger () IS 'Note: "INSERT ... RETURNING *" 
+does not work with the trigger, please use "story_sentences" view instead';
 
 CREATE TRIGGER story_sentences_p_insert_trigger
     BEFORE INSERT ON story_sentences_p
@@ -1683,6 +1831,8 @@ END;
 $$
 LANGUAGE plpgsql;
 
+COMMENT ON FUNCTION story_sentences_create_partitions () IS 'Create missing "story_sentences_p" partitions';
+
 -- Create initial "story_sentences_p" partitions for empty database
 SELECT story_sentences_create_partitions();
 
@@ -1701,6 +1851,8 @@ CREATE OR REPLACE VIEW story_sentences AS
         is_dup
     FROM story_sentences_p;
 
+COMMENT ON VIEW story_sentences IS 'Proxy view to "story_sentences_p" to make RETURNING work 
+with partitioned tables';
 
 -- Make RETURNING work with partitioned tables
 -- (https://wiki.postgresql.org/wiki/INSERT_RETURNING_vs_Partitioning)
@@ -1756,6 +1908,10 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+COMMENT ON FUNCTION story_sentences_view_insert_update_delete () IS 'Trigger that 
+implements INSERT / UPDATE / DELETE behavior on "story_sentences" view. By INSERTing 
+into the master table, we are letting triggers choose the correct partition.';
+
 CREATE TRIGGER story_sentences_view_insert_update_delete_trigger
     INSTEAD OF INSERT OR UPDATE OR DELETE ON story_sentences
     FOR EACH ROW EXECUTE PROCEDURE story_sentences_view_insert_update_delete();
@@ -1773,6 +1929,9 @@ create index solr_imports_date on solr_imports ( import_date );
 create table solr_import_stories (
     stories_id          int not null references stories on delete cascade
 );
+
+COMMENT ON TABLE solr_import_stories IS 'Extra stories to import into';
+
 create index solr_import_stories_story on solr_import_stories ( stories_id );
 
 -- log of all stories import into solr, with the import date
@@ -1780,6 +1939,8 @@ create table solr_imported_stories (
     stories_id          int not null references stories on delete cascade,
     import_date         timestamp not null
 );
+
+COMMENT ON TABLE solr_imported_stories IS 'log of all stories import into solr, with the import date';
 
 create index solr_imported_stories_story on solr_imported_stories ( stories_id );
 create index solr_imported_stories_day on solr_imported_stories ( date_trunc( 'day', import_date ) );
@@ -1792,6 +1953,9 @@ create table topic_modes (
     name                    varchar(1024) not null unique,
     description             text not null
 );
+
+COMMENT ON TABLE topic_modes IS 'the mode is how we analyze the data from the platform 
+(as web pages, social media posts, url sharing posts, etc)';
 
 create unique index topic_modes_name on topic_modes(name);
 
@@ -1807,6 +1971,8 @@ create table topic_platforms (
     description             text not null
 );
 
+COMMENT ON TABLE topic_platforms IS 'the platform is where the analyzed data lives (web, twitter, reddit, etc)';
+
 create unique index topic_platforms_name on topic_platforms(name);
 
 insert into topic_platforms (name, description) values
@@ -1821,6 +1987,9 @@ create table topic_sources (
     name                    varchar(1024) not null unique,
     description             text not null
 );
+
+COMMENT ON TABLE topic_sources IS 'the source is where we get the 
+platforn data from (a particular database, api, csv, etc)';
 
 create unique index topic_sources_name on topic_sources(name);
 
@@ -1839,6 +2008,9 @@ create table topic_platforms_sources_map (
     topic_sources_id        int not null references topic_sources on delete cascade
 );
 
+COMMENT ON TABLE topic_platforms_sources_map IS 'the pairs of platforms/sources 
+for which the platform can fetch data';
+
 create unique index topic_platforms_sources_map_ps
     on topic_platforms_sources_map ( topic_platforms_id, topic_sources_id );
 
@@ -1855,6 +2027,8 @@ create function insert_platform_source_pair( text, text ) returns void as $$
                 tp.name = $1  and
                 ts.name = $2
 $$ language sql;
+
+COMMENT ON FUNCTION insert_platform_source_pair ( text, text ) IS 'easily create platform source pairs';
 
 select insert_platform_source_pair( 'web', 'mediacloud' );
 select insert_platform_source_pair( 'twitter', 'crimson_hexagon' );
@@ -1905,6 +2079,17 @@ create table topics (
     -- if true, snapshots are pruned to only stories with a minimum level of engagements (links, shares, etc)
     only_snapshot_engaged_stories   boolean not null default false
 );
+
+COMMENT ON COLUMN topics.respider_stories IS "if true, the topic_stories 
+associated with this topic wilbe set to link_mined = 'f' on the next mining job";
+COMMENT ON COLUMN topics.snapshot_periods IS 'space-separated list of periods to snapshot';
+COMMENT ON COLUMN topics.platform IS 'platform that topic is analyzing';
+COMMENT ON COLUMN topics.mode IS 'mode of analysis';
+COMMENT ON COLUMN topics.job_queue IS 'job queue to use for spider and snapshot jobs for this topic';
+COMMENT ON COLUMN topics.is_story_index_ready IS 'if false, we should refuse to spider 
+this topic because the use has not confirmed the new story query syntax';
+COMMENT ON COLUMN topics.only_snapshot_engaged_stories IS 'if true, snapshots 
+are pruned to only stories with a minimum level of engagements (links, shares, etc)';
 
 create unique index topics_name on topics( name );
 create unique index topics_media_type_tag_set on topics( media_type_tag_sets_id );
@@ -1966,8 +2151,9 @@ create table topic_domains (
     self_links              int not null default 0
 );
 
-create unique index topic_domains_domain on topic_domains (topics_id, md5(domain));
+COMMENT ON TABLE topic_domains IS 'track self liks and all links for a given domain within a given topic';
 
+create unique index topic_domains_domain on topic_domains (topics_id, md5(domain));
 
 create table topic_stories (
     topic_stories_id          serial primary key,
@@ -1992,6 +2178,8 @@ create table topic_dead_links (
     url                         text not null
 );
 
+COMMENT ON TABLE topic_dead_links IS 'topic links for which the http request failed';
+
 -- no foreign key constraints on topics_id and stories_id because
 --   we have the combined foreign key constraint pointing to topic_stories
 --   below
@@ -2004,6 +2192,9 @@ create table topic_links (
     ref_stories_id              int references stories on delete cascade,
     link_spidered               boolean default 'f'
 );
+
+COMMENT ON TABLE topic_links IS 'no foreign key constraints on topics_id and stories_id 
+because we have the combined foreign key constraint pointing to topic_stories below';
 
 alter table topic_links add constraint topic_links_topic_story_stories_id
     foreign key ( stories_id, topics_id ) references topic_stories ( stories_id, topics_id )
@@ -2153,6 +2344,10 @@ create table timespans (
         ( snapshots_id is not null and archive_snapshots_id is null ) )
 );
 
+COMMENT ON COLUMN timespans.snapshots_id IS 'individual timespans within a snapshot';
+COMMENT ON COLUMN timespans.archive_snapshots_id IS 'timespan is an archived part of 
+this snapshot (and thus mostly not visible)';
+COMMENT ON COLUMN timespans.tags_id IS 'keep on cascade to avoid accidental deletion';
 
 create index timespans_snapshot on timespans ( snapshots_id );
 create unique index timespans_unique on timespans ( snapshots_id, foci_id, start_date, end_date, period );
@@ -2189,6 +2384,7 @@ create unique index snapshot_files_snapshot_name on snapshot_files ( snapshots_i
 -- schema to hold the various snapshot snapshot tables
 CREATE SCHEMA snap;
 
+COMMENT ON SCHEMA snap IS 'schema to hold the various snapshot snapshot tables';
 
 CREATE OR REPLACE LANGUAGE plpgsql;
 
@@ -2211,6 +2407,12 @@ create table snap.stories (
     full_text_rss               boolean         not null default 'f',
     language                    varchar(3)      null   -- 2- or 3-character ISO 690 language code; empty if unknown, NULL if unset
 );
+
+COMMENT ON TABLE snap.stories IS 'create a table for each of these tables to hold a snapshot of stories 
+relevant to a topic for each snapshot for that topic';
+COMMENT ON COLUMN snap.stories.language IS '2- or 3-character ISO 690 
+language code; empty if unknown, NULL if unset';
+
 create index stories_id on snap.stories ( snapshots_id, stories_id );
 
 -- stats for various externally dervied statistics about a story.
@@ -2225,6 +2427,8 @@ create table story_statistics (
     facebook_api_error          text        null
 );
 
+COMMENT ON TABLE story_statistics IS 'stats for various externally dervied statistics about a story.';
+
 create unique index story_statistics_story on story_statistics ( stories_id );
 
 
@@ -2238,8 +2442,9 @@ create table story_statistics_twitter (
     twitter_api_error           text        null
 );
 
-create unique index story_statistics_twitter_story on story_statistics_twitter ( stories_id );
+COMMENT ON TABLE story_statistics_twitter IS 'stats for deprecated Twitter share counts';
 
+create unique index story_statistics_twitter_story on story_statistics_twitter ( stories_id );
 
 create table snap.topic_stories (
     snapshots_id            int not null references snapshots on delete cascade,
@@ -2313,8 +2518,14 @@ create table snap.story_links (
     ref_stories_id                          int not null
 );
 
+COMMENT ON TABLE snap.story_links IS 'story -> story links within a timespan';
+
 -- TODO: add complex foreign key to check that *_stories_id exist for the snapshot stories snapshot
 create index story_links_source on snap.story_links( timespans_id, source_stories_id );
+
+COMMENT ON INDEX story_links_source IS 'TODO: add complex foreign key to check that 
+*_stories_id exist for the snapshot stories snapshot'
+
 create index story_links_ref on snap.story_links( timespans_id, ref_stories_id );
 
 -- link counts for stories within a timespan
@@ -2333,8 +2544,14 @@ create table snap.story_link_counts (
     channel_count                           int null
 );
 
+COMMENT ON TABLE snap.story_link_counts IS 'link counts for stories within a timespan';
+
 -- TODO: add complex foreign key to check that stories_id exists for the snapshot stories snapshot
 create index story_link_counts_ts on snap.story_link_counts ( timespans_id, stories_id );
+
+COMMENT ON INDEX story_link_counts_ts IS 'TODO: add complex foreign key to check that stories_id 
+exists for the snapshot stories snapshot';
+
 create index story_link_counts_story on snap.story_link_counts ( stories_id );
 create index story_link_counts_fb on snap.story_link_counts ( timespans_id, facebook_share_count desc nulls last );
 create index story_link_counts_post on snap.story_link_counts ( timespans_id, post_count desc nulls last);
@@ -2359,8 +2576,14 @@ create table snap.medium_link_counts (
     sum_channel_count               int null
 );
 
+COMMENT ON TABLE snap.medium_link_counts IS 'links counts for media within a timespan';
+
 -- TODO: add complex foreign key to check that media_id exists for the snapshot media snapshot
 create index medium_link_counts_medium on snap.medium_link_counts ( timespans_id, media_id );
+
+COMMENT ON INDEX medium_link_counts_medium IS 'TODO: add complex foreign key 
+to check that media_id exists for the snapshot media snapshot';
+
 create index medium_link_counts_fb on snap.medium_link_counts ( timespans_id, facebook_share_count desc nulls last);
 create index medium_link_counts_sum_post on snap.medium_link_counts ( timespans_id, sum_post_count desc nulls last);
 create index medium_link_counts_sum_author on snap.medium_link_counts ( timespans_id, sum_author_count desc nulls last);
@@ -2376,6 +2599,10 @@ create table snap.medium_links (
 
 -- TODO: add complex foreign key to check that *_media_id exist for the snapshot media snapshot
 create index medium_links_source on snap.medium_links( timespans_id, source_media_id );
+
+COMMENT ON INDEX medium_links_source IS 'TODO: add complex foreign key to check that 
+*_media_id exist for the snapshot media snapshot';
+
 create index medium_links_ref on snap.medium_links( timespans_id, ref_media_id );
 
 -- create a mirror of the stories table with the stories for each topic.  this is to make
@@ -2397,6 +2624,13 @@ create table snap.live_stories (
     full_text_rss               boolean         not null default 'f',
     language                    varchar(3)      null   -- 2- or 3-character ISO 690 language code; empty if unknown, NULL if unset
 );
+
+COMMENT ON TABLE snap.live_stories IS 'create a mirror of the stories table with the stories 
+for each topic. this is to make it much faster to query the stories associated with a given topic, 
+rather than querying the contested and bloated stories table.  only inserts and updates on stories 
+are triggered, because deleted cascading stories_id and topics_id fields take care of deletes.';
+COMMENT ON COLUMN snap.live_stories.language IS '2- or 3-character ISO 690 language code; 
+empty if unknown, NULL if unset';
 
 create index live_story_topic on snap.live_stories ( topics_id );
 create unique index live_stories_story on snap.live_stories ( topics_id, stories_id );
@@ -2464,6 +2698,8 @@ CREATE TABLE snap.word2vec_models (
 -- We'll need to find the latest word2vec model
 CREATE INDEX snap_word2vec_models_object_id_creation_date ON snap.word2vec_models (object_id, creation_date);
 
+COMMENT ON INDEX snap_word2vec_models_object_id_creation_date IS 'We need to find the latest word2vec model';
+
 CREATE TABLE snap.word2vec_models_data (
     word2vec_models_data_id SERIAL      PRIMARY KEY,
     object_id               INTEGER     NOT NULL
@@ -2478,6 +2714,8 @@ CREATE UNIQUE INDEX snap_word2vec_models_data_object_id ON snap.word2vec_models_
 ALTER TABLE snap.word2vec_models_data
     ALTER COLUMN raw_data SET STORAGE EXTERNAL;
 
+COMMENT ON TABLE snap.word2vec_models_data IS 'Do not (attempt to) compress BLOBs in "raw_data" because 
+they are going to be compressed already'
 
 create table processed_stories (
     processed_stories_id        bigserial          primary key,
@@ -2496,6 +2734,8 @@ create table scraped_stories (
     import_module           text not null
 );
 
+COMMENT ON TABLE scraped_stories IS 'list of stories that have been scraped and the source';
+
 create index scraped_stories_story on scraped_stories ( stories_id );
 
 -- dates on which feeds have been scraped with MediaWords::ImportStories and the module used for scraping
@@ -2505,6 +2745,9 @@ create table scraped_feeds (
     scrape_date             timestamp not null default now(),
     import_module           text not null
 );
+
+COMMENT ON TABLE scraped_feeds IS 'dates on which feeds have been scraped with MediaWords::ImportStories 
+and the module used for scraping';
 
 create index scraped_feeds_feed on scraped_feeds ( feeds_id );
 
@@ -2593,10 +2836,16 @@ CREATE TABLE auth_users (
     has_consented                       BOOLEAN NOT NULL DEFAULT false
 );
 
+COMMENT ON TABLE auth_users.email IS 'Emails are case-insensitive';
+COMMENT ON TABLE auth_users.password_hash IS 'salted hash of a password';
+COMMENT ON TABLE auth_users.password_reset_token_hash IS "Salted hash of a 
+password reset token (with Crypt::SaltedHash, algorithm => 'SHA-256', salt_len=>64) or NULL";
+COMMENT ON TABLE auth_users.has_consented IS 'Whether user has consented to the privacy policy';
 
 -- Used by daily stats script
 CREATE INDEX auth_users_created_day ON auth_users (date_trunc('day', created_date));
 
+COMMENT ON INDEX auth_users_created_day IS 'used by daily stats script';
 
 -- Generate random API key
 CREATE FUNCTION generate_api_key() RETURNS VARCHAR(64) LANGUAGE plpgsql AS $$
@@ -2624,6 +2873,9 @@ CREATE TABLE auth_user_api_keys (
     -- If set, API key is limited to only this IP address
     ip_address            INET        NULL
 );
+
+COMMENT ON COLUMN auth_user_api_keys.api_key IS 'must  be 64 bytes in order to prevent someone 
+from resetting it to empty string somehow';
 
 CREATE UNIQUE INDEX auth_user_api_keys_api_key_ip_address
     ON auth_user_api_keys (api_key, ip_address);
@@ -2705,7 +2957,7 @@ CREATE TABLE auth_user_request_daily_counts (
 
 -- Single index to enforce upsert uniqueness
 CREATE UNIQUE INDEX auth_user_request_daily_counts_email_day ON auth_user_request_daily_counts (email, day);
-
+COMMENT ON INDEX auth_user_request_daily_counts_email_day IS 'Single index to enforce upsert uniqueness';
 
 -- User limits for logged + throttled controller actions
 CREATE TABLE auth_user_limits (
@@ -2726,6 +2978,10 @@ CREATE TABLE auth_user_limits (
     max_topic_stories               INTEGER     NOT NULL DEFAULT 100000
 
 );
+
+COMMENT ON TABLE auth_user_limits IS 'User limits for logged + throttled controller actions';
+COMMENT ON COLUMN auth_user_limits.weekly_requests_limit IS "Request limit (0 or belonging to 
+'admin'/'admin-readonly' group = no limit)";
 
 CREATE UNIQUE INDEX auth_user_limits_auth_users_id ON auth_user_limits (auth_users_id);
 
@@ -2813,6 +3069,14 @@ CREATE TABLE activities (
 
 );
 
+COMMENT ON COLUMN activities.name IS 'activity name, e.g. "tm_snapshot_topic"';
+COMMENT ON COLUMN activities.object_id IS 'Indexed ID of the object that was modified 
+in some way by the activity';
+COMMENT ON COLUMN activities.reason IS 'user-provided reason why the activity was made';
+COMMENT ON COLUMN activities.description_json IS 'Other free-form data describing the 
+action in the JSON format (e.g.: { "field": "name", "old_value": "Foo.", "new_value": "Bar." }).
+FIXME: has potential to use JSON type instead of TEXT in PostgreSQL 9.2+';
+
 CREATE INDEX activities_name ON activities (name);
 CREATE INDEX activities_creation_date ON activities (creation_date);
 CREATE INDEX activities_user_identifier ON activities (user_identifier);
@@ -2851,6 +3115,9 @@ CREATE TABLE feeds_from_yesterday (
     type                feed_type           NOT NULL,
     active              BOOLEAN             NOT NULL
 );
+
+COMMENT ON TABLE feeds_from_yesterday IS 'Copy of "feeds" table from yesterday; 
+used for generating reports for rescraping efforts';
 
 CREATE INDEX feeds_from_yesterday_feeds_id ON feeds_from_yesterday(feeds_id);
 CREATE INDEX feeds_from_yesterday_media_id ON feeds_from_yesterday(media_id);
@@ -3078,6 +3345,8 @@ $$
 LANGUAGE 'plpgsql';
 
 
+COMMENT ON FUNCTION rescraping_changes () IS 'Print out a diff between "feeds" and "feeds_from_yesterday"';
+
 -- implements link_id as documented in the topics api spec
 create table api_links (
     api_links_id        bigserial primary key,
@@ -3086,6 +3355,8 @@ create table api_links (
     next_link_id        bigint null references api_links on delete set null deferrable,
     previous_link_id    bigint null references api_links on delete set null deferrable
 );
+
+COMMENT ON TABLE api_links IS 'implements link_id as documented in the topics api spec';
 
 create unique index api_links_params on api_links ( path, md5( params_json ) );
 
@@ -3191,6 +3462,12 @@ create or replace view topics_with_user_permission as
             join auth_users u on ( true )
             left join topic_permissions tp using ( topics_id, auth_users_id );
 
+COMMENT ON VIEW topics_with_user_permission IS 'topics table with auth_users_id and user_permission fields 
+that indicate the permission level for the user for the topic.  permissions in decreasing order are admin, 
+write, read, none.  users with the admin role have admin permission for every topic. users with admin-readonly 
+role have at least read access to every topic.  all users have read access to every is_public topic. otherwise, 
+the topic_permissions tableis used, with "none" for no topic_permission.';
+
 -- list of tweet counts and fetching statuses for each day of each topic
 create table topic_post_days (
     topic_post_days_id     serial primary key,
@@ -3200,6 +3477,8 @@ create table topic_post_days (
     num_posts_fetched      int not null,
     posts_fetched          boolean not null default false
 );
+
+COMMENT ON TABLE topic_post_days IS 'list of tweet counts and fetching statuses for each day of each topic';
 
 create index topic_post_days_td on topic_post_days ( topic_seed_queries_id, day );
 
@@ -3216,6 +3495,8 @@ create table topic_posts (
     url                     text null
 );
 
+COMMENT ON TABLE topic_posts IS 'list of posts associated with a given topic';
+
 create unique index topic_posts_id on topic_posts( topic_post_days_id, post_id );
 create index topic_post_topic_author on topic_posts( topic_post_days_id, author );
 create index topic_post_topic_channel on topic_posts( topic_post_days_id, channel );
@@ -3226,6 +3507,8 @@ create table topic_post_urls (
     topic_posts_id          int not null references topic_posts on delete cascade,
     url                     varchar (1024) not null
 );
+
+COMMENT ON TABLE topic_post_urls IS 'urls parsed from topic tweets and imported into topic_seed_urls';
 
 create index topic_post_urls_url on topic_post_urls ( url );
 create unique index topic_post_urls_tt on topic_post_urls ( topic_posts_id, url );
@@ -3270,7 +3553,9 @@ create view topic_post_stories as
             join topic_stories ts 
                 on ( ts.topics_id = tsq.topics_id and ts.stories_id = tsu.stories_id );
 
-
+COMMENT ON VIEW topic_post_stories IS 'view that joins together the chain of tables from topic_seed_queries 
+all the way through to topic_stories, so that you get back a topics_id, topic_posts_id stories_id, and 
+topic_seed_queries_id in each row to track which stories came from which posts in which seed queries';
 
 create table snap.timespan_posts (
     topic_posts_id     int not null references topic_posts on delete cascade,
@@ -3375,6 +3660,8 @@ create table mediacloud_stats (
     total_sentences         bigint not null
 );
 
+COMMENT ON TABLE mediacloud_stats IS 'keep track of basic high level stats for mediacloud for access through api';
+
 -- job states as implemented in mediawords.job.StatefulJobBroker
 create table job_states (
     job_states_id           serial primary key,
@@ -3400,6 +3687,12 @@ create table job_states (
     process_id              int not null
 );
 
+COMMENT ON TABLE job_states IS 'job states as implemented in mediawords.job.StatefulJobBroker';
+COMMENT ON COLUMN job_states.class IS 'MediaWords::Job::* class implementing the job';
+COMMENT ON COLUMN job_states.state IS 'short class-specific state';
+COMMENT ON COLUMN job_states.message IS 'optional longer message describing the state, such 
+as a stack trace for an error';
+
 create index job_states_class_date on job_states( class, last_updated );
 
 create view pending_job_states as select * from job_states where state in ( 'running', 'queued' );
@@ -3419,12 +3712,17 @@ create table retweeter_scores (
     match_type              retweeter_scores_match_type not null default 'retweet'
 );
 
+COMMENT ON TABLE retweeter_scores IS 'definition of bipolar comparisons for retweeter polarization scores';
+
 -- group retweeters together so that we an compare, for example, sanders/warren retweeters to cruz/kasich retweeters
 create table retweeter_groups (
     retweeter_groups_id     serial primary key,
     retweeter_scores_id     int not null references retweeter_scores on delete cascade,
     name                    text not null
 );
+
+COMMENT ON TABLE retweeter_groups IS 'group retweeters together so that we 
+can compare, for example, sanders/warren retweeters to cruz/kasich retweeters';
 
 alter table retweeter_scores add constraint retweeter_scores_group_a
     foreign key ( group_a_id ) references retweeter_groups on delete cascade;
@@ -3438,6 +3736,8 @@ create table retweeters (
     twitter_user            varchar(1024) not null,
     retweeted_user          varchar(1024) not null
 );
+
+COMMENT ON TABLE retweeters IS 'list of twitter users within a given topic that have retweeted the given user';
 
 create unique index retweeters_user on retweeters( retweeter_scores_id, twitter_user, retweeted_user );
 
@@ -3456,6 +3756,8 @@ create table retweeter_stories (
     share_count             int not null
 );
 
+COMMENT ON TABLE retweeter_stories IS 'count of shares by retweeters for each retweeted_user in retweeters';
+
 create unique index retweeter_stories_psu
     on retweeter_stories ( retweeter_scores_id, stories_id, retweeted_user );
 
@@ -3470,6 +3772,9 @@ create table retweeter_media (
     score                 float not null,
     partition             int not null
 );
+
+COMMENT ON TABLE retweeter_media IS 'polarization scores for media within a topic for the given 
+retweeter_scores definition';
 
 create unique index retweeter_media_score on retweeter_media ( retweeter_scores_id, media_id );
 
@@ -3492,6 +3797,8 @@ create index retweeter_partition_matrix_score on retweeter_partition_matrix ( re
 
 CREATE SCHEMA cache;
 
+COMMENT ON SCHEMA cache IS 'schema to hold object caches';
+
 CREATE OR REPLACE LANGUAGE plpgsql;
 
 
@@ -3504,6 +3811,8 @@ BEGIN
 END;
 $$ LANGUAGE 'plpgsql';
 
+COMMENT ON FUNCTION ache.update_cache_db_row_last_updated () IS 'Trigger 
+to update "db_row_last_updated" for cache tables';
 
 -- Helper to purge object caches
 CREATE OR REPLACE FUNCTION cache.purge_object_caches()
@@ -3543,6 +3852,12 @@ CREATE UNLOGGED TABLE cache.s3_raw_downloads_cache (
 
     raw_data                  BYTEA     NOT NULL
 );
+
+
+COMMENT ON COLUMN cache.s3_raw_downloads_cache.object_id IS '"downloads_id" from "downloads"';
+COMMENT ON COLUMN cache.s3_raw_downloads_cache.db_row_last_updated IS 'Will be used to purge old cache objects; 
+do not forget to update cache.purge_object_caches()';
+
 CREATE UNIQUE INDEX s3_raw_downloads_cache_object_id
     ON cache.s3_raw_downloads_cache (object_id);
 CREATE INDEX s3_raw_downloads_cache_db_row_last_updated
@@ -3574,6 +3889,12 @@ CREATE UNLOGGED TABLE cache.extractor_results_cache (
     -- don't forget to update cache.purge_object_caches()
     db_row_last_updated         TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
+
+COMMENT ON TABLE cache.extractor_results_cache IS 'Cached extractor results for 
+extraction jobs with use_cache set to true';
+COMMENT ON TABLE cache.extractor_results_cache.db_row_last_updated IS 'Will be used to purge old cache objects; 
+do not forget to update cache.purge_object_caches()';
+
 CREATE UNIQUE INDEX extractor_results_cache_downloads_id
     ON cache.extractor_results_cache (downloads_id);
 CREATE INDEX extractor_results_cache_db_row_last_updated
@@ -3633,6 +3954,11 @@ create unlogged table domain_web_requests (
     request_time    timestamp not null default now()
 );
 
+COMMENT ON TABLE domain_web_requests IS 'keep track of per domain web requests so that we can throttle them 
+using mediawords.util.web.user_agent.throttled. this is unlogged because we do not care about anything more 
+than about 10 seconds old.  we do not have a primary key because we want it just to be a fast table for 
+temporary storage.';
+
 create index domain_web_requests_domain on domain_web_requests ( domain );
 
 -- return false if there is a request for the given domain within the last domain_timeout_arg milliseconds.  otherwise
@@ -3668,6 +3994,12 @@ return true;
 end
 $$ language plpgsql;
 
+COMMENT ON FUNCTION get_domain_web_requests_lock ( domain_arg text, domain_timeout_arg float ) IS 'return 
+false if there is a request for the given domain within the last domain_timeout_arg milliseconds.  otherwise
+return true and insert a row into domain_web_request for the domain.  this function does not lock the table and
+so may allow some parallel requests through. we do not want this table to grow forever or to have to manage 
+it externally, so just truncate about every 1 million requests.  only do this if there are more than 1000 rows 
+in the table so that unit tests will not randomly fail.';
 
 CREATE TYPE media_sitemap_pages_change_frequency AS ENUM (
     'always',
@@ -3708,6 +4040,8 @@ CREATE TABLE media_sitemap_pages (
 
 );
 
+COMMENT ON TABLE media_sitemap_pages IS 'Pages derived from XML sitemaps (stories or not)';
+
 CREATE INDEX media_sitemap_pages_media_id
     ON media_sitemap_pages (media_id);
 
@@ -3733,6 +4067,13 @@ CREATE TABLE similarweb_domains (
 
 );
 
+COMMENT ON TABLE similarweb_domains IS 'Domains for which we have tried to fetch SimilarWeb stats.
+Every media source domain for which we have tried to fetch estimated visits from SimilarWeb gets 
+stored here. The domain might have been invalid or unpopular enough so "similarweb_estimated_visits" 
+might not necessarily store stats for every domain in this table.';
+COMMENT ON COLUMN similarweb_domains.domain IS 'Top-level (e.g. cnn.com) or second-level 
+(e.g. edition.cnn.com) domain';
+
 CREATE UNIQUE INDEX similarweb_domains_domain
     ON similarweb_domains (domain);
 
@@ -3751,10 +4092,16 @@ CREATE TABLE media_similarweb_domains_map (
     similarweb_domains_id           INT     NOT NULL REFERENCES similarweb_domains (similarweb_domains_id) ON DELETE CASCADE
 );
 
+COMMENT ON TABLE media_similarweb_domains_map IS 'Media - SimilarWeb domain map. A few media sources 
+might be pointing to one or more domains due to code differences in how domain was extracted from media 
+source URL between various implementations.';
+
 -- Different media sources can point to the same domain
 CREATE UNIQUE INDEX media_similarweb_domains_map_media_id_sdi
     ON media_similarweb_domains_map (media_id, similarweb_domains_id);
 
+COMMENT ON INDEX media_similarweb_domains_map_media_id_sdi IS 'Different media sources can point 
+to the same domain';
 
 --
 -- SimilarWeb estimated visits for domain
@@ -3776,6 +4123,8 @@ CREATE TABLE similarweb_estimated_visits (
     visits                          BIGINT  NOT NULL
 
 );
+
+COMMENT ON TABLE similarweb_estimated_visits IS 'https://www.similarweb.com/corp/developer/estimated_visits_api';
 
 CREATE UNIQUE INDEX similarweb_estimated_visits_domain_month_mdo
     ON similarweb_estimated_visits (similarweb_domains_id, month, main_domain_only);
@@ -3802,6 +4151,8 @@ CREATE TABLE story_enclosures (
     length                  BIGINT      NULL
 );
 
+COMMENT ON TABLE story_enclosures IS "Enclosures added to the story's feed item";
+
 CREATE UNIQUE INDEX story_enclosures_stories_id_url
     ON story_enclosures (stories_id, url);
 
@@ -3818,6 +4169,8 @@ CREATE TYPE podcast_episodes_audio_codec AS ENUM (
     'MP3'
 );
 
+COMMENT ON TYPE podcast_episodes_audio_codec IS 'Audio file codec; keep in sync with "_SUPPORTED_NATIVE_AUDIO_CODECS" 
+constant (https://cloud.google.com/speech-to-text/docs/reference/rpc/google.cloud.speech.v1p1beta1)';
 
 --
 -- Podcast story episodes (derived from enclosures)
@@ -3863,6 +4216,17 @@ CREATE TABLE podcast_episodes (
     speech_operation_id     TEXT        NULL
 
 );
+
+COMMENT ON TABLE podcast_episodes IS 'Podcast story episodes (derived from enclosures)';
+COMMENT ON COLUMN podcast_episodes.story_enclosures_id IS 'Enclosure that is considered 
+to point to a podcast episode';
+COMMENT ON COLUMN podcast_episodes.gcs_uri IS 'Google Cloud Storage URI where object is located';
+COMMENT ON COLUMN podcast_episodes.duration IS 'seconds';
+COMMENT ON COLUMN podcast_episodes.sample_rate IS 'Audio sample rate (Hz) as determined by transcoder';
+COMMENT ON COLUMN podcast_episodes.bcp47_language_code IS 'BCP 47 language identifier 
+(https://cloud.google.com/speech-to-text/docs/languages)';
+COMMENT ON COLUMN podcast_episodes.speech_operation_id IS 'Speech API operation ID to be used for 
+retrieving transcription; if NULL, transcription job has not been submitted yet';
 
 -- Only one episode per story
 CREATE UNIQUE INDEX podcast_episodes_stories_id
@@ -3953,6 +4317,9 @@ CREATE TABLE celery_groups (
     result      BYTEA                       NULL,
     date_done   TIMESTAMP WITHOUT TIME ZONE NULL
 );
+
+COMMENT ON TABLE celery_groups IS 'Celery job results (configured as self.__app.conf.database_table_names; 
+schema is dictated by Celery + SQLAlchemy)';
 
 CREATE TABLE celery_tasks (
     id          BIGINT                      NOT NULL    PRIMARY KEY,
