@@ -114,15 +114,15 @@ def _get_api_key() -> str:
 
     try:
         _get_api_key.api_key = data['access_token']
-    except:
-        raise McPostsBWTwitterDataException("error parsing ouath response: '%s'" % json)
+    except Exception as ex:
+        raise McPostsBWTwitterDataException("error parsing oauth response: '%s'" % data)
 
     return _get_api_key.api_key
 
 
 class BrandwatchTwitterPostFetcher(AbstractPostFetcher):
 
-    def _fetch_posts_from_api_single_page(self, query: str, start_date: datetime, end_date: datetime, next_cursor: str) -> str:
+    def _fetch_posts_from_api_single_page(self, query: str, start_date: datetime, end_date: datetime, next_cursor: str) -> dict:
         """Fetch the posts data from thw ch api and return the http response content."""
         try:
             (project_id, query_id) = query.split('-')
@@ -159,7 +159,7 @@ class BrandwatchTwitterPostFetcher(AbstractPostFetcher):
         data = dict(response.decoded_json())
 
         if 'results' not in data:
-            raise McPostsBWTwitterDataException("error parsing response: " + json)
+            raise McPostsBWTwitterDataException(f"error parsing response: {data}")
 
         return data
 
