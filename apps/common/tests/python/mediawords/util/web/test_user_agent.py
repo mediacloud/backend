@@ -480,7 +480,7 @@ class TestUserAgentTestCase(TestCase):
     def test_get_big_file_no_charset(self):
         """Big file, no charset set."""
 
-        test_content_length = 1024 * 1024 * 100  # 100 MB
+        test_content_length = 1024 * 1024 * 10
         test_content = b"\xfe" * test_content_length
 
         pages = {
