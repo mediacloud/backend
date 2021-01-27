@@ -1,5 +1,5 @@
 # Python 3 compatible version of Google's re2 library (requires libre2-dev system package)
--e git+https://github.com/andreasvc/pyre2.git@v0.3.2#egg=re2
+git+https://github.com/andreasvc/pyre2.git@v0.3.2#egg=pyre2
 
 # Mocking tweepy responses
 requests_mock==1.8.0
