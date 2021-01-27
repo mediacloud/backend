@@ -45,11 +45,19 @@ class PostgresPostFetcher(AbstractPostFetcher):
 
         return table
 
-    def fetch_posts_from_api(self, query: str, start_date: datetime, end_date: datetime, sample: Optional[int] = None) -> list:
+    def fetch_posts_from_api(
+        self,
+        query: str,
+        start_date: datetime,
+        end_date: datetime,
+        sample: Optional[int] = None,
+        page_size: Optional[int] = None,
+    ) -> list:
         """Return posts from a csv that are within the given date range."""
         db = mediawords.db.connect_to_db()
 
         assert sample is None, "Sampling is not implemented."
+        assert page_size is None, "Page size limiting is not supported."
 
         if self.mock_enabled:
             query = self._insert_mock_data(db, get_mock_data())

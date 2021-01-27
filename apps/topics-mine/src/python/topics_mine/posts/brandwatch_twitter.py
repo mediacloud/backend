@@ -23,8 +23,6 @@ from topics_mine.posts.twitter.helpers import add_tweets_to_meta_tweets, get_twe
 
 log = create_logger(__name__)
 
-"""number of posts to fetch at a time from brandwatch"""
-PAGE_SIZE=5000
 
 class McPostsBWTwitterQueryException(Exception):
     """exception indicating an error in the query sent to this module."""
@@ -123,8 +121,11 @@ def _get_api_key() -> str:
 
 class BrandwatchTwitterPostFetcher(AbstractPostFetcher):
 
-    def _fetch_posts_from_api_single_page(self, query: str, start_date: datetime, end_date: datetime, next_cursor: str) -> dict:
+    def _fetch_posts_from_api_single_page(self, query: str, start_date: datetime, end_date: datetime, next_cursor: str, page_size: int) -> dict:
         """Fetch the posts data from thw ch api and return the http response content."""
+
+        assert page_size is not None
+
         try:
             (project_id, query_id) = query.split('-')
             project_id = int(project_id)
@@ -153,7 +154,7 @@ class BrandwatchTwitterPostFetcher(AbstractPostFetcher):
         url = (
             f"https://api.brandwatch.com/projects/{project_id}/data/mentions?"
             f"queryId={query_id}&startDate={start_arg}&endDate={end_arg}&"
-            f"pageSize={PAGE_SIZE}&orderBy=date&orderDirection=asc&"
+            f"pageSize={page_size}&orderBy=date&orderDirection=asc&"
             f"access_token={api_key}&cursor={cursor}")
 
         log.debug("brandwatch url: " + url)
@@ -179,12 +180,23 @@ class BrandwatchTwitterPostFetcher(AbstractPostFetcher):
         start_date: datetime,
         end_date: datetime,
         sample: Optional[int] = None,
+        page_size: Optional[int] = None,
     ) -> list:
         """Fetch day of tweets from crimson hexagon and twitter."""
+
+        if page_size is None:
+            page_size = 5000
+
         meta_tweets = []
         next_cursor = None
         while True:
-            data = self._fetch_posts_from_api_single_page(query, start_date, end_date, next_cursor)
+            data = self._fetch_posts_from_api_single_page(
+                query=query,
+                start_date=start_date,
+                end_date=end_date,
+                next_cursor=next_cursor,
+                page_size=page_size,
+            )
             meta_tweets = meta_tweets + data['results']
             log.debug(f"Sample: {sample}; meta_tweets: {len(meta_tweets)}")
 
