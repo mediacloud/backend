@@ -4,14 +4,6 @@
 
 FROM dockermediacloud/topics-base:latest
 
-# Install dependencies
-RUN \
-    #
-    /dl_to_stdout.sh https://raw.githubusercontent.com/jarun/googler/v4.0/googler > /usr/local/bin/googler && \
-    chmod +x /usr/local/bin/googler && \
-    #
-    true
-
 # Install Perl dependencies
 COPY src/cpanfile /var/tmp/
 RUN \

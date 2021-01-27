@@ -80,15 +80,3 @@ def test_pushshift_reddit() -> None:
             day='2020-01-01',
             min_posts=1000,
         )
-
-
-def test_googler_web() -> None:
-    run_single_platform_test(
-            source='google',
-            platform='web',
-            query='trump',
-            pattern='trump',
-            day='2020-01-01',
-            min_posts=25,
-            max_posts=100
-        )
