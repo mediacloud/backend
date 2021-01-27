@@ -132,7 +132,7 @@ class BrandwatchTwitterPostFetcher(AbstractPostFetcher):
             raise McPostsBWTwitterQueryException(
                 f"Unable to parse query '{query}', should be in 123-456, where 123 is project id and 456 is query id.")
 
-        log.debug((
+        log.info((
             f"brandwatch_twitter.fetch_posts: "
             f"query={query} "
             f"start_date={start_date} "
@@ -167,7 +167,7 @@ class BrandwatchTwitterPostFetcher(AbstractPostFetcher):
         if 'results' not in data:
             raise McPostsBWTwitterDataException(f"error parsing response: {data}")
 
-        log.debug(f"Brandwatch API returned {len(data['results'])} rows")
+        log.info(f"Brandwatch API returned {len(data['results'])} rows")
 
         return data
 
