@@ -524,7 +524,7 @@ create table stories (
 );
 
 COMMENT ON TABLE stories IS 'stories (news articles)';
-COMMENT ON COLUMN stories.languages IS '2- or 3-character ISO 690 
+COMMENT ON COLUMN stories.language IS '2- or 3-character ISO 690 
 language code; empty if unknown, NULL if unset';
 
 create index stories_media_id on stories (media_id);
@@ -1259,7 +1259,7 @@ CREATE TRIGGER raw_downloads_test_referenced_download_trigger
     FOR EACH ROW
     EXECUTE PROCEDURE test_referenced_download_trigger('object_id');
 
-COMMENT ON COLUMN raw_downlaods.raw_data IS 'Do not attempt to compress BLOBs in 
+COMMENT ON COLUMN raw_downloads.raw_data IS 'Do not attempt to compress BLOBs in 
 "raw_data" because they are going to becompressed already';
 
 --
@@ -1278,8 +1278,8 @@ CREATE TABLE feeds_stories_map_p (
 
 COMMENT ON TABLE feeds_stories_map_p IS '"Master" table (no indexes, no foreign keys as 
 they will be ineffective)';
-COMMENT ON COLUMN feeds_stories_map_p.feeds_stories_map_p_id IS "PRIMARY KEY on master table 
-needed for database handler's primary_key_column() method to work";
+COMMENT ON COLUMN feeds_stories_map_p.feeds_stories_map_p_id IS 'PRIMARY KEY on master table 
+needed for database handler primary_key_column() method to work';
 
 -- Note: "INSERT ... RETURNING *" doesn't work with the trigger, please use
 -- "feeds_stories_map" view instead
@@ -1439,8 +1439,8 @@ CREATE TABLE stories_tags_map_p (
 
 COMMENT ON TABLE stories_tags_map_p IS '"Master" table (no indexes, 
 no foreign keys as they will be ineffective)';
-COMMENT ON COLUMN stories_tags_map_p.stories_tags_map_p_id IS "PRIMARY KEY on 
-master table needed for database handler's primary_key_column() method to work";
+COMMENT ON COLUMN stories_tags_map_p.stories_tags_map_p_id IS 'PRIMARY KEY on 
+master table needed for database handler primary_key_column() method to work';
 
 -- Create missing "stories_tags_map" partitions
 CREATE OR REPLACE FUNCTION stories_tags_map_create_partitions()
@@ -2080,8 +2080,8 @@ create table topics (
     only_snapshot_engaged_stories   boolean not null default false
 );
 
-COMMENT ON COLUMN topics.respider_stories IS "if true, the topic_stories 
-associated with this topic wilbe set to link_mined = 'f' on the next mining job";
+COMMENT ON COLUMN topics.respider_stories IS 'if true, the topic_stories 
+associated with this topic wilbe set to link_mined = "f" on the next mining job';
 COMMENT ON COLUMN topics.snapshot_periods IS 'space-separated list of periods to snapshot';
 COMMENT ON COLUMN topics.platform IS 'platform that topic is analyzing';
 COMMENT ON COLUMN topics.mode IS 'mode of analysis';
@@ -2523,8 +2523,8 @@ COMMENT ON TABLE snap.story_links IS 'story -> story links within a timespan';
 -- TODO: add complex foreign key to check that *_stories_id exist for the snapshot stories snapshot
 create index story_links_source on snap.story_links( timespans_id, source_stories_id );
 
-COMMENT ON INDEX story_links_source IS 'TODO: add complex foreign key to check that 
-*_stories_id exist for the snapshot stories snapshot'
+COMMENT ON INDEX snap.story_links_source IS 'TODO: add complex foreign key to check that 
+*_stories_id exist for the snapshot stories snapshot';
 
 create index story_links_ref on snap.story_links( timespans_id, ref_stories_id );
 
@@ -2549,7 +2549,7 @@ COMMENT ON TABLE snap.story_link_counts IS 'link counts for stories within a tim
 -- TODO: add complex foreign key to check that stories_id exists for the snapshot stories snapshot
 create index story_link_counts_ts on snap.story_link_counts ( timespans_id, stories_id );
 
-COMMENT ON INDEX story_link_counts_ts IS 'TODO: add complex foreign key to check that stories_id 
+COMMENT ON INDEX snap.story_link_counts_ts IS 'TODO: add complex foreign key to check that stories_id 
 exists for the snapshot stories snapshot';
 
 create index story_link_counts_story on snap.story_link_counts ( stories_id );
@@ -2581,7 +2581,7 @@ COMMENT ON TABLE snap.medium_link_counts IS 'links counts for media within a tim
 -- TODO: add complex foreign key to check that media_id exists for the snapshot media snapshot
 create index medium_link_counts_medium on snap.medium_link_counts ( timespans_id, media_id );
 
-COMMENT ON INDEX medium_link_counts_medium IS 'TODO: add complex foreign key 
+COMMENT ON INDEX snap.medium_link_counts_medium IS 'TODO: add complex foreign key 
 to check that media_id exists for the snapshot media snapshot';
 
 create index medium_link_counts_fb on snap.medium_link_counts ( timespans_id, facebook_share_count desc nulls last);
@@ -2600,7 +2600,7 @@ create table snap.medium_links (
 -- TODO: add complex foreign key to check that *_media_id exist for the snapshot media snapshot
 create index medium_links_source on snap.medium_links( timespans_id, source_media_id );
 
-COMMENT ON INDEX medium_links_source IS 'TODO: add complex foreign key to check that 
+COMMENT ON INDEX snap.medium_links_source IS 'TODO: add complex foreign key to check that 
 *_media_id exist for the snapshot media snapshot';
 
 create index medium_links_ref on snap.medium_links( timespans_id, ref_media_id );
@@ -2698,7 +2698,7 @@ CREATE TABLE snap.word2vec_models (
 -- We'll need to find the latest word2vec model
 CREATE INDEX snap_word2vec_models_object_id_creation_date ON snap.word2vec_models (object_id, creation_date);
 
-COMMENT ON INDEX snap_word2vec_models_object_id_creation_date IS 'We need to find the latest word2vec model';
+COMMENT ON INDEX snap.snap_word2vec_models_object_id_creation_date IS 'We need to find the latest word2vec model';
 
 CREATE TABLE snap.word2vec_models_data (
     word2vec_models_data_id SERIAL      PRIMARY KEY,
@@ -2715,7 +2715,7 @@ ALTER TABLE snap.word2vec_models_data
     ALTER COLUMN raw_data SET STORAGE EXTERNAL;
 
 COMMENT ON TABLE snap.word2vec_models_data IS 'Do not (attempt to) compress BLOBs in "raw_data" because 
-they are going to be compressed already'
+they are going to be compressed already';
 
 create table processed_stories (
     processed_stories_id        bigserial          primary key,
@@ -2836,11 +2836,11 @@ CREATE TABLE auth_users (
     has_consented                       BOOLEAN NOT NULL DEFAULT false
 );
 
-COMMENT ON TABLE auth_users.email IS 'Emails are case-insensitive';
-COMMENT ON TABLE auth_users.password_hash IS 'salted hash of a password';
-COMMENT ON TABLE auth_users.password_reset_token_hash IS "Salted hash of a 
-password reset token (with Crypt::SaltedHash, algorithm => 'SHA-256', salt_len=>64) or NULL";
-COMMENT ON TABLE auth_users.has_consented IS 'Whether user has consented to the privacy policy';
+COMMENT ON COLUMN auth_users.email IS 'Emails are case-insensitive';
+COMMENT ON COLUMN auth_users.password_hash IS 'salted hash of a password';
+COMMENT ON COLUMN auth_users.password_reset_token_hash IS 'Salted hash of a 
+password reset token (with Crypt::SaltedHash, algorithm => "SHA-256", salt_len=>64) or NULL';
+COMMENT ON COLUMN auth_users.has_consented IS 'Whether user has consented to the privacy policy';
 
 -- Used by daily stats script
 CREATE INDEX auth_users_created_day ON auth_users (date_trunc('day', created_date));
@@ -2980,8 +2980,8 @@ CREATE TABLE auth_user_limits (
 );
 
 COMMENT ON TABLE auth_user_limits IS 'User limits for logged + throttled controller actions';
-COMMENT ON COLUMN auth_user_limits.weekly_requests_limit IS "Request limit (0 or belonging to 
-'admin'/'admin-readonly' group = no limit)";
+COMMENT ON COLUMN auth_user_limits.weekly_requests_limit IS 'Request limit (0 or belonging to 
+"admin"/"admin-readonly" group = no limit)';
 
 CREATE UNIQUE INDEX auth_user_limits_auth_users_id ON auth_user_limits (auth_users_id);
 
@@ -3811,7 +3811,7 @@ BEGIN
 END;
 $$ LANGUAGE 'plpgsql';
 
-COMMENT ON FUNCTION ache.update_cache_db_row_last_updated () IS 'Trigger 
+COMMENT ON FUNCTION cache.update_cache_db_row_last_updated () IS 'Trigger 
 to update "db_row_last_updated" for cache tables';
 
 -- Helper to purge object caches
@@ -3892,7 +3892,7 @@ CREATE UNLOGGED TABLE cache.extractor_results_cache (
 
 COMMENT ON TABLE cache.extractor_results_cache IS 'Cached extractor results for 
 extraction jobs with use_cache set to true';
-COMMENT ON TABLE cache.extractor_results_cache.db_row_last_updated IS 'Will be used to purge old cache objects; 
+COMMENT ON COLUMN cache.extractor_results_cache.db_row_last_updated IS 'Will be used to purge old cache objects; 
 do not forget to update cache.purge_object_caches()';
 
 CREATE UNIQUE INDEX extractor_results_cache_downloads_id
@@ -4151,7 +4151,7 @@ CREATE TABLE story_enclosures (
     length                  BIGINT      NULL
 );
 
-COMMENT ON TABLE story_enclosures IS "Enclosures added to the story's feed item";
+COMMENT ON TABLE story_enclosures IS 'Enclosures added to feed item of the story';
 
 CREATE UNIQUE INDEX story_enclosures_stories_id_url
     ON story_enclosures (stories_id, url);

@@ -231,14 +231,9 @@ Without the SQL schema dialect and data source configuration, PyCharm will compl
 
 To configure SQL schema dialect and data source:
 
-1. Symlink `apps/postgresql-server/schema/mediawords.sql` to `.idea/` directory:
+1. To generate the latest version of the schema, navigate to the project root in your terminal and run `./dev/get_schema.sh`.
 
-      ```bash
-      cd apps/your_app/.idea/
-      ln -s ../../postgresql-server/schema/mediawords.sql .
-      ```
-
-2. Go to *Languages & Frameworks* -> *SQL Dialects*, set the *Project SQL Dialect:* to *PostgreSQL* and click *OK*:
+2. In PyCharm, go to *Languages & Frameworks* -> *SQL Dialects*, set the *Project SQL Dialect:* to *PostgreSQL* and click *OK*:
 
    ![](https://github.com/mediacloud/backend-docs-images/raw/master/docker-pycharm/schema-02-dialect-project.png)
 
@@ -250,7 +245,7 @@ To configure SQL schema dialect and data source:
 
    ![](https://github.com/mediacloud/backend-docs-images/raw/master/docker-pycharm/schema-04-data-source-ddl.png)
 
-5. Leave the default value of the *Name:* field intact and under *DDL Files*, add a `mediawords.sql` file located in `.idea/` directory (you might need to click on *Show Hidden Files and Directories* button first) and click *OK*:
+5. Leave the default value of the *Name:* field intact and under *DDL Files*, add the `mediawords.sql` file (located in `postgresql-server/schema`) and click *OK*:
 
    ![](https://github.com/mediacloud/backend-docs-images/raw/master/docker-pycharm/schema-05-data-source-mediawords.png)
 
