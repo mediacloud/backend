@@ -50,7 +50,7 @@ jobs:
           docker version
           docker-compose version
 
-      - name: Log in to Docker Hub
+      - name: Log in to container registry
         run: echo "${DOCKER_GCR_SERVICE_ACCOUNT}" | docker login -u _json_key --password-stdin https://gcr.io
         env:
           DOCKER_GCR_SERVICE_ACCOUNT: ${{ secrets.DOCKER_GCR_SERVICE_ACCOUNT }}
@@ -125,7 +125,7 @@ jobs:
           docker version
           docker-compose version
 
-      - name: Log in to Docker Hub
+      - name: Log in to container registry
         run: echo "${DOCKER_GCR_SERVICE_ACCOUNT}" | docker login -u _json_key --password-stdin https://gcr.io
         env:
           DOCKER_GCR_SERVICE_ACCOUNT: ${{ secrets.DOCKER_GCR_SERVICE_ACCOUNT }}

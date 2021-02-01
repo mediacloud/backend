@@ -24,7 +24,7 @@ from utils import (
     container_dir_name_from_image_name,
     docker_images,
     docker_tag_from_current_git_branch_name,
-    DockerHubPruneArgumentParser,
+    CRPruneArgumentParser,
 )
 
 
@@ -82,7 +82,7 @@ def _docker_images_to_build(all_apps_dir: str) -> List[DockerImageToBuild]:
 
 if __name__ == '__main__':
 
-    parser = DockerHubPruneArgumentParser(description='Print commands to build all container images.')
+    parser = CRPruneArgumentParser(description='Print commands to build all container images.')
     args = parser.parse_arguments()
 
     image_tag = docker_tag_from_current_git_branch_name()

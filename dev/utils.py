@@ -14,7 +14,7 @@ try:
 except ModuleNotFoundError:
     raise ImportError("Please install PyYAML.")
 
-DOCKERHUB_USER = 'gcr.io/mcback'
+REPO_URI = 'gcr.io/mcback'
 
 
 class InvalidDockerComposeYMLException(Exception):
@@ -55,7 +55,7 @@ def _image_name_from_container_name(container_name: str) -> str:
         raise ValueError("Container name is invalid: {}".format(container_name))
 
     return '{username}/{container_name}'.format(
-        username=DOCKERHUB_USER,
+        username=REPO_URI,
         container_name=container_name,
     )
 
@@ -69,9 +69,9 @@ def container_dir_name_from_image_name(image_name: str) -> str:
     """
     container_name = image_name
 
-    expected_prefix = DOCKERHUB_USER + '/'
+    expected_prefix = REPO_URI + '/'
     if not container_name.startswith(expected_prefix):
-        raise ValueError("Image name '{}' is expected to start with '{}/'.".format(image_name, DOCKERHUB_USER))
+        raise ValueError("Image name '{}' is expected to start with '{}/'.".format(image_name, REPO_URI))
     container_name = container_name[len(expected_prefix):]
 
     # Remove version
@@ -102,7 +102,7 @@ def _docker_parent_image_name(dockerfile_path: str) -> str:
                 assert parent_image, "Parent image should be set at this point."
 
                 # Remove version tag if it's one of our own images
-                if parent_image.startswith(DOCKERHUB_USER + '/'):
+                if parent_image.startswith(REPO_URI + '/'):
                     parent_image = re.sub(r':(.+?)$', '', parent_image)
 
                 return parent_image
@@ -112,12 +112,12 @@ def _docker_parent_image_name(dockerfile_path: str) -> str:
 
 def _image_belongs_to_username(image_name: str) -> bool:
     """
-    Determine whether an image is hosted under a given Docker Hub username and thus has to be built.
+    Determine whether an image is hosted under a given container registry and thus has to be built.
 
     :param image_name: Image name (with username, prefix and version).
-    :return: True if image is to be hosted on a Docker Hub account pointed to in configuration.
+    :return: True if image is to be hosted on a container registry account pointed to in configuration.
     """
-    return image_name.startswith(DOCKERHUB_USER + '/')
+    return image_name.startswith(REPO_URI + '/')
 
 
 def _container_dependency_map(all_apps_dir: str) -> Dict[str, str]:
@@ -408,9 +408,9 @@ class DockerComposeArgumentParser(DockerArgumentParser):
         return DockerComposeArguments(self._parser.parse_args())
 
 
-class DockerHubPruneArguments(DockerArguments):
+class CRPruneArguments(DockerArguments):
     """
-    Arguments that include Docker Hub credentials and whether to prune images.
+    Arguments that include container registry credentials and whether to prune images.
     """
 
     def prune_images(self) -> bool:
@@ -422,8 +422,8 @@ class DockerHubPruneArguments(DockerArguments):
         return self._args.prune_images
 
 
-class DockerHubPruneArgumentParser(DockerArgumentParser):
-    """Argument parser which requires Docker Hub credentials and allows users to prune images."""
+class CRPruneArgumentParser(DockerArgumentParser):
+    """Argument parser which requires container registry credentials and allows users to prune images."""
 
     def __init__(self, description: str):
         """
@@ -436,10 +436,10 @@ class DockerHubPruneArgumentParser(DockerArgumentParser):
         self._parser.add_argument('-r', '--prune_images', action='store_true',
                                   help='Prune images after pulling / building to clean up disk space immediately.')
 
-    def parse_arguments(self) -> DockerHubPruneArguments:
+    def parse_arguments(self) -> CRPruneArguments:
         """
         Parse arguments and return an object with parsed arguments.
 
-        :return: DockerHubPruneArguments object.
+        :return: CRPruneArguments object.
         """
-        return DockerHubPruneArguments(self._parser.parse_args())
+        return CRPruneArguments(self._parser.parse_args())

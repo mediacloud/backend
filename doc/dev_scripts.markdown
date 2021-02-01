@@ -101,11 +101,11 @@ $ ./dev/build.py -p | grep solr-shard | bash -e
 
 ## `push.py` - push images
 
-Push all local images tagged with the current Git branch name to Docker Hub.
+Push all local images tagged with the current Git branch name to container repository.
 
 ### Usage
 
-To push every container image tagged with current Git branch name to Docker Hub, run:
+To push every container image tagged with current Git branch name to container repository, run:
 
 ```bash
 $ ./dev/push.py
