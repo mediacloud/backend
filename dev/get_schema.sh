@@ -1,6 +1,7 @@
 #!/bin/bash
 #
-# Generate latest schema file for reference in development
+# Generate latest schema file for reference in development 
+# To be run from project root (so, './dev/get_schema.sh')
 #
 
 set -u
