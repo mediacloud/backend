@@ -52,10 +52,3 @@
     ```
 
 9. Copy the resulting file into GitHub project secret under `DOCKER_GCR_SERVICE_ACCOUNT` name.
-
-
-10. To log in to GCR in the CI build, run:
-
-    ```shell
-    echo "${DOCKER_GCR_SERVICE_ACCOUNT}" | docker login -u _json_key --password-stdin https://gcr.io
-    ```
