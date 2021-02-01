@@ -2,9 +2,9 @@
 
 ## Host machine requirements
 
-* **Ubuntu 16.04+, macOS**, or Windows (the latter is untested and might not work at all).
+* **Ubuntu 20.04+, macOS**, or Windows (the latter is untested and might not work at all).
 
-  Media Cloud is tested on works on Ubuntu 16.04 and 18.04. Older Ubuntu versions, e.g. 14.04, might also work but you will most likely encounter various caching discrepancies due to an older Linux kernel version used by 14.04.
+  Media Cloud is tested on works on Ubuntu 20.04. Older Ubuntu versions, e.g. 16.04, might also work but you will most likely encounter various caching discrepancies due to an older Linux kernel version used by 16.04.
 
   Other Linux distributions, e.g. CentOS, should work fine but running Media Cloud on them is not supported. Windows hosts should technically work as well, but you're absolutely at your own here.
 

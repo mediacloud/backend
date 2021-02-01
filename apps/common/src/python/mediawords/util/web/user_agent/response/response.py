@@ -9,6 +9,7 @@ import requests
 
 from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_object_from_bytes_if_needed
+from mediawords.util.parse_json import decode_json
 from mediawords.util.web.user_agent.request.request import Request
 
 log = create_logger(__name__)
@@ -199,6 +200,16 @@ class Response(object):
         """Return content in UTF-8 content while assuming that the raw data is in UTF-8."""
         # FIXME how do we do this?
         return self.decoded_content()
+
+    def decoded_json(self) -> Union[dict, list]:
+        """Return content as JSON object(s) assuming it's formatted appropriately"""
+        if self.content_type() and 'json' not in self.content_type():
+            log.warning(F"Content-Type header ({self.content_type()}) is not json for {self.__requests_response.url}")
+        try:
+            return decode_json(self.decoded_content())
+        except Exception as ex:
+            raise McUserAgentResponseException(F"Response from {self.__requests_response.url} not parseable to JSON: "
+                                               F"{str(ex)}")
 
     def status_line(self) -> str:
         """Return HTTP status line, e.g. "200 OK" or "418"."""

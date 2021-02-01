@@ -15,12 +15,12 @@ class TestUtils(TestCase):
             'extract-and-vector': 'common',
             'crawler': 'common',
             'common': 'base',
-            'base': 'ubuntu:16.04',
+            'base': 'ubuntu:20.04',
             'nytlabels-annotator': 'base',
             'some-other-container': 'alpine:3.9',
         }
         expected_tree = [
-            {'alpine:3.9', 'ubuntu:16.04'},
+            {'alpine:3.9', 'ubuntu:20.04'},
             {'base', 'some-other-container'},
             {'common', 'nytlabels-annotator'},
             {'crawler', 'extract-and-vector'},

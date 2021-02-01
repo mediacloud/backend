@@ -20,7 +20,7 @@ RUN \
     # Upgrade IO::Socket::SSL to be able to connect to servers using newer TLS protocols (api.mediacloud.org)
     apt-get -y --no-install-recommends install build-essential && \
     apt-get -y --no-install-recommends install libssl-dev && \
-    curl -fsSL --compressed https://raw.githubusercontent.com/skaji/cpm/0.988/cpm > /usr/bin/cpm && \
+    /dl_to_stdout.sh https://raw.githubusercontent.com/skaji/cpm/0.988/cpm > /usr/bin/cpm && \
     chmod +x /usr/bin/cpm && \
     cpm install --global --no-prebuilt IO::Socket::SSL@2.066 && \
     rm -rf /root/.perl-cpm/ && \

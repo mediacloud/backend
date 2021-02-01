@@ -13,7 +13,7 @@ from furl import furl
 from mediawords.test.hash_server import HashServer
 from mediawords.util.compress import gzip, gunzip
 from mediawords.util.config.common import UserAgentConfig, AuthenticatedDomain
-from mediawords.util.parse_json import encode_json, decode_json
+from mediawords.util.parse_json import encode_json
 from mediawords.util.log import create_logger
 from mediawords.util.network import random_unused_port
 from mediawords.util.text import random_string
@@ -25,6 +25,7 @@ from mediawords.util.web.user_agent import (
     McParallelGetException,
 )
 from mediawords.util.web.user_agent.request.request import Request, McUserAgentRequestException
+from mediawords.util.web.user_agent.response.response import McUserAgentResponseException
 
 log = create_logger(__name__)
 
@@ -146,7 +147,7 @@ class TestUserAgentTestCase(TestCase):
         expected_user_agent = 'mediacloud bot for open academic research (http://mediacloud.org)'
         expected_from = 'info@mediacloud.org'
 
-        decoded_json = decode_json(response.decoded_content())
+        decoded_json = response.decoded_json()
         assert decoded_json == {
             'user-agent': expected_user_agent,
             'from': expected_from,
@@ -363,8 +364,8 @@ class TestUserAgentTestCase(TestCase):
             '/valid-non-utf-8-no-charset': {
 
                 # Let's see if UA manages to guess the encoding
-                'header': 'Content-Type: application/json',
-                'content': b"{'text': '\xca\xb1\xd5\xfe\x2d\x2d\xc8\xcb\xc3\xf1\xcd\xf8'}",
+                'header': 'Content-Type: text/plain',
+                'content': b"\xca\xb1\xd5\xfe\x2d\x2d\xc8\xcb\xc3\xf1\xcd\xf8",
             },
         }
 
@@ -379,7 +380,7 @@ class TestUserAgentTestCase(TestCase):
 
         assert response.is_success() is True
         assert urls_are_equal(url1=response.request().url(), url2=test_url)
-        assert response.decoded_content() == "{'text': '时政--人民网'}"
+        assert response.decoded_content() == "时政--人民网"
 
     def test_get_non_utf8_invalid_charset(self):
         """Non-UTF-8 content with invalid encoding."""
@@ -416,10 +417,70 @@ class TestUserAgentTestCase(TestCase):
         assert response.is_success() is True
         assert urls_are_equal(url1=response.request().url(), url2=test_url)
 
+    def test_decode_json(self):
+        """Return JSON-formatted response as JSON object"""
+
+        pages = {
+            '/some-json': {
+                'header': 'Content-Type: application/json;',
+                'content': b"""
+                {\n  "mediacloud.org": "cool",\n  "best_website": true,\n  "eager_job_applicant": "james"\n}
+                """,
+            },
+        }
+
+        hs = HashServer(port=self.__test_port, pages=pages)
+        hs.start()
+
+        ua = UserAgent()
+
+        test_url = F'{self.__test_url}/some-json'
+        response = ua.get(test_url)
+
+        hs.stop()
+
+        expected = {'mediacloud.org': 'cool', 'best_website': True, 'eager_job_applicant': 'james'}
+
+        assert response.decoded_json() == expected
+
+    def test_bad_decode_json_attempt(self):
+        """Throw appropriate error when response.decoded_json() is called on non-json"""
+
+        test_content = b"""
+                <html>
+                <head>
+                    <title>Definitely not JSON</title>
+                </head>
+                <body>
+                    <p>sorry</p>
+                </body>
+                </html>
+                """
+
+        pages = {
+            '/not-json': {
+                'header': 'Content-Type: text/html;',
+                'content': test_content,
+            },
+        }
+
+        hs = HashServer(port=self.__test_port, pages=pages)
+        hs.start()
+
+        ua = UserAgent()
+
+        test_url = F'{self.__test_url}/not-json'
+        response = ua.get(test_url)
+
+        hs.stop()
+
+        with pytest.raises(McUserAgentResponseException):
+            response.decoded_json()
+
     def test_get_big_file_no_charset(self):
         """Big file, no charset set."""
 
-        test_content_length = 1024 * 1024 * 100  # 100 MB
+        test_content_length = 1024 * 1024 * 10
         test_content = b"\xfe" * test_content_length
 
         pages = {
@@ -618,7 +679,7 @@ class TestUserAgentTestCase(TestCase):
         assert response.is_success() is True
         assert urls_are_equal(url1=response.request().url(), url2=test_url)
 
-        decoded_json = decode_json(response.decoded_content())
+        decoded_json = response.decoded_json()
         assert decoded_json == {
             'custom-header': 'foo',
             'empty-header': '',
@@ -1307,7 +1368,7 @@ class TestUserAgentTestCase(TestCase):
 
         assert response.is_success() is False
         assert urls_are_equal(url1=response.request().url(), url2='%s/first' % self.__test_url)
-        assert "encoding with 'idna' codec failed" in response.decoded_content()
+        assert "Failed to parse:" in response.decoded_content()
 
     def test_parallel_get(self):
         """parallel_get()."""
@@ -1600,7 +1661,7 @@ class TestUserAgentTestCase(TestCase):
         assert response.is_success() is True
         assert urls_are_equal(url1=response.request().url(), url2=test_url)
 
-        decoded_json = decode_json(response.decoded_content())
+        decoded_json = response.decoded_json()
         assert decoded_json == {
             'method': 'POST',
             'content-type': 'application/x-www-form-urlencoded; charset=utf-8',
@@ -1623,7 +1684,7 @@ class TestUserAgentTestCase(TestCase):
         assert response.is_success() is True
         assert urls_are_equal(url1=response.request().url(), url2=test_url)
 
-        decoded_json = decode_json(response.decoded_content())
+        decoded_json = response.decoded_json()
         assert decoded_json == {
             'method': 'POST',
             'content-type': 'application/x-www-form-urlencoded; charset=utf-8',

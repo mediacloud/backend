@@ -69,5 +69,6 @@ class TestSolr(TestCase):
         assert [story['stories_id']] == got_stories_ids, "search_solr_for_stories_ids()"
 
     def test_range_queries(self):
-        with pytest.raises(McQuerySolrRangeQueryException, message="Range queries should not be allowed"):
+        # Range queries should not be allowed
+        with pytest.raises(McQuerySolrRangeQueryException):
             query_solr(db=self.DB, params={'q': "publish_date:[foo TO bar]"})

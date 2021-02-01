@@ -4,11 +4,12 @@ import datetime
 import dateutil
 import re
 from urllib.parse import parse_qs, urlparse, quote
+from typing import Optional
 
 import requests_mock
 
 from mediawords.util.config import env_value
-from mediawords.util.parse_json import decode_json, encode_json
+from mediawords.util.parse_json import encode_json
 from mediawords.util.web.user_agent import UserAgent
 from mediawords.util.web.user_agent.request.request import Request
 from mediawords.util.log import create_logger
@@ -22,8 +23,6 @@ from topics_mine.posts.twitter.helpers import add_tweets_to_meta_tweets, get_twe
 
 log = create_logger(__name__)
 
-"""number of posts to fetch at a time from brandwatch"""
-PAGE_SIZE=5000
 
 class McPostsBWTwitterQueryException(Exception):
     """exception indicating an error in the query sent to this module."""
@@ -110,22 +109,23 @@ def _get_api_key() -> str:
     if not response.is_success():
         raise McPostsBWTwitterDataException("error fetching posts: " + response.decoded_content())
 
-    json = response.decoded_content()
-
-    data = dict(decode_json(json))
+    data = dict(response.decoded_json())
 
     try:
         _get_api_key.api_key = data['access_token']
-    except:
-        raise McPostsBWTwitterDataException("error parsing ouath response: '%s'" % json)
+    except Exception as ex:
+        raise McPostsBWTwitterDataException("error parsing oauth response: '%s'" % data)
 
     return _get_api_key.api_key
 
 
 class BrandwatchTwitterPostFetcher(AbstractPostFetcher):
 
-    def _fetch_posts_from_api_single_page(self, query: str, start_date: datetime, end_date: datetime, next_cursor: str) -> str:
+    def _fetch_posts_from_api_single_page(self, query: str, start_date: datetime, end_date: datetime, next_cursor: str, page_size: int) -> dict:
         """Fetch the posts data from thw ch api and return the http response content."""
+
+        assert page_size is not None
+
         try:
             (project_id, query_id) = query.split('-')
             project_id = int(project_id)
@@ -134,7 +134,13 @@ class BrandwatchTwitterPostFetcher(AbstractPostFetcher):
             raise McPostsBWTwitterQueryException(
                 f"Unable to parse query '{query}', should be in 123-456, where 123 is project id and 456 is query id.")
 
-        log.debug("brandwatch_twitter.fetch_posts")
+        log.info((
+            f"brandwatch_twitter.fetch_posts: "
+            f"query={query} "
+            f"start_date={start_date} "
+            f"end_date={end_date} "
+            f"next_cursor={next_cursor}"
+        ))
 
         ua = _get_user_agent()
 
@@ -148,7 +154,7 @@ class BrandwatchTwitterPostFetcher(AbstractPostFetcher):
         url = (
             f"https://api.brandwatch.com/projects/{project_id}/data/mentions?"
             f"queryId={query_id}&startDate={start_arg}&endDate={end_arg}&"
-            f"pageSize={PAGE_SIZE}&orderBy=date&orderDirection=asc&"
+            f"pageSize={page_size}&orderBy=date&orderDirection=asc&"
             f"access_token={api_key}&cursor={cursor}")
 
         log.debug("brandwatch url: " + url)
@@ -158,27 +164,46 @@ class BrandwatchTwitterPostFetcher(AbstractPostFetcher):
         if not response.is_success():
             raise McPostsBWTwitterDataException(f"error fetching posts: {response.code()} {response.status_line()}")
 
-        json = response.decoded_content()
-
-        data = dict(decode_json(json))
+        data = dict(response.decoded_json())
 
         if 'results' not in data:
-            raise McPostsBWTwitterDataException("error parsing response: " + json)
+            raise McPostsBWTwitterDataException(f"error parsing response: {data}")
+
+        log.info(f"Brandwatch API returned {len(data['results'])} rows")
 
         return data
 
     # noinspection PyMethodMayBeStatic
-    def fetch_posts_from_api(self, query: str, start_date: datetime, end_date: datetime) -> list:
+    def fetch_posts_from_api(
+        self,
+        query: str,
+        start_date: datetime,
+        end_date: datetime,
+        sample: Optional[int] = None,
+        page_size: Optional[int] = None,
+    ) -> list:
         """Fetch day of tweets from crimson hexagon and twitter."""
+
+        if page_size is None:
+            page_size = 5000
+
         meta_tweets = []
         next_cursor = None
         while True:
-            data = self._fetch_posts_from_api_single_page(query, start_date, end_date, next_cursor)
+            data = self._fetch_posts_from_api_single_page(
+                query=query,
+                start_date=start_date,
+                end_date=end_date,
+                next_cursor=next_cursor,
+                page_size=page_size,
+            )
             meta_tweets = meta_tweets + data['results']
-            if 'nextCursor' in data:
-                next_cursor = data['nextCursor']
-            else:
+            log.debug(f"Sample: {sample}; meta_tweets: {len(meta_tweets)}")
+
+            if 'nextCursor' not in data or (sample is not None and len(meta_tweets) >= sample):
                 break
+            else:
+                next_cursor = data['nextCursor']
 
         if 'results' not in data:
             raise McPostsBWTwitterDataException("Unknown response status: " + str(data))

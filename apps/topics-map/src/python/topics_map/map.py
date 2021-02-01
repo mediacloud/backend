@@ -23,6 +23,7 @@ log = create_logger(__name__)
 
 DEFAULT_PLATFORM_MEDIA_IDS = [
     18362, 18346, 18370, 61164, 269331, 73449, 62926, 21936, 5816, 4429, 20448, 67324, 351789, 22299, 135076, 25373,
+    53078, 106257
 ]
 """list of platform media sources, which are excluded from maps by default"""
 
@@ -34,6 +35,9 @@ PLOT_DPI = 600
 
 MAX_NODE_SIZE = 800
 """size of the largest node"""
+
+MAX_NODES = 1000
+"""default max number of nodes to display in a map"""
 
 def add_story_tags_to_graph(db: DatabaseHandler, graph: nx.graph, timespans_id: int, tag_set_name: str) -> None:
     """Add fields to media based on counts of story tags for the given tag set."""
@@ -324,6 +328,7 @@ def assign_sizes(graph: nx.Graph, attribute: str, scale: int = MAX_NODE_SIZE) ->
     with the largest value for that attribute, and assign proportionally smaller sizes for the rest
     of the nodes.
     """
+    log.info(f"assign_sizes: size_by {attribute}")
     if len(graph.nodes) < 1:
         return
 
@@ -528,10 +533,10 @@ def scale_until_no_overlap(graph: nx.Graph) -> None:
 def draw_labels(graph: nx.Graph) -> None:
     """Draw labels, sizing by cohorts."""
     positions = nx.get_node_attributes(graph, 'position')
-    num_cohorts = 30
-    num_labeled_cohorts = num_cohorts
-    cohort_size = int(len(graph.nodes()) / num_cohorts)
-    for i in range(num_labeled_cohorts):
+    cohort_size = 35
+    num_cohorts = math.ceil(len(positions) / cohort_size)
+    num_cohorts = min(30, num_cohorts)
+    for i in range(num_cohorts):
         labels = get_labels_by_attribute(
             graph=graph,
             label_attribute='name',
@@ -553,6 +558,39 @@ def draw_labels(graph: nx.Graph) -> None:
         )
 
 
+def draw_edges(graph: nx.Graph, node_colors: list, node_positions: list) -> None:
+    """Draw the network edges.
+
+    If an edge has two nodes of the same color, use that color for the edge, otherwise
+    make the edge a light gray.
+    """
+    nodes = graph.nodes()
+
+    node_color_lookup = {}
+    for (i, node) in enumerate(nodes):
+        node_color_lookup[node] = node_colors[i]
+
+    edge_colors = []
+    for (i, edge) in enumerate(graph.edges()):
+        (n1, n2) = edge
+        c1 = node_color_lookup[n1]
+        c2 = node_color_lookup[n2]
+        edge_colors.append(c2)
+        continue
+        if c1 == c2:
+            edge_colors.append(c1)
+        else:
+            edge_colors.append('#aaaaaa')
+    edge_colors = [node_color_lookup[e[1]] for e in graph.edges()]
+
+    nx.draw_networkx_edges(
+        G=graph,
+        pos=node_positions,
+        edge_color=edge_colors,
+        alpha=0.025,
+    )
+
+
 def draw_graph(graph: nx.Graph, graph_format: str = 'svg') -> bytes:
     """Draw the graph using matplotlib.
 
@@ -571,10 +609,11 @@ def draw_graph(graph: nx.Graph, graph_format: str = 'svg') -> bytes:
         G=graph,
         pos=positions,
         node_size=sizes,
-        with_labels=False,
         node_color=colors,
         alpha=0.7
     )
+
+    draw_edges(graph=graph, node_colors=colors, node_positions=positions)
 
     draw_labels(graph=graph)
 
@@ -584,7 +623,7 @@ def draw_graph(graph: nx.Graph, graph_format: str = 'svg') -> bytes:
         fig.show()
     else:
         buf = io.BytesIO()
-        fig.savefig(buf, format=graph_format)
+        fig.savefig(buf, format=graph_format, dpi=300)
         plt.close(fig)
         buf.seek(0)
         return buf.read()
@@ -647,7 +686,8 @@ def generate_and_layout_graph(db: DatabaseHandler,
                               memory_limit_mb: int,
                               remove_platforms: bool = True,
                               color_by: str = 'community',
-                              size_by: Optional[str] = None) -> nx.Graph:
+                              size_by: Optional[str] = None,
+                              max_nodes: int = MAX_NODES) -> nx.Graph:
     """Generate and layout a graph of the network of media for the given timespan.
     
     The layout algorithm is force atlas 2, and the resulting is 'position' attribute added to each node.
@@ -656,7 +696,7 @@ def generate_and_layout_graph(db: DatabaseHandler,
     # run layout with all nodes in giant component, before reducing to smaler number to display
     run_fa2_layout(graph=graph, memory_limit_mb=memory_limit_mb)
 
-    graph = get_display_subgraph_by_attribute(graph=graph, attribute='media_inlink_count', num_nodes=1000)
+    graph = get_display_subgraph_by_attribute(graph=graph, attribute='media_inlink_count', num_nodes=max_nodes)
     log.info(f"graph after attribute ranking: {len(graph.nodes())} nodes")
 
     graph = prune_graph_by_distance(graph=graph)

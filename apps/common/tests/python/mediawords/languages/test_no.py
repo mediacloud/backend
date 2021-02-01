@@ -79,7 +79,7 @@ class TestNorwegianLanguage(TestCase):
     def test_split_sentence_to_words(self):
         input_sentence = "Tettest er den på hovedatollen Funafuti, med over 1000 innb./km²."
         expected_words = [
-            "tettest", "er", "den", "på", "hovedatollen", "funafuti", "med", "over", "1000", "innb", "km²",
+            "tettest", "er", "den", "på", "hovedatollen", "funafuti", "med", "over", "1000", "innb", "km", "²",
         ]
         actual_words = self.__tokenizer.split_sentence_to_words(input_sentence)
         assert expected_words == actual_words
