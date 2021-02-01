@@ -16,7 +16,7 @@ RUN apt-get -y --no-install-recommends install binutils fontconfig libfreetype6 
 #
 RUN \
     mkdir -p "${JAVA_HOME}" && \
-    /dl_to_stdout.sh "https://download.java.net/java/GA/jdk15.0.1/51f4f36ad4ef43e39d0dfdbaf6549e32/9/GPL/openjdk-15.0.1_linux-x64_bin.tar.gz" | \
+    /dl_to_stdout.sh "https://download.java.net/java/GA/jdk15.0.2/0d1cfde4252546c6931946de8db48ee2/7/GPL/openjdk-15.0.2_linux-x64_bin.tar.gz" | \
         tar -zx -C "${JAVA_HOME}" --strip 1 && \
     update-alternatives --install /usr/bin/java java "${JAVA_HOME}/bin/java" 1 && \
     update-alternatives --install /usr/bin/javac javac "${JAVA_HOME}/bin/javac" 1 && \
