@@ -15,11 +15,6 @@ RUN \
     # Install dependencies
     apt-get -y --no-install-recommends install python3 python3-pip python3-setuptools && \
     #
-    # Upgrade Pip
-    pip3 install -U pip && \
-    # https://github.com/pypa/pip/issues/5221#issuecomment-382069604
-    hash -r pip3 && \
-    #
     # Install temporary dependencies to be able to build pgAdmin
     apt-get -y --no-install-recommends install build-essential python3-dev libffi-dev && \
     #
@@ -29,10 +24,7 @@ RUN \
     rm pgadmin-requirements.txt && \
     #
     # Install pgAdmin
-    pip3 install https://ftp.postgresql.org/pub/pgadmin/pgadmin4/v4.19/pip/pgadmin4-4.19-py2.py3-none-any.whl && \
-    #
-    # Install newer psutil without vulnerabilities
-    pip3 install psutil==5.7.0 && \
+    pip3 install https://ftp.postgresql.org/pub/pgadmin/pgadmin4/v4.28/pip/pgadmin4-4.28-py3-none-any.whl && \
     #
     # Install Gunicorn for serving web pages
     pip3 install gunicorn==20.0.4 && \
@@ -67,27 +59,39 @@ ENV PGPASSFILE=/var/lib/pgadmin/storage/mediacloud_mediacloud.org/mediacloud.pgp
 # Set up pgAdmin
 COPY mediacloud-servers.json /var/tmp/
 RUN \
+    mkdir -p /etc/pgadmin/ && \
+    touch /etc/pgadmin/config_system.py && \
+    #
+    # Explicitly enable server mode
+    echo 'SERVER_MODE = True' \
+        >> /etc/pgadmin/config_system.py && \
     #
     # Configure path to PostgreSQL binaries
     echo 'DEFAULT_BINARY_PATHS = {"pg": "/usr/bin", "ppas": "", "gpdb": ""}' \
-        >> /usr/local/lib/python3.5/dist-packages/pgadmin4/config_distro.py && \
-    #
-    # Make pgAdmin listen to all interfaces
-    echo 'DEFAULT_SERVER = "127.0.0.1"' \
-        >> /usr/local/lib/python3.5/dist-packages/pgadmin4/config_distro.py && \
+        >> /etc/pgadmin/config_system.py && \
     #
     # Configure mail server (although we won't be sending much mail)
     echo 'MAIL_SERVER = "mail-postfix-server"' \
-        >> /usr/local/lib/python3.5/dist-packages/pgadmin4/config_distro.py && \
+        >> /etc/pgadmin/config_system.py && \
+    #
+    # Update email sender
+    echo 'SECURITY_EMAIL_SENDER = "pgadmin4@mediacloud.org"' \
+        >> /etc/pgadmin/config_system.py && \
     #
     # Disable upgrade checks
     echo 'UPGRADE_CHECK_ENABLED = False' \
-        >> /usr/local/lib/python3.5/dist-packages/pgadmin4/config_distro.py && \
+        >> /etc/pgadmin/config_system.py && \
     #
     # Initialize default configuration
     export PGADMIN_SETUP_EMAIL="mediacloud@mediacloud.org" && \
     export PGADMIN_SETUP_PASSWORD="mediacloud" && \
-    python3 /usr/local/lib/python3.5/dist-packages/pgadmin4/setup.py \
+    #
+    # First time with "--load-servers" doesn't seem to work, it refuses to
+    # create pgadmin4.db, so we have to call it twice
+    python3 /usr/local/lib/python3.8/dist-packages/pgadmin4/setup.py \
+        --user "$PGADMIN_SETUP_EMAIL" \
+        && \
+    python3 /usr/local/lib/python3.8/dist-packages/pgadmin4/setup.py \
         --load-servers /var/tmp/mediacloud-servers.json \
         --user "$PGADMIN_SETUP_EMAIL" \
         && \

@@ -14,7 +14,7 @@ RUN \
     # * https://jdk.java.net/12/
     #
     mkdir -p "${JAVA_HOME}" && \
-    curl --fail --location --retry 3 --retry-delay 5 "https://download.java.net/java/GA/jdk12.0.2/e482c34c86bd4bf8b56c0b35558996b9/10/GPL/openjdk-12.0.2_linux-x64_bin.tar.gz" | \
+    /dl_to_stdout.sh "https://download.java.net/java/GA/jdk12.0.2/e482c34c86bd4bf8b56c0b35558996b9/10/GPL/openjdk-12.0.2_linux-x64_bin.tar.gz" | \
         tar -zx -C "${JAVA_HOME}" --strip 1 && \
     update-alternatives --install /usr/bin/java java "${JAVA_HOME}/bin/java" 1 && \
     update-alternatives --install /usr/bin/javac javac "${JAVA_HOME}/bin/javac" 1 && \

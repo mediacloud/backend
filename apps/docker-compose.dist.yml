@@ -1062,7 +1062,7 @@ services:
                     # CPU core limit
                     cpus: "1"
                     # RAM limit
-                    memory: "8G"
+                    memory: "2G"
 
     #
     # Webapp proxy to NYTLabels annotator service

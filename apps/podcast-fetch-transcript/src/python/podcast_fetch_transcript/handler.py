@@ -8,9 +8,7 @@ from google.api_core.operation import from_gapic, Operation
 # noinspection PyPackageRequirements
 from google.api_core.operations_v1 import OperationsClient
 # noinspection PyPackageRequirements
-from google.cloud.speech_v1p1beta1 import SpeechClient
-# noinspection PyPackageRequirements
-from google.cloud.speech_v1p1beta1.proto import cloud_speech_pb2
+from google.cloud.speech_v1p1beta1 import SpeechClient, LongRunningRecognizeResponse, LongRunningRecognizeMetadata
 
 from mediawords.db import DatabaseHandler
 from mediawords.dbi.downloads import create_download_for_new_story
@@ -94,7 +92,7 @@ class DefaultHandler(AbstractHandler):
         try:
             config = PodcastFetchTranscriptConfig()
             client = SpeechClient.from_service_account_json(config.gc_auth_json_file())
-            operations_client = OperationsClient(channel=client.transport.channel)
+            operations_client = OperationsClient(channel=client._transport._grpc_channel)
         except Exception as ex:
             raise McMisconfiguredSpeechAPIException(f"Unable to initialize Speech API operations client: {ex}")
 
@@ -115,8 +113,8 @@ class DefaultHandler(AbstractHandler):
             gapic_operation: Operation = from_gapic(
                 operation,
                 operations_client,
-                cloud_speech_pb2.LongRunningRecognizeResponse,
-                metadata_type=cloud_speech_pb2.LongRunningRecognizeMetadata,
+                LongRunningRecognizeResponse,
+                metadata_type=LongRunningRecognizeMetadata,
             )
         except Exception as ex:
             raise McMisconfiguredSpeechAPIException(f"Unable to create GAPIC operation: {ex}")

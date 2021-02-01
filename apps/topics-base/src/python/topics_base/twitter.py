@@ -95,7 +95,7 @@ def fetch_100_tweets(tweet_ids: list) -> list:
 
 def _mock_users(request, context) -> str:
     """Mock twitter /statuses/lookup response for requests_mock."""
-    params = parse_qs(request.body)
+    params = parse_qs(urlparse(request.url).query)
 
     screen_names = params['screen_name'][0].split(',')
 

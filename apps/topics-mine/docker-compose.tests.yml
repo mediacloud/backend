@@ -12,6 +12,8 @@ services:
             MC_TWITTER_CONSUMER_SECRET: "${MC_TWITTER_CONSUMER_SECRET}"
             MC_TWITTER_ACCESS_TOKEN: "${MC_TWITTER_ACCESS_TOKEN}"
             MC_TWITTER_ACCESS_TOKEN_SECRET: "${MC_TWITTER_ACCESS_TOKEN_SECRET}"
+            MC_BRANDWATCH_USER: "${MC_BRANDWATCH_USER}"
+            MC_BRANDWATCH_PASSWORD: "${MC_BRANDWATCH_PASSWORD}"
         expose:
             # test_tm_mine.t's test HTTP servers:
             - 8890

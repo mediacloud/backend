@@ -1,4 +1,5 @@
-from jieba import Tokenizer as JiebaTokenizer
+import jieba
+import logging
 from nltk import RegexpTokenizer
 import os
 import re
@@ -11,6 +12,9 @@ from mediawords.util.perl import decode_object_from_bytes_if_needed
 
 log = create_logger(__name__)
 
+# Make module less noisy
+jieba.setLogLevel(logging.INFO)
+
 
 class ChineseLanguage(StopWordsFromFileMixIn):
     """Chinese language support module."""
@@ -19,6 +23,10 @@ class ChineseLanguage(StopWordsFromFileMixIn):
     __DICT_PATH = os.path.dirname(os.path.abspath(__file__))
     __JIEBA_DICT_PATH = os.path.join(__DICT_PATH, 'dict.txt.big')
     __JIEBA_USERDICT_PATH = os.path.join(__DICT_PATH, 'userdict.txt')
+
+    # Path to cache file
+    # (keep in sync with build_jieba_dict_cache.py)
+    __CACHE_PATH = '/var/tmp/jieba.cache'
 
     __slots__ = [
         # Stop words map
@@ -47,7 +55,8 @@ class ChineseLanguage(StopWordsFromFileMixIn):
 
         self.__english_language = EnglishLanguage()
 
-        self.__jieba = JiebaTokenizer()
+        self.__jieba = jieba.Tokenizer()
+        self.__jieba.cache_file = self.__CACHE_PATH
 
         if not os.path.isdir(self.__DICT_PATH):
             raise McLanguageException("Jieba dictionary directory was not found: %s" % self.__DICT_PATH)
@@ -58,16 +67,16 @@ class ChineseLanguage(StopWordsFromFileMixIn):
             )
         if not os.path.isfile(self.__JIEBA_USERDICT_PATH):
             raise McLanguageException(
-                "User dictionary not found in jieba dictionary directory: %s" % self.__DICT_PATH
+                "User dictionary not found in Jieba dictionary directory: %s" % self.__DICT_PATH
             )
         try:
             self.__jieba.set_dictionary(os.path.join(self.__JIEBA_DICT_PATH))
             self.__jieba.load_userdict(os.path.join(self.__JIEBA_USERDICT_PATH))
         except Exception as ex:
-            raise McLanguageException("Unable to initialize jieba: %s" % str(ex))
+            raise McLanguageException("Unable to initialize Jieba: %s" % str(ex))
 
         # Quick self-test to make sure that Jieba, its dictionaries and Python class are installed and working
-        jieba_exc_message = "Jieba self-test failed; make sure that MeCab is built and dictionaries are accessible."
+        jieba_exc_message = "Jieba self-test failed; make sure that the dictionaries are accessible."
         try:
             test_words = self.split_sentence_to_words('python課程')
         except Exception as _:
