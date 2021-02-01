@@ -1,5 +1,5 @@
 # Mocking AP API responses
-requests_mock==1.6.0
+requests_mock==1.8.0
 
 # XML as dicts
 xmltodict==0.12.0

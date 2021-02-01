@@ -7,7 +7,7 @@ jobs:
   pull_build_push:
 
     name: Pull, build, push
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     if: "!contains(github.event.head_commit.message, 'ci skip')"
 
     steps:
@@ -23,7 +23,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v1
         with:
-          python-version: 3.5
+          python-version: 3.8
 
       - name: Upgrade Pip / setuptools
         run: pip install -U pip setuptools wheel
@@ -50,6 +50,9 @@ jobs:
           docker version
           docker-compose version
 
+      - name: Log in to Docker Hub
+        run: echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+
       - name: Pull images
         # Don't stop on a single failure because the image might not exist or a
         # network error might have happened
@@ -58,18 +61,15 @@ jobs:
       - name: Build images
         # Prune images after every rebuild because otherwise CI instance might run
         # out of disk space on bigger rebuilds
-        # FIXME skip nytlabels-annotator due to its size
-        run: ./dev/build.py --prune_images -p | grep -v nytlabels-annotator | bash
+        run: ./dev/build.py --prune_images
 
       - name: Push images
-        run: |
-          echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
-          ./dev/push.py
+        run: ./dev/push.py
 
   run_tests:
 
     name: Run tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     needs: pull_build_push
     if: "!contains(github.event.head_commit.message, 'ci skip')"
 
@@ -99,7 +99,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v1
         with:
-          python-version: 3.5
+          python-version: 3.8
 
       - name: Upgrade Pip / setuptools
         run: pip install -U pip setuptools wheel
@@ -122,6 +122,9 @@ jobs:
           uname -a
           docker version
           docker-compose version
+
+      - name: Log in to Docker Hub
+        run: echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
 
       - name: Pull images
         # Don't stop on a single failure because the image might not exist or a
@@ -164,6 +167,8 @@ jobs:
           || { cat joblog.txt && exit 1; }
         env:
           # Map secrets to environment variables
+          MC_BRANDWATCH_PASSWORD: ${{ secrets.MC_BRANDWATCH_PASSWORD }}
+          MC_BRANDWATCH_USER: ${{ secrets.MC_BRANDWATCH_USER }}
           MC_CRIMSON_HEXAGON_API_KEY: ${{ secrets.MC_CRIMSON_HEXAGON_API_KEY }}
           MC_DOWNLOADS_AMAZON_S3_ACCESS_KEY_ID: ${{ secrets.MC_DOWNLOADS_AMAZON_S3_ACCESS_KEY_ID }}
           MC_DOWNLOADS_AMAZON_S3_BUCKET_NAME: ${{ secrets.MC_DOWNLOADS_AMAZON_S3_BUCKET_NAME }}

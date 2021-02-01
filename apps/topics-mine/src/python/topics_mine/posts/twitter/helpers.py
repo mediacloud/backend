@@ -21,7 +21,7 @@ def add_tweets_to_meta_tweets(meta_tweets: list) -> None:
     Return:
     None
     """
-    log.debug("fetching tweets for " + str(len(meta_tweets)) + " tweets")
+    log.info("fetching tweets for " + str(len(meta_tweets)) + " tweets")
 
     for i in range(0, len(meta_tweets), 100):
         fetch_tweets = meta_tweets[i:i + 100]
@@ -32,6 +32,7 @@ def add_tweets_to_meta_tweets(meta_tweets: list) -> None:
 
         tweet_ids = list(fetch_tweet_lookup.keys())
 
+        log.info(f"Fetching tweets for {len(tweet_ids)} tweet IDs...")
         tweets = fetch_100_tweets(tweet_ids)
 
         log.debug("fetched " + str(len(tweets)) + " tweets")

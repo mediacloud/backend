@@ -73,7 +73,7 @@ class TestFetchBigFile(TestCase):
         """Fetch with max. size."""
 
         max_size = len(self.__mock_data) - 1000
-        with pytest.raises(McPodcastFileFetchFailureException,
-                           message=f"Function should refuse to fetch more than {max_size} bytes"):
+        # Function should refuse to fetch more than {max_size} bytes
+        with pytest.raises(McPodcastFileFetchFailureException):
             fetch_big_file(url=self.__url, dest_file=self.__dest_file, max_size=max_size)
         assert not os.path.isfile(self.__dest_file), f"File '{self.__dest_file}' should exist after a failed download."

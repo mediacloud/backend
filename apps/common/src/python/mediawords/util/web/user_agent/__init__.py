@@ -509,13 +509,13 @@ class UserAgent(object):
         # Traceback (most recent call last):
         #   File "/opt/mediacloud/src/common/python/mediawords/util/web/user_agent/__init__.py", line 505, in parallel_get
         #     pool = multiprocessing.Pool(processes=num_parallel)
-        #   File "/usr/lib/python3.7/multiprocessing/context.py", line 119, in Pool
+        #   File "/usr/lib/python3.8/multiprocessing/context.py", line 119, in Pool
         #     context=self.get_context())
-        #   File "/usr/lib/python3.7/multiprocessing/pool.py", line 176, in __init__
+        #   File "/usr/lib/python3.8/multiprocessing/pool.py", line 176, in __init__
         #     self._repopulate_pool()
-        #   File "/usr/lib/python3.7/multiprocessing/pool.py", line 241, in _repopulate_pool
+        #   File "/usr/lib/python3.8/multiprocessing/pool.py", line 241, in _repopulate_pool
         #     w.start()
-        #   File "/usr/lib/python3.7/multiprocessing/process.py", line 110, in start
+        #   File "/usr/lib/python3.8/multiprocessing/process.py", line 110, in start
         #     'daemonic processes are not allowed to have children'
         # AssertionError: daemonic processes are not allowed to have children
         #

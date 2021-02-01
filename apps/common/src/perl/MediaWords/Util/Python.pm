@@ -21,6 +21,36 @@ use Data::Dumper;
 use Inline::Python qw(py_eval py_bind_class py_bind_func py_study_package);
 use Scalar::Util qw/looks_like_number/;
 
+# Some Python libraries depend on sys.executable being set which doesn't get set when used via Inline::Python, e.g. Celery fails with:
+#
+# [2021-01-25 10:58:47,473: CRITICAL/MainProcess] Unrecoverable error: IsADirectoryError(21, 'Is a directory')
+# Traceback (most recent call last):
+#   File "/usr/local/lib/python3.8/dist-packages/celery/worker/worker.py", line 203, in start
+#     self.blueprint.start(self)
+#   File "/usr/local/lib/python3.8/dist-packages/celery/bootsteps.py", line 112, in start
+#     self.on_start()
+#   File "/usr/local/lib/python3.8/dist-packages/celery/apps/worker.py", line 136, in on_start
+#     self.emit_banner()
+#   File "/usr/local/lib/python3.8/dist-packages/celery/apps/worker.py", line 170, in emit_banner
+#     ' \n', self.startup_info(artlines=not use_image))),
+#   File "/usr/local/lib/python3.8/dist-packages/celery/apps/worker.py", line 234, in startup_info
+#     platform=safe_str(_platform.platform()),
+#   File "/usr/lib/python3.8/platform.py", line 1206, in platform
+#     libcname, libcversion = libc_ver(sys.executable)
+#   File "/usr/lib/python3.8/platform.py", line 193, in libc_ver
+#     with open(executable, 'rb') as f:
+# IsADirectoryError: [Errno 21] Is a directory: '/'
+#
+py_eval( <<EOF
+
+import sys
+
+if not sys.executable:
+    sys.executable = '/usr/bin/python3'
+
+EOF
+);
+
 # Import all functions and classes from Python module to Perl package (not into
 # the main namespace as is the default by Inline::Python).
 #
