@@ -3,7 +3,7 @@ version: "3.7"
 services:
 
     cron-rescrape-due-media:
-        image: dockermediacloud/cron-rescrape-due-media:latest
+        image: gcr.io/mcback/cron-rescrape-due-media:latest
         init: true
         stop_signal: SIGKILL
         volumes:
@@ -21,7 +21,7 @@ services:
             - rabbitmq-server
 
     postgresql-pgbouncer:
-        image: dockermediacloud/postgresql-pgbouncer:latest
+        image: gcr.io/mcback/postgresql-pgbouncer:latest
         init: true
         stop_signal: SIGKILL
         expose:
@@ -34,7 +34,7 @@ services:
             - postgresql-server
 
     postgresql-server:
-        image: dockermediacloud/postgresql-server:latest
+        image: gcr.io/mcback/postgresql-server:latest
         init: true
         stop_signal: SIGKILL
         expose:
@@ -51,7 +51,7 @@ services:
               target: /etc/postgresql/11/main/
 
     rabbitmq-server:
-        image: dockermediacloud/rabbitmq-server:latest
+        image: gcr.io/mcback/rabbitmq-server:latest
         init: true
         stop_signal: SIGKILL
         expose:

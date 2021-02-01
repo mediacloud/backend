@@ -2,7 +2,7 @@
 # Perl-Python code base
 #
 
-FROM dockermediacloud/base:latest
+FROM gcr.io/mcback/base:latest
 
 # Install Python
 RUN \

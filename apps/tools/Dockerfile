@@ -2,7 +2,7 @@
 # Various one-off tools
 #
 
-FROM dockermediacloud/common:latest
+FROM gcr.io/mcback/common:latest
 
 # Install Perl dependencies
 COPY src/cpanfile /var/tmp/

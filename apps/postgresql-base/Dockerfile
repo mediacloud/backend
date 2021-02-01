@@ -2,7 +2,7 @@
 # PostgreSQL base
 #
 
-FROM dockermediacloud/base:latest
+FROM gcr.io/mcback/base:latest
 
 # Add Add PostgreSQL GPG key
 RUN curl -L https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -

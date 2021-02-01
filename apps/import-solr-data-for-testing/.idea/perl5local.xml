@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="Perl5LocalSettings">
-    <option name="perlInterpreter" value="Docker[dockermediacloud/import-solr-data-for-testing:latest], System: Perl 5.22.1" />
+    <option name="perlInterpreter" value="Docker[gcr.io/mcback/import-solr-data-for-testing:latest], System: Perl 5.22.1" />
   </component>
 </project>

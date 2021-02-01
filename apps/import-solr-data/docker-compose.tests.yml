@@ -3,7 +3,7 @@ version: "3.7"
 services:
 
     import-solr-data:
-        image: dockermediacloud/import-solr-data:latest
+        image: gcr.io/mcback/import-solr-data:latest
         init: true
         stop_signal: SIGKILL
         environment:
@@ -29,7 +29,7 @@ services:
             - rabbitmq-server
 
     import-solr-data-for-testing:
-        image: dockermediacloud/import-solr-data-for-testing:latest
+        image: gcr.io/mcback/import-solr-data-for-testing:latest
         init: true
         environment:
             MC_SOLR_IMPORT_MAX_QUEUED_STORIES: 100000
@@ -49,7 +49,7 @@ services:
             - solr-shard-01
 
     postgresql-pgbouncer:
-        image: dockermediacloud/postgresql-pgbouncer:latest
+        image: gcr.io/mcback/postgresql-pgbouncer:latest
         init: true
         stop_signal: SIGKILL
         expose:
@@ -62,7 +62,7 @@ services:
             - postgresql-server
 
     postgresql-server:
-        image: dockermediacloud/postgresql-server:latest
+        image: gcr.io/mcback/postgresql-server:latest
         init: true
         stop_signal: SIGKILL
         expose:
@@ -79,7 +79,7 @@ services:
               target: /etc/postgresql/11/main/
 
     solr-shard-01:
-        image: dockermediacloud/solr-shard:latest
+        image: gcr.io/mcback/solr-shard:latest
         init: true
         stop_signal: SIGKILL
         environment:
@@ -97,7 +97,7 @@ services:
             - solr-zookeeper
 
     solr-zookeeper:
-        image: dockermediacloud/solr-zookeeper:latest
+        image: gcr.io/mcback/solr-zookeeper:latest
         init: true
         stop_signal: SIGKILL
         expose:
@@ -113,7 +113,7 @@ services:
               target: /zookeeper.sh
 
     rabbitmq-server:
-        image: dockermediacloud/rabbitmq-server:latest
+        image: gcr.io/mcback/rabbitmq-server:latest
         init: true
         stop_signal: SIGKILL
         expose:

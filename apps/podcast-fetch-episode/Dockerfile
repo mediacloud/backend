@@ -2,7 +2,7 @@
 # Fetch podcast episode from story, read metadata, store it to GCS
 #
 
-FROM dockermediacloud/common:latest
+FROM gcr.io/mcback/common:latest
 
 # Install FFmpeg for manipulating audio files
 RUN apt-get -y --no-install-recommends install ffmpeg

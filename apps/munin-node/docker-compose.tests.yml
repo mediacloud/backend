@@ -3,7 +3,7 @@ version: "3.7"
 services:
 
     munin-node:
-        image: dockermediacloud/munin-node:latest
+        image: gcr.io/mcback/munin-node:latest
         init: true
         stop_signal: SIGKILL
         volumes:
@@ -17,7 +17,7 @@ services:
             - solr-shard-01
 
     postgresql-pgbouncer:
-        image: dockermediacloud/postgresql-pgbouncer:latest
+        image: gcr.io/mcback/postgresql-pgbouncer:latest
         init: true
         stop_signal: SIGKILL
         expose:
@@ -30,7 +30,7 @@ services:
             - postgresql-server
 
     postgresql-server:
-        image: dockermediacloud/postgresql-server:latest
+        image: gcr.io/mcback/postgresql-server:latest
         init: true
         stop_signal: SIGKILL
         expose:
@@ -47,7 +47,7 @@ services:
               target: /etc/postgresql/11/main/
 
     solr-shard-01:
-        image: dockermediacloud/solr-shard:latest
+        image: gcr.io/mcback/solr-shard:latest
         init: true
         stop_signal: SIGKILL
         environment:
@@ -65,7 +65,7 @@ services:
             - solr-zookeeper
 
     solr-zookeeper:
-        image: dockermediacloud/solr-zookeeper:latest
+        image: gcr.io/mcback/solr-zookeeper:latest
         init: true
         stop_signal: SIGKILL
         expose:

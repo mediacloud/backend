@@ -22,7 +22,7 @@ To avoid excessive typing or copy-pasting when running Docker commands, you can 
 # PostgreSQL container has an ID "72bfc559a72b"
 $ docker ps -a
 CONTAINER ID        IMAGE                                       COMMAND
-72bfc559a72b        dockermediacloud/postgresql-server:latest   "/opt/mediacloud/bin…"
+72bfc559a72b        gcr.io/mcback/postgresql-server:latest   "/opt/mediacloud/bin…"
 
 # ...but we can refer to it using only a part of the ID ("72b")
 $ docker inspect 72b
@@ -47,7 +47,7 @@ Given that behind the scenes a container is just a fancy chroot, it wouldn't mak
      $ docker ps
      CONTAINER ID        IMAGE                           COMMAND
      <...>
-     b519dab9d10b        dockermediacloud/<...>:latest   "important_research.sh"
+     b519dab9d10b        gcr.io/mcback/<...>:latest   "important_research.sh"
      ```
 
   2. Run `docker exec -it <container_id_or_just_a_part_of_it> bash`:
@@ -64,7 +64,7 @@ Given that behind the scenes a container is just a fancy chroot, it wouldn't mak
   1. Run `docker run -it --entrypoint=bash <image_name>`:
 
      ```bash
-     $ docker run -it --entrypoint=bash dockermediacloud/tools:latest
+     $ docker run -it --entrypoint=bash gcr.io/mcback/tools:latest
      mediacloud@f5a121fe5907:/$ 
      ```
 
@@ -84,7 +84,7 @@ To access PostgreSQL directly, you can either run `psql` in a `postgresql-server
      ```bash
      $ docker ps | grep postgres
      CONTAINER ID        IMAGE                                       COMMAND
-     29ad7542c5fe        dockermediacloud/postgresql-server:latest   "/opt/mediacloud/bin…"
+     29ad7542c5fe        gcr.io/mcback/postgresql-server:latest   "/opt/mediacloud/bin…"
      ```
 
   2. Execute `psql` in a running PostgreSQL container:
@@ -106,7 +106,7 @@ To access PostgreSQL directly, you can either run `psql` in a `postgresql-server
      * If you're running a standalone PostgreSQL container, add a port mapping by adding `-p [host_bind_ip:]host_port:container_port` argument to `docker run`:
 
        ```bash
-       $ docker run -d -p "127.0.0.1:5432:5432" dockermediacloud/postgresql-server:latest
+       $ docker run -d -p "127.0.0.1:5432:5432" gcr.io/mcback/postgresql-server:latest
        ```
 
      * If you're running PostgreSQL container as part of a (testing) Docker Compose environment, add a port mapping by defining `ports:` directive to `docker-compose.tests.yml`:
@@ -119,7 +119,7 @@ To access PostgreSQL directly, you can either run `psql` in a `postgresql-server
           # <...>
           
            postgresql-server:
-               image: dockermediacloud/postgresql-server:latest
+               image: gcr.io/mcback/postgresql-server:latest
                # <...>
                ports:
                    # "[host_bind_ip:]host_port:container_port"
@@ -137,7 +137,7 @@ To access PostgreSQL directly, you can either run `psql` in a `postgresql-server
      ```bash
      $ docker ps | grep postg
      CONTAINER ID        IMAGE                                       PORTS
-     72bfc559a72b        dockermediacloud/postgresql-server:latest   127.0.0.1:5432->5432/tcp
+     72bfc559a72b        gcr.io/mcback/postgresql-server:latest   127.0.0.1:5432->5432/tcp
      ```
 
      and you should be able to connect to the container from your host machine as you would with any other PostgreSQL instance:

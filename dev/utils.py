@@ -14,7 +14,7 @@ try:
 except ModuleNotFoundError:
     raise ImportError("Please install PyYAML.")
 
-DOCKERHUB_USER = 'dockermediacloud'
+DOCKERHUB_USER = 'gcr.io/mcback'
 
 
 class InvalidDockerComposeYMLException(Exception):
