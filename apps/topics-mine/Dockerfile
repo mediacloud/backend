@@ -2,7 +2,7 @@
 # Mine topic worker
 #
 
-FROM dockermediacloud/topics-base:latest
+FROM gcr.io/mcback/topics-base:latest
 
 # Install Perl dependencies
 COPY src/cpanfile /var/tmp/

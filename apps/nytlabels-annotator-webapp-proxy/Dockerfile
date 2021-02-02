@@ -2,7 +2,7 @@
 # Proxy to NYTLabels annotator, roundrobins between nytlabels-annotator instances
 #
 
-FROM dockermediacloud/nginx-base:latest
+FROM gcr.io/mcback/nginx-base:latest
 
 # Copy configuration
 COPY nginx/include/nytlabels-annotator-webapp-proxy.conf /etc/nginx/include/

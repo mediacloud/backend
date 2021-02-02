@@ -2,7 +2,7 @@
 # Extract story links worker
 #
 
-FROM dockermediacloud/topics-base:latest
+FROM gcr.io/mcback/topics-base:latest
 
 # Copy sources
 COPY src/ /opt/mediacloud/src/topics-extract-story-links/

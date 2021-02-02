@@ -4,7 +4,7 @@
 # FIXME possibly add cache
 #
 
-FROM dockermediacloud/common:latest
+FROM gcr.io/mcback/common:latest
 
 # Install Python dependencies
 COPY src/requirements.txt /var/tmp/

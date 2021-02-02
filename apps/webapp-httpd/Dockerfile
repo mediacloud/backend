@@ -2,7 +2,7 @@
 # Webapp (HTTP server)
 #
 
-FROM dockermediacloud/nginx-base:latest
+FROM gcr.io/mcback/nginx-base:latest
 
 # Copy configuration
 COPY nginx/include/webapp-httpd.conf /etc/nginx/include/

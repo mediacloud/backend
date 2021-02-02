@@ -2,7 +2,7 @@
 # Extract and vector stories
 #
 
-FROM dockermediacloud/common:latest
+FROM gcr.io/mcback/common:latest
 
 # Copy sources
 COPY src/ /opt/mediacloud/src/extract-and-vector/

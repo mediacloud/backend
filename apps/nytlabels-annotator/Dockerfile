@@ -2,7 +2,7 @@
 # NYT-based news tagger service
 #
 
-FROM dockermediacloud/base:latest
+FROM gcr.io/mcback/base:latest
 
 RUN \
     #

@@ -2,7 +2,7 @@
 # Base image for apps that use Java
 #
 
-FROM dockermediacloud/base:latest
+FROM gcr.io/mcback/base:latest
 
 ENV JAVA_HOME /usr/lib/jvm/java-12-openjdk-amd64/
 

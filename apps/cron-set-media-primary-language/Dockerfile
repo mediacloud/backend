@@ -2,7 +2,7 @@
 # Set primary media language Cron job
 #
 
-FROM dockermediacloud/cron-base:latest
+FROM gcr.io/mcback/cron-base:latest
 
 # Copy sources
 COPY src/ /opt/mediacloud/src/cron-set-media-primary-language/

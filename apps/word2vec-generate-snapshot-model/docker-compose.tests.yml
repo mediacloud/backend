@@ -3,7 +3,7 @@ version: "3.7"
 services:
 
     word2vec-generate-snapshot-model:
-        image: dockermediacloud/word2vec-generate-snapshot-model:latest
+        image: gcr.io/mcback/word2vec-generate-snapshot-model:latest
         init: true
         stop_signal: SIGKILL
         volumes:
@@ -23,7 +23,7 @@ services:
             - postgresql-pgbouncer
 
     postgresql-pgbouncer:
-        image: dockermediacloud/postgresql-pgbouncer:latest
+        image: gcr.io/mcback/postgresql-pgbouncer:latest
         init: true
         stop_signal: SIGKILL
         expose:
@@ -36,7 +36,7 @@ services:
             - postgresql-server
 
     postgresql-server:
-        image: dockermediacloud/postgresql-server:latest
+        image: gcr.io/mcback/postgresql-server:latest
         init: true
         stop_signal: SIGKILL
         expose:

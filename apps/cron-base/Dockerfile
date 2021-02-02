@@ -3,7 +3,7 @@
 #
 # FIXME email the report
 
-FROM dockermediacloud/common:latest
+FROM gcr.io/mcback/common:latest
 
 # Install Cron
 RUN \

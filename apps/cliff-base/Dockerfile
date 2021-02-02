@@ -2,7 +2,7 @@
 # CLIFF base image
 #
 
-FROM dockermediacloud/common:latest
+FROM gcr.io/mcback/common:latest
 
 # Copy sources
 COPY src/ /opt/mediacloud/src/cliff-base/
