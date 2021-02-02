@@ -6,7 +6,7 @@ FROM gcr.io/mcback/base:latest
 
 # Install Filebeat
 # (https://www.elastic.co/downloads/beats/filebeat)
-ENV ELK_FILEBEAT_VERSION=7.10.0
+ENV ELK_FILEBEAT_VERSION=7.10.2
 RUN \
     mkdir -p /opt/filebeat/ && \
     curl --fail --location --retry 3 --retry-delay 5 "https://artifacts.elastic.co/downloads/beats/filebeat/filebeat-${ELK_FILEBEAT_VERSION}-linux-x86_64.tar.gz" | \
