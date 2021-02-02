@@ -2,7 +2,7 @@
 # Crawler provider
 #
 
-FROM dockermediacloud/common:latest
+FROM gcr.io/mcback/common:latest
 
 # Copy sources
 COPY src/ /opt/mediacloud/src/crawler-provider/

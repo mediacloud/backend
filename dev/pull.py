@@ -16,7 +16,7 @@ This script can print the commands that are going to be run instead of running t
 import subprocess
 from typing import List
 
-from utils import docker_images, docker_tag_from_current_git_branch_name, DockerHubPruneArgumentParser, DOCKERHUB_USER
+from utils import docker_images, docker_tag_from_current_git_branch_name, CRPruneArgumentParser, REPO_URI
 
 
 def _docker_images_to_pull(all_apps_dir: str) -> List[str]:
@@ -45,10 +45,10 @@ def _docker_pull_commands(all_apps_dir: str, image_tag: str, prune_images: bool)
 
     for image in _docker_images_to_pull(all_apps_dir=all_apps_dir):
 
-        if image.startswith(DOCKERHUB_USER + '/'):
+        if image.startswith(REPO_URI + '/'):
 
             # 1) First try to pull the image for the current branch
-            # 2) if that fails (e.g. the branch is new and it hasn't yet been built and tagged on Docker Hub), pull
+            # 2) if that fails (e.g. the branch is new and it hasn't yet been built and tagged on container registry), pull
             #    builds for "master" and tag them as if they were built from the current branch
             # 3) Tag the branch image (which at this point was either built from the branch or from "master") as
             #    "latest", i.e. mark them as the latest local build to be later used for rebuilding and running tests
@@ -78,7 +78,7 @@ def _docker_pull_commands(all_apps_dir: str, image_tag: str, prune_images: bool)
 
 
 if __name__ == '__main__':
-    parser = DockerHubPruneArgumentParser(description='Print commands to pull all container images.')
+    parser = CRPruneArgumentParser(description='Print commands to pull all container images.')
     args = parser.parse_arguments()
 
     commands_ = _docker_pull_commands(

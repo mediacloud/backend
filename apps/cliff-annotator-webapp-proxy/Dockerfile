@@ -2,7 +2,7 @@
 # Proxy to CLIFF annotator, roundrobins between cliff-annotator instances
 #
 
-FROM dockermediacloud/nginx-base:latest
+FROM gcr.io/mcback/nginx-base:latest
 
 # Copy configuration
 COPY nginx/include/cliff-annotator-webapp-proxy.conf /etc/nginx/include/

@@ -3,7 +3,7 @@ version: "3.7"
 services:
 
     crawler-ap:
-        image: dockermediacloud/crawler-ap:latest
+        image: gcr.io/mcback/crawler-ap:latest
         init: true
         stop_signal: SIGKILL
         environment:
@@ -30,7 +30,7 @@ services:
             - extract-and-vector
 
     extract-and-vector:
-        image: dockermediacloud/extract-and-vector:latest
+        image: gcr.io/mcback/extract-and-vector:latest
         init: true
         stop_signal: SIGKILL
         volumes:
@@ -50,7 +50,7 @@ services:
             - rabbitmq-server
 
     extract-article-from-page:
-        image: dockermediacloud/extract-article-from-page:latest
+        image: gcr.io/mcback/extract-article-from-page:latest
         init: true
         stop_signal: SIGKILL
         expose:
@@ -67,7 +67,7 @@ services:
               target: /opt/mediacloud/src/common/
 
     postgresql-pgbouncer:
-        image: dockermediacloud/postgresql-pgbouncer:latest
+        image: gcr.io/mcback/postgresql-pgbouncer:latest
         init: true
         stop_signal: SIGKILL
         expose:
@@ -80,7 +80,7 @@ services:
             - postgresql-server
 
     postgresql-server:
-        image: dockermediacloud/postgresql-server:latest
+        image: gcr.io/mcback/postgresql-server:latest
         init: true
         stop_signal: SIGKILL
         expose:
@@ -97,7 +97,7 @@ services:
               target: /etc/postgresql/11/main/
 
     rabbitmq-server:
-        image: dockermediacloud/rabbitmq-server:latest
+        image: gcr.io/mcback/rabbitmq-server:latest
         init: true
         stop_signal: SIGKILL
         expose:

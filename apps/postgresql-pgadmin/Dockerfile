@@ -2,7 +2,7 @@
 # pgAdmin
 #
 
-FROM dockermediacloud/postgresql-base:latest
+FROM gcr.io/mcback/postgresql-base:latest
 
 # Copy pgAdmin4's requirements
 COPY pgadmin-requirements.txt /var/tmp/

@@ -2,7 +2,7 @@
 # Munin HTTP server
 #
 
-FROM dockermediacloud/nginx-base:latest
+FROM gcr.io/mcback/nginx-base:latest
 
 # Install Munin's static web files, e.g. CSS stylesheets
 RUN apt-get -y --no-install-recommends install munin

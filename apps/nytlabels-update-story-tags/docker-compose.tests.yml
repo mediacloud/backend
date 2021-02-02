@@ -3,7 +3,7 @@ version: "3.7"
 services:
 
     nytlabels-update-story-tags:
-        image: dockermediacloud/nytlabels-update-story-tags:latest
+        image: gcr.io/mcback/nytlabels-update-story-tags:latest
         init: true
         stop_signal: SIGKILL
         environment:
@@ -29,7 +29,7 @@ services:
             - postgresql-pgbouncer
 
     postgresql-pgbouncer:
-        image: dockermediacloud/postgresql-pgbouncer:latest
+        image: gcr.io/mcback/postgresql-pgbouncer:latest
         init: true
         stop_signal: SIGKILL
         expose:
@@ -42,7 +42,7 @@ services:
             - postgresql-server
 
     postgresql-server:
-        image: dockermediacloud/postgresql-server:latest
+        image: gcr.io/mcback/postgresql-server:latest
         init: true
         stop_signal: SIGKILL
         expose:
