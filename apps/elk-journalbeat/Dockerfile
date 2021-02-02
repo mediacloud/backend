@@ -4,6 +4,9 @@
 
 FROM gcr.io/mcback/base:latest
 
+# Install systemd to get journalctl utility
+RUN apt-get -y --no-install-recommends install systemd
+
 # Install Journalbeat
 # (https://www.elastic.co/downloads/beats/journalbeat)
 ENV ELK_JOURNALBEAT_VERSION=7.10.2
