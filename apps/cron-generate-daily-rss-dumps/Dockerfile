@@ -2,7 +2,7 @@
 # Generate daily RSS dumps Cron job
 #
 
-FROM dockermediacloud/cron-base:latest
+FROM gcr.io/mcback/cron-base:latest
 
 # Install Perl dependencies
 COPY src/cpanfile /var/tmp/

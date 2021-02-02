@@ -4,7 +4,7 @@
 #
 
 # Uses Solr base image because ZooKeeper uploads Solr configuration to its instance
-FROM dockermediacloud/solr-base:latest
+FROM gcr.io/mcback/solr-base:latest
 
 # ZooKeeper version
 ENV MEDIACLOUD_ZOOKEEPER_VERSION="3.4.10"

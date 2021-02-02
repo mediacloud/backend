@@ -2,7 +2,7 @@
 # map topic worker
 #
 
-FROM dockermediacloud/common:latest
+FROM gcr.io/mcback/common:latest
 
 # Install Java
 RUN apt-get -y --no-install-recommends install openjdk-8-jre-headless

@@ -177,7 +177,7 @@ x-podcast-google-cloud-configuration:    &podcast-google-cloud-configuration
 # "deploy/replicas", we define every shard as its own independent service.
 #
 x-solr-shard_base:   &solr-shard_base
-    image: dockermediacloud/solr-shard:release
+    image: gcr.io/mcback/solr-shard:release
     init: true
     environment:
         # Shard count (every individual shard needs to know the total count)
@@ -268,7 +268,7 @@ services:
     # -----------------------
     #
     cliff-annotator:
-        image: dockermediacloud/cliff-annotator:release
+        image: gcr.io/mcback/cliff-annotator:release
         init: true
         networks:
             - default
@@ -291,7 +291,7 @@ services:
     # ---------------------------------------
     #
     cliff-annotator-webapp-proxy:
-        image: dockermediacloud/cliff-annotator-webapp-proxy:release
+        image: gcr.io/mcback/cliff-annotator-webapp-proxy:release
         init: true
         networks:
             - default
@@ -319,7 +319,7 @@ services:
     # ----------------------
     #
     cliff-fetch-annotation:
-        image: dockermediacloud/cliff-fetch-annotation:release
+        image: gcr.io/mcback/cliff-fetch-annotation:release
         init: true
         networks:
             - default
@@ -346,7 +346,7 @@ services:
     # -----------------------
     #
     cliff-update-story-tags:
-        image: dockermediacloud/cliff-update-story-tags:release
+        image: gcr.io/mcback/cliff-update-story-tags:release
         init: true
         networks:
             - default
@@ -381,7 +381,7 @@ services:
     # ----------
     #
     crawler-ap:
-        image: dockermediacloud/crawler-ap:release
+        image: gcr.io/mcback/crawler-ap:release
         init: true
         networks:
             - default
@@ -409,7 +409,7 @@ services:
     # ---------------
     #
     crawler-fetcher:
-        image: dockermediacloud/crawler-fetcher:release
+        image: gcr.io/mcback/crawler-fetcher:release
         init: true
         networks:
             - default
@@ -439,7 +439,7 @@ services:
     # ----------------
     #
     crawler-provider:
-        image: dockermediacloud/crawler-provider:release
+        image: gcr.io/mcback/crawler-provider:release
         init: true
         networks:
             - default
@@ -462,7 +462,7 @@ services:
     # ------------------------------------
     #
     create-missing-partitions:
-        image: dockermediacloud/create-missing-partitions:release
+        image: gcr.io/mcback/create-missing-partitions:release
         init: true
         networks:
             - default
@@ -485,7 +485,7 @@ services:
     # ---------------------------------
     #
     cron-generate-daily-rss-dumps:
-        image: dockermediacloud/cron-generate-daily-rss-dumps:release
+        image: gcr.io/mcback/cron-generate-daily-rss-dumps:release
         init: true
         networks:
             - default
@@ -515,7 +515,7 @@ services:
     # -------------------------------------
     #
     cron-generate-media-health:
-        image: dockermediacloud/cron-generate-media-health:release
+        image: gcr.io/mcback/cron-generate-media-health:release
         init: true
         networks:
             - default
@@ -538,7 +538,7 @@ services:
     # ---------------------------------------------
     #
     cron-generate-user-summary:
-        image: dockermediacloud/cron-generate-user-summary:release
+        image: gcr.io/mcback/cron-generate-user-summary:release
         init: true
         networks:
             - default
@@ -561,7 +561,7 @@ services:
     # -----------------------------
     #
     cron-print-long-running-job-states:
-        image: dockermediacloud/cron-print-long-running-job-states:release
+        image: gcr.io/mcback/cron-print-long-running-job-states:release
         init: true
         networks:
             - default
@@ -584,7 +584,7 @@ services:
     # ----------------------
     #
     cron-refresh-stats:
-        image: dockermediacloud/cron-refresh-stats:release
+        image: gcr.io/mcback/cron-refresh-stats:release
         init: true
         networks:
             - default
@@ -607,7 +607,7 @@ services:
     # ----------------------------------------------
     #
     cron-rescrape-due-media:
-        image: dockermediacloud/cron-rescrape-due-media:release
+        image: gcr.io/mcback/cron-rescrape-due-media:release
         init: true
         networks:
             - default
@@ -631,7 +631,7 @@ services:
     # ----------------------------------
     #
     cron-rescraping-changes:
-        image: dockermediacloud/cron-rescraping-changes:release
+        image: gcr.io/mcback/cron-rescraping-changes:release
         init: true
         networks:
             - default
@@ -654,7 +654,7 @@ services:
     # -----------------------------------
     #
     cron-set-media-primary-language:
-        image: dockermediacloud/cron-set-media-primary-language:release
+        image: gcr.io/mcback/cron-set-media-primary-language:release
         init: true
         networks:
             - default
@@ -677,7 +677,7 @@ services:
     # -----------------------------------
     #
     cron-set-media-subject-country:
-        image: dockermediacloud/cron-set-media-subject-country:release
+        image: gcr.io/mcback/cron-set-media-subject-country:release
         init: true
         networks:
             - default
@@ -882,7 +882,7 @@ services:
     # --------------------------
     #
     extract-and-vector:
-        image: dockermediacloud/extract-and-vector:release
+        image: gcr.io/mcback/extract-and-vector:release
         init: true
         networks:
             - default
@@ -909,7 +909,7 @@ services:
     # -----------------------------------
     #
     extract-article-from-page:
-        image: dockermediacloud/extract-article-from-page:release
+        image: gcr.io/mcback/extract-article-from-page:release
         init: true
         networks:
             - default
@@ -935,7 +935,7 @@ services:
     # -------------------------------
     #
     facebook-fetch-story-stats:
-        image: dockermediacloud/facebook-fetch-story-stats:release
+        image: gcr.io/mcback/facebook-fetch-story-stats:release
         init: true
         networks:
             - default
@@ -970,7 +970,7 @@ services:
     # ------------------------
     #
     import-solr-data:
-        image: dockermediacloud/import-solr-data:release
+        image: gcr.io/mcback/import-solr-data:release
         init: true
         networks:
             - default
@@ -997,7 +997,7 @@ services:
     # ---------------------------------
     #
     import-stories-feedly:
-        image: dockermediacloud/import-stories-feedly:release
+        image: gcr.io/mcback/import-stories-feedly:release
         init: true
         networks:
             - default
@@ -1021,7 +1021,7 @@ services:
     # ---------------
     #
     mail-opendkim-server:
-        image: dockermediacloud/mail-opendkim-server:release
+        image: gcr.io/mcback/mail-opendkim-server:release
         init: true
         networks:
             - default
@@ -1051,7 +1051,7 @@ services:
     # ---------------
     #
     mail-postfix-server:
-        image: dockermediacloud/mail-postfix-server:release
+        image: gcr.io/mcback/mail-postfix-server:release
         init: true
         networks:
             - default
@@ -1102,7 +1102,7 @@ services:
     # --------------------------
     #
     munin-cron:
-        image: dockermediacloud/munin-cron:release
+        image: gcr.io/mcback/munin-cron:release
         # Docker doesn't reap zombie processes properly
         # (https://blog.phusion.nl/2015/01/20/docker-and-the-pid-1-zombie-reaping-problem/),
         # and Munin runs all kinds of plugins which might not take care of their children properly.
@@ -1135,7 +1135,7 @@ services:
     # -----------------------------
     #
     munin-fastcgi-graph:
-        image: dockermediacloud/munin-fastcgi-graph:release
+        image: gcr.io/mcback/munin-fastcgi-graph:release
         init: true
         networks:
             - default
@@ -1166,7 +1166,7 @@ services:
     # -----------------
     #
     munin-httpd:
-        image: dockermediacloud/munin-httpd:release
+        image: gcr.io/mcback/munin-httpd:release
         init: true
         networks:
             - default
@@ -1201,7 +1201,7 @@ services:
     # ----------
     #
     munin-node:
-        image: dockermediacloud/munin-node:release
+        image: gcr.io/mcback/munin-node:release
         # Docker doesn't reap zombie processes properly
         # (https://blog.phusion.nl/2015/01/20/docker-and-the-pid-1-zombie-reaping-problem/),
         # and Munin runs all kinds of plugins which might not take care of their children properly.
@@ -1228,7 +1228,7 @@ services:
     # -----------------------------
     #
     nytlabels-annotator:
-        image: dockermediacloud/nytlabels-annotator:release
+        image: gcr.io/mcback/nytlabels-annotator:release
         init: true
         networks:
             - default
@@ -1251,7 +1251,7 @@ services:
     # -------------------------------------------
     #
     nytlabels-annotator-webapp-proxy:
-        image: dockermediacloud/nytlabels-annotator-webapp-proxy:release
+        image: gcr.io/mcback/nytlabels-annotator-webapp-proxy:release
         init: true
         networks:
             - default
@@ -1279,7 +1279,7 @@ services:
     # ----------------------
     #
     nytlabels-fetch-annotation:
-        image: dockermediacloud/nytlabels-fetch-annotation:release
+        image: gcr.io/mcback/nytlabels-fetch-annotation:release
         init: true
         networks:
             - default
@@ -1306,7 +1306,7 @@ services:
     # -----------------------
     #
     nytlabels-update-story-tags:
-        image: dockermediacloud/nytlabels-update-story-tags:release
+        image: gcr.io/mcback/nytlabels-update-story-tags:release
         init: true
         networks:
             - default
@@ -1336,7 +1336,7 @@ services:
     # -----------------------------------------------
     #
     podcast-fetch-episode:
-        image: dockermediacloud/podcast-fetch-episode:release
+        image: gcr.io/mcback/podcast-fetch-episode:release
         init: true
         networks:
             - default
@@ -1371,7 +1371,7 @@ services:
     # Fetch finished transcripts and store them locally
     # -------------------------------------------------
     podcast-fetch-transcript:
-        image: dockermediacloud/podcast-fetch-transcript:release
+        image: gcr.io/mcback/podcast-fetch-transcript:release
         init: true
         networks:
             - default
@@ -1402,7 +1402,7 @@ services:
     # Poll due operations and submit them to "podcast-fetch-transcript"
     # -----------------------------------------------------------------
     podcast-poll-due-operations:
-        image: dockermediacloud/podcast-poll-due-operations:release
+        image: gcr.io/mcback/podcast-poll-due-operations:release
         init: true
         networks:
             - default
@@ -1432,7 +1432,7 @@ services:
     # Submit a Speech API operation for a podcast episode
     # ---------------------------------------------------
     podcast-submit-operation:
-        image: dockermediacloud/podcast-submit-operation:release
+        image: gcr.io/mcback/podcast-submit-operation:release
         init: true
         networks:
             - default
@@ -1464,7 +1464,7 @@ services:
     # ---------
     #
     postgresql-pgadmin:
-        image: dockermediacloud/postgresql-pgadmin:release
+        image: gcr.io/mcback/postgresql-pgadmin:release
         init: true
         networks:
             - default
@@ -1493,7 +1493,7 @@ services:
     # ---------
     #
     postgresql-pgbouncer:
-        image: dockermediacloud/postgresql-pgbouncer:release
+        image: gcr.io/mcback/postgresql-pgbouncer:release
         init: true
         networks:
             - default
@@ -1516,7 +1516,7 @@ services:
     # -----------------
     #
     postgresql-server:
-        image: dockermediacloud/postgresql-server:release
+        image: gcr.io/mcback/postgresql-server:release
         init: true
         networks:
             - default
@@ -1545,7 +1545,7 @@ services:
     # ------------------------------------
     #
     purge-object-caches:
-        image: dockermediacloud/purge-object-caches:release
+        image: gcr.io/mcback/purge-object-caches:release
         init: true
         networks:
             - default
@@ -1568,7 +1568,7 @@ services:
     # --------
     #
     rabbitmq-server:
-        image: dockermediacloud/rabbitmq-server:release
+        image: gcr.io/mcback/rabbitmq-server:release
         # Docker doesn't reap zombie processes properly
         # (https://blog.phusion.nl/2015/01/20/docker-and-the-pid-1-zombie-reaping-problem/)
         # and Erlang gets SIGCHLD signals from Docker for whatever reason
@@ -1605,7 +1605,7 @@ services:
     # proxy to the webapp.
     #
     rabbitmq-server-webapp-proxy:
-        image: dockermediacloud/rabbitmq-server-webapp-proxy:release
+        image: gcr.io/mcback/rabbitmq-server-webapp-proxy:release
         init: true
         networks:
             - default
@@ -1632,7 +1632,7 @@ services:
     # ----------------
     #
     rescrape-media:
-        image: dockermediacloud/rescrape-media:release
+        image: gcr.io/mcback/rescrape-media:release
         init: true
         networks:
             - default
@@ -1658,7 +1658,7 @@ services:
     # ------------------------------
     #
     sitemap-fetch-media-pages:
-        image: dockermediacloud/sitemap-fetch-media-pages:release
+        image: gcr.io/mcback/sitemap-fetch-media-pages:release
         init: true
         networks:
             - default
@@ -1904,7 +1904,7 @@ services:
     # proxy to the webapp.
     #
     solr-shard-webapp-proxy:
-        image: dockermediacloud/solr-shard-webapp-proxy:release
+        image: gcr.io/mcback/solr-shard-webapp-proxy:release
         init: true
         networks:
             - default
@@ -1931,7 +1931,7 @@ services:
     # --------------
     #
     solr-zookeeper:
-        image: dockermediacloud/solr-zookeeper:release
+        image: gcr.io/mcback/solr-zookeeper:release
         init: true
         networks:
             - default
@@ -1954,7 +1954,7 @@ services:
     # -------------------------------
     #
     topics-extract-story-links:
-        image: dockermediacloud/topics-extract-story-links:release
+        image: gcr.io/mcback/topics-extract-story-links:release
         init: true
         networks:
             - default
@@ -1979,7 +1979,7 @@ services:
     # ----------------------
     #
     topics-fetch-link:
-        image: dockermediacloud/topics-fetch-link:release
+        image: gcr.io/mcback/topics-fetch-link:release
         init: true
         networks:
             - default
@@ -2004,7 +2004,7 @@ services:
     # ------------------
     #
     topics-fetch-twitter-urls:
-        image: dockermediacloud/topics-fetch-twitter-urls:release
+        image: gcr.io/mcback/topics-fetch-twitter-urls:release
         init: true
         networks:
             - default
@@ -2028,7 +2028,7 @@ services:
     # -------------------------
     #
     topics-map:
-        image: dockermediacloud/topics-map:release
+        image: gcr.io/mcback/topics-map:release
         init: true
         networks:
             - default
@@ -2051,7 +2051,7 @@ services:
     # ------------
     #
     topics-mine:
-        image: dockermediacloud/topics-mine:release
+        image: gcr.io/mcback/topics-mine:release
         init: true
         networks:
             - default
@@ -2076,7 +2076,7 @@ services:
     # -------------------
     #
     topics-mine-public:
-        image: dockermediacloud/topics-mine-public:release
+        image: gcr.io/mcback/topics-mine-public:release
         init: true
         networks:
             - default
@@ -2101,7 +2101,7 @@ services:
     # ----------------
     #
     topics-snapshot:
-        image: dockermediacloud/topics-snapshot:release
+        image: gcr.io/mcback/topics-snapshot:release
         init: true
         networks:
             - default
@@ -2126,7 +2126,7 @@ services:
     # --------------------------------
     #
     webapp-api:
-        image: dockermediacloud/webapp-api:release
+        image: gcr.io/mcback/webapp-api:release
         init: true
         networks:
             - default
@@ -2152,7 +2152,7 @@ services:
     # --------------------
     #
     webapp-httpd:
-        image: dockermediacloud/webapp-httpd:release
+        image: gcr.io/mcback/webapp-httpd:release
         init: true
         networks:
             - default
@@ -2182,7 +2182,7 @@ services:
     # ----------------
     #
     word2vec-generate-snapshot-model:
-        image: dockermediacloud/word2vec-generate-snapshot-model:release
+        image: gcr.io/mcback/word2vec-generate-snapshot-model:release
         init: true
         networks:
             - default

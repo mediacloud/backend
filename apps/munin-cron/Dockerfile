@@ -2,7 +2,7 @@
 # Munin Cron stats collector
 #
 
-FROM dockermediacloud/cron-base:latest
+FROM gcr.io/mcback/cron-base:latest
 
 # Install packages
 RUN \

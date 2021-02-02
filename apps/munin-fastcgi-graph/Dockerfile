@@ -2,7 +2,7 @@
 # Munin FastCGI graph generator
 #
 
-FROM dockermediacloud/base:latest
+FROM gcr.io/mcback/base:latest
 
 # Install packages
 RUN \

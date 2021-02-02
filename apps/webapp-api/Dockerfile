@@ -2,7 +2,7 @@
 # Webapp (API workers)
 #
 
-FROM dockermediacloud/common:latest
+FROM gcr.io/mcback/common:latest
 
 # Install Python module dependencies
 RUN \

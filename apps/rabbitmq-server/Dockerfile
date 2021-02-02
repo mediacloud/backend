@@ -2,7 +2,7 @@
 # RabbitMQ server
 #
 
-FROM dockermediacloud/base:latest
+FROM gcr.io/mcback/base:latest
 
 # Add RabbitMQ APT repository
 RUN \

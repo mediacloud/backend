@@ -2,7 +2,7 @@
 # Base image for Nginx
 #
 
-FROM dockermediacloud/base:latest
+FROM gcr.io/mcback/base:latest
 
 # Install packages
 RUN \

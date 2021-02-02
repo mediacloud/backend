@@ -2,7 +2,7 @@
 # Import stories from PostgreSQL to Solr for testing purposes
 #
 
-FROM dockermediacloud/import-solr-data:latest
+FROM gcr.io/mcback/import-solr-data:latest
 
 USER root
 

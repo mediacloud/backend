@@ -2,7 +2,7 @@
 # Solr base
 #
 
-FROM dockermediacloud/java-base:latest
+FROM gcr.io/mcback/java-base:latest
 
 # Solr version
 ENV MEDIACLOUD_SOLR_VERSION="6.5.0"
