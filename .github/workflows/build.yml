@@ -117,6 +117,10 @@ jobs:
       - name: Install PyYAML
         run: pip install PyYAML
 
+      # Install module to annotate test failures during build
+      - name: Install pytest-github-actions-annotate-failures
+        run: pip install pytest-github-actions-annotate-failures
+
       # FIXME upgrade Docker?
 
       - name: Print kernel and Docker information
