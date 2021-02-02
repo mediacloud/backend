@@ -25,9 +25,9 @@ fi
 set -u
 
 # Update AWS credentials in a keystore
-echo -n "$MC_ELK_ELASTICSEARCH_SNAPSHOT_S3_ACCESS_KEY_ID" | \
+echo -n "${MC_ELK_ELASTICSEARCH_SNAPSHOT_S3_ACCESS_KEY_ID}" | \
     /opt/elasticsearch/bin/elasticsearch-keystore add s3.client.elk_logs.access_key --stdin --force
-echo -n "$MC_ELK_ELASTICSEARCH_SNAPSHOT_S3_SECRET_ACCESS_KEY" | \
+echo -n "${MC_ELK_ELASTICSEARCH_SNAPSHOT_S3_SECRET_ACCESS_KEY}" | \
     /opt/elasticsearch/bin/elasticsearch-keystore add s3.client.elk_logs.secret_key --stdin --force
 
 # Set up automatic snapshots if needed
@@ -41,7 +41,7 @@ fi
 # "Set Xmx and Xms to no more than 50% of your physical RAM."
 MC_RAM_SIZE=$(/container_memory_limit.sh)
 MC_ELASTICSEARCH_MS=$((MC_RAM_SIZE / 10 * 4))
-MC_ELASTICSEARCH_MX=$MC_ELASTICSEARCH_MS
+MC_ELASTICSEARCH_MX="${MC_ELASTICSEARCH_MS}"
 
 export ES_JAVA_OPTS=""
 
