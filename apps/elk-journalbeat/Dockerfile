@@ -2,7 +2,7 @@
 # Journalbeat for ELK journald logging
 #
 
-FROM dockermediacloud/base:latest
+FROM gcr.io/mcback/base:latest
 
 # Install Journalbeat
 # (https://www.elastic.co/downloads/beats/journalbeat)

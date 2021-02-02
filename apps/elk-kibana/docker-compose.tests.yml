@@ -3,7 +3,7 @@ version: "3.7"
 services:
 
     elk-kibana:
-        image: dockermediacloud/elk-kibana:latest
+        image: gcr.io/mcback/elk-kibana:latest
         init: true
         stop_signal: SIGKILL
         networks:
@@ -21,7 +21,7 @@ services:
             - elk-elasticsearch
 
     elk-elasticsearch:
-        image: dockermediacloud/elk-elasticsearch:latest
+        image: gcr.io/mcback/elk-elasticsearch:latest
         init: true
         stop_signal: SIGKILL
         environment:
@@ -66,7 +66,7 @@ services:
             - elk-auditbeat
 
     elk-filebeat:
-        image: dockermediacloud/elk-filebeat:latest
+        image: gcr.io/mcback/elk-filebeat:latest
         init: true
         stop_signal: SIGKILL
         networks:
@@ -89,7 +89,7 @@ services:
             - /var/run/docker.sock:/var/run/docker.sock
 
     elk-journalbeat:
-        image: dockermediacloud/elk-journalbeat:latest
+        image: gcr.io/mcback/elk-journalbeat:latest
         init: true
         stop_signal: SIGKILL
         networks:
@@ -113,7 +113,7 @@ services:
             - ./../elk-journalbeat/journald-log-sample/var/log/journal/:/var/log/journal/:ro
 
     elk-auditbeat:
-        image: dockermediacloud/elk-auditbeat:latest
+        image: gcr.io/mcback/elk-auditbeat:latest
         init: true
         stop_signal: SIGKILL
         networks:

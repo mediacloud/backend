@@ -700,7 +700,7 @@ services:
     # -------------------------------------
     #
     elk-auditbeat:
-        image: dockermediacloud/elk-auditbeat:release
+        image: gcr.io/mcback/elk-auditbeat:release
         init: true
         networks:
             - default
@@ -744,7 +744,7 @@ services:
     # --------------------------------
     #
     elk-elasticsearch:
-        image: dockermediacloud/elk-elasticsearch:release
+        image: gcr.io/mcback/elk-elasticsearch:release
         init: true
         networks:
             - default
@@ -787,7 +787,7 @@ services:
     # ----------------------------------------
     #
     elk-filebeat:
-        image: dockermediacloud/elk-filebeat:release
+        image: gcr.io/mcback/elk-filebeat:release
         init: true
         networks:
             - default
@@ -822,7 +822,7 @@ services:
     # -----------------------------------------
     #
     elk-journalbeat:
-        image: dockermediacloud/elk-journalbeat:release
+        image: gcr.io/mcback/elk-journalbeat:release
         init: true
         networks:
             - default
@@ -855,7 +855,7 @@ services:
     # ------------------------------
     #
     elk-kibana:
-        image: dockermediacloud/elk-kibana:release
+        image: gcr.io/mcback/elk-kibana:release
         init: true
         networks:
             - default

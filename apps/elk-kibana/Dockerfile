@@ -2,7 +2,7 @@
 # Kibana for ELK logging stack
 #
 
-FROM dockermediacloud/java-base:latest
+FROM gcr.io/mcback/java-base:latest
 
 # Install headless Chromium dependencies (needed for Reporting)
 # FIXME remove apt-get -y update

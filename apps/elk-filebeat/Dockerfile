@@ -2,7 +2,7 @@
 # Filebeat for ELK file + container logging
 #
 
-FROM dockermediacloud/base:latest
+FROM gcr.io/mcback/base:latest
 
 # Install Filebeat
 # (https://www.elastic.co/downloads/beats/filebeat)

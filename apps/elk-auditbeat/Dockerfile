@@ -2,7 +2,7 @@
 # Auditbeat for ELK auditd logging
 #
 
-FROM dockermediacloud/base:latest
+FROM gcr.io/mcback/base:latest
 
 # Install Auditbeat
 # (https://www.elastic.co/downloads/beats/auditbeat)

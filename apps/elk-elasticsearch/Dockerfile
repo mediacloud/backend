@@ -2,7 +2,7 @@
 # Elasticsearch for ELK logging stack
 #
 
-FROM dockermediacloud/java-base:latest
+FROM gcr.io/mcback/java-base:latest
 
 # Install Elasticsearch
 # (https://www.elastic.co/downloads/elasticsearch-no-jdk)
