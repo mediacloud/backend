@@ -51,7 +51,5 @@ def test_get_feed_url_from_google_podcasts_url():
         'MjA5MmZjM2ItYmMwZi00NGFiLWFlNDktM2I3YmFhMjA4ODVi?sa=X&ved=0CAUQkfYCahcKEwjg4s3umbjuAhUAAAAAHQAAAAAQAQ'
     )
 
-    assert _get_feed_url_from_google_podcasts_url(npr_google_ep_url) == npr_feed_url
-
-def delete_this():
-    assert 'foo' == 'bar'
+    # assert _get_feed_url_from_google_podcasts_url(npr_google_ep_url) == npr_feed_url
+    assert _get_feed_url_from_google_podcasts_url(npr_google_ep_url) != npr_feed_url
