@@ -52,3 +52,6 @@ def test_get_feed_url_from_google_podcasts_url():
     )
 
     assert _get_feed_url_from_google_podcasts_url(npr_google_ep_url) == npr_feed_url
+
+def delete_this():
+    assert 'foo' == 'bar'
