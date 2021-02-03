@@ -174,8 +174,6 @@ jobs:
           | parallel --timeout 600 --group --joblog joblog.txt
           || { cat joblog.txt && exit 1; }
         env:
-          # Set so that failure annotator knows it should be run in this context
-          GITHUB_ACTIONS: 'true'
           # Map secrets to environment variables
           MC_BRANDWATCH_PASSWORD: ${{ secrets.MC_BRANDWATCH_PASSWORD }}
           MC_BRANDWATCH_USER: ${{ secrets.MC_BRANDWATCH_USER }}
