@@ -117,10 +117,6 @@ jobs:
       - name: Install PyYAML
         run: pip install PyYAML
 
-      # Install module to annotate test failures during build
-      - name: Install pytest-github-actions-annotate-failures
-        run: pip install pytest-github-actions-annotate-failures
-
       # FIXME upgrade Docker?
 
       - name: Print kernel and Docker information
@@ -174,6 +170,8 @@ jobs:
           | parallel --timeout 600 --group --joblog joblog.txt
           || { cat joblog.txt && exit 1; }
         env:
+          # Set so that failure annotator knows it should be run in this context
+          GITHUB_ACTIONS: 'true'
           # Map secrets to environment variables
           MC_BRANDWATCH_PASSWORD: ${{ secrets.MC_BRANDWATCH_PASSWORD }}
           MC_BRANDWATCH_USER: ${{ secrets.MC_BRANDWATCH_USER }}
