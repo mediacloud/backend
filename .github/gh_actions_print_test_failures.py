@@ -32,3 +32,5 @@ print('\nTest details: \n')
 
 for failure in verbose_failure_summary:
     print(failure + '\n')
+
+sys.exit(0)
