@@ -73,6 +73,9 @@ def docker_test_commands(all_apps_dir: str, test_file: str, verbose: bool) -> Li
             # Disable cache because it won't be preserved
             '-p', 'no:cacheprovider',
 
+            # flag needed for running test annotation plugin in GH build (of no consequence if running locally)
+            '-e', 'GITHUB_ACTIONS=true',
+
             test_path_in_container,
         ]
     elif test_file.endswith('.t'):
