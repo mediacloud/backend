@@ -190,3 +190,5 @@ jobs:
       
       - name: Print test failures
         run: echo $(ls) && python ./.github/gh_actions_print_test_failures.py
+        env:
+          ACTION_STEP_DEBUG: true
