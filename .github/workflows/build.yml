@@ -189,4 +189,4 @@ jobs:
           MC_TWITTER_CONSUMER_SECRET: ${{ secrets.MC_TWITTER_CONSUMER_SECRET }}
       
       - name: Print test failures
-        run: python ./.github/gh_actions_print_test_failures.py
+        run: echo $(ls) && python ./.github/gh_actions_print_test_failures.py
