@@ -22,7 +22,7 @@
 -Djava.security.policy=/opt/elasticsearch/config/java.policy
 
 # Log JVM errors to STDERR
--XX:ErrorFile=/var/lib/elasticsearch/jvm-heapdumps/hs_err.log
+-XX:+ErrorFileToStderr
 
 # JDK 9+ GC logging
 #
