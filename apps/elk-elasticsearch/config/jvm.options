@@ -19,7 +19,7 @@
 -XX:HeapDumpPath=/var/lib/elasticsearch/jvm-heapdumps/
 
 # Log JVM errors to STDERR
--XX:+ErrorFileToStderr
+-XX:ErrorFile=/var/lib/elasticsearch/jvm-heapdumps/hs_err.log
 
 # JDK 9+ GC logging
 #
