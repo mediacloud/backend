@@ -1,0 +1,6 @@
+grant {
+    permission java.io.FilePermission "/home/elk/.aws/config", "read";
+    permission javax.management.MBeanPermission "*", "*";
+    permission javax.management.MBeanServerPermission "*";
+    permission javax.management.MBeanTrustPermission "*";
+};
