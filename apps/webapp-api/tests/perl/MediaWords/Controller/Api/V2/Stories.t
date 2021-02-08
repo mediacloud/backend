@@ -36,20 +36,31 @@ sub test_stories_cliff($)
 {
     my ( $db ) = @_;
 
-    # TODO add infrastructure to actually generate CLIFF and test it
-
     my $label = "stories/cliff";
 
-    # pick a stories_id that does not exist so that we make the end point just tell us that the
-    # end point does not exist instead of triggering a fatal error
-    my $stories_id = -1;
+    # 1. Test what happens with both story ID that exists and the one that
+    #    doesn't;
+    # 2. Pass arguments in an awkward order to make sure the order is preserved
+    #    in results.
+    my $existent_stories_id = 1;
+    my $nonexistent_stories_id = -1;
+    my $stories_ids = [ $existent_stories_id, $nonexistent_stories_id ];
 
-    my $r = MediaWords::Test::API::test_get( '/api/v2/stories/cliff', { stories_id => $stories_id } );
+    my $r = MediaWords::Test::API::test_get( '/api/v2/stories/cliff', { stories_id => $stories_ids } );
 
-    is( scalar( @{ $r } ),         1,           "$label num stories returned" );
-    is( $r->[ 0 ]->{ stories_id }, $stories_id, "$label stories_id" );
+    is( scalar( @{ $r } ),         scalar( @{ $stories_ids } ), "$label num stories returned" );
+
+    is( $r->[ 0 ]->{ stories_id }, $existent_stories_id, "$label existent_stories_id" );
     MediaWords::Test::Types::is_integer( $r->[ 0 ]->{ stories_id }, "$label stories_id is_integer" );
-    is( $r->[ 0 ]->{ cliff }, "story does not exist", "$label does not exist message" );
+    ok( $r->[ 0 ]->{ cliff }, "$label cliff" );
+    ok( $r->[ 0 ]->{ cliff }->{ results }, "$label cliff->results" );
+    ok( $r->[ 0 ]->{ cliff }->{ results }->{ organizations }, "$label cliff->results->organizations" );
+    ok( $r->[ 0 ]->{ cliff }->{ results }->{ places }, "$label cliff->results->places" );
+    ok( $r->[ 0 ]->{ cliff }->{ results }->{ people }, "$label cliff->results->people" );
+
+    is( $r->[ 1 ]->{ stories_id }, $nonexistent_stories_id, "$label nonexistent_stories_id" );
+    MediaWords::Test::Types::is_integer( $r->[ 1 ]->{ stories_id }, "$label stories_id is_integer" );
+    is( $r->[ 1 ]->{ cliff }, "story does not exist", "$label does not exist message" );
 }
 
 sub test_stories_is_syndicated_ap($)
@@ -70,20 +81,32 @@ sub test_stories_nytlabels($)
 {
     my ( $db ) = @_;
 
-    # TODO add infrastructure to actually generate NYTLabels and test it
-
     my $label = "stories/nytlabels";
 
-    # pick a stories_id that does not exist so that we make the end point just tell us that the
-    # end point does not exist instead of triggering a fatal error
-    my $stories_id = -1;
+    # 1. Test what happens with both story ID that exists and the one that
+    #    doesn't;
+    # 2. Pass arguments in an awkward order to make sure the order is preserved
+    #    in results.
+    my $existent_stories_id = 1;
+    my $nonexistent_stories_id = -1;
+    my $stories_ids = [ $existent_stories_id, $nonexistent_stories_id ];
 
-    my $r = MediaWords::Test::API::test_get( '/api/v2/stories/nytlabels', { stories_id => $stories_id } );
+    my $r = MediaWords::Test::API::test_get( '/api/v2/stories/nytlabels', { stories_id => $stories_ids } );
 
-    is( scalar( @{ $r } ),         1,           "$label num stories returned" );
-    is( $r->[ 0 ]->{ stories_id }, $stories_id, "$label stories_id" );
+    is( scalar( @{ $r } ),         scalar( @{ $stories_ids } ), "$label num stories returned" );
+
+    is( $r->[ 0 ]->{ stories_id }, $existent_stories_id, "$label existent_stories_id" );
     MediaWords::Test::Types::is_integer( $r->[ 0 ]->{ stories_id }, "$label stories_id is_integer" );
-    is( $r->[ 0 ]->{ nytlabels }, "story does not exist", "$label does not exist message" );
+    ok( $r->[ 0 ]->{ nytlabels }, "$label nytlabels" );
+    ok( $r->[ 0 ]->{ nytlabels }->{ allDescriptors }, "$label nytlabels->allDescriptors" );
+    ok( $r->[ 0 ]->{ nytlabels }->{ descriptors600 }, "$label nytlabels->descriptors600" );
+    ok( $r->[ 0 ]->{ nytlabels }->{ descriptorsAndTaxonomies }, "$label nytlabels->descriptorsAndTaxonomies" );
+    ok( $r->[ 0 ]->{ nytlabels }->{ descriptors3000 }, "$label nytlabels->descriptors3000" );
+    ok( $r->[ 0 ]->{ nytlabels }->{ taxonomies }, "$label nytlabels->taxonomies" );
+
+    is( $r->[ 1 ]->{ stories_id }, $nonexistent_stories_id, "$label nonexistent_stories_id" );
+    MediaWords::Test::Types::is_integer( $r->[ 1 ]->{ stories_id }, "$label stories_id is_integer" );
+    is( $r->[ 1 ]->{ nytlabels }, "story does not exist", "$label does not exist message" );
 }
 
 sub test_stories_list($)
