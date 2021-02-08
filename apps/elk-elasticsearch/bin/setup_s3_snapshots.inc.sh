@@ -24,7 +24,7 @@ echo "Starting Elasticsearch for snapshot setup..."
 
 for i in {1..120}; do
     echo "Waiting for Elasticsearch to start..."
-    if curl --fail "http://127.0.0.1:${ES_TEMP_PORT}/_cluster/health"; then
+    if curl --silent --show-error --fail "http://127.0.0.1:${ES_TEMP_PORT}/_cluster/health"; then
         break
     else
         sleep 1
@@ -45,6 +45,8 @@ cat << EOF > /var/tmp/create-repository.json
 EOF
 curl -XPUT "http://127.0.0.1:${ES_TEMP_PORT}/_snapshot/elk_logs" \
     --fail \
+    --silent \
+    --show-error \
     -H "Content-Type: application/json" \
     -d @/var/tmp/create-repository.json
 rm /var/tmp/create-repository.json
@@ -67,6 +69,8 @@ cat << EOF > /var/tmp/create-policy.json
 EOF
 curl -XPUT "http://127.0.0.1:${ES_TEMP_PORT}/_slm/policy/nightly-s3-snapshots" \
     --fail \
+    --silent \
+    --show-error \
     -H "Content-Type: application/json" \
     -d @/var/tmp/create-policy.json
 rm /var/tmp/create-policy.json
@@ -82,6 +86,8 @@ cat << EOF > /var/tmp/per-index-config.json
 EOF
 curl -XPUT "http://127.0.0.1:${ES_TEMP_PORT}/_all/_settings?preserve_existing=true" \
     --fail \
+    --silent \
+    --show-error \
     -H "Content-Type: application/json" \
     -d @/var/tmp/per-index-config.json
 rm /var/tmp/per-index-config.json
