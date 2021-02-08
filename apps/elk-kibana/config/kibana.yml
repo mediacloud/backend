@@ -133,6 +133,11 @@ monitoring.ui.enabled: false
 # Metrics is also not too useful
 xpack.infra.enabled: false
 
+# We don't use encryption and use ELK stack only internally, so setting these
+# encryption keys to public values should be fine
+xpack.security.encryptionKey: "R7h2kw8p43c6wUwQ9YYTUVBcXY96RgGT"
+xpack.encryptedSavedObjects.encryptionKey: "2M5aVYPG96F6FxXUDVNWtBR5AwrAW4qn"
+xpack.reporting.encryptionKey: "L7vJ293yDHG6sV3TvfFd5Pg9xwkjnSQF"
 
 uiSettings:
   overrides:
