@@ -204,6 +204,9 @@ Host mccore1
 
     # postgresql-pgadmin
     LocalForward 5050 127.0.0.1:5050
+
+    # elk-kibana
+    LocalForward 5601 127.0.0.1:5601
 ```
 
 ### Deploying with Portainer
