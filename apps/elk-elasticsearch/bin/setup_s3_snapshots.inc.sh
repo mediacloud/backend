@@ -77,21 +77,21 @@ rm /var/tmp/create-policy.json
 echo "Done creating nightly snapshot policy."
 
 
-# Enable querying multiple indices at once (via the "*"" index pattern)
-echo "Storing per-index configuration..."
-cat << EOF > /var/tmp/per-index-config.json
-{
-  "index.max_docvalue_fields_search" : "200"
-}
-EOF
-curl -XPUT "http://127.0.0.1:${ES_TEMP_PORT}/_all/_settings?preserve_existing=true" \
-    --fail \
-    --silent \
-    --show-error \
-    -H "Content-Type: application/json" \
-    -d @/var/tmp/per-index-config.json
-rm /var/tmp/per-index-config.json
-echo "Done storing per-index configuration."
+# # Enable querying multiple indices at once (via the "*"" index pattern)
+# echo "Storing per-index configuration..."
+# cat << EOF > /var/tmp/per-index-config.json
+# {
+#   "index.max_docvalue_fields_search" : "200"
+# }
+# EOF
+# curl -XPUT "http://127.0.0.1:${ES_TEMP_PORT}/_all/_settings?preserve_existing=true" \
+#     --fail \
+#     --silent \
+#     --show-error \
+#     -H "Content-Type: application/json" \
+#     -d @/var/tmp/per-index-config.json
+# rm /var/tmp/per-index-config.json
+# echo "Done storing per-index configuration."
 
 
 echo "Stopping Elasticsearch after snapshot setup..."
