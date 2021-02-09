@@ -1278,35 +1278,6 @@ services:
                 max_attempts: 3
 
     #
-    # pgAdmin
-    # ---------
-    #
-    postgresql-pgadmin:
-        image: gcr.io/mcback/postgresql-pgadmin:release
-        init: true
-        networks:
-            - default
-        depends_on:
-            - postgresql-server
-        ports:
-            # For connecting to through a SSH tunnel
-            # MAKE SURE to BLOCK THIS PORT in provision/roles/docker/tasks/iptables.yml
-            - "5050:5050"
-        volumes:
-            - vol_pgadmin_data:/var/lib/pgadmin/
-        deploy:
-            placement:
-                constraints:
-                    # Must run on a host with PgAdmin data volume
-                    - node.labels.role-postgresql-pgadmin == true
-            resources:
-                limits:
-                    # CPU core limit
-                    cpus: "4"
-                    # RAM limit
-                    memory: "1024M"
-
-    #
     # PgBouncer
     # ---------
     #
