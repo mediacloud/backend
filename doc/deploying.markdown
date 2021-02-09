@@ -198,6 +198,9 @@ Host mccore1
 
     # portainer
     LocalForward 9000 127.0.0.1:9000
+
+    # elk-kibana
+    LocalForward 5601 127.0.0.1:5601
 ```
 
 ### Deploying with Portainer

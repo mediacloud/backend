@@ -66,8 +66,6 @@ java_args=(
     -DnumShards="${MC_SOLR_SHARD_COUNT}"
     -DzkClientTimeout="${MC_SOLR_ZOOKEEPER_TIMEOUT}"
     -Dmediacloud.luceneMatchVersion="${MC_SOLR_LUCENEMATCHVERSION}"
-    # Use cgroup's memory / CPU limits
-    -XX:+UseContainerSupport
     # Store heap dumps on OOM errors
     -XX:+HeapDumpOnOutOfMemoryError
     -XX:HeapDumpPath=/var/lib/solr/jvm-oom-heapdumps/

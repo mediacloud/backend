@@ -99,3 +99,17 @@
   tags:
     - docker
     - iptables
+
+- name: Deny connections to ELK Kibana
+  iptables:
+    # Insert before RETURN
+    action: insert
+    chain: DOCKER-USER
+    protocol: tcp
+    destination_port: 5601
+    jump: DROP
+  become: true
+  become_user: root
+  tags:
+    - docker
+    - iptables
