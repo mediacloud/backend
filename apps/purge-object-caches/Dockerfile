@@ -2,7 +2,7 @@
 # Purge object caches on PostgreSQL
 #
 
-FROM dockermediacloud/common:latest
+FROM gcr.io/mcback/common:latest
 
 COPY bin /opt/mediacloud/bin
 

@@ -2,7 +2,7 @@
 # Fetch Twitter URLs
 #
 
-FROM dockermediacloud/topics-base:latest
+FROM gcr.io/mcback/topics-base:latest
 
 # Copy sources
 COPY src/ /opt/mediacloud/src/topics-fetch-twitter-urls/

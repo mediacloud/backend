@@ -2,7 +2,7 @@
 # Import stories by scraping HTML
 #
 
-FROM dockermediacloud/import-stories-base:latest
+FROM gcr.io/mcback/import-stories-base:latest
 
 # Install Perl dependencies
 COPY src/cpanfile /var/tmp/

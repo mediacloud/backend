@@ -3,7 +3,7 @@ version: "3.7"
 services:
 
     topics-extract-story-links:
-        image: dockermediacloud/topics-extract-story-links:latest
+        image: gcr.io/mcback/topics-extract-story-links:latest
         init: true
         stop_signal: SIGKILL
         volumes:
@@ -32,7 +32,7 @@ services:
             - extract-article-from-page
 
     extract-article-from-page:
-        image: dockermediacloud/extract-article-from-page:latest
+        image: gcr.io/mcback/extract-article-from-page:latest
         init: true
         stop_signal: SIGKILL
         expose:
@@ -49,7 +49,7 @@ services:
               target: /opt/mediacloud/src/common/
 
     postgresql-pgbouncer:
-        image: dockermediacloud/postgresql-pgbouncer:latest
+        image: gcr.io/mcback/postgresql-pgbouncer:latest
         init: true
         stop_signal: SIGKILL
         expose:
@@ -62,7 +62,7 @@ services:
             - postgresql-server
 
     postgresql-server:
-        image: dockermediacloud/postgresql-server:latest
+        image: gcr.io/mcback/postgresql-server:latest
         init: true
         stop_signal: SIGKILL
         expose:

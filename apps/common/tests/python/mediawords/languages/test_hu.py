@@ -66,9 +66,8 @@ class TestHungarianLanguage(TestCase):
             ),
             (
                 'Nevéhez fűződik még a szerződési görbe és az úgynevezett Edgeworth-doboz vagy Edgeworth-négyszög '
-                'kidolgozása.'
+                'kidolgozása. ( Az utóbbit Pareto-féle box-diagrammnak is nevezik.)'
             ),
-            '( Az utóbbit Pareto-féle box-diagrammnak is nevezik.)',
             (
                 'Mint statisztikus, a korrelációszámítást fejlesztette tovább, s az index-számításban a bázis és a '
                 'tárgyidőszak fogyasztási szerkezettel számított indexek számtani átlagaként képzett indexet róla '

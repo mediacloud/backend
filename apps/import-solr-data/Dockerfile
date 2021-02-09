@@ -2,7 +2,7 @@
 # Import stories from PostgreSQL to Solr
 #
 
-FROM dockermediacloud/common:latest
+FROM gcr.io/mcback/common:latest
 
 # Install Perl dependencies
 COPY src/cpanfile /var/tmp/

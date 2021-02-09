@@ -26,5 +26,6 @@ def test_invalid_feed_url():
 
     handler = handler_for_download(db=db, download=download)
 
-    with pytest.raises(McCrawlerFetcherSoftError, message="Invalid URL should be a soft exception"):
+    # Invalid URL should be a soft exception
+    with pytest.raises(McCrawlerFetcherSoftError):
         handler.fetch_download(db=db, download=download)

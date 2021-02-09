@@ -2,7 +2,7 @@
 # Mine public topic worker
 #
 
-FROM dockermediacloud/topics-mine:latest
+FROM gcr.io/mcback/topics-mine:latest
 
 # Copy worker script
 COPY bin /opt/mediacloud/bin

@@ -2,7 +2,7 @@
 # Poll database for operations which should be done by now, add transcription fetch for due operations
 #
 
-FROM dockermediacloud/common:latest
+FROM gcr.io/mcback/common:latest
 
 # Copy sources
 COPY src/ /opt/mediacloud/src/podcast-poll-due-operations/

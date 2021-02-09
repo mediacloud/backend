@@ -1,0 +1,52 @@
+path.home: /opt/journalbeat/
+
+logging.to_stderr: true
+
+logging.metrics.enabled: false
+
+# Will be set by the wrapper script
+#name:
+
+# Will be set by the wrapper script
+#max_procs:
+
+
+# ---
+
+setup.template.settings:
+  index.number_of_shards: 1
+
+# setup.dashboards.enabled: true
+
+# setup.kibana:
+#   host: "elk-kibana:5601"
+
+
+# ---
+
+setup.ilm.enabled: true
+setup.ilm.policy_file: /opt/journalbeat/journalbeat-ilm.json
+setup.ilm.overwrite: true
+
+
+# ---
+
+journalbeat.inputs:
+  
+  - paths: []
+    seek: cursor
+    tags: ["journald"]
+
+
+# ---
+
+processors:
+
+  # Host metadata is not useful as "host" is a container in this case
+  # - add_host_metadata: ~
+
+
+# ---
+
+output.elasticsearch:
+  hosts: ["elk-elasticsearch:9200"]

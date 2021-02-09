@@ -14,7 +14,7 @@ version: "3.7"
 
 # Base service for Solr shard
 x-solr-shard_base:   &solr-shard_base
-    image: dockermediacloud/solr-shard:latest
+    image: gcr.io/mcback/solr-shard:latest
     init: true
     stop_signal: SIGKILL
     environment:
@@ -64,7 +64,7 @@ services:
               target: /solr-shard.sh
 
     solr-zookeeper:
-        image: dockermediacloud/solr-zookeeper:latest
+        image: gcr.io/mcback/solr-zookeeper:latest
         init: true
         stop_signal: SIGKILL
         expose:

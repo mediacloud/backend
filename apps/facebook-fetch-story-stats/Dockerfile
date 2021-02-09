@@ -2,7 +2,7 @@
 # Fetch story stats from Facebook
 #
 
-FROM dockermediacloud/common:latest
+FROM gcr.io/mcback/common:latest
 
 # Copy sources
 COPY src/ /opt/mediacloud/src/facebook-fetch-story-stats/

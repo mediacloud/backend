@@ -2,7 +2,7 @@
 # map topic worker
 #
 
-FROM dockermediacloud/common:latest
+FROM gcr.io/mcback/common:latest
 
 # Install Java
 RUN apt-get -y --no-install-recommends install openjdk-8-jre-headless
@@ -11,10 +11,12 @@ RUN apt-get -y --no-install-recommends install openjdk-8-jre-headless
 RUN \
     mkdir /opt/fa2l && \
     cd /opt/fa2l && \
-    curl --fail --location --retry 3 --retry-delay 5 --output "forceatlas2.jar" \
-        "https://github.com/klarman-cell-observatory/forceatlas2/releases/download/1.0.3/forceatlas2.jar" && \
-    curl --fail --location --retry 3 --retry-delay 5 --output "gephi-toolkit.jar" \
-        "https://github.com/klarman-cell-observatory/forceatlas2/releases/download/1.0.3/gephi-toolkit-0.9.2-all.jar" && \
+    /dl_to_stdout.sh \
+        "https://github.com/klarman-cell-observatory/forceatlas2/releases/download/1.0.3/forceatlas2.jar" \
+        > "forceatlas2.jar" && \
+    /dl_to_stdout.sh \
+        "https://github.com/klarman-cell-observatory/forceatlas2/releases/download/1.0.3/gephi-toolkit-0.9.2-all.jar" \
+        > "gephi-toolkit.jar" && \
     true
 
 # Install Python dependencies

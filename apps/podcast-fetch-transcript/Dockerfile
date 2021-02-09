@@ -2,7 +2,7 @@
 # Collect due transcripts from Google Speech API, store them locally as both raw JSON and download text
 #
 
-FROM dockermediacloud/common:latest
+FROM gcr.io/mcback/common:latest
 
 # Install Python dependencies
 COPY src/requirements.txt /var/tmp/

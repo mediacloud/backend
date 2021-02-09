@@ -2,6 +2,7 @@ import abc
 import datetime
 import dateutil.parser
 import re
+from typing import Optional
 
 import requests_mock
 
@@ -18,7 +19,14 @@ class AbstractPostFetcher(object, metaclass=abc.ABCMeta):
         self.mock_enabled = False
 
     @abc.abstractmethod
-    def fetch_posts_from_api(self, query: dict, start_date: datetime, end_date: datetime) -> list:
+    def fetch_posts_from_api(
+        self,
+        query: dict,
+        start_date: datetime,
+        end_date: datetime,
+        sample: Optional[int] = None,
+        page_size: Optional[int] = None,
+    ) -> list:
         raise NotImplemented("Abstract method")
 
     def validate_mock_post(self, got_post: dict, expected_post: dict) -> None:
@@ -61,16 +69,35 @@ class AbstractPostFetcher(object, metaclass=abc.ABCMeta):
         pass
 
     # noinspection PyMethodMayBeStatic
-    def fetch_posts(self, query: str, start_date: datetime, end_date: datetime) -> list:
+    def fetch_posts(
+        self,
+        query: str,
+        start_date: datetime,
+        end_date: datetime,
+        sample: Optional[int] = None,
+        page_size: Optional[int] = None,
+    ) -> list:
         """Fetch reddit posts from pushshift  Setup mocking if self.mock_enabled."""
         if self.mock_enabled:
             with requests_mock.Mocker() as m:
                 # add the mocker for the ch api calls
                 self.setup_mock_data(m)
-                posts = self.fetch_posts_from_api(query, start_date, end_date)
+                posts = self.fetch_posts_from_api(
+                    query=query,
+                    start_date=start_date,
+                    end_date=end_date,
+                    sample=sample,
+                    page_size=page_size,
+                )
 
         else:
-            posts = self.fetch_posts_from_api(query, start_date, end_date)
+            posts = self.fetch_posts_from_api(
+                query=query,
+                start_date=start_date,
+                end_date=end_date,
+                sample=sample,
+                page_size=page_size,
+            )
 
         for post in posts:
             post['urls'] = self.get_post_urls(post)

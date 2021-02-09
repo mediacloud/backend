@@ -1,98 +1,96 @@
 # Amazon S3
-boto3==1.9.78
+boto3==1.16.61
 
 # HTML parsing and stripping
-beautifulsoup4==4.7.1
+beautifulsoup4==4.9.3
 
 # Job broker
-Celery==4.3.1
+# (Celery 5.x changed behaviour in how tasks get registered which would require
+# mediawords/job/ to be rewritten from the ground up so we're not going that
+# far here)
+Celery==4.4.7
 
 # Detect encodings of web responses
-chardet==3.0.4
+chardet==4.0.0
 
 # Language identification
 cld2-cffi==0.1.4
 
 # Colorful sentence diffs in unit tests
-colorama==0.4.1
-
-# Unit test coverage
-coverage==4.5.2
+colorama==0.4.4
 
 # Some modules require latest version of this
-cryptography==2.4.2
+cryptography==3.3.1
 
 # Hindi stemming
-CyHunspell==1.3.0
+CyHunspell==2.0.1
 
 # Guessing publication dates of stories
 date_guesser==2.1.4
 
 # Parsing RSS / Atom feeds
-feedparser==6.0.0b1
+feedparser==6.0.2
 
 # Stemming Hausa words
 hausastemmer==1.0
 
 # Code conventions
-flake8==3.6.0
+flake8==3.8.4
 
 # URL manipulation
-furl==2.0.0
+furl==2.1.0
 
 # Chinese language tokenizer, stemmer, etc.
-jieba==0.39
+jieba==0.42.1
 
 # Parsing email templates
-Jinja2==2.10.1
+Jinja2==2.11.2
 
 # One of Celery's dependencies (here just for PyCharm to stop complaining)
-kombu==4.5.0
+# Upgrade together with Celery and not separately.
+kombu==4.6.11
 
 # XML manipulations, HTML parsing
-lxml==4.3.0
+lxml==4.6.2
 
 # Japanese language tokenizer, stemmer, etc.
-mecab-python3==0.996.1
+mecab-python3==1.0.3
 
 # Natural language processing, e.g. tokenization
-nltk==3.4.5
+nltk==3.5
 
 # PostgreSQL access
-psycopg2-binary==2.7.6.1
+psycopg2-binary==2.8.6
 
 # Process information
-psutil==5.7.0
+psutil==5.8.0
 
 # Snowball stemmer (NLTK's implementation doesn't support Turkish)
-PyStemmer==1.3.0
+PyStemmer==2.0.1
 
 # Unit tests
-pytest==3.8.0
-
-# Test coverage
-pytest-cov==2.6.0
+pytest==6.2.2
 
 # Timezone handling
-pytz==2018.9
+pytz==2020.5
 
 # Date parsing
-python-dateutil==2.7.5
+python-dateutil==2.8.1
 
 # Making HTTP requests
-requests==2.21.0
+requests==2.25.1
 
 # Asynchronous (parallell / concurrent) HTTP requests
-requests-futures==0.9.9
+requests-futures==1.0.0
 
 # Splitting text into sentences using Lingua::Sentence's method
-sentence_splitter==1.3
+sentence_splitter==1.4
 
 # Celery PostgreSQL result backend support
-sqlalchemy==1.3.3
+sqlalchemy==1.3.22
 
 # Normalizing URLs
-url_normalize==1.4.1
+url_normalize==1.4.3
 
 # Low level HTTP requests (with SSL certificate verification)
-urllib3[secure]==1.24.2
+urllib3[secure]==1.26.3

@@ -1,0 +1,35 @@
+#
+# -Xmx and -Xms both get set at runtime
+#
+
+## G1GC Configuration
+14-:-XX:+UseG1GC
+14-:-XX:G1ReservePercent=25
+14-:-XX:InitiatingHeapOccupancyPercent=30
+
+## JVM temporary directory
+-Djava.io.tmpdir=/var/tmp
+
+# generate a heap dump when an allocation from the Java heap fails
+# heap dumps are created in the working directory of the JVM
+-XX:+HeapDumpOnOutOfMemoryError
+
+# specify an alternative path for heap dumps; ensure the directory exists and
+# has sufficient space
+-XX:HeapDumpPath=/var/lib/elasticsearch/jvm-heapdumps/
+
+# Update policy for S3 plugin to work
+-Djava.security.policy=/opt/elasticsearch/config/java.policy
+
+# Log JVM errors to STDERR
+-XX:+ErrorFileToStderr
+
+# JDK 9+ GC logging
+#
+# Log to STDERR:
+#
+# 9-:-Xlog:gc*,gc+age=trace,safepoint:stderr:utctime,pid,tags:
+#
+# ...or log to file:
+#
+9-:-Xlog:gc*,gc+age=trace,safepoint:file=/var/lib/elasticsearch/jvm-gc-logs/gc.log:utctime,pid,tags:filecount=32,filesize=64m
