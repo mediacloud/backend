@@ -56,19 +56,6 @@ sub get_test_api_key()
     return $_test_api_key;
 }
 
-# test that all fields with purely number responses return JSON numbers
-sub __validate_number_fields($$)
-{
-    my ( $label, $json ) = @_;
-
-    while ( $json =~ /("[^"]+"\s*:\s*"[\d]+")/g )
-    {
-        ok( 0, "$label number field has been stringified: $1" );
-        WARN( "json: " . substr( $json, 0, 2048 ) );
-        die();
-    }
-}
-
 #  test that we got a valid response,
 # that the response is valid json, and that the JSON response is not an error response.  Return
 # the decoded json.  If $expect_error is true, test for expected error response.
@@ -89,8 +76,6 @@ sub test_request_response($$;$)
     my $data = eval { MediaWords::Util::ParseJSON::decode_json( $response->decoded_content ) };
 
     ok( $data, "decoded JSON for $label (json error: $@)" );
-
-    __validate_number_fields( $label, $response->decoded_content );
 
     if ( $expect_error )
     {

@@ -178,9 +178,6 @@ Both Media Cloud production's `docker-compose.yml` and Portainer's `docker-compo
 * Portainer's webapp on port 9000
     * username: `admin`
     * password: `mediacloud`
-* pgAdmin on port 5050:
-    * username: `mediacloud@mediacloud.org`
-    * password: `mediacloud`
 
 To access those services, you might want to set up a SSH tunnel in your `~/.ssh/config` as follows:
 
@@ -201,9 +198,6 @@ Host mccore1
 
     # portainer
     LocalForward 9000 127.0.0.1:9000
-
-    # postgresql-pgadmin
-    LocalForward 5050 127.0.0.1:5050
 
     # elk-kibana
     LocalForward 5601 127.0.0.1:5601
