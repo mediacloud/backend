@@ -15,6 +15,9 @@ MIGRATIONS_DIR="${SCHEMA_DIR}/migrations/"
 # up connecting in the middle of migrating
 TEMP_PORT=12345
 
+# In case the database is in recovery, wait for up to 1 hour for it to complete
+PGCTL_START_TIMEOUT=3600
+
 if [ ! -f "${SCHEMA_PATH}" ]; then
     echo "Schema ${SCHEMA_PATH} does not exist."
     exit 1
@@ -48,7 +51,7 @@ echo "New schema version: ${NEW_SCHEMA_VERSION}"
 "${MC_POSTGRESQL_BIN_DIR}/pg_ctl" \
     -o "-c config_file=${MC_POSTGRESQL_CONF_PATH} -p ${TEMP_PORT}" \
     -D "${MC_POSTGRESQL_DATA_DIR}" \
-    -t 1200 \
+    -t "${PGCTL_START_TIMEOUT}" \
     -w \
     start
 
@@ -119,5 +122,4 @@ fi
     -D "${MC_POSTGRESQL_DATA_DIR}" \
     -m fast \
     -w \
-    -t 1200 \
     stop

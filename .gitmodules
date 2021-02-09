@@ -31,3 +31,6 @@
 [submodule "apps/podcast-fetch-transcript/tests/data/media-samples"]
 	path = apps/podcast-fetch-transcript/tests/data/media-samples
 	url = https://github.com/mediacloud/podcast-media-samples.git
+[submodule "apps/elk-journalbeat/journald-log-sample"]
+	path = apps/elk-journalbeat/journald-log-sample
+	url = https://github.com/mediacloud/journald-log-sample.git

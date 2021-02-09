@@ -3,7 +3,7 @@ version: "3.7"
 services:
 
     dump-table:
-        image: dockermediacloud/dump-table:latest
+        image: gcr.io/mcback/dump-table:latest
         init: true
         stop_signal: SIGKILL
         volumes:
@@ -17,7 +17,7 @@ services:
             - postgresql-pgbouncer
 
     postgresql-pgbouncer:
-        image: dockermediacloud/postgresql-pgbouncer:latest
+        image: gcr.io/mcback/postgresql-pgbouncer:latest
         init: true
         stop_signal: SIGKILL
         expose:
@@ -30,7 +30,7 @@ services:
             - postgresql-server
 
     postgresql-server:
-        image: dockermediacloud/postgresql-server:latest
+        image: gcr.io/mcback/postgresql-server:latest
         init: true
         stop_signal: SIGKILL
         expose:

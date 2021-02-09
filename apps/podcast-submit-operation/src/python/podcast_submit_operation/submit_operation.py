@@ -4,9 +4,7 @@ from typing import Dict, Any
 # noinspection PyPackageRequirements
 from google.api_core.exceptions import ServiceUnavailable
 # noinspection PyPackageRequirements
-from google.cloud.speech_v1p1beta1 import SpeechClient
-# noinspection PyPackageRequirements
-from google.cloud.speech_v1p1beta1.proto.cloud_speech_pb2 import RecognitionConfig
+from google.cloud.speech_v1p1beta1 import SpeechClient, RecognitionConfig
 
 from mediawords.db import DatabaseHandler
 from mediawords.util.log import create_logger

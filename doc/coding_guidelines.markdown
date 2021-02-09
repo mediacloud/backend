@@ -35,7 +35,7 @@ Table of Contents
 
 ## Python Version
 
-Tests are run on travis using Python 3.7, though improvements to keep up with modern Python are welcome.
+Tests are run on GitHub Actions using Python 3, though improvements to keep up with modern Python are welcome.
 
 ## Code Style
 

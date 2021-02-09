@@ -2,7 +2,7 @@
 # (Re)scrape media worker
 #
 
-FROM dockermediacloud/common:latest
+FROM gcr.io/mcback/common:latest
 
 # Install Perl dependencies
 COPY src/cpanfile /var/tmp/

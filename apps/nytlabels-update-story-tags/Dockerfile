@@ -2,7 +2,7 @@
 # NYTLabels update story tags worker
 #
 
-FROM dockermediacloud/nytlabels-base:latest
+FROM gcr.io/mcback/nytlabels-base:latest
 
 # Copy sources
 COPY src/ /opt/mediacloud/src/nytlabels-update-story-tags/

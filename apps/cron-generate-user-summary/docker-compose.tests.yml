@@ -3,7 +3,7 @@ version: "3.7"
 services:
 
     cron-generate-user-summary:
-        image: dockermediacloud/cron-generate-user-summary:latest
+        image: gcr.io/mcback/cron-generate-user-summary:latest
         init: true
         stop_signal: SIGKILL
         volumes:
@@ -20,7 +20,7 @@ services:
             - postgresql-pgbouncer
 
     postgresql-pgbouncer:
-        image: dockermediacloud/postgresql-pgbouncer:latest
+        image: gcr.io/mcback/postgresql-pgbouncer:latest
         init: true
         stop_signal: SIGKILL
         expose:
@@ -33,7 +33,7 @@ services:
             - postgresql-server
 
     postgresql-server:
-        image: dockermediacloud/postgresql-server:latest
+        image: gcr.io/mcback/postgresql-server:latest
         init: true
         stop_signal: SIGKILL
         expose:

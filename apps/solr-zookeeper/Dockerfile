@@ -4,7 +4,7 @@
 #
 
 # Uses Solr base image because ZooKeeper uploads Solr configuration to its instance
-FROM dockermediacloud/solr-base:latest
+FROM gcr.io/mcback/solr-base:latest
 
 # ZooKeeper version
 ENV MEDIACLOUD_ZOOKEEPER_VERSION="3.4.10"
@@ -12,7 +12,7 @@ ENV MEDIACLOUD_ZOOKEEPER_VERSION="3.4.10"
 # Download and extract ZooKeeper
 RUN \
     mkdir -p /opt/zookeeper/ && \
-    curl --fail --location --retry 3 --retry-delay 5 "https://archive.apache.org/dist/zookeeper/zookeeper-${MEDIACLOUD_ZOOKEEPER_VERSION}/zookeeper-${MEDIACLOUD_ZOOKEEPER_VERSION}.tar.gz" | \
+    /dl_to_stdout.sh "https://archive.apache.org/dist/zookeeper/zookeeper-${MEDIACLOUD_ZOOKEEPER_VERSION}/zookeeper-${MEDIACLOUD_ZOOKEEPER_VERSION}.tar.gz" | \
         tar -zx -C /opt/zookeeper/ --strip 1 && \
     rm -rf /opt/zookeeper/conf/ && \
     true

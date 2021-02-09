@@ -2,7 +2,7 @@
 # Base image for topic-related code
 #
 
-FROM dockermediacloud/extract-and-vector:latest
+FROM gcr.io/mcback/extract-and-vector:latest
 
 USER root
 

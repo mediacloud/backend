@@ -3,7 +3,7 @@ version: "3.7"
 services:
 
     podcast-poll-due-operations:
-        image: dockermediacloud/podcast-poll-due-operations:latest
+        image: gcr.io/mcback/podcast-poll-due-operations:latest
         init: true
         stop_signal: SIGKILL
         volumes:
@@ -24,7 +24,7 @@ services:
             # We don't need "rabbitmq-server" to run tests
 
     postgresql-pgbouncer:
-        image: dockermediacloud/postgresql-pgbouncer:latest
+        image: gcr.io/mcback/postgresql-pgbouncer:latest
         init: true
         stop_signal: SIGKILL
         expose:
@@ -37,7 +37,7 @@ services:
             - postgresql-server
 
     postgresql-server:
-        image: dockermediacloud/postgresql-server:latest
+        image: gcr.io/mcback/postgresql-server:latest
         init: true
         stop_signal: SIGKILL
         expose:

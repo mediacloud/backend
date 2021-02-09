@@ -2,7 +2,7 @@
 # PgBouncer
 #
 
-FROM dockermediacloud/postgresql-base:latest
+FROM gcr.io/mcback/postgresql-base:latest
 
 # Install PgBouncer
 RUN \

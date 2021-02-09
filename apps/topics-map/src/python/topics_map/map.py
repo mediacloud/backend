@@ -586,7 +586,6 @@ def draw_edges(graph: nx.Graph, node_colors: list, node_positions: list) -> None
     nx.draw_networkx_edges(
         G=graph,
         pos=node_positions,
-        with_labels=False,
         edge_color=edge_colors,
         alpha=0.025,
     )
@@ -610,7 +609,6 @@ def draw_graph(graph: nx.Graph, graph_format: str = 'svg') -> bytes:
         G=graph,
         pos=positions,
         node_size=sizes,
-        with_labels=False,
         node_color=colors,
         alpha=0.7
     )

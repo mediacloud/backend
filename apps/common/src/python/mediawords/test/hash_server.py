@@ -585,7 +585,7 @@ class HashServer(object):
         self.__http_server_thread.terminate()
         self.__http_server_thread = None
 
-        if not wait_for_tcp_port_to_close(port=self.__port, retries=20, delay=0.1):
+        if not wait_for_tcp_port_to_close(port=self.__port, retries=100, delay=0.1):
             raise McHashServerException("Port %d is still open." % self.__port)
 
     def port(self) -> int:

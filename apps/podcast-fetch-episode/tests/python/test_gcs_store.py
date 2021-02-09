@@ -15,7 +15,9 @@ from .config_random_gcs_prefix import RandomPathPrefixConfig
 class TestGCSStore(TestCase):
 
     def test_remote_path(self):
-        with pytest.raises(McPodcastMisconfiguredGCSException, message="Empty object ID"):
+
+        # Empty object ID
+        with pytest.raises(McPodcastMisconfiguredGCSException):
             GCSStore._remote_path(path_prefix='', object_id='')
 
         assert GCSStore._remote_path(path_prefix='', object_id='a') == 'a'
@@ -36,7 +38,8 @@ class TestGCSStore(TestCase):
     def test_object_uri(self):
         gcs = GCSStore()
 
-        with pytest.raises(McPodcastMisconfiguredGCSException, message="Empty object ID"):
+        # Empty object ID
+        with pytest.raises(McPodcastMisconfiguredGCSException):
             gcs.object_uri(object_id='')
 
         class NoPathPrefixConfig(PodcastFetchEpisodeConfig):

@@ -47,8 +47,8 @@ To make `apt-get` work again, either run `apt-get -y update` before installing a
    #     docker build -t mediacloud-base .
    #
    
-  -FROM ubuntu:xenial-20190425
-  +FROM ubuntu:xenial-20190515
+  -FROM ubuntu:focal-20200922
+  +FROM ubuntu:focal-20201106
    
    ENV DEBIAN_FRONTEND noninteractive
    ENV LANG en_US.UTF-8

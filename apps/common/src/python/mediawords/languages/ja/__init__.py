@@ -29,7 +29,9 @@ class JapaneseLanguage(StopWordsFromFileMixIn):
         '/usr/local/opt/mecab-ipadic-neologd/lib/mecab/dic/ipadic-neologd/',
     ]
 
-    __MECAB_TOKEN_POS_SEPARATOR = random_string(length=16)  # for whatever reason tab doesn't work
+    # for whatever reason tab doesn't work
+    __MECAB_TOKEN_POS_SEPARATOR = f'POSSTART-{random_string(length=16)}POSEND'
+    __EOL_SEPARATOR = f'EOLSTART-{random_string(length=16)}EOLEND'
     __MECAB_EOS_MARK = 'EOS'
 
     __slots__ = [
@@ -97,15 +99,13 @@ class JapaneseLanguage(StopWordsFromFileMixIn):
         mecab_dictionary_path = JapaneseLanguage._mecab_ipadic_neologd_path()
 
         try:
-            self.__mecab = MeCab.Tagger(
-                '--dicdir=%(dictionary_path)s '
-                '--node-format=%%m%(token_pos_separator)s%%h\\n '
-                '--eos-format=%(eos_mark)s\\n' % {
-                    'token_pos_separator': self.__MECAB_TOKEN_POS_SEPARATOR,
-                    'eos_mark': self.__MECAB_EOS_MARK,
-                    'dictionary_path': mecab_dictionary_path,
-                }
-            )
+            tagger_args = [
+                f'--dicdir={mecab_dictionary_path}',
+                '--rcfile=/dev/null',
+                f'--node-format=%m{self.__MECAB_TOKEN_POS_SEPARATOR}%h{self.__EOL_SEPARATOR}',
+                f'--eos-format={self.__MECAB_EOS_MARK}{self.__EOL_SEPARATOR}',
+            ]
+            self.__mecab = MeCab.Tagger(' '.join(tagger_args))
         except Exception as ex:
             raise McLanguageException("Unable to initialize MeCab: %s" % str(ex))
 
@@ -184,7 +184,7 @@ class JapaneseLanguage(StopWordsFromFileMixIn):
             return []
 
         parsed_text = self.__mecab.parse(sentence).strip()
-        parsed_tokens = parsed_text.split("\n")
+        parsed_tokens = parsed_text.split(self.__EOL_SEPARATOR)
 
         allowed_pos_ids = self._mecab_allowed_pos_ids()
 

@@ -2,7 +2,7 @@
 # Generate word2vec snapshot model worker
 #
 
-FROM dockermediacloud/common:latest
+FROM gcr.io/mcback/common:latest
 
 # Install Python dependencies
 COPY src/requirements.txt /var/tmp/

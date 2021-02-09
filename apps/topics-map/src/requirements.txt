@@ -1,5 +1,5 @@
 # network analysis packages
-matplotlib==3.2.1
-networkx==2.4
-python-louvain==0.13
+matplotlib==3.3.3
+networkx==2.5
+python-louvain==0.15
 xmltodict==0.12.0

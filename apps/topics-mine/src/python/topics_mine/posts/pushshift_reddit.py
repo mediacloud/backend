@@ -7,7 +7,7 @@ import re
 import requests
 import string
 import time
-import typing
+from typing import Optional
 
 from jinja2 import Template
 import requests_mock
@@ -216,11 +216,13 @@ class PushshiftRedditPostFetcher(AbstractPostFetcher):
         assert got_post['content'] == "Title %s" % expected_post['content']
 
     def fetch_posts_from_api(
-            self,
-            query: str,
-            start_date: datetime,
-            end_date: datetime,
-            sample: typing.Optional[int] = None) -> list:
+        self,
+        query: str,
+        start_date: datetime,
+        end_date: datetime,
+        sample: Optional[int] = None,
+        page_size: Optional[int] = None,
+    ) -> list:
         """Fetch submissions from Pushshift using POST calls to the Elasticsearch backend
 
             Parameters:
@@ -242,6 +244,8 @@ class PushshiftRedditPostFetcher(AbstractPostFetcher):
                 data            - Dictionary containing the full raw data returned by the original API (api.reddit.com)
 
         """
+
+        assert page_size is None, "Page size limiting is not supported."
 
         es_query = self._pushshift_query_builder(query, start_date, end_date, size=sample)
         es_results = self._make_pushshift_api_request(es_query)

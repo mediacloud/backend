@@ -28,8 +28,8 @@ Table of Contents
 To deploy your code changes, generally you would:
 
 1. Merge changes into `release` Git branch and `git push` the branch;
-2. Wait for the [continuous integration system](https://github.com/mediacloud/backend/actions) to pull images, rebuild the ones that have changed, and push the updated images to [Docker Hub](https://hub.docker.com/u/dockermediacloud) repository;
-3. Using either Portainer or Docker CLI, pull the updated images from the Docker Hub repository and recreate app containers for which the images have been modified.
+2. Wait for the [continuous integration system](https://github.com/mediacloud/backend/actions) to pull images, rebuild the ones that have changed, and push the updated images to container repository;
+3. Using either Portainer or Docker CLI, pull the updated images from the container repository and recreate app containers for which the images have been modified.
 
 ## Ports
 
@@ -178,9 +178,6 @@ Both Media Cloud production's `docker-compose.yml` and Portainer's `docker-compo
 * Portainer's webapp on port 9000
     * username: `admin`
     * password: `mediacloud`
-* pgAdmin on port 5050:
-    * username: `mediacloud@mediacloud.org`
-    * password: `mediacloud`
 
 To access those services, you might want to set up a SSH tunnel in your `~/.ssh/config` as follows:
 
@@ -202,8 +199,8 @@ Host mccore1
     # portainer
     LocalForward 9000 127.0.0.1:9000
 
-    # postgresql-pgadmin
-    LocalForward 5050 127.0.0.1:5050
+    # elk-kibana
+    LocalForward 5601 127.0.0.1:5601
 ```
 
 ### Deploying with Portainer
