@@ -20,7 +20,7 @@ cld2-cffi==0.1.4
 colorama==0.4.4
 
 # Some modules require latest version of this
-cryptography==3.3.1
+cryptography==3.3.2
 
 # Hindi stemming
 CyHunspell==2.0.1
