@@ -1,0 +1,13 @@
+# https://www.elastic.co/guide/en/elasticsearch/reference/current/vm-max-map-count.html
+- name: "Increase vm.max_map_count"
+  sysctl:
+    name: "vm.max_map_count"
+    value: 262144
+    sysctl_file: "/etc/sysctl.d/40-mediacloud.conf"
+    sysctl_set: yes
+    reload: yes
+  become: true
+  become_user: root
+  tags:
+    - docker
+    - sysctl

@@ -121,7 +121,7 @@ def docker_run_commands(
         '--compatibility',
     ]
 
-    commands.append(docker_compose + ['run', '--rm'] + map_ports_args + [container_name] + command)
+    commands.append(docker_compose + ['run', '--rm', '--use-aliases'] + map_ports_args + [container_name] + command)
     commands.append(docker_compose + ['down', '--volumes'])
 
     return commands

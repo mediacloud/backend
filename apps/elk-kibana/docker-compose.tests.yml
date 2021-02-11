@@ -1,0 +1,147 @@
+version: "3.7"
+
+services:
+
+    elk-kibana:
+        image: gcr.io/mcback/elk-kibana:latest
+        init: true
+        stop_signal: SIGKILL
+        networks:
+            default:
+                aliases:
+                    # Make sure we always can be resolved as elk-kibana independently
+                    # from how this service's container gets named
+                    - elk-kibana
+        expose:
+            - "5601"
+        ports:
+            # Expose to host for debugging
+            - "5601:5601"
+        depends_on:
+            - elk-elasticsearch
+
+    elk-elasticsearch:
+        image: gcr.io/mcback/elk-elasticsearch:latest
+        init: true
+        stop_signal: SIGKILL
+        environment:
+            # S3 credentials for Elasticsearch snapshot storage:
+            #
+            MC_ELK_ELASTICSEARCH_SNAPSHOT_S3_ACCESS_KEY_ID: "${MC_ELK_ELASTICSEARCH_SNAPSHOT_S3_ACCESS_KEY_ID}"
+            MC_ELK_ELASTICSEARCH_SNAPSHOT_S3_SECRET_ACCESS_KEY: "${MC_ELK_ELASTICSEARCH_SNAPSHOT_S3_SECRET_ACCESS_KEY}"
+            MC_ELK_ELASTICSEARCH_SNAPSHOT_S3_BUCKET_NAME: "${MC_ELK_ELASTICSEARCH_SNAPSHOT_S3_BUCKET_NAME}"
+            MC_ELK_ELASTICSEARCH_SNAPSHOT_S3_PATH_PREFIX: "${MC_ELK_ELASTICSEARCH_SNAPSHOT_S3_PATH_PREFIX}"
+
+            # Same credentials set to random values:
+            #
+            # MC_ELK_ELASTICSEARCH_SNAPSHOT_S3_ACCESS_KEY_ID: "foo"
+            # MC_ELK_ELASTICSEARCH_SNAPSHOT_S3_SECRET_ACCESS_KEY: "bar"
+            # MC_ELK_ELASTICSEARCH_SNAPSHOT_S3_BUCKET_NAME: "baz"
+            # MC_ELK_ELASTICSEARCH_SNAPSHOT_S3_PATH_PREFIX: "xyz"
+        networks:
+            - default
+        expose:
+            - "9200"
+            - "9300"
+        ports:
+            # Expose to host for debugging
+            - "9200:9200"
+            - "9300:9300"
+        volumes:
+            - type: bind
+              source: ./../elk-elasticsearch/bin/elasticsearch.sh
+              target: /opt/elasticsearch/bin/elasticsearch.sh
+            - type: bind
+              source: ./../elk-elasticsearch/config/
+              target: /opt/elasticsearch/config/
+        # Limit CPUs and RAM for the process to not get too greedy
+        deploy:
+            resources:
+                limits:
+                    cpus: "2"
+                    memory: "2G"
+        depends_on:
+            - elk-filebeat
+            - elk-journalbeat
+            - elk-auditbeat
+
+    elk-filebeat:
+        image: gcr.io/mcback/elk-filebeat:latest
+        init: true
+        stop_signal: SIGKILL
+        networks:
+            - default
+        volumes:
+            - type: bind
+              source: ./../elk-filebeat/filebeat.yml
+              target: /opt/filebeat/filebeat.yml
+              read_only: true
+            - type: bind
+              source: ./../elk-filebeat/filebeat.sh
+              target: /opt/filebeat/filebeat.sh
+              read_only: true
+            # Mount log directories, Docker directories and socket for Filebeat to
+            # be able to read logs
+            - /etc/hostname:/etc/hostname:ro
+            - /etc/machine-id:/etc/machine-id:ro
+            - /var/log/:/var/log/:ro
+            - /var/lib/docker/:/var/lib/docker/:ro
+            - /var/run/docker.sock:/var/run/docker.sock
+
+    elk-journalbeat:
+        image: gcr.io/mcback/elk-journalbeat:latest
+        init: true
+        stop_signal: SIGKILL
+        networks:
+            - default
+        # Enable to be able to use strace:
+        #cap_add:
+        #  - SYS_PTRACE
+        volumes:
+            - type: bind
+              source: ./../elk-journalbeat/journalbeat.yml
+              target: /opt/journalbeat/journalbeat.yml
+              read_only: true
+            - type: bind
+              source: ./../elk-journalbeat/journalbeat.sh
+              target: /opt/journalbeat/journalbeat.sh
+              read_only: true
+            # Mount journald log directory for Journalbeat to be able to read logs
+            - /etc/hostname:/etc/hostname:ro
+            # Hostname and journald's directory must match
+            - ./../elk-journalbeat/journald-log-sample/etc/machine-id:/etc/machine-id:ro
+            - ./../elk-journalbeat/journald-log-sample/var/log/journal/:/var/log/journal/:ro
+
+    elk-auditbeat:
+        image: gcr.io/mcback/elk-auditbeat:latest
+        init: true
+        stop_signal: SIGKILL
+        networks:
+            - default
+        pid: host
+        cap_add:
+            - AUDIT_READ
+            - AUDIT_CONTROL
+        volumes:
+            - type: bind
+              source: ./../elk-auditbeat/auditbeat.yml
+              target: /opt/auditbeat/auditbeat.yml
+              read_only: true
+            - type: bind
+              source: ./../elk-auditbeat/auditbeat.sh
+              target: /opt/auditbeat/auditbeat.sh
+              read_only: true
+            # Mount all the stuff that Auditbeat uses
+            - /etc/hostname:/etc/hostname:ro
+            - /etc/machine-id:/etc/machine-id:ro
+            - /sys/:/sys/:ro
+            - /bin/:/opt/auditbeat/host/bin/:ro
+            - /usr/bin/:/opt/auditbeat/host/usr/bin/:ro
+            - /sbin/:/opt/auditbeat/host/sbin/:ro
+            - /usr/sbin/:/opt/auditbeat/host/usr/sbin/:ro
+            - /etc/:/opt/auditbeat/host/etc/:ro
+            - /var/log/:/opt/auditbeat/host/var/log/:ro
+
+networks:
+    # Define a network to be able to define aliases
+    default:

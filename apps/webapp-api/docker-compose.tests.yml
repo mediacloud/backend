@@ -20,6 +20,8 @@ services:
               source: ./../common/src/
               target: /opt/mediacloud/src/common/
         depends_on:
+            - cliff-annotator
+            - nytlabels-annotator
             - postgresql-pgbouncer
             - solr-shard-01
             - rabbitmq-server
@@ -29,6 +31,16 @@ services:
             - topics-snapshot
             # Multiple tests import Solr data
             - import-solr-data-for-testing
+
+    cliff-annotator:
+        image: gcr.io/mcback/cliff-annotator:latest
+        init: true
+        stop_signal: SIGKILL
+
+    nytlabels-annotator:
+        image: gcr.io/mcback/nytlabels-annotator:latest
+        init: true
+        stop_signal: SIGKILL
 
     postgresql-pgbouncer:
         image: gcr.io/mcback/postgresql-pgbouncer:latest

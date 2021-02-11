@@ -696,6 +696,188 @@ services:
                     memory: "256M"
 
     #
+    # ELK Auditbeat (auditd log collection)
+    # -------------------------------------
+    #
+    elk-auditbeat:
+        image: gcr.io/mcback/elk-auditbeat:release
+        init: true
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+        ulimits:
+            # Increase open file limit as there might be many files to track
+            nofile:
+                soft: 65535
+                hard: 65535
+        # Use same PID namespace as host system
+        pid: host
+        # Allow reading and controlling auditd
+        cap_add:
+            - AUDIT_READ
+            - AUDIT_CONTROL
+        volumes:
+            # Mount a bunch of files and directories to be audited
+            - /etc/hostname:/etc/hostname:ro
+            - /etc/machine-id:/etc/machine-id:ro
+            - /sys/:/sys/:ro
+            - /bin/:/opt/auditbeat/host/bin/:ro
+            - /usr/bin/:/opt/auditbeat/host/usr/bin/:ro
+            - /sbin/:/opt/auditbeat/host/sbin/:ro
+            - /usr/sbin/:/opt/auditbeat/host/usr/sbin/:ro
+            - /etc/:/opt/auditbeat/host/etc/:ro
+            - /var/log/:/opt/auditbeat/host/var/log/:ro
+        deploy:
+            <<: *endpoint-mode-dnsrr
+            # Run on every node to be able to collect logs from each
+            mode: global
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "1G"
+
+    #
+    # ELK Elasticsearch (log indexing)
+    # --------------------------------
+    #
+    elk-elasticsearch:
+        image: gcr.io/mcback/elk-elasticsearch:release
+        init: true
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+            # S3 credentials for Elasticsearch snapshot storage:
+            MC_ELK_ELASTICSEARCH_SNAPSHOT_S3_ACCESS_KEY_ID: "AKIAIOSFODNN7EXAMPLE"
+            MC_ELK_ELASTICSEARCH_SNAPSHOT_S3_SECRET_ACCESS_KEY: "wJalrXUtnFEMI/K7MDENG/bPxRfiCYzEXAMPLEKEY"
+            MC_ELK_ELASTICSEARCH_SNAPSHOT_S3_BUCKET_NAME: "mediacloud-test-elk-elasticsearch-snapshots"
+            MC_ELK_ELASTICSEARCH_SNAPSHOT_S3_PATH_PREFIX: "snapshots"
+        expose:
+            # HTTP transport
+            - "9200"
+            # TCP transport
+            - "9300"
+        ulimits:
+            # https://www.elastic.co/guide/en/elasticsearch/reference/current/max-number-of-threads.html
+            nproc: 4096
+            # https://www.elastic.co/guide/en/elasticsearch/reference/current/file-descriptors.html
+            nofile:
+                soft: 65535
+                hard: 65535
+        volumes:
+            - vol_elk_elasticsearch_data:/var/lib/elasticsearch/
+        deploy:
+            <<: *endpoint-mode-dnsrr
+            placement:
+                constraints:
+                    # Must run on the host with ELK Elasticsearch data volume
+                    - node.labels.role-elk-elasticsearch == true
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "2"
+                    # RAM limit
+                    memory: "8G"
+
+    #
+    # ELK Filebeat (plain text log collection)
+    # ----------------------------------------
+    #
+    elk-filebeat:
+        image: gcr.io/mcback/elk-filebeat:release
+        init: true
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+        ulimits:
+            # Increase open file limit as there might be many containers to track
+            nofile:
+                soft: 65535
+                hard: 65535
+        volumes:
+            # Mount log directories, Docker directories and socket for Filebeat to
+            # be able to read logs
+            - /etc/hostname:/etc/hostname:ro
+            - /etc/machine-id:/etc/machine-id:ro
+            - /var/log/:/var/log/:ro
+            - /var/lib/docker/:/var/lib/docker/:ro
+            - /var/run/docker.sock:/var/run/docker.sock
+        deploy:
+            <<: *endpoint-mode-dnsrr
+            # Run on every node to be able to collect logs from each
+            mode: global
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "1G"
+
+    #
+    # ELK Journalbeat (journald log collection)
+    # -----------------------------------------
+    #
+    elk-journalbeat:
+        image: gcr.io/mcback/elk-journalbeat:release
+        init: true
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+        ulimits:
+            # Increase open file limit as there might be many files to track
+            nofile:
+                soft: 65535
+                hard: 65535
+        volumes:
+            # Mount journald log directory for Journalbeat to be able to read logs
+            - /etc/hostname:/etc/hostname:ro
+            - /etc/machine-id:/etc/machine-id:ro
+            - /var/log/journal/:/var/log/journal/:ro
+            # - /run/systemd:/run/systemd/:ro
+        deploy:
+            <<: *endpoint-mode-dnsrr
+            # Run on every node to be able to collect logs from each
+            mode: global
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "1G"
+
+    #
+    # ELK Kibana (web UI)
+    # ------------------------------
+    #
+    elk-kibana:
+        image: gcr.io/mcback/elk-kibana:release
+        init: true
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+        expose:
+            # Web server
+            - "5601"
+        ports:
+            # For connecting to through a SSH tunnel
+            # MAKE SURE to BLOCK THIS PORT in provision/roles/docker/tasks/iptables.yml
+            - "5601:5601"
+        deploy:
+            <<: *endpoint-mode-dnsrr
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "2"
+                    # RAM limit
+                    memory: "8G"
+
+    #
     # Extract and vector stories
     # --------------------------
     #
@@ -1276,35 +1458,6 @@ services:
                 condition: on-failure
                 # Autorestart up to three times
                 max_attempts: 3
-
-    #
-    # pgAdmin
-    # ---------
-    #
-    postgresql-pgadmin:
-        image: gcr.io/mcback/postgresql-pgadmin:release
-        init: true
-        networks:
-            - default
-        depends_on:
-            - postgresql-server
-        ports:
-            # For connecting to through a SSH tunnel
-            # MAKE SURE to BLOCK THIS PORT in provision/roles/docker/tasks/iptables.yml
-            - "5050:5050"
-        volumes:
-            - vol_pgadmin_data:/var/lib/pgadmin/
-        deploy:
-            placement:
-                constraints:
-                    # Must run on a host with PgAdmin data volume
-                    - node.labels.role-postgresql-pgadmin == true
-            resources:
-                limits:
-                    # CPU core limit
-                    cpus: "4"
-                    # RAM limit
-                    memory: "1024M"
 
     #
     # PgBouncer
@@ -2297,3 +2450,11 @@ volumes:
             type: none
             o: bind
             device: /space/mediacloud/vol_munin_html
+
+    # ELK Elasticsearch log index
+    vol_elk_elasticsearch_data:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_elk_elasticsearch_data
