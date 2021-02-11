@@ -189,5 +189,5 @@ jobs:
           MC_TWITTER_CONSUMER_KEY: ${{ secrets.MC_TWITTER_CONSUMER_KEY }}
           MC_TWITTER_CONSUMER_SECRET: ${{ secrets.MC_TWITTER_CONSUMER_SECRET }}
       
-      - name: Print test failures
+      - name: List test failures
         run: awk '/FAILURES/,/short/' joblog.txt
