@@ -55,6 +55,8 @@ x-common-configuration: &common-configuration
     # this should be a large random value so that the urls generate by the public store cannot be guessed
     MC_PUBLIC_STORE_SALT: "GENERATE_UNIQUE_SALT"
 
+    # s3 directory under which to store the public s3 store objects
+    #MC_PUBLIC_AMAZON_S3_DIRECTORY_NAME: "production"
 
     # "From:" email address when sending emails
     MC_EMAIL_FROM_ADDRESS: "info@mediacloud.org"
@@ -137,6 +139,18 @@ x-crimson-hexagon-api-configuration: &crimson-hexagon-api-configuration
 
 
 #
+# Brandwatch API configuration
+# ============================
+#
+x-brandwatch-api-configuration: &brandwatch-api-configuration
+
+    MC_BRANDWATCH_USER: ""
+
+    # You need to escape dollar signs ("$") by using double dollar signs ("$$"), if any.
+    MC_BRANDWATCH_PASSWORD: ""
+
+
+#
 # Google Cloud for podcast transcription common configuration
 # ===========================================================
 #
@@ -200,30 +214,30 @@ x-solr-shard_base_deploy_resources:  &solr-shard_base_deploy_resources
         limits:
             # CPU core limit
             #
-            # (each mcquery* has 32 cores and will be running 8 shards
+            # (each node has 32 cores and will be running 8 shards
             # each, so 32 / 8 = 4)
             cpus: "4"
             # RAM limit
             #
-            # (each mcquery* has 192 GB of RAM and will be running 8 shards
+            # (each node has 192 GB of RAM and will be running 8 shards
             # each, so 192 / 8 = 24)
             memory: 24G
 
-# Placement constraints for Solr shards that run on host #1 (e.g. mcquery1)
+# Placement constraints for Solr shards that run on host #1
 x-solr-shard_base_deploy_placement_host1:   &solr-shard_base_deploy_placement_host1
     placement:
         constraints:
             # Must run on the host with Solr data volume
             - node.labels.role-solr-shards-host1 == true
 
-# Placement constraints for Solr shards that run on host #2 (e.g. mcquery2)
+# Placement constraints for Solr shards that run on host #2
 x-solr-shard_base_deploy_placement_host2:   &solr-shard_base_deploy_placement_host2
     placement:
         constraints:
             # Must run on the host with Solr data volume
             - node.labels.role-solr-shards-host2 == true
 
-# Placement constraints for Solr shards that run on host #3 (e.g. mcquery4)
+# Placement constraints for Solr shards that run on host #3
 x-solr-shard_base_deploy_placement_host3:   &solr-shard_base_deploy_placement_host3
     placement:
         constraints:
@@ -2030,6 +2044,7 @@ services:
             <<: *common-configuration
             <<: *twitter-api-configuration
             <<: *crimson-hexagon-api-configuration
+            <<: *brandwatch-api-configuration
         deploy:
             <<: *misc-apps_deploy_placement_constraints
             <<: *endpoint-mode-dnsrr
@@ -2055,6 +2070,7 @@ services:
             <<: *common-configuration
             <<: *twitter-api-configuration
             <<: *crimson-hexagon-api-configuration
+            <<: *brandwatch-api-configuration
         deploy:
             <<: *misc-apps_deploy_placement_constraints
             <<: *endpoint-mode-dnsrr
@@ -2187,15 +2203,6 @@ networks:
     default:
         driver: overlay
         attachable: true
-
-        # Enable encryption as we communicate over public network:
-        #
-        # * https://docs.docker.com/network/overlay/#encrypt-traffic-on-an-overlay-network
-        # * https://forums.docker.com/t/configuring-encryption-for-swarm-overlay-network-in-compose/29469/2
-        #
-        # FIXME consider switching off after migration
-        driver_opts:
-            encrypted: "true"
 
         ipam:
             driver: default
