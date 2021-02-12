@@ -723,50 +723,6 @@ services:
                     memory: "256M"
 
     #
-    # ELK Auditbeat (auditd log collection)
-    # -------------------------------------
-    #
-    elk-auditbeat:
-        image: gcr.io/mcback/elk-auditbeat:release
-        init: true
-        networks:
-            - default
-        environment:
-            <<: *common-configuration
-        ulimits:
-            # Increase open file limit as there might be many files to track
-            nofile:
-                soft: 65535
-                hard: 65535
-        # Use same PID namespace as host system
-        pid: host
-        # Allow reading and controlling auditd
-        cap_add:
-            - AUDIT_READ
-            - AUDIT_CONTROL
-        volumes:
-            # Mount a bunch of files and directories to be audited
-            - /etc/hostname:/etc/hostname:ro
-            - /etc/machine-id:/etc/machine-id:ro
-            - /sys/:/sys/:ro
-            - /bin/:/opt/auditbeat/host/bin/:ro
-            - /usr/bin/:/opt/auditbeat/host/usr/bin/:ro
-            - /sbin/:/opt/auditbeat/host/sbin/:ro
-            - /usr/sbin/:/opt/auditbeat/host/usr/sbin/:ro
-            - /etc/:/opt/auditbeat/host/etc/:ro
-            - /var/log/:/opt/auditbeat/host/var/log/:ro
-        deploy:
-            <<: *endpoint-mode-dnsrr
-            # Run on every node to be able to collect logs from each
-            mode: global
-            resources:
-                limits:
-                    # CPU core limit
-                    cpus: "1"
-                    # RAM limit
-                    memory: "1G"
-
-    #
     # ELK Elasticsearch (log indexing)
     # --------------------------------
     #
