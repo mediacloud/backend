@@ -743,13 +743,6 @@ services:
             - "9200"
             # TCP transport
             - "9300"
-        ulimits:
-            # https://www.elastic.co/guide/en/elasticsearch/reference/current/max-number-of-threads.html
-            nproc: 4096
-            # https://www.elastic.co/guide/en/elasticsearch/reference/current/file-descriptors.html
-            nofile:
-                soft: 65535
-                hard: 65535
         volumes:
             - vol_elk_elasticsearch_data:/var/lib/elasticsearch/
         deploy:
@@ -776,11 +769,6 @@ services:
             - default
         environment:
             <<: *common-configuration
-        ulimits:
-            # Increase open file limit as there might be many containers to track
-            nofile:
-                soft: 65535
-                hard: 65535
         volumes:
             # Mount log directories, Docker directories and socket for Filebeat to
             # be able to read logs
@@ -811,11 +799,6 @@ services:
             - default
         environment:
             <<: *common-configuration
-        ulimits:
-            # Increase open file limit as there might be many files to track
-            nofile:
-                soft: 65535
-                hard: 65535
         volumes:
             # Mount journald log directory for Journalbeat to be able to read logs
             - /etc/hostname:/etc/hostname:ro

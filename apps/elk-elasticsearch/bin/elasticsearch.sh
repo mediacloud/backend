@@ -24,6 +24,22 @@ fi
 
 set -u
 
+# https://www.elastic.co/guide/en/elasticsearch/reference/current/max-number-of-threads.html
+if [ "$(ulimit -u)" != "unlimited" ] && [ $(ulimit -u) -lt 4096 ]; then
+    echo "Process limit (ulimit -u) is too low."
+    exit 1
+fi
+
+# https://www.elastic.co/guide/en/elasticsearch/reference/current/file-descriptors.html
+if [ "$(ulimit -n -S)" != "unlimited" ] && [ $(ulimit -n -S) -lt 65535 ]; then
+    echo "Soft open file limit (ulimit -n -S) is too low."
+    exit 1
+fi
+if [ "$(ulimit -n -H)" != "unlimited" ] && [ $(ulimit -n -H) -lt 65535 ]; then
+    echo "Hard open file limit (ulimit -n -H) is too low."
+    exit 1
+fi
+
 # Update AWS credentials in a keystore
 echo "Update AWS credentials in a keystore..."
 echo -n "${MC_ELK_ELASTICSEARCH_SNAPSHOT_S3_ACCESS_KEY_ID}" | \
