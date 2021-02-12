@@ -1,3 +1,16 @@
+#
+# Media Cloud backend
+# ===================
+#
+# Deploy by running:
+#
+#     docker stack deploy -c docker-compose.mediacloud.yml mediacloud
+#
+# on one of the Docker Swarm's managers (preferably the leader):
+#
+#     docker node ls | grep Leader
+#
+
 version: "3.7"
 
 
