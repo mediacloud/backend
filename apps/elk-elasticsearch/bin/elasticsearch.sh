@@ -25,6 +25,7 @@ fi
 set -u
 
 # Update AWS credentials in a keystore
+echo "Update AWS credentials in a keystore..."
 echo -n "${MC_ELK_ELASTICSEARCH_SNAPSHOT_S3_ACCESS_KEY_ID}" | \
     /opt/elasticsearch/bin/elasticsearch-keystore add s3.client.elk_logs.access_key --stdin --force
 echo -n "${MC_ELK_ELASTICSEARCH_SNAPSHOT_S3_SECRET_ACCESS_KEY}" | \
