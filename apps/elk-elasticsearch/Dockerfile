@@ -57,7 +57,10 @@ RUN \
     #     [/opt/elasticsearch/config/elasticsearch.keystore.tmp],
     #     write permissions required for [/opt/elasticsearch/config]
     #     or run [elasticsearch-keystore upgrade]
-    chown elk:elk /opt/elasticsearch/config/ && \
+    #
+    # Plus the S3 plugin insists at writing to other locations too.
+    #
+    chown -R elk:elk /opt/elasticsearch/config/ && \
     #
     true
 
