@@ -897,6 +897,7 @@ services:
             - "5601:5601"
         deploy:
             # DNSRR disabled as it's not supported with published ports.
+            <<: *misc-apps_deploy_placement_constraints
             resources:
                 limits:
                     # CPU core limit
