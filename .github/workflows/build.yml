@@ -163,7 +163,7 @@ jobs:
         run: cat tests_chunk_${{ matrix.chunk_number }}
 
       # Run a selected chunk of tests in parallel, keep a log; on error, print out said log. 
-      # Lastly, make log readable for awk in next step
+      # Lastly, make log readable for awk in next step.
       - name: Run tests
         run: >-
           cat tests_chunk_${{ matrix.chunk_number }}
