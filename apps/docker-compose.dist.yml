@@ -1,3 +1,16 @@
+#
+# Media Cloud backend
+# ===================
+#
+# Deploy by running:
+#
+#     docker stack deploy -c docker-compose.mediacloud.yml mediacloud
+#
+# on one of the Docker Swarm's managers (preferably the leader):
+#
+#     docker node ls | grep Leader
+#
+
 version: "3.7"
 
 
@@ -710,50 +723,6 @@ services:
                     memory: "256M"
 
     #
-    # ELK Auditbeat (auditd log collection)
-    # -------------------------------------
-    #
-    elk-auditbeat:
-        image: gcr.io/mcback/elk-auditbeat:release
-        init: true
-        networks:
-            - default
-        environment:
-            <<: *common-configuration
-        ulimits:
-            # Increase open file limit as there might be many files to track
-            nofile:
-                soft: 65535
-                hard: 65535
-        # Use same PID namespace as host system
-        pid: host
-        # Allow reading and controlling auditd
-        cap_add:
-            - AUDIT_READ
-            - AUDIT_CONTROL
-        volumes:
-            # Mount a bunch of files and directories to be audited
-            - /etc/hostname:/etc/hostname:ro
-            - /etc/machine-id:/etc/machine-id:ro
-            - /sys/:/sys/:ro
-            - /bin/:/opt/auditbeat/host/bin/:ro
-            - /usr/bin/:/opt/auditbeat/host/usr/bin/:ro
-            - /sbin/:/opt/auditbeat/host/sbin/:ro
-            - /usr/sbin/:/opt/auditbeat/host/usr/sbin/:ro
-            - /etc/:/opt/auditbeat/host/etc/:ro
-            - /var/log/:/opt/auditbeat/host/var/log/:ro
-        deploy:
-            <<: *endpoint-mode-dnsrr
-            # Run on every node to be able to collect logs from each
-            mode: global
-            resources:
-                limits:
-                    # CPU core limit
-                    cpus: "1"
-                    # RAM limit
-                    memory: "1G"
-
-    #
     # ELK Elasticsearch (log indexing)
     # --------------------------------
     #
@@ -774,13 +743,6 @@ services:
             - "9200"
             # TCP transport
             - "9300"
-        ulimits:
-            # https://www.elastic.co/guide/en/elasticsearch/reference/current/max-number-of-threads.html
-            nproc: 4096
-            # https://www.elastic.co/guide/en/elasticsearch/reference/current/file-descriptors.html
-            nofile:
-                soft: 65535
-                hard: 65535
         volumes:
             - vol_elk_elasticsearch_data:/var/lib/elasticsearch/
         deploy:
@@ -807,11 +769,6 @@ services:
             - default
         environment:
             <<: *common-configuration
-        ulimits:
-            # Increase open file limit as there might be many containers to track
-            nofile:
-                soft: 65535
-                hard: 65535
         volumes:
             # Mount log directories, Docker directories and socket for Filebeat to
             # be able to read logs
@@ -842,11 +799,6 @@ services:
             - default
         environment:
             <<: *common-configuration
-        ulimits:
-            # Increase open file limit as there might be many files to track
-            nofile:
-                soft: 65535
-                hard: 65535
         volumes:
             # Mount journald log directory for Journalbeat to be able to read logs
             - /etc/hostname:/etc/hostname:ro
@@ -883,7 +835,8 @@ services:
             # MAKE SURE to BLOCK THIS PORT in provision/roles/docker/tasks/iptables.yml
             - "5601:5601"
         deploy:
-            <<: *endpoint-mode-dnsrr
+            # DNSRR disabled as it's not supported with published ports.
+            <<: *misc-apps_deploy_placement_constraints
             resources:
                 limits:
                     # CPU core limit

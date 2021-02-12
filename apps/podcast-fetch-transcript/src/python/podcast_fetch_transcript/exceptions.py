@@ -14,15 +14,16 @@ class McPodcastFetchTranscriptSoftException(_AbstractMcPodcastFetchTranscriptExc
     pass
 
 
+class McOperationNotFoundException(McPodcastFetchTranscriptSoftException):
+    """Exception thrown when a transcription operation was not found for a particular operation ID."""
+    # Not a "hard" failure as sometimes these operations expire
+    pass
+
+
 # ---
 
 class McPodcastFetchTranscriptHardException(_AbstractMcPodcastFetchTranscriptException):
     """Hard errors exception."""
-    pass
-
-
-class McOperationNotFoundException(McPodcastFetchTranscriptHardException):
-    """Exception thrown when a transcription operation was not found for a particular operation ID."""
     pass
 
 

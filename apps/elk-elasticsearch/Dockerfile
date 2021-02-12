@@ -50,6 +50,15 @@ RUN \
     mv /opt/elasticsearch/config/elasticsearch.keystore /var/lib/elasticsearch/ && \
     ln -s /var/lib/elasticsearch/elasticsearch.keystore /opt/elasticsearch/config/elasticsearch.keystore && \
     chown elk:elk /var/lib/elasticsearch/elasticsearch.keystore && \
+    #
+    # Keystore tool will want to write a "temporary" keystore:
+    #
+    #     ERROR: unable to create temporary keystore at
+    #     [/opt/elasticsearch/config/elasticsearch.keystore.tmp],
+    #     write permissions required for [/opt/elasticsearch/config]
+    #     or run [elasticsearch-keystore upgrade]
+    chown elk:elk /opt/elasticsearch/config/ && \
+    #
     true
 
 USER elk

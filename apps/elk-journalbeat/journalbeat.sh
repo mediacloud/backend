@@ -3,6 +3,16 @@
 set -u
 set -e
 
+# Insist on increased open file limit as there might be many containers to track
+if [ "$(ulimit -n -S)" != "unlimited" ] && [ $(ulimit -n -S) -lt 65535 ]; then
+    echo "Soft open file limit (ulimit -n -S) is too low."
+    exit 1
+fi
+if [ "$(ulimit -n -H)" != "unlimited" ] && [ $(ulimit -n -H) -lt 65535 ]; then
+    echo "Hard open file limit (ulimit -n -H) is too low."
+    exit 1
+fi
+
 if ! grep -qs '/etc/hostname ' /proc/mounts; then
     echo "/etc/hostname is not mounted."
     exit 1
