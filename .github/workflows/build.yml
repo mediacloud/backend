@@ -190,5 +190,5 @@ jobs:
           MC_TWITTER_CONSUMER_SECRET: ${{ secrets.MC_TWITTER_CONSUMER_SECRET }}
       
       - name: List test failures
-        run: awk '/FAILURES/,/short/' joblog.txt
+        run: awk '/FAILURES/,/short/' joblog.txt > test_fails.txt && cat test_fails.txt
         if: always()
