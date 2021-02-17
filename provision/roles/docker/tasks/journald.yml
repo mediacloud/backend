@@ -13,6 +13,18 @@
     - docker
     - journald
 
+# For setfacl utility
+- name: Install acl
+  apt:
+    name: acl
+    state: present
+    install_recommends: false
+  become: true
+  become_user: root
+  tags:
+    - docker
+    - journald
+
 - name: Set Journald data directory's file access permissions
   acl:
     path: /var/log/journal/
