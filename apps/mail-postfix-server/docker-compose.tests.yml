@@ -6,8 +6,11 @@ services:
     #
     # Usage:
     #
-    #     host$ ./dev/run.py mail-postfix-server bash
-    #     container$ sendmail "your@email.com"
+    #     - host$ ./dev/run.py mail-postfix-server bash
+    #     - (new terminal window) host$ docker ps
+    #     - find container with name ending in 'mail-postfix-server-actual_1'
+    #     - host$ docker exec -it some_string_mail-postfix-server-actual_1 bash
+    #     - container$ sendmail "your@email.com"
     #
     mail-postfix-server:
         image: gcr.io/mcback/common:latest
@@ -21,7 +24,7 @@ services:
         image: gcr.io/mcback/mail-postfix-server:latest
         init: true
         stop_signal: SIGKILL
-        # "docker exec" into a container and run Postfix manually (/postfix.sh):
+        # "docker exec" into a container and run Postfix manually (./postfix.sh):
         command: sleep infinity
         # To be able to set /proc/sys/kernel/yama/ptrace_scope:
         privileged: true
