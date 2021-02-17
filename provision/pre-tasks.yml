@@ -31,15 +31,3 @@
   tags:
     - pre-tasks
     - always
-
-- name: Install Aptitude  # https://github.com/ansible/ansible/issues/16884
-  command: apt-get -y install python3-minimal aptitude
-  args:
-    warn: off # Disable "Consider using apt module rather than running apt-get" warning
-  become: true
-  register: install_aptitude_result
-  changed_when: "'aptitude is already the newest version' not in install_aptitude_result.stdout"
-  when: ansible_distribution == 'Ubuntu'
-  tags:
-    - pre-tasks
-    - always
