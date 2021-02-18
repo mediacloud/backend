@@ -10,7 +10,11 @@ services:
     #     - (new terminal window) host$ docker ps
     #     - find container with name ending in 'mail-postfix-server-actual_1'
     #     - host$ docker exec -it some_string_mail-postfix-server-actual_1 bash
-    #     - container$ sendmail "your@email.com"
+    #     - mail-postfix-server-actual_1_container$ ./postfix.sh
+    #     - open new terminal window on your host machine
+    #     - host$ docker exec -it some_string_mail-postfix-server-actual_1 bash
+    #     - follow instructions at URL below to create a test mail.txt file and send to your email address from the container
+    #     https://clients.javapipe.com/knowledgebase/132/How-to-Test-Sendmail-From-Command-Line-on-Linux.html
     #
     mail-postfix-server:
         image: gcr.io/mcback/common:latest
