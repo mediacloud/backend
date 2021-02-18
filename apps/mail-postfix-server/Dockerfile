@@ -50,7 +50,6 @@ RUN \
     #
     # Filter out "Received:" and some other headers
     postconf -e header_checks=regexp:/etc/postfix/header_checks && \
-    postconf -e mime_header_checks=regexp:/etc/postfix/header_checks && \
     postconf -e smtp_header_checks=regexp:/etc/postfix/header_checks && \
     #
     # Don't require TLS as local clients are trusted
