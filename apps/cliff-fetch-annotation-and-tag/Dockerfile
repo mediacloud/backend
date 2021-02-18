@@ -2,7 +2,7 @@
 # CLIFF fetch annotation + tag worker
 #
 
-FROM dockermediacloud/common:latest
+FROM gcr.io/mcback/common:latest
 
 # Copy sources
 COPY src/ /opt/mediacloud/src/cliff-fetch-annotation-and-tag/
