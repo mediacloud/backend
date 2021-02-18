@@ -754,7 +754,7 @@ services:
             resources:
                 limits:
                     # CPU core limit
-                    cpus: "2"
+                    cpus: "4"
                     # RAM limit
                     memory: "8G"
 
