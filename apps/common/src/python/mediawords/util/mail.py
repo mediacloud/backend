@@ -124,7 +124,7 @@ def send_email(message: Message) -> bool:
         if message.html_body:
             message_part = MIMEText(message.html_body, 'html', 'utf-8')
             mime_message.attach(message_part)
-        print(mime_message)
+        
         if test_mode_is_enabled():
             log.info("Test mode is enabled, not actually sending any email.")
             log.debug("Omitted email:\n\n%s" % mime_message.as_string())
