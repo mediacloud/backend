@@ -2,7 +2,7 @@
 # NYTLabels fetch annotation + tag worker
 #
 
-FROM dockermediacloud/common:latest
+FROM gcr.io/mcback/common:latest
 
 # Copy sources
 COPY src/ /opt/mediacloud/src/nytlabels-fetch-annotation-and-tag/
