@@ -39,6 +39,7 @@ _ACCELERATED_DOMAINS = {
     'congress.gov': _DEFAULT_ACCELERATED_TIMEOUT,
     'goldfish.me': _DEFAULT_ACCELERATED_TIMEOUT,
     'trib.al': 0.1,
+    'nih.gov': _DEFAULT_ACCELERATED_TIMEOUT,
 }
 
 # timeout for shortened urls that are not also accelerated domains
