@@ -40,7 +40,7 @@ MediaWords::Munin::plugin({
                 my $solr_url = $ENV{ 'MC_SOLR_URL' };
                 unless ( defined $solr_url ) {
                     say STDERR "Solr URL is not set, falling back to the default one.";
-                    $solr_url = 'http://127.0.0.1:7981/solr';
+                    $solr_url = 'http://127.0.0.1:8983/solr';
                 }
 
                 my $stories_id_from_last_day = $db->query(<<SQL
