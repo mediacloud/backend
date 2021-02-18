@@ -1,6 +1,53 @@
 #
 # Docker Swarm publishes ports on all hosts and doesn't support "ip_to_bind_to:host_port:container_port" syntax, and UFW 
 
+# Save / load iptables rules on restarts
+- name: Install iptables-persistent
+  apt:
+    name: iptables-persistent
+    state: present
+    install_recommends: false
+  become: true
+  become_user: root
+  tags:
+    - docker
+    - iptables
+
+- name: Ensure netfilter-persistent is enabled and started
+  service:
+    name: netfilter-persistent
+    state: started
+    enabled: true
+  become: true
+  become_user: root
+  tags:
+    - docker
+    - iptables
+
+- name: Test if rule file for IPv4 rules exists
+  stat:
+    path: /etc/iptables/rules.v4
+  register: etc_iptables_rules_v4
+  tags:
+    - docker
+    - iptables
+
+- name: Test if rule file for IPv6 rules exists
+  stat:
+    path: /etc/iptables/rules.v6
+  register: etc_iptables_rules_v6
+  tags:
+    - docker
+    - iptables
+
+- name: Fail if either of the stored rule files don't exist
+  fail:
+    msg: Saved rule files under /etc/iptables/ don't exist.
+  when: "(not etc_iptables_rules_v4.stat.exists) or (not etc_iptables_rules_v6.stat.exists)"
+  tags:
+    - docker
+    - iptables
+
 # Webapp is only accessible through Nginx proxy:
 - name: Deny connections to webapp's unsecured HTTP server
   iptables:
@@ -108,6 +155,41 @@
     protocol: tcp
     destination_port: 5601
     jump: DROP
+  become: true
+  become_user: root
+  tags:
+    - docker
+    - iptables
+
+- name: Save IPv4 rules
+  community.general.iptables_state:
+    ip_version: ipv4
+    table: filter
+    state: saved
+    path: /etc/iptables/rules.v4
+  become: true
+  become_user: root
+  tags:
+    - docker
+    - iptables
+
+- name: Save IPv6 rules
+  community.general.iptables_state:
+    ip_version: ipv6
+    table: filter
+    state: saved
+    path: /etc/iptables/rules.v6
+  become: true
+  become_user: root
+  tags:
+    - docker
+    - iptables
+
+- name: Ensure iptables is enabled and started
+  service:
+    name: iptables
+    state: started
+    enabled: true
   become: true
   become_user: root
   tags:
