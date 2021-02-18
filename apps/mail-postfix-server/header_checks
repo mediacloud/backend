@@ -2,4 +2,3 @@
 /^X-Originating-IP:/    IGNORE
 /^X-Mailer:/            IGNORE
 /^User-Agent:/          IGNORE
-/^Content-Transfer-Encoding:/i PREPEND List-Unsubscribe: mailto:support@mediacloud.org?subject=Delete%20account%20and%20unsubscribe
