@@ -124,7 +124,7 @@ def send_email(message: Message) -> bool:
         if message.html_body:
             message_part = MIMEText(message.html_body, 'html', 'utf-8')
             mime_message.attach(message_part)
-        
+
         if test_mode_is_enabled():
             log.info("Test mode is enabled, not actually sending any email.")
             log.debug("Omitted email:\n\n%s" % mime_message.as_string())
@@ -139,7 +139,6 @@ def send_email(message: Message) -> bool:
 
             # Send message
             refused_recipients = smtp.sendmail(mime_message['From'], mime_message['To'], mime_message.as_string())
-
             if len(refused_recipients):
                 log.warning("Unable to send email to the following recipients: %s" % str(refused_recipients))
 
@@ -164,5 +163,4 @@ def send_text_email(to: str, subject: str, body: str) -> bool:
     body = decode_object_from_bytes_if_needed(body)
 
     message = Message(to=to, subject=subject, text_body=body)
-
     return send_email(message)
