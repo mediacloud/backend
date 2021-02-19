@@ -20,6 +20,10 @@ services:
         image: gcr.io/mcback/common:latest
         init: true
         stop_signal: SIGKILL
+        volumes:
+            - type: bind
+              source: ./../common/src/
+              target: /opt/mediacloud/src/common/
         depends_on:
             - mail-postfix-server-actual
 
