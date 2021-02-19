@@ -340,40 +340,12 @@ services:
                     cpus: "1"
                     # RAM limit
                     memory: "256M"
-
-    #
-    # CLIFF fetch annotation
-    # ----------------------
-    #
-    cliff-fetch-annotation:
-        image: gcr.io/mcback/cliff-fetch-annotation:release
-        init: true
-        networks:
-            - default
-        environment:
-            <<: *common-configuration
-        depends_on:
-            - cliff-annotator
-            - postgresql-pgbouncer
-            - rabbitmq-server
-        deploy:
-            <<: *misc-apps_deploy_placement_constraints
-            <<: *endpoint-mode-dnsrr
-            # Worker count
-            replicas: 4
-            resources:
-                limits:
-                    # CPU core limit
-                    cpus: "1"
-                    # RAM limit
-                    memory: "256M"
-
-    #
-    # CLIFF update story tags
+    
+    # CLIFF fetch annotation and tag
     # -----------------------
     #
     cliff-update-story-tags:
-        image: gcr.io/mcback/cliff-update-story-tags:release
+        image: gcr.io/mcback/cliff-fetch-annotation-and-tag:release
         init: true
         networks:
             - default
@@ -388,6 +360,7 @@ services:
             # Tag set to use for person name entities
             MC_CLIFF_PEOPLE_TAG_SET: "cliff_people"
         depends_on:
+            - cliff-annotator
             - postgresql-pgbouncer
             - rabbitmq-server
         deploy:
@@ -401,8 +374,8 @@ services:
                     # CPU core limit
                     cpus: "1"
                     # RAM limit
-                    memory: "256M"
-
+                    memory: "512M"
+    
     #
     # AP crawler
     # ----------
@@ -1240,40 +1213,13 @@ services:
                     cpus: "1"
                     # RAM limit
                     memory: "256M"
-
+    
     #
-    # NYTLabels fetch annotation
-    # ----------------------
-    #
-    nytlabels-fetch-annotation:
-        image: gcr.io/mcback/nytlabels-fetch-annotation:release
-        init: true
-        networks:
-            - default
-        environment:
-            <<: *common-configuration
-        depends_on:
-            - nytlabels-annotator
-            - postgresql-pgbouncer
-            - rabbitmq-server
-        deploy:
-            <<: *misc-apps_deploy_placement_constraints
-            <<: *endpoint-mode-dnsrr
-            # Worker count
-            replicas: 4
-            resources:
-                limits:
-                    # CPU core limit
-                    cpus: "1"
-                    # RAM limit
-                    memory: "256M"
-
-    #
-    # NYTLabels update story tags
+    # NYTLabels fetch annotation and tag
     # -----------------------
     #
     nytlabels-update-story-tags:
-        image: gcr.io/mcback/nytlabels-update-story-tags:release
+        image: gcr.io/mcback/nytlabels-fetch-annotation-and-tag:release
         init: true
         networks:
             - default
@@ -1284,6 +1230,7 @@ services:
             # Tag set to use for NYTLabels-derived tags
             MC_NYTLABELS_TAG_SET: "nyt_labels"
         depends_on:
+            - nytlabels-annotator
             - postgresql-pgbouncer
             - rabbitmq-server
         deploy:
@@ -1296,7 +1243,7 @@ services:
                     # CPU core limit
                     cpus: "1"
                     # RAM limit
-                    memory: "256M"
+                    memory: "512M"
 
     #
     # Fetch story podcast episode and store it in GCS
