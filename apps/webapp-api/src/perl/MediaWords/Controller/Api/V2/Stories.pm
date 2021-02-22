@@ -12,7 +12,6 @@ use HTTP::Status qw(:constants);
 use Readonly;
 use Encode;
 
-use MediaWords::Annotator::Store;
 use MediaWords::DBI::Stories;
 use MediaWords::Solr;
 use MediaWords::Util::ParseJSON;
