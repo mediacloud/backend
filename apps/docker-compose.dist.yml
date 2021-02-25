@@ -1208,8 +1208,8 @@ services:
             replicas: 1
             resources:
                 limits:
-                    # CPU core limit
-                    cpus: "1"
+                    # onnxruntime works considerably faster on multiple threads:
+                    cpus: "8"
                     # RAM limit
                     memory: "2G"
 
