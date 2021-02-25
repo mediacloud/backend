@@ -99,6 +99,8 @@ class MultiLabelPredict(object):
 
         options = onnxruntime.SessionOptions()
         options.intra_op_num_threads = num_threads
+        options.execution_mode = onnxruntime.ExecutionMode.ORT_PARALLEL
+        options.graph_optimization_level = onnxruntime.GraphOptimizationLevel.ORT_ENABLE_ALL
 
         self._model = onnxruntime.InferenceSession(path_or_bytes=model_path)
         self._labels = open(labels_path, 'r').read().splitlines()
