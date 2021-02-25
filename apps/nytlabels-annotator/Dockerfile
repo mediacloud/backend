@@ -84,6 +84,11 @@ RUN \
 WORKDIR /usr/src/crappy-predict-news-labels/
 COPY src/crappy-predict-news-labels/requirements.txt /usr/src/crappy-predict-news-labels/
 RUN \
+    #
+    # OpenMP for onnxruntime speed up
+    apt-get -y --no-install-recommends install libgomp1 && \
+    #
+    # The rest
     pip3 install -r requirements.txt && \
     rm -rf /root/.cache/ && \
     true
