@@ -7,8 +7,8 @@ NYTLabels annotator HTTP service.
 import argparse
 import dataclasses
 import json
-import operator
 import os
+import pprint
 from http import HTTPStatus
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from typing import Union, Dict, List, Optional, Type
@@ -26,8 +26,8 @@ class _ModelDescriptor(object):
 
 class _Predictor(object):
     __slots__ = [
-        'text2vectors',
-        'models',
+        '__text2vectors',
+        '__models',
     ]
 
     _MODEL_DESCRIPTORS = [
@@ -46,14 +46,14 @@ class _Predictor(object):
             raise RuntimeError(f"Models path should be directory: {models_dir}")
 
         print("Loading scaler and word2vec...")
-        self.text2vectors = Text2ScaledVectors(
+        self.__text2vectors = Text2ScaledVectors(
             word2vec_shelve_path=os.path.join(models_dir, 'GoogleNews-vectors-negative300.stripped.shelve'),
             scaler_path=os.path.join(models_dir, 'scaler.onnx'),
         )
         print("Scaler and word2vec loaded.")
 
         print("Loading models...")
-        self.models = dict()
+        self.__models = dict()
 
         # Make sure all models have the sample sample length and embedding size as we vector text only once
         sample_length = None
@@ -73,24 +73,37 @@ class _Predictor(object):
                 sample_length = model.sample_length()
                 embedding_size = model.embedding_size()
 
-            self.models[model_descriptor] = model
+            self.__models[model_descriptor] = model
         print("Models loaded.")
 
         print("Running self-test...\n")
-        vectors = self.text2vectors.transform(
-            text=SELF_TEST_INPUT,
+        test_result = self.predict(text=SELF_TEST_INPUT)
+        pp = pprint.PrettyPrinter(indent=4, width=1024)
+        pp.pprint(test_result)
+        print("Done running self-test.")
+
+    def predict(self, text: str) -> Dict[str, List[Dict[str, str]]]:
+
+        # Sample length / embedding size is the same for all models
+        first_model = self.__models[list(self.__models.keys())[0]]
+        sample_length = first_model.sample_length()
+        embedding_size = first_model.embedding_size()
+
+        vectors = self.__text2vectors.transform(
+            text=text,
             sample_length=sample_length,
             embedding_size=embedding_size,
         )
-        for model_descriptor in sorted(self._MODEL_DESCRIPTORS, key=operator.attrgetter('basename')):
-            print(f"Model '{model_descriptor.basename}':")
-            model = self.models[model_descriptor]
+
+        result = dict()
+
+        for model_descriptor, model in self.__models.items():
             predictions = model.predict(x_matrix=vectors)
-            for prediction in predictions:
-                print(f"  * Label: {prediction.label}, score: {prediction.score:.6f}")
-            assert len(predictions), f"Some predictions should be returned by {model.__class__.__name__}"
-            print()
-        print("Done running self-test.")
+            result[model_descriptor.json_key] = [
+                {'label': x.label, 'score': "{0:.5f}".format(x.score)} for x in predictions
+            ]
+
+        return result
 
 
 # noinspection PyPep8Naming
@@ -122,31 +135,6 @@ class NYTLabelsRequestHandler(BaseHTTPRequestHandler):
     def do_HEAD(self):
         # noinspection PyUnresolvedReferences
         self.__respond_with_error(http_status=HTTPStatus.BAD_REQUEST.value, message='HEAD requests are not supported.')
-
-    def _predict(self, text: str) -> Dict[str, List[Dict[str, str]]]:
-
-        assert self._PREDICTOR, "Predictor is not initialized, are you using the class factory?"
-
-        # Sample length / embedding size is the same for all models
-        first_model = self._PREDICTOR.models[list(self._PREDICTOR.models.keys())[0]]
-        sample_length = first_model.sample_length()
-        embedding_size = first_model.embedding_size()
-
-        vectors = self._PREDICTOR.text2vectors.transform(
-            text=text,
-            sample_length=sample_length,
-            embedding_size=embedding_size,
-        )
-
-        result = dict()
-
-        for model_descriptor, model in self._PREDICTOR.models.items():
-            predictions = model.predict(x_matrix=vectors)
-            result[model_descriptor.json_key] = [
-                {'label': x.label, 'score': "{0:.5f}".format(x.score)} for x in predictions
-            ]
-
-        return result
 
     def do_POST(self):
         content_length = int(self.headers.get('Content-Length', 0))
@@ -187,7 +175,7 @@ class NYTLabelsRequestHandler(BaseHTTPRequestHandler):
             return
 
         try:
-            result = self._predict(text)
+            result = self._PREDICTOR.predict(text)
         except Exception as ex:
             # noinspection PyUnresolvedReferences
             self.__respond_with_error(
