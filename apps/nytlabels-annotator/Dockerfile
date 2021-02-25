@@ -5,6 +5,8 @@
 FROM gcr.io/mcback/base:latest
 
 RUN \
+    # FIXME remove once the base image gets updated
+    apt-get -y update && \
     #
     # Install model fetch dependencies
     apt-get -y --no-install-recommends install brotli && \
