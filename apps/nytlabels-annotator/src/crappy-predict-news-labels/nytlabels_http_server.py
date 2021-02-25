@@ -4,14 +4,14 @@
 NYTLabels annotator HTTP service.
 """
 
+import argparse
 import dataclasses
 import json
 import operator
 import os
 from http import HTTPStatus
 from http.server import HTTPServer, BaseHTTPRequestHandler
-from sys import argv
-from typing import Union, Dict, List
+from typing import Union, Dict, List, Optional, Type
 
 from self_test_input import SELF_TEST_INPUT
 
@@ -38,7 +38,7 @@ class _Predictor(object):
         _ModelDescriptor(basename='just_taxonomies', json_key='taxonomies'),
     ]
 
-    def __init__(self):
+    def __init__(self, num_threads: Optional[int]):
 
         pwd = os.path.dirname(os.path.abspath(__file__))
         models_dir = os.path.join(pwd, 'models')
@@ -64,6 +64,7 @@ class _Predictor(object):
             model = MultiLabelPredict(
                 model_path=os.path.join(models_dir, f"{model_descriptor.basename}.onnx"),
                 labels_path=os.path.join(models_dir, f"{model_descriptor.basename}.txt"),
+                num_threads=num_threads,
             )
 
             if sample_length and embedding_size:
@@ -94,7 +95,16 @@ class _Predictor(object):
 
 # noinspection PyPep8Naming
 class NYTLabelsRequestHandler(BaseHTTPRequestHandler):
-    _PREDICTOR = _Predictor()
+    _PREDICTOR = None
+
+    @classmethod
+    def initialize_predictor(cls, num_threads: Optional[int]) -> None:
+        assert not cls._PREDICTOR, "Predictor is already initialized."
+        cls._PREDICTOR = _Predictor(num_threads=num_threads)
+
+    def __init__(self, *args, **kwargs):
+        assert self._PREDICTOR, "You need to initialize the predictor before setting this class as a request handler."
+        super(NYTLabelsRequestHandler, self).__init__(*args, **kwargs)
 
     def __respond(self, http_status: int, response: Union[dict, list]):
         self.send_response(http_status)
@@ -114,6 +124,8 @@ class NYTLabelsRequestHandler(BaseHTTPRequestHandler):
         self.__respond_with_error(http_status=HTTPStatus.BAD_REQUEST.value, message='HEAD requests are not supported.')
 
     def _predict(self, text: str) -> Dict[str, List[Dict[str, str]]]:
+
+        assert self._PREDICTOR, "Predictor is not initialized, are you using the class factory?"
 
         # Sample length / embedding size is the same for all models
         first_model = self._PREDICTOR.models[list(self._PREDICTOR.models.keys())[0]]
@@ -187,15 +199,29 @@ class NYTLabelsRequestHandler(BaseHTTPRequestHandler):
         self.__respond(http_status=HTTPStatus.OK, response=result)
 
 
-def run(port: int = 8080):
-    server_address = ('', port)
-    httpd = HTTPServer(server_address, NYTLabelsRequestHandler)
-    print(f'Starting NYTLabels annotator on port {port}...')
+def make_nytlabels_request_handler_class(num_threads: Optional[int]) -> Type[NYTLabelsRequestHandler]:
+    class CustomNYTLabelsRequestHandler(NYTLabelsRequestHandler):
+        pass
+
+    CustomNYTLabelsRequestHandler.initialize_predictor(num_threads=num_threads)
+
+    return CustomNYTLabelsRequestHandler
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Start NYTLabels annotator web service.")
+    parser.add_argument("-p", "--port", type=int, required=False, default=8080,
+                        help="Port to listen to")
+    parser.add_argument("-t", "--num_threads", type=int, required=False,
+                        help="Threads that the model runtime should spawn")
+    args = parser.parse_args()
+
+    server_address = ('', args.port)
+    handler_class = make_nytlabels_request_handler_class(num_threads=args.num_threads)
+    httpd = HTTPServer(server_address, handler_class)
+    print(f'Starting NYTLabels annotator on port {args.port}...')
     httpd.serve_forever()
 
 
 if __name__ == "__main__":
-    if len(argv) == 2:
-        run(port=int(argv[1]))
-    else:
-        run()
+    main()

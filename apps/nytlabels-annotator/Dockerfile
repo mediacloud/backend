@@ -103,4 +103,4 @@ STOPSIGNAL SIGTERM
 
 USER nobody
 
-CMD ["nytlabels_http_server.py"]
+CMD ["nytlabels.sh"]

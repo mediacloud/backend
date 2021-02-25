@@ -1,7 +1,8 @@
 import dataclasses
+import multiprocessing
 import os
 import shelve
-from typing import List
+from typing import List, Optional
 
 from nltk.data import load as load_nltk_data
 from nltk.tokenize.destructive import NLTKWordTokenizer
@@ -87,13 +88,19 @@ class MultiLabelPredict(object):
         '_embedding_size',
     ]
 
-    def __init__(self, model_path: str, labels_path: str):
+    def __init__(self, model_path: str, labels_path: str, num_threads: Optional[int] = None):
         if not os.path.isfile(model_path):
             raise RuntimeError(f"Model was not found in {model_path}")
         if not os.path.isfile(labels_path):
             raise RuntimeError(f"Model labels were not found in {labels_path}")
 
-        self._model = onnxruntime.InferenceSession(model_path)
+        if num_threads is None:
+            num_threads = multiprocessing.cpu_count()
+
+        options = onnxruntime.SessionOptions()
+        options.intra_op_num_threads = num_threads
+
+        self._model = onnxruntime.InferenceSession(path_or_bytes=model_path)
         self._labels = open(labels_path, 'r').read().splitlines()
 
         _, self._sample_length, self._embedding_size = self._model.get_inputs()[0].shape
