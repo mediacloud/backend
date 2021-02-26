@@ -103,6 +103,9 @@ class _Predictor(object):
 
 # noinspection PyPep8Naming
 class NYTLabelsRequestHandler(BaseHTTPRequestHandler):
+    # Allow HTTP/1.1 connections and so don't wait up on "Expect:" headers
+    protocol_version = "HTTP/1.1"
+
     _PREDICTOR = None
 
     @classmethod
@@ -115,13 +118,30 @@ class NYTLabelsRequestHandler(BaseHTTPRequestHandler):
         super(NYTLabelsRequestHandler, self).__init__(*args, **kwargs)
 
     def __respond(self, http_status: int, response: Union[dict, list]):
+        raw_response = json.dumps(response).encode('utf-8')
         self.send_response(http_status)
         self.send_header('Content-Type', 'application/json; charset=UTF-8')
+        self.send_header('Content-Length', str(len(raw_response)))
         self.end_headers()
-        self.wfile.write(json.dumps(response).encode('utf-8'))
+        self.wfile.write(raw_response)
 
     def __respond_with_error(self, http_status: int, message: str):
         self.__respond(http_status=http_status, response={'error': message})
+
+    # If the request handler's protocol_version is set to "HTTP/1.0" (the default) and the client tries connecting via
+    # HTTP/1.1 and sends an "Expect: 100-continue" header, the client will then wait for a bit (curl waits for a second)
+    # for "100 Continue" which the server will never send (due to it being configured to support HTTP/1.0 only),
+    # therefore the whole request will take a one whole second more.
+    #
+    # Please note that when enabling HTTP/1.1, one has to send Content-Length in their responses.
+    def __check_expect_header(self):
+        expect = self.headers.get('Expect', "")
+        if expect.lower() == "100-continue":
+            if not (self.protocol_version >= "HTTP/1.1" and self.request_version >= "HTTP/1.1"):
+                print((
+                    "WARNING: due to server / client misconfiguration, client sent Expect: header "
+                    "and is waiting for a response, possibly delaying the whole request."""
+                ))
 
     def do_GET(self):
         # noinspection PyUnresolvedReferences
@@ -132,6 +152,9 @@ class NYTLabelsRequestHandler(BaseHTTPRequestHandler):
         self.__respond_with_error(http_status=HTTPStatus.BAD_REQUEST.value, message='HEAD requests are not supported.')
 
     def do_POST(self):
+
+        self.__check_expect_header()
+
         content_length = int(self.headers.get('Content-Length', 0))
         if not content_length:
             # noinspection PyUnresolvedReferences
