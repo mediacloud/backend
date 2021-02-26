@@ -13,6 +13,12 @@ Table of Contents
       * [api/v2/stories/update (PUT)](#apiv2storiesupdate-put)
          * [Input Description](#input-description)
          * [Example](#example-1)
+      * [api/v2/stories/cliff](#apiv2storiescliff)
+         * [Query Parameters](#query-parameters-1)
+         * [Example](#example-2)
+      * [api/v2/stories/nytlabels](#apiv2storiesnytlabels)
+         * [Query Parameters](#query-parameters-2)
+         * [Example](#example-3)
    * [Sentences](#sentences)
       * [api/v2/sentences/list](#apiv2sentenceslist)
          * [Query Parameters](#query-parameters-3)
@@ -206,6 +212,112 @@ Output:
 ```json
 { "success": 1 }
 ```
+
+## api/v2/stories/cliff
+
+| URL                    | Function
+| ---------------------- | ------------------------------------------------------
+| `api/v2/stories/cliff` | Return raw CLIFF annotation for one or more stories
+
+### Query Parameters
+
+| Parameter     | Notes
+| ------------- | ------------------------------------------------------------------------------
+| `stories_id`  | One or more story ID for which to fetch raw CLIFF annotation.
+
+### Example
+
+Fetch raw CLIFF annotation for stories 1, 2 and a nonexistent story 3:
+
+URL:  https://api.mediacloud.org/api/v2/stories/cliff?stories_id=1&stories_id=2&stories_id=3
+
+Response:
+
+```json
+[
+  {
+    "stories_id": 1,
+    "cliff": {
+      "milliseconds": 231,
+      "results": {
+        "organizations": "..."
+      },
+      "status": "ok",
+      "version": "2.3.0"
+    }
+  },
+  {
+    "stories_id": 2,
+    "cliff": {
+      "milliseconds": 231,
+      "results": {
+        "organizations": "..."
+      },
+      "status": "ok",
+      "version": "2.3.0"
+    }
+  },
+  {
+    "stories_id": 3,
+    "cliff": "story does not exist"
+  }
+]
+```
+
+
+## api/v2/stories/nytlabels
+
+| URL                       | Function
+| -------------------------- | ------------------------------------------------------
+| `api/v2/stories/nytlabels` | Return raw NYTLabels annotation for one or more stories
+
+### Query Parameters
+
+| Parameter     | Notes
+| ------------- | ------------------------------------------------------------------------------
+| `stories_id`  | One or more story ID for which to fetch raw NYTLabels annotation.
+
+### Example
+
+Fetch raw NYTLabels annotation for stories 1, 2 and a nonexistent story 3:
+
+URL:  https://api.mediacloud.org/api/v2/stories/nytlabels?stories_id=1&stories_id=2&stories_id=3
+
+Response:
+
+```json
+[
+  {
+    "stories_id": 1,
+    "nytlabels": {
+      "allDescriptors": [
+        "..."
+      ],
+      "descriptors3000": [
+        "..."
+      ],
+      "...": "..."
+    }
+  },
+  {
+    "stories_id": 2,
+    "nytlabels": {
+      "allDescriptors": [
+        "..."
+      ],
+      "descriptors3000": [
+        "..."
+      ],
+      "...": "..."
+    }
+  },
+  {
+    "stories_id": 3,
+    "nytlabels": "story does not exist"
+  }
+]
+```
+
 
 # Sentences
 
