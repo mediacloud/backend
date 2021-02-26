@@ -14,6 +14,8 @@ log = create_logger(__name__)
 class NYTLabelsAnnotatorFetcher(JSONAnnotationFetcher):
     """NYT labels annotation fetcher."""
 
+    _ENABLED_MODEL = 'descriptors600'
+
     def __init__(self, fetcher_config: NYTLabelsFetcherConfig = None):
 
         self.__fetcher_config = fetcher_config
@@ -34,7 +36,7 @@ class NYTLabelsAnnotatorFetcher(JSONAnnotationFetcher):
         # Create JSON request
         log.debug("Converting text to JSON request...")
         try:
-            text_json = encode_json({'text': text})
+            text_json = encode_json({'text': text, 'models': [self._ENABLED_MODEL]})
         except Exception as ex:
             # Not critical, might happen to some stories, no need to shut down the annotator
             raise McJSONAnnotationFetcherException(
@@ -64,8 +66,8 @@ class NYTLabelsAnnotatorFetcher(JSONAnnotationFetcher):
             log.warning("Annotation is not dict: %s" % str(annotation))
             return False
 
-        if 'descriptors600' not in annotation:
-            log.warning("Annotation doesn't have 'descriptors600' key: %s" % str(annotation))
+        if self._ENABLED_MODEL not in annotation:
+            log.warning(f"Annotation doesn't have '{self._ENABLED_MODEL}' key: {annotation}")
             return False
 
         return True
