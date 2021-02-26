@@ -98,11 +98,9 @@ class MultiLabelPredict(object):
             num_threads = multiprocessing.cpu_count()
 
         options = onnxruntime.SessionOptions()
-
-        # 11.265 ms
         options.execution_mode = onnxruntime.ExecutionMode.ORT_SEQUENTIAL
 
-        # 11.464 ms
+        # Seems to be slightly slower:
         # options.execution_mode = onnxruntime.ExecutionMode.ORT_PARALLEL
 
         # Not really used without ORT_PARALLEL:
