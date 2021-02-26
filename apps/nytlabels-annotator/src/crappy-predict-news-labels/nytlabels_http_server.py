@@ -5,7 +5,6 @@ NYTLabels annotator HTTP service.
 """
 
 import argparse
-import dataclasses
 import json
 import os
 import pprint
@@ -17,25 +16,20 @@ from self_test_input import SELF_TEST_INPUT
 
 from nytlabels import Text2ScaledVectors, MultiLabelPredict
 
-
-@dataclasses.dataclass(frozen=True)
-class _ModelDescriptor(object):
-    basename: str
-    json_key: str
+# For each key there must exist a model ONNX file and a list of labels with a given basename
+ALL_MODELS = [
+    'allDescriptors',
+    'descriptors3000',
+    'descriptors600',
+    'descriptorsAndTaxonomies',
+    'taxonomies',
+]
 
 
 class _Predictor(object):
     __slots__ = [
         '__text2vectors',
         '__models',
-    ]
-
-    _MODEL_DESCRIPTORS = [
-        _ModelDescriptor(basename='all_descriptors', json_key='allDescriptors'),
-        _ModelDescriptor(basename='descriptors_3000', json_key='descriptors3000'),
-        _ModelDescriptor(basename='descriptors_600', json_key='descriptors600'),
-        _ModelDescriptor(basename='descriptors_with_taxonomies', json_key='descriptorsAndTaxonomies'),
-        _ModelDescriptor(basename='just_taxonomies', json_key='taxonomies'),
     ]
 
     def __init__(self, num_threads: Optional[int]):
@@ -59,11 +53,11 @@ class _Predictor(object):
         sample_length = None
         embedding_size = None
 
-        for model_descriptor in self._MODEL_DESCRIPTORS:
-            print(f"    Loading '{model_descriptor.basename}'...")
+        for model_name in ALL_MODELS:
+            print(f"    Loading '{model_name}'...")
             model = MultiLabelPredict(
-                model_path=os.path.join(models_dir, f"{model_descriptor.basename}.onnx"),
-                labels_path=os.path.join(models_dir, f"{model_descriptor.basename}.txt"),
+                model_path=os.path.join(models_dir, f"{model_name}.onnx"),
+                labels_path=os.path.join(models_dir, f"{model_name}.txt"),
                 num_threads=num_threads,
             )
 
@@ -73,16 +67,16 @@ class _Predictor(object):
                 sample_length = model.sample_length()
                 embedding_size = model.embedding_size()
 
-            self.__models[model_descriptor] = model
+            self.__models[model_name] = model
         print("Models loaded.")
 
         print("Running self-test...\n")
-        test_result = self.predict(text=SELF_TEST_INPUT)
+        test_result = self.predict(text=SELF_TEST_INPUT, enabled_model_names=ALL_MODELS)
         pp = pprint.PrettyPrinter(indent=4, width=1024)
         pp.pprint(test_result)
         print("Done running self-test.")
 
-    def predict(self, text: str) -> Dict[str, List[Dict[str, str]]]:
+    def predict(self, text: str, enabled_model_names: List[str]) -> Dict[str, List[Dict[str, str]]]:
 
         # Sample length / embedding size is the same for all models
         first_model = self.__models[list(self.__models.keys())[0]]
@@ -97,9 +91,10 @@ class _Predictor(object):
 
         result = dict()
 
-        for model_descriptor, model in self.__models.items():
+        for model_name in enabled_model_names:
+            model = self.__models[model_name]
             predictions = model.predict(x_matrix=vectors)
-            result[model_descriptor.json_key] = [
+            result[model_name] = [
                 {'label': x.label, 'score': "{0:.5f}".format(x.score)} for x in predictions
             ]
 
@@ -174,8 +169,39 @@ class NYTLabelsRequestHandler(BaseHTTPRequestHandler):
             )
             return
 
+        models = payload.get('models', None)
+        if models is None:
+            enabled_model_names = ALL_MODELS
+        else:
+            enabled_model_names = []
+            for model_name in models:
+                if model_name not in ALL_MODELS:
+                    # noinspection PyUnresolvedReferences
+                    self.__respond_with_error(
+                        http_status=HTTPStatus.BAD_REQUEST.value,
+                        message=f"Model '{model_name}' was not found.",
+                    )
+                    return
+                if model_name in enabled_model_names:
+                    # noinspection PyUnresolvedReferences
+                    self.__respond_with_error(
+                        http_status=HTTPStatus.BAD_REQUEST.value,
+                        message=f"Model '{model_name}' is duplicate.",
+                    )
+                    return
+
+                enabled_model_names.append(model_name)
+
+        if not enabled_model_names:
+            # noinspection PyUnresolvedReferences
+            self.__respond_with_error(
+                http_status=HTTPStatus.BAD_REQUEST.value,
+                message="List of enabled models is empty.",
+            )
+            return
+
         try:
-            result = self._PREDICTOR.predict(text)
+            result = self._PREDICTOR.predict(text=text, enabled_model_names=enabled_model_names)
         except Exception as ex:
             # noinspection PyUnresolvedReferences
             self.__respond_with_error(

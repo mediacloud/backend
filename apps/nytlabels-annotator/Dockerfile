@@ -27,29 +27,29 @@ RUN /dl_to_stdout.sh "$MODEL_URL/GoogleNews-vectors-negative300.stripped.shelve.
 RUN /dl_to_stdout.sh "$MODEL_URL/scaler.onnx" > scaler.onnx
 
 RUN /dl_to_stdout.sh "$MODEL_URL/all_descriptors.onnx.br" | \
-        brotli -d > all_descriptors.onnx
+        brotli -d > allDescriptors.onnx
 RUN /dl_to_stdout.sh "$MODEL_URL/all_descriptors.txt.br" | \
-        brotli -d > all_descriptors.txt
+        brotli -d > allDescriptors.txt
 
 RUN /dl_to_stdout.sh "$MODEL_URL/descriptors_3000.onnx.br" | \
-        brotli -d > descriptors_3000.onnx
+        brotli -d > descriptors3000.onnx
 RUN /dl_to_stdout.sh "$MODEL_URL/descriptors_3000.txt.br" | \
-        brotli -d > descriptors_3000.txt
+        brotli -d > descriptors3000.txt
 
 RUN /dl_to_stdout.sh "$MODEL_URL/descriptors_600.onnx.br" | \
-        brotli -d > descriptors_600.onnx
+        brotli -d > descriptors600.onnx
 RUN /dl_to_stdout.sh "$MODEL_URL/descriptors_600.txt.br" | \
-        brotli -d > descriptors_600.txt
+        brotli -d > descriptors600.txt
 
 RUN /dl_to_stdout.sh "$MODEL_URL/descriptors_with_taxonomies.onnx.br" | \
-        brotli -d > descriptors_with_taxonomies.onnx
+        brotli -d > descriptorsAndTaxonomies.onnx
 RUN /dl_to_stdout.sh "$MODEL_URL/descriptors_with_taxonomies.txt.br" | \
-        brotli -d > descriptors_with_taxonomies.txt
+        brotli -d > descriptorsAndTaxonomies.txt
 
 RUN /dl_to_stdout.sh "$MODEL_URL/just_taxonomies.onnx.br" | \
-        brotli -d > just_taxonomies.onnx
+        brotli -d > taxonomies.onnx
 RUN /dl_to_stdout.sh "$MODEL_URL/just_taxonomies.txt.br" | \
-        brotli -d > just_taxonomies.txt
+        brotli -d > taxonomies.txt
 
 # Install NLTK data
 RUN \
