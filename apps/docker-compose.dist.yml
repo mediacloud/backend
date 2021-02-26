@@ -74,6 +74,14 @@ x-common-configuration: &common-configuration
     # "From:" email address when sending emails
     MC_EMAIL_FROM_ADDRESS: "info@mediacloud.org"
 
+    # Email address to point to in List-Unsubscribe email header.
+    # Technically we don't have a straightforward "unsubscribe" endpoint, but our 
+    # emails are more likely to be marked spam if we don't have such a header, so
+    # we make the email subject "Delete account and unsubscribe" in 
+    # mediawords/util/config/common.py
+    # example value = support@example.com 
+    MC_UNSUBSCRIBE_MAILTO_LINK: "support@example.com"
+
     # Fail all HTTP requests that match the following pattern, e.g.
     # "^https?://[^/]*some-website.com"
     MC_USERAGENT_BLACKLIST_URL_PATTERN: ""

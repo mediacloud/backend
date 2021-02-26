@@ -6,7 +6,7 @@ FROM gcr.io/mcback/common:latest
 
 # Install Java
 RUN \ 
-    apt-get update && \ 
+    apt-get -y update && \ 
     apt-get -y --no-install-recommends install openjdk-8-jre-headless && \
     true
 

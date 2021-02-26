@@ -13,6 +13,12 @@ services:
             MC_DOWNLOADS_AMAZON_S3_DIRECTORY_NAME: "${MC_DOWNLOADS_AMAZON_S3_DIRECTORY_NAME}"
             MC_PUBLIC_STORE_TYPE: "postgresql"
             MC_PUBLIC_STORE_SALT: "foo"
+            # Email address to point to in List-Unsubscribe email header.
+            # Technically we don't have a straightforward "unsubscribe" endpoint, but our 
+            # emails are more likely to be marked spam if we don't have such a header, so
+            # we make the email subject "Delete account and unsubscribe" in 
+            # mediawords/util/config/common.py
+            MC_UNSUBSCRIBE_MAILTO_LINK: "support@example.com"
         volumes:
             - type: bind
               source: ./src/
