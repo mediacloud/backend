@@ -171,6 +171,8 @@ class HashServer(object):
 
     # noinspection PyPep8Naming
     class _HTTPHandler(BaseHTTPRequestHandler):
+        # Allow HTTP/1.1 connections and so don't wait up on "Expect:" headers
+        protocol_version = "HTTP/1.1"
 
         def _set_port(self, port: int):
             self._port = port
