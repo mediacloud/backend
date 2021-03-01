@@ -117,7 +117,11 @@ def send_email(message: Message) -> bool:
             message_part = MIMEText(message.text_body, 'plain', 'utf-8')
             mime_message.attach(message_part)
 
-        mime_message.add_header('List-Unsubscribe', CommonConfig.smtp().unsubscribe_address())
+        unsubscribe_address = CommonConfig.smtp().unsubscribe_address()
+        
+        mime_message.add_header(
+            'List-Unsubscribe', 
+             f'mailto:{unsubscribe_address}?subject=Delete%20account%20and%20unsubscribe')
 
         # HTML gets attached last, thus making it a preferred part as per RFC
         if message.html_body:

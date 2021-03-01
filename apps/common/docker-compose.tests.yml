@@ -18,7 +18,7 @@ services:
             # emails are more likely to be marked spam if we don't have such a header, so
             # we make the email subject "Delete account and unsubscribe" in 
             # mediawords/util/config/common.py
-            MC_UNSUBSCRIBE_MAILTO_LINK: "support@example.com"
+            MC_EMAIL_UNSUBSCRIBE: "support@example.com"
         volumes:
             - type: bind
               source: ./src/

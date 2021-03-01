@@ -158,10 +158,11 @@ class SMTPConfig(object):
     @staticmethod
     def unsubscribe_address() -> str:
         """Mailto link for email to which unsubscribe/account deletion requests should be sent"""
-        address = env_value('MC_UNSUBSCRIBE_MAILTO_LINK', required=False, allow_empty_string=True)
+        address = env_value('MC_EMAIL_UNSUBSCRIBE', required=False, allow_empty_string=True)
         if address is None or '@' not in address:
             address = 'support@example.com'
-        return f'mailto:{address}?subject=Delete%20account%20and%20unsubscribe'
+        return address
+        # return f'mailto:{address}?subject=Delete%20account%20and%20unsubscribe'
 
 
 class DownloadStorageConfig(object):
