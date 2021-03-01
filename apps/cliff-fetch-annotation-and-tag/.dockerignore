@@ -1,0 +1,91 @@
+#
+# Files from the build context to be ignored by "docker build".
+#
+# You might want to add as many of constantly changing files here as possible
+# to prevent container's image from getting rebuilt every full moon.
+#
+# Unfortunately, we can't just symlink this file to every app's directory:
+#
+#     https://github.com/moby/moby/issues/12886
+#
+# so for the time being you have to manually copy this file to every app
+# subdirectory:
+#
+#     cd apps/
+#     find . -maxdepth 1 -type d \( ! -name . \) -exec bash -c "cd '{}' && cp ../dockerignore.dist ./.dockerignore" \;
+#
+
+*$py.class
+*.cover
+*.DS_Store
+*.egg
+*.egg-info/
+*.log
+*.manifest
+*.mo
+*.pot
+*.py[cod]
+*.sage.py
+*.so
+*.spec
+*.swp
+*/*.py[cod]
+*/*.swp
+*/*/*.py[cod]
+*/*/*.swp
+*/*/*/*.py[cod]
+*/*/*/*.swp
+*/*/*/__pycache__/
+*/*/__pycache__/
+*/__pycache__/
+._*
+.apdisk
+.AppleDB
+.AppleDesktop
+.AppleDouble
+.cache
+.com.apple.timemachine.donotpresent
+.coverage
+.coverage.*
+.dockerignore
+.DocumentRevisions-V100
+.DS_Store
+.eggs
+.env
+.fseventsd
+.git
+.gitignore
+.hypothesis
+.idea
+.installed.cfg
+.ipynb_checkpoints
+.LSOverride
+.mypy_cache
+.pytest_cache
+.Python
+.python-version
+.ropeproject
+.scrapy
+.Spotlight-V100
+.spyderproject
+.spyproject
+.TemporaryItems
+.tox
+.Trashes
+.venv
+.VolumeIcon.icns
+.webassets-cache
+__pycache__
+celerybeat-schedule
+coverage.xml
+Icon
+local_settings.py
+Network Trash Folder
+nosetests.xml
+parts
+pip-delete-this-directory.txt
+pip-log.txt
+sdist
+Temporary Items
+wheels
+_Inline
