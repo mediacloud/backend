@@ -55,7 +55,7 @@ and then `POST` said file as JSON to the annotator:
 ```bash
 echo '{}' | \
   jq --arg key0 text --arg value0 "$(cat test.txt)" '. | .[$key0]=$value0' | \
-  curl --header "Content-Type: application/json" -X POST --data-binary @- http://127.0.0.1:8080/predict.json | \
+  curl --verbose --silent --trace-time --header "Content-Type: application/json" -X POST --data-binary @- http://127.0.0.1:8080/predict.json | \
   jq ".descriptors600"
 ```
 
@@ -64,5 +64,5 @@ Alternatively, to try out just the `descriptors600` model:
 ```bash
 echo '{"models": ["descriptors600"]}' | \
   jq --arg key0 text --arg value0 "$(cat test.txt)" '. | .[$key0]=$value0' | \
-  curl --header "Content-Type: application/json" -X POST --data-binary @- http://127.0.0.1:8080/predict.json
+  curl --verbose --silent --trace-time --header "Content-Type: application/json" -X POST --data-binary @- http://127.0.0.1:8080/predict.json
 ```
