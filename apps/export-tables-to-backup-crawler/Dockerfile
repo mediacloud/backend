@@ -2,7 +2,7 @@
 # Export tables to run backup crawler
 #
 
-FROM dockermediacloud/cliff-base:latest
+FROM gcr.io/mcback/common:latest
 
 # Copy sources
 COPY src/ /opt/mediacloud/src/export-tables-to-backup-crawler/

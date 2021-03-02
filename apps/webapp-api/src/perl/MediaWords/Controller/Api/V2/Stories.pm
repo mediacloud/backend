@@ -12,10 +12,11 @@ use HTTP::Status qw(:constants);
 use Readonly;
 use Encode;
 
-use MediaWords::Annotator::Store;
 use MediaWords::DBI::Stories;
 use MediaWords::Solr;
 use MediaWords::Util::ParseJSON;
+use MediaWords::Util::Web::UserAgent;
+use MediaWords::Util::Web::UserAgent::Request;
 
 =head1 NAME
 
@@ -87,6 +88,117 @@ sub put_tags_PUT
     return;
 }
 
+sub _cliff_annotator_request($)
+{
+    my $text = shift;
+
+    my $url = 'http://cliff-annotator:8080/cliff/parse/text';
+    my $request = MediaWords::Util::Web::UserAgent::Request->new( 'POST', $url );
+    $request->set_content_type( 'application/x-www-form-urlencoded; charset=utf-8' );
+    $request->set_content( {'q' => $text } );
+
+    return $request;
+}
+
+sub _nytlabels_annotator_request($)
+{
+    my $text = shift;
+
+    my $url = 'http://nytlabels-annotator:8080/predict.json';
+    my $request = MediaWords::Util::Web::UserAgent::Request->new( 'POST', $url );
+    $request->set_content_type( 'application/json; charset=utf-8' );
+    $request->set_content( MediaWords::Util::ParseJSON::encode_json( {'text' => $text}) );
+
+    return $request;
+}
+
+# FIXME once the API gets rewritten to Python (any day now!), make it reuse
+# same code that calls annotator from extractor instead of this awful hack
+sub _annotate_story_ids($$$$)
+{
+    my ( $db, $stories_ids, $results_key, $request_generator_subref ) = @_;
+
+    unless ( ref( $request_generator_subref ) eq ref( sub {} )) {
+        LOGDIE "Request generator is not a subref";
+    }
+
+    $stories_ids = [ $stories_ids ] unless ( ref( $stories_ids ) );
+
+    DEBUG "Annotating " . scalar(@{ $stories_ids }) . " stories...";
+    my $json_list = {};
+    for my $stories_id ( @{ $stories_ids } )
+    {
+        $stories_id = int( $stories_id );
+
+        next if ( $json_list->{ $stories_id } );
+
+        DEBUG "Fetching story $stories_id...";
+        my $story = $db->find_by_id( 'stories', $stories_id );
+        unless ( $story ) {
+            $json_list->{ $stories_id } = 'story does not exist';
+            next;
+        }
+
+        unless ( $story->{ language } eq 'en' or ( ! defined $story->language )) {
+            $json_list->{ $stories_id } = 'story is not in English';
+            next;
+        }
+
+        DEBUG "Fetching concatenated sentences for story $stories_id...";
+        my ( $full_text ) = $db->query( <<SQL,
+            SELECT string_agg(sentence, ' ' ORDER BY sentence_number)
+            FROM story_sentences
+            WHERE stories_id = ?
+SQL
+            $story->{ stories_id }
+        )->flat();
+        unless ( $full_text ) {
+            $json_list->{ $stories_id } = 'story does not have any sentences';
+            next;
+        }
+
+        DEBUG "Annotating story $stories_id...";
+        my $request = $request_generator_subref->( $full_text );
+
+        my $ua = MediaWords::Util::Web::UserAgent->new();
+        $ua->set_timing( [1, 2, 4, 8] );
+        $ua->set_timeout( 60 * 10 );
+        $ua->set_max_size( undef );
+
+        my $response = $ua->request( $request );
+
+        unless ( $response->is_success() ) {
+            ERROR "Fetching annotation for story $stories_id failed: " . $response->decoded_content();
+            $json_list->{ $stories_id } = 'annotating failed';
+            next;
+        }
+
+        my $annotation = MediaWords::Util::ParseJSON::decode_json( $response->decoded_content() );
+
+        $json_list->{ $stories_id } = $annotation;
+    }
+
+    my $json_items = [];
+
+    # Iterate over original list of story ID parameters to preserve order
+    for my $stories_id ( @{ $stories_ids } )
+    {
+        my $json_item = {
+            stories_id   => $stories_id + 0,
+            $results_key => $json_list->{ $stories_id },
+        };
+        push( @{ $json_items }, $json_item );
+    }
+
+    Readonly my $json_pretty => 1;
+    my $json = MediaWords::Util::ParseJSON::encode_json( $json_items, $json_pretty );
+
+    # Catalyst expects bytes
+    $json = encode_utf8( $json );
+
+    return $json;
+}
+
 sub cliff : Local
 {
     my ( $self, $c ) = @_;
@@ -99,49 +211,7 @@ sub cliff : Local
         die "One or more 'stories_id' is required.";
     }
 
-    $stories_ids = [ $stories_ids ] unless ( ref( $stories_ids ) );
-
-    my $json_list = {};
-    for my $stories_id ( @{ $stories_ids } )
-    {
-        $stories_id = int( $stories_id );
-
-        next if ( $json_list->{ $stories_id } );
-
-        my $annotation;
-
-        my $story = $db->find_by_id( 'stories', $stories_id );
-        if ( !$story )
-        {
-            # mostly useful for testing this end point without triggering a fatal error because CLIFF is not enabled
-            $annotation = 'story does not exist';
-        }
-        else
-        {
-            my $cliff_store = MediaWords::Annotator::Store->new('cliff_annotations');
-            eval { $annotation = $cliff_store->fetch_annotation_for_story( $db, $stories_id ); };
-            $annotation ||= 'story is not annotated';
-        }
-
-        $json_list->{ $stories_id } = $annotation;
-
-    }
-
-    my $json_items = [];
-    for my $stories_id ( keys( %{ $json_list } ) )
-    {
-        my $json_item = {
-            stories_id => $stories_id + 0,
-            cliff      => $json_list->{ $stories_id },
-        };
-        push( @{ $json_items }, $json_item );
-    }
-
-    Readonly my $json_pretty => 1;
-    my $json = MediaWords::Util::ParseJSON::encode_json( $json_items, $json_pretty );
-
-    # Catalyst expects bytes
-    $json = encode_utf8( $json );
+    my $json = _annotate_story_ids( $db, $stories_ids, 'cliff', \&_cliff_annotator_request );
 
     $c->response->content_type( 'application/json; charset=UTF-8' );
     $c->response->content_length( bytes::length( $json ) );
@@ -160,49 +230,7 @@ sub nytlabels : Local
         die "One or more 'stories_id' is required.";
     }
 
-    $stories_ids = [ $stories_ids ] unless ( ref( $stories_ids ) );
-
-    my $json_list = {};
-    for my $stories_id ( @{ $stories_ids } )
-    {
-        $stories_id = int( $stories_id );
-
-        next if ( $json_list->{ $stories_id } );
-
-        my $annotation;
-
-        my $story = $db->find_by_id( 'stories', $stories_id );
-        if ( !$story )
-        {
-            # mostly useful for testing this end point without triggering a fatal error because NYTLabels is not enabled
-            $annotation = 'story does not exist';
-        }
-        else
-        {
-            my $nytlabels_store = MediaWords::Annotator::Store->new('nytlabels_annotations');
-            eval { $annotation = $nytlabels_store->fetch_annotation_for_story( $db, $stories_id ) };
-            $annotation ||= 'story is not annotated';
-        }
-
-        $json_list->{ $stories_id } = $annotation;
-
-    }
-
-    my $json_items = [];
-    for my $stories_id ( keys( %{ $json_list } ) )
-    {
-        my $json_item = {
-            stories_id => $stories_id + 0,
-            nytlabels  => $json_list->{ $stories_id },
-        };
-        push( @{ $json_items }, $json_item );
-    }
-
-    Readonly my $json_pretty => 1;
-    my $json = MediaWords::Util::ParseJSON::encode_json( $json_items, $json_pretty );
-
-    # Catalyst expects bytes
-    $json = encode_utf8( $json );
+    my $json = _annotate_story_ids( $db, $stories_ids, 'nytlabels', \&_nytlabels_annotator_request );
 
     $c->response->content_type( 'application/json; charset=UTF-8' );
     $c->response->content_length( bytes::length( $json ) );

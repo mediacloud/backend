@@ -114,8 +114,8 @@ To add a `Dockerfile` build configuration:
 3. Update the newly added `Dockerfile` build configuration as follows:
 
    1. Set *Server:* to `mediacloud` in order to build container images on a local Docker instance.
-   2. Set *Image tag:* to `dockermediacloud/<app-name>:latest`. You might want the image tag to include the `latest` version because we use `latest` internally to refer to the most recently pulled / built version of a particular image, and so `docker-compose.tests.yml` of every app is configured to run against the `latest` version of an image.
-   3. Set *Build options:* to `--cache-from dockermediacloud/<app-name>:latest`. Argument `--cache-from` will allow Docker to reuse the cached layers from a previously built image, making the build considerably faster.
+   2. Set *Image tag:* to `gcr.io/mcback/<app-name>:latest`. You might want the image tag to include the `latest` version because we use `latest` internally to refer to the most recently pulled / built version of a particular image, and so `docker-compose.tests.yml` of every app is configured to run against the `latest` version of an image.
+   3. Set *Build options:* to `--cache-from gcr.io/mcback/<app-name>:latest`. Argument `--cache-from` will allow Docker to reuse the cached layers from a previously built image, making the build considerably faster.
    4. Uncheck the *Run built image* checkbox unless you want to run whatever's defined as `CMD` in the image. In an IDE environment, you probably don't want that because it won't start the dependencies defined in `docker-compose.tests.yml`, and you can run any script from the IDE manually anyway (together with its dependent services) without having to rebuild the container image every time.
    5. At the top right of the window, check the *Share* checkbox to make this build configuration public so that you could later add it to the Git repository.
    6. Click *OK*.
@@ -140,10 +140,10 @@ To configure *pytest* to use Docker Compose Python interpreter:
 
    1. Under *Environment variables:*, add the `PERL5LIB` and `PYTHONPATH` environment variables of the app's container image. Without them, PyCharm will override Perl and Python module search paths and so your tests won't be able to find the source code installed by parent container images.
 
-      1. Find out app container image's `PERL5LIB` and `PYTHONPATH` environment variable values by running `docker run --entrypoint env dockermediacloud/<app-name>:latest | grep -E 'PERL5LIB|PYTHONPATH'`, e.g.:
+      1. Find out app container image's `PERL5LIB` and `PYTHONPATH` environment variable values by running `docker run --entrypoint env gcr.io/mcback/<app-name>:latest | grep -E 'PERL5LIB|PYTHONPATH'`, e.g.:
 
          ```bash
-         $ docker run --entrypoint env dockermediacloud/cliff-fetch-annotation:latest | grep -E 'PERL5LIB|PYTHONPATH'
+         $ docker run --entrypoint env gcr.io/mcback/cliff-fetch-annotation:latest | grep -E 'PERL5LIB|PYTHONPATH'
          PERL5LIB=/opt/mediacloud/src/cliff-fetch-annotation/perl:/opt/mediacloud/src/cliff-base/perl:/opt/mediacloud/src/common/perl
          PYTHONPATH=/opt/mediacloud/src/cliff-fetch-annotation/python:/opt/mediacloud/src/cliff-base/python:/opt/mediacloud/src/common/python
          ```
@@ -185,7 +185,7 @@ In addition to tests, you might want to run any other Python script in the Docke
 
 To configure script run template to use Docker Compose Python interpreter:
 
-1. Open *Run* -> *Edit Configurations…* menu item, and at the tree menu at the left select *Templates* -> *Python tests*.
+1. Open *Run* -> *Edit Configurations…* menu item, and at the tree menu at the left select *Templates* -> *Python*.
 
 2. Update the script run template by adding custom environment variables and an external build tool just like how it's done in the *pytest* run configuration (see *Configure pytest* section above):
 

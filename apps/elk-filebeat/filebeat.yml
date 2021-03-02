@@ -1,0 +1,100 @@
+path.home: /opt/filebeat/
+
+logging.to_stderr: true
+
+logging.metrics.enabled: false
+
+recursive_glob.enabled: true
+
+# Will be set by the wrapper script
+#name:
+
+# Will be set by the wrapper script
+#max_procs:
+
+
+# ---
+
+setup.template.settings:
+  index.number_of_shards: 1
+
+# setup.dashboards.enabled: true
+
+# setup.kibana:
+#   host: "elk-kibana:5601"
+
+
+# ---
+
+setup.ilm.enabled: true
+setup.ilm.policy_file: /opt/filebeat/filebeat-ilm.json
+setup.ilm.overwrite: true
+
+
+# ---
+
+filebeat.config.modules:
+  path: ${path.config}/modules.d/*.yml
+  reload.enabled: false
+
+
+# ---
+
+filebeat.modules:
+
+  - module: system
+    syslog:
+      enabled: true
+      var.paths: ["/var/log/syslog*"]
+    auth:
+      enabled: true
+      var.paths: ["/var/log/auth.log*"]
+
+  # SSL terminating proxy
+  - module: nginx
+    access:
+      enabled: true
+      var.paths:
+        - "/var/log/nginx/**/access.log*"
+    error:
+      enabled: true
+      var.paths:
+        - "/var/log/nginx/**/error.log*"
+
+# ---
+
+filebeat.inputs:
+
+  # Host system logs
+  - type: log
+    paths:
+      - "/var/log/**/*.log"
+    exclude_files: ['\.gz$']
+    tags: ["var_log"]
+
+  # Docker containers
+  - type: container
+    paths:
+      - "/var/lib/docker/containers/*/*.log"
+    tags: ["containers"]
+
+
+# ---
+
+processors:
+
+  # Host metadata is not useful as "host" is a container in this case
+  # - add_host_metadata: ~
+
+  - add_docker_metadata:
+      host: "unix:///var/run/docker.sock"
+
+  - decode_json_fields:
+      fields: ["message"]
+      target: "json"
+      overwrite_keys: true
+
+# ---
+
+output.elasticsearch:
+  hosts: ["elk-elasticsearch:9200"]

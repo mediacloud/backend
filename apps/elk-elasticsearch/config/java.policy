@@ -1,0 +1,11 @@
+grant {
+    permission java.io.FilePermission "/home/elk/.aws/config", "read";
+    permission javax.management.MBeanPermission "*", "*";
+    permission javax.management.MBeanServerPermission "*";
+    permission javax.management.MBeanTrustPermission "*";
+    permission java.lang.RuntimePermission "accessDeclaredMembers";
+    permission java.lang.RuntimePermission "getClassLoader";
+    permission java.lang.reflect.ReflectPermission "suppressAccessChecks";
+    permission java.net.SocketPermission "*", "connect,resolve";
+    permission java.util.PropertyPermission "es.allow_insecure_settings", "read,write";
+};

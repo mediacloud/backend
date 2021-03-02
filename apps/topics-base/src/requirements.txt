@@ -1,9 +1,9 @@
 # Python 3 compatible version of Google's re2 library (requires libre2-dev system package)
-# (untagged and unreleased 0.2.23 version which builds on Python 3.7)
--e git+https://github.com/andreasvc/pyre2.git@3e01eba6ba3eabd1359ef5e16c938c8866deea70#egg=re2
+# (refers to v0.3.2 tag but uses commit hash so that the tag doesn't get updated to something else)
+git+https://github.com/andreasvc/pyre2.git@d48a20aa81a670fa3304a9e3ef6fcb92945c4566#egg=pyre2
 
 # Mocking tweepy responses
-requests_mock==1.6.0
+requests_mock==1.8.0
 
 # Twitter API client
-tweepy==3.7.0
+tweepy==3.10.0

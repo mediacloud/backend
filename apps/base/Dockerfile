@@ -7,7 +7,7 @@
 #
 
 # https://hub.docker.com/_/ubuntu?tab=tags&page=1
-FROM ubuntu:xenial-20201014
+FROM ubuntu:focal-20210119
 
 ENV DEBIAN_FRONTEND=noninteractive \
     LANG=en_US.UTF-8 \
@@ -35,6 +35,7 @@ RUN \
 
 # Install system packages that the base image is missing in a "magic" order
 RUN \
+    apt-get -y --no-install-recommends install ca-certificates && \
     apt-get -y --no-install-recommends install apt-utils && \
     apt-get -y --no-install-recommends install apt-transport-https && \
     apt-get -y --no-install-recommends install acl && \
@@ -47,10 +48,10 @@ RUN \
     apt-get -y --no-install-recommends install \
         # Quicker container debugging
         bash-completion \
-        # Some of the packages might want to use SSL
-        ca-certificates \
         curl \
         htop \
+        # apt-key
+        gnupg \
         # "ip" and similar utilities
         iproute2 \
         # Pinging other containers from within Compose environment
@@ -71,9 +72,7 @@ RUN \
         # Timezone data, used by many packages
         tzdata \
         # Basic editor for files in container while debugging
-        # (full vim doesn't cut it because it's too big and also installs
-        # Python 3.5 which might interfere with a newer Python 3.7 that we use
-        # for our app)
+        # (full vim is too big)
         vim-tiny \
     && \
     true
@@ -85,8 +84,8 @@ RUN ln -s /usr/bin/vim.tiny /usr/bin/vim
 COPY conf/rsyslog.conf /etc/
 COPY bin/rsyslog.inc.sh /
 
-# Copy memory limit helper
-COPY bin/container_memory_limit.sh /
+# Copy helper scripts
+COPY bin/container_memory_limit.sh bin/container_cpu_limit.sh bin/dl_to_stdout.sh /
 
 # Copy MSMTP configuration
 COPY conf/msmtprc conf/msmtp-aliases /etc/

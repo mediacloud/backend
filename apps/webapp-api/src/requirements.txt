@@ -1,12 +1,12 @@
 # Network analysis, used for graph layout
-networkx==2.2
+networkx==2.5
 
 # Numerical processing, required by ForceAtlas2
-numpy==1.16.0
+numpy==1.19.5
 
 # Correct word boundary matching for UTF-8:
 # https://stackoverflow.com/questions/12746458/python-unicode-regular-expression-matching-failing-with-some-unicode-characters
-regex==2020.2.20
+regex==2020.11.13
 
 # Math package for forceatlas implementation
-scipy==1.2.0
+scipy==1.6.0

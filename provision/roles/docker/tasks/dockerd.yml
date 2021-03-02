@@ -186,8 +186,6 @@
   pip:
     name: docker==3.7.3
     state: present
-    # Use Python 3.5 explicitly in order to not mix it up with Python 3.7 from old, non-containerized system
-    # FIXME revert back to "pip3" after removing Python 3.7 from host system
     executable: /usr/bin/pip3
   become: true
   become_user: root
@@ -199,8 +197,6 @@
   pip:
     name: docker-compose>=1.22.0
     state: present
-    # Use Python 3.5 explicitly in order to not mix it up with Python 3.7 from old, non-containerized system
-    # FIXME revert back to "pip3" after removing Python 3.7 from host system
     executable: /usr/bin/pip3
   become: true
   become_user: root

@@ -60,10 +60,9 @@ nevezik Edgeworth-indexnek.
 QUOTE
 
     $expected_sentences = [
-'Edgeworth, Francis Ysidro (1845. febr. 8. Edgeworthstown, † 1926. febr. 13. Oxford): ír közgazdász és statisztikus, aki a közgazdaságtudományban maradandót alkotott a közömbösségi görbék rendszerének megalkotásával.',
-'Nevéhez fűződik még a szerződési görbe és az úgynevezett Edgeworth-doboz vagy Edgeworth-négyszög kidolgozása.',
-        '( Az utóbbit Pareto-féle box-diagrammnak is nevezik.)',
-'Mint statisztikus, a korrelációszámítást fejlesztette tovább, s az index-számításban a bázis és a tárgyidőszak fogyasztási szerkezettel számított indexek számtani átlagaként képzett indexet róla nevezik Edgeworth-indexnek.'
+        'Edgeworth, Francis Ysidro (1845. febr. 8. Edgeworthstown, † 1926. febr. 13. Oxford): ír közgazdász és statisztikus, aki a közgazdaságtudományban maradandót alkotott a közömbösségi görbék rendszerének megalkotásával.',
+        'Nevéhez fűződik még a szerződési görbe és az úgynevezett Edgeworth-doboz vagy Edgeworth-négyszög kidolgozása. ( Az utóbbit Pareto-féle box-diagrammnak is nevezik.)',
+        'Mint statisztikus, a korrelációszámítást fejlesztette tovább, s az index-számításban a bázis és a tárgyidőszak fogyasztási szerkezettel számított indexek számtani átlagaként képzett indexet róla nevezik Edgeworth-indexnek.'
     ];
 
     {

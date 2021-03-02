@@ -37,7 +37,7 @@ Also, almost every script (`print_docker_run_in_stack.py` being a notable except
 
 ## `pull.py` - pull images
 
-`pull.py` pulls pre-built images for every app, tagged with the name of the current Git branch. For example, if you're currently in the `feature-xyz` Git branch, the script will attempt to pull `dockermediacloud/<app_name>:feature-xyz` images for every app.
+`pull.py` pulls pre-built images for every app, tagged with the name of the current Git branch. For example, if you're currently in the `feature-xyz` Git branch, the script will attempt to pull `gcr.io/mcback/<app_name>:feature-xyz` images for every app.
 
 If an image tagged with the Git branch name doesn't exist (e.g. your branch is new and hasn't been built yet, or the image build for the branch never completed successfully), script will attempt to pull images tagged with `master` (i.e. the images that were built from the `master` Git branch).
 
@@ -57,12 +57,12 @@ After pulling the images, your Docker instance will end up having images for eve
 $ docker images
 REPOSITORY                             TAG         IMAGE ID      CREATED     SIZE
 <...>
-dockermediacloud/postgresql-pgbouncer  containers  46d1ed5fd590  4 days ago  202MB
-dockermediacloud/postgresql-pgbouncer  latest      46d1ed5fd590  4 days ago  202MB
-dockermediacloud/postgresql-server     containers  42fbeb4f9fa9  9 days ago  482MB
-dockermediacloud/postgresql-server     latest      42fbeb4f9fa9  9 days ago  482MB
-dockermediacloud/postgresql-base       containers  553371ddd833  9 days ago  198MB
-dockermediacloud/postgresql-base       latest      553371ddd833  9 days ago  198MB
+gcr.io/mcback/postgresql-pgbouncer  containers  46d1ed5fd590  4 days ago  202MB
+gcr.io/mcback/postgresql-pgbouncer  latest      46d1ed5fd590  4 days ago  202MB
+gcr.io/mcback/postgresql-server     containers  42fbeb4f9fa9  9 days ago  482MB
+gcr.io/mcback/postgresql-server     latest      42fbeb4f9fa9  9 days ago  482MB
+gcr.io/mcback/postgresql-base       containers  553371ddd833  9 days ago  198MB
+gcr.io/mcback/postgresql-base       latest      553371ddd833  9 days ago  198MB
 ```
 
 While the initial pull might take a while (because there's a lot of data to download), any subsequent pulls should take just a couple of seconds as the script will then download only the Docker image layers that it doesn't have.
@@ -101,11 +101,11 @@ $ ./dev/build.py -p | grep solr-shard | bash -e
 
 ## `push.py` - push images
 
-Push all local images tagged with the current Git branch name to Docker Hub.
+Push all local images tagged with the current Git branch name to container repository.
 
 ### Usage
 
-To push every container image tagged with current Git branch name to Docker Hub, run:
+To push every container image tagged with current Git branch name to container repository, run:
 
 ```bash
 $ ./dev/push.py
@@ -261,7 +261,7 @@ Here's a "docker run" command that will:
 * Make the container join "mediacloud" Docker stack;
 * Run "bash" in said container:
     
- docker run -it --network mediacloud_default -e MC_DOWNLOADS_STORAGE_LOCATIONS=amazon_s3 -e MC_DOWNLOADS_READ_ALL_FROM_S3=1 -e MC_DOWNLOADS_FALLBACK_POSTGRESQL_TO_S3=1 -e MC_DOWNLOADS_CACHE_S3=0 -e MC_DOWNLOADS_AMAZON_S3_ACCESS_KEY_ID=<...> -e MC_DOWNLOADS_AMAZON_S3_SECRET_ACCESS_KEY=<...> -e MC_DOWNLOADS_AMAZON_S3_BUCKET_NAME=<...> -e MC_DOWNLOADS_AMAZON_S3_DIRECTORY_NAME=<...> -e MC_EMAIL_FROM_ADDRESS=<...> -e MC_USERAGENT_BLACKLIST_URL_PATTERN=<...> -e MC_USERAGENT_AUTHENTICATED_DOMAINS=<...> -e MC_USERAGENT_PARALLEL_GET_NUM_PARALLEL=<...> -e MC_USERAGENT_PARALLEL_GET_TIMEOUT=30 -e MC_USERAGENT_PARALLEL_GET_PER_DOMAIN_TIMEOUT=1 -e MC_TOPICS_BASE_TOPIC_ALERT_EMAILS=<...> -e MC_TWITTER_CONSUMER_KEY=<...> -e MC_TWITTER_CONSUMER_SECRET=<...> -e MC_TWITTER_ACCESS_TOKEN=<...> -e MC_TWITTER_ACCESS_TOKEN_SECRET=<...> -e MC_CRIMSON_HEXAGON_API_KEY=<...> dockermediacloud/topics-mine:release bash
+ docker run -it --network mediacloud_default -e MC_DOWNLOADS_STORAGE_LOCATIONS=amazon_s3 -e MC_DOWNLOADS_READ_ALL_FROM_S3=1 -e MC_DOWNLOADS_FALLBACK_POSTGRESQL_TO_S3=1 -e MC_DOWNLOADS_CACHE_S3=0 -e MC_DOWNLOADS_AMAZON_S3_ACCESS_KEY_ID=<...> -e MC_DOWNLOADS_AMAZON_S3_SECRET_ACCESS_KEY=<...> -e MC_DOWNLOADS_AMAZON_S3_BUCKET_NAME=<...> -e MC_DOWNLOADS_AMAZON_S3_DIRECTORY_NAME=<...> -e MC_EMAIL_FROM_ADDRESS=<...> -e MC_USERAGENT_BLACKLIST_URL_PATTERN=<...> -e MC_USERAGENT_AUTHENTICATED_DOMAINS=<...> -e MC_USERAGENT_PARALLEL_GET_NUM_PARALLEL=<...> -e MC_USERAGENT_PARALLEL_GET_TIMEOUT=30 -e MC_USERAGENT_PARALLEL_GET_PER_DOMAIN_TIMEOUT=1 -e MC_TOPICS_BASE_TOPIC_ALERT_EMAILS=<...> -e MC_TWITTER_CONSUMER_KEY=<...> -e MC_TWITTER_CONSUMER_SECRET=<...> -e MC_TWITTER_ACCESS_TOKEN=<...> -e MC_TWITTER_ACCESS_TOKEN_SECRET=<...> -e MC_CRIMSON_HEXAGON_API_KEY=<...> gcr.io/mcback/topics-mine:release bash
 
 Make sure to:
 

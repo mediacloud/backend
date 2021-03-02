@@ -9,6 +9,8 @@ use English '-no_match_vars';
 
 use Test::More;
 
+use Time::Piece;
+
 use MediaWords::ImportStories::Dummy;
 
 sub test_parse_story_date
@@ -44,7 +46,7 @@ sub test_generate_story
     is( $got_story->{ content }, $content );
     is( $got_story->{ title }, $title );
     is( $got_story->{ url }, $url );
-    is( $got_story->{ publish_date }, '2020-05-12 00:00:00');
+    is( $got_story->{ publish_date }, Time::Piece->new()->year() . '-05-12 00:00:00');
 }
 
 sub main

@@ -2,7 +2,7 @@
 # Submit a long running operation to Google Speech to Text API for it to transcribe the episode
 #
 
-FROM dockermediacloud/common:latest
+FROM gcr.io/mcback/common:latest
 
 # Install Python dependencies
 COPY src/requirements.txt /var/tmp/

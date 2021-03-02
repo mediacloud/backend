@@ -36,7 +36,9 @@ def test_media_file_info():
         input_file_path = os.path.join(MEDIA_SAMPLES_PATH, filename)
 
         if '-invalid' in filename:
-            with pytest.raises(McPodcastFileIsInvalidException, message="Invalid media file"):
+
+            # 
+            with pytest.raises(McPodcastFileIsInvalidException):
                 media_file_info(media_file_path=input_file_path)
 
         else:
@@ -89,11 +91,15 @@ def test_transcode_media_file_if_needed():
         input_media_file = TranscodeTempDirAndFile(temp_dir=MEDIA_SAMPLES_PATH, filename=filename)
 
         if '-noaudio' in filename:
-            with pytest.raises(McPodcastFileIsInvalidException, message="Media file with no audio"):
+
+            # Media file with no audio
+            with pytest.raises(McPodcastFileIsInvalidException):
                 transcode_media_file_if_needed(input_media_file=input_media_file)
 
         elif '-invalid' in filename:
-            with pytest.raises(McPodcastFileIsInvalidException, message="Invalid media file"):
+
+            # Invalid media file
+            with pytest.raises(McPodcastFileIsInvalidException):
                 transcode_media_file_if_needed(input_media_file=input_media_file)
 
         else:

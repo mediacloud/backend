@@ -62,7 +62,9 @@ class AbstractUnivisionTest(object, metaclass=abc.ABCMeta):
     # noinspection PyMethodMayBeStatic
     def test_api_request_signature(self):
         # Invalid inputs:
-        with pytest.raises(McCrawlerFetcherHardError, message="Empty input"):
+
+        # Empty input
+        with pytest.raises(McCrawlerFetcherHardError):
             # noinspection PyTypeChecker
             DownloadFeedUnivisionHandler._api_request_url_with_signature(
                 api_url=None,
@@ -70,14 +72,16 @@ class AbstractUnivisionTest(object, metaclass=abc.ABCMeta):
                 client_secret=None,
             )
 
-        with pytest.raises(McCrawlerFetcherHardError, message="Invalid URL"):
+        # Invalid URL
+        with pytest.raises(McCrawlerFetcherHardError):
             DownloadFeedUnivisionHandler._api_request_url_with_signature(
                 api_url='ftp://',
                 client_id='client_id',
                 client_secret='secret_key',
             )
 
-        with pytest.raises(McCrawlerFetcherHardError, message="URL with client_id"):
+        # URL with "client_id"
+        with pytest.raises(McCrawlerFetcherHardError):
             DownloadFeedUnivisionHandler._api_request_url_with_signature(
                 api_url='http://www.test.com/?client_id=a',
                 client_id='client_id',

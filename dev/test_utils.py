@@ -7,7 +7,7 @@ class TestUtils(TestCase):
 
     def test_container_dir_name_from_image_name(self):
         assert container_dir_name_from_image_name(
-            image_name='dockermediacloud/topics-fetch-twitter-urls:latest'
+            image_name='gcr.io/mcback/topics-fetch-twitter-urls:latest'
         ) == 'topics-fetch-twitter-urls'
 
     def test_container_dependency_tree(self):
@@ -15,12 +15,12 @@ class TestUtils(TestCase):
             'extract-and-vector': 'common',
             'crawler': 'common',
             'common': 'base',
-            'base': 'ubuntu:16.04',
+            'base': 'ubuntu:20.04',
             'nytlabels-annotator': 'base',
             'some-other-container': 'alpine:3.9',
         }
         expected_tree = [
-            {'alpine:3.9', 'ubuntu:16.04'},
+            {'alpine:3.9', 'ubuntu:20.04'},
             {'base', 'some-other-container'},
             {'common', 'nytlabels-annotator'},
             {'crawler', 'extract-and-vector'},
