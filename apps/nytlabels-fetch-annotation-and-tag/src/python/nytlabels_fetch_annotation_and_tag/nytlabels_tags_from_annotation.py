@@ -13,6 +13,9 @@ log = create_logger(__name__)
 class NYTLabelsTagsFromAnnotation(TagsFromJSONAnnotation):
     """Fetches NYT labels annotation and uses it to generate/store story tags."""
 
+    # Specific model to run the input text against
+    _ENABLED_MODEL = 'descriptors600'
+
     # NYTLabels version tag set
     __NYTLABELS_VERSION_TAG_SET = 'nyt_labels_version'
 
@@ -36,7 +39,7 @@ class NYTLabelsTagsFromAnnotation(TagsFromJSONAnnotation):
         # Create JSON request
         log.debug("Converting text to JSON request...")
         try:
-            text_json = encode_json({'text': text})
+            text_json = encode_json({'text': text, 'models': [self._ENABLED_MODEL]})
         except Exception as ex:
             # Not critical, might happen to some stories, no need to shut down the annotator
             raise McTagsFromJSONAnnotationException(
@@ -66,8 +69,8 @@ class NYTLabelsTagsFromAnnotation(TagsFromJSONAnnotation):
             log.warning("Annotation is not dict: %s" % str(annotation))
             return False
 
-        if 'descriptors600' not in annotation:
-            log.warning("Annotation doesn't have 'descriptors600' key: %s" % str(annotation))
+        if self._ENABLED_MODEL not in annotation:
+            log.warning(f"Annotation doesn't have '{self._ENABLED_MODEL}' key: {annotation}")
             return False
 
         return True
@@ -93,10 +96,10 @@ class NYTLabelsTagsFromAnnotation(TagsFromJSONAnnotation):
                                                tags_label=nytlabels_version_tag,
                                                tags_description="Story was tagged with '%s'" % nytlabels_version_tag))
 
-        descriptors600 = annotation.get('descriptors600', None)
-        if descriptors600 is not None and len(descriptors600) > 0:
+        descriptors = annotation.get(self._ENABLED_MODEL, None)
+        if descriptors is not None and len(descriptors) > 0:
 
-            for descriptor in descriptors600:
+            for descriptor in descriptors:
 
                 label = descriptor['label']
                 score = float(descriptor['score'])
