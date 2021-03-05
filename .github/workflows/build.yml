@@ -189,6 +189,11 @@ jobs:
           MC_TWITTER_CONSUMER_KEY: ${{ secrets.MC_TWITTER_CONSUMER_KEY }}
           MC_TWITTER_CONSUMER_SECRET: ${{ secrets.MC_TWITTER_CONSUMER_SECRET }}
       
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+        with:
+          limit-access-to-actor: true
+
       - name: List test failures
         run: awk '/FAILURES/,/short/' joblog.txt > test_fails.txt && cat test_fails.txt
         if: always()
