@@ -169,7 +169,7 @@ jobs:
           cat tests_chunk_${{ matrix.chunk_number }}
           | sort
           | parallel --timeout 600 --group --joblog joblog.txt
-          || { cat joblog.txt && chmod a=r joblog.txt && exit 1; }
+          || { cat joblog.txt && exit 1; }
         env:
           # Map secrets to environment variables
           MC_BRANDWATCH_PASSWORD: ${{ secrets.MC_BRANDWATCH_PASSWORD }}
@@ -189,12 +189,12 @@ jobs:
           MC_TWITTER_CONSUMER_KEY: ${{ secrets.MC_TWITTER_CONSUMER_KEY }}
           MC_TWITTER_CONSUMER_SECRET: ${{ secrets.MC_TWITTER_CONSUMER_SECRET }}
       
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3
-        if: always()
-        with:
-          limit-access-to-actor: true
+      # - name: Setup tmate session
+      #   uses: mxschmitt/action-tmate@v3
+      #   if: always()
+      #   with:
+      #     limit-access-to-actor: true
 
-      - name: List test failures
-        run: awk '/FAILURES/,/short/' joblog.txt > test_fails.txt && cat test_fails.txt
+      - name: List errors and test failures
+        run: echo -e 'Test failures:\n' && awk '/FAILURES/,/short/' /home/runner/runners/*/_diag/pages/*.log && echo -e '\n\nErrors:\n' && awk '/non-zero/,/status 1/' /home/runner/runners/*/_diag/pages/*.log
         if: always()
