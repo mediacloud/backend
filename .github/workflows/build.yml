@@ -195,6 +195,6 @@ jobs:
       #   with:
       #     limit-access-to-actor: true
 
-      - name: List errors and test failures
+      - name: List test failures and errors
         run: echo -e 'Test failures:\n' && awk '/FAILURES/,/short/' /home/runner/runners/*/_diag/pages/*.log && echo -e '\n\nErrors:\n' && awk '/non-zero/,/status 1/' /home/runner/runners/*/_diag/pages/*.log
         if: always()
