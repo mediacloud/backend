@@ -1,5 +1,3 @@
-cluster.name: elk-elasticsearch
-node.name: elk-elasticsearch
 path.data: /var/lib/elasticsearch
 network.host: 0.0.0.0
 http.port: 9200
@@ -8,8 +6,3 @@ transport.port: 9300
 # Use single node discovery in order to disable production mode and avoid bootstrap checks
 # see https://www.elastic.co/guide/en/elasticsearch/reference/current/bootstrap-checks.html
 discovery.type: single-node
-
-# Define S3 client for log snapshots
-s3.client:
-  elk_logs:
-    protocol: https

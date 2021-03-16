@@ -1,0 +1,7 @@
+cluster.name: elk-elasticsearch
+node.name: elk-elasticsearch
+
+# Define S3 client for log snapshots
+s3.client:
+  elk_logs:
+    protocol: https

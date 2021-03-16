@@ -18,7 +18,7 @@
 # has sufficient space
 -XX:HeapDumpPath=/var/lib/elasticsearch/jvm-heapdumps/
 
-# Update policy for S3 plugin to work
+# Update policy for plugins to work
 -Djava.security.policy=/opt/elasticsearch/config/java.policy
 
 # Log JVM errors to STDERR
