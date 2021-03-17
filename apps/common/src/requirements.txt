@@ -89,6 +89,9 @@ sentence_splitter==1.4
 # Celery PostgreSQL result backend support
 sqlalchemy==1.3.22
 
+# Temporal's Python SDK
+git+https://github.com/firdaus/temporal-python-sdk.git@8604d025ae1272b592d3d4dd430acd15eeb6562a#egg=temporal-python-sdk
+
 # Normalizing URLs
 url_normalize==1.4.3
 

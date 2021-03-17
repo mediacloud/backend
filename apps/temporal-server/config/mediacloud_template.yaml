@@ -1,0 +1,199 @@
+# FIXME adapt Helm chart configuration here
+
+log:
+    stdout: true
+    level: info
+
+persistence:
+    # FIXME is this right?
+    numHistoryShards: 4096
+    defaultStore: default
+    visibilityStore: visibility
+    advancedVisibilityStore: es-visibility
+    datastores:
+
+        default:
+            sql:
+                pluginName: "postgres"
+                databaseName: "temporal"
+
+                # We skip the PgBouncer and connect directly as PgBouncer's
+                # support is not too well documented
+                connectAddr: "temporal-postgresql:5432"
+
+                connectProtocol: "tcp"
+                user: "temporal"
+                password: "temporal"
+
+                # FIXME keep in sync with PostgreSQL configuration
+                maxConns: 20
+                maxIdleConns: 20
+                maxConnLifetime: 1h
+
+        visibility:
+            sql:
+                pluginName: "postgres"
+                databaseName: "temporal_visibility"
+                connectAddr: "temporal-postgresql:5432"
+                connectProtocol: "tcp"
+                user: "temporal"
+                password: "temporal"
+                maxConns: 10
+                maxIdleConns: 10
+                maxConnLifetime: 1h
+
+        es-visibility:
+            elasticsearch:
+                # Keep in sync with temporal-elasticsearch version:
+                version: "v7"
+                url:
+                    scheme: http
+                    host: "temporal-elasticsearch:9200"
+                username: ""
+                password: ""
+                indices:
+                    # FIXME rename to "temporal-visibility" perhaps?
+                    visibility: "temporal-visibility-dev"
+
+global:
+    membership:
+        maxJoinDuration: 30s
+        # broadcastAddress: "0.0.0.0"
+    tls:
+        internode:
+            # This server section configures the TLS certificate that internal temporal
+            # cluster nodes (history or matching) present to other clients within the Temporal Cluster. 
+            server:
+                requireClientAuth: false
+
+                certFile: ""
+                keyFile: ""
+                clientCaFiles:
+                    - ""
+
+                certData: ""
+                keyData: ""
+                clientCaData:
+                    - ""
+            
+            # This client section is used to configure the TLS clients within
+            # the Temporal Cluster that connect to an Internode (history or matching)
+            client:
+                serverName: ""
+                disableHostVerification: false
+                rootCaFiles:
+                    - ""
+                rootCaData:
+                    - ""
+        frontend:
+            # This server section configures the TLS certificate that the Frontend
+            # server presents to all clients (specifically the Worker role within
+            # the Temporal Cluster and all External SDKs connecting to the Cluster)
+            server:
+                requireClientAuth: false
+                certFile: ""
+                keyFile: ""
+                clientCaFiles:
+                    - ""
+                    - ""
+
+                certData: ""
+                keyData: ""
+                clientCaData:
+                    - ""
+                    - ""
+            
+            # This client section is used to configure the TLS clients within
+            # the Temporal Cluster (specifically the Worker role) that connect to the Frontend service
+            client:
+                serverName: ""
+                disableHostVerification: false
+                rootCaFiles:
+                    - ""
+                rootCaData:
+                    - ""
+
+    # FIXME collect statistics with either statsd or prometheus:
+    # metrics:
+    #     statsd:
+    #         hostPort: "temporal-statsd:8125"
+    #         prefix: "temporal"
+
+    metrics:
+        prometheus:
+            timerType: "histogram"
+            listenAddress: "temporal-prometheus:9090"
+
+services:
+    frontend:
+        rpc:
+            grpcPort: 7233
+            membershipPort: 6933
+            bindOnIP: "${MC_TEMPORAL_HOST_IP}"
+
+    matching:
+        rpc:
+            grpcPort: 7235
+            membershipPort: 6935
+            bindOnIP: "${MC_TEMPORAL_HOST_IP}"
+
+    history:
+        rpc:
+            grpcPort: 7234
+            membershipPort: 6934
+            bindOnIP: "${MC_TEMPORAL_HOST_IP}"
+
+    worker:
+        rpc:
+            grpcPort: 7239
+            membershipPort: 6939
+            bindOnIP: "${MC_TEMPORAL_HOST_IP}"
+
+clusterMetadata:
+    enableGlobalNamespace: false
+    failoverVersionIncrement: 10
+    masterClusterName: "active"
+    currentClusterName: "active"
+    clusterInformation:
+        active:
+            enabled: true
+            initialFailoverVersion: 1
+            rpcName: "frontend"
+            rpcAddress: "127.0.0.1:7233"
+
+dcRedirectionPolicy:
+    policy: "noop"
+    toDC: ""
+
+archival:
+    history:
+        state: "enabled"
+        enableRead: true
+        provider:
+            filestore:
+                fileMode: "0666"
+                dirMode: "0766"
+    visibility:
+        state: "enabled"
+        enableRead: true
+        provider:
+            filestore:
+                fileMode: "0666"
+                dirMode: "0766"
+
+# FIXME archive workflows on S3: https://docs.temporal.io/docs/server-archive-data/
+namespaceDefaults:
+    archival:
+        history:
+            state: "enabled"
+            URI: "file:///var/lib/temporal/archival/temporal"
+        visibility:
+            state: "enabled"
+            URI: "file:///var/lib/temporal/archival/visibility"
+
+publicClient:
+    hostPort: "${MC_TEMPORAL_HOST_IP}:7233"
+
+dynamicConfigClient:
+    filepath: "/opt/temporal-server/config/dynamicconfig.yaml"
+    pollInterval: "60s"

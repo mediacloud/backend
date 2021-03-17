@@ -1,0 +1,79 @@
+#
+# Temporal server
+#
+
+FROM gcr.io/mcback/base:latest
+
+# FIXME
+RUN apt-get -y update
+
+# Install dependencies
+RUN \
+    apt-get -y --no-install-recommends install \
+        libprotobuf17 \
+    && \
+    true
+
+# Install Temporal server
+RUN \
+    # FIXME use upstream CI builds once they start working
+    # Keep version that's being used in sync with temporal-postgresql
+    mkdir -p /var/tmp/temporal/ && \
+    /dl_to_stdout.sh "https://github.com/mediacloud/temporal-ci-builds/releases/download/v1.7.0-gr/temporal-ci-builds_1.7.0-gr_linux_amd64.tar.gz" | \
+        tar -zx -C /var/tmp/temporal/ && \
+    mv /var/tmp/temporal/temporal-server /var/tmp/temporal/tctl /usr/bin/ && \
+    cd / && \
+    rm -rf /var/tmp/temporal/ && \
+    true
+
+RUN \
+    #
+    # Install envsubst for generating configuration
+    apt-get -y --no-install-recommends install \
+        gettext-base \
+    && \
+    #
+    # Install utilities useful for tctl
+    apt-get -y --no-install-recommends install \
+        jq \
+    && \
+    #
+    # Add unprivileged user the service will run as
+    useradd -ms /bin/bash temporal && \
+    #
+    # Directory for wrapper scripts
+    mkdir -p /opt/temporal-server/bin/ && \
+    #
+    # Directory for configuration (has to be writable to generate final
+    # configuration files from templates)
+    mkdir -p /opt/temporal-server/config/ && \
+    chown temporal:temporal /opt/temporal-server/config/ && \
+    #
+    # Directories for first run shim and archival
+    mkdir -p /var/lib/temporal/archival/temporal/ && \
+    mkdir -p /var/lib/temporal/archival/visibility/ && \
+    chown -R temporal:temporal /var/lib/temporal/ && \
+    #
+    # Create a file that will denote whether it's the first run of this service
+    # mounted to a specific volume
+    touch /var/lib/temporal/first_run && \
+    #
+    true
+
+COPY bin/* /opt/temporal-server/bin/
+COPY config/* /opt/temporal-server/config/
+
+ENV PATH="/opt/temporal-server/bin:${PATH}" \
+    # https://docs.temporal.io/docs/tctl/#environment-variables
+    TEMPORAL_CLI_ADDRESS="temporal-server:7233" \
+    TEMPORAL_CLI_NAMESPACE="default"
+
+# Archives and first run shim
+VOLUME /var/lib/temporal/
+
+# Port descriptions: https://docs.temporal.io/docs/server-architecture/
+EXPOSE 6933 6934 6935 6939 7233 7234 7235 7239
+
+USER temporal
+
+CMD ["temporal.sh"]

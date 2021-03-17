@@ -1,0 +1,132 @@
+version: "3.7"
+
+services:
+
+    # Service to use for testing the Temporal service
+    #
+    # Usage:
+    #
+    #     host$ ./dev/run.py temporal-server bash
+    #     container$ python3
+    #
+    #     ...and then submit a Temporal workflow somehow.
+    #
+    temporal-server:
+        image: gcr.io/mcback/common:latest
+        init: true
+        stop_signal: SIGKILL
+        depends_on:
+            - temporal-server-actual
+            - temporal-webapp
+
+    # Actual Temporal server, operating under "temporal-server" alias
+    temporal-server-actual:
+        image: gcr.io/mcback/temporal-server:latest
+        init: true
+        stop_signal: SIGKILL
+        depends_on:
+            - temporal-postgresql
+            - temporal-elasticsearch
+        networks:
+            default:
+                aliases:
+                    - temporal-server
+        expose:
+            - 6933
+            - 6934
+            - 6935
+            - 6939
+            - 7233
+            - 7234
+            - 7235
+            - 7239
+        ports:
+            # Expose to host for debugging
+            - "6933:6933"
+            - "6934:6934"
+            - "6935:6935"
+            - "6939:6939"
+            - "7233:7233"
+            - "7234:7234"
+            - "7235:7235"
+            - "7239:7239"
+        volumes:
+            - type: bind
+              source: ./bin/
+              target: /opt/temporal-server/bin/
+            - type: bind
+              source: ./config/dynamicconfig.yaml
+              target: /opt/temporal-server/config/dynamicconfig.yaml
+            - type: bind
+              source: ./config/mediacloud_template.yaml
+              target: /opt/temporal-server/config/mediacloud_template.yaml
+
+    temporal-postgresql:
+        image: gcr.io/mcback/temporal-postgresql:latest
+        init: true
+        stop_signal: SIGKILL
+        networks:
+            - default
+        expose:
+            - 5432
+        ports:
+            # Expose to host for debugging
+            - "5432:5432"
+        volumes:
+            - type: bind
+              source: ./../temporal-postgresql/bin/
+              target: /opt/temporal-postgresql/bin/
+            - type: bind
+              source: ./../postgresql-base/conf/
+              target: /etc/postgresql/11/main/
+
+    temporal-elasticsearch:
+        image: gcr.io/mcback/temporal-elasticsearch:latest
+        init: true
+        stop_signal: SIGKILL
+        networks:
+            - default
+        expose:
+            - "9200"
+            - "9300"
+        ports:
+            # Expose to host for debugging
+            - "9200:9200"
+            - "9300:9300"
+        volumes:
+            - type: bind
+              source: ./../elasticsearch-base/bin/elasticsearch.sh
+              target: /opt/elasticsearch/bin/elasticsearch.sh
+            # Not mounting config as it gets concatenated into a single file
+        # Limit CPUs and RAM for the process to not get too greedy
+        deploy:
+            resources:
+                limits:
+                    cpus: "2"
+                    memory: "2G"
+    temporal-webapp:
+        image: gcr.io/mcback/temporal-webapp:latest
+        init: true
+        stop_signal: SIGKILL
+        networks:
+            - default
+        expose:
+            - "8088"
+        ports:
+            # Expose to host for debugging
+            - "8088:8088"
+        # Limit CPUs and RAM for the process to not get too greedy
+        deploy:
+            resources:
+                limits:
+                    cpus: "1"
+                    memory: "2G"
+
+networks:
+    default:
+        attachable: true
+        ipam:
+            driver: default
+            config:
+                # Use same subnet as in production
+                - subnet: "10.1.0.0/16"

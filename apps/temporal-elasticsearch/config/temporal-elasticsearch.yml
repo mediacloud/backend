@@ -1,0 +1,2 @@
+cluster.name: temporal-elasticsearch
+node.name: temporal-elasticsearch

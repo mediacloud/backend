@@ -49,11 +49,12 @@ services:
             - "9300:9300"
         volumes:
             - type: bind
-              source: ./../elk-elasticsearch/bin/elasticsearch.sh
-              target: /opt/elasticsearch/bin/elasticsearch.sh
+              source: ./../elk-elasticsearch/bin/elk-elasticsearch.sh
+              target: /opt/elasticsearch/bin/elk-elasticsearch.sh
             - type: bind
-              source: ./../elk-elasticsearch/config/
-              target: /opt/elasticsearch/config/
+              source: ./../elasticsearch-base/bin/elasticsearch.sh
+              target: /opt/elasticsearch/bin/elasticsearch.sh
+            # Not mounting config as it gets concatenated into a single file
         # Limit CPUs and RAM for the process to not get too greedy
         deploy:
             resources:
