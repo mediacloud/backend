@@ -13,6 +13,12 @@ frontend.historyMgrNumConns:
 frontend.throttledLogRPS:
 - value: 20
   constraints: {}
+matching.numTaskqueueReadPartitions:
+- value: 5
+  constraints: {}
+matching.numTaskqueueWritePartitions:
+- value: 5
+  constraints: {}
 history.historyMgrNumConns:
 - value: 50
   constraints: {}

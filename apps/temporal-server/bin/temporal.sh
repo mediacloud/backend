@@ -31,6 +31,8 @@ while true; do
     fi
 done
 
+# FIXME perhaps run all four services ("frontend", "history", "matching", "worker")
+# as separate containers?
 exec temporal-server \
     --root /opt/temporal-server \
     --env mediacloud \

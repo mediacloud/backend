@@ -1,11 +1,8 @@
-# FIXME adapt Helm chart configuration here
-
 log:
     stdout: true
     level: info
 
 persistence:
-    # FIXME is this right?
     numHistoryShards: 16
     defaultStore: default
     visibilityStore: visibility
@@ -52,11 +49,11 @@ persistence:
                 username: ""
                 password: ""
                 indices:
-                    # FIXME rename to "temporal-visibility" perhaps?
-                    visibility: "temporal-visibility-dev"
+                    visibility: "temporal-visibility-mc"
 
 global:
     membership:
+        name: temporal
         maxJoinDuration: 30s
         # broadcastAddress: "0.0.0.0"
     tls:
@@ -196,4 +193,4 @@ publicClient:
 
 dynamicConfigClient:
     filepath: "/opt/temporal-server/config/dynamicconfig.yaml"
-    pollInterval: "60s"
+    pollInterval: "10s"
