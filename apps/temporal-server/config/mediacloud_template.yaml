@@ -110,41 +110,46 @@ global:
                 rootCaData:
                     - ""
 
-    # FIXME collect statistics with either statsd or prometheus:
-    # metrics:
-    #     statsd:
-    #         hostPort: "temporal-statsd:8125"
-    #         prefix: "temporal"
-
-    # metrics:
-    #     prometheus:
-    #         timerType: "histogram"
-    #         listenAddress: "temporal-prometheus:9090"
-
 services:
     frontend:
         rpc:
             grpcPort: 7233
             membershipPort: 6933
             bindOnIP: "${MC_TEMPORAL_HOST_IP}"
+        metrics:
+            prometheus:
+                timerType: "histogram"
+                listenAddress: "temporal-prometheus:8000"
 
     matching:
         rpc:
             grpcPort: 7235
             membershipPort: 6935
             bindOnIP: "${MC_TEMPORAL_HOST_IP}"
+        metrics:
+            prometheus:
+                timerType: "histogram"
+                listenAddress: "temporal-prometheus:8001"
 
     history:
         rpc:
             grpcPort: 7234
             membershipPort: 6934
             bindOnIP: "${MC_TEMPORAL_HOST_IP}"
+        metrics:
+            prometheus:
+                timerType: "histogram"
+                listenAddress: "temporal-prometheus:8002"
 
     worker:
         rpc:
             grpcPort: 7239
             membershipPort: 6939
             bindOnIP: "${MC_TEMPORAL_HOST_IP}"
+        metrics:
+            prometheus:
+                timerType: "histogram"
+                listenAddress: "temporal-prometheus:8003"
 
 clusterMetadata:
     enableGlobalNamespace: false

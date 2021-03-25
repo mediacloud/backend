@@ -1,0 +1,14 @@
+global:
+  scrape_interval: 5s
+  external_labels:
+    monitor: 'temporal-monitor'
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+    - targets:
+      - 'localhost:9090'
+      - 'temporal-server:8000'
+      - 'temporal-server:8001'
+      - 'temporal-server:8002'
+      - 'temporal-server:8003'

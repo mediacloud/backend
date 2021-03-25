@@ -34,3 +34,6 @@
 [submodule "apps/elk-journalbeat/journald-log-sample"]
 	path = apps/elk-journalbeat/journald-log-sample
 	url = https://github.com/mediacloud/journald-log-sample.git
+[submodule "apps/temporal-grafana/dashboards"]
+	path = apps/temporal-grafana/dashboards
+	url = https://github.com/temporalio/dashboards.git
