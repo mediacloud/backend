@@ -63,7 +63,7 @@ EXPOSE 9200
 # Elasticsearch TCP transport
 EXPOSE 9300
 
-# Elasticsearch data
-VOLUME /var/lib/elasticsearch
+# No "VOLUME /var/lib/elasticsearch" here because sub-images might want to
+# pre-init the volume with some data
 
 CMD ["/opt/elasticsearch/bin/elasticsearch.sh"]

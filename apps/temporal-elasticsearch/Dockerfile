@@ -29,4 +29,7 @@ USER root
 RUN rm /index_template.json /setup_index_template.sh
 USER elasticsearch
 
+# Elasticsearch data
+VOLUME /var/lib/elasticsearch
+
 CMD ["/opt/elasticsearch/bin/elasticsearch.sh"]

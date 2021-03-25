@@ -31,4 +31,7 @@ RUN \
 
 USER elasticsearch
 
+# Elasticsearch data
+VOLUME /var/lib/elasticsearch
+
 CMD ["/opt/elasticsearch/bin/elk-elasticsearch.sh"]

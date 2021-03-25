@@ -6,7 +6,7 @@ log:
 
 persistence:
     # FIXME is this right?
-    numHistoryShards: 4096
+    numHistoryShards: 16
     defaultStore: default
     visibilityStore: visibility
     advancedVisibilityStore: es-visibility
@@ -119,10 +119,10 @@ global:
     #         hostPort: "temporal-statsd:8125"
     #         prefix: "temporal"
 
-    metrics:
-        prometheus:
-            timerType: "histogram"
-            listenAddress: "temporal-prometheus:9090"
+    # metrics:
+    #     prometheus:
+    #         timerType: "histogram"
+    #         listenAddress: "temporal-prometheus:9090"
 
 services:
     frontend:
