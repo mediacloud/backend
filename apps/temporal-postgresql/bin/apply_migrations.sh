@@ -28,8 +28,7 @@ TSQL="temporal-sql-tool \
     --ep 127.0.0.1 \
     -p 12345 \
     -u temporal \
-    --pw temporal \
-"
+    --pw temporal"
 
 MAIN_SCHEMA_DIR="${SCHEMAS_DIR}/temporal/versioned"
 $TSQL --db temporal update-schema -d "${MAIN_SCHEMA_DIR}"
