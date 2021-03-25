@@ -22,7 +22,7 @@ MC_POSTGRESQL_CONF_PATH="/etc/postgresql/11/main/postgresql.conf"
 
 psql -v ON_ERROR_STOP=1 -c "CREATE USER temporal WITH PASSWORD 'temporal' SUPERUSER;"
 
-SCHEMAS_DIR="/opt/temporal-postgresql/schema/v96"
+SCHEMA_DIR="/opt/temporal-postgresql/schema"
 TSQL="temporal-sql-tool \
     --plugin postgres \
     --ep 127.0.0.1 \
@@ -31,19 +31,11 @@ TSQL="temporal-sql-tool \
     --pw temporal \
 "
 
-MAIN_SCHEMA_DIR="${SCHEMAS_DIR}/temporal/versioned"
 $TSQL create --db temporal
-$TSQL --db temporal setup-schema -v 0.0
-$TSQL --db temporal update-schema -d "${MAIN_SCHEMA_DIR}"
+psql -v ON_ERROR_STOP=1 -d temporal -f "${SCHEMA_DIR}/mc_temporal.sql"
 
-VISIBILITY_SCHEMA_DIR="${SCHEMAS_DIR}/visibility/versioned"
 $TSQL create --db temporal_visibility
-$TSQL --db temporal_visibility setup-schema -v 0.0
-$TSQL --db temporal_visibility update-schema -d "${VISIBILITY_SCHEMA_DIR}"
-
-# Given that "temporal-sql-tool" returns 0 on errors too, make sure that something got created
-psql -d temporal -c 'SELECT * FROM visibility_tasks' > /dev/null
-psql -d temporal_visibility -c 'SELECT * FROM schema_version' > /dev/null
+psql -v ON_ERROR_STOP=1 -d temporal_visibility -f "${SCHEMA_DIR}/mc_temporal_visibility.sql"
 
 # Stop PostgreSQL
 "${MC_POSTGRESQL_BIN_DIR}/pg_ctl" \

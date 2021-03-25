@@ -42,6 +42,7 @@ RUN \
 
 # Copy helper scripts
 COPY bin/* /opt/temporal-postgresql/bin/
+COPY schema/*.sql /opt/temporal-postgresql/schema/
 
 USER postgres
 

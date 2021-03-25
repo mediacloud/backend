@@ -79,28 +79,22 @@ ALTER TABLE public.schema_version OWNER TO temporal;
 -- Data for Name: executions_visibility; Type: TABLE DATA; Schema: public; Owner: temporal
 --
 
-COPY public.executions_visibility (namespace_id, run_id, start_time, execution_time, workflow_id, workflow_type_name, status, close_time, history_length, memo, encoding, task_queue) FROM stdin;
-\.
 
 
 --
 -- Data for Name: schema_update_history; Type: TABLE DATA; Schema: public; Owner: temporal
 --
 
-COPY public.schema_update_history (version_partition, year, month, update_time, description, manifest_md5, new_version, old_version) FROM stdin;
-0	2021	3	2021-03-21 23:09:18.317158	initial version		0.0	0
-0	2021	3	2021-03-21 23:09:18.40721	base version of visibility schema	698373883c1c0dd44607a446a62f2a79	1.0	0.0
-0	2021	3	2021-03-21 23:09:18.41287	add close time & status index	e286f8af0a62e291b35189ce29d3fff3	1.1	1.0
-\.
+INSERT INTO public.schema_update_history VALUES (0, 2021, 3, '2021-03-21 23:09:18.317158', 'initial version', '', '0.0', '0');
+INSERT INTO public.schema_update_history VALUES (0, 2021, 3, '2021-03-21 23:09:18.40721', 'base version of visibility schema', '698373883c1c0dd44607a446a62f2a79', '1.0', '0.0');
+INSERT INTO public.schema_update_history VALUES (0, 2021, 3, '2021-03-21 23:09:18.41287', 'add close time & status index', 'e286f8af0a62e291b35189ce29d3fff3', '1.1', '1.0');
 
 
 --
 -- Data for Name: schema_version; Type: TABLE DATA; Schema: public; Owner: temporal
 --
 
-COPY public.schema_version (version_partition, db_name, creation_time, curr_version, min_compatible_version) FROM stdin;
-0	temporal_visibility	2021-03-21 23:09:18.411815	1.1	0.1
-\.
+INSERT INTO public.schema_version VALUES (0, 'temporal_visibility', '2021-03-21 23:09:18.411815', '1.1', '0.1');
 
 
 --

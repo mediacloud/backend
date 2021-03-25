@@ -49,14 +49,12 @@ RUN \
     mkdir -p /opt/temporal-server/config/ && \
     chown temporal:temporal /opt/temporal-server/config/ && \
     #
-    # Directories for first run shim and archival
-    mkdir -p /var/lib/temporal/archival/temporal/ && \
-    mkdir -p /var/lib/temporal/archival/visibility/ && \
+    # Directories workflow archival
+    mkdir -p \
+        /var/lib/temporal/archival/temporal/ \
+        /var/lib/temporal/archival/visibility/ \
+    && \
     chown -R temporal:temporal /var/lib/temporal/ && \
-    #
-    # Create a file that will denote whether it's the first run of this service
-    # mounted to a specific volume
-    touch /var/lib/temporal/first_run && \
     #
     true
 
@@ -68,7 +66,7 @@ ENV PATH="/opt/temporal-server/bin:${PATH}" \
     TEMPORAL_CLI_ADDRESS="temporal-server:7233" \
     TEMPORAL_CLI_NAMESPACE="default"
 
-# Archives and first run shim
+# Archives
 VOLUME /var/lib/temporal/
 
 # Port descriptions: https://docs.temporal.io/docs/server-architecture/

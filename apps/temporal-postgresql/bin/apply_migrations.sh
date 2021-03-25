@@ -22,7 +22,7 @@ PGCTL_START_TIMEOUT=3600
     -w \
     start
 
-SCHEMAS_DIR="/opt/temporal-postgresql/schema/v96"
+VENDOR_SCHEMA_DIR="/opt/temporal-postgresql/schema/v96"
 TSQL="temporal-sql-tool \
     --plugin postgres \
     --ep 127.0.0.1 \
@@ -30,10 +30,10 @@ TSQL="temporal-sql-tool \
     -u temporal \
     --pw temporal"
 
-MAIN_SCHEMA_DIR="${SCHEMAS_DIR}/temporal/versioned"
+MAIN_SCHEMA_DIR="${VENDOR_SCHEMA_DIR}/temporal/versioned"
 $TSQL --db temporal update-schema -d "${MAIN_SCHEMA_DIR}"
 
-VISIBILITY_SCHEMA_DIR="${SCHEMAS_DIR}/visibility/versioned"
+VISIBILITY_SCHEMA_DIR="${VENDOR_SCHEMA_DIR}/visibility/versioned"
 $TSQL --db temporal_visibility update-schema -d "${VISIBILITY_SCHEMA_DIR}"
 
 # Stop PostgreSQL

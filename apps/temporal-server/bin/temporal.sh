@@ -31,27 +31,7 @@ while true; do
     fi
 done
 
-register_default_namespace() {
-    echo "Registering default namespace"
-    until tctl --ns default namespace describe < /dev/null; do
-        echo "Default namespace not found. Creating..."
-        sleep 0.2
-        # FIXME retention period super short
-        # FIXME doesn't work a few seconds after getting created
-        tctl --ns default namespace register --rd 1 --desc "Default namespace for Temporal Server" || echo "Creating default namespace failed."
-    done
-    echo "Default namespace registration complete."
-}
-
-if [ -e /var/lib/temporal/first_run ]; then
-    echo "Registering default namespace on first run..."
-    # FIXME not that great to run it in the background
-    register_default_namespace &
-    rm /var/lib/temporal/first_run
-fi
-
-# No "exec" because default namespace gets registered in the background
-temporal-server \
+exec temporal-server \
     --root /opt/temporal-server \
     --env mediacloud \
     start
