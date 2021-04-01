@@ -324,7 +324,6 @@ co.
 com
 come
 comes
-computer
 con
 concerning
 consequently
@@ -473,7 +472,6 @@ forward
 found
 four
 fr
-free
 from
 front
 full
@@ -608,21 +606,17 @@ i.e.
 id
 ie
 if
-ignored
 ii
 il
 ill
 im
 immediate
 immediately
-importance
-important
 in
 inasmuch
 inc
 inc.
 indeed
-index
 indicate
 indicated
 indicates
@@ -702,17 +696,11 @@ liked
 likely
 likewise
 line
-little
 lk
 ll
-long
-longer
-longest
 look
 looking
 looks
-low
-lower
 lr
 ls
 lt
@@ -807,8 +795,6 @@ needn't
 neednt
 needs
 neither
-net
-netscape
 never
 neverf
 neverless
@@ -861,9 +847,6 @@ one's
 ones
 only
 onto
-open
-opened
-opening
 opens
 or
 ord
@@ -1029,7 +1012,6 @@ significantly
 similar
 similarly
 since
-sincere
 site
 six
 sixty
@@ -1133,7 +1115,6 @@ theyd
 theyll
 theyre
 theyve
-thick
 thin
 thing
 things
@@ -1194,7 +1175,6 @@ um
 un
 under
 underneath
-undoing
 unless
 unlike
 until
@@ -1213,7 +1193,6 @@ uy
 uz
 v
 va
-value
 various
 vc
 ve
@@ -1310,7 +1289,6 @@ wish
 with
 within
 without
-won
 won't
 wont
 would
@@ -1334,9 +1312,6 @@ you're
 you've
 youd
 youll
-young
-younger
-youngest
 your
 youre
 yours
