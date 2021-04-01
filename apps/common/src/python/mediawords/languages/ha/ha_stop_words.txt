@@ -3,6 +3,7 @@
 #
 # Sources:
 #     https://github.com/stopwords-iso/stopwords-ha/blob/master/raw/gh-stopwords-json-ha.txt
+# (Lightly edited to remove words in the original lists that are actually meaningful)
 #
 
 a
