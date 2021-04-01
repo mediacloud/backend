@@ -21,6 +21,9 @@ class HindiLanguage(StopWordsFromFileMixIn):
         # Stop words map
         '__stop_words_map',
 
+        # FIXME remove once stopword comparison is over
+        '__stop_words_old_map',
+
         # Hunspell instance
         '__hindi_hunspell',
 

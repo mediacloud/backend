@@ -71,6 +71,15 @@ sub stop_words_map($)
     return $stop_words_map;
 }
 
+# FIXME remove once stopword comparison is over
+sub stop_words_old_map($)
+{
+    my $self = shift;
+
+    my $stop_words_old_map = $self->{ _python_lang }->stop_words_old_map();
+    return $stop_words_old_map;
+}
+
 sub stem_words($$)
 {
     my ( $self, $words ) = @_;
