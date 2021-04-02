@@ -44,7 +44,7 @@ furl==2.1.0
 jieba==0.42.1
 
 # Parsing email templates
-Jinja2==2.11.2
+Jinja2==2.11.3
 
 # One of Celery's dependencies (here just for PyCharm to stop complaining)
 # Upgrade together with Celery and not separately.
