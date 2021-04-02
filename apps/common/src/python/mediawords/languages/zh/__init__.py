@@ -32,6 +32,9 @@ class ChineseLanguage(StopWordsFromFileMixIn):
         # Stop words map
         '__stop_words_map',
 
+        # FIXME remove once stopword comparison is over
+        '__stop_words_old_map',
+
         # Jieba instance
         '__jieba',
 
