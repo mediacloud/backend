@@ -627,11 +627,11 @@ def _fqdn() -> str:
 
     # Solr (ZooKeeper?) somehow manages to translate underscore to something else, so something like:
     #
-    #     ec2_solr_mcquery2
+    #     foo_bar_baz
     #
     # becomes:
     #
-    #     ec2/solr_mcquery2:7981/solr
+    #     foo/bar_baz:8983/solr
     #
     # Can't explain that.
     if '_' in hostname:

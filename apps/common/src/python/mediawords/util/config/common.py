@@ -155,6 +155,14 @@ class SMTPConfig(object):
         """Password."""
         return ''
 
+    @staticmethod
+    def unsubscribe_address() -> str:
+        """Email to which unsubscribe/account deletion requests should be sent"""
+        address = env_value('MC_EMAIL_UNSUBSCRIBE', required=False, allow_empty_string=True)
+        if address is None or '@' not in address:
+            address = 'support@example.com'
+        return address
+
 
 class DownloadStorageConfig(object):
     """Download storage configuration."""
