@@ -5,9 +5,7 @@
 #     http://www.ranks.nl/stopwords/hindi
 #     https://github.com/stopwords-iso/stopwords-hi/blob/master/stopwords-hi.txt
 #     https://sites.google.com/site/kevinbouge/stopwords-lists
-#
 # (Lightly edited to remove words in the original lists that are actually meaningful)
-#
 
 न
 व

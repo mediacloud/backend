@@ -2,9 +2,7 @@
 #
 #     http://search.cpan.org/~creamyg/Lingua-StopWords-0.09/
 #     https://github.com/stopwords-iso/stopwords-fi/blob/master/stopwords-fi.txt
-#
 # (Lightly edited to remove words in the original lists that are actually meaningful)
-#
 
 aiemmin
 aika

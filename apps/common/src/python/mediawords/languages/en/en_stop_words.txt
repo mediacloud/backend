@@ -1,7 +1,6 @@
 # This is a "long" stop word list for the English language.
 #
 # Sources:
-#
 #     http://search.cpan.org/~creamyg/Lingua-StopWords-0.09/
 #     http://www.lextek.com/manuals/onix/stopwords1.html
 #     http://xpo6.com/list-of-english-stop-words/
@@ -12,7 +11,6 @@
 #     https://github.com/stopwords-iso/stopwords-en/blob/master/stopwords-en.txt
 #     https://www.link-assistant.com/seo-stop-words.html
 #     https://www.ranks.nl/stopwords
-#
 # (Lightly edited to remove words in the original lists that are actually meaningful)
 
 'll
@@ -626,8 +624,6 @@ oughtn't
 oughtnt
 our
 ours
-ours
-ourselves
 ourselves
 out
 over

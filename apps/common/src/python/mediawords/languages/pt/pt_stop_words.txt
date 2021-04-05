@@ -3,8 +3,6 @@
 #
 #     http://search.cpan.org/~creamyg/Lingua-StopWords-0.09/
 #     https://github.com/stopwords-iso/stopwords-pt/blob/master/stopwords-pt.txt
-#
-#
 
 a
 à
@@ -391,14 +389,6 @@ dezoito
 dia
 dia-a-dia
 diante
-diária
-diariamente
-diárias
-diário
-diária
-diariamente
-diárias
-diário
 diária
 diariamente
 diárias

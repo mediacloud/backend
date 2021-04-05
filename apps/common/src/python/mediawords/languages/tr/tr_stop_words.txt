@@ -5,7 +5,6 @@
 #     http://nlp.ceng.fatih.edu.tr/blog/?p=101
 #     http://www.ranks.nl/stopwords/turkish.html
 #     https://github.com/stopwords-iso/stopwords-tr/blob/master/stopwords-tr.txt
-#
 
 a
 acep

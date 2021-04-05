@@ -5,7 +5,6 @@
 #     http://search.cpan.org/~creamyg/Lingua-StopWords-0.09/
 #     https://github.com/stopwords-iso/stopwords-sv/blob/master/stopwords-sv.txt
 #     that one Swedish journalist
-#
 
 aderton
 adertonde
