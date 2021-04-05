@@ -17,7 +17,7 @@ class TestChineseLanguage(TestCase):
 
     def test_stop_words_map(self):
         stop_words = self.__tokenizer.stop_words_map()
-        assert "不勝" in stop_words
+        assert "不起" in stop_words
         assert "not_a_stopword" not in stop_words
 
     def test_stem(self):

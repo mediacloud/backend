@@ -17,7 +17,7 @@ class TestLithuanianLanguage(TestCase):
 
     def test_stop_words_map(self):
         stop_words = self.__tokenizer.stop_words_map()
-        assert "buvo" in stop_words
+        assert "dargi" in stop_words
         assert "not_a_stopword" not in stop_words
 
     def test_stem(self):
