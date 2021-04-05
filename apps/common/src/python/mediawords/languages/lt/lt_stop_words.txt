@@ -1,8 +1,17 @@
+#
+# This is a stop word list for the Lithuanian language.
+#
+# Sources:
+#     http://www.filewatcher.com/p/punbb-1.2.16.tbz.620109/www/punbb/lang/Lithuanian/stopwords.txt.html
+#     https://github.com/stopwords-iso/stopwords-lt/blob/master/stopwords-lt.txt
+#     auto-generated sources
+#
+
 abi
 abidvi
 abiejose
 abiejuose
-abiejĆø
+abiejų
 abiem
 abigaliai
 abipus
@@ -39,39 +48,39 @@ anuodu
 anuoju
 anuosiuose
 anuosius
-anĆ ja
-anĆ jĆ
-anĆ jĆ”
-anĆ sias
-anĆøjĆø
+anąja
+anąją
+anąjį
+anąsias
+anųjų
 apie
 aplink
 ar
 arba
 argi
 arti
-aukĆ°ĆØiau
-aĆ°
+aukščiau
+aš
 be
 bei
 beje
-bemaĆ¾
+bemaž
 bent
 bet
 betgi
 beveik
 dar
 dargi
-daugmaĆ¾
+daugmaž
 deja
-dĆ«ka
-dĆ«l
-dĆ«lei
-dĆ«lto
+dėka
+dėl
+dėlei
+dėlto
 ech
 et
 gal
-galbĆ»t
+galbūt
 galgi
 gan
 gana
@@ -83,9 +92,9 @@ ir
 irgi
 it
 itin
-iĆ°
-iĆ°ilgai
-iĆ°vis
+iš
+išilgai
+išvis
 jaisiais
 jajai
 jajam
@@ -121,15 +130,15 @@ juoju
 juosiuose
 juosius
 jus
-jĆ ja
-jĆ jĆ
-jĆ sias
-jĆ”jĆ”
-jĆøjĆø
-jĆ»s
-jĆ»siĆ°kis
-jĆ»siĆ°kĆ«
-jĆ»sĆø
+jąja
+jąją
+jąsias
+jįjį
+jųjų
+jūs
+jūsiškis
+jūsiškė
+jūsų
 kad
 kada
 kadangi
@@ -141,14 +150,14 @@ katra
 katras
 katriedvi
 katruodu
-kaĆ¾in
-kaĆ¾kas
-kaĆ¾katra
-kaĆ¾katras
-kaĆ¾kokia
-kaĆ¾koks
-kaĆ¾kuri
-kaĆ¾kuris
+kažin
+kažkas
+kažkatra
+kažkatras
+kažkokia
+kažkoks
+kažkuri
+kažkuris
 kiaurai
 kiek
 kiekvienas
@@ -157,7 +166,7 @@ kita
 kitas
 kitokia
 kitoks
-kodĆ«l
+kodėl
 kokia
 koks
 kol
@@ -188,8 +197,8 @@ manieji
 maniesiems
 manim
 manimi
-maniĆ°kis
-maniĆ°kĆ«
+maniškis
+maniškė
 mano
 manoji
 manojo
@@ -202,15 +211,15 @@ manuoju
 manuosiuose
 manuosius
 manyje
-manĆ ja
-manĆ jĆ
-manĆ jĆ”
-manĆ sias
-manĆ¦s
-manĆøjĆø
+manąja
+manąją
+manąjį
+manąsias
+manęs
+manųjų
 mat
-maĆ¾daug
-maĆ¾ne
+maždaug
+mažne
 mes
 mudu
 mudvi
@@ -218,9 +227,9 @@ mumis
 mums
 mumyse
 mus
-mĆ»siĆ°kis
-mĆ»siĆ°kĆ«
-mĆ»sĆø
+mūsiškis
+mūsiškė
+mūsų
 na
 nagi
 ne
@@ -240,7 +249,7 @@ netoli
 neva
 nors
 nuo
-nĆ«
+nė
 o
 ogi
 oi
@@ -260,14 +269,14 @@ patiems
 paties
 pats
 patys
-patĆ”
-paĆØiais
-paĆØiam
-paĆØiame
-paĆØiu
-paĆØiuose
-paĆØius
-paĆØiĆø
+patį
+pačiais
+pačiam
+pačiame
+pačiu
+pačiuose
+pačius
+pačių
 per
 pernelyg
 pirm
@@ -275,8 +284,8 @@ pirma
 pirmiau
 po
 prie
-prieĆ°
-prieĆ°ais
+prieš
+priešais
 pro
 pusiau
 rasi
@@ -293,8 +302,8 @@ save
 savieji
 saviesiems
 savimi
-saviĆ°kis
-saviĆ°kĆ«
+saviškis
+saviškė
 savo
 savoji
 savojo
@@ -307,15 +316,15 @@ savuoju
 savuosiuose
 savuosius
 savyje
-savĆ ja
-savĆ jĆ
-savĆ jĆ”
-savĆ sias
-savĆ¦s
-savĆøjĆø
+savąja
+savąją
+savąjį
+savąsias
+savęs
+savųjų
 skersai
-skradĆ¾iai
-staĆØiai
+skradžiai
+stačiai
 su
 sulig
 ta
@@ -347,8 +356,8 @@ tave
 tavieji
 taviesiems
 tavimi
-taviĆ°kis
-taviĆ°kĆ«
+taviškis
+taviškė
 tavo
 tavoji
 tavojo
@@ -361,13 +370,13 @@ tavuoju
 tavuosiuose
 tavuosius
 tavyje
-tavĆ ja
-tavĆ jĆ
-tavĆ jĆ”
-tavĆ sias
-tavĆ¦s
-tavĆøjĆø
-taĆØiau
+tavąja
+tavąją
+tavąjį
+tavąsias
+tavęs
+tavųjų
+tačiau
 te
 tegu
 tegul
@@ -396,16 +405,16 @@ tuodu
 tuoju
 tuosiuose
 tuosius
-turbĆ»t
-tĆ ja
-tĆ jĆ
-tĆ jĆ”
-tĆ sias
-tĆøjĆø
-tĆ»las
-uĆ¾
-uĆ¾tat
-uĆ¾vis
+turbūt
+tąja
+tąją
+tąjį
+tąsias
+tųjų
+tūlas
+už
+užtat
+užvis
 va
 vai
 viduj
@@ -415,138 +424,60 @@ vienas
 vienokia
 vienoks
 vietoj
-virĆ°
-virĆ°uj
-virĆ°um
+virš
+viršuj
+viršum
 vis
-vis dĆ«lto
+vis dėlto
 visa
 visas
 visgi
 visokia
 visoks
 vos
-vĆ«l
-vĆ«lgi
-ypaĆØ
-Ć”
-Ć”kypai
-Ć”striĆ¾ai
-Ć°alia
-Ć°e
-Ć°i
-Ć°iaisiais
-Ć°iajai
-Ć°iajam
-Ć°iajame
-Ć°iapus
-Ć°iedvi
-Ć°ieji
-Ć°iesiems
-Ć°ioji
-Ć°iojo
-Ć°iojoje
-Ć°iokia
-Ć°ioks
-Ć°iosiomis
-Ć°iosioms
-Ć°iosios
-Ć°iosiose
-Ć°is
-Ć°isai
-Ć°it
-Ć°ita
-Ć°itas
-Ć°itiedvi
-Ć°itokia
-Ć°itoks
-Ć°ituodu
-Ć°iuodu
-Ć°iuoju
-Ć°iuosiuose
-Ć°iuosius
-Ć°iĆ ja
-Ć°iĆ jĆ
-Ć°iĆ sias
-Ć°iĆøjĆø
-Ć°tai
-Ć°Ć”jĆ”
-Ć¾emiau
-a
-aÅ”
-bus
-buvo
-bÅ«ti
-bÅ«tÅ³
-d
-dabar
-darbo
-daryti
-daug
-daugiau
-daugiausia
-daÅ¾nai
-dienÄ
-
-dÄl
-gali
-gauna
-gauti
-iÅ”
-jam
-jau
-jie
-jo
-jos
-jÄÆ
-jÅ³
-kam
-kartÄ
-klausimas
-klausti
-kovo
-kurie
-kurios
-kuriÅ³
-labai
-lietuva
-lietuvoje
-lietuvos
-m
-maÅ¾ai
-maÅ¾as
-maÅ¾iau
-metais
-metu
-metus
-metÅ³
-mÅ«sÅ³
-negali
-niekada
-niekas
-nÄra
-pasakÄ
-praÅ”au
-prieÅ”
-r
-reikia
-sakyti
-sakÄ
-taip pat
-taÄiau
-tikrai
-to
-todÄl
-tuo
-turi
-turÄjo
-uÅ¾
-val
-visi
-yra
-Äia
-ÄÆ
-Å”alia
-Å”alies
-Å”ios
-Å¾moniÅ³
+vėl
+vėlgi
+ypač
+į
+įkypai
+įstrižai
+šalia
+še
+ši
+šiaisiais
+šiajai
+šiajam
+šiajame
+šiapus
+šiedvi
+šieji
+šiesiems
+šioji
+šiojo
+šiojoje
+šiokia
+šioks
+šiosiomis
+šiosioms
+šiosios
+šiosiose
+šis
+šisai
+šit
+šita
+šitas
+šitiedvi
+šitokia
+šitoks
+šituodu
+šiuodu
+šiuoju
+šiuosiuose
+šiuosius
+šiąja
+šiąją
+šiąsias
+šiųjų
+štai
+šįjį
+žemiau
