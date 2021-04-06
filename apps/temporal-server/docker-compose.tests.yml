@@ -41,10 +41,10 @@ services:
             - 7234
             - 7235
             - 7239
-            - 8000
-            - 8001
-            - 8002
-            - 8003
+            - 9091
+            - 9092
+            - 9093
+            - 9094
         ports:
             # Expose to host for debugging
             - "6933:6933"
@@ -55,10 +55,10 @@ services:
             - "7234:7234"
             - "7235:7235"
             - "7239:7239"
-            - "8000:8000"
-            - "8001:8001"
-            - "8002:8002"
-            - "8003:8003"
+            - "9091:9091"
+            - "9092:9092"
+            - "9093:9093"
+            - "9094:9094"
         volumes:
             - type: bind
               source: ./bin/
@@ -118,6 +118,8 @@ services:
         image: gcr.io/mcback/temporal-prometheus:latest
         init: true
         stop_signal: SIGKILL
+        depends_on:
+            - temporal-grafana
         networks:
             - default
         expose:
@@ -129,6 +131,34 @@ services:
             - type: bind
               source: ./../temporal-prometheus/prometheus.yml
               target: /opt/prometheus/prometheus.yml
+        # Limit CPUs and RAM for the process to not get too greedy
+        deploy:
+            resources:
+                limits:
+                    cpus: "2"
+                    memory: "2G"
+
+    temporal-grafana:
+        image: gcr.io/mcback/temporal-grafana:latest
+        init: true
+        stop_signal: SIGKILL
+        networks:
+            - default
+        expose:
+            - "3000"
+        ports:
+            # Expose to host for debugging
+            - "3000:3000"
+        volumes:
+            - type: bind
+              source: ./../temporal-grafana/grafana.ini
+              target: /opt/grafana/conf/grafana.ini
+            - type: bind
+              source: ./../temporal-grafana/provisioning/
+              target: /opt/grafana/provisioning/
+            - type: bind
+              source: ./../temporal-grafana/dashboards/dashboards/
+              target: /opt/grafana/dashboards/
         # Limit CPUs and RAM for the process to not get too greedy
         deploy:
             resources:

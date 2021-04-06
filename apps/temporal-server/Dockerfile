@@ -73,7 +73,7 @@ EXPOSE \
     # Port descriptions: https://docs.temporal.io/docs/server-architecture/
     6933 6934 6935 6939 7233 7234 7235 7239 \
     # Prometheus endpoints
-    8000 8001 8002 8003
+    9091 9092 9093 9094
 
 USER temporal
 

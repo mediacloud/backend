@@ -117,9 +117,11 @@ services:
             membershipPort: 6933
             bindOnIP: "${MC_TEMPORAL_HOST_IP}"
         metrics:
+            tags:
+                type: frontend
             prometheus:
                 timerType: "histogram"
-                listenAddress: "temporal-prometheus:8000"
+                listenAddress: "0.0.0.0:9091"
 
     matching:
         rpc:
@@ -127,9 +129,11 @@ services:
             membershipPort: 6935
             bindOnIP: "${MC_TEMPORAL_HOST_IP}"
         metrics:
+            tags:
+                type: matching
             prometheus:
                 timerType: "histogram"
-                listenAddress: "temporal-prometheus:8001"
+                listenAddress: "0.0.0.0:9092"
 
     history:
         rpc:
@@ -137,9 +141,11 @@ services:
             membershipPort: 6934
             bindOnIP: "${MC_TEMPORAL_HOST_IP}"
         metrics:
+            tags:
+                type: history
             prometheus:
                 timerType: "histogram"
-                listenAddress: "temporal-prometheus:8002"
+                listenAddress: "0.0.0.0:9093"
 
     worker:
         rpc:
@@ -147,9 +153,11 @@ services:
             membershipPort: 6939
             bindOnIP: "${MC_TEMPORAL_HOST_IP}"
         metrics:
+            tags:
+                type: worker
             prometheus:
                 timerType: "histogram"
-                listenAddress: "temporal-prometheus:8003"
+                listenAddress: "0.0.0.0:9094"
 
 clusterMetadata:
     enableGlobalNamespace: false
