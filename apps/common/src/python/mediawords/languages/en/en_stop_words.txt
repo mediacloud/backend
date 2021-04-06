@@ -141,7 +141,6 @@ accordingly
 across
 act
 actually
-ad
 added
 adj
 affected
@@ -156,7 +155,6 @@ ah
 ahead
 ain't
 aint
-al
 all
 almost
 alone
@@ -198,7 +196,6 @@ aren't
 arent
 arise
 around
-arpa
 as
 aside
 ask
@@ -238,7 +235,6 @@ by
 c
 c'mon
 c's
-ca
 call
 came
 can
@@ -250,7 +246,6 @@ case
 cases
 cause
 causes
-cc
 certain
 certainly
 cmon
@@ -305,7 +300,6 @@ during
 e
 e.g
 each
-edu
 effect
 eg
 eight
@@ -333,15 +327,12 @@ exactly
 example
 except
 f
-fi
 fifteen
 fifth
 fifty
-fify
 find
 first
 five
-fix
 for
 forever
 forth
@@ -374,7 +365,6 @@ going
 gone
 got
 gotten
-gov
 h
 had
 hadn't
@@ -429,12 +419,9 @@ how'll
 how's
 howbeit
 however
-hr
-ht
 htm
 html
 http
-hu
 hundred
 i
 i'd
@@ -443,13 +430,9 @@ i'm
 i've
 i.e
 i.e.
-id
 ie
 if
-ii
-il
 ill
-im
 in
 inasmuch
 inc
@@ -460,7 +443,6 @@ indicated
 indicates
 insofar
 instead
-int
 into
 is
 isn
@@ -481,12 +463,10 @@ j
 join
 just
 k
-ke
 keep
 keeps
 kept
 kind
-km
 knew
 know
 known
@@ -536,8 +516,6 @@ might
 might've
 mightn't
 mightnt
-mil
-mill
 mine
 minus
 miss
@@ -549,7 +527,6 @@ move
 mr
 mrs
 much
-mug
 must
 must've
 mustn't
@@ -558,7 +535,6 @@ my
 myse"
 myself
 myse”
-mz
 n
 name
 namely
@@ -614,8 +590,6 @@ only
 onto
 opens
 or
-ord
-org
 other
 others
 otherwise
@@ -762,7 +736,6 @@ states
 still
 stop
 strongly
-sub
 substantially
 successfully
 such
@@ -870,7 +843,6 @@ until
 unto
 up
 upon
-ups
 us
 use
 used

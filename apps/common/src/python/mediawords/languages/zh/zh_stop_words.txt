@@ -1,12 +1,12 @@
-# Appended Traditional Chinese characters (Note: This does not include all stopwords in Cantonese or Taiwanese Mandarin)
-# (Lightly edited to remove words in the original lists that are actually meaningful)
 # Sources:
 # http://blog.csdn.net/shijiebei2009/article/details/39696571
 # http://github.com/stopwords-iso/stopwords-zh
+#
+# (Lightly edited to remove words in the original lists that are actually meaningful)
+# Appended Traditional Chinese characters (Note: This does not include all stopwords in Cantonese or Taiwanese Mandarin
 
 !
 "
-#
 $
 %
 &
@@ -131,38 +131,6 @@ sup
 一
 一.
 一一
-下
-个
-些
-何
-來
-個
-切
-则
-则通过
-則
-則通過
-天
-定
-方面
-旦
-时
-時
-来
-样
-樣
-次
-片
-番
-直
-致
-般
-起
-轉眼
-转眼
-边
-邊
-面
 七
 万一
 三
@@ -179,6 +147,7 @@ sup
 上来
 上述
 上面
+下
 下來
 下列
 下去
@@ -306,6 +275,7 @@ sup
 並無
 並肩
 並非
+个
 个人
 个别
 中
@@ -373,6 +343,7 @@ sup
 互
 互相
 五
+些
 亦
 产生
 亲口
@@ -471,6 +442,7 @@ sup
 但凡
 但是
 但願
+何
 何乐而不为
 何以
 何况
@@ -501,6 +473,7 @@ sup
 使
 使得
 使用
+來
 來不及
 來得及
 來看
@@ -521,6 +494,7 @@ sup
 俺
 俺们
 俺們
+個
 個人
 個別
 倍加
@@ -660,11 +634,14 @@ sup
 分期
 分期分批
 分頭
+切
 切不可
 切切
 切勿
 切莫
+则
 则甚
+则通过
 刚
 刚好
 刚巧
@@ -697,7 +674,9 @@ sup
 到處
 到頭
 到頭來
+則
 則甚
+則通過
 前后
 前後
 前此
@@ -981,6 +960,7 @@ sup
 大量
 大體
 大體上
+天
 她
 她们
 她們
@@ -1025,6 +1005,7 @@ sup
 它是
 它的
 完成
+定
 实际
 密切
 實現
@@ -1361,6 +1342,7 @@ sup
 方
 方便
 方才
+方面
 於
 於是
 於是乎
@@ -1381,6 +1363,8 @@ sup
 日漸
 日益
 日臻
+旦
+时
 时候
 明显
 明确
@@ -1393,6 +1377,7 @@ sup
 是的
 显然
 显著
+時
 時候
 暗中
 暗地裡
@@ -1443,6 +1428,7 @@ sup
 本著
 本身
 权时
+来
 来不及
 来得及
 来看
@@ -1462,6 +1448,7 @@ sup
 某些
 某個
 某某
+样
 根据
 根據
 根本
@@ -1474,7 +1461,9 @@ sup
 極端
 概
 構成
+樣
 權時
+次
 次第
 欢迎
 欤
@@ -1584,6 +1573,7 @@ sup
 爾後
 爾爾
 爾等
+片
 牢牢
 特別是
 特别是
@@ -1641,6 +1631,7 @@ sup
 略加
 略微
 略為
+番
 當
 當下
 當中
@@ -1670,6 +1661,7 @@ sup
 盡然
 盡量
 目前
+直
 直到
 直接
 相似
@@ -1865,12 +1857,14 @@ sup
 至今
 至於
 至若
+致
 與
 與其
 與其說
 與否
 與此同時
 舉行
+般
 般的
 良好
 若
@@ -1988,6 +1982,7 @@ sup
 赖以
 赶快
 赶早不赶晚
+起
 起來
 起先
 起初
@@ -2014,10 +2009,13 @@ sup
 較之
 較比
 較為
+轉眼
+转眼
 较
 较为
 较之
 较比
+边
 达到
 迄
 过
@@ -2135,6 +2133,7 @@ sup
 還是
 還有
 還要
+邊
 那
 那个
 那么
@@ -2244,6 +2243,7 @@ sup
 非独
 非獨
 靠
+面
 頂多
 頃
 頃刻

@@ -1,9 +1,9 @@
-#
 # This is a stop word list for the Japanese language.
-# (Lightly edited to remove words in the original lists that are actually meaningful)
 # Sources:
+#
 #     https://github.com/stopwords/japanese-stopwords/blob/master/data/japanese-stopwords.txt
 #     Lucene's stopwords_ja.txt
+# (Lightly edited to remove words in the original lists that are actually meaningful)
 
 $
 %
