@@ -17,7 +17,7 @@ class TestSwedishLanguage(TestCase):
 
     def test_stop_words_map(self):
         stop_words = self.__tokenizer.stop_words_map()
-        assert "vår" in stop_words
+        assert "åttio" in stop_words
         assert "not_a_stopword" not in stop_words
 
     def test_stem(self):

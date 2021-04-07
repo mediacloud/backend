@@ -1,9 +1,8 @@
 #
 # This is a stop word list for the Hausa language.
-#
 # Sources:
 #     https://github.com/stopwords-iso/stopwords-ha/blob/master/raw/gh-stopwords-json-ha.txt
-#
+# (Lightly edited to remove words in the original lists that are actually meaningful)
 
 a
 amma
