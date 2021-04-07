@@ -3806,17 +3806,6 @@ CREATE UNIQUE INDEX story_enclosures_stories_id_url
     ON story_enclosures (stories_id, url);
 
 
---
--- Audio file codec; keep in sync with "_SUPPORTED_NATIVE_AUDIO_CODECS" constant
--- (https://cloud.google.com/speech-to-text/docs/reference/rpc/google.cloud.speech.v1p1beta1)
---
-CREATE TYPE podcast_episodes_audio_codec AS ENUM (
-    'LINEAR16',
-    'FLAC',
-    'MULAW',
-    'OGG_OPUS',
-    'MP3'
-);
 
 
 --
@@ -3844,13 +3833,13 @@ CREATE TABLE podcast_episodes (
     -- Audio codec as determined by transcoder
     codec                   podcast_episodes_audio_codec  NOT NULL,
 
-    -- Audio sample rate (Hz) as determined by transcoder
+    -- 
     sample_rate             INT         NOT NULL
                                             CONSTRAINT sample_rate_looks_reasonable
                                             CHECK(sample_rate > 1000),
 
     -- BCP 47 language identifier
-    -- (https://cloud.google.com/speech-to-text/docs/languages)
+    -- ()
     bcp47_language_code     CITEXT      NOT NULL
                                             CONSTRAINT bcp47_language_code_looks_reasonable
                                             CHECK(
@@ -3863,83 +3852,6 @@ CREATE TABLE podcast_episodes (
     speech_operation_id     TEXT        NULL
 
 );
-
--- Only one episode per story
-CREATE UNIQUE INDEX podcast_episodes_stories_id
-    ON podcast_episodes (stories_id);
-
-CREATE UNIQUE INDEX podcast_episodes_story_enclosures_id
-    ON podcast_episodes (story_enclosures_id);
-
-CREATE UNIQUE INDEX podcast_episodes_stories_id_story_enclosures_id
-    ON podcast_episodes (stories_id, story_enclosures_id);
-
-
--- Result of an attempt to fetch the transcript
-CREATE TYPE podcast_episode_transcript_fetch_result AS ENUM (
-
-    -- Operation was not yet finished yet at the time of fetching
-    'in_progress',
-
-    -- Operation was finished and transcription has succeeded
-    'success',
-
-    -- Operation was finished but the transcription has failed
-    'error'
-
-);
-
-
---
--- Attempts to fetch podcast episode transcript
--- (we might need to try fetching the operation's results multiple times)
---
-CREATE TABLE podcast_episode_transcript_fetches (
-    podcast_episode_transcript_fetches_id   BIGSERIAL   PRIMARY KEY,
-
-    -- Podcast that is being transcribed
-    podcast_episodes_id     BIGINT  NOT NULL
-                                        REFERENCES podcast_episodes (podcast_episodes_id)
-                                        ON DELETE CASCADE,
-
-    -- Timestamp for when a fetch job should be added to the job broker's queue the soonest
-    add_to_queue_at     TIMESTAMP WITH TIME ZONE                NOT NULL,
-
-    -- Timestamp for when a fetch job was added to the job broker's queue;
-    -- if NULL, a fetch job was never added to the queue
-    added_to_queue_at   TIMESTAMP WITH TIME ZONE                NULL,
-
-    -- Timestamp when the operation's results were attempted to be fetched by the worker;
-    -- if NULL, the results weren't attempted to be fetched yet
-    fetched_at      TIMESTAMP WITH TIME ZONE                    NULL,
-
-    -- Result of the fetch attempt;
-    -- if NULL, the operation fetch didn't happen yet
-    result          podcast_episode_transcript_fetch_result     NULL,
-
-    -- If result = 'error', error message that happened with the fetch attempt
-    error_message   TEXT                                        NULL
-
-);
-
-
--- Function that returns true if results were attempted at being fetched
-CREATE FUNCTION podcast_episode_transcript_was_added_to_queue(p_added_to_queue_at TIMESTAMP WITH TIME ZONE)
-RETURNS BOOL AS $$
-
-    SELECT CASE WHEN p_added_to_queue_at::timestamp IS NULL THEN false ELSE true END;
-
-$$ LANGUAGE SQL IMMUTABLE;
-
-
-CREATE INDEX podcast_episode_transcript_fetches_podcast_episodes_id
-    ON podcast_episode_transcript_fetches (podcast_episodes_id);
-
-CREATE UNIQUE INDEX podcast_episode_transcript_fetches_due
-    ON podcast_episode_transcript_fetches (
-        add_to_queue_at,
-        podcast_episode_transcript_was_added_to_queue(added_to_queue_at)
-    );
 
 
 --
