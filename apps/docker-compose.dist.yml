@@ -1226,7 +1226,7 @@ services:
     # NYTLabels fetch annotation and tag
     # -----------------------
     #
-    nytlabels-update-story-tags:
+    nytlabels-fetch-annotation-and-tag:
         image: gcr.io/mcback/nytlabels-fetch-annotation-and-tag:release
         init: true
         networks:
