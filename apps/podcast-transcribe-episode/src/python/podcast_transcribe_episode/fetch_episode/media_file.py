@@ -11,6 +11,11 @@ import ffmpeg
 
 from mediawords.util.log import create_logger
 
+from ..exceptions import (
+    McPodcastMisconfiguredTranscoderException,
+    McPodcastFileIsInvalidException,
+    McPodcastFileStoreFailureException,
+)
 from .audio_codecs import (
     AbstractAudioCodec,
     Linear16AudioCodec,
@@ -18,11 +23,6 @@ from .audio_codecs import (
     MULAWAudioCodec,
     OggOpusAudioCodec,
     MP3AudioCodec,
-)
-from .exceptions import (
-    McPodcastMisconfiguredTranscoderException,
-    McPodcastFileIsInvalidException,
-    McPodcastFileStoreFailureException,
 )
 
 log = create_logger(__name__)

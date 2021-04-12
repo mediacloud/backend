@@ -4,9 +4,6 @@
 
 FROM gcr.io/mcback/base:latest
 
-# FIXME
-RUN apt-get -y update
-
 RUN \
     #
     # Add NodeSource APT repository

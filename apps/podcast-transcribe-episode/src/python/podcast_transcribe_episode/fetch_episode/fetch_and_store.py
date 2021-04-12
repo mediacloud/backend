@@ -8,10 +8,8 @@ from mediawords.util.identify_language import language_code_for_text, identifica
 from mediawords.util.log import create_logger
 from mediawords.util.parse_html import html_strip
 
-from .bcp47_lang import iso_639_1_code_to_bcp_47_identifier
-from .config import PodcastFetchEpisodeConfig
-from .enclosure import podcast_viable_enclosure_for_story, MAX_ENCLOSURE_SIZE
-from .exceptions import (
+from ..config import PodcastTranscribeEpisodeConfig
+from ..exceptions import (
     McStoryNotFoundException,
     McPodcastNoViableStoryEnclosuresException,
     McPodcastEnclosureTooBigException,
@@ -20,6 +18,8 @@ from .exceptions import (
     McPodcastGCSStoreFailureException,
     McPodcastPostgreSQLException,
 )
+from .bcp47_lang import iso_639_1_code_to_bcp_47_identifier
+from .enclosure import podcast_viable_enclosure_for_story, MAX_ENCLOSURE_SIZE
 from .fetch_url import fetch_big_file
 from .gcs_store import GCSStore
 from .media_file import TranscodeTempDirAndFile, transcode_media_file_if_needed, media_file_info
@@ -38,7 +38,7 @@ def _cleanup_temp_dir(temp: TranscodeTempDirAndFile) -> None:
 
 def fetch_and_store_episode(db: DatabaseHandler,
                             stories_id: int,
-                            config: Optional[PodcastFetchEpisodeConfig] = None) -> None:
+                            config: Optional[PodcastTranscribeEpisodeConfig] = None) -> None:
     """
     Choose a viable story enclosure for podcast, fetch it, transcode if needed, store to GCS, and record to DB.
 
@@ -54,15 +54,13 @@ def fetch_and_store_episode(db: DatabaseHandler,
     4) Uploads the episode audio file to Google Cloud Storage;
     5) Adds a row to "podcast_episodes".
 
-    Adding a job to submit the newly created episode to Speech API (by adding a RabbitMQ job) is up to the caller.
-
     :param db: Database handler.
     :param stories_id: Story ID for the story to operate on.
     :param config: (optional) Podcast fetcher configuration object (useful for testing).
     """
 
     if not config:
-        config = PodcastFetchEpisodeConfig()
+        config = PodcastTranscribeEpisodeConfig()
 
     story = db.find_by_id(table='stories', object_id=stories_id)
     if not story:

@@ -1,7 +1,7 @@
 from mediawords.util.config import env_value, file_with_env_value
 
 
-class PodcastFetchEpisodeConfig(object):
+class PodcastTranscribeEpisodeConfig(object):
     """
     Podcast episode fetcher configuration.
     """

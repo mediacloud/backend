@@ -15,8 +15,8 @@ from mediawords.dbi.downloads import create_download_for_new_story
 from mediawords.dbi.downloads.store import store_content
 from mediawords.util.log import create_logger
 
-from .config import PodcastFetchTranscriptConfig
-from .exceptions import (
+from ..config import PodcastTranscribeEpisodeConfig
+from ..exceptions import (
     McDatabaseNotFoundException,
     McMisconfiguredSpeechAPIException,
     McOperationNotFoundException,
@@ -90,7 +90,7 @@ class DefaultHandler(AbstractHandler):
             raise McMisconfiguredSpeechAPIException(f"Speech ID for podcast episode {podcast_episodes_id} is unset.")
 
         try:
-            config = PodcastFetchTranscriptConfig()
+            config = PodcastTranscribeEpisodeConfig()
             client = SpeechClient.from_service_account_json(config.gc_auth_json_file())
             operations_client = OperationsClient(channel=client._transport._grpc_channel)
         except Exception as ex:

@@ -4,9 +4,6 @@
 
 FROM gcr.io/mcback/base:latest
 
-# FIXME
-RUN apt-get -y update
-
 # Install dependencies
 RUN \
     apt-get -y --no-install-recommends install \

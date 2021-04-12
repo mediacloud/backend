@@ -10,11 +10,8 @@ from google.cloud.storage import Blob, Bucket
 
 from mediawords.util.log import create_logger
 
-from .config import PodcastFetchEpisodeConfig
-from .exceptions import (
-    McPodcastGCSStoreFailureException,
-    McPodcastMisconfiguredGCSException,
-)
+from ..config import PodcastTranscribeEpisodeConfig
+from ..exceptions import McPodcastGCSStoreFailureException, McPodcastMisconfiguredGCSException
 
 log = create_logger(__name__)
 
@@ -27,9 +24,9 @@ class GCSStore(object):
         '__config',
     ]
 
-    def __init__(self, config: Optional[PodcastFetchEpisodeConfig] = None):
+    def __init__(self, config: Optional[PodcastTranscribeEpisodeConfig] = None):
         if not config:
-            config = PodcastFetchEpisodeConfig()
+            config = PodcastTranscribeEpisodeConfig()
 
         self.__config = config
         self.__bucket_internal = None

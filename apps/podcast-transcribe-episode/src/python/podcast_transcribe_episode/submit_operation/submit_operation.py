@@ -9,8 +9,8 @@ from google.cloud.speech_v1p1beta1 import SpeechClient, RecognitionConfig
 from mediawords.db import DatabaseHandler
 from mediawords.util.log import create_logger
 
-from .config import PodcastSubmitOperationConfig
-from .exceptions import (
+from ..config import PodcastTranscribeEpisodeConfig
+from ..exceptions import (
     McPodcastNoEpisodesException,
     McPodcastDatabaseErrorException,
     McPodcastInvalidInputException,
@@ -145,7 +145,7 @@ def submit_transcribe_operation(episode: PodcastEpisode) -> int:
     """
 
     try:
-        config = PodcastSubmitOperationConfig()
+        config = PodcastTranscribeEpisodeConfig()
         client = SpeechClient.from_service_account_json(config.gc_auth_json_file())
     except Exception as ex:
         raise McPodcastMisconfiguredSpeechAPIException(f"Unable to create Speech API client: {ex}")

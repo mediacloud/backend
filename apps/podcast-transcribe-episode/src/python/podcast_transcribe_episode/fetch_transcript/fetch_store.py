@@ -3,10 +3,7 @@ from typing import Optional
 from mediawords.db import DatabaseHandler
 from mediawords.util.log import create_logger
 
-from .exceptions import (
-    McDatabaseErrorException,
-    McDatabaseNotFoundException,
-)
+from ..exceptions import McDatabaseErrorException, McDatabaseNotFoundException
 from .handler import AbstractHandler, DefaultHandler
 
 log = create_logger(__name__)

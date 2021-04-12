@@ -5,7 +5,7 @@ import requests
 
 from mediawords.util.log import create_logger
 
-from .exceptions import McPodcastFileFetchFailureException, McPodcastFileStoreFailureException
+from ..exceptions import McPodcastFileFetchFailureException, McPodcastFileStoreFailureException
 
 log = create_logger(__name__)
 
