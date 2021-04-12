@@ -6,60 +6,30 @@ class _AbstractPodcastTranscribeEpisodeException(Exception, metaclass=abc.ABCMet
     pass
 
 
-class PodcastTranscribeEpisodeSoftException(_AbstractPodcastTranscribeEpisodeException):
+class SoftException(_AbstractPodcastTranscribeEpisodeException):
     """Soft errors exception."""
     pass
 
 
-class McStoryNotFoundException(PodcastTranscribeEpisodeSoftException):
-    """Exception raised when story was not found."""
-    pass
 
-
-class McPodcastNoViableStoryEnclosuresException(PodcastTranscribeEpisodeSoftException):
-    """Exception thrown when story has no viable enclosures to choose from."""
-    pass
-
-
-class McPodcastEnclosureTooBigException(PodcastTranscribeEpisodeSoftException):
-    """Exception thrown when story's best viable enclosure is too big."""
-    pass
-
-
-class McPodcastFileFetchFailureException(PodcastTranscribeEpisodeSoftException):
+class McPodcastFileFetchFailureException(SoftException):
     """Exception thrown when we're unable to fetch the downloaded file for whatever reason."""
     pass
 
 
-class McPodcastFileIsInvalidException(PodcastTranscribeEpisodeSoftException):
+class McPodcastFileIsInvalidException(SoftException):
     """Exception thrown when the fetched file is not something that we can process for whatever reason."""
-    pass
-
-
-class McOperationNotFoundException(PodcastTranscribeEpisodeSoftException):
-    """Exception thrown when a transcription operation was not found for a particular operation ID."""
-    # Not a "hard" failure as sometimes these operations expire
-    pass
-
-
-class McPodcastNoEpisodesException(PodcastTranscribeEpisodeSoftException):
-    """Exception thrown when there are no episodes for a story."""
-    pass
-
-
-class McPodcastEpisodeTooLongException(PodcastTranscribeEpisodeSoftException):
-    """Exception raised when podcast's episode is too long."""
     pass
 
 
 # ---
 
-class PodcastTranscribeEpisodeHardException(_AbstractPodcastTranscribeEpisodeException):
+class HardException(_AbstractPodcastTranscribeEpisodeException):
     """Hard errors exception."""
     pass
 
 
-class McPodcastFileStoreFailureException(PodcastTranscribeEpisodeHardException):
+class McPodcastFileStoreFailureException(HardException):
     """
     Exception thrown when we're unable to store the downloaded file for whatever reason.
 
@@ -69,7 +39,7 @@ class McPodcastFileStoreFailureException(PodcastTranscribeEpisodeHardException):
     pass
 
 
-class McPodcastGCSStoreFailureException(PodcastTranscribeEpisodeHardException):
+class McPodcastGCSStoreFailureException(HardException):
     """
     Exception thrown when we're unable to store an object to Google Cloud Storage.
 
@@ -80,62 +50,42 @@ class McPodcastGCSStoreFailureException(PodcastTranscribeEpisodeHardException):
     pass
 
 
-class McPodcastMisconfiguredTranscoderException(PodcastTranscribeEpisodeHardException):
+class McPodcastMisconfiguredTranscoderException(HardException):
     """Exception thrown when something happens with the transcoder that we didn't anticipate before."""
     pass
 
 
-class McPodcastMisconfiguredGCSException(PodcastTranscribeEpisodeHardException):
+class McPodcastMisconfiguredGCSException(HardException):
     """Exception thrown when something happens with Google Cloud Storage that we didn't anticipate before."""
     pass
 
 
-class McPodcastPostgreSQLException(PodcastTranscribeEpisodeHardException):
-    """Exception thrown on PostgreSQL errors."""
-    pass
-
-
-class McDatabaseNotFoundException(PodcastTranscribeEpisodeHardException):
+class McDatabaseNotFoundException(HardException):
     """Exception thrown when we can't find something in the database that we've expected to find."""
     pass
 
 
-class McDatabaseErrorException(PodcastTranscribeEpisodeHardException):
-    """Exception thrown when a database raises an error."""
-    pass
-
-
-class McMisconfiguredSpeechAPIException(PodcastTranscribeEpisodeHardException):
+class McMisconfiguredSpeechAPIException(HardException):
     """Exception thrown when we receive something we didn't expect from Speech API."""
     pass
 
 
-class McTranscriptionReturnedErrorException(PodcastTranscribeEpisodeHardException):
-    """
-    Exception thrown when Speech API explicitly returns an error state.
-
-    When Speech API returns with an error, it's unclear whether it was us who have messed up or
-    something is (temporarily) wrong on their end, so on the safe side we throw a "hard" exception.
-    """
-    pass
-
-
-class McPodcastDatabaseErrorException(PodcastTranscribeEpisodeHardException):
+class McPodcastDatabaseErrorException(HardException):
     """Exception thrown on database errors."""
     pass
 
 
-class McPodcastInvalidInputException(PodcastTranscribeEpisodeHardException):
+class McPodcastInvalidInputException(HardException):
     """Exception thrown on invalid inputs."""
     pass
 
 
-class McPodcastMisconfiguredSpeechAPIException(PodcastTranscribeEpisodeHardException):
+class McPodcastMisconfiguredSpeechAPIException(HardException):
     """Exception thrown on misconfigured Google Speech API."""
     pass
 
 
-class McPodcastSpeechAPIRequestFailedException(PodcastTranscribeEpisodeHardException):
+class McPodcastSpeechAPIRequestFailedException(HardException):
     """
     Exception that is thrown when we're unable to submit a new job to Speech API.
 

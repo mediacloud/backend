@@ -19,8 +19,7 @@ from ..config import PodcastTranscribeEpisodeConfig
 from ..exceptions import (
     McDatabaseNotFoundException,
     McMisconfiguredSpeechAPIException,
-    McOperationNotFoundException,
-    McTranscriptionReturnedErrorException,
+    HardException, SoftException,
 )
 from .transcript import UtteranceAlternative, Utterance, Transcript
 
@@ -101,7 +100,9 @@ class DefaultHandler(AbstractHandler):
         except InvalidArgument as ex:
             raise McMisconfiguredSpeechAPIException(f"Invalid operation ID '{speech_operation_id}': {ex}")
         except NotFound as ex:
-            raise McOperationNotFoundException(f"Operation ID '{speech_operation_id}' was not found: {ex}")
+            # Not a "hard" failure as sometimes these operations expire
+            # FIXME although we should be resubmitting the media file for a new transcript when that happens
+            raise SoftException(f"Operation ID '{speech_operation_id}' was not found: {ex}")
         except Exception as ex:
             # On any other errors, raise a hard exception
             raise McMisconfiguredSpeechAPIException(f"Error while fetching operation ID '{speech_operation_id}': {ex}")
@@ -158,13 +159,15 @@ class DefaultHandler(AbstractHandler):
                 )
 
         except GoogleAPICallError as ex:
-            raise McTranscriptionReturnedErrorException(
-                f"Unable to read transcript for operation '{speech_operation_id}': {ex}"
+            # When Speech API returns with an error, it's unclear whether it was us who have messed up or something is
+            # (temporarily) wrong on their end, so on the safe side we throw a "hard" exception.
+            raise HardException(
+                f"Unable to read transcript for operation '{speech_operation_id}' due to API error: {ex}"
             )
 
         except Exception as ex:
-            raise McMisconfiguredSpeechAPIException(
-                f"Unable to read transcript for operation '{speech_operation_id}': {ex}"
+            raise HardException(
+                f"Unable to read transcript for operation '{speech_operation_id}' due to other error: {ex}"
             )
 
         return Transcript(stories_id=stories_id, utterances=utterances)

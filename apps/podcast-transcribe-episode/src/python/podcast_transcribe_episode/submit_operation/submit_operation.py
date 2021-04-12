@@ -11,12 +11,11 @@ from mediawords.util.log import create_logger
 
 from ..config import PodcastTranscribeEpisodeConfig
 from ..exceptions import (
-    McPodcastNoEpisodesException,
     McPodcastDatabaseErrorException,
     McPodcastInvalidInputException,
     McPodcastMisconfiguredSpeechAPIException,
-    McPodcastEpisodeTooLongException,
     McPodcastSpeechAPIRequestFailedException,
+    SoftException,
 )
 
 log = create_logger(__name__)
@@ -117,7 +116,7 @@ def get_podcast_episode(db: DatabaseHandler, stories_id: int) -> PodcastEpisode:
         raise McPodcastDatabaseErrorException(f"Unable to fetch story's {stories_id} podcast episodes: {ex}")
 
     if not podcast_episodes:
-        raise McPodcastNoEpisodesException(f"There are no podcast episodes for story {stories_id}")
+        raise SoftException(f"There are no podcast episodes for story {stories_id}")
 
     if len(podcast_episodes) > 1:
         # That's very weird, there should be only one episode per story
@@ -129,9 +128,7 @@ def get_podcast_episode(db: DatabaseHandler, stories_id: int) -> PodcastEpisode:
         raise McPodcastInvalidInputException(f"Invalid episode for story {stories_id}: {ex}")
 
     if episode.duration > MAX_DURATION:
-        raise McPodcastEpisodeTooLongException(
-            f"Story's {stories_id} podcast episode is too long ({episode.duration} seconds)."
-        )
+        raise SoftException(f"Story's {stories_id} podcast episode is too long ({episode.duration} seconds).")
 
     return episode
 

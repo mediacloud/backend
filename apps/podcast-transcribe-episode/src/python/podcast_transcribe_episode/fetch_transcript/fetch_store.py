@@ -3,7 +3,7 @@ from typing import Optional
 from mediawords.db import DatabaseHandler
 from mediawords.util.log import create_logger
 
-from ..exceptions import McDatabaseErrorException, McDatabaseNotFoundException
+from ..exceptions import McDatabaseNotFoundException, HardException
 from .handler import AbstractHandler, DefaultHandler
 
 log = create_logger(__name__)
@@ -102,7 +102,7 @@ def fetch_store_transcript(
                 'error_message': str(ex),
             })
         except Exception as ex2:
-            raise McDatabaseErrorException((
+            raise HardException((
                 f"Error while executing transcript fetch for ID {podcast_episode_transcript_fetches_id}: {ex}; "
                 f"further, I wasn't able to log it to database because: {ex2}"
             ))

@@ -1,13 +1,66 @@
 import dataclasses
-from typing import Optional, Dict, Any
+from typing import Optional
+
+# noinspection PyPackageRequirements
+from furl import furl
 
 from mediawords.db import DatabaseHandler
 from mediawords.util.log import create_logger
+from mediawords.util.url import is_http_url
 
 log = create_logger(__name__)
 
 MAX_ENCLOSURE_SIZE = 1024 * 1024 * 500
 """Max. enclosure size (in bytes) that we're willing to download."""
+
+
+@dataclasses.dataclass
+class StoryEnclosure(object):
+    """Single story enclosure derived from feed's <enclosure /> element."""
+
+    __MP3_MIME_TYPES = {'audio/mpeg', 'audio/mpeg3', 'audio/mp3', 'audio/x-mpeg-3'}
+    """MIME types which MP3 files might have."""
+
+    story_enclosures_id: int
+    """ID from 'story_enclosures' table."""
+
+    url: str
+    """Enclosure's URL, e.g. 'https://www.example.com/episode.mp3'."""
+
+    mime_type: Optional[str]
+    """Enclosure's reported MIME type, or None if it wasn't reported; e.g. 'audio/mpeg'."""
+
+    length: Optional[int]
+    """Enclosure's reported length in bytes, or None if it wasn't reported."""
+
+    def mime_type_is_mp3(self) -> bool:
+        """Return True if declared MIME type is one of the MP3 ones."""
+        if self.mime_type:
+            if self.mime_type.lower() in self.__MP3_MIME_TYPES:
+                return True
+        return False
+
+    def mime_type_is_audio(self) -> bool:
+        """Return True if declared MIME type is an audio type."""
+        if self.mime_type:
+            if self.mime_type.lower().startswith('audio/'):
+                return True
+        return False
+
+    def mime_type_is_video(self) -> bool:
+        """Return True if declared MIME type is a video type."""
+        if self.mime_type:
+            if self.mime_type.lower().startswith('video/'):
+                return True
+        return False
+
+    def url_path_has_mp3_extension(self) -> bool:
+        """Return True if URL's path has .mp3 extension."""
+        if is_http_url(self.url):
+            uri = furl(self.url)
+            if '.mp3' in str(uri.path).lower():
+                return True
+        return False
 
 
 def podcast_viable_enclosure_for_story(db: DatabaseHandler, stories_id: int) -> Optional[StoryEnclosure]:
@@ -32,7 +85,14 @@ def podcast_viable_enclosure_for_story(db: DatabaseHandler, stories_id: int) -> 
 
     for enclosure_dict in story_enclosures_dicts:
         if is_http_url(enclosure_dict['url']):
-            story_enclosures.append(StoryEnclosure.from_db_row(db_row=enclosure_dict))
+            story_enclosures.append(
+                StoryEnclosure(
+                    story_enclosures_id=enclosure_dict['story_enclosures_id'],
+                    url=enclosure_dict['url'],
+                    mime_type=enclosure_dict['mime_type'],
+                    length=enclosure_dict['length'],
+                )
+            )
 
     chosen_enclosure = None
 
