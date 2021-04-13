@@ -1060,6 +1060,8 @@ services:
         depends_on:
             # Reads data from Munin node
             - munin-node
+        environment:
+            MC_MUNIN_CRON_ALERT_EMAIL: "FIXME@mediacloud.org"
         volumes:
             # Shared with "munin-fastcgi-graph" container:
             - vol_munin_data:/var/lib/munin/
