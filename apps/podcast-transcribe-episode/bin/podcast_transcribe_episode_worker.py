@@ -26,8 +26,6 @@ def run_podcast_fetch_episode(stories_id: int) -> None:
     try:
         fetch_and_store_episode(db=db, stories_id=stories_id)
 
-        JobBroker(queue_name='MediaWords::Job::Podcast::SubmitOperation').add_to_queue(stories_id=stories_id)
-
     except McPodcastFetchEpisodeSoftException as ex:
         # Soft exceptions
         log.error(f"Unable to fetch podcast episode for story {stories_id}: {ex}")
@@ -40,5 +38,5 @@ def run_podcast_fetch_episode(stories_id: int) -> None:
 
 
 if __name__ == '__main__':
-    app = JobBroker(queue_name='MediaWords::Job::Podcast::FetchEpisode')
+    app = JobBroker(queue_name='MediaWords::Job::Podcast::TranscribeEpisode')
     app.start_worker(handler=run_podcast_fetch_episode)

@@ -10,8 +10,8 @@ from google.cloud.storage import Blob, Bucket
 
 from mediawords.util.log import create_logger
 
-from ..config import PodcastTranscribeEpisodeConfig
-from ..exceptions import McPodcastGCSStoreFailureException, McPodcastMisconfiguredGCSException
+from ..config import AbstractPodcastGCBucketConfig, PodcastGCAuthConfig
+from ..exceptions import McPodcastGCSStoreFailureException, McPodcastMisconfiguredGCSException, SoftException
 
 log = create_logger(__name__)
 
@@ -21,14 +21,19 @@ class GCSStore(object):
 
     __slots__ = [
         '__bucket_internal',
-        '__config',
+        '__auth_config',
+        '__bucket_config',
     ]
 
-    def __init__(self, config: Optional[PodcastTranscribeEpisodeConfig] = None):
-        if not config:
-            config = PodcastTranscribeEpisodeConfig()
+    def __init__(self, bucket_config: AbstractPodcastGCBucketConfig, auth_config: Optional[PodcastGCAuthConfig] = None):
+        if not bucket_config:
+            raise McPodcastMisconfiguredGCSException("Bucket configuration is unset.")
 
-        self.__config = config
+        if not auth_config:
+            auth_config = PodcastGCAuthConfig()
+
+        self.__auth_config = auth_config
+        self.__bucket_config = bucket_config
         self.__bucket_internal = None
 
     @property
@@ -37,11 +42,11 @@ class GCSStore(object):
         if not self.__bucket_internal:
 
             try:
-                storage_client = storage.Client.from_service_account_json(self.__config.gc_auth_json_file())
-                self.__bucket_internal = storage_client.get_bucket(self.__config.gc_storage_bucket_name())
+                storage_client = storage.Client.from_service_account_json(self.__auth_config.gc_auth_json_file())
+                self.__bucket_internal = storage_client.get_bucket(self.__bucket_config.bucket_name())
             except Exception as ex:
                 raise McPodcastGCSStoreFailureException(
-                    f"Unable to get GCS bucket '{self.__config.gc_storage_bucket_name()}': {ex}"
+                    f"Unable to get GCS bucket '{self.__bucket_config.bucket_name()}': {ex}"
                 )
 
         return self.__bucket_internal
@@ -66,7 +71,7 @@ class GCSStore(object):
         if not object_id:
             raise McPodcastMisconfiguredGCSException("Object ID is unset.")
 
-        remote_path = self._remote_path(path_prefix=self.__config.gc_storage_path_prefix(), object_id=object_id)
+        remote_path = self._remote_path(path_prefix=self.__bucket_config.path_prefix(), object_id=object_id)
         blob = self._bucket.blob(remote_path)
         return blob
 
@@ -103,16 +108,14 @@ class GCSStore(object):
 
         return exists
 
-    def store_object(self, local_file_path: str, object_id: str, mime_type: Optional[str] = None) -> str:
+    def upload_object(self, local_file_path: str, object_id: str) -> None:
         """
-        Store a local file to a remote location.
+        Upload a local file to a GCS object.
 
         Will overwrite existing objects with a warning.
 
         :param local_file_path: Local file that should be stored.
         :param object_id: Object ID under which the object should be stored.
-        :param mime_type: MIME type which, if set, will be stored as "Content-Type".
-        :return: Full Google Cloud Storage URI of the object, e.g. "gs://<bucket_name>/<path>/<object_id>".
         """
 
         if not os.path.isfile(local_file_path):
@@ -121,22 +124,47 @@ class GCSStore(object):
         if not object_id:
             raise McPodcastMisconfiguredGCSException("Object ID is unset.")
 
-        log.debug(f"Storing file '{local_file_path}' as object ID {object_id}...")
+        log.debug(f"Uploading file '{local_file_path}' as object ID {object_id}...")
 
         if self.object_exists(object_id=object_id):
             log.warning(f"Object {object_id} already exists, will overwrite.")
 
         blob = self._blob_from_object_id(object_id=object_id)
 
-        blob.upload_from_filename(filename=local_file_path, content_type=mime_type)
+        blob.upload_from_filename(filename=local_file_path, content_type='application/octet-stream')
 
-        return self.object_uri(object_id=object_id)
+    # FIXME write some tests
+    def download_object(self, object_id: str, local_file_path: str) -> None:
+        """
+        Download a GCS object to a local file.
+
+        :param object_id: Object ID of an object that should be downloaded.
+        :param local_file_path: Local file that the object should be stored to.
+        """
+
+        if os.path.isfile(local_file_path):
+            raise McPodcastMisconfiguredGCSException(f"Local file '{local_file_path}' already exists.")
+
+        if not object_id:
+            raise McPodcastMisconfiguredGCSException("Object ID is unset.")
+
+        log.debug(f"Downloading object ID {object_id} to file '{local_file_path}'...")
+
+        if not self.object_exists(object_id=object_id):
+            # FIXME or is it a hard exception?
+            raise SoftException(f"Object ID {object_id} was not found.")
+
+        blob = self._blob_from_object_id(object_id=object_id)
+
+        blob.download_to_filename(filename=local_file_path)
 
     def delete_object(self, object_id: str) -> None:
         """
         Delete object from remote location.
 
         Doesn't raise if object doesn't exist.
+
+        Used mostly for running tests, e.g. to find out what happens if the object to be fetched doesn't exist anymore.
 
         :param object_id: Object ID that should be deleted.
         """
@@ -169,8 +197,8 @@ class GCSStore(object):
             raise McPodcastMisconfiguredGCSException("Object ID is unset.")
 
         uri = "gs://{host}/{remote_path}".format(
-            host=self.__config.gc_storage_bucket_name(),
-            remote_path=self._remote_path(path_prefix=self.__config.gc_storage_path_prefix(), object_id=object_id),
+            host=self.__bucket_config.bucket_name(),
+            remote_path=self._remote_path(path_prefix=self.__bucket_config.path_prefix(), object_id=object_id),
         )
 
         return uri

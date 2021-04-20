@@ -2,9 +2,11 @@
 # FIXME post-init validation of dataclasses (https://docs.python.org/3/library/dataclasses.html#post-init-processing)
 # FIXME workflow logger
 # FIXME if something's wrong (e.g. the episode doesn't look valid), should the workflow succeed or fail?
+# FIXME remove "Podcast(Transcribe)..." prefix from everywhere
+# FIXME transient vs non-transient errors
+# FIXME don't exit(1) if connect_to_db() fails
 
 import dataclasses
-import enum
 from datetime import timedelta
 from typing import Optional
 
@@ -15,6 +17,7 @@ from temporal.workflow import workflow_method
 
 from .exceptions import HardException
 from .fetch_episode.enclosure import StoryEnclosure
+from .fetch_episode.media_info import MediaFileInfoAudioStream
 
 TASK_QUEUE = "podcast-transcribe-episode"
 """Temporal task queue."""
@@ -50,45 +53,6 @@ Retry parameters.
 
 https://docs.temporal.io/docs/concept-activities/
 """
-
-
-@enum.unique
-class AudioCodec(enum.Enum):
-    """
-    Audio file codec that's supported by Google Speech API.
-
-    https://cloud.google.com/speech-to-text/docs/reference/rpc/google.cloud.speech.v1p1beta1
-    """
-    LINEAR16 = 'LINEAR16',
-    FLAC = 'FLAC'
-    MULAW = 'MULAW'
-    OGG_OPUS = 'OGG_OPUS'
-    MP3 = 'MP3'
-
-
-@dataclasses.dataclass(frozen=True)
-class EpisodeMetadata(object):
-    """Metadata about an episode to be transcribed."""
-
-    duration: int
-    """Episode's duration in seconds."""
-
-    codec: AudioCodec
-    """Episode's codec."""
-
-    sample_rate: int
-    """Episode's sample rate (Hz) as determined by transcoder, e.g. 44100."""
-
-    def __post_init__(self) -> None:
-        """Validate episode's metadata."""
-
-        if self.duration <= 0:
-            # FIXME could it be zero?
-            raise ValueError('Episode duration is not positive.')
-        if not self.codec:
-            raise ValueError('Episode codec is not set.')
-        if self.sample_rate <= 1000:
-            raise ValueError('Episode sample rate is not correct.')
 
 
 class AbstractPodcastTranscribeActivities(object):
@@ -211,30 +175,44 @@ class AbstractPodcastTranscribeActivities(object):
             maximum_attempts=20,
         ),
     )
-    async def fetch_transcode_store_episode(self, stories_id: int) -> EpisodeMetadata:
+    async def fetch_transcode_store_episode(self, stories_id: int) -> MediaFileInfoAudioStream:
         """
         Fetch episode from GCS, transcode it if needed and store it to GCS again in a separate bucket.
 
         Now that the raw episode file is safely located in GCS, we can try transcoding it.
 
         :param stories_id: Story ID the episode of which should be transcoded.
-        :return: Metadata determined as part of the transcoding.
+        :return: Metadata of the best audio stream determined as part of the transcoding.
         """
         raise NotImplementedError
 
     @activity_method(
         task_queue=TASK_QUEUE,
         # schedule_to_start_timeout=None,
-        start_to_close_timeout=timedelta(seconds=60),
+
+        # Give a bit more time as the implementation is likely to do some non-Temporal retries on weird Speech API
+        # errors
+        start_to_close_timeout=timedelta(minutes=5),
+
         # schedule_to_close_timeout=None,
         # heartbeat_timeout=None,
 
-        # FIXME don't submit too many operations
-        retry_parameters=RETRY_PARAMETERS,
+        retry_parameters=dataclasses.replace(
+            RETRY_PARAMETERS,
+
+            # Given that the thing is costly, wait a whole hour before retrying anything
+            initial_interval=timedelta(hours=1),
+
+            # Hope for the Speech API to resurrect in a week
+            maximum_interval=timedelta(weeks=1),
+
+            # Don't retry too much as each try is potentially very costly
+            maximum_attempts=10,
+        ),
     )
     async def submit_transcribe_operation(self,
                                           stories_id: int,
-                                          episode_metadata: EpisodeMetadata,
+                                          episode_metadata: MediaFileInfoAudioStream,
                                           bcp47_language_code: str) -> str:
         raise NotImplementedError
 

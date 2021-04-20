@@ -10,9 +10,6 @@ from mediawords.util.url import is_http_url
 
 log = create_logger(__name__)
 
-MAX_ENCLOSURE_SIZE = 1024 * 1024 * 500
-"""Max. enclosure size (in bytes) that we're willing to download."""
-
 
 @dataclasses.dataclass
 class StoryEnclosure(object):

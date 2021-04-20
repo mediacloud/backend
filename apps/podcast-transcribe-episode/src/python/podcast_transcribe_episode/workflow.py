@@ -1,18 +1,28 @@
-# noinspection PyPackageRequirements
+import os
+import tempfile
 from typing import Optional
 
 # noinspection PyPackageRequirements
-from mediawords.util.identify_language import identification_would_be_reliable, language_code_for_text
-from mediawords.util.parse_html import html_strip
-from .fetch_episode.enclosure import podcast_viable_enclosure_for_story, MAX_ENCLOSURE_SIZE, StoryEnclosure
-
-from .exceptions import SoftException
 from temporal.workflow import Workflow
 
 from mediawords.db import connect_to_db
+from mediawords.util.identify_language import identification_would_be_reliable, language_code_for_text
+from mediawords.util.parse_html import html_strip
 
+from .config import (
+    PodcastGCRawEnclosuresBucketConfig,
+    PodcastGCTranscodedEpisodesBucketConfig,
+    MAX_ENCLOSURE_SIZE,
+    MAX_DURATION,
+)
+from .exceptions import SoftException, HardException
+from .fetch_episode.enclosure import podcast_viable_enclosure_for_story, StoryEnclosure
+from .fetch_episode.fetch_url import fetch_big_file
+from .fetch_episode.gcs_store import GCSStore
 from .fetch_episode.bcp47_lang import iso_639_1_code_to_bcp_47_identifier
-
+from .fetch_episode.media_info import MediaFileInfoAudioStream, media_file_info
+from .fetch_episode.speech_api import submit_transcribe_operation
+from .fetch_episode.transcode import maybe_transcode_file
 from .shared import (
     AbstractPodcastTranscribeWorkflow,
     AbstractPodcastTranscribeActivities,
@@ -75,6 +85,77 @@ class PodcastTranscribeActivities(AbstractPodcastTranscribeActivities):
 
         return best_enclosure
 
+    async def fetch_enclosure_to_gcs(self, stories_id: int, enclosure: StoryEnclosure) -> None:
+
+        with tempfile.TemporaryDirectory(prefix='fetch_enclosure_to_gcs') as temp_dir:
+            raw_enclosure_path = os.path.join(temp_dir, 'raw_enclosure')
+            fetch_big_file(url=enclosure.url, dest_file=raw_enclosure_path, max_size=MAX_ENCLOSURE_SIZE)
+
+            if os.stat(raw_enclosure_path).st_size == 0:
+                # Might happen with misconfigured webservers
+                raise SoftException(f"Fetched file {raw_enclosure_path} is empty.")
+
+            gcs = GCSStore(bucket_config=PodcastGCRawEnclosuresBucketConfig())
+            gcs.upload_object(local_file_path=raw_enclosure_path, object_id=str(stories_id))
+
+    async def fetch_transcode_store_episode(self, stories_id: int) -> MediaFileInfoAudioStream:
+
+        with tempfile.TemporaryDirectory(prefix='fetch_transcode_store_episode') as temp_dir:
+            raw_enclosure_path = os.path.join(temp_dir, 'raw_enclosure')
+
+            gcs_raw_enclosures = GCSStore(bucket_config=PodcastGCRawEnclosuresBucketConfig())
+            gcs_raw_enclosures.download_object(
+                object_id=str(stories_id),
+                local_file_path=raw_enclosure_path,
+            )
+            del gcs_raw_enclosures
+
+            if os.stat(raw_enclosure_path).st_size == 0:
+                # If somehow the file from GCS ended up being of zero length, then this is very much unexpected
+                raise HardException(f"Fetched file {raw_enclosure_path} is empty.")
+
+            transcoded_episode_path = os.path.join(temp_dir, 'transcoded_episode')
+
+            raw_enclosure_transcoded = maybe_transcode_file(
+                input_file=raw_enclosure_path,
+                maybe_output_file=transcoded_episode_path,
+            )
+            if not raw_enclosure_transcoded:
+                transcoded_episode_path = raw_enclosure_path
+
+            del raw_enclosure_path
+
+            gcs_transcoded_episodes = GCSStore(bucket_config=PodcastGCTranscodedEpisodesBucketConfig())
+            gcs_transcoded_episodes.upload_object(local_file_path=transcoded_episode_path, object_id=str(stories_id))
+
+            # (Re)read the properties of either the original or the transcoded file
+            media_info = media_file_info(media_file_path=transcoded_episode_path)
+            best_audio_stream = media_info.best_supported_audio_stream()
+
+            if not best_audio_stream.audio_codec_class:
+                raise HardException("Best audio stream doesn't have audio class set")
+
+            return best_audio_stream
+
+    async def submit_transcribe_operation(self,
+                                          stories_id: int,
+                                          episode_metadata: MediaFileInfoAudioStream,
+                                          bcp47_language_code: str) -> str:
+
+        if not episode_metadata.audio_codec_class:
+            raise HardException("Best audio stream doesn't have audio class set")
+
+        gcs_transcoded_episodes = GCSStore(bucket_config=PodcastGCTranscodedEpisodesBucketConfig())
+        gs_uri = gcs_transcoded_episodes.object_uri(object_id=str(stories_id))
+
+        speech_operation_id = submit_transcribe_operation(
+            gs_uri=gs_uri,
+            episode_metadata=episode_metadata,
+            bcp47_language_code=bcp47_language_code,
+        )
+
+        return speech_operation_id
+
 
 class PodcastTranscribeWorkflow(AbstractPodcastTranscribeWorkflow):
     """Workflow implementation."""
@@ -101,7 +182,10 @@ class PodcastTranscribeWorkflow(AbstractPodcastTranscribeWorkflow):
 
         episode_metadata = await self.activities.fetch_transcode_store_episode(stories_id=stories_id)
 
-        # FIXME we probably want to test the metadata here, e.g. whether it's set at all or if the duration is right
+        if episode_metadata.duration > MAX_DURATION:
+            # FIXME log that the episode duration exceeded the maximum allowed duration
+            # f"Story's {stories_id} podcast episode is too long ({episode_metadata.duration} seconds)."
+            return
 
         speech_operation_id = await self.activities.submit_transcribe_operation(
             stories_id=stories_id,

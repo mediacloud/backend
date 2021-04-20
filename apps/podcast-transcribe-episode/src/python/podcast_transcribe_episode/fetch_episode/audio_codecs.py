@@ -12,34 +12,30 @@ class AbstractAudioCodec(object, metaclass=abc.ABCMeta):
 
     @classmethod
     @abc.abstractmethod
-    def postgresql_enum_value(cls) -> str:
-        """Return value from 'podcast_episodes_audio_codec' PostgreSQL enum."""
-        raise NotImplemented("Abstract method")
-
-    @classmethod
-    @abc.abstractmethod
     def ffmpeg_stream_is_this_codec(cls, ffmpeg_stream: Dict[str, Any]) -> bool:
         """Return True if ffmpeg.probe()'s one of the streams ('streams' key) is of this codec."""
-        raise NotImplemented("Abstract method")
+        raise NotImplementedError
 
     @classmethod
     @abc.abstractmethod
     def ffmpeg_container_format(cls) -> str:
         """Return FFmpeg container format (-f argument)."""
-        raise NotImplemented("Abstract method")
+        raise NotImplementedError
 
     @classmethod
     @abc.abstractmethod
     def mime_type(cls) -> str:
         """Return MIME type to store as GCS object metadata."""
-        raise NotImplemented("Abstract method")
+        raise NotImplementedError
+
+    @classmethod
+    @abc.abstractmethod
+    def speech_api_codec(cls) -> str:
+        """Return codec enum value to pass to Speech API when submitting the transcription operation."""
+        raise NotImplementedError
 
 
 class Linear16AudioCodec(AbstractAudioCodec):
-
-    @classmethod
-    def postgresql_enum_value(cls) -> str:
-        return 'LINEAR16'
 
     @classmethod
     def ffmpeg_stream_is_this_codec(cls, ffmpeg_stream: Dict[str, Any]) -> bool:
@@ -53,12 +49,12 @@ class Linear16AudioCodec(AbstractAudioCodec):
     def mime_type(cls) -> str:
         return 'audio/wav'
 
+    @classmethod
+    def speech_api_codec(cls) -> str:
+        return 'LINEAR16'
+
 
 class FLACAudioCodec(AbstractAudioCodec):
-
-    @classmethod
-    def postgresql_enum_value(cls) -> str:
-        return 'FLAC'
 
     @classmethod
     def ffmpeg_stream_is_this_codec(cls, ffmpeg_stream: Dict[str, Any]) -> bool:
@@ -73,12 +69,12 @@ class FLACAudioCodec(AbstractAudioCodec):
     def mime_type(cls) -> str:
         return 'audio/flac'
 
+    @classmethod
+    def speech_api_codec(cls) -> str:
+        return 'FLAC'
+
 
 class MULAWAudioCodec(AbstractAudioCodec):
-
-    @classmethod
-    def postgresql_enum_value(cls) -> str:
-        return 'MULAW'
 
     @classmethod
     def ffmpeg_stream_is_this_codec(cls, ffmpeg_stream: Dict[str, Any]) -> bool:
@@ -92,12 +88,12 @@ class MULAWAudioCodec(AbstractAudioCodec):
     def mime_type(cls) -> str:
         return 'audio/basic'
 
+    @classmethod
+    def speech_api_codec(cls) -> str:
+        return 'MULAW'
+
 
 class OggOpusAudioCodec(AbstractAudioCodec):
-
-    @classmethod
-    def postgresql_enum_value(cls) -> str:
-        return 'OGG_OPUS'
 
     @classmethod
     def ffmpeg_stream_is_this_codec(cls, ffmpeg_stream: Dict[str, Any]) -> bool:
@@ -111,12 +107,12 @@ class OggOpusAudioCodec(AbstractAudioCodec):
     def mime_type(cls) -> str:
         return 'audio/ogg'
 
+    @classmethod
+    def speech_api_codec(cls) -> str:
+        return 'OGG_OPUS'
+
 
 class MP3AudioCodec(AbstractAudioCodec):
-
-    @classmethod
-    def postgresql_enum_value(cls) -> str:
-        return 'MP3'
 
     @classmethod
     def ffmpeg_stream_is_this_codec(cls, ffmpeg_stream: Dict[str, Any]) -> bool:
@@ -129,3 +125,7 @@ class MP3AudioCodec(AbstractAudioCodec):
     @classmethod
     def mime_type(cls) -> str:
         return 'audio/mpeg'
+
+    @classmethod
+    def speech_api_codec(cls) -> str:
+        return 'MP3'

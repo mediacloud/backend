@@ -1,9 +1,6 @@
 import dataclasses
-import subprocess
 import math
 import os
-import shutil
-import tempfile
 from typing import Type, Optional, List
 
 # noinspection PyPackageRequirements
@@ -11,11 +8,7 @@ import ffmpeg
 
 from mediawords.util.log import create_logger
 
-from ..exceptions import (
-    McPodcastMisconfiguredTranscoderException,
-    McPodcastFileIsInvalidException,
-    McPodcastFileStoreFailureException,
-)
+from ..exceptions import McPodcastMisconfiguredTranscoderException, McPodcastFileIsInvalidException
 from .audio_codecs import (
     AbstractAudioCodec,
     Linear16AudioCodec,
@@ -173,127 +166,3 @@ def media_file_info(media_file_path: str) -> MediaFileInfo:
         audio_streams=audio_streams,
         has_video_streams=has_video_streams,
     )
-
-
-@dataclasses.dataclass
-class TranscodeTempDirAndFile(object):
-    """
-    Temporary directory and filename for transcoding.
-
-    It is assumed that caller is free to recursively remove 'temp_directory' after making use of the transcoded file.
-    """
-    temp_dir: str
-    filename: str
-
-    @property
-    def temp_full_path(self) -> str:
-        """Return full path to file."""
-        return os.path.join(self.temp_dir, self.filename)
-
-
-def transcode_media_file_if_needed(input_media_file: TranscodeTempDirAndFile) -> TranscodeTempDirAndFile:
-    """
-    Transcode file (if needed) to something that Speech API will support.
-
-    * If input has a video stream, it will be discarded;
-    * If input has more than one audio stream, others will be discarded leaving only one (preferably the one that Speech
-      API can support);
-    * If input doesn't have an audio stream in Speech API-supported codec, it will be transcoded to lossless
-      FLAC 16 bit in order to preserve quality;
-    * If the chosen audio stream has multiple channels (e.g. stereo or 5.1), it will be mixed into a single (mono)
-      channel as Speech API supports multi-channel recognition only when different voices speak into each of the
-      channels.
-
-    :param input_media_file: Temporary directory and input media file to consider transcoding.
-    :return: Either the same 'input_media_file' if file wasn't transcoded, or new TranscodeTempDirAndFile() if it was.
-    """
-
-    if not os.path.isdir(input_media_file.temp_dir):
-        # Directory should exist; if it doesn't, it's a critical problem either in the filesystem or the code
-        raise McPodcastMisconfiguredTranscoderException(f"Directory '{input_media_file.temp_dir}' does not exist.")
-
-    if not os.path.isfile(input_media_file.temp_full_path):
-        raise McPodcastMisconfiguredTranscoderException(f"File '{input_media_file}' does not exist.")
-
-    # Independently from what <enclosure /> has told us, identify the file type again ourselves
-    media_info = media_file_info(media_file_path=input_media_file.temp_full_path)
-
-    if not media_info.audio_streams:
-        raise McPodcastFileIsInvalidException("Downloaded file doesn't appear to have any audio streams.")
-
-    ffmpeg_args = []
-
-    supported_audio_stream = media_info.best_supported_audio_stream()
-    if supported_audio_stream:
-        log.info(f"Found a supported audio stream")
-
-        # Test if there is more than one audio stream
-        if len(media_info.audio_streams) > 1:
-            log.info(f"Found other audio streams besides the supported one, will discard those")
-
-            ffmpeg_args.extend(['-f', supported_audio_stream.audio_codec_class.ffmpeg_container_format()])
-
-            # Select all audio streams
-            ffmpeg_args.extend(['-map', '0:a'])
-
-            for stream in media_info.audio_streams:
-                # Deselect the unsupported streams
-                if stream != supported_audio_stream:
-                    ffmpeg_args.extend(['-map', f'-0:a:{stream.ffmpeg_stream_index}'])
-
-    # If a stream of a supported codec was not found, transcode it to FLAC 16 bit in order to not lose any quality
-    else:
-        log.info(f"None of the audio streams are supported by the Speech API, will transcode to FLAC")
-
-        # Map first audio stream to input 0
-        ffmpeg_args.extend(['-map', '0:a:0'])
-
-        # Transcode to FLAC (16 bit) in order to not lose any quality
-        ffmpeg_args.extend(['-acodec', 'flac'])
-        ffmpeg_args.extend(['-f', 'flac'])
-        ffmpeg_args.extend(['-sample_fmt', 's16'])
-
-        # Ensure that we end up with mono audio
-        ffmpeg_args.extend(['-ac', '1'])
-
-    # If there's video in the file (e.g. video), remove it
-    if media_info.has_video_streams:
-        # Discard all video streams
-        ffmpeg_args.extend(['-map', '-0:v'])
-
-    if ffmpeg_args:
-
-        temp_filename = 'transcoded_file'
-
-        try:
-            temp_dir = tempfile.mkdtemp('media_file')
-        except Exception as ex:
-            raise McPodcastFileStoreFailureException(f"Unable to create temporary directory: {ex}")
-
-        temp_file_path = os.path.join(temp_dir, temp_filename)
-
-        try:
-            log.info(f"Transcoding {input_media_file.temp_full_path} to {temp_file_path}...")
-
-            # I wasn't sure how to map outputs in "ffmpeg-python" library so here we call ffmpeg directly
-            ffmpeg_command = ['ffmpeg', '-nostdin', '-hide_banner',
-                              '-i', input_media_file.temp_full_path] + ffmpeg_args + [temp_file_path]
-            log.debug(f"FFmpeg command: {ffmpeg_command}")
-            subprocess.check_call(ffmpeg_command)
-
-            log.info(f"Done transcoding {input_media_file.temp_full_path} to {temp_file_path}")
-
-        except Exception as ex:
-
-            shutil.rmtree(temp_dir)
-
-            raise McPodcastFileIsInvalidException(f"Unable to transcode {input_media_file.temp_full_path}: {ex}")
-
-        result_media_file = TranscodeTempDirAndFile(temp_dir=temp_dir, filename=temp_filename)
-
-    else:
-
-        # Return the same file as it wasn't touched
-        result_media_file = input_media_file
-
-    return result_media_file

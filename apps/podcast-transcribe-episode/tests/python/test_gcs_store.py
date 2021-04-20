@@ -15,7 +15,6 @@ from .config_random_gcs_prefix import RandomPathPrefixConfig
 class TestGCSStore(TestCase):
 
     def test_remote_path(self):
-
         # Empty object ID
         with pytest.raises(McPodcastMisconfiguredGCSException):
             GCSStore._remote_path(path_prefix='', object_id='')
@@ -35,33 +34,6 @@ class TestGCSStore(TestCase):
 
         assert GCSStore._remote_path(path_prefix='//', object_id='//a///b//../b/c') == 'a/b/c'
 
-    def test_object_uri(self):
-        gcs = GCSStore()
-
-        # Empty object ID
-        with pytest.raises(McPodcastMisconfiguredGCSException):
-            gcs.object_uri(object_id='')
-
-        class NoPathPrefixConfig(PodcastFetchEpisodeConfig):
-
-            @staticmethod
-            def gc_storage_path_prefix() -> str:
-                return ''
-
-        config = NoPathPrefixConfig()
-        gcs = GCSStore(config=config)
-        assert gcs.object_uri(object_id='a') == f'gs://{config.gc_storage_bucket_name()}/a'
-
-        class MultiPathPrefixConfig(PodcastFetchEpisodeConfig):
-
-            @staticmethod
-            def gc_storage_path_prefix() -> str:
-                return '//foo/bar//'
-
-        config = MultiPathPrefixConfig()
-        gcs = GCSStore(config=config)
-        assert gcs.object_uri(object_id='a') == f'gs://{config.gc_storage_bucket_name()}/foo/bar/a'
-
     def test_store_exists_delete(self):
         config = RandomPathPrefixConfig()
         gcs = GCSStore(config=config)
@@ -74,11 +46,11 @@ class TestGCSStore(TestCase):
         with open(temp_file, mode='wb') as f:
             f.write(mock_data)
 
-        gcs.store_object(local_file_path=temp_file, object_id=object_id)
+        gcs.upload_object(local_file_path=temp_file, object_id=object_id)
         assert gcs.object_exists(object_id=object_id) is True
 
         # Try storing twice
-        gcs.store_object(local_file_path=temp_file, object_id=object_id)
+        gcs.upload_object(local_file_path=temp_file, object_id=object_id)
         assert gcs.object_exists(object_id=object_id) is True
 
         gcs.delete_object(object_id=object_id)
