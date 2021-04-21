@@ -150,16 +150,6 @@ x-twitter-api-configuration: &twitter-api-configuration
 
 
 #
-# Crimson Hexagon API configuration
-# =================================
-#
-x-crimson-hexagon-api-configuration: &crimson-hexagon-api-configuration
-
-    # Crimson Hexagon API key
-    MC_CRIMSON_HEXAGON_API_KEY: ""
-
-
-#
 # Brandwatch API configuration
 # ============================
 #
@@ -1953,7 +1943,6 @@ services:
         environment:
             <<: *common-configuration
             <<: *twitter-api-configuration
-            <<: *crimson-hexagon-api-configuration
             <<: *brandwatch-api-configuration
         deploy:
             <<: *misc-apps_deploy_placement_constraints
@@ -1979,7 +1968,6 @@ services:
         environment:
             <<: *common-configuration
             <<: *twitter-api-configuration
-            <<: *crimson-hexagon-api-configuration
             <<: *brandwatch-api-configuration
         deploy:
             <<: *misc-apps_deploy_placement_constraints

@@ -28,9 +28,4 @@ sub _python_config()
     return MediaWords::Util::Config::TopicsMine::PythonProxy::TopicsMineConfig->new();
 }
 
-sub crimson_hexagon_api_key()
-{
-    return _python_config()->crimson_hexagon_api_key();
-}
-
 1;

@@ -80,17 +80,6 @@ def test_brandwatch_twitter() -> None:
         )
 
 
-def test_crimson_hexagon_twitter() -> None:
-    run_single_platform_test(
-            source='crimson_hexagon',
-            platform='twitter',
-            query=32780805819,
-            pattern='.*',
-            day='2017-08-17',
-            min_posts=400,
-        )
-
-
 def test_pushshift_reddit() -> None:
     run_single_platform_test(
             source='pushshift',
