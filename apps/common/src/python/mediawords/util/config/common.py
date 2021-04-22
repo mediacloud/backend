@@ -4,6 +4,7 @@ from typing import List, Pattern, Optional
 
 from mediawords.util.config import env_value, McConfigException
 from mediawords.util.parse_json import decode_json, McDecodeJSONException
+from mediawords.util.perl import decode_object_from_bytes_if_needed
 from mediawords.util.log import create_logger
 
 log = create_logger(__name__)
@@ -12,54 +13,110 @@ log = create_logger(__name__)
 class ConnectRetriesConfig(object):
     """Connect retries configuration."""
 
-    @staticmethod
-    def sleep_between_attempts() -> float:
-        """Seconds (or parts of second) to sleep between retries."""
-        return 1.0
+    __slots__ = [
+        '__sleep_between_attempts',
+        '__max_attempts',
+        '__fatal_error_on_failure',
+    ]
 
-    @staticmethod
-    def max_attempts() -> int:
+    def __init__(self,
+                 sleep_between_attempts: float = 1.0,
+                 max_attempts: int = 60,
+                 fatal_error_on_failure: bool = True):
+
+        if isinstance(sleep_between_attempts, bytes):
+            sleep_between_attempts = decode_object_from_bytes_if_needed(sleep_between_attempts)
+        if isinstance(max_attempts, bytes):
+            max_attempts = decode_object_from_bytes_if_needed(max_attempts)
+        if isinstance(fatal_error_on_failure, bytes):
+            fatal_error_on_failure = decode_object_from_bytes_if_needed(fatal_error_on_failure)
+
+        self.__sleep_between_attempts = float(sleep_between_attempts)
+        self.__max_attempts = int(max_attempts)
+        self.__fatal_error_on_failure = bool(fatal_error_on_failure)
+
+    def sleep_between_attempts(self) -> float:
+        """Seconds (or parts of second) to sleep between retries."""
+        return self.__sleep_between_attempts
+
+    def max_attempts(self) -> int:
         """Max. number of attempts to connect.
 
         Must be positive (we want to try connecting at least one time).
         """
-        return 60
+        return self.__max_attempts
+
+    def fatal_error_on_failure(self) -> bool:
+        """
+        Return True if connect_to_db() should call fatal_error() and thus stop the whole process when giving up.
+
+        True is a useful value in production when you might want the process that's unable to connect to the database to
+        just die. However, you might choose to return False here too if the caller is prepared to handle connection
+        failures more gracefully (e.g. Temporal's retries).
+        """
+        return self.__fatal_error_on_failure
 
 
 class DatabaseConfig(object):
     """PostgreSQL database configuration."""
 
-    @staticmethod
-    def hostname() -> str:
+    __slots__ = [
+        '__hostname',
+        '__port',
+        '__database_name',
+        '__username',
+        '__password',
+        '__retries',
+    ]
+
+    def __init__(self,
+                 hostname: str = 'postgresql-pgbouncer',
+                 port: int = 6432,
+                 database_name: str = 'mediacloud',
+                 username: str = 'mediacloud',
+                 password: str = 'mediacloud',
+                 retries: Optional[ConnectRetriesConfig] = None):
+        if not retries:
+            retries = ConnectRetriesConfig()
+
+        if isinstance(port, bytes):
+            port = decode_object_from_bytes_if_needed(port)
+
+        hostname = decode_object_from_bytes_if_needed(hostname)
+        database_name = decode_object_from_bytes_if_needed(database_name)
+        username = decode_object_from_bytes_if_needed(username)
+        password = decode_object_from_bytes_if_needed(password)
+
+        self.__hostname = hostname
+        self.__port = int(port)
+        self.__database_name = database_name
+        self.__username = username
+        self.__password = password
+        self.__retries = retries
+
+    def hostname(self) -> str:
         """Hostname."""
-        # Container's name from docker-compose.yml
-        return "postgresql-pgbouncer"
+        return self.__hostname
 
-    @staticmethod
-    def port() -> int:
+    def port(self) -> int:
         """Port."""
-        # Container's exposed port from docker-compose.yml
-        return 6432
+        return self.__port
 
-    @staticmethod
-    def database_name() -> str:
+    def database_name(self) -> str:
         """Database name."""
-        return "mediacloud"
+        return self.__database_name
 
-    @staticmethod
-    def username() -> str:
+    def username(self) -> str:
         """Username."""
-        return "mediacloud"
+        return self.__username
 
-    @staticmethod
-    def password() -> str:
+    def password(self) -> str:
         """Password."""
-        return "mediacloud"
+        return self.__password
 
-    @staticmethod
-    def retries() -> ConnectRetriesConfig:
+    def retries(self) -> ConnectRetriesConfig:
         """connect_to_db() retries configuration."""
-        return ConnectRetriesConfig()
+        return self.__retries
 
 
 class AmazonS3DownloadsConfig(object):
