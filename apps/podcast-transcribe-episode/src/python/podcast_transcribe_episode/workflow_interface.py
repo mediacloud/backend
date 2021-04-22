@@ -5,6 +5,7 @@
 # FIXME remove "Podcast(Transcribe)..." prefix from everywhere
 # FIXME transient vs non-transient errors
 # FIXME increase retries and timeouts
+# FIXME what if one or more configuration environment variables are unset?
 
 import dataclasses
 from datetime import timedelta
