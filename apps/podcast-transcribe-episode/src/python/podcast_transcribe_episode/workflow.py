@@ -5,7 +5,12 @@ from typing import Optional
 # noinspection PyPackageRequirements
 from temporal.workflow import Workflow
 
-from mediawords.db import connect_to_db
+from mediawords.db import connect_to_db, DatabaseHandler
+from mediawords.dbi.downloads import create_download_for_new_story
+from mediawords.dbi.downloads.store import store_content
+from mediawords.job import JobBroker
+from mediawords.util.parse_json import encode_json, decode_json
+from mediawords.util.config.common import DatabaseConfig, ConnectRetriesConfig, RabbitMQConfig
 from mediawords.util.identify_language import identification_would_be_reliable, language_code_for_text
 from mediawords.util.parse_html import html_strip
 
@@ -13,7 +18,7 @@ from .config import (
     PodcastGCRawEnclosuresBucketConfig,
     PodcastGCTranscodedEpisodesBucketConfig,
     MAX_ENCLOSURE_SIZE,
-    MAX_DURATION,
+    MAX_DURATION, PodcastGCTranscriptsBucketConfig,
 )
 from .exceptions import SoftException, HardException
 from .fetch_episode.enclosure import podcast_viable_enclosure_for_story, StoryEnclosure
@@ -21,13 +26,35 @@ from .fetch_episode.fetch_url import fetch_big_file
 from .fetch_episode.gcs_store import GCSStore
 from .fetch_episode.bcp47_lang import iso_639_1_code_to_bcp_47_identifier
 from .fetch_episode.media_info import MediaFileInfoAudioStream, media_file_info
-from .fetch_episode.speech_api import submit_transcribe_operation
+from .fetch_episode.speech_api import submit_transcribe_operation, fetch_transcript
 from .fetch_episode.transcode import maybe_transcode_file
+from .fetch_episode.transcript import Transcript
 from .shared import (
     AbstractPodcastTranscribeWorkflow,
     AbstractPodcastTranscribeActivities,
-    RETRY_PARAMETERS,
+    DEFAULT_RETRY_PARAMETERS,
 )
+
+
+def connect_to_db_or_raise() -> DatabaseHandler:
+    """
+    Shorthand for connect_to_db() with its own retries and fatal_error() disabled.
+
+    By default, connect_to_db() will attempt connecting to PostgreSQL a few times and would call fatal_error() on
+    failures and stop the whole process.
+
+    We leave retrying and failure handling to Temporal here so we disable all of this functionality.
+
+    FIXME probably move to "common".
+    """
+    return connect_to_db(
+        db_config=DatabaseConfig(
+            retries=ConnectRetriesConfig(
+                max_attempts=1,
+                fatal_error_on_failure=False,
+            )
+        )
+    )
 
 
 # FIXME in the example the activities implementation *was not* inheriting from the interface
@@ -35,10 +62,7 @@ class PodcastTranscribeActivities(AbstractPodcastTranscribeActivities):
     """Activities implementation."""
 
     async def identify_story_bcp47_language_code(self, stories_id: int) -> Optional[str]:
-        try:
-            db = connect_to_db()
-        except Exception as ex:
-            raise SoftException(f"Unable to connect to the database: {ex}")
+        db = connect_to_db_or_raise()
 
         try:
             story = db.find_by_id(table='stories', object_id=stories_id)
@@ -67,10 +91,7 @@ class PodcastTranscribeActivities(AbstractPodcastTranscribeActivities):
 
     async def determine_best_enclosure(self, stories_id: int) -> Optional[StoryEnclosure]:
 
-        try:
-            db = connect_to_db()
-        except Exception as ex:
-            raise SoftException(f"Unable to connect to the database: {ex}")
+        db = connect_to_db_or_raise()
 
         # Find the enclosure that might work the best
         best_enclosure = podcast_viable_enclosure_for_story(db=db, stories_id=stories_id)
@@ -156,6 +177,71 @@ class PodcastTranscribeActivities(AbstractPodcastTranscribeActivities):
 
         return speech_operation_id
 
+    async def fetch_store_raw_transcript_json(self, stories_id: int, speech_operation_id: str) -> None:
+        transcript = fetch_transcript(speech_operation_id=speech_operation_id)
+        if transcript is None:
+            raise SoftException(f"Speech operation with ID '{speech_operation_id}' hasn't been completed yet.")
+
+        transcript_json = encode_json(transcript.to_dict())
+
+        with tempfile.TemporaryDirectory(prefix='fetch_store_raw_transcript_json') as temp_dir:
+            transcript_json_path = os.path.join(temp_dir, 'transcript.json')
+
+            with open(transcript_json_path, 'w') as f:
+                f.write(transcript_json)
+
+            gcs = GCSStore(bucket_config=PodcastGCTranscriptsBucketConfig())
+            gcs.upload_object(local_file_path=transcript_json_path, object_id=str(stories_id))
+
+    async def fetch_store_transcript(self, stories_id: int) -> None:
+        with tempfile.TemporaryDirectory(prefix='fetch_store_transcript') as temp_dir:
+            transcript_json_path = os.path.join(temp_dir, 'transcript.json')
+
+            gcs = GCSStore(bucket_config=PodcastGCTranscriptsBucketConfig())
+            gcs.download_object(object_id=str(stories_id), local_file_path=transcript_json_path)
+
+            with open(transcript_json_path, 'w') as f:
+                transcript_json = f.read()
+
+        transcript = Transcript.from_dict(decode_json(transcript_json))
+
+        db = connect_to_db_or_raise()
+
+        story = db.find_by_id(table='stories', object_id=stories_id)
+
+        feed = db.query("""
+            SELECT *
+            FROM feeds
+            WHERE feeds_id = (
+                SELECT feeds_id
+                FROM feeds_stories_map
+                WHERE stories_id = %(stories_id)s
+            )
+        """, {
+            'stories_id': stories_id,
+        }).hash()
+
+        download = create_download_for_new_story(db=db, story=story, feed=feed)
+
+        text = transcript.download_text_from_transcript()
+
+        # Store as a raw download and then let "extract-and-vector" app "extract" the stored text later
+        store_content(db=db, download=download, content=text)
+
+    async def add_to_extraction_queue(self, stories_id: int) -> None:
+        job_broker = JobBroker(
+            queue_name='MediaWords::Job::ExtractAndVector',
+            rabbitmq_config=RabbitMQConfig(
+
+                # Keep RabbitMQ's timeout smaller than the action's "start_to_close_timeout"
+                timeout=60,
+
+                # Disable retries as Temporal will be the one that does all the retrying
+                retries=None,
+            ),
+        )
+        job_broker.add_to_queue(stories_id=stories_id)
+
 
 class PodcastTranscribeWorkflow(AbstractPodcastTranscribeWorkflow):
     """Workflow implementation."""
@@ -163,7 +249,7 @@ class PodcastTranscribeWorkflow(AbstractPodcastTranscribeWorkflow):
     def __init__(self):
         self.activities: AbstractPodcastTranscribeActivities = Workflow.new_activity_stub(
             activities_cls=AbstractPodcastTranscribeActivities,
-            retry_parameters=RETRY_PARAMETERS,
+            retry_parameters=DEFAULT_RETRY_PARAMETERS,
         )
 
     async def transcribe_episode(self, stories_id: int) -> None:
@@ -203,3 +289,5 @@ class PodcastTranscribeWorkflow(AbstractPodcastTranscribeWorkflow):
         )
 
         await self.activities.fetch_store_transcript(stories_id=stories_id)
+
+        await self.activities.add_to_extraction_queue(stories_id=stories_id)

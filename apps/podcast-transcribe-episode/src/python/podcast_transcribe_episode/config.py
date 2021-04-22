@@ -54,3 +54,13 @@ class PodcastGCTranscodedEpisodesBucketConfig(AbstractPodcastGCBucketConfig):
 
     def path_prefix(self) -> str:
         return env_value(name='MC_PODCAST_TRANSCODED_EPISODES_PATH_PREFIX')
+
+
+class PodcastGCTranscriptsBucketConfig(AbstractPodcastGCBucketConfig):
+    """Configuration for GCS bucket where JSON transcripts will be stored."""
+
+    def bucket_name(self) -> str:
+        return env_value(name='MC_PODCAST_TRANSCRIPTS_BUCKET_NAME')
+
+    def path_prefix(self) -> str:
+        return env_value(name='MC_PODCAST_TRANSCRIPTS_PATH_PREFIX')

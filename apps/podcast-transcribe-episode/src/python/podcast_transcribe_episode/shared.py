@@ -1,10 +1,10 @@
-# FIXME remove unused tables
+# FIXME remove unused tables (including migrations)
 # FIXME post-init validation of dataclasses (https://docs.python.org/3/library/dataclasses.html#post-init-processing)
 # FIXME workflow logger
 # FIXME if something's wrong (e.g. the episode doesn't look valid), should the workflow succeed or fail?
 # FIXME remove "Podcast(Transcribe)..." prefix from everywhere
 # FIXME transient vs non-transient errors
-# FIXME don't exit(1) if connect_to_db() fails
+# FIXME increase retries and timeouts
 
 import dataclasses
 from datetime import timedelta
@@ -25,8 +25,7 @@ TASK_QUEUE = "podcast-transcribe-episode"
 NAMESPACE = "default"
 """Temporal namespace."""
 
-# FIXME different retry parameters for various actions
-RETRY_PARAMETERS = RetryParameters(
+DEFAULT_RETRY_PARAMETERS = RetryParameters(
 
     # InitialInterval is a delay before the first retry.
     initial_interval=timedelta(seconds=1),
@@ -79,7 +78,7 @@ class AbstractPodcastTranscribeActivities(object):
         # (https://docs.temporal.io/docs/concept-activities/#long-running-activities)
         # heartbeat_timeout=None,
 
-        retry_parameters=RETRY_PARAMETERS,
+        retry_parameters=DEFAULT_RETRY_PARAMETERS,
     )
     async def identify_story_bcp47_language_code(self, stories_id: int) -> Optional[str]:
         """
@@ -98,7 +97,7 @@ class AbstractPodcastTranscribeActivities(object):
         start_to_close_timeout=timedelta(seconds=60),
         # schedule_to_close_timeout=None,
         # heartbeat_timeout=None,
-        retry_parameters=RETRY_PARAMETERS,
+        retry_parameters=DEFAULT_RETRY_PARAMETERS,
     )
     async def determine_best_enclosure(self, stories_id: int) -> Optional[StoryEnclosure]:
         """
@@ -125,7 +124,7 @@ class AbstractPodcastTranscribeActivities(object):
         # heartbeat_timeout=None,
 
         retry_parameters=dataclasses.replace(
-            RETRY_PARAMETERS,
+            DEFAULT_RETRY_PARAMETERS,
 
             # Wait for a minute before trying again
             initial_interval=timedelta(minutes=1),
@@ -162,7 +161,7 @@ class AbstractPodcastTranscribeActivities(object):
         # heartbeat_timeout=None,
 
         retry_parameters=dataclasses.replace(
-            RETRY_PARAMETERS,
+            DEFAULT_RETRY_PARAMETERS,
 
             # Wait for a minute before trying again (GCS might be down)
             initial_interval=timedelta(minutes=1),
@@ -198,7 +197,7 @@ class AbstractPodcastTranscribeActivities(object):
         # heartbeat_timeout=None,
 
         retry_parameters=dataclasses.replace(
-            RETRY_PARAMETERS,
+            DEFAULT_RETRY_PARAMETERS,
 
             # Given that the thing is costly, wait a whole hour before retrying anything
             initial_interval=timedelta(hours=1),
@@ -214,6 +213,14 @@ class AbstractPodcastTranscribeActivities(object):
                                           stories_id: int,
                                           episode_metadata: MediaFileInfoAudioStream,
                                           bcp47_language_code: str) -> str:
+        """
+        Submit a long-running transcription operation to the Speech API.
+
+        :param stories_id: Story ID of the episode which should be submitted for transcribing.
+        :param episode_metadata: Metadata of transcoded episode.
+        :param bcp47_language_code: BCP 47 language code of the story.
+        :return: Speech API operation ID for the transcription operation.
+        """
         raise NotImplementedError
 
     @activity_method(
@@ -222,9 +229,17 @@ class AbstractPodcastTranscribeActivities(object):
         start_to_close_timeout=timedelta(seconds=60),
         # schedule_to_close_timeout=None,
         # heartbeat_timeout=None,
-        retry_parameters=RETRY_PARAMETERS,
+        retry_parameters=DEFAULT_RETRY_PARAMETERS,
     )
     async def fetch_store_raw_transcript_json(self, stories_id: int, speech_operation_id: str) -> None:
+        """
+        Fetch a finished transcription and store the raw JSON of it into a GCS bucket.
+
+        Raises an exception if the transcription operation is not finished yet.
+
+        :param stories_id: Story ID the episode of which should be submitted for transcribing.
+        :param speech_operation_id: Speech API operation ID.
+        """
         raise NotImplementedError
 
     @activity_method(
@@ -233,9 +248,33 @@ class AbstractPodcastTranscribeActivities(object):
         start_to_close_timeout=timedelta(seconds=60),
         # schedule_to_close_timeout=None,
         # heartbeat_timeout=None,
-        retry_parameters=RETRY_PARAMETERS,
+        retry_parameters=DEFAULT_RETRY_PARAMETERS,
     )
     async def fetch_store_transcript(self, stories_id: int) -> None:
+        """
+        Fetch a raw JSON transcript from a GCS bucket, store it to "download_texts".
+
+        :param stories_id: Story ID the transcript of which should be stored into the database.
+        """
+        raise NotImplementedError
+
+    @activity_method(
+        task_queue=TASK_QUEUE,
+        # schedule_to_start_timeout=None,
+
+        # FIXME add timeout to add_to_queue() otherwise it will wait indefinitely
+        start_to_close_timeout=timedelta(minutes=2),
+
+        # schedule_to_close_timeout=None,
+        # heartbeat_timeout=None,
+        retry_parameters=DEFAULT_RETRY_PARAMETERS,
+    )
+    async def add_to_extraction_queue(self, stories_id: int) -> None:
+        """
+        Add a story to the extraction queue.
+
+        :param stories_id: Story ID to be added to the extraction queue.
+        """
         raise NotImplementedError
 
 

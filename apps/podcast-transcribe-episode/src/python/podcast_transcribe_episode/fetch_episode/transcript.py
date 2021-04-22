@@ -66,3 +66,10 @@ class Transcript(object):
     @classmethod
     def from_dict(cls, input_dict: Dict[str, Any]) -> 'Transcript':
         return cls(utterances=[Utterance.from_dict(x) for x in input_dict['utterances']])
+
+    def download_text_from_transcript(self) -> str:
+        best_utterance_alternatives = []
+        for utterance in self.utterances:
+            best_utterance_alternatives.append(utterance.best_alternative.text)
+        text = "\n\n".join(best_utterance_alternatives)
+        return text
