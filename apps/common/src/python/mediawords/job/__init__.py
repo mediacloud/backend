@@ -10,7 +10,7 @@ from kombu import Exchange, Queue
 from mediawords.db import connect_to_db, DatabaseHandler
 from mediawords.db.locks import get_session_lock, release_session_lock
 from mediawords.job.states import STATE_QUEUED, STATE_RUNNING, STATE_COMPLETED, STATE_ERROR
-from mediawords.util.config.common import CommonConfig
+from mediawords.util.config.common import CommonConfig, RabbitMQConfig
 from mediawords.util.log import create_logger
 from mediawords.util.parse_json import encode_json, decode_json
 from mediawords.util.perl import decode_object_from_bytes_if_needed
@@ -382,7 +382,7 @@ class JobBroker(object):
         '__queue_name',
     ]
 
-    def __init__(self, queue_name: str):
+    def __init__(self, queue_name: str, rabbitmq_config: Optional[RabbitMQConfig] = None):
         """
         Create job broker object.
 
@@ -397,7 +397,9 @@ class JobBroker(object):
 
         config = CommonConfig()
 
-        rabbitmq_config = config.rabbitmq()
+        if not rabbitmq_config:
+            rabbitmq_config = config.rabbitmq()
+
         broker_uri = 'amqp://{username}:{password}@{hostname}:{port}/{vhost}'.format(
             username=rabbitmq_config.username(),
             password=rabbitmq_config.password(),
@@ -439,6 +441,19 @@ class JobBroker(object):
         self.__app.conf.worker_prefetch_multiplier = 1
 
         self.__app.conf.worker_max_tasks_per_child = 1000
+
+        retries_config = rabbitmq_config.retries()
+        if retries_config:
+            self.__app.task_publish_retry = True
+            self.__app.task_publish_retry_policy = {
+                'max_retries': retries_config.max_retries(),
+                'interval_start': retries_config.interval_start(),
+                'interval_step': retries_config.interval_step(),
+                'interval_max': retries_config.interval_max(),
+            }
+
+        else:
+            self.__app.task_publish_retry = False
 
         queue = Queue(
             name=queue_name,

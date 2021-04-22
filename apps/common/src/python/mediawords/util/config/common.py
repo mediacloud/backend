@@ -1,6 +1,6 @@
 import collections
 import re
-from typing import List, Pattern, Optional
+from typing import List, Pattern, Optional, Union
 
 from mediawords.util.config import env_value, McConfigException
 from mediawords.util.parse_json import decode_json, McDecodeJSONException
@@ -143,41 +143,117 @@ class AmazonS3DownloadsConfig(object):
         return env_value('MC_DOWNLOADS_AMAZON_S3_DIRECTORY_NAME', allow_empty_string=True)
 
 
+class RabbitMQRetriesConfig(object):
+    """
+    RabbitMQ retries configuration.
+
+    https://docs.celeryproject.org/en/v4.4.7/userguide/calling.html#calling-retry
+    """
+
+    __slots__ = [
+        '__max_retries',
+        '__interval_start',
+        '__interval_step',
+        '__interval_max',
+    ]
+
+    def __init__(self,
+                 max_retries: Optional[int] = 3,
+                 interval_start: Union[int, float] = 0,
+                 interval_step: Union[int, float] = 0.2,
+                 interval_max: Union[int, float] = 0.2):
+        if isinstance(max_retries, bytes):
+            max_retries = decode_object_from_bytes_if_needed(max_retries)
+        if isinstance(interval_start, bytes):
+            interval_start = decode_object_from_bytes_if_needed(interval_start)
+        if isinstance(interval_step, bytes):
+            interval_step = decode_object_from_bytes_if_needed(interval_step)
+        if isinstance(interval_max, bytes):
+            interval_max = decode_object_from_bytes_if_needed(interval_max)
+
+        self.__max_retries = None if max_retries is None else int(max_retries)  # We want to preserve None here
+        self.__interval_start = float(interval_start)
+        self.__interval_step = float(interval_step)
+        self.__interval_max = float(interval_max)
+
+    def max_retries(self) -> Optional[int]:
+        return self.__max_retries
+
+    def interval_start(self) -> float:
+        return self.__interval_start
+
+    def interval_step(self) -> float:
+        return self.__interval_step
+
+    def interval_max(self) -> float:
+        return self.__interval_max
+
+
 class RabbitMQConfig(object):
     """RabbitMQ (Celery broker) client configuration."""
 
-    @staticmethod
-    def hostname() -> str:
+    __slots__ = [
+        '__hostname',
+        '__port',
+        '__username',
+        '__password',
+        '__vhost',
+        '__timeout',
+        '__retries',
+    ]
+
+    def __init__(self,
+                 hostname: str = 'rabbitmq-server',
+                 port: int = 5672,
+                 username: str = 'mediacloud',
+                 password: str = 'mediacloud',
+                 vhost: str = '/mediacloud',
+                 timeout: int = 60,
+                 retries: Optional[RabbitMQRetriesConfig] = None):
+        hostname = decode_object_from_bytes_if_needed(hostname)
+        if isinstance(port, bytes):
+            port = decode_object_from_bytes_if_needed(port)
+        username = decode_object_from_bytes_if_needed(username)
+        password = decode_object_from_bytes_if_needed(password)
+        vhost = decode_object_from_bytes_if_needed(vhost)
+        if isinstance(timeout, bytes):
+            timeout = decode_object_from_bytes_if_needed(timeout)
+
+        self.__hostname = hostname
+        self.__port = int(port)
+        self.__username = username
+        self.__password = password
+        self.__vhost = vhost
+        self.__timeout = int(timeout)
+        self.__retries = retries
+
+    def hostname(self) -> str:
         """Hostname."""
-        # Container's name from docker-compose.yml
-        return "rabbitmq-server"
+        return self.__hostname
 
-    @staticmethod
-    def port() -> int:
+    def port(self) -> int:
         """Port."""
-        # Container's exposed port from docker-compose.yml
-        return 5672
+        return self.__port
 
-    @staticmethod
-    def username() -> str:
+    def username(self) -> str:
         """Username."""
-        return "mediacloud"
+        return self.__username
 
-    @staticmethod
-    def password() -> str:
+    def password(self) -> str:
         """Password."""
-        return "mediacloud"
+        return self.__password
 
-    @staticmethod
-    def vhost() -> str:
+    def vhost(self) -> str:
         """Virtual host."""
-        return "/mediacloud"
+        return self.__vhost
 
-    @staticmethod
-    def timeout() -> int:
+    def timeout(self) -> int:
         """Timeout."""
-        # FIXME possibly hardcode it somewhere
-        return 60
+        return self.__timeout
+
+    def retries(self) -> Optional[RabbitMQRetriesConfig]:
+        """Retry policy; if None, retries are disabled."""
+        return self.__retries
 
 
 class SMTPConfig(object):
