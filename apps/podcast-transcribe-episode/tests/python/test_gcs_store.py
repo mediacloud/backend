@@ -2,12 +2,12 @@ import os
 import tempfile
 from unittest import TestCase
 
+# noinspection PyPackageRequirements
 import pytest
 
-from podcast_fetch_episode.config import PodcastFetchEpisodeConfig
-from podcast_fetch_episode.exceptions import McPodcastMisconfiguredGCSException
+from podcast_transcribe_episode.exceptions import McPodcastMisconfiguredGCSException
 
-from podcast_fetch_episode.gcs_store import GCSStore
+from podcast_transcribe_episode.gcs_store import GCSStore
 
 from .config_random_gcs_prefix import RandomPathPrefixConfig
 

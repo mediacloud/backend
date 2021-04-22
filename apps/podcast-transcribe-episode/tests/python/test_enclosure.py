@@ -9,7 +9,7 @@ from mediawords.test.db.create import (
     create_test_story,
 )
 
-from podcast_fetch_episode.enclosure import podcast_viable_enclosure_for_story, StoryEnclosure
+from podcast_transcribe_episode.enclosure import podcast_viable_enclosure_for_story, StoryEnclosure
 
 
 @dataclasses.dataclass

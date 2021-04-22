@@ -2,16 +2,13 @@ import hashlib
 import inspect
 import os
 
+# noinspection PyPackageRequirements
 import pytest
 
-from podcast_fetch_episode.audio_codecs import AbstractAudioCodec
-from podcast_fetch_episode.exceptions import McPodcastFileIsInvalidException
-from podcast_fetch_episode.media_file import (
-    MediaFileInfo,
-    media_file_info,
-    TranscodeTempDirAndFile,
-    transcode_media_file_if_needed,
-)
+from podcast_transcribe_episode.audio_codecs import AbstractAudioCodec
+from podcast_transcribe_episode.exceptions import McPodcastFileIsInvalidException
+from podcast_transcribe_episode.media_info import media_file_info, MediaFileInfo
+from podcast_transcribe_episode.transcode import maybe_transcode_file
 
 MEDIA_SAMPLES_PATH = '/opt/mediacloud/tests/data/media-samples/samples/'
 assert os.path.isdir(MEDIA_SAMPLES_PATH), f"Directory with media samples '{MEDIA_SAMPLES_PATH}' should exist."
@@ -94,16 +91,16 @@ def test_transcode_media_file_if_needed():
 
             # Media file with no audio
             with pytest.raises(McPodcastFileIsInvalidException):
-                transcode_media_file_if_needed(input_media_file=input_media_file)
+                maybe_transcode_file(input_media_file=input_media_file)
 
         elif '-invalid' in filename:
 
             # Invalid media file
             with pytest.raises(McPodcastFileIsInvalidException):
-                transcode_media_file_if_needed(input_media_file=input_media_file)
+                maybe_transcode_file(input_media_file=input_media_file)
 
         else:
-            output_media_file = transcode_media_file_if_needed(input_media_file=input_media_file)
+            output_media_file = maybe_transcode_file(input_media_file=input_media_file)
 
             assert output_media_file, f"Output media file was set for filename '{filename}'."
 

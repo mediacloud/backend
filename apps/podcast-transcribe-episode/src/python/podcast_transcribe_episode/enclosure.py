@@ -1,5 +1,5 @@
 import dataclasses
-from typing import Optional
+from typing import Optional, Dict, Any
 
 # noinspection PyPackageRequirements
 from furl import furl
@@ -59,6 +59,15 @@ class StoryEnclosure(object):
                 return True
         return False
 
+    @classmethod
+    def from_db_row(cls, db_row: Dict[str, Any]) -> 'StoryEnclosure':
+        return cls(
+            story_enclosures_id=db_row['story_enclosures_id'],
+            url=db_row['url'],
+            mime_type=db_row['mime_type'],
+            length=db_row['length'],
+        )
+
 
 def podcast_viable_enclosure_for_story(db: DatabaseHandler, stories_id: int) -> Optional[StoryEnclosure]:
     """Fetch all enclosures, find and return the one that looks like a podcast episode the most (or None)."""
@@ -82,14 +91,7 @@ def podcast_viable_enclosure_for_story(db: DatabaseHandler, stories_id: int) -> 
 
     for enclosure_dict in story_enclosures_dicts:
         if is_http_url(enclosure_dict['url']):
-            story_enclosures.append(
-                StoryEnclosure(
-                    story_enclosures_id=enclosure_dict['story_enclosures_id'],
-                    url=enclosure_dict['url'],
-                    mime_type=enclosure_dict['mime_type'],
-                    length=enclosure_dict['length'],
-                )
-            )
+            story_enclosures.append(StoryEnclosure.from_db_row(enclosure_dict))
 
     chosen_enclosure = None
 

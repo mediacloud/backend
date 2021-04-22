@@ -4,13 +4,14 @@ import tempfile
 from typing import Union
 from unittest import TestCase
 
+# noinspection PyPackageRequirements
 import pytest
 
 from mediawords.test.hash_server import HashServer
 from mediawords.util.network import random_unused_port
 
-from podcast_fetch_episode.exceptions import McPodcastFileFetchFailureException
-from podcast_fetch_episode.fetch_url import fetch_big_file
+from podcast_transcribe_episode.exceptions import McPodcastFileFetchFailureException
+from podcast_transcribe_episode.fetch_url import fetch_big_file
 
 
 class TestFetchBigFile(TestCase):

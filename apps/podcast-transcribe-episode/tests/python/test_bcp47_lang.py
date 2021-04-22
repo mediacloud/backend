@@ -1,5 +1,5 @@
 # noinspection PyProtectedMember
-from podcast_fetch_episode.bcp47_lang import _country_tld_from_url, iso_639_1_code_to_bcp_47_identifier
+from podcast_transcribe_episode.bcp47_lang import _country_tld_from_url, iso_639_1_code_to_bcp_47_identifier
 
 
 def test_country_tld_from_url():
