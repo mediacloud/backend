@@ -3,7 +3,7 @@ import os
 
 from mediawords.util.log import create_logger
 
-from ..exceptions import McPodcastMisconfiguredTranscoderException, McPodcastFileIsInvalidException
+from .exceptions import McPodcastMisconfiguredTranscoderException, McPodcastFileIsInvalidException
 from .media_info import media_file_info
 
 log = create_logger(__name__)

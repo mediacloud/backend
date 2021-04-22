@@ -11,7 +11,6 @@ class SoftException(_AbstractPodcastTranscribeEpisodeException):
     pass
 
 
-
 class McPodcastFileFetchFailureException(SoftException):
     """Exception thrown when we're unable to fetch the downloaded file for whatever reason."""
     pass

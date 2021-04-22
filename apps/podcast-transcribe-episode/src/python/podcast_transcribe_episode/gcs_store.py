@@ -10,8 +10,8 @@ from google.cloud.storage import Blob, Bucket
 
 from mediawords.util.log import create_logger
 
-from ..config import AbstractPodcastGCBucketConfig, PodcastGCAuthConfig
-from ..exceptions import McPodcastGCSStoreFailureException, McPodcastMisconfiguredGCSException, SoftException
+from .config import AbstractPodcastGCBucketConfig, PodcastGCAuthConfig
+from .exceptions import McPodcastGCSStoreFailureException, McPodcastMisconfiguredGCSException, SoftException
 
 log = create_logger(__name__)
 

@@ -5,12 +5,11 @@ from typing import Optional
 # noinspection PyPackageRequirements
 from temporal.workflow import Workflow
 
-from mediawords.db import connect_to_db, DatabaseHandler
 from mediawords.dbi.downloads import create_download_for_new_story
 from mediawords.dbi.downloads.store import store_content
 from mediawords.job import JobBroker
 from mediawords.util.parse_json import encode_json, decode_json
-from mediawords.util.config.common import DatabaseConfig, ConnectRetriesConfig, RabbitMQConfig
+from mediawords.util.config.common import RabbitMQConfig
 from mediawords.util.identify_language import identification_would_be_reliable, language_code_for_text
 from mediawords.util.parse_html import html_strip
 
@@ -18,43 +17,24 @@ from .config import (
     PodcastGCRawEnclosuresBucketConfig,
     PodcastGCTranscodedEpisodesBucketConfig,
     MAX_ENCLOSURE_SIZE,
-    MAX_DURATION, PodcastGCTranscriptsBucketConfig,
+    MAX_DURATION,
+    PodcastGCTranscriptsBucketConfig,
 )
+from .db_or_raise import connect_to_db_or_raise
 from .exceptions import SoftException, HardException
-from .fetch_episode.enclosure import podcast_viable_enclosure_for_story, StoryEnclosure
-from .fetch_episode.fetch_url import fetch_big_file
-from .fetch_episode.gcs_store import GCSStore
-from .fetch_episode.bcp47_lang import iso_639_1_code_to_bcp_47_identifier
-from .fetch_episode.media_info import MediaFileInfoAudioStream, media_file_info
-from .fetch_episode.speech_api import submit_transcribe_operation, fetch_transcript
-from .fetch_episode.transcode import maybe_transcode_file
-from .fetch_episode.transcript import Transcript
-from .shared import (
+from .enclosure import podcast_viable_enclosure_for_story, StoryEnclosure
+from .fetch_url import fetch_big_file
+from .gcs_store import GCSStore
+from .bcp47_lang import iso_639_1_code_to_bcp_47_identifier
+from .media_info import MediaFileInfoAudioStream, media_file_info
+from .speech_api import submit_transcribe_operation, fetch_transcript
+from .transcode import maybe_transcode_file
+from .transcript import Transcript
+from .workflow_interface import (
     AbstractPodcastTranscribeWorkflow,
     AbstractPodcastTranscribeActivities,
     DEFAULT_RETRY_PARAMETERS,
 )
-
-
-def connect_to_db_or_raise() -> DatabaseHandler:
-    """
-    Shorthand for connect_to_db() with its own retries and fatal_error() disabled.
-
-    By default, connect_to_db() will attempt connecting to PostgreSQL a few times and would call fatal_error() on
-    failures and stop the whole process.
-
-    We leave retrying and failure handling to Temporal here so we disable all of this functionality.
-
-    FIXME probably move to "common".
-    """
-    return connect_to_db(
-        db_config=DatabaseConfig(
-            retries=ConnectRetriesConfig(
-                max_attempts=1,
-                fatal_error_on_failure=False,
-            )
-        )
-    )
 
 
 # FIXME in the example the activities implementation *was not* inheriting from the interface

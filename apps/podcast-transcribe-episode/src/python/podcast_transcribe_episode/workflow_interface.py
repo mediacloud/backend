@@ -16,8 +16,8 @@ from temporal.activity_method import activity_method, RetryParameters
 from temporal.workflow import workflow_method
 
 from .exceptions import HardException
-from .fetch_episode.enclosure import StoryEnclosure
-from .fetch_episode.media_info import MediaFileInfoAudioStream
+from .enclosure import StoryEnclosure
+from .media_info import MediaFileInfoAudioStream
 
 TASK_QUEUE = "podcast-transcribe-episode"
 """Temporal task queue."""

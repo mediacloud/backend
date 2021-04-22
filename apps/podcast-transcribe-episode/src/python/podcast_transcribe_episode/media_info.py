@@ -8,7 +8,7 @@ import ffmpeg
 
 from mediawords.util.log import create_logger
 
-from ..exceptions import McPodcastMisconfiguredTranscoderException, McPodcastFileIsInvalidException
+from .exceptions import McPodcastMisconfiguredTranscoderException, McPodcastFileIsInvalidException
 from .audio_codecs import (
     AbstractAudioCodec,
     Linear16AudioCodec,

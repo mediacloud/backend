@@ -17,8 +17,8 @@ from google.cloud.speech_v1p1beta1 import (
 from mediawords.util.log import create_logger
 
 from .transcript import Transcript, UtteranceAlternative, Utterance
-from ..config import PodcastGCAuthConfig
-from ..exceptions import (
+from .config import PodcastGCAuthConfig
+from .exceptions import (
     McPodcastMisconfiguredSpeechAPIException,
     McPodcastSpeechAPIRequestFailedException,
     McMisconfiguredSpeechAPIException,
