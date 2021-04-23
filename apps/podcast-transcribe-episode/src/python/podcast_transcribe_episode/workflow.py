@@ -229,7 +229,11 @@ class PodcastTranscribeWorkflow(AbstractPodcastTranscribeWorkflow):
     def __init__(self):
         self.activities: AbstractPodcastTranscribeActivities = Workflow.new_activity_stub(
             activities_cls=AbstractPodcastTranscribeActivities,
+
+            # FIXME if retry_parameters get set here, are they the defaults or do they override retries of individual
+            #  activities?
             retry_parameters=DEFAULT_RETRY_PARAMETERS,
+
         )
 
     async def transcribe_episode(self, stories_id: int) -> None:
