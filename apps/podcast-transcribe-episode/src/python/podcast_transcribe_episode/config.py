@@ -11,7 +11,7 @@ MAX_DURATION = 60 * 60 * 2
 """Max. podcast episode duration (in seconds) to submit for transcription."""
 
 
-class AbstractPodcastGCBucketConfig(object, metaclass=abc.ABCMeta):
+class AbstractGCBucketConfig(object, metaclass=abc.ABCMeta):
     """
     Configuration of a single GCS bucket.
     """
@@ -27,7 +27,7 @@ class AbstractPodcastGCBucketConfig(object, metaclass=abc.ABCMeta):
         raise NotImplementedError
 
 
-class PodcastGCAuthConfig(object):
+class GCAuthConfig(object):
     """Google Cloud (both Storage and Speech API) authentication configuration."""
 
     @classmethod
@@ -36,7 +36,7 @@ class PodcastGCAuthConfig(object):
         return file_with_env_value(name='MC_PODCAST_GC_AUTH_JSON_BASE64', encoded_with_base64=True)
 
 
-class PodcastGCRawEnclosuresBucketConfig(AbstractPodcastGCBucketConfig):
+class RawEnclosuresBucketConfig(AbstractGCBucketConfig):
     """Configuration for GCS bucket where raw enclosures will be stored."""
 
     def bucket_name(self) -> str:
@@ -46,7 +46,7 @@ class PodcastGCRawEnclosuresBucketConfig(AbstractPodcastGCBucketConfig):
         return env_value(name='MC_PODCAST_RAW_ENCLOSURES_PATH_PREFIX')
 
 
-class PodcastGCTranscodedEpisodesBucketConfig(AbstractPodcastGCBucketConfig):
+class TranscodedEpisodesBucketConfig(AbstractGCBucketConfig):
     """Configuration for GCS bucket where transcoded, Speech API-ready episodes will be stored."""
 
     def bucket_name(self) -> str:
@@ -56,7 +56,7 @@ class PodcastGCTranscodedEpisodesBucketConfig(AbstractPodcastGCBucketConfig):
         return env_value(name='MC_PODCAST_TRANSCODED_EPISODES_PATH_PREFIX')
 
 
-class PodcastGCTranscriptsBucketConfig(AbstractPodcastGCBucketConfig):
+class TranscriptsBucketConfig(AbstractGCBucketConfig):
     """Configuration for GCS bucket where JSON transcripts will be stored."""
 
     def bucket_name(self) -> str:

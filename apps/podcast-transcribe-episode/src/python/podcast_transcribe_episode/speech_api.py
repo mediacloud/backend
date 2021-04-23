@@ -17,7 +17,7 @@ from google.cloud.speech_v1p1beta1 import (
 from mediawords.util.log import create_logger
 
 from .transcript import Transcript, UtteranceAlternative, Utterance
-from .config import PodcastGCAuthConfig
+from .config import GCAuthConfig
 from .exceptions import (
     McPodcastMisconfiguredSpeechAPIException,
     McPodcastSpeechAPIRequestFailedException,
@@ -49,7 +49,7 @@ def submit_transcribe_operation(gs_uri: str,
     :return Google Speech API operation ID by which the transcription operation can be referred to.
     """
 
-    auth_config = PodcastGCAuthConfig()
+    auth_config = GCAuthConfig()
 
     try:
         client = SpeechClient.from_service_account_json(auth_config.gc_auth_json_file())
@@ -121,7 +121,7 @@ def fetch_transcript(speech_operation_id: str) -> Optional[Transcript]:
     if not speech_operation_id:
         raise McMisconfiguredSpeechAPIException(f"Speech operation ID is unset.")
 
-    auth_config = PodcastGCAuthConfig()
+    auth_config = GCAuthConfig()
 
     try:
         client = SpeechClient.from_service_account_json(auth_config.gc_auth_json_file())

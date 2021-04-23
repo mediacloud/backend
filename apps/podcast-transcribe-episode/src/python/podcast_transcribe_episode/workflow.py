@@ -14,15 +14,15 @@ from mediawords.util.identify_language import identification_would_be_reliable, 
 from mediawords.util.parse_html import html_strip
 
 from .config import (
-    PodcastGCRawEnclosuresBucketConfig,
-    PodcastGCTranscodedEpisodesBucketConfig,
+    RawEnclosuresBucketConfig,
+    TranscodedEpisodesBucketConfig,
     MAX_ENCLOSURE_SIZE,
     MAX_DURATION,
-    PodcastGCTranscriptsBucketConfig,
+    TranscriptsBucketConfig,
 )
 from .db_or_raise import connect_to_db_or_raise
 from .exceptions import SoftException, HardException
-from .enclosure import podcast_viable_enclosure_for_story, StoryEnclosure
+from .enclosure import viable_story_enclosure, StoryEnclosure
 from .fetch_url import fetch_big_file
 from .gcs_store import GCSStore
 from .bcp47_lang import iso_639_1_code_to_bcp_47_identifier
@@ -74,7 +74,7 @@ class PodcastTranscribeActivities(AbstractPodcastTranscribeActivities):
         db = connect_to_db_or_raise()
 
         # Find the enclosure that might work the best
-        best_enclosure = podcast_viable_enclosure_for_story(db=db, stories_id=stories_id)
+        best_enclosure = viable_story_enclosure(db=db, stories_id=stories_id)
         if not best_enclosure:
             # FIXME possibly return None here?
             raise SoftException(f"There were no viable enclosures found for story {stories_id}")
@@ -96,7 +96,7 @@ class PodcastTranscribeActivities(AbstractPodcastTranscribeActivities):
                 # Might happen with misconfigured webservers
                 raise SoftException(f"Fetched file {raw_enclosure_path} is empty.")
 
-            gcs = GCSStore(bucket_config=PodcastGCRawEnclosuresBucketConfig())
+            gcs = GCSStore(bucket_config=RawEnclosuresBucketConfig())
             gcs.upload_object(local_file_path=raw_enclosure_path, object_id=str(stories_id))
 
     async def fetch_transcode_store_episode(self, stories_id: int) -> MediaFileInfoAudioStream:
@@ -104,7 +104,7 @@ class PodcastTranscribeActivities(AbstractPodcastTranscribeActivities):
         with tempfile.TemporaryDirectory(prefix='fetch_transcode_store_episode') as temp_dir:
             raw_enclosure_path = os.path.join(temp_dir, 'raw_enclosure')
 
-            gcs_raw_enclosures = GCSStore(bucket_config=PodcastGCRawEnclosuresBucketConfig())
+            gcs_raw_enclosures = GCSStore(bucket_config=RawEnclosuresBucketConfig())
             gcs_raw_enclosures.download_object(
                 object_id=str(stories_id),
                 local_file_path=raw_enclosure_path,
@@ -126,7 +126,7 @@ class PodcastTranscribeActivities(AbstractPodcastTranscribeActivities):
 
             del raw_enclosure_path
 
-            gcs_transcoded_episodes = GCSStore(bucket_config=PodcastGCTranscodedEpisodesBucketConfig())
+            gcs_transcoded_episodes = GCSStore(bucket_config=TranscodedEpisodesBucketConfig())
             gcs_transcoded_episodes.upload_object(local_file_path=transcoded_episode_path, object_id=str(stories_id))
 
             # (Re)read the properties of either the original or the transcoded file
@@ -146,7 +146,7 @@ class PodcastTranscribeActivities(AbstractPodcastTranscribeActivities):
         if not episode_metadata.audio_codec_class:
             raise HardException("Best audio stream doesn't have audio class set")
 
-        gcs_transcoded_episodes = GCSStore(bucket_config=PodcastGCTranscodedEpisodesBucketConfig())
+        gcs_transcoded_episodes = GCSStore(bucket_config=TranscodedEpisodesBucketConfig())
         gs_uri = gcs_transcoded_episodes.object_uri(object_id=str(stories_id))
 
         speech_operation_id = submit_transcribe_operation(
@@ -170,14 +170,14 @@ class PodcastTranscribeActivities(AbstractPodcastTranscribeActivities):
             with open(transcript_json_path, 'w') as f:
                 f.write(transcript_json)
 
-            gcs = GCSStore(bucket_config=PodcastGCTranscriptsBucketConfig())
+            gcs = GCSStore(bucket_config=TranscriptsBucketConfig())
             gcs.upload_object(local_file_path=transcript_json_path, object_id=str(stories_id))
 
     async def fetch_store_transcript(self, stories_id: int) -> None:
         with tempfile.TemporaryDirectory(prefix='fetch_store_transcript') as temp_dir:
             transcript_json_path = os.path.join(temp_dir, 'transcript.json')
 
-            gcs = GCSStore(bucket_config=PodcastGCTranscriptsBucketConfig())
+            gcs = GCSStore(bucket_config=TranscriptsBucketConfig())
             gcs.download_object(object_id=str(stories_id), local_file_path=transcript_json_path)
 
             with open(transcript_json_path, 'w') as f:

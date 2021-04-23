@@ -10,7 +10,7 @@ from google.cloud.storage import Blob, Bucket
 
 from mediawords.util.log import create_logger
 
-from .config import AbstractPodcastGCBucketConfig, PodcastGCAuthConfig
+from .config import AbstractGCBucketConfig, GCAuthConfig
 from .exceptions import McPodcastGCSStoreFailureException, McPodcastMisconfiguredGCSException, SoftException
 
 log = create_logger(__name__)
@@ -25,12 +25,12 @@ class GCSStore(object):
         '__bucket_config',
     ]
 
-    def __init__(self, bucket_config: AbstractPodcastGCBucketConfig, auth_config: Optional[PodcastGCAuthConfig] = None):
+    def __init__(self, bucket_config: AbstractGCBucketConfig, auth_config: Optional[GCAuthConfig] = None):
         if not bucket_config:
             raise McPodcastMisconfiguredGCSException("Bucket configuration is unset.")
 
         if not auth_config:
-            auth_config = PodcastGCAuthConfig()
+            auth_config = GCAuthConfig()
 
         self.__auth_config = auth_config
         self.__bucket_config = bucket_config

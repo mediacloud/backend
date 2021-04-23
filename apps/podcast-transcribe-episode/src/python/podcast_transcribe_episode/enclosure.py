@@ -69,7 +69,7 @@ class StoryEnclosure(object):
         )
 
 
-def podcast_viable_enclosure_for_story(db: DatabaseHandler, stories_id: int) -> Optional[StoryEnclosure]:
+def viable_story_enclosure(db: DatabaseHandler, stories_id: int) -> Optional[StoryEnclosure]:
     """Fetch all enclosures, find and return the one that looks like a podcast episode the most (or None)."""
     story_enclosures_dicts = db.query("""
         SELECT *
