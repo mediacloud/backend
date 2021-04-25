@@ -1,18 +1,94 @@
 import abc
 
 
-class _AbstractPodcastTranscribeEpisodeException(Exception, metaclass=abc.ABCMeta):
+# FIXME possibly move these to "common"
+
+
+class _AbstractPodcastTranscribeEpisodeError(Exception, metaclass=abc.ABCMeta):
     """Abstract exception."""
     pass
 
 
-class SoftException(_AbstractPodcastTranscribeEpisodeException):
-    """Soft errors exception."""
+class McConfigurationError(_AbstractPodcastTranscribeEpisodeError):
+    """
+    Exception thrown when something is misconfigured.
+
+    No reason to retry whatever has caused this error as someone needs to fix the configuration first, and one should
+    consider stopping whatever that we're doing as there's no point in continuing without valid configuration anyway.
+
+    Examples include:
+
+    * Configuration environment variables not set / set to invalid values.
+    * Bad authentication credentials.
+    * Invalid arguments passed.
+    """
     pass
 
 
-class McPodcastFileFetchFailureException(SoftException):
-    """Exception thrown when we're unable to fetch the downloaded file for whatever reason."""
+class McProgrammingError(_AbstractPodcastTranscribeEpisodeError):
+    """
+    Exception thrown on programming errors.
+
+    It's pointless to retry actions that have caused this error as we need to fix some code first, and it might be a
+    good idea to stop whatever we're doing altogether with something like fatal_error(...).
+
+    Examples include:
+
+    * Various third party APIs returning something that our code can't understand.
+    * Files existing where they're not supposed to exist.
+    * Typos in SQL commands.
+    * Assertions.
+    """
+    pass
+
+
+class McTransientError(_AbstractPodcastTranscribeEpisodeError):
+    """
+    Exception thrown on transient (occurring at irregular intervals) errors.
+
+    It is reasonable to expect that when this error occurs, we can wait for a bit, retry and the action might succeed.
+
+    Examples include:
+
+    * Not being able to connect to the database.
+    * HTTP server responding with "503 Service Unavailable".
+    * Network being down.
+    """
+    pass
+
+
+class McSoftAppError(_AbstractPodcastTranscribeEpisodeError):
+    """
+    Exception thrown when some expectations of the application were unmet so it can't proceed with a specific input but
+    it's likely that it will be able to continue on with other inputs.
+
+    There's nothing wrong with the code that does the processing, and we can continue on processing other inputs, but
+    there's no point in retrying on this error.
+
+    Examples include:
+
+    * One of the stories that's to be processed does not exist at all.
+    * HTTP server responding with "404 Not Found".
+    * Downloaded media file turns out to not be a media file at all.
+    """
+    pass
+
+
+class McHardAppError(_AbstractPodcastTranscribeEpisodeError):
+    """
+    Exception thrown when some expectations of the application were unmet, and so the whole application can't proceed
+    further due to those expectations being unmet.
+
+    Examples include:
+
+    * A single story that was passed as an argument and had to be processed doesn't exist.
+    * We've tried fetching 10k links, and 90% of links failed at getting fetched.
+    """
+    pass
+
+
+class SoftException(_AbstractPodcastTranscribeEpisodeError):
+    """Soft errors exception."""
     pass
 
 
@@ -23,7 +99,7 @@ class McPodcastFileIsInvalidException(SoftException):
 
 # ---
 
-class HardException(_AbstractPodcastTranscribeEpisodeException):
+class HardException(_AbstractPodcastTranscribeEpisodeError):
     """Hard errors exception."""
     pass
 

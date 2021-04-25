@@ -5,7 +5,7 @@ import requests
 
 from mediawords.util.log import create_logger
 
-from .exceptions import McPodcastFileFetchFailureException, McPodcastFileStoreFailureException
+from .exceptions import McProgrammingError
 
 log = create_logger(__name__)
 
@@ -19,20 +19,54 @@ def __cleanup_dest_file(dest_file: str) -> None:
             log.error(f"Unable to clean up a failed download at {dest_file}: {ex}")
 
 
+class _AbstractFetchBigFileException(Exception):
+    """Base class for exceptions thrown by fetch_big_file()."""
+    pass
+
+
+class FileFetchError(_AbstractFetchBigFileException):
+    """
+    Exception thrown when we were unable to download a file.
+
+    Is likely to happen often (due to missing files for example).
+    """
+    pass
+
+
+class FileTooBigError(FileFetchError):
+    """
+    Exception thrown when the file that's being fetched is too big.
+    """
+    pass
+
+
+class FileStoreError(_AbstractFetchBigFileException):
+    """
+    Exception thrown when we were unable to store the downloaded file.
+
+    Typically a rather big problem because it means that there's something wrong with the file storage (e.g. the disk is
+    out of space), but not necessarily.
+    """
+    pass
+
+
 def fetch_big_file(url: str, dest_file: str, max_size: int = 0) -> None:
     """
     Fetch a huge file from an URL to a local file.
 
-    Raises on exceptions.
+    Raises one of the _AbstractFetchBigFileException exceptions.
 
     :param url: URL that points to a huge file.
     :param dest_file: Destination path to write the fetched file to.
     :param max_size: If >0, limit the file size to a defined number of bytes.
+    :raise: FileFetchError when unable to download a file.
+    :raise: FileStoreError when unable to store the downloaded file.
+    :raise: ProgrammingError on unexpected fatal conditions.
     """
 
     if os.path.exists(dest_file):
         # Something's wrong with the code
-        raise McPodcastFileStoreFailureException(f"Destination file '{dest_file}' already exists.")
+        raise FileStoreError(f"Destination file '{dest_file}' already exists.")
 
     try:
 
@@ -50,36 +84,31 @@ def fetch_big_file(url: str, dest_file: str, max_size: int = 0) -> None:
                         bytes_read += len(chunk)
                         if max_size:
                             if bytes_read > max_size:
-                                raise McPodcastFileFetchFailureException(
-                                    f"The file is bigger than the max. size of {max_size}"
-                                )
+                                raise FileTooBigError(f"The file is bigger than the max. size of {max_size}")
 
                         f.write(chunk)
                         f.flush()
 
-    except McPodcastFileFetchFailureException as ex:
+    except FileTooBigError as ex:
 
         __cleanup_dest_file(dest_file=dest_file)
 
-        # Raise fetching failures further as they're soft exceptions
-        raise McPodcastFileFetchFailureException(f"Unable to fetch {url}: {ex}")
+        raise ex
 
     except requests.exceptions.RequestException as ex:
 
         __cleanup_dest_file(dest_file=dest_file)
 
-        # Treat any "requests" exception as a soft failure
-        raise McPodcastFileFetchFailureException(f"'requests' exception while fetching {url}: {ex}")
+        raise FileFetchError(f"'requests' exception while fetching {url}: {ex}")
 
     except Exception as ex:
 
         __cleanup_dest_file(dest_file=dest_file)
 
-        # Any other exception is assumed to be a temporary file write problem
-        raise McPodcastFileStoreFailureException(f"Unable to fetch and store {url}: {ex}")
+        raise FileStoreError(f"Unable to fetch and store {url}: {ex}")
 
     if not os.path.isfile(dest_file):
         __cleanup_dest_file(dest_file=dest_file)
 
         # There should be something here so in some way it is us that have messed up
-        raise McPodcastFileStoreFailureException(f"Fetched file {dest_file} is not here after fetching it.")
+        raise McProgrammingError(f"Fetched file {dest_file} is not here after fetching it.")
