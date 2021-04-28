@@ -1,440 +1,591 @@
+# A Romanian stop word list.
+# Sources:
 #
-# This is a stop word list for the Romanian language.
-#
-# Source: http://snowball.tartarus.org/otherapps/romanian/intro.html (romanian2.tgz)
-#
+#   http://snowball.tartarus.org/otherapps/romanian/intro.html (romanian2.tgz)
+#   https://github.com/stopwords-iso/stopwords-ro/blob/master/stopwords-ro.txt
+# (Lightly edited to remove words in the original lists that are actually meaningful)
 
- # A Romanian stop word list. Comments begin with vertical bar. Each stop
- # word is at the start of a line.
-
- # Many of the forms below are quite rare but included for completeness.
-
-           # ARTICLE
-             # Indefinite article
-o              # a
-unui
-unei
-unor
-nişte         # some
-             #  Demonstrative/adjectival article
-cel
-cea
-cei
-cele
-celui
-celei
-celor
-             #  Possessive / genitival article
-al             # of
 a
+abia
+acea
+aceasta
+această
+aceea
+aceeasi
+aceeaşi
+acei
+aceia
+aceiaşi
+acel
+acela
+acelasi
+acelaşi
+acele
+acelea
+aceleaşi
+acelei
+aceleia
+aceleiaşi
+acelora
+aceloraşi
+acelui
+aceluiaşi
+acest
+acesta
+aceste
+acestea
+acestei
+acesteia
+acestia
+acestor
+acestora
+acestui
+acestuia
+aceşti
+aceştia
+acolo
+acord
+acum
+adica
 ai
+aia
+aibă
+aici
+aiurea
+al
+ala
+alaturi
 ale
-           # PREPOSITION AND ADVERB
-pe             # on
-la             # at
-în            # in
-fără         # without
-sub            # under
-despre         # about
-către         # to
-cu             # with
-de             # from
-din            # on
-lângă        # by
-pentru         # for
-peste          # over
-spre           # to
-prin           # through
-dintre         # between
-printre        # among
-până         # until
-după          # after
-înspre        # towards
-ca             # as
-           # ADJECTIVE
-mai            # more
-decât         # than
-cum            # how
-foarte         # very
-mult           # much
-multă
-mulţi
-multe
-puţin         # little
-puţină
-puţini
-puţine
-destul         # enough
-destulă
+alea
+alt
+alta
+altceva
+altcineva
+altcuiva
+alte
+altei
+alteia
+altele
+altfel
+alti
+altii
+altor
+altora
+altui
+altuia
+altul
+altă
+alţi
+alţii
+am
+ambele
+ambelor
+ambii
+ambilor
+amândoi
+amândouă
+amânduror
+amândurora
+anume
+apoi
+aproape
+ar
+are
+as
+asa
+asemenea
+asta
+astazi
+astea
+astfel
+astăzi
+asupra
+atare
+atat
+atata
+atatea
+atatia
+ati
+atit
+atita
+atitea
+atitia
+atunci
+atât
+atâta
+atâtea
+atâtor
+atâtora
+atâţi
+atâţia
+au
+avea
+aveai
+aveam
+aveau
+aveaţi
+avem
+aveţi
+avut
+azi
+aş
+aşa
+aşadar
+aţi
+b
+ba
+bine
+bucur
+bună
+c
+ca
+cam
+cand
+capat
+care
+careia
+carora
+caruia
+cat
+catre
+caut
+ce
+cea
+cealaltă
+ceea
+cei
+ceilalti
+ceilalţi
+cel
+cele
+celei
+celeilalte
+celelalte
+celor
+celorlalte
+celorlalţi
+celui
+celuilalt
+celălalt
+ceva
+chiar
+ci
+cinci
+cind
+cine
+cineva
+cit
+cita
+cite
+citeva
+citi
+citiva
+conform
+contra
+cu
+cui
+cuiva
+cum
+cumva
+curând
+curînd
+cutare
+când
+cât
+câte
+câteva
+câtor
+câtora
+câtorva
+câtva
+câtă
+câţi
+câţiva
+cînd
+cît
+cîte
+cîtva
+cîţi
+că
+căci
+cărei
+căror
+cărui
+către
+d
+da
+daca
+dacă
+dar
+dat
+datorită
+dată
+dau
+de
+deasupra
+deci
+decit
+decât
+degraba
+deja
+deoarece
+departe
+desi
+despre
 destui
+destul
 destule
-           # PRONOUN
-             # Personal pronoun
-eu             # I
-tu             # you
-el             # he
-ea             # she
-noi            # we
-voi            # you
-ei             # they
-ele            # they
-mie            # me
-îmi
-mi
-mine
-mă
-m
-ţie           # you
-îţi
-ţi
-tine
-te
-lui            # him
-îl
-l
-îi
+destulă
+deşi
+din
+dinaintea
+dintr
+dintr-
+dintre
+doar
+doi
+doilea
+doime
+doua
+două
+drept
+dumneavoastră
+dupa
+după
+dă
+e
+ea
+ei
+el
+ele
+era
+erai
+eram
+erau
+este
+eu
+exact
+există
+eşti
+f
+face
+fara
+fata
+faţă
+fel
+fi
+fie
+fiecare
+fiecărei
+fiecăreia
+fiecărui
+fiecăruia
+fii
+fiind
+fim
+fiu
+fiţi
+foarte
+făcut
+g
+h
 i
-nouă          # us
-ne
-ni
-vouă          # you
-vă
-vi
-v
-lor            # them
+ia
+iar
+ieri
+ii
+il
+imi
+in
+inainte
+inapoi
+inca
+incit
+insa
+intr
+intre
+isi
+iti
+j
+k
+l
+la
 le
 li
-             # Pronoun of politeness
-dumneavoastră # you
-             # Reflexive pronoun
-se             # himself
-îşi
-sie
-sieşi
-sine
-             # Pronoun of reinforcement
-însumi        # myself
-însămi
-însuţi       # youself
-însăţi
-însuşi       # himself
-însăşi      # herself
-înşine       # ourselves
-însene
-înşivă      # youselves
-însevă
-înşişi      # themselves
-înseşi
-însele
-             # Possessive pronoun
-meu            # mine
+lor
+lui
+lângă
+lîngă
+m
+ma
+mai
+mare
 mea
 mei
 mele
-tău           # yours
-ta
-tăi
-tale
-său           # his
-sa
-săi
-sale
-nostru         # ours
-noastră
-noştri
+mereu
+meu
+mi
+mie
+mine
+mod
+mult
+multa
+multe
+multi
+multă
+mulţi
+mulţumesc
+mâine
+mîine
+mă
+n
+ne
+nevoie
+ni
+nici
+niciodata
+nicăieri
+nimeni
+nimeri
+nimic
+nimănui
+niste
+nişte
 noastre
-vostru         # yours
-voastră
-voştri
-voastre
-             # Demonstrative pronoun
-acesta         # this
-ăsta
-aceştia
-ăştia
-acestuia
-ăstuia
-acestora
-ăstora
-aceasta
-asta
-acestea
-astea
-acesteia
-ăsteia
-acest
-aceşti
-acestui
-acestor
-această
-aceste
-acestei
-acela          # that
-ăla
-acelui
-ăluia
-aceia
-ăia
-acelora
-ălora
-aceea
-aia
-acelea
-alea
-aceleia
-ăleia
-acel
-acei
-acelor
-acea
-acele
-acelei
-acelaşi       # the same
-aceiaşi
-aceeaşi
-aceleaşi
-aceluiaşi
-aceloraşi
-aceleiaşi
-celălalt      # the other
-celuilalt
-ceilalţi
-celorlalţi
-cealaltă
-celeilalte
-celelalte
-celorlalte
-             # Interrogative pronoun
-ce             # what
-cine           # who
-cui            # whom
-care           # which, what
-cărui
-cărei
-căror
-unde           # where
-când          # when
-             # Indefinite pronoun
-cineva         # someone
-cuiva
-altcineva      # someone else
-altcuiva
-oricine        # anyone
+noastră
+noi
+noroc
+nostri
+nostru
+nou
+noua
+nouă
+noştri
+nu
+numai
+o
+oarecare
+oi
+om
+opt
+or
+ori
+oricare
+orice
+oricine
 oricui
-orice          # anything
-unul           # one
-una
-unii
-unele
-unuia
-uneia
-unora
-altul          # other
-alta
-alţii
-altele
-alt
-altă
-alţi
-alte
-altuia
-alteia
-altora
-altui
-altei
-altor
-vreunul        # somebody, some (of them)
-vreuna
-vreunii
-vreunele
-vreun
-vreo
-vreunuia
-vreuneia
-vreunora
-vreunui
-vreunei
-vreunor
-oricare        # anyone
-oricăruia
-oricăreia
-oricărora
-oricărui
-oricărei
-oricăror
-fiecare        # everyone
-fiecăruia
-fiecăreia
-fiecărui
-fiecărei
-cât           # how, how many
-câtă
-câţi
-câte
-câtora
-câtor
-atât          # this much
-atâta
-atâţi
-atâţia
-atâtea
-atâtora
-atâtor
-oricât        # however much
+oricum
+oricând
+oricât
+oricâte
+oricâtor
+oricâtora
 oricâtă
 oricâţi
-oricâte
-oricâtora
-oricâtor
-câtva         # some
-câţiva
-câteva
-câtorva
-tot            # all
-toată
-toţi
-toate
-tuturor
-totul
-cutare         # that
-oarecare       # some
-ceva           # something
-altceva        # something else
-             # Negative pronoun
-nimeni         # nobody
-nimănui
-nimic          # nothing
-           # NUMERAL
-             # Cardinal numeral
-unu            # one
-doi            # two
-doua
-trei           # three
-patru          # four
-cinci          # five
-şase          # six
-şapte         # seven
-opt            # eight
-noua           # nine
-zece           # ten
-             # Fractional numeral
-doime          # half
-treime         # third
-sutime         # hundredth
-             # Collective numeral
-amândoi       # both
-amândouă
-amândurora
-amânduror
-ambii
-ambele
-ambilor
-ambelor
-             # Multiplicative numeral
-îndoit        # double
-întreit       # threefold
-însutit       # hundred-fold
-             # Ordinal numeral
-întâiul      # the first
-întâia
-primul         # former
-prima
-primii
-primele
-primului
-primei
-primilor
-primelor
-           # VERB
-             # To be
-sunt           # (I) am
-s
-eşti          # (you) are
-este           # (he/she) is
-e
-suntem         # (we) are
-sunteţi       # (you) are
-eram           # (I) were
-erai           # (you) were
-era            # (he) was
-eraţi         # (you) were
-erau           # (they) were
-fiu            # be
-fii
-fie
-fim
-fiţi
-fi
-fiind          # being
-fost           # been
-             # Auxiliary verb
-am             # to have  - all forms
-aţi
-au
-are
-avem
-aveţi
-aveam
-aveai
-avea
-aveaţi
-aveau
-aş
-ar
-oi             # to will
-om
+oricînd
+oricît
+oricărei
+oricăreia
+oricăror
+oricărora
+oricărui
+oricăruia
+oriunde
 oţi
-or
-vei
+p
+pai
+parte
+patra
+patru
+patrulea
+pe
+pentru
+peste
+pic
+pina
+plus
+poate
+pot
+prea
+prima
+primei
+primele
+primelor
+primii
+primilor
+primul
+primului
+prin
+printr-
+printre
+putea
+putini
+puţin
+puţina
+puţine
+puţini
+puţină
+până
+pînă
+r
+rog
+s
+sa
+sa-mi
+sa-ti
+sai
+sale
+sau
+se
+si
+sie
+sieşi
+sine
+sint
+sintem
+spate
+spre
+spune
+spus
+sub
+sunt
+suntem
+sunteţi
+sus
+sutime
+sută
+sînt
+sîntem
+sînteţi
+să
+săi
+său
+t
+ta
+tale
+te
+ti
+timp
+tine
+toata
+toate
+toată
+tocmai
+tot
+toti
+totul
+totusi
+totuşi
+toţi
+trebuie
+trei
+treia
+treilea
+treime
+tu
+tuturor
+tăi
+tău
+u
+ul
+un
+una
+unde
+undeva
+unei
+uneia
+unele
+uneori
+unii
+unor
+unora
+unu
+unui
+unuia
+unul
+v
 va
-vom
+vei
 veţi
+vi
+voastre
+voastră
+voi
+vom
 vor
-           # CONJUNCTION
-şi            # and
-nici           # neither
-dar            # but
+vostru
+vouă
+voştri
+vreme
+vreo
+vreun
+vreuna
+vreunei
+vreuneia
+vreunele
+vreunii
+vreunor
+vreunora
+vreunui
+vreunuia
+vreunul
+vă
+x
+z
+zece
+zero
+zi
+zice
+îi
+îl
+îmi
+împotriva
+în
+înainte
+înaintea
+încotro
+încât
+încît
+încă
+îndoit
+însele
+însene
+însevă
+înseşi
+înspre
+însumi
+însutit
+însuşi
+însuţi
 însă
-iar            # and, but, while, again
-ci             # but, so that
-sau            # or
-ori
-deci           # so
-aşadar
-încât        # so that
-aşa           # such
-deşi          # although
-totuşi        # though
-dacă          # if
-atunci         # then
-că            # that
-           # OTHER
-nu             # no
-
- # The following is a ranked list (commonest to rarest) of stopwords
- # deriving from a large sample of text.
-
-poate          # maybe
-ieri           # yesterday
-mare           # big
-doar           # just
-trebuie        # must
-spus           # said
-acum           # now
-putea          # can
-chiar          # even
-face           # do
-astfel         # such
-pot            # can
-făcut         # done
-avut           # had
-parte          # part
-spune          # says
-bine           # good
-faţă         # front
-există        # exists
-încă         # still
-numai          # only
-dat            # given
-asupra         # on
-aproape        # near
+însămi
+însăşi
+însăţi
+între
+întreit
+întrucât
+întrucît
+întâia
+întâiul
+înşine
+înşivă
+înşişi
+îşi
+îţi
+ăia
+ăla
+ălea
+ăleia
+ălora
+ăluia
+ăsta
+ăstea
+ăstuia
+ăştia
+şapte
+şase
+şi
+ştiu
+ţi
+ţie
