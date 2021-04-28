@@ -1,12 +1,8 @@
 # FIXME remove unused tables (including migrations)
-# FIXME post-init validation of dataclasses (https://docs.python.org/3/library/dataclasses.html#post-init-processing)
 # FIXME workflow logger
 # FIXME if something's wrong (e.g. the episode doesn't look valid), should the workflow succeed or fail?
-# FIXME transient vs non-transient errors
 # FIXME what if one or more configuration environment variables are unset?
-# FIXME clean up exceptions
 # FIXME track failed workflows / activities in Munin
-# FIXME for the initial test, increase retries by a lot
 
 import dataclasses
 from datetime import timedelta
@@ -280,7 +276,6 @@ class AbstractPodcastTranscribeActivities(object):
         task_queue=TASK_QUEUE,
         # schedule_to_start_timeout=None,
 
-        # FIXME add timeout to add_to_queue() otherwise it will wait indefinitely
         start_to_close_timeout=timedelta(minutes=2),
 
         # schedule_to_close_timeout=None,
