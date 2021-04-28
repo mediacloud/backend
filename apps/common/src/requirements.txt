@@ -93,4 +93,4 @@ sqlalchemy==1.3.22
 url_normalize==1.4.3
 
 # Low level HTTP requests (with SSL certificate verification)
-urllib3[secure]==1.26.3
+urllib3[secure]==1.26.4
