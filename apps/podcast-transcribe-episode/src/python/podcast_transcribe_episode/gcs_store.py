@@ -13,7 +13,7 @@ from google.cloud.storage.retry import DEFAULT_RETRY
 from mediawords.util.log import create_logger
 
 from .config import AbstractGCBucketConfig, GCAuthConfig
-from .exceptions import McProgrammingError, McConfigurationError, McPermanentError
+from .exceptions import McProgrammingError, McConfigurationError, McPermanentError, McTransientError
 
 log = create_logger(__name__)
 
@@ -133,15 +133,17 @@ class GCSStore(object):
         if not object_id:
             raise McProgrammingError("Object ID is unset.")
 
-        log.debug(f"Uploading file '{local_file_path}' as object ID {object_id}...")
+        log.debug(f"Uploading '{local_file_path}' as object ID {object_id}...")
 
         if self.object_exists(object_id=object_id):
             log.warning(f"Object {object_id} already exists, will overwrite.")
 
         blob = self._blob_from_object_id(object_id=object_id)
 
-        # FIXME throw appropriate exception
-        blob.upload_from_filename(filename=local_file_path, content_type='application/octet-stream')
+        try:
+            blob.upload_from_filename(filename=local_file_path, content_type='application/octet-stream')
+        except Exception as ex:
+            raise McTransientError(f"Unable to upload '{local_file_path}' as object ID {object_id}: {ex}")
 
     # FIXME write some tests
     def download_object(self, object_id: str, local_file_path: str) -> None:
@@ -158,15 +160,17 @@ class GCSStore(object):
         if not object_id:
             raise McProgrammingError("Object ID is unset.")
 
-        log.debug(f"Downloading object ID {object_id} to file '{local_file_path}'...")
+        log.debug(f"Downloading object ID {object_id} to '{local_file_path}'...")
 
         if not self.object_exists(object_id=object_id):
             raise McPermanentError(f"Object ID {object_id} was not found.")
 
         blob = self._blob_from_object_id(object_id=object_id)
 
-        # FIXME throw appropriate exception
-        blob.download_to_filename(filename=local_file_path)
+        try:
+            blob.download_to_filename(filename=local_file_path)
+        except Exception as ex:
+            raise McTransientError(f"Unable to download object ID {object_id} to '{local_file_path}': {ex}")
 
     def delete_object(self, object_id: str) -> None:
         """

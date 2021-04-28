@@ -1,7 +1,4 @@
 # FIXME remove unused tables (including migrations)
-# FIXME workflow logger
-# FIXME if something's wrong (e.g. the episode doesn't look valid), should the workflow succeed or fail?
-# FIXME what if one or more configuration environment variables are unset?
 # FIXME track failed workflows / activities in Munin
 
 import dataclasses
@@ -38,14 +35,15 @@ DEFAULT_RETRY_PARAMETERS = RetryParameters(
     # MaximumAttempts specifies how many times to attempt to execute an Activity in the presence of failures. If this
     # limit is exceeded, the error is returned back to the Workflow that invoked the Activity.
 
-    # We start off with a huge retry count to give us time to (1000 attempts * 2 hour max. interval = about a month
-    # worth of retrying) to give us time to detect problems, fix them, deploy fixes and let the workflow system just
-    # handle the rest without us having to restart workflows manually.
+    # We start off with a huge default retry count for each individual activity (1000 attempts * 2 hour max. interval
+    # = about a month worth of retrying) to give us time to detect problems, fix them, deploy fixes and let the workflow
+    # system just handle the rest without us having to restart workflows manually.
+    #
+    # Activities for which retrying too much doesn't make sense (e.g. due to the cost) set their own "maximum_attempts".
     maximum_attempts=1000,
 
     # NonRetryableErrorReasons allows you to specify errors that shouldn't be retried. For example retrying invalid
     # arguments error doesn't make sense in some scenarios.
-    # FIXME test if it actually works
     non_retryable_error_types=[
 
         # Counterintuitively, we *do* want to retry not only on transient errors but also on programming and
@@ -70,8 +68,6 @@ https://docs.temporal.io/docs/concept-activities/
 
 class AbstractPodcastTranscribeActivities(object):
     """Activities interface."""
-
-    # FIXME timeouts and retries of every action
 
     @activity_method(
         task_queue=TASK_QUEUE,
@@ -134,7 +130,6 @@ class AbstractPodcastTranscribeActivities(object):
 
         # schedule_to_close_timeout=None,
 
-        # FIXME add heartbeats for such a long running process
         # heartbeat_timeout=None,
 
         retry_parameters=dataclasses.replace(
@@ -171,7 +166,6 @@ class AbstractPodcastTranscribeActivities(object):
 
         # schedule_to_close_timeout=None,
 
-        # FIXME transcoding could use a timeout as well
         # heartbeat_timeout=None,
 
         retry_parameters=dataclasses.replace(

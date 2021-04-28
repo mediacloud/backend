@@ -2,8 +2,6 @@ import abc
 
 from mediawords.util.config import env_value, file_with_env_value
 
-# FIXME move constants into proper configuration
-
 MAX_ENCLOSURE_SIZE = 1024 * 1024 * 500
 """Max. enclosure size (in bytes) that we're willing to download."""
 

@@ -37,7 +37,6 @@ from .workflow_interface import (
 )
 
 
-# FIXME in the example the activities implementation *was not* inheriting from the interface
 class PodcastTranscribeActivities(AbstractPodcastTranscribeActivities):
     """Activities implementation."""
 
@@ -72,12 +71,10 @@ class PodcastTranscribeActivities(AbstractPodcastTranscribeActivities):
         # Find the enclosure that might work the best
         best_enclosure = viable_story_enclosure(db=db, stories_id=stories_id)
         if not best_enclosure:
-            # FIXME possibly return None here?
             raise McPermanentError(f"There were no viable enclosures found for story {stories_id}")
 
         if best_enclosure.length:
             if best_enclosure.length > MAX_ENCLOSURE_SIZE:
-                # FIXME possibly return None here?
                 raise McPermanentError(f"Chosen enclosure {best_enclosure} is too big.")
 
         return best_enclosure
@@ -241,17 +238,16 @@ class PodcastTranscribeWorkflow(AbstractPodcastTranscribeWorkflow):
 
         enclosure = await self.activities.determine_best_enclosure(stories_id=stories_id)
         if not enclosure:
-            # FIXME what do we do if there's no viable enclosure? Nothing?
-            return
+            raise McPermanentError(f"No viable enclosure found for story {stories_id}")
 
         await self.activities.fetch_enclosure_to_gcs(stories_id=stories_id, enclosure=enclosure)
 
         episode_metadata = await self.activities.fetch_transcode_store_episode(stories_id=stories_id)
 
         if episode_metadata.duration > MAX_DURATION:
-            # FIXME log that the episode duration exceeded the maximum allowed duration
-            # f"Story's {stories_id} podcast episode is too long ({episode_metadata.duration} seconds)."
-            return
+            raise McPermanentError(
+                f"Episode's duration ({episode_metadata.duration} s) exceeds max. duration ({MAX_DURATION} s)"
+            )
 
         speech_operation_id = await self.activities.submit_transcribe_operation(
             stories_id=stories_id,
@@ -261,8 +257,6 @@ class PodcastTranscribeWorkflow(AbstractPodcastTranscribeWorkflow):
 
         await Workflow.sleep(int(episode_metadata.duration * 1.1))
 
-        # FIXME get the retries right here
-        # FIXME if the operation with a given ID is not found, re-submit the transcription operation
         await self.activities.fetch_store_raw_transcript_json(
             stories_id=stories_id,
             speech_operation_id=speech_operation_id,

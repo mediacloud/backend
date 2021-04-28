@@ -125,7 +125,6 @@ def fetch_transcript(speech_operation_id: str) -> Optional[Transcript]:
     except InvalidArgument as ex:
         raise McProgrammingError(f"Invalid operation ID '{speech_operation_id}': {ex}")
     except NotFound as ex:
-        # FIXME we should be resubmitting the media file for a new transcript when that happens
         raise McProgrammingError(f"Operation ID '{speech_operation_id}' was not found: {ex}")
     except Exception as ex:
         # On any other errors, raise a hard exception
