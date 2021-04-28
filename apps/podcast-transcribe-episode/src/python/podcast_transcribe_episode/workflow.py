@@ -16,12 +16,12 @@ from mediawords.util.parse_html import html_strip
 from .config import (
     RawEnclosuresBucketConfig,
     TranscodedEpisodesBucketConfig,
+    TranscriptsBucketConfig,
     MAX_ENCLOSURE_SIZE,
     MAX_DURATION,
-    TranscriptsBucketConfig,
 )
 from .db_or_raise import connect_to_db_or_raise
-from .exceptions import SoftException, HardException
+from .exceptions import McProgrammingError, McTransientError, McPermanentError
 from .enclosure import viable_story_enclosure, StoryEnclosure
 from .fetch_url import fetch_big_file
 from .gcs_store import GCSStore
@@ -44,13 +44,9 @@ class PodcastTranscribeActivities(AbstractPodcastTranscribeActivities):
     async def identify_story_bcp47_language_code(self, stories_id: int) -> Optional[str]:
         db = connect_to_db_or_raise()
 
-        try:
-            story = db.find_by_id(table='stories', object_id=stories_id)
-        except Exception as ex:
-            raise SoftException(f"Database failed when fetching story {stories_id}: {ex}")
-
+        story = db.find_by_id(table='stories', object_id=stories_id)
         if not story:
-            raise SoftException(f"Story {stories_id} was not found.")
+            raise McPermanentError(f"Story {stories_id} was not found.")
 
         # Podcast episodes typically come with title and description set so try guessing from that
         story_title = story['title']
@@ -77,12 +73,12 @@ class PodcastTranscribeActivities(AbstractPodcastTranscribeActivities):
         best_enclosure = viable_story_enclosure(db=db, stories_id=stories_id)
         if not best_enclosure:
             # FIXME possibly return None here?
-            raise SoftException(f"There were no viable enclosures found for story {stories_id}")
+            raise McPermanentError(f"There were no viable enclosures found for story {stories_id}")
 
         if best_enclosure.length:
             if best_enclosure.length > MAX_ENCLOSURE_SIZE:
                 # FIXME possibly return None here?
-                raise SoftException(f"Chosen enclosure {best_enclosure} is too big.")
+                raise McPermanentError(f"Chosen enclosure {best_enclosure} is too big.")
 
         return best_enclosure
 
@@ -94,7 +90,7 @@ class PodcastTranscribeActivities(AbstractPodcastTranscribeActivities):
 
             if os.stat(raw_enclosure_path).st_size == 0:
                 # Might happen with misconfigured webservers
-                raise SoftException(f"Fetched file {raw_enclosure_path} is empty.")
+                raise McPermanentError(f"Fetched file {raw_enclosure_path} is empty.")
 
             gcs = GCSStore(bucket_config=RawEnclosuresBucketConfig())
             gcs.upload_object(local_file_path=raw_enclosure_path, object_id=str(stories_id))
@@ -113,7 +109,7 @@ class PodcastTranscribeActivities(AbstractPodcastTranscribeActivities):
 
             if os.stat(raw_enclosure_path).st_size == 0:
                 # If somehow the file from GCS ended up being of zero length, then this is very much unexpected
-                raise HardException(f"Fetched file {raw_enclosure_path} is empty.")
+                raise McProgrammingError(f"Fetched file {raw_enclosure_path} is empty.")
 
             transcoded_episode_path = os.path.join(temp_dir, 'transcoded_episode')
 
@@ -134,7 +130,7 @@ class PodcastTranscribeActivities(AbstractPodcastTranscribeActivities):
             best_audio_stream = media_info.best_supported_audio_stream()
 
             if not best_audio_stream.audio_codec_class:
-                raise HardException("Best audio stream doesn't have audio class set")
+                raise McProgrammingError("Best audio stream doesn't have audio class set")
 
             return best_audio_stream
 
@@ -144,7 +140,7 @@ class PodcastTranscribeActivities(AbstractPodcastTranscribeActivities):
                                           bcp47_language_code: str) -> str:
 
         if not episode_metadata.audio_codec_class:
-            raise HardException("Best audio stream doesn't have audio class set")
+            raise McProgrammingError("Best audio stream doesn't have audio class set")
 
         gcs_transcoded_episodes = GCSStore(bucket_config=TranscodedEpisodesBucketConfig())
         gs_uri = gcs_transcoded_episodes.object_uri(object_id=str(stories_id))
@@ -160,7 +156,7 @@ class PodcastTranscribeActivities(AbstractPodcastTranscribeActivities):
     async def fetch_store_raw_transcript_json(self, stories_id: int, speech_operation_id: str) -> None:
         transcript = fetch_transcript(speech_operation_id=speech_operation_id)
         if transcript is None:
-            raise SoftException(f"Speech operation with ID '{speech_operation_id}' hasn't been completed yet.")
+            raise McTransientError(f"Speech operation with ID '{speech_operation_id}' hasn't been completed yet.")
 
         transcript_json = encode_json(transcript.to_dict())
 

@@ -2,11 +2,11 @@
 # FIXME post-init validation of dataclasses (https://docs.python.org/3/library/dataclasses.html#post-init-processing)
 # FIXME workflow logger
 # FIXME if something's wrong (e.g. the episode doesn't look valid), should the workflow succeed or fail?
-# FIXME remove "Podcast(Transcribe)..." prefix from everywhere
 # FIXME transient vs non-transient errors
-# FIXME increase retries and timeouts
 # FIXME what if one or more configuration environment variables are unset?
 # FIXME clean up exceptions
+# FIXME track failed workflows / activities in Munin
+# FIXME for the initial test, increase retries by a lot
 
 import dataclasses
 from datetime import timedelta
@@ -17,8 +17,8 @@ from temporal.activity_method import activity_method, RetryParameters
 # noinspection PyPackageRequirements
 from temporal.workflow import workflow_method
 
-from .exceptions import HardException
 from .enclosure import StoryEnclosure
+from .exceptions import McPermanentError
 from .media_info import MediaFileInfoAudioStream
 
 TASK_QUEUE = "podcast-transcribe-episode"
@@ -41,12 +41,28 @@ DEFAULT_RETRY_PARAMETERS = RetryParameters(
 
     # MaximumAttempts specifies how many times to attempt to execute an Activity in the presence of failures. If this
     # limit is exceeded, the error is returned back to the Workflow that invoked the Activity.
-    maximum_attempts=50,
+
+    # We start off with a huge retry count to give us time to (1000 attempts * 2 hour max. interval = about a month
+    # worth of retrying) to give us time to detect problems, fix them, deploy fixes and let the workflow system just
+    # handle the rest without us having to restart workflows manually.
+    maximum_attempts=1000,
 
     # NonRetryableErrorReasons allows you to specify errors that shouldn't be retried. For example retrying invalid
     # arguments error doesn't make sense in some scenarios.
     # FIXME test if it actually works
-    non_retryable_error_types=[HardException.__name__],
+    non_retryable_error_types=[
+
+        # Counterintuitively, we *do* want to retry not only on transient errors but also on programming and
+        # configuration ones too because on programming / configuration bugs we can just fix up some code or
+        # configuration, deploy the fixes and let the workflow system automagically continue on with the workflow
+        # without us having to dig out what exactly has failed and restart things.
+        #
+        # However, on "permanent" errors (the ones when some action decides that it just can't proceed with this
+        # particular input, e.g. process a story that does not exist) there's no point in retrying anything.
+        # anything anymore.
+        McPermanentError.__name__,
+
+    ],
 
 )
 """

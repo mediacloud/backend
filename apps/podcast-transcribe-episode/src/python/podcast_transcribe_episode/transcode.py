@@ -3,7 +3,7 @@ import os
 
 from mediawords.util.log import create_logger
 
-from .exceptions import McPodcastMisconfiguredTranscoderException, McPodcastFileIsInvalidException
+from .exceptions import McProgrammingError, McPermanentError
 from .media_info import media_file_info
 
 log = create_logger(__name__)
@@ -28,13 +28,13 @@ def maybe_transcode_file(input_file: str, maybe_output_file: str) -> bool:
     """
 
     if not os.path.isfile(input_file):
-        raise McPodcastMisconfiguredTranscoderException(f"File '{input_file}' does not exist.")
+        raise McProgrammingError(f"File '{input_file}' does not exist.")
 
     # Independently from what <enclosure /> has told us, identify the file type again ourselves
     media_info = media_file_info(media_file_path=input_file)
 
     if not media_info.audio_streams:
-        raise McPodcastFileIsInvalidException("Downloaded file doesn't appear to have any audio streams.")
+        raise McPermanentError("Downloaded file doesn't appear to have any audio streams.")
 
     ffmpeg_args = []
 

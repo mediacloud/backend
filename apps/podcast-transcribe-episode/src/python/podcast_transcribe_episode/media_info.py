@@ -8,7 +8,7 @@ import ffmpeg
 
 from mediawords.util.log import create_logger
 
-from .exceptions import McPodcastMisconfiguredTranscoderException, McPodcastFileIsInvalidException
+from .exceptions import McProgrammingError, McPermanentError
 from .audio_codecs import (
     AbstractAudioCodec,
     Linear16AudioCodec,
@@ -77,20 +77,18 @@ def media_file_info(media_file_path: str) -> MediaFileInfo:
     """
     if not os.path.isfile(media_file_path):
         # Input file should exist at this point; it it doesn't, we have probably messed up something in the code
-        raise McPodcastMisconfiguredTranscoderException(f"Input file {media_file_path} does not exist.")
+        raise McProgrammingError(f"Input file {media_file_path} does not exist.")
 
     try:
         file_info = ffmpeg.probe(media_file_path)
         if not file_info:
             raise Exception("Returned metadata is empty.")
     except Exception as ex:
-        raise McPodcastFileIsInvalidException(
-            f"Unable to read metadata from file {media_file_path}: {ex}"
-        )
+        raise McPermanentError(f"Unable to read metadata from file {media_file_path}: {ex}")
 
     if 'streams' not in file_info:
         # FFmpeg should come up with some sort of a stream in any case
-        raise McPodcastMisconfiguredTranscoderException("Returned probe doesn't have 'streams' key.")
+        raise McProgrammingError("Returned probe doesn't have 'streams' key.")
 
     # Test if one of the audio streams is of one of the supported codecs
     audio_streams = []
@@ -126,7 +124,7 @@ def media_file_info(media_file_path: str) -> MediaFileInfo:
                     # 'DURATION': '00:00:03.824000000'
                     duration_parts = stream['tags']['DURATION'].split(':')
                     if len(duration_parts) != 3:
-                        raise McPodcastFileIsInvalidException(f"Unable to parse 'DURATION': {duration_parts}")
+                        raise McPermanentError(f"Unable to parse 'DURATION': {duration_parts}")
 
                     hh = int(duration_parts[0])
                     mm = int(duration_parts[1])
@@ -139,12 +137,12 @@ def media_file_info(media_file_path: str) -> MediaFileInfo:
                         ss = int(ss_ms[0])
                         ms = int(ss_ms[1])
                     else:
-                        raise McPodcastFileIsInvalidException(f"Unable to parse 'DURATION': {duration_parts}")
+                        raise McPermanentError(f"Unable to parse 'DURATION': {duration_parts}")
 
                     duration = hh * 3600 + mm * 60 + ss + (1 if ms > 0 else 0)
 
                 else:
-                    raise McPodcastFileIsInvalidException(f"Stream doesn't have duration: {stream}")
+                    raise McPermanentError(f"Stream doesn't have duration: {stream}")
 
                 audio_stream = MediaFileInfoAudioStream(
                     ffmpeg_stream_index=stream['index'],

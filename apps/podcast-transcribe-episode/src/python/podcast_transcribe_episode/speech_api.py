@@ -1,6 +1,3 @@
-# FIXME upload transcriptions directly to GCS once that's no longer a demo feature:
-# https://cloud.google.com/speech-to-text/docs/async-recognize#speech_transcribe_async_gcs-python
-
 from typing import Optional
 
 # noinspection PyPackageRequirements
@@ -18,12 +15,7 @@ from mediawords.util.log import create_logger
 
 from .transcript import Transcript, UtteranceAlternative, Utterance
 from .config import GCAuthConfig
-from .exceptions import (
-    McPodcastMisconfiguredSpeechAPIException,
-    McPodcastSpeechAPIRequestFailedException,
-    McMisconfiguredSpeechAPIException,
-    HardException,
-)
+from .exceptions import McProgrammingError
 from .media_info import MediaFileInfoAudioStream
 
 log = create_logger(__name__)
@@ -54,7 +46,7 @@ def submit_transcribe_operation(gs_uri: str,
     try:
         client = SpeechClient.from_service_account_json(auth_config.gc_auth_json_file())
     except Exception as ex:
-        raise McPodcastMisconfiguredSpeechAPIException(f"Unable to create Speech API client: {ex}")
+        raise McProgrammingError(f"Unable to create Speech API client: {ex}")
 
     try:
         # noinspection PyTypeChecker
@@ -66,11 +58,7 @@ def submit_transcribe_operation(gs_uri: str,
             audio_channel_count=1,
             enable_separate_recognition_per_channel=False,
             language_code=bcp47_language_code,
-            alternative_language_codes=[
-                # FIXME add all Chinese variants
-                # FIXME add Mexican Spanish variants
-            ],
-
+            alternative_language_codes=[],
             speech_contexts=[
                 # Speech API works pretty well without custom contexts
             ],
@@ -83,7 +71,7 @@ def submit_transcribe_operation(gs_uri: str,
             use_enhanced=True,
         )
     except Exception as ex:
-        raise McPodcastMisconfiguredSpeechAPIException(f"Unable to initialize Speech API configuration: {ex}")
+        raise McProgrammingError(f"Unable to initialize Speech API configuration: {ex}")
 
     log.info(f"Submitting a Speech API operation for URI {gs_uri}...")
 
@@ -95,16 +83,17 @@ def submit_transcribe_operation(gs_uri: str,
         speech_operation = client.long_running_recognize(config=config, audio=audio, retry=_GOOGLE_API_RETRIES)
 
     except Exception as ex:
-        raise McPodcastSpeechAPIRequestFailedException(f"Unable to submit a Speech API operation: {ex}")
+        # If client's own retry mechanism doesn't work, then it's probably a programming error, e.g. outdated API client
+        raise McProgrammingError(f"Unable to submit a Speech API operation: {ex}")
 
     try:
         # We get the operation name in a try-except block because accessing it is not that well documented, so Google
         # might change the property names whenever they please and we wouldn't necessarily notice otherwise
         operation_id = speech_operation.operation.name
         if not operation_id:
-            raise McPodcastMisconfiguredSpeechAPIException(f"Operation name is empty.")
+            raise McProgrammingError(f"Operation name is empty.")
     except Exception as ex:
-        raise McPodcastMisconfiguredSpeechAPIException(f"Unable to get operation name: {ex}")
+        raise McProgrammingError(f"Unable to get operation name: {ex}")
 
     log.info(f"Submitted Speech API operation for URI {gs_uri}")
 
@@ -119,14 +108,14 @@ def fetch_transcript(speech_operation_id: str) -> Optional[Transcript]:
     :return: Transcript, or None if the transcript hasn't been prepared yet.
     """
     if not speech_operation_id:
-        raise McMisconfiguredSpeechAPIException(f"Speech operation ID is unset.")
+        raise McProgrammingError(f"Speech operation ID is unset.")
 
     auth_config = GCAuthConfig()
 
     try:
         client = SpeechClient.from_service_account_json(auth_config.gc_auth_json_file())
     except Exception as ex:
-        raise McMisconfiguredSpeechAPIException(f"Unable to initialize Speech API operations client: {ex}")
+        raise McProgrammingError(f"Unable to initialize Speech API operations client: {ex}")
 
     try:
         operation = client.transport.operations_client.get_operation(
@@ -134,16 +123,16 @@ def fetch_transcript(speech_operation_id: str) -> Optional[Transcript]:
             retry=_GOOGLE_API_RETRIES,
         )
     except InvalidArgument as ex:
-        raise McMisconfiguredSpeechAPIException(f"Invalid operation ID '{speech_operation_id}': {ex}")
+        raise McProgrammingError(f"Invalid operation ID '{speech_operation_id}': {ex}")
     except NotFound as ex:
         # FIXME we should be resubmitting the media file for a new transcript when that happens
-        raise HardException(f"Operation ID '{speech_operation_id}' was not found: {ex}")
+        raise McProgrammingError(f"Operation ID '{speech_operation_id}' was not found: {ex}")
     except Exception as ex:
         # On any other errors, raise a hard exception
-        raise McMisconfiguredSpeechAPIException(f"Error while fetching operation ID '{speech_operation_id}': {ex}")
+        raise McProgrammingError(f"Error while fetching operation ID '{speech_operation_id}': {ex}")
 
     if not operation:
-        raise McMisconfiguredSpeechAPIException(f"Operation is unset.")
+        raise McProgrammingError(f"Operation is unset.")
 
     try:
         gapic_operation: Operation = from_gapic(
@@ -154,7 +143,7 @@ def fetch_transcript(speech_operation_id: str) -> Optional[Transcript]:
             retry=_GOOGLE_API_RETRIES,
         )
     except Exception as ex:
-        raise McMisconfiguredSpeechAPIException(f"Unable to create GAPIC operation: {ex}")
+        raise McProgrammingError(f"Unable to create GAPIC operation: {ex}")
 
     log.debug(f"GAPIC operation: {gapic_operation}")
     log.debug(f"Operation metadata: {gapic_operation.metadata}")
@@ -165,7 +154,7 @@ def fetch_transcript(speech_operation_id: str) -> Optional[Transcript]:
         operation_is_done = gapic_operation.done(retry=_GOOGLE_API_RETRIES)
     except Exception as ex:
         # 'done' attribute might be gone in a newer version of the Speech API client
-        raise McMisconfiguredSpeechAPIException(
+        raise McProgrammingError(
             f"Unable to test whether operation '{speech_operation_id}' is done: {ex}"
         )
 
@@ -195,7 +184,7 @@ def fetch_transcript(speech_operation_id: str) -> Optional[Transcript]:
             )
 
     except Exception as ex:
-        raise HardException(
+        raise McProgrammingError(
             f"Unable to read transcript for operation '{speech_operation_id}' due to other error: {ex}"
         )
 

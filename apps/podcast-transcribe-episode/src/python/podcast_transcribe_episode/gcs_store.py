@@ -7,13 +7,21 @@ from google.cloud import storage
 from google.cloud.exceptions import NotFound
 # noinspection PyPackageRequirements
 from google.cloud.storage import Blob, Bucket
+# noinspection PyPackageRequirements
+from google.cloud.storage.retry import DEFAULT_RETRY
 
 from mediawords.util.log import create_logger
 
 from .config import AbstractGCBucketConfig, GCAuthConfig
-from .exceptions import McPodcastGCSStoreFailureException, McPodcastMisconfiguredGCSException, SoftException
+from .exceptions import McProgrammingError, McConfigurationError, McPermanentError
 
 log = create_logger(__name__)
+
+_GCS_API_RETRIES = DEFAULT_RETRY.with_delay(initial=5, maximum=60, multiplier=2).with_deadline(deadline=60 * 10)
+"""Google Cloud Storage's retry policy."""
+
+_GCS_UPLOAD_DOWNLOAD_NUM_RETRIES = 10
+"""Number of retries to do when uploading / downloading."""
 
 
 class GCSStore(object):
@@ -27,7 +35,7 @@ class GCSStore(object):
 
     def __init__(self, bucket_config: AbstractGCBucketConfig, auth_config: Optional[GCAuthConfig] = None):
         if not bucket_config:
-            raise McPodcastMisconfiguredGCSException("Bucket configuration is unset.")
+            raise McConfigurationError("Bucket configuration is unset.")
 
         if not auth_config:
             auth_config = GCAuthConfig()
@@ -43,18 +51,19 @@ class GCSStore(object):
 
             try:
                 storage_client = storage.Client.from_service_account_json(self.__auth_config.gc_auth_json_file())
-                self.__bucket_internal = storage_client.get_bucket(self.__bucket_config.bucket_name())
-            except Exception as ex:
-                raise McPodcastGCSStoreFailureException(
-                    f"Unable to get GCS bucket '{self.__bucket_config.bucket_name()}': {ex}"
+                self.__bucket_internal = storage_client.get_bucket(
+                    bucket_or_name=self.__bucket_config.bucket_name(),
+                    retry=_GCS_API_RETRIES,
                 )
+            except Exception as ex:
+                raise McConfigurationError(f"Unable to get GCS bucket '{self.__bucket_config.bucket_name()}': {ex}")
 
         return self.__bucket_internal
 
     @classmethod
     def _remote_path(cls, path_prefix: str, object_id: str):
         if not object_id:
-            raise McPodcastMisconfiguredGCSException("Object ID is unset.")
+            raise McProgrammingError("Object ID is unset.")
 
         path = os.path.join(path_prefix, object_id)
 
@@ -69,7 +78,7 @@ class GCSStore(object):
 
     def _blob_from_object_id(self, object_id: str) -> Blob:
         if not object_id:
-            raise McPodcastMisconfiguredGCSException("Object ID is unset.")
+            raise McProgrammingError("Object ID is unset.")
 
         remote_path = self._remote_path(path_prefix=self.__bucket_config.path_prefix(), object_id=object_id)
         blob = self._bucket.blob(remote_path)
@@ -84,7 +93,7 @@ class GCSStore(object):
         """
 
         if not object_id:
-            raise McPodcastMisconfiguredGCSException("Object ID is unset.")
+            raise McProgrammingError("Object ID is unset.")
 
         log.debug(f"Testing if object ID {object_id} exists...")
 
@@ -94,14 +103,14 @@ class GCSStore(object):
 
         try:
             # blob.reload() returns metadata too
-            blob.reload()
+            blob.reload(retry=_GCS_API_RETRIES)
 
         except NotFound as ex:
             log.debug(f"Object '{object_id}' was not found: {ex}")
             exists = False
 
         except Exception as ex:
-            raise McPodcastGCSStoreFailureException(f"Unable to test whether GCS object {object_id} exists: {ex}")
+            raise McProgrammingError(f"Unable to test whether GCS object {object_id} exists: {ex}")
 
         else:
             exists = True
@@ -119,10 +128,10 @@ class GCSStore(object):
         """
 
         if not os.path.isfile(local_file_path):
-            raise McPodcastMisconfiguredGCSException(f"Local file '{local_file_path}' does not exist.")
+            raise McProgrammingError(f"Local file '{local_file_path}' does not exist.")
 
         if not object_id:
-            raise McPodcastMisconfiguredGCSException("Object ID is unset.")
+            raise McProgrammingError("Object ID is unset.")
 
         log.debug(f"Uploading file '{local_file_path}' as object ID {object_id}...")
 
@@ -131,6 +140,7 @@ class GCSStore(object):
 
         blob = self._blob_from_object_id(object_id=object_id)
 
+        # FIXME throw appropriate exception
         blob.upload_from_filename(filename=local_file_path, content_type='application/octet-stream')
 
     # FIXME write some tests
@@ -143,19 +153,19 @@ class GCSStore(object):
         """
 
         if os.path.isfile(local_file_path):
-            raise McPodcastMisconfiguredGCSException(f"Local file '{local_file_path}' already exists.")
+            raise McProgrammingError(f"Local file '{local_file_path}' already exists.")
 
         if not object_id:
-            raise McPodcastMisconfiguredGCSException("Object ID is unset.")
+            raise McProgrammingError("Object ID is unset.")
 
         log.debug(f"Downloading object ID {object_id} to file '{local_file_path}'...")
 
         if not self.object_exists(object_id=object_id):
-            # FIXME or is it a hard exception?
-            raise SoftException(f"Object ID {object_id} was not found.")
+            raise McPermanentError(f"Object ID {object_id} was not found.")
 
         blob = self._blob_from_object_id(object_id=object_id)
 
+        # FIXME throw appropriate exception
         blob.download_to_filename(filename=local_file_path)
 
     def delete_object(self, object_id: str) -> None:
@@ -170,20 +180,20 @@ class GCSStore(object):
         """
 
         if not object_id:
-            raise McPodcastMisconfiguredGCSException("Object ID is unset.")
+            raise McProgrammingError("Object ID is unset.")
 
         log.debug(f"Deleting object ID {object_id}...")
 
         blob = self._blob_from_object_id(object_id=object_id)
 
         try:
-            blob.delete()
+            blob.delete(retry=_GCS_API_RETRIES)
 
         except NotFound:
             log.warning(f"Object {object_id} doesn't exist.")
 
         except Exception as ex:
-            raise McPodcastGCSStoreFailureException(f"Unable to delete GCS object {object_id}: {ex}")
+            raise McProgrammingError(f"Unable to delete GCS object {object_id}: {ex}")
 
     def object_uri(self, object_id: str) -> str:
         """
@@ -194,7 +204,7 @@ class GCSStore(object):
         """
 
         if not object_id:
-            raise McPodcastMisconfiguredGCSException("Object ID is unset.")
+            raise McProgrammingError("Object ID is unset.")
 
         uri = "gs://{host}/{remote_path}".format(
             host=self.__bucket_config.bucket_name(),
