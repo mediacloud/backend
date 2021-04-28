@@ -96,4 +96,4 @@ git+https://github.com/firdaus/temporal-python-sdk.git@8604d025ae1272b592d3d4dd4
 url_normalize==1.4.3
 
 # Low level HTTP requests (with SSL certificate verification)
-urllib3[secure]==1.26.3
+urllib3[secure]==1.26.4
