@@ -16,7 +16,7 @@ log = create_logger(__name__)
 
 
 async def _start_worker():
-    client = WorkflowClient.new_client(namespace=NAMESPACE)
+    client = WorkflowClient.new_client(host='temporal-server', namespace=NAMESPACE)
 
     factory = WorkerFactory(client=client, namespace=NAMESPACE)
     worker = factory.new_worker(task_queue=TASK_QUEUE)

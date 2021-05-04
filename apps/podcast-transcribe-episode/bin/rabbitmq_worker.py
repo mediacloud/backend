@@ -17,7 +17,7 @@ log = create_logger(__name__)
 async def _start_workflow(stories_id: int) -> None:
     log.info(f"Starting a workflow for story {stories_id}...")
 
-    client = WorkflowClient.new_client(namespace=NAMESPACE)
+    client = WorkflowClient.new_client(host='temporal-server', namespace=NAMESPACE)
     workflow: AbstractPodcastTranscribeWorkflow = client.new_workflow_stub(
         cls=AbstractPodcastTranscribeWorkflow,
         workflow_options=WorkflowOptions(workflow_id=str(stories_id)),
