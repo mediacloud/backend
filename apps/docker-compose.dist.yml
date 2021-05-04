@@ -172,37 +172,6 @@ x-brandwatch-api-configuration: &brandwatch-api-configuration
 
 
 #
-# Google Cloud for podcast transcription common configuration
-# ===========================================================
-#
-x-podcast-google-cloud-configuration:    &podcast-google-cloud-configuration
-
-    # Base64-encoded Google Cloud authentication JSON file for a service account that
-    # uploads episodes to Google Cloud Storage and submits Speech API jobs; refer to
-    # doc/podcasts_gc_auth.markdown for instructions on how to create such an
-    # account.
-    #
-    # How to generate Base64 encoded credentials:
-    #
-    #     $ base64 mediacloud-service-account-credentials.json
-    #
-    MC_PODCAST_GC_AUTH_JSON_BASE64: '
-        ewogICAgInR5cGUiOiAic2VydmljZV9hY2NvdW50IiwKICAgICJwcm9qZWN0X2lkIjogImV
-        4YW1wbGUiLAogICAgInByaXZhdGVfa2V5X2lkIjogIjdmMTY5YTIxZDNmODA5NzQzNjRiY2
-        YwOWYyMDQ3ZWEwZWZiNTY4M2EiLAogICAgInByaXZhdGVfa2V5IjogIi0tLS0tQkVHSU4gU
-        FJJVkFURSBLRVktLS0tLVxuPC4uLj5cbi0tLS0tRU5EIFBSSVZBVEUgS0VZLS0tLS1cbiIs
-        CiAgICAiY2xpZW50X2VtYWlsIjogImV4YW1wbGVAZXhhbXBsZS5pYW0uZ3NlcnZpY2VhY2N
-        vdW50LmNvbSIsCiAgICAiY2xpZW50X2lkIjogIjEyMyIsCiAgICAiYXV0aF91cmkiOiAiaH
-        R0cHM6Ly9hY2NvdW50cy5nb29nbGUuY29tL28vb2F1dGgyL2F1dGgiLAogICAgInRva2VuX
-        3VyaSI6ICJodHRwczovL29hdXRoMi5nb29nbGVhcGlzLmNvbS90b2tlbiIsCiAgICAiYXV0
-        aF9wcm92aWRlcl94NTA5X2NlcnRfdXJsIjogImh0dHBzOi8vd3d3Lmdvb2dsZWFwaXMuY29
-        tL29hdXRoMi92MS9jZXJ0cyIsCiAgICAiY2xpZW50X3g1MDlfY2VydF91cmwiOiAiaHR0cH
-        M6Ly93d3cuZ29vZ2xlYXBpcy5jb20vcm9ib3QvdjEvbWV0YWRhdGEveDUwOS9leGFtcGxlJ
-        TQwZXhhbXBsZS5pYW0uZ3NlcnZpY2VhY2NvdW50LmNvbSIKfQ==
-    '
-
-
-#
 # Solr shard base service
 # =======================
 #
@@ -1259,18 +1228,45 @@ services:
     # Fetch story podcast episode and store it in GCS
     # -----------------------------------------------
     #
-    podcast-fetch-episode:
-        image: gcr.io/mcback/podcast-fetch-episode:release
+    podcast-transcribe-episode:
+        image: gcr.io/mcback/podcast-transcribe-episode:release
         init: true
         networks:
             - default
         environment:
             <<: *common-configuration
-            <<: *podcast-google-cloud-configuration
-            # Google Cloud Storage bucket name for storing episode audio files
-            MC_PODCAST_FETCH_EPISODE_BUCKET_NAME: "mediacloud-story-podcast-episodes"
-            # Google Cloud Storage path prefix for storing episode audio files
-            MC_PODCAST_FETCH_EPISODE_PATH_PREFIX: "episodes"
+            # GCS bucket name and path prefix for storing raw, untranscoded enclosure files
+            MC_PODCAST_RAW_ENCLOSURES_BUCKET_NAME: "FIXME"
+            MC_PODCAST_RAW_ENCLOSURES_PATH_PREFIX: "enclosures"
+            # GCS bucket name and path prefix for storing transcoded episodes
+            MC_PODCAST_TRANSCODED_EPISODES_BUCKET_NAME: "FIXME"
+            MC_PODCAST_TRANSCODED_EPISODES_PATH_PREFIX: "episodes"
+            # GCS bucket name and path prefix for storing raw JSON transcripts
+            MC_PODCAST_TRANSCRIPTS_BUCKET_NAME: "FIXME"
+            MC_PODCAST_TRANSCRIPTS_PATH_PREFIX: "transcripts"
+            # Base64-encoded Google Cloud authentication JSON file for a service account that
+            # uploads episodes to Google Cloud Storage and submits Speech API jobs; refer to
+            # doc/podcasts_gc_auth.markdown for instructions on how to create such an
+            # account.
+            #
+            # How to generate Base64 encoded credentials:
+            #
+            #     $ base64 mediacloud-service-account-credentials.json
+            #
+            MC_PODCAST_AUTH_JSON_BASE64: '
+                ewogICAgInR5cGUiOiAic2VydmljZV9hY2NvdW50IiwKICAgICJwcm9qZWN0X2lkIjogImV
+                4YW1wbGUiLAogICAgInByaXZhdGVfa2V5X2lkIjogIjdmMTY5YTIxZDNmODA5NzQzNjRiY2
+                YwOWYyMDQ3ZWEwZWZiNTY4M2EiLAogICAgInByaXZhdGVfa2V5IjogIi0tLS0tQkVHSU4gU
+                FJJVkFURSBLRVktLS0tLVxuPC4uLj5cbi0tLS0tRU5EIFBSSVZBVEUgS0VZLS0tLS1cbiIs
+                CiAgICAiY2xpZW50X2VtYWlsIjogImV4YW1wbGVAZXhhbXBsZS5pYW0uZ3NlcnZpY2VhY2N
+                vdW50LmNvbSIsCiAgICAiY2xpZW50X2lkIjogIjEyMyIsCiAgICAiYXV0aF91cmkiOiAiaH
+                R0cHM6Ly9hY2NvdW50cy5nb29nbGUuY29tL28vb2F1dGgyL2F1dGgiLAogICAgInRva2VuX
+                3VyaSI6ICJodHRwczovL29hdXRoMi5nb29nbGVhcGlzLmNvbS90b2tlbiIsCiAgICAiYXV0
+                aF9wcm92aWRlcl94NTA5X2NlcnRfdXJsIjogImh0dHBzOi8vd3d3Lmdvb2dsZWFwaXMuY29
+                tL29hdXRoMi92MS9jZXJ0cyIsCiAgICAiY2xpZW50X3g1MDlfY2VydF91cmwiOiAiaHR0cH
+                M6Ly93d3cuZ29vZ2xlYXBpcy5jb20vcm9ib3QvdjEvbWV0YWRhdGEveDUwOS9leGFtcGxlJ
+                TQwZXhhbXBsZS5pYW0uZ3NlcnZpY2VhY2NvdW50LmNvbSIKfQ==
+            '
         depends_on:
             - postgresql-pgbouncer
             - rabbitmq-server
@@ -1282,101 +1278,9 @@ services:
             resources:
                 limits:
                     # CPU core limit
-                    cpus: "1"
+                    cpus: "2"
                     # RAM limit
-                    memory: "1G"
-            restart_policy:
-                # Automatically restart on non-zero exit codes only instead of on any exit
-                condition: on-failure
-                # Autorestart up to three times
-                max_attempts: 3
-
-    #
-    # Fetch finished transcripts and store them locally
-    # -------------------------------------------------
-    podcast-fetch-transcript:
-        image: gcr.io/mcback/podcast-fetch-transcript:release
-        init: true
-        networks:
-            - default
-        environment:
-            <<: *common-configuration
-            <<: *podcast-google-cloud-configuration
-        depends_on:
-            - postgresql-pgbouncer
-            - rabbitmq-server
-        deploy:
-            <<: *misc-apps_deploy_placement_constraints
-            <<: *endpoint-mode-dnsrr
-            # Worker count
-            replicas: 1
-            resources:
-                limits:
-                    # CPU core limit
-                    cpus: "1"
-                    # RAM limit
-                    memory: "256M"
-            restart_policy:
-                # Automatically restart on non-zero exit codes only instead of on any exit
-                condition: on-failure
-                # Autorestart up to three times
-                max_attempts: 3
-
-    #
-    # Poll due operations and submit them to "podcast-fetch-transcript"
-    # -----------------------------------------------------------------
-    podcast-poll-due-operations:
-        image: gcr.io/mcback/podcast-poll-due-operations:release
-        init: true
-        networks:
-            - default
-        environment:
-            <<: *common-configuration
-        depends_on:
-            - postgresql-pgbouncer
-            - rabbitmq-server
-        deploy:
-            <<: *misc-apps_deploy_placement_constraints
-            <<: *endpoint-mode-dnsrr
-            # Worker count
-            replicas: 1
-            resources:
-                limits:
-                    # CPU core limit
-                    cpus: "1"
-                    # RAM limit
-                    memory: "256M"
-            restart_policy:
-                # Automatically restart on non-zero exit codes only instead of on any exit
-                condition: on-failure
-                # Autorestart up to three times
-                max_attempts: 3
-
-    #
-    # Submit a Speech API operation for a podcast episode
-    # ---------------------------------------------------
-    podcast-submit-operation:
-        image: gcr.io/mcback/podcast-submit-operation:release
-        init: true
-        networks:
-            - default
-        environment:
-            <<: *common-configuration
-            <<: *podcast-google-cloud-configuration
-        depends_on:
-            - postgresql-pgbouncer
-            - rabbitmq-server
-        deploy:
-            <<: *misc-apps_deploy_placement_constraints
-            <<: *endpoint-mode-dnsrr
-            # Worker count
-            replicas: 1
-            resources:
-                limits:
-                    # CPU core limit
-                    cpus: "1"
-                    # RAM limit
-                    memory: "256M"
+                    memory: "4G"
             restart_policy:
                 # Automatically restart on non-zero exit codes only instead of on any exit
                 condition: on-failure
@@ -1843,6 +1747,187 @@ services:
                     cpus: "1"
                     # RAM limit
                     memory: "1G"
+
+    #
+    # Temporal Elasticsearch (searching for workflows)
+    # ------------------------------------------------
+    #
+    temporal-elasticsearch:
+        image: gcr.io/mcback/temporal-elasticsearch:release
+        init: true
+        networks:
+            - default
+        expose:
+            - "9200"
+            - "9300"
+        volumes:
+            - vol_temporal_elasticsearch_data:/var/lib/elasticsearch/
+        deploy:
+            <<: *endpoint-mode-dnsrr
+            placement:
+                constraints:
+                    # Must run on the host with Temporal Elasticsearch data volume
+                    - node.labels.role-temporal-elasticsearch == true
+            # Worker count
+            replicas: 1
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "4"
+                    # RAM limit
+                    memory: "16G"
+
+    #
+    # Temporal Grafana (web UI for Temporal's stats)
+    # ----------------------------------------------
+    #
+    temporal-grafana:
+        image: gcr.io/mcback/temporal-grafana:release
+        init: true
+        networks:
+            - default
+        expose:
+            - "3000"
+        ports:
+            # For connecting to through a SSH tunnel
+            # MAKE SURE to BLOCK THIS PORT in provision/roles/docker/tasks/iptables.yml
+            - "3000:3000"
+        volumes:
+            - vol_temporal_grafana_data:/var/lib/grafana/
+        deploy:
+            <<: *endpoint-mode-dnsrr
+            placement:
+                constraints:
+                    # Must run on the host with Temporal Grafana data volume
+                    - node.labels.role-temporal-grafana == true
+            # Worker count
+            replicas: 1
+            resources:
+                limits:
+                    cpus: "2"
+                    memory: "2G"
+
+    #
+    # Temporal PostgreSQL (Temporal's main data store)
+    # ------------------------------------------------
+    #
+    temporal-postgresql:
+        image: gcr.io/mcback/temporal-postgresql:release
+        init: true
+        networks:
+            - default
+        expose:
+            - 5432
+        volumes:
+            - vol_temporal_postgresql_data:/var/lib/postgresql/
+        deploy:
+            <<: *endpoint-mode-dnsrr
+            placement:
+                constraints:
+                    # Must run on the host with Temporal PostgreSQL server data volume
+                    - node.labels.role-temporal-postgresql == true
+            # Worker count
+            replicas: 1
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "8"
+                    # RAM limit
+                    memory: "32G"
+
+    #
+    # Temporal Prometheus (Temporal's statistics store)
+    # -------------------------------------------------
+    #
+    temporal-prometheus:
+        image: gcr.io/mcback/temporal-prometheus:release
+        init: true
+        depends_on:
+            - temporal-grafana
+        networks:
+            - default
+        expose:
+            - "9090"
+        volumes:
+            - vol_temporal_prometheus_data:/opt/prometheus/data/
+        deploy:
+            <<: *endpoint-mode-dnsrr
+            placement:
+                constraints:
+                    # Must run on the host with Temporal Prometheus data volume
+                    - node.labels.role-temporal-prometheus == true
+            # Worker count
+            replicas: 1
+            resources:
+                limits:
+                    cpus: "2"
+                    memory: "2G"
+
+    #
+    # Temporal server (running stateful workflows)
+    # --------------------------------------------
+    #
+    temporal-server:
+        image: gcr.io/mcback/temporal-server:release
+        init: true
+        networks:
+            - default
+        depends_on:
+            - temporal-postgresql
+            - temporal-elasticsearch
+            - temporal-prometheus
+        expose:
+            - 6933
+            - 6934
+            - 6935
+            - 6939
+            - 7233
+            - 7234
+            - 7235
+            - 7239
+        volumes:
+            - vol_temporal_server_archives:/var/lib/temporal/
+        deploy:
+            <<: *endpoint-mode-dnsrr
+            placement:
+                constraints:
+                    # Must run on the host with Temporal server data volume
+                    - node.labels.role-temporal-server == true
+            # Worker count
+            replicas: 1
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "8"
+                    # RAM limit
+                    memory: "32G"
+
+    #
+    # Temporal webapp (tracking workflow state)
+    # -----------------------------------------
+    #
+    temporal-webapp:
+        image: gcr.io/mcback/temporal-webapp:release
+        init: true
+        networks:
+            - default
+        expose:
+            - "8088"
+        ports:
+            # For connecting to through a SSH tunnel
+            # MAKE SURE to BLOCK THIS PORT in provision/roles/docker/tasks/iptables.yml
+            - "8088:8088"
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            <<: *endpoint-mode-dnsrr
+            # Worker count
+            replicas: 1
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "2"
+                    # RAM limit
+                    memory: "4G"
 
     #
     # Extract story links for a topic
@@ -2375,3 +2460,43 @@ volumes:
             type: none
             o: bind
             device: /space/mediacloud/vol_elk_elasticsearch_data
+
+    # Temporal server workflow archives
+    vol_temporal_server_archives:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_temporal_server_archives
+
+    # Temporal PostgreSQL server data
+    vol_temporal_postgresql_data:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_postgresql_data
+
+    # Temporal Elasticsearch data
+    vol_temporal_elasticsearch_data:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_temporal_elasticsearch_data
+
+    # Temporal Prometheus data
+    vol_temporal_prometheus_data:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_temporal_prometheus_data
+
+    # Temporal Grafana data
+    vol_temporal_grafana_data:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /space/mediacloud/vol_temporal_grafana_data

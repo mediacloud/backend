@@ -161,6 +161,34 @@
     - docker
     - iptables
 
+- name: Deny connections to Temporal webapp
+  iptables:
+    # Insert before RETURN
+    action: insert
+    chain: DOCKER-USER
+    protocol: tcp
+    destination_port: 8088
+    jump: DROP
+  become: true
+  become_user: root
+  tags:
+    - docker
+    - iptables
+
+- name: Deny connections to Temporal Grafana
+  iptables:
+    # Insert before RETURN
+    action: insert
+    chain: DOCKER-USER
+    protocol: tcp
+    destination_port: 3000
+    jump: DROP
+  become: true
+  become_user: root
+  tags:
+    - docker
+    - iptables
+
 - name: Save IPv4 rules
   community.general.iptables_state:
     ip_version: ipv4

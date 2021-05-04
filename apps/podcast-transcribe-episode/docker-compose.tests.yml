@@ -7,10 +7,17 @@ services:
         init: true
         stop_signal: SIGKILL
         environment:
-            MC_PODCAST_GC_AUTH_JSON_BASE64: "${MC_PODCAST_GC_AUTH_JSON_BASE64}"
-            MC_PODCAST_FETCH_EPISODE_BUCKET_NAME: "${MC_PODCAST_FETCH_EPISODE_BUCKET_NAME}"
-            # Dev/test environments don't use "MC_PODCAST_FETCH_EPISODE_PATH_PREFIX" environment
-            # variable as they create a different, timestamped prefix for every test run.
+            MC_PODCAST_AUTH_JSON_BASE64: "${MC_PODCAST_AUTH_JSON_BASE64}"
+            MC_PODCAST_RAW_ENCLOSURES_BUCKET_NAME: "${MC_PODCAST_RAW_ENCLOSURES_BUCKET_NAME}"
+            MC_PODCAST_TRANSCODED_EPISODES_BUCKET_NAME: "${MC_PODCAST_TRANSCODED_EPISODES_BUCKET_NAME}"
+            MC_PODCAST_TRANSCRIPTS_BUCKET_NAME: "${MC_PODCAST_TRANSCRIPTS_BUCKET_NAME}"
+            # Dev/test environments don't use path prefixes:
+            #
+            # * MC_PODCAST_RAW_ENCLOSURES_PATH_PREFIX
+            # * MC_PODCAST_TRANSCODED_EPISODES_PATH_PREFIX
+            # * MC_PODCAST_TRANSCRIPTS_PATH_PREFIX
+            #
+            # as they create a different, timestamped prefix for every test run.
         volumes:
             - type: bind
               source: ./bin/

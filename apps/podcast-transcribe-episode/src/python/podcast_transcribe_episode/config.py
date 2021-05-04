@@ -31,7 +31,7 @@ class GCAuthConfig(object):
     @classmethod
     def gc_auth_json_file(cls) -> str:
         """Return path to Google Cloud authentication JSON file."""
-        return file_with_env_value(name='MC_PODCAST_GC_AUTH_JSON_BASE64', encoded_with_base64=True)
+        return file_with_env_value(name='MC_PODCAST_AUTH_JSON_BASE64', encoded_with_base64=True)
 
 
 class RawEnclosuresBucketConfig(AbstractGCBucketConfig):
