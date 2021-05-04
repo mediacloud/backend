@@ -9,7 +9,7 @@ from mediawords.test.db.create import (
     create_test_story,
 )
 
-from podcast_transcribe_episode.enclosure import podcast_viable_enclosure_for_story, StoryEnclosure
+from podcast_transcribe_episode.enclosure import viable_story_enclosure, StoryEnclosure
 
 
 @dataclasses.dataclass
@@ -43,7 +43,7 @@ class TestPodcastViableEnclosureForStory(TestCase):
             )
         )
 
-        assert podcast_viable_enclosure_for_story(
+        assert viable_story_enclosure(
             db=self._DB,
             stories_id=no_enclosures.stories_id,
         ) is None, "Story with no enclosures."
@@ -66,7 +66,7 @@ class TestPodcastViableEnclosureForStory(TestCase):
             })
         )
 
-        assert podcast_viable_enclosure_for_story(
+        assert viable_story_enclosure(
             db=self._DB,
             stories_id=enclosure_with_empty_url.stories_id,
         ) is None, "Story with an empty enclosure URL."
@@ -89,7 +89,7 @@ class TestPodcastViableEnclosureForStory(TestCase):
             })
         )
 
-        assert podcast_viable_enclosure_for_story(
+        assert viable_story_enclosure(
             db=self._DB,
             stories_id=single_mp3_enclosure.stories_id,
         ) == StoryEnclosure.from_db_row(single_mp3_enclosure.enclosures[0]), (
@@ -114,7 +114,7 @@ class TestPodcastViableEnclosureForStory(TestCase):
             })
         )
 
-        assert podcast_viable_enclosure_for_story(
+        assert viable_story_enclosure(
             db=self._DB,
             stories_id=single_mp3_without_mime_enclosure.stories_id,
         ) == StoryEnclosure.from_db_row(single_mp3_without_mime_enclosure.enclosures[0]), (
@@ -145,7 +145,7 @@ class TestPodcastViableEnclosureForStory(TestCase):
             }),
         ])
 
-        assert podcast_viable_enclosure_for_story(
+        assert viable_story_enclosure(
             db=self._DB,
             stories_id=multiple_audio_enclosures.stories_id,
         ) == StoryEnclosure.from_db_row(multiple_audio_enclosures.enclosures[1]), (
@@ -176,7 +176,7 @@ class TestPodcastViableEnclosureForStory(TestCase):
             }),
         ])
 
-        assert podcast_viable_enclosure_for_story(
+        assert viable_story_enclosure(
             db=self._DB,
             stories_id=multiple_unsupported_audio_enclosures.stories_id,
         ) == StoryEnclosure.from_db_row(multiple_unsupported_audio_enclosures.enclosures[0]), (
@@ -207,7 +207,7 @@ class TestPodcastViableEnclosureForStory(TestCase):
             }),
         ])
 
-        assert podcast_viable_enclosure_for_story(
+        assert viable_story_enclosure(
             db=self._DB,
             stories_id=audio_and_video_enclosures.stories_id,
         ) == StoryEnclosure.from_db_row(audio_and_video_enclosures.enclosures[1]), (
@@ -238,7 +238,7 @@ class TestPodcastViableEnclosureForStory(TestCase):
             }),
         ])
 
-        assert podcast_viable_enclosure_for_story(
+        assert viable_story_enclosure(
             db=self._DB,
             stories_id=only_video_enclosures.stories_id,
         ) == StoryEnclosure.from_db_row(only_video_enclosures.enclosures[0]), (
