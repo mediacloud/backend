@@ -38,7 +38,7 @@ class DefaultStoreMixin(AbstractDownloadHandler, metaclass=abc.ABCMeta):
           feed;
         * 'feed/web_page' downloads return a list with a single 'web_page' story to be extracted.
         """
-        raise NotImplemented("Abstract method")
+        raise NotImplementedError("Abstract method")
 
     def _store_failed_download_error_message(self, db: DatabaseHandler, download: dict, response: Response) -> None:
         """

@@ -27,31 +27,31 @@ class AbstractFetchTranscriptTestCase(TestCase, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def input_media_path(cls) -> str:
         """Return full path to input media file."""
-        raise NotImplemented("Abstract method")
+        raise NotImplementedError("Abstract method")
 
     @classmethod
     @abc.abstractmethod
     def input_media_mime_type(cls) -> str:
         """Return input media file's MIME type."""
-        raise NotImplemented("Abstract method")
+        raise NotImplementedError("Abstract method")
 
     @classmethod
     @abc.abstractmethod
     def story_title_description(cls) -> str:
         """Return a string to store as both story title and description."""
-        raise NotImplemented("Abstract method")
+        raise NotImplementedError("Abstract method")
 
     @classmethod
     @abc.abstractmethod
     def retries_per_step(cls) -> int:
         """How many retries to do per each local step."""
-        raise NotImplemented("Abstract method")
+        raise NotImplementedError("Abstract method")
 
     @classmethod
     @abc.abstractmethod
     def seconds_between_retries(cls) -> float:
         """How many seconds to wait between retries."""
-        raise NotImplemented("Abstract method")
+        raise NotImplementedError("Abstract method")
 
     def setUp(self) -> None:
         super().setUp()

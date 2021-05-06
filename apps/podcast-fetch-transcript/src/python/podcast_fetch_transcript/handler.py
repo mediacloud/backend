@@ -44,7 +44,7 @@ class AbstractHandler(object, metaclass=abc.ABCMeta):
         :param podcast_episode_transcript_fetches_id: Transcript fetch attempt ID.
         :return: None if transcript is not finished yet, a Transcript object otherwise.
         """
-        raise NotImplemented("Abstract method")
+        raise NotImplementedError("Abstract method")
 
     @classmethod
     @abc.abstractmethod
@@ -60,7 +60,7 @@ class AbstractHandler(object, metaclass=abc.ABCMeta):
         :param transcript: Transcript object.
         :return: Download ID for a download that was created.
         """
-        raise NotImplemented("Abstract method")
+        raise NotImplementedError("Abstract method")
 
 
 class DefaultHandler(AbstractHandler):
