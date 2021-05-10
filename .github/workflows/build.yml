@@ -17,14 +17,6 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Measure disk space
-        run: |
-          sudo du -sh /usr/local/*
-          sudo du -sh /usr/local/lib/*
-          sudo du -sh /usr/local/share/*
-          sudo du -sh /usr/share/*
-          sudo du -sh $AGENT_TOOLSDIRECTORY
-
       - name: Clean up disk space
         run: ./.github/free-up-disk-space.sh
 
