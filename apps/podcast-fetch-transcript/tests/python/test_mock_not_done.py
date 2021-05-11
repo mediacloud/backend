@@ -18,7 +18,7 @@ class MockTranscriptNotDoneHandler(AbstractHandler):
 
     @classmethod
     def store_transcript(cls, db: DatabaseHandler, transcript: Transcript) -> int:
-        raise NotImplemented("Shouldn't be called.")
+        raise NotImplementedError("Shouldn't be called.")
 
 
 class MockFailedTestCase(AbstractMockFetchStoreTestCase):

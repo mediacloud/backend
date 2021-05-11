@@ -31,13 +31,13 @@ class AbstractUnivisionTest(object, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def univision_credentials(cls) -> Optional[UnivisionTestCredentials]:
         """Return test credentials to test Univision integration with, or None if you'd like the tests to be skipped."""
-        raise NotImplemented("Abstract method")
+        raise NotImplementedError("Abstract method")
 
     @classmethod
     @abc.abstractmethod
     def expect_to_find_some_stories(cls) -> bool:
         """If True, we should expect to find some stories in the downloaded feed."""
-        raise NotImplemented("Abstract method")
+        raise NotImplementedError("Abstract method")
 
     @classmethod
     def _mock_crawler_config(cls) -> CrawlerConfig:
