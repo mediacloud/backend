@@ -22,7 +22,7 @@ MC_POSTGRESQL_CONF_PATH="/etc/postgresql/11/main/postgresql.conf"
 
 psql -v ON_ERROR_STOP=1 -c "CREATE USER temporal WITH PASSWORD 'temporal' SUPERUSER;"
 
-SCHEMA_DIR="/opt/temporal-postgresql/schema"
+VENDOR_SCHEMA_DIR="/opt/temporal-postgresql/schema/v96"
 TSQL="temporal-sql-tool \
     --plugin postgres \
     --ep 127.0.0.1 \
@@ -31,11 +31,49 @@ TSQL="temporal-sql-tool \
     --pw temporal \
 "
 
+MAIN_SCHEMA_DIR="${VENDOR_SCHEMA_DIR}/temporal/versioned"
 $TSQL create --db temporal
-psql -v ON_ERROR_STOP=1 -d temporal -f "${SCHEMA_DIR}/mc_temporal.sql"
+$TSQL --db temporal setup-schema -v 0.0
+$TSQL --db temporal update-schema -d "${MAIN_SCHEMA_DIR}"
 
+VISIBILITY_SCHEMA_DIR="${VENDOR_SCHEMA_DIR}/visibility/versioned"
 $TSQL create --db temporal_visibility
-psql -v ON_ERROR_STOP=1 -d temporal_visibility -f "${SCHEMA_DIR}/mc_temporal_visibility.sql"
+$TSQL --db temporal_visibility setup-schema -v 0.0
+$TSQL --db temporal_visibility update-schema -d "${VISIBILITY_SCHEMA_DIR}"
+
+# Both listen on localhost and expect to find PostgreSQL locally too
+export MC_TEMPORAL_POSTGRESQL_HOST="127.0.0.1"
+export MC_TEMPORAL_HOST_IP="127.0.0.1"
+
+# Generate final config
+envsubst \
+    < /opt/temporal-server/config/mediacloud_template.yaml \
+    > /opt/temporal-server/config/mediacloud.yaml
+
+# Start the server in the background
+temporal-server --root /opt/temporal-server --env mediacloud start &
+
+# Create the default namespace whenever the server becomes ready
+until tctl --ns default namespace describe < /dev/null; do
+    echo "Default namespace not found. Creating..."
+    sleep 0.2
+
+    # FIXME retention period rather short
+    tctl \
+        --ns default \
+        namespace register \
+        --rd 1 \
+        --desc "Default namespace for Temporal Server" \
+        || echo "Creating default namespace failed."
+
+done
+
+# Even after creating the default namespace, it doesn't become immediately ready
+# so wait for a bit
+echo "Waiting for the default namespace to propagate..."
+sleep 30
+
+killall -9 temporal-server
 
 # Stop PostgreSQL
 "${MC_POSTGRESQL_BIN_DIR}/pg_ctl" \

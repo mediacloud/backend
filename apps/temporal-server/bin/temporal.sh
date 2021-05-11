@@ -3,6 +3,8 @@
 set -u
 set -e
 
+export MC_TEMPORAL_POSTGRESQL_HOST="temporal-postgresql"
+
 # Hostname for binding configuration
 export MC_TEMPORAL_HOST_IP=$(hostname -i)
 

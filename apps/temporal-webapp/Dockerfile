@@ -45,8 +45,8 @@ RUN \
     cd /opt/temporal-webapp/ && \
     git init && \
     git remote add origin https://github.com/temporalio/web.git && \
-    # HEAD of "v1.7.1" tag:
-    git fetch --depth 1 origin f5bfe968a5ebd6f6e2bd687355bb8b746dcf52c6 && \
+    # HEAD of "v1.9.0" tag:
+    git fetch --depth 1 origin 6ed16d0dc07b4baf43e091028d98fa1fe7a29c06 && \
     git checkout FETCH_HEAD && \
     # SSH checkout doesn't work with the build container's public key not
     # registered with GitHub

@@ -22,7 +22,7 @@ RUN \
 USER elasticsearch
 
 # Preload with Temporal index template
-# (https://github.com/temporalio/temporal/blob/v1.7.0/schema/elasticsearch/v7/visibility/index_template.json)
+# (https://github.com/temporalio/temporal/blob/v1.9.2/schema/elasticsearch/v7/visibility/index_template.json)
 COPY index_template.json setup_index_template.sh /
 RUN /setup_index_template.sh
 USER root

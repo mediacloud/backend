@@ -13,12 +13,20 @@ RUN \
     && \
     #
     # Install temporal-sql-tool
-    # FIXME use upstream CI builds once they start working
     # Keep version that's being used in sync with temporal-server
     mkdir -p /var/tmp/temporal/ && \
-    /dl_to_stdout.sh "https://github.com/mediacloud/temporal-ci-builds/releases/download/v1.7.0-gr/temporal-ci-builds_1.7.0-gr_linux_amd64.tar.gz" | \
+    /dl_to_stdout.sh "https://github.com/temporalio/temporal/releases/download/v1.9.2/temporal_1.9.2_linux_amd64.tar.gz" | \
         tar -zx -C /var/tmp/temporal/ && \
-    mv /var/tmp/temporal/temporal-sql-tool /usr/bin/ && \
+    mv \
+        # Needed for creating the default namespace
+        /var/tmp/temporal/tctl \
+        # Needed for temporarily starting the server at build time to create
+        # the default namespace
+        /var/tmp/temporal/temporal-server \
+        # Needed for initializing default schema
+        /var/tmp/temporal/temporal-sql-tool \
+        #
+        /usr/bin/ && \
     rm -rf /var/tmp/temporal/ && \
     true
 
@@ -29,8 +37,8 @@ RUN \
     cd /var/tmp/temporal/ && \
     git init && \
     git remote add origin https://github.com/temporalio/temporal.git && \
-    # HEAD of "v1.7.0" tag:
-    git fetch --depth 1 origin e3496b1c51bfaaae8142b78e4032cc791de8a76f && \
+    # HEAD of "v1.9.2" tag:
+    git fetch --depth 1 origin d3acf160e51deb60ac798746fc06fc5c46c46269 && \
     git checkout FETCH_HEAD && \
     mv schema/postgresql/* /opt/temporal-postgresql/schema/ && \
     cd / && \
@@ -40,9 +48,17 @@ RUN \
     apt-get -y clean && \
     true
 
+# Install envsubst for generating configuration
+RUN apt-get -y --no-install-recommends install gettext-base
+
+RUN mkdir -p /opt/temporal-server/config/
+COPY temporal-config/* /opt/temporal-server/config/
+
+# Allow a final mediacloud.yml to get generated
+RUN chown postgres:postgres /opt/temporal-server/config/
+
 # Copy helper scripts
 COPY bin/* /opt/temporal-postgresql/bin/
-COPY schema/*.sql /opt/temporal-postgresql/schema/
 
 USER postgres
 
@@ -52,10 +68,17 @@ USER postgres
 # container start, Docker will copy the files from the container to the volume
 RUN /opt/temporal-postgresql/bin/initialize_schema.sh
 
-# Remove the init script so that someone doesn't accidentally run it in
-# production
+# Remove the init script, Temporal server and configuration so that someone
+# doesn't accidentally run it in production
 USER root
-RUN rm /opt/temporal-postgresql/bin/initialize_schema.sh
+RUN \
+    rm -rf \
+        /opt/temporal-postgresql/bin/initialize_schema.sh \
+        /usr/bin/tctl \
+        /usr/bin/temporal-server \
+        /opt/temporal-server/ \
+    && \
+    true
 USER postgres
 
 ENV \

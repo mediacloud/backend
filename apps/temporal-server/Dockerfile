@@ -13,10 +13,9 @@ RUN \
 
 # Install Temporal server
 RUN \
-    # FIXME use upstream CI builds once they start working
     # Keep version that's being used in sync with temporal-postgresql
     mkdir -p /var/tmp/temporal/ && \
-    /dl_to_stdout.sh "https://github.com/mediacloud/temporal-ci-builds/releases/download/v1.7.0-gr/temporal-ci-builds_1.7.0-gr_linux_amd64.tar.gz" | \
+    /dl_to_stdout.sh "https://github.com/temporalio/temporal/releases/download/v1.9.2/temporal_1.9.2_linux_amd64.tar.gz" | \
         tar -zx -C /var/tmp/temporal/ && \
     mv /var/tmp/temporal/temporal-server /var/tmp/temporal/tctl /usr/bin/ && \
     cd / && \

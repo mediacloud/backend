@@ -34,3 +34,9 @@
 [submodule "apps/temporal-grafana/dashboards"]
 	path = apps/temporal-grafana/dashboards
 	url = https://github.com/temporalio/dashboards.git
+[submodule "apps/temporal-server/config"]
+	path = apps/temporal-server/config
+	url = https://github.com/mediacloud/backend-temporal-server-config.git
+[submodule "apps/temporal-postgresql/temporal-config"]
+	path = apps/temporal-postgresql/temporal-config
+	url = https://github.com/mediacloud/backend-temporal-server-config.git
