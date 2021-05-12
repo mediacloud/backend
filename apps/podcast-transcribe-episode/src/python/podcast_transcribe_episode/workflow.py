@@ -194,11 +194,13 @@ class PodcastTranscribeActivities(AbstractPodcastTranscribeActivities):
             'stories_id': stories_id,
         }).hash()
 
+        # FIXME what if this gets rerun?
         download = create_download_for_new_story(db=db, story=story, feed=feed)
 
         text = transcript.download_text_from_transcript()
 
         # Store as a raw download and then let "extract-and-vector" app "extract" the stored text later
+        # FIXME make idempotent too
         store_content(db=db, download=download, content=text)
 
     async def add_to_extraction_queue(self, stories_id: int) -> None:
