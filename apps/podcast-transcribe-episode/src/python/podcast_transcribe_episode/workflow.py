@@ -257,6 +257,7 @@ class PodcastTranscribeWorkflow(AbstractPodcastTranscribeWorkflow):
             bcp47_language_code=bcp47_language_code,
         )
 
+        # Wait for Google Speech API to finish up transcribing
         await Workflow.sleep(int(episode_metadata.duration * 1.1))
 
         await self.activities.fetch_store_raw_transcript_json(
