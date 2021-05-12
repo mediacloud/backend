@@ -233,18 +233,18 @@ class PodcastTranscribeWorkflow(AbstractPodcastTranscribeWorkflow):
 
     async def transcribe_episode(self, stories_id: int) -> None:
 
-        bcp47_language_code = await self.activities.identify_story_bcp47_language_code(stories_id=stories_id)
+        bcp47_language_code = await self.activities.identify_story_bcp47_language_code(stories_id)
         if bcp47_language_code is None:
             # Default to English in case there wasn't enough sizable text in title / description to make a good guess
             bcp47_language_code = 'en'
 
-        enclosure = await self.activities.determine_best_enclosure(stories_id=stories_id)
+        enclosure = await self.activities.determine_best_enclosure(stories_id)
         if not enclosure:
             raise McPermanentError(f"No viable enclosure found for story {stories_id}")
 
-        await self.activities.fetch_enclosure_to_gcs(stories_id=stories_id, enclosure=enclosure)
+        await self.activities.fetch_enclosure_to_gcs(stories_id, enclosure)
 
-        episode_metadata = await self.activities.fetch_transcode_store_episode(stories_id=stories_id)
+        episode_metadata = await self.activities.fetch_transcode_store_episode(stories_id)
 
         if episode_metadata.duration > MAX_DURATION:
             raise McPermanentError(
@@ -252,19 +252,16 @@ class PodcastTranscribeWorkflow(AbstractPodcastTranscribeWorkflow):
             )
 
         speech_operation_id = await self.activities.submit_transcribe_operation(
-            stories_id=stories_id,
-            episode_metadata=episode_metadata,
-            bcp47_language_code=bcp47_language_code,
+            stories_id,
+            episode_metadata,
+            bcp47_language_code,
         )
 
         # Wait for Google Speech API to finish up transcribing
         await Workflow.sleep(int(episode_metadata.duration * 1.1))
 
-        await self.activities.fetch_store_raw_transcript_json(
-            stories_id=stories_id,
-            speech_operation_id=speech_operation_id,
-        )
+        await self.activities.fetch_store_raw_transcript_json(stories_id, speech_operation_id)
 
-        await self.activities.fetch_store_transcript(stories_id=stories_id)
+        await self.activities.fetch_store_transcript(stories_id)
 
-        await self.activities.add_to_extraction_queue(stories_id=stories_id)
+        await self.activities.add_to_extraction_queue(stories_id)
