@@ -22,7 +22,7 @@ async def _start_worker():
     worker = factory.new_worker(task_queue=TASK_QUEUE)
     worker.register_activities_implementation(
         activities_instance=PodcastTranscribeActivities(),
-        activities_cls_name=AbstractPodcastTranscribeActivities.__class__.__name__,
+        activities_cls_name=AbstractPodcastTranscribeActivities.__name__,
     )
     worker.register_workflow_implementation_type(impl_cls=PodcastTranscribeWorkflow)
     factory.start()
