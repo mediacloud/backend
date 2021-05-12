@@ -35,6 +35,7 @@ services:
             - postgresql-pgbouncer
             - rabbitmq-server
             - temporal-server
+            - temporal-webapp
 
     postgresql-pgbouncer:
         image: gcr.io/mcback/postgresql-pgbouncer:latest
