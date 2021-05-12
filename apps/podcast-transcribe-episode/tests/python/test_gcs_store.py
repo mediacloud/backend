@@ -5,18 +5,22 @@ from unittest import TestCase
 # noinspection PyPackageRequirements
 import pytest
 
-from podcast_transcribe_episode.exceptions import McPodcastMisconfiguredGCSException
-
+from podcast_transcribe_episode.config import RawEnclosuresBucketConfig
+from podcast_transcribe_episode.exceptions import McProgrammingError
 from podcast_transcribe_episode.gcs_store import GCSStore
 
-from .config_random_gcs_prefix import RandomPathPrefixConfig
+from .random_gcs_prefix import RandomGCSPrefixMixin
+
+
+class _RandomPrefixRawEnclosuresBucketConfig(RandomGCSPrefixMixin, RawEnclosuresBucketConfig):
+    pass
 
 
 class TestGCSStore(TestCase):
 
     def test_remote_path(self):
         # Empty object ID
-        with pytest.raises(McPodcastMisconfiguredGCSException):
+        with pytest.raises(McProgrammingError):
             GCSStore._remote_path(path_prefix='', object_id='')
 
         assert GCSStore._remote_path(path_prefix='', object_id='a') == 'a'
@@ -35,8 +39,8 @@ class TestGCSStore(TestCase):
         assert GCSStore._remote_path(path_prefix='//', object_id='//a///b//../b/c') == 'a/b/c'
 
     def test_store_exists_delete(self):
-        config = RandomPathPrefixConfig()
-        gcs = GCSStore(config=config)
+        config = _RandomPrefixRawEnclosuresBucketConfig()
+        gcs = GCSStore(bucket_config=config)
 
         object_id = 'test'
         assert gcs.object_exists(object_id=object_id) is False
