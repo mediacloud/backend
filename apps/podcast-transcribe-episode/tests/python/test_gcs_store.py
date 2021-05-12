@@ -1,3 +1,4 @@
+import filecmp
 import os
 import tempfile
 from unittest import TestCase
@@ -6,7 +7,7 @@ from unittest import TestCase
 import pytest
 
 from podcast_transcribe_episode.config import RawEnclosuresBucketConfig
-from podcast_transcribe_episode.exceptions import McProgrammingError
+from podcast_transcribe_episode.exceptions import McProgrammingError, McPermanentError
 from podcast_transcribe_episode.gcs_store import GCSStore
 
 from .random_gcs_prefix import RandomGCSPrefixMixin
@@ -46,16 +47,25 @@ class TestGCSStore(TestCase):
         assert gcs.object_exists(object_id=object_id) is False
 
         mock_data = os.urandom(1024 * 10)
-        temp_file = os.path.join(tempfile.mkdtemp('test'), 'test')
-        with open(temp_file, mode='wb') as f:
+        src_file = os.path.join(tempfile.mkdtemp('test'), 'src')
+        with open(src_file, mode='wb') as f:
             f.write(mock_data)
 
-        gcs.upload_object(local_file_path=temp_file, object_id=object_id)
+        gcs.upload_object(local_file_path=src_file, object_id=object_id)
         assert gcs.object_exists(object_id=object_id) is True
 
         # Try storing twice
-        gcs.upload_object(local_file_path=temp_file, object_id=object_id)
+        gcs.upload_object(local_file_path=src_file, object_id=object_id)
         assert gcs.object_exists(object_id=object_id) is True
+
+        dst_file = os.path.join(tempfile.mkdtemp('test'), 'dst')
+        gcs.download_object(object_id=object_id, local_file_path=dst_file)
+        assert os.path.isfile(dst_file)
+        assert filecmp.cmp(src_file, dst_file, shallow=False)
+
+        # Try downloading nonexistent file
+        with pytest.raises(McPermanentError):
+            gcs.download_object(object_id='999999', local_file_path=os.path.join(tempfile.mkdtemp('test'), 'foo'))
 
         gcs.delete_object(object_id=object_id)
         assert gcs.object_exists(object_id=object_id) is False
