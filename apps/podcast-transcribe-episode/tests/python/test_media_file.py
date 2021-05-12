@@ -1,12 +1,13 @@
 import hashlib
 import inspect
 import os
+import tempfile
 
 # noinspection PyPackageRequirements
 import pytest
 
 from podcast_transcribe_episode.audio_codecs import AbstractAudioCodec
-from podcast_transcribe_episode.exceptions import McPodcastFileIsInvalidException
+from podcast_transcribe_episode.exceptions import McPermanentError
 from podcast_transcribe_episode.media_info import media_file_info, MediaFileInfo
 from podcast_transcribe_episode.transcode import maybe_transcode_file
 
@@ -34,8 +35,7 @@ def test_media_file_info():
 
         if '-invalid' in filename:
 
-            # 
-            with pytest.raises(McPodcastFileIsInvalidException):
+            with pytest.raises(McPermanentError):
                 media_file_info(media_file_path=input_file_path)
 
         else:
@@ -76,35 +76,42 @@ def _file_sha1_hash(file_path: str) -> str:
     return sha1.hexdigest()
 
 
-def test_transcode_media_file_if_needed():
-    """Test transcode_media_if_needed()."""
-
+def test_maybe_transcode_file():
     for filename in SAMPLE_FILENAMES:
         input_file_path = os.path.join(MEDIA_SAMPLES_PATH, filename)
         assert os.path.isfile(input_file_path), f"Input file '{filename}' exists."
 
         before_sha1_hash = _file_sha1_hash(input_file_path)
 
-        input_media_file = TranscodeTempDirAndFile(temp_dir=MEDIA_SAMPLES_PATH, filename=filename)
-
         if '-noaudio' in filename:
 
             # Media file with no audio
-            with pytest.raises(McPodcastFileIsInvalidException):
-                maybe_transcode_file(input_media_file=input_media_file)
+            with pytest.raises(McPermanentError):
+                maybe_transcode_file(
+                    input_file=input_file_path,
+                    maybe_output_file=os.path.join(tempfile.mkdtemp('test'), 'test'),
+                )
 
         elif '-invalid' in filename:
 
             # Invalid media file
-            with pytest.raises(McPodcastFileIsInvalidException):
-                maybe_transcode_file(input_media_file=input_media_file)
+            with pytest.raises(McPermanentError):
+                maybe_transcode_file(
+                    input_file=input_file_path,
+                    maybe_output_file=os.path.join(tempfile.mkdtemp('test'), 'test'),
+                )
 
         else:
-            output_media_file = maybe_transcode_file(input_media_file=input_media_file)
+            maybe_output_file = os.path.join(tempfile.mkdtemp('test'), 'test')
 
-            assert output_media_file, f"Output media file was set for filename '{filename}'."
+            media_file_transcoded = maybe_transcode_file(
+                input_file=input_file_path,
+                maybe_output_file=maybe_output_file,
+            )
 
-            output_file_info = media_file_info(media_file_path=output_media_file.temp_full_path)
+            output_file_info = media_file_info(
+                media_file_path=maybe_output_file if media_file_transcoded else input_file_path,
+            )
 
             assert not output_file_info.has_video_streams, f"There should be no video streams in '{filename}'."
             assert len(output_file_info.audio_streams) == 1, f"There should be only one audio stream in '{filename}'."
@@ -119,13 +126,11 @@ def test_transcode_media_file_if_needed():
             assert audio_stream.audio_channel_count == 1, f"Output file should be only mono for filename '{filename}'."
 
             if '-mp3-mono' in filename:
-                assert (
-                        output_media_file.temp_full_path == input_media_file.temp_full_path
-                ), "Mono MP3 file shouldn't have been transcoded."
+                assert media_file_transcoded is False, "Mono MP3 file shouldn't have been transcoded."
+                assert not os.path.isfile(maybe_output_file), "Output file should not exist."
             else:
-                assert (
-                        output_media_file.temp_full_path != input_media_file.temp_full_path
-                ), f"File '{filename}' should have been transcoded."
+                assert media_file_transcoded is True, f"File '{filename}' should have been transcoded."
+                assert os.path.isfile(maybe_output_file), "Output file should exist."
 
         after_sha1_hash = _file_sha1_hash(input_file_path)
 
