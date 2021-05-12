@@ -46,7 +46,7 @@ class Utterance(object):
 
     @classmethod
     def from_dict(cls, input_dict: Dict[str, Any]) -> 'Utterance':
-        raise cls(
+        return cls(
             alternatives=[UtteranceAlternative.from_dict(x) for x in input_dict['alternatives']],
             bcp47_language_code=input_dict['bcp47_language_code'],
         )
