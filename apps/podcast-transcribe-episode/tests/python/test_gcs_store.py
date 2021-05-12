@@ -6,15 +6,10 @@ from unittest import TestCase
 # noinspection PyPackageRequirements
 import pytest
 
-from podcast_transcribe_episode.config import RawEnclosuresBucketConfig
 from podcast_transcribe_episode.exceptions import McProgrammingError, McPermanentError
 from podcast_transcribe_episode.gcs_store import GCSStore
 
-from .random_gcs_prefix import RandomGCSPrefixMixin
-
-
-class _RandomPrefixRawEnclosuresBucketConfig(RandomGCSPrefixMixin, RawEnclosuresBucketConfig):
-    pass
+from .random_gcs_prefix import RandomPrefixRawEnclosuresBucketConfig
 
 
 class TestGCSStore(TestCase):
@@ -40,7 +35,7 @@ class TestGCSStore(TestCase):
         assert GCSStore._remote_path(path_prefix='//', object_id='//a///b//../b/c') == 'a/b/c'
 
     def test_store_exists_delete(self):
-        config = _RandomPrefixRawEnclosuresBucketConfig()
+        config = RandomPrefixRawEnclosuresBucketConfig()
         gcs = GCSStore(bucket_config=config)
 
         object_id = 'test'

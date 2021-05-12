@@ -1,7 +1,12 @@
 import abc
 import datetime
 
-from podcast_transcribe_episode.config import AbstractGCBucketConfig
+from podcast_transcribe_episode.config import (
+    AbstractGCBucketConfig,
+    RawEnclosuresBucketConfig,
+    TranscodedEpisodesBucketConfig,
+    TranscriptsBucketConfig,
+)
 
 
 class RandomGCSPrefixMixin(AbstractGCBucketConfig, metaclass=abc.ABCMeta):
@@ -24,3 +29,15 @@ class RandomGCSPrefixMixin(AbstractGCBucketConfig, metaclass=abc.ABCMeta):
 
     def path_prefix(self) -> str:
         return self.__random_prefix
+
+
+class RandomPrefixRawEnclosuresBucketConfig(RandomGCSPrefixMixin, RawEnclosuresBucketConfig):
+    pass
+
+
+class RandomPrefixTranscodedEpisodesBucketConfig(RandomGCSPrefixMixin, TranscodedEpisodesBucketConfig):
+    pass
+
+
+class RandomPrefixTranscriptsBucketConfig(RandomGCSPrefixMixin, TranscriptsBucketConfig):
+    pass
