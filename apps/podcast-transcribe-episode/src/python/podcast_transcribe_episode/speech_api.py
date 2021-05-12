@@ -51,7 +51,7 @@ def submit_transcribe_operation(gs_uri: str,
     try:
         # noinspection PyTypeChecker
         config = RecognitionConfig(
-            encoding=RecognitionConfig.AudioEncoding(episode_metadata.audio_codec_class.speech_api_codec()),
+            encoding=getattr(RecognitionConfig.AudioEncoding, episode_metadata.audio_codec_class.speech_api_codec()),
             sample_rate_hertz=episode_metadata.sample_rate,
             # We always set the channel count to 1 and disable separate recognition per channel as our inputs are all
             # mono audio files and do not have separate speakers per audio channel.
