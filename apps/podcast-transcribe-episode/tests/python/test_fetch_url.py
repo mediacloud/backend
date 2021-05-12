@@ -10,7 +10,7 @@ import pytest
 from mediawords.test.hash_server import HashServer
 from mediawords.util.network import random_unused_port
 
-from podcast_transcribe_episode.exceptions import McPodcastFileFetchFailureException
+from podcast_transcribe_episode.exceptions import McPermanentError
 from podcast_transcribe_episode.fetch_url import fetch_big_file
 
 
@@ -75,6 +75,6 @@ class TestFetchBigFile(TestCase):
 
         max_size = len(self.__mock_data) - 1000
         # Function should refuse to fetch more than {max_size} bytes
-        with pytest.raises(McPodcastFileFetchFailureException):
+        with pytest.raises(McPermanentError):
             fetch_big_file(url=self.__url, dest_file=self.__dest_file, max_size=max_size)
         assert not os.path.isfile(self.__dest_file), f"File '{self.__dest_file}' should exist after a failed download."
