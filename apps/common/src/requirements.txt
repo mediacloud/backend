@@ -71,6 +71,9 @@ PyStemmer==2.0.1
 # Unit tests
 pytest==6.2.2
 
+# asyncio tests
+pytest-asyncio==0.15.1
+
 # Timezone handling
 pytz==2020.5
 
