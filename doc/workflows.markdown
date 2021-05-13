@@ -6,10 +6,11 @@ Table of Contents
    * [Workflows](#workflows)
       * [Tips &amp; tricks](#tips--tricks)
          * [Make activities idempotent](#make-activities-idempotent)
-         * [Keep number of activity invocations in a single workflow to up to 1000](#keep-number-of-activity-invocations-in-a-single-workflow-to-up-to-1000)
-         * [When calling workflows / actions, use positional arguments](#when-calling-workflows--actions-use-positional-arguments)
-         * [Make arguments passed to workflow / activities serializable by encode_json()](#make-arguments-passed-to-workflow--activities-serializable-by-encode_json)
-         * [Reuse WorkflowClient objects where possible](#reuse-workflowclient-objects-where-possible)
+         * [Limit activity invocations in a single workflow to 1000](#limit-activity-invocations-in-a-single-workflow-to-1000)
+         * [Limit the activity payload to 200 KB](#limit-the-activity-payload-to-200-kb)
+         * [Use positional arguments](#use-positional-arguments)
+         * [Make arguments serializable by encode_json()](#make-arguments-serializable-by-encode_json)
+         * [Reuse WorkflowClient objects when possible](#reuse-workflowclient-objects-when-possible)
       * [Links](#links)
 
 ----
@@ -70,7 +71,7 @@ class KardashianWorkflowActivities(object):
 ```
 
 
-### Keep number of activity invocations in a single workflow to up to 1000
+### Limit activity invocations in a single workflow to 1000
 
 While workflow count itself is largely unlimited, the history size (where action invocations get logged to) is [limited to 10 MB (soft limit) / 50 MB (hard limit)](https://github.com/temporalio/temporal/blob/v1.7.0/service/history/configs/config.go#L380-L381), and history count is limited to [10k (soft limit) / 50k (hard limit) entries](https://github.com/temporalio/temporal/blob/v1.7.0/service/history/configs/config.go#L382-L383).
 
@@ -82,7 +83,14 @@ Instead, go for **hierarchical workflows.** For example, if an activity fetches 
 <!-- FIXME ContinueAsNew once that becomes available in the Python SDK -->
 
 
-### When calling workflows / actions, use positional arguments
+### Limit the activity payload to 200 KB
+
+Activity arguments get serialized into JSON, sent over the network and then unserialized, so passing around huge JSON payloads hits the performance. Also, payloads are visible in the web UI so loading a huge JSON file in the Temporal's webapp is not practical.
+
+Instead of passing around huge chunks of data in payloads, store it somewhere in the database.
+
+
+### Use positional arguments
 
 At the time of writing, the Python SDK is unable to serialize named arguments (`**kwargs`) and pass them to workflow / action methods:
 
@@ -99,7 +107,7 @@ await workflow.transcribe_episode(stories_id)
 ```
 
 
-### Make arguments passed to workflow / activities serializable by `encode_json()`
+### Make arguments serializable by `encode_json()`
 
 Python SDK serializes arguments to workflow and individual activities with `encode_json()`, and the default `JSONEncoder` is [limited](https://docs.python.org/3/library/json.html#json.JSONEncoder) in what it's able to serialize:
 
@@ -187,7 +195,7 @@ class FancyWorkflowActivities(object):
 ```
 
 
-### Reuse `WorkflowClient` objects where possible
+### Reuse `WorkflowClient` objects when possible
 
 Try avoiding creating a new `WorkflowClient` object often as ["it is a heavyweight object that establishes persistent TCP connections"](https://github.com/uber/cadence/issues/2528#issuecomment-530894674).
 
