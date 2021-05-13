@@ -11,3 +11,4 @@
   weren't fetched in time and so the operation has expired
 * Add heartbeats to transcoding activity
 * Consider making `MAX_ENCLOSURE_SIZE` and `MAX_DURATION` configurable via environment variables
+* Stopping workers after running `test_workflow.py` is very slow

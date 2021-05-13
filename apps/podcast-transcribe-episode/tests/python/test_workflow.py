@@ -4,6 +4,10 @@ from typing import Union
 # noinspection PyPackageRequirements
 import pytest
 # noinspection PyPackageRequirements
+from temporal.workerfactory import WorkerFactory
+# noinspection PyPackageRequirements
+from temporal.workflow import WorkflowClient, WorkflowOptions
+
 from podcast_transcribe_episode.workflow import PodcastTranscribeActivities, PodcastTranscribeWorkflow
 from podcast_transcribe_episode.workflow_interface import (
     NAMESPACE,
@@ -11,15 +15,14 @@ from podcast_transcribe_episode.workflow_interface import (
     AbstractPodcastTranscribeActivities,
     AbstractPodcastTranscribeWorkflow,
 )
-# noinspection PyPackageRequirements
-from temporal.workerfactory import WorkerFactory
-# noinspection PyPackageRequirements
-from temporal.workflow import WorkflowClient, WorkflowOptions
 
 from mediawords.db import connect_to_db
 from mediawords.test.db.create import create_test_medium, create_test_feed, create_test_story
 from mediawords.test.hash_server import HashServer
+from mediawords.util.log import create_logger
 from mediawords.util.network import random_unused_port, wait_for_tcp_port_to_open
+
+log = create_logger(__name__)
 
 TEST_MP3_PATH = '/opt/mediacloud/tests/data/media-samples/samples/kim_kardashian-mp3-mono.mp3'
 assert os.path.isfile(TEST_MP3_PATH), f"Test MP3 file '{TEST_MP3_PATH}' should exist."
@@ -96,4 +99,6 @@ async def test_workflow():
     # Wait for the workflow to complete
     await workflow.transcribe_episode(stories_id)
 
-    await worker.stop(background=True)
+    log.info("Stopping workers...")
+    await worker.stop()
+    log.info("Stopped workers")

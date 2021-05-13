@@ -4,7 +4,6 @@
 # FIXME mention somewhere that payloads between activities have to be encode-able with JSON
 # FIXME also mention somewhere that named parameters don't work
 # FIXME make sure that the transcript ended up in the database
-# FIXME killing workers takes a long time
 # FIXME use random prefixes when running tests
 
 import dataclasses
