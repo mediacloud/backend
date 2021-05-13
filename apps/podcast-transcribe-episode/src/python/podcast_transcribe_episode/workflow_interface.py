@@ -1,8 +1,5 @@
 # FIXME remove unused tables (including migrations)
 # FIXME track failed workflows / activities in Munin
-# FIXME make data objects into dicts
-# FIXME mention somewhere that payloads between activities have to be encode-able with JSON
-# FIXME also mention somewhere that named parameters don't work
 # FIXME make sure that the transcript ended up in the database
 # FIXME use random prefixes when running tests
 

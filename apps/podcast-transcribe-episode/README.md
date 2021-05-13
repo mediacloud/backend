@@ -12,3 +12,5 @@
 * Add heartbeats to transcoding activity
 * Consider making `MAX_ENCLOSURE_SIZE` and `MAX_DURATION` configurable via environment variables
 * Stopping workers after running `test_workflow.py` is very slow
+* Test running the same activity multiple times
+* Clean up GCS bucket after running `test_workflow.py`
