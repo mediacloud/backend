@@ -145,7 +145,6 @@ class GCSStore(object):
         except Exception as ex:
             raise McTransientError(f"Unable to upload '{local_file_path}' as object ID {object_id}: {ex}")
 
-    # FIXME write some tests
     def download_object(self, object_id: str, local_file_path: str) -> None:
         """
         Download a GCS object to a local file.
