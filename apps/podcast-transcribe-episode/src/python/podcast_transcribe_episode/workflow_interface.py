@@ -1,5 +1,12 @@
 # FIXME remove unused tables (including migrations)
 # FIXME track failed workflows / activities in Munin
+# FIXME make data objects into dicts
+# FIXME mention somewhere that payloads between activities have to be encode-able with JSON
+# FIXME also mention somewhere that named parameters don't work
+# FIXME make sure that the transcript ended up in the database
+# FIXME killing workers takes a long time
+# FIXME use random prefixes when running tests
+# FIXME add more logging to actions
 
 import dataclasses
 from datetime import timedelta
@@ -10,9 +17,9 @@ from temporal.activity_method import activity_method, RetryParameters
 # noinspection PyPackageRequirements
 from temporal.workflow import workflow_method
 
-from .enclosure import StoryEnclosure
+from .enclosure import StoryEnclosureDict
 from .exceptions import McPermanentError
-from .media_info import MediaFileInfoAudioStream
+from .media_info import MediaFileInfoAudioStreamDict
 
 TASK_QUEUE = "podcast-transcribe-episode"
 """Temporal task queue."""
@@ -109,14 +116,14 @@ class AbstractPodcastTranscribeActivities(object):
         # heartbeat_timeout=None,
         retry_parameters=DEFAULT_RETRY_PARAMETERS,
     )
-    async def determine_best_enclosure(self, stories_id: int) -> Optional[StoryEnclosure]:
+    async def determine_best_enclosure(self, stories_id: int) -> Optional[StoryEnclosureDict]:
         """
         Fetch a list of story enclosures, determine which one looks like a podcast episode the most.
 
         Uses <enclosure /> or similar tag.
 
         :param stories_id: Story to fetch the enclosures for.
-        :return: Best enclosure metadata object, or None if no best enclosure could be determined.
+        :return: Best enclosure metadata object (as dict), or None if no best enclosure could be determined.
         """
         raise NotImplementedError
 
@@ -145,7 +152,7 @@ class AbstractPodcastTranscribeActivities(object):
             maximum_attempts=50,
         ),
     )
-    async def fetch_enclosure_to_gcs(self, stories_id: int, enclosure: StoryEnclosure) -> None:
+    async def fetch_enclosure_to_gcs(self, stories_id: int, enclosure: StoryEnclosureDict) -> None:
         """
         Fetch enclosure and store it to GCS as an episode.
 
@@ -153,7 +160,7 @@ class AbstractPodcastTranscribeActivities(object):
         want to have the raw episode fetched and safely stored somewhere.
 
         :param stories_id: Story to fetch the enclosure for.
-        :param enclosure: Enclosure to fetch.
+        :param enclosure: Enclosure to fetch (as dict).
         """
         raise NotImplementedError
 
@@ -182,14 +189,14 @@ class AbstractPodcastTranscribeActivities(object):
             maximum_attempts=20,
         ),
     )
-    async def fetch_transcode_store_episode(self, stories_id: int) -> MediaFileInfoAudioStream:
+    async def fetch_transcode_store_episode(self, stories_id: int) -> MediaFileInfoAudioStreamDict:
         """
         Fetch episode from GCS, transcode it if needed and store it to GCS again in a separate bucket.
 
         Now that the raw episode file is safely located in GCS, we can try transcoding it.
 
         :param stories_id: Story ID the episode of which should be transcoded.
-        :return: Metadata of the best audio stream determined as part of the transcoding.
+        :return: Metadata of the best audio stream determined as part of the transcoding (as dict).
         """
         raise NotImplementedError
 
@@ -219,13 +226,13 @@ class AbstractPodcastTranscribeActivities(object):
     )
     async def submit_transcribe_operation(self,
                                           stories_id: int,
-                                          episode_metadata: MediaFileInfoAudioStream,
+                                          episode_metadata: MediaFileInfoAudioStreamDict,
                                           bcp47_language_code: str) -> str:
         """
         Submit a long-running transcription operation to the Speech API.
 
         :param stories_id: Story ID of the episode which should be submitted for transcribing.
-        :param episode_metadata: Metadata of transcoded episode.
+        :param episode_metadata: Metadata of transcoded episode (as dict).
         :param bcp47_language_code: BCP 47 language code of the story.
         :return: Speech API operation ID for the transcription operation.
         """

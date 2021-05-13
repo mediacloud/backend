@@ -1,7 +1,7 @@
 import dataclasses
 import math
 import os
-from typing import Type, Optional, List
+from typing import Type, Optional, List, Any, Dict
 
 # noinspection PyPackageRequirements
 import ffmpeg
@@ -29,6 +29,8 @@ _SUPPORTED_CODEC_CLASSES = {
 }
 """Supported native audio codec classes."""
 
+MediaFileInfoAudioStreamDict = Dict[str, Any]
+
 
 @dataclasses.dataclass
 class MediaFileInfoAudioStream(object):
@@ -48,6 +50,28 @@ class MediaFileInfoAudioStream(object):
 
     sample_rate: int
     """Audio sample rate."""
+
+    def to_dict(self) -> MediaFileInfoAudioStreamDict:
+        return {
+            'ffmpeg_stream_index': self.ffmpeg_stream_index,
+            'audio_codec_class': self.audio_codec_class.__name__ if self.audio_codec_class else None,
+            'duration': self.duration,
+            'audio_channel_count': self.audio_channel_count,
+            'sample_rate': self.sample_rate,
+        }
+
+    @classmethod
+    def from_dict(cls, input_dict: MediaFileInfoAudioStreamDict) -> 'MediaFileInfoAudioStream':
+        return cls(
+            ffmpeg_stream_index=input_dict['ffmpeg_stream_index'],
+
+            # FIXME a bit lame to do it this way
+            audio_codec_class=globals()[input_dict['audio_codec_class']] if input_dict['audio_codec_class'] else None,
+
+            duration=input_dict['duration'],
+            audio_channel_count=input_dict['audio_channel_count'],
+            sample_rate=input_dict['sample_rate'],
+        )
 
 
 @dataclasses.dataclass

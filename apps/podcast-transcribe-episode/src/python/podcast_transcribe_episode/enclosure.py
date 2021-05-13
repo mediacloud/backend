@@ -10,6 +10,8 @@ from mediawords.util.url import is_http_url
 
 log = create_logger(__name__)
 
+StoryEnclosureDict = Dict[str, Any]
+
 
 @dataclasses.dataclass
 class StoryEnclosure(object):
@@ -67,6 +69,13 @@ class StoryEnclosure(object):
             mime_type=db_row['mime_type'],
             length=db_row['length'],
         )
+
+    def to_dict(self) -> StoryEnclosureDict:
+        return dataclasses.asdict(self)
+
+    @classmethod
+    def from_dict(cls, input_dict: StoryEnclosureDict) -> 'StoryEnclosure':
+        return cls(**input_dict)
 
 
 def viable_story_enclosure(db: DatabaseHandler, stories_id: int) -> Optional[StoryEnclosure]:

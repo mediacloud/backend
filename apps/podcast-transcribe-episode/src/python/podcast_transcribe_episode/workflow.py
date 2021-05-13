@@ -22,11 +22,11 @@ from .config import (
 )
 from .db_or_raise import connect_to_db_or_raise
 from .exceptions import McProgrammingError, McTransientError, McPermanentError
-from .enclosure import viable_story_enclosure, StoryEnclosure
+from .enclosure import viable_story_enclosure, StoryEnclosure, StoryEnclosureDict
 from .fetch_url import fetch_big_file
 from .gcs_store import GCSStore
 from .bcp47_lang import iso_639_1_code_to_bcp_47_identifier
-from .media_info import MediaFileInfoAudioStream, media_file_info
+from .media_info import MediaFileInfoAudioStream, media_file_info, MediaFileInfoAudioStreamDict
 from .speech_api import submit_transcribe_operation, fetch_transcript
 from .transcode import maybe_transcode_file
 from .transcript import Transcript
@@ -64,7 +64,7 @@ class PodcastTranscribeActivities(AbstractPodcastTranscribeActivities):
 
         return bcp_47_language_code
 
-    async def determine_best_enclosure(self, stories_id: int) -> Optional[StoryEnclosure]:
+    async def determine_best_enclosure(self, stories_id: int) -> Optional[StoryEnclosureDict]:
 
         db = connect_to_db_or_raise()
 
@@ -77,9 +77,11 @@ class PodcastTranscribeActivities(AbstractPodcastTranscribeActivities):
             if best_enclosure.length > MAX_ENCLOSURE_SIZE:
                 raise McPermanentError(f"Chosen enclosure {best_enclosure} is too big.")
 
-        return best_enclosure
+        return best_enclosure.to_dict()
 
-    async def fetch_enclosure_to_gcs(self, stories_id: int, enclosure: StoryEnclosure) -> None:
+    async def fetch_enclosure_to_gcs(self, stories_id: int, enclosure: StoryEnclosureDict) -> None:
+
+        enclosure = StoryEnclosure.from_dict(enclosure)
 
         with tempfile.TemporaryDirectory(prefix='fetch_enclosure_to_gcs') as temp_dir:
             raw_enclosure_path = os.path.join(temp_dir, 'raw_enclosure')
@@ -92,7 +94,7 @@ class PodcastTranscribeActivities(AbstractPodcastTranscribeActivities):
             gcs = GCSStore(bucket_config=RawEnclosuresBucketConfig())
             gcs.upload_object(local_file_path=raw_enclosure_path, object_id=str(stories_id))
 
-    async def fetch_transcode_store_episode(self, stories_id: int) -> MediaFileInfoAudioStream:
+    async def fetch_transcode_store_episode(self, stories_id: int) -> MediaFileInfoAudioStreamDict:
 
         with tempfile.TemporaryDirectory(prefix='fetch_transcode_store_episode') as temp_dir:
             raw_enclosure_path = os.path.join(temp_dir, 'raw_enclosure')
@@ -129,12 +131,13 @@ class PodcastTranscribeActivities(AbstractPodcastTranscribeActivities):
             if not best_audio_stream.audio_codec_class:
                 raise McProgrammingError("Best audio stream doesn't have audio class set")
 
-            return best_audio_stream
+            return best_audio_stream.to_dict()
 
     async def submit_transcribe_operation(self,
                                           stories_id: int,
-                                          episode_metadata: MediaFileInfoAudioStream,
+                                          episode_metadata: MediaFileInfoAudioStreamDict,
                                           bcp47_language_code: str) -> str:
+        episode_metadata = MediaFileInfoAudioStream.from_dict(episode_metadata)
 
         if not episode_metadata.audio_codec_class:
             raise McProgrammingError("Best audio stream doesn't have audio class set")
@@ -173,7 +176,7 @@ class PodcastTranscribeActivities(AbstractPodcastTranscribeActivities):
             gcs = GCSStore(bucket_config=TranscriptsBucketConfig())
             gcs.download_object(object_id=str(stories_id), local_file_path=transcript_json_path)
 
-            with open(transcript_json_path, 'w') as f:
+            with open(transcript_json_path, 'r') as f:
                 transcript_json = f.read()
 
         transcript = Transcript.from_dict(decode_json(transcript_json))
@@ -244,7 +247,9 @@ class PodcastTranscribeWorkflow(AbstractPodcastTranscribeWorkflow):
 
         await self.activities.fetch_enclosure_to_gcs(stories_id, enclosure)
 
-        episode_metadata = await self.activities.fetch_transcode_store_episode(stories_id)
+        episode_metadata_dict = await self.activities.fetch_transcode_store_episode(stories_id)
+
+        episode_metadata = MediaFileInfoAudioStream.from_dict(episode_metadata_dict)
 
         if episode_metadata.duration > MAX_DURATION:
             raise McPermanentError(
@@ -253,7 +258,7 @@ class PodcastTranscribeWorkflow(AbstractPodcastTranscribeWorkflow):
 
         speech_operation_id = await self.activities.submit_transcribe_operation(
             stories_id,
-            episode_metadata,
+            episode_metadata_dict,
             bcp47_language_code,
         )
 
