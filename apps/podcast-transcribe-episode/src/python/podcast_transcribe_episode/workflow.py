@@ -5,7 +5,6 @@ from typing import Optional
 # noinspection PyPackageRequirements
 from temporal.workflow import Workflow
 
-from mediawords.dbi.downloads import create_download_for_new_story
 from mediawords.dbi.downloads.store import store_content
 from mediawords.job import JobBroker
 from mediawords.util.parse_json import encode_json, decode_json
@@ -13,6 +12,7 @@ from mediawords.util.config.common import RabbitMQConfig
 from mediawords.util.identify_language import identification_would_be_reliable, language_code_for_text
 from mediawords.util.log import create_logger
 from mediawords.util.parse_html import html_strip
+from mediawords.util.url import get_url_host
 
 from .config import (
     RawEnclosuresBucketConfig,
@@ -236,13 +236,27 @@ class PodcastTranscribeActivities(AbstractPodcastTranscribeActivities):
             'stories_id': stories_id,
         }).hash()
 
-        # FIXME what if this gets rerun?
-        download = create_download_for_new_story(db=db, story=story, feed=feed)
+        # Just like create_download_for_new_story(), it creates a new download except that it tests if such a download
+        # exists first
+        download = db.find_or_create(
+            table='downloads',
+            insert_hash={
+                'feeds_id': feed['feeds_id'],
+                'stories_id': story['stories_id'],
+                'url': story['url'],
+                'host': get_url_host(story['url']),
+                'type': 'content',
+                'sequence': 1,
+                'state': 'success',
+                'path': 'content:pending',
+                'priority': 1,
+                'extracted': 'f'
+            },
+        )
 
         text = transcript.download_text_from_transcript()
 
         # Store as a raw download and then let "extract-and-vector" app "extract" the stored text later
-        # FIXME make idempotent too
         store_content(db=db, download=download, content=text)
 
         log.info(f"Done fetching and storing transcript for story {stories_id}")
