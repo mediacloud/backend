@@ -11,6 +11,7 @@ from mediawords.job import JobBroker
 from mediawords.util.parse_json import encode_json, decode_json
 from mediawords.util.config.common import RabbitMQConfig
 from mediawords.util.identify_language import identification_would_be_reliable, language_code_for_text
+from mediawords.util.log import create_logger
 from mediawords.util.parse_html import html_strip
 
 from .config import (
@@ -36,11 +37,15 @@ from .workflow_interface import (
     DEFAULT_RETRY_PARAMETERS,
 )
 
+log = create_logger(__name__)
+
 
 class PodcastTranscribeActivities(AbstractPodcastTranscribeActivities):
     """Activities implementation."""
 
     async def identify_story_bcp47_language_code(self, stories_id: int) -> Optional[str]:
+        log.info(f"Identifying story language for story {stories_id}...")
+
         db = connect_to_db_or_raise()
 
         story = db.find_by_id(table='stories', object_id=stories_id)
@@ -62,9 +67,13 @@ class PodcastTranscribeActivities(AbstractPodcastTranscribeActivities):
                 url_hint=story['url'],
             )
 
+        log.info(f"Language code for story {stories_id} is {bcp_47_language_code}")
+
         return bcp_47_language_code
 
     async def determine_best_enclosure(self, stories_id: int) -> Optional[StoryEnclosureDict]:
+
+        log.info(f"Determining best enclosure for story {stories_id}...")
 
         db = connect_to_db_or_raise()
 
@@ -77,9 +86,15 @@ class PodcastTranscribeActivities(AbstractPodcastTranscribeActivities):
             if best_enclosure.length > MAX_ENCLOSURE_SIZE:
                 raise McPermanentError(f"Chosen enclosure {best_enclosure} is too big.")
 
+        log.info(f"Done determining best enclosure for story {stories_id}")
+        log.debug(f"Best enclosure for story {stories_id}: {best_enclosure}")
+
         return best_enclosure.to_dict()
 
     async def fetch_enclosure_to_gcs(self, stories_id: int, enclosure: StoryEnclosureDict) -> None:
+
+        log.info(f"Fetching enclosure to GCS for story {stories_id}")
+        log.debug(f"Best enclosure for story {stories_id}: {enclosure}")
 
         enclosure = StoryEnclosure.from_dict(enclosure)
 
@@ -94,7 +109,11 @@ class PodcastTranscribeActivities(AbstractPodcastTranscribeActivities):
             gcs = GCSStore(bucket_config=RawEnclosuresBucketConfig())
             gcs.upload_object(local_file_path=raw_enclosure_path, object_id=str(stories_id))
 
+        log.info(f"Done fetching enclosure to GCS for story {stories_id}")
+
     async def fetch_transcode_store_episode(self, stories_id: int) -> MediaFileInfoAudioStreamDict:
+
+        log.info(f"Fetching, transcoding, storing episode for story {stories_id}...")
 
         with tempfile.TemporaryDirectory(prefix='fetch_transcode_store_episode') as temp_dir:
             raw_enclosure_path = os.path.join(temp_dir, 'raw_enclosure')
@@ -131,12 +150,20 @@ class PodcastTranscribeActivities(AbstractPodcastTranscribeActivities):
             if not best_audio_stream.audio_codec_class:
                 raise McProgrammingError("Best audio stream doesn't have audio class set")
 
-            return best_audio_stream.to_dict()
+        log.info(f"Done fetching, transcoding, storing episode for story {stories_id}")
+        log.debug(f"Best audio stream for story {stories_id}: {best_audio_stream}")
+
+        return best_audio_stream.to_dict()
 
     async def submit_transcribe_operation(self,
                                           stories_id: int,
                                           episode_metadata: MediaFileInfoAudioStreamDict,
                                           bcp47_language_code: str) -> str:
+
+        log.info(f"Submitting transcribe operation for story {stories_id}...")
+        log.debug(f"Episode metadata for story {stories_id}: {episode_metadata}")
+        log.debug(f"Language code for story {stories_id}: {bcp47_language_code}")
+
         episode_metadata = MediaFileInfoAudioStream.from_dict(episode_metadata)
 
         if not episode_metadata.audio_codec_class:
@@ -151,9 +178,16 @@ class PodcastTranscribeActivities(AbstractPodcastTranscribeActivities):
             bcp47_language_code=bcp47_language_code,
         )
 
+        log.info(f"Done submitting transcribe operation for story {stories_id}")
+        log.debug(f"Speech operation ID for story {stories_id}: {speech_operation_id}")
+
         return speech_operation_id
 
     async def fetch_store_raw_transcript_json(self, stories_id: int, speech_operation_id: str) -> None:
+
+        log.info(f"Fetching and storing raw transcript JSON for story {stories_id}...")
+        log.debug(f"Speech operation ID: {speech_operation_id}")
+
         transcript = fetch_transcript(speech_operation_id=speech_operation_id)
         if transcript is None:
             raise McTransientError(f"Speech operation with ID '{speech_operation_id}' hasn't been completed yet.")
@@ -169,7 +203,12 @@ class PodcastTranscribeActivities(AbstractPodcastTranscribeActivities):
             gcs = GCSStore(bucket_config=TranscriptsBucketConfig())
             gcs.upload_object(local_file_path=transcript_json_path, object_id=str(stories_id))
 
+        log.info(f"Done fetching and storing raw transcript JSON for story {stories_id}")
+
     async def fetch_store_transcript(self, stories_id: int) -> None:
+
+        log.info(f"Fetching and storing transcript for story {stories_id}...")
+
         with tempfile.TemporaryDirectory(prefix='fetch_store_transcript') as temp_dir:
             transcript_json_path = os.path.join(temp_dir, 'transcript.json')
 
@@ -206,7 +245,12 @@ class PodcastTranscribeActivities(AbstractPodcastTranscribeActivities):
         # FIXME make idempotent too
         store_content(db=db, download=download, content=text)
 
+        log.info(f"Done fetching and storing transcript for story {stories_id}")
+
     async def add_to_extraction_queue(self, stories_id: int) -> None:
+
+        log.info(f"Adding an extraction job for story {stories_id}...")
+
         job_broker = JobBroker(
             queue_name='MediaWords::Job::ExtractAndVector',
             rabbitmq_config=RabbitMQConfig(
@@ -219,6 +263,8 @@ class PodcastTranscribeActivities(AbstractPodcastTranscribeActivities):
             ),
         )
         job_broker.add_to_queue(stories_id=stories_id)
+
+        log.info(f"Done adding an extraction job for story {stories_id}")
 
 
 class PodcastTranscribeWorkflow(AbstractPodcastTranscribeWorkflow):

@@ -6,7 +6,6 @@
 # FIXME make sure that the transcript ended up in the database
 # FIXME killing workers takes a long time
 # FIXME use random prefixes when running tests
-# FIXME add more logging to actions
 
 import dataclasses
 from datetime import timedelta
