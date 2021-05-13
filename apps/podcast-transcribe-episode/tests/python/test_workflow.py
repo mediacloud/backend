@@ -74,7 +74,7 @@ async def test_workflow():
         'length': len(test_mp3_data),
     })
 
-    # FIXME it's super lame to wait for this port to open
+    # FIXME it's super lame to wait for this port to open, but the Python SDK seems to fail otherwise
     wait_for_tcp_port_to_open(hostname='temporal-server', port=7233)
 
     # FIXME move workflow client init to "common"
