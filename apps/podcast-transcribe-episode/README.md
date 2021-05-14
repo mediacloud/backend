@@ -14,3 +14,5 @@
 * Stopping workers after running `test_workflow.py` is very slow
 * Test running the same activity multiple times
 * Clean up GCS bucket after running `test_workflow.py`
+* If an activity throws an exception, its message should get printed out to the console as well (in addition to
+  Temporal's log)
