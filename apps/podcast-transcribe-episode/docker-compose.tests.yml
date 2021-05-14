@@ -36,7 +36,7 @@ services:
             - postgresql-pgbouncer
             - rabbitmq-server
             - temporal-server
-            - temporal-webapp
+            # - temporal-webapp
 
     postgresql-pgbouncer:
         image: gcr.io/mcback/postgresql-pgbouncer:latest
@@ -134,13 +134,12 @@ services:
               target: /opt/elasticsearch/bin/elasticsearch.sh
             # Not mounting config as it gets concatenated into a single file
 
-    # FIXME comment out
-    temporal-webapp:
-        image: gcr.io/mcback/temporal-webapp:latest
-        init: true
-        stop_signal: SIGKILL
-        expose:
-            - "8088"
-        ports:
-            # Expose to host for debugging
-            - "8088:8088"
+    # temporal-webapp:
+    #     image: gcr.io/mcback/temporal-webapp:latest
+    #     init: true
+    #     stop_signal: SIGKILL
+    #     expose:
+    #         - "8088"
+    #     ports:
+    #         # Expose to host for debugging
+    #         - "8088:8088"
