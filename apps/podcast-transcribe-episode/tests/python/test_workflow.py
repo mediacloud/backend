@@ -17,6 +17,7 @@ from podcast_transcribe_episode.workflow_interface import (
 )
 
 from mediawords.db import connect_to_db
+from mediawords.dbi.downloads.store import fetch_content
 from mediawords.test.db.create import create_test_medium, create_test_feed, create_test_story
 from mediawords.test.hash_server import HashServer
 from mediawords.util.log import create_logger
@@ -98,6 +99,17 @@ async def test_workflow():
 
     # Wait for the workflow to complete
     await workflow.transcribe_episode(stories_id)
+
+    downloads = db.select(table='downloads', what_to_select='*').hashes()
+    assert len(downloads) == 1
+    first_download = downloads[0]
+    assert first_download['stories_id'] == stories_id
+    assert first_download['type'] == 'content'
+    assert first_download['state'] == 'success'
+
+    download_content = fetch_content(db=db, download=first_download)
+    # It's what gets said in the sample MP3 file
+    assert 'Kim Kardashian' in download_content
 
     log.info("Stopping workers...")
     await worker.stop()

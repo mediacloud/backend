@@ -1,6 +1,5 @@
 # FIXME remove unused tables (including migrations)
 # FIXME track failed workflows / activities in Munin
-# FIXME make sure that the transcript ended up in the database
 # FIXME use random prefixes when running tests
 
 import dataclasses
