@@ -1,6 +1,8 @@
 import abc
 import datetime
 
+from mediawords.util.text import random_string
+
 from podcast_transcribe_episode.config import (
     AbstractGCBucketConfig,
     RawEnclosuresBucketConfig,
@@ -25,7 +27,7 @@ class RandomGCSPrefixMixin(AbstractGCBucketConfig, metaclass=abc.ABCMeta):
 
         date = datetime.datetime.utcnow().isoformat()
         date = date.replace(':', '_')
-        self.__random_prefix = f'tests-{date}'
+        self.__random_prefix = f'tests-{date}-{random_string(length=32)}'
 
     def path_prefix(self) -> str:
         return self.__random_prefix
