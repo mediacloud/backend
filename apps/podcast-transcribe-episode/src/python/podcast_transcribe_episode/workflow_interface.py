@@ -1,6 +1,3 @@
-# FIXME remove unused tables (including migrations)
-# FIXME track failed workflows / activities in Munin
-
 import dataclasses
 from datetime import timedelta
 from typing import Optional
