@@ -15,6 +15,7 @@ from mediawords.test.hash_server import HashServer
 from mediawords.util.log import create_logger
 from mediawords.util.network import random_unused_port
 from mediawords.workflow.client import workflow_client
+from mediawords.workflow.worker import stop_worker_faster
 
 from podcast_transcribe_episode.workflow import PodcastTranscribeActivities, PodcastTranscribeWorkflow
 from podcast_transcribe_episode.workflow_interface import (
@@ -158,5 +159,5 @@ async def test_workflow():
     assert 'Kim Kardashian' in download_content
 
     log.info("Stopping workers...")
-    await worker.stop()
+    await stop_worker_faster(worker)
     log.info("Stopped workers")
