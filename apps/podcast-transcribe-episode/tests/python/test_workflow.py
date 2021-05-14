@@ -17,19 +17,19 @@ from mediawords.util.network import random_unused_port
 from mediawords.workflow.client import workflow_client
 from mediawords.workflow.worker import stop_worker_faster
 
-from podcast_transcribe_episode.workflow import PodcastTranscribeActivities, PodcastTranscribeWorkflow
-from podcast_transcribe_episode.workflow_interface import (
-    TASK_QUEUE,
-    AbstractPodcastTranscribeActivities,
-    AbstractPodcastTranscribeWorkflow,
-)
-
 from podcast_transcribe_episode.config import (
     PodcastTranscribeEpisodeConfig,
     AbstractGCBucketConfig,
     RawEnclosuresGCBucketConfig,
     TranscodedEpisodesGCBucketConfig,
     TranscriptsGCBucketConfig,
+)
+from podcast_transcribe_episode.gcs_store import GCSStore
+from podcast_transcribe_episode.workflow import PodcastTranscribeActivities, PodcastTranscribeWorkflow
+from podcast_transcribe_episode.workflow_interface import (
+    TASK_QUEUE,
+    AbstractPodcastTranscribeActivities,
+    AbstractPodcastTranscribeWorkflow,
 )
 
 from .random_gcs_prefix import random_gcs_path_prefix
@@ -127,11 +127,12 @@ async def test_workflow():
     # Start worker
     factory = WorkerFactory(client=client, namespace=client.namespace)
     worker = factory.new_worker(task_queue=TASK_QUEUE)
+
+    # Use an activities implementation with random GCS prefixes set
+    activities = _RandomPrefixesPodcastTranscribeActivities()
+
     worker.register_activities_implementation(
-
-        # Use an activities implementation with random GCS prefixes set
-        activities_instance=_RandomPrefixesPodcastTranscribeActivities(),
-
+        activities_instance=activities,
         activities_cls_name=AbstractPodcastTranscribeActivities.__name__,
     )
     worker.register_workflow_implementation_type(impl_cls=PodcastTranscribeWorkflow)
@@ -157,6 +158,16 @@ async def test_workflow():
 
     # It's what gets said in the sample MP3 file
     assert 'Kim Kardashian' in download_content
+
+    # Initiate the worker shutdown in the background while we do the GCS cleanup so that the stop_workers_faster()
+    # doesn't have to wait that long
+    await worker.stop(background=True)
+
+    log.info("Cleaning up GCS...")
+    GCSStore(bucket_config=activities.config.raw_enclosures()).delete_object(object_id=str(stories_id))
+    GCSStore(bucket_config=activities.config.transcoded_episodes()).delete_object(object_id=str(stories_id))
+    GCSStore(bucket_config=activities.config.transcripts()).delete_object(object_id=str(stories_id))
+    log.info("Cleaned up GCS")
 
     log.info("Stopping workers...")
     await stop_worker_faster(worker)
