@@ -10,6 +10,8 @@ Table of Contents
          * [Limit the activity payload to 200 KB](#limit-the-activity-payload-to-200-kb)
          * [Use positional arguments](#use-positional-arguments)
          * [Make arguments serializable by encode_json()](#make-arguments-serializable-by-encode_json)
+         * [Use connect_to_db_or_raise() instead of <code>connect_to_db()</code>](#use-connect_to_db_or_raise-instead-of-connect_to_db)
+         * [Use stop_worker_faster() to stop local workers used in tests](#use-stop_worker_faster-to-stop-local-workers-used-in-tests)
          * [Reuse WorkflowClient objects when possible](#reuse-workflowclient-objects-when-possible)
       * [Links](#links)
 
@@ -193,6 +195,20 @@ class FancyWorkflowActivities(object):
         fancy = FancyObject.from_dict(fancy)
         # <...>
 ```
+
+
+### Use `connect_to_db_or_raise()` instead of `connect_to_db()`
+
+By default, `connect_to_db()` will attempt connecting to the database quite a few times, and if it fails to do so, it will call `fatal_error()` thus stopping the whole application that has called the function.
+
+Temporal implements retries itself, plus it's not beneficial to quit the worker on database connection issues (as the worker then should continue on retrying), so instead of `connect_to_db()` go for `connect_to_db_or_raise()` which attempts connecting to PostgreSQL only once, and raises a simple exception on failures instead of stopping the whole application.
+
+
+### Use `stop_worker_faster()` to stop local workers used in tests
+
+Default implementation of `worker.stop()` waits for the whole 5 seconds between attempts to stop all the worker threads. Our own hack implemented in `stop_worker_faster()` tests whether the workers managed to stop every 0.5 seconds.
+
+This is useful in tests in which we run local workers and want to stop them afterwards.
 
 
 ### Reuse `WorkflowClient` objects when possible
