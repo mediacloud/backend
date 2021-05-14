@@ -10,8 +10,6 @@
 * When operation ID can't be found, resubmit the podcast for transcription as that might mean that the operation results
   weren't fetched in time and so the operation has expired
 * Add heartbeats to transcoding activity
-* Consider making `MAX_ENCLOSURE_SIZE` and `MAX_DURATION` configurable via environment variables
-* Stopping workers after running `test_workflow.py` is very slow
 * Test running the same activity multiple times
 * Clean up GCS bucket after running `test_workflow.py`
 * If an activity throws an exception, its message should get printed out to the console as well (in addition to
