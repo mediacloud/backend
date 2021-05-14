@@ -9,7 +9,7 @@
 
 *.conf text eol=lf
 *.config text eol=lf
-*.cpanfile text eol=lf
+cpanfile text eol=lf
 *.css text eol=lf
 *.csv text eol=lf
 *.enabled_plugins text eol=lf
