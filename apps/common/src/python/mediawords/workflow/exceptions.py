@@ -5,9 +5,6 @@ Custom exceptions used for reporting back various errors back to the workflow.
 import abc
 
 
-# FIXME possibly move these to "common"
-
-
 class _AbstractPodcastTranscribeEpisodeError(Exception, metaclass=abc.ABCMeta):
     """Abstract exception."""
     pass

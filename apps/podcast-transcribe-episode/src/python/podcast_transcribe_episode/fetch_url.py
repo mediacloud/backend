@@ -4,8 +4,7 @@ import os
 import requests
 
 from mediawords.util.log import create_logger
-
-from .exceptions import McProgrammingError, McPermanentError, McTransientError
+from mediawords.workflow.exceptions import McProgrammingError, McPermanentError, McTransientError
 
 log = create_logger(__name__)
 

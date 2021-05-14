@@ -6,18 +6,18 @@ import pytest
 # noinspection PyPackageRequirements
 from temporal.workerfactory import WorkerFactory
 # noinspection PyPackageRequirements
-from temporal.workflow import WorkflowClient, WorkflowOptions
+from temporal.workflow import WorkflowOptions
 
 from mediawords.db import connect_to_db
 from mediawords.dbi.downloads.store import fetch_content
 from mediawords.test.db.create import create_test_medium, create_test_feed, create_test_story
 from mediawords.test.hash_server import HashServer
 from mediawords.util.log import create_logger
-from mediawords.util.network import random_unused_port, wait_for_tcp_port_to_open
+from mediawords.util.network import random_unused_port
+from mediawords.workflow.client import workflow_client
 
 from podcast_transcribe_episode.workflow import PodcastTranscribeActivities, PodcastTranscribeWorkflow
 from podcast_transcribe_episode.workflow_interface import (
-    NAMESPACE,
     TASK_QUEUE,
     AbstractPodcastTranscribeActivities,
     AbstractPodcastTranscribeWorkflow,
@@ -121,14 +121,10 @@ async def test_workflow():
         'length': len(test_mp3_data),
     })
 
-    # FIXME it's super lame to wait for this port to open, but the Python SDK seems to fail otherwise
-    wait_for_tcp_port_to_open(hostname='temporal-server', port=7233)
-
-    # FIXME move workflow client init to "common"
-    client = WorkflowClient.new_client(host='temporal-server', namespace=NAMESPACE)
+    client = workflow_client()
 
     # Start worker
-    factory = WorkerFactory(client=client, namespace=NAMESPACE)
+    factory = WorkerFactory(client=client, namespace=client.namespace)
     worker = factory.new_worker(task_queue=TASK_QUEUE)
     worker.register_activities_implementation(
 

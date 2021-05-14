@@ -11,9 +11,9 @@ from google.cloud.storage import Blob, Bucket
 from google.cloud.storage.retry import DEFAULT_RETRY
 
 from mediawords.util.log import create_logger
+from mediawords.workflow.exceptions import McProgrammingError, McConfigurationError, McPermanentError, McTransientError
 
 from .config import AbstractGCBucketConfig, GCAuthConfig
-from .exceptions import McProgrammingError, McConfigurationError, McPermanentError, McTransientError
 
 log = create_logger(__name__)
 

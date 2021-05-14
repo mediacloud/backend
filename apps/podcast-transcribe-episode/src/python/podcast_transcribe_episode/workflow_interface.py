@@ -7,16 +7,14 @@ from temporal.activity_method import activity_method, RetryParameters
 # noinspection PyPackageRequirements
 from temporal.workflow import workflow_method
 
+from mediawords.workflow.exceptions import McPermanentError
+
 from .config import PodcastTranscribeEpisodeConfig
 from .enclosure import StoryEnclosureDict
-from .exceptions import McPermanentError
 from .media_info import MediaFileInfoAudioStreamDict
 
 TASK_QUEUE = "podcast-transcribe-episode"
 """Temporal task queue."""
-
-NAMESPACE = "default"
-"""Temporal namespace."""
 
 DEFAULT_RETRY_PARAMETERS = RetryParameters(
 

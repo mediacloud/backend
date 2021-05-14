@@ -2,7 +2,7 @@ import time
 from typing import Optional
 
 from mediawords.db.handler import DatabaseHandler
-from mediawords.util.config.common import CommonConfig, DatabaseConfig
+from mediawords.util.config.common import CommonConfig, DatabaseConfig, ConnectRetriesConfig
 from mediawords.util.log import create_logger
 from mediawords.util.process import fatal_error
 
@@ -82,3 +82,22 @@ def connect_to_db(db_config: Optional[DatabaseConfig] = None) -> DatabaseHandler
                     raise McConnectToDBError(error_message)
 
     return db
+
+
+def connect_to_db_or_raise() -> DatabaseHandler:
+    """
+    Shorthand for connect_to_db() with its own retries and fatal_error() disabled.
+
+    By default, connect_to_db() will attempt connecting to PostgreSQL a few times and would call fatal_error() on
+    failures and stop the whole process.
+
+    Useful in workflows, i.e. it's better to leave all of the retrying to Temporal.
+    """
+    return connect_to_db(
+        db_config=DatabaseConfig(
+            retries=ConnectRetriesConfig(
+                max_attempts=1,
+                fatal_error_on_failure=False,
+            )
+        )
+    )

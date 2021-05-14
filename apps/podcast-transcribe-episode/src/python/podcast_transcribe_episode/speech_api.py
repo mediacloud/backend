@@ -12,10 +12,10 @@ from google.cloud.speech_v1p1beta1 import (
 )
 
 from mediawords.util.log import create_logger
+from mediawords.workflow.exceptions import McProgrammingError
 
 from .config import GCAuthConfig
 from .transcript import Transcript, UtteranceAlternative, Utterance
-from .exceptions import McProgrammingError
 from .media_info import MediaFileInfoAudioStream
 
 log = create_logger(__name__)
