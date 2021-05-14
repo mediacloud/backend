@@ -1,4 +1,5 @@
 import os
+from datetime import timedelta
 from typing import Union
 
 # noinspection PyPackageRequirements
@@ -141,7 +142,15 @@ async def test_workflow():
     # Initialize workflow instance
     workflow: AbstractPodcastTranscribeWorkflow = client.new_workflow_stub(
         cls=AbstractPodcastTranscribeWorkflow,
-        workflow_options=WorkflowOptions(workflow_id=str(stories_id)),
+        workflow_options=WorkflowOptions(
+            workflow_id=str(stories_id),
+
+            # By default, if individual activities of the workflow fail, they will get restarted pretty much
+            # indefinitely, and so this test might run for days (or rather just timeout on the CI). So we cap the
+            # workflow so that if it doesn't manage to complete in X minutes, we consider it as failed.
+            workflow_run_timeout=timedelta(minutes=5),
+
+        ),
     )
 
     # Wait for the workflow to complete
