@@ -1225,11 +1225,45 @@ services:
                     memory: "512M"
 
     #
-    # Fetch story podcast episode and store it in GCS
-    # -----------------------------------------------
+    # Fetch story podcast episode and store it in GCS (RabbitMQ worker)
+    # -----------------------------------------------------------------
     #
-    podcast-transcribe-episode:
+    podcast-transcribe-episode-rabbitmq-worker:
         image: gcr.io/mcback/podcast-transcribe-episode:release
+        command: "rabbitmq-worker.py"
+        init: true
+        networks:
+            - default
+        environment:
+            <<: *common-configuration
+        depends_on:
+            - postgresql-pgbouncer
+            - rabbitmq-server
+            - temporal-server
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            <<: *endpoint-mode-dnsrr
+            # Worker count
+            replicas: 1
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "1"
+                    # RAM limit
+                    memory: "1G"
+            restart_policy:
+                # Automatically restart on non-zero exit codes only instead of on any exit
+                condition: on-failure
+                # Autorestart up to three times
+                max_attempts: 3
+
+    #
+    # Fetch story podcast episode and store it in GCS (Temporal worker)
+    # -----------------------------------------------------------------
+    #
+    podcast-transcribe-episode-temporal-worker:
+        image: gcr.io/mcback/podcast-transcribe-episode:release
+        command: "temporal-worker.py"
         init: true
         networks:
             - default
@@ -1270,6 +1304,7 @@ services:
         depends_on:
             - postgresql-pgbouncer
             - rabbitmq-server
+            - temporal-server
         deploy:
             <<: *misc-apps_deploy_placement_constraints
             <<: *endpoint-mode-dnsrr
