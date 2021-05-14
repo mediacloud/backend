@@ -107,7 +107,7 @@ def viable_story_enclosure(db: DatabaseHandler, stories_id: int) -> Optional[Sto
     # Look for MP3 files in MIME type
     for enclosure in story_enclosures:
         if enclosure.mime_type_is_mp3():
-            log.info(f"Choosing enclosure '{enclosure}' by its MP3 MIME type '{enclosure.mime_type}'")
+            log.info(f"Choosing enclosure '{enclosure}' due to its MP3 MIME type '{enclosure.mime_type}'")
             chosen_enclosure = enclosure
             break
 
@@ -115,7 +115,7 @@ def viable_story_enclosure(db: DatabaseHandler, stories_id: int) -> Optional[Sto
     if not chosen_enclosure:
         for enclosure in story_enclosures:
             if enclosure.url_path_has_mp3_extension():
-                log.info(f"Choosing enclosure '{enclosure}' by its URL '{enclosure.url}'")
+                log.info(f"Choosing enclosure '{enclosure}' due to its URL '{enclosure.url}'")
                 chosen_enclosure = enclosure
                 break
 
@@ -124,7 +124,7 @@ def viable_story_enclosure(db: DatabaseHandler, stories_id: int) -> Optional[Sto
     if not chosen_enclosure:
         for enclosure in story_enclosures:
             if enclosure.mime_type_is_audio():
-                log.info(f"Choosing enclosure '{enclosure}' by its audio MIME type '{enclosure.mime_type}'")
+                log.info(f"Choosing enclosure '{enclosure}' due to its audio MIME type '{enclosure.mime_type}'")
                 chosen_enclosure = enclosure
                 break
 
@@ -132,7 +132,7 @@ def viable_story_enclosure(db: DatabaseHandler, stories_id: int) -> Optional[Sto
     if not chosen_enclosure:
         for enclosure in story_enclosures:
             if enclosure.mime_type_is_video():
-                log.info(f"Choosing enclosure '{enclosure}' by its video MIME type '{enclosure.mime_type}'")
+                log.info(f"Choosing enclosure '{enclosure}' due to its video MIME type '{enclosure.mime_type}'")
                 chosen_enclosure = enclosure
                 break
 
