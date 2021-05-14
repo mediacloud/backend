@@ -14,13 +14,7 @@ from mediawords.util.log import create_logger
 from mediawords.util.parse_html import html_strip
 from mediawords.util.url import get_url_host
 
-from .config import (
-    RawEnclosuresBucketConfig,
-    TranscodedEpisodesBucketConfig,
-    TranscriptsBucketConfig,
-    MAX_ENCLOSURE_SIZE,
-    MAX_DURATION,
-)
+from .config import PodcastTranscribeEpisodeConfig
 from .db_or_raise import connect_to_db_or_raise
 from .exceptions import McProgrammingError, McTransientError, McPermanentError
 from .enclosure import viable_story_enclosure, StoryEnclosure, StoryEnclosureDict
@@ -79,7 +73,7 @@ class PodcastTranscribeActivities(AbstractPodcastTranscribeActivities):
             raise McPermanentError(f"There were no viable enclosures found for story {stories_id}")
 
         if best_enclosure.length:
-            if best_enclosure.length > MAX_ENCLOSURE_SIZE:
+            if best_enclosure.length > self.config.max_enclosure_size():
                 raise McPermanentError(f"Chosen enclosure {best_enclosure} is too big.")
 
         log.info(f"Done determining best enclosure for story {stories_id}")
@@ -96,13 +90,13 @@ class PodcastTranscribeActivities(AbstractPodcastTranscribeActivities):
 
         with tempfile.TemporaryDirectory(prefix='fetch_enclosure_to_gcs') as temp_dir:
             raw_enclosure_path = os.path.join(temp_dir, 'raw_enclosure')
-            fetch_big_file(url=enclosure.url, dest_file=raw_enclosure_path, max_size=MAX_ENCLOSURE_SIZE)
+            fetch_big_file(url=enclosure.url, dest_file=raw_enclosure_path, max_size=self.config.max_enclosure_size())
 
             if os.stat(raw_enclosure_path).st_size == 0:
                 # Might happen with misconfigured webservers
                 raise McPermanentError(f"Fetched file {raw_enclosure_path} is empty.")
 
-            gcs = GCSStore(bucket_config=RawEnclosuresBucketConfig())
+            gcs = GCSStore(bucket_config=self.config.raw_enclosures())
             gcs.upload_object(local_file_path=raw_enclosure_path, object_id=str(stories_id))
 
         log.info(f"Done fetching enclosure to GCS for story {stories_id}")
@@ -114,7 +108,7 @@ class PodcastTranscribeActivities(AbstractPodcastTranscribeActivities):
         with tempfile.TemporaryDirectory(prefix='fetch_transcode_store_episode') as temp_dir:
             raw_enclosure_path = os.path.join(temp_dir, 'raw_enclosure')
 
-            gcs_raw_enclosures = GCSStore(bucket_config=RawEnclosuresBucketConfig())
+            gcs_raw_enclosures = GCSStore(bucket_config=self.config.raw_enclosures())
             gcs_raw_enclosures.download_object(
                 object_id=str(stories_id),
                 local_file_path=raw_enclosure_path,
@@ -136,7 +130,7 @@ class PodcastTranscribeActivities(AbstractPodcastTranscribeActivities):
 
             del raw_enclosure_path
 
-            gcs_transcoded_episodes = GCSStore(bucket_config=TranscodedEpisodesBucketConfig())
+            gcs_transcoded_episodes = GCSStore(bucket_config=self.config.transcoded_episodes())
             gcs_transcoded_episodes.upload_object(local_file_path=transcoded_episode_path, object_id=str(stories_id))
 
             # (Re)read the properties of either the original or the transcoded file
@@ -165,13 +159,14 @@ class PodcastTranscribeActivities(AbstractPodcastTranscribeActivities):
         if not episode_metadata.audio_codec_class:
             raise McProgrammingError("Best audio stream doesn't have audio class set")
 
-        gcs_transcoded_episodes = GCSStore(bucket_config=TranscodedEpisodesBucketConfig())
+        gcs_transcoded_episodes = GCSStore(bucket_config=self.config.transcoded_episodes())
         gs_uri = gcs_transcoded_episodes.object_uri(object_id=str(stories_id))
 
         speech_operation_id = submit_transcribe_operation(
             gs_uri=gs_uri,
             episode_metadata=episode_metadata,
             bcp47_language_code=bcp47_language_code,
+            gc_auth_config=self.config.gc_auth(),
         )
 
         log.info(f"Done submitting transcribe operation for story {stories_id}")
@@ -184,7 +179,7 @@ class PodcastTranscribeActivities(AbstractPodcastTranscribeActivities):
         log.info(f"Fetching and storing raw transcript JSON for story {stories_id}...")
         log.debug(f"Speech operation ID: {speech_operation_id}")
 
-        transcript = fetch_transcript(speech_operation_id=speech_operation_id)
+        transcript = fetch_transcript(speech_operation_id=speech_operation_id, gc_auth_config=self.config.gc_auth())
         if transcript is None:
             raise McTransientError(f"Speech operation with ID '{speech_operation_id}' hasn't been completed yet.")
 
@@ -196,7 +191,7 @@ class PodcastTranscribeActivities(AbstractPodcastTranscribeActivities):
             with open(transcript_json_path, 'w') as f:
                 f.write(transcript_json)
 
-            gcs = GCSStore(bucket_config=TranscriptsBucketConfig())
+            gcs = GCSStore(bucket_config=self.config.transcripts())
             gcs.upload_object(local_file_path=transcript_json_path, object_id=str(stories_id))
 
         log.info(f"Done fetching and storing raw transcript JSON for story {stories_id}")
@@ -208,7 +203,7 @@ class PodcastTranscribeActivities(AbstractPodcastTranscribeActivities):
         with tempfile.TemporaryDirectory(prefix='fetch_store_transcript') as temp_dir:
             transcript_json_path = os.path.join(temp_dir, 'transcript.json')
 
-            gcs = GCSStore(bucket_config=TranscriptsBucketConfig())
+            gcs = GCSStore(bucket_config=self.config.transcripts())
             gcs.download_object(object_id=str(stories_id), local_file_path=transcript_json_path)
 
             with open(transcript_json_path, 'r') as f:
@@ -305,9 +300,10 @@ class PodcastTranscribeWorkflow(AbstractPodcastTranscribeWorkflow):
 
         episode_metadata = MediaFileInfoAudioStream.from_dict(episode_metadata_dict)
 
-        if episode_metadata.duration > MAX_DURATION:
+        max_duration = PodcastTranscribeEpisodeConfig().max_duration()
+        if episode_metadata.duration > max_duration:
             raise McPermanentError(
-                f"Episode's duration ({episode_metadata.duration} s) exceeds max. duration ({MAX_DURATION} s)"
+                f"Episode's duration ({episode_metadata.duration} s) exceeds max. duration ({max_duration} s)"
             )
 
         speech_operation_id = await self.activities.submit_transcribe_operation(

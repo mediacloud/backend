@@ -1,6 +1,5 @@
 # FIXME remove unused tables (including migrations)
 # FIXME track failed workflows / activities in Munin
-# FIXME use random prefixes when running tests
 
 import dataclasses
 from datetime import timedelta
@@ -11,6 +10,7 @@ from temporal.activity_method import activity_method, RetryParameters
 # noinspection PyPackageRequirements
 from temporal.workflow import workflow_method
 
+from .config import PodcastTranscribeEpisodeConfig
 from .enclosure import StoryEnclosureDict
 from .exceptions import McPermanentError
 from .media_info import MediaFileInfoAudioStreamDict
@@ -69,6 +69,19 @@ https://docs.temporal.io/docs/concept-activities/
 
 class AbstractPodcastTranscribeActivities(object):
     """Activities interface."""
+
+    @classmethod
+    def _create_config(cls) -> PodcastTranscribeEpisodeConfig:
+        """
+        Create and return configuration instance to be used for running the workflow.
+
+        Might get overridden in case some configuration changes have to be made while running the tests.
+        """
+        return PodcastTranscribeEpisodeConfig()
+
+    def __init__(self):
+        super().__init__()
+        self.config = self._create_config()
 
     @activity_method(
         task_queue=TASK_QUEUE,

@@ -19,11 +19,6 @@ services:
             #
             # as they create a different, timestamped prefix for every test run.
 
-            # FIXME
-            MC_PODCAST_RAW_ENCLOSURES_PATH_PREFIX: "raw_enclosures"
-            MC_PODCAST_TRANSCODED_EPISODES_PATH_PREFIX: "transcoded_episodes"
-            MC_PODCAST_TRANSCRIPTS_PATH_PREFIX: "transcripts"
-
         volumes:
             - type: bind
               source: ./bin/
@@ -139,6 +134,7 @@ services:
               target: /opt/elasticsearch/bin/elasticsearch.sh
             # Not mounting config as it gets concatenated into a single file
 
+    # FIXME comment out
     temporal-webapp:
         image: gcr.io/mcback/temporal-webapp:latest
         init: true

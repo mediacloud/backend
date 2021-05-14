@@ -13,8 +13,8 @@ from google.cloud.speech_v1p1beta1 import (
 
 from mediawords.util.log import create_logger
 
-from .transcript import Transcript, UtteranceAlternative, Utterance
 from .config import GCAuthConfig
+from .transcript import Transcript, UtteranceAlternative, Utterance
 from .exceptions import McProgrammingError
 from .media_info import MediaFileInfoAudioStream
 
@@ -31,20 +31,23 @@ _GOOGLE_API_RETRIES = Retry(initial=5, maximum=60, multiplier=2, deadline=60 * 1
 
 def submit_transcribe_operation(gs_uri: str,
                                 episode_metadata: MediaFileInfoAudioStream,
-                                bcp47_language_code: str) -> str:
+                                bcp47_language_code: str,
+                                gc_auth_config: Optional[GCAuthConfig] = None) -> str:
     """
     Submit a Speech API long running operation to transcribe a podcast episode.
 
     :param gs_uri: Google Cloud Storage URI to a transcoded episode.
     :param episode_metadata: Metadata derived from the episode while transcoding it.
     :param bcp47_language_code: Episode's BCP 47 language code guessed from story's title + description.
+    :param gc_auth_config: Google Cloud authentication configuration instance.
     :return Google Speech API operation ID by which the transcription operation can be referred to.
     """
 
-    auth_config = GCAuthConfig()
+    if not gc_auth_config:
+        gc_auth_config = GCAuthConfig()
 
     try:
-        client = SpeechClient.from_service_account_json(auth_config.gc_auth_json_file())
+        client = SpeechClient.from_service_account_json(gc_auth_config.json_file())
     except Exception as ex:
         raise McProgrammingError(f"Unable to create Speech API client: {ex}")
 
@@ -100,20 +103,22 @@ def submit_transcribe_operation(gs_uri: str,
     return operation_id
 
 
-def fetch_transcript(speech_operation_id: str) -> Optional[Transcript]:
+def fetch_transcript(speech_operation_id: str, gc_auth_config: Optional[GCAuthConfig] = None) -> Optional[Transcript]:
     """
     Try to fetch a transcript for a given speech operation ID.
 
     :param speech_operation_id: Speech operation ID.
+    :param gc_auth_config: Google Cloud authentication configuration instance.
     :return: Transcript, or None if the transcript hasn't been prepared yet.
     """
     if not speech_operation_id:
         raise McProgrammingError(f"Speech operation ID is unset.")
 
-    auth_config = GCAuthConfig()
+    if not gc_auth_config:
+        gc_auth_config = GCAuthConfig()
 
     try:
-        client = SpeechClient.from_service_account_json(auth_config.gc_auth_json_file())
+        client = SpeechClient.from_service_account_json(gc_auth_config.json_file())
     except Exception as ex:
         raise McProgrammingError(f"Unable to initialize Speech API operations client: {ex}")
 

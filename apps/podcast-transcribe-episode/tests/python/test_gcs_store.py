@@ -6,10 +6,18 @@ from unittest import TestCase
 # noinspection PyPackageRequirements
 import pytest
 
+from podcast_transcribe_episode.config import RawEnclosuresGCBucketConfig
 from podcast_transcribe_episode.exceptions import McProgrammingError, McPermanentError
 from podcast_transcribe_episode.gcs_store import GCSStore
 
-from .random_gcs_prefix import RandomPrefixRawEnclosuresBucketConfig
+from .random_gcs_prefix import random_gcs_path_prefix
+
+
+class _RandomPrefixBucketConfig(RawEnclosuresGCBucketConfig):
+    """Bucket with random path prefix."""
+
+    def __init__(self):
+        super().__init__(path_prefix=random_gcs_path_prefix())
 
 
 class TestGCSStore(TestCase):
@@ -35,7 +43,7 @@ class TestGCSStore(TestCase):
         assert GCSStore._remote_path(path_prefix='//', object_id='//a///b//../b/c') == 'a/b/c'
 
     def test_store_exists_delete(self):
-        config = RandomPrefixRawEnclosuresBucketConfig()
+        config = _RandomPrefixBucketConfig()
         gcs = GCSStore(bucket_config=config)
 
         object_id = 'test'

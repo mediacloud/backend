@@ -29,18 +29,18 @@ class GCSStore(object):
 
     __slots__ = [
         '__bucket_internal',
-        '__auth_config',
+        '__gc_auth_config',
         '__bucket_config',
     ]
 
-    def __init__(self, bucket_config: AbstractGCBucketConfig, auth_config: Optional[GCAuthConfig] = None):
+    def __init__(self, bucket_config: AbstractGCBucketConfig, gc_auth_config: Optional[GCAuthConfig] = None):
         if not bucket_config:
             raise McConfigurationError("Bucket configuration is unset.")
 
-        if not auth_config:
-            auth_config = GCAuthConfig()
+        if not gc_auth_config:
+            gc_auth_config = GCAuthConfig()
 
-        self.__auth_config = auth_config
+        self.__gc_auth_config = gc_auth_config
         self.__bucket_config = bucket_config
         self.__bucket_internal = None
 
@@ -50,7 +50,7 @@ class GCSStore(object):
         if not self.__bucket_internal:
 
             try:
-                storage_client = storage.Client.from_service_account_json(self.__auth_config.gc_auth_json_file())
+                storage_client = storage.Client.from_service_account_json(self.__gc_auth_config.json_file())
                 self.__bucket_internal = storage_client.get_bucket(
                     bucket_or_name=self.__bucket_config.bucket_name(),
                     retry=_GCS_API_RETRIES,

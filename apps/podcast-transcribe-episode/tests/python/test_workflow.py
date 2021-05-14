@@ -8,6 +8,13 @@ from temporal.workerfactory import WorkerFactory
 # noinspection PyPackageRequirements
 from temporal.workflow import WorkflowClient, WorkflowOptions
 
+from mediawords.db import connect_to_db
+from mediawords.dbi.downloads.store import fetch_content
+from mediawords.test.db.create import create_test_medium, create_test_feed, create_test_story
+from mediawords.test.hash_server import HashServer
+from mediawords.util.log import create_logger
+from mediawords.util.network import random_unused_port, wait_for_tcp_port_to_open
+
 from podcast_transcribe_episode.workflow import PodcastTranscribeActivities, PodcastTranscribeWorkflow
 from podcast_transcribe_episode.workflow_interface import (
     NAMESPACE,
@@ -16,17 +23,56 @@ from podcast_transcribe_episode.workflow_interface import (
     AbstractPodcastTranscribeWorkflow,
 )
 
-from mediawords.db import connect_to_db
-from mediawords.dbi.downloads.store import fetch_content
-from mediawords.test.db.create import create_test_medium, create_test_feed, create_test_story
-from mediawords.test.hash_server import HashServer
-from mediawords.util.log import create_logger
-from mediawords.util.network import random_unused_port, wait_for_tcp_port_to_open
+from podcast_transcribe_episode.config import (
+    PodcastTranscribeEpisodeConfig,
+    AbstractGCBucketConfig,
+    RawEnclosuresGCBucketConfig,
+    TranscodedEpisodesGCBucketConfig,
+    TranscriptsGCBucketConfig,
+)
+
+from .random_gcs_prefix import random_gcs_path_prefix
 
 log = create_logger(__name__)
 
 TEST_MP3_PATH = '/opt/mediacloud/tests/data/media-samples/samples/kim_kardashian-mp3-mono.mp3'
 assert os.path.isfile(TEST_MP3_PATH), f"Test MP3 file '{TEST_MP3_PATH}' should exist."
+
+
+class _RandomPrefixesPodcastTranscribeEpisodeConfig(PodcastTranscribeEpisodeConfig):
+    """Custom configuration which uses random GCS prefixes."""
+
+    __slots__ = [
+        '__raw_enclosures_config',
+        '__transcoded_episodes_config',
+        '__transcripts_config',
+    ]
+
+    def __init__(self):
+        super().__init__()
+
+        # Create bucket config classes once so that if we call the getters again, the random prefixes don't get
+        # regenerated
+        self.__raw_enclosures_config = RawEnclosuresGCBucketConfig(path_prefix=random_gcs_path_prefix())
+        self.__transcoded_episodes_config = TranscodedEpisodesGCBucketConfig(path_prefix=random_gcs_path_prefix())
+        self.__transcripts_config = TranscriptsGCBucketConfig(path_prefix=random_gcs_path_prefix())
+
+    def raw_enclosures(self) -> AbstractGCBucketConfig:
+        return self.__raw_enclosures_config
+
+    def transcoded_episodes(self) -> AbstractGCBucketConfig:
+        return self.__transcoded_episodes_config
+
+    def transcripts(self) -> AbstractGCBucketConfig:
+        return self.__transcripts_config
+
+
+# Custom activities subclass with random bucket prefixes
+class _RandomPrefixesPodcastTranscribeActivities(PodcastTranscribeActivities):
+
+    @classmethod
+    def _create_config(cls) -> PodcastTranscribeEpisodeConfig:
+        return _RandomPrefixesPodcastTranscribeEpisodeConfig()
 
 
 @pytest.mark.asyncio
@@ -85,7 +131,10 @@ async def test_workflow():
     factory = WorkerFactory(client=client, namespace=NAMESPACE)
     worker = factory.new_worker(task_queue=TASK_QUEUE)
     worker.register_activities_implementation(
-        activities_instance=PodcastTranscribeActivities(),
+
+        # Use an activities implementation with random GCS prefixes set
+        activities_instance=_RandomPrefixesPodcastTranscribeActivities(),
+
         activities_cls_name=AbstractPodcastTranscribeActivities.__name__,
     )
     worker.register_workflow_implementation_type(impl_cls=PodcastTranscribeWorkflow)
@@ -108,6 +157,7 @@ async def test_workflow():
     assert first_download['state'] == 'success'
 
     download_content = fetch_content(db=db, download=first_download)
+
     # It's what gets said in the sample MP3 file
     assert 'Kim Kardashian' in download_content
 
