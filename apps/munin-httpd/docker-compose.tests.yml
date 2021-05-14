@@ -36,6 +36,8 @@ services:
         image: gcr.io/mcback/munin-cron:latest
         init: true
         stop_signal: SIGKILL
+        environment:
+            MC_MUNIN_CRON_ALERT_EMAIL: "FIXME@mediacloud.org"
         volumes:
             - type: bind
               source: ./../munin-cron/munin-conf.d/

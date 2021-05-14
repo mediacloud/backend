@@ -27,7 +27,7 @@ class AbstractPostFetcher(object, metaclass=abc.ABCMeta):
         sample: Optional[int] = None,
         page_size: Optional[int] = None,
     ) -> list:
-        raise NotImplemented("Abstract method")
+        raise NotImplementedError("Abstract method")
 
     def validate_mock_post(self, got_post: dict, expected_post: dict) -> None:
         """Validate that got_post matches expected_post.

@@ -14,25 +14,25 @@ class AbstractAudioCodec(object, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def postgresql_enum_value(cls) -> str:
         """Return value from 'podcast_episodes_audio_codec' PostgreSQL enum."""
-        raise NotImplemented("Abstract method")
+        raise NotImplementedError("Abstract method")
 
     @classmethod
     @abc.abstractmethod
     def ffmpeg_stream_is_this_codec(cls, ffmpeg_stream: Dict[str, Any]) -> bool:
         """Return True if ffmpeg.probe()'s one of the streams ('streams' key) is of this codec."""
-        raise NotImplemented("Abstract method")
+        raise NotImplementedError("Abstract method")
 
     @classmethod
     @abc.abstractmethod
     def ffmpeg_container_format(cls) -> str:
         """Return FFmpeg container format (-f argument)."""
-        raise NotImplemented("Abstract method")
+        raise NotImplementedError("Abstract method")
 
     @classmethod
     @abc.abstractmethod
     def mime_type(cls) -> str:
         """Return MIME type to store as GCS object metadata."""
-        raise NotImplemented("Abstract method")
+        raise NotImplementedError("Abstract method")
 
 
 class Linear16AudioCodec(AbstractAudioCodec):

@@ -39,12 +39,12 @@ class AbstractBrokerTestCase(TestCase, metaclass=abc.ABCMeta):
     @classmethod
     @abc.abstractmethod
     def worker_paths(cls) -> List[Worker]:
-        raise NotImplemented("Abstract method")
+        raise NotImplementedError("Abstract method")
 
     @classmethod
     @abc.abstractmethod
     def broker_class(cls) -> Type[JobBroker]:
-        raise NotImplemented("Abstract method")
+        raise NotImplementedError("Abstract method")
 
     @classmethod
     def setUpClass(cls) -> None:

@@ -1,0 +1,51 @@
+#!/usr/bin/env perl
+#
+# https://blog.crunchydata.com/blog/managing-transaction-id-wraparound-in-postgresql
+#
+
+use strict;
+use warnings;
+
+use FindBin;
+use lib $FindBin::Bin;
+
+use MediaWords::Munin;
+
+MediaWords::Munin::plugin({
+    title => 'Tables with old relfrozenxid',
+    info => 'Number of tables with old relfrozenxid',
+    vlabel => 'Tables',
+    metrics => [
+        {
+            label => 'Tables',
+            color => $COLOR1,
+
+            # Even a single table can mess up autovacuum
+            critical => { to => 1 },
+
+            value => sub {
+                
+                my $db = shift;
+
+                my $table_count = $db->query(<<SQL
+                    SELECT count(c.oid::regclass)
+                    FROM pg_class c
+                        JOIN pg_namespace n on c.relnamespace = n.oid
+                    WHERE relkind IN ('r', 't', 'm') 
+                      AND n.nspname NOT IN ('pg_toast')
+                      AND age(c.relfrozenxid) > 1000000000
+SQL
+                )->flat->[0];
+
+                unless ( defined $table_count ) {
+                    print STDERR "Unable to list tables with old relfrozenxid.\n";
+
+                    # Returning a non-zero value to trigger the "CRITICAL" alert
+                    return 1;
+                }
+
+                return $table_count;
+            },
+        },
+    ],
+});
