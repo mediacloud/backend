@@ -3,7 +3,7 @@ from temporal.workflow import WorkflowClient
 from mediawords.util.network import wait_for_tcp_port_to_open
 
 
-def workflow_client(namespace: str = 'DEFAULT') -> WorkflowClient:
+def workflow_client(namespace: str = 'default') -> WorkflowClient:
     """
     Connect to Temporal server and return its client.
 
