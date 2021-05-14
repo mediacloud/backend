@@ -276,6 +276,8 @@ class PodcastTranscribeActivities(AbstractPodcastTranscribeActivities):
                 retries=None,
             ),
         )
+
+        # add_to_queue() is not idempotent but it's not a big deal to extract a single story twice
         job_broker.add_to_queue(stories_id=stories_id)
 
         log.info(f"Done adding an extraction job for story {stories_id}")
