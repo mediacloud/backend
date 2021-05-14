@@ -31,11 +31,7 @@ from .media_info import MediaFileInfoAudioStream, media_file_info, MediaFileInfo
 from .speech_api import submit_transcribe_operation, fetch_transcript
 from .transcode import maybe_transcode_file
 from .transcript import Transcript
-from .workflow_interface import (
-    AbstractPodcastTranscribeWorkflow,
-    AbstractPodcastTranscribeActivities,
-    DEFAULT_RETRY_PARAMETERS,
-)
+from .workflow_interface import AbstractPodcastTranscribeWorkflow, AbstractPodcastTranscribeActivities
 
 log = create_logger(__name__)
 
@@ -289,11 +285,7 @@ class PodcastTranscribeWorkflow(AbstractPodcastTranscribeWorkflow):
     def __init__(self):
         self.activities: AbstractPodcastTranscribeActivities = Workflow.new_activity_stub(
             activities_cls=AbstractPodcastTranscribeActivities,
-
-            # FIXME if retry_parameters get set here, are they the defaults or do they override retries of individual
-            #  activities?
-            retry_parameters=DEFAULT_RETRY_PARAMETERS,
-
+            # No retry_parameters here as they get set individually in @activity_method()
         )
 
     async def transcribe_episode(self, stories_id: int) -> None:
