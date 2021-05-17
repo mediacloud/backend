@@ -6,8 +6,9 @@ import tempfile
 # noinspection PyPackageRequirements
 import pytest
 
+from mediawords.workflow.exceptions import McPermanentError
+
 from podcast_transcribe_episode.audio_codecs import AbstractAudioCodec
-from podcast_transcribe_episode.exceptions import McPermanentError
 from podcast_transcribe_episode.media_info import media_file_info, MediaFileInfo
 from podcast_transcribe_episode.transcode import maybe_transcode_file
 

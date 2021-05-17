@@ -6,8 +6,9 @@ from unittest import TestCase
 # noinspection PyPackageRequirements
 import pytest
 
+from mediawords.workflow.exceptions import McProgrammingError, McPermanentError
+
 from podcast_transcribe_episode.config import RawEnclosuresGCBucketConfig
-from podcast_transcribe_episode.exceptions import McProgrammingError, McPermanentError
 from podcast_transcribe_episode.gcs_store import GCSStore
 
 from .random_gcs_prefix import random_gcs_path_prefix
