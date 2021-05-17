@@ -5,12 +5,12 @@ Custom exceptions used for reporting back various errors back to the workflow.
 import abc
 
 
-class _AbstractPodcastTranscribeEpisodeError(Exception, metaclass=abc.ABCMeta):
+class _AbstractMcWorkflowError(Exception, metaclass=abc.ABCMeta):
     """Abstract exception."""
     pass
 
 
-class McProgrammingError(_AbstractPodcastTranscribeEpisodeError):
+class McProgrammingError(_AbstractMcWorkflowError):
     """
     Exception thrown on programming errors.
 
@@ -27,7 +27,7 @@ class McProgrammingError(_AbstractPodcastTranscribeEpisodeError):
     pass
 
 
-class McConfigurationError(_AbstractPodcastTranscribeEpisodeError):
+class McConfigurationError(_AbstractMcWorkflowError):
     """
     Exception thrown when something is misconfigured.
 
@@ -48,7 +48,7 @@ class McConfigurationError(_AbstractPodcastTranscribeEpisodeError):
     pass
 
 
-class McTransientError(_AbstractPodcastTranscribeEpisodeError):
+class McTransientError(_AbstractMcWorkflowError):
     """
     Exception thrown on transient (occurring at irregular intervals) errors.
 
@@ -63,7 +63,7 @@ class McTransientError(_AbstractPodcastTranscribeEpisodeError):
     pass
 
 
-class McPermanentError(_AbstractPodcastTranscribeEpisodeError):
+class McPermanentError(_AbstractMcWorkflowError):
     """
     Exception thrown when some expectations of the application were unmet so it can't proceed with a specific input but
     it's likely that it will be able to process other inputs.
