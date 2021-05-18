@@ -3,8 +3,6 @@
 set -u
 set -e
 
-MC_POSTGRESQL_BIN_DIR="/usr/lib/postgresql/13/bin/"
-MC_POSTGRESQL_DATA_DIR="/var/lib/postgresql/13/main/"
 MC_POSTGRESQL_MEMORY_CONF_PATH="/var/run/postgresql/postgresql-memory.conf"
 
 # Adjust configuration based on amount of RAM
