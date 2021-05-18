@@ -9,22 +9,22 @@ RUN \
     #
     # Install PostgreSQL
     apt-get -y --no-install-recommends install \
-        postgresql-11 \
-        postgresql-client-11 \
-        postgresql-contrib-11 \
-        postgresql-plperl-11 \
+        postgresql-13 \
+        postgresql-client-13 \
+        postgresql-contrib-13 \
+        postgresql-plperl-13 \
     && \
     true
 
 # Make some run directories
 RUN \
-    mkdir -p /var/run/postgresql/11-main.pg_stat_tmp && \
-    chown -R postgres:postgres /var/run/postgresql/11-main.pg_stat_tmp && \
+    mkdir -p /var/run/postgresql/13-main.pg_stat_tmp && \
+    chown -R postgres:postgres /var/run/postgresql/13-main.pg_stat_tmp && \
     true
 
 # Write our own configuration
-RUN rm -rf /etc/postgresql/11/main/
-COPY conf/ /etc/postgresql/11/main/
+RUN rm -rf /etc/postgresql/13/main/
+COPY conf/ /etc/postgresql/13/main/
 
 # This is where "update_memory_config.sh" script will write its memory settings
 # which it will auto-determine from available RAM on every run.
