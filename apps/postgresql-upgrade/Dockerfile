@@ -6,6 +6,9 @@ FROM gcr.io/mcback/postgresql-server:latest
 
 USER root
 
+# Install Python 3 for running the upgrade script
+RUN apt-get -y --no-install-recommends install python3
+
 # Install packages
 RUN \
     # FIXME
@@ -45,11 +48,11 @@ RUN \
     #
     true
 
-COPY bin/postgresql-upgrade.sh /usr/bin/
+COPY bin/postgresql_upgrade.py /usr/bin/
 
 # This is where the volume is supposed to be mounted
 VOLUME /var/lib/postgresql/
 
 USER postgres
 
-CMD ["postgresql-upgrade.sh"]
+CMD ["postgresql_upgrade.py"]
