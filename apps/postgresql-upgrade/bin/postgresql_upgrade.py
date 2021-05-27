@@ -36,26 +36,6 @@ POSTGRES_DATA_DIR = "/var/lib/postgresql"
 POSTGRES_USER = 'postgres'
 
 
-def _tcp_port_is_open(port: int, hostname: str = 'localhost') -> bool:
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.settimeout(2)
-    try:
-        result = sock.connect_ex((hostname, port))
-    except socket.gaierror as ex:
-        logging.warning(f"Unable to resolve {hostname}: {ex}")
-        return False
-
-    if result == 0:
-        try:
-            sock.shutdown(socket.SHUT_RDWR)
-        except OSError as ex:
-            # Quiet down "OSError: [Errno 57] Socket is not connected"
-            logging.warning(f"Error while shutting down socket: {ex}")
-
-    sock.close()
-    return result == 0
-
-
 def _dir_exists_and_accessible(directory: str) -> bool:
     return os.path.isdir(directory) and os.access(directory, os.X_OK)
 
@@ -162,6 +142,10 @@ class _PostgresVersion(object):
         if not _dir_exists_and_accessible(self.bin_dir):
             raise PostgresUpgradeError(f"Binaries directory {self.bin_dir} does not exist or is inaccessible.")
 
+        self.postgres = os.path.join(self.bin_dir, 'postgres')
+        if not os.access(self.postgres, os.X_OK):
+            raise PostgresUpgradeError(f"'postgres' at {self.postgres} does not exist.")
+
         if target_version:
 
             self.initdb = os.path.join(self.bin_dir, 'initdb')
@@ -176,14 +160,9 @@ class _PostgresVersion(object):
             if not os.access(self.vacuumdb, os.X_OK):
                 raise PostgresUpgradeError(f"'vacuumdb' at {self.vacuumdb} does not exist.")
 
-            self.postgres = os.path.join(self.bin_dir, 'postgres')
-            if not os.access(self.postgres, os.X_OK):
-                raise PostgresUpgradeError(f"'postgres' at {self.postgres} does not exist.")
-
         logging.info(f"Creating temporary configuration for version {version}...")
         self.tmp_conf_dir = f"/var/tmp/postgresql/conf/{version}"
         if os.path.exists(self.tmp_conf_dir):
-            logging.debug(f"Cleaning up {self.tmp_conf_dir} first...")
             shutil.rmtree(self.tmp_conf_dir)
         current_postgresql_config_path = self._current_postgresql_config_path()
         shutil.copytree(current_postgresql_config_path, self.tmp_conf_dir)
@@ -213,6 +192,84 @@ class _PostgresVersionPair(object):
     """
     old_version: _PostgresVersion
     new_version: _PostgresVersion
+
+
+class _PostgreSQLServer(object):
+    """PostgreSQL server helper."""
+
+    __slots__ = [
+        '__postgres',
+        '__port',
+        '__data_dir',
+        '__conf_dir',
+
+        '__proc',
+    ]
+
+    @classmethod
+    def _tcp_port_is_open(cls, port: int, hostname: str = 'localhost') -> bool:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.settimeout(2)
+        try:
+            result = sock.connect_ex((hostname, port))
+        except socket.gaierror as ex:
+            logging.warning(f"Unable to resolve {hostname}: {ex}")
+            return False
+
+        if result == 0:
+            try:
+                sock.shutdown(socket.SHUT_RDWR)
+            except OSError as ex:
+                # Quiet down "OSError: [Errno 57] Socket is not connected"
+                logging.warning(f"Error while shutting down socket: {ex}")
+
+        sock.close()
+        return result == 0
+
+    def __init__(self, postgres: str, port: int, data_dir: str, conf_dir: str):
+
+        assert os.access(postgres, os.X_OK), f"{postgres} does not exist."
+        assert isinstance(port, int), "Port must be an integer."
+        assert os.path.isdir(data_dir), f"{data_dir} does not exist."
+        assert os.path.isdir(conf_dir), f"{conf_dir} does not exist."
+        assert os.path.isfile(
+            os.path.join(conf_dir, 'postgresql.conf')
+        ), f"postgresql.conf in {conf_dir} does not exist."
+
+        self.__postgres = postgres
+        self.__port = port
+        self.__data_dir = data_dir
+        self.__conf_dir = conf_dir
+
+        self.__proc = None
+
+    def start(self) -> None:
+
+        assert not self.__proc, "PostgreSQL is already started."
+
+        logging.info("Starting PostgreSQL...")
+        self.__proc = subprocess.Popen([
+            self.__postgres,
+            '-D', self.__data_dir,
+            '-c', f'config_file={self.__conf_dir}/postgresql.conf',
+        ])
+
+        while not self._tcp_port_is_open(port=self.__port):
+            logging.info("Waiting for PostgreSQL to come up...")
+            time.sleep(1)
+
+        logging.info("PostgreSQL is up!")
+
+    def stop(self) -> None:
+        assert self.__proc, "PostgreSQL has not been started."
+
+        logging.info("Waiting for PostgreSQL to shut down...")
+        self.__proc.send_signal(signal.SIGTERM)
+        self.__proc.wait()
+
+        logging.info("PostgreSQL has been shut down")
+
+        self.__proc = None
 
 
 def postgres_upgrade(source_version: int, target_version: int) -> None:
@@ -287,6 +344,17 @@ def postgres_upgrade(source_version: int, target_version: int) -> None:
             ))
         current_port = current_port + 2
 
+    initial_version = upgrade_pairs[0].old_version
+    logging.info("Starting PostgreSQL before upgrade in case the last shutdown was unclean...")
+    proc = _PostgreSQLServer(
+        postgres=initial_version.postgres,
+        port=initial_version.port,
+        data_dir=initial_version.main_dir,
+        conf_dir=initial_version.tmp_conf_dir,
+    )
+    proc.start()
+    proc.stop()
+
     for pair in upgrade_pairs:
 
         logging.info(f"Upgrading from {pair.old_version.version} to {pair.new_version.version}...")
@@ -342,16 +410,13 @@ def postgres_upgrade(source_version: int, target_version: int) -> None:
 
     current_version = upgrade_pairs[-1].new_version
 
-    logging.info("Starting PostgreSQL to run VACUUM ANALYZE...")
-    postgres_proc = subprocess.Popen([
-        current_version.postgres,
-        '-D', current_version.main_dir,
-        '-c', f'config_file={current_version.tmp_conf_dir}/postgresql.conf',
-    ])
-
-    while not _tcp_port_is_open(port=current_version.port):
-        logging.info("Waiting for PostgreSQL to come up...")
-        time.sleep(1)
+    proc = _PostgreSQLServer(
+        postgres=current_version.postgres,
+        port=current_version.port,
+        data_dir=current_version.main_dir,
+        conf_dir=current_version.tmp_conf_dir,
+    )
+    proc.start()
 
     logging.info("Running VACUUM ANALYZE...")
     logging.info("(monitor locks while running that because PostgreSQL might decide to do autovacuum!)")
@@ -364,9 +429,7 @@ def postgres_upgrade(source_version: int, target_version: int) -> None:
         # No --analyze-in-stages because we're ready to wait for the full statistics
     ])
 
-    logging.info("Waiting for PostgreSQL to shut down...")
-    postgres_proc.send_signal(signal.SIGTERM)
-    postgres_proc.wait()
+    proc.stop()
 
     logging.info("Done!")
 
