@@ -61,6 +61,9 @@ def _dir_exists_and_accessible(directory: str) -> bool:
 
 
 class _PostgresVersion(object):
+    """
+    Data object of a single PostgreSQL version to upgrade from / to.
+    """
     __slots__ = [
         'version',
         'data_dir',
@@ -76,6 +79,11 @@ class _PostgresVersion(object):
 
     @classmethod
     def _current_postgresql_config_path(cls) -> str:
+        """
+        Returns path to currently present PostgreSQL configuration directory.
+
+        :return: Path to currently present PostgreSQL configuration directory, e.g. /etc/postgresql/11/main/.
+        """
         conf_list = os.listdir('/etc/postgresql/')
         if len(conf_list) != 1:
             raise PostgresUpgradeError(f"More / less than one PostgreSQL configuration set has been found: {conf_list}")
@@ -93,8 +101,21 @@ class _PostgresVersion(object):
     def __init__(self,
                  version: int,
                  target_version: bool,
-                 starting_version: bool, port: int,
+                 starting_version: bool,
+                 port: int,
                  extra_postgres_config: str):
+        """
+        Constructor.
+
+        Checks whether various binaries / paths / directories are available.
+
+        :param version: PostgreSQL version number, e.g. 11.
+        :param target_version: If True, this data object represents a version that is being upgraded *to*.
+        :param starting_version: If True, this data object represents a source version, i.e. the initial version that is
+        being upgraded from.
+        :param port: PostgreSQL temporary port number, e.g. 50432.
+        :param extra_postgres_config: Extra lines to add to temporary postgresql.conf.
+        """
         assert isinstance(version, int), "Version number must be integer."
         self.version = version
         assert isinstance(port, int), "Port must be an integer."
