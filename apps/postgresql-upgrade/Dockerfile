@@ -37,8 +37,9 @@ RUN \
     chown -R postgres:postgres /var/run/postgres/ && \
     #
     # Remove what might have gotten created in the parent image as we won't use it
-    rm -rf /var/lib/postgresql/ && \
-    mkdir /var/lib/postgresql/ && \
+    mkdir -p /var/lib/postgresql/ && \
+    chown -R postgres:postgres /var/lib/postgresql/ && \
+    rm -rf /var/lib/postgresql/* && \
     #
     # Remove extra configurations leaving only the one from parent "postgresql-base"
     rm -rf /etc/postgresql/11/ && \
