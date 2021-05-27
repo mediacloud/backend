@@ -21,7 +21,6 @@ import os
 import pathlib
 import shutil
 import signal
-import socket
 import subprocess
 import time
 
@@ -198,45 +197,26 @@ class _PostgreSQLServer(object):
     """PostgreSQL server helper."""
 
     __slots__ = [
-        '__postgres',
         '__port',
+        '__bin_dir',
         '__data_dir',
         '__conf_dir',
 
         '__proc',
     ]
 
-    @classmethod
-    def _tcp_port_is_open(cls, port: int, hostname: str = 'localhost') -> bool:
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.settimeout(2)
-        try:
-            result = sock.connect_ex((hostname, port))
-        except socket.gaierror as ex:
-            logging.warning(f"Unable to resolve {hostname}: {ex}")
-            return False
-
-        if result == 0:
-            try:
-                sock.shutdown(socket.SHUT_RDWR)
-            except OSError as ex:
-                # Quiet down "OSError: [Errno 57] Socket is not connected"
-                logging.warning(f"Error while shutting down socket: {ex}")
-
-        sock.close()
-        return result == 0
-
-    def __init__(self, postgres: str, port: int, data_dir: str, conf_dir: str):
-
-        assert os.access(postgres, os.X_OK), f"{postgres} does not exist."
+    def __init__(self, port: int, bin_dir: str, data_dir: str, conf_dir: str):
         assert isinstance(port, int), "Port must be an integer."
+        assert os.path.isdir(bin_dir), f"{bin_dir} does not exist."
+        assert os.access(os.path.join(bin_dir, 'postgres'), os.X_OK), f"'postgres' does not exist in {bin_dir}."
+        assert os.access(os.path.join(bin_dir, 'pg_isready'), os.X_OK), f"'pg_isready' does not exist in {bin_dir}."
         assert os.path.isdir(data_dir), f"{data_dir} does not exist."
         assert os.path.isdir(conf_dir), f"{conf_dir} does not exist."
         assert os.path.isfile(
             os.path.join(conf_dir, 'postgresql.conf')
         ), f"postgresql.conf in {conf_dir} does not exist."
 
-        self.__postgres = postgres
+        self.__bin_dir = bin_dir
         self.__port = port
         self.__data_dir = data_dir
         self.__conf_dir = conf_dir
@@ -244,19 +224,25 @@ class _PostgreSQLServer(object):
         self.__proc = None
 
     def start(self) -> None:
-
         assert not self.__proc, "PostgreSQL is already started."
 
         logging.info("Starting PostgreSQL...")
         self.__proc = subprocess.Popen([
-            self.__postgres,
+            os.path.join(self.__bin_dir, 'postgres'),
             '-D', self.__data_dir,
             '-c', f'config_file={self.__conf_dir}/postgresql.conf',
         ])
 
-        while not self._tcp_port_is_open(port=self.__port):
-            logging.info("Waiting for PostgreSQL to come up...")
-            time.sleep(1)
+        # Waiting for port is not enough as PostgreSQL might be recovering
+        while True:
+            try:
+                subprocess.check_call([os.path.join(self.__bin_dir, 'pg_isready'), '--port', str(self.__port)])
+            except subprocess.CalledProcessError as ex:
+                logging.debug(f"pg_isready failed: {ex}")
+                logging.info("Waiting for PostgreSQL to come up...")
+                time.sleep(1)
+            else:
+                break
 
         logging.info("PostgreSQL is up!")
 
@@ -347,8 +333,8 @@ def postgres_upgrade(source_version: int, target_version: int) -> None:
     initial_version = upgrade_pairs[0].old_version
     logging.info("Starting PostgreSQL before upgrade in case the last shutdown was unclean...")
     proc = _PostgreSQLServer(
-        postgres=initial_version.postgres,
         port=initial_version.port,
+        bin_dir=initial_version.bin_dir,
         data_dir=initial_version.main_dir,
         conf_dir=initial_version.tmp_conf_dir,
     )
@@ -411,8 +397,8 @@ def postgres_upgrade(source_version: int, target_version: int) -> None:
     current_version = upgrade_pairs[-1].new_version
 
     proc = _PostgreSQLServer(
-        postgres=current_version.postgres,
         port=current_version.port,
+        bin_dir=current_version.bin_dir,
         data_dir=current_version.main_dir,
         conf_dir=current_version.tmp_conf_dir,
     )
