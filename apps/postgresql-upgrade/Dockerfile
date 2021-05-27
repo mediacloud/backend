@@ -11,8 +11,6 @@ RUN apt-get -y --no-install-recommends install python3
 
 # Install packages
 RUN \
-    # FIXME
-    apt-get -y update && \
     #
     # Install PostgreSQL 11 (oldest version)
     apt-get -y --no-install-recommends install \
