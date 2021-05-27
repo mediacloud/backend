@@ -350,7 +350,11 @@ def postgres_upgrade(source_version: int, target_version: int) -> None:
         subprocess.check_call([
             pair.new_version.initdb,
             '--pgdata', pair.new_version.main_dir,
-            '--data-checksums',
+
+            # At the time of writing we don't use checksums so we can't enable them here; once (if) they get enabled,
+            # this needs to be uncommented
+            # '--data-checksums',
+
             '--encoding', 'UTF-8',
             '--lc-collate', 'en_US.UTF-8',
             '--lc-ctype', 'en_US.UTF-8',
