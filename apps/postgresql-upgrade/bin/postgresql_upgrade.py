@@ -215,7 +215,7 @@ def postgres_upgrade(source_version: int, target_version: int) -> None:
         )
 
     logging.info("Updating memory configuration...")
-    subprocess.check_call(['/opt/postgresql-base/bin/update_memory_config.sh'])
+    subprocess.check_call(['/opt/mediacloud/bin/update_memory_config.sh'])
 
     # Remove cruft that might have been left over from last attempt to do the upgrade
     patterns = [
