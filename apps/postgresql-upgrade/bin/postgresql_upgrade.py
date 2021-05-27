@@ -203,6 +203,14 @@ def postgres_upgrade(source_version: int, target_version: int) -> None:
     """
     logging.debug(f"Source version: {source_version}; target version: {target_version}")
 
+    # Unset environment variables from parent image so that pg_upgrade can make its
+    # own decisions about which credentials to use
+    del os.environ['PGHOST']
+    del os.environ['PGPORT']
+    del os.environ['PGUSER']
+    del os.environ['PGPASSWORD']
+    del os.environ['PGDATABASE']
+
     if not _dir_exists_and_accessible(POSTGRES_DATA_DIR):
         raise PostgresUpgradeError(f"{POSTGRES_DATA_DIR} does not exist or is inaccessible.")
 
