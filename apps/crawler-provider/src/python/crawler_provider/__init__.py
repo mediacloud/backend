@@ -15,12 +15,13 @@ once per second.
 
 The provider works as a daemon, periodically checking the size queued_downloads and only adding
 new jobs to the queue if there are more than MAX_QUEUE_SIZE jobs in the table.  This allows us to implement
-throttline by keeping the crawler jobs queue relatively small, thus limiting the number of requests for each
+throttling by keeping the crawler jobs queue relatively small, thus limiting the number of requests for each
 host over a period of several minutes, while allowing the crawler_fetcher jobs to acts as simple stupid
 worker jobs that just do a quick query of queued_downloads to grab the oldest queued download.
 """
 
 import time
+from typing import List
 
 from mediawords.db import DatabaseHandler
 from mediawords.util.log import create_logger
@@ -97,7 +98,7 @@ def _add_stale_feeds(db: DatabaseHandler) -> None:
             -- Feed was downloaded more than stale_feed_interval seconds ago
             OR (last_attempted_download_time < (NOW() - (%(a)s || ' seconds')::interval))
 
-            -- (Probably) if a new story comes in every "n" seconds, refetch feed every "n" + 5 minutes
+            -- (Probably) if a new story comes in every "n" seconds, re-fetch feed every "n" + 5 minutes
             OR (
                 (NOW() > last_attempted_download_time +
                         (last_attempted_download_time - last_new_story_time) + interval '5 minutes')
