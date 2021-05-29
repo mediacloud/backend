@@ -166,9 +166,35 @@ def provide_download_ids(db: DatabaseHandler) -> List[int]:
 
     log.info("Querying pending downloads...")
 
-    # get one downloads_id per host, ordered by priority asc, downloads_id desc, do this through a plpgsql
-    # function because that's the only way to avoid an index scan of the entire (host, priority, downloads_id) index
-    downloads_ids = db.query("select get_downloads_for_queue() downloads_id").flat()
+    # get one downloads_id per host, ordered by priority asc, downloads_id desc
+    # noinspection SqlResolve
+    downloads_ids = db.query("""
+
+        -- Pending downloads by host, ranked by priority and the biggest "downloads_id"  
+        WITH pending_downloads_per_host AS (
+    
+            SELECT
+                host,
+                downloads_id,
+                ROW_NUMBER() OVER(
+                    PARTITION BY host
+                    ORDER BY
+                        priority,
+                        downloads_id DESC NULLS LAST
+                ) AS rank
+            FROM downloads_pending AS dp
+            WHERE (
+                SELECT 1
+                FROM queued_downloads AS qd
+                WHERE qd.downloads_id = dp.downloads_id
+            ) IS NULL
+        )
+        
+        SELECT downloads_id
+        FROM pending_downloads_per_host
+        WHERE rank = 1
+    
+    """).flat()
 
     log.info(f"Provide downloads host downloads: {len(downloads_ids)}")
 
