@@ -152,7 +152,7 @@ def _add_stale_feeds(db: DatabaseHandler) -> None:
     log.info(f"Added stale feeds: {len(downloads)}")
 
 
-def provide_download_ids(db: DatabaseHandler) -> None:
+def provide_download_ids(db: DatabaseHandler) -> List[int]:
     """Return a list of pending downloads ids to queue for fetching.
 
     Hand out one downloads_id for each distinct host with a pending download.
