@@ -148,7 +148,7 @@ def _add_stale_feeds(db: DatabaseHandler) -> None:
         drop table feeds_to_queue
     """)
 
-    log.info("added stale feeds: %d" % len(downloads))
+    log.info(f"Added stale feeds: {len(downloads)}")
 
 
 def provide_download_ids(db: DatabaseHandler) -> None:
@@ -163,13 +163,13 @@ def provide_download_ids(db: DatabaseHandler) -> None:
 
     _add_stale_feeds(db)
 
-    log.info("querying pending downloads ...")
+    log.info("Querying pending downloads...")
 
     # get one downloads_id per host, ordered by priority asc, downloads_id desc, do this through a plpgsql
     # function because that's the only way to avoid an index scan of the entire (host, priority, downloads_id) index
     downloads_ids = db.query("select get_downloads_for_queue() downloads_id").flat()
 
-    log.info("provide downloads host downloads: %d" % len(downloads_ids))
+    log.info(f"Provide downloads host downloads: {len(downloads_ids)}")
 
     return downloads_ids
 
@@ -194,13 +194,13 @@ def run_provider(db: DatabaseHandler, daemon: bool = True) -> None:
         queue_size = db.query(
             "select count(*) from ( select 1 from queued_downloads limit %(a)s ) q",
             {'a': MAX_QUEUE_SIZE * 10}).flat()[0]
-        log.warning("queue_size: %d" % queue_size)
+        log.warning(f"Queue size: {queue_size}")
 
         if queue_size < MAX_QUEUE_SIZE:
             downloads_ids = provide_download_ids(db)
 
             if downloads_ids:
-                log.warning("adding to downloads to queue: %d" % len(downloads_ids))
+                log.info(f"Adding to downloads to queue: {len(downloads_ids)}")
 
                 values = ','.join(["(%d)" % i for i in downloads_ids])
                 db.query(
