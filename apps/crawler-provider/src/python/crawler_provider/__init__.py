@@ -114,11 +114,13 @@ def _add_stale_feeds(db: DatabaseHandler) -> None:
 
     db.query(
         """
+        -- noinspection SqlResolve @ table/"feeds_to_queue"
         UPDATE feeds
         SET last_attempted_download_time = NOW()
         WHERE feeds_id IN (SELECT feeds_id FROM feeds_to_queue)
         """)
 
+    # noinspection SqlResolve,SqlCheckUsingColumns
     downloads = db.query(
         """
         WITH inserted_downloads as (
@@ -141,7 +143,10 @@ def _add_stale_feeds(db: DatabaseHandler) -> None:
                 join feeds f using (feeds_id)
         """).hashes()
 
-    db.query("drop table feeds_to_queue")
+    db.query("""
+        -- noinspection SqlResolveForFile
+        drop table feeds_to_queue
+    """)
 
     log.info("added stale feeds: %d" % len(downloads))
 
