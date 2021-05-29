@@ -21,7 +21,7 @@ worker jobs that just do a quick query of queued_downloads to grab the oldest qu
 """
 
 import time
-from typing import List
+from typing import List, Any, Iterator
 
 from mediawords.db import DatabaseHandler
 from mediawords.util.log import create_logger
@@ -175,6 +175,12 @@ def provide_download_ids(db: DatabaseHandler) -> List[int]:
     return downloads_ids
 
 
+def __chunks(list_to_be_chunked: List[Any], chunk_size: int) -> Iterator[List[Any]]:
+    """Yield successive chunks from parameter list."""
+    for i in range(0, len(list_to_be_chunked), chunk_size):
+        yield list_to_be_chunked[i:i + chunk_size]
+
+
 def run_provider(db: DatabaseHandler, daemon: bool = True) -> None:
     """Run the provider daemon to periodically add crawler_fetcher jobs by querying for pending downloads.
 
@@ -203,10 +209,22 @@ def run_provider(db: DatabaseHandler, daemon: bool = True) -> None:
             if downloads_ids:
                 log.info(f"Adding to downloads to queue: {len(downloads_ids)}")
 
-                values = ','.join(["(%d)" % i for i in downloads_ids])
-                db.query(
-                    "insert into queued_downloads(downloads_id) values %s on conflict (downloads_id) do nothing" %
-                    values)
+                # Insert in chunks so that:
+                # 1) Fetchers get to fetching sooner;
+                # 2) We don't have to come up with a query that's 2 MB long.
+                for chunk_downloads_ids in __chunks(list_to_be_chunked=downloads_ids, chunk_size=1000):
+                    log.info(f"Inserting chunk of downloads ({len(chunk_downloads_ids)} download IDs)...")
+                    # noinspection SqlResolve,SqlSignature
+                    db.query(
+                        """
+                        INSERT INTO queued_downloads (downloads_id)
+                        VALUES (unnest (ARRAY %(chunk_downloads_ids)s::bigint[]))
+                        ON CONFLICT (downloads_id) DO NOTHING
+                        """ % {
+                            'chunk_downloads_ids': chunk_downloads_ids,
+                        }
+                    )
+
             else:
                 log.info("No downloads to add")
 
