@@ -6,6 +6,7 @@ PostgreSQL upgrade script.
 Usage:
 
 time docker run -it \
+    --shm-size=64g \
     -v ~/Downloads/postgres_11_vol/:/var/lib/postgresql/ \
     gcr.io/mcback/postgresql-upgrade \
     postgresql_upgrade.py --source_version=11 --target_version=12
@@ -37,6 +38,13 @@ POSTGRES_USER = 'postgres'
 
 def _dir_exists_and_accessible(directory: str) -> bool:
     return os.path.isdir(directory) and os.access(directory, os.X_OK)
+
+
+def _ram_size_mb() -> int:
+    """Return RAM size (in megabytes) that is allocated to the container."""
+    ram_size = int(subprocess.check_output(['/container_memory_limit.sh']).decode('utf-8'))
+    assert ram_size, "RAM size can't be zero."
+    return ram_size
 
 
 class _PostgresVersion(object):
@@ -286,6 +294,13 @@ def postgres_upgrade(source_version: int, target_version: int) -> None:
             f"Target version {target_version} is not newer than source version {source_version}."
         )
 
+    shm_size = int(shutil.disk_usage("/dev/shm")[0] / 1024 / 1024)
+    min_shm_size = int(_ram_size_mb() / 3) - 1024
+    if shm_size < min_shm_size:
+        raise PostgresUpgradeError(
+            f"Container's /dev/shm should be at least {min_shm_size} MB; try passing --shm-size property."
+        )
+
     logging.info("Updating memory configuration...")
     subprocess.check_call(['/opt/mediacloud/bin/update_memory_config.sh'])
 
@@ -300,9 +315,7 @@ def postgres_upgrade(source_version: int, target_version: int) -> None:
             logging.debug(f"Deleting {file}...")
             os.unlink(pattern)
 
-    ram_size = int(subprocess.check_output(['/container_memory_limit.sh']).decode('utf-8'))
-    assert ram_size, "RAM size can't be zero."
-    new_maintenance_work_mem = int(ram_size / 10)
+    new_maintenance_work_mem = int(_ram_size_mb() / 10)
     logging.info(f"New maintenance work memory limit: {new_maintenance_work_mem} MB")
     maintenance_work_mem_statement = f'maintenance_work_mem = {new_maintenance_work_mem}MB'
 
