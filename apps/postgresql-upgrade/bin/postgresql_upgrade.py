@@ -428,8 +428,9 @@ def postgres_upgrade(source_version: int, target_version: int) -> None:
         '--port', str(current_version.port),
         '--all',
         '--verbose',
+        # Do --analyze-only instead of --analyze-in-stages because we're ready to wait for the full statistics
+        '--analyze-only',
         '--jobs', str(multiprocessing.cpu_count()),
-        # No --analyze-in-stages because we're ready to wait for the full statistics
     ])
 
     proc.stop()
