@@ -196,7 +196,7 @@ def provide_download_ids(db: DatabaseHandler) -> List[int]:
     
     """).flat()
 
-    log.info(f"Provide downloads host downloads: {len(downloads_ids)}")
+    log.info(f"Providing {len(downloads_ids)} per-host download IDs")
 
     return downloads_ids
 
@@ -227,13 +227,13 @@ def run_provider(db: DatabaseHandler, daemon: bool = True) -> None:
         queue_size = db.query(
             "select count(*) from ( select 1 from queued_downloads limit %(a)s ) q",
             {'a': MAX_QUEUE_SIZE * 10}).flat()[0]
-        log.warning(f"Queue size: {queue_size}")
+        log.info(f"Queue size: {queue_size}")
 
         if queue_size < MAX_QUEUE_SIZE:
             downloads_ids = provide_download_ids(db)
 
             if downloads_ids:
-                log.info(f"Adding to downloads to queue: {len(downloads_ids)}")
+                log.info(f"Adding {len(downloads_ids)} download IDs to queue...")
 
                 # Insert in chunks so that:
                 # 1) Fetchers get to fetching sooner;
@@ -252,14 +252,17 @@ def run_provider(db: DatabaseHandler, daemon: bool = True) -> None:
                     )
 
             else:
-                log.info("No downloads to add")
+                log.info("No download IDs to add")
 
             if daemon:
                 if time.time() - last_queue_time < QUEUE_INTERVAL:
+                    log.info(f"Sleeping for {QUEUE_INTERVAL} seconds")
                     time.sleep(QUEUE_INTERVAL)
 
         elif daemon:
-            time.sleep(QUEUE_INTERVAL * 10)
+            time_to_sleep = QUEUE_INTERVAL * 10
+            log.info(f"Sleeping for {time_to_sleep} seconds as we're running as a daemon")
+            time.sleep(time_to_sleep)
 
         last_queue_time = time.time()
 
