@@ -9,7 +9,8 @@ time docker run -it \
     --shm-size=64g \
     -v ~/Downloads/postgres_11_vol/:/var/lib/postgresql/ \
     gcr.io/mcback/postgresql-upgrade \
-    postgresql_upgrade.py --source_version=11 --target_version=12
+    postgresql_upgrade.py --source_version=11 --target_version=12 \
+    > postgresql_upgrade.log
 """
 
 import argparse
