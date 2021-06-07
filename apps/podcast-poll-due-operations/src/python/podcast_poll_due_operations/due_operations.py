@@ -23,7 +23,7 @@ class AbstractFetchTranscriptQueue(object, metaclass=abc.ABCMeta):
 
         :param podcast_episode_transcript_fetches_id: Transcript fetch ID.
         """
-        raise NotImplemented("Abstract method")
+        raise NotImplementedError("Abstract method")
 
 
 def poll_for_due_operations(fetch_transcript_queue: AbstractFetchTranscriptQueue,

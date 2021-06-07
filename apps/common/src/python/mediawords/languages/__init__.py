@@ -50,7 +50,7 @@ class AbstractLanguage(object, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def language_code() -> str:
         """Return ISO 639-1 language code, e.g. 'en'."""
-        raise NotImplemented("Abstract method.")
+        raise NotImplementedError("Abstract method.")
 
     @staticmethod
     @abc.abstractmethod
@@ -63,7 +63,7 @@ class AbstractLanguage(object, metaclass=abc.ABCMeta):
         * Wikipedia
         * cld2-cffi's unit test: https://github.com/GregBowyer/cld2-cffi/blob/master/tests/test_cld.py
         """
-        raise NotImplemented("Abstract method.")
+        raise NotImplementedError("Abstract method.")
 
     # MC_REWRITE_TO_PYTHON: use set after rewrite to Python
     @abc.abstractmethod

@@ -23,7 +23,7 @@ class TestDownloadHandler(TestCase, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def hashserver_pages(self) -> Dict[str, Any]:
         """Return HashServer pages to serve."""
-        raise NotImplemented("Abstract method")
+        raise NotImplementedError("Abstract method")
 
     def _fetch_and_handle_response(self, path: str, downloads_id: Optional[int] = None) -> Dict[str, Any]:
         """Call the fetcher and handler on the given URL. Return the download passed to the fetcher and handler."""

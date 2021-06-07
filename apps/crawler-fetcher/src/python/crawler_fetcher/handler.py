@@ -26,9 +26,9 @@ class AbstractDownloadHandler(object, metaclass=abc.ABCMeta):
         Return Response if the download had to be fetched and was, in fact, fetched; or return None if the download
         shouldn't / couldn't be fetched for whatever reason but no error is to be reported.
         """
-        raise NotImplemented("Abstract method.")
+        raise NotImplementedError("Abstract method.")
 
     def store_response(self, db: DatabaseHandler, download: dict, response: Response) -> None:
         """Store the download (response object) somehow, e.g. store it, parse if it is a feed, add new stories derived
         from it, etc."""
-        raise NotImplemented("Abstract method.")
+        raise NotImplementedError("Abstract method.")
