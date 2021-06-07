@@ -9,7 +9,7 @@
       <sourceFolder url="file://$MODULE_DIR$/src/python" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/bin" isTestSource="false" />
     </content>
-    <orderEntry type="jdk" jdkName="Remote Python 3.7.7 Docker Compose (import-solr-data at [/home/pypt/Dropbox/etc-MediaCloud/trunk/apps/import-solr-data/docker-compose.tests.yml])" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="Remote Python 3.8.5 Docker Compose (import-solr-data at [/home/pypt/m/apps/import-solr-data/docker-compose.tests.yml])" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
   <component name="TestRunnerService">
