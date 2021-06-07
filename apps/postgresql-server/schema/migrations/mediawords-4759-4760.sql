@@ -15,7 +15,7 @@
 --
 
 
-
+DROP FUNCTION IF EXISTS get_downloads_for_queue();
 
 
 --
