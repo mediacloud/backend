@@ -12,7 +12,7 @@ ENV MEDIACLOUD_ZOOKEEPER_VERSION="3.4.10"
 # Download and extract ZooKeeper
 RUN \
     mkdir -p /opt/zookeeper/ && \
-    /dl_to_stdout.sh "https://archive.apache.org/dist/zookeeper/zookeeper-${MEDIACLOUD_ZOOKEEPER_VERSION}/zookeeper-${MEDIACLOUD_ZOOKEEPER_VERSION}.tar.gz" | \
+    /dl_to_stdout.sh "https://mediacloud-archive-apache-org.s3.amazonaws.com/zookeeper-${MEDIACLOUD_ZOOKEEPER_VERSION}.tar.gz" | \
         tar -zx -C /opt/zookeeper/ --strip 1 && \
     rm -rf /opt/zookeeper/conf/ && \
     true

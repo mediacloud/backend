@@ -53,4 +53,4 @@ services:
               target: /opt/mediacloud/schema/
             - type: bind
               source: ./../postgresql-base/conf/
-              target: /etc/postgresql/11/main/
+              target: /etc/postgresql/13/main/

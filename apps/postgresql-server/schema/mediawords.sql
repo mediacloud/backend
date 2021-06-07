@@ -26,7 +26,7 @@ CREATE OR REPLACE FUNCTION set_database_schema_version() RETURNS boolean AS $$
 DECLARE
     -- Database schema version number (same as a SVN revision number)
     -- Increase it by 1 if you make major database schema changes.
-    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4760;
+    MEDIACLOUD_DATABASE_SCHEMA_VERSION CONSTANT INT := 4761;
 BEGIN
 
     -- Update / set database schema version
@@ -1492,42 +1492,6 @@ end;
 
 $$ language plpgsql;
 
--- efficiently query downloads_pending for the latest downloads_id per host.  postgres is not able to do this through
--- its normal query planning (it just does an index scan of the whole index).  this turns a query that 
--- takes ~22 seconds for a 100 million row table into one that takes ~0.25 seconds
-create or replace function get_downloads_for_queue() returns table(downloads_id bigint) as $$
-declare
-    pending_host record;
-begin
-    -- quick temp copy without dead row issues for querying in loop body below
-    create temporary table qd on commit drop as select * from queued_downloads;
-
-    create temporary table pending_downloads (downloads_id bigint) on commit drop;
-    for pending_host in
-            WITH RECURSIVE t AS (
-               (SELECT host FROM downloads_pending ORDER BY host LIMIT 1)
-               UNION ALL
-               SELECT (SELECT host FROM downloads_pending WHERE host > t.host ORDER BY host LIMIT 1)
-               FROM t
-               WHERE t.host IS NOT NULL
-               )
-            SELECT host FROM t WHERE host IS NOT NULL
-        loop
-            insert into pending_downloads
-                select dp.downloads_id
-                    from downloads_pending dp
-                        left join qd on ( dp.downloads_id = qd.downloads_id )
-                    where 
-                        host = pending_host.host and
-                        qd.downloads_id is null
-                    order by priority, downloads_id desc nulls last
-                    limit 1;
-        end loop;
-
-    return query select pd.downloads_id from pending_downloads pd;
- end;
-
-$$ language plpgsql;
 
 --
 -- Extracted plain text from every download

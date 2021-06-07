@@ -27,7 +27,7 @@ RUN \
 # Install Tomcat 7
 RUN \
     mkdir -p /usr/lib/tomcat7/ && \
-    /dl_to_stdout.sh "https://archive.apache.org/dist/tomcat/tomcat-7/v7.0.96/bin/apache-tomcat-7.0.96.tar.gz" | \
+    /dl_to_stdout.sh "https://mediacloud-archive-apache-org.s3.amazonaws.com/apache-tomcat-7.0.96.tar.gz" | \
         tar -zx -C /usr/lib/tomcat7/ --strip 1 && \
     true
 

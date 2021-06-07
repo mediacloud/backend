@@ -15,11 +15,7 @@
 --
 
 
-DROP TABLE podcast_episode_transcript_fetches;
-DROP TABLE podcast_episodes;
-DROP TYPE podcast_episodes_audio_codec;
-DROP TYPE podcast_episode_transcript_fetch_result;
-DROP FUNCTION podcast_episode_transcript_was_added_to_queue(TIMESTAMP WITH TIME ZONE);
+DROP FUNCTION IF EXISTS get_downloads_for_queue();
 
 
 --
