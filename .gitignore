@@ -56,7 +56,9 @@ coverage.json
 **/.idea/**/dataSources/
 **/.idea/**/dataSources.ids
 **/.idea/**/dataSources.local.xml
-**/.idea/**/sqlDataSources.xml
+
+# Not ignoring **/.idea/**/sqlDataSources.xml as it points to ./.idea/mediawords.sql
+
 **/.idea/**/dynamic.xml
 **/.idea/**/uiDesigner.xml
 **/.idea/**/dbnavigator.xml

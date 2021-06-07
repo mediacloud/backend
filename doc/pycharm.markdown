@@ -231,24 +231,31 @@ Without the SQL schema dialect and data source configuration, PyCharm will compl
 
 To configure SQL schema dialect and data source:
 
-1. Go to *Languages & Frameworks* -> *SQL Dialects*, set the *Project SQL Dialect:* to *PostgreSQL* and click *OK*:
+1. Symlink `apps/postgresql-server/schema/mediawords.sql` to `.idea/` directory:
+
+      ```bash
+      cd apps/your_app/.idea/
+      ln -s ../../postgresql-server/schema/mediawords.sql .
+      ```
+
+2. Go to *Languages & Frameworks* -> *SQL Dialects*, set the *Project SQL Dialect:* to *PostgreSQL* and click *OK*:
 
    ![](https://github.com/mediacloud/backend-docs-images/raw/master/docker-pycharm/schema-02-dialect-project.png)
 
-2. Open the database tool window by choosing *View* -> *Tool Windows* -> *Database* in the menu:
+3. Open the database tool window by choosing *View* -> *Tool Windows* -> *Database* in the menu:
 
    ![](https://github.com/mediacloud/backend-docs-images/raw/master/docker-pycharm/schema-03-data-source-menu.png)
 
-3. In the database tool window on the right, add a new DDL data source by clicking on the plus sign and choosing *DDL Data Source*:
+4. In the database tool window on the right, add a new DDL data source by clicking on the plus sign and choosing *DDL Data Source*:
 
    ![](https://github.com/mediacloud/backend-docs-images/raw/master/docker-pycharm/schema-04-data-source-ddl.png)
 
-4. Leave the default value of the *Name:* field intact and under *DDL Files*, add a `media words.sql` file (located in the `postgresql-server` app under `schema/mediawords.sql`) and click *OK*:
+5. Leave the default value of the *Name:* field intact and under *DDL Files*, add a `mediawords.sql` file located in `.idea/` directory (you might need to click on *Show Hidden Files and Directories* button first) and click *OK*:
 
    ![](https://github.com/mediacloud/backend-docs-images/raw/master/docker-pycharm/schema-05-data-source-mediawords.png)
 
-5. In the subsequent window, click on the cell under the *SQL Dialect* column in the row with `mediawords.sql` entry, choose the *PostgreSQL* dialect and click *OK*:
+6. In the subsequent window, click on the cell under the *SQL Dialect* column in the row with `mediawords.sql` entry, choose the *PostgreSQL* dialect and click *OK*:
 
    ![](https://github.com/mediacloud/backend-docs-images/raw/master/docker-pycharm/schema-06-data-source-postgresql.png)
 
-6. SQL dialect and data source is now configured, IDE should be able to use the newly added configuration to warn you of problems with your SQL queries.
+7. SQL dialect and data source is now configured, IDE should be able to use the newly added configuration to warn you of problems with your SQL queries.
