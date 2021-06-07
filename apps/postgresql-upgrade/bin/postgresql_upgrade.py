@@ -424,6 +424,9 @@ def postgres_upgrade(source_version: int, target_version: int) -> None:
 
     logging.info("Running VACUUM ANALYZE...")
     logging.info("(monitor locks while running that because PostgreSQL might decide to do autovacuum!)")
+
+    # FIXME temporarily disable autovacuum in the temp. config
+
     subprocess.check_call([
         current_version.vacuumdb,
         '--port', str(current_version.port),
