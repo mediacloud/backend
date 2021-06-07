@@ -70,7 +70,7 @@ services:
               target: /opt/mediacloud/schema/
             - type: bind
               source: ./../postgresql-server/conf/
-              target: /etc/postgresql/11/main/
+              target: /etc/postgresql/13/main/
 
     solr-shard-01:
         image: gcr.io/mcback/solr-shard:latest
