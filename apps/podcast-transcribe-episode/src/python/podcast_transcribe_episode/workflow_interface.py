@@ -17,53 +17,17 @@ TASK_QUEUE = "podcast-transcribe-episode"
 """Temporal task queue."""
 
 DEFAULT_RETRY_PARAMETERS = RetryParameters(
-
-    # InitialInterval is a delay before the first retry.
     initial_interval=timedelta(seconds=1),
-
-    # BackoffCoefficient. Retry policies are exponential. The coefficient specifies how fast the retry interval is
-    # growing. The coefficient of 1 means that the retry interval is always equal to the InitialInterval.
     backoff_coefficient=2,
-
-    # MaximumInterval specifies the maximum interval between retries. Useful for coefficients more than 1.
     maximum_interval=timedelta(hours=2),
-
-    # MaximumAttempts specifies how many times to attempt to execute an Activity in the presence of failures. If this
-    # limit is exceeded, the error is returned back to the Workflow that invoked the Activity.
-
-    # We start off with a huge default retry count for each individual activity (1000 attempts * 2 hour max. interval
-    # = about a month worth of retrying) to give us time to detect problems, fix them, deploy fixes and let the workflow
-    # system just handle the rest without us having to restart workflows manually.
-    #
-    # Activities for which retrying too much doesn't make sense (e.g. due to the cost) set their own "maximum_attempts".
     maximum_attempts=1000,
-
-    # NonRetryableErrorReasons allows you to specify errors that shouldn't be retried. For example retrying invalid
-    # arguments error doesn't make sense in some scenarios.
     non_retryable_error_types=[
-
-        # Counterintuitively, we *do* want to retry not only on transient errors but also on programming and
-        # configuration ones too because on programming / configuration bugs we can just fix up some code or
-        # configuration, deploy the fixes and let the workflow system automagically continue on with the workflow
-        # without us having to dig out what exactly has failed and restart things.
-        #
-        # However, on "permanent" errors (the ones when some action decides that it just can't proceed with this
-        # particular input, e.g. process a story that does not exist) there's no point in retrying anything.
-        # anything anymore.
         McPermanentError.__name__,
-
     ],
-
 )
-"""
-Retry parameters.
-
-https://docs.temporal.io/docs/concept-activities/
-"""
 
 
 class PodcastTranscribeActivities(object):
-    """Activities interface."""
 
     @classmethod
     def _create_config(cls) -> PodcastTranscribeEpisodeConfig:
@@ -80,23 +44,7 @@ class PodcastTranscribeActivities(object):
 
     @activity_method(
         task_queue=TASK_QUEUE,
-
-        # ScheduleToStart is the maximum time from a Workflow requesting Activity execution to a worker starting its
-        # execution. The usual reason for this timeout to fire is all workers being down or not being able to keep up
-        # with the request rate. We recommend setting this timeout to the maximum time a Workflow is willing to wait for
-        # an Activity execution in the presence of all possible worker outages.
-        # schedule_to_start_timeout=None,
-
-        # StartToClose is the maximum time an Activity can execute after it was picked by a worker.
         start_to_close_timeout=timedelta(seconds=60),
-
-        # ScheduleToClose is the maximum time from the Workflow requesting an Activity execution to its completion.
-        # schedule_to_close_timeout=None,
-
-        # Heartbeat is the maximum time between heartbeat requests. See Long Running Activities.
-        # (https://docs.temporal.io/docs/concept-activities/#long-running-activities)
-        # heartbeat_timeout=None,
-
         retry_parameters=DEFAULT_RETRY_PARAMETERS,
     )
     async def identify_story_bcp47_language_code(self, stories_id: int) -> Optional[str]:
@@ -112,10 +60,7 @@ class PodcastTranscribeActivities(object):
 
     @activity_method(
         task_queue=TASK_QUEUE,
-        # schedule_to_start_timeout=None,
         start_to_close_timeout=timedelta(seconds=60),
-        # schedule_to_close_timeout=None,
-        # heartbeat_timeout=None,
         retry_parameters=DEFAULT_RETRY_PARAMETERS,
     )
     async def determine_best_enclosure(self, stories_id: int) -> Optional[StoryEnclosureDict]:
@@ -131,16 +76,9 @@ class PodcastTranscribeActivities(object):
 
     @activity_method(
         task_queue=TASK_QUEUE,
-        # schedule_to_start_timeout=None,
-
         # With a super-slow server, it's probably reasonable to expect that it might take a few hours to fetch a single
         # episode
         start_to_close_timeout=timedelta(hours=2),
-
-        # schedule_to_close_timeout=None,
-
-        # heartbeat_timeout=None,
-
         retry_parameters=dataclasses.replace(
             DEFAULT_RETRY_PARAMETERS,
 
@@ -168,14 +106,9 @@ class PodcastTranscribeActivities(object):
 
     @activity_method(
         task_queue=TASK_QUEUE,
-        # schedule_to_start_timeout=None,
 
         # Let's expect super long episodes or super slow servers
         start_to_close_timeout=timedelta(hours=2),
-
-        # schedule_to_close_timeout=None,
-
-        # heartbeat_timeout=None,
 
         retry_parameters=dataclasses.replace(
             DEFAULT_RETRY_PARAMETERS,
@@ -204,14 +137,10 @@ class PodcastTranscribeActivities(object):
 
     @activity_method(
         task_queue=TASK_QUEUE,
-        # schedule_to_start_timeout=None,
 
         # Give a bit more time as the implementation is likely to do some non-Temporal retries on weird Speech API
         # errors
         start_to_close_timeout=timedelta(minutes=5),
-
-        # schedule_to_close_timeout=None,
-        # heartbeat_timeout=None,
 
         retry_parameters=dataclasses.replace(
             DEFAULT_RETRY_PARAMETERS,
@@ -242,10 +171,7 @@ class PodcastTranscribeActivities(object):
 
     @activity_method(
         task_queue=TASK_QUEUE,
-        # schedule_to_start_timeout=None,
         start_to_close_timeout=timedelta(seconds=60),
-        # schedule_to_close_timeout=None,
-        # heartbeat_timeout=None,
         retry_parameters=DEFAULT_RETRY_PARAMETERS,
     )
     async def fetch_store_raw_transcript_json(self, stories_id: int, speech_operation_id: str) -> None:
@@ -261,10 +187,7 @@ class PodcastTranscribeActivities(object):
 
     @activity_method(
         task_queue=TASK_QUEUE,
-        # schedule_to_start_timeout=None,
         start_to_close_timeout=timedelta(seconds=60),
-        # schedule_to_close_timeout=None,
-        # heartbeat_timeout=None,
         retry_parameters=DEFAULT_RETRY_PARAMETERS,
     )
     async def fetch_store_transcript(self, stories_id: int) -> None:
@@ -277,12 +200,7 @@ class PodcastTranscribeActivities(object):
 
     @activity_method(
         task_queue=TASK_QUEUE,
-        # schedule_to_start_timeout=None,
-
         start_to_close_timeout=timedelta(minutes=2),
-
-        # schedule_to_close_timeout=None,
-        # heartbeat_timeout=None,
         retry_parameters=DEFAULT_RETRY_PARAMETERS,
     )
     async def add_to_extraction_queue(self, stories_id: int) -> None:

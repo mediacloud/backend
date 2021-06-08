@@ -4,6 +4,14 @@ Table of Contents
 =================
 
    * [Workflows](#workflows)
+      * [Samples](#samples)
+         * [Retry parameters](#retry-parameters)
+         * [Activity interface](#activity-interface)
+         * [Activity interface with custom retries](#activity-interface-with-custom-retries)
+         * [Workflow interface](#workflow-interface)
+         * [Running a workflow](#running-a-workflow)
+            * [Asynchronously](#asynchronously)
+            * [Synchronously](#synchronously)
       * [Tips &amp; tricks](#tips--tricks)
          * [Name workflow (activity) interface as XYZWorkflow (<code>XYZActivities</code>), implementation as <code>XYZWorkflowImpl</code> (<code>XYZActivitiesImpl</code>)](#name-workflow-activity-interface-as-xyzworkflow-xyzactivities-implementation-as-xyzworkflowimpl-xyzactivitiesimpl)
          * [Make activities idempotent](#make-activities-idempotent)
@@ -20,6 +28,163 @@ Table of Contents
 <!-- MEDIACLOUD-TOC-END -->
 
 # Workflows
+
+
+## Samples
+
+
+### Retry parameters
+
+```python
+DEFAULT_RETRY_PARAMETERS = RetryParameters(
+
+    # InitialInterval is a delay before the first retry.
+    initial_interval=timedelta(seconds=1),
+
+    # BackoffCoefficient. Retry policies are exponential. The coefficient specifies how fast the retry interval is
+    # growing. The coefficient of 1 means that the retry interval is always equal to the InitialInterval.
+    backoff_coefficient=2,
+
+    # MaximumInterval specifies the maximum interval between retries. Useful for coefficients more than 1.
+    maximum_interval=timedelta(hours=2),
+
+    # MaximumAttempts specifies how many times to attempt to execute an Activity in the presence of failures. If this
+    # limit is exceeded, the error is returned back to the Workflow that invoked the Activity.
+
+    # We start off with a huge default retry count for each individual activity (1000 attempts * 2 hour max. interval
+    # = about a month worth of retrying) to give us time to detect problems, fix them, deploy fixes and let the workflow
+    # system just handle the rest without us having to restart workflows manually.
+    #
+    # Activities for which retrying too much doesn't make sense (e.g. due to the cost) set their own "maximum_attempts".
+    maximum_attempts=1000,
+
+    # NonRetryableErrorReasons allows you to specify errors that shouldn't be retried. For example retrying invalid
+    # arguments error doesn't make sense in some scenarios.
+    non_retryable_error_types=[
+
+        # Counterintuitively, we *do* want to retry not only on transient errors but also on programming and
+        # configuration ones too because on programming / configuration bugs we can just fix up some code or
+        # configuration, deploy the fixes and let the workflow system automagically continue on with the workflow
+        # without us having to dig out what exactly has failed and restart things.
+        #
+        # However, on "permanent" errors (the ones when some action decides that it just can't proceed with this
+        # particular input, e.g. process a story that does not exist) there's no point in retrying anything.
+        # anything anymore.
+        McPermanentError.__name__,
+
+    ],
+)
+```
+
+
+### Activity interface
+
+```python
+class SampleActivities(object):
+
+    @activity_method(
+        task_queue=TASK_QUEUE,
+
+        # ScheduleToStart is the maximum time from a Workflow requesting Activity execution to a worker starting its
+        # execution. The usual reason for this timeout to fire is all workers being down or not being able to keep up
+        # with the request rate. We recommend setting this timeout to the maximum time a Workflow is willing to wait for
+        # an Activity execution in the presence of all possible worker outages.
+        schedule_to_start_timeout=None,
+
+        # StartToClose is the maximum time an Activity can execute after it was picked by a worker.
+        start_to_close_timeout=timedelta(seconds=60),
+
+        # ScheduleToClose is the maximum time from the Workflow requesting an Activity execution to its completion.
+        schedule_to_close_timeout=None,
+
+        # Heartbeat is the maximum time between heartbeat requests. See Long Running Activities.
+        # (https://docs.temporal.io/docs/concept-activities/#long-running-activities)
+        heartbeat_timeout=None,
+
+        retry_parameters=DEFAULT_RETRY_PARAMETERS,
+    )
+    async def sample_activity(self, stories_id: int) -> Optional[str]:
+        raise NotImplementedError
+```
+
+
+### Activity interface with custom retries
+
+```python
+class SampleActivities(object):
+
+    @activity_method(
+        task_queue=TASK_QUEUE,
+        schedule_to_start_timeout=None,
+        start_to_close_timeout=timedelta(seconds=60),
+        schedule_to_close_timeout=None,
+        heartbeat_timeout=None,
+        retry_parameters=dataclasses.replace(
+            DEFAULT_RETRY_PARAMETERS,
+
+            # Wait for a minute before trying again
+            initial_interval=timedelta(minutes=1),
+
+            # Hope for the server to resurrect in a week
+            maximum_interval=timedelta(weeks=1),
+
+            # Don't kill ourselves trying to hit a permanently dead server
+            maximum_attempts=50,
+        ),
+    )
+    async def another_sample_activity_with_custom_retries(self, stories_id: int) -> Optional[str]:
+        raise NotImplementedError
+```
+
+
+### Workflow interface
+
+```python
+class SampleWorkflow(object):
+
+    @workflow_method(task_queue=TASK_QUEUE)
+    async def sample_workflow_method(self, stories_id: int) -> None:
+        raise NotImplementedError
+```
+
+
+### Running a workflow
+
+
+#### Asynchronously
+
+"Fire and forget" about the workflow:
+
+```python
+from mediawords.workflow.client import workflow_client
+
+
+client = workflow_client()
+workflow: SampleWorkflow = client.new_workflow_stub(
+    cls=SampleWorkflow,
+    workflow_options=WorkflowOptions(workflow_id=str(stories_id)),
+)
+
+await WorkflowClient.start(workflow.sample_workflow_method, stories_id)
+```
+
+
+#### Synchronously
+
+Start a workflow and wait for it to complete:
+
+```python
+from mediawords.workflow.client import workflow_client
+
+
+client = workflow_client()
+workflow: SampleWorkflow = client.new_workflow_stub(
+    cls=SampleWorkflow,
+    workflow_options=WorkflowOptions(workflow_id=str(stories_id)),
+)
+
+result = await workflow.transcribe_episode(stories_id)
+```
 
 
 ## Tips & tricks
