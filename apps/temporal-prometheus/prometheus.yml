@@ -1,0 +1,22 @@
+global:
+  scrape_interval: 5s
+  scrape_timeout: 5s
+
+scrape_configs:
+
+  - job_name: 'prometheus'
+    static_configs:
+    - targets:
+      - 'localhost:9090'
+
+  - job_name: 'services'
+    static_configs:
+    - targets:
+      # frontend
+      - 'temporal-server:9091'
+      # matching
+      - 'temporal-server:9092'
+      # history
+      - 'temporal-server:9093'
+      # worker
+      - 'temporal-server:9094'

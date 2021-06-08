@@ -55,5 +55,5 @@ services:
               source: ./../postgresql-server/schema/
               target: /opt/mediacloud/schema/
             - type: bind
-              source: ./../postgresql-server/conf/
+              source: ./../postgresql-base/conf/
               target: /etc/postgresql/13/main/

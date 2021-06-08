@@ -60,13 +60,20 @@ In order to transcribe podcast episodes using Google Cloud's Speech API, you'll 
     gcloud services enable speech.googleapis.com
     ```
 
-9. Create a Cloud Storage bucket to store episode audio files (if one doesn't exist already):
+9. Create three Cloud Storage buckets:
 
     ```shell
-    gsutil mb gs://mc-podcast-episodes-audio-files-test
+    # Raw (non-transcoded) enclosures fetched from podcast websites
+    gsutil mb gs://mc-podcast-raw-enclosures-test
+
+    # Transcoded episodes ready for submission to the Speech API
+    gsutil mb gs://mc-podcast-transcoded-episodes-test
+
+    # Transcript JSON files
+    gsutil mb gs://mc-podcast-transcripts-test
     ```
 
-10. Create a service account that the podcast transcribing apps would use:
+10. Create a service account that the podcast transcribing workflow will use:
 
     ```shell
     gcloud iam service-accounts create mc-transcribe-podcasts-test \
@@ -74,12 +81,18 @@ In order to transcribe podcast episodes using Google Cloud's Speech API, you'll 
         --description="(test) Upload episodes to GCS, submit them to Speech API, fetch transcripts"
     ```
 
-11. Allow the service account to read / write objects from bucket (here `mc-upload-episode-audio-files` is the service account name, and `mc-podcast-transcription-test` is the Google Cloud project ID):
+11. Allow the service account to read / write objects from buckets (here `mc-upload-episode-audio-files` is the service account name, and `mc-podcast-transcription-test` is the Google Cloud project ID):
 
     ```shell
     gsutil acl ch \
-        -u mc-transcribe-podcasts-test@mc-podcast-transcription-test.iam.gserviceaccount.com:O \
-        gs://mc-podcast-episodes-audio-files-test
+        -u mc-transcribe-podcasts-test@meag-podcast-transcription-tst.iam.gserviceaccount.com:O \
+        gs://mc-podcast-raw-enclosures-test
+    gsutil acl ch \
+        -u mc-transcribe-podcasts-test@meag-podcast-transcription-tst.iam.gserviceaccount.com:O \
+        gs://mc-podcast-transcoded-episodes-test
+    gsutil acl ch \
+        -u mc-transcribe-podcasts-test@meag-podcast-transcription-tst.iam.gserviceaccount.com:O \
+        gs://mc-podcast-transcripts-test
     ```
 
 12. Generate authentication JSON credentials:
@@ -87,7 +100,7 @@ In order to transcribe podcast episodes using Google Cloud's Speech API, you'll 
     ```shell
     gcloud iam service-accounts keys create \
         mc-transcribe-podcasts-test.json \
-        --iam-account mc-transcribe-podcasts-test@mc-podcast-transcription-test.iam.gserviceaccount.com
+        --iam-account mc-transcribe-podcasts-test@meag-podcast-transcription-tst.iam.gserviceaccount.com
     ```
 
 13. Encode contents of `mc-transcribe-podcasts-test.json` to Base64:
@@ -96,4 +109,4 @@ In order to transcribe podcast episodes using Google Cloud's Speech API, you'll 
     base64 mc-transcribe-podcasts-test.json
     ```
 
-13. Copy the resulting Base64-encoded string to `MC_PODCAST_GC_AUTH_JSON_BASE64` environment variable that's set for apps using Google Cloud services for podcast transcription.
+13. Copy the resulting Base64-encoded string to `MC_PODCAST_AUTH_JSON_BASE64` environment variable that's set for apps using Google Cloud services for podcast transcription.

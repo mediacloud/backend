@@ -91,7 +91,7 @@ To access PostgreSQL directly, you can either run `psql` in a `postgresql-server
 
      ```bash
      $ docker exec -it 29a psql
-     psql (11.3 (Ubuntu 11.3-1.pgdg20.04+1))
+     psql (13.3 (Ubuntu 11.3-1.pgdg20.04+1))
      Type "help" for help.
      
      mediacloud=# 
@@ -147,7 +147,7 @@ To access PostgreSQL directly, you can either run `psql` in a `postgresql-server
      Password for user mediacloud: 
      Timing is on.
      Expanded display is on.
-     psql (11.3)
+     psql (13.3)
      Type "help" for help.
      
      mediacloud=# 

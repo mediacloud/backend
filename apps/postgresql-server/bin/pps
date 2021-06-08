@@ -6,7 +6,26 @@ else
     COLS=`tput cols`
 fi
 
-echo "select psa.pid, min(application_name) as client, substr(query_start::text, 0, 20) as date, granted as l, regexp_replace(query, E'[\\n\\r ]+', ' ', 'g' ) q from pg_stat_activity psa left join pg_locks pl on ( psa.pid = pl.pid and pl.granted = 'f' ) where state not like 'idle%' group by psa.pid, usename, state, query_start, granted, q order by query_start desc" | psql mediacloud | cut -c 1-$COLS
+cat <<EOF | psql mediacloud | cut -c 1-$COLS
 
+SELECT
+	psa.pid,
+	MIN(application_name) AS client,
+	SUBSTR(query_start::text, 0, 20) AS date,
+	granted AS l,
+	REGEXP_REPLACE(query, E'[\\n\\r ]+', ' ', 'g' ) AS q
+FROM pg_stat_activity AS psa
+    LEFT JOIN pg_locks AS pl
+        ON psa.pid = pl.pid
+       AND pl.granted = 'f'
+WHERE state NOT LIKE 'idle%'
+GROUP BY
+    psa.pid,
+    usename,
+    state,
+    query_start,
+    granted,
+    q
+ORDER BY query_start DESC
 
-
+EOF

@@ -6,5 +6,5 @@
   <component name="NodePackageJsonFileManager">
     <packageJsonPaths />
   </component>
-  <component name="ProjectRootManager" version="2" project-jdk-name="Remote Python 3.7.7 Docker (gcr.io/mcback/import-solr-data-for-testing:latest)" project-jdk-type="Python SDK" />
+  <component name="ProjectRootManager" version="2" project-jdk-name="Remote Python 3.8.5 Docker Compose (import-solr-data-for-testing at [/home/pypt/m/apps/import-solr-data-for-testing/docker-compose.tests.yml])" project-jdk-type="Python SDK" />
 </project>

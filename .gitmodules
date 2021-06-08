@@ -25,12 +25,18 @@
 [submodule "dev/quieter-docker-compose"]
 	path = dev/quieter-docker-compose
 	url = https://github.com/mediacloud/docker-compose-just-quieter.git
-[submodule "apps/podcast-fetch-episode/tests/data/media-samples"]
-	path = apps/podcast-fetch-episode/tests/data/media-samples
-	url = https://github.com/mediacloud/podcast-media-samples.git
-[submodule "apps/podcast-fetch-transcript/tests/data/media-samples"]
-	path = apps/podcast-fetch-transcript/tests/data/media-samples
+[submodule "apps/podcast-transcribe-episode/tests/data/media-samples"]
+	path = apps/podcast-transcribe-episode/tests/data/media-samples
 	url = https://github.com/mediacloud/podcast-media-samples.git
 [submodule "apps/elk-journalbeat/journald-log-sample"]
 	path = apps/elk-journalbeat/journald-log-sample
 	url = https://github.com/mediacloud/journald-log-sample.git
+[submodule "apps/temporal-grafana/dashboards"]
+	path = apps/temporal-grafana/dashboards
+	url = https://github.com/temporalio/dashboards.git
+[submodule "apps/temporal-server/config"]
+	path = apps/temporal-server/config
+	url = https://github.com/mediacloud/backend-temporal-server-config.git
+[submodule "apps/temporal-postgresql/temporal-config"]
+	path = apps/temporal-postgresql/temporal-config
+	url = https://github.com/mediacloud/backend-temporal-server-config.git
