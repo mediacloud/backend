@@ -8,20 +8,7 @@ MC_POSTGRESQL_DATA_DIR="/var/lib/postgresql/13/main/"
 MC_POSTGRESQL_CONF_PATH="/etc/postgresql/13/main/postgresql.conf"
 
 # Update memory configuration
-/opt/mediacloud/bin/update_memory_config.sh
-
-# Remove APT-initialized data directory because it doesn't have the right
-# locale, doesn't use checksums etc.
-rm -rf /var/lib/postgresql/13/main/
-
-# Run initdb
-mkdir -p "${MC_POSTGRESQL_DATA_DIR}"
-"${MC_POSTGRESQL_BIN_DIR}/initdb" \
-    --pgdata="${MC_POSTGRESQL_DATA_DIR}" \
-    --data-checksums \
-    --encoding=UTF-8 \
-    --lc-collate='en_US.UTF-8' \
-    --lc-ctype='en_US.UTF-8'
+/opt/postgresql-base/bin/update_memory_config.sh
 
 "${MC_POSTGRESQL_BIN_DIR}/pg_ctl" \
     -o "-c config_file=${MC_POSTGRESQL_CONF_PATH}" \
@@ -49,7 +36,7 @@ EOF
 psql -v ON_ERROR_STOP=1 -c "${CREATE_DB_SQL}"
 
 # Initialize with schema
-psql -v ON_ERROR_STOP=1 -d mediacloud -f /opt/mediacloud/schema/mediawords.sql
+psql -v ON_ERROR_STOP=1 -d mediacloud -f /opt/postgresql-server/schema/mediawords.sql
 
 # Stop PostgreSQL
 "${MC_POSTGRESQL_BIN_DIR}/pg_ctl" \

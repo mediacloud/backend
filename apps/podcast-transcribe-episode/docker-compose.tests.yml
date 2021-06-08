@@ -1,0 +1,148 @@
+version: "3.7"
+
+services:
+
+    podcast-transcribe-episode:
+        image: gcr.io/mcback/podcast-transcribe-episode:latest
+        init: true
+        stop_signal: SIGKILL
+        environment:
+            MC_PODCAST_AUTH_JSON_BASE64: "${MC_PODCAST_AUTH_JSON_BASE64}"
+            MC_PODCAST_RAW_ENCLOSURES_BUCKET_NAME: "${MC_PODCAST_RAW_ENCLOSURES_BUCKET_NAME}"
+            MC_PODCAST_TRANSCODED_EPISODES_BUCKET_NAME: "${MC_PODCAST_TRANSCODED_EPISODES_BUCKET_NAME}"
+            MC_PODCAST_TRANSCRIPTS_BUCKET_NAME: "${MC_PODCAST_TRANSCRIPTS_BUCKET_NAME}"
+            # Dev/test environments don't use path prefixes:
+            #
+            # * MC_PODCAST_RAW_ENCLOSURES_PATH_PREFIX
+            # * MC_PODCAST_TRANSCODED_EPISODES_PATH_PREFIX
+            # * MC_PODCAST_TRANSCRIPTS_PATH_PREFIX
+            #
+            # as they create a different, timestamped prefix for every test run.
+
+        volumes:
+            - type: bind
+              source: ./bin/
+              target: /opt/mediacloud/bin/
+            - type: bind
+              source: ./src/
+              target: /opt/mediacloud/src/podcast-transcribe-episode/
+            - type: bind
+              source: ./tests/
+              target: /opt/mediacloud/tests/
+            - type: bind
+              source: ./../common/src/
+              target: /opt/mediacloud/src/common/
+        depends_on:
+            - postgresql-pgbouncer
+            - rabbitmq-server
+            - temporal-server
+
+            # Not needed for running the test but useful for debugging, demos
+            # and such
+            - temporal-webapp
+
+    postgresql-pgbouncer:
+        image: gcr.io/mcback/postgresql-pgbouncer:latest
+        init: true
+        stop_signal: SIGKILL
+        expose:
+            - 6432
+        volumes:
+            - type: bind
+              source: ./../postgresql-pgbouncer/conf/
+              target: /etc/pgbouncer/
+        depends_on:
+            - postgresql-server
+
+    postgresql-server:
+        image: gcr.io/mcback/postgresql-server:latest
+        init: true
+        stop_signal: SIGKILL
+        expose:
+            - 5432
+        volumes:
+            - type: bind
+              source: ./../postgresql-server/bin/
+              target: /opt/mediacloud/bin/
+            - type: bind
+              source: ./../postgresql-server/schema/
+              target: /opt/mediacloud/schema/
+            - type: bind
+              source: ./../postgresql-base/conf/
+              target: /etc/postgresql/13/main/
+
+    rabbitmq-server:
+        image: gcr.io/mcback/rabbitmq-server:latest
+        init: true
+        stop_signal: SIGKILL
+        expose:
+            - 5672
+            - 15672
+        volumes:
+            - type: bind
+              source: ./../rabbitmq-server/conf/
+              target: /etc/rabbitmq/
+
+    temporal-server:
+        image: gcr.io/mcback/temporal-server:latest
+        init: true
+        stop_signal: SIGKILL
+        depends_on:
+            - temporal-postgresql
+            - temporal-elasticsearch
+        expose:
+            - 6933
+            - 6934
+            - 6935
+            - 6939
+            - 7233
+            - 7234
+            - 7235
+            - 7239
+        volumes:
+            - type: bind
+              source: ./../temporal-server/bin/
+              target: /opt/temporal-server/bin/
+            - type: bind
+              source: ./../temporal-server/config/dynamicconfig.yaml
+              target: /opt/temporal-server/config/dynamicconfig.yaml
+            - type: bind
+              source: ./../temporal-server/config/mediacloud_template.yaml
+              target: /opt/temporal-server/config/mediacloud_template.yaml
+
+    temporal-postgresql:
+        image: gcr.io/mcback/temporal-postgresql:latest
+        init: true
+        stop_signal: SIGKILL
+        expose:
+            - 5432
+        volumes:
+            - type: bind
+              source: ./../temporal-postgresql/bin/
+              target: /opt/temporal-postgresql/bin/
+            - type: bind
+              source: ./../postgresql-base/conf/
+              target: /etc/postgresql/13/main/
+
+    temporal-elasticsearch:
+        image: gcr.io/mcback/temporal-elasticsearch:latest
+        init: true
+        stop_signal: SIGKILL
+        expose:
+            - "9200"
+            - "9300"
+        volumes:
+            - type: bind
+              source: ./../elasticsearch-base/bin/elasticsearch.sh
+              target: /opt/elasticsearch/bin/elasticsearch.sh
+            # Not mounting config as it gets concatenated into a single file
+
+    temporal-webapp:
+        image: gcr.io/mcback/temporal-webapp:latest
+        init: true
+        stop_signal: SIGKILL
+        expose:
+            - "8088"
+        ports:
+            # Expose to host for debugging
+            - "8088:8088"
