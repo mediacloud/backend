@@ -10,7 +10,7 @@ from mediawords.workflow.exceptions import McPermanentError
 
 from podcast_transcribe_episode.audio_codecs import AbstractAudioCodec
 from podcast_transcribe_episode.media_info import media_file_info, MediaFileInfo
-from podcast_transcribe_episode.transcode import maybe_transcode_file
+from podcast_transcribe_episode.transcode import transcode_file_if_needed
 
 MEDIA_SAMPLES_PATH = '/opt/mediacloud/tests/data/media-samples/samples/'
 assert os.path.isdir(MEDIA_SAMPLES_PATH), f"Directory with media samples '{MEDIA_SAMPLES_PATH}' should exist."
@@ -77,7 +77,7 @@ def _file_sha1_hash(file_path: str) -> str:
     return sha1.hexdigest()
 
 
-def test_maybe_transcode_file():
+def test_transcode_file_if_needed():
     for filename in SAMPLE_FILENAMES:
         input_file_path = os.path.join(MEDIA_SAMPLES_PATH, filename)
         assert os.path.isfile(input_file_path), f"Input file '{filename}' exists."
@@ -88,30 +88,30 @@ def test_maybe_transcode_file():
 
             # Media file with no audio
             with pytest.raises(McPermanentError):
-                maybe_transcode_file(
+                transcode_file_if_needed(
                     input_file=input_file_path,
-                    maybe_output_file=os.path.join(tempfile.mkdtemp('test'), 'test'),
+                    output_file=os.path.join(tempfile.mkdtemp('test'), 'test'),
                 )
 
         elif '-invalid' in filename:
 
             # Invalid media file
             with pytest.raises(McPermanentError):
-                maybe_transcode_file(
+                transcode_file_if_needed(
                     input_file=input_file_path,
-                    maybe_output_file=os.path.join(tempfile.mkdtemp('test'), 'test'),
+                    output_file=os.path.join(tempfile.mkdtemp('test'), 'test'),
                 )
 
         else:
-            maybe_output_file = os.path.join(tempfile.mkdtemp('test'), 'test')
+            output_file = os.path.join(tempfile.mkdtemp('test'), 'test')
 
-            media_file_transcoded = maybe_transcode_file(
+            media_file_transcoded = transcode_file_if_needed(
                 input_file=input_file_path,
-                maybe_output_file=maybe_output_file,
+                output_file=output_file,
             )
 
             output_file_info = media_file_info(
-                media_file_path=maybe_output_file if media_file_transcoded else input_file_path,
+                media_file_path=output_file if media_file_transcoded else input_file_path,
             )
 
             assert not output_file_info.has_video_streams, f"There should be no video streams in '{filename}'."
@@ -128,10 +128,10 @@ def test_maybe_transcode_file():
 
             if '-mp3-mono' in filename:
                 assert media_file_transcoded is False, "Mono MP3 file shouldn't have been transcoded."
-                assert not os.path.isfile(maybe_output_file), "Output file should not exist."
+                assert not os.path.isfile(output_file), "Output file should not exist."
             else:
                 assert media_file_transcoded is True, f"File '{filename}' should have been transcoded."
-                assert os.path.isfile(maybe_output_file), "Output file should exist."
+                assert os.path.isfile(output_file), "Output file should exist."
 
         after_sha1_hash = _file_sha1_hash(input_file_path)
 
