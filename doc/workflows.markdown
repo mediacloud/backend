@@ -5,6 +5,7 @@ Table of Contents
 
    * [Workflows](#workflows)
       * [Tips &amp; tricks](#tips--tricks)
+         * [Name workflow (activity) interface as XYZWorkflow (<code>XYZActivities</code>), implementation as <code>XYZWorkflowImpl</code> (<code>XYZActivitiesImpl</code>)](#name-workflow-activity-interface-as-xyzworkflow-xyzactivities-implementation-as-xyzworkflowimpl-xyzactivitiesimpl)
          * [Make activities idempotent](#make-activities-idempotent)
          * [Limit activity invocations in a single workflow to 1000](#limit-activity-invocations-in-a-single-workflow-to-1000)
          * [Limit the activity payload to 200 KB](#limit-the-activity-payload-to-200-kb)
@@ -24,6 +25,41 @@ Table of Contents
 ## Tips & tricks
 
 
+### Name workflow (activity) interface as `XYZWorkflow` (`XYZActivities`), implementation as `XYZWorkflowImpl` (`XYZActivitiesImpl`)
+
+Temporal's webapp uses the interface's class name as the workflow name by default, so that way the workflow names look better and are more easily searchable.
+
+```python
+# Good!
+
+class KardashianActivities(object):
+
+    @activity_method(
+        task_queue=TASK_QUEUE,
+        start_to_close_timeout=timedelta(seconds=60),
+    )
+    async def add_new_kardashian(self) -> None:
+        # ...
+
+class KardashianActivitiesImpl(KardashianActivities):
+
+    async def add_new_kardashian(self) -> None:
+        # ...
+
+
+class KardashianWorkflow(object):
+
+    @workflow_method(task_queue=TASK_QUEUE)
+    async def keep_up_with_kardashians(self) -> None:
+        # ...
+
+class KardashianWorkflowImpl(KardashianWorkflow):
+
+    async def keep_up_with_kardashians(self) -> None:
+        # ...
+```
+
+
 ### Make activities idempotent
 
 Temporal guarantees at-least-once activity invocations, so some activities might have to be rerun occasionally:
@@ -31,12 +67,8 @@ Temporal guarantees at-least-once activity invocations, so some activities might
 ```python
 # Bad!
 
-class KardashianWorkflowActivities(object):
+class KardashianActivitiesImpl(KardashianActivities):
 
-    @activity_method(
-        task_queue=TASK_QUEUE,
-        start_to_close_timeout=timedelta(seconds=60),
-    )
     async def add_new_kardashian(self) -> None:
         db = connect_to_db_or_raise()
 
@@ -53,12 +85,8 @@ Therefore, activities need to be "ready" for getting run twice sometimes:
 ```python
 # Good!
 
-class KardashianWorkflowActivities(object):
+class KardashianActivitiesImpl(KardashianActivities):
 
-    @activity_method(
-        task_queue=TASK_QUEUE,
-        start_to_close_timeout=timedelta(seconds=60),
-    )
     async def add_new_kardashian(self) -> None:
         db = connect_to_db_or_raise()
 
@@ -120,7 +148,7 @@ class FancyObject(object):
     def __init__(self, fancy_argument: int):
         self.fancy_argument = fancy_argument
 
-class FancyWorkflowActivities(object):
+class FancyActivities(object):
 
     @activity_method(
         task_queue=TASK_QUEUE,
@@ -150,7 +178,7 @@ class FancyObject(object):
     def from_dict(self, input_dict: Dict[str, Any]) -> 'FancyObject':
         return cls(fancy_argument=fancy_argument)
 
-class FancyWorkflowActivities(object):
+class FancyActivities(object):
 
     @activity_method(
         task_queue=TASK_QUEUE,
@@ -184,7 +212,7 @@ class FancyObject(object):
     def from_dict(self, input_dict: FancyObjectDict) -> 'FancyObject':
         return cls(fancy_argument=fancy_argument)
 
-class FancyWorkflowActivities(object):
+class FancyActivities(object):
 
     @activity_method(
         task_queue=TASK_QUEUE,

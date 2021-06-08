@@ -25,12 +25,12 @@ from .media_info import MediaFileInfoAudioStream, media_file_info, MediaFileInfo
 from .speech_api import submit_transcribe_operation, fetch_transcript
 from .transcode import maybe_transcode_file
 from .transcript import Transcript
-from .workflow_interface import AbstractPodcastTranscribeWorkflow, AbstractPodcastTranscribeActivities
+from .workflow_interface import PodcastTranscribeWorkflow, PodcastTranscribeActivities
 
 log = create_logger(__name__)
 
 
-class PodcastTranscribeActivities(AbstractPodcastTranscribeActivities):
+class PodcastTranscribeActivitiesImpl(PodcastTranscribeActivities):
     """Activities implementation."""
 
     async def identify_story_bcp47_language_code(self, stories_id: int) -> Optional[str]:
@@ -274,12 +274,12 @@ class PodcastTranscribeActivities(AbstractPodcastTranscribeActivities):
         log.info(f"Done adding an extraction job for story {stories_id}")
 
 
-class PodcastTranscribeWorkflow(AbstractPodcastTranscribeWorkflow):
+class PodcastTranscribeWorkflowImpl(PodcastTranscribeWorkflow):
     """Workflow implementation."""
 
     def __init__(self):
-        self.activities: AbstractPodcastTranscribeActivities = Workflow.new_activity_stub(
-            activities_cls=AbstractPodcastTranscribeActivities,
+        self.activities: PodcastTranscribeActivities = Workflow.new_activity_stub(
+            activities_cls=PodcastTranscribeActivities,
             # No retry_parameters here as they get set individually in @activity_method()
         )
 

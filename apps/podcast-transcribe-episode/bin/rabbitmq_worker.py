@@ -10,7 +10,7 @@ from mediawords.workflow.client import workflow_client
 # noinspection PyPackageRequirements
 from temporal.workflow import WorkflowClient, WorkflowOptions
 
-from podcast_transcribe_episode.workflow_interface import AbstractPodcastTranscribeWorkflow
+from podcast_transcribe_episode.workflow_interface import PodcastTranscribeWorkflow
 
 log = create_logger(__name__)
 
@@ -19,8 +19,8 @@ async def _start_workflow(stories_id: int) -> None:
     log.info(f"Starting a workflow for story {stories_id}...")
 
     client = workflow_client()
-    workflow: AbstractPodcastTranscribeWorkflow = client.new_workflow_stub(
-        cls=AbstractPodcastTranscribeWorkflow,
+    workflow: PodcastTranscribeWorkflow = client.new_workflow_stub(
+        cls=PodcastTranscribeWorkflow,
         workflow_options=WorkflowOptions(workflow_id=str(stories_id)),
     )
 

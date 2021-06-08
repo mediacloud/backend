@@ -26,11 +26,11 @@ from podcast_transcribe_episode.config import (
     TranscriptsGCBucketConfig,
 )
 from podcast_transcribe_episode.gcs_store import GCSStore
-from podcast_transcribe_episode.workflow import PodcastTranscribeActivities, PodcastTranscribeWorkflow
+from podcast_transcribe_episode.workflow import PodcastTranscribeActivitiesImpl, PodcastTranscribeWorkflowImpl
 from podcast_transcribe_episode.workflow_interface import (
     TASK_QUEUE,
-    AbstractPodcastTranscribeActivities,
-    AbstractPodcastTranscribeWorkflow,
+    PodcastTranscribeActivities,
+    PodcastTranscribeWorkflow,
 )
 
 from .random_gcs_prefix import random_gcs_path_prefix
@@ -70,7 +70,7 @@ class _RandomPrefixesPodcastTranscribeEpisodeConfig(PodcastTranscribeEpisodeConf
 
 
 # Custom activities subclass with random bucket prefixes
-class _RandomPrefixesPodcastTranscribeActivities(PodcastTranscribeActivities):
+class _RandomPrefixesPodcastTranscribeActivities(PodcastTranscribeActivitiesImpl):
 
     @classmethod
     def _create_config(cls) -> PodcastTranscribeEpisodeConfig:
@@ -134,14 +134,14 @@ async def test_workflow():
 
     worker.register_activities_implementation(
         activities_instance=activities,
-        activities_cls_name=AbstractPodcastTranscribeActivities.__name__,
+        activities_cls_name=PodcastTranscribeActivities.__name__,
     )
-    worker.register_workflow_implementation_type(impl_cls=PodcastTranscribeWorkflow)
+    worker.register_workflow_implementation_type(impl_cls=PodcastTranscribeWorkflowImpl)
     factory.start()
 
     # Initialize workflow instance
-    workflow: AbstractPodcastTranscribeWorkflow = client.new_workflow_stub(
-        cls=AbstractPodcastTranscribeWorkflow,
+    workflow: PodcastTranscribeWorkflow = client.new_workflow_stub(
+        cls=PodcastTranscribeWorkflow,
         workflow_options=WorkflowOptions(
             workflow_id=str(stories_id),
 

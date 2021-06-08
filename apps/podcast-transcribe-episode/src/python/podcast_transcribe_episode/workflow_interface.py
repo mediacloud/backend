@@ -62,7 +62,7 @@ https://docs.temporal.io/docs/concept-activities/
 """
 
 
-class AbstractPodcastTranscribeActivities(object):
+class PodcastTranscribeActivities(object):
     """Activities interface."""
 
     @classmethod
@@ -294,7 +294,7 @@ class AbstractPodcastTranscribeActivities(object):
         raise NotImplementedError
 
 
-class AbstractPodcastTranscribeWorkflow(object):
+class PodcastTranscribeWorkflow(object):
     """Workflow interface."""
 
     @workflow_method(task_queue=TASK_QUEUE)
