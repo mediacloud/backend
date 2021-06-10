@@ -1230,7 +1230,7 @@ services:
     #
     podcast-transcribe-episode-rabbitmq-worker:
         image: gcr.io/mcback/podcast-transcribe-episode:release
-        command: "rabbitmq-worker.py"
+        command: "rabbitmq_worker.py"
         init: true
         networks:
             - default
@@ -1263,7 +1263,7 @@ services:
     #
     podcast-transcribe-episode-temporal-worker:
         image: gcr.io/mcback/podcast-transcribe-episode:release
-        command: "temporal-worker.py"
+        command: "workflow_worker.py"
         init: true
         networks:
             - default
