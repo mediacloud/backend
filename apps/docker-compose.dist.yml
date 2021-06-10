@@ -1830,7 +1830,7 @@ services:
         volumes:
             - vol_temporal_grafana_data:/var/lib/grafana/
         deploy:
-            <<: *endpoint-mode-dnsrr
+            # DNSRR disabled as it's not supported with published ports.
             placement:
                 constraints:
                     # Must run on the host with Temporal Grafana data volume
@@ -1953,8 +1953,8 @@ services:
             # MAKE SURE to BLOCK THIS PORT in provision/roles/docker/tasks/iptables.yml
             - "8088:8088"
         deploy:
+            # DNSRR disabled as it's not supported with published ports.
             <<: *misc-apps_deploy_placement_constraints
-            <<: *endpoint-mode-dnsrr
             # Worker count
             replicas: 1
             resources:
