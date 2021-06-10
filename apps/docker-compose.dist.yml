@@ -2510,7 +2510,7 @@ volumes:
         driver_opts:
             type: none
             o: bind
-            device: /space/mediacloud/vol_postgresql_data
+            device: /space/mediacloud/vol_temporal_postgresql_data
 
     # Temporal Elasticsearch data
     vol_temporal_elasticsearch_data:
