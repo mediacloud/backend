@@ -23,7 +23,7 @@ from .gcs_store import GCSStore
 from .bcp47_lang import iso_639_1_code_to_bcp_47_identifier
 from .media_info import MediaFileInfoAudioStream, media_file_info, MediaFileInfoAudioStreamDict
 from .speech_api import submit_transcribe_operation, fetch_transcript
-from .transcode import maybe_transcode_file
+from .transcode import transcode_file_if_needed
 from .transcript import Transcript
 from .workflow_interface import PodcastTranscribeWorkflow, PodcastTranscribeActivities
 
@@ -121,9 +121,9 @@ class PodcastTranscribeActivitiesImpl(PodcastTranscribeActivities):
 
             transcoded_episode_path = os.path.join(temp_dir, 'transcoded_episode')
 
-            raw_enclosure_transcoded = maybe_transcode_file(
+            raw_enclosure_transcoded = transcode_file_if_needed(
                 input_file=raw_enclosure_path,
-                maybe_output_file=transcoded_episode_path,
+                output_file=transcoded_episode_path,
             )
             if not raw_enclosure_transcoded:
                 transcoded_episode_path = raw_enclosure_path

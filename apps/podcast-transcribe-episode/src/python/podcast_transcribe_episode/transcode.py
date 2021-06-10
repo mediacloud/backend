@@ -9,7 +9,7 @@ from .media_info import media_file_info
 log = create_logger(__name__)
 
 
-def maybe_transcode_file(input_file: str, maybe_output_file: str) -> bool:
+def transcode_file_if_needed(input_file: str, output_file: str) -> bool:
     """
     Transcode file (if needed) to something that Speech API will support.
 
@@ -23,8 +23,8 @@ def maybe_transcode_file(input_file: str, maybe_output_file: str) -> bool:
       channels.
 
     :param input_file: Input media file to consider for transcoding.
-    :param maybe_output_file: If we decide to transcode, output media file to transcode to.
-    :return: True if file had to be transcoded into "maybe_output_file", or False if input file can be used as it is.
+    :param output_file: If we decide to transcode, output media file to transcode to.
+    :return: True if file had to be transcoded into "output_file", or False if input file can be used as it is.
     """
 
     if not os.path.isfile(input_file):
@@ -80,13 +80,13 @@ def maybe_transcode_file(input_file: str, maybe_output_file: str) -> bool:
         # No need to transcode -- caller should use the input file as-is
         return False
 
-    log.info(f"Transcoding '{input_file}' to '{maybe_output_file}'...")
+    log.info(f"Transcoding '{input_file}' to '{output_file}'...")
 
     # I wasn't sure how to map outputs in "ffmpeg-python" library so here we call ffmpeg directly
-    ffmpeg_command = ['ffmpeg', '-nostdin', '-hide_banner', '-i', input_file] + ffmpeg_args + [maybe_output_file]
+    ffmpeg_command = ['ffmpeg', '-nostdin', '-hide_banner', '-i', input_file] + ffmpeg_args + [output_file]
     log.debug(f"FFmpeg command: {ffmpeg_command}")
     subprocess.check_call(ffmpeg_command)
 
-    log.info(f"Done transcoding '{input_file}' to '{maybe_output_file}'")
+    log.info(f"Done transcoding '{input_file}' to '{output_file}'")
 
     return True
