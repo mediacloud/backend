@@ -1,0 +1,118 @@
+version: "3.7"
+
+# No unit tests so this here is used for manual testing
+
+services:
+
+    partition-stories-move-rows:
+        image: gcr.io/mcback/partition-stories-move-rows:latest
+        init: true
+        stop_signal: SIGKILL
+        volumes:
+            - type: bind
+              source: ./bin/
+              target: /opt/mediacloud/bin/
+            - type: bind
+              source: ./src/
+              target: /opt/mediacloud/src/partition-stories-move-rows/
+            - type: bind
+              source: ./../common/src/
+              target: /opt/mediacloud/src/common/
+        depends_on:
+            - postgresql-pgbouncer
+            - temporal-server
+            - temporal-webapp
+
+    postgresql-pgbouncer:
+        image: gcr.io/mcback/postgresql-pgbouncer:latest
+        init: true
+        stop_signal: SIGKILL
+        expose:
+            - 6432
+        volumes:
+            - type: bind
+              source: ./../postgresql-pgbouncer/conf/
+              target: /etc/pgbouncer/
+        depends_on:
+            - postgresql-server
+
+    postgresql-server:
+        image: gcr.io/mcback/postgresql-server:latest
+        init: true
+        stop_signal: SIGKILL
+        expose:
+            - 5432
+        volumes:
+            - type: bind
+              source: ./../postgresql-server/bin/
+              target: /opt/mediacloud/bin/
+            - type: bind
+              source: ./../postgresql-server/schema/
+              target: /opt/mediacloud/schema/
+            - type: bind
+              source: ./../postgresql-base/conf/
+              target: /etc/postgresql/13/main/
+
+    temporal-server:
+        image: gcr.io/mcback/temporal-server:latest
+        init: true
+        stop_signal: SIGKILL
+        depends_on:
+            - temporal-postgresql
+            - temporal-elasticsearch
+        expose:
+            - 6933
+            - 6934
+            - 6935
+            - 6939
+            - 7233
+            - 7234
+            - 7235
+            - 7239
+        volumes:
+            - type: bind
+              source: ./../temporal-server/bin/
+              target: /opt/temporal-server/bin/
+            - type: bind
+              source: ./../temporal-server/config/dynamicconfig.yaml
+              target: /opt/temporal-server/config/dynamicconfig.yaml
+            - type: bind
+              source: ./../temporal-server/config/mediacloud_template.yaml
+              target: /opt/temporal-server/config/mediacloud_template.yaml
+
+    temporal-postgresql:
+        image: gcr.io/mcback/temporal-postgresql:latest
+        init: true
+        stop_signal: SIGKILL
+        expose:
+            - 5432
+        volumes:
+            - type: bind
+              source: ./../temporal-postgresql/bin/
+              target: /opt/temporal-postgresql/bin/
+            - type: bind
+              source: ./../postgresql-base/conf/
+              target: /etc/postgresql/13/main/
+
+    temporal-elasticsearch:
+        image: gcr.io/mcback/temporal-elasticsearch:latest
+        init: true
+        stop_signal: SIGKILL
+        expose:
+            - "9200"
+            - "9300"
+        volumes:
+            - type: bind
+              source: ./../elasticsearch-base/bin/elasticsearch.sh
+              target: /opt/elasticsearch/bin/elasticsearch.sh
+            # Not mounting config as it gets concatenated into a single file
+
+    temporal-webapp:
+        image: gcr.io/mcback/temporal-webapp:latest
+        init: true
+        stop_signal: SIGKILL
+        expose:
+            - "8088"
+        ports:
+            # Expose to host for debugging
+            - "8088:8088"
