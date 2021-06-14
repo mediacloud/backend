@@ -41,7 +41,10 @@ class MoveRowsActivities(object):
 
     @activity_method(
         task_queue=TASK_QUEUE,
-        start_to_close_timeout=timedelta(hours=2),  # Might take a while, hope this is enough
+
+        # Might take a while, hope this is enough for a single chunk
+        start_to_close_timeout=timedelta(hours=2),
+
         retry_parameters=DEFAULT_RETRY_PARAMETERS,
     )
     async def move_chunk_of_stories(self, start_stories_id: int, end_stories_id: int) -> None:
