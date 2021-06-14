@@ -15,6 +15,10 @@
 --
 
 
+-- FIXME deduplicate (media_id, guid)
+-- FIXME run the workflow in a local worker; start the workflow right away
+
+
 -- Kill all autovacuums before proceeding with DDL changes
 SELECT pid
 FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
@@ -25,7 +29,6 @@ WHERE backend_type = 'autovacuum worker'
 -- Get rid of a table which doesn't exist in production nor gets created via
 -- migrations but is mentioned in mediawords.sql
 DROP TABLE IF EXISTS topic_query_story_searches_imported_stories_map;
-
 
 
 -- Rename "stories" to "stories_unpartitioned"
@@ -158,7 +161,6 @@ END
 $$;
 
 
-
 -- Create partitioned table
 
 -- "Master" table (no indexes, no foreign keys as they'll be ineffective)
@@ -238,7 +240,6 @@ SELECT setval(
     pg_get_serial_sequence('stories_partitioned', 'stories_id'),
     (SELECT MAX(stories_id) FROM stories_unpartitioned)
 );
-
 
 
 -- View that joins the unpartitioned and partitioned tables while the data is
@@ -382,7 +383,6 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER stories_view_insert_update_delete_trigger
     INSTEAD OF INSERT OR UPDATE OR DELETE ON stories
     FOR EACH ROW EXECUTE PROCEDURE stories_view_insert_update_delete();
-
 
 
 -- Adding triggers to the view and not to the partitioned table because we
