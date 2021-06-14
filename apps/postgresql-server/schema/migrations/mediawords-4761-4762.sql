@@ -192,10 +192,9 @@ ALTER TABLE stories_partitioned
 CREATE INDEX stories_partitioned_media_id
     ON stories_partitioned (media_id);
 
--- This used to be an UNIQUE index but we can't enforce index uniqueness across
--- partitions so it's not a unique index, and uniqueness is enforced by an
--- AFTER INSERT trigger instead
-CREATE INDEX stories_partitioned_guid
+-- We can't enforce index uniqueness across partitions so cross-partition
+-- uniqueness is enforced by an AFTER INSERT trigger instead
+CREATE UNIQUE INDEX stories_partitioned_guid
     ON stories_partitioned (guid, media_id);
 
 CREATE INDEX stories_partitioned_url
