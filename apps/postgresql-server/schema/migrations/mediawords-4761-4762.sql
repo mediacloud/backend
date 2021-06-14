@@ -418,8 +418,8 @@ CREATE OR REPLACE FUNCTION partition_by_stories_id_create_partitions(
 $$
 DECLARE
     chunk_size INT;
-    max_stories_id INT;
-    partition_stories_id INT;
+    max_stories_id BIGINT;
+    partition_stories_id BIGINT;
 
     -- Partition table name (e.g. "stories_tags_map_01")
     target_table_name TEXT;
