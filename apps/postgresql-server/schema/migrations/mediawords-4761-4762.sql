@@ -595,7 +595,6 @@ WITH rows_to_move AS (
     )
     RETURNING stories_unpartitioned.*
 )
--- INSERT into view to hit the partitioning trigger
 INSERT INTO stories_partitioned (
     stories_id,
     media_id,
