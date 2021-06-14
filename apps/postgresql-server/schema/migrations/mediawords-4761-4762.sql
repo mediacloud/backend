@@ -79,6 +79,18 @@
 -- SELECT pg_size_pretty (pg_relation_size('stories_ap_syndicated'));
 -- FIXME stories_id in some functions are still INT
 -- FIXME deduplicate (media_id, guid)
+
+-- create table scratch.stories_media_id_guid_duplicates as
+-- select media_id, guid, row from (
+--   SELECT media_id, guid,
+--   ROW_NUMBER() OVER(PARTITION BY media_id, guid ORDER BY stories_id asc) AS row
+--   FROM stories
+-- ) dups
+-- where
+-- dups.row > 1
+-- ;
+
+
 -- FIXME run the workflow in a local worker; start the workflow right away
 
 
