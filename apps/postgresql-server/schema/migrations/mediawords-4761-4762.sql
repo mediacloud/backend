@@ -15,6 +15,69 @@
 --
 
 
+-- FIXME stories_id of other tables are still INT
+--
+--  stories_ap_syndicated
+--      55 GB
+--  story_urls
+--      230 GB
+--  downloads
+--      1324 GB
+--  feeds_stories_map_p
+--      215 GB
+--  stories_tags_map_p
+--      1869 GB
+--  story_sentences_p
+--      10240 GB
+--  solr_import_stories
+--      6 MB
+--  solr_imported_stories
+--      336 GB
+--  topic_merged_stories_map (2x)
+--      360 MB
+--  topic_stories
+--      21 GB
+--  topic_dead_links
+--      1 GB
+--  topic_links
+--      110 GB
+--  topic_fetch_urls
+--      121 GB
+--  snap.stories
+--      157 GB
+--  story_statistics
+--      4 GB
+--  story_statistics_twitter
+--      11 MB
+--  snap.topic_stories
+--      80 GB
+--  snap.topic_links_cross_media (2x)
+--      67 GB
+--  snap.stories_tags_map
+--      152 GB
+--  snap.story_links (2x)
+--      58 GB
+--  snap.story_link_counts
+--      96 GB
+--  snap.live_stories
+--      74 GB
+--  processed_stories
+--      93 GB
+--  scraped_stories
+--      10 GB
+--  topic_seed_urls
+--      35 GB
+--  retweeter_stories
+--      45 MB
+--  cliff_annotations
+--      0 MB
+--  nytlabels_annotations
+--      0 MB
+--  story_enclosures
+--      17 GB
+--
+-- SELECT pg_size_pretty (pg_relation_size('stories_ap_syndicated'));
+-- FIXME stories_id in some functions are still INT
 -- FIXME deduplicate (media_id, guid)
 -- FIXME run the workflow in a local worker; start the workflow right away
 
