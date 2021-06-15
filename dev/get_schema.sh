@@ -1,11 +1,13 @@
 #!/bin/bash
 #
 # Generate latest schema file for reference in development 
-# To be run from project root (so, './dev/get_schema.sh')
 #
 
 set -u
 set -e
 
-docker pull dockermediacloud/postgresql-server:master
-docker run dockermediacloud/postgresql-server:master cat /tmp/mediawords.sql > ./apps/postgresql-server/schema/mediawords.sql
+docker pull gcr.io/mcback/postgresql-server:latest
+
+PWD="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+exec "docker run gcr.io/mcback/postgresql-server:latest cat /tmp/mediawords.sql > $PWD/../apps/postgresql-server/schema/mediawords.sql"

@@ -13,6 +13,9 @@ MIGRATIONS_DIR="/opt/mediacloud/migrations"
 # up connecting in the middle of migrating
 TEMP_PORT=12345
 
+# In case the database is in recovery, wait for up to 1 hour for it to complete
+PGCTL_START_TIMEOUT=3600
+
 if [ ! -d "${MIGRATIONS_DIR}" ]; then
     echo "Migrations directory ${MIGRATIONS_DIR} does not exist."
     exit 1
@@ -27,7 +30,8 @@ fi
     start
 
 # apply migrations
-cd /opt/mediacloud && pgmigrate -t latest migrate
+cd /opt/mediacloud && pgmigrate --target latest --conn \ 
+    "dbname=mediacloud user=mediacloud password=mediacloud host=localhost port=${TEMP_PORT}" migrate
 
 # Stop PostgreSQL
 "${MC_POSTGRESQL_BIN_DIR}/pg_ctl" \
