@@ -36,7 +36,8 @@ EOF
 psql -v ON_ERROR_STOP=1 -c "${CREATE_DB_SQL}"
 
 # run migrations with pgmigrate package
-cd /opt/postgresql-server && pgmigrate --target latest migrate
+cd /opt/postgresql-server
+pgmigrate migrate --target latest
 
 # dump schema file for reference in development
 pg_dump mediacloud > /opt/postgresql-server/schema/mediawords.sql
