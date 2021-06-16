@@ -28,12 +28,19 @@ RUN \
     #
     true
 
-# Copy helper scripts, schema, migrations, pgmigrate callbacks/config
-RUN mkdir -p /opt/mediacloud/
-COPY bin/* /opt/mediacloud/bin/
-COPY pgmigrate-callbacks/ /opt/mediacloud/pgmigrate-callbacks/
-COPY migrations/ /opt/mediacloud/migrations/
-COPY migrations.yml /opt/mediacloud/migrations.yml
+# Copy helper scripts, migrations, pgmigrate callbacks/config, create schema dir
+RUN mkdir -p /opt/postgresql-server/
+
+RUN \
+    mkdir /opt/postgresql-server/schema && \ 
+    chown postgres: /opt/postgresql-server/schema && \ 
+    chmod u+w /opt/postgresql-server/schema && \
+    true
+
+COPY bin/* /opt/postgresql-server/bin/
+COPY pgmigrate-callbacks/ /opt/postgresql-server/pgmigrate-callbacks/
+COPY migrations/ /opt/postgresql-server/migrations/
+COPY migrations.yml /opt/postgresql-server/migrations.yml
 
 # WORKDIR /opt/mediacloud
 
@@ -42,7 +49,7 @@ COPY migrations.yml /opt/mediacloud/migrations.yml
 # container start, Docker will copy the files from the container to the volume
 
 USER postgres
-RUN /opt/mediacloud/bin/initialize_db.sh
+RUN /opt/postgresql-server/bin/initialize_db.sh
 
 # Remove the init script so that someone doesn't accidentally run it in
 # production

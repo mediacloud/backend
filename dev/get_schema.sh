@@ -6,8 +6,7 @@
 set -u
 set -e
 
-docker pull gcr.io/mcback/postgresql-server:latest
+PROJECT_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
 
-PWD="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-
-exec "docker run gcr.io/mcback/postgresql-server:latest cat /mediawords.sql > $PWD/../apps/postgresql-server/schema/mediawords.sql"
+docker pull gcr.io/mcback/postgresql-server:jot-pgmigrate
+docker run gcr.io/mcback/postgresql-server:jot-pgmigrate cat /opt/postgresql-server/schema/mediawords.sql > $PROJECT_ROOT/apps/postgresql-server/schema/mediawords.sql
