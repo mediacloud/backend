@@ -42,8 +42,6 @@ COPY pgmigrate-callbacks/ /opt/postgresql-server/pgmigrate-callbacks/
 COPY migrations/ /opt/postgresql-server/migrations/
 COPY migrations.yml /opt/postgresql-server/migrations.yml
 
-# WORKDIR /opt/mediacloud
-
 # Initialize data volume, create users + database
 # If a new empty volume gets mounted to /var/lib/postgresql/ upon
 # container start, Docker will copy the files from the container to the volume
