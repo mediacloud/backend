@@ -1,1 +1,4 @@
-CREATE TABLE james;
+CREATE TABLE james (
+	foo serial PRIMARY KEY,
+	bar VARCHAR ( 50 ) UNIQUE NOT NULL
+);
