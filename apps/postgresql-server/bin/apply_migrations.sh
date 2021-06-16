@@ -30,7 +30,7 @@ fi
     start
 
 # apply migrations
-cd /opt/mediacloud && pgmigrate --target latest --conn \ 
+cd /opt/postgresql-server && pgmigrate --target latest --conn \ 
     "dbname=mediacloud user=mediacloud password=mediacloud host=localhost port=${TEMP_PORT}" migrate
 
 # Stop PostgreSQL

@@ -8,5 +8,8 @@ set -e
 
 PROJECT_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
 
-docker pull gcr.io/mcback/postgresql-server:jot-pgmigrate
-docker run gcr.io/mcback/postgresql-server:jot-pgmigrate cat /opt/postgresql-server/schema/mediawords.sql > $PROJECT_ROOT/apps/postgresql-server/schema/mediawords.sql
+# TODO: figure out why :latest tag isn't available from GCR
+# docker pull gcr.io/mcback/postgresql-server:jot-pgmigrate
+docker pull gcr.io/mcback/postgresql-server:latest
+# docker run gcr.io/mcback/postgresql-server:jot-pgmigrate cat /opt/postgresql-server/schema/mediawords.sql > $PROJECT_ROOT/apps/postgresql-server/schema/mediawords.sql
+docker run gcr.io/mcback/postgresql-server:latest cat /opt/postgresql-server/schema/mediawords.sql > $PROJECT_ROOT/apps/postgresql-server/schema/mediawords.sql
