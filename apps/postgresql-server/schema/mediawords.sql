@@ -1,3 +1,5 @@
+-- noinspection SqlResolveForFile @ routine/"create_distributed_table"
+
 --
 -- Schema for MediaWords database
 --
@@ -18,6 +20,7 @@
 -- FIXME move related things together
 -- FIXME foreign key column order
 -- FIXME shard "tags"
+-- FIXME replace JSON with JSONB
 
 
 -- main schema
@@ -96,6 +99,7 @@ $$
 CREATE OR REPLACE FUNCTION half_md5(string TEXT) RETURNS bytea AS
 $$
     -- pgcrypto's functions are being referred with public schema prefix to make pg_upgrade work
+    -- noinspection SqlResolve @ routine/"digest"
 SELECT SUBSTRING(public.digest(string, 'md5'::text), 0, 9);
 $$ LANGUAGE SQL;
 
@@ -165,6 +169,7 @@ CREATE TABLE media
     CONSTRAINT media_self_dup CHECK (dup_media_id IS NULL OR dup_media_id != media_id)
 );
 
+-- noinspection SqlResolve @ routine/"create_reference_table"
 SELECT create_reference_table('media');
 
 CREATE UNIQUE INDEX media_name ON media (name);
@@ -187,6 +192,7 @@ CREATE TABLE media_rescraping
     last_rescrape_time  TIMESTAMP WITH TIME ZONE NULL
 );
 
+-- noinspection SqlResolve @ routine/"create_reference_table"
 SELECT create_reference_table('media_rescraping');
 
 
@@ -194,6 +200,7 @@ CREATE UNIQUE INDEX media_rescraping_media_id ON media_rescraping (media_id);
 CREATE INDEX media_rescraping_last_rescrape_time ON media_rescraping (last_rescrape_time);
 
 -- Insert new rows to "media_rescraping" for each new row in "media"
+-- noinspection SqlResolve @ routine/"run_command_on_shards"
 SELECT run_command_on_shards(
                'media',
                $cmd$
@@ -224,6 +231,7 @@ CREATE TABLE media_stats
 );
 
 -- "Only" 14 GB so maybe it's fine to copy it to shards
+-- noinspection SqlResolve @ routine/"create_reference_table"
 SELECT create_reference_table('media_stats');
 
 CREATE UNIQUE INDEX media_stats_medium_date ON media_stats (media_id, stat_date);
@@ -243,7 +251,6 @@ BEGIN
             WHERE media_id = param_media_id
         ) THEN
         RAISE EXCEPTION 'Media % does not exist.', param_media_id;
-        RETURN FALSE;
     END IF;
 
     -- Check if media has feeds
@@ -318,6 +325,7 @@ CREATE TABLE feeds
 
 );
 
+-- noinspection SqlResolve @ routine/"create_reference_table"
 SELECT create_reference_table('feeds');
 
 UPDATE feeds
@@ -340,6 +348,7 @@ CREATE TABLE feeds_after_rescraping
     type                      feed_type NOT NULL DEFAULT 'syndicated'
 );
 
+-- noinspection SqlResolve @ routine/"create_reference_table"
 SELECT create_reference_table('feeds_after_rescraping');
 
 CREATE INDEX feeds_after_rescraping_media_id ON feeds_after_rescraping (media_id);
@@ -360,7 +369,6 @@ BEGIN
             WHERE feeds.feeds_id = param_feeds_id
         ) THEN
         RAISE EXCEPTION 'Feed % does not exist.', param_feeds_id;
-        RETURN FALSE;
     END IF;
 
     -- Check if feed is active
@@ -405,6 +413,7 @@ CREATE TABLE tag_sets
     CONSTRAINT tag_sets_name_not_empty CHECK (LENGTH(name) > 0)
 );
 
+-- noinspection SqlResolve @ routine/"create_reference_table"
 SELECT create_reference_table('tag_sets');
 
 CREATE UNIQUE INDEX tag_sets_name ON tag_sets (name);
@@ -445,11 +454,13 @@ CREATE TABLE tags
 -- FIXME shard this somehow?
 -- "tags" could really use some sharding itself as it has lots of rows but then
 -- the foreign keys don't really work from elsewhere
+-- noinspection SqlResolve @ routine/"create_reference_table"
 SELECT create_reference_table('tags');
 
 CREATE INDEX tags_tag_sets_id ON tags (tag_sets_id);
 CREATE UNIQUE INDEX tags_tag ON tags (tag, tag_sets_id);
 CREATE INDEX tags_label ON tags USING HASH (label);
+-- noinspection SqlResolve
 CREATE INDEX tags_fts ON tags USING GIN (to_tsvector('english'::regconfig, tag || ' ' || label));
 
 CREATE INDEX tags_show_on_media ON tags USING HASH (show_on_media);
@@ -476,6 +487,7 @@ CREATE TABLE feeds_tags_map
     tags_id           BIGINT NOT NULL REFERENCES tags (tags_id) ON DELETE CASCADE
 );
 
+-- noinspection SqlResolve @ routine/"create_reference_table"
 SELECT create_reference_table('feeds_tags_map');
 
 CREATE UNIQUE INDEX feeds_tags_map_feed ON feeds_tags_map (feeds_id, tags_id);
@@ -490,6 +502,7 @@ CREATE TABLE media_tags_map
     tagged_date       DATE   NULL DEFAULT NOW()
 );
 
+-- noinspection SqlResolve @ routine/"create_reference_table"
 SELECT create_reference_table('media_tags_map');
 
 CREATE UNIQUE INDEX media_tags_map_media ON media_tags_map (media_id, tags_id);
@@ -571,7 +584,7 @@ CREATE INDEX stories_publish_day ON stories (date_trunc('day', publish_date));
 CREATE INDEX stories_normalized_title_hash ON stories (media_id, normalized_title_hash);
 
 
-
+-- noinspection SqlResolve @ routine/"run_command_on_shards"
 SELECT run_command_on_shards(
                'stories',
                $cmd$
@@ -664,7 +677,7 @@ SELECT run_command_on_shards(
            );
 
 
-
+-- noinspection SqlResolve @ routine/"run_command_on_shards"
 SELECT run_command_on_shards(
                'stories',
                $cmd$
@@ -721,7 +734,7 @@ SELECT run_command_on_shards(
            );
 
 
-
+-- noinspection SqlResolve @ routine/"run_command_on_shards"
 SELECT run_command_on_shards(
                'stories',
                $cmd$
@@ -878,6 +891,7 @@ SELECT create_distributed_table('downloads', 'downloads_id');
 -- INSERTed / UPDATEd "downloads_id" should be passed as an trigger argument.
 
 
+-- noinspection SqlResolve @ routine/"run_command_on_shards"
 SELECT run_command_on_shards(
                'downloads',
                $cmd$
@@ -943,6 +957,7 @@ CREATE TABLE downloads_error
     PARTITION OF downloads
         FOR VALUES IN ('error');
 
+-- noinspection SqlResolve @ routine/"run_command_on_shards"
 SELECT run_command_on_shards(
                'downloads_error',
                $cmd$
@@ -967,6 +982,7 @@ CREATE TABLE downloads_feed_error
     PARTITION OF downloads
         FOR VALUES IN ('feed_error');
 
+-- noinspection SqlResolve @ routine/"run_command_on_shards"
 SELECT run_command_on_shards(
                'downloads_feed_error',
                $cmd$
@@ -991,6 +1007,7 @@ CREATE TABLE downloads_fetching
     PARTITION OF downloads
         FOR VALUES IN ('fetching');
 
+-- noinspection SqlResolve @ routine/"run_command_on_shards"
 SELECT run_command_on_shards(
                'downloads_fetching',
                $cmd$
@@ -1015,6 +1032,7 @@ CREATE TABLE downloads_pending
     PARTITION OF downloads
         FOR VALUES IN ('pending');
 
+-- noinspection SqlResolve @ routine/"run_command_on_shards"
 SELECT run_command_on_shards(
                'downloads_pending',
                $cmd$
@@ -1046,6 +1064,7 @@ CREATE TABLE downloads_success
                 )
         ) FOR VALUES IN ('success');
 
+-- noinspection SqlResolve @ routine/"run_command_on_shards"
 SELECT run_command_on_shards(
                'downloads_success',
                $cmd$
@@ -1381,6 +1400,7 @@ CREATE TABLE topic_modes
     description    TEXT NOT NULL
 );
 
+-- noinspection SqlResolve @ routine/"create_reference_table"
 SELECT create_reference_table('topic_modes');
 
 CREATE UNIQUE INDEX topic_modes_name ON topic_modes (name);
@@ -1398,6 +1418,7 @@ CREATE TABLE topic_platforms
     description        TEXT NOT NULL
 );
 
+-- noinspection SqlResolve @ routine/"create_reference_table"
 SELECT create_reference_table('topic_platforms');
 
 CREATE UNIQUE INDEX topic_platforms_name ON topic_platforms (name);
@@ -1417,6 +1438,7 @@ CREATE TABLE topic_sources
     description      TEXT NOT NULL
 );
 
+-- noinspection SqlResolve @ routine/"create_reference_table"
 SELECT create_reference_table('topic_sources');
 
 CREATE UNIQUE INDEX topic_sources_name ON topic_sources (name);
@@ -1442,6 +1464,7 @@ CREATE TABLE topic_platforms_sources_map
         REFERENCES topic_sources (topic_sources_id) ON DELETE CASCADE
 );
 
+-- noinspection SqlResolve @ routine/"create_reference_table"
 SELECT create_reference_table('topic_platforms_sources_map');
 
 CREATE UNIQUE INDEX topic_platforms_sources_map_topic_platforms_id_topic_sources_id
@@ -1525,6 +1548,7 @@ CREATE INDEX topics_name ON topics (name);
 CREATE INDEX topics_media_type_tag_set ON topics (media_type_tag_sets_id);
 
 
+-- noinspection SqlResolve @ routine/"run_command_on_shards"
 SELECT run_command_on_shards(
                'topics',
                $cmd$
@@ -1569,7 +1593,7 @@ SELECT run_command_on_shards(
            );
 
 
-
+-- noinspection SqlResolve @ routine/"run_command_on_shards"
 SELECT run_command_on_shards(
                'topics',
                $cmd$
@@ -1695,6 +1719,7 @@ CREATE TABLE topic_media_codes
 
     PRIMARY KEY (topic_media_codes_id, topics_id)
 );
+
 
 SELECT create_distributed_table('topic_media_codes', 'topics_id');
 
@@ -1870,6 +1895,7 @@ CREATE TABLE topic_ignore_redirects
     url                       TEXT NULL
 );
 
+-- noinspection SqlResolve @ routine/"create_reference_table"
 SELECT create_reference_table('topic_ignore_redirects');
 
 CREATE INDEX topic_ignore_redirects_url on topic_ignore_redirects USING HASH (url);
@@ -2516,6 +2542,7 @@ FROM (
 --
 
 -- List of users
+-- noinspection SqlResolve @ object-type/"CITEXT"
 CREATE TABLE auth_users
 (
     auth_users_id                   SERIAL PRIMARY KEY,
@@ -2561,6 +2588,7 @@ DECLARE
     api_key VARCHAR(64);
 BEGIN
     -- pgcrypto's functions are being referred with public schema prefix to make pg_upgrade work
+    -- noinspection SqlResolve
     SELECT encode(public.digest(public.gen_random_bytes(256), 'sha256'), 'hex') INTO api_key;
     RETURN api_key;
 END;
@@ -2646,6 +2674,7 @@ VALUES ('admin', 'Do everything, including editing users.'),
 --
 -- User request daily counts
 --
+-- noinspection SqlResolve @ object-type/"CITEXT"
 CREATE TABLE auth_user_request_daily_counts
 (
 
@@ -2712,6 +2741,7 @@ CREATE TRIGGER auth_users_set_default_limits
 EXECUTE PROCEDURE auth_users_set_default_limits();
 
 
+-- noinspection SqlResolve @ object-type/"CITEXT"
 -- Add helper function to find out weekly request / request items usage for a user
 CREATE OR REPLACE FUNCTION auth_user_limits_weekly_usage(user_email CITEXT)
     RETURNS TABLE
@@ -2756,6 +2786,7 @@ CREATE INDEX auth_users_tag_sets_permissions_tag_sets on auth_users_tag_sets_per
 -- Activity log
 --
 
+-- noinspection SqlResolve @ object-type/"CITEXT"
 CREATE TABLE activities
 (
     activities_id    SERIAL PRIMARY KEY,
@@ -2840,6 +2871,7 @@ CREATE OR REPLACE FUNCTION update_feeds_from_yesterday() RETURNS VOID AS
 $$
 BEGIN
 
+    -- noinspection SqlWithoutWhere
     DELETE FROM feeds_from_yesterday;
     INSERT INTO feeds_from_yesterday (feeds_id, media_id, name, url, type, active)
     SELECT feeds_id, media_id, name, url, type, active
@@ -3367,7 +3399,7 @@ create table job_states
     last_updated  timestamp     not null default now(),
 
     -- details about the job
-    args          json          not null,
+    args          jsonB         not null,
     priority      text          not null,
 
     -- the hostname and process_id of the running process
@@ -3787,6 +3819,7 @@ CREATE UNIQUE INDEX similarweb_estimated_visits_domain_month_mdo
 --
 -- Enclosures added to the story's feed item
 --
+-- noinspection SqlResolve
 CREATE TABLE story_enclosures
 (
     story_enclosures_id BIGSERIAL PRIMARY KEY,
