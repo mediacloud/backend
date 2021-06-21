@@ -209,17 +209,18 @@ SELECT run_command_on_shards('media', $cmd$
 
     CREATE OR REPLACE FUNCTION media_rescraping_add_initial_state_trigger() RETURNS trigger AS
     $$
-        BEGIN
-            INSERT INTO media_rescraping (media_id, disable, last_rescrape_time)
-            VALUES (NEW.media_id, 'f', NULL);
-            RETURN NEW;
-       END;
-    $$
-    LANGUAGE plpgsql;
+    BEGIN
+        INSERT INTO media_rescraping (media_id, disable, last_rescrape_time)
+        VALUES (NEW.media_id, 'f', NULL);
+        RETURN NEW;
+    END;
+    $$ LANGUAGE plpgsql;
 
     CREATE TRIGGER media_rescraping_add_initial_state_trigger
-        AFTER INSERT ON %s
-        FOR EACH ROW EXECUTE PROCEDURE media_rescraping_add_initial_state_trigger();
+        AFTER INSERT
+        ON %s
+        FOR EACH ROW
+    EXECUTE PROCEDURE media_rescraping_add_initial_state_trigger();
 
     SELECT pg_advisory_unlock(-12345);
 
@@ -598,10 +599,12 @@ SELECT run_command_on_shards('stories', $cmd$
     -- the longest single part.  longest part must be at least 32 characters cannot be the same as the media source
     -- name.  also remove all html, punctuation and repeated spaces, lowecase, and limit to 1024 characters.
     CREATE OR REPLACE FUNCTION get_normalized_title(title TEXT, title_media_id BIGINT)
-    RETURNS TEXT IMMUTABLE AS $$
+        RETURNS TEXT
+        IMMUTABLE AS
+    $$
 
     DECLARE
-        title_part TEXT;
+        title_part  TEXT;
         media_title TEXT;
 
     BEGIN
@@ -611,7 +614,7 @@ SELECT run_command_on_shards('stories', $cmd$
         SELECT INTO title REGEXP_REPLACE(title, '\&#?[a-z0-9]*', '', 'gi');
 
         SELECT INTO title LOWER(title);
-        SELECT INTO title REGEXP_REPLACE(title,'(?:\- )|[:|]', 'SEPSEP', 'g');
+        SELECT INTO title REGEXP_REPLACE(title, '(?:\- )|[:|]', 'SEPSEP', 'g');
         SELECT INTO title REGEXP_REPLACE(title, '[[:punct:]]', '', 'g');
         SELECT INTO title REGEXP_REPLACE(title, '\s+', ' ', 'g');
         SELECT INTO title SUBSTR(title, 0, 1024);
@@ -620,9 +623,8 @@ SELECT run_command_on_shards('stories', $cmd$
             RETURN title;
         END IF;
 
-        SELECT INTO title_part
-            part
-        FROM (SELECT REGEXP_SPLIT_TO_TABLE(title, ' *SEPSEP *') AS part ) AS parts
+        SELECT INTO title_part part
+        FROM (SELECT REGEXP_SPLIT_TO_TABLE(title, ' *SEPSEP *') AS part) AS parts
         ORDER BY LENGTH(part) DESC
         LIMIT 1;
 
@@ -634,8 +636,7 @@ SELECT run_command_on_shards('stories', $cmd$
             RETURN title;
         END IF;
 
-        SELECT INTO media_title
-            get_normalized_title(name, 0)
+        SELECT INTO media_title get_normalized_title(name, 0)
         FROM media
         WHERE media_id = title_media_id;
 
@@ -648,7 +649,8 @@ SELECT run_command_on_shards('stories', $cmd$
     END
     $$ LANGUAGE plpgsql;
 
-    CREATE OR REPLACE FUNCTION add_normalized_title_hash() RETURNS TRIGGER AS $$
+    CREATE OR REPLACE FUNCTION add_normalized_title_hash() RETURNS TRIGGER AS
+    $$
     BEGIN
 
         IF (TG_OP = 'update') THEN
@@ -657,8 +659,7 @@ SELECT run_command_on_shards('stories', $cmd$
             END IF;
         END IF;
 
-        SELECT INTO NEW.normalized_title_hash
-            MD5(get_normalized_title( NEW.title, NEW.media_id ))::uuid;
+        SELECT INTO NEW.normalized_title_hash MD5(get_normalized_title(NEW.title, NEW.media_id))::uuid;
 
         RETURN NEW;
 
@@ -671,7 +672,7 @@ SELECT run_command_on_shards('stories', $cmd$
         BEFORE INSERT OR UPDATE
         ON %s
         FOR EACH ROW
-        EXECUTE PROCEDURE add_normalized_title_hash();
+    EXECUTE PROCEDURE add_normalized_title_hash();
 
     SELECT pg_advisory_unlock(-12345);
 
@@ -685,12 +686,12 @@ SELECT run_command_on_shards('stories', $cmd$
     -- parallel on the same host
     SELECT pg_advisory_lock(-12345);
 
-
     -- Given that the unique index on (guid, media_id) is going to be valid only
     -- per shard, add a trigger that will check for uniqueness after each INSERT.
     -- We add the trigger after migrating a chunk of stories first to increase
     -- performance of the copy.
-    CREATE OR REPLACE FUNCTION stories_ensure_unique_guid() RETURNS trigger AS $$
+    CREATE OR REPLACE FUNCTION stories_ensure_unique_guid() RETURNS trigger AS
+    $$
 
     DECLARE
         guid_row_count INT;
@@ -700,11 +701,11 @@ SELECT run_command_on_shards('stories', $cmd$
         SELECT COUNT(*)
         FROM stories
         INTO guid_row_count
-        WHERE media_id = NEW.media_id
-          AND guid = NEW.guid;
+            WHERE
+        media_id = NEW.media_id
+            AND guid = NEW.guid;
 
         IF guid_row_count > 1 THEN
-
             -- The exception has to mention 'unique constraint "stories_guid'
             -- because add_story() is expecting it
             RAISE EXCEPTION 'Duplicate (media_id, guid); unique constraint "stories_guid"';
@@ -720,9 +721,10 @@ SELECT run_command_on_shards('stories', $cmd$
     $$ LANGUAGE plpgsql;
 
     CREATE TRIGGER stories_ensure_unique_guid
-        AFTER INSERT ON %s
+        AFTER INSERT
+        ON %s
         FOR EACH ROW
-        EXECUTE PROCEDURE stories_ensure_unique_guid();
+    EXECUTE PROCEDURE stories_ensure_unique_guid();
 
     SELECT pg_advisory_unlock(-12345);
 
@@ -736,7 +738,8 @@ SELECT run_command_on_shards('stories', $cmd$
     -- parallel on the same host
     SELECT pg_advisory_lock(-12345);
 
-    CREATE OR REPLACE FUNCTION insert_solr_import_story() RETURNS TRIGGER AS $$
+    CREATE OR REPLACE FUNCTION insert_solr_import_story() RETURNS TRIGGER AS
+    $$
 
     DECLARE
 
@@ -751,12 +754,12 @@ SELECT run_command_on_shards('stories', $cmd$
         END IF;
 
         INSERT INTO solr_import_stories (stories_id)
-            SELECT queue_stories_id
-            WHERE EXISTS (
-                SELECT 1
-                FROM processed_stories
-                WHERE stories_id = queue_stories_id
-            );
+        SELECT queue_stories_id
+        WHERE EXISTS(
+                      SELECT 1
+                      FROM processed_stories
+                      WHERE stories_id = queue_stories_id
+                  );
 
         IF (TG_OP = 'UPDATE') OR (TG_OP = 'INSERT') THEN
             RETURN NEW;
@@ -772,7 +775,7 @@ SELECT run_command_on_shards('stories', $cmd$
         AFTER INSERT OR UPDATE OR DELETE
         ON %s
         FOR EACH ROW
-        EXECUTE PROCEDURE insert_solr_import_story();
+    EXECUTE PROCEDURE insert_solr_import_story();
 
     SELECT pg_advisory_unlock(-12345);
 
@@ -1379,12 +1382,12 @@ SELECT run_command_on_shards('topics', $cmd$
     -- parallel on the same host
     SELECT pg_advisory_lock(-12345);
 
-
     -- Given that the unique index on (guid, media_id) is going to be valid only
     -- per shard, add a trigger that will check for uniqueness after each INSERT.
     -- We add the trigger after migrating a chunk of stories first to increase
     -- performance of the copy.
-    CREATE OR REPLACE FUNCTION topics_ensure_unique_name() RETURNS trigger AS $$
+    CREATE OR REPLACE FUNCTION topics_ensure_unique_name() RETURNS trigger AS
+    $$
 
     DECLARE
         name_row_count INT;
@@ -1394,7 +1397,8 @@ SELECT run_command_on_shards('topics', $cmd$
         SELECT COUNT(*)
         FROM topics
         INTO name_row_count
-        WHERE name = NEW.name;
+            WHERE
+        name = NEW.name;
 
         IF name_row_count > 1 THEN
             RAISE EXCEPTION 'Duplicate topic name';
@@ -1406,9 +1410,10 @@ SELECT run_command_on_shards('topics', $cmd$
     $$ LANGUAGE plpgsql;
 
     CREATE TRIGGER topics_ensure_unique_name
-        AFTER INSERT ON %s
+        AFTER INSERT
+        ON %s
         FOR EACH ROW
-        EXECUTE PROCEDURE topics_ensure_unique_name();
+    EXECUTE PROCEDURE topics_ensure_unique_name();
 
     SELECT pg_advisory_unlock(-12345);
 
@@ -1426,7 +1431,8 @@ SELECT run_command_on_shards('topics', $cmd$
     -- per shard, add a trigger that will check for uniqueness after each INSERT.
     -- We add the trigger after migrating a chunk of stories first to increase
     -- performance of the copy.
-    CREATE OR REPLACE FUNCTION topics_ensure_unique_media_type_tag_sets_id() RETURNS trigger AS $$
+    CREATE OR REPLACE FUNCTION topics_ensure_unique_media_type_tag_sets_id() RETURNS trigger AS
+    $$
 
     DECLARE
         media_type_tag_sets_id_row_count INT;
@@ -1436,7 +1442,8 @@ SELECT run_command_on_shards('topics', $cmd$
         SELECT COUNT(*)
         FROM topics
         INTO media_type_tag_sets_id_row_count
-        WHERE media_type_tag_sets_id = NEW.media_type_tag_sets_id;
+            WHERE
+        media_type_tag_sets_id = NEW.media_type_tag_sets_id;
 
         IF media_type_tag_sets_id_row_count > 1 THEN
             RAISE EXCEPTION 'Duplicate topic media_type_tag_sets_id';
@@ -1448,9 +1455,10 @@ SELECT run_command_on_shards('topics', $cmd$
     $$ LANGUAGE plpgsql;
 
     CREATE TRIGGER topics_ensure_unique_media_type_tag_sets_id
-        AFTER INSERT ON %s
+        AFTER INSERT
+        ON %s
         FOR EACH ROW
-        EXECUTE PROCEDURE topics_ensure_unique_media_type_tag_sets_id();
+    EXECUTE PROCEDURE topics_ensure_unique_media_type_tag_sets_id();
 
     SELECT pg_advisory_unlock(-12345);
 
@@ -2405,38 +2413,35 @@ SELECT run_command_on_shards('topic_stories', $cmd$
 
     BEGIN
 
-        INSERT INTO snap.live_stories (
-            topics_id,
-            topic_stories_id,
-            stories_id,
-            media_id,
-            url,
-            guid,
-            title,
-            normalized_title_hash,
-            description,
-            publish_date,
-            collect_date,
-            full_text_rss,
-            language
-        )
-        SELECT
-            NEW.topics_id,
-            NEW.topic_stories_id,
-            NEW.stories_id,
-            s.media_id,
-            s.url,
-            s.guid,
-            s.title,
-            s.normalized_title_hash,
-            s.description,
-            s.publish_date,
-            s.collect_date,
-            s.full_text_rss,
-            s.language
+        INSERT INTO snap.live_stories (topics_id,
+                                       topic_stories_id,
+                                       stories_id,
+                                       media_id,
+                                       url,
+                                       guid,
+                                       title,
+                                       normalized_title_hash,
+                                       description,
+                                       publish_date,
+                                       collect_date,
+                                       full_text_rss,
+                                       language)
+        SELECT NEW.topics_id,
+               NEW.topic_stories_id,
+               NEW.stories_id,
+               s.media_id,
+               s.url,
+               s.guid,
+               s.title,
+               s.normalized_title_hash,
+               s.description,
+               s.publish_date,
+               s.collect_date,
+               s.full_text_rss,
+               s.language
         FROM topic_stories AS cs
-            JOIN stories AS s
-                ON cs.stories_id = s.stories_id
+                 JOIN stories AS s
+                      ON cs.stories_id = s.stories_id
         WHERE cs.stories_id = NEW.stories_id
           AND cs.topics_id = NEW.topics_id;
 
@@ -2450,7 +2455,7 @@ SELECT run_command_on_shards('topic_stories', $cmd$
         AFTER INSERT
         ON %s
         FOR EACH ROW
-        EXECUTE PROCEDURE insert_live_story();
+    EXECUTE PROCEDURE insert_live_story();
 
     SELECT pg_advisory_unlock(-12345);
 
@@ -2464,7 +2469,8 @@ SELECT run_command_on_shards('stories', $cmd$
     -- parallel on the same host
     SELECT pg_advisory_lock(-12345);
 
-    CREATE OR REPLACE FUNCTION update_live_story() RETURNS TRIGGER AS $$
+    CREATE OR REPLACE FUNCTION update_live_story() RETURNS TRIGGER AS
+    $$
 
     BEGIN
 
@@ -2491,7 +2497,7 @@ SELECT run_command_on_shards('stories', $cmd$
         AFTER UPDATE
         ON %s
         FOR EACH ROW
-        EXECUTE PROCEDURE update_live_story();
+    EXECUTE PROCEDURE update_live_story();
 
     SELECT pg_advisory_unlock(-12345);
 
@@ -2572,7 +2578,7 @@ SELECT run_command_on_shards('processed_stories', $cmd$
         AFTER INSERT OR UPDATE OR DELETE
         ON %s
         FOR EACH ROW
-        EXECUTE PROCEDURE insert_solr_import_story();
+    EXECUTE PROCEDURE insert_solr_import_story();
 
     SELECT pg_advisory_unlock(-12345);
 
@@ -2770,7 +2776,7 @@ SELECT run_command_on_shards('auth_users', $cmd$
         AFTER INSERT
         ON %s
         FOR EACH ROW
-        EXECUTE PROCEDURE auth_user_api_keys_add_non_ip_limited_api_key();
+    EXECUTE PROCEDURE auth_user_api_keys_add_non_ip_limited_api_key();
 
     SELECT pg_advisory_unlock(-12345);
 
@@ -2903,7 +2909,7 @@ SELECT run_command_on_shards('auth_users', $cmd$
         AFTER INSERT
         ON %s
         FOR EACH ROW
-        EXECUTE PROCEDURE auth_users_set_default_limits();
+    EXECUTE PROCEDURE auth_users_set_default_limits();
 
     SELECT pg_advisory_unlock(-12345);
 
