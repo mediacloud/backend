@@ -47,8 +47,8 @@ SET citus.shard_count = 128;
 -- Database properties (variables) table
 CREATE TABLE database_variables
 (
-    database_variables_id BIGSERIAL PRIMARY KEY,
-    name                  TEXT NOT NULL UNIQUE,
+    database_variables_id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    name                  TEXT NOT NULL,
     value                 TEXT NOT NULL
 );
 
@@ -139,7 +139,7 @@ $$ LANGUAGE plpgsql;
 
 CREATE TABLE media
 (
-    media_id          BIGSERIAL PRIMARY KEY,
+    media_id          BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     url               TEXT    NOT NULL,
     normalized_url    TEXT    NULL,
     name              TEXT    NOT NULL,
@@ -181,7 +181,7 @@ CREATE INDEX media_name_fts ON media USING GIN (to_tsvector('english', name));
 -- Media feed rescraping state
 CREATE TABLE media_rescraping
 (
-    media_rescraping_id BIGSERIAL PRIMARY KEY,
+    media_rescraping_id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
 
     media_id            BIGINT                   NOT NULL REFERENCES media (media_id) ON DELETE CASCADE,
 
@@ -228,7 +228,7 @@ SELECT run_command_on_shards('media', $cmd$
 
 CREATE TABLE media_stats
 (
-    media_stats_id BIGSERIAL PRIMARY KEY,
+    media_stats_id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     media_id       BIGINT NOT NULL REFERENCES media (media_id) ON DELETE CASCADE,
     num_stories    BIGINT NOT NULL,
     num_sentences  BIGINT NOT NULL,
@@ -298,7 +298,7 @@ CREATE TYPE feed_type AS ENUM (
 
 CREATE TABLE feeds
 (
-    feeds_id                      BIGSERIAL PRIMARY KEY,
+    feeds_id                      BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     media_id                      BIGINT                   NOT NULL REFERENCES media (media_id) ON DELETE CASCADE,
     name                          TEXT                     NOT NULL,
     url                           TEXT                     NOT NULL,
@@ -345,7 +345,7 @@ CREATE INDEX feeds_last_successful_download_time ON feeds (last_successful_downl
 -- Feeds for media item that were found after (re)scraping
 CREATE TABLE feeds_after_rescraping
 (
-    feeds_after_rescraping_id BIGSERIAL PRIMARY KEY,
+    feeds_after_rescraping_id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     media_id                  BIGINT    NOT NULL REFERENCES media (media_id) ON DELETE CASCADE,
     name                      TEXT      NOT NULL,
     url                       TEXT      NOT NULL,
@@ -396,7 +396,7 @@ $$ LANGUAGE 'plpgsql';
 
 CREATE TABLE tag_sets
 (
-    tag_sets_id     BIGSERIAL PRIMARY KEY,
+    tag_sets_id     BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
 
     --unique identifier
     name            TEXT    NOT NULL,
@@ -425,7 +425,7 @@ CREATE UNIQUE INDEX tag_sets_name ON tag_sets (name);
 
 CREATE TABLE tags
 (
-    tags_id         BIGSERIAL PRIMARY KEY,
+    tags_id         BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     tag_sets_id     BIGINT  NOT NULL REFERENCES tag_sets (tag_sets_id) ON DELETE CASCADE,
 
     -- unique identifier
@@ -485,7 +485,7 @@ VALUES ('media_type',
 
 CREATE TABLE feeds_tags_map
 (
-    feeds_tags_map_id BIGSERIAL PRIMARY KEY,
+    feeds_tags_map_id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     feeds_id          BIGINT NOT NULL REFERENCES feeds (feeds_id) ON DELETE CASCADE,
     tags_id           BIGINT NOT NULL REFERENCES tags (tags_id) ON DELETE CASCADE
 );
@@ -499,7 +499,7 @@ CREATE INDEX feeds_tags_map_tag ON feeds_tags_map (tags_id);
 
 CREATE TABLE media_tags_map
 (
-    media_tags_map_id BIGSERIAL PRIMARY KEY,
+    media_tags_map_id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     media_id          BIGINT NOT NULL REFERENCES media (media_id) ON DELETE CASCADE,
     tags_id           BIGINT NOT NULL REFERENCES tags (tags_id) ON DELETE CASCADE,
     tagged_date       DATE   NULL DEFAULT NOW()
@@ -529,7 +529,7 @@ from media AS m
 
 CREATE TABLE color_sets
 (
-    color_sets_id BIGSERIAL PRIMARY KEY,
+    color_sets_id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     color         TEXT NOT NULL,
     color_set     TEXT NOT NULL,
     id            TEXT NOT NULL
@@ -549,7 +549,7 @@ VALUES ('c10032', 'partisan_code', 'partisan_2012_conservative'),
 --
 CREATE TABLE stories
 (
-    stories_id            BIGSERIAL PRIMARY KEY,
+    stories_id            BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     media_id              BIGINT     NOT NULL REFERENCES media (media_id) ON DELETE CASCADE,
     url                   TEXT       NOT NULL,
     guid                  TEXT       NOT NULL,
@@ -781,9 +781,9 @@ SELECT run_command_on_shards('stories', $cmd$
 
 CREATE TABLE stories_ap_syndicated
 (
-    stories_ap_syndicated_id BIGSERIAL NOT NULL,
-    stories_id               BIGINT    NOT NULL REFERENCES stories (stories_id) ON DELETE CASCADE,
-    ap_syndicated            BOOLEAN   NOT NULL,
+    stories_ap_syndicated_id BIGINT  NOT NULL GENERATED ALWAYS AS IDENTITY,
+    stories_id               BIGINT  NOT NULL REFERENCES stories (stories_id) ON DELETE CASCADE,
+    ap_syndicated            BOOLEAN NOT NULL,
 
     PRIMARY KEY (stories_ap_syndicated_id, stories_id)
 );
@@ -796,9 +796,9 @@ CREATE UNIQUE INDEX stories_ap_syndicated_story ON stories_ap_syndicated (storie
 -- List of all URL or GUID identifiers for each story
 CREATE TABLE story_urls
 (
-    story_urls_id BIGSERIAL NOT NULL,
-    stories_id    BIGINT    NOT NULL REFERENCES stories (stories_id) ON DELETE CASCADE,
-    url           TEXT      NOT NULL,
+    story_urls_id BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY,
+    stories_id    BIGINT NOT NULL REFERENCES stories (stories_id) ON DELETE CASCADE,
+    url           TEXT   NOT NULL,
 
     PRIMARY KEY (story_urls_id, stories_id)
 );
@@ -846,7 +846,7 @@ CREATE TYPE download_type AS ENUM (
 
 CREATE TABLE downloads
 (
-    downloads_id  BIGSERIAL      NOT NULL,
+    downloads_id  BIGINT         NOT NULL GENERATED ALWAYS AS IDENTITY,
 
     -- FIXME foreign keys
     feeds_id      BIGINT         NOT NULL,
@@ -956,9 +956,9 @@ CREATE SCHEMA IF NOT EXISTS public_store;
 
 CREATE TABLE public_store.timespan_files
 (
-    timespan_files_id BIGSERIAL NOT NULL,
-    object_id         BIGINT    NOT NULL,
-    raw_data          BYTEA     NOT NULL,
+    timespan_files_id BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY,
+    object_id         BIGINT NOT NULL,
+    raw_data          BYTEA  NOT NULL,
 
     PRIMARY KEY (timespan_files_id, object_id)
 );
@@ -970,9 +970,9 @@ CREATE UNIQUE INDEX timespan_files_id ON public_store.timespan_files (object_id)
 
 CREATE TABLE public_store.snapshot_files
 (
-    snapshot_files_id BIGSERIAL NOT NULL,
-    object_id         BIGINT    NOT NULL,
-    raw_data          BYTEA     NOT NULL,
+    snapshot_files_id BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY,
+    object_id         BIGINT NOT NULL,
+    raw_data          BYTEA  NOT NULL,
 
     PRIMARY KEY (snapshot_files_id, object_id)
 );
@@ -984,9 +984,9 @@ CREATE UNIQUE INDEX snapshot_files_id ON public_store.snapshot_files (object_id)
 
 CREATE TABLE public_store.timespan_maps
 (
-    timespan_maps_id BIGSERIAL NOT NULL,
-    object_id        BIGINT    NOT NULL,
-    raw_data         BYTEA     NOT NULL,
+    timespan_maps_id BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY,
+    object_id        BIGINT NOT NULL,
+    raw_data         BYTEA  NOT NULL,
 
     PRIMARY KEY (timespan_maps_id, object_id)
 );
@@ -1002,9 +1002,9 @@ CREATE UNIQUE INDEX timespan_maps_id ON public_store.timespan_maps (object_id);
 --
 CREATE TABLE raw_downloads
 (
-    raw_downloads_id BIGSERIAL NOT NULL,
-    object_id        BIGINT    NOT NULL REFERENCES downloads_success (downloads_id) ON DELETE CASCADE,
-    raw_data         BYTEA     NOT NULL,
+    raw_downloads_id BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY,
+    object_id        BIGINT NOT NULL REFERENCES downloads_success (downloads_id) ON DELETE CASCADE,
+    raw_data         BYTEA  NOT NULL,
 
     PRIMARY KEY (raw_downloads_id, object_id)
 );
@@ -1020,12 +1020,12 @@ CREATE UNIQUE INDEX raw_downloads_object_id ON raw_downloads (object_id);
 
 CREATE TABLE feeds_stories_map
 (
-    feeds_stories_map_id BIGSERIAL NOT NULL,
+    feeds_stories_map_id BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY,
 
     -- FIXME reference feeds
-    feeds_id             BIGINT    NOT NULL,
+    feeds_id             BIGINT NOT NULL,
 
-    stories_id           BIGINT    NOT NULL REFERENCES stories (stories_id) ON DELETE CASCADE,
+    stories_id           BIGINT NOT NULL REFERENCES stories (stories_id) ON DELETE CASCADE,
 
     PRIMARY KEY (feeds_stories_map_id, stories_id)
 );
@@ -1044,12 +1044,12 @@ CREATE INDEX feeds_stories_map_stories_id
 
 CREATE TABLE stories_tags_map
 (
-    stories_tags_map_id BIGSERIAL NOT NULL,
+    stories_tags_map_id BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY,
 
-    stories_id          BIGINT    NOT NULL REFERENCES stories (stories_id) ON DELETE CASCADE,
+    stories_id          BIGINT NOT NULL REFERENCES stories (stories_id) ON DELETE CASCADE,
 
     -- FIXME reference tags
-    tags_id             BIGINT    NOT NULL,
+    tags_id             BIGINT NOT NULL,
 
     PRIMARY KEY (stories_tags_map_id, stories_id)
 );
@@ -1062,7 +1062,7 @@ CREATE UNIQUE INDEX stories_tags_map_stories_id_tags_id
 
 CREATE TABLE queued_downloads
 (
-    queued_downloads_id BIGSERIAL PRIMARY KEY,
+    queued_downloads_id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     downloads_id        BIGINT NOT NULL
 );
 
@@ -1103,10 +1103,10 @@ $$ LANGUAGE plpgsql;
 --
 CREATE TABLE download_texts
 (
-    download_texts_id    BIGSERIAL NOT NULL,
-    downloads_id         BIGINT    NOT NULL REFERENCES downloads_success (downloads_id) ON DELETE CASCADE,
-    download_text        TEXT      NOT NULL,
-    download_text_length INT       NOT NULL,
+    download_texts_id    BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY,
+    downloads_id         BIGINT NOT NULL REFERENCES downloads_success (downloads_id) ON DELETE CASCADE,
+    download_text        TEXT   NOT NULL,
+    download_text_length INT    NOT NULL,
 
     PRIMARY KEY (download_texts_id, downloads_id)
 );
@@ -1127,7 +1127,7 @@ ALTER TABLE download_texts
 
 CREATE TABLE story_sentences
 (
-    story_sentences_id BIGSERIAL  NOT NULL,
+    story_sentences_id BIGINT     NOT NULL GENERATED ALWAYS AS IDENTITY,
     stories_id         BIGINT     NOT NULL REFERENCES stories (stories_id) ON DELETE CASCADE,
     sentence_number    INT        NOT NULL,
     sentence           TEXT       NOT NULL,
@@ -1168,7 +1168,7 @@ CREATE INDEX story_sentences_sentence_media_week
 
 CREATE TABLE solr_imports
 (
-    solr_imports_id BIGSERIAL PRIMARY KEY,
+    solr_imports_id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     import_date     TIMESTAMP NOT NULL,
     full_import     BOOLEAN   NOT NULL DEFAULT FALSE,
     num_stories     BIGINT
@@ -1182,8 +1182,8 @@ CREATE INDEX solr_imports_date ON solr_imports (import_date);
 -- Stories to import into Solr
 CREATE TABLE solr_import_stories
 (
-    solr_import_stories_id BIGSERIAL NOT NULL,
-    stories_id             BIGINT    NOT NULL REFERENCES stories (stories_id) ON DELETE CASCADE,
+    solr_import_stories_id BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY,
+    stories_id             BIGINT NOT NULL REFERENCES stories (stories_id) ON DELETE CASCADE,
     PRIMARY KEY (solr_import_stories_id, stories_id)
 );
 
@@ -1196,7 +1196,7 @@ CREATE INDEX solr_import_stories_story ON solr_import_stories (stories_id);
 -- log of all stories import into solr, with the import date
 CREATE TABLE solr_imported_stories
 (
-    solr_imported_stories_id BIGSERIAL NOT NULL,
+    solr_imported_stories_id BIGINT    NOT NULL GENERATED ALWAYS AS IDENTITY,
     stories_id               BIGINT    NOT NULL REFERENCES stories (stories_id) ON DELETE CASCADE,
     import_date              TIMESTAMP NOT NULL,
     PRIMARY KEY (solr_imported_stories_id, stories_id)
@@ -1219,7 +1219,7 @@ CREATE TYPE topics_job_queue_type AS ENUM (
 -- media posts, url sharing posts, etc)
 CREATE TABLE topic_modes
 (
-    topic_modes_id BIGSERIAL PRIMARY KEY,
+    topic_modes_id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     name           TEXT NOT NULL,
     description    TEXT NOT NULL
 );
@@ -1237,7 +1237,7 @@ VALUES ('web', 'analyze urls using hyperlinks as network edges'),
 -- the platform is where the analyzed data lives (web, twitter, reddit, etc)
 CREATE TABLE topic_platforms
 (
-    topic_platforms_id BIGSERIAL PRIMARY KEY,
+    topic_platforms_id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     name               TEXT NOT NULL,
     description        TEXT NOT NULL
 );
@@ -1257,7 +1257,7 @@ VALUES ('web', 'pages on the open web'),
 -- the source is where we get the platform data from (a particular database, api, csv, etc)
 CREATE TABLE topic_sources
 (
-    topic_sources_id BIGSERIAL PRIMARY KEY,
+    topic_sources_id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     name             TEXT NOT NULL,
     description      TEXT NOT NULL
 );
@@ -1281,7 +1281,7 @@ VALUES ('mediacloud', 'import from the mediacloud.org archive'),
 -- the pairs of platforms / sources for which the platform can fetch data
 CREATE TABLE topic_platforms_sources_map
 (
-    topic_platforms_sources_map_id BIGSERIAL PRIMARY KEY,
+    topic_platforms_sources_map_id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     topic_platforms_id             BIGINT NOT NULL
         REFERENCES topic_platforms (topic_platforms_id) ON DELETE CASCADE,
     topic_sources_id               BIGINT NOT NULL
@@ -1322,7 +1322,7 @@ SELECT insert_platform_source_pair('web', 'google');
 
 CREATE TABLE topics
 (
-    topics_id                     BIGSERIAL PRIMARY KEY,
+    topics_id                     BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     name                          TEXT                  NOT NULL,
     pattern                       TEXT                  NULL,
     solr_seed_query               TEXT                  NULL,
@@ -1459,7 +1459,7 @@ SELECT run_command_on_shards('topics', $cmd$
 
 CREATE TABLE topic_seed_queries
 (
-    topic_seed_queries_id BIGSERIAL NOT NULL,
+    topic_seed_queries_id BIGINT    NOT NULL GENERATED ALWAYS AS IDENTITY,
     topics_id             BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
 
     -- FIXME foreign keys
@@ -1480,11 +1480,11 @@ CREATE INDEX topic_seed_queries_topic ON topic_seed_queries (topics_id);
 
 CREATE TABLE topic_dates
 (
-    topic_dates_id BIGSERIAL NOT NULL,
-    topics_id      BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-    start_date     DATE      NOT NULL,
-    end_date       DATE      NOT NULL,
-    boundary       BOOLEAN   NOT NULL DEFAULT 'f',
+    topic_dates_id BIGINT  NOT NULL GENERATED ALWAYS AS IDENTITY,
+    topics_id      BIGINT  NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
+    start_date     DATE    NOT NULL,
+    end_date       DATE    NOT NULL,
+    boundary       BOOLEAN NOT NULL DEFAULT 'f',
 
     PRIMARY KEY (topic_dates_id, topics_id)
 );
@@ -1494,11 +1494,11 @@ SELECT create_distributed_table('topic_dates', 'topics_id');
 
 CREATE TABLE topics_media_map
 (
-    topics_media_map_id BIGSERIAL NOT NULL,
-    topics_id           BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
+    topics_media_map_id BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY,
+    topics_id           BIGINT NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
 
     -- FIXME foreign key
-    media_id            BIGINT    NOT NULL,
+    media_id            BIGINT NOT NULL,
 
     PRIMARY KEY (topics_media_map_id, topics_id)
 );
@@ -1510,11 +1510,11 @@ CREATE INDEX topics_media_map_topic ON topics_media_map (topics_id);
 
 CREATE TABLE topics_media_tags_map
 (
-    topics_media_tags_map_id BIGSERIAL NOT NULL,
-    topics_id                BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
+    topics_media_tags_map_id BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY,
+    topics_id                BIGINT NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
 
     -- FIXME foreign key
-    tags_id                  BIGINT    NOT NULL,
+    tags_id                  BIGINT NOT NULL,
 
     PRIMARY KEY (topics_media_tags_map_id, topics_id)
 );
@@ -1526,14 +1526,14 @@ CREATE INDEX topics_media_tags_map_topic ON topics_media_tags_map (topics_id);
 
 CREATE TABLE topic_media_codes
 (
-    topic_media_codes_id BIGSERIAL NOT NULL,
-    topics_id            BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
+    topic_media_codes_id BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY,
+    topics_id            BIGINT NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
 
     -- FIXME foreign key
-    media_id             BIGINT    NOT NULL,
+    media_id             BIGINT NOT NULL,
 
-    code_type            TEXT      NULL,
-    code                 TEXT      NULL,
+    code_type            TEXT   NULL,
+    code                 TEXT   NULL,
 
     PRIMARY KEY (topic_media_codes_id, topics_id)
 );
@@ -1544,11 +1544,11 @@ SELECT create_distributed_table('topic_media_codes', 'topics_id');
 
 CREATE TABLE topic_merged_stories_map
 (
-    topic_merged_stories_map_id BIGSERIAL NOT NULL,
-    source_stories_id           BIGINT    NOT NULL REFERENCES stories (stories_id) ON DELETE CASCADE,
+    topic_merged_stories_map_id BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY,
+    source_stories_id           BIGINT NOT NULL REFERENCES stories (stories_id) ON DELETE CASCADE,
 
     -- FIXME foreign key
-    target_stories_id           BIGINT    NOT NULL,
+    target_stories_id           BIGINT NOT NULL,
 
     PRIMARY KEY (topic_merged_stories_map_id, source_stories_id)
 );
@@ -1565,10 +1565,10 @@ CREATE INDEX topic_merged_stories_map_target_stories_id
 -- track self liks and all links for a given domain within a given topic
 CREATE TABLE topic_domains
 (
-    topic_domains_id BIGSERIAL NOT NULL,
-    topics_id        BIGINT    NOT NULL,
-    domain           TEXT      NOT NULL,
-    self_links       BIGINT    NOT NULL DEFAULT 0,
+    topic_domains_id BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY,
+    topics_id        BIGINT NOT NULL,
+    domain           TEXT   NOT NULL,
+    self_links       BIGINT NOT NULL DEFAULT 0,
 
     PRIMARY KEY (topic_domains_id, topics_id)
 );
@@ -1580,18 +1580,18 @@ CREATE UNIQUE INDEX topic_domains_domain ON topic_domains (topics_id, md5(domain
 
 CREATE TABLE topic_stories
 (
-    topic_stories_id        BIGSERIAL NOT NULL,
-    topics_id               BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
+    topic_stories_id        BIGINT  NOT NULL GENERATED ALWAYS AS IDENTITY,
+    topics_id               BIGINT  NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
 
     -- FIXME foreign key
-    stories_id              BIGINT    NOT NULL,
+    stories_id              BIGINT  NOT NULL,
 
-    link_mined              BOOLEAN   NULL DEFAULT 'f',
-    iteration               BIGINT    NULL DEFAULT 0,
-    link_weight             REAL      NULL,
-    redirect_url            TEXT      NULL,
-    valid_foreign_rss_story BOOLEAN   NULL DEFAULT false,
-    link_mine_error         TEXT      NULL,
+    link_mined              BOOLEAN NULL DEFAULT 'f',
+    iteration               BIGINT  NULL DEFAULT 0,
+    link_weight             REAL    NULL,
+    redirect_url            TEXT    NULL,
+    valid_foreign_rss_story BOOLEAN NULL DEFAULT false,
+    link_mine_error         TEXT    NULL,
 
     PRIMARY KEY (topic_stories_id, topics_id)
 );
@@ -1608,10 +1608,10 @@ CREATE INDEX topic_stories_topics_id
 -- topic links for which the http request failed
 CREATE TABLE topic_dead_links
 (
-    topic_dead_links_id BIGSERIAL NOT NULL,
-    topics_id           BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-    stories_id          BIGINT    NULL,
-    url                 TEXT      NOT NULL,
+    topic_dead_links_id BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY,
+    topics_id           BIGINT NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
+    stories_id          BIGINT NULL,
+    url                 TEXT   NOT NULL,
 
     PRIMARY KEY (topic_dead_links_id, topics_id)
 );
@@ -1621,16 +1621,16 @@ SELECT create_distributed_table('topic_dead_links', 'topics_id');
 
 CREATE TABLE topic_links
 (
-    topic_links_id BIGSERIAL NOT NULL,
-    topics_id      BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-    stories_id     BIGINT    NOT NULL,
-    url            TEXT      NOT NULL,
-    redirect_url   TEXT      NULL,
+    topic_links_id BIGINT  NOT NULL GENERATED ALWAYS AS IDENTITY,
+    topics_id      BIGINT  NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
+    stories_id     BIGINT  NOT NULL,
+    url            TEXT    NOT NULL,
+    redirect_url   TEXT    NULL,
 
     -- FIXME foreign key
-    ref_stories_id BIGINT    NULL,
+    ref_stories_id BIGINT  NULL,
 
-    link_spidered  BOOLEAN   NULL DEFAULT 'f',
+    link_spidered  BOOLEAN NULL DEFAULT 'f',
 
     PRIMARY KEY (topic_links_id, topics_id),
 
@@ -1675,7 +1675,7 @@ WHERE cl.ref_stories_id != cl.stories_id
 
 CREATE TABLE topic_fetch_urls
 (
-    topic_fetch_urls_id BIGSERIAL NOT NULL,
+    topic_fetch_urls_id BIGINT    NOT NULL GENERATED ALWAYS AS IDENTITY,
     topics_id           BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
     url                 TEXT      NOT NULL,
     code                INT       NULL,
@@ -1712,7 +1712,7 @@ CREATE INDEX topic_fetch_urls_topic_links_id ON topic_fetch_urls (topic_links_id
 
 CREATE TABLE topic_ignore_redirects
 (
-    topic_ignore_redirects_id BIGSERIAL PRIMARY KEY,
+    topic_ignore_redirects_id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     url                       TEXT NULL
 );
 
@@ -1731,7 +1731,7 @@ CREATE TYPE bot_policy_type AS ENUM (
 
 CREATE TABLE snapshots
 (
-    snapshots_id  BIGSERIAL       NOT NULL,
+    snapshots_id  BIGINT          NOT NULL GENERATED ALWAYS AS IDENTITY,
     topics_id     BIGINT          NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
     snapshot_date TIMESTAMP       NOT NULL,
     start_date    TIMESTAMP       NOT NULL,
@@ -1766,7 +1766,7 @@ CREATE TYPE focal_technique_type AS ENUM (
 
 CREATE TABLE focal_set_definitions
 (
-    focal_set_definitions_id BIGSERIAL            NOT NULL,
+    focal_set_definitions_id BIGINT               NOT NULL GENERATED ALWAYS AS IDENTITY,
     topics_id                BIGINT               NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
     name                     TEXT                 NOT NULL,
     description              TEXT                 NULL,
@@ -1783,12 +1783,12 @@ CREATE UNIQUE INDEX focal_set_definitions_topics_id_name
 
 CREATE TABLE focus_definitions
 (
-    focus_definitions_id     BIGSERIAL NOT NULL,
-    topics_id                BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-    focal_set_definitions_id BIGINT    NOT NULL,
-    name                     TEXT      NOT NULL,
-    description              TEXT      NULL,
-    arguments                JSONB     NOT NULL,
+    focus_definitions_id     BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY,
+    topics_id                BIGINT NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
+    focal_set_definitions_id BIGINT NOT NULL,
+    name                     TEXT   NOT NULL,
+    description              TEXT   NULL,
+    arguments                JSONB  NOT NULL,
 
     PRIMARY KEY (focus_definitions_id, topics_id),
 
@@ -1805,7 +1805,7 @@ CREATE UNIQUE INDEX focus_definition_topics_id_focal_set_definitions_id_name
 
 CREATE TABLE focal_sets
 (
-    focal_sets_id   BIGSERIAL            NOT NULL,
+    focal_sets_id   BIGINT               NOT NULL GENERATED ALWAYS AS IDENTITY,
     topics_id       BIGINT               NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
     snapshots_id    BIGINT               NOT NULL,
     name            TEXT                 NOT NULL,
@@ -1825,12 +1825,12 @@ CREATE UNIQUE INDEX focal_set_topics_id_snapshots_id_name
 
 CREATE TABLE foci
 (
-    foci_id       BIGSERIAL NOT NULL,
-    topics_id     BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-    focal_sets_id BIGINT    NOT NULL,
-    name          TEXT      NOT NULL,
-    description   TEXT      NULL,
-    arguments     JSONB     NOT NULL,
+    foci_id       BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY,
+    topics_id     BIGINT NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
+    focal_sets_id BIGINT NOT NULL,
+    name          TEXT   NOT NULL,
+    description   TEXT   NULL,
+    arguments     JSONB  NOT NULL,
 
     PRIMARY KEY (foci_id, topics_id),
 
@@ -1848,7 +1848,7 @@ CREATE UNIQUE INDEX foci_topics_id_focal_sets_id_name
 -- individual timespans within a snapshot
 CREATE TABLE timespans
 (
-    timespans_id         BIGSERIAL        NOT NULL,
+    timespans_id         BIGINT           NOT NULL GENERATED ALWAYS AS IDENTITY,
 
     topics_id            BIGINT           NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
 
@@ -1903,13 +1903,13 @@ CREATE UNIQUE INDEX timespans_unique
 
 CREATE TABLE timespan_maps
 (
-    timespan_maps_id BIGSERIAL NOT NULL,
-    topics_id        BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-    timespans_id     BIGINT    NOT NULL,
-    options          JSONB     NOT NULL,
-    content          BYTEA     NULL,
-    url              TEXT      NULL,
-    format           TEXT      NOT NULL,
+    timespan_maps_id BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY,
+    topics_id        BIGINT NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
+    timespans_id     BIGINT NOT NULL,
+    options          JSONB  NOT NULL,
+    content          BYTEA  NULL,
+    url              TEXT   NULL,
+    format           TEXT   NOT NULL,
 
     PRIMARY KEY (timespan_maps_id, topics_id),
 
@@ -1925,11 +1925,11 @@ CREATE INDEX timespan_maps_topics_id_timespans_id ON timespan_maps (topics_id, t
 
 CREATE TABLE timespan_files
 (
-    timespan_files_id BIGSERIAL NOT NULL,
-    topics_id         BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-    timespans_id      BIGINT    NOT NULL,
-    name              TEXT      NULL,
-    url               TEXT      NULL,
+    timespan_files_id BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY,
+    topics_id         BIGINT NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
+    timespans_id      BIGINT NOT NULL,
+    name              TEXT   NULL,
+    url               TEXT   NULL,
 
     PRIMARY KEY (timespan_files_id, topics_id),
 
@@ -1946,11 +1946,11 @@ CREATE UNIQUE INDEX timespan_files_topics_id_timespans_id_name
 
 CREATE TABLE snapshot_files
 (
-    snapshot_files_id BIGSERIAL NOT NULL,
-    topics_id         BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-    snapshots_id      BIGINT    NOT NULL,
-    name              TEXT      NULL,
-    url               TEXT      NULL,
+    snapshot_files_id BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY,
+    topics_id         BIGINT NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
+    snapshots_id      BIGINT NOT NULL,
+    name              TEXT   NULL,
+    url               TEXT   NULL,
 
     PRIMARY KEY (snapshot_files_id, topics_id),
 
@@ -2003,7 +2003,7 @@ CREATE INDEX snap_stories_snapshots_id_stories_id ON snap.stories (snapshots_id,
 -- stats for various externally dervied statistics about a story.
 CREATE TABLE story_statistics
 (
-    story_statistics_id       BIGSERIAL NOT NULL,
+    story_statistics_id       BIGINT    NOT NULL GENERATED ALWAYS AS IDENTITY,
     stories_id                BIGINT    NOT NULL REFERENCES stories (stories_id) ON DELETE CASCADE,
 
     facebook_share_count      BIGINT    NULL,
@@ -2023,7 +2023,7 @@ CREATE UNIQUE INDEX story_statistics_story ON story_statistics (stories_id);
 -- stats for deprecated Twitter share counts
 CREATE TABLE story_statistics_twitter
 (
-    story_statistics_twitter_id BIGSERIAL NOT NULL,
+    story_statistics_twitter_id BIGINT    NOT NULL GENERATED ALWAYS AS IDENTITY,
     stories_id                  BIGINT    NOT NULL REFERENCES stories (stories_id) ON DELETE CASCADE,
 
     twitter_url_tweet_count     BIGINT    NULL,
@@ -2040,16 +2040,16 @@ CREATE UNIQUE INDEX story_statistics_twitter_story on story_statistics_twitter (
 
 CREATE TABLE snap.topic_stories
 (
-    snap_topic_stories_id   BIGSERIAL NOT NULL,
-    topics_id               BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-    snapshots_id            BIGINT    NOT NULL,
-    topic_stories_id        BIGINT    NULL,
-    stories_id              BIGINT    NOT NULL,
-    link_mined              BOOLEAN   NULL,
-    iteration               BIGINT    NULL,
-    link_weight             REAL      NULL,
-    redirect_url            TEXT      NULL,
-    valid_foreign_rss_story BOOLEAN   NULL,
+    snap_topic_stories_id   BIGINT  NOT NULL GENERATED ALWAYS AS IDENTITY,
+    topics_id               BIGINT  NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
+    snapshots_id            BIGINT  NOT NULL,
+    topic_stories_id        BIGINT  NULL,
+    stories_id              BIGINT  NOT NULL,
+    link_mined              BOOLEAN NULL,
+    iteration               BIGINT  NULL,
+    link_weight             REAL    NULL,
+    redirect_url            TEXT    NULL,
+    valid_foreign_rss_story BOOLEAN NULL,
 
     PRIMARY KEY (snap_topic_stories_id, topics_id),
 
@@ -2066,13 +2066,13 @@ CREATE INDEX snap_topic_stories_snapshots_id_stories_id
 
 CREATE TABLE snap.topic_links_cross_media
 (
-    snap_topic_links_cross_media_id BIGSERIAL NOT NULL,
-    topics_id                       BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-    snapshots_id                    BIGINT    NOT NULL,
-    topic_links_id                  BIGINT    NULL,
-    stories_id                      BIGINT    NOT NULL,
-    url                             TEXT      NOT NULL,
-    ref_stories_id                  BIGINT    NULL,
+    snap_topic_links_cross_media_id BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY,
+    topics_id                       BIGINT NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
+    snapshots_id                    BIGINT NOT NULL,
+    topic_links_id                  BIGINT NULL,
+    stories_id                      BIGINT NOT NULL,
+    url                             TEXT   NOT NULL,
+    ref_stories_id                  BIGINT NULL,
 
     PRIMARY KEY (snap_topic_links_cross_media_id, topics_id),
 
@@ -2095,12 +2095,12 @@ CREATE INDEX snap_topic_links_cross_media_snapshots_id_ref_stories_id
 
 CREATE TABLE snap.topic_media_codes
 (
-    snap_topic_media_codes_id BIGSERIAL NOT NULL,
-    topics_id                 BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-    snapshots_id              BIGINT    NOT NULL,
-    media_id                  BIGINT    NOT NULL,
-    code_type                 TEXT      NULL,
-    code                      TEXT      NULL,
+    snap_topic_media_codes_id BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY,
+    topics_id                 BIGINT NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
+    snapshots_id              BIGINT NOT NULL,
+    media_id                  BIGINT NOT NULL,
+    code_type                 TEXT   NULL,
+    code                      TEXT   NULL,
 
     PRIMARY KEY (snap_topic_media_codes_id, topics_id),
 
@@ -2117,16 +2117,16 @@ CREATE INDEX snap_topic_media_codes_snapshots_id_media_id
 
 CREATE TABLE snap.media
 (
-    snap_media_id     BIGSERIAL NOT NULL,
-    topics_id         BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-    snapshots_id      BIGINT    NOT NULL,
-    media_id          BIGINT    NULL,
-    url               TEXT      NOT NULL,
-    name              TEXT      NOT NULL,
-    full_text_rss     BOOLEAN   NULL,
-    foreign_rss_links BOOLEAN   NOT NULL DEFAULT 'f',
-    dup_media_id      BIGINT    NULL,
-    is_not_dup        BOOLEAN   NULL,
+    snap_media_id     BIGINT  NOT NULL GENERATED ALWAYS AS IDENTITY,
+    topics_id         BIGINT  NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
+    snapshots_id      BIGINT  NOT NULL,
+    media_id          BIGINT  NULL,
+    url               TEXT    NOT NULL,
+    name              TEXT    NOT NULL,
+    full_text_rss     BOOLEAN NULL,
+    foreign_rss_links BOOLEAN NOT NULL DEFAULT 'f',
+    dup_media_id      BIGINT  NULL,
+    is_not_dup        BOOLEAN NULL,
 
     PRIMARY KEY (snap_media_id, topics_id),
 
@@ -2143,12 +2143,12 @@ CREATE INDEX snap_media_snapshots_id_media_id
 
 CREATE TABLE snap.media_tags_map
 (
-    snap_media_tags_map_id BIGSERIAL NOT NULL,
-    topics_id              BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-    snapshots_id           BIGINT    NOT NULL,
-    media_tags_map_id      BIGINT    NULL,
-    media_id               BIGINT    NOT NULL,
-    tags_id                BIGINT    NOT NULL,
+    snap_media_tags_map_id BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY,
+    topics_id              BIGINT NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
+    snapshots_id           BIGINT NOT NULL,
+    media_tags_map_id      BIGINT NULL,
+    media_id               BIGINT NOT NULL,
+    tags_id                BIGINT NOT NULL,
 
     PRIMARY KEY (snap_media_tags_map_id, topics_id),
 
@@ -2168,12 +2168,12 @@ CREATE INDEX snap_media_tags_map_snapshots_id_tags_id
 
 CREATE TABLE snap.stories_tags_map
 (
-    snap_stories_tags_map BIGSERIAL NOT NULL,
-    topics_id             BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-    snapshots_id          BIGINT    NOT NULL,
-    stories_tags_map_id   BIGINT    NULL,
-    stories_id            BIGINT    NULL,
-    tags_id               BIGINT    NULL,
+    snap_stories_tags_map BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY,
+    topics_id             BIGINT NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
+    snapshots_id          BIGINT NOT NULL,
+    stories_tags_map_id   BIGINT NULL,
+    stories_id            BIGINT NULL,
+    tags_id               BIGINT NULL,
 
     PRIMARY KEY (snap_stories_tags_map, topics_id),
 
@@ -2194,11 +2194,11 @@ CREATE INDEX snap_stories_tags_map_snapshots_id_tags_id
 -- story -> story links within a timespan
 CREATE TABLE snap.story_links
 (
-    snap_story_links_id BIGSERIAL NOT NULL,
-    topics_id           BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-    timespans_id        BIGINT    NOT NULL,
-    source_stories_id   BIGINT    NOT NULL,
-    ref_stories_id      BIGINT    NOT NULL,
+    snap_story_links_id BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY,
+    topics_id           BIGINT NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
+    timespans_id        BIGINT NOT NULL,
+    source_stories_id   BIGINT NOT NULL,
+    ref_stories_id      BIGINT NOT NULL,
 
     PRIMARY KEY (snap_story_links_id, topics_id),
 
@@ -2220,20 +2220,20 @@ CREATE INDEX snap_story_links_timespans_id_ref_stories_id
 -- link counts for stories within a timespan
 CREATE TABLE snap.story_link_counts
 (
-    snap_story_link_counts_id BIGSERIAL NOT NULL,
-    topics_id                 BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-    timespans_id              BIGINT    NOT NULL,
-    stories_id                BIGINT    NOT NULL,
+    snap_story_link_counts_id BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY,
+    topics_id                 BIGINT NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
+    timespans_id              BIGINT NOT NULL,
+    stories_id                BIGINT NOT NULL,
 
-    media_inlink_count        BIGINT    NOT NULL,
-    inlink_count              BIGINT    NOT NULL,
-    outlink_count             BIGINT    NOT NULL,
+    media_inlink_count        BIGINT NOT NULL,
+    inlink_count              BIGINT NOT NULL,
+    outlink_count             BIGINT NOT NULL,
 
-    facebook_share_count      BIGINT    NULL,
+    facebook_share_count      BIGINT NULL,
 
-    post_count                BIGINT    NULL,
-    author_count              BIGINT    NULL,
-    channel_count             BIGINT    NULL,
+    post_count                BIGINT NULL,
+    author_count              BIGINT NULL,
+    channel_count             BIGINT NULL,
 
     PRIMARY KEY (snap_story_link_counts_id, topics_id),
 
@@ -2267,22 +2267,22 @@ CREATE INDEX snap_story_link_counts_timespans_id_channel_count
 -- links counts for media within a timespan
 CREATE TABLE snap.medium_link_counts
 (
-    snap_medium_link_counts BIGSERIAL NOT NULL,
-    topics_id               BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-    timespans_id            BIGINT    NOT NULL,
-    media_id                BIGINT    NOT NULL,
+    snap_medium_link_counts BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY,
+    topics_id               BIGINT NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
+    timespans_id            BIGINT NOT NULL,
+    media_id                BIGINT NOT NULL,
 
-    sum_media_inlink_count  BIGINT    NOT NULL,
-    media_inlink_count      BIGINT    NOT NULL,
-    inlink_count            BIGINT    NOT NULL,
-    outlink_count           BIGINT    NOT NULL,
-    story_count             BIGINT    NOT NULL,
+    sum_media_inlink_count  BIGINT NOT NULL,
+    media_inlink_count      BIGINT NOT NULL,
+    inlink_count            BIGINT NOT NULL,
+    outlink_count           BIGINT NOT NULL,
+    story_count             BIGINT NOT NULL,
 
-    facebook_share_count    BIGINT    NULL,
+    facebook_share_count    BIGINT NULL,
 
-    sum_post_count          BIGINT    NULL,
-    sum_author_count        BIGINT    NULL,
-    sum_channel_count       BIGINT    NULL,
+    sum_post_count          BIGINT NULL,
+    sum_author_count        BIGINT NULL,
+    sum_channel_count       BIGINT NULL,
 
     PRIMARY KEY (snap_medium_link_counts, topics_id),
 
@@ -2312,12 +2312,12 @@ CREATE INDEX snap_medium_link_counts_timespans_id_sum_channel_count
 
 CREATE TABLE snap.medium_links
 (
-    snap_medium_links_id BIGSERIAL NOT NULL,
-    topics_id            BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-    timespans_id         BIGINT    NOT NULL,
-    source_media_id      BIGINT    NOT NULL,
-    ref_media_id         BIGINT    NOT NULL,
-    link_count           BIGINT    NOT NULL,
+    snap_medium_links_id BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY,
+    topics_id            BIGINT NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
+    timespans_id         BIGINT NOT NULL,
+    source_media_id      BIGINT NOT NULL,
+    ref_media_id         BIGINT NOT NULL,
+    link_count           BIGINT NOT NULL,
 
     PRIMARY KEY (snap_medium_links_id, topics_id),
 
@@ -2343,7 +2343,7 @@ CREATE INDEX snap_medium_links_timespans_id_ref_media_id
 -- TODO: probably get rid of it at some point as it's no longer so congested
 CREATE TABLE snap.live_stories
 (
-    snap_live_stories_id  BIGSERIAL  NOT NULL,
+    snap_live_stories_id  BIGINT     NOT NULL GENERATED ALWAYS AS IDENTITY,
     topics_id             BIGINT     NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
     topic_stories_id      BIGINT     NOT NULL,
 
@@ -2504,7 +2504,7 @@ SELECT run_command_on_shards('stories', $cmd$
 CREATE TABLE snap.word2vec_models
 (
     -- FIXME renamed
-    snap_word2vec_models_id BIGSERIAL NOT NULL,
+    snap_word2vec_models_id BIGINT    NOT NULL GENERATED ALWAYS AS IDENTITY,
 
     topics_id               BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
     object_id               BIGINT    NOT NULL,
@@ -2528,11 +2528,11 @@ CREATE INDEX snap_word2vec_models_object_id_creation_date
 CREATE TABLE snap.word2vec_models_data
 (
     -- FIXME renamed
-    snap_word2vec_models_data_id BIGSERIAL NOT NULL,
+    snap_word2vec_models_data_id BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY,
 
-    topics_id                    BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-    object_id                    BIGINT    NOT NULL,
-    raw_data                     BYTEA     NOT NULL,
+    topics_id                    BIGINT NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
+    object_id                    BIGINT NOT NULL,
+    raw_data                     BYTEA  NOT NULL,
 
     PRIMARY KEY (snap_word2vec_models_data_id, topics_id),
 
@@ -2549,8 +2549,8 @@ CREATE UNIQUE INDEX snap_word2vec_models_data_topics_id_object_id
 
 CREATE TABLE processed_stories
 (
-    processed_stories_id BIGSERIAL NOT NULL,
-    stories_id           BIGINT    NOT NULL REFERENCES stories (stories_id) ON DELETE CASCADE,
+    processed_stories_id BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY,
+    stories_id           BIGINT NOT NULL REFERENCES stories (stories_id) ON DELETE CASCADE,
 
     PRIMARY KEY (processed_stories_id, stories_id)
 );
@@ -2582,9 +2582,9 @@ SELECT run_command_on_shards('processed_stories', $cmd$
 -- list of stories that have been scraped and the source
 CREATE TABLE scraped_stories
 (
-    scraped_stories_id BIGSERIAL NOT NULL,
-    stories_id         BIGINT    NOT NULL REFERENCES stories (stories_id) ON DELETE CASCADE,
-    import_module      TEXT      NOT NULL,
+    scraped_stories_id BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY,
+    stories_id         BIGINT NOT NULL REFERENCES stories (stories_id) ON DELETE CASCADE,
+    import_module      TEXT   NOT NULL,
 
     PRIMARY KEY (scraped_stories_id, stories_id)
 );
@@ -2598,7 +2598,7 @@ CREATE INDEX scraped_stories_stories_id ON scraped_stories (stories_id);
 -- the module used for scraping
 CREATE TABLE scraped_feeds
 (
-    scraped_feeds_id BIGSERIAL PRIMARY KEY,
+    scraped_feeds_id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     feeds_id         BIGINT    NOT NULL REFERENCES feeds (feeds_id) ON DELETE CASCADE,
     scrape_date      TIMESTAMP NOT NULL DEFAULT NOW(),
     import_module    TEXT      NOT NULL
@@ -2661,7 +2661,7 @@ FROM (
 -- noinspection SqlResolve @ object-type/"CITEXT"
 CREATE TABLE auth_users
 (
-    auth_users_id                   BIGSERIAL PRIMARY KEY,
+    auth_users_id                   BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
 
     -- Emails are case-insensitive
     email                           CITEXT    NOT NULL,
@@ -2719,7 +2719,7 @@ $$;
 
 CREATE TABLE auth_user_api_keys
 (
-    auth_user_api_keys_id BIGSERIAL PRIMARY KEY,
+    auth_user_api_keys_id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     auth_users_id         BIGINT      NOT NULL REFERENCES auth_users (auth_users_id) ON DELETE CASCADE,
 
     -- API key
@@ -2796,7 +2796,7 @@ CREATE UNIQUE INDEX auth_roles_role ON auth_roles (role);
 -- Map of user IDs and roles that are allowed to each of the user
 CREATE TABLE auth_users_roles_map
 (
-    auth_users_roles_map_id BIGSERIAL PRIMARY KEY,
+    auth_users_roles_map_id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     auth_users_id           BIGINT NOT NULL
         REFERENCES auth_users (auth_users_id) ON DELETE CASCADE ON UPDATE CASCADE DEFERRABLE,
     auth_roles_id           BIGINT NOT NULL
@@ -2828,20 +2828,20 @@ VALUES ('admin', 'Do everything, including editing users.'),
 CREATE TABLE auth_user_request_daily_counts
 (
 
-    auth_user_request_daily_counts_id BIGSERIAL NOT NULL,
+    auth_user_request_daily_counts_id BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY,
 
     -- User's email (does *not* reference auth_users.email because the user
     -- might be deleted)
-    email                             CITEXT    NOT NULL,
+    email                             CITEXT NOT NULL,
 
     -- Day (request timestamp, date_truncated to a day)
-    day                               DATE      NOT NULL,
+    day                               DATE   NOT NULL,
 
     -- Number of requests
-    requests_count                    BIGINT    NOT NULL,
+    requests_count                    BIGINT NOT NULL,
 
     -- Number of requested items
-    requested_items_count             BIGINT    NOT NULL,
+    requested_items_count             BIGINT NOT NULL,
 
     PRIMARY KEY (auth_user_request_daily_counts_id, email)
 
@@ -2858,7 +2858,7 @@ CREATE UNIQUE INDEX auth_user_request_daily_counts_email_day
 -- User limits for logged + throttled controller actions
 CREATE TABLE auth_user_limits
 (
-    auth_user_limits_id          BIGSERIAL PRIMARY KEY,
+    auth_user_limits_id          BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
 
     auth_users_id                BIGINT NOT NULL REFERENCES auth_users (auth_users_id)
         ON DELETE CASCADE ON UPDATE CASCADE DEFERRABLE,
@@ -2937,7 +2937,7 @@ $$ LANGUAGE SQL;
 
 CREATE TABLE auth_users_tag_sets_permissions
 (
-    auth_users_tag_sets_permissions_id BIGSERIAL PRIMARY KEY,
+    auth_users_tag_sets_permissions_id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     auth_users_id                      BIGINT  NOT NULL REFERENCES auth_users (auth_users_id) ON DELETE CASCADE,
     tag_sets_id                        BIGINT  NOT NULL REFERENCES tag_sets (tag_sets_id),
     apply_tags                         BOOLEAN NOT NULL,
@@ -2966,7 +2966,7 @@ CREATE INDEX auth_users_tag_sets_permissions_tag_sets
 -- noinspection SqlResolve @ object-type/"CITEXT"
 CREATE TABLE activities
 (
-    activities_id    BIGSERIAL PRIMARY KEY,
+    activities_id    BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
 
     -- Activity's name (e.g. "tm_snapshot_topic")
     name             TEXT      NOT NULL
@@ -3286,7 +3286,7 @@ $$ LANGUAGE 'plpgsql';
 -- implements link_id as documented in the topics api spec
 CREATE TABLE api_links
 (
-    api_links_id     BIGSERIAL PRIMARY KEY,
+    api_links_id     BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     path             TEXT   NOT NULL,
     params_json      TEXT   NOT NULL,
     next_link_id     BIGINT NULL
@@ -3327,7 +3327,7 @@ FROM timespans
 -- keep track of performance of the topic spider
 CREATE TABLE topic_spider_metrics
 (
-    topic_spider_metrics_id BIGSERIAL NOT NULL,
+    topic_spider_metrics_id BIGINT    NOT NULL GENERATED ALWAYS AS IDENTITY,
     topics_id               BIGINT REFERENCES topics (topics_id) ON DELETE CASCADE,
     iteration               BIGINT    NOT NULL,
     links_processed         BIGINT    NOT NULL,
@@ -3351,7 +3351,7 @@ CREATE TYPE topic_permission AS ENUM (
 -- per user permissions for topics
 CREATE TABLE topic_permissions
 (
-    topic_permissions_id BIGSERIAL        NOT NULL,
+    topic_permissions_id BIGINT           NOT NULL GENERATED ALWAYS AS IDENTITY,
     topics_id            BIGINT           NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
     auth_users_id        BIGINT           NOT NULL,
     permission           topic_permission NOT NULL,
@@ -3417,13 +3417,13 @@ FROM topics AS t
 -- list of tweet counts and fetching statuses for each day of each topic
 CREATE TABLE topic_post_days
 (
-    topic_post_days_id    BIGSERIAL NOT NULL,
-    topics_id             BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-    topic_seed_queries_id BIGINT    NOT NULL,
-    day                   DATE      NOT NULL,
-    num_posts_stored      BIGINT    NOT NULL,
-    num_posts_fetched     BIGINT    NOT NULL,
-    posts_fetched         BOOLEAN   NOT NULL DEFAULT 'f',
+    topic_post_days_id    BIGINT  NOT NULL GENERATED ALWAYS AS IDENTITY,
+    topics_id             BIGINT  NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
+    topic_seed_queries_id BIGINT  NOT NULL,
+    day                   DATE    NOT NULL,
+    num_posts_stored      BIGINT  NOT NULL,
+    num_posts_fetched     BIGINT  NOT NULL,
+    posts_fetched         BOOLEAN NOT NULL DEFAULT 'f',
 
     PRIMARY KEY (topic_post_days_id, topics_id),
 
@@ -3441,7 +3441,7 @@ CREATE INDEX topic_post_days_topic_seed_queries_id_day
 -- list of posts associated with a given topic
 CREATE TABLE topic_posts
 (
-    topic_posts_id     BIGSERIAL NOT NULL,
+    topic_posts_id     BIGINT    NOT NULL GENERATED ALWAYS AS IDENTITY,
     topics_id          BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
     topic_post_days_id BIGINT    NOT NULL,
     data               JSONB     NOT NULL,
@@ -3474,10 +3474,10 @@ CREATE INDEX topic_posts_topic_post_days_id_channel
 -- urls parsed from topic tweets and imported into topic_seed_urls
 CREATE TABLE topic_post_urls
 (
-    topic_post_urls_id BIGSERIAL NOT NULL,
-    topics_id          BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-    topic_posts_id     BIGINT    NOT NULL,
-    url                TEXT      NOT NULL,
+    topic_post_urls_id BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY,
+    topics_id          BIGINT NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
+    topic_posts_id     BIGINT NOT NULL,
+    url                TEXT   NOT NULL,
 
     PRIMARY KEY (topic_post_urls_id, topics_id),
 
@@ -3497,22 +3497,22 @@ CREATE UNIQUE INDEX topic_post_urls_topics_id_topic_posts_id_url
 
 CREATE TABLE topic_seed_urls
 (
-    topic_seed_urls_id    BIGSERIAL NOT NULL,
-    topics_id             BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-    url                   TEXT      NULL,
-    source                TEXT      NULL,
+    topic_seed_urls_id    BIGINT  NOT NULL GENERATED ALWAYS AS IDENTITY,
+    topics_id             BIGINT  NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
+    url                   TEXT    NULL,
+    source                TEXT    NULL,
 
     -- FIXME foreign key
-    stories_id            BIGINT    NULL,
+    stories_id            BIGINT  NULL,
 
-    processed             BOOLEAN   NOT NULL DEFAULT 'f',
-    assume_match          BOOLEAN   NOT NULL DEFAULT 'f',
-    content               TEXT      NULL,
-    guid                  TEXT      NULL,
-    title                 TEXT      NULL,
-    publish_date          TEXT      NULL,
-    topic_seed_queries_id BIGINT    NULL,
-    topic_post_urls_id    BIGINT    NULL,
+    processed             BOOLEAN NOT NULL DEFAULT 'f',
+    assume_match          BOOLEAN NOT NULL DEFAULT 'f',
+    content               TEXT    NULL,
+    guid                  TEXT    NULL,
+    title                 TEXT    NULL,
+    publish_date          TEXT    NULL,
+    topic_seed_queries_id BIGINT  NULL,
+    topic_post_urls_id    BIGINT  NULL,
 
     PRIMARY KEY (topic_seed_urls_id, topics_id),
 
@@ -3568,10 +3568,10 @@ FROM topic_seed_queries AS tsq
 
 CREATE TABLE snap.timespan_posts
 (
-    snap_timespan_posts_id BIGSERIAL NOT NULL,
-    topics_id              BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-    topic_posts_id         BIGINT    NOT NULL,
-    timespans_id           BIGINT    NOT NULL,
+    snap_timespan_posts_id BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY,
+    topics_id              BIGINT NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
+    topic_posts_id         BIGINT NOT NULL,
+    timespans_id           BIGINT NOT NULL,
 
     PRIMARY KEY (snap_timespan_posts_id, topics_id),
 
@@ -3592,13 +3592,13 @@ CREATE UNIQUE INDEX snap_timespan_posts_topics_id_timespans_id_topic_posts_id
 
 CREATE TABLE media_stats_weekly
 (
-    media_stats_weekly_id BIGSERIAL NOT NULL,
-    media_id              BIGINT    NOT NULL REFERENCES media (media_id) ON DELETE CASCADE,
-    stories_rank          BIGINT    NOT NULL,
-    num_stories           NUMERIC   NOT NULL,
-    sentences_rank        BIGINT    NOT NULL,
-    num_sentences         NUMERIC   NOT NULL,
-    stat_week             DATE      NOT NULL,
+    media_stats_weekly_id BIGINT  NOT NULL GENERATED ALWAYS AS IDENTITY,
+    media_id              BIGINT  NOT NULL REFERENCES media (media_id) ON DELETE CASCADE,
+    stories_rank          BIGINT  NOT NULL,
+    num_stories           NUMERIC NOT NULL,
+    sentences_rank        BIGINT  NOT NULL,
+    num_sentences         NUMERIC NOT NULL,
+    stat_week             DATE    NOT NULL,
 
     PRIMARY KEY (media_stats_weekly_id, media_id)
 );
@@ -3610,12 +3610,12 @@ CREATE INDEX media_stats_weekly_media_id ON media_stats_weekly (media_id);
 
 CREATE TABLE media_expected_volume
 (
-    media_expected_volume_id BIGSERIAL NOT NULL,
-    media_id                 BIGINT    NOT NULL REFERENCES media (media_id) ON DELETE CASCADE,
-    start_date               DATE      NOT NULL,
-    end_date                 DATE      NOT NULL,
-    expected_stories         NUMERIC   NOT NULL,
-    expected_sentences       NUMERIC   NOT NULL,
+    media_expected_volume_id BIGINT  NOT NULL GENERATED ALWAYS AS IDENTITY,
+    media_id                 BIGINT  NOT NULL REFERENCES media (media_id) ON DELETE CASCADE,
+    start_date               DATE    NOT NULL,
+    end_date                 DATE    NOT NULL,
+    expected_stories         NUMERIC NOT NULL,
+    expected_sentences       NUMERIC NOT NULL,
 
     PRIMARY KEY (media_expected_volume_id, media_id)
 );
@@ -3627,13 +3627,13 @@ CREATE INDEX media_expected_volume_media_id ON media_expected_volume (media_id);
 
 CREATE TABLE media_coverage_gaps
 (
-    media_coverage_gaps_id BIGSERIAL NOT NULL,
-    media_id               BIGINT    NOT NULL REFERENCES media (media_id) ON DELETE CASCADE,
-    stat_week              DATE      NOT NULL,
-    num_stories            NUMERIC   NOT NULL,
-    expected_stories       NUMERIC   NOT NULL,
-    num_sentences          NUMERIC   NOT NULL,
-    expected_sentences     NUMERIC   NOT NULL,
+    media_coverage_gaps_id BIGINT  NOT NULL GENERATED ALWAYS AS IDENTITY,
+    media_id               BIGINT  NOT NULL REFERENCES media (media_id) ON DELETE CASCADE,
+    stat_week              DATE    NOT NULL,
+    num_stories            NUMERIC NOT NULL,
+    expected_stories       NUMERIC NOT NULL,
+    num_sentences          NUMERIC NOT NULL,
+    expected_sentences     NUMERIC NOT NULL,
 
     PRIMARY KEY (media_coverage_gaps_id, media_id)
 );
@@ -3645,23 +3645,23 @@ CREATE INDEX media_coverage_gaps_media_id ON media_coverage_gaps (media_id);
 
 CREATE TABLE media_health
 (
-    media_health_id    BIGSERIAL NOT NULL,
-    media_id           BIGINT    NOT NULL REFERENCES media (media_id) ON DELETE CASCADE,
-    num_stories        NUMERIC   NOT NULL,
-    num_stories_y      NUMERIC   NOT NULL,
-    num_stories_w      NUMERIC   NOT NULL,
-    num_stories_90     NUMERIC   NOT NULL,
-    num_sentences      NUMERIC   NOT NULL,
-    num_sentences_y    NUMERIC   NOT NULL,
-    num_sentences_w    NUMERIC   NOT NULL,
-    num_sentences_90   NUMERIC   NOT NULL,
-    is_healthy         BOOLEAN   NOT NULL DEFAULT 'f',
-    has_active_feed    BOOLEAN   NOT NULL DEFAULT 't',
-    start_date         DATE      NOT NULL,
-    end_date           DATE      NOT NULL,
-    expected_sentences NUMERIC   NOT NULL,
-    expected_stories   NUMERIC   NOT NULL,
-    coverage_gaps      BIGINT    NOT NULL,
+    media_health_id    BIGINT  NOT NULL GENERATED ALWAYS AS IDENTITY,
+    media_id           BIGINT  NOT NULL REFERENCES media (media_id) ON DELETE CASCADE,
+    num_stories        NUMERIC NOT NULL,
+    num_stories_y      NUMERIC NOT NULL,
+    num_stories_w      NUMERIC NOT NULL,
+    num_stories_90     NUMERIC NOT NULL,
+    num_sentences      NUMERIC NOT NULL,
+    num_sentences_y    NUMERIC NOT NULL,
+    num_sentences_w    NUMERIC NOT NULL,
+    num_sentences_90   NUMERIC NOT NULL,
+    is_healthy         BOOLEAN NOT NULL DEFAULT 'f',
+    has_active_feed    BOOLEAN NOT NULL DEFAULT 't',
+    start_date         DATE    NOT NULL,
+    end_date           DATE    NOT NULL,
+    expected_sentences NUMERIC NOT NULL,
+    expected_stories   NUMERIC NOT NULL,
+    coverage_gaps      BIGINT  NOT NULL,
 
     PRIMARY KEY (media_health_id, media_id)
 );
@@ -3679,7 +3679,7 @@ CREATE TYPE media_suggestions_status AS ENUM (
 
 CREATE TABLE media_suggestions
 (
-    media_suggestions_id BIGSERIAL PRIMARY KEY,
+    media_suggestions_id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     name                 TEXT                     NULL,
     url                  TEXT                     NOT NULL,
     feed_url             TEXT                     NULL,
@@ -3704,7 +3704,7 @@ CREATE INDEX media_suggestions_date ON media_suggestions (date_submitted);
 
 CREATE TABLE media_suggestions_tags_map
 (
-    media_suggestions_tags_map_id BIGSERIAL PRIMARY KEY,
+    media_suggestions_tags_map_id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     media_suggestions_id          BIGINT REFERENCES media_suggestions (media_suggestions_id) ON DELETE CASCADE,
     tags_id                       BIGINT REFERENCES tags (tags_id) ON DELETE CASCADE
 );
@@ -3721,7 +3721,7 @@ CREATE INDEX media_suggestions_tags_map_tags_id
 -- keep track of basic high level stats for mediacloud for access through api
 CREATE TABLE mediacloud_stats
 (
-    mediacloud_stats_id  BIGSERIAL PRIMARY KEY,
+    mediacloud_stats_id  BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     stats_date           DATE   NOT NULL DEFAULT NOW(),
     daily_downloads      BIGINT NOT NULL,
     daily_stories        BIGINT NOT NULL,
@@ -3738,7 +3738,7 @@ CREATE TABLE mediacloud_stats
 -- job states as implemented in mediawords.job.StatefulJobBroker
 CREATE TABLE job_states
 (
-    job_states_id BIGSERIAL NOT NULL,
+    job_states_id BIGINT    NOT NULL GENERATED ALWAYS AS IDENTITY,
 
     --MediaWords::Job::* class implementing the job
     class         TEXT      NOT NULL,
@@ -3783,7 +3783,7 @@ CREATE TYPE retweeter_scores_match_type AS ENUM (
 -- definition of bipolar comparisons for retweeter polarization scores
 CREATE TABLE retweeter_scores
 (
-    retweeter_scores_id BIGSERIAL                   NOT NULL,
+    retweeter_scores_id BIGINT                      NOT NULL GENERATED ALWAYS AS IDENTITY,
     topics_id           BIGINT                      NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
     group_a_id          BIGINT                      NULL,
     group_b_id          BIGINT                      NULL,
@@ -3802,10 +3802,10 @@ SELECT create_distributed_table('retweeter_scores', 'topics_id');
 -- group retweeters together so that we an compare, for example, sanders/warren retweeters to cruz/kasich retweeters
 CREATE TABLE retweeter_groups
 (
-    retweeter_groups_id BIGSERIAL NOT NULL,
-    topics_id           BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-    retweeter_scores_id BIGINT    NOT NULL,
-    name                TEXT      NOT NULL,
+    retweeter_groups_id BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY,
+    topics_id           BIGINT NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
+    retweeter_scores_id BIGINT NOT NULL,
+    name                TEXT   NOT NULL,
 
     PRIMARY KEY (retweeter_groups_id, topics_id),
 
@@ -3832,11 +3832,11 @@ ALTER TABLE retweeter_scores
 -- list of twitter users within a given topic that have retweeted the given user
 CREATE TABLE retweeters
 (
-    retweeters_id       BIGSERIAL NOT NULL,
-    topics_id           BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-    retweeter_scores_id BIGINT    NOT NULL,
-    twitter_user        TEXT      NOT NULL,
-    retweeted_user      TEXT      NOT NULL,
+    retweeters_id       BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY,
+    topics_id           BIGINT NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
+    retweeter_scores_id BIGINT NOT NULL,
+    twitter_user        TEXT   NOT NULL,
+    retweeted_user      TEXT   NOT NULL,
 
     PRIMARY KEY (retweeters_id, topics_id),
 
@@ -3853,11 +3853,11 @@ CREATE UNIQUE INDEX retweeters_user
 
 CREATE TABLE retweeter_groups_users_map
 (
-    retweeter_groups_users_map_id BIGSERIAL NOT NULL,
-    topics_id                     BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-    retweeter_groups_id           BIGINT    NOT NULL,
-    retweeter_scores_id           BIGINT    NOT NULL,
-    retweeted_user                TEXT      NOT NULL,
+    retweeter_groups_users_map_id BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY,
+    topics_id                     BIGINT NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
+    retweeter_groups_id           BIGINT NOT NULL,
+    retweeter_scores_id           BIGINT NOT NULL,
+    retweeted_user                TEXT   NOT NULL,
 
     PRIMARY KEY (retweeter_groups_users_map_id, topics_id),
 
@@ -3876,14 +3876,14 @@ SELECT create_distributed_table('retweeter_groups_users_map', 'topics_id');
 -- count of shares by retweeters for each retweeted_user in retweeters
 CREATE TABLE retweeter_stories
 (
-    retweeter_stories_id BIGSERIAL NOT NULL,
-    topics_id            BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-    retweeter_scores_id  BIGINT    NOT NULL,
+    retweeter_stories_id BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY,
+    topics_id            BIGINT NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
+    retweeter_scores_id  BIGINT NOT NULL,
 
     -- FIXME foreign key
-    stories_id           BIGINT    NOT NULL,
-    retweeted_user       TEXT      NOT NULL,
-    share_count          BIGINT    NOT NULL,
+    stories_id           BIGINT NOT NULL,
+    retweeted_user       TEXT   NOT NULL,
+    share_count          BIGINT NOT NULL,
 
     PRIMARY KEY (retweeter_stories_id, topics_id),
 
@@ -3901,15 +3901,15 @@ CREATE UNIQUE INDEX retweeter_stories_psu
 -- polarization scores for media within a topic for the given retweeter_scoresdefinition
 CREATE TABLE retweeter_media
 (
-    retweeter_media_id  BIGSERIAL NOT NULL,
-    topics_id           BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-    retweeter_scores_id BIGINT    NOT NULL,
-    media_id            BIGINT    NOT NULL,
-    group_a_count       BIGINT    NOT NULL,
-    group_b_count       BIGINT    NOT NULL,
-    group_a_count_n     FLOAT     NOT NULL,
-    score               FLOAT     NOT NULL,
-    partition           BIGint    not null,
+    retweeter_media_id  BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY,
+    topics_id           BIGINT NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
+    retweeter_scores_id BIGINT NOT NULL,
+    media_id            BIGINT NOT NULL,
+    group_a_count       BIGINT NOT NULL,
+    group_b_count       BIGINT NOT NULL,
+    group_a_count_n     FLOAT  NOT NULL,
+    score               FLOAT  NOT NULL,
+    partition           BIGint not null,
 
     PRIMARY KEY (retweeter_media_id, topics_id),
 
@@ -3930,14 +3930,14 @@ CREATE UNIQUE INDEX retweeter_media_topics_id_retweeter_scores_id_media_id
 
 CREATE TABLE retweeter_partition_matrix
 (
-    retweeter_partition_matrix_id BIGserial NOT NULL,
-    topics_id                     BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-    retweeter_scores_id           BIGINT    NOT NULL,
-    retweeter_groups_id           BIGINT    NOT NULL,
-    group_name                    TEXT      NOT NULL,
-    share_count                   BIGINT    NOT NULL,
-    group_proportion              FLOAT     NOT NULL,
-    partition                     BIGINT    NOT NULL,
+    retweeter_partition_matrix_id BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY,
+    topics_id                     BIGINT NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
+    retweeter_scores_id           BIGINT NOT NULL,
+    retweeter_groups_id           BIGINT NOT NULL,
+    group_name                    TEXT   NOT NULL,
+    share_count                   BIGINT NOT NULL,
+    group_proportion              FLOAT  NOT NULL,
+    partition                     BIGINT NOT NULL,
 
     PRIMARY KEY (retweeter_partition_matrix_id, topics_id),
 
@@ -4013,7 +4013,7 @@ SELECT run_command_on_shards('cache.s3_raw_downloads_cache', $cmd$
 --
 CREATE UNLOGGED TABLE cache.s3_raw_downloads_cache
 (
-    cache_s3_raw_downloads_cache_id BIGSERIAL                NOT NULL,
+    cache_s3_raw_downloads_cache_id BIGINT                   NOT NULL GENERATED ALWAYS AS IDENTITY,
 
     object_id                       BIGINT                   NOT NULL
         REFERENCES downloads_success (downloads_id) ON DELETE CASCADE,
@@ -4059,7 +4059,7 @@ SELECT run_command_on_shards('cache.s3_raw_downloads_cache', $cmd$
 --
 CREATE UNLOGGED TABLE cache.extractor_results_cache
 (
-    cache_extractor_results_cache_id BIGSERIAL                NOT NULL,
+    cache_extractor_results_cache_id BIGINT                   NOT NULL GENERATED ALWAYS AS IDENTITY,
     downloads_id                     BIGINT                   NOT NULL
         REFERENCES downloads_success (downloads_id) ON DELETE CASCADE,
     extracted_html                   TEXT                     NULL,
@@ -4104,7 +4104,7 @@ SELECT run_command_on_shards('cache.extractor_results_cache', $cmd$
 -- key because we want it just to be a fast table for temporary storage.
 CREATE UNLOGGED TABLE domain_web_requests
 (
-    domain_web_requests_id BIGSERIAL NOT NULL,
+    domain_web_requests_id BIGINT    NOT NULL GENERATED ALWAYS AS IDENTITY,
     domain                 TEXT      NOT NULL,
     request_time           TIMESTAMP NOT NULL DEFAULT NOW(),
 
@@ -4169,7 +4169,7 @@ CREATE TYPE media_sitemap_pages_change_frequency AS ENUM (
 -- Pages derived from XML sitemaps (stories or not)
 CREATE TABLE media_sitemap_pages
 (
-    media_sitemap_pages_id BIGSERIAL                            NOT NULL,
+    media_sitemap_pages_id BIGINT                               NOT NULL GENERATED ALWAYS AS IDENTITY,
     media_id               BIGINT                               NOT NULL REFERENCES media (media_id) ON DELETE CASCADE,
 
     -- <loc> -- URL of the page
@@ -4217,7 +4217,7 @@ CREATE UNIQUE INDEX media_sitemap_pages_media_id_url
 --
 CREATE TABLE similarweb_domains
 (
-    similarweb_domains_id BIGSERIAL PRIMARY KEY,
+    similarweb_domains_id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
 
     -- Top-level (e.g. cnn.com) or second-level (e.g. edition.cnn.com) domain
     domain                TEXT NOT NULL
@@ -4239,7 +4239,7 @@ CREATE UNIQUE INDEX similarweb_domains_domain
 --
 CREATE TABLE media_similarweb_domains_map
 (
-    media_similarweb_domains_map_id BIGSERIAL PRIMARY KEY,
+    media_similarweb_domains_map_id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
 
     media_id                        BIGINT NOT NULL REFERENCES media (media_id) ON DELETE CASCADE,
     similarweb_domains_id           BIGINT NOT NULL
@@ -4259,7 +4259,7 @@ CREATE UNIQUE INDEX media_similarweb_domains_map_media_id_sdi
 --
 CREATE TABLE similarweb_estimated_visits
 (
-    similarweb_estimated_visits_id BIGSERIAL PRIMARY KEY,
+    similarweb_estimated_visits_id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
 
     -- Domain for which the stats were fetched
     similarweb_domains_id          BIGINT  NOT NULL
@@ -4287,21 +4287,21 @@ CREATE UNIQUE INDEX similarweb_estimated_visits_domain_month_mdo
 -- noinspection SqlResolve
 CREATE TABLE story_enclosures
 (
-    story_enclosures_id BIGSERIAL NOT NULL,
-    stories_id          BIGINT    NOT NULL REFERENCES stories (stories_id) ON DELETE CASCADE,
+    story_enclosures_id BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY,
+    stories_id          BIGINT NOT NULL REFERENCES stories (stories_id) ON DELETE CASCADE,
 
     -- Podcast enclosure URL
-    url                 TEXT      NOT NULL,
+    url                 TEXT   NOT NULL,
 
     -- RSS spec says that enclosure's "length" and "type" are required too but
     -- I guess some podcasts don't care that much about specs so both are
     -- allowed to be NULL:
 
     -- MIME type as reported by <enclosure />
-    mime_type           CITEXT    NULL,
+    mime_type           CITEXT NULL,
 
     -- Length in bytes as reported by <enclosure />
-    length              BIGINT    NULL,
+    length              BIGINT NULL,
 
     PRIMARY KEY (story_enclosures_id, stories_id)
 );
