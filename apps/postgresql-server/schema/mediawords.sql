@@ -23,6 +23,7 @@
 -- FIXME shard "tags"
 -- FIXME replace JSON with JSONB
 -- FIXME one can add a foreign key to a reference table after creating distributed table
+-- FIXME triggers have to be recreated on newly added workers
 
 
 -- main schema
