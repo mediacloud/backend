@@ -2409,7 +2409,7 @@ SELECT run_command_on_shards('topic_stories', $cmd$
     -- parallel on the same host
     SELECT pg_advisory_lock(-12345);
 
-    CREATE FUNCTION insert_live_story() RETURNS TRIGGER AS
+    CREATE OR REPLACE FUNCTION insert_live_story() RETURNS TRIGGER AS
     $$
 
     BEGIN
