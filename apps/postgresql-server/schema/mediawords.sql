@@ -2780,14 +2780,17 @@ SELECT run_command_on_shards('auth_users', $cmd$
 -- List of roles the users can perform
 CREATE TABLE auth_roles
 (
-    auth_roles_id BIGSERIAL PRIMARY KEY,
-    role          TEXT UNIQUE NOT NULL
-        CONSTRAINT role_name_can_not_contain_spaces CHECK (role NOT LIKE '% %'),
-    description   TEXT        NOT NULL
+    auth_roles_id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    role          TEXT NOT NULL,
+    description   TEXT NOT NULL,
+
+    CHECK (role NOT LIKE '% %')
 );
 
 -- noinspection SqlResolve @ routine/"create_reference_table"
 SELECT create_reference_table('auth_roles');
+
+CREATE UNIQUE INDEX auth_roles_role ON auth_roles (role);
 
 
 -- Map of user IDs and roles that are allowed to each of the user
@@ -2857,7 +2860,7 @@ CREATE TABLE auth_user_limits
 (
     auth_user_limits_id          BIGSERIAL PRIMARY KEY,
 
-    auth_users_id                BIGINT NOT NULL UNIQUE REFERENCES auth_users (auth_users_id)
+    auth_users_id                BIGINT NOT NULL REFERENCES auth_users (auth_users_id)
         ON DELETE CASCADE ON UPDATE CASCADE DEFERRABLE,
 
     -- Request limit (0 or belonging to 'admin' / 'admin-readonly' group = no
