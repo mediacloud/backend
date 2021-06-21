@@ -36,11 +36,7 @@ RUN \
         /opt/postgresql-server/migrations/ \
         /opt/postgresql-server/pgmigrate-callbacks/ \
     && \
-    true
-
-RUN \
-    chown postgres: /opt/postgresql-server/schema && \ 
-    chmod u+w /opt/postgresql-server/schema && \
+    chmod ugo+rw /opt/postgresql-server/schema && \
     true
 
 COPY bin/* /opt/postgresql-server/bin/
