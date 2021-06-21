@@ -3993,28 +3993,6 @@ $$
     LANGUAGE plpgsql;
 
 
--- noinspection SqlResolve @ routine/"run_command_on_shards"
-SELECT run_command_on_shards('cache.s3_raw_downloads_cache', $cmd$
-
-    -- Database doesn't seem to like it when we CREATE OR REPLACE functions in
-    -- parallel on the same host
-    SELECT pg_advisory_lock(-12345);
-
-    -- Trigger to update "db_row_last_updated" for cache tables
-    CREATE OR REPLACE FUNCTION cache.update_cache_db_row_last_updated()
-        RETURNS TRIGGER AS
-    $$
-    BEGIN
-        NEW.db_row_last_updated = NOW();
-        RETURN NEW;
-    END;
-    $$ LANGUAGE 'plpgsql';
-
-    SELECT pg_advisory_unlock(-12345);
-
-    $cmd$);
-
-
 --
 -- Raw downloads from S3 cache
 --
@@ -4041,6 +4019,28 @@ CREATE UNIQUE INDEX cache_s3_raw_downloads_cache_object_id
 
 CREATE INDEX cache_s3_raw_downloads_cache_db_row_last_updated
     ON cache.s3_raw_downloads_cache (db_row_last_updated);
+
+
+-- noinspection SqlResolve @ routine/"run_command_on_shards"
+SELECT run_command_on_shards('cache.s3_raw_downloads_cache', $cmd$
+
+    -- Database doesn't seem to like it when we CREATE OR REPLACE functions in
+    -- parallel on the same host
+    SELECT pg_advisory_lock(-12345);
+
+    -- Trigger to update "db_row_last_updated" for cache tables
+    CREATE OR REPLACE FUNCTION cache.update_cache_db_row_last_updated()
+        RETURNS TRIGGER AS
+    $$
+    BEGIN
+        NEW.db_row_last_updated = NOW();
+        RETURN NEW;
+    END;
+    $$ LANGUAGE 'plpgsql';
+
+    SELECT pg_advisory_unlock(-12345);
+
+    $cmd$);
 
 
 -- noinspection SqlResolve @ routine/"run_command_on_shards"
