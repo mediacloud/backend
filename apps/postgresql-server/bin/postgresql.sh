@@ -19,7 +19,8 @@ else
     echo "Done applying schema migrations."
 fi
 
-# dump schema file for reference in development (run ./dev/get_schema.sh to get local copy)
+# dump schema file for reference in development (run ./dev/get_schema.sh 
+# project root to get local copy)
 pg_dump mediacloud > /opt/postgresql-server/schema/mediawords.sql
 
 # Start PostgreSQL

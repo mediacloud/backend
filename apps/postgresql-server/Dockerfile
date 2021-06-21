@@ -32,7 +32,7 @@ RUN \
 RUN \
     mkdir -p \
         /opt/postgresql-server/bin/ \
-        /opt/postgresql-server/schema/ \
+        # /opt/postgresql-server/schema/ \
         /opt/postgresql-server/migrations/ \
         /opt/postgresql-server/pgmigrate-callbacks/ \
     # && \
