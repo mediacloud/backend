@@ -2786,7 +2786,7 @@ SELECT run_command_on_shards('auth_users', $cmd$
 -- List of roles the users can perform
 CREATE TABLE auth_roles
 (
-    auth_roles_id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    auth_roles_id BIGSERIAL PRIMARY KEY,
     role          TEXT NOT NULL,
     description   TEXT NOT NULL,
 
