@@ -189,3 +189,9 @@ jobs:
           MC_TWITTER_ACCESS_TOKEN_SECRET: ${{ secrets.MC_TWITTER_ACCESS_TOKEN_SECRET }}
           MC_TWITTER_CONSUMER_KEY: ${{ secrets.MC_TWITTER_CONSUMER_KEY }}
           MC_TWITTER_CONSUMER_SECRET: ${{ secrets.MC_TWITTER_CONSUMER_SECRET }}
+
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+        if: always()
+        with:
+          limit-access-to-actor: true        
