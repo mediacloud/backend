@@ -5,7 +5,8 @@
 --
 
 -- FIXME echo "shared_preload_libraries = 'citus'" >> citus/postgresql.conf
--- FIXME connection count limit: https://docs.citusdata.com/en/v10.0/admin_guide/cluster_management.html#real-time-analytics-use-case
+-- FIXME connection count limit:
+--  https://docs.citusdata.com/en/v10.0/admin_guide/cluster_management.html#real-time-analytics-use-case
 -- FIXME SELECT … FOR UPDATE not supported
 -- FIXME Grouping sets not supported
 -- FIXME https://github.com/citusdata/citus_docs/issues/66
@@ -46,10 +47,12 @@ SET citus.shard_count = 128;
 -- Database properties (variables) table
 CREATE TABLE database_variables
 (
-    database_variables_id SERIAL PRIMARY KEY,
-    name                  VARCHAR(512)  NOT NULL UNIQUE,
-    value                 VARCHAR(1024) NOT NULL
+    database_variables_id BIGSERIAL PRIMARY KEY,
+    name                  TEXT NOT NULL UNIQUE,
+    value                 TEXT NOT NULL
 );
+
+-- Not distributed, not reference (used to copy to from "downloads" and generally small)
 
 CREATE UNIQUE INDEX database_variables_name ON database_variables (name);
 
@@ -69,8 +72,7 @@ BEGIN
     return true;
 
 END;
-$$
-    LANGUAGE 'plpgsql';
+$$ LANGUAGE 'plpgsql';
 
 
 -- Set the version number right away
@@ -79,8 +81,7 @@ SELECT set_database_schema_version();
 -- This function is needed because date_trunc('week', date) is not consider immutable
 -- See http://www.mentby.com/Group/pgsql-general/datetrunc-on-date-is-immutable.html
 --
-CREATE OR REPLACE FUNCTION week_start_date(day date)
-    RETURNS date AS
+CREATE OR REPLACE FUNCTION week_start_date(day date) RETURNS date AS
 $$
 DECLARE
     date_trunc_result date;
@@ -88,16 +89,15 @@ BEGIN
     date_trunc_result := date_trunc('week', day::timestamp);
     RETURN date_trunc_result;
 END;
-$$
-    LANGUAGE 'plpgsql' IMMUTABLE
-                       COST 10;
+$$ LANGUAGE 'plpgsql' IMMUTABLE
+                      COST 10;
 
 
 -- Returns first 64 bits (16 characters) of MD5 hash
 --
 -- Useful for reducing index sizes (e.g. in story_sentences.sentence) where
 -- 64 bits of entropy is enough.
-CREATE OR REPLACE FUNCTION half_md5(string TEXT) RETURNS bytea AS
+CREATE OR REPLACE FUNCTION half_md5(string TEXT) RETURNS BYTEA AS
 $$
     -- pgcrypto's functions are being referred with public schema prefix to make pg_upgrade work
     -- noinspection SqlResolve @ routine/"digest"
@@ -133,8 +133,7 @@ BEGIN
         );
 
 END;
-$$
-    LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql;
 
 
 
@@ -202,31 +201,29 @@ CREATE INDEX media_rescraping_last_rescrape_time ON media_rescraping (last_rescr
 
 -- Insert new rows to "media_rescraping" for each new row in "media"
 -- noinspection SqlResolve @ routine/"run_command_on_shards"
-SELECT run_command_on_shards(
-               'media',
-               $cmd$
+SELECT run_command_on_shards('media', $cmd$
 
-        -- Database doesn't seem to like it when we CREATE OR REPLACE functions in parallel on the same host
-        SELECT pg_advisory_lock(-12345);
+    -- Database doesn't seem to like it when we CREATE OR REPLACE functions in
+    -- parallel on the same host
+    SELECT pg_advisory_lock(-12345);
 
-        CREATE OR REPLACE FUNCTION media_rescraping_add_initial_state_trigger() RETURNS trigger AS
-        $$
-            BEGIN
-                INSERT INTO media_rescraping (media_id, disable, last_rescrape_time)
-                VALUES (NEW.media_id, 'f', NULL);
-                RETURN NEW;
-           END;
-        $$
-        LANGUAGE plpgsql;
+    CREATE OR REPLACE FUNCTION media_rescraping_add_initial_state_trigger() RETURNS trigger AS
+    $$
+        BEGIN
+            INSERT INTO media_rescraping (media_id, disable, last_rescrape_time)
+            VALUES (NEW.media_id, 'f', NULL);
+            RETURN NEW;
+       END;
+    $$
+    LANGUAGE plpgsql;
 
-        CREATE TRIGGER media_rescraping_add_initial_state_trigger
-            AFTER INSERT ON %s
-            FOR EACH ROW EXECUTE PROCEDURE media_rescraping_add_initial_state_trigger();
+    CREATE TRIGGER media_rescraping_add_initial_state_trigger
+        AFTER INSERT ON %s
+        FOR EACH ROW EXECUTE PROCEDURE media_rescraping_add_initial_state_trigger();
 
-        SELECT pg_advisory_unlock(-12345);
+    SELECT pg_advisory_unlock(-12345);
 
-    $cmd$
-           );
+    $cmd$);
 
 
 CREATE TABLE media_stats
@@ -277,8 +274,7 @@ BEGIN
     END IF;
 
 END;
-$$
-    LANGUAGE 'plpgsql';
+$$ LANGUAGE 'plpgsql';
 
 
 CREATE TYPE feed_type AS ENUM (
@@ -395,8 +391,7 @@ BEGIN
     END IF;
 
 END;
-$$
-    LANGUAGE 'plpgsql';
+$$ LANGUAGE 'plpgsql';
 
 
 CREATE TABLE tag_sets
@@ -593,206 +588,195 @@ CREATE INDEX stories_normalized_title_hash ON stories (media_id, normalized_titl
 
 
 -- noinspection SqlResolve @ routine/"run_command_on_shards"
-SELECT run_command_on_shards(
-               'stories',
-               $cmd$
+SELECT run_command_on_shards('stories', $cmd$
 
-        -- Database doesn't seem to like it when we CREATE OR REPLACE functions in parallel on the same host
-        SELECT pg_advisory_lock(-12345);
+    -- Database doesn't seem to like it when we CREATE OR REPLACE functions in
+    -- parallel on the same host
+    SELECT pg_advisory_lock(-12345);
 
-        -- get normalized story title by breaking the title into parts by the separator characters :-| and  using
-        -- the longest single part.  longest part must be at least 32 characters cannot be the same as the media source
-        -- name.  also remove all html, punctuation and repeated spaces, lowecase, and limit to 1024 characters.
-        CREATE OR REPLACE FUNCTION get_normalized_title(title TEXT, title_media_id BIGINT)
-        RETURNS TEXT IMMUTABLE AS $$
+    -- get normalized story title by breaking the title into parts by the separator characters :-| and  using
+    -- the longest single part.  longest part must be at least 32 characters cannot be the same as the media source
+    -- name.  also remove all html, punctuation and repeated spaces, lowecase, and limit to 1024 characters.
+    CREATE OR REPLACE FUNCTION get_normalized_title(title TEXT, title_media_id BIGINT)
+    RETURNS TEXT IMMUTABLE AS $$
 
-        DECLARE
-            title_part TEXT;
-            media_title TEXT;
+    DECLARE
+        title_part TEXT;
+        media_title TEXT;
 
-        BEGIN
+    BEGIN
 
-            -- Stupid simple html stripper to avoid html messing up title_parts
-            SELECT INTO title REGEXP_REPLACE(title, '<[^\<]*>', '', 'gi');
-            SELECT INTO title REGEXP_REPLACE(title, '\&#?[a-z0-9]*', '', 'gi');
+        -- Stupid simple html stripper to avoid html messing up title_parts
+        SELECT INTO title REGEXP_REPLACE(title, '<[^\<]*>', '', 'gi');
+        SELECT INTO title REGEXP_REPLACE(title, '\&#?[a-z0-9]*', '', 'gi');
 
-            SELECT INTO title LOWER(title);
-            SELECT INTO title REGEXP_REPLACE(title,'(?:\- )|[:|]', 'SEPSEP', 'g');
-            SELECT INTO title REGEXP_REPLACE(title, '[[:punct:]]', '', 'g');
-            SELECT INTO title REGEXP_REPLACE(title, '\s+', ' ', 'g');
-            SELECT INTO title SUBSTR(title, 0, 1024);
+        SELECT INTO title LOWER(title);
+        SELECT INTO title REGEXP_REPLACE(title,'(?:\- )|[:|]', 'SEPSEP', 'g');
+        SELECT INTO title REGEXP_REPLACE(title, '[[:punct:]]', '', 'g');
+        SELECT INTO title REGEXP_REPLACE(title, '\s+', ' ', 'g');
+        SELECT INTO title SUBSTR(title, 0, 1024);
 
-            IF title_media_id = 0 THEN
-                RETURN title;
-            END IF;
+        IF title_media_id = 0 THEN
+            RETURN title;
+        END IF;
 
-            SELECT INTO title_part
-                part
-            FROM (SELECT REGEXP_SPLIT_TO_TABLE(title, ' *SEPSEP *') AS part ) AS parts
-            ORDER BY LENGTH(part) DESC
-            LIMIT 1;
+        SELECT INTO title_part
+            part
+        FROM (SELECT REGEXP_SPLIT_TO_TABLE(title, ' *SEPSEP *') AS part ) AS parts
+        ORDER BY LENGTH(part) DESC
+        LIMIT 1;
 
-            IF title_part = title THEN
-                RETURN title;
-            END IF;
+        IF title_part = title THEN
+            RETURN title;
+        END IF;
 
-            IF length(title_part) < 32 THEN
-                RETURN title;
-            END IF;
+        IF length(title_part) < 32 THEN
+            RETURN title;
+        END IF;
 
-            SELECT INTO media_title
-                get_normalized_title(name, 0)
-            FROM media
-            WHERE media_id = title_media_id;
+        SELECT INTO media_title
+            get_normalized_title(name, 0)
+        FROM media
+        WHERE media_id = title_media_id;
 
-            IF media_title = title_part THEN
-                RETURN title;
-            END IF;
+        IF media_title = title_part THEN
+            RETURN title;
+        END IF;
 
-            RETURN title_part;
+        RETURN title_part;
 
-        END
-        $$ LANGUAGE plpgsql;
+    END
+    $$ LANGUAGE plpgsql;
 
-        CREATE OR REPLACE FUNCTION add_normalized_title_hash() RETURNS TRIGGER AS $$
-        BEGIN
+    CREATE OR REPLACE FUNCTION add_normalized_title_hash() RETURNS TRIGGER AS $$
+    BEGIN
 
-            IF (TG_OP = 'update') THEN
-                IF (OLD.title = NEW.title) THEN
-                    RETURN NEW;
-                END IF;
-            END IF;
-
-            SELECT INTO NEW.normalized_title_hash
-                MD5(get_normalized_title( NEW.title, NEW.media_id ))::uuid;
-            
-            RETURN NEW;
-
-        END
-
-        $$ LANGUAGE plpgsql;
-
-
-        CREATE TRIGGER stories_add_normalized_title
-            BEFORE INSERT OR UPDATE
-            ON %s
-            FOR EACH ROW
-            EXECUTE PROCEDURE add_normalized_title_hash();
-
-        SELECT pg_advisory_unlock(-12345);
-
-    $cmd$
-           );
-
-
--- noinspection SqlResolve @ routine/"run_command_on_shards"
-SELECT run_command_on_shards(
-               'stories',
-               $cmd$
-
-        -- Database doesn't seem to like it when we CREATE OR REPLACE functions in parallel on the same host
-        SELECT pg_advisory_lock(-12345);
-
-
-        -- Given that the unique index on (guid, media_id) is going to be valid only
-        -- per shard, add a trigger that will check for uniqueness after each INSERT.
-        -- We add the trigger after migrating a chunk of stories first to increase
-        -- performance of the copy.
-        CREATE OR REPLACE FUNCTION stories_ensure_unique_guid() RETURNS trigger AS $$
-
-        DECLARE
-            guid_row_count INT;
-
-        BEGIN
-
-            SELECT COUNT(*)
-            FROM stories
-            INTO guid_row_count
-            WHERE media_id = NEW.media_id
-              AND guid = NEW.guid;
-
-            IF guid_row_count > 1 THEN
-
-                -- The exception has to mention 'unique constraint "stories_guid'
-                -- because add_story() is expecting it
-                RAISE EXCEPTION 'Duplicate (media_id, guid); unique constraint "stories_guid"';
-
-            END IF;
-
-            -- "INSERT ... RETURNING *" kind of works with this trigger, i.e. one can
-            -- get the INSERTed "stories_id" but not, for example,
-            -- "normalized_title_hash" as it's a column computed by a AFTER trigger
-            RETURN NEW;
-
-        END;
-        $$ LANGUAGE plpgsql;
-
-
-        CREATE TRIGGER stories_ensure_unique_guid
-            AFTER INSERT ON %s
-            FOR EACH ROW
-            EXECUTE PROCEDURE stories_ensure_unique_guid();
-
-
-
-        SELECT pg_advisory_unlock(-12345);
-
-
-    $cmd$
-           );
-
-
--- noinspection SqlResolve @ routine/"run_command_on_shards"
-SELECT run_command_on_shards(
-               'stories',
-               $cmd$
-
-        -- Database doesn't seem to like it when we CREATE OR REPLACE functions in parallel on the same host
-        SELECT pg_advisory_lock(-12345);
-
-        CREATE OR REPLACE FUNCTION insert_solr_import_story() RETURNS TRIGGER AS $$
-
-        DECLARE
-
-            queue_stories_id BIGINT;
-
-        BEGIN
-
-            IF (TG_OP = 'UPDATE') OR (TG_OP = 'INSERT') THEN
-                SELECT NEW.stories_id INTO queue_stories_id;
-            ELSE
-                SELECT OLD.stories_id INTO queue_stories_id;
-            END IF;
-
-            INSERT INTO solr_import_stories (stories_id)
-                SELECT queue_stories_id
-                WHERE EXISTS (
-                    SELECT 1
-                    FROM processed_stories
-                    WHERE stories_id = queue_stories_id
-                );
-
-            IF (TG_OP = 'UPDATE') OR (TG_OP = 'INSERT') THEN
+        IF (TG_OP = 'update') THEN
+            IF (OLD.title = NEW.title) THEN
                 RETURN NEW;
-            ELSE
-                RETURN OLD;
             END IF;
+        END IF;
 
-        END;
+        SELECT INTO NEW.normalized_title_hash
+            MD5(get_normalized_title( NEW.title, NEW.media_id ))::uuid;
 
-        $$ LANGUAGE plpgsql;
+        RETURN NEW;
 
-        CREATE TRIGGER stories_insert_solr_import_story
-            AFTER INSERT OR UPDATE OR DELETE
-            ON %s
-            FOR EACH ROW
-            EXECUTE PROCEDURE insert_solr_import_story();
+    END
 
-        SELECT pg_advisory_unlock(-12345);
+    $$ LANGUAGE plpgsql;
 
-    $cmd$
-           );
 
+    CREATE TRIGGER stories_add_normalized_title
+        BEFORE INSERT OR UPDATE
+        ON %s
+        FOR EACH ROW
+        EXECUTE PROCEDURE add_normalized_title_hash();
+
+    SELECT pg_advisory_unlock(-12345);
+
+    $cmd$);
+
+
+-- noinspection SqlResolve @ routine/"run_command_on_shards"
+SELECT run_command_on_shards('stories', $cmd$
+
+    -- Database doesn't seem to like it when we CREATE OR REPLACE functions in
+    -- parallel on the same host
+    SELECT pg_advisory_lock(-12345);
+
+
+    -- Given that the unique index on (guid, media_id) is going to be valid only
+    -- per shard, add a trigger that will check for uniqueness after each INSERT.
+    -- We add the trigger after migrating a chunk of stories first to increase
+    -- performance of the copy.
+    CREATE OR REPLACE FUNCTION stories_ensure_unique_guid() RETURNS trigger AS $$
+
+    DECLARE
+        guid_row_count INT;
+
+    BEGIN
+
+        SELECT COUNT(*)
+        FROM stories
+        INTO guid_row_count
+        WHERE media_id = NEW.media_id
+          AND guid = NEW.guid;
+
+        IF guid_row_count > 1 THEN
+
+            -- The exception has to mention 'unique constraint "stories_guid'
+            -- because add_story() is expecting it
+            RAISE EXCEPTION 'Duplicate (media_id, guid); unique constraint "stories_guid"';
+
+        END IF;
+
+        -- "INSERT ... RETURNING *" kind of works with this trigger, i.e. one can
+        -- get the INSERTed "stories_id" but not, for example,
+        -- "normalized_title_hash" as it's a column computed by a AFTER trigger
+        RETURN NEW;
+
+    END;
+    $$ LANGUAGE plpgsql;
+
+    CREATE TRIGGER stories_ensure_unique_guid
+        AFTER INSERT ON %s
+        FOR EACH ROW
+        EXECUTE PROCEDURE stories_ensure_unique_guid();
+
+    SELECT pg_advisory_unlock(-12345);
+
+    $cmd$);
+
+
+-- noinspection SqlResolve @ routine/"run_command_on_shards"
+SELECT run_command_on_shards('stories', $cmd$
+
+    -- Database doesn't seem to like it when we CREATE OR REPLACE functions in
+    -- parallel on the same host
+    SELECT pg_advisory_lock(-12345);
+
+    CREATE OR REPLACE FUNCTION insert_solr_import_story() RETURNS TRIGGER AS $$
+
+    DECLARE
+
+        queue_stories_id BIGINT;
+
+    BEGIN
+
+        IF (TG_OP = 'UPDATE') OR (TG_OP = 'INSERT') THEN
+            SELECT NEW.stories_id INTO queue_stories_id;
+        ELSE
+            SELECT OLD.stories_id INTO queue_stories_id;
+        END IF;
+
+        INSERT INTO solr_import_stories (stories_id)
+            SELECT queue_stories_id
+            WHERE EXISTS (
+                SELECT 1
+                FROM processed_stories
+                WHERE stories_id = queue_stories_id
+            );
+
+        IF (TG_OP = 'UPDATE') OR (TG_OP = 'INSERT') THEN
+            RETURN NEW;
+        ELSE
+            RETURN OLD;
+        END IF;
+
+    END;
+
+    $$ LANGUAGE plpgsql;
+
+    CREATE TRIGGER stories_insert_solr_import_story
+        AFTER INSERT OR UPDATE OR DELETE
+        ON %s
+        FOR EACH ROW
+        EXECUTE PROCEDURE insert_solr_import_story();
+
+    SELECT pg_advisory_unlock(-12345);
+
+    $cmd$);
 
 
 CREATE TABLE stories_ap_syndicated
@@ -823,7 +807,6 @@ SELECT create_distributed_table('story_urls', 'stories_id');
 
 CREATE UNIQUE INDEX story_urls_url ON story_urls (url, stories_id);
 CREATE INDEX stories_story ON story_urls (stories_id);
-
 
 
 --
@@ -1077,7 +1060,6 @@ CREATE UNIQUE INDEX stories_tags_map_stories_id_tags_id
     ON stories_tags_map (stories_id, tags_id);
 
 
-
 CREATE TABLE queued_downloads
 (
     queued_downloads_id BIGSERIAL PRIMARY KEY,
@@ -1184,7 +1166,6 @@ CREATE INDEX story_sentences_sentence_media_week
     ON story_sentences (half_md5(sentence), media_id, week_start_date(publish_date::date));
 
 
-
 CREATE TABLE solr_imports
 (
     solr_imports_id BIGSERIAL PRIMARY KEY,
@@ -1227,7 +1208,6 @@ CREATE INDEX solr_imported_stories_story
     ON solr_imported_stories (stories_id);
 CREATE INDEX solr_imported_stories_day
     ON solr_imported_stories (date_trunc('day', import_date));
-
 
 
 CREATE TYPE topics_job_queue_type AS ENUM (
@@ -1393,93 +1373,88 @@ CREATE INDEX topics_media_type_tag_set ON topics (media_type_tag_sets_id);
 
 
 -- noinspection SqlResolve @ routine/"run_command_on_shards"
-SELECT run_command_on_shards(
-               'topics',
-               $cmd$
+SELECT run_command_on_shards('topics', $cmd$
 
-        -- Database doesn't seem to like it when we CREATE OR REPLACE functions in parallel on the same host
-        SELECT pg_advisory_lock(-12345);
+    -- Database doesn't seem to like it when we CREATE OR REPLACE functions in
+    -- parallel on the same host
+    SELECT pg_advisory_lock(-12345);
 
 
-        -- Given that the unique index on (guid, media_id) is going to be valid only
-        -- per shard, add a trigger that will check for uniqueness after each INSERT.
-        -- We add the trigger after migrating a chunk of stories first to increase
-        -- performance of the copy.
-        CREATE OR REPLACE FUNCTION topics_ensure_unique_name() RETURNS trigger AS $$
+    -- Given that the unique index on (guid, media_id) is going to be valid only
+    -- per shard, add a trigger that will check for uniqueness after each INSERT.
+    -- We add the trigger after migrating a chunk of stories first to increase
+    -- performance of the copy.
+    CREATE OR REPLACE FUNCTION topics_ensure_unique_name() RETURNS trigger AS $$
 
-        DECLARE
-            name_row_count INT;
+    DECLARE
+        name_row_count INT;
 
-        BEGIN
+    BEGIN
 
-            SELECT COUNT(*)
-            FROM topics
-            INTO name_row_count
-            WHERE name = NEW.name;
+        SELECT COUNT(*)
+        FROM topics
+        INTO name_row_count
+        WHERE name = NEW.name;
 
-            IF name_row_count > 1 THEN
-                RAISE EXCEPTION 'Duplicate topic name';
-            END IF;
+        IF name_row_count > 1 THEN
+            RAISE EXCEPTION 'Duplicate topic name';
+        END IF;
 
-            RETURN NEW;
+        RETURN NEW;
 
-        END;
-        $$ LANGUAGE plpgsql;
+    END;
+    $$ LANGUAGE plpgsql;
 
-        CREATE TRIGGER topics_ensure_unique_name
-            AFTER INSERT ON %s
-            FOR EACH ROW
-            EXECUTE PROCEDURE topics_ensure_unique_name();
+    CREATE TRIGGER topics_ensure_unique_name
+        AFTER INSERT ON %s
+        FOR EACH ROW
+        EXECUTE PROCEDURE topics_ensure_unique_name();
 
-        SELECT pg_advisory_unlock(-12345);
+    SELECT pg_advisory_unlock(-12345);
 
-    $cmd$
-           );
+    $cmd$);
 
 
 -- noinspection SqlResolve @ routine/"run_command_on_shards"
-SELECT run_command_on_shards(
-               'topics',
-               $cmd$
+SELECT run_command_on_shards('topics', $cmd$
 
-        -- Database doesn't seem to like it when we CREATE OR REPLACE functions in parallel on the same host
-        SELECT pg_advisory_lock(-12345);
+    -- Database doesn't seem to like it when we CREATE OR REPLACE functions in
+    -- parallel on the same host
+    SELECT pg_advisory_lock(-12345);
 
-        -- Given that the unique index on (guid, media_id) is going to be valid only
-        -- per shard, add a trigger that will check for uniqueness after each INSERT.
-        -- We add the trigger after migrating a chunk of stories first to increase
-        -- performance of the copy.
-        CREATE OR REPLACE FUNCTION topics_ensure_unique_media_type_tag_sets_id() RETURNS trigger AS $$
+    -- Given that the unique index on (guid, media_id) is going to be valid only
+    -- per shard, add a trigger that will check for uniqueness after each INSERT.
+    -- We add the trigger after migrating a chunk of stories first to increase
+    -- performance of the copy.
+    CREATE OR REPLACE FUNCTION topics_ensure_unique_media_type_tag_sets_id() RETURNS trigger AS $$
 
-        DECLARE
-            media_type_tag_sets_id_row_count INT;
+    DECLARE
+        media_type_tag_sets_id_row_count INT;
 
-        BEGIN
+    BEGIN
 
-            SELECT COUNT(*)
-            FROM topics
-            INTO media_type_tag_sets_id_row_count
-            WHERE media_type_tag_sets_id = NEW.media_type_tag_sets_id;
+        SELECT COUNT(*)
+        FROM topics
+        INTO media_type_tag_sets_id_row_count
+        WHERE media_type_tag_sets_id = NEW.media_type_tag_sets_id;
 
-            IF media_type_tag_sets_id_row_count > 1 THEN
-                RAISE EXCEPTION 'Duplicate topic media_type_tag_sets_id';
-            END IF;
+        IF media_type_tag_sets_id_row_count > 1 THEN
+            RAISE EXCEPTION 'Duplicate topic media_type_tag_sets_id';
+        END IF;
 
-            RETURN NEW;
+        RETURN NEW;
 
-        END;
-        $$ LANGUAGE plpgsql;
+    END;
+    $$ LANGUAGE plpgsql;
 
-        CREATE TRIGGER topics_ensure_unique_media_type_tag_sets_id
-            AFTER INSERT ON %s
-            FOR EACH ROW
-            EXECUTE PROCEDURE topics_ensure_unique_media_type_tag_sets_id();
+    CREATE TRIGGER topics_ensure_unique_media_type_tag_sets_id
+        AFTER INSERT ON %s
+        FOR EACH ROW
+        EXECUTE PROCEDURE topics_ensure_unique_media_type_tag_sets_id();
 
-        SELECT pg_advisory_unlock(-12345);
+    SELECT pg_advisory_unlock(-12345);
 
-    $cmd$
-           );
-
+    $cmd$);
 
 
 CREATE TABLE topic_seed_queries
@@ -1501,7 +1476,6 @@ CREATE TABLE topic_seed_queries
 SELECT create_distributed_table('topic_seed_queries', 'topics_id');
 
 CREATE INDEX topic_seed_queries_topic ON topic_seed_queries (topics_id);
-
 
 
 CREATE TABLE topic_dates
@@ -1583,6 +1557,7 @@ SELECT create_distributed_table('topic_merged_stories_map', 'source_stories_id')
 
 CREATE INDEX topic_merged_stories_map_source_stories_id
     ON topic_merged_stories_map (source_stories_id);
+
 CREATE INDEX topic_merged_stories_map_target_stories_id
     ON topic_merged_stories_map (target_stories_id);
 
@@ -1625,6 +1600,7 @@ SELECT create_distributed_table('topic_stories', 'topics_id');
 
 CREATE UNIQUE INDEX topic_stories_stories_id_topics_id
     ON topic_stories (stories_id, topics_id);
+
 CREATE INDEX topic_stories_topics_id
     ON topic_stories (topics_id);
 
@@ -1667,7 +1643,9 @@ SELECT create_distributed_table('topic_links', 'topics_id');
 
 CREATE UNIQUE INDEX topic_links_stories_id_topics_id_ref_stories_id
     ON topic_links (stories_id, topics_id, ref_stories_id);
+
 CREATE INDEX topic_links_topic ON topic_links (topics_id);
+
 CREATE INDEX topic_links_ref_story ON topic_links (ref_stories_id);
 
 
@@ -1730,7 +1708,6 @@ CREATE INDEX topic_fetch_urls_url on topic_fetch_urls USING HASH (url);
 CREATE INDEX topic_fetch_urls_url_md5 on topic_fetch_urls USING HASH (md5(url));
 
 CREATE INDEX topic_fetch_urls_topic_links_id ON topic_fetch_urls (topic_links_id);
-
 
 
 CREATE TABLE topic_ignore_redirects
@@ -2417,112 +2394,108 @@ CREATE INDEX snap_live_stories_topics_id_media_id_publish_day_ntitle_hash
 
 
 -- noinspection SqlResolve @ routine/"run_command_on_shards"
-SELECT run_command_on_shards(
-               'topic_stories',
-               $cmd$
+SELECT run_command_on_shards('topic_stories', $cmd$
 
-        -- Database doesn't seem to like it when we CREATE OR REPLACE functions in parallel on the same host
-        SELECT pg_advisory_lock(-12345);
+    -- Database doesn't seem to like it when we CREATE OR REPLACE functions in
+    -- parallel on the same host
+    SELECT pg_advisory_lock(-12345);
 
-        CREATE FUNCTION insert_live_story() RETURNS TRIGGER AS
-        $$
+    CREATE FUNCTION insert_live_story() RETURNS TRIGGER AS
+    $$
 
-        BEGIN
+    BEGIN
 
-            INSERT INTO snap.live_stories (
-                topics_id,
-                topic_stories_id,
-                stories_id,
-                media_id,
-                url,
-                guid,
-                title,
-                normalized_title_hash,
-                description,
-                publish_date,
-                collect_date,
-                full_text_rss,
-                language
-            )
-            SELECT
-                NEW.topics_id,
-                NEW.topic_stories_id,
-                NEW.stories_id,
-                s.media_id,
-                s.url,
-                s.guid,
-                s.title,
-                s.normalized_title_hash,
-                s.description,
-                s.publish_date,
-                s.collect_date,
-                s.full_text_rss,
-                s.language
-            FROM topic_stories AS cs
-                JOIN stories AS s
-                    ON cs.stories_id = s.stories_id
-            WHERE cs.stories_id = NEW.stories_id
-              AND cs.topics_id = NEW.topics_id;
+        INSERT INTO snap.live_stories (
+            topics_id,
+            topic_stories_id,
+            stories_id,
+            media_id,
+            url,
+            guid,
+            title,
+            normalized_title_hash,
+            description,
+            publish_date,
+            collect_date,
+            full_text_rss,
+            language
+        )
+        SELECT
+            NEW.topics_id,
+            NEW.topic_stories_id,
+            NEW.stories_id,
+            s.media_id,
+            s.url,
+            s.guid,
+            s.title,
+            s.normalized_title_hash,
+            s.description,
+            s.publish_date,
+            s.collect_date,
+            s.full_text_rss,
+            s.language
+        FROM topic_stories AS cs
+            JOIN stories AS s
+                ON cs.stories_id = s.stories_id
+        WHERE cs.stories_id = NEW.stories_id
+          AND cs.topics_id = NEW.topics_id;
 
-            RETURN NEW;
+        RETURN NEW;
 
-        END;
+    END;
 
-        $$ LANGUAGE plpgsql;
+    $$ LANGUAGE plpgsql;
 
-        CREATE TRIGGER topic_stories_insert_live_story
-            AFTER INSERT
-            ON %s
-            FOR EACH ROW
-            EXECUTE PROCEDURE insert_live_story();
+    CREATE TRIGGER topic_stories_insert_live_story
+        AFTER INSERT
+        ON %s
+        FOR EACH ROW
+        EXECUTE PROCEDURE insert_live_story();
 
-        SELECT pg_advisory_unlock(-12345);
+    SELECT pg_advisory_unlock(-12345);
 
-    $cmd$
-           );
+    $cmd$);
 
 
 -- noinspection SqlResolve @ routine/"run_command_on_shards"
-SELECT run_command_on_shards(
-               'stories',
-               $cmd$
+SELECT run_command_on_shards('stories', $cmd$
 
-        -- Database doesn't seem to like it when we CREATE OR REPLACE functions in parallel on the same host
-        SELECT pg_advisory_lock(-12345);
+    -- Database doesn't seem to like it when we CREATE OR REPLACE functions in
+    -- parallel on the same host
+    SELECT pg_advisory_lock(-12345);
 
-        CREATE OR REPLACE FUNCTION update_live_story() RETURNS TRIGGER AS $$
+    CREATE OR REPLACE FUNCTION update_live_story() RETURNS TRIGGER AS $$
 
-        BEGIN
+    BEGIN
 
-            UPDATE snap.live_stories
-            SET media_id              = NEW.media_id,
-                url                   = NEW.url,
-                guid                  = NEW.guid,
-                title                 = NEW.title,
-                normalized_title_hash = NEW.normalized_title_hash,
-                description           = NEW.description,
-                publish_date          = NEW.publish_date,
-                collect_date          = NEW.collect_date,
-                full_text_rss         = NEW.full_text_rss,
-                language              = NEW.language
-            WHERE stories_id = NEW.stories_id;
+        UPDATE snap.live_stories
+        SET media_id              = NEW.media_id,
+            url                   = NEW.url,
+            guid                  = NEW.guid,
+            title                 = NEW.title,
+            normalized_title_hash = NEW.normalized_title_hash,
+            description           = NEW.description,
+            publish_date          = NEW.publish_date,
+            collect_date          = NEW.collect_date,
+            full_text_rss         = NEW.full_text_rss,
+            language              = NEW.language
+        WHERE stories_id = NEW.stories_id;
 
-            RETURN NEW;
+        RETURN NEW;
 
-        END;
+    END;
 
-        $$ LANGUAGE plpgsql;
+    $$ LANGUAGE plpgsql;
 
-        CREATE TRIGGER stories_update_live_story
-            AFTER UPDATE
-            ON %s
-            FOR EACH ROW
-            EXECUTE PROCEDURE update_live_story();
+    CREATE TRIGGER stories_update_live_story
+        AFTER UPDATE
+        ON %s
+        FOR EACH ROW
+        EXECUTE PROCEDURE update_live_story();
 
-        SELECT pg_advisory_unlock(-12345);
+    SELECT pg_advisory_unlock(-12345);
 
-    $cmd$
-           );
+    $cmd$);
 
 
 --
@@ -2589,23 +2562,21 @@ CREATE INDEX processed_stories_stories_id
 
 
 -- noinspection SqlResolve @ routine/"run_command_on_shards"
-SELECT run_command_on_shards(
-               'processed_stories',
-               $cmd$
+SELECT run_command_on_shards('processed_stories', $cmd$
 
-        -- Database doesn't seem to like it when we CREATE OR REPLACE functions in parallel on the same host
-        SELECT pg_advisory_lock(-12345);
+    -- Database doesn't seem to like it when we CREATE OR REPLACE functions in
+    -- parallel on the same host
+    SELECT pg_advisory_lock(-12345);
 
-        CREATE TRIGGER processed_stories_insert_solr_import_story
-            AFTER INSERT OR UPDATE OR DELETE
-            ON %s
-            FOR EACH ROW
-            EXECUTE PROCEDURE insert_solr_import_story();
+    CREATE TRIGGER processed_stories_insert_solr_import_story
+        AFTER INSERT OR UPDATE OR DELETE
+        ON %s
+        FOR EACH ROW
+        EXECUTE PROCEDURE insert_solr_import_story();
 
-        SELECT pg_advisory_unlock(-12345);
+    SELECT pg_advisory_unlock(-12345);
 
-    $cmd$
-           );
+    $cmd$);
 
 
 -- list of stories that have been scraped and the source
@@ -2773,39 +2744,37 @@ CREATE UNIQUE INDEX auth_user_api_keys_api_key_ip_address
 
 
 -- noinspection SqlResolve @ routine/"run_command_on_shards"
-SELECT run_command_on_shards(
-               'auth_users',
-               $cmd$
+SELECT run_command_on_shards('auth_users', $cmd$
 
-        -- Database doesn't seem to like it when we CREATE OR REPLACE functions in parallel on the same host
-        SELECT pg_advisory_lock(-12345);
+    -- Database doesn't seem to like it when we CREATE OR REPLACE functions in
+    -- parallel on the same host
+    SELECT pg_advisory_lock(-12345);
 
-        -- Autogenerate non-IP limited API key
-        CREATE OR REPLACE FUNCTION auth_user_api_keys_add_non_ip_limited_api_key() RETURNS trigger AS
-        $$
-        BEGIN
+    -- Autogenerate non-IP limited API key
+    CREATE OR REPLACE FUNCTION auth_user_api_keys_add_non_ip_limited_api_key() RETURNS trigger AS
+    $$
+    BEGIN
 
-            INSERT INTO auth_user_api_keys (auth_users_id, api_key, ip_address)
-            VALUES (NEW.auth_users_id,
-                    DEFAULT, -- Autogenerated API key
-                    NULL -- Not limited by IP address
-                   );
-            RETURN NULL;
+        INSERT INTO auth_user_api_keys (auth_users_id, api_key, ip_address)
+        VALUES (NEW.auth_users_id,
+                DEFAULT, -- Autogenerated API key
+                NULL -- Not limited by IP address
+               );
+        RETURN NULL;
 
-        END;
-        $$
-            LANGUAGE 'plpgsql';
+    END;
+    $$
+        LANGUAGE 'plpgsql';
 
-        CREATE TRIGGER auth_user_api_keys_add_non_ip_limited_api_key
-            AFTER INSERT
-            ON %s
-            FOR EACH ROW
-            EXECUTE PROCEDURE auth_user_api_keys_add_non_ip_limited_api_key();
+    CREATE TRIGGER auth_user_api_keys_add_non_ip_limited_api_key
+        AFTER INSERT
+        ON %s
+        FOR EACH ROW
+        EXECUTE PROCEDURE auth_user_api_keys_add_non_ip_limited_api_key();
 
-        SELECT pg_advisory_unlock(-12345);
+    SELECT pg_advisory_unlock(-12345);
 
-    $cmd$
-           );
+    $cmd$);
 
 
 -- List of roles the users can perform
@@ -2909,36 +2878,33 @@ CREATE UNIQUE INDEX auth_user_limits_auth_users_id ON auth_user_limits (auth_use
 
 
 -- noinspection SqlResolve @ routine/"run_command_on_shards"
-SELECT run_command_on_shards(
-               'auth_users',
-               $cmd$
+SELECT run_command_on_shards('auth_users', $cmd$
 
-        -- Database doesn't seem to like it when we CREATE OR REPLACE functions in parallel on the same host
-        SELECT pg_advisory_lock(-12345);
+    -- Database doesn't seem to like it when we CREATE OR REPLACE functions in
+    -- parallel on the same host
+    SELECT pg_advisory_lock(-12345);
 
-        -- Set the default limits for newly created users
-        CREATE OR REPLACE FUNCTION auth_users_set_default_limits() RETURNS trigger AS
-        $$
-        BEGIN
+    -- Set the default limits for newly created users
+    CREATE OR REPLACE FUNCTION auth_users_set_default_limits() RETURNS trigger AS
+    $$
+    BEGIN
 
-            INSERT INTO auth_user_limits (auth_users_id) VALUES (NEW.auth_users_id);
-            RETURN NULL;
+        INSERT INTO auth_user_limits (auth_users_id) VALUES (NEW.auth_users_id);
+        RETURN NULL;
 
-        END;
-        $$
-            LANGUAGE 'plpgsql';
+    END;
+    $$
+        LANGUAGE 'plpgsql';
 
-        CREATE TRIGGER auth_users_set_default_limits
-            AFTER INSERT
-            ON %s
-            FOR EACH ROW
-            EXECUTE PROCEDURE auth_users_set_default_limits();
+    CREATE TRIGGER auth_users_set_default_limits
+        AFTER INSERT
+        ON %s
+        FOR EACH ROW
+        EXECUTE PROCEDURE auth_users_set_default_limits();
 
-        SELECT pg_advisory_unlock(-12345);
+    SELECT pg_advisory_unlock(-12345);
 
-    $cmd$
-           );
-
+    $cmd$);
 
 
 -- noinspection SqlResolve @ object-type/"CITEXT"
@@ -2963,8 +2929,7 @@ FROM auth_users
 WHERE auth_users.email = $1
 GROUP BY auth_users.email;
 
-$$
-    LANGUAGE SQL;
+$$ LANGUAGE SQL;
 
 
 CREATE TABLE auth_users_tag_sets_permissions
@@ -3080,6 +3045,7 @@ CREATE INDEX feeds_from_yesterday_feeds_id ON feeds_from_yesterday (feeds_id);
 CREATE INDEX feeds_from_yesterday_media_id ON feeds_from_yesterday (media_id);
 CREATE INDEX feeds_from_yesterday_name ON feeds_from_yesterday (name);
 CREATE UNIQUE INDEX feeds_from_yesterday_url ON feeds_from_yesterday (url, media_id);
+
 
 --
 -- Update "feeds_from_yesterday" with a new set of feeds
@@ -3401,7 +3367,6 @@ CREATE INDEX topic_permissions_topics_id
 
 CREATE UNIQUE INDEX topic_permissions_topics_id_auth_users_id
     ON topic_permissions (topics_id, auth_users_id);
-
 
 
 -- topics table with auth_users_id and user_permission fields that indicate the permission level for
@@ -4019,28 +3984,25 @@ $$
 
 
 -- noinspection SqlResolve @ routine/"run_command_on_shards"
-SELECT run_command_on_shards(
-               'cache.s3_raw_downloads_cache',
-               $cmd$
+SELECT run_command_on_shards('cache.s3_raw_downloads_cache', $cmd$
 
-        -- Database doesn't seem to like it when we CREATE OR REPLACE functions in parallel on the same host
-        SELECT pg_advisory_lock(-12345);
+    -- Database doesn't seem to like it when we CREATE OR REPLACE functions in
+    -- parallel on the same host
+    SELECT pg_advisory_lock(-12345);
 
-        -- Trigger to update "db_row_last_updated" for cache tables
-        CREATE OR REPLACE FUNCTION cache.update_cache_db_row_last_updated()
-            RETURNS TRIGGER AS
-        $$
-        BEGIN
-            NEW.db_row_last_updated = NOW();
-            RETURN NEW;
-        END;
-        $$ LANGUAGE 'plpgsql';
+    -- Trigger to update "db_row_last_updated" for cache tables
+    CREATE OR REPLACE FUNCTION cache.update_cache_db_row_last_updated()
+        RETURNS TRIGGER AS
+    $$
+    BEGIN
+        NEW.db_row_last_updated = NOW();
+        RETURN NEW;
+    END;
+    $$ LANGUAGE 'plpgsql';
 
-        SELECT pg_advisory_unlock(-12345);
+    SELECT pg_advisory_unlock(-12345);
 
-    $cmd$
-           );
-
+    $cmd$);
 
 
 --
@@ -4050,7 +4012,8 @@ CREATE UNLOGGED TABLE cache.s3_raw_downloads_cache
 (
     cache_s3_raw_downloads_cache_id BIGSERIAL                NOT NULL,
 
-    object_id                       BIGINT                   NOT NULL REFERENCES downloads_success (downloads_id) ON DELETE CASCADE,
+    object_id                       BIGINT                   NOT NULL
+        REFERENCES downloads_success (downloads_id) ON DELETE CASCADE,
 
     -- Will be used to purge old cache objects;
     -- don't forget to update cache.purge_object_caches()
@@ -4071,24 +4034,21 @@ CREATE INDEX cache_s3_raw_downloads_cache_db_row_last_updated
 
 
 -- noinspection SqlResolve @ routine/"run_command_on_shards"
-SELECT run_command_on_shards(
-               'cache.s3_raw_downloads_cache',
-               $cmd$
+SELECT run_command_on_shards('cache.s3_raw_downloads_cache', $cmd$
 
-        -- Database doesn't seem to like it when we CREATE OR REPLACE functions in parallel on the same host
-        SELECT pg_advisory_lock(-12345);
+    -- Database doesn't seem to like it when we CREATE OR REPLACE functions in
+    -- parallel on the same host
+    SELECT pg_advisory_lock(-12345);
 
-        CREATE TRIGGER cache_s3_raw_downloads_cache_db_row_last_updated_trigger
-            BEFORE INSERT OR UPDATE
-            ON %s
-            FOR EACH ROW
-        EXECUTE PROCEDURE cache.update_cache_db_row_last_updated();
+    CREATE TRIGGER cache_s3_raw_downloads_cache_db_row_last_updated_trigger
+        BEFORE INSERT OR UPDATE
+        ON %s
+        FOR EACH ROW
+    EXECUTE PROCEDURE cache.update_cache_db_row_last_updated();
 
-        SELECT pg_advisory_unlock(-12345);
+    SELECT pg_advisory_unlock(-12345);
 
-    $cmd$
-           );
-
+    $cmd$);
 
 
 --
@@ -4097,7 +4057,8 @@ SELECT run_command_on_shards(
 CREATE UNLOGGED TABLE cache.extractor_results_cache
 (
     cache_extractor_results_cache_id BIGSERIAL                NOT NULL,
-    downloads_id                     BIGINT                   NOT NULL REFERENCES downloads_success (downloads_id) ON DELETE CASCADE,
+    downloads_id                     BIGINT                   NOT NULL
+        REFERENCES downloads_success (downloads_id) ON DELETE CASCADE,
     extracted_html                   TEXT                     NULL,
     extracted_text                   TEXT                     NULL,
 
@@ -4118,24 +4079,21 @@ CREATE INDEX extractor_results_cache_db_row_last_updated
 
 
 -- noinspection SqlResolve @ routine/"run_command_on_shards"
-SELECT run_command_on_shards(
-               'cache.extractor_results_cache',
-               $cmd$
+SELECT run_command_on_shards('cache.extractor_results_cache', $cmd$
 
-        -- Database doesn't seem to like it when we CREATE OR REPLACE functions in parallel on the same host
-        SELECT pg_advisory_lock(-12345);
+    -- Database doesn't seem to like it when we CREATE OR REPLACE functions in
+    -- parallel on the same host
+    SELECT pg_advisory_lock(-12345);
 
-        CREATE TRIGGER cache_extractor_results_cache_db_row_last_updated_trigger
-            BEFORE INSERT OR UPDATE
-            ON %s
-            FOR EACH ROW
-        EXECUTE PROCEDURE cache.update_cache_db_row_last_updated();
+    CREATE TRIGGER cache_extractor_results_cache_db_row_last_updated_trigger
+        BEFORE INSERT OR UPDATE
+        ON %s
+        FOR EACH ROW
+    EXECUTE PROCEDURE cache.update_cache_db_row_last_updated();
 
-        SELECT pg_advisory_unlock(-12345);
+    SELECT pg_advisory_unlock(-12345);
 
-    $cmd$
-           );
-
+    $cmd$);
 
 
 -- keep track of per domain web requests so that we can throttle them using mediawords.util.web.user_agent.throttled.
@@ -4281,7 +4239,8 @@ CREATE TABLE media_similarweb_domains_map
     media_similarweb_domains_map_id BIGSERIAL PRIMARY KEY,
 
     media_id                        BIGINT NOT NULL REFERENCES media (media_id) ON DELETE CASCADE,
-    similarweb_domains_id           BIGINT NOT NULL REFERENCES similarweb_domains (similarweb_domains_id) ON DELETE CASCADE
+    similarweb_domains_id           BIGINT NOT NULL
+        REFERENCES similarweb_domains (similarweb_domains_id) ON DELETE CASCADE
 );
 
 -- Not a reference table (because not referenced), not a distributed table (because too small)
@@ -4300,7 +4259,8 @@ CREATE TABLE similarweb_estimated_visits
     similarweb_estimated_visits_id BIGSERIAL PRIMARY KEY,
 
     -- Domain for which the stats were fetched
-    similarweb_domains_id          BIGINT  NOT NULL REFERENCES similarweb_domains (similarweb_domains_id) ON DELETE CASCADE,
+    similarweb_domains_id          BIGINT  NOT NULL
+        REFERENCES similarweb_domains (similarweb_domains_id) ON DELETE CASCADE,
 
     -- Month, e.g. 2018-03-01 for March of 2018
     month                          DATE    NOT NULL,
