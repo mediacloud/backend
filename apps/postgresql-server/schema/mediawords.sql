@@ -888,66 +888,6 @@ CREATE TABLE downloads
 SELECT create_distributed_table('downloads', 'downloads_id');
 
 
--- Imitate a foreign key by testing if a download with an INSERTed / UPDATEd
--- "downloads_id" exists in "downloads"
---
--- Master (not child) partitioned tables don't support foreign keys being
--- pointed to them, so this trigger achieves the same referential integrity
--- for tables that point to "downloads".
---
--- Column name from NEW (NEW.<column_name>) that contains the
--- INSERTed / UPDATEd "downloads_id" should be passed as an trigger argument.
-
-
--- noinspection SqlResolve @ routine/"run_command_on_shards"
-SELECT run_command_on_shards(
-               'downloads',
-               $cmd$
-
-        -- Database doesn't seem to like it when we CREATE OR REPLACE functions in parallel on the same host
-        SELECT pg_advisory_lock(-12345);
-
-        -- FIXME remove the optional parameter as now tables can reference "downloads" directly
-        CREATE OR REPLACE FUNCTION test_referenced_download_trigger()
-        RETURNS TRIGGER AS $$
-        DECLARE
-            param_column_name TEXT;
-            param_downloads_id BIGINT;
-        BEGIN
-
-            IF TG_NARGS != 1 THEN
-                RAISE EXCEPTION 'Trigger should be called with an column name argument.';
-            END IF;
-
-            SELECT TG_ARGV[0] INTO param_column_name;
-            SELECT to_json(NEW) ->> param_column_name INTO param_downloads_id;
-
-            -- Might be NULL, e.g. downloads.parent
-            IF (param_downloads_id IS NOT NULL) THEN
-
-                IF NOT EXISTS (
-                    SELECT 1
-                    FROM downloads
-                    WHERE downloads_id = param_downloads_id
-                ) THEN
-                    RAISE EXCEPTION 'Referenced download ID %% from column "%%" does not exist in "downloads".', param_downloads_id, param_column_name;
-                END IF;
-
-            END IF;
-
-            RETURN NEW;
-
-        END;
-        $$
-        LANGUAGE plpgsql;
-
-        SELECT pg_advisory_unlock(-12345);
-
-    $cmd$
-           );
-
-
-
 CREATE INDEX downloads_parent
     ON downloads (parent);
 
@@ -965,101 +905,17 @@ CREATE TABLE downloads_error
     PARTITION OF downloads
         FOR VALUES IN ('error');
 
--- noinspection SqlResolve @ routine/"run_command_on_shards"
-SELECT run_command_on_shards(
-               'downloads_error',
-               $cmd$
-
-        -- Database doesn't seem to like it when we CREATE OR REPLACE functions in parallel on the same host
-        SELECT pg_advisory_lock(-12345);
-
-        CREATE TRIGGER downloads_error_test_referenced_download_trigger
-            BEFORE INSERT OR UPDATE
-            ON %s
-            FOR EACH ROW
-            EXECUTE PROCEDURE test_referenced_download_trigger('parent');
-
-        SELECT pg_advisory_unlock(-12345);
-
-    $cmd$
-           );
-
-
-
 CREATE TABLE downloads_feed_error
     PARTITION OF downloads
         FOR VALUES IN ('feed_error');
-
--- noinspection SqlResolve @ routine/"run_command_on_shards"
-SELECT run_command_on_shards(
-               'downloads_feed_error',
-               $cmd$
-
-        -- Database doesn't seem to like it when we CREATE OR REPLACE functions in parallel on the same host
-        SELECT pg_advisory_lock(-12345);
-
-        CREATE TRIGGER downloads_feed_error_test_referenced_download_trigger
-            BEFORE INSERT OR UPDATE
-            ON %s
-            FOR EACH ROW
-            EXECUTE PROCEDURE test_referenced_download_trigger('parent');
-
-        SELECT pg_advisory_unlock(-12345);
-
-    $cmd$
-           );
-
-
 
 CREATE TABLE downloads_fetching
     PARTITION OF downloads
         FOR VALUES IN ('fetching');
 
--- noinspection SqlResolve @ routine/"run_command_on_shards"
-SELECT run_command_on_shards(
-               'downloads_fetching',
-               $cmd$
-
-        -- Database doesn't seem to like it when we CREATE OR REPLACE functions in parallel on the same host
-        SELECT pg_advisory_lock(-12345);
-
-        CREATE TRIGGER downloads_fetching_test_referenced_download_trigger
-            BEFORE INSERT OR UPDATE
-            ON %s
-            FOR EACH ROW
-            EXECUTE PROCEDURE test_referenced_download_trigger('parent');
-
-        SELECT pg_advisory_unlock(-12345);
-
-    $cmd$
-           );
-
-
-
 CREATE TABLE downloads_pending
     PARTITION OF downloads
         FOR VALUES IN ('pending');
-
--- noinspection SqlResolve @ routine/"run_command_on_shards"
-SELECT run_command_on_shards(
-               'downloads_pending',
-               $cmd$
-
-        -- Database doesn't seem to like it when we CREATE OR REPLACE functions in parallel on the same host
-        SELECT pg_advisory_lock(-12345);
-
-        CREATE TRIGGER downloads_pending_test_referenced_download_trigger
-            BEFORE INSERT OR UPDATE
-            ON %s
-            FOR EACH ROW
-            EXECUTE PROCEDURE test_referenced_download_trigger('parent');
-
-        SELECT pg_advisory_unlock(-12345);
-
-    $cmd$
-           );
-
-
 
 CREATE TABLE downloads_success
     PARTITION OF downloads (
@@ -1071,26 +927,6 @@ CREATE TABLE downloads_success
                     (type = 'content' AND stories_id IS NOT NULL)
                 )
         ) FOR VALUES IN ('success');
-
--- noinspection SqlResolve @ routine/"run_command_on_shards"
-SELECT run_command_on_shards(
-               'downloads_success',
-               $cmd$
-
-        -- Database doesn't seem to like it when we CREATE OR REPLACE functions in parallel on the same host
-        SELECT pg_advisory_lock(-12345);
-
-        CREATE TRIGGER downloads_success_test_referenced_download_trigger
-            BEFORE INSERT OR UPDATE
-            ON %s
-            FOR EACH ROW
-            EXECUTE PROCEDURE test_referenced_download_trigger('parent');
-
-        SELECT pg_advisory_unlock(-12345);
-
-    $cmd$
-           );
-
 
 -- We need a separate unique index for the "download_texts" foreign key to be
 -- able to point to "downloads_success"
