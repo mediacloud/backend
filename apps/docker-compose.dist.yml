@@ -435,29 +435,6 @@ services:
                     memory: "1G"
 
     #
-    # Create missing PostgreSQL partitions
-    # ------------------------------------
-    #
-    create-missing-partitions:
-        image: gcr.io/mcback/create-missing-partitions:release
-        init: true
-        networks:
-            - default
-        environment:
-            <<: *common-configuration
-        depends_on:
-            - postgresql-pgbouncer
-        deploy:
-            <<: *misc-apps_deploy_placement_constraints
-            <<: *endpoint-mode-dnsrr
-            resources:
-                limits:
-                    # CPU core limit
-                    cpus: "1"
-                    # RAM limit
-                    memory: "256M"
-
-    #
     # Generate daily RSS dumps Cron job
     # ---------------------------------
     #
