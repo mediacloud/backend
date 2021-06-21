@@ -204,9 +204,9 @@ CREATE INDEX media_rescraping_last_rescrape_time ON media_rescraping (last_rescr
 -- noinspection SqlResolve @ routine/"run_command_on_shards"
 SELECT run_command_on_shards('media', $cmd$
 
-    -- Database doesn't seem to like it when we CREATE OR REPLACE functions in
-    -- parallel on the same host
-    SELECT pg_advisory_lock(-12345);
+    BEGIN;
+
+    LOCK TABLE pg_proc IN ACCESS EXCLUSIVE MODE;
 
     CREATE OR REPLACE FUNCTION media_rescraping_add_initial_state_trigger() RETURNS trigger AS
     $$
@@ -223,7 +223,7 @@ SELECT run_command_on_shards('media', $cmd$
         FOR EACH ROW
     EXECUTE PROCEDURE media_rescraping_add_initial_state_trigger();
 
-    SELECT pg_advisory_unlock(-12345);
+    COMMIT;
 
     $cmd$);
 
@@ -592,9 +592,9 @@ CREATE INDEX stories_normalized_title_hash ON stories (media_id, normalized_titl
 -- noinspection SqlResolve @ routine/"run_command_on_shards"
 SELECT run_command_on_shards('stories', $cmd$
 
-    -- Database doesn't seem to like it when we CREATE OR REPLACE functions in
-    -- parallel on the same host
-    SELECT pg_advisory_lock(-12345);
+    BEGIN;
+
+    LOCK TABLE pg_proc IN ACCESS EXCLUSIVE MODE;
 
     -- get normalized story title by breaking the title into parts by the separator characters :-| and  using
     -- the longest single part.  longest part must be at least 32 characters cannot be the same as the media source
@@ -675,7 +675,7 @@ SELECT run_command_on_shards('stories', $cmd$
         FOR EACH ROW
     EXECUTE PROCEDURE add_normalized_title_hash();
 
-    SELECT pg_advisory_unlock(-12345);
+    COMMIT;
 
     $cmd$);
 
@@ -683,9 +683,9 @@ SELECT run_command_on_shards('stories', $cmd$
 -- noinspection SqlResolve @ routine/"run_command_on_shards"
 SELECT run_command_on_shards('stories', $cmd$
 
-    -- Database doesn't seem to like it when we CREATE OR REPLACE functions in
-    -- parallel on the same host
-    SELECT pg_advisory_lock(-12345);
+    BEGIN;
+
+    LOCK TABLE pg_proc IN ACCESS EXCLUSIVE MODE;
 
     -- Given that the unique index on (guid, media_id) is going to be valid only
     -- per shard, add a trigger that will check for uniqueness after each INSERT.
@@ -727,7 +727,7 @@ SELECT run_command_on_shards('stories', $cmd$
         FOR EACH ROW
     EXECUTE PROCEDURE stories_ensure_unique_guid();
 
-    SELECT pg_advisory_unlock(-12345);
+    COMMIT;
 
     $cmd$);
 
@@ -735,9 +735,9 @@ SELECT run_command_on_shards('stories', $cmd$
 -- noinspection SqlResolve @ routine/"run_command_on_shards"
 SELECT run_command_on_shards('stories', $cmd$
 
-    -- Database doesn't seem to like it when we CREATE OR REPLACE functions in
-    -- parallel on the same host
-    SELECT pg_advisory_lock(-12345);
+    BEGIN;
+
+    LOCK TABLE pg_proc IN ACCESS EXCLUSIVE MODE;
 
     CREATE OR REPLACE FUNCTION insert_solr_import_story() RETURNS TRIGGER AS
     $$
@@ -778,7 +778,7 @@ SELECT run_command_on_shards('stories', $cmd$
         FOR EACH ROW
     EXECUTE PROCEDURE insert_solr_import_story();
 
-    SELECT pg_advisory_unlock(-12345);
+    COMMIT;
 
     $cmd$);
 
@@ -1379,9 +1379,9 @@ CREATE INDEX topics_media_type_tag_set ON topics (media_type_tag_sets_id);
 -- noinspection SqlResolve @ routine/"run_command_on_shards"
 SELECT run_command_on_shards('topics', $cmd$
 
-    -- Database doesn't seem to like it when we CREATE OR REPLACE functions in
-    -- parallel on the same host
-    SELECT pg_advisory_lock(-12345);
+    BEGIN;
+
+    LOCK TABLE pg_proc IN ACCESS EXCLUSIVE MODE;
 
     -- Given that the unique index on (guid, media_id) is going to be valid only
     -- per shard, add a trigger that will check for uniqueness after each INSERT.
@@ -1416,7 +1416,7 @@ SELECT run_command_on_shards('topics', $cmd$
         FOR EACH ROW
     EXECUTE PROCEDURE topics_ensure_unique_name();
 
-    SELECT pg_advisory_unlock(-12345);
+    COMMIT;
 
     $cmd$);
 
@@ -1424,9 +1424,9 @@ SELECT run_command_on_shards('topics', $cmd$
 -- noinspection SqlResolve @ routine/"run_command_on_shards"
 SELECT run_command_on_shards('topics', $cmd$
 
-    -- Database doesn't seem to like it when we CREATE OR REPLACE functions in
-    -- parallel on the same host
-    SELECT pg_advisory_lock(-12345);
+    BEGIN;
+
+    LOCK TABLE pg_proc IN ACCESS EXCLUSIVE MODE;
 
     -- Given that the unique index on (guid, media_id) is going to be valid only
     -- per shard, add a trigger that will check for uniqueness after each INSERT.
@@ -1461,7 +1461,7 @@ SELECT run_command_on_shards('topics', $cmd$
         FOR EACH ROW
     EXECUTE PROCEDURE topics_ensure_unique_media_type_tag_sets_id();
 
-    SELECT pg_advisory_unlock(-12345);
+    COMMIT;
 
     $cmd$);
 
@@ -2405,9 +2405,9 @@ CREATE INDEX snap_live_stories_topics_id_media_id_publish_day_ntitle_hash
 -- noinspection SqlResolve @ routine/"run_command_on_shards"
 SELECT run_command_on_shards('topic_stories', $cmd$
 
-    -- Database doesn't seem to like it when we CREATE OR REPLACE functions in
-    -- parallel on the same host
-    SELECT pg_advisory_lock(-12345);
+    BEGIN;
+
+    LOCK TABLE pg_proc IN ACCESS EXCLUSIVE MODE;
 
     CREATE OR REPLACE FUNCTION insert_live_story() RETURNS TRIGGER AS
     $$
@@ -2458,7 +2458,7 @@ SELECT run_command_on_shards('topic_stories', $cmd$
         FOR EACH ROW
     EXECUTE PROCEDURE insert_live_story();
 
-    SELECT pg_advisory_unlock(-12345);
+    COMMIT;
 
     $cmd$);
 
@@ -2466,9 +2466,9 @@ SELECT run_command_on_shards('topic_stories', $cmd$
 -- noinspection SqlResolve @ routine/"run_command_on_shards"
 SELECT run_command_on_shards('stories', $cmd$
 
-    -- Database doesn't seem to like it when we CREATE OR REPLACE functions in
-    -- parallel on the same host
-    SELECT pg_advisory_lock(-12345);
+    BEGIN;
+
+    LOCK TABLE pg_proc IN ACCESS EXCLUSIVE MODE;
 
     CREATE OR REPLACE FUNCTION update_live_story() RETURNS TRIGGER AS
     $$
@@ -2500,7 +2500,7 @@ SELECT run_command_on_shards('stories', $cmd$
         FOR EACH ROW
     EXECUTE PROCEDURE update_live_story();
 
-    SELECT pg_advisory_unlock(-12345);
+    COMMIT;
 
     $cmd$);
 
@@ -2571,9 +2571,9 @@ CREATE INDEX processed_stories_stories_id
 -- noinspection SqlResolve @ routine/"run_command_on_shards"
 SELECT run_command_on_shards('processed_stories', $cmd$
 
-    -- Database doesn't seem to like it when we CREATE OR REPLACE functions in
-    -- parallel on the same host
-    SELECT pg_advisory_lock(-12345);
+    BEGIN;
+
+    LOCK TABLE pg_proc IN ACCESS EXCLUSIVE MODE;
 
     CREATE TRIGGER processed_stories_insert_solr_import_story
         AFTER INSERT OR UPDATE OR DELETE
@@ -2581,7 +2581,7 @@ SELECT run_command_on_shards('processed_stories', $cmd$
         FOR EACH ROW
     EXECUTE PROCEDURE insert_solr_import_story();
 
-    SELECT pg_advisory_unlock(-12345);
+    COMMIT;
 
     $cmd$);
 
@@ -2753,9 +2753,9 @@ CREATE UNIQUE INDEX auth_user_api_keys_api_key_ip_address
 -- noinspection SqlResolve @ routine/"run_command_on_shards"
 SELECT run_command_on_shards('auth_users', $cmd$
 
-    -- Database doesn't seem to like it when we CREATE OR REPLACE functions in
-    -- parallel on the same host
-    SELECT pg_advisory_lock(-12345);
+    BEGIN;
+
+    LOCK TABLE pg_proc IN ACCESS EXCLUSIVE MODE;
 
     -- Autogenerate non-IP limited API key
     CREATE OR REPLACE FUNCTION auth_user_api_keys_add_non_ip_limited_api_key() RETURNS trigger AS
@@ -2779,7 +2779,7 @@ SELECT run_command_on_shards('auth_users', $cmd$
         FOR EACH ROW
     EXECUTE PROCEDURE auth_user_api_keys_add_non_ip_limited_api_key();
 
-    SELECT pg_advisory_unlock(-12345);
+    COMMIT;
 
     $cmd$);
 
@@ -2890,9 +2890,9 @@ CREATE UNIQUE INDEX auth_user_limits_auth_users_id ON auth_user_limits (auth_use
 -- noinspection SqlResolve @ routine/"run_command_on_shards"
 SELECT run_command_on_shards('auth_users', $cmd$
 
-    -- Database doesn't seem to like it when we CREATE OR REPLACE functions in
-    -- parallel on the same host
-    SELECT pg_advisory_lock(-12345);
+    BEGIN;
+
+    LOCK TABLE pg_proc IN ACCESS EXCLUSIVE MODE;
 
     -- Set the default limits for newly created users
     CREATE OR REPLACE FUNCTION auth_users_set_default_limits() RETURNS trigger AS
@@ -2912,7 +2912,7 @@ SELECT run_command_on_shards('auth_users', $cmd$
         FOR EACH ROW
     EXECUTE PROCEDURE auth_users_set_default_limits();
 
-    SELECT pg_advisory_unlock(-12345);
+    COMMIT;
 
     $cmd$);
 
@@ -4024,9 +4024,9 @@ CREATE INDEX cache_s3_raw_downloads_cache_db_row_last_updated
 -- noinspection SqlResolve @ routine/"run_command_on_shards"
 SELECT run_command_on_shards('cache.s3_raw_downloads_cache', $cmd$
 
-    -- Database doesn't seem to like it when we CREATE OR REPLACE functions in
-    -- parallel on the same host
-    SELECT pg_advisory_lock(-12345);
+    BEGIN;
+
+    LOCK TABLE pg_proc IN ACCESS EXCLUSIVE MODE;
 
     -- Trigger to update "db_row_last_updated" for cache tables
     CREATE OR REPLACE FUNCTION cache.update_cache_db_row_last_updated()
@@ -4038,7 +4038,7 @@ SELECT run_command_on_shards('cache.s3_raw_downloads_cache', $cmd$
     END;
     $$ LANGUAGE 'plpgsql';
 
-    SELECT pg_advisory_unlock(-12345);
+    COMMIT;
 
     $cmd$);
 
@@ -4046,9 +4046,9 @@ SELECT run_command_on_shards('cache.s3_raw_downloads_cache', $cmd$
 -- noinspection SqlResolve @ routine/"run_command_on_shards"
 SELECT run_command_on_shards('cache.s3_raw_downloads_cache', $cmd$
 
-    -- Database doesn't seem to like it when we CREATE OR REPLACE functions in
-    -- parallel on the same host
-    SELECT pg_advisory_lock(-12345);
+    BEGIN;
+
+    LOCK TABLE pg_proc IN ACCESS EXCLUSIVE MODE;
 
     CREATE TRIGGER cache_s3_raw_downloads_cache_db_row_last_updated_trigger
         BEFORE INSERT OR UPDATE
@@ -4056,7 +4056,7 @@ SELECT run_command_on_shards('cache.s3_raw_downloads_cache', $cmd$
         FOR EACH ROW
     EXECUTE PROCEDURE cache.update_cache_db_row_last_updated();
 
-    SELECT pg_advisory_unlock(-12345);
+    COMMIT;
 
     $cmd$);
 
@@ -4091,9 +4091,9 @@ CREATE INDEX extractor_results_cache_db_row_last_updated
 -- noinspection SqlResolve @ routine/"run_command_on_shards"
 SELECT run_command_on_shards('cache.extractor_results_cache', $cmd$
 
-    -- Database doesn't seem to like it when we CREATE OR REPLACE functions in
-    -- parallel on the same host
-    SELECT pg_advisory_lock(-12345);
+    BEGIN;
+
+    LOCK TABLE pg_proc IN ACCESS EXCLUSIVE MODE;
 
     CREATE TRIGGER cache_extractor_results_cache_db_row_last_updated_trigger
         BEFORE INSERT OR UPDATE
@@ -4101,7 +4101,7 @@ SELECT run_command_on_shards('cache.extractor_results_cache', $cmd$
         FOR EACH ROW
     EXECUTE PROCEDURE cache.update_cache_db_row_last_updated();
 
-    SELECT pg_advisory_unlock(-12345);
+    COMMIT;
 
     $cmd$);
 
