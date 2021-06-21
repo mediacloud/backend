@@ -12,6 +12,21 @@ RUN \
     && \
     true
 
+# Install Citus Data
+RUN \
+    curl -fsSL https://repos.citusdata.com/community/gpgkey | apt-key add - && \
+    echo "deb https://repos.citusdata.com/community/ubuntu/ focal main" \
+        > /etc/apt/sources.list.d/citusdata_community.list && \
+    apt-get -y update && \
+    sudo apt-get -y install postgresql-13-citus-10.0 && \
+    #
+    true
+
+COPY conf/citus.conf /etc/postgresql/13/main/
+RUN \
+    echo "include '/etc/postgresql/13/main/citus.conf'" >> /etc/postgresql/13/main/postgresql.conf && \
+    true
+
 # Copy helper scripts, schema, migrations
 COPY bin/* /opt/postgresql-server/bin/
 COPY schema/ /opt/postgresql-server/schema/
