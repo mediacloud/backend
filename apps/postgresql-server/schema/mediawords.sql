@@ -42,13 +42,6 @@ CREATE EXTENSION IF NOT EXISTS citext;
 CREATE EXTENSION IF NOT EXISTS citus;
 
 
--- FIXME set these in postgresql.conf
-SET citus.replication_model = 'streaming';
-
--- https://docs.citusdata.com/en/v10.0/admin_guide/cluster_management.html#real-time-analytics-use-case
-SET citus.shard_count = 128;
-
-
 -- Database properties (variables) table
 CREATE TABLE database_variables
 (
