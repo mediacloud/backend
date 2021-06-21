@@ -222,11 +222,11 @@ SELECT run_command_on_shards(
         CREATE TRIGGER media_rescraping_add_initial_state_trigger
             AFTER INSERT ON %s
             FOR EACH ROW EXECUTE PROCEDURE media_rescraping_add_initial_state_trigger();
+
+        SELECT pg_advisory_unlock(-12345);
+
     $cmd$
-
-                   SELECT pg_advisory_unlock(-12345);
-
-);
+           );
 
 
 CREATE TABLE media_stats
