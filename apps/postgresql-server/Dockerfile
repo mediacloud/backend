@@ -29,10 +29,16 @@ RUN \
     true
 
 # Copy helper scripts, migrations, pgmigrate callbacks/config, create schema dir
-RUN mkdir -p /opt/postgresql-server/
+RUN \
+    mkdir -p \
+        /opt/postgresql-server/bin/ \
+        /opt/postgresql-server/schema/ \
+        /opt/postgresql-server/migrations/ \
+        /opt/postgresql-server/pgmigrate-callbacks/ \
+    && \
+    true
 
 RUN \
-    mkdir /opt/postgresql-server/schema && \ 
     chown postgres: /opt/postgresql-server/schema && \ 
     chmod u+w /opt/postgresql-server/schema && \
     true
