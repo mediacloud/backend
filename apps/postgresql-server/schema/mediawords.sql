@@ -2588,6 +2588,7 @@ CREATE INDEX processed_stories_stories_id
     ON processed_stories (stories_id);
 
 
+-- noinspection SqlResolve @ routine/"run_command_on_shards"
 SELECT run_command_on_shards(
                'processed_stories',
                $cmd$
@@ -2632,6 +2633,7 @@ CREATE TABLE scraped_feeds
     import_module    TEXT      NOT NULL
 );
 
+-- noinspection SqlResolve @ routine/"create_reference_table"
 SELECT create_reference_table('scraped_feeds');
 
 CREATE INDEX scraped_feeds_feeds_id ON scraped_feeds (feeds_id);
@@ -2718,6 +2720,7 @@ CREATE TABLE auth_users
     has_consented                   BOOLEAN   NOT NULL DEFAULT false
 );
 
+-- noinspection SqlResolve @ routine/"create_reference_table"
 SELECT create_reference_table('auth_users');
 
 CREATE UNIQUE INDEX auth_users_email ON auth_users (email);
@@ -2759,6 +2762,7 @@ CREATE TABLE auth_user_api_keys
     ip_address            INET        NULL
 );
 
+-- noinspection SqlResolve @ routine/"create_reference_table"
 SELECT create_reference_table('auth_user_api_keys');
 
 CREATE UNIQUE INDEX auth_user_api_keys_api_key
@@ -2768,6 +2772,7 @@ CREATE UNIQUE INDEX auth_user_api_keys_api_key_ip_address
     ON auth_user_api_keys (api_key, ip_address);
 
 
+-- noinspection SqlResolve @ routine/"run_command_on_shards"
 SELECT run_command_on_shards(
                'auth_users',
                $cmd$
@@ -2812,6 +2817,7 @@ CREATE TABLE auth_roles
     description   TEXT        NOT NULL
 );
 
+-- noinspection SqlResolve @ routine/"create_reference_table"
 SELECT create_reference_table('auth_roles');
 
 
@@ -2825,6 +2831,7 @@ CREATE TABLE auth_users_roles_map
         REFERENCES auth_roles (auth_roles_id) ON DELETE CASCADE ON UPDATE CASCADE DEFERRABLE
 );
 
+-- noinspection SqlResolve @ routine/"create_reference_table"
 SELECT create_reference_table('auth_users_roles_map');
 
 CREATE UNIQUE INDEX auth_users_roles_map_auth_users_id_auth_roles_id
@@ -2895,12 +2902,13 @@ CREATE TABLE auth_user_limits
     max_topic_stories            BIGINT NOT NULL DEFAULT 100000
 );
 
+-- noinspection SqlResolve @ routine/"create_reference_table"
 SELECT create_reference_table('auth_user_limits');
 
 CREATE UNIQUE INDEX auth_user_limits_auth_users_id ON auth_user_limits (auth_users_id);
 
 
-
+-- noinspection SqlResolve @ routine/"run_command_on_shards"
 SELECT run_command_on_shards(
                'auth_users',
                $cmd$
@@ -2970,6 +2978,7 @@ CREATE TABLE auth_users_tag_sets_permissions
     edit_tag_descriptors               BOOLEAN NOT NULL
 );
 
+-- noinspection SqlResolve @ routine/"create_reference_table"
 SELECT create_reference_table('auth_users_tag_sets_permissions');
 
 CREATE UNIQUE INDEX auth_users_tag_sets_permissions_auth_user_tag_set
@@ -4009,7 +4018,7 @@ $$
     LANGUAGE plpgsql;
 
 
-
+-- noinspection SqlResolve @ routine/"run_command_on_shards"
 SELECT run_command_on_shards(
                'cache.s3_raw_downloads_cache',
                $cmd$
@@ -4061,6 +4070,7 @@ CREATE INDEX cache_s3_raw_downloads_cache_db_row_last_updated
     ON cache.s3_raw_downloads_cache (db_row_last_updated);
 
 
+-- noinspection SqlResolve @ routine/"run_command_on_shards"
 SELECT run_command_on_shards(
                'cache.s3_raw_downloads_cache',
                $cmd$
@@ -4107,7 +4117,7 @@ CREATE INDEX extractor_results_cache_db_row_last_updated
     ON cache.extractor_results_cache (db_row_last_updated);
 
 
-
+-- noinspection SqlResolve @ routine/"run_command_on_shards"
 SELECT run_command_on_shards(
                'cache.extractor_results_cache',
                $cmd$
@@ -4352,6 +4362,7 @@ CREATE TABLE celery_groups
     date_done  TIMESTAMP WITHOUT TIME ZONE NULL
 );
 
+-- noinspection SqlResolve @ routine/"create_reference_table"
 SELECT create_reference_table('celery_groups');
 
 CREATE UNIQUE INDEX celery_groups_taskset_id ON celery_groups (taskset_id);
