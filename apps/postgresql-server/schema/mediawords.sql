@@ -24,6 +24,10 @@
 -- FIXME replace JSON with JSONB
 -- FIXME one can add a foreign key to a reference table after creating distributed table
 -- FIXME triggers have to be recreated on newly added workers
+-- FIXME replication factor
+-- FIXME when initializing schema, some connections get dropped
+-- FIXME when creating functions / triggers, make sure that each shard succeeds
+-- FIXME schema gets imported as "postgres" user
 
 
 -- main schema
