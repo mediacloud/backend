@@ -32,14 +32,14 @@ RUN \
 RUN \
     mkdir -p \
         /opt/postgresql-server/bin/ \
-        # /opt/postgresql-server/schema/ \
+        /opt/postgresql-server/schema/ \
         /opt/postgresql-server/migrations/ \
         /opt/postgresql-server/pgmigrate-callbacks/ \
     # && \
     # chmod ugo+rw /opt/postgresql-server/schema && \
     true
 
-RUN mkdir /opt/postgresql-server/schema/
+RUN touch /opt/postgresql-server/schema/ foo.txt
 
 COPY bin/* /opt/postgresql-server/bin/
 COPY pgmigrate-callbacks/ /opt/postgresql-server/pgmigrate-callbacks/
