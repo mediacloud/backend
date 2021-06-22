@@ -23,9 +23,9 @@ class TestMockDownloadTestCase(TestKeyValueStoreTestCase, metaclass=abc.ABCMeta)
         """)
         db.query("""
             INSERT INTO downloads (
-                downloads_id, feeds_id, stories_id, url, host, download_time, type, state, priority, sequence
+                downloads_id, feeds_id, stories_id, url, host, download_time, type, state, path, priority, sequence
             ) VALUES (
-                %(downloads_id)s, 1, 1, 'http://', '', NOW(), 'content', 'pending', 0, 0
+                %(downloads_id)s, 1, 1, 'http://', '', NOW(), 'content', 'success', 'foo', 0, 0
             )
         """, {'downloads_id': downloads_id})
 
