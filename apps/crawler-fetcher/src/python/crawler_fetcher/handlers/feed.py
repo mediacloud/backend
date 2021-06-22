@@ -33,7 +33,7 @@ class AbstractDownloadFeedHandler(DefaultStoreMixin, AbstractDownloadHandler, me
 
         If helper returns an empty arrayref, '(redundant feed)' will be written instead of feed contents.
         """
-        raise NotImplemented("Abstract method")
+        raise NotImplementedError("Abstract method")
 
     @abc.abstractmethod
     def return_stories_to_be_extracted_from_feed(self, db: DatabaseHandler, download: dict, content: str) -> List[int]:
@@ -42,7 +42,7 @@ class AbstractDownloadFeedHandler(DefaultStoreMixin, AbstractDownloadHandler, me
 
         For example, 'web_page' feed creates a single story for itself so it has to be extracted right away.
         """
-        raise NotImplemented("Abstract method")
+        raise NotImplementedError("Abstract method")
 
     def store_download(self, db: DatabaseHandler, download: dict, content: str) -> List[int]:
         download = decode_object_from_bytes_if_needed(download)

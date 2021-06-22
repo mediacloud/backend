@@ -15,12 +15,13 @@ once per second.
 
 The provider works as a daemon, periodically checking the size queued_downloads and only adding
 new jobs to the queue if there are more than MAX_QUEUE_SIZE jobs in the table.  This allows us to implement
-throttline by keeping the crawler jobs queue relatively small, thus limiting the number of requests for each
+throttling by keeping the crawler jobs queue relatively small, thus limiting the number of requests for each
 host over a period of several minutes, while allowing the crawler_fetcher jobs to acts as simple stupid
 worker jobs that just do a quick query of queued_downloads to grab the oldest queued download.
 """
 
 import time
+from typing import List, Any, Iterator
 
 from mediawords.db import DatabaseHandler
 from mediawords.util.log import create_logger
@@ -97,7 +98,7 @@ def _add_stale_feeds(db: DatabaseHandler) -> None:
             -- Feed was downloaded more than stale_feed_interval seconds ago
             OR (last_attempted_download_time < (NOW() - (%(a)s || ' seconds')::interval))
 
-            -- (Probably) if a new story comes in every "n" seconds, refetch feed every "n" + 5 minutes
+            -- (Probably) if a new story comes in every "n" seconds, re-fetch feed every "n" + 5 minutes
             OR (
                 (NOW() > last_attempted_download_time +
                         (last_attempted_download_time - last_new_story_time) + interval '5 minutes')
@@ -114,11 +115,13 @@ def _add_stale_feeds(db: DatabaseHandler) -> None:
 
     db.query(
         """
+        -- noinspection SqlResolve @ table/"feeds_to_queue"
         UPDATE feeds
         SET last_attempted_download_time = NOW()
         WHERE feeds_id IN (SELECT feeds_id FROM feeds_to_queue)
         """)
 
+    # noinspection SqlResolve,SqlCheckUsingColumns
     downloads = db.query(
         """
         WITH inserted_downloads as (
@@ -141,12 +144,15 @@ def _add_stale_feeds(db: DatabaseHandler) -> None:
                 join feeds f using (feeds_id)
         """).hashes()
 
-    db.query("drop table feeds_to_queue")
+    db.query("""
+        -- noinspection SqlResolveForFile
+        drop table feeds_to_queue
+    """)
 
-    log.info("added stale feeds: %d" % len(downloads))
+    log.info(f"Added stale feeds: {len(downloads)}")
 
 
-def provide_download_ids(db: DatabaseHandler) -> None:
+def provide_download_ids(db: DatabaseHandler) -> List[int]:
     """Return a list of pending downloads ids to queue for fetching.
 
     Hand out one downloads_id for each distinct host with a pending download.
@@ -158,15 +164,47 @@ def provide_download_ids(db: DatabaseHandler) -> None:
 
     _add_stale_feeds(db)
 
-    log.info("querying pending downloads ...")
+    log.info("Querying pending downloads...")
 
-    # get one downloads_id per host, ordered by priority asc, downloads_id desc, do this through a plpgsql
-    # function because that's the only way to avoid an index scan of the entire (host, priority, downloads_id) index
-    downloads_ids = db.query("select get_downloads_for_queue() downloads_id").flat()
+    # get one downloads_id per host, ordered by priority asc, downloads_id desc
+    # noinspection SqlResolve
+    downloads_ids = db.query("""
 
-    log.info("provide downloads host downloads: %d" % len(downloads_ids))
+        -- Pending downloads by host, ranked by priority and the biggest "downloads_id"  
+        WITH pending_downloads_per_host AS (
+    
+            SELECT
+                host,
+                downloads_id,
+                ROW_NUMBER() OVER(
+                    PARTITION BY host
+                    ORDER BY
+                        priority,
+                        downloads_id DESC NULLS LAST
+                ) AS rank
+            FROM downloads_pending AS dp
+            WHERE (
+                SELECT 1
+                FROM queued_downloads AS qd
+                WHERE qd.downloads_id = dp.downloads_id
+            ) IS NULL
+        )
+        
+        SELECT downloads_id
+        FROM pending_downloads_per_host
+        WHERE rank = 1
+    
+    """).flat()
+
+    log.info(f"Providing {len(downloads_ids)} per-host download IDs")
 
     return downloads_ids
+
+
+def __chunks(list_to_be_chunked: List[Any], chunk_size: int) -> Iterator[List[Any]]:
+    """Yield successive chunks from parameter list."""
+    for i in range(0, len(list_to_be_chunked), chunk_size):
+        yield list_to_be_chunked[i:i + chunk_size]
 
 
 def run_provider(db: DatabaseHandler, daemon: bool = True) -> None:
@@ -189,27 +227,42 @@ def run_provider(db: DatabaseHandler, daemon: bool = True) -> None:
         queue_size = db.query(
             "select count(*) from ( select 1 from queued_downloads limit %(a)s ) q",
             {'a': MAX_QUEUE_SIZE * 10}).flat()[0]
-        log.warning("queue_size: %d" % queue_size)
+        log.info(f"Queue size: {queue_size}")
 
         if queue_size < MAX_QUEUE_SIZE:
             downloads_ids = provide_download_ids(db)
 
             if downloads_ids:
-                log.warning("adding to downloads to queue: %d" % len(downloads_ids))
+                log.info(f"Adding {len(downloads_ids)} download IDs to queue...")
 
-                values = ','.join(["(%d)" % i for i in downloads_ids])
-                db.query(
-                    "insert into queued_downloads(downloads_id) values %s on conflict (downloads_id) do nothing" %
-                    values)
+                # Insert in chunks so that:
+                # 1) Fetchers get to fetching sooner;
+                # 2) We don't have to come up with a query that's 2 MB long.
+                for chunk_downloads_ids in __chunks(list_to_be_chunked=downloads_ids, chunk_size=1000):
+                    log.info(f"Inserting chunk of downloads ({len(chunk_downloads_ids)} download IDs)...")
+                    # noinspection SqlResolve,SqlSignature
+                    db.query(
+                        """
+                        INSERT INTO queued_downloads (downloads_id)
+                        VALUES (unnest (ARRAY %(chunk_downloads_ids)s::bigint[]))
+                        ON CONFLICT (downloads_id) DO NOTHING
+                        """ % {
+                            'chunk_downloads_ids': chunk_downloads_ids,
+                        }
+                    )
+
             else:
-                log.info("No downloads to add")
+                log.info("No download IDs to add")
 
             if daemon:
                 if time.time() - last_queue_time < QUEUE_INTERVAL:
+                    log.info(f"Sleeping for {QUEUE_INTERVAL} seconds")
                     time.sleep(QUEUE_INTERVAL)
 
         elif daemon:
-            time.sleep(QUEUE_INTERVAL * 10)
+            time_to_sleep = QUEUE_INTERVAL * 10
+            log.info(f"Sleeping for {time_to_sleep} seconds as we're running as a daemon")
+            time.sleep(time_to_sleep)
 
         last_queue_time = time.time()
 

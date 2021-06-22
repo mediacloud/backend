@@ -4,6 +4,9 @@
 
 FROM gcr.io/mcback/cron-base:latest
 
+# FIXME
+RUN apt-get -y update
+
 # Install packages
 RUN \
     #
@@ -43,6 +46,8 @@ COPY munin-conf.d/ /etc/munin/munin-conf.d/
 # Overwrite crontab with our own
 COPY crontab /etc/cron.d/munin
 
+COPY bin/munin-cron.sh /
+
 # Volume for RRD data (shared with munin-fastcgi-graph)
 VOLUME /var/lib/munin/
 
@@ -50,3 +55,6 @@ VOLUME /var/lib/munin/
 VOLUME /var/cache/munin/www/
 
 # No USER because Cron will run the script as unprivileged user itself
+
+# Use our own wrapper for 
+CMD ["/munin-cron.sh"]

@@ -6,6 +6,7 @@ from mediawords.test.hash_server import HashServer
 from mediawords.util.network import random_unused_port
 from mediawords.util.parse_json import encode_json
 from mediawords.util.sql import sql_now
+
 from nytlabels_fetch_annotation_and_tag.config import NYTLabelsTagsFromAnnotationConfig
 from nytlabels_fetch_annotation_and_tag.nytlabels_tags_from_annotation import NYTLabelsTagsFromAnnotation
 from nytlabels_fetch_annotation_and_tag.sample_data import sample_nytlabels_response, expected_nytlabels_tags
@@ -14,7 +15,6 @@ from nytlabels_fetch_annotation_and_tag.sample_data import sample_nytlabels_resp
 class TestNYTLabelsTagsFromAnnotation(TestCase):
 
     def test_tagging(self):
-
         db = connect_to_db()
 
         media = db.create(table='media', insert_hash={

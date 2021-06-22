@@ -14,7 +14,9 @@
 -- 1 of 2. Import the output of 'apgdiff':
 --
 
-select insert_platform_source_pair( 'twitter', 'pushshift' );
+
+DROP FUNCTION IF EXISTS get_downloads_for_queue();
+
 
 --
 -- 2 of 2. Reset the database version.
@@ -40,5 +42,3 @@ $$
 LANGUAGE 'plpgsql';
 
 SELECT set_database_schema_version();
-
-

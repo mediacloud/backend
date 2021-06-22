@@ -1,2 +1,0 @@
-ffmpeg-python==0.2.0
-google-cloud-storage==1.35.0

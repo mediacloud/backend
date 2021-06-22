@@ -50,7 +50,7 @@ class AbstractLanguage(object, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def language_code() -> str:
         """Return ISO 639-1 language code, e.g. 'en'."""
-        raise NotImplemented("Abstract method.")
+        raise NotImplementedError("Abstract method.")
 
     @staticmethod
     @abc.abstractmethod
@@ -63,7 +63,7 @@ class AbstractLanguage(object, metaclass=abc.ABCMeta):
         * Wikipedia
         * cld2-cffi's unit test: https://github.com/GregBowyer/cld2-cffi/blob/master/tests/test_cld.py
         """
-        raise NotImplemented("Abstract method.")
+        raise NotImplementedError("Abstract method.")
 
     # MC_REWRITE_TO_PYTHON: use set after rewrite to Python
     @abc.abstractmethod
@@ -79,6 +79,12 @@ class AbstractLanguage(object, metaclass=abc.ABCMeta):
 
         If the stop word list is stored in an external file, you can use self._stop_words_map_from_file() helper.
         """
+        raise NotImplementedError("Abstract method.")
+
+    # FIXME remove once stopword comparison is over
+    @abc.abstractmethod
+    def stop_words_old_map(self) -> Dict[str, bool]:
+        """Return map of old stopwords."""
         raise NotImplementedError("Abstract method.")
 
     @abc.abstractmethod
@@ -283,6 +289,9 @@ class StopWordsFromFileMixIn(AbstractLanguage, metaclass=abc.ABCMeta):
         # Stop words map (lazy initialized)
         self.__stop_words_map = None
 
+        # FIXME remove once stopword comparison is over
+        self.__stop_words_old_map = None
+
     def stop_words_map(self) -> Dict[str, bool]:
         """Return stop word map read from a file."""
         if self.__stop_words_map is None:
@@ -312,3 +321,33 @@ class StopWordsFromFileMixIn(AbstractLanguage, metaclass=abc.ABCMeta):
             self.__stop_words_map = stop_words
 
         return self.__stop_words_map
+
+    # FIXME remove once stopword comparison is over
+    def stop_words_old_map(self) -> Dict[str, bool]:
+        if self.__stop_words_old_map is None:
+
+            stop_words_path = os.path.join(
+                os.path.dirname(os.path.abspath(__file__)),
+                self.language_code(),
+                '%s_stop_words_old.txt' % self.language_code(),
+            )
+            if stop_words_path is None:
+                raise McLanguageException("Stop words file path is None.")
+
+            if not os.path.isfile(stop_words_path):
+                raise McLanguageException("Stop words file does not exist at path '%s'." % stop_words_path)
+
+            stop_words = dict()
+            with open(stop_words_path, 'r', encoding='utf-8') as f:
+                for stop_word in f.readlines():
+                    # Remove comments
+                    stop_word = re.sub(r'\s*?#.*?$', '', stop_word)
+
+                    stop_word = stop_word.strip()
+
+                    if len(stop_word) > 0:
+                        stop_words[stop_word] = True
+
+            self.__stop_words_old_map = stop_words
+
+        return self.__stop_words_old_map

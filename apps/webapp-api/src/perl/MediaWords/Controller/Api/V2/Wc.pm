@@ -9,6 +9,9 @@ use List::Util qw(first max maxstr min minstr reduce shuffle sum);
 use Moose;
 use namespace::autoclean;
 use MediaWords::Solr;
+use MediaWords::Solr::WordCounts;
+use MediaWords::Solr::WordCountsOldStopwords;   # FIXME remove once stopword comparison is over
+
 
 =head1 NAME
 
@@ -47,7 +50,13 @@ sub list_GET : PathPrefix( '/api' )
 
     $c->req->params->{ sample_size } = $sample_size;
 
-    my $wc = MediaWords::Solr::WordCounts->new( { db => $c->dbis, cgi_params => $c->req->params } );
+    my $wc;
+    if ( $c->req->params->{ old_stopwords } ) {
+        # FIXME remove once stopword comparison is over
+        $wc = MediaWords::Solr::WordCountsOldStopwords->new( { db => $c->dbis, cgi_params => $c->req->params } );
+    } else {
+        $wc = MediaWords::Solr::WordCounts->new( { db => $c->dbis, cgi_params => $c->req->params } );
+    }
 
     my $words = $wc->get_words;
 

@@ -93,8 +93,8 @@ services:
               source: ./../postgresql-server/schema/
               target: /opt/mediacloud/schema/
             - type: bind
-              source: ./../postgresql-server/conf/
-              target: /etc/postgresql/11/main/
+              source: ./../postgresql-base/conf/
+              target: /etc/postgresql/13/main/
 
     rabbitmq-server:
         image: gcr.io/mcback/rabbitmq-server:latest
