@@ -297,7 +297,7 @@ sub _create_delta_import_stories($$)
 
     $db->query( "drop table if exists delta_import_stories" );
 
-    $db->query( "create temporary table delta_import_stories ( stories_id int )" );
+    $db->query( "CREATE TEMPORARY TABLE delta_import_stories (stories_id BIGINT)" );
 
     _add_stories_to_import( $db, $full );
 

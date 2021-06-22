@@ -25,7 +25,7 @@ sub test_import_stories_queue_table($)
 
     my $test_stories = $db->query( "select * from stories order by md5( stories_id::text )" )->hashes;
 
-    $db->query( "create table test_stories_queue ( stories_id int )" );
+    $db->query( "CREATE TABLE test_stories_queue (stories_id BIGINT)" );
 
     MediaWords::Test::Solr::queue_all_stories( $db, 'test_stories_queue' );
 
