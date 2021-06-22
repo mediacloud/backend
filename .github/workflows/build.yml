@@ -190,8 +190,11 @@ jobs:
           MC_TWITTER_CONSUMER_KEY: ${{ secrets.MC_TWITTER_CONSUMER_KEY }}
           MC_TWITTER_CONSUMER_SECRET: ${{ secrets.MC_TWITTER_CONSUMER_SECRET }}
 
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3
-        if: always()
-        with:
-          limit-access-to-actor: true
+      # - name: Setup tmate session
+      #   uses: mxschmitt/action-tmate@v3
+      #   if: always()
+      #   with:
+      #     limit-access-to-actor: true
+
+      # ^uncomment this if you need to debug the GitHub actions build
+      # TODO: link to new README section once the related branch is merged
