@@ -39,6 +39,7 @@ RUN \
     chmod ugo+rw /opt/postgresql-server/schema && \
     true
 
+RUN touch /opt/postgresql-server/foo.txt
 COPY bin/* /opt/postgresql-server/bin/
 COPY pgmigrate-callbacks/ /opt/postgresql-server/pgmigrate-callbacks/
 COPY migrations/ /opt/postgresql-server/migrations/
