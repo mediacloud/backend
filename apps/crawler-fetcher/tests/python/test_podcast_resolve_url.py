@@ -34,7 +34,7 @@ def test_get_feed_url_from_google_podcasts_url():
     assert _get_feed_url_from_google_podcasts_url('http://www.example.com/') == 'http://www.example.com/'
     assert _get_feed_url_from_google_podcasts_url('totally not an URL') == 'totally not an URL'
 
-    npr_feed_url = 'https://feeds.npr.org/381444908/podcast.xml'
+    npr_feed_url = 'https://www.npr.org/rss/podcast.php?id=381444908'
 
     # Test with URL pointing to a show's homepage (not invidual episode)
 
