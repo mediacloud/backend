@@ -122,7 +122,7 @@ def queue_all_stories(db: DatabaseHandler, stories_queue_table: str = 'solr_impo
     # "SELECT FROM processed_stories" because only processed stories should get imported. "ORDER BY" so that the
     # import is more efficient when pulling blocks of stories out.
     db.query(f"""
-        INSERT INTO {stories_queue_table}
+        INSERT INTO {stories_queue_table} (stories_id)
             SELECT stories_id
             FROM processed_stories
             GROUP BY stories_id
