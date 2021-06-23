@@ -7,7 +7,6 @@ services:
         init: true
         stop_signal: SIGKILL
         environment:
-            MC_CRIMSON_HEXAGON_API_KEY: "${MC_CRIMSON_HEXAGON_API_KEY}"
             MC_TWITTER_CONSUMER_KEY: "${MC_TWITTER_CONSUMER_KEY}"
             MC_TWITTER_CONSUMER_SECRET: "${MC_TWITTER_CONSUMER_SECRET}"
             MC_TWITTER_ACCESS_TOKEN: "${MC_TWITTER_ACCESS_TOKEN}"
