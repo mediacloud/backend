@@ -59,12 +59,20 @@ def run_topics_fetch_link(topic_fetch_urls_id: int, domain_timeout: Optional[int
     if topic_fetch_urls_id is None:
         raise McFetchLinkJobException("'topic_fetch_urls_id' is None.")
 
-    log.info("Start fetch for topic_fetch_url %d" % topic_fetch_urls_id)
+    # FIXME topics_id could be passed as an argument
+    topics_id = db.query("""
+        SELECT topics_id
+        FROM topic_fetch_urls
+        WHERE topic_fetch_urls_id = %(topic_fetch_urls_id)s
+    """, {'topic_fetch_urls_id': topic_fetch_urls_id}).flat()[0]
+
+    log.info(f"Starting fetch for topic {topics_id}, topic_fetch_url {topic_fetch_urls_id}")
 
     db = connect_to_db()
 
     try:
         if not fetch_topic_url_update_state(db=db,
+                                            topics_id=topics_id,
                                             topic_fetch_urls_id=topic_fetch_urls_id,
                                             domain_timeout=domain_timeout):
             JobBroker(queue_name=QUEUE_NAME).add_to_queue(topic_fetch_urls_id=topic_fetch_urls_id)
@@ -80,7 +88,7 @@ def run_topics_fetch_link(topic_fetch_urls_id: int, domain_timeout: Optional[int
         log.error(f"Fetching URL for ID {topic_fetch_urls_id} failed: {ex}")
         _consecutive_requeues = 0
 
-    log.info("Finished fetch for topic_fetch_url %d" % topic_fetch_urls_id)
+    log.info(f"Finished fetch for topic {topics_id}, topic_fetch_url {topic_fetch_urls_id}")
 
 
 if __name__ == '__main__':

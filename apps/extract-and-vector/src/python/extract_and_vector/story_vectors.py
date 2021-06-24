@@ -116,11 +116,11 @@ def _insert_story_sentences(
     escaped_story_publish_date = db.quote_date(story['publish_date'])
 
     if len(sentences) == 0:
-        log.warning("Story sentences are empty for story {}.".format(stories_id))
+        log.warning(f"Story sentences are empty for story {stories_id}")
         return []
 
     if no_dedup_sentences:
-        log.debug("Won't de-duplicate sentences for story {} because 'no_dedup_sentences' is set.".format(stories_id))
+        log.debug(f"Won't de-duplicate sentences for story {stories_id} because 'no_dedup_sentences' is set")
 
         dedup_sentences_statement = """
 
@@ -137,18 +137,18 @@ def _insert_story_sentences(
 
         # Set is_dup = 't' to sentences already in the table, return those to be later skipped on INSERT of new
         # sentences
-        dedup_sentences_statement = """
+        dedup_sentences_statement = f"""
 
             -- noinspection SqlResolve
             UPDATE story_sentences
             SET is_dup = 't'
             FROM new_sentences
             WHERE half_md5(story_sentences.sentence) = half_md5(new_sentences.sentence)
-              AND week_start_date(story_sentences.publish_date::date) = week_start_date({})
+              AND week_start_date(story_sentences.publish_date::date) = week_start_date({escaped_story_publish_date})
               AND story_sentences.media_id = new_sentences.media_id
             RETURNING story_sentences.sentence
 
-        """.format(escaped_story_publish_date)
+        """
 
     # Convert to list of dicts (values escaped for insertion into database)
     sentence_dicts = _get_db_escaped_story_sentence_dicts(db=db, story=story, sentences=sentences)
@@ -163,26 +163,49 @@ def _insert_story_sentences(
         new_sentence_sql = []
         for column in story_sentences_columns:
             new_sentence_sql.append(sentence_dict[column])
-        new_sentences_sql.append('({})'.format(', '.join(new_sentence_sql)))
+        new_sentences_sql.append(f"({', '.join(new_sentence_sql)})")
     str_new_sentences_sql = "\n{}".format(",\n".join(new_sentences_sql))
 
-    sql = """
+    # sometimes the big story_sentences query below deadlocks sticks in an idle state, holding this lock so we set a
+    # short idle timeout for postgres just while we do this query. the timeout should not kick in while the 
+    # big story_sentences query is actively processing, so we can set it pretty short. we usually set this timeout
+    # to 0 globally, but just to be safe store and reset the pre-existing value.
+    idle_timeout = db.query("SHOW idle_in_transaction_session_timeout").flat()[0]
+    db.query("SET idle_in_transaction_session_timeout = 5000")
 
+    log.debug(f"Adding advisory lock on media ID {media_id}...")
+    db.query("SELECT pg_advisory_lock(%(media_id)s)", {'media_id': media_id})
+
+    sql = f"""
         -- noinspection SqlType,SqlResolve
         WITH new_sentences ({str_story_sentences_columns}) AS (VALUES
             -- New sentences to potentially insert
             {str_new_sentences_sql}
+        )
+
+        -- Either list of duplicate sentences already found in the table or return an empty list if deduplication is
+        -- disabled
+        --
+        -- The query assumes that there are no existing sentences for this story in the "story_sentences" table, so
+        -- if you are reextracting a story, DELETE its sentences from "story_sentences" before running this query.
+        {dedup_sentences_statement}
+
+    """
+    log.debug(f"Running 'UPDATE story_sentences SET is_dup' query:\n{sql}")
+    duplicate_sentences = db.query(sql).flat()
+
+    duplicate_sentences = [db.quote_varchar(sentence) for sentence in duplicate_sentences]
+
+    sql = f"""
+        -- noinspection SqlType,SqlResolve
+        WITH new_sentences ({str_story_sentences_columns}) AS (VALUES
+            {str_new_sentences_sql}
         ),
         duplicate_sentences AS (
-            -- Either a list of duplicate sentences already found in the table or an empty list if deduplication is
-            -- disabled
-            --
-            -- The query assumes that there are no existing sentences for this story in the "story_sentences" table, so
-            -- if you are reextracting a story, DELETE its sentences from "story_sentences" before running this query.
-            {dedup_sentences_statement}
+            SELECT unnest(ARRAY[{', '.join(duplicate_sentences)}]::TEXT[]) AS sentence
         )
-        INSERT INTO story_sentences ({str_story_sentences_columns})
-        SELECT {str_story_sentences_columns}
+        INSERT INTO story_sentences (language, media_id, publish_date, sentence, sentence_number, stories_id)
+        SELECT language, media_id, publish_date, sentence, sentence_number, stories_id
         FROM new_sentences
         WHERE sentence NOT IN (
             -- Skip the ones for which we've just set is_dup = 't'
@@ -190,32 +213,14 @@ def _insert_story_sentences(
             FROM duplicate_sentences
         )
         RETURNING story_sentences.sentence
-
-    """.format(
-        str_story_sentences_columns=str_story_sentences_columns,
-        str_new_sentences_sql=str_new_sentences_sql,
-        dedup_sentences_statement=dedup_sentences_statement,
-    )
-
-    # sometimes the big story_sentences query below deadlocks sticks in an idle state, holding this lock so we set a
-    # short idle timeout for postgres just while we do this query. the timeout should not kick in while the 
-    # big story_sentences query is actively processing, so we can set it pretty short. we usually set this timeout
-    # to 0 globally, but just to be safe store and reset the pre-existing value.
-    idle_timeout = db.query("show idle_in_transaction_session_timeout").flat()[0]
-    db.query("set idle_in_transaction_session_timeout = 5000")
-
-    log.debug("Adding advisory lock on media ID {}...".format(media_id))
-    db.query("SELECT pg_advisory_lock(%(media_id)s)", {'media_id': media_id})
-
-    log.debug("Running sentence insertion + deduplication query:\n{}".format(sql))
-
-    # Insert sentences
+    """
+    log.debug(f"Running 'INSERT INTO story_sentences' query:\n{sql}")
     inserted_sentences = db.query(sql).flat()
 
-    log.debug("Removing advisory lock on media ID {}...".format(media_id))
+    log.debug(f"Removing advisory lock on media ID {media_id}...")
     db.query("SELECT pg_advisory_unlock(%(media_id)s)", {'media_id': media_id})
 
-    db.query("set idle_in_transaction_session_timeout = %(a)s", {'a': idle_timeout})
+    db.query("SET idle_in_transaction_session_timeout = %(a)s", {'a': idle_timeout})
 
     return inserted_sentences
 
