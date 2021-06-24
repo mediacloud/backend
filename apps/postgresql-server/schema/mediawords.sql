@@ -105,7 +105,7 @@ $$
     -- pgcrypto's functions are being referred with public schema prefix to make pg_upgrade work
     -- noinspection SqlResolve @ routine/"digest"
 SELECT SUBSTRING(public.digest(string, 'md5'::text), 0, 9);
-$$ LANGUAGE SQL;
+$$ LANGUAGE SQL IMMUTABLE;
 
 
 -- Returns true if table exists (and user has access to it)
