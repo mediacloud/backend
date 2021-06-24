@@ -83,6 +83,7 @@ SQL
 
 
     my $post_timespan = {
+        topics_id => $topics_id,
         snapshots_id => $post_snapshot->{ snapshots_id },
         start_date => '2020-01-01',
         end_date => '2020-01-01',

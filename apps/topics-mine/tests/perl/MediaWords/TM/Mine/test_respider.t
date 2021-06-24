@@ -89,6 +89,7 @@ SQL
     {
         my ( $start_date, $end_date ) = @{ $dates };
         my $timespan = {
+            topics_id         => $topic->{ topics_id },
             snapshots_id      => $snapshot->{ snapshots_id },
             start_date        => $start_date,
             end_date          => $end_date,

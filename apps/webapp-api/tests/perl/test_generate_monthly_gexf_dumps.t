@@ -19,20 +19,33 @@ sub test_generate_monthly_dumps()
 
     my $date = '2020-01-01';
 
-    my $snapshot = $db->query( <<SQL, $topic->{ topics_id }, $date )->hash;
-insert into snapshots ( topics_id, snapshot_date, start_date, end_date ) values ( \$1, \$2, \$2, \$2 )
-    returning *
+    my $snapshot = $db->query( <<SQL,
+        INSERT INTO snapshots (topics_id, snapshot_date, start_date, end_date)
+        VALUES ( \$1, \$2, \$2, \$2 )
+        RETURNING *
 SQL
+        $topic->{ topics_id }, $date
+    )->hash;
 
-    $db->query( <<SQL, $snapshot->{ snapshots_id }, $date );
-insert into timespans
-    (snapshots_id, start_date, end_date, period, story_count, story_link_count, medium_count, medium_link_count,
-        post_count, foci_id)
-    values
-    (\$1, \$2, \$2, 'overall', 0, 0, 0, 0, 0, null),
-    (\$1, \$2, \$2, 'weekly', 0, 0, 0, 0, 0, null),
-    (\$1, \$2, \$2, 'monthly', 0, 0, 0, 0, 0, null)
+    $db->query( <<SQL,
+        INSERT INTO timespans (
+            snapshots_id,
+            start_date,
+            end_date,
+            period,
+            story_count,
+            story_link_count,
+            medium_count,
+            medium_link_count,
+            post_count,
+            foci_id
+        ) VALUES
+            (\$1, \$2, \$3, \$3, 'overall', 0, 0, 0, 0, 0, null),
+            (\$1, \$2, \$3, \$3, 'weekly', 0, 0, 0, 0, 0, null),
+            (\$1, \$2, \$3, \$3, 'monthly', 0, 0, 0, 0, 0, null)
 SQL
+        $topic->{ topics_id }, $snapshot->{ snapshots_id }, $date
+    );
 
     chdir( '/tmp' );
 

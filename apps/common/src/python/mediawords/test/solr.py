@@ -74,6 +74,7 @@ def _add_timespans_to_stories(db: DatabaseHandler, stories: List[Dict[str, Any]]
     timespans = []
     for i in range(1, 5 + 1):
         timespan = db.create(table='timespans', insert_hash={
+            'topics_id': topic['topics_id'],
             'snapshots_id': snapshot['snapshots_id'],
             'start_date': '2018-01-01',
             'end_date': '2018-01-01',

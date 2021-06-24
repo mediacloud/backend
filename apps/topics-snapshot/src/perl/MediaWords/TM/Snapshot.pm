@@ -607,24 +607,50 @@ sub _create_timespan($$$$$$)
 
     my $focus_clause = $foci_id ? "foci_id = $foci_id" : "foci_id is null";
 
-    my $timespan = $db->query( <<SQL, $snapshots_id, $start_date, $end_date, $period, $foci_id )->hash();
-select *
-    from timespans
-    where
-        snapshots_id = \$1 and
-        start_date = \$2 and
-        end_date = \$3 and
-        period = \$4 and
-        $focus_clause
+    my $timespan = $db->query( <<SQL,
+        SELECT *
+        FROM timespans
+        WHERE
+            topics_id = \$1 AND
+            snapshots_id = \$2 AND
+            start_date = \$3 AND
+            end_date = \$4 AND
+            period = \$5 AND
+            $focus_clause
 SQL
+        $topics_id, $snapshots_id, $start_date, $end_date, $period, $foci_id
+    )->hash();
 
-    $timespan ||= $db->query( <<SQL, $snapshots_id, $start_date, $end_date, $period, $foci_id )->hash();
-insert into timespans
-    ( snapshots_id, start_date, end_date, period, foci_id, 
-      story_count, story_link_count, medium_count, medium_link_count, post_count )
-    values ( \$1, \$2, \$3, \$4, \$5, 0, 0, 0, 0, 0 )
-    returning *
+    $timespan ||= $db->query( <<SQL,
+        INSERT INTO timespans (
+            topics_id,
+            snapshots_id,
+            start_date,
+            end_date,
+            period,
+            foci_id, 
+            story_count,
+            story_link_count,
+            medium_count,
+            medium_link_count,
+            post_count
+        ) VALUES (
+            \$1,
+            \$2,
+            \$3,
+            \$4,
+            \$5,
+            \$6,
+            0,
+            0,
+            0,
+            0,
+            0
+        )
+        RETURNING *
 SQL
+        $topics_id, $snapshots_id, $start_date, $end_date, $period, $foci_id
+    )->hash();
 
     $timespan->{ snapshot } = $cd;
 
