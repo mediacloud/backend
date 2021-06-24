@@ -33,6 +33,7 @@
 -- FIXME consider making shard count configurable to make tests run faster
 -- FIXME temporary tables get created with "stories_id int", e.g. delta_import_stories
 -- FIXME update things that cast to ::int in various places
+-- FIXME tables get created as "postgres" user, should be "mediacloud"
 
 
 -- main schema
