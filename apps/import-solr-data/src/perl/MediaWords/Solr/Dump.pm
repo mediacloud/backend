@@ -103,9 +103,15 @@ sub _add_stories_to_import
         <<"SQL",
         INSERT INTO delta_import_stories (stories_id)
             SELECT sies.stories_id
-            FROM $stories_queue_table sies
-                join snap.stories ss using ( stories_id )
-                join snapshots s on ( ss.snapshots_id = s.snapshots_id and not s.searchable )
+            FROM $stories_queue_table AS sies
+            WHERE stories_id IN (
+                SELECT stories_id
+                FROM snap.stories
+                    INNER JOIN snapshots ON
+                        snap.stories.topics_id = snapshots.topics_id AND
+                        snap.stories.snapshots_id = snapshots.snapshots_id AND
+                        (NOT snapshots.searchable)
+            )
             ORDER BY sies.stories_id
             LIMIT ?
 SQL
@@ -507,18 +513,54 @@ sub _update_snapshot_solr_status
 
     # the combination the searchable clause and the not exists which stops after the first hit should
     # make this quite fast
-    $db->query( <<SQL );
-update snapshots s set searchable = true
-    where
-        searchable = false and
-        not exists (
-            select 1
-                from timespans t
-                    join snap.story_link_counts slc using ( timespans_id )
-                    join $stories_queue_table sies using ( stories_id )
-                where t.snapshots_id = s.snapshots_id
+    my $snapshots_to_update = $db->query( <<SQL
+
+        WITH stories_from_unsearchable_snapshots AS (
+            SELECT
+                snap.stories.topics_id,
+                snap.stories.snapshots_id,
+                snap.stories.stories_id
+            FROM snapshots
+                INNER JOIN snap.stories ON
+                    snapshots.topics_id = snap.stories.topics_id AND
+                    snapshots.snapshots_id = snap.stories.snapshots_id
+            WHERE NOT snapshots.searchable
         )
+
+        SELECT
+            topics_id,
+            snapshots_id
+        FROM snapshots
+        WHERE (NOT searchable) AND
+        NOT EXISTS (
+            SELECT 1
+            FROM stories_from_unsearchable_snapshots
+            WHERE
+                stories_from_unsearchable_snapshots.topics_id = snapshots.topics_id AND
+                stories_from_unsearchable_snapshots.snapshots_id = snapshots.snapshots_id AND
+                stories_from_unsearchable_snapshots.stories_id IN (
+                    SELECT stories_id
+                    FROM $stories_queue_table
+            )
+        )
+
 SQL
+    )->hashes();
+
+    for my $snapshot_to_update ( @{ $snapshots_to_update } ) {
+
+        $db->query(<<SQL,
+
+            UPDATE snapshots
+            SET searchable = 't'
+            WHERE topics_id = ?
+              AND snapshots_id = ?
+
+SQL
+            $snapshots_to_update->{ topics_id }, $snapshots_to_update->{ snapshots_id }
+        );
+
+    }
 }
 
 =head2 import_data( $options )
