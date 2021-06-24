@@ -34,11 +34,10 @@ def increment_domain_links(db: DatabaseHandler, topic_link: dict) -> None:
 
     topic_domain = db.query(
         """
-        insert into topic_domains (topics_id, domain, self_links)
-            values(%(topics_id)s, %(domain)s, 1)
-            on conflict (topics_id, md5(domain))
-                do nothing
-            returning *
+            INSERT INTO topic_domains (topics_id, domain, self_links)
+            VALUES (%(topics_id)s, %(domain)s, 1)
+            ON CONFLICT (topics_id, md5(domain)) DO NOTHING
+            RETURNING *
         """,
         {
             'topics_id': topic_link['topics_id'],
@@ -50,11 +49,11 @@ def increment_domain_links(db: DatabaseHandler, topic_link: dict) -> None:
     if not topic_domain:
         db.query(
             """
-            update topic_domains set
-                    self_links = topic_domains.self_links + 1
-                where
-                    topics_id = %(topics_id)s and
-                    domain = %(domain)s
+            UPDATE topic_domains set
+                self_links = topic_domains.self_links + 1
+            WHERE
+                topics_id = %(topics_id)s AND
+                domain = %(domain)s
             """,
             {
                 'topics_id': topic_link['topics_id'],
@@ -81,8 +80,15 @@ def skip_self_linked_domain_url(db: DatabaseHandler, topics_id: int, source_url:
         return True
 
     topic_domain = db.query(
-        "select * from topic_domains where topics_id = %(a)s and md5(domain) = md5(%(b)s)",
-        {'a': topics_id, 'b': ref_domain}).hash()
+        """
+        SELECT *
+        FROM topic_domains
+        WHERE
+            topics_id = %(a)s AND
+            md5(domain) = md5(%(b)s)
+        """,
+        {'a': topics_id, 'b': ref_domain}
+    ).hash()
 
     if topic_domain and topic_domain['self_links'] >= MAX_SELF_LINKS:
         return True
@@ -100,7 +106,18 @@ def skip_self_linked_domain(db: DatabaseHandler, topic_fetch_url: dict) -> bool:
     if 'topic_links_id' not in topic_fetch_url or topic_fetch_url['topic_links_id'] is None:
         return False
 
-    topic_link = db.require_by_id('topic_links', topic_fetch_url['topic_links_id'])
+    topic_link = db.query("""
+        SELECT *
+        FROM topic_links
+        WHERE
+            topics_id = %(topics_id)s AND
+            topic_links_id = %(topic_links_id)s
+    """, {
+        'topics_id': topic_fetch_url['topics_id'],
+        'topic_links_id': topic_fetch_url['topic_links_id'],
+    }).hash()
+    if not topic_link:
+        raise Exception(f"Topic link ID {topic_fetch_url['topic_links_id']} was not found.")
 
     story = db.require_by_id('stories', topic_link['stories_id'])
 

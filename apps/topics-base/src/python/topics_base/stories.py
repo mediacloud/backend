@@ -494,9 +494,9 @@ def add_to_topic_stories(
             """
                 SELECT ts.*
                 FROM topic_stories AS ts
-                    INNER join topic_links AS tl ON
-                        ts.topics_id = tl.topics_id
-                        ts.stories_id = tl.stories_id AND
+                    INNER JOIN topic_links AS tl ON
+                        ts.topics_id = tl.topics_id AND
+                        ts.stories_id = tl.stories_id
                 WHERE
                     tl.ref_stories_id = %(a)s AND
                     tl.topics_id = %(b)s
@@ -672,11 +672,12 @@ def _get_merged_iteration(db: DatabaseHandler, topic: dict, delete_story: dict, 
     """Get the smaller iteration of two stories"""
     iterations = db.query(
         """
-        select iteration
-        from topic_stories
-        where topics_id = %(a)s
-          and stories_id in (%(b)s, %(c)s)
-          and iteration is not null
+        SELECT iteration
+        FROM topic_stories
+        WHERE
+            topics_id = %(a)s AND
+            stories_id IN (%(b)s, %(c)s) AND
+            iteration IS NOT NULL
         """,
         {'a': topic['topics_id'], 'b': delete_story['stories_id'], 'c': keep_story['stories_id']}).flat()
 
@@ -785,13 +786,8 @@ def _merge_dup_story(db, topic, delete_story, keep_story):
 
     db.query(
         """
-        INSERT INTO topic_merged_stories_map (
-            source_stories_id,
-            target_stories_id
-        ) VALUES (
-            %(source_stories_id)s,
-            %(target_stories_id)s,
-        )
+        INSERT INTO topic_merged_stories_map (source_stories_id, target_stories_id)
+        VALUES (%(source_stories_id)s, %(target_stories_id)s)
         """,
         {
             'source_stories_id': delete_story['stories_id'],
@@ -985,8 +981,12 @@ def _add_missing_normalized_title_hashes(db: DatabaseHandler, topic: dict) -> No
     db.begin()
     db.query(
         """
-        declare c cursor for
-            select stories_id from snap.live_stories where topics_id = %(a)s and normalized_title_hash is null
+        DECLARE c CURSOR FOR
+            SELECT stories_id
+            FROM snap.live_stories
+            WHERE
+                topics_id = %(a)s AND
+                normalized_title_hash IS NULL
         """,
         {'a': topic['topics_id']})
 

@@ -15,14 +15,17 @@ sub send_topic_alert($$$)
 {
     my ( $db, $topic, $message ) = @_;
 
-    my $users = $db->query( <<SQL, $topic->{ topics_id } )->hashes;
-select distinct au.*
-    from auth_users au
-        join topic_permissions tp using ( auth_users_id )
-    where
-        tp.permission in ( 'admin', 'write' ) and
-        tp.topics_id = ?
+    my $users = $db->query( <<SQL,
+        SELECT DISTINCT auth_users.*
+        FROM auth_users
+            INNER JOIN topic_permissions ON
+                auth_users.auth_users_id = topic_permissions.auth_users_id
+        WHERE
+            topic_permissions.permission IN ('admin', 'write') AND
+            tp.topics_id = ?
 SQL
+        $topic->{ topics_id }
+    )->hashes;
 
     my $emails = [ map { $_->{ email } } @{ $users } ];
 

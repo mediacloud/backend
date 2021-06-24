@@ -38,11 +38,11 @@ class McTopicMediaUniqueException(McTopicMediaException):
 
 def _normalize_url(url: str) -> str:
     """Cap max length of url and run through normalize_url_lossy()."""
-    nu = normalize_url_lossy(url)
-    if nu is None:
-        nu = url
+    normalized_url = normalize_url_lossy(url)
+    if normalized_url is None:
+        normalized_url = url
 
-    return nu[0:MAX_URL_LENGTH]
+    return normalized_url[0:MAX_URL_LENGTH]
 
 
 def generate_medium_url_and_name_from_url(story_url: str) -> tuple:
@@ -143,24 +143,28 @@ def lookup_medium(db: DatabaseHandler, url: str, name: str) -> typing.Optional[d
     """
     _update_media_normalized_urls(db)
 
-    nu = _normalize_url(url)
+    normalized_url = _normalize_url(url)
 
-    lookup_query = """
-        select m.*
-        from media m
-        where m.normalized_url = %(a)s
-          and foreign_rss_links = 'f'
-        order by
-            dup_media_id nulls last,
+    medium = db.query("""
+        SELECT *
+        FROM media
+        where
+            normalized_url = %(a)s AND
+            foreign_rss_links = 'f'
+        ORDER BY
+            dup_media_id NULLS LAST,
             media_id
-    """
-
-    medium = db.query(lookup_query, {'a': nu}).hash()
+    """, {'a': normalized_url}).hash()
 
     if medium is None:
-        medium = db.query(
-            "select m.* from media m where lower(m.name) = lower(%(a)s) and m.foreign_rss_links = false",
-            {'a': name}).hash()
+        medium = db.query("""
+            SELECT *
+            FROM media
+            WHERE
+                lower(name) = lower(%(a)s) AND
+                foreign_rss_links = false
+            """, {'a': name}
+        ).hash()
 
     if medium is None:
         return None
