@@ -84,12 +84,12 @@ SELECT set_database_schema_version();
 -- This function is needed because date_trunc('week', date) is not consider immutable
 -- See http://www.mentby.com/Group/pgsql-general/datetrunc-on-date-is-immutable.html
 --
-CREATE OR REPLACE FUNCTION week_start_date(day date) RETURNS date AS
+CREATE OR REPLACE FUNCTION week_start_date(day DATE) RETURNS DATE AS
 $$
 DECLARE
-    date_trunc_result date;
+    date_trunc_result DATE;
 BEGIN
-    date_trunc_result := date_trunc('week', day::timestamp);
+    date_trunc_result := date_trunc('week', day::TIMESTAMP);
     RETURN date_trunc_result;
 END;
 $$ LANGUAGE 'plpgsql' IMMUTABLE
