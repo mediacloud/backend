@@ -729,14 +729,18 @@ SQL
     # cleanup any topic_seed_urls pointing to a merged story
     $db->query(
         <<SQL,
-        UPDATE topic_seed_urls AS tsu
-        SET stories_id = tms.target_stories_id, processed = 't'
-        FROM topic_merged_stories_map AS tms,
-             topic_stories ts
-        WHERE tsu.stories_id = tms.source_stories_id
-          AND ts.stories_id = tms.target_stories_id
-          AND tsu.topics_id = ts.topics_id
-          AND ts.topics_id = \$1
+        UPDATE topic_seed_urls AS tsu SET
+            stories_id = tms.target_stories_id,
+            processed = 't'
+        FROM
+            topic_merged_stories_map AS tms,
+            topic_stories AS ts
+        WHERE
+            tsu.stories_id = tms.source_stories_id AND
+            ts.stories_id = tms.target_stories_id AND
+            tms.topics_id = ts.topics_id AND
+            tsu.topics_id = ts.topics_id AND
+            ts.topics_id = \$1
 SQL
         $topic->{ topics_id }
     );

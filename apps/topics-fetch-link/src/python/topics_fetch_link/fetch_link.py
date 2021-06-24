@@ -287,7 +287,18 @@ def _get_failed_url(db: DatabaseHandler, topics_id: int, url: str) -> Optional[d
 def _update_tfu_message(db: DatabaseHandler, topic_fetch_url: dict, message: str) -> None:
     """Update the topic_fetch_url.message field in the database."""
     if _USE_TFU_DEBUG_MESSAGES:
-        db.update_by_id('topic_fetch_urls', topic_fetch_url['topic_fetch_urls_id'], {'message': message})
+
+        db.query("""
+            UPDATE topic_fetch_urls SET
+                message = %(message)s
+            WHERE
+                topics_id = %(topics_id)s AND
+                topic_fetch_urls_id = %(topic_fetch_urls_id)s
+        """, {
+            'topics_id': topic_fetch_url['topics_id'],
+            'topic_fetch_urls_id': topic_fetch_url['topic_fetch_urls_id'],
+            'message': message,
+        })
 
 
 def _ignore_link_pattern(url: Optional[str]) -> bool:
@@ -534,7 +545,21 @@ def fetch_topic_url(db: DatabaseHandler, topic_fetch_urls_id: int, domain_timeou
         topic_fetch_url['message'] = traceback.format_exc()
         log.warning('topic_fetch_url %s failed: %s' % (topic_fetch_url['url'], topic_fetch_url['message']))
 
-    db.update_by_id('topic_fetch_urls', topic_fetch_url['topic_fetch_urls_id'], topic_fetch_url)
+
+    db.query("""
+        UPDATE topic_fetch_urls SET
+            url = %(url)s,
+            code = %(code)s,
+            fetch_date = %(fetch_date)s,
+            state = %(state)s,
+            message = %(message)s,
+            stories_id = %(stories_id)s,
+            assume_match = %(assume_match)s,
+            topic_links_id = %(topic_links_id)s
+        WHERE
+            topics_id = %(topics_id)s AND
+            topic_fetch_urls_id = %(topic_fetch_urls_id)s
+    """, topic_fetch_url)
 
 
 def fetch_topic_url_update_state(db: DatabaseHandler,
