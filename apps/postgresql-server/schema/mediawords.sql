@@ -28,6 +28,7 @@
 -- FIXME when initializing schema, some connections get dropped
 -- FIXME when creating functions / triggers, make sure that each shard succeeds
 -- FIXME schema gets imported as "postgres" user
+-- FIXME consider making shard count configurable to make tests run faster
 
 
 -- main schema
