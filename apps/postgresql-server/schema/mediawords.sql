@@ -1061,6 +1061,22 @@ SELECT create_distributed_table('stories_tags_map', 'stories_id');
 CREATE UNIQUE INDEX stories_tags_map_stories_id_tags_id
     ON stories_tags_map (stories_id, tags_id);
 
+SELECT run_command_on_shards('stories_tags_map', $cmd$
+
+    BEGIN;
+
+    LOCK TABLE pg_proc IN ACCESS EXCLUSIVE MODE;
+
+    CREATE TRIGGER processed_stories_insert_solr_import_story
+        AFTER INSERT OR UPDATE OR DELETE
+        ON %s
+        FOR EACH ROW
+    EXECUTE PROCEDURE insert_solr_import_story();
+
+    COMMIT;
+
+    $cmd$);
+
 
 CREATE TABLE queued_downloads
 (
