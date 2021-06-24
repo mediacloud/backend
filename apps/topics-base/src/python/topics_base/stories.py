@@ -321,9 +321,9 @@ def assign_date_guess_tag(
     ts = db.find_or_create('tag_sets', {'name': tag_set})
     t = db.find_or_create('tags', {'tag': tag, 'tag_sets_id': ts['tag_sets_id']})
 
-    db.query("delete from stories_tags_map where stories_id = %(a)s", {'a': story['stories_id']})
+    db.query("DELETE FROM stories_tags_map WHERE stories_id = %(a)s", {'a': story['stories_id']})
     db.query(
-        "insert into stories_tags_map (stories_id, tags_id) values (%(a)s, %(b)s)",
+        "INSERT INTO stories_tags_map (stories_id, tags_id) VALUES (%(a)s, %(b)s)",
         {'a': story['stories_id'], 'b': t['tags_id']})
 
 
@@ -441,14 +441,9 @@ def generate_story(
 
     db.query(
         """
-        insert into stories_tags_map (stories_id, tags_id)
-            select %(a)s, %(b)s
-            where not exists (
-                select 1
-                from stories_tags_map
-                where stories_id = %(a)s
-                  and tags_id = %(b)s
-            )
+        INSERT INTO stories_tags_map (stories_id, tags_id)
+        VALUES (%(a)s, %(b)s)
+        ON CONFLICT (stories_id, tags_id) DO NOTHING
         """,
         {'a': story['stories_id'], 'b': spidered_tag['tags_id']})
 
@@ -625,8 +620,12 @@ def copy_story_to_new_medium(db: DatabaseHandler, topic: dict, old_story: dict, 
 
     db.query(
         """
-        insert into stories_tags_map (stories_id, tags_id)
-            select %(a)s, stm.tags_id from stories_tags_map stm where stm.stories_id = %(b)s
+        INSERT INTO stories_tags_map (stories_id, tags_id)
+            SELECT
+                %(a)s,
+                stm.tags_id
+            FROM stories_tags_map AS stm
+            WHERE stm.stories_id = %(b)s
         """,
         {'a': story['stories_id'], 'b': old_story['stories_id']})
 

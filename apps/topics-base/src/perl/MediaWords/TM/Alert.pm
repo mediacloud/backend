@@ -22,7 +22,7 @@ sub send_topic_alert($$$)
                 auth_users.auth_users_id = topic_permissions.auth_users_id
         WHERE
             topic_permissions.permission IN ('admin', 'write') AND
-            tp.topics_id = ?
+            topic_permissions.topics_id = ?
 SQL
         $topic->{ topics_id }
     )->hashes;

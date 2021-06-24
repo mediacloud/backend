@@ -50,16 +50,14 @@ def insert_story_urls(db: DatabaseHandler, story: dict, url: str) -> None:
         # க்குரைஞா்-கடிதம்-3361308.html
         if len(url) <= MAX_URL_LENGTH:
 
-            # wastefully query for existence of url because jumping straight into the on conflict do nothing
-            # insert below sometimes results in a deadlock
             db.query(
                 """
-                insert into story_urls (stories_id, url)
-                    select %(a)s, %(b)s
-                        where not exists ( select 1 from story_urls where stories_id = %(a)s and url = %(b)s )
-                        on conflict (url, stories_id) do nothing
+                INSERT INTO story_urls (stories_id, url)
+                VALUES (%(stories_id)s, %(url)s)
+                ON CONFLICT (stories_id, url) DO NOTHING
                 """,
-                {'a': story['stories_id'], 'b': url})
+                {'stories_id': story['stories_id'], 'url': url}
+            )
 
 
 def _get_story_url_variants(story: dict) -> list:
@@ -214,12 +212,11 @@ def add_story(db: DatabaseHandler, story: dict, feeds_id: int) -> Optional[dict]
 
     [insert_story_urls(db, story, u) for u in (story['url'], story['guid'])]
 
-    # on conflict does not work with partitioned feeds_stories_map
     db.query(
         """
-        insert into feeds_stories_map_p ( feeds_id, stories_id )
-            select %(a)s, %(b)s where not exists (
-                select 1 from feeds_stories_map where feeds_id = %(a)s and stories_id = %(b)s )
+        INSERT INTO feeds_stories_map (feeds_id, stories_id)
+        VALUES (%(a)s, %(b)s)
+        ON CONFLICT (feeds_id, stories_id) DO NOTHING
         """,
         {'a': feeds_id, 'b': story['stories_id']})
 

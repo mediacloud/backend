@@ -1045,24 +1045,37 @@ sub import_urls_from_seed_queries($$;$)
         MediaWords::TM::FetchTopicPosts::fetch_topic_posts( $db, $tsq );
     }
 
-    $db->query( <<SQL, $topic->{ topics_id } );
-insert into topic_seed_urls ( url, topics_id, assume_match, source, topic_seed_queries_id, topic_post_urls_id )
-    select distinct
-            tpu.url,
-            tsq.topics_id,
-            false,
-            'topic_seed_queries', 
-            tsq.topic_seed_queries_id,
-            tpu.topic_post_urls_id
-        from
-            topic_post_urls tpu
-            join topic_posts tp using ( topic_posts_id )
-            join topic_post_days tpd using ( topic_post_days_id )
-            join topic_seed_queries tsq using ( topic_seed_queries_id )
-        where
-            tsq.topics_id = ? 
-        on conflict ( topic_post_urls_id ) do nothing
+    $db->query( <<SQL,
+        INSERT INTO topic_seed_urls (
+            url,
+            topics_id,
+            assume_match,
+            source,
+            topic_seed_queries_id,
+            topic_post_urls_id
+        )
+            SELECT DISTINCT
+                topic_post_urls.url,
+                topic_seed_queries.topics_id,
+                false AS assume_match,
+                'topic_seed_queries' AS source, 
+                topic_seed_queries.topic_seed_queries_id,
+                topic_post_urls.topic_post_urls_id
+            FROM topic_post_urls
+                INNER JOIN topic_posts ON
+                    topic_post_urls.topics_id = topic_posts.topics_id AND
+                    topic_post_urls.topic_posts_id = topic_posts.topic_posts_id
+                INNER JOIN topic_post_days ON
+                    topic_posts.topics_id = topic_post_days.topics_id AND
+                    topic_posts.topic_post_days_id = topic_post_days.topic_post_days_id
+                INNER JOIN topic_seed_queries ON
+                    topic_post_days.topics_id = topic_seed_queries.topics_id AND
+                    topic_post_days.topic_seed_queries_id = topic_seed_queries.topic_seed_queries_id
+            WHERE topic_post_urls.topics_id = ? 
+        ON CONFLICT (topics_id, topic_post_urls_id) DO NOTHING
 SQL
+        $topic->{ topics_id }
+    );
 }
 
 # if the query or dates have changed, set topic_stories.link_mined to false for the impacted stories so that
