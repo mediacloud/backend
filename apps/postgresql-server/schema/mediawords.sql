@@ -2436,7 +2436,15 @@ SELECT run_command_on_shards('topic_stories', $cmd$
     CREATE OR REPLACE FUNCTION insert_live_story() RETURNS TRIGGER AS
     $$
 
+    DECLARE
+        story RECORD;
+
     BEGIN
+
+        SELECT *
+        INTO story
+        FROM stories
+        WHERE stories_id = NEW.stories_id;
 
         INSERT INTO snap.live_stories (topics_id,
                                        topic_stories_id,
@@ -2454,21 +2462,19 @@ SELECT run_command_on_shards('topic_stories', $cmd$
         SELECT NEW.topics_id,
                NEW.topic_stories_id,
                NEW.stories_id,
-               s.media_id,
-               s.url,
-               s.guid,
-               s.title,
-               s.normalized_title_hash,
-               s.description,
-               s.publish_date,
-               s.collect_date,
-               s.full_text_rss,
-               s.language
-        FROM topic_stories AS cs
-                 JOIN stories AS s
-                      ON cs.stories_id = s.stories_id
-        WHERE cs.stories_id = NEW.stories_id
-          AND cs.topics_id = NEW.topics_id;
+               story.media_id,
+               story.url,
+               story.guid,
+               story.title,
+               story.normalized_title_hash,
+               story.description,
+               story.publish_date,
+               story.collect_date,
+               story.full_text_rss,
+               story.language
+        FROM topic_stories
+        WHERE topic_stories.stories_id = NEW.stories_id
+          AND topic_stories.topics_id = NEW.topics_id;
 
         RETURN NEW;
 
