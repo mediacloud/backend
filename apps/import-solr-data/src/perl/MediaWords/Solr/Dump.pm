@@ -144,9 +144,9 @@ SQL
         <<"SQL",
         INSERT INTO delta_import_stories (stories_id)
             SELECT stories_id
-            FROM $stories_queue_table s
+            FROM $stories_queue_table AS s
             WHERE stories_id > ?
-            ORDER BY stories_id desc
+            ORDER BY stories_id DESC
             LIMIT ?
 SQL
         $min_stories_id,
