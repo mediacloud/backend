@@ -55,9 +55,9 @@ def create_download_for_story(db: DatabaseHandler, feed: dict, story: dict) -> d
             'type': 'content',
             'sequence': 1,
             'state': 'success',
+            'path': 'postgresql:raw_downloads',
             'priority': 1,
             'extracted': False,
-            'path': 'postgresql:foo',
             'stories_id': story['stories_id'],
         }
     )
@@ -549,7 +549,8 @@ def add_content_to_test_story(db: DatabaseHandler, story: dict, feed: dict) -> d
             'host': host,
             'type': 'content',
             'sequence': 1,
-            'state': 'fetching',
+            'state': 'success',
+            'path': 'postgresql:raw_downloads',
             'priority': 1,
             'extracted': True,
             'stories_id': story['stories_id'],
