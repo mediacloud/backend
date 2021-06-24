@@ -37,12 +37,20 @@ sub create_snapshot_row ($$;$$$$)
 
     my $sq_json = MediaWords::Util::ParseJSON::encode_json( $seed_queries );
 
-    my $snapshot = $db->query( <<END, $topics_id, $start_date, $end_date, $note, $bot_policy, $sq_json )->hash;
-insert into snapshots
-    ( topics_id, start_date, end_date, snapshot_date, note, bot_policy, seed_queries )
-    values ( ?, ?, ?, now(), ?, ?, ? )
-    returning *
-END
+    my $snapshot = $db->query( <<SQL,
+        INSERT INTO snapshots (
+            topics_id,
+            start_date,
+            end_date,
+            snapshot_date,
+            note,
+            bot_policy,
+            seed_queries
+        ) VALUES ( ?, ?, ?, now(), ?, ?, ? )
+        RETURNING *
+SQL
+        $topics_id, $start_date, $end_date, $note, $bot_policy, $sq_json
+    )->hash();
 
     $snapshot->{ topic } = $topic;
 
@@ -57,28 +65,40 @@ sub get_story_foci($$$)
     # enumerate the stories ids to get a decent query plan
     my $stories_ids_list = join( ',', map { $_->{ stories_id } } @{ $stories } ) || '-1';
 
-    my $foci = $db->query( <<SQL, $timespan->{ timespans_id } )->hashes;
-select
-        slc.stories_id,
-        f.foci_id,
-        f.name,
-        fs.name focal_set_name
-    from snap.story_link_counts slc
-        join timespans a on ( a.timespans_id = slc.timespans_id )
-        join timespans b on
-            ( a.snapshots_id = b.snapshots_id and
-                a.start_date = b.start_date and
-                a.end_date = b.end_date and
-                a.period = b.period )
-        join foci f on ( f.foci_id = b.foci_id )
-        join focal_sets fs on ( f.focal_sets_id = fs.focal_sets_id )
-        join snap.story_link_counts slcb on
-            ( slcb.stories_id = slc.stories_id and
-                slcb.timespans_id = b.timespans_id )
-    where
-        slc.stories_id in ( $stories_ids_list ) and
-        a.timespans_id = \$1
+    my $foci = $db->query( <<SQL,
+        SELECT
+            slc.stories_id,
+            f.foci_id,
+            f.name,
+            fs.name AS focal_set_name
+        FROM snap.story_link_counts AS slc
+            INNER JOIN timespans AS a ON
+                a.topics_id = slc.topics_id AND
+                a.timespans_id = slc.timespans_id
+            INNER JOIN timespans AS b ON
+                a.topics_id = b.topics_id AND
+                a.snapshots_id = b.snapshots_id AND
+                a.start_date = b.start_date AND
+                a.end_date = b.end_date AND
+                a.period = b.period
+            INNER JOIN foci AS f ON
+                f.topics_id = b.topics_id AND
+                f.foci_id = b.foci_id
+            INNER JOIN focal_sets AS fs ON
+                f.focal_sets_id = fs.focal_sets_id AND
+                f.focal_sets_id = fs.focal_sets_id
+            INNER JOIN snap.story_link_counts AS slcb ON
+                slcb.topics_id = slc.topics_id AND
+                slcb.stories_id = slc.stories_id AND
+                slcb.topics_id = b.topics_id
+                slcb.timespans_id = b.timespans_id
+        WHERE
+            slc.stories_id IN ($stories_ids_list) AND
+            a.topics_id = \$1
+            a.timespans_id = \$2
 SQL
+        $timespan->{ topics_id }, $timespan->{ timespans_id }
+    )->hashes;
 
     return $foci;
 }
@@ -90,23 +110,41 @@ sub get_story_counts($$$)
 
     my $stories_ids_list = join( ',', map { int( $_->{ stories_id } // 0 ) } @{ $stories } ) || -1;
 
-    my $counts = $db->query( <<SQL, $timespan->{ timespans_id } )->hashes;
-select
-        b.stories_id, b.post_count, b.author_count, b.channel_count,
-        f.name focus_name, (f.arguments->>'topic_seed_queries_id')::int topic_seed_queries_id
-    from snap.story_link_counts a
-        join timespans at using ( timespans_id )
-        join timespans bt on
-            ( at.snapshots_id = bt.snapshots_id and
-                at.period = bt.period and
-                at.start_date = bt.start_date )
-        join foci f on ( bt.foci_id = f.foci_id )
-        join focal_sets fs on ( fs.focal_sets_id = f.focal_sets_id and fs.focal_technique = 'URL Sharing' )
-        join snap.story_link_counts b on ( b.timespans_id = bt.timespans_id and b.stories_id = a.stories_id )
-    where  
-        b.stories_id in ( $stories_ids_list ) and
-        a.timespans_id = ?
+    my $counts = $db->query( <<SQL,
+        SELECT
+            b.stories_id,
+            b.post_count,
+            b.author_count,
+            b.channel_count,
+            f.name AS focus_name,
+            (f.arguments->>'topic_seed_queries_id')::BIGINT AS topic_seed_queries_id
+        FROM snap.story_link_counts AS a
+            INNER JOIN timespans AS at ON
+                a.topics_id = at.topics_id AND
+                a.timespans_id = at.timespans_id
+            INNER JOIN timespans AS bt ON
+                at.topics_id = bt.topics_id AND
+                at.snapshots_id = bt.snapshots_id AND
+                at.period = bt.period AND
+                at.start_date = bt.start_date
+            INNER JOIN foci AS f ON
+                bt.topics_id = f.topics_id AND
+                bt.foci_id = f.foci_id
+            INNER JOIN focal_sets AS fs ON
+                fs.topics_id = f.topics_id AND
+                fs.focal_sets_id = f.focal_sets_id AND
+                fs.focal_technique = 'URL Sharing'
+            INNER JOIN snap.story_link_counts AS b ON
+                b.topics_id = bt.topics_id AND
+                b.timespans_id = bt.timespans_id AND
+                b.stories_id = a.stories_id
+        WHERE
+            b.stories_id IN ($stories_ids_list) AND
+            a.topics_id = ? AND
+            a.timespans_id = ?
 SQL
+        $timespan->{ topics_id }, $timespan->{ timespans_id }
+    )->hashes;
 
     return $counts;
 }
@@ -118,23 +156,42 @@ sub get_medium_counts($$$)
 
     my $media_ids_list = join( ',', map { int( $_->{ media_id } // 0 ) } @{ $media } ) || -1;
 
-    my $counts = $db->query( <<SQL, $timespan->{ timespans_id } )->hashes;
-select
-        b.media_id, b.sum_post_count, b.sum_author_count, b.sum_channel_count,
-        f.name focus_name, (f.arguments->>'topic_seed_queries_id')::int topic_seed_queries_id
-    from snap.medium_link_counts a
-        join timespans at using ( timespans_id )
-        join timespans bt on
-            ( at.snapshots_id = bt.snapshots_id and
-                at.period = bt.period and
-                at.start_date = bt.start_date )
-        join foci f on ( bt.foci_id = f.foci_id )
-        join focal_sets fs on ( fs.focal_sets_id = f.focal_sets_id and fs.focal_technique = 'URL Sharing' )
-        join snap.medium_link_counts b on ( b.timespans_id = bt.timespans_id and b.media_id = a.media_id )
-    where  
-        b.media_id in ( $media_ids_list ) and 
-        a.timespans_id = ?
+    my $counts = $db->query( <<SQL,
+        SELECT
+            b.media_id,
+            b.sum_post_count,
+            b.sum_author_count,
+            b.sum_channel_count,
+            f.name AS focus_name,
+            (f.arguments->>'topic_seed_queries_id')::BIGINT topic_seed_queries_id
+        FROM snap.medium_link_counts AS a
+            INNER JOIN timespans AS at ON
+                a.topics_id = at.topics_id AND
+                a.timespans_id = at.timespans_id
+            INNER JOIN timespans AS bt ON
+                at.topics_id = bt.topics_id AND
+                at.snapshots_id = bt.snapshots_id AND
+                at.period = bt.period AND
+                at.start_date = bt.start_date
+            INNER JOIN foci AS f ON
+                bt.topics_id = f.topics_id AND
+                bt.foci_id = f.foci_id
+            INNER JOIN focal_sets AS fs ON
+                fs.topics_id = f.topics_id AND
+                fs.focal_sets_id = f.focal_sets_id AND
+                fs.focal_technique = 'URL Sharing'
+            INNER JOIN snap.medium_link_counts AS b ON
+                b.topics_id = bt.topics_id AND
+                b.timespans_id = bt.timespans_id AND
+                b.topics_id = a.topics_id AND
+                b.media_id = a.media_id
+        WHERE
+            b.media_id IN ($media_ids_list) AND
+            a.topics_id = ? AND
+            a.timespans_id = ?
 SQL
+        $timespan->{ topics_id }, $timespan->{ timespans_id }
+    )->hashes;
 
     return $counts;
 }

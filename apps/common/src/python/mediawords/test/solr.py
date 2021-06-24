@@ -94,13 +94,15 @@ def _add_timespans_to_stories(db: DatabaseHandler, stories: List[Dict[str, Any]]
         timespans.insert(0, timespan)
 
         db.query("""
-            insert into snap.story_link_counts (
+            INSERT INTO snap.story_link_counts (
+                topics_id,
                 timespans_id,
                 stories_id,
                 media_inlink_count,
                 inlink_count,
                 outlink_count
-            ) values (
+            ) VALUES (
+                %(topics_id)s,
                 %(timespans_id)s,
                 %(stories_id)s,
                 1,
@@ -108,6 +110,7 @@ def _add_timespans_to_stories(db: DatabaseHandler, stories: List[Dict[str, Any]]
                 1
             )
         """, {
+            'topics_id': timespan['topics_id'],
             'timespans_id': timespan['timespans_id'],
             'stories_id': story['stories_id'],
         })

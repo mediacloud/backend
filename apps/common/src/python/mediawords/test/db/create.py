@@ -311,11 +311,21 @@ def create_test_topic_stories(
 
     db.query(
         """
-        insert into topic_links ( topics_id, stories_id, url, ref_stories_id )
-            select %(a)s, a.stories_id, b.url, b.stories_id
-                from stories a
-                    join stories b on ( a.media_id <> b.media_id )
-                limit %(b)s
+        INSERT INTO topic_links (
+            topics_id,
+            stories_id,
+            url,
+            ref_stories_id
+        )
+            SELECT
+                %(a)s,
+                a.stories_id,
+                b.url,
+                b.stories_id
+            FROM stories AS a
+                INNER JOIN stories AS b
+                    ON a.media_id != b.media_id
+            LIMIT %(b)s
         """,
         {'a': topic['topics_id'], 'b': num_media * num_stories_per_medium})
 
@@ -336,11 +346,12 @@ def create_test_topic_posts(
     }
     tsq = db.create('topic_seed_queries', tsq)
 
-    stories = db.query( "select * from snap.live_stories where topics_id = %(a)s", {'a': topic['topics_id']}).hashes()
+    stories = db.query( "SELECT * FROM snap.live_stories WHERE topics_id = %(a)s", {'a': topic['topics_id']}).hashes()
 
     num_posts = 0
     while date < end_date:
         tpd = {
+            'topics_id': topic['topics_id'],
             'topic_seed_queries_id': tsq['topic_seed_queries_id'],
             'day': date.strftime('%Y-%m-%d'),
             'num_posts_stored': num_posts_per_day,
@@ -352,6 +363,7 @@ def create_test_topic_posts(
             author_num = i 
             channel_num = i % num_posts_per_day
             topic_post = {
+                'topics_id': topic['topics_id'],
                 'topic_post_days_id': tpd['topic_post_days_id'],
                 'post_id': i,
                 'content': f'content {i}',
@@ -364,6 +376,7 @@ def create_test_topic_posts(
 
             post_story = stories[num_posts % len(stories)]
             tpu = {
+                'topics_id': topic['topics_id'],
                 'topic_posts_id': topic_post['topic_posts_id'],
                 'url': post_story['url']
             }
@@ -411,6 +424,7 @@ def create_test_timespan(db: DatabaseHandler, topic: dict=None, snapshot: dict=N
     return db.create(
         table='timespans',
         insert_hash={
+            'topics_id': snapshot['topics_id'],
             'snapshots_id': snapshot['snapshots_id'],
             'start_date': snapshot['start_date'],
             'end_date': snapshot['end_date'],

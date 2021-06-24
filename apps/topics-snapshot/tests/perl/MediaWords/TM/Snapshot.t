@@ -127,26 +127,53 @@ sub validate_sharing_timespan
 
     for my $tsq ( @{ $topic_seed_queries } )
     {
-        my $got_focus = $db->query( <<SQL, $tsq->{ topic_seed_queries_id } )->hash;
-select * from foci where (arguments->>'topic_seed_queries_id')::int = ?
+        my $got_focus = $db->query( <<SQL,
+            SELECT *
+            FROM foci
+            WHERE
+                topics_id = ? AND
+                (arguments->>'topic_seed_queries_id')::BIGINT = ?
 SQL
-       ok( $got_focus );
+            $tsq->{ topics_id }, $tsq->{ topic_seed_queries_id }
+        )->hash;
+        ok( $got_focus );
 
-       my $got_timespan = $db->query( <<SQL, $got_focus->{ foci_id } )->hash;
-select * from timespans where period = 'overall' and foci_id = ?
+        my $got_timespan = $db->query( <<SQL,
+            SELECT *
+            FROM timespans
+            WHERE
+                topics_id = ? AND
+                period = 'overall' AND
+                foci_id = ?
 SQL
-       ok( $got_timespan );
+            $got_focus->{ topics_id }, $got_focus->{ foci_id }
+        )->hash;
+        ok( $got_timespan );
 
-       my $got_story_link_counts = $db->query( <<SQL, $got_timespan->{ timespans_id } )->hashes;
-select * from snap.story_link_counts where timespans_id = ?
+        my $got_story_link_counts = $db->query( <<SQL,
+            SELECT *
+            FROM snap.story_link_counts
+            WHERE
+                topics_id = ? AND
+                timespans_id = ?
 SQL
+            $got_timespan->{ timespans_id }, $got_timespan->{ timespans_id }
+        )->hashes;
 
-       is( scalar( @{ $got_story_link_counts } ), $NUM_TSQ_STORIES );
+        is( scalar( @{ $got_story_link_counts } ), $NUM_TSQ_STORIES );
 
-       my $got_story_link_count_counts = $db->query( <<SQL, $got_timespan->{ timespans_id } )->hashes;
-select * from snap.story_link_counts
-    where timespans_id = ? and post_count = 1 and author_count = 1 and channel_count = 1
+        my $got_story_link_count_counts = $db->query( <<SQL,
+            SELECT *
+            FROM snap.story_link_counts
+            WHERE
+                topics_id = ? AND
+                timespans_id = ? AND
+                post_count = 1 AND
+                author_count = 1 AND
+                channel_count = 1
 SQL
+            $got_timespan->{ topics_id }, $got_timespan->{ timespans_id }
+        )->hashes;
 
        is( scalar( @{ $got_story_link_count_counts } ), $NUM_TSQ_STORIES );
    }
@@ -165,6 +192,7 @@ sub add_boolean_query_focus($$)
     $fsd = $db->create( 'focal_set_definitions', $fsd );
 
     my $fd = {
+        topics_id => $topic->{ topics_id },
         focal_set_definitions_id => $fsd->{ focal_set_definitions_id },
         name => 'boolean query',
         description => 'boolean query',
@@ -179,26 +207,45 @@ sub validate_query_focus($$)
 {
     my ( $db, $snapshot ) = @_;
 
-    my $got_focus = $db->query( <<SQL, $snapshot->{ snapshots_id } )->hash();
-select f.*
-    from foci f
-        join focal_sets fd using ( focal_sets_id )
-    where
-        fd.focal_technique = 'Boolean Query' and
-        fd.snapshots_id = ?
+    my $got_focus = $db->query( <<SQL,
+        SELECT f.*
+        FROM foci AS f
+            INNER JOIN focal_sets AS fd ON
+                f.topics_id = fd.topics_id AND
+                f.focal_sets_id = fd.focal_sets_id
+        WHERE
+            fd.focal_technique = 'Boolean Query' AND
+            fd.topics_id = ? AND
+            fd.snapshots_id = ?
 SQL
+        $snapshot->{ topics_id }, $snapshot->{ snapshots_id }
+    )->hash();
 
     ok( $got_focus, "query focus exists after snapshot" );
 
-    my $got_timespan = $db->query( <<SQL, $snapshot->{ snapshots_id }, $got_focus->{ foci_id } )->hash();
-select t.* from timespans t where snapshots_id = ? and foci_id = ? and period = 'overall'
+    my $got_timespan = $db->query( <<SQL,
+        SELECT t.*
+        FROM timespans AS t
+        WHERE
+            topics_id = ? AND
+            snapshots_id = ? AND
+            foci_id = ? AND
+            period = 'overall'
 SQL
+        $snapshot->{ topics_id }, $snapshot->{ snapshots_id }, $got_focus->{ foci_id }
+    )->hash();
 
     ok( $got_timespan );
 
-    my $got_stories = $db->query( <<SQL, $got_timespan->{ timespans_id } )->hashes();
-select slc.* from snap.story_link_counts slc where timespans_id = ?
+    my $got_stories = $db->query( <<SQL,
+        SELECT *
+        FROM snap.story_link_counts
+        WHERE
+            topics_id = ? AND
+            timespans_id = ?
 SQL
+        $got_timespan->{ topics_id }, $got_timespan->{ timespans_id }
+    )->hashes();
 
     is( scalar( @{ $got_stories } ), $NUM_FOCUS_STORIES, "correct number of stories in focus timespan" );
 }
@@ -218,9 +265,13 @@ sub test_snapshot($)
     my $expected_seed_query = add_test_seed_query( $db, $topic );
 
     my $tag_set = $db->query( "insert into tag_sets ( name ) values ( 'foo' ) returning *" )->hash;
-    my $tag = $db->query( <<SQL, $tag_set->{ tag_sets_id } )->hash;
-insert into tags ( tag, tag_sets_id ) values ( 'foo', ? ) returning *
+    my $tag = $db->query( <<SQL,
+        INSERT INTO tags (tag, tag_sets_id)
+        VALUES ('foo', ?)
+        RETURNING *
 SQL
+        $tag_set->{ tag_sets_id }
+    )->hash;
 
     my $stories = $db->query( "select * from stories" )->hashes;
     for my $story ( @{ $stories } )
@@ -244,7 +295,7 @@ SQL
 
     MediaWords::TM::Snapshot::snapshot_topic( $db, $topics_id );
 
-    my $got_snapshot = $db->query( "select * from snapshots where topics_id = ?", $topic->{ topics_id } )->hash;
+    my $got_snapshot = $db->query( "SELECT * FROM snapshots WHERE topics_id = ?", $topic->{ topics_id } )->hash;
 
     ok( $got_snapshot, "snapshot exists" );
     is( $got_snapshot->{ topics_id }, $topics_id, "snapshot topics_id" );
@@ -267,9 +318,15 @@ SQL
 
     my $snapshots_id = $got_snapshot->{ snapshots_id };
 
-    my $got_stories_tags_map = $db->query( <<SQL, $snapshots_id )->hashes;
-select distinct * from snap.stories_tags_map where snapshots_id = ?
+    my $got_stories_tags_map = $db->query( <<SQL,
+        SELECT DISTINCT *
+        FROM snap.stories_tags_map
+        WHERE
+            topics_id = ? AND
+            snapshots_id = ?
 SQL
+        $topics_id, $snapshots_id
+    )->hashes;
 
     is( scalar( @{ $got_stories_tags_map } ), scalar( @{ $stories } ), "snap.stories_tags_map length" );
     for my $stm ( @{ $got_stories_tags_map } )
@@ -277,18 +334,42 @@ SQL
         is( $stm->{ tags_id }, $tag->{ tags_id }, "correct tag" );
     }
 
-    my $snapshot_stories = $db->query( "select * from snap.stories where snapshots_id = ?", $snapshots_id )->hashes;
+    my $snapshot_stories = $db->query( <<SQL,
+        SELECT *
+        FROM snap.stories
+        WHERE
+            topics_id = ? AND
+            snapshots_id = ?
+SQL
+        $topics_id, $snapshots_id
+    )->hashes;
     is( scalar( @{ $snapshot_stories } ), $NUM_STORIES , "snapshot stories" );
 
-    my $timespan = $db->query( <<SQL, $snapshots_id )->hash;
-select * from timespans where snapshots_id = ? and period = 'overall' and foci_id is null
+    my $timespan = $db->query( <<SQL,
+        SELECT *
+        FROM timespans
+        WHERE
+            topics_id = ? AND
+            snapshots_id = ? AND
+            period = 'overall' AND
+            foci_id IS NULL
 SQL
+        $topics_id, $snapshots_id
+    )->hash;
 
     ok( $timespan, "overall timespan created" );
 
     my $timespans_id = $timespan->{ timespans_id };
 
-    my $slc = $db->query( "select * from snap.story_link_counts where timespans_id = ?", $timespans_id )->hashes;
+    my $slc = $db->query( <<SQL,
+        SELECT *
+        FROM snap.story_link_counts
+        WHERE
+            topics_id = ? AND
+            timespans_id = ?
+SQL
+        $topics_id, $timespans_id
+    )->hashes;
 
     is( scalar( @{ $slc } ), $NUM_STORIES, "story link counts" );
 
@@ -300,7 +381,15 @@ SQL
     # allow a bit of time for the timespan maps to generate
     for my $i ( 1 .. 5 )
     {
-        $timespan_map = $db->query( "select * from timespan_maps where timespans_id = ?", $timespans_id )->hash();
+        $timespan_map = $db->query( <<SQL,
+            SELECT *
+            FROM timespan_maps
+            WHERE
+                topics_id = ? AND
+                timespans_id = ?
+SQL
+            $topics_id, $timespans_id
+        )->hash();
         last if ( $timespan_map );
         sleep( 1 );
     }

@@ -105,7 +105,10 @@ SQL
     {
         my $story = pop( @{ $test_stories } );
         my ( $timespans_id ) = $db->query( <<SQL, $story->{ stories_id } )->flat;
-select timespans_id from snap.story_link_counts where stories_id = ? limit 1
+            SELECT timespans_id
+            FROM snap.story_link_counts
+            WHERE stories_id = ?
+            LIMIT 1
 SQL
         MediaWords::Test::Solr::test_story_query( $db, "timespans_id:$timespans_id", $story, 'timespans_id' );
     }
@@ -124,9 +127,13 @@ SQL
         # test that processed_stories update queues import
         my $story = pop( @{ $test_stories } );
         $db->create( 'processed_stories', { stories_id => $story->{ stories_id } } );
-        my $solr_import_story = $db->query( <<SQL, $story->{ stories_id } )->hash();
-select * from solr_import_stories where stories_id = ?
+        my $solr_import_story = $db->query( <<SQL,
+            SELECT *
+            FROM solr_import_stories
+            WHERE stories_id = ?
 SQL
+            $story->{ stories_id }
+        )->hash();
         ok( $solr_import_story, "queue story from processed_stories insert" );
     }
 
@@ -134,13 +141,19 @@ SQL
         # test that stories_tags_map update queues import
         my $story = pop( @{ $test_stories } );
         my $tag = MediaWords::Util::Tags::lookup_or_create_tag( $db, 'import:test' );
-        $db->query( <<SQL, $story->{ stories_id }, $tag->{ tags_id } );
-insert into stories_tags_map ( stories_id, tags_id ) values ( ?, ? )       
+        $db->query( <<SQL,
+            INSERT INTO stories_tags_map (stories_id, tags_id) VALUES ( ?, ? )
 SQL
+            $story->{ stories_id }, $tag->{ tags_id }
+        );
 
-        my $solr_import_story = $db->query( <<SQL, $story->{ stories_id } )->hash();
-select * from solr_import_stories where stories_id = ?
+        my $solr_import_story = $db->query( <<SQL,
+            SELECT *
+            FROM solr_import_stories
+            WHERE stories_id = ?
 SQL
+            $story->{ stories_id }
+        )->hash();
         ok( $solr_import_story, "queue story from stories_tags_map insert" );
     }
 }

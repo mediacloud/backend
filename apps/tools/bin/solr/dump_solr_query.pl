@@ -60,10 +60,19 @@ SQL
         if ( $q =~ /timespans_id:(\d+)/ ) 
         { 
 			my $timespans_id = $1;
-            my $slc = $db->query( <<SQL, $timespans_id )->hashes; 
-select slc.* from snap.story_link_counts slc
-    where timespans_id = ? and stories_id in ( select id from $ids_table ) 
+            my $slc = $db->query( <<SQL,
+                SELECT slc.*
+                FROM snap.story_link_counts slc
+                WHERE
+                    timespans_id = ? AND
+                    stories_id IN (
+                        SELECT id
+                        FROM $ids_table
+                    ) 
 SQL
+                $timespans_id
+            )->hashes();
+
             MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $slc ); 
         } 
 

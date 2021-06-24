@@ -8,7 +8,7 @@ class TestGetDisplaySubgraphByAttribute(TestMap):
     def test_get_display_subgraph_by_attribute(self):
         db = self.db
 
-        graph = generate_graph(db=db, timespans_id=self.timespan['timespans_id'])
+        graph = generate_graph(db=db, topics_id=self.timespan['topics_id'], timespans_id=self.timespan['timespans_id'])
 
         num_display_nodes = 10
 

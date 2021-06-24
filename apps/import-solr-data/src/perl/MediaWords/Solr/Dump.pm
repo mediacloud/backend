@@ -137,9 +137,11 @@ SQL
         $sort_order     = 'asc';
     }
 
-    # order by stories_id so that we will tend to get story_sentences in chunked pages as much as possible; just using
-    # random stories_ids for collections of old stories (for instance queued to the stories queue table from a
-    # media tag update) can make this query a couple orders of magnitude slower
+    # order by stories_id so that we will tend to get story_sentences in
+    # chunked pages as much as possible; just using random stories_ids for
+    # collections of old stories (for instance queued to the stories queue
+    # table from a media tag update) can make this query a couple orders of
+    # magnitude slower
     $num_queued_stories += $db->query(
         <<"SQL",
         INSERT INTO delta_import_stories (stories_id)
@@ -175,7 +177,8 @@ SQL
 
 }
 
-# query for stories to import, including concatenated sentences as story text and metadata joined in from other tables.
+# query for stories to import, including concatenated sentences as story text
+# and metadata joined in from other tables.
 # return a hash in the form { json => $json_of_stories, stories_ids => $list_of_stories_ids }
 sub _get_stories_json_from_db_single
 {
@@ -205,60 +208,74 @@ sub _get_stories_json_from_db_single
         TRACE( "fetching stories ids: $block_stories_ids_list" );
 
         my $stories = $db->query( <<SQL )->hashes();
-with _block_processed_stories as (
-    select max( processed_stories_id ) processed_stories_id, stories_id
-        from processed_stories
-        where stories_id in ( $block_stories_ids_list )
-        group by stories_id
-),
 
-_timespan_stories as  (
-    select  stories_id, array_agg( distinct timespans_id ) timespans_id
-        from snap.story_link_counts slc
-            join _block_processed_stories using ( stories_id )
-        where
-            slc.stories_id in ( $block_stories_ids_list )
-        group by stories_id
-),
+            WITH _block_processed_stories AS (
+                SELECT
+                    MAX(processed_stories_id) AS processed_stories_id,
+                    stories_id
+                FROM processed_stories
+                WHERE stories_id IN ($block_stories_ids_list)
+                GROUP BY stories_id
+            ),
 
-_tag_stories as  (
-    select stories_id, array_agg( distinct tags_id ) tags_id_stories
-        from stories_tags_map stm
-            join _block_processed_stories bps using ( stories_id )
-        where
-            stm.stories_id in ( $block_stories_ids_list )
-        group by stories_id
-),
+            _timespan_stories AS (
+                SELECT
+                    stories_id,
+                    ARRAY_AGG(DISTINCT timespans_id) AS timespans_id
+                FROM snap.story_link_counts AS slc
+                    INNER JOIN _block_processed_stories USING (stories_id)
+                WHERE slc.stories_id IN ($block_stories_ids_list)
+                GROUP BY stories_id
+            ),
 
-_import_stories as (
-    select
-        s.stories_id,
-        s.media_id,
-        to_char( date_trunc( 'minute', s.publish_date ), 'YYYY-MM-DD"T"HH24:MI:SS"Z"') publish_date,
-        to_char( date_trunc( 'day', s.publish_date ), 'YYYY-MM-DD"T"HH24:MI:SS"Z"') publish_day,
-        to_char( date_trunc( 'week', s.publish_date ), 'YYYY-MM-DD"T"HH24:MI:SS"Z"') publish_week,
-        to_char( date_trunc( 'month', s.publish_date ), 'YYYY-MM-DD"T"HH24:MI:SS"Z"') publish_month,
-        to_char( date_trunc( 'year', s.publish_date ), 'YYYY-MM-DD"T"HH24:MI:SS"Z"') publish_year,
-        string_agg( ss.sentence, ' ' order by ss.sentence_number ) as text,
-        s.title,
-        s.language,
-        min( ps.processed_stories_id ) processed_stories_id,
-        min( stm.tags_id_stories ) tags_id_stories,
-        min( slc.timespans_id ) timespans_id
+            _tag_stories AS (
+                select
+                    stories_id,
+                    ARRAY_AGG(DISTINCT tags_id) AS tags_id_stories
+                FROM stories_tags_map AS stm
+                    INNER JOIN _block_processed_stories AS bps USING (stories_id)
+                WHERE stm.stories_id IN ($block_stories_ids_list)
+                GROUP BY stories_id
+            ),
 
-    from _block_processed_stories ps
-        join story_sentences ss using ( stories_id )
-        join stories s using ( stories_id )
-        left join _tag_stories stm using ( stories_id )
-        left join _timespan_stories slc using ( stories_id )
+            _import_stories AS (
+                SELECT
+                    s.stories_id,
+                    s.media_id,
+                    to_char(
+                        date_trunc('minute', s.publish_date), 'YYYY-MM-DD"T"HH24:MI:SS"Z"'
+                    ) AS publish_date,
+                    to_char(
+                        date_trunc('day', s.publish_date), 'YYYY-MM-DD"T"HH24:MI:SS"Z"'
+                    ) AS publish_day,
+                    to_char(
+                        date_trunc('week', s.publish_date), 'YYYY-MM-DD"T"HH24:MI:SS"Z"'
+                    ) AS publish_week,
+                    to_char(
+                        date_trunc('month', s.publish_date), 'YYYY-MM-DD"T"HH24:MI:SS"Z"'
+                    ) AS publish_month,
+                    to_char(
+                        date_trunc('year', s.publish_date), 'YYYY-MM-DD"T"HH24:MI:SS"Z"'
+                    ) AS publish_year,
+                    string_agg(ss.sentence, ' ' ORDER BY ss.sentence_number ) AS text,
+                    s.title,
+                    s.language,
+                    MIN(ps.processed_stories_id) AS processed_stories_id,
+                    MIN(stm.tags_id_stories ) AS tags_id_stories,
+                    MIN(slc.timespans_id) AS timespans_id
 
-    where
-        s.stories_id in ( $block_stories_ids_list )
-    group by s.stories_id
-)
+                FROM _block_processed_stories AS ps
+                    INNER JOIN story_sentences AS ss USING (stories_id)
+                    INNER JOIN stories AS s USING (stories_id)
+                    LEFT JOIN _tag_stories AS stm USING (stories_id)
+                    LEFT JOIN _timespan_stories AS slc USING (stories_id)
 
+                WHERE s.stories_id IN ($block_stories_ids_list)
+                GROUP BY s.stories_id
+            )
 
-select * from _import_stories
+            SELECT *
+            FROM _import_stories
 SQL
 
         TRACE( "found " . scalar( @{ $stories } ) . " stories from " . scalar( @{ $block_stories_ids } ) . " ids" );
@@ -557,7 +574,7 @@ SQL
               AND snapshots_id = ?
 
 SQL
-            $snapshots_to_update->{ topics_id }, $snapshots_to_update->{ snapshots_id }
+            $snapshot_to_update->{ topics_id }, $snapshot_to_update->{ snapshots_id }
         );
 
     }

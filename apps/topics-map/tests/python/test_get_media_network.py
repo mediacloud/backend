@@ -8,7 +8,11 @@ class TestGetMediaNetwork(TestMap):
     def test_get_media_network(self):
         db = self.db
 
-        got_media = get_media_network(db=db, timespans_id=self.timespan['timespans_id'])
+        got_media = get_media_network(
+            db=db,
+            topics_id=self.timespan['topics_id'],
+            timespans_id=self.timespan['timespans_id'],
+        )
 
         assert len(got_media) == len(self.all_media)
 

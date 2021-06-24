@@ -66,8 +66,9 @@ def add_tag_to_graph(db: DatabaseHandler, graph: nx.graph, tag_set_name: str, fi
 
     nx.set_node_attributes(graph, tag_map)
 
-def add_tag_to_snapshot_media(
+def _add_tag_to_snapshot_media(
         db: DatabaseHandler,
+        topics_id: int,
         timespans_id: int,
         media: List[Dict[str, Any]],
         tag_set_name: str,
@@ -82,14 +83,19 @@ def add_tag_to_snapshot_media(
                 dmtm.*,
                 dt.tag
             FROM snap.media_tags_map AS dmtm
-                JOIN tags AS dt ON ( dmtm.tags_id = dt.tags_id )
-                JOIN tag_sets AS dts ON ( dts.tag_sets_id = dt.tag_sets_id )
-                JOIN timespans AS t USING ( snapshots_id )
+                INNER JOIN tags AS dt ON ( dmtm.tags_id = dt.tags_id )
+                INNER JOIN tag_sets AS dts ON ( dts.tag_sets_id = dt.tag_sets_id )
+                INNER JOIN timespans AS t USING ( snapshots_id )
             WHERE 
-                dts.name = %(b)s
-                AND t.timespans_id = %(a)s
+                dts.name = %(tag_set_name)s AND
+                t.topics_id = %(topics_id)s AND
+                t.timespans_id = %(timespans_id)s
         """,
-        {'a': timespans_id, 'b': tag_set_name}
+        {
+            'topics_id': topics_id,
+            'timespans_id': timespans_id,
+            'tag_set_name': tag_set_name,
+        }
     ).hashes()
 
     partisan_map = {pt['media_id']: pt['tag'] for pt in partisan_tags}
@@ -98,7 +104,7 @@ def add_tag_to_snapshot_media(
         medium[field_name] = partisan_map.get(medium['media_id'], 'null')
 
 
-def get_media_network(db: DatabaseHandler, timespans_id: int) -> List[Dict[str, Any]]:
+def get_media_network(db: DatabaseHandler, topics_id: int, timespans_id: int) -> List[Dict[str, Any]]:
     """Get a network of media and edges for the topic."""
     media = db.query(
         """
@@ -114,14 +120,26 @@ def get_media_network(db: DatabaseHandler, timespans_id: int) -> List[Dict[str, 
             FROM media AS m
                 JOIN snap.medium_link_counts AS mlc USING ( media_id )
             where
-                mlc.timespans_id = %(a)s
+                mlc.topics_id = %(topics_id)s AND
+                mlc.timespans_id = %(timespans_id)s
         """,
-        {'a': timespans_id}
+        {
+            'topics_id': topics_id,
+            'timespans_id': timespans_id,
+        }
     ).hashes()
 
-    medium_links = db.query(
-        "SELECT * FROM snap.medium_links WHERE timespans_id = %(a)s",
-        {'a': timespans_id}
+    medium_links = db.query("""
+            SELECT *
+            FROM snap.medium_links
+            WHERE
+                topics_id = %(topics_id)s AND
+                timespans_id = %(timespans_id)s
+        """,
+        {
+            'topics_id': topics_id,
+            'timespans_id': timespans_id,
+        }
     ).hashes()
 
     media_lookup = {m['media_id']: m for m in media}
@@ -142,7 +160,7 @@ def get_media_network(db: DatabaseHandler, timespans_id: int) -> List[Dict[str, 
         'primary_language': 'primary_langage',
     }
     for tag_set, label in tag_fields.items():
-        add_tag_to_snapshot_media(db, timespans_id, media, tag_set, label)
+        _add_tag_to_snapshot_media(db, topics_id, timespans_id, media, tag_set, label)
 
     return media
 
@@ -587,9 +605,14 @@ def get_giant_component(graph: nx.Graph) -> nx.Graph:
     return graph.subgraph(components[-1]) if len(components) > 0 else graph
 
 
-def generate_graph(db: DatabaseHandler, timespans_id: int, remove_platforms: bool = True) -> nx.Graph:
+def generate_graph(
+    db: DatabaseHandler,
+    topics_id: int,
+    timespans_id: int,
+    remove_platforms: bool = True
+) -> nx.Graph:
     """Generate a graph of the network of media for the given timespan, but do not layout."""
-    media = get_media_network(db=db, timespans_id=timespans_id)
+    media = get_media_network(db=db, topics_id=topics_id, timespans_id=timespans_id)
     graph = get_media_graph(media=media)
 
     log.info(f"initial graph: {len(graph.nodes())} nodes")
@@ -633,6 +656,7 @@ def get_default_size_attribute(db: DatabaseHandler, timespans_id: int) -> str:
 
 
 def generate_and_layout_graph(db: DatabaseHandler,
+                              topics_id: int,
                               timespans_id: int,
                               memory_limit_mb: int,
                               remove_platforms: bool = True,
@@ -643,7 +667,7 @@ def generate_and_layout_graph(db: DatabaseHandler,
     
     The layout algorithm is force atlas 2, and the resulting is 'position' attribute added to each node.
     """
-    graph = generate_graph(db=db, timespans_id=timespans_id, remove_platforms=remove_platforms)
+    graph = generate_graph(db=db, topics_id=topics_id, timespans_id=timespans_id, remove_platforms=remove_platforms)
     # run layout with all nodes in giant component, before reducing to smaler number to display
     run_fa2_layout(graph=graph, memory_limit_mb=memory_limit_mb)
 
@@ -670,11 +694,17 @@ def generate_and_layout_graph(db: DatabaseHandler,
 
 
 def generate_and_draw_graph(db: DatabaseHandler,
+                            topics_id: int,
                             timespans_id: int,
                             memory_limit_mb: int,
                             graph_format: str = 'svg') -> bytes:
     """Generate, layout, and draw a graph of the media network for the given timespan."""
-    graph = generate_and_layout_graph(db=db, timespans_id=timespans_id, memory_limit_mb=memory_limit_mb)
+    graph = generate_and_layout_graph(
+        db=db,
+        topics_id=topics_id,
+        timespans_id=timespans_id,
+        memory_limit_mb=memory_limit_mb,
+    )
 
     return draw_graph(graph=graph, graph_format=graph_format)
 
@@ -773,6 +803,7 @@ def add_attribute_to_graph(graph: nx.Graph, attribute: dict) -> None:
 
 def generate_map_variants(
         db: DatabaseHandler,
+        topics_id: int,
         timespans_id: int,
         memory_limit_mb: int,
         remove_platforms: bool = True,
@@ -786,9 +817,11 @@ def generate_map_variants(
     """
     graph = generate_and_layout_graph(
         db=db,
+        topics_id=topics_id,
         timespans_id=timespans_id,
         memory_limit_mb=memory_limit_mb,
-        remove_platforms=remove_platforms)
+        remove_platforms=remove_platforms,
+    )
 
     [add_attribute_to_graph(graph=graph, attribute=a) for a in attributes]
 
@@ -813,12 +846,14 @@ def generate_map_variants(
 
 def generate_and_store_maps(
         db: DatabaseHandler,
+        topics_id: int,
         timespans_id: int,
         memory_limit_mb: int,
         remove_platforms: bool = True) -> None:
     """Generate and layout graph and store various formats of the graph in timespans_maps."""
     graph = generate_and_layout_graph(
         db=db,
+        topics_id=topics_id,
         timespans_id=timespans_id,
         memory_limit_mb=memory_limit_mb,
         remove_platforms=remove_platforms)

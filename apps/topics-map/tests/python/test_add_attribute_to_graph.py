@@ -14,7 +14,7 @@ class TestGenerateMapVariants(TestMap):
     def test_generate_and_store_maps(self):
         db = self.db
 
-        graph = generate_graph(db=db, timespans_id=self.timespan['timespans_id'])
+        graph = generate_graph(db=db, topics_id=self.timespan['topics_id'], timespans_id=self.timespan['timespans_id'])
 
         media_names = [{'media_id': m['media_id'], 'value': m['name']} for m in self.all_media]
 
