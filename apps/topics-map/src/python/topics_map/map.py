@@ -39,55 +39,6 @@ MAX_NODE_SIZE = 800
 MAX_NODES = 1000
 """default max number of nodes to display in a map"""
 
-def add_story_tags_to_graph(db: DatabaseHandler, graph: nx.graph, timespans_id: int, tag_set_name: str) -> None:
-    """Add fields to media based on counts of story tags for the given tag set."""
-    log.warning("add story tags to graph: " + tag_set_name)
-    db.query(
-        """
-        create temporary table _tag_counts as 
-            select media_id, t.tag, t.tag_sets_id, count(*) count
-                from scratch.map_stories_tags_map stm
-                    join snap.story_link_counts slc using ( stories_id )
-                    join tags t using ( tags_id )
-                    join stories s using ( stories_id )
-                where
-                    slc.timespans_id = %(a)s
-                group by media_id, t.tag, t.tag_sets_id
-        """,
-        {'a': timespans_id, 'b': tag_set_name})
-
-    media_tag_counts = db.query(
-        """
-        select media_id, t.tag, count
-            from _tag_counts t
-                join tag_sets ts using ( tag_sets_id )
-            where
-                ts.name = %(a)s
-        """,
-        {'a': tag_set_name}).hashes()
-
-    db.query("drop table _tag_counts")
-
-    count_lookup = {n: {} for n in graph.nodes}
-    
-    for mtc in media_tag_counts:
-        field = "%s-%s" % (tag_set_name, mtc['tag'])
-        mtc['field'] = field
-
-        media_id = mtc['media_id']
-
-        count_lookup.setdefault(media_id, {})
-        count_lookup[media_id][field] = mtc['count']
-        
-    fields = set([mtc['field'] for mtc in media_tag_counts])
-    log.warning(fields)
-    
-    for n in graph.nodes:
-        for field in fields:
-            count_lookup[n].setdefault(field, 0)
-
-    nx.set_node_attributes(graph, count_lookup)
-
 
 def add_tag_to_graph(db: DatabaseHandler, graph: nx.graph, tag_set_name: str, field_name: str) -> None:
     """Add field to media based on tag association from the given tag set.
