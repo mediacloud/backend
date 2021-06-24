@@ -32,6 +32,7 @@ def test_fetch_link_job_update_state():
 
     fetch_topic_url_update_state(
         db=db,
+        topics_id=topic['topics_id'],
         topic_fetch_urls_id=tfu['topic_fetch_urls_id'],
         domain_timeout=domain_timeout,
     )
@@ -56,6 +57,7 @@ def test_fetch_link_job_update_state():
 
     fetch_topic_url_update_state(
         db=db,
+        topics_id=topic['topics_id'],
         topic_fetch_urls_id=tfu['topic_fetch_urls_id'],
         domain_timeout=domain_timeout,
     )

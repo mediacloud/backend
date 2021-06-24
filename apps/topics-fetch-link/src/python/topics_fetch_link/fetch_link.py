@@ -563,6 +563,7 @@ def fetch_topic_url(db: DatabaseHandler, topic_fetch_urls_id: int, domain_timeou
 
 
 def fetch_topic_url_update_state(db: DatabaseHandler,
+                                 topics_id: int,
                                  topic_fetch_urls_id: int,
                                  domain_timeout: Optional[int] = None) -> bool:
     """Tries fetch_topic_url() and updates state.
@@ -584,20 +585,40 @@ def fetch_topic_url_update_state(db: DatabaseHandler,
         # if a domain has been throttled, just add it back to the end of the queue
         log.info("Fetch for topic_fetch_url %d domain throttled. Requeueing ..." % topic_fetch_urls_id)
 
-        db.update_by_id(
-            'topic_fetch_urls',
-            topic_fetch_urls_id,
-            {'state': FETCH_STATE_REQUEUED, 'fetch_date': datetime.datetime.now()}
-        )
+        db.query("""
+            UPDATE topic_fetch_urls SET
+                state = %(state)s,
+                fetch_date = %(fetch_date)s
+            WHERE
+                topics_id = %(topics_id)s AND
+                topic_fetch_urls_id = %(topic_fetch_urls_id)s
+        """, {
+            'topics_id': topics_id,
+            'topic_fetch_urls_id': topic_fetch_urls_id,
+            'state': FETCH_STATE_REQUEUED,
+            'fetch_date': datetime.datetime.now(),
+        })
+
         return False
 
     except Exception as ex:
         # all non throttled errors should get caught by the try: about, but catch again here just in case
-        log.error("Error while fetching URL with ID {}: {}".format(topic_fetch_urls_id, str(ex)))
-        update = {
+        log.error(f"Error while fetching URL with ID {topic_fetch_urls_id}: {ex}")
+
+        db.query("""
+            UPDATE topic_fetch_urls SET
+                state = %(state)s,
+                fetch_date = %(fetch_date)s,
+                message = %(message)s
+            WHERE
+                topics_id = %(topics_id)s AND
+                topic_fetch_urls_id = %(topic_fetch_urls_id)s
+        """, {
+            'topics_id': topics_id,
+            'topic_fetch_urls_id': topic_fetch_urls_id,
             'state': FETCH_STATE_PYTHON_ERROR,
             'fetch_date': datetime.datetime.now(),
             'message': traceback.format_exc(),
-        }
-        db.update_by_id('topic_fetch_urls', topic_fetch_urls_id, update)
+        })
+
         raise ex
