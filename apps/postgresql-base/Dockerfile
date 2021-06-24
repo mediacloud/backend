@@ -23,7 +23,14 @@ RUN \
     true
 
 # Write our own configuration
-RUN rm -rf /etc/postgresql/13/main/
+RUN \
+    rm -rf /etc/postgresql/13/main/ && \
+    #
+    # Extra directory for children images to copy their configuration to
+    mkdir /etc/postgresql/13/extra/ && \
+    #
+    true
+
 COPY conf/ /etc/postgresql/13/main/
 
 # This is where "update_memory_config.sh" script will write its memory settings

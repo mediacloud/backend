@@ -52,6 +52,9 @@ services:
             - type: bind
               source: ./../postgresql-base/conf/
               target: /etc/postgresql/13/main/
+            - type: bind
+              source: ./../postgresql-server/conf/
+              target: /etc/postgresql/13/extra/
 
     temporal-server:
         image: gcr.io/mcback/temporal-server:latest
@@ -93,6 +96,9 @@ services:
             - type: bind
               source: ./../postgresql-base/conf/
               target: /etc/postgresql/13/main/
+            - type: bind
+              source: ./../postgresql-server/conf/
+              target: /etc/postgresql/13/extra/
 
     temporal-elasticsearch:
         image: gcr.io/mcback/temporal-elasticsearch:latest

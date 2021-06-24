@@ -22,10 +22,7 @@ RUN \
     #
     true
 
-COPY conf/citus.conf /etc/postgresql/13/main/
-RUN \
-    echo "include '/etc/postgresql/13/main/citus.conf'" >> /etc/postgresql/13/main/postgresql.conf && \
-    true
+COPY conf/citus.conf /etc/postgresql/13/extra/
 
 # Copy helper scripts, schema, migrations
 COPY bin/* /opt/postgresql-server/bin/

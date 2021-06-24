@@ -95,6 +95,9 @@ services:
             - type: bind
               source: ./../postgresql-base/conf/
               target: /etc/postgresql/13/main/
+            - type: bind
+              source: ./../postgresql-server/conf/
+              target: /etc/postgresql/13/extra/
 
     rabbitmq-server:
         image: gcr.io/mcback/rabbitmq-server:latest
