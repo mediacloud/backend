@@ -743,6 +743,7 @@ SELECT run_command_on_shards('stories', $cmd$
     DECLARE
 
         queue_stories_id BIGINT;
+        return_value RECORD;
 
     BEGIN
 
@@ -752,19 +753,24 @@ SELECT run_command_on_shards('stories', $cmd$
             SELECT OLD.stories_id INTO queue_stories_id;
         END IF;
 
-        INSERT INTO solr_import_stories (stories_id)
-        SELECT queue_stories_id
-        WHERE EXISTS(
-                      SELECT 1
-                      FROM processed_stories
-                      WHERE stories_id = queue_stories_id
-                  );
-
         IF (TG_OP = 'UPDATE') OR (TG_OP = 'INSERT') THEN
-            RETURN NEW;
+            return_value := NEW;
         ELSE
-            RETURN OLD;
+            return_value := OLD;
         END IF;
+
+        IF NOT EXISTS (
+            SELECT 1
+            FROM processed_stories
+            WHERE stories_id = queue_stories_id
+        ) THEN
+            RETURN return_value;
+        END IF;
+
+        INSERT INTO solr_import_stories (stories_id)
+        VALUES (queue_stories_id);
+
+        RETURN return_value;
 
     END;
 
