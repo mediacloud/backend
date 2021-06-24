@@ -28,7 +28,11 @@
 -- FIXME when initializing schema, some connections get dropped
 -- FIXME when creating functions / triggers, make sure that each shard succeeds
 -- FIXME schema gets imported as "postgres" user
+-- FIXME mount /etc/postgresql/13/extra/
+-- FIXME raw_downloads references downloads_success
 -- FIXME consider making shard count configurable to make tests run faster
+-- FIXME temporary tables get created with "stories_id int", e.g. delta_import_stories
+-- FIXME update things that cast to ::int in various places
 
 
 -- main schema
