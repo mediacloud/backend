@@ -334,6 +334,12 @@ class DatabaseHandler(object):
 
         update_hash = {k: v for k, v in update_hash.items() if not k.startswith("_")}
 
+        # Don't try to "update" the primary key value if it remains the
+        # same (which breaks sharding in some cases)
+        if primary_key_column in update_hash.keys():
+            if int(update_hash[primary_key_column]) == object_id:
+                del update_hash[primary_key_column]
+
         if len(update_hash) == 0:
             raise McUpdateByIDException("Hash to UPDATE is empty.")
 
