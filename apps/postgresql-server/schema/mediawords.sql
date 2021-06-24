@@ -2006,7 +2006,7 @@ CREATE SCHEMA snap;
 -- to a topic for each snapshot for that topic
 CREATE TABLE snap.stories
 (
-    snap_stories_id BIGINT     NOT NULL,
+    snap_stories_id BIGSERIAL  NOT NULL,
     topics_id       BIGINT     NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
     snapshots_id    BIGINT     NOT NULL,
     stories_id      BIGINT     NULL,
