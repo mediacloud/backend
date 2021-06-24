@@ -159,7 +159,9 @@ SQL
 
         # use pg_class estimate to avoid expensive count(*) query
         my ( $total_queued_stories ) = $db->query( <<SQL, $relname )->flat;
-select reltuples::bigint from pg_class where relname = ?
+            SELECT reltuples::bigint
+            FROM pg_class
+            WHERE relname = ?
 SQL
 
         INFO "added $num_queued_stories out of about $total_queued_stories queued stories to the import";
