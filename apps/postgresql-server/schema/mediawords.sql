@@ -901,17 +901,32 @@ CREATE TABLE downloads_error
     PARTITION OF downloads
         FOR VALUES IN ('error');
 
+CREATE UNIQUE INDEX downloads_error_downloads_id
+    ON downloads_error (downloads_id);
+
+
 CREATE TABLE downloads_feed_error
     PARTITION OF downloads
         FOR VALUES IN ('feed_error');
+
+CREATE UNIQUE INDEX downloads_feed_error_downloads_id
+    ON downloads_feed_error (downloads_id);
+
 
 CREATE TABLE downloads_fetching
     PARTITION OF downloads
         FOR VALUES IN ('fetching');
 
+CREATE UNIQUE INDEX downloads_fetching_downloads_id
+    ON downloads_fetching (downloads_id);
+
 CREATE TABLE downloads_pending
     PARTITION OF downloads
         FOR VALUES IN ('pending');
+
+CREATE UNIQUE INDEX downloads_pending_downloads_id
+    ON downloads_pending (downloads_id);
+
 
 CREATE TABLE downloads_success
     PARTITION OF downloads (
