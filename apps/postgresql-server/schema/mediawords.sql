@@ -901,17 +901,32 @@ CREATE TABLE downloads_error
     PARTITION OF downloads
         FOR VALUES IN ('error');
 
+CREATE UNIQUE INDEX downloads_error_downloads_id
+    ON downloads_error (downloads_id);
+
+
 CREATE TABLE downloads_feed_error
     PARTITION OF downloads
         FOR VALUES IN ('feed_error');
+
+CREATE UNIQUE INDEX downloads_feed_error_downloads_id
+    ON downloads_feed_error (downloads_id);
+
 
 CREATE TABLE downloads_fetching
     PARTITION OF downloads
         FOR VALUES IN ('fetching');
 
+CREATE UNIQUE INDEX downloads_fetching_downloads_id
+    ON downloads_fetching (downloads_id);
+
 CREATE TABLE downloads_pending
     PARTITION OF downloads
         FOR VALUES IN ('pending');
+
+CREATE UNIQUE INDEX downloads_pending_downloads_id
+    ON downloads_pending (downloads_id);
+
 
 CREATE TABLE downloads_success
     PARTITION OF downloads (
@@ -924,8 +939,6 @@ CREATE TABLE downloads_success
                 )
         ) FOR VALUES IN ('success');
 
--- We need a separate unique index for the "download_texts" foreign key to be
--- able to point to "downloads_success"
 CREATE UNIQUE INDEX downloads_success_downloads_id
     ON downloads_success (downloads_id);
 
@@ -1015,17 +1028,55 @@ CREATE UNIQUE INDEX timespan_maps_id ON public_store.timespan_maps (object_id);
 --
 CREATE TABLE raw_downloads
 (
-    raw_downloads_id BIGSERIAL NOT NULL,
-    object_id        BIGINT    NOT NULL REFERENCES downloads_success (downloads_id) ON DELETE CASCADE,
-    raw_data         BYTEA     NOT NULL,
+    raw_downloads_id BIGSERIAL      NOT NULL,
+    object_id        BIGINT         NOT NULL,
+    state            download_state NOT NULL,
+    raw_data         BYTEA          NOT NULL,
 
-    PRIMARY KEY (raw_downloads_id, object_id)
-);
+    PRIMARY KEY (raw_downloads_id, object_id, state)
+
+) PARTITION BY LIST (state);
 
 SELECT create_distributed_table('raw_downloads', 'object_id');
 
-CREATE UNIQUE INDEX raw_downloads_object_id ON raw_downloads (object_id);
 
+CREATE TABLE raw_downloads_error
+    PARTITION OF raw_downloads
+        FOR VALUES IN ('error');
+
+CREATE UNIQUE INDEX raw_downloads_error_object_id ON raw_downloads_error (object_id);
+
+ALTER TABLE raw_downloads_error
+    ADD CONSTRAINT raw_downloads_error_object_id_fkey
+        FOREIGN KEY (object_id, state)
+            REFERENCES downloads_error (downloads_id, state)
+            ON DELETE CASCADE;
+
+
+CREATE TABLE raw_downloads_feed_error
+    PARTITION OF raw_downloads
+        FOR VALUES IN ('feed_error');
+
+CREATE UNIQUE INDEX raw_downloads_feed_error_object_id ON raw_downloads_feed_error (object_id);
+
+ALTER TABLE raw_downloads_feed_error
+    ADD CONSTRAINT raw_downloads_feed_error_object_id_fkey
+        FOREIGN KEY (object_id, state)
+            REFERENCES downloads_feed_error (downloads_id, state)
+            ON DELETE CASCADE;
+
+
+CREATE TABLE raw_downloads_success
+    PARTITION OF raw_downloads
+        FOR VALUES IN ('success');
+
+CREATE UNIQUE INDEX raw_downloads_success_object_id ON raw_downloads_success (object_id);
+
+ALTER TABLE raw_downloads_success
+    ADD CONSTRAINT raw_downloads_success_object_id_fkey
+        FOREIGN KEY (object_id, state)
+            REFERENCES downloads_success (downloads_id, state)
+            ON DELETE CASCADE;
 
 --
 -- Feed -> story map
@@ -4032,8 +4083,9 @@ CREATE UNLOGGED TABLE cache.s3_raw_downloads_cache
 (
     cache_s3_raw_downloads_cache_id BIGSERIAL                NOT NULL,
 
-    object_id                       BIGINT                   NOT NULL
-        REFERENCES downloads_success (downloads_id) ON DELETE CASCADE,
+    object_id                       BIGINT                   NOT NULL,
+
+    state                           download_state           NOT NULL,
 
     -- Will be used to purge old cache objects;
     -- don't forget to update cache.purge_object_caches()
@@ -4041,16 +4093,56 @@ CREATE UNLOGGED TABLE cache.s3_raw_downloads_cache
 
     raw_data                        BYTEA                    NOT NULL,
 
-    PRIMARY KEY (cache_s3_raw_downloads_cache_id, object_id)
-);
+    PRIMARY KEY (cache_s3_raw_downloads_cache_id, object_id, state)
+
+) PARTITION BY LIST (state);
 
 SELECT create_distributed_table('cache.s3_raw_downloads_cache', 'object_id');
 
-CREATE UNIQUE INDEX cache_s3_raw_downloads_cache_object_id
-    ON cache.s3_raw_downloads_cache (object_id);
-
 CREATE INDEX cache_s3_raw_downloads_cache_db_row_last_updated
     ON cache.s3_raw_downloads_cache (db_row_last_updated);
+
+
+CREATE UNLOGGED TABLE cache.s3_raw_downloads_cache_error
+    PARTITION OF cache.s3_raw_downloads_cache
+        FOR VALUES IN ('error');
+
+CREATE UNIQUE INDEX cache_s3_raw_downloads_cache_error_object_id
+    ON cache.s3_raw_downloads_cache_error (object_id);
+
+ALTER TABLE cache.s3_raw_downloads_cache_error
+    ADD CONSTRAINT s3_raw_downloads_cache_error_object_id_fkey
+        FOREIGN KEY (object_id, state)
+            REFERENCES downloads_error (downloads_id, state)
+            ON DELETE CASCADE;
+
+
+CREATE UNLOGGED TABLE cache.s3_raw_downloads_cache_feed_error
+    PARTITION OF cache.s3_raw_downloads_cache
+        FOR VALUES IN ('feed_error');
+
+CREATE UNIQUE INDEX cache_s3_raw_downloads_cache_feed_error_object_id
+    ON cache.s3_raw_downloads_cache_feed_error (object_id);
+
+ALTER TABLE cache.s3_raw_downloads_cache_feed_error
+    ADD CONSTRAINT s3_raw_downloads_cache_feed_error_object_id_fkey
+        FOREIGN KEY (object_id, state)
+            REFERENCES downloads_feed_error (downloads_id, state)
+            ON DELETE CASCADE;
+
+
+CREATE UNLOGGED TABLE cache.s3_raw_downloads_cache_success
+    PARTITION OF cache.s3_raw_downloads_cache
+        FOR VALUES IN ('success');
+
+CREATE UNIQUE INDEX cache_s3_raw_downloads_cache_success_object_id
+    ON cache.s3_raw_downloads_cache_success (object_id);
+
+ALTER TABLE cache.s3_raw_downloads_cache_success
+    ADD CONSTRAINT s3_raw_downloads_cache_success_object_id_fkey
+        FOREIGN KEY (object_id, state)
+            REFERENCES downloads_success (downloads_id, state)
+            ON DELETE CASCADE;
 
 
 -- noinspection SqlResolve @ routine/"run_command_on_shards"
