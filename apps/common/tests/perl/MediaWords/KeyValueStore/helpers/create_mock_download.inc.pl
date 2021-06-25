@@ -32,11 +32,35 @@ EOF
     );
 
     $db->query(
-        <<EOF,
-		INSERT INTO downloads (downloads_id, feeds_id, stories_id, url, host, download_time, type, state, priority, sequence)
-		VALUES (?, 1, 1, 'http://', '', now(), 'content', 'pending', 0, 0);
-EOF
-        $MOCK_DOWNLOADS_ID
+        <<"SQL"
+		INSERT INTO downloads (
+            downloads_id,
+            feeds_id,
+            stories_id,
+            url,
+            host,
+            download_time,
+            type,
+            state,
+            path,
+            priority,
+            sequence
+        )
+		VALUES (
+            -- For whatever reason setting $MOCK_DOWNLOADS_ID as a parameter doesn't seem to work
+            $MOCK_DOWNLOADS_ID,
+            1,
+            1,
+            'http://',
+            '',
+            now(),
+            'content',
+            'success',
+            'postgresql:raw_downloads',
+            0,
+            0
+        )
+SQL
     );
 
     return $MOCK_DOWNLOADS_ID;
