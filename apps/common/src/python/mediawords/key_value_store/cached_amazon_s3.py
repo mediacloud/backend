@@ -157,10 +157,10 @@ class CachedAmazonS3Store(AmazonS3Store):
         return content
 
     def store_content(self,
-            db: DatabaseHandler,
-            object_id: int,
-            content: Union[str, bytes],
-            content_type: str='binary/octet-stream') -> str:
+                      db: DatabaseHandler,
+                      object_id: int,
+                      content: Union[str, bytes],
+                      content_type: str = 'binary/octet-stream') -> str:
         """Write object to Amazon S3, cache it locally too."""
 
         object_id = self._prepare_object_id(object_id)
