@@ -37,26 +37,69 @@ def test_get_preferred_story():
     assert get_preferred_story(db, stories) == preferred_medium['story']
 
     # next prefer the medium whose story url matches the medium domain
-    # noinspection SqlWithoutWhere
-    db.query("update media set dup_media_id = null")
-    # noinspection SqlWithoutWhere
-    db.query("update media set url='http://media-'||media_id||'.com'")
-    # noinspection SqlWithoutWhere
-    db.query("update stories set url='http://stories-'||stories_id||'.com'")
+    db.query("""
+        UPDATE media SET
+            dup_media_id = NULL
+        WHERE media_id > 0
+    """)
+
+    for medium in media:
+        db.query("""
+            UPDATE media SET
+                url = %(url)s
+            WHERE media_id = %(media_id)s
+        """, {
+            'url': f"http://media-{medium['media_id']}.com",
+            'media_id': medium['media_id'],
+        })
+
+    for story in stories:
+        db.query("""
+            UPDATE stories SET
+                url = %(url)s
+            WHERE stories_id = %(stories_id)s
+        """, {
+            'url': f"http://stories-{story['stories_id']}.com",
+            'stories_id': story['stories_id'],
+        })
 
     preferred_medium = media[2]
-    db.query(
-        "update stories set url = 'http://media-'||media_id||'.com' where media_id = %(a)s",
-        {'a': preferred_medium['media_id']})
-    stories = db.query("select * from stories").hashes()
+
+    db.query("""
+        WITH stories_to_update AS (
+            SELECT stories_id
+            FROM stories
+            WHERE media_id = %(media_id)s
+        )
+        UPDATE stories SET
+            url = %(url)s
+        WHERE stories_id IN (
+            SELECT stories_id
+            FROM stories_to_update            
+        )
+    """, {
+            'url': f"http://media-{preferred_medium['media_id']}.com",
+            'media_id': preferred_medium['media_id'],
+        }
+    )
+
+    stories = db.query("SELECT * FROM stories").hashes()
     preferred_story = db.query(
-        "select * from stories where media_id = %(a)s",
+        "SELECT * FROM stories WHERE media_id = %(a)s",
         {'a': preferred_medium['media_id']}).hash()
 
     assert get_preferred_story(db, stories) == preferred_story
 
     # next prefer lowest media_id
-    # noinspection SqlWithoutWhere
-    db.query("update stories set url='http://stories-'||stories_id||'.com'")
-    stories = db.query("select * from stories").hashes()
+    for story in stories:
+        db.query("""
+            UPDATE stories SET
+                url = %(url)s
+            WHERE stories_id = %(stories_id)s
+        """, {
+            'url': f"http://stories-{story['stories_id']}.com",
+            'stories_id': story['stories_id'],
+        })
+
+    stories = db.query("SELECT * FROM stories").hashes()
     assert get_preferred_story(db, stories)['stories_id'] == media[0]['story']['stories_id']
