@@ -31,6 +31,7 @@ sub test_live_story_matches
 select * from snap.live_stories where topics_id = ? and stories_id = ?
 END
 
+    delete( $live_story->{ snap_live_stories_id } );
     delete( $live_story->{ topics_id } );
     delete( $live_story->{ topic_stories_id } );
 
