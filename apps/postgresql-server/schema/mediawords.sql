@@ -52,7 +52,7 @@ CREATE EXTENSION IF NOT EXISTS citus;
 CREATE TABLE database_variables
 (
     database_variables_id BIGSERIAL PRIMARY KEY,
-    name                  TEXT NOT NULL UNIQUE,
+    name                  TEXT NOT NULL,
     value                 TEXT NOT NULL
 );
 
