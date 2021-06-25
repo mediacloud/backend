@@ -30,15 +30,32 @@ class TestMap(TestCase):
         for medium in self.connected_media[1:]:
             db.query(
                 """
-                    INSERT INTO snap.medium_links (timespans_id, source_media_id, ref_media_id, link_count)
-                    VALUES (%(a)s, %(b)s, %(c)s, 1)
+                    INSERT INTO snap.medium_links (
+                        topics_id,
+                        timespans_id,
+                        source_media_id,
+                        ref_media_id,
+                        link_count
+                    ) VALUES (
+                        %(topics_id)s,
+                        %(timespans_id)s,
+                        %(source_media_id)s,
+                        %(ref_media_id)s,
+                        1
+                    )
                 """,
-                {'a': self.timespan['timespans_id'], 'b': medium['media_id'], 'c': center_medium['media_id']}
+                {
+                    'topics_id': self.topic['topics_id'],
+                    'timespans_id': self.timespan['timespans_id'],
+                    'source_media_id': medium['media_id'],
+                    'ref_media_id': center_medium['media_id'],
+                }
             )
 
         db.query(
             """
                 INSERT INTO snap.medium_link_counts (
+                    topics_id,
                     timespans_id,
                     media_id,
                     media_inlink_count,
@@ -48,6 +65,7 @@ class TestMap(TestCase):
                     sum_media_inlink_count
                 )
                     SELECT
+                        topics_id,
                         timespans_id,
                         media_id,
                         media_id,

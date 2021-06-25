@@ -48,13 +48,15 @@ def add_tag_to_graph(db: DatabaseHandler, graph: nx.graph, tag_set_name: str, fi
     partisan_tags = db.query(
         """
             SELECT
-                mtm.*,
-                dt.tag
-            FROM media_tags_map AS mtm
-                JOIN tags AS dt ON ( mtm.tags_id = dt.tags_id )
-                JOIN tag_sets AS dts ON ( dts.tag_sets_id = dt.tag_sets_id )
+                media_tags_map.*,
+                tags.tag
+            FROM media_tags_map
+                INNER JOIN tags ON
+                    media_tags_map.tags_id = tags.tags_id
+                INNER JOIN tag_sets ON
+                    tag_sets.tag_sets_id = tags.tag_sets_id
             WHERE 
-                dts.name = %(a)s
+                tag_sets.name = %(a)s
         """,
         {'a': tag_set_name}
     ).hashes()
@@ -79,17 +81,28 @@ def _add_tag_to_snapshot_media(
     """
     partisan_tags = db.query(
         """
+            WITH timespan_tags AS (
+                SELECT
+                    snap.media_tags_map.*
+                FROM snap.media_tags_map
+                    INNER JOIN timespans ON
+                        snap.media_tags_map.topics_id = timespans.topics_id AND
+                        snap.media_tags_map.snapshots_id = timespans.snapshots_id
+                WHERE 
+                    timespans.topics_id = %(topics_id)s AND
+                    timespans.timespans_id = %(timespans_id)s
+            )
+
             SELECT
-                dmtm.*,
-                dt.tag
-            FROM snap.media_tags_map AS dmtm
-                INNER JOIN tags AS dt ON ( dmtm.tags_id = dt.tags_id )
-                INNER JOIN tag_sets AS dts ON ( dts.tag_sets_id = dt.tag_sets_id )
-                INNER JOIN timespans AS t USING ( snapshots_id )
+                timespan_tags.*,
+                tags.tag
+            FROM timespan_tags
+                INNER JOIN tags ON
+                    timespan_tags.tags_id = tags.tags_id
+                INNER JOIN tag_sets ON
+                    tag_sets.tag_sets_id = tags.tag_sets_id
             WHERE 
-                dts.name = %(tag_set_name)s AND
-                t.topics_id = %(topics_id)s AND
-                t.timespans_id = %(timespans_id)s
+                tag_sets.name = %(tag_set_name)s
         """,
         {
             'topics_id': topics_id,
@@ -740,7 +753,8 @@ def write_gexf(graph: nx.Graph) -> bytes:
     return buf.read()
 
 
-def store_map(db: DatabaseHandler,
+def _store_map(db: DatabaseHandler,
+        topics_id: int,
         timespans_id: int,
         content: bytes,
         graph_format: str,
@@ -762,6 +776,7 @@ def store_map(db: DatabaseHandler,
     )
 
     timespan_map = {
+        'topics_id': topics_id,
         'timespans_id': timespans_id,
         'options': options_json,
         'format': graph_format
@@ -862,7 +877,21 @@ def generate_and_store_maps(
         assign_colors(db=db, graph=graph, color_by=color_by)
 
         image = write_gexf(graph=graph)
-        store_map(db=db, timespans_id=timespans_id, content=image, graph_format='gexf', color_by=color_by)
+        _store_map(
+            db=db,
+            topics_id=topics_id,
+            timespans_id=timespans_id,
+            content=image,
+            graph_format='gexf',
+            color_by=color_by,
+        )
 
         image = draw_graph(graph=graph, graph_format='svg')
-        store_map(db=db, timespans_id=timespans_id, content=image, graph_format='svg', color_by=color_by)
+        _store_map(
+            db=db,
+            topics_id=topics_id,
+            timespans_id=timespans_id,
+            content=image,
+            graph_format='svg',
+            color_by=color_by,
+        )
