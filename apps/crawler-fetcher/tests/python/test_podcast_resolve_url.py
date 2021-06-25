@@ -34,21 +34,21 @@ def test_get_feed_url_from_google_podcasts_url():
     assert _get_feed_url_from_google_podcasts_url('http://www.example.com/') == 'http://www.example.com/'
     assert _get_feed_url_from_google_podcasts_url('totally not an URL') == 'totally not an URL'
 
-    npr_feed_url = 'https://feeds.npr.org/381444908/podcast.xml'
+    npr_feed_url = 'https://npr.pyther.net/podcast/2'
 
     # Test with URL pointing to a show's homepage (not invidual episode)
 
     npr_google_show_url = (
-        'https://podcasts.google.com/feed/aHR0cHM6Ly9mZWVkcy5ucHIub3JnLzM4MTQ0NDkwOC9wb2RjYXN0LnhtbA?sa=X'
-        '&ved=2ahUKEwjKm6fimbjuAhWMjoQIHUrSCW0Qjs4CKAl6BAgBEH4'
+        'https://podcasts.google.com/feed/aHR0cHM6Ly9ucHIucHl0aGVyLm5ldC9wb2RjYXN0LzI?'
+        'sa=X&ved=2ahUKEwjKm6fimbjuAhWMjoQIHUrSCW0Qjs4CKAl6BAgBEH4'
     )
 
     assert _get_feed_url_from_google_podcasts_url(npr_google_show_url) == npr_feed_url
 
     # Test with URL that points to a specific episode
     npr_google_ep_url = (
-        'https://podcasts.google.com/feed/aHR0cHM6Ly9mZWVkcy5ucHIub3JnLzM4MTQ0NDkwOC9wb2RjYXN0LnhtbA/episode/'
-        'MjA5MmZjM2ItYmMwZi00NGFiLWFlNDktM2I3YmFhMjA4ODVi?sa=X&ved=0CAUQkfYCahcKEwjg4s3umbjuAhUAAAAAHQAAAAAQAQ'
+        'https://podcasts.google.com/feed/aHR0cHM6Ly9ucHIucHl0aGVyLm5ldC9wb2RjYXN0LzI/episode/'
+        'MTAwOTk5MjU4MToxMDA5OTkyNTg5?sa=X&ved=0CAUQkfYCahcKEwiA9OOL4rLxAhUAAAAAHQAAAAAQAQ'
     )
 
     assert _get_feed_url_from_google_podcasts_url(npr_google_ep_url) == npr_feed_url
