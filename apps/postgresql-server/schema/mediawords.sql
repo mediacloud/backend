@@ -1072,6 +1072,7 @@ SELECT create_distributed_table('stories_tags_map', 'stories_id');
 CREATE UNIQUE INDEX stories_tags_map_stories_id_tags_id
     ON stories_tags_map (stories_id, tags_id);
 
+-- noinspection SqlResolve @ routine/"run_command_on_shards"
 SELECT run_command_on_shards('stories_tags_map', $cmd$
 
     BEGIN;
