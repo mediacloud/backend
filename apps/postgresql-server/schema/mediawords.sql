@@ -29,7 +29,6 @@
 -- FIXME when creating functions / triggers, make sure that each shard succeeds
 -- FIXME schema gets imported as "postgres" user
 -- FIXME mount /etc/postgresql/13/extra/
--- FIXME raw_downloads references downloads_success
 -- FIXME consider making shard count configurable to make tests run faster
 -- FIXME temporary tables get created with "stories_id int", e.g. delta_import_stories
 -- FIXME update things that cast to ::int in various places
@@ -1031,7 +1030,10 @@ CREATE UNIQUE INDEX timespan_maps_id ON public_store.timespan_maps (object_id);
 CREATE TABLE raw_downloads
 (
     raw_downloads_id BIGSERIAL NOT NULL,
-    object_id        BIGINT    NOT NULL REFERENCES downloads_success (downloads_id) ON DELETE CASCADE,
+
+    -- FIXME reference to "downloads_error", "downloads_feed_error" or "downloads_success"
+    object_id        BIGINT    NOT NULL,
+
     raw_data         BYTEA     NOT NULL,
 
     PRIMARY KEY (raw_downloads_id, object_id)
@@ -4047,8 +4049,8 @@ CREATE UNLOGGED TABLE cache.s3_raw_downloads_cache
 (
     cache_s3_raw_downloads_cache_id BIGSERIAL                NOT NULL,
 
-    object_id                       BIGINT                   NOT NULL
-        REFERENCES downloads_success (downloads_id) ON DELETE CASCADE,
+    -- FIXME reference to "downloads_error", "downloads_feed_error" or "downloads_success"
+    object_id                       BIGINT                   NOT NULL,
 
     -- Will be used to purge old cache objects;
     -- don't forget to update cache.purge_object_caches()
