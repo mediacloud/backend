@@ -66,11 +66,15 @@ def _validate_topic_posts(db: DatabaseHandler, topic: dict, mock_posts: list) ->
     """Validate that the topic_posts match the mock_posts."""
     got_posts = db.query(
         """
-        select *
-            from topic_posts tp
-                join topic_post_days tpd using ( topic_post_days_id )
-                join topic_seed_queries tsq using ( topic_seed_queries_id )
-            where topics_id = %(a)s
+        SELECT *
+        FROM topic_posts
+            INNER JOIN topic_post_days ON
+                topic_posts.topics_id = topic_post_days.topics_id AND
+                topic_posts.topic_post_days_id = topic_post_days.topic_post_days_id
+            INNER JOIN topic_seed_queries ON
+                topic_post_days.topics_id = topic_seed_queries.topics_id AND
+                topic_post_days.topic_seed_queries_id = topic_seed_queries.topic_seed_queries_id
+        WHERE topic_posts.topics_id = %(a)s
         """,
         {'a': topic['topics_id']}).hashes()
 
@@ -80,7 +84,7 @@ def _validate_topic_posts(db: DatabaseHandler, topic: dict, mock_posts: list) ->
 
     for i, mock_post in enumerate(mock_posts):
         got_post = db.query(
-            "select * from topic_posts where post_id = %(a)s::text",
+            "SELECT * FROM topic_posts WHERE post_id = %(a)s::text",
             {'a': mock_post['post_id']}).hash()
 
         assert got_post
@@ -140,15 +144,24 @@ def test_fetch_topic_posts() -> None:
 
     fetch_topic_posts(db, tsq)
 
-    topic_post_days = db.query("select * from topic_post_days").hashes()
+    topic_post_days = db.query("SELECT * FROM topic_post_days").hashes()
     assert len(topic_post_days) == MOCK_DAYS
 
     start_date = topic['start_date']
     test_days = [start_date + datetime.timedelta(days=x) for x in range(0, MOCK_DAYS)]
     for d in test_days:
-        topic_post_day = db.query(
-            "select * from topic_post_days where topic_seed_queries_id = %(a)s and day = %(b)s",
-            {'a': tsq['topic_seed_queries_id'], 'b': d}
+        topic_post_day = db.query("""
+            SELECT *
+            FROM topic_post_days
+            WHERE
+                topics_id = %(topics_id)s AND
+                topic_seed_queries_id = %(topic_seed_queries_id)s AND
+                day = %(day)s
+            """, {
+                'topics_id': tsq['topics_id'],
+                'topic_seed_queries_id': tsq['topic_seed_queries_id'],
+                'day': d,
+            }
         ).hash()
         assert topic_post_day is not None
 

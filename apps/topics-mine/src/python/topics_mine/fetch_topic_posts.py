@@ -39,11 +39,22 @@ def _insert_post_urls(db: DatabaseHandler, topic_post: dict, urls: list) -> None
     for url in urls:
         db.query(
             """
-            insert into topic_post_urls( topic_posts_id, url )
-                values( %(a)s, %(b)s )
-                on conflict do nothing
-            """,
-            {'a': topic_post['topic_posts_id'], 'b': url[0:1023]})
+            INSERT INTO topic_post_urls (
+                topics_id,
+                topic_posts_id,
+                url
+            ) VALUES (
+                %(topics_id)s,
+                %(topic_posts_id)s,
+                %(url)s
+            )
+            ON CONFLICT (topics_id, topic_posts_id, url) DO NOTHING
+            """, {
+                'topics_id': topic_post['topics_id'],
+                'topic_posts_id': topic_post['topic_posts_id'],
+                'url': url[0:1023],
+            }
+        )
 
 
 def _remove_json_tree_nulls(d: dict) -> None:
@@ -82,12 +93,24 @@ def _store_post_and_urls(db: DatabaseHandler, topic_post_day: dict, post: dict) 
     for field in POST_FIELDS:
         data[field] = post.get(field, None)
 
+    data['topics_id'] = topic_post_day['topics_id']
     data['topic_post_days_id'] = topic_post_day['topic_post_days_id']
     data['data'] = data_json
 
     topic_post = db.query(
-            "select * from topic_posts where topic_post_days_id = %(a)s and post_id = %(b)s::text",
-        {'a': topic_post_day['topic_post_days_id'], 'b': data['post_id']}).hash()
+        """
+        SELECT *
+        FROM topic_posts
+        WHERE
+            topics_id = %(topics_id)s AND
+            topic_post_days_id = %(topic_post_days_id)s AND
+            post_id = %(post_id)s::TEXT
+        """, {
+            'topics_id': topic_post_day['topics_id'],
+            'topic_post_days_id': topic_post_day['topic_post_days_id'],
+            'post_id': data['post_id'],
+        }
+    ).hash()
 
     if not topic_post:
         log.debug("insert topic post")
@@ -103,14 +126,21 @@ def regenerate_post_urls(db: DatabaseHandler, topic: dict) -> None:
     """Reparse the tweet json for a given topic and try to reinsert all tweet urls."""
     topic_posts_ids = db.query(
         """
-        select tt.topic_posts_id
-            from topic_posts tt
-                join topic_post_days ttd using ( topic_post_days_id )
-                join topic_seed_queries tsg using ( topic_seed_queries_id )
-            where
-                topics_id = %(a)s
-        """,
-        {'a': topic['topics_id']}).flat()
+        SELECT
+            topic_posts.topic_posts_id
+        FROM topic_posts
+            INNER JOIN topic_post_days ON
+                topic_posts.topics_id = topic_post_days.topics_id AND
+                topic_posts.topic_post_days_id = topic_post_days.topic_post_days_id
+            INNER JOIN topic_seed_queries ON
+                topic_post_days.topics_id = topic_seed_queries.topics_id AND
+                topic_post_days.topic_seed_queries_id = topic_seed_queries.topic_seed_queries_id
+        WHERE
+            topics_id = %(topics_id)s
+        """, {
+            'topics_id': topic['topics_id'],
+        }
+    ).flat()
 
     for (i, topic_posts_id) in enumerate(topic_posts_ids):
         if i % 1000 == 0:
@@ -152,10 +182,21 @@ def _store_posts_for_day(db: DatabaseHandler, topic_post_day: dict, posts: list)
 
     db.query(
         """
-        update topic_post_days set posts_fetched = true, num_posts_stored = %(a)s, num_posts_fetched = %(b)s
-            where topic_post_days_id = %(c)s
+        UPDATE topic_post_days SET
+            posts_fetched = true,
+            num_posts_stored = %(num_posts_stored)s,
+            num_posts_fetched = %(num_posts_fetched)s
+        WHERE
+            topics_id = %(topics_id)s AND
+            topic_post_days_id = %(topic_post_days_id)s
         """,
-        {'a': len(posts), 'b': num_posts_fetched, 'c': topic_post_day['topic_post_days_id']})
+        {
+            'num_posts_stored': len(posts),
+            'num_posts_fetched': num_posts_fetched,
+            'topics_id': topic_post_day['topics_id'],
+            'topic_post_days_id': topic_post_day['topic_post_days_id'],
+        }
+    )
 
     db.commit()
 
@@ -177,19 +218,41 @@ def _add_topic_post_single_day(db: DatabaseHandler, topic_seed_query: dict, num_
     """
     # the perl-python layer was segfaulting until I added the str() around day below -hal
     topic_post_day = db.query(
-        "select * from topic_post_days where topic_seed_queries_id = %(a)s and day = %(b)s",
-        {'a': topic_seed_query['topic_seed_queries_id'], 'b': str(day)}).hash()
+        """
+        SELECT *
+        FROM topic_post_days
+        WHERE
+            topics_id = %(topics_id)s AND
+            topic_seed_queries_id = %(topic_seed_queries_id)s AND
+            day = %(day)s
+        """, {
+            'topics_id': topic_seed_query['topics_id'],
+            'topic_seed_queries_id': topic_seed_query['topic_seed_queries_id'],
+            'day': str(day),
+        }
+    ).hash()
 
     if topic_post_day is not None and topic_post_day['posts_fetched']:
         raise McFetchTopicPostsDataException("tweets already fetched for day " + str(day))
 
     # if we have a ttd but had not finished fetching tweets, delete it and start over
     if topic_post_day is not None:
-        db.delete_by_id('topic_post_days', topic_post_day['topic_post_days_id'])
+        db.query(
+            """
+            DELETE FROM topic_post_days
+            WHERE
+                topics_id = %(topics_id)s AND
+                topic_post_days_id = %(topic_post_days_id)s
+            """, {
+                'topics_id': topic_post_day['topics_id'],
+                'topic_post_days_id': topic_post_day['topic_post_days_id'],
+            }
+        )
 
     topic_post_day = db.create(
         'topic_post_days',
         {
+            'topics_id': topic_seed_query['topics_id'],
             'topic_seed_queries_id': topic_seed_query['topic_seed_queries_id'],
             'day': day,
             'num_posts_stored': num_posts,
@@ -203,8 +266,19 @@ def _add_topic_post_single_day(db: DatabaseHandler, topic_seed_query: dict, num_
 def _topic_post_day_fetched(db: DatabaseHandler, topic_seed_query: dict, day: datetime) -> bool:
     """Return true if the topic_post_day exists and posts_fetched is true."""
     ttd = db.query(
-        "select * from topic_post_days where topic_seed_queries_id = %(a)s and day = %(b)s",
-        {'a': topic_seed_query['topic_seed_queries_id'], 'b': str(day)}).hash()
+        """
+        SELECT *
+        FROM topic_post_days
+        WHERE
+            topics_id = %(topics_id)s AND
+            topic_seed_queries_id = %(topic_seed_queries_id)s AND
+            day = %(day)s
+        """, {
+            'topics_id': topic_seed_query['topics_id'],
+            'topic_seed_queries_id': topic_seed_query['topic_seed_queries_id'],
+            'day': str(day),
+        }
+    ).hash()
 
     if not ttd:
         return False

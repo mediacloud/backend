@@ -104,6 +104,7 @@ SQL
     $tsq = $db->create( 'topic_seed_queries', $tsq );
 
     my $tpd = {
+        topics_id => $topics_id,
         topic_seed_queries_id => $tsq->{ topic_seed_queries_id },
         day => $post_story->{ publish_date },
         num_posts_stored => 0,
@@ -114,6 +115,7 @@ SQL
     for my $i ( 1 .. 10 )
     {
         my $tp = {
+            topics_id => $topics_id,
             topic_post_days_id => $tpd->{ topic_post_days_id },
             content => 'foo',
             author => 'foo', 
@@ -125,6 +127,7 @@ SQL
         $tp = $db->create( 'topic_posts', $tp );
 
         my $tpu = {
+            topics_id => $tp->{ topics_id },
             topic_posts_id => $tp->{ topic_posts_id },
             url => $post_story->{ url }
         };
@@ -146,9 +149,15 @@ SQL
 
     ok( $got_snapshot, "snapshot exists" );
 
-    my $got_stories = $db->query( <<SQL, $got_snapshot->{ snapshots_id } )->hashes;
-select * from snap.stories where snapshots_id = ?
+    my $got_stories = $db->query( <<SQL,
+        SELECT *
+        FROM snap.stories
+        WHERE
+            topics_id = ? AND
+            snapshots_id = ?
 SQL
+        $got_snapshot->{ topics_id }, $got_snapshot->{ snapshots_id }
+    )->hashes;
 
     is( scalar( @{ $got_stories } ), 2, "number of pruned stories" );
 }
