@@ -334,6 +334,10 @@ class DatabaseHandler(object):
 
         update_hash = {k: v for k, v in update_hash.items() if not k.startswith("_")}
 
+        primary_key_column = self.primary_key_column(table)
+        if not primary_key_column:
+            raise McUpdateByIDException("Primary key for table '%s' was not found" % table)
+
         # Don't try to "update" the primary key value if it remains the
         # same (which breaks sharding in some cases)
         if primary_key_column in update_hash.keys():
@@ -342,10 +346,6 @@ class DatabaseHandler(object):
 
         if len(update_hash) == 0:
             raise McUpdateByIDException("Hash to UPDATE is empty.")
-
-        primary_key_column = self.primary_key_column(table)
-        if not primary_key_column:
-            raise McUpdateByIDException("Primary key for table '%s' was not found" % table)
 
         keys = []
         for key, value in update_hash.items():
