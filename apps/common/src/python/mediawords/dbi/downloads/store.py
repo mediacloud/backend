@@ -308,7 +308,7 @@ def _get_first_download(db: DatabaseHandler, story: dict) -> dict:
         SELECT *
         FROM downloads
         WHERE stories_id = %(stories_id)s
-        ORDER BY sequence ASC
+        ORDER BY sequence
         LIMIT 1
     """, {'stories_id': story['stories_id']}).hash()
 
