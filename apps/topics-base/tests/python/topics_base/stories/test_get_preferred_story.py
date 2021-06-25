@@ -75,7 +75,7 @@ def test_get_preferred_story():
             url = %(url)s
         WHERE stories_id IN (
             SELECT stories_id
-            FROM stories_to_update            
+            FROM stories_to_update
         )
     """, {
             'url': f"http://media-{preferred_medium['media_id']}.com",
