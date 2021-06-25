@@ -50,14 +50,20 @@ def try_update_topic_link_ref_stories_id(db: DatabaseHandler, topic_fetch_url: d
     if topic_fetch_url.get('topic_links_id', None) is None:
         return
 
-    db.query("""
-        UPDATE topic_links SET
-            ref_stories_id = %(ref_stories_id)s
-        WHERE
-            topics_id = %(topics_id)s AND
-            topic_links_id = %(topic_links_id)s
-        ON CONFLICT (stories_id, topics_id, ref_stories_id) DO NOTHING
-    """, {
-        'topics_id': topic_fetch_url['topics_id'],
-        'ref_stories_id': topic_fetch_url['stories_id'],
-    })
+    try:
+        db.query("""
+            UPDATE topic_links SET
+                ref_stories_id = %(ref_stories_id)s
+            WHERE
+                topics_id = %(topics_id)s AND
+                topic_links_id = %(topic_links_id)s
+        """, {
+            'topics_id': topic_fetch_url['topics_id'],
+            'ref_stories_id': topic_fetch_url['stories_id'],
+            'topic_links_id': topic_fetch_url['topic_links_id'],
+        })
+    except McDatabaseResultException as e:
+        # the query will throw a unique constraint error if stories_id,ref_stories already exists.  it's quicker
+        # to just catch and ignore the error than to try to avoid id
+        if 'unique constraint "topic_links_stories_id_topics_id_ref_stories_id"' not in str(e):
+            raise e
