@@ -303,12 +303,10 @@ SQL
     if ( int( $c->req->params->{ unhealthy } // 0 ) )
     {
         push( @{ $clauses }, <<SQL
-            AND EXISTS (
-                SELECT 1
-                FROM media_health AS h
-                WHERE
-                    h.media_id = media.media_id AND
-                    h.is_healthy = false
+            AND media_id IN (
+                SELECT media_id
+                FROM media_health
+                WHERE is_healthy = false
             )
 SQL
          );

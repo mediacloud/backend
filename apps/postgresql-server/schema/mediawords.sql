@@ -3701,6 +3701,8 @@ SELECT create_distributed_table('media_health', 'media_id');
 
 CREATE INDEX media_health_media_id ON media_health (media_id);
 
+CREATE INDEX media_health_is_healthy ON media_health (is_healthy);
+
 
 CREATE TYPE media_suggestions_status AS ENUM (
     'pending',
