@@ -66,32 +66,62 @@ sub _add_nested_data
     my ( $self, $db, $media ) = @_;
 
     Readonly my $single => 1;
-    $media = $db->attach_child_query( $media, <<SQL, 'is_healthy', 'media_id', $single );
-select m.media_id, coalesce( h.is_healthy, true ) is_healthy from media m left join media_health h using ( media_id )
+    $media = $db->attach_child_query( $media, <<SQL,
+        SELECT
+            m.media_id,
+            COALESCE(h.is_healthy, true) AS is_healthy
+        FROM media AS m
+            LEFT JOIN media_health AS h USING (media_id)
 SQL
+        'is_healthy', 'media_id', $single
+    );
 
     for my $field ( qw/num_stories_90 num_sentences_90/ )
     {
-        $media = $db->attach_child_query( $media, <<SQL, $field, 'media_id', $single );
-select m.media_id, coalesce( h.$field, 0 )::float $field from media m left join media_health h using ( media_id )
+        $media = $db->attach_child_query( $media, <<SQL,
+            SELECT
+                m.media_id,
+                COALESCE(h.$field, 0)::float AS $field
+            FROM media AS m
+                LEFT JOIN media_health AS h USING (media_id)
 SQL
+            $field, 'media_id', $single
+        );
     }
 
-    $media = $db->attach_child_query( $media, <<SQL, 'start_date', 'media_id', $single );
-select m.media_id, coalesce( start_date,  now() )::date start_date from media m left join media_health h using ( media_id )
+    $media = $db->attach_child_query( $media, <<SQL,
+        select
+            m.media_id,
+            COALESCE(start_date,  NOW())::date AS start_date
+        FROM media AS m
+            LEFT JOIN media_health AS h USING (media_id)
 SQL
+        'start_date', 'media_id', $single
+    );
 
     my $media_ids_list = join( ',', map { $_->{ media_id } } @{ $media } ) || '-1';
-    my $tags = $db->query( <<END )->hashes;
-select mtm.media_id, t.tags_id, t.tag, t.label, t.description, mtm.tagged_date, ts.tag_sets_id, ts.name as tag_set,
-        ( t.show_on_media or ts.show_on_media ) show_on_media,
-        ( t.show_on_stories or ts.show_on_stories ) show_on_stories
-    from media_tags_map mtm
-        join tags t on ( mtm.tags_id = t.tags_id )
-        join tag_sets ts on ( ts.tag_sets_id = t.tag_sets_id )
-    where mtm.media_id in ( $media_ids_list )
-    order by t.tags_id
-END
+
+    my $tags = $db->query( <<"SQL"
+        SELECT
+            mtm.media_id,
+            t.tags_id,
+            t.tag,
+            t.label,
+            t.description,
+            mtm.tagged_date,
+            ts.tag_sets_id,
+            ts.name AS tag_set,
+            (t.show_on_media OR ts.show_on_media) AS show_on_media,
+            (t.show_on_stories OR ts.show_on_stories) AS show_on_stories
+        FROM media_tags_map AS mtm
+            INNER JOIN tags AS t ON
+                mtm.tags_id = t.tags_id
+            INNER JOIN tag_sets AS ts ON
+                ts.tag_sets_id = t.tag_sets_id
+        WHERE mtm.media_id IN ($media_ids_list)
+        ORDER BY t.tags_id
+SQL
+    )->hashes;
 
     my $tags_lookup = {};
     map { push( @{ $tags_lookup->{ $_->{ media_id } } }, $_ ) } @{ $tags };
@@ -129,19 +159,25 @@ sub order_by_clause
 
     if ( $self->{ topic_media } )
     {
-        return 'inlink_count desc';
+        return 'inlink_count DESC';
     }
     elsif ( $sort eq 'id' )
     {
-        return 'media_id asc';
+        return 'media_id ASC';
     }
     elsif ( $sort eq 'num_stories' )
     {
-        return '( select num_stories_90 from media_health mh where mh.media_id = media.media_id ) desc nulls last';
+        return <<"SQL";
+            (
+                SELECT num_stories_90
+                FROM media_health AS mh
+                WHERE mh.media_id = media.media_id
+            ) DESC NULLS LAST
+SQL
     }
     else
     {
-        die( "Unknown sort param: '$sort'" );
+        die "Unknown sort param: '$sort'";
     }
 }
 
@@ -171,20 +207,33 @@ sub _create_topic_media_table
     my $timespan = $db->find_by_id( 'timespans', $timespans_id )
       || die( "Unable to find timespan with id '$timespans_id'" );
 
-    my $topic = $db->query( <<END, $timespan->{ snapshots_id } )->hash;
-select * from topics where topics_id in (
-    select topics_id from snapshots where snapshots_id = ? )
-END
+    my $topic = $db->query( <<SQL,
+        SELECT *
+        FROM topics
+        WHERE topics_id IN (
+            SELECT topics_id
+            FROM snapshots
+            WHERE snapshots_id = ?
+        )
+SQL
+        $timespan->{ snapshots_id }
+    )->hash;
 
     $db->begin;
 
     MediaWords::TM::Snapshot::Views::setup_temporary_snapshot_views( $db, $timespan );
 
-    $db->query( <<END );
-create temporary table media as
-    select m.name, m.url, mlc.*
-        from media m join snapshot_medium_link_counts mlc on ( m.media_id = mlc.media_id )
-END
+    $db->query( <<SQL
+        CREATE TEMPORARY TABLE media AS
+            SELECT
+                m.name,
+                m.url,
+                mlc.*
+            FROM media AS m
+                INNER JOIN snapshot_medium_link_counts AS mlc ON
+                    m.media_id = mlc.media_id
+SQL
+    );
 
     $db->commit;
 }
@@ -205,8 +254,13 @@ sub get_extra_where_clause
             $tags_id = ref( $tags_id ) ? $tags_id : [ $tags_id ];
             my $tags_id_list = join( ',', map { int( $_ ) } @{ $tags_id } );
             push(
-                @{ $clauses },
-                "and media_id in ( select mtm.media_id from media_tags_map mtm where mtm.tags_id in ($tags_id_list) )"
+                @{ $clauses }, <<"SQL"
+                    AND media_id IN (
+                        SELECT mtm.media_id
+                        FROM media_tags_map AS mtm
+                        WHERE mtm.tags_id IN ($tags_id_list)
+                    )
+SQL
             );
         }
     }
@@ -220,53 +274,72 @@ sub get_extra_where_clause
 
         my $ids_table = $db->get_temporary_ids_table( $media_ids );
 
-        push( @{ $clauses }, "and media_id in ( select id from $ids_table )" );
+        push( @{ $clauses }, <<"SQL"
+            AND media_id IN (
+                SELECT id
+                FROM $ids_table
+            )
+
+SQL
+        );
     }
 
     if ( my $tag_name = $c->req->params->{ tag_name } )
     {
         my $q_tag_name = $db->quote( '%' . lc( $tag_name ) . '%' );
-        push( @{ $clauses }, <<SQL );
-and media_id in (
-    select media_id
-        from media_tags_map mtm
-            join tags t using ( tags_id )
-        where
-            ( t.show_on_media or t.show_on_stories ) and
-            t.tag ilike $q_tag_name
-)
+        push( @{ $clauses }, <<"SQL"
+            AND media_id IN (
+                SELECT media_id
+                FROM media_tags_map AS mtm
+                    INNER JOIN tags AS t USING (tags_id)
+                WHERE
+                    (t.show_on_media OR t.show_on_stories) AND
+                    t.tag ILIKE $q_tag_name
+            )
 SQL
+         );
     }
 
     if ( int( $c->req->params->{ unhealthy } // 0 ) )
     {
-        push( @{ $clauses }, <<SQL );
-and exists ( select 1 from media_health h where h.media_id = media.media_id and h.is_healthy = false )
+        push( @{ $clauses }, <<SQL
+            AND EXISTS (
+                SELECT 1
+                FROM media_health AS h
+                WHERE
+                    h.media_id = media.media_id AND
+                    h.is_healthy = false
+            )
 SQL
+         );
     }
 
     if ( my $similar_media_id = int( $c->req->params->{ similar_media_id } // 0 ) )
     {
         # make sure this is an int
         $similar_media_id += 0;
-        push( @{ $clauses }, <<SQL );
-and media_id in (
-    select b.media_id
-        from media_tags_map a
-            join media_tags_map b using ( tags_id )
-        where
-            a.media_id = $similar_media_id and
-            a.media_id <> b.media_id
-        group by b.media_id
-        order by count(*) desc
-        limit 100
-)
+        push( @{ $clauses }, <<"SQL"
+            AND media_id IN (
+                SELECT b.media_id
+                FROM media_tags_map AS a
+                    INNER JOIN media_tags_map AS b USING (tags_id)
+                WHERE
+                    a.media_id = $similar_media_id AND
+                    a.media_id != b.media_id
+                GROUP BY b.media_id
+                ORDER BY COUNT(*) DESC
+                LIMIT 100
+            )
 SQL
+        );
     }
 
     if ( ( $c->req->params->{ name } || $c->req->params->{ tag_name } ) && !int( $c->req->params->{ include_dups } // 0 ) )
     {
-        push( @{ $clauses }, "and dup_media_id is null" );
+        push( @{ $clauses }, <<"SQL"
+            AND dup_media_id IS NULL
+SQL
+        );
     }
 
     return @{ $clauses } ? join( "  ", @{ $clauses } ) : '';
@@ -420,7 +493,9 @@ sub _apply_updates_to_media($$)
             map { MediaWords::DBI::Media::add_feed_url_to_medium( $db, $input_medium->{ medium }, $_ ) } @{ $feeds };
         }
 
-        MediaWords::Job::StatefulBroker->new( 'MediaWords::Job::RescrapeMedia' )->add_to_queue( { media_id => $medium->{ media_id } } );
+        MediaWords::Job::StatefulBroker->new(
+            'MediaWords::Job::RescrapeMedia'
+        )->add_to_queue( { media_id => $medium->{ media_id } } );
 
         if ( my $tags_ids = $input_medium->{ tags_ids } )
         {
@@ -560,9 +635,12 @@ sub submit_suggestion_GET
 
     for my $tags_id ( @{ $tags_ids } )
     {
-        $db->query( <<SQL, $ms->{ media_suggestions_id }, $tags_id );
-insert into media_suggestions_tags_map ( media_suggestions_id, tags_id ) values ( \$1, \$2 )
+        $db->query( <<SQL,
+            INSERT INTO media_suggestions_tags_map (media_suggestions_id, tags_id)
+            VALUES (\$1, \$2)
 SQL
+            $ms->{ media_suggestions_id }, $tags_id
+        );
     }
 
     $db->commit;
@@ -589,28 +667,43 @@ sub list_suggestions_GET
 
     if ( $tags_id )
     {
-        push( @{ $clauses }, <<SQL );
-media_suggestions_id in ( select media_suggestions_id from media_suggestions_tags_map where tags_id = $tags_id )
+        push( @{ $clauses }, <<"SQL"
+            media_suggestions_id IN (
+                SELECT media_suggestions_id
+                FROM media_suggestions_tags_map
+                WHERE tags_id = $tags_id
+            )
 SQL
+        );
     }
 
     push( @{ $clauses }, "status = 'pending'" ) unless ( $all );
 
     my $clause_list = join( ' and ', @{ $clauses } );
 
-    my $media_suggestions = $db->query( <<SQL )->hashes;
-select u.email email, *
-    from media_suggestions ms
-        join auth_users u using ( auth_users_id )
-    where $clause_list
-    order by date_submitted
+    my $media_suggestions = $db->query( <<"SQL"
+        SELECT
+            u.email AS email,
+            *
+        FROM media_suggestions AS ms
+            INNER JOIN auth_users AS u USING (auth_users_id)
+        WHERE $clause_list
+        ORDER BY date_submitted
 SQL
+    )->hashes;
 
-    $media_suggestions = $db->attach_child_query( $media_suggestions, <<SQL, 'tags_ids', 'media_suggestions_id' );
-select t.tags_id, t.tag, t.label, t.description, mstm.media_suggestions_id
-    from media_suggestions_tags_map mstm
-        join tags t using ( tags_id )
+    $media_suggestions = $db->attach_child_query( $media_suggestions, <<SQL,
+        SELECT
+            t.tags_id,
+            t.tag,
+            t.label,
+            t.description,
+            mstm.media_suggestions_id
+        FROM media_suggestions_tags_map AS mstm
+            INNER JOIN tags AS t USING (tags_id)
 SQL
+        'tags_ids', 'media_suggestions_id'
+    );
 
     $self->status_ok( $c, entity => { media_suggestions => $media_suggestions } );
 }
