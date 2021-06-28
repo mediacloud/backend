@@ -66,12 +66,19 @@ sub test_respider($)
 
     my $num_date_changes = 10;
     $db->query( <<SQL
+        WITH story_ids AS (
+            SELECT stories_id
+            FROM stories
+        )
         UPDATE stories SET
             publish_date = '2017-06-01'
-        -- FIXME
-        WHERE stories_id = 1
+        WHERE stories_id IN (
+            SELECT *
+            FROM story_ids
+        )
 SQL
     );
+
     $db->query( <<SQL, 
         UPDATE stories SET
             publish_date = ?
