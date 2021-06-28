@@ -2752,7 +2752,7 @@ SELECT create_reference_table('auth_users');
 
 CREATE UNIQUE INDEX auth_users_email ON auth_users (email);
 
-CREATE UNIQUE INDEX auth_users_password_hash ON auth_users (password_hash);
+CREATE UNIQUE INDEX auth_users_password_reset_token_hash ON auth_users (password_reset_token_hash);
 
 -- Used by daily stats script
 CREATE INDEX auth_users_created_day ON auth_users (date_trunc('day', created_date));
