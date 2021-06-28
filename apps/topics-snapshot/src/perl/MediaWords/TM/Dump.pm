@@ -75,7 +75,7 @@ sub get_story_links_csv($$)
 {
     my ( $db ) = @_;
 
-    my $csv = _get_query_as_csv( $db, "select * from snapshot_story_links" );
+    my $csv = _get_query_as_csv( $db, "SELECT * FROM snapshot_story_links" );
 
     return $csv;
 }
@@ -85,22 +85,43 @@ sub get_stories_csv($$)
 {
     my ( $db, $timespan ) = @_;
 
-    my $res = $db->query( <<END );
-select s.stories_id, s.title, s.url,
-        case when ( stm.tags_id is null ) then s.publish_date::text else 'undateable' end as publish_date,
-        m.name media_name, m.media_id,
-        slc.media_inlink_count, slc.inlink_count, slc.outlink_count, slc.facebook_share_count,
-        slc.post_count, slc.author_count, slc.channel_count
-    from snapshot_stories s
-        join snapshot_media m on ( s.media_id = m.media_id )
-        join snapshot_story_link_counts slc on ( s.stories_id = slc.stories_id )
-        left join (
-            snapshot_stories_tags_map stm
-                join tags t on ( stm.tags_id = t.tags_id  and t.tag = 'undateable' )
-                join tag_sets ts on ( t.tag_sets_id = ts.tag_sets_id and ts.name = 'date_invalid' ) )
-            on ( stm.stories_id = s.stories_id )
-    order by slc.media_inlink_count desc
-END
+    my $res = $db->query( <<SQL
+        SELECT
+            s.stories_id,
+            s.title,
+            s.url,
+            CASE
+                WHEN (stm.tags_id IS NULL) THEN s.publish_date::TEXT
+                ELSE 'undateable'
+            END AS publish_date,
+            m.name AS media_name,
+            m.media_id,
+            slc.media_inlink_count,
+            slc.inlink_count,
+            slc.outlink_count,
+            slc.facebook_share_count,
+            slc.post_count,
+            slc.author_count,
+            slc.channel_count
+        FROM snapshot_stories AS s
+            INNER JOIN snapshot_media AS m ON
+                s.media_id = m.media_id
+            INNER JOIN snapshot_story_link_counts AS slc ON
+                s.stories_id = slc.stories_id
+            LEFT JOIN (
+                snapshot_stories_tags_map AS stm
+                    INNER JOIN tags AS t ON
+                        stm.tags_id = t.tags_id AND
+                        t.tag = 'undateable'
+                    INNER JOIN tag_sets AS ts ON
+                        t.tag_sets_id = ts.tag_sets_id AND
+                        ts.name = 'date_invalid'
+            ) ON
+                stm.stories_id = s.stories_id
+        ORDER BY
+            slc.media_inlink_count DESC
+SQL
+    );
 
     my $fields = $res->columns;
 
@@ -136,7 +157,7 @@ sub get_medium_links_csv($$)
 {
     my ( $db, $timespan ) = @_;
 
-    my $csv = _get_query_as_csv( $db, "select * from snapshot_medium_links" );
+    my $csv = _get_query_as_csv( $db, "SELECT * FROM snapshot_medium_links" );
 
     return $csv;
 }
@@ -146,12 +167,17 @@ sub get_media_csv($$)
 {
     my ( $db, $timespan ) = @_;
 
-    my $res = $db->query( <<END );
-select m.name, m.url, mlc.*
-    from snapshot_media m, snapshot_medium_link_counts mlc
-    where m.media_id = mlc.media_id
-    order by mlc.media_inlink_count desc;
-END
+    my $res = $db->query( <<SQL );
+        SELECT
+            m.name,
+            m.url,
+            mlc.*
+        FROM
+            snapshot_media AS m,
+            snapshot_medium_link_counts AS mlc
+        WHERE m.media_id = mlc.media_id
+        ORDER BY mlc.media_inlink_count DESC
+SQL
 
     my $fields = $res->columns;
     my $media  = $res->hashes;
@@ -190,13 +216,23 @@ sub get_topic_posts_csv($$)
 {
     my ( $db, $timespan ) = @_;
 
-    my $csv = _get_query_as_csv( $db, <<SQL );
-select 
-        tpd.topic_seed_queries_id, tp.topic_posts_id, tp.publish_date, tp.author, tp.channel, tp.url
-    from topic_post_days tpd
-        join topic_posts tp using ( topic_post_days_id )
-		join snapshot_timespan_posts using ( topic_posts_id )
+    my $csv = _get_query_as_csv( $db, <<SQL
+        SELECT
+            tpd.topic_seed_queries_id,
+            tp.topic_posts_id,
+            tp.publish_date,
+            tp.author,
+            tp.channel,
+            tp.url
+        FROM topic_post_days AS tpd
+            INNER JOIN topic_posts AS tp ON
+                tpd.topics_id = tp.topics_id AND
+                tpd.topic_post_days_id = tp.topic_post_days_id
+    		INNER JOIN snapshot_timespan_posts ON
+                tp.topics_id = snapshot_timespan_posts.topics_id AND
+                tp.topic_posts_id = snapshot_timespan_posts.topic_posts_id
 SQL
+    );
 
     return $csv;
 }
@@ -205,10 +241,16 @@ sub get_post_stories_csv($$)
 {
     my ( $db, $timespan ) = @_;
 
-    my $csv = _get_query_as_csv( $db, <<SQL );
-select distinct topic_posts_id, stories_id
-    from snapshot_timespan_posts join snapshot_topic_post_stories using ( topic_posts_id )
+    my $csv = _get_query_as_csv( $db, <<SQL
+        SELECT DISTINCT
+            topic_posts_id,
+            stories_id
+        FROM snapshot_timespan_posts
+            INNER JOIN snapshot_topic_post_stories ON
+                snapshot_timespan_posts.topics_id = snapshot_topic_post_stories.topics_id AND
+                snapshot_timespan_posts.topic_posts_id = snapshot_topic_post_stories.topic_posts_id
 SQL
+    );
 
     return $csv;
 }
@@ -234,13 +276,14 @@ sub store_timespan_file($$$$)
 
     my $url = MediaWords::Util::PublicStore::get_content_url( $db, $object_type, $object_id );
 
-    $db->query( <<SQL, $timespan->{ timespans_id }, $name, $url );
-insert into timespan_files ( timespans_id, name, url )
-    values ( ?, ?, ? )
-    on conflict ( timespans_id, name ) do update set
-        url = excluded.url
+    $db->query( <<SQL,
+        INSERT INTO timespan_files (topics_id, timespans_id, name, url)
+        VALUES (?, ?, ?, ?)
+        ON CONFLICT (topics_id, timespans_id, name) DO UPDATE SET
+            url = EXCLUDED.url
 SQL
-
+        $timespan->{ topics_id }, $timespan->{ timespans_id }, $name, $url
+    );
 }
 
 # generate various dumps for a single timespan and store them in s3, with the public urls
@@ -280,21 +323,33 @@ sub get_topic_posts_ndjson
 
     $db->begin;
 
-    $db->query( <<SQL, $snapshot->{ snapshots_id } );
-declare posts cursor for
-    with _snapshot_posts as (
-        select distinct topic_posts_id
-            from snap.timespan_posts stp
-                join timespans t using ( timespans_id )
-            where 
-                t.snapshots_id = ?
-    )
-                
-    select tp.*, tpd.topic_seed_queries_id
-        from topic_posts tp
-            join topic_post_days tpd using ( topic_post_days_id ) 
-            join _snapshot_posts sp using ( topic_posts_id )
+    $db->query( <<SQL,
+        DECLARE posts CURSOR FOR
+            WITH _snapshot_posts AS (
+                SELECT DISTINCT
+                    topic_posts_id
+                FROM snap.timespan_posts AS stp
+                    INNER JOIN timespans AS t ON
+                        stp.topics_id = t.topics_id AND
+                        stp.timespans_id = t.timespans_id
+                WHERE
+                    stp.topics_id = ? AND
+                    t.snapshots_id = ?
+            )
+
+            SELECT
+                tp.*,
+                tpd.topic_seed_queries_id
+            FROM topic_posts AS tp
+                INNER JOIN topic_post_days AS tpd ON
+                    tp.topics_id = tpd.topics_id AND
+                    tp.topic_post_days_id = tpd.topic_post_days_id
+                INNER JOIN _snapshot_posts AS sp ON
+                    tp.topics_id = sp.topics_id AND
+                    tp.topic_posts_id = sp.topic_posts_id
 SQL
+        $snapshot->{ topics_id }, $snapshot->{ snapshots_id }
+    );
 
     my $ndjson = '';
     while ( 1 )
@@ -322,12 +377,14 @@ sub store_snapshot_file($$$$)
 
     my $url = MediaWords::Util::PublicStore::get_content_url( $db, $object_type, $object_id );
 
-    $db->query( <<SQL, $snapshot->{ snapshots_id }, $name, $url );
-insert into snapshot_files ( snapshots_id, name, url )
-    values ( ?, ?, ? )
-    on conflict ( snapshots_id, name ) do update set
-        url = excluded.url
+    $db->query( <<SQL,
+        INSERT INTO snapshot_files (topics_id, snapshots_id, name, url)
+        VALUES (?, ?, ?, ?)
+        ON CONFLICT (topics_id, snapshots_id, name) DO UPDATE SET
+            url = EXCLUDED.url
 SQL
+        $snapshot->{ topics_id }, $snapshot->{ snapshots_id }, $name, $url
+    );
 
 }
 

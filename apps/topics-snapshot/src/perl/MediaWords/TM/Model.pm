@@ -49,9 +49,14 @@ sub get_top_media_link_counts
     my $num_top_media = POSIX::ceil( $num_media * ( $MODEL_PERCENT_TOP_MEDIA / 100 ) );
     $num_top_media *= $size_factor if ( $size_factor );
 
-    my $top_media = $db->query( <<END, $num_top_media + 1 )->hashes;
-select * from snapshot_medium_link_counts order by media_inlink_count desc limit ?
-END
+    my $top_media = $db->query( <<SQL,
+        SELECT *
+        FROM snapshot_medium_link_counts
+        ORDER BY media_inlink_count DESC
+        LIMIT ?
+SQL
+        $num_top_media + 1
+    )->hashes;
 
     # the last medium included must have more inlinks than the first medium not included
     my $first_miss_medium = pop( @{ $top_media } );
@@ -70,11 +75,12 @@ sub __tweak_dateable_story
 
     my $undateable_tag = MediaWords::Util::Tags::lookup_or_create_tag( $db, 'date_invalid:undateable' );
 
-    $db->query( <<END, $story->{ stories_id }, $undateable_tag->{ tags_id } );
-insert into snapshot_stories_tags_map
-    ( stories_id, tags_id )
-    values ( ?, ? )
-END
+    $db->query( <<SQL,
+        INSERT INTO snapshot_stories_tags_map (stories_id, tags_id)
+        VALUES (?, ?)
+SQL
+        $story->{ stories_id }, $undateable_tag->{ tags_id }
+    );
 
 }
 
@@ -83,29 +89,46 @@ sub __sample_guessed_date_stories
 {
     my ( $db, $timespan, $percent_sample ) = @_;
 
-    my $stories = $db->query( <<END, $percent_sample )->hashes;
-select * from
-(
-    select s.*
-        from snapshot_stories s, tags t, tag_sets ts, snapshot_stories_tags_map stm
-        where s.stories_id = stm.stories_id and
-            t.tags_id = stm.tags_id and
-            t.tag_sets_id = ts.tag_sets_id and
-            ts.name = 'date_guess_method' and
-            t.tag not in ( 'manual', 'merged_story_rss', 'guess_by_url_and_date_text', 'guess_by_url' )
+    my $stories = $db->query( <<SQL,
+        SELECT *
+        FROM (
+            SELECT S.*
+            FROM
+                snapshot_stories AS s,
+                tags AS t,
+                tag_sets AS ts,
+                snapshot_stories_tags_map AS stm
+            WHERE
+                s.stories_id = stm.stories_id AND
+                t.tags_id = stm.tags_id AND
+                t.tag_sets_id = ts.tag_sets_id AND
+                ts.name = 'date_guess_method' AND
+                t.tag NOT IN (
+                    'manual',
+                    'merged_story_rss',
+                    'guess_by_url_and_date_text',
+                    'guess_by_url'
+                )
 
-    except
+            EXCEPT
 
-    select s.*
-        from snapshot_stories s, tags t, tag_sets ts, snapshot_stories_tags_map stm
-        where s.stories_id = stm.stories_id and
-            t.tags_id = stm.tags_id and
-            t.tag_sets_id = ts.tag_sets_id and
-            ts.name = 'date_invalid' and
-            t.tag = 'undateable'
-) q
-    where ( random() *  100 ) < ?
-END
+            SELECT s.*
+            FROM
+                snapshot_stories AS s,
+                tags AS t,
+                tag_sets AS ts,
+                snapshot_stories_tags_map AS stm
+            WHERE
+                s.stories_id = stm.stories_id AND
+                t.tags_id = stm.tags_id AND
+                t.tag_sets_id = ts.tag_sets_id AND
+                ts.name = 'date_invalid' AND
+                t.tag = 'undateable'
+        ) AS q
+        WHERE (RANDOM() *  100 ) < ?
+SQL
+        $percent_sample
+    )->hashes;
 
     return $stories;
 }
@@ -128,15 +151,20 @@ sub __tweak_undateable_story
 
     TRACE "__tweak_undateable_story: $story->{ stories_id }";
 
-    $db->query( <<END, $story->{ stories_id } );
-delete from snapshot_stories_tags_map stm
-    using tags t, tag_sets ts
-    where stm.stories_id = ? and
-        stm.tags_id = t.tags_id and
-        t.tag_sets_id = ts.tag_sets_id and
-        ts.name = 'date_invalid' and
-        t.tag = 'undateable'
-END
+    $db->query( <<SQL,
+        DELETE FROM snapshot_stories_tags_map AS stm
+        USING
+            tags AS t,
+            tag_sets AS ts
+        WHERE
+            stm.stories_id = ? AND
+            stm.tags_id = t.tags_id AND
+            t.tag_sets_id = ts.tag_sets_id AND
+            ts.name = 'date_invalid' AND
+            t.tag = 'undateable'
+SQL
+        $story->{ stories_id }
+    );
 }
 
 # change undateable stories to dateable ones according to our data
@@ -145,30 +173,41 @@ sub __tweak_undateable_stories
 {
     my ( $db, $timespan ) = @_;
 
-    my $stories = $db->query( <<END, $PERCENT_UNDATEABLE_DATE_DATEABLE )->hashes;
-select * from
-(
-    select s.*
-        from snapshot_stories s, tags t, tag_sets ts, snapshot_stories_tags_map stm
-        where s.stories_id = stm.stories_id and
-            t.tags_id = stm.tags_id and
-            t.tag_sets_id = ts.tag_sets_id and
-            ts.name = 'date_invalid' and
-            t.tag = 'undateable'
+    my $stories = $db->query( <<SQL,
+        SELECT *
+        FROM (
+            SELECT s.*
+            FROM
+                snapshot_stories AS s,
+                tags AS t,
+                tag_sets AS ts,
+                snapshot_stories_tags_map AS stm
+            WHERE
+                s.stories_id = stm.stories_id AND
+                t.tags_id = stm.tags_id AND
+                t.tag_sets_id = ts.tag_sets_id AND
+                ts.name = 'date_invalid' AND
+                t.tag = 'undateable'
 
-    except
+            EXCEPT
 
-    select s.*
-        from snapshot_stories s, tags t, tag_sets ts, snapshot_stories_tags_map stm
-        where s.stories_id = stm.stories_id and
-            t.tags_id = stm.tags_id and
-            t.tag_sets_id = ts.tag_sets_id and
-            ts.name = 'date_guess_method' and
-            t.tag = 'manual'
-) q
-    where ( random() *  100 ) < ?
-
-END
+            SELECT s.*
+            FROM
+                snapshot_stories AS s,
+                tags AS t,
+                tag_sets AS ts,
+                snapshot_stories_tags_map AS stm
+            WHERE
+                s.stories_id = stm.stories_id AND
+                t.tags_id = stm.tags_id AND
+                t.tag_sets_id = ts.tag_sets_id AND
+                ts.name = 'date_guess_method' AND
+                t.tag = 'manual'
+        ) AS q
+        WHERE (RANDOM() *  100) < ?
+SQL
+        $PERCENT_UNDATEABLE_DATE_DATEABLE
+    )->hashes;
 
     map { __tweak_undateable_story( $db, $timespan, $_ ) } @{ $stories };
 }
@@ -218,9 +257,13 @@ sub __tweak_story_date
 
     TRACE "tweak story: $story->{ stories_id } $story->{ publish_date } -> $new_date";
 
-    $db->query( <<END, $new_date, $story->{ stories_id } );
-update snapshot_stories set publish_date = ? where stories_id = ?
-END
+    $db->query( <<SQL,
+        UPDATE snapshot_stories SET
+            publish_date = ?
+        WHERE stories_id = ?
+SQL
+        $new_date, $story->{ stories_id }
+    );
 
 }
 

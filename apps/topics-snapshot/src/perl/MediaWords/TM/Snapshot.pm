@@ -602,6 +602,7 @@ sub _create_timespan($$$$$$)
 {
     my ( $db, $cd, $start_date, $end_date, $period, $focus ) = @_;
 
+    my $topics_id = $cd->{ topics_id };
     my $snapshots_id = $cd->{ snapshots_id };
     my $foci_id = $focus ? $focus->{ foci_id } : undef;
 
