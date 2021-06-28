@@ -153,7 +153,7 @@ CREATE TABLE media
     -- problems for the topic mapper's spider, which finds those foreign rss links and
     -- thinks that the urls belong to the parent media source.
     foreign_rss_links BOOLEAN NOT NULL DEFAULT 'f',
-    dup_media_id      BIGINT  NULL REFERENCES MEDIA (media_id) ON DELETE SET NULL DEFERRABLE,
+    dup_media_id      BIGINT  NULL REFERENCES media (media_id) ON DELETE SET NULL DEFERRABLE,
     is_not_dup        BOOLEAN NULL,
 
     -- Delay content downloads for this media source this many hours
