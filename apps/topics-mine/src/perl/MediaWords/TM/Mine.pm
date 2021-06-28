@@ -133,13 +133,19 @@ sub generate_topic_links
 
     my $stories_ids_table = $db->get_temporary_ids_table( [ map { $_->{ stories_id } } @{ $stories } ] );
 
-    $db->query( <<SQL, $topic->{ topics_id } );
-update topic_stories set link_mined = 'f'
-        where
-            stories_id in ( select id from $stories_ids_table ) and
-            topics_id = ? and
+    $db->query( <<"SQL",
+        UPDATE topic_stories SET
+            link_mined = 'f'
+        WHERE
+            stories_id IN (
+                SELECT id
+                FROM $stories_ids_table
+            ) AND
+            topics_id = ? AND
             link_mined = 't'
 SQL
+        $topic->{ topics_id }
+    );
 
     my $queued_stories_ids = [];
     for my $story ( @{ $stories } )
@@ -165,10 +171,19 @@ SQL
     my $last_change_time        = time();
     while ( 1 )
     {
-        my $queued_stories = $db->query( <<SQL, $topic->{ topics_id } )->flat();
-select stories_id from topic_stories
-    where stories_id in ( select id from $queued_ids_table ) and topics_id = ? and link_mined = 'f'
+        my $queued_stories = $db->query( <<"SQL",
+            SELECT stories_id
+            FROM topic_stories
+            WHERE
+                stories_id IN (
+                    SELECT id
+                    FROM $queued_ids_table
+                ) AND
+                topics_id = ? AND
+                link_mined = 'f'
 SQL
+            $topic->{ topics_id }
+        )->flat();
 
         my $num_queued_stories = scalar( @{ $queued_stories } );
 
@@ -183,9 +198,15 @@ SQL
                 LOGDIE( "Timed out waiting for story link extraction ($ids_list)." );
             }
 
-            $db->query( <<SQL, $topic->{ topics_id } );
-update topic_stories set link_mine_error = 'time out' where stories_id in ( $ids_list ) and topics_id = ?
+            $db->query( <<SQL,
+                UPDATE topic_stories SET
+                    link_mine_error = 'time out'
+                WHERE
+                    stories_id IN ($ids_list) AND
+                    topics_id = ?
 SQL
+                $topic->{ topics_id }
+            );
             last;
         }
 
@@ -195,11 +216,21 @@ SQL
         sleep( $JOB_POLL_WAIT );
     }
 
-    $db->query( <<SQL, $topic->{ topics_id } );
-update topic_stories set link_mined = 't'
-    where stories_id in ( select id from $stories_ids_table ) and topics_id = ? and link_mined = 'f'
+    $db->query( <<SQL,
+        UPDATE topic_stories SET
+            link_mined = 't'
+        WHERE
+            stories_id IN (
+                SELECT id
+                FROM $stories_ids_table
+            ) AND
+            topics_id = ? AND
+            link_mined = 'f'
 SQL
-    $db->query( "drop table $stories_ids_table" );
+        $topic->{ topics_id }
+    );
+
+    $db->query( "DROP TABLE $stories_ids_table" );
 }
 
 # die() with an appropriate error if topic_stories > topics.max_stories; because this check is expensive and we don't
@@ -208,9 +239,13 @@ sub die_if_max_stories_exceeded($$)
 {
     my ( $db, $topic ) = @_;
 
-    my ( $num_topic_stories ) = $db->query( <<SQL, $topic->{ topics_id } )->flat;
-select count(*) from topic_stories where topics_id = ?
+    my ( $num_topic_stories ) = $db->query( <<SQL,
+        SELECT COUNT(*)
+        FROM topic_stories
+        WHERE topics_id = ?
 SQL
+        $topic->{ topics_id }
+    )->flat;
 
     if ( $num_topic_stories > $topic->{ max_stories } )
     {
@@ -270,13 +305,16 @@ sub _fetch_twitter_urls($$$)
     # we run into quota limitations with twitter sometimes and need a longer timeout
     my $twitter_poll_timeout = $JOB_POLL_TIMEOUT * 5;
 
-    my $twitter_tfu_ids = $db->query( <<SQL )->flat();
-select topic_fetch_urls_id
-    from topic_fetch_urls tfu
-    where
-        tfu.state = 'tweet pending' and
-        tfu.topic_fetch_urls_id in ( $tfu_ids_list )
+    my $twitter_tfu_ids = $db->query( <<"SQL",
+        SELECT topic_fetch_urls_id
+        FROM topic_fetch_urls
+        WHERE
+            topics_id = ? AND
+            state = 'tweet pending' AND
+            topic_fetch_urls_id IN ($tfu_ids_list)
 SQL
+        $topic->{ topics_id }
+    )->flat();
 
     return unless ( scalar( @{ $twitter_tfu_ids } ) > 0 );
 
@@ -296,13 +334,19 @@ SQL
     my $last_change_time     = time();
     while ( 1 )
     {
-        my $queued_tfus = $db->query( <<SQL )->hashes();
-select tfu.*
-    from topic_fetch_urls tfu
-        join $tfu_ids_table ids on ( tfu.topic_fetch_urls_id = ids.id )
-    where
-        state in ('tweet pending')
+        my $queued_tfus = $db->query( <<"SQL",
+            SELECT tfu
+            FROM topic_fetch_urls
+            WHERE
+                topics_id = ? AND
+                topic_fetch_urls_id IN (
+                    SELECT id
+                    IN $tfu_ids_table
+                ) AND
+                state = 'tweet pending'
 SQL
+            $topic->{ topics_id }
+        )->hashes();
 
         my $num_queued_urls = scalar( @{ $queued_tfus } );
 
@@ -370,13 +414,18 @@ sub fetch_links
     my $last_num_pending_urls = 0;
     while ( 1 )
     {
-        my $pending_urls = $db->query( <<SQL )->hashes();
-select *, coalesce( fetch_date::text, 'null' ) fetch_date
-    from topic_fetch_urls
-    where
-        topic_fetch_urls_id in ( $tfu_ids_list ) and
-        state in ( 'pending', 'requeued' )
+        my $pending_urls = $db->query( <<"SQL",
+            SELECT
+                *,
+                COALESCE(fetch_date::text, 'null') AS fetch_date
+            FROM topic_fetch_urls
+            WHERE
+                topics_id = ? AND
+                topic_fetch_urls_id IN ($tfu_ids_list) AND
+                state IN ('pending', 'requeued')
 SQL
+            $topic->{ topics_id }
+        )->hashes();
 
         my $pending_url_ids = [ map { $_->{ topic_fetch_urls_id } } @{ $pending_urls } ];
 
@@ -444,16 +493,20 @@ SQL
     _fetch_twitter_urls( $db, $topic, $tfu_ids_list );
 
     INFO( "fetch_links: update topic seed urls" );
-    $db->query( <<SQL );
-update topic_seed_urls tsu
-    set stories_id = tfu.stories_id, processed = 't'
-    from topic_fetch_urls tfu
-    where
-        tfu.url = tsu.url and
-        tfu.stories_id is not null and
-        tfu.topic_fetch_urls_id in ( $tfu_ids_list ) and
-        tfu.topics_id = tsu.topics_id
+    $db->query( <<SQL,
+        UPDATE topic_seed_urls AS tsu SET
+            stories_id = tfu.stories_id,
+            processed = 't'
+        FROM topic_fetch_urls AS tfu
+        WHERE
+            tfu.topics_id = ? AND
+            tfu.url = tsu.url AND
+            tfu.stories_id IS NOT NULL AND
+            tfu.topic_fetch_urls_id IN ($tfu_ids_list) AND
+            tfu.topics_id = tsu.topics_id
 SQL
+        $topic->{ topics_id }
+    );
 
     my $completed_tfus = $db->query( <<SQL,
         SELECT *

@@ -30,13 +30,13 @@ class PostgresPostFetcher(AbstractPostFetcher):
 
         db.query(
             f"""
-            create table {table} (
-                id serial primary key,
-                content text,
-                publish_date text,
-                author text,
-                channel text,
-                post_id text
+            CREATE TABLE {table} (
+                id BIGSERIAL PRIMARY KEY,
+                content TEXT NULL,
+                publish_date TEXT NULL,
+                author TEXT NULL,
+                channel TEXT NULL,
+                post_id TEXT NULL
             )
             """)
 
@@ -69,9 +69,14 @@ class PostgresPostFetcher(AbstractPostFetcher):
 
         posts = db.query(
             f"""
-            select content, publish_date, author, post_id, channel
-                from {table} 
-                where publish_date::timestamp between %(a)s and %(b)s
+            SELECT
+                content,
+                publish_date,
+                author,
+                post_id,
+                channel
+            FROM {table} 
+            WHERE publish_date::timestamp BETWEEN %(a)s and %(b)s
             """,
             {'a': start_date, 'b': end_date }).hashes()
 
