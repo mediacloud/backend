@@ -2966,31 +2966,6 @@ SELECT run_command_on_shards('auth_users', $cmd$
     $cmd$);
 
 
--- noinspection SqlResolve @ object-type/"CITEXT"
--- Add helper function to find out weekly request / request items usage for a user
-CREATE OR REPLACE FUNCTION auth_user_limits_weekly_usage(user_email CITEXT)
-    RETURNS TABLE
-            (
-                email                      CITEXT,
-                weekly_requests_sum        BIGINT,
-                weekly_requested_items_sum BIGINT
-            )
-AS
-$$
-
-SELECT auth_users.email,
-       COALESCE(SUM(auth_user_request_daily_counts.requests_count), 0)        AS weekly_requests_sum,
-       COALESCE(SUM(auth_user_request_daily_counts.requested_items_count), 0) AS weekly_requested_items_sum
-FROM auth_users
-         LEFT JOIN auth_user_request_daily_counts
-                   ON auth_users.email = auth_user_request_daily_counts.email
-                       AND auth_user_request_daily_counts.day > DATE_TRUNC('day', NOW())::date - INTERVAL '1 week'
-WHERE auth_users.email = $1
-GROUP BY auth_users.email;
-
-$$ LANGUAGE SQL;
-
-
 CREATE TABLE auth_users_tag_sets_permissions
 (
     auth_users_tag_sets_permissions_id BIGSERIAL PRIMARY KEY,

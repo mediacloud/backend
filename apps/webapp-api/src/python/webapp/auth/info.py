@@ -21,37 +21,57 @@ def user_info(db: DatabaseHandler, email: str) -> CurrentUser:
 
     # Fetch read-only information about the user
     user = db.query("""
-        SELECT auth_users.auth_users_id,
-               auth_users.email,
-               auth_users.full_name,
-               auth_users.notes,
-               EXTRACT(EPOCH FROM NOW())::BIGINT AS created_timestamp,
-               auth_users.active,
-               auth_users.has_consented,
-               auth_users.password_hash,
-               auth_user_api_keys.api_key,
-               auth_user_api_keys.ip_address,
-               weekly_requests_sum,
-               weekly_requested_items_sum,
-               auth_user_limits.weekly_requests_limit,
-               auth_user_limits.weekly_requested_items_limit,
-               auth_user_limits.max_topic_stories,
-               auth_roles.auth_roles_id,
-               auth_roles.role
+        SELECT
+            auth_users.auth_users_id,
+            auth_users.email,
+            auth_users.full_name,
+            auth_users.notes,
+            EXTRACT(EPOCH FROM NOW())::BIGINT AS created_timestamp,
+            auth_users.active,
+            auth_users.has_consented,
+            auth_users.password_hash,
+            auth_user_api_keys.api_key,
+            auth_user_api_keys.ip_address,
+            auth_user_limits.weekly_requests_limit,
+            auth_user_limits.weekly_requested_items_limit,
+            auth_user_limits.max_topic_stories,
+            auth_roles.auth_roles_id,
+            auth_roles.role,
+            COALESCE(
+                SUM(auth_user_request_daily_counts.requests_count),
+                0
+            ) AS weekly_requests_sum,
+            COALESCE(
+                SUM(auth_user_request_daily_counts.requested_items_count),
+                0
+            ) AS weekly_requested_items_sum
 
         FROM auth_users
-            INNER JOIN auth_user_api_keys
-                ON auth_users.auth_users_id = auth_user_api_keys.auth_users_id
-            INNER JOIN auth_user_limits
-                ON auth_users.auth_users_id = auth_user_limits.auth_users_id
-            LEFT JOIN auth_users_roles_map
-                ON auth_users.auth_users_id = auth_users_roles_map.auth_users_id
-            LEFT JOIN auth_roles
-                ON auth_users_roles_map.auth_roles_id = auth_roles.auth_roles_id,
-            auth_user_limits_weekly_usage( %(email)s )
+            INNER JOIN auth_user_api_keys ON
+                auth_users.auth_users_id = auth_user_api_keys.auth_users_id
+            INNER JOIN auth_user_limits ON
+                auth_users.auth_users_id = auth_user_limits.auth_users_id
+            LEFT JOIN auth_users_roles_map ON
+                auth_users.auth_users_id = auth_users_roles_map.auth_users_id
+            LEFT JOIN auth_roles ON
+                auth_users_roles_map.auth_roles_id = auth_roles.auth_roles_id
+            LEFT JOIN auth_user_request_daily_counts ON
+                auth_users.email = auth_user_request_daily_counts.email AND
+                auth_user_request_daily_counts.day > DATE_TRUNC('day', NOW())::date - INTERVAL '1 week'
 
         WHERE auth_users.email = %(email)s
-    """, {'email': email}).hashes()
+        GROUP BY
+            auth_users.auth_users_id,
+            auth_user_api_keys.api_key,
+            auth_user_api_keys.ip_address,
+            auth_user_limits.weekly_requests_limit,
+            auth_user_limits.weekly_requested_items_limit,
+            auth_user_limits.max_topic_stories,
+            auth_roles.auth_roles_id,
+            auth_roles.role
+    """, {
+        'email': email,
+    }).hashes()
     if user is None or len(user) == 0:
         raise McAuthInfoException("User with email '%s' was not found." % email)
 
