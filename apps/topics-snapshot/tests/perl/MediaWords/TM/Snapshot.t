@@ -55,6 +55,7 @@ sub add_topic_post_story
     my $channel = "channel " . $post_id % $NUM_CHANNELS;
 
     my $tp = {
+        topics_id => $tpd->{ topics_id },
         topic_post_days_id => $tpd->{ topic_post_days_id },
         post_id => $post_id,
         content => 'foo',
@@ -66,6 +67,7 @@ sub add_topic_post_story
     $tp = $db->create( 'topic_posts', $tp );
 
     my $tpu = {
+        topics_id => $tp->{ topics_id },
         topic_posts_id => $tp->{ topic_posts_id },
         url => $story->{ url },
     };
@@ -96,6 +98,7 @@ sub add_test_seed_query($$)
     my $stories = $db->query( "select * from stories limit ?", $NUM_TSQ_STORIES )->hashes;
 
     my $tpd = {
+        topics_id => $tsq->{ topics_id },
         topic_seed_queries_id => $tsq->{ topic_seed_queries_id },
         day => $topic->{ start_date },
         num_posts_stored => 1,
