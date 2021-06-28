@@ -3623,35 +3623,31 @@ CREATE UNIQUE INDEX snap_timespan_posts_topics_id_timespans_id_topic_posts_id
 
 CREATE TABLE media_stats_weekly
 (
-    media_stats_weekly_id BIGSERIAL NOT NULL,
+    media_stats_weekly_id BIGSERIAL PRIMARY KEY,
     media_id              BIGINT    NOT NULL REFERENCES media (media_id) ON DELETE CASCADE,
     stories_rank          BIGINT    NOT NULL,
     num_stories           NUMERIC   NOT NULL,
     sentences_rank        BIGINT    NOT NULL,
     num_sentences         NUMERIC   NOT NULL,
-    stat_week             DATE      NOT NULL,
-
-    PRIMARY KEY (media_stats_weekly_id, media_id)
+    stat_week             DATE      NOT NULL
 );
 
-SELECT create_distributed_table('media_stats_weekly', 'media_id');
+-- Not a reference table (because not referenced), not a distributed table (because too small)
 
 CREATE INDEX media_stats_weekly_media_id ON media_stats_weekly (media_id);
 
 
 CREATE TABLE media_expected_volume
 (
-    media_expected_volume_id BIGSERIAL NOT NULL,
+    media_expected_volume_id BIGSERIAL PRIMARY KEY,
     media_id                 BIGINT    NOT NULL REFERENCES media (media_id) ON DELETE CASCADE,
     start_date               DATE      NOT NULL,
     end_date                 DATE      NOT NULL,
     expected_stories         NUMERIC   NOT NULL,
-    expected_sentences       NUMERIC   NOT NULL,
-
-    PRIMARY KEY (media_expected_volume_id, media_id)
+    expected_sentences       NUMERIC   NOT NULL
 );
 
-SELECT create_distributed_table('media_expected_volume', 'media_id');
+-- Not a reference table (because not referenced), not a distributed table (because too small)
 
 CREATE INDEX media_expected_volume_media_id ON media_expected_volume (media_id);
 
@@ -3676,7 +3672,7 @@ CREATE INDEX media_coverage_gaps_media_id ON media_coverage_gaps (media_id);
 
 CREATE TABLE media_health
 (
-    media_health_id    BIGSERIAL NOT NULL,
+    media_health_id    BIGSERIAL PRIMARY KEY,
     media_id           BIGINT    NOT NULL REFERENCES media (media_id) ON DELETE CASCADE,
     num_stories        NUMERIC   NOT NULL,
     num_stories_y      NUMERIC   NOT NULL,
@@ -3692,12 +3688,10 @@ CREATE TABLE media_health
     end_date           DATE      NOT NULL,
     expected_sentences NUMERIC   NOT NULL,
     expected_stories   NUMERIC   NOT NULL,
-    coverage_gaps      BIGINT    NOT NULL,
-
-    PRIMARY KEY (media_health_id, media_id)
+    coverage_gaps      BIGINT    NOT NULL
 );
 
-SELECT create_distributed_table('media_health', 'media_id');
+-- Not a reference table (because not referenced), not a distributed table (because too small)
 
 CREATE INDEX media_health_media_id ON media_health (media_id);
 
