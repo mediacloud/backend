@@ -32,21 +32,28 @@ sub _update_roles($$$)
     $roles = ref( $roles ) ? $roles : [ $roles ];
 
     $db->query( <<SQL, $user->{ auth_users_id }, $roles );
-        delete from auth_users_roles_map aurm
-            using auth_roles ar
-            where
-                aurm.auth_roles_id = ar.auth_roles_id and
-                aurm.auth_users_id = \$1 and
-                not ( ar.role = any( \$2 ) )
+        DELETE FROM auth_users_roles_map
+            USING auth_roles
+        WHERE
+            auth_users_roles_map.auth_roles_id = auth_roles.auth_roles_id AND
+            auth_users_roles_map.auth_users_id = \$1 AND
+            NOT (auth_roles.role = ANY(\$2 ))
 SQL
 
-    $db->query( <<SQL, $user->{ auth_users_id }, $roles );
-        insert into auth_users_roles_map ( auth_users_id, auth_roles_id )
-            select \$1, ar.auth_roles_id
-                from auth_roles ar
-                where ar.role = any( \$2 )
-            on conflict do nothing
+    $db->query( <<SQL,
+        INSERT INTO auth_users_roles_map (
+            auth_users_id,
+            auth_roles_id
+        )
+            SELECT
+                \$1,
+                auth_roles.auth_roles_id
+            FROM auth_roles
+            WHERE auth_roles.role = ANY( \$2 )
+        ON CONFLICT (auth_users_id, auth_roles_id) DO NOTHING
 SQL
+        $user->{ auth_users_id }, $roles
+    );
 
 }
 
@@ -83,7 +90,7 @@ sub update_PUT
     if ( exists( $data->{ weekly_requests_limit } ) )
     {
         $db->query(
-            "update auth_user_limits set weekly_requests_limit = ? where auth_users_id = ?",
+            "UPDATE auth_user_limits SET weekly_requests_limit = ? WHERE auth_users_id = ?",
             $data->{ weekly_requests_limit },
             $data->{ auth_users_id }
         );
@@ -91,7 +98,7 @@ sub update_PUT
 
     if ( exists( $data->{ max_topic_stories } ) ) {
         $db->query(
-            "update auth_user_limits set max_topic_stories = ? where auth_users_id = ?",
+            "UPDATE auth_user_limits SET max_topic_stories = ? WHERE auth_users_id = ?",
             $data->{ max_topic_stories },
             $data->{ auth_users_id }
         );
@@ -118,41 +125,60 @@ sub _get_users_list($$)
     {
         $users_ids = ref( $users_ids ) ? $users_ids : [ $users_ids ];
         my $users_ids_list = join( ',', map { int( $_ ) } @{ $users_ids } );
-        $id_clause = "auth_users_id in ( $users_ids_list )";
+        $id_clause = "auth_users_id IN ($users_ids_list)";
     }
 
     my $search_clause = '1=1';
     if ( $search )
     {
         my $q_search = $db->quote( $search );
-        $search_clause = "( full_name ilike '%'||$q_search||'%' or email ilike '%'||$q_search||'%' )";
+        $search_clause = "( full_name ILIKE '%'||$q_search||'%' OR email ILIKE '%'||$q_search||'%' )";
     }
 
-    my $users = $db->query( <<SQL, $limit, $offset )->hashes();
-        select
-                auth_users_id, email, full_name, notes, active, created_date, max_topic_stories,
-                weekly_requests_limit, has_consented
-            from auth_users au
-                join auth_user_limits aul using ( auth_users_id )
-            where
-                $id_clause and
-                $search_clause
-            limit \$1
-            offset \$2
+    my $users = $db->query( <<SQL,
+        SELECT
+            auth_users_id,
+            email,
+            full_name,
+            notes,
+            active,
+            created_date,
+            max_topic_stories,
+            weekly_requests_limit,
+            has_consented
+        FROM auth_users au
+            INNER JOIN auth_user_limits AS aul USING (auth_users_id)
+        WHERE
+            $id_clause AND
+            $search_clause
+        LIMIT \$1
+        OFFSET \$2
 SQL
+        $limit, $offset
+    )->hashes();
 
-    $users = $db->attach_child_query( $users, <<SQL, 'roles', 'auth_users_id' );
-        select auth_users_id, role
-            from auth_users_roles_map aurm
-                join auth_roles ar using ( auth_roles_id )  
+    $users = $db->attach_child_query( $users, <<SQL,
+        SELECT
+            auth_users_id,
+            role
+        FROM auth_users_roles_map AS aurm
+            INNER JOIN auth_roles AS ar USING (auth_roles_id)
 SQL
+        'roles', 'auth_users_id'
+    );
 
-    $users = $db->attach_child_query( $users, <<SQL, 'requests', 'auth_users_id' );
-        select au.auth_users_id, c.day, c.requests_count
-            from auth_user_request_daily_counts c
-                join auth_users au using ( email )
-            order by day
+    $users = $db->attach_child_query( $users, <<SQL,
+        SELECT
+            au.auth_users_id,
+            c.day,
+            c.requests_count
+        FROM auth_user_request_daily_counts AS c
+            INNER JOIN auth_users AS au USING (email)
+        ORDER BY
+            day
 SQL
+        'requests', 'auth_users_id'
+    );
 
     return $users;
 }
@@ -203,7 +229,7 @@ sub list_roles_GET
 
     my $db = $c->dbis;
 
-    my $roles = $db->query( "select auth_roles_id, role, description from auth_roles" )->hashes();
+    my $roles = $db->query( "SELECT auth_roles_id, role, description FROM auth_roles" )->hashes();
 
     my $entity = { roles => $roles };
 
@@ -224,7 +250,7 @@ sub delete_PUT
 
     my $user = $c->dbis->require_by_id( 'auth_users', $data->{ auth_users_id } );
 
-    $c->dbis->query( "delete from auth_users where auth_users_id = ?", $user->{ auth_users_id } );
+    $c->dbis->query( "DELETE FROM auth_users WHERE auth_users_id = ?", $user->{ auth_users_id } );
 
     return $self->status_ok( $c, entity => { success => 1 } );
 }
