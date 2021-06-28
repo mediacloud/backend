@@ -39,17 +39,17 @@ sub test_respider($)
 
     MediaWords::TM::Mine::set_stories_respidering( $db, $topic, undef );
 
-    my ( $got_num_respider_stories ) = $db->query( "select count(*) from topic_stories where not link_mined" )->flat;
+    my ( $got_num_respider_stories ) = $db->query( "SELECT COUNT(*) FROM topic_stories WHERE NOT link_mined" )->flat;
     is( $got_num_respider_stories, 0, "no stories marked for respidering" );
 
     # respider everything with respider_stories but no dates
     $topic->{ respider_stories } = 1;
 
-    $db->query( "update topic_stories set link_mined = 't'" );
+    $db->query( "UPDATE topic_stories SET link_mined = 't'" );
 
     MediaWords::TM::Mine::set_stories_respidering( $db, $topic, undef );
 
-    ( $got_num_respider_stories ) = $db->query( "select count(*) from topic_stories where not link_mined" )->flat;
+    ( $got_num_respider_stories ) = $db->query( "SELECT COUNT(*) FROM topic_stories WHERE NOT link_mined" )->flat;
     is( $got_num_respider_stories, $num_topic_stories, "all stories marked for respidering" );
 
     # respider stories within the range of changed dates
@@ -62,18 +62,41 @@ sub test_respider($)
     };
     $topic = $db->update_by_id( 'topics', $topic->{ topics_id }, $topic_update );
 
-    $db->query( "update topic_stories set link_mined = 't'" );
+    $db->query( "UPDATE topic_stories SET link_mined = 't'" );
 
     my $num_date_changes = 10;
-    $db->query( "update stories set publish_date = '2017-06-01'" );
-    $db->query( <<SQL, '2018-06-01', $num_date_changes );
-update stories set publish_date = ? where stories_id in 
-    (select stories_id from stories order by stories_id limit ?)
+    $db->query( <<SQL
+        UPDATE stories SET
+            publish_date = '2017-06-01'
+        -- FIXME
+        WHERE stories_id = 1
 SQL
-    $db->query( <<SQL, '2016-06-01', $num_date_changes );
-update stories set publish_date = ? where stories_id in 
-    (select stories_id from stories order by stories_id desc limit ?)
+    );
+    $db->query( <<SQL, 
+        UPDATE stories SET
+            publish_date = ?
+        WHERE stories_id IN (
+            SELECT stories_id
+            FROM stories
+            ORDER BY stories_id
+            LIMIT ?
+        )
 SQL
+        '2018-06-01', $num_date_changes
+    );
+
+    $db->query( <<SQL,
+        UPDATE stories SET
+            publish_date = ?
+        WHERE stories_id IN (
+            SELECT stories_id
+            FROM stories
+            ORDER BY stories_id DESC
+            LIMIT ?
+        )
+SQL
+        '2016-06-01', $num_date_changes
+    );
 
     my $snapshot = {
         topics_id     => $topic->{ topics_id },
@@ -105,11 +128,16 @@ SQL
 
     MediaWords::TM::Mine::set_stories_respidering( $db, $topic, $snapshot->{ snapshots_id } );
 
-    ( $got_num_respider_stories ) = $db->query( "select count(*) from topic_stories where not link_mined" )->flat;
+    ( $got_num_respider_stories ) = $db->query( "SELECT COUNT(*) FROM topic_stories WHERE NOT link_mined" )->flat;
     is( $got_num_respider_stories, 2 * $num_date_changes, "dated stories marked for respidering" );
 
-    my ( $got_num_archived_timespans ) =
-      $db->query( "select count(*) from timespans where archive_snapshots_id = ?", $snapshot->{ snapshots_id } )->flat;
+    my ( $got_num_archived_timespans ) = $db->query( <<SQL,
+        SELECT COUNT(*)
+        FROM timespans
+        WHERE archive_snapshots_id = ?
+SQL
+        $snapshot->{ snapshots_id }
+    )->flat;
     is( $got_num_archived_timespans, 2, "number of archive timespans" );
 }
 
