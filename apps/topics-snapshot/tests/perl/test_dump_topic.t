@@ -102,7 +102,14 @@ sub main
 
     MediaWords::TM::Snapshot::snapshot_topic( $db, $topic->{ topics_id } );
 
-    my $timespan = $db->query( "select * from timespans where period = 'overall' and foci_id is null" )->hash;
+    my $timespan = $db->query( <<SQL
+        SELECT *
+        FROM timespans
+        WHERE
+            period = 'overall' AND
+            foci_id IS NULL
+SQL
+    )->hash;
 
     MediaWords::TM::Snapshot::Views::setup_temporary_snapshot_views( $db, $timespan );
 
@@ -113,9 +120,16 @@ sub main
     validate_timespan_file( $db, $timespan->{ timespans_id }, 'post_stories', 0 );
     validate_timespan_file( $db, $timespan->{ timespans_id }, 'topic_posts', 0 );
 
-    $db->query( "discard temp" );
+    $db->query( "DISCARD TEMP" );
 
-    my $post_timespan = $db->query( "select * from timespans where period = 'overall' and foci_id is not null" )->hash;
+    my $post_timespan = $db->query( <<SQL
+        SELECT *
+        FROM timespans
+        WHERE
+            period = 'overall' AND
+            foci_id IS NOT NULL
+SQL
+    )->hash;
 
     MediaWords::TM::Snapshot::Views::setup_temporary_snapshot_views( $db, $post_timespan );
 
