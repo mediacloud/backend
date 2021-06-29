@@ -122,7 +122,14 @@ sub _restrict_period_stories_to_boolean_focus($$)
 
     my $focus = $db->require_by_id( 'foci', $timespan->{ foci_id } );
 
-    my $arguments = MediaWords::Util::ParseJSON::decode_json( $focus->{ arguments } );
+    # FIXME in a sharded database this is always pre-decoded
+    my $arguments;
+    if ( ref( $focus->{ arguments } ) eq ref( {} ) ) {
+        $arguments = $focus->{ arguments };
+    } else {
+        $arguments = MediaWords::Util::ParseJSON::decode_json( $focus->{ arguments } );
+    }
+    
 
     my $solr_q = $arguments->{ query };
 
@@ -225,7 +232,9 @@ sub _create_url_sharing_snapshot_period_stories($$)
 
     $db->query( <<SQL,
         CREATE TEMPORARY TABLE snapshot_period_stories AS
-            SELECT DISTINCT stories_id
+            SELECT DISTINCT
+                topics_id,
+                stories_id
             FROM topic_post_stories
             WHERE
                 topics_id = ? AND
@@ -254,7 +263,9 @@ sub _create_link_snapshot_period_stories($$)
     {
         $db->query( <<SQL
             CREATE TEMPORARY TABLE snapshot_period_stories AS
-                SELECT stories_id
+                SELECT
+                    topics_id,
+                    stories_id
                 FROM snapshot_stories
 SQL
         );
@@ -265,7 +276,9 @@ SQL
 
     $db->query( <<"SQL",
         CREATE TEMPORARY TABLE snapshot_period_stories AS
-            SELECT DISTINCT s.stories_id
+            SELECT DISTINCT
+                s.topics_id,
+                s.stories_id
             FROM snapshot_stories AS s
                 LEFT JOIN snapshot_topic_links_cross_media AS cl ON
                     cl.ref_stories_id = s.stories_id
@@ -313,7 +326,7 @@ sub _write_period_stories
 {
     my ( $db, $timespan ) = @_;
 
-    $db->query( "drop table if exists snapshot_period_stories" );
+    $db->query( "DROP TABLE IF EXISTS snapshot_period_stories" );
 
     if ( _timespan_is_url_sharing( $db, $timespan ) )
     {
@@ -349,16 +362,22 @@ sub _create_url_sharing_story_links($$)
 
     # get and index a list of post-story-shares with publish dat and author
     $db->query( <<SQL
+
         CREATE TEMPORARY TABLE _post_stories AS
             SELECT DISTINCT
-                s.media_id,
-                s.stories_id,
-                tp.author,
-                tp.publish_date,
-                EXTRACT(epoch FROM tp.publish_date) AS epoch
-            FROM snapshot_topic_post_stories AS tp
-                INNER JOIN snapshot_timespan_posts USING (topic_posts_id)
-                INNER JOIN snapshot_stories AS s USING (stories_id)
+                snapshot_topic_post_stories.topics_id,
+                snapshot_stories.media_id,
+                snapshot_stories.stories_id,
+                snapshot_topic_post_stories.author,
+                snapshot_topic_post_stories.publish_date,
+                EXTRACT(epoch FROM snapshot_topic_post_stories.publish_date) AS epoch
+            FROM snapshot_topic_post_stories
+                INNER JOIN snapshot_timespan_posts ON
+                    snapshot_topic_post_stories.topics_id = snapshot_timespan_posts.topics_id AND
+                    snapshot_topic_post_stories.topic_posts_id = snapshot_timespan_posts.topic_posts_id
+                INNER JOIN snapshot_stories ON
+                    snapshot_topic_post_stories.topics_id = snapshot_stories.topics_id AND
+                    snapshot_topic_post_stories.stories_id = snapshot_stories.stories_id
 SQL
     );
 
@@ -382,6 +401,7 @@ SQL
         $db->query( <<SQL,
             CREATE TEMPORARY TABLE _dated_story_pairs AS
                 SELECT
+                    a.topics_id,
                     a.stories_id AS stories_id_a,
                     b.stories_id AS stories_id_b,
                     ABS(a.epoch - b.epoch) AS date_diff
@@ -422,11 +442,13 @@ SQL
     $db->query( <<SQL,
         CREATE TEMPORARY TABLE snapshot_story_links AS
             SELECT
+                topics_id,
                 stories_id_a AS source_stories_id,
                 stories_id_b AS ref_stories_id,
                 MIN(date_diff) AS min_date_diff
             FROM _dated_story_pairs
             GROUP BY
+                topics_id,
                 stories_id_a,
                 stories_id_b
             ORDER BY min_date_diff ASC
@@ -456,38 +478,53 @@ sub _write_story_links_snapshot
     }
     else
     {
-        my $query = <<SQL;
+        my $publish_date_join_condition;
+        my @publish_date_join_arguments;
+        if ( $timespan->{ period } ne 'overall' )
+        {
+            $publish_date_join_condition = <<"SQL";
+                AND (s.publish_date BETWEEN \$1::timestamp AND \$2::timestamp - INTERVAL '1 second')
+SQL
+            @publish_date_join_arguments = ($timespan->{ start_date }, $timespan->{ end_date });
+        }
+        else
+        {
+            $publish_date_join_condition = '';
+            @publish_date_join_arguments = ();
+        }
+
+        $db->query( <<"SQL",
             CREATE TEMPORARY TABLE snapshot_story_links AS
-                SELECT DISTINCT
+
+                SELECT
+                    cl.topics_id,
                     cl.stories_id AS source_stories_id,
                     cl.ref_stories_id
                 FROM snapshot_topic_links_cross_media AS cl
                     INNER JOIN snapshot_period_stories AS sps ON
+                        cl.topics_id = sps.topics_id AND
                         cl.stories_id = sps.stories_id
                     INNER JOIN snapshot_stories AS s ON
+                        sps.topics_id = s.topics_id AND
                         sps.stories_id = s.stories_id
+                        $publish_date_join_condition
                     INNER JOIN snapshot_period_stories AS rps ON
+                        cl.topics_id = rps.topics_id AND
                         cl.ref_stories_id = rps.stories_id
-                    LEFT JOIN stories_ap_syndicated AS sap ON
-                        sps.stories_id = sap.stories_id
-                WHERE
-                    sap.ap_syndicated IS NULL OR
-                    sap.ap_syndicated = false
-SQL
 
-        if ( $timespan->{ period } ne 'overall' )
-        {
-            $db->query( <<"SQL",
-                $query AND
-                (s.publish_date BETWEEN \$1::timestamp AND \$2::timestamp - INTERVAL '1 second' )
 SQL
-                $timespan->{ start_date }, $timespan->{ end_date }
-            );
-        }
-        else
-        {
-            $db->query( $query );
-        }
+            @publish_date_join_arguments
+        );
+
+        $db->query( <<SQL
+            DELETE FROM snapshot_story_links
+            WHERE source_stories_id IN (
+                SELECT stories_id
+                FROM stories_ap_syndicated
+                WHERE ap_syndicated = true
+            )
+SQL
+        );
     }
 
     if ( !$is_model )
@@ -511,14 +548,17 @@ sub _write_timespan_posts_snapshot
     # that are too prolific to avoid bots
     $db->query( <<SQL,
         CREATE TEMPORARY TABLE snapshot_timespan_posts AS
-            SELECT DISTINCT topic_posts_id
+            SELECT DISTINCT
+                topics_id,
+                topic_posts_id
             FROM snapshot_topic_post_stories
             WHERE
+                topics_id = ? AND
                 topic_seed_queries_id = ? AND
                 publish_date >= ? AND
                 publish_date < ?
 SQL
-        $tsq_id, $start_date, $end_date
+        $timespan->{ topics_id }, $tsq_id, $start_date, $end_date
     );
 
     if ( !$is_model )
@@ -533,7 +573,7 @@ sub _write_story_link_counts_snapshot
 
     $db->query( "DROP TABLE IF EXISTS snapshot_story_link_counts" );
 
-    $db->query( <<SQL
+    $db->query( <<SQL,
         CREATE TEMPORARY TABLE snapshot_story_link_counts AS
 
             WITH snapshot_story_media_links AS (
@@ -557,20 +597,35 @@ sub _write_story_link_counts_snapshot
             ),
 
             snapshot_post_counts AS (
-                select
-                    tps.stories_id,
+                SELECT
+                    snapshot_topic_post_stories.stories_id,
                     COUNT(*) AS post_count,
-                    COUNT(DISTINCT tp.author) AS author_count,
-                    COUNT(DISTINCT tp.channel) AS channel_count
-                FROM snapshot_timespan_posts AS stp
-                    INNER JOIN snapshot_topic_post_stories AS tps USING (topic_posts_id)
-                    INNER JOIN topic_posts AS tp ON
-                        tps.topics_id = topic_posts.topics_id AND
-                        tps.topic_posts_id = topic_posts.topic_posts_id
-                GROUP BY tps.stories_id
+                    COUNT(DISTINCT topic_posts.author) AS author_count,
+                    COUNT(DISTINCT topic_posts.channel) AS channel_count
+                FROM topic_posts
+                    INNER JOIN snapshot_timespan_posts ON
+                        topic_posts.topics_id = snapshot_timespan_posts.topics_id AND
+                        topic_posts.topic_posts_id = snapshot_timespan_posts.topic_posts_id
+                    INNER JOIN snapshot_topic_post_stories ON
+                        topic_posts.topics_id = snapshot_topic_post_stories.topics_id AND
+                        topic_posts.topic_posts_id = snapshot_topic_post_stories.topic_posts_id
+                WHERE topic_posts.topics_id = ?
+                GROUP BY snapshot_topic_post_stories.stories_id
+            ),
+
+            snapshot_story_statistics AS (
+                SELECT
+                    stories_id,
+                    facebook_share_count
+                FROM story_statistics
+                WHERE stories_id IN (
+                    SELECT stories_id
+                    FROM snapshot_period_stories
+                )
             )
 
             SELECT DISTINCT
+                ps.topics_id,
                 ps.stories_id,
                 COALESCE(smlc.media_inlink_count, 0) AS media_inlink_count,
                 COALESCE(ilc.inlink_count, 0) AS inlink_count,
@@ -603,11 +658,12 @@ sub _write_story_link_counts_snapshot
                     GROUP BY sl.source_stories_id
                 ) AS olc ON
                     ps.stories_id = olc.stories_id
-                LEFT JOIN story_statistics AS ss ON
-                    ss.stories_id = ps.stories_id
                 LEFT JOIN snapshot_post_counts AS stc ON
                     stc.stories_id = ps.stories_id
+                LEFT JOIN snapshot_story_statistics AS ss ON
+                    ss.stories_id = ps.stories_id
 SQL
+        $timespan->{ topics_id }
     );
 
     if ( !$is_model )
@@ -634,7 +690,8 @@ sub _write_medium_link_counts_snapshot
             ),
 
             medium_link_counts AS (
-                select
+                SELECT
+                    m.topics_id,
                     m.media_id,
                     SUM(slc.media_inlink_count) AS sum_media_inlink_count,
                     SUM(slc.inlink_count) AS inlink_count,
@@ -650,7 +707,9 @@ sub _write_medium_link_counts_snapshot
                 WHERE
                     m.media_id = s.media_id AND
                     s.stories_id = slc.stories_id
-                GROUP BY m.media_id
+                GROUP BY
+                    m.topics_id,
+                    m.media_id
             )
 
             SELECT
@@ -676,6 +735,7 @@ sub _write_medium_links_snapshot
     $db->query( <<SQL
         CREATE TEMPORARY TABLE snapshot_medium_links AS
             SELECT
+                sl.topics_id,
                 s.media_id AS source_media_id,
                 r.media_id AS ref_media_id,
                 COUNT(*) AS link_count
@@ -687,6 +747,7 @@ sub _write_medium_links_snapshot
                 sl.source_stories_id = s.stories_id AND
                 sl.ref_stories_id = r.stories_id
             GROUP BY
+                sl.topics_id,
                 s.media_id,
                 r.media_id
 SQL
@@ -969,7 +1030,7 @@ sub _generate_period_snapshot($$$$;$)
 # making sure to specify all the fields in the copy so that we don't have to
 # assume column position is the same in the original and snapshot tables.
 # use the $key from $obj as an additional field in the snapshot table.
-sub _create_snapshot
+sub _create_snapshot($$$$)
 {
     my ( $db, $obj, $key, $table ) = @_;
 
@@ -998,6 +1059,9 @@ SQL
     )->flat ];
 
     die( "Field names can only have letters and underscores" ) if ( grep { /[^a-z_]/i } @{ $column_names } );
+
+    # Skip target table's primary key so that its value gets read from a sequence
+    $column_names = [ grep { $_ ne "snap_" . $table . "_id" } @{ $column_names } ];
 
     my $column_list = join( ",", @{ $column_names } );
 
@@ -1032,20 +1096,25 @@ sub _create_snapshot_stories_tags_map($$)
 {
     my ( $db, $snapshot ) = @_;
 
-    $db->query( <<SQL
+    $db->query( <<SQL,
         CREATE TEMPORARY TABLE snapshot_stories_tags_map AS
-            SELECT *
+            SELECT
+                ?::BIGINT AS topics_id,
+                stories_tags_map.*
             FROM stories_tags_map
             LIMIT 0
 SQL
+        $snapshot->{ topics_id }
     );
 
     $db->query( <<SQL, 
         INSERT INTO snapshot_stories_tags_map (
+            topics_id,
             stories_id,
             tags_id
         )
             SELECT
+                topics_id,
                 stories_id,
                 tags_id
             FROM snap.stories_tags_map
@@ -1077,10 +1146,10 @@ SQL
         )->flat;
         return unless @{ $tags_ids };
 
-        my $values_list = join( ',', map { "($new_stories_id, $_)" } @{ $tags_ids } );
+        my $values_list = join( ',', map { "($snapshot->{ topics_id }, $new_stories_id, $_)" } @{ $tags_ids } );
 
         $db->query( <<"SQL"
-            INSERT INTO snapshot_stories_tags_map (stories_id, tags_id)
+            INSERT INTO snapshot_stories_tags_map (topics_id, stories_id, tags_id)
             VALUES $values_list
 SQL
         );
@@ -1171,6 +1240,7 @@ SQL
     $db->query( <<SQL,
         CREATE TEMPORARY TABLE snapshot_stories AS
             SELECT
+                dcs.topics_id,
                 s.stories_id,
                 s.media_id,
                 s.url,
@@ -1181,7 +1251,7 @@ SQL
                 s.full_text_rss,
                 s.language
             FROM snap.live_stories AS s
-                JOIN snapshot_topic_stories AS dcs ON
+                INNER JOIN snapshot_topic_stories AS dcs ON
                     s.topics_id = dcs.topics_id AND
                     s.stories_id = dcs.stories_id
             WHERE s.topics_id = ?
@@ -1190,15 +1260,18 @@ SQL
     );
 
     DEBUG( "creating snapshot_media ..." );
-    $db->query( <<SQL
+    $db->query( <<SQL,
         CREATE TEMPORARY TABLE snapshot_media AS
-            SELECT *
+            SELECT
+                ?::BIGINT AS topics_id,
+                media.*
             FROM media
             WHERE media_id IN (
                 SELECT media_id
                 FROM snapshot_stories
             )
 SQL
+        $topics_id
     );
 
     DEBUG( "creating snapshot_topic_links_cross_media" );
@@ -1235,11 +1308,13 @@ SQL
 
     $db->query( <<SQL
         CREATE TEMPORARY TABLE snapshot_media_tags_map AS
-            SELECT mtm.*
+            SELECT
+                snapshot_media.topics_id,
+                media_tags_map.*
             FROM
-                media_tags_map AS mtm,
-                snapshot_media AS dm
-            WHERE mtm.media_id = dm.media_id
+                media_tags_map,
+                snapshot_media
+            WHERE media_tags_map.media_id = snapshot_media.media_id
 SQL
     );
 

@@ -35,19 +35,27 @@ sub main
 
     MediaWords::TM::Snapshot::_generate_period_foci( $db, $snapshot );
 
-    my $got_fds = $db->query( <<SQL )->hashes();
-select fd.*
-    from focus_definitions fd
-        join focal_set_definitions fsd using (focal_set_definitions_id)
-    where
-        focal_technique = 'URL Sharing'
+    my $got_fds = $db->query( <<SQL
+        SELECT focus_definitions.*
+        FROM focus_definitions
+            INNER JOIN focal_set_definitions ON
+                focus_definitions.topics_id = focal_set_definitions.topics_id AND
+                focus_definitions.focal_set_definitions_id = focal_set_definitions.focal_set_definitions_id
+        WHERE focal_technique = 'URL Sharing'
 SQL
+    )->hashes();
 
     is( scalar( @{ $got_fds } ), $num_seed_queries );
 
-    my $got_foci = $db->query( <<SQL )->hashes();
-select f.* from foci f join focal_sets fs using ( focal_sets_id ) where fs.focal_technique = 'URL Sharing'
+    my $got_foci = $db->query( <<SQL
+        SELECT foci.*
+        FROM foci
+            INNER JOIN focal_sets ON
+                foci.topics_id = focal_sets.topics_id AND
+                foci.focal_sets_id = focal_sets.topics_id
+        WHERE fs.focal_technique = 'URL Sharing'
 SQL
+    )->hashes();
 
     is( scalar( @{ $got_foci } ), $num_seed_queries );
 
@@ -58,7 +66,14 @@ SQL
 
         my $got_topic_seed_queries_id = MediaWords::TM::Snapshot::_get_timespan_seed_query( $db, $timespan );
 
-        my $arguments = MediaWords::Util::ParseJSON::decode_json( $focus->{ arguments } );
+        # FIXME in a sharded database this is always pre-decoded
+        my $arguments;
+        if ( ref( $focus->{ arguments } ) eq ref( {} ) ) {
+            $arguments = $focus->{ arguments };
+        } else {
+            $arguments = MediaWords::Util::ParseJSON::decode_json( $focus->{ arguments } );
+        }
+
         is( $got_topic_seed_queries_id, $arguments->{ topic_seed_queries_id } );
     }
 

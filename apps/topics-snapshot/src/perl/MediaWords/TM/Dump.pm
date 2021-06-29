@@ -243,8 +243,8 @@ sub get_post_stories_csv($$)
 
     my $csv = _get_query_as_csv( $db, <<SQL
         SELECT DISTINCT
-            topic_posts_id,
-            stories_id
+            snapshot_timespan_posts.topic_posts_id,
+            snapshot_topic_post_stories.stories_id
         FROM snapshot_timespan_posts
             INNER JOIN snapshot_topic_post_stories ON
                 snapshot_timespan_posts.topics_id = snapshot_topic_post_stories.topics_id AND
@@ -327,6 +327,7 @@ sub get_topic_posts_ndjson
         DECLARE posts CURSOR FOR
             WITH _snapshot_posts AS (
                 SELECT DISTINCT
+                    stp.topics_id,
                     topic_posts_id
                 FROM snap.timespan_posts AS stp
                     INNER JOIN timespans AS t ON

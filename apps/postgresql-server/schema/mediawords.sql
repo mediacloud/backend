@@ -2347,24 +2347,24 @@ CREATE INDEX snap_story_link_counts_timespans_id_channel_count
 -- links counts for media within a timespan
 CREATE TABLE snap.medium_link_counts
 (
-    snap_medium_link_counts BIGSERIAL NOT NULL,
-    topics_id               BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-    timespans_id            BIGINT    NOT NULL,
-    media_id                BIGINT    NOT NULL,
+    snap_medium_link_counts_id BIGSERIAL NOT NULL,
+    topics_id                  BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
+    timespans_id               BIGINT    NOT NULL,
+    media_id                   BIGINT    NOT NULL,
 
-    sum_media_inlink_count  BIGINT    NOT NULL,
-    media_inlink_count      BIGINT    NOT NULL,
-    inlink_count            BIGINT    NOT NULL,
-    outlink_count           BIGINT    NOT NULL,
-    story_count             BIGINT    NOT NULL,
+    sum_media_inlink_count     BIGINT    NOT NULL,
+    media_inlink_count         BIGINT    NOT NULL,
+    inlink_count               BIGINT    NOT NULL,
+    outlink_count              BIGINT    NOT NULL,
+    story_count                BIGINT    NOT NULL,
 
-    facebook_share_count    BIGINT    NULL,
+    facebook_share_count       BIGINT    NULL,
 
-    sum_post_count          BIGINT    NULL,
-    sum_author_count        BIGINT    NULL,
-    sum_channel_count       BIGINT    NULL,
+    sum_post_count             BIGINT    NULL,
+    sum_author_count           BIGINT    NULL,
+    sum_channel_count          BIGINT    NULL,
 
-    PRIMARY KEY (snap_medium_link_counts, topics_id),
+    PRIMARY KEY (snap_medium_link_counts_id, topics_id),
 
     FOREIGN KEY (topics_id, timespans_id)
         REFERENCES timespans (topics_id, timespans_id)
