@@ -1696,9 +1696,9 @@ SELECT create_distributed_table('topic_links', 'topics_id');
 CREATE UNIQUE INDEX topic_links_stories_id_topics_id_ref_stories_id
     ON topic_links (stories_id, topics_id, ref_stories_id);
 
-CREATE INDEX topic_links_topic ON topic_links (topics_id);
+CREATE INDEX topic_links_topics_id ON topic_links (topics_id);
 
-CREATE INDEX topic_links_ref_story ON topic_links (ref_stories_id);
+CREATE INDEX topic_links_ref_stories_id ON topic_links (ref_stories_id);
 
 
 CREATE VIEW topic_links_cross_media AS
