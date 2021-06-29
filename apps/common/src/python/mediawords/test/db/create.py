@@ -309,25 +309,51 @@ def create_test_topic_stories(
             db.update_by_id('stories', story['stories_id'], {'publish_date': topic['start_date']})
             db.create('topic_stories', {'topics_id': topic['topics_id'], 'stories_id': story['stories_id']})
 
-    db.query(
-        """
-        INSERT INTO topic_links (
-            topics_id,
+    test_topic_links = db.query("""
+        WITH src_stories AS (
+            SELECT *
+            FROM stories
+        ),
+        test_topic_links AS (
+            SELECT
+                src_stories.stories_id,
+                ref_stories.url,
+                ref_stories.stories_id AS ref_stories_id
+            FROM src_stories
+                INNER JOIN stories AS ref_stories
+                    ON src_stories.media_id != ref_stories.media_id
+            LIMIT 50
+        )
+        SELECT
             stories_id,
             url,
             ref_stories_id
-        )
-            SELECT
-                %(a)s,
-                a.stories_id,
-                b.url,
-                b.stories_id
-            FROM stories AS a
-                INNER JOIN stories AS b
-                    ON a.media_id != b.media_id
-            LIMIT %(b)s
-        """,
-        {'a': topic['topics_id'], 'b': num_media * num_stories_per_medium})
+        FROM test_topic_links
+    """, {
+        'topic_link_count': num_media * num_stories_per_medium,
+    }).hashes()
+
+    # Inserting individually because otherwise it complains with:
+    # ERROR:  cannot handle complex subqueries when the router executor is disabled
+    for test_topic_link in test_topic_links:
+        db.query("""
+            INSERT INTO topic_links (
+                topics_id,
+                stories_id,
+                url,
+                ref_stories_id
+            ) VALUES (
+                %(topics_id)s,
+                %(stories_id)s,
+                %(url)s,
+                %(ref_stories_id)s
+            )
+        """, {
+            'topics_id': topic['topics_id'],
+            'stories_id': test_topic_link['stories_id'],
+            'url': test_topic_link['url'],
+            'ref_stories_id': test_topic_link['ref_stories_id'],
+        })
 
 
 def create_test_topic_posts(
