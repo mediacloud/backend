@@ -444,7 +444,7 @@ sub _get_tags_id
         #TRACE Dumper( $c->stash );
         my $user_email = $c->stash->{ api_auth }->email();
 
-        my $tag_sets = $c->dbis->query( "SELECT * from tag_sets where name = ?", $tag_set_name )->hashes;
+        my $tag_sets = $c->dbis->query( "SELECT * FROM tag_sets WHERE name = ?", $tag_set_name )->hashes;
 
         if ( !scalar( @$tag_sets ) > 0 )
         {
@@ -466,8 +466,15 @@ sub _get_tags_id
 
         $self->_die_unless_user_can_apply_tag_set_tags( $c, $tag_set );
 
-        my $tags =
-          $c->dbis->query( "SELECT * from tags where tag_sets_id = ? and tag = ? ", $tag_sets_id, $tag_name )->hashes;
+        my $tags = $c->dbis->query( <<SQL,
+            SELECT *
+            FROM tags
+            WHERE
+                tag_sets_id = ? AND
+                tag = ?
+SQL
+            $tag_sets_id, $tag_name
+        )->hashes;
 
         # TRACE Dumper( $tags );
 
@@ -511,16 +518,20 @@ sub _clear_tags
 
         $id = int( $id );
 
-        $c->dbis->query( <<END, $id );
-delete from $tags_map_table stm
-    using tags keep_tags, tags delete_tags
-    where
-        keep_tags.tags_id in ( $tags_ids_list ) and
-        keep_tags.tag_sets_id = delete_tags.tag_sets_id and
-        delete_tags.tags_id not in ( $tags_ids_list ) and
-        stm.tags_id = delete_tags.tags_id and
-        stm.$table_id_name = ?
-END
+        $c->dbis->query( <<SQL,
+            DELETE FROM $tags_map_table AS stm
+            USING
+                tags AS keep_tags,
+                tags AS delete_tags
+            WHERE
+                keep_tags.tags_id IN ($tags_ids_list) AND
+                keep_tags.tag_sets_id = delete_tags.tag_sets_id AND
+                delete_tags.tags_id NOT IN ($tags_ids_list) AND
+                stm.tags_id = delete_tags.tags_id AND
+                stm.$table_id_name = ?
+SQL
+            $id
+        );
     }
 }
 
@@ -549,9 +560,17 @@ sub _add_tags
 
         my $tags_id = $self->_get_tags_id( $c, $tag );
 
-        my $tag_set = $c->dbis->query(
-            " SELECT * from tag_sets where tag_sets_id in ( select tag_sets_id from tags where tags_id = ? ) ", $tags_id )
-          ->hashes->[ 0 ];
+        my $tag_set = $c->dbis->query( <<SQL,
+            SELECT *
+            FROM tag_sets
+            WHERE tag_sets_id IN (
+                SELECT tag_sets_id
+                FROM tags
+                WHERE tags_id = ?
+            )
+SQL
+            $tags_id
+        )->hashes->[ 0 ];
 
         $self->_die_unless_user_can_apply_tag_set_tags( $c, $tag_set );
 
@@ -610,9 +629,14 @@ SQL
     }
     elsif ( $action eq 'remove' )
     {
-        $db->query( <<SQL, $put_tag->{ $id_field }, $tag->{ tags_id } );
-delete from $map_table where $id_field = \$1 and tags_id = \$2
+        $db->query( <<SQL,
+            DELETE FROM $map_table
+            WHERE
+                $id_field = \$1 AND
+                tags_id = \$2
 SQL
+            $put_tag->{ $id_field }, $tag->{ tags_id }
+        );
     }
     else
     {
