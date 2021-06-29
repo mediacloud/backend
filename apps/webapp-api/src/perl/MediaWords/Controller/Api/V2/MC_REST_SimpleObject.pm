@@ -379,7 +379,9 @@ sub _die_unless_user_can_apply_tag_set_tags
 
     #TRACE Dumper( $permissions );
 
-    die "user does not have apply tag set tags permissions" unless defined( $permissions ) && $permissions->{ apply_tags };
+    unless (defined( $permissions ) && $permissions->{ apply_tags }) {
+        die "user does not have apply tag set tags permissions" ;    
+    }
 }
 
 sub _die_unless_user_can_create_tag_set_tags
@@ -450,7 +452,7 @@ sub _get_tags_id
         {
             if ( $user_email ne $tag_set_name )
             {
-                die "Illegal tag_set name '" . $tag_set_name . "' tag_set must be user email ( '$user_email' ) ";
+                die "Illegal tag_set name '$tag_set_name' tag_set must be user email ($user_email)";
             }
 
             $tag_sets = [ $c->dbis->create( 'tag_sets', { 'name' => $tag_set_name } ) ];
