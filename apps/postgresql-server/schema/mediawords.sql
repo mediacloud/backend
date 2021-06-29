@@ -3575,32 +3575,31 @@ CREATE UNIQUE INDEX topic_seed_urls_topics_id_topic_post_urls_id
 -- topic_stories, so that you get back a topics_id, topic_posts_id stories_id, and topic_seed_queries_id in each
 -- row to track which stories came from which posts in which seed queries
 CREATE OR REPLACE VIEW topic_post_stories AS
-SELECT
-    tsq.topics_id,
-    tp.topic_posts_id,
-    tp.content,
-    tp.publish_date,
-    tp.author,
-    tp.channel,
-    tp.data,
-    tpd.topic_seed_queries_id,
-    ts.stories_id,
-    tpu.url,
-    tpu.topic_post_urls_id
+SELECT tsq.topics_id,
+       tp.topic_posts_id,
+       tp.content,
+       tp.publish_date,
+       tp.author,
+       tp.channel,
+       tp.data,
+       tpd.topic_seed_queries_id,
+       ts.stories_id,
+       tpu.url,
+       tpu.topic_post_urls_id
 FROM topic_seed_queries AS tsq
-    INNER JOIN topic_post_days AS tpd ON
+         INNER JOIN topic_post_days AS tpd ON
         tsq.topics_id = tpd.topics_id AND
         tsq.topic_seed_queries_id = tpd.topic_seed_queries_id
-    INNER JOIN topic_posts AS tp ON
+         INNER JOIN topic_posts AS tp ON
         tsq.topics_id = tp.topics_id AND
         tpd.topic_post_days_id = tp.topic_post_days_id
-    INNER JOIN topic_post_urls AS tpu ON
+         INNER JOIN topic_post_urls AS tpu ON
         tsq.topics_id = tpu.topics_id AND
         tp.topic_posts_id = tpu.topic_posts_id
-    INNER JOIN topic_seed_urls AS tsu ON
+         INNER JOIN topic_seed_urls AS tsu ON
         tsq.topics_id = tsu.topics_id AND
         tpu.topic_post_urls_id = tsu.topic_post_urls_id
-    INNER JOIN topic_stories AS ts ON
+         INNER JOIN topic_stories AS ts ON
         tsq.topics_id = ts.topics_id AND
         tsu.stories_id = ts.stories_id
 ;
@@ -3633,12 +3632,12 @@ CREATE UNIQUE INDEX snap_timespan_posts_topics_id_timespans_id_topic_posts_id
 CREATE TABLE media_stats_weekly
 (
     media_stats_weekly_id BIGSERIAL PRIMARY KEY,
-    media_id              BIGINT    NOT NULL REFERENCES media (media_id) ON DELETE CASCADE,
-    stories_rank          BIGINT    NOT NULL,
-    num_stories           NUMERIC   NOT NULL,
-    sentences_rank        BIGINT    NOT NULL,
-    num_sentences         NUMERIC   NOT NULL,
-    stat_week             DATE      NOT NULL
+    media_id              BIGINT  NOT NULL REFERENCES media (media_id) ON DELETE CASCADE,
+    stories_rank          BIGINT  NOT NULL,
+    num_stories           NUMERIC NOT NULL,
+    sentences_rank        BIGINT  NOT NULL,
+    num_sentences         NUMERIC NOT NULL,
+    stat_week             DATE    NOT NULL
 );
 
 -- Not a reference table (because not referenced), not a distributed table (because too small)
@@ -3649,11 +3648,11 @@ CREATE INDEX media_stats_weekly_media_id ON media_stats_weekly (media_id);
 CREATE TABLE media_expected_volume
 (
     media_expected_volume_id BIGSERIAL PRIMARY KEY,
-    media_id                 BIGINT    NOT NULL REFERENCES media (media_id) ON DELETE CASCADE,
-    start_date               DATE      NOT NULL,
-    end_date                 DATE      NOT NULL,
-    expected_stories         NUMERIC   NOT NULL,
-    expected_sentences       NUMERIC   NOT NULL
+    media_id                 BIGINT  NOT NULL REFERENCES media (media_id) ON DELETE CASCADE,
+    start_date               DATE    NOT NULL,
+    end_date                 DATE    NOT NULL,
+    expected_stories         NUMERIC NOT NULL,
+    expected_sentences       NUMERIC NOT NULL
 );
 
 -- Not a reference table (because not referenced), not a distributed table (because too small)
@@ -3682,22 +3681,22 @@ CREATE INDEX media_coverage_gaps_media_id ON media_coverage_gaps (media_id);
 CREATE TABLE media_health
 (
     media_health_id    BIGSERIAL PRIMARY KEY,
-    media_id           BIGINT    NOT NULL REFERENCES media (media_id) ON DELETE CASCADE,
-    num_stories        NUMERIC   NOT NULL,
-    num_stories_y      NUMERIC   NOT NULL,
-    num_stories_w      NUMERIC   NOT NULL,
-    num_stories_90     NUMERIC   NOT NULL,
-    num_sentences      NUMERIC   NOT NULL,
-    num_sentences_y    NUMERIC   NOT NULL,
-    num_sentences_w    NUMERIC   NOT NULL,
-    num_sentences_90   NUMERIC   NOT NULL,
-    is_healthy         BOOLEAN   NOT NULL DEFAULT 'f',
-    has_active_feed    BOOLEAN   NOT NULL DEFAULT 't',
-    start_date         DATE      NOT NULL,
-    end_date           DATE      NOT NULL,
-    expected_sentences NUMERIC   NOT NULL,
-    expected_stories   NUMERIC   NOT NULL,
-    coverage_gaps      BIGINT    NOT NULL
+    media_id           BIGINT  NOT NULL REFERENCES media (media_id) ON DELETE CASCADE,
+    num_stories        NUMERIC NOT NULL,
+    num_stories_y      NUMERIC NOT NULL,
+    num_stories_w      NUMERIC NOT NULL,
+    num_stories_90     NUMERIC NOT NULL,
+    num_sentences      NUMERIC NOT NULL,
+    num_sentences_y    NUMERIC NOT NULL,
+    num_sentences_w    NUMERIC NOT NULL,
+    num_sentences_90   NUMERIC NOT NULL,
+    is_healthy         BOOLEAN NOT NULL DEFAULT 'f',
+    has_active_feed    BOOLEAN NOT NULL DEFAULT 't',
+    start_date         DATE    NOT NULL,
+    end_date           DATE    NOT NULL,
+    expected_sentences NUMERIC NOT NULL,
+    expected_stories   NUMERIC NOT NULL,
+    coverage_gaps      BIGINT  NOT NULL
 );
 
 -- Not a reference table (because not referenced), not a distributed table (because too small)
