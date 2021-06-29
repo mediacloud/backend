@@ -160,7 +160,7 @@ SQL
                 topics_id = ? AND
                 timespans_id = ?
 SQL
-            $got_timespan->{ timespans_id }, $got_timespan->{ timespans_id }
+            $got_timespan->{ topics_id }, $got_timespan->{ timespans_id }
         )->hashes;
 
         is( scalar( @{ $got_story_link_counts } ), $NUM_TSQ_STORIES );

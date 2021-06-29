@@ -33,6 +33,7 @@
 -- FIXME temporary tables get created with "stories_id int", e.g. delta_import_stories
 -- FIXME update things that cast to ::int in various places
 -- FIXME tables get created as "postgres" user, should be "mediacloud"
+-- FIXME evaluate what queries get executed with MC_LOGGING_LEVEL=DEBUG
 
 
 -- main schema
