@@ -1701,28 +1701,56 @@ CREATE INDEX topic_links_topics_id ON topic_links (topics_id);
 CREATE INDEX topic_links_ref_stories_id ON topic_links (ref_stories_id);
 
 
-CREATE VIEW topic_links_cross_media AS
-SELECT s.stories_id,
-       sm.name      AS media_name,
-       r.stories_id AS ref_stories_id,
-       rm.name      AS ref_media_name,
-       cl.url       AS url,
-       cs.topics_id,
-       cl.topic_links_id
-FROM media AS sm,
-     media AS rm,
-     topic_links AS cl,
-     stories AS s,
-     stories AS r,
-     topic_stories AS cs
-WHERE cl.ref_stories_id != cl.stories_id
-  AND s.stories_id = cl.stories_id
-  AND cl.ref_stories_id = r.stories_id
-  AND s.media_id != r.media_id
-  AND sm.media_id = s.media_id
-  AND rm.media_id = r.media_id
-  AND cs.stories_id = cl.ref_stories_id
-  AND cs.topics_id = cl.topics_id;
+CREATE OR REPLACE VIEW topic_links_cross_media AS
+WITH stories_from_topic AS NOT MATERIALIZED (
+    SELECT topic_links.topic_links_id,
+           topic_links.topics_id,
+           topic_links.url,
+           topic_links.stories_id,
+           topic_links.ref_stories_id
+    FROM topic_stories
+             INNER JOIN topic_links ON
+            topic_stories.topics_id = topic_links.topics_id AND
+            topic_stories.stories_id = topic_links.ref_stories_id AND
+            topic_links.ref_stories_id != topic_links.stories_id
+),
+
+     stories_non_ref AS NOT MATERIALIZED (
+         SELECT stories_id,
+                stories.media_id,
+                media.name AS media_name
+         FROM stories
+                  INNER JOIN media ON
+             stories.media_id = media.media_id
+         WHERE stories_id IN (
+             SELECT stories_id
+             FROM stories_from_topic
+         )
+     ),
+
+     stories_ref AS NOT MATERIALIZED (
+         SELECT stories_id,
+                stories.media_id,
+                media.name AS media_name
+         FROM stories
+                  INNER JOIN media ON
+             stories.media_id = media.media_id
+         WHERE stories_id IN (
+             SELECT ref_stories_id
+             FROM stories_from_topic
+         )
+     )
+
+SELECT stories_from_topic.*,
+       stories_non_ref.media_name AS media_name,
+       stories_ref.media_name     AS ref_media_name
+FROM stories_from_topic
+         INNER JOIN stories_non_ref ON
+    stories_from_topic.stories_id = stories_non_ref.stories_id
+         INNER JOIN stories_ref ON
+    stories_from_topic.ref_stories_id = stories_ref.stories_id
+WHERE stories_non_ref.media_id != stories_ref.media_id
+;
 
 
 CREATE TABLE topic_fetch_urls
