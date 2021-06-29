@@ -555,22 +555,13 @@ sub _add_tags
 
         $self->_die_unless_user_can_apply_tag_set_tags( $c, $tag_set );
 
-        # TRACE "$id, $tags_id";
-
-        my $query = <<END;
-INSERT INTO $tags_map_table ( $table_id_name, tags_id)
-    select \$1, \$2
-        where not exists (
-            select 1
-                from $tags_map_table
-                where $table_id_name = \$1 and
-                    tags_id = \$2
-        )
-END
-
-        # TRACE $query;
-
-        $c->dbis->query( $query, $id, $tags_id );
+        $c->dbis->query( <<SQL,
+            INSERT INTO $tags_map_table ($table_id_name, tags_id)
+            VALUES (\$1, \$2)
+            ON CONFLICT ($table_id_name, tags_id) DO NOTHING
+SQL
+            $id, $tags_id
+        );
 
         push( @{ $clear_tags_map->{ $id } }, $tags_id );
     }
@@ -609,10 +600,13 @@ sub _process_single_put_tag($$$)
     my $action = $put_tag->{ action } || 'add';
     if ( $action eq 'add' )
     {
-        $db->query( <<SQL, $put_tag->{ $id_field }, $tag->{ tags_id } );
-insert into $map_table ( $id_field, tags_id )
-    select \$1, \$2 where not exists ( select 1 from $map_table where $id_field = \$1 and tags_id = \$2 )
+        $db->query( <<SQL,
+            INSERT INTO $map_table ($id_field, tags_id)
+            VALUES (\$1, \$2)
+            ON CONFLICT ($id_field, tags_id) DO NOTHING
 SQL
+            $put_tag->{ $id_field }, $tag->{ tags_id }
+        );
     }
     elsif ( $action eq 'remove' )
     {
