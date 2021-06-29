@@ -190,7 +190,11 @@ jobs:
           MC_TWITTER_CONSUMER_KEY: ${{ secrets.MC_TWITTER_CONSUMER_KEY }}
           MC_TWITTER_CONSUMER_SECRET: ${{ secrets.MC_TWITTER_CONSUMER_SECRET }}
 
-      # - name: Setup tmate session
+      - name: List test failures and errors
+        run: echo -e 'Test failures:\n' && awk '/FAILURES/,/short/' /home/runner/runners/*/_diag/pages/*.log && echo -e '\n\nErrors:\n' && awk '/non-zero/,/status 1/' /home/runner/runners/*/_diag/pages/*.log
+        if: always()
+      
+          # - name: Setup tmate session
       #   uses: mxschmitt/action-tmate@v3
       #   if: always()
       #   with:
