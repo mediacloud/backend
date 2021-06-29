@@ -26,7 +26,7 @@ nytprof*
 cover_db/
 
 # Schema file dumped for reference in development
-**/mediawords.sql
+# **/mediawords.sql
 
 # MediaWords::TM::Dump output
 /dump_layout_*
