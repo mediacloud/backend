@@ -53,7 +53,7 @@ SQL
             INNER JOIN focal_sets ON
                 foci.topics_id = focal_sets.topics_id AND
                 foci.focal_sets_id = focal_sets.topics_id
-        WHERE fs.focal_technique = 'URL Sharing'
+        WHERE focal_sets.focal_technique = 'URL Sharing'
 SQL
     )->hashes();
 
