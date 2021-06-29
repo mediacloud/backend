@@ -1244,6 +1244,7 @@ SQL
     );
 
     DEBUG( "creating snapshot_topic_post_stories ..." );
+    # FIXME looks kinda slow really (not limited by topics_id or anything like that)
     $db->query( <<SQL,
         CREATE TEMPORARY TABLE snapshot_topic_post_stories AS
             WITH _all_topic_post_stories AS (
