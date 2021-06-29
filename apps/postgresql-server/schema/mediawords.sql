@@ -3574,26 +3574,35 @@ CREATE UNIQUE INDEX topic_seed_urls_topics_id_topic_post_urls_id
 -- view that joins together the chain of tables from topic_seed_queries all the way through to
 -- topic_stories, so that you get back a topics_id, topic_posts_id stories_id, and topic_seed_queries_id in each
 -- row to track which stories came from which posts in which seed queries
-CREATE VIEW topic_post_stories AS
-SELECT tsq.topics_id,
-       tp.topic_posts_id,
-       tp.content,
-       tp.publish_date,
-       tp.author,
-       tp.channel,
-       tp.data,
-       tpd.topic_seed_queries_id,
-       ts.stories_id,
-       tpu.url,
-       tpu.topic_post_urls_id
+CREATE OR REPLACE VIEW topic_post_stories AS
+SELECT
+    tsq.topics_id,
+    tp.topic_posts_id,
+    tp.content,
+    tp.publish_date,
+    tp.author,
+    tp.channel,
+    tp.data,
+    tpd.topic_seed_queries_id,
+    ts.stories_id,
+    tpu.url,
+    tpu.topic_post_urls_id
 FROM topic_seed_queries AS tsq
-         JOIN topic_post_days AS tpd USING (topic_seed_queries_id)
-         JOIN topic_posts AS tp USING (topic_post_days_id)
-         JOIN topic_post_urls AS tpu USING (topic_posts_id)
-         JOIN topic_seed_urls AS tsu USING (topic_post_urls_id)
-         JOIN topic_stories AS ts
-              ON ts.topics_id = tsq.topics_id
-                  AND ts.stories_id = tsu.stories_id
+    INNER JOIN topic_post_days AS tpd ON
+        tsq.topics_id = tpd.topics_id AND
+        tsq.topic_seed_queries_id = tpd.topic_seed_queries_id
+    INNER JOIN topic_posts AS tp ON
+        tsq.topics_id = tp.topics_id AND
+        tpd.topic_post_days_id = tp.topic_post_days_id
+    INNER JOIN topic_post_urls AS tpu ON
+        tsq.topics_id = tpu.topics_id AND
+        tp.topic_posts_id = tpu.topic_posts_id
+    INNER JOIN topic_seed_urls AS tsu ON
+        tsq.topics_id = tsu.topics_id AND
+        tpu.topic_post_urls_id = tsu.topic_post_urls_id
+    INNER JOIN topic_stories AS ts ON
+        tsq.topics_id = ts.topics_id AND
+        tsu.stories_id = ts.stories_id
 ;
 
 
