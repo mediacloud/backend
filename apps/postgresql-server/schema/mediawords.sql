@@ -2248,14 +2248,14 @@ CREATE INDEX snap_media_tags_map_snapshots_id_tags_id
 
 CREATE TABLE snap.stories_tags_map
 (
-    snap_stories_tags_map BIGSERIAL NOT NULL,
-    topics_id             BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-    snapshots_id          BIGINT    NOT NULL,
-    stories_tags_map_id   BIGINT    NULL,
-    stories_id            BIGINT    NULL,
-    tags_id               BIGINT    NULL,
+    snap_stories_tags_map_id BIGSERIAL NOT NULL,
+    topics_id                BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
+    snapshots_id             BIGINT    NOT NULL,
+    stories_tags_map_id      BIGINT    NULL,
+    stories_id               BIGINT    NULL,
+    tags_id                  BIGINT    NULL,
 
-    PRIMARY KEY (snap_stories_tags_map, topics_id),
+    PRIMARY KEY (snap_stories_tags_map_id, topics_id),
 
     FOREIGN KEY (topics_id, snapshots_id)
         REFERENCES snapshots (topics_id, snapshots_id)
