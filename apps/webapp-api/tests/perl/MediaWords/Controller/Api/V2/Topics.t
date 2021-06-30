@@ -396,7 +396,13 @@ SQL
     $db->query( <<SQL,
         UPDATE stories SET
             publish_date = \$1
-        WHERE media_id = \$2
+        WHERE stories_id IN (
+            SELECT stories_id
+            FROM stories
+            WHERE media_id = \$2
+            ORDER BY stories_id
+            LIMIT 1
+        )
 SQL
         $start_date, $medium->{ media_id }
     );
@@ -499,8 +505,8 @@ SQL
             url
         )
             SELECT
-                ts.topics_id,
-                ts.stories_id,
+                topics_id,
+                stories_id,
                 'http://foo.bar' AS url
             FROM topic_stories
             WHERE topics_id = \$1
