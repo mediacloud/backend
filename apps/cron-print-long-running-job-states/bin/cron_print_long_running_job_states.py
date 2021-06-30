@@ -22,7 +22,7 @@ def print_long_running_job_states(db: DatabaseHandler):
                 rank() over (
                     partition by
                         class,
-                        (args->>'media_id')::int
+                        (args->>'media_id')::BIGINT
                     order by last_updated desc
                 ) as media_rank,
                 args->>'media_id' as media_id

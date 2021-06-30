@@ -25,7 +25,7 @@ def main():
         with 
 
         topic_jobs as ( 
-            select *, ( args->>'topics_id' )::int topics_id 
+            select *, ( args->>'topics_id' )::bigint topics_id 
                 from job_states 
                 where 
                     class like '%Topic%' and 
@@ -40,7 +40,7 @@ def main():
                 j.args->>'snapshots_id' snapshots_id,
                 now() n, rank r
             from ranked_jobs j
-                join topics t on ( t.topics_id = ( j.args->>'topics_id' )::int )
+                join topics t on ( t.topics_id = ( j.args->>'topics_id' )::bigint )
             where 
                 last_updated < now() - '1 day'::interval and 
                 rank = 1 and 

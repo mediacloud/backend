@@ -291,7 +291,7 @@ SQL
         my $tag_data = $db->query(
             <<SQL
             SELECT
-                s.stories_id::int,
+                s.stories_id::bigint,
                 t.tags_id,
                 t.tag,
                 ts.tag_sets_id,

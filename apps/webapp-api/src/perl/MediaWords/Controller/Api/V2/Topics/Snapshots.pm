@@ -25,7 +25,7 @@ __PACKAGE__->config(
 );
 
 Readonly my $JOB_STATE_FIELD_LIST =>
-"job_states_id, ( args->>'topics_id' )::int topics_id, ( args->>'snapshots_id' )::int snapshots_id, state, message, last_updated";
+"job_states_id, ( args->>'topics_id' )::bigint topics_id, ( args->>'snapshots_id' )::bigint snapshots_id, state, message, last_updated";
 
 sub apibase : Chained('/') : PathPart('api/v2/topics') : CaptureArgs(1)
 {
@@ -160,7 +160,7 @@ select $JOB_STATE_FIELD_LIST
     from job_states
     where
         class = \$2 and
-        ( args->>'topics_id' )::int = \$1
+        ( args->>'topics_id' )::bigint = \$1
     order by last_updated desc
 SQL
 

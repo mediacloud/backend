@@ -29,14 +29,14 @@ class TestCreateChildDownloadForStoryContentDelay(TestStories):
         )
 
         parent_download = self.db.query("""
-            SELECT EXTRACT(EPOCH FROM download_time)::int AS download_timestamp
+            SELECT EXTRACT(EPOCH FROM download_time)::BIGINT AS download_timestamp
             FROM downloads
             WHERE downloads_id = %(downloads_id)s
           """, {'downloads_id': self.test_download['downloads_id']}).hash()
         assert parent_download
 
         child_download = self.db.query("""
-            SELECT EXTRACT(EPOCH FROM download_time)::int AS download_timestamp
+            SELECT EXTRACT(EPOCH FROM download_time)::BIGINT AS download_timestamp
             FROM downloads
             WHERE parent = %(parent_downloads_id)s
           """, {'parent_downloads_id': self.test_download['downloads_id']}).hash()

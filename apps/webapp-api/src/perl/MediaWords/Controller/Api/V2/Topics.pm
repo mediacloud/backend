@@ -46,7 +46,7 @@ Readonly::Scalar my $TOPICS_EDIT_FIELDS => [
 ];
 
 Readonly::Scalar my $JOB_STATE_FIELD_LIST =>
-"job_states_id, ( args->>'topics_id' )::int topics_id, ( args->>'snapshots_id' )::int snapshots_id, state, message, last_updated";
+"job_states_id, ( args->>'topics_id' )::bigint topics_id, ( args->>'snapshots_id' )::int snapshots_id, state, message, last_updated";
 
 sub apibase : Chained('/') : PathPart('api/v2/topics') : CaptureArgs(1)
 {
@@ -172,13 +172,13 @@ SQL
                 js.state,
                 js.message,
                 js.last_updated,
-                ( js.args->>'topics_id' )::int topics_id,
-                ( js.args->>'snapshots_id' )::int snapshots_id
-            FROM job_states js
-            ORDER BY job_states_id desc
+                ( js.args->>'topics_id' )::BIGINT topics_id,
+                ( js.args->>'snapshots_id' )::BIGINT snapshots_id
+            FROM job_states AS js
+            ORDER BY job_states_id DESC
         )
 
-        select * from js
+        SELECT * FROM js
 SQL
         'job_states', 'topics_id'
     );
@@ -643,14 +643,16 @@ sub spider_status_GET
 
     my $db = $c->dbis;
 
-    my $job_states = $db->query( <<SQL, $topics_id )->hashes;
-select $JOB_STATE_FIELD_LIST
-    from job_states
-    where
-        class like 'MediaWords::Job::TM::MineTopic%' and
-        ( args->>'topics_id' )::int = \$1
-    order by last_updated desc
+    my $job_states = $db->query( <<SQL,
+        SELECT $JOB_STATE_FIELD_LIST
+        FROM job_states
+        WHERE
+            class LIKE 'MediaWords::Job::TM::MineTopic%' AND
+            (args->>'topics_id')::BIGINT = \$1
+        ORDER BY last_updated DESC
 SQL
+        $topics_id
+    )->hashes;
 
     $self->status_ok( $c, entity => { job_states => $job_states } );
 }

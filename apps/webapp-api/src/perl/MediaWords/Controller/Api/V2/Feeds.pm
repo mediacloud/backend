@@ -25,7 +25,7 @@ __PACKAGE__->config(
 );
 
 # sql clause for fields to query from job_states for api publication
-Readonly my $JOB_STATE_FIELD_LIST => "job_states_id, ( args->>'media_id' )::int media_id, state, message, last_updated";
+Readonly my $JOB_STATE_FIELD_LIST => "job_states_id, ( args->>'media_id' )::bigint media_id, state, message, last_updated";
 
 sub default_output_fields
 {
@@ -110,7 +110,7 @@ sub scrape_GET
 select $JOB_STATE_FIELD_LIST
     from pending_job_states
     where
-        ( args->>'media_id' )::int = \$1 and
+        ( args->>'media_id' )::bigint = \$1 and
         class = \$2
     order by job_states_id desc
     limit 1
@@ -152,7 +152,7 @@ select $JOB_STATE_FIELD_LIST
     from job_states
     where
         class = \$2 and
-        ( args->>'media_id' )::int = \$1
+        ( args->>'media_id' )::bigint = \$1
     order by last_updated desc
 SQL
     }
