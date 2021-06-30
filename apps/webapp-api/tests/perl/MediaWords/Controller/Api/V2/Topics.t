@@ -338,15 +338,11 @@ SQL
             link_mined
         )
             SELECT
-                t.topics_id,
-                s.stories_id,
+                \$1 AS topics_id,
+                stories_id,
                 't' AS link_mined
-            FROM
-                topics AS t,
-                stories AS s
-            WHERE
-                t.topics_id = \$1 AND
-                s.media_id = \$2
+            FROM stories
+            WHERE media_id = \$2
 SQL
         $topic->{ topics_id }, $medium->{ media_id }
     );
