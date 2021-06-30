@@ -103,8 +103,10 @@ sub _get_topics_list($$$)    # sql clause for fields to query from job_states fo
                 t.is_story_index_ready,
                 0 ch_monitor_id
             FROM topics AS t
-                JOIN topics_with_user_permission AS p USING (topics_id)
-                LEFT JOIN snapshots AS snap ON t.topics_id = snap.topics_id
+                INNER JOIN topics_with_user_permission AS p ON
+                    t.topics_id = p.topics_id
+                LEFT JOIN snapshots AS snap ON
+                    t.topics_id = snap.topics_id
             WHERE
                 $id_clause
                 $public_clause
@@ -129,7 +131,7 @@ SQL
             m.name,
             tmm.topics_id
         FROM media AS m
-            JOIN topics_media_map AS tmm USING (media_id)
+            INNER JOIN topics_media_map AS tmm USING (media_id)
 SQL
         'media', 'topics_id'
     );
@@ -143,7 +145,7 @@ SQL
             t.description,
             tmtm.topics_id
         FROM tags AS t
-            JOIN topics_media_tags_map AS tmtm USING (tags_id)
+            INNER JOIN topics_media_tags_map AS tmtm USING (tags_id)
 SQL
         'media_tags', 'topics_id'
     );
@@ -156,7 +158,7 @@ SQL
             au.email,
             au.full_name
         FROM topic_permissions AS tp
-            JOIN auth_users AS au USING (auth_users_id)
+            INNER JOIN auth_users AS au USING (auth_users_id)
     where
         tp.permission = 'admin'
 SQL
@@ -183,7 +185,12 @@ SQL
         'job_states', 'topics_id'
     );
 
-    $topics = $db->attach_child_query( $topics, "select * from topic_seed_queries", 'topic_seed_queries', 'topics_id' );
+    $topics = $db->attach_child_query( $topics, <<SQL,
+        SELECT *
+        FROM topic_seed_queries
+SQL
+        'topic_seed_queries', 'topics_id'
+    );
 
     return $topics;
 }
@@ -236,19 +243,34 @@ sub _set_topic_media($$$$)
 
     if ( $media_ids )
     {
-        $db->query( "delete from topics_media_map where topics_id = ?", $topics_id );
+        $db->query( "DELETE FROM topics_media_map WHERE topics_id = ?", $topics_id );
         for my $media_id ( @{ $media_ids } )
         {
-            $db->query( "insert into topics_media_map ( topics_id, media_id ) values ( ?, ? )", $topics_id, $media_id );
+            $db->query( <<SQL,
+                INSERT INTO topics_media_map (topics_id, media_id)
+                VALUES (?, ?)
+SQL
+                $topics_id, $media_id
+            );
         }
     }
 
     if ( $media_tags_ids )
     {
-        $db->query( "delete from topics_media_tags_map where topics_id = ?", $topics_id );
+        $db->query( <<SQL,
+            DELETE FROM topics_media_tags_map
+            WHERE topics_id = ?
+SQL
+            $topics_id
+        );
         for my $tags_id ( @{ $media_tags_ids } )
         {
-            $db->query( "insert into topics_media_tags_map ( topics_id, tags_id ) values ( ?, ? )", $topics_id, $tags_id );
+            $db->query( <<SQL,
+                INSERT INTO topics_media_tags_map (topics_id, tags_id)
+                VALUES (?, ?)
+SQL
+                $topics_id, $tags_id
+            );
         }
     }
 }
@@ -267,19 +289,24 @@ SQL
         $auth_users_id
     )->hash;
 
-    my $admin_roles = [ $MediaWords::DBI::Auth::Roles::List::ADMIN, $MediaWords::DBI::Auth::Roles::List::ADMIN_READONLY ];
+    my $admin_roles = [
+        $MediaWords::DBI::Auth::Roles::List::ADMIN,
+        $MediaWords::DBI::Auth::Roles::List::ADMIN_READONLY,
+    ];
 
     $auth_users_id = int( $auth_users_id );
 
-    my $is_admin = $db->query( <<SQL, @{ $admin_roles } )->hash;
-select ar.role
-    from auth_roles ar
-        join auth_users_roles_map aurm using ( auth_roles_id )
-    where
-        aurm.auth_users_id = $auth_users_id and
-        ar.role in ( ?? )
-    limit 1
+    my $is_admin = $db->query( <<SQL,
+        SELECT ar.role
+        FROM auth_roles AS ar
+            INNER JOIN auth_users_roles_map AS aurm USING (auth_roles_id)
+        WHERE
+            aurm.auth_users_id = $auth_users_id AND
+            ar.role IN (??)
+        LIMIT 1
 SQL
+        @{ $admin_roles }
+    )->hash;
 
     # admins have no limit
     return if ( $is_admin );
@@ -298,15 +325,14 @@ sub _is_mc_queue_user($$)
 
     $auth_users_id = int( $auth_users_id );
 
-    my $is_mc = $db->query(
-        <<SQL,
-select ar.role
-    from auth_roles ar
-        join auth_users_roles_map aurm using ( auth_roles_id )
-    where
-        aurm.auth_users_id = $auth_users_id and
-        ar.role in ( ?? )
-    limit 1
+    my $is_mc = $db->query( <<SQL,
+        SELECT ar.role
+        FROM auth_roles AS ar
+            INNER JOIN auth_users_roles_map AS aurm USING (auth_roles_id)
+        WHERE
+            aurm.auth_users_id = $auth_users_id AND
+            ar.role IN (??)
+        LIMIT 1
 SQL
         @{ MediaWords::DBI::Auth::Roles::List::topic_mc_queue_roles() }
     )->hash;
@@ -390,9 +416,17 @@ sub _update_decreases_query_scope($$$)
 {
     my ( $db, $topic, $data ) = @_;
 
-    my $spidered_story = $db->query( <<SQL, $topic->{ topics_id } )->hash;
-select * from topic_stories where iteration > 1 and topics_id = ? limit 1
+    my $spidered_story = $db->query( <<SQL,
+        SELECT *
+        FROM topic_stories
+        WHERE
+            iteration > 1 AND
+            topics_id = ?
+        LIMIT 1
 SQL
+        $topic->{ topics_id }
+    )->hash;
+
     return 0 if ( !$spidered_story && $topic->{ state } ne 'running' );
 
     return 1 if ( $data->{ start_date } && ( $data->{ start_date } gt $topic->{ start_date } ) );
@@ -401,9 +435,12 @@ SQL
 
     if ( my $update_media_ids = $data->{ media_ids } )
     {
-        my $existing_media_ids = $db->query( <<SQL, $topic->{ topics_id } )->flat();
-select media_id from topics_media_map where topics_id = ?
+        my $existing_media_ids = $db->query( <<SQL,
+            SELECT media_id
+            FROM topics_media_map WHERE topics_id = ?
 SQL
+            $topic->{ topics_id }
+        )->flat();
 
         for my $existing_id ( @{ $existing_media_ids } )
         {
@@ -413,9 +450,13 @@ SQL
 
     if ( my $update_media_tags_ids = $data->{ media_tags_ids } )
     {
-        my $existing_media_tags_ids = $db->query( <<SQL, $topic->{ topics_id } )->flat;
-select tags_id from topics_media_tags_map where topics_id = ?
+        my $existing_media_tags_ids = $db->query( <<SQL,
+            SELECT tags_id
+            FROM topics_media_tags_map
+            WHERE topics_id = ?
 SQL
+            $topic->{ topics_id }
+        )->flat;
 
         for my $existing_id ( @{ $existing_media_tags_ids } )
         {
@@ -702,19 +743,22 @@ sub info_GET
     $info->{ topic_modes } = $db->query( "select * from topic_modes order by name" )->hashes;
     $info->{ topic_platforms } = $db->query( "select * from topic_platforms order by name" )->hashes;
     $info->{ topic_sources } = $db->query( "select * from topic_sources order by name" )->hashes;
-    $info->{ topic_platforms_sources_map } = $db->query( <<SQL )->hashes;
-select 
-        tp.topic_platforms_id,
-        tp.name platform_name,
-        tp.description platform_description,
-        ts.topic_sources_id,
-        ts.name source_name,
-        ts.description source_description
-    from topic_platforms tp
-        join topic_platforms_sources_map tpsm using ( topic_platforms_id )
-        join topic_sources ts using ( topic_sources_id )
-    order by ts.name, tp.name
+    $info->{ topic_platforms_sources_map } = $db->query( <<SQL
+        SELECT 
+            tp.topic_platforms_id,
+            tp.name platform_name,
+            tp.description platform_description,
+            ts.topic_sources_id,
+            ts.name source_name,
+            ts.description source_description
+        FROM topic_platforms AS tp
+            INNER JOIN topic_platforms_sources_map AS tpsm USING (topic_platforms_id)
+            INNER JOIN topic_sources AS ts USING (topic_sources_id)
+        ORDER BY
+            ts.name,
+            tp.name
 SQL
+    )->hashes;
 
     $self->status_ok( $c, entity => { info => $info } );
 
@@ -735,9 +779,16 @@ sub list_timespan_files_GET
 
     my $timespan = MediaWords::DBI::Timespans::set_timespans_id_param( $c );
 
-    my $timespan_files = $db->query( <<SQL, $timespan->{ timespans_id } )->hashes;
-select * from timespan_files where timespans_id = ? order by timespan_files_id
+    my $timespan_files = $db->query( <<SQL,
+        SELECT *
+        FROM timespan_files
+        WHERE
+            topics_id = ? AND
+            timespans_id = ?
+        ORDER BY timespan_files_id
 SQL
+        $timespan->{ topics_id }, $timespan->{ timespans_id }
+    )->hashes;
 
     $self->status_ok( $c, entity => { timespan_files => $timespan_files } );
 }
@@ -757,9 +808,16 @@ sub list_snapshot_files_GET
 
     my $timespan = MediaWords::DBI::Timespans::set_timespans_id_param( $c );
 
-    my $snapshot_files = $db->query( <<SQL, $timespan->{ snapshots_id } )->hashes;
-select * from snapshot_files where snapshots_id = ? order by snapshot_files_id
+    my $snapshot_files = $db->query( <<SQL,
+        SELECT *
+        FROM snapshot_files
+        WHERE
+            topics_id = ? AND
+            snapshots_id = ?
+        ORDER BY snapshot_files_id
 SQL
+        $timespan->{ topics_id }, $timespan->{ snapshots_id }
+    )->hashes;
 
     $self->status_ok( $c, entity => { snapshot_files => $snapshot_files } );
 }
