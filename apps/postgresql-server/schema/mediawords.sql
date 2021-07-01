@@ -241,6 +241,7 @@ CREATE TABLE media_stats
 );
 
 -- "Only" 14 GB so maybe it's fine to copy it to shards
+-- FIXME maybe shard it after all?
 -- noinspection SqlResolve @ routine/"create_reference_table"
 SELECT create_reference_table('media_stats');
 
