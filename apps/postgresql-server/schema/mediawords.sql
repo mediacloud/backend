@@ -3094,12 +3094,13 @@ $$ LANGUAGE 'plpgsql';
 -- Copy of "feeds" table from yesterday; used for generating reports for rescraping efforts
 CREATE TABLE feeds_from_yesterday
 (
-    feeds_id BIGINT    NOT NULL,
-    media_id BIGINT    NOT NULL,
-    name     TEXT      NOT NULL,
-    url      TEXT      NOT NULL,
-    type     feed_type NOT NULL,
-    active   BOOLEAN   NOT NULL
+    feeds_from_yesterday_id BIGSERIAL PRIMARY KEY,
+    feeds_id                BIGINT    NOT NULL,
+    media_id                BIGINT    NOT NULL,
+    name                    TEXT      NOT NULL,
+    url                     TEXT      NOT NULL,
+    type                    feed_type NOT NULL,
+    active                  BOOLEAN   NOT NULL
 );
 
 -- Not a reference table (because not referenced), not a distributed table (because too small)
