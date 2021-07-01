@@ -17,14 +17,36 @@ sub test_few_recent_stories($)
 
     my $label = 'few recent stories';
 
-    my $test_stack =
-      MediaWords::Test::DB::Create::create_test_story_stack( $db, { "$label medium" => { "feed" => [ 'story' ] } } );
+    my $test_stack = MediaWords::Test::DB::Create::create_test_story_stack(
+        $db,
+        {
+            "$label medium" => {
+                "feed" => [
+                    'story',
+                ]
+            }
+        }
+    );
 
     my $medium = $test_stack->{ "$label medium" };
 
-    $db->query( "update feeds set active = 't' where media_id = \$1", $medium->{ media_id } );
+    $db->query( "UPDATE feeds SET active = 't' WHERE media_id = \$1", $medium->{ media_id } );
 
-    $db->query( "update stories set collect_date = now() where media_id = \$1", $medium->{ media_id } );
+    $db->query( <<SQL,
+        WITH stories_to_update AS (
+            SELECT stories_id
+            FROM stories
+            WHERE media_id = \$1
+        )
+        UPDATE stories SET
+            collect_date = NOW()
+        WHERE stories_id IN (
+            SELECT stories_id
+            FROM stories_to_update
+        )
+SQL
+        $medium->{ media_id }
+    );
 
     ok( !MediaWords::DBI::Media::medium_is_ready_for_analysis( $db, $medium ), $label );
 }
@@ -36,16 +58,36 @@ sub test_few_old_stories($)
 
     my $label = 'few old stories';
 
-    my $test_stack =
-      MediaWords::Test::DB::Create::create_test_story_stack( $db, { "$label medium" => { "feed" => [ 'story' ] } } );
+    my $test_stack = MediaWords::Test::DB::Create::create_test_story_stack(
+        $db,
+        {
+            "$label medium" => {
+                "feed" => [
+                    'story',
+                ]
+            }
+        }
+    );
 
     my $medium = $test_stack->{ "$label medium" };
 
-    $db->query( "update feeds set active = 't' where media_id = \$1", $medium->{ media_id } );
+    $db->query( "UPDATE feeds SET active = 't' WHERE media_id = \$1", $medium->{ media_id } );
 
-    $db->query( <<SQL, $medium->{ media_id } );
-update stories set publish_date = now() - '1 year'::interval  where media_id = ?
+    $db->query( <<SQL,
+        WITH stories_to_update AS (
+            SELECT stories_id
+            FROM stories
+            WHERE media_id = ?
+        )
+        UPDATE stories SET
+            publish_date = NOW() - '1 year'::interval
+        WHERE stories_id IN (
+            SELECT stories_id
+            FROM stories_to_update
+        )
 SQL
+        $medium->{ media_id }
+    );
 
     ok( !MediaWords::DBI::Media::medium_is_ready_for_analysis( $db, $medium ), $label );
 }
@@ -57,11 +99,18 @@ sub test_no_stories($)
 
     my $label = 'no stories';
 
-    my $test_stack = MediaWords::Test::DB::Create::create_test_story_stack( $db, { "$label medium" => { "feed" => [] } } );
+    my $test_stack = MediaWords::Test::DB::Create::create_test_story_stack(
+        $db,
+        {
+            "$label medium" => {
+                "feed" => []
+            }
+        }
+    );
 
     my $medium = $test_stack->{ "$label medium" };
 
-    $db->query( "update feeds set active = 't' where media_id = \$1", $medium->{ media_id } );
+    $db->query( "UPDATE feeds SET active = 't' WHERE media_id = \$1", $medium->{ media_id } );
 
     ok( !MediaWords::DBI::Media::medium_is_ready_for_analysis( $db, $medium ), $label );
 }
@@ -74,16 +123,36 @@ sub test_no_active_feed($)
 
     my $label = 'no active feed';
 
-    my $test_stack =
-      MediaWords::Test::DB::Create::create_test_story_stack( $db, { "$label medium" => { "feed" => [ 'story' ] } } );
+    my $test_stack = MediaWords::Test::DB::Create::create_test_story_stack(
+        $db,
+        {
+            "$label medium" => {
+                "feed" => [
+                    'story',
+                ]
+            }
+        }
+    );
 
     my $medium = $test_stack->{ "$label medium" };
 
-    $db->query( "update feeds set active = 'f' where media_id = \$1", $medium->{ media_id } );
+    $db->query( "UPDATE feeds SET active = 'f' WHERE media_id = \$1", $medium->{ media_id } );
 
-    $db->query( <<SQL, $medium->{ media_id } );
-update stories set publish_date = now() - '1 year'::interval  where media_id = ?
+    $db->query( <<SQL,
+        WITH stories_to_update AS (
+            SELECT stories_id
+            FROM stories
+            WHERE media_id = ?
+        )
+        UPDATE stories SET
+            publish_date = NOW() - '1 year'::interval
+        WHERE stories_id IN (
+            SELECT stories_id
+            FROM stories_to_update
+        )
 SQL
+        $medium->{ media_id }
+    );
 
     ok( !MediaWords::DBI::Media::medium_is_ready_for_analysis( $db, $medium ), $label );
 }

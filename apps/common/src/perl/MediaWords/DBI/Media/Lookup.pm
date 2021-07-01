@@ -16,18 +16,23 @@ sub _get_matching_media
 
     my $domain = MediaWords::Util::URL::get_url_distinctive_domain( $url );
 
-    my $media = $db->query(
-        <<END,
-select m.*, mtm.tags_id spidered_tags_id
-    from media m
-        left join 
-            ( media_tags_map mtm 
-                join tags t on ( mtm.tags_id = t.tags_id  and t.tag = 'spidered' )
-                join tag_sets ts on ( t.tag_sets_id = ts.tag_sets_id and ts.name = 'spidered' )
-            ) on ( m.media_id = mtm.media_id )
-    where
-        m.url ilike ?
-END
+    my $media = $db->query( <<SQL,
+        SELECT
+            m.*,
+            mtm.tags_id AS spidered_tags_id
+        FROM media AS m
+            LEFT JOIN (
+                media_tags_map AS mtm 
+                    INNER JOIN tags AS t ON
+                        mtm.tags_id = t.tags_id AND
+                        t.tag = 'spidered'
+                    INNER JOIN tag_sets AS ts ON
+                        t.tag_sets_id = ts.tag_sets_id AND
+                        ts.name = 'spidered'
+            ) ON
+                m.media_id = mtm.media_id
+        WHERE m.url ILIKE ?
+SQL
         '%' . $domain . '%'
     )->hashes;
 
