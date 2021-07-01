@@ -474,14 +474,6 @@ CREATE INDEX tags_fts ON tags USING GIN (to_tsvector('english'::regconfig, tag |
 CREATE INDEX tags_show_on_media ON tags USING HASH (show_on_media);
 CREATE INDEX tags_show_on_stories ON tags USING HASH (show_on_stories);
 
-CREATE VIEW tags_with_sets AS
-SELECT t.*,
-       ts.name AS tag_set_name
-FROM tags t,
-     tag_sets ts
-WHERE t.tag_sets_id = ts.tag_sets_id
-;
-
 INSERT INTO tag_sets (name, label, description)
 VALUES ('media_type',
         'Media Type',
@@ -515,21 +507,6 @@ SELECT create_reference_table('media_tags_map');
 
 CREATE UNIQUE INDEX media_tags_map_media ON media_tags_map (media_id, tags_id);
 CREATE INDEX media_tags_map_tag ON media_tags_map (tags_id);
-
-
-CREATE OR REPLACE VIEW media_with_media_types AS
-SELECT m.*,
-       mtm.tags_id AS media_type_tags_id,
-       t.label     AS media_type
-from media AS m
-         LEFT JOIN (
-    tags AS t
-        JOIN tag_sets AS ts
-        ON ts.tag_sets_id = t.tag_sets_id AND ts.name = 'media_type'
-        JOIN media_tags_map AS mtm
-        ON mtm.tags_id = t.tags_id
-    ) ON m.media_id = mtm.media_id
-;
 
 
 CREATE TABLE color_sets
@@ -948,34 +925,10 @@ CREATE INDEX downloads_success_extracted
     ON downloads_success (extracted);
 
 
-CREATE VIEW downloads_media AS
-SELECT d.*,
-       f.media_id AS _media_id
-FROM downloads AS d,
-     feeds AS f
-WHERE d.feeds_id = f.feeds_id;
-
-CREATE VIEW downloads_non_media AS
-SELECT d.*
-FROM downloads AS d
-WHERE d.feeds_id IS NULL;
-
-CREATE VIEW downloads_to_be_extracted AS
-SELECT *
-FROM downloads
-WHERE extracted = 'f'
-  AND state = 'success'
-  AND type = 'content';
-
 CREATE VIEW downloads_in_past_day AS
 SELECT *
 FROM downloads
 WHERE download_time > NOW() - interval '1 day';
-
-CREATE VIEW downloads_with_error_in_past_day AS
-SELECT *
-FROM downloads_in_past_day
-WHERE state = 'error';
 
 
 -- table for object types used for mediawords.util.public_store
@@ -3359,30 +3312,6 @@ CREATE TABLE api_links
 -- Not a reference table (because not referenced), not a distributed table (because too small)
 
 CREATE UNIQUE INDEX api_links_params ON api_links (path, md5(params_json));
-
-
-CREATE VIEW controversies AS
-SELECT topics_id AS controversies_id,
-       *
-FROM topics
-;
-
-
-CREATE VIEW controversy_dumps AS
-select snapshots_id  AS controversy_dumps_id,
-       topics_id     AS controversies_id,
-       snapshot_date AS dump_date,
-       *
-FROM snapshots
-;
-
-CREATE VIEW controversy_dump_time_slices AS
-SELECT timespans_id AS controversy_dump_time_slices_id,
-       snapshots_id AS controversy_dumps_id,
-       foci_id      AS controversy_query_slices_id,
-       *
-FROM timespans
-;
 
 
 -- keep track of performance of the topic spider
