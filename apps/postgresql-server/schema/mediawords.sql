@@ -925,10 +925,22 @@ CREATE INDEX downloads_success_extracted
     ON downloads_success (extracted);
 
 
+CREATE VIEW downloads_to_be_extracted AS
+SELECT *
+FROM downloads
+WHERE extracted = 'f'
+  AND state = 'success'
+  AND type = 'content';
+
 CREATE VIEW downloads_in_past_day AS
 SELECT *
 FROM downloads
 WHERE download_time > NOW() - interval '1 day';
+
+CREATE VIEW downloads_with_error_in_past_day AS
+SELECT *
+FROM downloads_in_past_day
+WHERE state = 'error';
 
 
 -- table for object types used for mediawords.util.public_store
