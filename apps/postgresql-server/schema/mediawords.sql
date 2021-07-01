@@ -233,17 +233,17 @@ SELECT run_command_on_shards('media', $cmd$
 
 CREATE TABLE media_stats
 (
-    media_stats_id BIGSERIAL PRIMARY KEY,
-    media_id       BIGINT NOT NULL REFERENCES media (media_id) ON DELETE CASCADE,
-    num_stories    BIGINT NOT NULL,
-    num_sentences  BIGINT NOT NULL,
-    stat_date      DATE   NOT NULL
+    media_stats_id BIGSERIAL NOT NULL,
+    media_id       BIGINT    NOT NULL REFERENCES media (media_id) ON DELETE CASCADE,
+    num_stories    BIGINT    NOT NULL,
+    num_sentences  BIGINT    NOT NULL,
+    stat_date      DATE      NOT NULL,
+
+    PRIMARY KEY (media_stats_id, media_id)
 );
 
--- "Only" 14 GB so maybe it's fine to copy it to shards
--- FIXME maybe shard it after all?
--- noinspection SqlResolve @ routine/"create_reference_table"
-SELECT create_reference_table('media_stats');
+-- noinspection SqlResolve @ routine/"create_distributed_table"
+SELECT create_distributed_table('media_stats', 'media_id');
 
 CREATE UNIQUE INDEX media_stats_medium_date ON media_stats (media_id, stat_date);
 
