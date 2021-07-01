@@ -88,7 +88,7 @@ sub _generate_media_stats_weekly
     $db->query( "DELETE FROM media_stats_weekly" );
 
     $db->query( <<SQL
-        insert into media_stats_weekly (
+        INSERT INTO media_stats_weekly (
             media_id,
             stories_rank,
             num_stories,
@@ -115,7 +115,7 @@ sub _generate_media_stats_weekly
                     stat_week
             )
 
-            select
+            SELECT
                 media_id,
                 ROW_NUMBER() OVER (PARTITION BY w.media_id ORDER BY num_stories DESC) AS stories_rank,
                 num_stories,
