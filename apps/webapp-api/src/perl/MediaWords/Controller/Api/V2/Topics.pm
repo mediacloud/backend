@@ -46,7 +46,7 @@ Readonly::Scalar my $TOPICS_EDIT_FIELDS => [
 ];
 
 Readonly::Scalar my $JOB_STATE_FIELD_LIST =>
-"job_states_id, ( args->>'topics_id' )::bigint topics_id, ( args->>'snapshots_id' )::int snapshots_id, state, message, last_updated";
+"job_states_id, ( args->>'topics_id' )::bigint topics_id, ( args->>'snapshots_id' )::bigint snapshots_id, state, message, last_updated";
 
 sub apibase : Chained('/') : PathPart('api/v2/topics') : CaptureArgs(1)
 {
