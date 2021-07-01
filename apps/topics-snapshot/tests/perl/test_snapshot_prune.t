@@ -139,15 +139,24 @@ SQL
         $tsu = $db->create( 'topic_seed_urls', $tsu );
     }
 
+    say STDERR "All snapshots before snapshot_topic: " . Dumper( $db->query( "select * from snapshots where topics_id = ?", $topic->{ topics_id } )->hashes() );
+
     MediaWords::TM::Snapshot::snapshot_topic( $db, $topics_id );
+
+    say STDERR "All snapshots after snapshot_topic: " . Dumper( $db->query( "select * from snapshots where topics_id = ?", $topic->{ topics_id } )->hashes() );
 
     my $got_snapshot = $db->query( "select * from snapshots where topics_id = ?", $topic->{ topics_id } )->hash;
 
     ok( $got_snapshot, "snapshot exists" );
 
+    say STDERR Dumper( $got_snapshot );
+
     my $got_stories = $db->query( <<SQL, $got_snapshot->{ snapshots_id } )->hashes;
 select * from snap.stories where snapshots_id = ?
 SQL
+
+    say STDERR Dumper( $got_stories );
+
 
     is( scalar( @{ $got_stories } ), 2, "number of pruned stories" );
 }
