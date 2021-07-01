@@ -52,6 +52,7 @@ def _add_story_tags_to_stories(db: DatabaseHandler, stories: List[Dict[str, Any]
         db.query("""
             INSERT INTO stories_tags_map (stories_id, tags_id)
             VALUES (%(stories_id)s, %(tags_id)s)
+            ON CONFLICT (stories_id, tags_id) DO NOTHING
         """, {
             'stories_id': story['stories_id'],
             'tags_id': tag['tags_id'],

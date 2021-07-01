@@ -323,8 +323,16 @@ def assign_date_guess_tag(
 
     db.query("DELETE FROM stories_tags_map WHERE stories_id = %(a)s", {'a': story['stories_id']})
     db.query(
-        "INSERT INTO stories_tags_map (stories_id, tags_id) VALUES (%(a)s, %(b)s)",
-        {'a': story['stories_id'], 'b': t['tags_id']})
+        """
+            INSERT INTO stories_tags_map (stories_id, tags_id)
+            VALUES (%(a)s, %(b)s)
+            ON CONFLICT (stories_id, tags_id) DO NOTHING
+        """,
+        {
+            'a': story['stories_id'],
+            'b': t['tags_id'],
+        }
+    )
 
 
 def get_spider_feed(db: DatabaseHandler, medium: dict) -> dict:
@@ -441,11 +449,15 @@ def generate_story(
 
     db.query(
         """
-        INSERT INTO stories_tags_map (stories_id, tags_id)
-        VALUES (%(a)s, %(b)s)
-        ON CONFLICT (stories_id, tags_id) DO NOTHING
+            INSERT INTO stories_tags_map (stories_id, tags_id)
+            VALUES (%(a)s, %(b)s)
+            ON CONFLICT (stories_id, tags_id) DO NOTHING
         """,
-        {'a': story['stories_id'], 'b': spidered_tag['tags_id']})
+        {
+            'a': story['stories_id'],
+            'b': spidered_tag['tags_id'],
+        }
+    )
 
     if publish_date is None:
         log.debug(f"Assigning date guess tag...")
@@ -620,14 +632,19 @@ def copy_story_to_new_medium(db: DatabaseHandler, topic: dict, old_story: dict, 
 
     db.query(
         """
-        INSERT INTO stories_tags_map (stories_id, tags_id)
-            SELECT
-                %(a)s,
-                stm.tags_id
-            FROM stories_tags_map AS stm
-            WHERE stm.stories_id = %(b)s
+            INSERT INTO stories_tags_map (stories_id, tags_id)
+                SELECT
+                    %(a)s,
+                    stm.tags_id
+                FROM stories_tags_map AS stm
+                WHERE stm.stories_id = %(b)s
+            ON CONFLICT (stories_id, tags_id) DO NOTHING
         """,
-        {'a': story['stories_id'], 'b': old_story['stories_id']})
+        {
+            'a': story['stories_id'],
+            'b': old_story['stories_id'],
+        }
+    )
 
     feed = get_spider_feed(db, new_medium)
     db.create('feeds_stories_map', {'feeds_id': feed['feeds_id'], 'stories_id': story['stories_id']})

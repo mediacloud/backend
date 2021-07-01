@@ -142,7 +142,9 @@ SQL
         my $story = pop( @{ $test_stories } );
         my $tag = MediaWords::Util::Tags::lookup_or_create_tag( $db, 'import:test' );
         $db->query( <<SQL,
-            INSERT INTO stories_tags_map (stories_id, tags_id) VALUES ( ?, ? )
+            INSERT INTO stories_tags_map (stories_id, tags_id)
+            VALUES (?, ?)
+            ON CONFLICT (stories_id, tags_id) DO NOTHING
 SQL
             $story->{ stories_id }, $tag->{ tags_id }
         );

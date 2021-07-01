@@ -35,7 +35,14 @@ def update_extractor_version_tag(db: DatabaseHandler, stories_id: int, extractor
     tag = db.find_or_create(table='tags', insert_hash={'tag': extractor_version, 'tag_sets_id': tag_set['tag_sets_id']})
     tags_id = tag['tags_id']
 
-    db.query("""
-        INSERT INTO stories_tags_map (stories_id, tags_id)
-        VALUES (%(stories_id)s, %(tags_id)s)
-    """, {'stories_id': stories_id, 'tags_id': tags_id})
+    db.query(
+        """
+            INSERT INTO stories_tags_map (stories_id, tags_id)
+            VALUES (%(stories_id)s, %(tags_id)s)
+            ON CONFLICT (stories_id, tags_id) DO NOTHING
+        """,
+        {
+            'stories_id': stories_id,
+            'tags_id': tags_id,
+        }
+    )

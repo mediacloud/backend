@@ -95,8 +95,15 @@ def _add_user_story(db: DatabaseHandler, topic: dict, user: dict, topic_fetch_ur
     # twitter user pages are undateable because there is never a consistent version of the page
     undateable_tag = _get_undateable_tag(db)
     db.query(
-        "insert into stories_tags_map (stories_id, tags_id) values (%(a)s, %(b)s)",
-        {'a': story['stories_id'], 'b': undateable_tag['tags_id']})
+        """
+            INSERT INTO stories_tags_map (stories_id, tags_id)
+            VALUES (%(a)s, %(b)s)
+            ON CONFLICT (stories_id, tags_id) DO NOTHING
+        """,
+        {
+            'a': story['stories_id'], 'b': undateable_tag['tags_id'],
+        }
+    )
 
     return story
 

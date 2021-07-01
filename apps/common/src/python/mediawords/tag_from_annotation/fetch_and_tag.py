@@ -388,13 +388,12 @@ class TagsFromJSONAnnotation(metaclass=abc.ABCMeta):
 
             # Assign story to tag (if no such mapping exists yet)
             #
-            # (partitioned table's INSERT trigger will take care of conflicts)
-            #
             # Not using db.create() because it tests last_inserted_id, and on duplicates there would be no such
             # "last_inserted_id" set.
             db.query("""
                 INSERT INTO stories_tags_map (stories_id, tags_id)
                 VALUES (%(stories_id)s, %(tags_id)s)
+                ON CONFLICT (stories_id, tags_id) DO NOTHING
             """, {
                 'stories_id': stories_id,
                 'tags_id': tags_id,
