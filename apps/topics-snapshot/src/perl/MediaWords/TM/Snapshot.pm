@@ -922,16 +922,6 @@ SQL
     }
     else
     {
-#         say STDERR "PRUNING STORIES";
-
-#         say STDERR "All topic links: " . Dumper( $db->query( <<SQL,
-#             select cs.*
-#         from topic_stories cs
-#         where cs.topics_id = ?
-# SQL
-#             $topic->{ topics_id }
-#         )->hashes() );
-
         $db->query( <<SQL, $topic->{ topics_id } );
 create temporary table snapshot_topic_stories as 
 
