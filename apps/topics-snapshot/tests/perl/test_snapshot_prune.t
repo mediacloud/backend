@@ -143,9 +143,17 @@ SQL
         $tsu = $db->create( 'topic_seed_urls', $tsu );
     }
 
-    MediaWords::TM::Snapshot::snapshot_topic( $db, $topics_id );
+    my $new_snapshots_id = MediaWords::TM::Snapshot::snapshot_topic( $db, $topics_id );
 
-    my $got_snapshot = $db->query( "select * from snapshots where topics_id = ?", $topic->{ topics_id } )->hash;
+    my $got_snapshot = $db->query( <<SQL,
+        SELECT *
+        FROM snapshots
+        WHERE
+            topics_id = ? AND
+            snapshots_id = ?
+SQL
+        $topics_id, $new_snapshots_id
+    )->hash;
 
     ok( $got_snapshot, "snapshot exists" );
 
@@ -156,7 +164,7 @@ SQL
             topics_id = ? AND
             snapshots_id = ?
 SQL
-        $got_snapshot->{ topics_id }, $got_snapshot->{ snapshots_id }
+        $got_snapshot->{ topics_id }, $new_snapshots_id
     )->hashes;
 
     is( scalar( @{ $got_stories } ), 2, "number of pruned stories" );
