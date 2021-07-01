@@ -29,38 +29,57 @@ sub _update_media_stats
 {
     my ( $db ) = @_;
 
-    my ( $ss_id ) = $db->query( "select value from database_variables where name = 'media_health_last_ss_id'" )->flat;
+    my ( $ss_id ) = $db->query( <<SQL,
+        SELECT value
+        FROM database_variables
+        WHERE name = 'media_health_last_ss_id'
+SQL
+    )->flat;
     $ss_id = defined( $ss_id ) ? int( $ss_id ) : 0;
 
-    my ( $max_ss_id ) = $db->query( "select max(story_sentences_id) from story_sentences" )->flat;
+    my ( $max_ss_id ) = $db->query( "SELECT MAX(story_sentences_id) FROM story_sentences" )->flat;
     $max_ss_id = defined( $max_ss_id ) ? int( $max_ss_id ) : 0;
     
-    $db->query( <<SQL );
-insert into media_stats as old ( media_id, num_stories, num_sentences, stat_date )
-
-    select
+    $db->query( <<SQL
+        INSERT INTO media_stats AS old (
             media_id,
-            count( distinct stories_id ) num_stories,
-            count( distinct story_sentences_id ) num_sentences,
-            date_trunc( 'day', publish_date) stat_date
-        from
-            story_sentences ss
-        where
-            ss.story_sentences_id between $ss_id and $max_ss_id and
-            ss.publish_date is not null
-        group by media_id, stat_date
+            num_stories,
+            num_sentences,
+            stat_date
+        )
 
-    on conflict ( media_id, stat_date ) do update set
-        num_stories = old.num_stories + EXCLUDED.num_stories, 
-        num_sentences = old.num_sentences + EXCLUDED.num_sentences
-SQL
+            SELECT
+                media_id,
+                COUNT(DISTINCT stories_id) AS num_stories,
+                COUNT(DISTINCT story_sentences_id) AS num_sentences,
+                date_trunc('day', publish_date) AS stat_date
+            FROM story_sentences AS ss
+            where
+                ss.story_sentences_id BETWEEN $ss_id AND $max_ss_id AND
+                ss.publish_date IS NOT NULL
+            GROUP BY
+                media_id,
+                stat_date
 
-    $db->query( <<SQL );
-insert into database_variables ( name, value ) 
-    values ( 'media_health_last_ss_id', $max_ss_id )
-    on conflict ( name )
-        do update set value = EXCLUDED.value
+        ON CONFLICT (media_id, stat_date) DO UPDATE SET
+            num_stories = old.num_stories + EXCLUDED.num_stories, 
+            num_sentences = old.num_sentences + EXCLUDED.num_sentences
 SQL
+    );
+
+    $db->query( <<SQL
+        INSERT INTO database_variables (
+            name,
+            value
+        )
+        VALUES (
+            'media_health_last_ss_id' AS name,
+            $max_ss_id AS value
+        )
+        ON CONFLICT (name) DO UPDATE SET
+            value = EXCLUDED.value
+SQL
+    );
 
 }
 
@@ -72,32 +91,46 @@ sub _generate_media_stats_weekly
 
     $db->begin;
 
-    $db->query( "delete from media_stats_weekly" );
+    $db->query( "DELETE FROM media_stats_weekly" );
 
-    $db->query( <<SQL );
-insert into media_stats_weekly ( media_id, stories_rank, num_stories, sentences_rank, num_sentences, stat_week )
-
-    with sparse_media_stats_weekly as (
-        select date_trunc( 'week', stat_date ) stat_week,
-                ms.media_id,
-                round( sum( num_stories::numeric ) / 7, 2 ) num_stories,
-                round( sum( num_sentences::numeric ) / 7, 2 ) num_sentences
-            from media_stats ms
-            where
-                ms.stat_date between '$START_DATE' and now() and
-                ms.media_id in ( select media_id from crawled_media )
-            group by ms.media_id, stat_week
-    )
-
-    select
+    $db->query( <<SQL
+        insert into media_stats_weekly (
             media_id,
-            row_number() over ( partition by w.media_id order by num_stories desc ) stories_rank,
+            stories_rank,
             num_stories,
-            row_number() over ( partition by w.media_id order by num_sentences desc ) sentences_rank,
+            sentences_rank,
             num_sentences,
             stat_week
-        from sparse_media_stats_weekly w;
+        )
+
+            WITH sparse_media_stats_weekly AS (
+                SELECT
+                    date_trunc('week', stat_date) AS stat_week,
+                    ms.media_id,
+                    ROUND(SUM(num_stories::numeric) / 7, 2 ) AS num_stories,
+                    ROUND(SUM(num_sentences::numeric) / 7, 2 ) AS num_sentences
+                FROM media_stats AS ms
+                WHERE
+                    ms.stat_date BETWEEN '$START_DATE' AND NOW() AND
+                    ms.media_id IN (
+                        SELECT media_id
+                        FROM crawled_media
+                    )
+                GROUP BY
+                    ms.media_id,
+                    stat_week
+            )
+
+            select
+                media_id,
+                ROW_NUMBER() OVER (PARTITION BY w.media_id ORDER BY num_stories DESC) AS stories_rank,
+                num_stories,
+                ROW_NUMBER() OVER (PARTITION BY w.media_id ORDER BY num_sentences DESC) AS sentences_rank,
+                num_sentences,
+                stat_week
+            FROM sparse_media_stats_weekly AS w
 SQL
+    );
 
     $db->commit;
 
@@ -110,49 +143,67 @@ sub _generate_media_expected_volume
 {
     my ( $db ) = @_;
 
-    $db->query( <<SQL );
-create temporary table dateless_media_expected_volume as
+    $db->query( <<SQL
+        CREATE TEMPORARY TABLE dateless_media_expected_volume AS
 
-    with media_expected_stories as (
-        select media_id, avg( num_stories ) expected_stories
-            from media_stats_weekly where stories_rank <= 20 group by media_id
-    ),
+            WITH media_expected_stories AS (
+                SELECT
+                    media_id,
+                    AVG(num_stories) AS expected_stories
+                FROM media_stats_weekly
+                WHERE stories_rank <= 20
+                GROUP BY media_id
+            ),
 
-    media_expected_sentences as (
-        select media_id, avg( num_sentences ) expected_sentences
-            from media_stats_weekly where sentences_rank <= 20 group by media_id
-    )
+            media_expected_sentences AS (
+                SELECT
+                    media_id,
+                    AVG(num_sentences) AS expected_sentences
+                FROM media_stats_weekly
+                WHERE sentences_rank <= 20
+                GROUP BY media_id
+            )
 
-
-    select s.media_id,
-                round( s.expected_stories::numeric, 2 ) expected_stories,
-                round( ss.expected_sentences::numeric, 2) expected_sentences
-            from media_expected_stories s
-                join media_expected_sentences ss on ( s.media_id = ss.media_id
-    )
+            SELECT
+                s.media_id,
+                ROUND(s.expected_stories::numeric, 2) AS expected_stories,
+                ROUND(ss.expected_sentences::numeric, 2) AS expected_sentences
+            FROM media_expected_stories AS s
+                INNER JOIN media_expected_sentences AS ss ON
+                    s.media_id = ss.media_id
 SQL
+    );
 
     $db->begin;
 
-    $db->query( "delete from media_expected_volume" );
+    $db->query( "DELETE FROM media_expected_volume" );
 
-    $db->query( <<SQL );
-insert into media_expected_volume ( media_id, start_date, end_date, expected_stories, expected_sentences )
+    $db->query( <<SQL
+        INSERT INTO media_expected_volume (
+            media_id,
+            start_date,
+            end_date,
+            expected_stories,
+            expected_sentences
+        )
 
-    select
-            msw.media_id,
-            min( stat_week ) start_date,
-            max( stat_week ) end_date,
-            min( expected_stories ) expected_stories,
-            min( expected_sentences ) expected_sentences
-        from media_stats_weekly msw
-            join dateless_media_expected_volume mev on ( msw.media_id = mev.media_id )
-        where msw.num_stories > ( $HEALTHY_VOLUME_RATIO * ( mev.expected_stories ) ) and
-            msw.num_sentences > ( $HEALTHY_VOLUME_RATIO * ( mev.expected_sentences ) ) and
-            msw.stat_week between '$START_DATE' and now()
-        group by msw.media_id
-        order by media_id;
+            SELECT
+                msw.media_id,
+                MIN(stat_week) AS start_date,
+                MAX(stat_week) AS end_date,
+                MIN(expected_stories) AS expected_stories,
+                MIN(expected_sentences) AS expected_sentences
+            FROM media_stats_weekly AS msw
+                INNER JOIN dateless_media_expected_volume AS mev ON
+                    msw.media_id = mev.media_id
+            WHERE
+                msw.num_stories > ($HEALTHY_VOLUME_RATIO * mev.expected_stories) AND
+                msw.num_sentences > ($HEALTHY_VOLUME_RATIO * mev.expected_sentences) AND
+                msw.stat_week BETWEEN '$START_DATE' AND NOW()
+            GROUP BY msw.media_id
+            ORDER BY media_id
 SQL
+    );
 
     $db->commit;
 
@@ -163,13 +214,19 @@ sub _create_crawled_media
 {
     my ( $db ) = @_;
 
-    $db->query( <<SQL );
-create temporary table crawled_media as
-    select * from media
-        where exists (
-            select 1 from feeds where feeds.media_id = media.media_id and name != 'Topic Spider Feed'
-        )
+    $db->query( <<SQL
+        CREATE TEMPORARY TABLE crawled_media AS
+            SELECT *
+            FROM media
+            WHERE EXISTS (
+                SELECT 1
+                FROM feeds
+                WHERE
+                    feeds.media_id = media.media_id AND
+                    name != 'Topic Spider Feed'
+            )
 SQL
+    );
 }
 
 # generate a table of media / weeks for which the coverage was less than
@@ -180,47 +237,73 @@ sub _generate_media_coverage_gaps
 
     $db->begin;
 
-    $db->query( "delete from media_coverage_gaps" );
+    $db->query( "DELETE FROM media_coverage_gaps" );
 
-    $db->query( <<SQL );
-insert into media_coverage_gaps ( media_id, stat_week, num_stories, expected_stories, num_sentences, expected_sentences )
-    select
-            msw.media_id,
+    $db->query( <<SQL
+        INSERT INTO media_coverage_gaps (
+            media_id,
             stat_week,
             num_stories,
             expected_stories,
             num_sentences,
             expected_sentences
-        from media_stats_weekly msw
-            join media_expected_volume mev on ( msw.media_id = mev.media_id )
-        where
-            stat_week between mev.start_date and mev.end_date and
-            ( msw.num_stories < ( $HEALTHY_VOLUME_RATIO * mev.expected_stories ) or
-              msw.num_sentences < ( $HEALTHY_VOLUME_RATIO * mev.expected_sentences ) )
+        )
+            SELECT
+                msw.media_id,
+                stat_week,
+                num_stories,
+                expected_stories,
+                num_sentences,
+                expected_sentences
+            FROM media_stats_weekly AS msw
+                INNER JOIN media_expected_volume AS mev ON
+                    msw.media_id = mev.media_id
+            WHERE
+                stat_week BETWEEN mev.start_date AND mev.end_date AND
+                (
+                    msw.num_stories < ($HEALTHY_VOLUME_RATIO * mev.expected_stories) OR
+                    msw.num_sentences < ($HEALTHY_VOLUME_RATIO * mev.expected_sentences)
+                )
 SQL
+    );
 
     # media_stats_weekly is sparse -- it only includes weeks for which there were more than 0
     # stories or sentences for the given media source.  this query inserts as coverage gaps
     # all missing weeks between the start_date and end_date for the given media source
-    $db->query( <<SQL );
-insert into media_coverage_gaps ( media_id, stat_week, num_stories, expected_stories, num_sentences, expected_sentences )
-    select
-            m.media_id,
-            weeks.stat_week,
-            0 num_stories,
+    $db->query( <<SQL
+        insert into media_coverage_gaps (
+            media_id,
+            stat_week,
+            num_stories,
             expected_stories,
-            0 num_sentences,
+            num_sentences,
             expected_sentences
-        from
-            ( media m
-              cross join generate_series ( date_trunc( 'week', '$START_DATE'::timestamp ), now(), interval '7 days' )
-                as weeks( stat_week ) )
-            join media_expected_volume mev on ( m.media_id = mev.media_id )
-            left join media_stats_weekly msw on ( msw.media_id = m.media_id and msw.stat_week = weeks.stat_week )
-        where
-            weeks.stat_week between mev.start_date and mev.end_date and
-            msw.num_stories is null
+        )
+            SELECT
+                m.media_id,
+                weeks.stat_week,
+                0 AS num_stories,
+                expected_stories,
+                0 AS num_sentences,
+                expected_sentences
+            FROM (
+                media AS m
+                    CROSS JOIN generate_series (
+                        date_trunc('week', '$START_DATE'::timestamp),
+                        NOW(),
+                        INTERVAL '7 days'
+                    ) AS weeks(stat_week)
+            )
+                INNER JOIN media_expected_volume AS mev ON
+                    m.media_id = mev.media_id
+                LEFT JOIN media_stats_weekly AS msw ON
+                    msw.media_id = m.media_id AND
+                    msw.stat_week = weeks.stat_week
+            WHERE
+                weeks.stat_week BETWEEN mev.start_date AND mev.end_date AND
+                msw.num_stories IS NULL
 SQL
+    );
 
     $db->commit;
 }
@@ -244,125 +327,163 @@ sub _generate_media_health_table
     # we do this because the media_stats table is sparse -- it does not include entries
     # for day in which a media source generated no stories / sentences
 
-    $db->query( <<SQL );
-create temporary table media_stats_90 as
+    $db->query( <<SQL
+        CREATE TEMPORARY TABLE media_stats_90 AS
 
-    with sparse_media_stats_90 as (
-        select m.media_id,
-                round( sum( num_stories::numeric ) / 90, 2 ) num_stories,
-                round( sum( num_sentences::numeric ) / 90, 2 ) num_sentences
-            from crawled_media m
-                left join media_stats ms on ( ms.media_id = m.media_id )
-            where ms.stat_date > now() - interval '90 days'
-            group by m.media_id
-    )
-
-    select
-            m.media_id,
-            coalesce( d.num_stories, 0 ) num_stories,
-            coalesce( d.num_sentences, 0 ) num_sentences
-        from crawled_media m
-            left join sparse_media_stats_90 d on ( m.media_id = d.media_id )
-SQL
-
-    $db->query( <<SQL );
-create temporary table media_stats_week as
-
-with sparse_media_stats_week as (
-    select m.media_id,
-            round( sum( num_stories::numeric ) / 7, 2 ) num_stories,
-            round( sum( num_sentences::numeric ) / 7, 2 ) num_sentences
-        from crawled_media m
-            left join media_stats ms on ( ms.media_id = m.media_id )
-        where ms.stat_date > now() - interval '1 week'
-        group by m.media_id
-)
-
-select
-        m.media_id,
-        coalesce( w.num_stories, 0 ) num_stories,
-        coalesce( w.num_sentences, 0 ) num_sentences
-    from crawled_media m
-        left join sparse_media_stats_week w on ( m.media_id = w.media_id )
-SQL
-
-    $db->query( <<SQL );
-create temporary table media_stats_year as
-
-        with sparse_media_stats_year as (
-            select m.media_id,
-                    round( sum( num_stories::numeric ) / 365, 2 ) num_stories,
-                    round( sum( num_sentences::numeric ) / 365, 2 ) num_sentences
-                from crawled_media m
-                    left join media_stats ms on ( ms.media_id = m.media_id )
-                where ms.stat_date > now() - interval '365 days'
-                group by m.media_id
-        )
-
-        select
-                m.media_id,
-                coalesce( d.num_stories, 0 ) num_stories,
-                coalesce( d.num_sentences, 0 ) num_sentences
-            from crawled_media m
-                left join sparse_media_stats_year d on ( m.media_id = d.media_id )
-SQL
-
-    $db->query( <<SQL );
-create temporary table media_stats_0 as
-    select m.media_id,
-            coalesce( ms.num_stories, 0 ) num_stories,
-            coalesce( ms.num_sentences, 0 ) num_sentences
-        from crawled_media m
-            left join media_stats ms on (
-                ms.media_id = m.media_id  and
-                ms.stat_date = date_trunc( 'day', now() - interval '1 day' )
+            WITH sparse_media_stats_90 AS (
+                SELECT
+                    m.media_id,
+                    ROUND(SUM(num_stories::numeric) / 90, 2) AS num_stories,
+                    ROUND(SUM(num_sentences::numeric) / 90, 2) AS num_sentences
+                FROM crawled_media AS m
+                    LEFT JOIN media_stats AS ms ON
+                        ms.media_id = m.media_id
+                WHERE ms.stat_date > NOW() - INTERVAL '90 days'
+                GROUP BY m.media_id
             )
-SQL
 
-    $db->query( <<SQL );
-create temporary table media_coverage_gap_counts as
-    select media_id, count(*) coverage_gaps
-        from media_coverage_gaps
-        group by media_id
+            select
+                m.media_id,
+                COALESCE(d.num_stories, 0) AS num_stories,
+                COALESCE(d.num_sentences, 0) AS num_sentences
+            from crawled_media AS m
+                LEFT JOIN sparse_media_stats_90 AS d ON
+                    m.media_id = d.media_id
 SQL
+    );
+
+    $db->query( <<SQL
+        CREATE TEMPORARY TABLE media_stats_week AS
+
+            WITH sparse_media_stats_week AS (
+                SELECT
+                    m.media_id,
+                    ROUND(SUM(num_stories::numeric) / 7, 2) AS num_stories,
+                    ROUND(SUM(num_sentences::numeric) / 7, 2) AS num_sentences
+                FROM crawled_media AS m
+                    LEFT JOIN media_stats AS ms ON
+                        ms.media_id = m.media_id
+                WHERE ms.stat_date > NOW() - INTERVAL '1 week'
+                GROUP BY m.media_id
+            )
+
+            SELECT
+                m.media_id,
+                COALESCE(w.num_stories, 0) AS num_stories,
+                COALESCE(w.num_sentences, 0) AS num_sentences
+            FROM crawled_media AS m
+                LEFT JOIN sparse_media_stats_week AS w ON
+                    m.media_id = w.media_id
+SQL
+    );
+
+    $db->query( <<SQL
+        CREATE TEMPORARY TABLE media_stats_year AS
+
+            WITH sparse_media_stats_year AS (
+                SELECT
+                    m.media_id,
+                    ROUND(SUM(num_stories::numeric) / 365, 2) AS num_stories,
+                    ROUND(SUM(num_sentences::numeric) / 365, 2) AS num_sentences
+                FROM crawled_media AS m
+                    LEFT JOIN media_stats AS ms ON
+                        ms.media_id = m.media_id
+                WHERE ms.stat_date > NOW() - INTERVAL '365 days'
+                GROUP BY m.media_id
+            )
+
+            SELECT
+                m.media_id,
+                COALESCE(d.num_stories, 0) AS num_stories,
+                COALESCE(d.num_sentences, 0) AS num_sentences
+            FROM crawled_media AS m
+                LEFT JOIN sparse_media_stats_year AS d ON
+                    m.media_id = d.media_id
+SQL
+    );
+
+    $db->query( <<SQL
+        CREATE TEMPORARY TABLE media_stats_0 AS
+            SELECT
+                m.media_id,
+                COALESCE(ms.num_stories, 0) AS num_stories,
+                COALESCE(ms.num_sentences, 0) AS num_sentences
+            FROM crawled_media AS m
+                LEFT JOIN media_stats AS ms ON
+                    ms.media_id = m.media_id AND
+                    ms.stat_date = date_trunc('day', NOW() - INTERVAL '1 day'
+SQL
+    );
+
+    $db->query( <<SQL
+        CREATE TEMPORARY TABLE media_coverage_gap_counts AS
+            SELECT
+                media_id,
+                COUNT(*) AS coverage_gaps
+            FROM media_coverage_gaps
+            GROUP BY media_id
+SQL
+    );
 
     $db->begin;
 
-    $db->query( 'delete from media_health' );
+    $db->query( 'DELETE FROM media_health' );
 
-    $db->query( <<SQL );
-insert into media_health
-    ( media_id, num_stories, num_stories_y, num_stories_w, num_stories_90,
-        num_sentences, num_sentences_y, num_sentences_w, num_sentences_90, is_healthy, has_active_feed,
-        start_date, end_date, expected_sentences, expected_stories, coverage_gaps )
-    select m.media_id,
-            ms0.num_stories,
-            msy.num_stories num_stories_y,
-            msw.num_stories num_stories_w,
-            ms90.num_stories num_stories_90,
-            ms0.num_sentences,
-            msy.num_sentences num_sentences_y,
-            msw.num_sentences num_sentences_w,
-            ms90.num_sentences num_sentences_90,
-            'false'::boolean is_healthy,
-            'true'::boolean has_active_feed,
-            mev.start_date,
-            mev.end_date,
-            mev.expected_sentences,
-            mev.expected_stories,
-            coalesce( mcg.coverage_gaps, 0 ) coverage_gaps
-        from crawled_media m
-            join media_stats_0 ms0 on ( m.media_id = ms0.media_id )
-            join media_stats_90 ms90 on ( m.media_id = ms90.media_id )
-            join media_stats_year msy on ( m.media_id = msy.media_id )
-            join media_stats_week msw on ( m.media_id = msw.media_id )
-            join media_expected_volume mev on ( m.media_id = mev.media_id )
-            left join media_coverage_gap_counts mcg on ( m.media_id = mcg.media_id )
+    $db->query( <<SQL
+        insert into media_health (
+            media_id,
+            num_stories,
+            num_stories_y,
+            num_stories_w,
+            num_stories_90,
+            num_sentences,
+            num_sentences_y,
+            num_sentences_w,
+            num_sentences_90,
+            is_healthy,
+            has_active_feed,
+            start_date,
+            end_date,
+            expected_sentences,
+            expected_stories,
+            coverage_gaps
+        )
+            SELECT
+                m.media_id,
+                ms0.num_stories,
+                msy.num_stories AS num_stories_y,
+                msw.num_stories AS num_stories_w,
+                ms90.num_stories AS num_stories_90,
+                ms0.num_sentences,
+                msy.num_sentences AS num_sentences_y,
+                msw.num_sentences AS num_sentences_w,
+                ms90.num_sentences AS num_sentences_90,
+                'false'::boolean AS is_healthy,
+                'true'::boolean AS has_active_feed,
+                mev.start_date,
+                mev.end_date,
+                mev.expected_sentences,
+                mev.expected_stories,
+                COALESCE(mcg.coverage_gaps, 0) AS coverage_gaps
+            FROM crawled_media AS m
+                INNER JOIN media_stats_0 AS ms0 ON
+                    m.media_id = ms0.media_id
+                INNER JOIN media_stats_90 ms90 ON
+                    m.media_id = ms90.media_id
+                INNER JOIN media_stats_year AS msy ON
+                    m.media_id = msy.media_id
+                INNER JOIN media_stats_week AS msw ON
+                    m.media_id = msw.media_id
+                INNER JOIN media_expected_volume AS mev ON
+                    m.media_id = mev.media_id
+                LEFT JOIN media_coverage_gap_counts AS mcg ON
+                    m.media_id = mcg.media_id
 SQL
+    );
 
     $db->commit;
 
-    $db->query( "analyze media_health" );
+    $db->query( "ANALYZE media_health" );
 
     _generate_media_coverage_gaps( $db );
 
@@ -383,40 +504,45 @@ sub update_media_health_status
 
     my $is_weekend = grep { $wday == $_ } ( 0, 6 );
 
-    $db->query( "update media_health mh set is_healthy = 't'" );
-    $db->query( <<SQL );
-update media_health set is_healthy = 'f'
-    where
-        ( ( num_stories_90 > 10 ) and
-          ( ( ( num_stories_w / greatest( num_stories_y, 1 ) ) < $HEALTHY_VOLUME_RATIO ) or
-            ( ( num_stories_w / greatest( num_stories_90, 1 ) ) < $HEALTHY_VOLUME_RATIO ) or
-            ( ( num_sentences_w / greatest( num_sentences_y, 1 ) ) < $HEALTHY_VOLUME_RATIO ) or
-            ( ( num_sentences_w / greatest( num_sentences_90, 1 ) ) < $HEALTHY_VOLUME_RATIO )
-          )
-        )
-        or
-        ( num_sentences_90 = 0 )
-
+    $db->query( "UPDATE media_health SET is_healthy = 't'" );
+    $db->query( <<SQL
+        UPDATE media_health SET
+            is_healthy = 'f'
+        WHERE
+            (
+                num_stories_90 > 10 AND
+                (
+                    num_stories_w / GREATEST(num_stories_y, 1) < $HEALTHY_VOLUME_RATIO OR
+                    num_stories_w / GREATEST(num_stories_90, 1) < $HEALTHY_VOLUME_RATIO OR
+                    num_sentences_w / GREATEST(num_sentences_y, 1) < $HEALTHY_VOLUME_RATIO OR
+                    num_sentences_w / GREATEST(num_sentences_90, 1) < $HEALTHY_VOLUME_RATIO
+                )
+            ) OR
+            num_sentences_90 = 0
 SQL
+    );
 
-    $db->query( "update media_health mh set has_active_feed = 'f'" );
-    $db->query( <<SQL );
-update media_health mh set has_active_feed = 't'
-    where
-        num_stories_90 > 1 or
-        (
-            num_sentences_90 > 0 and
-            exists (
-                select 1
-                    from feeds f
-                        join feeds_stories_map fsm on ( f.feeds_id = fsm.feeds_id )
-                    where
-                        active = 't' and
-                        type = 'syndicated' and
+    $db->query( "UPDATE media_health SET has_active_feed = 'f'" );
+    $db->query( <<SQL
+        UPDATE media_health AS mh SET
+            has_active_feed = 't'
+        WHERE
+            num_stories_90 > 1 OR
+            (
+                num_sentences_90 > 0 AND
+                EXISTS (
+                    SELECT 1
+                    FROM feeds AS f
+                        INNER JOIN feeds_stories_map AS fsm ON
+                            f.feeds_id = fsm.feeds_id
+                    WHERE
+                        active = 't' AND
+                        type = 'syndicated' AND
                         f.media_id = mh.media_id
+                )
             )
-        )
 SQL
+    );
 }
 
 =head2 print_health_report( $db )
@@ -429,33 +555,46 @@ sub print_health_report
 {
     my ( $db ) = @_;
 
-    my $mhs = $db->query( <<SQL )->hash;
-select
-        round( sum( num_stories::numeric ), 2 ) num_stories,
-        round( sum( num_stories_y::numeric ), 2 ) num_stories_y,
-        round( sum( num_stories_w::numeric ), 2 ) num_stories_w,
-        round( sum( num_stories_90::numeric ), 2 ) num_stories_90,
-        round( sum( num_sentences::numeric ), 2 ) num_sentences,
-        round( sum( num_sentences_y::numeric ), 2 ) num_sentences_y,
-        round( sum( num_sentences_w::numeric ), 2 ) num_sentences_w,
-        round( sum( num_sentences_90::numeric ), 2 ) num_sentences_90
-    from media_health
+    my $mhs = $db->query( <<SQL
+        SELECT
+            ROUND(SUM(num_stories::numeric), 2) AS num_stories,
+            ROUND(SUM(num_stories_y::numeric), 2) AS num_stories_y,
+            ROUND(SUM(num_stories_w::numeric), 2) AS num_stories_w,
+            ROUND(SUM(num_stories_90::numeric), 2) AS num_stories_90,
+            ROUND(SUM(num_sentences::numeric), 2) AS num_sentences,
+            ROUND(SUM(num_sentences_y::numeric), 2) AS num_sentences_y,
+            ROUND(SUM(num_sentences_w::numeric), 2) AS num_sentences_w,
+            ROUND(SUM(num_sentences_90::numeric), 2) AS num_sentences_90
+        FROM media_health
 SQL
+    )->hash;
 
-    my $unhealthy_media = $db->query( <<SQL )->hashes;
-select m.*, mh.*, t.tags_id
-    from crawled_media m
-        join media_health mh on ( m.media_id = mh.media_id )
-        left join
-            ( media_tags_map mtm
-                join tags t on ( mtm.tags_id = t.tags_id and t.tag = 'ap_english_us_top25_20100110' )
-                join tag_sets ts on ( t.tag_sets_id = ts.tag_sets_id and ts.name = 'collection' )
-            ) on mh.media_id = mtm.media_id
-    where
-        not mh.is_healthy
-    order by t.tags_id is not null desc, num_stories_90 desc, num_stories_y desc
-    limit 50
+    my $unhealthy_media = $db->query( <<SQL
+        SELECT
+            m.*,
+            mh.*,
+            t.tags_id
+        FROM crawled_media AS m
+            INNER JOIN media_health AS mh ON
+                m.media_id = mh.media_id
+            LEFT JOIN (
+                media_tags_map AS mtm
+                    INNER JOIN tags AS t ON
+                        mtm.tags_id = t.tags_id AND
+                        t.tag = 'ap_english_us_top25_20100110'
+                    INNER JOIN tag_sets AS ts ON
+                        t.tag_sets_id = ts.tag_sets_id AND
+                        ts.name = 'collection'
+            ) ON
+                mh.media_id = mtm.media_id
+        WHERE NOT mh.is_healthy
+        ORDER BY
+            t.tags_id IS NOT NULL DESC,
+            num_stories_90 DESC,
+            num_stories_y DESC
+        LIMIT 50
 SQL
+    )->hashes;
 
     print <<END;
 SUMMARY

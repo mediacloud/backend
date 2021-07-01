@@ -30,12 +30,12 @@ sub test_media_health
     $test_stack = MediaWords::Test::DB::Create::add_content_to_test_story_stack( $db, $test_stack );
 
     # move all stories to yesterday so that they get included in today's media_health stats
-    $db->query( "update stories set publish_date = now() - interval '1 day'" );
-    $db->query( "update story_sentences set publish_date = now() - interval '1 day'" );
+    $db->query( "UPDATE stories SET publish_date = NOW() - INTERVAL '1 day'" );
+    $db->query( "UPDATE story_sentences SET publish_date = NOW() - INTERVAL '1 day'" );
 
     MediaWords::DBI::Media::Health::generate_media_health( $db );
 
-    my $mhs = $db->query( "select * from media_health" )->hashes;
+    my $mhs = $db->query( "SELECT * FROM media_health" )->hashes;
 
     is( scalar( @{ $mhs } ), $NUM_MEDIA, "number of media_health rows" );
 
@@ -52,15 +52,22 @@ sub test_media_health
         ok( $mh->{ has_active_feed }, "has_active_feed for $mh->{ media_id }" );
     }
 
-    $db->query( "update media_health set num_stories = 0, num_stories_y = 100, num_stories_90 = 100 where media_id = 1" );
-    $db->query( "update feeds set active = 'f' where media_id = 2" );
+    $db->query( <<SQL,
+        UPDATE media_health SET
+            num_stories = 0,
+            num_stories_y = 100,
+            num_stories_90 = 100
+        WHERE media_id = 1
+SQL
+    );
+    $db->query( "UPDATE feeds SET active = 'f' WHERE media_id = 2" );
 
     MediaWords::DBI::Media::Health::update_media_health_status( $db );
 
-    my $mh1 = $db->query( "select * from media_health where media_id = 1" )->hash;
+    my $mh1 = $db->query( "SELECT * FROM media_health WHERE media_id = 1" )->hash;
     ok( !$mh1->{ is_healthy }, "zero'd medium is_healthy should be false" );
 
-    my $mh2 = $db->query( "select * from media_health where media_id = 2" )->hash;
+    my $mh2 = $db->query( "SELECT * FROM media_health WHERE media_id = 2" )->hash;
     ok( !$mh2->{ has_active_feed }, "medium with no feeds should have false has_active_feed" );
 
 }
