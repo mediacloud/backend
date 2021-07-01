@@ -68,14 +68,8 @@ SQL
     );
 
     $db->query( <<SQL
-        INSERT INTO database_variables (
-            name,
-            value
-        )
-        VALUES (
-            'media_health_last_ss_id' AS name,
-            $max_ss_id AS value
-        )
+        INSERT INTO database_variables (name, value)
+        VALUES ('media_health_last_ss_id', $max_ss_id)
         ON CONFLICT (name) DO UPDATE SET
             value = EXCLUDED.value
 SQL
