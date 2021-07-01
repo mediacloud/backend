@@ -160,7 +160,7 @@ def get_preferred_story(db: DatabaseHandler, stories: list) -> dict:
     if len(stories) == 1:
         return stories[0]
 
-    log.debug("get_preferred_story: %d stories" % len(stories))
+    log.debug(f"get_preferred_story: {len(stories)} stories")
 
     media = db.query(
         """
@@ -397,7 +397,7 @@ def store_and_verify_content(db: DatabaseHandler, download: dict, content: str) 
             if tries > STORE_CONTENT_TIMEOUT:
                 raise e
 
-            log.debug("story_and_verify_content: waiting to retry verification (%d) ..." % tries)
+            log.debug(f"story_and_verify_content: waiting to retry verification ({tries}) ...")
             tries += 1
             time.sleep(1)
 
@@ -489,7 +489,7 @@ def generate_story(
         log.debug(f"Assigning date guess tag...")
         assign_date_guess_tag(db, story, date_guess, fallback_date)
 
-    log.debug("add story: %s; %s; %s; %d" % (story['title'], story['url'], story['publish_date'], story['stories_id']))
+    log.debug(f"add story: {story['title']}; {story['url']}; {story['publish_date']}; {story['stories_id']}")
 
     if story.get('is_new', False):
         log.debug("Story is new, creating download...")
@@ -1013,7 +1013,7 @@ def merge_dup_media_stories(db, topic):
     ).hashes()
 
     if len(dup_media_stories) > 0:
-        log.info("merging %d stories" % len(dup_media_stories))
+        log.info(f"merging {len(dup_media_stories)} stories")
 
     [merge_dup_media_story(db, topic, s) for s in dup_media_stories]
 
@@ -1084,7 +1084,7 @@ def copy_stories_to_topic(db: DatabaseHandler, source_topics_id: int, target_top
     # noinspection SqlResolve
     (num_inserted,) = db.query("SELECT COUNT(*) FROM _tsu").flat()
 
-    log.info("inserting %d urls ..." % num_inserted)
+    log.info(f"inserting {num_inserted} urls ...")
 
     # noinspection SqlInsertValues,SqlResolve
     db.query("""
@@ -1130,7 +1130,7 @@ def _merge_dup_stories(db, topic, stories):
 
     keep_story = stories.pop(0)
 
-    log.debug("duplicates: %s [%s %d]" % (keep_story['title'], keep_story['url'], keep_story['stories_id']))
+    log.debug(f"duplicates: {keep_story['title']} [{keep_story['url']} {keep_story['stories_id']}]")
 
     [_merge_dup_story(db, topic, s, keep_story) for s in stories]
 
@@ -1234,5 +1234,5 @@ def find_and_merge_dup_stories(db: DatabaseHandler, topic: dict) -> None:
     log.info("finding duplicate stories ...")
     dup_story_groups = _get_dup_story_groups(db, topic)
 
-    log.info("merging %d duplicate story groups ..." % len(dup_story_groups))
+    log.info(f"merging {len(dup_story_groups)} duplicate story groups ...")
     [_merge_dup_stories(db, topic, g) for g in dup_story_groups]
