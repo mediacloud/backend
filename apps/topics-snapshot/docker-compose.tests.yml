@@ -57,6 +57,9 @@ services:
         image: gcr.io/mcback/topics-map:latest
         init: true
         stop_signal: SIGKILL
+        environment:
+            MC_PUBLIC_STORE_TYPE: "postgresql"
+            MC_PUBLIC_STORE_SALT: "foo"
         volumes:
             - type: bind
               source: ./../topics-map/bin/
