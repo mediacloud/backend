@@ -265,7 +265,7 @@ SQL
     # stories or sentences for the given media source.  this query inserts as coverage gaps
     # all missing weeks between the start_date and end_date for the given media source
     $db->query( <<SQL
-        insert into media_coverage_gaps (
+        INSERT INTO media_coverage_gaps (
             media_id,
             stat_week,
             num_stories,
@@ -336,11 +336,11 @@ sub _generate_media_health_table
                 GROUP BY m.media_id
             )
 
-            select
+            SELECT
                 m.media_id,
                 COALESCE(d.num_stories, 0) AS num_stories,
                 COALESCE(d.num_sentences, 0) AS num_sentences
-            from crawled_media AS m
+            FROM crawled_media AS m
                 LEFT JOIN sparse_media_stats_90 AS d ON
                     m.media_id = d.media_id
 SQL
@@ -424,7 +424,7 @@ SQL
     $db->query( 'DELETE FROM media_health' );
 
     $db->query( <<SQL
-        insert into media_health (
+        INSERT INTO media_health (
             media_id,
             num_stories,
             num_stories_y,
