@@ -1616,8 +1616,8 @@ CREATE TABLE topic_stories
 
 SELECT create_distributed_table('topic_stories', 'topics_id');
 
-CREATE UNIQUE INDEX topic_stories_stories_id_topics_id
-    ON topic_stories (stories_id, topics_id);
+CREATE UNIQUE INDEX topic_stories_topics_id_stories_id
+    ON topic_stories (topics_id, stories_id);
 
 CREATE INDEX topic_stories_topics_id
     ON topic_stories (topics_id);
@@ -1659,8 +1659,8 @@ CREATE TABLE topic_links
 
 SELECT create_distributed_table('topic_links', 'topics_id');
 
-CREATE UNIQUE INDEX topic_links_stories_id_topics_id_ref_stories_id
-    ON topic_links (stories_id, topics_id, ref_stories_id);
+CREATE UNIQUE INDEX topic_links_topics_id_stories_id_ref_stories_id
+    ON topic_links (topics_id, stories_id, ref_stories_id);
 
 CREATE INDEX topic_links_topics_id ON topic_links (topics_id);
 

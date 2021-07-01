@@ -70,9 +70,13 @@ sub test_import($)
 
     {
         my $story = pop( @{ $test_stories } );
-        my ( $text ) = $db->query( <<SQL, $story->{ stories_id } )->flat;
-select string_agg( sentence, ' ' order by sentence_number ) from story_sentences where stories_id = ?
+        my ( $text ) = $db->query( <<SQL,
+            SELECT string_agg(sentence, ' ' ORDER BY sentence_number)
+            FROM story_sentences
+            WHERE stories_id = ?
 SQL
+            $story->{ stories_id }
+        )->flat;
 
         my $words = [ grep { $_ } ( split( /\W/, $text ) )[ 0 .. 10 ] ];
         my $text_clause = 'text: (' . join( ' and ', @{ $words } ) . ')';
@@ -87,18 +91,26 @@ SQL
 
     {
         my $story = pop( @{ $test_stories } );
-        my ( $tags_id ) = $db->query( <<SQL, $story->{ stories_id } )->flat;
-select tags_id from stories_tags_map where stories_id = ?
+        my ( $tags_id ) = $db->query( <<SQL,
+            SELECT tags_id
+            FROM stories_tags_map
+            WHERE stories_id = ?
 SQL
+            $story->{ stories_id }
+        )->flat;
 
         MediaWords::Test::Solr::test_story_query( $db, "tags_id_stories:$tags_id", $story, 'tags_id_stories' );
     }
 
     {
         my $story = pop( @{ $test_stories } );
-        my ( $processed_stories_id ) = $db->query( <<SQL, $story->{ stories_id } )->flat;
-select processed_stories_id from processed_stories where stories_id = ?
+        my ( $processed_stories_id ) = $db->query( <<SQL,
+            SELECT processed_stories_id
+            FROM processed_stories
+            WHERE stories_id = ?
 SQL
+            $story->{ stories_id }
+        )->flat;
         MediaWords::Test::Solr::test_story_query( $db, "processed_stories_id:$processed_stories_id", $story, 'processed_stories_id' );
     }
 
@@ -116,7 +128,7 @@ SQL
     {
         # test that import grabs updated story
         my $story = pop( @{ $test_stories } );
-        $db->query( "update stories set language = 'up' where stories_id = ?", $story->{ stories_id } );
+        $db->query( "UPDATE stories SET language = 'up' WHERE stories_id = ?", $story->{ stories_id } );
         $db->commit();
 
         MediaWords::Solr::Dump::import_data( $db, { empty_queue => 1, throttle => 0 } );
