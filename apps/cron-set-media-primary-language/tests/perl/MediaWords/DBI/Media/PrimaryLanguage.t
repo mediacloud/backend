@@ -18,14 +18,16 @@ sub test_medium_language_tag($$$$)
 
     my $tag_set = MediaWords::DBI::Media::PrimaryLanguage::get_primary_language_tag_set( $db );
 
-    my $tags = $db->query( <<SQL, $medium->{ media_id }, $tag_set->{ tag_sets_id } )->hashes;
-select t.*
-    from media_tags_map mtm
-        join tags t using ( tags_id )
-    where
-        mtm.media_id = \$1 and
-        t.tag_sets_id = \$2
+    my $tags = $db->query( <<SQL,
+        SELECT t.*
+        FROM media_tags_map AS mtm
+            INNER JOIN tags AS t USING (tags_id)
+        WHERE
+            mtm.media_id = \$1 AND
+            t.tag_sets_id = \$2
 SQL
+        $medium->{ media_id }, $tag_set->{ tag_sets_id }
+    )->hashes;
 
     if ( !$code )
     {
@@ -49,8 +51,14 @@ sub test_medium_language($$$)
 
     my $stories = [ 1 .. 200 ];
 
-    my $test_stack =
-      MediaWords::Test::DB::Create::create_test_story_stack( $db, { "$label medium" => { "feed" => $stories } } );
+    my $test_stack = MediaWords::Test::DB::Create::create_test_story_stack(
+        $db,
+        {
+            "$label medium" => {
+                "feed" => $stories,
+            }
+        }
+    );
 
     my $medium = $test_stack->{ "$label medium" };
 
@@ -58,12 +66,38 @@ sub test_medium_language($$$)
 
     my $num_language_stories = int( $num_stories * $language_proportion );
 
-    $db->query( "update stories set language = ( ( random() * 100 )::int )::text where media_id = \$1", $media_id );
-
-    $db->query( <<SQL, $media_id, $language, $num_language_stories );
-update stories set language = \$2
-where stories_id in ( select stories_id from stories where media_id = \$1 limit \$3 )
+    $db->query( <<SQL,
+        WITH stories_to_update AS (
+            SELECT stories_id
+            FROM stories
+            WHERE media_id = \$1
+        )
+        UPDATE stories SET
+            language = stories_id::TEXT
+        WHERE stories_id IN (
+            SELECT stories_id
+            FROM stories_to_update
+        )
 SQL
+        $media_id
+    );
+
+    $db->query( <<SQL,
+        WITH stories_to_update AS (
+            SELECT stories_id
+            FROM stories
+            WHERE media_id = \$1
+            LIMIT \$3
+        )
+        UPDATE stories SET
+            language = \$2
+        WHERE stories_id IN (
+            SELECT stories_id
+            FROM stories_to_update
+        )
+SQL
+        $media_id, $language, $num_language_stories
+    );
 
     MediaWords::DBI::Media::PrimaryLanguage::set_primary_language( $db, $medium );
 

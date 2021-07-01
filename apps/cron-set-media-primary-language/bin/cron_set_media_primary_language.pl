@@ -32,17 +32,28 @@ sub main
 
     my $media_ids_list = join( ',', @{ $media_ids } );
 
-    my $active_media_ids = $db->query( <<SQL )->flat();
-with active_media as (
-    select distinct media_id from feeds where media_id in ( $media_ids_list ) and active = 't'
-)
+    my $active_media_ids = $db->query( <<SQL
+        WITH active_media AS (
+            SELECT DISTINCT media_id
+            FROM feeds
+            WHERE
+                media_id IN ($media_ids_list) AND
+                active = 't'
+        )
 
-select media_id
-    from media m
-        join active_media am using ( media_id )
-    where
-        exists ( select 1 from stories s where s.media_id = m.media_id offset 101 limit 1 )
+        SELECT media_id
+        FROM media AS m
+            INNER JOIN active_media AS am USING (media_id)
+        WHERE
+            EXISTS (
+                SELECT 1
+                FROM stories AS s
+                WHERE s.media_id = m.media_id
+                OFFSET 101
+                LIMIT 1
+            )
 SQL
+    )->flat();
 
     my $num_active_media = scalar( @{ $active_media_ids } );
 
