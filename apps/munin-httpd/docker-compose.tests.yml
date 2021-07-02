@@ -87,9 +87,6 @@ services:
               source: ./../postgresql-server/bin/
               target: /opt/mediacloud/bin/
             - type: bind
-              source: ./../postgresql-server/schema/
-              target: /opt/mediacloud/schema/
-            - type: bind
               source: ./../postgresql-base/conf/
               target: /etc/postgresql/13/main/
 
