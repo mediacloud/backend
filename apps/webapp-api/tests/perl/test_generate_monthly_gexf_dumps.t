@@ -29,6 +29,7 @@ SQL
 
     $db->query( <<SQL,
         INSERT INTO timespans (
+            topics_id,
             snapshots_id,
             start_date,
             end_date,

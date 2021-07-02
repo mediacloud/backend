@@ -390,7 +390,7 @@ sub generate_monthly_gexfs($$)
                 snapshots.topics_id
             FROM timespans
                 INNER JOIN snapshots ON
-                    snapshots.topics_id = timespans.topics_id
+                    snapshots.topics_id = timespans.topics_id AND
                     snapshots.snapshots_id = timespans.snapshots_id
             WHERE
                 timespans.topics_id = ? AND
