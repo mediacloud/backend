@@ -21,8 +21,8 @@ sub get_latest_overall_timespan
                 timespans.snapshots_id = snapshots.snapshots_id
         WHERE
            snapshots.topics_id = ? AND
-           timespan.period = 'overall' AND
-           timespan.foci_id IS NULL
+           timespans.period = 'overall' AND
+           timespans.foci_id IS NULL
         ORDER BY
             snapshots.snapshot_date DESC
 SQL
