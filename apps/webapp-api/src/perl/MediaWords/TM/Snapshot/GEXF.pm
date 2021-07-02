@@ -384,16 +384,22 @@ sub generate_monthly_gexfs($$)
 
     for my $topic ( @{ $topics } )
     {
-        my $overall_timespan = $db->query( <<SQL, $topic->{ topics_id } )->hash;
-select timespan.*, snap.topics_id
-   from timespans timespan
-       join snapshots snap on ( snap.snapshots_id = timespan.snapshots_id )
-   where
-       snap.topics_id = ? and
-       timespan.period = 'overall' and
-       timespan.foci_id is null
-   order by snap.snapshot_date desc
+        my $overall_timespan = $db->query( <<SQL,
+            SELECT
+                timespans.*,
+                snapshots.topics_id
+            FROM timespans
+                INNER JOIN snapshots ON
+                    snapshots.topics_id = timespans.topics_id
+                    snapshots.snapshots_id = timespans.snapshots_id
+            WHERE
+                timespans.topics_id = ? AND
+                timespans.period = 'overall' AND
+                timespans.foci_id IS NULL
+            ORDER BY snapshots.snapshot_date DESC
 SQL
+        $topic->{ topics_id }
+    )->hash;
 
         my $monthly_timespans = $db->query( <<SQL, $overall_timespan->{ snapshots_id } )->hashes;
 select * from timespans where snapshots_id = \$1 and period = 'monthly' and foci_id is null order by start_date asc
