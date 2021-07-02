@@ -34,6 +34,7 @@
 -- FIXME update things that cast to ::int in various places
 -- FIXME tables get created as "postgres" user, should be "mediacloud"
 -- FIXME evaluate what queries get executed with MC_LOGGING_LEVEL=DEBUG
+-- FIXME find_by_id / require_by_id / update_by_id
 
 
 -- main schema
