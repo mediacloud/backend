@@ -57,6 +57,9 @@ services:
         image: gcr.io/mcback/topics-map:latest
         init: true
         stop_signal: SIGKILL
+        environment:
+            MC_PUBLIC_STORE_TYPE: "postgresql"
+            MC_PUBLIC_STORE_SALT: "foo"
         volumes:
             - type: bind
               source: ./../topics-map/bin/
@@ -97,8 +100,8 @@ services:
               source: ./../postgresql-server/schema/
               target: /opt/mediacloud/schema/
             - type: bind
-              source: ./../postgresql-server/conf/
-              target: /etc/postgresql/11/main/
+              source: ./../postgresql-base/conf/
+              target: /etc/postgresql/13/main/
 
     solr-shard-01:
         image: gcr.io/mcback/solr-shard:latest

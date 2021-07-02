@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="SqlDataSourceStorage">
+    <option name="dataSources">
+      <list>
+        <State>
+          <option name="id" value="9b26f133-0b7c-4bb2-ad93-5c610079881e" />
+          <option name="name" value="DDL data source" />
+          <option name="urls">
+            <array>
+              <option value="file://$PROJECT_DIR$/.idea/mediawords.sql" />
+            </array>
+          </option>
+        </State>
+      </list>
+    </option>
+  </component>
+</project>

@@ -3,6 +3,8 @@ import time
 from mediawords.test.db.create import create_test_medium
 from mediawords.db import connect_to_db
 from mediawords.util.sql import sql_now, get_sql_date_from_epoch
+
+# noinspection PyProtectedMember
 from crawler_provider import _add_stale_feeds
 
 
@@ -32,7 +34,7 @@ def test_add_stale_feeds():
         'active': True,
         'last_attempted_download_time': sql_now()
     }
-    feed = db.create('feeds', feed)
+    db.create('feeds', feed)
 
     feed = {
         'media_id': medium['media_id'],
@@ -43,7 +45,7 @@ def test_add_stale_feeds():
         'last_attempted_download_time': sql_now(),
         'last_new_story_time': sql_now()
     }
-    feed = db.create('feeds', feed)
+    db.create('feeds', feed)
 
     feed = {
         'media_id': medium['media_id'],
@@ -51,8 +53,8 @@ def test_add_stale_feeds():
         'url': 'http://5 minute new story',
         'type': 'syndicated',
         'active': True,
-        'last_attempted_download_time': get_sql_date_from_epoch(time.time() - 300),
-        'last_new_story_time': get_sql_date_from_epoch(time.time() - 300),
+        'last_attempted_download_time': get_sql_date_from_epoch(int(time.time()) - 300),
+        'last_new_story_time': get_sql_date_from_epoch(int(time.time()) - 300),
     }
     feed = db.create('feeds', feed)
     pending_feeds.append(feed)
@@ -63,7 +65,7 @@ def test_add_stale_feeds():
         'url': 'http://old last download',
         'type': 'syndicated',
         'active': True,
-        'last_attempted_download_time': get_sql_date_from_epoch(time.time() - (86400 * 10))
+        'last_attempted_download_time': get_sql_date_from_epoch(int(time.time()) - (86400 * 10))
     }
     feed = db.create('feeds', feed)
     pending_feeds.append(feed)

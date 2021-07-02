@@ -50,12 +50,15 @@ RUN \
     #
     # Filter out "Received:" and some other headers
     postconf -e header_checks=regexp:/etc/postfix/header_checks && \
-    postconf -e mime_header_checks=regexp:/etc/postfix/header_checks && \
     postconf -e smtp_header_checks=regexp:/etc/postfix/header_checks && \
     #
     # Don't require TLS as local clients are trusted
     postconf -e smtp_tls_security_level=may && \
     postconf -e smtpd_tls_security_level=none && \
+    #
+    # Make sure default headers (e.g. Message-Id, date) are present
+    postconf -e always_add_missing_headers=yes && \
+    postconf -e local_header_rewrite_clients=permit_inet_interfaces && \
     #
     # Disable chroot on all services as it doesn't play well with a mounted
     # volume, e.g. "smtpd" is unable to access libnss after a chroot and thus

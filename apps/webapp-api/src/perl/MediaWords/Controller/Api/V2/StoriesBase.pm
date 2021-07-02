@@ -14,6 +14,7 @@ use namespace::autoclean;
 
 use MediaWords::DBI::Stories;
 use MediaWords::DBI::Stories::WordMatrix;
+use MediaWords::DBI::Stories::WordMatrixOldStopwords;   # FIXME remove once stopword comparison is over
 use MediaWords::Solr;
 use MediaWords::Solr::TagCounts;
 use MediaWords::Util::ParseHTML;
@@ -165,16 +166,23 @@ SQL
 }
 
 # add a word_count field to each story that includes a word count for that story
-sub _attach_word_counts_to_stories($$)
+# FIXME remove extra "$" once stopword comparison is over
+sub _attach_word_counts_to_stories($$$)
 {
-    my ( $db, $stories ) = @_;
+    # FIXME remove extra parameter once stopword comparison is over
+    my ( $db, $stories, $old_stopwords ) = @_;
 
     my $stories_ids = [ map { $_->{ stories_id } } @{ $stories } ];
 
     my $stories_lookup = {};
     map { $stories_lookup->{ $_->{ stories_id } } = $_ } @{ $stories };
 
-    my ( $word_matrix, $word_list ) = MediaWords::DBI::Stories::WordMatrix::get_story_word_matrix( $db, $stories_ids );
+    my ( $word_matrix, $word_list );
+    if ( $old_stopwords ) {
+        ( $word_matrix, $word_list ) = MediaWords::DBI::Stories::WordMatrixOldStopwords::get_story_word_matrix( $db, $stories_ids );
+    } else {
+        ( $word_matrix, $word_list ) = MediaWords::DBI::Stories::WordMatrix::get_story_word_matrix( $db, $stories_ids );
+    }
 
     while ( my ( $stories_id, $word_counts ) = each( %{ $word_matrix } ) )
     {
@@ -322,7 +330,9 @@ SQL
         $stories = MediaWords::DBI::Stories::attach_story_data_to_stories( $stories, $feed_data, 'feeds' );
     }
 
-    $stories = _attach_word_counts_to_stories( $db, $stories ) if ( int( $self->{ show_wc } // 0 ) );
+    if ( int( $self->{ show_wc } // 0 ) ) {
+        $stories = _attach_word_counts_to_stories( $db, $stories, $self->{ old_stopwords } );
+    }
 
     return $stories;
 }
@@ -381,6 +391,8 @@ sub _fetch_list($$$$$$)
     $self->{ show_text }          = int( $c->req->params->{ text }          // 0 );
     $self->{ show_ap_stories_id } = int( $c->req->params->{ ap_stories_id } // 0 );
     $self->{ show_wc }            = int( $c->req->params->{ wc }            // 0 );
+    # FIXME remove once stopword comparison is over
+    $self->{ old_stopwords }      = int( $c->req->params->{ old_stopwords } // 0 );
     $self->{ show_feeds }         = int( $c->req->params->{ show_feeds }    // 0 );
 
     $rows //= 20;
@@ -544,7 +556,13 @@ sub word_matrix_GET
     my $stories_ids =
       MediaWords::Solr::search_solr_for_stories_ids( $db, { q => $q, fq => $fq, rows => $rows, sort => 'random_1 asc' } );
 
-    my ( $word_matrix, $word_list ) = MediaWords::DBI::Stories::WordMatrix::get_story_word_matrix( $db, $stories_ids );
+    my ( $word_matrix, $word_list );
+    if ( $c->req->params->{ old_stopwords } ) {
+        # FIXME remove once stopword comparison is over
+        ( $word_matrix, $word_list ) = MediaWords::DBI::Stories::WordMatrixOldStopwords::get_story_word_matrix( $db, $stories_ids );
+    } else {
+        ( $word_matrix, $word_list ) = MediaWords::DBI::Stories::WordMatrix::get_story_word_matrix( $db, $stories_ids );
+    }
 
     $self->status_ok( $c, entity => { word_matrix => $word_matrix, word_list => $word_list } );
 

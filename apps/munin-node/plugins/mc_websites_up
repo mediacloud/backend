@@ -30,7 +30,7 @@ MediaWords::Munin::plugin({
                 my $response = $ua->get('https://api.mediacloud.org/api/v2/stories_public/list');
 
                 # Don't test whether request was successful (because it wasn't)
-                if ( $response->decoded_content =~ /Invalid API key or authentication cookie/i ) {
+                if ( $response->decoded_content =~ /Invalid API key/i ) {
                     # Up
                     return 1;
                 } else {

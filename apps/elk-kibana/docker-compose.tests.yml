@@ -49,11 +49,12 @@ services:
             - "9300:9300"
         volumes:
             - type: bind
-              source: ./../elk-elasticsearch/bin/elasticsearch.sh
-              target: /opt/elasticsearch/bin/elasticsearch.sh
+              source: ./../elk-elasticsearch/bin/elk-elasticsearch.sh
+              target: /opt/elasticsearch/bin/elk-elasticsearch.sh
             - type: bind
-              source: ./../elk-elasticsearch/config/
-              target: /opt/elasticsearch/config/
+              source: ./../elasticsearch-base/bin/elasticsearch.sh
+              target: /opt/elasticsearch/bin/elasticsearch.sh
+            # Not mounting config as it gets concatenated into a single file
         # Limit CPUs and RAM for the process to not get too greedy
         deploy:
             resources:
@@ -63,7 +64,6 @@ services:
         depends_on:
             - elk-filebeat
             - elk-journalbeat
-            - elk-auditbeat
 
     elk-filebeat:
         image: gcr.io/mcback/elk-filebeat:latest
@@ -111,36 +111,6 @@ services:
             # Hostname and journald's directory must match
             - ./../elk-journalbeat/journald-log-sample/etc/machine-id:/etc/machine-id:ro
             - ./../elk-journalbeat/journald-log-sample/var/log/journal/:/var/log/journal/:ro
-
-    elk-auditbeat:
-        image: gcr.io/mcback/elk-auditbeat:latest
-        init: true
-        stop_signal: SIGKILL
-        networks:
-            - default
-        pid: host
-        cap_add:
-            - AUDIT_READ
-            - AUDIT_CONTROL
-        volumes:
-            - type: bind
-              source: ./../elk-auditbeat/auditbeat.yml
-              target: /opt/auditbeat/auditbeat.yml
-              read_only: true
-            - type: bind
-              source: ./../elk-auditbeat/auditbeat.sh
-              target: /opt/auditbeat/auditbeat.sh
-              read_only: true
-            # Mount all the stuff that Auditbeat uses
-            - /etc/hostname:/etc/hostname:ro
-            - /etc/machine-id:/etc/machine-id:ro
-            - /sys/:/sys/:ro
-            - /bin/:/opt/auditbeat/host/bin/:ro
-            - /usr/bin/:/opt/auditbeat/host/usr/bin/:ro
-            - /sbin/:/opt/auditbeat/host/sbin/:ro
-            - /usr/sbin/:/opt/auditbeat/host/usr/sbin/:ro
-            - /etc/:/opt/auditbeat/host/etc/:ro
-            - /var/log/:/opt/auditbeat/host/var/log/:ro
 
 networks:
     # Define a network to be able to define aliases

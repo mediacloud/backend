@@ -4,15 +4,36 @@ services:
 
     # Service to use for testing the mail service
     #
-    # Usage:
+    # Steps to test:
     #
-    #     host$ ./dev/run.py mail-postfix-server bash
-    #     container$ sendmail "your@email.com"
+    #     1) host$ ./dev/run.py mail-postfix-server bash
+    #     2) (new terminal window) host$ docker ps
+    #     3) find container with name ending in 'mail-postfix-server-actual_1'
+    #     4) host$ docker exec -it some_string_mail-postfix-server-actual_1 bash
+    #     5) container$ ./postfix.sh
+    #     6) open new terminal window on your host machine
+    #     7) host$ docker exec -it some_string_mail-postfix-server-actual_1 bash
+    #     8) follow instructions at URL below to create a test mail.txt file and send to your email address from the container
+    #     https://clients.javapipe.com/knowledgebase/132/How-to-Test-Sendmail-From-Command-Line-on-Linux.html
     #
+    #     Alternatively, if you want to test via the send_email() method (https://github.com/mediacloud/backend/blob/master/apps/common/src/python/mediawords/util/mail.py#L73),
+    #     or test changes to said method, to you can disregard steps 7-8 above and instead:
+    #     7) host$ docker ps
+    #     8) Find mail-postfix-server container ID
+    #     9) host$ docker exec -it some_string_mail-postfix-server
+    #     10) $container python3
+    #     11) >> from mediawords.util.mail import *
+    #     12) >> test_message = Message(to='your@email.com', subject='test postfix', text_body=None, html_body='<p>hi</p>')
+    #     13) >> send_email(test_message)
+    #    
     mail-postfix-server:
         image: gcr.io/mcback/common:latest
         init: true
         stop_signal: SIGKILL
+        volumes:
+            - type: bind
+              source: ./../common/src/
+              target: /opt/mediacloud/src/common/
         depends_on:
             - mail-postfix-server-actual
 
@@ -21,7 +42,7 @@ services:
         image: gcr.io/mcback/mail-postfix-server:latest
         init: true
         stop_signal: SIGKILL
-        # "docker exec" into a container and run Postfix manually (/postfix.sh):
+        # "docker exec" into a container and run Postfix manually (./postfix.sh):
         command: sleep infinity
         # To be able to set /proc/sys/kernel/yama/ptrace_scope:
         privileged: true

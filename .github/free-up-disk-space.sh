@@ -25,6 +25,11 @@ sudo rm -f /swapfile
 echo "Cleaning APT cache..."
 sudo apt clean
 
+echo "Removing some directories..."
+sudo rm -rf /usr/local/lib/android/
+sudo rm -rf /usr/local/lib/node_modules/
+sudo rm -rf /usr/local/share/chromium/
+
 echo "Removing docker images..."
 docker rmi $(docker image ls -aq)
 

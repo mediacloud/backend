@@ -1,0 +1,81 @@
+{
+  "order": 0,
+  "index_patterns": [
+    "temporal-visibility-*"
+  ],
+  "settings": {
+    "index": {
+      "number_of_shards": "5",
+      "number_of_replicas": "0",
+      "search.idle.after": "365d"
+    }
+  },
+  "mappings": {
+    "dynamic": "false",
+    "properties": {
+      "NamespaceId": {
+        "type": "keyword"
+      },
+      "WorkflowId": {
+        "type": "keyword"
+      },
+      "RunId": {
+        "type": "keyword"
+      },
+      "WorkflowType": {
+        "type": "keyword"
+      },
+      "StartTime": {
+        "type": "long"
+      },
+      "ExecutionTime": {
+        "type": "long"
+      },
+      "CloseTime": {
+        "type": "long"
+      },
+      "ExecutionStatus": {
+        "type": "long"
+      },
+      "TaskQueue": {
+        "type": "keyword"
+      },
+
+      "Attr": {
+        "properties": {
+          "TemporalChangeVersion": {
+            "type": "keyword"
+          },
+          "CustomStringField": {
+            "type": "text"
+          },
+          "CustomKeywordField": {
+            "type": "keyword"
+          },
+          "CustomIntField": {
+            "type": "long"
+          },
+          "CustomDoubleField": {
+            "type": "double"
+          },
+          "CustomBoolField": {
+            "type": "boolean"
+          },
+          "CustomDatetimeField": {
+            "type": "date"
+          },
+          "CustomNamespace": {
+            "type": "keyword"
+          },
+          "Operator": {
+            "type": "keyword"
+          },
+          "BinaryChecksums": {
+            "type": "keyword"
+          }
+        }
+      }
+    }
+  },
+  "aliases": {}
+}

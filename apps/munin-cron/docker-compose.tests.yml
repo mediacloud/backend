@@ -6,10 +6,15 @@ services:
         image: gcr.io/mcback/munin-cron:latest
         init: true
         stop_signal: SIGKILL
+        environment:
+            MC_MUNIN_CRON_ALERT_EMAIL: "alerts@testmediacloud.ml"
         volumes:
             - type: bind
-              source: ./munin-conf.d/
-              target: /etc/munin/munin-conf.d/
+              source: ./munin-conf.d/host.conf
+              target: /etc/munin/munin-conf.d/host.conf
+            - type: bind
+              source: ./bin/munin-cron.sh
+              target: /munin-cron.sh
             - type: bind
               source: ./../cron-base/bin/cron.sh
               target: /cron.sh
@@ -58,8 +63,8 @@ services:
               source: ./../postgresql-server/schema/
               target: /opt/mediacloud/schema/
             - type: bind
-              source: ./../postgresql-server/conf/
-              target: /etc/postgresql/11/main/
+              source: ./../postgresql-base/conf/
+              target: /etc/postgresql/13/main/
 
     solr-shard-01:
         image: gcr.io/mcback/solr-shard:latest

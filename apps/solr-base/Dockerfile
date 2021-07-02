@@ -11,7 +11,7 @@ ENV MEDIACLOUD_SOLR_VERSION="6.5.0"
 # (distribution needed for running both Solr itself and ZooKeeper)
 RUN \
     mkdir -p /opt/solr/ && \
-    /dl_to_stdout.sh "https://archive.apache.org/dist/lucene/solr/${MEDIACLOUD_SOLR_VERSION}/solr-${MEDIACLOUD_SOLR_VERSION}.tgz" | \
+    /dl_to_stdout.sh "https://mediacloud-archive-apache-org.s3.amazonaws.com/solr-${MEDIACLOUD_SOLR_VERSION}.tgz" | \
 	    tar -zx -C /opt/solr/ --strip 1 && \
 	true
 

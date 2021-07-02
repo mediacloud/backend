@@ -4,7 +4,6 @@
 ## Setup
 
 1. Create the following [index patterns](http://localhost:5601/app/management/kibana/indexPatterns):
-    * `auditbeat-*`
     * `filebeat-*`
     * `journalbeat-*`
     * `*` ("all" index)

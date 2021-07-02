@@ -13,6 +13,12 @@ services:
             MC_DOWNLOADS_AMAZON_S3_DIRECTORY_NAME: "${MC_DOWNLOADS_AMAZON_S3_DIRECTORY_NAME}"
             MC_PUBLIC_STORE_TYPE: "postgresql"
             MC_PUBLIC_STORE_SALT: "foo"
+            # Email address to point to in List-Unsubscribe email header.
+            # Technically we don't have a straightforward "unsubscribe" endpoint, but our 
+            # emails are more likely to be marked spam if we don't have such a header, so
+            # we make the email subject "Delete account and unsubscribe" in 
+            # mediawords/util/config/common.py
+            MC_EMAIL_UNSUBSCRIBE: "support@example.com"
         volumes:
             - type: bind
               source: ./src/
@@ -91,8 +97,8 @@ services:
               source: ./../postgresql-server/schema/
               target: /opt/mediacloud/schema/
             - type: bind
-              source: ./../postgresql-server/conf/
-              target: /etc/postgresql/11/main/
+              source: ./../postgresql-base/conf/
+              target: /etc/postgresql/13/main/
 
     solr-shard-01:
         image: gcr.io/mcback/solr-shard:latest

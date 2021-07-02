@@ -2,7 +2,7 @@
 # PgBouncer
 #
 
-FROM gcr.io/mcback/postgresql-base:latest
+FROM gcr.io/mcback/postgresql-repo-base:latest
 
 # Install PgBouncer
 RUN \

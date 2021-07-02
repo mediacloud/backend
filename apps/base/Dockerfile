@@ -7,7 +7,7 @@
 #
 
 # https://hub.docker.com/_/ubuntu?tab=tags&page=1
-FROM ubuntu:focal-20210119
+FROM ubuntu:focal-20210416
 
 ENV DEBIAN_FRONTEND=noninteractive \
     LANG=en_US.UTF-8 \
@@ -48,6 +48,9 @@ RUN \
     apt-get -y --no-install-recommends install \
         # Quicker container debugging
         bash-completion \
+        # "mail" utility which uses sendmail (provided by msmtp-mta) internally;
+        # some tools like munin-cron use "mail" to send emails
+        bsd-mailx \
         curl \
         htop \
         # apt-key
@@ -56,7 +59,8 @@ RUN \
         iproute2 \
         # Pinging other containers from within Compose environment
         iputils-ping \
-        # Sending mail via sendmail utility through mail-postfix-server
+        # Provides "sendmail" utility which relays email through
+        # "mail-postfix-server" app
         msmtp \
         msmtp-mta \
         # Provides killall among other utilities
@@ -67,8 +71,6 @@ RUN \
         netcat \
         # Some packages insist on logging to syslog
         rsyslog \
-        # "mail" utility (which uses msmtp internally)
-        s-nail \
         # Timezone data, used by many packages
         tzdata \
         # Basic editor for files in container while debugging
@@ -89,6 +91,25 @@ COPY bin/container_memory_limit.sh bin/container_cpu_limit.sh bin/dl_to_stdout.s
 
 # Copy MSMTP configuration
 COPY conf/msmtprc conf/msmtp-aliases /etc/
+
+# Both "sendmail" and "mail" utilities are important as they're used by various
+# apps (e.g. munin-cron) to send us important email, and those apps aren't
+# particularly vocal when they're unable to send email. So, for extra paranoia,
+# verify that both utilities point to correct symlinks here.
+RUN \
+    if [ "$(readlink -- "/usr/sbin/sendmail")" != "../bin/msmtp" ]; then \
+        echo "sendmail is not symlinked to msmtp, sending email won't work." && \
+        exit 1; \
+    fi; \
+    if [ "$(readlink -- "/usr/bin/mail")" != "/etc/alternatives/mail" ]; then \
+        echo "mail is not symlinked to /etc/alternatives/mail, sending email won't work." && \
+        exit 1; \
+    fi; \
+    if [ "$(readlink -- "/etc/alternatives/mail")" != "/usr/bin/bsd-mailx" ]; then \
+        echo "mail is not symlinked to /etc/alternatives/mail, sending email won't work." && \
+        exit 1; \
+    fi; \
+    true
 
 # Generate and set locale
 RUN \

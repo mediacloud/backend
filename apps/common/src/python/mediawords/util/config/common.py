@@ -1,9 +1,10 @@
 import collections
 import re
-from typing import List, Pattern, Optional
+from typing import List, Pattern, Optional, Union
 
 from mediawords.util.config import env_value, McConfigException
 from mediawords.util.parse_json import decode_json, McDecodeJSONException
+from mediawords.util.perl import decode_object_from_bytes_if_needed
 from mediawords.util.log import create_logger
 
 log = create_logger(__name__)
@@ -12,54 +13,110 @@ log = create_logger(__name__)
 class ConnectRetriesConfig(object):
     """Connect retries configuration."""
 
-    @staticmethod
-    def sleep_between_attempts() -> float:
-        """Seconds (or parts of second) to sleep between retries."""
-        return 1.0
+    __slots__ = [
+        '__sleep_between_attempts',
+        '__max_attempts',
+        '__fatal_error_on_failure',
+    ]
 
-    @staticmethod
-    def max_attempts() -> int:
+    def __init__(self,
+                 sleep_between_attempts: float = 1.0,
+                 max_attempts: int = 60,
+                 fatal_error_on_failure: bool = True):
+
+        if isinstance(sleep_between_attempts, bytes):
+            sleep_between_attempts = decode_object_from_bytes_if_needed(sleep_between_attempts)
+        if isinstance(max_attempts, bytes):
+            max_attempts = decode_object_from_bytes_if_needed(max_attempts)
+        if isinstance(fatal_error_on_failure, bytes):
+            fatal_error_on_failure = decode_object_from_bytes_if_needed(fatal_error_on_failure)
+
+        self.__sleep_between_attempts = float(sleep_between_attempts)
+        self.__max_attempts = int(max_attempts)
+        self.__fatal_error_on_failure = bool(fatal_error_on_failure)
+
+    def sleep_between_attempts(self) -> float:
+        """Seconds (or parts of second) to sleep between retries."""
+        return self.__sleep_between_attempts
+
+    def max_attempts(self) -> int:
         """Max. number of attempts to connect.
 
         Must be positive (we want to try connecting at least one time).
         """
-        return 60
+        return self.__max_attempts
+
+    def fatal_error_on_failure(self) -> bool:
+        """
+        Return True if connect_to_db() should call fatal_error() and thus stop the whole process when giving up.
+
+        True is a useful value in production when you might want the process that's unable to connect to the database to
+        just die. However, you might choose to return False here too if the caller is prepared to handle connection
+        failures more gracefully (e.g. Temporal's retries).
+        """
+        return self.__fatal_error_on_failure
 
 
 class DatabaseConfig(object):
     """PostgreSQL database configuration."""
 
-    @staticmethod
-    def hostname() -> str:
+    __slots__ = [
+        '__hostname',
+        '__port',
+        '__database_name',
+        '__username',
+        '__password',
+        '__retries',
+    ]
+
+    def __init__(self,
+                 hostname: str = 'postgresql-pgbouncer',
+                 port: int = 6432,
+                 database_name: str = 'mediacloud',
+                 username: str = 'mediacloud',
+                 password: str = 'mediacloud',
+                 retries: Optional[ConnectRetriesConfig] = None):
+        if not retries:
+            retries = ConnectRetriesConfig()
+
+        if isinstance(port, bytes):
+            port = decode_object_from_bytes_if_needed(port)
+
+        hostname = decode_object_from_bytes_if_needed(hostname)
+        database_name = decode_object_from_bytes_if_needed(database_name)
+        username = decode_object_from_bytes_if_needed(username)
+        password = decode_object_from_bytes_if_needed(password)
+
+        self.__hostname = hostname
+        self.__port = int(port)
+        self.__database_name = database_name
+        self.__username = username
+        self.__password = password
+        self.__retries = retries
+
+    def hostname(self) -> str:
         """Hostname."""
-        # Container's name from docker-compose.yml
-        return "postgresql-pgbouncer"
+        return self.__hostname
 
-    @staticmethod
-    def port() -> int:
+    def port(self) -> int:
         """Port."""
-        # Container's exposed port from docker-compose.yml
-        return 6432
+        return self.__port
 
-    @staticmethod
-    def database_name() -> str:
+    def database_name(self) -> str:
         """Database name."""
-        return "mediacloud"
+        return self.__database_name
 
-    @staticmethod
-    def username() -> str:
+    def username(self) -> str:
         """Username."""
-        return "mediacloud"
+        return self.__username
 
-    @staticmethod
-    def password() -> str:
+    def password(self) -> str:
         """Password."""
-        return "mediacloud"
+        return self.__password
 
-    @staticmethod
-    def retries() -> ConnectRetriesConfig:
+    def retries(self) -> ConnectRetriesConfig:
         """connect_to_db() retries configuration."""
-        return ConnectRetriesConfig()
+        return self.__retries
 
 
 class AmazonS3DownloadsConfig(object):
@@ -86,41 +143,117 @@ class AmazonS3DownloadsConfig(object):
         return env_value('MC_DOWNLOADS_AMAZON_S3_DIRECTORY_NAME', allow_empty_string=True)
 
 
+class RabbitMQRetriesConfig(object):
+    """
+    RabbitMQ retries configuration.
+
+    https://docs.celeryproject.org/en/v4.4.7/userguide/calling.html#calling-retry
+    """
+
+    __slots__ = [
+        '__max_retries',
+        '__interval_start',
+        '__interval_step',
+        '__interval_max',
+    ]
+
+    def __init__(self,
+                 max_retries: Optional[int] = 3,
+                 interval_start: Union[int, float] = 0,
+                 interval_step: Union[int, float] = 0.2,
+                 interval_max: Union[int, float] = 0.2):
+        if isinstance(max_retries, bytes):
+            max_retries = decode_object_from_bytes_if_needed(max_retries)
+        if isinstance(interval_start, bytes):
+            interval_start = decode_object_from_bytes_if_needed(interval_start)
+        if isinstance(interval_step, bytes):
+            interval_step = decode_object_from_bytes_if_needed(interval_step)
+        if isinstance(interval_max, bytes):
+            interval_max = decode_object_from_bytes_if_needed(interval_max)
+
+        self.__max_retries = None if max_retries is None else int(max_retries)  # We want to preserve None here
+        self.__interval_start = float(interval_start)
+        self.__interval_step = float(interval_step)
+        self.__interval_max = float(interval_max)
+
+    def max_retries(self) -> Optional[int]:
+        return self.__max_retries
+
+    def interval_start(self) -> float:
+        return self.__interval_start
+
+    def interval_step(self) -> float:
+        return self.__interval_step
+
+    def interval_max(self) -> float:
+        return self.__interval_max
+
+
 class RabbitMQConfig(object):
     """RabbitMQ (Celery broker) client configuration."""
 
-    @staticmethod
-    def hostname() -> str:
+    __slots__ = [
+        '__hostname',
+        '__port',
+        '__username',
+        '__password',
+        '__vhost',
+        '__timeout',
+        '__retries',
+    ]
+
+    def __init__(self,
+                 hostname: str = 'rabbitmq-server',
+                 port: int = 5672,
+                 username: str = 'mediacloud',
+                 password: str = 'mediacloud',
+                 vhost: str = '/mediacloud',
+                 timeout: int = 60,
+                 retries: Optional[RabbitMQRetriesConfig] = None):
+        hostname = decode_object_from_bytes_if_needed(hostname)
+        if isinstance(port, bytes):
+            port = decode_object_from_bytes_if_needed(port)
+        username = decode_object_from_bytes_if_needed(username)
+        password = decode_object_from_bytes_if_needed(password)
+        vhost = decode_object_from_bytes_if_needed(vhost)
+        if isinstance(timeout, bytes):
+            timeout = decode_object_from_bytes_if_needed(timeout)
+
+        self.__hostname = hostname
+        self.__port = int(port)
+        self.__username = username
+        self.__password = password
+        self.__vhost = vhost
+        self.__timeout = int(timeout)
+        self.__retries = retries
+
+    def hostname(self) -> str:
         """Hostname."""
-        # Container's name from docker-compose.yml
-        return "rabbitmq-server"
+        return self.__hostname
 
-    @staticmethod
-    def port() -> int:
+    def port(self) -> int:
         """Port."""
-        # Container's exposed port from docker-compose.yml
-        return 5672
+        return self.__port
 
-    @staticmethod
-    def username() -> str:
+    def username(self) -> str:
         """Username."""
-        return "mediacloud"
+        return self.__username
 
-    @staticmethod
-    def password() -> str:
+    def password(self) -> str:
         """Password."""
-        return "mediacloud"
+        return self.__password
 
-    @staticmethod
-    def vhost() -> str:
+    def vhost(self) -> str:
         """Virtual host."""
-        return "/mediacloud"
+        return self.__vhost
 
-    @staticmethod
-    def timeout() -> int:
+    def timeout(self) -> int:
         """Timeout."""
-        # FIXME possibly hardcode it somewhere
-        return 60
+        return self.__timeout
+
+    def retries(self) -> Optional[RabbitMQRetriesConfig]:
+        """Retry policy; if None, retries are disabled."""
+        return self.__retries
 
 
 class SMTPConfig(object):
@@ -154,6 +287,14 @@ class SMTPConfig(object):
     def password() -> str:
         """Password."""
         return ''
+
+    @staticmethod
+    def unsubscribe_address() -> str:
+        """Email to which unsubscribe/account deletion requests should be sent"""
+        address = env_value('MC_EMAIL_UNSUBSCRIBE', required=False, allow_empty_string=True)
+        if address is None or '@' not in address:
+            address = 'support@example.com'
+        return address
 
 
 class DownloadStorageConfig(object):
