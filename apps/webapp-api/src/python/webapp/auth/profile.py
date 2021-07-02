@@ -193,31 +193,28 @@ def regenerate_api_key(db: DatabaseHandler, email: str) -> None:
 
     db.begin()
 
-    # Purge all IP-limited API keys
+    # Purge all API keys
     db.query("""
         DELETE FROM auth_user_api_keys
-        WHERE ip_address IS NOT NULL
-          AND auth_users_id = (
-            SELECT auth_users_id
-            FROM auth_users
-            WHERE email = %(email)s
-          )
-    """, {'email': email})
+        WHERE auth_users_id = %(auth_users_id)s
+    """, {'auth_users_id': user.user_id()})
 
     # Regenerate non-IP limited API key
     db.query("""
-        UPDATE auth_user_api_keys
+        INSERT INTO auth_user_api_keys (
+            auth_users_id,
+            api_key,
+            ip_address
+        )
+        VALUES (
+            %(auth_users_id)s,
 
-        -- DEFAULT points to a generation function
-        SET api_key = DEFAULT
+            -- DEFAULT points to a generation function
+            DEFAULT,
 
-        WHERE ip_address IS NULL
-          AND auth_users_id = (
-            SELECT auth_users_id
-            FROM auth_users
-            WHERE email = %(email)s
-          )
-    """, {'email': email})
+            NULL
+        )
+    """, {'auth_users_id': user.user_id()})
 
     message = AuthAPIKeyResetMessage(to=email, full_name=user.full_name())
     if not send_email(message):
