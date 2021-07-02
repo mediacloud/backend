@@ -30,8 +30,32 @@ sub test_media_health
     $test_stack = MediaWords::Test::DB::Create::add_content_to_test_story_stack( $db, $test_stack );
 
     # move all stories to yesterday so that they get included in today's media_health stats
-    $db->query( "UPDATE stories SET publish_date = NOW() - INTERVAL '1 day'" );
-    $db->query( "UPDATE story_sentences SET publish_date = NOW() - INTERVAL '1 day'" );
+    $db->query( <<SQL
+        WITH stories_to_update AS (
+            SELECT stories_id
+            FROM stories
+        )
+        UPDATE stories SET
+            publish_date = NOW() - INTERVAL '1 day'
+        WHERE stories_id IN (
+            SELECT stories_id
+            FROM stories_to_update
+        )
+SQL
+    );
+    $db->query( <<SQL
+        WITH stories_to_update AS (
+            SELECT stories_id
+            FROM stories
+        )
+        UPDATE story_sentences SET
+            publish_date = NOW() - INTERVAL '1 day'
+        WHERE stories_id IN (
+            SELECT stories_id
+            FROM stories_to_update
+        )
+SQL
+    );
 
     MediaWords::DBI::Media::Health::generate_media_health( $db );
 

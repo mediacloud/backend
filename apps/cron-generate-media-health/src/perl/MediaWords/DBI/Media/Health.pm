@@ -101,15 +101,15 @@ sub _generate_media_stats_weekly
                 SELECT
                     date_trunc('week', stat_date) AS stat_week,
                     ms.media_id,
-                    ROUND(SUM(num_stories::numeric) / 7, 2 ) AS num_stories,
-                    ROUND(SUM(num_sentences::numeric) / 7, 2 ) AS num_sentences
+                    ROUND(SUM(num_stories::numeric) / 7, 2) AS num_stories,
+                    ROUND(SUM(num_sentences::numeric) / 7, 2) AS num_sentences
                 FROM media_stats AS ms
                 WHERE
-                    ms.stat_date BETWEEN '$START_DATE' AND NOW() AND
                     ms.media_id IN (
                         SELECT media_id
                         FROM crawled_media
-                    )
+                    ) AND
+                    ms.stat_date BETWEEN '$START_DATE' AND NOW()
                 GROUP BY
                     ms.media_id,
                     stat_week
@@ -173,20 +173,13 @@ SQL
     $db->query( "DELETE FROM media_expected_volume" );
 
     $db->query( <<SQL
-        INSERT INTO media_expected_volume (
-            media_id,
-            start_date,
-            end_date,
-            expected_stories,
-            expected_sentences
-        )
-
+        CREATE TEMPORARY TABLE updated_media_expected_volume AS
             SELECT
                 msw.media_id,
-                MIN(stat_week) AS start_date,
-                MAX(stat_week) AS end_date,
-                MIN(expected_stories) AS expected_stories,
-                MIN(expected_sentences) AS expected_sentences
+                MIN(msw.stat_week) AS start_date,
+                MAX(msw.stat_week) AS end_date,
+                MIN(mev.expected_stories) AS expected_stories,
+                MIN(mev.expected_sentences) AS expected_sentences
             FROM media_stats_weekly AS msw
                 INNER JOIN dateless_media_expected_volume AS mev ON
                     msw.media_id = mev.media_id
@@ -195,9 +188,30 @@ SQL
                 msw.num_sentences > ($HEALTHY_VOLUME_RATIO * mev.expected_sentences) AND
                 msw.stat_week BETWEEN '$START_DATE' AND NOW()
             GROUP BY msw.media_id
+            ORDER BY msw.media_id
+SQL
+    );
+
+    $db->query( <<SQL
+        INSERT INTO media_expected_volume (
+            media_id,
+            start_date,
+            end_date,
+            expected_stories,
+            expected_sentences
+        )
+            SELECT
+                media_id,
+                start_date,
+                end_date,
+                expected_stories,
+                expected_sentences
+            FROM updated_media_expected_volume
             ORDER BY media_id
 SQL
     );
+
+    $db->query( 'DROP TABLE updated_media_expected_volume' );
 
     $db->commit;
 
@@ -233,15 +247,8 @@ sub _generate_media_coverage_gaps
 
     $db->query( "DELETE FROM media_coverage_gaps" );
 
-    $db->query( <<SQL
-        INSERT INTO media_coverage_gaps (
-            media_id,
-            stat_week,
-            num_stories,
-            expected_stories,
-            num_sentences,
-            expected_sentences
-        )
+    $db->query( <<SQL,
+        CREATE TEMPORARY TABLE new_media_coverage_gaps AS
             SELECT
                 msw.media_id,
                 stat_week,
@@ -260,6 +267,22 @@ sub _generate_media_coverage_gaps
                 )
 SQL
     );
+
+    $db->query( <<SQL
+        INSERT INTO media_coverage_gaps (
+            media_id,
+            stat_week,
+            num_stories,
+            expected_stories,
+            num_sentences,
+            expected_sentences
+        )
+            SELECT *
+            FROM new_media_coverage_gaps
+SQL
+    );
+
+    $db->query( 'DROP TABLE new_media_coverage_gaps' );
 
     # media_stats_weekly is sparse -- it only includes weeks for which there were more than 0
     # stories or sentences for the given media source.  this query inserts as coverage gaps
@@ -397,17 +420,30 @@ SQL
     );
 
     $db->query( <<SQL
+        CREATE TEMPORARY TABLE crawled_media_stats AS
+            SELECT *
+            FROM media_stats
+            WHERE media_id IN (
+                SELECT media_id
+                FROM crawled_media
+            )
+SQL
+    );
+
+    $db->query( <<SQL
         CREATE TEMPORARY TABLE media_stats_0 AS
             SELECT
                 m.media_id,
                 COALESCE(ms.num_stories, 0) AS num_stories,
                 COALESCE(ms.num_sentences, 0) AS num_sentences
             FROM crawled_media AS m
-                LEFT JOIN media_stats AS ms ON
+                LEFT JOIN crawled_media_stats AS ms ON
                     ms.media_id = m.media_id AND
-                    ms.stat_date = date_trunc('day', NOW() - INTERVAL '1 day'
+                    ms.stat_date = date_trunc('day', NOW() - INTERVAL '1 day')
 SQL
     );
+
+    $db->query( 'DROP TABLE crawled_media_stats' );
 
     $db->query( <<SQL
         CREATE TEMPORARY TABLE media_coverage_gap_counts AS
@@ -422,6 +458,17 @@ SQL
     $db->begin;
 
     $db->query( 'DELETE FROM media_health' );
+
+    $db->query( <<SQL
+        CREATE TEMPORARY TABLE temp_media_expected_volume AS
+            SELECT *
+            FROM media_expected_volume
+            WHERE media_id IN (
+                SELECT media_id
+                FROM crawled_media
+            )
+SQL
+    );
 
     $db->query( <<SQL
         INSERT INTO media_health (
@@ -452,8 +499,8 @@ SQL
                 msy.num_sentences AS num_sentences_y,
                 msw.num_sentences AS num_sentences_w,
                 ms90.num_sentences AS num_sentences_90,
-                'false'::boolean AS is_healthy,
-                'true'::boolean AS has_active_feed,
+                'false'::BOOLEAN AS is_healthy,
+                'true'::BOOLEAN AS has_active_feed,
                 mev.start_date,
                 mev.end_date,
                 mev.expected_sentences,
@@ -468,12 +515,14 @@ SQL
                     m.media_id = msy.media_id
                 INNER JOIN media_stats_week AS msw ON
                     m.media_id = msw.media_id
-                INNER JOIN media_expected_volume AS mev ON
+                INNER JOIN temp_media_expected_volume AS mev ON
                     m.media_id = mev.media_id
                 LEFT JOIN media_coverage_gap_counts AS mcg ON
                     m.media_id = mcg.media_id
 SQL
     );
+
+    $db->query( 'DROP TABLE temp_media_expected_volume' );
 
     $db->commit;
 
@@ -518,6 +567,16 @@ SQL
 
     $db->query( "UPDATE media_health SET has_active_feed = 'f'" );
     $db->query( <<SQL
+        WITH media_with_active_syndicated_feeds AS (
+            SELECT f.media_id
+            FROM feeds AS f
+                INNER JOIN feeds_stories_map AS fsm ON
+                    f.feeds_id = fsm.feeds_id
+            WHERE
+                active = 't' AND
+                type = 'syndicated'
+        )
+
         UPDATE media_health AS mh SET
             has_active_feed = 't'
         WHERE
@@ -526,13 +585,8 @@ SQL
                 num_sentences_90 > 0 AND
                 EXISTS (
                     SELECT 1
-                    FROM feeds AS f
-                        INNER JOIN feeds_stories_map AS fsm ON
-                            f.feeds_id = fsm.feeds_id
-                    WHERE
-                        active = 't' AND
-                        type = 'syndicated' AND
-                        f.media_id = mh.media_id
+                    FROM media_with_active_syndicated_feeds
+                    WHERE mh.media_id = media_with_active_syndicated_feeds.media_id
                 )
             )
 SQL
