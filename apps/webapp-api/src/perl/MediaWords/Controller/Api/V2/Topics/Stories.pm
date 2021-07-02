@@ -68,15 +68,26 @@ sub links_GET
 
     my $offset = int( $c->req->params->{ offset } // 0 );
 
+    my $topics_id = $timespan->{ topics_id };
     my $timespans_id = $timespan->{ timespans_id };
     my $snapshots_id = $timespan->{ snapshots_id };
 
-    my $links = $db->query( <<SQL, $timespans_id, $limit, $offset )->hashes;
-select source_stories_id, ref_stories_id from snap.story_links
-    where timespans_id = ?
-    order by source_stories_id, ref_stories_id
-    limit ? offset ?
+    my $links = $db->query( <<SQL,
+        SELECT
+            source_stories_id,
+            ref_stories_id
+        FROM snap.story_links
+        WHERE
+            topics_id = ? AND
+            timespans_id = ?
+        ORDER BY
+            source_stories_id,
+            ref_stories_id
+        LIMIT ?
+        OFFSET ?
 SQL
+        $topics_id, $timespans_id, $limit, $offset
+    )->hashes;
 
     my $entity = { links => $links };
 
@@ -90,10 +101,11 @@ sub list : Chained('stories') : Args(0) : ActionClass('MC_REST')
 }
 
 # get any where clauses for media_id, link_to_stories_id, link_from_stories_id, stories_id params
-sub _get_extra_where_clause($$)
+sub _get_extra_where_clause($$$)
 {
-    my ( $c, $timespans_id ) = @_;
+    my ( $c, $topics_id, $timespans_id ) = @_;
 
+    $topics_id = int( $topics_id );
     $timespans_id = int( $timespans_id );
 
     my $clauses = [];
@@ -102,100 +114,121 @@ sub _get_extra_where_clause($$)
     {
         my $media_ids = ref( $media_id ) ? $media_id : [ $media_id ];
         my $media_ids_list = join( ',', map { int( $_ ) } @{ $media_ids } ) || '-1';
-        push( @{ $clauses }, <<SQL );
-exists (
-    select s.stories_id
-        from snap.stories s
-            join timespans t using ( snapshots_id )
-        where
-            t.timespans_id = $timespans_id and
-            s.media_id in ( $media_ids_list ) and
-            s.stories_id = slc.stories_id
-)
+        push( @{ $clauses }, <<SQL
+            EXISTS (
+                SELECT s.stories_id
+                FROM snap.stories AS s
+                    INNER JOIN timespans AS t ON
+                        s.topics_id = t.topics_id AND
+                        s.snapshots_id = t.snapshots_id
+                WHERE
+                    s.topics_id = $topics_id AND
+                    t.timespans_id = $timespans_id AND
+                    s.media_id in ($media_ids_list) AND
+                    s.stories_id = slc.stories_id
+            )
 SQL
+        );
     }
 
     if ( my $stories_id = $c->req->params->{ stories_id } )
     {
         my $stories_ids = ref( $stories_id ) ? $stories_id : [ $stories_id ];
         my $stories_ids_list = join( ',', map { int( $_ ) } @{ $stories_ids } ) || '-1';
-        push( @{ $clauses }, "slc.stories_id in ( $stories_ids_list )" );
+        push( @{ $clauses }, "slc.stories_id IN ($stories_ids_list)" );
     }
 
     if ( my $link_to_stories_id = int( $c->req->params->{ link_to_stories_id } // 0 ) )
     {
-        push( @{ $clauses }, <<SQL );
-slc.stories_id in (
-    select
-            sl.source_stories_id
-        from snap.story_links sl
-        where
-            sl.ref_stories_id = $link_to_stories_id and
-            sl.timespans_id = $timespans_id
-)
+        push( @{ $clauses }, <<SQL
+            slc.stories_id IN (
+                SELECT sl.source_stories_id
+                FROM snap.story_links sl
+                WHERE
+                    sl.ref_stories_id = $link_to_stories_id AND
+                    sl.topics_id = $topics_id AND
+                    sl.timespans_id = $timespans_id
+            )
 SQL
-
+        );
     }
 
     if ( my $link_from_stories_id = int( $c->req->params->{ link_from_stories_id } // 0 ) )
     {
-        push( @{ $clauses }, <<SQL );
-slc.stories_id in (
-    select
-            sl.ref_stories_id
-        from snap.story_links sl
-        where
-            sl.source_stories_id = $link_from_stories_id and
-            sl.timespans_id = $timespans_id
-)
+        push( @{ $clauses }, <<SQL
+            slc.stories_id IN (
+                SELECT sl.ref_stories_id
+                FROM snap.story_links AS sl
+                WHERE
+                    sl.source_stories_id = $link_from_stories_id AND
+                    sl.topics_id = $topics_id AND
+                    sl.timespans_id = $timespans_id
+            )
 SQL
-
+        );
     }
 
     if ( my $link_to_media_id = int( $c->req->params->{ link_to_media_id } // 0 ) )
     {
-        push( @{ $clauses }, <<SQL );
-slc.stories_id in (
-    select
-            sl.source_stories_id
-        from snap.story_links sl
-            join timespans t using ( timespans_id )
-            join snap.stories s on ( sl.ref_stories_id = s.stories_id and s.snapshots_id = t.snapshots_id )
-        where
-            s.media_id = $link_to_media_id and
-            sl.timespans_id = $timespans_id
-)
+        push( @{ $clauses }, <<SQL
+            slc.stories_id IN (
+                SELECT sl.source_stories_id
+                FROM snap.story_links AS sl
+                    INNER JOIN timespans AS t ON
+                        sl.topics_id = t.topics_id AND
+                        sl.timespans_id = t.timespans_id
+                    INNER JOIN snap.stories AS s ON
+                        sl.topics_id = s.topics_id AND
+                        sl.ref_stories_id = s.stories_id AND
+                        s.snapshots_id = t.snapshots_id
+                WHERE
+                    s.media_id = $link_to_media_id AND
+                    sl.topics_id = $topics_id AND
+                    sl.timespans_id = $timespans_id
+            )
 SQL
+        );
 
     }
 
     if ( my $link_from_media_id = int( $c->req->params->{ link_from_media_id } // 0 ) )
     {
-        push( @{ $clauses }, <<SQL );
-slc.stories_id in (
-    select
-            sl.ref_stories_id
-        from snap.story_links sl
-            join timespans t using ( timespans_id )
-            join snap.stories s on ( sl.source_stories_id = s.stories_id and s.snapshots_id = t.snapshots_id )
-        where
-            s.media_id = $link_from_media_id and
-            sl.timespans_id = $timespans_id
-)
+        push( @{ $clauses }, <<SQL
+            slc.stories_id IN (
+                SELECT sl.ref_stories_id
+                FROM snap.story_links AS sl
+                    INNER JOIN timespans AS t ON
+                        sl.topics_id = t.topics_id AND
+                        sl.timespans_id = t.timespans_id
+                    INNER JOIN snap.stories AS s ON
+                        sl.topics_id = s.topics_id AND
+                        sl.source_stories_id = s.stories_id AND
+                        s.snapshots_id = t.snapshots_id
+                WHERE
+                    s.media_id = $link_from_media_id AND
+                    sl.topics_id = $topics_id AND
+                    sl.timespans_id = $timespans_id
+            )
 SQL
-
+        );
     }
 
     if ( my $q = $c->req->params->{ q } )
     {
         $q = "timespans_id:$timespans_id and ( $q )";
 
-        my $solr_stories_id = MediaWords::Solr::search_solr_for_stories_ids( $c->dbis, { q => $q, rows => 10_000_000 } );
+        my $solr_stories_id = MediaWords::Solr::search_solr_for_stories_ids(
+            $c->dbis,
+            {
+                'q' => $q,
+                'rows' => 10_000_000,
+            }
+        );
 
         $solr_stories_id = [ map { int( $_ ) } @{ $solr_stories_id } ];
 
         my $ids_table = $c->dbis->get_temporary_ids_table( $solr_stories_id );
-        push( @{ $clauses }, "slc.stories_id in ( select id from $ids_table )" );
+        push( @{ $clauses }, "slc.stories_id IN (SELECT id FROM $ids_table)" );
     }
 
     return '' unless ( @{ $clauses } );
@@ -237,14 +270,14 @@ sub _get_sort_clause
     $sort_param ||= 'inlink';
 
     my $sort_field_lookup = {
-        inlink       => 'slc.media_inlink_count desc',
-        inlink_count => 'slc.media_inlink_count desc',
-        facebook     => 'slc.facebook_share_count desc nulls last',
-        twitter      => 'slc.post_count desc nulls last',
-        post_count  => 'slc.post_count desc nulls last',
-        author_count  => 'slc.author_count desc nulls last',
-        channel_count  => 'slc.channel_count desc nulls last',
-        random       => 'random()'
+        inlink       => 'slc.media_inlink_count DESC',
+        inlink_count => 'slc.media_inlink_count DESC',
+        facebook     => 'slc.facebook_share_count DESC NULLS LAST',
+        twitter      => 'slc.post_count DESC NULLS LAST',
+        post_count  => 'slc.post_count DESC NULLS LAST',
+        author_count  => 'slc.author_count DESC NULLS LAST',
+        channel_count  => 'slc.channel_count DESC NULLS LAST',
+        random       => 'RANDOM()'
     };
 
     my $sort_field = $sort_field_lookup->{ lc( $sort_param ) }
@@ -266,28 +299,31 @@ sub list_GET
     $c->req->params->{ sort } ||= 'inlink';
 
     my $sort_clause = _get_sort_clause( $c->req->params->{ sort } );
-    $sort_clause = "order by slc.timespans_id desc, $sort_clause, md5( slc.stories_id::text ) desc";
+    $sort_clause = "ORDER BY slc.timespans_id DESC, $sort_clause, MD5(slc.stories_id::text) DESC";
 
+    my $topics_id = $timespan->{ topics_id };
     my $timespans_id = $timespan->{ timespans_id };
     my $snapshots_id = $timespan->{ snapshots_id };
 
-    my $extra_clause = _get_extra_where_clause( $c, $timespans_id );
+    my $extra_clause = _get_extra_where_clause( $c, $topics_id, $timespans_id );
 
     my $offset = int( $c->req->params->{ offset } // 0 );
 
     $c->req->params->{ limit } = List::Util::min( int( $c->req->params->{ limit } // 1_000 ), 1_000_000 );
     my $limit = $c->req->params->{ limit };
 
-    my $pre_limit_order = $extra_clause ? '' : "$sort_clause limit $limit offset $offset";
-    my $post_limit_offset =  $extra_clause ? "offset $offset" : '';
+    my $pre_limit_order = $extra_clause ? '' : "$sort_clause LIMIT $limit OFFSET $offset";
+    my $post_limit_offset =  $extra_clause ? "OFFSET $offset" : '';
 
     my $stories = $db->query( <<"SQL",
 
         WITH _topics_stories_slc AS (
             SELECT *
             FROM snap.story_link_counts AS slc
-            WHERE timespans_id = \$1
-            $extra_clause
+            WHERE
+                topics_id = \$1 AND
+                timespans_id = \$2
+                $extra_clause
             $pre_limit_order
         )
 
@@ -295,21 +331,23 @@ sub list_GET
             s.*,
             slc.*,
             m.name AS media_name
-        FROM _topics_stories_slc slc
-            JOIN snap.stories AS s
-                ON slc.stories_id = s.stories_id        
-            JOIN snap.media AS m
-                ON s.media_id = m.media_id    
-        WHERE s.snapshots_id = \$2
-          AND m.snapshots_id = \$2
+        FROM _topics_stories_slc AS slc
+            INNER JOIN snap.stories AS s ON
+                slc.topics_id = s.topics_id AND
+                slc.stories_id = s.stories_id AND
+                s.snapshots_id = \$3
+            INNER JOIN snap.media AS m ON
+                s.topics_id = m.topics_id AND
+                s.media_id = m.media_id AND
+                m.snapshots_id = \$3
         
         $sort_clause
 
-	    limit $limit
+	    LIMIT $limit
         $post_limit_offset
 
 SQL
-        $timespans_id, $snapshots_id
+        $topics_id, $timespans_id, $snapshots_id
     )->hashes;
 
     $stories = _add_foci_to_stories( $db, $timespan, $stories );
@@ -346,23 +384,29 @@ sub facebook_GET
 
     MediaWords::DBI::ApiLinks::process_and_stash_link( $c );
 
+    my $topics_id = $timespan->{ topics_id };
     my $timespans_id = $timespan->{ timespans_id };
 
     my $limit  = int( $c->req->params->{ limit }  // 0 );
     my $offset = int( $c->req->params->{ offset } // 0 );
 
-    my $counts = $db->query( <<SQL, $timespans_id, $limit, $offset )->hashes;
-select
-        ss.stories_id,
-        ss.facebook_share_count,
-        ss.facebook_comment_count,
-        ss.facebook_api_collect_date
-    from snap.story_link_counts slc
-        join story_statistics ss using ( stories_id )
-    where slc.timespans_id = \$1
-    order by ss.stories_id
-    limit \$2 offset \$3
+    my $counts = $db->query( <<SQL,
+        SELECT
+            ss.stories_id,
+            ss.facebook_share_count,
+            ss.facebook_comment_count,
+            ss.facebook_api_collect_date
+        FROM snap.story_link_counts AS slc
+            INNER JOIN story_statistics AS ss USING (stories_id)
+        WHERE
+            slc.topics_id = \$1 AND
+            slc.timespans_id = \$2
+        ORDER BY ss.stories_id
+        LIMIT \$3
+        OFFSET \$4
 SQL
+        $topics_id, $timespans_id, $limit, $offset
+    )->hashes;
 
     my $entity = { counts => $counts };
 
@@ -393,7 +437,7 @@ sub count_GET
 
     my $timespan_clause = "timespans_id:$timespan->{ timespans_id }";
 
-    $q = $q ? "$timespan_clause and ( $q )" : $timespan_clause;
+    $q = $q ? "$timespan_clause AND ($q)" : $timespan_clause;
 
     $c->req->params->{ q } = $q;
 

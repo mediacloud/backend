@@ -116,8 +116,12 @@ sub test_for_scraped_feeds($$)
     my $i       = 0;
     while ( $i++ < $timeout )
     {
-        my ( $num_waiting_media ) =
-          $db->query( "select count(*) from media_rescraping where last_rescrape_time is null" )->flat;
+        my ( $num_waiting_media ) = $db->query( <<SQL
+            SELECT COUNT(*)
+            FROM media_rescraping
+            WHERE last_rescrape_time IS NULL
+SQL
+        )->flat;
         ( $num_waiting_media > 0 ) ? sleep 1 : last;
         DEBUG( "wait for feed scraping ($num_waiting_media) ..." );
     }
@@ -126,9 +130,9 @@ sub test_for_scraped_feeds($$)
 
     for my $site ( @{ $sites } )
     {
-        my $medium = $db->query( "select * from media where name = ?", $site->{ name } )->hash
+        my $medium = $db->query( "SELECT * FROM media WHERE name = ?", $site->{ name } )->hash
           || die( "unable to find medium for site $site->{ name }" );
-        my $feed = $db->query( "select * from feeds where media_id = ?", $medium->{ media_id } )->hash;
+        my $feed = $db->query( "SELECT * FROM feeds WHERE media_id = ?", $medium->{ media_id } )->hash;
         ok( $feed, "feed exists for site $site->{ name } media_id $medium->{ media_id }" );
         is( $feed->{ type }, 'syndicated', "$site->{ name } feed type" );
         ok( $feed->{ active }, "$site->{ name } feed is active" );
@@ -208,9 +212,9 @@ sub test_media_create_update($$)
 
     for my $site ( @{ $sites } )
     {
-        my $medium = $db->query( "select * from media where name = ?", $site->{ name } )->hash
+        my $medium = $db->query( "SELECT * FROM media WHERE name = ?", $site->{ name } )->hash
           || die( "unable to find medium for site $site->{ name }" );
-        my $feeds = $db->query( "select * from feeds where media_id = ? order by feeds_id", $medium->{ media_id } )->hashes;
+        my $feeds = $db->query( "SELECT * FROM feeds WHERE media_id = ? order by feeds_id", $medium->{ media_id } )->hashes;
         is( scalar( @{ $feeds } ), 2, "media/create update $site->{ name } num feeds" );
 
         is_urls( $feeds->[ 0 ]->{ url }, $site->{ feed_url }, "media/create update $site->{ name } default feed url" );
@@ -222,9 +226,15 @@ sub test_media_create_update($$)
             ok( $feed->{ active }, "$site->{ name } feed is active" );
         }
 
-        my ( $tag_exists ) = $db->query( <<SQL, $medium->{ media_id }, $tag->{ tags_id } )->flat;
-select * from media_tags_map where media_id = \$1 and tags_id = \$2
+        my ( $tag_exists ) = $db->query( <<SQL,
+            SELECT *
+            FROM media_tags_map
+            WHERE
+                media_id = \$1 AND
+                tags_id = \$2
 SQL
+            $medium->{ media_id }, $tag->{ tags_id }
+        )->flat;
         ok( $tag_exists, "media/create update $site->{ name } tag exists" );
     }
 }
@@ -240,7 +250,7 @@ sub test_media_update($$)
     # test that request with list returns an error
     MediaWords::Test::API::test_put( '/api/v2/media/update', [ { media_id => 1 } ], 1 );
 
-    my $medium = $db->query( "select * from media where name = ?", $sites->[ 0 ]->{ name } )->hash;
+    my $medium = $db->query( "SELECT * FROM media WHERE name = ?", $sites->[ 0 ]->{ name } )->hash;
 
     my $fields = [ qw/media_id name url content_delay editor_notes public_notes foreign_rss_links/ ];
 
@@ -311,7 +321,7 @@ sub test_media_create($)
     is( $r->[ 0 ]->{ status }, 'new', "media/create url status" );
     is_urls( $r->[ 0 ]->{ url }, $first_site->{ url }, "media/create url url" );
 
-    my $first_medium = $db->query( "select * from media where name = \$1", $first_site->{ name } )->hash;
+    my $first_medium = $db->query( "SELECT * FROM media WHERE name = \$1", $first_site->{ name } )->hash;
     ok( $first_medium, "media/create url found medium with matching title" );
 
     # test that create reuse the same media source we just created
@@ -335,7 +345,7 @@ sub test_media_create($)
     for my $site ( @{ $sites } )
     {
         my $url = $site->{ url };
-        my $db_m = $db->query( "select * from media where url = ?", $url )->hash;
+        my $db_m = $db->query( "SELECT * FROM media WHERE url = ?", $url )->hash;
         ok( $db_m, "media/create mixed urls medium found for in db url $url" );
         ok( grep { $_ == $db_m->{ media_id } } @{ $status_media_ids } );
     }
@@ -361,7 +371,7 @@ sub test_media_suggestions_submit($)
     my $simple_url = 'http://foo.com';
     MediaWords::Test::API::test_post( '/api/v2/media/submit_suggestion', { url => $simple_url } );
 
-    my $simple_ms = $db->query( "select * from media_suggestions where url = \$1", $simple_url )->hash;
+    my $simple_ms = $db->query( "SELECT * FROM media_suggestions WHERE url = \$1", $simple_url )->hash;
     ok( $simple_ms, "media/submit_suggestion simple url found" );
 
     # test with all fields in input
@@ -378,7 +388,7 @@ sub test_media_suggestions_submit($)
 
     MediaWords::Test::API::test_post( '/api/v2/media/submit_suggestion', $full_ms_input );
 
-    my $full_ms_db = $db->query( "select * from media_suggestions where url = \$1", $full_ms_input->{ url } )->hash;
+    my $full_ms_db = $db->query( "SELECT * FROM media_suggestions WHERE url = \$1", $full_ms_input->{ url } )->hash;
     ok( $full_ms_db, "media/submit_suggestion full input found" );
 
     for my $field ( qw/name feed_url reason/ )
@@ -390,9 +400,15 @@ sub test_media_suggestions_submit($)
 
     for my $tag ( $tag_1, $tag_2 )
     {
-        my $tag_exists = $db->query( <<SQL, $tag->{ tags_id }, $full_ms_db->{ media_suggestions_id } )->hash;
-select * from media_suggestions_tags_map where tags_id = \$1 and media_suggestions_id = \$2
+        my $tag_exists = $db->query( <<SQL,
+            SELECT *
+            FROM media_suggestions_tags_map
+            WHERE
+                tags_id = \$1 AND
+                media_suggestions_id = \$2
 SQL
+            $tag->{ tags_id }, $full_ms_db->{ media_suggestions_id }
+        )->hash;
         ok( $tag_exists, "media/submit_suggestion full tag $tag->{ tags_id } exists" );
     }
 }
@@ -435,10 +451,10 @@ sub test_media_suggestions_list($)
 
     my $num_status_ms = 10;
 
-    my ( $auth_users_id, $email ) = $db->query( "select auth_users_id from auth_users limit 1" )->flat;
+    my ( $auth_users_id, $email ) = $db->query( "SELECT auth_users_id FROM auth_users LIMIT 1" )->flat;
 
     my $ms_db     = [];
-    my $media_ids = $db->query( "select media_id from media" )->flat;
+    my $media_ids = $db->query( "SELECT media_id FROM media" )->flat;
 
     my $tag = MediaWords::Util::Tags::lookup_or_create_tag( $db, "media_suggestions:test_tag" );
 
@@ -474,9 +490,12 @@ sub test_media_suggestions_list($)
             if ( $i % 2 )
             {
                 $ms->{ tags_id } = [ $tag->{ tags_id } ];
-                $db->query( <<SQL, $ms->{ media_suggestions_id }, $tag->{ tags_id } );
-insert into media_suggestions_tags_map ( media_suggestions_id, tags_id ) values ( \$1, \$2 )
+                $db->query( <<SQL,
+                    INSERT INTO media_suggestions_tags_map (media_suggestions_id, tags_id)
+                    VALUES (\$1, \$2)
 SQL
+                    $ms->{ media_suggestions_id }, $tag->{ tags_id }
+                );
             }
 
             push( @{ $ms_db }, $ms );
@@ -496,7 +515,7 @@ sub test_media_suggestions_mark($)
 {
     my ( $db ) = @_;
 
-    my ( $auth_users_id ) = $db->query( "select auth_users_id from auth_users limit 1" )->flat;
+    my ( $auth_users_id ) = $db->query( "SELECT auth_users_id FROM auth_users LIMIT 1" )->flat;
 
     my $ms = {
         url           => "http://m.s/mark",
@@ -525,7 +544,7 @@ sub test_media_suggestions_mark($)
     is( $ms->{ status },      'rejected', "media/mark_suggestion reject status" );
     is( $ms->{ mark_reason }, 'rejected', "media/mark_suggestion reject mark_reason" );
 
-    my ( $media_id ) = $db->query( "select media_id from media limit 1" )->flat;
+    my ( $media_id ) = $db->query( "SELECT media_id FROM media LIMIT 1" )->flat;
 
     # test approve
     my $approve_input = {
@@ -569,8 +588,12 @@ sub test_media($)
 {
     my ( $db ) = @_;
 
-    my $media = MediaWords::Test::DB::Create::create_test_story_stack_numerated( $db, $NUM_MEDIA, $NUM_FEEDS_PER_MEDIUM,
-        $NUM_STORIES_PER_FEED );
+    my $media = MediaWords::Test::DB::Create::create_test_story_stack_numerated(
+        $db,
+        $NUM_MEDIA,
+        $NUM_FEEDS_PER_MEDIUM,
+        $NUM_STORIES_PER_FEED
+    );
 
     $media = MediaWords::Test::DB::Create::add_content_to_test_story_stack( $db, $media );
 

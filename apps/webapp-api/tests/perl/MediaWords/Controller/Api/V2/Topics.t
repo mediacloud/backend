@@ -29,8 +29,7 @@ sub test_validate_max_stories($)
     my $label = "test_validate_max_stories";
 
     my $auth_user_api_key = MediaWords::Test::DB::Create::User::create_test_user( $db, $label );
-    my $auth_user = $db->query(
-        <<SQL,
+    my $auth_user = $db->query( <<SQL,
         SELECT auth_users_id
         FROM auth_user_api_keys
         WHERE api_key = ?
@@ -129,7 +128,7 @@ SQL
 
     for my $role ( @{ MediaWords::DBI::Auth::Roles::List::topic_mc_queue_roles() } )
     {
-        $db->query( "delete from auth_users_roles_map where auth_users_id = ?", $auth_users_id );
+        $db->query( "DELETE FROM auth_users_roles_map WHERE auth_users_id = ?", $auth_users_id );
         $db->query( <<SQL,
             INSERT INTO auth_users_roles_map (
                 auth_users_id,

@@ -168,7 +168,7 @@ sub single_GET
 
     my $id_field = $table_name . "_id";
 
-    my $query = "select * from $table_name where $id_field = ? ";
+    my $query = "SELECT * FROM $table_name WHERE $id_field = ? ";
 
     my $all_fields = int( $c->req->param( 'all_fields' ) // 0 );
 
@@ -217,7 +217,7 @@ sub get_name_search_clause
 
     my $q_name_val = $c->dbis->quote( $name_val );
 
-    return "and to_tsvector( 'english', $name_field ) @@ phraseto_tsquery( 'english', $q_name_val )";
+    return "AND to_tsvector('english', $name_field) @@ phraseto_tsquery('english', $q_name_val)";
 }
 
 # list_query_filter_field or list_optional_query_field, add relevant clauses
@@ -360,9 +360,15 @@ sub _get_user_tag_set_permissions
 {
     my ( $api_auth, $tag_set, $dbis ) = @_;
 
-    my $permissions =
-      $dbis->query( "SELECT * from  auth_users_tag_sets_permissions where auth_users_id = ? and tag_sets_id = ? ",
-        $api_auth->user_id(), $tag_set->{ tag_sets_id } )->hashes()->[ 0 ];
+    my $permissions = $dbis->query( <<SQL,
+        SELECT *
+        FROM auth_users_tag_sets_permissions
+        WHERE
+            auth_users_id = ? AND
+            tag_sets_id = ?
+SQL
+        $api_auth->user_id(), $tag_set->{ tag_sets_id }
+    )->hashes()->[ 0 ];
 
     return $permissions;
 }

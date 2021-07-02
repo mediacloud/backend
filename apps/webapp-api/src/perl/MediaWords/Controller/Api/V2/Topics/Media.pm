@@ -116,16 +116,28 @@ sub _add_tags_to_media($$)
     my ( $db, $media ) = @_;
 
     my $media_ids_list = join( ',', map { $_->{ media_id } } @{ $media } ) || '-1';
-    my $tags = $db->query( <<END )->hashes;
-select mtm.media_id, t.tags_id, t.tag, t.label, t.description, mtm.tagged_date, ts.tag_sets_id, ts.name as tag_set,
-        ( t.show_on_media or ts.show_on_media ) show_on_media,
-        ( t.show_on_stories or ts.show_on_stories ) show_on_stories
-    from media_tags_map mtm
-        join tags t on ( mtm.tags_id = t.tags_id )
-        join tag_sets ts on ( ts.tag_sets_id = t.tag_sets_id )
-    where mtm.media_id in ( $media_ids_list )
-    order by t.tags_id
-END
+
+    my $tags = $db->query( <<SQL
+        select
+            mtm.media_id,
+            t.tags_id,
+            t.tag,
+            t.label,
+            t.description,
+            mtm.tagged_date,
+            ts.tag_sets_id,
+            ts.name AS tag_set,
+            (t.show_on_media OR ts.show_on_media) AS show_on_media,
+            (t.show_on_stories OR ts.show_on_stories) AS show_on_stories
+        FROM media_tags_map AS mtm
+            INNER JOIN tags AS t ON
+                mtm.tags_id = t.tags_id
+            INNER JOIN tag_sets AS ts ON
+                ts.tag_sets_id = t.tag_sets_id
+        WHERE mtm.media_id IN ($media_ids_list)
+        ORDER BY t.tags_id
+SQL
+    )->hashes;
 
     my $tags_lookup = {};
     map { push( @{ $tags_lookup->{ $_->{ media_id } } }, $_ ) } @{ $tags };
@@ -160,6 +172,7 @@ sub list_GET
 
     my $sort_clause = _get_sort_clause( $c->req->params->{ sort } );
 
+    my $topics_id = $timespan->{ topics_id };
     my $timespans_id = $timespan->{ timespans_id };
     my $snapshots_id = $timespan->{ snapshots_id };
 
@@ -168,17 +181,23 @@ sub list_GET
 
     my $extra_clause = _get_extra_where_clause( $c, $timespans_id );
 
-    my $media = $db->query( <<SQL, $timespans_id, $snapshots_id, $limit, $offset )->hashes;
-select *
-    from snap.medium_link_counts mlc
-        join snap.media m on mlc.media_id = m.media_id
-    where mlc.timespans_id = \$1 and
-        m.snapshots_id = \$2
-        $extra_clause
-    order by $sort_clause
-    limit \$3 offset \$4
-
+    my $media = $db->query( <<SQL,
+        SELECT *
+        FROM snap.medium_link_counts AS mlc
+            INNER JOIN snap.media AS m ON
+                mlc.topics_id= m.topics_id AND
+                mlc.media_id = m.media_id
+        WHERE
+            mlc.topics_id = ? AND
+            mlc.timespans_id = ? AND
+            m.snapshots_id = ?
+            $extra_clause
+        ORDER BY $sort_clause
+        LIMIT ?
+        OFFSET ?
 SQL
+        $topics_id, $timespans_id, $snapshots_id, $limit, $offset
+    )->hashes;
 
     _add_tags_to_media( $db, $media );
     _add_counts_to_media( $db, $timespan, $media );
@@ -209,15 +228,26 @@ sub links_GET
 
     my $offset = int( $c->req->params->{ offset } // 0 );
 
+    my $topics_id = $timespan->{ topics_id };
     my $timespans_id = $timespan->{ timespans_id };
     my $snapshots_id = $timespan->{ snapshots_id };
 
-    my $links = $db->query( <<SQL, $timespans_id, $limit, $offset )->hashes;
-select source_media_id, ref_media_id from snap.medium_links
-    where timespans_id = ?
-    order by source_media_id, ref_media_id
-    limit ? offset ?
+    my $links = $db->query( <<SQL,
+        SELECT
+            source_media_id,
+            ref_media_id
+        FROM snap.medium_links
+        WHERE
+            topics_id = ? AND
+            timespans_id = ?
+        ORDER BY
+            source_media_id,
+            ref_media_id
+        LIMIT ?
+        OFFSET ?
 SQL
+        $topics_id, $timespans_id, $limit, $offset
+    )->hashes;
 
     my $entity = { links => $links };
 
@@ -244,9 +274,17 @@ sub _new_map
     }
     else
     {
-        $map = $db->query( <<SQL, $timespan->{ timespans_id }, $format )->hash;
-select * from timespan_maps where timespans_id = ? and format = ?
+        $map = $db->query( <<SQL,
+            SELECT *
+            FROM timespan_maps
+            WHERE
+                topics_id = ? AND
+                timespans_id = ? AND
+                format = ?
 SQL
+            $timespan->{ topics_id }, $timespan->{ timespans_id }, $format
+        )->hash;
+
         die( "no maps found for timespan $timespan->{ timespans_id } with format $format" ) unless $map;
     }
 
@@ -335,12 +373,22 @@ sub list_maps_GET
 
     my $db = $c->dbis;
 
-    my $timespan_maps = $db->query( <<SQL, $timespan->{ timespans_id } )->hashes;
-select timespan_maps_id, timespans_id, options, format, url, length(content) content_length
-    from timespan_maps
-    where timespans_id = ?
-    order by timespans_id
+    my $timespan_maps = $db->query( <<SQL,
+        SELECT
+            timespan_maps_id,
+            timespans_id,
+            options,
+            format,
+            url,
+            LENGTH(content) AS content_length
+        FROM timespan_maps
+        WHERE
+            topics_id = ? AND
+            timespans_id = ?
+        ORDER BY timespans_id
 SQL
+        $timespan->{ topics_id }, $timespan->{ timespans_id }
+    )->hashes;
 
     $self->status_ok( $c, entity => { timespan_maps => $timespan_maps } );
 }

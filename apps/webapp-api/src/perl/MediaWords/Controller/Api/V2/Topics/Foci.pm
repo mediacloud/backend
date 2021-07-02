@@ -37,12 +37,20 @@ sub list_GET
     my $focal_sets_id = int( $c->req->params->{ focal_sets_id } // 0 )
       || die( 'missing required param focal_sets_id' );
 
-    my $foci = $db->query( <<SQL, $focal_sets_id )->hashes;
-select foci_id, name, description, arguments->>'query' query
-    from foci
-    where focal_sets_id = \$1
-    order by name desc
+    my $foci = $db->query( <<SQL,
+        SELECT
+            foci_id,
+            name,
+            description,
+            arguments->>'query' AS query
+        FROM foci
+        WHERE
+            topics_id = ? AND
+            focal_sets_id = ?
+        ORDER BY name DESC
 SQL
+        $topics_id, $focal_sets_id
+    )->hashes;
 
     $self->status_ok( $c, entity => { foci => $foci } );
 }

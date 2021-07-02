@@ -42,9 +42,14 @@ sub test_mediahealth($)
         $db->create( 'media_health', $mh );
     }
 
-    my $expected_mhs = $db->query( <<SQL, $label )->hashes;
-select mh.* from media_health mh join media m using ( media_id ) where m.name like ? || '%'
+    my $expected_mhs = $db->query( <<SQL,
+        SELECT mh.*
+        FROM media_health AS mh
+            INNER JOIN media AS m USING (media_id)
+        WHERE m.name LIKE ? || '%'
 SQL
+        $label
+    )->hashes;
 
     my $media_id_params = join( '&', map { "media_id=$_->{ media_id }" } @{ $expected_mhs } );
 

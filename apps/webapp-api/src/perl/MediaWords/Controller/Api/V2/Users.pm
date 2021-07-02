@@ -49,7 +49,7 @@ SQL
                 \$1,
                 auth_roles.auth_roles_id
             FROM auth_roles
-            WHERE auth_roles.role = ANY( \$2 )
+            WHERE auth_roles.role = ANY(\$2)
         ON CONFLICT (auth_users_id, auth_roles_id) DO NOTHING
 SQL
         $user->{ auth_users_id }, $roles

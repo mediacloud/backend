@@ -115,16 +115,18 @@ sub test_stories_list($)
 
     my $label = "stories/list";
 
-    my $stories = $db->query( <<SQL )->hashes;
-select s.*,
-        m.name media_name,
-        m.url media_url,
-        false ap_syndicated
-    from stories s
-        join media m using ( media_id )
-    order by stories_id
-    limit 10
+    my $stories = $db->query( <<SQL
+        SELECT
+            s.*,
+            m.name AS media_name,
+            m.url AS media_url,
+            false AS ap_syndicated
+        FROM stories AS s
+            JOIN media AS m USING (media_id)
+        ORDER BY stories_id
+        LIMIT 10
 SQL
+    )->hashes;
 
     my $stories_ids_list = join( ' ', map { $_->{ stories_id } } @{ $stories } );
 
@@ -149,8 +151,7 @@ SQL
         my $got_story = $got_stories_lookup->{ $story->{ stories_id } };
 
         my $sentences = $db->query( "select * from story_sentences where stories_id = ?", $sid )->hashes;
-        my $download_text = $db->query(
-            <<SQL,
+        my $download_text = $db->query( <<SQL,
             SELECT *
             FROM download_texts
             WHERE downloads_id = (
@@ -167,7 +168,13 @@ SQL
         my $content = MediaWords::DBI::Downloads::Store::get_content_for_first_download( $db, $story );
 
         my $ss_fields = [ qw/is_dup language media_id publish_date sentence sentence_number story_sentences_id/ ];
-        MediaWords::Test::Rows::rows_match( "$label $sid sentences", $got_story->{ story_sentences }, $sentences, 'story_sentences_id', $ss_fields );
+        MediaWords::Test::Rows::rows_match(
+            "$label $sid sentences",
+            $got_story->{ story_sentences },
+            $sentences,
+            'story_sentences_id',
+            $ss_fields
+        );
 
         is( $got_story->{ raw_first_download_file }, $content, "$label $sid download" );
         is( $got_story->{ story_text }, $download_text->{ download_text }, "$label $sid download_text" );
@@ -176,7 +183,13 @@ SQL
     my $story = $stories->[ 0 ];
 
     my $got_story = MediaWords::Test::API::test_get( '/api/v2/stories/single/' . $story->{ stories_id }, {} );
-    MediaWords::Test::Rows::rows_match( "stories/single", $got_story, [ $story ], 'stories_id', [ qw/stories_id title publish_date/ ] );
+    MediaWords::Test::Rows::rows_match(
+        "stories/single",
+        $got_story,
+        [ $story ],
+        'stories_id',
+        [ qw/stories_id title publish_date/ ]
+    );
 }
 
 # various tests to validate stories_public/list
@@ -202,8 +215,12 @@ sub test_stories_public_list($$)
         _test_story_fields( $db, $stories->[ $i ], "all stories: story $i" );
     }
 
-    my $search_result =
-      MediaWords::Test::API::test_get( '/api/v2/stories_public/list', { q => 'stories_id:' . $stories->[ 0 ]->{ stories_id } } );
+    my $search_result = MediaWords::Test::API::test_get(
+        '/api/v2/stories_public/list',
+        {
+            'q' => 'stories_id:' . $stories->[ 0 ]->{ stories_id },
+        }
+    );
     is( scalar( @{ $search_result } ), 1, "stories_public search: count" );
     is( $search_result->[ 0 ]->{ stories_id }, $stories->[ 0 ]->{ stories_id }, "stories_public search: stories_id match" );
     _test_story_fields( $db, $search_result->[ 0 ], "story_public search" );
@@ -218,13 +235,33 @@ sub test_stories_public_list($$)
     # expect error when including q= and feeds_id=
     MediaWords::Test::API::test_get( '/api/v2/stories_public/list', { q => 'foo', feeds_id => 1 }, 1 );
 
-    my $feed =
-      $db->query( "select * from feeds where feeds_id in ( select feeds_id from feeds_stories_map ) limit 1" )->hash;
-    my $feed_stories =
-      MediaWords::Test::API::test_get( '/api/v2/stories_public/list', { rows => 100000, feeds_id => $feed->{ feeds_id }, show_feeds => 1 } );
-    my $expected_feed_stories = $db->query( <<SQL, $feed->{ feeds_id } )->hashes;
-select s.* from stories s join feeds_stories_map fsm using ( stories_id ) where feeds_id = ?
+    my $feed = $db->query( <<SQL
+        SELECT *
+        FROM feeds
+        WHERE
+            feeds_id IN (
+                SELECT feeds_id
+                FROM feeds_stories_map
+            )
+        LIMIT 1
 SQL
+        )->hash;
+    my $feed_stories = MediaWords::Test::API::test_get(
+        '/api/v2/stories_public/list',
+        {
+            rows => 100000,
+            feeds_id => $feed->{ feeds_id },
+            show_feeds => 1,
+        }
+    );
+    my $expected_feed_stories = $db->query( <<SQL,
+        SELECT s.*
+        FROM stories AS s
+            INNER JOIN feeds_stories_map AS fsm USING (stories_id)
+        WHERE feeds_id = ?
+SQL
+        $feed->{ feeds_id }
+    )->hashes;
 
     is( scalar( @{ $feed_stories } ), scalar( @{ $expected_feed_stories } ), "stories feed count feed $feed->{ feeds_id }" );
     for my $feed_story ( @{ $feed_stories } )
@@ -246,16 +283,18 @@ sub test_stories_single($)
 
     my $label = "stories/list";
 
-    my $story = $db->query( <<SQL )->hash;
-select s.*,
-        m.name media_name,
-        m.url media_url,
-        false ap_syndicated
-    from stories s
-        join media m using ( media_id )
-    order by stories_id
-    limit 1
+    my $story = $db->query( <<SQL
+        SELECT
+            s.*,
+            m.name AS media_name,
+            m.url AS media_url,
+            false AS ap_syndicated
+        FROM stories AS s
+            INNER JOIN media AS m USING (media_id)
+        ORDER BY stories_id
+        LIMIT 1
 SQL
+    )->hash;
 
     my $got_stories = MediaWords::Test::API::test_get( '/api/v2/stories/list', { q => "stories_id:$story->{ stories_id }" } );
 
@@ -267,15 +306,15 @@ sub test_stories_count($)
 {
     my ( $db ) = @_;
 
-    my $stories = $db->query( "select * from stories order by stories_id asc limit 23" )->hashes;
+    my $stories = $db->query( "SELECT * FROM stories ORDER BY stories_id ASC LIMIT 23" )->hashes;
 
     my $stories_ids_list = join( ' ', map { $_->{ stories_id } } @{ $stories } );
 
-    my $r = MediaWords::Test::API::test_get( '/api/v2/stories/count', { q => "stories_id:($stories_ids_list)" } );
+    my $r = MediaWords::Test::API::test_get( '/api/v2/stories/count', { 'q' => "stories_id:($stories_ids_list)" } );
 
     is( $r->{ count }, scalar( @{ $stories } ), "stories/count count" );
 
-    $r = MediaWords::Test::API::test_get( '/api/v2/stories_public/count', { q => "stories_id:($stories_ids_list)" } );
+    $r = MediaWords::Test::API::test_get( '/api/v2/stories_public/count', { 'q' => "stories_id:($stories_ids_list)" } );
 
     is( $r->{ count }, scalar( @{ $stories } ), "stories_public/count count" );
 }
@@ -286,13 +325,24 @@ sub test_stories_count_split($)
 
     my $label = "stories/count split";
 
-    $db->query( <<SQL );
-update stories set publish_date = '2017-01-01'::date + ( ( stories_id % 27 )::text || ' days' )::interval
+    $db->query( <<SQL
+        UPDATE stories SET
+            publish_date = '2017-01-01'::DATE + ((stories_id % 27)::TEXT || ' days')::INTERVAL
 SQL
+);
 
-    MediaWords::Job::Broker->new( 'MediaWords::Job::ImportSolrDataForTesting' )->run_remotely( { throttle => 0 } );
+    MediaWords::Job::Broker->new( 'MediaWords::Job::ImportSolrDataForTesting' )->run_remotely( {
+            throttle => 0
+    } );
 
-    my $date_counts = $db->query( "select publish_date, count(*) as count from stories group by publish_date" )->hashes;
+    my $date_counts = $db->query( <<SQL
+        SELECT
+            publish_date,
+            COUNT(*) AS count
+        FROM stories
+        GROUP BY publish_date
+SQL
+    )->hashes;
 
     my $date_count_lookup = {};
     map { $date_count_lookup->{ $_->{ publish_date } } = $_->{ count } } @{ $date_counts };
@@ -327,7 +377,7 @@ sub test_stories_word_matrix($)
 
     my $label = "stories/word_matrix";
 
-    my $stories          = $db->query( "select * from stories order by stories_id limit 17" )->hashes;
+    my $stories          = $db->query( "SELECT * FROM stories ORDER BY stories_id LIMIT 17" )->hashes;
     my $stories_ids      = [ map { $_->{ stories_id } } @{ $stories } ];
     my $stories_ids_list = join( ' ', @{ $stories_ids } );
 
@@ -353,8 +403,18 @@ sub test_stories_update($$)
     # test that request with list returns an error
     MediaWords::Test::API::test_put( '/api/v2/stories/update', { stories_id => 1 }, 1 );
 
-    my $media = MediaWords::Test::DB::Create::create_test_story_stack( $db,
-        { 'update_m1' => { 'update_f1' => [ 'update_s1', 'update_s2', 'update_s3' ] } } );
+    my $media = MediaWords::Test::DB::Create::create_test_story_stack(
+        $db,
+        {
+            'update_m1' => {
+                'update_f1' => [
+                    'update_s1',
+                    'update_s2',
+                    'update_s3',
+                ]
+            }
+        }
+    );
 
     my $story = $media->{ update_s1 };
 
@@ -391,13 +451,16 @@ sub test_stories_field_count($)
 
     my $tag = MediaWords::Util::Tags::lookup_or_create_tag( $db, "$label:$label" );
 
-    my $stories = $db->query( "select * from stories order by stories_id asc limit 10" )->hashes;
+    my $stories = $db->query( "SELECT * FROM stories ORDER BY stories_id ASC LIMIT 10" )->hashes;
     my $tagged_stories = [ ( @{ $stories } )[ 1 .. 5 ] ];
     for my $story ( @{ $tagged_stories } )
     {
-        $db->query( <<SQL, $story->{ stories_id }, $tag->{ tags_id } );
-insert into stories_tags_map ( stories_id, tags_id ) values ( ?, ? )
+        $db->query( <<SQL,
+            INSERT INTO stories_tags_map (stories_id, tags_id)
+            VALUES (?, ?)
 SQL
+            $story->{ stories_id }, $tag->{ tags_id }
+        );
     }
 
     my $stories_ids = [ map { $_->{ stories_id } } @{ $stories } ];
@@ -405,8 +468,14 @@ SQL
 
     my $tagged_stories_ids = [ map { $_->{ stories_id } } @{ $tagged_stories } ];
 
-    my $r = MediaWords::Test::API::test_get( '/api/v2/stories/field_count',
-        { field => 'tags_id_stories', q => "stories_id:($stories_ids_list)", tag_sets_id => $tag->{ tag_sets_id } } );
+    my $r = MediaWords::Test::API::test_get(
+        '/api/v2/stories/field_count',
+        {
+            'field' => 'tags_id_stories',
+            'q' => "stories_id:($stories_ids_list)",
+            'tag_sets_id' => $tag->{ tag_sets_id }
+        }
+    );
 
     is( scalar( @{ $r } ), 1, "$label num of tags" );
 
@@ -419,8 +488,12 @@ sub test_stories($)
 {
     my ( $db ) = @_;
 
-    my $media = MediaWords::Test::DB::Create::create_test_story_stack_numerated( $db, $NUM_MEDIA, $NUM_FEEDS_PER_MEDIUM,
-        $NUM_STORIES_PER_FEED );
+    my $media = MediaWords::Test::DB::Create::create_test_story_stack_numerated(
+        $db,
+        $NUM_MEDIA,
+        $NUM_FEEDS_PER_MEDIUM,
+        $NUM_STORIES_PER_FEED
+    );
 
     $media = MediaWords::Test::DB::Create::add_content_to_test_story_stack( $db, $media );
 

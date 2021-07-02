@@ -29,7 +29,7 @@ sub test_feeds_list($)
 
     map { MediaWords::Test::DB::Create::create_test_feed( $db, "$label $_", $medium ) } ( 1 .. 10 );
 
-    my $expected_feeds = $db->query( "select * from feeds where media_id = ?", $medium->{ media_id } )->hashes;
+    my $expected_feeds = $db->query( "SELECT * FROM feeds WHERE media_id = ?", $medium->{ media_id } )->hashes;
 
     my $got_feeds = MediaWords::Test::API::test_get( '/api/v2/feeds/list', { media_id => $medium->{ media_id } } );
 
@@ -48,8 +48,12 @@ sub test_feeds($)
 {
     my ( $db ) = @_;
 
-    my $media = MediaWords::Test::DB::Create::create_test_story_stack_numerated( $db, $NUM_MEDIA, $NUM_FEEDS_PER_MEDIUM,
-        $NUM_STORIES_PER_FEED );
+    my $media = MediaWords::Test::DB::Create::create_test_story_stack_numerated(
+        $db,
+        $NUM_MEDIA,
+        $NUM_FEEDS_PER_MEDIUM,
+        $NUM_STORIES_PER_FEED
+    );
 
     $media = MediaWords::Test::DB::Create::add_content_to_test_story_stack( $db, $media );
 

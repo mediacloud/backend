@@ -106,21 +106,29 @@ sub scrape_GET
 
     my $job_class = 'MediaWords::Job::RescrapeMedia';
 
-    my $job_state = $db->query( <<SQL, $data->{ media_id }, $job_class )->hash;
-select $JOB_STATE_FIELD_LIST
-    from pending_job_states
-    where
-        ( args->>'media_id' )::bigint = \$1 and
-        class = \$2
-    order by job_states_id desc
-    limit 1
+    my $job_state = $db->query( <<SQL,
+        SELECT $JOB_STATE_FIELD_LIST
+        FROM pending_job_states
+        WHERE
+            (args->>'media_id')::BIGINT = \$1 AND
+            class = \$2
+        ORDER BY job_states_id DESC
+        LIMIT 1
 SQL
+        $data->{ media_id }, $job_class
+    )->hash;
 
     if ( !$job_state )
     {
         $db->begin;
         MediaWords::Job::StatefulBroker->new( $job_class )->add_to_queue( { media_id => $data->{ media_id } } );
-        $job_state = $db->query( "select $JOB_STATE_FIELD_LIST from job_states order by job_states_id desc limit 1" )->hash;
+        $job_state = $db->query( <<SQL
+            SELECT $JOB_STATE_FIELD_LIST
+            FROM job_states
+            ORDER BY job_states_id DESC
+            LIMIT 1
+SQL
+        )->hash;
         $db->commit;
 
         die( "Unable to find job state from queued job" ) unless ( $job_state );
@@ -147,25 +155,28 @@ sub scrape_status_GET
 
     if ( $media_id )
     {
-        $job_states = $db->query( <<SQL, $media_id, $job_class )->hashes;
-select $JOB_STATE_FIELD_LIST
-    from job_states
-    where
-        class = \$2 and
-        ( args->>'media_id' )::bigint = \$1
-    order by last_updated desc
+        $job_states = $db->query( <<SQL,
+            SELECT $JOB_STATE_FIELD_LIST
+            FROM job_states
+            WHERE
+                class = \$2 AND
+                ( args->>'media_id' )::BIGINT = \$1
+            ORDER BY last_updated DESC
 SQL
+            $media_id, $job_class
+        )->hashes;
     }
     else
     {
-        $job_states = $db->query( <<SQL, $job_class )->hashes;
-select $JOB_STATE_FIELD_LIST
-    from job_states
-    where
-        class = \$1
-    order by last_updated desc
-    limit 100
+        $job_states = $db->query( <<SQL,
+            SELECT $JOB_STATE_FIELD_LIST
+            FROM job_states
+            WHERE class = \$1
+            ORDER BY last_updated DESC
+            LIMIT 100
 SQL
+            $job_class
+        )->hashes;
     }
 
     $self->status_ok( $c, entity => { job_states => $job_states } );

@@ -128,10 +128,18 @@ sub generate_GET
 
     $db->begin;
 
-    MediaWords::Job::StatefulBroker->new( 'MediaWords::Job::TM::SnapshotTopic' )->add_to_queue(
-        { snapshots_id => $snapshots_id, topics_id => $topics_id, note => $note },
-    );
-    my $job_state = $db->query( "select $JOB_STATE_FIELD_LIST from job_states order by job_states_id desc limit 1" )->hash;
+    MediaWords::Job::StatefulBroker->new( 'MediaWords::Job::TM::SnapshotTopic' )->add_to_queue( {
+        snapshots_id => $snapshots_id,
+        topics_id => $topics_id,
+        note => $note,
+    } );
+    my $job_state = $db->query( <<SQL
+        SELECT $JOB_STATE_FIELD_LIST
+        FROM job_states
+        ORDER BY job_states_id DESC
+        LIMIT 1
+SQL
+    )->hash;
     $db->commit;
 
     die( "Unable to find job state from queued job" ) unless ( $job_state );
@@ -155,14 +163,16 @@ sub generate_status_GET
 
     my $job_states;
 
-    $job_states = $db->query( <<SQL, $topics_id, $job_class )->hashes;
-select $JOB_STATE_FIELD_LIST
-    from job_states
-    where
-        class = \$2 and
-        ( args->>'topics_id' )::bigint = \$1
-    order by last_updated desc
+    $job_states = $db->query( <<SQL,
+        SELECT $JOB_STATE_FIELD_LIST
+        FROM job_states
+        WHERE
+            class = ? AND
+            ( args->>'topics_id' )::BIGINT = ?
+        ORDER BY last_updated DESC
 SQL
+        $job_class, $topics_id
+    )->hashes;
 
     $self->status_ok( $c, entity => { job_states => $job_states } );
 }

@@ -65,24 +65,25 @@ sub get_extra_where_clause
     {
         $tag_sets_ids = ref( $tag_sets_ids ) ? $tag_sets_ids : [ $tag_sets_ids ];
         my $tag_sets_ids_list = join( ',', map { int( $_ ) } @{ $tag_sets_ids } );
-        push( @{ $clauses }, "and tag_sets_id in ( $tag_sets_ids_list )" );
+        push( @{ $clauses }, "AND tag_sets_id IN ( $tag_sets_ids_list )" );
     }
 
     if ( my $similar_tags_id = int( $c->req->params->{ similar_tags_id } // 0 ) )
     {
-        push( @{ $clauses }, <<SQL );
-and tags_id in (
-    select b.tags_id
-        from media_tags_map a
-            join media_tags_map b using ( media_id )
-        where
-            a.tags_id = $similar_tags_id and
-            a.tags_id <> b.tags_id
-        group by b.tags_id
-        order by count(*) desc
-        limit 100
-)
+        push( @{ $clauses }, <<SQL
+            AND tags_id IN (
+                SELECT b.tags_id
+                FROM media_tags_map AS a
+                    INNER JOIN media_tags_map AS b USING (media_id)
+                WHERE
+                    a.tags_id = $similar_tags_id AND
+                    a.tags_id != b.tags_id
+                GROUP BY b.tags_id
+                ORDER BY COUNT(*) DESC
+                LIMIT 100
+            )
 SQL
+        );
     }
 
     if ( @{ $clauses } )
@@ -97,17 +98,27 @@ sub single_GET
 {
     my ( $self, $c, $id ) = @_;
 
-    my $items = $c->dbis->query( <<END, $id )->hashes();
-select t.tags_id, t.tag_sets_id, t.label, t.description, t.tag,
-        ts.name tag_set_name, ts.label tag_set_label, ts.description tag_set_description,
-        COALESCE(t.show_on_media, 'f') OR COALESCE(ts.show_on_media, 'f') AS show_on_media,
-        COALESCE(t.show_on_stories, 'f') OR COALESCE(ts.show_on_stories, 'f') AS show_on_stories,
-        t.is_static
-    from tags t
-        join tag_sets ts on ( t.tag_sets_id = ts.tag_sets_id )
-    where
-        t.tags_id = ?
-END
+    my $items = $c->dbis->query( <<SQL,
+        SELECT
+            t.tags_id,
+            t.tag_sets_id,
+            t.label,
+            t.description,
+            t.tag,
+            ts.name AS tag_set_name,
+            ts.label AS tag_set_label,
+            ts.description AS tag_set_description,
+            COALESCE(t.show_on_media, 'f') OR COALESCE(ts.show_on_media, 'f') AS show_on_media,
+            COALESCE(t.show_on_stories, 'f') OR COALESCE(ts.show_on_stories, 'f') AS show_on_stories,
+            t.is_static
+        FROM tags AS t
+            INNER JOIN tag_sets AS ts ON
+                t.tag_sets_id = ts.tag_sets_id
+        WHERE
+            t.tags_id = ?
+SQL
+        $id
+    )->hashes();
 
     $self->status_ok( $c, entity => $items );
 }
@@ -120,17 +131,27 @@ sub _fetch_list($$$$$$)
 
     my $public_clause = $public ? 't.show_on_media or ts.show_on_media or t.show_on_stories or ts.show_on_stories' : '1=1';
 
-    $c->dbis->query( <<END );
-create temporary view tags as
-    select t.tags_id, t.tag_sets_id, t.label, t.description, t.tag,
-        ts.name tag_set_name, ts.label tag_set_label, ts.description tag_set_description,
-        t.show_on_media OR ts.show_on_media show_on_media,
-        t.show_on_stories OR ts.show_on_stories show_on_stories,
-        t.is_static
-    from tags t
-        join tag_sets ts on ( t.tag_sets_id = ts.tag_sets_id )
-    where $public_clause
-END
+    # FIXME get rid of this someday
+    $c->dbis->query( <<SQL
+        CREATE TEMPORARY VIEW tags AS
+            select
+                t.tags_id,
+                t.tag_sets_id,
+                t.label,
+                t.description,
+                t.tag,
+                ts.name AS tag_set_name,
+                ts.label AS tag_set_label,
+                ts.description AS tag_set_description,
+                t.show_on_media OR ts.show_on_media AS show_on_media,
+                t.show_on_stories OR ts.show_on_stories AS show_on_stories,
+                t.is_static
+            FROM tags AS t
+                INNER JOIN tag_sets AS ts ON
+                    t.tag_sets_id = ts.tag_sets_id
+            WHERE $public_clause
+SQL
+    );
 
     return $self->SUPER::_fetch_list( $c, $last_id, $table_name, $id_field, $rows );
 }

@@ -42,7 +42,17 @@ __PACKAGE__->config(
 );
 
 Readonly::Scalar my $TOPICS_EDIT_FIELDS => [
-    qw/name solr_seed_query description max_iterations start_date end_date platform is_public max_stories is_logogram is_story_index_ready/
+    'name',
+    'solr_seed_query',
+    'description',
+    'max_iterations',
+    'start_date',
+    'end_date',
+    'platform',
+    'is_public',
+    'max_stories',
+    'is_logogram',
+    'is_story_index_ready',
 ];
 
 Readonly::Scalar my $JOB_STATE_FIELD_LIST =>
@@ -69,13 +79,13 @@ sub _get_topics_list($$$)    # sql clause for fields to query from job_states fo
     my $id_clause = '';
     if ( $topics_id )
     {
-        $id_clause = 't.topics_id = ' . int( $topics_id ) . ' and ';
+        $id_clause = 't.topics_id = ' . int( $topics_id ) . ' AND ';
     }
 
     my $public_clause = '';
     if ( defined( $public ) )
     {
-        $public_clause = $public ? "t.is_public and" : "not t.is_public and";
+        $public_clause = $public ? "t.is_public AND" : "NOT t.is_public AND";
     }
 
     my $topics = $db->query(
@@ -105,8 +115,8 @@ sub _get_topics_list($$$)    # sql clause for fields to query from job_states fo
             FROM topics AS t
                 INNER JOIN topics_with_user_permission AS p ON
                     t.topics_id = p.topics_id
-                LEFT JOIN snapshots AS snap ON
-                    t.topics_id = snap.topics_id
+                LEFT JOIN snapshots ON
+                    t.topics_id = snapshots.topics_id
             WHERE
                 $id_clause
                 $public_clause
@@ -117,7 +127,7 @@ sub _get_topics_list($$$)    # sql clause for fields to query from job_states fo
             ORDER BY
                 t.state = 'completed',
                 t.state,
-                MAX(COALESCE(snap.snapshot_date, '2000-01-01'::date)) DESC
+                MAX(COALESCE(snapshots.snapshot_date, '2000-01-01'::date)) DESC
             LIMIT \$3
             OFFSET \$4
 SQL
@@ -174,8 +184,8 @@ SQL
                 js.state,
                 js.message,
                 js.last_updated,
-                ( js.args->>'topics_id' )::BIGINT topics_id,
-                ( js.args->>'snapshots_id' )::BIGINT snapshots_id
+                ( js.args->>'topics_id' )::BIGINT AS topics_id,
+                ( js.args->>'snapshots_id' )::BIGINT AS snapshots_id
             FROM job_states AS js
             ORDER BY job_states_id DESC
         )
@@ -437,7 +447,8 @@ SQL
     {
         my $existing_media_ids = $db->query( <<SQL,
             SELECT media_id
-            FROM topics_media_map WHERE topics_id = ?
+            FROM topics_media_map
+            WHERE topics_id = ?
 SQL
             $topic->{ topics_id }
         )->flat();
@@ -583,8 +594,11 @@ sub update_PUT
     if ( $update->{ solr_seed_query } && ( $topic->{ solr_seed_query } ne $update->{ solr_seed_query } ) )
     {
         my $is_logogram = defined( $update->{ is_logogram } ) ? $update->{ is_logogram } : $topic->{ is_logogram };
-        $update->{ pattern } =
-          eval { MediaWords::Solr::Query::Parse::parse_solr_query( $update->{ solr_seed_query } )->re( $is_logogram ) };
+        $update->{ pattern } = eval {
+            MediaWords::Solr::Query::Parse::parse_solr_query(
+                $update->{ solr_seed_query }
+            )->re( $is_logogram )
+        };
         die( "unable to translate solr query to topic pattern: $@" ) if ( $@ );
 
         $topic->{ solr_seed_query } = $update->{ solr_seed_query };
@@ -663,7 +677,13 @@ sub spider_GET
 
     MediaWords::Job::StatefulBroker->new( $queue_name )->add_to_queue( $mine_args );
 
-    my $job_state = $db->query( "select $JOB_STATE_FIELD_LIST from job_states order by job_states_id desc limit 1" )->hash;
+    my $job_state = $db->query( <<SQL
+        SELECT $JOB_STATE_FIELD_LIST
+        FROM job_states
+        ORDER BY job_states_id DESC
+        LIMIT 1
+SQL
+    )->hash;
 
     $db->commit;
 
@@ -717,11 +737,11 @@ sub reset_PUT
         die( "Cannot reset running topic." );
     }
 
-    $db->query( "delete from topic_stories where topics_id = ?",                   $topics_id );
-    $db->query( "delete from topic_links where topics_id = ?",                     $topics_id );
-    $db->query( "delete from topic_dead_links where topics_id = ?",                $topics_id );
-    $db->query( "delete from topic_seed_urls where topics_id = ?",                 $topics_id );
-    $db->query( "update topics set solr_seed_query_run = 'f' where topics_id = ?", $topics_id );
+    $db->query( "DELETE FROM topic_stories WHERE topics_id = ?",                   $topics_id );
+    $db->query( "DELETE FROM topic_links WHERE topics_id = ?",                     $topics_id );
+    $db->query( "DELETE FROM topic_dead_links WHERE topics_id = ?",                $topics_id );
+    $db->query( "DELETE FROM topic_seed_urls WHERE topics_id = ?",                 $topics_id );
+    $db->query( "UPDATE topics SET solr_seed_query_run = 'f' WHERE topics_id = ?", $topics_id );
 
     $db->update_by_id( 'topics', $topic->{ topics_id }, { state => 'created but not queued', message => undef } );
 
@@ -746,11 +766,11 @@ sub info_GET
     $info->{ topic_platforms_sources_map } = $db->query( <<SQL
         SELECT 
             tp.topic_platforms_id,
-            tp.name platform_name,
-            tp.description platform_description,
+            tp.name AS platform_name,
+            tp.description AS platform_description,
             ts.topic_sources_id,
-            ts.name source_name,
-            ts.description source_description
+            ts.name AS source_name,
+            ts.description AS source_description
         FROM topic_platforms AS tp
             INNER JOIN topic_platforms_sources_map AS tpsm USING (topic_platforms_id)
             INNER JOIN topic_sources AS ts USING (topic_sources_id)

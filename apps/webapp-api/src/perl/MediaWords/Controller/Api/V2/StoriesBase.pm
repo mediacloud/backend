@@ -214,9 +214,7 @@ sub _add_nested_data
     if ( int( $self->{ show_text } // 0 ) )
     {
 
-        my $story_text_data = $db->query(
-            <<SQL
-
+        my $story_text_data = $db->query( <<SQL
             SELECT
                 s.stories_id,
                 s.full_text_rss,
@@ -231,7 +229,6 @@ sub _add_nested_data
                     ON d.downloads_id = dt.downloads_id
             WHERE s.stories_id IN ( $ids_list )
             GROUP BY s.stories_id
-
 SQL
         )->hashes;
 
@@ -239,8 +236,9 @@ SQL
         {
             if ( $story_text_data->{ full_text_rss } )
             {
-                $story_text_data->{ story_text } =
-                  MediaWords::Util::ParseHTML::html_strip( $story_text_data->{ story_text } );
+                $story_text_data->{ story_text } = MediaWords::Util::ParseHTML::html_strip(
+                    $story_text_data->{ story_text }
+                );
             }
         }
 
@@ -288,8 +286,7 @@ SQL
     while ( my @chunk_stories = $iter->() )
     {
         my $chunk_ids_list = join( ',', map { int( $_->{ stories_id } ) } @chunk_stories );
-        my $tag_data = $db->query(
-            <<SQL
+        my $tag_data = $db->query( <<SQL
             SELECT
                 s.stories_id::bigint,
                 t.tags_id,
@@ -311,8 +308,7 @@ SQL
 
     if ( int( $self->{ show_feeds } // 0 ) )
     {
-        my $feed_data = $db->query(
-            <<SQL
+        my $feed_data = $db->query( <<SQL
             SELECT
                 f.name,
                 f.url,
@@ -355,8 +351,7 @@ sub _get_object_ids
         die( "cannot specify both 'feeds_id' and either 'q' or 'fq'" )
           if ( $c->req->params->{ q } || $c->req->params->{ fq } );
 
-        my $stories_ids = $db->query(
-            <<SQL,
+        my $stories_ids = $db->query( <<SQL,
             SELECT processed_stories_id
             FROM processed_stories
                 JOIN feeds_stories_map USING (stories_id)
@@ -412,10 +407,9 @@ sub _fetch_list($$$$$$)
 
     my $ids_table = $db->get_temporary_ids_table( $ps_ids, 1 );
 
-    my $order_clause = $c->req->params->{ feeds_id } ? 'stories_id desc' : 'order_pkey asc';
+    my $order_clause = $c->req->params->{ feeds_id } ? 'stories_id DESC' : 'order_pkey ASC';
 
-    my $stories = $db->query(
-        <<"SQL",
+    my $stories = $db->query( <<"SQL",
         WITH ps_ids AS (
 
             SELECT

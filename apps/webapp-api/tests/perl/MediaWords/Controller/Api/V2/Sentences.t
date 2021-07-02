@@ -31,12 +31,16 @@ sub test_sentences_list($)
 
     my $stories     = $db->query( "select * from stories order by stories_id asc limit 10" )->hashes;
     my $stories_ids = [ map { $_->{ stories_id } } @{ $stories } ];
-    my $expected_ss = $db->query( <<SQL, @{ $stories_ids } )->hashes;
-select * from story_sentences where stories_id in ( ?? )
+    my $expected_ss = $db->query( <<SQL,
+        SELECT *
+        FROM story_sentences
+        WHERE stories_id IN (??)
 SQL
+        @{ $stories_ids }
+    )->hashes;
 
     my $stories_ids_list = join( ' ', @{ $stories_ids } );
-    my $got_ss = MediaWords::Test::API::test_get( '/api/v2/sentences/list', { q => "stories_id:($stories_ids_list)" } );
+    my $got_ss = MediaWords::Test::API::test_get( '/api/v2/sentences/list', { 'q' => "stories_id:($stories_ids_list)" } );
 
     WARN( MediaWords::Util::ParseJSON::encode_json( $got_ss ) );
 
@@ -48,8 +52,12 @@ sub main
 {
     my $db = MediaWords::DB::connect_to_db();
 
-    my $media = MediaWords::Test::DB::Create::create_test_story_stack_numerated( $db, $NUM_MEDIA, $NUM_FEEDS_PER_MEDIUM,
-        $NUM_STORIES_PER_FEED );
+    my $media = MediaWords::Test::DB::Create::create_test_story_stack_numerated(
+        $db,
+        $NUM_MEDIA,
+        $NUM_FEEDS_PER_MEDIUM,
+        $NUM_STORIES_PER_FEED
+    );
 
     $media = MediaWords::Test::DB::Create::add_content_to_test_story_stack( $db, $media );
 

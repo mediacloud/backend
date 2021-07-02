@@ -20,7 +20,7 @@ sub list_GET
 {
     my ( $self, $c ) = @_;
 
-    my $stats = $c->dbis->query( "select * from mediacloud_stats" )->hash;
+    my $stats = $c->dbis->query( "SELECT * FROM mediacloud_stats" )->hash;
 
     # refresh_mediacloud_stats needs to be run via cron daily
     die( "stats have not been generated" ) unless ( $stats );

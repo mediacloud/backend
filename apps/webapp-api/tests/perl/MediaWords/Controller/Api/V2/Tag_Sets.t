@@ -52,7 +52,7 @@ sub test_tag_sets($)
     $r = MediaWords::Test::API::test_put( '/api/v2/tag_sets/update', $update_input );
     MediaWords::Test::Rows::validate_db_row( $db, 'tag_sets', $r->{ tag_set }, $update_input, 'update tag set' );
 
-    my $tag_sets       = $db->query( "select * from tag_sets" )->hashes;
+    my $tag_sets       = $db->query( "SELECT * FROM tag_sets" )->hashes;
     my $got_tag_sets   = MediaWords::Test::API::test_get( '/api/v2/tag_sets/list' );
     my $tag_set_fields = [ qw/name label description show_on_media show_on_stories/ ];
     MediaWords::Test::Rows::rows_match( "tag_sets/list", $got_tag_sets, $tag_sets, 'tag_sets_id', $tag_set_fields );
