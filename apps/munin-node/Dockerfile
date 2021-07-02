@@ -8,6 +8,7 @@ FROM gcr.io/mcback/base:latest
 RUN \
     #
     # Install plugin dependencies
+    apt-get -y update && \
     apt-get -y --no-install-recommends install \
         libdbd-pg-perl \
         libdbix-simple-perl \
