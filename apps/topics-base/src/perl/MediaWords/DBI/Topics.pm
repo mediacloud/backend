@@ -20,7 +20,7 @@ sub get_latest_overall_timespan
                 timespans.topics_id = snapshots.topics_id AND
                 timespans.snapshots_id = snapshots.snapshots_id
         WHERE
-           snapshots.topics_id = ? AND
+           timespans.topics_id = ? AND
            timespans.period = 'overall' AND
            timespans.foci_id IS NULL
         ORDER BY
