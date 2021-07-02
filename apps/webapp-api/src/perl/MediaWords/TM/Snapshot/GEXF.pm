@@ -267,21 +267,21 @@ sub get_gexf_snapshot
 
     my $exclude_media_ids_list = join( ',', map { int( $_ ) } ( @{ $options->{ exclude_media_ids } }, 0 ) );
 
-    my $media = $db->query( <<END, $options->{ max_media } )->hashes;
-select distinct
-        m.*,
-        mlc.media_inlink_count inlink_count,
-        mlc.story_count,
-        mlc.facebook_share_count,
-        mlc.sum_post_count
-    from snapshot_media_with_types m
-        join snapshot_medium_link_counts mlc using ( media_id )
-    where
-        m.media_id not in ( $exclude_media_ids_list )
-    order
-        by mlc.media_inlink_count desc
-    limit ?
-END
+    my $media = $db->query( <<SQL,
+        SELECT DISTINCT
+            m.*,
+            mlc.media_inlink_count AS inlink_count,
+            mlc.story_count,
+            mlc.facebook_share_count,
+            mlc.sum_post_count
+        FROM snapshot_media_with_types AS m
+            JOIN snapshot_medium_link_counts AS mlc USING (media_id)
+        WHERE m.media_id NOT IN ($exclude_media_ids_list)
+        ORDER BY mlc.media_inlink_count DESC
+        LIMIT ?
+SQL
+        $options->{ max_media }
+    )->hashes;
 
     return '<gexf></gexf>' unless scalar( @{ $media } );
 
@@ -401,9 +401,18 @@ SQL
         $topic->{ topics_id }
     )->hash;
 
-        my $monthly_timespans = $db->query( <<SQL, $overall_timespan->{ snapshots_id } )->hashes;
-select * from timespans where snapshots_id = \$1 and period = 'monthly' and foci_id is null order by start_date asc
+        my $monthly_timespans = $db->query( <<SQL,
+            SELECT *
+            FROM timespans
+            WHERE
+                topics_id = ? AND
+                snapshots_id = ? AND
+                period = 'monthly' AND
+                foci_id IS NULL
+            ORDER BY start_date ASC
 SQL
+            $topic->{ topics_id }, $overall_timespan->{ snapshots_id }
+        )->hashes;
 
         for my $timespan ( $overall_timespan, @{ $monthly_timespans } )
         {
