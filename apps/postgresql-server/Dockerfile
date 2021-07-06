@@ -34,7 +34,6 @@ RUN \
         /opt/postgresql-server/bin/ \
         /opt/postgresql-server/pgmigrate/ \
     && \
-    chmod ugo+rw /opt/mediawords.sql && \
     true
 
 COPY bin/* /opt/postgresql-server/bin/
