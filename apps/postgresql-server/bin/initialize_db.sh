@@ -39,6 +39,9 @@ psql -v ON_ERROR_STOP=1 -c "${CREATE_DB_SQL}"
 cd /opt/postgresql-server/pgmigrate
 pgmigrate migrate --target latest
 
+# dump schema for reference in development
+pg_dump mediacloud > ./mediawords.sql
+
 # Stop PostgreSQL
 "${MC_POSTGRESQL_BIN_DIR}/pg_ctl" \
     -D "${MC_POSTGRESQL_DATA_DIR}" \
