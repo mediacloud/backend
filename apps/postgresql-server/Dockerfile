@@ -38,7 +38,7 @@ RUN \
     true
 
 COPY bin/* /opt/postgresql-server/bin/
-COPY pgmigrate/* /opt/postgresql-server/pgmigrate/
+COPY pgmigrate/ /opt/postgresql-server/pgmigrate/
 
 # Initialize data volume, create users + database
 # If a new empty volume gets mounted to /var/lib/postgresql/ upon
