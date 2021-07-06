@@ -1,4 +1,4 @@
 callbacks:
     beforeEach:
-        - ./beforeEach
+        - callbacks/beforeEach
 conn: dbname=mediacloud user=mediacloud password=mediacloud host=localhost
