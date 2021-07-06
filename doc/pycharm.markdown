@@ -245,7 +245,7 @@ To configure SQL schema dialect and data source:
 
    ![](https://github.com/mediacloud/backend-docs-images/raw/master/docker-pycharm/schema-04-data-source-ddl.png)
 
-5. Leave the default value of the *Name:* field intact and under *DDL Files*, add the `mediawords.sql` file (located in `postgresql-server/schema`) and click *OK*:
+5. Leave the default value of the *Name:* field intact and under *DDL Files*, add the `mediawords.sql` file (now located in the project root; screenshot below outdated) and click *OK*:
 
    ![](https://github.com/mediacloud/backend-docs-images/raw/master/docker-pycharm/schema-05-data-source-mediawords.png)
 

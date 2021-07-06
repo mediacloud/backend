@@ -32,17 +32,13 @@ RUN \
 RUN \
     mkdir -p \
         /opt/postgresql-server/bin/ \
-        /opt/postgresql-server/schema/ \
-        /opt/postgresql-server/migrations/ \
-        /opt/postgresql-server/pgmigrate-callbacks/ \
+        /opt/postgresql-server/pgmigrate/ \
     && \
-    chmod ugo+rw /opt/postgresql-server/schema && \
+    # chmod ugo+rw /opt/postgresql-server/schema && \
     true
 
 COPY bin/* /opt/postgresql-server/bin/
-COPY pgmigrate-callbacks/ /opt/postgresql-server/pgmigrate-callbacks/
-COPY migrations/ /opt/postgresql-server/migrations/
-COPY migrations.yml /opt/postgresql-server/migrations.yml
+COPY pgmigrate/* /opt/postgresql-server/pgmigrate/
 
 # Initialize data volume, create users + database
 # If a new empty volume gets mounted to /var/lib/postgresql/ upon
