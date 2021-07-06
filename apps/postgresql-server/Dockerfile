@@ -34,7 +34,7 @@ RUN \
         /opt/postgresql-server/bin/ \
         /opt/postgresql-server/pgmigrate/ \
     && \
-    # chmod ugo+rw /opt/postgresql-server/schema && \
+    chmod ugo+rw /opt/mediawords.sql && \
     true
 
 COPY bin/* /opt/postgresql-server/bin/
@@ -51,6 +51,9 @@ RUN /opt/postgresql-server/bin/initialize_db.sh
 # production
 USER root
 RUN rm /opt/postgresql-server/bin/initialize_db.sh
+
+# dump schema file for reference in development (run ./dev/get_schema.sh to get local copy)
+RUN /opt/postgresql-server/pgmigrate/pg_dump mediacloud > /opt/mediawords.sql
 
 USER postgres
 ENV \
