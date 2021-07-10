@@ -2,7 +2,7 @@
 # Proxy to Solr's management webapp
 #
 
-FROM gcr.io/mcback/nginx-base:latest
+FROM mc2021/nginx-base:latest
 
 # Copy configuration
 COPY nginx/include/solr-shard-webapp-proxy.conf /etc/nginx/include/

@@ -2,7 +2,7 @@
 # Set media's subject country Cron job
 #
 
-FROM gcr.io/mcback/cron-base:latest
+FROM mc2021/cron-base:latest
 
 # Copy sources
 COPY src/ /opt/mediacloud/src/cron-set-media-subject-country/

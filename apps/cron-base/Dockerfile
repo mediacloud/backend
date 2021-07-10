@@ -3,7 +3,7 @@
 #
 # FIXME email the report
 
-FROM gcr.io/mcback/common:latest
+FROM mc2021/common:latest
 
 # Install Cron
 RUN \

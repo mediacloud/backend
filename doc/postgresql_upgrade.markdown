@@ -22,7 +22,7 @@ To upgrade PostgreSQL between two (e.g. 12 -> 13) or more (e.g. 11 -> 12 -> 13) 
 
     ```dockerfile
     # Parent image already installs PostgreSQL 13
-    FROM gcr.io/mcback/postgresql-server:latest
+    FROM mc2021/postgresql-server:latest
 
     # <...>
 
@@ -53,7 +53,7 @@ To upgrade PostgreSQL between two (e.g. 12 -> 13) or more (e.g. 11 -> 12 -> 13) 
     backup$ time docker run -it \
         --shm-size=64g \
         -v /space/mediacloud/vol_postgresql_data:/var/lib/postgresql/ \
-        gcr.io/mcback/postgresql-upgrade \
+        mc2021/postgresql-upgrade \
         postgresql_upgrade.py \
             --source_version=11 \
             --target_version=13 \
@@ -116,7 +116,7 @@ To upgrade PostgreSQL between two (e.g. 12 -> 13) or more (e.g. 11 -> 12 -> 13) 
     production$ time docker run -it \
         --shm-size=64g \
         -v /space/mediacloud/vol_postgresql_data:/var/lib/postgresql/ \
-        gcr.io/mcback/postgresql-upgrade \
+        mc2021/postgresql-upgrade \
         postgresql_upgrade.py \
             --source_version=11 \
             --target_version=13 \

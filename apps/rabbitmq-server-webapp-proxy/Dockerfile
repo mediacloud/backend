@@ -2,7 +2,7 @@
 # Proxy to RabbitMQ's management webapp
 #
 
-FROM gcr.io/mcback/nginx-base:latest
+FROM mc2021/nginx-base:latest
 
 # Copy configuration
 COPY nginx/include/rabbitmq-server-webapp-proxy.conf /etc/nginx/include/

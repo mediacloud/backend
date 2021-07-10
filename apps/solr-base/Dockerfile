@@ -2,7 +2,7 @@
 # Solr base
 #
 
-FROM gcr.io/mcback/java-base:latest
+FROM mc2021/java-base:latest
 
 # Solr version
 ENV MEDIACLOUD_SOLR_VERSION="6.5.0"

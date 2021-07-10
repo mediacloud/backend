@@ -3,7 +3,7 @@ version: "3.7"
 services:
 
     import-stories-base:
-        image: gcr.io/mcback/import-stories-base:latest
+        image: mc2021/import-stories-base:latest
         init: true
         stop_signal: SIGKILL
         volumes:

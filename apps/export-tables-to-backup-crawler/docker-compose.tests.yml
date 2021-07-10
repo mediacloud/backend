@@ -3,7 +3,7 @@ version: "3.7"
 services:
 
     export-tables-to-backup-crawler:
-        image: gcr.io/mcback/export-tables-to-backup-crawler:latest
+        image: mc2021/export-tables-to-backup-crawler:latest
         init: true
         stop_signal: SIGKILL
         volumes:
@@ -23,7 +23,7 @@ services:
             - postgresql-pgbouncer
 
     postgresql-pgbouncer:
-        image: gcr.io/mcback/postgresql-pgbouncer:latest
+        image: mc2021/postgresql-pgbouncer:latest
         init: true
         stop_signal: SIGKILL
         expose:
@@ -36,7 +36,7 @@ services:
             - postgresql-server
 
     postgresql-server:
-        image: gcr.io/mcback/postgresql-server:latest
+        image: mc2021/postgresql-server:latest
         init: true
         stop_signal: SIGKILL
         expose:

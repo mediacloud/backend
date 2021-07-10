@@ -2,7 +2,7 @@
 # Base image for apps that use Java
 #
 
-FROM gcr.io/mcback/base:latest
+FROM mc2021/base:latest
 
 ENV JAVA_HOME=/usr/lib/jvm/java-15-openjdk-amd64/
 

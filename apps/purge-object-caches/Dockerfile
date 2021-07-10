@@ -2,7 +2,7 @@
 # Purge object caches on PostgreSQL
 #
 
-FROM gcr.io/mcback/common:latest
+FROM mc2021/common:latest
 
 COPY bin /opt/mediacloud/bin
 

@@ -3,7 +3,7 @@ version: "3.7"
 services:
 
     extract-article-from-page:
-        image: gcr.io/mcback/extract-article-from-page:latest
+        image: mc2021/extract-article-from-page:latest
         init: true
         stop_signal: SIGKILL
         expose:

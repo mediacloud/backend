@@ -2,7 +2,7 @@
 # PostgreSQL upgrade scripts
 #
 
-FROM gcr.io/mcback/postgresql-base:latest
+FROM mc2021/postgresql-base:latest
 
 USER root
 

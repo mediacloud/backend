@@ -8,7 +8,7 @@ Requires at least 1 GB of RAM.
 Start the annotator:
 
 ```bash
-docker run -it -p 8080:8080 gcr.io/mcback/nytlabels-annotator:latest
+docker run -it -p 8080:8080 mc2021/nytlabels-annotator:latest
 ```
 
 create a file with text to annotate:

@@ -2,7 +2,7 @@
 # Fetch Twitter URLs
 #
 
-FROM gcr.io/mcback/topics-base:latest
+FROM mc2021/topics-base:latest
 
 # Copy sources
 COPY src/ /opt/mediacloud/src/topics-fetch-twitter-urls/

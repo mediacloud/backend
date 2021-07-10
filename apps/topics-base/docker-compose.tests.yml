@@ -3,7 +3,7 @@ version: "3.7"
 services:
 
     topics-base:
-        image: gcr.io/mcback/topics-base:latest
+        image: mc2021/topics-base:latest
         init: true
         stop_signal: SIGKILL
         environment:
@@ -32,7 +32,7 @@ services:
             - extract-and-vector
 
     extract-and-vector:
-        image: gcr.io/mcback/extract-and-vector:latest
+        image: mc2021/extract-and-vector:latest
         init: true
         stop_signal: SIGKILL
         volumes:
@@ -50,7 +50,7 @@ services:
             - extract-article-from-page
 
     extract-article-from-page:
-        image: gcr.io/mcback/extract-article-from-page:latest
+        image: mc2021/extract-article-from-page:latest
         init: true
         stop_signal: SIGKILL
         expose:
@@ -67,7 +67,7 @@ services:
               target: /opt/mediacloud/src/common/
 
     postgresql-pgbouncer:
-        image: gcr.io/mcback/postgresql-pgbouncer:latest
+        image: mc2021/postgresql-pgbouncer:latest
         init: true
         stop_signal: SIGKILL
         expose:
@@ -80,7 +80,7 @@ services:
             - postgresql-server
 
     postgresql-server:
-        image: gcr.io/mcback/postgresql-server:latest
+        image: mc2021/postgresql-server:latest
         init: true
         stop_signal: SIGKILL
         expose:
@@ -97,7 +97,7 @@ services:
               target: /etc/postgresql/13/main/
 
     rabbitmq-server:
-        image: gcr.io/mcback/rabbitmq-server:latest
+        image: mc2021/rabbitmq-server:latest
         init: true
         stop_signal: SIGKILL
         expose:

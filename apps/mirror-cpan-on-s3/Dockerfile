@@ -2,7 +2,7 @@
 # Script to mirror CPAN to S3 for easier Perl dependencies installing
 #
 
-FROM gcr.io/mcback/perl-python-base:latest
+FROM mc2021/perl-python-base:latest
 
 # Install dependencies
 RUN \

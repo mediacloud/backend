@@ -3,7 +3,7 @@ version: "3.7"
 services:
 
     rabbitmq-server-webapp-proxy:
-        image: gcr.io/mcback/rabbitmq-server-webapp-proxy:latest
+        image: mc2021/rabbitmq-server-webapp-proxy:latest
         init: true
         stop_signal: SIGKILL
         ports:
@@ -20,7 +20,7 @@ services:
             - rabbitmq-server
 
     rabbitmq-server:
-        image: gcr.io/mcback/rabbitmq-server:latest
+        image: mc2021/rabbitmq-server:latest
         init: true
         stop_signal: SIGKILL
         expose:

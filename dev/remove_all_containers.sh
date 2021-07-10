@@ -8,4 +8,4 @@
 set -u
 set -e
 
-docker container ls -a | grep gcr.io/mcback/ | awk '{ print $1 }' | xargs docker container rm -f
+docker container ls -a | grep mc2021/ | awk '{ print $1 }' | xargs docker container rm -f

@@ -2,7 +2,7 @@
 # Topic snapshot worker
 #
 
-FROM gcr.io/mcback/topics-base:latest
+FROM mc2021/topics-base:latest
 
 # Install Perl dependencies
 COPY src/cpanfile /var/tmp/

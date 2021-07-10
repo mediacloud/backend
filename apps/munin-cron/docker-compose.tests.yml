@@ -3,7 +3,7 @@ version: "3.7"
 services:
 
     munin-cron:
-        image: gcr.io/mcback/munin-cron:latest
+        image: mc2021/munin-cron:latest
         init: true
         stop_signal: SIGKILL
         environment:
@@ -23,7 +23,7 @@ services:
             - munin-node
 
     munin-node:
-        image: gcr.io/mcback/munin-node:latest
+        image: mc2021/munin-node:latest
         init: true
         stop_signal: SIGKILL
         volumes:
@@ -37,7 +37,7 @@ services:
             - solr-shard-01
 
     postgresql-pgbouncer:
-        image: gcr.io/mcback/postgresql-pgbouncer:latest
+        image: mc2021/postgresql-pgbouncer:latest
         init: true
         stop_signal: SIGKILL
         expose:
@@ -50,7 +50,7 @@ services:
             - postgresql-server
 
     postgresql-server:
-        image: gcr.io/mcback/postgresql-server:latest
+        image: mc2021/postgresql-server:latest
         init: true
         stop_signal: SIGKILL
         expose:
@@ -67,7 +67,7 @@ services:
               target: /etc/postgresql/13/main/
 
     solr-shard-01:
-        image: gcr.io/mcback/solr-shard:latest
+        image: mc2021/solr-shard:latest
         init: true
         stop_signal: SIGKILL
         environment:
@@ -85,7 +85,7 @@ services:
             - solr-zookeeper
 
     solr-zookeeper:
-        image: gcr.io/mcback/solr-zookeeper:latest
+        image: mc2021/solr-zookeeper:latest
         init: true
         stop_signal: SIGKILL
         expose:

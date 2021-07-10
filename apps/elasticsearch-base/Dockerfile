@@ -2,7 +2,7 @@
 # Base image for Elasticsearch
 #
 
-FROM gcr.io/mcback/java-base:latest
+FROM mc2021/java-base:latest
 
 # Install Elasticsearch
 # (https://www.elastic.co/downloads/elasticsearch-no-jdk)

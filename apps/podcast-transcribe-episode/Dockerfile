@@ -2,7 +2,7 @@
 # Fetch podcast episode, convert it (if needed), transcribe and store to the database
 #
 
-FROM gcr.io/mcback/common:latest
+FROM mc2021/common:latest
 
 # Install FFmpeg for manipulating audio files
 RUN apt-get -y --no-install-recommends install ffmpeg

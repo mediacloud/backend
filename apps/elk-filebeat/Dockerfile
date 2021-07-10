@@ -2,7 +2,7 @@
 # Filebeat for ELK file + container logging
 #
 
-FROM gcr.io/mcback/base:latest
+FROM mc2021/base:latest
 
 # Install Filebeat
 # (https://www.elastic.co/downloads/beats/filebeat)

@@ -27,7 +27,7 @@ services:
     #     13) >> send_email(test_message)
     #    
     mail-postfix-server:
-        image: gcr.io/mcback/common:latest
+        image: mc2021/common:latest
         init: true
         stop_signal: SIGKILL
         volumes:
@@ -39,7 +39,7 @@ services:
 
     # Actual mail server, operating under "mail-postfix-server" alias
     mail-postfix-server-actual:
-        image: gcr.io/mcback/mail-postfix-server:latest
+        image: mc2021/mail-postfix-server:latest
         init: true
         stop_signal: SIGKILL
         # "docker exec" into a container and run Postfix manually (./postfix.sh):
@@ -56,7 +56,7 @@ services:
                     - mail-postfix-server
 
     mail-opendkim-server:
-        image: gcr.io/mcback/mail-opendkim-server:latest
+        image: mc2021/mail-opendkim-server:latest
         init: true
         environment:
             MC_MAIL_OPENDKIM_DOMAIN: "testmediacloud.ml"

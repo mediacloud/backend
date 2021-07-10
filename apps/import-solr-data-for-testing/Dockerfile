@@ -2,7 +2,7 @@
 # Import stories from PostgreSQL to Solr for testing purposes
 #
 
-FROM gcr.io/mcback/import-solr-data:latest
+FROM mc2021/import-solr-data:latest
 
 USER root
 

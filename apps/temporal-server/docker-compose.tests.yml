@@ -12,7 +12,7 @@ services:
     #     ...and then submit a Temporal workflow somehow.
     #
     temporal-server:
-        image: gcr.io/mcback/common:latest
+        image: mc2021/common:latest
         init: true
         stop_signal: SIGKILL
         depends_on:
@@ -21,7 +21,7 @@ services:
 
     # Actual Temporal server, operating under "temporal-server" alias
     temporal-server-actual:
-        image: gcr.io/mcback/temporal-server:latest
+        image: mc2021/temporal-server:latest
         init: true
         stop_signal: SIGKILL
         depends_on:
@@ -71,7 +71,7 @@ services:
               target: /opt/temporal-server/config/mediacloud_template.yaml
 
     temporal-postgresql:
-        image: gcr.io/mcback/temporal-postgresql:latest
+        image: mc2021/temporal-postgresql:latest
         init: true
         stop_signal: SIGKILL
         networks:
@@ -90,7 +90,7 @@ services:
               target: /etc/postgresql/13/main/
 
     temporal-elasticsearch:
-        image: gcr.io/mcback/temporal-elasticsearch:latest
+        image: mc2021/temporal-elasticsearch:latest
         init: true
         stop_signal: SIGKILL
         networks:
@@ -115,7 +115,7 @@ services:
                     memory: "2G"
 
     temporal-prometheus:
-        image: gcr.io/mcback/temporal-prometheus:latest
+        image: mc2021/temporal-prometheus:latest
         init: true
         stop_signal: SIGKILL
         depends_on:
@@ -139,7 +139,7 @@ services:
                     memory: "2G"
 
     temporal-grafana:
-        image: gcr.io/mcback/temporal-grafana:latest
+        image: mc2021/temporal-grafana:latest
         init: true
         stop_signal: SIGKILL
         networks:
@@ -167,7 +167,7 @@ services:
                     memory: "2G"
 
     temporal-webapp:
-        image: gcr.io/mcback/temporal-webapp:latest
+        image: mc2021/temporal-webapp:latest
         init: true
         stop_signal: SIGKILL
         networks:

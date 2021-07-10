@@ -2,7 +2,7 @@
 # NYTLabels fetch annotation + tag worker
 #
 
-FROM gcr.io/mcback/common:latest
+FROM mc2021/common:latest
 
 # Copy sources
 COPY src/ /opt/mediacloud/src/nytlabels-fetch-annotation-and-tag/

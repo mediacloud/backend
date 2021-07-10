@@ -7,7 +7,7 @@
 #
 # FIXME disable initially
 
-FROM gcr.io/mcback/cron-base:latest
+FROM mc2021/cron-base:latest
 
 # Copy worker script
 COPY bin /opt/mediacloud/bin

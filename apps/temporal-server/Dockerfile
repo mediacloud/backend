@@ -2,7 +2,7 @@
 # Temporal server
 #
 
-FROM gcr.io/mcback/base:latest
+FROM mc2021/base:latest
 
 # Install dependencies
 RUN \

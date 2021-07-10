@@ -2,7 +2,7 @@
 # Mine public topic worker
 #
 
-FROM gcr.io/mcback/topics-mine:latest
+FROM mc2021/topics-mine:latest
 
 # Copy worker script
 COPY bin /opt/mediacloud/bin

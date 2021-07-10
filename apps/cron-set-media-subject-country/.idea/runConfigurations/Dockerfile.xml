@@ -2,12 +2,12 @@
   <configuration default="false" name="Dockerfile" type="docker-deploy" factoryName="dockerfile" server-name="mediacloud">
     <deployment type="dockerfile">
       <settings>
-        <option name="buildCliOptions" value="--cache-from gcr.io/mcback/cron-set-media-subject-country:latest" />
+        <option name="buildCliOptions" value="--cache-from mc2021/cron-set-media-subject-country:latest" />
         <option name="buildOnly" value="true" />
         <option name="command" value="" />
         <option name="containerName" value="" />
         <option name="entrypoint" value="" />
-        <option name="imageTag" value="gcr.io/mcback/cron-set-media-subject-country:latest" />
+        <option name="imageTag" value="mc2021/cron-set-media-subject-country:latest" />
         <option name="commandLineOptions" value="" />
         <option name="sourceFilePath" value="Dockerfile" />
       </settings>

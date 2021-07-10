@@ -2,7 +2,7 @@
 # Munin HTTP server
 #
 
-FROM gcr.io/mcback/nginx-base:latest
+FROM mc2021/nginx-base:latest
 
 # Install Munin's static web files, e.g. CSS stylesheets
 RUN apt-get -y --no-install-recommends install munin

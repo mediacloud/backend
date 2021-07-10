@@ -2,7 +2,7 @@
 # Munin Cron stats collector
 #
 
-FROM gcr.io/mcback/cron-base:latest
+FROM mc2021/cron-base:latest
 
 # FIXME
 RUN apt-get -y update

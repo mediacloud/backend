@@ -3,7 +3,7 @@ version: "3.7"
 services:
 
     topics-snapshot:
-        image: gcr.io/mcback/topics-snapshot:latest
+        image: mc2021/topics-snapshot:latest
         init: true
         stop_signal: SIGKILL
         environment:
@@ -34,7 +34,7 @@ services:
             - topics-map
 
     import-solr-data-for-testing:
-        image: gcr.io/mcback/import-solr-data-for-testing:latest
+        image: mc2021/import-solr-data-for-testing:latest
         init: true
         environment:
             MC_SOLR_IMPORT_MAX_QUEUED_STORIES: 100000
@@ -54,7 +54,7 @@ services:
             - solr-shard-01
 
     topics-map:
-        image: gcr.io/mcback/topics-map:latest
+        image: mc2021/topics-map:latest
         init: true
         stop_signal: SIGKILL
         environment:
@@ -74,7 +74,7 @@ services:
             - postgresql-pgbouncer
 
     postgresql-pgbouncer:
-        image: gcr.io/mcback/postgresql-pgbouncer:latest
+        image: mc2021/postgresql-pgbouncer:latest
         init: true
         stop_signal: SIGKILL
         expose:
@@ -87,7 +87,7 @@ services:
             - postgresql-server
 
     postgresql-server:
-        image: gcr.io/mcback/postgresql-server:latest
+        image: mc2021/postgresql-server:latest
         init: true
         stop_signal: SIGKILL
         expose:
@@ -104,7 +104,7 @@ services:
               target: /etc/postgresql/13/main/
 
     solr-shard-01:
-        image: gcr.io/mcback/solr-shard:latest
+        image: mc2021/solr-shard:latest
         init: true
         stop_signal: SIGKILL
         environment:
@@ -122,7 +122,7 @@ services:
             - solr-zookeeper
 
     solr-zookeeper:
-        image: gcr.io/mcback/solr-zookeeper:latest
+        image: mc2021/solr-zookeeper:latest
         init: true
         stop_signal: SIGKILL
         expose:
@@ -138,7 +138,7 @@ services:
               target: /zookeeper.sh
 
     rabbitmq-server:
-        image: gcr.io/mcback/rabbitmq-server:latest
+        image: mc2021/rabbitmq-server:latest
         init: true
         stop_signal: SIGKILL
         expose:

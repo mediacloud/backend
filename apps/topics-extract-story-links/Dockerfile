@@ -2,7 +2,7 @@
 # Extract story links worker
 #
 
-FROM gcr.io/mcback/topics-base:latest
+FROM mc2021/topics-base:latest
 
 # Copy sources
 COPY src/ /opt/mediacloud/src/topics-extract-story-links/

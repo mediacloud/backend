@@ -3,7 +3,7 @@ version: "3.7"
 services:
 
     facebook-fetch-story-stats:
-        image: gcr.io/mcback/facebook-fetch-story-stats:latest
+        image: mc2021/facebook-fetch-story-stats:latest
         init: true
         stop_signal: SIGKILL
         environment:
@@ -27,7 +27,7 @@ services:
             - rabbitmq-server
 
     postgresql-pgbouncer:
-        image: gcr.io/mcback/postgresql-pgbouncer:latest
+        image: mc2021/postgresql-pgbouncer:latest
         init: true
         stop_signal: SIGKILL
         expose:
@@ -40,7 +40,7 @@ services:
             - postgresql-server
 
     postgresql-server:
-        image: gcr.io/mcback/postgresql-server:latest
+        image: mc2021/postgresql-server:latest
         init: true
         stop_signal: SIGKILL
         expose:
@@ -57,7 +57,7 @@ services:
               target: /etc/postgresql/13/main/
 
     rabbitmq-server:
-        image: gcr.io/mcback/rabbitmq-server:latest
+        image: mc2021/rabbitmq-server:latest
         init: true
         stop_signal: SIGKILL
         expose:

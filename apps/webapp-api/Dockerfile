@@ -2,7 +2,7 @@
 # Webapp (API workers)
 #
 
-FROM gcr.io/mcback/common:latest
+FROM mc2021/common:latest
 
 # Install Python module dependencies
 RUN \

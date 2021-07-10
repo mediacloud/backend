@@ -45,7 +45,7 @@ class DockerImageToBuild(object):
 
         :param name: Container name, e.g. "common".
         :param path: Container directory to build the image from, e.g. "../apps/topics-mine-public/".
-        :param repository: Repository name add to the built image, e.g. "gcr.io/mcback/common".
+        :param repository: Repository name add to the built image, e.g. "mc2021/common".
         """
         self.name = name
         self.path = path

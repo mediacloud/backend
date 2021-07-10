@@ -14,7 +14,7 @@ try:
 except ModuleNotFoundError:
     raise ImportError("Please install PyYAML.")
 
-REPO_URI = 'gcr.io/mcback'
+REPO_URI = 'mc2021'
 
 
 class InvalidDockerComposeYMLException(Exception):

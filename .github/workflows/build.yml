@@ -50,10 +50,8 @@ jobs:
           docker version
           docker-compose version
 
-      - name: Log in to container registry
-        run: echo "${DOCKER_GCR_SERVICE_ACCOUNT}" | docker login -u _json_key --password-stdin https://gcr.io
-        env:
-          DOCKER_GCR_SERVICE_ACCOUNT: ${{ secrets.DOCKER_GCR_SERVICE_ACCOUNT }}
+      - name: Log into Docker Hub
+        run: echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
 
       - name: Pull images
         # Don't stop on a single failure because the image might not exist or a
@@ -125,10 +123,8 @@ jobs:
           docker version
           docker-compose version
 
-      - name: Log in to container registry
-        run: echo "${DOCKER_GCR_SERVICE_ACCOUNT}" | docker login -u _json_key --password-stdin https://gcr.io
-        env:
-          DOCKER_GCR_SERVICE_ACCOUNT: ${{ secrets.DOCKER_GCR_SERVICE_ACCOUNT }}
+      - name: Log into Docker Hub
+        run: echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
 
       - name: Pull images
         # Don't stop on a single failure because the image might not exist or a
