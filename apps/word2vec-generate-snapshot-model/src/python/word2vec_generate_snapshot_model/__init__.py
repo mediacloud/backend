@@ -59,7 +59,7 @@ def train_word2vec_model(sentence_iterator: AbstractSentenceIterator,
         model_data = model_file.read()
 
     log.info("Storing model to in a model store...")
-    models_id = model_store.store_model(model_data=model_data)
+    models_id = model_store.store_model(topics_id=topics_id, model_data=model_data)
 
     log.info("Cleaning up temporary directory '%s'..." % temp_directory)
     shutil.rmtree(temp_directory)

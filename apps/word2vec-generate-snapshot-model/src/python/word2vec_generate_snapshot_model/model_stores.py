@@ -36,6 +36,7 @@ class AbstractDatabaseModelStore(AbstractModelStore, metaclass=abc.ABCMeta):
 
     __slots__ = [
         '__db',
+        '__topics_id',
         '__object_id',
     ]
 
@@ -49,13 +50,15 @@ class AbstractDatabaseModelStore(AbstractModelStore, metaclass=abc.ABCMeta):
         """Return table name for word2vec model raw data."""
         raise NotImplementedError("Abstract method.")
 
-    def __init__(self, db: DatabaseHandler, object_id: int):
+    def __init__(self, db: DatabaseHandler, topics_id: int, object_id: int):
         """Constructor.
 
         :param db: Database handler
-        :param object_id: Object ID (e.g. topic ID or snapshot ID) under which the model will be stored in the database
+        :param topics_id: Topic ID
+        :param object_id: Snapshot ID under which the model will be stored in the database
         """
         self.__db = db
+        self.__topics_id = topics_id
         self.__object_id = object_id
 
     def __key_value_store(self) -> KeyValueStore:
@@ -68,7 +71,13 @@ class AbstractDatabaseModelStore(AbstractModelStore, metaclass=abc.ABCMeta):
         primary_key_column = self.__db.primary_key_column(self.model_table())
 
         # Write model record
-        model_metadata = self.__db.create(table=self.model_table(), insert_hash={'object_id': self.__object_id})
+        model_metadata = self.__db.create(
+            table=self.model_table(),
+            insert_hash={
+                'topics_id': self.__topics_id,
+                'object_id': self.__object_id,
+            },
+        )
         models_id = model_metadata[primary_key_column]
 
         # Write model data
@@ -87,6 +96,7 @@ class AbstractDatabaseModelStore(AbstractModelStore, metaclass=abc.ABCMeta):
             table=self.model_table(),
             what_to_select='*',
             condition_hash={
+                'topics_id': self.__topics_id,
                 'object_id': self.__object_id,
                 primary_key_column: models_id,
             }
@@ -104,13 +114,19 @@ class AbstractDatabaseModelStore(AbstractModelStore, metaclass=abc.ABCMeta):
 class SnapshotDatabaseModelStore(AbstractDatabaseModelStore):
     """Database model storage for storing snapshot word2vec models."""
 
-    def __init__(self, db: DatabaseHandler, snapshots_id: int):
+    __slots__ = [
+        '__topics_id',
+    ]
+
+    def __init__(self, db: DatabaseHandler, topics_id: int, snapshots_id: int):
         """Constructor.
 
         :param db: Database handler
+        :param topics_id: Topic ID
         :param snapshots_id: Snapshot ID
         """
         super().__init__(db=db, object_id=snapshots_id)
+        self.__topics_id = topics_id
 
     def model_table(self) -> str:
         return 'snap.word2vec_models'
