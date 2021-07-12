@@ -314,7 +314,7 @@ sub test_seed_queries
     my $tsq_input = {
         topics_id => $topics_id,
         platform  => 'twitter',
-        source    => 'crimson_hexagon',
+        source    => 'brandwatch',
         query     => 'foo'
     };
     MediaWords::Test::API::test_put( "/api/v2/topics/$topics_id/add_seed_query", $tsq_input );
