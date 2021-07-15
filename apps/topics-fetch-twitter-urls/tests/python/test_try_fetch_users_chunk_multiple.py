@@ -5,8 +5,10 @@ import requests_mock
 
 from mediawords.db import connect_to_db
 from mediawords.test.db.create import create_test_topic
+
 # noinspection PyProtectedMember
 from topics_fetch_twitter_urls.fetch_twitter_urls import _try_fetch_users_chunk
+
 from .mock_lookups import mock_users_lookup
 
 
@@ -33,7 +35,7 @@ def test_try_fetch_users_chunk_multiple():
     for j in range(num_threads):
         tfus = []
         for i in range(num_urls_per_thread):
-            url = 'https://twitter.com/test_user_%s' % i
+            url = f'https://twitter.com/test_user_{i}'
             tfu = db.create('topic_fetch_urls', {'topics_id': topics_id, 'url': url, 'state': 'pending'})
             tfus.append(tfu)
 
@@ -46,5 +48,7 @@ def test_try_fetch_users_chunk_multiple():
     [t.join() for t in threads]
 
     [num_topic_stories] = db.query(
-        "select count(*) from topic_stories where topics_id = %(a)s", {'a': topics_id}).flat()
+        "SELECT COUNT(*) FROM topic_stories WHERE topics_id = %(topics_id)s",
+        {'topics_id': topics_id}
+    ).flat()
     assert num_urls_per_thread == num_topic_stories

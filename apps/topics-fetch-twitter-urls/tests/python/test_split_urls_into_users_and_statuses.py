@@ -2,6 +2,7 @@
 from topics_fetch_twitter_urls.fetch_twitter_urls import _split_urls_into_users_and_statuses
 
 
+# noinspection HttpUrlsUsage
 def test_split_urls_into_users_and_statuses() -> None:
     """Test split_urls_into_users_and_statuses()."""
     user_urls = [{'url': u} for u in ['http://twitter.com/foo', 'http://twitter.com/bar']]

@@ -1,10 +1,12 @@
 from mediawords.db import connect_to_db
 from mediawords.dbi.downloads.store import get_content_for_first_download
 from mediawords.test.db.create import create_test_topic, create_test_medium, create_test_feed, create_test_story
+
 # noinspection PyProtectedMember
 from topics_fetch_twitter_urls.fetch_twitter_urls import _add_tweet_story
 
 
+# noinspection HttpUrlsUsage
 def test_add_tweet_story():
     db = connect_to_db()
 
@@ -15,13 +17,26 @@ def test_add_tweet_story():
 
     topics_id = topic['topics_id']
 
-    db.create('topic_stories', {'topics_id': topics_id, 'stories_id': source_story['stories_id']})
+    db.create(
+        'topic_stories',
+        {
+            'topics_id': topics_id,
+            'stories_id': source_story['stories_id'],
+        }
+    )
 
     topic_link = {'topics_id': topics_id, 'url': 'u', 'stories_id': source_story['stories_id']}
     topic_link = db.create('topic_links', topic_link)
 
-    tfu = {'topics_id': topics_id, 'url': 'u', 'state': 'pending', 'topic_links_id': topic_link['topic_links_id']}
-    tfu = db.create('topic_fetch_urls', tfu)
+    tfu = db.create(
+        'topic_fetch_urls',
+        {
+            'topics_id': topics_id,
+            'url': 'u',
+            'state': 'pending',
+            'topic_links_id': topic_link['topic_links_id'],
+        },
+    )
 
     tweet = {
         'id': 123,
@@ -48,16 +63,20 @@ def test_add_tweet_story():
     assert get_content_for_first_download(db, story) == tweet['text']
 
     got_topic_story = db.query(
-        "select * from topic_stories where stories_id = %(a)s and topics_id = %(b)s",
-        {'a': story['stories_id'], 'b': topic['topics_id']}).hash()
+        "SELECT * FROM topic_stories WHERE stories_id = %(stories_id)s AND topics_id = %(topics_id)s",
+        {'stories_id': story['stories_id'], 'topics_id': topic['topics_id']}
+    ).hash()
     assert got_topic_story is not None
     assert got_topic_story['link_mined']
 
     # noinspection PyTypeChecker
-    for url in [tweet['entities']['urls'][0]['expanded_url'],
-                tweet['retweeted_status']['entities']['urls'][0]['expanded_url'],
-                tweet['quoted_status']['entities']['urls'][0]['expanded_url']]:
+    for url in [
+        tweet['entities']['urls'][0]['expanded_url'],
+        tweet['retweeted_status']['entities']['urls'][0]['expanded_url'],
+        tweet['quoted_status']['entities']['urls'][0]['expanded_url']
+    ]:
         got_topic_link = db.query(
-            "select * from topic_links where topics_id = %(a)s and url = %(b)s",
-            {'a': topic['topics_id'], 'b': url}).hash()
+            "SELECT * FROM topic_links WHERE topics_id = %(topics_id)s AND url = %(url)s",
+            {'topics_id': topic['topics_id'], 'url': url}
+        ).hash()
         assert got_topic_link is not None

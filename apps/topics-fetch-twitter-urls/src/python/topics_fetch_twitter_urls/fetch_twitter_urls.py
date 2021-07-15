@@ -1,6 +1,6 @@
 """Fetch twitter.com topic_fetch_urls from twitter api in chunks of up to 100i statuses and users."""
 
-from typing import List, Callable
+from typing import List, Callable, Dict, Any
 import traceback
 
 from mediawords.db.handler import DatabaseHandler
@@ -31,28 +31,53 @@ class McFetchTwitterUrlsDataException(Exception):
 
 def _log_tweet_missing(db: DatabaseHandler, topic_fetch_url: dict) -> None:
     """Update topic_fetch_url state to tweet missing."""
-    db.query(
-        "update topic_fetch_urls set state = %(a)s, fetch_date = now() where topic_fetch_urls_id = %(b)s",
-        {'a': FETCH_STATE_TWEET_MISSING, 'b': topic_fetch_url['topic_fetch_urls_id']})
+    db.query("""
+        UPDATE topic_fetch_urls SET
+            state = %(state)s,
+            fetch_date = NOW()
+        WHERE
+            topics_id = %(topics_id)s AND
+            topic_fetch_urls_id = %(topic_fetch_urls_id)s
+    """, {
+        'state': FETCH_STATE_TWEET_MISSING,
+        'topics_id': topic_fetch_url['topics_id'],
+        'topic_fetch_urls_id': topic_fetch_url['topic_fetch_urls_id'],
+    })
 
 
 def _log_content_match_failed(db: DatabaseHandler, topic_fetch_url: dict) -> None:
     """Update topic_fetch_url state to content match failed."""
-    db.query(
-        "update topic_fetch_urls set state = %(a)s, fetch_date = now() where topic_fetch_urls_id = %(b)s",
-        {'a': FETCH_STATE_CONTENT_MATCH_FAILED, 'b': topic_fetch_url['topic_fetch_urls_id']})
+    db.query("""
+        UPDATE topic_fetch_urls SET
+            state = %(state)s,
+            fetch_date = NOW()
+        WHERE
+            topics_id = %(topics_id)s AND
+            topic_fetch_urls_id = %(topic_fetch_urls_id)s
+    """, {
+        'state': FETCH_STATE_CONTENT_MATCH_FAILED,
+        'topics_id': topic_fetch_url['topics_id'],
+        'topic_fetch_urls_id': topic_fetch_url['topic_fetch_urls_id'],
+    })
 
 
 def _log_tweet_added(db: DatabaseHandler, topic_fetch_url: dict, story: dict) -> dict:
     """Update topic_fetch_url stat to tweet added."""
     return db.query("""
         UPDATE topic_fetch_urls
-        SET state = %(a)s,
-            stories_id = %(b)s,
+        SET state = %(state)s,
+            stories_id = %(stories_id)s,
             fetch_date = NOW()
-        WHERE topic_fetch_urls_id = %(c)s
+        WHERE
+            topics_id = %(topics_id)s AND
+            topic_fetch_urls_id = %(topic_fetch_urls_id)s
         RETURNING *
-    """, {'a': FETCH_STATE_TWEET_ADDED, 'b': story['stories_id'], 'c': topic_fetch_url['topic_fetch_urls_id']}).hash()
+    """, {
+        'state': FETCH_STATE_TWEET_ADDED,
+        'stories_id': story['stories_id'],
+        'topics_id': topic_fetch_url['topics_id'],
+        'topic_fetch_urls_id': topic_fetch_url['topic_fetch_urls_id'],
+    }).hash()
 
 
 def _get_undateable_tag(db: DatabaseHandler) -> dict:
@@ -60,16 +85,17 @@ def _get_undateable_tag(db: DatabaseHandler) -> dict:
     tag_name = 'undateable'
     tag_set_name = 'date_invalid'
 
-    invalid_tag = db.query(
-        """
-        select t.*
-            from tags t
-                join tag_sets ts using ( tag_sets_id )
-            where
-                t.tag = %(a)s and
-                ts.name = %(b)s
-        """,
-        {'a': tag_name, 'b': tag_set_name}).hash()
+    invalid_tag = db.query("""
+        SELECT t.*
+        FROM tags AS t
+            INNER JOIN tag_sets AS ts USING (tag_sets_id)
+        WHERE
+            t.tag = %(tag_name)s AND
+            ts.name = %(tag_set_name)s
+    """, {
+        'tag_name': tag_name,
+        'tag_set_name': tag_set_name,
+    }).hash()
 
     if invalid_tag is None:
         tag_set = db.find_or_create('tag_sets', {'name': tag_set_name})
@@ -80,10 +106,10 @@ def _get_undateable_tag(db: DatabaseHandler) -> dict:
 
 def _add_user_story(db: DatabaseHandler, topic: dict, user: dict, topic_fetch_urls: list) -> dict:
     """Generate a story based on the given user, as returned by the twitter api."""
-    content = '%s (%s): %s' % (user['name'], user['screen_name'], user['description'])
-    title = '%s (%s) | Twitter' % (user['name'], user['screen_name'])
+    content = f"{user['name']} ({user['screen_name']}): {user['description']}"
+    title = f"{user['name']} ({user['screen_name']}) | Twitter"
     tweet_date = sql_now()
-    url = 'https://twitter.com/%s' % user['screen_name']
+    url = f"https://twitter.com/{user['screen_name']}"
 
     story = generate_story(db=db, url=url, content=content, title=title, publish_date=tweet_date)
     add_to_topic_stories(db=db, story=story, topic=topic, link_mined=True)
@@ -97,18 +123,19 @@ def _add_user_story(db: DatabaseHandler, topic: dict, user: dict, topic_fetch_ur
     db.query(
         """
             INSERT INTO stories_tags_map (stories_id, tags_id)
-            VALUES (%(a)s, %(b)s)
+            VALUES (%(stories_id)s, %(tags_id)s)
             ON CONFLICT (stories_id, tags_id) DO NOTHING
         """,
         {
-            'a': story['stories_id'], 'b': undateable_tag['tags_id'],
+            'stories_id': story['stories_id'],
+            'tags_id': undateable_tag['tags_id'],
         }
     )
 
     return story
 
 
-def _try_fetch_users_chunk(db: DatabaseHandler, topic: dict, topic_fetch_urls: List) -> None:
+def _try_fetch_users_chunk(db: DatabaseHandler, topic: Dict[str, Any], topic_fetch_urls: List[Dict[str, Any]]) -> None:
     """Fetch up to URLS_CHUNK_SIZE topic_fetch_urls from twitter api as users and add them as topic stories.
 
     Throw any errors up the stack.
@@ -121,7 +148,7 @@ def _try_fetch_users_chunk(db: DatabaseHandler, topic: dict, topic_fetch_urls: L
 
     screen_names = list(url_lookup.keys())
 
-    log.info("fetching users for %d screen_names ..." % len(screen_names))
+    log.info(f"fetching users for {len(screen_names)} screen_names ...")
     users = fetch_100_users(screen_names)
 
     for user in users:
@@ -130,9 +157,9 @@ def _try_fetch_users_chunk(db: DatabaseHandler, topic: dict, topic_fetch_urls: L
             topic_fetch_urls = url_lookup[screen_name]
             del (url_lookup[screen_name])
         except KeyError:
-            raise KeyError("can't find user '%s' in urls: %s" % (user['screen_name'], str(screen_names)))
+            raise KeyError(f"can't find user '{user['screen_name']}' in urls: {screen_names}")
 
-        content = "%s %s %s" % (user['name'], user['screen_name'], user['description'])
+        content = f"{user['name']} {user['screen_name']} {user['description']}"
         if content_matches_topic(content, topic):
             _add_user_story(db, topic, user, topic_fetch_urls)
         else:
@@ -143,13 +170,16 @@ def _try_fetch_users_chunk(db: DatabaseHandler, topic: dict, topic_fetch_urls: L
         [_log_tweet_missing(db, u) for u in topic_fetch_urls]
 
 
-def _add_tweet_story(db: DatabaseHandler, topic: dict, tweet: dict, topic_fetch_urls: list) -> dict:
+def _add_tweet_story(db: DatabaseHandler,
+                     topic: Dict[str, Any],
+                     tweet: dict,
+                     topic_fetch_urls: List[Dict[str, Any]]) -> dict:
     """Generate a story based on the given tweet, as returned by the twitter api."""
     screen_name = tweet['user']['screen_name']
     content = tweet['text']
-    title = "%s: %s" % (screen_name, content)
+    title = f"{screen_name}: {content}"
     tweet_date = tweet['created_at']
-    url = 'https://twitter.com/%s/status/%s' % (screen_name, tweet['id'])
+    url = f"https://twitter.com/{screen_name}/status/{tweet['id']}"
 
     story = generate_story(db=db, url=url, content=content, title=title, publish_date=tweet_date)
     add_to_topic_stories(db=db, story=story, topic=topic, link_mined=True)
@@ -167,7 +197,7 @@ def _add_tweet_story(db: DatabaseHandler, topic: dict, tweet: dict, topic_fetch_
         topic_link = {
             'topics_id': topic['topics_id'],
             'stories_id': story['stories_id'],
-            'url': url
+            'url': url,
         }
 
         db.create('topic_links', topic_link)
@@ -176,7 +206,9 @@ def _add_tweet_story(db: DatabaseHandler, topic: dict, tweet: dict, topic_fetch_
     return story
 
 
-def _try_fetch_tweets_chunk(db: DatabaseHandler, topic: dict, topic_fetch_urls: List) -> None:
+def _try_fetch_tweets_chunk(db: DatabaseHandler,
+                            topic: Dict[str, Any],
+                            topic_fetch_urls: List[Dict[str, Any]]) -> None:
     """Fetch up to URLS_CHUNK_SIZE topic_fetch_urls from twitter api as statuses and add them as topic stories.
 
     Throw any errors up the stack.
@@ -189,7 +221,7 @@ def _try_fetch_tweets_chunk(db: DatabaseHandler, topic: dict, topic_fetch_urls: 
 
     status_ids = list(status_lookup.keys())
 
-    log.info("fetching tweets for %d status_ids ..." % len(status_ids))
+    log.info(f"fetching tweets for {len(status_ids)} status_ids ...")
     tweets = fetch_100_tweets(status_ids)
 
     for tweet in tweets:
@@ -197,7 +229,7 @@ def _try_fetch_tweets_chunk(db: DatabaseHandler, topic: dict, topic_fetch_urls: 
             topic_fetch_urls = status_lookup[str(tweet['id'])]
             del (status_lookup[str(tweet['id'])])
         except KeyError:
-            raise KeyError("can't find tweet '%s' in ids: %s" % (tweet['id'], str(status_ids)))
+            raise KeyError(f"can't find tweet '{tweet['id']}' in ids: {status_ids}")
 
         if content_matches_topic(tweet['text'], topic):
             _add_tweet_story(db, topic, tweet, topic_fetch_urls)
@@ -209,7 +241,10 @@ def _try_fetch_tweets_chunk(db: DatabaseHandler, topic: dict, topic_fetch_urls: 
         [_log_tweet_missing(db, u) for u in topic_fetch_urls]
 
 
-def _call_function_on_url_chunks(db: DatabaseHandler, topic: dict, urls: List, chunk_function: Callable) -> None:
+def _call_function_on_url_chunks(db: DatabaseHandler,
+                                 topic: Dict[str, Any],
+                                 urls: List[Dict[str, Any]],
+                                 chunk_function: Callable) -> None:
     """Call chunk_function on chunks of up to URLS_CHUNK_SIZE urls at a time.
 
     Catch any exceptions raised and save them in the topic_fetch_urls for the given chunk.
@@ -221,17 +256,27 @@ def _call_function_on_url_chunks(db: DatabaseHandler, topic: dict, urls: List, c
         try:
             chunk_function(db, topic, chunk_urls)
         except Exception as ex:
-            log.warning("error fetching twitter data: {}".format(traceback.format_exc()))
+            log.warning(f"error fetching twitter data: {ex}")
 
             topic_fetch_urls_ids = [u['topic_fetch_urls_id'] for u in urls]
-            db.query(
-                "update topic_fetch_urls set state = %(a)s, message = %(b)s where topic_fetch_urls_id = any(%(c)s)",
-                {'a': FETCH_STATE_PYTHON_ERROR, 'b': traceback.format_exc(), 'c': topic_fetch_urls_ids})
+            db.query("""
+                UPDATE topic_fetch_urls SET
+                    state = %(state)s,
+                    message = %(message)s
+                WHERE
+                    topics_id = %(topics_id)s AND
+                    topic_fetch_urls_id = ANY(%(topic_fetch_urls_ids)s)
+            """, {
+                'state': FETCH_STATE_PYTHON_ERROR,
+                'message': str(ex),
+                'topics_id': topic['topics_id'],
+                'topic_fetch_urls_ids': topic_fetch_urls_ids,
+            })
 
         i += URLS_CHUNK_SIZE
 
 
-def _split_urls_into_users_and_statuses(topic_fetch_urls: List) -> tuple:
+def _split_urls_into_users_and_statuses(topic_fetch_urls: List[Dict[str, Any]]) -> tuple:
     """Split topic_fetch_urls into status_id urls and screen_name urls."""
     status_urls = []
     user_urls = []
@@ -246,21 +291,28 @@ def _split_urls_into_users_and_statuses(topic_fetch_urls: List) -> tuple:
             if screen_name:
                 user_urls.append(topic_fetch_url)
             else:
-                raise McFetchTwitterUrlsDataException("url '%s' is not a twitter status or a twitter user" % url)
+                raise McFetchTwitterUrlsDataException(f"url '{url}' is not a twitter status or a twitter user")
 
     return user_urls, status_urls
 
 
-def fetch_twitter_urls(db: DatabaseHandler, topic_fetch_urls_ids: List[int]) -> None:
+def fetch_twitter_urls(db: DatabaseHandler, topics_id: int, topic_fetch_urls_ids: List[int]) -> None:
     """Fetch topic_fetch_urls from twitter api as statuses and users in chunks of up to 100."""
     if len(topic_fetch_urls_ids) == 0:
         return
 
-    topic_fetch_urls = db.query(
-        "select * from topic_fetch_urls where topic_fetch_urls_id = any(%(a)s)",
-        {'a': topic_fetch_urls_ids}).hashes()
+    topic_fetch_urls = db.query("""
+        SELECT *
+        FROM topic_fetch_urls
+        WHERE
+            topics_id = %(topics_id)s AND
+            topic_fetch_urls_id = ANY(%(topic_fetch_urls_ids)s)
+    """, {
+        'topics_id': topics_id,
+        'topic_fetch_urls_ids': topic_fetch_urls_ids,
+    }).hashes()
 
-    topic = db.require_by_id('topics', topic_fetch_urls[0]['topics_id'])
+    topic = db.require_by_id('topics', topics_id)
 
     (user_urls, status_urls) = _split_urls_into_users_and_statuses(topic_fetch_urls)
 
@@ -268,16 +320,25 @@ def fetch_twitter_urls(db: DatabaseHandler, topic_fetch_urls_ids: List[int]) -> 
     _call_function_on_url_chunks(db, topic, status_urls, _try_fetch_tweets_chunk)
 
 
-def fetch_twitter_urls_update_state(db: DatabaseHandler, topic_fetch_urls_ids: List[int]):
+def fetch_twitter_urls_update_state(db: DatabaseHandler,
+                                    topics_id: int,
+                                    topic_fetch_urls_ids: List[int]) -> None:
     """Try fetch_twitter_urls(), update state."""
     try:
-        fetch_twitter_urls(db=db, topic_fetch_urls_ids=topic_fetch_urls_ids)
+        fetch_twitter_urls(db=db, topics_id=topics_id, topic_fetch_urls_ids=topic_fetch_urls_ids)
     except Exception as ex:
-        log.error("Error while fetching URL with ID {}: {}".format(topic_fetch_urls_ids, str(ex)))
+        log.error(f"Error while fetching URL with ID {topic_fetch_urls_ids}: {ex}")
         db.query("""
-            update topic_fetch_urls
-            set state = %(a)s,
-                message = %(b)s,
-                fetch_date = now()
-            where topic_fetch_urls_id = any(%(c)s)
-        """, {'a': FETCH_STATE_PYTHON_ERROR, 'b': traceback.format_exc(), 'c': topic_fetch_urls_ids})
+            UPDATE topic_fetch_urls SET
+                state = %(state)s,
+                message = %(message)s,
+                fetch_date = NOW()
+            WHERE
+                topics_id = %(topics_id)s AND
+                topic_fetch_urls_id = ANY(%(topic_fetch_urls_ids)s)
+        """, {
+            'state': FETCH_STATE_PYTHON_ERROR,
+            'message': traceback.format_exc(),
+            'topics_id': topics_id,
+            'topic_fetch_urls_ids': topic_fetch_urls_ids,
+        })

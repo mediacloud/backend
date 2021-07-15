@@ -4,6 +4,7 @@
 Topic Mapper job that fetches twitter status and user urls from the twitter api and adds them to the topic
 if they match the topic pattern.
 """
+from typing import List
 
 from mediawords.db import connect_to_db
 from mediawords.job import JobBroker
@@ -19,20 +20,25 @@ class McFetchTwitterUrlsJobException(Exception):
     pass
 
 
-def run_topics_fetch_twitter_urls(topic_fetch_urls_ids: list):
-    """Fetch a set of twitter urls from the twitter api and add each as a topic story if it matches.
-
-    All of the interesting logic is in mediawords.tm.fetch_twitter_urls."""
-    if topic_fetch_urls_ids is None:
-        raise McFetchTwitterUrlsJobException("'topic_fetch_urls_ids' is None.")
-
-    log.info("Start fetch twitter urls for %d topic_fetch_urls" % len(topic_fetch_urls_ids))
+def run_topics_fetch_twitter_urls(topic_fetch_urls_ids: List[int]):
+    """Fetch a set of twitter urls from the twitter api and add each as a topic story if it matches."""
+    if not topic_fetch_urls_ids:
+        raise McFetchTwitterUrlsJobException("'topic_fetch_urls_ids' is None or empty.")
 
     db = connect_to_db()
 
-    fetch_twitter_urls_update_state(db=db, topic_fetch_urls_ids=topic_fetch_urls_ids)
+    # FIXME pass topics_id as an argument
+    topics_id = db.query("""
+        SELECT topics_id
+        FROM topic_fetch_urls
+        WHERE topic_fetch_urls_id = %(topic_fetch_urls_id)s
+    """, {'topic_fetch_urls_id': topic_fetch_urls_ids[0]}).flat()[0]
 
-    log.info("Finished fetching twitter urls")
+    log.info(f"Starting to fetch Twitter URLs for {len(topic_fetch_urls_ids)} topic_fetch_urls")
+
+    fetch_twitter_urls_update_state(db=db, topics_id=topics_id, topic_fetch_urls_ids=topic_fetch_urls_ids)
+
+    log.info(f"Finished fetching Twitter URLs for {len(topic_fetch_urls_ids)} topic_fetch_urls")
 
 
 if __name__ == '__main__':

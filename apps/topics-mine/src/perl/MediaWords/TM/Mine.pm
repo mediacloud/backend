@@ -320,9 +320,10 @@ SQL
 
     my $tfu_ids_table = $db->get_temporary_ids_table( $twitter_tfu_ids );
 
-    MediaWords::Job::Broker->new( 'MediaWords::Job::TM::FetchTwitterUrls' )->add_to_queue(
-        { topic_fetch_urls_ids => $twitter_tfu_ids }
-    );
+    MediaWords::Job::Broker->new( 'MediaWords::Job::TM::FetchTwitterUrls' )->add_to_queue({
+        topics_id => $topic->{ topics_id },
+        topic_fetch_urls_ids => $twitter_tfu_ids
+    });
 
     INFO( "waiting for fetch twitter urls job for " . scalar( @{ $twitter_tfu_ids } ) . " urls" );
 
