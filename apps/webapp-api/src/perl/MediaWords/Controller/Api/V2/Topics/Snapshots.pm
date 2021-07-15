@@ -11,6 +11,7 @@ use namespace::autoclean;
 use MediaWords::DBI::Snapshots;
 use MediaWords::Job::StatefulBroker;
 use MediaWords::KeyValueStore::PostgreSQL;
+use MediaWords::Util::Compress;
 
 BEGIN { extends 'MediaWords::Controller::Api::V2::MC_Controller_REST' }
 
@@ -204,14 +205,22 @@ sub word2vec_model_GET
         die "models_id is not set.";
     }
 
-    my $model_store = MediaWords::KeyValueStore::PostgreSQL->new( { table => 'snap.word2vec_models_data' } );
-    my $object_path = undef;
-    my $raw = 1;
-    my $model_data = $model_store->fetch_content( $db, $models_id, $object_path, $raw );
-    unless ( defined $model_data )
-    {
-        die "Model data for topic $topics_id, snapshot $snapshots_id, model $models_id is undefined.";
+    my $model = $db->select(
+        'snap.word2vec_models',
+        'raw_data',
+        {
+            'topics_id' => $topics_id,
+            'snapshots_id' => $snapshots_id,
+            'snap_word2vec_models_id' => $models_id,
+        },
+    )->hash();
+    unless ( $model ) {
+        die "Model $models_id for topic $topics_id, snapshot $snapshots_id was not found";
     }
+
+    my $compressed_model_data = $model->{'raw_data'};
+
+    my $model_data = MediaWords::Util::Compress::gunzip( $compressed_model_data );
 
     my $filename = "word2vec-topic_$topics_id-snapshot_$snapshots_id-model_$models_id.bin";
 
