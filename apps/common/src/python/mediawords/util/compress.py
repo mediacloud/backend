@@ -34,7 +34,7 @@ class McGunzipException(McCompressException):
     pass
 
 
-def bzip2(data: Union[str, bytes]) -> bytes:
+def bzip2(data: Union[str, memoryview, bytes]) -> bytes:
     """Bzip2 data."""
 
     if data is None:
@@ -42,6 +42,10 @@ def bzip2(data: Union[str, bytes]) -> bytes:
 
     if isinstance(data, str):
         data = data.encode('utf-8')
+
+    # BYTEA coming from psycopg2 is memoryview and we need bytes
+    if isinstance(data, memoryview):
+        data = data.tobytes()
 
     if not isinstance(data, bytes):
         raise McBzip2Exception("Data is not str or bytes: %s" % str(data))
@@ -60,11 +64,15 @@ def bzip2(data: Union[str, bytes]) -> bytes:
     return bzipped2_data
 
 
-def bunzip2(data: bytes) -> bytes:
+def bunzip2(data: Union[bytes, memoryview]) -> bytes:
     """Bunzip2 data."""
 
     if data is None:
         raise McBunzip2Exception("Data is None.")
+
+    # BYTEA coming from psycopg2 is memoryview and we need bytes
+    if isinstance(data, memoryview):
+        data = data.tobytes()
 
     if not isinstance(data, bytes):
         raise McBunzip2Exception("Data is not bytes: %s" % str(data))
@@ -86,7 +94,7 @@ def bunzip2(data: bytes) -> bytes:
     return bunzipped2_data
 
 
-def gzip(data: Union[str, bytes]) -> bytes:
+def gzip(data: Union[str, memoryview, bytes]) -> bytes:
     """Gzip data."""
 
     if data is None:
@@ -94,6 +102,10 @@ def gzip(data: Union[str, bytes]) -> bytes:
 
     if isinstance(data, str):
         data = data.encode('utf-8')
+
+    # BYTEA coming from psycopg2 is memoryview and we need bytes
+    if isinstance(data, memoryview):
+        data = data.tobytes()
 
     if not isinstance(data, bytes):
         raise McGzipException("Data is not str or bytes: %s" % str(data))
@@ -112,11 +124,15 @@ def gzip(data: Union[str, bytes]) -> bytes:
     return gzipped_data
 
 
-def gunzip(data: bytes) -> bytes:
+def gunzip(data: Union[memoryview, bytes]) -> bytes:
     """Gunzip data."""
 
     if data is None:
         raise McGunzipException("Data is None.")
+
+    # BYTEA coming from psycopg2 is memoryview and we need bytes
+    if isinstance(data, memoryview):
+        data = data.tobytes()
 
     if not isinstance(data, bytes):
         raise McGunzipException("Data is not bytes: %s" % str(data))
