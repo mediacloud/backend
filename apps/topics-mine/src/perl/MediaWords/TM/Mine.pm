@@ -849,7 +849,6 @@ SQL
         WHERE
             tsu.stories_id = tms.source_stories_id AND
             ts.stories_id = tms.target_stories_id AND
-            tms.topics_id = ts.topics_id AND
             tsu.topics_id = ts.topics_id AND
             ts.topics_id = \$1
 SQL
