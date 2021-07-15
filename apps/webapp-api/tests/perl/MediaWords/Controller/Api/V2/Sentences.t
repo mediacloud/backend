@@ -29,7 +29,13 @@ sub test_sentences_list($)
 
     my $label = "sentences/list";
 
-    my $stories     = $db->query( "select * from stories order by stories_id asc limit 10" )->hashes;
+    my $stories     = $db->query( <<SQL
+        SELECT *
+        FROM stories
+        ORDER BY stories_id ASC
+        LIMIT 10
+SQL
+    )->hashes;
     my $stories_ids = [ map { $_->{ stories_id } } @{ $stories } ];
     my $expected_ss = $db->query( <<SQL,
         SELECT *
@@ -63,8 +69,16 @@ sub main
 
     # Prepend some UTF-8 to every sentence to test out Unicode support
     $db->query(<<SQL,
+        WITH all_story_ids AS (
+            SELECT stories_id
+            FROM stories
+        )
         UPDATE story_sentences
-        SET sentence = CONCAT(?, sentence)
+        SET sentence = ? || sentence
+        WHERE stories_id IN (
+            SELECT stories_id
+            FROM all_story_ids
+        )
 SQL
         $UTF8_PREFIX . ''
     );
