@@ -2556,16 +2556,10 @@ SELECT run_command_on_shards('stories', $cmd$
 -- FIXME merged "snap.word2vec_models" and "snap.word2vec_models_data"
 CREATE TABLE snap.word2vec_models
 (
-    -- FIXME renamed
     snap_word2vec_models_id BIGSERIAL NOT NULL,
-
     topics_id               BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-
-    -- FIXME renamed
     snapshots_id            BIGINT    NOT NULL,
-
     creation_date           TIMESTAMP NOT NULL DEFAULT NOW(),
-
     raw_data                BYTEA     NOT NULL,
 
     PRIMARY KEY (snap_word2vec_models_id, topics_id),
