@@ -39,7 +39,7 @@ services:
 
             # Not needed for running the test but useful for debugging, demos
             # and such
-            - temporal-webapp
+            # - temporal-webapp
 
     postgresql-pgbouncer:
         image: gcr.io/mcback/postgresql-pgbouncer:latest
@@ -137,12 +137,12 @@ services:
               target: /opt/elasticsearch/bin/elasticsearch.sh
             # Not mounting config as it gets concatenated into a single file
 
-    temporal-webapp:
-        image: gcr.io/mcback/temporal-webapp:latest
-        init: true
-        stop_signal: SIGKILL
-        expose:
-            - "8088"
-        ports:
-            # Expose to host for debugging
-            - "8088:8088"
+    # temporal-webapp:
+    #     image: gcr.io/mcback/temporal-webapp:latest
+    #     init: true
+    #     stop_signal: SIGKILL
+    #     expose:
+    #         - "8088"
+    #     ports:
+    #         # Expose to host for debugging
+    #         - "8088:8088"
