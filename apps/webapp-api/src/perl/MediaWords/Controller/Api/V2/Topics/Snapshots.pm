@@ -77,7 +77,7 @@ SQL
 
             -- FIXME snapshots_id gets into resulting hashes, not sure how to
             -- get rid of it with attach_child_query()
-            object_id AS snapshots_id,
+            snapshots_id,
 
             creation_date
         FROM snap.word2vec_models

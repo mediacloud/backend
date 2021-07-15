@@ -2002,7 +2002,7 @@ CREATE TABLE snapshot_files
 
     PRIMARY KEY (snapshot_files_id, topics_id),
 
-    FOREIGN KEY (topics_id, snapshot_files_id)
+    FOREIGN KEY (topics_id, snapshots_id)
         REFERENCES snapshots (topics_id, snapshots_id)
         ON DELETE CASCADE
 );

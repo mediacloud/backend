@@ -85,16 +85,16 @@ sub get_story_foci($$$)
                 f.topics_id = b.topics_id AND
                 f.foci_id = b.foci_id
             INNER JOIN focal_sets AS fs ON
-                f.focal_sets_id = fs.focal_sets_id AND
+                f.topics_id = fs.topics_id AND
                 f.focal_sets_id = fs.focal_sets_id
             INNER JOIN snap.story_link_counts AS slcb ON
                 slcb.topics_id = slc.topics_id AND
                 slcb.stories_id = slc.stories_id AND
-                slcb.topics_id = b.topics_id
+                slcb.topics_id = b.topics_id AND
                 slcb.timespans_id = b.timespans_id
         WHERE
             slc.stories_id IN ($stories_ids_list) AND
-            a.topics_id = \$1
+            slc.topics_id = \$1 AND
             a.timespans_id = \$2
 SQL
         $timespan->{ topics_id }, $timespan->{ timespans_id }
