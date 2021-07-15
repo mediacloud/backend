@@ -7,6 +7,7 @@ import gensim
 from word2vec_generate_snapshot_model import train_word2vec_model
 from word2vec_generate_snapshot_model.model_stores import SnapshotDatabaseModelStore
 from word2vec_generate_snapshot_model.sentence_iterators import SnapshotSentenceIterator
+
 from .setup_test_word2vec import TestWord2vec
 
 
@@ -15,13 +16,13 @@ class TestTrainWord2vecModel(TestWord2vec):
     def test_train_word2vec_model(self):
         sentence_iterator = SnapshotSentenceIterator(
             db=self.db,
+            topics_id=self.topics_id,
             snapshots_id=self.snapshots_id,
             stories_id_chunk_size=self.TEST_STORIES_ID_CHUNK_SIZE,
         )
-        model_store = SnapshotDatabaseModelStore(db=self.db, snapshots_id=self.snapshots_id)
+        model_store = SnapshotDatabaseModelStore(db=self.db, topics_id=self.topics_id, snapshots_id=self.snapshots_id)
 
-        models_id = train_word2vec_model(sentence_iterator=sentence_iterator,
-                                         model_store=model_store)
+        models_id = train_word2vec_model(sentence_iterator=sentence_iterator, model_store=model_store)
 
         model_data = model_store.read_model(models_id=models_id)
         assert model_data is not None

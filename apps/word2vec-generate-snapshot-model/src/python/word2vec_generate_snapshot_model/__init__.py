@@ -5,15 +5,16 @@ import tempfile
 import gensim
 
 from mediawords.util.log import create_logger
+
 from word2vec_generate_snapshot_model.exceptions import McWord2vecException
-from word2vec_generate_snapshot_model.model_stores import AbstractModelStore
-from word2vec_generate_snapshot_model.sentence_iterators import AbstractSentenceIterator
+from word2vec_generate_snapshot_model.model_stores import SnapshotDatabaseModelStore
+from word2vec_generate_snapshot_model.sentence_iterators import SnapshotSentenceIterator
 
 log = create_logger(__name__)
 
 
-def train_word2vec_model(sentence_iterator: AbstractSentenceIterator,
-                         model_store: AbstractModelStore) -> int:
+def train_word2vec_model(sentence_iterator: SnapshotSentenceIterator,
+                         model_store: SnapshotDatabaseModelStore) -> int:
     """Train word2vec model.
 
     :param sentence_iterator: Sentence iterator to fetch training sentences from
@@ -48,20 +49,20 @@ def train_word2vec_model(sentence_iterator: AbstractSentenceIterator,
     del model
 
     # Saving in in the same format used by the original C word2vec-tool, for compatibility
-    log.info("Saving model to a temporary path '%s'..." % temp_model_path)
+    log.info(f"Saving model to a temporary path '{temp_model_path}'...")
     word_vectors.save_word2vec_format(temp_model_path, binary=True)
 
     if not os.path.isfile(temp_model_path):
-        raise McWord2vecException("word2vec model not found at path: %s" % temp_model_path)
+        raise McWord2vecException(f"word2vec model not found at path: {temp_model_path}")
 
     log.info("Reading model from a temporary path...")
     with open(temp_model_path, mode='rb') as model_file:
         model_data = model_file.read()
 
     log.info("Storing model to in a model store...")
-    models_id = model_store.store_model(topics_id=topics_id, model_data=model_data)
+    models_id = model_store.store_model(model_data=model_data)
 
-    log.info("Cleaning up temporary directory '%s'..." % temp_directory)
+    log.info(f"Cleaning up temporary directory '{temp_directory}'...")
     shutil.rmtree(temp_directory)
 
     log.info("Done!")

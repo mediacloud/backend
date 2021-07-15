@@ -13,12 +13,7 @@ from word2vec_generate_snapshot_model import McWord2vecException
 log = create_logger(__name__)
 
 
-class AbstractSentenceIterator(Iterator, ABC, metaclass=abc.ABCMeta):
-    """Abstract story sentence iterator."""
-    pass
-
-
-class SnapshotSentenceIterator(AbstractSentenceIterator, metaclass=abc.ABCMeta):
+class SnapshotSentenceIterator(Iterator):
     """Iterator that iterates over sentences in a snapshot."""
 
     __DEFAULT_STORIES_ID_CHUNK_SIZE = 1000

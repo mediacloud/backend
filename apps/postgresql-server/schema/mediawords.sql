@@ -2553,19 +2553,24 @@ SELECT run_command_on_shards('stories', $cmd$
 --
 -- Snapshot word2vec models
 --
+-- FIXME merged "snap.word2vec_models" and "snap.word2vec_models_data"
 CREATE TABLE snap.word2vec_models
 (
     -- FIXME renamed
     snap_word2vec_models_id BIGSERIAL NOT NULL,
 
     topics_id               BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-    object_id               BIGINT    NOT NULL,
+
+    -- FIXME renamed
+    snapshots_id            BIGINT    NOT NULL,
 
     creation_date           TIMESTAMP NOT NULL DEFAULT NOW(),
 
+    raw_data                BYTEA     NOT NULL,
+
     PRIMARY KEY (snap_word2vec_models_id, topics_id),
 
-    FOREIGN KEY (topics_id, object_id)
+    FOREIGN KEY (topics_id, snapshots_id)
         REFERENCES snapshots (topics_id, snapshots_id)
         ON DELETE CASCADE
 );
@@ -2573,30 +2578,9 @@ CREATE TABLE snap.word2vec_models
 SELECT create_distributed_table('snap.word2vec_models', 'topics_id');
 
 -- We'll need to find the latest word2vec model
-CREATE INDEX snap_word2vec_models_object_id_creation_date
-    ON snap.word2vec_models (object_id, creation_date);
+CREATE INDEX snap_word2vec_models_topics_id_snapshots_id_creation_date
+    ON snap.word2vec_models (topics_id, snapshots_id, creation_date);
 
-
-CREATE TABLE snap.word2vec_models_data
-(
-    -- FIXME renamed
-    snap_word2vec_models_data_id BIGSERIAL NOT NULL,
-
-    topics_id                    BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-    object_id                    BIGINT    NOT NULL,
-    raw_data                     BYTEA     NOT NULL,
-
-    PRIMARY KEY (snap_word2vec_models_data_id, topics_id),
-
-    FOREIGN KEY (topics_id, object_id)
-        REFERENCES snap.word2vec_models (topics_id, snap_word2vec_models_id)
-        ON DELETE CASCADE
-);
-
-SELECT create_distributed_table('snap.word2vec_models_data', 'topics_id');
-
-CREATE UNIQUE INDEX snap_word2vec_models_data_topics_id_object_id
-    ON snap.word2vec_models_data (topics_id, object_id);
 
 
 CREATE TABLE processed_stories

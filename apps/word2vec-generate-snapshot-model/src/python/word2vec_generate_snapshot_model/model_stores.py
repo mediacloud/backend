@@ -1,135 +1,59 @@
-import abc
-
 from mediawords.db import DatabaseHandler
-from mediawords.key_value_store import KeyValueStore
-from mediawords.key_value_store.postgresql import PostgreSQLStore
+from mediawords.util.compress import gzip, gunzip
 from mediawords.util.log import create_logger
+
 from word2vec_generate_snapshot_model import McWord2vecException
 
 log = create_logger(__name__)
 
 
-class AbstractModelStore(object, metaclass=abc.ABCMeta):
-    """Abstract class for defining how to store generated word2vec models."""
-
-    @abc.abstractmethod
-    def store_model(self, model_data: bytes) -> int:
-        """Store model data to the store.
-
-        :param model_data: Raw serialized model data to be stored
-        :return ID of a model that was just stored
-        """
-        raise NotImplementedError("Abstract method.")
-
-    @abc.abstractmethod
-    def read_model(self, models_id: int) -> bytes:
-        """Read model data from the store.
-
-        :param models_id: Model ID to load
-        :return Raw serialized model data that was read from the store
-        """
-        raise NotImplementedError("Abstract method.")
-
-
-class AbstractDatabaseModelStore(AbstractModelStore, metaclass=abc.ABCMeta):
-    """Class for storing model in a database."""
-
+class SnapshotDatabaseModelStore(object):
     __slots__ = [
         '__db',
         '__topics_id',
-        '__object_id',
+        '__snapshots_id',
     ]
 
-    @abc.abstractmethod
-    def model_table(self) -> str:
-        """Return table name for word2vec model metadata."""
-        raise NotImplementedError("Abstract method.")
-
-    @abc.abstractmethod
-    def data_table(self) -> str:
-        """Return table name for word2vec model raw data."""
-        raise NotImplementedError("Abstract method.")
-
-    def __init__(self, db: DatabaseHandler, topics_id: int, object_id: int):
-        """Constructor.
-
-        :param db: Database handler
-        :param topics_id: Topic ID
-        :param object_id: Snapshot ID under which the model will be stored in the database
-        """
+    def __init__(self, db: DatabaseHandler, topics_id: int, snapshots_id: int):
         self.__db = db
         self.__topics_id = topics_id
-        self.__object_id = object_id
-
-    def __key_value_store(self) -> KeyValueStore:
-        """Return key-value store for storing raw serialized model data."""
-        return PostgreSQLStore(table=self.data_table())
+        self.__snapshots_id = snapshots_id
 
     def store_model(self, model_data: bytes) -> int:
-        self.__db.begin()
+        compressed_model_data = gzip(model_data)
 
-        primary_key_column = self.__db.primary_key_column(self.model_table())
-
-        # Write model record
-        model_metadata = self.__db.create(
-            table=self.model_table(),
-            insert_hash={
-                'topics_id': self.__topics_id,
-                'object_id': self.__object_id,
-            },
-        )
-        models_id = model_metadata[primary_key_column]
-
-        # Write model data
-        self.__key_value_store().store_content(db=self.__db, object_id=models_id, content=model_data)
-
-        self.__db.commit()
+        models_id = self.__db.query("""
+            INSERT INTO snap.word2vec_models (topics_id, snapshots_id, raw_data)
+            VALUES (%(topics_id)s, %(snapshots_id)s, %(raw_data)s)
+            RETURNING snap_word2vec_models_id
+        """, {
+            'topics_id': self.__topics_id,
+            'snapshots_id': self.__snapshots_id,
+            'raw_data': compressed_model_data,
+        }).flat()[0]
 
         return models_id
 
     def read_model(self, models_id: int) -> bytes:
-        self.__db.begin()
-
-        primary_key_column = self.__db.primary_key_column(self.model_table())
-
-        model_metadata = self.__db.select(
-            table=self.model_table(),
-            what_to_select='*',
+        model = self.__db.select(
+            table='snap.word2vec_models',
+            what_to_select='raw_data',
             condition_hash={
                 'topics_id': self.__topics_id,
-                'object_id': self.__object_id,
-                primary_key_column: models_id,
+                'snapshots_id': self.__snapshots_id,
+                'snap_word2vec_models_id': models_id,
             }
         ).hash()
-        if not model_metadata:
-            raise McWord2vecException("Model with object ID %d was not found." % self.__object_id)
+        if not model:
+            raise McWord2vecException(
+                f"Model {models_id} for topic {self.__topics_id}, snapshot {self.__snapshots_id} was not found"
+            )
 
-        model_data = self.__key_value_store().fetch_content(db=self.__db, object_id=models_id)
+        compressed_model_data = model['raw_data']
 
-        self.__db.commit()
+        if isinstance(compressed_model_data, memoryview):
+            compressed_model_data = compressed_model_data.tobytes()
+
+        model_data = gunzip(compressed_model_data)
 
         return model_data
-
-
-class SnapshotDatabaseModelStore(AbstractDatabaseModelStore):
-    """Database model storage for storing snapshot word2vec models."""
-
-    __slots__ = [
-        '__topics_id',
-    ]
-
-    def __init__(self, db: DatabaseHandler, topics_id: int, snapshots_id: int):
-        """Constructor.
-
-        :param db: Database handler
-        :param topics_id: Topic ID
-        :param snapshots_id: Snapshot ID
-        """
-        super().__init__(db=db, object_id=snapshots_id)
-        self.__topics_id = topics_id
-
-    def model_table(self) -> str:
-        return 'snap.word2vec_models'
-
-    def data_table(self) -> str:
-        return 'snap.word2vec_models_data'

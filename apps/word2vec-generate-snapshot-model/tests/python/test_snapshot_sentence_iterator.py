@@ -1,4 +1,5 @@
 from word2vec_generate_snapshot_model.sentence_iterators import SnapshotSentenceIterator
+
 from .setup_test_word2vec import TestWord2vec
 
 
@@ -9,6 +10,7 @@ class TestSnapshotSentenceIterator(TestWord2vec):
 
         sentence_iterator = SnapshotSentenceIterator(
             db=self.db,
+            topics_id=self.topics_id,
             snapshots_id=self.snapshots_id,
             stories_id_chunk_size=self.TEST_STORIES_ID_CHUNK_SIZE,
         )
