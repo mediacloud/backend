@@ -38,7 +38,7 @@ def test_fetch_twitter_urls_update_state():
         m.get("https://api.twitter.com/1.1/statuses/lookup.json", text=mock_statuses_lookup)
         m.post("https://api.twitter.com/1.1/users/lookup.json", text=mock_users_lookup)
 
-        fetch_twitter_urls_update_state(db=db, topic_fetch_urls_ids=tfu_ids)
+        fetch_twitter_urls_update_state(db=db, topics_id=topics_id, topic_fetch_urls_ids=tfu_ids)
 
     [num_tweet_stories] = db.query("""
         WITH stories_from_topic AS (
