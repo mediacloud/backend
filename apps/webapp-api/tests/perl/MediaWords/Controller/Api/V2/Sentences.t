@@ -48,7 +48,7 @@ SQL
     my $stories_ids_list = join( ' ', @{ $stories_ids } );
     my $got_ss = MediaWords::Test::API::test_get( '/api/v2/sentences/list', { 'q' => "stories_id:($stories_ids_list)" } );
 
-    WARN( MediaWords::Util::ParseJSON::encode_json( $got_ss ) );
+    # WARN( MediaWords::Util::ParseJSON::encode_json( $got_ss ) );
 
     my $fields = [ qw/stories_id media_id sentence language publish_date/ ];
     MediaWords::Test::Rows::rows_match( $label, $got_ss, $expected_ss, 'story_sentences_id', $fields );
