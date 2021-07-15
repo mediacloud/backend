@@ -31,15 +31,38 @@ def test_get_story_match():
 
     # get_preferred_story - return only story with sentences
     # noinspection SqlInsertValues
-    db.query(
-        """
-        insert into story_sentences ( stories_id, media_id, publish_date, sentence, sentence_number )
-            select stories_id, media_id, publish_date, 'foo', 1
-            from stories
-            where stories_id = %(a)s
-        """,
-        {'a': stories[4]['stories_id']})
+    db.query("""
+        INSERT INTO story_sentences (
+            stories_id,
+            media_id,
+            publish_date,
+            sentence,
+            sentence_number
+        )
+            SELECT
+                stories_id,
+                media_id,
+                publish_date,
+                'foo' AS sentence,
+                1 AS sentence_number
+            FROM stories
+            WHERE stories_id = %(stories_id)s
+    """, {
+        'stories_id': stories[4]['stories_id']
+    })
     # noinspection SqlWithoutWhere
-    stories = db.query("update stories set url = 'http://stories.com/' returning *").hashes()
+    db.query("""
+        WITH all_story_ids AS (
+            SELECT stories_id
+            FROM stories
+        )
+        UPDATE stories SET
+            url = 'http://stories.com/'
+        WHERE stories_id IN (
+            SELECT stories_id
+            FROM all_story_ids
+        )
+        RETURNING *
+    """).hashes()
 
-    assert get_story_match(db, 'http://stories.com/') == stories[4]
+    assert get_story_match(db, 'http://stories.com/')['stories_id'] == stories[4]['stories_id']
