@@ -1,3 +1,4 @@
+import datetime
 from dataclasses import dataclass
 import re
 import time
@@ -369,13 +370,23 @@ def get_and_store_story_stats(db: DatabaseHandler, story: dict) -> FacebookURLSt
     stats = None
     thrown_exception = None
 
-    story_stats = db.query("select * from story_statistics where stories_id = %(a)s", {'a': story['stories_id']}).hash()
+    story_stats = db.query("""
+        SELECT *
+        FROM story_statistics
+        WHERE stories_id = %(stories_id)s
+    """, {'stories_id': story['stories_id']}).hash()
 
+    # It's unclear what was the original intention here:
     try:
-        if len(story_stats.get('facebook_api_error', '')) > 0:
-            message ='ignore story %d with error: %s' % (story['stories_id'], story_stats['facebook_api_error'])
+        if not story_stats:
+            raise McFacebookSoftFailureException('Story stats for story is unset')
+        api_error = story_stats.get('facebook_api_error', None)
+        if not api_error:
+            raise McFacebookSoftFailureException('API error is unset')
+        if len(api_error) > 0:
+            message = f'ignore story {story["stories_id"]} with error: {story_stats["facebook_api_error"]}'
             raise McFacebookSoftFailureException(message)
-    except Exception:
+    except McFacebookSoftFailureException:
         pass
 
     try:
@@ -383,6 +394,8 @@ def get_and_store_story_stats(db: DatabaseHandler, story: dict) -> FacebookURLSt
     except Exception as ex:
         log.error(f"Statistics can't be fetched for URL '{story_url}': {ex}")
         thrown_exception = ex
+
+    date_now = datetime.datetime.now()
 
     db.query("""
         INSERT INTO story_statistics (
@@ -397,13 +410,13 @@ def get_and_store_story_stats(db: DatabaseHandler, story: dict) -> FacebookURLSt
             %(share_count)s,
             %(comment_count)s,
             %(reaction_count)s,
-            NOW(),
+            %(now)s,
             %(facebook_error)s
         ) ON CONFLICT (stories_id) DO UPDATE SET
             facebook_share_count = %(share_count)s,
             facebook_comment_count = %(comment_count)s,
             facebook_reaction_count = %(reaction_count)s,
-            facebook_api_collect_date = NOW(),
+            facebook_api_collect_date = %(now)s,
             facebook_api_error = %(facebook_error)s
     """, {
         'stories_id': story['stories_id'],
@@ -411,6 +424,7 @@ def get_and_store_story_stats(db: DatabaseHandler, story: dict) -> FacebookURLSt
         'comment_count': stats.comment_count if stats else None,
         'reaction_count': stats.reaction_count if stats else None,
         'facebook_error': str(thrown_exception) if thrown_exception else None,
+        'now': date_now,
     })
 
     if thrown_exception:
