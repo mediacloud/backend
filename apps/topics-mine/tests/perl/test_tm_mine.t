@@ -358,12 +358,20 @@ sub test_topic_stories($$$)
 {
     my ( $db, $topic, $sites ) = @_;
 
-    my $topic_stories = $db->query( <<SQL, $topic->{ topics_id } )->hashes;
-select cs.*, s.*
-    from topic_stories cs
-        join stories s on ( s.stories_id = cs.stories_id )
-    where cs.topics_id = ?
+    my $topic_stories = $db->query( <<SQL,
+        WITH selected_topic_stories AS (
+            SELECT *
+            FROM topic_stories
+            WHERE topics_id = ?
+        )
+        SELECT
+            topic_stories.*,
+            stories.*
+        FROM selected_topic_stories
+            INNER JOIN stories ON stories.stories_id = selected_topic_stories.stories_id
 SQL
+        $topic->{ topics_id }
+    )->hashes;
 
     my $all_pages = [];
     map { push( @{ $all_pages }, @{ $_->{ pages } } ) } @{ $sites };
@@ -384,14 +392,22 @@ SQL
         delete( $topic_pages_lookup->{ $topic_story->{ url } } );
     }
 
-    is( scalar( keys( %{ $topic_pages_lookup } ) ),
-        0, "missing topic story for topic pages: " . Dumper( values( %{ $topic_pages_lookup } ) ) );
+    is(
+        scalar( keys( %{ $topic_pages_lookup } ) ),
+        0,
+        "missing topic story for topic pages: " . Dumper( values( %{ $topic_pages_lookup } ) )
+    );
 
     # Wait for pending URLs to disappear
     Readonly my $WAIT_PENDING_SECONDS => 10;
     my $pending_count = 0;
     for ( my $pending_retry = 0; $pending_retry <= $WAIT_PENDING_SECONDS; ++$pending_retry ) {
-        ( $pending_count ) = $db->query( "select count(*) from topic_fetch_urls where state ='pending'" )->flat;
+        ( $pending_count ) = $db->query( <<SQL
+            SELECT COUNT(*)
+            FROM topic_fetch_urls
+            WHERE state ='pending'
+SQL
+        )->flat;
         if ( $pending_count > 0 ) {
             WARN "Still $pending_count URLs are pending, will retry shortly";
             sleep( 1 );
@@ -402,15 +418,32 @@ SQL
     }
     is( $pending_count, 0, "After waiting $WAIT_PENDING_SECONDS some URLs are still in 'pending' state" );
 
-    my ( $dead_link_count ) = $db->query( "select count(*) from topic_fetch_urls where state ='request failed'" )->flat;
+    my ( $dead_link_count ) = $db->query( <<SQL
+        SELECT COUNT(*)
+        FROM topic_fetch_urls
+        WHERE state ='request failed'
+SQL
+    )->flat;
     is( $dead_link_count, scalar( @{ $topic_pages } ), "dead link count" );
 
     if ( $dead_link_count != scalar( @{ $topic_pages } ) )
     {
-        my $fetch_states = $db->query( "select count(*), state from topic_fetch_urls group by state" )->hashes();
+        my $fetch_states = $db->query( <<SQL
+            SELECT
+                COUNT(*),
+                state
+            FROM topic_fetch_urls
+            GROUP BY state
+SQL
+        )->hashes();
         WARN( "fetch states: " . Dumper( $fetch_states ) );
 
-        my $fetch_errors = $db->query( "select * from topic_fetch_urls where state = 'python error'" )->hashes();
+        my $fetch_errors = $db->query( <<SQL
+            SELECT *
+            FROM topic_fetch_urls
+            WHERE state = 'python error'
+SQL
+        )->hashes();
         WARN( "fetch errors: " . Dumper( $fetch_errors ) );
     }
 }
@@ -421,7 +454,7 @@ sub test_topic_links($$$)
 
     my $cid = $topic->{ topics_id };
 
-    my $cl = $db->query( "select * from topic_links" )->hashes;
+    my $cl = $db->query( "SELECT * FROM topic_links" )->hashes;
 
     TRACE "topic links: " . Dumper( $cl );
 
@@ -436,23 +469,34 @@ sub test_topic_links($$$)
         {
             next unless ( $link->{ matches_topic } );
 
-            my $topic_links = $db->query( <<SQL, $page->{ url }, $link->{ url }, $cid )->hashes;
-select *
-    from topic_links cl
-        join stories s on ( cl.stories_id = s.stories_id )
-    where
-        s.url = \$1 and
-        cl.url = \$2 and
-        cl.topics_id = \$3
+            my $topic_links = $db->query( <<SQL,
+                WITH selected_topic_links AS (
+                    SELECT *
+                    FROM topic_links
+                    WHERE
+                        topics_id = \$3 AND
+                        url = \$2
+                )
+                SELECT *
+                FROM selected_topic_links
+                    INNER JOIN stories ON
+                        selected_topic_links.stories_id = stories.stories_id
+                WHERE stories.url = \$1
 SQL
+                $page->{ url }, $link->{ url }, $cid
+            )->hashes;
 
             is( scalar( @{ $topic_links } ), 1, "number of topic_links for $page->{ url } -> $link->{ url }" );
         }
     }
 
-    my $topic_spider_metric = $db->query( <<SQL, $topic->{ topics_id } )->hash;
-select sum( links_processed ) links_processed from topic_spider_metrics where topics_id = ?
+    my $topic_spider_metric = $db->query( <<SQL,
+        SELECT SUM(links_processed) AS links_processed
+        FROM topic_spider_metrics
+        WHERE topics_id = ?
 SQL
+        $topic->{ topics_id }
+    )->hash;
 
     ok( $topic_spider_metric,                                           "topic spider metrics exist" );
     ok( $topic_spider_metric->{ links_processed } > scalar( @{ $cl } ), "metrics links_processed greater than topic_links" );
@@ -463,11 +507,11 @@ sub test_for_errors($)
 {
     my ( $db ) = @_;
 
-    my $error_topics = $db->query( "select * from topics where state = 'error'" )->hashes;
+    my $error_topics = $db->query( "SELECT * FROM topics WHERE state = 'error'" )->hashes;
 
     ok( scalar( @{ $error_topics } ) == 0, "topic errors: " . Dumper( $error_topics ) );
 
-    my $error_snapshots = $db->query( "select * from snapshots where state = 'error'" )->hashes;
+    my $error_snapshots = $db->query( "SELECT * FROM snapshots WHERE state = 'error'" )->hashes;
 
     ok( scalar( @{ $error_snapshots } ) == 0, "snapshot errors: " . Dumper( $error_snapshots ) );
 }
