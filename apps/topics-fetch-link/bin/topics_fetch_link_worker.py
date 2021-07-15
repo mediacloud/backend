@@ -59,6 +59,8 @@ def run_topics_fetch_link(topic_fetch_urls_id: int, domain_timeout: Optional[int
     if topic_fetch_urls_id is None:
         raise McFetchLinkJobException("'topic_fetch_urls_id' is None.")
 
+    db = connect_to_db()
+
     # FIXME topics_id could be passed as an argument
     topics_id = db.query("""
         SELECT topics_id
@@ -67,8 +69,6 @@ def run_topics_fetch_link(topic_fetch_urls_id: int, domain_timeout: Optional[int
     """, {'topic_fetch_urls_id': topic_fetch_urls_id}).flat()[0]
 
     log.info(f"Starting fetch for topic {topics_id}, topic_fetch_url {topic_fetch_urls_id}")
-
-    db = connect_to_db()
 
     try:
         if not fetch_topic_url_update_state(db=db,
