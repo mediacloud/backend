@@ -150,16 +150,6 @@ x-twitter-api-configuration: &twitter-api-configuration
 
 
 #
-# Crimson Hexagon API configuration
-# =================================
-#
-x-crimson-hexagon-api-configuration: &crimson-hexagon-api-configuration
-
-    # Crimson Hexagon API key
-    MC_CRIMSON_HEXAGON_API_KEY: ""
-
-
-#
 # Brandwatch API configuration
 # ============================
 #
@@ -1233,7 +1223,7 @@ services:
     #
     podcast-transcribe-episode-rabbitmq-worker:
         image: gcr.io/mcback/podcast-transcribe-episode:release
-        command: "rabbitmq-worker.py"
+        command: "rabbitmq_worker.py"
         init: true
         networks:
             - default
@@ -1266,7 +1256,7 @@ services:
     #
     podcast-transcribe-episode-temporal-worker:
         image: gcr.io/mcback/podcast-transcribe-episode:release
-        command: "temporal-worker.py"
+        command: "workflow_worker.py"
         init: true
         networks:
             - default
@@ -1833,7 +1823,7 @@ services:
         volumes:
             - vol_temporal_grafana_data:/var/lib/grafana/
         deploy:
-            <<: *endpoint-mode-dnsrr
+            # DNSRR disabled as it's not supported with published ports.
             placement:
                 constraints:
                     # Must run on the host with Temporal Grafana data volume
@@ -1956,8 +1946,8 @@ services:
             # MAKE SURE to BLOCK THIS PORT in provision/roles/docker/tasks/iptables.yml
             - "8088:8088"
         deploy:
+            # DNSRR disabled as it's not supported with published ports.
             <<: *misc-apps_deploy_placement_constraints
-            <<: *endpoint-mode-dnsrr
             # Worker count
             replicas: 1
             resources:
@@ -2076,7 +2066,6 @@ services:
         environment:
             <<: *common-configuration
             <<: *twitter-api-configuration
-            <<: *crimson-hexagon-api-configuration
             <<: *brandwatch-api-configuration
         deploy:
             <<: *misc-apps_deploy_placement_constraints
@@ -2102,7 +2091,6 @@ services:
         environment:
             <<: *common-configuration
             <<: *twitter-api-configuration
-            <<: *crimson-hexagon-api-configuration
             <<: *brandwatch-api-configuration
         deploy:
             <<: *misc-apps_deploy_placement_constraints
@@ -2513,7 +2501,7 @@ volumes:
         driver_opts:
             type: none
             o: bind
-            device: /space/mediacloud/vol_postgresql_data
+            device: /space/mediacloud/vol_temporal_postgresql_data
 
     # Temporal Elasticsearch data
     vol_temporal_elasticsearch_data:

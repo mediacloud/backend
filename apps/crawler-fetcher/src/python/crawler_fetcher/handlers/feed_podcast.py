@@ -150,9 +150,9 @@ class DownloadFeedPodcastHandler(DownloadFeedSyndicatedHandler):
     def add_stories_from_feed(self, db: DatabaseHandler, download: dict, content: str) -> List[int]:
         story_ids = super().add_stories_from_feed(db=db, download=download, content=content)
 
-        # Add a podcast-fetch-episode job for every newly added story
+        # Add a podcast-transcribe-episode job for every newly added story
         for stories_id in story_ids:
-            log.info(f"Adding a podcast episode fetch job for story {stories_id}...")
-            JobBroker(queue_name='MediaWords::Job::Podcast::FetchEpisode').add_to_queue(stories_id=stories_id)
+            log.info(f"Adding a podcast episode transcribe job for story {stories_id}...")
+            JobBroker(queue_name='MediaWords::Job::Podcast::TranscribeEpisode').add_to_queue(stories_id=stories_id)
 
         return story_ids
