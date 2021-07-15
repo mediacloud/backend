@@ -72,7 +72,7 @@ SQL
     $snapshots = $db->attach_child_query(
         $snapshots, <<SQL,
         SELECT
-            word2vec_models_id AS models_id,
+            snap_word2vec_models_id AS models_id,
 
             -- FIXME snapshots_id gets into resulting hashes, not sure how to
             -- get rid of it with attach_child_query()
