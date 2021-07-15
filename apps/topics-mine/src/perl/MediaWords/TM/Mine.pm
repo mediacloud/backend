@@ -809,11 +809,11 @@ SQL
 
         # update topic_seed_urls that were actually fetched
         $db->query( <<SQL,
-            UPDATE topic_seed_urls tsu
+            UPDATE topic_seed_urls AS tsu
             SET stories_id = tfu.stories_id
-            FROM topic_fetch_urls tfu
+            FROM topic_fetch_urls AS tfu
             WHERE
-                tsu.topics_id = ?
+                tsu.topics_id = ? AND
                 tsu.topics_id = tfu.topics_id AND
                 md5(tsu.url) = md5(tfu.url) AND
                 tsu.topic_seed_urls_id IN ($ids_list)
