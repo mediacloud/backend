@@ -391,17 +391,25 @@ sub facebook_GET
     my $offset = int( $c->req->params->{ offset } // 0 );
 
     my $counts = $db->query( <<SQL,
+        WITH snapshot_story_ids AS (
+            SELECT stories_id
+            FROM snap.story_link_counts
+            WHERE
+                topics_id = \$1 AND
+                timespans_id = \$2
+        )
+
         SELECT
-            ss.stories_id,
-            ss.facebook_share_count,
-            ss.facebook_comment_count,
-            ss.facebook_api_collect_date
-        FROM snap.story_link_counts AS slc
-            INNER JOIN story_statistics AS ss USING (stories_id)
-        WHERE
-            slc.topics_id = \$1 AND
-            slc.timespans_id = \$2
-        ORDER BY ss.stories_id
+            stories_id,
+            facebook_share_count,
+            facebook_comment_count,
+            facebook_api_collect_date
+        FROM story_statistics
+        WHERE stories_id IN (
+            SELECT stories_id
+            FROM snapshot_story_ids
+        )
+        ORDER BY stories_id
         LIMIT \$3
         OFFSET \$4
 SQL

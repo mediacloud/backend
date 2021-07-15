@@ -57,7 +57,13 @@ sub add_topic_story($$$)
 {
     my ( $db, $topic, $story ) = @_;
 
-    $db->create( 'topic_stories', { stories_id => $story->{ stories_id }, topics_id => $topic->{ topics_id } } );
+    $db->create(
+        'topic_stories',
+        {
+            topics_id => $topic->{ topics_id },
+            stories_id => $story->{ stories_id },
+        }
+    );
 }
 
 sub create_stories($$)
@@ -127,15 +133,22 @@ sub create_test_data($$)
         }
     }
 
-    $topic_media_sources = MediaWords::Test::DB::Create::add_content_to_test_story_stack( $test_db, $topic_media_sources );
+    $topic_media_sources = MediaWords::Test::DB::Create::add_content_to_test_story_stack(
+        $test_db,
+        $topic_media_sources
+    );
 
 
-    MediaWords::Job::StatefulBroker->new( 'MediaWords::Job::TM::SnapshotTopic' )->run_remotely( { topics_id => $topic->{ topics_id } } );
+    MediaWords::Job::StatefulBroker->new( 'MediaWords::Job::TM::SnapshotTopic' )->run_remotely( {
+        topics_id => $topic->{ topics_id }
+    } );
 
     MediaWords::Test::Solr::setup_test_index( $test_db );
 
     # FIXME commented out because we're probably doing the same thing twice
-    # MediaWords::Job::Broker->new( 'MediaWords::Job::ImportSolrDataForTesting' )->run_remotely( { throttle => 0 } );
+    # MediaWords::Job::Broker->new( 'MediaWords::Job::ImportSolrDataForTesting' )->run_remotely( {
+    #     throttle => 0
+    # } );
 }
 
 sub test_media_list($)
@@ -144,8 +157,10 @@ sub test_media_list($)
 
     my $actual_response = MediaWords::Test::API::test_get( '/api/v2/topics/1/media/list' );
 
-    ok( scalar @{ $actual_response->{ media } } == 3,
-        "returned unexpected number of media scalar $actual_response->{ media }" );
+    ok(
+        scalar @{ $actual_response->{ media } } == 3,
+        "returned unexpected number of media scalar $actual_response->{ media }"
+    );
 
     # Check descending link count
     foreach my $m ( 1 .. $#{ $actual_response->{ media } } )
@@ -173,7 +188,7 @@ sub test_media_links($)
     # (commented out) query, sometimes it gets a timespan without any stories
     # whatsoever
     #my ( $timespans_id ) = $db->query( <<SQL )->flat();
-    #select timespans_id from timespans t where period = 'overall' and foci_id is null;
+    #SELECT timespans_id FROM timespans AS t WHERE period = 'overall' AND foci_id IS NULL;
     #SQL
 
     # What seems to work though is just hardcoding timespans_id
@@ -181,18 +196,29 @@ sub test_media_links($)
 
     my $limit = 1000;
 
-    my $expected_links = $db->query( <<SQL, $timespans_id, $limit )->hashes();
-select source_media_id, ref_media_id
-    from snap.medium_links sl
-    where
-        timespans_id = ?
-    order by source_media_id, ref_media_id
-    limit ?
+    my $expected_links = $db->query( <<SQL,
+        SELECT
+            source_media_id,
+            ref_media_id
+        FROM snap.medium_links
+        WHERE timespans_id = ?
+        ORDER BY
+            source_media_id,
+            ref_media_id
+        LIMIT ?
 SQL
+        $timespans_id, $limit
+    )->hashes();
 
     ok( scalar( @{ $expected_links } ) > 1, "test_media_links: more than one link" );
 
-    my $r = MediaWords::Test::API::test_get( '/api/v2/topics/1/media/links', { limit => $limit, timespans_id => $timespans_id } );
+    my $r = MediaWords::Test::API::test_get(
+        '/api/v2/topics/1/media/links',
+        {
+            limit => $limit,
+            timespans_id => $timespans_id,
+        }
+    );
 
     my $got_links = $r->{ links };
 
@@ -215,18 +241,29 @@ sub test_stories_links($)
 
     my $limit = 1000;
 
-    my $expected_links = $db->query( <<SQL, $timespans_id, $limit )->hashes();
-select source_stories_id, ref_stories_id
-    from snap.story_links sl
-    where
-        timespans_id = ?
-    order by source_stories_id, ref_stories_id
-    limit ?
+    my $expected_links = $db->query( <<SQL,
+        SELECT
+            source_stories_id,
+            ref_stories_id
+        FROM snap.story_links
+        WHERE timespans_id = ?
+        ORDER BY
+            source_stories_id,
+            ref_stories_id
+        LIMIT ?
 SQL
+        $timespans_id, $limit
+    )->hashes();
 
     ok( scalar( @{ $expected_links } ) > 1, "test_stories_links: more than one link" );
 
-    my $r = MediaWords::Test::API::test_get( '/api/v2/topics/1/stories/links', { limit => $limit, timespans_id => $timespans_id } );
+    my $r = MediaWords::Test::API::test_get(
+        '/api/v2/topics/1/stories/links',
+        {
+            limit => $limit,
+            timespans_id => $timespans_id,
+        }
+    );
 
     my $got_links = $r->{ links };
 
@@ -240,7 +277,10 @@ sub test_story_list_count()
 
     my $story_limit = 10;
 
-    my $actual_response = MediaWords::Test::API::test_get( '/api/v2/topics/1/stories/list', { limit => $story_limit } );
+    my $actual_response = MediaWords::Test::API::test_get(
+        '/api/v2/topics/1/stories/list',
+        { limit => $story_limit },
+    );
 
     is( scalar @{ $actual_response->{ stories } }, $story_limit, "story limit" );
 }
@@ -249,25 +289,43 @@ sub test_story_list_paging($)
 {
     my ( $db ) = @_;
 
-    my ( $topics_id ) = $db->query( "select topics_id from topics" )->flat();
+    my ( $topics_id ) = $db->query( "SELECT topics_id FROM topics" )->flat();
 
-    my ( $timespans_id ) = $db->query( <<SQL )->flat();
-select timespans_id from timespans t where period = 'overall' and foci_id is null;
+    my ( $timespans_id ) = $db->query( <<SQL
+        SELECT timespans_id
+        FROM timespans
+        WHERE
+            period = 'overall' AND
+            foci_id IS NULL
 SQL
+    )->flat();
 
-    my ( $expected_stories_count ) = $db->query( <<SQL, $timespans_id )->flat();
-select count(*) from snap.story_link_counts where timespans_id = ?
+    my ( $expected_stories_count ) = $db->query( <<SQL,
+        SELECT COUNT(*)
+        FROM snap.story_link_counts
+        WHERE timespans_id = ?
 SQL
+        $timespans_id
+    )->flat();
 
     my $limit = 3;
 
-    my $r = MediaWords::Test::API::test_get( "/api/v2/topics/$topics_id/stories/list", { timespans_id => $timespans_id, limit => $limit } );
+    my $r = MediaWords::Test::API::test_get(
+        "/api/v2/topics/$topics_id/stories/list",
+        {
+            timespans_id => $timespans_id,
+            limit => $limit,
+        },
+    );
 
     my $got_stories_count = scalar( @{ $r->{ stories } } );
 
     while ( my $next_link_id = $r->{ link_ids }->{ next } )
     {
-        $r = MediaWords::Test::API::test_get( "/api/v2/topics/$topics_id/stories/list", { link_id => $next_link_id } );
+        $r = MediaWords::Test::API::test_get(
+            "/api/v2/topics/$topics_id/stories/list",
+            { link_id => $next_link_id },
+        );
         $got_stories_count += scalar( @{ $r->{ stories } } );
     }
 
@@ -278,7 +336,7 @@ sub _get_story_link_counts($)
 {
     my $data = shift;
 
-    # umber of prime factors outside the media source
+    # Number of prime factors outside the media source
     my $counts = {
         1  => 0,
         2  => 0,
@@ -383,11 +441,24 @@ sub test_topics_crud($)
     my $label = "create topic";
 
     MediaWords::Test::DB::Create::create_test_story_stack_numerated( $db, 10, 2, 2, $label );
-    $db->query( "insert into tag_sets ( name ) values ( 'create topic' )" );
-    $db->query( "insert into tags ( tag, tag_sets_id ) select m.name, ts.tag_sets_id from media m, tag_sets ts" );
 
-    my $media_ids = $db->query( "select media_id from media limit 5" )->flat;
-    my $tags_ids  = $db->query( "select tags_id from tags limit 5" )->flat;
+    $db->query( <<SQL
+        INSERT INTO tag_sets (name)
+        VALUES ('create topic')
+SQL
+    );
+    $db->query( <<SQL
+        INSERT INTO tags (tag, tag_sets_id)
+            SELECT
+                media.name,
+                tag_sets.tag_sets_id
+            FROM
+                media, tag_sets
+SQL
+    );
+
+    my $media_ids = $db->query( "SELECT media_id FROM media LIMIT 5" )->flat;
+    my $tags_ids  = $db->query( "SELECT tags_id FROM tags LIMIT 5" )->flat;
 
     my $input = {
         name                 => "$label name ",
@@ -483,19 +554,27 @@ sub test_topics_spider($)
 
     my $topic = MediaWords::Test::DB::Create::create_test_topic( $db, 'spider test' );
 
-    $topic = $db->update_by_id( 'topics', $topic->{ topics_id }, { solr_seed_query => 'BOGUSQUERYTORETURNOSTORIES' } );
+    $topic = $db->update_by_id(
+        'topics',
+        $topic->{ topics_id },
+        { solr_seed_query => 'BOGUSQUERYTORETURNOSTORIES' },
+    );
     my $topics_id = $topic->{ topics_id };
 
-    my $snapshot = {
-        topics_id     => $topics_id,
-        snapshot_date => MediaWords::Util::SQL::sql_now(),
-        start_date    => $topic->{ start_date },
-        end_date      => $topic->{ end_date },
-    };
-    $snapshot = $db->create( 'snapshots', $snapshot );
+    my $snapshot = $db->create(
+        'snapshots', {
+            topics_id     => $topics_id,
+            snapshot_date => MediaWords::Util::SQL::sql_now(),
+            start_date    => $topic->{ start_date },
+            end_date      => $topic->{ end_date },
+        }
+    );
     my $snapshots_id = $snapshot->{ snapshots_id };
 
-    my $r = MediaWords::Test::API::test_post( "/api/v2/topics/$topics_id/spider", { snapshots_id => $snapshots_id } );
+    my $r = MediaWords::Test::API::test_post(
+        "/api/v2/topics/$topics_id/spider",
+        { snapshots_id => $snapshots_id },
+    );
 
     ok( $r->{ job_state }, "spider return includes job_state" );
 
@@ -533,7 +612,7 @@ sub test_topics_list($)
 
     {
         my $r = MediaWords::Test::API::test_get( "/api/v2/topics/list", {} );
-        my $expected_topics = $db->query( "select * from topics order by topics_id" )->hashes;
+        my $expected_topics = $db->query( "SELECT * FROM topics ORDER BY topics_id" )->hashes;
         ok( $r->{ topics }, "$label topics field present" );
         MediaWords::Test::Rows::rows_match( $label, $r->{ topics }, $expected_topics, 'topics_id', $match_fields );
     }
@@ -541,7 +620,7 @@ sub test_topics_list($)
     {
         $label = "$label with name";
         my $r = MediaWords::Test::API::test_get( "/api/v2/topics/list", { name => 'label private a' } );
-        my $expected_topics = $db->query( "select * from topics where name = 'label private a'" )->hashes;
+        my $expected_topics = $db->query( "SELECT * FROM topics WHERE name = 'label private a'" )->hashes;
         ok( $r->{ topics }, "$label topics field present" );
         MediaWords::Test::Rows::rows_match( $label, $r->{ topics }, $expected_topics, 'topics_id', $match_fields );
     }
@@ -549,7 +628,7 @@ sub test_topics_list($)
     {
         $label = "$label public";
         my $r = MediaWords::Test::API::test_get( "/api/v2/topics/list", { public => 1 } );
-        my $expected_topics = $db->query( "select * from topics where name % 'public ?'" )->hashes;
+        my $expected_topics = $db->query( "SELECT * FROM topics WHERE name % 'public ?'" )->hashes;
         ok( $r->{ topics }, "$label topics field present" );
         MediaWords::Test::Rows::rows_match( $label, $r->{ topics }, $expected_topics, 'topics_id', $match_fields );
     }
@@ -568,18 +647,27 @@ SQL
         )->hash;
         my $auth_users_id = $auth_user->{ auth_users_id };
 
-        $db->query( "delete from auth_users_roles_map where auth_users_id = ?", $auth_users_id );
+        $db->query( "DELETE FROM auth_users_roles_map WHERE auth_users_id = ?", $auth_users_id );
 
         my $r               = MediaWords::Test::API::test_get( "/api/v2/topics/list" );
-        my $expected_topics = $db->query( "select * from topics where name % 'public ?'" )->hashes;
+        my $expected_topics = $db->query( "SELECT * FROM topics WHERE name % 'public ?'" )->hashes;
         ok( $r->{ topics }, "$label topics field present" );
 
         MediaWords::Test::Rows::rows_match( $label, $r->{ topics }, $expected_topics, 'topics_id', $match_fields );
 
-        $db->query( <<SQL, $auth_users_id, $MediaWords::DBI::Auth::Roles::List::ADMIN );
-insert into auth_users_roles_map ( auth_users_id, auth_roles_id )
-    select ?, auth_roles_id from auth_roles where role = ?
+        $db->query( <<SQL,
+            INSERT INTO auth_users_roles_map (
+                auth_users_id,
+                auth_roles_id
+            )
+                SELECT
+                    ? AS auth_users_id,
+                    auth_roles_id
+                FROM auth_roles
+                WHERE role = ?
 SQL
+            $auth_users_id, $MediaWords::DBI::Auth::Roles::List::ADMIN
+        );
     }
 
 }
@@ -623,7 +711,11 @@ sub test_snapshots_generate($)
 
     my $topic = MediaWords::Test::DB::Create::create_test_topic( $db, $label );
 
-    $topic = $db->update_by_id( 'topics', $topic->{ topics_id }, { solr_seed_query => 'BOGUSQUERYTORETURNOSTORIES' } );
+    $topic = $db->update_by_id(
+        'topics',
+        $topic->{ topics_id },
+        { solr_seed_query => 'BOGUSQUERYTORETURNOSTORIES' },
+    );
     my $topics_id = $topic->{ topics_id };
 
     my $r = MediaWords::Test::API::test_post( "/api/v2/topics/$topics_id/snapshots/generate", {} );
@@ -659,15 +751,22 @@ sub test_snapshots_list($)
 
     my $topics_id = $topic->{ topics_id };
 
-    my $tsq = {
-        source => 'csv',
-        platform => 'generic_post',
-        topics_id => $topics_id,
-        query => 'test query'
-    };
-    $tsq = $db->create( 'topic_seed_queries', $tsq );
+    my $tsq = $db->create(
+        'topic_seed_queries',
+        {
+            topics_id => $topics_id,
+            source => 'csv',
+            platform => 'generic_post',
+            query => 'test query'
+        },
+    );
 
-    my $expected_snapshot = MediaWords::DBI::Snapshots::create_snapshot_row( $db, $topic, '2018-01-01', '2019-01-01');
+    my $expected_snapshot = MediaWords::DBI::Snapshots::create_snapshot_row(
+        $db,
+        $topic,
+        '2018-01-01',
+        '2019-01-01',
+    );
 
     my $r = MediaWords::Test::API::test_get( "/api/v2/topics/$topics_id/snapshots/list" );
 
@@ -719,8 +818,8 @@ sub test_stories_facebook($)
 
     my $label = "stories/facebook";
 
-    my $topic   = $db->query( "select * from topics limit 1" )->hash;
-    my $stories = $db->query( "select * from snap.live_stories limit 10" )->hashes;
+    my $topic   = $db->query( "SELECT * FROM topics LIMIT 1" )->hash;
+    my $stories = $db->query( "SELECT * FROM snap.live_stories LIMIT 10" )->hashes;
 
     my $expected_ss = [];
     for my $story ( @{ $stories } )
@@ -752,16 +851,19 @@ sub test_stories_count($)
 {
     my ( $db ) = @_;
 
-    my ( $expected_count ) = $db->query( <<SQL )->flat;
-select count(*)
-    from snap.story_link_counts slc
-        join timespans t using ( timespans_id )
-    where
-        t.period = 'overall' and
-        t.foci_id is null
+    my ( $expected_count ) = $db->query( <<SQL
+        SELECT COUNT(*)
+        FROM snap.story_link_counts AS slc
+            INNER JOIN timespans AS t ON
+                slc.topics_id = t.topics_id AND
+                slc.timespans_id = t.timespans_id
+        WHERE
+            t.period = 'overall' AND
+            t.foci_id IS NULL
 SQL
+    )->flat;
 
-    my $topic = $db->query( "select * from topics limit 1" )->hash;
+    my $topic = $db->query( "SELECT * FROM topics LIMIT 1" )->hash;
 
     {
         my $r = MediaWords::Test::API::test_get( "/api/v2/topics/$topic->{ topics_id }/stories/count", {} );
@@ -781,32 +883,49 @@ sub test_media_search($)
 
     my $topic = $db->query( "select * from topics order by topics_id limit 1" )->hash();
 
-    my ( $sentence ) = $db->query( <<SQL, $topic->{ topics_id } )->flat();
-select ss.sentence
-    from story_sentences ss
-        join topic_stories ts using ( stories_id )
-    where
-        topics_id = ?
-    order by story_sentences_id
-    limit 1
+    my ( $sentence ) = $db->query( <<SQL,
+        WITH topic_story_ids AS (
+            SELECT stories_id
+            FROM topic_stories
+            WHERE topics_id = ?
+        )
+
+        SELECT sentence
+        FROM story_sentences
+        WHERE stories_id IN (
+            SELECT stories_id
+            FROM topic_story_ids
+        )
+        ORDER BY story_sentences_id
+        LIMIT 1
 SQL
+        $topic->{ topics_id }
+    )->flat();
 
     # we just need a present word to search for, so use the first word in the first sentence
     my $sentence_words = [ split( ' ', $sentence ) ];
     my $search_word = $sentence_words->[ 0 ];
 
     # use a regex to manually find all media sources matching the search word
-    my $expected_media_ids = $db->query( <<SQL, $topic->{ topics_id }, $search_word )->flat();
-select distinct m.media_id 
-    from media m 
-        join stories s using ( media_id ) 
-        join topic_stories ts using ( stories_id )
-        join story_sentences ss using ( stories_id )
-    where
-        ss.sentence ~* ('[[:<:]]'|| \$2 ||'[[:>:]]') and
-        ts.topics_id = \$1
-    order by media_id
+    my $expected_media_ids = $db->query( <<SQL,
+        WITH topic_story_ids AS (
+            SELECT stories_id
+            FROM topic_stories
+            WHERE topics_id = \$1
+        )
+
+        SELECT DISTINCT media_id
+        FROM story_sentences
+        WHERE
+            stories_id IN (
+                SELECT stories_id
+                FROM topic_story_ids
+            ) AND
+            sentence ~* ('[[:<:]]'|| \$2 ||'[[:>:]]')
+        ORDER BY media_id
 SQL
+        $topic->{ topics_id }, $search_word
+    )->flat();
 
     ok( scalar( @{ $expected_media_ids } ) > 0, "media list q search found media ids: topic $topic->{ topics_id }, search word $search_word" );
 
@@ -831,10 +950,10 @@ sub test_info($)
     ok( $r->{ info }->{ topic_platforms_sources_map } );
     ok( $r->{ info }->{ topic_modes } );
 
-    my ( $num_sources) = $db->query( "select count(*) from topic_sources" )->flat;
-    my ( $num_platforms) = $db->query( "select count(*) from topic_platforms" )->flat;
-    my ( $num_modes) = $db->query( "select count(*) from topic_modes" )->flat;
-    my ( $num_psms) = $db->query( "select count(*) from topic_platforms_sources_map" )->flat;
+    my ( $num_sources) = $db->query( "SELECT COUNT(*) FROM topic_sources" )->flat;
+    my ( $num_platforms) = $db->query( "SELECT COUNT(*) FROM topic_platforms" )->flat;
+    my ( $num_modes) = $db->query( "SELECT COUNT(*) FROM topic_modes" )->flat;
+    my ( $num_psms) = $db->query( "SELECT COUNT(*) FROM topic_platforms_sources_map" )->flat;
 
     is( scalar( @{ $r->{ info }->{ topic_sources } } ), $num_sources );
     is( scalar( @{ $r->{ info }->{ topic_platforms } } ), $num_platforms );
@@ -846,23 +965,32 @@ sub test_new_map($)
 {
     my ( $db ) = @_;
 
-    my $timespan = $db->query( "select * from timespans limit 1" )->hash;
+    my $timespan = $db->query( "SELECT * FROM timespans LIMIT 1" )->hash;
 
     my $timespans_id = $timespan->{ timespans_id };
 
-    my $topic = $db->query( <<SQL, $timespan->{ snapshots_id } )->hash;
-select * from topics t join snapshots s using ( topics_id ) where snapshots_id = ?
+    my $topic = $db->query( <<SQL,
+        SELECT *
+        FROM topics AS t
+            INNER JOIN snapshots AS s ON
+                t.topics_id = s.topics_id
+        WHERE snapshots_id = ?
 SQL
+        $timespan->{ snapshots_id }
+    )->hash;
 
     my $gexf_content = '<gexf>foo</gexf>';
 
-    my $timespan_map = {
-        timespans_id => $timespans_id,
-        options => '{}',
-        format => 'gexf',
-        content => $gexf_content
-    };
-    $timespan_map = $db->create( 'timespan_maps', $timespan_map );
+    my $timespan_map = $db->create(
+        'timespan_maps',
+        {
+            topics_id => $topic->{ topics_id },
+            timespans_id => $timespans_id,
+            options => '{}',
+            format => 'gexf',
+            content => $gexf_content
+        }
+    );
 
     my $uri = URI->new( "/api/v2/topics/$topic->{ topics_id }/media/map" );
     $uri->query_param( timespans_id => $timespans_id );
@@ -892,7 +1020,7 @@ sub test_files($)
 {
     my ( $db ) = @_;
 
-    my $timespan = $db->query( "select * from timespans limit 1" )->hash;
+    my $timespan = $db->query( "SELECT * FROM timespans LIMIT 1" )->hash;
 
     my $timespans_id = $timespan->{ timespans_id };
 
