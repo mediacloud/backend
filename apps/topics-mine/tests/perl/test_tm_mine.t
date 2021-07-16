@@ -365,7 +365,7 @@ sub test_topic_stories($$$)
             WHERE topics_id = ?
         )
         SELECT
-            topic_stories.*,
+            selected_topic_stories.*,
             stories.*
         FROM selected_topic_stories
             INNER JOIN stories ON stories.stories_id = selected_topic_stories.stories_id
