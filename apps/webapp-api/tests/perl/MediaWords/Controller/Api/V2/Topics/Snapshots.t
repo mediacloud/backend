@@ -66,12 +66,31 @@ SQL
         $topics_id
     )->flat->[ 0 ];
 
-    $db->query(
-        <<SQL,
-        INSERT INTO snap.stories (snapshots_id, media_id, stories_id, url, guid, title, publish_date, collect_date)
-        SELECT ?, media_id, stories_id, url, guid, title, publish_date, collect_date FROM stories
+    $db->query( <<SQL,
+        INSERT INTO snap.stories (
+            topics_id,
+            snapshots_id,
+            media_id,
+            stories_id,
+            url,
+            guid,
+            title,
+            publish_date,
+            collect_date
+        )
+            SELECT
+                ? AS topics_id,
+                ? AS snapshots_id,
+                media_id,
+                stories_id,
+                url,
+                guid,
+                title,
+                publish_date,
+                collect_date
+            FROM stories
 SQL
-        $snapshots_id
+        $topics_id, $snapshots_id
     );
 
     # Test that no models exist for snapshot

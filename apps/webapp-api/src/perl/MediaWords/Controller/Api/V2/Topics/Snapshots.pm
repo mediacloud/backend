@@ -56,6 +56,7 @@ sub list_GET
     my $snapshots = $db->query(
         <<SQL,
         SELECT
+            topics_id,
             snapshots_id,
             snapshot_date,
             note,
@@ -218,9 +219,15 @@ sub word2vec_model_GET
         die "Model $models_id for topic $topics_id, snapshot $snapshots_id was not found";
     }
 
-    my $compressed_model_data = $model->{'raw_data'};
+    my $compressed_model_data = $model->{ 'raw_data' };
 
-    my $model_data = MediaWords::Util::Compress::gunzip( $compressed_model_data );
+    if ( ref( $compressed_model_data ) eq ref([]) ) {
+        # Perl database handler returns byte arrays
+        $compressed_model_data = join('', @{ $compressed_model_data } );
+    }
+
+    my $is_binary = 1;
+    my $model_data = MediaWords::Util::Compress::gunzip( $compressed_model_data, $is_binary );
 
     my $filename = "word2vec-topic_$topics_id-snapshot_$snapshots_id-model_$models_id.bin";
 
