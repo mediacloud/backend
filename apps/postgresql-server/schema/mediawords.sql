@@ -552,8 +552,7 @@ SELECT create_distributed_table('stories', 'stories_id');
 
 CREATE INDEX stories_media_id ON stories (media_id);
 
--- FIXME We can't enforce index uniqueness across shards so cross-shard
--- uniqueness is enforced by an AFTER INSERT trigger instead
+-- We can't enforce index uniqueness across shards so add_story() has to take care of that instead
 CREATE INDEX stories_guid on stories (guid, media_id);
 
 CREATE INDEX stories_url ON stories USING HASH (url);
@@ -656,58 +655,6 @@ SELECT run_command_on_shards('stories', $cmd$
         ON %s
         FOR EACH ROW
     EXECUTE PROCEDURE add_normalized_title_hash();
-
-    COMMIT;
-
-    $cmd$);
-
-
--- noinspection SqlResolve @ routine/"run_command_on_shards"
-SELECT run_command_on_shards('stories', $cmd$
-
-    BEGIN;
-
-    LOCK TABLE pg_proc IN ACCESS EXCLUSIVE MODE;
-
-    -- Given that the unique index on (guid, media_id) is going to be valid only
-    -- per shard, add a trigger that will check for uniqueness after each INSERT.
-    -- We add the trigger after migrating a chunk of stories first to increase
-    -- performance of the copy.
-    CREATE OR REPLACE FUNCTION stories_ensure_unique_guid() RETURNS trigger AS
-    $$
-
-    DECLARE
-        guid_row_count INT;
-
-    BEGIN
-
-        SELECT COUNT(*)
-        FROM stories
-        INTO guid_row_count
-            WHERE
-        media_id = NEW.media_id
-            AND guid = NEW.guid;
-
-        IF guid_row_count > 1 THEN
-            -- The exception has to mention 'unique constraint "stories_guid'
-            -- because add_story() is expecting it
-            RAISE EXCEPTION 'Duplicate (media_id, guid); unique constraint "stories_guid"';
-
-        END IF;
-
-        -- "INSERT ... RETURNING *" kind of works with this trigger, i.e. one can
-        -- get the INSERTed "stories_id" but not, for example,
-        -- "normalized_title_hash" as it's a column computed by a AFTER trigger
-        RETURN NEW;
-
-    END;
-    $$ LANGUAGE plpgsql;
-
-    CREATE TRIGGER stories_ensure_unique_guid
-        AFTER INSERT
-        ON %s
-        FOR EACH ROW
-    EXECUTE PROCEDURE stories_ensure_unique_guid();
 
     COMMIT;
 

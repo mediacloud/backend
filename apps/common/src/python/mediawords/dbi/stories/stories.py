@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List, Dict, Any
 
 from mediawords.db import DatabaseHandler
 from mediawords.util.log import create_logger
@@ -54,7 +54,6 @@ def insert_story_urls(db: DatabaseHandler, story: dict, url: str) -> None:
         # யுள்ள-மயானத்தை-விட்டுவைக்க-வேண்டும்-ராமா்-கோயில்-அறக்கட்டளைக்கு-மூத்த-வழ
         # க்குரைஞா்-கடிதம்-3361308.html
         if len(url) <= MAX_URL_LENGTH:
-
             db.query(
                 """
                 INSERT INTO story_urls (stories_id, url)
@@ -72,40 +71,41 @@ def _get_story_url_variants(story: dict) -> list:
     return urls
 
 
-def _find_dup_story(db: DatabaseHandler, story: dict) -> Optional[dict]:
-    """Return existing duplicate story within the same media source.
+def _find_dup_stories(db: DatabaseHandler, story: dict) -> List[Dict[str, Any]]:
+    """Return existing duplicate stories within the same media source.
 
-    Search for a story that is a duplicate of the given story.  A story is a duplicate if it shares the same media
+    Search for stories that are duplicates of the given story.  A story is a duplicate if it shares the same media
     source and:
 
-    * has the same normalized title and has a publish_date within the same calendar week
+    * has the same normalized title and has a publish_date within the same calendar week; or
     * has a normalized guid or url that is the same as the normalized guid or url
 
     If a dup story is found, insert the url and guid into the story_urls table.
 
-    Return the found story or None if no story is found.
+    Return duplicate stories or an empty list if no duplicate stories were found.
     """
     story = decode_object_from_bytes_if_needed(story)
 
     if story['title'] == '(no title)':
-        return None
+        return []
 
     urls = _get_story_url_variants(story)
 
-    db_story = db.query("""
+    db_stories = db.query("""
         SELECT s.*
         FROM stories s
         WHERE
-            (s.guid = any( %(urls)s ) or s.url = any( %(urls)s)) and
+            (s.guid = any( %(urls)s ) or s.url = any( %(urls)s)) AND
             media_id = %(media_id)s
+        ORDER BY stories_id
     """, {
         'urls': urls,
         'media_id': story['media_id'],
-    }).hash()
-    if db_story:
-        return db_story
+    }).hashes()
+    if db_stories:
+        return db_stories
 
-    db_story = db.query("""
+    db_stories = db.query("""
 
         -- Make sure that postgres uses the story_urls_url index
         WITH matching_stories AS (
@@ -119,18 +119,17 @@ def _find_dup_story(db: DatabaseHandler, story: dict) -> Optional[dict]:
             JOIN matching_stories USING (stories_id)
         WHERE media_id = %(media_id)s
         ORDER BY stories_id
-        LIMIT 1
 
-        """, {
+    """, {
         'story_urls': urls,
         'media_id': story['media_id'],
-    }
-                        ).hash()
+    }).hashes()
 
-    if db_story:
-        return db_story
+    if db_stories:
+        return db_stories
 
-    db_story = db.query("""
+    db_stories = db.query("""
+        -- noinspection SqlResolve @ routine/"get_normalized_title"
         SELECT *
         FROM stories
         WHERE
@@ -141,18 +140,20 @@ def _find_dup_story(db: DatabaseHandler, story: dict) -> Optional[dict]:
           -- We do the goofy " + interval '1 second'" to force postgres to use the stories_title_hash index
           AND date_trunc('day', publish_date)  + interval '1 second'
             = date_trunc('day', %(publish_date)s::date) + interval '1 second'
+        ORDER BY stories_id
     """, {
         'title': story['title'],
         'media_id': story['media_id'],
         'publish_date': story['publish_date'],
-    }).hash()
+    }).hashes()
 
-    if db_story:
-        [insert_story_urls(db, db_story, u) for u in (story['url'], story['guid'])]
+    if db_stories:
+        for db_story in db_stories:
+            [insert_story_urls(db, db_story, u) for u in (story['url'], story['guid'])]
 
-        return db_story
+        return db_stories
 
-    return None
+    return []
 
 
 def add_story(db: DatabaseHandler, story: dict, feeds_id: int) -> Optional[dict]:
@@ -166,23 +167,10 @@ def add_story(db: DatabaseHandler, story: dict, feeds_id: int) -> Optional[dict]
         feeds_id = decode_object_from_bytes_if_needed(feeds_id)
     feeds_id = int(feeds_id)
 
-    if db.in_transaction():
-        raise McAddStoryException("add_story() can't be run from within transaction.")
-
     # PostgreSQL is not a fan of NULL bytes in strings
     for key in story.keys():
         if isinstance(story[key], str):
             story[key] = story[key].replace('\x00', '')
-
-    db.begin()
-
-    db.query("LOCK TABLE stories IN ROW EXCLUSIVE MODE")
-
-    db_story = _find_dup_story(db, story)
-    if db_story:
-        log.debug("found existing dup story: %s [%s]" % (story['title'], story['url']))
-        db.commit()
-        return db_story
 
     medium = db.find_by_id(table='media', object_id=story['media_id'])
 
@@ -195,64 +183,53 @@ def add_story(db: DatabaseHandler, story: dict, feeds_id: int) -> Optional[dict]
 
     if len(story['url']) >= MAX_URL_LENGTH:
         log.error(f"Story's URL is too long: {story['url']}")
-        db.commit()
         return None
 
+    db_stories = _find_dup_stories(db, story)
+    if db_stories:
+        first_story = db_stories[0]
+        log.debug(f"Found one or more duplicate stories: {first_story['title']} [{first_story['url']}]")
+        return first_story
+
+    # After sharding stories.guid no longer can have a UNIQUE index so we can no longer do an atomic upsert, and
+    # pre-atomic PostgreSQL upserts (INSERT INTO ... SELECT ... WHERE NOT EXISTS) have race conditions. So instead here
+    # we insert a new row, check for "duplicate stories" again, find out how many we have, and if we have more than one
+    # (i.e. something managed to get inserted while we were doing our own insert), we get rid of the row that we've just
+    # added
     try:
-        
-        duplicate_guid_ex = _McAddStoryDuplicateGUIDException(
-            "Story didn't get inserted because story with this GUID already exists."
-        )
-
-        # Try to look for GUID first to avoid an unnecessary error in PostgreSQL log
-        story_with_guid_exists = db.query("""
-            SELECT *
-            FROM stories
-            WHERE
-                media_id = %(media_id)s AND
-                guid = %(guid)s
-        """, {
-            'media_id': story['media_id'],
-            'guid': story['guid'],
-        }).flat()
-        if story_with_guid_exists:
-            raise duplicate_guid_ex
-
-        try:
-            story = db.create(table='stories', insert_hash=story)
-        except Exception as ex:
-            # FIXME get rid of this, replace with native upsert on "stories_guid" unique constraint
-            if 'unique constraint \"stories_guid' in str(ex):
-                raise duplicate_guid_ex
-            else:
-                raise ex
-
-        if not story:
-            raise duplicate_guid_ex
-
-    except _McAddStoryDuplicateGUIDException as ex:
-        db.rollback()
-        log.warning(f"Failed to add story for '{story['url']}' to GUID conflict (guid = '{story['guid']}')")
-        return None
-
+        inserted_story = db.create(table='stories', insert_hash=story)
     except Exception as ex:
-        db.rollback()
         raise McAddStoryException(f"Error while adding story: {ex}\nStory: {story}")
 
-    story['is_new'] = True
+    db_stories = _find_dup_stories(db, story)
+
+    if len(db_stories) == 0:
+        raise McAddStoryException(f"Story got added but we can't find it now; story: {story}")
+
+    elif len(db_stories) == 1:
+        story = inserted_story
+        story['is_new'] = True
+
+    elif len(db_stories) > 1:
+        db.query("""
+            DELETE FROM stories
+            WHERE stories_id = %(stories_id)s
+        """, {
+            'stories_id': inserted_story['stories_id'],
+        })
+        story = db_stories[0]
 
     [insert_story_urls(db, story, u) for u in (story['url'], story['guid'])]
 
-    db.query(
-        """
+    db.query("""
         INSERT INTO feeds_stories_map (feeds_id, stories_id)
         VALUES (%(a)s, %(b)s)
         ON CONFLICT (feeds_id, stories_id) DO NOTHING
-        """,
-        {'a': feeds_id, 'b': story['stories_id']})
+    """, {
+        'a': feeds_id,
+        'b': story['stories_id'],
+    })
 
-    db.commit()
-
-    log.debug("added story: %s" % story['url'])
+    log.debug(f"Added story: {story['url']}")
 
     return story

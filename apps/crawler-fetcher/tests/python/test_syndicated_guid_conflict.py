@@ -19,7 +19,7 @@ def test_syndicated_guid_conflict():
 
         <item>
         
-            <!-- _find_dup_story() skips the story if it either has no title or its title is "(no title)" -->
+            <!-- _find_dup_stories() skips the story if it either has no title or its title is "(no title)" -->
             <title>(no title)</title>
             <link>https://www.example.com/first-item/</link>
             <guid isPermaLink="false">IDENTICAL_GUID</guid>
