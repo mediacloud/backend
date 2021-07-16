@@ -1,5 +1,5 @@
+import multiprocessing
 import random
-import threading
 
 import requests_mock
 
@@ -13,41 +13,40 @@ from .mock_lookups import mock_statuses_lookup
 
 
 def test_try_fetch_tweets_chunk_multiple():
-    def _try_fetch_tweets_chunk_threaded(topic_: dict, tfus_: list) -> None:
-        """Call ftu._try_fetch_tweets_chunk with a newly created db handle for thread safety."""
+    def _try_fetch_tweets_chunk_parallel(topic_: dict, tfus_: list) -> None:
         db_ = connect_to_db()
 
         with requests_mock.Mocker() as m:
             m.get("https://api.twitter.com/1.1/statuses/lookup.json", text=mock_statuses_lookup)
             _try_fetch_tweets_chunk(db_, topic_, tfus_)
 
-    num_threads = 20
+    num_jobs = 20
 
     db = connect_to_db()
 
     topic = create_test_topic(db, 'test')
     topics_id = topic['topics_id']
 
-    num_urls_per_thread = 100
+    num_urls_per_job = 100
 
-    threads = []
-    for j in range(num_threads):
+    jobs = []
+    for j in range(num_jobs):
         tfus = []
-        for i in range(num_urls_per_thread):
+        for i in range(num_urls_per_job):
             url = 'https://twitter.com/foo/status/%d' % i
             tfu = db.create('topic_fetch_urls', {'topics_id': topics_id, 'url': url, 'state': 'pending'})
             tfus.append(tfu)
 
         random.shuffle(tfus)
 
-        t = threading.Thread(target=_try_fetch_tweets_chunk_threaded, args=(topic, tfus))
-        t.start()
-        threads.append(t)
+        job = multiprocessing.Process(target=_try_fetch_tweets_chunk_parallel, args=(topic, tfus))
+        job.start()
+        jobs.append(job)
 
-    [t.join() for t in threads]
+    [job.join() for job in jobs]
 
     [num_topic_stories] = db.query(
         "SELECT COUNT(*) FROM topic_stories WHERE topics_id = %(topics_id)s",
         {'topics_id': topics_id}
     ).flat()
-    assert num_urls_per_thread == num_topic_stories
+    assert num_urls_per_job == num_topic_stories
