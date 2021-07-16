@@ -16,6 +16,11 @@ class McAddStoryException(Exception):
     pass
 
 
+class _McAddStoryDuplicateGUIDException(Exception):
+    """Internal exception thrown when story with a specific GUID already exists."""
+    pass
+
+
 def insert_story_urls(db: DatabaseHandler, story: dict, url: str) -> None:
     """Insert the url and the normalize_url_lossy() version of the url into story_urls."""
     urls = (url, normalize_url_lossy(url))
@@ -194,19 +199,45 @@ def add_story(db: DatabaseHandler, story: dict, feeds_id: int) -> Optional[dict]
         return None
 
     try:
-        story = db.create(table='stories', insert_hash=story)
+        
+        duplicate_guid_ex = _McAddStoryDuplicateGUIDException(
+            "Story didn't get inserted because story with this GUID already exists."
+        )
+
+        # Try to look for GUID first to avoid an unnecessary error in PostgreSQL log
+        story_with_guid_exists = db.query("""
+            SELECT *
+            FROM stories
+            WHERE
+                media_id = %(media_id)s AND
+                guid = %(guid)s
+        """, {
+            'media_id': story['media_id'],
+            'guid': story['guid'],
+        }).flat()
+        if story_with_guid_exists:
+            raise duplicate_guid_ex
+
+        try:
+            story = db.create(table='stories', insert_hash=story)
+        except Exception as ex:
+            # FIXME get rid of this, replace with native upsert on "stories_guid" unique constraint
+            if 'unique constraint \"stories_guid' in str(ex):
+                raise duplicate_guid_ex
+            else:
+                raise ex
+
+        if not story:
+            raise duplicate_guid_ex
+
+    except _McAddStoryDuplicateGUIDException as ex:
+        db.rollback()
+        log.warning(f"Failed to add story for '{story['url']}' to GUID conflict (guid = '{story['guid']}')")
+        return None
+
     except Exception as ex:
         db.rollback()
-
-        # FIXME get rid of this, replace with native upsert on "stories_guid" unique constraint
-        if 'unique constraint \"stories_guid' in str(ex):
-            log.warning(
-                "Failed to add story for '{}' to GUID conflict (guid = '{}')".format(story['url'], story['guid'])
-            )
-            return None
-
-        else:
-            raise McAddStoryException("Error while adding story: {}\nStory: {}".format(str(ex), str(story)))
+        raise McAddStoryException(f"Error while adding story: {ex}\nStory: {story}")
 
     story['is_new'] = True
 
