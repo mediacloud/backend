@@ -216,7 +216,7 @@ To deploy Portainer:
 2. Deploy the Portainer's stack in the swarm:
 
    ```bash
-   docker stack deploy -c docker-compose.portainer.yml portainer
+   docker stack deploy -c docker-compose.portainer.yml portainer --with-registry-auth
    ```
 
 3. Assuming that you have SSH port forwarding set up as per example below, you should be able to connect to Portainer's web UI by opening the following URL:
@@ -255,7 +255,7 @@ To deploy Media Cloud services using Portainer's web UI:
 To deploy services, change the current directory to the one with production's `docker-compose.yml` and then run:
 
 ```bash
-docker stack deploy -c docker-compose.yml mediacloud
+docker stack deploy -c docker-compose.yml mediacloud --with-registry-auth
 ```
 
 To update services (e.g. after updating configuration in `docker-compose.yml` or pushing new container images), run the same command again.

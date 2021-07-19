@@ -4,7 +4,7 @@
 #
 # Deploy by running:
 #
-#     docker stack deploy -c docker-compose.mediacloud.yml mediacloud
+#     docker stack deploy -c docker-compose.mediacloud.yml mediacloud --with-registry-auth
 #
 # on one of the Docker Swarm's managers (preferably the leader):
 #

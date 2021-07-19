@@ -132,7 +132,7 @@ To upgrade PostgreSQL between two (e.g. 12 -> 13) or more (e.g. 11 -> 12 -> 13) 
 9. Restart all services:
 
     ```bash
-    docker stack deploy -c docker-compose.mediacloud.yml mediacloud
+    docker stack deploy -c docker-compose.mediacloud.yml mediacloud --with-registry-auth
     ```
 
 
