@@ -1192,32 +1192,6 @@ services:
                     memory: "512M"
 
     #
-    # Move rows from "stories_unpartitioned" to "stories_partitioned"
-    # ---------------------------------------------------------------
-    #
-    partition-stories-move-rows:
-        image: gcr.io/mcback/partition-stories-move-rows:release
-        init: true
-        networks:
-            - default
-        environment:
-            <<: *common-configuration
-        depends_on:
-            - postgresql-pgbouncer
-            - temporal-server
-        deploy:
-            <<: *misc-apps_deploy_placement_constraints
-            <<: *endpoint-mode-dnsrr
-            # Worker count
-            replicas: 1
-            resources:
-                limits:
-                    # CPU core limit
-                    cpus: "1"
-                    # RAM limit
-                    memory: "512M"
-
-    #
     # Fetch story podcast episode and store it in GCS (RabbitMQ worker)
     # -----------------------------------------------------------------
     #
