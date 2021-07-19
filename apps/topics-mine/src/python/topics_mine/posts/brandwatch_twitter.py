@@ -1,4 +1,4 @@
-"""Fetch twitter posts from crimson hexagon."""
+"""Fetch twitter posts from Brandwatch."""
 
 import datetime
 import dateutil
@@ -17,7 +17,6 @@ from mediawords.util.log import create_logger
 from topics_base.posts import get_mock_data
 import topics_base.twitter as twitter
 from topics_base.twitter_url import get_tweet_urls 
-from topics_mine.config import TopicsMineConfig
 from topics_mine.posts import AbstractPostFetcher
 from topics_mine.posts.twitter.helpers import add_tweets_to_meta_tweets, get_tweet_id_from_url, McTwitterUrlException
 
@@ -41,7 +40,7 @@ def _mock_oauth(request, context) -> str:
     return '{"access_token":"foo","token_type":"bearer","expires_in":31535999,"scope":"read write trust"}'
 
 def _mock_posts(request, context) -> str:
-    """Mock crimson hexagon api call for requests_mock."""
+    """Mock Twitter api call for requests_mock."""
     params = parse_qs(urlparse(request.url).query)
 
     start_date = dateutil.parser.parse(params['startDate'][0])
@@ -182,7 +181,7 @@ class BrandwatchTwitterPostFetcher(AbstractPostFetcher):
         sample: Optional[int] = None,
         page_size: Optional[int] = None,
     ) -> list:
-        """Fetch day of tweets from crimson hexagon and twitter."""
+        """Fetch day of tweets."""
 
         if page_size is None:
             page_size = 5000
@@ -241,7 +240,7 @@ class BrandwatchTwitterPostFetcher(AbstractPostFetcher):
         return posts
 
     def setup_mock_data(self, mocker: requests_mock.Mocker) -> None:
-        """Fetch tweets from ch and twitter.  Setup mocking if self.mock_enabled."""
+        """Fetch tweets.  Setup mocking if self.mock_enabled."""
         # add the mockers for the bw api calls
         matcher = re.compile('.*api.brandwatch.com/oauth/token.*')
         mocker.post('https://api.brandwatch.com/oauth/token', text=_mock_oauth)
