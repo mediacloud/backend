@@ -139,6 +139,12 @@ services:
               source: ./../elasticsearch-base/bin/elasticsearch.sh
               target: /opt/elasticsearch/bin/elasticsearch.sh
             # Not mounting config as it gets concatenated into a single file
+        # Limit CPUs and RAM for the process to not get too greedy
+        deploy:
+            resources:
+                limits:
+                    cpus: "2"
+                    memory: "2G"
 
     # temporal-webapp:
     #     image: gcr.io/mcback/temporal-webapp:latest
