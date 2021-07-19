@@ -64,9 +64,14 @@ def insert_story_urls(db: DatabaseHandler, story: dict, url: str) -> None:
             )
 
 
-def _get_story_url_variants(story: dict) -> list:
+def _get_story_url_variants(story: dict) -> List[str]:
     """Return a list of the unique set of the story url and guid and their normalize_url_lossy() versions."""
-    urls = list({story['url'], normalize_url_lossy(story['url']), story['guid'], normalize_url_lossy(story['guid'])})
+    urls = sorted(list({
+        story['url'],
+        normalize_url_lossy(story['url']),
+        story['guid'],
+        normalize_url_lossy(story['guid']),
+    }))
 
     return urls
 
@@ -92,10 +97,12 @@ def _find_dup_stories(db: DatabaseHandler, story: dict) -> List[Dict[str, Any]]:
     urls = _get_story_url_variants(story)
 
     db_stories = db.query("""
-        SELECT s.*
-        FROM stories s
+        SELECT *
+        FROM stories
         WHERE
-            (s.guid = any( %(urls)s ) or s.url = any( %(urls)s)) AND
+            (
+                guid = ANY(%(urls)s) OR url = ANY(%(urls)s)
+            ) AND
             media_id = %(media_id)s
         ORDER BY stories_id
     """, {
