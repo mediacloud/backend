@@ -525,8 +525,8 @@ Response:
       {
         "platform_description": "tweets from twitter.com",
         "platform_name": "twitter",
-        "source_description": "import from the crimsonhexagon.com forsight api, only accessible to internal media cloud team",
-        "source_name": "crimson_hexagon",
+        "source_description": "import from the brandwatch api, only accessible to internal media cloud team",
+        "source_name": "brandwatch",
         "topic_platforms_id": 2,
         "topic_sources_id": 2
       },
@@ -557,8 +557,8 @@ Response:
     ],
     "topic_sources": [
       {
-        "description": "import from the crimsonhexagon.com forsight api, only accessible to internal media cloud team",
-        "name": "crimson_hexagon",
+        "description": "import from the brandwatch api, only accessible to internal media cloud team",
+        "name": "brandwatch",
         "topic_sources_id": 2
       },
       {
@@ -606,7 +606,7 @@ To get the list of allowed sources and platforms, see the topics/info end point.
 
 ### Example
 
-Add a crimson hexagon twitter search:
+Add a Brandwatch Twitter search:
 
 `https://api.mediacloud.org/api/v2/topics/1390/add_seed_query`
 
@@ -616,7 +616,7 @@ Input:
 {
     "topics_id": 1390,
     "platform": "twitter",
-    "source": "crimson_hexagon",
+    "source": "brandwatch",
     "query": "1234567890"
 }
 ```
@@ -630,7 +630,7 @@ Response:
       "topic_seed_queries_id": 5437,
       "topics_id": 1390,
       "platform": "twitter",
-      "source": "crimson_hexagon",
+      "source": "brandwatch",
       "query": "1234567890"
     }
 }
