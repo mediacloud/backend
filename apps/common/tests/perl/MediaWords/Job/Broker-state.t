@@ -187,7 +187,16 @@ SQL
                 my $expected_message = $worker_type->{ 'expected_message' };
                 like( $job_state->{ 'message' }, qr/\Q$expected_message\E/, "Job message for worker " . Dumper( $worker_type ) );
                 ok( $job_state->{ 'last_updated' }, "Job's last updated for worker " . Dumper( $worker_type ) );
-                is_deeply( MediaWords::Util::ParseJSON::decode_json( $job_state->{ 'args' }), $kwargs, "Job's arguments for worker " . Dumper( $worker_type ) );
+
+                # job_states.args got changed from JSON to JSONB while sharding the
+                # database, and there's no way to disable decoding JSONB (as
+                # opposed to JSON) in psycopg2, so "args" might be a JSON string or
+                # a pre-decoded dictionary
+                unless ( ref( $job_state->{ 'args' } ) eq ref( {} ) ) {
+                    $job_state->{ 'args' } = MediaWords::Util::ParseJSON::decode_json( $job_state->{ 'args' });
+                }
+
+                is_deeply( $job_state->{ 'args' }, $kwargs, "Job's arguments for worker " . Dumper( $worker_type ) );
                 is( $job_state->{ 'hostname' }, Sys::Hostname::hostname, "Job's hostname for worker " . Dumper( $worker_type ) );
 
                 my $custom_table_states = $db->select( 'test_job_states', '*' )->hashes();
