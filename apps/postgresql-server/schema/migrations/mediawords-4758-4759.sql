@@ -14,7 +14,6 @@
 -- 1 of 2. Import the output of 'apgdiff':
 --
 
-
 CREATE OR REPLACE FUNCTION partition_by_stories_id_create_partitions(base_table_name TEXT)
 RETURNS SETOF TEXT AS
 $$
@@ -185,6 +184,7 @@ END;
 $$
 LANGUAGE plpgsql;
 
+>>>>>>> origin/master
 
 --
 -- 2 of 2. Reset the database version.

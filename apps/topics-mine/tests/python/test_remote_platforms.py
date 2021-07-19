@@ -88,3 +88,16 @@ def test_pushshift_reddit() -> None:
             day='2020-01-01',
             min_posts=1000,
         )
+
+
+def test_pushshift_twitter() -> None:
+    run_single_platform_test(
+            source='pushshift',
+            platform='twitter',
+            query='covid',
+            pattern='covid',
+            day='2020-03-01',
+            min_posts=6000,
+            max_posts=7000
+        )
+
