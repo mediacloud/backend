@@ -56,14 +56,23 @@ def try_update_topic_link_ref_stories_id(db: DatabaseHandler, topic_fetch_url: d
                 ref_stories_id = %(ref_stories_id)s
             WHERE
                 topics_id = %(topics_id)s AND
-                topic_links_id = %(topic_links_id)s
+                topic_links_id = %(topic_links_id)s AND
+                NOT EXISTS (
+                    -- Try to avoid repetitive error printed to the PostgreSQL log
+                    SELECT 1
+                    FROM topic_links
+                    WHERE
+                        topics_id = %(topics_id)s AND
+                        topic_links_id = %(topic_links_id)s AND
+                        ref_stories_id = %(ref_stories_id)s
+                )
         """, {
             'topics_id': topic_fetch_url['topics_id'],
             'ref_stories_id': topic_fetch_url['stories_id'],
             'topic_links_id': topic_fetch_url['topic_links_id'],
         })
     except McDatabaseResultException as e:
-        # the query will throw a unique constraint error if stories_id,ref_stories already exists.  it's quicker
-        # to just catch and ignore the error than to try to avoid id
+        # the query will throw a unique constraint error if (topics_id, stories_id, ref_stories_id) already exists
+        # which is fine
         if 'unique constraint "topic_links_stories_id_topics_id_ref_stories_id"' not in str(e):
             raise e
