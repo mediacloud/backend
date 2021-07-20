@@ -53,7 +53,7 @@ USER root
 RUN rm /opt/postgresql-server/bin/initialize_db.sh
 
 # dump schema file for reference in development (run ./dev/get_schema.sh to get local copy)
-RUN mv /opt/postgresql-server/pgmigratemediawords.sql /opt/mediawords.sql
+RUN mv /opt/postgresql-server/pgmigrate/mediawords.sql /opt/mediawords.sql
 
 USER postgres
 ENV \
