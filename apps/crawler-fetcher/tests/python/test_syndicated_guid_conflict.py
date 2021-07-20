@@ -18,14 +18,16 @@ def test_syndicated_guid_conflict():
         <language>en</language>
 
         <item>
-            <title>Identical title</title>
+        
+            <!-- _find_dup_stories() skips the story if it either has no title or its title is "(no title)" -->
+            <title>(no title)</title>
             <link>https://www.example.com/first-item/</link>
             <guid isPermaLink="false">IDENTICAL_GUID</guid>
             <description>Spiral notebooks should be avoided.</description>
             <content:encoded><p>Spiral notebooks should be avoided.</p></content:encoded>
         </item>
         <item>
-            <title>Identical title</title>
+            <title>(no title)</title>
             <link>https://www.example.com/second-item/</link>
             <guid isPermaLink="false">IDENTICAL_GUID</guid>
             <description>Spiral notebooks should be avoided.</description>
@@ -38,7 +40,7 @@ def test_syndicated_guid_conflict():
         'media_id': 1,
         'stories_id': 1,
         'url': 'https://www.example.com/first-item/',
-        'title': 'Identical title',
+        'title': '(no title)',
         'guid': 'IDENTICAL_GUID',
         'description': '<p>Spiral notebooks should be avoided.</p>',
         'full_text_rss': False,

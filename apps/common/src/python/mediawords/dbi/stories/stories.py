@@ -100,9 +100,7 @@ def _find_dup_stories(db: DatabaseHandler, story: dict) -> List[Dict[str, Any]]:
         SELECT *
         FROM stories
         WHERE
-            (
-                guid = ANY(%(urls)s) OR url = ANY(%(urls)s)
-            ) AND
+            (guid = ANY(%(urls)s) OR url = ANY(%(urls)s)) AND
             media_id = %(media_id)s
         ORDER BY stories_id
     """, {
@@ -208,7 +206,17 @@ def add_story(db: DatabaseHandler, story: dict, feeds_id: int) -> Optional[dict]
     except Exception as ex:
         raise McAddStoryException(f"Error while adding story: {ex}\nStory: {story}")
 
-    db_stories = _find_dup_stories(db, story)
+    db_stories = db.query("""
+        SELECT *
+        FROM stories
+        WHERE
+            (guid = ANY(%(urls)s) OR url = ANY(%(urls)s)) AND
+            media_id = %(media_id)s
+        ORDER BY stories_id
+    """, {
+        'urls': _get_story_url_variants(story),
+        'media_id': story['media_id'],
+    }).hashes()
 
     if len(db_stories) == 0:
         raise McAddStoryException(f"Story got added but we can't find it now; story: {story}")
