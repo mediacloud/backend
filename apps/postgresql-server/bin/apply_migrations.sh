@@ -7,7 +7,7 @@ MC_POSTGRESQL_BIN_DIR="/usr/lib/postgresql/13/bin/"
 MC_POSTGRESQL_DATA_DIR="/var/lib/postgresql/13/main/"
 MC_POSTGRESQL_CONF_PATH="/etc/postgresql/13/main/postgresql.conf"
 
-MIGRATIONS_DIR="/opt/postgresql-server/pgmigrate/migrations"
+MIGRATIONS_DIR="/opt/postgresql-server/pgmigratemigrations"
 
 # Apply migrations when running on a different port so that clients don't end
 # up connecting in the middle of migrating

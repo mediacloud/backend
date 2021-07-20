@@ -32,13 +32,13 @@ RUN \
 RUN \
     mkdir -p \
         /opt/postgresql-server/bin/ \
-        /opt/postgresql-server/pgmigrate/ \
+        /opt/postgresql-server/pgmigrate \
     && \
     chmod ugo+rw /opt/postgresql-server/pgmigrate && \
     true
 
 COPY bin/* /opt/postgresql-server/bin/
-COPY pgmigrate/ /opt/postgresql-server/pgmigrate/
+COPY pgmigrate/ /opt/postgresql-server/pgmigrate
 
 # Initialize data volume, create users + database
 # If a new empty volume gets mounted to /var/lib/postgresql/ upon
@@ -53,7 +53,7 @@ USER root
 RUN rm /opt/postgresql-server/bin/initialize_db.sh
 
 # dump schema file for reference in development (run ./dev/get_schema.sh to get local copy)
-RUN mv /opt/postgresql-server/pgmigrate/mediawords.sql /opt/mediawords.sql
+RUN mv /opt/postgresql-server/pgmigratemediawords.sql /opt/mediawords.sql
 
 USER postgres
 ENV \
