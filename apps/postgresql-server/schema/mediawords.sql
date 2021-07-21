@@ -765,6 +765,9 @@ CREATE TABLE downloads
 
 SELECT create_distributed_table('downloads', 'downloads_id');
 
+ALTER TABLE downloads
+    ADD CONSTRAINT downloads_feeds_id_fkey
+        FOREIGN KEY (feeds_id) REFERENCES feeds (feeds_id);
 
 CREATE INDEX downloads_parent
     ON downloads (parent);
@@ -923,15 +926,17 @@ CREATE TABLE feeds_stories_map
 (
     feeds_stories_map_id BIGSERIAL NOT NULL,
 
-    -- FIXME reference feeds
     feeds_id             BIGINT    NOT NULL,
-
     stories_id           BIGINT    NOT NULL REFERENCES stories (stories_id) ON DELETE CASCADE,
 
     PRIMARY KEY (feeds_stories_map_id, stories_id)
 );
 
 SELECT create_distributed_table('feeds_stories_map', 'stories_id');
+
+ALTER TABLE feeds_stories_map
+    ADD CONSTRAINT feeds_stories_map_feeds_id_fkey
+        FOREIGN KEY (feeds_id) REFERENCES feeds (feeds_id) MATCH FULL ON DELETE CASCADE;
 
 CREATE UNIQUE INDEX feeds_stories_map_feeds_id_stories_id
     ON feeds_stories_map (feeds_id, stories_id);
@@ -948,14 +953,16 @@ CREATE TABLE stories_tags_map
     stories_tags_map_id BIGSERIAL NOT NULL,
 
     stories_id          BIGINT    NOT NULL REFERENCES stories (stories_id) ON DELETE CASCADE,
-
-    -- FIXME reference tags
     tags_id             BIGINT    NOT NULL,
 
     PRIMARY KEY (stories_tags_map_id, stories_id)
 );
 
 SELECT create_distributed_table('stories_tags_map', 'stories_id');
+
+ALTER TABLE stories_tags_map
+    ADD CONSTRAINT stories_tags_map_tags_id_fkey
+        FOREIGN KEY (tags_id) REFERENCES tags (tags_id);
 
 CREATE UNIQUE INDEX stories_tags_map_stories_id_tags_id
     ON stories_tags_map (stories_id, tags_id);
@@ -1049,10 +1056,7 @@ CREATE TABLE story_sentences
     stories_id         BIGINT     NOT NULL REFERENCES stories (stories_id) ON DELETE CASCADE,
     sentence_number    INT        NOT NULL,
     sentence           TEXT       NOT NULL,
-
-    -- FIXME reference media
     media_id           BIGINT     NOT NULL,
-
     publish_date       TIMESTAMP  NULL,
 
     -- 2- or 3-character ISO 690 language code; empty if unknown, NULL if unset
@@ -1077,6 +1081,9 @@ CREATE TABLE story_sentences
 
 SELECT create_distributed_table('story_sentences', 'stories_id');
 
+ALTER TABLE story_sentences
+    ADD CONSTRAINT story_sentences_media_id_fkey
+        FOREIGN KEY (media_id) REFERENCES media (media_id) MATCH FULL ON DELETE CASCADE;
 CREATE UNIQUE INDEX story_sentences_stories_id_sentence_number
     ON story_sentences (stories_id, sentence_number);
 
@@ -1383,11 +1390,8 @@ CREATE TABLE topic_seed_queries
 (
     topic_seed_queries_id BIGSERIAL NOT NULL,
     topics_id             BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-
-    -- FIXME foreign keys
     source                TEXT      NOT NULL,
     platform              TEXT      NOT NULL,
-
     query                 TEXT      NULL,
     imported_date         TIMESTAMP NULL,
     ignore_pattern        TEXT      NULL,
@@ -1398,6 +1402,14 @@ CREATE TABLE topic_seed_queries
 SELECT create_distributed_table('topic_seed_queries', 'topics_id');
 
 CREATE INDEX topic_seed_queries_topic ON topic_seed_queries (topics_id);
+
+ALTER TABLE topic_seed_queries
+    ADD CONSTRAINT topic_seed_queries_source_fkey
+        FOREIGN KEY (source) REFERENCES topic_sources (name);
+
+ALTER TABLE topic_seed_queries
+    ADD CONSTRAINT topic_seed_queries_platform_fkey
+        FOREIGN KEY (platform) REFERENCES topic_platforms (name);
 
 
 CREATE TABLE topic_dates
@@ -1418,8 +1430,6 @@ CREATE TABLE topics_media_map
 (
     topics_media_map_id BIGSERIAL NOT NULL,
     topics_id           BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-
-    -- FIXME foreign key
     media_id            BIGINT    NOT NULL,
 
     PRIMARY KEY (topics_media_map_id, topics_id)
@@ -1427,21 +1437,27 @@ CREATE TABLE topics_media_map
 
 SELECT create_distributed_table('topics_media_map', 'topics_id');
 
-CREATE INDEX topics_media_map_topic ON topics_media_map (topics_id);
+ALTER TABLE topics_media_map
+    ADD CONSTRAINT topics_media_map_media_id_fkey
+        FOREIGN KEY (media_id) REFERENCES media (media_id) ON DELETE CASCADE;
+
+CREATE INDEX topics_media_map_topics_id ON topics_media_map (topics_id);
 
 
 CREATE TABLE topics_media_tags_map
 (
     topics_media_tags_map_id BIGSERIAL NOT NULL,
     topics_id                BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-
-    -- FIXME foreign key
     tags_id                  BIGINT    NOT NULL,
 
     PRIMARY KEY (topics_media_tags_map_id, topics_id)
 );
 
 SELECT create_distributed_table('topics_media_tags_map', 'topics_id');
+
+ALTER TABLE topics_media_tags_map
+    ADD CONSTRAINT topics_media_tags_map_tags_id_fkey
+        FOREIGN KEY (tags_id) REFERENCES tags (tags_id) ON DELETE CASCADE;
 
 CREATE INDEX topics_media_tags_map_topic ON topics_media_tags_map (topics_id);
 
@@ -1450,26 +1466,24 @@ CREATE TABLE topic_media_codes
 (
     topic_media_codes_id BIGSERIAL NOT NULL,
     topics_id            BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-
-    -- FIXME foreign key
     media_id             BIGINT    NOT NULL,
-
     code_type            TEXT      NULL,
     code                 TEXT      NULL,
 
     PRIMARY KEY (topic_media_codes_id, topics_id)
 );
 
-
 SELECT create_distributed_table('topic_media_codes', 'topics_id');
+
+ALTER TABLE topic_media_codes
+    ADD CONSTRAINT topic_media_codes_media_id_fkey
+        FOREIGN KEY (media_id) REFERENCES media (media_id) ON DELETE CASCADE;
 
 
 CREATE TABLE topic_merged_stories_map
 (
     topic_merged_stories_map_id BIGSERIAL NOT NULL,
     source_stories_id           BIGINT    NOT NULL REFERENCES stories (stories_id) ON DELETE CASCADE,
-
-    -- FIXME foreign key
     target_stories_id           BIGINT    NOT NULL,
 
     PRIMARY KEY (topic_merged_stories_map_id, source_stories_id)
@@ -1504,10 +1518,7 @@ CREATE TABLE topic_stories
 (
     topic_stories_id        BIGSERIAL NOT NULL,
     topics_id               BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-
-    -- FIXME foreign key
     stories_id              BIGINT    NOT NULL,
-
     link_mined              BOOLEAN   NULL DEFAULT 'f',
     iteration               BIGINT    NULL DEFAULT 0,
     link_weight             REAL      NULL,
@@ -1548,10 +1559,7 @@ CREATE TABLE topic_links
     stories_id     BIGINT    NOT NULL,
     url            TEXT      NOT NULL,
     redirect_url   TEXT      NULL,
-
-    -- FIXME foreign key
     ref_stories_id BIGINT    NULL,
-
     link_spidered  BOOLEAN   NULL DEFAULT 'f',
 
     PRIMARY KEY (topic_links_id, topics_id),
@@ -1632,10 +1640,7 @@ CREATE TABLE topic_fetch_urls
     fetch_date          TIMESTAMP NULL,
     state               TEXT      NOT NULL,
     message             TEXT      NULL,
-
-    -- FIXME foreign key
     stories_id          BIGINT    NULL,
-
     assume_match        BOOLEAN   NOT NULL DEFAULT 'f',
     topic_links_id      BIGINT    NULL,
 
@@ -1820,9 +1825,6 @@ CREATE TABLE timespans
     medium_count         BIGINT           NOT NULL,
     medium_link_count    BIGINT           NOT NULL,
     post_count           BIGINT           NOT NULL,
-
-    -- keep on cascade to avoid accidental deletion
-    -- FIXME foreign key
     tags_id              BIGINT           NULL,
 
     PRIMARY KEY (timespans_id, topics_id),
@@ -1846,7 +1848,13 @@ CREATE TABLE timespans
 
 SELECT create_distributed_table('timespans', 'topics_id');
 
+-- Skip (?) ON CASCADE to avoid accidental deletion
+ALTER TABLE timespans
+    ADD CONSTRAINT timespans_tags_id_fkey
+        FOREIGN KEY (tags_id) REFERENCES tags (tags_id);
+
 CREATE INDEX timespans_snapshots_id ON timespans (snapshots_id);
+
 CREATE UNIQUE INDEX timespans_unique
     ON timespans (topics_id, snapshots_id, foci_id, start_date, end_date, period);
 
@@ -2296,10 +2304,7 @@ CREATE TABLE snap.live_stories
     snap_live_stories_id  BIGSERIAL  NOT NULL,
     topics_id             BIGINT     NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
     topic_stories_id      BIGINT     NOT NULL,
-
-    -- FIXME foreign key
     stories_id            BIGINT     NOT NULL,
-
     media_id              BIGINT     NOT NULL,
     url                   TEXT       NOT NULL,
     guid                  TEXT       NOT NULL,
@@ -3383,10 +3388,7 @@ CREATE TABLE topic_seed_urls
     topics_id             BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
     url                   TEXT      NULL,
     source                TEXT      NULL,
-
-    -- FIXME foreign key
     stories_id            BIGINT    NULL,
-
     processed             BOOLEAN   NOT NULL DEFAULT 'f',
     assume_match          BOOLEAN   NOT NULL DEFAULT 'f',
     content               TEXT      NULL,
@@ -3774,8 +3776,6 @@ CREATE TABLE retweeter_stories
     retweeter_stories_id BIGSERIAL NOT NULL,
     topics_id            BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
     retweeter_scores_id  BIGINT    NOT NULL,
-
-    -- FIXME foreign key
     stories_id           BIGINT    NOT NULL,
     retweeted_user       TEXT      NOT NULL,
     share_count          BIGINT    NOT NULL,
