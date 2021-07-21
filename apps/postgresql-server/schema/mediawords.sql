@@ -35,6 +35,8 @@
 -- FIXME tables get created as "postgres" user, should be "mediacloud"
 -- FIXME evaluate what queries get executed with MC_LOGGING_LEVEL=DEBUG
 -- FIXME find_by_id / require_by_id / update_by_id
+-- FIXME make processed_stories_stories_id index unique
+-- FIXME make solr_import_stories_stories_id index unique
 
 
 -- main schema
@@ -1151,8 +1153,7 @@ CREATE TABLE solr_import_stories
 
 SELECT create_distributed_table('solr_import_stories', 'stories_id');
 
--- FIXME could be made unique
-CREATE INDEX solr_import_stories_story ON solr_import_stories (stories_id);
+CREATE INDEX solr_import_stories_stories_id ON solr_import_stories (stories_id);
 
 
 -- log of all stories import into solr, with the import date
