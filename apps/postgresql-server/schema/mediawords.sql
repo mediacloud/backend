@@ -4,36 +4,22 @@
 -- Schema for MediaWords database
 --
 
--- FIXME echo "shared_preload_libraries = 'citus'" >> citus/postgresql.conf
 -- FIXME connection count limit:
 --  https://docs.citusdata.com/en/v10.0/admin_guide/cluster_management.html#real-time-analytics-use-case
--- FIXME SELECT … FOR UPDATE not supported
--- FIXME Grouping sets not supported
--- FIXME https://github.com/citusdata/citus_docs/issues/66
--- FIXME change tags.tags_id to BIGINT too while we're at that
--- FIXME get rid of VARCHAR where possible, replace with TEXT
 -- FIXME un-TOAST some columns
 -- FIXME update sequences to continue on from where we left off
 -- FIXME limit some columns, e.g. topics.name
--- FIXME consider removing triggers that check for foreign keys
--- FIXME ensure that the primary key of each distributed table is unique
 -- FIXME PyCharm indenting
 -- FIXME move related things together
 -- FIXME foreign key column order
 -- FIXME shard "tags"
--- FIXME replace JSON with JSONB
--- FIXME one can add a foreign key to a reference table after creating distributed table
 -- FIXME triggers have to be recreated on newly added workers
 -- FIXME replication factor
 -- FIXME when initializing schema, some connections get dropped
 -- FIXME when creating functions / triggers, make sure that each shard succeeds
--- FIXME schema gets imported as "postgres" user
--- FIXME mount /etc/postgresql/13/extra/
 -- FIXME consider making shard count configurable to make tests run faster
--- FIXME temporary tables get created with "stories_id int", e.g. delta_import_stories
--- FIXME update things that cast to ::int in various places
--- FIXME tables get created as "postgres" user, should be "mediacloud"
--- FIXME evaluate what queries get executed with MC_LOGGING_LEVEL=DEBUG
+-- FIXME schema and tables get created as "postgres" user, should be "mediacloud"
+-- FIXME enable slow query log in PostgreSQL
 -- FIXME find_by_id / require_by_id / update_by_id
 -- FIXME make processed_stories_stories_id index unique
 -- FIXME make solr_import_stories_stories_id index unique
