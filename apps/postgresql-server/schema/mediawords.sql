@@ -23,6 +23,7 @@
 -- FIXME find_by_id / require_by_id / update_by_id
 -- FIXME make processed_stories_stories_id index unique
 -- FIXME make solr_import_stories_stories_id index unique
+-- FIXME add index on media_id everywhere
 
 
 -- main schema
@@ -742,8 +743,6 @@ CREATE TYPE download_type AS ENUM (
 CREATE TABLE downloads
 (
     downloads_id  BIGSERIAL      NOT NULL,
-
-    -- FIXME foreign keys
     feeds_id      BIGINT         NOT NULL,
     stories_id    BIGINT         NULL,
     parent        BIGINT         NULL,
@@ -1659,7 +1658,7 @@ CREATE INDEX topic_fetch_urls_topics_id_pending
 
 CREATE INDEX topic_fetch_urls_url on topic_fetch_urls USING HASH (url);
 
--- FIXME backwards compatible index
+-- FIXME Remove backwards compatible index after sharding
 CREATE INDEX topic_fetch_urls_url_md5 on topic_fetch_urls USING HASH (md5(url));
 
 CREATE INDEX topic_fetch_urls_topic_links_id ON topic_fetch_urls (topic_links_id);
@@ -2878,30 +2877,30 @@ CREATE INDEX auth_users_tag_sets_permissions_tag_sets
 -- noinspection SqlResolve @ object-type/"CITEXT"
 CREATE TABLE activities
 (
-    activities_id    BIGSERIAL PRIMARY KEY,
+    activities_id   BIGSERIAL PRIMARY KEY,
 
     -- Activity's name (e.g. "tm_snapshot_topic")
-    name             TEXT      NOT NULL
+    name            TEXT      NOT NULL
         CONSTRAINT activities_name_can_not_contain_spaces CHECK (name NOT LIKE '% %'),
 
     -- When did the activity happen
-    creation_date    TIMESTAMP NOT NULL DEFAULT LOCALTIMESTAMP,
+    creation_date   TIMESTAMP NOT NULL DEFAULT LOCALTIMESTAMP,
 
     -- User that executed the activity, either:
     --     * user's email from "auth_users.email" (e.g. "foo@bar.baz.com", or
     --     * username that initiated the action (e.g. "system:foo")
     -- (store user's email instead of ID in case the user gets deleted)
-    user_identifier  CITEXT    NOT NULL,
+    user_identifier CITEXT    NOT NULL,
 
     -- Indexed ID of the object that was modified in some way by the activity
-    object_id        BIGINT    NULL,
+    object_id       BIGINT    NULL,
 
     -- User-provided reason explaining why the activity was made
-    reason           TEXT      NULL,
+    reason          TEXT      NULL,
 
     -- Other free-form data describing the action in the JSON format
     -- (e.g.: '{ "field": "name", "old_value": "Foo.", "new_value": "Bar." }')
-    description      JSONB     NOT NULL DEFAULT '{ }'
+    description     JSONB     NOT NULL DEFAULT '{}'
 );
 
 -- Not a reference table (because not referenced), not a distributed table (because too small)
