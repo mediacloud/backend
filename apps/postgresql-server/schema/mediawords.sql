@@ -2910,9 +2910,7 @@ CREATE TABLE activities
 
     -- Other free-form data describing the action in the JSON format
     -- (e.g.: '{ "field": "name", "old_value": "Foo.", "new_value": "Bar." }')
-    -- FIXME: has potential to use 'JSON' type instead of 'TEXT' in
-    -- PostgreSQL 9.2+
-    description_json TEXT      NOT NULL DEFAULT '{ }'
+    description      JSONB     NOT NULL DEFAULT '{ }'
 );
 
 -- Not a reference table (because not referenced), not a distributed table (because too small)
