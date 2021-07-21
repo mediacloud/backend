@@ -15,13 +15,9 @@ echo
 echo "Disk space before clean up:"
 df -h
 
+# Don't touch swap as we might not be able to fit all the things that we run in RAM
+
 echo
-echo "Disabling swap..."
-sudo swapoff -a
-
-echo "Removing swapfile..."
-sudo rm -f /swapfile
-
 echo "Cleaning APT cache..."
 sudo apt clean
 
