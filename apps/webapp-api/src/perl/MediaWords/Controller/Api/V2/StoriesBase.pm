@@ -69,14 +69,16 @@ sub _add_raw_1st_download
 
     my $ids_table = $db->get_temporary_ids_table( [ map { int( $_->{ stories_id } ) } @{ $stories } ] );
 
-    my $downloads = $db->query(
-        <<"SQL"
-        SELECT DISTINCT ON(stories_id) *
-        FROM downloads
-        WHERE stories_id IN (
-            SELECT id FROM $ids_table
-        )
-        ORDER BY stories_id, downloads_id
+    my $downloads = $db->query( <<"SQL"
+            SELECT DISTINCT ON(stories_id) *
+            FROM downloads
+            WHERE stories_id IN (
+                SELECT id
+                FROM $ids_table
+            )
+            ORDER BY
+                stories_id,
+                downloads_id
 SQL
     )->hashes;
 
@@ -124,7 +126,12 @@ sub _get_ap_stories_ids
 {
     my ( $db, $ids_list ) = @_;
 
-    my $ap_media_id = $db->query( "SELECT media_id FROM media WHERE name = 'Associated Press - Full Feed'" )->flat;
+    my $ap_media_id = $db->query( <<SQL
+        SELECT media_id
+        FROM media
+        WHERE name = 'Associated Press - Full Feed'
+SQL
+    )->flat;
     return [] if ( $ap_media_id );
 
     my $ap_stories_ids = $db->query(
@@ -135,12 +142,13 @@ sub _get_ap_stories_ids
                 ss.stories_id AS stories_id,
                 ap.stories_id AS ap_stories_id
             FROM story_sentences AS ss
-                JOIN story_sentences AS ap
-                    ON md5(ss.sentence) = md5(ap.sentence)
-                   AND ap.media_id = $ap_media_id
-            WHERE ss.media_id != $ap_media_id
-              AND ss.stories_id IN ( $ids_list )
-              AND length(ss.sentence) > 32
+                INNER JOIN story_sentences AS ap ON
+                    md5(ss.sentence) = md5(ap.sentence) AND
+                    ap.media_id = $ap_media_id
+            WHERE
+                ss.media_id != $ap_media_id AND
+                ss.stories_id IN ($ids_list) AND
+                LENGTH(ss.sentence) > 32
         ),
 
         min_ap_sentences AS (
@@ -158,7 +166,7 @@ sub _get_ap_stories_ids
             stories_id,
             ap_stories_id
         FROM min_ap_sentences AS ap
-	WHERE stories_id in ( $ids_list )
+        WHERE stories_id in ( $ids_list )
 SQL
     )->hashes;
 
@@ -215,20 +223,32 @@ sub _add_nested_data
     {
 
         my $story_text_data = $db->query( <<SQL
+
+            WITH story_download_texts AS (
+                SELECT
+                    downloads_success.downloads_id,
+                    downloads_success.stories_id,
+                    download_texts.download_texts_id,
+                    download_texts.download_text
+                FROM downloads_success
+                    LEFT JOIN download_texts ON
+                        downloads_success.downloads_id = download_texts.downloads_id
+                WHERE downloads_success.stories_id IN ($ids_list)
+            )
+
             SELECT
-                s.stories_id,
-                s.full_text_rss,
+                stories.stories_id,
+                stories.full_text_rss,
                 CASE
-                    WHEN BOOL_AND(s.full_text_rss) THEN s.title || E'.\n\n' || s.description
-                    ELSE string_agg(dt.download_text, E'.\n\n'::text)
+                    WHEN BOOL_AND(stories.full_text_rss) THEN stories.title || E'.\n\n' || stories.description
+                    ELSE string_agg(story_download_texts.download_text, E'.\n\n'::TEXT)
                 END AS story_text
-            FROM stories AS s
-                JOIN downloads AS d
-                    ON s.stories_id = d.stories_id
-                LEFT JOIN download_texts AS dt
-                    ON d.downloads_id = dt.downloads_id
-            WHERE s.stories_id IN ( $ids_list )
-            GROUP BY s.stories_id
+            FROM stories
+                INNER JOIN story_download_texts ON
+                    stories.stories_id = story_download_texts.stories_id
+            WHERE stories.stories_id IN ($ids_list)
+            GROUP BY stories.stories_id
+
 SQL
         )->hashes;
 
@@ -247,13 +267,11 @@ SQL
         my $extracted_data = $db->query(
             <<SQL
             SELECT
-                s.stories_id,
+                stories_id,
                 BOOL_AND(extracted) AS is_fully_extracted
-            FROM stories AS s
-                JOIN downloads AS d
-                    ON s.stories_id = d.stories_id
-            WHERE s.stories_id IN ( $ids_list )
-            GROUP BY s.stories_id
+            FROM downloads_success
+            WHERE stories_id IN ($ids_list)
+            GROUP BY stories_id
 SQL
         )->hashes;
 
@@ -266,7 +284,7 @@ SQL
             <<SQL
             SELECT *
             FROM story_sentences
-            WHERE stories_id IN ( $ids_list )
+            WHERE stories_id IN ($ids_list)
             ORDER BY sentence_number
 SQL
         )->hashes;
@@ -288,18 +306,18 @@ SQL
         my $chunk_ids_list = join( ',', map { int( $_->{ stories_id } ) } @chunk_stories );
         my $tag_data = $db->query( <<SQL
             SELECT
-                s.stories_id::bigint,
-                t.tags_id,
-                t.tag,
-                ts.tag_sets_id,
-                ts.name AS tag_set
-            FROM stories_tags_map AS s
-                JOIN tags AS t
-                    ON t.tags_id = s.tags_id
-                JOIN tag_sets AS ts
-                    ON ts.tag_sets_id = t.tag_sets_id
-            WHERE stories_id in ( $chunk_ids_list )
-            ORDER BY t.tags_id
+                stories_tags_map.stories_id,
+                tags.tags_id,
+                tags.tag,
+                tag_sets.tag_sets_id,
+                tag_sets.name AS tag_set
+            FROM stories_tags_map
+                INNER JOIN tags ON
+                    tags.tags_id = stories_tags_map.tags_id
+                INNER JOIN tag_sets ON
+                    tag_sets.tag_sets_id = tags.tag_sets_id
+            WHERE stories_tags_map.stories_id IN ($chunk_ids_list)
+            ORDER BY tags.tags_id
 SQL
         )->hashes;
 
@@ -309,17 +327,27 @@ SQL
     if ( int( $self->{ show_feeds } // 0 ) )
     {
         my $feed_data = $db->query( <<SQL
+
+            WITH story_feed_ids AS (
+                SELECT
+                    stories_id,
+                    feeds_id
+                FROM feeds_stories_map
+                WHERE stories_id IN ($ids_list)
+            )
+
             SELECT
-                f.name,
-                f.url,
-                f.media_id,
-                f.feeds_id,
-                f.type,
-                fsm.stories_id
-            FROM feeds AS f
-                JOIN feeds_stories_map AS fsm USING (feeds_id)
-            WHERE fsm.stories_id IN ( $ids_list )
-            ORDER BY f.feeds_id
+                feeds.name,
+                feeds.url,
+                feeds.media_id,
+                feeds.feeds_id,
+                feeds.type,
+                story_feed_ids.stories_id
+            FROM story_feed_ids
+                INNER JOIN feeds ON
+                    story_feed_ids.feeds_id = feeds.feeds_id
+            ORDER BY story_feed_ids.feeds_id
+
 SQL
         )->hashes;
 
@@ -352,12 +380,13 @@ sub _get_object_ids
           if ( $c->req->params->{ q } || $c->req->params->{ fq } );
 
         my $stories_ids = $db->query( <<SQL,
-            SELECT processed_stories_id
-            FROM processed_stories
-                JOIN feeds_stories_map USING (stories_id)
-            WHERE feeds_id = ?
-            ORDER BY stories_id desc
-            limit ?
+            SELECT processed_stories.processed_stories_id
+            FROM feeds_stories_map
+                INNER JOIN processed_stories ON
+                    feeds_stories_map.stories_id = processed_stories.stories_id
+            WHERE feeds_stories_map.feeds_id = ?
+            ORDER BY feeds_stories_map.stories_id DESC
+            LIMIT ?
 SQL
             $feeds_id, $rows
         )->flat;
@@ -430,12 +459,12 @@ sub _fetch_list($$$$$$)
             media.url AS media_url,
             COALESCE(ap.ap_syndicated, false) AS ap_syndicated
         FROM ps_ids
-            JOIN stories
-                ON ps_ids.stories_id = stories.stories_id
-            JOIN media
-                ON stories.media_id = media.media_id
-            LEFT JOIN stories_ap_syndicated ap
-                ON stories.stories_id = ap.stories_id
+            INNER JOIN stories ON
+                ps_ids.stories_id = stories.stories_id
+            INNER JOIN media ON
+                stories.media_id = media.media_id
+            LEFT JOIN stories_ap_syndicated ap ON
+                stories.stories_id = ap.stories_id
 
         ORDER BY $order_clause
 SQL

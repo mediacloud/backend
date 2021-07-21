@@ -326,8 +326,16 @@ sub test_stories_count_split($)
     my $label = "stories/count split";
 
     $db->query( <<SQL
+        WITH updated_publish_dates AS (
+            SELECT
+                stories_id,
+                '2017-01-01'::DATE + ((stories_id % 27)::TEXT || '3 days')::INTERVAL AS new_publish_date
+            FROM stories
+        )
         UPDATE stories SET
-            publish_date = '2017-01-01'::DATE + ((stories_id % 27)::TEXT || ' days')::INTERVAL
+            publish_date = updated_publish_dates.new_publish_date
+        FROM updated_publish_dates
+        WHERE stories.stories_id = updated_publish_dates.stories_id
 SQL
 );
 

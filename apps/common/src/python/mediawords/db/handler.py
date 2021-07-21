@@ -698,7 +698,7 @@ class DatabaseHandler(object):
 
         primary_key_clause = ""
         if ordered:
-            primary_key_clause = "%s_pkey SERIAL PRIMARY KEY," % table_name
+            primary_key_clause = "%s_pkey BIGSERIAL PRIMARY KEY," % table_name
 
         sql = """CREATE TEMPORARY TABLE %s (""" % table_name
         sql += primary_key_clause
