@@ -8,7 +8,7 @@
 --  https://docs.citusdata.com/en/v10.0/admin_guide/cluster_management.html#real-time-analytics-use-case
 -- FIXME un-TOAST some columns
 -- FIXME update sequences to continue on from where we left off
--- FIXME limit some columns, e.g. topics.name
+-- FIXME limit the length of some columns, e.g. topics.name
 -- FIXME PyCharm indenting
 -- FIXME move related things together
 -- FIXME foreign key column order
