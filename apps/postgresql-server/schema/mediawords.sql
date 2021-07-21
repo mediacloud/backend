@@ -23,7 +23,6 @@
 -- FIXME find_by_id / require_by_id / update_by_id
 -- FIXME make processed_stories_stories_id index unique
 -- FIXME make solr_import_stories_stories_id index unique
--- FIXME add index on media_id everywhere
 
 
 -- main schema
@@ -138,6 +137,7 @@ CREATE UNIQUE INDEX media_name ON media (name);
 CREATE UNIQUE INDEX media_url ON media (url);
 CREATE INDEX media_normalized_url ON media (normalized_url);
 CREATE INDEX media_name_fts ON media USING GIN (to_tsvector('english', name));
+CREATE INDEX media_dup_media_id ON media (media_id);
 
 
 -- Media feed rescraping state
@@ -157,9 +157,10 @@ CREATE TABLE media_rescraping
 -- noinspection SqlResolve @ routine/"create_reference_table"
 SELECT create_reference_table('media_rescraping');
 
-
 CREATE UNIQUE INDEX media_rescraping_media_id ON media_rescraping (media_id);
+
 CREATE INDEX media_rescraping_last_rescrape_time ON media_rescraping (last_rescrape_time);
+
 
 -- Insert new rows to "media_rescraping" for each new row in "media"
 -- noinspection SqlResolve @ routine/"run_command_on_shards"
@@ -203,7 +204,9 @@ CREATE TABLE media_stats
 -- noinspection SqlResolve @ routine/"create_distributed_table"
 SELECT create_distributed_table('media_stats', 'media_id');
 
-CREATE UNIQUE INDEX media_stats_medium_date ON media_stats (media_id, stat_date);
+CREATE INDEX media_stats_media_id ON media_stats (media_id);
+
+CREATE UNIQUE INDEX media_stats_media_id_stat_date ON media_stats (media_id, stat_date);
 
 --
 -- Returns true if media has active RSS feeds
@@ -299,9 +302,9 @@ SELECT create_reference_table('feeds');
 UPDATE feeds
 SET last_new_story_time = GREATEST(last_attempted_download_time, last_new_story_time);
 
-CREATE INDEX feeds_media ON feeds (media_id);
+CREATE INDEX feeds_media_id ON feeds (media_id);
 CREATE INDEX feeds_name ON feeds (name);
-CREATE UNIQUE INDEX feeds_url ON feeds (url, media_id);
+CREATE UNIQUE INDEX feeds_media_id_url ON feeds (media_id, url);
 CREATE INDEX feeds_last_attempted_download_time ON feeds (last_attempted_download_time);
 CREATE INDEX feeds_last_successful_download_time ON feeds (last_successful_download_time);
 
@@ -464,8 +467,9 @@ CREATE TABLE media_tags_map
 -- noinspection SqlResolve @ routine/"create_reference_table"
 SELECT create_reference_table('media_tags_map');
 
-CREATE UNIQUE INDEX media_tags_map_media ON media_tags_map (media_id, tags_id);
-CREATE INDEX media_tags_map_tag ON media_tags_map (tags_id);
+CREATE INDEX media_tags_map_media_id ON media_tags_map (media_id);
+CREATE UNIQUE INDEX media_tags_map_media_id_tags_id ON media_tags_map (media_id, tags_id);
+CREATE INDEX media_tags_map_tags_id ON media_tags_map (tags_id);
 
 
 CREATE TABLE color_sets
@@ -510,12 +514,12 @@ SELECT create_distributed_table('stories', 'stories_id');
 CREATE INDEX stories_media_id ON stories (media_id);
 
 -- We can't enforce index uniqueness across shards so add_story() has to take care of that instead
-CREATE INDEX stories_guid on stories (guid, media_id);
+CREATE INDEX stories_media_id_guid on stories (media_id, guid);
 
 CREATE INDEX stories_url ON stories USING HASH (url);
 CREATE INDEX stories_publish_date ON stories (publish_date);
 CREATE INDEX stories_collect_date ON stories (collect_date);
-CREATE INDEX stories_md ON stories (media_id, date_trunc('day', publish_date));
+CREATE INDEX stories_media_id_publish_day ON stories (media_id, date_trunc('day', publish_date));
 CREATE INDEX stories_language ON stories USING HASH (language);
 CREATE INDEX stories_title ON stories USING HASH (title);
 
@@ -524,7 +528,7 @@ CREATE INDEX stories_title ON stories USING HASH (title);
 CREATE INDEX stories_title_hash ON stories USING HASH (md5(title));
 
 CREATE INDEX stories_publish_day ON stories (date_trunc('day', publish_date));
-CREATE INDEX stories_normalized_title_hash ON stories (media_id, normalized_title_hash);
+CREATE INDEX stories_media_id_normalized_title_hash ON stories (media_id, normalized_title_hash);
 
 
 -- noinspection SqlResolve @ routine/"run_command_on_shards"
@@ -1083,11 +1087,15 @@ SELECT create_distributed_table('story_sentences', 'stories_id');
 ALTER TABLE story_sentences
     ADD CONSTRAINT story_sentences_media_id_fkey
         FOREIGN KEY (media_id) REFERENCES media (media_id) MATCH FULL ON DELETE CASCADE;
+
+CREATE INDEX story_sentences_media_id
+    ON story_sentences (media_id);
+
 CREATE UNIQUE INDEX story_sentences_stories_id_sentence_number
     ON story_sentences (stories_id, sentence_number);
 
-CREATE INDEX story_sentences_sentence_media_week
-    ON story_sentences (half_md5(sentence), media_id, week_start_date(publish_date::date));
+CREATE INDEX story_sentences_media_id_publish_week_sentence
+    ON story_sentences (media_id, week_start_date(publish_date::DATE), half_md5(sentence));
 
 
 CREATE TABLE solr_imports
@@ -1442,6 +1450,8 @@ ALTER TABLE topics_media_map
 
 CREATE INDEX topics_media_map_topics_id ON topics_media_map (topics_id);
 
+CREATE INDEX topics_media_map_media_id ON topics_media_map (media_id);
+
 
 CREATE TABLE topics_media_tags_map
 (
@@ -1477,6 +1487,8 @@ SELECT create_distributed_table('topic_media_codes', 'topics_id');
 ALTER TABLE topic_media_codes
     ADD CONSTRAINT topic_media_codes_media_id_fkey
         FOREIGN KEY (media_id) REFERENCES media (media_id) ON DELETE CASCADE;
+
+CREATE INDEX topic_media_codes_media_id ON topic_media_codes (media_id);
 
 
 CREATE TABLE topic_merged_stories_map
@@ -3818,6 +3830,8 @@ ALTER TABLE retweeter_media
     ADD CONSTRAINT retweeter_media_media_id_fkey
         FOREIGN KEY (media_id) REFERENCES media (media_id) ON DELETE CASCADE;
 
+CREATE INDEX retweeter_media_media_id ON retweeter_media (media_id);
+
 CREATE UNIQUE INDEX retweeter_media_topics_id_retweeter_scores_id_media_id
     ON retweeter_media (topics_id, retweeter_scores_id, media_id);
 
@@ -4141,6 +4155,9 @@ CREATE TABLE media_similarweb_domains_map
 );
 
 -- Not a reference table (because not referenced), not a distributed table (because too small)
+
+CREATE INDEX media_similarweb_domains_map_media_id
+    ON media_similarweb_domains_map (media_id);
 
 -- Different media sources can point to the same domain
 CREATE UNIQUE INDEX media_similarweb_domains_map_media_id_sdi
