@@ -57,9 +57,6 @@ Readonly my @SOLR_FIELDS => qw/stories_id media_id publish_date publish_day publ
 # how many sentences to fetch at a time from the postgres query
 Readonly my $FETCH_BLOCK_SIZE => 100;
 
-# default stories queue table
-Readonly my $DEFAULT_STORIES_QUEUE_TABLE => 'solr_import_stories';
-
 # default time sleep when there are less than MIN_STORIES_TO_PROCESS:
 Readonly my $DEFAULT_THROTTLE => 60;
 
@@ -69,9 +66,6 @@ Readonly my $MIN_STORIES_TO_PROCESS => 1000;
 # mark date before generating dump for storing in solr_imports after successful import
 my $_import_date;
 
-# options
-my $_stories_queue_table;
-
 # keep track of the max stories_id from the last time we queried the queue table so that we don't have to
 # page through a ton of dead rows when importing a big queue table
 my $_last_max_queue_stories_id;
@@ -79,12 +73,6 @@ my $_last_max_queue_stories_id;
 =head2 FUNCTIONS
 
 =cut
-
-# return the $_stories_queue_table, which is set by the queue_table option of import_data()
-sub _get_stories_queue_table
-{
-    return $_stories_queue_table;
-}
 
 # add enough stories from the stories queue table to the delta_import_stories table that there are up to
 # _get_maxed_queued_stories in delta_import_stories for each solr_import
@@ -94,8 +82,6 @@ sub _add_stories_to_import
 
     my $max_queued_stories = MediaWords::Util::Config::SolrImport::max_queued_stories();
 
-    my $stories_queue_table = _get_stories_queue_table();
-
     # first import any stories from snapshotted topics so that those snapshots become searchable ASAP.
     # do this as a separate query because I couldn't figure out a single query that resulted in a reasonable
     # postgres query plan given a very large stories queue table
@@ -103,7 +89,7 @@ sub _add_stories_to_import
         <<"SQL",
         INSERT INTO delta_import_stories (stories_id)
             SELECT sies.stories_id
-            FROM $stories_queue_table AS sies
+            FROM solr_import_stories AS sies
             WHERE stories_id IN (
                 SELECT stories_id
                 FROM snap.stories
@@ -146,7 +132,7 @@ SQL
         <<"SQL",
         INSERT INTO delta_import_stories (stories_id)
             SELECT stories_id
-            FROM $stories_queue_table AS s
+            FROM solr_import_stories
             WHERE stories_id > ?
             ORDER BY stories_id DESC
             LIMIT ?
@@ -159,18 +145,13 @@ SQL
     {
         ( $_last_max_queue_stories_id ) = $db->query( "select max( stories_id ) from delta_import_stories" )->flat();
 
-        my $stories_queue_table = _get_stories_queue_table();
-
-        # remove the schema if present
-        my $relname = _get_stories_queue_table();
-        $relname =~ s/.*\.//;
-
         # use pg_class estimate to avoid expensive count(*) query
-        my ( $total_queued_stories ) = $db->query( <<SQL, $relname )->flat;
-            SELECT reltuples::bigint
+        my ( $total_queued_stories ) = $db->query( <<SQL,
+            SELECT reltuples::BIGINT
             FROM pg_class
-            WHERE relname = ?
+            WHERE relname = 'solr_import_stories'
 SQL
+        )->flat;
 
         INFO "added $num_queued_stories out of about $total_queued_stories queued stories to the import";
     }
@@ -322,18 +303,18 @@ sub _import_stories($)
     return $json->{ stories_ids };
 }
 
-# create the delta_import_stories temporary table and fill it from the stories_queue_table
+# create the delta_import_stories temporary table and fill it from the solr_import_stories
 sub _create_delta_import_stories($$)
 {
     my ( $db, $full ) = @_;
 
-    $db->query( "drop table if exists delta_import_stories" );
+    $db->query( "DROP TABLE IF EXISTS delta_import_stories" );
 
     $db->query( "CREATE TEMPORARY TABLE delta_import_stories (stories_id BIGINT)" );
 
     _add_stories_to_import( $db, $full );
 
-    my $stories_ids = $db->query( "select stories_id from delta_import_stories" )->flat();
+    my $stories_ids = $db->query( "SELECT stories_id FROM delta_import_stories" )->flat();
 
     return $stories_ids;
 }
@@ -451,21 +432,24 @@ sub _delete_queued_stories($)
 
     return 1 unless ( $stories_ids && scalar @{ $stories_ids } );
 
-    my $stories_queue_table = _get_stories_queue_table();
-
     my $max_chunk_size = 5000;
 
     my $stories_ids_list = join(',', map { int( $_ ) } @{ $stories_ids } );
 
     # only delete stories that no longer exist in postgres, because we import with overwrite=true
-    $stories_ids = $db->query( <<SQL )->flat();
-select stories_id
-    from $stories_queue_table q
-    where
-        q.stories_id in ( $stories_ids_list ) and not exists
-        ( select 1 from stories s where s.stories_id = q.stories_id )
-    order by q.stories_id
+    $stories_ids = $db->query( <<SQL
+        SELECT stories_id
+        FROM solr_import_stories
+        WHERE
+            solr_import_stories.stories_id IN ($stories_ids_list) AND
+            NOT EXISTS (
+                SELECT 1
+                FROM stories
+                WHERE stories.stories_id = solr_import_stories.stories_id
+            )
+        ORDER BY stories_id
 SQL
+    )->flat();
 
     DEBUG( "deleting " . scalar( @{ $stories_ids } ) . " stories_ids" );
 
@@ -500,16 +484,16 @@ sub _delete_stories_from_import_queue
 
     TRACE( "deleting " . scalar( @{ $stories_ids } ) . " stories from import queue ..." );
 
-    my $stories_queue_table = _get_stories_queue_table();
-
     return unless ( @{ $stories_ids } );
 
     my $id_table = $db->get_temporary_ids_table( $stories_ids );
 
-    $db->query(
-        <<SQL
-        DELETE FROM $stories_queue_table
-        WHERE stories_id IN ( select id from $id_table )
+    $db->query( <<SQL
+        DELETE FROM solr_import_stories
+        WHERE stories_id IN (
+            SELECT id
+            FROM $id_table
+        )
 SQL
     );
 }
@@ -532,8 +516,6 @@ sub _maybe_production_solr
 sub _update_snapshot_solr_status
 {
     my ( $db ) = @_;
-
-    my $stories_queue_table = _get_stories_queue_table();
 
     # the combination the searchable clause and the not exists which stops after the first hit should
     # make this quite fast
@@ -564,7 +546,7 @@ sub _update_snapshot_solr_status
                 stories_from_unsearchable_snapshots.snapshots_id = snapshots.snapshots_id AND
                 stories_from_unsearchable_snapshots.stories_id IN (
                     SELECT stories_id
-                    FROM $stories_queue_table
+                    FROM solr_import_stories
             )
         )
 
@@ -596,7 +578,6 @@ Options:
 * empty_queue -- keep running until stories queue table is entirely empty (default false)
 * throttle -- sleep this number of seconds between each block of stories (default 60)
 * full -- shortcut for: update=false, empty_queue=true, throttle=1; assume and optimize for static queue
-* stories_queue_table -- table from which to pull stories to import (default solr_import_stories)
 * skip_logging -- skip logging the import into the solr_import_stories or solr_imports tables (default=false)
 
 The import will run in blocks of "max_queued_stories" at a time. The function
@@ -612,7 +593,6 @@ sub import_data($;$)
     $options //= {};
 
     my $full = $options->{ full } // 0;
-    my $stories_queue_table = $options->{ stories_queue_table } // $DEFAULT_STORIES_QUEUE_TABLE;
 
     if ( $full )
     {
@@ -621,20 +601,12 @@ sub import_data($;$)
         $options->{ throttle }    //= 1;
     }
 
-    if ( $stories_queue_table ne $DEFAULT_STORIES_QUEUE_TABLE )
-    {
-        $options->{ skip_logging } //= 1;
-        $options->{ empty_queue }  //= 1;
-        $options->{ update }       //= 0;
-    }
-
     my $update       = $options->{ update }       // 1;
     my $empty_queue  = $options->{ empty_queue }  // 0;
     my $throttle     = $options->{ throttle }     // $DEFAULT_THROTTLE;
     my $skip_logging = $options->{ skip_logging } // 0;
     my $daemon = $options->{ daemon } // 0;
 
-    $_stories_queue_table       = $stories_queue_table;
     $_last_max_queue_stories_id = 0;
 
     my $i = 0;

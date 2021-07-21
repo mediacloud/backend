@@ -117,17 +117,15 @@ def _add_timespans_to_stories(db: DatabaseHandler, stories: List[Dict[str, Any]]
         })
 
 
-def queue_all_stories(db: DatabaseHandler, stories_queue_table: str = 'solr_import_stories') -> None:
-    stories_queue_table = decode_object_from_bytes_if_needed(stories_queue_table)
-
+def queue_all_stories(db: DatabaseHandler) -> None:
     db.begin()
 
-    db.query(f"TRUNCATE TABLE {stories_queue_table}")
+    db.query(f"TRUNCATE TABLE solr_import_stories")
 
     # "SELECT FROM processed_stories" because only processed stories should get imported. "ORDER BY" so that the
     # import is more efficient when pulling blocks of stories out.
     db.query(f"""
-        INSERT INTO {stories_queue_table} (stories_id)
+        INSERT INTO solr_import_stories (stories_id)
             SELECT stories_id
             FROM processed_stories
             GROUP BY stories_id

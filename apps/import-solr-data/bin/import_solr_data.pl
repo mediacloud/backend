@@ -22,7 +22,7 @@ sub main
     my $options = {};
 
     Getopt::Long::GetOptions( $options,
-        qw/daemon! queue_only! update! empty_queue! throttle=i full! stories_queue_table=s skip_logging!/ );
+        qw/daemon! queue_only! update! empty_queue! throttle=i full! skip_logging!/ );
 
     my $db = MediaWords::DB::connect_to_db();
 
