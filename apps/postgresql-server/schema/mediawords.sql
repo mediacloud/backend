@@ -8,19 +8,13 @@
 --  https://docs.citusdata.com/en/v10.0/admin_guide/cluster_management.html#real-time-analytics-use-case
 -- FIXME un-TOAST some columns
 -- FIXME update sequences to continue on from where we left off
--- FIXME limit the length of some columns, e.g. topics.name
--- FIXME PyCharm indenting
 -- FIXME move related things together
--- FIXME foreign key column order
--- FIXME shard "tags"
--- FIXME triggers have to be recreated on newly added workers
--- FIXME replication factor
+-- FIXME write down somewhere that triggers have to be recreated on newly added workers
 -- FIXME when initializing schema, some connections get dropped
 -- FIXME when creating functions / triggers, make sure that each shard succeeds
 -- FIXME consider making shard count configurable to make tests run faster
 -- FIXME schema and tables get created as "postgres" user, should be "mediacloud"
 -- FIXME enable slow query log in PostgreSQL
--- FIXME find_by_id / require_by_id / update_by_id
 -- FIXME make processed_stories_stories_id index unique
 -- FIXME make solr_import_stories_stories_id index unique
 
