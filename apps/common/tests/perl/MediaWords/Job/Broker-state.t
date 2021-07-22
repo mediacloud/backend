@@ -165,9 +165,10 @@ SQL
                 my $result = $worker->{ 'app' }->get_result( $job_id );
                 is( $result, $expected_result, "Result for worker " . Dumper( $worker_type ));
             } else {
-                # Just wait a bit for the thing to finish
+                # Just wait a bit for the thing to finish; sleeps for quite
+                # long because tests might be slow on CI
                 INFO "No result is expected, waiting for worker " . Dumper( $worker_type );
-                sleep( 5 );
+                sleep( 30 );
             }
 
             my $job_states = $db->query(<<SQL,

@@ -152,8 +152,9 @@ class TestBrokerState(AbstractBrokerTestCase):
                 job_id = worker.app.add_to_queue(**kwargs)
 
                 if worker_type.expected_result is None:
-                    # Just wait a bit for the thing to finish
-                    time.sleep(5)
+                    # Just wait a bit for the thing to finish; sleeps for quite
+                    # long because tests might be slow on CI
+                    time.sleep(30)
                 else:
                     result = worker.app.get_result(job_id=job_id)
                     assert result == expected_result, f"Result for worker {worker}"
