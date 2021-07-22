@@ -36,6 +36,21 @@ sub run_solr_tests($)
     );
 
     # Delete test tags added by create_test_story_stack_for_indexing()
+    # (for whatever reason deleting from "tags" doesn't cascade into stories_tags_map)
+    $db->query(<<SQL,
+        WITH tag_ids_to_delete AS (
+            SELECT tags_id
+            FROM tags
+            WHERE tag LIKE ?
+        )
+        DELETE FROM stories_tags_map
+        WHERE tags_id IN (
+            SELECT tags_id
+            FROM tag_ids_to_delete
+        )
+SQL
+        'test_%'
+    );
     $db->query('DELETE FROM tags WHERE tag LIKE ?', 'test_%');
 
     my $test_stories = $db->query( "select * from stories order by md5( stories_id::text )" )->hashes;
