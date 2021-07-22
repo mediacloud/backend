@@ -79,7 +79,7 @@ sudo chmod 600 /zfspool
 
 # Create a single "space" ZFS pool for all data
 # (replace /zfspool with a path to your disk device)
-sudo zpool create space /zfspool
+sudo zpool create -o ashift=12 space /zfspool
 
 # Create "space/mediacloud" ZFS filesystem for Media Cloud data
 sudo zfs create space/mediacloud
