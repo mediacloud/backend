@@ -97,8 +97,8 @@ services:
               source: ./../postgresql-server/bin/
               target: /opt/mediacloud/bin/
             - type: bind
-              source: ./../postgresql-server/schema/
-              target: /opt/mediacloud/schema/
+              source: ./../postgresql-server/pgmigrate/
+              target: /opt/postgresql-server/pgmigrate/
             - type: bind
               source: ./../postgresql-base/conf/
               target: /etc/postgresql/13/main/
