@@ -35,9 +35,15 @@ sub find_or_create_link($$)
 
     my $path = $c->req->path;
 
-    my $link = $db->query( <<SQL, $params_json, $path )->hash;
-select * from api_links where md5( params_json ) = md5( \$1 ) and path = \$2
+    my $link = $db->query( <<SQL,
+        SELECT *
+        FROM api_links
+        WHERE
+            params_json = \$1::JSONB AND
+            path = \$2
 SQL
+        $params_json, $path
+    )->hash;
 
     return $link if ( $link );
 
@@ -114,9 +120,15 @@ sub process_and_stash_link($)
     if ( $link_id )
     {
         my $path = $c->req->path;
-        $link = $db->query( <<SQL, $link_id, $path )->hash;
-select * from api_links where api_links_id = \$1 and path = \$2
+        $link = $db->query( <<SQL,
+            SELECT *
+            FROM api_links
+            WHERE
+                api_links_id = \$1 AND
+                path = \$2
 SQL
+            $link_id, $path
+        )->hash;
 
         die( "no such link id exists: $link_id [$path]" ) unless ( $link );
 
