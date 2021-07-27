@@ -961,7 +961,7 @@ CREATE UNIQUE INDEX stories_tags_map_stories_id_tags_id
 -- noinspection SqlResolve @ routine/"run_command_on_shards"
 SELECT run_command_on_shards('stories_tags_map', $cmd$
 
-    CREATE TRIGGER processed_stories_insert_solr_import_story
+    CREATE TRIGGER stories_tags_map_insert_solr_import_story
         AFTER INSERT OR UPDATE OR DELETE
         ON %s
         FOR EACH ROW
