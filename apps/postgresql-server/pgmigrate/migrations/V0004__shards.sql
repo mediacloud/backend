@@ -555,11 +555,11 @@ DECLARE
 BEGIN
 
     -- Stupid simple html stripper to avoid html messing up title_parts
-    SELECT INTO title REGEXP_REPLACE(title, '<[^\<]*>', '', 'gi');
-    SELECT INTO title REGEXP_REPLACE(title, '\&#?[a-z0-9]*', '', 'gi');
+    SELECT INTO title REGEXP_REPLACE(title, '<[^<]*>', '', 'gi');
+    SELECT INTO title REGEXP_REPLACE(title, '&#?[a-z0-9]*', '', 'gi');
 
     SELECT INTO title LOWER(title);
-    SELECT INTO title REGEXP_REPLACE(title, '(?:\- )|[:|]', 'SEPSEP', 'g');
+    SELECT INTO title REGEXP_REPLACE(title, '- |[:|]', 'SEPSEP', 'g');
     SELECT INTO title REGEXP_REPLACE(title, '[[:punct:]]', '', 'g');
     SELECT INTO title REGEXP_REPLACE(title, '\s+', ' ', 'g');
     SELECT INTO title SUBSTR(title, 0, 1024);
