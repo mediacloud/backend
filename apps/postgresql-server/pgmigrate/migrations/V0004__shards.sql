@@ -168,30 +168,29 @@ CREATE UNIQUE INDEX media_rescraping_media_id ON media_rescraping (media_id);
 CREATE INDEX media_rescraping_last_rescrape_time ON media_rescraping (last_rescrape_time);
 
 
+
+CREATE OR REPLACE FUNCTION media_rescraping_add_initial_state_trigger() RETURNS trigger AS
+$$
+BEGIN
+    INSERT INTO media_rescraping (media_id, disable, last_rescrape_time)
+    VALUES (NEW.media_id, 'f', NULL);
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+
+SELECT create_distributed_function('media_rescraping_add_initial_state_trigger()');
+
+
 -- Insert new rows to "media_rescraping" for each new row in "media"
 -- noinspection SqlResolve @ routine/"run_command_on_shards"
 SELECT run_command_on_shards('media', $cmd$
-
-    BEGIN;
-
-    LOCK TABLE pg_proc IN ACCESS EXCLUSIVE MODE;
-
-    CREATE OR REPLACE FUNCTION media_rescraping_add_initial_state_trigger() RETURNS trigger AS
-    $$
-    BEGIN
-        INSERT INTO media_rescraping (media_id, disable, last_rescrape_time)
-        VALUES (NEW.media_id, 'f', NULL);
-        RETURN NEW;
-    END;
-    $$ LANGUAGE plpgsql;
 
     CREATE TRIGGER media_rescraping_add_initial_state_trigger
         AFTER INSERT
         ON %s
         FOR EACH ROW
     EXECUTE PROCEDURE media_rescraping_add_initial_state_trigger();
-
-    COMMIT;
 
     $cmd$);
 
@@ -537,85 +536,86 @@ CREATE INDEX stories_publish_day ON stories (date_trunc('day', publish_date));
 CREATE INDEX stories_media_id_normalized_title_hash ON stories (media_id, normalized_title_hash);
 
 
+-- get normalized story title by breaking the title into parts by the separator characters :-| and  using
+-- the longest single part.  longest part must be at least 32 characters cannot be the same as the media source
+-- name.  also remove all html, punctuation and repeated spaces, lowecase, and limit to 1024 characters.
+CREATE OR REPLACE FUNCTION get_normalized_title(title TEXT, title_media_id BIGINT)
+    RETURNS TEXT
+    IMMUTABLE AS
+$$
+
+DECLARE
+    title_part  TEXT;
+    media_title TEXT;
+
+BEGIN
+
+    -- Stupid simple html stripper to avoid html messing up title_parts
+    SELECT INTO title REGEXP_REPLACE(title, '<[^\<]*>', '', 'gi');
+    SELECT INTO title REGEXP_REPLACE(title, '\&#?[a-z0-9]*', '', 'gi');
+
+    SELECT INTO title LOWER(title);
+    SELECT INTO title REGEXP_REPLACE(title, '(?:\- )|[:|]', 'SEPSEP', 'g');
+    SELECT INTO title REGEXP_REPLACE(title, '[[:punct:]]', '', 'g');
+    SELECT INTO title REGEXP_REPLACE(title, '\s+', ' ', 'g');
+    SELECT INTO title SUBSTR(title, 0, 1024);
+
+    IF title_media_id = 0 THEN
+        RETURN title;
+    END IF;
+
+    SELECT INTO title_part part
+    FROM (SELECT REGEXP_SPLIT_TO_TABLE(title, ' *SEPSEP *') AS part) AS parts
+    ORDER BY LENGTH(part) DESC
+    LIMIT 1;
+
+    IF title_part = title THEN
+        RETURN title;
+    END IF;
+
+    IF length(title_part) < 32 THEN
+        RETURN title;
+    END IF;
+
+    SELECT INTO media_title get_normalized_title(name, 0)
+    FROM media
+    WHERE media_id = title_media_id;
+
+    IF media_title = title_part THEN
+        RETURN title;
+    END IF;
+
+    RETURN title_part;
+
+END
+$$ LANGUAGE plpgsql;
+
+SELECT create_distributed_function('get_normalized_title(TEXT, BIGINT)');
+
+
+CREATE OR REPLACE FUNCTION add_normalized_title_hash() RETURNS TRIGGER AS
+$$
+BEGIN
+
+    IF (TG_OP = 'update') THEN
+        IF (OLD.title = NEW.title) THEN
+            RETURN NEW;
+        END IF;
+    END IF;
+
+    SELECT INTO NEW.normalized_title_hash MD5(get_normalized_title(NEW.title, NEW.media_id))::uuid;
+
+    RETURN NEW;
+
+END
+
+$$ LANGUAGE plpgsql;
+
+SELECT create_distributed_function('add_normalized_title_hash()');
+
+
 -- noinspection SqlResolve @ routine/"run_command_on_shards"
 SELECT run_command_on_shards('stories', $cmd$
-
-    BEGIN;
-
-    LOCK TABLE pg_proc IN ACCESS EXCLUSIVE MODE;
-
-    -- get normalized story title by breaking the title into parts by the separator characters :-| and  using
-    -- the longest single part.  longest part must be at least 32 characters cannot be the same as the media source
-    -- name.  also remove all html, punctuation and repeated spaces, lowecase, and limit to 1024 characters.
-    CREATE OR REPLACE FUNCTION get_normalized_title(title TEXT, title_media_id BIGINT)
-        RETURNS TEXT
-        IMMUTABLE AS
-    $$
-
-    DECLARE
-        title_part  TEXT;
-        media_title TEXT;
-
-    BEGIN
-
-        -- Stupid simple html stripper to avoid html messing up title_parts
-        SELECT INTO title REGEXP_REPLACE(title, '<[^\<]*>', '', 'gi');
-        SELECT INTO title REGEXP_REPLACE(title, '\&#?[a-z0-9]*', '', 'gi');
-
-        SELECT INTO title LOWER(title);
-        SELECT INTO title REGEXP_REPLACE(title, '(?:\- )|[:|]', 'SEPSEP', 'g');
-        SELECT INTO title REGEXP_REPLACE(title, '[[:punct:]]', '', 'g');
-        SELECT INTO title REGEXP_REPLACE(title, '\s+', ' ', 'g');
-        SELECT INTO title SUBSTR(title, 0, 1024);
-
-        IF title_media_id = 0 THEN
-            RETURN title;
-        END IF;
-
-        SELECT INTO title_part part
-        FROM (SELECT REGEXP_SPLIT_TO_TABLE(title, ' *SEPSEP *') AS part) AS parts
-        ORDER BY LENGTH(part) DESC
-        LIMIT 1;
-
-        IF title_part = title THEN
-            RETURN title;
-        END IF;
-
-        IF length(title_part) < 32 THEN
-            RETURN title;
-        END IF;
-
-        SELECT INTO media_title get_normalized_title(name, 0)
-        FROM media
-        WHERE media_id = title_media_id;
-
-        IF media_title = title_part THEN
-            RETURN title;
-        END IF;
-
-        RETURN title_part;
-
-    END
-    $$ LANGUAGE plpgsql;
-
-    CREATE OR REPLACE FUNCTION add_normalized_title_hash() RETURNS TRIGGER AS
-    $$
-    BEGIN
-
-        IF (TG_OP = 'update') THEN
-            IF (OLD.title = NEW.title) THEN
-                RETURN NEW;
-            END IF;
-        END IF;
-
-        SELECT INTO NEW.normalized_title_hash MD5(get_normalized_title(NEW.title, NEW.media_id))::uuid;
-
-        RETURN NEW;
-
-    END
-
-    $$ LANGUAGE plpgsql;
-
 
     CREATE TRIGGER stories_add_normalized_title
         BEFORE INSERT OR UPDATE
@@ -623,64 +623,59 @@ SELECT run_command_on_shards('stories', $cmd$
         FOR EACH ROW
     EXECUTE PROCEDURE add_normalized_title_hash();
 
-    COMMIT;
-
     $cmd$);
+
+
+CREATE OR REPLACE FUNCTION insert_solr_import_story() RETURNS TRIGGER AS
+$$
+
+DECLARE
+
+    queue_stories_id BIGINT;
+    return_value RECORD;
+
+BEGIN
+
+    IF (TG_OP = 'UPDATE') OR (TG_OP = 'INSERT') THEN
+        SELECT NEW.stories_id INTO queue_stories_id;
+    ELSE
+        SELECT OLD.stories_id INTO queue_stories_id;
+    END IF;
+
+    IF (TG_OP = 'UPDATE') OR (TG_OP = 'INSERT') THEN
+        return_value := NEW;
+    ELSE
+        return_value := OLD;
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1
+        FROM processed_stories
+        WHERE stories_id = queue_stories_id
+    ) THEN
+        RETURN return_value;
+    END IF;
+
+    INSERT INTO solr_import_stories (stories_id)
+    VALUES (queue_stories_id);
+
+    RETURN return_value;
+
+END;
+
+$$ LANGUAGE plpgsql;
+
+SELECT create_distributed_function('insert_solr_import_story()');
 
 
 -- noinspection SqlResolve @ routine/"run_command_on_shards"
 SELECT run_command_on_shards('stories', $cmd$
-
-    BEGIN;
-
-    LOCK TABLE pg_proc IN ACCESS EXCLUSIVE MODE;
-
-    CREATE OR REPLACE FUNCTION insert_solr_import_story() RETURNS TRIGGER AS
-    $$
-
-    DECLARE
-
-        queue_stories_id BIGINT;
-        return_value RECORD;
-
-    BEGIN
-
-        IF (TG_OP = 'UPDATE') OR (TG_OP = 'INSERT') THEN
-            SELECT NEW.stories_id INTO queue_stories_id;
-        ELSE
-            SELECT OLD.stories_id INTO queue_stories_id;
-        END IF;
-
-        IF (TG_OP = 'UPDATE') OR (TG_OP = 'INSERT') THEN
-            return_value := NEW;
-        ELSE
-            return_value := OLD;
-        END IF;
-
-        IF NOT EXISTS (
-            SELECT 1
-            FROM processed_stories
-            WHERE stories_id = queue_stories_id
-        ) THEN
-            RETURN return_value;
-        END IF;
-
-        INSERT INTO solr_import_stories (stories_id)
-        VALUES (queue_stories_id);
-
-        RETURN return_value;
-
-    END;
-
-    $$ LANGUAGE plpgsql;
 
     CREATE TRIGGER stories_insert_solr_import_story
         AFTER INSERT OR UPDATE OR DELETE
         ON %s
         FOR EACH ROW
     EXECUTE PROCEDURE insert_solr_import_story();
-
-    COMMIT;
 
     $cmd$);
 
@@ -979,17 +974,11 @@ CREATE UNIQUE INDEX stories_tags_map_stories_id_tags_id
 -- noinspection SqlResolve @ routine/"run_command_on_shards"
 SELECT run_command_on_shards('stories_tags_map', $cmd$
 
-    BEGIN;
-
-    LOCK TABLE pg_proc IN ACCESS EXCLUSIVE MODE;
-
     CREATE TRIGGER processed_stories_insert_solr_import_story
         AFTER INSERT OR UPDATE OR DELETE
         ON %s
         FOR EACH ROW
     EXECUTE PROCEDURE insert_solr_import_story();
-
-    COMMIT;
 
     $cmd$);
 
@@ -1309,39 +1298,38 @@ CREATE INDEX topics_name ON topics (name);
 CREATE INDEX topics_media_type_tag_set ON topics (media_type_tag_sets_id);
 
 
+-- Given that the unique index on (guid, media_id) is going to be valid only
+-- per shard, add a trigger that will check for uniqueness after each INSERT.
+-- We add the trigger after migrating a chunk of stories first to increase
+-- performance of the copy.
+CREATE OR REPLACE FUNCTION topics_ensure_unique_name() RETURNS trigger AS
+$$
+
+DECLARE
+    name_row_count INT;
+
+BEGIN
+
+    SELECT COUNT(*)
+    FROM topics
+    INTO name_row_count
+        WHERE
+    name = NEW.name;
+
+    IF name_row_count > 1 THEN
+        RAISE EXCEPTION 'Duplicate topic name';
+    END IF;
+
+    RETURN NEW;
+
+END;
+$$ LANGUAGE plpgsql;
+
+SELECT create_distributed_function('topics_ensure_unique_name()');
+
+
 -- noinspection SqlResolve @ routine/"run_command_on_shards"
 SELECT run_command_on_shards('topics', $cmd$
-
-    BEGIN;
-
-    LOCK TABLE pg_proc IN ACCESS EXCLUSIVE MODE;
-
-    -- Given that the unique index on (guid, media_id) is going to be valid only
-    -- per shard, add a trigger that will check for uniqueness after each INSERT.
-    -- We add the trigger after migrating a chunk of stories first to increase
-    -- performance of the copy.
-    CREATE OR REPLACE FUNCTION topics_ensure_unique_name() RETURNS trigger AS
-    $$
-
-    DECLARE
-        name_row_count INT;
-
-    BEGIN
-
-        SELECT COUNT(*)
-        FROM topics
-        INTO name_row_count
-            WHERE
-        name = NEW.name;
-
-        IF name_row_count > 1 THEN
-            RAISE EXCEPTION 'Duplicate topic name';
-        END IF;
-
-        RETURN NEW;
-
-    END;
-    $$ LANGUAGE plpgsql;
 
     CREATE TRIGGER topics_ensure_unique_name
         AFTER INSERT
@@ -1349,52 +1337,47 @@ SELECT run_command_on_shards('topics', $cmd$
         FOR EACH ROW
     EXECUTE PROCEDURE topics_ensure_unique_name();
 
-    COMMIT;
-
     $cmd$);
+
+
+-- Given that the unique index on (guid, media_id) is going to be valid only
+-- per shard, add a trigger that will check for uniqueness after each INSERT.
+-- We add the trigger after migrating a chunk of stories first to increase
+-- performance of the copy.
+CREATE OR REPLACE FUNCTION topics_ensure_unique_media_type_tag_sets_id() RETURNS trigger AS
+$$
+
+DECLARE
+    media_type_tag_sets_id_row_count INT;
+
+BEGIN
+
+    SELECT COUNT(*)
+    FROM topics
+    INTO media_type_tag_sets_id_row_count
+        WHERE
+    media_type_tag_sets_id = NEW.media_type_tag_sets_id;
+
+    IF media_type_tag_sets_id_row_count > 1 THEN
+        RAISE EXCEPTION 'Duplicate topic media_type_tag_sets_id';
+    END IF;
+
+    RETURN NEW;
+
+END;
+$$ LANGUAGE plpgsql;
+
+SELECT create_distributed_function('topics_ensure_unique_media_type_tag_sets_id()');
 
 
 -- noinspection SqlResolve @ routine/"run_command_on_shards"
 SELECT run_command_on_shards('topics', $cmd$
-
-    BEGIN;
-
-    LOCK TABLE pg_proc IN ACCESS EXCLUSIVE MODE;
-
-    -- Given that the unique index on (guid, media_id) is going to be valid only
-    -- per shard, add a trigger that will check for uniqueness after each INSERT.
-    -- We add the trigger after migrating a chunk of stories first to increase
-    -- performance of the copy.
-    CREATE OR REPLACE FUNCTION topics_ensure_unique_media_type_tag_sets_id() RETURNS trigger AS
-    $$
-
-    DECLARE
-        media_type_tag_sets_id_row_count INT;
-
-    BEGIN
-
-        SELECT COUNT(*)
-        FROM topics
-        INTO media_type_tag_sets_id_row_count
-            WHERE
-        media_type_tag_sets_id = NEW.media_type_tag_sets_id;
-
-        IF media_type_tag_sets_id_row_count > 1 THEN
-            RAISE EXCEPTION 'Duplicate topic media_type_tag_sets_id';
-        END IF;
-
-        RETURN NEW;
-
-    END;
-    $$ LANGUAGE plpgsql;
 
     CREATE TRIGGER topics_ensure_unique_media_type_tag_sets_id
         AFTER INSERT
         ON %s
         FOR EACH ROW
     EXECUTE PROCEDURE topics_ensure_unique_media_type_tag_sets_id();
-
-    COMMIT;
 
     $cmd$);
 
@@ -2365,61 +2348,60 @@ CREATE INDEX snap_live_stories_topics_id_media_id_publish_day_ntitle_hash
         );
 
 
+CREATE OR REPLACE FUNCTION insert_live_story() RETURNS TRIGGER AS
+$$
+
+DECLARE
+    story RECORD;
+
+BEGIN
+
+    SELECT *
+    INTO story
+    FROM stories
+    WHERE stories_id = NEW.stories_id;
+
+    INSERT INTO snap.live_stories (topics_id,
+                                   topic_stories_id,
+                                   stories_id,
+                                   media_id,
+                                   url,
+                                   guid,
+                                   title,
+                                   normalized_title_hash,
+                                   description,
+                                   publish_date,
+                                   collect_date,
+                                   full_text_rss,
+                                   language)
+    SELECT NEW.topics_id,
+           NEW.topic_stories_id,
+           NEW.stories_id,
+           story.media_id,
+           story.url,
+           story.guid,
+           story.title,
+           story.normalized_title_hash,
+           story.description,
+           story.publish_date,
+           story.collect_date,
+           story.full_text_rss,
+           story.language
+    FROM topic_stories
+    WHERE topic_stories.stories_id = NEW.stories_id
+      AND topic_stories.topics_id = NEW.topics_id;
+
+    RETURN NEW;
+
+END;
+
+$$ LANGUAGE plpgsql;
+
+SELECT create_distributed_function('insert_live_story()');
+
+
 -- noinspection SqlResolve @ routine/"run_command_on_shards"
 SELECT run_command_on_shards('topic_stories', $cmd$
-
-    BEGIN;
-
-    LOCK TABLE pg_proc IN ACCESS EXCLUSIVE MODE;
-
-    CREATE OR REPLACE FUNCTION insert_live_story() RETURNS TRIGGER AS
-    $$
-
-    DECLARE
-        story RECORD;
-
-    BEGIN
-
-        SELECT *
-        INTO story
-        FROM stories
-        WHERE stories_id = NEW.stories_id;
-
-        INSERT INTO snap.live_stories (topics_id,
-                                       topic_stories_id,
-                                       stories_id,
-                                       media_id,
-                                       url,
-                                       guid,
-                                       title,
-                                       normalized_title_hash,
-                                       description,
-                                       publish_date,
-                                       collect_date,
-                                       full_text_rss,
-                                       language)
-        SELECT NEW.topics_id,
-               NEW.topic_stories_id,
-               NEW.stories_id,
-               story.media_id,
-               story.url,
-               story.guid,
-               story.title,
-               story.normalized_title_hash,
-               story.description,
-               story.publish_date,
-               story.collect_date,
-               story.full_text_rss,
-               story.language
-        FROM topic_stories
-        WHERE topic_stories.stories_id = NEW.stories_id
-          AND topic_stories.topics_id = NEW.topics_id;
-
-        RETURN NEW;
-
-    END;
-
-    $$ LANGUAGE plpgsql;
 
     CREATE TRIGGER topic_stories_insert_live_story
         AFTER INSERT
@@ -2427,49 +2409,44 @@ SELECT run_command_on_shards('topic_stories', $cmd$
         FOR EACH ROW
     EXECUTE PROCEDURE insert_live_story();
 
-    COMMIT;
-
     $cmd$);
+
+
+CREATE OR REPLACE FUNCTION update_live_story() RETURNS TRIGGER AS
+$$
+
+BEGIN
+
+    UPDATE snap.live_stories
+    SET media_id              = NEW.media_id,
+        url                   = NEW.url,
+        guid                  = NEW.guid,
+        title                 = NEW.title,
+        normalized_title_hash = NEW.normalized_title_hash,
+        description           = NEW.description,
+        publish_date          = NEW.publish_date,
+        collect_date          = NEW.collect_date,
+        full_text_rss         = NEW.full_text_rss,
+        language              = NEW.language
+    WHERE stories_id = NEW.stories_id;
+
+    RETURN NEW;
+
+END;
+
+$$ LANGUAGE plpgsql;
+
+SELECT create_distributed_function('update_live_story()');
 
 
 -- noinspection SqlResolve @ routine/"run_command_on_shards"
 SELECT run_command_on_shards('stories', $cmd$
-
-    BEGIN;
-
-    LOCK TABLE pg_proc IN ACCESS EXCLUSIVE MODE;
-
-    CREATE OR REPLACE FUNCTION update_live_story() RETURNS TRIGGER AS
-    $$
-
-    BEGIN
-
-        UPDATE snap.live_stories
-        SET media_id              = NEW.media_id,
-            url                   = NEW.url,
-            guid                  = NEW.guid,
-            title                 = NEW.title,
-            normalized_title_hash = NEW.normalized_title_hash,
-            description           = NEW.description,
-            publish_date          = NEW.publish_date,
-            collect_date          = NEW.collect_date,
-            full_text_rss         = NEW.full_text_rss,
-            language              = NEW.language
-        WHERE stories_id = NEW.stories_id;
-
-        RETURN NEW;
-
-    END;
-
-    $$ LANGUAGE plpgsql;
 
     CREATE TRIGGER stories_update_live_story
         AFTER UPDATE
         ON %s
         FOR EACH ROW
     EXECUTE PROCEDURE update_live_story();
-
-    COMMIT;
 
     $cmd$);
 
@@ -2518,17 +2495,11 @@ CREATE INDEX processed_stories_stories_id
 -- noinspection SqlResolve @ routine/"run_command_on_shards"
 SELECT run_command_on_shards('processed_stories', $cmd$
 
-    BEGIN;
-
-    LOCK TABLE pg_proc IN ACCESS EXCLUSIVE MODE;
-
     CREATE TRIGGER processed_stories_insert_solr_import_story
         AFTER INSERT OR UPDATE OR DELETE
         ON %s
         FOR EACH ROW
     EXECUTE PROCEDURE insert_solr_import_story();
-
-    COMMIT;
 
     $cmd$);
 
@@ -2697,36 +2668,32 @@ CREATE UNIQUE INDEX auth_user_api_keys_api_key_ip_address
     ON auth_user_api_keys (api_key, ip_address);
 
 
+-- Autogenerate non-IP limited API key
+CREATE OR REPLACE FUNCTION auth_user_api_keys_add_non_ip_limited_api_key() RETURNS trigger AS
+$$
+BEGIN
+
+    INSERT INTO auth_user_api_keys (auth_users_id, api_key, ip_address)
+    VALUES (NEW.auth_users_id,
+            DEFAULT, -- Autogenerated API key
+            NULL -- Not limited by IP address
+           );
+    RETURN NULL;
+
+END;
+$$ LANGUAGE 'plpgsql';
+
+SELECT create_distributed_function('auth_user_api_keys_add_non_ip_limited_api_key()');
+
+
 -- noinspection SqlResolve @ routine/"run_command_on_shards"
 SELECT run_command_on_shards('auth_users', $cmd$
-
-    BEGIN;
-
-    LOCK TABLE pg_proc IN ACCESS EXCLUSIVE MODE;
-
-    -- Autogenerate non-IP limited API key
-    CREATE OR REPLACE FUNCTION auth_user_api_keys_add_non_ip_limited_api_key() RETURNS trigger AS
-    $$
-    BEGIN
-
-        INSERT INTO auth_user_api_keys (auth_users_id, api_key, ip_address)
-        VALUES (NEW.auth_users_id,
-                DEFAULT, -- Autogenerated API key
-                NULL -- Not limited by IP address
-               );
-        RETURN NULL;
-
-    END;
-    $$
-        LANGUAGE 'plpgsql';
 
     CREATE TRIGGER auth_user_api_keys_add_non_ip_limited_api_key
         AFTER INSERT
         ON %s
         FOR EACH ROW
     EXECUTE PROCEDURE auth_user_api_keys_add_non_ip_limited_api_key();
-
-    COMMIT;
 
     $cmd$);
 
@@ -2834,32 +2801,28 @@ SELECT create_reference_table('auth_user_limits');
 CREATE UNIQUE INDEX auth_user_limits_auth_users_id ON auth_user_limits (auth_users_id);
 
 
+-- Set the default limits for newly created users
+CREATE OR REPLACE FUNCTION auth_users_set_default_limits() RETURNS trigger AS
+$$
+BEGIN
+
+    INSERT INTO auth_user_limits (auth_users_id) VALUES (NEW.auth_users_id);
+    RETURN NULL;
+
+END;
+$$ LANGUAGE 'plpgsql';
+
+SELECT create_distributed_function('auth_users_set_default_limits()');
+
+
 -- noinspection SqlResolve @ routine/"run_command_on_shards"
 SELECT run_command_on_shards('auth_users', $cmd$
-
-    BEGIN;
-
-    LOCK TABLE pg_proc IN ACCESS EXCLUSIVE MODE;
-
-    -- Set the default limits for newly created users
-    CREATE OR REPLACE FUNCTION auth_users_set_default_limits() RETURNS trigger AS
-    $$
-    BEGIN
-
-        INSERT INTO auth_user_limits (auth_users_id) VALUES (NEW.auth_users_id);
-        RETURN NULL;
-
-    END;
-    $$
-        LANGUAGE 'plpgsql';
 
     CREATE TRIGGER auth_users_set_default_limits
         AFTER INSERT
         ON %s
         FOR EACH ROW
     EXECUTE PROCEDURE auth_users_set_default_limits();
-
-    COMMIT;
 
     $cmd$);
 
@@ -3928,42 +3891,27 @@ CREATE INDEX cache_s3_raw_downloads_cache_db_row_last_updated
     ON cache.s3_raw_downloads_cache (db_row_last_updated);
 
 
--- noinspection SqlResolve @ routine/"run_command_on_shards"
-SELECT run_command_on_shards('cache.s3_raw_downloads_cache', $cmd$
+-- Trigger to update "db_row_last_updated" for cache tables
+CREATE OR REPLACE FUNCTION cache.update_cache_db_row_last_updated()
+    RETURNS TRIGGER AS
+$$
+BEGIN
+    NEW.db_row_last_updated = NOW();
+    RETURN NEW;
+END;
+$$ LANGUAGE 'plpgsql';
 
-    BEGIN;
-
-    LOCK TABLE pg_proc IN ACCESS EXCLUSIVE MODE;
-
-    -- Trigger to update "db_row_last_updated" for cache tables
-    CREATE OR REPLACE FUNCTION cache.update_cache_db_row_last_updated()
-        RETURNS TRIGGER AS
-    $$
-    BEGIN
-        NEW.db_row_last_updated = NOW();
-        RETURN NEW;
-    END;
-    $$ LANGUAGE 'plpgsql';
-
-    COMMIT;
-
-    $cmd$);
+SELECT create_distributed_function('cache.update_cache_db_row_last_updated()');
 
 
 -- noinspection SqlResolve @ routine/"run_command_on_shards"
 SELECT run_command_on_shards('cache.s3_raw_downloads_cache', $cmd$
-
-    BEGIN;
-
-    LOCK TABLE pg_proc IN ACCESS EXCLUSIVE MODE;
 
     CREATE TRIGGER cache_s3_raw_downloads_cache_db_row_last_updated_trigger
         BEFORE INSERT OR UPDATE
         ON %s
         FOR EACH ROW
     EXECUTE PROCEDURE cache.update_cache_db_row_last_updated();
-
-    COMMIT;
 
     $cmd$);
 
@@ -3998,17 +3946,11 @@ CREATE INDEX extractor_results_cache_db_row_last_updated
 -- noinspection SqlResolve @ routine/"run_command_on_shards"
 SELECT run_command_on_shards('cache.extractor_results_cache', $cmd$
 
-    BEGIN;
-
-    LOCK TABLE pg_proc IN ACCESS EXCLUSIVE MODE;
-
     CREATE TRIGGER cache_extractor_results_cache_db_row_last_updated_trigger
         BEFORE INSERT OR UPDATE
         ON %s
         FOR EACH ROW
     EXECUTE PROCEDURE cache.update_cache_db_row_last_updated();
-
-    COMMIT;
 
     $cmd$);
 
