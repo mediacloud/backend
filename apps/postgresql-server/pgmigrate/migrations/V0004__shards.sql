@@ -124,7 +124,7 @@ CREATE UNIQUE INDEX media_name ON media (name);
 CREATE UNIQUE INDEX media_url ON media (url);
 CREATE INDEX media_normalized_url ON media (normalized_url);
 CREATE INDEX media_name_fts ON media USING GIN (to_tsvector('english', name));
-CREATE INDEX media_dup_media_id ON media (media_id);
+CREATE INDEX media_dup_media_id ON media (dup_media_id);
 
 
 -- Media feed rescraping state
