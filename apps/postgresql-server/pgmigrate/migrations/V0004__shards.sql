@@ -7,7 +7,6 @@
 -- FIXME move related things together
 -- FIXME write down somewhere that triggers have to be recreated on newly added workers
 -- FIXME when initializing schema, some connections get dropped
--- FIXME when creating functions / triggers, make sure that each shard succeeds
 -- FIXME consider making shard count configurable to make tests run faster
 -- FIXME schema and tables get created as "postgres" user, should be "mediacloud"
 -- FIXME enable slow query log in PostgreSQL
@@ -44,6 +43,57 @@ CREATE EXTENSION citus;
 -- noinspection SqlResolve
 ALTER TABLE unsharded_public.schema_version
     SET SCHEMA public;
+
+
+-- Run command on all Citus shards; if command fails on one of these, raise exception
+CREATE OR REPLACE FUNCTION run_on_shards_or_raise(sharded_table REGCLASS, sql_command TEXT)
+
+-- Not SETOF RECORD like the original run_command_on_shards()
+    RETURNS TABLE
+            (
+                shardid BIGINT, -- NOT NULL
+                success BOOL,   -- NOT NULL
+                result  TEXT    -- NULL
+            )
+AS
+$$
+
+DECLARE
+    shard_result  RECORD;
+    failed_shards TEXT[];
+
+BEGIN
+
+    -- noinspection SqlResolve @ routine/"run_command_on_shards"
+    FOR shard_result IN (
+        SELECT *
+        FROM run_command_on_shards(sharded_table, sql_command) AS r
+    )
+        LOOP
+
+            -- noinspection SqlResolve
+            IF shard_result.success = 'f' THEN
+                failed_shards := failed_shards ||
+                                 format('shardid=%s, result=%s', shard_result.shardid::text, shard_result.result);
+            END IF;
+
+            -- noinspection SqlResolve
+            shardid := shard_result.shardid;
+            -- noinspection SqlResolve
+            success := shard_result.success;
+            -- noinspection SqlResolve
+            result := shard_result.result;
+
+            RETURN NEXT;
+
+        END LOOP;
+
+    IF array_length(failed_shards, 1) > 0 THEN
+        RAISE EXCEPTION E'Command failed on some shards:\n* %', array_to_string(failed_shards, E'\n* ');
+    END IF;
+
+END;
+$$ LANGUAGE plpgsql;
 
 
 -- Database properties (variables) table
@@ -165,8 +215,7 @@ SELECT create_distributed_function('media_rescraping_add_initial_state_trigger()
 
 
 -- Insert new rows to "media_rescraping" for each new row in "media"
--- noinspection SqlResolve @ routine/"run_command_on_shards"
-SELECT run_command_on_shards('media', $cmd$
+SELECT run_on_shards_or_raise('media', $cmd$
 
     CREATE TRIGGER media_rescraping_add_initial_state_trigger
         AFTER INSERT
@@ -598,8 +647,7 @@ $$ LANGUAGE plpgsql;
 SELECT create_distributed_function('add_normalized_title_hash()');
 
 
--- noinspection SqlResolve @ routine/"run_command_on_shards"
-SELECT run_command_on_shards('stories', $cmd$
+SELECT run_on_shards_or_raise('stories', $cmd$
 
     CREATE TRIGGER stories_add_normalized_title
         BEFORE INSERT OR UPDATE
@@ -653,8 +701,7 @@ $$ LANGUAGE plpgsql;
 SELECT create_distributed_function('insert_solr_import_story()');
 
 
--- noinspection SqlResolve @ routine/"run_command_on_shards"
-SELECT run_command_on_shards('stories', $cmd$
+SELECT run_on_shards_or_raise('stories', $cmd$
 
     CREATE TRIGGER stories_insert_solr_import_story
         AFTER INSERT OR UPDATE OR DELETE
@@ -958,8 +1005,7 @@ CREATE INDEX stories_tags_map_stories_id
 CREATE UNIQUE INDEX stories_tags_map_stories_id_tags_id
     ON stories_tags_map (stories_id, tags_id);
 
--- noinspection SqlResolve @ routine/"run_command_on_shards"
-SELECT run_command_on_shards('stories_tags_map', $cmd$
+SELECT run_on_shards_or_raise('stories_tags_map', $cmd$
 
     CREATE TRIGGER stories_tags_map_insert_solr_import_story
         AFTER INSERT OR UPDATE OR DELETE
@@ -1315,8 +1361,7 @@ $$ LANGUAGE plpgsql;
 SELECT create_distributed_function('topics_ensure_unique_name()');
 
 
--- noinspection SqlResolve @ routine/"run_command_on_shards"
-SELECT run_command_on_shards('topics', $cmd$
+SELECT run_on_shards_or_raise('topics', $cmd$
 
     CREATE TRIGGER topics_ensure_unique_name
         AFTER INSERT
@@ -1357,8 +1402,7 @@ $$ LANGUAGE plpgsql;
 SELECT create_distributed_function('topics_ensure_unique_media_type_tag_sets_id()');
 
 
--- noinspection SqlResolve @ routine/"run_command_on_shards"
-SELECT run_command_on_shards('topics', $cmd$
+SELECT run_on_shards_or_raise('topics', $cmd$
 
     CREATE TRIGGER topics_ensure_unique_media_type_tag_sets_id
         AFTER INSERT
@@ -2388,8 +2432,7 @@ $$ LANGUAGE plpgsql;
 SELECT create_distributed_function('insert_live_story()');
 
 
--- noinspection SqlResolve @ routine/"run_command_on_shards"
-SELECT run_command_on_shards('topic_stories', $cmd$
+SELECT run_on_shards_or_raise('topic_stories', $cmd$
 
     CREATE TRIGGER topic_stories_insert_live_story
         AFTER INSERT
@@ -2428,8 +2471,7 @@ $$ LANGUAGE plpgsql;
 SELECT create_distributed_function('update_live_story()');
 
 
--- noinspection SqlResolve @ routine/"run_command_on_shards"
-SELECT run_command_on_shards('stories', $cmd$
+SELECT run_on_shards_or_raise('stories', $cmd$
 
     CREATE TRIGGER stories_update_live_story
         AFTER UPDATE
@@ -2480,8 +2522,7 @@ CREATE INDEX processed_stories_stories_id
     ON processed_stories (stories_id);
 
 
--- noinspection SqlResolve @ routine/"run_command_on_shards"
-SELECT run_command_on_shards('processed_stories', $cmd$
+SELECT run_on_shards_or_raise('processed_stories', $cmd$
 
     CREATE TRIGGER processed_stories_insert_solr_import_story
         AFTER INSERT OR UPDATE OR DELETE
@@ -2675,8 +2716,7 @@ $$ LANGUAGE 'plpgsql';
 SELECT create_distributed_function('auth_user_api_keys_add_non_ip_limited_api_key()');
 
 
--- noinspection SqlResolve @ routine/"run_command_on_shards"
-SELECT run_command_on_shards('auth_users', $cmd$
+SELECT run_on_shards_or_raise('auth_users', $cmd$
 
     CREATE TRIGGER auth_user_api_keys_add_non_ip_limited_api_key
         AFTER INSERT
@@ -2805,8 +2845,7 @@ $$ LANGUAGE 'plpgsql';
 SELECT create_distributed_function('auth_users_set_default_limits()');
 
 
--- noinspection SqlResolve @ routine/"run_command_on_shards"
-SELECT run_command_on_shards('auth_users', $cmd$
+SELECT run_on_shards_or_raise('auth_users', $cmd$
 
     CREATE TRIGGER auth_users_set_default_limits
         AFTER INSERT
@@ -3895,8 +3934,7 @@ $$ LANGUAGE 'plpgsql';
 SELECT create_distributed_function('cache.update_cache_db_row_last_updated()');
 
 
--- noinspection SqlResolve @ routine/"run_command_on_shards"
-SELECT run_command_on_shards('cache.s3_raw_downloads_cache', $cmd$
+SELECT run_on_shards_or_raise('cache.s3_raw_downloads_cache', $cmd$
 
     CREATE TRIGGER cache_s3_raw_downloads_cache_db_row_last_updated_trigger
         BEFORE INSERT OR UPDATE
@@ -3934,8 +3972,7 @@ CREATE INDEX extractor_results_cache_db_row_last_updated
     ON cache.extractor_results_cache (db_row_last_updated);
 
 
--- noinspection SqlResolve @ routine/"run_command_on_shards"
-SELECT run_command_on_shards('cache.extractor_results_cache', $cmd$
+SELECT run_on_shards_or_raise('cache.extractor_results_cache', $cmd$
 
     CREATE TRIGGER cache_extractor_results_cache_db_row_last_updated_trigger
         BEFORE INSERT OR UPDATE
