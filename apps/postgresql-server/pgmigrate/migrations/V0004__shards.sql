@@ -38,6 +38,11 @@ ALTER EXTENSION citext SET SCHEMA public;
 CREATE EXTENSION citus;
 
 
+-- Move pgmigrate's table
+ALTER TABLE unsharded_public.schema_version
+    SET SCHEMA public;
+
+
 -- Database properties (variables) table
 CREATE TABLE database_variables
 (
