@@ -15,7 +15,6 @@
 -- FIXME make solr_import_stories_stories_id index unique
 
 
-
 -- Rename the unsharded schema created in previous migrations
 ALTER SCHEMA public RENAME TO unsharded_public;
 ALTER SCHEMA public_store RENAME TO unsharded_public_store;
@@ -31,14 +30,18 @@ SET search_path = public, pg_catalog;
 CREATE OR REPLACE LANGUAGE plpgsql;
 
 
+-- noinspection SqlResolve @ extension/"pg_trgm"
 ALTER EXTENSION pg_trgm SET SCHEMA public;
+-- noinspection SqlResolve @ extension/"pgcrypto"
 ALTER EXTENSION pgcrypto SET SCHEMA public;
+-- noinspection SqlResolve @ extension/"citext"
 ALTER EXTENSION citext SET SCHEMA public;
 
 CREATE EXTENSION citus;
 
 
 -- Move pgmigrate's table
+-- noinspection SqlResolve
 ALTER TABLE unsharded_public.schema_version
     SET SCHEMA public;
 
@@ -179,6 +182,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 
+-- noinspection SqlResolve @ routine/"create_distributed_function"
 SELECT create_distributed_function('media_rescraping_add_initial_state_trigger()');
 
 
@@ -590,6 +594,7 @@ BEGIN
 END
 $$ LANGUAGE plpgsql;
 
+-- noinspection SqlResolve @ routine/"create_distributed_function"
 SELECT create_distributed_function('get_normalized_title(TEXT, BIGINT)');
 
 
@@ -611,6 +616,7 @@ END
 
 $$ LANGUAGE plpgsql;
 
+-- noinspection SqlResolve @ routine/"create_distributed_function"
 SELECT create_distributed_function('add_normalized_title_hash()');
 
 
@@ -632,7 +638,7 @@ $$
 DECLARE
 
     queue_stories_id BIGINT;
-    return_value RECORD;
+    return_value     RECORD;
 
 BEGIN
 
@@ -648,11 +654,11 @@ BEGIN
         return_value := OLD;
     END IF;
 
-    IF NOT EXISTS (
-        SELECT 1
-        FROM processed_stories
-        WHERE stories_id = queue_stories_id
-    ) THEN
+    IF NOT EXISTS(
+            SELECT 1
+            FROM processed_stories
+            WHERE stories_id = queue_stories_id
+        ) THEN
         RETURN return_value;
     END IF;
 
@@ -665,6 +671,7 @@ END;
 
 $$ LANGUAGE plpgsql;
 
+-- noinspection SqlResolve @ routine/"create_distributed_function"
 SELECT create_distributed_function('insert_solr_import_story()');
 
 
@@ -1311,10 +1318,9 @@ DECLARE
 BEGIN
 
     SELECT COUNT(*)
-    FROM topics
     INTO name_row_count
-        WHERE
-    name = NEW.name;
+    FROM topics
+    WHERE name = NEW.name;
 
     IF name_row_count > 1 THEN
         RAISE EXCEPTION 'Duplicate topic name';
@@ -1325,6 +1331,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- noinspection SqlResolve @ routine/"create_distributed_function"
 SELECT create_distributed_function('topics_ensure_unique_name()');
 
 
@@ -1353,10 +1360,9 @@ DECLARE
 BEGIN
 
     SELECT COUNT(*)
-    FROM topics
     INTO media_type_tag_sets_id_row_count
-        WHERE
-    media_type_tag_sets_id = NEW.media_type_tag_sets_id;
+    FROM topics
+    WHERE media_type_tag_sets_id = NEW.media_type_tag_sets_id;
 
     IF media_type_tag_sets_id_row_count > 1 THEN
         RAISE EXCEPTION 'Duplicate topic media_type_tag_sets_id';
@@ -1367,6 +1373,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- noinspection SqlResolve @ routine/"create_distributed_function"
 SELECT create_distributed_function('topics_ensure_unique_media_type_tag_sets_id()');
 
 
@@ -2397,6 +2404,7 @@ END;
 
 $$ LANGUAGE plpgsql;
 
+-- noinspection SqlResolve @ routine/"create_distributed_function"
 SELECT create_distributed_function('insert_live_story()');
 
 
@@ -2436,6 +2444,7 @@ END;
 
 $$ LANGUAGE plpgsql;
 
+-- noinspection SqlResolve @ routine/"create_distributed_function"
 SELECT create_distributed_function('update_live_story()');
 
 
@@ -2683,6 +2692,7 @@ BEGIN
 END;
 $$ LANGUAGE 'plpgsql';
 
+-- noinspection SqlResolve @ routine/"create_distributed_function"
 SELECT create_distributed_function('auth_user_api_keys_add_non_ip_limited_api_key()');
 
 
@@ -2812,6 +2822,7 @@ BEGIN
 END;
 $$ LANGUAGE 'plpgsql';
 
+-- noinspection SqlResolve @ routine/"create_distributed_function"
 SELECT create_distributed_function('auth_users_set_default_limits()');
 
 
@@ -3901,6 +3912,7 @@ BEGIN
 END;
 $$ LANGUAGE 'plpgsql';
 
+-- noinspection SqlResolve @ routine/"create_distributed_function"
 SELECT create_distributed_function('cache.update_cache_db_row_last_updated()');
 
 
