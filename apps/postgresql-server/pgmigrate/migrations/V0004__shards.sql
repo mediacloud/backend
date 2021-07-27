@@ -1,9 +1,5 @@
 -- noinspection SqlResolveForFile @ routine/"create_distributed_table"
 
---
--- Schema for MediaWords database
---
-
 -- FIXME connection count limit:
 --  https://docs.citusdata.com/en/v10.0/admin_guide/cluster_management.html#real-time-analytics-use-case
 -- FIXME un-TOAST some columns
@@ -19,16 +15,27 @@
 -- FIXME make solr_import_stories_stories_id index unique
 
 
--- main schema
-CREATE SCHEMA IF NOT EXISTS public;
 
+-- Rename the unsharded schema created in previous migrations
+ALTER SCHEMA public RENAME TO unsharded_public;
+ALTER SCHEMA public_store RENAME TO unsharded_public_store;
+ALTER SCHEMA snap RENAME TO unsharded_snap;
+ALTER SCHEMA cache RENAME TO unsharded_cache;
+
+
+-- Recreate "public" (and later other schemas) with the sharded layout
+CREATE SCHEMA public;
+
+SET search_path = public, pg_catalog;
 
 CREATE OR REPLACE LANGUAGE plpgsql;
 
-CREATE EXTENSION IF NOT EXISTS pg_trgm;
-CREATE EXTENSION IF NOT EXISTS pgcrypto;
-CREATE EXTENSION IF NOT EXISTS citext;
-CREATE EXTENSION IF NOT EXISTS citus;
+
+ALTER EXTENSION pg_trgm SET SCHEMA public;
+ALTER EXTENSION pgcrypto SET SCHEMA public;
+ALTER EXTENSION citext SET SCHEMA public;
+
+CREATE EXTENSION citus;
 
 
 -- Database properties (variables) table
@@ -849,7 +856,7 @@ WHERE state = 'error';
 
 
 -- table for object types used for mediawords.util.public_store
-CREATE SCHEMA IF NOT EXISTS public_store;
+CREATE SCHEMA public_store;
 
 
 CREATE TABLE public_store.timespan_files
