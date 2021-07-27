@@ -43,7 +43,7 @@ RUN \
     echo "deb https://repos.citusdata.com/community/ubuntu/ focal main" \
         > /etc/apt/sources.list.d/citusdata_community.list && \
     apt-get -y update && \
-    sudo apt-get -y install postgresql-13-citus-10.0 && \
+    sudo apt-get -y install postgresql-13-citus-10.1 && \
     #
     true
 
