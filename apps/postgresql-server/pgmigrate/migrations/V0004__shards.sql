@@ -107,7 +107,7 @@ CREATE TABLE media
     -- notes for internal media cloud consumption (eg. 'added this for yochai')
     editor_notes      TEXT    NULL,
 
-    -- notes for public consumption (eg. 'leading dissident paper in anatarctica')
+    -- notes for public consumption (eg. 'leading dissident paper in antarctica')
     public_notes      TEXT    NULL,
 
     -- if true, indicates that media cloud closely monitors the health of this source
@@ -311,7 +311,7 @@ SELECT create_reference_table('feeds_after_rescraping');
 
 CREATE INDEX feeds_after_rescraping_media_id ON feeds_after_rescraping (media_id);
 CREATE INDEX feeds_after_rescraping_name ON feeds_after_rescraping (name);
-CREATE UNIQUE INDEX feeds_after_rescraping_url ON feeds_after_rescraping (url, media_id);
+CREATE UNIQUE INDEX feeds_after_rescraping_media_id_url ON feeds_after_rescraping (media_id, url);
 
 
 -- Feed is "stale" (hasn't provided a new story in some time)
@@ -439,8 +439,8 @@ CREATE TABLE feeds_tags_map
 -- noinspection SqlResolve @ routine/"create_reference_table"
 SELECT create_reference_table('feeds_tags_map');
 
-CREATE UNIQUE INDEX feeds_tags_map_feed ON feeds_tags_map (feeds_id, tags_id);
-CREATE INDEX feeds_tags_map_tag ON feeds_tags_map (tags_id);
+CREATE UNIQUE INDEX feeds_tags_map_feeds_id_tags_id ON feeds_tags_map (feeds_id, tags_id);
+CREATE INDEX feeds_tags_map_tags_id ON feeds_tags_map (tags_id);
 
 
 CREATE TABLE media_tags_map
@@ -520,7 +520,7 @@ CREATE INDEX stories_media_id_normalized_title_hash ON stories (media_id, normal
 
 -- get normalized story title by breaking the title into parts by the separator characters :-| and  using
 -- the longest single part.  longest part must be at least 32 characters cannot be the same as the media source
--- name.  also remove all html, punctuation and repeated spaces, lowecase, and limit to 1024 characters.
+-- name.  also remove all html, punctuation and repeated spaces, lowercase, and limit to 1024 characters.
 CREATE OR REPLACE FUNCTION get_normalized_title(title TEXT, title_media_id BIGINT)
     RETURNS TEXT
     IMMUTABLE AS
@@ -691,8 +691,8 @@ CREATE TABLE story_urls
 
 SELECT create_distributed_table('story_urls', 'stories_id');
 
-CREATE UNIQUE INDEX story_urls_url ON story_urls (url, stories_id);
-CREATE INDEX stories_story ON story_urls (stories_id);
+CREATE INDEX story_urls_stories_id ON story_urls (stories_id);
+CREATE UNIQUE INDEX story_urls_stories_id_url ON story_urls (stories_id, url);
 
 
 --
@@ -761,13 +761,13 @@ ALTER TABLE downloads
 CREATE INDEX downloads_parent
     ON downloads (parent);
 
-CREATE INDEX downloads_time
+CREATE INDEX downloads_download_time
     ON downloads (download_time);
 
-CREATE INDEX downloads_feed_download_time
+CREATE INDEX downloads_feeds_id_download_time
     ON downloads (feeds_id, download_time);
 
-CREATE INDEX downloads_story
+CREATE INDEX downloads_stories_id
     ON downloads (stories_id);
 
 
@@ -855,7 +855,7 @@ CREATE TABLE public_store.timespan_files
 
 SELECT create_distributed_table('public_store.timespan_files', 'object_id');
 
-CREATE UNIQUE INDEX timespan_files_id ON public_store.timespan_files (object_id);
+CREATE UNIQUE INDEX timespan_files_object_id ON public_store.timespan_files (object_id);
 
 
 CREATE TABLE public_store.snapshot_files
@@ -869,7 +869,7 @@ CREATE TABLE public_store.snapshot_files
 
 SELECT create_distributed_table('public_store.snapshot_files', 'object_id');
 
-CREATE UNIQUE INDEX snapshot_files_id ON public_store.snapshot_files (object_id);
+CREATE UNIQUE INDEX snapshot_files_object_id ON public_store.snapshot_files (object_id);
 
 
 CREATE TABLE public_store.timespan_maps
@@ -883,7 +883,7 @@ CREATE TABLE public_store.timespan_maps
 
 SELECT create_distributed_table('public_store.timespan_maps', 'object_id');
 
-CREATE UNIQUE INDEX timespan_maps_id ON public_store.timespan_maps (object_id);
+CREATE UNIQUE INDEX timespan_maps_object_id ON public_store.timespan_maps (object_id);
 
 
 --
@@ -953,6 +953,8 @@ ALTER TABLE stories_tags_map
     ADD CONSTRAINT stories_tags_map_tags_id_fkey
         FOREIGN KEY (tags_id) REFERENCES tags (tags_id);
 
+CREATE INDEX stories_tags_map_stories_id
+    ON stories_tags_map (stories_id);
 CREATE UNIQUE INDEX stories_tags_map_stories_id_tags_id
     ON stories_tags_map (stories_id, tags_id);
 
@@ -976,7 +978,7 @@ CREATE TABLE queued_downloads
 
 -- Not distributed, not reference (used to copy to from "downloads" and generally small)
 
-CREATE UNIQUE INDEX queued_downloads_download ON queued_downloads (downloads_id);
+CREATE UNIQUE INDEX queued_downloads_downloads_id ON queued_downloads (downloads_id);
 
 
 -- do this as a plpgsql function because it wraps it in the necessary transaction without
@@ -1083,7 +1085,7 @@ CREATE TABLE solr_imports
     solr_imports_id BIGSERIAL PRIMARY KEY,
     import_date     TIMESTAMP NOT NULL,
     full_import     BOOLEAN   NOT NULL DEFAULT FALSE,
-    num_stories     BIGINT
+    num_stories     BIGINT    NULL
 );
 
 -- Not distributed, not reference (small and used locally)
@@ -1248,7 +1250,7 @@ CREATE TABLE topics
     start_date                    DATE                  NOT NULL,
     end_date                      DATE                  NOT NULL,
 
-    -- if true, the topic_stories associated with this topic wilbe set to link_mined = 'f' on the next mining job
+    -- if true, the topic_stories associated with this topic will be set to link_mined = 'f' on the next mining job
     respider_stories              BOOLEAN               NOT NULL DEFAULT 'f',
     respider_start_date           DATE                  NULL,
     respider_end_date             DATE                  NULL,
@@ -1483,7 +1485,7 @@ CREATE INDEX topic_merged_stories_map_target_stories_id
     ON topic_merged_stories_map (target_stories_id);
 
 
--- track self liks and all links for a given domain within a given topic
+-- track self links and all links for a given domain within a given topic
 CREATE TABLE topic_domains
 (
     topic_domains_id BIGSERIAL NOT NULL,
@@ -1943,7 +1945,7 @@ SELECT create_distributed_table('snap.stories', 'topics_id');
 CREATE INDEX snap_stories_snapshots_id_stories_id ON snap.stories (snapshots_id, stories_id);
 
 
--- stats for various externally dervied statistics about a story.
+-- stats for various externally derived statistics about a story.
 CREATE TABLE story_statistics
 (
     story_statistics_id       BIGSERIAL NOT NULL,
@@ -2441,7 +2443,6 @@ SELECT run_command_on_shards('stories', $cmd$
 --
 -- Snapshot word2vec models
 --
--- FIXME merged "snap.word2vec_models" and "snap.word2vec_models_data"
 CREATE TABLE snap.word2vec_models
 (
     snap_word2vec_models_id BIGSERIAL NOT NULL,
@@ -3232,7 +3233,7 @@ CREATE UNIQUE INDEX topic_permissions_topics_id_auth_users_id
 -- the user for the topic.  permissions in decreasing order are admin, write, read, none.  users with
 -- the admin role have admin permission for every topic. users with admin-readonly role have at least
 -- read access to every topic.  all users have read access to every is_public topic.  otherwise, the
--- topic_permissions tableis used, with 'none' for no topic_permission.
+-- topic_permissions table is used, with 'none' for no topic_permission.
 CREATE OR REPLACE VIEW topics_with_user_permission AS
 WITH admin_users AS (
     SELECT m.auth_users_id
@@ -3762,7 +3763,7 @@ CREATE UNIQUE INDEX retweeter_stories_psu
     ON retweeter_stories (topics_id, retweeter_scores_id, stories_id, retweeted_user);
 
 
--- polarization scores for media within a topic for the given retweeter_scoresdefinition
+-- polarization scores for media within a topic for the given retweeter_scores_definition
 CREATE TABLE retweeter_media
 (
     retweeter_media_id  BIGSERIAL NOT NULL,
