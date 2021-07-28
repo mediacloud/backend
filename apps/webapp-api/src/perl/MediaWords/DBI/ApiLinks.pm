@@ -23,7 +23,7 @@ Readonly my $DEFAULT_PAGING_LIMIT => 20;
 =cut
 
 # look for a link associated with the parameters for this request.  if found, return; else create and return a new one.
-sub find_or_create_link($$)
+sub __find_or_create_link($$)
 {
     my ( $c, $params ) = @_;
 
@@ -53,7 +53,7 @@ SQL
 }
 
 # if use_link_paging, set the next and previous link_id fields in the $entity->{ link_ids } hash;
-sub set_paging_links($$$$)
+sub __set_paging_links($$$$)
 {
     my ( $c, $link, $entity, $entity_data_key ) = @_;
 
@@ -64,7 +64,7 @@ sub set_paging_links($$$$)
         my $prev_params = { %{ $link_params } };
         $prev_params->{ offset } = List::Util::max( $prev_params->{ offset } - $prev_params->{ limit }, 0 );
 
-        my $prev_link = find_or_create_link( $c, $prev_params );
+        my $prev_link = __find_or_create_link( $c, $prev_params );
         $entity->{ link_ids }->{ previous } = $link->{ previous_link_id } = $prev_link->{ api_links_id };
     }
 
@@ -75,7 +75,7 @@ sub set_paging_links($$$$)
         my $next_params = { %{ $link_params } };
         $next_params->{ offset } += $next_params->{ limit };
 
-        my $next_link = find_or_create_link( $c, $next_params );
+        my $next_link = __find_or_create_link( $c, $next_params );
         $entity->{ link_ids }->{ next } = $link->{ next_link_id } = $next_link->{ api_links_id };
     }
 
@@ -100,7 +100,7 @@ sub add_links_to_entity($$$)
 
     $entity->{ link_ids }->{ current } = $link->{ api_links_id };
 
-    set_paging_links( $c, $link, $entity, $entity_data_key );
+    __set_paging_links( $c, $link, $entity, $entity_data_key );
 }
 
 # add 'link' to the stash with a link that derefences to the current set of parameters;
@@ -145,7 +145,7 @@ SQL
     {
         $c->req->params->{ limit }  ||= $DEFAULT_PAGING_LIMIT;
         $c->req->params->{ offset } ||= 0;
-        $link = find_or_create_link( $c, $c->req->params );
+        $link = __find_or_create_link( $c, $c->req->params );
     }
 
     $c->stash->{ link } = $link;
