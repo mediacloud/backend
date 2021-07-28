@@ -88,6 +88,10 @@ sub __set_paging_links($$$$)
 
     if ( $entity->{ link_ids }->{ next } || $entity->{ link_ids }->{ previous } )
     {
+        if (ref( $link->{ params_json } ) eq ref( {} )) {
+            $link->{ params_json } = MediaWords::Util::ParseJSON::encode_json( $link->{ params_json } );
+        }
+
         $c->dbis->update_by_id( 'api_links', $link->{ api_links_id }, $link );
     }
 }
