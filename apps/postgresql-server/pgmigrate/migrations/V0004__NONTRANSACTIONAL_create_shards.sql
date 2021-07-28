@@ -12,6 +12,10 @@
 -- FIXME enable slow query log in PostgreSQL
 -- FIXME make processed_stories_stories_id index unique
 -- FIXME make solr_import_stories_stories_id index unique
+-- FIXME updatable views should call triggers on both old and new tables, plus
+--     keep source tables read-only
+-- FIXME cast enums to TEXT, then to another enum
+
 
 
 -- Rename the unsharded schema created in previous migrations
