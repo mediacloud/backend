@@ -57,7 +57,14 @@ sub __set_paging_links($$$$)
 {
     my ( $c, $link, $entity, $entity_data_key ) = @_;
 
-    my $link_params = MediaWords::Util::ParseJSON::decode_json( $link->{ params_json } );
+    # api_links.params_json got changed from TEXT to JSONB while sharding the
+    # database, and there's no way to disable decoding JSONB (as
+    # opposed to JSON) in psycopg2, so "args" might be a JSON string or
+    # a pre-decoded dictionary
+    my $link_params = $link->{ params_json };
+    unless ( ref( $link_params ) eq ref( {} ) ) {
+        $link_params = MediaWords::Util::ParseJSON::decode_json( $link_params );
+    }
 
     if ( $link_params->{ offset } )
     {
@@ -132,7 +139,14 @@ SQL
 
         die( "no such link id exists: $link_id [$path]" ) unless ( $link );
 
-        my $link_params = MediaWords::Util::ParseJSON::decode_json( $link->{ params_json } );
+        # api_links.params_json got changed from TEXT to JSONB while sharding the
+        # database, and there's no way to disable decoding JSONB (as
+        # opposed to JSON) in psycopg2, so "args" might be a JSON string or
+        # a pre-decoded dictionary
+        my $link_params = $link->{ params_json };
+        unless ( ref( $link_params ) eq ref( {} ) ) {
+            $link_params = MediaWords::Util::ParseJSON::decode_json( $link_params );
+        }
 
         my $key = $c->req->params->{ key };
 
