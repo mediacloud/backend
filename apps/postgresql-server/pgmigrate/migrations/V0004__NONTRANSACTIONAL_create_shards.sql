@@ -127,6 +127,9 @@ END;
 $$ LANGUAGE 'plpgsql' IMMUTABLE
                       COST 10;
 
+-- noinspection SqlResolve @ routine/"create_distributed_function"
+SELECT create_distributed_function('week_start_date(DATE)');
+
 
 -- Returns first 64 bits (16 characters) of MD5 hash
 --
@@ -138,6 +141,10 @@ $$
     -- noinspection SqlResolve @ routine/"digest"
 SELECT SUBSTRING(public.digest(string, 'md5'::text), 0, 9);
 $$ LANGUAGE SQL IMMUTABLE;
+
+-- noinspection SqlResolve @ routine/"create_distributed_function"
+SELECT create_distributed_function('half_md5(TEXT)');
+
 
 
 CREATE TABLE media
@@ -2673,6 +2680,9 @@ BEGIN
     RETURN api_key;
 END;
 $$;
+
+-- noinspection SqlResolve @ routine/"create_distributed_function"
+SELECT create_distributed_function('generate_api_key()');
 
 
 CREATE TABLE auth_user_api_keys
