@@ -39,7 +39,7 @@ sub __find_or_create_link($$)
         SELECT *
         FROM api_links
         WHERE
-            params_json = \$1::JSONB AND
+            params = \$1::JSONB AND
             path = \$2
 SQL
         $params_json, $path
@@ -47,7 +47,7 @@ SQL
 
     return $link if ( $link );
 
-    $link = { params_json => $params_json, path => $path };
+    $link = { params => $params_json, path => $path };
 
     return $db->create( 'api_links', $link );
 }
@@ -57,11 +57,11 @@ sub __set_paging_links($$$$)
 {
     my ( $c, $link, $entity, $entity_data_key ) = @_;
 
-    # api_links.params_json got changed from TEXT to JSONB while sharding the
+    # api_links.params got changed from TEXT to JSONB while sharding the
     # database, and there's no way to disable decoding JSONB (as
     # opposed to JSON) in psycopg2, so "args" might be a JSON string or
     # a pre-decoded dictionary
-    my $link_params = $link->{ params_json };
+    my $link_params = $link->{ params };
     unless ( ref( $link_params ) eq ref( {} ) ) {
         $link_params = MediaWords::Util::ParseJSON::decode_json( $link_params );
     }
@@ -88,8 +88,8 @@ sub __set_paging_links($$$$)
 
     if ( $entity->{ link_ids }->{ next } || $entity->{ link_ids }->{ previous } )
     {
-        if (ref( $link->{ params_json } ) eq ref( {} )) {
-            $link->{ params_json } = MediaWords::Util::ParseJSON::encode_json( $link->{ params_json } );
+        if (ref( $link->{ params } ) eq ref( {} )) {
+            $link->{ params } = MediaWords::Util::ParseJSON::encode_json( $link->{ params } );
         }
 
         $c->dbis->update_by_id( 'api_links', $link->{ api_links_id }, $link );
@@ -143,11 +143,11 @@ SQL
 
         die( "no such link id exists: $link_id [$path]" ) unless ( $link );
 
-        # api_links.params_json got changed from TEXT to JSONB while sharding the
+        # api_links.params got changed from TEXT to JSONB while sharding the
         # database, and there's no way to disable decoding JSONB (as
         # opposed to JSON) in psycopg2, so "args" might be a JSON string or
         # a pre-decoded dictionary
-        my $link_params = $link->{ params_json };
+        my $link_params = $link->{ params };
         unless ( ref( $link_params ) eq ref( {} ) ) {
             $link_params = MediaWords::Util::ParseJSON::decode_json( $link_params );
         }

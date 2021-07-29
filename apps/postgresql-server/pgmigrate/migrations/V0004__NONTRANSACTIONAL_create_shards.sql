@@ -3221,7 +3221,7 @@ CREATE TABLE api_links
 (
     api_links_id     BIGSERIAL PRIMARY KEY,
     path             TEXT   NOT NULL,
-    params_json      JSONB  NOT NULL,
+    params           JSONB  NOT NULL,
     next_link_id     BIGINT NULL
         REFERENCES api_links (api_links_id) ON DELETE SET NULL DEFERRABLE,
     previous_link_id BIGINT NULL
@@ -3230,7 +3230,7 @@ CREATE TABLE api_links
 
 -- Not a reference table (because not referenced), not a distributed table (because too small)
 
-CREATE UNIQUE INDEX api_links_params ON api_links (path, params_json);
+CREATE UNIQUE INDEX api_links_path_params ON api_links (path, params);
 
 
 -- keep track of performance of the topic spider
