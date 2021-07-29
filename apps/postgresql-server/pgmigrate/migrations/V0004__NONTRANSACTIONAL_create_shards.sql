@@ -17,6 +17,7 @@
 -- FIXME cast enums to TEXT, then to another enum
 -- FIXME copy all reference tables in a migration
 -- FIXME temporarily drop indexes while moving rows
+-- FIXME move very small tables in a migration
 
 
 -- Rename the unsharded schema created in previous migrations
