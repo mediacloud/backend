@@ -3520,15 +3520,6 @@ CREATE TABLE media_stats_weekly
 
 CREATE INDEX media_stats_weekly_media_id ON media_stats_weekly (media_id);
 
-CREATE INDEX media_stats_weekly_media_id_stat_week_num_stories_num_sentences
-    ON media_stats_weekly (media_id, stat_week, num_stories, num_sentences);
-
-CREATE INDEX media_stats_weekly_stories_rank
-    ON media_stats_weekly (stories_rank);
-
-CREATE INDEX media_stats_weekly_sentences_rank
-    ON media_stats_weekly (sentences_rank);
-
 
 CREATE TABLE media_expected_volume
 (
