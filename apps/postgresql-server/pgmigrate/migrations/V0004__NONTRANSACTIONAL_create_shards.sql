@@ -15,6 +15,10 @@
 -- FIXME updatable views should call triggers on both old and new tables, plus
 --     keep source tables read-only
 -- FIXME cast enums to TEXT, then to another enum
+-- FIXME make the shard view migration transactional
+-- FIXME copy all reference tables in a migration
+-- FIXME make smaller topics tables into reference tables
+-- FIXME temporarily drop indexes while moving rows
 
 
 
