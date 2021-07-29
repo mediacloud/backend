@@ -343,9 +343,6 @@ CREATE TABLE feeds
 -- noinspection SqlResolve @ routine/"create_reference_table"
 SELECT create_reference_table('feeds');
 
-UPDATE feeds
-SET last_new_story_time = GREATEST(last_attempted_download_time, last_new_story_time);
-
 CREATE INDEX feeds_media_id ON feeds (media_id);
 CREATE INDEX feeds_name ON feeds (name);
 CREATE UNIQUE INDEX feeds_media_id_url ON feeds (media_id, url);
