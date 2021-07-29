@@ -2887,8 +2887,7 @@ INSERT INTO auth_roles (role, description) VALUES
     ('media-edit', 'Add / edit media; includes feeds.'),
     ('stories-edit', 'Add / edit stories.'),
     ('tm', 'Topic mapper; includes media and story editing'),
-    ('tm-readonly', 'Topic mapper; excludes media and story editing'),
-    ('stories-api', 'Access to the stories api');
+    ('tm-readonly', 'Topic mapper; excludes media and story editing');
 
 
 --

@@ -26,6 +26,4 @@ Readonly our $TM => $user_roles->tm();
 
 Readonly our $TM_READONLY => $user_roles->tm_readonly();
 
-Readonly our $STORIES_API => $user_roles->stories_api();
-
 1;
