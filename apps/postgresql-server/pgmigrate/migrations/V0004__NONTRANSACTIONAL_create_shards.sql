@@ -3578,8 +3578,8 @@ CREATE TABLE media_health
 -- Not a reference table (because not referenced), not a distributed table (because too small)
 
 CREATE INDEX media_health_media_id ON media_health (media_id);
-
 CREATE INDEX media_health_is_healthy ON media_health (is_healthy);
+CREATE INDEX media_health_num_stories_90 ON media_health (num_stories_90);
 
 
 CREATE TYPE media_suggestions_status AS ENUM (
