@@ -15,11 +15,8 @@
 -- FIXME updatable views should call triggers on both old and new tables, plus
 --     keep source tables read-only
 -- FIXME cast enums to TEXT, then to another enum
--- FIXME make the shard view migration transactional
 -- FIXME copy all reference tables in a migration
--- FIXME make smaller topics tables into reference tables
 -- FIXME temporarily drop indexes while moving rows
-
 
 
 -- Rename the unsharded schema created in previous migrations
@@ -1330,6 +1327,8 @@ CREATE TABLE topics
     only_snapshot_engaged_stories BOOLEAN               NOT NULL DEFAULT 'f'
 );
 
+-- "topics" itself is tiny but we want it to be distributed so that all the
+-- stuff that belongs to a single topic is colocated together
 SELECT create_distributed_table('topics', 'topics_id');
 
 CREATE INDEX topics_name ON topics (name);
