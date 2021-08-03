@@ -12,7 +12,7 @@ RUN apt-get -y --no-install-recommends install systemd
 ENV ELK_JOURNALBEAT_VERSION=7.10.2
 RUN \
     mkdir -p /opt/journalbeat/ && \
-    curl --fail --location --retry 3 --retry-delay 5 "https://artifacts.elastic.co/downloads/beats/journalbeat/journalbeat-${ELK_JOURNALBEAT_VERSION}-linux-x86_64.tar.gz" | \
+    curl --fail --location --retry 3 --retry-delay 5 "https://artifacts.elastic.co/downloads/beats/journalbeat/journalbeat-${ELK_JOURNALBEAT_VERSION}-linux-$(uname -m | sed 's/aarch64/arm64/').tar.gz" | \
         tar -zx -C /opt/journalbeat/ --strip 1 && \
     true
 
