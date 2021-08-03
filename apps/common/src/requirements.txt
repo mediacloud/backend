@@ -59,8 +59,7 @@ mecab-python3==1.0.3
 # Natural language processing, e.g. tokenization
 nltk==3.5
 
-# PostgreSQL access
-psycopg2-binary==2.8.6
+# psycopg2 gets installed via APT as it can't be built using Pip on ARM64
 
 # Process information
 psutil==5.8.0

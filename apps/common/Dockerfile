@@ -69,6 +69,9 @@ RUN \
     apt-get -y autoremove && \
     apt-get -y clean && \
     #
+    # Install psycopg2 via APT as it has reasonably up-to-date version and the psycopg2-binary from Pip doesn't seem to work
+    apt-get -y --no-install-recommends install python3-psycopg2 && \
+    #
     # Install the rest
     pip3 install -r requirements.txt && \
     rm requirements.txt && \
