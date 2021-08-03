@@ -61,7 +61,7 @@ RUN \
 ENV ELK_KIBANA_VERSION=7.10.2
 RUN \
     mkdir -p /opt/kibana/ && \
-    curl --fail --location --retry 3 --retry-delay 5 "https://artifacts.elastic.co/downloads/kibana/kibana-${ELK_KIBANA_VERSION}-linux-x86_64.tar.gz" | \
+    curl --fail --location --retry 3 --retry-delay 5 "https://artifacts.elastic.co/downloads/kibana/kibana-${ELK_KIBANA_VERSION}-linux-$(uname -m).tar.gz" | \
         tar -zx -C /opt/kibana/ --strip 1 && \
     true
 
