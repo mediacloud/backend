@@ -23,7 +23,7 @@ colorama==0.4.4
 cryptography==3.3.2
 
 # Hindi stemming
-CyHunspell==2.0.1
+CyHunspell==2.0.2
 
 # Guessing publication dates of stories
 date_guesser==2.1.4
