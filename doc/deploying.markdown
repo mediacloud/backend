@@ -106,7 +106,6 @@ sudo zfs create space/mediacloud/vol_daily_rss_dumps
 sudo zfs create space/mediacloud/vol_munin_data
 sudo zfs create space/mediacloud/vol_munin_html
 sudo zfs create space/mediacloud/vol_portainer_data
-sudo zfs create space/mediacloud/vol_pgadmin_data
 
 # mcdb1
 sudo zfs create space/mediacloud/vol_postgresql_data
