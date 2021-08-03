@@ -24,10 +24,14 @@ ENV DEBIAN_FRONTEND=noninteractive \
     PYTHONDONTWRITEBYTECODE=1
 
 # Use mirror closest to us
-COPY conf/apt/sources.list /etc/apt/
+COPY conf/apt/sources-amd64.list conf/apt/sources-arm64.list /etc/apt/
 
 # Upgrade packages
 RUN \
+    #
+    # Use the right sources.list file
+    cp /etc/apt/sources-$(dpkg --print-architecture).list /etc/apt/sources.list && \
+    #
     apt-get -y update && \
     apt-get -y upgrade && \
     apt-get -y autoremove && \
