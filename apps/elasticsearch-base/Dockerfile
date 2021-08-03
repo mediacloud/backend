@@ -9,8 +9,11 @@ FROM gcr.io/mcback/java-base:latest
 ENV MC_ELASTICSEARCH_VERSION=7.10.2
 RUN \
     mkdir -p /opt/elasticsearch/ && \
-    curl --fail --location --retry 3 --retry-delay 5 "https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-${MC_ELASTICSEARCH_VERSION}-no-jdk-linux-x86_64.tar.gz" | \
+    curl --fail --location --retry 3 --retry-delay 5 "https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-${MC_ELASTICSEARCH_VERSION}-linux-$(uname -m).tar.gz" | \
         tar -zx -C /opt/elasticsearch/ --strip 1 && \
+    # We have our own JDK
+    rm -rf /opt/elasticsearch/jdk/ && \
+    #
     true
 
 # Add unprivileged user the service will run as
