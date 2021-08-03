@@ -29,9 +29,16 @@
     - docker
     - dockerd
 
+- name: Get DEB architecture
+  shell: "dpkg --print-architecture"
+  register: deb_architecture
+  tags:
+    - docker
+    - dockerd
+
 - name: Add Docker APT repository
   apt_repository:
-    repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_lsb.codename | lower }} stable"
+    repo: "deb [arch={{ deb_architecture.stdout }}] https://download.docker.com/linux/ubuntu {{ ansible_lsb.codename | lower }} stable"
     state: present
     filename: "docker-ce"
     update_cache: true
