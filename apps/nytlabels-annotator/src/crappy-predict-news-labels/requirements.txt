@@ -2,7 +2,7 @@ click==7.1.2
 joblib==1.0.0
 nltk==3.5
 numpy==1.19.5
-onnxruntime==1.6.0
+onnxruntime==1.8.1
 protobuf==3.14.0
 regex==2020.11.13
 six==1.15.0
