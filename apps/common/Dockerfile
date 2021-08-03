@@ -61,7 +61,13 @@ RUN \
     # requirements.txt; also, PyStemmer doesn't build correctly withou Cython
     # installed beforehand
     pip3 install Cython==0.29.21 && \
-    \
+    #
+    # Install CyHunspell 2.0.2 directly from the repository as PyPi install doesn't seem to work on ARM64
+    apt-get -y --no-install-recommends install autoconf automake libtool && \
+    pip3 install https://github.com/MSeal/cython_hunspell/archive/11c4602b1ee19d61d506eafc441652b3dcb1e81a.zip && \
+    apt-get -y remove autoconf automake libtool && \
+    apt-get -y autoremove && \
+    apt-get -y clean && \
     #
     # Install the rest
     pip3 install -r requirements.txt && \
