@@ -103,8 +103,7 @@
     state: present
     install_recommends: false
     
-    # Workaround to enable --allow-downgrades
-    # (systems that are being deployed to might have a newer version(s) installed)
+    # Workaround to enable --allow-downgrades / --allow-upgrades
     force: true
     force_apt_get: true
 
