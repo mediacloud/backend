@@ -2441,14 +2441,6 @@ volumes:
             o: bind
             device: /space/mediacloud/vol_postfix_data
 
-    # PgAdmin data
-    vol_pgadmin_data:
-        driver: local
-        driver_opts:
-            type: none
-            o: bind
-            device: /space/mediacloud/vol_pgadmin_data
-
     # Daily RSS dumps
     # (shared between cron_generate_daily_rss_dumps and webapp-httpd)
     vol_daily_rss_dumps:

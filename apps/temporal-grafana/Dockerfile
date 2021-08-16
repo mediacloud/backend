@@ -14,7 +14,7 @@ RUN \
 # Install Grafana
 RUN \
     mkdir -p /opt/grafana/ && \
-    /dl_to_stdout.sh "https://dl.grafana.com/oss/release/grafana-7.5.5.linux-amd64.tar.gz" | \
+    /dl_to_stdout.sh "https://dl.grafana.com/oss/release/grafana-7.5.5.linux-$(dpkg --print-architecture).tar.gz" | \
         tar -zx -C /opt/grafana/ --strip 1 && \
     true
 
