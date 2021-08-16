@@ -11,6 +11,18 @@
 docker_version: "20.10.8"
 containerd_io_version: "1.4.9-1"
 
+# Docker Python module, needed by Ansible:
+#
+# https://pypi.org/project/docker/#history
+#
+docker_python_module_version: "5.0.0"
+
+# Docker Compose:
+#
+# https://pypi.org/project/docker-compose/#history
+#
+docker_compose_version: "1.29.2"
+
 #
 # Docker daemon configuration
 #
