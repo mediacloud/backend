@@ -103,8 +103,7 @@
     state: present
     install_recommends: false
     
-    # Workaround to enable --allow-downgrades
-    # (systems that are being deployed to might have a newer version(s) installed)
+    # Workaround to enable --allow-downgrades / --allow-upgrades
     force: true
     force_apt_get: true
 
@@ -191,7 +190,7 @@
 # For Ansible to be able to manage Docker swarms and such
 - name: "Install 'docker' Python module"
   pip:
-    name: docker==3.7.3
+    name: "docker=={{ docker_python_module_version }}"
     state: present
     executable: /usr/bin/pip3
   become: true
@@ -202,7 +201,7 @@
 
 - name: Install docker-compose
   pip:
-    name: docker-compose>=1.22.0
+    name: "docker-compose=={{ docker_compose_version }}"
     state: present
     executable: /usr/bin/pip3
   become: true
