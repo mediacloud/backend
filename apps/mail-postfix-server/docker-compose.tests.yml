@@ -47,7 +47,7 @@ services:
         # To be able to set /proc/sys/kernel/yama/ptrace_scope:
         privileged: true
         environment:
-            MC_MAIL_POSTFIX_FQDN: "mail.testmediacloud.ml"
+            MC_MAIL_POSTFIX_FQDN: "mail.testmediacloud.tk"
         depends_on:
             - mail-opendkim-server
         networks:
@@ -59,7 +59,7 @@ services:
         image: gcr.io/mcback/mail-opendkim-server:latest
         init: true
         environment:
-            MC_MAIL_OPENDKIM_DOMAIN: "testmediacloud.ml"
+            MC_MAIL_OPENDKIM_DOMAIN: "testmediacloud.tk"
         expose:
             - "12301"
         volumes:

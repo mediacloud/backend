@@ -7,7 +7,7 @@ services:
         init: true
         stop_signal: SIGKILL
         environment:
-            MC_MUNIN_CRON_ALERT_EMAIL: "alerts@testmediacloud.ml"
+            MC_MUNIN_CRON_ALERT_EMAIL: "alerts@testmediacloud.tk"
         volumes:
             - type: bind
               source: ./munin-conf.d/host.conf
