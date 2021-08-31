@@ -4,16 +4,39 @@
 
 FROM gcr.io/mcback/postgresql-repo-base:latest
 
-# Install packages
+# Install PostgreSQL
 RUN \
-    #
-    # Install PostgreSQL
-    apt-get -y --no-install-recommends install \
-        postgresql-13 \
-        postgresql-client-13 \
-        postgresql-contrib-13 \
-        postgresql-plperl-13 \
-    && \
+    if [ "$(dpkg --print-architecture)" = "arm64" ]; then \
+        echo "Installing Graviton2-optimized PostgreSQL..." && \
+        /dl_to_stdout.sh "https://github.com/mediacloud/postgresql-aws-graviton2/releases/download/13.3-1.pgdg20.04%2B1/postgresql-13_13.3-1.pgdg20.04+1_arm64.deb" > /var/tmp/postgresql-13.deb && \
+        /dl_to_stdout.sh "https://github.com/mediacloud/postgresql-aws-graviton2/releases/download/13.3-1.pgdg20.04%2B1/postgresql-client-13_13.3-1.pgdg20.04+1_arm64.deb" > /var/tmp/postgresql-client-13.deb && \
+        /dl_to_stdout.sh "https://github.com/mediacloud/postgresql-aws-graviton2/releases/download/13.3-1.pgdg20.04%2B1/postgresql-plperl-13_13.3-1.pgdg20.04+1_arm64.deb" > /var/tmp/postgresql-plperl-13.deb && \
+        /dl_to_stdout.sh "https://github.com/mediacloud/postgresql-aws-graviton2/releases/download/13.3-1.pgdg20.04%2B1/libpq5_13.3-1.pgdg20.04+1_arm64.deb" > /var/tmp/libpq5.deb && \
+        apt-get -y --no-install-recommends install \
+            postgresql-client-common \
+            postgresql-common \
+            ssl-cert \
+            libicu66 \
+            libllvm11 \
+            libxml2 \
+            libxslt1.1 \
+        && \
+        # FIXME dpkg doesn't exit with non-zero status if dependencies are missing
+        dpkg -i /var/tmp/libpq5.deb && \
+        dpkg -i /var/tmp/postgresql-client-13.deb && \
+        dpkg -i /var/tmp/postgresql-13.deb && \
+        dpkg -i /var/tmp/postgresql-plperl-13.deb && \
+        rm /var/tmp/*.deb && \
+        true; \
+    else \
+        echo "Installing generic build of PostgreSQL..." && \
+        apt-get -y --no-install-recommends install \
+            postgresql-13 \
+            postgresql-client-13 \
+            postgresql-plperl-13 \
+        && \
+        true; \
+    fi; \
     true
 
 # Make some run directories

@@ -4,22 +4,18 @@
 
 FROM gcr.io/mcback/base:latest
 
-ENV JAVA_HOME=/usr/lib/jvm/java-15-openjdk-amd64/
+ENV JAVA_HOME=/usr/lib/jvm/java-16-amazon-corretto/
 
-# Install prerequisites
-RUN apt-get -y --no-install-recommends install binutils fontconfig libfreetype6 p11-kit
-
-# Install OpenJDK 15 with Docker support improvements:
+# Install OpenJDK 16 with Docker support improvements:
 #
 # * https://bugs.openjdk.java.net/browse/JDK-8146115
-# * https://jdk.java.net/15/
+# * https://github.com/corretto/corretto-jdk/releases
 #
 RUN \
-    mkdir -p "${JAVA_HOME}" && \
-    /dl_to_stdout.sh "https://download.java.net/java/GA/jdk15.0.2/0d1cfde4252546c6931946de8db48ee2/7/GPL/openjdk-15.0.2_linux-x64_bin.tar.gz" | \
-        tar -zx -C "${JAVA_HOME}" --strip 1 && \
-    update-alternatives --install /usr/bin/java java "${JAVA_HOME}/bin/java" 1 && \
-    update-alternatives --install /usr/bin/javac javac "${JAVA_HOME}/bin/javac" 1 && \
+    apt-get -y --no-install-recommends install p11-kit && \
+    /dl_to_stdout.sh "https://corretto.aws/downloads/resources/16.0.2.7.1/java-16-amazon-corretto-jdk_16.0.2.7-1_$(dpkg --print-architecture).deb" > /var/tmp/corretto.deb && \
+    apt-get -y --no-install-recommends install /var/tmp/corretto.deb && \
+    rm /var/tmp/corretto.deb && \
     #
     # Remove source code
     #

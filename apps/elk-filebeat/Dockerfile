@@ -9,7 +9,7 @@ FROM gcr.io/mcback/base:latest
 ENV ELK_FILEBEAT_VERSION=7.10.2
 RUN \
     mkdir -p /opt/filebeat/ && \
-    curl --fail --location --retry 3 --retry-delay 5 "https://artifacts.elastic.co/downloads/beats/filebeat/filebeat-${ELK_FILEBEAT_VERSION}-linux-x86_64.tar.gz" | \
+    curl --fail --location --retry 3 --retry-delay 5 "https://artifacts.elastic.co/downloads/beats/filebeat/filebeat-${ELK_FILEBEAT_VERSION}-linux-$(uname -m | sed 's/aarch64/arm64/').tar.gz" | \
         tar -zx -C /opt/filebeat/ --strip 1 && \
     true
 

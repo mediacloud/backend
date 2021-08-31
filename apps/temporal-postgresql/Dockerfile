@@ -15,7 +15,7 @@ RUN \
     # Install temporal-sql-tool
     # Keep version that's being used in sync with temporal-server
     mkdir -p /var/tmp/temporal/ && \
-    /dl_to_stdout.sh "https://github.com/temporalio/temporal/releases/download/v1.9.2/temporal_1.9.2_linux_amd64.tar.gz" | \
+    /dl_to_stdout.sh "https://github.com/temporalio/temporal/releases/download/v1.9.2/temporal_1.9.2_linux_$(dpkg --print-architecture).tar.gz" | \
         tar -zx -C /var/tmp/temporal/ && \
     mv \
         # Needed for creating the default namespace
