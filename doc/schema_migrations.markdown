@@ -1,20 +1,14 @@
 # Schema and migrations
 
-App `postgresql-server` provides the rest of the apps with the capability of storing and reading data from PostgreSQL. App comes pre-loaded with full schema (located in `schema/mediawords.sql`) at build time.
+App `postgresql-server` provides the rest of the apps with the capability of storing and reading data from PostgreSQL. The schema migrations get applied privately, i.e. before the database instance actually goes "live" and becomes accessible to other apps, so every app is guaranteed to be connecting to the database instance with the most up-to-date schema version. Migrations are handled via [the `pgmigrate` tool](https://github.com/yandex/pgmigrate/), an open-source library from Yandex that supports both PL/pgSQL and standard SQL.
 
-Additionally, on every start the wrapper script will test the instance for the schema version (stored in `database_variables` table) that's currently being used in the attached data volume, and if the schema version is older than the current schema version in `schema/mediawords.sql`, it will execute appropriate migration scripts (located in `schema/migrations/`) to get the data volume's schema to the newest version.
+To get a dump of the current schema, run [`./dev/get_schema.sh`](https://github.com/mediacloud/backend/blob/master/dev/get_schema.sh). That will create a file called `mediawords.sql` in the app's `/schema` folder—useful as a reference in development and [for configuring PyCharm](https://github.com/mediacloud/backend/blob/master/doc/pycharm.markdown#configure-sql-schema), though excluded from version control via `.gitignore`. 
 
-The schema migrations get applied privately, i.e. before the database instance actually goes "live" and becomes accessible to other apps, so every app is guaranteed to be connecting to the database instance with the most up-to-date schema version.
+To perform a new migration:
 
-## Updating schema
+1. Create a new `.sql` file in `/migrations` prefixed with `V`, the latest version number, **two** underscores, and a brief summary of the migration (e.g. `V0005__drop_foo_table.sql`). The migrations are then executed as part of the app's Docker build, which will fail if a migration can't be executed. Add comments/context (always welcome!) in your migration scripts via [`COMMENT ON` statements](https://www.postgresql.org/docs/11/sql-comment.html).
+2. Rebuild `postgresql-server` app image with [the `build.py` developer script](https://github.com/mediacloud/backend/blob/master/doc/dev_scripts.markdown#buildpy---build-images), or just `git push` the changes to force the CI server to rebuild everything.
+3. Pull the updated `postgresql-server` image in production, remove old container running an outdated image, and create a new container using the updated image and a data volume from the old container.
+4. Start the container. The wrapper script in the container will temporarily start a private instance of PostgreSQL and apply the schema migrations before starting a public instance of the service for other apps to use.
 
-To make changes to the schema:
-
-1. Edit the main schema file (located in `schema/mediawords.sql` file under the `postgresql-server` app) to make required changes;
-2. In the main schema, update the `MEDIACLOUD_DATABASE_SCHEMA_VERSION` variable at the top of the file by increasing the schema version;
-3. In the schema migrations directory (located in `schema/migrations/` directory under the `postgresql-server` app), add a new migration file with the name `mediawords-<old-schema-version>-<new-schema-version>.sql`; in the migration file, add SQL statements that both
-   1. makes the required changes in the schema itself (creates / drops tables, columns, etc.), and
-   2. sets the `MEDIACLOUD_DATABASE_SCHEMA_VERSION` variable to the newest schema version;
-4. Rebuild `postgresql-server` app image with `build.py` developer script, or just `git push` the changes to for the CI server to rebuild everything;
-5. Pull the updated `postgresql-server` image in production, remove old container running an outdated image, and create a new container using the updated image and a data volume from the old container.
-6. Start the container. The wrapper script in the container will temporarily start a private instance of PostgreSQL and apply the schema migrations before starting a public instance of the service for other apps to use.
+There's some vary basic configuration for `pgmigrate` in `migrations.yml`. The tool is capable of running callbacks (stored in `/pgmigrate-callbacks`) before and after the sequence of migrations has been executed during the build, or before and after each individual migration. Currently, the only callback we use in the `beforeEach` folder (for setting `search_path`). Callbacks in each subfolder (e.g. `/pgmigrate-callbacks/beforeEach`) should be prefixed numerically to indicate the order in which they should be run.

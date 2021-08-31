@@ -29,9 +29,16 @@
     - docker
     - dockerd
 
+- name: Get DEB architecture
+  shell: "dpkg --print-architecture"
+  register: deb_architecture
+  tags:
+    - docker
+    - dockerd
+
 - name: Add Docker APT repository
   apt_repository:
-    repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_lsb.codename | lower }} stable"
+    repo: "deb [arch={{ deb_architecture.stdout }}] https://download.docker.com/linux/ubuntu {{ ansible_lsb.codename | lower }} stable"
     state: present
     filename: "docker-ce"
     update_cache: true
@@ -96,8 +103,7 @@
     state: present
     install_recommends: false
     
-    # Workaround to enable --allow-downgrades
-    # (systems that are being deployed to might have a newer version(s) installed)
+    # Workaround to enable --allow-downgrades / --allow-upgrades
     force: true
     force_apt_get: true
 
@@ -184,7 +190,7 @@
 # For Ansible to be able to manage Docker swarms and such
 - name: "Install 'docker' Python module"
   pip:
-    name: docker==3.7.3
+    name: "docker=={{ docker_python_module_version }}"
     state: present
     executable: /usr/bin/pip3
   become: true
@@ -195,7 +201,7 @@
 
 - name: Install docker-compose
   pip:
-    name: docker-compose>=1.22.0
+    name: "docker-compose=={{ docker_compose_version }}"
     state: present
     executable: /usr/bin/pip3
   become: true

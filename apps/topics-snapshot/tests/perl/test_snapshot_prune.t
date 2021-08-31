@@ -139,13 +139,13 @@ SQL
         $tsu = $db->create( 'topic_seed_urls', $tsu );
     }
 
-    MediaWords::TM::Snapshot::snapshot_topic( $db, $topics_id );
+    my $new_snapshots_id = MediaWords::TM::Snapshot::snapshot_topic( $db, $topics_id );
 
-    my $got_snapshot = $db->query( "select * from snapshots where topics_id = ?", $topic->{ topics_id } )->hash;
+    my $got_snapshot = $db->query( "select * from snapshots where snapshots_id = ?", $new_snapshots_id )->hash;
 
     ok( $got_snapshot, "snapshot exists" );
 
-    my $got_stories = $db->query( <<SQL, $got_snapshot->{ snapshots_id } )->hashes;
+    my $got_stories = $db->query( <<SQL, $new_snapshots_id )->hashes;
 select * from snap.stories where snapshots_id = ?
 SQL
 

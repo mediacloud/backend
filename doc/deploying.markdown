@@ -79,13 +79,12 @@ sudo chmod 600 /zfspool
 
 # Create a single "space" ZFS pool for all data
 # (replace /zfspool with a path to your disk device)
-sudo zpool create space /zfspool
+sudo zpool create -o ashift=12 -o autotrim=on -O compression=lz4 -O acltype=posixacl -O dnodesize=auto -O normalization=formD -O relatime=on -O xattr=sa space /zfspool
 
 # Create "space/mediacloud" ZFS filesystem for Media Cloud data
 sudo zfs create space/mediacloud
 
 # Enable compression and optimize the filesystem (and its descendants)
-sudo zfs set compression=lz4 space/mediacloud
 sudo zfs set recordsize=16K space/mediacloud
 sudo zfs set primarycache=metadata space/mediacloud
 sudo zfs set atime=off space/mediacloud
@@ -106,7 +105,6 @@ sudo zfs create space/mediacloud/vol_daily_rss_dumps
 sudo zfs create space/mediacloud/vol_munin_data
 sudo zfs create space/mediacloud/vol_munin_html
 sudo zfs create space/mediacloud/vol_portainer_data
-sudo zfs create space/mediacloud/vol_pgadmin_data
 
 # mcdb1
 sudo zfs create space/mediacloud/vol_postgresql_data

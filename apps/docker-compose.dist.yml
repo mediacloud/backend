@@ -150,16 +150,6 @@ x-twitter-api-configuration: &twitter-api-configuration
 
 
 #
-# Crimson Hexagon API configuration
-# =================================
-#
-x-crimson-hexagon-api-configuration: &crimson-hexagon-api-configuration
-
-    # Crimson Hexagon API key
-    MC_CRIMSON_HEXAGON_API_KEY: ""
-
-
-#
 # Brandwatch API configuration
 # ============================
 #
@@ -2073,7 +2063,6 @@ services:
         environment:
             <<: *common-configuration
             <<: *twitter-api-configuration
-            <<: *crimson-hexagon-api-configuration
             <<: *brandwatch-api-configuration
         deploy:
             <<: *misc-apps_deploy_placement_constraints
@@ -2099,7 +2088,6 @@ services:
         environment:
             <<: *common-configuration
             <<: *twitter-api-configuration
-            <<: *crimson-hexagon-api-configuration
             <<: *brandwatch-api-configuration
         deploy:
             <<: *misc-apps_deploy_placement_constraints
@@ -2452,14 +2440,6 @@ volumes:
             type: none
             o: bind
             device: /space/mediacloud/vol_postfix_data
-
-    # PgAdmin data
-    vol_pgadmin_data:
-        driver: local
-        driver_opts:
-            type: none
-            o: bind
-            device: /space/mediacloud/vol_pgadmin_data
 
     # Daily RSS dumps
     # (shared between cron_generate_daily_rss_dumps and webapp-httpd)

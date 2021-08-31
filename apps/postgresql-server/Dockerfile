@@ -6,29 +6,56 @@ FROM gcr.io/mcback/postgresql-base:latest
 
 USER root
 RUN \
-    mkdir -p \
-        /opt/postgresql-server/bin/ \
-        /opt/postgresql-server/schema/ \
-    && \
+    apt-get -y --no-install-recommends install python3 python3-pip python3-setuptools && \
+    #
+    # Upgrade Pip
+    pip3 install -U pip && \
+    #
+    # https://github.com/pypa/pip/issues/5221#issuecomment-382069604
+    hash -r pip3 && \
+    apt-get -y --no-install-recommends install build-essential python3-dev libffi-dev libpq-dev && \
+    #
+    # Install package to manage schema migrations
+    pip3 install yandex-pgmigrate==1.0.6 && \
+    #
+    # Remove temporary dependencies
+    apt-get -y remove build-essential python3-dev libffi-dev libpq-dev && \
+    #
+    # Cleanup
+    apt-get -y autoremove && \
+    apt-get -y clean && \
+    rm -rf /root/.cache/ && \
+    #
     true
 
-# Copy helper scripts, schema, migrations
-COPY bin/* /opt/postgresql-server/bin/
-COPY schema/ /opt/postgresql-server/schema/
+# Copy helper scripts, migrations, pgmigrate callbacks/config, create schema dir
+RUN \
+    mkdir -p \
+        /opt/postgresql-server/bin/ \
+        /opt/postgresql-server/pgmigrate \
+    && \
+    chmod ugo+rw /opt/postgresql-server/pgmigrate && \
+    true
 
-# Initialize data volume, create users, a database, and initialize it with
-# schema
+COPY bin/* /opt/postgresql-server/bin/
+COPY pgmigrate/ /opt/postgresql-server/pgmigrate
+
+# Initialize data volume, create users + database
 # If a new empty volume gets mounted to /var/lib/postgresql/ upon
 # container start, Docker will copy the files from the container to the volume
+
 USER postgres
-RUN /opt/postgresql-server/bin/initialize_schema.sh
+RUN /opt/postgresql-server/bin/initialize_db.sh
 
 # Remove the init script so that someone doesn't accidentally run it in
 # production
 USER root
-RUN rm /opt/postgresql-server/bin/initialize_schema.sh
-USER postgres
+RUN rm /opt/postgresql-server/bin/initialize_db.sh
 
+# dump schema file for reference in development (run ./dev/get_schema.sh to get local copy)
+RUN mv /opt/postgresql-server/pgmigrate/mediawords.sql /opt/mediawords.sql
+
+USER postgres
 ENV \
     PATH="/opt/postgresql-server/bin:${PATH}" \
     #

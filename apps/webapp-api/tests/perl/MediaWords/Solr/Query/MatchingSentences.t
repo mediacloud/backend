@@ -38,7 +38,7 @@ SQL
 
         $test_word = lc( $test_word );
 
-        my $expected_sentences = [ grep { $_->{ sentence } =~ /$test_word/i } @{ $story_sentences } ];
+        my $expected_sentences = [ grep { $_->{ sentence } =~ /\b$test_word\b/i } @{ $story_sentences } ];
         my $query              = "$test_word* and stories_id:$story->{ stories_id }";
         my $got_sentences      = MediaWords::Solr::Query::MatchingSentences::query_matching_sentences( $db, { q => $query } );
 
