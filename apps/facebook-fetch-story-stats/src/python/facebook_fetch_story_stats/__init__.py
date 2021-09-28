@@ -65,6 +65,8 @@ __URL_PATTERNS_WHICH_WONT_WORK = [
     # Google Trends
     re.compile(r'^https?://.*?\.google\..{2,7}/trends/explore.*?', flags=re.IGNORECASE),
 
+    # Facebook posts
+    re.compile(r'^https?://.*?\.facebook\..*/posts/.*?', flags=re.IGNORECASE)
 ]
 """URL patterns for which we're sure we won't get correct results (so we won't even try)."""
 
