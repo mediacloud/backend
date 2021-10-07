@@ -1845,6 +1845,13 @@ services:
             - 5432
         volumes:
             - vol_temporal_postgresql_data:/var/lib/postgresql/
+
+            # Provide container with more shared memory than is the default:
+            - type: tmpfs
+              target: /dev/shm
+              tmpfs:
+                size: 4294967296   # 4 GB
+
         deploy:
             <<: *endpoint-mode-dnsrr
             placement:
