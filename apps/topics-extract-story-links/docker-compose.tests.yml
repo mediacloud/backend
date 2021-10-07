@@ -75,5 +75,5 @@ services:
               source: ./../postgresql-server/pgmigrate/
               target: /opt/postgresql-server/pgmigrate/
             - type: bind
-              source: ./../postgresql-base/conf/
-              target: /etc/postgresql/13/main/
+              source: ./../postgresql-base/etc/postgresql/
+              target: /etc/postgresql/

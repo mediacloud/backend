@@ -1344,6 +1344,47 @@ services:
         init: true
         networks:
             - default
+        environment:
+
+            # (optional) Set to "1" (string "1", not integer 1!) to enable PgBackRest
+            # backups to S3; for more information, refer to doc/postgresql_pgbackrest.markdown
+            MC_PGBACKREST_ENABLE: "1"
+
+            # (required if PgBackRest is enabled) Full backup retention count/time:
+            # https://pgbackrest.org/configuration.html#section-repository/option-repo-retention-full
+            MC_PGBACKREST_RETENTION_FULL: "2"
+
+            # (required if PgBackRest is enabled) S3 repository endpoint:
+            # https://pgbackrest.org/configuration.html#section-repository/option-repo-s3-endpoint
+            MC_PGBACKREST_S3_ENDPOINT: "s3.amazonaws.com"
+
+            # (required if PgBackRest is enabled) S3 repository bucket:
+            # https://pgbackrest.org/configuration.html#section-repository/option-repo-s3-bucket
+            MC_PGBACKREST_S3_BUCKET: "mediacloud-pgbackrest-example"
+
+            # (required if PgBackRest is enabled) Whether or not to verify storage's TLS certificates ("y" / "n"):
+            # https://pgbackrest.org/configuration.html#section-repository/option-repo-storage-verify-tls
+            MC_PGBACKREST_S3_VERIFY_TLS: "y"
+
+            # (required if PgBackRest is enabled) S3 repository access key (Access Key ID):
+            # https://pgbackrest.org/configuration.html#section-repository/option-repo-s3-key
+            MC_PGBACKREST_S3_KEY: "AKIAIOSFODNN7EXAMPLE"
+
+            # (required if PgBackRest is enabled) S3 repository secret access key (Secret Access Key):
+            # https://pgbackrest.org/configuration.html#section-repository/option-repo-s3-key-secret
+            MC_PGBACKREST_S3_KEY_SECRET: "wJalrXUtnFEMI/K7MDENG/bPxRfiCYzEXAMPLEKEY"
+
+            # (required if PgBackRest is enabled) S3 repository region:
+            # https://pgbackrest.org/configuration.html#section-repository/option-repo-s3-region
+            MC_PGBACKREST_S3_REGION: "us-east-1"
+
+            # (required if PgBackRest is enabled) Prefix path on S3 bucket; must start with a slash:
+            # https://pgbackrest.org/configuration.html#section-repository/option-repo-path
+            #
+            # MAKE SURE IT'S DIFFERENT FROM OTHER USERS OF PGBACKREST!
+            #
+            MC_PGBACKREST_S3_PATH: "/postgresql-server"
+
         expose:
             - 5432
         # Allow up to 5 minutes for PostgreSQL to stop so that it manages to
@@ -1841,6 +1882,47 @@ services:
         init: true
         networks:
             - default
+        environment:
+
+            # (optional) Set to "1" (string "1", not integer 1!) to enable PgBackRest
+            # backups to S3; for more information, refer to doc/postgresql_pgbackrest.markdown
+            MC_PGBACKREST_ENABLE: "1"
+
+            # (required if PgBackRest is enabled) Full backup retention count/time:
+            # https://pgbackrest.org/configuration.html#section-repository/option-repo-retention-full
+            MC_PGBACKREST_RETENTION_FULL: "2"
+
+            # (required if PgBackRest is enabled) S3 repository endpoint:
+            # https://pgbackrest.org/configuration.html#section-repository/option-repo-s3-endpoint
+            MC_PGBACKREST_S3_ENDPOINT: "s3.amazonaws.com"
+
+            # (required if PgBackRest is enabled) S3 repository bucket:
+            # https://pgbackrest.org/configuration.html#section-repository/option-repo-s3-bucket
+            MC_PGBACKREST_S3_BUCKET: "mediacloud-pgbackrest-example"
+
+            # (required if PgBackRest is enabled) Whether or not to verify storage's TLS certificates ("y" / "n"):
+            # https://pgbackrest.org/configuration.html#section-repository/option-repo-storage-verify-tls
+            MC_PGBACKREST_S3_VERIFY_TLS: "y"
+
+            # (required if PgBackRest is enabled) S3 repository access key (Access Key ID):
+            # https://pgbackrest.org/configuration.html#section-repository/option-repo-s3-key
+            MC_PGBACKREST_S3_KEY: "AKIAIOSFODNN7EXAMPLE"
+
+            # (required if PgBackRest is enabled) S3 repository secret access key (Secret Access Key):
+            # https://pgbackrest.org/configuration.html#section-repository/option-repo-s3-key-secret
+            MC_PGBACKREST_S3_KEY_SECRET: "wJalrXUtnFEMI/K7MDENG/bPxRfiCYzEXAMPLEKEY"
+
+            # (required if PgBackRest is enabled) S3 repository region:
+            # https://pgbackrest.org/configuration.html#section-repository/option-repo-s3-region
+            MC_PGBACKREST_S3_REGION: "us-east-1"
+
+            # (required if PgBackRest is enabled) Prefix path on S3 bucket; must start with a slash:
+            # https://pgbackrest.org/configuration.html#section-repository/option-repo-path
+            #
+            # MAKE SURE IT'S DIFFERENT FROM OTHER USERS OF PGBACKREST!
+            #
+            MC_PGBACKREST_S3_PATH: "/temporal-postgresql"
+
         expose:
             - 5432
         volumes:

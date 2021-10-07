@@ -4,7 +4,7 @@ set -u
 set -e
 
 # Update memory configuration
-/opt/postgresql-base/bin/update_memory_config.sh
+/opt/postgresql-base/bin/generate_runtime_config.sh
 
 # Run schema migrations if needed
 if [ -e /var/lib/postgresql/first_run ]; then

@@ -86,8 +86,8 @@ services:
               source: ./../temporal-postgresql/bin/
               target: /opt/temporal-postgresql/bin/
             - type: bind
-              source: ./../postgresql-base/conf/
-              target: /etc/postgresql/13/main/
+              source: ./../postgresql-base/etc/postgresql/
+              target: /etc/postgresql/
 
     temporal-elasticsearch:
         image: gcr.io/mcback/temporal-elasticsearch:latest

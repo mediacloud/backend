@@ -68,8 +68,8 @@ services:
               source: ./../postgresql-server/pgmigrate/
               target: /opt/postgresql-server/pgmigrate/
             - type: bind
-              source: ./../postgresql-base/conf/
-              target: /etc/postgresql/13/main/
+              source: ./../postgresql-base/etc/postgresql/
+              target: /etc/postgresql/
 
     rabbitmq-server:
         image: gcr.io/mcback/rabbitmq-server:latest
@@ -121,8 +121,8 @@ services:
               source: ./../temporal-postgresql/bin/
               target: /opt/temporal-postgresql/bin/
             - type: bind
-              source: ./../postgresql-base/conf/
-              target: /etc/postgresql/13/main/
+              source: ./../postgresql-base/etc/postgresql/
+              target: /etc/postgresql/
 
     temporal-elasticsearch:
         image: gcr.io/mcback/temporal-elasticsearch:latest
