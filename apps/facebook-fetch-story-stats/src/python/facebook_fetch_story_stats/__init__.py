@@ -3,13 +3,11 @@ import re
 import time
 from typing import Union, List, Dict, Optional
 
-import facebook_scraper
 from furl import furl
 
 from mediawords.db import DatabaseHandler
 from mediawords.util.log import create_logger
 from mediawords.util.perl import decode_object_from_bytes_if_needed
-from mediawords.util.process import fatal_error
 from mediawords.util.url import is_http_url, fix_common_url_mistakes, canonical_url
 from mediawords.util.web.user_agent import UserAgent
 
@@ -21,9 +19,7 @@ from facebook_fetch_story_stats.exceptions import (
     McFacebookInvalidURLException,
     McFacebookUnexpectedAPIResponseException,
     McFacebookErrorAPIResponseException,
-    McFacebookSoftFailureException,
-    McFacebookInvalidPostURLException,
-    McFacebookHardFailureException
+    McFacebookSoftFailureException
 )
 
 log = create_logger(__name__)
@@ -68,6 +64,9 @@ __URL_PATTERNS_WHICH_WONT_WORK = [
 
     # Google Trends
     re.compile(r'^https?://.*?\.google\..{2,7}/trends/explore.*?', flags=re.IGNORECASE),
+
+    # Facebook posts
+    re.compile(r'^https?://.*?\.facebook\..*/posts/.*?', flags=re.IGNORECASE)
 
 ]
 """URL patterns for which we're sure we won't get correct results (so we won't even try)."""
@@ -267,10 +266,6 @@ def _get_url_stats(url: str, config: Optional[FacebookConfig] = None) -> Faceboo
     if not config.is_enabled():
         raise McFacebookInvalidConfigurationException("Facebook API is not enabled.")
 
-    if re.search(r'^https?://.*?\.facebook\..*/posts/.*?', url, flags=re.IGNORECASE):
-        # url is a facebook post
-        return get_fb_post_stats(url)
-
     # Make API request (https://developers.facebook.com/docs/graph-api/reference/v12.0/url)
     try:
         data = _api_request(
@@ -358,20 +353,6 @@ def _get_url_stats(url: str, config: Optional[FacebookConfig] = None) -> Faceboo
     log.debug(f"Facebook statistics for URL '{url}': {stats}")
 
     return stats
-
-
-def get_fb_post_stats(fb_post_url: str) -> FacebookURLStats:
-    try:
-        post_id = int(re.search(r'posts/([0-9]+)', fb_post_url).group(1))
-        fb_stats_generator = facebook_scraper.get_posts(post_id)
-        stats = next(fb_stats_generator)
-        return FacebookURLStats(share_count=stats["shares"], comment_count=stats["comments"],
-                                reaction_count=stats["reactions"])
-    except facebook_scraper.exceptions.NotFound:
-        raise McFacebookInvalidPostURLException(f"Facebook scraper can't find stats for FB post with id {post_id}")
-    except Exception as ex:
-        raise McFacebookHardFailureException(f"Unknown error while trying to scrape stats for Facebook "
-                                             f"post {fb_post_url}: {ex}")
 
 
 def get_and_store_story_stats(db: DatabaseHandler, story: dict) -> FacebookURLStats:

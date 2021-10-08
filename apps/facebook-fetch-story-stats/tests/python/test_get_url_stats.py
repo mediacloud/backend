@@ -1,9 +1,7 @@
 # noinspection PyProtectedMember
+import pytest
 from facebook_fetch_story_stats import _get_url_stats
-<<<<<<< HEAD
-from facebook_fetch_story_stats.exceptions import McFacebookInvalidPostURLException
-=======
->>>>>>> parent of 39f879eca (do not fetch fb stats for fb posts)
+from facebook_fetch_story_stats.exceptions import McFacebookInvalidURLException
 
 
 def test_bogus_urls():
@@ -66,27 +64,9 @@ def test_get_url_stats_normal_url():
     assert stats.share_count > 0, f"Share could should be positive for URL '{url}'"
 
 
-def test_get_url_stats_fb_post():
-    url = 'https://www.facebook.com/tiffany.hathaway.79/posts/10219140619682568?_fb_noscript=1'
-    stats = _get_url_stats(url=url)
-    assert stats is not None, f"Stats should be set for URL '{url}'"
-    assert stats.share_count > 0, f"Share could should be positive for URL '{url}'"
-
-
-def test_get_url_stats_bogus_fb_post():
-    with pytest.raises(McFacebookInvalidPostURLException):
-        url = 'https://www.facebook.com/tiffany.hathaway.79/posts/1?_fb_noscript=1'
-        stats = _get_url_stats(url=url)
-
-
 def test_get_url_stats_bogus_url():
     url = 'http://totally.bogus.url.123456'
     stats = _get_url_stats(url=url)
     assert stats is not None, f"Stats should be set for URL '{url}'"
-<<<<<<< HEAD
     assert stats.share_count == 0, f"Share should be 0 for URL '{url}'"
     assert stats.comment_count == 0, f"Comment should be 0 for URL '{url}'"
-=======
-    assert stats.share_count == 0, f"Share could should be 0 for URL '{url}'"
-    assert stats.comment_count == 0, f"Comment could should be 0 for URL '{url}'"
->>>>>>> parent of 39f879eca (do not fetch fb stats for fb posts)
