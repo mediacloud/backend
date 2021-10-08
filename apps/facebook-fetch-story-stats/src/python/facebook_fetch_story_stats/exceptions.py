@@ -42,6 +42,12 @@ class McFacebookInvalidURLException(McFacebookSoftFailureException):
 
 
 # ---
+class McFacebookInvalidPostURLException(McFacebookException):
+    """
+    Exception thrown when facebook_scraper package can't find data for given Facebook post id.
+    """
+    pass
+
 
 class McFacebookHardFailureException(McFacebookException):
     """
