@@ -1,19 +1,14 @@
 #
-# Use mirror closest to us
+# Use Azure Ubuntu mirror:
+#
+# * Images get build on GitHub Actions which runs on Azure (I think);
+# * Azure serves the mirror on a CDN in various geographical locations.
+# * "mirror://mirrors.ubuntu.com/mirrors.txt" sometimes picks really slow or
+#   dead mirrors.
 #
 
-deb mirror://mirrors.ubuntu.com/mirrors.txt focal main restricted
+deb http://azure.archive.ubuntu.com/ubuntu focal main restricted universe multiverse
+deb http://azure.archive.ubuntu.com/ubuntu focal-updates main restricted universe multiverse
+deb http://azure.archive.ubuntu.com/ubuntu focal-backports main restricted universe multiverse
 
-deb mirror://mirrors.ubuntu.com/mirrors.txt focal-updates main restricted
-
-deb mirror://mirrors.ubuntu.com/mirrors.txt focal universe
-deb mirror://mirrors.ubuntu.com/mirrors.txt focal-updates universe
-
-deb mirror://mirrors.ubuntu.com/mirrors.txt focal multiverse
-deb mirror://mirrors.ubuntu.com/mirrors.txt focal-updates multiverse
-
-deb mirror://mirrors.ubuntu.com/mirrors.txt focal-backports main restricted universe multiverse
-
-deb http://security.ubuntu.com/ubuntu/ focal-security main restricted
-deb http://security.ubuntu.com/ubuntu/ focal-security universe
-deb http://security.ubuntu.com/ubuntu/ focal-security multiverse
+deb http://security.ubuntu.com/ubuntu/ focal-security main restricted universe multiverse
