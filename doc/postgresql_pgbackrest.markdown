@@ -3,6 +3,8 @@
 
 ## Usage
 
+A stanza is the [configuration for a PostgreSQL database cluster that defines where it is located, how it will be backed up, archiving options, etc.](https://pgbackrest.org/user-guide.html)
+
 Create stanza:
 
 ```bash
