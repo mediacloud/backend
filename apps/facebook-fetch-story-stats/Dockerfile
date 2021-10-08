@@ -4,9 +4,6 @@
 
 FROM gcr.io/mcback/common:latest
 
-# install package to get engagement stats from facebook posts
-RUN pip3 install facebook-scraper==0.2.47
-
 # Copy sources
 COPY src/ /opt/mediacloud/src/facebook-fetch-story-stats/
 ENV PERL5LIB="/opt/mediacloud/src/facebook-fetch-story-stats/perl:${PERL5LIB}" \

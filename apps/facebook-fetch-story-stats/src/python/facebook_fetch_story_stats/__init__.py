@@ -19,7 +19,7 @@ from facebook_fetch_story_stats.exceptions import (
     McFacebookInvalidURLException,
     McFacebookUnexpectedAPIResponseException,
     McFacebookErrorAPIResponseException,
-    McFacebookSoftFailureException
+    McFacebookSoftFailureException,
 )
 
 log = create_logger(__name__)
@@ -67,7 +67,6 @@ __URL_PATTERNS_WHICH_WONT_WORK = [
 
     # Facebook posts
     re.compile(r'^https?://.*?\.facebook\..*/posts/.*?', flags=re.IGNORECASE)
-
 ]
 """URL patterns for which we're sure we won't get correct results (so we won't even try)."""
 
@@ -266,7 +265,7 @@ def _get_url_stats(url: str, config: Optional[FacebookConfig] = None) -> Faceboo
     if not config.is_enabled():
         raise McFacebookInvalidConfigurationException("Facebook API is not enabled.")
 
-    # Make API request (https://developers.facebook.com/docs/graph-api/reference/v12.0/url)
+    # Make API request (https://developers.facebook.com/docs/graph-api/reference/v5.0/url)
     try:
         data = _api_request(
             node='',

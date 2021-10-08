@@ -41,6 +41,8 @@ class McFacebookInvalidURLException(McFacebookSoftFailureException):
         super().__init__(f"Invalid URL: '{url}'; message: {error_message}")
 
 
+# ---
+
 class McFacebookHardFailureException(McFacebookException):
     """
     Hard exception.
