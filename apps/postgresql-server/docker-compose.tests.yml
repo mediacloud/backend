@@ -1,0 +1,39 @@
+# Used for manually testing PgBackRest
+
+version: "3.7"
+
+services:
+
+    postgresql-server:
+        image: gcr.io/mcback/postgresql-server:latest
+        init: true
+        stop_signal: SIGKILL
+        expose:
+            - 5432
+        environment:
+            MC_PGBACKREST_ENABLE: "${MC_PGBACKREST_ENABLE}"
+            MC_PGBACKREST_RETENTION_FULL: "${MC_PGBACKREST_RETENTION_FULL}"
+            MC_PGBACKREST_S3_ENDPOINT: "${MC_PGBACKREST_S3_ENDPOINT}"
+            MC_PGBACKREST_S3_BUCKET: "${MC_PGBACKREST_S3_BUCKET}"
+            MC_PGBACKREST_S3_VERIFY_TLS: "${MC_PGBACKREST_S3_VERIFY_TLS}"
+            MC_PGBACKREST_S3_KEY: "${MC_PGBACKREST_S3_KEY}"
+            MC_PGBACKREST_S3_KEY_SECRET: "${MC_PGBACKREST_S3_KEY_SECRET}"
+            MC_PGBACKREST_S3_REGION: "${MC_PGBACKREST_S3_REGION}"
+            MC_PGBACKREST_S3_PATH: "${MC_PGBACKREST_S3_PATH}"
+        volumes:
+            - type: bind
+              source: ./bin/
+              target: /opt/postgresql-server/bin/
+            - type: bind
+              source: ./pgmigrate/
+              target: /opt/postgresql-server/pgmigrate/
+            - type: bind
+              source: ./../postgresql-base/bin/
+              target: /opt/postgresql-base/bin/
+            - type: bind
+              source: ./../postgresql-base/etc/postgresql/
+              target: /etc/postgresql/
+            # Mounting PgBackRest's configuration directory too
+            - type: bind
+              source: ./../postgresql-base/etc/pgbackrest/pgbackrest.conf
+              target: /etc/pgbackrest/pgbackrest.conf
