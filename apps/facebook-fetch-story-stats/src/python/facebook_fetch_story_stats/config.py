@@ -15,7 +15,7 @@ class FacebookConfig(object):
     @staticmethod
     def api_endpoint() -> str:
         """API endpoint to use, together with version."""
-        return "https://graph.facebook.com/v5.0/"
+        return "https://graph.facebook.com/v12.0/"
 
     @staticmethod
     def app_id() -> str:
