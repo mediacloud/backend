@@ -16,7 +16,11 @@ PGCTL_START_TIMEOUT=3600
 
 # Start PostgreSQL on a temporary port
 "${MC_POSTGRESQL_BIN_DIR}/pg_ctl" \
-    -o "-c config_file=${MC_POSTGRESQL_CONF_PATH} -p ${TEMP_PORT}" \
+    -o "\
+        -c config_file=${MC_POSTGRESQL_CONF_PATH} \
+        -p ${TEMP_PORT} \
+        -c archive_mode=off \
+    " \
     -D "${MC_POSTGRESQL_DATA_DIR}" \
     -t "${PGCTL_START_TIMEOUT}" \
     -w \
