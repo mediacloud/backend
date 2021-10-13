@@ -1,4 +1,4 @@
-# Used for manually testing PgBackRest
+# Used for manually testing WAL-G
 
 version: "3.7"
 
@@ -11,15 +11,16 @@ services:
         expose:
             - 5432
         environment:
-            MC_PGBACKREST_ENABLE: "${MC_PGBACKREST_ENABLE}"
-            MC_PGBACKREST_RETENTION_FULL: "${MC_PGBACKREST_RETENTION_FULL}"
-            MC_PGBACKREST_S3_ENDPOINT: "${MC_PGBACKREST_S3_ENDPOINT}"
-            MC_PGBACKREST_S3_BUCKET: "${MC_PGBACKREST_S3_BUCKET}"
-            MC_PGBACKREST_S3_VERIFY_TLS: "${MC_PGBACKREST_S3_VERIFY_TLS}"
-            MC_PGBACKREST_S3_KEY: "${MC_PGBACKREST_S3_KEY}"
-            MC_PGBACKREST_S3_KEY_SECRET: "${MC_PGBACKREST_S3_KEY_SECRET}"
-            MC_PGBACKREST_S3_REGION: "${MC_PGBACKREST_S3_REGION}"
-            MC_PGBACKREST_S3_PATH: "${MC_PGBACKREST_S3_PATH}"
+            MC_WALG_ENABLE: "${MC_WALG_ENABLE}"
+            MC_WALG_S3_ACCESS_KEY_ID: "${MC_WALG_S3_ACCESS_KEY_ID}"
+            MC_WALG_S3_SECRET_ACCESS_KEY: "${MC_WALG_S3_SECRET_ACCESS_KEY}"
+            MC_WALG_S3_REGION: "${MC_WALG_S3_REGION}"
+            MC_WALG_S3_BUCKET_PREFIX: "${MC_WALG_S3_BUCKET_PREFIX}"
+            # MC_WALG_S3_ENDPOINT: "${MC_WALG_S3_ENDPOINT}"
+            # MC_WALG_S3_STORAGE_CLASS: "${MC_WALG_S3_STORAGE_CLASS}"
+            # MC_WALG_S3_FORCE_PATH_STYLE: "${MC_WALG_S3_FORCE_PATH_STYLE}"
+            # MC_WALG_S3_USE_LIST_OBJECTS_V1: "${MC_WALG_S3_USE_LIST_OBJECTS_V1}"
+            # MC_WALG_S3_CA_CERT_BASE64: "${MC_WALG_S3_CA_CERT_BASE64}"
         volumes:
             - type: bind
               source: ./bin/
@@ -33,7 +34,3 @@ services:
             - type: bind
               source: ./../postgresql-base/etc/postgresql/
               target: /etc/postgresql/
-            # Mounting PgBackRest's configuration directory too
-            - type: bind
-              source: ./../postgresql-base/etc/pgbackrest/pgbackrest.conf
-              target: /etc/pgbackrest/pgbackrest.conf
