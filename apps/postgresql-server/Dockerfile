@@ -45,7 +45,10 @@ COPY pgmigrate/ /opt/postgresql-server/pgmigrate
 # container start, Docker will copy the files from the container to the volume
 
 USER postgres
-RUN /opt/postgresql-server/bin/initialize_db.sh
+RUN \
+    unset PGHOST PGPORT && \
+    /opt/postgresql-server/bin/initialize_db.sh && \
+    true
 
 # Remove the init script so that someone doesn't accidentally run it in
 # production
@@ -60,8 +63,6 @@ ENV \
     PATH="/opt/postgresql-server/bin:${PATH}" \
     #
     # Make sure that we can connect via "psql" without sudoing into "postgres" user
-    PGHOST=localhost \
-    PGPORT=5432 \
     PGUSER=mediacloud \
     PGPASSWORD=mediacloud \
     PGDATABASE=mediacloud

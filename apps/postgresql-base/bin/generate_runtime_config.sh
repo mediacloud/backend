@@ -25,18 +25,28 @@ EOF
 
 
 #
-# Update PgBackRest configuration
+# Update WAL-G configuration
 #
 
-MC_POSTGRESQL_PGBACKREST_CONF_PATH="/var/run/postgresql/postgresql-pgbackrest.conf"
-MC_BACKREST_CONF_D_S3_CONF_PATH="/etc/pgbackrest/conf.d/s3.conf"
+MC_POSTGRESQL_WALG_CONF_PATH="/var/run/postgresql/postgresql-walg.conf"
 
+# Keep in sync with wal-g.sh
+MC_POSTGRESQL_WALG_ENV_PATH="/var/run/postgresql/walg.env"
 
-if [ -z ${MC_PGBACKREST_ENABLE+x} ]; then
+if [ ! -f "${MC_POSTGRESQL_WALG_CONF_PATH}" ]; then
+    echo "PostgreSQL WAL-G configuration file does not exist in ${MC_POSTGRESQL_WALG_CONF_PATH}"
+    exit 1
+fi
+if [ ! -f "${MC_POSTGRESQL_WALG_ENV_PATH}" ]; then
+    echo "PostgreSQL WAL-G environment file does not exist in ${MC_POSTGRESQL_WALG_ENV_PATH}"
+    exit 1
+fi
 
-    echo "PgBackRest is disabled."
+if [ -z ${MC_WALG_ENABLE+x} ]; then
 
-    cat > "${MC_POSTGRESQL_PGBACKREST_CONF_PATH}" << EOF
+    echo "WAL-G is disabled."
+
+    cat > "${MC_POSTGRESQL_WALG_CONF_PATH}" << EOF
 #
 # Auto-generated, please don't edit!
 #
@@ -44,44 +54,79 @@ if [ -z ${MC_PGBACKREST_ENABLE+x} ]; then
 archive_mode = off
 EOF
 
-    cat > "${MC_BACKREST_CONF_D_S3_CONF_PATH}" << EOF
+    cat > "${MC_POSTGRESQL_WALG_ENV_PATH}" << EOF
 #
 # Auto-generated, please don't edit!
 #
 
-# S3 archiving disabled
+# WAL-G is disabled.
 EOF
 
 else
 
-    echo "PgBackRest is enabled."
+    echo "WAL-G is enabled."
 
-    cat > "${MC_POSTGRESQL_PGBACKREST_CONF_PATH}" << EOF
+    cat > "${MC_POSTGRESQL_WALG_CONF_PATH}" << EOF
 #
 # Auto-generated, please don't edit!
 #
 
-# Back up with PgBackRest
-# (stanzas of all users of postgresql-base are called "main")
+# Back up with WAL-G
 archive_mode = on
-archive_command = 'pgbackrest --stanza=main archive-push %p'
+archive_command = '/opt/postgresql-base/bin/wal-g.sh wal-push %p'
 EOF
 
-    cat > "${MC_BACKREST_CONF_D_S3_CONF_PATH}" << EOF
+    if [[ ! "${MC_WALG_S3_BUCKET_PREFIX}" == "s3://"* ]]; then
+        echo "S3 bucket + prefix must start with 's3://': ${MC_WALG_S3_BUCKET_PREFIX}"
+        exit 1
+    fi
+
+    if [ "${MC_WALG_S3_BUCKET_PREFIX: -1}" == "/" ]; then
+        echo "S3 bucket + prefix can't end with a slash: ${MC_WALG_S3_BUCKET_PREFIX}"
+        exit 1
+    fi
+
+    if [ -z ${MC_WALG_S3_ENDPOINT+x} ]; then
+        MC_WALG_S3_ENDPOINT="https://s3.amazonaws.com"
+    fi
+
+    if [[ ! "${MC_WALG_S3_ENDPOINT}" == "http"* ]]; then
+        echo "S3 endpoint must be 'https://' or 'http://': ${MC_WALG_S3_ENDPOINT}"
+        exit 1
+    fi
+
+    if [ -z ${MC_WALG_S3_STORAGE_CLASS+x} ]; then
+        MC_WALG_S3_STORAGE_CLASS="STANDARD"
+    fi
+    if [ -z ${MC_WALG_S3_FORCE_PATH_STYLE+x} ]; then
+        MC_WALG_S3_FORCE_PATH_STYLE="false"
+    fi
+    if [ -z ${MC_WALG_S3_USE_LIST_OBJECTS_V1+x} ]; then
+        MC_WALG_S3_USE_LIST_OBJECTS_V1="false"
+    fi
+
+    cat > "${MC_POSTGRESQL_WALG_ENV_PATH}" << EOF
 #
 # Auto-generated, please don't edit!
 #
 
-# S3 credentials
-[global]
-repo1-retention-full=${MC_PGBACKREST_RETENTION_FULL}
-repo1-s3-endpoint=${MC_PGBACKREST_S3_ENDPOINT}
-repo1-s3-bucket=${MC_PGBACKREST_S3_BUCKET}
-repo1-storage-verify-tls=${MC_PGBACKREST_S3_VERIFY_TLS}
-repo1-s3-key=${MC_PGBACKREST_S3_KEY}
-repo1-s3-key-secret=${MC_PGBACKREST_S3_KEY_SECRET}
-repo1-s3-region=${MC_PGBACKREST_S3_REGION}
-repo1-path=${MC_PGBACKREST_S3_PATH}
+# Keep up to 6 delta backups
+export WALG_DELTA_MAX_STEPS=6
+
+export AWS_ACCESS_KEY_ID=${MC_WALG_S3_ACCESS_KEY_ID}
+export AWS_SECRET_ACCESS_KEY=${MC_WALG_S3_SECRET_ACCESS_KEY}
+export AWS_REGION=${MC_WALG_S3_REGION}
+export AWS_ENDPOINT=${MC_WALG_S3_ENDPOINT}
+export WALG_S3_PREFIX=${MC_WALG_S3_BUCKET_PREFIX}
+export WALG_S3_STORAGE_CLASS=${MC_WALG_S3_STORAGE_CLASS}
+export AWS_S3_FORCE_PATH_STYLE=${MC_WALG_S3_FORCE_PATH_STYLE}
+export S3_USE_LIST_OBJECTS_V1=${MC_WALG_S3_USE_LIST_OBJECTS_V1}
 EOF
 
+    if [ ! -z ${MC_WALG_S3_CA_CERT_BASE64+x} ]; then
+        MC_WALG_S3_CA_CERT_FILE=/var/run/postgresql/walg.cert
+        echo "${MC_WALG_S3_CA_CERT_BASE64}" | base64 -d > "${MC_WALG_S3_CA_CERT_FILE}"
+        echo "export WALG_S3_CA_CERT_FILE=${MC_WALG_S3_CA_CERT_FILE}" >> \
+            "${MC_POSTGRESQL_WALG_ENV_PATH}"
+    fi
 fi

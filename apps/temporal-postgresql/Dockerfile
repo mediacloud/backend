@@ -66,7 +66,10 @@ USER postgres
 # schema
 # If a new empty volume gets mounted to /var/lib/postgresql/ upon
 # container start, Docker will copy the files from the container to the volume
-RUN /opt/temporal-postgresql/bin/initialize_schema.sh
+RUN \
+    unset PGHOST PGPORT && \
+    /opt/temporal-postgresql/bin/initialize_schema.sh && \
+    true
 
 # Remove the init script, Temporal server and configuration so that someone
 # doesn't accidentally run it in production
@@ -85,8 +88,6 @@ ENV \
     PATH="/opt/temporal-postgresql/bin:${PATH}" \
     #
     # Make sure that we can connect via "psql" without sudoing into "postgres" user
-    PGHOST=localhost \
-    PGPORT=5432 \
     PGUSER=temporal \
     PGPASSWORD=temporal \
     PGDATABASE=temporal

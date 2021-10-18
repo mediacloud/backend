@@ -1346,44 +1346,36 @@ services:
             - default
         environment:
 
-            # (optional) Set to "1" (string "1", not integer 1!) to enable PgBackRest
-            # backups to S3; for more information, refer to doc/postgresql_pgbackrest.markdown
-            MC_PGBACKREST_ENABLE: "1"
+            # (optional) Set to "1" (string "1", not integer 1!) to enable WAL-G
+            # backups to S3; for more information, refer to doc/postgresql_walg.markdown
+            MC_WALG_ENABLE: "1"
 
-            # (required if PgBackRest is enabled) Full backup retention count/time:
-            # https://pgbackrest.org/configuration.html#section-repository/option-repo-retention-full
-            MC_PGBACKREST_RETENTION_FULL: "2"
+            # (required if WAL-G is enabled) S3 Access Key ID:
+            MC_WALG_S3_ACCESS_KEY_ID: "AKIAIOSFODNN7EXAMPLE"
 
-            # (required if PgBackRest is enabled) S3 repository endpoint:
-            # https://pgbackrest.org/configuration.html#section-repository/option-repo-s3-endpoint
-            MC_PGBACKREST_S3_ENDPOINT: "s3.amazonaws.com"
+            # (required if WAL-G is enabled) S3 Secret Access Key
+            MC_WALG_S3_SECRET_ACCESS_KEY: "wJalrXUtnFEMI/K7MDENG/bPxRfiCYzEXAMPLEKEY"
 
-            # (required if PgBackRest is enabled) S3 repository bucket:
-            # https://pgbackrest.org/configuration.html#section-repository/option-repo-s3-bucket
-            MC_PGBACKREST_S3_BUCKET: "mediacloud-pgbackrest-example"
+            # (required if WAL-G is enabled) S3 region
+            MC_WALG_S3_REGION: "us-east-1"
 
-            # (required if PgBackRest is enabled) Whether or not to verify storage's TLS certificates ("y" / "n"):
-            # https://pgbackrest.org/configuration.html#section-repository/option-repo-storage-verify-tls
-            MC_PGBACKREST_S3_VERIFY_TLS: "y"
+            # (required) S3 URI bucket name and prefix (no slash at the end!)
+            MC_WALG_S3_BUCKET_PREFIX: "s3://mediacloud-postgresql-wal-backups-test/postgresql-server-test"
 
-            # (required if PgBackRest is enabled) S3 repository access key (Access Key ID):
-            # https://pgbackrest.org/configuration.html#section-repository/option-repo-s3-key
-            MC_PGBACKREST_S3_KEY: "AKIAIOSFODNN7EXAMPLE"
+            # (optional) S3 or S3-compatible endpoint
+            # MC_WALG_S3_ENDPOINT: "https://s3.amazonaws.com"
 
-            # (required if PgBackRest is enabled) S3 repository secret access key (Secret Access Key):
-            # https://pgbackrest.org/configuration.html#section-repository/option-repo-s3-key-secret
-            MC_PGBACKREST_S3_KEY_SECRET: "wJalrXUtnFEMI/K7MDENG/bPxRfiCYzEXAMPLEKEY"
+            # (optional) S3 storage class
+            # MC_WALG_S3_STORAGE_CLASS: "STANDARD"
 
-            # (required if PgBackRest is enabled) S3 repository region:
-            # https://pgbackrest.org/configuration.html#section-repository/option-repo-s3-region
-            MC_PGBACKREST_S3_REGION: "us-east-1"
+            # (optional) Whether to enable S3 path-style addressing ("true" or "false")
+            # MC_WALG_S3_FORCE_PATH_STYLE: "false"
 
-            # (required if PgBackRest is enabled) Prefix path on S3 bucket; must start with a slash:
-            # https://pgbackrest.org/configuration.html#section-repository/option-repo-path
-            #
-            # MAKE SURE IT'S DIFFERENT FROM OTHER USERS OF PGBACKREST!
-            #
-            MC_PGBACKREST_S3_PATH: "/postgresql-server"
+            # (optional) Use ListObjects instead of ListObjectsV2 ("true" or "false")
+            # MC_WALG_S3_USE_LIST_OBJECTS_V1: "false"
+
+            # (optional) Base64-encoded TLS certificate
+            # MC_WALG_S3_CA_CERT_BASE64: ""
 
         expose:
             - 5432
@@ -1884,44 +1876,36 @@ services:
             - default
         environment:
 
-            # (optional) Set to "1" (string "1", not integer 1!) to enable PgBackRest
-            # backups to S3; for more information, refer to doc/postgresql_pgbackrest.markdown
-            MC_PGBACKREST_ENABLE: "1"
+            # (optional) Set to "1" (string "1", not integer 1!) to enable WAL-G
+            # backups to S3; for more information, refer to doc/postgresql_walg.markdown
+            MC_WALG_ENABLE: "1"
 
-            # (required if PgBackRest is enabled) Full backup retention count/time:
-            # https://pgbackrest.org/configuration.html#section-repository/option-repo-retention-full
-            MC_PGBACKREST_RETENTION_FULL: "2"
+            # (required if WAL-G is enabled) S3 Access Key ID:
+            MC_WALG_S3_ACCESS_KEY_ID: "AKIAIOSFODNN7EXAMPLE"
 
-            # (required if PgBackRest is enabled) S3 repository endpoint:
-            # https://pgbackrest.org/configuration.html#section-repository/option-repo-s3-endpoint
-            MC_PGBACKREST_S3_ENDPOINT: "s3.amazonaws.com"
+            # (required if WAL-G is enabled) S3 Secret Access Key
+            MC_WALG_S3_SECRET_ACCESS_KEY: "wJalrXUtnFEMI/K7MDENG/bPxRfiCYzEXAMPLEKEY"
 
-            # (required if PgBackRest is enabled) S3 repository bucket:
-            # https://pgbackrest.org/configuration.html#section-repository/option-repo-s3-bucket
-            MC_PGBACKREST_S3_BUCKET: "mediacloud-pgbackrest-example"
+            # (required if WAL-G is enabled) S3 region
+            MC_WALG_S3_REGION: "us-east-1"
 
-            # (required if PgBackRest is enabled) Whether or not to verify storage's TLS certificates ("y" / "n"):
-            # https://pgbackrest.org/configuration.html#section-repository/option-repo-storage-verify-tls
-            MC_PGBACKREST_S3_VERIFY_TLS: "y"
+            # (required) S3 URI bucket name and prefix (no slash at the end!)
+            MC_WALG_S3_BUCKET_PREFIX: "s3://mediacloud-postgresql-wal-backups-test/temporal-postgresql-test"
 
-            # (required if PgBackRest is enabled) S3 repository access key (Access Key ID):
-            # https://pgbackrest.org/configuration.html#section-repository/option-repo-s3-key
-            MC_PGBACKREST_S3_KEY: "AKIAIOSFODNN7EXAMPLE"
+            # (optional) S3 or S3-compatible endpoint
+            # MC_WALG_S3_ENDPOINT: "https://s3.amazonaws.com"
 
-            # (required if PgBackRest is enabled) S3 repository secret access key (Secret Access Key):
-            # https://pgbackrest.org/configuration.html#section-repository/option-repo-s3-key-secret
-            MC_PGBACKREST_S3_KEY_SECRET: "wJalrXUtnFEMI/K7MDENG/bPxRfiCYzEXAMPLEKEY"
+            # (optional) S3 storage class
+            # MC_WALG_S3_STORAGE_CLASS: "STANDARD"
 
-            # (required if PgBackRest is enabled) S3 repository region:
-            # https://pgbackrest.org/configuration.html#section-repository/option-repo-s3-region
-            MC_PGBACKREST_S3_REGION: "us-east-1"
+            # (optional) Whether to enable S3 path-style addressing ("true" or "false")
+            # MC_WALG_S3_FORCE_PATH_STYLE: "false"
 
-            # (required if PgBackRest is enabled) Prefix path on S3 bucket; must start with a slash:
-            # https://pgbackrest.org/configuration.html#section-repository/option-repo-path
-            #
-            # MAKE SURE IT'S DIFFERENT FROM OTHER USERS OF PGBACKREST!
-            #
-            MC_PGBACKREST_S3_PATH: "/temporal-postgresql"
+            # (optional) Use ListObjects instead of ListObjectsV2 ("true" or "false")
+            # MC_WALG_S3_USE_LIST_OBJECTS_V1: "false"
+
+            # (optional) Base64-encoded TLS certificate
+            # MC_WALG_S3_CA_CERT_BASE64: ""
 
         expose:
             - 5432

@@ -41,12 +41,20 @@ RUN \
     fi; \
     true
 
-# Install pgBackRest for backing up PostgreSQL
+# Install WAL-G for backing up PostgreSQL
 RUN \
-    apt-get -y --no-install-recommends install pgbackrest && \
-    # Remove default configuration
-    rm -rf /etc/pgbackrest.conf /etc/pgbackrest/ && \
+    /dl_to_stdout.sh https://github.com/wal-g/wal-g/releases/download/v1.1/wal-g-pg-ubuntu-20.04-amd64.tar.gz > /var/tmp/wal-g.tar.gz && \
+    cd /var/tmp/ && \
     #
+    # Verify SHA1 so that we're sure about what we're installing
+    echo "f7cc6bf4d3f8e36cf05ae7fdd03bd3a0906359a3 wal-g.tar.gz" > /var/tmp/wal-g.tar.gz.sha1 && \
+    sha1sum -c wal-g.tar.gz.sha1 && \
+    tar -zxf wal-g.tar.gz && \
+    rm /var/tmp/wal-g.tar.gz* && \
+    #
+    # Users are expected to use wal-g.sh wrapper instead of "wal-g" binary directly
+    mv wal-g-pg-ubuntu-20.04-amd64 /usr/bin/_wal-g && \
+    chmod +x /usr/bin/_wal-g && \
     true
 
 # Make some run directories
@@ -58,7 +66,6 @@ RUN \
 # Write our own configuration
 RUN rm -rf /etc/postgresql/13/main/
 COPY etc/postgresql/13/main/ /etc/postgresql/13/main/
-COPY etc/pgbackrest/ /etc/pgbackrest/
 
 RUN \
     #
@@ -67,22 +74,16 @@ RUN \
     touch /var/run/postgresql/postgresql-memory.conf && \
     chown postgres:postgres /var/run/postgresql/postgresql-memory.conf && \
     #
-    # This is where "generate_runtime_config.sh" script will write PgBackRest-related
+    # This is where "generate_runtime_config.sh" script will write WAL-G-related
     # configuration
-    touch /var/run/postgresql/postgresql-pgbackrest.conf && \
-    chown postgres:postgres /var/run/postgresql/postgresql-pgbackrest.conf && \
+    touch /var/run/postgresql/postgresql-walg.conf && \
+    chown postgres:postgres /var/run/postgresql/postgresql-walg.conf && \
     #
-    # We'll write runtime S3 credentials there
-    chown postgres:postgres /etc/pgbackrest/conf.d/ && \
-    #
-    # Get rid of /var/lib/pgbackrest/ as we won't be using it
-    rm -rf /var/lib/pgbackrest/ && \
-    #
-    # (Re)-create /var/spool/pgbackrest/
-    rm -rf "/var/spool/pgbackrest/" && \
-    mkdir -p "/var/spool/pgbackrest/" && \
-    chown postgres:postgres "/var/spool/pgbackrest/" && \
-    chmod 750 "/var/spool/pgbackrest/" && \
+    # This is where "generate_runtime_config.sh" script will write WAL-G
+    # configuration to later be "source"'d in by wal-g.sh wrapper script
+    touch /var/run/postgresql/walg.env && \
+    chown postgres:postgres /var/run/postgresql/walg.env && \
+    chmod 600 /var/run/postgresql/walg.env && \
     #
     true
 
@@ -90,7 +91,13 @@ RUN \
 RUN mkdir -p /opt/postgresql-base/
 COPY bin/* /opt/postgresql-base/bin/
 
-ENV PATH="/opt/postgresql-base/bin:${PATH}"
+ENV \
+    PATH="/opt/postgresql-base/bin:${PATH}" \
+    #
+    # Make sure that we can connect via "psql" without sudoing into "postgres" user
+    # (PGUSER, PGPASSWORD and PGDATABASE will be set by sub-images of this image)
+    PGHOST=localhost \
+    PGPORT=5432
 
 USER postgres
 
