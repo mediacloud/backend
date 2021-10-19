@@ -66,6 +66,12 @@ __URL_PATTERNS_WHICH_WONT_WORK = [
     # Google Trends
     re.compile(r'^https?://.*?\.google\..{2,7}/trends/explore.*?', flags=re.IGNORECASE),
 
+    # Facebook posts
+    # For reasons unknown, one can't fetch these via the Facebook graph API, even though they're available
+    # in a web browser. A previous attempt to get them via a third-party scraper package failed due to
+    # cookie requirements—see this commit for the attempted implementation:
+    # https://github.com/mediacloud/backend/pull/811/commits/74926ed7e353d8c0a20fefbae3f30a59bf9de77c
+    re.compile(r'^https?://.*?\.facebook\..*/posts/.*?', flags=re.IGNORECASE)
 ]
 """URL patterns for which we're sure we won't get correct results (so we won't even try)."""
 

@@ -1,5 +1,7 @@
 # noinspection PyProtectedMember
+import pytest
 from facebook_fetch_story_stats import _get_url_stats
+from facebook_fetch_story_stats.exceptions import McFacebookInvalidURLException
 
 
 # noinspection HttpUrlsUsage
@@ -69,5 +71,11 @@ def test_get_url_stats_bogus_url():
     url = 'http://totally.bogus.url.123456'
     stats = _get_url_stats(url=url)
     assert stats is not None, f"Stats should be set for URL '{url}'"
-    assert stats.share_count == 0, f"Share could should be 0 for URL '{url}'"
-    assert stats.comment_count == 0, f"Comment could should be 0 for URL '{url}'"
+    assert stats.share_count == 0, f"Share should be 0 for URL '{url}'"
+    assert stats.comment_count == 0, f"Comment should be 0 for URL '{url}'"
+
+
+def test_bad_url_pattern():
+    with pytest.raises(McFacebookInvalidURLException):
+        url = 'https://www.facebook.com/tiffany.hathaway.79/posts/10219140619682568?_fb_noscript=1'
+        stats = _get_url_stats(url=url)

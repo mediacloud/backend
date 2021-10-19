@@ -8,7 +8,7 @@ MC_POSTGRESQL_DATA_DIR="/var/lib/postgresql/13/main/"
 MC_POSTGRESQL_CONF_PATH="/etc/postgresql/13/main/postgresql.conf"
 
 # Update memory configuration
-/opt/postgresql-base/bin/update_memory_config.sh
+/opt/postgresql-base/bin/generate_runtime_config.sh
 
 "${MC_POSTGRESQL_BIN_DIR}/pg_ctl" \
     -o "-c config_file=${MC_POSTGRESQL_CONF_PATH}" \

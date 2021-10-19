@@ -6,6 +6,8 @@ FROM gcr.io/mcback/postgresql-repo-base:latest
 
 # Install PostgreSQL
 RUN \
+    # FIXME
+    apt-get -y update && \
     if [ "$(dpkg --print-architecture)" = "arm64" ]; then \
         echo "Installing Graviton2-optimized PostgreSQL..." && \
         /dl_to_stdout.sh "https://github.com/mediacloud/postgresql-aws-graviton2/releases/download/13.3-1.pgdg20.04%2B1/postgresql-13_13.3-1.pgdg20.04+1_arm64.deb" > /var/tmp/postgresql-13.deb && \
@@ -39,6 +41,22 @@ RUN \
     fi; \
     true
 
+# Install WAL-G for backing up PostgreSQL
+RUN \
+    /dl_to_stdout.sh https://github.com/wal-g/wal-g/releases/download/v1.1/wal-g-pg-ubuntu-20.04-amd64.tar.gz > /var/tmp/wal-g.tar.gz && \
+    cd /var/tmp/ && \
+    #
+    # Verify SHA1 so that we're sure about what we're installing
+    echo "f7cc6bf4d3f8e36cf05ae7fdd03bd3a0906359a3 wal-g.tar.gz" > /var/tmp/wal-g.tar.gz.sha1 && \
+    sha1sum -c wal-g.tar.gz.sha1 && \
+    tar -zxf wal-g.tar.gz && \
+    rm /var/tmp/wal-g.tar.gz* && \
+    #
+    # Users are expected to use wal-g.sh wrapper instead of "wal-g" binary directly
+    mv wal-g-pg-ubuntu-20.04-amd64 /usr/bin/_wal-g && \
+    chmod +x /usr/bin/_wal-g && \
+    true
+
 # Make some run directories
 RUN \
     mkdir -p /var/run/postgresql/13-main.pg_stat_tmp && \
@@ -47,25 +65,43 @@ RUN \
 
 # Write our own configuration
 RUN \
-    rm -rf /etc/postgresql/13/main/ && \
-    #
-    # Extra directory for children images to copy their configuration to
-    mkdir /etc/postgresql/13/extra/ && \
-    #
+    rm -rf /etc/postgresql/13/ && \
+    mkdir -p /etc/postgresql/13/extra/ && \
     true
 
-COPY conf/ /etc/postgresql/13/main/
+COPY etc/postgresql/13/main/ /etc/postgresql/13/main/
 
-# This is where "update_memory_config.sh" script will write its memory settings
-# which it will auto-determine from available RAM on every run.
 RUN \
+    #
+    # This is where "generate_runtime_config.sh" script will write its memory settings
+    # which it will auto-determine from available RAM on every run.
     touch /var/run/postgresql/postgresql-memory.conf && \
     chown postgres:postgres /var/run/postgresql/postgresql-memory.conf && \
+    #
+    # This is where "generate_runtime_config.sh" script will write WAL-G-related
+    # configuration
+    touch /var/run/postgresql/postgresql-walg.conf && \
+    chown postgres:postgres /var/run/postgresql/postgresql-walg.conf && \
+    #
+    # This is where "generate_runtime_config.sh" script will write WAL-G
+    # configuration to later be "source"'d in by wal-g.sh wrapper script
+    touch /var/run/postgresql/walg.env && \
+    chown postgres:postgres /var/run/postgresql/walg.env && \
+    chmod 600 /var/run/postgresql/walg.env && \
+    #
     true
 
 # Copy helper scripts
 RUN mkdir -p /opt/postgresql-base/
 COPY bin/* /opt/postgresql-base/bin/
+
+ENV \
+    PATH="/opt/postgresql-base/bin:${PATH}" \
+    #
+    # Make sure that we can connect via "psql" without sudoing into "postgres" user
+    # (PGUSER, PGPASSWORD and PGDATABASE will be set by sub-images of this image)
+    PGHOST=localhost \
+    PGPORT=5432
 
 USER postgres
 
@@ -75,10 +111,9 @@ RUN \
     # locale, doesn't use checksums etc.
     rm -rf /var/lib/postgresql/13/main/ && \
     #
-    # Update memory configuration in case we decide to start PostgreSQL at
+    # Generate memory configuration in case we decide to start PostgreSQL at
     # build time
-    # Update memory configuration
-    /opt/postgresql-base/bin/update_memory_config.sh && \
+    /opt/postgresql-base/bin/generate_runtime_config.sh && \
     #
     # Run initdb
     mkdir -p /var/lib/postgresql/13/main/ && \
@@ -89,11 +124,13 @@ RUN \
         --lc-collate='en_US.UTF-8' \
         --lc-ctype='en_US.UTF-8' \
     && \
+    #
     true
 
 # VOLUME doesn't get set here as children of this image might amend the initial
 # data directory somehow (e.g. pre-initialize it with some schema). Once you do
-# that in the sub-image, don't forget to define VOLUME afterwards!
+# that in the sub-image, don't forget to define "VOLUME /var/lib/postgresql/"
+# afterwards!
 
 # SIGTERM (Docker's default) will initiate PostgreSQL's "Smart Shutdown" mode
 # which will then wait for the current transactions to finish. If there are

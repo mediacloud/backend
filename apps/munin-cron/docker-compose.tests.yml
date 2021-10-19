@@ -63,11 +63,11 @@ services:
               source: ./../postgresql-server/pgmigrate/
               target: /opt/postgresql-server/pgmigrate/
             - type: bind
-              source: ./../postgresql-base/conf/
-              target: /etc/postgresql/13/main/
-            - type: bind
-              source: ./../postgresql-server/conf/
+              source: ./../postgresql-server/etc/postgresql/13/extra/
               target: /etc/postgresql/13/extra/
+            - type: bind
+              source: ./../postgresql-base/etc/postgresql/13/main/
+              target: /etc/postgresql/13/main/
 
     solr-shard-01:
         image: gcr.io/mcback/solr-shard:latest
