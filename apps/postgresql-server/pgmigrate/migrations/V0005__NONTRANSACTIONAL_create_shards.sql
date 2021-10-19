@@ -18,6 +18,7 @@
 -- FIXME copy all reference tables in a migration
 -- FIXME temporarily drop indexes while moving rows
 -- FIXME move very small tables in a migration
+-- FIXME readd length constraints: https://brandur.org/text
 
 
 -- Rename the unsharded schema created in previous migrations
