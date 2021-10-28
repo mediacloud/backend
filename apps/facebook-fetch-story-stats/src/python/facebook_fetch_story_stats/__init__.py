@@ -70,7 +70,8 @@ __URL_PATTERNS_WHICH_WONT_WORK = [
     # viewable in a web browser. A previous attempt to get them via a third-party scraper package failed due to
     # cookie requirements—see this commit for the attempted implementation:
     # https://github.com/mediacloud/backend/pull/811/commits/74926ed7e353d8c0a20fefbae3f30a59bf9de77c
-    re.compile(r'^https?://.*?\.facebook\..*/posts/.*?|^https?://.*?\.facebook\..*/story.*?', flags=re.IGNORECASE)
+    re.compile(r'^https?://.*?\.facebook\..*/posts/.*?', flags=re.IGNORECASE),
+    re.compile(r'^https?://.*?\.facebook\..*/story.*?', flags=re.IGNORECASE)
 ]
 """URL patterns for which we're sure we won't get correct results (so we won't even try)."""
 
