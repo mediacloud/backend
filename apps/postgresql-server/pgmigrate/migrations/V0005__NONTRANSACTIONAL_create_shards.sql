@@ -1,4 +1,4 @@
--- noinspection SqlResolveForFile @ routine/"create_distributed_table"
+-- noinspection SqlResolveForFile @ routine/"create_reference_table"
 
 -- FIXME connection count limit:
 --  https://docs.citusdata.com/en/v10.0/admin_guide/cluster_management.html#real-time-analytics-use-case
@@ -18,7 +18,7 @@
 -- FIXME copy all reference tables in a migration
 -- FIXME temporarily drop indexes while moving rows of small tables
 -- FIXME move very small tables in a migration
--- FIXME readd length constraints: https://brandur.org/text
+-- FIXME re-add length constraints: https://brandur.org/text
 
 
 -- Rename the unsharded schema created in previous migrations
@@ -181,7 +181,6 @@ CREATE TABLE media
     CONSTRAINT media_self_dup CHECK (dup_media_id IS NULL OR dup_media_id != media_id)
 );
 
--- noinspection SqlResolve @ routine/"create_reference_table"
 SELECT create_reference_table('media');
 
 CREATE UNIQUE INDEX media_name ON media (name);
@@ -252,7 +251,7 @@ CREATE TABLE media_stats
 );
 
 -- noinspection SqlResolve @ routine/"create_distributed_table"
-SELECT create_distributed_table('media_stats', 'media_id');
+SELECT create_distributed_table('media_stats', 'media_id', colocate_with => 'none');
 
 CREATE INDEX media_stats_media_id ON media_stats (media_id);
 
@@ -461,8 +460,8 @@ CREATE TABLE tags
     is_static       BOOLEAN NOT NULL DEFAULT 'f',
 
     CONSTRAINT no_line_feed CHECK (
-            tag NOT LIKE '%' || CHR(10) || '%' AND
-            tag NOT LIKE '%' || CHR(13) || '%'
+                tag NOT LIKE '%' || CHR(10) || '%' AND
+                tag NOT LIKE '%' || CHR(13) || '%'
         ),
 
     CONSTRAINT tag_not_empty CHECK (LENGTH(tag) > 0)
@@ -556,7 +555,8 @@ CREATE TABLE stories
     language              VARCHAR(3) NULL
 );
 
-SELECT create_distributed_table('stories', 'stories_id');
+-- noinspection SqlResolve
+SELECT create_distributed_table('stories', 'stories_id', colocate_with => 'none');
 
 CREATE INDEX stories_media_id ON stories (media_id);
 
@@ -732,7 +732,8 @@ CREATE TABLE stories_ap_syndicated
     PRIMARY KEY (stories_ap_syndicated_id, stories_id)
 );
 
-SELECT create_distributed_table('stories_ap_syndicated', 'stories_id');
+-- noinspection SqlResolve @ routine/"create_distributed_table"
+SELECT create_distributed_table('stories_ap_syndicated', 'stories_id', colocate_with => 'stories');
 
 CREATE UNIQUE INDEX stories_ap_syndicated_story ON stories_ap_syndicated (stories_id);
 
@@ -747,7 +748,8 @@ CREATE TABLE story_urls
     PRIMARY KEY (story_urls_id, stories_id)
 );
 
-SELECT create_distributed_table('story_urls', 'stories_id');
+-- noinspection SqlResolve @ routine/"create_distributed_table"
+SELECT create_distributed_table('story_urls', 'stories_id', colocate_with => 'stories');
 
 CREATE INDEX story_urls_stories_id ON story_urls (stories_id);
 CREATE UNIQUE INDEX story_urls_stories_id_url ON story_urls (stories_id, url);
@@ -810,7 +812,8 @@ CREATE TABLE downloads
 
 ) PARTITION BY LIST (state);
 
-SELECT create_distributed_table('downloads', 'downloads_id');
+-- noinspection SqlResolve @ routine/"create_distributed_table"
+SELECT create_distributed_table('downloads', 'downloads_id', colocate_with => 'none');
 
 ALTER TABLE downloads
     ADD CONSTRAINT downloads_feeds_id_fkey
@@ -911,7 +914,8 @@ CREATE TABLE public_store.timespan_files
     PRIMARY KEY (timespan_files_id, object_id)
 );
 
-SELECT create_distributed_table('public_store.timespan_files', 'object_id');
+-- noinspection SqlResolve @ routine/"create_distributed_table"
+SELECT create_distributed_table('public_store.timespan_files', 'object_id', colocate_with => 'none');
 
 CREATE UNIQUE INDEX timespan_files_object_id ON public_store.timespan_files (object_id);
 
@@ -925,7 +929,8 @@ CREATE TABLE public_store.snapshot_files
     PRIMARY KEY (snapshot_files_id, object_id)
 );
 
-SELECT create_distributed_table('public_store.snapshot_files', 'object_id');
+-- noinspection SqlResolve @ routine/"create_distributed_table"
+SELECT create_distributed_table('public_store.snapshot_files', 'object_id', colocate_with => 'none');
 
 CREATE UNIQUE INDEX snapshot_files_object_id ON public_store.snapshot_files (object_id);
 
@@ -939,7 +944,8 @@ CREATE TABLE public_store.timespan_maps
     PRIMARY KEY (timespan_maps_id, object_id)
 );
 
-SELECT create_distributed_table('public_store.timespan_maps', 'object_id');
+-- noinspection SqlResolve @ routine/"create_distributed_table"
+SELECT create_distributed_table('public_store.timespan_maps', 'object_id', colocate_with => 'none');
 
 CREATE UNIQUE INDEX timespan_maps_object_id ON public_store.timespan_maps (object_id);
 
@@ -960,7 +966,8 @@ CREATE TABLE raw_downloads
     PRIMARY KEY (raw_downloads_id, object_id)
 );
 
-SELECT create_distributed_table('raw_downloads', 'object_id');
+-- noinspection SqlResolve @ routine/"create_distributed_table"
+SELECT create_distributed_table('raw_downloads', 'object_id', colocate_with => 'downloads');
 
 CREATE UNIQUE INDEX raw_downloads_object_id ON raw_downloads (object_id);
 
@@ -979,7 +986,8 @@ CREATE TABLE feeds_stories_map
     PRIMARY KEY (feeds_stories_map_id, stories_id)
 );
 
-SELECT create_distributed_table('feeds_stories_map', 'stories_id');
+-- noinspection SqlResolve @ routine/"create_distributed_table"
+SELECT create_distributed_table('feeds_stories_map', 'stories_id', colocate_with => 'stories');
 
 ALTER TABLE feeds_stories_map
     ADD CONSTRAINT feeds_stories_map_feeds_id_fkey
@@ -1005,7 +1013,8 @@ CREATE TABLE stories_tags_map
     PRIMARY KEY (stories_tags_map_id, stories_id)
 );
 
-SELECT create_distributed_table('stories_tags_map', 'stories_id');
+-- noinspection SqlResolve @ routine/"create_distributed_table"
+SELECT create_distributed_table('stories_tags_map', 'stories_id', colocate_with => 'stories');
 
 ALTER TABLE stories_tags_map
     ADD CONSTRAINT stories_tags_map_tags_id_fkey
@@ -1078,7 +1087,8 @@ CREATE TABLE download_texts
     PRIMARY KEY (download_texts_id, downloads_id)
 );
 
-SELECT create_distributed_table('download_texts', 'downloads_id');
+-- noinspection SqlResolve @ routine/"create_distributed_table"
+SELECT create_distributed_table('download_texts', 'downloads_id', colocate_with => 'downloads');
 
 CREATE UNIQUE INDEX download_texts_downloads_id
     ON download_texts (downloads_id);
@@ -1121,7 +1131,8 @@ CREATE TABLE story_sentences
     PRIMARY KEY (story_sentences_id, stories_id)
 );
 
-SELECT create_distributed_table('story_sentences', 'stories_id');
+-- noinspection SqlResolve @ routine/"create_distributed_table"
+SELECT create_distributed_table('story_sentences', 'stories_id', colocate_with => 'stories');
 
 ALTER TABLE story_sentences
     ADD CONSTRAINT story_sentences_media_id_fkey
@@ -1158,7 +1169,8 @@ CREATE TABLE solr_import_stories
     PRIMARY KEY (solr_import_stories_id, stories_id)
 );
 
-SELECT create_distributed_table('solr_import_stories', 'stories_id');
+-- noinspection SqlResolve @ routine/"create_distributed_table"
+SELECT create_distributed_table('solr_import_stories', 'stories_id', colocate_with => 'stories');
 
 CREATE INDEX solr_import_stories_stories_id ON solr_import_stories (stories_id);
 
@@ -1172,7 +1184,8 @@ CREATE TABLE solr_imported_stories
     PRIMARY KEY (solr_imported_stories_id, stories_id)
 );
 
-SELECT create_distributed_table('solr_imported_stories', 'stories_id');
+-- noinspection SqlResolve @ routine/"create_distributed_table"
+SELECT create_distributed_table('solr_imported_stories', 'stories_id', colocate_with => 'stories');
 
 CREATE INDEX solr_imported_stories_story
     ON solr_imported_stories (stories_id);
@@ -1194,7 +1207,6 @@ CREATE TABLE topic_modes
     description    TEXT NOT NULL
 );
 
--- noinspection SqlResolve @ routine/"create_reference_table"
 SELECT create_reference_table('topic_modes');
 
 CREATE UNIQUE INDEX topic_modes_name ON topic_modes (name);
@@ -1212,7 +1224,6 @@ CREATE TABLE topic_platforms
     description        TEXT NOT NULL
 );
 
--- noinspection SqlResolve @ routine/"create_reference_table"
 SELECT create_reference_table('topic_platforms');
 
 CREATE UNIQUE INDEX topic_platforms_name ON topic_platforms (name);
@@ -1232,7 +1243,6 @@ CREATE TABLE topic_sources
     description      TEXT NOT NULL
 );
 
--- noinspection SqlResolve @ routine/"create_reference_table"
 SELECT create_reference_table('topic_sources');
 
 CREATE UNIQUE INDEX topic_sources_name ON topic_sources (name);
@@ -1258,7 +1268,6 @@ CREATE TABLE topic_platforms_sources_map
         REFERENCES topic_sources (topic_sources_id) ON DELETE CASCADE
 );
 
--- noinspection SqlResolve @ routine/"create_reference_table"
 SELECT create_reference_table('topic_platforms_sources_map');
 
 CREATE UNIQUE INDEX topic_platforms_sources_map_topic_platforms_id_topic_sources_id
@@ -1336,150 +1345,53 @@ CREATE TABLE topics
     only_snapshot_engaged_stories BOOLEAN               NOT NULL DEFAULT 'f'
 );
 
--- "topics" itself is tiny but we want it to be distributed so that all the
--- stuff that belongs to a single topic is colocated together
-SELECT create_distributed_table('topics', 'topics_id');
+-- "topics" itself is tiny so make it a reference table but shard some
+-- referencing tables by "topics_id"
+SELECT create_reference_table('topics');
 
-CREATE INDEX topics_name ON topics (name);
-CREATE INDEX topics_media_type_tag_set ON topics (media_type_tag_sets_id);
+CREATE UNIQUE INDEX topics_name ON topics (name);
 
-
--- Given that the unique index on (guid, media_id) is going to be valid only
--- per shard, add a trigger that will check for uniqueness after each INSERT.
--- We add the trigger after migrating a chunk of stories first to increase
--- performance of the copy.
-CREATE OR REPLACE FUNCTION topics_ensure_unique_name() RETURNS trigger AS
-$$
-
-DECLARE
-    name_row_count INT;
-
-BEGIN
-
-    SELECT COUNT(*)
-    INTO name_row_count
-    FROM topics
-    WHERE name = NEW.name;
-
-    IF name_row_count > 1 THEN
-        RAISE EXCEPTION 'Duplicate topic name';
-    END IF;
-
-    RETURN NEW;
-
-END;
-$$ LANGUAGE plpgsql;
-
--- noinspection SqlResolve @ routine/"create_distributed_function"
-SELECT create_distributed_function('topics_ensure_unique_name()');
-
-
-SELECT run_on_shards_or_raise('topics', $cmd$
-
-    CREATE TRIGGER topics_ensure_unique_name
-        AFTER INSERT
-        ON %s
-        FOR EACH ROW
-    EXECUTE PROCEDURE topics_ensure_unique_name();
-
-    $cmd$);
-
-
--- Given that the unique index on (guid, media_id) is going to be valid only
--- per shard, add a trigger that will check for uniqueness after each INSERT.
--- We add the trigger after migrating a chunk of stories first to increase
--- performance of the copy.
-CREATE OR REPLACE FUNCTION topics_ensure_unique_media_type_tag_sets_id() RETURNS trigger AS
-$$
-
-DECLARE
-    media_type_tag_sets_id_row_count INT;
-
-BEGIN
-
-    SELECT COUNT(*)
-    INTO media_type_tag_sets_id_row_count
-    FROM topics
-    WHERE media_type_tag_sets_id = NEW.media_type_tag_sets_id;
-
-    IF media_type_tag_sets_id_row_count > 1 THEN
-        RAISE EXCEPTION 'Duplicate topic media_type_tag_sets_id';
-    END IF;
-
-    RETURN NEW;
-
-END;
-$$ LANGUAGE plpgsql;
-
--- noinspection SqlResolve @ routine/"create_distributed_function"
-SELECT create_distributed_function('topics_ensure_unique_media_type_tag_sets_id()');
-
-
-SELECT run_on_shards_or_raise('topics', $cmd$
-
-    CREATE TRIGGER topics_ensure_unique_media_type_tag_sets_id
-        AFTER INSERT
-        ON %s
-        FOR EACH ROW
-    EXECUTE PROCEDURE topics_ensure_unique_media_type_tag_sets_id();
-
-    $cmd$);
+CREATE UNIQUE INDEX topics_media_type_tag_set ON topics (media_type_tag_sets_id);
 
 
 CREATE TABLE topic_seed_queries
 (
-    topic_seed_queries_id BIGSERIAL NOT NULL,
+    topic_seed_queries_id BIGSERIAL PRIMARY KEY,
     topics_id             BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-    source                TEXT      NOT NULL,
-    platform              TEXT      NOT NULL,
+    source                TEXT      NOT NULL REFERENCES topic_sources (name),
+    platform              TEXT      NOT NULL REFERENCES topic_platforms (name),
     query                 TEXT      NULL,
     imported_date         TIMESTAMP NULL,
-    ignore_pattern        TEXT      NULL,
-
-    PRIMARY KEY (topic_seed_queries_id, topics_id)
+    ignore_pattern        TEXT      NULL
 );
 
-SELECT create_distributed_table('topic_seed_queries', 'topics_id');
+SELECT create_reference_table('topic_seed_queries');
 
-CREATE INDEX topic_seed_queries_topic ON topic_seed_queries (topics_id);
-
-ALTER TABLE topic_seed_queries
-    ADD CONSTRAINT topic_seed_queries_source_fkey
-        FOREIGN KEY (source) REFERENCES topic_sources (name);
-
-ALTER TABLE topic_seed_queries
-    ADD CONSTRAINT topic_seed_queries_platform_fkey
-        FOREIGN KEY (platform) REFERENCES topic_platforms (name);
+CREATE INDEX topic_seed_queries_topics_id ON topic_seed_queries (topics_id);
 
 
 CREATE TABLE topic_dates
 (
-    topic_dates_id BIGSERIAL NOT NULL,
-    topics_id      BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-    start_date     DATE      NOT NULL,
-    end_date       DATE      NOT NULL,
-    boundary       BOOLEAN   NOT NULL DEFAULT 'f',
-
-    PRIMARY KEY (topic_dates_id, topics_id)
+    topic_dates_id BIGSERIAL PRIMARY KEY,
+    topics_id      BIGINT  NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
+    start_date     DATE    NOT NULL,
+    end_date       DATE    NOT NULL,
+    boundary       BOOLEAN NOT NULL DEFAULT 'f'
 );
 
-SELECT create_distributed_table('topic_dates', 'topics_id');
+SELECT create_reference_table('topic_dates');
+
+CREATE INDEX topic_dates_topics_id ON topic_dates (topics_id);
 
 
 CREATE TABLE topics_media_map
 (
-    topics_media_map_id BIGSERIAL NOT NULL,
-    topics_id           BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-    media_id            BIGINT    NOT NULL,
-
-    PRIMARY KEY (topics_media_map_id, topics_id)
+    topics_media_map_id BIGSERIAL PRIMARY KEY,
+    topics_id           BIGINT NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
+    media_id            BIGINT NOT NULL REFERENCES media (media_id) ON DELETE CASCADE
 );
 
-SELECT create_distributed_table('topics_media_map', 'topics_id');
-
-ALTER TABLE topics_media_map
-    ADD CONSTRAINT topics_media_map_media_id_fkey
-        FOREIGN KEY (media_id) REFERENCES media (media_id) ON DELETE CASCADE;
+SELECT create_reference_table('topics_media_map');
 
 CREATE INDEX topics_media_map_topics_id ON topics_media_map (topics_id);
 
@@ -1488,38 +1400,30 @@ CREATE INDEX topics_media_map_media_id ON topics_media_map (media_id);
 
 CREATE TABLE topics_media_tags_map
 (
-    topics_media_tags_map_id BIGSERIAL NOT NULL,
-    topics_id                BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-    tags_id                  BIGINT    NOT NULL,
-
-    PRIMARY KEY (topics_media_tags_map_id, topics_id)
+    topics_media_tags_map_id BIGSERIAL PRIMARY KEY,
+    topics_id                BIGINT NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
+    tags_id                  BIGINT NOT NULL REFERENCES tags (tags_id) ON DELETE CASCADE
 );
 
-SELECT create_distributed_table('topics_media_tags_map', 'topics_id');
+SELECT create_reference_table('topics_media_tags_map');
 
-ALTER TABLE topics_media_tags_map
-    ADD CONSTRAINT topics_media_tags_map_tags_id_fkey
-        FOREIGN KEY (tags_id) REFERENCES tags (tags_id) ON DELETE CASCADE;
+CREATE INDEX topics_media_tags_map_topics_id ON topics_media_tags_map (topics_id);
 
-CREATE INDEX topics_media_tags_map_topic ON topics_media_tags_map (topics_id);
+CREATE INDEX topics_media_tags_map_tags_id ON topics_media_tags_map (tags_id);
 
 
 CREATE TABLE topic_media_codes
 (
-    topic_media_codes_id BIGSERIAL NOT NULL,
-    topics_id            BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-    media_id             BIGINT    NOT NULL,
-    code_type            TEXT      NULL,
-    code                 TEXT      NULL,
-
-    PRIMARY KEY (topic_media_codes_id, topics_id)
+    topic_media_codes_id BIGSERIAL PRIMARY KEY,
+    topics_id            BIGINT NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
+    media_id             BIGINT NOT NULL REFERENCES media (media_id) ON DELETE CASCADE,
+    code_type            TEXT   NULL,
+    code                 TEXT   NULL
 );
 
-SELECT create_distributed_table('topic_media_codes', 'topics_id');
+SELECT create_reference_table('topic_media_codes');
 
-ALTER TABLE topic_media_codes
-    ADD CONSTRAINT topic_media_codes_media_id_fkey
-        FOREIGN KEY (media_id) REFERENCES media (media_id) ON DELETE CASCADE;
+CREATE INDEX topic_media_codes_topics_id ON topic_media_codes (topics_id);
 
 CREATE INDEX topic_media_codes_media_id ON topic_media_codes (media_id);
 
@@ -1533,7 +1437,8 @@ CREATE TABLE topic_merged_stories_map
     PRIMARY KEY (topic_merged_stories_map_id, source_stories_id)
 );
 
-SELECT create_distributed_table('topic_merged_stories_map', 'source_stories_id');
+-- noinspection SqlResolve @ routine/"create_distributed_table"
+SELECT create_distributed_table('topic_merged_stories_map', 'source_stories_id', colocate_with => 'stories');
 
 CREATE INDEX topic_merged_stories_map_source_stories_id
     ON topic_merged_stories_map (source_stories_id);
@@ -1545,17 +1450,17 @@ CREATE INDEX topic_merged_stories_map_target_stories_id
 -- track self links and all links for a given domain within a given topic
 CREATE TABLE topic_domains
 (
-    topic_domains_id BIGSERIAL NOT NULL,
-    topics_id        BIGINT    NOT NULL,
-    domain           TEXT      NOT NULL,
-    self_links       BIGINT    NOT NULL DEFAULT 0,
-
-    PRIMARY KEY (topic_domains_id, topics_id)
+    topic_domains_id BIGSERIAL PRIMARY KEY,
+    topics_id        BIGINT NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
+    domain           TEXT   NOT NULL,
+    self_links       BIGINT NOT NULL DEFAULT 0
 );
 
-SELECT create_distributed_table('topic_domains', 'topics_id');
+SELECT create_reference_table('topic_domains');
 
-CREATE UNIQUE INDEX topic_domains_domain ON topic_domains (topics_id, md5(domain));
+CREATE INDEX topic_domains_topics_id ON topic_domains (topics_id);
+
+CREATE UNIQUE INDEX topic_domains_topics_id_domain ON topic_domains (topics_id, md5(domain));
 
 
 CREATE TABLE topic_stories
@@ -1573,13 +1478,15 @@ CREATE TABLE topic_stories
     PRIMARY KEY (topic_stories_id, topics_id)
 );
 
-SELECT create_distributed_table('topic_stories', 'topics_id');
-
-CREATE UNIQUE INDEX topic_stories_topics_id_stories_id
-    ON topic_stories (topics_id, stories_id);
+-- Other big topics-related tables should have colocate_with => 'topic_stories'
+-- noinspection SqlResolve @ routine/"create_distributed_table"
+SELECT create_distributed_table('topic_stories', 'topics_id', colocate_with => 'none');
 
 CREATE INDEX topic_stories_topics_id
     ON topic_stories (topics_id);
+
+CREATE UNIQUE INDEX topic_stories_topics_id_stories_id
+    ON topic_stories (topics_id, stories_id);
 
 
 -- topic links for which the http request failed
@@ -1593,7 +1500,14 @@ CREATE TABLE topic_dead_links
     PRIMARY KEY (topic_dead_links_id, topics_id)
 );
 
-SELECT create_distributed_table('topic_dead_links', 'topics_id');
+-- noinspection SqlResolve @ routine/"create_distributed_table"
+SELECT create_distributed_table('topic_dead_links', 'topics_id', colocate_with => 'topic_stories');
+
+CREATE INDEX topic_dead_links_topics_id
+    ON topic_dead_links (topics_id);
+
+CREATE INDEX topic_dead_links_stories_id
+    ON topic_dead_links (stories_id);
 
 
 CREATE TABLE topic_links
@@ -1606,21 +1520,26 @@ CREATE TABLE topic_links
     ref_stories_id BIGINT    NULL,
     link_spidered  BOOLEAN   NULL DEFAULT 'f',
 
-    PRIMARY KEY (topic_links_id, topics_id),
-
-    FOREIGN KEY (stories_id, topics_id)
-        REFERENCES topic_stories (stories_id, topics_id)
-        ON DELETE CASCADE
+    PRIMARY KEY (topic_links_id, topics_id)
 );
 
-SELECT create_distributed_table('topic_links', 'topics_id');
+-- noinspection SqlResolve @ routine/"create_distributed_table"
+SELECT create_distributed_table('topic_links', 'topics_id', colocate_with => 'topic_stories');
 
-CREATE UNIQUE INDEX topic_links_topics_id_stories_id_ref_stories_id
-    ON topic_links (topics_id, stories_id, ref_stories_id);
+ALTER TABLE topic_links
+    ADD CONSTRAINT topic_links_topics_id_stories_id_fkey
+        FOREIGN KEY (topics_id, stories_id)
+            REFERENCES topic_stories (topics_id, stories_id)
+            ON DELETE CASCADE;
 
 CREATE INDEX topic_links_topics_id ON topic_links (topics_id);
 
+CREATE INDEX topic_links_stories_id ON topic_links (stories_id);
+
 CREATE INDEX topic_links_ref_stories_id ON topic_links (ref_stories_id);
+
+CREATE UNIQUE INDEX topic_links_topics_id_stories_id_ref_stories_id
+    ON topic_links (topics_id, stories_id, ref_stories_id);
 
 
 CREATE OR REPLACE VIEW topic_links_cross_media AS
@@ -1632,9 +1551,9 @@ WITH stories_from_topic AS NOT MATERIALIZED (
            topic_links.ref_stories_id
     FROM topic_stories
              INNER JOIN topic_links ON
-            topic_stories.topics_id = topic_links.topics_id AND
-            topic_stories.stories_id = topic_links.ref_stories_id AND
-            topic_links.ref_stories_id != topic_links.stories_id
+                topic_stories.topics_id = topic_links.topics_id AND
+                topic_stories.stories_id = topic_links.ref_stories_id AND
+                topic_links.ref_stories_id != topic_links.stories_id
 ),
 
      stories_non_ref AS NOT MATERIALIZED (
@@ -1688,16 +1607,22 @@ CREATE TABLE topic_fetch_urls
     assume_match        BOOLEAN   NOT NULL DEFAULT 'f',
     topic_links_id      BIGINT    NULL,
 
-    PRIMARY KEY (topic_fetch_urls_id, topics_id),
-
-    FOREIGN KEY (topics_id, topic_links_id)
-        REFERENCES topic_links (topics_id, topic_links_id)
-        ON DELETE CASCADE
+    PRIMARY KEY (topic_fetch_urls_id, topics_id)
 );
 
-SELECT create_distributed_table('topic_fetch_urls', 'topics_id');
+-- noinspection SqlResolve @ routine/"create_distributed_table"
+SELECT create_distributed_table('topic_fetch_urls', 'topics_id', colocate_with => 'topic_stories');
 
-CREATE INDEX topic_fetch_urls_topics_id_pending
+ALTER TABLE topic_fetch_urls
+    ADD CONSTRAINT topic_fetch_urls_topics_id_topic_links_id_fkey
+        FOREIGN KEY (topics_id, topic_links_id)
+            REFERENCES topic_links (topics_id, topic_links_id)
+            ON DELETE CASCADE;
+
+CREATE INDEX topic_fetch_urls_topics_id
+    ON topic_fetch_urls (topics_id);
+
+CREATE INDEX topic_fetch_urls_topics_id_state_pending
     ON topic_fetch_urls (topics_id)
     WHERE state = 'pending';
 
@@ -1715,7 +1640,6 @@ CREATE TABLE topic_ignore_redirects
     url                       TEXT NULL
 );
 
--- noinspection SqlResolve @ routine/"create_reference_table"
 SELECT create_reference_table('topic_ignore_redirects');
 
 CREATE INDEX topic_ignore_redirects_url on topic_ignore_redirects USING HASH (url);
@@ -1730,7 +1654,7 @@ CREATE TYPE bot_policy_type AS ENUM (
 
 CREATE TABLE snapshots
 (
-    snapshots_id  BIGSERIAL       NOT NULL,
+    snapshots_id  BIGSERIAL PRIMARY KEY,
     topics_id     BIGINT          NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
     snapshot_date TIMESTAMP       NOT NULL,
     start_date    TIMESTAMP       NOT NULL,
@@ -1740,14 +1664,16 @@ CREATE TABLE snapshots
     message       TEXT            NULL,
     searchable    BOOLEAN         NOT NULL DEFAULT 'f',
     bot_policy    bot_policy_type NULL,
-    seed_queries  JSONB           NULL,
-
-    PRIMARY KEY (snapshots_id, topics_id)
+    seed_queries  JSONB           NULL
 );
 
-SELECT create_distributed_table('snapshots', 'topics_id');
+SELECT create_reference_table('snapshots');
 
-CREATE INDEX snapshots_topic ON snapshots (topics_id);
+CREATE INDEX snapshots_topics_id
+    ON snapshots (topics_id);
+
+CREATE UNIQUE INDEX snapshots_topics_id_snapshots_id
+    ON snapshots (topics_id, snapshots_id);
 
 
 CREATE TYPE snap_period_type AS ENUM (
@@ -1765,16 +1691,20 @@ CREATE TYPE focal_technique_type AS ENUM (
 
 CREATE TABLE focal_set_definitions
 (
-    focal_set_definitions_id BIGSERIAL            NOT NULL,
+    focal_set_definitions_id BIGSERIAL PRIMARY KEY,
     topics_id                BIGINT               NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
     name                     TEXT                 NOT NULL,
     description              TEXT                 NULL,
-    focal_technique          focal_technique_type NOT NULL,
-
-    PRIMARY KEY (focal_set_definitions_id, topics_id)
+    focal_technique          focal_technique_type NOT NULL
 );
 
-SELECT create_distributed_table('focal_set_definitions', 'topics_id');
+SELECT create_reference_table('focal_set_definitions');
+
+CREATE INDEX focal_set_definitions_topics_id
+    ON focal_set_definitions (topics_id);
+
+CREATE UNIQUE INDEX focal_set_definitions_topics_id_focal_set_definitions_id
+    ON focal_set_definitions (topics_id, focal_set_definitions_id);
 
 CREATE UNIQUE INDEX focal_set_definitions_topics_id_name
     ON focal_set_definitions (topics_id, name);
@@ -1782,21 +1712,22 @@ CREATE UNIQUE INDEX focal_set_definitions_topics_id_name
 
 CREATE TABLE focus_definitions
 (
-    focus_definitions_id     BIGSERIAL NOT NULL,
-    topics_id                BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-    focal_set_definitions_id BIGINT    NOT NULL,
-    name                     TEXT      NOT NULL,
-    description              TEXT      NULL,
-    arguments                JSONB     NOT NULL,
-
-    PRIMARY KEY (focus_definitions_id, topics_id),
+    focus_definitions_id     BIGSERIAL PRIMARY KEY,
+    topics_id                BIGINT NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
+    focal_set_definitions_id BIGINT NOT NULL,
+    name                     TEXT   NOT NULL,
+    description              TEXT   NULL,
+    arguments                JSONB  NOT NULL,
 
     FOREIGN KEY (topics_id, focal_set_definitions_id)
         REFERENCES focal_set_definitions (topics_id, focal_set_definitions_id)
         ON DELETE CASCADE
 );
 
-SELECT create_distributed_table('focus_definitions', 'topics_id');
+SELECT create_reference_table('focus_definitions');
+
+CREATE INDEX focus_definition_topics_id
+    ON focus_definitions (topics_id);
 
 CREATE UNIQUE INDEX focus_definition_topics_id_focal_set_definitions_id_name
     ON focus_definitions (topics_id, focal_set_definitions_id, name);
@@ -1804,41 +1735,37 @@ CREATE UNIQUE INDEX focus_definition_topics_id_focal_set_definitions_id_name
 
 CREATE TABLE focal_sets
 (
-    focal_sets_id   BIGSERIAL            NOT NULL,
+    focal_sets_id   BIGSERIAL PRIMARY KEY,
     topics_id       BIGINT               NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-    snapshots_id    BIGINT               NOT NULL,
+    snapshots_id    BIGINT               NOT NULL REFERENCES snapshots (snapshots_id) ON DELETE CASCADE,
     name            TEXT                 NOT NULL,
     description     TEXT                 NULL,
-    focal_technique focal_technique_type NOT NULL,
-
-    PRIMARY KEY (focal_sets_id, topics_id),
-
-    FOREIGN KEY (topics_id, snapshots_id) REFERENCES snapshots (topics_id, snapshots_id)
+    focal_technique focal_technique_type NOT NULL
 );
 
-SELECT create_distributed_table('focal_sets', 'topics_id');
+SELECT create_reference_table('focal_sets');
 
-CREATE UNIQUE INDEX focal_set_topics_id_snapshots_id_name
+CREATE INDEX focal_set_topics_id
+    ON focal_sets (topics_id);
+
+CREATE UNIQUE INDEX focal_sets_topics_id_snapshots_id_name
     ON focal_sets (topics_id, snapshots_id, name);
 
 
 CREATE TABLE foci
 (
-    foci_id       BIGSERIAL NOT NULL,
-    topics_id     BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-    focal_sets_id BIGINT    NOT NULL,
-    name          TEXT      NOT NULL,
-    description   TEXT      NULL,
-    arguments     JSONB     NOT NULL,
-
-    PRIMARY KEY (foci_id, topics_id),
-
-    FOREIGN KEY (topics_id, focal_sets_id)
-        REFERENCES focal_sets (topics_id, focal_sets_id)
-        ON DELETE CASCADE
+    foci_id       BIGSERIAL PRIMARY KEY,
+    topics_id     BIGINT NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
+    focal_sets_id BIGINT NOT NULL REFERENCES focal_sets (focal_sets_id) ON DELETE CASCADE,
+    name          TEXT   NOT NULL,
+    description   TEXT   NULL,
+    arguments     JSONB  NOT NULL
 );
 
-SELECT create_distributed_table('foci', 'topics_id');
+SELECT create_reference_table('foci');
+
+CREATE INDEX foci_topics_id
+    ON foci (topics_id);
 
 CREATE UNIQUE INDEX foci_topics_id_focal_sets_id_name
     ON foci (topics_id, focal_sets_id, name);
@@ -1847,15 +1774,15 @@ CREATE UNIQUE INDEX foci_topics_id_focal_sets_id_name
 -- individual timespans within a snapshot
 CREATE TABLE timespans
 (
-    timespans_id         BIGSERIAL        NOT NULL,
+    timespans_id         BIGSERIAL PRIMARY KEY,
 
     topics_id            BIGINT           NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
 
     -- timespan is an active part of this snapshot
-    snapshots_id         BIGINT           NULL,
+    snapshots_id         BIGINT           NULL REFERENCES snapshots (snapshots_id) ON DELETE CASCADE,
 
     -- timespan is an archived part of this snapshot (and thus mostly not visible)
-    archive_snapshots_id BIGINT           NULL,
+    archive_snapshots_id BIGINT           NULL REFERENCES snapshots (snapshots_id) ON DELETE CASCADE,
 
     foci_id              BIGINT           NULL,
     start_date           TIMESTAMP        NOT NULL,
@@ -1869,19 +1796,9 @@ CREATE TABLE timespans
     medium_count         BIGINT           NOT NULL,
     medium_link_count    BIGINT           NOT NULL,
     post_count           BIGINT           NOT NULL,
-    tags_id              BIGINT           NULL,
 
-    PRIMARY KEY (timespans_id, topics_id),
-
-    FOREIGN KEY (topics_id, snapshots_id)
-        REFERENCES snapshots (topics_id, snapshots_id)
-        ON DELETE CASCADE,
-
-    FOREIGN KEY (topics_id, archive_snapshots_id)
-        REFERENCES snapshots (topics_id, snapshots_id)
-        ON DELETE CASCADE,
-
-    FOREIGN KEY (topics_id, foci_id) REFERENCES foci (topics_id, foci_id),
+    -- Skip (?) ON CASCADE to avoid accidental deletion
+    tags_id              BIGINT           NULL REFERENCES tags (tags_id),
 
     CHECK (
             (snapshots_id IS NULL AND archive_snapshots_id IS NOT NULL)
@@ -1890,14 +1807,16 @@ CREATE TABLE timespans
         )
 );
 
-SELECT create_distributed_table('timespans', 'topics_id');
+SELECT create_reference_table('timespans');
 
--- Skip (?) ON CASCADE to avoid accidental deletion
-ALTER TABLE timespans
-    ADD CONSTRAINT timespans_tags_id_fkey
-        FOREIGN KEY (tags_id) REFERENCES tags (tags_id);
+CREATE INDEX timespans_topics_id
+    ON timespans (topics_id);
 
-CREATE INDEX timespans_snapshots_id ON timespans (snapshots_id);
+CREATE UNIQUE INDEX timespans_topics_id_timespans_id
+    ON timespans (topics_id, timespans_id);
+
+CREATE INDEX timespans_topics_id_snapshots_id
+    ON timespans (topics_id, snapshots_id);
 
 CREATE UNIQUE INDEX timespans_unique
     ON timespans (topics_id, snapshots_id, foci_id, start_date, end_date, period);
@@ -1905,42 +1824,37 @@ CREATE UNIQUE INDEX timespans_unique
 
 CREATE TABLE timespan_maps
 (
-    timespan_maps_id BIGSERIAL NOT NULL,
-    topics_id        BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-    timespans_id     BIGINT    NOT NULL,
-    options          JSONB     NOT NULL,
-    content          BYTEA     NULL,
-    url              TEXT      NULL,
-    format           TEXT      NOT NULL,
-
-    PRIMARY KEY (timespan_maps_id, topics_id),
-
-    FOREIGN KEY (topics_id, timespans_id)
-        REFERENCES timespans (topics_id, timespans_id)
-        ON DELETE CASCADE
+    timespan_maps_id BIGSERIAL PRIMARY KEY,
+    topics_id        BIGINT NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
+    timespans_id     BIGINT NOT NULL REFERENCES timespans (timespans_id) ON DELETE CASCADE,
+    options          JSONB  NOT NULL,
+    content          BYTEA  NULL,
+    url              TEXT   NULL,
+    format           TEXT   NOT NULL
 );
 
-SELECT create_distributed_table('timespan_maps', 'topics_id');
+SELECT create_reference_table('timespan_maps');
 
-CREATE INDEX timespan_maps_topics_id_timespans_id ON timespan_maps (topics_id, timespans_id);
+CREATE INDEX timespan_maps_topics_id
+    ON timespan_maps (topics_id);
+
+CREATE INDEX timespan_maps_topics_id_timespans_id
+    ON timespan_maps (topics_id, timespans_id);
 
 
 CREATE TABLE timespan_files
 (
-    timespan_files_id BIGSERIAL NOT NULL,
-    topics_id         BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-    timespans_id      BIGINT    NOT NULL,
-    name              TEXT      NULL,
-    url               TEXT      NULL,
-
-    PRIMARY KEY (timespan_files_id, topics_id),
-
-    FOREIGN KEY (topics_id, timespans_id)
-        REFERENCES timespans (topics_id, timespans_id)
-        ON DELETE CASCADE
+    timespan_files_id BIGSERIAL PRIMARY KEY,
+    topics_id         BIGINT NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
+    timespans_id      BIGINT NOT NULL REFERENCES timespans (timespans_id) ON DELETE CASCADE,
+    name              TEXT   NULL,
+    url               TEXT   NULL
 );
 
-SELECT create_distributed_table('timespan_files', 'topics_id');
+SELECT create_reference_table('timespan_files');
+
+CREATE INDEX timespan_files_topics_id
+    ON timespan_files (topics_id);
 
 CREATE UNIQUE INDEX timespan_files_topics_id_timespans_id_name
     ON timespan_files (topics_id, timespans_id, name);
@@ -1948,20 +1862,17 @@ CREATE UNIQUE INDEX timespan_files_topics_id_timespans_id_name
 
 CREATE TABLE snapshot_files
 (
-    snapshot_files_id BIGSERIAL NOT NULL,
-    topics_id         BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-    snapshots_id      BIGINT    NOT NULL,
-    name              TEXT      NULL,
-    url               TEXT      NULL,
-
-    PRIMARY KEY (snapshot_files_id, topics_id),
-
-    FOREIGN KEY (topics_id, snapshots_id)
-        REFERENCES snapshots (topics_id, snapshots_id)
-        ON DELETE CASCADE
+    snapshot_files_id BIGSERIAL PRIMARY KEY,
+    topics_id         BIGINT NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
+    snapshots_id      BIGINT NOT NULL REFERENCES snapshots (snapshots_id) ON DELETE CASCADE,
+    name              TEXT   NULL,
+    url               TEXT   NULL
 );
 
-SELECT create_distributed_table('snapshot_files', 'topics_id');
+SELECT create_reference_table('snapshot_files');
+
+CREATE INDEX snapshot_files_topics_id
+    ON snapshot_files (topics_id);
 
 CREATE UNIQUE INDEX snapshot_files_topics_id_snapshots_id_name
     ON snapshot_files (topics_id, snapshots_id, name);
@@ -1977,7 +1888,7 @@ CREATE TABLE snap.stories
 (
     snap_stories_id BIGSERIAL  NOT NULL,
     topics_id       BIGINT     NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-    snapshots_id    BIGINT     NOT NULL,
+    snapshots_id    BIGINT     NOT NULL REFERENCES snapshots (snapshots_id) ON DELETE CASCADE,
     stories_id      BIGINT     NULL,
     media_id        BIGINT     NOT NULL,
     url             TEXT       NOT NULL,
@@ -1990,16 +1901,15 @@ CREATE TABLE snap.stories
     -- 2- or 3-character ISO 690 language code; empty if unknown, NULL if unset
     language        VARCHAR(3) NULL,
 
-    PRIMARY KEY (snap_stories_id, topics_id),
-
-    FOREIGN KEY (topics_id, snapshots_id)
-        REFERENCES snapshots (topics_id, snapshots_id)
-        ON DELETE CASCADE
+    PRIMARY KEY (snap_stories_id, topics_id)
 );
 
-SELECT create_distributed_table('snap.stories', 'topics_id');
+-- noinspection SqlResolve @ routine/"create_distributed_table"
+SELECT create_distributed_table('snap.stories', 'topics_id', colocate_with => 'topic_stories');
 
-CREATE INDEX snap_stories_snapshots_id_stories_id ON snap.stories (snapshots_id, stories_id);
+CREATE INDEX snap_stories_topics_id ON snap.stories (topics_id);
+
+CREATE INDEX snap_stories_topics_id_snapshots_id_stories_id ON snap.stories (topics_id, snapshots_id, stories_id);
 
 
 -- stats for various externally derived statistics about a story.
@@ -2017,9 +1927,11 @@ CREATE TABLE story_statistics
     PRIMARY KEY (story_statistics_id, stories_id)
 );
 
-SELECT create_distributed_table('story_statistics', 'stories_id');
+-- noinspection SqlResolve @ routine/"create_distributed_table"
+SELECT create_distributed_table('story_statistics', 'stories_id', colocate_with => 'stories');
 
-CREATE UNIQUE INDEX story_statistics_story ON story_statistics (stories_id);
+CREATE UNIQUE INDEX story_statistics_stories_id
+    ON story_statistics (stories_id);
 
 
 -- stats for deprecated Twitter share counts
@@ -2035,16 +1947,18 @@ CREATE TABLE story_statistics_twitter
     PRIMARY KEY (story_statistics_twitter_id, stories_id)
 );
 
-SELECT create_distributed_table('story_statistics_twitter', 'stories_id');
+-- noinspection SqlResolve @ routine/"create_distributed_table"
+SELECT create_distributed_table('story_statistics_twitter', 'stories_id', colocate_with => 'stories');
 
-CREATE UNIQUE INDEX story_statistics_twitter_story on story_statistics_twitter (stories_id);
+CREATE UNIQUE INDEX story_statistics_twitter_stories_id
+    ON story_statistics_twitter (stories_id);
 
 
 CREATE TABLE snap.topic_stories
 (
     snap_topic_stories_id   BIGSERIAL NOT NULL,
     topics_id               BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-    snapshots_id            BIGINT    NOT NULL,
+    snapshots_id            BIGINT    NOT NULL REFERENCES snapshots (snapshots_id) ON DELETE CASCADE,
     topic_stories_id        BIGINT    NULL,
     stories_id              BIGINT    NOT NULL,
     link_mined              BOOLEAN   NULL,
@@ -2053,75 +1967,85 @@ CREATE TABLE snap.topic_stories
     redirect_url            TEXT      NULL,
     valid_foreign_rss_story BOOLEAN   NULL,
 
-    PRIMARY KEY (snap_topic_stories_id, topics_id),
-
-    FOREIGN KEY (topics_id, snapshots_id)
-        REFERENCES snapshots (topics_id, snapshots_id)
-        ON DELETE CASCADE
+    PRIMARY KEY (snap_topic_stories_id, topics_id)
 );
 
-SELECT create_distributed_table('snap.topic_stories', 'topics_id');
+-- noinspection SqlResolve @ routine/"create_distributed_table"
+SELECT create_distributed_table('snap.topic_stories', 'topics_id', colocate_with => 'topic_stories');
 
-CREATE INDEX snap_topic_stories_snapshots_id_stories_id
-    ON snap.topic_stories (snapshots_id, stories_id);
+CREATE INDEX snap_topic_stories_topics_id
+    ON snap.topic_stories (topics_id);
+
+CREATE INDEX snap_topic_stories_topics_id_snapshots_id
+    ON snap.topic_stories (topics_id, snapshots_id);
+
+CREATE INDEX snap_topic_stories_topics_id_snapshots_id_stories_id
+    ON snap.topic_stories (topics_id, snapshots_id, stories_id);
 
 
 CREATE TABLE snap.topic_links_cross_media
 (
     snap_topic_links_cross_media_id BIGSERIAL NOT NULL,
     topics_id                       BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-    snapshots_id                    BIGINT    NOT NULL,
+    snapshots_id                    BIGINT    NOT NULL REFERENCES snapshots (snapshots_id) ON DELETE CASCADE,
     topic_links_id                  BIGINT    NULL,
     stories_id                      BIGINT    NOT NULL,
     url                             TEXT      NOT NULL,
     ref_stories_id                  BIGINT    NULL,
 
-    PRIMARY KEY (snap_topic_links_cross_media_id, topics_id),
-
-    FOREIGN KEY (topics_id, snapshots_id)
-        REFERENCES snapshots (topics_id, snapshots_id)
-        ON DELETE CASCADE,
-
-    FOREIGN KEY (topics_id, topic_links_id)
-        REFERENCES topic_links (topics_id, topic_links_id)
+    PRIMARY KEY (snap_topic_links_cross_media_id, topics_id)
 );
 
-SELECT create_distributed_table('snap.topic_links_cross_media', 'topics_id');
+-- noinspection SqlResolve @ routine/"create_distributed_table"
+SELECT create_distributed_table('snap.topic_links_cross_media', 'topics_id', colocate_with => 'topic_stories');
 
-CREATE INDEX snap_topic_links_cross_media_snapshots_id_stories_id
-    ON snap.topic_links_cross_media (snapshots_id, stories_id);
+ALTER TABLE snap.topic_links_cross_media
+    ADD CONSTRAINT snap_topic_links_cross_media_topics_id_topic_links_id_fkey
+        FOREIGN KEY (topics_id, topic_links_id)
+            REFERENCES topic_links (topics_id, topic_links_id)
+            ON DELETE CASCADE;
 
-CREATE INDEX snap_topic_links_cross_media_snapshots_id_ref_stories_id
-    ON snap.topic_links_cross_media (snapshots_id, ref_stories_id);
+CREATE INDEX snap_topic_links_cross_media_topics_id
+    ON snap.topic_links_cross_media (topics_id);
+
+CREATE INDEX snap_topic_links_cross_media_topics_id_snapshots_id
+    ON snap.topic_links_cross_media (topics_id, snapshots_id);
+
+CREATE INDEX snap_topic_links_cross_media_topics_id_snapshots_id_stories_id
+    ON snap.topic_links_cross_media (topics_id, snapshots_id, stories_id);
+
+CREATE INDEX snap_topic_links_cross_media_topics_id_snapshots_id_ref_sid
+    ON snap.topic_links_cross_media (topics_id, snapshots_id, ref_stories_id);
 
 
 CREATE TABLE snap.topic_media_codes
 (
-    snap_topic_media_codes_id BIGSERIAL NOT NULL,
-    topics_id                 BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-    snapshots_id              BIGINT    NOT NULL,
-    media_id                  BIGINT    NOT NULL,
-    code_type                 TEXT      NULL,
-    code                      TEXT      NULL,
-
-    PRIMARY KEY (snap_topic_media_codes_id, topics_id),
+    snap_topic_media_codes_id BIGSERIAL PRIMARY KEY,
+    topics_id                 BIGINT NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
+    snapshots_id              BIGINT NOT NULL REFERENCES snapshots (snapshots_id) ON DELETE CASCADE,
+    media_id                  BIGINT NOT NULL,
+    code_type                 TEXT   NULL,
+    code                      TEXT   NULL,
 
     FOREIGN KEY (topics_id, snapshots_id)
         REFERENCES snapshots (topics_id, snapshots_id)
         ON DELETE CASCADE
 );
 
-SELECT create_distributed_table('snap.topic_media_codes', 'topics_id');
+SELECT create_reference_table('snap.topic_media_codes');
 
-CREATE INDEX snap_topic_media_codes_snapshots_id_media_id
-    ON snap.topic_media_codes (snapshots_id, media_id);
+CREATE INDEX snap_topic_media_codes_topics_id
+    ON snap.topic_media_codes (topics_id);
+
+CREATE INDEX snap_topic_media_codes_topics_id_snapshots_id_media_id
+    ON snap.topic_media_codes (topics_id, snapshots_id, media_id);
 
 
 CREATE TABLE snap.media
 (
     snap_media_id     BIGSERIAL NOT NULL,
     topics_id         BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-    snapshots_id      BIGINT    NOT NULL,
+    snapshots_id      BIGINT    NOT NULL REFERENCES snapshots (snapshots_id) ON DELETE CASCADE,
     media_id          BIGINT    NULL,
     url               TEXT      NOT NULL,
     name              TEXT      NOT NULL,
@@ -2130,67 +2054,69 @@ CREATE TABLE snap.media
     dup_media_id      BIGINT    NULL,
     is_not_dup        BOOLEAN   NULL,
 
-    PRIMARY KEY (snap_media_id, topics_id),
-
-    FOREIGN KEY (topics_id, snapshots_id)
-        REFERENCES snapshots (topics_id, snapshots_id)
-        ON DELETE CASCADE
+    PRIMARY KEY (topics_id, snap_media_id)
 );
 
-SELECT create_distributed_table('snap.media', 'topics_id');
+-- Small (~1.6 GB) table but a lot (16m+) of rows
+-- noinspection SqlResolve @ routine/"create_distributed_table"
+SELECT create_distributed_table('snap.media', 'topics_id', colocate_with => 'topic_stories');
+
+CREATE INDEX snap_media_topics_id
+    ON snap.media (topics_id);
 
 CREATE INDEX snap_media_snapshots_id_media_id
-    ON snap.media (snapshots_id, media_id);
+    ON snap.media (topics_id, snapshots_id, media_id);
 
 
 CREATE TABLE snap.media_tags_map
 (
     snap_media_tags_map_id BIGSERIAL NOT NULL,
     topics_id              BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-    snapshots_id           BIGINT    NOT NULL,
+    snapshots_id           BIGINT    NOT NULL REFERENCES snapshots (snapshots_id) ON DELETE CASCADE,
     media_tags_map_id      BIGINT    NULL,
     media_id               BIGINT    NOT NULL,
     tags_id                BIGINT    NOT NULL,
 
-    PRIMARY KEY (snap_media_tags_map_id, topics_id),
-
-    FOREIGN KEY (topics_id, snapshots_id)
-        REFERENCES snapshots (topics_id, snapshots_id)
-        ON DELETE CASCADE
+    PRIMARY KEY (snap_media_tags_map_id, topics_id)
 );
 
-SELECT create_distributed_table('snap.media_tags_map', 'topics_id');
+-- Small (~2 GB) table but a lot (45m+) of rows
+-- noinspection SqlResolve @ routine/"create_distributed_table"
+SELECT create_distributed_table('snap.media_tags_map', 'topics_id', colocate_with => 'topic_stories');
 
-CREATE INDEX snap_media_tags_map_snapshots_id_media_id
-    ON snap.media_tags_map (snapshots_id, media_id);
+CREATE INDEX snap_media_tags_map_topics_id
+    ON snap.media_tags_map (topics_id);
 
-CREATE INDEX snap_media_tags_map_snapshots_id_tags_id
-    ON snap.media_tags_map (snapshots_id, tags_id);
+CREATE INDEX snap_media_tags_map_topics_id_snapshots_id_media_id
+    ON snap.media_tags_map (topics_id, snapshots_id, media_id);
+
+CREATE INDEX snap_media_tags_map_topics_id_snapshots_id_tags_id
+    ON snap.media_tags_map (topics_id, snapshots_id, tags_id);
 
 
 CREATE TABLE snap.stories_tags_map
 (
     snap_stories_tags_map_id BIGSERIAL NOT NULL,
     topics_id                BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-    snapshots_id             BIGINT    NOT NULL,
+    snapshots_id             BIGINT    NOT NULL REFERENCES snapshots (snapshots_id) ON DELETE CASCADE,
     stories_tags_map_id      BIGINT    NULL,
     stories_id               BIGINT    NULL,
     tags_id                  BIGINT    NULL,
 
-    PRIMARY KEY (snap_stories_tags_map_id, topics_id),
-
-    FOREIGN KEY (topics_id, snapshots_id)
-        REFERENCES snapshots (topics_id, snapshots_id)
-        ON DELETE CASCADE
+    PRIMARY KEY (snap_stories_tags_map_id, topics_id)
 );
 
-SELECT create_distributed_table('snap.stories_tags_map', 'topics_id');
+-- noinspection SqlResolve @ routine/"create_distributed_table"
+SELECT create_distributed_table('snap.stories_tags_map', 'topics_id', colocate_with => 'topic_stories');
 
-CREATE INDEX snap_stories_tags_map_snapshots_id_stories_id
-    ON snap.stories_tags_map (snapshots_id, stories_id);
+CREATE INDEX snap_stories_tags_map_topics_id
+    ON snap.stories_tags_map (topics_id);
 
-CREATE INDEX snap_stories_tags_map_snapshots_id_tags_id
-    ON snap.stories_tags_map (snapshots_id, tags_id);
+CREATE INDEX snap_stories_tags_map_topics_id_snapshots_id_stories_id
+    ON snap.stories_tags_map (topics_id, snapshots_id, stories_id);
+
+CREATE INDEX snap_stories_tags_map_topics_id_snapshots_id_tags_id
+    ON snap.stories_tags_map (topics_id, snapshots_id, tags_id);
 
 
 -- story -> story links within a timespan
@@ -2198,25 +2124,25 @@ CREATE TABLE snap.story_links
 (
     snap_story_links_id BIGSERIAL NOT NULL,
     topics_id           BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-    timespans_id        BIGINT    NOT NULL,
+    timespans_id        BIGINT    NOT NULL REFERENCES timespans (timespans_id) ON DELETE CASCADE,
     source_stories_id   BIGINT    NOT NULL,
     ref_stories_id      BIGINT    NOT NULL,
 
-    PRIMARY KEY (snap_story_links_id, topics_id),
-
-    FOREIGN KEY (topics_id, timespans_id)
-        REFERENCES timespans (topics_id, timespans_id)
-        ON DELETE CASCADE
+    PRIMARY KEY (snap_story_links_id, topics_id)
 );
 
-SELECT create_distributed_table('snap.story_links', 'topics_id');
+-- noinspection SqlResolve @ routine/"create_distributed_table"
+SELECT create_distributed_table('snap.story_links', 'topics_id', colocate_with => 'topic_stories');
+
+CREATE INDEX snap_story_links_topics_id
+    ON snap.story_links (topics_id);
 
 -- TODO: add complex foreign key to check that *_stories_id exist for the snapshot stories snapshot
-CREATE INDEX snap_story_links_timespans_id_source_stories_id
-    ON snap.story_links (timespans_id, source_stories_id);
+CREATE INDEX snap_story_links_topics_id_timespans_id_source_stories_id
+    ON snap.story_links (topics_id, timespans_id, source_stories_id);
 
-CREATE INDEX snap_story_links_timespans_id_ref_stories_id
-    ON snap.story_links (timespans_id, ref_stories_id);
+CREATE INDEX snap_story_links_topics_id_timespans_id_ref_stories_id
+    ON snap.story_links (topics_id, timespans_id, ref_stories_id);
 
 
 -- link counts for stories within a timespan
@@ -2224,7 +2150,7 @@ CREATE TABLE snap.story_link_counts
 (
     snap_story_link_counts_id BIGSERIAL NOT NULL,
     topics_id                 BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-    timespans_id              BIGINT    NOT NULL,
+    timespans_id              BIGINT    NOT NULL REFERENCES timespans (timespans_id) ON DELETE CASCADE,
     stories_id                BIGINT    NOT NULL,
 
     media_inlink_count        BIGINT    NOT NULL,
@@ -2237,33 +2163,33 @@ CREATE TABLE snap.story_link_counts
     author_count              BIGINT    NULL,
     channel_count             BIGINT    NULL,
 
-    PRIMARY KEY (snap_story_link_counts_id, topics_id),
-
-    FOREIGN KEY (topics_id, timespans_id)
-        REFERENCES timespans (topics_id, timespans_id)
-        ON DELETE CASCADE
+    PRIMARY KEY (snap_story_link_counts_id, topics_id)
 );
 
-SELECT create_distributed_table('snap.story_link_counts', 'topics_id');
+-- noinspection SqlResolve @ routine/"create_distributed_table"
+SELECT create_distributed_table('snap.story_link_counts', 'topics_id', colocate_with => 'topic_stories');
+
+CREATE INDEX snap_story_link_counts_topics_id
+    ON snap.story_link_counts (topics_id);
 
 -- TODO: add complex foreign key to check that stories_id exists for the snapshot stories snapshot
-CREATE INDEX snap_story_link_counts_timespans_id_stories_id
-    ON snap.story_link_counts (timespans_id, stories_id);
+CREATE INDEX snap_story_link_counts_topics_id_timespans_id_stories_id
+    ON snap.story_link_counts (topics_id, timespans_id, stories_id);
 
 CREATE INDEX snap_story_link_counts_stories_id
     ON snap.story_link_counts (stories_id);
 
-CREATE INDEX snap_story_link_counts_timespans_id_facebook_share_count
-    ON snap.story_link_counts (timespans_id, facebook_share_count DESC NULLS LAST);
+CREATE INDEX snap_story_link_counts_topics_id_timespans_id_facebook_sc
+    ON snap.story_link_counts (topics_id, timespans_id, facebook_share_count DESC NULLS LAST);
 
-CREATE INDEX snap_story_link_counts_timespans_id_post_count
-    ON snap.story_link_counts (timespans_id, post_count DESC NULLS LAST);
+CREATE INDEX snap_story_link_counts_topics_id_timespans_id_post_count
+    ON snap.story_link_counts (topics_id, timespans_id, post_count DESC NULLS LAST);
 
-CREATE INDEX snap_story_link_counts_timespans_id_author_count
-    ON snap.story_link_counts (timespans_id, author_count DESC NULLS LAST);
+CREATE INDEX snap_story_link_counts_topics_id_timespans_id_author_count
+    ON snap.story_link_counts (topics_id, timespans_id, author_count DESC NULLS LAST);
 
-CREATE INDEX snap_story_link_counts_timespans_id_channel_count
-    ON snap.story_link_counts (timespans_id, channel_count DESC NULLS LAST);
+CREATE INDEX snap_story_link_counts_topics_id_timespans_id_channel_count
+    ON snap.story_link_counts (topics_id, timespans_id, channel_count DESC NULLS LAST);
 
 
 -- links counts for media within a timespan
@@ -2271,7 +2197,7 @@ CREATE TABLE snap.medium_link_counts
 (
     snap_medium_link_counts_id BIGSERIAL NOT NULL,
     topics_id                  BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-    timespans_id               BIGINT    NOT NULL,
+    timespans_id               BIGINT    NOT NULL REFERENCES timespans (timespans_id) ON DELETE CASCADE,
     media_id                   BIGINT    NOT NULL,
 
     sum_media_inlink_count     BIGINT    NOT NULL,
@@ -2286,56 +2212,56 @@ CREATE TABLE snap.medium_link_counts
     sum_author_count           BIGINT    NULL,
     sum_channel_count          BIGINT    NULL,
 
-    PRIMARY KEY (snap_medium_link_counts_id, topics_id),
-
-    FOREIGN KEY (topics_id, timespans_id)
-        REFERENCES timespans (topics_id, timespans_id)
-        ON DELETE CASCADE
+    PRIMARY KEY (snap_medium_link_counts_id, topics_id)
 );
 
-SELECT create_distributed_table('snap.medium_link_counts', 'topics_id');
+-- noinspection SqlResolve @ routine/"create_distributed_table"
+SELECT create_distributed_table('snap.medium_link_counts', 'topics_id', colocate_with => 'topic_stories');
+
+CREATE INDEX snap_medium_link_counts_topics_id
+    ON snap.medium_link_counts (topics_id);
 
 -- TODO: add complex foreign key to check that media_id exists for the snapshot media snapshot
-CREATE INDEX snap_medium_link_counts_timespans_id_media_id
-    ON snap.medium_link_counts (timespans_id, media_id);
+CREATE INDEX snap_medium_link_counts_topics_id_timespans_id_media_id
+    ON snap.medium_link_counts (topics_id, timespans_id, media_id);
 
-CREATE INDEX snap_medium_link_counts_timespans_id_facebook_share_count
-    ON snap.medium_link_counts (timespans_id, facebook_share_count DESC NULLS LAST);
+CREATE INDEX snap_medium_link_counts_topics_id_timespans_id_facebook_sc
+    ON snap.medium_link_counts (topics_id, timespans_id, facebook_share_count DESC NULLS LAST);
 
-CREATE INDEX snap_medium_link_counts_timespans_id_sum_post_count
-    ON snap.medium_link_counts (timespans_id, sum_post_count DESC NULLS LAST);
+CREATE INDEX snap_medium_link_counts_topics_id_timespans_id_sum_post_count
+    ON snap.medium_link_counts (topics_id, timespans_id, sum_post_count DESC NULLS LAST);
 
-CREATE INDEX snap_medium_link_counts_timespans_id_sum_author_count
-    ON snap.medium_link_counts (timespans_id, sum_author_count DESC NULLS LAST);
+CREATE INDEX snap_medium_link_counts_topics_id_timespans_id_sum_author_count
+    ON snap.medium_link_counts (topics_id, timespans_id, sum_author_count DESC NULLS LAST);
 
-CREATE INDEX snap_medium_link_counts_timespans_id_sum_channel_count
-    ON snap.medium_link_counts (timespans_id, sum_channel_count DESC NULLS LAST);
+CREATE INDEX snap_medium_link_counts_topics_id_timespans_id_sum_cc
+    ON snap.medium_link_counts (topics_id, timespans_id, sum_channel_count DESC NULLS LAST);
 
 
 CREATE TABLE snap.medium_links
 (
     snap_medium_links_id BIGSERIAL NOT NULL,
     topics_id            BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-    timespans_id         BIGINT    NOT NULL,
+    timespans_id         BIGINT    NOT NULL REFERENCES timespans (timespans_id) ON DELETE CASCADE,
     source_media_id      BIGINT    NOT NULL,
     ref_media_id         BIGINT    NOT NULL,
     link_count           BIGINT    NOT NULL,
 
-    PRIMARY KEY (snap_medium_links_id, topics_id),
-
-    FOREIGN KEY (topics_id, timespans_id)
-        REFERENCES timespans (topics_id, timespans_id)
-        ON DELETE CASCADE
+    PRIMARY KEY (snap_medium_links_id, topics_id)
 );
 
-SELECT create_distributed_table('snap.medium_links', 'topics_id');
+-- noinspection SqlResolve @ routine/"create_distributed_table"
+SELECT create_distributed_table('snap.medium_links', 'topics_id', colocate_with => 'topic_stories');
+
+CREATE INDEX snap_medium_links_topics_id
+    ON snap.medium_links (topics_id);
 
 -- TODO: add complex foreign key to check that *_media_id exist for the snapshot media snapshot
-CREATE INDEX snap_medium_links_timespans_id_source_media_id
-    ON snap.medium_links (timespans_id, source_media_id);
+CREATE INDEX snap_medium_links_topics_id_timespans_id_source_media_id
+    ON snap.medium_links (topics_id, timespans_id, source_media_id);
 
-CREATE INDEX snap_medium_links_timespans_id_ref_media_id
-    ON snap.medium_links (timespans_id, ref_media_id);
+CREATE INDEX snap_medium_links_topics_id_timespans_id_ref_media_id
+    ON snap.medium_links (topics_id, timespans_id, ref_media_id);
 
 
 -- create a mirror of the stories table with the stories for each topic.  this is to make
@@ -2360,16 +2286,19 @@ CREATE TABLE snap.live_stories
     full_text_rss         BOOLEAN    NOT NULL DEFAULT 'f',
 
     -- 2- or 3-character ISO 690 language code; empty if unknown, NULL if unset
-    language              VARCHAR(3) null,
+    language              VARCHAR(3) NULL,
 
-    PRIMARY KEY (snap_live_stories_id, topics_id),
-
-    FOREIGN KEY (topics_id, topic_stories_id)
-        REFERENCES topic_stories (topics_id, topic_stories_id)
-        ON DELETE CASCADE
+    PRIMARY KEY (snap_live_stories_id, topics_id)
 );
 
-SELECT create_distributed_table('snap.live_stories', 'topics_id');
+-- noinspection SqlResolve @ routine/"create_distributed_table"
+SELECT create_distributed_table('snap.live_stories', 'topics_id', colocate_with => 'topic_stories');
+
+ALTER TABLE snap.live_stories
+    ADD CONSTRAINT snap_live_stories_topics_id_topic_stories_id_fkey
+        FOREIGN KEY (topics_id, topic_stories_id)
+            REFERENCES topic_stories (topics_id, topic_stories_id)
+            ON DELETE CASCADE;
 
 CREATE INDEX snap_live_stories_topics_id
     ON snap.live_stories (topics_id);
@@ -2502,18 +2431,18 @@ CREATE TABLE snap.word2vec_models
 (
     snap_word2vec_models_id BIGSERIAL NOT NULL,
     topics_id               BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-    snapshots_id            BIGINT    NOT NULL,
+    snapshots_id            BIGINT    NOT NULL REFERENCES snapshots (snapshots_id) ON DELETE CASCADE,
     creation_date           TIMESTAMP NOT NULL DEFAULT NOW(),
     raw_data                BYTEA     NOT NULL,
 
-    PRIMARY KEY (snap_word2vec_models_id, topics_id),
-
-    FOREIGN KEY (topics_id, snapshots_id)
-        REFERENCES snapshots (topics_id, snapshots_id)
-        ON DELETE CASCADE
+    PRIMARY KEY (snap_word2vec_models_id, topics_id)
 );
 
-SELECT create_distributed_table('snap.word2vec_models', 'topics_id');
+-- noinspection SqlResolve @ routine/"create_distributed_table"
+SELECT create_distributed_table('snap.word2vec_models', 'topics_id', colocate_with => 'topic_stories');
+
+CREATE INDEX snap_word2vec_models_topics_id
+    ON snap.word2vec_models (topics_id);
 
 -- We'll need to find the latest word2vec model
 CREATE INDEX snap_word2vec_models_topics_id_snapshots_id_creation_date
@@ -2529,7 +2458,8 @@ CREATE TABLE processed_stories
     PRIMARY KEY (processed_stories_id, stories_id)
 );
 
-SELECT create_distributed_table('processed_stories', 'stories_id');
+-- noinspection SqlResolve @ routine/"create_distributed_table"
+SELECT create_distributed_table('processed_stories', 'stories_id', colocate_with => 'stories');
 
 CREATE INDEX processed_stories_stories_id
     ON processed_stories (stories_id);
@@ -2556,7 +2486,8 @@ CREATE TABLE scraped_stories
     PRIMARY KEY (scraped_stories_id, stories_id)
 );
 
-SELECT create_distributed_table('scraped_stories', 'stories_id');
+-- noinspection SqlResolve @ routine/"create_distributed_table"
+SELECT create_distributed_table('scraped_stories', 'stories_id', colocate_with => 'stories');
 
 CREATE INDEX scraped_stories_stories_id ON scraped_stories (stories_id);
 
@@ -2571,7 +2502,6 @@ CREATE TABLE scraped_feeds
     import_module    TEXT      NOT NULL
 );
 
--- noinspection SqlResolve @ routine/"create_reference_table"
 SELECT create_reference_table('scraped_feeds');
 
 CREATE INDEX scraped_feeds_feeds_id ON scraped_feeds (feeds_id);
@@ -2658,7 +2588,6 @@ CREATE TABLE auth_users
     has_consented                   BOOLEAN   NOT NULL DEFAULT false
 );
 
--- noinspection SqlResolve @ routine/"create_reference_table"
 SELECT create_reference_table('auth_users');
 
 CREATE UNIQUE INDEX auth_users_email ON auth_users (email);
@@ -2703,7 +2632,6 @@ CREATE TABLE auth_user_api_keys
     ip_address            INET        NULL
 );
 
--- noinspection SqlResolve @ routine/"create_reference_table"
 SELECT create_reference_table('auth_user_api_keys');
 
 CREATE UNIQUE INDEX auth_user_api_keys_api_key
@@ -2753,7 +2681,6 @@ CREATE TABLE auth_roles
     CHECK (role NOT LIKE '% %')
 );
 
--- noinspection SqlResolve @ routine/"create_reference_table"
 SELECT create_reference_table('auth_roles');
 
 CREATE UNIQUE INDEX auth_roles_role ON auth_roles (role);
@@ -2769,7 +2696,6 @@ CREATE TABLE auth_users_roles_map
         REFERENCES auth_roles (auth_roles_id) ON DELETE CASCADE ON UPDATE CASCADE DEFERRABLE
 );
 
--- noinspection SqlResolve @ routine/"create_reference_table"
 SELECT create_reference_table('auth_users_roles_map');
 
 CREATE UNIQUE INDEX auth_users_roles_map_auth_users_id_auth_roles_id
@@ -2813,7 +2739,8 @@ CREATE TABLE auth_user_request_daily_counts
 );
 
 -- Kinda grows big so distributed
-SELECT create_distributed_table('auth_user_request_daily_counts', 'email');
+-- noinspection SqlResolve @ routine/"create_distributed_table"
+SELECT create_distributed_table('auth_user_request_daily_counts', 'email', colocate_with => 'none');
 
 -- Single index to enforce upsert uniqueness
 CREATE UNIQUE INDEX auth_user_request_daily_counts_email_day
@@ -2839,7 +2766,6 @@ CREATE TABLE auth_user_limits
     max_topic_stories            BIGINT NOT NULL DEFAULT 100000
 );
 
--- noinspection SqlResolve @ routine/"create_reference_table"
 SELECT create_reference_table('auth_user_limits');
 
 CREATE UNIQUE INDEX auth_user_limits_auth_users_id ON auth_user_limits (auth_users_id);
@@ -2882,7 +2808,6 @@ CREATE TABLE auth_users_tag_sets_permissions
     edit_tag_descriptors               BOOLEAN NOT NULL
 );
 
--- noinspection SqlResolve @ routine/"create_reference_table"
 SELECT create_reference_table('auth_users_tag_sets_permissions');
 
 CREATE UNIQUE INDEX auth_users_tag_sets_permissions_auth_user_tag_set
@@ -2980,8 +2905,11 @@ CREATE TABLE feeds_from_yesterday
 -- Not a reference table (because not referenced), not a distributed table (because too small)
 
 CREATE INDEX feeds_from_yesterday_feeds_id ON feeds_from_yesterday (feeds_id);
+
 CREATE INDEX feeds_from_yesterday_media_id ON feeds_from_yesterday (media_id);
+
 CREATE INDEX feeds_from_yesterday_name ON feeds_from_yesterday (name);
+
 CREATE UNIQUE INDEX feeds_from_yesterday_url ON feeds_from_yesterday (url, media_id);
 
 
@@ -3036,7 +2964,7 @@ BEGIN
                  (
                      SELECT feeds_id, media_id, type, active, url
                      FROM feeds_from_yesterday
-                         EXCEPT
+                     EXCEPT
                      SELECT feeds_id, media_id, type, active, url
                      FROM feeds
                  )
@@ -3044,7 +2972,7 @@ BEGIN
                  (
                      SELECT feeds_id, media_id, type, active, url
                      FROM feeds
-                         EXCEPT
+                     EXCEPT
                      SELECT feeds_id, media_id, type, active, url
                      FROM feeds_from_yesterday
                  )
@@ -3091,13 +3019,13 @@ BEGIN
 
     FROM feeds_from_yesterday AS feeds_before
              INNER JOIN feeds AS feeds_after ON (
-            feeds_before.feeds_id = feeds_after.feeds_id
+                feeds_before.feeds_id = feeds_after.feeds_id
             AND (
-                -- Don't compare "name" because it's insignificant
-                    feeds_before.url != feeds_after.url
-                    OR feeds_before.type != feeds_after.type
-                    OR feeds_before.active != feeds_after.active
-                )
+                    -- Don't compare "name" because it's insignificant
+                            feeds_before.url != feeds_after.url
+                        OR feeds_before.type != feeds_after.type
+                        OR feeds_before.active != feeds_after.active
+                    )
         )
 
     WHERE feeds_before.media_id IN (
@@ -3238,17 +3166,15 @@ CREATE UNIQUE INDEX api_links_path_params ON api_links (path, params);
 -- keep track of performance of the topic spider
 CREATE TABLE topic_spider_metrics
 (
-    topic_spider_metrics_id BIGSERIAL NOT NULL,
-    topics_id               BIGINT REFERENCES topics (topics_id) ON DELETE CASCADE,
+    topic_spider_metrics_id BIGSERIAL PRIMARY KEY,
+    topics_id               BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
     iteration               BIGINT    NOT NULL,
     links_processed         BIGINT    NOT NULL,
     elapsed_time            BIGINT    NOT NULL,
-    processed_date          TIMESTAMP NOT NULL DEFAULT NOW(),
-
-    PRIMARY KEY (topic_spider_metrics_id, topics_id)
+    processed_date          TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
-SELECT create_distributed_table('topic_spider_metrics', 'topics_id');
+SELECT create_reference_table('topic_spider_metrics');
 
 CREATE INDEX topic_spider_metrics_topics_id ON topic_spider_metrics (topics_id);
 
@@ -3262,19 +3188,13 @@ CREATE TYPE topic_permission AS ENUM (
 -- per user permissions for topics
 CREATE TABLE topic_permissions
 (
-    topic_permissions_id BIGSERIAL        NOT NULL,
+    topic_permissions_id BIGSERIAL PRIMARY KEY,
     topics_id            BIGINT           NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-    auth_users_id        BIGINT           NOT NULL,
-    permission           topic_permission NOT NULL,
-
-    PRIMARY KEY (topic_permissions_id, topics_id)
+    auth_users_id        BIGINT           NOT NULL REFERENCES auth_users (auth_users_id) ON DELETE CASCADE,
+    permission           topic_permission NOT NULL
 );
 
-SELECT create_distributed_table('topic_permissions', 'topics_id');
-
-ALTER TABLE topic_permissions
-    ADD CONSTRAINT topic_permissions_auth_users_id_fkey
-        FOREIGN KEY (auth_users_id) REFERENCES auth_users (auth_users_id) ON DELETE CASCADE;
+SELECT create_reference_table('topic_permissions');
 
 CREATE INDEX topic_permissions_topics_id
     ON topic_permissions (topics_id);
@@ -3328,25 +3248,22 @@ FROM topics AS t
 -- list of tweet counts and fetching statuses for each day of each topic
 CREATE TABLE topic_post_days
 (
-    topic_post_days_id    BIGSERIAL NOT NULL,
-    topics_id             BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-    topic_seed_queries_id BIGINT    NOT NULL,
-    day                   DATE      NOT NULL,
-    num_posts_stored      BIGINT    NOT NULL,
-    num_posts_fetched     BIGINT    NOT NULL,
-    posts_fetched         BOOLEAN   NOT NULL DEFAULT 'f',
-
-    PRIMARY KEY (topic_post_days_id, topics_id),
-
-    FOREIGN KEY (topics_id, topic_seed_queries_id)
-        REFERENCES topic_seed_queries (topics_id, topic_seed_queries_id)
-        ON DELETE CASCADE
+    topic_post_days_id    BIGSERIAL PRIMARY KEY,
+    topics_id             BIGINT  NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
+    topic_seed_queries_id BIGINT  NOT NULL REFERENCES topic_seed_queries (topic_seed_queries_id) ON DELETE CASCADE,
+    day                   DATE    NOT NULL,
+    num_posts_stored      BIGINT  NOT NULL,
+    num_posts_fetched     BIGINT  NOT NULL,
+    posts_fetched         BOOLEAN NOT NULL DEFAULT 'f'
 );
 
-SELECT create_distributed_table('topic_post_days', 'topics_id');
+SELECT create_reference_table('topic_post_days');
 
-CREATE INDEX topic_post_days_topic_seed_queries_id_day
-    ON topic_post_days (topic_seed_queries_id, day);
+CREATE INDEX topic_post_days_topics_id
+    ON topic_post_days (topics_id);
+
+CREATE INDEX topic_post_days_topics_id_topic_seed_queries_id_day
+    ON topic_post_days (topics_id, topic_seed_queries_id, day);
 
 
 -- list of posts associated with a given topic
@@ -3354,7 +3271,7 @@ CREATE TABLE topic_posts
 (
     topic_posts_id     BIGSERIAL NOT NULL,
     topics_id          BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-    topic_post_days_id BIGINT    NOT NULL,
+    topic_post_days_id BIGINT    NOT NULL REFERENCES topic_post_days (topic_post_days_id) ON DELETE CASCADE,
     data               JSONB     NOT NULL,
     post_id            TEXT      NOT NULL,
     content            TEXT      NOT NULL,
@@ -3363,23 +3280,23 @@ CREATE TABLE topic_posts
     channel            TEXT      NOT NULL,
     url                TEXT      NULL,
 
-    PRIMARY KEY (topic_posts_id, topics_id),
-
-    FOREIGN KEY (topics_id, topic_post_days_id)
-        REFERENCES topic_post_days (topics_id, topic_post_days_id)
-        ON DELETE CASCADE
+    PRIMARY KEY (topic_posts_id, topics_id)
 );
 
-SELECT create_distributed_table('topic_posts', 'topics_id');
+-- noinspection SqlResolve @ routine/"create_distributed_table"
+SELECT create_distributed_table('topic_posts', 'topics_id', colocate_with => 'topic_stories');
+
+CREATE INDEX topic_posts_topics_id
+    ON topic_posts (topics_id);
 
 CREATE UNIQUE INDEX topic_posts_topics_id_topic_post_days_id_post_id
     ON topic_posts (topics_id, topic_post_days_id, post_id);
 
-CREATE INDEX topic_posts_topic_post_days_id_author
-    ON topic_posts (topic_post_days_id, author);
+CREATE INDEX topic_posts_topics_id_topic_post_days_id_author
+    ON topic_posts (topics_id, topic_post_days_id, author);
 
-CREATE INDEX topic_posts_topic_post_days_id_channel
-    ON topic_posts (topic_post_days_id, channel);
+CREATE INDEX topic_posts_topics_id_topic_post_days_id_channel
+    ON topic_posts (topics_id, topic_post_days_id, channel);
 
 
 -- urls parsed from topic tweets and imported into topic_seed_urls
@@ -3390,20 +3307,29 @@ CREATE TABLE topic_post_urls
     topic_posts_id     BIGINT    NOT NULL,
     url                TEXT      NOT NULL,
 
-    PRIMARY KEY (topic_post_urls_id, topics_id),
-
-    FOREIGN KEY (topics_id, topic_posts_id)
-        REFERENCES topic_posts (topics_id, topic_posts_id)
-        ON DELETE CASCADE
+    PRIMARY KEY (topic_post_urls_id, topics_id)
 );
 
-SELECT create_distributed_table('topic_post_urls', 'topics_id');
+-- noinspection SqlResolve @ routine/"create_distributed_table"
+SELECT create_distributed_table('topic_post_urls', 'topics_id', colocate_with => 'topic_stories');
 
-CREATE INDEX topic_post_urls_url
-    ON topic_post_urls (url);
+ALTER TABLE topic_post_urls
+    ADD CONSTRAINT topic_post_urls_topics_id_topic_posts_id_fkey
+        FOREIGN KEY (topics_id, topic_posts_id)
+            REFERENCES topic_posts (topics_id, topic_posts_id)
+            ON DELETE CASCADE;
+
+CREATE INDEX topic_post_urls_topics_id
+    ON topic_post_urls (topics_id);
+
+CREATE INDEX topic_post_urls_topics_id_topic_posts_id
+    ON topic_post_urls (topics_id, topic_posts_id);
 
 CREATE UNIQUE INDEX topic_post_urls_topics_id_topic_posts_id_url
     ON topic_post_urls (topics_id, topic_posts_id, url);
+
+CREATE INDEX topic_post_urls_url
+    ON topic_post_urls USING HASH (url);
 
 
 CREATE TABLE topic_seed_urls
@@ -3419,21 +3345,20 @@ CREATE TABLE topic_seed_urls
     guid                  TEXT      NULL,
     title                 TEXT      NULL,
     publish_date          TEXT      NULL,
-    topic_seed_queries_id BIGINT    NULL,
+    topic_seed_queries_id BIGINT    NULL REFERENCES topic_seed_queries (topic_seed_queries_id) ON DELETE CASCADE,
     topic_post_urls_id    BIGINT    NULL,
 
-    PRIMARY KEY (topic_seed_urls_id, topics_id),
-
-    FOREIGN KEY (topics_id, topic_seed_queries_id)
-        REFERENCES topic_seed_queries (topics_id, topic_seed_queries_id)
-        ON DELETE CASCADE,
-
-    FOREIGN KEY (topics_id, topic_post_urls_id)
-        REFERENCES topic_post_urls (topics_id, topic_post_urls_id)
-        ON DELETE CASCADE
+    PRIMARY KEY (topic_seed_urls_id, topics_id)
 );
 
-SELECT create_distributed_table('topic_seed_urls', 'topics_id');
+-- noinspection SqlResolve @ routine/"create_distributed_table"
+SELECT create_distributed_table('topic_seed_urls', 'topics_id', colocate_with => 'topic_stories');
+
+ALTER TABLE topic_seed_urls
+    ADD CONSTRAINT topic_seed_urls_topics_id_topic_post_urls_id_fkey
+        FOREIGN KEY (topics_id, topic_post_urls_id)
+            REFERENCES topic_post_urls (topics_id, topic_post_urls_id)
+            ON DELETE CASCADE;
 
 CREATE INDEX topic_seed_urls_topics_id
     ON topic_seed_urls (topics_id);
@@ -3465,20 +3390,20 @@ SELECT tsq.topics_id,
        tpu.topic_post_urls_id
 FROM topic_seed_queries AS tsq
          INNER JOIN topic_post_days AS tpd ON
-        tsq.topics_id = tpd.topics_id AND
-        tsq.topic_seed_queries_id = tpd.topic_seed_queries_id
+            tsq.topics_id = tpd.topics_id AND
+            tsq.topic_seed_queries_id = tpd.topic_seed_queries_id
          INNER JOIN topic_posts AS tp ON
-        tsq.topics_id = tp.topics_id AND
-        tpd.topic_post_days_id = tp.topic_post_days_id
+            tsq.topics_id = tp.topics_id AND
+            tpd.topic_post_days_id = tp.topic_post_days_id
          INNER JOIN topic_post_urls AS tpu ON
-        tsq.topics_id = tpu.topics_id AND
-        tp.topic_posts_id = tpu.topic_posts_id
+            tsq.topics_id = tpu.topics_id AND
+            tp.topic_posts_id = tpu.topic_posts_id
          INNER JOIN topic_seed_urls AS tsu ON
-        tsq.topics_id = tsu.topics_id AND
-        tpu.topic_post_urls_id = tsu.topic_post_urls_id
+            tsq.topics_id = tsu.topics_id AND
+            tpu.topic_post_urls_id = tsu.topic_post_urls_id
          INNER JOIN topic_stories AS ts ON
-        tsq.topics_id = ts.topics_id AND
-        tsu.stories_id = ts.stories_id
+            tsq.topics_id = ts.topics_id AND
+            tsu.stories_id = ts.stories_id
 ;
 
 
@@ -3487,20 +3412,22 @@ CREATE TABLE snap.timespan_posts
     snap_timespan_posts_id BIGSERIAL NOT NULL,
     topics_id              BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
     topic_posts_id         BIGINT    NOT NULL,
-    timespans_id           BIGINT    NOT NULL,
+    timespans_id           BIGINT    NOT NULL REFERENCES timespans (timespans_id) ON DELETE CASCADE,
 
-    PRIMARY KEY (snap_timespan_posts_id, topics_id),
-
-    FOREIGN KEY (topics_id, topic_posts_id)
-        REFERENCES topic_posts (topics_id, topic_posts_id)
-        ON DELETE CASCADE,
-
-    FOREIGN KEY (topics_id, timespans_id)
-        REFERENCES timespans (topics_id, timespans_id)
-        ON DELETE CASCADE
+    PRIMARY KEY (snap_timespan_posts_id, topics_id)
 );
 
-SELECT create_distributed_table('snap.timespan_posts', 'topics_id');
+-- noinspection SqlResolve @ routine/"create_distributed_table"
+SELECT create_distributed_table('snap.timespan_posts', 'topics_id', colocate_with => 'topic_stories');
+
+ALTER TABLE snap.timespan_posts
+    ADD CONSTRAINT snap_timespan_posts_topics_id_topic_posts_id_fkey
+        FOREIGN KEY (topics_id, topic_posts_id)
+            REFERENCES topic_posts (topics_id, topic_posts_id)
+            ON DELETE CASCADE;
+
+CREATE INDEX snap_timespan_posts_topics_id
+    ON snap.timespan_posts (topics_id);
 
 CREATE UNIQUE INDEX snap_timespan_posts_topics_id_timespans_id_topic_posts_id
     ON snap.timespan_posts (topics_id, timespans_id, topic_posts_id);
@@ -3550,7 +3477,8 @@ CREATE TABLE media_coverage_gaps
     PRIMARY KEY (media_coverage_gaps_id, media_id)
 );
 
-SELECT create_distributed_table('media_coverage_gaps', 'media_id');
+-- noinspection SqlResolve @ routine/"create_distributed_table"
+SELECT create_distributed_table('media_coverage_gaps', 'media_id', colocate_with => 'none');
 
 CREATE INDEX media_coverage_gaps_media_id ON media_coverage_gaps (media_id);
 
@@ -3579,7 +3507,9 @@ CREATE TABLE media_health
 -- Not a reference table (because not referenced), not a distributed table (because too small)
 
 CREATE INDEX media_health_media_id ON media_health (media_id);
+
 CREATE INDEX media_health_is_healthy ON media_health (is_healthy);
+
 CREATE INDEX media_health_num_stories_90 ON media_health (num_stories_90);
 
 
@@ -3596,10 +3526,10 @@ CREATE TABLE media_suggestions
     url                  TEXT                     NOT NULL,
     feed_url             TEXT                     NULL,
     reason               TEXT                     NULL,
-    auth_users_id        BIGINT                   REFERENCES auth_users (auth_users_id) ON DELETE SET NULL,
-    mark_auth_users_id   BIGINT                   REFERENCES auth_users (auth_users_id) ON DELETE SET NULL,
+    auth_users_id        BIGINT                   NULL REFERENCES auth_users (auth_users_id) ON DELETE SET NULL,
+    mark_auth_users_id   BIGINT                   NULL REFERENCES auth_users (auth_users_id) ON DELETE SET NULL,
     date_submitted       TIMESTAMP                NOT NULL DEFAULT NOW(),
-    media_id             BIGINT                   REFERENCES media (media_id) ON DELETE SET NULL,
+    media_id             BIGINT                   NULL REFERENCES media (media_id) ON DELETE SET NULL,
     date_marked          TIMESTAMP                NOT NULL DEFAULT NOW(),
     mark_reason          TEXT                     NULL,
     status               media_suggestions_status NOT NULL DEFAULT 'pending',
@@ -3675,7 +3605,8 @@ CREATE TABLE job_states
     PRIMARY KEY (job_states_id, class)
 );
 
-SELECT create_distributed_table('job_states', 'class');
+-- noinspection SqlResolve @ routine/"create_distributed_table"
+SELECT create_distributed_table('job_states', 'class', colocate_with => 'none');
 
 CREATE INDEX job_states_class_last_updated ON job_states (class, last_updated);
 
@@ -3695,7 +3626,7 @@ CREATE TYPE retweeter_scores_match_type AS ENUM (
 -- definition of bipolar comparisons for retweeter polarization scores
 CREATE TABLE retweeter_scores
 (
-    retweeter_scores_id BIGSERIAL                   NOT NULL,
+    retweeter_scores_id BIGSERIAL PRIMARY KEY,
     topics_id           BIGINT                      NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
     group_a_id          BIGINT                      NULL,
     group_b_id          BIGINT                      NULL,
@@ -3703,61 +3634,54 @@ CREATE TABLE retweeter_scores
     state               TEXT                        NOT NULL DEFAULT 'created but not queued',
     message             TEXT                        NULL,
     num_partitions      BIGINT                      NOT NULL,
-    match_type          retweeter_scores_match_type NOT NULL DEFAULT 'retweet',
-
-    PRIMARY KEY (retweeter_scores_id, topics_id)
+    match_type          retweeter_scores_match_type NOT NULL DEFAULT 'retweet'
 );
 
-SELECT create_distributed_table('retweeter_scores', 'topics_id');
+SELECT create_reference_table('retweeter_scores');
+
+CREATE INDEX retweeter_scores_topics_id ON retweeter_scores (topics_id);
 
 
 -- group retweeters together so that we an compare, for example, sanders/warren retweeters to cruz/kasich retweeters
 CREATE TABLE retweeter_groups
 (
-    retweeter_groups_id BIGSERIAL NOT NULL,
-    topics_id           BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-    retweeter_scores_id BIGINT    NOT NULL,
-    name                TEXT      NOT NULL,
-
-    PRIMARY KEY (retweeter_groups_id, topics_id),
-
-    FOREIGN KEY (topics_id, retweeter_scores_id)
-        REFERENCES retweeter_scores (topics_id, retweeter_scores_id)
-        ON DELETE CASCADE
+    retweeter_groups_id BIGSERIAL PRIMARY KEY,
+    topics_id           BIGINT NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
+    retweeter_scores_id BIGINT NOT NULL REFERENCES retweeter_scores (retweeter_scores_id) ON DELETE CASCADE,
+    name                TEXT   NOT NULL
 );
 
-SELECT create_distributed_table('retweeter_groups', 'topics_id');
+SELECT create_reference_table('retweeter_groups');
 
 ALTER TABLE retweeter_scores
     ADD CONSTRAINT retweeter_scores_group_a
-        FOREIGN KEY (topics_id, group_a_id)
-            REFERENCES retweeter_groups (topics_id, retweeter_groups_id)
+        FOREIGN KEY (group_a_id)
+            REFERENCES retweeter_groups (retweeter_groups_id)
             ON DELETE CASCADE;
 
 ALTER TABLE retweeter_scores
     ADD CONSTRAINT retweeter_scores_group_b
-        FOREIGN KEY (topics_id, group_b_id)
-            REFERENCES retweeter_groups (topics_id, retweeter_groups_id)
+        FOREIGN KEY (group_b_id)
+            REFERENCES retweeter_groups (retweeter_groups_id)
             ON DELETE CASCADE;
+
+CREATE INDEX retweeter_groups_topics_id ON retweeter_groups (topics_id);
 
 
 -- list of twitter users within a given topic that have retweeted the given user
 CREATE TABLE retweeters
 (
-    retweeters_id       BIGSERIAL NOT NULL,
-    topics_id           BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-    retweeter_scores_id BIGINT    NOT NULL,
-    twitter_user        TEXT      NOT NULL,
-    retweeted_user      TEXT      NOT NULL,
-
-    PRIMARY KEY (retweeters_id, topics_id),
-
-    FOREIGN KEY (topics_id, retweeter_scores_id)
-        REFERENCES retweeter_scores (topics_id, retweeter_scores_id)
-        ON DELETE CASCADE
+    retweeters_id       BIGSERIAL PRIMARY KEY,
+    topics_id           BIGINT NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
+    retweeter_scores_id BIGINT NOT NULL REFERENCES retweeter_scores (retweeter_scores_id) ON DELETE CASCADE,
+    twitter_user        TEXT   NOT NULL,
+    retweeted_user      TEXT   NOT NULL
 );
 
-SELECT create_distributed_table('retweeters', 'topics_id');
+SELECT create_reference_table('retweeters');
+
+CREATE INDEX retweeters_topics_id
+    ON retweeters (topics_id);
 
 CREATE UNIQUE INDEX retweeters_user
     ON retweeters (topics_id, retweeter_scores_id, twitter_user, retweeted_user);
@@ -3765,44 +3689,34 @@ CREATE UNIQUE INDEX retweeters_user
 
 CREATE TABLE retweeter_groups_users_map
 (
-    retweeter_groups_users_map_id BIGSERIAL NOT NULL,
-    topics_id                     BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-    retweeter_groups_id           BIGINT    NOT NULL,
-    retweeter_scores_id           BIGINT    NOT NULL,
-    retweeted_user                TEXT      NOT NULL,
-
-    PRIMARY KEY (retweeter_groups_users_map_id, topics_id),
-
-    FOREIGN KEY (topics_id, retweeter_groups_id)
-        REFERENCES retweeter_groups (topics_id, retweeter_groups_id)
-        ON DELETE CASCADE,
-
-    FOREIGN KEY (topics_id, retweeter_scores_id)
-        REFERENCES retweeter_scores (topics_id, retweeter_scores_id)
-        ON DELETE CASCADE
+    retweeter_groups_users_map_id BIGSERIAL PRIMARY KEY,
+    topics_id                     BIGINT NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
+    retweeter_groups_id           BIGINT NOT NULL REFERENCES retweeter_groups (retweeter_groups_id) ON DELETE CASCADE,
+    retweeter_scores_id           BIGINT NOT NULL REFERENCES retweeter_scores (retweeter_scores_id) ON DELETE CASCADE,
+    retweeted_user                TEXT   NOT NULL
 );
 
-SELECT create_distributed_table('retweeter_groups_users_map', 'topics_id');
+SELECT create_reference_table('retweeter_groups_users_map');
+
+CREATE INDEX retweeter_groups_users_map_topics_id
+    ON retweeter_groups_users_map (topics_id);
 
 
 -- count of shares by retweeters for each retweeted_user in retweeters
 CREATE TABLE retweeter_stories
 (
-    retweeter_stories_id BIGSERIAL NOT NULL,
-    topics_id            BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-    retweeter_scores_id  BIGINT    NOT NULL,
-    stories_id           BIGINT    NOT NULL,
-    retweeted_user       TEXT      NOT NULL,
-    share_count          BIGINT    NOT NULL,
-
-    PRIMARY KEY (retweeter_stories_id, topics_id),
-
-    FOREIGN KEY (topics_id, retweeter_stories_id)
-        REFERENCES retweeter_stories (topics_id, retweeter_stories_id)
-        ON DELETE CASCADE
+    retweeter_stories_id BIGSERIAL PRIMARY KEY,
+    topics_id            BIGINT NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
+    retweeter_scores_id  BIGINT NOT NULL REFERENCES retweeter_scores (retweeter_scores_id) ON DELETE CASCADE,
+    stories_id           BIGINT NOT NULL,
+    retweeted_user       TEXT   NOT NULL,
+    share_count          BIGINT NOT NULL
 );
 
-SELECT create_distributed_table('retweeter_stories', 'topics_id');
+SELECT create_reference_table('retweeter_stories');
+
+CREATE INDEX retweeter_stories_topics_id
+    ON retweeter_stories (topics_id);
 
 CREATE UNIQUE INDEX retweeter_stories_psu
     ON retweeter_stories (topics_id, retweeter_scores_id, stories_id, retweeted_user);
@@ -3811,58 +3725,48 @@ CREATE UNIQUE INDEX retweeter_stories_psu
 -- polarization scores for media within a topic for the given retweeter_scores_definition
 CREATE TABLE retweeter_media
 (
-    retweeter_media_id  BIGSERIAL NOT NULL,
-    topics_id           BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-    retweeter_scores_id BIGINT    NOT NULL,
-    media_id            BIGINT    NOT NULL,
-    group_a_count       BIGINT    NOT NULL,
-    group_b_count       BIGINT    NOT NULL,
-    group_a_count_n     FLOAT     NOT NULL,
-    score               FLOAT     NOT NULL,
-    partition           BIGint    not null,
-
-    PRIMARY KEY (retweeter_media_id, topics_id),
-
-    FOREIGN KEY (topics_id, retweeter_scores_id)
-        REFERENCES retweeter_scores (topics_id, retweeter_scores_id)
-        ON DELETE CASCADE
+    retweeter_media_id  BIGSERIAL PRIMARY KEY,
+    topics_id           BIGINT NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
+    retweeter_scores_id BIGINT NOT NULL REFERENCES retweeter_scores (retweeter_scores_id) ON DELETE CASCADE,
+    media_id            BIGINT NOT NULL REFERENCES media (media_id) ON DELETE CASCADE,
+    group_a_count       BIGINT NOT NULL,
+    group_b_count       BIGINT NOT NULL,
+    group_a_count_n     FLOAT  NOT NULL,
+    score               FLOAT  NOT NULL,
+    partition           BIGINT NOT NULL
 );
 
-SELECT create_distributed_table('retweeter_media', 'topics_id');
+SELECT create_reference_table('retweeter_media');
 
-ALTER TABLE retweeter_media
-    ADD CONSTRAINT retweeter_media_media_id_fkey
-        FOREIGN KEY (media_id) REFERENCES media (media_id) ON DELETE CASCADE;
+CREATE INDEX retweeter_media_topics_id
+    ON retweeter_media (topics_id);
 
-CREATE INDEX retweeter_media_media_id ON retweeter_media (media_id);
+CREATE INDEX retweeter_media_topics_id_media_id
+    ON retweeter_media (topics_id, media_id);
 
 CREATE UNIQUE INDEX retweeter_media_topics_id_retweeter_scores_id_media_id
     ON retweeter_media (topics_id, retweeter_scores_id, media_id);
 
+CREATE INDEX retweeter_media_media_id
+    ON retweeter_media (media_id);
+
 
 CREATE TABLE retweeter_partition_matrix
 (
-    retweeter_partition_matrix_id BIGserial NOT NULL,
-    topics_id                     BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-    retweeter_scores_id           BIGINT    NOT NULL,
-    retweeter_groups_id           BIGINT    NOT NULL,
-    group_name                    TEXT      NOT NULL,
-    share_count                   BIGINT    NOT NULL,
-    group_proportion              FLOAT     NOT NULL,
-    partition                     BIGINT    NOT NULL,
-
-    PRIMARY KEY (retweeter_partition_matrix_id, topics_id),
-
-    FOREIGN KEY (topics_id, retweeter_scores_id)
-        REFERENCES retweeter_scores (topics_id, retweeter_scores_id)
-        ON DELETE CASCADE,
-
-    FOREIGN KEY (topics_id, retweeter_groups_id)
-        REFERENCES retweeter_groups (topics_id, retweeter_groups_id)
-        ON DELETE CASCADE
+    retweeter_partition_matrix_id BIGSERIAL PRIMARY KEY,
+    topics_id                     BIGINT NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
+    retweeter_scores_id           BIGINT NOT NULL REFERENCES retweeter_scores (retweeter_scores_id) ON DELETE CASCADE,
+    retweeter_groups_id           BIGINT NOT NULL REFERENCES retweeter_groups (retweeter_groups_id) ON DELETE CASCADE,
+    group_name                    TEXT   NOT NULL,
+    share_count                   BIGINT NOT NULL,
+    group_proportion              FLOAT  NOT NULL,
+    partition                     BIGINT NOT NULL
 );
 
-SELECT create_distributed_table('retweeter_partition_matrix', 'topics_id');
+SELECT create_reference_table('retweeter_partition_matrix');
+
+CREATE INDEX retweeter_partition_matrix_topics_id
+    ON retweeter_partition_matrix (topics_id);
 
 CREATE INDEX retweeter_partition_matrix_topics_id_retweeter_scores_id
     ON retweeter_partition_matrix (topics_id, retweeter_scores_id);
@@ -3917,7 +3821,8 @@ CREATE UNLOGGED TABLE cache.s3_raw_downloads_cache
     PRIMARY KEY (cache_s3_raw_downloads_cache_id, object_id)
 );
 
-SELECT create_distributed_table('cache.s3_raw_downloads_cache', 'object_id');
+-- noinspection SqlResolve @ routine/"create_distributed_table"
+SELECT create_distributed_table('cache.s3_raw_downloads_cache', 'object_id', colocate_with => 'downloads');
 
 CREATE UNIQUE INDEX cache_s3_raw_downloads_cache_object_id
     ON cache.s3_raw_downloads_cache (object_id);
@@ -3969,7 +3874,8 @@ CREATE UNLOGGED TABLE cache.extractor_results_cache
     PRIMARY KEY (cache_extractor_results_cache_id, downloads_id)
 );
 
-SELECT create_distributed_table('cache.extractor_results_cache', 'downloads_id');
+-- noinspection SqlResolve @ routine/"create_distributed_table"
+SELECT create_distributed_table('cache.extractor_results_cache', 'downloads_id', colocate_with => 'downloads');
 
 CREATE UNIQUE INDEX cache_extractor_results_cache_downloads_id
     ON cache.extractor_results_cache (downloads_id);
@@ -4001,7 +3907,8 @@ CREATE UNLOGGED TABLE domain_web_requests
     PRIMARY KEY (domain_web_requests_id, domain)
 );
 
-SELECT create_distributed_table('domain_web_requests', 'domain');
+-- noinspection SqlResolve @ routine/"create_distributed_table"
+SELECT create_distributed_table('domain_web_requests', 'domain', colocate_with => 'none');
 
 CREATE INDEX domain_web_requests_domain ON domain_web_requests (domain);
 
@@ -4086,7 +3993,8 @@ CREATE TABLE media_sitemap_pages
     PRIMARY KEY (media_sitemap_pages_id, media_id)
 );
 
-SELECT create_distributed_table('media_sitemap_pages', 'media_id');
+-- noinspection SqlResolve @ routine/"create_distributed_table"
+SELECT create_distributed_table('media_sitemap_pages', 'media_id', colocate_with => 'none');
 
 CREATE INDEX media_sitemap_pages_media_id
     ON media_sitemap_pages (media_id);
@@ -4199,7 +4107,8 @@ CREATE TABLE story_enclosures
     PRIMARY KEY (story_enclosures_id, stories_id)
 );
 
-SELECT create_distributed_table('story_enclosures', 'stories_id');
+-- noinspection SqlResolve @ routine/"create_distributed_table"
+SELECT create_distributed_table('story_enclosures', 'stories_id', colocate_with => 'stories');
 
 CREATE UNIQUE INDEX story_enclosures_stories_id_url
     ON story_enclosures (stories_id, url);
@@ -4218,7 +4127,6 @@ CREATE TABLE celery_groups
     date_done  TIMESTAMP WITHOUT TIME ZONE NULL
 );
 
--- noinspection SqlResolve @ routine/"create_reference_table"
 SELECT create_reference_table('celery_groups');
 
 CREATE UNIQUE INDEX celery_groups_taskset_id ON celery_groups (taskset_id);
@@ -4236,7 +4144,8 @@ CREATE TABLE celery_tasks
     PRIMARY KEY (id, task_id)
 );
 
-SELECT create_distributed_table('celery_tasks', 'task_id');
+-- noinspection SqlResolve @ routine/"create_distributed_table"
+SELECT create_distributed_table('celery_tasks', 'task_id', colocate_with => 'none');
 
 CREATE UNIQUE INDEX celery_tasks_task_id ON celery_tasks (task_id);
 
