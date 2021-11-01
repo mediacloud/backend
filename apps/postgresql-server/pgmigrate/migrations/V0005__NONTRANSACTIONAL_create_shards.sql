@@ -16,7 +16,7 @@
 --     keep source tables read-only
 -- FIXME cast enums to TEXT, then to another enum
 -- FIXME copy all reference tables in a migration
--- FIXME temporarily drop indexes while moving rows
+-- FIXME temporarily drop indexes while moving rows of small tables
 -- FIXME move very small tables in a migration
 -- FIXME readd length constraints: https://brandur.org/text
 
