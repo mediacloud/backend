@@ -75,7 +75,13 @@ def test_get_url_stats_bogus_url():
     assert stats.comment_count == 0, f"Comment should be 0 for URL '{url}'"
 
 
-def test_bad_url_pattern():
+def test_fb_post():
     with pytest.raises(McFacebookInvalidURLException):
         url = 'https://www.facebook.com/tiffany.hathaway.79/posts/10219140619682568?_fb_noscript=1'
+        stats = _get_url_stats(url=url)
+
+
+def test_fb_story():
+    with pytest.raises(McFacebookInvalidURLException):
+        url = 'https://m.facebook.com/story.php?id=100007927834607&story_fbid=2746273218980246'
         stats = _get_url_stats(url=url)

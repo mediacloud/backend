@@ -43,6 +43,11 @@ RUN \
 
 # Install WAL-G for backing up PostgreSQL
 RUN \
+    if [ "$(dpkg --print-architecture)" = "arm64" ]; then \
+        echo "Currently there's no official ARM64 build for WAL-G." && \
+        exit 1; \
+    fi; \
+    #
     /dl_to_stdout.sh https://github.com/wal-g/wal-g/releases/download/v1.1/wal-g-pg-ubuntu-20.04-amd64.tar.gz > /var/tmp/wal-g.tar.gz && \
     cd /var/tmp/ && \
     #

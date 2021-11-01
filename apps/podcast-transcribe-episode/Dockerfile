@@ -5,7 +5,10 @@
 FROM gcr.io/mcback/common:latest
 
 # Install FFmpeg for manipulating audio files
-RUN apt-get -y --no-install-recommends install ffmpeg
+RUN \
+    apt-get -y update && \
+    apt-get -y --no-install-recommends install ffmpeg && \
+    true
 
 # Install Python dependencies
 COPY src/requirements.txt /var/tmp/
