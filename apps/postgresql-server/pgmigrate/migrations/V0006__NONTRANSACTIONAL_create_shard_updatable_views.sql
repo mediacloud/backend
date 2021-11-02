@@ -138,8 +138,7 @@ INSERT INTO public.queued_downloads (
     -- queued_downloads_id is not referenced anywhere so we can reset it here
     downloads_id
 )
-    SELECT
-        downloads_id
+    SELECT downloads_id
     FROM unsharded_public.queued_downloads;
 
 TRUNCATE unsharded_public.queued_downloads;
