@@ -199,6 +199,7 @@ SELECT run_on_shards_or_raise('media', $cmd$
 -- Drop some indexes to speed up initial insert a little
 DROP INDEX public.media_normalized_url;
 DROP INDEX public.media_name_fts;
+DROP INDEX public.media_dup_media_id;
 
 INSERT INTO public.media (
     media_id,
@@ -238,6 +239,7 @@ SELECT setval(
 -- Recreate indexes
 CREATE INDEX media_normalized_url ON public.media (normalized_url);
 CREATE INDEX media_name_fts ON public.media USING GIN (to_tsvector('english', name));
+CREATE INDEX media_dup_media_id ON public.media (dup_media_id);
 
 -- Recreate triggers
 SELECT run_on_shards_or_raise('media', $cmd$
