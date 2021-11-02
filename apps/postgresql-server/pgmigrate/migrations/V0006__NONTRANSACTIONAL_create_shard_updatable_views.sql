@@ -260,6 +260,9 @@ SELECT run_on_shards_or_raise('media', $cmd$
 -- media_rescraping
 --
 
+-- Drop some indexes to speed up initial insert a little
+DROP INDEX public.media_rescraping_last_rescrape_time;
+
 INSERT INTO public.media_rescraping (
     -- Primary key does not exist in the source table
     media_id,
@@ -274,6 +277,10 @@ INSERT INTO public.media_rescraping (
 
 TRUNCATE unsharded_public.media_rescraping;
 DROP TABLE unsharded_public.media_rescraping;
+
+-- Recreate indexes
+CREATE INDEX media_rescraping_last_rescrape_time
+    ON public.media_rescraping (last_rescrape_time);
 
 
 
