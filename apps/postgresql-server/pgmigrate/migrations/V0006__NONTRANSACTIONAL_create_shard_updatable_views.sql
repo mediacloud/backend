@@ -6,9 +6,11 @@ CREATE SCHEMA sharded_cache;
 
 
 -- "schema_version" table is small and local so we can just move it straight away
+ALTER TABLE unsharded_public.schema_version
+    SET SCHEMA public;
 
-
-
+ALTER TYPE unsharded_public.schema_version_type
+    SET SCHEMA public;
 
 
 
