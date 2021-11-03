@@ -2,7 +2,7 @@
 # Generate word2vec snapshot model worker
 #
 
-FROM gcr.io/mcback/common:latest
+FROM mc2021/common:latest
 
 # Install Python dependencies
 COPY src/requirements.txt /var/tmp/

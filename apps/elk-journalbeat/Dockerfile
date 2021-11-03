@@ -2,7 +2,7 @@
 # Journalbeat for ELK journald logging
 #
 
-FROM gcr.io/mcback/base:latest
+FROM mc2021/base:latest
 
 # Install systemd to get journalctl utility
 RUN apt-get -y --no-install-recommends install systemd

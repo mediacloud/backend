@@ -3,7 +3,7 @@ version: "3.7"
 services:
 
     solr-shard-webapp-proxy:
-        image: gcr.io/mcback/solr-shard-webapp-proxy:latest
+        image: mc2021/solr-shard-webapp-proxy:latest
         init: true
         networks:
             - default
@@ -22,7 +22,7 @@ services:
             - solr-shard-01
 
     solr-shard-01:
-        image: gcr.io/mcback/solr-shard:latest
+        image: mc2021/solr-shard:latest
         init: true
         networks:
             - default
@@ -42,7 +42,7 @@ services:
             - solr-zookeeper
 
     solr-zookeeper:
-        image: gcr.io/mcback/solr-zookeeper:latest
+        image: mc2021/solr-zookeeper:latest
         init: true
         stop_signal: SIGKILL
         expose:

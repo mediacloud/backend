@@ -2,7 +2,7 @@
 # Base image for code that imports stories from arbitrary sources
 #
 
-FROM gcr.io/mcback/extract-and-vector:latest
+FROM mc2021/extract-and-vector:latest
 
 USER root
 

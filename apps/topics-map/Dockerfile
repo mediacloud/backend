@@ -2,7 +2,7 @@
 # map topic worker
 #
 
-FROM gcr.io/mcback/common:latest
+FROM mc2021/common:latest
 
 # Install Java
 RUN \ 

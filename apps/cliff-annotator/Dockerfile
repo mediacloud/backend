@@ -2,7 +2,7 @@
 # CLIFF annotator service
 #
 
-FROM gcr.io/mcback/java-base:latest
+FROM mc2021/java-base:latest
 
 ENV PATH="/usr/lib/maven/bin:/usr/lib/tomcat7/bin:${PATH}" \
     #

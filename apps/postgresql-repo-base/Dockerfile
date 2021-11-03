@@ -2,7 +2,7 @@
 # PostgreSQL repository base
 #
 
-FROM gcr.io/mcback/base:latest
+FROM mc2021/base:latest
 
 RUN \
     #

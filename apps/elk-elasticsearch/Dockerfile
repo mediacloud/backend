@@ -2,7 +2,7 @@
 # Elasticsearch for ELK logging stack
 #
 
-FROM gcr.io/mcback/elasticsearch-base:latest
+FROM mc2021/elasticsearch-base:latest
 
 USER root
 

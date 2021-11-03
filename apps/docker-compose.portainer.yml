@@ -4,7 +4,7 @@
 #
 # Deploy by running:
 #
-#     docker stack deploy -c docker-compose.portainer.yml portainer
+#     docker stack deploy -c docker-compose.portainer.yml portainer --with-registry-auth
 #
 # on one of the Docker Swarm's managers (preferably the leader):
 #

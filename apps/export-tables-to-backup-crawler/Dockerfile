@@ -2,7 +2,7 @@
 # Export tables to run backup crawler
 #
 
-FROM gcr.io/mcback/common:latest
+FROM mc2021/common:latest
 
 # Copy sources
 COPY src/ /opt/mediacloud/src/export-tables-to-backup-crawler/

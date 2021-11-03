@@ -4,7 +4,7 @@
 #
 # Deploy by running:
 #
-#     docker stack deploy -c docker-compose.mediacloud.yml mediacloud
+#     docker stack deploy -c docker-compose.mediacloud.yml mediacloud --with-registry-auth
 #
 # on one of the Docker Swarm's managers (preferably the leader):
 #
@@ -171,7 +171,7 @@ x-brandwatch-api-configuration: &brandwatch-api-configuration
 # "deploy/replicas", we define every shard as its own independent service.
 #
 x-solr-shard_base:   &solr-shard_base
-    image: gcr.io/mcback/solr-shard:release
+    image: mc2021/solr-shard:release
     init: true
     environment:
         # Shard count (every individual shard needs to know the total count)
@@ -262,7 +262,7 @@ services:
     # -----------------------
     #
     cliff-annotator:
-        image: gcr.io/mcback/cliff-annotator:release
+        image: mc2021/cliff-annotator:release
         init: true
         networks:
             - default
@@ -285,7 +285,7 @@ services:
     # ---------------------------------------
     #
     cliff-annotator-webapp-proxy:
-        image: gcr.io/mcback/cliff-annotator-webapp-proxy:release
+        image: mc2021/cliff-annotator-webapp-proxy:release
         init: true
         networks:
             - default
@@ -312,7 +312,7 @@ services:
     # -----------------------
     #
     cliff-update-story-tags:
-        image: gcr.io/mcback/cliff-fetch-annotation-and-tag:release
+        image: mc2021/cliff-fetch-annotation-and-tag:release
         init: true
         networks:
             - default
@@ -348,7 +348,7 @@ services:
     # ----------
     #
     crawler-ap:
-        image: gcr.io/mcback/crawler-ap:release
+        image: mc2021/crawler-ap:release
         init: true
         networks:
             - default
@@ -376,7 +376,7 @@ services:
     # ---------------
     #
     crawler-fetcher:
-        image: gcr.io/mcback/crawler-fetcher:release
+        image: mc2021/crawler-fetcher:release
         init: true
         networks:
             - default
@@ -406,7 +406,7 @@ services:
     # ----------------
     #
     crawler-provider:
-        image: gcr.io/mcback/crawler-provider:release
+        image: mc2021/crawler-provider:release
         init: true
         networks:
             - default
@@ -429,7 +429,7 @@ services:
     # ------------------------------------
     #
     create-missing-partitions:
-        image: gcr.io/mcback/create-missing-partitions:release
+        image: mc2021/create-missing-partitions:release
         init: true
         networks:
             - default
@@ -452,7 +452,7 @@ services:
     # ---------------------------------
     #
     cron-generate-daily-rss-dumps:
-        image: gcr.io/mcback/cron-generate-daily-rss-dumps:release
+        image: mc2021/cron-generate-daily-rss-dumps:release
         init: true
         networks:
             - default
@@ -482,7 +482,7 @@ services:
     # -------------------------------------
     #
     cron-generate-media-health:
-        image: gcr.io/mcback/cron-generate-media-health:release
+        image: mc2021/cron-generate-media-health:release
         init: true
         networks:
             - default
@@ -505,7 +505,7 @@ services:
     # ---------------------------------------------
     #
     cron-generate-user-summary:
-        image: gcr.io/mcback/cron-generate-user-summary:release
+        image: mc2021/cron-generate-user-summary:release
         init: true
         networks:
             - default
@@ -528,7 +528,7 @@ services:
     # -----------------------------
     #
     cron-print-long-running-job-states:
-        image: gcr.io/mcback/cron-print-long-running-job-states:release
+        image: mc2021/cron-print-long-running-job-states:release
         init: true
         networks:
             - default
@@ -551,7 +551,7 @@ services:
     # ----------------------
     #
     cron-refresh-stats:
-        image: gcr.io/mcback/cron-refresh-stats:release
+        image: mc2021/cron-refresh-stats:release
         init: true
         networks:
             - default
@@ -574,7 +574,7 @@ services:
     # ----------------------------------------------
     #
     cron-rescrape-due-media:
-        image: gcr.io/mcback/cron-rescrape-due-media:release
+        image: mc2021/cron-rescrape-due-media:release
         init: true
         networks:
             - default
@@ -598,7 +598,7 @@ services:
     # ----------------------------------
     #
     cron-rescraping-changes:
-        image: gcr.io/mcback/cron-rescraping-changes:release
+        image: mc2021/cron-rescraping-changes:release
         init: true
         networks:
             - default
@@ -621,7 +621,7 @@ services:
     # -----------------------------------
     #
     cron-set-media-primary-language:
-        image: gcr.io/mcback/cron-set-media-primary-language:release
+        image: mc2021/cron-set-media-primary-language:release
         init: true
         networks:
             - default
@@ -644,7 +644,7 @@ services:
     # -----------------------------------
     #
     cron-set-media-subject-country:
-        image: gcr.io/mcback/cron-set-media-subject-country:release
+        image: mc2021/cron-set-media-subject-country:release
         init: true
         networks:
             - default
@@ -667,7 +667,7 @@ services:
     # --------------------------------
     #
     elk-elasticsearch:
-        image: gcr.io/mcback/elk-elasticsearch:release
+        image: mc2021/elk-elasticsearch:release
         init: true
         networks:
             - default
@@ -703,7 +703,7 @@ services:
     # ----------------------------------------
     #
     elk-filebeat:
-        image: gcr.io/mcback/elk-filebeat:release
+        image: mc2021/elk-filebeat:release
         init: true
         networks:
             - default
@@ -733,7 +733,7 @@ services:
     # -----------------------------------------
     #
     elk-journalbeat:
-        image: gcr.io/mcback/elk-journalbeat:release
+        image: mc2021/elk-journalbeat:release
         init: true
         networks:
             - default
@@ -761,7 +761,7 @@ services:
     # ------------------------------
     #
     elk-kibana:
-        image: gcr.io/mcback/elk-kibana:release
+        image: mc2021/elk-kibana:release
         init: true
         networks:
             - default
@@ -789,7 +789,7 @@ services:
     # --------------------------
     #
     extract-and-vector:
-        image: gcr.io/mcback/extract-and-vector:release
+        image: mc2021/extract-and-vector:release
         init: true
         networks:
             - default
@@ -816,7 +816,7 @@ services:
     # -----------------------------------
     #
     extract-article-from-page:
-        image: gcr.io/mcback/extract-article-from-page:release
+        image: mc2021/extract-article-from-page:release
         init: true
         networks:
             - default
@@ -842,7 +842,7 @@ services:
     # -------------------------------
     #
     facebook-fetch-story-stats:
-        image: gcr.io/mcback/facebook-fetch-story-stats:release
+        image: mc2021/facebook-fetch-story-stats:release
         init: true
         networks:
             - default
@@ -877,7 +877,7 @@ services:
     # ------------------------
     #
     import-solr-data:
-        image: gcr.io/mcback/import-solr-data:release
+        image: mc2021/import-solr-data:release
         init: true
         networks:
             - default
@@ -904,7 +904,7 @@ services:
     # ---------------------------------
     #
     import-stories-feedly:
-        image: gcr.io/mcback/import-stories-feedly:release
+        image: mc2021/import-stories-feedly:release
         init: true
         networks:
             - default
@@ -928,7 +928,7 @@ services:
     # ---------------
     #
     mail-opendkim-server:
-        image: gcr.io/mcback/mail-opendkim-server:release
+        image: mc2021/mail-opendkim-server:release
         init: true
         networks:
             - default
@@ -958,7 +958,7 @@ services:
     # ---------------
     #
     mail-postfix-server:
-        image: gcr.io/mcback/mail-postfix-server:release
+        image: mc2021/mail-postfix-server:release
         init: true
         networks:
             - default
@@ -1009,7 +1009,7 @@ services:
     # --------------------------
     #
     munin-cron:
-        image: gcr.io/mcback/munin-cron:release
+        image: mc2021/munin-cron:release
         # Docker doesn't reap zombie processes properly
         # (https://blog.phusion.nl/2015/01/20/docker-and-the-pid-1-zombie-reaping-problem/),
         # and Munin runs all kinds of plugins which might not take care of their children properly.
@@ -1044,7 +1044,7 @@ services:
     # -----------------------------
     #
     munin-fastcgi-graph:
-        image: gcr.io/mcback/munin-fastcgi-graph:release
+        image: mc2021/munin-fastcgi-graph:release
         init: true
         networks:
             - default
@@ -1075,7 +1075,7 @@ services:
     # -----------------
     #
     munin-httpd:
-        image: gcr.io/mcback/munin-httpd:release
+        image: mc2021/munin-httpd:release
         init: true
         networks:
             - default
@@ -1110,7 +1110,7 @@ services:
     # ----------
     #
     munin-node:
-        image: gcr.io/mcback/munin-node:release
+        image: mc2021/munin-node:release
         # Docker doesn't reap zombie processes properly
         # (https://blog.phusion.nl/2015/01/20/docker-and-the-pid-1-zombie-reaping-problem/),
         # and Munin runs all kinds of plugins which might not take care of their children properly.
@@ -1137,7 +1137,7 @@ services:
     # -----------------------------
     #
     nytlabels-annotator:
-        image: gcr.io/mcback/nytlabels-annotator:release
+        image: mc2021/nytlabels-annotator:release
         init: true
         networks:
             - default
@@ -1160,7 +1160,7 @@ services:
     # -------------------------------------------
     #
     nytlabels-annotator-webapp-proxy:
-        image: gcr.io/mcback/nytlabels-annotator-webapp-proxy:release
+        image: mc2021/nytlabels-annotator-webapp-proxy:release
         init: true
         networks:
             - default
@@ -1188,7 +1188,7 @@ services:
     # -----------------------
     #
     nytlabels-fetch-annotation-and-tag:
-        image: gcr.io/mcback/nytlabels-fetch-annotation-and-tag:release
+        image: mc2021/nytlabels-fetch-annotation-and-tag:release
         init: true
         networks:
             - default
@@ -1219,7 +1219,7 @@ services:
     # -----------------------------------------------------------------
     #
     podcast-transcribe-episode-rabbitmq-worker:
-        image: gcr.io/mcback/podcast-transcribe-episode:release
+        image: mc2021/podcast-transcribe-episode:release
         command: "rabbitmq_worker.py"
         init: true
         networks:
@@ -1252,7 +1252,7 @@ services:
     # -----------------------------------------------------------------
     #
     podcast-transcribe-episode-temporal-worker:
-        image: gcr.io/mcback/podcast-transcribe-episode:release
+        image: mc2021/podcast-transcribe-episode:release
         command: "workflow_worker.py"
         init: true
         networks:
@@ -1317,7 +1317,7 @@ services:
     # ---------
     #
     postgresql-pgbouncer:
-        image: gcr.io/mcback/postgresql-pgbouncer:release
+        image: mc2021/postgresql-pgbouncer:release
         init: true
         networks:
             - default
@@ -1340,7 +1340,7 @@ services:
     # -----------------
     #
     postgresql-server:
-        image: gcr.io/mcback/postgresql-server:release
+        image: mc2021/postgresql-server:release
         init: true
         networks:
             - default
@@ -1402,7 +1402,7 @@ services:
     # ------------------------------------
     #
     purge-object-caches:
-        image: gcr.io/mcback/purge-object-caches:release
+        image: mc2021/purge-object-caches:release
         init: true
         networks:
             - default
@@ -1425,7 +1425,7 @@ services:
     # --------
     #
     rabbitmq-server:
-        image: gcr.io/mcback/rabbitmq-server:release
+        image: mc2021/rabbitmq-server:release
         # Docker doesn't reap zombie processes properly
         # (https://blog.phusion.nl/2015/01/20/docker-and-the-pid-1-zombie-reaping-problem/)
         # and Erlang gets SIGCHLD signals from Docker for whatever reason
@@ -1462,7 +1462,7 @@ services:
     # proxy to the webapp.
     #
     rabbitmq-server-webapp-proxy:
-        image: gcr.io/mcback/rabbitmq-server-webapp-proxy:release
+        image: mc2021/rabbitmq-server-webapp-proxy:release
         init: true
         networks:
             - default
@@ -1489,7 +1489,7 @@ services:
     # ----------------
     #
     rescrape-media:
-        image: gcr.io/mcback/rescrape-media:release
+        image: mc2021/rescrape-media:release
         init: true
         networks:
             - default
@@ -1515,7 +1515,7 @@ services:
     # ------------------------------
     #
     sitemap-fetch-media-pages:
-        image: gcr.io/mcback/sitemap-fetch-media-pages:release
+        image: mc2021/sitemap-fetch-media-pages:release
         init: true
         networks:
             - default
@@ -1761,7 +1761,7 @@ services:
     # proxy to the webapp.
     #
     solr-shard-webapp-proxy:
-        image: gcr.io/mcback/solr-shard-webapp-proxy:release
+        image: mc2021/solr-shard-webapp-proxy:release
         init: true
         networks:
             - default
@@ -1788,7 +1788,7 @@ services:
     # --------------
     #
     solr-zookeeper:
-        image: gcr.io/mcback/solr-zookeeper:release
+        image: mc2021/solr-zookeeper:release
         init: true
         networks:
             - default
@@ -1811,7 +1811,7 @@ services:
     # ------------------------------------------------
     #
     temporal-elasticsearch:
-        image: gcr.io/mcback/temporal-elasticsearch:release
+        image: mc2021/temporal-elasticsearch:release
         init: true
         networks:
             - default
@@ -1840,7 +1840,7 @@ services:
     # ----------------------------------------------
     #
     temporal-grafana:
-        image: gcr.io/mcback/temporal-grafana:release
+        image: mc2021/temporal-grafana:release
         init: true
         networks:
             - default
@@ -1870,7 +1870,7 @@ services:
     # ------------------------------------------------
     #
     temporal-postgresql:
-        image: gcr.io/mcback/temporal-postgresql:release
+        image: mc2021/temporal-postgresql:release
         init: true
         networks:
             - default
@@ -1938,7 +1938,7 @@ services:
     # -------------------------------------------------
     #
     temporal-prometheus:
-        image: gcr.io/mcback/temporal-prometheus:release
+        image: mc2021/temporal-prometheus:release
         init: true
         depends_on:
             - temporal-grafana
@@ -1966,7 +1966,7 @@ services:
     # --------------------------------------------
     #
     temporal-server:
-        image: gcr.io/mcback/temporal-server:release
+        image: mc2021/temporal-server:release
         init: true
         networks:
             - default
@@ -2005,7 +2005,7 @@ services:
     # -----------------------------------------
     #
     temporal-webapp:
-        image: gcr.io/mcback/temporal-webapp:release
+        image: mc2021/temporal-webapp:release
         init: true
         networks:
             - default
@@ -2032,7 +2032,7 @@ services:
     # -------------------------------
     #
     topics-extract-story-links:
-        image: gcr.io/mcback/topics-extract-story-links:release
+        image: mc2021/topics-extract-story-links:release
         init: true
         networks:
             - default
@@ -2057,7 +2057,7 @@ services:
     # ----------------------
     #
     topics-fetch-link:
-        image: gcr.io/mcback/topics-fetch-link:release
+        image: mc2021/topics-fetch-link:release
         init: true
         networks:
             - default
@@ -2082,7 +2082,7 @@ services:
     # ------------------
     #
     topics-fetch-twitter-urls:
-        image: gcr.io/mcback/topics-fetch-twitter-urls:release
+        image: mc2021/topics-fetch-twitter-urls:release
         init: true
         networks:
             - default
@@ -2106,7 +2106,7 @@ services:
     # -------------------------
     #
     topics-map:
-        image: gcr.io/mcback/topics-map:release
+        image: mc2021/topics-map:release
         init: true
         networks:
             - default
@@ -2129,7 +2129,7 @@ services:
     # ------------
     #
     topics-mine:
-        image: gcr.io/mcback/topics-mine:release
+        image: mc2021/topics-mine:release
         init: true
         networks:
             - default
@@ -2154,7 +2154,7 @@ services:
     # -------------------
     #
     topics-mine-public:
-        image: gcr.io/mcback/topics-mine-public:release
+        image: mc2021/topics-mine-public:release
         init: true
         networks:
             - default
@@ -2179,7 +2179,7 @@ services:
     # ----------------
     #
     topics-snapshot:
-        image: gcr.io/mcback/topics-snapshot:release
+        image: mc2021/topics-snapshot:release
         init: true
         networks:
             - default
@@ -2204,7 +2204,7 @@ services:
     # --------------------------------
     #
     webapp-api:
-        image: gcr.io/mcback/webapp-api:release
+        image: mc2021/webapp-api:release
         init: true
         networks:
             - default
@@ -2230,7 +2230,7 @@ services:
     # --------------------
     #
     webapp-httpd:
-        image: gcr.io/mcback/webapp-httpd:release
+        image: mc2021/webapp-httpd:release
         init: true
         networks:
             - default
@@ -2260,7 +2260,7 @@ services:
     # ----------------
     #
     word2vec-generate-snapshot-model:
-        image: gcr.io/mcback/word2vec-generate-snapshot-model:release
+        image: mc2021/word2vec-generate-snapshot-model:release
         init: true
         networks:
             - default

@@ -2,7 +2,7 @@
 # Table dump script
 #
 
-FROM gcr.io/mcback/common:latest
+FROM mc2021/common:latest
 
 # Install Perl dependencies
 COPY src/cpanfile /var/tmp/

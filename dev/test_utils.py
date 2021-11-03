@@ -7,7 +7,7 @@ class TestUtils(TestCase):
 
     def test_container_dir_name_from_image_name(self):
         assert container_dir_name_from_image_name(
-            image_name='gcr.io/mcback/topics-fetch-twitter-urls:latest'
+            image_name='mc2021/topics-fetch-twitter-urls:latest'
         ) == 'topics-fetch-twitter-urls'
 
     def test_container_dependency_tree(self):

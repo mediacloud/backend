@@ -2,7 +2,7 @@
 # Common Media Cloud code
 #
 
-FROM gcr.io/mcback/perl-python-base:latest
+FROM mc2021/perl-python-base:latest
 
 # Install mecab-ipadic-neologd (for Japanese language tokenization) first because it's so large
 RUN \

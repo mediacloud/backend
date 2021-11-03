@@ -2,7 +2,7 @@
 # Crawler provider
 #
 
-FROM gcr.io/mcback/common:latest
+FROM mc2021/common:latest
 
 # Copy sources
 COPY src/ /opt/mediacloud/src/crawler-provider/

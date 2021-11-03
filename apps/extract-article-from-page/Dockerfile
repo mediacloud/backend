@@ -4,7 +4,7 @@
 # FIXME possibly add cache
 #
 
-FROM gcr.io/mcback/common:latest
+FROM mc2021/common:latest
 
 # Install Python dependencies
 COPY src/requirements.txt /var/tmp/

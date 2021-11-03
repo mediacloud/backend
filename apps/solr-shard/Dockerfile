@@ -2,7 +2,7 @@
 # Solr shard
 #
 
-FROM gcr.io/mcback/solr-base:latest
+FROM mc2021/solr-base:latest
 
 # Pre-fill data volume
 RUN \

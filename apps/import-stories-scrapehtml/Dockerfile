@@ -2,7 +2,7 @@
 # Import stories by scraping HTML
 #
 
-FROM gcr.io/mcback/import-stories-base:latest
+FROM mc2021/import-stories-base:latest
 
 # Install Perl dependencies
 COPY src/cpanfile /var/tmp/

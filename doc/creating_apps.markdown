@@ -20,7 +20,7 @@ Table of Contents
 
 # Creating apps
 
-Every app gets built to a Docker container image which then gets named with the app's name, e.g. `solr-zookeeper` app gets built to `gcr.io/mcback/solr-zookeeper` image to be later used for running the ZooKeeper from within the Docker Compose environment.
+Every app gets built to a Docker container image which then gets named with the app's name, e.g. `solr-zookeeper` app gets built to `mc2021/solr-zookeeper` image to be later used for running the ZooKeeper from within the Docker Compose environment.
 
 ## App names can't have underscores (`_`) in them
 
@@ -50,12 +50,12 @@ Every image will have one or more tags assigned to it. Tag names are mapped to G
 $ docker images | grep solr
 REPOSITORY                       TAG         IMAGE ID      CREATED     SIZE
 <...>
-gcr.io/mcback/solr-zookeeper  containers  70690b3b9616  5 days ago  829MB
-gcr.io/mcback/solr-zookeeper  latest      70690b3b9616  5 days ago  829MB
-gcr.io/mcback/solr-shard      containers  c6fe1da28bb7  6 days ago  764MB
-gcr.io/mcback/solr-shard      latest      c6fe1da28bb7  6 days ago  764MB
-gcr.io/mcback/solr-base       containers  9185076145e3  6 days ago  704MB
-gcr.io/mcback/solr-base       latest      9185076145e3  6 days ago  704MB
+mc2021/solr-zookeeper  containers  70690b3b9616  5 days ago  829MB
+mc2021/solr-zookeeper  latest      70690b3b9616  5 days ago  829MB
+mc2021/solr-shard      containers  c6fe1da28bb7  6 days ago  764MB
+mc2021/solr-shard      latest      c6fe1da28bb7  6 days ago  764MB
+mc2021/solr-base       containers  9185076145e3  6 days ago  704MB
+mc2021/solr-base       latest      9185076145e3  6 days ago  704MB
 ```
 
  A single exception is the tag **`latest`** which has a special meaning - it always refers to the ***last pulled or built image from any branch**. Due to the ambiguous nature of the `latest` tag, **images tagged as `latest` are never to be pushed to the container repository** - `latest` is only to be used internally, for running code against development builds.
@@ -91,7 +91,7 @@ Nested app images then can use source code of their own plus of the parent image
 
 ```bash
 # Library search paths of "topics-fetch-link" app
-$ docker run --entrypoint env gcr.io/mcback/topics-fetch-link:latest | grep -E 'PERL5LIB|PYTHONPATH'
+$ docker run --entrypoint env mc2021/topics-fetch-link:latest | grep -E 'PERL5LIB|PYTHONPATH'
 PERL5LIB=/opt/mediacloud/src/topics-fetch-link/perl:/opt/mediacloud/src/topics-base/perl:/opt/mediacloud/src/common/perl
 PYTHONPATH=/opt/mediacloud/src/topics-fetch-link/python:/opt/mediacloud/src/topics-base/python:/opt/mediacloud/src/common/python
 ```

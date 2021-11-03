@@ -2,7 +2,7 @@
 # Perl-Python code base
 #
 
-FROM gcr.io/mcback/base:latest
+FROM mc2021/base:latest
 
 # Install Python
 RUN \

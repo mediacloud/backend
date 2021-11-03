@@ -2,7 +2,7 @@
 # NYT-based news tagger service
 #
 
-FROM gcr.io/mcback/base:latest
+FROM mc2021/base:latest
 
 RUN \
     # FIXME remove once the base image gets updated

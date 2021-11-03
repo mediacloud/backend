@@ -2,7 +2,7 @@
 # Generate media health Cron job
 #
 
-FROM gcr.io/mcback/cron-base:latest
+FROM mc2021/cron-base:latest
 
 # Copy sources
 COPY src/ /opt/mediacloud/src/cron-generate-media-health/

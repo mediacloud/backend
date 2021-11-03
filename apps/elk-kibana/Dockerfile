@@ -2,7 +2,7 @@
 # Kibana for ELK logging stack
 #
 
-FROM gcr.io/mcback/java-base:latest
+FROM mc2021/java-base:latest
 
 # Install headless Chromium dependencies (needed for Reporting)
 RUN \
