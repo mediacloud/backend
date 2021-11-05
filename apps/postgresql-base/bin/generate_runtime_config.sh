@@ -113,6 +113,11 @@ EOF
 # Keep up to 6 delta backups
 export WALG_DELTA_MAX_STEPS=6
 
+# Compress with Brotli:
+# * better compression rate;
+# * WAL-G (possibly) OOMs when compression is faster than network
+export WALG_COMPRESSION_METHOD=brotli
+
 export AWS_ACCESS_KEY_ID=${MC_WALG_S3_ACCESS_KEY_ID}
 export AWS_SECRET_ACCESS_KEY=${MC_WALG_S3_SECRET_ACCESS_KEY}
 export AWS_REGION=${MC_WALG_S3_REGION}
