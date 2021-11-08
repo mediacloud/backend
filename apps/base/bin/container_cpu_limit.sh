@@ -8,24 +8,33 @@
 set -u
 set -e
 
-if [ ! -e /sys/fs/cgroup/cpu/cpu.cfs_quota_us ]; then
-    echo "Control group's total available run-time within a period file is not available."
-    exit 1
+# Pre-5.8.0 kernels
+if [ -e /sys/fs/cgroup/cpu/cpu.cfs_quota_us ]; then
+
+    if [ ! -e /sys/fs/cgroup/cpu/cpu.cfs_period_us ]; then
+        echo "Control group's length of a period file is not available."
+        exit 1
+    fi
+
+    MC_CGROUP_QUOTA=$(cat /sys/fs/cgroup/cpu/cpu.cfs_quota_us)
+    MC_CGROUP_PERIOD=$(cat /sys/fs/cgroup/cpu/cpu.cfs_period_us)
+
+else
+
+    # Post-5.8.0 kernels
+    if [ ! -e /sys/fs/cgroup/cpu.max ]; then
+        echo "Control group's cpu.max is not available."
+        exit 1
+    fi
+
+    MC_CGROUP_QUOTA=$(cat /sys/fs/cgroup/cpu.max | awk '{ print $1 }')
+    MC_CGROUP_PERIOD=$(cat /sys/fs/cgroup/cpu.max | awk '{ print $2 }')
+
 fi
 
-if [ ! -e /sys/fs/cgroup/cpu/cpu.cfs_period_us ]; then
-    echo "Control group's length of a period file is not available."
-    exit 1
-fi
-
-# Read cgroup's memory limit and the total size of available memory, pick the smallest
-MC_CGROUP_QUOTA=$(cat /sys/fs/cgroup/cpu/cpu.cfs_quota_us)
-MC_CGROUP_PERIOD=$(cat /sys/fs/cgroup/cpu/cpu.cfs_period_us)
-MC_PHYS_CORE_COUNT=$(nproc)
-
-if [ "$MC_CGROUP_QUOTA" -eq "-1" ]; then
+if [ "$MC_CGROUP_QUOTA" = "-1" ] || [ "$MC_CGROUP_QUOTA" = "max" ]; then
     # No limit
-    MC_CPU_LIMIT="$MC_PHYS_CORE_COUNT"
+    MC_CPU_LIMIT="$(nproc)"
 else
     # Extra magic to ceil the quotient: https://stackoverflow.com/a/12536521
     MC_CPU_LIMIT=$((($MC_CGROUP_QUOTA + $MC_CGROUP_PERIOD - 1) / $MC_CGROUP_PERIOD))
