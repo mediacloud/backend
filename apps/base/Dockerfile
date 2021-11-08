@@ -93,6 +93,14 @@ COPY bin/rsyslog.inc.sh /
 # Copy helper scripts
 COPY bin/container_memory_limit.sh bin/container_cpu_limit.sh bin/dl_to_stdout.sh /
 
+# Try running a few helper scripts to make sure they still work
+RUN \
+    echo -n "CPU limit: " && \
+    /container_cpu_limit.sh && \
+    echo -n "Memory limit: " && \
+    /container_memory_limit.sh && \
+    true
+
 # Copy MSMTP configuration
 COPY conf/msmtprc conf/msmtp-aliases /etc/
 
