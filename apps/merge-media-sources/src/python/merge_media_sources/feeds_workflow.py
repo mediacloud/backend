@@ -1,14 +1,8 @@
-import os
-import tempfile
-from typing import Optional
-
 # noinspection PyPackageRequirements
 from temporal.workflow import Workflow
 
 from mediawords.db import connect_to_db_or_raise
-from mediawords.job import JobBroker
-from mediawords.util.parse_json import encode_json, decode_json
-from mediawords.util.config.common import RabbitMQConfig
+from mediawords.db.handler import DatabaseHandler
 from mediawords.util.log import create_logger
 from mediawords.workflow.exceptions import McProgrammingError, McTransientError, McPermanentError
 
@@ -18,37 +12,114 @@ log = create_logger(__name__)
 
 
 class FeedsMergeActivitiesImpl(FeedsMergeActivities):
-    """Activities implementation."""
 
-    async def
+    #TODO: when implementing media merge, consider breaking helper functions below into separate module
 
-    async def identify_story_bcp47_language_code(self, stories_id: int) -> Optional[str]:
-        log.info(f"Identifying story language for story {stories_id}...")
+    @staticmethod
+    def chunk_results(results: list) -> list:
+        """Break results of a query into chunks of 1000 (returns list of lists)."""
+        return [results[i:i + 1000] for i in range(0, len(results), 1000)]
+
+    @staticmethod
+    def get_child_feed_entries(db: DatabaseHandler, table: str, table_id_field: str, child_feed_id: int) -> list:
+        log.info(f"Getting entries in {table} table associated with feed {str(child_feed_id)}")
+
+        child_feed_id = db.find_by_id(table='feeds', object_id=child_feed_id)
+        if not child_feed_id:
+            raise McPermanentError(f"Feed {child_feed_id} was not found.")
+
+        get_child_feed_entries_query = f"""
+            SELECT {table_id_field}
+            FROM {table}
+            WHERE feeds_id = {child_feed_id};
+        """
+
+        child_feed_entries = db.query(get_child_feed_entries_query)
+
+        log.info(f"Got all entries in downloads table for feed {str(child_feed_id)}")
+
+        return child_feed_entries
+
+    async def migrate_child_entries(self, table: str, table_id_field: str, id_list: list, child_feed_id: int, 
+                                    parent_feed_id: int) -> None:
+        log.info(f"Updating {table} table to migrate {len(id_list)} entries associated with {child_feed_id} to "
+                 f"parent {parent_feed_id}")
+
+        db = connect_to_db_or_raise()
+        update_query = f"""
+            UPDATE {table}
+            SET feeds_id = {parent_feed_id}
+            WHERE {table_id_field} IN {id_list};
+        """
+
+        db.query(update_query)
+
+        log.info(f"Migrated {len(id_list)} entries in {table} for feed {child_feed_id} to parent {parent_feed_id}")
+    
+    async def delete_child_entries(self, child_feed_id: int, table: str) -> None:
+        log.info(f"Deleting entries in {table} table associated with feed {str(child_feed_id)}")
 
         db = connect_to_db_or_raise()
 
-        story = db.find_by_id(table='stories', object_id=stories_id)
-        if not story:
-            raise McPermanentError(f"Story {stories_id} was not found.")
+        delete_query = f"""
+            DELETE FROM {table}
+            WHERE feeds_id = {child_feed_id};
+        """
 
-        # Podcast episodes typically come with title and description set so try guessing from that
-        story_title = story['title']
-        story_description = html_strip(story['description'])
-        sample_text = f"{story_title}\n{story_description}"
+        db.query(delete_query)
 
-        bcp_47_language_code = None
-        if identification_would_be_reliable(text=sample_text):
-            iso_639_1_language_code = language_code_for_text(text=sample_text)
-
-            # Convert to BCP 47 identifier
-            bcp_47_language_code = iso_639_1_code_to_bcp_47_identifier(
-                iso_639_1_code=iso_639_1_language_code,
-                url_hint=story['url'],
-            )
-
-        log.info(f"Language code for story {stories_id} is {bcp_47_language_code}")
-
-        return bcp_47_language_code
+        log.info(f"Deleted entries in {table} table associated with feed {str(child_feed_id)}")
 
 
-        await self.activities.add_to_extraction_queue(stories_id)
+class FeedsMergeWorkflowImpl(FeedsMergeWorkflow):
+    """Workflow implementation."""
+
+    def __init__(self):
+        self.activities: FeedsMergeActivities = Workflow.new_activity_stub(
+            activities_cls=FeedsMergeWorkflow,
+            # No retry_parameters here as they get set individually in @activity_method()
+        )
+
+    async def merge_feeds(self, child_feed_id: int, parent_feed_id: int) -> None:
+
+        child_feed_downloads = self.activities.get_child_feed_entries('downloads', 'downloads_id', child_feed_id)
+
+        for chunk in self.activities.chunk_results(child_feed_downloads):
+            await self.activities.migrate_child_entries('downloads', 'downloads_id', chunk, child_feed_id,
+                                                        parent_feed_id)
+
+        child_feed_stories_map = self.activities.get_child_feed_entries('feeds_stories_map_p', 'feeds_stories_map_p_id',
+                                                                        child_feed_id)
+
+        for chunk in self.activities.chunk_results(child_feed_stories_map):
+            await self.activities.migrate_child_entries('feeds_stories_map_p', 'feeds_stories_map_p_id', chunk,
+                                                        child_feed_id)
+        
+        child_scraped_feeds = self.activities.get_child_feed_entries('scraped_feeds', 'scraped_feeds_id', child_feed_id)
+
+        await self.activities.migrate_child_entries('scraped_feeds', 'feed_scrapes_id', child_scraped_feeds,
+                                                    child_feed_id, parent_feed_id)
+
+        child_feeds_from_yesterday = self.activities.get_child_feed_entries('feeds_from_yesterday', 'feeds_id',
+                                                                            child_feed_id)
+
+        await self.activities.migrate_child_entries('feeds_from_yesterday', 'feeds_id', child_feeds_from_yesterday,
+                                                    child_feed_id, parent_feed_id)
+
+        child_feeds_tags_map = self.activities.get_child_feed_entries('feeds_tags_map', 'feeds_tags_map_id', 
+                                                                      child_feed_id) 
+
+        await self.activities.migrate_child_entries('feeds_tags_map', 'feeds_tags_map_id', child_feeds_tags_map,
+                                                    child_feed_id, parent_feed_id)
+
+        await self.activities.delete_child_entries(child_feed_id, 'downloads')
+
+        await self.activities.delete_child_entries(child_feed_id, 'feeds_stories_map')
+
+        await self.activities.delete_child_entries(child_feed_id, 'scraped_feeds')
+
+        await self.activities.delete_child_entries(child_feed_id, 'feeds_from_yesterday')
+
+        await self.activities.delete_child_entries(child_feed_id, 'feeds_tags_map')
+
+        await self.activities.delete_child_entries(child_feed_id, 'feeds')
