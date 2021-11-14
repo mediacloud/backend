@@ -936,17 +936,15 @@ CREATE UNIQUE INDEX public_store_snapshot_files_object_id
 
 CREATE TABLE public_store.timespan_maps
 (
-    timespan_maps_id BIGSERIAL NOT NULL,
+    timespan_maps_id BIGSERIAL PRIMARY KEY,
     object_id        BIGINT    NOT NULL,
-    raw_data         BYTEA     NOT NULL,
-
-    PRIMARY KEY (timespan_maps_id, object_id)
+    raw_data         BYTEA     NOT NULL
 );
 
--- noinspection SqlResolve @ routine/"create_distributed_table"
-SELECT create_distributed_table('public_store.timespan_maps', 'object_id', colocate_with => 'none');
+-- Not distributed, not reference (empty in production)
 
-CREATE UNIQUE INDEX timespan_maps_object_id ON public_store.timespan_maps (object_id);
+CREATE UNIQUE INDEX public_store_timespan_maps_object_id
+    ON public_store.timespan_maps (object_id);
 
 
 --
