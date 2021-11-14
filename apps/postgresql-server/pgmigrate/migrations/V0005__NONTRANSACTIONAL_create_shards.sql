@@ -910,32 +910,28 @@ CREATE SCHEMA public_store;
 
 CREATE TABLE public_store.timespan_files
 (
-    timespan_files_id BIGSERIAL NOT NULL,
+    timespan_files_id BIGSERIAL PRIMARY KEY,
     object_id         BIGINT    NOT NULL,
-    raw_data          BYTEA     NOT NULL,
-
-    PRIMARY KEY (timespan_files_id, object_id)
+    raw_data          BYTEA     NOT NULL
 );
 
--- noinspection SqlResolve @ routine/"create_distributed_table"
-SELECT create_distributed_table('public_store.timespan_files', 'object_id', colocate_with => 'none');
+-- Not distributed, not reference (empty in production)
 
-CREATE UNIQUE INDEX timespan_files_object_id ON public_store.timespan_files (object_id);
+CREATE UNIQUE INDEX public_store_timespan_files_object_id
+    ON public_store.timespan_files (object_id);
 
 
 CREATE TABLE public_store.snapshot_files
 (
-    snapshot_files_id BIGSERIAL NOT NULL,
+    snapshot_files_id BIGSERIAL PRIMARY KEY,
     object_id         BIGINT    NOT NULL,
-    raw_data          BYTEA     NOT NULL,
-
-    PRIMARY KEY (snapshot_files_id, object_id)
+    raw_data          BYTEA     NOT NULL
 );
 
--- noinspection SqlResolve @ routine/"create_distributed_table"
-SELECT create_distributed_table('public_store.snapshot_files', 'object_id', colocate_with => 'none');
+-- Not distributed, not reference (empty in production)
 
-CREATE UNIQUE INDEX snapshot_files_object_id ON public_store.snapshot_files (object_id);
+CREATE UNIQUE INDEX public_store_snapshot_files_object_id
+    ON public_store.snapshot_files (object_id);
 
 
 CREATE TABLE public_store.timespan_maps
