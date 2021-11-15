@@ -655,26 +655,6 @@ DROP TABLE unsharded_public.auth_user_api_keys;
 
 
 
-
---
--- auth_users_roles_map
---
-
-INSERT INTO public.auth_users_roles_map (
-    -- Primary key is not important
-    auth_users_id,
-    auth_roles_id
-)
-    SELECT
-        auth_users_id::BIGINT,
-        auth_roles_id::BIGINT
-    FROM unsharded_public.auth_users_roles_map;
-
-TRUNCATE unsharded_public.auth_users_roles_map;
-DROP TABLE unsharded_public.auth_users_roles_map;
-
-
-
 --
 -- auth_roles
 --
@@ -707,8 +687,30 @@ SELECT setval(
     false
 );
 
-TRUNCATE unsharded_public.auth_roles;
-DROP TABLE unsharded_public.auth_roles;
+-- Can't drop the unsharded table here because it's referenced in multiple
+-- places, so let's just pretend it doesn't exist at this point
+
+
+
+
+
+
+--
+-- auth_users_roles_map
+--
+
+INSERT INTO public.auth_users_roles_map (
+    -- Primary key is not important
+    auth_users_id,
+    auth_roles_id
+)
+    SELECT
+        auth_users_id::BIGINT,
+        auth_roles_id::BIGINT
+    FROM unsharded_public.auth_users_roles_map;
+
+TRUNCATE unsharded_public.auth_users_roles_map;
+DROP TABLE unsharded_public.auth_users_roles_map;
 
 
 
@@ -1106,6 +1108,1261 @@ DROP TABLE unsharded_public.media_health;
 
 
 --
+-- public_store.timespan_files
+--
+
+INSERT INTO public_store.timespan_files (
+    -- Primary key is not important
+    object_id,
+    raw_data
+)
+    SELECT
+        object_id::BIGINT,
+        raw_data
+    FROM unsharded_public_store.timespan_files;
+
+TRUNCATE unsharded_public_store.timespan_files;
+DROP TABLE unsharded_public_store.timespan_files;
+
+
+
+
+--
+-- public_store.snapshot_files
+--
+
+INSERT INTO public_store.snapshot_files (
+    -- Primary key is not important
+    object_id,
+    raw_data
+)
+    SELECT
+        object_id::BIGINT,
+        raw_data
+    FROM unsharded_public_store.snapshot_files;
+
+TRUNCATE unsharded_public_store.snapshot_files;
+DROP TABLE unsharded_public_store.snapshot_files;
+
+
+
+
+--
+-- public_store.timespan_maps
+--
+
+INSERT INTO public_store.timespan_maps (
+    -- Primary key is not important
+    object_id,
+    raw_data
+)
+    SELECT
+        object_id::BIGINT,
+        raw_data
+    FROM unsharded_public_store.timespan_maps;
+
+TRUNCATE unsharded_public_store.timespan_maps;
+DROP TABLE unsharded_public_store.timespan_maps;
+
+
+
+
+--
+-- raw_downloads
+--
+-- Even though the downloads are not copied at this point, there's no foreign
+-- key from raw_downloads to downloads in the sharded layout, plus the table in
+-- production is very small (although it should have been empty), so we can
+-- just copy it at this point
+--
+
+INSERT INTO public.raw_downloads (
+    -- Primary key is not important
+    object_id,
+    raw_data
+)
+    SELECT
+        object_id::BIGINT,
+        raw_data
+    FROM unsharded_public.raw_downloads;
+
+-- No references in the unsharded schema so safe to drop
+TRUNCATE unsharded_public.raw_downloads;
+DROP TABLE unsharded_public.raw_downloads;
+
+
+
+
+--
+-- topics
+--
+
+-- Don't temporarily drop any indexes as the table is too small
+
+INSERT INTO public.topics (
+    topics_id,
+    name,
+    pattern,
+    solr_seed_query,
+    solr_seed_query_run,
+    description,
+    media_type_tag_sets_id,
+    max_iterations,
+    state,
+    message,
+    is_public,
+    is_logogram,
+    start_date,
+    end_date,
+    respider_stories,
+    respider_start_date,
+    respider_end_date,
+    snapshot_periods,
+    platform,
+    mode,
+    job_queue,
+    max_stories,
+    is_story_index_ready,
+    only_snapshot_engaged_stories
+)
+    SELECT
+        topics_id::BIGINT,
+        name::TEXT,
+        pattern,
+        solr_seed_query,
+        solr_seed_query_run,
+        description,
+        media_type_tag_sets_id::BIGINT,
+        max_iterations::BIGINT,
+        state,
+        message,
+        is_public,
+        is_logogram,
+        start_date,
+        end_date,
+        respider_stories,
+        respider_start_date,
+        respider_end_date,
+        snapshot_periods,
+        platform::TEXT,
+        mode::TEXT,
+        job_queue::TEXT::public.topics_job_queue_type,
+        max_stories::BIGINT,
+        is_story_index_ready,
+        only_snapshot_engaged_stories
+    FROM unsharded_public.topics;
+
+SELECT setval(
+    pg_get_serial_sequence('public.topics', 'topics_id'),
+    nextval(pg_get_serial_sequence('unsharded_public.topics', 'topics_id')),
+    false
+);
+
+-- Can't drop the unsharded table here because it's referenced in multiple
+-- places, so let's just pretend it doesn't exist at this point
+
+
+
+
+--
+-- topic_seed_queries
+--
+
+-- Don't temporarily drop any indexes as the table is too small
+
+INSERT INTO public.topic_seed_queries (
+    topic_seed_queries_id,
+    topics_id,
+    source,
+    platform,
+    query,
+    imported_date,
+    ignore_pattern
+)
+    SELECT
+        topic_seed_queries_id::BIGINT,
+        topics_id::BIGINT,
+        source::TEXT,
+        platform::TEXT,
+        query,
+        imported_date,
+        ignore_pattern
+    FROM unsharded_public.topic_seed_queries;
+
+SELECT setval(
+    pg_get_serial_sequence('public.topic_seed_queries', 'topic_seed_queries_id'),
+    nextval(pg_get_serial_sequence('unsharded_public.topic_seed_queries', 'topic_seed_queries_id')),
+    false
+);
+
+-- Can't drop the unsharded table here because it's referenced in multiple
+-- places, so let's just pretend it doesn't exist at this point
+
+
+
+
+--
+-- topic_dates
+--
+
+-- Don't temporarily drop any indexes as the table is too small
+
+INSERT INTO public.topic_dates (
+    topic_dates_id,
+    topics_id,
+    start_date,
+    end_date,
+    boundary
+)
+    SELECT
+        topic_dates_id::BIGINT,
+        topics_id::BIGINT,
+        start_date,
+        end_date,
+        boundary
+    FROM unsharded_public.topic_dates;
+
+SELECT setval(
+    pg_get_serial_sequence('public.topic_dates', 'topic_dates_id'),
+    nextval(pg_get_serial_sequence('unsharded_public.topic_dates', 'topic_dates_id')),
+    false
+);
+
+TRUNCATE unsharded_public.topic_dates;
+DROP TABLE unsharded_public.topic_dates;
+
+
+
+--
+-- topics_media_map
+--
+
+-- Don't temporarily drop any indexes as the table is too small
+
+INSERT INTO public.topics_media_map (
+    -- Primary key does not exist in the source table
+    topics_id,
+    media_id
+)
+    SELECT
+        topics_id::BIGINT,
+        media_id::BIGINT
+    FROM unsharded_public.topics_media_map;
+
+TRUNCATE unsharded_public.topics_media_map;
+DROP TABLE unsharded_public.topics_media_map;
+
+
+
+
+--
+-- topics_media_tags_map
+--
+
+-- Don't temporarily drop any indexes as the table is too small
+
+INSERT INTO public.topics_media_tags_map (
+    -- Primary key does not exist in the source table
+    topics_id,
+    tags_id
+)
+    SELECT
+        topics_id::BIGINT,
+        tags_id::BIGINT
+    FROM unsharded_public.topics_media_tags_map;
+
+TRUNCATE unsharded_public.topics_media_tags_map;
+DROP TABLE unsharded_public.topics_media_tags_map;
+
+
+
+--
+-- topic_media_codes
+--
+
+-- Don't temporarily drop any indexes as the table is too small
+
+INSERT INTO public.topic_media_codes (
+    -- Primary key does not exist in the source table
+    topics_id,
+    media_id,
+    code_type,
+    code
+)
+    SELECT
+        topics_id::BIGINT,
+        media_id::BIGINT,
+        code_type,
+        code
+    FROM unsharded_public.topic_media_codes;
+
+TRUNCATE unsharded_public.topic_media_codes;
+DROP TABLE unsharded_public.topic_media_codes;
+
+
+
+--
+-- topic_domains
+--
+
+-- Don't temporarily drop any indexes as the table is too small
+
+INSERT INTO public.topic_domains (
+    topic_domains_id,
+    topics_id,
+    domain,
+    self_links
+)
+    SELECT
+        topic_domains_id::BIGINT,
+        topics_id::BIGINT,
+        domain,
+        self_links::BIGINT
+    FROM unsharded_public.topic_domains;
+
+SELECT setval(
+    pg_get_serial_sequence('public.topic_domains', 'topic_domains_id'),
+    nextval(pg_get_serial_sequence('unsharded_public.topic_domains', 'topic_domains_id')),
+    false
+);
+
+TRUNCATE unsharded_public.topic_domains;
+DROP TABLE unsharded_public.topic_domains;
+
+
+
+
+--
+-- topic_dead_links
+--
+-- Foreign key to stories.stories_id is missing so we can just copy it here
+--
+
+-- Drop some indexes to speed up initial insert a little
+DROP INDEX public.topic_dead_links_topics_id;
+DROP INDEX public.topic_dead_links_stories_id;
+
+INSERT INTO public.topic_dead_links (
+    topic_dead_links_id,
+    topics_id,
+    stories_id,
+    url
+)
+    SELECT
+        topic_dead_links_id::BIGINT,
+        topics_id::BIGINT,
+        stories_id::BIGINT,
+        url
+    FROM unsharded_public.topic_dead_links;
+
+SELECT setval(
+    pg_get_serial_sequence('public.topic_dead_links', 'topic_dead_links_id'),
+    nextval(pg_get_serial_sequence('unsharded_public.topic_dead_links', 'topic_dead_links_id')),
+    false
+);
+
+-- Recreate indexes
+CREATE INDEX topic_dead_links_topics_id ON topic_dead_links (topics_id);
+CREATE INDEX topic_dead_links_stories_id ON topic_dead_links (stories_id);
+
+TRUNCATE unsharded_public.topic_dead_links;
+DROP TABLE unsharded_public.topic_dead_links;
+
+
+
+--
+-- topic_ignore_redirects
+--
+
+INSERT INTO public.topic_ignore_redirects (
+    -- Primary key is not important
+    url
+)
+    SELECT
+        url::TEXT
+    FROM unsharded_public.topic_ignore_redirects;
+
+TRUNCATE unsharded_public.topic_ignore_redirects;
+DROP TABLE unsharded_public.topic_ignore_redirects;
+
+
+
+
+--
+-- snapshots
+--
+
+-- Don't temporarily drop any indexes as the table is too small
+
+INSERT INTO public.snapshots (
+    snapshots_id,
+    topics_id,
+    snapshot_date,
+    start_date,
+    end_date,
+    note,
+    state,
+    message,
+    searchable,
+    bot_policy,
+    seed_queries
+)
+    SELECT
+        snapshots_id::BIGINT,
+        topics_id::BIGINT,
+        snapshot_date,
+        start_date,
+        end_date,
+        note,
+        state,
+        message,
+        searchable,
+        bot_policy::TEXT::public.bot_policy_type,
+        seed_queries
+    FROM unsharded_public.snapshots;
+
+SELECT setval(
+    pg_get_serial_sequence('public.snapshots', 'snapshots_id'),
+    nextval(pg_get_serial_sequence('unsharded_public.snapshots', 'snapshots_id')),
+    false
+);
+
+-- Can't drop the unsharded table here because it's referenced in multiple
+-- places, so let's just pretend it doesn't exist at this point
+
+
+
+
+
+--
+-- focal_set_definitions
+--
+
+-- Don't temporarily drop any indexes as the table is too small
+
+INSERT INTO public.focal_set_definitions (
+    focal_set_definitions_id,
+    topics_id,
+    name,
+    description,
+    focal_technique
+)
+    SELECT
+        focal_set_definitions_id::BIGINT,
+        topics_id::BIGINT,
+        name,
+        description,
+        focal_technique::TEXT::public.focal_technique_type
+    FROM unsharded_public.focal_set_definitions;
+
+SELECT setval(
+    pg_get_serial_sequence('public.focal_set_definitions', 'focal_set_definitions_id'),
+    nextval(pg_get_serial_sequence('unsharded_public.focal_set_definitions', 'focal_set_definitions_id')),
+    false
+);
+
+-- Can't drop the unsharded table here because it's referenced in multiple
+-- places, so let's just pretend it doesn't exist at this point
+
+
+
+
+
+--
+-- focus_definitions
+--
+
+-- Don't temporarily drop any indexes as the table is too small
+
+INSERT INTO public.focus_definitions (
+    focus_definitions_id,
+    topics_id,
+    focal_set_definitions_id,
+    name,
+    description,
+    arguments
+)
+    SELECT
+        focus_definitions.focus_definitions_id::BIGINT,
+        focal_set_definitions.topics_id::BIGINT,
+        focus_definitions.focal_set_definitions_id::BIGINT,
+        focus_definitions.name,
+        focus_definitions.description,
+        focus_definitions.arguments::JSONB
+    FROM unsharded_public.focus_definitions AS focus_definitions
+        INNER JOIN unsharded_public.focal_set_definitions AS focal_set_definitions
+            ON focus_definitions.focal_set_definitions_id = focal_set_definitions.focal_set_definitions_id;
+
+SELECT setval(
+    pg_get_serial_sequence('public.focus_definitions', 'focus_definitions_id'),
+    nextval(pg_get_serial_sequence('unsharded_public.focus_definitions', 'focus_definitions_id')),
+    false
+);
+
+TRUNCATE unsharded_public.focus_definitions;
+DROP TABLE unsharded_public.focus_definitions;
+
+
+
+
+
+--
+-- focal_sets
+--
+
+-- Don't temporarily drop any indexes as the table is too small
+
+INSERT INTO public.focal_sets (
+    focal_sets_id,
+    topics_id,
+    snapshots_id,
+    name,
+    description,
+    focal_technique
+)
+    SELECT
+        focal_sets.focal_sets_id::BIGINT,
+        snapshots.topics_id::BIGINT,
+        focal_sets.snapshots_id::BIGINT,
+        focal_sets.name,
+        focal_sets.description,
+        focal_sets.focal_technique::TEXT::public.focal_technique_type
+    FROM unsharded_public.focal_sets AS focal_sets
+        INNER JOIN unsharded_public.snapshots AS snapshots
+            ON focal_sets.snapshots_id = snapshots.snapshots_id;
+
+SELECT setval(
+    pg_get_serial_sequence('public.focal_sets', 'focal_sets_id'),
+    nextval(pg_get_serial_sequence('unsharded_public.focal_sets', 'focal_sets_id')),
+    false
+);
+
+-- Can't drop the unsharded table here because it's referenced in multiple
+-- places, so let's just pretend it doesn't exist at this point
+
+
+
+
+--
+-- foci
+--
+
+-- Don't temporarily drop any indexes as the table is too small
+
+INSERT INTO public.foci (
+    foci_id,
+    topics_id,
+    focal_sets_id,
+    name,
+    description,
+    arguments
+)
+    SELECT
+        foci.foci_id::BIGINT,
+        snapshots.topics_id::BIGINT,
+        foci.focal_sets_id::BIGINT,
+        foci.name,
+        foci.description,
+        foci.arguments::JSONB
+    FROM unsharded_public.foci AS foci
+        INNER JOIN unsharded_public.focal_sets AS focal_sets
+            ON foci.focal_sets_id = focal_sets.focal_sets_id
+        INNER JOIN unsharded_public.snapshots AS snapshots
+            ON focal_sets.snapshots_id = snapshots.snapshots_id;
+
+SELECT setval(
+    pg_get_serial_sequence('public.foci', 'foci_id'),
+    nextval(pg_get_serial_sequence('unsharded_public.foci', 'foci_id')),
+    false
+);
+
+-- Can't drop the unsharded table here because it's referenced in multiple
+-- places, so let's just pretend it doesn't exist at this point
+
+
+
+
+
+
+--
+-- timespans
+--
+
+-- Drop some indexes to speed up initial insert a little
+DROP INDEX public.timespans_topics_id;
+DROP INDEX public.timespans_topics_id_snapshots_id;
+
+INSERT INTO public.timespans (
+    timespans_id,
+    topics_id,
+    snapshots_id,
+    archive_snapshots_id,
+    foci_id,
+    start_date,
+    end_date,
+    period,
+    model_r2_mean,
+    model_r2_stddev,
+    model_num_media,
+    story_count,
+    story_link_count,
+    medium_count,
+    medium_link_count,
+    post_count,
+    tags_id
+)
+    SELECT
+        timespans.timespans_id::BIGINT,
+        snapshots.topics_id::BIGINT,
+        timespans.snapshots_id::BIGINT,
+        timespans.archive_snapshots_id::BIGINT,
+        timespans.foci_id::BIGINT,
+        timespans.start_date,
+        timespans.end_date,
+        timespans.period::TEXT::public.snap_period_type,
+        timespans.model_r2_mean,
+        timespans.model_r2_stddev,
+        timespans.model_num_media::BIGINT,
+        timespans.story_count::BIGINT,
+        timespans.story_link_count::BIGINT,
+        timespans.medium_count::BIGINT,
+        timespans.medium_link_count::BIGINT,
+        timespans.post_count::BIGINT,
+        timespans.tags_id::BIGINT
+    FROM unsharded_public.timespans AS timespans
+        INNER JOIN unsharded_public.snapshots AS snapshots
+            ON timespans.snapshots_id = snapshots.snapshots_id;
+
+SELECT setval(
+    pg_get_serial_sequence('public.timespans', 'timespans_id'),
+    nextval(pg_get_serial_sequence('unsharded_public.timespans', 'timespans_id')),
+    false
+);
+
+-- Recreate indexes
+CREATE INDEX timespans_topics_id ON public.timespans (topics_id);
+CREATE INDEX timespans_topics_id_snapshots_id ON public.timespans (topics_id, snapshots_id);
+
+-- Can't drop the unsharded table here because it's referenced in multiple
+-- places, so let's just pretend it doesn't exist at this point
+
+
+
+
+
+--
+-- timespan_maps
+--
+
+-- Drop some indexes to speed up initial insert a little
+DROP INDEX public.timespan_maps_topics_id;
+DROP INDEX public.timespan_maps_topics_id_timespans_id;
+
+INSERT INTO public.timespan_maps (
+    timespan_maps_id,
+    topics_id,
+    timespans_id,
+    options,
+    content,
+    url,
+    format
+)
+    SELECT
+        timespan_maps.timespan_maps_id::BIGINT,
+        snapshots.topics_id::BIGINT,
+        timespan_maps.timespans_id::BIGINT,
+        timespan_maps.options,
+        timespan_maps.content,
+        timespan_maps.url,
+        timespan_maps.format::TEXT
+    FROM unsharded_public.timespan_maps AS timespan_maps
+        INNER JOIN unsharded_public.timespans AS timespans
+            ON timespan_maps.timespans_id = timespans.timespans_id
+        INNER JOIN unsharded_public.snapshots AS snapshots
+            ON timespans.snapshots_id = snapshots.snapshots_id;
+
+SELECT setval(
+    pg_get_serial_sequence('public.timespan_maps', 'timespan_maps_id'),
+    nextval(pg_get_serial_sequence('unsharded_public.timespan_maps', 'timespan_maps_id')),
+    false
+);
+
+-- Recreate indexes
+CREATE INDEX timespan_maps_topics_id
+    ON public.timespan_maps (topics_id);
+
+CREATE INDEX timespan_maps_topics_id_timespans_id
+    ON public.timespan_maps (topics_id, timespans_id);
+
+TRUNCATE unsharded_public.timespan_maps;
+DROP TABLE unsharded_public.timespan_maps;
+
+
+
+
+
+--
+-- timespan_files
+--
+
+-- Drop some indexes to speed up initial insert a little
+DROP INDEX public.timespan_files_topics_id;
+
+INSERT INTO public.timespan_files (
+    timespan_files_id,
+    topics_id,
+    timespans_id,
+    name,
+    url
+)
+    SELECT
+        timespan_files.timespan_files_id::BIGINT,
+        snapshots.topics_id::BIGINT,
+        timespan_files.timespans_id::BIGINT,
+        timespan_files.name,
+        timespan_files.url
+    FROM unsharded_public.timespan_files AS timespan_files
+        INNER JOIN unsharded_public.timespans AS timespans
+            ON timespan_files.timespans_id = timespans.timespans_id
+        INNER JOIN unsharded_public.snapshots AS snapshots
+            ON timespans.snapshots_id = snapshots.snapshots_id;
+
+SELECT setval(
+    pg_get_serial_sequence('public.timespan_files', 'timespan_files_id'),
+    nextval(pg_get_serial_sequence('unsharded_public.timespan_files', 'timespan_files_id')),
+    false
+);
+
+-- Recreate indexes
+CREATE INDEX timespan_files_topics_id ON public.timespan_files (topics_id);
+
+TRUNCATE unsharded_public.timespan_files;
+DROP TABLE unsharded_public.timespan_files;
+
+
+
+
+
+--
+-- topic_spider_metrics
+--
+
+-- Drop some indexes to speed up initial insert a little
+DROP INDEX topic_spider_metrics_topics_id;
+DROP INDEX topic_spider_metrics_processed_date;
+
+INSERT INTO public.topic_spider_metrics (
+    topic_spider_metrics_id,
+    topics_id,
+    iteration,
+    links_processed,
+    elapsed_time,
+    processed_date
+)
+    SELECT
+        topic_spider_metrics_id::BIGINT,
+        topics_id::BIGINT,
+        iteration::BIGINT,
+        links_processed::BIGINT,
+        elapsed_time::BIGINT,
+        processed_date
+    FROM unsharded_public.topic_spider_metrics;
+
+SELECT setval(
+    pg_get_serial_sequence('public.topic_spider_metrics', 'topic_spider_metrics_id'),
+    nextval(pg_get_serial_sequence('unsharded_public.topic_spider_metrics', 'topic_spider_metrics_id')),
+    false
+);
+
+-- Recreate indexes
+CREATE INDEX topic_spider_metrics_topics_id
+    ON public.topic_spider_metrics (topics_id);
+CREATE INDEX topic_spider_metrics_processed_date
+    ON public.topic_spider_metrics (processed_date);
+
+TRUNCATE unsharded_public.topic_spider_metrics;
+DROP TABLE unsharded_public.topic_spider_metrics;
+
+
+
+
+--
+-- snapshot_files
+--
+
+-- Don't temporarily drop any indexes as the table is too small
+
+INSERT INTO public.snapshot_files (
+    snapshot_files_id,
+    topics_id,
+    snapshots_id,
+    name,
+    url
+)
+    SELECT
+        snapshot_files.snapshot_files_id::BIGINT,
+        snapshots.topics_id::BIGINT,
+        snapshot_files.snapshots_id::BIGINT,
+        snapshot_files.name,
+        snapshot_files.url
+    FROM unsharded_public.snapshot_files AS snapshot_files
+        INNER JOIN unsharded_public.snapshots AS snapshots
+            ON snapshot_files.snapshots_id = snapshots.snapshots_id;
+
+SELECT setval(
+    pg_get_serial_sequence('public.snapshot_files', 'snapshot_files_id'),
+    nextval(pg_get_serial_sequence('unsharded_public.snapshot_files', 'snapshot_files_id')),
+    false
+);
+
+TRUNCATE unsharded_public.snapshot_files;
+DROP TABLE unsharded_public.snapshot_files;
+
+
+
+
+
+--
+-- snap.topic_media_codes
+--
+
+-- Don't temporarily drop any indexes as the table is too small
+
+INSERT INTO snap.topic_media_codes (
+    -- Primary key does not exist in the source table
+    topics_id,
+    snapshots_id,
+    media_id,
+    code_type,
+    code
+)
+    SELECT
+        topics_id::BIGINT,
+        snapshots_id::BIGINT,
+        media_id::BIGINT,
+        code_type,
+        code
+    FROM unsharded_snap.topic_media_codes;
+
+TRUNCATE unsharded_snap.topic_media_codes;
+DROP TABLE unsharded_snap.topic_media_codes;
+
+
+
+
+--
+-- snap.topic_media_codes
+--
+
+-- Drop some indexes to speed up initial insert a little
+DROP INDEX snap.snap_word2vec_models_topics_id;
+DROP INDEX snap.snap_word2vec_models_topics_id_snapshots_id_creation_date;
+
+INSERT INTO snap.word2vec_models (
+    snap_word2vec_models_id,
+    topics_id,
+    snapshots_id,
+    creation_date,
+    raw_data
+)
+    SELECT
+        word2vec_models.word2vec_models_id::BIGINT AS snap_word2vec_models_id,
+        snapshots.topics_id::BIGINT,
+        word2vec_models.object_id::BIGINT AS snapshots_id,
+        word2vec_models.creation_date,
+        word2vec_models_data.raw_data
+    FROM unsharded_snap.word2vec_models AS word2vec_models
+        INNER JOIN unsharded_public.snapshots AS snapshots
+            ON word2vec_models.object_id = snapshots.snapshots_id
+        INNER JOIN unsharded_snap.word2vec_models_data AS word2vec_models_data
+            ON word2vec_models.word2vec_models_id = word2vec_models_data.object_id;
+
+SELECT setval(
+    pg_get_serial_sequence('snap.word2vec_models', 'snap_word2vec_models_id'),
+    nextval(pg_get_serial_sequence('unsharded_snap.word2vec_models', 'word2vec_models_id')),
+    false
+);
+
+-- Recreate indexes
+CREATE INDEX snap_word2vec_models_topics_id
+    ON snap.word2vec_models (topics_id);
+CREATE INDEX snap_word2vec_models_topics_id_snapshots_id_creation_date
+    ON snap.word2vec_models (topics_id, snapshots_id, creation_date);
+
+TRUNCATE unsharded_snap.word2vec_models_data;
+DROP TABLE unsharded_snap.word2vec_models_data;
+TRUNCATE unsharded_snap.word2vec_models;
+DROP TABLE unsharded_snap.word2vec_models;
+
+
+
+
+--
+-- topic_permissions
+--
+
+-- Don't temporarily drop any indexes as the table is too small
+
+INSERT INTO public.topic_permissions (
+    -- Primary key is not important
+    topics_id,
+    auth_users_id,
+    permission
+)
+    SELECT
+        topics_id::BIGINT,
+        auth_users_id::BIGINT,
+        permission::TEXT::public.topic_permission
+    FROM unsharded_public.topic_permissions;
+
+TRUNCATE unsharded_public.topic_permissions;
+DROP TABLE unsharded_public.topic_permissions;
+
+
+
+
+
+
+
+--
+-- topic_post_days
+--
+
+-- Don't temporarily drop any indexes as the table is too small
+
+INSERT INTO public.topic_post_days (
+    topic_post_days_id,
+    topics_id,
+    topic_seed_queries_id,
+    day,
+    num_posts_stored,
+    num_posts_fetched,
+    posts_fetched
+)
+    SELECT
+        topic_post_days.topic_post_days_id::BIGINT,
+        topic_seed_queries.topics_id::BIGINT,
+        topic_post_days.topic_seed_queries_id::BIGINT,
+        topic_post_days.day,
+        topic_post_days.num_posts_stored::BIGINT,
+        topic_post_days.num_posts_fetched::BIGINT,
+        topic_post_days.posts_fetched
+    FROM unsharded_public.topic_post_days AS topic_post_days
+        INNER JOIN unsharded_public.topic_seed_queries AS topic_seed_queries
+            ON topic_post_days.topic_seed_queries_id = topic_seed_queries.topic_seed_queries_id;
+
+SELECT setval(
+    pg_get_serial_sequence('public.topic_post_days', 'topic_post_days_id'),
+    nextval(pg_get_serial_sequence('unsharded_public.topic_post_days', 'topic_post_days_id')),
+    false
+);
+
+-- Can't drop the unsharded table here because it's referenced in multiple
+-- places, so let's just pretend it doesn't exist at this point
+
+
+
+
+--
+-- job_states
+--
+
+-- Drop some indexes to speed up initial insert a little
+DROP INDEX public.job_states_class_last_updated;
+
+INSERT INTO public.job_states (
+    job_states_id,
+    class,
+    state,
+    message,
+    last_updated,
+    args,
+    priority,
+    hostname,
+    process_id
+)
+    SELECT
+        job_states_id::BIGINT,
+        class::TEXT,
+        state::TEXT,
+        message::TEXT,
+        last_updated,
+        args::JSONB,
+        priority,
+        hostname,
+        process_id::BIGINT
+    FROM unsharded_public.job_states;
+
+SELECT setval(
+    pg_get_serial_sequence('public.job_states', 'job_states_id'),
+    nextval(pg_get_serial_sequence('unsharded_public.job_states', 'job_states_id')),
+    false
+);
+
+-- Recreate indexes
+CREATE INDEX job_states_class_last_updated ON public.job_states (class, last_updated);
+
+TRUNCATE unsharded_public.job_states;
+DROP TABLE unsharded_public.job_states;
+
+
+
+
+
+--
+-- retweeter_scores
+--
+
+-- Don't temporarily drop any indexes as the table is too small
+
+INSERT INTO public.retweeter_scores (
+    retweeter_scores_id,
+    topics_id,
+    group_a_id,
+    group_b_id,
+    name,
+    state,
+    message,
+    num_partitions,
+    match_type
+)
+    SELECT
+        retweeter_scores_id::BIGINT,
+        topics_id::BIGINT,
+        group_a_id::BIGINT,
+        group_b_id::BIGINT,
+        name,
+        state,
+        message,
+        num_partitions::BIGINT,
+        match_type::TEXT::public.retweeter_scores_match_type
+    FROM unsharded_public.retweeter_scores;
+
+SELECT setval(
+    pg_get_serial_sequence('public.retweeter_scores', 'retweeter_scores_id'),
+    nextval(pg_get_serial_sequence('unsharded_public.retweeter_scores', 'retweeter_scores_id')),
+    false
+);
+
+-- Can't drop the unsharded table here because it's referenced in multiple
+-- places, so let's just pretend it doesn't exist at this point
+
+
+
+--
+-- retweeter_groups
+--
+
+-- Don't temporarily drop any indexes as the table is too small
+
+INSERT INTO public.retweeter_groups (
+    retweeter_groups_id,
+    topics_id,
+    retweeter_scores_id,
+    name
+)
+    SELECT
+        retweeter_groups.retweeter_groups_id::BIGINT,
+        retweeter_scores.topics_id::BIGINT,
+        retweeter_groups.retweeter_scores_id::BIGINT,
+        retweeter_groups.name
+    FROM unsharded_public.retweeter_groups AS retweeter_groups
+        INNER JOIN unsharded_public.retweeter_scores AS retweeter_scores
+            ON retweeter_groups.retweeter_scores_id = retweeter_scores.retweeter_scores_id;
+
+SELECT setval(
+    pg_get_serial_sequence('public.retweeter_groups', 'retweeter_groups_id'),
+    nextval(pg_get_serial_sequence('unsharded_public.retweeter_groups', 'retweeter_groups_id')),
+    false
+);
+
+-- Can't drop the unsharded table here because it's referenced in multiple
+-- places, so let's just pretend it doesn't exist at this point
+
+
+
+
+
+--
+-- retweeters
+--
+
+-- Don't temporarily drop any indexes as the table is too small
+
+INSERT INTO public.retweeters (
+    retweeters_id,
+    topics_id,
+    retweeter_scores_id,
+    twitter_user,
+    retweeted_user
+)
+    SELECT
+        retweeters.retweeters_id::BIGINT,
+        retweeter_scores.topics_id::BIGINT,
+        retweeters.retweeter_scores_id::BIGINT,
+        retweeters.twitter_user::TEXT,
+        retweeters.retweeted_user::TEXT
+    FROM unsharded_public.retweeters AS retweeters
+        INNER JOIN unsharded_public.retweeter_scores AS retweeter_scores
+            ON retweeters.retweeter_scores_id = retweeter_scores.retweeter_scores_id;
+
+SELECT setval(
+    pg_get_serial_sequence('public.retweeters', 'retweeters_id'),
+    nextval(pg_get_serial_sequence('unsharded_public.retweeters', 'retweeters_id')),
+    false
+);
+
+-- Can't drop the unsharded table here because it's referenced in multiple
+-- places, so let's just pretend it doesn't exist at this point
+
+
+
+--
+-- retweeter_groups_users_map
+--
+
+-- Don't temporarily drop any indexes as the table is too small
+
+INSERT INTO public.retweeter_groups_users_map (
+    -- Primary key does not exist in the source table
+    topics_id,
+    retweeter_groups_id,
+    retweeter_scores_id,
+    retweeted_user
+)
+    SELECT
+        retweeter_scores.topics_id::BIGINT,
+        retweeter_groups_users_map.retweeter_groups_id::BIGINT,
+        retweeter_groups_users_map.retweeter_scores_id::BIGINT,
+        retweeter_groups_users_map.retweeted_user::TEXT
+    FROM unsharded_public.retweeter_groups_users_map AS retweeter_groups_users_map
+        INNER JOIN unsharded_public.retweeter_scores AS retweeter_scores
+            ON retweeter_groups_users_map.retweeter_scores_id = retweeter_scores.retweeter_scores_id;
+
+TRUNCATE unsharded_public.retweeter_groups_users_map;
+DROP TABLE unsharded_public.retweeter_groups_users_map;
+
+
+
+
+--
+-- retweeter_stories
+--
+
+-- Don't temporarily drop any indexes as the table is too small
+
+INSERT INTO public.retweeter_stories (
+    -- Primary key is not important
+    -- (and has a typo in the source table anyway)
+    topics_id,
+    retweeter_scores_id,
+    stories_id,
+    retweeted_user,
+    share_count
+)
+    SELECT
+        retweeter_scores.topics_id::BIGINT,
+        retweeter_stories.retweeter_scores_id::BIGINT,
+        retweeter_stories.stories_id::BIGINT,
+        retweeter_stories.retweeted_user::TEXT,
+        retweeter_stories.share_count::BIGINT
+    FROM unsharded_public.retweeter_stories AS retweeter_stories
+        INNER JOIN unsharded_public.retweeter_scores AS retweeter_scores
+            ON retweeter_stories.retweeter_scores_id = retweeter_scores.retweeter_scores_id;
+
+TRUNCATE unsharded_public.retweeter_stories;
+DROP TABLE unsharded_public.retweeter_stories;
+
+
+
+
+
+--
+-- retweeter_media
+--
+
+-- Don't temporarily drop any indexes as the table is too small
+
+INSERT INTO public.retweeter_media (
+    retweeter_media_id,
+    topics_id,
+    retweeter_scores_id,
+    media_id,
+    group_a_count,
+    group_b_count,
+    group_a_count_n,
+    score,
+    partition
+)
+    SELECT
+        retweeter_media.retweeter_media_id::BIGINT,
+        retweeter_scores.topics_id::BIGINT,
+        retweeter_media.retweeter_scores_id::BIGINT,
+        retweeter_media.media_id::BIGINT,
+        retweeter_media.group_a_count::BIGINT,
+        retweeter_media.group_b_count::BIGINT,
+        retweeter_media.group_a_count_n,
+        retweeter_media.score,
+        retweeter_media.partition::BIGINT
+    FROM unsharded_public.retweeter_media AS retweeter_media
+        INNER JOIN unsharded_public.retweeter_scores AS retweeter_scores
+            ON retweeter_media.retweeter_scores_id = retweeter_scores.retweeter_scores_id;
+
+SELECT setval(
+    pg_get_serial_sequence('public.retweeter_media', 'retweeter_media_id'),
+    nextval(pg_get_serial_sequence('unsharded_public.retweeter_media', 'retweeter_media_id')),
+    false
+);
+
+TRUNCATE unsharded_public.retweeter_media;
+DROP TABLE unsharded_public.retweeter_media;
+
+
+
+
+--
+-- retweeter_partition_matrix
+--
+
+-- Don't temporarily drop any indexes as the table is too small
+
+INSERT INTO public.retweeter_partition_matrix (
+    retweeter_partition_matrix_id,
+    topics_id,
+    retweeter_scores_id,
+    retweeter_groups_id,
+    group_name,
+    share_count,
+    group_proportion,
+    partition
+)
+    SELECT
+        retweeter_partition_matrix.retweeter_partition_matrix_id,
+        retweeter_scores.topics_id::BIGINT,
+        retweeter_partition_matrix.retweeter_scores_id,
+        retweeter_partition_matrix.retweeter_groups_id,
+        retweeter_partition_matrix.group_name,
+        retweeter_partition_matrix.share_count,
+        retweeter_partition_matrix.group_proportion,
+        retweeter_partition_matrix.partition
+    FROM unsharded_public.retweeter_partition_matrix AS retweeter_partition_matrix
+        INNER JOIN unsharded_public.retweeter_scores AS retweeter_scores
+            ON retweeter_partition_matrix.retweeter_scores_id = retweeter_scores.retweeter_scores_id;
+
+SELECT setval(
+    pg_get_serial_sequence('public.retweeter_partition_matrix', 'retweeter_partition_matrix_id'),
+    nextval(pg_get_serial_sequence('unsharded_public.retweeter_partition_matrix', 'retweeter_partition_matrix_id')),
+    false
+);
+
+TRUNCATE unsharded_public.retweeter_partition_matrix;
+DROP TABLE unsharded_public.retweeter_partition_matrix;
+
+
+
+
+
+--
 -- celery_groups
 --
 
@@ -1150,6 +2407,8 @@ DROP TABLE unsharded_cache.extractor_results_cache;
 -- Nothing worth preserving in this table too
 TRUNCATE unsharded_public.domain_web_requests;
 DROP TABLE unsharded_public.domain_web_requests;
+
+
 
 
 
@@ -1338,7 +2597,9 @@ DROP TRIGGER downloads_error_test_referenced_download_trigger ON unsharded_publi
 DROP TRIGGER downloads_feed_error_test_referenced_download_trigger ON unsharded_public.downloads_feed_error;
 DROP TRIGGER downloads_fetching_test_referenced_download_trigger ON unsharded_public.downloads_fetching;
 DROP TRIGGER downloads_pending_test_referenced_download_trigger ON unsharded_public.downloads_pending;
-DROP TRIGGER raw_downloads_test_referenced_download_trigger ON unsharded_public.raw_downloads;
+
+-- Table is gone so no need to drop the trigger
+-- DROP TRIGGER raw_downloads_test_referenced_download_trigger ON unsharded_public.raw_downloads;
 
 DO $$
 DECLARE
@@ -1372,7 +2633,12 @@ DROP FUNCTION unsharded_public.test_referenced_download_trigger();
 DROP TRIGGER feeds_stories_map_p_insert_trigger ON unsharded_public.feeds_stories_map_p;
 DROP FUNCTION unsharded_public.feeds_stories_map_p_insert_trigger();
 
+DROP TRIGGER stories_add_normalized_title ON unsharded_public.stories;
+DROP FUNCTION unsharded_public.add_normalized_title_hash();
+
 DROP TRIGGER stories_insert_solr_import_story ON unsharded_public.stories;
 DROP TRIGGER stories_tags_map_p_insert_solr_import_story ON unsharded_public.stories_tags_map_p;
 DROP TRIGGER ps_insert_solr_import_story ON unsharded_public.processed_stories;
 DROP FUNCTION unsharded_public.insert_solr_import_story();
+
+DROP FUNCTION unsharded_public.feeds_stories_map_view_insert_update_delete();
