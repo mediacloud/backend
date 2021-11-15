@@ -61,12 +61,8 @@ DROP SEQUENCE unsharded_public.task_id_sequence;
 
 
 
-
-
-
-
 --
--- MOVE ALL ROWS FOR SMALL TABLES
+-- MOVE ALL ROWS OF SMALL TABLES
 --
 
 
@@ -111,7 +107,7 @@ INSERT INTO public.color_sets (
     FROM unsharded_public.color_sets
 
 -- Previous migration pre-inserted a bunch of color sets that are already
--- present in the unsharded table
+-- present in the sharded table
 ON CONFLICT (color_set, id) DO NOTHING;
 
 SELECT setval(
@@ -143,8 +139,14 @@ DROP TABLE unsharded_public.queued_downloads;
 --
 
 -- "unsharded_public.topic_modes" and "public.topic_modes" are
--- identical; can't drop the unsharded table here because it's referenced in
--- multiple places, so let's just pretend it doesn't exist at this point
+-- identical
+
+-- Drop foreign keys that point to the table
+ALTER TABLE unsharded_public.topics
+    DROP CONSTRAINT topics_mode_fkey;
+
+TRUNCATE unsharded_public.topic_modes;
+DROP TABLE unsharded_public.topic_modes;
 
 
 --
@@ -152,8 +154,19 @@ DROP TABLE unsharded_public.queued_downloads;
 --
 
 -- "unsharded_public.topic_platforms" and "public.topic_platforms" are
--- identical; can't drop the unsharded table here because it's referenced in
--- multiple places, so let's just pretend it doesn't exist at this point
+-- identical
+
+-- Drop foreign keys that point to the table
+ALTER TABLE unsharded_public.topic_platforms_sources_map
+    DROP CONSTRAINT topic_platforms_sources_map_topic_platforms_id_fkey;
+ALTER TABLE unsharded_public.topic_seed_queries
+    DROP CONSTRAINT topic_seed_queries_platform_fkey;
+ALTER TABLE unsharded_public.topics
+    DROP CONSTRAINT topics_platform_fkey;
+
+TRUNCATE unsharded_public.topic_platforms;
+DROP TABLE unsharded_public.topic_platforms;
+
 
 
 
@@ -162,9 +175,16 @@ DROP TABLE unsharded_public.queued_downloads;
 --
 
 -- "unsharded_public.topic_sources" and "public.topic_sources" are
--- identical; can't drop the unsharded table here because it's referenced in
--- multiple places, so let's just pretend it doesn't exist at this point
+-- identical
 
+-- Drop foreign keys that point to the table
+ALTER TABLE unsharded_public.topic_platforms_sources_map
+    DROP CONSTRAINT topic_platforms_sources_map_topic_sources_id_fkey;
+ALTER TABLE unsharded_public.topic_seed_queries
+    DROP CONSTRAINT topic_seed_queries_source_fkey;
+
+TRUNCATE unsharded_public.topic_sources;
+DROP TABLE unsharded_public.topic_sources;
 
 
 
@@ -172,9 +192,11 @@ DROP TABLE unsharded_public.queued_downloads;
 -- topic_platforms_sources_map
 --
 
--- "unsharded_public.topic_platforms_sources_map" and "public.topic_platforms_sources_map" are
--- identical; can't drop the unsharded table here because it's referenced in
--- multiple places, so let's just pretend it doesn't exist at this point
+-- "unsharded_public.topic_platforms_sources_map" and
+-- "public.topic_platforms_sources_map" are identical
+
+TRUNCATE unsharded_public.topic_platforms_sources_map;
+DROP TABLE unsharded_public.topic_platforms_sources_map;
 
 
 
@@ -245,8 +267,70 @@ SELECT run_on_shards_or_raise('media', $cmd$
 
     $cmd$);
 
--- Can't drop the unsharded table here because it's referenced in multiple
--- places, so let's just pretend it doesn't exist at this point
+-- Drop foreign keys that point to the table
+ALTER TABLE unsharded_public.topic_media_codes
+    -- That's how it's called in production
+    DROP CONSTRAINT IF EXISTS controversy_media_codes_media_id_fkey;
+ALTER TABLE unsharded_public.topic_media_codes
+    DROP CONSTRAINT IF EXISTS topic_media_codes_media_id_fkey;
+ALTER TABLE unsharded_public.feeds
+    DROP CONSTRAINT feeds_media_id_fkey;
+ALTER TABLE unsharded_public.feeds_after_rescraping
+    DROP CONSTRAINT feeds_after_rescraping_media_id_fkey;
+ALTER TABLE unsharded_public.media_coverage_gaps
+    DROP CONSTRAINT media_coverage_gaps_media_id_fkey;
+ALTER TABLE unsharded_public.media
+    DROP CONSTRAINT media_dup_media_id_fkey;
+ALTER TABLE unsharded_public.media_health
+    -- Doesn't exist in production
+    DROP CONSTRAINT IF EXISTS media_health_media_id_fkey;
+ALTER TABLE unsharded_public.media_expected_volume
+    -- Doesn't exist in production
+    DROP CONSTRAINT IF EXISTS media_expected_volume_media_id_fkey;
+ALTER TABLE unsharded_public.media_rescraping
+    DROP CONSTRAINT media_rescraping_media_id_fkey;
+ALTER TABLE unsharded_public.media_stats
+    DROP CONSTRAINT media_stats_media_id_fkey;
+ALTER TABLE unsharded_public.media_stats_weekly
+    -- Doesn't exist in production
+    DROP CONSTRAINT IF EXISTS media_stats_weekly_media_id_fkey;
+ALTER TABLE unsharded_public.media_suggestions
+    DROP CONSTRAINT media_suggestions_media_id_fkey;
+ALTER TABLE unsharded_public.media_tags_map
+    DROP CONSTRAINT media_tags_map_media_id_fkey;
+ALTER TABLE unsharded_public.retweeter_media
+    DROP CONSTRAINT retweeter_media_media_id_fkey;
+ALTER TABLE unsharded_public.stories
+    DROP CONSTRAINT stories_media_id_fkey;
+ALTER TABLE unsharded_public.topics_media_map
+    DROP CONSTRAINT topics_media_map_media_id_fkey;
+
+DO $$
+DECLARE
+
+    tables CURSOR FOR
+        SELECT tablename
+        FROM pg_tables
+        WHERE
+            schemaname = 'unsharded_public' AND
+            tablename LIKE 'story_sentences_p_%'
+        ORDER BY tablename;
+
+BEGIN
+    FOR table_record IN tables LOOP
+
+        EXECUTE '
+            ALTER TABLE unsharded_public.' || table_record.tablename || '
+                DROP CONSTRAINT ' || table_record.tablename || '_media_id_fkey
+        ';
+
+    END LOOP;
+END
+$$;
+
+TRUNCATE unsharded_public.media;
+DROP TABLE unsharded_public.media;
+
 
 
 --
@@ -268,12 +352,12 @@ INSERT INTO public.media_rescraping (
         last_rescrape_time
     FROM unsharded_public.media_rescraping;
 
-TRUNCATE unsharded_public.media_rescraping;
-DROP TABLE unsharded_public.media_rescraping;
-
 -- Recreate indexes
 CREATE INDEX media_rescraping_last_rescrape_time
     ON public.media_rescraping (last_rescrape_time);
+
+TRUNCATE unsharded_public.media_rescraping;
+DROP TABLE unsharded_public.media_rescraping;
 
 
 
@@ -324,8 +408,39 @@ CREATE INDEX feeds_name ON public.feeds (name);
 CREATE INDEX feeds_last_attempted_download_time ON public.feeds (last_attempted_download_time);
 CREATE INDEX feeds_last_successful_download_time ON public.feeds (last_successful_download_time);
 
--- Can't drop the unsharded table here because it's referenced in multiple
--- places, so let's just pretend it doesn't exist at this point
+-- Drop foreign keys that point to the table
+ALTER TABLE unsharded_public.downloads
+    DROP CONSTRAINT downloads_feeds_id_fkey;
+ALTER TABLE unsharded_public.feeds_tags_map
+    DROP CONSTRAINT feeds_tags_map_feeds_id_fkey;
+ALTER TABLE unsharded_public.scraped_feeds
+    DROP CONSTRAINT scraped_feeds_feeds_id_fkey;
+
+DO $$
+DECLARE
+
+    tables CURSOR FOR
+        SELECT tablename
+        FROM pg_tables
+        WHERE
+            schemaname = 'unsharded_public' AND
+            tablename LIKE 'feeds_stories_map_p_%'
+        ORDER BY tablename;
+
+BEGIN
+    FOR table_record IN tables LOOP
+
+        EXECUTE '
+            ALTER TABLE unsharded_public.' || table_record.tablename || '
+                DROP CONSTRAINT ' || table_record.tablename || '_feeds_id_fkey
+        ';
+
+    END LOOP;
+END
+$$;
+
+TRUNCATE unsharded_public.feeds;
+DROP TABLE unsharded_public.feeds;
 
 
 
@@ -381,8 +496,8 @@ INSERT INTO public.tag_sets (
         show_on_media,
         show_on_stories
     FROM unsharded_public.tag_sets
--- Previous migration pre-inserted a bunch of color sets that are already
--- present in the unsharded table
+-- Previous migration pre-inserted a bunch of tag sets that are already
+-- present in the sharded table
 ON CONFLICT (name) DO NOTHING;
 
 SELECT setval(
@@ -391,10 +506,16 @@ SELECT setval(
     false
 );
 
--- Can't drop the unsharded table here because it's referenced in multiple
--- places, so let's just pretend it doesn't exist at this point
+-- Drop foreign keys that point to the table
+ALTER TABLE unsharded_public.auth_users_tag_sets_permissions
+    DROP CONSTRAINT auth_users_tag_sets_permissions_tag_sets_id_fkey;
+ALTER TABLE unsharded_public.tags
+    DROP CONSTRAINT tags_tag_sets_id_fkey;
+ALTER TABLE unsharded_public.topics
+    DROP CONSTRAINT topics_media_type_tag_sets_id_fkey;
 
-
+TRUNCATE unsharded_public.tag_sets;
+DROP TABLE unsharded_public.tag_sets;
 
 
 
@@ -445,16 +566,51 @@ CREATE INDEX tags_fts ON public.tags USING GIN (to_tsvector('english'::regconfig
 CREATE INDEX tags_show_on_media ON public.tags USING HASH (show_on_media);
 CREATE INDEX tags_show_on_stories ON public.tags USING HASH (show_on_stories);
 
--- Can't drop the unsharded table here because it's referenced in multiple
--- places, so let's just pretend it doesn't exist at this point
+-- Drop foreign keys that point to the table
+ALTER TABLE unsharded_public.timespans
+    DROP CONSTRAINT timespans_tags_id_fkey;
+ALTER TABLE unsharded_public.feeds_tags_map
+    DROP CONSTRAINT feeds_tags_map_tags_id_fkey;
+ALTER TABLE unsharded_public.media_suggestions_tags_map
+    DROP CONSTRAINT media_suggestions_tags_map_tags_id_fkey;
+ALTER TABLE unsharded_public.media_tags_map
+    DROP CONSTRAINT media_tags_map_tags_id_fkey;
+ALTER TABLE unsharded_public.topics_media_tags_map
+    DROP CONSTRAINT topics_media_tags_map_tags_id_fkey;
 
+DO $$
+DECLARE
 
+    tables CURSOR FOR
+        SELECT tablename
+        FROM pg_tables
+        WHERE
+            schemaname = 'unsharded_public' AND
+            tablename LIKE 'stories_tags_map_p_%'
+        ORDER BY tablename;
+
+BEGIN
+    FOR table_record IN tables LOOP
+
+        EXECUTE '
+            ALTER TABLE unsharded_public.' || table_record.tablename || '
+                DROP CONSTRAINT ' || table_record.tablename || '_tags_id_fkey
+        ';
+
+    END LOOP;
+END
+$$;
+
+TRUNCATE unsharded_public.tags;
+DROP TABLE unsharded_public.tags;
 
 
 
 --
 -- feeds_tags_map
 --
+
+-- Don't temporarily drop any indexes as the table is too small
 
 INSERT INTO public.feeds_tags_map (
     -- Primary key is not important
@@ -466,7 +622,6 @@ INSERT INTO public.feeds_tags_map (
         tags_id::BIGINT
     FROM unsharded_public.feeds_tags_map;
 
--- "feeds" and "tags" are already copied so we no longer need the unsharded table
 TRUNCATE unsharded_public.feeds_tags_map;
 DROP TABLE unsharded_public.feeds_tags_map;
 
@@ -476,6 +631,10 @@ DROP TABLE unsharded_public.feeds_tags_map;
 --
 -- media_tags_map
 --
+
+-- Drop some indexes to speed up initial insert a little
+DROP INDEX public.media_tags_map_media_id;
+DROP INDEX public.media_tags_map_tags_id;
 
 INSERT INTO public.media_tags_map (
     -- Primary key is not important
@@ -489,10 +648,12 @@ INSERT INTO public.media_tags_map (
         tagged_date
     FROM unsharded_public.media_tags_map;
 
--- "media" and "tags" are already copied so we no longer need the unsharded table
+-- Recreate indexes
+CREATE INDEX media_tags_map_media_id ON public.media_tags_map (media_id);
+CREATE INDEX media_tags_map_tags_id ON public.media_tags_map (tags_id);
+
 TRUNCATE unsharded_public.media_tags_map;
 DROP TABLE unsharded_public.media_tags_map;
-
 
 
 
@@ -625,10 +786,30 @@ SELECT run_on_shards_or_raise('auth_users', $cmd$
 
     $cmd$);
 
--- Can't drop the unsharded table here because it's referenced in multiple
--- places, so let's just pretend it doesn't exist at this point
+-- Drop foreign keys that point to the table
+ALTER TABLE unsharded_public.auth_user_api_keys
+    -- Only exists in production
+    DROP CONSTRAINT IF EXISTS auth_user_ip_tokens_auth_users_id_fkey;
+ALTER TABLE unsharded_public.auth_user_api_keys
+    DROP CONSTRAINT IF EXISTS auth_user_api_keys_auth_users_id_fkey;
+ALTER TABLE unsharded_public.auth_user_limits
+    DROP CONSTRAINT auth_user_limits_auth_users_id_fkey;
+ALTER TABLE unsharded_public.auth_users_roles_map
+    -- Only exists in production
+    DROP CONSTRAINT IF EXISTS auth_users_roles_map_users_id_fkey;
+ALTER TABLE unsharded_public.auth_users_roles_map
+    DROP CONSTRAINT IF EXISTS auth_users_roles_map_auth_users_id_fkey;
+ALTER TABLE unsharded_public.auth_users_tag_sets_permissions
+    DROP CONSTRAINT auth_users_tag_sets_permissions_auth_users_id_fkey;
+ALTER TABLE unsharded_public.media_suggestions
+    DROP CONSTRAINT media_suggestions_auth_users_id_fkey;
+ALTER TABLE unsharded_public.media_suggestions
+    DROP CONSTRAINT media_suggestions_mark_auth_users_id_fkey;
+ALTER TABLE unsharded_public.topic_permissions
+    DROP CONSTRAINT topic_permissions_auth_users_id_fkey;
 
-
+TRUNCATE unsharded_public.auth_users;
+DROP TABLE unsharded_public.auth_users;
 
 
 
@@ -687,10 +868,15 @@ SELECT setval(
     false
 );
 
--- Can't drop the unsharded table here because it's referenced in multiple
--- places, so let's just pretend it doesn't exist at this point
+-- Drop foreign keys that point to the table
+ALTER TABLE unsharded_public.auth_users_roles_map
+    -- Only exists in production
+    DROP CONSTRAINT IF EXISTS auth_users_roles_map_roles_id_fkey;
+ALTER TABLE unsharded_public.auth_users_roles_map
+    DROP CONSTRAINT IF EXISTS auth_users_roles_map_auth_roles_id_fkey;
 
-
+TRUNCATE unsharded_public.auth_roles;
+DROP TABLE unsharded_public.auth_roles;
 
 
 
@@ -1258,8 +1444,55 @@ SELECT setval(
     false
 );
 
--- Can't drop the unsharded table here because it's referenced in multiple
--- places, so let's just pretend it doesn't exist at this point
+-- Drop foreign keys that point to the table
+ALTER TABLE unsharded_public.focal_set_definitions
+    DROP CONSTRAINT focal_set_definitions_topics_id_fkey;
+ALTER TABLE unsharded_public.retweeter_scores
+    DROP CONSTRAINT retweeter_scores_topics_id_fkey;
+ALTER TABLE unsharded_public.snapshots
+    -- Exists only on production
+    DROP CONSTRAINT IF EXISTS controversy_dumps_controversies_id_fkey;
+ALTER TABLE unsharded_public.snapshots
+    DROP CONSTRAINT IF EXISTS snapshots_topics_id_fkey;
+ALTER TABLE unsharded_public.topic_dates
+    -- Exists only in production
+    DROP CONSTRAINT IF EXISTS controversy_dates_controversies_id_fkey;
+ALTER TABLE unsharded_public.topic_dates
+    DROP CONSTRAINT IF EXISTS topic_dates_topics_id_fkey;
+ALTER TABLE unsharded_public.topic_fetch_urls
+    DROP CONSTRAINT topic_fetch_urls_topics_id_fkey;
+ALTER TABLE unsharded_public.topic_media_codes
+    -- Exists only in production
+    DROP CONSTRAINT IF EXISTS controversy_media_codes_controversies_id_fkey;
+ALTER TABLE unsharded_public.topic_media_codes
+    DROP CONSTRAINT IF EXISTS topic_media_codes_topics_id_fkey;
+ALTER TABLE unsharded_public.topic_permissions
+    DROP CONSTRAINT topic_permissions_topics_id_fkey;
+ALTER TABLE unsharded_public.topic_query_story_searches_imported_stories_map
+    DROP CONSTRAINT topic_query_story_searches_imported_stories_map_topics_id_fkey;
+ALTER TABLE unsharded_public.topic_seed_queries
+    DROP CONSTRAINT topic_seed_queries_topics_id_fkey;
+ALTER TABLE unsharded_public.topic_seed_urls
+    -- Exists only in production
+    DROP CONSTRAINT IF EXISTS controversy_seed_urls_controversies_id_fkey;
+ALTER TABLE unsharded_public.topic_seed_urls
+    DROP CONSTRAINT topic_seed_urls_topics_id_fkey;
+ALTER TABLE unsharded_public.topic_spider_metrics
+    DROP CONSTRAINT topic_spider_metrics_topics_id_fkey;
+ALTER TABLE unsharded_public.topic_stories
+    -- Exists only in production
+    DROP CONSTRAINT IF EXISTS controversy_stories_controversies_id_fkey;
+ALTER TABLE unsharded_public.topic_stories
+    DROP CONSTRAINT topic_stories_topics_id_fkey;
+ALTER TABLE unsharded_public.topics_media_map
+    DROP CONSTRAINT topics_media_map_topics_id_fkey;
+ALTER TABLE unsharded_public.topics_media_tags_map
+    DROP CONSTRAINT topics_media_tags_map_topics_id_fkey;
+ALTER TABLE unsharded_snap.live_stories
+    DROP CONSTRAINT live_stories_topics_id_fkey;
+
+TRUNCATE unsharded_public.topics;
+DROP TABLE unsharded_public.topics;
 
 
 
@@ -1295,9 +1528,17 @@ SELECT setval(
     false
 );
 
--- Can't drop the unsharded table here because it's referenced in multiple
--- places, so let's just pretend it doesn't exist at this point
+-- Drop foreign keys that point to the table
+ALTER TABLE unsharded_public.topic_post_days
+    DROP CONSTRAINT topic_post_days_topic_seed_queries_id_fkey;
+ALTER TABLE unsharded_public.topic_seed_urls
+    -- Exists only on production
+    DROP CONSTRAINT IF EXISTS topic_seed_urls_query;
+ALTER TABLE unsharded_public.topic_seed_urls
+    DROP CONSTRAINT topic_seed_urls_topic_seed_queries_id_fkey;
 
+TRUNCATE unsharded_public.topic_seed_queries;
+DROP TABLE unsharded_public.topic_seed_queries;
 
 
 
@@ -1527,9 +1768,60 @@ SELECT setval(
     false
 );
 
--- Can't drop the unsharded table here because it's referenced in multiple
--- places, so let's just pretend it doesn't exist at this point
+-- Drop foreign keys that point to the table
+ALTER TABLE unsharded_public.focal_sets
+    DROP CONSTRAINT focal_sets_snapshots_id_fkey;
+ALTER TABLE unsharded_public.snapshot_files
+    DROP CONSTRAINT snapshot_files_snapshots_id_fkey;
+ALTER TABLE unsharded_public.timespans
+    -- Exists only on production
+    DROP CONSTRAINT IF EXISTS controversy_dump_time_slices_controversy_dumps_id_fkey;
+ALTER TABLE unsharded_public.timespans
+    DROP CONSTRAINT IF EXISTS timespans_snapshots_id_fkey;
+ALTER TABLE unsharded_public.timespans
+    DROP CONSTRAINT timespans_archive_snapshots_id_fkey;
+ALTER TABLE unsharded_snap.media
+    -- Exists only on production
+    DROP CONSTRAINT IF EXISTS media_controversy_dumps_id_fkey;
+ALTER TABLE unsharded_snap.media
+    DROP CONSTRAINT IF EXISTS media_snapshots_id_fkey;
+ALTER TABLE unsharded_snap.media_tags_map
+    -- Exists only on production
+    DROP CONSTRAINT IF EXISTS media_tags_map_controversy_dumps_id_fkey;
+ALTER TABLE unsharded_snap.media_tags_map
+    DROP CONSTRAINT IF EXISTS media_tags_map_snapshots_id_fkey;
+ALTER TABLE unsharded_snap.stories
+    -- Exists only on production
+    DROP CONSTRAINT IF EXISTS stories_controversy_dumps_id_fkey;
+ALTER TABLE unsharded_snap.stories
+    DROP CONSTRAINT IF EXISTS stories_snapshots_id_fkey;
+ALTER TABLE unsharded_snap.stories_tags_map
+    -- Exists only on production
+    DROP CONSTRAINT IF EXISTS stories_tags_map_controversy_dumps_id_fkey;
+ALTER TABLE unsharded_snap.stories_tags_map
+    DROP CONSTRAINT IF EXISTS stories_tags_map_snapshots_id_fkey;
+ALTER TABLE unsharded_snap.topic_links_cross_media
+    -- Exists only on production
+    DROP CONSTRAINT IF EXISTS controversy_links_cross_media_controversy_dumps_id_fkey;
+ALTER TABLE unsharded_snap.topic_links_cross_media
+    DROP CONSTRAINT topic_links_cross_media_snapshots_id_fkey;
+ALTER TABLE unsharded_snap.topic_media_codes
+    -- Exists only on production
+    DROP CONSTRAINT IF EXISTS controversy_media_codes_controversy_dumps_id_fkey;
+ALTER TABLE unsharded_snap.topic_media_codes
+    -- Exists only on production
+    DROP CONSTRAINT IF EXISTS topic_media_codes_snapshots_id_fkey;
+ALTER TABLE unsharded_snap.topic_stories
+    -- Exists only on production
+    DROP CONSTRAINT IF EXISTS controversy_stories_controversy_dumps_id_fkey;
+ALTER TABLE unsharded_snap.topic_stories
+    DROP CONSTRAINT topic_stories_snapshots_id_fkey;
+ALTER TABLE unsharded_snap.word2vec_models
+    DROP CONSTRAINT word2vec_models_object_id_fkey;
 
+
+TRUNCATE unsharded_public.snapshots;
+DROP TABLE unsharded_public.snapshots;
 
 
 
@@ -1561,8 +1853,12 @@ SELECT setval(
     false
 );
 
--- Can't drop the unsharded table here because it's referenced in multiple
--- places, so let's just pretend it doesn't exist at this point
+-- Drop foreign keys that point to the table
+ALTER TABLE unsharded_public.focus_definitions
+    DROP CONSTRAINT focus_definitions_focal_set_definitions_id_fkey;
+
+TRUNCATE unsharded_public.focal_set_definitions;
+DROP TABLE unsharded_public.focal_set_definitions;
 
 
 
@@ -1590,7 +1886,8 @@ INSERT INTO public.focus_definitions (
         focus_definitions.description,
         focus_definitions.arguments::JSONB
     FROM unsharded_public.focus_definitions AS focus_definitions
-        INNER JOIN unsharded_public.focal_set_definitions AS focal_set_definitions
+        -- Join the sharded table that we have just copied
+        INNER JOIN public.focal_set_definitions AS focal_set_definitions
             ON focus_definitions.focal_set_definitions_id = focal_set_definitions.focal_set_definitions_id;
 
 SELECT setval(
@@ -1628,7 +1925,8 @@ INSERT INTO public.focal_sets (
         focal_sets.description,
         focal_sets.focal_technique::TEXT::public.focal_technique_type
     FROM unsharded_public.focal_sets AS focal_sets
-        INNER JOIN unsharded_public.snapshots AS snapshots
+        -- Join the sharded table that we have just copied
+        INNER JOIN public.snapshots AS snapshots
             ON focal_sets.snapshots_id = snapshots.snapshots_id;
 
 SELECT setval(
@@ -1637,8 +1935,12 @@ SELECT setval(
     false
 );
 
--- Can't drop the unsharded table here because it's referenced in multiple
--- places, so let's just pretend it doesn't exist at this point
+-- Drop foreign keys that point to the table
+ALTER TABLE unsharded_public.foci
+    DROP CONSTRAINT foci_focal_sets_id_fkey;
+
+TRUNCATE unsharded_public.focal_sets;
+DROP TABLE unsharded_public.focal_sets;
 
 
 
@@ -1665,9 +1967,11 @@ INSERT INTO public.foci (
         foci.description,
         foci.arguments::JSONB
     FROM unsharded_public.foci AS foci
-        INNER JOIN unsharded_public.focal_sets AS focal_sets
+        -- Join the sharded table that we have just copied
+        INNER JOIN public.focal_sets AS focal_sets
             ON foci.focal_sets_id = focal_sets.focal_sets_id
-        INNER JOIN unsharded_public.snapshots AS snapshots
+        -- Join the sharded table that we have just copied
+        INNER JOIN public.snapshots AS snapshots
             ON focal_sets.snapshots_id = snapshots.snapshots_id;
 
 SELECT setval(
@@ -1676,8 +1980,12 @@ SELECT setval(
     false
 );
 
--- Can't drop the unsharded table here because it's referenced in multiple
--- places, so let's just pretend it doesn't exist at this point
+-- Drop foreign keys that point to the table
+ALTER TABLE unsharded_public.timespans
+    DROP CONSTRAINT timespans_foci_id_fkey;
+
+TRUNCATE unsharded_public.foci;
+DROP TABLE unsharded_public.foci;
 
 
 
@@ -1730,7 +2038,8 @@ INSERT INTO public.timespans (
         timespans.post_count::BIGINT,
         timespans.tags_id::BIGINT
     FROM unsharded_public.timespans AS timespans
-        INNER JOIN unsharded_public.snapshots AS snapshots
+        -- Join the sharded table that we have just copied
+        INNER JOIN public.snapshots AS snapshots
             ON timespans.snapshots_id = snapshots.snapshots_id;
 
 SELECT setval(
@@ -1743,8 +2052,39 @@ SELECT setval(
 CREATE INDEX timespans_topics_id ON public.timespans (topics_id);
 CREATE INDEX timespans_topics_id_snapshots_id ON public.timespans (topics_id, snapshots_id);
 
--- Can't drop the unsharded table here because it's referenced in multiple
--- places, so let's just pretend it doesn't exist at this point
+-- Drop foreign keys that point to the table
+ALTER TABLE unsharded_snap.medium_link_counts
+    -- Only on production
+    DROP CONSTRAINT IF EXISTS medium_link_counts_controversy_dump_time_slices_id_fkey;
+ALTER TABLE unsharded_snap.medium_link_counts
+    DROP CONSTRAINT IF EXISTS medium_link_counts_timespans_id_fkey;
+ALTER TABLE unsharded_snap.medium_links
+    -- Only on production
+    DROP CONSTRAINT IF EXISTS medium_links_controversy_dump_time_slices_id_fkey;
+ALTER TABLE unsharded_snap.medium_links
+    DROP CONSTRAINT IF EXISTS medium_links_timespans_id_fkey;
+ALTER TABLE unsharded_snap.story_link_counts
+    -- Only on production
+    DROP CONSTRAINT IF EXISTS story_link_counts_controversy_dump_time_slices_id_fkey;
+ALTER TABLE unsharded_snap.story_link_counts
+    DROP CONSTRAINT IF EXISTS story_link_counts_timespans_id_fkey;
+ALTER TABLE unsharded_snap.story_links
+    -- Only in production
+    DROP CONSTRAINT IF EXISTS story_links_controversy_dump_time_slices_id_fkey;
+ALTER TABLE unsharded_snap.story_links
+    DROP CONSTRAINT IF EXISTS story_links_timespans_id_fkey;
+ALTER TABLE unsharded_public.timespan_files
+    DROP CONSTRAINT timespan_files_timespans_id_fkey;
+ALTER TABLE unsharded_public.timespan_maps
+    DROP CONSTRAINT timespan_maps_timespans_id_fkey;
+ALTER TABLE unsharded_snap.timespan_posts
+    -- Only on production (misspelled?)
+    DROP CONSTRAINT IF EXISTS timespan_tweets_timespans_id_fkey;
+ALTER TABLE unsharded_snap.timespan_posts
+    DROP CONSTRAINT timespan_posts_timespans_id_fkey;
+
+TRUNCATE unsharded_public.timespans;
+DROP TABLE unsharded_public.timespans;
 
 
 
@@ -1776,9 +2116,11 @@ INSERT INTO public.timespan_maps (
         timespan_maps.url,
         timespan_maps.format::TEXT
     FROM unsharded_public.timespan_maps AS timespan_maps
-        INNER JOIN unsharded_public.timespans AS timespans
+        -- Join the sharded table that we have just copied
+        INNER JOIN public.timespans AS timespans
             ON timespan_maps.timespans_id = timespans.timespans_id
-        INNER JOIN unsharded_public.snapshots AS snapshots
+        -- Join the sharded table that we have just copied
+        INNER JOIN public.snapshots AS snapshots
             ON timespans.snapshots_id = snapshots.snapshots_id;
 
 SELECT setval(
@@ -1822,9 +2164,11 @@ INSERT INTO public.timespan_files (
         timespan_files.name,
         timespan_files.url
     FROM unsharded_public.timespan_files AS timespan_files
-        INNER JOIN unsharded_public.timespans AS timespans
+        -- Join the sharded table that we have just copied
+        INNER JOIN public.timespans AS timespans
             ON timespan_files.timespans_id = timespans.timespans_id
-        INNER JOIN unsharded_public.snapshots AS snapshots
+        -- Join the sharded table that we have just copied
+        INNER JOIN public.snapshots AS snapshots
             ON timespans.snapshots_id = snapshots.snapshots_id;
 
 SELECT setval(
@@ -1906,7 +2250,8 @@ INSERT INTO public.snapshot_files (
         snapshot_files.name,
         snapshot_files.url
     FROM unsharded_public.snapshot_files AS snapshot_files
-        INNER JOIN unsharded_public.snapshots AS snapshots
+        -- Join the sharded table that we have just copied
+        INNER JOIN public.snapshots AS snapshots
             ON snapshot_files.snapshots_id = snapshots.snapshots_id;
 
 SELECT setval(
@@ -1972,7 +2317,8 @@ INSERT INTO snap.word2vec_models (
         word2vec_models.creation_date,
         word2vec_models_data.raw_data
     FROM unsharded_snap.word2vec_models AS word2vec_models
-        INNER JOIN unsharded_public.snapshots AS snapshots
+        -- Join the sharded table that we have just copied
+        INNER JOIN public.snapshots AS snapshots
             ON word2vec_models.object_id = snapshots.snapshots_id
         INNER JOIN unsharded_snap.word2vec_models_data AS word2vec_models_data
             ON word2vec_models.word2vec_models_id = word2vec_models_data.object_id;
@@ -2048,7 +2394,8 @@ INSERT INTO public.topic_post_days (
         topic_post_days.num_posts_fetched::BIGINT,
         topic_post_days.posts_fetched
     FROM unsharded_public.topic_post_days AS topic_post_days
-        INNER JOIN unsharded_public.topic_seed_queries AS topic_seed_queries
+        -- Join the sharded table that we have just copied
+        INNER JOIN public.topic_seed_queries AS topic_seed_queries
             ON topic_post_days.topic_seed_queries_id = topic_seed_queries.topic_seed_queries_id;
 
 SELECT setval(
@@ -2057,8 +2404,16 @@ SELECT setval(
     false
 );
 
--- Can't drop the unsharded table here because it's referenced in multiple
--- places, so let's just pretend it doesn't exist at this point
+
+-- Drop foreign keys that point to the table
+ALTER TABLE unsharded_public.topic_posts
+    -- Only on production (misspelled?)
+    DROP CONSTRAINT IF EXISTS topic_tweets_topic_tweet_days_id_fkey;
+ALTER TABLE unsharded_public.topic_posts
+    DROP CONSTRAINT IF EXISTS topic_posts_topic_post_days_id_fkey;
+
+TRUNCATE unsharded_public.topic_post_days;
+DROP TABLE unsharded_public.topic_post_days;
 
 
 
@@ -2144,8 +2499,22 @@ SELECT setval(
     false
 );
 
--- Can't drop the unsharded table here because it's referenced in multiple
--- places, so let's just pretend it doesn't exist at this point
+-- Drop foreign keys that point to the table
+ALTER TABLE unsharded_public.retweeter_groups
+    DROP CONSTRAINT retweeter_groups_retweeter_scores_id_fkey;
+ALTER TABLE unsharded_public.retweeter_groups_users_map
+    DROP CONSTRAINT retweeter_groups_users_map_retweeter_scores_id_fkey;
+ALTER TABLE unsharded_public.retweeter_media
+    DROP CONSTRAINT retweeter_media_retweeter_scores_id_fkey;
+ALTER TABLE unsharded_public.retweeter_partition_matrix
+    DROP CONSTRAINT retweeter_partition_matrix_retweeter_scores_id_fkey;
+ALTER TABLE unsharded_public.retweeter_stories
+    DROP CONSTRAINT retweeter_stories_retweeter_scores_id_fkey;
+ALTER TABLE unsharded_public.retweeters
+    DROP CONSTRAINT retweeters_retweeter_scores_id_fkey;
+
+TRUNCATE unsharded_public.retweeter_scores;
+DROP TABLE unsharded_public.retweeter_scores;
 
 
 
@@ -2167,7 +2536,8 @@ INSERT INTO public.retweeter_groups (
         retweeter_groups.retweeter_scores_id::BIGINT,
         retweeter_groups.name
     FROM unsharded_public.retweeter_groups AS retweeter_groups
-        INNER JOIN unsharded_public.retweeter_scores AS retweeter_scores
+        -- Join the sharded table that we have just copied
+        INNER JOIN public.retweeter_scores AS retweeter_scores
             ON retweeter_groups.retweeter_scores_id = retweeter_scores.retweeter_scores_id;
 
 SELECT setval(
@@ -2176,8 +2546,25 @@ SELECT setval(
     false
 );
 
--- Can't drop the unsharded table here because it's referenced in multiple
--- places, so let's just pretend it doesn't exist at this point
+-- Drop foreign keys that point to the table
+ALTER TABLE unsharded_public.retweeter_groups_users_map
+    -- Only in production
+    DROP CONSTRAINT IF EXISTS retweeter_groups_users_map_retweeter_groups_id_fkey;
+ALTER TABLE unsharded_public.retweeter_partition_matrix
+    -- Only in production
+    DROP CONSTRAINT IF EXISTS retweeter_partition_matrix_retweeter_groups_id_fkey;
+ALTER TABLE unsharded_public.retweeter_partition_matrix
+    -- Only in production
+    DROP CONSTRAINT IF EXISTS retweeter_partition_matrix_retweeter_groups_id_fkey;
+ALTER TABLE unsharded_public.retweeter_groups
+    -- Not in production
+    DROP CONSTRAINT IF EXISTS retweeter_groups_retweeter_scores_id_fkey;
+ALTER TABLE unsharded_public.retweeters
+    -- Not in production
+    DROP CONSTRAINT IF EXISTS retweeters_retweeter_scores_id_fkey;
+
+TRUNCATE unsharded_public.retweeter_groups;
+DROP TABLE unsharded_public.retweeter_groups;
 
 
 
@@ -2203,7 +2590,8 @@ INSERT INTO public.retweeters (
         retweeters.twitter_user::TEXT,
         retweeters.retweeted_user::TEXT
     FROM unsharded_public.retweeters AS retweeters
-        INNER JOIN unsharded_public.retweeter_scores AS retweeter_scores
+        -- Join the sharded table that we have just copied
+        INNER JOIN public.retweeter_scores AS retweeter_scores
             ON retweeters.retweeter_scores_id = retweeter_scores.retweeter_scores_id;
 
 SELECT setval(
@@ -2212,8 +2600,8 @@ SELECT setval(
     false
 );
 
--- Can't drop the unsharded table here because it's referenced in multiple
--- places, so let's just pretend it doesn't exist at this point
+TRUNCATE unsharded_public.retweeters;
+DROP TABLE unsharded_public.retweeters;
 
 
 
@@ -2236,7 +2624,8 @@ INSERT INTO public.retweeter_groups_users_map (
         retweeter_groups_users_map.retweeter_scores_id::BIGINT,
         retweeter_groups_users_map.retweeted_user::TEXT
     FROM unsharded_public.retweeter_groups_users_map AS retweeter_groups_users_map
-        INNER JOIN unsharded_public.retweeter_scores AS retweeter_scores
+        -- Join the sharded table that we have just copied
+        INNER JOIN public.retweeter_scores AS retweeter_scores
             ON retweeter_groups_users_map.retweeter_scores_id = retweeter_scores.retweeter_scores_id;
 
 TRUNCATE unsharded_public.retweeter_groups_users_map;
@@ -2267,7 +2656,8 @@ INSERT INTO public.retweeter_stories (
         retweeter_stories.retweeted_user::TEXT,
         retweeter_stories.share_count::BIGINT
     FROM unsharded_public.retweeter_stories AS retweeter_stories
-        INNER JOIN unsharded_public.retweeter_scores AS retweeter_scores
+        -- Join the sharded table that we have just copied
+        INNER JOIN public.retweeter_scores AS retweeter_scores
             ON retweeter_stories.retweeter_scores_id = retweeter_scores.retweeter_scores_id;
 
 TRUNCATE unsharded_public.retweeter_stories;
@@ -2305,7 +2695,8 @@ INSERT INTO public.retweeter_media (
         retweeter_media.score,
         retweeter_media.partition::BIGINT
     FROM unsharded_public.retweeter_media AS retweeter_media
-        INNER JOIN unsharded_public.retweeter_scores AS retweeter_scores
+        -- Join the sharded table that we have just copied
+        INNER JOIN public.retweeter_scores AS retweeter_scores
             ON retweeter_media.retweeter_scores_id = retweeter_scores.retweeter_scores_id;
 
 SELECT setval(
@@ -2346,7 +2737,8 @@ INSERT INTO public.retweeter_partition_matrix (
         retweeter_partition_matrix.group_proportion,
         retweeter_partition_matrix.partition
     FROM unsharded_public.retweeter_partition_matrix AS retweeter_partition_matrix
-        INNER JOIN unsharded_public.retweeter_scores AS retweeter_scores
+        -- Join the sharded table that we have just copied
+        INNER JOIN public.retweeter_scores AS retweeter_scores
             ON retweeter_partition_matrix.retweeter_scores_id = retweeter_scores.retweeter_scores_id;
 
 SELECT setval(
@@ -2440,6 +2832,13 @@ DROP TABLE unsharded_public.domain_web_requests;
 --
 
 DROP FUNCTION unsharded_public.media_has_active_syndicated_feeds(INT);
+
+
+
+--
+-- media_rescraping_add_initial_state_trigger()
+--
+DROP FUNCTION unsharded_public.media_rescraping_add_initial_state_trigger();
 
 
 
@@ -2585,10 +2984,10 @@ DROP FUNCTION unsharded_public.insert_live_story();
 DROP TRIGGER stories_update_live_story ON unsharded_public.stories;
 DROP FUNCTION unsharded_public.update_live_story();
 
-DROP TRIGGER auth_user_api_keys_add_non_ip_limited_api_key ON unsharded_public.auth_users;
+-- DROP TRIGGER auth_user_api_keys_add_non_ip_limited_api_key ON unsharded_public.auth_users;
 DROP FUNCTION unsharded_public.auth_user_api_keys_add_non_ip_limited_api_key();
 
-DROP TRIGGER auth_users_set_default_limits ON unsharded_public.auth_users;
+-- DROP TRIGGER auth_users_set_default_limits ON unsharded_public.auth_users;
 DROP FUNCTION unsharded_public.auth_users_set_default_limits();
 
 DROP FUNCTION unsharded_cache.update_cache_db_row_last_updated();

@@ -20,8 +20,6 @@
 -- FIXME move very small tables in a migration
 -- FIXME re-add length constraints: https://brandur.org/text
 -- FIXME add media_id to its own separate colocation group
--- FIXME drop the foreign keys on unsharded tables, then drop the tables the
---     contents of which have been moved
 
 
 -- Rename the unsharded schema created in previous migrations
