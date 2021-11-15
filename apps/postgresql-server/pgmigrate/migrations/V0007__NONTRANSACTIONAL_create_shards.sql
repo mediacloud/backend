@@ -20,6 +20,8 @@
 -- FIXME move very small tables in a migration
 -- FIXME re-add length constraints: https://brandur.org/text
 -- FIXME add media_id to its own separate colocation group
+-- FIXME move rows of smaller tables in a migration
+-- FIXME half_md5() and other functions used in indexes
 
 
 -- Rename the unsharded schema created in previous migrations
