@@ -22,6 +22,8 @@
 -- FIXME add media_id to its own separate colocation group
 -- FIXME move rows of smaller tables in a migration
 -- FIXME half_md5() and other functions used in indexes
+-- FIXME upgrade to PostgreSQL 14 and enable citus.enable_binary_protocol + citus.binary_worker_copy_format
+-- FIXME do I need to increase citus.shard_max_size?
 
 
 -- Rename the unsharded schema created in previous migrations
