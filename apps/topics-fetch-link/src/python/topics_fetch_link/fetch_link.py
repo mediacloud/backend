@@ -193,7 +193,7 @@ def _story_matches_topic(
         return True
 
     sentences = db.query(
-        "select sentence from story_sentences where stories_id = %(a)s",
+        "SELECT sentence FROM story_sentences WHERE stories_id = %(a)s",
         {'a': story['stories_id']}).flat()
 
     text = ' '.join(sentences)
@@ -208,7 +208,7 @@ def _is_not_topic_story(db: DatabaseHandler, topic_fetch_url: dict) -> bool:
         return True
 
     ts = db.query(
-        "select * from topic_stories where stories_id = %(a)s and topics_id = %(b)s",
+        "SELECT * FROM topic_stories WHERE stories_id = %(a)s AND topics_id = %(b)s",
         {'a': topic_fetch_url['stories_id'], 'b': topic_fetch_url['topics_id']}).hash()
 
     return ts is None
@@ -227,7 +227,7 @@ def _get_seeded_content(db: DatabaseHandler, topic_fetch_url: dict) -> Optional[
 
     """
     r = db.query(
-        "select content from topic_seed_urls where topics_id = %(a)s and url = %(b)s and content is not null",
+        "SELECT content FROM topic_seed_urls WHERE topics_id = %(a)s AND url = %(b)s AND content IS NOT NULL",
         {'a': topic_fetch_url['topics_id'], 'b': topic_fetch_url['url']}).flat()
 
     if len(r) == 0:

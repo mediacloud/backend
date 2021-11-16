@@ -221,23 +221,27 @@ sub test_get_words($)
         }
     );
 
-    my $story_sentence = $db->query( <<SQL )->hash;
-select * from story_sentences order by story_sentences_id limit 1
+    my $story_sentence = $db->query( <<SQL
+        SELECT *
+        FROM story_sentences
+        ORDER BY story_sentences_id
+        LIMIT 1
 SQL
+    )->hash;
     my ( $first_word ) = split( ' ', $story_sentence->{ sentence } );
 
     my $re = '(?isx)[[:<:]]' . $first_word;
 
-    my $matching_sentences = $db->query( <<SQL, $re )->hashes;
-select
-        ss.*,
-        s.language story_language
-    from
-        story_sentences ss
-        join stories s using ( stories_id )
-    where
-        sentence ~ ?
+    my $matching_sentences = $db->query( <<SQL,
+        SELECT
+            ss.*,
+            s.language story_language
+        FROM story_sentences AS ss
+            JOIN stories AS s USING (stories_id)
+        WHERE sentence ~ ?
 SQL
+        $re
+    )->hashes;
 
     my $wc = MediaWords::Solr::WordCounts->new( include_stopwords => 1 );
 

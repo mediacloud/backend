@@ -226,8 +226,15 @@ def add_story(db: DatabaseHandler, story: dict, feeds_id: int) -> Optional[dict]
         story['is_new'] = True
 
     elif len(db_stories) > 1:
+        # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
         db.query("""
-            DELETE FROM stories
+            DELETE FROM unsharded_public.stories
+            WHERE stories_id = %(stories_id)s
+        """, {
+            'stories_id': inserted_story['stories_id'],
+        })
+        db.query("""
+            DELETE FROM sharded_public.stories
             WHERE stories_id = %(stories_id)s
         """, {
             'stories_id': inserted_story['stories_id'],

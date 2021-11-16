@@ -34,12 +34,12 @@ def test_copy_story_to_new_medium():
         assert old_story[field] == new_story[field]
 
     topic_story_exists = db.query(
-        "select * from topic_stories where topics_id = %(a)s and stories_id = %(b)s",
+        "SELECT * FROM topic_stories WHERE topics_id = %(a)s AND stories_id = %(b)s",
         {'a': topic['topics_id'], 'b': new_story['stories_id']}).hash()
     assert topic_story_exists is not None
 
     new_download = db.query(
-        "select * from downloads where stories_id = %(a)s",
+        "SELECT * FROM downloads WHERE stories_id = %(a)s",
         {'a': new_story['stories_id']}).hash()
     assert new_download is not None
 
@@ -47,6 +47,6 @@ def test_copy_story_to_new_medium():
     assert content is not None and len(content) > 0
 
     story_sentences = db.query(
-        "select * from story_sentences where stories_id = %(a)s",
+        "SELECT * FROM story_sentences WHERE stories_id = %(a)s",
         {'a': new_story['stories_id']}).hashes()
     assert len(story_sentences) > 0

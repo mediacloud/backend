@@ -463,7 +463,7 @@ sub _fetch_list($$$$$$)
                 ps_ids.stories_id = stories.stories_id
             INNER JOIN media ON
                 stories.media_id = media.media_id
-            LEFT JOIN stories_ap_syndicated ap ON
+            LEFT JOIN stories_ap_syndicated AS ap ON
                 stories.stories_id = ap.stories_id
 
         ORDER BY $order_clause

@@ -362,9 +362,12 @@ sub _save_import_log
     $db->begin;
     for my $stories_id ( @{ $stories_ids } )
     {
-        $db->query( <<SQL, $stories_id, $_import_date );
-insert into solr_imported_stories ( stories_id, import_date ) values ( ?, ? )
+        $db->query( <<SQL,
+            INSERT INTO solr_imported_stories (stories_id, import_date)
+            VALUES (?, ?)
 SQL
+            $stories_id, $_import_date
+        );
     }
     $db->commit;
 }
@@ -488,8 +491,17 @@ sub _delete_stories_from_import_queue
 
     my $id_table = $db->get_temporary_ids_table( $stories_ids );
 
+    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
     $db->query( <<SQL
-        DELETE FROM solr_import_stories
+        DELETE FROM unsharded_public.solr_import_stories
+        WHERE stories_id IN (
+            SELECT id
+            FROM $id_table
+        )
+SQL
+    );
+    $db->query( <<SQL
+        DELETE FROM sharded_public.solr_import_stories
         WHERE stories_id IN (
             SELECT id
             FROM $id_table

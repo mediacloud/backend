@@ -59,12 +59,13 @@ def test_add_missing_normalized_title_hashes():
         }
     )
 
+    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: test should write only to the sharded table
     db.query("""
         WITH all_story_ids AS (
             SELECT stories_id
             FROM stories
         )
-        UPDATE stories SET
+        UPDATE sharded_public.stories SET
             normalized_title_hash = NULL
         WHERE stories_id IN (
             SELECT stories_id

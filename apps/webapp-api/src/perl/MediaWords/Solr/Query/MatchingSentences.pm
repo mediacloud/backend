@@ -72,24 +72,24 @@ sub query_matching_sentences($$;$)
     {
         my $ids_table = $db->get_temporary_ids_table( \@chunk_stories_ids );
 
-        my $chunk_story_sentences = $db->query( <<SQL )->hashes;
-select
-        ss.sentence,
-        ss.media_id,
-        ss.publish_date,
-        ss.sentence_number,
-        ss.stories_id,
-        ss.story_sentences_id,
-        ss.language,
-        s.language story_language
-    from
-        story_sentences ss
-        join stories s using ( stories_id )
-        join $ids_table ids on ( s.stories_id = ids.id )
-    where
-        $re_clause 
-   $order_limit 
+        my $chunk_story_sentences = $db->query( <<SQL
+            SELECT
+                ss.sentence,
+                ss.media_id,
+                ss.publish_date,
+                ss.sentence_number,
+                ss.stories_id,
+                ss.story_sentences_id,
+                ss.language,
+                s.language story_language
+            FROM story_sentences AS ss
+                JOIN stories AS s USING (stories_id)
+                JOIN $ids_table AS ids ON s.stories_id = ids.id
+            WHERE
+                $re_clause 
+                $order_limit 
 SQL
+        )->hashes;
         push( @{ $story_sentences }, @{ $chunk_story_sentences } );
     }
 

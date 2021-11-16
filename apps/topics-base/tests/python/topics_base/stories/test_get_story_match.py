@@ -50,13 +50,15 @@ def test_get_story_match():
     """, {
         'stories_id': stories[4]['stories_id']
     })
+
+    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: test should write only to the sharded table
     # noinspection SqlWithoutWhere
     db.query("""
         WITH all_story_ids AS (
             SELECT stories_id
             FROM stories
         )
-        UPDATE stories SET
+        UPDATE sharded_public.stories SET
             url = 'http://stories.com/'
         WHERE stories_id IN (
             SELECT stories_id

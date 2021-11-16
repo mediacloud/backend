@@ -65,12 +65,13 @@ sub test_respider($)
     $db->query( "UPDATE topic_stories SET link_mined = 't'" );
 
     my $num_date_changes = 10;
+    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: test should write only to the sharded table
     $db->query( <<SQL
         WITH story_ids AS (
             SELECT stories_id
             FROM stories
         )
-        UPDATE stories SET
+        UPDATE sharded_public.stories SET
             publish_date = '2017-06-01'
         WHERE stories_id IN (
             SELECT *
@@ -79,8 +80,9 @@ sub test_respider($)
 SQL
     );
 
+    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: test should write only to the sharded table
     $db->query( <<SQL, 
-        UPDATE stories SET
+        UPDATE sharded_public.stories SET
             publish_date = ?
         WHERE stories_id IN (
             SELECT stories_id
@@ -92,8 +94,9 @@ SQL
         '2018-06-01', $num_date_changes
     );
 
+    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: test should write only to the sharded table
     $db->query( <<SQL,
-        UPDATE stories SET
+        UPDATE sharded_public.stories SET
             publish_date = ?
         WHERE stories_id IN (
             SELECT stories_id

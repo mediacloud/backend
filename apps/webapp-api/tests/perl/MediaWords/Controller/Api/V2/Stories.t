@@ -150,7 +150,7 @@ SQL
         my $sid       = $story->{ stories_id };
         my $got_story = $got_stories_lookup->{ $story->{ stories_id } };
 
-        my $sentences = $db->query( "select * from story_sentences where stories_id = ?", $sid )->hashes;
+        my $sentences = $db->query( "SELECT * FROM story_sentences WHERE stories_id = ?", $sid )->hashes;
         my $download_text = $db->query( <<SQL,
             SELECT *
             FROM download_texts
@@ -325,6 +325,7 @@ sub test_stories_count_split($)
 
     my $label = "stories/count split";
 
+    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: test should write only to the sharded table
     $db->query( <<SQL
         WITH updated_publish_dates AS (
             SELECT
@@ -332,7 +333,7 @@ sub test_stories_count_split($)
                 '2017-01-01'::DATE + ((stories_id % 27)::TEXT || '3 days')::INTERVAL AS new_publish_date
             FROM stories
         )
-        UPDATE stories SET
+        UPDATE sharded_public.stories SET
             publish_date = updated_publish_dates.new_publish_date
         FROM updated_publish_dates
         WHERE stories.stories_id = updated_publish_dates.stories_id

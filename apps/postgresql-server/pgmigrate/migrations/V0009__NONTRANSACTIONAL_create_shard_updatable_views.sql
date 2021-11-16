@@ -3032,12 +3032,836 @@ DROP FUNCTION unsharded_public.test_referenced_download_trigger();
 DROP TRIGGER feeds_stories_map_p_insert_trigger ON unsharded_public.feeds_stories_map_p;
 DROP FUNCTION unsharded_public.feeds_stories_map_p_insert_trigger();
 
+-- No more INSERTs will be happening to the unsharded table; update the
+-- normalized title hash only on UPDATEs
 DROP TRIGGER stories_add_normalized_title ON unsharded_public.stories;
-DROP FUNCTION unsharded_public.add_normalized_title_hash();
+CREATE TRIGGER stories_add_normalized_title
+    BEFORE UPDATE
+    ON unsharded_public.stories
+    FOR EACH ROW
+    EXECUTE PROCEDURE unsharded_public.add_normalized_title_hash();
 
+-- We'll be actively DELETEing a bunch of rows from the unsharded table so
+-- having the trigger fire on DELETE is not practical; unsharded tables won't
+-- get INSERTed to anymore so there's no need to have a trigger on INSERT; so
+-- let's just leave it at UPDATE
 DROP TRIGGER stories_insert_solr_import_story ON unsharded_public.stories;
 DROP TRIGGER stories_tags_map_p_insert_solr_import_story ON unsharded_public.stories_tags_map_p;
 DROP TRIGGER ps_insert_solr_import_story ON unsharded_public.processed_stories;
-DROP FUNCTION unsharded_public.insert_solr_import_story();
+CREATE TRIGGER stories_insert_solr_import_story
+    AFTER UPDATE
+    ON unsharded_public.stories
+    FOR EACH ROW
+    EXECUTE PROCEDURE unsharded_public.insert_solr_import_story();
+CREATE TRIGGER stories_tags_map_p_insert_solr_import_story
+    BEFORE UPDATE
+    ON unsharded_public.stories_tags_map_p
+    FOR EACH ROW
+    EXECUTE PROCEDURE unsharded_public.insert_solr_import_story();
+CREATE TRIGGER ps_insert_solr_import_story
+    AFTER UPDATE
+    ON unsharded_public.processed_stories
+    FOR EACH ROW
+    EXECUTE PROCEDURE unsharded_public.insert_solr_import_story();
+
 
 DROP FUNCTION unsharded_public.feeds_stories_map_view_insert_update_delete();
+
+
+
+
+
+
+
+
+
+
+--
+-- MOVE EMPTY SOON-TO-BE-HUGE SHARDED TABLES TO THEIR OWN SCHEMA
+--
+
+
+--
+-- auth_user_request_daily_counts
+--
+
+ALTER TABLE public.auth_user_request_daily_counts
+    SET SCHEMA sharded_public;
+
+SELECT setval(
+    pg_get_serial_sequence('sharded_public.auth_user_request_daily_counts', 'auth_user_request_daily_counts_id'),
+    nextval(pg_get_serial_sequence('unsharded_public.auth_user_request_daily_counts', 'auth_user_request_daily_counts_id')),
+    false
+);
+
+CREATE OR REPLACE VIEW public.auth_user_request_daily_counts AS
+    SELECT
+        auth_user_request_daily_counts_id::BIGINT,
+        email,
+        day,
+        requests_count::BIGINT,
+        requested_items_count::BIGINT
+    FROM unsharded_public.auth_user_request_daily_counts
+
+    UNION
+
+    SELECT
+        auth_user_request_daily_counts_id,
+        email,
+        day,
+        requests_count,
+        requested_items_count
+    FROM sharded_public.auth_user_request_daily_counts
+;
+
+-- Make INSERT ... RETURNING work
+ALTER VIEW public.auth_user_request_daily_counts
+    ALTER COLUMN auth_user_request_daily_counts_id
+    SET DEFAULT nextval(pg_get_serial_sequence('sharded_public.auth_user_request_daily_counts', 'auth_user_request_daily_counts_id'));
+
+CREATE OR REPLACE FUNCTION public.auth_user_request_daily_counts_insert() RETURNS trigger AS $$
+BEGIN
+    -- Insert only into the sharded table
+    INSERT INTO sharded_public.auth_user_request_daily_counts SELECT NEW.*;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- UPDATEs and DELETEs don't work: https://github.com/citusdata/citus/issues/2046
+CREATE TRIGGER auth_user_request_daily_counts_insert
+    INSTEAD OF INSERT ON public.auth_user_request_daily_counts
+    FOR EACH ROW
+    EXECUTE PROCEDURE public.auth_user_request_daily_counts_insert();
+
+
+
+
+--
+-- media_stats
+--
+
+ALTER TABLE public.media_stats
+    SET SCHEMA sharded_public;
+
+SELECT setval(
+    pg_get_serial_sequence('sharded_public.media_stats', 'media_stats_id'),
+    nextval(pg_get_serial_sequence('unsharded_public.media_stats', 'media_stats_id')),
+    false
+);
+
+CREATE OR REPLACE VIEW public.media_stats AS
+    SELECT
+        media_stats_id::BIGINT,
+        media_id::BIGINT,
+        num_stories::BIGINT,
+        num_sentences::BIGINT,
+        stat_date
+    FROM unsharded_public.media_stats
+
+    UNION
+
+    SELECT
+        media_stats_id,
+        media_id,
+        num_stories,
+        num_sentences,
+        stat_date
+    FROM sharded_public.media_stats
+;
+
+-- Make INSERT ... RETURNING work
+ALTER VIEW public.media_stats
+    ALTER COLUMN media_stats_id
+    SET DEFAULT nextval(pg_get_serial_sequence('sharded_public.media_stats', 'media_stats_id'));
+
+CREATE OR REPLACE FUNCTION public.media_stats_insert() RETURNS trigger AS $$
+BEGIN
+    -- Insert only into the sharded table
+    INSERT INTO sharded_public.media_stats SELECT NEW.*;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- UPDATEs and DELETEs don't work: https://github.com/citusdata/citus/issues/2046
+CREATE TRIGGER media_stats_insert
+    INSTEAD OF INSERT ON public.media_stats
+    FOR EACH ROW
+    EXECUTE PROCEDURE public.media_stats_insert();
+
+
+
+
+
+--
+-- media_coverage_gaps
+--
+
+ALTER TABLE public.media_coverage_gaps
+    SET SCHEMA sharded_public;
+
+-- No setval(pg_get_serial_sequence(), nextval(), false) because unsharded
+-- table doesn't have primary key
+
+CREATE OR REPLACE VIEW public.media_coverage_gaps AS
+    SELECT
+        -- No primary key on unsharded table
+        0::BIGINT AS media_coverage_gaps_id,
+        media_id::BIGINT,
+        stat_week,
+        num_stories,
+        expected_stories,
+        num_sentences,
+        expected_sentences
+    FROM unsharded_public.media_coverage_gaps
+
+    UNION
+
+    SELECT
+        media_coverage_gaps_id,
+        media_id,
+        stat_week,
+        num_stories,
+        expected_stories,
+        num_sentences,
+        expected_sentences
+    FROM sharded_public.media_coverage_gaps
+;
+
+-- Make INSERT ... RETURNING work
+ALTER VIEW public.media_coverage_gaps
+    ALTER COLUMN media_coverage_gaps_id
+    SET DEFAULT nextval(pg_get_serial_sequence('sharded_public.media_coverage_gaps', 'media_coverage_gaps_id'));
+
+CREATE OR REPLACE FUNCTION public.media_coverage_gaps_insert() RETURNS trigger AS $$
+BEGIN
+    -- Insert only into the sharded table
+    INSERT INTO sharded_public.media_coverage_gaps SELECT NEW.*;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- UPDATEs and DELETEs don't work: https://github.com/citusdata/citus/issues/2046
+CREATE TRIGGER media_coverage_gaps_insert
+    INSTEAD OF INSERT ON public.media_coverage_gaps
+    FOR EACH ROW
+    EXECUTE PROCEDURE public.media_coverage_gaps_insert();
+
+
+
+
+
+--
+-- stories
+--
+
+ALTER TABLE public.stories
+    SET SCHEMA sharded_public;
+
+SELECT setval(
+    pg_get_serial_sequence('sharded_public.stories', 'stories_id'),
+    nextval(pg_get_serial_sequence('unsharded_public.stories', 'stories_id')),
+    false
+);
+
+CREATE OR REPLACE VIEW public.stories AS
+    SELECT
+        stories_id::BIGINT,
+        media_id::BIGINT,
+        url::TEXT,
+        guid::TEXT,
+        title,
+        normalized_title_hash,
+        description,
+        publish_date,
+        collect_date,
+        full_text_rss,
+        language
+    FROM unsharded_public.stories
+
+    UNION
+
+    SELECT
+        stories_id,
+        media_id,
+        url,
+        guid,
+        title,
+        normalized_title_hash,
+        description,
+        publish_date,
+        collect_date,
+        full_text_rss,
+        language
+    FROM sharded_public.stories
+;
+
+-- Make INSERT ... RETURNING work
+ALTER VIEW public.stories
+    ALTER COLUMN stories_id
+    SET DEFAULT nextval(pg_get_serial_sequence('sharded_public.stories', 'stories_id'));
+
+CREATE OR REPLACE FUNCTION public.stories_insert() RETURNS trigger AS $$
+BEGIN
+
+    -- Do the same as add_normalized_title_hash() would on INSERTs; skip doing it on
+    -- UPDATEs as the title hashes will be updated when moving rows from unsharded
+    -- table to the sharded one
+    SELECT INTO NEW.normalized_title_hash MD5(get_normalized_title(NEW.title, NEW.media_id))::uuid;
+
+    -- Insert only into the sharded table
+    INSERT INTO sharded_public.stories SELECT NEW.*;
+    RETURN NEW;
+
+END;
+$$ LANGUAGE plpgsql;
+
+-- UPDATEs and DELETEs don't work: https://github.com/citusdata/citus/issues/2046
+CREATE TRIGGER stories_insert
+    INSTEAD OF INSERT ON public.stories
+    FOR EACH ROW
+    EXECUTE PROCEDURE public.stories_insert();
+
+
+
+--
+-- stories_ap_syndicated
+--
+
+ALTER TABLE public.stories_ap_syndicated
+    SET SCHEMA sharded_public;
+
+SELECT setval(
+    pg_get_serial_sequence('sharded_public.stories_ap_syndicated', 'stories_ap_syndicated_id'),
+    nextval(pg_get_serial_sequence('unsharded_public.stories_ap_syndicated', 'stories_ap_syndicated_id')),
+    false
+);
+
+CREATE OR REPLACE VIEW public.stories_ap_syndicated AS
+    SELECT
+        stories_ap_syndicated_id::BIGINT,
+        stories_id::BIGINT,
+        ap_syndicated
+    FROM unsharded_public.stories_ap_syndicated
+
+    UNION
+
+    SELECT
+        stories_ap_syndicated_id,
+        stories_id,
+        ap_syndicated
+    FROM sharded_public.stories_ap_syndicated
+;
+
+-- Make INSERT ... RETURNING work
+ALTER VIEW public.stories_ap_syndicated
+    ALTER COLUMN stories_ap_syndicated_id
+    SET DEFAULT nextval(pg_get_serial_sequence('sharded_public.stories_ap_syndicated', 'stories_ap_syndicated_id'));
+
+CREATE OR REPLACE FUNCTION public.stories_ap_syndicated_insert() RETURNS trigger AS $$
+BEGIN
+    -- Insert only into the sharded table
+    INSERT INTO sharded_public.stories_ap_syndicated SELECT NEW.*;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- UPDATEs and DELETEs don't work: https://github.com/citusdata/citus/issues/2046
+CREATE TRIGGER stories_ap_syndicated_insert
+    INSTEAD OF INSERT ON public.stories_ap_syndicated
+    FOR EACH ROW
+    EXECUTE PROCEDURE public.stories_ap_syndicated_insert();
+
+
+
+--
+-- story_urls
+--
+
+ALTER TABLE public.story_urls
+    SET SCHEMA sharded_public;
+
+SELECT setval(
+    pg_get_serial_sequence('sharded_public.story_urls', 'story_urls_id'),
+    nextval(pg_get_serial_sequence('unsharded_public.story_urls', 'story_urls_id')),
+    false
+);
+
+CREATE OR REPLACE VIEW public.story_urls AS
+    SELECT
+        story_urls_id::BIGINT,
+        stories_id::BIGINT,
+        url::TEXT
+    FROM unsharded_public.story_urls
+
+    UNION
+
+    SELECT
+        story_urls_id,
+        stories_id,
+        url
+    FROM sharded_public.story_urls
+;
+
+-- Make INSERT ... RETURNING work
+ALTER VIEW public.story_urls
+    ALTER COLUMN story_urls_id
+    SET DEFAULT nextval(pg_get_serial_sequence('sharded_public.story_urls', 'story_urls_id'));
+
+CREATE OR REPLACE FUNCTION public.story_urls_insert() RETURNS trigger AS $$
+BEGIN
+    -- Insert only into the sharded table
+    INSERT INTO sharded_public.story_urls SELECT NEW.*;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- UPDATEs and DELETEs don't work: https://github.com/citusdata/citus/issues/2046
+CREATE TRIGGER story_urls_insert
+    INSTEAD OF INSERT ON public.story_urls
+    FOR EACH ROW
+    EXECUTE PROCEDURE public.story_urls_insert();
+
+
+
+
+
+
+--
+-- feeds_stories_map
+--
+
+ALTER TABLE public.feeds_stories_map
+    SET SCHEMA sharded_public;
+
+SELECT setval(
+    pg_get_serial_sequence('sharded_public.feeds_stories_map', 'feeds_stories_map_id'),
+    -- Read max. primary key value from the partitioned table, not the view
+    nextval(pg_get_serial_sequence('unsharded_public.feeds_stories_map_p', 'feeds_stories_map_p_id')),
+    false
+);
+
+CREATE OR REPLACE VIEW public.feeds_stories_map AS
+    SELECT
+        feeds_stories_map_p_id AS feeds_stories_map_id,
+        feeds_id::BIGINT,
+        stories_id::BIGINT
+    -- Read partitioned table directly and not the view
+    FROM unsharded_public.feeds_stories_map_p
+
+    UNION
+
+    SELECT
+        feeds_stories_map_id,
+        feeds_id,
+        stories_id
+    FROM sharded_public.feeds_stories_map
+;
+
+-- Make INSERT ... RETURNING work
+ALTER VIEW public.feeds_stories_map
+    ALTER COLUMN feeds_stories_map_id
+    SET DEFAULT nextval(pg_get_serial_sequence('sharded_public.feeds_stories_map', 'feeds_stories_map_id'));
+
+CREATE OR REPLACE FUNCTION public.feeds_stories_map_insert() RETURNS trigger AS $$
+BEGIN
+    -- Insert only into the sharded table
+    INSERT INTO sharded_public.feeds_stories_map SELECT NEW.*;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- UPDATEs and DELETEs don't work: https://github.com/citusdata/citus/issues/2046
+CREATE TRIGGER feeds_stories_map_insert
+    INSTEAD OF INSERT ON public.feeds_stories_map
+    FOR EACH ROW
+    EXECUTE PROCEDURE public.feeds_stories_map_insert();
+
+
+
+
+
+
+--
+-- stories_tags_map
+--
+
+ALTER TABLE public.stories_tags_map
+    SET SCHEMA sharded_public;
+
+SELECT setval(
+    pg_get_serial_sequence('sharded_public.stories_tags_map', 'stories_tags_map_id'),
+    -- Read max. primary key value from the partitioned table, not the view
+    nextval(pg_get_serial_sequence('unsharded_public.stories_tags_map_p', 'stories_tags_map_p_id')),
+    false
+);
+
+CREATE OR REPLACE VIEW public.stories_tags_map AS
+    SELECT
+        stories_tags_map_p_id AS stories_tags_map_id,
+        stories_id::BIGINT,
+        tags_id::BIGINT
+    -- Read partitioned table directly and not the view
+    FROM unsharded_public.stories_tags_map_p
+
+    UNION
+
+    SELECT
+        stories_tags_map_id,
+        stories_id,
+        tags_id
+    FROM sharded_public.stories_tags_map
+;
+
+-- Make INSERT ... RETURNING work
+ALTER VIEW public.stories_tags_map
+    ALTER COLUMN stories_tags_map_id
+    SET DEFAULT nextval(pg_get_serial_sequence('sharded_public.stories_tags_map', 'stories_tags_map_id'));
+
+CREATE OR REPLACE FUNCTION public.stories_tags_map_insert() RETURNS trigger AS $$
+BEGIN
+    -- Insert only into the sharded table
+    INSERT INTO sharded_public.stories_tags_map SELECT NEW.*;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- UPDATEs and DELETEs don't work: https://github.com/citusdata/citus/issues/2046
+CREATE TRIGGER stories_tags_map_insert
+    INSTEAD OF INSERT ON public.stories_tags_map
+    FOR EACH ROW
+    EXECUTE PROCEDURE public.stories_tags_map_insert();
+
+
+
+
+
+
+
+
+--
+-- story_sentences
+--
+
+ALTER TABLE public.story_sentences
+    SET SCHEMA sharded_public;
+
+SELECT setval(
+    pg_get_serial_sequence('sharded_public.story_sentences', 'story_sentences_id'),
+    -- Read max. primary key value from the partitioned table, not the view
+    nextval(pg_get_serial_sequence('unsharded_public.story_sentences_p', 'story_sentences_p_id')),
+    false
+);
+
+CREATE OR REPLACE VIEW public.story_sentences AS
+    SELECT
+        story_sentences_p_id AS story_sentences_id,
+        stories_id::BIGINT,
+        sentence_number,
+        sentence,
+        media_id::BIGINT,
+        publish_date,
+        language,
+        is_dup
+    -- Read partitioned table directly and not the view
+    FROM unsharded_public.story_sentences_p
+
+    UNION
+
+    SELECT
+        story_sentences_id,
+        stories_id,
+        sentence_number,
+        sentence,
+        media_id,
+        publish_date,
+        language,
+        is_dup
+    FROM sharded_public.story_sentences
+;
+
+-- Make INSERT ... RETURNING work
+ALTER VIEW public.story_sentences
+    ALTER COLUMN story_sentences_id
+    SET DEFAULT nextval(pg_get_serial_sequence('sharded_public.story_sentences', 'story_sentences_id'));
+
+CREATE OR REPLACE FUNCTION public.story_sentences_insert() RETURNS trigger AS $$
+BEGIN
+    -- Insert only into the sharded table
+    INSERT INTO sharded_public.story_sentences SELECT NEW.*;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- UPDATEs and DELETEs don't work: https://github.com/citusdata/citus/issues/2046
+CREATE TRIGGER story_sentences_insert
+    INSTEAD OF INSERT ON public.story_sentences
+    FOR EACH ROW
+    EXECUTE PROCEDURE public.story_sentences_insert();
+
+
+
+--
+-- solr_import_stories
+--
+
+ALTER TABLE public.solr_import_stories
+    SET SCHEMA sharded_public;
+
+-- No setval(pg_get_serial_sequence(), nextval(), false) because unsharded
+-- table doesn't have primary key
+
+CREATE OR REPLACE VIEW public.solr_import_stories AS
+    SELECT
+        -- No primary key on unsharded table
+        0::BIGINT AS solr_import_stories_id,
+        stories_id::BIGINT
+    FROM unsharded_public.solr_import_stories
+
+    UNION
+
+    SELECT
+        solr_import_stories_id,
+        stories_id
+    FROM sharded_public.solr_import_stories
+;
+
+-- Make INSERT ... RETURNING work
+ALTER VIEW public.solr_import_stories
+    ALTER COLUMN solr_import_stories_id
+    SET DEFAULT nextval(pg_get_serial_sequence('sharded_public.solr_import_stories', 'solr_import_stories_id'));
+
+CREATE OR REPLACE FUNCTION public.solr_import_stories_insert() RETURNS trigger AS $$
+BEGIN
+    -- Insert only into the sharded table
+    INSERT INTO sharded_public.solr_import_stories SELECT NEW.*;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- UPDATEs and DELETEs don't work: https://github.com/citusdata/citus/issues/2046
+CREATE TRIGGER solr_import_stories_insert
+    INSTEAD OF INSERT ON public.solr_import_stories
+    FOR EACH ROW
+    EXECUTE PROCEDURE public.solr_import_stories_insert();
+
+
+
+
+
+
+
+
+--
+-- solr_imported_stories
+--
+
+ALTER TABLE public.solr_imported_stories
+    SET SCHEMA sharded_public;
+
+-- No setval(pg_get_serial_sequence(), nextval(), false) because unsharded
+-- table doesn't have primary key
+
+CREATE OR REPLACE VIEW public.solr_imported_stories AS
+    SELECT
+        -- No primary key on unsharded table
+        0::BIGINT AS solr_imported_stories_id,
+        stories_id::BIGINT,
+        import_date
+    FROM unsharded_public.solr_imported_stories
+
+    UNION
+
+    SELECT
+        solr_imported_stories_id,
+        stories_id,
+        import_date
+    FROM sharded_public.solr_imported_stories
+;
+
+-- Make INSERT ... RETURNING work
+ALTER VIEW public.solr_imported_stories
+    ALTER COLUMN solr_imported_stories_id
+    SET DEFAULT nextval(pg_get_serial_sequence('sharded_public.solr_imported_stories', 'solr_imported_stories_id'));
+
+CREATE OR REPLACE FUNCTION public.solr_imported_stories_insert() RETURNS trigger AS $$
+BEGIN
+    -- Insert only into the sharded table
+    INSERT INTO sharded_public.solr_imported_stories SELECT NEW.*;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- UPDATEs and DELETEs don't work: https://github.com/citusdata/citus/issues/2046
+CREATE TRIGGER solr_imported_stories_insert
+    INSTEAD OF INSERT ON public.solr_imported_stories
+    FOR EACH ROW
+    EXECUTE PROCEDURE public.solr_imported_stories_insert();
+
+
+
+
+
+
+
+--
+-- topic_merged_stories_map
+--
+
+ALTER TABLE public.topic_merged_stories_map
+    SET SCHEMA sharded_public;
+
+-- No setval(pg_get_serial_sequence(), nextval(), false) because unsharded
+-- table doesn't have primary key
+
+CREATE OR REPLACE VIEW public.topic_merged_stories_map AS
+    SELECT
+        -- No primary key on unsharded table
+        0::BIGINT AS topic_merged_stories_map_id,
+        source_stories_id::BIGINT,
+        target_stories_id::BIGINT
+    FROM unsharded_public.topic_merged_stories_map
+
+    UNION
+
+    SELECT
+        topic_merged_stories_map_id,
+        source_stories_id,
+        target_stories_id
+    FROM sharded_public.topic_merged_stories_map
+;
+
+-- Make INSERT ... RETURNING work
+ALTER VIEW public.topic_merged_stories_map
+    ALTER COLUMN topic_merged_stories_map_id
+    SET DEFAULT nextval(pg_get_serial_sequence('sharded_public.topic_merged_stories_map', 'topic_merged_stories_map_id'));
+
+CREATE OR REPLACE FUNCTION public.topic_merged_stories_map_insert() RETURNS trigger AS $$
+BEGIN
+    -- Insert only into the sharded table
+    INSERT INTO sharded_public.topic_merged_stories_map SELECT NEW.*;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- UPDATEs and DELETEs don't work: https://github.com/citusdata/citus/issues/2046
+CREATE TRIGGER topic_merged_stories_map_insert
+    INSTEAD OF INSERT ON public.topic_merged_stories_map
+    FOR EACH ROW
+    EXECUTE PROCEDURE public.topic_merged_stories_map_insert();
+
+
+
+
+
+
+
+--
+-- story_statistics
+--
+
+ALTER TABLE public.story_statistics
+    SET SCHEMA sharded_public;
+
+SELECT setval(
+    pg_get_serial_sequence('sharded_public.story_statistics', 'story_statistics_id'),
+    nextval(pg_get_serial_sequence('unsharded_public.story_statistics', 'story_statistics_id')),
+    false
+);
+
+CREATE OR REPLACE VIEW public.story_statistics AS
+    SELECT
+        story_statistics_id::BIGINT,
+        stories_id::BIGINT,
+        facebook_share_count::BIGINT,
+        facebook_comment_count::BIGINT,
+        facebook_reaction_count::BIGINT,
+        facebook_api_collect_date,
+        facebook_api_error
+    FROM unsharded_public.story_statistics
+
+    UNION
+
+    SELECT
+        story_statistics_id,
+        stories_id,
+        facebook_share_count,
+        facebook_comment_count,
+        facebook_reaction_count,
+        facebook_api_collect_date,
+        facebook_api_error
+    FROM sharded_public.story_statistics
+;
+
+-- Make INSERT ... RETURNING work
+ALTER VIEW public.story_statistics
+    ALTER COLUMN story_statistics_id
+    SET DEFAULT nextval(pg_get_serial_sequence('sharded_public.story_statistics', 'story_statistics_id'));
+
+CREATE OR REPLACE FUNCTION public.story_statistics_insert() RETURNS trigger AS $$
+BEGIN
+    -- Insert only into the sharded table
+    INSERT INTO sharded_public.story_statistics SELECT NEW.*;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- UPDATEs and DELETEs don't work: https://github.com/citusdata/citus/issues/2046
+CREATE TRIGGER story_statistics_insert
+    INSTEAD OF INSERT ON public.story_statistics
+    FOR EACH ROW
+    EXECUTE PROCEDURE public.story_statistics_insert();
+
+
+
+
+
+
+--
+-- processed_stories
+--
+
+ALTER TABLE public.processed_stories
+    SET SCHEMA sharded_public;
+
+SELECT setval(
+    pg_get_serial_sequence('sharded_public.processed_stories', 'processed_stories_id'),
+    nextval(pg_get_serial_sequence('unsharded_public.processed_stories', 'processed_stories_id')),
+    false
+);
+
+CREATE OR REPLACE VIEW public.processed_stories AS
+    SELECT
+        processed_stories_id::BIGINT,
+        stories_id::BIGINT
+    FROM unsharded_public.processed_stories
+
+    UNION
+
+    SELECT
+        processed_stories_id,
+        stories_id
+    FROM sharded_public.processed_stories
+;
+
+-- Make INSERT ... RETURNING work
+ALTER VIEW public.processed_stories
+    ALTER COLUMN processed_stories_id
+    SET DEFAULT nextval(pg_get_serial_sequence('sharded_public.processed_stories', 'processed_stories_id'));
+
+CREATE OR REPLACE FUNCTION public.processed_stories_insert() RETURNS trigger AS $$
+BEGIN
+    -- Insert only into the sharded table
+    INSERT INTO sharded_public.processed_stories SELECT NEW.*;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- UPDATEs and DELETEs don't work: https://github.com/citusdata/citus/issues/2046
+CREATE TRIGGER processed_stories_insert
+    INSTEAD OF INSERT ON public.processed_stories
+    FOR EACH ROW
+    EXECUTE PROCEDURE public.processed_stories_insert();
+
+
+
+

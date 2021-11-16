@@ -59,6 +59,6 @@ def test_merge_dup_story():
     assert len(old_topic_stories) == 0
 
     topic_merged_stories_maps = db.query(
-        "select * from topic_merged_stories_map where target_stories_id = %(a)s and source_stories_id = %(b)s",
+        "SELECT * FROM topic_merged_stories_map WHERE target_stories_id = %(a)s AND source_stories_id = %(b)s",
         {'a': new_story['stories_id'], 'b': old_story['stories_id']}).hashes()
     assert len(topic_merged_stories_maps) == 1

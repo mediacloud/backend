@@ -143,9 +143,13 @@ sub run_solr_tests($)
 
     {
         # search_solr_for_processed_stories_ids
-        my $first_story = $db->query( <<SQL )->hash;
-select * from processed_stories order by processed_stories_id asc limit 1
+        my $first_story = $db->query( <<SQL
+            SELECT *
+            FROM processed_stories
+            ORDER BY processed_stories_id ASC
+            LIMIT 1
 SQL
+        )->hash;
 
         my $got_processed_stories_ids = MediaWords::Solr::search_solr_for_processed_stories_ids( $db, '*:*', undef, 0, 1 );
         is( scalar( @{ $got_processed_stories_ids } ), 1, "search_solr_for_processed_stories_ids count" );

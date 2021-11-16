@@ -24,6 +24,7 @@
 -- FIXME half_md5() and other functions used in indexes
 -- FIXME upgrade to PostgreSQL 14 and enable citus.enable_binary_protocol + citus.binary_worker_copy_format
 -- FIXME do I need to increase citus.shard_max_size?
+-- FIXME ensure that the "stories" migration workflow avoids triggering insert_solr_import_story()
 
 
 -- Rename the unsharded schema created in previous migrations

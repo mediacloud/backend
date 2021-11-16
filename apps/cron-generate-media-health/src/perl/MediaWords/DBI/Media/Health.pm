@@ -54,7 +54,7 @@ SQL
                 COUNT(DISTINCT story_sentences_id) AS num_sentences,
                 date_trunc('day', publish_date) AS stat_date
             FROM story_sentences AS ss
-            where
+            WHERE
                 ss.story_sentences_id BETWEEN $ss_id AND $max_ss_id AND
                 ss.publish_date IS NOT NULL
             GROUP BY
@@ -245,7 +245,10 @@ sub _generate_media_coverage_gaps
 
     $db->begin;
 
-    $db->query( "DELETE FROM media_coverage_gaps" );
+    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: UPDATEs and DELETEs don't work on
+    # an updatable view: https://github.com/citusdata/citus/issues/2046
+    $db->query( "DELETE FROM unsharded_public.media_coverage_gaps" );
+    $db->query( "DELETE FROM sharded_public.media_coverage_gaps" );
 
     $db->query( <<SQL,
         CREATE TEMPORARY TABLE new_media_coverage_gaps AS

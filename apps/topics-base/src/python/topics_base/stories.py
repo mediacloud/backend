@@ -1161,9 +1161,20 @@ def _add_missing_normalized_title_hashes(db: DatabaseHandler, topic: dict) -> No
         if len(stories_ids) < 1:
             break
 
+        # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
         db.query(
             """
-                UPDATE stories
+                UPDATE unsharded_public.stories
+                SET normalized_title_hash = md5(get_normalized_title(title, media_id))::UUID
+                WHERE stories_id = ANY(%(story_ids)s)
+            """,
+            {
+                'story_ids': stories_ids,
+            }
+        )
+        db.query(
+            """
+                UPDATE sharded_public.stories
                 SET normalized_title_hash = md5(get_normalized_title(title, media_id))::UUID
                 WHERE stories_id = ANY(%(story_ids)s)
             """,

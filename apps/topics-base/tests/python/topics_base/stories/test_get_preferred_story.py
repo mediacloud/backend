@@ -54,8 +54,9 @@ def test_get_preferred_story():
         })
 
     for story in stories:
+        # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: test should write only to the sharded table
         db.query("""
-            UPDATE stories SET
+            UPDATE sharded_public.stories SET
                 url = %(url)s
             WHERE stories_id = %(stories_id)s
         """, {
@@ -65,13 +66,14 @@ def test_get_preferred_story():
 
     preferred_medium = media[2]
 
+    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: test should write only to the sharded table
     db.query("""
         WITH stories_to_update AS (
             SELECT stories_id
             FROM stories
             WHERE media_id = %(media_id)s
         )
-        UPDATE stories SET
+        UPDATE sharded_public.stories SET
             url = %(url)s
         WHERE stories_id IN (
             SELECT stories_id
@@ -91,9 +93,10 @@ def test_get_preferred_story():
     assert get_preferred_story(db, stories) == preferred_story
 
     # next prefer lowest media_id
+    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: test should write only to the sharded table
     for story in stories:
         db.query("""
-            UPDATE stories SET
+            UPDATE sharded_public.stories SET
                 url = %(url)s
             WHERE stories_id = %(stories_id)s
         """, {
