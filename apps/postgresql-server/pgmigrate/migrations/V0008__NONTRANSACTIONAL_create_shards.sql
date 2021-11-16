@@ -24,7 +24,6 @@
 -- FIXME half_md5() and other functions used in indexes
 -- FIXME upgrade to PostgreSQL 14 and enable citus.enable_binary_protocol + citus.binary_worker_copy_format
 -- FIXME do I need to increase citus.shard_max_size?
--- FIXME remove story_statistics_twitter
 
 
 -- Rename the unsharded schema created in previous migrations
@@ -1932,26 +1931,6 @@ SELECT create_distributed_table('story_statistics', 'stories_id', colocate_with 
 
 CREATE UNIQUE INDEX story_statistics_stories_id
     ON story_statistics (stories_id);
-
-
--- stats for deprecated Twitter share counts
-CREATE TABLE story_statistics_twitter
-(
-    story_statistics_twitter_id BIGSERIAL NOT NULL,
-    stories_id                  BIGINT    NOT NULL REFERENCES stories (stories_id) ON DELETE CASCADE,
-
-    twitter_url_tweet_count     BIGINT    NULL,
-    twitter_api_collect_date    TIMESTAMP NULL,
-    twitter_api_error           TEXT      NULL,
-
-    PRIMARY KEY (story_statistics_twitter_id, stories_id)
-);
-
--- noinspection SqlResolve @ routine/"create_distributed_table"
-SELECT create_distributed_table('story_statistics_twitter', 'stories_id', colocate_with => 'stories');
-
-CREATE UNIQUE INDEX story_statistics_twitter_stories_id
-    ON story_statistics_twitter (stories_id);
 
 
 CREATE TABLE snap.topic_stories
