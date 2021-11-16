@@ -24,6 +24,7 @@
 -- FIXME half_md5() and other functions used in indexes
 -- FIXME upgrade to PostgreSQL 14 and enable citus.enable_binary_protocol + citus.binary_worker_copy_format
 -- FIXME do I need to increase citus.shard_max_size?
+-- FIXME remove story_statistics_twitter
 
 
 -- Rename the unsharded schema created in previous migrations
