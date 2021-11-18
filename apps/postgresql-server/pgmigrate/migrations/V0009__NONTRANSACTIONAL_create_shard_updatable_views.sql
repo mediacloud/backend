@@ -2978,15 +2978,18 @@ DROP FUNCTION unsharded_public.stories_tags_map_p_upsert_trigger();
 DROP TRIGGER story_sentences_p_insert_trigger ON unsharded_public.story_sentences_p;
 DROP FUNCTION unsharded_public.story_sentences_p_insert_trigger();
 
+-- New INSERTs will happen only to the sharded table
 DROP TRIGGER topic_stories_insert_live_story ON unsharded_public.topic_stories;
 DROP FUNCTION unsharded_public.insert_live_story();
 
 DROP TRIGGER stories_update_live_story ON unsharded_public.stories;
 DROP FUNCTION unsharded_public.update_live_story();
 
+-- Table doesn't exist anymore so no need to DROP the trigger
 -- DROP TRIGGER auth_user_api_keys_add_non_ip_limited_api_key ON unsharded_public.auth_users;
 DROP FUNCTION unsharded_public.auth_user_api_keys_add_non_ip_limited_api_key();
 
+-- Table doesn't exist anymore so no need to DROP the trigger
 -- DROP TRIGGER auth_users_set_default_limits ON unsharded_public.auth_users;
 DROP FUNCTION unsharded_public.auth_users_set_default_limits();
 
@@ -3041,25 +3044,25 @@ CREATE TRIGGER stories_add_normalized_title
     FOR EACH ROW
     EXECUTE PROCEDURE unsharded_public.add_normalized_title_hash();
 
--- We'll be actively DELETEing a bunch of rows from the unsharded table so
--- having the trigger fire on DELETE is not practical; unsharded tables won't
--- get INSERTed to anymore so there's no need to have a trigger on INSERT; so
--- let's just leave it at UPDATE
+-- Update the insert_solr_import_story() triggers to not be fired on INSERTs as
+-- those won't be happening anymore; the workflow moving the rows from
+-- unsharded table to the sharded one will skip the triggers or run the
+-- appropriate actions manually
 DROP TRIGGER stories_insert_solr_import_story ON unsharded_public.stories;
 DROP TRIGGER stories_tags_map_p_insert_solr_import_story ON unsharded_public.stories_tags_map_p;
 DROP TRIGGER ps_insert_solr_import_story ON unsharded_public.processed_stories;
 CREATE TRIGGER stories_insert_solr_import_story
-    AFTER UPDATE
+    AFTER UPDATE OR DELETE
     ON unsharded_public.stories
     FOR EACH ROW
     EXECUTE PROCEDURE unsharded_public.insert_solr_import_story();
 CREATE TRIGGER stories_tags_map_p_insert_solr_import_story
-    BEFORE UPDATE
+    BEFORE UPDATE OR DELETE
     ON unsharded_public.stories_tags_map_p
     FOR EACH ROW
     EXECUTE PROCEDURE unsharded_public.insert_solr_import_story();
 CREATE TRIGGER ps_insert_solr_import_story
-    AFTER UPDATE
+    AFTER UPDATE OR DELETE
     ON unsharded_public.processed_stories
     FOR EACH ROW
     EXECUTE PROCEDURE unsharded_public.insert_solr_import_story();
