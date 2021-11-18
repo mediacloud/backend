@@ -63,8 +63,18 @@ class AbstractDownloadFeedHandler(DefaultStoreMixin, AbstractDownloadHandler, me
             error_message = f"Error processing feed for download {downloads_id}: {ex}"
             log.error(error_message)
 
+            # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
             db.query("""
-                UPDATE downloads
+                UPDATE unsharded_public.downloads
+                SET state = 'feed_error',
+                    error_message = %(error_message)s
+                WHERE downloads_id = %(downloads_id)s
+            """, {
+                'error_message': error_message,
+                'downloads_id': downloads_id,
+            })
+            db.query("""
+                UPDATE sharded_public.downloads
                 SET state = 'feed_error',
                     error_message = %(error_message)s
                 WHERE downloads_id = %(downloads_id)s

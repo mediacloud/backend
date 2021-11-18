@@ -39,22 +39,22 @@ def test_merge_dup_story():
     _merge_dup_story(db, topic, old_story, new_story)
 
     old_topic_links = db.query(
-        "select * from topic_links where topics_id = %(a)s and %(b)s in ( stories_id, ref_stories_id )",
+        "SELECT * FROM topic_links WHERE topics_id = %(a)s AND %(b)s IN (stories_id, ref_stories_id)",
         {'a': topic['topics_id'], 'b': old_story['stories_id']}).hashes()
     assert len(old_topic_links) == 0
 
     new_topic_links_linked = db.query(
-        "select * from topic_links where topics_id = %(a)s and stories_id = %(b)s and ref_stories_id = %(c)s",
+        "SELECT * FROM topic_links WHERE topics_id = %(a)s AND stories_id = %(b)s AND ref_stories_id = %(c)s",
         {'a': topic['topics_id'], 'b': new_story['stories_id'], 'c': linked_story['stories_id']}).hashes()
     assert len(new_topic_links_linked) == 1
 
     new_topic_links_linking = db.query(
-        "select * from topic_links where topics_id = %(a)s and ref_stories_id = %(b)s and stories_id = %(c)s",
+        "SELECT * FROM topic_links WHERE topics_id = %(a)s AND ref_stories_id = %(b)s AND stories_id = %(c)s",
         {'a': topic['topics_id'], 'b': new_story['stories_id'], 'c': linking_story['stories_id']}).hashes()
     assert len(new_topic_links_linking) == 1
 
     old_topic_stories = db.query(
-        "select * from topic_stories where topics_id = %(a)s and stories_id = %(b)s",
+        "SELECT * FROM topic_stories WHERE topics_id = %(a)s AND stories_id = %(b)s",
         {'a': topic['topics_id'], 'b': old_story['stories_id']}).hashes()
     assert len(old_topic_stories) == 0
 

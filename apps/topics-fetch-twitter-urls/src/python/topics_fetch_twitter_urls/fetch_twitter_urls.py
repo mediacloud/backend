@@ -31,8 +31,22 @@ class McFetchTwitterUrlsDataException(Exception):
 
 def _log_tweet_missing(db: DatabaseHandler, topic_fetch_url: dict) -> None:
     """Update topic_fetch_url state to tweet missing."""
+
+    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
     db.query("""
-        UPDATE topic_fetch_urls SET
+        UPDATE unsharded_public.topic_fetch_urls SET
+            state = %(state)s,
+            fetch_date = NOW()
+        WHERE
+            topics_id = %(topics_id)s AND
+            topic_fetch_urls_id = %(topic_fetch_urls_id)s
+    """, {
+        'state': FETCH_STATE_TWEET_MISSING,
+        'topics_id': topic_fetch_url['topics_id'],
+        'topic_fetch_urls_id': topic_fetch_url['topic_fetch_urls_id'],
+    })
+    db.query("""
+        UPDATE sharded_public.topic_fetch_urls SET
             state = %(state)s,
             fetch_date = NOW()
         WHERE
@@ -47,8 +61,22 @@ def _log_tweet_missing(db: DatabaseHandler, topic_fetch_url: dict) -> None:
 
 def _log_content_match_failed(db: DatabaseHandler, topic_fetch_url: dict) -> None:
     """Update topic_fetch_url state to content match failed."""
+
+    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
     db.query("""
-        UPDATE topic_fetch_urls SET
+        UPDATE unsharded_public.topic_fetch_urls SET
+            state = %(state)s,
+            fetch_date = NOW()
+        WHERE
+            topics_id = %(topics_id)s AND
+            topic_fetch_urls_id = %(topic_fetch_urls_id)s
+    """, {
+        'state': FETCH_STATE_CONTENT_MATCH_FAILED,
+        'topics_id': topic_fetch_url['topics_id'],
+        'topic_fetch_urls_id': topic_fetch_url['topic_fetch_urls_id'],
+    })
+    db.query("""
+        UPDATE sharded_public.topic_fetch_urls SET
             state = %(state)s,
             fetch_date = NOW()
         WHERE
@@ -63,8 +91,10 @@ def _log_content_match_failed(db: DatabaseHandler, topic_fetch_url: dict) -> Non
 
 def _log_tweet_added(db: DatabaseHandler, topic_fetch_url: dict, story: dict) -> dict:
     """Update topic_fetch_url stat to tweet added."""
-    return db.query("""
-        UPDATE topic_fetch_urls
+
+    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
+    unsharded_result = db.query("""
+        UPDATE unsharded_public.topic_fetch_urls
         SET state = %(state)s,
             stories_id = %(stories_id)s,
             fetch_date = NOW()
@@ -78,6 +108,26 @@ def _log_tweet_added(db: DatabaseHandler, topic_fetch_url: dict, story: dict) ->
         'topics_id': topic_fetch_url['topics_id'],
         'topic_fetch_urls_id': topic_fetch_url['topic_fetch_urls_id'],
     }).hash()
+    sharded_result = db.query("""
+        UPDATE sharded_public.topic_fetch_urls
+        SET state = %(state)s,
+            stories_id = %(stories_id)s,
+            fetch_date = NOW()
+        WHERE
+            topics_id = %(topics_id)s AND
+            topic_fetch_urls_id = %(topic_fetch_urls_id)s
+        RETURNING *
+    """, {
+        'state': FETCH_STATE_TWEET_ADDED,
+        'stories_id': story['stories_id'],
+        'topics_id': topic_fetch_url['topics_id'],
+        'topic_fetch_urls_id': topic_fetch_url['topic_fetch_urls_id'],
+    }).hash()
+
+    if unsharded_result:
+        return unsharded_result
+    else:
+        return sharded_result
 
 
 def _get_undateable_tag(db: DatabaseHandler) -> dict:
@@ -259,8 +309,23 @@ def _call_function_on_url_chunks(db: DatabaseHandler,
             log.warning(f"error fetching twitter data: {ex}")
 
             topic_fetch_urls_ids = [u['topic_fetch_urls_id'] for u in urls]
+
+            # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
             db.query("""
-                UPDATE topic_fetch_urls SET
+                UPDATE unsharded_public.topic_fetch_urls SET
+                    state = %(state)s,
+                    message = %(message)s
+                WHERE
+                    topics_id = %(topics_id)s AND
+                    topic_fetch_urls_id = ANY(%(topic_fetch_urls_ids)s)
+            """, {
+                'state': FETCH_STATE_PYTHON_ERROR,
+                'message': str(ex),
+                'topics_id': topic['topics_id'],
+                'topic_fetch_urls_ids': topic_fetch_urls_ids,
+            })
+            db.query("""
+                UPDATE sharded_public.topic_fetch_urls SET
                     state = %(state)s,
                     message = %(message)s
                 WHERE
@@ -328,8 +393,24 @@ def fetch_twitter_urls_update_state(db: DatabaseHandler,
         fetch_twitter_urls(db=db, topics_id=topics_id, topic_fetch_urls_ids=topic_fetch_urls_ids)
     except Exception as ex:
         log.error(f"Error while fetching URL with ID {topic_fetch_urls_ids}: {ex}")
+
+        # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
         db.query("""
-            UPDATE topic_fetch_urls SET
+            UPDATE unsharded_public.topic_fetch_urls SET
+                state = %(state)s,
+                message = %(message)s,
+                fetch_date = NOW()
+            WHERE
+                topics_id = %(topics_id)s AND
+                topic_fetch_urls_id = ANY(%(topic_fetch_urls_ids)s)
+        """, {
+            'state': FETCH_STATE_PYTHON_ERROR,
+            'message': traceback.format_exc(),
+            'topics_id': topics_id,
+            'topic_fetch_urls_ids': topic_fetch_urls_ids,
+        })
+        db.query("""
+            UPDATE sharded_public.topic_fetch_urls SET
                 state = %(state)s,
                 message = %(message)s,
                 fetch_date = NOW()

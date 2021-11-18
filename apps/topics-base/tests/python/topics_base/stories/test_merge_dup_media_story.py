@@ -23,7 +23,7 @@ def test_merge_dup_media_story():
         assert cloned_story[field] == old_story[field]
 
     topic_story = db.query(
-        "select * from topic_stories where stories_id = %(a)s and topics_id = %(b)s",
+        "SELECT * FROM topic_stories WHERE stories_id = %(a)s AND topics_id = %(b)s",
         {'a': cloned_story['stories_id'], 'b': topic['topics_id']}).hash()
     assert topic_story is not None
 

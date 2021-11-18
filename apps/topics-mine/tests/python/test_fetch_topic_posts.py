@@ -96,18 +96,18 @@ def _validate_topic_posts(db: DatabaseHandler, topic: dict, mock_posts: list) ->
 def _validate_topic_post_urls(db: DatabaseHandler, mock_posts: list) -> None:
     """Validate that topic_post_urls match the url in each post."""
     # first sanity check to make sure we got some urls
-    num_urls = db.query("select count(*) from topic_post_urls").flat()[0]
+    num_urls = db.query("SELECT COUNT(*) FROM topic_post_urls").flat()[0]
     assert num_urls == len(mock_posts)
 
     for mock_post in mock_posts:
         topic_post = db.query(
-            "select * from topic_posts where post_id = %(a)s::text",
+            "SELECT * FROM topic_posts WHERE post_id = %(a)s::TEXT",
             {'a': mock_post['post_id']}).hash()
 
         assert topic_post is not None
 
         topic_urls = db.query(
-            "select * from topic_post_urls where topic_posts_id = %(a)s",
+            "SELECT * FROM topic_post_urls WHERE topic_posts_id = %(a)s",
             {'a': topic_post['topic_posts_id']}).hashes()
 
         assert len(topic_urls) == 1

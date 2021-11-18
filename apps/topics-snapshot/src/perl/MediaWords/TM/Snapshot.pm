@@ -1364,7 +1364,7 @@ sub _update_url_sharing_focus_definitions($$)
 {
     my ( $db, $snapshot ) = @_;
 
-    my $tsqs = $db->query( "select * from topic_seed_queries where topics_id = ?", $snapshot->{ topics_id } )->hashes;
+    my $tsqs = $db->query( "SELECT * FROM topic_seed_queries WHERE topics_id = ?", $snapshot->{ topics_id } )->hashes;
 
     if ( !@{ $tsqs } )
     {

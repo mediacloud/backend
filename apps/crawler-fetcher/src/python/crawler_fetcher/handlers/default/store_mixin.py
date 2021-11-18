@@ -70,8 +70,22 @@ class DefaultStoreMixin(AbstractDownloadHandler, metaclass=abc.ABCMeta):
 
         responded_with_timeout = re.search(r'(503|500 read timeout)', response.status_line(), flags=re.IGNORECASE)
         if responded_with_timeout and error_num < self._MAX_5XX_RETRIES:
+
+            # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
             db.query("""
-                UPDATE downloads
+                UPDATE unsharded_public.downloads
+                SET
+                    state = 'pending',
+                    download_time = NOW() + %(download_interval)s::interval,
+                    error_message = %(error_message)s
+                WHERE downloads_id = %(downloads_id)s
+            """, {
+                'download_interval': f"{error_num} hours",
+                'error_message': error_message,
+                'downloads_id': downloads_id,
+            })
+            db.query("""
+                UPDATE sharded_public.downloads
                 SET
                     state = 'pending',
                     download_time = NOW() + %(download_interval)s::interval,
@@ -84,8 +98,19 @@ class DefaultStoreMixin(AbstractDownloadHandler, metaclass=abc.ABCMeta):
             })
 
         else:
+            # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
             db.query("""
-                UPDATE downloads
+                UPDATE unsharded_public.downloads
+                SET
+                    state = 'error',
+                    error_message = %(error_message)s
+                WHERE downloads_id = %(downloads_id)s
+            """, {
+                'error_message': error_message,
+                'downloads_id': downloads_id,
+            })
+            db.query("""
+                UPDATE sharded_public.downloads
                 SET
                     state = 'error',
                     error_message = %(error_message)s
@@ -116,8 +141,18 @@ class DefaultStoreMixin(AbstractDownloadHandler, metaclass=abc.ABCMeta):
         else:
             content = '(unsupported content type)'
 
+        # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
         db.query("""
-            UPDATE downloads
+            UPDATE unsharded_public.downloads
+            SET url = %(download_url)s
+            WHERE downloads_id = %(downloads_id)s
+              AND url != %(download_url)s
+        """, {
+            'downloads_id': downloads_id,
+            'download_url': download_url,
+        })
+        db.query("""
+            UPDATE sharded_public.downloads
             SET url = %(download_url)s
             WHERE downloads_id = %(downloads_id)s
               AND url != %(download_url)s

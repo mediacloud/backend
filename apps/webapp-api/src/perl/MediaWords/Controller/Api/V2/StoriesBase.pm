@@ -226,14 +226,16 @@ sub _add_nested_data
 
             WITH story_download_texts AS (
                 SELECT
-                    downloads_success.downloads_id,
-                    downloads_success.stories_id,
+                    downloads.downloads_id,
+                    downloads.stories_id,
                     download_texts.download_texts_id,
                     download_texts.download_text
-                FROM downloads_success
+                FROM downloads
                     LEFT JOIN download_texts ON
-                        downloads_success.downloads_id = download_texts.downloads_id
-                WHERE downloads_success.stories_id IN ($ids_list)
+                        downloads.downloads_id = download_texts.downloads_id
+                WHERE
+                    downloads.state = 'success' AND
+                    downloads.stories_id IN ($ids_list)
             )
 
             SELECT
@@ -269,8 +271,10 @@ SQL
             SELECT
                 stories_id,
                 BOOL_AND(extracted) AS is_fully_extracted
-            FROM downloads_success
-            WHERE stories_id IN ($ids_list)
+            FROM downloads
+            WHERE
+                state = 'success' AND
+                stories_id IN ($ids_list)
             GROUP BY stories_id
 SQL
         )->hashes;

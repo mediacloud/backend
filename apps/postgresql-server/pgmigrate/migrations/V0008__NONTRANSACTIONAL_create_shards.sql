@@ -3391,8 +3391,8 @@ CREATE TABLE snap.timespan_posts
 (
     snap_timespan_posts_id BIGSERIAL NOT NULL,
     topics_id              BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-    topic_posts_id         BIGINT    NOT NULL,
     timespans_id           BIGINT    NOT NULL REFERENCES timespans (timespans_id) ON DELETE CASCADE,
+    topic_posts_id         BIGINT    NOT NULL,
 
     PRIMARY KEY (snap_timespan_posts_id, topics_id)
 );

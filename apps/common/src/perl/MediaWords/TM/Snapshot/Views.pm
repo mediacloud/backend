@@ -121,7 +121,7 @@ sub discard_temp_tables_and_views
 {
     my ( $db ) = @_;
 
-    $db->query( "discard temp" );
+    $db->query( "DISCARD TEMP" );
 }
 
 sub add_media_type_views

@@ -62,9 +62,21 @@ def _timeout_stale_downloads(db: DatabaseHandler) -> None:
 
     date_stale_download_interval_ago = datetime.datetime.now() - datetime.timedelta(seconds=STALE_DOWNLOAD_INTERVAL)
 
+    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
     db.query(
         """
-        UPDATE downloads SET
+        UPDATE unsharded_public.downloads SET
+            state = 'pending',
+            download_time = NOW()
+        WHERE
+            state = 'fetching' AND
+            download_time < %(date_stale_download_interval_ago)s
+        """,
+        {'date_stale_download_interval_ago': date_stale_download_interval_ago}
+    )
+    db.query(
+        """
+        UPDATE sharded_public.downloads SET
             state = 'pending',
             download_time = NOW()
         WHERE
@@ -191,12 +203,14 @@ def provide_download_ids(db: DatabaseHandler) -> List[int]:
                         priority,
                         downloads_id DESC NULLS LAST
                 ) AS rank
-            FROM downloads_pending AS dp
-            WHERE NOT EXISTS (
-                SELECT 1
-                FROM queued_downloads_copy AS qd
-                WHERE qd.downloads_id = dp.downloads_id
-            )
+            FROM downloads
+            WHERE
+                state = 'pending' AND
+                NOT EXISTS (
+                    SELECT 1
+                    FROM queued_downloads_copy
+                    WHERE queued_downloads_copy.downloads_id = downloads_pending.downloads_id
+                )
         )
         
         SELECT downloads_id

@@ -30,7 +30,7 @@ class TestSkipSelfLinks(TestExtractStoryLinksDB):
                                       stories_id=self.test_story['stories_id'],
                                       topics_id=topic['topics_id'])
 
-        topic_links = self.db.query("select * from topic_links where topics_id = %(a)s",
+        topic_links = self.db.query("SELECT * FROM topic_links WHERE topics_id = %(a)s",
                                     {'a': topic['topics_id']}).hashes()
 
         assert (len(topic_links) == MAX_SELF_LINKS)

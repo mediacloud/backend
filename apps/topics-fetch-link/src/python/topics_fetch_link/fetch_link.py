@@ -288,8 +288,20 @@ def _update_tfu_message(db: DatabaseHandler, topic_fetch_url: dict, message: str
     """Update the topic_fetch_url.message field in the database."""
     if _USE_TFU_DEBUG_MESSAGES:
 
+        # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
         db.query("""
-            UPDATE topic_fetch_urls SET
+            UPDATE unsharded_public.topic_fetch_urls SET
+                message = %(message)s
+            WHERE
+                topics_id = %(topics_id)s AND
+                topic_fetch_urls_id = %(topic_fetch_urls_id)s
+        """, {
+            'topics_id': topic_fetch_url['topics_id'],
+            'topic_fetch_urls_id': topic_fetch_url['topic_fetch_urls_id'],
+            'message': message,
+        })
+        db.query("""
+            UPDATE sharded_public.topic_fetch_urls SET
                 message = %(message)s
             WHERE
                 topics_id = %(topics_id)s AND
@@ -545,21 +557,41 @@ def fetch_topic_url(db: DatabaseHandler, topic_fetch_urls_id: int, domain_timeou
         topic_fetch_url['message'] = traceback.format_exc()
         log.warning('topic_fetch_url %s failed: %s' % (topic_fetch_url['url'], topic_fetch_url['message']))
 
-
-    db.query("""
-        UPDATE topic_fetch_urls SET
-            url = %(url)s,
-            code = %(code)s,
-            fetch_date = %(fetch_date)s,
-            state = %(state)s,
-            message = %(message)s,
-            stories_id = %(stories_id)s,
-            assume_match = %(assume_match)s,
-            topic_links_id = %(topic_links_id)s
-        WHERE
-            topics_id = %(topics_id)s AND
-            topic_fetch_urls_id = %(topic_fetch_urls_id)s
-    """, topic_fetch_url)
+    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
+    db.query(
+        """
+            UPDATE unsharded_public.topic_fetch_urls SET
+                url = %(url)s,
+                code = %(code)s,
+                fetch_date = %(fetch_date)s,
+                state = %(state)s,
+                message = %(message)s,
+                stories_id = %(stories_id)s,
+                assume_match = %(assume_match)s,
+                topic_links_id = %(topic_links_id)s
+            WHERE
+                topics_id = %(topics_id)s AND
+                topic_fetch_urls_id = %(topic_fetch_urls_id)s
+        """,
+        topic_fetch_url
+    )
+    db.query(
+        """
+            UPDATE sharded_public.topic_fetch_urls SET
+                url = %(url)s,
+                code = %(code)s,
+                fetch_date = %(fetch_date)s,
+                state = %(state)s,
+                message = %(message)s,
+                stories_id = %(stories_id)s,
+                assume_match = %(assume_match)s,
+                topic_links_id = %(topic_links_id)s
+            WHERE
+                topics_id = %(topics_id)s AND
+                topic_fetch_urls_id = %(topic_fetch_urls_id)s
+        """,
+        topic_fetch_url
+    )
 
 
 def fetch_topic_url_update_state(db: DatabaseHandler,
@@ -585,8 +617,22 @@ def fetch_topic_url_update_state(db: DatabaseHandler,
         # if a domain has been throttled, just add it back to the end of the queue
         log.info("Fetch for topic_fetch_url %d domain throttled. Requeueing ..." % topic_fetch_urls_id)
 
+        # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
         db.query("""
-            UPDATE topic_fetch_urls SET
+            UPDATE unsharded_public.topic_fetch_urls SET
+                state = %(state)s,
+                fetch_date = %(fetch_date)s
+            WHERE
+                topics_id = %(topics_id)s AND
+                topic_fetch_urls_id = %(topic_fetch_urls_id)s
+        """, {
+            'topics_id': topics_id,
+            'topic_fetch_urls_id': topic_fetch_urls_id,
+            'state': FETCH_STATE_REQUEUED,
+            'fetch_date': datetime.datetime.now(),
+        })
+        db.query("""
+            UPDATE sharded_public.topic_fetch_urls SET
                 state = %(state)s,
                 fetch_date = %(fetch_date)s
             WHERE
@@ -605,8 +651,24 @@ def fetch_topic_url_update_state(db: DatabaseHandler,
         # all non throttled errors should get caught by the try: about, but catch again here just in case
         log.error(f"Error while fetching URL with ID {topic_fetch_urls_id}: {ex}")
 
+        # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
         db.query("""
-            UPDATE topic_fetch_urls SET
+            UPDATE unsharded_public.topic_fetch_urls SET
+                state = %(state)s,
+                fetch_date = %(fetch_date)s,
+                message = %(message)s
+            WHERE
+                topics_id = %(topics_id)s AND
+                topic_fetch_urls_id = %(topic_fetch_urls_id)s
+        """, {
+            'topics_id': topics_id,
+            'topic_fetch_urls_id': topic_fetch_urls_id,
+            'state': FETCH_STATE_PYTHON_ERROR,
+            'fetch_date': datetime.datetime.now(),
+            'message': traceback.format_exc(),
+        })
+        db.query("""
+            UPDATE sharded_public.topic_fetch_urls SET
                 state = %(state)s,
                 fetch_date = %(fetch_date)s,
                 message = %(message)s

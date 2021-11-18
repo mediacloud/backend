@@ -637,9 +637,24 @@ def merge_foreign_rss_stories(db: DatabaseHandler, topic: dict) -> None:
             },
         )
 
+        # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
         db.query(
             """
-                UPDATE topic_links SET
+                UPDATE unsharded_public.topic_links SET
+                    ref_stories_id = NULL,
+                    link_spidered = 'f'
+                WHERE
+                    topics_id = %(topics_id)s AND
+                    ref_stories_id = %(ref_stories_id)s
+            """,
+            {
+                'ref_stories_id': story['stories_id'],
+                'topics_id': topic['topics_id'],
+            },
+        )
+        db.query(
+            """
+                UPDATE sharded_public.topic_links SET
                     ref_stories_id = NULL,
                     link_spidered = 'f'
                 WHERE
@@ -652,9 +667,10 @@ def merge_foreign_rss_stories(db: DatabaseHandler, topic: dict) -> None:
             },
         )
 
+        # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
         db.query(
             """
-            DELETE FROM topic_stories
+            DELETE FROM unsharded_public.topic_stories
             WHERE
                 stories_id = %(stories_id)s AND
                 topics_id = %(topics_id)s
@@ -664,6 +680,19 @@ def merge_foreign_rss_stories(db: DatabaseHandler, topic: dict) -> None:
                 'topics_id': topic['topics_id'],
             },
         )
+        db.query(
+            """
+            DELETE FROM sharded_public.topic_stories
+            WHERE
+                stories_id = %(stories_id)s AND
+                topics_id = %(topics_id)s
+            """,
+            {
+                'stories_id': story['stories_id'],
+                'topics_id': topic['topics_id'],
+            },
+        )
+
         db.commit()
 
 
@@ -887,9 +916,22 @@ def _merge_dup_story(db, topic, delete_story, keep_story):
         }
     )
 
+    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
     db.query(
         """
-            DELETE FROM topic_links
+            DELETE FROM unsharded_public.topic_links
+            WHERE
+                topics_id = %(topics_id)s AND
+                %(stories_id)s IN (stories_id, ref_stories_id)
+        """,
+        {
+            'topics_id': topics_id,
+            'stories_id': delete_story['stories_id'],
+        }
+    )
+    db.query(
+        """
+            DELETE FROM sharded_public.topic_links
             WHERE
                 topics_id = %(topics_id)s AND
                 %(stories_id)s IN (stories_id, ref_stories_id)
@@ -900,9 +942,22 @@ def _merge_dup_story(db, topic, delete_story, keep_story):
         }
     )
 
+    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
     db.query(
         """
-            DELETE FROM topic_stories
+            DELETE FROM unsharded_public.topic_stories
+            WHERE
+                topics_id = %(topics_id)s AND
+                stories_id = %(stories_id)s
+        """,
+        {
+            'topics_id': topics_id,
+            'stories_id': delete_story['stories_id'],
+        }
+    )
+    db.query(
+        """
+            DELETE FROM sharded_public.topic_stories
             WHERE
                 topics_id = %(topics_id)s AND
                 stories_id = %(stories_id)s
@@ -924,9 +979,24 @@ def _merge_dup_story(db, topic, delete_story, keep_story):
         }
     )
 
+    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
     db.query(
         """
-            UPDATE topic_seed_urls SET
+            UPDATE unsharded_public.topic_seed_urls SET
+                stories_id = %(keep_stories_id)s
+            WHERE
+                topics_id = %(topics_id)s AND
+                stories_id = %(delete_stories_id)s
+        """,
+        {
+            'topics_id': topic['topics_id'],
+            'delete_stories_id': delete_story['stories_id'],
+            'keep_stories_id': keep_story['stories_id'],
+        }
+    )
+    db.query(
+        """
+            UPDATE sharded_public.topic_seed_urls SET
                 stories_id = %(keep_stories_id)s
             WHERE
                 topics_id = %(topics_id)s AND

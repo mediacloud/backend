@@ -321,11 +321,19 @@ sub _add_scraped_stories_flag
 {
     my ( $self, $story ) = @_;
 
-    $self->db->query( <<SQL, $story->{ stories_id }, ref( $self ) );
-insert into scraped_stories ( stories_id, import_module )
-    select \$1, \$2 where not exists (
-        select 1 from scraped_stories where stories_id = \$1 and import_module = \$2 )
+    $self->db->query( <<SQL,
+        INSERT INTO scraped_stories (stories_id, import_module)
+            SELECT \$1, \$2
+            WHERE NOT EXISTS (
+                SELECT 1
+                FROM scraped_stories
+                WHERE
+                    stories_id = \$1 AND
+                    import_module = \$2
+            )
 SQL
+        $story->{ stories_id }, ref( $self )
+    );
 
 }
 

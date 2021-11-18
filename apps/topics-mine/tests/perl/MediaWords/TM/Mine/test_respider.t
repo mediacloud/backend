@@ -35,7 +35,8 @@ sub test_respider($)
     AddTestTopicStories::add_test_topic_stories( $db, $topic, $num_topic_stories, $label );
 
     # no respidering without respider_stories
-    $db->query( "update topic_stories set link_mined = 't'" );
+    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: test should write only to the sharded table
+    $db->query( "UPDATE sharded_public.topic_stories SET link_mined = 't'" );
 
     MediaWords::TM::Mine::set_stories_respidering( $db, $topic, undef );
 
@@ -45,7 +46,8 @@ sub test_respider($)
     # respider everything with respider_stories but no dates
     $topic->{ respider_stories } = 1;
 
-    $db->query( "UPDATE topic_stories SET link_mined = 't'" );
+    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: test should write only to the sharded table
+    $db->query( "UPDATE sharded_public.topic_stories SET link_mined = 't'" );
 
     MediaWords::TM::Mine::set_stories_respidering( $db, $topic, undef );
 
@@ -62,7 +64,8 @@ sub test_respider($)
     };
     $topic = $db->update_by_id( 'topics', $topic->{ topics_id }, $topic_update );
 
-    $db->query( "UPDATE topic_stories SET link_mined = 't'" );
+    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: test should write only to the sharded table
+    $db->query( "UPDATE sharded_public.topic_stories SET link_mined = 't'" );
 
     my $num_date_changes = 10;
     # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: test should write only to the sharded table

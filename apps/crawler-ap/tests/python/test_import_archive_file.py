@@ -27,6 +27,6 @@ def test_import_archive_file():
     assert story['publish_date'] == '2018-07-06 13:34:25'
     assert story['description'][0:10] == 'German media are reporting a drop'[0:10]
 
-    download_text = db.query("select * from download_texts").hash()
+    download_text = db.query("SELECT * FROM download_texts").hash()
 
     assert download_text['download_text'][0:10] == 'BERLIN (AP'

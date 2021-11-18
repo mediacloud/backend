@@ -376,8 +376,9 @@ SQL
     $topic = $db->find_by_id( 'topics', $topic->{ topics_id } );
     ok( $topic->{ respider_stories }, "respider_stories set after query update" );
 
+    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: test should write only to the sharded table
     $db->query( <<SQL,
-        UPDATE topic_stories SET
+        UPDATE sharded_public.topic_stories SET
             link_mined = 't'
         WHERE topics_id = ?
 SQL

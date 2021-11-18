@@ -511,10 +511,11 @@ def _import_ap_story(db: DatabaseHandler, ap_story: dict) -> None:
 
     db.query(
         """
-        insert into download_texts (downloads_id, download_text, download_text_length)
-            values (%(downloads_id)s, %(download_text)s, %(download_text_length)s)
+        INSERT INTO download_texts (downloads_id, download_text, download_text_length)
+        VALUES (%(downloads_id)s, %(download_text)s, %(download_text_length)s)
         """,
-        download_text)
+        download_text
+    )
 
     # Send to the extractor for it to do vectorization, language detection, etc.
     JobBroker(queue_name='MediaWords::Job::ExtractAndVector').add_to_queue(
