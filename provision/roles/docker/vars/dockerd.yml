@@ -8,8 +8,8 @@
 #     apt-cache madison docker-ce
 #     apt-cache madison containerd.io
 #
-docker_version: "20.10.8"
-containerd_io_version: "1.4.9-1"
+docker_version: "20.10.11"
+containerd_io_version: "1.4.12"
 
 # Docker Python module, needed by Ansible:
 #
