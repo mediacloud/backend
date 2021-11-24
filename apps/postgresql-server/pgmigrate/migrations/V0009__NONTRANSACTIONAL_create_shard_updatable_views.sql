@@ -5330,7 +5330,7 @@ CREATE TRIGGER snap_live_stories_insert
 
 -- Recreate update_live_story() and re-add it as a trigger for it to UPDATE
 -- both the unsharded and sharded tables
-CREATE OR REPLACE FUNCTION unsharded_public.update_live_story() returns trigger as $$
+CREATE OR REPLACE FUNCTION unsharded_public.update_live_story() RETURNS TRIGGER AS $$
 
 BEGIN
 
