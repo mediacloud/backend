@@ -55,11 +55,13 @@ SQL
                 date_trunc('day', publish_date) AS stat_date
             FROM story_sentences AS ss
             WHERE
-                ss.story_sentences_id BETWEEN $ss_id AND $max_ss_id AND
+                ss.story_sentences_id BETWEEN ? AND ? AND
                 ss.publish_date IS NOT NULL
             GROUP BY
                 media_id,
                 stat_date
+SQL
+        $ss_id, $max_ss_id
 
         ON CONFLICT (media_id, stat_date) DO UPDATE SET
             num_stories = old.num_stories + EXCLUDED.num_stories, 
@@ -67,12 +69,13 @@ SQL
 SQL
     );
 
-    $db->query( <<SQL
+    $db->query( <<SQL,
         INSERT INTO database_variables (name, value)
-        VALUES ('media_health_last_ss_id', $max_ss_id)
+        VALUES ('media_health_last_ss_id', ?)
         ON CONFLICT (name) DO UPDATE SET
             value = EXCLUDED.value
 SQL
+        $max_ss_id
     );
 
 }
@@ -109,7 +112,7 @@ sub _generate_media_stats_weekly
                         SELECT media_id
                         FROM crawled_media
                     ) AND
-                    ms.stat_date BETWEEN '$START_DATE' AND NOW()
+                    ms.stat_date BETWEEN ? AND NOW()
                 GROUP BY
                     ms.media_id,
                     stat_week
@@ -124,6 +127,7 @@ sub _generate_media_stats_weekly
                 stat_week
             FROM sparse_media_stats_weekly AS w
 SQL
+        $START_DATE
     );
 
     $db->commit;
@@ -290,7 +294,8 @@ SQL
     # media_stats_weekly is sparse -- it only includes weeks for which there were more than 0
     # stories or sentences for the given media source.  this query inserts as coverage gaps
     # all missing weeks between the start_date and end_date for the given media source
-    $db->query( <<SQL
+
+    $db->query( <<SQL,
         INSERT INTO media_coverage_gaps (
             media_id,
             stat_week,
@@ -309,7 +314,7 @@ SQL
             FROM (
                 media AS m
                     CROSS JOIN generate_series (
-                        date_trunc('week', '$START_DATE'::timestamp),
+                        date_trunc('week', ?::timestamp),
                         NOW(),
                         INTERVAL '7 days'
                     ) AS weeks(stat_week)
@@ -323,6 +328,7 @@ SQL
                 weeks.stat_week BETWEEN mev.start_date AND mev.end_date AND
                 msw.num_stories IS NULL
 SQL
+        $START_DATE
     );
 
     $db->commit;
