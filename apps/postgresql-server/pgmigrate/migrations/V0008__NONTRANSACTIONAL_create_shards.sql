@@ -1152,7 +1152,7 @@ CREATE TABLE solr_imports
 (
     solr_imports_id BIGSERIAL PRIMARY KEY,
     import_date     TIMESTAMP NOT NULL,
-    full_import     BOOLEAN   NOT NULL DEFAULT FALSE,
+    full_import     BOOLEAN   NOT NULL DEFAULT 'f',
     num_stories     BIGINT    NULL
 );
 
@@ -1472,7 +1472,7 @@ CREATE TABLE topic_stories
     iteration               BIGINT    NULL DEFAULT 0,
     link_weight             REAL      NULL,
     redirect_url            TEXT      NULL,
-    valid_foreign_rss_story BOOLEAN   NULL DEFAULT false,
+    valid_foreign_rss_story BOOLEAN   NULL DEFAULT 'f',
     link_mine_error         TEXT      NULL,
 
     PRIMARY KEY (topic_stories_id, topics_id)
@@ -2550,7 +2550,7 @@ CREATE TABLE auth_users
     full_name                       TEXT      NOT NULL,
     notes                           TEXT      NULL,
 
-    active                          BOOLEAN   NOT NULL DEFAULT true,
+    active                          BOOLEAN   NOT NULL DEFAULT 't',
 
     -- Salted hash of a password reset token (with Crypt::SaltedHash, algorithm => 'SHA-256',
     -- salt_len=>64) or NULL
@@ -2565,7 +2565,7 @@ CREATE TABLE auth_users
     created_date                    TIMESTAMP NOT NULL DEFAULT NOW(),
 
     -- Whether or not the user has consented to the privacy policy
-    has_consented                   BOOLEAN   NOT NULL DEFAULT false
+    has_consented                   BOOLEAN   NOT NULL DEFAULT 'f'
 );
 
 SELECT create_reference_table('auth_users');
