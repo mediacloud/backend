@@ -3311,6 +3311,14 @@ BEGIN
     -- table to the sharded one
     SELECT INTO NEW.normalized_title_hash MD5(get_normalized_title(NEW.title, NEW.media_id))::uuid;
 
+    -- Set default values (not supported by updatable views)
+    IF NEW.collect_date IS NULL THEN
+        SELECT NOW() INTO NEW.collect_date;
+    END IF;
+    IF NEW.full_text_rss IS NULL THEN
+        SELECT 'f' INTO NEW.full_text_rss;
+    END IF;
+
     -- Insert only into the sharded table
     INSERT INTO sharded_public.stories SELECT NEW.*;
     RETURN NEW;
@@ -4035,6 +4043,15 @@ ALTER VIEW public.downloads
 
 CREATE OR REPLACE FUNCTION public.downloads_insert() RETURNS trigger AS $$
 BEGIN
+
+    -- Set default values (not supported by updatable views)
+    IF NEW.download_time IS NULL THEN
+        SELECT NOW() INTO NEW.download_time;
+    END IF;
+    IF NEW.extracted IS NULL THEN
+        SELECT 'f' INTO NEW.extracted;
+    END IF;
+
     -- Insert only into the sharded table
     INSERT INTO sharded_public.downloads SELECT NEW.*;
     RETURN NEW;
@@ -4155,6 +4172,18 @@ ALTER VIEW public.topic_stories
 
 CREATE OR REPLACE FUNCTION public.topic_stories_insert() RETURNS trigger AS $$
 BEGIN
+
+    -- Set default values (not supported by updatable views)
+    IF NEW.link_mined IS NULL THEN
+        SELECT 'f' INTO NEW.link_mined;
+    END IF;
+    IF NEW.iteration IS NULL THEN
+        SELECT 0 INTO NEW.iteration;
+    END IF;
+    IF NEW.valid_foreign_rss_story IS NULL THEN
+        SELECT 'f' INTO NEW.valid_foreign_rss_story;
+    END IF;
+
     -- Insert only into the sharded table
     INSERT INTO sharded_public.topic_stories SELECT NEW.*;
     RETURN NEW;
@@ -4215,6 +4244,12 @@ ALTER VIEW public.topic_links
 
 CREATE OR REPLACE FUNCTION public.topic_links_insert() RETURNS trigger AS $$
 BEGIN
+
+    -- Set default values (not supported by updatable views)
+    IF NEW.link_spidered IS NULL THEN
+        SELECT 'f' INTO NEW.link_spidered;
+    END IF;
+
     -- Insert only into the sharded table
     INSERT INTO sharded_public.topic_links SELECT NEW.*;
     RETURN NEW;
@@ -4282,6 +4317,11 @@ ALTER VIEW public.topic_fetch_urls
 
 CREATE OR REPLACE FUNCTION public.topic_fetch_urls_insert() RETURNS trigger AS $$
 BEGIN
+
+    IF NEW.assume_match IS NULL THEN
+        SELECT 'f' INTO NEW.assume_match;
+    END IF;
+
     -- Insert only into the sharded table
     INSERT INTO sharded_public.topic_fetch_urls SELECT NEW.*;
     RETURN NEW;
@@ -4484,6 +4524,15 @@ ALTER VIEW public.topic_seed_urls
 
 CREATE OR REPLACE FUNCTION public.topic_seed_urls_insert() RETURNS trigger AS $$
 BEGIN
+
+    -- Set default values (not supported by updatable views)
+    IF NEW.processed IS NULL THEN
+        SELECT 'f' INTO NEW.processed;
+    END IF;
+    IF NEW.assume_match IS NULL THEN
+        SELECT 'f' INTO NEW.assume_match;
+    END IF;
+
     -- Insert only into the sharded table
     INSERT INTO sharded_public.topic_seed_urls SELECT NEW.*;
     RETURN NEW;
@@ -4557,6 +4606,12 @@ ALTER VIEW snap.stories
 
 CREATE OR REPLACE FUNCTION snap.stories_insert() RETURNS trigger AS $$
 BEGIN
+
+    -- Set default values (not supported by updatable views)
+    IF NEW.full_text_rss IS NULL THEN
+        SELECT 'f' INTO NEW.full_text_rss;
+    END IF;
+
     -- Insert only into the sharded table
     INSERT INTO sharded_snap.stories SELECT NEW.*;
     RETURN NEW;
@@ -4745,6 +4800,12 @@ ALTER VIEW snap.media
 
 CREATE OR REPLACE FUNCTION snap.media_insert() RETURNS trigger AS $$
 BEGIN
+
+    -- Set default values (not supported by updatable views)
+    IF NEW.foreign_rss_links IS NULL THEN
+        SELECT 'f' INTO NEW.foreign_rss_links;
+    END IF;
+
     -- Insert only into the sharded table
     INSERT INTO sharded_snap.media SELECT NEW.*;
     RETURN NEW;
@@ -5246,6 +5307,12 @@ ALTER VIEW snap.live_stories
 
 CREATE OR REPLACE FUNCTION snap.live_stories_insert() RETURNS trigger AS $$
 BEGIN
+
+    -- Set default values (not supported by updatable views)
+    IF NEW.full_text_rss IS NULL THEN
+        SELECT 'f' INTO NEW.full_text_rss;
+    END IF;
+
     -- Insert only into the sharded table
     INSERT INTO sharded_snap.live_stories SELECT NEW.*;
     RETURN NEW;
