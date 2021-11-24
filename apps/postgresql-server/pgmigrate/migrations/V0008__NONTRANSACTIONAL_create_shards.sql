@@ -25,6 +25,7 @@
 -- FIXME upgrade to PostgreSQL 14 and enable citus.enable_binary_protocol + citus.binary_worker_copy_format
 -- FIXME do I need to increase citus.shard_max_size?
 -- FIXME ensure that the "stories" and "topic_stories" migration workflows avoid triggering insert_solr_import_story()
+-- FIXME while copying "media_stats", copy (media_id, stat_date) pairs that already exist in the sharded table
 
 
 -- Rename the unsharded schema created in previous migrations

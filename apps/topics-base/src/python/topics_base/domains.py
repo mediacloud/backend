@@ -32,6 +32,8 @@ def increment_domain_links(db: DatabaseHandler, topic_link: dict) -> None:
     if story_domain not in (url_domain, redirect_url_domain):
         return
 
+    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: rows have been moved
+    # in a migration so we should be fine INSERTing directly
     topic_domain = db.query(
         """
             INSERT INTO topic_domains (topics_id, domain, self_links)
@@ -49,7 +51,7 @@ def increment_domain_links(db: DatabaseHandler, topic_link: dict) -> None:
     if not topic_domain:
         db.query(
             """
-            UPDATE topic_domains set
+            UPDATE topic_domains SET
                 self_links = topic_domains.self_links + 1
             WHERE
                 topics_id = %(topics_id)s AND

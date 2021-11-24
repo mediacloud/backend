@@ -404,8 +404,32 @@ def get_and_store_story_stats(db: DatabaseHandler, story: dict) -> FacebookURLSt
 
     date_now = datetime.datetime.now()
 
+    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: upserts don't work on an
+    # updatable view, and we can't upsert directly into the sharded table
+    # as the duplicate row might already exist in the unsharded one;
+    # therefore, we UPDATE the unsharded table and do an upsert to a sharded
+    # table -- the row won't start suddenly existing in an essentially
+    # read-only unsharded table so this should be safe from race conditions.
+    # After migrating rows, one can reset this statement to use a native upsert
+
     db.query("""
-        INSERT INTO story_statistics (
+        UPDATE unsharded_public.story_statistics SET
+            facebook_share_count = %(share_count)s,
+            facebook_comment_count = %(comment_count)s,
+            facebook_reaction_count = %(reaction_count)s,
+            facebook_api_collect_date = %(now)s,
+            facebook_api_error = %(facebook_error)s
+        WHERE stories_id = %(stories_id)s
+    """, {
+        'stories_id': story['stories_id'],
+        'share_count': stats.share_count if stats else None,
+        'comment_count': stats.comment_count if stats else None,
+        'reaction_count': stats.reaction_count if stats else None,
+        'facebook_error': str(thrown_exception) if thrown_exception else None,
+        'now': date_now,
+    })
+    db.query("""
+        INSERT INTO sharded_public.story_statistics (
             stories_id,
             facebook_share_count,
             facebook_comment_count,

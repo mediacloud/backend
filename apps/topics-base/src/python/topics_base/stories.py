@@ -334,18 +334,55 @@ def assign_date_guess_tag(
     ts = db.find_or_create('tag_sets', {'name': tag_set})
     t = db.find_or_create('tags', {'tag': tag, 'tag_sets_id': ts['tag_sets_id']})
 
-    db.query("DELETE FROM stories_tags_map WHERE stories_id = %(a)s", {'a': story['stories_id']})
+    stories_id = story['stories_id']
+    tags_id = t['tags_id']
+
+    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
     db.query(
         """
-            INSERT INTO stories_tags_map (stories_id, tags_id)
-            VALUES (%(stories_id)s, %(tags_id)s)
-            ON CONFLICT (stories_id, tags_id) DO NOTHING
+        DELETE FROM unsharded_public.stories_tags_map
+        WHERE stories_id = %(stories_id)s
+        """,
+        {'stories_id': stories_id}
+    )
+    db.query(
+        """
+        DELETE FROM sharded_public.stories_tags_map
+        WHERE stories_id = %(a)s
+        """,
+        {'stories_id': stories_id}
+    )
+
+    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: upserts don't work on an
+    # updatable view, and we can't upsert directly into the sharded table
+    # as the duplicate row might already exist in the unsharded one;
+    # therefore, we test the unsharded table once for whether the row
+    # exists and do an upsert to a sharded table -- the row won't start
+    # suddenly existing in an essentially read-only unsharded table so this
+    # should be safe from race conditions. After migrating rows, one can
+    # reset this statement to use a native upsert
+    row_exists = db.query(
+        """
+        SELECT 1
+        FROM stories_tags_map
+        WHERE
+            stories_id = %(stories_id)s AND
+            tags_id = %(tags_id)s
         """,
         {
-            'stories_id': story['stories_id'],
-            'tags_id': t['tags_id'],
+            'stories_id': stories_id,
+            'tags_id': tags_id,
         }
-    )
+    ).hash()
+    if not row_exists:
+        db.query("""
+            INSERT INTO sharded_public.stories_tags_map (stories_id, tags_id)
+            VALUES (%(stories_id)s, %(tags_id)s)
+            ON CONFLICT (stories_id, tags_id) DO NOTHING
+        """, {
+            'stories_id': stories_id,
+            'tags_id': tags_id,
+        })
 
 
 def get_spider_feed(db: DatabaseHandler, medium: dict) -> dict:
@@ -473,23 +510,45 @@ def generate_story(
     story = add_story(db, story, feed['feeds_id'])
     log.debug(f"Done adding story {story}")
 
-    db.query(
+    stories_id = story['stories_id']
+    tags_id = spidered_tag['tags_id']
+
+    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: upserts don't work on an
+    # updatable view, and we can't upsert directly into the sharded table
+    # as the duplicate row might already exist in the unsharded one;
+    # therefore, we test the unsharded table once for whether the row
+    # exists and do an upsert to a sharded table -- the row won't start
+    # suddenly existing in an essentially read-only unsharded table so this
+    # should be safe from race conditions. After migrating rows, one can
+    # reset this statement to use a native upsert
+    row_exists = db.query(
         """
-            INSERT INTO stories_tags_map (stories_id, tags_id)
-            VALUES (%(stories_id)s, %(tags_id)s)
-            ON CONFLICT (stories_id, tags_id) DO NOTHING
+        SELECT 1
+        FROM stories_tags_map
+        WHERE
+            stories_id = %(stories_id)s AND
+            tags_id = %(tags_id)s
         """,
         {
-            'stories_id': story['stories_id'],
-            'tags_id': spidered_tag['tags_id'],
+            'stories_id': stories_id,
+            'tags_id': tags_id,
         }
-    )
+    ).hash()
+    if not row_exists:
+        db.query("""
+            INSERT INTO sharded_public.stories_tags_map (stories_id, tags_id)
+            VALUES (%(stories_id)s, %(tags_id)s)
+            ON CONFLICT (stories_id, tags_id) DO NOTHING
+        """, {
+            'stories_id': stories_id,
+            'tags_id': tags_id,
+        })
 
     if publish_date is None:
         log.debug(f"Assigning date guess tag...")
         assign_date_guess_tag(db, story, date_guess, fallback_date)
 
-    log.debug(f"add story: {story['title']}; {story['url']}; {story['publish_date']}; {story['stories_id']}")
+    log.debug(f"add story: {story['title']}; {story['url']}; {story['publish_date']}; {stories_id}")
 
     if story.get('is_new', False):
         log.debug("Story is new, creating download...")
@@ -544,9 +603,34 @@ def add_to_topic_stories(
 
         iteration = (source_story['iteration'] + 1) if source_story else 0
 
-    db.query(
+    topics_id = topic['topics_id']
+    stories_id = story['stories_id']
+
+    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: upserts don't work on an
+    # updatable view, and we can't upsert directly into the sharded table
+    # as the duplicate row might already exist in the unsharded one;
+    # therefore, we test the unsharded table once for whether the row
+    # exists and do an upsert to a sharded table -- the row won't start
+    # suddenly existing in an essentially read-only unsharded table so this
+    # should be safe from race conditions. After migrating rows, one can
+    # reset this statement to use a native upsert
+    row_exists = db.query(
         """
-            INSERT INTO topic_stories (
+        SELECT 1
+        FROM topic_stories
+        WHERE
+            topics_id = %(topics_id)s AND
+            stories_id = %(stories_id)s
+        """,
+        {
+            'topics_id': topics_id,
+            'stories_id': stories_id,
+        },
+    ).hash()
+    if not row_exists:
+        db.query(
+            """
+            INSERT INTO sharded_public.topic_stories (
                 topics_id,
                 stories_id,
                 iteration,
@@ -562,16 +646,16 @@ def add_to_topic_stories(
                 %(valid_foreign_rss_story)s
             )
             ON CONFLICT (topics_id, stories_id) DO NOTHING
-        """,
-        {
-            'topics_id': topic['topics_id'],
-            'stories_id': story['stories_id'],
-            'iteration': iteration,
-            'redirect_url': story['url'],
-            'link_mined': link_mined,
-            'valid_foreign_rss_story': valid_foreign_rss_story
-        },
-    )
+            """,
+            {
+                'topics_id': topics_id,
+                'stories_id': stories_id,
+                'iteration': iteration,
+                'redirect_url': story['url'],
+                'link_mined': link_mined,
+                'valid_foreign_rss_story': valid_foreign_rss_story
+            },
+        )
 
 
 def merge_foreign_rss_stories(db: DatabaseHandler, topic: dict) -> None:
@@ -717,21 +801,48 @@ def copy_story_to_new_medium(db: DatabaseHandler, topic: dict, old_story: dict, 
     )
     add_to_topic_stories(db=db, story=story, topic=topic, valid_foreign_rss_story=True)
 
-    db.query(
+    for old_story_tag in db.query(
         """
-            INSERT INTO stories_tags_map (stories_id, tags_id)
-                SELECT
-                    %(new_stories_id)s,
-                    stm.tags_id
-                FROM stories_tags_map AS stm
-                WHERE stm.stories_id = %(old_stories_id)s
-            ON CONFLICT (stories_id, tags_id) DO NOTHING
+        SELECT tags_id
+        FROM stories_tags_map
+        WHERE stories_id = %(stories_id)s
+        ORDER BY tags_id
         """,
-        {
-            'old_stories_id': old_story['stories_id'],
-            'new_stories_id': story['stories_id'],
-        }
-    )
+        {'stories_id': old_story['stories_id']},
+    ).hashes():
+        stories_id = story['stories_id']
+        tags_id = old_story_tag['tags_id']
+
+        # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: upserts don't work on an
+        # updatable view, and we can't upsert directly into the sharded table
+        # as the duplicate row might already exist in the unsharded one;
+        # therefore, we test the unsharded table once for whether the row
+        # exists and do an upsert to a sharded table -- the row won't start
+        # suddenly existing in an essentially read-only unsharded table so this
+        # should be safe from race conditions. After migrating rows, one can
+        # reset this statement to use a native upsert
+        row_exists = db.query(
+            """
+            SELECT 1
+            FROM stories_tags_map
+            WHERE
+                stories_id = %(stories_id)s AND
+                tags_id = %(tags_id)s
+            """,
+            {
+                'stories_id': stories_id,
+                'tags_id': tags_id,
+            }
+        ).hash()
+        if not row_exists:
+            db.query("""
+                INSERT INTO sharded_public.stories_tags_map (stories_id, tags_id)
+                VALUES (%(stories_id)s, %(tags_id)s)
+                ON CONFLICT (stories_id, tags_id) DO NOTHING
+            """, {
+                'stories_id': stories_id,
+                'tags_id': tags_id,
+            })
 
     feed = get_spider_feed(db, new_medium)
     db.create('feeds_stories_map', {'feeds_id': feed['feeds_id'], 'stories_id': story['stories_id']})
@@ -856,65 +967,151 @@ def _merge_dup_story(db, topic, delete_story, keep_story):
     if use_transaction:
         db.begin()
 
-    db.query(
+    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: upserts don't work on an
+    # updatable view, and we can't upsert directly into the sharded table
+    # as the duplicate row might already exist in the unsharded one;
+    # therefore, we test the unsharded table once for whether the row
+    # exists and do an upsert to a sharded table -- the row won't start
+    # suddenly existing in an essentially read-only unsharded table so this
+    # should be safe from race conditions. After migrating rows, one can
+    # reset this statement to use a native upsert
+    for topic_link in db.query(
         """
-            INSERT INTO topic_links (
-                topics_id,
-                stories_id,
-                ref_stories_id,
-                url,
-                redirect_url,
-                link_spidered
-            )
-                SELECT
+        SELECT
+            topics_id,
+            %(keep_stories_id)s AS stories_id,
+            ref_stories_id,
+            url,
+            redirect_url,
+            link_spidered
+        FROM topic_links
+        WHERE
+            topics_id = %(topics_id)s AND
+            stories_id = %(delete_stories_id)s
+        """,
+        {
+            'topics_id': topics_id,
+            'delete_stories_id': delete_story['stories_id'],
+            'keep_stories_id': keep_story['stories_id'],
+        }
+    ).hashes():
+
+        row_exists = db.query(
+            """
+            SELECT 1
+            FROM topic_links
+            WHERE
+                topics_id = %(topics_id)s AND
+                stories_id = %(stories_id)s AND
+                ref_stories_id = %(ref_stories_id)s
+            """,
+            {
+                'topics_id': topics_id,
+                'stories_id': topic_link['stories_id'],
+                'ref_stories_id': topic_link['ref_stories_id'],
+            }
+        ).hash()
+        if not row_exists:
+            db.query(
+                """
+                INSERT INTO sharded_public.topic_links (
                     topics_id,
-                    %(keep_stories_id)s,
+                    stories_id,
                     ref_stories_id,
                     url,
                     redirect_url,
                     link_spidered
-                FROM topic_links AS tl
-                WHERE
-                    tl.topics_id = %(topics_id)s AND
-                    tl.stories_id = %(delete_stories_id)s
-            ON CONFLICT (stories_id, topics_id, ref_stories_id) DO NOTHING
+                ) VALUES (
+                    %(topics_id)s,
+                    %(stories_id)s,
+                    %(ref_stories_id)s,
+                    %(url)s,
+                    %(redirect_url)s,
+                    %(link_spidered)s
+                )
+                ON CONFLICT (topics_id, stories_id, ref_stories_id) DO NOTHING
+                """, {
+                    'topics_id': topics_id,
+                    'stories_id': topic_link['stories_id'],
+                    'ref_stories_id': topic_link['ref_stories_id'],
+                    'url': topic_link['url'],
+                    'redirect_url': topic_link['redirect_url'],
+                    'link_spidered': topic_link['link_spidered'],
+                }
+            )
+
+    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: upserts don't work on an
+    # updatable view, and we can't upsert directly into the sharded table
+    # as the duplicate row might already exist in the unsharded one;
+    # therefore, we test the unsharded table once for whether the row
+    # exists and do an upsert to a sharded table -- the row won't start
+    # suddenly existing in an essentially read-only unsharded table so this
+    # should be safe from race conditions. After migrating rows, one can
+    # reset this statement to use a native upsert
+    for topic_link in db.query(
+        """
+        SELECT
+            topics_id,
+            stories_id,
+            %(keep_stories_id)s AS ref_stories_id,
+            url,
+            redirect_url,
+            link_spidered
+        FROM topic_links
+        WHERE
+            topics_id = %(topics_id)s AND
+            stories_id = %(delete_stories_id)s
         """,
         {
             'topics_id': topics_id,
             'delete_stories_id': delete_story['stories_id'],
             'keep_stories_id': keep_story['stories_id'],
         }
-    )
+    ).hashes():
 
-    db.query(
-        """
-            INSERT INTO topic_links (
-                topics_id,
-                stories_id,
-                ref_stories_id,
-                url,
-                redirect_url,
-                link_spidered
-            )
-                SELECT
+        row_exists = db.query(
+            """
+            SELECT 1
+            FROM topic_links
+            WHERE
+                topics_id = %(topics_id)s AND
+                stories_id = %(stories_id)s AND
+                ref_stories_id = %(ref_stories_id)s
+            """,
+            {
+                'topics_id': topics_id,
+                'stories_id': topic_link['stories_id'],
+                'ref_stories_id': topic_link['ref_stories_id'],
+            }
+        ).hash()
+        if not row_exists:
+            db.query(
+                """
+                INSERT INTO sharded_public.topic_links (
                     topics_id,
                     stories_id,
-                    %(keep_stories_id)s,
+                    ref_stories_id,
                     url,
                     redirect_url,
                     link_spidered
-                FROM topic_links AS tl
-                WHERE
-                    tl.topics_id = %(topics_id)s AND
-                    tl.ref_stories_id = %(delete_stories_id)s
-            ON CONFLICT (topics_id, stories_id, ref_stories_id) DO NOTHING
-        """,
-        {
-            'topics_id': topics_id,
-            'delete_stories_id': delete_story['stories_id'],
-            'keep_stories_id': keep_story['stories_id'],
-        }
-    )
+                ) VALUES (
+                    %(topics_id)s,
+                    %(stories_id)s,
+                    %(ref_stories_id)s,
+                    %(url)s,
+                    %(redirect_url)s,
+                    %(link_spidered)s
+                )
+                ON CONFLICT (topics_id, stories_id, ref_stories_id) DO NOTHING
+                """, {
+                    'topics_id': topics_id,
+                    'stories_id': topic_link['stories_id'],
+                    'ref_stories_id': topic_link['ref_stories_id'],
+                    'url': topic_link['url'],
+                    'redirect_url': topic_link['redirect_url'],
+                    'link_spidered': topic_link['link_spidered'],
+                }
+            )
 
     # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
     db.query(

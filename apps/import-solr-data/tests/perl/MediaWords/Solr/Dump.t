@@ -154,13 +154,35 @@ SQL
         # test that stories_tags_map update queues import
         my $story = pop( @{ $test_stories } );
         my $tag = MediaWords::Util::Tags::lookup_or_create_tag( $db, 'import:test' );
+
+        # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: upserts don't work on an
+        # updatable view, and we can't upsert directly into the sharded table
+        # as the duplicate row might already exist in the unsharded one;
+        # therefore, we test the unsharded table once for whether the row
+        # exists and do an upsert to a sharded table -- the row won't start
+        # suddenly existing in an essentially read-only unsharded table so this
+        # should be safe from race conditions. After migrating rows, one can
+        # reset this statement to use a native upsert
+        my $row_exists = $db->query( <<SQL,
+            SELECT 1
+            FROM stories_tags_map
+            WHERE
+                stories_id = ? AND
+                tags_id = ?
+SQL
+            $story->{ stories_id }, $tag->{ tags_id }
+        )->hash();
+        unless ( $row_exists ) {
         $db->query( <<SQL,
-            INSERT INTO stories_tags_map (stories_id, tags_id)
+            INSERT INTO sharded.stories_tags_map (stories_id, tags_id)
             VALUES (?, ?)
             ON CONFLICT (stories_id, tags_id) DO NOTHING
 SQL
             $story->{ stories_id }, $tag->{ tags_id }
         );
+        }
+
+
 
         my $solr_import_story = $db->query( <<SQL,
             SELECT *

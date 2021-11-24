@@ -170,17 +170,40 @@ def _add_user_story(db: DatabaseHandler, topic: dict, user: dict, topic_fetch_ur
 
     # twitter user pages are undateable because there is never a consistent version of the page
     undateable_tag = _get_undateable_tag(db)
-    db.query(
+
+    stories_id = story['stories_id']
+    tags_id = undateable_tag['tags_id']
+
+    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: upserts don't work on an
+    # updatable view, and we can't upsert directly into the sharded table
+    # as the duplicate row might already exist in the unsharded one;
+    # therefore, we test the unsharded table once for whether the row
+    # exists and do an upsert to a sharded table -- the row won't start
+    # suddenly existing in an essentially read-only unsharded table so this
+    # should be safe from race conditions. After migrating rows, one can
+    # reset this statement to use a native upsert
+    row_exists = db.query(
         """
-            INSERT INTO stories_tags_map (stories_id, tags_id)
-            VALUES (%(stories_id)s, %(tags_id)s)
-            ON CONFLICT (stories_id, tags_id) DO NOTHING
+        SELECT 1
+        FROM stories_tags_map
+        WHERE
+            stories_id = %(stories_id)s AND
+            tags_id = %(tags_id)s
         """,
         {
-            'stories_id': story['stories_id'],
-            'tags_id': undateable_tag['tags_id'],
+            'stories_id': stories_id,
+            'tags_id': tags_id,
         }
-    )
+    ).hash()
+    if not row_exists:
+        db.query("""
+            INSERT INTO sharded_public.stories_tags_map (stories_id, tags_id)
+            VALUES (%(stories_id)s, %(tags_id)s)
+            ON CONFLICT (stories_id, tags_id) DO NOTHING
+        """, {
+            'stories_id': stories_id,
+            'tags_id': tags_id,
+        })
 
     return story
 

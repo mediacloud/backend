@@ -3810,7 +3810,38 @@ ALTER VIEW public.story_statistics
 
 CREATE OR REPLACE FUNCTION public.story_statistics_insert() RETURNS trigger AS $$
 BEGIN
+
     -- Insert only into the sharded table
+
+    -- MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: revert back to
+    -- INSERT ... ON CONFLICT once the rows get migrated from the unsharded
+    -- table to the sharded one
+
+    UPDATE unsharded_public.story_statistics SET
+        facebook_share_count = NEW.facebook_share_count,
+        facebook_comment_count = NEW.facebook_comment_count,
+        facebook_reaction_count = NEW.facebook_reaction_count,
+        facebook_api_collect_date = NEW.facebook_api_collect_date,
+        facebook_api_error = NEW.facebook_api_error
+    WHERE stories_id = NEW.stories_id;
+    IF FOUND THEN
+        RETURN;
+
+    END IF;
+
+    BEGIN
+
+        INSERT INTO test (whatever, counter) VALUES (in_whatever, 1);
+
+    EXCEPTION WHEN OTHERS THEN
+
+        UPDATE test set counter = counter + 1 WHERE whatever = in_whatever;
+
+    END;
+
+    RETURN;
+
+
     INSERT INTO sharded_public.story_statistics SELECT NEW.*;
     RETURN NEW;
 END;
@@ -5373,3 +5404,95 @@ CREATE TRIGGER stories_update_live_story
     ON unsharded_public.stories
     FOR EACH ROW
     EXECUTE PROCEDURE unsharded_public.update_live_story();
+
+
+# MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: update update_live_story() on the
+# sharded table too; later it's to be made to update only the sharded table
+# again, just like it used to do in the previous migration
+CREATE OR REPLACE FUNCTION public.update_live_story() RETURNS TRIGGER AS
+$$
+
+BEGIN
+
+    UPDATE unsharded_snap.live_stories SET
+        media_id = NEW.media_id,
+        url = NEW.url,
+        guid = NEW.guid,
+        title = NEW.title,
+        normalized_title_hash = NEW.normalized_title_hash,
+        description = NEW.description,
+        publish_date = NEW.publish_date,
+        collect_date = NEW.collect_date,
+        full_text_rss = NEW.full_text_rss,
+        language = NEW.language
+    WHERE
+        stories_id = NEW.stories_id;
+
+    UPDATE sharded_snap.live_stories SET
+        media_id = NEW.media_id,
+        url = NEW.url,
+        guid = NEW.guid,
+        title = NEW.title,
+        normalized_title_hash = NEW.normalized_title_hash,
+        description = NEW.description,
+        publish_date = NEW.publish_date,
+        collect_date = NEW.collect_date,
+        full_text_rss = NEW.full_text_rss,
+        language = NEW.language
+    WHERE
+        stories_id = NEW.stories_id;
+
+    RETURN NEW;
+
+END;
+
+$$ LANGUAGE plpgsql;
+
+-- noinspection SqlResolve @ routine/"create_distributed_function"
+SELECT create_distributed_function('update_live_story()');
+
+
+
+--
+-- CREATE UPSERT HELPERS
+--
+
+-- upserts don't work on updatable viewS, and we can't upsert directly into the
+-- sharded table as the duplicate row might already exist in the unsharded one;
+-- after migrating rows, one can rollback to using native atomic upserts:
+--
+-- https://www.depesz.com/2012/06/10/why-is-upsert-so-complicated/
+--
+
+
+CREATE FUNCTION unsharded_public.story_statistics_upsert (
+    p_table TEXT,
+    p_object_id BIGINT,
+    p_raw_data BYTEA
+) RETURNS VOID AS $$
+
+BEGIN
+
+    UPDATE test set counter = counter + 1 WHERE whatever = in_whatever;
+
+    IF FOUND THEN
+
+        RETURN;
+
+    END IF;
+
+    BEGIN
+
+        INSERT INTO test (whatever, counter) VALUES (in_whatever, 1);
+
+    EXCEPTION WHEN OTHERS THEN
+
+        UPDATE test set counter = counter + 1 WHERE whatever = in_whatever;
+
+    END;
+
+    RETURN;
+
+END;
+
+$$ language plpgsql;

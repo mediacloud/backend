@@ -350,6 +350,9 @@ class TagsFromJSONAnnotation(metaclass=abc.ABCMeta):
             # Find or create a tag set
             db_tag_set = db.select(table='tag_sets', what_to_select='*', condition_hash={'name': tag_sets_name}).hash()
             if db_tag_set is None:
+
+                # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: rows have been moved
+                # in a migration so we should be fine INSERTing directly
                 db.query("""
                     INSERT INTO tag_sets (name, label, description)
                     VALUES (%(name)s, %(label)s, %(description)s)
@@ -359,6 +362,7 @@ class TagsFromJSONAnnotation(metaclass=abc.ABCMeta):
                     'label': tag.tag_sets_label,
                     'description': tag.tag_sets_description
                 })
+
                 db_tag_set = db.select(table='tag_sets',
                                        what_to_select='*',
                                        condition_hash={'name': tag_sets_name}).hash()
@@ -370,6 +374,9 @@ class TagsFromJSONAnnotation(metaclass=abc.ABCMeta):
                 'tag': tags_name,
             }).hash()
             if db_tag is None:
+
+                # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: rows have been moved
+                # in a migration so we should be fine INSERTing directly
                 db.query("""
                     INSERT INTO tags (tag_sets_id, tag, label, description)
                     VALUES (%(tag_sets_id)s, %(tag)s, %(label)s, %(description)s)
@@ -380,6 +387,7 @@ class TagsFromJSONAnnotation(metaclass=abc.ABCMeta):
                     'label': tag.tags_label,
                     'description': tag.tags_description,
                 })
+
                 db_tag = db.select(table='tags', what_to_select='*', condition_hash={
                     'tag_sets_id': tag_sets_id,
                     'tag': tags_name,
@@ -390,13 +398,37 @@ class TagsFromJSONAnnotation(metaclass=abc.ABCMeta):
             #
             # Not using db.create() because it tests last_inserted_id, and on duplicates there would be no such
             # "last_inserted_id" set.
-            db.query("""
-                INSERT INTO stories_tags_map (stories_id, tags_id)
-                VALUES (%(stories_id)s, %(tags_id)s)
-                ON CONFLICT (stories_id, tags_id) DO NOTHING
-            """, {
-                'stories_id': stories_id,
-                'tags_id': tags_id,
-            })
+            #
+            # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: upserts don't work on an
+            # updatable view, and we can't upsert directly into the sharded table
+            # as the duplicate row might already exist in the unsharded one;
+            # therefore, we test the unsharded table once for whether the row
+            # exists and do an upsert to a sharded table -- the row won't start
+            # suddenly existing in an essentially read-only unsharded table so this
+            # should be safe from race conditions. After migrating rows, one can
+            # reset this statement to use a native upsert
+
+            row_exists = db.query(
+                """
+                SELECT 1
+                FROM stories_tags_map
+                WHERE
+                    stories_id = %(stories_id)s AND
+                    tags_id = %(tags_id)s
+                """,
+                {
+                    'stories_id': stories_id,
+                    'tags_id': tags_id,
+                }
+            ).hash()
+            if not row_exists:
+                db.query("""
+                    INSERT INTO sharded_public.stories_tags_map (stories_id, tags_id)
+                    VALUES (%(stories_id)s, %(tags_id)s)
+                    ON CONFLICT (stories_id, tags_id) DO NOTHING
+                """, {
+                    'stories_id': stories_id,
+                    'tags_id': tags_id,
+                })
 
         db.commit()

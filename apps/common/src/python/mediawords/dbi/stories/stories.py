@@ -58,7 +58,7 @@ def insert_story_urls(db: DatabaseHandler, story: dict, url: str) -> None:
         # updatable view, and we can't upsert directly into the sharded table
         # as the duplicate row might already exist in the unsharded one;
         # therefore, we test the unsharded table once for whether the row
-        # exists and do an upsert to an unsharded table -- the row won't start
+        # exists and do an upsert to a sharded table -- the row won't start
         # suddenly existing in an essentially read-only unsharded table so this
         # should be safe from race conditions. After migrating rows, one can
         # reset this statement to use a native upsert
@@ -73,7 +73,7 @@ def insert_story_urls(db: DatabaseHandler, story: dict, url: str) -> None:
                     url = %(url)s
                 """,
                 {'stories_id': story['stories_id'], 'url': url}
-            )
+            ).hash()
             if not row_exists:
                 db.query(
                     """
@@ -268,7 +268,7 @@ def add_story(db: DatabaseHandler, story: dict, feeds_id: int) -> Optional[dict]
     # updatable view, and we can't upsert directly into the sharded table
     # as the duplicate row might already exist in the unsharded one;
     # therefore, we test the unsharded table once for whether the row
-    # exists and do an upsert to an unsharded table -- the row won't start
+    # exists and do an upsert to a sharded table -- the row won't start
     # suddenly existing in an essentially read-only unsharded table so this
     # should be safe from race conditions. After migrating rows, one can
     # reset this statement to use a native upsert
@@ -284,7 +284,7 @@ def add_story(db: DatabaseHandler, story: dict, feeds_id: int) -> Optional[dict]
             'feeds_id': feeds_id,
             'stories_id': story['stories_id'],
         }
-    )
+    ).hash()
     if not row_exists:
         db.query(
             """

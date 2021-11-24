@@ -263,6 +263,9 @@ def run_provider(db: DatabaseHandler, daemon: bool = True) -> None:
                 # 2) We don't have to come up with a query that's 2 MB long.
                 for chunk_downloads_ids in __chunks(list_to_be_chunked=downloads_ids, chunk_size=1000):
                     log.info(f"Inserting chunk of downloads ({len(chunk_downloads_ids)} download IDs)...")
+
+                    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: rows have been moved
+                    # in a migration so we should be fine INSERTing directly
                     # noinspection SqlResolve,SqlSignature
                     db.query(
                         """
