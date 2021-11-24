@@ -40,14 +40,12 @@ SQL
     my ( $max_ss_id ) = $db->query( "SELECT MAX(story_sentences_id) FROM story_sentences" )->flat;
     $max_ss_id = defined( $max_ss_id ) ? int( $max_ss_id ) : 0;
     
-    $db->query( <<SQL
-        INSERT INTO media_stats AS old (
-            media_id,
-            num_stories,
-            num_sentences,
-            stat_date
-        )
-
+    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: upserts don't work on an updatable
+    # view, and UPDATE-then-INSERT-or-UPDATE-again upsert would be super
+    # complicated here, so let's just duplicate a few (media_id, stat_date)
+    # pairs here
+    $db->query( <<SQL,
+        CREATE TEMPORARY TABLE temp_media_stats AS
             SELECT
                 media_id,
                 COUNT(DISTINCT stories_id) AS num_stories,
@@ -62,6 +60,21 @@ SQL
                 stat_date
 SQL
         $ss_id, $max_ss_id
+    );
+
+    $db->query( <<SQL,
+        INSERT INTO sharded_public.media_stats AS old (
+            media_id,
+            num_stories,
+            num_sentences,
+            stat_date
+        )
+            SELECT
+                media_id,
+                num_stories,
+                num_sentences,
+                stat_date
+            FROM temp_media_stats
 
         ON CONFLICT (media_id, stat_date) DO UPDATE SET
             num_stories = old.num_stories + EXCLUDED.num_stories, 
@@ -69,6 +82,10 @@ SQL
 SQL
     );
 
+    $db->query( 'DROP TABLE temp_media_stats' );
+
+    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: rows have been moved
+    # in a migration so we should be fine INSERTing directly
     $db->query( <<SQL,
         INSERT INTO database_variables (name, value)
         VALUES ('media_health_last_ss_id', ?)
@@ -88,18 +105,10 @@ sub _generate_media_stats_weekly
 
     $db->begin;
 
-    $db->query( "DELETE FROM media_stats_weekly" );
+    $db->query( "TRUNCATE media_stats_weekly" );
 
-    $db->query( <<SQL
-        INSERT INTO media_stats_weekly (
-            media_id,
-            stories_rank,
-            num_stories,
-            sentences_rank,
-            num_sentences,
-            stat_week
-        )
-
+    $db->query( <<SQL,
+        CREATE TEMPORARY TABLE temp_media_stats_weekly AS
             WITH sparse_media_stats_weekly AS (
                 SELECT
                     date_trunc('week', stat_date) AS stat_week,
@@ -129,6 +138,28 @@ sub _generate_media_stats_weekly
 SQL
         $START_DATE
     );
+
+    $db->query( <<SQL
+        INSERT INTO media_stats_weekly (
+            media_id,
+            stories_rank,
+            num_stories,
+            sentences_rank,
+            num_sentences,
+            stat_week
+        )
+            SELECT
+                media_id,
+                stories_rank,
+                num_stories,
+                sentences_rank,
+                num_sentences,
+                stat_week
+            FROM temp_media_stats_weekly
+SQL
+    );
+
+    $db->query( 'DROP TABLE temp_media_stats_weekly' );
 
     $db->commit;
 
@@ -174,7 +205,7 @@ SQL
 
     $db->begin;
 
-    $db->query( "DELETE FROM media_expected_volume" );
+    $db->query( "TRUNCATE media_expected_volume" );
 
     $db->query( <<SQL
         CREATE TEMPORARY TABLE updated_media_expected_volume AS
@@ -249,10 +280,12 @@ sub _generate_media_coverage_gaps
 
     $db->begin;
 
+    $db->query( "SET LOCAL citus.multi_shard_modify_mode TO 'sequential'" );
+
     # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: UPDATEs and DELETEs don't work on
     # an updatable view: https://github.com/citusdata/citus/issues/2046
-    $db->query( "DELETE FROM unsharded_public.media_coverage_gaps" );
-    $db->query( "DELETE FROM sharded_public.media_coverage_gaps" );
+    $db->query( "TRUNCATE unsharded_public.media_coverage_gaps" );
+    $db->query( "TRUNCATE sharded_public.media_coverage_gaps" );
 
     $db->query( <<SQL,
         CREATE TEMPORARY TABLE new_media_coverage_gaps AS
@@ -466,7 +499,7 @@ SQL
 
     $db->begin;
 
-    $db->query( 'DELETE FROM media_health' );
+    $db->query( 'TRUNCATE media_health' );
 
     $db->query( <<SQL
         CREATE TEMPORARY TABLE temp_media_expected_volume AS
