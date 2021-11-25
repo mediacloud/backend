@@ -119,32 +119,6 @@ def _insert_story_sentences(
         log.warning(f"Story sentences are empty for story {stories_id}")
         return []
 
-    # Convert to list of dicts (values escaped for insertion into database)
-    sentence_dicts = _get_db_escaped_story_sentence_dicts(db=db, story=story, sentences=sentences)
-
-    # Ordered list of columns
-    story_sentences_columns = sorted(sentence_dicts[0].keys())
-    str_story_sentences_columns = ', '.join(story_sentences_columns)
-
-    # List of sentences (in predefined column order)
-    new_sentences_sql = []
-    for sentence_dict in sentence_dicts:
-        new_sentence_sql = []
-        for column in story_sentences_columns:
-            new_sentence_sql.append(sentence_dict[column])
-        new_sentences_sql.append(f"({', '.join(new_sentence_sql)})")
-    str_new_sentences_sql = "\n{}".format(",\n".join(new_sentences_sql))
-
-    # sometimes the big story_sentences query below deadlocks sticks in an idle state, holding this lock so we set a
-    # short idle timeout for postgres just while we do this query. the timeout should not kick in while the 
-    # big story_sentences query is actively processing, so we can set it pretty short. we usually set this timeout
-    # to 0 globally, but just to be safe store and reset the pre-existing value.
-    idle_timeout = db.query("SHOW idle_in_transaction_session_timeout").flat()[0]
-    db.query("SET idle_in_transaction_session_timeout = 5000")
-
-    log.debug(f"Adding advisory lock on media ID {media_id}...")
-    db.query("SELECT pg_advisory_lock(%(media_id)s)", {'media_id': media_id})
-
     # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
     if no_dedup_sentences:
         log.debug(f"Won't de-duplicate sentences for story {stories_id} because 'no_dedup_sentences' is set")
@@ -189,6 +163,32 @@ def _insert_story_sentences(
             RETURNING story_sentences.sentence
 
         """
+
+    # Convert to list of dicts (values escaped for insertion into database)
+    sentence_dicts = _get_db_escaped_story_sentence_dicts(db=db, story=story, sentences=sentences)
+
+    # Ordered list of columns
+    story_sentences_columns = sorted(sentence_dicts[0].keys())
+    str_story_sentences_columns = ', '.join(story_sentences_columns)
+
+    # List of sentences (in predefined column order)
+    new_sentences_sql = []
+    for sentence_dict in sentence_dicts:
+        new_sentence_sql = []
+        for column in story_sentences_columns:
+            new_sentence_sql.append(sentence_dict[column])
+        new_sentences_sql.append(f"({', '.join(new_sentence_sql)})")
+    str_new_sentences_sql = "\n{}".format(",\n".join(new_sentences_sql))
+
+    # sometimes the big story_sentences query below deadlocks sticks in an idle state, holding this lock so we set a
+    # short idle timeout for postgres just while we do this query. the timeout should not kick in while the 
+    # big story_sentences query is actively processing, so we can set it pretty short. we usually set this timeout
+    # to 0 globally, but just to be safe store and reset the pre-existing value.
+    idle_timeout = db.query("SHOW idle_in_transaction_session_timeout").flat()[0]
+    db.query("SET idle_in_transaction_session_timeout = 5000")
+
+    log.debug(f"Adding advisory lock on media ID {media_id}...")
+    db.query("SELECT pg_advisory_lock(%(media_id)s)", {'media_id': media_id})
 
     sql_unsharded = f"""
         -- noinspection SqlType,SqlResolve
