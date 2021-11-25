@@ -1319,7 +1319,6 @@ SQL
     );
 
     DEBUG( "creating snapshot_topic_post_stories ..." );
-    # FIXME looks kinda slow really (not limited by topics_id or anything like that)
     $db->query( <<SQL,
         CREATE TEMPORARY TABLE snapshot_topic_post_stories AS
             WITH _all_topic_post_stories AS (
@@ -1328,16 +1327,15 @@ SQL
                     COUNT(*) OVER (PARTITION BY topic_seed_queries_id) AS query_count,
                     *
                 FROM topic_post_stories
+                WHERE topics_id = ?
             )
             
             SELECT *
             FROM _all_topic_post_stories
             WHERE author_count < GREATEST(?, query_count * ?)
 SQL
-        $AUTHOR_COUNT_MIN_CUTOFF, $AUTHOR_COUNT_MAX_SHARE
+        $topics_id, $AUTHOR_COUNT_MIN_CUTOFF, $AUTHOR_COUNT_MAX_SHARE
     );
-
-    my $tweet_topics_id = $topic->{ topics_id };
 
     MediaWords::TM::Snapshot::Views::add_media_type_views( $db );
 
