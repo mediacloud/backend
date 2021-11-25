@@ -754,7 +754,7 @@ SQL
                     VALUES (?, ?)
                     ON CONFLICT ($id_field, tags_id) DO NOTHING
 SQL
-                    $put_tag->{ $id_field }, $tags_id
+                    $put_tag->{ $id_field }, $tag->{ tags_id }
                 );
             }
 
