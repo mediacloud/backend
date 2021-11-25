@@ -357,7 +357,7 @@ sub assign_date_guess_method
                                 ON tag_sets.tag_sets_id = tags.tag_sets_id
                         WHERE tag_sets.name = ?
                     )
-        SQL
+SQL
                 $story->{ stories_id }, $tag_set_name
             );
             $db->query( <<SQL,
@@ -371,7 +371,7 @@ sub assign_date_guess_method
                                 ON tag_sets.tag_sets_id = tags.tag_sets_id
                         WHERE tag_sets.name = ?
                     )
-        SQL
+SQL
                 $story->{ stories_id }, $tag_set_name
             );
         }
