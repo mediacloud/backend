@@ -20,6 +20,9 @@ services:
               source: ./../topics-base/src/
               target: /opt/mediacloud/src/topics-base/
             - type: bind
+              source: ./../extract-and-vector/src/
+              target: /opt/mediacloud/src/extract-and-vector/
+            - type: bind
               source: ./../common/src/
               target: /opt/mediacloud/src/common/
         depends_on:
