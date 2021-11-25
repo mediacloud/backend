@@ -188,7 +188,7 @@ sub _get_stories_json_from_db_single
 
         TRACE( "fetching stories ids: $block_stories_ids_list" );
 
-        my $stories = $db->query( <<SQL )->hashes();
+        my $stories = $db->query( <<SQL
 
             WITH _block_processed_stories AS (
                 SELECT
@@ -246,18 +246,24 @@ sub _get_stories_json_from_db_single
                     MIN(slc.timespans_id) AS timespans_id
 
                 FROM _block_processed_stories AS ps
-                    INNER JOIN story_sentences AS ss USING (stories_id)
-                    INNER JOIN stories AS s USING (stories_id)
+                    JOIN story_sentences AS ss USING (stories_id)
+                    JOIN stories AS s USING (stories_id)
                     LEFT JOIN _tag_stories AS stm USING (stories_id)
                     LEFT JOIN _timespan_stories AS slc USING (stories_id)
 
                 WHERE s.stories_id IN ($block_stories_ids_list)
-                GROUP BY s.stories_id
+                GROUP BY
+                    s.stories_id,
+                    s.media_id,
+                    s.publish_date,
+                    s.title,
+                    s.language
             )
 
             SELECT *
             FROM _import_stories
 SQL
+        )->hashes();
 
         TRACE( "found " . scalar( @{ $stories } ) . " stories from " . scalar( @{ $block_stories_ids } ) . " ids" );
 
