@@ -204,6 +204,8 @@ def _store_posts_for_day(db: DatabaseHandler, topic_post_day: dict, posts: list)
 
     db.begin()
 
+    db.query("SET LOCAL citus.multi_shard_modify_mode TO 'sequential'")
+
     log.debug("inserting into topic_posts ...")
 
     [_store_post_and_urls(db, topic_post_day, meta_tweet) for meta_tweet in posts]
