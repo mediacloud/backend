@@ -209,7 +209,7 @@ def provide_download_ids(db: DatabaseHandler) -> List[int]:
                 NOT EXISTS (
                     SELECT 1
                     FROM queued_downloads_copy
-                    WHERE queued_downloads_copy.downloads_id = downloads_pending.downloads_id
+                    WHERE queued_downloads_copy.downloads_id = downloads.downloads_id
                 )
         )
         

@@ -1456,6 +1456,8 @@ SQL
 
     for my $fsd ( @{ $fsds } )
     {
+        # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: rows have been moved
+        # in a migration so we should be fine INSERTing directly
         my $focal_set = $db->query( <<SQL,
             INSERT INTO focal_sets (
                 name,
@@ -1494,6 +1496,8 @@ SQL
 
         for my $fd ( @{ $fds } )
         {
+            # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: rows have been moved
+            # in a migration so we should be fine INSERTing directly
             my $focus = $db->query( <<SQL,
                 INSERT INTO foci (
                     name,

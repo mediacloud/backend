@@ -36,24 +36,53 @@ class McFetchTopicPostsConfigException(Exception):
 def _insert_post_urls(db: DatabaseHandler, topic_post: dict, urls: list) -> None:
     """Insert list of urls into topic_post_urls."""
     for url in urls:
-        db.query(
+
+        topics_id = topic_post['topics_id']
+        topic_posts_id = topic_post['topic_posts_id']
+        url = url[0:1023]
+
+        # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: upserts don't work on an
+        # updatable view, and we can't upsert directly into the sharded table
+        # as the duplicate row might already exist in the unsharded one;
+        # therefore, we test the unsharded table once for whether the row
+        # exists and do an upsert to a sharded table -- the row won't start
+        # suddenly existing in an essentially read-only unsharded table so this
+        # should be safe from race conditions. After migrating rows, one can
+        # reset this statement to use a native upsert
+        row_exists = db.query(
             """
-            INSERT INTO topic_post_urls (
-                topics_id,
-                topic_posts_id,
-                url
-            ) VALUES (
-                %(topics_id)s,
-                %(topic_posts_id)s,
-                %(url)s
-            )
-            ON CONFLICT (topics_id, topic_posts_id, url) DO NOTHING
-            """, {
-                'topics_id': topic_post['topics_id'],
-                'topic_posts_id': topic_post['topic_posts_id'],
-                'url': url[0:1023],
+            SELECT 1
+            FROM topic_post_urls
+            WHERE
+                topics_id = %(topics_id)s AND
+                topic_posts_id = %(topic_posts_id)s AND
+                url = %(url)s
+            """,
+            {
+                'topics_id': topics_id,
+                'topic_posts_id': topic_posts_id,
+                'url': url,
             }
-        )
+        ).hash()
+        if not row_exists:
+            db.query(
+                """
+                INSERT INTO sharded_public.topic_post_urls (
+                    topics_id,
+                    topic_posts_id,
+                    url
+                ) VALUES (
+                    %(topics_id)s,
+                    %(topic_posts_id)s,
+                    %(url)s
+                )
+                ON CONFLICT (topics_id, topic_posts_id, url) DO NOTHING
+                """, {
+                    'topics_id': topics_id,
+                    'topic_posts_id': topic_posts_id,
+                    'url': url,
+                }
+            )
 
 
 def _remove_json_tree_nulls(d: dict) -> None:

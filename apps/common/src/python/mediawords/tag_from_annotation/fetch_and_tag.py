@@ -326,8 +326,22 @@ class TagsFromJSONAnnotation(metaclass=abc.ABCMeta):
             unique_tag_sets_names.add(tag_sets_name)
 
         # Delete old tags the story might have under a given tag set
+        # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
         db.query("""
-            DELETE FROM stories_tags_map
+            DELETE FROM unsharded_public.stories_tags_map
+            WHERE stories_id = %(stories_id)s
+              AND tags_id IN (
+                SELECT tags_id
+                FROM tags
+                WHERE tag_sets_id IN (
+                  SELECT tag_sets_id
+                  FROM tag_sets
+                  WHERE name = ANY(%(tag_sets_names)s)
+                )
+              )
+        """, {'stories_id': stories_id, 'tag_sets_names': list(unique_tag_sets_names)})
+        db.query("""
+            DELETE FROM sharded_public.stories_tags_map
             WHERE stories_id = %(stories_id)s
               AND tags_id IN (
                 SELECT tags_id

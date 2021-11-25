@@ -152,16 +152,18 @@ sub __tweak_undateable_story
     TRACE "__tweak_undateable_story: $story->{ stories_id }";
 
     $db->query( <<SQL,
-        DELETE FROM snapshot_stories_tags_map AS stm
-        USING
-            tags AS t,
-            tag_sets AS ts
+        DELETE FROM snapshot_stories_tags_map
         WHERE
-            stm.stories_id = ? AND
-            stm.tags_id = t.tags_id AND
-            t.tag_sets_id = ts.tag_sets_id AND
-            ts.name = 'date_invalid' AND
-            t.tag = 'undateable'
+            stories_id = ? AND
+            tags_id IN (
+                SELECT tags.tags_id
+                FROM tag_sets
+                    INNER JOIN tags
+                        ON tag_sets.tag_sets_id = tags.tag_sets_id
+                WHERE
+                    tag_sets.name = 'date_invalid' AND
+                    tags.name = 'undateable'
+            )
 SQL
         $story->{ stories_id }
     );

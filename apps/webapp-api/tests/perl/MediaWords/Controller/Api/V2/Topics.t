@@ -81,7 +81,7 @@ SQL
     };
     ok( !$@, "$label admin user: validate $@" );
 
-    $db->query( "delete from auth_users_roles_map" );
+    $db->query( "DELETE FROM auth_users_roles_map" );
     $db->query( <<SQL,
         INSERT INTO auth_users_roles_map (
             auth_users_id, auth_roles_id

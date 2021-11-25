@@ -206,7 +206,7 @@ def _insert_story_sentences(
 
     """
     log.debug(f"Running 'UPDATE unsharded_public.story_sentences SET is_dup' query:\n{sql_unsharded}")
-    duplicate_sentences_unsharded = db.query(sql).flat()
+    duplicate_sentences_unsharded = db.query(sql_unsharded).flat()
 
     sql_sharded = f"""
         -- noinspection SqlType,SqlResolve
@@ -224,7 +224,7 @@ def _insert_story_sentences(
 
     """
     log.debug(f"Running 'UPDATE sharded_public.story_sentences SET is_dup' query:\n{sql_sharded}")
-    duplicate_sentences_sharded = db.query(sql).flat()
+    duplicate_sentences_sharded = db.query(sql_sharded).flat()
 
     duplicate_sentences = list(set(duplicate_sentences_unsharded + duplicate_sentences_sharded))
 

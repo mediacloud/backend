@@ -1331,15 +1331,16 @@ SQL
         MediaWords::TM::FetchTopicPosts::fetch_topic_posts( $db, $tsq );
     }
 
+    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: upserts don't work on an
+    # updatable view, and we can't upsert directly into the sharded table
+    # as the duplicate row might already exist in the unsharded one;
+    # therefore, we test the unsharded table once for whether the row
+    # exists and do an upsert to a sharded table -- the row won't start
+    # suddenly existing in an essentially read-only unsharded table so this
+    # should be safe from race conditions. After migrating rows, one can
+    # reset this statement to use a native upsert
     $db->query( <<SQL,
-        INSERT INTO topic_seed_urls (
-            url,
-            topics_id,
-            assume_match,
-            source,
-            topic_seed_queries_id,
-            topic_post_urls_id
-        )
+        CREATE TEMPORARY TABLE temp_topic_seed_urls AS
             SELECT DISTINCT
                 topic_post_urls.url,
                 topic_seed_queries.topics_id,
@@ -1358,10 +1359,63 @@ SQL
                     topic_post_days.topics_id = topic_seed_queries.topics_id AND
                     topic_post_days.topic_seed_queries_id = topic_seed_queries.topic_seed_queries_id
             WHERE topic_post_urls.topics_id = ? 
-        ON CONFLICT (topics_id, topic_post_urls_id) DO NOTHING
 SQL
         $topic->{ topics_id }
     );
+
+    $db->query( <<SQL
+        CREATE INDEX temp_topic_seed_urls_topic_post_urls_id
+            ON temp_topic_seed_urls (topic_post_urls_id)
+SQL
+    );
+
+    my $temp_topic_seed_urls_chunk = [];
+    my $temp_topic_seed_urls_offset = 0;
+    my $temp_topic_seed_urls_limit = 1000;
+
+    do {
+        $temp_topic_seed_urls_chunk = $db->query( <<SQL,
+            SELECT *
+            FROM temp_topic_seed_urls
+            ORDER BY topic_post_urls_id
+            LIMIT ?
+            OFFSET ?
+SQL
+            $temp_topic_seed_urls_limit, $temp_topic_seed_urls_offset
+        )->hashes();
+
+        for my $row ( @{ $temp_topic_seed_urls_chunk } ) {
+            my $row_exists = $db->query( <<SQL,
+                SELECT 1
+                FROM topic_seed_urls
+                WHERE
+                    topics_id = ? AND
+                    topic_post_urls_id = ?
+SQL
+                $row->{ topics_id }, $row->{ topic_post_urls_id }
+            )->hash();
+            unless ( $row_exists ) {
+                $db->query( <<SQL,
+                    INSERT INTO sharded.topic_seed_urls (
+                        url,
+                        topics_id,
+                        assume_match,
+                        source,
+                        topic_seed_queries_id,
+                        topic_post_urls_id
+                    ) VALUES (?, ?, ?, ?, ?, ?)
+                    ON CONFLICT (topics_id, topic_post_urls_id) DO NOTHING
+SQL
+                    $row->{ topics_id }, $row->{ topic_post_urls_id }
+                );
+            }
+        }
+
+        $temp_topic_seed_urls_offset += $temp_topic_seed_urls_limit;
+
+    } until ( scalar( @{ $temp_topic_seed_urls_chunk } ) == 0 );
+
+    $db->query( 'DROP TABLE temp_topic_seed_urls' );
 }
 
 # if the query or dates have changed, set topic_stories.link_mined to false for the impacted stories so that

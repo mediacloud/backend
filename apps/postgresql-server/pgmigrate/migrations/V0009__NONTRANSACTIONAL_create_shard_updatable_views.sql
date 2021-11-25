@@ -15,15 +15,6 @@ DROP VIEW unsharded_public.controversy_dumps;
 
 DROP VIEW unsharded_public.controversy_dump_time_slices;
 
--- Will have to do copying from partitions directly
-DROP VIEW unsharded_public.story_sentences;
-
--- Will have to do copying from partitions directly
-DROP VIEW unsharded_public.feeds_stories_map;
-
--- Will have to do copying from partitions directly
-DROP VIEW unsharded_public.stories_tags_map;
-
 DROP VIEW unsharded_public.daily_stats;
 
 DROP VIEW unsharded_public.downloads_media;
@@ -2961,10 +2952,6 @@ DROP FUNCTION unsharded_public.auth_user_limits_weekly_usage(CITEXT);
 
 DROP FUNCTION unsharded_public.create_missing_partitions();
 
-DROP FUNCTION unsharded_public.story_sentences_view_insert_update_delete();
-
-DROP FUNCTION unsharded_public.stories_tags_map_view_insert_update_delete();
-
 
 
 
@@ -3066,11 +3053,6 @@ CREATE TRIGGER ps_insert_solr_import_story
     ON unsharded_public.processed_stories
     FOR EACH ROW
     EXECUTE PROCEDURE unsharded_public.insert_solr_import_story();
-
-
-DROP FUNCTION unsharded_public.feeds_stories_map_view_insert_update_delete();
-
-
 
 
 
@@ -5419,3 +5401,178 @@ $$ LANGUAGE plpgsql;
 
 -- noinspection SqlResolve @ routine/"create_distributed_function"
 SELECT create_distributed_function('update_live_story()');
+
+
+
+--
+-- UPDATE VIEWS IN FRONT OF UNSHARDED PARTITIONED TABLED
+--
+
+--
+-- story_sentences
+--
+
+DROP VIEW unsharded_public.story_sentences;
+CREATE VIEW unsharded_public.story_sentences AS
+
+    SELECT
+        story_sentences_p_id AS story_sentences_id,
+        stories_id,
+        sentence_number,
+        sentence,
+        media_id,
+        publish_date,
+        language,
+        is_dup
+    FROM unsharded_public.story_sentences_p;
+
+DROP FUNCTION unsharded_public.story_sentences_view_insert_update_delete();
+CREATE FUNCTION unsharded_public.story_sentences_view_insert_update_delete() RETURNS trigger AS $$
+BEGIN
+
+    IF (TG_OP = 'INSERT') THEN
+
+        RAISE EXCEPTION 'You should not be inserting into the unsharded table anymore.';
+
+    ELSIF (TG_OP = 'UPDATE') THEN
+
+        UPDATE unsharded_public.story_sentences_p
+            SET stories_id = NEW.stories_id,
+                sentence_number = NEW.sentence_number,
+                sentence = NEW.sentence,
+                media_id = NEW.media_id,
+                publish_date = NEW.publish_date,
+                language = NEW.language,
+                is_dup = NEW.is_dup
+            WHERE stories_id = OLD.stories_id
+              AND sentence_number = OLD.sentence_number;
+
+        RETURN NEW;
+
+    ELSIF (TG_OP = 'DELETE') THEN
+
+        DELETE FROM unsharded_public.story_sentences_p
+            WHERE stories_id = OLD.stories_id
+              AND sentence_number = OLD.sentence_number;
+
+        -- Return deleted rows
+        RETURN OLD;
+
+    ELSE
+        RAISE EXCEPTION 'Unconfigured operation: %', TG_OP;
+
+    END IF;
+
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER story_sentences_view_insert_update_delete_trigger
+    INSTEAD OF INSERT OR UPDATE OR DELETE ON unsharded_public.story_sentences
+    FOR EACH ROW EXECUTE PROCEDURE unsharded_public.story_sentences_view_insert_update_delete();
+
+
+--
+-- feeds_stories_map
+--
+
+DROP VIEW unsharded_public.feeds_stories_map;
+CREATE VIEW unsharded_public.feeds_stories_map AS
+    SELECT
+        feeds_stories_map_p_id AS feeds_stories_map_id,
+        feeds_id,
+        stories_id
+    FROM unsharded_public.feeds_stories_map_p;
+
+DROP FUNCTION unsharded_public.feeds_stories_map_view_insert_update_delete();
+CREATE FUNCTION unsharded_public.feeds_stories_map_view_insert_update_delete() RETURNS trigger AS $$
+
+BEGIN
+
+    IF (TG_OP = 'INSERT') THEN
+
+        RAISE EXCEPTION 'You should not be inserting into the unsharded table anymore.';
+
+    ELSIF (TG_OP = 'UPDATE') THEN
+
+        UPDATE unsharded_public.feeds_stories_map_p
+            SET feeds_id = NEW.feeds_id,
+                stories_id = NEW.stories_id
+            WHERE feeds_id = OLD.feeds_id
+              AND stories_id = OLD.stories_id;
+
+        RETURN NEW;
+
+    ELSIF (TG_OP = 'DELETE') THEN
+
+        DELETE FROM unsharded_public.feeds_stories_map_p
+            WHERE feeds_id = OLD.feeds_id
+              AND stories_id = OLD.stories_id;
+
+        -- Return deleted rows
+        RETURN OLD;
+
+    ELSE
+        RAISE EXCEPTION 'Unconfigured operation: %', TG_OP;
+
+    END IF;
+
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER feeds_stories_map_view_insert_update_delete_trigger
+    INSTEAD OF INSERT OR UPDATE OR DELETE ON unsharded_public.feeds_stories_map
+    FOR EACH ROW EXECUTE PROCEDURE unsharded_public.feeds_stories_map_view_insert_update_delete();
+
+
+
+--
+-- stories_tags_map
+--
+
+DROP VIEW unsharded_public.stories_tags_map;
+CREATE VIEW unsharded_public.stories_tags_map AS
+
+    SELECT
+        stories_tags_map_p_id AS stories_tags_map_id,
+        stories_id,
+        tags_id
+    FROM unsharded_public.stories_tags_map_p;
+
+DROP FUNCTION unsharded_public.stories_tags_map_view_insert_update_delete();
+CREATE FUNCTION unsharded_public.stories_tags_map_view_insert_update_delete() RETURNS trigger AS $$
+BEGIN
+
+    IF (TG_OP = 'INSERT') THEN
+
+        RAISE EXCEPTION 'You should not be inserting into the unsharded table anymore.';
+
+    ELSIF (TG_OP = 'UPDATE') THEN
+
+        UPDATE unsharded_public.stories_tags_map_p
+            SET stories_id = NEW.stories_id,
+                tags_id = NEW.tags_id
+            WHERE stories_id = OLD.stories_id
+              AND tags_id = OLD.tags_id;
+
+        RETURN NEW;
+
+    ELSIF (TG_OP = 'DELETE') THEN
+
+        DELETE FROM unsharded_public.stories_tags_map_p
+            WHERE stories_id = OLD.stories_id
+              AND tags_id = OLD.tags_id;
+
+        -- Return deleted rows
+        RETURN OLD;
+
+    ELSE
+        RAISE EXCEPTION 'Unconfigured operation: %', TG_OP;
+
+    END IF;
+
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER stories_tags_map_view_insert_update_delete
+    INSTEAD OF INSERT OR UPDATE OR DELETE ON unsharded_public.stories_tags_map
+    FOR EACH ROW EXECUTE PROCEDURE unsharded_public.stories_tags_map_view_insert_update_delete();
