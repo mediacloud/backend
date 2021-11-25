@@ -257,14 +257,22 @@ SQL
             DELETE FROM unsharded_${map_table}
             WHERE
                 $id_field IN ($row_ids_list) AND
-                tags_id IN ($tags_ids_list)
+                tags_id IN (
+                    SELECT tags_id
+                    FROM tags
+                    WHERE tag_sets_id IN ($tag_sets_ids_list)
+                )
 SQL
         );
         $db->query( <<"SQL"
             DELETE FROM sharded_${map_table}
             WHERE
                 $id_field IN ($row_ids_list) AND
-                tags_id IN ($tags_ids_list)
+                tags_id IN (
+                    SELECT tags_id
+                    FROM tags
+                    WHERE tag_sets_id IN ($tag_sets_ids_list)
+                )
 SQL
         );
 
@@ -275,7 +283,11 @@ SQL
             DELETE FROM $map_table
             WHERE
                 $id_field IN ($row_ids_list) AND
-                tags_id IN ($tags_ids_list)
+                tags_id IN (
+                    SELECT tags_id
+                    FROM tags
+                    WHERE tag_sets_id IN ($tag_sets_ids_list)
+                )
 SQL
         );
     }

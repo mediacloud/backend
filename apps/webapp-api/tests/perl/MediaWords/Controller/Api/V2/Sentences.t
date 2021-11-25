@@ -68,12 +68,13 @@ sub main
     $media = MediaWords::Test::DB::Create::add_content_to_test_story_stack( $db, $media );
 
     # Prepend some UTF-8 to every sentence to test out Unicode support
+    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: tests use only the sharded table
     $db->query(<<SQL,
         WITH all_story_ids AS (
             SELECT stories_id
             FROM stories
         )
-        UPDATE story_sentences
+        UPDATE sharded_public.story_sentences
         SET sentence = ? || sentence
         WHERE stories_id IN (
             SELECT stories_id
