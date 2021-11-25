@@ -174,7 +174,7 @@ SQL
         )->hash();
         unless ( $row_exists ) {
         $db->query( <<SQL,
-            INSERT INTO sharded.stories_tags_map (stories_id, tags_id)
+            INSERT INTO sharded_public.stories_tags_map (stories_id, tags_id)
             VALUES (?, ?)
             ON CONFLICT (stories_id, tags_id) DO NOTHING
 SQL

@@ -1396,7 +1396,7 @@ SQL
             )->hash();
             unless ( $row_exists ) {
                 $db->query( <<SQL,
-                    INSERT INTO sharded.topic_seed_urls (
+                    INSERT INTO sharded_public.topic_seed_urls (
                         url,
                         topics_id,
                         assume_match,
@@ -1406,7 +1406,12 @@ SQL
                     ) VALUES (?, ?, ?, ?, ?, ?)
                     ON CONFLICT (topics_id, topic_post_urls_id) DO NOTHING
 SQL
-                    $row->{ topics_id }, $row->{ topic_post_urls_id }
+                    $row->{ url },
+                    $row->{ topics_id },
+                    $row->{ assume_match },
+                    $row->{ source },
+                    $row->{ topic_seed_queries_id },
+                    $row->{ topic_post_urls_id },
                 );
             }
         }

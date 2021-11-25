@@ -348,7 +348,7 @@ def assign_date_guess_tag(
     db.query(
         """
         DELETE FROM sharded_public.stories_tags_map
-        WHERE stories_id = %(a)s
+        WHERE stories_id = %(stories_id)s
         """,
         {'stories_id': stories_id}
     )
