@@ -3810,38 +3810,7 @@ ALTER VIEW public.story_statistics
 
 CREATE OR REPLACE FUNCTION public.story_statistics_insert() RETURNS trigger AS $$
 BEGIN
-
     -- Insert only into the sharded table
-
-    -- MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: revert back to
-    -- INSERT ... ON CONFLICT once the rows get migrated from the unsharded
-    -- table to the sharded one
-
-    UPDATE unsharded_public.story_statistics SET
-        facebook_share_count = NEW.facebook_share_count,
-        facebook_comment_count = NEW.facebook_comment_count,
-        facebook_reaction_count = NEW.facebook_reaction_count,
-        facebook_api_collect_date = NEW.facebook_api_collect_date,
-        facebook_api_error = NEW.facebook_api_error
-    WHERE stories_id = NEW.stories_id;
-    IF FOUND THEN
-        RETURN;
-
-    END IF;
-
-    BEGIN
-
-        INSERT INTO test (whatever, counter) VALUES (in_whatever, 1);
-
-    EXCEPTION WHEN OTHERS THEN
-
-        UPDATE test set counter = counter + 1 WHERE whatever = in_whatever;
-
-    END;
-
-    RETURN;
-
-
     INSERT INTO sharded_public.story_statistics SELECT NEW.*;
     RETURN NEW;
 END;
