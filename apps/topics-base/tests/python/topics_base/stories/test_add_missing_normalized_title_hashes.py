@@ -46,8 +46,9 @@ def test_add_missing_normalized_title_hashes():
         add_to_topic_stories(db, story, topic)
 
     # disable trigger so that we can actually set normalized_title_hash to null
+    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: switch back to public.stories after row migration
     db.query(
-        "SELECT run_command_on_shards('stories', %(command)s)",
+        "SELECT run_command_on_shards('sharded_public.stories', %(command)s)",
         {
             'command': """
                 -- noinspection SqlResolveForFile @ trigger/"stories_add_normalized_title"
@@ -73,8 +74,9 @@ def test_add_missing_normalized_title_hashes():
         )
     """)
 
+    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: switch back to public.stories after row migration
     db.query(
-        "SELECT run_command_on_shards('stories', %(command)s)",
+        "SELECT run_command_on_shards('sharded_public.stories', %(command)s)",
         {
             'command': """
                 -- noinspection SqlResolveForFile @ trigger/"stories_add_normalized_title"
