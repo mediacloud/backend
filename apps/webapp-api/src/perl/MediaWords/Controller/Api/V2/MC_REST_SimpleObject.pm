@@ -533,12 +533,10 @@ sub _clear_tags
     my $tags_map_table = $self->get_table_name() . '_tags_map';
     my $table_id_name  = $self->get_table_name() . '_id';
 
-    my $table_name = $self->get_table_name();
-
     # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: add schema to be able to match
     # with the big sharded table list
-    unless ( $table_name =~ /\./ ) {
-        $table_name = "public.$table_name";
+    unless ( $tags_map_table =~ /\./ ) {
+        $tags_map_table = "public.$tags_map_table";
     }
 
     while ( my ( $id, $tags_ids ) = each( %{ $tags_map } ) )
