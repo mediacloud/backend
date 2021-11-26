@@ -249,7 +249,11 @@ sub _add_nested_data
                 INNER JOIN story_download_texts ON
                     stories.stories_id = story_download_texts.stories_id
             WHERE stories.stories_id IN ($ids_list)
-            GROUP BY stories.stories_id
+            GROUP BY
+                stories.stories_id,
+                stories.full_text_rss,
+                stories.title,
+                stories.description
 
 SQL
         )->hashes;
