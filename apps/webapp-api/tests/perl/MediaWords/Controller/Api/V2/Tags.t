@@ -157,6 +157,12 @@ SQL
         ok( $tag_expected, "$label expected tag $map->{ tags_id }" );
     }
 
+    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: without transaction, Citus
+    # complains about "cannot use 2PC in transactions involving multiple
+    # servers"; possibly OK for the transaction to be removed after row
+    # migration
+    $db->begin();
+
     # clean up so the next test has a clean slate
     # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: revert back to using native
     # upsert after row move
@@ -189,6 +195,8 @@ SQL
 SQL
         );
     }
+
+    $db->commit();
 }
 
 # test removing tag associations
@@ -247,6 +255,12 @@ SQL
 
     is( $map_count, $expected_map_count, "$label map count" );
 
+    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: without transaction, Citus
+    # complains about "cannot use 2PC in transactions involving multiple
+    # servers"; possibly OK for the transaction to be removed after row
+    # migration
+    $db->begin();
+
     # clean up so the next test has a clean slate
     # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: revert back to using native
     # upsert after row move
@@ -291,6 +305,8 @@ SQL
 SQL
         );
     }
+
+    $db->commit();
 }
 
 # add all tags to the map, use the clear_tags= param, then make sure only added tags are associated
