@@ -648,7 +648,7 @@ CREATE OR REPLACE FUNCTION add_normalized_title_hash() RETURNS TRIGGER AS
 $$
 BEGIN
 
-    IF (TG_OP = 'update') THEN
+    IF (TG_OP = 'UPDATE') THEN
         IF (OLD.title = NEW.title) THEN
             RETURN NEW;
         END IF;
