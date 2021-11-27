@@ -1060,7 +1060,7 @@ def _merge_dup_story(db, topic, delete_story, keep_story):
         FROM topic_links
         WHERE
             topics_id = %(topics_id)s AND
-            stories_id = %(delete_stories_id)s
+            ref_stories_id = %(delete_stories_id)s
         """,
         {
             'topics_id': topics_id,
