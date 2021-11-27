@@ -143,7 +143,11 @@ SQL
 
     if ( $num_queued_stories > 0 )
     {
-        ( $_last_max_queue_stories_id ) = $db->query( "select max( stories_id ) from delta_import_stories" )->flat();
+        ( $_last_max_queue_stories_id ) = $db->query( <<SQL
+            SELECT MAX(stories_id)
+            FROM delta_import_stories
+SQL
+        )->flat();
 
         # use pg_class estimate to avoid expensive count(*) query
         my ( $total_queued_stories ) = $db->query( <<SQL,
@@ -284,7 +288,11 @@ sub _import_stories($)
 {
     my ( $db ) = @_;
 
-    my $stories_ids = $db->query( "select distinct stories_id from delta_import_stories" )->flat;
+    my $stories_ids = $db->query( <<SQL
+        SELECT DISTINCT stories_id
+        FROM delta_import_stories
+SQL
+    )->flat;
 
     my $json = _get_stories_json_from_db_single( $db, $stories_ids );
 
@@ -352,9 +360,12 @@ sub _save_import_date
     die( "import date has not been marked" ) unless ( $_import_date );
 
     my $full_import = $delta ? 'f' : 't';
-    $db->query( <<SQL, $_import_date, $full_import, scalar( @{ $stories_ids } ) );
-insert into solr_imports( import_date, full_import, num_stories ) values ( ?, ?, ? )
+    $db->query( <<SQL,
+        INSERT INTO solr_imports (import_date, full_import, num_stories)
+        VALUES (?, ?, ?)
 SQL
+        $_import_date, $full_import, scalar( @{ $stories_ids } )
+    );
 
 }
 
