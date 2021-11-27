@@ -139,7 +139,32 @@ SQL
     {
         # test that processed_stories update queues import
         my $story = pop( @{ $test_stories } );
-        $db->create( 'processed_stories', { stories_id => $story->{ stories_id } } );
+
+        # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
+        $db->query( <<SQL,
+            DELETE FROM sharded_public.processed_stories
+            WHERE stories_id = ?
+SQL
+            $story->{ stories_id }
+        );
+
+        # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
+        $db->query( <<SQL,
+            DELETE FROM sharded_public.solr_import_stories
+            WHERE stories_id = ?
+SQL
+            $story->{ stories_id }
+        );
+
+        # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
+        $db->query( <<SQL,
+            INSERT INTO sharded_public.processed_stories (stories_id)
+            VALUES (?)
+            ON CONFLICT (stories_id) DO NOTHING
+SQL
+            $story->{ stories_id }
+        );
+
         my $solr_import_story = $db->query( <<SQL,
             SELECT *
             FROM solr_import_stories

@@ -9,15 +9,15 @@
 -- FIXME consider making shard count configurable to make tests run faster
 -- FIXME schema and tables get created as "postgres" user, should be "mediacloud"
 -- FIXME enable slow query log in PostgreSQL
--- FIXME make processed_stories_stories_id index unique
 -- FIXME make solr_import_stories_stories_id index unique
 -- FIXME re-add length constraints: https://brandur.org/text
 -- FIXME add media_id to its own separate colocation group
 -- FIXME upgrade to PostgreSQL 14 and enable citus.enable_binary_protocol + citus.binary_worker_copy_format
 -- FIXME do I need to increase citus.shard_max_size?
--- FIXME ensure that the "stories" and "topic_stories" migration workflows avoid triggering insert_solr_import_story()
+-- FIXME ensure that the "stories", "topic_stories", "processed_stories" migration workflows avoid triggering insert_solr_import_story()
 -- FIXME while copying "media_stats", skip (media_id, stat_date) pairs that already exist in the sharded table
 -- FIXME while copying "auth_user_request_daily_counts", skip (email, day) pairs that already exist in the sharded table
+-- FIXME when moving "processed_stories" rows, use ON CONFLICT
 
 
 -- Rename the unsharded schema created in previous migrations
@@ -2436,7 +2436,7 @@ CREATE TABLE processed_stories
 -- noinspection SqlResolve @ routine/"create_distributed_table"
 SELECT create_distributed_table('processed_stories', 'stories_id', colocate_with => 'stories');
 
-CREATE INDEX processed_stories_stories_id
+CREATE UNIQUE INDEX processed_stories_stories_id
     ON processed_stories (stories_id);
 
 

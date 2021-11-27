@@ -34,12 +34,38 @@ def mark_as_processed(db: DatabaseHandler, stories_id: int) -> bool:
         stories_id = decode_object_from_bytes_if_needed(stories_id)
     stories_id = int(stories_id)
 
-    log.debug("Marking story ID %d as processed..." % stories_id)
+    log.debug(f"Marking story ID {stories_id} as processed...")
 
     try:
-        db.insert(table='processed_stories', insert_hash={'stories_id': stories_id})
+
+        # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: upserts don't work on an
+        # updatable view, and we can't upsert directly into the sharded table
+        # as the duplicate row might already exist in the unsharded one;
+        # therefore, we test the unsharded table once for whether the row
+        # exists and do an upsert to a sharded table -- the row won't start
+        # suddenly existing in an essentially read-only unsharded table so this
+        # should be safe from race conditions. After migrating rows, one can
+        # reset this statement to use a native upsert
+        row_exists = db.query(
+            """
+            SELECT 1
+            FROM processed_stories
+            WHERE stories_id = %(stories_id)s
+            """,
+            {'stories_id': stories_id}
+        ).hash()
+        if not row_exists:
+            db.query(
+                """
+                INSERT INTO sharded_public.processed_stories (stories_id)
+                VALUES (%(stories_id)s)
+                ON CONFLICT (stories_id) DO NOTHING
+                """,
+                {'stories_id': stories_id}
+            )
+
     except Exception as ex:
-        log.warning("Unable to insert story ID %d into 'processed_stories': %s" % (stories_id, str(ex),))
+        log.warning(f"Unable to insert story ID {stories_id} into 'processed_stories': {ex}")
         return False
     else:
         return True
