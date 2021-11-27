@@ -173,16 +173,14 @@ SQL
             $story->{ stories_id }, $tag->{ tags_id }
         )->hash();
         unless ( $row_exists ) {
-        $db->query( <<SQL,
-            INSERT INTO sharded_public.stories_tags_map (stories_id, tags_id)
-            VALUES (?, ?)
-            ON CONFLICT (stories_id, tags_id) DO NOTHING
+            $db->query( <<SQL,
+                INSERT INTO sharded_public.stories_tags_map (stories_id, tags_id)
+                VALUES (?, ?)
+                ON CONFLICT (stories_id, tags_id) DO NOTHING
 SQL
-            $story->{ stories_id }, $tag->{ tags_id }
-        );
+                $story->{ stories_id }, $tag->{ tags_id }
+            );
         }
-
-
 
         my $solr_import_story = $db->query( <<SQL,
             SELECT *
