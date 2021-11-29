@@ -10,7 +10,6 @@
 -- FIXME schema and tables get created as "postgres" user, should be "mediacloud"
 -- FIXME enable slow query log in PostgreSQL
 -- FIXME re-add length constraints: https://brandur.org/text
--- FIXME add media_id to its own separate colocation group
 -- FIXME upgrade to PostgreSQL 14 and enable citus.enable_binary_protocol + citus.binary_worker_copy_format
 -- FIXME ensure that the "stories", "topic_stories", "processed_stories" migration workflows avoid triggering insert_solr_import_story()
 -- FIXME while copying "media_stats", skip (media_id, stat_date) pairs that already exist in the sharded table
@@ -3461,7 +3460,7 @@ CREATE TABLE media_coverage_gaps
 );
 
 -- noinspection SqlResolve @ routine/"create_distributed_table"
-SELECT create_distributed_table('media_coverage_gaps', 'media_id', colocate_with => 'none');
+SELECT create_distributed_table('media_coverage_gaps', 'media_id', colocate_with => 'media_stats');
 
 CREATE INDEX media_coverage_gaps_media_id ON media_coverage_gaps (media_id);
 
