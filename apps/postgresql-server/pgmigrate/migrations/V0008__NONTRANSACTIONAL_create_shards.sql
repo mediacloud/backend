@@ -1,16 +1,9 @@
 -- noinspection SqlResolveForFile @ routine/"create_reference_table"
 
--- FIXME connection count limit:
---  https://docs.citusdata.com/en/v10.0/admin_guide/cluster_management.html#real-time-analytics-use-case
 -- FIXME un-TOAST some columns
 -- FIXME move related things together
--- FIXME write down somewhere that triggers have to be recreated on newly added workers
--- FIXME when initializing schema, some connections get dropped
 -- FIXME consider making shard count configurable to make tests run faster
 -- FIXME schema and tables get created as "postgres" user, should be "mediacloud"
--- FIXME enable slow query log in PostgreSQL
--- FIXME re-add length constraints: https://brandur.org/text
--- FIXME upgrade to PostgreSQL 14 and enable citus.enable_binary_protocol + citus.binary_worker_copy_format
 -- FIXME ensure that the "stories", "topic_stories", "processed_stories" migration workflows avoid triggering insert_solr_import_story()
 -- FIXME while copying "media_stats", skip (media_id, stat_date) pairs that already exist in the sharded table
 -- FIXME while copying "auth_user_request_daily_counts", skip (email, day) pairs that already exist in the sharded table
