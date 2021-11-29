@@ -5357,9 +5357,9 @@ CREATE TRIGGER stories_update_live_story
     EXECUTE PROCEDURE unsharded_public.update_live_story();
 
 
-# MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: update update_live_story() on the
-# sharded table too; later it's to be made to update only the sharded table
-# again, just like it used to do in the previous migration
+-- MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: update update_live_story() on the
+-- sharded table too; later it's to be made to update only the sharded table
+-- again, just like it used to do in the previous migration
 CREATE OR REPLACE FUNCTION public.update_live_story() RETURNS TRIGGER AS
 $$
 
