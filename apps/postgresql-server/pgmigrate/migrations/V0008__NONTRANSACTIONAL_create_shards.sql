@@ -2432,6 +2432,9 @@ CREATE INDEX topic_merged_stories_map_source_stories_id
 CREATE INDEX topic_merged_stories_map_target_stories_id
     ON topic_merged_stories_map (target_stories_id);
 
+CREATE UNIQUE INDEX topic_merged_stories_map_source_stories_id_target_stories_id
+    ON topic_merged_stories_map (source_stories_id, target_stories_id);
+
 
 -- track self links and all links for a given domain within a given topic
 CREATE TABLE topic_domains

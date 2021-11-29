@@ -1165,10 +1165,13 @@ def _merge_dup_story(db, topic, delete_story, keep_story):
         }
     )
 
+    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: when copying rows from the
+    # unsharded table, we'll make sure to not copy duplicates
     db.query(
         """
-            INSERT INTO topic_merged_stories_map (source_stories_id, target_stories_id)
+            INSERT INTO sharded_public.topic_merged_stories_map (source_stories_id, target_stories_id)
             VALUES (%(source_stories_id)s, %(target_stories_id)s)
+            ON CONFLICT (source_stories_id, target_stories_id) DO NOTHING
         """,
         {
             'source_stories_id': delete_story['stories_id'],
