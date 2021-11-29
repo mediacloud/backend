@@ -6,15 +6,13 @@ Add a Temporal job that will gradually move rows to sharded tables
 
 import asyncio
 
-from mediawords.job import JobBroker
 from mediawords.util.log import create_logger
-from mediawords.util.perl import decode_object_from_bytes_if_needed
 from mediawords.workflow.client import workflow_client
 
 # noinspection PyPackageRequirements
 from temporal.workflow import WorkflowClient, WorkflowOptions
 
-from shard_tables.workflow_interface import MoveRowsToShardsWorkflow
+from move_rows_to_shards.workflow_interface import MoveRowsToShardsWorkflow
 
 log = create_logger(__name__)
 
@@ -32,7 +30,6 @@ async def _start_move_rows_to_shards() -> None:
     await WorkflowClient.start(workflow.move_rows_to_shards)
 
     log.info(f"Started a workflow to move rows to shards")
-
 
 
 if __name__ == '__main__':

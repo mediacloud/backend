@@ -2,8 +2,8 @@ version: "3.7"
 
 services:
 
-    shard-tables:
-        image: gcr.io/mcback/shard-tables:latest
+    move-rows-to-shards:
+        image: gcr.io/mcback/move-rows-to-shards:latest
         init: true
         stop_signal: SIGKILL
         volumes:
@@ -12,7 +12,7 @@ services:
               target: /opt/mediacloud/bin/
             - type: bind
               source: ./src/
-              target: /opt/mediacloud/src/shard-tables/
+              target: /opt/mediacloud/src/move-rows-to-shards/
             - type: bind
               source: ./tests/
               target: /opt/mediacloud/tests/

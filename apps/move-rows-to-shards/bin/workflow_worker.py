@@ -8,8 +8,8 @@ from temporal.workerfactory import WorkerFactory
 from mediawords.util.log import create_logger
 from mediawords.workflow.client import workflow_client
 
-from shard_tables.workflow import MoveRowsToShardsWorkflowImpl, MoveRowsToShardsActivitiesImpl
-from shard_tables.workflow_interface import TASK_QUEUE, MoveRowsToShardsActivities
+from move_rows_to_shards.workflow import MoveRowsToShardsWorkflowImpl, MoveRowsToShardsActivitiesImpl
+from move_rows_to_shards.workflow_interface import TASK_QUEUE, MoveRowsToShardsActivities
 
 log = create_logger(__name__)
 

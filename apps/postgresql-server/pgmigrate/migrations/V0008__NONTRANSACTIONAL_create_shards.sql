@@ -1,12 +1,6 @@
 -- noinspection SqlResolveForFile @ routine/"create_reference_table"
 
 -- FIXME consider making shard count configurable to make tests run faster
--- FIXME ensure that the "stories", "topic_stories", "processed_stories" migration workflows avoid triggering insert_solr_import_story()
--- FIXME while copying "media_stats", skip (media_id, stat_date) pairs that already exist in the sharded table
--- FIXME while copying "auth_user_request_daily_counts", skip (email, day) pairs that already exist in the sharded table
--- FIXME when moving "processed_stories" rows, use ON CONFLICT
--- FIXME when moving "solr_import_stories" rows, use ON CONFLICT
--- FIXME when moving "solr_imported_stories" rows, use ON CONFLICT
 -- FIXME update to Citus 10.2.3
 
 
@@ -2617,7 +2611,7 @@ CREATE INDEX topic_fetch_urls_topics_id_state_pending
 
 CREATE INDEX topic_fetch_urls_url on topic_fetch_urls USING HASH (url);
 
--- FIXME Remove backwards compatible index after sharding
+-- MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK Remove backwards compatible index after sharding
 CREATE INDEX topic_fetch_urls_url_md5 on topic_fetch_urls USING HASH (md5(url));
 
 CREATE INDEX topic_fetch_urls_topic_links_id ON topic_fetch_urls (topic_links_id);
