@@ -5333,3 +5333,418 @@ $$ LANGUAGE plpgsql;
 
 -- noinspection SqlResolve @ routine/"create_distributed_function"
 SELECT create_distributed_function('public.insert_solr_import_story()');
+
+
+--
+-- DROP FOREIGN KEYS ON BIG UNSHARDED TABLES
+-- (makes it easier to gradually move rows)
+--
+
+
+--
+-- unsharded_public.auth_user_request_daily_counts
+--
+
+-- No foreign keys
+
+
+
+--
+-- unsharded_public.media_stats
+--
+
+-- No foreign keys
+
+
+--
+-- unsharded_public.media_coverage_gaps
+--
+
+-- No foreign keys
+
+
+--
+-- unsharded_public.stories
+--
+
+ALTER TABLE unsharded_public.downloads
+    DROP CONSTRAINT downloads_stories_id_fkey;
+ALTER TABLE unsharded_public.processed_stories
+    DROP CONSTRAINT processed_stories_stories_id_fkey;
+ALTER TABLE unsharded_public.scraped_stories
+    DROP CONSTRAINT scraped_stories_stories_id_fkey;
+ALTER TABLE unsharded_public.solr_import_stories
+    -- Not in production
+    DROP CONSTRAINT IF EXISTS solr_import_stories_stories_id_fkey;
+ALTER TABLE unsharded_public.solr_import_stories
+    -- Only in production
+    DROP CONSTRAINT IF EXISTS solr_import_extra_stories_stories_id_fkey;
+ALTER TABLE unsharded_public.solr_imported_stories
+    DROP CONSTRAINT solr_imported_stories_stories_id_fkey;
+ALTER TABLE unsharded_public.stories_ap_syndicated
+    DROP CONSTRAINT stories_ap_syndicated_stories_id_fkey;
+ALTER TABLE unsharded_public.story_enclosures
+    DROP CONSTRAINT story_enclosures_stories_id_fkey;
+ALTER TABLE unsharded_public.story_statistics
+    DROP CONSTRAINT story_statistics_stories_id_fkey;
+ALTER TABLE unsharded_public.story_urls
+    DROP CONSTRAINT story_urls_stories_id_fkey;
+ALTER TABLE unsharded_public.topic_fetch_urls
+    DROP CONSTRAINT topic_fetch_urls_stories_id_fkey;
+ALTER TABLE unsharded_public.topic_links
+    -- Not in production
+    DROP CONSTRAINT IF EXISTS topic_links_ref_stories_id_fkey;
+ALTER TABLE unsharded_public.topic_links
+    -- Only in production
+    DROP CONSTRAINT IF EXISTS controversy_links_ref_stories_id_fkey;
+ALTER TABLE unsharded_public.topic_merged_stories_map
+    -- Not in production
+    DROP CONSTRAINT IF EXISTS topic_merged_stories_map_source_stories_id_fkey;
+ALTER TABLE unsharded_public.topic_merged_stories_map
+    -- Only in production
+    DROP CONSTRAINT IF EXISTS controversy_merged_stories_map_source_stories_id_fkey;
+ALTER TABLE unsharded_public.topic_merged_stories_map
+    -- Not in production
+    DROP CONSTRAINT IF EXISTS topic_merged_stories_map_target_stories_id_fkey;
+ALTER TABLE unsharded_public.topic_merged_stories_map
+    -- Only in production
+    DROP CONSTRAINT IF EXISTS controversy_merged_stories_map_target_stories_id_fkey;
+ALTER TABLE unsharded_public.topic_query_story_searches_imported_stories_map
+    DROP CONSTRAINT topic_query_story_searches_imported_stories_map_stories_id_fkey;
+ALTER TABLE unsharded_public.topic_seed_urls
+    -- Not in production
+    DROP CONSTRAINT IF EXISTS topic_seed_urls_stories_id_fkey;
+ALTER TABLE unsharded_public.topic_seed_urls
+    -- Only in production
+    DROP CONSTRAINT IF EXISTS controversy_seed_urls_stories_id_fkey;
+ALTER TABLE unsharded_public.topic_stories
+    -- Not in production
+    DROP CONSTRAINT IF EXISTS topic_stories_stories_id_fkey;
+ALTER TABLE unsharded_public.topic_stories
+    -- Only in production
+    DROP CONSTRAINT IF EXISTS controversy_stories_stories_id_fkey;
+ALTER TABLE unsharded_snap.live_stories
+    DROP CONSTRAINT live_stories_stories_id_fkey;
+
+DO
+$$
+    DECLARE
+
+        tables CURSOR FOR
+            SELECT tablename
+            FROM pg_tables
+            WHERE
+                schemaname = 'unsharded_public' AND
+                (
+                    tablename LIKE 'feeds_stories_map_p_%' OR
+                    tablename LIKE 'stories_tags_map_p_%' OR
+                    tablename LIKE 'story_sentences_p_%'
+                )
+            ORDER BY tablename;
+
+    BEGIN
+        FOR table_record IN tables
+            LOOP
+
+                EXECUTE '
+            ALTER TABLE unsharded_public.' || table_record.tablename || '
+                DROP CONSTRAINT ' || table_record.tablename || '_stories_id_fkey
+        ';
+
+            END LOOP;
+    END
+$$;
+
+
+--
+-- unsharded_public.stories_ap_syndicated
+--
+
+-- No foreign keys
+
+
+--
+-- unsharded_public.story_urls
+--
+
+-- No foreign keys
+
+
+--
+-- unsharded_public.feeds_stories_map_p
+--
+
+-- No foreign keys
+
+
+
+--
+-- unsharded_public.stories_tags_map_p
+--
+
+-- No foreign keys
+
+
+
+--
+-- unsharded_public.story_sentences_p
+--
+
+-- No foreign keys
+
+
+
+--
+-- unsharded_public.solr_import_stories
+--
+
+-- No foreign keys
+
+
+
+--
+-- unsharded_public.solr_imported_stories
+--
+
+-- No foreign keys
+
+
+
+--
+-- unsharded_public.topic_merged_stories_map
+--
+
+-- No foreign keys
+
+
+
+--
+-- unsharded_public.story_statistics
+--
+
+-- No foreign keys
+
+
+
+--
+-- unsharded_public.processed_stories
+--
+
+-- No foreign keys
+
+
+
+--
+-- unsharded_public.scraped_stories
+--
+
+-- No foreign keys
+
+
+
+--
+-- unsharded_public.story_enclosures
+--
+
+-- No foreign keys
+
+
+
+--
+-- unsharded_public.downloads
+--
+
+DO
+$$
+    DECLARE
+
+        tables CURSOR FOR
+            SELECT tablename
+            FROM pg_tables
+            WHERE
+                schemaname = 'unsharded_public' AND
+                tablename LIKE 'download_texts_%'
+            ORDER BY tablename;
+
+    BEGIN
+        FOR table_record IN tables
+            LOOP
+
+                EXECUTE '
+            ALTER TABLE unsharded_public.' || table_record.tablename || '
+                DROP CONSTRAINT ' || table_record.tablename || '_downloads_id_fkey
+        ';
+
+            END LOOP;
+    END
+$$;
+
+
+
+--
+-- unsharded_public.topic_stories
+--
+
+ALTER TABLE unsharded_snap.live_stories
+    -- Not in production
+    DROP CONSTRAINT IF EXISTS live_stories_topic_stories_id_fkey;
+ALTER TABLE unsharded_snap.live_stories
+    -- Only in production
+    DROP CONSTRAINT IF EXISTS live_stories_controvery_stories_id_fkey;
+ALTER TABLE unsharded_public.topic_links
+    DROP CONSTRAINT topic_links_topic_story_stories_id;
+
+
+--
+-- unsharded_public.topic_links
+--
+
+ALTER TABLE unsharded_public.topic_fetch_urls
+    -- Not in production
+    DROP CONSTRAINT IF EXISTS topic_fetch_urls_topic_links_id_fkey;
+ALTER TABLE unsharded_public.topic_fetch_urls
+    -- Only in production
+    DROP CONSTRAINT IF EXISTS topic_fetch_urls_topic_links_id_fkey1;
+
+
+--
+-- unsharded_public.topic_fetch_urls
+--
+
+-- No foreign keys
+
+
+
+--
+-- unsharded_public.topic_posts
+--
+
+ALTER TABLE unsharded_snap.timespan_posts
+    -- Not in production
+    DROP CONSTRAINT IF EXISTS timespan_posts_topic_posts_id_fkey;
+ALTER TABLE unsharded_snap.timespan_posts
+    -- Only in production
+    DROP CONSTRAINT IF EXISTS timespan_tweets_topic_tweets_id_fkey;
+ALTER TABLE unsharded_public.topic_post_urls
+    -- Not in production
+    DROP CONSTRAINT IF EXISTS topic_post_urls_topic_posts_id_fkey;
+ALTER TABLE unsharded_public.topic_post_urls
+    -- Not in production
+    DROP CONSTRAINT IF EXISTS topic_tweet_urls_topic_tweets_id_fkey;
+
+
+
+--
+-- unsharded_public.topic_post_urls
+--
+
+ALTER TABLE unsharded_public.topic_seed_urls
+    -- Not in production
+    DROP CONSTRAINT IF EXISTS topic_seed_urls_topic_post_urls_id_fkey;
+ALTER TABLE unsharded_public.topic_seed_urls
+    -- Only in production
+    DROP CONSTRAINT IF EXISTS topic_tweet_urls_topic_tweets_id_fkey;
+
+
+
+--
+-- unsharded_public.topic_seed_urls
+--
+
+-- No foreign keys
+
+
+
+--
+-- unsharded_snap.stories
+--
+
+-- No foreign keys
+
+
+
+--
+-- unsharded_snap.topic_stories
+--
+
+-- No foreign keys
+
+
+
+--
+-- unsharded_snap.topic_links_cross_media
+--
+
+-- No foreign keys
+
+
+
+--
+-- unsharded_snap.media
+--
+
+-- No foreign keys
+
+
+
+--
+-- unsharded_snap.media_tags_map
+--
+
+-- No foreign keys
+
+
+
+--
+-- unsharded_snap.stories_tags_map
+--
+
+-- No foreign keys
+
+
+
+--
+-- unsharded_snap.story_links
+--
+
+-- No foreign keys
+
+
+
+--
+-- unsharded_snap.story_link_counts
+--
+
+-- No foreign keys
+
+
+
+--
+-- unsharded_snap.medium_link_counts
+--
+
+-- No foreign keys
+
+
+
+--
+-- unsharded_snap.medium_links
+--
+
+-- No foreign keys
+
+
+
+--
+-- unsharded_snap.timespan_posts
+--
+
+-- No foreign keys
+
+
+
+--
+-- unsharded_snap.live_stories
+--
+
+-- No foreign keys
