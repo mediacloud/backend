@@ -12,7 +12,6 @@
 -- FIXME re-add length constraints: https://brandur.org/text
 -- FIXME add media_id to its own separate colocation group
 -- FIXME upgrade to PostgreSQL 14 and enable citus.enable_binary_protocol + citus.binary_worker_copy_format
--- FIXME do I need to increase citus.shard_max_size?
 -- FIXME ensure that the "stories", "topic_stories", "processed_stories" migration workflows avoid triggering insert_solr_import_story()
 -- FIXME while copying "media_stats", skip (media_id, stat_date) pairs that already exist in the sharded table
 -- FIXME while copying "auth_user_request_daily_counts", skip (email, day) pairs that already exist in the sharded table
