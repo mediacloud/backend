@@ -1,6 +1,5 @@
 -- noinspection SqlResolveForFile @ routine/"create_reference_table"
 
--- FIXME move related things together
 -- FIXME consider making shard count configurable to make tests run faster
 -- FIXME schema and tables get created as "postgres" user, should be "mediacloud"
 -- FIXME ensure that the "stories", "topic_stories", "processed_stories" migration workflows avoid triggering insert_solr_import_story()
@@ -94,18 +93,6 @@ END;
 $$ LANGUAGE plpgsql;
 
 
--- Database properties (variables) table
-CREATE TABLE database_variables
-(
-    database_variables_id BIGSERIAL PRIMARY KEY,
-    name                  TEXT NOT NULL,
-    value                 TEXT NOT NULL
-);
-
--- Not distributed, not reference (used to copy to from "downloads" and generally small)
-
-CREATE UNIQUE INDEX database_variables_name ON database_variables (name);
-
 -- This function is needed because date_trunc('week', date) is not consider immutable
 -- See http://www.mentby.com/Group/pgsql-general/datetrunc-on-date-is-immutable.html
 --
@@ -138,6 +125,565 @@ $$ LANGUAGE SQL IMMUTABLE;
 -- noinspection SqlResolve @ routine/"create_distributed_function"
 SELECT create_distributed_function('half_md5(TEXT)');
 
+
+-- Database properties (variables) table
+CREATE TABLE database_variables
+(
+    database_variables_id BIGSERIAL PRIMARY KEY,
+    name                  TEXT NOT NULL,
+    value                 TEXT NOT NULL
+);
+
+-- Not distributed, not reference (used to copy to from "downloads" and generally small)
+
+CREATE UNIQUE INDEX database_variables_name ON database_variables (name);
+
+
+-- implements link_id as documented in the topics api spec
+CREATE TABLE api_links
+(
+    api_links_id     BIGSERIAL PRIMARY KEY,
+    path             TEXT   NOT NULL,
+    params           JSONB  NOT NULL,
+    next_link_id     BIGINT NULL
+        REFERENCES api_links (api_links_id) ON DELETE SET NULL DEFERRABLE,
+    previous_link_id BIGINT NULL
+        REFERENCES api_links (api_links_id) ON DELETE SET NULL DEFERRABLE
+);
+
+-- Not a reference table (because not referenced), not a distributed table (because too small)
+
+CREATE UNIQUE INDEX api_links_path_params ON api_links (path, params);
+
+
+-- job states as implemented in mediawords.job.StatefulJobBroker
+CREATE TABLE job_states
+(
+    job_states_id BIGSERIAL NOT NULL,
+
+    --MediaWords::Job::* class implementing the job
+    class         TEXT      NOT NULL,
+
+    -- short class specific state
+    state         TEXT      NOT NULL,
+
+    -- optional longer message describing the state, such as a stack trace for an error
+    message       TEXT      NULL,
+
+    -- last time this job state was updated
+    last_updated  TIMESTAMP NOT NULL DEFAULT NOW(),
+
+    -- details about the job
+    args          JSONB     NOT NULL,
+    priority      TEXT      NOT NULL,
+
+    -- the hostname and process_id of the running process
+    hostname      TEXT      NOT NULL,
+    process_id    BIGINT    NOT NULL,
+
+    PRIMARY KEY (job_states_id, class)
+);
+
+-- noinspection SqlResolve @ routine/"create_distributed_table"
+SELECT create_distributed_table('job_states', 'class', colocate_with => 'none');
+
+CREATE INDEX job_states_class_last_updated ON job_states (class, last_updated);
+
+
+CREATE VIEW pending_job_states AS
+SELECT *
+FROM job_states
+WHERE state IN ('running', 'queued')
+;
+
+
+-- keep track of per domain web requests so that we can throttle them using mediawords.util.web.user_agent.throttled.
+-- this is unlogged because we don't care about anything more than about 10 seconds old.  we don't have a primary
+-- key because we want it just to be a fast table for temporary storage.
+CREATE UNLOGGED TABLE domain_web_requests
+(
+    domain_web_requests_id BIGSERIAL NOT NULL,
+    domain                 TEXT      NOT NULL,
+    request_time           TIMESTAMP NOT NULL DEFAULT NOW(),
+
+    PRIMARY KEY (domain_web_requests_id, domain)
+);
+
+-- noinspection SqlResolve @ routine/"create_distributed_table"
+SELECT create_distributed_table('domain_web_requests', 'domain', colocate_with => 'none');
+
+CREATE INDEX domain_web_requests_domain ON domain_web_requests (domain);
+
+
+-- return false if there is a request for the given domain within the last domain_timeout_arg milliseconds.  otherwise
+-- return true and insert a row into domain_web_request for the domain.  this function does not lock the table and
+-- so may allow some parallel requests through.
+CREATE OR REPLACE FUNCTION get_domain_web_requests_lock(
+    domain_arg TEXT,
+    domain_timeout_arg FLOAT
+) RETURNS BOOLEAN AS
+$$
+
+BEGIN
+
+    -- we don't want this table to grow forever or to have to manage it externally, so just truncate about every
+    -- 1 million requests.  only do this if there are more than 1000 rows in the table so that unit tests will not
+    -- randomly fail.
+    IF (SELECT RANDOM() * 1000000) < 1 THEN
+        IF EXISTS(SELECT 1 FROM domain_web_requests OFFSET 1000) THEN
+            TRUNCATE TABLE domain_web_requests;
+        END IF;
+    END IF;
+
+    IF EXISTS(
+            SELECT *
+            FROM domain_web_requests
+            WHERE domain = domain_arg
+              AND extract(epoch FROM NOW() - request_time) < domain_timeout_arg
+        ) THEN
+        RETURN FALSE;
+    END IF;
+
+    DELETE FROM domain_web_requests WHERE domain = domain_arg;
+    INSERT INTO domain_web_requests (domain) SELECT domain_arg;
+
+    RETURN TRUE;
+
+END
+
+$$ LANGUAGE plpgsql;
+
+
+--
+-- Celery job results
+-- (configured as self.__app.conf.database_table_names; schema is dictated by Celery + SQLAlchemy)
+--
+
+CREATE TABLE celery_groups
+(
+    id         BIGINT                      NOT NULL PRIMARY KEY,
+    taskset_id CHARACTER VARYING(155)      NULL,
+    result     BYTEA                       NULL,
+    date_done  TIMESTAMP WITHOUT TIME ZONE NULL
+);
+
+SELECT create_reference_table('celery_groups');
+
+CREATE UNIQUE INDEX celery_groups_taskset_id ON celery_groups (taskset_id);
+
+
+CREATE TABLE celery_tasks
+(
+    id        BIGINT                      NOT NULL,
+    task_id   CHARACTER VARYING(155)      NULL,
+    status    CHARACTER VARYING(50)       NULL,
+    result    BYTEA                       NULL,
+    date_done TIMESTAMP WITHOUT TIME ZONE NULL,
+    traceback TEXT                        NULL,
+
+    PRIMARY KEY (id, task_id)
+);
+
+-- noinspection SqlResolve @ routine/"create_distributed_table"
+SELECT create_distributed_table('celery_tasks', 'task_id', colocate_with => 'none');
+
+CREATE UNIQUE INDEX celery_tasks_task_id ON celery_tasks (task_id);
+
+CREATE SEQUENCE task_id_sequence AS BIGINT;
+
+
+--
+-- Activity log
+--
+
+-- noinspection SqlResolve @ object-type/"CITEXT"
+CREATE TABLE activities
+(
+    activities_id   BIGSERIAL PRIMARY KEY,
+
+    -- Activity's name (e.g. "tm_snapshot_topic")
+    name            TEXT      NOT NULL
+        CONSTRAINT activities_name_can_not_contain_spaces CHECK (name NOT LIKE '% %'),
+
+    -- When did the activity happen
+    creation_date   TIMESTAMP NOT NULL DEFAULT LOCALTIMESTAMP,
+
+    -- User that executed the activity, either:
+    --     * user's email from "auth_users.email" (e.g. "foo@bar.baz.com", or
+    --     * username that initiated the action (e.g. "system:foo")
+    -- (store user's email instead of ID in case the user gets deleted)
+    user_identifier CITEXT    NOT NULL,
+
+    -- Indexed ID of the object that was modified in some way by the activity
+    object_id       BIGINT    NULL,
+
+    -- User-provided reason explaining why the activity was made
+    reason          TEXT      NULL,
+
+    -- Other free-form data describing the action in the JSON format
+    -- (e.g.: '{ "field": "name", "old_value": "Foo.", "new_value": "Bar." }')
+    description     JSONB     NOT NULL DEFAULT '{}'
+);
+
+-- Not a reference table (because not referenced), not a distributed table (because too small)
+
+CREATE INDEX activities_name ON activities (name);
+
+CREATE INDEX activities_creation_date ON activities (creation_date);
+
+CREATE INDEX activities_user_identifier ON activities (user_identifier);
+
+CREATE INDEX activities_object_id ON activities (object_id);
+
+
+CREATE TABLE tag_sets
+(
+    tag_sets_id     BIGSERIAL PRIMARY KEY,
+
+    --unique identifier
+    name            TEXT    NOT NULL,
+
+    -- short human readable label
+    label           TEXT    NULL,
+
+    -- longer human readable description
+    description     TEXT    NULL,
+
+    -- should public interfaces show this as an option for searching media sources
+    show_on_media   BOOLEAN NULL,
+
+    -- should public interfaces show this as an option for search stories
+    show_on_stories BOOLEAN NULL,
+
+    CONSTRAINT tag_sets_name_not_empty CHECK (LENGTH(name) > 0)
+);
+
+-- noinspection SqlResolve @ routine/"create_reference_table"
+SELECT create_reference_table('tag_sets');
+
+CREATE UNIQUE INDEX tag_sets_name ON tag_sets (name);
+
+
+CREATE TABLE tags
+(
+    tags_id         BIGSERIAL PRIMARY KEY,
+    tag_sets_id     BIGINT  NOT NULL REFERENCES tag_sets (tag_sets_id) ON DELETE CASCADE,
+
+    -- unique identifier
+    tag             TEXT    NOT NULL,
+
+    -- short human readable label
+    label           TEXT    NULL,
+
+    -- longer human readable description
+    description     TEXT    NULL,
+
+    -- should public interfaces show this as an option for searching media sources
+    show_on_media   BOOLEAN NULL,
+
+    -- should public interfaces show this as an option for search stories
+    show_on_stories BOOLEAN NULL,
+
+    -- if true, users can expect this tag ans its associations not to change in major ways
+    is_static       BOOLEAN NOT NULL DEFAULT 'f',
+
+    CONSTRAINT no_line_feed CHECK (
+                tag NOT LIKE '%' || CHR(10) || '%' AND
+                tag NOT LIKE '%' || CHR(13) || '%'
+        ),
+
+    CONSTRAINT tag_not_empty CHECK (LENGTH(tag) > 0)
+);
+
+-- FIXME shard this somehow?
+-- "tags" could really use some sharding itself as it has lots of rows but then
+-- the foreign keys don't really work from elsewhere
+-- noinspection SqlResolve @ routine/"create_reference_table"
+SELECT create_reference_table('tags');
+
+CREATE INDEX tags_tag_sets_id ON tags (tag_sets_id);
+CREATE UNIQUE INDEX tags_tag ON tags (tag, tag_sets_id);
+CREATE INDEX tags_label ON tags USING HASH (label);
+-- noinspection SqlResolve
+CREATE INDEX tags_fts ON tags USING GIN (to_tsvector('english'::regconfig, tag || ' ' || label));
+
+CREATE INDEX tags_show_on_media ON tags USING HASH (show_on_media);
+CREATE INDEX tags_show_on_stories ON tags USING HASH (show_on_stories);
+
+INSERT INTO tag_sets (name, label, description)
+VALUES ('media_type',
+        'Media Type',
+        'High level topology for media sources for use across a variety of different topics');
+
+
+--
+-- Authentication
+--
+
+-- List of users
+-- noinspection SqlResolve @ object-type/"CITEXT"
+CREATE TABLE auth_users
+(
+    auth_users_id                   BIGSERIAL PRIMARY KEY,
+
+    -- Emails are case-insensitive
+    email                           CITEXT    NOT NULL,
+
+    -- Salted hash of a password
+    password_hash                   TEXT      NOT NULL
+        CONSTRAINT password_hash_sha256 CHECK (LENGTH(password_hash) = 137),
+
+    full_name                       TEXT      NOT NULL,
+    notes                           TEXT      NULL,
+
+    active                          BOOLEAN   NOT NULL DEFAULT 't',
+
+    -- Salted hash of a password reset token (with Crypt::SaltedHash, algorithm => 'SHA-256',
+    -- salt_len=>64) or NULL
+    password_reset_token_hash       TEXT      NULL
+        CONSTRAINT password_reset_token_hash_sha256
+            CHECK (LENGTH(password_reset_token_hash) = 137 OR password_reset_token_hash IS NULL),
+
+    -- Timestamp of the last unsuccessful attempt to log in; used for delaying successive
+    -- attempts in order to prevent brute-force attacks
+    last_unsuccessful_login_attempt TIMESTAMP NOT NULL DEFAULT TIMESTAMP 'epoch',
+
+    created_date                    TIMESTAMP NOT NULL DEFAULT NOW(),
+
+    -- Whether or not the user has consented to the privacy policy
+    has_consented                   BOOLEAN   NOT NULL DEFAULT 'f'
+);
+
+SELECT create_reference_table('auth_users');
+
+CREATE UNIQUE INDEX auth_users_email ON auth_users (email);
+
+CREATE UNIQUE INDEX auth_users_password_reset_token_hash ON auth_users (password_reset_token_hash);
+
+-- Used by daily stats script
+CREATE INDEX auth_users_created_day ON auth_users (date_trunc('day', created_date));
+
+
+-- Generate random API key
+CREATE OR REPLACE FUNCTION generate_api_key() RETURNS VARCHAR(64)
+    LANGUAGE plpgsql AS
+$$
+DECLARE
+    api_key VARCHAR(64);
+BEGIN
+    -- pgcrypto's functions are being referred with public schema prefix to make pg_upgrade work
+    -- noinspection SqlResolve
+    SELECT encode(public.digest(public.gen_random_bytes(256), 'sha256'), 'hex') INTO api_key;
+    RETURN api_key;
+END;
+$$;
+
+-- noinspection SqlResolve @ routine/"create_distributed_function"
+SELECT create_distributed_function('generate_api_key()');
+
+
+CREATE TABLE auth_user_api_keys
+(
+    auth_user_api_keys_id BIGSERIAL PRIMARY KEY,
+    auth_users_id         BIGINT      NOT NULL REFERENCES auth_users (auth_users_id) ON DELETE CASCADE,
+
+    -- API key
+    -- (must be 64 bytes in order to prevent someone from resetting it to empty string somehow)
+    api_key               VARCHAR(64) NOT NULL
+        DEFAULT generate_api_key()
+        CONSTRAINT api_key_64_characters
+            CHECK ( length(api_key) = 64 ),
+
+    -- If set, API key is limited to only this IP address
+    ip_address            INET        NULL
+);
+
+SELECT create_reference_table('auth_user_api_keys');
+
+CREATE UNIQUE INDEX auth_user_api_keys_api_key
+    ON auth_user_api_keys (api_key);
+
+CREATE UNIQUE INDEX auth_user_api_keys_api_key_ip_address
+    ON auth_user_api_keys (api_key, ip_address);
+
+
+-- Autogenerate non-IP limited API key
+CREATE OR REPLACE FUNCTION auth_user_api_keys_add_non_ip_limited_api_key() RETURNS trigger AS
+$$
+BEGIN
+
+    INSERT INTO auth_user_api_keys (auth_users_id, api_key, ip_address)
+    VALUES (NEW.auth_users_id,
+            DEFAULT, -- Autogenerated API key
+            NULL -- Not limited by IP address
+           );
+    RETURN NULL;
+
+END;
+$$ LANGUAGE 'plpgsql';
+
+-- noinspection SqlResolve @ routine/"create_distributed_function"
+SELECT create_distributed_function('auth_user_api_keys_add_non_ip_limited_api_key()');
+
+
+SELECT run_on_shards_or_raise('auth_users', $cmd$
+
+    CREATE TRIGGER auth_user_api_keys_add_non_ip_limited_api_key
+        AFTER INSERT
+        ON %s
+        FOR EACH ROW
+    EXECUTE PROCEDURE auth_user_api_keys_add_non_ip_limited_api_key();
+
+    $cmd$);
+
+
+-- List of roles the users can perform
+CREATE TABLE auth_roles
+(
+    auth_roles_id BIGSERIAL PRIMARY KEY,
+    role          TEXT NOT NULL,
+    description   TEXT NOT NULL,
+
+    CHECK (role NOT LIKE '% %')
+);
+
+SELECT create_reference_table('auth_roles');
+
+CREATE UNIQUE INDEX auth_roles_role ON auth_roles (role);
+
+
+-- Map of user IDs and roles that are allowed to each of the user
+CREATE TABLE auth_users_roles_map
+(
+    auth_users_roles_map_id BIGSERIAL PRIMARY KEY,
+    auth_users_id           BIGINT NOT NULL
+        REFERENCES auth_users (auth_users_id) ON DELETE CASCADE ON UPDATE CASCADE DEFERRABLE,
+    auth_roles_id           BIGINT NOT NULL
+        REFERENCES auth_roles (auth_roles_id) ON DELETE CASCADE ON UPDATE CASCADE DEFERRABLE
+);
+
+SELECT create_reference_table('auth_users_roles_map');
+
+CREATE UNIQUE INDEX auth_users_roles_map_auth_users_id_auth_roles_id
+    ON auth_users_roles_map (auth_users_id, auth_roles_id);
+
+
+-- Authentication roles (keep in sync with MediaWords::DBI::Auth::Roles)
+INSERT INTO auth_roles (role, description)
+VALUES ('admin', 'Do everything, including editing users.'),
+       ('admin-readonly', 'Read access to admin interface.'),
+       ('media-edit', 'Add / edit media; includes feeds.'),
+       ('stories-edit', 'Add / edit stories.'),
+       ('tm', 'Topic mapper; includes media and story editing'),
+       ('tm-readonly', 'Topic mapper; excludes media and story editing');
+
+
+--
+-- User request daily counts
+--
+-- noinspection SqlResolve @ object-type/"CITEXT"
+CREATE TABLE auth_user_request_daily_counts
+(
+
+    auth_user_request_daily_counts_id BIGSERIAL NOT NULL,
+
+    -- User's email (does *not* reference auth_users.email because the user
+    -- might be deleted)
+    email                             CITEXT    NOT NULL,
+
+    -- Day (request timestamp, date_truncated to a day)
+    day                               DATE      NOT NULL,
+
+    -- Number of requests
+    requests_count                    BIGINT    NOT NULL,
+
+    -- Number of requested items
+    requested_items_count             BIGINT    NOT NULL,
+
+    PRIMARY KEY (auth_user_request_daily_counts_id, email)
+
+);
+
+-- Kinda grows big so distributed
+-- noinspection SqlResolve @ routine/"create_distributed_table"
+SELECT create_distributed_table('auth_user_request_daily_counts', 'email', colocate_with => 'none');
+
+-- Single index to enforce upsert uniqueness
+CREATE UNIQUE INDEX auth_user_request_daily_counts_email_day
+    ON auth_user_request_daily_counts (email, day);
+
+
+-- User limits for logged + throttled controller actions
+CREATE TABLE auth_user_limits
+(
+    auth_user_limits_id          BIGSERIAL PRIMARY KEY,
+
+    auth_users_id                BIGINT NOT NULL REFERENCES auth_users (auth_users_id)
+        ON DELETE CASCADE ON UPDATE CASCADE DEFERRABLE,
+
+    -- Request limit (0 or belonging to 'admin' / 'admin-readonly' group = no
+    -- limit)
+    weekly_requests_limit        BIGINT NOT NULL DEFAULT 10000,
+
+    -- Requested items (stories) limit (0 or belonging to 'admin' /
+    -- 'admin-readonly' group = no limit)
+    weekly_requested_items_limit BIGINT NOT NULL DEFAULT 100000,
+
+    max_topic_stories            BIGINT NOT NULL DEFAULT 100000
+);
+
+SELECT create_reference_table('auth_user_limits');
+
+CREATE UNIQUE INDEX auth_user_limits_auth_users_id ON auth_user_limits (auth_users_id);
+
+
+-- Set the default limits for newly created users
+CREATE OR REPLACE FUNCTION auth_users_set_default_limits() RETURNS trigger AS
+$$
+BEGIN
+
+    INSERT INTO auth_user_limits (auth_users_id) VALUES (NEW.auth_users_id);
+    RETURN NULL;
+
+END;
+$$ LANGUAGE 'plpgsql';
+
+-- noinspection SqlResolve @ routine/"create_distributed_function"
+SELECT create_distributed_function('auth_users_set_default_limits()');
+
+
+SELECT run_on_shards_or_raise('auth_users', $cmd$
+
+    CREATE TRIGGER auth_users_set_default_limits
+        AFTER INSERT
+        ON %s
+        FOR EACH ROW
+    EXECUTE PROCEDURE auth_users_set_default_limits();
+
+    $cmd$);
+
+
+CREATE TABLE auth_users_tag_sets_permissions
+(
+    auth_users_tag_sets_permissions_id BIGSERIAL PRIMARY KEY,
+    auth_users_id                      BIGINT  NOT NULL REFERENCES auth_users (auth_users_id) ON DELETE CASCADE,
+    tag_sets_id                        BIGINT  NOT NULL REFERENCES tag_sets (tag_sets_id),
+    apply_tags                         BOOLEAN NOT NULL,
+    create_tags                        BOOLEAN NOT NULL,
+    edit_tag_set_descriptors           BOOLEAN NOT NULL,
+    edit_tag_descriptors               BOOLEAN NOT NULL
+);
+
+SELECT create_reference_table('auth_users_tag_sets_permissions');
+
+CREATE UNIQUE INDEX auth_users_tag_sets_permissions_auth_user_tag_set
+    ON auth_users_tag_sets_permissions (auth_users_id, tag_sets_id);
+
+CREATE INDEX auth_users_tag_sets_permissions_auth_user
+    ON auth_users_tag_sets_permissions (auth_users_id);
+
+CREATE INDEX auth_users_tag_sets_permissions_tag_sets
+    ON auth_users_tag_sets_permissions (tag_sets_id);
 
 
 CREATE TABLE media
@@ -203,7 +749,6 @@ CREATE UNIQUE INDEX media_rescraping_media_id ON media_rescraping (media_id);
 CREATE INDEX media_rescraping_last_rescrape_time ON media_rescraping (last_rescrape_time);
 
 
-
 CREATE OR REPLACE FUNCTION media_rescraping_add_initial_state_trigger() RETURNS trigger AS
 $$
 BEGIN
@@ -248,40 +793,132 @@ CREATE INDEX media_stats_media_id ON media_stats (media_id);
 
 CREATE UNIQUE INDEX media_stats_media_id_stat_date ON media_stats (media_id, stat_date);
 
---
--- Returns true if media has active RSS feeds
---
-CREATE OR REPLACE FUNCTION media_has_active_syndicated_feeds(param_media_id BIGINT)
-    RETURNS BOOLEAN AS
-$$
-BEGIN
 
-    -- Check if media exists
-    IF NOT EXISTS(
-            SELECT 1
-            FROM media
-            WHERE media_id = param_media_id
-        ) THEN
-        RAISE EXCEPTION 'Media % does not exist.', param_media_id;
-    END IF;
+CREATE TABLE media_stats_weekly
+(
+    media_stats_weekly_id BIGSERIAL PRIMARY KEY,
+    media_id              BIGINT  NOT NULL REFERENCES media (media_id) ON DELETE CASCADE,
+    stories_rank          BIGINT  NOT NULL,
+    num_stories           NUMERIC NOT NULL,
+    sentences_rank        BIGINT  NOT NULL,
+    num_sentences         NUMERIC NOT NULL,
+    stat_week             DATE    NOT NULL
+);
 
-    -- Check if media has feeds
-    IF EXISTS(
-            SELECT 1
-            FROM feeds
-            WHERE media_id = param_media_id
-              AND active = 't'
+-- Not a reference table (because not referenced), not a distributed table (because too small)
 
-              -- Website might introduce RSS feeds later
-              AND "type" = 'syndicated'
-        ) THEN
-        RETURN TRUE;
-    ELSE
-        RETURN FALSE;
-    END IF;
+CREATE INDEX media_stats_weekly_media_id ON media_stats_weekly (media_id);
 
-END;
-$$ LANGUAGE 'plpgsql';
+
+CREATE TABLE media_expected_volume
+(
+    media_expected_volume_id BIGSERIAL PRIMARY KEY,
+    media_id                 BIGINT  NOT NULL REFERENCES media (media_id) ON DELETE CASCADE,
+    start_date               DATE    NOT NULL,
+    end_date                 DATE    NOT NULL,
+    expected_stories         NUMERIC NOT NULL,
+    expected_sentences       NUMERIC NOT NULL
+);
+
+-- Not a reference table (because not referenced), not a distributed table (because too small)
+
+CREATE INDEX media_expected_volume_media_id ON media_expected_volume (media_id);
+
+
+CREATE TABLE media_coverage_gaps
+(
+    media_coverage_gaps_id BIGSERIAL NOT NULL,
+    media_id               BIGINT    NOT NULL REFERENCES media (media_id) ON DELETE CASCADE,
+    stat_week              DATE      NOT NULL,
+    num_stories            NUMERIC   NOT NULL,
+    expected_stories       NUMERIC   NOT NULL,
+    num_sentences          NUMERIC   NOT NULL,
+    expected_sentences     NUMERIC   NOT NULL,
+
+    PRIMARY KEY (media_coverage_gaps_id, media_id)
+);
+
+-- noinspection SqlResolve @ routine/"create_distributed_table"
+SELECT create_distributed_table('media_coverage_gaps', 'media_id', colocate_with => 'media_stats');
+
+CREATE INDEX media_coverage_gaps_media_id ON media_coverage_gaps (media_id);
+
+
+CREATE TABLE media_health
+(
+    media_health_id    BIGSERIAL PRIMARY KEY,
+    media_id           BIGINT  NOT NULL REFERENCES media (media_id) ON DELETE CASCADE,
+    num_stories        NUMERIC NOT NULL,
+    num_stories_y      NUMERIC NOT NULL,
+    num_stories_w      NUMERIC NOT NULL,
+    num_stories_90     NUMERIC NOT NULL,
+    num_sentences      NUMERIC NOT NULL,
+    num_sentences_y    NUMERIC NOT NULL,
+    num_sentences_w    NUMERIC NOT NULL,
+    num_sentences_90   NUMERIC NOT NULL,
+    is_healthy         BOOLEAN NOT NULL DEFAULT 'f',
+    has_active_feed    BOOLEAN NOT NULL DEFAULT 't',
+    start_date         DATE    NOT NULL,
+    end_date           DATE    NOT NULL,
+    expected_sentences NUMERIC NOT NULL,
+    expected_stories   NUMERIC NOT NULL,
+    coverage_gaps      BIGINT  NOT NULL
+);
+
+-- Not a reference table (because not referenced), not a distributed table (because too small)
+
+CREATE INDEX media_health_media_id ON media_health (media_id);
+
+CREATE INDEX media_health_is_healthy ON media_health (is_healthy);
+
+CREATE INDEX media_health_num_stories_90 ON media_health (num_stories_90);
+
+
+CREATE TYPE media_suggestions_status AS ENUM (
+    'pending',
+    'approved',
+    'rejected'
+    );
+
+CREATE TABLE media_suggestions
+(
+    media_suggestions_id BIGSERIAL PRIMARY KEY,
+    name                 TEXT                     NULL,
+    url                  TEXT                     NOT NULL,
+    feed_url             TEXT                     NULL,
+    reason               TEXT                     NULL,
+    auth_users_id        BIGINT                   NULL REFERENCES auth_users (auth_users_id) ON DELETE SET NULL,
+    mark_auth_users_id   BIGINT                   NULL REFERENCES auth_users (auth_users_id) ON DELETE SET NULL,
+    date_submitted       TIMESTAMP                NOT NULL DEFAULT NOW(),
+    media_id             BIGINT                   NULL REFERENCES media (media_id) ON DELETE SET NULL,
+    date_marked          TIMESTAMP                NOT NULL DEFAULT NOW(),
+    mark_reason          TEXT                     NULL,
+    status               media_suggestions_status NOT NULL DEFAULT 'pending',
+
+    CONSTRAINT media_suggestions_media_id CHECK (
+        (status IN ('pending', 'rejected')) OR (media_id IS NOT NULL)
+        )
+);
+
+-- Not a reference table (because not referenced), not a distributed table (because too small)
+
+CREATE INDEX media_suggestions_date ON media_suggestions (date_submitted);
+
+
+CREATE TABLE media_suggestions_tags_map
+(
+    media_suggestions_tags_map_id BIGSERIAL PRIMARY KEY,
+    media_suggestions_id          BIGINT REFERENCES media_suggestions (media_suggestions_id) ON DELETE CASCADE,
+    tags_id                       BIGINT REFERENCES tags (tags_id) ON DELETE CASCADE
+);
+
+-- Not a reference table (because not referenced), not a distributed table (because too small)
+
+CREATE INDEX media_suggestions_tags_map_media_suggestions_id
+    ON media_suggestions_tags_map (media_suggestions_id);
+
+CREATE INDEX media_suggestions_tags_map_tags_id
+    ON media_suggestions_tags_map (tags_id);
 
 
 CREATE TYPE feed_type AS ENUM (
@@ -346,24 +983,6 @@ CREATE INDEX feeds_last_attempted_download_time ON feeds (last_attempted_downloa
 CREATE INDEX feeds_last_successful_download_time ON feeds (last_successful_download_time);
 
 
--- Feeds for media item that were found after (re)scraping
-CREATE TABLE feeds_after_rescraping
-(
-    feeds_after_rescraping_id BIGSERIAL PRIMARY KEY,
-    media_id                  BIGINT    NOT NULL REFERENCES media (media_id) ON DELETE CASCADE,
-    name                      TEXT      NOT NULL,
-    url                       TEXT      NOT NULL,
-    type                      feed_type NOT NULL DEFAULT 'syndicated'
-);
-
--- noinspection SqlResolve @ routine/"create_reference_table"
-SELECT create_reference_table('feeds_after_rescraping');
-
-CREATE INDEX feeds_after_rescraping_media_id ON feeds_after_rescraping (media_id);
-CREATE INDEX feeds_after_rescraping_name ON feeds_after_rescraping (name);
-CREATE UNIQUE INDEX feeds_after_rescraping_media_id_url ON feeds_after_rescraping (media_id, url);
-
-
 -- Feed is "stale" (hasn't provided a new story in some time)
 -- Not to be confused with "stale feeds" in extractor!
 CREATE OR REPLACE FUNCTION feed_is_stale(param_feeds_id BIGINT) RETURNS boolean AS
@@ -398,99 +1017,341 @@ END;
 $$ LANGUAGE 'plpgsql';
 
 
-CREATE TABLE tag_sets
+--
+-- Returns true if media has active RSS feeds
+--
+CREATE OR REPLACE FUNCTION media_has_active_syndicated_feeds(param_media_id BIGINT)
+    RETURNS BOOLEAN AS
+$$
+BEGIN
+
+    -- Check if media exists
+    IF NOT EXISTS(
+            SELECT 1
+            FROM media
+            WHERE media_id = param_media_id
+        ) THEN
+        RAISE EXCEPTION 'Media % does not exist.', param_media_id;
+    END IF;
+
+    -- Check if media has feeds
+    IF EXISTS(
+            SELECT 1
+            FROM feeds
+            WHERE media_id = param_media_id
+              AND active = 't'
+
+              -- Website might introduce RSS feeds later
+              AND "type" = 'syndicated'
+        ) THEN
+        RETURN TRUE;
+    ELSE
+        RETURN FALSE;
+    END IF;
+
+END;
+$$ LANGUAGE 'plpgsql';
+
+
+-- dates on which feeds have been scraped with MediaWords::ImportStories and
+-- the module used for scraping
+CREATE TABLE scraped_feeds
 (
-    tag_sets_id     BIGSERIAL PRIMARY KEY,
+    scraped_feeds_id BIGSERIAL PRIMARY KEY,
+    feeds_id         BIGINT    NOT NULL REFERENCES feeds (feeds_id) ON DELETE CASCADE,
+    scrape_date      TIMESTAMP NOT NULL DEFAULT NOW(),
+    import_module    TEXT      NOT NULL
+);
 
-    --unique identifier
-    name            TEXT    NOT NULL,
+SELECT create_reference_table('scraped_feeds');
 
-    -- short human readable label
-    label           TEXT    NULL,
+CREATE INDEX scraped_feeds_feeds_id ON scraped_feeds (feeds_id);
 
-    -- longer human readable description
-    description     TEXT    NULL,
 
-    -- should public interfaces show this as an option for searching media sources
-    show_on_media   BOOLEAN NULL,
+CREATE VIEW feedly_unscraped_feeds AS
+SELECT f.*
+FROM feeds AS f
+         LEFT JOIN scraped_feeds AS sf
+                   ON f.feeds_id = sf.feeds_id
+                       AND sf.import_module = 'MediaWords::ImportStories::Feedly'
+WHERE f.type = 'syndicated'
+  AND f.active = 't'
+  AND sf.feeds_id IS NULL
+;
 
-    -- should public interfaces show this as an option for search stories
-    show_on_stories BOOLEAN NULL,
 
-    CONSTRAINT tag_sets_name_not_empty CHECK (LENGTH(name) > 0)
+-- Feeds for media item that were found after (re)scraping
+CREATE TABLE feeds_after_rescraping
+(
+    feeds_after_rescraping_id BIGSERIAL PRIMARY KEY,
+    media_id                  BIGINT    NOT NULL REFERENCES media (media_id) ON DELETE CASCADE,
+    name                      TEXT      NOT NULL,
+    url                       TEXT      NOT NULL,
+    type                      feed_type NOT NULL DEFAULT 'syndicated'
 );
 
 -- noinspection SqlResolve @ routine/"create_reference_table"
-SELECT create_reference_table('tag_sets');
+SELECT create_reference_table('feeds_after_rescraping');
 
-CREATE UNIQUE INDEX tag_sets_name ON tag_sets (name);
+CREATE INDEX feeds_after_rescraping_media_id ON feeds_after_rescraping (media_id);
+CREATE INDEX feeds_after_rescraping_name ON feeds_after_rescraping (name);
+CREATE UNIQUE INDEX feeds_after_rescraping_media_id_url ON feeds_after_rescraping (media_id, url);
 
 
-
-CREATE TABLE tags
+-- Copy of "feeds" table from yesterday; used for generating reports for rescraping efforts
+CREATE TABLE feeds_from_yesterday
 (
-    tags_id         BIGSERIAL PRIMARY KEY,
-    tag_sets_id     BIGINT  NOT NULL REFERENCES tag_sets (tag_sets_id) ON DELETE CASCADE,
-
-    -- unique identifier
-    tag             TEXT    NOT NULL,
-
-    -- short human readable label
-    label           TEXT    NULL,
-
-    -- longer human readable description
-    description     TEXT    NULL,
-
-    -- should public interfaces show this as an option for searching media sources
-    show_on_media   BOOLEAN NULL,
-
-    -- should public interfaces show this as an option for search stories
-    show_on_stories BOOLEAN NULL,
-
-    -- if true, users can expect this tag ans its associations not to change in major ways
-    is_static       BOOLEAN NOT NULL DEFAULT 'f',
-
-    CONSTRAINT no_line_feed CHECK (
-                tag NOT LIKE '%' || CHR(10) || '%' AND
-                tag NOT LIKE '%' || CHR(13) || '%'
-        ),
-
-    CONSTRAINT tag_not_empty CHECK (LENGTH(tag) > 0)
+    feeds_from_yesterday_id BIGSERIAL PRIMARY KEY,
+    feeds_id                BIGINT    NOT NULL,
+    media_id                BIGINT    NOT NULL,
+    name                    TEXT      NOT NULL,
+    url                     TEXT      NOT NULL,
+    type                    feed_type NOT NULL,
+    active                  BOOLEAN   NOT NULL
 );
 
--- FIXME shard this somehow?
--- "tags" could really use some sharding itself as it has lots of rows but then
--- the foreign keys don't really work from elsewhere
--- noinspection SqlResolve @ routine/"create_reference_table"
-SELECT create_reference_table('tags');
+-- Not a reference table (because not referenced), not a distributed table (because too small)
 
-CREATE INDEX tags_tag_sets_id ON tags (tag_sets_id);
-CREATE UNIQUE INDEX tags_tag ON tags (tag, tag_sets_id);
-CREATE INDEX tags_label ON tags USING HASH (label);
--- noinspection SqlResolve
-CREATE INDEX tags_fts ON tags USING GIN (to_tsvector('english'::regconfig, tag || ' ' || label));
+CREATE INDEX feeds_from_yesterday_feeds_id ON feeds_from_yesterday (feeds_id);
 
-CREATE INDEX tags_show_on_media ON tags USING HASH (show_on_media);
-CREATE INDEX tags_show_on_stories ON tags USING HASH (show_on_stories);
+CREATE INDEX feeds_from_yesterday_media_id ON feeds_from_yesterday (media_id);
 
-INSERT INTO tag_sets (name, label, description)
-VALUES ('media_type',
-        'Media Type',
-        'High level topology for media sources for use across a variety of different topics');
+CREATE INDEX feeds_from_yesterday_name ON feeds_from_yesterday (name);
+
+CREATE UNIQUE INDEX feeds_from_yesterday_url ON feeds_from_yesterday (url, media_id);
 
 
-CREATE TABLE feeds_tags_map
-(
-    feeds_tags_map_id BIGSERIAL PRIMARY KEY,
-    feeds_id          BIGINT NOT NULL REFERENCES feeds (feeds_id) ON DELETE CASCADE,
-    tags_id           BIGINT NOT NULL REFERENCES tags (tags_id) ON DELETE CASCADE
-);
+--
+-- Update "feeds_from_yesterday" with a new set of feeds
+--
+CREATE OR REPLACE FUNCTION update_feeds_from_yesterday() RETURNS VOID AS
+$$
 
--- noinspection SqlResolve @ routine/"create_reference_table"
-SELECT create_reference_table('feeds_tags_map');
+BEGIN
 
-CREATE UNIQUE INDEX feeds_tags_map_feeds_id_tags_id ON feeds_tags_map (feeds_id, tags_id);
-CREATE INDEX feeds_tags_map_tags_id ON feeds_tags_map (tags_id);
+    -- noinspection SqlWithoutWhere
+    DELETE FROM feeds_from_yesterday;
+    INSERT INTO feeds_from_yesterday (feeds_id, media_id, name, url, type, active)
+    SELECT feeds_id, media_id, name, url, type, active
+    FROM feeds;
+
+END;
+
+$$ LANGUAGE 'plpgsql';
+
+
+--
+-- Print out a diff between "feeds" and "feeds_from_yesterday"
+--
+CREATE OR REPLACE FUNCTION rescraping_changes() RETURNS VOID AS
+$$
+
+DECLARE
+    r_count RECORD;
+    r_media RECORD;
+    r_feed  RECORD;
+
+BEGIN
+
+    -- Check if media exists
+    IF NOT EXISTS(
+            SELECT 1
+            FROM feeds_from_yesterday
+        ) THEN
+        RAISE EXCEPTION '"feeds_from_yesterday" table is empty.';
+    END IF;
+
+    -- Fill temp. tables with changes to print out later
+    CREATE TEMPORARY TABLE rescraping_changes_media ON COMMIT DROP AS
+    SELECT *
+    FROM media
+    WHERE media_id IN (
+        SELECT DISTINCT media_id
+        FROM (
+                 -- Don't compare "name" because it's insignificant
+                 (
+                     SELECT feeds_id, media_id, type, active, url
+                     FROM feeds_from_yesterday
+                     EXCEPT
+                     SELECT feeds_id, media_id, type, active, url
+                     FROM feeds
+                 )
+                 UNION ALL
+                 (
+                     SELECT feeds_id, media_id, type, active, url
+                     FROM feeds
+                     EXCEPT
+                     SELECT feeds_id, media_id, type, active, url
+                     FROM feeds_from_yesterday
+                 )
+             ) AS modified_feeds
+    );
+
+    CREATE TEMPORARY TABLE rescraping_changes_feeds_added ON COMMIT DROP AS
+    SELECT *
+    FROM feeds
+    WHERE media_id IN (
+        SELECT media_id
+        FROM rescraping_changes_media
+    )
+      AND feeds_id NOT IN (
+        SELECT feeds_id
+        FROM feeds_from_yesterday
+    );
+
+    CREATE TEMPORARY TABLE rescraping_changes_feeds_deleted ON COMMIT DROP AS
+    SELECT *
+    FROM feeds_from_yesterday
+    WHERE media_id IN (
+        SELECT media_id
+        FROM rescraping_changes_media
+    )
+      AND feeds_id NOT IN (
+        SELECT feeds_id
+        FROM feeds
+    );
+
+    CREATE TEMPORARY TABLE rescraping_changes_feeds_modified ON COMMIT DROP AS
+    SELECT feeds_before.media_id,
+           feeds_before.feeds_id,
+
+           feeds_before.name   AS before_name,
+           feeds_before.url    AS before_url,
+           feeds_before.type   AS before_type,
+           feeds_before.active AS before_active,
+
+           feeds_after.name    AS after_name,
+           feeds_after.url     AS after_url,
+           feeds_after.type    AS after_type,
+           feeds_after.active  AS after_active
+
+    FROM feeds_from_yesterday AS feeds_before
+             INNER JOIN feeds AS feeds_after ON (
+                feeds_before.feeds_id = feeds_after.feeds_id
+            AND (
+                    -- Don't compare "name" because it's insignificant
+                            feeds_before.url != feeds_after.url
+                        OR feeds_before.type != feeds_after.type
+                        OR feeds_before.active != feeds_after.active
+                    )
+        )
+
+    WHERE feeds_before.media_id IN (
+        SELECT media_id
+        FROM rescraping_changes_media
+    );
+
+    -- Print out changes
+    RAISE NOTICE 'Changes between "feeds" and "feeds_from_yesterday":';
+    RAISE NOTICE '';
+
+    SELECT COUNT(1) AS media_count INTO r_count FROM rescraping_changes_media;
+    RAISE NOTICE '* Modified media: %', r_count.media_count;
+    SELECT COUNT(1) AS feeds_added_count INTO r_count FROM rescraping_changes_feeds_added;
+    RAISE NOTICE '* Added feeds: %', r_count.feeds_added_count;
+    SELECT COUNT(1) AS feeds_deleted_count INTO r_count FROM rescraping_changes_feeds_deleted;
+    RAISE NOTICE '* Deleted feeds: %', r_count.feeds_deleted_count;
+    SELECT COUNT(1) AS feeds_modified_count INTO r_count FROM rescraping_changes_feeds_modified;
+    RAISE NOTICE '* Modified feeds: %', r_count.feeds_modified_count;
+    RAISE NOTICE '';
+
+    FOR r_media IN
+        SELECT *,
+
+               -- Prioritize US MSM media
+               EXISTS(
+                       SELECT 1
+                       FROM tags AS tags
+                                INNER JOIN media_tags_map
+                                           ON tags.tags_id = media_tags_map.tags_id
+                                INNER JOIN tag_sets
+                                           ON tags.tag_sets_id = tag_sets.tag_sets_id
+                       WHERE media_tags_map.media_id = rescraping_changes_media.media_id
+                         AND tag_sets.name = 'collection'
+                         AND tags.tag = 'ap_english_us_top25_20100110'
+                   ) AS belongs_to_us_msm,
+
+               -- Prioritize media with "show_on_media"
+               EXISTS(
+                       SELECT 1
+                       FROM tags AS tags
+                                INNER JOIN media_tags_map
+                                           ON tags.tags_id = media_tags_map.tags_id
+                                INNER JOIN tag_sets
+                                           ON tags.tag_sets_id = tag_sets.tag_sets_id
+                       WHERE media_tags_map.media_id = rescraping_changes_media.media_id
+                         AND (
+                               tag_sets.show_on_media
+                               OR tags.show_on_media
+                           )
+                   ) AS show_on_media
+
+        FROM rescraping_changes_media
+
+        ORDER BY belongs_to_us_msm DESC,
+                 show_on_media DESC,
+                 media_id
+        LOOP
+            RAISE NOTICE 'MODIFIED media: media_id=%, name="%", url="%"',
+                r_media.media_id,
+                r_media.name,
+                r_media.url;
+
+            FOR r_feed IN
+                SELECT *
+                FROM rescraping_changes_feeds_added
+                WHERE media_id = r_media.media_id
+                ORDER BY feeds_id
+                LOOP
+                    RAISE NOTICE '    ADDED feed: feeds_id=%, type=%, active=%, name="%", url="%"',
+                        r_feed.feeds_id,
+                        r_feed.type,
+                        r_feed.active,
+                        r_feed.name,
+                        r_feed.url;
+                END LOOP;
+
+            -- Feeds shouldn't get deleted but we're checking anyways
+            FOR r_feed IN
+                SELECT *
+                FROM rescraping_changes_feeds_deleted
+                WHERE media_id = r_media.media_id
+                ORDER BY feeds_id
+                LOOP
+                    RAISE NOTICE '    DELETED feed: feeds_id=%, type=%, active=%, name="%", url="%"',
+                        r_feed.feeds_id,
+                        r_feed.type,
+                        r_feed.active,
+                        r_feed.name,
+                        r_feed.url;
+                END LOOP;
+
+            FOR r_feed IN
+                SELECT *
+                FROM rescraping_changes_feeds_modified
+                WHERE media_id = r_media.media_id
+                ORDER BY feeds_id
+                LOOP
+                    RAISE NOTICE '    MODIFIED feed: feeds_id=%', r_feed.feeds_id;
+                    RAISE NOTICE '        BEFORE: type=%, active=%, name="%", url="%"',
+                        r_feed.before_type,
+                        r_feed.before_active,
+                        r_feed.before_name,
+                        r_feed.before_url;
+                    RAISE NOTICE '        AFTER:  type=%, active=%, name="%", url="%"',
+                        r_feed.after_type,
+                        r_feed.after_active,
+                        r_feed.after_name,
+                        r_feed.after_url;
+                END LOOP;
+
+            RAISE NOTICE '';
+
+        END LOOP;
+
+END;
+
+$$ LANGUAGE 'plpgsql';
 
 
 CREATE TABLE media_tags_map
@@ -507,6 +1368,20 @@ SELECT create_reference_table('media_tags_map');
 CREATE INDEX media_tags_map_media_id ON media_tags_map (media_id);
 CREATE UNIQUE INDEX media_tags_map_media_id_tags_id ON media_tags_map (media_id, tags_id);
 CREATE INDEX media_tags_map_tags_id ON media_tags_map (tags_id);
+
+
+CREATE TABLE feeds_tags_map
+(
+    feeds_tags_map_id BIGSERIAL PRIMARY KEY,
+    feeds_id          BIGINT NOT NULL REFERENCES feeds (feeds_id) ON DELETE CASCADE,
+    tags_id           BIGINT NOT NULL REFERENCES tags (tags_id) ON DELETE CASCADE
+);
+
+-- noinspection SqlResolve @ routine/"create_reference_table"
+SELECT create_reference_table('feeds_tags_map');
+
+CREATE UNIQUE INDEX feeds_tags_map_feeds_id_tags_id ON feeds_tags_map (feeds_id, tags_id);
+CREATE INDEX feeds_tags_map_tags_id ON feeds_tags_map (tags_id);
 
 
 CREATE TABLE color_sets
@@ -660,6 +1535,125 @@ SELECT run_on_shards_or_raise('stories', $cmd$
     $cmd$);
 
 
+CREATE VIEW stories_collected_in_past_day AS
+SELECT *
+FROM stories
+WHERE collect_date > now() - interval '1 day';
+
+
+CREATE TABLE stories_ap_syndicated
+(
+    stories_ap_syndicated_id BIGSERIAL NOT NULL,
+    stories_id               BIGINT    NOT NULL REFERENCES stories (stories_id) ON DELETE CASCADE,
+    ap_syndicated            BOOLEAN   NOT NULL,
+
+    PRIMARY KEY (stories_ap_syndicated_id, stories_id)
+);
+
+-- noinspection SqlResolve @ routine/"create_distributed_table"
+SELECT create_distributed_table('stories_ap_syndicated', 'stories_id', colocate_with => 'stories');
+
+CREATE UNIQUE INDEX stories_ap_syndicated_story ON stories_ap_syndicated (stories_id);
+
+
+-- List of all URL or GUID identifiers for each story
+CREATE TABLE story_urls
+(
+    story_urls_id BIGSERIAL NOT NULL,
+    stories_id    BIGINT    NOT NULL REFERENCES stories (stories_id) ON DELETE CASCADE,
+    url           TEXT      NOT NULL,
+
+    PRIMARY KEY (story_urls_id, stories_id)
+);
+
+-- noinspection SqlResolve @ routine/"create_distributed_table"
+SELECT create_distributed_table('story_urls', 'stories_id', colocate_with => 'stories');
+
+CREATE INDEX story_urls_stories_id ON story_urls (stories_id);
+CREATE UNIQUE INDEX story_urls_stories_id_url ON story_urls (stories_id, url);
+
+
+--
+-- Enclosures added to the story's feed item
+--
+-- noinspection SqlResolve
+CREATE TABLE story_enclosures
+(
+    story_enclosures_id BIGSERIAL NOT NULL,
+    stories_id          BIGINT    NOT NULL REFERENCES stories (stories_id) ON DELETE CASCADE,
+
+    -- Podcast enclosure URL
+    url                 TEXT      NOT NULL,
+
+    -- RSS spec says that enclosure's "length" and "type" are required too but
+    -- I guess some podcasts don't care that much about specs so both are
+    -- allowed to be NULL:
+
+    -- MIME type as reported by <enclosure />
+    mime_type           CITEXT    NULL,
+
+    -- Length in bytes as reported by <enclosure />
+    length              BIGINT    NULL,
+
+    PRIMARY KEY (story_enclosures_id, stories_id)
+);
+
+-- noinspection SqlResolve @ routine/"create_distributed_table"
+SELECT create_distributed_table('story_enclosures', 'stories_id', colocate_with => 'stories');
+
+CREATE UNIQUE INDEX story_enclosures_stories_id_url
+    ON story_enclosures (stories_id, url);
+
+
+-- stats for various externally derived statistics about a story.
+CREATE TABLE story_statistics
+(
+    story_statistics_id       BIGSERIAL NOT NULL,
+    stories_id                BIGINT    NOT NULL REFERENCES stories (stories_id) ON DELETE CASCADE,
+
+    facebook_share_count      BIGINT    NULL,
+    facebook_comment_count    BIGINT    NULL,
+    facebook_reaction_count   BIGINT    NULL,
+    facebook_api_collect_date TIMESTAMP NULL,
+    facebook_api_error        TEXT      NULL,
+
+    PRIMARY KEY (story_statistics_id, stories_id)
+);
+
+-- noinspection SqlResolve @ routine/"create_distributed_table"
+SELECT create_distributed_table('story_statistics', 'stories_id', colocate_with => 'stories');
+
+CREATE UNIQUE INDEX story_statistics_stories_id
+    ON story_statistics (stories_id);
+
+
+CREATE TABLE solr_imports
+(
+    solr_imports_id BIGSERIAL PRIMARY KEY,
+    import_date     TIMESTAMP NOT NULL,
+    full_import     BOOLEAN   NOT NULL DEFAULT 'f',
+    num_stories     BIGINT    NULL
+);
+
+-- Not distributed, not reference (small and used locally)
+
+CREATE INDEX solr_imports_date ON solr_imports (import_date);
+
+
+-- Stories to import into Solr
+CREATE TABLE solr_import_stories
+(
+    solr_import_stories_id BIGSERIAL NOT NULL,
+    stories_id             BIGINT    NOT NULL REFERENCES stories (stories_id) ON DELETE CASCADE,
+    PRIMARY KEY (solr_import_stories_id, stories_id)
+);
+
+-- noinspection SqlResolve @ routine/"create_distributed_table"
+SELECT create_distributed_table('solr_import_stories', 'stories_id', colocate_with => 'stories');
+
+CREATE UNIQUE INDEX solr_import_stories_stories_id ON solr_import_stories (stories_id);
+
+
 CREATE OR REPLACE FUNCTION insert_solr_import_story() RETURNS TRIGGER AS
 $$
 
@@ -715,36 +1709,204 @@ SELECT run_on_shards_or_raise('stories', $cmd$
     $cmd$);
 
 
-CREATE TABLE stories_ap_syndicated
+-- log of all stories import into solr, with the import date
+CREATE TABLE solr_imported_stories
 (
-    stories_ap_syndicated_id BIGSERIAL NOT NULL,
+    solr_imported_stories_id BIGSERIAL NOT NULL,
     stories_id               BIGINT    NOT NULL REFERENCES stories (stories_id) ON DELETE CASCADE,
-    ap_syndicated            BOOLEAN   NOT NULL,
-
-    PRIMARY KEY (stories_ap_syndicated_id, stories_id)
+    import_date              TIMESTAMP NOT NULL,
+    PRIMARY KEY (solr_imported_stories_id, stories_id)
 );
 
 -- noinspection SqlResolve @ routine/"create_distributed_table"
-SELECT create_distributed_table('stories_ap_syndicated', 'stories_id', colocate_with => 'stories');
+SELECT create_distributed_table('solr_imported_stories', 'stories_id', colocate_with => 'stories');
 
-CREATE UNIQUE INDEX stories_ap_syndicated_story ON stories_ap_syndicated (stories_id);
+CREATE UNIQUE INDEX solr_imported_stories_story
+    ON solr_imported_stories (stories_id);
+CREATE INDEX solr_imported_stories_day
+    ON solr_imported_stories (date_trunc('day', import_date));
 
 
--- List of all URL or GUID identifiers for each story
-CREATE TABLE story_urls
+CREATE TABLE processed_stories
 (
-    story_urls_id BIGSERIAL NOT NULL,
-    stories_id    BIGINT    NOT NULL REFERENCES stories (stories_id) ON DELETE CASCADE,
-    url           TEXT      NOT NULL,
+    processed_stories_id BIGSERIAL NOT NULL,
+    stories_id           BIGINT    NOT NULL REFERENCES stories (stories_id) ON DELETE CASCADE,
 
-    PRIMARY KEY (story_urls_id, stories_id)
+    PRIMARY KEY (processed_stories_id, stories_id)
 );
 
 -- noinspection SqlResolve @ routine/"create_distributed_table"
-SELECT create_distributed_table('story_urls', 'stories_id', colocate_with => 'stories');
+SELECT create_distributed_table('processed_stories', 'stories_id', colocate_with => 'stories');
 
-CREATE INDEX story_urls_stories_id ON story_urls (stories_id);
-CREATE UNIQUE INDEX story_urls_stories_id_url ON story_urls (stories_id, url);
+CREATE UNIQUE INDEX processed_stories_stories_id
+    ON processed_stories (stories_id);
+
+
+SELECT run_on_shards_or_raise('processed_stories', $cmd$
+
+    CREATE TRIGGER processed_stories_insert_solr_import_story
+        AFTER INSERT OR UPDATE OR DELETE
+        ON %s
+        FOR EACH ROW
+    EXECUTE PROCEDURE insert_solr_import_story();
+
+    $cmd$);
+
+
+-- list of stories that have been scraped and the source
+CREATE TABLE scraped_stories
+(
+    scraped_stories_id BIGSERIAL NOT NULL,
+    stories_id         BIGINT    NOT NULL REFERENCES stories (stories_id) ON DELETE CASCADE,
+    import_module      TEXT      NOT NULL,
+
+    PRIMARY KEY (scraped_stories_id, stories_id)
+);
+
+-- noinspection SqlResolve @ routine/"create_distributed_table"
+SELECT create_distributed_table('scraped_stories', 'stories_id', colocate_with => 'stories');
+
+CREATE INDEX scraped_stories_stories_id ON scraped_stories (stories_id);
+
+
+--
+-- Feed -> story map
+--
+
+CREATE TABLE feeds_stories_map
+(
+    feeds_stories_map_id BIGSERIAL NOT NULL,
+
+    feeds_id             BIGINT    NOT NULL,
+    stories_id           BIGINT    NOT NULL REFERENCES stories (stories_id) ON DELETE CASCADE,
+
+    PRIMARY KEY (feeds_stories_map_id, stories_id)
+);
+
+-- noinspection SqlResolve @ routine/"create_distributed_table"
+SELECT create_distributed_table('feeds_stories_map', 'stories_id', colocate_with => 'stories');
+
+ALTER TABLE feeds_stories_map
+    ADD CONSTRAINT feeds_stories_map_feeds_id_fkey
+        FOREIGN KEY (feeds_id) REFERENCES feeds (feeds_id) MATCH FULL ON DELETE CASCADE;
+
+CREATE UNIQUE INDEX feeds_stories_map_feeds_id_stories_id
+    ON feeds_stories_map (feeds_id, stories_id);
+CREATE INDEX feeds_stories_map_stories_id
+    ON feeds_stories_map (stories_id);
+
+
+--
+-- Story -> tag map
+--
+
+CREATE TABLE stories_tags_map
+(
+    stories_tags_map_id BIGSERIAL NOT NULL,
+
+    stories_id          BIGINT    NOT NULL REFERENCES stories (stories_id) ON DELETE CASCADE,
+    tags_id             BIGINT    NOT NULL,
+
+    PRIMARY KEY (stories_tags_map_id, stories_id)
+);
+
+-- noinspection SqlResolve @ routine/"create_distributed_table"
+SELECT create_distributed_table('stories_tags_map', 'stories_id', colocate_with => 'stories');
+
+ALTER TABLE stories_tags_map
+    ADD CONSTRAINT stories_tags_map_tags_id_fkey
+        FOREIGN KEY (tags_id) REFERENCES tags (tags_id);
+
+CREATE INDEX stories_tags_map_stories_id
+    ON stories_tags_map (stories_id);
+CREATE UNIQUE INDEX stories_tags_map_stories_id_tags_id
+    ON stories_tags_map (stories_id, tags_id);
+
+SELECT run_on_shards_or_raise('stories_tags_map', $cmd$
+
+    CREATE TRIGGER stories_tags_map_insert_solr_import_story
+        AFTER INSERT OR UPDATE OR DELETE
+        ON %s
+        FOR EACH ROW
+    EXECUTE PROCEDURE insert_solr_import_story();
+
+    $cmd$);
+
+
+--
+-- Individual sentences of every story
+--
+
+CREATE TABLE story_sentences
+(
+    story_sentences_id BIGSERIAL  NOT NULL,
+    stories_id         BIGINT     NOT NULL REFERENCES stories (stories_id) ON DELETE CASCADE,
+    sentence_number    INT        NOT NULL,
+    sentence           TEXT       NOT NULL,
+    media_id           BIGINT     NOT NULL,
+    publish_date       TIMESTAMP  NULL,
+
+    -- 2- or 3-character ISO 690 language code; empty if unknown, NULL if unset
+    language           VARCHAR(3) NULL,
+
+    -- Set to 'true' for every sentence for which a duplicate sentence was
+    -- found in a future story (even though that duplicate sentence wasn't
+    -- added to the table)
+    --
+    -- "We only use is_dup in the topic spidering, but I think it is critical
+    -- there. It is there because the first time I tried to run a spider on a
+    -- broadly popular topic, it was unusable because of the amount of
+    -- irrelevant content. When I dug in, I found that stories were getting
+    -- included because of matches on boilerplate content that was getting
+    -- duped out of most stories but not the first time it appeared. So I added
+    -- the check to remove stories that match on a dup sentence, even if it is
+    -- the dup sentence, and things cleaned up."
+    is_dup             BOOLEAN    NULL,
+
+    PRIMARY KEY (story_sentences_id, stories_id)
+);
+
+-- noinspection SqlResolve @ routine/"create_distributed_table"
+SELECT create_distributed_table('story_sentences', 'stories_id', colocate_with => 'stories');
+
+ALTER TABLE story_sentences
+    ADD CONSTRAINT story_sentences_media_id_fkey
+        FOREIGN KEY (media_id) REFERENCES media (media_id) MATCH FULL ON DELETE CASCADE;
+
+CREATE INDEX story_sentences_media_id
+    ON story_sentences (media_id);
+
+CREATE UNIQUE INDEX story_sentences_stories_id_sentence_number
+    ON story_sentences (stories_id, sentence_number);
+
+CREATE INDEX story_sentences_media_id_publish_week_sentence
+    ON story_sentences (media_id, week_start_date(publish_date::DATE), half_md5(sentence));
+
+
+CREATE OR REPLACE FUNCTION story_is_english_and_has_sentences(param_stories_id BIGINT)
+    RETURNS BOOLEAN AS
+$$
+
+DECLARE
+    story RECORD;
+
+BEGIN
+
+    SELECT stories_id, media_id, language INTO story from stories where stories_id = param_stories_id;
+
+    IF NOT (story.language = 'en' OR story.language IS NULL) THEN
+        RETURN FALSE;
+
+    ELSEIF NOT EXISTS(SELECT 1 FROM story_sentences WHERE stories_id = param_stories_id) THEN
+        RETURN FALSE;
+
+    END IF;
+
+    RETURN TRUE;
+
+END;
+
+$$ LANGUAGE 'plpgsql';
 
 
 --
@@ -892,48 +2054,46 @@ SELECT *
 FROM downloads_in_past_day
 WHERE state = 'error';
 
+CREATE VIEW daily_stats AS
+SELECT *
+FROM (
+         SELECT COUNT(*) AS daily_downloads
+         FROM downloads_in_past_day
+     ) AS dd,
+     (
+         SELECT COUNT(*) AS daily_stories
+         FROM stories_collected_in_past_day
+     ) AS ds,
+     (
+         SELECT COUNT(*) AS downloads_to_be_extracted
+         FROM downloads_to_be_extracted
+     ) AS dex,
+     (
+         SELECT COUNT(*) AS download_errors
+         FROM downloads_with_error_in_past_day
+     ) AS er,
+     (
+         SELECT COALESCE(SUM(num_stories), 0) AS solr_stories
+         FROM solr_imports
+         WHERE import_date > now() - interval '1 day'
+     ) AS si;
 
--- table for object types used for mediawords.util.public_store
-CREATE SCHEMA public_store;
 
-
-CREATE TABLE public_store.timespan_files
+-- keep track of basic high level stats for mediacloud for access through api
+CREATE TABLE mediacloud_stats
 (
-    timespan_files_id BIGSERIAL PRIMARY KEY,
-    object_id         BIGINT NOT NULL,
-    raw_data          BYTEA  NOT NULL
+    mediacloud_stats_id  BIGSERIAL PRIMARY KEY,
+    stats_date           DATE   NOT NULL DEFAULT NOW(),
+    daily_downloads      BIGINT NOT NULL,
+    daily_stories        BIGINT NOT NULL,
+    active_crawled_media BIGINT NOT NULL,
+    active_crawled_feeds BIGINT NOT NULL,
+    total_stories        BIGINT NOT NULL,
+    total_downloads      BIGINT NOT NULL,
+    total_sentences      BIGINT NOT NULL
 );
 
--- Not distributed, not reference (empty in production)
-
-CREATE UNIQUE INDEX public_store_timespan_files_object_id
-    ON public_store.timespan_files (object_id);
-
-
-CREATE TABLE public_store.snapshot_files
-(
-    snapshot_files_id BIGSERIAL PRIMARY KEY,
-    object_id         BIGINT NOT NULL,
-    raw_data          BYTEA  NOT NULL
-);
-
--- Not distributed, not reference (empty in production)
-
-CREATE UNIQUE INDEX public_store_snapshot_files_object_id
-    ON public_store.snapshot_files (object_id);
-
-
-CREATE TABLE public_store.timespan_maps
-(
-    timespan_maps_id BIGSERIAL PRIMARY KEY,
-    object_id        BIGINT NOT NULL,
-    raw_data         BYTEA  NOT NULL
-);
-
--- Not distributed, not reference (empty in production)
-
-CREATE UNIQUE INDEX public_store_timespan_maps_object_id
-    ON public_store.timespan_maps (object_id);
+-- Not a reference table (because not referenced), not a distributed table (because too small)
 
 
 --
@@ -956,70 +2116,6 @@ CREATE TABLE raw_downloads
 SELECT create_distributed_table('raw_downloads', 'object_id', colocate_with => 'downloads');
 
 CREATE UNIQUE INDEX raw_downloads_object_id ON raw_downloads (object_id);
-
-
---
--- Feed -> story map
---
-
-CREATE TABLE feeds_stories_map
-(
-    feeds_stories_map_id BIGSERIAL NOT NULL,
-
-    feeds_id             BIGINT    NOT NULL,
-    stories_id           BIGINT    NOT NULL REFERENCES stories (stories_id) ON DELETE CASCADE,
-
-    PRIMARY KEY (feeds_stories_map_id, stories_id)
-);
-
--- noinspection SqlResolve @ routine/"create_distributed_table"
-SELECT create_distributed_table('feeds_stories_map', 'stories_id', colocate_with => 'stories');
-
-ALTER TABLE feeds_stories_map
-    ADD CONSTRAINT feeds_stories_map_feeds_id_fkey
-        FOREIGN KEY (feeds_id) REFERENCES feeds (feeds_id) MATCH FULL ON DELETE CASCADE;
-
-CREATE UNIQUE INDEX feeds_stories_map_feeds_id_stories_id
-    ON feeds_stories_map (feeds_id, stories_id);
-CREATE INDEX feeds_stories_map_stories_id
-    ON feeds_stories_map (stories_id);
-
-
---
--- Story -> tag map
---
-
-CREATE TABLE stories_tags_map
-(
-    stories_tags_map_id BIGSERIAL NOT NULL,
-
-    stories_id          BIGINT    NOT NULL REFERENCES stories (stories_id) ON DELETE CASCADE,
-    tags_id             BIGINT    NOT NULL,
-
-    PRIMARY KEY (stories_tags_map_id, stories_id)
-);
-
--- noinspection SqlResolve @ routine/"create_distributed_table"
-SELECT create_distributed_table('stories_tags_map', 'stories_id', colocate_with => 'stories');
-
-ALTER TABLE stories_tags_map
-    ADD CONSTRAINT stories_tags_map_tags_id_fkey
-        FOREIGN KEY (tags_id) REFERENCES tags (tags_id);
-
-CREATE INDEX stories_tags_map_stories_id
-    ON stories_tags_map (stories_id);
-CREATE UNIQUE INDEX stories_tags_map_stories_id_tags_id
-    ON stories_tags_map (stories_id, tags_id);
-
-SELECT run_on_shards_or_raise('stories_tags_map', $cmd$
-
-    CREATE TRIGGER stories_tags_map_insert_solr_import_story
-        AFTER INSERT OR UPDATE OR DELETE
-        ON %s
-        FOR EACH ROW
-    EXECUTE PROCEDURE insert_solr_import_story();
-
-    $cmd$);
 
 
 CREATE TABLE queued_downloads
@@ -1082,101 +2178,6 @@ CREATE UNIQUE INDEX download_texts_downloads_id
 ALTER TABLE download_texts
     ADD CONSTRAINT download_texts_length_is_correct
         CHECK (length(download_text) = download_text_length);
-
-
---
--- Individual sentences of every story
---
-
-CREATE TABLE story_sentences
-(
-    story_sentences_id BIGSERIAL  NOT NULL,
-    stories_id         BIGINT     NOT NULL REFERENCES stories (stories_id) ON DELETE CASCADE,
-    sentence_number    INT        NOT NULL,
-    sentence           TEXT       NOT NULL,
-    media_id           BIGINT     NOT NULL,
-    publish_date       TIMESTAMP  NULL,
-
-    -- 2- or 3-character ISO 690 language code; empty if unknown, NULL if unset
-    language           VARCHAR(3) NULL,
-
-    -- Set to 'true' for every sentence for which a duplicate sentence was
-    -- found in a future story (even though that duplicate sentence wasn't
-    -- added to the table)
-    --
-    -- "We only use is_dup in the topic spidering, but I think it is critical
-    -- there. It is there because the first time I tried to run a spider on a
-    -- broadly popular topic, it was unusable because of the amount of
-    -- irrelevant content. When I dug in, I found that stories were getting
-    -- included because of matches on boilerplate content that was getting
-    -- duped out of most stories but not the first time it appeared. So I added
-    -- the check to remove stories that match on a dup sentence, even if it is
-    -- the dup sentence, and things cleaned up."
-    is_dup             BOOLEAN    NULL,
-
-    PRIMARY KEY (story_sentences_id, stories_id)
-);
-
--- noinspection SqlResolve @ routine/"create_distributed_table"
-SELECT create_distributed_table('story_sentences', 'stories_id', colocate_with => 'stories');
-
-ALTER TABLE story_sentences
-    ADD CONSTRAINT story_sentences_media_id_fkey
-        FOREIGN KEY (media_id) REFERENCES media (media_id) MATCH FULL ON DELETE CASCADE;
-
-CREATE INDEX story_sentences_media_id
-    ON story_sentences (media_id);
-
-CREATE UNIQUE INDEX story_sentences_stories_id_sentence_number
-    ON story_sentences (stories_id, sentence_number);
-
-CREATE INDEX story_sentences_media_id_publish_week_sentence
-    ON story_sentences (media_id, week_start_date(publish_date::DATE), half_md5(sentence));
-
-
-CREATE TABLE solr_imports
-(
-    solr_imports_id BIGSERIAL PRIMARY KEY,
-    import_date     TIMESTAMP NOT NULL,
-    full_import     BOOLEAN   NOT NULL DEFAULT 'f',
-    num_stories     BIGINT    NULL
-);
-
--- Not distributed, not reference (small and used locally)
-
-CREATE INDEX solr_imports_date ON solr_imports (import_date);
-
-
--- Stories to import into Solr
-CREATE TABLE solr_import_stories
-(
-    solr_import_stories_id BIGSERIAL NOT NULL,
-    stories_id             BIGINT    NOT NULL REFERENCES stories (stories_id) ON DELETE CASCADE,
-    PRIMARY KEY (solr_import_stories_id, stories_id)
-);
-
--- noinspection SqlResolve @ routine/"create_distributed_table"
-SELECT create_distributed_table('solr_import_stories', 'stories_id', colocate_with => 'stories');
-
-CREATE UNIQUE INDEX solr_import_stories_stories_id ON solr_import_stories (stories_id);
-
-
--- log of all stories import into solr, with the import date
-CREATE TABLE solr_imported_stories
-(
-    solr_imported_stories_id BIGSERIAL NOT NULL,
-    stories_id               BIGINT    NOT NULL REFERENCES stories (stories_id) ON DELETE CASCADE,
-    import_date              TIMESTAMP NOT NULL,
-    PRIMARY KEY (solr_imported_stories_id, stories_id)
-);
-
--- noinspection SqlResolve @ routine/"create_distributed_table"
-SELECT create_distributed_table('solr_imported_stories', 'stories_id', colocate_with => 'stories');
-
-CREATE UNIQUE INDEX solr_imported_stories_story
-    ON solr_imported_stories (stories_id);
-CREATE INDEX solr_imported_stories_day
-    ON solr_imported_stories (date_trunc('day', import_date));
 
 
 CREATE TYPE topics_job_queue_type AS ENUM (
@@ -1864,6 +2865,404 @@ CREATE UNIQUE INDEX snapshot_files_topics_id_snapshots_id_name
     ON snapshot_files (topics_id, snapshots_id, name);
 
 
+-- keep track of performance of the topic spider
+CREATE TABLE topic_spider_metrics
+(
+    topic_spider_metrics_id BIGSERIAL PRIMARY KEY,
+    topics_id               BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
+    iteration               BIGINT    NOT NULL,
+    links_processed         BIGINT    NOT NULL,
+    elapsed_time            BIGINT    NOT NULL,
+    processed_date          TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+SELECT create_reference_table('topic_spider_metrics');
+
+CREATE INDEX topic_spider_metrics_topics_id ON topic_spider_metrics (topics_id);
+
+CREATE INDEX topic_spider_metrics_processed_date ON topic_spider_metrics (processed_date);
+
+
+CREATE TYPE topic_permission AS ENUM (
+    'read', 'write', 'admin'
+    );
+
+-- per user permissions for topics
+CREATE TABLE topic_permissions
+(
+    topic_permissions_id BIGSERIAL PRIMARY KEY,
+    topics_id            BIGINT           NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
+    auth_users_id        BIGINT           NOT NULL REFERENCES auth_users (auth_users_id) ON DELETE CASCADE,
+    permission           topic_permission NOT NULL
+);
+
+SELECT create_reference_table('topic_permissions');
+
+CREATE INDEX topic_permissions_topics_id
+    ON topic_permissions (topics_id);
+
+CREATE UNIQUE INDEX topic_permissions_topics_id_auth_users_id
+    ON topic_permissions (topics_id, auth_users_id);
+
+
+-- topics table with auth_users_id and user_permission fields that indicate the permission level for
+-- the user for the topic.  permissions in decreasing order are admin, write, read, none.  users with
+-- the admin role have admin permission for every topic. users with admin-readonly role have at least
+-- read access to every topic.  all users have read access to every is_public topic.  otherwise, the
+-- topic_permissions table is used, with 'none' for no topic_permission.
+CREATE OR REPLACE VIEW topics_with_user_permission AS
+WITH admin_users AS (
+    SELECT m.auth_users_id
+    FROM auth_roles r
+             JOIN auth_users_roles_map AS m USING (auth_roles_id)
+    WHERE r.role = 'admin'
+),
+
+     read_admin_users AS (
+         SELECT m.auth_users_id
+         FROM auth_roles AS r
+                  JOIN auth_users_roles_map AS m USING (auth_roles_id)
+         WHERE r.role = 'admin-readonly'
+     )
+SELECT t.*,
+       u.auth_users_id,
+       CASE
+           WHEN (EXISTS(
+                   SELECT 1
+                   FROM admin_users AS a
+                   WHERE a.auth_users_id = u.auth_users_id
+               )) THEN 'admin'
+           WHEN (tp.permission IS NOT NULL) THEN tp.permission::text
+           WHEN (t.is_public) THEN 'read'
+           WHEN (EXISTS(
+                   SELECT 1
+                   FROM read_admin_users AS a
+                   WHERE a.auth_users_id = u.auth_users_id
+               )) THEN 'read'
+           ELSE 'none'
+           END AS user_permission
+FROM topics AS t
+         JOIN auth_users AS u ON (true)
+         LEFT JOIN topic_permissions AS tp USING (topics_id, auth_users_id)
+;
+
+
+-- list of tweet counts and fetching statuses for each day of each topic
+CREATE TABLE topic_post_days
+(
+    topic_post_days_id    BIGSERIAL PRIMARY KEY,
+    topics_id             BIGINT  NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
+    topic_seed_queries_id BIGINT  NOT NULL REFERENCES topic_seed_queries (topic_seed_queries_id) ON DELETE CASCADE,
+    day                   DATE    NOT NULL,
+    num_posts_stored      BIGINT  NOT NULL,
+    num_posts_fetched     BIGINT  NOT NULL,
+    posts_fetched         BOOLEAN NOT NULL DEFAULT 'f'
+);
+
+SELECT create_reference_table('topic_post_days');
+
+CREATE INDEX topic_post_days_topics_id
+    ON topic_post_days (topics_id);
+
+CREATE INDEX topic_post_days_topics_id_topic_seed_queries_id_day
+    ON topic_post_days (topics_id, topic_seed_queries_id, day);
+
+
+-- list of posts associated with a given topic
+CREATE TABLE topic_posts
+(
+    topic_posts_id     BIGSERIAL NOT NULL,
+    topics_id          BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
+    topic_post_days_id BIGINT    NOT NULL REFERENCES topic_post_days (topic_post_days_id) ON DELETE CASCADE,
+    data               JSONB     NOT NULL,
+    post_id            TEXT      NOT NULL,
+    content            TEXT      NOT NULL,
+    publish_date       TIMESTAMP NOT NULL,
+    author             TEXT      NOT NULL,
+    channel            TEXT      NOT NULL,
+    url                TEXT      NULL,
+
+    PRIMARY KEY (topic_posts_id, topics_id)
+);
+
+-- noinspection SqlResolve @ routine/"create_distributed_table"
+SELECT create_distributed_table('topic_posts', 'topics_id', colocate_with => 'topic_stories');
+
+CREATE INDEX topic_posts_topics_id
+    ON topic_posts (topics_id);
+
+CREATE UNIQUE INDEX topic_posts_topics_id_topic_post_days_id_post_id
+    ON topic_posts (topics_id, topic_post_days_id, post_id);
+
+CREATE INDEX topic_posts_topics_id_topic_post_days_id_author
+    ON topic_posts (topics_id, topic_post_days_id, author);
+
+CREATE INDEX topic_posts_topics_id_topic_post_days_id_channel
+    ON topic_posts (topics_id, topic_post_days_id, channel);
+
+
+-- urls parsed from topic tweets and imported into topic_seed_urls
+CREATE TABLE topic_post_urls
+(
+    topic_post_urls_id BIGSERIAL NOT NULL,
+    topics_id          BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
+    topic_posts_id     BIGINT    NOT NULL,
+    url                TEXT      NOT NULL,
+
+    PRIMARY KEY (topic_post_urls_id, topics_id)
+);
+
+-- noinspection SqlResolve @ routine/"create_distributed_table"
+SELECT create_distributed_table('topic_post_urls', 'topics_id', colocate_with => 'topic_stories');
+
+ALTER TABLE topic_post_urls
+    ADD CONSTRAINT topic_post_urls_topics_id_topic_posts_id_fkey
+        FOREIGN KEY (topics_id, topic_posts_id)
+            REFERENCES topic_posts (topics_id, topic_posts_id)
+            ON DELETE CASCADE;
+
+CREATE INDEX topic_post_urls_topics_id
+    ON topic_post_urls (topics_id);
+
+CREATE INDEX topic_post_urls_topics_id_topic_posts_id
+    ON topic_post_urls (topics_id, topic_posts_id);
+
+CREATE UNIQUE INDEX topic_post_urls_topics_id_topic_posts_id_url
+    ON topic_post_urls (topics_id, topic_posts_id, url);
+
+CREATE INDEX topic_post_urls_url
+    ON topic_post_urls USING HASH (url);
+
+
+CREATE TABLE topic_seed_urls
+(
+    topic_seed_urls_id    BIGSERIAL NOT NULL,
+    topics_id             BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
+    url                   TEXT      NULL,
+    source                TEXT      NULL,
+    stories_id            BIGINT    NULL,
+    processed             BOOLEAN   NOT NULL DEFAULT 'f',
+    assume_match          BOOLEAN   NOT NULL DEFAULT 'f',
+    content               TEXT      NULL,
+    guid                  TEXT      NULL,
+    title                 TEXT      NULL,
+    publish_date          TEXT      NULL,
+    topic_seed_queries_id BIGINT    NULL REFERENCES topic_seed_queries (topic_seed_queries_id) ON DELETE CASCADE,
+    topic_post_urls_id    BIGINT    NULL,
+
+    PRIMARY KEY (topic_seed_urls_id, topics_id)
+);
+
+-- noinspection SqlResolve @ routine/"create_distributed_table"
+SELECT create_distributed_table('topic_seed_urls', 'topics_id', colocate_with => 'topic_stories');
+
+ALTER TABLE topic_seed_urls
+    ADD CONSTRAINT topic_seed_urls_topics_id_topic_post_urls_id_fkey
+        FOREIGN KEY (topics_id, topic_post_urls_id)
+            REFERENCES topic_post_urls (topics_id, topic_post_urls_id)
+            ON DELETE CASCADE;
+
+CREATE INDEX topic_seed_urls_topics_id
+    ON topic_seed_urls (topics_id);
+
+CREATE INDEX topic_seed_urls_url
+    ON topic_seed_urls (url);
+
+CREATE INDEX topic_seed_urls_stories_id
+    ON topic_seed_urls (stories_id);
+
+CREATE UNIQUE INDEX topic_seed_urls_topics_id_topic_post_urls_id
+    ON topic_seed_urls (topics_id, topic_post_urls_id);
+
+
+-- view that joins together the chain of tables from topic_seed_queries all the way through to
+-- topic_stories, so that you get back a topics_id, topic_posts_id stories_id, and topic_seed_queries_id in each
+-- row to track which stories came from which posts in which seed queries
+CREATE OR REPLACE VIEW topic_post_stories AS
+SELECT tsq.topics_id,
+       tp.topic_posts_id,
+       tp.content,
+       tp.publish_date,
+       tp.author,
+       tp.channel,
+       tp.data,
+       tpd.topic_seed_queries_id,
+       ts.stories_id,
+       tpu.url,
+       tpu.topic_post_urls_id
+FROM topic_seed_queries AS tsq
+         INNER JOIN topic_post_days AS tpd ON
+            tsq.topics_id = tpd.topics_id AND
+            tsq.topic_seed_queries_id = tpd.topic_seed_queries_id
+         INNER JOIN topic_posts AS tp ON
+            tsq.topics_id = tp.topics_id AND
+            tpd.topic_post_days_id = tp.topic_post_days_id
+         INNER JOIN topic_post_urls AS tpu ON
+            tsq.topics_id = tpu.topics_id AND
+            tp.topic_posts_id = tpu.topic_posts_id
+         INNER JOIN topic_seed_urls AS tsu ON
+            tsq.topics_id = tsu.topics_id AND
+            tpu.topic_post_urls_id = tsu.topic_post_urls_id
+         INNER JOIN topic_stories AS ts ON
+            tsq.topics_id = ts.topics_id AND
+            tsu.stories_id = ts.stories_id
+;
+
+
+CREATE TYPE retweeter_scores_match_type AS ENUM (
+    'retweet',
+    'regex'
+    );
+
+-- definition of bipolar comparisons for retweeter polarization scores
+CREATE TABLE retweeter_scores
+(
+    retweeter_scores_id BIGSERIAL PRIMARY KEY,
+    topics_id           BIGINT                      NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
+    group_a_id          BIGINT                      NULL,
+    group_b_id          BIGINT                      NULL,
+    name                TEXT                        NOT NULL,
+    state               TEXT                        NOT NULL DEFAULT 'created but not queued',
+    message             TEXT                        NULL,
+    num_partitions      BIGINT                      NOT NULL,
+    match_type          retweeter_scores_match_type NOT NULL DEFAULT 'retweet'
+);
+
+SELECT create_reference_table('retweeter_scores');
+
+CREATE INDEX retweeter_scores_topics_id ON retweeter_scores (topics_id);
+
+
+-- group retweeters together so that we an compare, for example, sanders/warren retweeters to cruz/kasich retweeters
+CREATE TABLE retweeter_groups
+(
+    retweeter_groups_id BIGSERIAL PRIMARY KEY,
+    topics_id           BIGINT NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
+    retweeter_scores_id BIGINT NOT NULL REFERENCES retweeter_scores (retweeter_scores_id) ON DELETE CASCADE,
+    name                TEXT   NOT NULL
+);
+
+SELECT create_reference_table('retweeter_groups');
+
+ALTER TABLE retweeter_scores
+    ADD CONSTRAINT retweeter_scores_group_a
+        FOREIGN KEY (group_a_id)
+            REFERENCES retweeter_groups (retweeter_groups_id)
+            ON DELETE CASCADE;
+
+ALTER TABLE retweeter_scores
+    ADD CONSTRAINT retweeter_scores_group_b
+        FOREIGN KEY (group_b_id)
+            REFERENCES retweeter_groups (retweeter_groups_id)
+            ON DELETE CASCADE;
+
+CREATE INDEX retweeter_groups_topics_id ON retweeter_groups (topics_id);
+
+
+-- list of twitter users within a given topic that have retweeted the given user
+CREATE TABLE retweeters
+(
+    retweeters_id       BIGSERIAL PRIMARY KEY,
+    topics_id           BIGINT NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
+    retweeter_scores_id BIGINT NOT NULL REFERENCES retweeter_scores (retweeter_scores_id) ON DELETE CASCADE,
+    twitter_user        TEXT   NOT NULL,
+    retweeted_user      TEXT   NOT NULL
+);
+
+SELECT create_reference_table('retweeters');
+
+CREATE INDEX retweeters_topics_id
+    ON retweeters (topics_id);
+
+CREATE UNIQUE INDEX retweeters_user
+    ON retweeters (topics_id, retweeter_scores_id, twitter_user, retweeted_user);
+
+
+CREATE TABLE retweeter_groups_users_map
+(
+    retweeter_groups_users_map_id BIGSERIAL PRIMARY KEY,
+    topics_id                     BIGINT NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
+    retweeter_groups_id           BIGINT NOT NULL REFERENCES retweeter_groups (retweeter_groups_id) ON DELETE CASCADE,
+    retweeter_scores_id           BIGINT NOT NULL REFERENCES retweeter_scores (retweeter_scores_id) ON DELETE CASCADE,
+    retweeted_user                TEXT   NOT NULL
+);
+
+SELECT create_reference_table('retweeter_groups_users_map');
+
+CREATE INDEX retweeter_groups_users_map_topics_id
+    ON retweeter_groups_users_map (topics_id);
+
+
+-- count of shares by retweeters for each retweeted_user in retweeters
+CREATE TABLE retweeter_stories
+(
+    retweeter_stories_id BIGSERIAL PRIMARY KEY,
+    topics_id            BIGINT NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
+    retweeter_scores_id  BIGINT NOT NULL REFERENCES retweeter_scores (retweeter_scores_id) ON DELETE CASCADE,
+    stories_id           BIGINT NOT NULL,
+    retweeted_user       TEXT   NOT NULL,
+    share_count          BIGINT NOT NULL
+);
+
+SELECT create_reference_table('retweeter_stories');
+
+CREATE INDEX retweeter_stories_topics_id
+    ON retweeter_stories (topics_id);
+
+CREATE UNIQUE INDEX retweeter_stories_psu
+    ON retweeter_stories (topics_id, retweeter_scores_id, stories_id, retweeted_user);
+
+
+-- polarization scores for media within a topic for the given retweeter_scores_definition
+CREATE TABLE retweeter_media
+(
+    retweeter_media_id  BIGSERIAL PRIMARY KEY,
+    topics_id           BIGINT NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
+    retweeter_scores_id BIGINT NOT NULL REFERENCES retweeter_scores (retweeter_scores_id) ON DELETE CASCADE,
+    media_id            BIGINT NOT NULL REFERENCES media (media_id) ON DELETE CASCADE,
+    group_a_count       BIGINT NOT NULL,
+    group_b_count       BIGINT NOT NULL,
+    group_a_count_n     FLOAT  NOT NULL,
+    score               FLOAT  NOT NULL,
+    partition           BIGINT NOT NULL
+);
+
+SELECT create_reference_table('retweeter_media');
+
+CREATE INDEX retweeter_media_topics_id
+    ON retweeter_media (topics_id);
+
+CREATE INDEX retweeter_media_topics_id_media_id
+    ON retweeter_media (topics_id, media_id);
+
+CREATE UNIQUE INDEX retweeter_media_topics_id_retweeter_scores_id_media_id
+    ON retweeter_media (topics_id, retweeter_scores_id, media_id);
+
+CREATE INDEX retweeter_media_media_id
+    ON retweeter_media (media_id);
+
+
+CREATE TABLE retweeter_partition_matrix
+(
+    retweeter_partition_matrix_id BIGSERIAL PRIMARY KEY,
+    topics_id                     BIGINT NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
+    retweeter_scores_id           BIGINT NOT NULL REFERENCES retweeter_scores (retweeter_scores_id) ON DELETE CASCADE,
+    retweeter_groups_id           BIGINT NOT NULL REFERENCES retweeter_groups (retweeter_groups_id) ON DELETE CASCADE,
+    group_name                    TEXT   NOT NULL,
+    share_count                   BIGINT NOT NULL,
+    group_proportion              FLOAT  NOT NULL,
+    partition                     BIGINT NOT NULL
+);
+
+SELECT create_reference_table('retweeter_partition_matrix');
+
+CREATE INDEX retweeter_partition_matrix_topics_id
+    ON retweeter_partition_matrix (topics_id);
+
+CREATE INDEX retweeter_partition_matrix_topics_id_retweeter_scores_id
+    ON retweeter_partition_matrix (topics_id, retweeter_scores_id);
+
+
 -- schema to hold the various snapshot snapshot tables
 CREATE SCHEMA snap;
 
@@ -1896,28 +3295,6 @@ SELECT create_distributed_table('snap.stories', 'topics_id', colocate_with => 't
 CREATE INDEX snap_stories_topics_id ON snap.stories (topics_id);
 
 CREATE INDEX snap_stories_topics_id_snapshots_id_stories_id ON snap.stories (topics_id, snapshots_id, stories_id);
-
-
--- stats for various externally derived statistics about a story.
-CREATE TABLE story_statistics
-(
-    story_statistics_id       BIGSERIAL NOT NULL,
-    stories_id                BIGINT    NOT NULL REFERENCES stories (stories_id) ON DELETE CASCADE,
-
-    facebook_share_count      BIGINT    NULL,
-    facebook_comment_count    BIGINT    NULL,
-    facebook_reaction_count   BIGINT    NULL,
-    facebook_api_collect_date TIMESTAMP NULL,
-    facebook_api_error        TEXT      NULL,
-
-    PRIMARY KEY (story_statistics_id, stories_id)
-);
-
--- noinspection SqlResolve @ routine/"create_distributed_table"
-SELECT create_distributed_table('story_statistics', 'stories_id', colocate_with => 'stories');
-
-CREATE UNIQUE INDEX story_statistics_stories_id
-    ON story_statistics (stories_id);
 
 
 CREATE TABLE snap.topic_stories
@@ -2415,964 +3792,6 @@ CREATE INDEX snap_word2vec_models_topics_id_snapshots_id_creation_date
     ON snap.word2vec_models (topics_id, snapshots_id, creation_date);
 
 
-
-CREATE TABLE processed_stories
-(
-    processed_stories_id BIGSERIAL NOT NULL,
-    stories_id           BIGINT    NOT NULL REFERENCES stories (stories_id) ON DELETE CASCADE,
-
-    PRIMARY KEY (processed_stories_id, stories_id)
-);
-
--- noinspection SqlResolve @ routine/"create_distributed_table"
-SELECT create_distributed_table('processed_stories', 'stories_id', colocate_with => 'stories');
-
-CREATE UNIQUE INDEX processed_stories_stories_id
-    ON processed_stories (stories_id);
-
-
-SELECT run_on_shards_or_raise('processed_stories', $cmd$
-
-    CREATE TRIGGER processed_stories_insert_solr_import_story
-        AFTER INSERT OR UPDATE OR DELETE
-        ON %s
-        FOR EACH ROW
-    EXECUTE PROCEDURE insert_solr_import_story();
-
-    $cmd$);
-
-
--- list of stories that have been scraped and the source
-CREATE TABLE scraped_stories
-(
-    scraped_stories_id BIGSERIAL NOT NULL,
-    stories_id         BIGINT    NOT NULL REFERENCES stories (stories_id) ON DELETE CASCADE,
-    import_module      TEXT      NOT NULL,
-
-    PRIMARY KEY (scraped_stories_id, stories_id)
-);
-
--- noinspection SqlResolve @ routine/"create_distributed_table"
-SELECT create_distributed_table('scraped_stories', 'stories_id', colocate_with => 'stories');
-
-CREATE INDEX scraped_stories_stories_id ON scraped_stories (stories_id);
-
-
--- dates on which feeds have been scraped with MediaWords::ImportStories and
--- the module used for scraping
-CREATE TABLE scraped_feeds
-(
-    scraped_feeds_id BIGSERIAL PRIMARY KEY,
-    feeds_id         BIGINT    NOT NULL REFERENCES feeds (feeds_id) ON DELETE CASCADE,
-    scrape_date      TIMESTAMP NOT NULL DEFAULT NOW(),
-    import_module    TEXT      NOT NULL
-);
-
-SELECT create_reference_table('scraped_feeds');
-
-CREATE INDEX scraped_feeds_feeds_id ON scraped_feeds (feeds_id);
-
-
-CREATE VIEW feedly_unscraped_feeds AS
-SELECT f.*
-FROM feeds AS f
-         LEFT JOIN scraped_feeds AS sf
-                   ON f.feeds_id = sf.feeds_id
-                       AND sf.import_module = 'MediaWords::ImportStories::Feedly'
-WHERE f.type = 'syndicated'
-  AND f.active = 't'
-  AND sf.feeds_id IS NULL
-;
-
-
-CREATE VIEW stories_collected_in_past_day AS
-SELECT *
-FROM stories
-WHERE collect_date > now() - interval '1 day';
-
-
-CREATE VIEW daily_stats AS
-SELECT *
-FROM (
-         SELECT COUNT(*) AS daily_downloads
-         FROM downloads_in_past_day
-     ) AS dd,
-     (
-         SELECT COUNT(*) AS daily_stories
-         FROM stories_collected_in_past_day
-     ) AS ds,
-     (
-         SELECT COUNT(*) AS downloads_to_be_extracted
-         FROM downloads_to_be_extracted
-     ) AS dex,
-     (
-         SELECT COUNT(*) AS download_errors
-         FROM downloads_with_error_in_past_day
-     ) AS er,
-     (
-         SELECT COALESCE(SUM(num_stories), 0) AS solr_stories
-         FROM solr_imports
-         WHERE import_date > now() - interval '1 day'
-     ) AS si;
-
-
---
--- Authentication
---
-
--- List of users
--- noinspection SqlResolve @ object-type/"CITEXT"
-CREATE TABLE auth_users
-(
-    auth_users_id                   BIGSERIAL PRIMARY KEY,
-
-    -- Emails are case-insensitive
-    email                           CITEXT    NOT NULL,
-
-    -- Salted hash of a password
-    password_hash                   TEXT      NOT NULL
-        CONSTRAINT password_hash_sha256 CHECK (LENGTH(password_hash) = 137),
-
-    full_name                       TEXT      NOT NULL,
-    notes                           TEXT      NULL,
-
-    active                          BOOLEAN   NOT NULL DEFAULT 't',
-
-    -- Salted hash of a password reset token (with Crypt::SaltedHash, algorithm => 'SHA-256',
-    -- salt_len=>64) or NULL
-    password_reset_token_hash       TEXT      NULL
-        CONSTRAINT password_reset_token_hash_sha256
-            CHECK (LENGTH(password_reset_token_hash) = 137 OR password_reset_token_hash IS NULL),
-
-    -- Timestamp of the last unsuccessful attempt to log in; used for delaying successive
-    -- attempts in order to prevent brute-force attacks
-    last_unsuccessful_login_attempt TIMESTAMP NOT NULL DEFAULT TIMESTAMP 'epoch',
-
-    created_date                    TIMESTAMP NOT NULL DEFAULT NOW(),
-
-    -- Whether or not the user has consented to the privacy policy
-    has_consented                   BOOLEAN   NOT NULL DEFAULT 'f'
-);
-
-SELECT create_reference_table('auth_users');
-
-CREATE UNIQUE INDEX auth_users_email ON auth_users (email);
-
-CREATE UNIQUE INDEX auth_users_password_reset_token_hash ON auth_users (password_reset_token_hash);
-
--- Used by daily stats script
-CREATE INDEX auth_users_created_day ON auth_users (date_trunc('day', created_date));
-
-
--- Generate random API key
-CREATE OR REPLACE FUNCTION generate_api_key() RETURNS VARCHAR(64)
-    LANGUAGE plpgsql AS
-$$
-DECLARE
-    api_key VARCHAR(64);
-BEGIN
-    -- pgcrypto's functions are being referred with public schema prefix to make pg_upgrade work
-    -- noinspection SqlResolve
-    SELECT encode(public.digest(public.gen_random_bytes(256), 'sha256'), 'hex') INTO api_key;
-    RETURN api_key;
-END;
-$$;
-
--- noinspection SqlResolve @ routine/"create_distributed_function"
-SELECT create_distributed_function('generate_api_key()');
-
-
-CREATE TABLE auth_user_api_keys
-(
-    auth_user_api_keys_id BIGSERIAL PRIMARY KEY,
-    auth_users_id         BIGINT      NOT NULL REFERENCES auth_users (auth_users_id) ON DELETE CASCADE,
-
-    -- API key
-    -- (must be 64 bytes in order to prevent someone from resetting it to empty string somehow)
-    api_key               VARCHAR(64) NOT NULL
-        DEFAULT generate_api_key()
-        CONSTRAINT api_key_64_characters
-            CHECK ( length(api_key) = 64 ),
-
-    -- If set, API key is limited to only this IP address
-    ip_address            INET        NULL
-);
-
-SELECT create_reference_table('auth_user_api_keys');
-
-CREATE UNIQUE INDEX auth_user_api_keys_api_key
-    ON auth_user_api_keys (api_key);
-
-CREATE UNIQUE INDEX auth_user_api_keys_api_key_ip_address
-    ON auth_user_api_keys (api_key, ip_address);
-
-
--- Autogenerate non-IP limited API key
-CREATE OR REPLACE FUNCTION auth_user_api_keys_add_non_ip_limited_api_key() RETURNS trigger AS
-$$
-BEGIN
-
-    INSERT INTO auth_user_api_keys (auth_users_id, api_key, ip_address)
-    VALUES (NEW.auth_users_id,
-            DEFAULT, -- Autogenerated API key
-            NULL -- Not limited by IP address
-           );
-    RETURN NULL;
-
-END;
-$$ LANGUAGE 'plpgsql';
-
--- noinspection SqlResolve @ routine/"create_distributed_function"
-SELECT create_distributed_function('auth_user_api_keys_add_non_ip_limited_api_key()');
-
-
-SELECT run_on_shards_or_raise('auth_users', $cmd$
-
-    CREATE TRIGGER auth_user_api_keys_add_non_ip_limited_api_key
-        AFTER INSERT
-        ON %s
-        FOR EACH ROW
-    EXECUTE PROCEDURE auth_user_api_keys_add_non_ip_limited_api_key();
-
-    $cmd$);
-
-
--- List of roles the users can perform
-CREATE TABLE auth_roles
-(
-    auth_roles_id BIGSERIAL PRIMARY KEY,
-    role          TEXT NOT NULL,
-    description   TEXT NOT NULL,
-
-    CHECK (role NOT LIKE '% %')
-);
-
-SELECT create_reference_table('auth_roles');
-
-CREATE UNIQUE INDEX auth_roles_role ON auth_roles (role);
-
-
--- Map of user IDs and roles that are allowed to each of the user
-CREATE TABLE auth_users_roles_map
-(
-    auth_users_roles_map_id BIGSERIAL PRIMARY KEY,
-    auth_users_id           BIGINT NOT NULL
-        REFERENCES auth_users (auth_users_id) ON DELETE CASCADE ON UPDATE CASCADE DEFERRABLE,
-    auth_roles_id           BIGINT NOT NULL
-        REFERENCES auth_roles (auth_roles_id) ON DELETE CASCADE ON UPDATE CASCADE DEFERRABLE
-);
-
-SELECT create_reference_table('auth_users_roles_map');
-
-CREATE UNIQUE INDEX auth_users_roles_map_auth_users_id_auth_roles_id
-    ON auth_users_roles_map (auth_users_id, auth_roles_id);
-
-
--- Authentication roles (keep in sync with MediaWords::DBI::Auth::Roles)
-INSERT INTO auth_roles (role, description)
-VALUES ('admin', 'Do everything, including editing users.'),
-       ('admin-readonly', 'Read access to admin interface.'),
-       ('media-edit', 'Add / edit media; includes feeds.'),
-       ('stories-edit', 'Add / edit stories.'),
-       ('tm', 'Topic mapper; includes media and story editing'),
-       ('tm-readonly', 'Topic mapper; excludes media and story editing');
-
-
---
--- User request daily counts
---
--- noinspection SqlResolve @ object-type/"CITEXT"
-CREATE TABLE auth_user_request_daily_counts
-(
-
-    auth_user_request_daily_counts_id BIGSERIAL NOT NULL,
-
-    -- User's email (does *not* reference auth_users.email because the user
-    -- might be deleted)
-    email                             CITEXT    NOT NULL,
-
-    -- Day (request timestamp, date_truncated to a day)
-    day                               DATE      NOT NULL,
-
-    -- Number of requests
-    requests_count                    BIGINT    NOT NULL,
-
-    -- Number of requested items
-    requested_items_count             BIGINT    NOT NULL,
-
-    PRIMARY KEY (auth_user_request_daily_counts_id, email)
-
-);
-
--- Kinda grows big so distributed
--- noinspection SqlResolve @ routine/"create_distributed_table"
-SELECT create_distributed_table('auth_user_request_daily_counts', 'email', colocate_with => 'none');
-
--- Single index to enforce upsert uniqueness
-CREATE UNIQUE INDEX auth_user_request_daily_counts_email_day
-    ON auth_user_request_daily_counts (email, day);
-
-
--- User limits for logged + throttled controller actions
-CREATE TABLE auth_user_limits
-(
-    auth_user_limits_id          BIGSERIAL PRIMARY KEY,
-
-    auth_users_id                BIGINT NOT NULL REFERENCES auth_users (auth_users_id)
-        ON DELETE CASCADE ON UPDATE CASCADE DEFERRABLE,
-
-    -- Request limit (0 or belonging to 'admin' / 'admin-readonly' group = no
-    -- limit)
-    weekly_requests_limit        BIGINT NOT NULL DEFAULT 10000,
-
-    -- Requested items (stories) limit (0 or belonging to 'admin' /
-    -- 'admin-readonly' group = no limit)
-    weekly_requested_items_limit BIGINT NOT NULL DEFAULT 100000,
-
-    max_topic_stories            BIGINT NOT NULL DEFAULT 100000
-);
-
-SELECT create_reference_table('auth_user_limits');
-
-CREATE UNIQUE INDEX auth_user_limits_auth_users_id ON auth_user_limits (auth_users_id);
-
-
--- Set the default limits for newly created users
-CREATE OR REPLACE FUNCTION auth_users_set_default_limits() RETURNS trigger AS
-$$
-BEGIN
-
-    INSERT INTO auth_user_limits (auth_users_id) VALUES (NEW.auth_users_id);
-    RETURN NULL;
-
-END;
-$$ LANGUAGE 'plpgsql';
-
--- noinspection SqlResolve @ routine/"create_distributed_function"
-SELECT create_distributed_function('auth_users_set_default_limits()');
-
-
-SELECT run_on_shards_or_raise('auth_users', $cmd$
-
-    CREATE TRIGGER auth_users_set_default_limits
-        AFTER INSERT
-        ON %s
-        FOR EACH ROW
-    EXECUTE PROCEDURE auth_users_set_default_limits();
-
-    $cmd$);
-
-
-CREATE TABLE auth_users_tag_sets_permissions
-(
-    auth_users_tag_sets_permissions_id BIGSERIAL PRIMARY KEY,
-    auth_users_id                      BIGINT  NOT NULL REFERENCES auth_users (auth_users_id) ON DELETE CASCADE,
-    tag_sets_id                        BIGINT  NOT NULL REFERENCES tag_sets (tag_sets_id),
-    apply_tags                         BOOLEAN NOT NULL,
-    create_tags                        BOOLEAN NOT NULL,
-    edit_tag_set_descriptors           BOOLEAN NOT NULL,
-    edit_tag_descriptors               BOOLEAN NOT NULL
-);
-
-SELECT create_reference_table('auth_users_tag_sets_permissions');
-
-CREATE UNIQUE INDEX auth_users_tag_sets_permissions_auth_user_tag_set
-    ON auth_users_tag_sets_permissions (auth_users_id, tag_sets_id);
-
-CREATE INDEX auth_users_tag_sets_permissions_auth_user
-    ON auth_users_tag_sets_permissions (auth_users_id);
-
-CREATE INDEX auth_users_tag_sets_permissions_tag_sets
-    ON auth_users_tag_sets_permissions (tag_sets_id);
-
-
---
--- Activity log
---
-
--- noinspection SqlResolve @ object-type/"CITEXT"
-CREATE TABLE activities
-(
-    activities_id   BIGSERIAL PRIMARY KEY,
-
-    -- Activity's name (e.g. "tm_snapshot_topic")
-    name            TEXT      NOT NULL
-        CONSTRAINT activities_name_can_not_contain_spaces CHECK (name NOT LIKE '% %'),
-
-    -- When did the activity happen
-    creation_date   TIMESTAMP NOT NULL DEFAULT LOCALTIMESTAMP,
-
-    -- User that executed the activity, either:
-    --     * user's email from "auth_users.email" (e.g. "foo@bar.baz.com", or
-    --     * username that initiated the action (e.g. "system:foo")
-    -- (store user's email instead of ID in case the user gets deleted)
-    user_identifier CITEXT    NOT NULL,
-
-    -- Indexed ID of the object that was modified in some way by the activity
-    object_id       BIGINT    NULL,
-
-    -- User-provided reason explaining why the activity was made
-    reason          TEXT      NULL,
-
-    -- Other free-form data describing the action in the JSON format
-    -- (e.g.: '{ "field": "name", "old_value": "Foo.", "new_value": "Bar." }')
-    description     JSONB     NOT NULL DEFAULT '{}'
-);
-
--- Not a reference table (because not referenced), not a distributed table (because too small)
-
-CREATE INDEX activities_name ON activities (name);
-
-CREATE INDEX activities_creation_date ON activities (creation_date);
-
-CREATE INDEX activities_user_identifier ON activities (user_identifier);
-
-CREATE INDEX activities_object_id ON activities (object_id);
-
-
-CREATE OR REPLACE FUNCTION story_is_english_and_has_sentences(param_stories_id BIGINT)
-    RETURNS BOOLEAN AS
-$$
-
-DECLARE
-    story RECORD;
-
-BEGIN
-
-    SELECT stories_id, media_id, language INTO story from stories where stories_id = param_stories_id;
-
-    IF NOT (story.language = 'en' OR story.language IS NULL) THEN
-        RETURN FALSE;
-
-    ELSEIF NOT EXISTS(SELECT 1 FROM story_sentences WHERE stories_id = param_stories_id) THEN
-        RETURN FALSE;
-
-    END IF;
-
-    RETURN TRUE;
-
-END;
-
-$$ LANGUAGE 'plpgsql';
-
-
--- Copy of "feeds" table from yesterday; used for generating reports for rescraping efforts
-CREATE TABLE feeds_from_yesterday
-(
-    feeds_from_yesterday_id BIGSERIAL PRIMARY KEY,
-    feeds_id                BIGINT    NOT NULL,
-    media_id                BIGINT    NOT NULL,
-    name                    TEXT      NOT NULL,
-    url                     TEXT      NOT NULL,
-    type                    feed_type NOT NULL,
-    active                  BOOLEAN   NOT NULL
-);
-
--- Not a reference table (because not referenced), not a distributed table (because too small)
-
-CREATE INDEX feeds_from_yesterday_feeds_id ON feeds_from_yesterday (feeds_id);
-
-CREATE INDEX feeds_from_yesterday_media_id ON feeds_from_yesterday (media_id);
-
-CREATE INDEX feeds_from_yesterday_name ON feeds_from_yesterday (name);
-
-CREATE UNIQUE INDEX feeds_from_yesterday_url ON feeds_from_yesterday (url, media_id);
-
-
---
--- Update "feeds_from_yesterday" with a new set of feeds
---
-CREATE OR REPLACE FUNCTION update_feeds_from_yesterday() RETURNS VOID AS
-$$
-
-BEGIN
-
-    -- noinspection SqlWithoutWhere
-    DELETE FROM feeds_from_yesterday;
-    INSERT INTO feeds_from_yesterday (feeds_id, media_id, name, url, type, active)
-    SELECT feeds_id, media_id, name, url, type, active
-    FROM feeds;
-
-END;
-
-$$ LANGUAGE 'plpgsql';
-
-
---
--- Print out a diff between "feeds" and "feeds_from_yesterday"
---
-CREATE OR REPLACE FUNCTION rescraping_changes() RETURNS VOID AS
-$$
-
-DECLARE
-    r_count RECORD;
-    r_media RECORD;
-    r_feed  RECORD;
-
-BEGIN
-
-    -- Check if media exists
-    IF NOT EXISTS(
-            SELECT 1
-            FROM feeds_from_yesterday
-        ) THEN
-        RAISE EXCEPTION '"feeds_from_yesterday" table is empty.';
-    END IF;
-
-    -- Fill temp. tables with changes to print out later
-    CREATE TEMPORARY TABLE rescraping_changes_media ON COMMIT DROP AS
-    SELECT *
-    FROM media
-    WHERE media_id IN (
-        SELECT DISTINCT media_id
-        FROM (
-                 -- Don't compare "name" because it's insignificant
-                 (
-                     SELECT feeds_id, media_id, type, active, url
-                     FROM feeds_from_yesterday
-                     EXCEPT
-                     SELECT feeds_id, media_id, type, active, url
-                     FROM feeds
-                 )
-                 UNION ALL
-                 (
-                     SELECT feeds_id, media_id, type, active, url
-                     FROM feeds
-                     EXCEPT
-                     SELECT feeds_id, media_id, type, active, url
-                     FROM feeds_from_yesterday
-                 )
-             ) AS modified_feeds
-    );
-
-    CREATE TEMPORARY TABLE rescraping_changes_feeds_added ON COMMIT DROP AS
-    SELECT *
-    FROM feeds
-    WHERE media_id IN (
-        SELECT media_id
-        FROM rescraping_changes_media
-    )
-      AND feeds_id NOT IN (
-        SELECT feeds_id
-        FROM feeds_from_yesterday
-    );
-
-    CREATE TEMPORARY TABLE rescraping_changes_feeds_deleted ON COMMIT DROP AS
-    SELECT *
-    FROM feeds_from_yesterday
-    WHERE media_id IN (
-        SELECT media_id
-        FROM rescraping_changes_media
-    )
-      AND feeds_id NOT IN (
-        SELECT feeds_id
-        FROM feeds
-    );
-
-    CREATE TEMPORARY TABLE rescraping_changes_feeds_modified ON COMMIT DROP AS
-    SELECT feeds_before.media_id,
-           feeds_before.feeds_id,
-
-           feeds_before.name   AS before_name,
-           feeds_before.url    AS before_url,
-           feeds_before.type   AS before_type,
-           feeds_before.active AS before_active,
-
-           feeds_after.name    AS after_name,
-           feeds_after.url     AS after_url,
-           feeds_after.type    AS after_type,
-           feeds_after.active  AS after_active
-
-    FROM feeds_from_yesterday AS feeds_before
-             INNER JOIN feeds AS feeds_after ON (
-                feeds_before.feeds_id = feeds_after.feeds_id
-            AND (
-                    -- Don't compare "name" because it's insignificant
-                            feeds_before.url != feeds_after.url
-                        OR feeds_before.type != feeds_after.type
-                        OR feeds_before.active != feeds_after.active
-                    )
-        )
-
-    WHERE feeds_before.media_id IN (
-        SELECT media_id
-        FROM rescraping_changes_media
-    );
-
-    -- Print out changes
-    RAISE NOTICE 'Changes between "feeds" and "feeds_from_yesterday":';
-    RAISE NOTICE '';
-
-    SELECT COUNT(1) AS media_count INTO r_count FROM rescraping_changes_media;
-    RAISE NOTICE '* Modified media: %', r_count.media_count;
-    SELECT COUNT(1) AS feeds_added_count INTO r_count FROM rescraping_changes_feeds_added;
-    RAISE NOTICE '* Added feeds: %', r_count.feeds_added_count;
-    SELECT COUNT(1) AS feeds_deleted_count INTO r_count FROM rescraping_changes_feeds_deleted;
-    RAISE NOTICE '* Deleted feeds: %', r_count.feeds_deleted_count;
-    SELECT COUNT(1) AS feeds_modified_count INTO r_count FROM rescraping_changes_feeds_modified;
-    RAISE NOTICE '* Modified feeds: %', r_count.feeds_modified_count;
-    RAISE NOTICE '';
-
-    FOR r_media IN
-        SELECT *,
-
-               -- Prioritize US MSM media
-               EXISTS(
-                       SELECT 1
-                       FROM tags AS tags
-                                INNER JOIN media_tags_map
-                                           ON tags.tags_id = media_tags_map.tags_id
-                                INNER JOIN tag_sets
-                                           ON tags.tag_sets_id = tag_sets.tag_sets_id
-                       WHERE media_tags_map.media_id = rescraping_changes_media.media_id
-                         AND tag_sets.name = 'collection'
-                         AND tags.tag = 'ap_english_us_top25_20100110'
-                   ) AS belongs_to_us_msm,
-
-               -- Prioritize media with "show_on_media"
-               EXISTS(
-                       SELECT 1
-                       FROM tags AS tags
-                                INNER JOIN media_tags_map
-                                           ON tags.tags_id = media_tags_map.tags_id
-                                INNER JOIN tag_sets
-                                           ON tags.tag_sets_id = tag_sets.tag_sets_id
-                       WHERE media_tags_map.media_id = rescraping_changes_media.media_id
-                         AND (
-                               tag_sets.show_on_media
-                               OR tags.show_on_media
-                           )
-                   ) AS show_on_media
-
-        FROM rescraping_changes_media
-
-        ORDER BY belongs_to_us_msm DESC,
-                 show_on_media DESC,
-                 media_id
-        LOOP
-            RAISE NOTICE 'MODIFIED media: media_id=%, name="%", url="%"',
-                r_media.media_id,
-                r_media.name,
-                r_media.url;
-
-            FOR r_feed IN
-                SELECT *
-                FROM rescraping_changes_feeds_added
-                WHERE media_id = r_media.media_id
-                ORDER BY feeds_id
-                LOOP
-                    RAISE NOTICE '    ADDED feed: feeds_id=%, type=%, active=%, name="%", url="%"',
-                        r_feed.feeds_id,
-                        r_feed.type,
-                        r_feed.active,
-                        r_feed.name,
-                        r_feed.url;
-                END LOOP;
-
-            -- Feeds shouldn't get deleted but we're checking anyways
-            FOR r_feed IN
-                SELECT *
-                FROM rescraping_changes_feeds_deleted
-                WHERE media_id = r_media.media_id
-                ORDER BY feeds_id
-                LOOP
-                    RAISE NOTICE '    DELETED feed: feeds_id=%, type=%, active=%, name="%", url="%"',
-                        r_feed.feeds_id,
-                        r_feed.type,
-                        r_feed.active,
-                        r_feed.name,
-                        r_feed.url;
-                END LOOP;
-
-            FOR r_feed IN
-                SELECT *
-                FROM rescraping_changes_feeds_modified
-                WHERE media_id = r_media.media_id
-                ORDER BY feeds_id
-                LOOP
-                    RAISE NOTICE '    MODIFIED feed: feeds_id=%', r_feed.feeds_id;
-                    RAISE NOTICE '        BEFORE: type=%, active=%, name="%", url="%"',
-                        r_feed.before_type,
-                        r_feed.before_active,
-                        r_feed.before_name,
-                        r_feed.before_url;
-                    RAISE NOTICE '        AFTER:  type=%, active=%, name="%", url="%"',
-                        r_feed.after_type,
-                        r_feed.after_active,
-                        r_feed.after_name,
-                        r_feed.after_url;
-                END LOOP;
-
-            RAISE NOTICE '';
-
-        END LOOP;
-
-END;
-
-$$ LANGUAGE 'plpgsql';
-
-
--- implements link_id as documented in the topics api spec
-CREATE TABLE api_links
-(
-    api_links_id     BIGSERIAL PRIMARY KEY,
-    path             TEXT   NOT NULL,
-    params           JSONB  NOT NULL,
-    next_link_id     BIGINT NULL
-        REFERENCES api_links (api_links_id) ON DELETE SET NULL DEFERRABLE,
-    previous_link_id BIGINT NULL
-        REFERENCES api_links (api_links_id) ON DELETE SET NULL DEFERRABLE
-);
-
--- Not a reference table (because not referenced), not a distributed table (because too small)
-
-CREATE UNIQUE INDEX api_links_path_params ON api_links (path, params);
-
-
--- keep track of performance of the topic spider
-CREATE TABLE topic_spider_metrics
-(
-    topic_spider_metrics_id BIGSERIAL PRIMARY KEY,
-    topics_id               BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-    iteration               BIGINT    NOT NULL,
-    links_processed         BIGINT    NOT NULL,
-    elapsed_time            BIGINT    NOT NULL,
-    processed_date          TIMESTAMP NOT NULL DEFAULT NOW()
-);
-
-SELECT create_reference_table('topic_spider_metrics');
-
-CREATE INDEX topic_spider_metrics_topics_id ON topic_spider_metrics (topics_id);
-
-CREATE INDEX topic_spider_metrics_processed_date ON topic_spider_metrics (processed_date);
-
-
-CREATE TYPE topic_permission AS ENUM (
-    'read', 'write', 'admin'
-    );
-
--- per user permissions for topics
-CREATE TABLE topic_permissions
-(
-    topic_permissions_id BIGSERIAL PRIMARY KEY,
-    topics_id            BIGINT           NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-    auth_users_id        BIGINT           NOT NULL REFERENCES auth_users (auth_users_id) ON DELETE CASCADE,
-    permission           topic_permission NOT NULL
-);
-
-SELECT create_reference_table('topic_permissions');
-
-CREATE INDEX topic_permissions_topics_id
-    ON topic_permissions (topics_id);
-
-CREATE UNIQUE INDEX topic_permissions_topics_id_auth_users_id
-    ON topic_permissions (topics_id, auth_users_id);
-
-
--- topics table with auth_users_id and user_permission fields that indicate the permission level for
--- the user for the topic.  permissions in decreasing order are admin, write, read, none.  users with
--- the admin role have admin permission for every topic. users with admin-readonly role have at least
--- read access to every topic.  all users have read access to every is_public topic.  otherwise, the
--- topic_permissions table is used, with 'none' for no topic_permission.
-CREATE OR REPLACE VIEW topics_with_user_permission AS
-WITH admin_users AS (
-    SELECT m.auth_users_id
-    FROM auth_roles r
-             JOIN auth_users_roles_map AS m USING (auth_roles_id)
-    WHERE r.role = 'admin'
-),
-
-     read_admin_users AS (
-         SELECT m.auth_users_id
-         FROM auth_roles AS r
-                  JOIN auth_users_roles_map AS m USING (auth_roles_id)
-         WHERE r.role = 'admin-readonly'
-     )
-SELECT t.*,
-       u.auth_users_id,
-       CASE
-           WHEN (EXISTS(
-                   SELECT 1
-                   FROM admin_users AS a
-                   WHERE a.auth_users_id = u.auth_users_id
-               )) THEN 'admin'
-           WHEN (tp.permission IS NOT NULL) THEN tp.permission::text
-           WHEN (t.is_public) THEN 'read'
-           WHEN (EXISTS(
-                   SELECT 1
-                   FROM read_admin_users AS a
-                   WHERE a.auth_users_id = u.auth_users_id
-               )) THEN 'read'
-           ELSE 'none'
-           END AS user_permission
-FROM topics AS t
-         JOIN auth_users AS u ON (true)
-         LEFT JOIN topic_permissions AS tp USING (topics_id, auth_users_id)
-;
-
-
--- list of tweet counts and fetching statuses for each day of each topic
-CREATE TABLE topic_post_days
-(
-    topic_post_days_id    BIGSERIAL PRIMARY KEY,
-    topics_id             BIGINT  NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-    topic_seed_queries_id BIGINT  NOT NULL REFERENCES topic_seed_queries (topic_seed_queries_id) ON DELETE CASCADE,
-    day                   DATE    NOT NULL,
-    num_posts_stored      BIGINT  NOT NULL,
-    num_posts_fetched     BIGINT  NOT NULL,
-    posts_fetched         BOOLEAN NOT NULL DEFAULT 'f'
-);
-
-SELECT create_reference_table('topic_post_days');
-
-CREATE INDEX topic_post_days_topics_id
-    ON topic_post_days (topics_id);
-
-CREATE INDEX topic_post_days_topics_id_topic_seed_queries_id_day
-    ON topic_post_days (topics_id, topic_seed_queries_id, day);
-
-
--- list of posts associated with a given topic
-CREATE TABLE topic_posts
-(
-    topic_posts_id     BIGSERIAL NOT NULL,
-    topics_id          BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-    topic_post_days_id BIGINT    NOT NULL REFERENCES topic_post_days (topic_post_days_id) ON DELETE CASCADE,
-    data               JSONB     NOT NULL,
-    post_id            TEXT      NOT NULL,
-    content            TEXT      NOT NULL,
-    publish_date       TIMESTAMP NOT NULL,
-    author             TEXT      NOT NULL,
-    channel            TEXT      NOT NULL,
-    url                TEXT      NULL,
-
-    PRIMARY KEY (topic_posts_id, topics_id)
-);
-
--- noinspection SqlResolve @ routine/"create_distributed_table"
-SELECT create_distributed_table('topic_posts', 'topics_id', colocate_with => 'topic_stories');
-
-CREATE INDEX topic_posts_topics_id
-    ON topic_posts (topics_id);
-
-CREATE UNIQUE INDEX topic_posts_topics_id_topic_post_days_id_post_id
-    ON topic_posts (topics_id, topic_post_days_id, post_id);
-
-CREATE INDEX topic_posts_topics_id_topic_post_days_id_author
-    ON topic_posts (topics_id, topic_post_days_id, author);
-
-CREATE INDEX topic_posts_topics_id_topic_post_days_id_channel
-    ON topic_posts (topics_id, topic_post_days_id, channel);
-
-
--- urls parsed from topic tweets and imported into topic_seed_urls
-CREATE TABLE topic_post_urls
-(
-    topic_post_urls_id BIGSERIAL NOT NULL,
-    topics_id          BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-    topic_posts_id     BIGINT    NOT NULL,
-    url                TEXT      NOT NULL,
-
-    PRIMARY KEY (topic_post_urls_id, topics_id)
-);
-
--- noinspection SqlResolve @ routine/"create_distributed_table"
-SELECT create_distributed_table('topic_post_urls', 'topics_id', colocate_with => 'topic_stories');
-
-ALTER TABLE topic_post_urls
-    ADD CONSTRAINT topic_post_urls_topics_id_topic_posts_id_fkey
-        FOREIGN KEY (topics_id, topic_posts_id)
-            REFERENCES topic_posts (topics_id, topic_posts_id)
-            ON DELETE CASCADE;
-
-CREATE INDEX topic_post_urls_topics_id
-    ON topic_post_urls (topics_id);
-
-CREATE INDEX topic_post_urls_topics_id_topic_posts_id
-    ON topic_post_urls (topics_id, topic_posts_id);
-
-CREATE UNIQUE INDEX topic_post_urls_topics_id_topic_posts_id_url
-    ON topic_post_urls (topics_id, topic_posts_id, url);
-
-CREATE INDEX topic_post_urls_url
-    ON topic_post_urls USING HASH (url);
-
-
-CREATE TABLE topic_seed_urls
-(
-    topic_seed_urls_id    BIGSERIAL NOT NULL,
-    topics_id             BIGINT    NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-    url                   TEXT      NULL,
-    source                TEXT      NULL,
-    stories_id            BIGINT    NULL,
-    processed             BOOLEAN   NOT NULL DEFAULT 'f',
-    assume_match          BOOLEAN   NOT NULL DEFAULT 'f',
-    content               TEXT      NULL,
-    guid                  TEXT      NULL,
-    title                 TEXT      NULL,
-    publish_date          TEXT      NULL,
-    topic_seed_queries_id BIGINT    NULL REFERENCES topic_seed_queries (topic_seed_queries_id) ON DELETE CASCADE,
-    topic_post_urls_id    BIGINT    NULL,
-
-    PRIMARY KEY (topic_seed_urls_id, topics_id)
-);
-
--- noinspection SqlResolve @ routine/"create_distributed_table"
-SELECT create_distributed_table('topic_seed_urls', 'topics_id', colocate_with => 'topic_stories');
-
-ALTER TABLE topic_seed_urls
-    ADD CONSTRAINT topic_seed_urls_topics_id_topic_post_urls_id_fkey
-        FOREIGN KEY (topics_id, topic_post_urls_id)
-            REFERENCES topic_post_urls (topics_id, topic_post_urls_id)
-            ON DELETE CASCADE;
-
-CREATE INDEX topic_seed_urls_topics_id
-    ON topic_seed_urls (topics_id);
-
-CREATE INDEX topic_seed_urls_url
-    ON topic_seed_urls (url);
-
-CREATE INDEX topic_seed_urls_stories_id
-    ON topic_seed_urls (stories_id);
-
-CREATE UNIQUE INDEX topic_seed_urls_topics_id_topic_post_urls_id
-    ON topic_seed_urls (topics_id, topic_post_urls_id);
-
-
--- view that joins together the chain of tables from topic_seed_queries all the way through to
--- topic_stories, so that you get back a topics_id, topic_posts_id stories_id, and topic_seed_queries_id in each
--- row to track which stories came from which posts in which seed queries
-CREATE OR REPLACE VIEW topic_post_stories AS
-SELECT tsq.topics_id,
-       tp.topic_posts_id,
-       tp.content,
-       tp.publish_date,
-       tp.author,
-       tp.channel,
-       tp.data,
-       tpd.topic_seed_queries_id,
-       ts.stories_id,
-       tpu.url,
-       tpu.topic_post_urls_id
-FROM topic_seed_queries AS tsq
-         INNER JOIN topic_post_days AS tpd ON
-            tsq.topics_id = tpd.topics_id AND
-            tsq.topic_seed_queries_id = tpd.topic_seed_queries_id
-         INNER JOIN topic_posts AS tp ON
-            tsq.topics_id = tp.topics_id AND
-            tpd.topic_post_days_id = tp.topic_post_days_id
-         INNER JOIN topic_post_urls AS tpu ON
-            tsq.topics_id = tpu.topics_id AND
-            tp.topic_posts_id = tpu.topic_posts_id
-         INNER JOIN topic_seed_urls AS tsu ON
-            tsq.topics_id = tsu.topics_id AND
-            tpu.topic_post_urls_id = tsu.topic_post_urls_id
-         INNER JOIN topic_stories AS ts ON
-            tsq.topics_id = ts.topics_id AND
-            tsu.stories_id = ts.stories_id
-;
-
-
 CREATE TABLE snap.timespan_posts
 (
     snap_timespan_posts_id BIGSERIAL NOT NULL,
@@ -3399,343 +3818,47 @@ CREATE UNIQUE INDEX snap_timespan_posts_topics_id_timespans_id_topic_posts_id
     ON snap.timespan_posts (topics_id, timespans_id, topic_posts_id);
 
 
-CREATE TABLE media_stats_weekly
+-- table for object types used for mediawords.util.public_store
+CREATE SCHEMA public_store;
+
+
+CREATE TABLE public_store.timespan_files
 (
-    media_stats_weekly_id BIGSERIAL PRIMARY KEY,
-    media_id              BIGINT  NOT NULL REFERENCES media (media_id) ON DELETE CASCADE,
-    stories_rank          BIGINT  NOT NULL,
-    num_stories           NUMERIC NOT NULL,
-    sentences_rank        BIGINT  NOT NULL,
-    num_sentences         NUMERIC NOT NULL,
-    stat_week             DATE    NOT NULL
+    timespan_files_id BIGSERIAL PRIMARY KEY,
+    object_id         BIGINT NOT NULL,
+    raw_data          BYTEA  NOT NULL
 );
 
--- Not a reference table (because not referenced), not a distributed table (because too small)
+-- Not distributed, not reference (empty in production)
 
-CREATE INDEX media_stats_weekly_media_id ON media_stats_weekly (media_id);
+CREATE UNIQUE INDEX public_store_timespan_files_object_id
+    ON public_store.timespan_files (object_id);
 
 
-CREATE TABLE media_expected_volume
+CREATE TABLE public_store.snapshot_files
 (
-    media_expected_volume_id BIGSERIAL PRIMARY KEY,
-    media_id                 BIGINT  NOT NULL REFERENCES media (media_id) ON DELETE CASCADE,
-    start_date               DATE    NOT NULL,
-    end_date                 DATE    NOT NULL,
-    expected_stories         NUMERIC NOT NULL,
-    expected_sentences       NUMERIC NOT NULL
+    snapshot_files_id BIGSERIAL PRIMARY KEY,
+    object_id         BIGINT NOT NULL,
+    raw_data          BYTEA  NOT NULL
 );
 
--- Not a reference table (because not referenced), not a distributed table (because too small)
+-- Not distributed, not reference (empty in production)
 
-CREATE INDEX media_expected_volume_media_id ON media_expected_volume (media_id);
+CREATE UNIQUE INDEX public_store_snapshot_files_object_id
+    ON public_store.snapshot_files (object_id);
 
 
-CREATE TABLE media_coverage_gaps
+CREATE TABLE public_store.timespan_maps
 (
-    media_coverage_gaps_id BIGSERIAL NOT NULL,
-    media_id               BIGINT    NOT NULL REFERENCES media (media_id) ON DELETE CASCADE,
-    stat_week              DATE      NOT NULL,
-    num_stories            NUMERIC   NOT NULL,
-    expected_stories       NUMERIC   NOT NULL,
-    num_sentences          NUMERIC   NOT NULL,
-    expected_sentences     NUMERIC   NOT NULL,
-
-    PRIMARY KEY (media_coverage_gaps_id, media_id)
+    timespan_maps_id BIGSERIAL PRIMARY KEY,
+    object_id        BIGINT NOT NULL,
+    raw_data         BYTEA  NOT NULL
 );
 
--- noinspection SqlResolve @ routine/"create_distributed_table"
-SELECT create_distributed_table('media_coverage_gaps', 'media_id', colocate_with => 'media_stats');
+-- Not distributed, not reference (empty in production)
 
-CREATE INDEX media_coverage_gaps_media_id ON media_coverage_gaps (media_id);
-
-
-CREATE TABLE media_health
-(
-    media_health_id    BIGSERIAL PRIMARY KEY,
-    media_id           BIGINT  NOT NULL REFERENCES media (media_id) ON DELETE CASCADE,
-    num_stories        NUMERIC NOT NULL,
-    num_stories_y      NUMERIC NOT NULL,
-    num_stories_w      NUMERIC NOT NULL,
-    num_stories_90     NUMERIC NOT NULL,
-    num_sentences      NUMERIC NOT NULL,
-    num_sentences_y    NUMERIC NOT NULL,
-    num_sentences_w    NUMERIC NOT NULL,
-    num_sentences_90   NUMERIC NOT NULL,
-    is_healthy         BOOLEAN NOT NULL DEFAULT 'f',
-    has_active_feed    BOOLEAN NOT NULL DEFAULT 't',
-    start_date         DATE    NOT NULL,
-    end_date           DATE    NOT NULL,
-    expected_sentences NUMERIC NOT NULL,
-    expected_stories   NUMERIC NOT NULL,
-    coverage_gaps      BIGINT  NOT NULL
-);
-
--- Not a reference table (because not referenced), not a distributed table (because too small)
-
-CREATE INDEX media_health_media_id ON media_health (media_id);
-
-CREATE INDEX media_health_is_healthy ON media_health (is_healthy);
-
-CREATE INDEX media_health_num_stories_90 ON media_health (num_stories_90);
-
-
-CREATE TYPE media_suggestions_status AS ENUM (
-    'pending',
-    'approved',
-    'rejected'
-    );
-
-CREATE TABLE media_suggestions
-(
-    media_suggestions_id BIGSERIAL PRIMARY KEY,
-    name                 TEXT                     NULL,
-    url                  TEXT                     NOT NULL,
-    feed_url             TEXT                     NULL,
-    reason               TEXT                     NULL,
-    auth_users_id        BIGINT                   NULL REFERENCES auth_users (auth_users_id) ON DELETE SET NULL,
-    mark_auth_users_id   BIGINT                   NULL REFERENCES auth_users (auth_users_id) ON DELETE SET NULL,
-    date_submitted       TIMESTAMP                NOT NULL DEFAULT NOW(),
-    media_id             BIGINT                   NULL REFERENCES media (media_id) ON DELETE SET NULL,
-    date_marked          TIMESTAMP                NOT NULL DEFAULT NOW(),
-    mark_reason          TEXT                     NULL,
-    status               media_suggestions_status NOT NULL DEFAULT 'pending',
-
-    CONSTRAINT media_suggestions_media_id CHECK (
-        (status IN ('pending', 'rejected')) OR (media_id IS NOT NULL)
-        )
-);
-
--- Not a reference table (because not referenced), not a distributed table (because too small)
-
-CREATE INDEX media_suggestions_date ON media_suggestions (date_submitted);
-
-
-CREATE TABLE media_suggestions_tags_map
-(
-    media_suggestions_tags_map_id BIGSERIAL PRIMARY KEY,
-    media_suggestions_id          BIGINT REFERENCES media_suggestions (media_suggestions_id) ON DELETE CASCADE,
-    tags_id                       BIGINT REFERENCES tags (tags_id) ON DELETE CASCADE
-);
-
--- Not a reference table (because not referenced), not a distributed table (because too small)
-
-CREATE INDEX media_suggestions_tags_map_media_suggestions_id
-    ON media_suggestions_tags_map (media_suggestions_id);
-
-CREATE INDEX media_suggestions_tags_map_tags_id
-    ON media_suggestions_tags_map (tags_id);
-
-
--- keep track of basic high level stats for mediacloud for access through api
-CREATE TABLE mediacloud_stats
-(
-    mediacloud_stats_id  BIGSERIAL PRIMARY KEY,
-    stats_date           DATE   NOT NULL DEFAULT NOW(),
-    daily_downloads      BIGINT NOT NULL,
-    daily_stories        BIGINT NOT NULL,
-    active_crawled_media BIGINT NOT NULL,
-    active_crawled_feeds BIGINT NOT NULL,
-    total_stories        BIGINT NOT NULL,
-    total_downloads      BIGINT NOT NULL,
-    total_sentences      BIGINT NOT NULL
-);
-
--- Not a reference table (because not referenced), not a distributed table (because too small)
-
-
--- job states as implemented in mediawords.job.StatefulJobBroker
-CREATE TABLE job_states
-(
-    job_states_id BIGSERIAL NOT NULL,
-
-    --MediaWords::Job::* class implementing the job
-    class         TEXT      NOT NULL,
-
-    -- short class specific state
-    state         TEXT      NOT NULL,
-
-    -- optional longer message describing the state, such as a stack trace for an error
-    message       TEXT      NULL,
-
-    -- last time this job state was updated
-    last_updated  TIMESTAMP NOT NULL DEFAULT NOW(),
-
-    -- details about the job
-    args          JSONB     NOT NULL,
-    priority      TEXT      NOT NULL,
-
-    -- the hostname and process_id of the running process
-    hostname      TEXT      NOT NULL,
-    process_id    BIGINT    NOT NULL,
-
-    PRIMARY KEY (job_states_id, class)
-);
-
--- noinspection SqlResolve @ routine/"create_distributed_table"
-SELECT create_distributed_table('job_states', 'class', colocate_with => 'none');
-
-CREATE INDEX job_states_class_last_updated ON job_states (class, last_updated);
-
-
-CREATE VIEW pending_job_states AS
-SELECT *
-FROM job_states
-WHERE state IN ('running', 'queued')
-;
-
-
-CREATE TYPE retweeter_scores_match_type AS ENUM (
-    'retweet',
-    'regex'
-    );
-
--- definition of bipolar comparisons for retweeter polarization scores
-CREATE TABLE retweeter_scores
-(
-    retweeter_scores_id BIGSERIAL PRIMARY KEY,
-    topics_id           BIGINT                      NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-    group_a_id          BIGINT                      NULL,
-    group_b_id          BIGINT                      NULL,
-    name                TEXT                        NOT NULL,
-    state               TEXT                        NOT NULL DEFAULT 'created but not queued',
-    message             TEXT                        NULL,
-    num_partitions      BIGINT                      NOT NULL,
-    match_type          retweeter_scores_match_type NOT NULL DEFAULT 'retweet'
-);
-
-SELECT create_reference_table('retweeter_scores');
-
-CREATE INDEX retweeter_scores_topics_id ON retweeter_scores (topics_id);
-
-
--- group retweeters together so that we an compare, for example, sanders/warren retweeters to cruz/kasich retweeters
-CREATE TABLE retweeter_groups
-(
-    retweeter_groups_id BIGSERIAL PRIMARY KEY,
-    topics_id           BIGINT NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-    retweeter_scores_id BIGINT NOT NULL REFERENCES retweeter_scores (retweeter_scores_id) ON DELETE CASCADE,
-    name                TEXT   NOT NULL
-);
-
-SELECT create_reference_table('retweeter_groups');
-
-ALTER TABLE retweeter_scores
-    ADD CONSTRAINT retweeter_scores_group_a
-        FOREIGN KEY (group_a_id)
-            REFERENCES retweeter_groups (retweeter_groups_id)
-            ON DELETE CASCADE;
-
-ALTER TABLE retweeter_scores
-    ADD CONSTRAINT retweeter_scores_group_b
-        FOREIGN KEY (group_b_id)
-            REFERENCES retweeter_groups (retweeter_groups_id)
-            ON DELETE CASCADE;
-
-CREATE INDEX retweeter_groups_topics_id ON retweeter_groups (topics_id);
-
-
--- list of twitter users within a given topic that have retweeted the given user
-CREATE TABLE retweeters
-(
-    retweeters_id       BIGSERIAL PRIMARY KEY,
-    topics_id           BIGINT NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-    retweeter_scores_id BIGINT NOT NULL REFERENCES retweeter_scores (retweeter_scores_id) ON DELETE CASCADE,
-    twitter_user        TEXT   NOT NULL,
-    retweeted_user      TEXT   NOT NULL
-);
-
-SELECT create_reference_table('retweeters');
-
-CREATE INDEX retweeters_topics_id
-    ON retweeters (topics_id);
-
-CREATE UNIQUE INDEX retweeters_user
-    ON retweeters (topics_id, retweeter_scores_id, twitter_user, retweeted_user);
-
-
-CREATE TABLE retweeter_groups_users_map
-(
-    retweeter_groups_users_map_id BIGSERIAL PRIMARY KEY,
-    topics_id                     BIGINT NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-    retweeter_groups_id           BIGINT NOT NULL REFERENCES retweeter_groups (retweeter_groups_id) ON DELETE CASCADE,
-    retweeter_scores_id           BIGINT NOT NULL REFERENCES retweeter_scores (retweeter_scores_id) ON DELETE CASCADE,
-    retweeted_user                TEXT   NOT NULL
-);
-
-SELECT create_reference_table('retweeter_groups_users_map');
-
-CREATE INDEX retweeter_groups_users_map_topics_id
-    ON retweeter_groups_users_map (topics_id);
-
-
--- count of shares by retweeters for each retweeted_user in retweeters
-CREATE TABLE retweeter_stories
-(
-    retweeter_stories_id BIGSERIAL PRIMARY KEY,
-    topics_id            BIGINT NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-    retweeter_scores_id  BIGINT NOT NULL REFERENCES retweeter_scores (retweeter_scores_id) ON DELETE CASCADE,
-    stories_id           BIGINT NOT NULL,
-    retweeted_user       TEXT   NOT NULL,
-    share_count          BIGINT NOT NULL
-);
-
-SELECT create_reference_table('retweeter_stories');
-
-CREATE INDEX retweeter_stories_topics_id
-    ON retweeter_stories (topics_id);
-
-CREATE UNIQUE INDEX retweeter_stories_psu
-    ON retweeter_stories (topics_id, retweeter_scores_id, stories_id, retweeted_user);
-
-
--- polarization scores for media within a topic for the given retweeter_scores_definition
-CREATE TABLE retweeter_media
-(
-    retweeter_media_id  BIGSERIAL PRIMARY KEY,
-    topics_id           BIGINT NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-    retweeter_scores_id BIGINT NOT NULL REFERENCES retweeter_scores (retweeter_scores_id) ON DELETE CASCADE,
-    media_id            BIGINT NOT NULL REFERENCES media (media_id) ON DELETE CASCADE,
-    group_a_count       BIGINT NOT NULL,
-    group_b_count       BIGINT NOT NULL,
-    group_a_count_n     FLOAT  NOT NULL,
-    score               FLOAT  NOT NULL,
-    partition           BIGINT NOT NULL
-);
-
-SELECT create_reference_table('retweeter_media');
-
-CREATE INDEX retweeter_media_topics_id
-    ON retweeter_media (topics_id);
-
-CREATE INDEX retweeter_media_topics_id_media_id
-    ON retweeter_media (topics_id, media_id);
-
-CREATE UNIQUE INDEX retweeter_media_topics_id_retweeter_scores_id_media_id
-    ON retweeter_media (topics_id, retweeter_scores_id, media_id);
-
-CREATE INDEX retweeter_media_media_id
-    ON retweeter_media (media_id);
-
-
-CREATE TABLE retweeter_partition_matrix
-(
-    retweeter_partition_matrix_id BIGSERIAL PRIMARY KEY,
-    topics_id                     BIGINT NOT NULL REFERENCES topics (topics_id) ON DELETE CASCADE,
-    retweeter_scores_id           BIGINT NOT NULL REFERENCES retweeter_scores (retweeter_scores_id) ON DELETE CASCADE,
-    retweeter_groups_id           BIGINT NOT NULL REFERENCES retweeter_groups (retweeter_groups_id) ON DELETE CASCADE,
-    group_name                    TEXT   NOT NULL,
-    share_count                   BIGINT NOT NULL,
-    group_proportion              FLOAT  NOT NULL,
-    partition                     BIGINT NOT NULL
-);
-
-SELECT create_reference_table('retweeter_partition_matrix');
-
-CREATE INDEX retweeter_partition_matrix_topics_id
-    ON retweeter_partition_matrix (topics_id);
-
-CREATE INDEX retweeter_partition_matrix_topics_id_retweeter_scores_id
-    ON retweeter_partition_matrix (topics_id, retweeter_scores_id);
+CREATE UNIQUE INDEX public_store_timespan_maps_object_id
+    ON public_store.timespan_maps (object_id);
 
 
 --
@@ -3859,130 +3982,3 @@ SELECT run_on_shards_or_raise('cache.extractor_results_cache', $cmd$
     EXECUTE PROCEDURE cache.update_cache_db_row_last_updated();
 
     $cmd$);
-
-
--- keep track of per domain web requests so that we can throttle them using mediawords.util.web.user_agent.throttled.
--- this is unlogged because we don't care about anything more than about 10 seconds old.  we don't have a primary
--- key because we want it just to be a fast table for temporary storage.
-CREATE UNLOGGED TABLE domain_web_requests
-(
-    domain_web_requests_id BIGSERIAL NOT NULL,
-    domain                 TEXT      NOT NULL,
-    request_time           TIMESTAMP NOT NULL DEFAULT NOW(),
-
-    PRIMARY KEY (domain_web_requests_id, domain)
-);
-
--- noinspection SqlResolve @ routine/"create_distributed_table"
-SELECT create_distributed_table('domain_web_requests', 'domain', colocate_with => 'none');
-
-CREATE INDEX domain_web_requests_domain ON domain_web_requests (domain);
-
-
--- return false if there is a request for the given domain within the last domain_timeout_arg milliseconds.  otherwise
--- return true and insert a row into domain_web_request for the domain.  this function does not lock the table and
--- so may allow some parallel requests through.
-CREATE OR REPLACE FUNCTION get_domain_web_requests_lock(
-    domain_arg TEXT,
-    domain_timeout_arg FLOAT
-) RETURNS BOOLEAN AS
-$$
-
-BEGIN
-
-    -- we don't want this table to grow forever or to have to manage it externally, so just truncate about every
-    -- 1 million requests.  only do this if there are more than 1000 rows in the table so that unit tests will not
-    -- randomly fail.
-    IF (SELECT RANDOM() * 1000000) < 1 THEN
-        IF EXISTS(SELECT 1 FROM domain_web_requests OFFSET 1000) THEN
-            TRUNCATE TABLE domain_web_requests;
-        END IF;
-    END IF;
-
-    IF EXISTS(
-            SELECT *
-            FROM domain_web_requests
-            WHERE domain = domain_arg
-              AND extract(epoch FROM NOW() - request_time) < domain_timeout_arg
-        ) THEN
-        RETURN FALSE;
-    END IF;
-
-    DELETE FROM domain_web_requests WHERE domain = domain_arg;
-    INSERT INTO domain_web_requests (domain) SELECT domain_arg;
-
-    RETURN TRUE;
-
-END
-
-$$ LANGUAGE plpgsql;
-
-
---
--- Enclosures added to the story's feed item
---
--- noinspection SqlResolve
-CREATE TABLE story_enclosures
-(
-    story_enclosures_id BIGSERIAL NOT NULL,
-    stories_id          BIGINT    NOT NULL REFERENCES stories (stories_id) ON DELETE CASCADE,
-
-    -- Podcast enclosure URL
-    url                 TEXT      NOT NULL,
-
-    -- RSS spec says that enclosure's "length" and "type" are required too but
-    -- I guess some podcasts don't care that much about specs so both are
-    -- allowed to be NULL:
-
-    -- MIME type as reported by <enclosure />
-    mime_type           CITEXT    NULL,
-
-    -- Length in bytes as reported by <enclosure />
-    length              BIGINT    NULL,
-
-    PRIMARY KEY (story_enclosures_id, stories_id)
-);
-
--- noinspection SqlResolve @ routine/"create_distributed_table"
-SELECT create_distributed_table('story_enclosures', 'stories_id', colocate_with => 'stories');
-
-CREATE UNIQUE INDEX story_enclosures_stories_id_url
-    ON story_enclosures (stories_id, url);
-
-
---
--- Celery job results
--- (configured as self.__app.conf.database_table_names; schema is dictated by Celery + SQLAlchemy)
---
-
-CREATE TABLE celery_groups
-(
-    id         BIGINT                      NOT NULL PRIMARY KEY,
-    taskset_id CHARACTER VARYING(155)      NULL,
-    result     BYTEA                       NULL,
-    date_done  TIMESTAMP WITHOUT TIME ZONE NULL
-);
-
-SELECT create_reference_table('celery_groups');
-
-CREATE UNIQUE INDEX celery_groups_taskset_id ON celery_groups (taskset_id);
-
-
-CREATE TABLE celery_tasks
-(
-    id        BIGINT                      NOT NULL,
-    task_id   CHARACTER VARYING(155)      NULL,
-    status    CHARACTER VARYING(50)       NULL,
-    result    BYTEA                       NULL,
-    date_done TIMESTAMP WITHOUT TIME ZONE NULL,
-    traceback TEXT                        NULL,
-
-    PRIMARY KEY (id, task_id)
-);
-
--- noinspection SqlResolve @ routine/"create_distributed_table"
-SELECT create_distributed_table('celery_tasks', 'task_id', colocate_with => 'none');
-
-CREATE UNIQUE INDEX celery_tasks_task_id ON celery_tasks (task_id);
-
-CREATE SEQUENCE task_id_sequence AS BIGINT;
