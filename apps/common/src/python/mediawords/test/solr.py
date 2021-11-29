@@ -146,16 +146,16 @@ def _add_timespans_to_stories(db: DatabaseHandler, stories: List[Dict[str, Any]]
 def queue_all_stories(db: DatabaseHandler) -> None:
     db.begin()
 
-    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
-    db.query(f"TRUNCATE TABLE unsharded_public.solr_import_stories")
-    db.query(f"TRUNCATE TABLE sharded_public.solr_import_stories")
+    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: tests use only the sharded table
+    db.query("TRUNCATE TABLE sharded_public.solr_import_stories")
 
     # "SELECT FROM processed_stories" because only processed stories should get imported. "ORDER BY" so that the
     # import is more efficient when pulling blocks of stories out.
-    db.query(f"""
-        INSERT INTO solr_import_stories (stories_id)
+    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: tests use only the sharded table
+    db.query("""
+        INSERT INTO sharded_public.solr_import_stories (stories_id)
             SELECT stories_id
-            FROM processed_stories
+            FROM sharded_public.processed_stories
             GROUP BY stories_id
             ORDER BY stories_id
     """)

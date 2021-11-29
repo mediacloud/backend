@@ -9,7 +9,6 @@
 -- FIXME consider making shard count configurable to make tests run faster
 -- FIXME schema and tables get created as "postgres" user, should be "mediacloud"
 -- FIXME enable slow query log in PostgreSQL
--- FIXME make solr_import_stories_stories_id index unique
 -- FIXME make solr_imported_stories_stories_id unique
 -- FIXME re-add length constraints: https://brandur.org/text
 -- FIXME add media_id to its own separate colocation group
@@ -19,6 +18,7 @@
 -- FIXME while copying "media_stats", skip (media_id, stat_date) pairs that already exist in the sharded table
 -- FIXME while copying "auth_user_request_daily_counts", skip (email, day) pairs that already exist in the sharded table
 -- FIXME when moving "processed_stories" rows, use ON CONFLICT
+-- FIXME when moving "solr_import_stories" rows, use ON CONFLICT
 
 
 -- Rename the unsharded schema created in previous migrations
@@ -699,8 +699,18 @@ BEGIN
         RETURN return_value;
     END IF;
 
-    INSERT INTO solr_import_stories (stories_id)
-    VALUES (queue_stories_id);
+    -- MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
+    IF NOT EXISTS (
+        SELECT 1
+        FROM unsharded_public.solr_import_stories
+        WHERE stories_id = queue_stories_id
+    ) THEN
+
+        INSERT INTO sharded_public.solr_import_stories (stories_id)
+        VALUES (queue_stories_id)
+        ON CONFLICT (stories_id) DO NOTHING;
+
+    END IF;
 
     RETURN return_value;
 
@@ -1166,7 +1176,7 @@ CREATE TABLE solr_import_stories
 -- noinspection SqlResolve @ routine/"create_distributed_table"
 SELECT create_distributed_table('solr_import_stories', 'stories_id', colocate_with => 'stories');
 
-CREATE INDEX solr_import_stories_stories_id ON solr_import_stories (stories_id);
+CREATE UNIQUE INDEX solr_import_stories_stories_id ON solr_import_stories (stories_id);
 
 
 -- log of all stories import into solr, with the import date

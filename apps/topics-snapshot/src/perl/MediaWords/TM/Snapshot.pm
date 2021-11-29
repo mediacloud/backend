@@ -1549,9 +1549,10 @@ sub _export_stories_to_solr($$)
 
     DEBUG( "queueing stories for solr import ..." );
 
+    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: use ON CONFLICT instead of NOT EXISTS after moving rows
     $db->query( <<SQL,
-        INSERT INTO solr_import_stories (stories_id)
-            SELECT DISTINCT stories_id
+        CREATE TEMPORARY TABLE temp_story_ids_to_import AS
+            SELECT DISTINCT snap.stories.stories_id
             FROM snap.stories
             WHERE
                 topics_id = ? AND
@@ -1559,6 +1560,26 @@ sub _export_stories_to_solr($$)
 SQL
         $cd->{ topics_id }, $cd->{ snapshots_id }
     );
+
+    $db->query( <<SQL
+        WITH story_ids_not_in_solr_import_stories AS (
+            SELECT stories_id
+            FROM temp_story_ids_to_import
+            WHERE NOT EXISTS (
+                SELECT 1
+                FROM unsharded_public.solr_import_stories
+                WHERE unsharded_public.solr_import_stories.stories_id = temp_story_ids_to_import.stories_id
+
+            )
+        )
+        INSERT INTO sharded_public.solr_import_stories (stories_id)
+            SELECT stories_id
+            FROM story_ids_not_in_solr_import_stories
+        ON CONFLICT (stories_id) DO NOTHING
+SQL
+    );
+
+    $db->query( 'DROP TABLE temp_story_ids_to_import' );
 
     $db->query(<<SQL,
         UPDATE snapshots SET

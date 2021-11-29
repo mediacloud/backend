@@ -140,7 +140,7 @@ SQL
         # test that processed_stories update queues import
         my $story = pop( @{ $test_stories } );
 
-        # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
+        # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: tests use only the sharded table
         $db->query( <<SQL,
             DELETE FROM sharded_public.processed_stories
             WHERE stories_id = ?
@@ -148,7 +148,7 @@ SQL
             $story->{ stories_id }
         );
 
-        # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
+        # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: tests use only the sharded table
         $db->query( <<SQL,
             DELETE FROM sharded_public.solr_import_stories
             WHERE stories_id = ?
