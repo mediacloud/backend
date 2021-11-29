@@ -690,18 +690,9 @@ BEGIN
         RETURN return_value;
     END IF;
 
-    -- MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
-    IF NOT EXISTS (
-        SELECT 1
-        FROM unsharded_public.solr_import_stories
-        WHERE stories_id = queue_stories_id
-    ) THEN
-
-        INSERT INTO sharded_public.solr_import_stories (stories_id)
-        VALUES (queue_stories_id)
-        ON CONFLICT (stories_id) DO NOTHING;
-
-    END IF;
+    INSERT INTO solr_import_stories (stories_id)
+    VALUES (queue_stories_id)
+    ON CONFLICT (stories_id) DO NOTHING;
 
     RETURN return_value;
 

@@ -5576,3 +5576,58 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER stories_tags_map_view_insert_update_delete
     INSTEAD OF INSERT OR UPDATE OR DELETE ON unsharded_public.stories_tags_map
     FOR EACH ROW EXECUTE PROCEDURE unsharded_public.stories_tags_map_view_insert_update_delete();
+
+
+
+
+CREATE OR REPLACE FUNCTION public.insert_solr_import_story() RETURNS TRIGGER AS
+$$
+
+DECLARE
+
+    queue_stories_id BIGINT;
+    return_value     RECORD;
+
+BEGIN
+
+    IF (TG_OP = 'UPDATE') OR (TG_OP = 'INSERT') THEN
+        SELECT NEW.stories_id INTO queue_stories_id;
+    ELSE
+        SELECT OLD.stories_id INTO queue_stories_id;
+    END IF;
+
+    IF (TG_OP = 'UPDATE') OR (TG_OP = 'INSERT') THEN
+        return_value := NEW;
+    ELSE
+        return_value := OLD;
+    END IF;
+
+    IF NOT EXISTS(
+            SELECT 1
+            FROM processed_stories
+            WHERE stories_id = queue_stories_id
+        ) THEN
+        RETURN return_value;
+    END IF;
+
+    -- MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: don't test the old table anymore after moving rows
+    IF NOT EXISTS (
+        SELECT 1
+        FROM unsharded_public.solr_import_stories
+        WHERE stories_id = queue_stories_id
+    ) THEN
+
+        INSERT INTO sharded_public.solr_import_stories (stories_id)
+        VALUES (queue_stories_id)
+        ON CONFLICT (stories_id) DO NOTHING;
+
+    END IF;
+
+    RETURN return_value;
+
+END;
+
+$$ LANGUAGE plpgsql;
+
+-- noinspection SqlResolve @ routine/"create_distributed_function"
+SELECT create_distributed_function('public.insert_solr_import_story()');
