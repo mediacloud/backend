@@ -10,6 +10,7 @@
 -- FIXME when moving "processed_stories" rows, use ON CONFLICT
 -- FIXME when moving "solr_import_stories" rows, use ON CONFLICT
 -- FIXME when moving "solr_imported_stories" rows, use ON CONFLICT
+-- FIXME update to Citus 10.2.3
 
 
 -- Rename the unsharded schema created in previous migrations
