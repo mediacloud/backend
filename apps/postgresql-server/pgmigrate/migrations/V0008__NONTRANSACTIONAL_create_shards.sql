@@ -1,6 +1,5 @@
 -- noinspection SqlResolveForFile @ routine/"create_reference_table"
 
--- FIXME un-TOAST some columns
 -- FIXME move related things together
 -- FIXME consider making shard count configurable to make tests run faster
 -- FIXME schema and tables get created as "postgres" user, should be "mediacloud"
