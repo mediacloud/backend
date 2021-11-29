@@ -1,3 +1,5 @@
+-- noinspection SqlResolveForFile
+
 -- Create schemas to temporarily move the sharded tables to
 CREATE SCHEMA sharded_public;
 CREATE SCHEMA sharded_public_store;
