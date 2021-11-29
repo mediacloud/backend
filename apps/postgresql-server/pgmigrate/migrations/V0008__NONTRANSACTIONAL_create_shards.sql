@@ -900,8 +900,8 @@ CREATE SCHEMA public_store;
 CREATE TABLE public_store.timespan_files
 (
     timespan_files_id BIGSERIAL PRIMARY KEY,
-    object_id         BIGINT    NOT NULL,
-    raw_data          BYTEA     NOT NULL
+    object_id         BIGINT NOT NULL,
+    raw_data          BYTEA  NOT NULL
 );
 
 -- Not distributed, not reference (empty in production)
@@ -913,8 +913,8 @@ CREATE UNIQUE INDEX public_store_timespan_files_object_id
 CREATE TABLE public_store.snapshot_files
 (
     snapshot_files_id BIGSERIAL PRIMARY KEY,
-    object_id         BIGINT    NOT NULL,
-    raw_data          BYTEA     NOT NULL
+    object_id         BIGINT NOT NULL,
+    raw_data          BYTEA  NOT NULL
 );
 
 -- Not distributed, not reference (empty in production)
@@ -926,8 +926,8 @@ CREATE UNIQUE INDEX public_store_snapshot_files_object_id
 CREATE TABLE public_store.timespan_maps
 (
     timespan_maps_id BIGSERIAL PRIMARY KEY,
-    object_id        BIGINT    NOT NULL,
-    raw_data         BYTEA     NOT NULL
+    object_id        BIGINT NOT NULL,
+    raw_data         BYTEA  NOT NULL
 );
 
 -- Not distributed, not reference (empty in production)
