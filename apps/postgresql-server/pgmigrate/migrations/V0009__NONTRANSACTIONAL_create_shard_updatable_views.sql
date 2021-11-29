@@ -2835,7 +2835,7 @@ SELECT setval(
                false
            );
 
-CREATE OR REPLACE VIEW public.auth_user_request_daily_counts AS
+CREATE VIEW public.auth_user_request_daily_counts AS
 SELECT auth_user_request_daily_counts_id::BIGINT,
        email,
        day,
@@ -2890,7 +2890,7 @@ SELECT setval(
                false
            );
 
-CREATE OR REPLACE VIEW public.media_stats AS
+CREATE VIEW public.media_stats AS
 SELECT media_stats_id::BIGINT,
        media_id::BIGINT,
        num_stories::BIGINT,
@@ -2941,7 +2941,7 @@ ALTER TABLE public.media_coverage_gaps
 -- No setval(pg_get_serial_sequence(), nextval(), false) because unsharded
 -- table doesn't have primary key
 
-CREATE OR REPLACE VIEW public.media_coverage_gaps AS
+CREATE VIEW public.media_coverage_gaps AS
 SELECT
     -- No primary key on unsharded table
     0::BIGINT AS media_coverage_gaps_id,
@@ -3001,7 +3001,7 @@ SELECT setval(
                false
            );
 
-CREATE OR REPLACE VIEW public.stories AS
+CREATE VIEW public.stories AS
 SELECT stories_id::BIGINT,
        media_id::BIGINT,
        url::TEXT,
@@ -3082,7 +3082,7 @@ SELECT setval(
                false
            );
 
-CREATE OR REPLACE VIEW public.stories_ap_syndicated AS
+CREATE VIEW public.stories_ap_syndicated AS
 SELECT stories_ap_syndicated_id::BIGINT,
        stories_id::BIGINT,
        ap_syndicated
@@ -3132,7 +3132,7 @@ SELECT setval(
                false
            );
 
-CREATE OR REPLACE VIEW public.story_urls AS
+CREATE VIEW public.story_urls AS
 SELECT story_urls_id::BIGINT,
        stories_id::BIGINT,
        url::TEXT
@@ -3183,7 +3183,7 @@ SELECT setval(
                false
            );
 
-CREATE OR REPLACE VIEW public.feeds_stories_map AS
+CREATE VIEW public.feeds_stories_map AS
 SELECT feeds_stories_map_p_id AS feeds_stories_map_id,
        feeds_id::BIGINT,
        stories_id::BIGINT
@@ -3235,7 +3235,7 @@ SELECT setval(
                false
            );
 
-CREATE OR REPLACE VIEW public.stories_tags_map AS
+CREATE VIEW public.stories_tags_map AS
 SELECT stories_tags_map_p_id AS stories_tags_map_id,
        stories_id::BIGINT,
        tags_id::BIGINT
@@ -3287,7 +3287,7 @@ SELECT setval(
                false
            );
 
-CREATE OR REPLACE VIEW public.story_sentences AS
+CREATE VIEW public.story_sentences AS
 SELECT story_sentences_p_id AS story_sentences_id,
        stories_id::BIGINT,
        sentence_number,
@@ -3345,7 +3345,7 @@ ALTER TABLE public.solr_import_stories
 -- No setval(pg_get_serial_sequence(), nextval(), false) because unsharded
 -- table doesn't have primary key
 
-CREATE OR REPLACE VIEW public.solr_import_stories AS
+CREATE VIEW public.solr_import_stories AS
 SELECT
     -- No primary key on unsharded table
     0::BIGINT AS solr_import_stories_id,
@@ -3392,7 +3392,7 @@ ALTER TABLE public.solr_imported_stories
 -- No setval(pg_get_serial_sequence(), nextval(), false) because unsharded
 -- table doesn't have primary key
 
-CREATE OR REPLACE VIEW public.solr_imported_stories AS
+CREATE VIEW public.solr_imported_stories AS
 SELECT
     -- No primary key on unsharded table
     0::BIGINT AS solr_imported_stories_id,
@@ -3441,7 +3441,7 @@ ALTER TABLE public.topic_merged_stories_map
 -- No setval(pg_get_serial_sequence(), nextval(), false) because unsharded
 -- table doesn't have primary key
 
-CREATE OR REPLACE VIEW public.topic_merged_stories_map AS
+CREATE VIEW public.topic_merged_stories_map AS
 SELECT
     -- No primary key on unsharded table
     0::BIGINT AS topic_merged_stories_map_id,
@@ -3494,7 +3494,7 @@ SELECT setval(
                false
            );
 
-CREATE OR REPLACE VIEW public.story_statistics AS
+CREATE VIEW public.story_statistics AS
 SELECT story_statistics_id::BIGINT,
        stories_id::BIGINT,
        facebook_share_count::BIGINT,
@@ -3552,7 +3552,7 @@ SELECT setval(
                false
            );
 
-CREATE OR REPLACE VIEW public.processed_stories AS
+CREATE VIEW public.processed_stories AS
 SELECT processed_stories_id::BIGINT,
        stories_id::BIGINT
 FROM unsharded_public.processed_stories
@@ -3600,7 +3600,7 @@ SELECT setval(
                false
            );
 
-CREATE OR REPLACE VIEW public.scraped_stories AS
+CREATE VIEW public.scraped_stories AS
 SELECT scraped_stories_id::BIGINT,
        stories_id::BIGINT,
        import_module
@@ -3650,7 +3650,7 @@ SELECT setval(
                false
            );
 
-CREATE OR REPLACE VIEW public.story_enclosures AS
+CREATE VIEW public.story_enclosures AS
 SELECT story_enclosures_id::BIGINT,
        stories_id::BIGINT,
        url,
@@ -3704,7 +3704,7 @@ SELECT setval(
                false
            );
 
-CREATE OR REPLACE VIEW public.downloads AS
+CREATE VIEW public.downloads AS
 SELECT downloads_id,
        feeds_id::BIGINT,
        stories_id::BIGINT,
@@ -3785,7 +3785,7 @@ SELECT setval(
                false
            );
 
-CREATE OR REPLACE VIEW public.download_texts AS
+CREATE VIEW public.download_texts AS
 SELECT download_texts_id,
        downloads_id,
        download_text,
@@ -3837,7 +3837,7 @@ SELECT setval(
                false
            );
 
-CREATE OR REPLACE VIEW public.topic_stories AS
+CREATE VIEW public.topic_stories AS
 SELECT topic_stories_id::BIGINT,
        topics_id::BIGINT,
        stories_id::BIGINT,
@@ -3911,7 +3911,7 @@ SELECT setval(
                false
            );
 
-CREATE OR REPLACE VIEW public.topic_links AS
+CREATE VIEW public.topic_links AS
 SELECT topic_links_id::BIGINT,
        topics_id::BIGINT,
        stories_id::BIGINT,
@@ -3975,7 +3975,7 @@ SELECT setval(
                false
            );
 
-CREATE OR REPLACE VIEW public.topic_fetch_urls AS
+CREATE VIEW public.topic_fetch_urls AS
 SELECT topic_fetch_urls_id,
        topics_id::BIGINT,
        url,
@@ -4044,7 +4044,7 @@ SELECT setval(
                false
            );
 
-CREATE OR REPLACE VIEW public.topic_posts AS
+CREATE VIEW public.topic_posts AS
 SELECT topic_posts.topic_posts_id::BIGINT,
        topic_post_days.topics_id::BIGINT,
        topic_posts.topic_post_days_id::BIGINT,
@@ -4111,7 +4111,7 @@ SELECT setval(
                false
            );
 
-CREATE OR REPLACE VIEW public.topic_post_urls AS
+CREATE VIEW public.topic_post_urls AS
 SELECT topic_post_urls.topic_post_urls_id::BIGINT,
        topic_post_days.topics_id::BIGINT,
        topic_post_urls.topic_posts_id::BIGINT,
@@ -4168,7 +4168,7 @@ SELECT setval(
                false
            );
 
-CREATE OR REPLACE VIEW public.topic_seed_urls AS
+CREATE VIEW public.topic_seed_urls AS
 SELECT topic_seed_urls_id::BIGINT,
        topics_id::BIGINT,
        url,
@@ -4244,7 +4244,7 @@ ALTER TABLE snap.stories
 -- No setval(pg_get_serial_sequence(), nextval(), false) because unsharded
 -- table doesn't have primary key
 
-CREATE OR REPLACE VIEW snap.stories AS
+CREATE VIEW snap.stories AS
 SELECT
     -- No primary key on unsharded table
     0::BIGINT AS snap_stories_id,
@@ -4320,7 +4320,7 @@ ALTER TABLE snap.topic_stories
 -- No setval(pg_get_serial_sequence(), nextval(), false) because unsharded
 -- table doesn't have primary key
 
-CREATE OR REPLACE VIEW snap.topic_stories AS
+CREATE VIEW snap.topic_stories AS
 SELECT
     -- No primary key on unsharded table
     0::BIGINT AS snap_topic_stories_id,
@@ -4384,7 +4384,7 @@ ALTER TABLE snap.topic_links_cross_media
 -- No setval(pg_get_serial_sequence(), nextval(), false) because unsharded
 -- table doesn't have primary key
 
-CREATE OR REPLACE VIEW snap.topic_links_cross_media AS
+CREATE VIEW snap.topic_links_cross_media AS
 SELECT
     -- No primary key on unsharded table
     0::BIGINT AS snap_topic_links_cross_media_id,
@@ -4443,7 +4443,7 @@ ALTER TABLE snap.media
 -- No setval(pg_get_serial_sequence(), nextval(), false) because unsharded
 -- table doesn't have primary key
 
-CREATE OR REPLACE VIEW snap.media AS
+CREATE VIEW snap.media AS
 SELECT
     -- No primary key on unsharded table
     0::BIGINT AS snap_media_id,
@@ -4515,7 +4515,7 @@ ALTER TABLE snap.media_tags_map
 -- No setval(pg_get_serial_sequence(), nextval(), false) because unsharded
 -- table doesn't have primary key
 
-CREATE OR REPLACE VIEW snap.media_tags_map AS
+CREATE VIEW snap.media_tags_map AS
 SELECT
     -- No primary key on unsharded table
     0::BIGINT AS snap_media_tags_map_id,
@@ -4573,7 +4573,7 @@ ALTER TABLE snap.stories_tags_map
 -- No setval(pg_get_serial_sequence(), nextval(), false) because unsharded
 -- table doesn't have primary key
 
-CREATE OR REPLACE VIEW snap.stories_tags_map AS
+CREATE VIEW snap.stories_tags_map AS
 SELECT
     -- No primary key on unsharded table
     0::BIGINT AS snap_stories_tags_map_id,
@@ -4631,7 +4631,7 @@ ALTER TABLE snap.story_links
 -- No setval(pg_get_serial_sequence(), nextval(), false) because unsharded
 -- table doesn't have primary key
 
-CREATE OR REPLACE VIEW snap.story_links AS
+CREATE VIEW snap.story_links AS
 SELECT
     -- No primary key on unsharded table
     0::BIGINT AS snap_story_links_id,
@@ -4687,7 +4687,7 @@ ALTER TABLE snap.story_link_counts
 -- No setval(pg_get_serial_sequence(), nextval(), false) because unsharded
 -- table doesn't have primary key
 
-CREATE OR REPLACE VIEW snap.story_link_counts AS
+CREATE VIEW snap.story_link_counts AS
 SELECT
     -- No primary key on unsharded table
     0::BIGINT AS snap_story_link_counts_id,
@@ -4755,7 +4755,7 @@ ALTER TABLE snap.medium_link_counts
 -- No setval(pg_get_serial_sequence(), nextval(), false) because unsharded
 -- table doesn't have primary key
 
-CREATE OR REPLACE VIEW snap.medium_link_counts AS
+CREATE VIEW snap.medium_link_counts AS
 SELECT
     -- No primary key on unsharded table
     0::BIGINT AS snap_medium_link_counts_id,
@@ -4827,7 +4827,7 @@ ALTER TABLE snap.medium_links
 -- No setval(pg_get_serial_sequence(), nextval(), false) because unsharded
 -- table doesn't have primary key
 
-CREATE OR REPLACE VIEW snap.medium_links AS
+CREATE VIEW snap.medium_links AS
 SELECT
     -- No primary key on unsharded table
     0::BIGINT AS snap_medium_links_id,
@@ -4885,7 +4885,7 @@ ALTER TABLE snap.timespan_posts
 -- No setval(pg_get_serial_sequence(), nextval(), false) because unsharded
 -- table doesn't have primary key
 
-CREATE OR REPLACE VIEW snap.timespan_posts AS
+CREATE VIEW snap.timespan_posts AS
 SELECT
     -- No primary key on unsharded table
     0::BIGINT AS snap_timespan_posts_id,
@@ -4939,7 +4939,7 @@ ALTER TABLE snap.live_stories
 -- No setval(pg_get_serial_sequence(), nextval(), false) because unsharded
 -- table doesn't have primary key
 
-CREATE OR REPLACE VIEW snap.live_stories AS
+CREATE VIEW snap.live_stories AS
 SELECT
     -- No primary key on unsharded table
     0::BIGINT AS snap_live_stories_id,
