@@ -379,9 +379,14 @@ sub _save_import_log
     $db->begin;
     for my $stories_id ( @{ $stories_ids } )
     {
+        # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: insert directly into the
+        # sharded table; when moving rows, we'll simply stories that already
+        # exist in the sharded table as they'll have a newer import_date
         $db->query( <<SQL,
-            INSERT INTO solr_imported_stories (stories_id, import_date)
+            INSERT INTO sharded_public.solr_imported_stories (stories_id, import_date)
             VALUES (?, ?)
+            ON CONFLICT (stories_id) DO UPDATE SET
+                import_date = EXCLUDED.import_date
 SQL
             $stories_id, $_import_date
         );
