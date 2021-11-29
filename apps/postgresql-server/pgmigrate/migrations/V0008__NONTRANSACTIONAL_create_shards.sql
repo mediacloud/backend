@@ -646,9 +646,7 @@ BEGIN
         END IF;
     END IF;
 
-    IF (NEW.normalized_title_hash IS NULL) THEN
-        SELECT INTO NEW.normalized_title_hash MD5(get_normalized_title(NEW.title, NEW.media_id))::uuid;
-    END IF;
+    SELECT INTO NEW.normalized_title_hash MD5(get_normalized_title(NEW.title, NEW.media_id))::uuid;
 
     RETURN NEW;
 
