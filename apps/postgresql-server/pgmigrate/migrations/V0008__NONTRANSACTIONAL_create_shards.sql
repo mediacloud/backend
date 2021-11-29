@@ -1,7 +1,6 @@
 -- noinspection SqlResolveForFile @ routine/"create_reference_table"
 
 -- FIXME consider making shard count configurable to make tests run faster
--- FIXME schema and tables get created as "postgres" user, should be "mediacloud"
 -- FIXME ensure that the "stories", "topic_stories", "processed_stories" migration workflows avoid triggering insert_solr_import_story()
 -- FIXME while copying "media_stats", skip (media_id, stat_date) pairs that already exist in the sharded table
 -- FIXME while copying "auth_user_request_daily_counts", skip (email, day) pairs that already exist in the sharded table
