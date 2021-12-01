@@ -4400,12 +4400,12 @@ FROM unsharded_snap.topic_links_cross_media
 UNION
 
 SELECT snap_topic_links_cross_media_id,
-       topics_id::BIGINT,
-       snapshots_id::BIGINT,
-       topic_links_id::BIGINT,
-       stories_id::BIGINT,
+       topics_id,
+       snapshots_id,
+       topic_links_id,
+       stories_id,
        url,
-       ref_stories_id::BIGINT
+       ref_stories_id
 FROM sharded_snap.topic_links_cross_media
 ;
 
