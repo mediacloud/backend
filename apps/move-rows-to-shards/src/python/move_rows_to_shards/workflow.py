@@ -38,9 +38,11 @@ class MoveRowsToShardsActivitiesImpl(MoveRowsToShardsActivities):
                                  src_id_column: str,
                                  src_id_start: int,
                                  src_id_end: int,
+                                 src_extra_using_clause: str,
+                                 src_extra_where_clause: str,
                                  dst_table: str,
                                  dst_columns: List[str],
-                                 dst_extra_clause: str) -> None:
+                                 dst_extra_on_conflict_clause: str) -> None:
         if '.' not in src_table:
             raise McProgrammingError(f"Source table name must contain schema: {src_table}")
         if not src_table.startswith('unsharded_'):
@@ -71,13 +73,16 @@ class MoveRowsToShardsActivitiesImpl(MoveRowsToShardsActivities):
         sql = f"""
             WITH deleted_rows AS (
                 DELETE FROM {src_table}
-                WHERE {src_id_column} BETWEEN {src_id_start} AND {src_id_end}
+                {src_extra_using_clause}
+                WHERE
+                    {src_id_column} BETWEEN {src_id_start} AND {src_id_end}
+                    {src_extra_where_clause}
                 RETURNING {', '.join(src_columns)}
             )
             INSERT INTO {dst_table} ({', '.join(src_columns)})
                 SELECT {', '.join(dst_columns)}
                 FROM deleted_rows
-            {dst_extra_clause}
+            {dst_extra_on_conflict_clause}
         """
         log.debug(f"SQL that I'm about to execute: {sql}")
         db.query(sql)
@@ -125,7 +130,9 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
                                  src_columns: List[str],
                                  dst_columns: List[str],
                                  schema: str = 'public',
-                                 dst_extra_clause: str = '') -> None:
+                                 src_extra_using_clause: str = '',
+                                 src_extra_where_clause: str = '',
+                                 dst_extra_on_conflict_clause: str = '') -> None:
         unsharded_table = f"unsharded_{schema}.{src_table}"
         sharded_table = f"sharded_{schema}.{dst_table}"
 
@@ -139,9 +146,11 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
                 src_id_column,
                 start_id,
                 end_id,
+                src_extra_using_clause,
+                src_extra_where_clause,
                 sharded_table,
                 dst_columns,
-                dst_extra_clause,
+                dst_extra_on_conflict_clause,
             )
 
         await self.activities.truncate_if_empty(unsharded_table)
@@ -152,7 +161,7 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
                                       src_columns_sans_pkey: List[str],
                                       dst_columns_sans_pkey: List[str],
                                       schema: str = 'public',
-                                      dst_extra_clause: str = '') -> None:
+                                      dst_extra_on_conflict_clause: str = '') -> None:
         # Same ID column name on both source and destination tables
         id_column = f"{table}_id"
 
@@ -164,7 +173,7 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
             src_columns=[id_column] + src_columns_sans_pkey,
             dst_columns=[f'{id_column}::BIGINT'] + dst_columns_sans_pkey,
             schema=schema,
-            dst_extra_clause=dst_extra_clause,
+            dst_extra_on_conflict_clause=dst_extra_on_conflict_clause,
         )
 
     async def move_rows_to_shards(self) -> None:
@@ -184,7 +193,7 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
                 'requests_count::BIGINT',
                 'requested_items_count::BIGINT',
             ],
-            dst_extra_clause='ON CONFLICT (email, day) DO NOTHING',
+            dst_extra_on_conflict_clause='ON CONFLICT (email, day) DO NOTHING',
         )
 
         self._move_generic_table_rows_pkey(
@@ -205,7 +214,7 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
                 'num_sentences::BIGINT',
                 'stat_date',
             ],
-            dst_extra_clause='ON CONFLICT (media_id, stat_date) DO NOTHING',
+            dst_extra_on_conflict_clause='ON CONFLICT (media_id, stat_date) DO NOTHING',
         )
 
         self._move_generic_table_rows(
@@ -366,7 +375,7 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
             dst_columns=[
                 'stories_id::BIGINT',
             ],
-            dst_extra_clause='ON CONFLICT (stories_id) DO NOTHING',
+            dst_extra_on_conflict_clause='ON CONFLICT (stories_id) DO NOTHING',
         )
 
         self._move_generic_table_rows(
@@ -383,7 +392,7 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
                 'stories_id::BIGINT',
                 'import_date',
             ],
-            dst_extra_clause='ON CONFLICT (stories_id) DO NOTHING',
+            dst_extra_on_conflict_clause='ON CONFLICT (stories_id) DO NOTHING',
         )
 
         self._move_generic_table_rows(
@@ -400,7 +409,7 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
                 'source_stories_id::BIGINT',
                 'target_stories_id::BIGINT',
             ],
-            dst_extra_clause='ON CONFLICT (source_stories_id, target_stories_id) DO NOTHING',
+            dst_extra_on_conflict_clause='ON CONFLICT (source_stories_id, target_stories_id) DO NOTHING',
         )
 
         self._move_generic_table_rows_pkey(
@@ -435,7 +444,7 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
             dst_columns_sans_pkey=[
                 'stories_id::BIGINT',
             ],
-            dst_extra_clause='ON CONFLICT (stories_id) DO NOTHING',
+            dst_extra_on_conflict_clause='ON CONFLICT (stories_id) DO NOTHING',
         )
 
         self._move_generic_table_rows_pkey(
@@ -600,31 +609,466 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
             ],
         )
 
-        # FIXME inner join
-        self._move_generic_table_rows_pkey(
-            table='topic_posts',
+        self._move_generic_table_rows(
+            src_table='topic_posts',
+            dst_table='topic_posts',
+            src_id_column='topic_posts_id',
             # 95,486,494 in source table; 48 chunks
             chunk_size=2_000_000,
-            src_columns_sans_pkey=[
+            src_columns=[
+                'unsharded_public.topic_posts.topic_posts_id',
+                'public.topic_post_days.topics_id',
+                'unsharded_public.topic_posts.topic_post_days_id',
+                'unsharded_public.topic_posts.data',
+                'unsharded_public.topic_posts.post_id',
+                'unsharded_public.topic_posts.content',
+                'unsharded_public.topic_posts.publish_date',
+                'unsharded_public.topic_posts.author',
+                'unsharded_public.topic_posts.channel',
+                'unsharded_public.topic_posts.url',
+            ],
+            dst_columns=[
+                'topic_posts_id::BIGINT',
                 'topics_id',
-                'topic_post_days_id',
+                'topic_post_days_id::BIGINT',
                 'data',
-                'post_id',
+                'post_id::TEXT',
                 'content',
                 'publish_date',
-                'author',
-                'channel',
+                'author::TEXT',
+                'channel::TEXT',
                 'url',
+            ],
+            src_extra_using_clause='USING public.topic_post_days',
+            src_extra_where_clause="""
+                AND unsharded_public.topic_posts.topic_post_days_id = public.topic_post_days.topic_post_days_id
+            """,
+        )
+
+        # FIXME depends on topic_posts being moved first
+        self._move_generic_table_rows(
+            src_table='topic_post_urls',
+            dst_table='topic_post_urls',
+            src_id_column='topic_post_urls_id',
+            # 50,726,436 in source table; 25 chunks
+            chunk_size=2_000_000,
+            src_columns=[
+                'public.topic_post_days.topics_id',
+                'unsharded_public.topic_post_urls.topic_posts_id',
+                'unsharded_public.topic_post_urls.url',
+            ],
+            dst_columns=[
+                'topic_post_days.topics_id',
+                'topic_post_urls.topic_posts_id::BIGINT',
+                'topic_post_urls.url::TEXT',
+            ],
+            src_extra_using_clause='USING sharded_public.topic_posts, public.topic_post_days',
+            src_extra_where_clause="""
+                AND unsharded_public.topic_post_urls.topic_posts_id = sharded_public.topic_posts.topic_posts_id
+                AND sharded_public.topic_posts.topic_post_days_id = public.topic_post_days.topic_post_days_id
+            """,
+        )
+
+        self._move_generic_table_rows_pkey(
+            table='topic_seed_urls',
+            # 499,926,808 in source table; 50 chunks
+            chunk_size=10_000_000,
+            src_columns_sans_pkey=[
+                'topics_id',
+                'url',
+                'source',
+                'stories_id',
+                'processed',
+                'assume_match',
+                'content',
+                'guid',
+                'title',
+                'publish_date',
+                'topic_seed_queries_id',
+                'topic_post_urls_id',
             ],
             dst_columns_sans_pkey=[
                 'topics_id::BIGINT',
                 'url',
-                'code',
-                'fetch_date',
-                'state',
-                'message',
+                'source',
                 'stories_id::BIGINT',
+                'processed',
                 'assume_match',
+                'content',
+                'guid',
+                'title',
+                'publish_date',
+                'topic_seed_queries_id::BIGINT',
+                'topic_post_urls_id::BIGINT',
+            ],
+        )
+
+        self._move_generic_table_rows(
+            schema='snap',
+            src_table='stories',
+            dst_table='stories',
+            src_id_column='snapshots_id',
+            # MAX(snapshots_id) = 7690 in source table; 52 chunks
+            chunk_size=150,
+            src_columns=[
+                'public.snapshots.topics_id',
+                'unsharded_snap.stories.snapshots_id',
+                'unsharded_snap.stories.stories_id',
+                'unsharded_snap.stories.media_id',
+                'unsharded_snap.stories.url',
+                'unsharded_snap.stories.guid',
+                'unsharded_snap.stories.title',
+                'unsharded_snap.stories.publish_date',
+                'unsharded_snap.stories.collect_date',
+                'unsharded_snap.stories.full_text_rss',
+                'unsharded_snap.stories.language',
+            ],
+            dst_columns=[
+                'topics_id',
+                'snapshots_id::BIGINT',
+                'stories_id::BIGINT',
+                'media_id::BIGINT',
+                'url::TEXT',
+                'guid::TEXT',
+                'title',
+                'publish_date',
+                'collect_date',
+                'full_text_rss',
+                'language',
+            ],
+            src_extra_using_clause='USING public.snapshots',
+            src_extra_where_clause="AND unsharded_snap.stories.snapshots_id = public.snapshots.snapshots_id",
+        )
+
+        self._move_generic_table_rows(
+            schema='snap',
+            src_table='topic_stories',
+            dst_table='topic_stories',
+            src_id_column='snapshots_id',
+            # MAX(snapshots_id) = 7690 in source table; 52 chunks
+            chunk_size=150,
+            src_columns=[
+                'topics_id',
+                'snapshots_id',
+                'topic_stories_id',
+                'stories_id',
+                'link_mined',
+                'iteration',
+                'link_weight',
+                'redirect_url',
+                'valid_foreign_rss_story',
+            ],
+            dst_columns=[
+                'topics_id::BIGINT',
+                'snapshots_id::BIGINT',
+                'topic_stories_id::BIGINT',
+                'stories_id::BIGINT',
+                'link_mined',
+                'iteration::BIGINT',
+                'link_weight',
+                'redirect_url',
+                'valid_foreign_rss_story',
+            ],
+        )
+
+        self._move_generic_table_rows(
+            schema='snap',
+            src_table='topic_links_cross_media',
+            dst_table='topic_links_cross_media',
+            src_id_column='snapshots_id',
+            # MAX(snapshots_id) = 7690 in source table; 52 chunks
+            chunk_size=150,
+            src_columns=[
+                'topics_id',
+                'snapshots_id',
+                'topic_links_id',
+                'stories_id',
+                'url',
+                'ref_stories_id',
+            ],
+            dst_columns=[
+                'topics_id::BIGINT',
+                'snapshots_id::BIGINT',
                 'topic_links_id::BIGINT',
+                'stories_id::BIGINT',
+                'url',
+                'ref_stories_id::BIGINT',
+            ],
+        )
+
+        self._move_generic_table_rows(
+            schema='snap',
+            src_table='media',
+            dst_table='media',
+            src_id_column='snapshots_id',
+            # MAX(snapshots_id) = 7690 in source table; 52 chunks
+            chunk_size=150,
+            src_columns=[
+                'public.snapshots.topics_id',
+                'unsharded_snap.media.snapshots_id',
+                'unsharded_snap.media.media_id',
+                'unsharded_snap.media.url',
+                'unsharded_snap.media.name',
+                'unsharded_snap.media.full_text_rss',
+                'unsharded_snap.media.foreign_rss_links',
+                'unsharded_snap.media.dup_media_id',
+                'unsharded_snap.media.is_not_dup',
+            ],
+            dst_columns=[
+                'topics_id',
+                'snapshots_id::BIGINT',
+                'media_id::BIGINT',
+                'url::TEXT',
+                'name::TEXT',
+                'full_text_rss',
+                'foreign_rss_links',
+                'dup_media_id::BIGINT',
+                'is_not_dup',
+            ],
+            src_extra_using_clause='USING public.snapshots',
+            src_extra_where_clause="AND unsharded_snap.media.snapshots_id = public.snapshots.snapshots_id",
+        )
+
+        self._move_generic_table_rows(
+            schema='snap',
+            src_table='media_tags_map',
+            dst_table='media_tags_map',
+            src_id_column='snapshots_id',
+            # MAX(snapshots_id) = 7690 in source table; 52 chunks
+            chunk_size=150,
+            src_columns=[
+                'public.snapshots.topics_id',
+                'unsharded_snap.snap_media_tags_map.snapshots_id',
+                'unsharded_snap.snap_media_tags_map.media_tags_map_id',
+                'unsharded_snap.snap_media_tags_map.media_id',
+                'unsharded_snap.snap_media_tags_map.tags_id',
+            ],
+            dst_columns=[
+                'topics_id',
+                'snapshots_id::BIGINT',
+                'media_tags_map_id::BIGINT',
+                'media_id::BIGINT',
+                'tags_id::BIGINT',
+            ],
+            src_extra_using_clause='USING public.snapshots',
+            src_extra_where_clause="""
+                AND unsharded_snap.snap_media_tags_map.snapshots_id = public.snapshots.snapshots_id
+            """,
+        )
+
+        self._move_generic_table_rows(
+            schema='snap',
+            src_table='stories_tags_map',
+            dst_table='stories_tags_map',
+            src_id_column='snapshots_id',
+            # MAX(snapshots_id) = 7690 in source table; 52 chunks
+            chunk_size=150,
+            src_columns=[
+                'public.snapshots.topics_id',
+                'unsharded_snap.snap_media_tags_map.snapshots_id',
+                'unsharded_snap.snap_media_tags_map.stories_tags_map_id',
+                'unsharded_snap.snap_media_tags_map.stories_id',
+                'unsharded_snap.snap_media_tags_map.tags_id',
+            ],
+            dst_columns=[
+                'topics_id',
+                'snapshots_id::BIGINT',
+                'stories_tags_map_id::BIGINT',
+                'stories_id::BIGINT',
+                'tags_id::BIGINT',
+            ],
+            src_extra_using_clause='USING public.snapshots',
+            src_extra_where_clause="""
+                AND unsharded_snap.stories_tags_map.snapshots_id = public.snapshots.snapshots_id
+            """,
+        )
+
+        self._move_generic_table_rows(
+            schema='snap',
+            src_table='story_links',
+            dst_table='story_links',
+            src_id_column='timespans_id',
+            # MAX(timespans_id) = 1_362_209 in source table; 28 chunks
+            chunk_size=50_000,
+            src_columns=[
+                'public.timespans.topics_id',
+                'unsharded_snap.story_links.timespans_id',
+                'unsharded_snap.story_links.source_stories_id',
+                'unsharded_snap.story_links.ref_stories_id',
+            ],
+            dst_columns=[
+                'topics_id',
+                'timespans_id::BIGINT',
+                'source_stories_id::BIGINT',
+                'ref_stories_id::BIGINT',
+            ],
+            src_extra_using_clause='USING public.timespans',
+            src_extra_where_clause="""
+                AND unsharded_snap.story_links.timespans_id = public.timespans.timespans_id
+            """,
+        )
+
+        self._move_generic_table_rows(
+            schema='snap',
+            src_table='story_link_counts',
+            dst_table='story_link_counts',
+            src_id_column='timespans_id',
+            # MAX(timespans_id) = 1_362_209 in source table; 28 chunks
+            chunk_size=50_000,
+            src_columns=[
+                'public.timespans.topics_id',
+                'unsharded_snap.story_link_counts.timespans_id',
+                'unsharded_snap.story_link_counts.stories_id',
+                'unsharded_snap.story_link_counts.media_inlink_count',
+                'unsharded_snap.story_link_counts.inlink_count',
+                'unsharded_snap.story_link_counts.outlink_count',
+                'unsharded_snap.story_link_counts.facebook_share_count',
+                'unsharded_snap.story_link_counts.post_count',
+                'unsharded_snap.story_link_counts.author_count',
+                'unsharded_snap.story_link_counts.channel_count',
+            ],
+            dst_columns=[
+                'topics_id',
+                'timespans_id::BIGINT',
+                'stories_id::BIGINT',
+                'media_inlink_count::BIGINT',
+                'inlink_count::BIGINT',
+                'outlink_count::BIGINT',
+                'facebook_share_count::BIGINT',
+                'post_count::BIGINT',
+                'author_count::BIGINT',
+                'channel_count::BIGINT',
+            ],
+            src_extra_using_clause='USING public.timespans',
+            src_extra_where_clause="""
+                AND unsharded_snap.story_link_counts.timespans_id = public.timespans.timespans_id
+            """,
+        )
+
+        self._move_generic_table_rows(
+            schema='snap',
+            src_table='medium_link_counts',
+            dst_table='medium_link_counts',
+            src_id_column='timespans_id',
+            # MAX(timespans_id) = 1_362_209 in source table; 28 chunks
+            chunk_size=50_000,
+            src_columns=[
+                'public.timespans.topics_id',
+                'unsharded_snap.medium_link_counts.timespans_id',
+                'unsharded_snap.medium_link_counts.media_id',
+                'unsharded_snap.medium_link_counts.sum_media_inlink_count',
+                'unsharded_snap.medium_link_counts.media_inlink_count',
+                'unsharded_snap.medium_link_counts.inlink_count',
+                'unsharded_snap.medium_link_counts.outlink_count',
+                'unsharded_snap.medium_link_counts.story_count',
+                'unsharded_snap.medium_link_counts.facebook_share_count',
+                'unsharded_snap.medium_link_counts.sum_post_count',
+                'unsharded_snap.medium_link_counts.sum_author_count',
+                'unsharded_snap.medium_link_counts.sum_channel_count',
+            ],
+            dst_columns=[
+                'topics_id',
+                'timespans_id::BIGINT',
+                'media_id::BIGINT',
+                'sum_media_inlink_count::BIGINT',
+                'media_inlink_count::BIGINT',
+                'inlink_count::BIGINT',
+                'outlink_count::BIGINT',
+                'story_count::BIGINT',
+                'facebook_share_count::BIGINT',
+                'sum_post_count::BIGINT',
+                'sum_author_count::BIGINT',
+                'sum_channel_count::BIGINT',
+            ],
+            src_extra_using_clause='USING public.timespans',
+            src_extra_where_clause="""
+                AND unsharded_snap.medium_link_counts.timespans_id = public.timespans.timespans_id
+            """,
+        )
+
+        self._move_generic_table_rows(
+            schema='snap',
+            src_table='medium_links',
+            dst_table='medium_links',
+            src_id_column='timespans_id',
+            # MAX(timespans_id) = 1_362_209 in source table; 28 chunks
+            chunk_size=50_000,
+            src_columns=[
+                'public.timespans.topics_id',
+                'unsharded_snap.medium_links.timespans_id',
+                'unsharded_snap.medium_links.source_media_id',
+                'unsharded_snap.medium_links.ref_media_id',
+                'unsharded_snap.medium_links.link_count',
+            ],
+            dst_columns=[
+                'topics_id',
+                'timespans_id::BIGINT',
+                'source_media_id::BIGINT',
+                'ref_media_id::BIGINT',
+                'link_count::BIGINT',
+            ],
+            src_extra_using_clause='USING public.timespans',
+            src_extra_where_clause="AND unsharded_snap.medium_links.timespans_id = public.timespans.timespans_id",
+        )
+
+        # FIXME have to copy topic_posts first
+        self._move_generic_table_rows(
+            schema='snap',
+            src_table='timespan_posts',
+            dst_table='timespan_posts',
+            src_id_column='timespans_id',
+            # MAX(timespans_id) = 95_486_498 in source table; 20 chunks
+            chunk_size=5_000_000,
+            src_columns=[
+                'public.timespans.topics_id',
+                'unsharded_snap.timespan_posts.timespans_id',
+                'unsharded_snap.timespan_posts.topic_posts_id',
+            ],
+            dst_columns=[
+                'topics_id',
+                'timespans_id::BIGINT',
+                'topic_posts_id::BIGINT',
+            ],
+            src_extra_using_clause='USING public.timespans',
+            src_extra_where_clause="AND unsharded_snap.timespan_posts.timespans_id = public.timespans.timespans_id",
+        )
+
+        # FIXME have to copy topic_stories first
+        self._move_generic_table_rows(
+            schema='snap',
+            src_table='live_stories',
+            dst_table='live_stories',
+            src_id_column='topic_stories_id',
+            # MAX(topic_stories_id) = 165_082_931 in source table; 34 chunks
+            chunk_size=5_000_000,
+            src_columns=[
+                'topics_id',
+                'topic_stories_id',
+                'stories_id',
+                'media_id',
+                'url',
+                'guid',
+                'title',
+                'normalized_title_hash',
+                'description',
+                'publish_date',
+                'collect_date',
+                'full_text_rss',
+                'language',
+            ],
+            dst_columns=[
+                'topics_id::BIGINT',
+                'topic_stories_id::BIGINT',
+                'stories_id::BIGINT',
+                'media_id::BIGINT',
+                'url::TEXT',
+                'guid::TEXT',
+                'title',
+                'normalized_title_hash',
+                'description',
+                'publish_date',
+                'collect_date',
+                'full_text_rss',
+                'language',
             ],
         )
