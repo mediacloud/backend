@@ -3404,7 +3404,7 @@ SELECT create_distributed_table('snap.media', 'topics_id', colocate_with => 'top
 CREATE INDEX snap_media_topics_id
     ON snap.media (topics_id);
 
-CREATE INDEX snap_media_snapshots_id_media_id
+CREATE UNIQUE INDEX snap_media_snapshots_id_media_id
     ON snap.media (topics_id, snapshots_id, media_id);
 
 

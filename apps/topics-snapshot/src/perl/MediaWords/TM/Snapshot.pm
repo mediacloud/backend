@@ -1269,7 +1269,7 @@ SQL
     DEBUG( "creating snapshot_media ..." );
     $db->query( <<SQL,
         CREATE TEMPORARY TABLE snapshot_media AS
-            SELECT
+            SELECT DISTINCT
                 ?::BIGINT AS topics_id,
                 media.*
             FROM media
