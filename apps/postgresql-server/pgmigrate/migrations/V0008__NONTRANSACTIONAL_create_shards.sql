@@ -1420,7 +1420,7 @@ SELECT create_distributed_table('stories', 'stories_id', colocate_with => 'none'
 CREATE INDEX stories_media_id ON stories (media_id);
 
 -- We can't enforce index uniqueness across shards so add_story() has to take care of that instead
-CREATE INDEX stories_media_id_guid on stories (media_id, guid);
+CREATE INDEX stories_media_id_guid ON stories (media_id, guid);
 
 CREATE INDEX stories_url ON stories USING HASH (url);
 CREATE INDEX stories_publish_date ON stories (publish_date);
@@ -2609,10 +2609,10 @@ CREATE INDEX topic_fetch_urls_topics_id_state_pending
     ON topic_fetch_urls (topics_id)
     WHERE state = 'pending';
 
-CREATE INDEX topic_fetch_urls_url on topic_fetch_urls USING HASH (url);
+CREATE INDEX topic_fetch_urls_url ON topic_fetch_urls USING HASH (url);
 
 -- MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK Remove backwards compatible index after sharding
-CREATE INDEX topic_fetch_urls_url_md5 on topic_fetch_urls USING HASH (md5(url));
+CREATE INDEX topic_fetch_urls_url_md5 ON topic_fetch_urls USING HASH (md5(url));
 
 CREATE INDEX topic_fetch_urls_topic_links_id ON topic_fetch_urls (topic_links_id);
 
@@ -2625,7 +2625,7 @@ CREATE TABLE topic_ignore_redirects
 
 SELECT create_reference_table('topic_ignore_redirects');
 
-CREATE INDEX topic_ignore_redirects_url on topic_ignore_redirects USING HASH (url);
+CREATE INDEX topic_ignore_redirects_url ON topic_ignore_redirects USING HASH (url);
 
 
 CREATE TYPE bot_policy_type AS ENUM (
@@ -3643,7 +3643,7 @@ CREATE INDEX snap_live_stories_topics_id
     ON snap.live_stories (topics_id);
 
 CREATE UNIQUE INDEX snap_live_stories_topics_id_stories_id
-    on snap.live_stories (topics_id, stories_id);
+    ON snap.live_stories (topics_id, stories_id);
 
 CREATE INDEX snap_live_stories_stories_id
     ON snap.live_stories (stories_id);
