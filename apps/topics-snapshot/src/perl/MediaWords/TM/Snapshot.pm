@@ -1284,7 +1284,7 @@ SQL
     DEBUG( "creating snapshot_topic_links_cross_media" );
     $db->query( <<SQL,
         CREATE TEMPORARY TABLE snapshot_topic_links_cross_media AS
-            SELECT
+            SELECT DISTINCT
                 s.stories_id,
                 r.stories_id AS ref_stories_id,
                 cl.url,

@@ -3359,6 +3359,9 @@ CREATE INDEX snap_topic_links_cross_media_topics_id_snapshots_id_stories_id
 CREATE INDEX snap_topic_links_cross_media_topics_id_snapshots_id_ref_sid
     ON snap.topic_links_cross_media (topics_id, snapshots_id, ref_stories_id);
 
+CREATE UNIQUE INDEX snap_topic_links_cross_media_topics_id_snapshots_id_stories_id_ref_stories_id
+    ON snap.topic_links_cross_media (topics_id, snapshots_id, stories_id, ref_stories_id);
+
 
 CREATE TABLE snap.topic_media_codes
 (
