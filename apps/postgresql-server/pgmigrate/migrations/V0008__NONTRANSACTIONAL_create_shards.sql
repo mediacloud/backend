@@ -3321,7 +3321,7 @@ CREATE INDEX snap_topic_stories_topics_id
 CREATE INDEX snap_topic_stories_topics_id_snapshots_id
     ON snap.topic_stories (topics_id, snapshots_id);
 
-CREATE INDEX snap_topic_stories_topics_id_snapshots_id_stories_id
+CREATE UNIQUE INDEX snap_topic_stories_topics_id_snapshots_id_stories_id
     ON snap.topic_stories (topics_id, snapshots_id, stories_id);
 
 
