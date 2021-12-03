@@ -3612,6 +3612,9 @@ CREATE INDEX snap_medium_links_topics_id_timespans_id_source_media_id
 CREATE INDEX snap_medium_links_topics_id_timespans_id_ref_media_id
     ON snap.medium_links (topics_id, timespans_id, ref_media_id);
 
+CREATE UNIQUE INDEX snap_medium_links_topics_id_timespans_id_source_media_id_ref_media_id
+    ON snap.medium_links (topics_id, timespans_id, source_media_id, ref_media_id);
+
 
 -- create a mirror of the stories table with the stories for each topic.  this is to make
 -- it much faster to query the stories associated with a given topic, rather than querying the

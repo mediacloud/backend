@@ -734,7 +734,7 @@ sub _write_medium_links_snapshot
 
     $db->query( <<SQL
         CREATE TEMPORARY TABLE snapshot_medium_links AS
-            SELECT
+            SELECT DISTINCT
                 sl.topics_id,
                 s.media_id AS source_media_id,
                 r.media_id AS ref_media_id,
