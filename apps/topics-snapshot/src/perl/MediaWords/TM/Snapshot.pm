@@ -1315,7 +1315,7 @@ SQL
 
     $db->query( <<SQL
         CREATE TEMPORARY TABLE snapshot_media_tags_map AS
-            SELECT
+            SELECT DISTINCT
                 snapshot_media.topics_id,
                 media_tags_map.*
             FROM

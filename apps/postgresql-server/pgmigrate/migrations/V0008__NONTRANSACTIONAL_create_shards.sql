@@ -3433,6 +3433,9 @@ CREATE INDEX snap_media_tags_map_topics_id_snapshots_id_media_id
 CREATE INDEX snap_media_tags_map_topics_id_snapshots_id_tags_id
     ON snap.media_tags_map (topics_id, snapshots_id, tags_id);
 
+CREATE UNIQUE INDEX snap_media_tags_map_topics_id_snapshots_id_media_id_tags_id
+    ON snap.media_tags_map (topics_id, snapshots_id, media_id, tags_id);
+
 
 CREATE TABLE snap.stories_tags_map
 (
