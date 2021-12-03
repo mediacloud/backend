@@ -3522,7 +3522,7 @@ CREATE INDEX snap_story_link_counts_topics_id
     ON snap.story_link_counts (topics_id);
 
 -- TODO: add complex foreign key to check that stories_id exists for the snapshot stories snapshot
-CREATE INDEX snap_story_link_counts_topics_id_timespans_id_stories_id
+CREATE UNIQUE INDEX snap_story_link_counts_topics_id_timespans_id_stories_id
     ON snap.story_link_counts (topics_id, timespans_id, stories_id);
 
 CREATE INDEX snap_story_link_counts_stories_id
