@@ -16,9 +16,9 @@ MediaWords::TM::Snapshot - Snapshot and analyze topic data
     setup_temporary_snapshot_views( $db, $timespan );
 
     # query data
-    my $story_links = $db->query( "select * from snapshot_story_links" )->hashes;
-    my $story_link_counts = $db->query( "select * from story_link_counts" )->hashes;
-    my $snapshot_stories = $db->query( "select * from snapshot_stories" )->hashes;
+    my $story_links = $db->query( "SELECT * FROM snapshot_story_links" )->hashes;
+    my $story_link_counts = $db->query( "SELECT * FROM story_link_counts" )->hashes;
+    my $snapshot_stories = $db->query( "SELECT * FROM snapshot_stories" )->hashes;
 
     discard_temp_tables_and_views( $db );
 
