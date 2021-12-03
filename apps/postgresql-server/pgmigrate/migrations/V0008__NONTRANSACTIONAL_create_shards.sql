@@ -3484,6 +3484,9 @@ CREATE INDEX snap_story_links_topics_id_timespans_id_source_stories_id
 CREATE INDEX snap_story_links_topics_id_timespans_id_ref_stories_id
     ON snap.story_links (topics_id, timespans_id, ref_stories_id);
 
+CREATE UNIQUE INDEX snap_story_links_topics_id_timespans_id_source_stories_id_ref_stories_id
+    ON snap.story_links (topics_id, timespans_id, source_stories_id, ref_stories_id);
+
 
 -- link counts for stories within a timespan
 CREATE TABLE snap.story_link_counts

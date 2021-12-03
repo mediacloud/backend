@@ -496,7 +496,7 @@ SQL
         $db->query( <<"SQL",
             CREATE TEMPORARY TABLE snapshot_story_links AS
 
-                SELECT
+                SELECT DISTINCT
                     cl.topics_id,
                     cl.stories_id AS source_stories_id,
                     cl.ref_stories_id
