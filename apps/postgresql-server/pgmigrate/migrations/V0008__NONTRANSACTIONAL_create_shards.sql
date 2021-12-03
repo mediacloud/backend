@@ -3571,7 +3571,7 @@ CREATE INDEX snap_medium_link_counts_topics_id
     ON snap.medium_link_counts (topics_id);
 
 -- TODO: add complex foreign key to check that media_id exists for the snapshot media snapshot
-CREATE INDEX snap_medium_link_counts_topics_id_timespans_id_media_id
+CREATE UNIQUE INDEX snap_medium_link_counts_topics_id_timespans_id_media_id
     ON snap.medium_link_counts (topics_id, timespans_id, media_id);
 
 CREATE INDEX snap_medium_link_counts_topics_id_timespans_id_facebook_sc
