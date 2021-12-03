@@ -3458,6 +3458,9 @@ CREATE INDEX snap_stories_tags_map_topics_id_snapshots_id_stories_id
 CREATE INDEX snap_stories_tags_map_topics_id_snapshots_id_tags_id
     ON snap.stories_tags_map (topics_id, snapshots_id, tags_id);
 
+CREATE UNIQUE INDEX snap_stories_tags_map_topics_id_snapshots_id_stories_id_tags_id
+    ON snap.stories_tags_map (topics_id, snapshots_id, stories_id, tags_id);
+
 
 -- story -> story links within a timespan
 CREATE TABLE snap.story_links

@@ -1107,13 +1107,19 @@ SQL
         $snapshot->{ topics_id }
     );
 
+    $db->query( <<SQL
+        CREATE UNIQUE INDEX snapshot_stories_tags_map_topics_id_stories_id_tags_id
+            ON snapshot_stories_tags_map (topics_id, stories_id, tags_id)
+SQL
+    );
+
     $db->query( <<SQL, 
         INSERT INTO snapshot_stories_tags_map (
             topics_id,
             stories_id,
             tags_id
         )
-            SELECT
+            SELECT DISTINCT
                 topics_id,
                 stories_id,
                 tags_id
@@ -1151,6 +1157,7 @@ SQL
         $db->query( <<"SQL"
             INSERT INTO snapshot_stories_tags_map (topics_id, stories_id, tags_id)
             VALUES $values_list
+            ON CONFLICT (topics_id, stories_id, tags_id) DO NOTHING
 SQL
         );
     }   
