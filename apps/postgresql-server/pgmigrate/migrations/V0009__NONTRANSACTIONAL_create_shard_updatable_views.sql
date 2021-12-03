@@ -1500,7 +1500,8 @@ SELECT topics_id::BIGINT,
        media_id::BIGINT,
        code_type,
        code
-FROM unsharded_public.topic_media_codes;
+FROM unsharded_public.topic_media_codes
+ON CONFLICT (topics_id, media_id, code_type) DO NOTHING;
 
 TRUNCATE unsharded_public.topic_media_codes;
 DROP TABLE unsharded_public.topic_media_codes;
@@ -2092,7 +2093,8 @@ SELECT topics_id::BIGINT,
        media_id::BIGINT,
        code_type,
        code
-FROM unsharded_snap.topic_media_codes;
+FROM unsharded_snap.topic_media_codes
+ON CONFLICT (topics_id, snapshots_id, media_id, code_type) DO NOTHING;
 
 TRUNCATE unsharded_snap.topic_media_codes;
 DROP TABLE unsharded_snap.topic_media_codes;

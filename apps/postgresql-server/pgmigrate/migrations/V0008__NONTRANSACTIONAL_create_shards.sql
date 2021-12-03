@@ -2404,9 +2404,14 @@ CREATE TABLE topic_media_codes
 
 SELECT create_reference_table('topic_media_codes');
 
-CREATE INDEX topic_media_codes_topics_id ON topic_media_codes (topics_id);
+CREATE INDEX topic_media_codes_topics_id
+    ON topic_media_codes (topics_id);
 
-CREATE INDEX topic_media_codes_media_id ON topic_media_codes (media_id);
+CREATE INDEX topic_media_codes_media_id
+    ON topic_media_codes (media_id);
+
+CREATE UNIQUE INDEX topic_media_codes_topics_id_media_id_code_type
+    ON topic_media_codes (topics_id, media_id, code_type);
 
 
 CREATE TABLE topic_merged_stories_map
@@ -3384,6 +3389,9 @@ CREATE INDEX snap_topic_media_codes_topics_id
 
 CREATE INDEX snap_topic_media_codes_topics_id_snapshots_id_media_id
     ON snap.topic_media_codes (topics_id, snapshots_id, media_id);
+
+CREATE UNIQUE INDEX snap_topic_media_codes_topics_id_snapshots_id_media_id_code_type
+    ON snap.topic_media_codes (topics_id, snapshots_id, media_id, code_type);
 
 
 CREATE TABLE snap.media
