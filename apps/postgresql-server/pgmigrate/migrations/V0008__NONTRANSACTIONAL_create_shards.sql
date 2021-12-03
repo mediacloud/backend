@@ -1419,7 +1419,8 @@ SELECT create_distributed_table('stories', 'stories_id', colocate_with => 'none'
 
 CREATE INDEX stories_media_id ON stories (media_id);
 
--- We can't enforce index uniqueness across shards so add_story() has to take care of that instead
+-- We can't enforce index uniqueness across shards so a trigger will try to
+-- ensure that there are no (media_id, guid) duplicates
 CREATE INDEX stories_media_id_guid ON stories (media_id, guid);
 
 CREATE INDEX stories_url ON stories USING HASH (url);
