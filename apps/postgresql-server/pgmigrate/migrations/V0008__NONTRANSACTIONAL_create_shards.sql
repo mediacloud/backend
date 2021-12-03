@@ -3289,9 +3289,11 @@ CREATE TABLE snap.stories
 -- noinspection SqlResolve @ routine/"create_distributed_table"
 SELECT create_distributed_table('snap.stories', 'topics_id', colocate_with => 'topic_stories');
 
-CREATE INDEX snap_stories_topics_id ON snap.stories (topics_id);
+CREATE INDEX snap_stories_topics_id
+    ON snap.stories (topics_id);
 
-CREATE INDEX snap_stories_topics_id_snapshots_id_stories_id ON snap.stories (topics_id, snapshots_id, stories_id);
+CREATE UNIQUE INDEX snap_stories_topics_id_snapshots_id_stories_id
+    ON snap.stories (topics_id, snapshots_id, stories_id);
 
 
 CREATE TABLE snap.topic_stories

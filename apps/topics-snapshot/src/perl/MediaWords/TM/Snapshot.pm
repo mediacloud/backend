@@ -1246,7 +1246,7 @@ SQL
     DEBUG( "creating snapshot_stories ..." );
     $db->query( <<SQL,
         CREATE TEMPORARY TABLE snapshot_stories AS
-            SELECT
+            SELECT DISTINCT
                 dcs.topics_id,
                 s.stories_id,
                 s.media_id,
