@@ -5,7 +5,7 @@ from temporal.workflow import Workflow
 
 from mediawords.db import connect_to_db_or_raise
 from mediawords.util.log import create_logger
-from mediawords.workflow.exceptions import McProgrammingError, McTransientError, McPermanentError
+from mediawords.workflow.exceptions import McProgrammingError
 
 from .workflow_interface import MoveRowsToShardsWorkflow, MoveRowsToShardsActivities
 
@@ -122,17 +122,17 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
             # No retry_parameters here as they get set individually in @activity_method()
         )
 
-    def _move_generic_table_rows(self,
-                                 src_table: str,
-                                 src_id_column: str,
-                                 dst_table: str,
-                                 chunk_size: int,
-                                 src_columns: List[str],
-                                 dst_columns: List[str],
-                                 schema: str = 'public',
-                                 src_extra_using_clause: str = '',
-                                 src_extra_where_clause: str = '',
-                                 dst_extra_on_conflict_clause: str = '') -> None:
+    async def _move_generic_table_rows(self,
+                                       src_table: str,
+                                       src_id_column: str,
+                                       dst_table: str,
+                                       chunk_size: int,
+                                       src_columns: List[str],
+                                       dst_columns: List[str],
+                                       schema: str = 'public',
+                                       src_extra_using_clause: str = '',
+                                       src_extra_where_clause: str = '',
+                                       dst_extra_on_conflict_clause: str = '') -> None:
         unsharded_table = f"unsharded_{schema}.{src_table}"
         sharded_table = f"sharded_{schema}.{dst_table}"
 
@@ -155,17 +155,17 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
 
         await self.activities.truncate_if_empty(unsharded_table)
 
-    def _move_generic_table_rows_pkey(self,
-                                      table: str,
-                                      chunk_size: int,
-                                      src_columns_sans_pkey: List[str],
-                                      dst_columns_sans_pkey: List[str],
-                                      schema: str = 'public',
-                                      dst_extra_on_conflict_clause: str = '') -> None:
+    async def _move_generic_table_rows_pkey(self,
+                                            table: str,
+                                            chunk_size: int,
+                                            src_columns_sans_pkey: List[str],
+                                            dst_columns_sans_pkey: List[str],
+                                            schema: str = 'public',
+                                            dst_extra_on_conflict_clause: str = '') -> None:
         # Same ID column name on both source and destination tables
         id_column = f"{table}_id"
 
-        self._move_generic_table_rows(
+        await self._move_generic_table_rows(
             src_table=table,
             dst_table=table,
             src_id_column=id_column,
@@ -177,7 +177,7 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
         )
 
     async def move_rows_to_shards(self) -> None:
-        self._move_generic_table_rows_pkey(
+        await self._move_generic_table_rows_pkey(
             table='auth_user_request_daily_counts',
             # 338,454,970 rows in source table; 17 chunks
             chunk_size=20_000_000,
@@ -196,7 +196,7 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
             dst_extra_on_conflict_clause='ON CONFLICT (email, day) DO NOTHING',
         )
 
-        self._move_generic_table_rows_pkey(
+        await self._move_generic_table_rows_pkey(
             table='media_stats',
             # 89,970,140 in source table; 9 chunks
             chunk_size=10_000_000,
@@ -217,7 +217,7 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
             dst_extra_on_conflict_clause='ON CONFLICT (media_id, stat_date) DO NOTHING',
         )
 
-        self._move_generic_table_rows(
+        await self._move_generic_table_rows(
             src_table='media_coverage_gaps',
             dst_table='media_coverage_gaps',
             src_id_column='media_id',
@@ -241,7 +241,7 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
             ],
         )
 
-        self._move_generic_table_rows_pkey(
+        await self._move_generic_table_rows_pkey(
             table='stories',
             # 2,119,319,121 in source table; 43 chunks
             chunk_size=50_000_000,
@@ -271,7 +271,7 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
             ],
         )
 
-        self._move_generic_table_rows_pkey(
+        await self._move_generic_table_rows_pkey(
             table='stories_ap_syndicated',
             # 1,715,725,719 in source table; 35 chunks
             chunk_size=50_000_000,
@@ -285,7 +285,7 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
             ],
         )
 
-        self._move_generic_table_rows_pkey(
+        await self._move_generic_table_rows_pkey(
             table='story_urls',
             # 2,223,082,697 in source table; 45 chunks
             chunk_size=50_000_000,
@@ -299,7 +299,7 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
             ],
         )
 
-        self._move_generic_table_rows(
+        await self._move_generic_table_rows(
             src_table='feeds_stories_map_p',
             dst_table='feeds_stories_map',
             src_id_column='feeds_stories_map_p_id',
@@ -317,7 +317,7 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
             ],
         )
 
-        self._move_generic_table_rows(
+        await self._move_generic_table_rows(
             src_table='stories_tags_map_p',
             dst_table='stories_tags_map',
             src_id_column='stories_tags_map_p_id',
@@ -335,7 +335,7 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
             ],
         )
 
-        self._move_generic_table_rows(
+        await self._move_generic_table_rows(
             src_table='story_sentences_p',
             dst_table='story_sentences',
             src_id_column='story_sentences_p_id',
@@ -363,7 +363,7 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
             ],
         )
 
-        self._move_generic_table_rows(
+        await self._move_generic_table_rows(
             src_table='solr_import_stories',
             dst_table='solr_import_stories',
             src_id_column='stories_id',
@@ -378,7 +378,7 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
             dst_extra_on_conflict_clause='ON CONFLICT (stories_id) DO NOTHING',
         )
 
-        self._move_generic_table_rows(
+        await self._move_generic_table_rows(
             src_table='solr_imported_stories',
             dst_table='solr_imported_stories',
             src_id_column='stories_id',
@@ -395,7 +395,7 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
             dst_extra_on_conflict_clause='ON CONFLICT (stories_id) DO NOTHING',
         )
 
-        self._move_generic_table_rows(
+        await self._move_generic_table_rows(
             src_table='topic_merged_stories_map',
             dst_table='topic_merged_stories_map',
             src_id_column='source_stories_id',
@@ -412,7 +412,7 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
             dst_extra_on_conflict_clause='ON CONFLICT (source_stories_id, target_stories_id) DO NOTHING',
         )
 
-        self._move_generic_table_rows_pkey(
+        await self._move_generic_table_rows_pkey(
             table='story_statistics',
             # Really small table, can copy everything on one go; 3 chunks
             chunk_size=1_000_000_000,
@@ -434,7 +434,7 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
             ],
         )
 
-        self._move_generic_table_rows_pkey(
+        await self._move_generic_table_rows_pkey(
             table='processed_stories',
             # 2,518,182,153 in source table; 51 chunks
             chunk_size=50_000_000,
@@ -447,7 +447,7 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
             dst_extra_on_conflict_clause='ON CONFLICT (stories_id) DO NOTHING',
         )
 
-        self._move_generic_table_rows_pkey(
+        await self._move_generic_table_rows_pkey(
             table='scraped_stories',
             # Really small table, can copy everything on one go; 3 chunks
             chunk_size=1_000_000_000,
@@ -461,7 +461,7 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
             ],
         )
 
-        self._move_generic_table_rows_pkey(
+        await self._move_generic_table_rows_pkey(
             table='story_enclosures',
             # 153,858,997 in source table; 16 chunks
             chunk_size=10_000_000,
@@ -479,7 +479,7 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
             ],
         )
 
-        self._move_generic_table_rows_pkey(
+        await self._move_generic_table_rows_pkey(
             table='downloads',
             # 3,320,927,402 in source table; 67 chunks
             chunk_size=50_000_000,
@@ -515,7 +515,7 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
             ],
         )
 
-        self._move_generic_table_rows_pkey(
+        await self._move_generic_table_rows_pkey(
             table='download_texts',
             # 2,821,237,383 in source table; 57 chunks
             chunk_size=50_000_000,
@@ -533,7 +533,7 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
             ],
         )
 
-        self._move_generic_table_rows_pkey(
+        await self._move_generic_table_rows_pkey(
             table='topic_stories',
             # 165,026,730 in source table; 34 chunks
             chunk_size=5_000_000,
@@ -559,7 +559,7 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
             ],
         )
 
-        self._move_generic_table_rows_pkey(
+        await self._move_generic_table_rows_pkey(
             table='topic_links',
             # 1,433,314,412 in source table; 29 chunks
             chunk_size=50_000_000,
@@ -581,7 +581,7 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
             ],
         )
 
-        self._move_generic_table_rows_pkey(
+        await self._move_generic_table_rows_pkey(
             table='topic_fetch_urls',
             # 705,821,290 in source table; 36 chunks
             chunk_size=20_000_000,
@@ -609,7 +609,7 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
             ],
         )
 
-        self._move_generic_table_rows(
+        await self._move_generic_table_rows(
             src_table='topic_posts',
             dst_table='topic_posts',
             src_id_column='topic_posts_id',
@@ -646,7 +646,7 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
         )
 
         # FIXME depends on topic_posts being moved first
-        self._move_generic_table_rows(
+        await self._move_generic_table_rows(
             src_table='topic_post_urls',
             dst_table='topic_post_urls',
             src_id_column='topic_post_urls_id',
@@ -669,7 +669,7 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
             """,
         )
 
-        self._move_generic_table_rows_pkey(
+        await self._move_generic_table_rows_pkey(
             table='topic_seed_urls',
             # 499,926,808 in source table; 50 chunks
             chunk_size=10_000_000,
@@ -703,7 +703,7 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
             ],
         )
 
-        self._move_generic_table_rows(
+        await self._move_generic_table_rows(
             schema='snap',
             src_table='stories',
             dst_table='stories',
@@ -738,9 +738,12 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
             ],
             src_extra_using_clause='USING public.snapshots',
             src_extra_where_clause="AND unsharded_snap.stories.snapshots_id = public.snapshots.snapshots_id",
+            dst_extra_on_conflict_clause="""
+                ON CONFLICT (topics_id, snapshots_id, stories_id) DO NOTHING
+            """,
         )
 
-        self._move_generic_table_rows(
+        await self._move_generic_table_rows(
             schema='snap',
             src_table='topic_stories',
             dst_table='topic_stories',
@@ -769,9 +772,12 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
                 'redirect_url',
                 'valid_foreign_rss_story',
             ],
+            dst_extra_on_conflict_clause="""
+                ON CONFLICT (topics_id, snapshots_id, stories_id) DO NOTHING
+            """,
         )
 
-        self._move_generic_table_rows(
+        await self._move_generic_table_rows(
             schema='snap',
             src_table='topic_links_cross_media',
             dst_table='topic_links_cross_media',
@@ -794,9 +800,12 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
                 'url',
                 'ref_stories_id::BIGINT',
             ],
+            dst_extra_on_conflict_clause="""
+                ON CONFLICT (topics_id, snapshots_id, stories_id, ref_stories_id) DO NOTHING
+            """,
         )
 
-        self._move_generic_table_rows(
+        await self._move_generic_table_rows(
             schema='snap',
             src_table='media',
             dst_table='media',
@@ -827,9 +836,12 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
             ],
             src_extra_using_clause='USING public.snapshots',
             src_extra_where_clause="AND unsharded_snap.media.snapshots_id = public.snapshots.snapshots_id",
+            dst_extra_on_conflict_clause="""
+                ON CONFLICT (topics_id, snapshots_id, media_id) DO NOTHING
+            """,
         )
 
-        self._move_generic_table_rows(
+        await self._move_generic_table_rows(
             schema='snap',
             src_table='media_tags_map',
             dst_table='media_tags_map',
@@ -854,9 +866,12 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
             src_extra_where_clause="""
                 AND unsharded_snap.snap_media_tags_map.snapshots_id = public.snapshots.snapshots_id
             """,
+            dst_extra_on_conflict_clause="""
+                ON CONFLICT (topics_id, snapshots_id, media_id, tags_id) DO NOTHING
+            """,
         )
 
-        self._move_generic_table_rows(
+        await self._move_generic_table_rows(
             schema='snap',
             src_table='stories_tags_map',
             dst_table='stories_tags_map',
@@ -881,9 +896,12 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
             src_extra_where_clause="""
                 AND unsharded_snap.stories_tags_map.snapshots_id = public.snapshots.snapshots_id
             """,
+            dst_extra_on_conflict_clause="""
+                ON CONFLICT (topics_id, snapshots_id, stories_id, tags_id) DO NOTHING
+            """,
         )
 
-        self._move_generic_table_rows(
+        await self._move_generic_table_rows(
             schema='snap',
             src_table='story_links',
             dst_table='story_links',
@@ -906,9 +924,12 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
             src_extra_where_clause="""
                 AND unsharded_snap.story_links.timespans_id = public.timespans.timespans_id
             """,
+            dst_extra_on_conflict_clause="""
+                ON CONFLICT (topics_id, timespans_id, source_stories_id, ref_stories_id) DO NOTHING
+            """,
         )
 
-        self._move_generic_table_rows(
+        await self._move_generic_table_rows(
             schema='snap',
             src_table='story_link_counts',
             dst_table='story_link_counts',
@@ -943,9 +964,12 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
             src_extra_where_clause="""
                 AND unsharded_snap.story_link_counts.timespans_id = public.timespans.timespans_id
             """,
+            dst_extra_on_conflict_clause="""
+                ON CONFLICT (topics_id, timespans_id, stories_id) DO NOTHING
+            """,
         )
 
-        self._move_generic_table_rows(
+        await self._move_generic_table_rows(
             schema='snap',
             src_table='medium_link_counts',
             dst_table='medium_link_counts',
@@ -984,9 +1008,12 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
             src_extra_where_clause="""
                 AND unsharded_snap.medium_link_counts.timespans_id = public.timespans.timespans_id
             """,
+            dst_extra_on_conflict_clause="""
+                ON CONFLICT (topics_id, timespans_id, media_id) DO NOTHING
+            """,
         )
 
-        self._move_generic_table_rows(
+        await self._move_generic_table_rows(
             schema='snap',
             src_table='medium_links',
             dst_table='medium_links',
@@ -1009,10 +1036,13 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
             ],
             src_extra_using_clause='USING public.timespans',
             src_extra_where_clause="AND unsharded_snap.medium_links.timespans_id = public.timespans.timespans_id",
+            dst_extra_on_conflict_clause="""
+                ON CONFLICT (topics_id, timespans_id, source_media_id, ref_media_id) DO NOTHING
+            """,
         )
 
         # FIXME have to copy topic_posts first
-        self._move_generic_table_rows(
+        await self._move_generic_table_rows(
             schema='snap',
             src_table='timespan_posts',
             dst_table='timespan_posts',
@@ -1034,7 +1064,7 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
         )
 
         # FIXME have to copy topic_stories first
-        self._move_generic_table_rows(
+        await self._move_generic_table_rows(
             schema='snap',
             src_table='live_stories',
             dst_table='live_stories',
