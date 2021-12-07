@@ -16,6 +16,22 @@ log = create_logger(__name__)
 class MoveRowsToShardsActivitiesImpl(MoveRowsToShardsActivities):
     """Activities implementation."""
 
+    async def min_column_value(self, table: str, id_column: str) -> int:
+        if '.' not in table:
+            raise McProgrammingError(f"Table name must contain schema: {table}")
+        if not table.startswith('unsharded_'):
+            raise McProgrammingError(f"Table name must start with 'unsharded_': {table}")
+        if '.' in id_column:
+            raise McProgrammingError(f"Invalid ID column name: {id_column}")
+
+        db = connect_to_db_or_raise()
+
+        min_id = db.query(f"""
+            SELECT MIN({id_column})
+            FROM {table}
+        """).flat()[0]
+        return min_id
+
     async def max_column_value(self, table: str, id_column: str) -> int:
         if '.' not in table:
             raise McProgrammingError(f"Table name must contain schema: {table}")
@@ -136,9 +152,10 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
         unsharded_table = f"unsharded_{schema}.{src_table}"
         sharded_table = f"sharded_{schema}.{dst_table}"
 
+        min_id = await self.activities.min_column_value(unsharded_table, src_id_column)
         max_id = await self.activities.max_column_value(unsharded_table, src_id_column)
 
-        for start_id in range(1, max_id + chunk_size, chunk_size):
+        for start_id in range(min_id, max_id + chunk_size, chunk_size):
             end_id = start_id + chunk_size
             await self.activities.move_chunk_of_rows(
                 unsharded_table,
@@ -299,69 +316,75 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
             ],
         )
 
-        await self._move_generic_table_rows(
-            src_table='feeds_stories_map_p',
-            dst_table='feeds_stories_map',
-            src_id_column='feeds_stories_map_p_id',
-            # 2,075,474,945 in source table; 42 chunks
-            chunk_size=50_000_000,
-            src_columns=[
-                'feeds_stories_map_p_id AS feeds_stories_map_id',
-                'feeds_id',
-                'stories_id',
-            ],
-            dst_columns=[
-                'feeds_stories_map_id::BIGINT',
-                'feeds_id::BIGINT',
-                'stories_id::BIGINT',
-            ],
-        )
+        max_stories_id = await self.activities.max_column_value('unsharded_public.feeds_stories_map', 'stories_id')
+        stories_id_chunk_size = 100_000_000
 
-        await self._move_generic_table_rows(
-            src_table='stories_tags_map_p',
-            dst_table='stories_tags_map',
-            src_id_column='stories_tags_map_p_id',
-            # 15,909,175,961 in source table; 32 chunks
-            chunk_size=500_000_000,
-            src_columns=[
-                'stories_tags_map_p_id AS stories_tags_map_id',
-                'stories_id',
-                'tags_id',
-            ],
-            dst_columns=[
-                'stories_tags_map_id::BIGINT',
-                'stories_id::BIGINT',
-                'tags_id::BIGINT',
-            ],
-        )
+        for partition_index in range(int(max_stories_id / stories_id_chunk_size) + 1):
+            await self._move_generic_table_rows(
+                src_table=f'feeds_stories_map_p_{str(partition_index).zfill(2)}',
+                dst_table='feeds_stories_map',
+                src_id_column='stories_id',
+                # 96,563,848 in source table; 10 chunks
+                chunk_size=10_000_000,
+                src_columns=[
+                    'feeds_stories_map_p_id AS feeds_stories_map_id',
+                    'feeds_id',
+                    'stories_id',
+                ],
+                dst_columns=[
+                    'feeds_stories_map_id::BIGINT',
+                    'feeds_id::BIGINT',
+                    'stories_id::BIGINT',
+                ],
+            )
 
-        await self._move_generic_table_rows(
-            src_table='story_sentences_p',
-            dst_table='story_sentences',
-            src_id_column='story_sentences_p_id',
-            # 44,738,767,120 in source table; 90 chunks
-            chunk_size=500_000_000,
-            src_columns=[
-                'story_sentences_p_id AS story_sentences_id',
-                'stories_id',
-                'sentence_number',
-                'sentence',
-                'media_id',
-                'publish_date',
-                'language',
-                'is_dup',
-            ],
-            dst_columns=[
-                'story_sentences_id::BIGINT',
-                'stories_id::BIGINT',
-                'sentence_number',
-                'sentence',
-                'media_id::BIGINT',
-                'publish_date',
-                'language',
-                'is_dup',
-            ],
-        )
+        for partition_index in range(int(max_stories_id / stories_id_chunk_size) + 1):
+            await self._move_generic_table_rows(
+                src_table=f'stories_tags_map_p_{str(partition_index).zfill(2)}',
+                dst_table='stories_tags_map',
+                src_id_column='stories_id',
+                # 547,023,872 in every partition; 28 chunks
+                chunk_size=20_000_000,
+                src_columns=[
+                    'stories_tags_map_p_id AS stories_tags_map_id',
+                    'stories_id',
+                    'tags_id',
+                ],
+                dst_columns=[
+                    'stories_tags_map_id::BIGINT',
+                    'stories_id::BIGINT',
+                    'tags_id::BIGINT',
+                ],
+            )
+
+        for partition_index in range(int(max_stories_id / stories_id_chunk_size) + 1):
+            await self._move_generic_table_rows(
+                src_table=f'story_sentences_p_{str(partition_index).zfill(2)}',
+                dst_table='story_sentences',
+                src_id_column='stories_id',
+                # 1,418,730,496 in every partition; 29 chunks
+                chunk_size=50_000_000,
+                src_columns=[
+                    'story_sentences_p_id AS story_sentences_id',
+                    'stories_id',
+                    'sentence_number',
+                    'sentence',
+                    'media_id',
+                    'publish_date',
+                    'language',
+                    'is_dup',
+                ],
+                dst_columns=[
+                    'story_sentences_id::BIGINT',
+                    'stories_id::BIGINT',
+                    'sentence_number',
+                    'sentence',
+                    'media_id::BIGINT',
+                    'publish_date',
+                    'language',
+                    'is_dup',
+                ],
+            )
 
         await self._move_generic_table_rows(
             src_table='solr_import_stories',
@@ -399,7 +422,7 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
             src_table='topic_merged_stories_map',
             dst_table='topic_merged_stories_map',
             src_id_column='source_stories_id',
-            # Really small table, can copy everything on one go; 3 chunks
+            # Rather small table, can copy everything on one go; 3 chunks
             chunk_size=1_000_000_000,
             src_columns=[
                 'source_stories_id',
@@ -414,7 +437,7 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
 
         await self._move_generic_table_rows_pkey(
             table='story_statistics',
-            # Really small table, can copy everything on one go; 3 chunks
+            # Rather small table, can copy everything on one go; 3 chunks
             chunk_size=1_000_000_000,
             src_columns_sans_pkey=[
                 'stories_id',
@@ -449,7 +472,7 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
 
         await self._move_generic_table_rows_pkey(
             table='scraped_stories',
-            # Really small table, can copy everything on one go; 3 chunks
+            # Rather small table, can copy everything on one go; 3 chunks
             chunk_size=1_000_000_000,
             src_columns_sans_pkey=[
                 'stories_id',
@@ -479,59 +502,90 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
             ],
         )
 
-        await self._move_generic_table_rows_pkey(
-            table='downloads',
-            # 3,320,927,402 in source table; 67 chunks
-            chunk_size=50_000_000,
-            src_columns_sans_pkey=[
-                'feeds_id',
-                'stories_id',
-                'parent',
-                'url',
-                'host',
-                'download_time',
-                'type',
-                'state',
-                'path',
-                'error_message',
-                'priority',
-                'sequence',
-                'extracted',
-            ],
-            dst_columns_sans_pkey=[
-                'feeds_id::BIGINT',
-                'stories_id::BIGINT',
-                'parent',
-                'url',
-                'host',
-                'download_time',
-                'type::TEXT::public.download_type',
-                'state::TEXT::public.download_state',
-                'path',
-                'error_message',
-                'priority',
-                'sequence',
-                'extracted',
-            ],
-        )
+        downloads_id_src_columns_sans_pkey = [
+            'feeds_id',
+            'stories_id',
+            'parent',
+            'url',
+            'host',
+            'download_time',
+            'type',
+            'state',
+            'path',
+            'error_message',
+            'priority',
+            'sequence',
+            'extracted',
+        ]
+        downloads_id_dst_columns_sans_pkey = [
+            'feeds_id::BIGINT',
+            'stories_id::BIGINT',
+            'parent',
+            'url',
+            'host',
+            'download_time',
+            'type::TEXT::public.download_type',
+            'state::TEXT::public.download_state',
+            'path',
+            'error_message',
+            'priority',
+            'sequence',
+            'extracted',
+        ]
+
+        max_downloads_id = await self.activities.max_column_value('unsharded_public.downloads', 'downloads_id')
+        downloads_id_chunk_size = stories_id_chunk_size
 
         await self._move_generic_table_rows_pkey(
-            table='download_texts',
-            # 2,821,237,383 in source table; 57 chunks
-            chunk_size=50_000_000,
-            src_columns_sans_pkey=[
-                'download_texts_id',
-                'downloads_id',
-                'download_text',
-                'download_text_length',
-            ],
-            dst_columns_sans_pkey=[
-                'download_texts_id',
-                'downloads_id',
-                'download_text',
-                'download_text_length',
-            ],
+            table='downloads_error',
+            # 114,330,304 in source table; 12 chunks
+            chunk_size=10_000_000,
+            src_columns_sans_pkey=downloads_id_src_columns_sans_pkey,
+            dst_columns_sans_pkey=downloads_id_dst_columns_sans_pkey,
         )
+
+        for partition_index in range(int(max_downloads_id / downloads_id_chunk_size) + 1):
+            await self._move_generic_table_rows(
+                src_table=f'downloads_success_content_{str(partition_index).zfill(2)}',
+                dst_table=f'downloads_success',
+                src_id_column='downloads_id',
+                # 65,003,792 in source table; 7 chunks
+                chunk_size=10_000_000,
+                src_columns=['downloads_id'] + downloads_id_src_columns_sans_pkey,
+                dst_columns=['downloads_id::BIGINT'] + downloads_id_dst_columns_sans_pkey,
+            )
+
+        for partition_index in range(int(max_downloads_id / downloads_id_chunk_size) + 1):
+            await self._move_generic_table_rows(
+                src_table=f'downloads_success_feed_{str(partition_index).zfill(2)}',
+                dst_table=f'downloads_success',
+                src_id_column='downloads_id',
+                # 45,088,116 in source table; 5 chunks
+                chunk_size=10_000_000,
+                src_columns=['downloads_id'] + downloads_id_src_columns_sans_pkey,
+                dst_columns=['downloads_id::BIGINT'] + downloads_id_dst_columns_sans_pkey,
+            )
+
+        for partition_index in range(int(max_downloads_id / downloads_id_chunk_size) + 1):
+            await self._move_generic_table_rows(
+                src_table=f'download_texts_{str(partition_index).zfill(2)}',
+                dst_table=f'download_texts',
+                src_id_column='downloads_id',
+                # 69,438,480 in source table; 7 chunks
+                chunk_size=10_000_000,
+                src_columns=[
+                    'download_texts_id',
+                    'downloads_id',
+                    'download_text',
+                    'download_text_length',
+                ],
+                dst_columns=[
+                    'download_texts_id',
+                    'downloads_id',
+                    'download_text',
+                    'download_text_length',
+                ],
+            )
 
         await self._move_generic_table_rows_pkey(
             table='topic_stories',

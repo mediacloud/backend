@@ -29,6 +29,21 @@ class MoveRowsToShardsActivities(object):
         start_to_close_timeout=timedelta(minutes=1),
         retry_parameters=DEFAULT_RETRY_PARAMETERS,
     )
+    async def min_column_value(self, table: str, id_column: str) -> int:
+        """
+        Return smallest value of a column in a table.
+
+        :param table: Table name with schema, e.g. "unsharded_public.stories".
+        :param id_column: Column name, e.g. "stories_id".
+        :return Smallest value of a column in a table.
+        """
+        raise NotImplementedError
+
+    @activity_method(
+        task_queue=TASK_QUEUE,
+        start_to_close_timeout=timedelta(minutes=1),
+        retry_parameters=DEFAULT_RETRY_PARAMETERS,
+    )
     async def max_column_value(self, table: str, id_column: str) -> int:
         """
         Return biggest value of a column in a table.
