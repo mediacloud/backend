@@ -15,10 +15,9 @@
       * [ ] **FIXME skip potential duplicate GUIDs at the start of the production's `stories` table**
     * [x] stories_ap_syndicated
     * [x] story_urls
-    * [x] feeds_stories_map
-    * [x] stories_tags_map
-      * [ ] **FIXME how am I going to truncate this table which is actually a view?**
-    * [x] story_sentences
+    * [ ] feeds_stories_map_p_\d\d
+    * [ ] stories_tags_map_p_\d\d
+    * [ ] story_sentences_p_\d\d
     * [x] solr_import_stories
       * [x] use ON CONFLICT
     * [x] solr_imported_stories
@@ -34,9 +33,9 @@
 
 * [x] downloads.downloads_id:
     * [ ] downloads_error
-    * [ ] downloads_success_content_*
-    * [ ] downloads_success_feed_*
-    * [x] download_texts
+    * [ ] downloads_success_content_\d\d
+    * [ ] downloads_success_feed_\d\d
+    * [ ] download_texts_\d\d
 
 * [x] topics.topics_id:
     * [x] topic_stories
