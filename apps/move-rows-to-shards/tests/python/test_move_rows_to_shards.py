@@ -1107,8 +1107,9 @@ async def test_workflow():
     )
 
     log.info("Starting workflow...")
+
     # Wait for the workflow to complete
-    # await workflow.move_rows_to_shards()
+    await workflow.move_rows_to_shards()
 
     # FIXME test everything out
 
