@@ -30,6 +30,10 @@ class MoveRowsToShardsActivitiesImpl(MoveRowsToShardsActivities):
             SELECT MIN({id_column})
             FROM {table}
         """).flat()[0]
+
+        if min_id is None:
+            raise McProgrammingError(f"MIN({id_column}) is NULL for {table}")
+
         return min_id
 
     async def max_column_value(self, table: str, id_column: str) -> int:
@@ -46,6 +50,10 @@ class MoveRowsToShardsActivitiesImpl(MoveRowsToShardsActivities):
             SELECT MAX({id_column})
             FROM {table}
         """).flat()[0]
+
+        if max_id is None:
+            raise McProgrammingError(f"MAX({id_column}) is NULL for {table}")
+
         return max_id
 
     async def move_chunk_of_rows(self,
@@ -86,6 +94,11 @@ class MoveRowsToShardsActivitiesImpl(MoveRowsToShardsActivities):
         log.debug(f"Disabling triggers...")
         db.query('SET session_replication_role = replica')
 
+        insert_columns = ', '.join(src_columns)
+
+        # Nasty hack: rename kinds like "feeds_stories_map_p_id" to "feeds_stories_map_id"
+        insert_columns = insert_columns.replace('_p_', '_')
+
         sql = f"""
             WITH deleted_rows AS (
                 DELETE FROM {src_table}
@@ -95,7 +108,7 @@ class MoveRowsToShardsActivitiesImpl(MoveRowsToShardsActivities):
                     {src_extra_where_clause}
                 RETURNING {', '.join(src_columns)}
             )
-            INSERT INTO {dst_table} ({', '.join(src_columns)})
+            INSERT INTO {dst_table} ({insert_columns})
                 SELECT {', '.join(dst_columns)}
                 FROM deleted_rows
             {dst_extra_on_conflict_clause}
@@ -325,12 +338,12 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
                 # 96,563,848 in source table; 10 chunks
                 chunk_size=10_000_000,
                 src_columns=[
-                    'feeds_stories_map_p_id AS feeds_stories_map_id',
+                    'feeds_stories_map_p_id',
                     'feeds_id',
                     'stories_id',
                 ],
                 dst_columns=[
-                    'feeds_stories_map_id::BIGINT',
+                    'feeds_stories_map_p_id::BIGINT AS feeds_stories_map_id',
                     'feeds_id::BIGINT',
                     'stories_id::BIGINT',
                 ],
@@ -344,12 +357,12 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
                 # 547,023,872 in every partition; 28 chunks
                 chunk_size=20_000_000,
                 src_columns=[
-                    'stories_tags_map_p_id AS stories_tags_map_id',
+                    'stories_tags_map_p_id',
                     'stories_id',
                     'tags_id',
                 ],
                 dst_columns=[
-                    'stories_tags_map_id::BIGINT',
+                    'stories_tags_map_p_id::BIGINT AS stories_tags_map_id',
                     'stories_id::BIGINT',
                     'tags_id::BIGINT',
                 ],
@@ -363,7 +376,7 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
                 # 1,418,730,496 in every partition; 29 chunks
                 chunk_size=50_000_000,
                 src_columns=[
-                    'story_sentences_p_id AS story_sentences_id',
+                    'story_sentences_p_id',
                     'stories_id',
                     'sentence_number',
                     'sentence',
@@ -373,7 +386,7 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
                     'is_dup',
                 ],
                 dst_columns=[
-                    'story_sentences_id::BIGINT',
+                    'story_sentences_p_id::BIGINT AS story_sentences_id',
                     'stories_id::BIGINT',
                     'sentence_number',
                     'sentence',
@@ -455,6 +468,25 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
             ],
         )
 
+        # FIXME fails with
+        #
+        # 2021-12-07 13:39:30 EST [64-1] mediacloud@mediacloud ERROR:  cannot use 2PC in transactions involving multiple servers
+        # 2021-12-07 13:39:30 EST [64-2] mediacloud@mediacloud STATEMENT:  PREPARE TRANSACTION 'citus_0_63_89_0'
+        # 2021-12-07 13:39:30 EST [63-1] mediacloud@mediacloud ERROR:  cannot use 2PC in transactions involving multiple servers
+        # 2021-12-07 13:39:30 EST [63-2] mediacloud@mediacloud CONTEXT:  while executing command on localhost:5432
+        # 2021-12-07 13:39:30 EST [63-3] mediacloud@mediacloud STATEMENT:
+        # 	            WITH deleted_rows AS (
+        # 	                DELETE FROM unsharded_public.processed_stories
+        #
+        # 	                WHERE
+        # 	                    processed_stories_id BETWEEN 1 AND 50000001
+        #
+        # 	                RETURNING processed_stories_id, stories_id
+        # 	            )
+        # 	            INSERT INTO sharded_public.processed_stories (processed_stories_id, stories_id)
+        # 	                SELECT processed_stories_id::BIGINT, stories_id::BIGINT
+        # 	                FROM deleted_rows
+        # 	            ON CONFLICT (stories_id) DO NOTHING
         await self._move_generic_table_rows_pkey(
             table='processed_stories',
             # 2,518,182,153 in source table; 51 chunks
@@ -500,7 +532,8 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
             ],
         )
 
-        downloads_id_src_columns_sans_pkey = [
+        downloads_id_src_columns = [
+            'downloads_id',
             'feeds_id',
             'stories_id',
             'parent',
@@ -515,7 +548,8 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
             'sequence',
             'extracted',
         ]
-        downloads_id_dst_columns_sans_pkey = [
+        downloads_id_dst_columns = [
+            'downloads_id::BIGINT',
             'feeds_id::BIGINT',
             'stories_id::BIGINT',
             'parent',
@@ -534,12 +568,29 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
         max_downloads_id = await self.activities.max_column_value('unsharded_public.downloads', 'downloads_id')
         downloads_id_chunk_size = stories_id_chunk_size
 
-        await self._move_generic_table_rows_pkey(
-            table='downloads_error',
+        # FIXME fails with:
+        #
+        # 2021-12-07 13:41:07 EST [91-1] mediacloud@mediacloud ERROR:  relation "sharded_public.downloads_error" does not exist at character 412
+        # 2021-12-07 13:41:07 EST [91-2] mediacloud@mediacloud STATEMENT:
+        # 	            WITH deleted_rows AS (
+        # 	                DELETE FROM unsharded_public.downloads_error
+        #
+        # 	                WHERE
+        # 	                    downloads_id BETWEEN 1 AND 10000001
+        #
+        # 	                RETURNING downloads_id, feeds_id, stories_id, parent, url, host, download_time, type, state, path, error_message, priority, sequence, extracted
+        # 	            )
+        # 	            INSERT INTO sharded_public.downloads_error (downloads_id, feeds_id, stories_id, parent, url, host, download_time, type, state, path, error_message, priority, sequence, extracted)
+        # 	                SELECT downloads_id::BIGINT, feeds_id::BIGINT, stories_id::BIGINT, parent, url, host, download_time, type::TEXT::public.download_type, state::TEXT::public.download_state, path, error_message, priority, sequence, extracted
+        # 	                FROM deleted_rows
+        await self._move_generic_table_rows(
+            src_table='downloads_error',
+            dst_table=f'downloads_error',
+            src_id_column='downloads_id',
             # 114,330,304 in source table; 12 chunks
             chunk_size=10_000_000,
-            src_columns_sans_pkey=downloads_id_src_columns_sans_pkey,
-            dst_columns_sans_pkey=downloads_id_dst_columns_sans_pkey,
+            src_columns=downloads_id_src_columns,
+            dst_columns=downloads_id_dst_columns,
         )
 
         for partition_index in range(int(max_downloads_id / downloads_id_chunk_size) + 1):
@@ -549,8 +600,8 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
                 src_id_column='downloads_id',
                 # 65,003,792 in source table; 7 chunks
                 chunk_size=10_000_000,
-                src_columns=['downloads_id'] + downloads_id_src_columns_sans_pkey,
-                dst_columns=['downloads_id::BIGINT'] + downloads_id_dst_columns_sans_pkey,
+                src_columns=downloads_id_src_columns,
+                dst_columns=downloads_id_dst_columns,
             )
 
         for partition_index in range(int(max_downloads_id / downloads_id_chunk_size) + 1):
@@ -560,8 +611,8 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
                 src_id_column='downloads_id',
                 # 45,088,116 in source table; 5 chunks
                 chunk_size=10_000_000,
-                src_columns=['downloads_id'] + downloads_id_src_columns_sans_pkey,
-                dst_columns=['downloads_id::BIGINT'] + downloads_id_dst_columns_sans_pkey,
+                src_columns=downloads_id_src_columns,
+                dst_columns=downloads_id_dst_columns,
             )
 
         for partition_index in range(int(max_downloads_id / downloads_id_chunk_size) + 1):

@@ -1,4 +1,5 @@
 from datetime import timedelta
+import math
 
 # noinspection PyPackageRequirements
 from typing import Any, Dict
@@ -466,9 +467,8 @@ def _create_test_unsharded_dataset(db: DatabaseHandler):
     row_ids = [
         1,
         10,
-        999_999_000,
-        1_000_000_000,
-        2_147_483_636,
+        99_000,
+        100_000,
     ]
 
     for row_id in row_ids:
@@ -571,7 +571,7 @@ def _create_test_unsharded_dataset(db: DatabaseHandler):
 
         _db_create(
             db=db,
-            table='unsharded_public.feeds_stories_map_p',
+            table=f'unsharded_public.feeds_stories_map_p_{str(math.floor(row_id / 100_000_000)).zfill(2)}',
             insert_hash={
                 'feeds_stories_map_p_id': row_id,
                 'feeds_id': row_id,
@@ -608,7 +608,7 @@ def _create_test_unsharded_dataset(db: DatabaseHandler):
 
         _db_create(
             db=db,
-            table='unsharded_public.stories_tags_map_p',
+            table=f'unsharded_public.stories_tags_map_p_{str(math.floor(row_id / 100_000_000)).zfill(2)}',
             insert_hash={
                 'stories_tags_map_p_id': row_id,
                 'stories_id': row_id,
@@ -618,7 +618,7 @@ def _create_test_unsharded_dataset(db: DatabaseHandler):
 
         _db_create(
             db=db,
-            table='unsharded_public.story_sentences_p',
+            table=f'unsharded_public.story_sentences_p_{str(math.floor(row_id / 100_000_000)).zfill(2)}',
             insert_hash={
                 'story_sentences_p_id': row_id,
                 'stories_id': row_id,
@@ -684,7 +684,7 @@ def _create_test_unsharded_dataset(db: DatabaseHandler):
 
         _db_create(
             db=db,
-            table='unsharded_public.downloads_success_content',
+            table=f'unsharded_public.downloads_success_content_{str(math.floor((row_id + 1) / 100_000_000)).zfill(2)}',
             insert_hash={
                 'downloads_id': row_id + 1,
                 'feeds_id': row_id,
@@ -701,7 +701,7 @@ def _create_test_unsharded_dataset(db: DatabaseHandler):
 
         _db_create(
             db=db,
-            table='unsharded_public.downloads_success_feed',
+            table=f'unsharded_public.downloads_success_feed_{str(math.floor((row_id + 2) / 100_000_000)).zfill(2)}',
             insert_hash={
                 'downloads_id': row_id + 2,
                 'feeds_id': row_id,
