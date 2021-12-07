@@ -218,14 +218,12 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
             # 89,970,140 in source table; 9 chunks
             chunk_size=10_000_000,
             src_columns_sans_pkey=[
-                'media_stats_id',
                 'media_id',
                 'num_stories',
                 'num_sentences',
                 'stat_date',
             ],
             dst_columns_sans_pkey=[
-                'media_stats_id::BIGINT',
                 'media_id::BIGINT',
                 'num_stories::BIGINT',
                 'num_sentences::BIGINT',
