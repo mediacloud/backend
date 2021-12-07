@@ -461,13 +461,14 @@ def _db_create(db: DatabaseHandler, table: str, insert_hash: Dict[str, Any]) -> 
 
 
 def _create_test_unsharded_dataset(db: DatabaseHandler):
-    # Insert rows into huge sharded tables with random IDs and huge gaps in between to test out whether chunking works
+    # Insert rows into huge sharded tables with random IDs and huge gaps in between to test out whether chunking works;
+    # must be different from each other by at least 3
     row_ids = [
         1,
         10,
-        999_999_999,
+        999_999_000,
         1_000_000_000,
-        2_147_483_646,
+        2_147_483_636,
     ]
 
     for row_id in row_ids:
@@ -662,9 +663,11 @@ def _create_test_unsharded_dataset(db: DatabaseHandler):
             }
         )
 
+        # Insert a row in each of the downloads_* partitions that are to be moved
+
         _db_create(
             db=db,
-            table='unsharded_public.downloads',
+            table='unsharded_public.downloads_error',
             insert_hash={
                 'downloads_id': row_id,
                 'feeds_id': row_id,
@@ -672,6 +675,40 @@ def _create_test_unsharded_dataset(db: DatabaseHandler):
                 'url': f'https://test.com/test-{row_id}',
                 'host': 'test.com',
                 'type': 'content',
+                'state': 'error',
+                'path': f'test-{row_id}',
+                'priority': 0,
+                'sequence': 0,
+            },
+        )
+
+        _db_create(
+            db=db,
+            table='unsharded_public.downloads_success_content',
+            insert_hash={
+                'downloads_id': row_id + 1,
+                'feeds_id': row_id,
+                'stories_id': row_id,
+                'url': f'https://test.com/test-{row_id}',
+                'host': 'test.com',
+                'type': 'content',
+                'state': 'success',
+                'path': f'test-{row_id}',
+                'priority': 0,
+                'sequence': 0,
+            },
+        )
+
+        _db_create(
+            db=db,
+            table='unsharded_public.downloads_success_feed',
+            insert_hash={
+                'downloads_id': row_id + 2,
+                'feeds_id': row_id,
+                'stories_id': None,
+                'url': f'https://test.com/test-{row_id}',
+                'host': 'test.com',
+                'type': 'feed',
                 'state': 'success',
                 'path': f'test-{row_id}',
                 'priority': 0,
