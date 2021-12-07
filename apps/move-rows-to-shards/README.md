@@ -33,9 +33,9 @@
     * [x] story_enclosures
 
 * [x] downloads.downloads_id:
-    * [x] downloads
-      * [ ] **FIXME possibly make only the individual partitions sharded and not the whole table?**
-      * [ ] **FIXME do we still need `downloads` to be both partitioned *and* sharded?**
+    * [ ] downloads_error
+    * [ ] downloads_success_content_*
+    * [ ] downloads_success_feed_*
     * [x] download_texts
 
 * [x] topics.topics_id:

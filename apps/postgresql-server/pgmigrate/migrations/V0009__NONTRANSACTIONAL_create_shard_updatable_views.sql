@@ -451,6 +451,135 @@ DROP TABLE unsharded_public.feeds_after_rescraping;
 
 
 --
+-- downloads_feed_error
+--
+-- Small partition so we can just copy it right away.
+--
+
+-- Can't temporarily drop indexes on individual partitions in a partitioned table
+
+INSERT INTO public.downloads_feed_error (downloads_id,
+                                         feeds_id,
+                                         stories_id,
+                                         parent,
+                                         url,
+                                         host,
+                                         download_time,
+                                         type,
+                                         state,
+                                         path,
+                                         error_message,
+                                         priority,
+                                         sequence,
+                                         extracted)
+SELECT downloads_id::BIGINT,
+       feeds_id::BIGINT,
+       stories_id::BIGINT,
+       parent::BIGINT,
+       url,
+       host,
+       download_time,
+       type::TEXT::public.download_type,
+       state::TEXT::public.download_state,
+       path,
+       error_message,
+       priority,
+       sequence,
+       extracted
+FROM unsharded_public.downloads_feed_error;
+
+TRUNCATE unsharded_public.downloads_feed_error;
+DROP TABLE unsharded_public.downloads_feed_error;
+
+
+
+--
+-- downloads_fetching
+--
+-- Small partition so we can just copy it right away.
+--
+
+-- Can't temporarily drop indexes on individual partitions in a partitioned table
+
+INSERT INTO public.downloads_fetching (downloads_id,
+                                       feeds_id,
+                                       stories_id,
+                                       parent,
+                                       url,
+                                       host,
+                                       download_time,
+                                       type,
+                                       state,
+                                       path,
+                                       error_message,
+                                       priority,
+                                       sequence,
+                                       extracted)
+SELECT downloads_id::BIGINT,
+       feeds_id::BIGINT,
+       stories_id::BIGINT,
+       parent::BIGINT,
+       url,
+       host,
+       download_time,
+       type::TEXT::public.download_type,
+       state::TEXT::public.download_state,
+       path,
+       error_message,
+       priority,
+       sequence,
+       extracted
+FROM unsharded_public.downloads_fetching;
+
+TRUNCATE unsharded_public.downloads_fetching;
+DROP TABLE unsharded_public.downloads_fetching;
+
+
+
+--
+-- downloads_pending
+--
+-- Small partition so we can just copy it right away.
+--
+
+-- Can't temporarily drop indexes on individual partitions in a partitioned table
+
+INSERT INTO public.downloads_pending (downloads_id,
+                                      feeds_id,
+                                      stories_id,
+                                      parent,
+                                      url,
+                                      host,
+                                      download_time,
+                                      type,
+                                      state,
+                                      path,
+                                      error_message,
+                                      priority,
+                                      sequence,
+                                      extracted)
+SELECT downloads_id::BIGINT,
+       feeds_id::BIGINT,
+       stories_id::BIGINT,
+       parent::BIGINT,
+       url,
+       host,
+       download_time,
+       type::TEXT::public.download_type,
+       state::TEXT::public.download_state,
+       path,
+       error_message,
+       priority,
+       sequence,
+       extracted
+FROM unsharded_public.downloads_pending;
+
+TRUNCATE unsharded_public.downloads_pending;
+DROP TABLE unsharded_public.downloads_pending;
+
+
+
+--
 -- tag_sets
 --
 
@@ -2742,9 +2871,15 @@ DROP FUNCTION unsharded_public.auth_users_set_default_limits();
 DROP FUNCTION unsharded_cache.update_cache_db_row_last_updated();
 
 DROP TRIGGER downloads_error_test_referenced_download_trigger ON unsharded_public.downloads_error;
-DROP TRIGGER downloads_feed_error_test_referenced_download_trigger ON unsharded_public.downloads_feed_error;
-DROP TRIGGER downloads_fetching_test_referenced_download_trigger ON unsharded_public.downloads_fetching;
-DROP TRIGGER downloads_pending_test_referenced_download_trigger ON unsharded_public.downloads_pending;
+
+-- Already gone as unsharded_public.downloads_feed_error is gone
+-- DROP TRIGGER downloads_feed_error_test_referenced_download_trigger ON unsharded_public.downloads_feed_error;
+
+-- Already gone as unsharded_public.downloads_fetching is gone
+-- DROP TRIGGER downloads_fetching_test_referenced_download_trigger ON unsharded_public.downloads_fetching;
+
+-- Already gone as unsharded_public.downloads_pending is gone
+-- DROP TRIGGER downloads_pending_test_referenced_download_trigger ON unsharded_public.downloads_pending;
 
 -- Table is gone so no need to drop the trigger
 -- DROP TRIGGER raw_downloads_test_referenced_download_trigger ON unsharded_public.raw_downloads;
@@ -5350,7 +5485,6 @@ SELECT create_distributed_function('public.insert_solr_import_story()');
 -- No foreign keys
 
 
-
 --
 -- unsharded_public.media_stats
 --
@@ -5435,12 +5569,11 @@ $$
         tables CURSOR FOR
             SELECT tablename
             FROM pg_tables
-            WHERE
-                schemaname = 'unsharded_public' AND
-                (
-                    tablename LIKE 'feeds_stories_map_p_%' OR
-                    tablename LIKE 'stories_tags_map_p_%' OR
-                    tablename LIKE 'story_sentences_p_%'
+            WHERE schemaname = 'unsharded_public'
+              AND (
+                        tablename LIKE 'feeds_stories_map_p_%' OR
+                        tablename LIKE 'stories_tags_map_p_%' OR
+                        tablename LIKE 'story_sentences_p_%'
                 )
             ORDER BY tablename;
 
@@ -5479,13 +5612,11 @@ $$;
 -- No foreign keys
 
 
-
 --
 -- unsharded_public.stories_tags_map_p
 --
 
 -- No foreign keys
-
 
 
 --
@@ -5495,13 +5626,11 @@ $$;
 -- No foreign keys
 
 
-
 --
 -- unsharded_public.solr_import_stories
 --
 
 -- No foreign keys
-
 
 
 --
@@ -5511,13 +5640,11 @@ $$;
 -- No foreign keys
 
 
-
 --
 -- unsharded_public.topic_merged_stories_map
 --
 
 -- No foreign keys
-
 
 
 --
@@ -5527,13 +5654,11 @@ $$;
 -- No foreign keys
 
 
-
 --
 -- unsharded_public.processed_stories
 --
 
 -- No foreign keys
-
 
 
 --
@@ -5543,13 +5668,11 @@ $$;
 -- No foreign keys
 
 
-
 --
 -- unsharded_public.story_enclosures
 --
 
 -- No foreign keys
-
 
 
 --
@@ -5563,9 +5686,8 @@ $$
         tables CURSOR FOR
             SELECT tablename
             FROM pg_tables
-            WHERE
-                schemaname = 'unsharded_public' AND
-                tablename LIKE 'download_texts_%'
+            WHERE schemaname = 'unsharded_public'
+              AND tablename LIKE 'download_texts_%'
             ORDER BY tablename;
 
     BEGIN
@@ -5616,7 +5738,6 @@ ALTER TABLE unsharded_public.topic_fetch_urls
 -- No foreign keys
 
 
-
 --
 -- unsharded_public.topic_posts
 --
@@ -5656,13 +5777,11 @@ ALTER TABLE unsharded_public.topic_seed_urls
 -- No foreign keys
 
 
-
 --
 -- unsharded_snap.stories
 --
 
 -- No foreign keys
-
 
 
 --
@@ -5672,13 +5791,11 @@ ALTER TABLE unsharded_public.topic_seed_urls
 -- No foreign keys
 
 
-
 --
 -- unsharded_snap.topic_links_cross_media
 --
 
 -- No foreign keys
-
 
 
 --
@@ -5688,13 +5805,11 @@ ALTER TABLE unsharded_public.topic_seed_urls
 -- No foreign keys
 
 
-
 --
 -- unsharded_snap.media_tags_map
 --
 
 -- No foreign keys
-
 
 
 --
@@ -5704,13 +5819,11 @@ ALTER TABLE unsharded_public.topic_seed_urls
 -- No foreign keys
 
 
-
 --
 -- unsharded_snap.story_links
 --
 
 -- No foreign keys
-
 
 
 --
@@ -5720,13 +5833,11 @@ ALTER TABLE unsharded_public.topic_seed_urls
 -- No foreign keys
 
 
-
 --
 -- unsharded_snap.medium_link_counts
 --
 
 -- No foreign keys
-
 
 
 --
@@ -5736,13 +5847,11 @@ ALTER TABLE unsharded_public.topic_seed_urls
 -- No foreign keys
 
 
-
 --
 -- unsharded_snap.timespan_posts
 --
 
 -- No foreign keys
-
 
 
 --
