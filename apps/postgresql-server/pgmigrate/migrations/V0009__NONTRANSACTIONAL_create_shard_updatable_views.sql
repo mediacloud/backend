@@ -1,5 +1,15 @@
 -- noinspection SqlResolveForFile
 
+
+-- Increase maintenance-related limits for this session to speed up recreation of indexes etc.
+SELECT set_config('maintenance_work_mem',
+                  pg_size_pretty(pg_size_bytes(current_setting('maintenance_work_mem')) * 10),
+                  'f');
+SELECT set_config('max_parallel_maintenance_workers',
+                  (current_setting('max_parallel_maintenance_workers')::INT * 8)::TEXT,
+                  'f');
+
+
 -- Create schemas to temporarily move the sharded tables to
 CREATE SCHEMA sharded_public;
 CREATE SCHEMA sharded_public_store;
