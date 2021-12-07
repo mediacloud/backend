@@ -153,12 +153,14 @@ def _create_partitions_up_to_maxint(db: DatabaseHandler) -> None:
                     stories_id := partition_stories_id
                 ) INTO target_table_name;
                 IF unsharded_public.table_exists('unsharded_public.' || target_table_name) THEN
-                    RAISE NOTICE 'Partition "%" for story ID % already exists.', target_table_name, partition_stories_id;
+                    RAISE NOTICE 'Partition "%" for story ID % already exists.',
+                        target_table_name, partition_stories_id;
                 ELSE
                     RAISE NOTICE 'Creating partition "%" for story ID %', target_table_name, partition_stories_id;
 
                     SELECT (partition_stories_id / chunk_size) * chunk_size INTO stories_id_start;
-                    SELECT LEAST(((partition_stories_id / chunk_size) + 1) * chunk_size, 2147483647) INTO stories_id_end;
+                    SELECT LEAST(((partition_stories_id / chunk_size) + 1) * chunk_size, 2147483647)
+                        INTO stories_id_end;
 
                     PERFORM pid
                     FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
@@ -186,7 +188,8 @@ def _create_partitions_up_to_maxint(db: DatabaseHandler) -> None:
                       AND t.table_schema = 'unsharded_public'
                     INTO target_table_owner;
 
-                    EXECUTE 'ALTER TABLE unsharded_public.' || target_table_name || ' OWNER TO ' || target_table_owner || ';';
+                    EXECUTE 'ALTER TABLE unsharded_public.' || target_table_name ||
+                        ' OWNER TO ' || target_table_owner || ';';
 
                     RETURN NEXT target_table_name;
 
@@ -224,12 +227,14 @@ def _create_partitions_up_to_maxint(db: DatabaseHandler) -> None:
                     downloads_id := partition_downloads_id
                 ) INTO target_table_name;
                 IF unsharded_public.table_exists('unsharded_public.' || target_table_name) THEN
-                    RAISE NOTICE 'Partition "%" for download ID % already exists.', target_table_name, partition_downloads_id;
+                    RAISE NOTICE 'Partition "%" for download ID % already exists.',
+                        target_table_name, partition_downloads_id;
                 ELSE
                     RAISE NOTICE 'Creating partition "%" for download ID %', target_table_name, partition_downloads_id;
 
                     SELECT (partition_downloads_id / chunk_size) * chunk_size INTO downloads_id_start;
-                    SELECT LEAST(((partition_downloads_id / chunk_size) + 1) * chunk_size, 2147483647) INTO downloads_id_end;
+                    SELECT LEAST(((partition_downloads_id / chunk_size) + 1) * chunk_size, 2147483647)
+                        INTO downloads_id_end;
 
                     PERFORM pid
                     FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
@@ -279,7 +284,9 @@ def _create_partitions_up_to_maxint(db: DatabaseHandler) -> None:
             partition TEXT;
         BEGIN
 
-            created_partitions := ARRAY(SELECT unsharded_public.partition_by_stories_id_create_partitions('feeds_stories_map_p'));
+            created_partitions := ARRAY(
+                SELECT unsharded_public.partition_by_stories_id_create_partitions('feeds_stories_map_p')
+            );
 
             FOREACH partition IN ARRAY created_partitions LOOP
 
@@ -307,7 +314,9 @@ def _create_partitions_up_to_maxint(db: DatabaseHandler) -> None:
             partition TEXT;
         BEGIN
 
-            created_partitions := ARRAY(SELECT unsharded_public.partition_by_stories_id_create_partitions('stories_tags_map_p'));
+            created_partitions := ARRAY(
+                SELECT unsharded_public.partition_by_stories_id_create_partitions('stories_tags_map_p')
+            );
 
             FOREACH partition IN ARRAY created_partitions LOOP
 
@@ -335,7 +344,9 @@ def _create_partitions_up_to_maxint(db: DatabaseHandler) -> None:
             partition TEXT;
         BEGIN
 
-            created_partitions := ARRAY(SELECT unsharded_public.partition_by_stories_id_create_partitions('story_sentences_p'));
+            created_partitions := ARRAY(
+                SELECT unsharded_public.partition_by_stories_id_create_partitions('story_sentences_p')
+            );
 
             FOREACH partition IN ARRAY created_partitions LOOP
 
@@ -344,8 +355,11 @@ def _create_partitions_up_to_maxint(db: DatabaseHandler) -> None:
                         ON unsharded_public.' || partition || ' (stories_id, sentence_number);
 
                     CREATE INDEX ' || partition || '_sentence_media_week
-                        ON unsharded_public.' || partition || ' (unsharded_public.half_md5(sentence), media_id, unsharded_public.week_start_date(publish_date::date));
-                ';
+                        ON unsharded_public.' || partition || ' (
+                            unsharded_public.half_md5(sentence),
+                            media_id,
+                            unsharded_public.week_start_date(publish_date::date)
+                        );';
 
             END LOOP;
 
@@ -1020,9 +1034,13 @@ def _create_test_unsharded_dataset(db: DatabaseHandler):
 async def test_workflow():
     db = connect_to_db()
 
+    log.info("Creating partitions in unsharded layout...")
     _create_partitions_up_to_maxint(db)
 
+    log.info("Creating test dataset...")
     _create_test_unsharded_dataset(db)
+
+    log.info("Registering workflow...")
 
     client = workflow_client()
 
@@ -1051,6 +1069,7 @@ async def test_workflow():
         ),
     )
 
+    log.info("Starting workflow...")
     # Wait for the workflow to complete
     # await workflow.move_rows_to_shards()
 
