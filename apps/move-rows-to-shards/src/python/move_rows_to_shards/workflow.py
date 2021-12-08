@@ -99,6 +99,12 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
             # No retry_parameters here as they get set individually in @activity_method()
         )
 
+    @classmethod
+    def _prettify_sql_query(cls, query: str) -> str:
+        query = re.sub(r'\s+', ' ', query)
+        query = query.strip()
+        return query
+
     # Helper, not a workflow method
     async def _move_table(self, src_table: str, src_id_column: str, chunk_size: int, sql_queries: List[str]):
         if '.' not in src_table:
@@ -145,8 +151,7 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
                 query = query.replace(self.__END_ID_MARKER, str(end_id))
 
                 # Make queries look nicer in Temporal's log
-                query = re.sub(r'\s+', ' ', query)
-                query = query.strip()
+                query = self._prettify_sql_query(query)
 
                 sql_queries_with_ids.append(query)
 
@@ -383,88 +388,64 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
         stories_id_chunk_size = 100_000_000
 
         for partition_index in range(int(max_stories_id / stories_id_chunk_size) + 1):
-            await self._move_table(
-                src_table=f'unsharded_public.feeds_stories_map_p_{str(partition_index).zfill(2)}',
-                src_id_column='stories_id',
-                # 96,563,848 in source table; 3 chunks
-                chunk_size=50_000_000,
-                sql_queries=[
-                    f"""
-                        WITH deleted_rows AS (
-                            DELETE FROM unsharded_public.feeds_stories_map_p_{str(partition_index).zfill(2)}
-                            WHERE stories_id BETWEEN {self.__START_ID_MARKER} AND {self.__END_ID_MARKER}
-                            RETURNING
-                                feeds_stories_map_p_id,
-                                feeds_id,
-                                stories_id
-                        )
-                        INSERT INTO sharded_public.feeds_stories_map (
-                            feeds_stories_map_id,
+            await self.activities.run_queries_in_transaction([
+                self._prettify_sql_query(f"""
+                    WITH deleted_rows AS (
+                        DELETE FROM unsharded_public.feeds_stories_map_p_{str(partition_index).zfill(2)}
+                        RETURNING
+                            feeds_stories_map_p_id,
                             feeds_id,
                             stories_id
-                        )
-                            SELECT
-                                feeds_stories_map_p_id::BIGINT AS feeds_stories_map_id,
-                                feeds_id::BIGINT,
-                                stories_id::BIGINT
-                            FROM deleted_rows
-                    """
-                ],
+                    )
+                    INSERT INTO sharded_public.feeds_stories_map (
+                        feeds_stories_map_id,
+                        feeds_id,
+                        stories_id
+                    )
+                        SELECT
+                            feeds_stories_map_p_id::BIGINT AS feeds_stories_map_id,
+                            feeds_id::BIGINT,
+                            stories_id::BIGINT
+                        FROM deleted_rows                
+                """)
+            ])
+            await self.activities.truncate_if_empty(
+                f'unsharded_public.feeds_stories_map_p_{str(partition_index).zfill(2)}'
             )
 
         for partition_index in range(int(max_stories_id / stories_id_chunk_size) + 1):
-            await self._move_table(
-                src_table=f'unsharded_public.stories_tags_map_p_{str(partition_index).zfill(2)}',
-                src_id_column='stories_id',
-                # 547,023,872 in every partition; 6 chunks
-                chunk_size=100_000_000,
-                sql_queries=[
-                    f"""
-                        WITH deleted_rows AS (
-                            DELETE FROM unsharded_public.stories_tags_map_p_{str(partition_index).zfill(2)}
-                            WHERE stories_id BETWEEN {self.__START_ID_MARKER} AND {self.__END_ID_MARKER}
-                            RETURNING
-                                stories_tags_map_p_id,
-                                stories_id,
-                                tags_id
-                        )
-                        INSERT INTO sharded_public.stories_tags_map (
-                            stories_tags_map_id,
+            await self.activities.run_queries_in_transaction([
+                self._prettify_sql_query(f"""
+                    WITH deleted_rows AS (
+                        DELETE FROM unsharded_public.stories_tags_map_p_{str(partition_index).zfill(2)}
+                        RETURNING
+                            stories_tags_map_p_id,
                             stories_id,
                             tags_id
-                        )
-                            SELECT
-                                stories_tags_map_p_id::BIGINT AS stories_tags_map_id,
-                                stories_id::BIGINT,
-                                tags_id::BIGINT
-                            FROM deleted_rows
-                    """
-                ],
+                    )
+                    INSERT INTO sharded_public.stories_tags_map (
+                        stories_tags_map_id,
+                        stories_id,
+                        tags_id
+                    )
+                        SELECT
+                            stories_tags_map_p_id::BIGINT AS stories_tags_map_id,
+                            stories_id::BIGINT,
+                            tags_id::BIGINT
+                        FROM deleted_rows
+                """)
+            ])
+            await self.activities.truncate_if_empty(
+                f'unsharded_public.stories_tags_map_p_{str(partition_index).zfill(2)}'
             )
 
         for partition_index in range(int(max_stories_id / stories_id_chunk_size) + 1):
-            await self._move_table(
-                src_table=f'unsharded_public.story_sentences_p_{str(partition_index).zfill(2)}',
-                src_id_column='stories_id',
-                # 1,418,730,496 in every partition; 5 chunks
-                chunk_size=300_000_000,
-                sql_queries=[
-                    f"""
-                        WITH deleted_rows AS (
-                            DELETE FROM unsharded_public.story_sentences_p_{str(partition_index).zfill(2)}
-                            WHERE stories_id BETWEEN {self.__START_ID_MARKER} AND {self.__END_ID_MARKER}
-                            RETURNING
-                                story_sentences_p_id,
-                                stories_id,
-                                sentence_number,
-                                sentence,
-                                media_id,
-                                publish_date,
-                                language,
-                                is_dup
-                        )
-                        INSERT INTO sharded_public.story_sentences (
-                            story_sentences_id,
+            await self.activities.run_queries_in_transaction([
+                self._prettify_sql_query(f"""
+                    WITH deleted_rows AS (
+                        DELETE FROM unsharded_public.story_sentences_p_{str(partition_index).zfill(2)}
+                        RETURNING
+                            story_sentences_p_id,
                             stories_id,
                             sentence_number,
                             sentence,
@@ -472,19 +453,31 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
                             publish_date,
                             language,
                             is_dup
-                        )
-                            SELECT
-                                story_sentences_p_id::BIGINT AS story_sentences_id,
-                                stories_id::BIGINT,
-                                sentence_number,
-                                sentence,
-                                media_id::BIGINT,
-                                publish_date,
-                                language,
-                                is_dup
-                            FROM deleted_rows
-                    """
-                ],
+                    )
+                    INSERT INTO sharded_public.story_sentences (
+                        story_sentences_id,
+                        stories_id,
+                        sentence_number,
+                        sentence,
+                        media_id,
+                        publish_date,
+                        language,
+                        is_dup
+                    )
+                        SELECT
+                            story_sentences_p_id::BIGINT AS story_sentences_id,
+                            stories_id::BIGINT,
+                            sentence_number,
+                            sentence,
+                            media_id::BIGINT,
+                            publish_date,
+                            language,
+                            is_dup
+                        FROM deleted_rows
+                """)
+            ])
+            await self.activities.truncate_if_empty(
+                f'unsharded_public.story_sentences_p_{str(partition_index).zfill(2)}'
             )
 
         await self._move_table(
@@ -749,76 +742,64 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
         downloads_id_chunk_size = stories_id_chunk_size
 
         for partition_index in range(int(max_downloads_id / downloads_id_chunk_size) + 1):
-            await self._move_table(
-                src_table=f'unsharded_public.downloads_success_content_{str(partition_index).zfill(2)}',
-                src_id_column='downloads_id',
-                # 65,003,792 in source table; 4 chunks
-                chunk_size=20_000_000,
-                sql_queries=[
-                    f"""
-                        WITH deleted_rows AS (
-                            DELETE FROM unsharded_public.downloads_success_content_{str(partition_index).zfill(2)}
-                            WHERE downloads_id BETWEEN {self.__START_ID_MARKER} AND {self.__END_ID_MARKER}
-                            RETURNING {downloads_id_src_columns}
-                        )
-                        INSERT INTO sharded_public.downloads_success ({downloads_id_src_columns})
-                            SELECT {downloads_id_dst_columns}
-                            FROM deleted_rows
-                    """
-                ],
+            await self.activities.run_queries_in_transaction([
+                self._prettify_sql_query(f"""
+                    WITH deleted_rows AS (
+                        DELETE FROM unsharded_public.downloads_success_content_{str(partition_index).zfill(2)}
+                        RETURNING {downloads_id_src_columns}
+                    )
+                    INSERT INTO sharded_public.downloads_success ({downloads_id_src_columns})
+                        SELECT {downloads_id_dst_columns}
+                        FROM deleted_rows
+                """)
+            ])
+            await self.activities.truncate_if_empty(
+                f'unsharded_public.downloads_success_content_{str(partition_index).zfill(2)}'
             )
 
         for partition_index in range(int(max_downloads_id / downloads_id_chunk_size) + 1):
-            await self._move_table(
-                src_table=f'unsharded_public.downloads_success_feed_{str(partition_index).zfill(2)}',
-                src_id_column='downloads_id',
-                # 45,088,116 in source table; 3 chunks
-                chunk_size=20_000_000,
-                sql_queries=[
-                    f"""
-                        WITH deleted_rows AS (
-                            DELETE FROM unsharded_public.downloads_success_feed_{str(partition_index).zfill(2)}
-                            WHERE downloads_id BETWEEN {self.__START_ID_MARKER} AND {self.__END_ID_MARKER}
-                            RETURNING {downloads_id_src_columns}
-                        )
-                        INSERT INTO sharded_public.downloads_success ({downloads_id_src_columns})
-                            SELECT {downloads_id_dst_columns}
-                            FROM deleted_rows
-                    """
-                ],
+            await self.activities.run_queries_in_transaction([
+                self._prettify_sql_query(f"""
+                    WITH deleted_rows AS (
+                        DELETE FROM unsharded_public.downloads_success_feed_{str(partition_index).zfill(2)}
+                        RETURNING {downloads_id_src_columns}
+                    )
+                    INSERT INTO sharded_public.downloads_success ({downloads_id_src_columns})
+                        SELECT {downloads_id_dst_columns}
+                        FROM deleted_rows
+                """)
+            ])
+            await self.activities.truncate_if_empty(
+                f'unsharded_public.downloads_success_feed_{str(partition_index).zfill(2)}'
             )
 
         for partition_index in range(int(max_downloads_id / downloads_id_chunk_size) + 1):
-            await self._move_table(
-                src_table=f'unsharded_public.download_texts_{str(partition_index).zfill(2)}',
-                src_id_column='downloads_id',
-                # 69,438,480 in source table; 4 chunks
-                chunk_size=20_000_000,
-                sql_queries=[
-                    f"""
-                        WITH deleted_rows AS (
-                            DELETE FROM unsharded_public.download_texts_{str(partition_index).zfill(2)}
-                            WHERE downloads_id BETWEEN {self.__START_ID_MARKER} AND {self.__END_ID_MARKER}
-                            RETURNING
-                                download_texts_id,
-                                downloads_id,
-                                download_text,
-                                download_text_length
-                        )
-                        INSERT INTO sharded_public.download_texts (
+            await self.activities.run_queries_in_transaction([
+                self._prettify_sql_query(f"""
+                    WITH deleted_rows AS (
+                        DELETE FROM unsharded_public.download_texts_{str(partition_index).zfill(2)}
+                        RETURNING
                             download_texts_id,
                             downloads_id,
                             download_text,
                             download_text_length
-                        )
-                            SELECT
-                                download_texts_id,
-                                downloads_id,
-                                download_text,
-                                download_text_length
-                            FROM deleted_rows
-                    """
-                ],
+                    )
+                    INSERT INTO sharded_public.download_texts (
+                        download_texts_id,
+                        downloads_id,
+                        download_text,
+                        download_text_length
+                    )
+                        SELECT
+                            download_texts_id,
+                            downloads_id,
+                            download_text,
+                            download_text_length
+                        FROM deleted_rows
+                """)
+            ])
+            await self.activities.truncate_if_empty(
+                f'unsharded_public.download_texts_{str(partition_index).zfill(2)}'
             )
 
         await self._move_table(
