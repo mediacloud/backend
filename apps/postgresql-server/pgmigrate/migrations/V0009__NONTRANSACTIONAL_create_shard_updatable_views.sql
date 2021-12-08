@@ -3946,7 +3946,20 @@ EXECUTE PROCEDURE public.story_enclosures_insert();
 -- downloads
 --
 
+-- Contents of some of these tables is already moved but we still hide them in
+-- a "sharded_public" schema to be able to expose only the semi-updatable view
+-- in "public".
 ALTER TABLE public.downloads
+    SET SCHEMA sharded_public;
+ALTER TABLE public.downloads_error
+    SET SCHEMA sharded_public;
+ALTER TABLE public.downloads_feed_error
+    SET SCHEMA sharded_public;
+ALTER TABLE public.downloads_fetching
+    SET SCHEMA sharded_public;
+ALTER TABLE public.downloads_pending
+    SET SCHEMA sharded_public;
+ALTER TABLE public.downloads_success
     SET SCHEMA sharded_public;
 
 SELECT setval(
