@@ -3183,6 +3183,29 @@ FROM sharded_public.stories
     ALTER COLUMN stories_id
         SET DEFAULT nextval(pg_get_serial_sequence('sharded_public.stories', 'stories_id'));
 
+-- MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: in the workflow that's copying the
+-- rows from unsharded table to the sharded one, we can't really disable INSERT
+-- triggers before we move every individual chunk, so instead we remove INSERT
+-- triggers on the sharded table and re-add them on the semi-updatable view.
+-- Therefore, a trigger that needs to happen ON INSERT OR UPDATE OR DELETE will
+-- be fired ON INSERT into a semi-updatable view but ON UPDATE OR DELETE on a
+-- sharded table.
+SELECT run_on_shards_or_raise('sharded_public.stories', $cmd$
+
+    DROP TRIGGER stories_insert_solr_import_story ON %s
+
+    $cmd$);
+
+SELECT run_on_shards_or_raise('sharded_public.stories', $cmd$
+
+    CREATE TRIGGER stories_insert_solr_import_story
+        AFTER UPDATE OR DELETE
+        ON %s
+        FOR EACH ROW
+    EXECUTE PROCEDURE public.insert_solr_import_story();
+
+    $cmd$);
+
 CREATE OR REPLACE FUNCTION public.stories_insert() RETURNS trigger AS
 $$
 BEGIN
@@ -3202,6 +3225,20 @@ BEGIN
 
     -- Insert only into the sharded table
     INSERT INTO sharded_public.stories SELECT NEW.*;
+
+    -- MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: do the same as insert_solr_import_story()
+    IF EXISTS(
+            SELECT 1
+            FROM public.processed_stories
+            WHERE stories_id = NEW.stories_id
+        ) THEN
+
+        INSERT INTO public.solr_import_stories (stories_id)
+        VALUES (NEW.stories_id)
+        ON CONFLICT (stories_id) DO NOTHING;
+
+    END IF;
+
     RETURN NEW;
 
 END;
@@ -3213,7 +3250,6 @@ CREATE TRIGGER stories_insert
     ON public.stories
     FOR EACH ROW
 EXECUTE PROCEDURE public.stories_insert();
-
 
 
 --
@@ -3382,6 +3418,29 @@ SELECT setval(
                false
            );
 
+-- MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: in the workflow that's copying the
+-- rows from unsharded table to the sharded one, we can't really disable INSERT
+-- triggers before we move every individual chunk, so instead we remove INSERT
+-- triggers on the sharded table and re-add them on the semi-updatable view.
+-- Therefore, a trigger that needs to happen ON INSERT OR UPDATE OR DELETE will
+-- be fired ON INSERT into a semi-updatable view but ON UPDATE OR DELETE on a
+-- sharded table.
+SELECT run_on_shards_or_raise('sharded_public.stories_tags_map', $cmd$
+
+    DROP TRIGGER stories_tags_map_insert_solr_import_story ON %s
+
+    $cmd$);
+
+SELECT run_on_shards_or_raise('sharded_public.stories_tags_map', $cmd$
+
+    CREATE TRIGGER stories_tags_map_insert_solr_import_story
+        AFTER UPDATE OR DELETE
+        ON %s
+        FOR EACH ROW
+    EXECUTE PROCEDURE insert_solr_import_story();
+
+    $cmd$);
+
 CREATE VIEW public.stories_tags_map AS
 SELECT stories_tags_map_p_id AS stories_tags_map_id,
        stories_id::BIGINT,
@@ -3405,8 +3464,23 @@ FROM sharded_public.stories_tags_map
 CREATE OR REPLACE FUNCTION public.stories_tags_map_insert() RETURNS trigger AS
 $$
 BEGIN
+
     -- Insert only into the sharded table
     INSERT INTO sharded_public.stories_tags_map SELECT NEW.*;
+
+    -- MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: do the same as insert_solr_import_story()
+    IF EXISTS(
+            SELECT 1
+            FROM public.processed_stories
+            WHERE stories_id = NEW.stories_id
+        ) THEN
+
+        INSERT INTO public.solr_import_stories (stories_id)
+        VALUES (NEW.stories_id)
+        ON CONFLICT (stories_id) DO NOTHING;
+
+    END IF;
+
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -3699,6 +3773,29 @@ SELECT setval(
                false
            );
 
+-- MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: in the workflow that's copying the
+-- rows from unsharded table to the sharded one, we can't really disable INSERT
+-- triggers before we move every individual chunk, so instead we remove INSERT
+-- triggers on the sharded table and re-add them on the semi-updatable view.
+-- Therefore, a trigger that needs to happen ON INSERT OR UPDATE OR DELETE will
+-- be fired ON INSERT into a semi-updatable view but ON UPDATE OR DELETE on a
+-- sharded table.
+SELECT run_on_shards_or_raise('sharded_public.processed_stories', $cmd$
+
+    DROP TRIGGER processed_stories_insert_solr_import_story ON %s
+
+    $cmd$);
+
+SELECT run_on_shards_or_raise('sharded_public.processed_stories', $cmd$
+
+    CREATE TRIGGER processed_stories_insert_solr_import_story
+        AFTER UPDATE OR DELETE
+        ON %s
+        FOR EACH ROW
+    EXECUTE PROCEDURE public.insert_solr_import_story();
+
+    $cmd$);
+
 CREATE VIEW public.processed_stories AS
 SELECT processed_stories_id::BIGINT,
        stories_id::BIGINT
@@ -3721,6 +3818,13 @@ $$
 BEGIN
     -- Insert only into the sharded table
     INSERT INTO sharded_public.processed_stories SELECT NEW.*;
+
+    -- MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: do the same as insert_solr_import_story()
+    INSERT INTO public.solr_import_stories (stories_id)
+    VALUES (NEW.stories_id)
+    ON CONFLICT (stories_id) DO NOTHING;
+
+
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -3984,6 +4088,19 @@ SELECT setval(
                false
            );
 
+-- MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: in the workflow that's copying the
+-- rows from unsharded table to the sharded one, we can't really disable INSERT
+-- triggers before we move every individual chunk, so instead we remove INSERT
+-- triggers on the sharded table and re-add them on the semi-updatable view.
+-- Therefore, a trigger that needs to happen ON INSERT OR UPDATE OR DELETE will
+-- be fired ON INSERT into a semi-updatable view but ON UPDATE OR DELETE on a
+-- sharded table.
+SELECT run_on_shards_or_raise('sharded_public.topic_stories', $cmd$
+
+    DROP TRIGGER topic_stories_insert_live_story ON %s
+
+    $cmd$);
+
 CREATE VIEW public.topic_stories AS
 SELECT topic_stories_id::BIGINT,
        topics_id::BIGINT,
@@ -4017,6 +4134,9 @@ FROM sharded_public.topic_stories
 
 CREATE OR REPLACE FUNCTION public.topic_stories_insert() RETURNS trigger AS
 $$
+DECLARE
+    story RECORD;
+
 BEGIN
 
     -- Set default values (not supported by updatable views)
@@ -4032,6 +4152,43 @@ BEGIN
 
     -- Insert only into the sharded table
     INSERT INTO sharded_public.topic_stories SELECT NEW.*;
+
+    -- MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: do the same as insert_live_story()
+    SELECT *
+    INTO story
+    FROM public.stories
+    WHERE stories_id = NEW.stories_id;
+
+    INSERT INTO snap.live_stories (topics_id,
+                                   topic_stories_id,
+                                   stories_id,
+                                   media_id,
+                                   url,
+                                   guid,
+                                   title,
+                                   normalized_title_hash,
+                                   description,
+                                   publish_date,
+                                   collect_date,
+                                   full_text_rss,
+                                   language)
+    SELECT NEW.topics_id,
+           NEW.topic_stories_id,
+           NEW.stories_id,
+           story.media_id,
+           story.url,
+           story.guid,
+           story.title,
+           story.normalized_title_hash,
+           story.description,
+           story.publish_date,
+           story.collect_date,
+           story.full_text_rss,
+           story.language
+    FROM public.topic_stories
+    WHERE topic_stories.stories_id = NEW.stories_id
+      AND topic_stories.topics_id = NEW.topics_id;
+
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;

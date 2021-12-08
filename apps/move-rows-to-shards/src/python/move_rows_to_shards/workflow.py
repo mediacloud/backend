@@ -90,10 +90,6 @@ class MoveRowsToShardsActivitiesImpl(MoveRowsToShardsActivities):
             f"Moving rows from '{src_table}' to '{dst_table}' ({src_id_column} BETWEEN {src_id_start} AND {src_id_end})"
         )
 
-        # Disable triggers so that, for example, stories don't get reimported
-        log.debug(f"Disabling triggers...")
-        db.query('SET session_replication_role = replica')
-
         insert_columns = ', '.join(src_columns)
 
         # Nasty hack: rename kinds like "feeds_stories_map_p_id" to "feeds_stories_map_id"
@@ -115,9 +111,6 @@ class MoveRowsToShardsActivitiesImpl(MoveRowsToShardsActivities):
         """
         log.debug(f"SQL that I'm about to execute: {sql}")
         db.query(sql)
-
-        log.debug(f"Reenabling triggers...")
-        db.query('SET session_replication_role = DEFAULT')
 
         log.info(
             f"Moved rows from '{src_table}' to '{dst_table}' ({src_id_column} BETWEEN {src_id_start} AND {src_id_end})"
@@ -468,25 +461,6 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
             ],
         )
 
-        # FIXME fails with
-        #
-        # 2021-12-07 13:39:30 EST [64-1] mediacloud@mediacloud ERROR:  cannot use 2PC in transactions involving multiple servers
-        # 2021-12-07 13:39:30 EST [64-2] mediacloud@mediacloud STATEMENT:  PREPARE TRANSACTION 'citus_0_63_89_0'
-        # 2021-12-07 13:39:30 EST [63-1] mediacloud@mediacloud ERROR:  cannot use 2PC in transactions involving multiple servers
-        # 2021-12-07 13:39:30 EST [63-2] mediacloud@mediacloud CONTEXT:  while executing command on localhost:5432
-        # 2021-12-07 13:39:30 EST [63-3] mediacloud@mediacloud STATEMENT:
-        # 	            WITH deleted_rows AS (
-        # 	                DELETE FROM unsharded_public.processed_stories
-        #
-        # 	                WHERE
-        # 	                    processed_stories_id BETWEEN 1 AND 50000001
-        #
-        # 	                RETURNING processed_stories_id, stories_id
-        # 	            )
-        # 	            INSERT INTO sharded_public.processed_stories (processed_stories_id, stories_id)
-        # 	                SELECT processed_stories_id::BIGINT, stories_id::BIGINT
-        # 	                FROM deleted_rows
-        # 	            ON CONFLICT (stories_id) DO NOTHING
         await self._move_generic_table_rows_pkey(
             table='processed_stories',
             # 2,518,182,153 in source table; 51 chunks
