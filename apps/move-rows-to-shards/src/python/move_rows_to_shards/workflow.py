@@ -233,8 +233,8 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
         await self._move_table(
             src_table='unsharded_public.media_coverage_gaps',
             src_id_column='media_id',
-            # MAX(media_id) = 1,892,933; 63,132,122 rows in source table; 19 chunks
-            chunk_size=100_000,
+            # MAX(media_id) = 1,892,933; 63,132,122 rows in source table; 10 chunks
+            chunk_size=200_000,
             sql_queries=[
                 f"""
                     WITH deleted_rows AS (
@@ -271,8 +271,8 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
         await self._move_table(
             src_table='unsharded_public.stories',
             src_id_column='stories_id',
-            # 2,119,319,121 in source table; 43 chunks
-            chunk_size=50_000_000,
+            # 2,119,319,121 in source table; 22 chunks
+            chunk_size=100_000_000,
             sql_queries=[
                 f"""
                     WITH deleted_rows AS (
@@ -324,8 +324,8 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
         await self._move_table(
             src_table='unsharded_public.stories_ap_syndicated',
             src_id_column='stories_ap_syndicated_id',
-            # 1,715,725,719 in source table; 35 chunks
-            chunk_size=50_000_000,
+            # 1,715,725,719 in source table; 18 chunks
+            chunk_size=100_000_000,
             sql_queries=[
                 f"""
                     WITH deleted_rows AS (
@@ -386,8 +386,8 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
             await self._move_table(
                 src_table=f'unsharded_public.feeds_stories_map_p_{str(partition_index).zfill(2)}',
                 src_id_column='stories_id',
-                # 96,563,848 in source table; 10 chunks
-                chunk_size=10_000_000,
+                # 96,563,848 in source table; 3 chunks
+                chunk_size=50_000_000,
                 sql_queries=[
                     f"""
                         WITH deleted_rows AS (
@@ -416,8 +416,8 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
             await self._move_table(
                 src_table=f'unsharded_public.stories_tags_map_p_{str(partition_index).zfill(2)}',
                 src_id_column='stories_id',
-                # 547,023,872 in every partition; 28 chunks
-                chunk_size=20_000_000,
+                # 547,023,872 in every partition; 6 chunks
+                chunk_size=100_000_000,
                 sql_queries=[
                     f"""
                         WITH deleted_rows AS (
@@ -446,8 +446,8 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
             await self._move_table(
                 src_table=f'unsharded_public.story_sentences_p_{str(partition_index).zfill(2)}',
                 src_id_column='stories_id',
-                # 1,418,730,496 in every partition; 29 chunks
-                chunk_size=50_000_000,
+                # 1,418,730,496 in every partition; 5 chunks
+                chunk_size=300_000_000,
                 sql_queries=[
                     f"""
                         WITH deleted_rows AS (
@@ -510,8 +510,8 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
         await self._move_table(
             src_table=f'unsharded_public.solr_imported_stories',
             src_id_column='stories_id',
-            # MAX(stories_id) = 2,119,343,981; 43 chunks
-            chunk_size=50_000_000,
+            # MAX(stories_id) = 2,119,343,981; 11 chunks
+            chunk_size=200_000_000,
             sql_queries=[
                 f"""
                     WITH deleted_rows AS (
@@ -605,8 +605,8 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
         await self._move_table(
             src_table='unsharded_public.processed_stories',
             src_id_column='processed_stories_id',
-            # 2,518,182,153 in source table; 51 chunks
-            chunk_size=50_000_000,
+            # 2,518,182,153 in source table; 13 chunks
+            chunk_size=200_000_000,
             sql_queries=[
                 f"""
                     WITH deleted_rows AS (
@@ -752,8 +752,8 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
             await self._move_table(
                 src_table=f'unsharded_public.downloads_success_content_{str(partition_index).zfill(2)}',
                 src_id_column='downloads_id',
-                # 65,003,792 in source table; 7 chunks
-                chunk_size=10_000_000,
+                # 65,003,792 in source table; 4 chunks
+                chunk_size=20_000_000,
                 sql_queries=[
                     f"""
                         WITH deleted_rows AS (
@@ -772,8 +772,8 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
             await self._move_table(
                 src_table=f'unsharded_public.downloads_success_feed_{str(partition_index).zfill(2)}',
                 src_id_column='downloads_id',
-                # 45,088,116 in source table; 5 chunks
-                chunk_size=10_000_000,
+                # 45,088,116 in source table; 3 chunks
+                chunk_size=20_000_000,
                 sql_queries=[
                     f"""
                         WITH deleted_rows AS (
@@ -792,8 +792,8 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
             await self._move_table(
                 src_table=f'unsharded_public.download_texts_{str(partition_index).zfill(2)}',
                 src_id_column='downloads_id',
-                # 69,438,480 in source table; 7 chunks
-                chunk_size=10_000_000,
+                # 69,438,480 in source table; 4 chunks
+                chunk_size=20_000_000,
                 sql_queries=[
                     f"""
                         WITH deleted_rows AS (
@@ -824,8 +824,8 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
         await self._move_table(
             src_table=f'unsharded_public.topic_stories',
             src_id_column='topic_stories_id',
-            # 165,026,730 in source table; 34 chunks
-            chunk_size=5_000_000,
+            # 165,026,730 in source table; 9 chunks
+            chunk_size=20_000_000,
             sql_queries=[
                 f"""
                     WITH deleted_rows AS (
@@ -871,8 +871,8 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
         await self._move_table(
             src_table=f'unsharded_public.topic_links',
             src_id_column='topic_links_id',
-            # 1,433,314,412 in source table; 29 chunks
-            chunk_size=50_000_000,
+            # 1,433,314,412 in source table; 15 chunks
+            chunk_size=100_000_000,
             sql_queries=[
                 f"""
                     WITH deleted_rows AS (
@@ -912,8 +912,8 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
         await self._move_table(
             src_table=f'unsharded_public.topic_fetch_urls',
             src_id_column='topic_fetch_urls_id',
-            # 705,821,290 in source table; 36 chunks
-            chunk_size=20_000_000,
+            # 705,821,290 in source table; 8 chunks
+            chunk_size=100_000_000,
             sql_queries=[
                 f"""
                     WITH deleted_rows AS (
@@ -962,8 +962,8 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
         await self._move_table(
             src_table=f'unsharded_public.topic_posts',
             src_id_column='topic_posts_id',
-            # 95,486,494 in source table; 48 chunks
-            chunk_size=2_000_000,
+            # 95,486,494 in source table; 10 chunks
+            chunk_size=10_000_000,
             sql_queries=[
                 # Citus doesn't like it when we join local (unsharded) and distributed tables in this case therefore
                 # we create a temporary table first
@@ -1034,8 +1034,8 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
         await self._move_table(
             src_table=f'unsharded_public.topic_post_urls',
             src_id_column='topic_post_urls_id',
-            # 50,726,436 in source table; 25 chunks
-            chunk_size=2_000_000,
+            # 50,726,436 in source table; 11 chunks
+            chunk_size=5_000_000,
             sql_queries=[
                 # Citus doesn't like it when we join local (unsharded) and distributed tables in this case therefore
                 # we create a temporary table first
@@ -1146,8 +1146,8 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
         await self._move_table(
             src_table=f'unsharded_snap.stories',
             src_id_column='snapshots_id',
-            # MAX(snapshots_id) = 7690 in source table; 52 chunks
-            chunk_size=150,
+            # MAX(snapshots_id) = 7690 in source table; 8 chunks
+            chunk_size=1000,
             sql_queries=[
                 # Citus doesn't like it when we join local (unsharded) and distributed tables in this case therefore
                 # we create a temporary table first
@@ -1221,8 +1221,8 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
         await self._move_table(
             src_table=f'unsharded_snap.topic_stories',
             src_id_column='snapshots_id',
-            # MAX(snapshots_id) = 7690 in source table; 52 chunks
-            chunk_size=150,
+            # MAX(snapshots_id) = 7690 in source table; 8 chunks
+            chunk_size=1000,
             sql_queries=[
                 f"""
                     WITH deleted_rows AS (
@@ -1269,8 +1269,8 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
         await self._move_table(
             src_table=f'unsharded_snap.topic_links_cross_media',
             src_id_column='snapshots_id',
-            # MAX(snapshots_id) = 7690 in source table; 52 chunks
-            chunk_size=150,
+            # MAX(snapshots_id) = 7690 in source table; 8 chunks
+            chunk_size=1000,
             sql_queries=[
                 f"""
                     WITH deleted_rows AS (
@@ -1308,8 +1308,8 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
         await self._move_table(
             src_table=f'unsharded_snap.media',
             src_id_column='snapshots_id',
-            # MAX(snapshots_id) = 7690 in source table; 52 chunks
-            chunk_size=150,
+            # MAX(snapshots_id) = 7690 in source table; 8 chunks
+            chunk_size=1000,
             sql_queries=[
                 # Citus doesn't like it when we join local (unsharded) and distributed tables in this case therefore
                 # we create a temporary table first
@@ -1373,8 +1373,8 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
         await self._move_table(
             src_table=f'unsharded_snap.media_tags_map',
             src_id_column='snapshots_id',
-            # MAX(snapshots_id) = 7690 in source table; 52 chunks
-            chunk_size=150,
+            # MAX(snapshots_id) = 7690 in source table; 8 chunks
+            chunk_size=1000,
             sql_queries=[
                 # Citus doesn't like it when we join local (unsharded) and distributed tables in this case therefore
                 # we create a temporary table first
@@ -1426,8 +1426,8 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
         await self._move_table(
             src_table=f'unsharded_snap.stories_tags_map',
             src_id_column='snapshots_id',
-            # MAX(snapshots_id) = 7690 in source table; 52 chunks
-            chunk_size=150,
+            # MAX(snapshots_id) = 7690 in source table; 8 chunks
+            chunk_size=1000,
             sql_queries=[
                 # Citus doesn't like it when we join local (unsharded) and distributed tables in this case therefore
                 # we create a temporary table first
@@ -1479,8 +1479,8 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
         await self._move_table(
             src_table=f'unsharded_snap.story_links',
             src_id_column='timespans_id',
-            # MAX(timespans_id) = 1_362_209 in source table; 28 chunks
-            chunk_size=50_000,
+            # MAX(timespans_id) = 1_362_209 in source table; 10 chunks
+            chunk_size=150_000,
             sql_queries=[
                 # Citus doesn't like it when we join local (unsharded) and distributed tables in this case therefore
                 # we create a temporary table first
@@ -1529,8 +1529,8 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
         await self._move_table(
             src_table=f'unsharded_snap.story_link_counts',
             src_id_column='timespans_id',
-            # MAX(timespans_id) = 1_362_209 in source table; 28 chunks
-            chunk_size=50_000,
+            # MAX(timespans_id) = 1_362_209 in source table; 10 chunks
+            chunk_size=150_000,
             sql_queries=[
                 # Citus doesn't like it when we join local (unsharded) and distributed tables in this case therefore
                 # we create a temporary table first
@@ -1597,8 +1597,8 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
         await self._move_table(
             src_table=f'unsharded_snap.medium_link_counts',
             src_id_column='timespans_id',
-            # MAX(timespans_id) = 1_362_209 in source table; 28 chunks
-            chunk_size=50_000,
+            # MAX(timespans_id) = 1_362_209 in source table; 10 chunks
+            chunk_size=150_000,
             sql_queries=[
                 # Citus doesn't like it when we join local (unsharded) and distributed tables in this case therefore
                 # we create a temporary table first
@@ -1671,8 +1671,8 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
         await self._move_table(
             src_table=f'unsharded_snap.medium_links',
             src_id_column='timespans_id',
-            # MAX(timespans_id) = 1_362_209 in source table; 28 chunks
-            chunk_size=50_000,
+            # MAX(timespans_id) = 1_362_209 in source table; 10 chunks
+            chunk_size=150_000,
             sql_queries=[
                 # Citus doesn't like it when we join local (unsharded) and distributed tables in this case therefore
                 # we create a temporary table first
@@ -1724,8 +1724,8 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
         await self._move_table(
             src_table=f'unsharded_snap.timespan_posts',
             src_id_column='timespans_id',
-            # MAX(timespans_id) = 1_362_209 in source table; 28 chunks
-            chunk_size=50_000,
+            # MAX(timespans_id) = 1_362_209 in source table; 10 chunks
+            chunk_size=150_000,
             sql_queries=[
                 # Citus doesn't like it when we join local (unsharded) and distributed tables in this case therefore
                 # we create a temporary table first
@@ -1770,8 +1770,8 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
         await self._move_table(
             src_table=f'unsharded_snap.live_stories',
             src_id_column='topic_stories_id',
-            # MAX(topic_stories_id) = 165_082_931 in source table; 34 chunks
-            chunk_size=5_000_000,
+            # MAX(topic_stories_id) = 165_082_931 in source table; 17 chunks
+            chunk_size=10_000_000,
             sql_queries=[
                 f"""
                     WITH deleted_rows AS (

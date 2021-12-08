@@ -1,7 +1,5 @@
 # Tables to move
 
-* [ ] **FIXME count how many activities are we going to run**
-
 * [x] auth_user_request_daily_counts.email:
     * [x] auth_user_request_daily_counts
       * [x] skip (email, day) pairs that already exist in the sharded table
