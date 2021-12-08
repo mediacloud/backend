@@ -667,15 +667,16 @@ def _create_test_unsharded_dataset(db: DatabaseHandler):
 
         _db_create(
             db=db,
-            table='unsharded_public.downloads_error',
+            table=f'unsharded_public.downloads_success_content_{str(math.floor((row_id + 1) / 100_000_000)).zfill(2)}',
             insert_hash={
+                # Needs to be "row_id" exactly because it will be referenced by "download_texts"
                 'downloads_id': row_id,
                 'feeds_id': row_id,
                 'stories_id': row_id,
                 'url': f'https://test.com/test-{row_id}',
                 'host': 'test.com',
                 'type': 'content',
-                'state': 'error',
+                'state': 'success',
                 'path': f'test-{row_id}',
                 'priority': 0,
                 'sequence': 0,
@@ -684,7 +685,7 @@ def _create_test_unsharded_dataset(db: DatabaseHandler):
 
         _db_create(
             db=db,
-            table=f'unsharded_public.downloads_success_content_{str(math.floor((row_id + 1) / 100_000_000)).zfill(2)}',
+            table='unsharded_public.downloads_error',
             insert_hash={
                 'downloads_id': row_id + 1,
                 'feeds_id': row_id,
@@ -692,7 +693,7 @@ def _create_test_unsharded_dataset(db: DatabaseHandler):
                 'url': f'https://test.com/test-{row_id}',
                 'host': 'test.com',
                 'type': 'content',
-                'state': 'success',
+                'state': 'error',
                 'path': f'test-{row_id}',
                 'priority': 0,
                 'sequence': 0,
