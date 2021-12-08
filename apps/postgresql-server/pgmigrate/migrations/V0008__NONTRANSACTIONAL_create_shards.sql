@@ -3300,6 +3300,9 @@ CREATE INDEX snap_stories_topics_id
 CREATE UNIQUE INDEX snap_stories_topics_id_snapshots_id_stories_id
     ON snap.stories (topics_id, snapshots_id, stories_id);
 
+CREATE UNIQUE INDEX snap_stories_topics_id_snapshots_id_stories_id_media_id_guid
+    ON snap.stories (topics_id, snapshots_id, stories_id, media_id, guid);
+
 
 CREATE TABLE snap.topic_stories
 (
