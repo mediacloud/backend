@@ -462,13 +462,13 @@ def _db_create(db: DatabaseHandler, table: str, insert_hash: Dict[str, Any]) -> 
 
 
 def _create_test_unsharded_dataset(db: DatabaseHandler):
-    # Insert rows into huge sharded tables with random IDs and huge gaps in between to test out whether chunking works;
-    # must be different from each other by at least 3
+    # Insert rows with multiple IDs to trigger chunking
+    # FIXME make it span across multiple partitions
     row_ids = [
         1,
         10,
-        99_000,
-        100_000,
+        900,
+        1001,
     ]
 
     # Delete preloaded tag sets / tags
