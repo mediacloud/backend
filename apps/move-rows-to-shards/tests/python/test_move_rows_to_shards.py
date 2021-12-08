@@ -471,6 +471,14 @@ def _create_test_unsharded_dataset(db: DatabaseHandler):
         100_000,
     ]
 
+    # Delete preloaded tag sets / tags
+    # noinspection SqlNoDataSourceInspection,SqlResolve,SqlWithoutWhere
+    db.query("DELETE FROM public.timespans")
+    # noinspection SqlNoDataSourceInspection,SqlResolve,SqlWithoutWhere
+    db.query("DELETE FROM public.tags")
+    # noinspection SqlNoDataSourceInspection,SqlResolve,SqlWithoutWhere
+    db.query("DELETE FROM public.tag_sets")
+
     for row_id in row_ids:
 
         _db_create(
@@ -578,14 +586,6 @@ def _create_test_unsharded_dataset(db: DatabaseHandler):
                 'stories_id': row_id,
             }
         )
-
-        # Delete preloaded tag sets / tags
-        # noinspection SqlNoDataSourceInspection,SqlResolve,SqlWithoutWhere
-        db.query("DELETE FROM public.timespans")
-        # noinspection SqlNoDataSourceInspection,SqlResolve,SqlWithoutWhere
-        db.query("DELETE FROM public.tags")
-        # noinspection SqlNoDataSourceInspection,SqlResolve,SqlWithoutWhere
-        db.query("DELETE FROM public.tag_sets")
 
         _db_create(
             db=db,
