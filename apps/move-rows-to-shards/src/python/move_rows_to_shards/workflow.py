@@ -542,21 +542,6 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
         max_downloads_id = await self.activities.max_column_value('unsharded_public.downloads', 'downloads_id')
         downloads_id_chunk_size = stories_id_chunk_size
 
-        # FIXME fails with:
-        #
-        # 2021-12-07 13:41:07 EST [91-1] mediacloud@mediacloud ERROR:  relation "sharded_public.downloads_error" does not exist at character 412
-        # 2021-12-07 13:41:07 EST [91-2] mediacloud@mediacloud STATEMENT:
-        # 	            WITH deleted_rows AS (
-        # 	                DELETE FROM unsharded_public.downloads_error
-        #
-        # 	                WHERE
-        # 	                    downloads_id BETWEEN 1 AND 10000001
-        #
-        # 	                RETURNING downloads_id, feeds_id, stories_id, parent, url, host, download_time, type, state, path, error_message, priority, sequence, extracted
-        # 	            )
-        # 	            INSERT INTO sharded_public.downloads_error (downloads_id, feeds_id, stories_id, parent, url, host, download_time, type, state, path, error_message, priority, sequence, extracted)
-        # 	                SELECT downloads_id::BIGINT, feeds_id::BIGINT, stories_id::BIGINT, parent, url, host, download_time, type::TEXT::public.download_type, state::TEXT::public.download_state, path, error_message, priority, sequence, extracted
-        # 	                FROM deleted_rows
         await self._move_generic_table_rows(
             src_table='downloads_error',
             dst_table=f'downloads_error',
