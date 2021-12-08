@@ -90,7 +90,10 @@ class MoveRowsToShardsActivitiesImpl(MoveRowsToShardsActivities):
             f"Moving rows from '{src_table}' to '{dst_table}' ({src_id_column} BETWEEN {src_id_start} AND {src_id_end})"
         )
 
-        insert_columns = ', '.join(src_columns)
+        # Nasty hack: get rid of schema and table name in insert columns
+        insert_columns = [x.split('.')[-1] for x in src_columns]
+
+        insert_columns = ', '.join(insert_columns)
 
         # Nasty hack: rename kinds like "feeds_stories_map_p_id" to "feeds_stories_map_id"
         insert_columns = insert_columns.replace('_p_', '_')
