@@ -1121,7 +1121,7 @@ async def test_workflow():
             # By default, if individual activities of the workflow fail, they will get restarted pretty much
             # indefinitely, and so this test might run for days (or rather just timeout on the CI). So we cap the
             # workflow so that if it doesn't manage to complete in X minutes, we consider it as failed.
-            workflow_run_timeout=timedelta(minutes=5),
+            workflow_run_timeout=timedelta(minutes=10),
 
         ),
     )
