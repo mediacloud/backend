@@ -908,6 +908,25 @@ def _create_test_unsharded_dataset(db: DatabaseHandler):
             },
         )
 
+        _db_create(
+            db=db,
+            table='unsharded_snap.live_stories',
+            insert_hash={
+                'topics_id': row_id,
+                'topic_stories_id': row_id,
+                'stories_id': row_id,
+                'media_id': row_id,
+                'url': f'http://story.test/{row_id}',
+                'guid': f'guid://story.test/{row_id}',
+                'title': f'story-{row_id}',
+                'description': f'description-{row_id}',
+                'publish_date': '2016-10-15 08:00:00',
+                'collect_date': '2016-10-15 10:00:00',
+                'full_text_rss': True,
+                'language': 'xx',
+            },
+        )
+
         # Add a few duplicates to a couple of tables to make sure that those
         # tables gets deduplicated while moving rows
         duplicate_count = 3
