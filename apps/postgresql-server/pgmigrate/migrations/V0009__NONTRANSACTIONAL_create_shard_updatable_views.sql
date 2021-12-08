@@ -2937,25 +2937,29 @@ CREATE TRIGGER stories_add_normalized_title
     FOR EACH ROW
 EXECUTE PROCEDURE unsharded_public.add_normalized_title_hash();
 
--- Update the insert_solr_import_story() triggers to not be fired on INSERTs as
--- those won't be happening anymore; the workflow moving the rows from
--- unsharded table to the sharded one will skip the triggers or run the
--- appropriate actions manually
+-- Update the insert_solr_import_story() triggers to only fire on UPDATEs:
+--
+-- * INSERTs to the unsharded table won't be happening anymore;
+-- * Workflow will do a bunch of DELETEs, and there's no way for the workflow
+--   to somehow temporarily disable firing of those triggers.
+--
+-- Let's just kinda hope that not many stories / story tags / processed story
+-- entries will be legitimately deleted during the row move.
 DROP TRIGGER stories_insert_solr_import_story ON unsharded_public.stories;
 DROP TRIGGER stories_tags_map_p_insert_solr_import_story ON unsharded_public.stories_tags_map_p;
 DROP TRIGGER ps_insert_solr_import_story ON unsharded_public.processed_stories;
 CREATE TRIGGER stories_insert_solr_import_story
-    AFTER UPDATE OR DELETE
+    AFTER UPDATE
     ON unsharded_public.stories
     FOR EACH ROW
 EXECUTE PROCEDURE unsharded_public.insert_solr_import_story();
 CREATE TRIGGER stories_tags_map_p_insert_solr_import_story
-    BEFORE UPDATE OR DELETE
+    BEFORE UPDATE
     ON unsharded_public.stories_tags_map_p
     FOR EACH ROW
 EXECUTE PROCEDURE unsharded_public.insert_solr_import_story();
 CREATE TRIGGER ps_insert_solr_import_story
-    AFTER UPDATE OR DELETE
+    AFTER UPDATE
     ON unsharded_public.processed_stories
     FOR EACH ROW
 EXECUTE PROCEDURE unsharded_public.insert_solr_import_story();
