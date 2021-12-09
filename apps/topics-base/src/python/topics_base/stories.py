@@ -353,14 +353,7 @@ def assign_date_guess_tag(
         {'stories_id': stories_id}
     )
 
-    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: upserts don't work on an
-    # updatable view, and we can't upsert directly into the sharded table
-    # as the duplicate row might already exist in the unsharded one;
-    # therefore, we test the unsharded table once for whether the row
-    # exists and do an upsert to a sharded table -- the row won't start
-    # suddenly existing in an essentially read-only unsharded table so this
-    # should be safe from race conditions. After migrating rows, one can
-    # reset this statement to use a native upsert
+    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: restore ON CONFLICT after rows get moved
     row_exists = db.query(
         """
         SELECT 1
@@ -376,9 +369,8 @@ def assign_date_guess_tag(
     ).hash()
     if not row_exists:
         db.query("""
-            INSERT INTO sharded_public.stories_tags_map (stories_id, tags_id)
+            INSERT INTO public.stories_tags_map (stories_id, tags_id)
             VALUES (%(stories_id)s, %(tags_id)s)
-            ON CONFLICT (stories_id, tags_id) DO NOTHING
         """, {
             'stories_id': stories_id,
             'tags_id': tags_id,
@@ -513,14 +505,7 @@ def generate_story(
     stories_id = story['stories_id']
     tags_id = spidered_tag['tags_id']
 
-    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: upserts don't work on an
-    # updatable view, and we can't upsert directly into the sharded table
-    # as the duplicate row might already exist in the unsharded one;
-    # therefore, we test the unsharded table once for whether the row
-    # exists and do an upsert to a sharded table -- the row won't start
-    # suddenly existing in an essentially read-only unsharded table so this
-    # should be safe from race conditions. After migrating rows, one can
-    # reset this statement to use a native upsert
+    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: restore ON CONFLICT after rows get moved
     row_exists = db.query(
         """
         SELECT 1
@@ -536,9 +521,8 @@ def generate_story(
     ).hash()
     if not row_exists:
         db.query("""
-            INSERT INTO sharded_public.stories_tags_map (stories_id, tags_id)
+            INSERT INTO public.stories_tags_map (stories_id, tags_id)
             VALUES (%(stories_id)s, %(tags_id)s)
-            ON CONFLICT (stories_id, tags_id) DO NOTHING
         """, {
             'stories_id': stories_id,
             'tags_id': tags_id,
@@ -606,14 +590,9 @@ def add_to_topic_stories(
     topics_id = topic['topics_id']
     stories_id = story['stories_id']
 
-    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: upserts don't work on an
-    # updatable view, and we can't upsert directly into the sharded table
-    # as the duplicate row might already exist in the unsharded one;
-    # therefore, we test the unsharded table once for whether the row
-    # exists and do an upsert to a sharded table -- the row won't start
-    # suddenly existing in an essentially read-only unsharded table so this
-    # should be safe from race conditions. After migrating rows, one can
-    # reset this statement to use a native upsert
+    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: we need to INSERT into the
+    # semi-updatable view in order to trigger snap.live_stories update so we
+    # can't use ON CONFLICT; restore ON CONFLICT after rows get moved
     row_exists = db.query(
         """
         SELECT 1
@@ -630,7 +609,7 @@ def add_to_topic_stories(
     if not row_exists:
         db.query(
             """
-            INSERT INTO sharded_public.topic_stories (
+            INSERT INTO public.topic_stories (
                 topics_id,
                 stories_id,
                 iteration,
@@ -645,7 +624,6 @@ def add_to_topic_stories(
                 %(link_mined)s,
                 %(valid_foreign_rss_story)s
             )
-            ON CONFLICT (topics_id, stories_id) DO NOTHING
             """,
             {
                 'topics_id': topics_id,
@@ -813,14 +791,7 @@ def copy_story_to_new_medium(db: DatabaseHandler, topic: dict, old_story: dict, 
         stories_id = story['stories_id']
         tags_id = old_story_tag['tags_id']
 
-        # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: upserts don't work on an
-        # updatable view, and we can't upsert directly into the sharded table
-        # as the duplicate row might already exist in the unsharded one;
-        # therefore, we test the unsharded table once for whether the row
-        # exists and do an upsert to a sharded table -- the row won't start
-        # suddenly existing in an essentially read-only unsharded table so this
-        # should be safe from race conditions. After migrating rows, one can
-        # reset this statement to use a native upsert
+        # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: restore ON CONFLICT after rows get moved
         row_exists = db.query(
             """
             SELECT 1
@@ -836,9 +807,8 @@ def copy_story_to_new_medium(db: DatabaseHandler, topic: dict, old_story: dict, 
         ).hash()
         if not row_exists:
             db.query("""
-                INSERT INTO sharded_public.stories_tags_map (stories_id, tags_id)
+                INSERT INTO public.stories_tags_map (stories_id, tags_id)
                 VALUES (%(stories_id)s, %(tags_id)s)
-                ON CONFLICT (stories_id, tags_id) DO NOTHING
             """, {
                 'stories_id': stories_id,
                 'tags_id': tags_id,

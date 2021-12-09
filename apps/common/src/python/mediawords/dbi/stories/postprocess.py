@@ -38,14 +38,7 @@ def mark_as_processed(db: DatabaseHandler, stories_id: int) -> bool:
 
     try:
 
-        # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: upserts don't work on an
-        # updatable view, and we can't upsert directly into the sharded table
-        # as the duplicate row might already exist in the unsharded one;
-        # therefore, we test the unsharded table once for whether the row
-        # exists and do an upsert to a sharded table -- the row won't start
-        # suddenly existing in an essentially read-only unsharded table so this
-        # should be safe from race conditions. After migrating rows, one can
-        # reset this statement to use a native upsert
+        # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: restore ON CONFLICT after rows get moved
         row_exists = db.query(
             """
             SELECT 1
@@ -57,9 +50,8 @@ def mark_as_processed(db: DatabaseHandler, stories_id: int) -> bool:
         if not row_exists:
             db.query(
                 """
-                INSERT INTO sharded_public.processed_stories (stories_id)
+                INSERT INTO public.processed_stories (stories_id)
                 VALUES (%(stories_id)s)
-                ON CONFLICT (stories_id) DO NOTHING
                 """,
                 {'stories_id': stories_id}
             )

@@ -3014,7 +3014,13 @@ CREATE OR REPLACE FUNCTION public.auth_user_request_daily_counts_insert() RETURN
 $$
 BEGIN
     -- Insert only into the sharded table
-    INSERT INTO sharded_public.auth_user_request_daily_counts SELECT NEW.*;
+    INSERT INTO sharded_public.auth_user_request_daily_counts
+        SELECT NEW.*
+    ON CONFLICT (email, day) DO UPDATE SET
+        requests_count = EXCLUDED.requests_count,
+        requested_items_count = EXCLUDED.requested_items_count
+    ;
+
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -3068,7 +3074,13 @@ CREATE OR REPLACE FUNCTION public.media_stats_insert() RETURNS trigger AS
 $$
 BEGIN
     -- Insert only into the sharded table
-    INSERT INTO sharded_public.media_stats SELECT NEW.*;
+    INSERT INTO sharded_public.media_stats
+        SELECT NEW.*
+    ON CONFLICT (media_id, stat_date) DO UPDATE SET
+        num_stories = EXCLUDED.num_stories,
+        num_sentences = EXCLUDED.num_sentences
+    ;
+
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -3470,7 +3482,9 @@ $$
 BEGIN
 
     -- Insert only into the sharded table
-    INSERT INTO sharded_public.stories_tags_map SELECT NEW.*;
+    INSERT INTO sharded_public.stories_tags_map
+        SELECT NEW.*
+    ON CONFLICT (feeds_id, stories_id) DO NOTHING;
 
     -- MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: do the same as insert_solr_import_story()
     IF EXISTS(
@@ -3593,7 +3607,9 @@ CREATE OR REPLACE FUNCTION public.solr_import_stories_insert() RETURNS trigger A
 $$
 BEGIN
     -- Insert only into the sharded table
-    INSERT INTO sharded_public.solr_import_stories SELECT NEW.*;
+    INSERT INTO sharded_public.solr_import_stories
+        SELECT NEW.*
+    ON CONFLICT (stories_id) DO NOTHING;
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -3642,7 +3658,9 @@ CREATE OR REPLACE FUNCTION public.solr_imported_stories_insert() RETURNS trigger
 $$
 BEGIN
     -- Insert only into the sharded table
-    INSERT INTO sharded_public.solr_imported_stories SELECT NEW.*;
+    INSERT INTO sharded_public.solr_imported_stories
+        SELECT NEW.*
+    ON CONFLICT (stories_id) DO NOTHING;
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -3692,7 +3710,9 @@ CREATE OR REPLACE FUNCTION public.topic_merged_stories_map_insert() RETURNS trig
 $$
 BEGIN
     -- Insert only into the sharded table
-    INSERT INTO sharded_public.topic_merged_stories_map SELECT NEW.*;
+    INSERT INTO sharded_public.topic_merged_stories_map
+        SELECT NEW.*
+    ON CONFLICT (source_stories_id, target_stories_id) DO NOTHING;
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -3821,7 +3841,9 @@ CREATE OR REPLACE FUNCTION public.processed_stories_insert() RETURNS trigger AS
 $$
 BEGIN
     -- Insert only into the sharded table
-    INSERT INTO sharded_public.processed_stories SELECT NEW.*;
+    INSERT INTO sharded_public.processed_stories
+        SELECT NEW.*
+    ON CONFLICT (stories_id) DO NOTHING;
 
     -- MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: do the same as insert_solr_import_story()
     INSERT INTO sharded_public.solr_import_stories (stories_id)

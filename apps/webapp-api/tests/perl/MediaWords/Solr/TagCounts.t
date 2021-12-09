@@ -95,9 +95,8 @@ SQL
 
                 # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: tests use only the sharded table
                 $db->query( <<SQL,
-                    INSERT INTO sharded_public.stories_tags_map (stories_id, tags_id)
+                    INSERT INTO public.stories_tags_map (stories_id, tags_id)
                     VALUES (?, ?)
-                    ON CONFLICT DO NOTHING
 SQL
                     $tag_story->{ stories_id }, $tag->{ tags_id }
                 );
