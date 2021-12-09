@@ -1,5 +1,8 @@
 # Tables to move
 
+* [ ] **FIXME increase shard count**
+* [ ] **FIXME skip potential duplicate GUIDs at the start of the production's `stories` table**
+
 * [x] auth_user_request_daily_counts.email:
     * [x] auth_user_request_daily_counts
       * [x] skip (email, day) pairs that already exist in the sharded table
@@ -12,7 +15,6 @@
 * [x] stories.stories_id:
     * [x] stories
       * [x] avoid triggering insert_solr_import_story()
-      * [ ] **FIXME skip potential duplicate GUIDs at the start of the production's `stories` table**
     * [x] stories_ap_syndicated
     * [x] story_urls
     * [x] feeds_stories_map_p_\d\d

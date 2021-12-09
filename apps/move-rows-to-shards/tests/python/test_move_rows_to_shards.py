@@ -25,7 +25,6 @@ from move_rows_to_shards.workflow_interface import (
 log = create_logger(__name__)
 
 # Insert rows with multiple IDs to trigger chunking
-# FIXME make it span across multiple partitions
 __ROW_IDS = [
     1,
     10,
@@ -33,8 +32,6 @@ __ROW_IDS = [
     1001,
 ]
 
-
-# FIXME test duplicate GUIDs at the start of the "stories" table in production
 
 # noinspection SqlNoDataSourceInspection,SqlResolve
 def _create_partitions_up_to_maxint(db: DatabaseHandler) -> None:
