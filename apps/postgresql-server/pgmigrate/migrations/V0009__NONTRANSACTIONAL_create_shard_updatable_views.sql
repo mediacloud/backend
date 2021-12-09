@@ -3237,7 +3237,7 @@ BEGIN
             WHERE stories_id = NEW.stories_id
         ) THEN
 
-        INSERT INTO public.solr_import_stories (stories_id)
+        INSERT INTO sharded_public.solr_import_stories (stories_id)
         VALUES (NEW.stories_id)
         ON CONFLICT (stories_id) DO NOTHING;
 
@@ -3479,7 +3479,7 @@ BEGIN
             WHERE stories_id = NEW.stories_id
         ) THEN
 
-        INSERT INTO public.solr_import_stories (stories_id)
+        INSERT INTO sharded_public.solr_import_stories (stories_id)
         VALUES (NEW.stories_id)
         ON CONFLICT (stories_id) DO NOTHING;
 
@@ -3824,7 +3824,7 @@ BEGIN
     INSERT INTO sharded_public.processed_stories SELECT NEW.*;
 
     -- MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: do the same as insert_solr_import_story()
-    INSERT INTO public.solr_import_stories (stories_id)
+    INSERT INTO sharded_public.solr_import_stories (stories_id)
     VALUES (NEW.stories_id)
     ON CONFLICT (stories_id) DO NOTHING;
 
