@@ -24,6 +24,15 @@ from move_rows_to_shards.workflow_interface import (
 
 log = create_logger(__name__)
 
+# Insert rows with multiple IDs to trigger chunking
+# FIXME make it span across multiple partitions
+__ROW_IDS = [
+    1,
+    10,
+    900,
+    1001,
+]
+
 
 # FIXME test duplicate GUIDs at the start of the "stories" table in production
 
@@ -462,15 +471,6 @@ def _db_create(db: DatabaseHandler, table: str, insert_hash: Dict[str, Any]) -> 
 
 
 def _create_test_unsharded_dataset(db: DatabaseHandler):
-    # Insert rows with multiple IDs to trigger chunking
-    # FIXME make it span across multiple partitions
-    row_ids = [
-        1,
-        10,
-        900,
-        1001,
-    ]
-
     # Delete preloaded tag sets / tags
     # noinspection SqlNoDataSourceInspection,SqlResolve,SqlWithoutWhere
     db.query("DELETE FROM public.timespans")
@@ -479,7 +479,7 @@ def _create_test_unsharded_dataset(db: DatabaseHandler):
     # noinspection SqlNoDataSourceInspection,SqlResolve,SqlWithoutWhere
     db.query("DELETE FROM public.tag_sets")
 
-    for row_id in row_ids:
+    for row_id in __ROW_IDS:
 
         _db_create(
             db=db,
@@ -1072,8 +1072,8 @@ def _create_test_unsharded_dataset(db: DatabaseHandler):
                 },
             )
 
-    for source_stories_id in row_ids:
-        for target_stories_id in row_ids:
+    for source_stories_id in __ROW_IDS:
+        for target_stories_id in __ROW_IDS:
 
             # Add a few duplicates to make sure that the table gets deduplicated while moving rows
             for _ in range(3):
@@ -1087,6 +1087,7 @@ def _create_test_unsharded_dataset(db: DatabaseHandler):
                 )
 
 
+# noinspection SqlResolve,SqlNoDataSourceInspection
 @pytest.mark.asyncio
 async def test_workflow():
     db = connect_to_db()
@@ -1131,7 +1132,26 @@ async def test_workflow():
     # Wait for the workflow to complete
     await workflow.move_rows_to_shards()
 
-    # FIXME test everything out
+    # Test one table
+    auth_user_request_daily_counts = db.query("""
+        SELECT *
+        FROM sharded_public.auth_user_request_daily_counts
+        ORDER BY auth_user_request_daily_counts_id
+    """).hashes()
+    assert len(auth_user_request_daily_counts) == len(__ROW_IDS)
+    assert auth_user_request_daily_counts[0]['auth_user_request_daily_counts_id'] == __ROW_IDS[0]
+    assert auth_user_request_daily_counts[0]['email'] == f'test-{__ROW_IDS[0]}@test.com'
+    assert auth_user_request_daily_counts[0]['day'] == '2016-10-15'
+    assert auth_user_request_daily_counts[0]['requests_count'] == 123
+    assert auth_user_request_daily_counts[0]['requested_items_count'] == 123
+
+    # Test one table that was supposed to deduplicate rows
+    solr_import_stories = db.query("""
+        SELECT stories_id
+        FROM solr_import_stories
+        ORDER BY stories_id
+    """).hashes()
+    assert len(solr_import_stories) == len(__ROW_IDS)
 
     log.info("Stopping workers...")
     await stop_worker_faster(worker)
