@@ -3484,7 +3484,7 @@ BEGIN
     -- Insert only into the sharded table
     INSERT INTO sharded_public.stories_tags_map
         SELECT NEW.*
-    ON CONFLICT (feeds_id, stories_id) DO NOTHING;
+    ON CONFLICT (stories_id, tags_id) DO NOTHING;
 
     -- MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: do the same as insert_solr_import_story()
     IF EXISTS(
