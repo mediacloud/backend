@@ -1419,9 +1419,12 @@ SELECT create_distributed_table('stories', 'stories_id', colocate_with => 'none'
 
 CREATE INDEX stories_media_id ON stories (media_id);
 
+-- Order of indexed columns is important (I think) - if GUID goes first,
+-- queries can use it to search the table for a specific GUID.
+--
 -- We can't enforce index uniqueness across shards so a trigger will try to
 -- ensure that there are no (media_id, guid) duplicates
-CREATE INDEX stories_media_id_guid ON stories (media_id, guid);
+CREATE INDEX stories_guid_media_id ON stories (guid, media_id);
 
 CREATE INDEX stories_url ON stories USING HASH (url);
 CREATE INDEX stories_publish_date ON stories (publish_date);
