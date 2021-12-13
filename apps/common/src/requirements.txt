@@ -51,7 +51,7 @@ Jinja2==2.11.3
 kombu==4.6.11
 
 # XML manipulations, HTML parsing
-lxml==4.6.3
+lxml==4.6.5
 
 # Japanese language tokenizer, stemmer, etc.
 mecab-python3==1.0.3
