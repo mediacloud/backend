@@ -3370,7 +3370,7 @@ CREATE INDEX snap_topic_links_cross_media_topics_id_snapshots_id_stories_id
 CREATE INDEX snap_topic_links_cross_media_topics_id_snapshots_id_ref_sid
     ON snap.topic_links_cross_media (topics_id, snapshots_id, ref_stories_id);
 
-CREATE UNIQUE INDEX snap_topic_links_cross_media_topics_id_snapshots_id_stories_id_ref_stories_id
+CREATE UNIQUE INDEX snap_topic_links_cross_media_topics_id_snapshots_id_sid_ref_sid
     ON snap.topic_links_cross_media (topics_id, snapshots_id, stories_id, ref_stories_id);
 
 
@@ -3396,7 +3396,7 @@ CREATE INDEX snap_topic_media_codes_topics_id
 CREATE INDEX snap_topic_media_codes_topics_id_snapshots_id_media_id
     ON snap.topic_media_codes (topics_id, snapshots_id, media_id);
 
-CREATE UNIQUE INDEX snap_topic_media_codes_topics_id_snapshots_id_media_id_code_type
+CREATE UNIQUE INDEX snap_topic_media_codes_topics_id_snapshots_id_media_id_ctype
     ON snap.topic_media_codes (topics_id, snapshots_id, media_id, code_type);
 
 
@@ -3509,7 +3509,7 @@ CREATE INDEX snap_story_links_topics_id_timespans_id_source_stories_id
 CREATE INDEX snap_story_links_topics_id_timespans_id_ref_stories_id
     ON snap.story_links (topics_id, timespans_id, ref_stories_id);
 
-CREATE UNIQUE INDEX snap_story_links_topics_id_timespans_id_source_stories_id_ref_stories_id
+CREATE UNIQUE INDEX snap_story_links_topics_id_timespans_id_source_sid_ref_sid
     ON snap.story_links (topics_id, timespans_id, source_stories_id, ref_stories_id);
 
 
@@ -3631,7 +3631,7 @@ CREATE INDEX snap_medium_links_topics_id_timespans_id_source_media_id
 CREATE INDEX snap_medium_links_topics_id_timespans_id_ref_media_id
     ON snap.medium_links (topics_id, timespans_id, ref_media_id);
 
-CREATE UNIQUE INDEX snap_medium_links_topics_id_timespans_id_source_media_id_ref_media_id
+CREATE UNIQUE INDEX snap_medium_links_topics_id_timespans_id_source_mid_ref_mid
     ON snap.medium_links (topics_id, timespans_id, source_media_id, ref_media_id);
 
 
