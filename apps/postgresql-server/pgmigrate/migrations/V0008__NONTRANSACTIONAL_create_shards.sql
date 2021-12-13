@@ -1535,7 +1535,7 @@ SELECT run_on_shards_or_raise('stories', $cmd$
 CREATE VIEW stories_collected_in_past_day AS
 SELECT *
 FROM stories
-WHERE collect_date > now() - interval '1 day';
+WHERE collect_date > NOW() - INTERVAL '1 day';
 
 
 CREATE TABLE stories_ap_syndicated
