@@ -1232,22 +1232,6 @@ DROP TABLE unsharded_public.api_links;
 
 
 
---
--- media_suggestions_tags_map
---
-
-INSERT INTO public.media_suggestions_tags_map (
-    -- Primary key does not exist in the source table
-    media_suggestions_id,
-    tags_id)
-SELECT media_suggestions_id::BIGINT,
-       tags_id::BIGINT
-FROM unsharded_public.media_suggestions_tags_map;
-
-TRUNCATE unsharded_public.media_suggestions_tags_map;
-DROP TABLE unsharded_public.media_suggestions_tags_map;
-
-
 
 --
 -- media_suggestions
@@ -1285,8 +1269,29 @@ SELECT setval(
                false
            );
 
+-- Drop foreign keys that point to the table
+ALTER TABLE unsharded_public.media_suggestions_tags_map
+    DROP CONSTRAINT media_suggestions_tags_map_media_suggestions_id_fkey;
+
 TRUNCATE unsharded_public.media_suggestions;
 DROP TABLE unsharded_public.media_suggestions;
+
+
+
+--
+-- media_suggestions_tags_map
+--
+
+INSERT INTO public.media_suggestions_tags_map (
+    -- Primary key does not exist in the source table
+    media_suggestions_id,
+    tags_id)
+SELECT media_suggestions_id::BIGINT,
+       tags_id::BIGINT
+FROM unsharded_public.media_suggestions_tags_map;
+
+TRUNCATE unsharded_public.media_suggestions_tags_map;
+DROP TABLE unsharded_public.media_suggestions_tags_map;
 
 
 
