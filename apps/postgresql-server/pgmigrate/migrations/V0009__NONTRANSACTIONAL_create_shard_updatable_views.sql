@@ -449,6 +449,136 @@ DROP TABLE unsharded_public.media_rescraping;
 -- feeds
 --
 
+
+-- There was no unique feeds (media_id, url) index on production, so we have to
+-- merge some duplicates real quick
+DO
+$$
+    DECLARE
+
+        tables CURSOR FOR
+            SELECT
+                media_id,
+                url,
+                count(*)
+            FROM unsharded_public.feeds
+            GROUP BY
+                media_id,
+                url
+            HAVING COUNT(*) > 1;
+
+        dst_feeds_id INT;
+        src_feeds_id INT;
+
+        feeds_record RECORD;
+        feeds_tags_map_record RECORD;
+
+    BEGIN
+        FOR table_record IN tables
+            LOOP
+
+                SELECT unsharded_public.feeds.feeds_id INTO dst_feeds_id
+                FROM unsharded_public.feeds
+                    LEFT JOIN unsharded_public.feeds_stories_map
+                        ON unsharded_public.feeds.feeds_id = unsharded_public.feeds_stories_map.feeds_id
+                WHERE
+                    media_id = table_record.media_id AND
+                    url = table_record.url
+                GROUP BY unsharded_public.feeds.feeds_id
+                ORDER BY
+                    -- Prefer to merge everything into an active feed
+                    active DESC,
+                    -- Prefer to merge into feed with the most associated
+                    -- stories to reduce the number of row moves needed
+                    COUNT(stories_id) DESC
+                LIMIT 1
+                ;
+
+                RAISE NOTICE 'Moving feeds with media_id = %, url = % into feeds_id = %',
+                    table_record.media_id,
+                    table_record.url,
+                    dst_feeds_id;
+
+                FOR feeds_record IN
+                    SELECT feeds_id
+                    FROM unsharded_public.feeds
+                    WHERE
+                        media_id = table_record.media_id AND
+                        url = table_record.url AND
+                        feeds_id != dst_feeds_id
+                    ORDER BY feeds_id
+                LOOP
+
+                    src_feeds_id := feeds_record.feeds_id;
+
+                    RAISE NOTICE '  Moving feed % into %', src_feeds_id, dst_feeds_id;
+
+                    -- Don't call unsharded_public.test_referenced_download_trigger
+                    SET session_replication_role = replica;
+
+                    RAISE NOTICE '    downloads...';
+                    UPDATE unsharded_public.downloads SET
+                        feeds_id = dst_feeds_id
+                    WHERE feeds_id = src_feeds_id;
+
+                    SET session_replication_role = DEFAULT;
+
+                    RAISE NOTICE '    feeds_stories_map...';
+                    UPDATE unsharded_public.feeds_stories_map_p SET
+                        feeds_id = dst_feeds_id
+                    WHERE feeds_id = src_feeds_id;
+
+                    RAISE NOTICE '    scraped_feeds...';
+                    UPDATE unsharded_public.scraped_feeds SET
+                        feeds_id = dst_feeds_id
+                    WHERE feeds_id = src_feeds_id;
+
+                    RAISE NOTICE '    feeds_from_yesterday...';
+                    UPDATE unsharded_public.feeds_from_yesterday SET
+                        feeds_id = dst_feeds_id
+                    WHERE feeds_id = src_feeds_id;
+
+                    RAISE NOTICE '    feeds_tags_map...';
+
+                    FOR feeds_tags_map_record IN
+                        SELECT tags_id
+                        FROM unsharded_public.feeds_tags_map
+                        WHERE feeds_id = src_feeds_id
+                    LOOP
+
+                        RAISE NOTICE '      tags_id = %...', feeds_tags_map_record.tags_id;
+
+                        UPDATE unsharded_public.feeds_tags_map SET
+                            feeds_id = dst_feeds_id
+                        WHERE
+                            feeds_id = src_feeds_id AND
+                            tags_id = feeds_tags_map_record.tags_id AND
+                            NOT EXISTS (
+                                SELECT 1
+                                FROM unsharded_public.feeds_tags_map
+                                WHERE
+                                    feeds_id = dst_feeds_id AND
+                                    tags_id = feeds_tags_map_record.tags_id
+                            );
+
+                        DELETE FROM unsharded_public.feeds_tags_map
+                        WHERE
+                            feeds_id = src_feeds_id AND
+                            tags_id = feeds_tags_map_record.tags_id;
+
+                    END LOOP;
+
+                    RAISE NOTICE '    Deleting...';
+                    DELETE FROM unsharded_public.feeds
+                    WHERE feeds_id = src_feeds_id;
+
+                END LOOP;
+
+            END LOOP;
+    END
+$$;
+
+
 -- Drop some indexes to speed up initial insert a little
 DROP INDEX public.feeds_media_id;
 DROP INDEX public.feeds_name;
