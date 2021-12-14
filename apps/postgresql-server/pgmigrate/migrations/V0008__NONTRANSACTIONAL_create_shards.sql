@@ -146,7 +146,8 @@ CREATE TABLE api_links
 
 -- Not a reference table (because not referenced), not a distributed table (because too small)
 
-CREATE UNIQUE INDEX api_links_path_params ON api_links (path, params);
+-- Needs to be MD5() because otherwise rows get too big for indexing
+CREATE UNIQUE INDEX api_links_path_params ON api_links (path, MD5(params::TEXT));
 
 
 -- job states as implemented in mediawords.job.StatefulJobBroker

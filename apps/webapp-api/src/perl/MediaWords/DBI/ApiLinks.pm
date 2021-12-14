@@ -39,7 +39,7 @@ sub __find_or_create_link($$)
         SELECT *
         FROM api_links
         WHERE
-            params = \$1::JSONB AND
+            MD5(params::TEXT) = MD5(\$1::JSONB::TEXT) AND
             path = \$2
 SQL
         $params_json, $path
