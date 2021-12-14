@@ -52,3 +52,10 @@ won't do what you expect, and will probably lead to weird errors such as:
                     FROM deleted_rows
                 ON CONFLICT (stories_id) DO NOTHING
 ```
+
+
+### Debugging query plans
+
+```sql
+SET client_min_messages TO DEBUG;
+```
