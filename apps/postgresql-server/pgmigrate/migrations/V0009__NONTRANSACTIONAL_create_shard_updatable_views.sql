@@ -230,6 +230,7 @@ DROP INDEX public.media_normalized_url;
 DROP INDEX public.media_name_fts;
 DROP INDEX public.media_dup_media_id;
 
+-- Copy the ones without duplicates first
 INSERT INTO public.media (media_id,
                           url,
                           normalized_url,
@@ -254,7 +255,72 @@ SELECT media_id::BIGINT,
        editor_notes,
        public_notes,
        is_monitored
-FROM unsharded_public.media;
+FROM unsharded_public.media
+WHERE dup_media_id IS NULL
+;
+
+-- Copy duplicates which reference other duplicates
+INSERT INTO public.media (media_id,
+                          url,
+                          normalized_url,
+                          name,
+                          full_text_rss,
+                          foreign_rss_links,
+                          dup_media_id,
+                          is_not_dup,
+                          content_delay,
+                          editor_notes,
+                          public_notes,
+                          is_monitored)
+SELECT media_id::BIGINT,
+       url::TEXT,
+       normalized_url::TEXT,
+       name::TEXT,
+       full_text_rss,
+       foreign_rss_links,
+       dup_media_id::BIGINT,
+       is_not_dup,
+       content_delay,
+       editor_notes,
+       public_notes,
+       is_monitored
+FROM unsharded_public.media
+WHERE dup_media_id IS NOT NULL
+AND media_id IN (
+    SELECT dup_media_id
+    FROM unsharded_public.media
+)
+;
+
+-- Copy the rest
+INSERT INTO public.media (media_id,
+                          url,
+                          normalized_url,
+                          name,
+                          full_text_rss,
+                          foreign_rss_links,
+                          dup_media_id,
+                          is_not_dup,
+                          content_delay,
+                          editor_notes,
+                          public_notes,
+                          is_monitored)
+SELECT media_id::BIGINT,
+       url::TEXT,
+       normalized_url::TEXT,
+       name::TEXT,
+       full_text_rss,
+       foreign_rss_links,
+       dup_media_id::BIGINT,
+       is_not_dup,
+       content_delay,
+       editor_notes,
+       public_notes,
+       is_monitored
+FROM unsharded_public.media
+WHERE dup_media_id IS NOT NULL
+ON CONFLICT (media_id) DO NOTHING
+;
 
 SELECT setval(
                pg_get_serial_sequence('public.media', 'media_id'),
