@@ -21,11 +21,14 @@ CREATE SCHEMA sharded_cache;
 -- DROP UNUSED VIEWS
 --
 
-DROP VIEW unsharded_public.controversies;
+-- Does not exist on production
+DROP VIEW IF EXISTS unsharded_public.controversies;
 
-DROP VIEW unsharded_public.controversy_dumps;
+-- Does not exist on production
+DROP VIEW IF EXISTS unsharded_public.controversy_dumps;
 
-DROP VIEW unsharded_public.controversy_dump_time_slices;
+-- Does not exist on production
+DROP VIEW IF EXISTS unsharded_public.controversy_dump_time_slices;
 
 DROP VIEW unsharded_public.daily_stats;
 
@@ -54,6 +57,22 @@ DROP VIEW unsharded_public.topics_with_user_permission;
 DROP VIEW unsharded_public.topic_post_stories;
 
 DROP VIEW unsharded_public.pending_job_states;
+
+-- Only exists in production
+DROP VIEW IF EXISTS unsharded_public.media_dups_filled;
+
+
+
+--
+-- DROP UNUSED TABLES
+--
+
+-- Exists only in production
+DROP TABLE IF EXISTS unsharded_public.controversy_tweets;
+
+-- Exists only in production
+DROP TABLE IF EXISTS unsharded_public.controversy_tweet_searches;
+
 
 
 --
@@ -264,13 +283,15 @@ ALTER TABLE unsharded_public.topic_media_codes
     -- That's how it's called in production
     DROP CONSTRAINT IF EXISTS controversy_media_codes_media_id_fkey;
 ALTER TABLE unsharded_public.topic_media_codes
+    -- Not in production
     DROP CONSTRAINT IF EXISTS topic_media_codes_media_id_fkey;
 ALTER TABLE unsharded_public.feeds
     DROP CONSTRAINT feeds_media_id_fkey;
 ALTER TABLE unsharded_public.feeds_after_rescraping
     DROP CONSTRAINT feeds_after_rescraping_media_id_fkey;
 ALTER TABLE unsharded_public.media_coverage_gaps
-    DROP CONSTRAINT media_coverage_gaps_media_id_fkey;
+    -- Doesn't exist in production
+    DROP CONSTRAINT IF EXISTS media_coverage_gaps_media_id_fkey;
 ALTER TABLE unsharded_public.media
     DROP CONSTRAINT media_dup_media_id_fkey;
 ALTER TABLE unsharded_public.media_health
@@ -558,6 +579,13 @@ DROP TABLE unsharded_public.downloads_fetching;
 -- Small partition so we can just copy it right away.
 --
 
+-- Only exists in production
+DROP FUNCTION IF EXISTS unsharded_public.get_pending_host_downloads_ids();
+
+-- Only exists in production
+DROP FUNCTION IF EXISTS unsharded_public.get_pending_host_downloads();
+
+
 -- Can't temporarily drop indexes on individual partitions in a partitioned table
 
 INSERT INTO public.downloads_pending (downloads_id,
@@ -628,7 +656,11 @@ ALTER TABLE unsharded_public.auth_users_tag_sets_permissions
 ALTER TABLE unsharded_public.tags
     DROP CONSTRAINT tags_tag_sets_id_fkey;
 ALTER TABLE unsharded_public.topics
-    DROP CONSTRAINT topics_media_type_tag_sets_id_fkey;
+    -- Not in production
+    DROP CONSTRAINT IF EXISTS topics_media_type_tag_sets_id_fkey;
+ALTER TABLE unsharded_public.topics
+    -- Only in production
+    DROP CONSTRAINT IF EXISTS controversies_media_type_tag_sets_id_fkey;
 
 TRUNCATE unsharded_public.tag_sets;
 DROP TABLE unsharded_public.tag_sets;
@@ -679,7 +711,11 @@ CREATE INDEX tags_show_on_stories ON public.tags USING HASH (show_on_stories);
 
 -- Drop foreign keys that point to the table
 ALTER TABLE unsharded_public.timespans
-    DROP CONSTRAINT timespans_tags_id_fkey;
+    -- Not in production
+    DROP CONSTRAINT IF EXISTS timespans_tags_id_fkey;
+ALTER TABLE unsharded_public.timespans
+    -- Only in production
+    DROP CONSTRAINT IF EXISTS controversy_dump_time_slices_tags_id_fkey;
 ALTER TABLE unsharded_public.feeds_tags_map
     DROP CONSTRAINT feeds_tags_map_tags_id_fkey;
 ALTER TABLE unsharded_public.media_suggestions_tags_map
