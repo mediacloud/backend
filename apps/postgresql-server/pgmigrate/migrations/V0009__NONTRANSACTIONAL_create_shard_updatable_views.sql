@@ -2708,6 +2708,11 @@ FROM unsharded_public.retweeter_stories AS retweeter_stories
          INNER JOIN public.retweeter_scores AS retweeter_scores
                     ON retweeter_stories.retweeter_scores_id = retweeter_scores.retweeter_scores_id;
 
+SELECT pid
+FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
+WHERE backend_type = 'autovacuum worker'
+  AND query ~ 'stories';
+
 TRUNCATE unsharded_public.retweeter_stories;
 DROP TABLE unsharded_public.retweeter_stories;
 
@@ -3297,6 +3302,11 @@ EXECUTE PROCEDURE public.media_coverage_gaps_insert();
 --
 -- stories
 --
+
+SELECT pid
+FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
+WHERE backend_type = 'autovacuum worker'
+  AND query ~ 'stories';
 
 ALTER TABLE public.stories
     SET SCHEMA sharded_public;
@@ -5532,6 +5542,11 @@ END;
 
 $$ LANGUAGE plpgsql;
 
+SELECT pid
+FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
+WHERE backend_type = 'autovacuum worker'
+  AND query ~ 'stories';
+
 CREATE TRIGGER stories_update_live_story
     AFTER UPDATE
     ON unsharded_public.stories
@@ -5852,64 +5867,206 @@ SELECT create_distributed_function('public.insert_solr_import_story()');
 -- unsharded_public.stories
 --
 
+SELECT pid
+FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
+WHERE backend_type = 'autovacuum worker'
+  AND query ~ 'stories';
+
 ALTER TABLE unsharded_public.downloads
     DROP CONSTRAINT downloads_stories_id_fkey;
+
+SELECT pid
+FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
+WHERE backend_type = 'autovacuum worker'
+  AND query ~ 'stories';
+
 ALTER TABLE unsharded_public.processed_stories
     DROP CONSTRAINT processed_stories_stories_id_fkey;
+
+SELECT pid
+FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
+WHERE backend_type = 'autovacuum worker'
+  AND query ~ 'stories';
+
 ALTER TABLE unsharded_public.scraped_stories
     DROP CONSTRAINT scraped_stories_stories_id_fkey;
+
+SELECT pid
+FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
+WHERE backend_type = 'autovacuum worker'
+  AND query ~ 'stories';
+
 ALTER TABLE unsharded_public.solr_import_stories
     -- Not in production
     DROP CONSTRAINT IF EXISTS solr_import_stories_stories_id_fkey;
+
+SELECT pid
+FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
+WHERE backend_type = 'autovacuum worker'
+  AND query ~ 'stories';
+
 ALTER TABLE unsharded_public.solr_import_stories
     -- Only in production
     DROP CONSTRAINT IF EXISTS solr_import_extra_stories_stories_id_fkey;
+
+SELECT pid
+FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
+WHERE backend_type = 'autovacuum worker'
+  AND query ~ 'stories';
+
 ALTER TABLE unsharded_public.solr_imported_stories
     DROP CONSTRAINT solr_imported_stories_stories_id_fkey;
+
+SELECT pid
+FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
+WHERE backend_type = 'autovacuum worker'
+  AND query ~ 'stories';
+
 ALTER TABLE unsharded_public.stories_ap_syndicated
     DROP CONSTRAINT stories_ap_syndicated_stories_id_fkey;
+
+SELECT pid
+FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
+WHERE backend_type = 'autovacuum worker'
+  AND query ~ 'stories';
+
 ALTER TABLE unsharded_public.story_enclosures
     DROP CONSTRAINT story_enclosures_stories_id_fkey;
+
+SELECT pid
+FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
+WHERE backend_type = 'autovacuum worker'
+  AND query ~ 'stories';
+
 ALTER TABLE unsharded_public.story_statistics
     DROP CONSTRAINT story_statistics_stories_id_fkey;
+
+SELECT pid
+FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
+WHERE backend_type = 'autovacuum worker'
+  AND query ~ 'stories';
+
 ALTER TABLE unsharded_public.story_urls
     DROP CONSTRAINT story_urls_stories_id_fkey;
+
+SELECT pid
+FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
+WHERE backend_type = 'autovacuum worker'
+  AND query ~ 'stories';
+
 ALTER TABLE unsharded_public.topic_fetch_urls
     DROP CONSTRAINT IF EXISTS topic_fetch_urls_stories_id_fkey;
+
+SELECT pid
+FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
+WHERE backend_type = 'autovacuum worker'
+  AND query ~ 'stories';
+
 ALTER TABLE unsharded_public.topic_links
     -- Not in production
     DROP CONSTRAINT IF EXISTS topic_links_ref_stories_id_fkey;
+
+SELECT pid
+FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
+WHERE backend_type = 'autovacuum worker'
+  AND query ~ 'stories';
+
 ALTER TABLE unsharded_public.topic_links
     -- Only in production
     DROP CONSTRAINT IF EXISTS controversy_links_ref_stories_id_fkey;
+
+SELECT pid
+FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
+WHERE backend_type = 'autovacuum worker'
+  AND query ~ 'stories';
+
 ALTER TABLE unsharded_public.topic_merged_stories_map
     -- Not in production
     DROP CONSTRAINT IF EXISTS topic_merged_stories_map_source_stories_id_fkey;
+
+SELECT pid
+FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
+WHERE backend_type = 'autovacuum worker'
+  AND query ~ 'stories';
+
 ALTER TABLE unsharded_public.topic_merged_stories_map
     -- Only in production
     DROP CONSTRAINT IF EXISTS controversy_merged_stories_map_source_stories_id_fkey;
+
+SELECT pid
+FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
+WHERE backend_type = 'autovacuum worker'
+  AND query ~ 'stories';
+
 ALTER TABLE unsharded_public.topic_merged_stories_map
     -- Not in production
     DROP CONSTRAINT IF EXISTS topic_merged_stories_map_target_stories_id_fkey;
+
+SELECT pid
+FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
+WHERE backend_type = 'autovacuum worker'
+  AND query ~ 'stories';
+
 ALTER TABLE unsharded_public.topic_merged_stories_map
     -- Only in production
     DROP CONSTRAINT IF EXISTS controversy_merged_stories_map_target_stories_id_fkey;
+
+SELECT pid
+FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
+WHERE backend_type = 'autovacuum worker'
+  AND query ~ 'stories';
+
 ALTER TABLE unsharded_public.topic_query_story_searches_imported_stories_map
     DROP CONSTRAINT IF EXISTS topic_query_story_searches_imported_stories_map_stories_id_fkey;
+
+SELECT pid
+FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
+WHERE backend_type = 'autovacuum worker'
+  AND query ~ 'stories';
+
 ALTER TABLE unsharded_public.topic_seed_urls
     -- Not in production
     DROP CONSTRAINT IF EXISTS topic_seed_urls_stories_id_fkey;
+
+SELECT pid
+FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
+WHERE backend_type = 'autovacuum worker'
+  AND query ~ 'stories';
+
 ALTER TABLE unsharded_public.topic_seed_urls
     -- Only in production
     DROP CONSTRAINT IF EXISTS controversy_seed_urls_stories_id_fkey;
+
+SELECT pid
+FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
+WHERE backend_type = 'autovacuum worker'
+  AND query ~ 'stories';
+
 ALTER TABLE unsharded_public.topic_stories
     -- Not in production
     DROP CONSTRAINT IF EXISTS topic_stories_stories_id_fkey;
+
+SELECT pid
+FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
+WHERE backend_type = 'autovacuum worker'
+  AND query ~ 'stories';
+
 ALTER TABLE unsharded_public.topic_stories
     -- Only in production
     DROP CONSTRAINT IF EXISTS controversy_stories_stories_id_fkey;
+
+SELECT pid
+FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
+WHERE backend_type = 'autovacuum worker'
+  AND query ~ 'stories';
+
 ALTER TABLE unsharded_snap.live_stories
     DROP CONSTRAINT live_stories_stories_id_fkey;
+
+SELECT pid
+FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
+WHERE backend_type = 'autovacuum worker'
+  AND query ~ 'stories';
 
 DO
 $$
@@ -6028,6 +6185,11 @@ $$;
 -- unsharded_public.downloads
 --
 
+SELECT pid
+FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
+WHERE backend_type = 'autovacuum worker'
+  AND query ~ 'stories';
+
 DO
 $$
     DECLARE
@@ -6058,12 +6220,30 @@ $$;
 -- unsharded_public.topic_stories
 --
 
+SELECT pid
+FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
+WHERE backend_type = 'autovacuum worker'
+  AND query ~ 'stories';
+
 ALTER TABLE unsharded_snap.live_stories
     -- Not in production
     DROP CONSTRAINT IF EXISTS live_stories_topic_stories_id_fkey;
+
+
+SELECT pid
+FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
+WHERE backend_type = 'autovacuum worker'
+  AND query ~ 'stories';
+
 ALTER TABLE unsharded_snap.live_stories
     -- Only in production
     DROP CONSTRAINT IF EXISTS live_stories_controvery_stories_id_fkey;
+
+SELECT pid
+FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
+WHERE backend_type = 'autovacuum worker'
+  AND query ~ 'stories';
+
 ALTER TABLE unsharded_public.topic_links
     DROP CONSTRAINT topic_links_topic_story_stories_id;
 
