@@ -1915,7 +1915,7 @@ ALTER TABLE unsharded_snap.topic_links_cross_media
     -- Exists only on production
     DROP CONSTRAINT IF EXISTS controversy_links_cross_media_controversy_dumps_id_fkey;
 ALTER TABLE unsharded_snap.topic_links_cross_media
-    DROP CONSTRAINT topic_links_cross_media_snapshots_id_fkey;
+    DROP CONSTRAINT IF EXISTS topic_links_cross_media_snapshots_id_fkey;
 ALTER TABLE unsharded_snap.topic_media_codes
     -- Exists only on production
     DROP CONSTRAINT IF EXISTS controversy_media_codes_controversy_dumps_id_fkey;
@@ -1926,9 +1926,13 @@ ALTER TABLE unsharded_snap.topic_stories
     -- Exists only on production
     DROP CONSTRAINT IF EXISTS controversy_stories_controversy_dumps_id_fkey;
 ALTER TABLE unsharded_snap.topic_stories
-    DROP CONSTRAINT topic_stories_snapshots_id_fkey;
+    DROP CONSTRAINT IF EXISTS topic_stories_snapshots_id_fkey;
 ALTER TABLE unsharded_snap.word2vec_models
-    DROP CONSTRAINT word2vec_models_object_id_fkey;
+    DROP CONSTRAINT IF EXISTS word2vec_models_object_id_fkey;
+ALTER TABLE unsharded_snap.tag_sets
+    DROP CONSTRAINT IF EXISTS tag_sets_controversy_dumps_id_fkey;
+ALTER TABLE unsharded_snap.tags
+    DROP CONSTRAINT IF EXISTS tags_controversy_dumps_id_fkey;
 
 
 TRUNCATE unsharded_public.snapshots;
@@ -6021,7 +6025,7 @@ $$
 
                 EXECUTE '
             ALTER TABLE unsharded_public.' || table_record.tablename || '
-                DROP CONSTRAINT ' || table_record.tablename || '_downloads_id_fkey
+                DROP CONSTRAINT IF EXISTS ' || table_record.tablename || '_downloads_id_fkey
         ';
 
             END LOOP;
