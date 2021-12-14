@@ -286,7 +286,7 @@ SELECT media_id::BIGINT,
        is_monitored
 FROM unsharded_public.media
 WHERE dup_media_id IS NOT NULL
-AND media_id IN (
+  AND media_id IN (
     SELECT dup_media_id
     FROM unsharded_public.media
 )
@@ -381,7 +381,8 @@ ALTER TABLE unsharded_public.retweeter_media
     DROP CONSTRAINT retweeter_media_media_id_fkey;
 
 SELECT pid
-FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
+FROM pg_stat_activity,
+     LATERAL pg_cancel_backend(pid) f
 WHERE backend_type = 'autovacuum worker'
   AND query ~ 'stories';
 
@@ -457,33 +458,29 @@ $$
     DECLARE
 
         tables CURSOR FOR
-            SELECT
-                media_id,
-                url,
-                count(*)
+            SELECT media_id,
+                   url,
+                   COUNT(*)
             FROM unsharded_public.feeds
-            GROUP BY
-                media_id,
-                url
+            GROUP BY media_id,
+                     url
             HAVING COUNT(*) > 1;
-
-        dst_feeds_id INT;
-        src_feeds_id INT;
-
-        feeds_record RECORD;
+        dst_feeds_id          INT;
+        src_feeds_id          INT;
+        feeds_record          RECORD;
         feeds_tags_map_record RECORD;
 
     BEGIN
         FOR table_record IN tables
             LOOP
 
-                SELECT unsharded_public.feeds.feeds_id INTO dst_feeds_id
+                SELECT unsharded_public.feeds.feeds_id
+                INTO dst_feeds_id
                 FROM unsharded_public.feeds
-                    LEFT JOIN unsharded_public.feeds_stories_map
-                        ON unsharded_public.feeds.feeds_id = unsharded_public.feeds_stories_map.feeds_id
-                WHERE
-                    media_id = table_record.media_id AND
-                    url = table_record.url
+                         LEFT JOIN unsharded_public.feeds_stories_map
+                                   ON unsharded_public.feeds.feeds_id = unsharded_public.feeds_stories_map.feeds_id
+                WHERE media_id = table_record.media_id
+                  AND url = table_record.url
                 GROUP BY unsharded_public.feeds.feeds_id
                 ORDER BY
                     -- Prefer to merge everything into an active feed
@@ -491,8 +488,7 @@ $$
                     -- Prefer to merge into feed with the most associated
                     -- stories to reduce the number of row moves needed
                     COUNT(stories_id) DESC
-                LIMIT 1
-                ;
+                LIMIT 1;
 
                 RAISE NOTICE 'Moving feeds with media_id = %, url = % into feeds_id = %',
                     table_record.media_id,
@@ -502,77 +498,75 @@ $$
                 FOR feeds_record IN
                     SELECT feeds_id
                     FROM unsharded_public.feeds
-                    WHERE
-                        media_id = table_record.media_id AND
-                        url = table_record.url AND
-                        feeds_id != dst_feeds_id
+                    WHERE media_id = table_record.media_id
+                      AND url = table_record.url
+                      AND feeds_id != dst_feeds_id
                     ORDER BY feeds_id
-                LOOP
-
-                    src_feeds_id := feeds_record.feeds_id;
-
-                    RAISE NOTICE '  Moving feed % into %', src_feeds_id, dst_feeds_id;
-
-                    -- Don't call unsharded_public.test_referenced_download_trigger
-                    SET session_replication_role = replica;
-
-                    RAISE NOTICE '    downloads...';
-                    UPDATE unsharded_public.downloads SET
-                        feeds_id = dst_feeds_id
-                    WHERE feeds_id = src_feeds_id;
-
-                    SET session_replication_role = DEFAULT;
-
-                    RAISE NOTICE '    feeds_stories_map...';
-                    UPDATE unsharded_public.feeds_stories_map_p SET
-                        feeds_id = dst_feeds_id
-                    WHERE feeds_id = src_feeds_id;
-
-                    RAISE NOTICE '    scraped_feeds...';
-                    UPDATE unsharded_public.scraped_feeds SET
-                        feeds_id = dst_feeds_id
-                    WHERE feeds_id = src_feeds_id;
-
-                    RAISE NOTICE '    feeds_from_yesterday...';
-                    UPDATE unsharded_public.feeds_from_yesterday SET
-                        feeds_id = dst_feeds_id
-                    WHERE feeds_id = src_feeds_id;
-
-                    RAISE NOTICE '    feeds_tags_map...';
-
-                    FOR feeds_tags_map_record IN
-                        SELECT tags_id
-                        FROM unsharded_public.feeds_tags_map
-                        WHERE feeds_id = src_feeds_id
                     LOOP
 
-                        RAISE NOTICE '      tags_id = %...', feeds_tags_map_record.tags_id;
+                        src_feeds_id := feeds_record.feeds_id;
 
-                        UPDATE unsharded_public.feeds_tags_map SET
-                            feeds_id = dst_feeds_id
-                        WHERE
-                            feeds_id = src_feeds_id AND
-                            tags_id = feeds_tags_map_record.tags_id AND
-                            NOT EXISTS (
-                                SELECT 1
+                        RAISE NOTICE '  Moving feed % into %', src_feeds_id, dst_feeds_id;
+
+                        -- Don't call unsharded_public.test_referenced_download_trigger
+                        SET session_replication_role = replica;
+
+                        RAISE NOTICE '    downloads...';
+                        UPDATE unsharded_public.downloads
+                        SET feeds_id = dst_feeds_id
+                        WHERE feeds_id = src_feeds_id;
+
+                        SET session_replication_role = DEFAULT;
+
+                        RAISE NOTICE '    feeds_stories_map...';
+                        UPDATE unsharded_public.feeds_stories_map_p
+                        SET feeds_id = dst_feeds_id
+                        WHERE feeds_id = src_feeds_id;
+
+                        RAISE NOTICE '    scraped_feeds...';
+                        UPDATE unsharded_public.scraped_feeds
+                        SET feeds_id = dst_feeds_id
+                        WHERE feeds_id = src_feeds_id;
+
+                        RAISE NOTICE '    feeds_from_yesterday...';
+                        UPDATE unsharded_public.feeds_from_yesterday
+                        SET feeds_id = dst_feeds_id
+                        WHERE feeds_id = src_feeds_id;
+
+                        RAISE NOTICE '    feeds_tags_map...';
+
+                        FOR feeds_tags_map_record IN
+                            SELECT tags_id
+                            FROM unsharded_public.feeds_tags_map
+                            WHERE feeds_id = src_feeds_id
+                            LOOP
+
+                                RAISE NOTICE '      tags_id = %...', feeds_tags_map_record.tags_id;
+
+                                UPDATE unsharded_public.feeds_tags_map
+                                SET feeds_id = dst_feeds_id
+                                WHERE feeds_id = src_feeds_id
+                                  AND tags_id = feeds_tags_map_record.tags_id
+                                  AND NOT EXISTS(
+                                        SELECT 1
+                                        FROM unsharded_public.feeds_tags_map
+                                        WHERE feeds_id = dst_feeds_id
+                                          AND tags_id = feeds_tags_map_record.tags_id
+                                    );
+
+                                DELETE
                                 FROM unsharded_public.feeds_tags_map
-                                WHERE
-                                    feeds_id = dst_feeds_id AND
-                                    tags_id = feeds_tags_map_record.tags_id
-                            );
+                                WHERE feeds_id = src_feeds_id
+                                  AND tags_id = feeds_tags_map_record.tags_id;
 
-                        DELETE FROM unsharded_public.feeds_tags_map
-                        WHERE
-                            feeds_id = src_feeds_id AND
-                            tags_id = feeds_tags_map_record.tags_id;
+                            END LOOP;
+
+                        RAISE NOTICE '    Deleting...';
+                        DELETE
+                        FROM unsharded_public.feeds
+                        WHERE feeds_id = src_feeds_id;
 
                     END LOOP;
-
-                    RAISE NOTICE '    Deleting...';
-                    DELETE FROM unsharded_public.feeds
-                    WHERE feeds_id = src_feeds_id;
-
-                END LOOP;
 
             END LOOP;
     END
@@ -1359,7 +1353,6 @@ SELECT setval(
 
 TRUNCATE unsharded_public.api_links;
 DROP TABLE unsharded_public.api_links;
-
 
 
 
@@ -2839,7 +2832,8 @@ FROM unsharded_public.retweeter_stories AS retweeter_stories
                     ON retweeter_stories.retweeter_scores_id = retweeter_scores.retweeter_scores_id;
 
 SELECT pid
-FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
+FROM pg_stat_activity,
+     LATERAL pg_cancel_backend(pid) f
 WHERE backend_type = 'autovacuum worker'
   AND query ~ 'stories';
 
@@ -3141,7 +3135,8 @@ DROP TRIGGER topic_stories_insert_live_story ON unsharded_public.topic_stories;
 DROP FUNCTION unsharded_public.insert_live_story();
 
 SELECT pid
-FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
+FROM pg_stat_activity,
+     LATERAL pg_cancel_backend(pid) f
 WHERE backend_type = 'autovacuum worker'
   AND query ~ 'stories';
 
@@ -3293,11 +3288,9 @@ $$
 BEGIN
     -- Insert only into the sharded table
     INSERT INTO sharded_public.auth_user_request_daily_counts
-        SELECT NEW.*
-    ON CONFLICT (email, day) DO UPDATE SET
-        requests_count = EXCLUDED.requests_count,
-        requested_items_count = EXCLUDED.requested_items_count
-    ;
+    SELECT NEW.*
+    ON CONFLICT (email, day) DO UPDATE SET requests_count        = EXCLUDED.requests_count,
+                                           requested_items_count = EXCLUDED.requested_items_count;
 
     RETURN NEW;
 END;
@@ -3353,11 +3346,9 @@ $$
 BEGIN
     -- Insert only into the sharded table
     INSERT INTO sharded_public.media_stats
-        SELECT NEW.*
-    ON CONFLICT (media_id, stat_date) DO UPDATE SET
-        num_stories = EXCLUDED.num_stories,
-        num_sentences = EXCLUDED.num_sentences
-    ;
+    SELECT NEW.*
+    ON CONFLICT (media_id, stat_date) DO UPDATE SET num_stories   = EXCLUDED.num_stories,
+                                                    num_sentences = EXCLUDED.num_sentences;
 
     RETURN NEW;
 END;
@@ -3434,7 +3425,8 @@ EXECUTE PROCEDURE public.media_coverage_gaps_insert();
 --
 
 SELECT pid
-FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
+FROM pg_stat_activity,
+     LATERAL pg_cancel_backend(pid) f
 WHERE backend_type = 'autovacuum worker'
   AND query ~ 'stories';
 
@@ -3766,7 +3758,7 @@ BEGIN
 
     -- Insert only into the sharded table
     INSERT INTO sharded_public.stories_tags_map
-        SELECT NEW.*
+    SELECT NEW.*
     ON CONFLICT (stories_id, tags_id) DO NOTHING;
 
     -- MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: do the same as insert_solr_import_story()
@@ -3891,7 +3883,7 @@ $$
 BEGIN
     -- Insert only into the sharded table
     INSERT INTO sharded_public.solr_import_stories
-        SELECT NEW.*
+    SELECT NEW.*
     ON CONFLICT (stories_id) DO NOTHING;
     RETURN NEW;
 END;
@@ -3942,7 +3934,7 @@ $$
 BEGIN
     -- Insert only into the sharded table
     INSERT INTO sharded_public.solr_imported_stories
-        SELECT NEW.*
+    SELECT NEW.*
     ON CONFLICT (stories_id) DO NOTHING;
     RETURN NEW;
 END;
@@ -3994,7 +3986,7 @@ $$
 BEGIN
     -- Insert only into the sharded table
     INSERT INTO sharded_public.topic_merged_stories_map
-        SELECT NEW.*
+    SELECT NEW.*
     ON CONFLICT (source_stories_id, target_stories_id) DO NOTHING;
     RETURN NEW;
 END;
@@ -4125,7 +4117,7 @@ $$
 BEGIN
     -- Insert only into the sharded table
     INSERT INTO sharded_public.processed_stories
-        SELECT NEW.*
+    SELECT NEW.*
     ON CONFLICT (stories_id) DO NOTHING;
 
     -- MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: do the same as insert_solr_import_story()
@@ -5673,7 +5665,8 @@ END;
 $$ LANGUAGE plpgsql;
 
 SELECT pid
-FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
+FROM pg_stat_activity,
+     LATERAL pg_cancel_backend(pid) f
 WHERE backend_type = 'autovacuum worker'
   AND query ~ 'stories';
 
@@ -5998,7 +5991,8 @@ SELECT create_distributed_function('public.insert_solr_import_story()');
 --
 
 SELECT pid
-FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
+FROM pg_stat_activity,
+     LATERAL pg_cancel_backend(pid) f
 WHERE backend_type = 'autovacuum worker'
   AND query ~ 'stories';
 
@@ -6006,7 +6000,8 @@ ALTER TABLE unsharded_public.downloads
     DROP CONSTRAINT downloads_stories_id_fkey;
 
 SELECT pid
-FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
+FROM pg_stat_activity,
+     LATERAL pg_cancel_backend(pid) f
 WHERE backend_type = 'autovacuum worker'
   AND query ~ 'stories';
 
@@ -6014,7 +6009,8 @@ ALTER TABLE unsharded_public.processed_stories
     DROP CONSTRAINT processed_stories_stories_id_fkey;
 
 SELECT pid
-FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
+FROM pg_stat_activity,
+     LATERAL pg_cancel_backend(pid) f
 WHERE backend_type = 'autovacuum worker'
   AND query ~ 'stories';
 
@@ -6022,7 +6018,8 @@ ALTER TABLE unsharded_public.scraped_stories
     DROP CONSTRAINT scraped_stories_stories_id_fkey;
 
 SELECT pid
-FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
+FROM pg_stat_activity,
+     LATERAL pg_cancel_backend(pid) f
 WHERE backend_type = 'autovacuum worker'
   AND query ~ 'stories';
 
@@ -6031,7 +6028,8 @@ ALTER TABLE unsharded_public.solr_import_stories
     DROP CONSTRAINT IF EXISTS solr_import_stories_stories_id_fkey;
 
 SELECT pid
-FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
+FROM pg_stat_activity,
+     LATERAL pg_cancel_backend(pid) f
 WHERE backend_type = 'autovacuum worker'
   AND query ~ 'stories';
 
@@ -6040,7 +6038,8 @@ ALTER TABLE unsharded_public.solr_import_stories
     DROP CONSTRAINT IF EXISTS solr_import_extra_stories_stories_id_fkey;
 
 SELECT pid
-FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
+FROM pg_stat_activity,
+     LATERAL pg_cancel_backend(pid) f
 WHERE backend_type = 'autovacuum worker'
   AND query ~ 'stories';
 
@@ -6048,7 +6047,8 @@ ALTER TABLE unsharded_public.solr_imported_stories
     DROP CONSTRAINT solr_imported_stories_stories_id_fkey;
 
 SELECT pid
-FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
+FROM pg_stat_activity,
+     LATERAL pg_cancel_backend(pid) f
 WHERE backend_type = 'autovacuum worker'
   AND query ~ 'stories';
 
@@ -6056,7 +6056,8 @@ ALTER TABLE unsharded_public.stories_ap_syndicated
     DROP CONSTRAINT stories_ap_syndicated_stories_id_fkey;
 
 SELECT pid
-FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
+FROM pg_stat_activity,
+     LATERAL pg_cancel_backend(pid) f
 WHERE backend_type = 'autovacuum worker'
   AND query ~ 'stories';
 
@@ -6064,7 +6065,8 @@ ALTER TABLE unsharded_public.story_enclosures
     DROP CONSTRAINT story_enclosures_stories_id_fkey;
 
 SELECT pid
-FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
+FROM pg_stat_activity,
+     LATERAL pg_cancel_backend(pid) f
 WHERE backend_type = 'autovacuum worker'
   AND query ~ 'stories';
 
@@ -6072,7 +6074,8 @@ ALTER TABLE unsharded_public.story_statistics
     DROP CONSTRAINT story_statistics_stories_id_fkey;
 
 SELECT pid
-FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
+FROM pg_stat_activity,
+     LATERAL pg_cancel_backend(pid) f
 WHERE backend_type = 'autovacuum worker'
   AND query ~ 'stories';
 
@@ -6080,7 +6083,8 @@ ALTER TABLE unsharded_public.story_urls
     DROP CONSTRAINT story_urls_stories_id_fkey;
 
 SELECT pid
-FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
+FROM pg_stat_activity,
+     LATERAL pg_cancel_backend(pid) f
 WHERE backend_type = 'autovacuum worker'
   AND query ~ 'stories';
 
@@ -6088,7 +6092,8 @@ ALTER TABLE unsharded_public.topic_fetch_urls
     DROP CONSTRAINT IF EXISTS topic_fetch_urls_stories_id_fkey;
 
 SELECT pid
-FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
+FROM pg_stat_activity,
+     LATERAL pg_cancel_backend(pid) f
 WHERE backend_type = 'autovacuum worker'
   AND query ~ 'stories';
 
@@ -6097,7 +6102,8 @@ ALTER TABLE unsharded_public.topic_links
     DROP CONSTRAINT IF EXISTS topic_links_ref_stories_id_fkey;
 
 SELECT pid
-FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
+FROM pg_stat_activity,
+     LATERAL pg_cancel_backend(pid) f
 WHERE backend_type = 'autovacuum worker'
   AND query ~ 'stories';
 
@@ -6106,7 +6112,8 @@ ALTER TABLE unsharded_public.topic_links
     DROP CONSTRAINT IF EXISTS controversy_links_ref_stories_id_fkey;
 
 SELECT pid
-FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
+FROM pg_stat_activity,
+     LATERAL pg_cancel_backend(pid) f
 WHERE backend_type = 'autovacuum worker'
   AND query ~ 'stories';
 
@@ -6115,7 +6122,8 @@ ALTER TABLE unsharded_public.topic_merged_stories_map
     DROP CONSTRAINT IF EXISTS topic_merged_stories_map_source_stories_id_fkey;
 
 SELECT pid
-FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
+FROM pg_stat_activity,
+     LATERAL pg_cancel_backend(pid) f
 WHERE backend_type = 'autovacuum worker'
   AND query ~ 'stories';
 
@@ -6124,7 +6132,8 @@ ALTER TABLE unsharded_public.topic_merged_stories_map
     DROP CONSTRAINT IF EXISTS controversy_merged_stories_map_source_stories_id_fkey;
 
 SELECT pid
-FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
+FROM pg_stat_activity,
+     LATERAL pg_cancel_backend(pid) f
 WHERE backend_type = 'autovacuum worker'
   AND query ~ 'stories';
 
@@ -6133,7 +6142,8 @@ ALTER TABLE unsharded_public.topic_merged_stories_map
     DROP CONSTRAINT IF EXISTS topic_merged_stories_map_target_stories_id_fkey;
 
 SELECT pid
-FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
+FROM pg_stat_activity,
+     LATERAL pg_cancel_backend(pid) f
 WHERE backend_type = 'autovacuum worker'
   AND query ~ 'stories';
 
@@ -6142,7 +6152,8 @@ ALTER TABLE unsharded_public.topic_merged_stories_map
     DROP CONSTRAINT IF EXISTS controversy_merged_stories_map_target_stories_id_fkey;
 
 SELECT pid
-FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
+FROM pg_stat_activity,
+     LATERAL pg_cancel_backend(pid) f
 WHERE backend_type = 'autovacuum worker'
   AND query ~ 'stories';
 
@@ -6150,7 +6161,8 @@ ALTER TABLE unsharded_public.topic_query_story_searches_imported_stories_map
     DROP CONSTRAINT IF EXISTS topic_query_story_searches_imported_stories_map_stories_id_fkey;
 
 SELECT pid
-FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
+FROM pg_stat_activity,
+     LATERAL pg_cancel_backend(pid) f
 WHERE backend_type = 'autovacuum worker'
   AND query ~ 'stories';
 
@@ -6159,7 +6171,8 @@ ALTER TABLE unsharded_public.topic_seed_urls
     DROP CONSTRAINT IF EXISTS topic_seed_urls_stories_id_fkey;
 
 SELECT pid
-FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
+FROM pg_stat_activity,
+     LATERAL pg_cancel_backend(pid) f
 WHERE backend_type = 'autovacuum worker'
   AND query ~ 'stories';
 
@@ -6168,7 +6181,8 @@ ALTER TABLE unsharded_public.topic_seed_urls
     DROP CONSTRAINT IF EXISTS controversy_seed_urls_stories_id_fkey;
 
 SELECT pid
-FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
+FROM pg_stat_activity,
+     LATERAL pg_cancel_backend(pid) f
 WHERE backend_type = 'autovacuum worker'
   AND query ~ 'stories';
 
@@ -6177,7 +6191,8 @@ ALTER TABLE unsharded_public.topic_stories
     DROP CONSTRAINT IF EXISTS topic_stories_stories_id_fkey;
 
 SELECT pid
-FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
+FROM pg_stat_activity,
+     LATERAL pg_cancel_backend(pid) f
 WHERE backend_type = 'autovacuum worker'
   AND query ~ 'stories';
 
@@ -6186,7 +6201,8 @@ ALTER TABLE unsharded_public.topic_stories
     DROP CONSTRAINT IF EXISTS controversy_stories_stories_id_fkey;
 
 SELECT pid
-FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
+FROM pg_stat_activity,
+     LATERAL pg_cancel_backend(pid) f
 WHERE backend_type = 'autovacuum worker'
   AND query ~ 'stories';
 
@@ -6194,7 +6210,8 @@ ALTER TABLE unsharded_snap.live_stories
     DROP CONSTRAINT live_stories_stories_id_fkey;
 
 SELECT pid
-FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
+FROM pg_stat_activity,
+     LATERAL pg_cancel_backend(pid) f
 WHERE backend_type = 'autovacuum worker'
   AND query ~ 'stories';
 
@@ -6316,7 +6333,8 @@ $$;
 --
 
 SELECT pid
-FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
+FROM pg_stat_activity,
+     LATERAL pg_cancel_backend(pid) f
 WHERE backend_type = 'autovacuum worker'
   AND query ~ 'stories';
 
@@ -6351,7 +6369,8 @@ $$;
 --
 
 SELECT pid
-FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
+FROM pg_stat_activity,
+     LATERAL pg_cancel_backend(pid) f
 WHERE backend_type = 'autovacuum worker'
   AND query ~ 'stories';
 
@@ -6361,7 +6380,8 @@ ALTER TABLE unsharded_snap.live_stories
 
 
 SELECT pid
-FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
+FROM pg_stat_activity,
+     LATERAL pg_cancel_backend(pid) f
 WHERE backend_type = 'autovacuum worker'
   AND query ~ 'stories';
 
@@ -6370,7 +6390,8 @@ ALTER TABLE unsharded_snap.live_stories
     DROP CONSTRAINT IF EXISTS live_stories_controvery_stories_id_fkey;
 
 SELECT pid
-FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
+FROM pg_stat_activity,
+     LATERAL pg_cancel_backend(pid) f
 WHERE backend_type = 'autovacuum worker'
   AND query ~ 'stories';
 
