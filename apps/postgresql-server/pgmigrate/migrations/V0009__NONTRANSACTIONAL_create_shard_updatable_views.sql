@@ -1806,7 +1806,12 @@ SELECT topic_dead_links_id::BIGINT,
        topics_id::BIGINT,
        stories_id::BIGINT,
        url
-FROM unsharded_public.topic_dead_links;
+FROM unsharded_public.topic_dead_links
+-- Skip rows for topics that don't exist anymore
+WHERE topics_id IN (
+    SELECT topics_id::INT
+    FROM public.topics
+);
 
 SELECT setval(
                pg_get_serial_sequence('public.topic_dead_links', 'topic_dead_links_id'),
