@@ -1,1 +1,0 @@
-../../postgresql-server/schema/mediawords.sql
