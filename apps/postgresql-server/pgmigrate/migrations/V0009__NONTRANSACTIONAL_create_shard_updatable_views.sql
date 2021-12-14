@@ -1929,10 +1929,6 @@ ALTER TABLE unsharded_snap.topic_stories
     DROP CONSTRAINT IF EXISTS topic_stories_snapshots_id_fkey;
 ALTER TABLE unsharded_snap.word2vec_models
     DROP CONSTRAINT IF EXISTS word2vec_models_object_id_fkey;
-ALTER TABLE unsharded_snap.tag_sets
-    DROP CONSTRAINT IF EXISTS tag_sets_controversy_dumps_id_fkey;
-ALTER TABLE unsharded_snap.tags
-    DROP CONSTRAINT IF EXISTS tags_controversy_dumps_id_fkey;
 
 
 TRUNCATE unsharded_public.snapshots;
