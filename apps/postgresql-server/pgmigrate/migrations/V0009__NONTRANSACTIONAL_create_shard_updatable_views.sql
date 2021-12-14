@@ -2517,6 +2517,12 @@ DROP TABLE unsharded_public.job_states;
 -- retweeter_scores
 --
 
+-- Temporarily drop constraints to be able to copy rows
+ALTER TABLE public.retweeter_scores
+    DROP CONSTRAINT retweeter_scores_group_a;
+ALTER TABLE public.retweeter_scores
+    DROP CONSTRAINT retweeter_scores_group_b;
+
 -- Don't temporarily drop any indexes as the table is too small
 
 INSERT INTO public.retweeter_scores (retweeter_scores_id,
@@ -2588,6 +2594,19 @@ SELECT setval(
                nextval(pg_get_serial_sequence('unsharded_public.retweeter_groups', 'retweeter_groups_id')),
                false
            );
+
+-- Recreate temporarily dropped constraints
+ALTER TABLE public.retweeter_scores
+    ADD CONSTRAINT retweeter_scores_group_a
+        FOREIGN KEY (group_a_id)
+            REFERENCES public.retweeter_groups (retweeter_groups_id)
+            ON DELETE CASCADE;
+
+ALTER TABLE public.retweeter_scores
+    ADD CONSTRAINT retweeter_scores_group_b
+        FOREIGN KEY (group_b_id)
+            REFERENCES public.retweeter_groups (retweeter_groups_id)
+            ON DELETE CASCADE;
 
 -- Drop foreign keys that point to the table
 ALTER TABLE unsharded_public.retweeter_groups_users_map
