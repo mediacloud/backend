@@ -3005,6 +3005,11 @@ DROP FUNCTION unsharded_public.story_sentences_p_insert_trigger();
 DROP TRIGGER topic_stories_insert_live_story ON unsharded_public.topic_stories;
 DROP FUNCTION unsharded_public.insert_live_story();
 
+SELECT pid
+FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
+WHERE backend_type = 'autovacuum worker'
+  AND query ~ 'stories';
+
 DROP TRIGGER stories_update_live_story ON unsharded_public.stories;
 DROP FUNCTION unsharded_public.update_live_story();
 
@@ -5870,7 +5875,7 @@ ALTER TABLE unsharded_public.story_statistics
 ALTER TABLE unsharded_public.story_urls
     DROP CONSTRAINT story_urls_stories_id_fkey;
 ALTER TABLE unsharded_public.topic_fetch_urls
-    DROP CONSTRAINT topic_fetch_urls_stories_id_fkey;
+    DROP CONSTRAINT IF EXISTS topic_fetch_urls_stories_id_fkey;
 ALTER TABLE unsharded_public.topic_links
     -- Not in production
     DROP CONSTRAINT IF EXISTS topic_links_ref_stories_id_fkey;
@@ -5890,7 +5895,7 @@ ALTER TABLE unsharded_public.topic_merged_stories_map
     -- Only in production
     DROP CONSTRAINT IF EXISTS controversy_merged_stories_map_target_stories_id_fkey;
 ALTER TABLE unsharded_public.topic_query_story_searches_imported_stories_map
-    DROP CONSTRAINT topic_query_story_searches_imported_stories_map_stories_id_fkey;
+    DROP CONSTRAINT IF EXISTS topic_query_story_searches_imported_stories_map_stories_id_fkey;
 ALTER TABLE unsharded_public.topic_seed_urls
     -- Not in production
     DROP CONSTRAINT IF EXISTS topic_seed_urls_stories_id_fkey;
