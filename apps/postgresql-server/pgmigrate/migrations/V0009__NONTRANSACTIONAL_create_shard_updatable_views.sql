@@ -292,6 +292,12 @@ ALTER TABLE unsharded_public.media_tags_map
     DROP CONSTRAINT media_tags_map_media_id_fkey;
 ALTER TABLE unsharded_public.retweeter_media
     DROP CONSTRAINT retweeter_media_media_id_fkey;
+
+SELECT pid
+FROM pg_stat_activity, LATERAL pg_cancel_backend(pid) f
+WHERE backend_type = 'autovacuum worker'
+  AND query ~ 'stories';
+
 ALTER TABLE unsharded_public.stories
     DROP CONSTRAINT stories_media_id_fkey;
 ALTER TABLE unsharded_public.topics_media_map
