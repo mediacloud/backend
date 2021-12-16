@@ -51,12 +51,22 @@ sub main
     {
         print STDERR "printing block " . $i++ . "\n";
         my $ids_table = $db->get_temporary_ids_table( \@chunk_stories_ids );
-        my $stories   = $db->query( <<SQL )->hashes;
-select s.stories_id, s.title, s.url, s.publish_date, s.media_id, m.name media_name, m.url media_url
-    from stories s
-        join media m using ( media_id )
-        join $ids_table i on ( i.id = s.stories_id )
+        my $stories   = $db->query( <<SQL
+            SELECT
+                s.stories_id,
+                s.title,
+                s.url,
+                s.publish_date,
+                s.media_id,
+                m.name AS media_name,
+                m.url AS media_url
+            FROM stories AS s
+                INNER JOIN media AS m ON
+                    s.media_id = m.media_id
+                INNER JOIN $ids_table AS i ON
+                    i.id = s.stories_id
 SQL
+        )->hashes;
         if ( $q =~ /timespans_id:(\d+)/ ) 
         { 
 			my $timespans_id = $1;

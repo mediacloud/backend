@@ -60,39 +60,50 @@ sub detect_subject_country($$)
 
     DEBUG( "detecting subject_countries for $medium->{ name } ..." );
 
-    my $tag_count = $db->query( <<SQL, $medium->{ media_id }, $GEOTAG_TAG_SET_NAME )->hash;
-with subject_countries as (
-    select
-            s.stories_id,
-            t.tags_id
-        from stories s
-            join stories_tags_map stm using ( stories_id )
-            join tags t using ( tags_id )
-            join tag_sets ts using ( tag_sets_id )
-        where
-            ts.name = \$2 and
-            s.media_id = \$1
-),
+    my $tag_count = $db->query( <<SQL,
+        WITH subject_countries AS (
+            SELECT
+                s.stories_id,
+                t.tags_id
+            FROM stories AS s
+                INNER JOIN stories_tags_map AS stm ON
+                    s.stories_id = stm.stories_id
+                INNER JOIN tags AS t ON
+                    stm.tags_id = t.tags_id
+                INNER JOIN tag_sets AS ts ON
+                    t.tag_sets_id = ts.tag_sets_id
+            WHERE
+                ts.name = \$2 AND
+                s.media_id = \$1
+        ),
 
-subject_country_counts as (
-    select count(*) tag_count, tags_id from subject_countries group by tags_id
-),
+        subject_country_counts AS (
+            SELECT
+                COUNT(*) AS tag_count,
+                tags_id
+            FROM subject_countries
+            GROUP BY tags_id
+        ),
 
-medium_stories_count as (
-    select count( distinct stories_id ) story_count from subject_countries
-)
+        medium_stories_count AS (
+            SELECT COUNT(DISTINCT stories_id) AS story_count
+            FROM subject_countries
+        )
 
-select
-        gc.tag_count,
-        ( gc.tag_count::float / msc.story_count::float ) story_percent,
-        t.*
-    from subject_country_counts gc
-        join tags t using ( tags_id )
-        cross join medium_stories_count msc
-    where
-        ( gc.tag_count::float / msc.story_count::float ) > $SUBJECT_COUNTRY_THRESHOLD
-    order by gc.tag_count desc
+        SELECT
+            gc.tag_count,
+            (gc.tag_count::FLOAT / msc.story_count::FLOAT) AS story_percent,
+            t.*
+        FROM subject_country_counts AS gc
+            INNER JOIN tags AS t ON
+                gc.tags_id = t.tags_id
+            CROSS JOIN medium_stories_count AS msc
+        WHERE
+            (gc.tag_count::FLOAT / msc.story_count::FLOAT) > $SUBJECT_COUNTRY_THRESHOLD
+        ORDER BY gc.tag_count DESC
 SQL
+        $medium->{ media_id }, $GEOTAG_TAG_SET_NAME
+    )->hash;
 
     my $country;
     if ( !$tag_count || ( $tag_count->{ story_percent } < $SUBJECT_COUNTRY_THRESHOLD ) )
@@ -154,16 +165,18 @@ sub get_untagged_media_ids($)
 
     my $tag_set = get_subject_country_tag_set( $db );
 
-    my $media_ids = $db->query( <<SQL, $tag_set->{ tag_sets_id } )->flat;
-select m.media_id
-    from media m
-        left join (
-            media_tags_map mtm
-            join tags t on ( mtm.tags_id = t.tags_id and t.tag_sets_id = \$1 )
-        ) on ( m.media_id = mtm.media_id )
-    where
-        t.tags_id is null
+    my $media_ids = $db->query( <<SQL,
+        SELECT m.media_id
+        FROM media AS m
+            LEFT JOIN media_tags_map AS mtm ON
+                m.media_id = mtm.media_id
+            LEFT JOIN tags AS t ON
+                mtm.tags_id = t.tags_id AND
+                t.tag_sets_id = \$1
+        WHERE t.tags_id IS NULL
 SQL
+        $tag_set->{ tag_sets_id }
+    )->flat;
 
     return $media_ids;
 }

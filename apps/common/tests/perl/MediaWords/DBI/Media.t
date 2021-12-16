@@ -30,7 +30,13 @@ sub test_few_recent_stories($)
 
     my $medium = $test_stack->{ "$label medium" };
 
-    $db->query( "UPDATE feeds SET active = 't' WHERE media_id = \$1", $medium->{ media_id } );
+    $db->query( <<SQL,
+        UPDATE feeds SET
+            active = 't'
+        WHERE media_id = \$1
+SQL
+        $medium->{ media_id }
+    );
 
     # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: test should write only to the sharded table
     $db->query( <<SQL,
@@ -72,7 +78,13 @@ sub test_few_old_stories($)
 
     my $medium = $test_stack->{ "$label medium" };
 
-    $db->query( "UPDATE feeds SET active = 't' WHERE media_id = \$1", $medium->{ media_id } );
+    $db->query( <<SQL,
+        UPDATE feeds SET
+            active = 't'
+        WHERE media_id = \$1
+SQL
+        $medium->{ media_id }
+    );
 
     # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: test should write only to the sharded table
     $db->query( <<SQL,
@@ -112,7 +124,13 @@ sub test_no_stories($)
 
     my $medium = $test_stack->{ "$label medium" };
 
-    $db->query( "UPDATE feeds SET active = 't' WHERE media_id = \$1", $medium->{ media_id } );
+    $db->query( <<SQL,
+        UPDATE feeds SET
+            active = 't'
+        WHERE media_id = \$1
+SQL
+        $medium->{ media_id }
+    );
 
     ok( !MediaWords::DBI::Media::medium_is_ready_for_analysis( $db, $medium ), $label );
 }
@@ -138,7 +156,13 @@ sub test_no_active_feed($)
 
     my $medium = $test_stack->{ "$label medium" };
 
-    $db->query( "UPDATE feeds SET active = 'f' WHERE media_id = \$1", $medium->{ media_id } );
+    $db->query( <<SQL,
+        UPDATE feeds SET
+            active = 'f'
+        WHERE media_id = \$1
+SQL
+        $medium->{ media_id }
+    );
 
     # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: test should write only to the sharded table
     $db->query( <<SQL,

@@ -16,23 +16,41 @@ sub test_assign_date_guess_method($)
 
     my $media = MediaWords::Test::DB::Create::create_test_story_stack_numerated( $db, 1, 1, 10 );
 
-    my $story = $db->query( "select * from stories limit 1 offset 3" )->hash;
+    my $story = $db->query( <<SQL
+        SELECT *
+        FROM stories
+        LIMIT 1
+        OFFSET 3
+SQL
+    )->hash;
 
     {
         MediaWords::DBI::Stories::GuessDate::assign_date_guess_method( $db, $story, 'undateable' );
 
-        my $got_tag = $db->query( <<SQL, $story->{ stories_id } )->hash;
-select t.* from tags t join stories_tags_map stm using ( tags_id ) where stm.stories_id = ?
+        my $got_tag = $db->query( <<SQL,
+            SELECT t.*
+            FROM tags AS t
+                INNER JOIN stories_tags_map AS stm ON
+                    t.tags_id = stm.tags_id
+            WHERE stm.stories_id = ?
 SQL
+            $story->{ stories_id }
+        )->hash;
 
         is( $got_tag->{ tag }, 'undateable', "assign_date_guess_method: undateable" );
     }
     {
         MediaWords::DBI::Stories::GuessDate::assign_date_guess_method( $db, $story, 'foo bar / and ; baz' );
 
-        my $got_tag = $db->query( <<SQL, $story->{ stories_id } )->hash;
-select t.* from tags t join stories_tags_map stm using ( tags_id ) where stm.stories_id = ?
+        my $got_tag = $db->query( <<SQL,
+            SELECT t.*
+            FROM tags AS t
+                INNER JOIN stories_tags_map AS stm ON
+                    t.tags_id = stm.tags_id
+            WHERE stm.stories_id = ?
 SQL
+            $story->{ stories_id }
+        )->hash;
 
         is( $got_tag->{ tag }, 'unknown', "assign_date_guess_method: unknown" );
     }

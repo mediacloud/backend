@@ -372,7 +372,13 @@ def create_test_topic_posts(
     }
     tsq = db.create('topic_seed_queries', tsq)
 
-    stories = db.query( "SELECT * FROM snap.live_stories WHERE topics_id = %(a)s", {'a': topic['topics_id']}).hashes()
+    stories = db.query( """
+        SELECT *
+        FROM snap.live_stories
+        WHERE topics_id = %(topics_id)s
+    """, {
+        'topics_id': topic['topics_id'],
+    }).hashes()
 
     num_posts = 0
     while date < end_date:

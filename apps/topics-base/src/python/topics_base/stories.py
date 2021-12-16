@@ -97,23 +97,20 @@ def _get_story_with_most_sentences(db: DatabaseHandler, stories: list) -> dict:
     if len(stories) == 1:
         return stories[0]
 
-    story = db.query(
-        """
-            SELECT *
-            FROM stories
-            WHERE stories_id IN (
-                SELECT stories_id
-                FROM story_sentences
-                WHERE stories_id = ANY(%(story_ids)s)
-                GROUP BY stories_id
-                ORDER BY COUNT(*) DESC
-                LIMIT 1
-            )
-        """,
-        {
-            'story_ids': [s['stories_id'] for s in stories],
-        }
-    ).hash()
+    story = db.query("""
+        SELECT *
+        FROM stories
+        WHERE stories_id IN (
+            SELECT stories_id
+            FROM story_sentences
+            WHERE stories_id = ANY(%(story_ids)s)
+            GROUP BY stories_id
+            ORDER BY COUNT(*) DESC
+            LIMIT 1
+        )
+    """, {
+        'story_ids': [s['stories_id'] for s in stories],
+    }).hash()
 
     if story is not None:
         return story
@@ -162,22 +159,19 @@ def get_preferred_story(db: DatabaseHandler, stories: list) -> dict:
 
     log.debug(f"get_preferred_story: {len(stories)} stories")
 
-    media = db.query(
-        """
-            SELECT
-                *,
-                EXISTS(
-                    SELECT 1
-                    FROM media AS d
-                    WHERE d.dup_media_id = m.media_id
-                ) AS is_dup_target
-            FROM media AS m
-            WHERE media_id = ANY(%(media_ids)s)
-        """,
-        {
-            'media_ids': [s['media_id'] for s in stories],
-        }
-    ).hashes()
+    media = db.query("""
+        SELECT
+            *,
+            EXISTS(
+                SELECT 1
+                FROM media AS d
+                WHERE d.dup_media_id = m.media_id
+            ) AS is_dup_target
+        FROM media AS m
+        WHERE media_id = ANY(%(media_ids)s)
+    """, {
+        'media_ids': [s['media_id'] for s in stories],
+    }).hashes()
 
     story_urls = [s['url'] for s in stories]
 
@@ -248,40 +242,39 @@ def get_story_match(db: DatabaseHandler, url: str, redirect_url: Optional[str] =
 
     # look for matching stories, ignore those in foreign_rss_links media, only get last
     # 100 to avoid hanging job trying to handle potentially thousands of matches
-    stories = db.query(
-        """
-            WITH matching_stories AS (
-                SELECT DISTINCT s.*
-                FROM stories AS s
-                    INNER JOIN media AS m ON
-                        s.media_id = m.media_id
-                WHERE
-                    (
-                        s.url = ANY(%(urls)s) OR
-                        s.guid = ANY(%(urls)s)
-                    ) AND
-                    m.foreign_rss_links = false
-            
-                UNION
-            
-                SELECT DISTINCT s.*
-                FROM stories AS s
-                    INNER JOIN media AS m ON
-                        s.media_id = m.media_id
-                    INNER JOIN story_urls AS su ON
-                        s.stories_id = su.stories_id
-                WHERE
-                    su.url = ANY(%(urls)s) AND
-                    m.foreign_rss_links = false
-            )
-            
-            SELECT DISTINCT ms.*
-            FROM matching_stories AS ms
-            ORDER BY collect_date DESC
-            LIMIT 100
-        """,
-        {'urls': urls}
-    ).hashes()
+    stories = db.query("""
+        WITH matching_stories AS (
+            SELECT DISTINCT s.*
+            FROM stories AS s
+                INNER JOIN media AS m ON
+                    s.media_id = m.media_id
+            WHERE
+                (
+                    s.url = ANY(%(urls)s) OR
+                    s.guid = ANY(%(urls)s)
+                ) AND
+                m.foreign_rss_links = false
+        
+            UNION
+        
+            SELECT DISTINCT s.*
+            FROM stories AS s
+                INNER JOIN media AS m ON
+                    s.media_id = m.media_id
+                INNER JOIN story_urls AS su ON
+                    s.stories_id = su.stories_id
+            WHERE
+                su.url = ANY(%(urls)s) AND
+                m.foreign_rss_links = false
+        )
+        
+        SELECT DISTINCT ms.*
+        FROM matching_stories AS ms
+        ORDER BY collect_date DESC
+        LIMIT 100
+    """, {
+        'urls': urls,
+    }).hashes()
 
     db.query("SET enable_seqscan = on")
 
@@ -640,30 +633,27 @@ def merge_foreign_rss_stories(db: DatabaseHandler, topic: dict) -> None:
     """Move all topic stories with a foreign_rss_links medium from topic_stories back to topic_seed_urls."""
     topic = decode_object_from_bytes_if_needed(topic)
 
-    stories = db.query(
-        """
-            WITH topic_stories_from_topic AS (
-                SELECT stories_id
-                FROM topic_stories
-                WHERE
-                    topics_id = %(topics_id)s AND
-                    (NOT valid_foreign_rss_story)
-            )
+    stories = db.query("""
+        WITH topic_stories_from_topic AS (
+            SELECT stories_id
+            FROM topic_stories
+            WHERE
+                topics_id = %(topics_id)s AND
+                (NOT valid_foreign_rss_story)
+        )
 
-            SELECT stories.*
-            FROM stories
-                INNER JOIN media ON
-                    stories.media_id = media.media_id AND
-                    media.foreign_rss_links
-            WHERE stories.stories_id IN (
-                SELECT stories_id
-                FROM topic_stories_from_topic
-            )
-        """,
-        {
-            'topics_id': topic['topics_id'],
-        }
-    ).hashes()
+        SELECT stories.*
+        FROM stories
+            INNER JOIN media ON
+                stories.media_id = media.media_id AND
+                media.foreign_rss_links
+        WHERE stories.stories_id IN (
+            SELECT stories_id
+            FROM topic_stories_from_topic
+        )
+    """, {
+        'topics_id': topic['topics_id'],
+    }).hashes()
 
     for story in stories:
         download = db.query(
@@ -1200,26 +1190,23 @@ def merge_dup_media_story(db, topic, story):
 
     dup_medium = _get_deduped_medium(db, story['media_id'])
 
-    new_story = db.query(
-        """
-            SELECT s.*
-            FROM stories s
-            WHERE
-                s.media_id = %(media_id)s AND
-                (
-                    (%(url)s IN (s.url, s.guid)) OR
-                    (%(guid)s IN (s.url, s.guid)) OR
-                    (s.title = %(title)s AND date_trunc('day', s.publish_date) = %(date)s)
-                )
-        """,
-        {
-            'media_id': dup_medium['media_id'],
-            'url': story['url'],
-            'guid': story['guid'],
-            'title': story['title'],
-            'date': story['publish_date']
-        }
-    ).hash()
+    new_story = db.query("""
+        SELECT s.*
+        FROM stories s
+        WHERE
+            s.media_id = %(media_id)s AND
+            (
+                (%(url)s IN (s.url, s.guid)) OR
+                (%(guid)s IN (s.url, s.guid)) OR
+                (s.title = %(title)s AND date_trunc('day', s.publish_date) = %(date)s)
+            )
+    """, {
+        'media_id': dup_medium['media_id'],
+        'url': story['url'],
+        'guid': story['guid'],
+        'title': story['title'],
+        'date': story['publish_date']
+    }).hash()
 
     if new_story is None:
         new_story = copy_story_to_new_medium(db, topic, story, dup_medium)
@@ -1234,23 +1221,20 @@ def merge_dup_media_stories(db, topic):
 
     log.info("merge dup media stories")
 
-    dup_media_stories = db.query(
-        """
-            SELECT DISTINCT s.*
-            FROM snap.live_stories AS s
-                INNER JOIN topic_stories AS cs ON
-                    s.stories_id = cs.stories_id AND
-                    s.topics_id = cs.topics_id
-                INNER JOIN media AS m ON
-                    s.media_id = m.media_id
-            WHERE
-                m.dup_media_id IS NOT NULL AND
-                cs.topics_id = %(topics_id)s
-        """,
-        {
-            'topics_id': topic['topics_id'],
-        }
-    ).hashes()
+    dup_media_stories = db.query("""
+        SELECT DISTINCT s.*
+        FROM snap.live_stories AS s
+            INNER JOIN topic_stories AS cs ON
+                s.stories_id = cs.stories_id AND
+                s.topics_id = cs.topics_id
+            INNER JOIN media AS m ON
+                s.media_id = m.media_id
+        WHERE
+            m.dup_media_id IS NOT NULL AND
+            cs.topics_id = %(topics_id)s
+    """, {
+        'topics_id': topic['topics_id'],
+    }).hashes()
 
     if len(dup_media_stories) > 0:
         log.info(f"merging {len(dup_media_stories)} stories")
@@ -1402,26 +1386,20 @@ def _add_missing_normalized_title_hashes(db: DatabaseHandler, topic: dict) -> No
             break
 
         # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
-        db.query(
-            """
-                UPDATE unsharded_public.stories
-                SET normalized_title_hash = md5(get_normalized_title(title, media_id))::UUID
-                WHERE stories_id = ANY(%(story_ids)s)
-            """,
-            {
-                'story_ids': stories_ids,
-            }
-        )
-        db.query(
-            """
-                UPDATE sharded_public.stories
-                SET normalized_title_hash = md5(get_normalized_title(title, media_id))::UUID
-                WHERE stories_id = ANY(%(story_ids)s)
-            """,
-            {
-                'story_ids': stories_ids,
-            }
-        )
+        db.query("""
+            UPDATE unsharded_public.stories
+            SET normalized_title_hash = md5(get_normalized_title(title, media_id))::UUID
+            WHERE stories_id = ANY(%(story_ids)s)
+        """, {
+            'story_ids': stories_ids,
+        })
+        db.query("""
+            UPDATE sharded_public.stories
+            SET normalized_title_hash = md5(get_normalized_title(title, media_id))::UUID
+            WHERE stories_id = ANY(%(story_ids)s)
+        """, {
+            'story_ids': stories_ids,
+        })
 
     db.commit()
 

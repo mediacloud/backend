@@ -44,14 +44,13 @@ sub main
         SELECT media_id
         FROM media AS m
             INNER JOIN active_media AS am USING (media_id)
-        WHERE
-            EXISTS (
-                SELECT 1
-                FROM stories AS s
-                WHERE s.media_id = m.media_id
-                OFFSET 101
-                LIMIT 1
-            )
+        WHERE EXISTS (
+            SELECT 1
+            FROM stories AS s
+            WHERE s.media_id = m.media_id
+            OFFSET 101
+            LIMIT 1
+        )
 SQL
     )->flat();
 

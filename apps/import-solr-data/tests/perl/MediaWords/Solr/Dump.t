@@ -38,7 +38,12 @@ sub test_import($)
         }
     );
 
-    my $test_stories = $db->query( "select * from stories order by md5( stories_id::text )" )->hashes;
+    my $test_stories = $db->query( <<SQL
+        SELECT *
+        FROM stories
+        ORDER BY MD5(stories_id::TEXT)
+SQL
+    )->hashes;
 
     {
         my $got_num_solr_stories = MediaWords::Solr::get_solr_num_found( $db, { q => '*:*' } );
@@ -47,7 +52,11 @@ sub test_import($)
         my $solr_import = $db->query( "select * from solr_imports" )->hash;
         ok( $solr_import->{ full_import }, "solr_imports row created with full=true" );
 
-        my ( $num_solr_imported_stories ) = $db->query( "SELECT COUNT(*) FROM solr_imported_stories" )->flat;
+        my ( $num_solr_imported_stories ) = $db->query( <<SQL
+            SELECT COUNT(*)
+            FROM solr_imported_stories
+SQL
+        )->flat;
         is( $num_solr_imported_stories, scalar( @{ $test_stories } ), "number of rows in solr_imported_stories" );
     }
 
@@ -129,7 +138,13 @@ SQL
         # test that import grabs updated story
         my $story = pop( @{ $test_stories } );
         # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: test should write only to the sharded table
-        $db->query( "UPDATE sharded_public.stories SET language = 'up' WHERE stories_id = ?", $story->{ stories_id } );
+        $db->query( <<SQL,
+            UPDATE sharded_public.stories SET
+                language = 'up'
+            WHERE stories_id = ?
+SQL
+            $story->{ stories_id }
+        );
         $db->commit();
 
         MediaWords::Solr::Dump::import_data( $db, { empty_queue => 1, throttle => 0 } );
