@@ -95,7 +95,13 @@ sub add_test_seed_query($$)
     };
     $tsq = $db->create( 'topic_seed_queries', $tsq );
 
-    my $stories = $db->query( "select * from stories limit ?", $NUM_TSQ_STORIES )->hashes;
+    my $stories = $db->query( <<SQL,
+        SELECT *
+        FROM stories
+        LIMIT ?
+SQL
+        $NUM_TSQ_STORIES
+    )->hashes;
 
     my $tpd = {
         topics_id => $tsq->{ topics_id },
@@ -126,7 +132,11 @@ sub validate_sharing_timespan
 {
     my ( $db ) = @_;
 
-    my $topic_seed_queries = $db->query( "select * from topic_seed_queries" )->hashes;
+    my $topic_seed_queries = $db->query( <<SQL
+        SELECT *
+        FROM topic_seed_queries
+SQL
+    )->hashes;
 
     for my $tsq ( @{ $topic_seed_queries } )
     {
@@ -267,7 +277,12 @@ sub test_snapshot($)
 
     my $expected_seed_query = add_test_seed_query( $db, $topic );
 
-    my $tag_set = $db->query( "insert into tag_sets ( name ) values ( 'foo' ) returning *" )->hash;
+    my $tag_set = $db->query( <<SQL
+        INSERT INTO tag_sets (name)
+        VALUES ('foo')
+        RETURNING *
+SQL
+    )->hash;
     my $tag = $db->query( <<SQL,
         INSERT INTO tags (tag, tag_sets_id)
         VALUES ('foo', ?)
@@ -276,12 +291,22 @@ SQL
         $tag_set->{ tag_sets_id }
     )->hash;
 
-    my $stories = $db->query( "select * from stories" )->hashes;
+    my $stories = $db->query( <<SQL
+        SELECT *
+        FROM stories
+SQL
+    )->hashes;
     for my $story ( @{ $stories } )
     {
         $db->create( 'stories_tags_map', { stories_id => $story->{ stories_id }, tags_id => $tag->{ tags_id } } );
 
-        my $ref_story = $db->query( "select * from stories where stories_id = ?", $story->{ stories_id } + 1 )->hash;
+        my $ref_story = $db->query( <<SQL,
+            SELECT *
+            FROM stories
+            WHERE stories_id = ?
+SQL
+            $story->{ stories_id } + 1
+        )->hash;
         next unless $ref_story;
 
         my $topic_link = {
@@ -298,7 +323,13 @@ SQL
 
     MediaWords::TM::Snapshot::snapshot_topic( $db, $topics_id );
 
-    my $got_snapshot = $db->query( "SELECT * FROM snapshots WHERE topics_id = ?", $topic->{ topics_id } )->hash;
+    my $got_snapshot = $db->query( <<SQL,
+        SELECT *
+        FROM snapshots
+        WHERE topics_id = ?
+SQL
+        $topic->{ topics_id }
+    )->hash;
 
     ok( $got_snapshot, "snapshot exists" );
     is( $got_snapshot->{ topics_id }, $topics_id, "snapshot topics_id" );

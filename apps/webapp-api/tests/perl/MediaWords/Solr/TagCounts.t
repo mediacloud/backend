@@ -107,7 +107,7 @@ SQL
     MediaWords::Test::Solr::setup_test_index( $db );
 
     my $query_media_id = $media->{ medium_1 }->{ media_id };
-    my $got_tag_counts = MediaWords::Solr::TagCounts::query_tag_counts( $db, { q => "media_id:$query_media_id" } );
+    my $got_tag_counts = MediaWords::Solr::TagCounts::query_tag_counts( $db, { 'q' => "media_id:$query_media_id" } );
 
     my $expected_tag_counts = $db->query( <<SQL,
         WITH tag_counts AS (

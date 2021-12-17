@@ -24,9 +24,15 @@ def test_generate_story():
     assert medium['name'] == 'foo.com'
     assert medium['url'] == 'http://foo.com/'
 
-    feed = db.query(
-        "select f.* from feeds f join feeds_stories_map fsm using ( feeds_id ) where stories_id = %(a)s",
-        {'a': story['stories_id']}).hash()
+    feed = db.query("""
+        SELECT f.*
+        FROM feeds_stories_map AS fsm
+            INNER JOIN feeds AS f ON
+                fsm.feeds_id = f.feeds_id
+        WHERE fsm.stories_id = %(stories_id)s
+    """, {
+        'stories_id': story['stories_id'],
+    }).hash()
 
     assert feed is not None
     assert feed['name'] == SPIDER_FEED_NAME
@@ -36,7 +42,13 @@ def test_generate_story():
     assert date_tag['tag'] == 'guess_by_tag_meta'
     assert date_tag_set['name'] == GUESS_METHOD_TAG_SET
 
-    download = db.query("select * from downloads where stories_id = %(a)s", {'a': story['stories_id']}).hash()
+    download = db.query("""
+        SELECT *
+        FROM downloads
+        WHERE stories_id = %(stories_id)s
+    """, {
+        'stories_id': story['stories_id'],
+    }).hash()
 
     assert download is not None
     assert download['url'] == story['url']

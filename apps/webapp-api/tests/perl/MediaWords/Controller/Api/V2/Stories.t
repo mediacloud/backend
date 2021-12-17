@@ -150,7 +150,13 @@ SQL
         my $sid       = $story->{ stories_id };
         my $got_story = $got_stories_lookup->{ $story->{ stories_id } };
 
-        my $sentences = $db->query( "SELECT * FROM story_sentences WHERE stories_id = ?", $sid )->hashes;
+        my $sentences = $db->query( <<SQL,
+            SELECT *
+            FROM story_sentences
+            WHERE stories_id = ?
+SQL
+            $sid
+        )->hashes;
         my $download_text = $db->query( <<SQL,
             SELECT *
             FROM download_texts
@@ -306,7 +312,13 @@ sub test_stories_count($)
 {
     my ( $db ) = @_;
 
-    my $stories = $db->query( "SELECT * FROM stories ORDER BY stories_id ASC LIMIT 23" )->hashes;
+    my $stories = $db->query( <<SQL
+        SELECT *
+        FROM stories
+        ORDER BY stories_id ASC
+        LIMIT 23
+SQL
+    )->hashes;
 
     my $stories_ids_list = join( ' ', map { $_->{ stories_id } } @{ $stories } );
 
@@ -386,7 +398,13 @@ sub test_stories_word_matrix($)
 
     my $label = "stories/word_matrix";
 
-    my $stories          = $db->query( "SELECT * FROM stories ORDER BY stories_id LIMIT 17" )->hashes;
+    my $stories          = $db->query( <<SQL
+        SELECT *
+        FROM stories
+        ORDER BY stories_id
+        LIMIT 17
+SQL
+    )->hashes;
     my $stories_ids      = [ map { $_->{ stories_id } } @{ $stories } ];
     my $stories_ids_list = join( ' ', @{ $stories_ids } );
 
@@ -460,7 +478,13 @@ sub test_stories_field_count($)
 
     my $tag = MediaWords::Util::Tags::lookup_or_create_tag( $db, "$label:$label" );
 
-    my $stories = $db->query( "SELECT * FROM stories ORDER BY stories_id ASC LIMIT 10" )->hashes;
+    my $stories = $db->query( <<SQL
+        SELECT *
+        FROM stories
+        ORDER BY stories_id ASC
+        LIMIT 10
+SQL
+    )->hashes;
     my $tagged_stories = [ ( @{ $stories } )[ 1 .. 5 ] ];
     for my $story ( @{ $tagged_stories } )
     {

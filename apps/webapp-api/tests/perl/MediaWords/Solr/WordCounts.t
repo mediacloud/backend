@@ -235,7 +235,7 @@ SQL
     my $matching_sentences = $db->query( <<SQL,
         SELECT
             ss.*,
-            s.language story_language
+            s.language AS story_language
         FROM story_sentences AS ss
             JOIN stories AS s USING (stories_id)
         WHERE sentence ~ ?

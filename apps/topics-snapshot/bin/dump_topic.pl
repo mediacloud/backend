@@ -20,17 +20,33 @@ sub _get_story_links_csv
 {
     my ( $db, $timespan ) = @_;
 
-    my $csv = MediaWords::TM::Dump::_get_query_as_csv( $db, <<END );
-select distinct sl.source_stories_id source_stories_id, ss.title source_title, ss.url source_url,
-        sm.name source_media_name, sm.url source_media_url, sm.media_id source_media_id,
-        sl.ref_stories_id ref_stories_id, rs.title ref_title, rs.url ref_url, rm.name ref_media_name, rm.url ref_media_url,
-        rm.media_id ref_media_id
-    from snapshot_story_links sl, snap.live_stories ss, media sm, snap.live_stories rs, media rm
-    where sl.source_stories_id = ss.stories_id and
-        ss.media_id = sm.media_id and
-        sl.ref_stories_id = rs.stories_id and
-        rs.media_id = rm.media_id
-END
+    my $csv = MediaWords::TM::Dump::_get_query_as_csv( $db, <<SQL
+        SELECT DISTINCT
+            sl.source_stories_id AS source_stories_id,
+            ss.title AS source_title,
+            ss.url AS source_url,
+            sm.name AS source_media_name,
+            sm.url AS source_media_url,
+            sm.media_id AS source_media_id,
+            sl.ref_stories_id AS ref_stories_id,
+            rs.title AS ref_title,
+            rs.url AS ref_url,
+            rm.name AS ref_media_name,
+            rm.url AS ref_media_url,
+            rm.media_id AS ref_media_id
+        FROM
+            snapshot_story_links AS sl,
+            snap.live_stories AS ss,
+            media AS sm,
+            snap.live_stories AS rs,
+            media AS rm
+        WHERE
+            sl.source_stories_id = ss.stories_id AND
+            ss.media_id = sm.media_id AND
+            sl.ref_stories_id = rs.stories_id AND
+            rs.media_id = rm.media_id
+SQL
+    );
 
     return $csv;
 }
@@ -40,50 +56,75 @@ sub _get_stories_csv
 {
     my ( $db, $timespan ) = @_;
 
-    my $res = $db->query( <<END );
-select s.stories_id, s.title, s.url,
-        case when ( stm.tags_id is null ) then s.publish_date::text else 'undateable' end as publish_date,
-        m.name media_name, m.url media_url, m.media_id,
-        slc.media_inlink_count, slc.inlink_count, slc.outlink_count, slc.facebook_share_count,
-        slc.post_count
-    from snapshot_stories s
-        join snapshot_media m on ( s.media_id = m.media_id )
-        join snapshot_story_link_counts slc on ( s.stories_id = slc.stories_id )
-        left join (
-            snapshot_stories_tags_map stm
-                join tags t on ( stm.tags_id = t.tags_id  and t.tag = 'undateable' )
-                join tag_sets ts on ( t.tag_sets_id = ts.tag_sets_id and ts.name = 'date_invalid' ) )
-            on ( stm.stories_id = s.stories_id )
-    order by slc.media_inlink_count desc
-END
+    my $res = $db->query( <<SQL
+        SELECT
+            s.stories_id,
+            s.title,
+            s.url,
+            CASE
+                WHEN (stm.tags_id IS NULL) THEN s.publish_date::TEXT
+                ELSE 'undateable'
+            END AS publish_date,
+            m.name AS media_name,
+            m.url AS media_url,
+            m.media_id,
+            slc.media_inlink_count,
+            slc.inlink_count,
+            slc.outlink_count,
+            slc.facebook_share_count,
+            slc.post_count
+        FROM snapshot_stories AS s
+            JOIN snapshot_media AS m ON
+                s.media_id = m.media_id
+            JOIN snapshot_story_link_counts AS slc ON
+                s.stories_id = slc.stories_id
+            LEFT JOIN (
+                snapshot_stories_tags_map AS stm
+                    JOIN tags AS t ON
+                        stm.tags_id = t.tags_id AND
+                        t.tag = 'undateable'
+                    JOIN tag_sets AS ts ON
+                        t.tag_sets_id = ts.tag_sets_id AND
+                        ts.name = 'date_invalid'
+            ) ON
+                stm.stories_id = s.stories_id
+        ORDER BY slc.media_inlink_count DESC
+SQL
+    );
 
     my $fields = $res->columns;
 
     my $stories = $res->hashes;
 
-	my $story_post_counts = $db->query( <<END, $timespan->{ timespans_id } )->hashes;
-with counts as (
-    select 
-            count(*) post_count, ts.stories_id, tsu.topic_seed_queries_id 
-        from snapshot_stories ts 
-            join topic_seed_urls tsu using ( stories_id ) 
-            join topic_post_days tpd using ( topic_seed_queries_id )
-            join timespans t using ( snapshots_id )
-            join snapshots s using ( snapshots_id )
-        where 
-            s.topics_id = tsu.topics_id and
-            t.timespans_id = ? and
-            ( 
-                ( period = 'overall' ) or
-                ( tpd.day between t.start_date and t.end_date )
-            )
-        group by stories_id, topic_seed_queries_id 
-) 
+	my $story_post_counts = $db->query( <<SQL,
+        WITH counts AS (
+            SELECT
+                COUNT(*) AS post_count,
+                ts.stories_id,
+                tsu.topic_seed_queries_id 
+            FROM snapshot_stories AS ts 
+                JOIN topic_seed_urls AS tsu USING (stories_id) 
+                JOIN topic_post_days AS tpd USING (topic_seed_queries_id)
+                JOIN timespans AS t USING (snapshots_id)
+                JOIN snapshots AS s USING (snapshots_id)
+            WHERE
+                s.topics_id = tsu.topics_id AND
+                t.timespans_id = ? AND
+                (
+                    period = 'overall' OR
+                    tpd.day BETWEEN t.start_date AND t.end_date
+                )
+            GROUP BY
+                stories_id,
+                topic_seed_queries_id 
+        ) 
 
-select *
-    from counts c 
-        join topic_seed_queries tsq using ( topic_seed_queries_id);
-END
+        SELECT *
+        FROM counts AS c 
+            JOIN topic_seed_queries AS tsq USING (topic_seed_queries_id)
+SQL
+        $timespan->{ timespans_id }
+    )->hashes;
 
     my $stories_lookup = {};
     map { $stories_lookup->{ $_->{ stories_id } } = $_ } @{ $stories };
@@ -110,12 +151,24 @@ sub _get_medium_links_csv
 {
     my ( $db, $timespan ) = @_;
 
-    my $csv = MediaWords::TM::Dump::_get_query_as_csv( $db, <<END );
-select ml.source_media_id, sm.name source_name, sm.url source_url,
-        ml.ref_media_id, rm.name ref_name, rm.url ref_url, ml.link_count
-    from snapshot_medium_links ml, media sm, media rm
-    where ml.source_media_id = sm.media_id and ml.ref_media_id = rm.media_id
-END
+    my $csv = MediaWords::TM::Dump::_get_query_as_csv( $db, <<SQL
+        SELECT
+            ml.source_media_id,
+            sm.name AS source_name,
+            sm.url AS source_url,
+            ml.ref_media_id,
+            rm.name AS ref_name,
+            rm.url AS ref_url,
+            ml.link_count
+        FROM
+            snapshot_medium_links AS ml,
+            media AS sm,
+            media AS rm
+        WHERE
+            ml.source_media_id = sm.media_id AND
+            ml.ref_media_id = rm.media_id
+SQL
+    );
 
     return $csv;
 }
@@ -125,12 +178,18 @@ sub _get_media_csv
 {
     my ( $db, $timespan ) = @_;
 
-    my $res = $db->query( <<END );
-select m.name, m.url, mlc.*
-    from snapshot_media m, snapshot_medium_link_counts mlc
-    where m.media_id = mlc.media_id
-    order by mlc.media_inlink_count desc;
-END
+    my $res = $db->query( <<SQL
+        SELECT
+            m.name,
+            m.url,
+            mlc.*
+        FROM
+            snapshot_media AS m,
+            snapshot_medium_link_counts AS mlc
+        WHERE m.media_id = mlc.media_id
+        ORDER BY mlc.media_inlink_count DESC
+SQL
+    );
 
     my $fields = $res->columns;
     my $media  = $res->hashes;
@@ -175,13 +234,20 @@ sub main
     write_file( "medium_links_${ timespans_id }.csv", \$medium_links_csv );
 
     DEBUG( "dumping medium_tags ..." );
-    my $medium_tags_csv = MediaWords::TM::Dump::_get_query_as_csv( $db, <<SQL );
-select mtm.media_id, t.tags_id, t.tag, t.label, t.tag_sets_id, ts.name tag_set_name
-    from snapshot_medium_link_counts mlc
-        join snapshot_media_tags_map mtm using ( media_id )
-        join tags t using ( tags_id )
-        join tag_sets ts using ( tag_sets_id )
+    my $medium_tags_csv = MediaWords::TM::Dump::_get_query_as_csv( $db, <<SQL
+        SELECT
+            mtm.media_id,
+            t.tags_id,
+            t.tag,
+            t.label,
+            t.tag_sets_id,
+            ts.name AS tag_set_name
+        FROM snapshot_medium_link_counts AS mlc
+            JOIN snapshot_media_tags_map AS mtm USING ( media_id )
+            JOIN tags AS t USING (tags_id)
+            JOIN tag_sets AS ts USING (tag_sets_id)
 SQL
+    );
     write_file( "medium_tags_${ timespans_id }.csv", \$medium_tags_csv );
 }
 

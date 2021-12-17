@@ -18,9 +18,14 @@ def test_get_preferred_story():
 
     # first prefer medium pointed to by dup_media_id of another story
     preferred_medium = media[1]
-    db.query(
-        "update media set dup_media_id = %(a)s where media_id = %(b)s",
-        {'a': preferred_medium['media_id'], 'b': media[0]['media_id']})
+    db.query("""
+        UPDATE media SET
+            dup_media_id = %(dup_media_id)s
+        WHERE media_id = %(media_id)s
+    """, {
+        'dup_media_id': preferred_medium['media_id'],
+        'media_id': media[0]['media_id'],
+    })
 
     stories = [m['story'] for m in media]
     assert get_preferred_story(db, stories) == preferred_medium['story']
@@ -28,11 +33,21 @@ def test_get_preferred_story():
     # next prefer any medium without a dup_media_id
     preferred_medium = media[num_media - 1]
     # noinspection SqlWithoutWhere
-    db.query("update media set dup_media_id = null")
-    db.query("update media set dup_media_id = %(a)s where media_id != %(a)s", {'a': media[0]['media_id']})
-    db.query(
-        "update media set dup_media_id = null where media_id = %(a)s",
-        {'a': preferred_medium['media_id']})
+    db.query("UPDATE media SET dup_media_id = NULL")
+    db.query("""
+        UPDATE media SET
+            dup_media_id = %(media_id)s
+        WHERE media_id != %(media_id)s
+    """, {
+        'media_id': media[0]['media_id'],
+    })
+    db.query("""
+        UPDATE media SET
+            dup_media_id = NULL
+        WHERE media_id = %(media_id)s
+    """, {
+        'media_id': preferred_medium['media_id'],
+    })
     stories = [m['story'] for m in media[1:]]
     assert get_preferred_story(db, stories) == preferred_medium['story']
 
@@ -86,9 +101,13 @@ def test_get_preferred_story():
     )
 
     stories = db.query("SELECT * FROM stories").hashes()
-    preferred_story = db.query(
-        "SELECT * FROM stories WHERE media_id = %(a)s",
-        {'a': preferred_medium['media_id']}).hash()
+    preferred_story = db.query("""
+        SELECT *
+        FROM stories
+        WHERE media_id = %(media_id)s
+    """, {
+        'media_id': preferred_medium['media_id'],
+    }).hash()
 
     assert get_preferred_story(db, stories) == preferred_story
 

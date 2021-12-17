@@ -58,12 +58,26 @@ sub test_snapshot($)
 
     my $expected_seed_query = add_test_seed_query( $db, $topic );
 
-    my $tag_set = $db->query( "insert into tag_sets ( name ) values ( 'foo' ) returning *" )->hash;
-    my $tag = $db->query( <<SQL, $tag_set->{ tag_sets_id } )->hash;
-insert into tags ( tag, tag_sets_id ) values ( 'foo', ? ) returning *
+    my $tag_set = $db->query( <<SQL
+        INSERT INTO tag_sets (name)
+        VALUES ('foo')
+        RETURNING *
 SQL
+    )->hash;
+    my $tag = $db->query( <<SQL,
+        INSERT INTO tags (tag, tag_sets_id)
+        VALUES ('foo', ?)
+        RETURNING *
+SQL
+        $tag_set->{ tag_sets_id }
+    )->hash;
 
-    my $stories = $db->query( "select * from stories order by stories_id" )->hashes;
+    my $stories = $db->query( <<SQL
+        SELECT *
+        FROM stories
+        ORDER BY stories_id
+SQL
+    )->hashes;
 
     my ( $outlink_story, $inlink_story, $post_story) = @{ $stories };
 

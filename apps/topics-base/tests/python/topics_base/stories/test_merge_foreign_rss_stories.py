@@ -22,9 +22,14 @@ def test_merge_foreign_rss_stories():
     ]
 
     rss_medium = create_test_medium(db, 'rss')
-    rss_medium = db.query(
-        "update media set foreign_rss_links = 't' where media_id = %(a)s returning *",
-        {'a': rss_medium['media_id']}).hash()
+    rss_medium = db.query("""
+        UPDATE media SET
+            foreign_rss_links = 't'
+        WHERE media_id = %(media_id)s
+        RETURNING *
+    """, {
+        'media_id': rss_medium['media_id'],
+    }).hash()
     rss_feed = create_test_feed(db=db, label='rss', medium=rss_medium)
     num_rss_stories = 10
     rss_stories = []
@@ -44,11 +49,18 @@ def test_merge_foreign_rss_stories():
         rss_stories.append(story)
 
     # noinspection SqlInsertValues
-    db.query(f"""
-        INSERT INTO topic_stories (stories_id, topics_id)
-            SELECT s.stories_id, {int(topic['topics_id'])}
-            FROM stories AS s
-    """)
+    db.query("""
+        INSERT INTO topic_stories (
+            stories_id,
+            topics_id
+        )
+            SELECT
+                stories_id,
+                %(topics_id)s AS topics_id
+            FROM stories AS
+    """, {
+        'topics_id': int(topic['topics_id']),
+    })
 
     assert db.query("SELECT COUNT(*) FROM topic_stories").flat()[0] == num_stories + num_rss_stories
 
@@ -61,9 +73,16 @@ def test_merge_foreign_rss_stories():
     expected_topic_stories_ids = [s['stories_id'] for s in stories]
     assert sorted(got_topic_stories_ids) == sorted(expected_topic_stories_ids)
 
-    got_seed_urls = db.query(
-        "SELECT topics_id, url, content FROM topic_seed_urls WHERE topics_id = %(a)s",
-        {'a': topic['topics_id']}).hashes()
+    got_seed_urls = db.query("""
+        SELECT
+            topics_id,
+            url,
+            content
+        FROM topic_seed_urls
+        WHERE topics_id = %(topics_id)s
+    """, {
+        'topics_id': topic['topics_id'],
+    }).hashes()
     expected_seed_urls = \
         [{'url': s['url'], 'topics_id': topic['topics_id'], 'content': s['title']} for s in rss_stories]
 

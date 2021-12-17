@@ -26,7 +26,12 @@ sub test_query_matching_sentences($)
         }
     );
 
-    my $test_stories = $db->query( "select * from stories order by md5( stories_id::text )" )->hashes;
+    my $test_stories = $db->query( <<SQL
+        SELECT *
+        FROM stories
+        ORDER BY MD5(stories_id::TEXT)
+SQL
+    )->hashes;
 
     {
         # query_matching_sentences

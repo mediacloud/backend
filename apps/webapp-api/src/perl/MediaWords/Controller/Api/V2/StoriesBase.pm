@@ -70,15 +70,15 @@ sub _add_raw_1st_download
     my $ids_table = $db->get_temporary_ids_table( [ map { int( $_->{ stories_id } ) } @{ $stories } ] );
 
     my $downloads = $db->query( <<"SQL"
-            SELECT DISTINCT ON(stories_id) *
-            FROM downloads
-            WHERE stories_id IN (
-                SELECT id
-                FROM $ids_table
-            )
-            ORDER BY
-                stories_id,
-                downloads_id
+        SELECT DISTINCT ON(stories_id) *
+        FROM downloads
+        WHERE stories_id IN (
+            SELECT id
+            FROM $ids_table
+        )
+        ORDER BY
+            stories_id,
+            downloads_id
 SQL
     )->hashes;
 
@@ -134,9 +134,7 @@ SQL
     )->flat;
     return [] if ( $ap_media_id );
 
-    my $ap_stories_ids = $db->query(
-        <<SQL
-
+    my $ap_stories_ids = $db->query( <<SQL
         WITH ap_sentences AS (
             SELECT
                 ss.stories_id AS stories_id,

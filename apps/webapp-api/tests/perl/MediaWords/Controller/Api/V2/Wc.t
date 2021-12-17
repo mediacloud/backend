@@ -28,7 +28,13 @@ sub test_wc_list($)
 
     my $label = "wc/list";
 
-    my $story = $db->query( "SELECT * FROM stories ORDER BY stories_id LIMIT 1" )->hash;
+    my $story = $db->query( <<SQL
+        SELECT *
+        FROM stories
+        ORDER BY stories_id
+        LIMIT 1
+SQL
+    )->hash;
 
     my $sentences = $db->query( <<SQL,
         SELECT sentence

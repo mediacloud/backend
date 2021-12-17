@@ -69,9 +69,15 @@ def _get_youtube_embed_links(db: DatabaseHandler, story: dict) -> List[str]:
     list of string urls
 
     """
-    download = db.query(
-        "select * from downloads where stories_id = %(a)s order by stories_id limit 1",
-        {'a': story['stories_id']}).hash()
+    download = db.query("""
+        SELECT *
+        FROM downloads
+        WHERE stories_id = %(stories_id)s
+        ORDER BY stories_id
+        LIMIT 1
+    """, {
+        'stories_id': story['stories_id'],
+    }).hash()
 
     html = fetch_content(db, download)
 
@@ -103,19 +109,23 @@ def _get_extracted_html(db: DatabaseHandler, story: dict) -> str:
     and run the extractor on it.
 
     """
-    download = db.query(
-        """
-        with d as (
-            select * from downloads
-                where
-                    stories_id = %(a)s and
-                    type = 'content' and
-                    state = 'success'
+    download = db.query("""
+        WITH d AS (
+            SELECT *
+            FROM downloads
+            WHERE
+                stories_id = %(stories_id)s AND
+                type = 'content' AND
+                state = 'success'
         ) -- goofy cte to avoid bad query plan
 
-        select * from d order by downloads_id limit 1
-        """,
-        {'a': story['stories_id']}).hash()
+        SELECT *
+        FROM d
+        ORDER BY downloads_id
+        LIMIT 1
+    """, {
+        'stories_id': story['stories_id'],
+    }).hash()
 
     if not download:
         return ''
@@ -147,16 +157,18 @@ def _get_links_from_story_text(db: DatabaseHandler, story: dict) -> List[str]:
             AND state = 'success'
         ORDER BY downloads_id ASC
         LIMIT 1
-        """, {'stories_id': story['stories_id']}
-                            ).flat()
+    """, {
+        'stories_id': story['stories_id']
+    }).flat()
 
     download_texts = db.query("""
         SELECT *
         FROM download_texts
         WHERE downloads_id = ANY(%(download_ids)s)
         ORDER BY download_texts_id
-        """, {'download_ids': download_ids}
-                              ).hashes()
+    """, {
+        'download_ids': download_ids,
+    }).hashes()
 
     story_text = ' '.join([dt['download_text'] for dt in download_texts])
 
@@ -264,33 +276,27 @@ def extract_links_for_topic_story(
         link_mine_error = traceback.format_exc()
 
     # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
-    db.query(
-        """
-            UPDATE unsharded_public.topic_stories SET
-                link_mined = 't',
-                link_mine_error = %(c)s
-            WHERE
-                stories_id = %(a)s AND
-                topics_id = %(b)s
-        """,
-        {
-            'a': story['stories_id'],
-            'b': topic['topics_id'],
-            'c': link_mine_error,
-        }
-    )
-    db.query(
-        """
-            UPDATE sharded_public.topic_stories SET
-                link_mined = 't',
-                link_mine_error = %(c)s
-            WHERE
-                stories_id = %(a)s AND
-                topics_id = %(b)s
-        """,
-        {
-            'a': story['stories_id'],
-            'b': topic['topics_id'],
-            'c': link_mine_error,
-        }
-    )
+    db.query("""
+        UPDATE unsharded_public.topic_stories SET
+            link_mined = 't',
+            link_mine_error = %(link_mine_error)s
+        WHERE
+            stories_id = %(stories_id)s AND
+            topics_id = %(topics_id)s
+    """, {
+        'stories_id': story['stories_id'],
+        'topics_id': topic['topics_id'],
+        'link_mine_error': link_mine_error,
+    })
+    db.query("""
+        UPDATE sharded_public.topic_stories SET
+            link_mined = 't',
+            link_mine_error = %(link_mine_error)s
+        WHERE
+            stories_id = %(stories_id)s AND
+            topics_id = %(topics_id)s
+    """, {
+        'stories_id': story['stories_id'],
+        'topics_id': topic['topics_id'],
+        'link_mine_error': link_mine_error,
+    })
