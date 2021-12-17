@@ -237,46 +237,51 @@ def get_story_match(db: DatabaseHandler, url: str, redirect_url: Optional[str] =
 
     urls = list({u, ru, nu, nru})
 
-    # for some reason some rare urls trigger a seq scan on the below query
-    db.query("SET enable_seqscan = off")
-
     # look for matching stories, ignore those in foreign_rss_links media, only get last
     # 100 to avoid hanging job trying to handle potentially thousands of matches
     stories = db.query("""
-        WITH matching_stories AS (
+        WITH _matching_stories_stories AS (
             SELECT DISTINCT s.*
             FROM stories AS s
                 INNER JOIN media AS m ON
-                    s.media_id = m.media_id
+                    s.media_id = m.media_id AND
+                    m.foreign_rss_links = false
             WHERE
-                (
-                    s.url = ANY(%(urls)s) OR
-                    s.guid = ANY(%(urls)s)
-                ) AND
-                m.foreign_rss_links = false
-        
-            UNION
-        
+                s.url = ANY(%(urls)s) OR
+                s.guid = ANY(%(urls)s)
+            ORDER BY s.collect_date DESC
+            LIMIT %(limit)s
+        ),
+
+        _matching_stories_story_urls AS (
             SELECT DISTINCT s.*
-            FROM stories AS s
+            FROM story_urls AS su
+                INNER JOIN stories AS s ON
+                    su.stories_id = s.stories_id
                 INNER JOIN media AS m ON
-                    s.media_id = m.media_id
-                INNER JOIN story_urls AS su ON
-                    s.stories_id = su.stories_id
-            WHERE
-                su.url = ANY(%(urls)s) AND
-                m.foreign_rss_links = false
+                    s.media_id = m.media_id AND
+                    m.foreign_rss_links = false
+            WHERE su.url = ANY(%(urls)s)
+            ORDER BY s.collect_date DESC
+            LIMIT %(limit)s
         )
         
-        SELECT DISTINCT ms.*
-        FROM matching_stories AS ms
+        SELECT DISTINCT *
+        FROM (
+            SELECT *
+            FROM _matching_stories_stories
+
+            UNION
+
+            SELECT *
+            FROM _matching_stories_story_urls
+        ) AS m
         ORDER BY collect_date DESC
-        LIMIT 100
+        LIMIT %(limit)s
     """, {
         'urls': urls,
+        'limit': 100,
     }).hashes()
-
-    db.query("SET enable_seqscan = on")
 
     if len(stories) == 0:
         return None

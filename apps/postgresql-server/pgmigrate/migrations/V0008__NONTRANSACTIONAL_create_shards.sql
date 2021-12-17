@@ -1568,7 +1568,9 @@ CREATE TABLE story_urls
 SELECT create_distributed_table('story_urls', 'stories_id', colocate_with => 'stories');
 
 CREATE INDEX story_urls_stories_id ON story_urls (stories_id);
-CREATE UNIQUE INDEX story_urls_stories_id_url ON story_urls (stories_id, url);
+
+-- Order is important as we'll use this index to query by URL
+CREATE UNIQUE INDEX story_urls_url_stories_id ON story_urls (url, stories_id);
 
 
 --
