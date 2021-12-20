@@ -6,7 +6,7 @@ FROM gcr.io/mcback/java-base:latest
 
 # Install Elasticsearch
 # (https://www.elastic.co/downloads/elasticsearch-no-jdk)
-ENV MC_ELASTICSEARCH_VERSION=7.10.2
+ENV MC_ELASTICSEARCH_VERSION=7.16.2
 RUN \
     mkdir -p /opt/elasticsearch/ && \
     curl --fail --location --retry 3 --retry-delay 5 "https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-${MC_ELASTICSEARCH_VERSION}-linux-$(uname -m).tar.gz" | \

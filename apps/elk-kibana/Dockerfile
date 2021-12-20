@@ -6,6 +6,8 @@ FROM gcr.io/mcback/java-base:latest
 
 # Install headless Chromium dependencies (needed for Reporting)
 RUN \
+    # FIXME
+    apt-get -y update && \
     apt-get -y --no-install-recommends install \
         ca-certificates \
         fonts-freefont-ttf \
@@ -58,7 +60,7 @@ RUN \
 
 # Install Kibana
 # (https://www.elastic.co/downloads/kibana)
-ENV ELK_KIBANA_VERSION=7.10.2
+ENV ELK_KIBANA_VERSION=7.16.2
 RUN \
     mkdir -p /opt/kibana/ && \
     curl --fail --location --retry 3 --retry-delay 5 "https://artifacts.elastic.co/downloads/kibana/kibana-${ELK_KIBANA_VERSION}-linux-$(uname -m).tar.gz" | \
