@@ -33,12 +33,9 @@ RUN \
     #
     true
 
-# Use cgroup's memory / CPU limits
-ENV JDK_JAVA_OPTIONS="-XX:+UseContainerSupport"
-
-# Install our own security profile
+# Use cgroup's memory / CPU limits; install our own security profile
 COPY mediacloud-java.security /
-ENV JDK_JAVA_OPTIONS="$JDK_JAVA_OPTIONS -Djava.security.properties=/mediacloud-java.security"
+ENV JDK_JAVA_OPTIONS="-XX:+UseContainerSupport -Djava.security.properties=/mediacloud-java.security"
 
 # Add script that will keep system and Java certificates up-to-date and in sync
 COPY docker-openjdk.update.d.sh /etc/ca-certificates/update.d/openjdk
