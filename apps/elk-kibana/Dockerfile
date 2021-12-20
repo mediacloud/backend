@@ -6,6 +6,8 @@ FROM gcr.io/mcback/java-base:latest
 
 # Install headless Chromium dependencies (needed for Reporting)
 RUN \
+    # FIXME
+    apt-get -y update && \
     apt-get -y --no-install-recommends install \
         ca-certificates \
         fonts-freefont-ttf \
