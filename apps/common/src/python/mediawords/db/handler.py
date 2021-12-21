@@ -41,45 +41,45 @@ class DatabaseHandler(object):
     # therefore for which we need to manually run UPDATEs and DELETEs on both underlying (sharded and
     # unsharded) tables: https://github.com/citusdata/citus/issues/2046
     __BIG_SHARDED_TABLES_WITH_SOMEWHAT_UPDATABLE_VIEW = {
-        'auth_user_request_daily_counts',
-        'media_stats',
-        'media_coverage_gaps',
-        'stories',
-        'stories_ap_syndicated',
-        'story_urls',
-        'feeds_stories_map',
-        'feeds_stories_map_p',
-        'stories_tags_map',
-        'stories_tags_map_p',
-        'story_sentences',
-        'story_sentences_p',
-        'solr_import_stories',
-        'solr_imported_stories',
-        'topic_merged_stories_map',
-        'story_statistics',
-        'processed_stories',
-        'scraped_stories',
-        'story_enclosures',
-        'downloads',
-        'download_texts',
-        'topic_stories',
-        'topic_links',
-        'topic_fetch_urls',
-        'snap.stories',
-        'snap.topic_stories',
-        'snap.topic_links_cross_media',
+        'public.auth_user_request_daily_counts',
+        'public.download_texts',
+        'public.downloads',
+        'public.feeds_stories_map',
+        'public.feeds_stories_map_p',
+        'public.media_coverage_gaps',
+        'public.media_stats',
+        'public.processed_stories',
+        'public.scraped_stories',
+        'public.solr_import_stories',
+        'public.solr_imported_stories',
+        'public.stories',
+        'public.stories_ap_syndicated',
+        'public.stories_tags_map',
+        'public.stories_tags_map_p',
+        'public.story_enclosures',
+        'public.story_sentences',
+        'public.story_sentences_p',
+        'public.story_statistics',
+        'public.story_urls',
+        'public.topic_fetch_urls',
+        'public.topic_links',
+        'public.topic_merged_stories_map',
+        'public.topic_post_urls',
+        'public.topic_posts',
+        'public.topic_seed_urls',
+        'public.topic_stories',
+        'snap.live_stories',
         'snap.media',
         'snap.media_tags_map',
-        'snap.stories_tags_map',
-        'snap.story_links',
-        'snap.story_link_counts',
         'snap.medium_link_counts',
         'snap.medium_links',
-        'snap.live_stories',
-        'topic_posts',
-        'topic_post_urls',
-        'topic_seed_urls',
+        'snap.stories',
+        'snap.stories_tags_map',
+        'snap.story_link_counts',
+        'snap.story_links',
         'snap.timespan_posts',
+        'snap.topic_links_cross_media',
+        'snap.topic_stories',
     }
 
     __slots__ = [
@@ -371,11 +371,11 @@ class DatabaseHandler(object):
         table = decode_object_from_bytes_if_needed(table)
         update_hash = decode_object_from_bytes_if_needed(update_hash)
 
+        if '.' not in table:
+            table = f"public.{table}"
+
         # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK:
         if table in self.__BIG_SHARDED_TABLES_WITH_SOMEWHAT_UPDATABLE_VIEW:
-
-            if '.' not in table:
-                table = f"public.{table}"
 
             unsharded_result = self.update_by_id(
                 table=f"unsharded_{table}",
@@ -451,12 +451,11 @@ class DatabaseHandler(object):
 
         table = decode_object_from_bytes_if_needed(table)
 
+        if '.' not in table:
+            table = f"public.{table}"
+
         # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK:
         if table in self.__BIG_SHARDED_TABLES_WITH_SOMEWHAT_UPDATABLE_VIEW:
-
-            if '.' not in table:
-                table = f"public.{table}"
-
             self.delete_by_id(table=f"unsharded_{table}", object_id=object_id)
             self.delete_by_id(table=f"sharded_{table}", object_id=object_id)
 
