@@ -31,14 +31,32 @@ sub generate_daily_dump($$$)
 
     INFO( "querying stories for $day ..." );
 
+    # MC_CITUS_UNION_HACK: simplify after sharding
     my $stories = $db->query( <<SQL,
         SELECT
             url,
             guid
-        FROM stories
-        WHERE
-            collect_date >= \$1::DATE AND
-            collect_date < \$1::DATE + '1 day'::INTERVAL
+        FROM (
+            SELECT
+                url::TEXT
+                guid::TEXT,
+                collect_date
+            FROM unsharded_public.stories
+            WHERE
+                collect_date >= \$1::DATE AND
+                collect_date < \$1::DATE + '1 day'::INTERVAL
+
+            UNION
+
+            SELECT
+                url::TEXT
+                guid::TEXT,
+                collect_date
+            FROM sharded_public.stories
+            WHERE
+                collect_date >= \$1::DATE AND
+                collect_date < \$1::DATE + '1 day'::INTERVAL
+        ) AS s
         ORDER BY collect_date DESC
 SQL
         $day

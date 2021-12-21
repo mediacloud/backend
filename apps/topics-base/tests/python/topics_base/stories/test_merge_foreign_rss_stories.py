@@ -48,37 +48,42 @@ def test_merge_foreign_rss_stories():
         store_content(db, download, story['title'])
         rss_stories.append(story)
 
+    # MC_CITUS_UNION_HACK tests should only use the sharded table
     # noinspection SqlInsertValues
     db.query("""
-        INSERT INTO topic_stories (
+        INSERT INTO sharded_public.topic_stories (
             stories_id,
             topics_id
         )
             SELECT
                 stories_id,
                 %(topics_id)s AS topics_id
-            FROM stories AS
+            FROM sharded_public.stories AS
     """, {
         'topics_id': int(topic['topics_id']),
     })
 
-    assert db.query("SELECT COUNT(*) FROM topic_stories").flat()[0] == num_stories + num_rss_stories
+    # MC_CITUS_UNION_HACK tests should only use the sharded table
+    assert db.query("SELECT COUNT(*) FROM sharded_public.topic_stories").flat()[0] == num_stories + num_rss_stories
 
     merge_foreign_rss_stories(db, topic)
 
-    assert db.query("SELECT COUNT(*) FROM topic_stories").flat()[0] == num_stories
-    assert db.query("SELECT COUNT(*) FROM topic_seed_urls").flat()[0] == num_rss_stories
+    # MC_CITUS_UNION_HACK tests should only use the sharded table
+    assert db.query("SELECT COUNT(*) FROM sharded_public.topic_stories").flat()[0] == num_stories
+    assert db.query("SELECT COUNT(*) FROM sharded_public.topic_seed_urls").flat()[0] == num_rss_stories
 
-    got_topic_stories_ids = db.query("SELECT stories_id FROM topic_stories").flat()
+    # MC_CITUS_UNION_HACK tests should only use the sharded table
+    got_topic_stories_ids = db.query("SELECT stories_id FROM sharded_public.topic_stories").flat()
     expected_topic_stories_ids = [s['stories_id'] for s in stories]
     assert sorted(got_topic_stories_ids) == sorted(expected_topic_stories_ids)
 
+    # MC_CITUS_UNION_HACK tests should only use the sharded table
     got_seed_urls = db.query("""
         SELECT
             topics_id,
             url,
             content
-        FROM topic_seed_urls
+        FROM sharded_public.topic_seed_urls
         WHERE topics_id = %(topics_id)s
     """, {
         'topics_id': topic['topics_id'],

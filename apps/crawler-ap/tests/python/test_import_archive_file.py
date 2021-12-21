@@ -15,9 +15,10 @@ def test_import_archive_file():
 
     import_archive_file(db, xml_file)
 
+    # MC_CITUS_UNION_HACK: tests should only use the sharded table
     stories = db.query("""
         SELECT *
-        FROM stories
+        FROM sharded_public.stories
     """).hashes()
 
     assert len(stories) == 1

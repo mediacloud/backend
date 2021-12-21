@@ -219,40 +219,86 @@ sub _add_nested_data
 
     if ( int( $self->{ show_text } // 0 ) )
     {
-
+        # MC_CITUS_UNION_HACK simplify after sharding
         my $story_text_data = $db->query( <<SQL
 
-            WITH story_download_texts AS (
+            WITH _download_ids AS (
                 SELECT
-                    downloads.downloads_id,
-                    downloads.stories_id,
-                    download_texts.download_texts_id,
-                    download_texts.download_text
-                FROM downloads
-                    LEFT JOIN download_texts ON
-                        downloads.downloads_id = download_texts.downloads_id
+                    downloads_id::BIGINT,
+                    stories_id::BIGINT
+                FROM unsharded_public.downloads
                 WHERE
                     downloads.state = 'success' AND
                     downloads.stories_id IN ($ids_list)
+
+                UNION
+
+                SELECT
+                    downloads_id,
+                    stories_id
+                FROM sharded_public.downloads
+                WHERE
+                    downloads.state = 'success' AND
+                    downloads.stories_id IN ($ids_list)
+            ),
+
+            _download_texts AS (
+                SELECT
+                    _download_ids.downloads_id
+                    _download_ids.stories_id,
+                    dt.download_texts_id::BIGINT,
+                    dt.download_text
+                FROM _download_ids
+                    INNER JOIN unsharded_public.download_texts AS dt ON
+                        _download_ids.downloads_id = dt.downloads_id
+
+                UNION
+
+                SELECT
+                    _download_ids.downloads_id
+                    _download_ids.stories_id,
+                    dt.download_texts_id,
+                    dt.download_text
+                FROM _download_ids
+                    INNER JOIN sharded_public.download_texts AS dt ON
+                        _download_ids.downloads_id = dt.downloads_id
             )
 
             SELECT
-                stories.stories_id,
-                stories.full_text_rss,
+                s.stories_id::BIGINT,
+                s.full_text_rss,
                 CASE
-                    WHEN BOOL_AND(stories.full_text_rss) THEN stories.title || E'.\n\n' || stories.description
-                    ELSE string_agg(story_download_texts.download_text, E'.\n\n'::TEXT)
+                    WHEN BOOL_AND(s.full_text_rss) THEN s.title || E'.\n\n' || s.description
+                    ELSE string_agg(_download_texts.download_text, E'.\n\n'::TEXT)
                 END AS story_text
-            FROM stories
-                INNER JOIN story_download_texts ON
-                    stories.stories_id = story_download_texts.stories_id
-            WHERE stories.stories_id IN ($ids_list)
+            FROM unsharded_public.stories AS s
+                INNER JOIN _download_texts ON
+                    s.stories_id = _download_texts.stories_id
+            WHERE s.stories_id IN ($ids_list)
             GROUP BY
-                stories.stories_id,
-                stories.full_text_rss,
-                stories.title,
-                stories.description
+                s.stories_id,
+                s.full_text_rss,
+                s.title,
+                s.description
 
+            UNION
+
+            SELECT
+                s.stories_id,
+                s.full_text_rss,
+                CASE
+                    WHEN BOOL_AND(s.full_text_rss) THEN s.title || E'.\n\n' || s.description
+                    ELSE string_agg(_download_texts.download_text, E'.\n\n'::TEXT)
+                END AS story_text
+            FROM sharded_public.stories AS s
+                INNER JOIN _download_texts ON
+                    s.stories_id = _download_texts.stories_id
+            WHERE s.stories_id IN ($ids_list)
+            GROUP BY
+                s.stories_id,
+                s.full_text_rss,
+                s.title,
+                s.description
 SQL
         )->hashes;
 
@@ -444,6 +490,7 @@ sub _fetch_list($$$$$$)
 
     my $order_clause = $c->req->params->{ feeds_id } ? 'stories_id DESC' : 'order_pkey ASC';
 
+    # MC_CITUS_UNION_HACK simplify after sharding
     my $stories = $db->query( <<"SQL",
         WITH ps_ids AS (
 
@@ -458,19 +505,58 @@ sub _fetch_list($$$$$$)
             LIMIT ?
         )
 
-        SELECT
-            stories.*,
-            ps_ids.processed_stories_id,
-            media.name AS media_name,
-            media.url AS media_url,
-            COALESCE(ap.ap_syndicated, false) AS ap_syndicated
-        FROM ps_ids
-            INNER JOIN stories ON
-                ps_ids.stories_id = stories.stories_id
-            INNER JOIN media ON
-                stories.media_id = media.media_id
-            LEFT JOIN stories_ap_syndicated AS ap ON
-                stories.stories_id = ap.stories_id
+        SELECT *
+        FROM (
+            SELECT
+                s.stories_id::BIGINT,
+                s.media_id::BIGINT,
+                s.url::TEXT,
+                s.guid::TEXT,
+                s.title,
+                s.normalized_title_hash,
+                s.description,
+                s.publish_date,
+                s.collect_date,
+                s.full_text_rss,
+                s.language,
+                ps_ids.processed_stories_id,
+                media.name AS media_name,
+                media.url AS media_url,
+                COALESCE(ap.ap_syndicated, false) AS ap_syndicated
+            FROM ps_ids
+                INNER JOIN unsharded_public.stories AS s ON
+                    ps_ids.stories_id = s.stories_id
+                INNER JOIN media ON
+                    s.media_id = media.media_id
+                LEFT JOIN stories_ap_syndicated AS ap ON
+                    s.stories_id = ap.stories_id
+
+            UNION
+
+            SELECT
+                s.stories_id,
+                s.media_id,
+                s.url,
+                s.guid,
+                s.title,
+                s.normalized_title_hash,
+                s.description,
+                s.publish_date,
+                s.collect_date,
+                s.full_text_rss,
+                s.language,
+                ps_ids.processed_stories_id,
+                media.name AS media_name,
+                media.url AS media_url,
+                COALESCE(ap.ap_syndicated, false) AS ap_syndicated
+            FROM ps_ids
+                INNER JOIN sharded_public.stories AS s ON
+                    ps_ids.stories_id = s.stories_id
+                INNER JOIN media ON
+                    s.media_id = media.media_id
+                LEFT JOIN stories_ap_syndicated AS ap ON
+                    s.stories_id = ap.stories_id
+        )
 
         ORDER BY $order_clause
 SQL

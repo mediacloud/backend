@@ -22,16 +22,17 @@ def test_merge_dup_media_stories():
 
     merge_dup_media_stories(db, topic)
 
+    # MC_CITUS_UNION_HACK tests should only use the sharded table
     got_stories = db.query(
         """
         WITH found_topic_stories AS (
             SELECT stories_id
-            FROM topic_stories
+            FROM sharded_public.topic_stories
             WHERE topics_id = %(topics_id)s
         )
 
         SELECT *
-        FROM stories
+        FROM sharded_public.stories
         WHERE stories_id IN (
             SELECT stories_id
             FROM found_topic_stories

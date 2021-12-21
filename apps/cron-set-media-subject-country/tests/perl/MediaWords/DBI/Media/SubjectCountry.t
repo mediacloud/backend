@@ -53,9 +53,10 @@ sub add_country_geo_tags($$$$)
     my $tag_sets_id = $tag_set->{ tag_sets_id };
     my $tag = $db->find_or_create( 'tags', { tag => $country, label => $country, tag_sets_id => $tag_sets_id } );
 
+    # MC_CITUS_UNION_HACK: tests should only use the sharded table
     my $stories = $db->query( <<SQL,
         SELECT *
-        FROM stories
+        FROM sharded_stories.stories
         WHERE media_id = \$1
 SQL
         $medium->{ media_id }

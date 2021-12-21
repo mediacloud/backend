@@ -40,15 +40,16 @@ def test_fetch_twitter_urls_update_state():
 
         fetch_twitter_urls_update_state(db=db, topics_id=topics_id, topic_fetch_urls_ids=tfu_ids)
 
+    # MC_CITUS_UNION_HACK tests only use the sharded table
     [num_tweet_stories] = db.query("""
         WITH stories_from_topic AS (
             SELECT stories_id
-            FROM topic_stories
+            FROM sharded_public.topic_stories
             WHERE topics_id = %(topics_id)s
         )
         
         SELECT COUNT(*)
-        FROM stories
+        FROM sharded_public.stories
         WHERE
             stories_id IN (
                 SELECT stories_id
@@ -60,15 +61,16 @@ def test_fetch_twitter_urls_update_state():
     }).flat()
     assert num_tweet_stories == num_tweets
 
+    # MC_CITUS_UNION_HACK tests only use the sharded table
     [num_user_stories] = db.query("""
         WITH stories_from_topic AS (
             SELECT stories_id
-            FROM topic_stories
+            FROM sharded_public.topic_stories
             WHERE topics_id = %(topics_id)s
         )
         
         SELECT COUNT(*)
-        FROM stories
+        FROM sharded_public.stories
         WHERE
             stories_id IN (
                 SELECT stories_id

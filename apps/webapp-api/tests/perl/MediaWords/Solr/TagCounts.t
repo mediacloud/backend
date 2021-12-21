@@ -68,9 +68,10 @@ SQL
     );
     $db->query('DELETE FROM tags WHERE tag LIKE ?', 'test_%');
 
+    # MC_CITUS_UNION_HACK tests should use only the sharded table
     my $test_stories = $db->query( <<SQL
         SELECT *
-        FROM stories
+        FROM sharded_public.stories
         ORDER BY MD5(stories_id::TEXT)
 SQL
     )->hashes;
@@ -109,14 +110,15 @@ SQL
     my $query_media_id = $media->{ medium_1 }->{ media_id };
     my $got_tag_counts = MediaWords::Solr::TagCounts::query_tag_counts( $db, { 'q' => "media_id:$query_media_id" } );
 
+    # MC_CITUS_UNION_HACK tests should use only the sharded table
     my $expected_tag_counts = $db->query( <<SQL,
         WITH tag_counts AS (
             SELECT
                 COUNT(*) AS c,
                 stories_tags_map.tags_id
-            FROM stories_tags_map
-                INNER JOIN stories USING (stories_id)
-            WHERE stories.media_id = ?
+            FROM sharded_public.stories_tags_map
+                INNER JOIN sharded_public.stories AS s USING (stories_id)
+            WHERE s.media_id = ?
             GROUP BY stories_tags_map.tags_id
         )
 

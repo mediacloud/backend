@@ -48,9 +48,10 @@ SQL
     );
 
     # Add all test stories to the test topic
+    # MC_CITUS_UNION_HACK tests should use only the sharded table
     $db->query( <<SQL,
-        INSERT INTO topic_stories (topics_id, stories_id)
-        SELECT ?, stories_id FROM stories
+        INSERT INTO sharded_public.topic_stories (topics_id, stories_id)
+        SELECT ?, stories_id FROM sharded_public.stories
 SQL
         $topics_id
     );
@@ -63,8 +64,9 @@ SQL
         $topics_id
     )->flat->[ 0 ];
 
+    # MC_CITUS_UNION_HACK tests should use only the sharded table
     $db->query( <<SQL,
-        INSERT INTO snap.stories (
+        INSERT INTO sharded_snap.stories (
             topics_id,
             snapshots_id,
             media_id,
@@ -85,7 +87,7 @@ SQL
                 title,
                 publish_date,
                 collect_date
-            FROM stories
+            FROM sharded_public.stories
 SQL
         $topics_id, $snapshots_id
     );

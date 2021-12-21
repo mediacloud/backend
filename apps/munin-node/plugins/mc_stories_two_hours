@@ -22,18 +22,21 @@ MediaWords::Munin::plugin({
                 
                 my $db = shift;
 
+                # MC_CITUS_UNION_HACK: test only the sharded table as this
+                # where new stories get written to
                 my $story_count = $db->query(<<SQL
-                    SELECT (max_stories_id - stories_id_from_last_2_hours) AS stories_in_past_2_hours
+                    SELECT
+                        (max_stories_id - stories_id_from_last_2_hours) AS stories_in_past_2_hours
                     FROM (
                         SELECT stories_id AS stories_id_from_last_2_hours
-                        FROM stories
+                        FROM sharded_public.stories
                         WHERE collect_date >= NOW() - '2 hours'::interval
                         ORDER BY collect_date
                         LIMIT 1
                     ) AS s1,
                     (
                         SELECT MAX(stories_id) AS max_stories_id
-                        FROM stories
+                        FROM sharded_public.stories
                     ) AS s2
 SQL
                 )->flat->[0];

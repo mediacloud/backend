@@ -81,11 +81,11 @@ def test_get_preferred_story():
 
     preferred_medium = media[2]
 
-    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: test should write only to the sharded table
+    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK MC_CITUS_UNION_HACK: test should write only to the sharded table
     db.query("""
         WITH stories_to_update AS (
             SELECT stories_id
-            FROM stories
+            FROM sharded_public.stories
             WHERE media_id = %(media_id)s
         )
         UPDATE sharded_public.stories SET
@@ -100,10 +100,10 @@ def test_get_preferred_story():
         }
     )
 
-    stories = db.query("SELECT * FROM stories").hashes()
+    stories = db.query("SELECT * FROM sharded_public.stories").hashes()
     preferred_story = db.query("""
         SELECT *
-        FROM stories
+        FROM sharded_public.stories
         WHERE media_id = %(media_id)s
     """, {
         'media_id': preferred_medium['media_id'],
@@ -123,5 +123,5 @@ def test_get_preferred_story():
             'stories_id': story['stories_id'],
         })
 
-    stories = db.query("SELECT * FROM stories").hashes()
+    stories = db.query("SELECT * FROM sharded_public.stories").hashes()
     assert get_preferred_story(db, stories)['stories_id'] == media[0]['story']['stories_id']

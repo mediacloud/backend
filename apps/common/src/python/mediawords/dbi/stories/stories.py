@@ -117,12 +117,46 @@ def _find_dup_stories(db: DatabaseHandler, story: dict) -> List[Dict[str, Any]]:
 
     urls = _get_story_url_variants(story)
 
+    # MC_CITUS_UNION_HACK: remove after sharding
     db_stories = db.query("""
         SELECT *
-        FROM stories
-        WHERE
-            (guid = ANY(%(urls)s) OR url = ANY(%(urls)s)) AND
-            media_id = %(media_id)s
+        FROM (
+            SELECT
+                stories_id::BIGINT,
+                media_id::BIGINT,
+                url::TEXT,
+                guid::TEXT,
+                title,
+                normalized_title_hash,
+                description,
+                publish_date,
+                collect_date,
+                full_text_rss,
+                language
+            FROM unsharded_public.stories
+            WHERE
+                (guid = ANY(%(urls)s) OR url = ANY(%(urls)s)) AND
+                media_id = %(media_id)s
+
+            UNION
+
+            SELECT
+                stories_id,
+                media_id,
+                url,
+                guid,
+                title,
+                normalized_title_hash,
+                description,
+                publish_date,
+                collect_date,
+                full_text_rss,
+                language
+            FROM sharded_public.stories
+            WHERE
+                (guid = ANY(%(urls)s) OR url = ANY(%(urls)s)) AND
+                media_id = %(media_id)s
+        ) AS s
         ORDER BY stories_id
     """, {
         'urls': urls,
@@ -131,21 +165,65 @@ def _find_dup_stories(db: DatabaseHandler, story: dict) -> List[Dict[str, Any]]:
     if db_stories:
         return db_stories
 
+    # MC_CITUS_UNION_HACK: remove after sharding
     db_stories = db.query("""
-
-        -- Make sure that postgres uses the story_urls_url index
         WITH matching_stories AS (
             SELECT stories_id
-            FROM story_urls
+            FROM unsharded_public.story_urls
+            WHERE url = ANY(%(story_urls)s)
+
+            UNION
+
+            SELECT stories_id
+            FROM sharded_public.story_urls
             WHERE url = ANY(%(story_urls)s)
         )
 
         SELECT *
-        FROM stories
-            JOIN matching_stories USING (stories_id)
-        WHERE media_id = %(media_id)s
-        ORDER BY stories_id
+        FROM (
+            SELECT
+                stories_id::BIGINT,
+                media_id::BIGINT,
+                url::TEXT,
+                guid::TEXT,
+                title,
+                normalized_title_hash,
+                description,
+                publish_date,
+                collect_date,
+                full_text_rss,
+                language
+            FROM unsharded_public.stories
+            WHERE
+                media_id = %(media_id)s AND
+                stories_id IN (
+                    SELECT stories_id
+                    FROM matching_stories
+                )
 
+            UNION
+
+            SELECT
+                stories_id,
+                media_id,
+                url,
+                guid,
+                title,
+                normalized_title_hash,
+                description,
+                publish_date,
+                collect_date,
+                full_text_rss,
+                language
+            FROM sharded_public.stories
+            WHERE
+                media_id = %(media_id)s AND
+                stories_id IN (
+                    SELECT stories_id
+                    FROM matching_stories
+                )
+        ) AS s
+        ORDER BY stories_id
     """, {
         'story_urls': urls,
         'media_id': story['media_id'],
@@ -154,19 +232,56 @@ def _find_dup_stories(db: DatabaseHandler, story: dict) -> List[Dict[str, Any]]:
     if db_stories:
         return db_stories
 
+    # MC_CITUS_UNION_HACK: remove after sharding
     db_stories = db.query("""
-        -- noinspection SqlResolve @ routine/"get_normalized_title"
         SELECT *
-        FROM stories
-        WHERE
-            (md5(title) = md5(%(title)s) OR
-                normalized_title_hash = md5( get_normalized_title( %(title)s, %(media_id)s ) )::uuid)
-            AND media_id = %(media_id)s
+        FROM (
+            SELECT
+                stories_id::BIGINT,
+                media_id::BIGINT,
+                url::TEXT,
+                guid::TEXT,
+                title,
+                normalized_title_hash,
+                description,
+                publish_date,
+                collect_date,
+                full_text_rss,
+                language
+            FROM unsharded_public.stories
+            WHERE
+                (md5(title) = md5(%(title)s) OR
+                    normalized_title_hash = md5( get_normalized_title( %(title)s, %(media_id)s ) )::uuid)
+                AND media_id = %(media_id)s
 
-          -- We do the goofy " + interval '1 second'" to force postgres to use the stories_title_hash index
-          AND date_trunc('day', publish_date)  + interval '1 second'
-            = date_trunc('day', %(publish_date)s::date) + interval '1 second'
-        ORDER BY stories_id
+              -- We do the goofy " + interval '1 second'" to force postgres to use the stories_title_hash index
+              AND date_trunc('day', publish_date)  + interval '1 second'
+                = date_trunc('day', %(publish_date)s::date) + interval '1 second'
+
+            UNION
+
+            SELECT
+                stories_id,
+                media_id,
+                url,
+                guid,
+                title,
+                normalized_title_hash,
+                description,
+                publish_date,
+                collect_date,
+                full_text_rss,
+                language
+            FROM sharded_public.stories
+            WHERE
+                (md5(title) = md5(%(title)s) OR
+                    normalized_title_hash = md5( get_normalized_title( %(title)s, %(media_id)s ) )::uuid)
+                AND media_id = %(media_id)s
+
+              -- We do the goofy " + interval '1 second'" to force postgres to use the stories_title_hash index
+              AND date_trunc('day', publish_date)  + interval '1 second'
+                = date_trunc('day', %(publish_date)s::date) + interval '1 second'
+        ) AS s
     """, {
         'title': story['title'],
         'media_id': story['media_id'],
@@ -227,12 +342,46 @@ def add_story(db: DatabaseHandler, story: dict, feeds_id: int) -> Optional[dict]
     except Exception as ex:
         raise McAddStoryException(f"Error while adding story: {ex}\nStory: {story}")
 
+    # MC_CITUS_UNION_HACK: remove after sharding
     db_stories = db.query("""
         SELECT *
-        FROM stories
-        WHERE
-            (guid = ANY(%(urls)s) OR url = ANY(%(urls)s)) AND
-            media_id = %(media_id)s
+        FROM (
+            SELECT
+                stories_id::BIGINT,
+                media_id::BIGINT,
+                url::TEXT,
+                guid::TEXT,
+                title,
+                normalized_title_hash,
+                description,
+                publish_date,
+                collect_date,
+                full_text_rss,
+                language
+            FROM unsharded_public.stories
+            WHERE
+                (guid = ANY(%(urls)s) OR url = ANY(%(urls)s)) AND
+                media_id = %(media_id)s
+
+            UNION
+
+            SELECT
+                stories_id,
+                media_id,
+                url,
+                guid,
+                title,
+                normalized_title_hash,
+                description,
+                publish_date,
+                collect_date,
+                full_text_rss,
+                language
+            FROM sharded_public.stories
+            WHERE
+                (guid = ANY(%(urls)s) OR url = ANY(%(urls)s)) AND
+                media_id = %(media_id)s
+        ) AS s
         ORDER BY stories_id
     """, {
         'urls': _get_story_url_variants(story),

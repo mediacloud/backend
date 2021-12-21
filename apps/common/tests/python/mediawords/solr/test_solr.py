@@ -29,9 +29,11 @@ class TestSolr(TestCase):
                 'medium_3': {'feed_3': [f"story_{_}" for _ in range(26, 50 + 1)]},
             },
         )
+
+        # MC_CITUS_UNION_HACK: tests should read only from the sharded table
         cls.TEST_STORIES = cls.DB.query("""
             SELECT *
-            FROM stories
+            FROM sharded_public.stories
             ORDER BY MD5(stories_id::TEXT)
         """).hashes()
 
@@ -42,10 +44,13 @@ class TestSolr(TestCase):
 
     def test_get_solr_num_found(self):
         """get_solr_num_found()."""
+
+        # MC_CITUS_UNION_HACK: tests should read only from the sharded table
         expected_num_stories = self.DB.query("""
             SELECT COUNT(*)
-            FROM stories
+            FROM sharded_public.stories
         """).flat()[0]
+
         got_num_stories = get_solr_num_found(db=self.DB, params={'q': '*:*'})
         assert expected_num_stories == got_num_stories, 'get_solr_num_found()'
 

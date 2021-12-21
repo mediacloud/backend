@@ -38,9 +38,10 @@ sub test_import($)
         }
     );
 
+    # MC_CITUS_UNION_HACK: tests should only read from the sharded table
     my $test_stories = $db->query( <<SQL
         SELECT *
-        FROM stories
+        FROM sharded_public.stories
         ORDER BY MD5(stories_id::TEXT)
 SQL
     )->hashes;

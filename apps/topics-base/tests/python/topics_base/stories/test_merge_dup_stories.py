@@ -20,9 +20,10 @@ def test_merge_dup_stories():
         add_to_topic_stories(db, story, topic)
         stories.append(story)
         for j in range(i):
+            # MC_CITUS_UNION_HACK tests should only use the sharded table
             # noinspection SqlInsertValues
             db.query("""
-                INSERT INTO story_sentences (
+                INSERT INTO sharded_public.story_sentences (
                     stories_id,
                     sentence_number,
                     sentence,
@@ -35,7 +36,7 @@ def test_merge_dup_stories():
                         'foo bar' AS sentence,
                         media_id,
                         publish_date
-                    FROM stories
+                    FROM sharded_public.stories
                     WHERE stories_id = %(stories_id)s
             """, {
                 'stories_id': story['stories_id'],
@@ -45,9 +46,11 @@ def test_merge_dup_stories():
     _merge_dup_stories(db, topic, stories)
 
     stories_ids = [s['stories_id'] for s in stories]
+
+    # MC_CITUS_UNION_HACK tests should use only the sharded table
     merged_stories = db.query("""
         SELECT stories_id
-        FROM topic_stories
+        FROM sharded_public.topic_stories
         WHERE
             topics_id = %(topics_id)s AND
             stories_id = ANY(%(stories_ids)s)

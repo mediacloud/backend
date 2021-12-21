@@ -358,17 +358,19 @@ sub test_topic_stories($$$)
 {
     my ( $db, $topic, $sites ) = @_;
 
+    # MC_CITUS_UNION_HACK tests should only use the sharded table
     my $topic_stories = $db->query( <<SQL,
         WITH selected_topic_stories AS (
             SELECT *
-            FROM topic_stories
+            FROM sharded_public.topic_stories
             WHERE topics_id = ?
         )
         SELECT
             selected_topic_stories.*,
-            stories.*
+            s.*
         FROM selected_topic_stories
-            INNER JOIN stories ON stories.stories_id = selected_topic_stories.stories_id
+            INNER JOIN sharded_public.stories AS s ON
+                s.stories_id = selected_topic_stories.stories_id
 SQL
         $topic->{ topics_id }
     )->hashes;
@@ -469,19 +471,20 @@ sub test_topic_links($$$)
         {
             next unless ( $link->{ matches_topic } );
 
+            # MC_CITUS_UNION_HACK tests should only use the sharded table
             my $topic_links = $db->query( <<SQL,
                 WITH selected_topic_links AS (
                     SELECT *
-                    FROM topic_links
+                    FROM sharded_public.topic_links
                     WHERE
                         topics_id = \$3 AND
                         url = \$2
                 )
                 SELECT *
                 FROM selected_topic_links
-                    INNER JOIN stories ON
-                        selected_topic_links.stories_id = stories.stories_id
-                WHERE stories.url = \$1
+                    INNER JOIN sharded_public.stories AS s ON
+                        selected_topic_links.stories_id = s.stories_id
+                WHERE s.url = \$1
 SQL
                 $page->{ url }, $link->{ url }, $cid
             )->hashes;

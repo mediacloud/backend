@@ -47,15 +47,16 @@ sub test_timespan_export($)
     );
     ok( $num_topic_medium_stories > 0, "number of topic medium stories is greater than 0" );
 
+    # MC_CITUS_UNION_HACK tests should only use the sharded table
     $db->query( <<SQL,
-        INSERT INTO topic_stories (
+        INSERT INTO sharded_public.topic_stories (
             topics_id,
             stories_id
         )
             SELECT
                 \$1 AS topics_id,
                 stories_id
-            FROM stories
+            FROM sharded_public.stories
             WHERE media_id = \$2
 SQL
         $topic->{ topics_id }, $topic_media_id

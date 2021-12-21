@@ -16,9 +16,10 @@ sub test_assign_date_guess_method($)
 
     my $media = MediaWords::Test::DB::Create::create_test_story_stack_numerated( $db, 1, 1, 10 );
 
+    # MC_CITUS_UNION_HACK: tests should only use the sharded table
     my $story = $db->query( <<SQL
         SELECT *
-        FROM stories
+        FROM sharded_public.stories
         LIMIT 1
         OFFSET 3
 SQL

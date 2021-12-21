@@ -1457,15 +1457,21 @@ SQL
 
     if ( $respider_start_date )
     {
-        # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
+        # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK MC_CITUS_UNION_HACK
         $db->query( <<SQL,
             UPDATE unsharded_public.topic_stories SET
                 link_mined = 'f'
             WHERE
                 topics_id = \$3 AND
                 stories_id IN (
+                    SELECT stories_id::BIGINT
+                    FROM unsharded_public.stories
+                    WHERE publish_date BETWEEN \$2 AND \$1
+
+                    UNION
+
                     SELECT stories_id
-                    FROM stories
+                    FROM sharded_public.stories
                     WHERE publish_date BETWEEN \$2 AND \$1
                 )
 SQL
@@ -1477,8 +1483,14 @@ SQL
             WHERE
                 topics_id = \$3 AND
                 stories_id IN (
+                    SELECT stories_id::BIGINT
+                    FROM unsharded_public.stories
+                    WHERE publish_date BETWEEN \$2 AND \$1
+
+                    UNION
+
                     SELECT stories_id
-                    FROM stories
+                    FROM sharded_public.stories
                     WHERE publish_date BETWEEN \$2 AND \$1
                 )
 SQL
@@ -1504,15 +1516,21 @@ SQL
 
     if ( $respider_end_date )
     {
-        # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK
+        # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK MC_CITUS_UNION_HACK
         $db->query( <<SQL,
             UPDATE unsharded_public.topic_stories SET
                 link_mined = 'f'
             WHERE
                 topics_id = \$3 AND
                 stories_id IN (
+                    SELECT stories_id::BIGINT
+                    FROM unsharded_public.stories
+                    WHERE publish_date BETWEEN \$1 AND \$2
+
+                    UNION
+
                     SELECT stories_id
-                    FROM stories
+                    FROM sharded_public.stories
                     WHERE publish_date BETWEEN \$1 AND \$2
                 )
 SQL
@@ -1524,8 +1542,14 @@ SQL
             WHERE
                 topics_id = \$3 AND
                 stories_id IN (
+                    SELECT stories_id::BIGINT
+                    FROM unsharded_public.stories
+                    WHERE publish_date BETWEEN \$1 AND \$2
+
+                    UNION
+
                     SELECT stories_id
-                    FROM stories
+                    FROM sharded_public.stories
                     WHERE publish_date BETWEEN \$1 AND \$2
                 )
 SQL

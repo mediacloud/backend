@@ -78,19 +78,59 @@ sub query_matching_sentences($$;$)
         my $ids_table = $db->get_temporary_ids_table( \@chunk_stories_ids );
 
         my $chunk_story_sentences = $db->query( <<SQL
-            SELECT
-                ss.sentence,
-                ss.media_id,
-                ss.publish_date,
-                ss.sentence_number,
-                ss.stories_id,
-                ss.story_sentences_id,
-                ss.language,
-                s.language AS story_language
-            FROM story_sentences AS ss
-                JOIN stories AS s USING (stories_id)
-                JOIN $ids_table AS ids ON s.stories_id = ids.id
-            WHERE $re_clause
+            WITH _chunk_sentences AS (
+                SELECT
+                    sentence,
+                    media_id::BIGINT,
+                    publish_date,
+                    sentence_number,
+                    stories_id::BIGINT,
+                    story_sentences_id::BIGINT,
+                    language
+                FROM unsharded_public.story_sentences
+                WHERE
+                    $re_clause AND
+                    stories_id IN (
+                        SELECT id
+                        FROM $ids_table
+                    )
+
+                UNION
+
+                SELECT
+                    sentence,
+                    media_id,
+                    publish_date,
+                    sentence_number,
+                    stories_id,
+                    story_sentences_id,
+                    language
+                FROM sharded_public.story_sentences
+                WHERE
+                    $re_clause AND
+                    stories_id IN (
+                        SELECT id
+                        FROM $ids_table
+                    )
+            )
+
+            SELECT *
+            FROM (
+                SELECT
+                    _chunk_sentences.*,
+                    s.language AS story_language
+                FROM _chunk_sentences
+                    JOIN unsharded_public.stories AS s USING (stories_id)
+
+                UNION
+
+                SELECT
+                    _chunk_sentences.*,
+                    s.language AS story_language
+                FROM _chunk_sentences
+                    JOIN sharded_public.stories AS s USING (stories_id)
+            ) AS s
+
             $order_limit
 SQL
         )->hashes;

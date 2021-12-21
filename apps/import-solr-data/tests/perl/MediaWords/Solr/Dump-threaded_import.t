@@ -23,9 +23,10 @@ sub test_threaded_import($)
         }
     );
 
+    # MC_CITUS_UNION_HACK: tests should only read from the sharded table
     my $test_stories = $db->query( <<SQL
         SELECT *
-        FROM stories
+        FROM sharded_public.stories
         ORDER BY MD5(stories_id::TEXT)
 SQL
     )->hashes;
@@ -36,9 +37,10 @@ SQL
 
     $db = MediaWords::DB::connect_to_db();
 
+    # MC_CITUS_UNION_HACK: tests should only read from the sharded table
     my ( $test_stories_size ) = $db->query( <<SQL
         SELECT COUNT(*)
-        FROM stories
+        FROM sharded_public.stories
 SQL
     )->flat;
     is( MediaWords::Solr::get_solr_num_found( $db, { q => '*:*' } ), $test_stories_size, "stories threaded import" );

@@ -192,6 +192,7 @@ sub _get_stories_json_from_db_single
 
         TRACE( "fetching stories ids: $block_stories_ids_list" );
 
+        # MC_CITUS_UNION_HACK: simplify after sharding
         my $stories = $db->query( <<SQL
 
             WITH _block_processed_stories AS (
@@ -223,6 +224,28 @@ sub _get_stories_json_from_db_single
                 GROUP BY stories_id
             ),
 
+            _block_stories AS (
+                SELECT
+                    stories_id::BIGINT,
+                    media_id::BIGINT,
+                    publish_date,
+                    title,
+                    language
+                FROM unsharded_public.stories
+                WHERE stories_id IN ($block_stories_ids_list)
+
+                UNION
+
+                SELECT
+                    stories_id,
+                    media_id,
+                    publish_date,
+                    title,
+                    language
+                FROM sharded_public.stories
+                WHERE stories_id IN ($block_stories_ids_list)
+            ),
+
             _import_stories AS (
                 SELECT
                     s.stories_id,
@@ -251,11 +274,10 @@ sub _get_stories_json_from_db_single
 
                 FROM _block_processed_stories AS ps
                     JOIN story_sentences AS ss USING (stories_id)
-                    JOIN stories AS s USING (stories_id)
+                    JOIN _block_stories AS s USING (stories_id)
                     LEFT JOIN _tag_stories AS stm USING (stories_id)
                     LEFT JOIN _timespan_stories AS slc USING (stories_id)
 
-                WHERE s.stories_id IN ($block_stories_ids_list)
                 GROUP BY
                     s.stories_id,
                     s.media_id,
@@ -462,6 +484,7 @@ sub _delete_queued_stories($)
     my $stories_ids_list = join(',', map { int( $_ ) } @{ $stories_ids } );
 
     # only delete stories that no longer exist in postgres, because we import with overwrite=true
+    # MC_CITUS_UNION_HACK: simplify after sharding
     $stories_ids = $db->query( <<SQL
         SELECT stories_id
         FROM solr_import_stories
@@ -469,8 +492,13 @@ sub _delete_queued_stories($)
             solr_import_stories.stories_id IN ($stories_ids_list) AND
             NOT EXISTS (
                 SELECT 1
-                FROM stories
-                WHERE stories.stories_id = solr_import_stories.stories_id
+                FROM unsharded_public.stories AS s
+                WHERE s.stories_id = solr_import_stories.stories_id
+            ) AND
+            NOT EXISTS (
+                SELECT 1
+                FROM sharded_public.stories AS s
+                WHERE s.stories_id = solr_import_stories.stories_id
             )
         ORDER BY stories_id
 SQL

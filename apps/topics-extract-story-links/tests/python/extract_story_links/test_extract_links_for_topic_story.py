@@ -20,12 +20,13 @@ class TestExtractLinksForTopicStory(TestExtractStoryLinksDB):
             topics_id=topic['topics_id'],
         )
 
+        # MC_CITUS_UNION_HACK tests only use the sharded table
         got_topic_links = self.db.query("""
             SELECT
                 topics_id,
                 stories_id,
                 url
-            FROM topic_links
+            FROM sharded_public.topic_links
             WHERE topics_id = %(topics_id)s
             ORDER BY url
         """, {
@@ -38,12 +39,13 @@ class TestExtractLinksForTopicStory(TestExtractStoryLinksDB):
 
         assert got_topic_links == expected_topic_links
 
+        # MC_CITUS_UNION_HACK tests only use the sharded table
         got_topic_story = self.db.query("""
             SELECT
                 topics_id,
                 stories_id,
                 link_mined
-            FROM topic_stories
+            FROM sharded_public.topic_stories
             WHERE
                 topics_id = %(topics_id)s AND
                 stories_id = %(stories_id)s
@@ -69,13 +71,14 @@ class TestExtractLinksForTopicStory(TestExtractStoryLinksDB):
             test_throw_exception=True,
         )
 
+        # MC_CITUS_UNION_HACK tests only use the sharded table
         got_topic_story = self.db.query("""
             SELECT
                 topics_id,
                 stories_id,
                 link_mined,
                 link_mine_error
-            FROM topic_stories
+            FROM sharded_public.topic_stories
             WHERE
                 topics_id = %(topics_id)s AND
                 stories_id = %(stories_id)s

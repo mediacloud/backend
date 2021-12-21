@@ -41,9 +41,10 @@ def test_merge_dup_story():
 
     _merge_dup_story(db, topic, old_story, new_story)
 
+    # MC_CITUS_UNION_HACK tests use only the sharded table
     old_topic_links = db.query("""
         SELECT *
-        FROM topic_links
+        FROM sharded_public.topic_links
         WHERE
             topics_id = %(topics_id)s AND
             %(stories_id)s IN (stories_id, ref_stories_id)
@@ -53,9 +54,10 @@ def test_merge_dup_story():
     }).hashes()
     assert len(old_topic_links) == 0
 
+    # MC_CITUS_UNION_HACK tests use only the sharded table
     new_topic_links_linked = db.query("""
         SELECT *
-        FROM topic_links
+        FROM sharded_public.topic_links
         WHERE
             topics_id = %(topics_id)s AND
             stories_id = %(stories_id)s AND
@@ -67,9 +69,10 @@ def test_merge_dup_story():
     }).hashes()
     assert len(new_topic_links_linked) == 1
 
+    # MC_CITUS_UNION_HACK tests use only the sharded table
     new_topic_links_linking = db.query("""
         SELECT *
-        FROM topic_links
+        FROM sharded_public.topic_links
         WHERE
             topics_id = %(topics_id)s AND
             ref_stories_id = %(ref_stories_id)s AND
@@ -81,9 +84,10 @@ def test_merge_dup_story():
     }).hashes()
     assert len(new_topic_links_linking) == 1
 
+    # MC_CITUS_UNION_HACK tests use only the sharded table
     old_topic_stories = db.query("""
         SELECT *
-        FROM topic_stories
+        FROM sharded_public.topic_stories
         WHERE
             topics_id = %(topics_id)s AND
             stories_id = %(stories_id)s
@@ -93,9 +97,10 @@ def test_merge_dup_story():
     }).hashes()
     assert len(old_topic_stories) == 0
 
+    # MC_CITUS_UNION_HACK tests use only the sharded table
     topic_merged_stories_maps = db.query("""
         SELECT *
-        FROM topic_merged_stories_map
+        FROM sharded_public.topic_merged_stories_map
         WHERE
             target_stories_id = %(target_stories_id)s AND
             source_stories_id = %(source_stories_id)s

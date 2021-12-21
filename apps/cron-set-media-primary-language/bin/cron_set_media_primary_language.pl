@@ -46,8 +46,23 @@ sub main
             INNER JOIN active_media AS am USING (media_id)
         WHERE EXISTS (
             SELECT 1
-            FROM stories AS s
-            WHERE s.media_id = m.media_id
+            FROM (
+                (
+                    SELECT stories_id::BIGINT
+                    FROM unsharded_public.stories
+                    WHERE unsharded_public.stories.media_id = m.media_id
+                    LIMIT 200
+                )
+
+                UNION
+
+                (
+                    SELECT stories_id::BIGINT
+                    FROM sharded_public.stories
+                    WHERE sharded_public.stories.media_id = m.media_id
+                    LIMIT 200
+                )
+            ) AS s
             OFFSET 101
             LIMIT 1
         )

@@ -115,13 +115,14 @@ sub test_stories_list($)
 
     my $label = "stories/list";
 
+    # MC_CITUS_UNION_HACK tests should use only the sharded table
     my $stories = $db->query( <<SQL
         SELECT
             s.*,
             m.name AS media_name,
             m.url AS media_url,
             false AS ap_syndicated
-        FROM stories AS s
+        FROM sharded_public.stories AS s
             JOIN media AS m USING (media_id)
         ORDER BY stories_id
         LIMIT 10
@@ -260,9 +261,11 @@ SQL
             show_feeds => 1,
         }
     );
+
+    # MC_CITUS_UNION_HACK tests should use only the sharded table
     my $expected_feed_stories = $db->query( <<SQL,
         SELECT s.*
-        FROM stories AS s
+        FROM sharded_public.stories AS s
             INNER JOIN feeds_stories_map AS fsm USING (stories_id)
         WHERE feeds_id = ?
 SQL
@@ -289,13 +292,14 @@ sub test_stories_single($)
 
     my $label = "stories/list";
 
+    # MC_CITUS_UNION_HACK tests should use only the sharded table
     my $story = $db->query( <<SQL
         SELECT
             s.*,
             m.name AS media_name,
             m.url AS media_url,
             false AS ap_syndicated
-        FROM stories AS s
+        FROM sharded_public.stories AS s
             INNER JOIN media AS m USING (media_id)
         ORDER BY stories_id
         LIMIT 1
@@ -312,9 +316,10 @@ sub test_stories_count($)
 {
     my ( $db ) = @_;
 
+    # MC_CITUS_UNION_HACK tests should use only the sharded table
     my $stories = $db->query( <<SQL
         SELECT *
-        FROM stories
+        FROM sharded_public.stories
         ORDER BY stories_id ASC
         LIMIT 23
 SQL
@@ -337,18 +342,18 @@ sub test_stories_count_split($)
 
     my $label = "stories/count split";
 
-    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: test should write only to the sharded table
+    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK MC_CITUS_UNION_HACK: test should write only to the sharded table
     $db->query( <<SQL
         WITH updated_publish_dates AS (
             SELECT
                 stories_id,
                 '2017-01-01'::DATE + ((stories_id % 27)::TEXT || '3 days')::INTERVAL AS new_publish_date
-            FROM stories
+            FROM sharded_public.stories
         )
-        UPDATE sharded_public.stories SET
+        UPDATE sharded_public.stories AS s SET
             publish_date = updated_publish_dates.new_publish_date
         FROM updated_publish_dates
-        WHERE stories.stories_id = updated_publish_dates.stories_id
+        WHERE s.stories_id = updated_publish_dates.stories_id
 SQL
 );
 
@@ -356,11 +361,12 @@ SQL
             throttle => 0
     } );
 
+    # MC_CITUS_UNION_HACK tests should use only the sharded table
     my $date_counts = $db->query( <<SQL
         SELECT
             publish_date,
             COUNT(*) AS count
-        FROM stories
+        FROM sharded_public.stories
         GROUP BY publish_date
 SQL
     )->hashes;
@@ -398,9 +404,10 @@ sub test_stories_word_matrix($)
 
     my $label = "stories/word_matrix";
 
+    # MC_CITUS_UNION_HACK tests should use only the sharded table
     my $stories          = $db->query( <<SQL
         SELECT *
-        FROM stories
+        FROM sharded_public.stories
         ORDER BY stories_id
         LIMIT 17
 SQL
@@ -478,9 +485,10 @@ sub test_stories_field_count($)
 
     my $tag = MediaWords::Util::Tags::lookup_or_create_tag( $db, "$label:$label" );
 
+    # MC_CITUS_UNION_HACK tests should use only the sharded table
     my $stories = $db->query( <<SQL
         SELECT *
-        FROM stories
+        FROM sharded_public.stories
         ORDER BY stories_id ASC
         LIMIT 10
 SQL
