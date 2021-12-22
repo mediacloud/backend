@@ -83,7 +83,7 @@
 * [ ] stories.stories_id:
     * [x] stories
     * [x] stories_ap_syndicated
-    * [ ] story_urls
+    * [x] story_urls
     * [ ] feeds_stories_map_p_\d\d
     * [ ] stories_tags_map_p_\d\d
     * [ ] story_sentences_p_\d\d
