@@ -82,7 +82,7 @@
 
 * [ ] stories.stories_id:
     * [x] stories
-    * [ ] stories_ap_syndicated
+    * [x] stories_ap_syndicated
     * [ ] story_urls
     * [ ] feeds_stories_map_p_\d\d
     * [ ] stories_tags_map_p_\d\d
