@@ -29,7 +29,42 @@ def run_nytlabels_tags_from_annotation(stories_id: int) -> None:
 
     log.info("Updating tags for story ID %d..." % stories_id)
 
-    story = db.find_by_id(table='stories', object_id=stories_id)
+    # MC_CITUS_UNION_HACK revert to find_by_id() after sharding
+    story = db.query("""
+        SELECT
+            stories_id::BIGINT,
+            media_id::BIGINT,
+            url::TEXT,
+            guid::TEXT,
+            title,
+            normalized_title_hash,
+            description,
+            publish_date,
+            collect_date,
+            full_text_rss,
+            language
+        FROM unsharded_public.stories
+        WHERE stories_id = %(stories_id)s
+
+        UNION
+
+        SELECT
+            stories_id,
+            media_id,
+            url,
+            guid,
+            title,
+            normalized_title_hash,
+            description,
+            publish_date,
+            collect_date,
+            full_text_rss,
+            language
+        FROM sharded_public.stories
+        WHERE stories_id = %(stories_id)s
+    """, {
+        'stories_id': stories_id,
+    }).hash()
     if story is None:
         raise McNYTLabelsTagsFromAnnotationJobException("Story with ID %d was not found." % stories_id)
 

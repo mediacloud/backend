@@ -34,7 +34,42 @@ def run_facebook_fetch_story_stats(stories_id: int) -> None:
         # continue on fetching new jobs from RabbitMQ and failing all of them
         fatal_error(f"Unable to connect to PostgreSQL: {ex}")
 
-    story = db.find_by_id(table='stories', object_id=stories_id)
+    # MC_CITUS_UNION_HACK revert to find_by_id() after sharding
+    story = db.query("""
+        SELECT
+            stories_id::BIGINT,
+            media_id::BIGINT,
+            url::TEXT,
+            guid::TEXT,
+            title,
+            normalized_title_hash,
+            description,
+            publish_date,
+            collect_date,
+            full_text_rss,
+            language
+        FROM unsharded_public.stories
+        WHERE stories_id = %(stories_id)s
+
+        UNION
+
+        SELECT
+            stories_id,
+            media_id,
+            url,
+            guid,
+            title,
+            normalized_title_hash,
+            description,
+            publish_date,
+            collect_date,
+            full_text_rss,
+            language
+        FROM sharded_public.stories
+        WHERE stories_id = %(stories_id)s
+    """, {
+        'stories_id': stories_id,
+    }).hash()
     if not story:
         # If one or more stories don't exist, that's okay and we can just fail this job
         raise Exception(f"Story with ID {stories_id} does not exist.")
