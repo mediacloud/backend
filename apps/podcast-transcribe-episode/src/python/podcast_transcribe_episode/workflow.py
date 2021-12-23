@@ -285,12 +285,19 @@ class PodcastTranscribeActivitiesImpl(PodcastTranscribeActivities):
             'stories_id': stories_id,
         }).hash()
 
+        # MC_CITUS_UNION_HACK simplify after sharding
         feed = db.query("""
             SELECT *
             FROM feeds
             WHERE feeds_id = (
+                SELECT feeds_id::BIGINT
+                FROM unsharded_public.feeds_stories_map
+                WHERE stories_id = %(stories_id)s
+
+                UNION
+
                 SELECT feeds_id
-                FROM feeds_stories_map
+                FROM sharded_public.feeds_stories_map
                 WHERE stories_id = %(stories_id)s
             )
         """, {
