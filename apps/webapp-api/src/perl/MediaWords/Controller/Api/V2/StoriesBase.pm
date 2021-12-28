@@ -503,28 +503,6 @@ sub _fetch_list($$$$$$)
                     ON $ids_table.id = processed_stories.processed_stories_id
             ORDER BY $order_clause
             LIMIT ?
-        ),
-
-        WITH _ap_syndicated AS (
-            SELECT
-                stories_id::BIGINT,
-                ap_syndicated
-            FROM unsharded_public.stories_ap_syndicated
-            WHERE stories_id IN (
-                SELECT stories_id
-                FROM ps_ids
-            )
-
-            UNION
-
-            SELECT
-                stories_id,
-                ap_syndicated
-            FROM sharded_public.stories_ap_syndicated
-            WHERE stories_id IN (
-                SELECT stories_id
-                FROM ps_ids
-            )            
         )
 
         SELECT *
@@ -550,7 +528,7 @@ sub _fetch_list($$$$$$)
                     ps_ids.stories_id = s.stories_id
                 INNER JOIN media ON
                     s.media_id = media.media_id
-                LEFT JOIN _ap_syndicated AS ap ON
+                LEFT JOIN stories_ap_syndicated AS ap ON
                     s.stories_id = ap.stories_id
 
             UNION
@@ -576,7 +554,7 @@ sub _fetch_list($$$$$$)
                     ps_ids.stories_id = s.stories_id
                 INNER JOIN media ON
                     s.media_id = media.media_id
-                LEFT JOIN _ap_syndicated AS ap ON
+                LEFT JOIN stories_ap_syndicated AS ap ON
                     s.stories_id = ap.stories_id
         )
 

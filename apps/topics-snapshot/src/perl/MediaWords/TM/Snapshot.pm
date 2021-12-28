@@ -516,29 +516,12 @@ SQL
             @publish_date_join_arguments
         );
 
-        # MC_CITUS_UNION_HACK simplify after sharding
         $db->query( <<SQL
             DELETE FROM snapshot_story_links
             WHERE source_stories_id IN (
-                SELECT stories_id::BIGINT
-                FROM unsharded_public.stories_ap_syndicated
-                WHERE
-                    ap_syndicated = true AND
-                    stories_id IN (
-                        SELECT source_stories_id
-                        FROM snapshot_story_links
-                    )
-
-                UNION
-
                 SELECT stories_id
-                FROM sharded_public.stories_ap_syndicated
-                WHERE
-                    ap_syndicated = true AND
-                    stories_id IN (
-                        SELECT source_stories_id
-                        FROM snapshot_story_links
-                    )                
+                FROM stories_ap_syndicated
+                WHERE ap_syndicated = true
             )
 SQL
         );
