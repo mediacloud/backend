@@ -38,42 +38,7 @@ class PodcastTranscribeActivitiesImpl(PodcastTranscribeActivities):
 
         db = connect_to_db_or_raise()
 
-        # MC_CITUS_UNION_HACK revert to find_by_id() after sharding
-        story = db.query("""
-            SELECT
-                stories_id::BIGINT,
-                media_id::BIGINT,
-                url::TEXT,
-                guid::TEXT,
-                title,
-                normalized_title_hash,
-                description,
-                publish_date,
-                collect_date,
-                full_text_rss,
-                language
-            FROM unsharded_public.stories
-            WHERE stories_id = %(stories_id)s
-
-            UNION
-
-            SELECT
-                stories_id,
-                media_id,
-                url,
-                guid,
-                title,
-                normalized_title_hash,
-                description,
-                publish_date,
-                collect_date,
-                full_text_rss,
-                language
-            FROM sharded_public.stories
-            WHERE stories_id = %(stories_id)s
-        """, {
-            'stories_id': stories_id,
-        }).hash()
+        story = db.find_by_id(table='stories', object_id=stories_id)
         if not story:
             raise McPermanentError(f"Story {stories_id} was not found.")
 
@@ -248,42 +213,7 @@ class PodcastTranscribeActivitiesImpl(PodcastTranscribeActivities):
 
         db = connect_to_db_or_raise()
 
-        # MC_CITUS_UNION_HACK revert to find_by_id() after sharding
-        story = db.query("""
-            SELECT
-                stories_id::BIGINT,
-                media_id::BIGINT,
-                url::TEXT,
-                guid::TEXT,
-                title,
-                normalized_title_hash,
-                description,
-                publish_date,
-                collect_date,
-                full_text_rss,
-                language
-            FROM unsharded_public.stories
-            WHERE stories_id = %(stories_id)s
-
-            UNION
-
-            SELECT
-                stories_id,
-                media_id,
-                url,
-                guid,
-                title,
-                normalized_title_hash,
-                description,
-                publish_date,
-                collect_date,
-                full_text_rss,
-                language
-            FROM sharded_public.stories
-            WHERE stories_id = %(stories_id)s
-        """, {
-            'stories_id': stories_id,
-        }).hash()
+        story = db.find_by_id(table='stories', object_id=stories_id)
 
         feed = db.query("""
             SELECT *

@@ -133,43 +133,7 @@ sub _annotate_story_ids($$$$)
         next if ( $json_list->{ $stories_id } );
 
         DEBUG "Fetching story $stories_id...";
-
-        # MC_CITUS_UNION_HACK revert to find_by_id() after sharding
-        my $story = $db->query( <<SQL,
-            SELECT
-                stories_id::BIGINT,
-                media_id::BIGINT,
-                url::TEXT,
-                guid::TEXT,
-                title,
-                normalized_title_hash,
-                description,
-                publish_date,
-                collect_date,
-                full_text_rss,
-                language
-            FROM unsharded_public.stories
-            WHERE stories_id = \$1
-
-            UNION
-
-            SELECT
-                stories_id,
-                media_id,
-                url,
-                guid,
-                title,
-                normalized_title_hash,
-                description,
-                publish_date,
-                collect_date,
-                full_text_rss,
-                language
-            FROM sharded_public.stories
-            WHERE stories_id = \$1
-SQL
-            $stories_id,
-        )->hash();
+        my $story = $db->find_by_id( 'stories', $stories_id );
         unless ( $story ) {
             $json_list->{ $stories_id } = 'story does not exist';
             next;
