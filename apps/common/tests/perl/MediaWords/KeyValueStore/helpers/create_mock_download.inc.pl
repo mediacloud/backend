@@ -16,9 +16,9 @@ sub create_mock_download($$)
             url,
             name
         ) VALUES (
-            1 AS media_id,
-            'http://' AS url,
-            'Test Media' AS name
+            1,
+            'http://',
+            'Test Media'
         )
 SQL
     );
@@ -30,10 +30,10 @@ SQL
             name,
             url
         ) VALUES (
-            1 AS feeds_id,
-            1 AS media_id,
-            'Test Feed' AS name,
-            'http://' AS url
+            1,
+            1,
+            'Test Feed',
+            'http://'
         )
 SQL
     );
@@ -49,13 +49,13 @@ SQL
             collect_date
         )
         VALUES (
-            1 AS stories_id,
-            1 AS media_id,
-            'http://' AS url,
-            'guid' AS guid,
-            'Test Story' AS title,
-            NOW() AS publish_date,
-            NOW() AS collect_date
+            1,
+            1,
+            'http://',
+            'guid',
+            'Test Story',
+            NOW(),
+            NOW()
         );
 SQL
     );
@@ -76,17 +76,17 @@ SQL
         )
         VALUES (
             -- For whatever reason setting $MOCK_DOWNLOADS_ID as a parameter doesn't seem to work
-            $MOCK_DOWNLOADS_ID AS downloads_id,
-            1 AS feeds_id,
-            1 AS stories_id,
-            'http://' AS url,
-            '' AS host,
-            NOW() AS download_time,
-            'content' AS type,
-            'success' AS state,
-            'postgresql:raw_downloads' AS path,
-            0 AS priority,
-            0 AS sequence
+            $MOCK_DOWNLOADS_ID,
+            1,
+            1,
+            'http://',
+            '',
+            NOW(),
+            'content',
+            'success',
+            'postgresql:raw_downloads',
+            0,
+            0
         )
 SQL
     );

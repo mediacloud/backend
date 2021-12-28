@@ -281,10 +281,10 @@ SQL
             name,
             active
         ) VALUES (
-            ? AS media_id,
-            ? AS url,
-            ? AS name,
-            'f' AS active
+            ?,
+            ?,
+            ?,
+            'f'
         ) RETURNING *
 SQL
         $medium->{ media_id }, $feed_url, $feed_name

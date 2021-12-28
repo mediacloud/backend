@@ -15,9 +15,9 @@ class TestMockDownloadTestCase(TestKeyValueStoreTestCase, metaclass=abc.ABCMeta)
                 url,
                 name
             ) VALUES (
-                1 AS media_id,
-                'http://' AS url,
-                'Test Media' AS name
+                1,
+                'http://',
+                'Test Media'
             )
         """)
         db.query("""
@@ -27,10 +27,10 @@ class TestMockDownloadTestCase(TestKeyValueStoreTestCase, metaclass=abc.ABCMeta)
                 name,
                 url
             ) VALUES (
-                1 AS feeds_id,
-                1 AS media_id,
-                'Test Feed' AS name,
-                'http://' AS url
+                1,
+                1,
+                'Test Feed',
+                'http://'
             )
         """)
         db.query("""
@@ -43,13 +43,13 @@ class TestMockDownloadTestCase(TestKeyValueStoreTestCase, metaclass=abc.ABCMeta)
                 publish_date,
                 collect_date
             ) VALUES (
-                1 AS stories_id,
-                1 AS media_id,
-                'http://' AS url,
-                'guid' AS guid,
-                'Test Story' AS title,
-                NOW() AS publish_date,
-                NOW() AS collect_date
+                1,
+                1,
+                'http://',
+                'guid',
+                'Test Story',
+                NOW(),
+                NOW()
             )
         """)
         db.query("""
@@ -66,17 +66,17 @@ class TestMockDownloadTestCase(TestKeyValueStoreTestCase, metaclass=abc.ABCMeta)
                 priority,
                 sequence
             ) VALUES (
-                %(downloads_id)s AS downloads_id,
-                1 AS feeds_id,
-                1 AS stories_id,
-                'http://' AS url,
-                '' AS host,
-                NOW() AS download_time,
-                'content' AS type,
-                'success' AS state,
-                'foo' AS path,
-                0 AS priority,
-                0 AS sequence
+                %(downloads_id)s,
+                1,
+                1,
+                'http://',
+                '',
+                NOW(),
+                'content',
+                'success',
+                'foo',
+                0,
+                0
             )
         """, {'downloads_id': downloads_id})
 
