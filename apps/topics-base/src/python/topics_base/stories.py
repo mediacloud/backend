@@ -317,7 +317,6 @@ def get_story_match(db: DatabaseHandler, url: str, redirect_url: Optional[str] =
         'limit': limit,
     }).flat()
 
-    # MC_CITUS_UNION_HACK: simplify after sharding
     story_ids_from_story_urls = db.query("""
         WITH _candidate_stories_id AS (
             SELECT stories_id::BIGINT

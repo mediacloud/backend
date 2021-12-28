@@ -64,19 +64,10 @@ def insert_story_urls(db: DatabaseHandler, story: dict, url: str) -> None:
         # reset this statement to use a native upsert
         if len(url) <= MAX_URL_LENGTH:
 
-            # MC_CITUS_UNION_HACK simplify after sharding
             row_exists = db.query(
                 """
-                SELECT stories_id::BIGINT
-                FROM unsharded_public.story_urls
-                WHERE
-                    stories_id = %(stories_id)s AND
-                    url = %(url)s
-
-                UNION
-
-                SELECT stories_id
-                FROM sharded_public.story_urls
+                SELECT 1
+                FROM story_urls
                 WHERE
                     stories_id = %(stories_id)s AND
                     url = %(url)s
@@ -177,7 +168,7 @@ def _find_dup_stories(db: DatabaseHandler, story: dict) -> List[Dict[str, Any]]:
     # MC_CITUS_UNION_HACK: remove after sharding
     db_stories = db.query("""
         WITH matching_stories AS (
-            SELECT stories_id::BIGINT
+            SELECT stories_id
             FROM unsharded_public.story_urls
             WHERE url = ANY(%(story_urls)s)
 
