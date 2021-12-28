@@ -309,11 +309,10 @@ def create_test_topic_stories(
             db.update_by_id('stories', story['stories_id'], {'publish_date': topic['start_date']})
             db.create('topic_stories', {'topics_id': topic['topics_id'], 'stories_id': story['stories_id']})
 
-    # MC_CITUS_UNION_HACK: tests use only the sharded table
     test_topic_links = db.query("""
         WITH src_stories AS (
             SELECT *
-            FROM sharded_public.stories
+            FROM stories
         ),
         test_topic_links AS (
             SELECT
@@ -321,7 +320,7 @@ def create_test_topic_stories(
                 ref_stories.url,
                 ref_stories.stories_id AS ref_stories_id
             FROM src_stories
-                INNER JOIN sharded_public.stories AS ref_stories
+                INNER JOIN stories AS ref_stories
                     ON src_stories.media_id != ref_stories.media_id
             LIMIT 50
         )

@@ -44,37 +44,16 @@ sub detect_primary_language($$)
 
     DEBUG( "detect primary language for $medium->{ name } [$media_id] ..." );
 
-    # MC_CITUS_UNION_HACK: simplify after sharding
     my $language_counts = $db->query( <<SQL,
-
         SELECT
-            language,
-            SUM(count) AS count
-        FROM (
-            (
-                SELECT
-                    language,
-                    COUNT(*) AS count
-                FROM unsharded_public.stories
-                WHERE
-                    media_id = \$1 AND
-                    language IS NOT NULL
-                GROUP BY language
-            )
-            UNION
-            (
-                SELECT
-                    language,
-                    COUNT(*) AS count
-                FROM sharded_public.stories
-                WHERE
-                    media_id = \$1 AND
-                    language IS NOT NULL
-                GROUP BY language
-            )
-        ) AS s
+            COUNT(*) AS count,
+            language
+        FROM stories
+        WHERE
+            media_id = \$1 AND
+            language IS NOT NULL
         GROUP BY language
-        ORDER BY SUM(count) DESC
+        ORDER BY COUNT(*) DESC
 SQL
         $media_id
     )->hashes;

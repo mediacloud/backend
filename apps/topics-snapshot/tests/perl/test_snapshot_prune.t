@@ -72,10 +72,9 @@ SQL
         $tag_set->{ tag_sets_id }
     )->hash;
 
-    # MC_CITUS_UNION_HACK tests should only use the sharded table
     my $stories = $db->query( <<SQL
         SELECT *
-        FROM sharded_public.stories
+        FROM stories
         ORDER BY stories_id
 SQL
     )->hashes;
@@ -172,10 +171,9 @@ SQL
 
     ok( $got_snapshot, "snapshot exists" );
 
-    # MC_CITUS_UNION_HACK tests only use the sharded table
     my $got_stories = $db->query( <<SQL,
         SELECT *
-        FROM sharded_snap.stories
+        FROM snap.stories
         WHERE
             topics_id = ? AND
             snapshots_id = ?

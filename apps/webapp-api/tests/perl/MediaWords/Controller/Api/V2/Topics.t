@@ -172,10 +172,8 @@ sub test_update_query_scope($)
         1,
         'query_scope',
     );
-
-    # MC_CITUS_UNION_HACK tests should use only the sharded table
     $db->query( <<SQL,
-        INSERT INTO sharded_public.topic_stories (
+        INSERT INTO topic_stories (
             topics_id,
             stories_id,
             iteration
@@ -184,7 +182,7 @@ sub test_update_query_scope($)
                 \$1 AS topics_id,
                 stories_id,
                 2 AS iteration
-            FROM sharded_public.stories
+            FROM stories
             WHERE media_id = \$2
 SQL
         $topic->{ topics_id }, $story_stack->{ media_query_scope_0 }->{ media_id }
@@ -332,9 +330,8 @@ SQL
         $topic->{ topics_id }, $medium->{ media_id }
     );
 
-    # MC_CITUS_UNION_HACK tests should use only the sharded table
     $db->query( <<SQL,
-        INSERT INTO sharded_public.topic_stories (
+        INSERT INTO topic_stories (
             topics_id,
             stories_id,
             link_mined
@@ -343,7 +340,7 @@ SQL
                 \$1 AS topics_id,
                 stories_id,
                 't' AS link_mined
-            FROM sharded_public.stories
+            FROM stories
             WHERE media_id = \$2
 SQL
         $topic->{ topics_id }, $medium->{ media_id }
@@ -396,13 +393,13 @@ SQL
         { respider_stories => 'f', start_date => $start_date, end_date => $end_date }
     );
 
-    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK MC_CITUS_UNION_HACK: test should write only to the sharded table
+    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: test should write only to the sharded table
     $db->query( <<SQL,
         UPDATE sharded_public.stories SET
             publish_date = \$1
         WHERE stories_id IN (
             SELECT stories_id
-            FROM sharded_public.stories
+            FROM stories
             WHERE media_id = \$2
             ORDER BY stories_id
             LIMIT 1
@@ -411,13 +408,13 @@ SQL
         $start_date, $medium->{ media_id }
     );
 
-    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK MC_CITUS_UNION_HACK: test should write only to the sharded table
+    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: test should write only to the sharded table
     $db->query( <<SQL,
         UPDATE sharded_public.stories SET
             publish_date = '2016-01-01'
         WHERE stories_id IN (
             SELECT stories_id
-            FROM sharded_public.stories
+            FROM stories
             WHERE media_id = ?
             ORDER BY stories_id
             LIMIT 1
@@ -426,13 +423,13 @@ SQL
         $medium->{ media_id }
     );
 
-    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK MC_CITUS_UNION_HACK: test should write only to the sharded table
+    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: test should write only to the sharded table
     $db->query( <<SQL,
         UPDATE sharded_public.stories SET
             publish_date = '2018-01-01'
         WHERE stories_id IN (
             SELECT stories_id
-            FROM sharded_public.stories
+            FROM stories
             WHERE media_id = ?
             ORDER BY stories_id DESC
             LIMIT 1
@@ -479,9 +476,8 @@ sub test_topics_reset
 
     $db->query( "UPDATE TOPICS SET solr_seed_query_run = 't' WHERE topics_id = ?", $topics_id );
 
-    # MC_CITUS_UNION_HACK tests should use only the sharded table
     $db->query( <<SQL,
-        INSERT INTO sharded_public.topic_stories (
+        INSERT INTO topic_stories (
             topics_id,
             stories_id,
             iteration
@@ -490,7 +486,7 @@ sub test_topics_reset
                 \$1 AS topics_id,
                 stories_id,
                 2 AS iteration
-            FROM sharded_public.stories
+            FROM stories
             WHERE media_id = \$2
 SQL
         $topics_id, $story_stack->{ media_reset_0 }->{ media_id }

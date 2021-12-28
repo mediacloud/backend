@@ -12,15 +12,14 @@ from topics_base.stories import add_to_topic_stories, _add_missing_normalized_ti
 
 def __count_null_title_stories(db: DatabaseHandler, topic: dict) -> int:
     """Count the stories in the topic with a null normalized_title_hash."""
-    # MC_CITUS_UNION_HACK: tests should only use the sharded table
     null_count = db.query("""
         WITH topic_story_ids AS (
             SELECT stories_id
-            FROM sharded_public.topic_stories
+            FROM topic_stories
             WHERE topics_id = %(topics_id)s
         )
         SELECT COUNT(*)
-        FROM sharded_public.stories
+        FROM stories
         WHERE
             normalized_title_hash IS NULL AND
             stories_id IN (
@@ -61,11 +60,11 @@ def test_add_missing_normalized_title_hashes():
         }
     )
 
-    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK MC_CITUS_UNION_HACK: test should write only to the sharded table
+    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: test should write only to the sharded table
     db.query("""
         WITH all_story_ids AS (
             SELECT stories_id
-            FROM sharded_public.stories
+            FROM stories
         )
         UPDATE sharded_public.stories SET
             normalized_title_hash = NULL

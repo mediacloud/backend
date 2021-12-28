@@ -40,34 +40,18 @@ sub test_respider($)
 
     MediaWords::TM::Mine::set_stories_respidering( $db, $topic, undef );
 
-    # MC_CITUS_UNION_HACK
-    my ( $got_num_respider_stories ) = $db->query( <<SQL
-        SELECT COUNT(*)
-        FROM sharded_public.topic_stories
-        WHERE NOT link_mined
-SQL
-    )->flat;
+    my ( $got_num_respider_stories ) = $db->query( "SELECT COUNT(*) FROM topic_stories WHERE NOT link_mined" )->flat;
     is( $got_num_respider_stories, 0, "no stories marked for respidering" );
 
     # respider everything with respider_stories but no dates
     $topic->{ respider_stories } = 1;
 
     # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: test should write only to the sharded table
-    $db->query( <<SQL
-        UPDATE sharded_public.topic_stories SET
-            link_mined = 't'
-SQL
-    );
+    $db->query( "UPDATE sharded_public.topic_stories SET link_mined = 't'" );
 
     MediaWords::TM::Mine::set_stories_respidering( $db, $topic, undef );
 
-    # MC_CITUS_UNION_HACK
-    ( $got_num_respider_stories ) = $db->query( <<SQL
-        SELECT COUNT(*)
-        FROM sharded_public.topic_stories
-        WHERE NOT link_mined
-SQL
-    )->flat;
+    ( $got_num_respider_stories ) = $db->query( "SELECT COUNT(*) FROM topic_stories WHERE NOT link_mined" )->flat;
     is( $got_num_respider_stories, $num_topic_stories, "all stories marked for respidering" );
 
     # respider stories within the range of changed dates
@@ -81,18 +65,14 @@ SQL
     $topic = $db->update_by_id( 'topics', $topic->{ topics_id }, $topic_update );
 
     # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: test should write only to the sharded table
-    $db->query( <<SQL
-        UPDATE sharded_public.topic_stories SET
-            link_mined = 't'
-SQL
-    );
+    $db->query( "UPDATE sharded_public.topic_stories SET link_mined = 't'" );
 
     my $num_date_changes = 10;
-    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK MC_CITUS_UNION_HACK: test should write only to the sharded table
+    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: test should write only to the sharded table
     $db->query( <<SQL
         WITH story_ids AS (
             SELECT stories_id
-            FROM sharded_public.stories
+            FROM stories
         )
         UPDATE sharded_public.stories SET
             publish_date = '2017-06-01'
@@ -103,13 +83,13 @@ SQL
 SQL
     );
 
-    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK MC_CITUS_UNION_HACK: test should write only to the sharded table
+    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: test should write only to the sharded table
     $db->query( <<SQL, 
         UPDATE sharded_public.stories SET
             publish_date = ?
         WHERE stories_id IN (
             SELECT stories_id
-            FROM sharded_public.stories
+            FROM stories
             ORDER BY stories_id
             LIMIT ?
         )
@@ -117,13 +97,13 @@ SQL
         '2018-06-01', $num_date_changes
     );
 
-    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK MC_CITUS_UNION_HACK: test should write only to the sharded table
+    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: test should write only to the sharded table
     $db->query( <<SQL,
         UPDATE sharded_public.stories SET
             publish_date = ?
         WHERE stories_id IN (
             SELECT stories_id
-            FROM sharded_public.stories
+            FROM stories
             ORDER BY stories_id DESC
             LIMIT ?
         )
@@ -139,11 +119,8 @@ SQL
     };
     $snapshot = $db->create( 'snapshots', $snapshot );
 
-    my $timespan_dates = [
-        [ '2017-01-01', '2017-01-31' ],
-        [ '2017-12-20', '2018-01-20' ],
-        [ '2016-12-20', '2017-01-20' ],
-    ];
+    my $timespan_dates =
+      [ [ '2017-01-01', '2017-01-31' ], [ '2017-12-20', '2018-01-20' ], [ '2016-12-20', '2017-01-20' ] ];
     for my $dates ( @{ $timespan_dates } )
     {
         my ( $start_date, $end_date ) = @{ $dates };
@@ -164,13 +141,7 @@ SQL
 
     MediaWords::TM::Mine::set_stories_respidering( $db, $topic, $snapshot->{ snapshots_id } );
 
-    # MC_CITUS_UNION_HACK
-    ( $got_num_respider_stories ) = $db->query( <<SQL
-        SELECT COUNT(*)
-        FROM sharded_public.topic_stories
-        WHERE NOT link_mined
-SQL
-    )->flat;
+    ( $got_num_respider_stories ) = $db->query( "SELECT COUNT(*) FROM topic_stories WHERE NOT link_mined" )->flat;
     is( $got_num_respider_stories, 2 * $num_date_changes, "dated stories marked for respidering" );
 
     my ( $got_num_archived_timespans ) = $db->query( <<SQL,

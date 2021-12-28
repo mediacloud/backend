@@ -126,10 +126,9 @@ sub run_solr_tests($)
         }
     );
 
-    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: tests use only the sharded table
     my $test_stories = $db->query( <<SQL
         SELECT *
-        FROM sharded_public.stories
+        FROM stories
         ORDER BY md5(stories_id::TEXT)
 SQL
     )->hashes;
@@ -142,10 +141,9 @@ SQL
 
     {
         # get_solr_num_found
-        # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: tests use only the sharded table
         my ( $expected_num_stories ) = $db->query( <<SQL
             SELECT COUNT(*)
-            FROM sharded_public.stories
+            FROM stories
 SQL
         )->flat;
         my $got_num_stories = MediaWords::Solr::get_solr_num_found( $db, { q => '*:*' } );

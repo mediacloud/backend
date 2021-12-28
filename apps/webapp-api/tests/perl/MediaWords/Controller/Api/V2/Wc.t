@@ -28,10 +28,9 @@ sub test_wc_list($)
 
     my $label = "wc/list";
 
-    # MC_CITUS_UNION_HACK tests should use only the sharded table
     my $story = $db->query( <<SQL
         SELECT *
-        FROM sharded_public.stories
+        FROM stories
         ORDER BY stories_id
         LIMIT 1
 SQL

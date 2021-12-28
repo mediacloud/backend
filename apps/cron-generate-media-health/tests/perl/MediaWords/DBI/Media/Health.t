@@ -30,11 +30,11 @@ sub test_media_health
     $test_stack = MediaWords::Test::DB::Create::add_content_to_test_story_stack( $db, $test_stack );
 
     # move all stories to yesterday so that they get included in today's media_health stats
-    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK MC_CITUS_UNION_HACK: test should write only to the sharded table
+    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: test should write only to the sharded table
     $db->query( <<SQL
         WITH stories_to_update AS (
             SELECT stories_id
-            FROM sharded_public.stories
+            FROM stories
         )
         UPDATE sharded_public.stories SET
             publish_date = NOW() - INTERVAL '1 day'
@@ -45,11 +45,11 @@ sub test_media_health
 SQL
     );
 
-    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK MC_CITUS_UNION_HACK: test should write only to the sharded table
+    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: test should write only to the sharded table
     $db->query( <<SQL
         WITH stories_to_update AS (
             SELECT stories_id
-            FROM sharded_public.stories
+            FROM stories
         )
         UPDATE sharded_public.story_sentences SET
             publish_date = NOW() - INTERVAL '1 day'

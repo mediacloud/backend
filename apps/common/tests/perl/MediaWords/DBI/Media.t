@@ -38,11 +38,11 @@ SQL
         $medium->{ media_id }
     );
 
-    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK MC_CITUS_UNION_HACK: test should write only to the sharded table
+    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: test should write only to the sharded table
     $db->query( <<SQL,
         WITH stories_to_update AS (
             SELECT stories_id
-            FROM sharded_public.stories
+            FROM stories
             WHERE media_id = \$1
         )
         UPDATE sharded_public.stories SET
@@ -86,11 +86,11 @@ SQL
         $medium->{ media_id }
     );
 
-    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK MC_CITUS_UNION_HACK: test should write only to the sharded table
+    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: test should write only to the sharded table
     $db->query( <<SQL,
         WITH stories_to_update AS (
             SELECT stories_id
-            FROM sharded_public.stories
+            FROM stories
             WHERE media_id = ?
         )
         UPDATE sharded_public.stories SET
@@ -164,11 +164,11 @@ SQL
         $medium->{ media_id }
     );
 
-    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK MC_CITUS_UNION_HACK: tests should only use the sharded table
+    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: test should write only to the sharded table
     $db->query( <<SQL,
         WITH stories_to_update AS (
             SELECT stories_id
-            FROM sharded_public.stories
+            FROM stories
             WHERE media_id = ?
         )
         UPDATE sharded_public.stories SET

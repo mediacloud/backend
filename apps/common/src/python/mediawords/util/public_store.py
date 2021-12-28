@@ -47,25 +47,13 @@ def _get_test_directory_name_from_db(db) -> str:
     name = 'public_store_directory'
 
     max_stories = 100000
-    # MC_CITUS_UNION_HACK: remove after sharding
     has_max_stories = db.query("""
-        SELECT *
-        FROM (
-            SELECT 1
-            FROM unsharded_public.stories
-            OFFSET %(max_stories)s
-            LIMIT 1
-
-            UNION
-
-            SELECT 1
-            FROM sharded_public.stories
-            OFFSET %(max_stories)s
-            LIMIT 1
-        ) AS s
+        SELECT 1
+        FROM stories
+        OFFSET %(max_stories)s
     """, {
         'max_stories': max_stories,
-    }).hashes()
+    }).hash()
     if has_max_stories:
         error = "cowardly refusing to create test directory in database with at least %d stories" % max_stories
         raise McConfigEnvironmentVariableUnsetException(error)

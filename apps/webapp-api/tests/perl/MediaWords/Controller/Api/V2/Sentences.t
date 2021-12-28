@@ -29,20 +29,17 @@ sub test_sentences_list($)
 
     my $label = "sentences/list";
 
-    # MC_CITUS_UNION_HACK tests should use only the sharded table
     my $stories     = $db->query( <<SQL
         SELECT *
-        FROM sharded_public.stories
+        FROM stories
         ORDER BY stories_id ASC
         LIMIT 10
 SQL
     )->hashes;
     my $stories_ids = [ map { $_->{ stories_id } } @{ $stories } ];
-
-    # MC_CITUS_UNION_HACK tests should use only the sharded table
     my $expected_ss = $db->query( <<SQL,
         SELECT *
-        FROM sharded_public.story_sentences
+        FROM story_sentences
         WHERE stories_id IN (??)
 SQL
         @{ $stories_ids }
@@ -71,11 +68,11 @@ sub main
     $media = MediaWords::Test::DB::Create::add_content_to_test_story_stack( $db, $media );
 
     # Prepend some UTF-8 to every sentence to test out Unicode support
-    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK MC_CITUS_UNION_HACK: tests use only the sharded table
+    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: tests use only the sharded table
     $db->query(<<SQL,
         WITH all_story_ids AS (
             SELECT stories_id
-            FROM sharded_public.stories
+            FROM stories
         )
         UPDATE sharded_public.story_sentences
         SET sentence = ? || sentence

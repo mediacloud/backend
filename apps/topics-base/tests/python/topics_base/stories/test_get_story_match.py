@@ -30,7 +30,6 @@ def test_get_story_match():
     assert get_story_match(db, 'http://foo.com', stories[3]['url'] + '#foo') == stories[3]
 
     # get_preferred_story - return only story with sentences
-    # MC_CITUS_UNION_HACK tests should only use the sharded table
     # noinspection SqlInsertValues
     db.query("""
         INSERT INTO story_sentences (
@@ -46,18 +45,18 @@ def test_get_story_match():
                 publish_date,
                 'foo' AS sentence,
                 1 AS sentence_number
-            FROM sharded_public.stories
+            FROM stories
             WHERE stories_id = %(stories_id)s
     """, {
         'stories_id': stories[4]['stories_id']
     })
 
-    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK MC_CITUS_UNION_HACK: test should write only to the sharded table
+    # MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK: test should write only to the sharded table
     # noinspection SqlWithoutWhere
     db.query("""
         WITH all_story_ids AS (
             SELECT stories_id
-            FROM sharded_public.stories
+            FROM stories
         )
         UPDATE sharded_public.stories SET
             url = 'http://stories.com/'

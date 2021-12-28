@@ -51,27 +51,7 @@ sub main
     {
         print STDERR "printing block " . $i++ . "\n";
         my $ids_table = $db->get_temporary_ids_table( \@chunk_stories_ids );
-
-        # MC_CITUS_UNION_HACK: simplify after sharding
         my $stories   = $db->query( <<SQL
-            SELECT
-                s.stories_id::BIGINT,
-                s.title,
-                s.url::TEXT,
-                s.publish_date,
-                s.media_id::BIGINT,
-                m.name AS media_name,
-                m.url AS media_url
-            FROM unsharded_public.stories AS s
-                INNER JOIN media AS m ON
-                    s.media_id = m.media_id
-            WHERE s.stories_id IN (
-                SELECT id
-                FROM $ids_table
-            )
-
-            UNION
-
             SELECT
                 s.stories_id,
                 s.title,
@@ -80,13 +60,11 @@ sub main
                 s.media_id,
                 m.name AS media_name,
                 m.url AS media_url
-            FROM sharded_public.stories AS s
+            FROM stories AS s
                 INNER JOIN media AS m ON
                     s.media_id = m.media_id
-            WHERE s.stories_id IN (
-                SELECT id
-                FROM $ids_table
-            )
+                INNER JOIN $ids_table AS i ON
+                    i.id = s.stories_id
 SQL
         )->hashes;
         if ( $q =~ /timespans_id:(\d+)/ ) 

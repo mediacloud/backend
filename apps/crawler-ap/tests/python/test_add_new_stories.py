@@ -36,10 +36,9 @@ def test_add_new_stories():
 
     add_new_stories(db=db, new_stories=ap_stories)
 
-    # MC_CITUS_UNION_HACK: tests should only use the sharded table
     stories = db.query("""
         SELECT *
-        FROM sharded_public.stories
+        FROM stories
     """).hashes()
     assert len(stories) == len(ap_stories)
 
@@ -62,11 +61,9 @@ def test_add_new_stories():
     assert len(story_sentences) == len(ap_stories)
 
     for ap_story in ap_stories:
-
-        # MC_CITUS_UNION_HACK: tests should only use the sharded table
         got_story = db.query("""
             SELECT *
-            FROM sharded_public.stories
+            FROM stories
             WHERE title = %(title)s
         """, {
             'title': ap_story['title'],
@@ -79,9 +76,8 @@ def test_add_new_stories():
     add_new_stories(db=db, new_stories=ap_stories)
 
     # should be same number of stories, since these new ones are dups
-    # MC_CITUS_UNION_HACK: tests should only use the sharded table
     stories = db.query("""
         SELECT *
-        FROM sharded_public.stories
+        FROM stories
     """).hashes()
     assert len(stories) == len(ap_stories)

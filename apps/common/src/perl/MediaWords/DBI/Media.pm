@@ -96,97 +96,21 @@ SQL
 
     return 0 unless ( $active_feed );
 
-    # MC_CITUS_UNION_HACK: remove after sharding
     my $first_story = $db->query( <<SQL,
         SELECT *
-        FROM (
-            (
-                SELECT
-                    stories_id::BIGINT,
-                    media_id::BIGINT,
-                    url::TEXT,
-                    guid::TEXT,
-                    title,
-                    normalized_title_hash,
-                    description,
-                    publish_date,
-                    collect_date,
-                    full_text_rss,
-                    language
-                FROM unsharded_public.stories
-                WHERE media_id = \$1
-                LIMIT 1
-            )
-
-            UNION
-
-            (
-                SELECT
-                    stories_id,
-                    media_id,
-                    url,
-                    guid,
-                    title,
-                    normalized_title_hash,
-                    description,
-                    publish_date,
-                    collect_date,
-                    full_text_rss,
-                    language
-                FROM sharded_public.stories
-                WHERE media_id = \$1
-                LIMIT 1
-            )
-        ) AS s
+        FROM stories
+        WHERE media_id = ?
         LIMIT 1
 SQL
-        $media_id,
+        $media_id
     )->hash;
 
     return 0 unless ( $first_story );
 
-    # MC_CITUS_UNION_HACK: remove after sharding
     my $story_101 = $db->query( <<SQL,
         SELECT *
-        FROM (
-            (
-                SELECT
-                    stories_id::BIGINT,
-                    media_id::BIGINT,
-                    url::TEXT,
-                    guid::TEXT,
-                    title,
-                    normalized_title_hash,
-                    description,
-                    publish_date,
-                    collect_date,
-                    full_text_rss,
-                    language
-                FROM unsharded_public.stories
-                WHERE media_id = \$1
-                LIMIT 200
-            )
-
-            UNION
-
-            (
-                SELECT
-                    stories_id,
-                    media_id,
-                    url,
-                    guid,
-                    title,
-                    normalized_title_hash,
-                    description,
-                    publish_date,
-                    collect_date,
-                    full_text_rss,
-                    language
-                FROM sharded_public.stories
-                WHERE media_id = \$1
-                LIMIT 200
-            )
-        ) AS s
+        FROM stories
+        WHERE media_id = ?
         OFFSET 101
         LIMIT 1
 SQL

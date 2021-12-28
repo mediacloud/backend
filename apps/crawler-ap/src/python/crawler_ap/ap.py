@@ -243,27 +243,14 @@ def _extract_url_parameters(url: str) -> dict:
 def _id_exists_in_db(db: DatabaseHandler,
                      guid: str) -> bool:
     """Internal method to check if item exists in the database."""
-    # MC_CITUS_UNION_HACK: simplify after sharding
     guid_exists = db.query("""
-        WITH _media_ids AS (
-            SELECT media_id::BIGINT
-            FROM unsharded_public.stories
-            WHERE guid = %(guid)s
-
-            UNION
-
-            SELECT media_id
-            FROM sharded_public.stories
-            WHERE guid = %(guid)s
-        )
         SELECT 1
-        FROM media
+        FROM stories AS s
+            INNER JOIN media AS m ON
+                s.media_id = m.media_id
         WHERE
-            name = %(medium_name)s AND
-            media_id IN (
-                SELECT media_id
-                FROM _media_ids
-            )
+            m.name = %(medium_name)s AND
+            s.guid = %(guid)s
     """, {
         'guid': guid,
         'medium_name': AP_MEDIUM_NAME,

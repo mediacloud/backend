@@ -40,10 +40,9 @@ class TestWord2vec(TestCase):
         topic = create_test_topic(db=self.db, label='test')
         self.topics_id = topic['topics_id']
 
-        # MC_CITUS_UNION_HACK tests should use only the sharded table
         self.db.query("""
-            INSERT INTO sharded_public.topic_stories (topics_id, stories_id)
-            SELECT %(topics_id)s, stories_id FROM sharded_public.stories
+            INSERT INTO topic_stories (topics_id, stories_id)
+            SELECT %(topics_id)s, stories_id FROM stories
         """, {'topics_id': self.topics_id})
 
         # Test snapshot
@@ -53,9 +52,8 @@ class TestWord2vec(TestCase):
             RETURNING snapshots_id
         """, {'topics_id': self.topics_id}).flat()[0]
 
-        # MC_CITUS_UNION_HACK tests should use only the sharded table
         self.db.query("""
-            INSERT INTO sharded_snap.stories (
+            INSERT INTO snap.stories (
                 topics_id,
                 snapshots_id,
                 media_id,
@@ -76,7 +74,7 @@ class TestWord2vec(TestCase):
                     title,
                     publish_date,
                     collect_date
-                FROM sharded_public.stories
+                FROM stories
         """, {
             'topics_id': self.topics_id,
             'snapshots_id': self.snapshots_id

@@ -97,56 +97,19 @@ def _get_story_with_most_sentences(db: DatabaseHandler, stories: list) -> dict:
     if len(stories) == 1:
         return stories[0]
 
-    stories_id_most_sentences = db.query("""
-        SELECT stories_id
-        FROM story_sentences
-        WHERE stories_id = ANY(%(story_ids)s)
-        GROUP BY stories_id
-        ORDER BY COUNT(*) DESC
-        LIMIT 1
+    story = db.query("""
+        SELECT *
+        FROM stories
+        WHERE stories_id IN (
+            SELECT stories_id
+            FROM story_sentences
+            WHERE stories_id = ANY(%(story_ids)s)
+            GROUP BY stories_id
+            ORDER BY COUNT(*) DESC
+            LIMIT 1
+        )
     """, {
         'story_ids': [s['stories_id'] for s in stories],
-    }).flat()
-    if not stories_id_most_sentences:
-        return stories[0]
-
-    stories_id_most_sentences = stories_id_most_sentences[0]
-
-    # MC_CITUS_UNION_HACK: simplify after sharding
-    story = db.query("""
-        SELECT
-            stories_id::BIGINT,
-            media_id::BIGINT,
-            url::TEXT,
-            guid::TEXT,
-            title,
-            normalized_title_hash,
-            description,
-            publish_date,
-            collect_date,
-            full_text_rss,
-            language
-        FROM unsharded_public.stories
-        WHERE stories_id = %(stories_id)s
-
-        UNION
-
-        SELECT
-            stories_id,
-            media_id,
-            url,
-            guid,
-            title,
-            normalized_title_hash,
-            description,
-            publish_date,
-            collect_date,
-            full_text_rss,
-            language
-        FROM sharded_public.stories
-        WHERE stories_id = %(stories_id)s
-    """, {
-        'stories_id': stories_id_most_sentences;
     }).hash()
 
     if story is not None:
@@ -276,138 +239,47 @@ def get_story_match(db: DatabaseHandler, url: str, redirect_url: Optional[str] =
 
     # look for matching stories, ignore those in foreign_rss_links media, only get last
     # 100 to avoid hanging job trying to handle potentially thousands of matches
-    limit = 100
-
-    # MC_CITUS_UNION_HACK: simplify after sharding
-    story_ids_from_stories = db.query("""
-        SELECT stories_id
-        FROM (
-            SELECT DISTINCT
-                s.stories_id::BIGINT,
-                s.collect_date
-            FROM unsharded_public.stories AS s
-                INNER JOIN media AS m ON
-                    s.media_id = m.media_id AND
-                    m.foreign_rss_links = false
-            WHERE
-                s.url = ANY(%(urls)s) OR
-                s.guid = ANY(%(urls)s)
-            ORDER BY s.collect_date DESC
-            LIMIT %(limit)s
-
-            UNION
-
-            SELECT DISTINCT
-                s.stories_id,
-                s.collect_date
-            FROM sharded_public.stories AS s
-                INNER JOIN media AS m ON
-                    s.media_id = m.media_id AND
-                    m.foreign_rss_links = false
-            WHERE
-                s.url = ANY(%(urls)s) OR
-                s.guid = ANY(%(urls)s)
-            ORDER BY s.collect_date DESC
-            LIMIT %(limit)s
-        )
-        ORDER BY collect_date DESC
-        LIMIT %(limit)s
-    """, {
-        'urls': urls,
-        'limit': limit,
-    }).flat()
-
-    story_ids_from_story_urls = db.query("""
-        WITH _candidate_stories_id AS (
-            SELECT stories_id::BIGINT
-            FROM unsharded_public.story_urls
-            WHERE url = ANY(%(urls)s)
-
-            UNION
-
-            SELECT stories_id
-            FROM sharded_public.story_urls
-            WHERE url = ANY(%(urls)s)
-        )
-
-        SELECT stories_id
-        FROM (
-            SELECT DISTINCT
-                s.stories_id::BIGINT,
-                s.collect_date
-            FROM unsharded_public.stories AS s
-                INNER JOIN media AS m ON
-                    s.media_id = m.media_id AND
-                    m.foreign_rss_links = false
-            WHERE s.stories_id IN (
-                SELECT stories_id
-                FROM _candidate_stories_id
-            )
-            ORDER BY s.collect_date DESC
-            LIMIT %(limit)s
-
-            UNION
-
-            SELECT DISTINCT
-                s.stories_id,
-                s.collect_date
-            FROM sharded_public.stories AS s
-                INNER JOIN media AS m ON
-                    s.media_id = m.media_id AND
-                    m.foreign_rss_links = false
-            WHERE s.stories_id IN (
-                SELECT stories_id
-                FROM _candidate_stories_id
-            )
-            ORDER BY s.collect_date DESC
-            LIMIT %(limit)s
-        )
-        ORDER BY collect_date DESC
-        LIMIT %(limit)s
-    """, {
-        'urls': urls,
-        'limit': limit,        
-    }).flat()
-
     stories = db.query("""
-        SELECT *
+        WITH _matching_stories_stories AS (
+            SELECT DISTINCT s.*
+            FROM stories AS s
+                INNER JOIN media AS m ON
+                    s.media_id = m.media_id AND
+                    m.foreign_rss_links = false
+            WHERE
+                s.url = ANY(%(urls)s) OR
+                s.guid = ANY(%(urls)s)
+            ORDER BY s.collect_date DESC
+            LIMIT %(limit)s
+        ),
+
+        _matching_stories_story_urls AS (
+            SELECT DISTINCT s.*
+            FROM story_urls AS su
+                INNER JOIN stories AS s ON
+                    su.stories_id = s.stories_id
+                INNER JOIN media AS m ON
+                    s.media_id = m.media_id AND
+                    m.foreign_rss_links = false
+            WHERE su.url = ANY(%(urls)s)
+            ORDER BY s.collect_date DESC
+            LIMIT %(limit)s
+        )
+        
+        SELECT DISTINCT *
         FROM (
-            SELECT
-                stories_id::BIGINT,
-                media_id::BIGINT,
-                url::TEXT,
-                guid::TEXT,
-                title,
-                normalized_title_hash,
-                description,
-                publish_date,
-                collect_date,
-                full_text_rss,
-                language
-            FROM unsharded_public.stories
-            WHERE stories_id = ANY(%(story_ids)s)
+            SELECT *
+            FROM _matching_stories_stories
 
             UNION
 
-            SELECT
-                stories_id,
-                media_id,
-                url,
-                guid,
-                title,
-                normalized_title_hash,
-                description,
-                publish_date,
-                collect_date,
-                full_text_rss,
-                language
-            FROM sharded_public.stories
-            WHERE stories_id = ANY(%(story_ids)s)
-        ) AS s
+            SELECT *
+            FROM _matching_stories_story_urls
+        ) AS m
         ORDER BY collect_date DESC
         LIMIT %(limit)s
     """, {
-        'story_ids': story_ids_from_stories + story_ids_from_story_urls,
+        'urls': urls,
         'limit': 100,
     }).hashes()
 
@@ -775,46 +647,12 @@ def merge_foreign_rss_stories(db: DatabaseHandler, topic: dict) -> None:
                 (NOT valid_foreign_rss_story)
         )
 
-        SELECT
-            s.stories_id::BIGINT,
-            s.media_id::BIGINT,
-            s.url::TEXT,
-            s.guid::TEXT,
-            s.title,
-            s.normalized_title_hash,
-            s.description,
-            s.publish_date,
-            s.collect_date,
-            s.full_text_rss,
-            s.language
-        FROM unsharded_public.stories AS s
-            INNER JOIN media AS m ON
-                s.media_id = m.media_id AND
-                m.foreign_rss_links
-        WHERE s.stories_id IN (
-            SELECT stories_id
-            FROM topic_stories_from_topic
-        )
-
-        UNION
-
-        SELECT
-            s.stories_id,
-            s.media_id,
-            s.url,
-            s.guid,
-            s.title,
-            s.normalized_title_hash,
-            s.description,
-            s.publish_date,
-            s.collect_date,
-            s.full_text_rss,
-            s.language
-        FROM sharded_public.stories AS s
-            INNER JOIN media AS m ON
-                s.media_id = m.media_id AND
-                m.foreign_rss_links
-        WHERE s.stories_id IN (
+        SELECT stories.*
+        FROM stories
+            INNER JOIN media ON
+                stories.media_id = media.media_id AND
+                media.foreign_rss_links
+        WHERE stories.stories_id IN (
             SELECT stories_id
             FROM topic_stories_from_topic
         )
@@ -1358,42 +1196,8 @@ def merge_dup_media_story(db, topic, story):
     dup_medium = _get_deduped_medium(db, story['media_id'])
 
     new_story = db.query("""
-        SELECT
-            stories_id::BIGINT,
-            media_id::BIGINT,
-            url::TEXT,
-            guid::TEXT,
-            title,
-            normalized_title_hash,
-            description,
-            publish_date,
-            collect_date,
-            full_text_rss,
-            language
-        FROM unsharded_public.stories AS s
-        WHERE
-            s.media_id = %(media_id)s AND
-            (
-                (%(url)s IN (s.url, s.guid)) OR
-                (%(guid)s IN (s.url, s.guid)) OR
-                (s.title = %(title)s AND date_trunc('day', s.publish_date) = %(date)s)
-            )
-
-        UNION
-
-        SELECT
-            stories_id,
-            media_id,
-            url,
-            guid,
-            title,
-            normalized_title_hash,
-            description,
-            publish_date,
-            collect_date,
-            full_text_rss,
-            language
-        FROM sharded_public.stories AS s
+        SELECT s.*
+        FROM stories s
         WHERE
             s.media_id = %(media_id)s AND
             (

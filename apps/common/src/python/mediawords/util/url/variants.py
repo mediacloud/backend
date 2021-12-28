@@ -88,16 +88,9 @@ def __get_topic_url_variants(db: DatabaseHandler, urls: List[str]) -> List[str]:
     urls = decode_object_from_bytes_if_needed(urls)
 
     # MC_REWRITE_TO_PYTHON: change to tuple parameter because Perl database handler proxy can't handle tuples
-    # MC_CITUS_UNION_HACK: remove after sharding
     stories_ids = db.query("""
-        SELECT stories_id::BIGINT
-        FROM unsharded_public.stories
-        WHERE url = ANY(%(urls)s)
-
-        UNION
-
         SELECT stories_id
-        FROM sharded_public.stories
+        FROM stories
         WHERE url = ANY(%(urls)s)
     """, {
         'urls': urls,
@@ -116,49 +109,27 @@ def __get_topic_url_variants(db: DatabaseHandler, urls: List[str]) -> List[str]:
     if len(all_stories_ids) == 0:
         return urls
 
-    # MC_CITUS_UNION_HACK: remove after sharding
     all_urls = db.query("""
-        WITH _topic_links_redirect_urls AS (
-            SELECT redirect_url AS url
-            FROM topic_links
-            WHERE ref_stories_id = ANY(%(story_ids)s)
-        ),
-        _topic_links_urls AS (
-            SELECT url
-            FROM topic_links
-            WHERE ref_stories_id = ANY(%(story_ids)s)
-        ),
-        _story_urls AS (
-            SELECT url::TEXT
-            FROM unsharded_public.stories
-            WHERE stories_id = ANY(%(story_ids)s)
-
-            UNION
-
-            SELECT url
-            FROM sharded_public.stories
-            WHERE stories_id = ANY(%(story_ids)s)
-        )
-
         SELECT DISTINCT url
         FROM (
-            SELECT url
-            FROM _topic_links_redirect_urls
+            SELECT redirect_url AS url
+            FROM topic_links
+            WHERE ref_stories_id = ANY(?)
 
             UNION
 
             SELECT url
-            FROM _topic_links_urls
+            FROM topic_links
+            WHERE ref_stories_id = ANY(?)
 
             UNION
 
             SELECT url
-            FROM _story_urls
-        )
-        WHERE url IS NOT NULL
-    """, {
-        'story_ids': all_stories_ids,
-    }).flat()
+            FROM stories
+            WHERE stories_id = ANY(?)
+        ) AS q
+        WHERE q IS NOT NULL
+    """, all_stories_ids, all_stories_ids, all_stories_ids).flat()
 
     # MC_REWRITE_TO_PYTHON: Perl database handler proxy (the dreaded "wantarray" part) returns None on empty result
     # sets, a scalar on a single item and arrayref on many items

@@ -61,22 +61,11 @@ sub detect_subject_country($$)
     DEBUG( "detecting subject_countries for $medium->{ name } ..." );
 
     my $tag_count = $db->query( <<SQL,
-        WITH _media_stories AS (
-            SELECT stories_id::BIGINT
-            FROM unsharded_public.stories
-            WHERE media_id = \$1
-
-            UNION
-
-            SELECT stories_id
-            FROM sharded_public.stories
-            WHERE media_id = \$1
-        ),
-        subject_countries AS (
+        WITH subject_countries AS (
             SELECT
                 s.stories_id,
                 t.tags_id
-            FROM _media_stories AS s
+            FROM stories AS s
                 INNER JOIN stories_tags_map AS stm ON
                     s.stories_id = stm.stories_id
                 INNER JOIN tags AS t ON

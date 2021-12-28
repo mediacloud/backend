@@ -232,13 +232,12 @@ SQL
 
     my $re = '(?isx)[[:<:]]' . $first_word;
 
-    # MC_CITUS_UNION_HACK tests should use only the sharded table
     my $matching_sentences = $db->query( <<SQL,
         SELECT
             ss.*,
             s.language AS story_language
-        FROM sharded_public.story_sentences AS ss
-            JOIN sharded_public.stories AS s USING (stories_id)
+        FROM story_sentences AS ss
+            JOIN stories AS s USING (stories_id)
         WHERE sentence ~ ?
 SQL
         $re

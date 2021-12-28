@@ -232,20 +232,7 @@ sub _get_existing_stories
 {
     my ( $self ) = @_;
 
-    # MC_CITUS_UNION_HACK: simplify after sharding
     my $stories = $self->db->query( <<SQL,
-        SELECT
-            stories_id::BIGINT,
-            media_id::BIGINT,
-            publish_date,
-            url::TEXT,
-            guid::TEXT,
-            title
-        FROM unsharded_public.stories
-        WHERE media_id = \$1
-
-        UNION
-
         SELECT
             stories_id,
             media_id,
@@ -253,8 +240,8 @@ sub _get_existing_stories
             url,
             guid,
             title
-        FROM sharded_public.stories
-        WHERE media_id = \$1
+        FROM stories
+        WHERE media_id = ?
 SQL
         $self->{ media_id }
     )->hashes;

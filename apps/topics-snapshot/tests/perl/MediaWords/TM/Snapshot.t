@@ -95,10 +95,9 @@ sub add_test_seed_query($$)
     };
     $tsq = $db->create( 'topic_seed_queries', $tsq );
 
-    # MC_CITUS_UNION_HACK tests should only use the sharded table
     my $stories = $db->query( <<SQL,
         SELECT *
-        FROM sharded_public.stories
+        FROM stories
         LIMIT ?
 SQL
         $NUM_TSQ_STORIES
@@ -292,20 +291,18 @@ SQL
         $tag_set->{ tag_sets_id }
     )->hash;
 
-    # MC_CITUS_UNION_HACK tests should only use the sharded table
     my $stories = $db->query( <<SQL
         SELECT *
-        FROM sharded_public.stories
+        FROM stories
 SQL
     )->hashes;
     for my $story ( @{ $stories } )
     {
         $db->create( 'stories_tags_map', { stories_id => $story->{ stories_id }, tags_id => $tag->{ tags_id } } );
 
-        # MC_CITUS_UNION_HACK tests should only use the sharded table
         my $ref_story = $db->query( <<SQL,
             SELECT *
-            FROM sharded_public.stories
+            FROM stories
             WHERE stories_id = ?
 SQL
             $story->{ stories_id } + 1
@@ -371,10 +368,9 @@ SQL
         is( $stm->{ tags_id }, $tag->{ tags_id }, "correct tag" );
     }
 
-    # MC_CITUS_UNION_HACK tests should only use the sharded table
     my $snapshot_stories = $db->query( <<SQL,
         SELECT *
-        FROM sharded_snap.stories
+        FROM snap.stories
         WHERE
             topics_id = ? AND
             snapshots_id = ?

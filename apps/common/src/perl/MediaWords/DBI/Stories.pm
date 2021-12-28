@@ -86,50 +86,7 @@ sub attach_story_meta_data_to_stories
 
     my $ids_table = $db->get_temporary_ids_table( [ map { int( $_->{ stories_id } ) } @{ $stories } ] );
 
-    # MC_CITUS_UNION_HACK: remove after sharding
     my $story_data = $db->query( <<SQL
-        WITH found_stories AS (
-            (
-                SELECT
-                    stories_id::BIGINT,
-                    media_id::BIGINT,
-                    url::TEXT,
-                    guid::TEXT,
-                    title,
-                    normalized_title_hash,
-                    description,
-                    publish_date,
-                    collect_date,
-                    full_text_rss,
-                    language
-                FROM unsharded_public.stories
-                WHERE stories_id IN (
-                    SELECT id
-                    FROM $ids_table
-                )
-            )
-            UNION
-            (
-                SELECT
-                    stories_id,
-                    media_id,
-                    url,
-                    guid,
-                    title,
-                    normalized_title_hash,
-                    description,
-                    publish_date,
-                    collect_date,
-                    full_text_rss,
-                    language
-                FROM sharded_public.stories
-                WHERE stories_id IN (
-                    SELECT id
-                    FROM $ids_table
-                )
-            )
-
-        )
         SELECT
             s.stories_id,
             s.title,
@@ -139,9 +96,13 @@ sub attach_story_meta_data_to_stories
             s.media_id,
             s.language,
             m.name AS media_name
-        FROM found_stories AS s
+        FROM stories AS s
             INNER JOIN media AS m ON
                 s.media_id = m.media_id
+        WHERE s.stories_id IN (
+            SELECT id
+            FROM $ids_table
+        )
 SQL
     )->hashes;
 

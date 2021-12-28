@@ -175,12 +175,7 @@ def create_test_story_stack_for_indexing(db: DatabaseHandler, data: dict) -> dic
 
     media = add_content_to_test_story_stack(db=db, story_stack=story_stack)
 
-    # MC_CITUS_UNION_HACK: tests use only the sharded table
-    test_stories = db.query("""
-        SELECT *
-        FROM sharded_public.stories
-        ORDER BY md5(stories_id::TEXT)
-    """).hashes()
+    test_stories = db.query("SELECT * FROM stories ORDER BY md5(stories_id::text)").hashes()
 
     # Add ancillary data so that it can be queried in Solr
     _add_story_tags_to_stories(db=db, stories=test_stories)
