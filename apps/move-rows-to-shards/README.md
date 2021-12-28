@@ -73,8 +73,6 @@
 
 # Tables to convert to UNION
 
-* [ ] `sub _fetch_list`
-
 * [ ] auth_user_request_daily_counts.email:
     * [ ] auth_user_request_daily_counts
 
@@ -86,7 +84,7 @@
     * [x] stories
     * [x] stories_ap_syndicated
     * [x] story_urls
-    * [x] feeds_stories_map_p_\d\d
+    * [ ] feeds_stories_map_p_\d\d
     * [ ] stories_tags_map_p_\d\d
     * [ ] story_sentences_p_\d\d
     * [ ] solr_import_stories

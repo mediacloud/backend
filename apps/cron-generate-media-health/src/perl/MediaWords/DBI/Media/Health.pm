@@ -608,13 +608,12 @@ SQL
     );
 
     $db->query( "UPDATE media_health SET has_active_feed = 'f'" );
-
-    # MC_CITUS_UNION_HACK this query was INNER JOINing feeds_stories_map for
-    # whatever reason
     $db->query( <<SQL
         WITH media_with_active_syndicated_feeds AS (
-            SELECT media_id
-            FROM feeds
+            SELECT f.media_id
+            FROM feeds AS f
+                INNER JOIN feeds_stories_map AS fsm ON
+                    f.feeds_id = fsm.feeds_id
             WHERE
                 active = 't' AND
                 type = 'syndicated'

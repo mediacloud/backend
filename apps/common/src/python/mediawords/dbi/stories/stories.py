@@ -430,19 +430,10 @@ def add_story(db: DatabaseHandler, story: dict, feeds_id: int) -> Optional[dict]
     # suddenly existing in an essentially read-only unsharded table so this
     # should be safe from race conditions. After migrating rows, one can
     # reset this statement to use a native upsert
-    # MC_CITUS_UNION_HACK simplify after sharding
     row_exists = db.query(
         """
-        SELECT stories_id::BIGINT
-        FROM unsharded_public.feeds_stories_map
-        WHERE
-            feeds_id = %(feeds_id)s AND
-            stories_id = %(stories_id)s
-
-        UNION
-
-        SELECT stories_id
-        FROM sharded_public.feeds_stories_map
+        SELECT 1
+        FROM feeds_stories_map
         WHERE
             feeds_id = %(feeds_id)s AND
             stories_id = %(stories_id)s

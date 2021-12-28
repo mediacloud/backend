@@ -378,23 +378,14 @@ SQL
 
     if ( int( $self->{ show_feeds } // 0 ) )
     {
-        # MC_CITUS_UNION_HACK simplify after sharding
         my $feed_data = $db->query( <<SQL
 
             WITH story_feed_ids AS (
                 SELECT
-                    stories_id::BIGINT,
-                    feeds_id::BIGINT
-                FROM unsharded_public.feeds_stories_map
-                WHERE stories_id IN ($ids_list)
-
-                UNION
-
-                SELECT
                     stories_id,
                     feeds_id
-                FROM sharded_public.feeds_stories_map
-                WHERE stories_id IN ($ids_list)                
+                FROM feeds_stories_map
+                WHERE stories_id IN ($ids_list)
             )
 
             SELECT
@@ -440,27 +431,14 @@ sub _get_object_ids
         die( "cannot specify both 'feeds_id' and either 'q' or 'fq'" )
           if ( $c->req->params->{ q } || $c->req->params->{ fq } );
 
-        # MC_CITUS_UNION_HACK simplify after sharding
         my $stories_ids = $db->query( <<SQL,
-            WITH _fsm_story_ids AS (
-                SELECT stories_id::BIGINT
-                FROM unsharded_public.feeds_stories_map
-                WHERE feeds_id = \$1
-
-                UNION
-
-                SELECT stories_id
-                FROM sharded_public.feeds_stories_map
-                WHERE feeds_id = \$1
-            )
             SELECT processed_stories.processed_stories_id
-            FROM processed_stories
-            WHERE stories_id IN (
-                SELECT stories_id
-                FROM _fsm_story_ids
-            )
-            ORDER BY stories_id DESC
-            LIMIT \$2
+            FROM feeds_stories_map
+                INNER JOIN processed_stories ON
+                    feeds_stories_map.stories_id = processed_stories.stories_id
+            WHERE feeds_stories_map.feeds_id = ?
+            ORDER BY feeds_stories_map.stories_id DESC
+            LIMIT ?
 SQL
             $feeds_id, $rows
         )->flat;
