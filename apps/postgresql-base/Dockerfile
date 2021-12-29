@@ -44,18 +44,24 @@ RUN \
 # Install WAL-G for backing up PostgreSQL
 RUN \
     if [ "$(dpkg --print-architecture)" = "arm64" ]; then \
-        echo "Currently there's no official ARM64 build for WAL-G." && \
-        exit 1; \
+        sudo apt-get -y install xz-utils && \
+        /dl_to_stdout.sh https://github.com/mediacloud/wal-g-aws-graviton2/releases/download/v1.1/wal-g-pg-ubuntu-20.04-arm64-graviton2.xz > /var/tmp/wal-g.xz && \
+        cd /var/tmp/ && \
+        xz -d wal-g.xz && \
+        mv wal-g wal-g-pg-ubuntu-20.04-amd64 && \
+        apt-get remove xz-utils && \
+        true; \
+    else \
+        /dl_to_stdout.sh https://github.com/wal-g/wal-g/releases/download/v1.1/wal-g-pg-ubuntu-20.04-amd64.tar.gz > /var/tmp/wal-g.tar.gz && \
+        cd /var/tmp/ && \
+        #
+        # Verify SHA1 so that we're sure about what we're installing
+        echo "f7cc6bf4d3f8e36cf05ae7fdd03bd3a0906359a3 wal-g.tar.gz" > /var/tmp/wal-g.tar.gz.sha1 && \
+        sha1sum -c wal-g.tar.gz.sha1 && \
+        tar -zxf wal-g.tar.gz && \
+        rm /var/tmp/wal-g.tar.gz* && \
+        true; \
     fi; \
-    #
-    /dl_to_stdout.sh https://github.com/wal-g/wal-g/releases/download/v1.1/wal-g-pg-ubuntu-20.04-amd64.tar.gz > /var/tmp/wal-g.tar.gz && \
-    cd /var/tmp/ && \
-    #
-    # Verify SHA1 so that we're sure about what we're installing
-    echo "f7cc6bf4d3f8e36cf05ae7fdd03bd3a0906359a3 wal-g.tar.gz" > /var/tmp/wal-g.tar.gz.sha1 && \
-    sha1sum -c wal-g.tar.gz.sha1 && \
-    tar -zxf wal-g.tar.gz && \
-    rm /var/tmp/wal-g.tar.gz* && \
     #
     # Users are expected to use wal-g.sh wrapper instead of "wal-g" binary directly
     mv wal-g-pg-ubuntu-20.04-amd64 /usr/bin/_wal-g && \
