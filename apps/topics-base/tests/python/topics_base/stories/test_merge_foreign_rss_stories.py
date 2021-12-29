@@ -57,7 +57,7 @@ def test_merge_foreign_rss_stories():
             SELECT
                 stories_id,
                 %(topics_id)s AS topics_id
-            FROM stories AS
+            FROM stories
     """, {
         'topics_id': int(topic['topics_id']),
     })
