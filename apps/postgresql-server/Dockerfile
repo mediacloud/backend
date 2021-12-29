@@ -47,11 +47,11 @@ RUN \
     echo "deb https://repos.citusdata.com/community/ubuntu/ focal main" \
         > /etc/apt/sources.list.d/citusdata_community.list && \
     apt-get -y update && \
-    sudo apt-get -y install postgresql-13-citus-10.2 && \
+    sudo apt-get -y install postgresql-14-citus-10.2 && \
     #
     true
 
-COPY etc/postgresql/13/extra/ /etc/postgresql/13/extra/
+COPY etc/postgresql/14/extra/ /etc/postgresql/14/extra/
 
 # Copy helper scripts, schema, migrations
 COPY bin/* /opt/postgresql-server/bin/
