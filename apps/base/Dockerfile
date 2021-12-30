@@ -27,8 +27,8 @@ ENV DEBIAN_FRONTEND=noninteractive \
 RUN \
     if [ "$(dpkg --print-architecture)" = "arm64" ]; then \
         export CFLAGS="-march=armv8.2-a+fp16+rcpc+dotprod+crypto -mcpu=neoverse-n1 -fsigned-char" && \
-        export CXXFLAGS="$CFLAGS" && \
-        export CPPFLAGS="$CFLAGS" && \
+        export CXXFLAGS=$CFLAGS && \
+        export CPPFLAGS=$CFLAGS && \
         true; \
     fi; \
     true
