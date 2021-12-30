@@ -43,12 +43,22 @@ RUN \
 
 # Install Citus Data
 RUN \
-    curl -fsSL https://repos.citusdata.com/community/gpgkey | apt-key add - && \
-    echo "deb https://repos.citusdata.com/community/ubuntu/ focal main" \
-        > /etc/apt/sources.list.d/citusdata_community.list && \
-    apt-get -y update && \
-    sudo apt-get -y install postgresql-14-citus-10.2 && \
-    #
+    if [ "$(dpkg --print-architecture)" = "arm64" ]; then \
+        /dl_to_stdout.sh "https://github.com/mediacloud/postgresql-citus-aws-graviton2/releases/download/14.1-2.pgdg20.04%2B1/postgresql-14-citus-10.2_10.2.3.citus-1_arm64.deb" > /var/tmp/citus.deb && \
+        apt-get -y --no-install-recommends install \
+            libcurl4-gnutls-dev \
+        && \
+        dpkg -i /var/tmp/citus.deb && \
+        rm /var/tmp/*.deb && \
+        true; \
+    else \
+        curl -fsSL https://repos.citusdata.com/community/gpgkey | apt-key add - && \
+        echo "deb https://repos.citusdata.com/community/ubuntu/ focal main" \
+            > /etc/apt/sources.list.d/citusdata_community.list && \
+        apt-get -y update && \
+        sudo apt-get -y install postgresql-14-citus-10.2 && \
+        true; \
+    fi; \
     true
 
 COPY etc/postgresql/14/extra/ /etc/postgresql/14/extra/
