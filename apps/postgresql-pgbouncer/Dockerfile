@@ -6,6 +6,7 @@ FROM gcr.io/mcback/postgresql-repo-base:latest
 
 # Install PgBouncer
 RUN \
+    apt-get -y update && \
     if [ "$(dpkg --print-architecture)" = "arm64" ]; then \
         echo "Installing Graviton2-optimized PgBouncer..." && \
         /dl_to_stdout.sh "https://github.com/mediacloud/postgresql-aws-graviton2/releases/download/14.1-1.pgdg20.04%2B1/pgbouncer_1.15.0-1.pgdg20.04+1_arm64.deb" > /var/tmp/pgbouncer.deb && \
