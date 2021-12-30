@@ -12,20 +12,12 @@ RUN apt-get -y --no-install-recommends install python3
 # Install packages
 RUN \
     #
-    # Install PostgreSQL 11 (oldest version)
+    # Install PostgreSQL 13 (version to upgrade from)
     apt-get -y --no-install-recommends install \
-        postgresql-11 \
-        postgresql-client-11 \
-        postgresql-contrib-11 \
-        postgresql-plperl-11 \
-    && \
-    #
-    # Install PostgreSQL 12 (intermediate version)
-    apt-get -y --no-install-recommends install \
-        postgresql-12 \
-        postgresql-client-12 \
-        postgresql-contrib-12 \
-        postgresql-plperl-12 \
+        postgresql-13 \
+        postgresql-client-13 \
+        postgresql-contrib-13 \
+        postgresql-plperl-13 \
     && \
     #
     true
@@ -42,8 +34,7 @@ RUN \
     rm -rf /var/lib/postgresql/* && \
     #
     # Remove extra configurations leaving only the one from parent "postgresql-base"
-    rm -rf /etc/postgresql/11/ && \
-    rm -rf /etc/postgresql/12/ && \
+    rm -rf /etc/postgresql/13/ && \
     #
     true
 
