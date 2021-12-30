@@ -23,6 +23,16 @@ ENV DEBIAN_FRONTEND=noninteractive \
     # Don't create .pyc files
     PYTHONDONTWRITEBYTECODE=1
 
+# Enable LSE on ARM64
+RUN \
+    if [ "$(dpkg --print-architecture)" = "arm64" ]; then \
+        export CFLAGS="-march=armv8.2-a+fp16+rcpc+dotprod+crypto -mcpu=neoverse-n1 -fsigned-char" && \
+        export CXXFLAGS=$CFLAGS && \
+        export CPPFLAGS=$CFLAGS && \
+        true; \
+    fi; \
+    true
+
 # Use mirror closest to us
 COPY conf/apt/sources-amd64.list conf/apt/sources-arm64.list /etc/apt/
 
