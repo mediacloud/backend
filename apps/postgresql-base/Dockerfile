@@ -10,10 +10,10 @@ RUN \
     apt-get -y update && \
     if [ "$(dpkg --print-architecture)" = "arm64" ]; then \
         echo "Installing Graviton2-optimized PostgreSQL..." && \
-        /dl_to_stdout.sh "https://github.com/mediacloud/postgresql-aws-graviton2/releases/download/14.1-1.pgdg20.04%2B1/postgresql-14_14.1-1.pgdg20.04+1_arm64.deb" > /var/tmp/postgresql-14.deb && \
-        /dl_to_stdout.sh "https://github.com/mediacloud/postgresql-aws-graviton2/releases/download/14.1-1.pgdg20.04%2B1/postgresql-client-14_14.1-1.pgdg20.04+1_arm64.deb" > /var/tmp/postgresql-client-14.deb && \
-        /dl_to_stdout.sh "https://github.com/mediacloud/postgresql-aws-graviton2/releases/download/14.1-1.pgdg20.04%2B1/postgresql-plperl-14_14.1-1.pgdg20.04+1_arm64.deb" > /var/tmp/postgresql-plperl-14.deb && \
-        /dl_to_stdout.sh "https://github.com/mediacloud/postgresql-aws-graviton2/releases/download/14.1-1.pgdg20.04%2B1/libpq5_14.1-1.pgdg20.04+1_arm64.deb" > /var/tmp/libpq5.deb && \
+        /dl_to_stdout.sh "https://github.com/mediacloud/postgresql-citus-aws-graviton2/releases/download/14.1-2.pgdg20.04%2B1/postgresql-14_14.1-2.pgdg20.04+1_arm64.deb" > /var/tmp/postgresql-14.deb && \
+        /dl_to_stdout.sh "https://github.com/mediacloud/postgresql-citus-aws-graviton2/releases/download/14.1-2.pgdg20.04%2B1/postgresql-client-14_14.1-2.pgdg20.04+1_arm64.deb" > /var/tmp/postgresql-client-14.deb && \
+        /dl_to_stdout.sh "https://github.com/mediacloud/postgresql-citus-aws-graviton2/releases/download/14.1-2.pgdg20.04%2B1/postgresql-plperl-14_14.1-2.pgdg20.04+1_arm64.deb" > /var/tmp/postgresql-plperl-14.deb && \
+        /dl_to_stdout.sh "https://github.com/mediacloud/postgresql-citus-aws-graviton2/releases/download/14.1-2.pgdg20.04%2B1/libpq5_14.1-2.pgdg20.04+1_arm64.deb" > /var/tmp/libpq5.deb && \
         apt-get -y --no-install-recommends install \
             postgresql-client-common \
             postgresql-common \
