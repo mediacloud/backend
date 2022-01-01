@@ -1724,27 +1724,27 @@ ALTER TABLE unsharded_public.topic_media_codes
 ALTER TABLE unsharded_public.topic_permissions
     DROP CONSTRAINT topic_permissions_topics_id_fkey;
 ALTER TABLE unsharded_public.topic_query_story_searches_imported_stories_map
-    DROP CONSTRAINT topic_query_story_searches_imported_stories_map_topics_id_fkey;
+    DROP CONSTRAINT IF EXISTS topic_query_story_searches_imported_stories_map_topics_id_fkey;
 ALTER TABLE unsharded_public.topic_seed_queries
     DROP CONSTRAINT topic_seed_queries_topics_id_fkey;
 ALTER TABLE unsharded_public.topic_seed_urls
     -- Exists only in production
     DROP CONSTRAINT IF EXISTS controversy_seed_urls_controversies_id_fkey;
 ALTER TABLE unsharded_public.topic_seed_urls
-    DROP CONSTRAINT topic_seed_urls_topics_id_fkey;
+    DROP CONSTRAINT IF EXISTS topic_seed_urls_topics_id_fkey;
 ALTER TABLE unsharded_public.topic_spider_metrics
     DROP CONSTRAINT topic_spider_metrics_topics_id_fkey;
 ALTER TABLE unsharded_public.topic_stories
     -- Exists only in production
     DROP CONSTRAINT IF EXISTS controversy_stories_controversies_id_fkey;
 ALTER TABLE unsharded_public.topic_stories
-    DROP CONSTRAINT topic_stories_topics_id_fkey;
+    DROP CONSTRAINT IF EXISTS topic_stories_topics_id_fkey;
 ALTER TABLE unsharded_public.topics_media_map
     DROP CONSTRAINT topics_media_map_topics_id_fkey;
 ALTER TABLE unsharded_public.topics_media_tags_map
     DROP CONSTRAINT topics_media_tags_map_topics_id_fkey;
 ALTER TABLE unsharded_snap.live_stories
-    DROP CONSTRAINT live_stories_topics_id_fkey;
+    DROP CONSTRAINT IF EXISTS live_stories_topics_id_fkey;
 
 TRUNCATE unsharded_public.topics;
 DROP TABLE unsharded_public.topics;
@@ -2291,7 +2291,7 @@ ALTER TABLE unsharded_snap.timespan_posts
     -- Only on production (misspelled?)
     DROP CONSTRAINT IF EXISTS timespan_tweets_timespans_id_fkey;
 ALTER TABLE unsharded_snap.timespan_posts
-    DROP CONSTRAINT timespan_posts_timespans_id_fkey;
+    DROP CONSTRAINT IF EXISTS timespan_posts_timespans_id_fkey;
 
 TRUNCATE unsharded_public.timespans;
 DROP TABLE unsharded_public.timespans;
@@ -3594,15 +3594,6 @@ WHERE backend_type = 'autovacuum worker'
 ALTER TABLE unsharded_public.topic_merged_stories_map
     -- Only in production
     DROP CONSTRAINT IF EXISTS controversy_merged_stories_map_target_stories_id_fkey;
-
-SELECT pid
-FROM pg_stat_activity,
-     LATERAL pg_cancel_backend(pid) f
-WHERE backend_type = 'autovacuum worker'
-  AND query ~ 'stories';
-
-ALTER TABLE unsharded_public.topic_query_story_searches_imported_stories_map
-    DROP CONSTRAINT IF EXISTS topic_query_story_searches_imported_stories_map_stories_id_fkey;
 
 SELECT pid
 FROM pg_stat_activity,
