@@ -146,7 +146,7 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
         futures = []
 
         for start_id in range(min_id, max_id + chunk_size, chunk_size):
-            end_id = start_id + chunk_size
+            end_id = start_id + chunk_size - 1
 
             sql_queries_with_ids = []
 
