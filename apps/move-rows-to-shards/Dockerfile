@@ -14,4 +14,11 @@ COPY bin /opt/mediacloud/bin
 
 USER mediacloud
 
-CMD ["workflow_worker.py"]
+# Set a failing CMD because we'll be using the same image to run:
+#
+# * "workflow_worker.py" - processes workflow;
+# * "activities_worker.py" - processes workflow's activities.
+#
+# so the user is expected to set "command" in docker-compose.yml to run a specific worker.
+#
+CMD ["SET_CONTAINER_COMMAND_TO_ONE_OF_THE_WORKERS"]
