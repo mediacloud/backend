@@ -982,6 +982,35 @@ services:
                     memory: "128M"
 
     #
+    # Move rows from unsharded tables to sharded ones
+    # -----------------------------------------------
+    #
+    move-rows-to-shards:
+        image: gcr.io/mcback/move-rows-to-shards:release
+        init: true
+        networks:
+            - default
+        depends_on:
+            - postgresql-pgbouncer
+            - temporal-server
+        deploy:
+            <<: *misc-apps_deploy_placement_constraints
+            <<: *endpoint-mode-dnsrr
+            # Worker count
+            replicas: 1
+            restart_policy:
+                # Automatically restart on non-zero exit codes only instead of on any exit
+                condition: on-failure
+                # Autorestart up to three times
+                max_attempts: 3
+            resources:
+                limits:
+                    # CPU core limit
+                    cpus: "2"
+                    # RAM limit
+                    memory: "2G"
+
+    #
     # Munin Cron stats collector
     # --------------------------
     #
