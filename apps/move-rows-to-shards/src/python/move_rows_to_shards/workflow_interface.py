@@ -26,7 +26,9 @@ class MoveRowsToShardsActivities(object):
 
     @activity_method(
         task_queue=TASK_QUEUE,
-        start_to_close_timeout=timedelta(minutes=1),
+        # If we need to rerun everything, min. value might take a while to find
+        # because we'll be skipping a bunch of dead tuples
+        start_to_close_timeout=timedelta(hours=2),
         retry_parameters=DEFAULT_RETRY_PARAMETERS,
     )
     async def min_column_value(self, table: str, id_column: str) -> Optional[int]:
@@ -41,7 +43,9 @@ class MoveRowsToShardsActivities(object):
 
     @activity_method(
         task_queue=TASK_QUEUE,
-        start_to_close_timeout=timedelta(minutes=1),
+        # If we need to rerun everything, max. value might take a while to find
+        # because we'll be skipping a bunch of dead tuples
+        start_to_close_timeout=timedelta(hours=2),
         retry_parameters=DEFAULT_RETRY_PARAMETERS,
     )
     async def max_column_value(self, table: str, id_column: str) -> Optional[int]:
@@ -56,8 +60,8 @@ class MoveRowsToShardsActivities(object):
 
     @activity_method(
         task_queue=TASK_QUEUE,
-        # We should be able to hopefully move at least a chunk a day
-        start_to_close_timeout=timedelta(days=1),
+        # We should be able to hopefully move at least a chunk every 12 hours
+        start_to_close_timeout=timedelta(hours=12),
         retry_parameters=DEFAULT_RETRY_PARAMETERS,
     )
     async def run_queries_in_transaction(self, sql_queries: List[str]) -> None:
