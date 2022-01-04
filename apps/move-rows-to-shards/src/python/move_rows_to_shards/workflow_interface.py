@@ -60,8 +60,8 @@ class MoveRowsToShardsActivities(object):
 
     @activity_method(
         task_queue=TASK_QUEUE,
-        # We should be able to hopefully move at least a chunk every 12 hours
-        start_to_close_timeout=timedelta(hours=12),
+        # We should be able to hopefully move at least a chunk every 36 hours
+        start_to_close_timeout=timedelta(hours=36),
         retry_parameters=DEFAULT_RETRY_PARAMETERS,
     )
     async def run_queries_in_transaction(self, sql_queries: List[str]) -> None:
