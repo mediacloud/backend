@@ -79,7 +79,7 @@ class MoveRowsToShardsActivities(object):
         task_queue=TASK_QUEUE,
         # Making sure that the table is empty might take a while; plus, if TRUNCATE doesn't manage to complete in the
         # allotted time, that probably means it has locked out somewhere and that we should retry instead of waiting
-        start_to_close_timeout=timedelta(hours=2),
+        start_to_close_timeout=timedelta(hours=12),
         retry_parameters=DEFAULT_RETRY_PARAMETERS,
     )
     async def truncate_if_empty(self, table: str) -> None:
