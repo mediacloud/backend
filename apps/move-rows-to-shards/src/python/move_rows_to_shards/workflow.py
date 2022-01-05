@@ -65,18 +65,18 @@ class MoveRowsToShardsActivitiesImpl(MoveRowsToShardsActivities):
         # FIXME so much for fancy workflows
         skip_already_copied_stories_chunks = False
         already_copied_chunk_query_excerpts = [
-            'unsharded_public.stories WHERE stories_id BETWEEN 1600000002 AND 1700000001',
-            'unsharded_public.stories WHERE stories_id BETWEEN 700000002 AND 800000001',
-            'unsharded_public.stories WHERE stories_id BETWEEN 1300000002 AND 1400000001',
-            'unsharded_public.stories WHERE stories_id BETWEEN 1200000002 AND 1300000001',
-            'unsharded_public.stories WHERE stories_id BETWEEN 1900000002 AND 2000000001',
-            'unsharded_public.stories WHERE stories_id BETWEEN 900000002 AND 1000000001',
             'unsharded_public.stories WHERE stories_id BETWEEN 1000000002 AND 1100000001',
-            'unsharded_public.stories WHERE stories_id BETWEEN 1800000002 AND 1900000001',
-            'unsharded_public.stories WHERE stories_id BETWEEN 400000002 AND 500000001',
-            'unsharded_public.stories WHERE stories_id BETWEEN 800000002 AND 900000001',
-            'unsharded_public.stories WHERE stories_id BETWEEN 2000000002 AND 2100000001',
+            'unsharded_public.stories WHERE stories_id BETWEEN 1200000002 AND 1300000001',
+            'unsharded_public.stories WHERE stories_id BETWEEN 1300000002 AND 1400000001',
             'unsharded_public.stories WHERE stories_id BETWEEN 1400000002 AND 1500000001',
+            'unsharded_public.stories WHERE stories_id BETWEEN 1600000002 AND 1700000001',
+            'unsharded_public.stories WHERE stories_id BETWEEN 1800000002 AND 1900000001',
+            'unsharded_public.stories WHERE stories_id BETWEEN 1900000002 AND 2000000001',
+            'unsharded_public.stories WHERE stories_id BETWEEN 2000000002 AND 2100000001',
+            'unsharded_public.stories WHERE stories_id BETWEEN 400000002 AND 500000001',
+            'unsharded_public.stories WHERE stories_id BETWEEN 700000002 AND 800000001',
+            'unsharded_public.stories WHERE stories_id BETWEEN 800000002 AND 900000001',
+            'unsharded_public.stories WHERE stories_id BETWEEN 900000002 AND 1000000001',
         ]
         if len(sql_queries) == 1:
             for query_excerpt in already_copied_chunk_query_excerpts:
