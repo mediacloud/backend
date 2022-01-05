@@ -280,59 +280,6 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
         )
 
         await self._move_table(
-            src_table='unsharded_public.stories',
-            src_id_column='stories_id',
-            # 2,119,319,121 in source table; 22 chunks
-            chunk_size=100_000_000,
-            sql_queries=[
-                f"""
-                    WITH deleted_rows AS (
-                        DELETE FROM unsharded_public.stories
-                        WHERE stories_id BETWEEN {self.__START_ID_MARKER} AND {self.__END_ID_MARKER}
-                        RETURNING
-                            stories_id,
-                            media_id,
-                            url,
-                            guid,
-                            title,
-                            normalized_title_hash,
-                            description,
-                            publish_date,
-                            collect_date,
-                            full_text_rss,
-                            language
-                    )
-                    INSERT INTO sharded_public.stories (
-                        stories_id,
-                        media_id,
-                        url,
-                        guid,
-                        title,
-                        normalized_title_hash,
-                        description,
-                        publish_date,
-                        collect_date,
-                        full_text_rss,
-                        language
-                    )
-                        SELECT
-                            stories_id::BIGINT,
-                            media_id::BIGINT,
-                            url::TEXT,
-                            guid::TEXT,
-                            title,
-                            normalized_title_hash,
-                            description,
-                            publish_date,
-                            collect_date,
-                            full_text_rss,
-                            language
-                        FROM deleted_rows
-                """
-            ],
-        )
-
-        await self._move_table(
             src_table='unsharded_public.stories_ap_syndicated',
             src_id_column='stories_ap_syndicated_id',
             # 1,715,725,719 in source table; 18 chunks
@@ -1914,3 +1861,5 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
                 """
             ],
         )
+
+        await self.activities.truncate_if_empty('unsharded_public.stories')
