@@ -66,14 +66,23 @@ class MoveRowsToShardsActivitiesImpl(MoveRowsToShardsActivities):
         skip_already_copied_stories_chunks = False
         already_copied_chunk_query_excerpts = [
             'unsharded_public.stories WHERE stories_id BETWEEN 1000000002 AND 1100000001',
+            'unsharded_public.stories WHERE stories_id BETWEEN 1100000002 AND 1200000001',
             'unsharded_public.stories WHERE stories_id BETWEEN 1200000002 AND 1300000001',
             'unsharded_public.stories WHERE stories_id BETWEEN 1300000002 AND 1400000001',
             'unsharded_public.stories WHERE stories_id BETWEEN 1400000002 AND 1500000001',
+            'unsharded_public.stories WHERE stories_id BETWEEN 1500000002 AND 1600000001',
             'unsharded_public.stories WHERE stories_id BETWEEN 1600000002 AND 1700000001',
+            'unsharded_public.stories WHERE stories_id BETWEEN 1700000002 AND 1800000001',
             'unsharded_public.stories WHERE stories_id BETWEEN 1800000002 AND 1900000001',
             'unsharded_public.stories WHERE stories_id BETWEEN 1900000002 AND 2000000001',
             'unsharded_public.stories WHERE stories_id BETWEEN 2000000002 AND 2100000001',
+            'unsharded_public.stories WHERE stories_id BETWEEN 2100000002 AND 2200000001',
+            # BETWEEN 100000002 AND 200000001
+            'unsharded_public.stories WHERE stories_id BETWEEN 200000002 AND 300000001',
+            'unsharded_public.stories WHERE stories_id BETWEEN 300000002 AND 400000001',
             'unsharded_public.stories WHERE stories_id BETWEEN 400000002 AND 500000001',
+            # BETWEEN 500000002 AND 600000001
+            'unsharded_public.stories WHERE stories_id BETWEEN 600000002 AND 700000001',
             'unsharded_public.stories WHERE stories_id BETWEEN 700000002 AND 800000001',
             'unsharded_public.stories WHERE stories_id BETWEEN 800000002 AND 900000001',
             'unsharded_public.stories WHERE stories_id BETWEEN 900000002 AND 1000000001',
