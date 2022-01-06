@@ -357,6 +357,7 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
                             stories_id::BIGINT,
                             ap_syndicated
                         FROM deleted_rows
+                    ON CONFLICT (stories_id) DO NOTHING
                 """
             ],
         )
