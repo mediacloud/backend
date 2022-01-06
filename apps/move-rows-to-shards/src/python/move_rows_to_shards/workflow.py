@@ -804,120 +804,125 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
             ],
         )
 
-        max_downloads_id = await self.activities.max_column_value('unsharded_public.downloads', 'downloads_id')
         downloads_id_chunk_size = stories_id_chunk_size
 
-        downloads_success_content_move_futures = []
-        downloads_success_content_truncate_futures = []
+        max_downloads_id = await self.activities.max_column_value('unsharded_public.downloads', 'downloads_id')
+        if max_downloads_id:
 
-        for partition_index in range(int(max_downloads_id / downloads_id_chunk_size) + 1):
-            downloads_success_content_move_futures.append(
-                Async.function(
-                    self.activities.run_queries_in_transaction,
-                    [
-                        self._prettify_sql_query(f"""
-                            WITH deleted_rows AS (
-                                DELETE FROM unsharded_public.downloads_success_content_{str(partition_index).zfill(2)}
-                                RETURNING {downloads_id_src_columns}
-                            )
-                            INSERT INTO sharded_public.downloads_success ({downloads_id_src_columns})
-                                SELECT {downloads_id_dst_columns}
-                                FROM deleted_rows
-                        """)
-                    ]
+            downloads_success_content_move_futures = []
+            downloads_success_content_truncate_futures = []
+
+            for partition_index in range(int(max_downloads_id / downloads_id_chunk_size) + 1):
+                downloads_success_content_move_futures.append(
+                    Async.function(
+                        self.activities.run_queries_in_transaction,
+                        [
+                            self._prettify_sql_query(f"""
+                                WITH deleted_rows AS (
+                                    DELETE FROM unsharded_public.downloads_success_content_{str(partition_index).zfill(2)}
+                                    RETURNING {downloads_id_src_columns}
+                                )
+                                INSERT INTO sharded_public.downloads_success ({downloads_id_src_columns})
+                                    SELECT {downloads_id_dst_columns}
+                                    FROM deleted_rows
+                            """)
+                        ]
+                    )
                 )
-            )
 
-            downloads_success_content_truncate_futures.append(
-                Async.function(
-                    self.activities.truncate_if_empty,
-                    f'unsharded_public.downloads_success_content_{str(partition_index).zfill(2)}',
+                downloads_success_content_truncate_futures.append(
+                    Async.function(
+                        self.activities.truncate_if_empty,
+                        f'unsharded_public.downloads_success_content_{str(partition_index).zfill(2)}',
+                    )
                 )
-            )
 
-        await Async.all_of(downloads_success_content_move_futures)
-        await Async.all_of(downloads_success_content_truncate_futures)
-        del downloads_success_content_move_futures
-        del downloads_success_content_truncate_futures
+            await Async.all_of(downloads_success_content_move_futures)
+            await Async.all_of(downloads_success_content_truncate_futures)
+            del downloads_success_content_move_futures
+            del downloads_success_content_truncate_futures
 
-        downloads_success_feed_move_futures = []
-        downloads_success_feed_truncate_futures = []
+            downloads_success_feed_move_futures = []
+            downloads_success_feed_truncate_futures = []
 
-        for partition_index in range(int(max_downloads_id / downloads_id_chunk_size) + 1):
-            downloads_success_feed_move_futures.append(
-                Async.function(
-                    self.activities.run_queries_in_transaction,
-                    [
-                        self._prettify_sql_query(f"""
-                            WITH deleted_rows AS (
-                                DELETE FROM unsharded_public.downloads_success_feed_{str(partition_index).zfill(2)}
-                                RETURNING {downloads_id_src_columns}
-                            )
-                            INSERT INTO sharded_public.downloads_success ({downloads_id_src_columns})
-                                SELECT {downloads_id_dst_columns}
-                                FROM deleted_rows
-                        """)
-                    ]
+            for partition_index in range(int(max_downloads_id / downloads_id_chunk_size) + 1):
+                downloads_success_feed_move_futures.append(
+                    Async.function(
+                        self.activities.run_queries_in_transaction,
+                        [
+                            self._prettify_sql_query(f"""
+                                WITH deleted_rows AS (
+                                    DELETE FROM unsharded_public.downloads_success_feed_{str(partition_index).zfill(2)}
+                                    RETURNING {downloads_id_src_columns}
+                                )
+                                INSERT INTO sharded_public.downloads_success ({downloads_id_src_columns})
+                                    SELECT {downloads_id_dst_columns}
+                                    FROM deleted_rows
+                            """)
+                        ]
+                    )
                 )
-            )
 
-            downloads_success_feed_truncate_futures.append(
-                Async.function(
-                    self.activities.truncate_if_empty,
-                    f'unsharded_public.downloads_success_feed_{str(partition_index).zfill(2)}',
+                downloads_success_feed_truncate_futures.append(
+                    Async.function(
+                        self.activities.truncate_if_empty,
+                        f'unsharded_public.downloads_success_feed_{str(partition_index).zfill(2)}',
+                    )
                 )
-            )
 
-        await Async.all_of(downloads_success_feed_move_futures)
-        await Async.all_of(downloads_success_feed_truncate_futures)
-        del downloads_success_feed_move_futures
-        del downloads_success_feed_truncate_futures
+            await Async.all_of(downloads_success_feed_move_futures)
+            await Async.all_of(downloads_success_feed_truncate_futures)
+            del downloads_success_feed_move_futures
+            del downloads_success_feed_truncate_futures
 
-        download_texts_move_futures = []
-        download_texts_truncate_futures = []
+        max_downloads_id = await self.activities.max_column_value('unsharded_public.download_texts', 'downloads_id')
+        if max_downloads_id:
 
-        for partition_index in range(int(max_downloads_id / downloads_id_chunk_size) + 1):
-            download_texts_move_futures.append(
-                Async.function(
-                    self.activities.run_queries_in_transaction,
-                    [
-                        self._prettify_sql_query(f"""
-                            WITH deleted_rows AS (
-                                DELETE FROM unsharded_public.download_texts_{str(partition_index).zfill(2)}
-                                RETURNING
+            download_texts_move_futures = []
+            download_texts_truncate_futures = []
+
+            for partition_index in range(int(max_downloads_id / downloads_id_chunk_size) + 1):
+                download_texts_move_futures.append(
+                    Async.function(
+                        self.activities.run_queries_in_transaction,
+                        [
+                            self._prettify_sql_query(f"""
+                                WITH deleted_rows AS (
+                                    DELETE FROM unsharded_public.download_texts_{str(partition_index).zfill(2)}
+                                    RETURNING
+                                        download_texts_id,
+                                        downloads_id,
+                                        download_text,
+                                        download_text_length
+                                )
+                                INSERT INTO sharded_public.download_texts (
                                     download_texts_id,
                                     downloads_id,
                                     download_text,
                                     download_text_length
-                            )
-                            INSERT INTO sharded_public.download_texts (
-                                download_texts_id,
-                                downloads_id,
-                                download_text,
-                                download_text_length
-                            )
-                                SELECT
-                                    download_texts_id,
-                                    downloads_id,
-                                    download_text,
-                                    download_text_length
-                                FROM deleted_rows
-                        """)
-                    ]
+                                )
+                                    SELECT
+                                        download_texts_id,
+                                        downloads_id,
+                                        download_text,
+                                        download_text_length
+                                    FROM deleted_rows
+                            """)
+                        ]
+                    )
                 )
-            )
 
-            download_texts_truncate_futures.append(
-                Async.function(
-                    self.activities.truncate_if_empty,
-                    f'unsharded_public.download_texts_{str(partition_index).zfill(2)}',
+                download_texts_truncate_futures.append(
+                    Async.function(
+                        self.activities.truncate_if_empty,
+                        f'unsharded_public.download_texts_{str(partition_index).zfill(2)}',
+                    )
                 )
-            )
 
-        await Async.all_of(download_texts_move_futures)
-        await Async.all_of(download_texts_truncate_futures)
-        del download_texts_move_futures
-        del download_texts_truncate_futures
+            await Async.all_of(download_texts_move_futures)
+            await Async.all_of(download_texts_truncate_futures)
+            del download_texts_move_futures
+            del download_texts_truncate_futures
 
         await self._move_table(
             src_table=f'unsharded_public.topic_stories',
