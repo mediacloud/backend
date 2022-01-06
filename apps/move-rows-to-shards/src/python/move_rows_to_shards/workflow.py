@@ -421,7 +421,7 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
                                         feeds_stories_map_p_id::BIGINT AS feeds_stories_map_id,
                                         feeds_id::BIGINT,
                                         stories_id::BIGINT
-                                    FROM deleted_rows                
+                                    FROM deleted_rows
                             """)
                         ]
                     )
