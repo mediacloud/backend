@@ -391,108 +391,126 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
             ],
         )
 
-        max_stories_id = await self.activities.max_column_value('unsharded_public.feeds_stories_map', 'stories_id')
         stories_id_chunk_size = 100_000_000
 
-        feeds_stories_map_move_futures = []
-        feeds_stories_map_truncate_futures = []
+        max_stories_id = await self.activities.max_column_value('unsharded_public.feeds_stories_map', 'stories_id')
+        if max_stories_id is not None:
 
-        for partition_index in range(int(max_stories_id / stories_id_chunk_size) + 1):
-            feeds_stories_map_move_futures.append(
-                Async.function(
-                    self.activities.run_queries_in_transaction,
-                    [
-                        self._prettify_sql_query(f"""
-                            WITH deleted_rows AS (
-                                DELETE FROM unsharded_public.feeds_stories_map_p_{str(partition_index).zfill(2)}
-                                RETURNING
-                                    feeds_stories_map_p_id,
+            feeds_stories_map_move_futures = []
+            feeds_stories_map_truncate_futures = []
+
+            for partition_index in range(int(max_stories_id / stories_id_chunk_size) + 1):
+                feeds_stories_map_move_futures.append(
+                    Async.function(
+                        self.activities.run_queries_in_transaction,
+                        [
+                            self._prettify_sql_query(f"""
+                                WITH deleted_rows AS (
+                                    DELETE FROM unsharded_public.feeds_stories_map_p_{str(partition_index).zfill(2)}
+                                    RETURNING
+                                        feeds_stories_map_p_id,
+                                        feeds_id,
+                                        stories_id
+                                )
+                                INSERT INTO sharded_public.feeds_stories_map (
+                                    feeds_stories_map_id,
                                     feeds_id,
                                     stories_id
-                            )
-                            INSERT INTO sharded_public.feeds_stories_map (
-                                feeds_stories_map_id,
-                                feeds_id,
-                                stories_id
-                            )
-                                SELECT
-                                    feeds_stories_map_p_id::BIGINT AS feeds_stories_map_id,
-                                    feeds_id::BIGINT,
-                                    stories_id::BIGINT
-                                FROM deleted_rows                
-                        """)
-                    ]
+                                )
+                                    SELECT
+                                        feeds_stories_map_p_id::BIGINT AS feeds_stories_map_id,
+                                        feeds_id::BIGINT,
+                                        stories_id::BIGINT
+                                    FROM deleted_rows                
+                            """)
+                        ]
+                    )
                 )
-            )
 
-            feeds_stories_map_truncate_futures.append(
-                Async.function(
-                    self.activities.truncate_if_empty,
-                    f'unsharded_public.feeds_stories_map_p_{str(partition_index).zfill(2)}'
+                feeds_stories_map_truncate_futures.append(
+                    Async.function(
+                        self.activities.truncate_if_empty,
+                        f'unsharded_public.feeds_stories_map_p_{str(partition_index).zfill(2)}'
+                    )
                 )
-            )
 
-        await Async.all_of(feeds_stories_map_move_futures)
-        await Async.all_of(feeds_stories_map_truncate_futures)
-        del feeds_stories_map_move_futures
-        del feeds_stories_map_truncate_futures
+            await Async.all_of(feeds_stories_map_move_futures)
+            await Async.all_of(feeds_stories_map_truncate_futures)
+            del feeds_stories_map_move_futures
+            del feeds_stories_map_truncate_futures
 
-        stories_tags_map_move_futures = []
-        stories_tags_map_truncate_futures = []
+        max_stories_id = await self.activities.max_column_value('unsharded_public.stories_tags_map', 'stories_id')
+        if max_stories_id is not None:
 
-        for partition_index in range(int(max_stories_id / stories_id_chunk_size) + 1):
-            stories_tags_map_move_futures.append(
-                Async.function(
-                    self.activities.run_queries_in_transaction,
-                    [
-                        self._prettify_sql_query(f"""
-                            WITH deleted_rows AS (
-                                DELETE FROM unsharded_public.stories_tags_map_p_{str(partition_index).zfill(2)}
-                                RETURNING
-                                    stories_tags_map_p_id,
+            stories_tags_map_move_futures = []
+            stories_tags_map_truncate_futures = []
+
+            for partition_index in range(int(max_stories_id / stories_id_chunk_size) + 1):
+                stories_tags_map_move_futures.append(
+                    Async.function(
+                        self.activities.run_queries_in_transaction,
+                        [
+                            self._prettify_sql_query(f"""
+                                WITH deleted_rows AS (
+                                    DELETE FROM unsharded_public.stories_tags_map_p_{str(partition_index).zfill(2)}
+                                    RETURNING
+                                        stories_tags_map_p_id,
+                                        stories_id,
+                                        tags_id
+                                )
+                                INSERT INTO sharded_public.stories_tags_map (
+                                    stories_tags_map_id,
                                     stories_id,
                                     tags_id
-                            )
-                            INSERT INTO sharded_public.stories_tags_map (
-                                stories_tags_map_id,
-                                stories_id,
-                                tags_id
-                            )
-                                SELECT
-                                    stories_tags_map_p_id::BIGINT AS stories_tags_map_id,
-                                    stories_id::BIGINT,
-                                    tags_id::BIGINT
-                                FROM deleted_rows
-                        """)
-                    ]
+                                )
+                                    SELECT
+                                        stories_tags_map_p_id::BIGINT AS stories_tags_map_id,
+                                        stories_id::BIGINT,
+                                        tags_id::BIGINT
+                                    FROM deleted_rows
+                            """)
+                        ]
+                    )
                 )
-            )
 
-            stories_tags_map_truncate_futures.append(
-                Async.function(
-                    self.activities.truncate_if_empty,
-                    f'unsharded_public.stories_tags_map_p_{str(partition_index).zfill(2)}',
+                stories_tags_map_truncate_futures.append(
+                    Async.function(
+                        self.activities.truncate_if_empty,
+                        f'unsharded_public.stories_tags_map_p_{str(partition_index).zfill(2)}',
+                    )
                 )
-            )
 
-        await Async.all_of(stories_tags_map_move_futures)
-        await Async.all_of(stories_tags_map_truncate_futures)
-        del stories_tags_map_move_futures
-        del stories_tags_map_truncate_futures
+            await Async.all_of(stories_tags_map_move_futures)
+            await Async.all_of(stories_tags_map_truncate_futures)
+            del stories_tags_map_move_futures
+            del stories_tags_map_truncate_futures
 
-        story_sentences_move_futures = []
-        story_sentences_truncate_futures = []
+        max_stories_id = await self.activities.max_column_value('unsharded_public.story_sentences', 'stories_id')
+        if max_stories_id is not None:
 
-        for partition_index in range(int(max_stories_id / stories_id_chunk_size) + 1):
-            story_sentences_move_futures.append(
-                Async.function(
-                    self.activities.run_queries_in_transaction,
-                    [
-                        self._prettify_sql_query(f"""
-                            WITH deleted_rows AS (
-                                DELETE FROM unsharded_public.story_sentences_p_{str(partition_index).zfill(2)}
-                                RETURNING
-                                    story_sentences_p_id,
+            story_sentences_move_futures = []
+            story_sentences_truncate_futures = []
+
+            for partition_index in range(int(max_stories_id / stories_id_chunk_size) + 1):
+                story_sentences_move_futures.append(
+                    Async.function(
+                        self.activities.run_queries_in_transaction,
+                        [
+                            self._prettify_sql_query(f"""
+                                WITH deleted_rows AS (
+                                    DELETE FROM unsharded_public.story_sentences_p_{str(partition_index).zfill(2)}
+                                    RETURNING
+                                        story_sentences_p_id,
+                                        stories_id,
+                                        sentence_number,
+                                        sentence,
+                                        media_id,
+                                        publish_date,
+                                        language,
+                                        is_dup
+                                )
+                                INSERT INTO sharded_public.story_sentences (
+                                    story_sentences_id,
                                     stories_id,
                                     sentence_number,
                                     sentence,
@@ -500,43 +518,33 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
                                     publish_date,
                                     language,
                                     is_dup
-                            )
-                            INSERT INTO sharded_public.story_sentences (
-                                story_sentences_id,
-                                stories_id,
-                                sentence_number,
-                                sentence,
-                                media_id,
-                                publish_date,
-                                language,
-                                is_dup
-                            )
-                                SELECT
-                                    story_sentences_p_id::BIGINT AS story_sentences_id,
-                                    stories_id::BIGINT,
-                                    sentence_number,
-                                    sentence,
-                                    media_id::BIGINT,
-                                    publish_date,
-                                    language,
-                                    is_dup
-                                FROM deleted_rows
-                        """)
-                    ]
+                                )
+                                    SELECT
+                                        story_sentences_p_id::BIGINT AS story_sentences_id,
+                                        stories_id::BIGINT,
+                                        sentence_number,
+                                        sentence,
+                                        media_id::BIGINT,
+                                        publish_date,
+                                        language,
+                                        is_dup
+                                    FROM deleted_rows
+                            """)
+                        ]
+                    )
                 )
-            )
 
-            story_sentences_truncate_futures.append(
-                Async.function(
-                    self.activities.truncate_if_empty,
-                    f'unsharded_public.story_sentences_p_{str(partition_index).zfill(2)}',
+                story_sentences_truncate_futures.append(
+                    Async.function(
+                        self.activities.truncate_if_empty,
+                        f'unsharded_public.story_sentences_p_{str(partition_index).zfill(2)}',
+                    )
                 )
-            )
 
-        await Async.all_of(story_sentences_move_futures)
-        await Async.all_of(story_sentences_truncate_futures)
-        del story_sentences_move_futures
-        del story_sentences_truncate_futures
+            await Async.all_of(story_sentences_move_futures)
+            await Async.all_of(story_sentences_truncate_futures)
+            del story_sentences_move_futures
+            del story_sentences_truncate_futures
 
         await self._move_table(
             src_table=f'unsharded_public.solr_import_stories',
