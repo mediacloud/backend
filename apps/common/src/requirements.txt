@@ -8,7 +8,7 @@ beautifulsoup4==4.9.3
 # (Celery 5.x changed behaviour in how tasks get registered which would require
 # mediawords/job/ to be rewritten from the ground up so we're not going that
 # far here)
-Celery==4.4.7
+Celery==5.2.2
 
 # Detect encodings of web responses
 chardet==4.0.0
