@@ -1427,12 +1427,17 @@ CREATE INDEX stories_media_id ON stories (media_id);
 -- ensure that there are no (media_id, guid) duplicates
 CREATE INDEX stories_guid_media_id ON stories (guid, media_id);
 
-CREATE INDEX stories_url ON stories (url);
+-- Some URLs are too long to fit into a b-tree index so we hash them
+CREATE INDEX stories_url ON stories USING HASH (url);
+
 CREATE INDEX stories_publish_date ON stories (publish_date);
 CREATE INDEX stories_collect_date ON stories (collect_date);
 CREATE INDEX stories_media_id_publish_day ON stories (media_id, date_trunc('day', publish_date));
 CREATE INDEX stories_language ON stories (language);
-CREATE INDEX stories_title ON stories (title);
+
+-- Some titles are too long to fit into a b-tree index so we hash them
+CREATE INDEX stories_title ON stories USING HASH (title);
+
 CREATE INDEX stories_publish_day ON stories (date_trunc('day', publish_date));
 CREATE INDEX stories_media_id_normalized_title_hash ON stories (media_id, normalized_title_hash);
 
@@ -2450,7 +2455,9 @@ SELECT create_reference_table('topic_domains');
 
 CREATE INDEX topic_domains_topics_id ON topic_domains (topics_id);
 
-CREATE UNIQUE INDEX topic_domains_topics_id_domain ON topic_domains (topics_id, domain);
+-- Some domains could be too long to fit into a b-tree index so we md5() them
+CREATE UNIQUE INDEX topic_domains_topics_id_domain
+    ON topic_domains (topics_id, md5(domain));
 
 
 CREATE TABLE topic_stories
@@ -2616,7 +2623,8 @@ CREATE INDEX topic_fetch_urls_topics_id_state_pending
     ON topic_fetch_urls (topics_id)
     WHERE state = 'pending';
 
-CREATE INDEX topic_fetch_urls_url ON topic_fetch_urls (url);
+-- Some URLs are too long to fit into a b-tree index so we need to hash them
+CREATE INDEX topic_fetch_urls_url ON topic_fetch_urls USING HASH (url);
 CREATE INDEX topic_fetch_urls_topic_links_id ON topic_fetch_urls (topic_links_id);
 
 
@@ -3065,7 +3073,7 @@ CREATE INDEX topic_seed_urls_topics_id
     ON topic_seed_urls (topics_id);
 
 CREATE INDEX topic_seed_urls_url
-    ON topic_seed_urls (url);
+    ON topic_seed_urls USING HASH (url);
 
 CREATE INDEX topic_seed_urls_stories_id
     ON topic_seed_urls (stories_id);
