@@ -397,12 +397,12 @@ SELECT create_reference_table('tags');
 
 CREATE INDEX tags_tag_sets_id ON tags (tag_sets_id);
 CREATE UNIQUE INDEX tags_tag ON tags (tag, tag_sets_id);
-CREATE INDEX tags_label ON tags USING HASH (label);
+CREATE INDEX tags_label ON tags (label);
 -- noinspection SqlResolve
 CREATE INDEX tags_fts ON tags USING GIN (to_tsvector('english'::regconfig, tag || ' ' || label));
 
-CREATE INDEX tags_show_on_media ON tags USING HASH (show_on_media);
-CREATE INDEX tags_show_on_stories ON tags USING HASH (show_on_stories);
+CREATE INDEX tags_show_on_media ON tags (show_on_media);
+CREATE INDEX tags_show_on_stories ON tags (show_on_stories);
 
 INSERT INTO tag_sets (name, label, description)
 VALUES ('media_type',
@@ -1427,17 +1427,12 @@ CREATE INDEX stories_media_id ON stories (media_id);
 -- ensure that there are no (media_id, guid) duplicates
 CREATE INDEX stories_guid_media_id ON stories (guid, media_id);
 
-CREATE INDEX stories_url ON stories USING HASH (url);
+CREATE INDEX stories_url ON stories (url);
 CREATE INDEX stories_publish_date ON stories (publish_date);
 CREATE INDEX stories_collect_date ON stories (collect_date);
 CREATE INDEX stories_media_id_publish_day ON stories (media_id, date_trunc('day', publish_date));
-CREATE INDEX stories_language ON stories USING HASH (language);
-CREATE INDEX stories_title ON stories USING HASH (title);
-
--- Crawler currently queries for md5(title) so we have to keep this extra index
--- here while migrating rows from an unsharded table
-CREATE INDEX stories_title_hash ON stories USING HASH (md5(title));
-
+CREATE INDEX stories_language ON stories (language);
+CREATE INDEX stories_title ON stories (title);
 CREATE INDEX stories_publish_day ON stories (date_trunc('day', publish_date));
 CREATE INDEX stories_media_id_normalized_title_hash ON stories (media_id, normalized_title_hash);
 
@@ -2455,7 +2450,7 @@ SELECT create_reference_table('topic_domains');
 
 CREATE INDEX topic_domains_topics_id ON topic_domains (topics_id);
 
-CREATE UNIQUE INDEX topic_domains_topics_id_domain ON topic_domains (topics_id, md5(domain));
+CREATE UNIQUE INDEX topic_domains_topics_id_domain ON topic_domains (topics_id, domain);
 
 
 CREATE TABLE topic_stories
@@ -2621,11 +2616,7 @@ CREATE INDEX topic_fetch_urls_topics_id_state_pending
     ON topic_fetch_urls (topics_id)
     WHERE state = 'pending';
 
-CREATE INDEX topic_fetch_urls_url ON topic_fetch_urls USING HASH (url);
-
--- MC_CITUS_SHARDING_UPDATABLE_VIEW_HACK Remove backwards compatible index after sharding
-CREATE INDEX topic_fetch_urls_url_md5 ON topic_fetch_urls USING HASH (md5(url));
-
+CREATE INDEX topic_fetch_urls_url ON topic_fetch_urls (url);
 CREATE INDEX topic_fetch_urls_topic_links_id ON topic_fetch_urls (topic_links_id);
 
 
@@ -2637,7 +2628,7 @@ CREATE TABLE topic_ignore_redirects
 
 SELECT create_reference_table('topic_ignore_redirects');
 
-CREATE INDEX topic_ignore_redirects_url ON topic_ignore_redirects USING HASH (url);
+CREATE INDEX topic_ignore_redirects_url ON topic_ignore_redirects (url);
 
 
 CREATE TYPE bot_policy_type AS ENUM (
@@ -3039,7 +3030,7 @@ CREATE UNIQUE INDEX topic_post_urls_topics_id_topic_posts_id_url
     ON topic_post_urls (topics_id, topic_posts_id, url);
 
 CREATE INDEX topic_post_urls_url
-    ON topic_post_urls USING HASH (url);
+    ON topic_post_urls (url);
 
 
 CREATE TABLE topic_seed_urls

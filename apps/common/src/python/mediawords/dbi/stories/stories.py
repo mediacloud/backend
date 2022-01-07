@@ -159,7 +159,7 @@ def _find_dup_stories(db: DatabaseHandler, story: dict) -> List[Dict[str, Any]]:
         SELECT *
         FROM stories
         WHERE
-            (md5(title) = md5(%(title)s) OR
+            (title = %(title)s OR
                 normalized_title_hash = md5( get_normalized_title( %(title)s, %(media_id)s ) )::uuid)
             AND media_id = %(media_id)s
 

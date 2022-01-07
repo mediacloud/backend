@@ -38,7 +38,7 @@ def increment_domain_links(db: DatabaseHandler, topic_link: dict) -> None:
         """
             INSERT INTO topic_domains (topics_id, domain, self_links)
             VALUES (%(topics_id)s, %(domain)s, 1)
-            ON CONFLICT (topics_id, md5(domain)) DO NOTHING
+            ON CONFLICT (topics_id, domain) DO NOTHING
             RETURNING *
         """,
         {
@@ -87,7 +87,7 @@ def skip_self_linked_domain_url(db: DatabaseHandler, topics_id: int, source_url:
         FROM topic_domains
         WHERE
             topics_id = %(a)s AND
-            md5(domain) = md5(%(b)s)
+            domain = %(b)s
         """,
         {'a': topics_id, 'b': ref_domain}
     ).hash()

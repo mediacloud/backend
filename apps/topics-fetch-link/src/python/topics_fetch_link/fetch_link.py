@@ -268,7 +268,7 @@ def _get_failed_url(db: DatabaseHandler, topics_id: int, url: str) -> Optional[d
         SELECT *
         FROM topic_fetch_urls
         WHERE 
-            md5(url) = any(array(select md5(unnest(%(urls)s)))) and
+            url = any(array(select unnest(%(urls)s))) and
             topics_id = %(topics_id)s and
             state IN (%(fetch_state_1)s, %(fetch_state_2)s)
         LIMIT 1

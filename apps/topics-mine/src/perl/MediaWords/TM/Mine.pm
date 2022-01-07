@@ -906,7 +906,7 @@ SQL
             WHERE
                 tsu.topics_id = ? AND
                 tsu.topics_id = tfu.topics_id AND
-                md5(tsu.url) = md5(tfu.url) AND
+                tsu.url = tfu.url AND
                 tsu.topic_seed_urls_id IN ($ids_list)
 SQL
             $topics_id
@@ -918,7 +918,7 @@ SQL
             WHERE
                 tsu.topics_id = ? AND
                 tsu.topics_id = tfu.topics_id AND
-                md5(tsu.url) = md5(tfu.url) AND
+                tsu.url = tfu.url AND
                 tsu.topic_seed_urls_id IN ($ids_list)
 SQL
             $topics_id
