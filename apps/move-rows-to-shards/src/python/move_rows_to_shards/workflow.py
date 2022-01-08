@@ -387,6 +387,7 @@ class MoveRowsToShardsWorkflowImpl(MoveRowsToShardsWorkflow):
                             stories_id::BIGINT,
                             url::TEXT
                         FROM deleted_rows
+                    ON CONFLICT (url, stories_id) DO NOTHING
                 """
             ],
         )
