@@ -11,7 +11,7 @@ public class MoveRowsActivitiesImpl implements MoveRowsActivities {
     private static final Logger log = LoggerFactory.getLogger(MinMaxTruncateActivitiesImpl.class);
 
     @Override
-    public String runQueriesInTransaction(List<String> sqlQueries) {
+    public void runQueriesInTransaction(List<String> sqlQueries) {
         Database db;
         try {
             db = new Database();
@@ -30,8 +30,5 @@ public class MoveRowsActivitiesImpl implements MoveRowsActivities {
         }
 
         log.info("Executed SQL queries: " + sqlQueries);
-
-        // Not sure how to do Promise<void>, and it's late at night already
-        return "";
     }
 }

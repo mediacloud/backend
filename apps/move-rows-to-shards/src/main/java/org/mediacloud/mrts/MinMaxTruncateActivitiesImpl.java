@@ -80,7 +80,7 @@ public class MinMaxTruncateActivitiesImpl implements MinMaxTruncateActivities {
     }
 
     @Override
-    public String truncateIfEmpty(String table) {
+    public void truncateIfEmpty(String table) {
         if (!table.contains(".")) {
             throw new RuntimeException("Table name must contain schema: " + table);
         }
@@ -115,7 +115,5 @@ public class MinMaxTruncateActivitiesImpl implements MinMaxTruncateActivities {
             throw new RuntimeException("Unable to truncate table: " + e.getMessage());
         }
         log.info("Truncated table '" + table + "'");
-
-        return "";
     }
 }

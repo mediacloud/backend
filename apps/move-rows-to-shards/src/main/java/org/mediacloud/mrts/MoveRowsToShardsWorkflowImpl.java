@@ -37,7 +37,7 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
     }
 
     // Helper, not a workflow method
-    private String moveTable(String srcTable, String srcIdColumn, int chunkSize, List<String> sqlQueries) {
+    private void moveTable(String srcTable, String srcIdColumn, int chunkSize, List<String> sqlQueries) {
         if (!srcTable.contains(".")) {
             throw new RuntimeException("Source table name must contain schema: " + srcTable);
         }
@@ -70,16 +70,16 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
         Integer minId = this.minMaxTruncate.minColumnValue(srcTable, srcIdColumn);
         if (minId == null) {
             log.warn("Table '" + srcTable + "' seems to be empty.");
-            return "";
+            return;
         }
 
         Integer maxId = this.minMaxTruncate.maxColumnValue(srcTable, srcIdColumn);
         if (maxId == null) {
             log.warn("Table '" + srcTable + "' seems to be empty.");
-            return "";
+            return;
         }
 
-        List<Promise<String>> promises = new ArrayList<>();
+        List<Promise<Void>> promises = new ArrayList<>();
 
         for (int startId = minId; startId <= maxId; startId += chunkSize) {
             int endId = startId + chunkSize - 1;
@@ -96,15 +96,12 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
                 sqlQueriesWithIds.add(query);
             }
 
-            promises.add(Async.function(moveRows::runQueriesInTransaction, sqlQueriesWithIds));
+            promises.add(Async.procedure(moveRows::runQueriesInTransaction, sqlQueriesWithIds));
         }
 
         Promise.allOf(promises).get();
 
         this.minMaxTruncate.truncateIfEmpty(srcTable);
-
-        // Don't know how to do Private<void>
-        return "";
     }
 
     @Override
@@ -328,13 +325,13 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
                 "stories_id"
         );
         if (feedsStoriesMapMaxStoriesId != null) {
-            List<Promise<String>> feedsStoriesMapMovePromises = new ArrayList<>();
-            List<Promise<String>> feedsStoriesMapTruncatePromises = new ArrayList<>();
+            List<Promise<Void>> feedsStoriesMapMovePromises = new ArrayList<>();
+            List<Promise<Void>> feedsStoriesMapTruncatePromises = new ArrayList<>();
 
             // FIXME off by one?
             for (int partitionIndex = 0; partitionIndex <= feedsStoriesMapMaxStoriesId / storiesIdChunkSize; ++partitionIndex) {
                 feedsStoriesMapMovePromises.add(
-                        Async.function(
+                        Async.procedure(
                                 moveRows::runQueriesInTransaction,
                                 List.of(prettifySqlQuery(String.format("""
                                         WITH deleted_rows AS (
@@ -360,7 +357,7 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
                 );
 
                 feedsStoriesMapTruncatePromises.add(
-                        Async.function(
+                        Async.procedure(
                                 minMaxTruncate::truncateIfEmpty,
                                 String.format("unsharded_public.feeds_stories_map_p_%02d", partitionIndex)
                         )
@@ -376,13 +373,13 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
                 "stories_id"
         );
         if (storiesTagsMapMaxStoriesId != null) {
-            List<Promise<String>> storiesTagsMapMovePromises = new ArrayList<>();
-            List<Promise<String>> storiesTagsMapTruncatePromises = new ArrayList<>();
+            List<Promise<Void>> storiesTagsMapMovePromises = new ArrayList<>();
+            List<Promise<Void>> storiesTagsMapTruncatePromises = new ArrayList<>();
 
             // FIXME off by one?
             for (int partitionIndex = 0; partitionIndex <= storiesTagsMapMaxStoriesId / storiesIdChunkSize; ++partitionIndex) {
                 storiesTagsMapMovePromises.add(
-                        Async.function(
+                        Async.procedure(
                                 moveRows::runQueriesInTransaction,
                                 List.of(prettifySqlQuery(String.format("""
                                         WITH deleted_rows AS (
@@ -408,7 +405,7 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
                 );
 
                 storiesTagsMapTruncatePromises.add(
-                        Async.function(
+                        Async.procedure(
                                 minMaxTruncate::truncateIfEmpty,
                                 String.format("unsharded_public.stories_tags_map_p_%02d", partitionIndex)
                         )
@@ -424,13 +421,13 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
                 "stories_id"
         );
         if (storySentencesMaxStoriesId != null) {
-            List<Promise<String>> storySentencesMovePromises = new ArrayList<>();
-            List<Promise<String>> storySentencesTruncatePromises = new ArrayList<>();
+            List<Promise<Void>> storySentencesMovePromises = new ArrayList<>();
+            List<Promise<Void>> storySentencesTruncatePromises = new ArrayList<>();
 
             // FIXME off by one?
             for (int partitionIndex = 0; partitionIndex <= storySentencesMaxStoriesId / storiesIdChunkSize; ++partitionIndex) {
                 storySentencesMovePromises.add(
-                        Async.function(
+                        Async.procedure(
                                 moveRows::runQueriesInTransaction,
                                 List.of(prettifySqlQuery(String.format("""
                                         WITH deleted_rows AS (
@@ -471,7 +468,7 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
                 );
 
                 storySentencesTruncatePromises.add(
-                        Async.function(
+                        Async.procedure(
                                 minMaxTruncate::truncateIfEmpty,
                                 String.format("unsharded_public.story_sentences_p_%02d", partitionIndex)
                         )
@@ -731,13 +728,13 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
                 "downloads_id"
         );
         if (downloadsSuccessContentMaxDownloadsId != null) {
-            List<Promise<String>> downloadsSuccessContentMovePromises = new ArrayList<>();
-            List<Promise<String>> downloadsSuccessContentTruncatePromises = new ArrayList<>();
+            List<Promise<Void>> downloadsSuccessContentMovePromises = new ArrayList<>();
+            List<Promise<Void>> downloadsSuccessContentTruncatePromises = new ArrayList<>();
 
             // FIXME off by one?
             for (int partitionIndex = 0; partitionIndex <= downloadsSuccessContentMaxDownloadsId / downloadsIdChunkSize; ++partitionIndex) {
                 downloadsSuccessContentMovePromises.add(
-                        Async.function(
+                        Async.procedure(
                                 moveRows::runQueriesInTransaction,
                                 List.of(prettifySqlQuery(String.format("""
                                         WITH deleted_rows AS (
@@ -752,7 +749,7 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
                 );
 
                 downloadsSuccessContentTruncatePromises.add(
-                        Async.function(
+                        Async.procedure(
                                 minMaxTruncate::truncateIfEmpty,
                                 String.format("unsharded_public.downloads_success_content_%02d", partitionIndex)
                         )
@@ -768,13 +765,13 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
                 "downloads_id"
         );
         if (downloadsSuccessFeedMaxDownloadsId != null) {
-            List<Promise<String>> downloadsSuccessFeedMovePromises = new ArrayList<>();
-            List<Promise<String>> downloadsSuccessFeedTruncatePromises = new ArrayList<>();
+            List<Promise<Void>> downloadsSuccessFeedMovePromises = new ArrayList<>();
+            List<Promise<Void>> downloadsSuccessFeedTruncatePromises = new ArrayList<>();
 
             // FIXME off by one?
             for (int partitionIndex = 0; partitionIndex <= downloadsSuccessFeedMaxDownloadsId / downloadsIdChunkSize; ++partitionIndex) {
                 downloadsSuccessFeedMovePromises.add(
-                        Async.function(
+                        Async.procedure(
                                 moveRows::runQueriesInTransaction,
                                 List.of(prettifySqlQuery(String.format("""
                                         WITH deleted_rows AS (
@@ -789,7 +786,7 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
                 );
 
                 downloadsSuccessFeedTruncatePromises.add(
-                        Async.function(
+                        Async.procedure(
                                 minMaxTruncate::truncateIfEmpty,
                                 String.format("unsharded_public.downloads_success_feed_%02d", partitionIndex)
                         )
@@ -805,13 +802,13 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
                 "downloads_id"
         );
         if (downloadTextsMaxDownloadsId != null) {
-            List<Promise<String>> downloadTextsMovePromises = new ArrayList<>();
-            List<Promise<String>> downloadTextsTruncatePromises = new ArrayList<>();
+            List<Promise<Void>> downloadTextsMovePromises = new ArrayList<>();
+            List<Promise<Void>> downloadTextsTruncatePromises = new ArrayList<>();
 
             // FIXME off by one?
             for (int partitionIndex = 0; partitionIndex <= downloadTextsMaxDownloadsId / downloadsIdChunkSize; ++partitionIndex) {
                 downloadTextsMovePromises.add(
-                        Async.function(
+                        Async.procedure(
                                 moveRows::runQueriesInTransaction,
                                 List.of(prettifySqlQuery(String.format("""
                                         WITH deleted_rows AS (
@@ -839,7 +836,7 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
                 );
 
                 downloadTextsTruncatePromises.add(
-                        Async.function(
+                        Async.procedure(
                                 minMaxTruncate::truncateIfEmpty,
                                 String.format("unsharded_public.download_texts_%02d", partitionIndex)
                         )

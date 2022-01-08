@@ -17,5 +17,5 @@ public interface MinMaxTruncateActivities {
     Integer maxColumnValue(String table, String idColumn);
 
     @ActivityMethod
-    String truncateIfEmpty(String table);
+    void truncateIfEmpty(String table);
 }

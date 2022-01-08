@@ -8,5 +8,5 @@ import java.util.List;
 @ActivityInterface
 public interface MoveRowsActivities {
     @ActivityMethod
-    String runQueriesInTransaction(List<String> sqlQueries);
+    void runQueriesInTransaction(List<String> sqlQueries);
 }
