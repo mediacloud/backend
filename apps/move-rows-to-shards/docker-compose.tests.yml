@@ -3,16 +3,10 @@ version: "3.7"
 services:
 
     move-rows-to-shards:
-        image: gcr.io/mcback/move-rows-to-shards:latest
+        image: gcr.io/mcback/common:latest
         init: true
         stop_signal: SIGKILL
         volumes:
-            - type: bind
-              source: ./bin/
-              target: /opt/mediacloud/bin/
-            - type: bind
-              source: ./src/
-              target: /opt/mediacloud/src/move-rows-to-shards/
             - type: bind
               source: ./tests/
               target: /opt/mediacloud/tests/
@@ -22,10 +16,39 @@ services:
         depends_on:
             - postgresql-pgbouncer
             - temporal-server
+            - move-rows-to-shards-workflow
+            - move-rows-to-shards-activities
+            - move-rows-to-shards-test-http-server
 
             # Not needed for running the test but useful for debugging, demos
             # and such
             # - temporal-webapp
+
+    move-rows-to-shards-workflow:
+        image: gcr.io/mcback/move-rows-to-shards:latest
+        command: "workflow_worker.sh"
+        init: true
+        stop_signal: SIGKILL
+        depends_on:
+            - temporal-server
+
+    move-rows-to-shards-activities:
+        image: gcr.io/mcback/move-rows-to-shards:latest
+        command: "activities_worker.sh"
+        init: true
+        stop_signal: SIGKILL
+        depends_on:
+            - temporal-server
+
+    move-rows-to-shards-test-http-server:
+        image: gcr.io/mcback/move-rows-to-shards:latest
+        command: "test_start_http_server.sh"
+        init: true
+        stop_signal: SIGKILL
+        expose:
+            - 8080
+        depends_on:
+            - temporal-server
 
     postgresql-pgbouncer:
         image: gcr.io/mcback/postgresql-pgbouncer:latest

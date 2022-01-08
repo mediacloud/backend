@@ -987,7 +987,7 @@ services:
     #
     move-rows-to-shards-workflow:
         image: gcr.io/mcback/move-rows-to-shards:release
-        command: "workflow_worker.py"
+        command: "workflow_worker.sh"
         init: true
         networks:
             - default
@@ -1017,7 +1017,7 @@ services:
     #
     move-rows-to-shards-activities:
         image: gcr.io/mcback/move-rows-to-shards:release
-        command: "activities_worker.py"
+        command: "activities_worker.sh"
         init: true
         networks:
             - default

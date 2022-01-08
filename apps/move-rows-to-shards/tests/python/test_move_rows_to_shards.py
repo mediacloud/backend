@@ -1,26 +1,15 @@
-from datetime import timedelta
 import math
 
 # noinspection PyPackageRequirements
+import time
 from typing import Any, Dict
 
 import pytest
-# noinspection PyPackageRequirements
-from temporal.workerfactory import WorkerFactory
-# noinspection PyPackageRequirements
-from temporal.workflow import WorkflowOptions
 
 from mediawords.db import connect_to_db, DatabaseHandler
 from mediawords.util.log import create_logger
-from mediawords.workflow.client import workflow_client
-from mediawords.workflow.worker import stop_worker_faster
-
-from move_rows_to_shards.workflow import MoveRowsToShardsWorkflowImpl, MoveRowsToShardsActivitiesImpl
-from move_rows_to_shards.workflow_interface import (
-    TASK_QUEUE,
-    MoveRowsToShardsWorkflow,
-    MoveRowsToShardsActivities,
-)
+from mediawords.util.network import wait_for_tcp_port_to_open
+from mediawords.util.web.user_agent import UserAgent
 
 log = create_logger(__name__)
 
@@ -1095,39 +1084,23 @@ async def test_workflow():
     log.info("Creating test dataset...")
     _create_test_unsharded_dataset(db)
 
-    log.info("Registering workflow...")
-
-    client = workflow_client()
-
-    # Start worker
-    factory = WorkerFactory(client=client, namespace=client.namespace)
-    worker = factory.new_worker(task_queue=TASK_QUEUE)
-
-    worker.register_activities_implementation(
-        activities_instance=MoveRowsToShardsActivitiesImpl(),
-        activities_cls_name=MoveRowsToShardsActivities.__name__,
-    )
-    worker.register_workflow_implementation_type(impl_cls=MoveRowsToShardsWorkflowImpl)
-    factory.start()
-
-    # Initialize workflow instance
-    workflow: MoveRowsToShardsWorkflow = client.new_workflow_stub(
-        cls=MoveRowsToShardsWorkflow,
-        workflow_options=WorkflowOptions(
-            workflow_id='move_rows_to_shards',
-
-            # By default, if individual activities of the workflow fail, they will get restarted pretty much
-            # indefinitely, and so this test might run for days (or rather just timeout on the CI). So we cap the
-            # workflow so that if it doesn't manage to complete in X minutes, we consider it as failed.
-            workflow_run_timeout=timedelta(minutes=10),
-
-        ),
-    )
+    test_http_server_host = 'move-rows-to-shards-test-http-server'
+    test_http_server_port = 8080
+    log.info(f"Waiting for {test_http_server_host}:{test_http_server_port} to get up...")
+    assert wait_for_tcp_port_to_open(
+            port=test_http_server_port,
+            hostname=test_http_server_host,
+            retries=120,
+    ), f"{test_http_server_host}:{test_http_server_port} didn't get up in time"
 
     log.info("Starting workflow...")
-
-    # Wait for the workflow to complete
-    await workflow.move_rows_to_shards()
+    ua = UserAgent()
+    # Wait up to 5 minutes for the workflow to complete
+    ua.set_timeout(5 * 60)
+    ua.set_max_size(None)
+    # noinspection HttpUrlsUsage
+    response = ua.get(f'http://{test_http_server_host}:{test_http_server_port}/start-workflow-fg')
+    assert response.is_success(), "Test HTTP server's response should be successful"
 
     # Test one table
     auth_user_request_daily_counts = db.query("""
@@ -1149,7 +1122,3 @@ async def test_workflow():
         ORDER BY stories_id
     """).hashes()
     assert len(solr_import_stories) == len(__ROW_IDS)
-
-    log.info("Stopping workers...")
-    await stop_worker_faster(worker)
-    log.info("Stopped workers")
