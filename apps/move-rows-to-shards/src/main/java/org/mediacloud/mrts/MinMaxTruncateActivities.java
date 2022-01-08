@@ -18,4 +18,7 @@ public interface MinMaxTruncateActivities {
 
     @ActivityMethod
     void truncateIfEmpty(String table);
+
+    @ActivityMethod
+    void noOp(String table);
 }

@@ -11,6 +11,8 @@ import org.slf4j.LoggerFactory;
 import java.time.Duration;
 import java.util.*;
 
+// FIXME test individual partitions for max. value before deciding whether to copy them
+
 public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
 
     private static final Logger log = LoggerFactory.getLogger(MoveRowsToShardsWorkflowImpl.class);
@@ -37,7 +39,7 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
     }
 
     // Helper, not a workflow method
-    private void moveTable(String srcTable, String srcIdColumn, int chunkSize, List<String> sqlQueries) {
+    private Promise<Void> moveTable(String srcTable, String srcIdColumn, int chunkSize, List<String> sqlQueries) {
         if (!srcTable.contains(".")) {
             throw new RuntimeException("Source table name must contain schema: " + srcTable);
         }
@@ -70,13 +72,13 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
         Integer minId = this.minMaxTruncate.minColumnValue(srcTable, srcIdColumn);
         if (minId == null) {
             log.warn("Table '" + srcTable + "' seems to be empty.");
-            return;
+            return Async.procedure(minMaxTruncate::noOp, srcTable);
         }
 
         Integer maxId = this.minMaxTruncate.maxColumnValue(srcTable, srcIdColumn);
         if (maxId == null) {
             log.warn("Table '" + srcTable + "' seems to be empty.");
-            return;
+            return Async.procedure(minMaxTruncate::noOp, srcTable);
         }
 
         List<Promise<Void>> promises = new ArrayList<>();
@@ -99,15 +101,17 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
             promises.add(Async.procedure(moveRows::runQueriesInTransaction, sqlQueriesWithIds));
         }
 
-        Promise.allOf(promises).get();
+        Promise<Void> copyAllChunksPromise = Promise.allOf(promises);
 
-        this.minMaxTruncate.truncateIfEmpty(srcTable);
+        Promise<Void> truncatePromise = Async.procedure(minMaxTruncate::truncateIfEmpty, srcTable);
+
+        return copyAllChunksPromise.thenCompose(Void -> truncatePromise);
     }
 
     @Override
     public void moveRowsToShards() {
 
-        this.moveTable(
+        Promise<Void> authUserRequestDailyCountsPromise = this.moveTable(
                 "unsharded_public.auth_user_request_daily_counts",
                 "auth_user_request_daily_counts_id",
                 // 338,454,970 rows in source table; 17 chunks
@@ -141,7 +145,7 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
                             """, START_ID_MARKER, END_ID_MARKER))
         );
 
-        this.moveTable(
+        Promise<Void> mediaStatsPromise = this.moveTable(
                 "unsharded_public.media_stats",
                 "media_stats_id",
                 // 89,970,140 in source table; 9 chunks
@@ -175,7 +179,7 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
                             """, START_ID_MARKER, END_ID_MARKER))
         );
 
-        this.moveTable(
+        Promise<Void> mediaCoverageGapsPromise = this.moveTable(
                 "unsharded_public.media_coverage_gaps",
                 "media_id",
                 // MAX(media_id) = 1,892,933; 63,132,122 rows in source table; 10 chunks
@@ -211,7 +215,7 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
                             """, START_ID_MARKER, END_ID_MARKER))
         );
 
-        this.moveTable(
+        Promise<Void> storiesPromise = this.moveTable(
                 "unsharded_public.stories",
                 "stories_id",
                 // 2,119,319,121 in source table; 22 chunks
@@ -262,7 +266,7 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
                                 """, START_ID_MARKER, END_ID_MARKER))
         );
 
-        this.moveTable(
+        Promise<Void> storiesApSyndicatedPromise = this.moveTable(
                 "unsharded_public.stories_ap_syndicated",
                 "stories_ap_syndicated_id",
                 // 1,715,725,719 in source table; 18 chunks
@@ -290,7 +294,7 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
                         """, START_ID_MARKER, END_ID_MARKER))
         );
 
-        this.moveTable(
+        Promise<Void> storyUrlsPromise = this.moveTable(
                 "unsharded_public.story_urls",
                 "story_urls_id",
                 // 2,223,082,697 in source table; 45 chunks
@@ -324,162 +328,162 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
                 "unsharded_public.feeds_stories_map",
                 "stories_id"
         );
+        Promise<Void> tempFeedsStoriesMapPromise = Async.procedure(minMaxTruncate::noOp, "feeds_stories_map");
         if (feedsStoriesMapMaxStoriesId != null) {
-            List<Promise<Void>> feedsStoriesMapMovePromises = new ArrayList<>();
-            List<Promise<Void>> feedsStoriesMapTruncatePromises = new ArrayList<>();
+            List<Promise<Void>> chunkPromises = new ArrayList<>();
 
             // FIXME off by one?
             for (int partitionIndex = 0; partitionIndex <= feedsStoriesMapMaxStoriesId / storiesIdChunkSize; ++partitionIndex) {
-                feedsStoriesMapMovePromises.add(
-                        Async.procedure(
-                                moveRows::runQueriesInTransaction,
-                                List.of(prettifySqlQuery(String.format("""
-                                        WITH deleted_rows AS (
-                                            DELETE FROM unsharded_public.feeds_stories_map_p_%02d
-                                            RETURNING
-                                                feeds_stories_map_p_id,
-                                                feeds_id,
-                                                stories_id
-                                        )
-                                        INSERT INTO sharded_public.feeds_stories_map (
-                                            feeds_stories_map_id,
-                                            feeds_id,
-                                            stories_id
-                                        )
-                                            SELECT
-                                                feeds_stories_map_p_id::BIGINT AS feeds_stories_map_id,
-                                                feeds_id::BIGINT,
-                                                stories_id::BIGINT
-                                            FROM deleted_rows
-                                        """, partitionIndex
-                                )))
-                        )
+
+                Promise<Void> movePromise = Async.procedure(
+                        moveRows::runQueriesInTransaction,
+                        List.of(prettifySqlQuery(String.format("""
+                                WITH deleted_rows AS (
+                                    DELETE FROM unsharded_public.feeds_stories_map_p_%02d
+                                    RETURNING
+                                        feeds_stories_map_p_id,
+                                        feeds_id,
+                                        stories_id
+                                )
+                                INSERT INTO sharded_public.feeds_stories_map (
+                                    feeds_stories_map_id,
+                                    feeds_id,
+                                    stories_id
+                                )
+                                    SELECT
+                                        feeds_stories_map_p_id::BIGINT AS feeds_stories_map_id,
+                                        feeds_id::BIGINT,
+                                        stories_id::BIGINT
+                                    FROM deleted_rows
+                                """, partitionIndex
+                        )))
                 );
 
-                feedsStoriesMapTruncatePromises.add(
-                        Async.procedure(
-                                minMaxTruncate::truncateIfEmpty,
-                                String.format("unsharded_public.feeds_stories_map_p_%02d", partitionIndex)
-                        )
+                Promise<Void> truncatePromise = Async.procedure(
+                        minMaxTruncate::truncateIfEmpty,
+                        String.format("unsharded_public.feeds_stories_map_p_%02d", partitionIndex)
                 );
+
+                Promise<Void> moveAndTruncatePromise = movePromise.thenCompose(Void -> truncatePromise);
+                chunkPromises.add(moveAndTruncatePromise);
             }
 
-            Promise.allOf(feedsStoriesMapMovePromises).get();
-            Promise.allOf(feedsStoriesMapTruncatePromises).get();
+            tempFeedsStoriesMapPromise = Promise.allOf(chunkPromises);
         }
+        Promise<Void> feedsStoriesMapPromise = tempFeedsStoriesMapPromise;
 
         Integer storiesTagsMapMaxStoriesId = this.minMaxTruncate.maxColumnValue(
                 "unsharded_public.stories_tags_map",
                 "stories_id"
         );
+        Promise<Void> tempStoriesTagsMapPromise = Async.procedure(minMaxTruncate::noOp, "stories_tags_map");
         if (storiesTagsMapMaxStoriesId != null) {
-            List<Promise<Void>> storiesTagsMapMovePromises = new ArrayList<>();
-            List<Promise<Void>> storiesTagsMapTruncatePromises = new ArrayList<>();
+            List<Promise<Void>> chunkPromises = new ArrayList<>();
 
             // FIXME off by one?
             for (int partitionIndex = 0; partitionIndex <= storiesTagsMapMaxStoriesId / storiesIdChunkSize; ++partitionIndex) {
-                storiesTagsMapMovePromises.add(
-                        Async.procedure(
-                                moveRows::runQueriesInTransaction,
-                                List.of(prettifySqlQuery(String.format("""
-                                        WITH deleted_rows AS (
-                                            DELETE FROM unsharded_public.stories_tags_map_p_%02d
-                                            RETURNING
-                                                stories_tags_map_p_id,
-                                                stories_id,
-                                                tags_id
-                                        )
-                                        INSERT INTO sharded_public.stories_tags_map (
-                                            stories_tags_map_id,
-                                            stories_id,
-                                            tags_id
-                                        )
-                                            SELECT
-                                                stories_tags_map_p_id::BIGINT AS stories_tags_map_id,
-                                                stories_id::BIGINT,
-                                                tags_id::BIGINT
-                                            FROM deleted_rows
-                                        """, partitionIndex
-                                )))
-                        )
+                Promise<Void> movePromise = Async.procedure(
+                        moveRows::runQueriesInTransaction,
+                        List.of(prettifySqlQuery(String.format("""
+                                WITH deleted_rows AS (
+                                    DELETE FROM unsharded_public.stories_tags_map_p_%02d
+                                    RETURNING
+                                        stories_tags_map_p_id,
+                                        stories_id,
+                                        tags_id
+                                )
+                                INSERT INTO sharded_public.stories_tags_map (
+                                    stories_tags_map_id,
+                                    stories_id,
+                                    tags_id
+                                )
+                                    SELECT
+                                        stories_tags_map_p_id::BIGINT AS stories_tags_map_id,
+                                        stories_id::BIGINT,
+                                        tags_id::BIGINT
+                                    FROM deleted_rows
+                                """, partitionIndex
+                        )))
                 );
 
-                storiesTagsMapTruncatePromises.add(
-                        Async.procedure(
-                                minMaxTruncate::truncateIfEmpty,
-                                String.format("unsharded_public.stories_tags_map_p_%02d", partitionIndex)
-                        )
+                Promise<Void> truncatePromise = Async.procedure(
+                        minMaxTruncate::truncateIfEmpty,
+                        String.format("unsharded_public.stories_tags_map_p_%02d", partitionIndex)
                 );
+
+                Promise<Void> moveAndTruncatePromise = movePromise.thenCompose(Void -> truncatePromise);
+                chunkPromises.add(moveAndTruncatePromise);
             }
 
-            Promise.allOf(storiesTagsMapMovePromises).get();
-            Promise.allOf(storiesTagsMapTruncatePromises).get();
+            tempStoriesTagsMapPromise = Promise.allOf(chunkPromises);
         }
+
+        Promise<Void> storiesTagsMapPromise = tempStoriesTagsMapPromise;
 
         Integer storySentencesMaxStoriesId = this.minMaxTruncate.maxColumnValue(
                 "unsharded_public.story_sentences",
                 "stories_id"
         );
+        Promise<Void> tempStorySentencesPromise = Async.procedure(minMaxTruncate::noOp, "story_sentences");
         if (storySentencesMaxStoriesId != null) {
-            List<Promise<Void>> storySentencesMovePromises = new ArrayList<>();
-            List<Promise<Void>> storySentencesTruncatePromises = new ArrayList<>();
+            List<Promise<Void>> chunkPromises = new ArrayList<>();
 
             // FIXME off by one?
             for (int partitionIndex = 0; partitionIndex <= storySentencesMaxStoriesId / storiesIdChunkSize; ++partitionIndex) {
-                storySentencesMovePromises.add(
-                        Async.procedure(
-                                moveRows::runQueriesInTransaction,
-                                List.of(prettifySqlQuery(String.format("""
-                                        WITH deleted_rows AS (
-                                            DELETE FROM unsharded_public.story_sentences_p_%02d
-                                            RETURNING
-                                                story_sentences_p_id,
-                                                stories_id,
-                                                sentence_number,
-                                                sentence,
-                                                media_id,
-                                                publish_date,
-                                                language,
-                                                is_dup
-                                        )
-                                        INSERT INTO sharded_public.story_sentences (
-                                            story_sentences_id,
-                                            stories_id,
-                                            sentence_number,
-                                            sentence,
-                                            media_id,
-                                            publish_date,
-                                            language,
-                                            is_dup
-                                        )
-                                            SELECT
-                                                story_sentences_p_id::BIGINT AS story_sentences_id,
-                                                stories_id::BIGINT,
-                                                sentence_number,
-                                                sentence,
-                                                media_id::BIGINT,
-                                                publish_date,
-                                                language,
-                                                is_dup
-                                            FROM deleted_rows
-                                        """, partitionIndex
-                                )))
-                        )
+                Promise<Void> movePromise = Async.procedure(
+                        moveRows::runQueriesInTransaction,
+                        List.of(prettifySqlQuery(String.format("""
+                                WITH deleted_rows AS (
+                                    DELETE FROM unsharded_public.story_sentences_p_%02d
+                                    RETURNING
+                                        story_sentences_p_id,
+                                        stories_id,
+                                        sentence_number,
+                                        sentence,
+                                        media_id,
+                                        publish_date,
+                                        language,
+                                        is_dup
+                                )
+                                INSERT INTO sharded_public.story_sentences (
+                                    story_sentences_id,
+                                    stories_id,
+                                    sentence_number,
+                                    sentence,
+                                    media_id,
+                                    publish_date,
+                                    language,
+                                    is_dup
+                                )
+                                    SELECT
+                                        story_sentences_p_id::BIGINT AS story_sentences_id,
+                                        stories_id::BIGINT,
+                                        sentence_number,
+                                        sentence,
+                                        media_id::BIGINT,
+                                        publish_date,
+                                        language,
+                                        is_dup
+                                    FROM deleted_rows
+                                """, partitionIndex
+                        )))
                 );
 
-                storySentencesTruncatePromises.add(
-                        Async.procedure(
-                                minMaxTruncate::truncateIfEmpty,
-                                String.format("unsharded_public.story_sentences_p_%02d", partitionIndex)
-                        )
+                Promise<Void> truncatePromise = Async.procedure(
+                        minMaxTruncate::truncateIfEmpty,
+                        String.format("unsharded_public.story_sentences_p_%02d", partitionIndex)
                 );
+
+                Promise<Void> moveAndTruncatePromise = movePromise.thenCompose(Void -> truncatePromise);
+                chunkPromises.add(moveAndTruncatePromise);
             }
 
-            Promise.allOf(storySentencesMovePromises).get();
-            Promise.allOf(storySentencesTruncatePromises).get();
+            tempStorySentencesPromise = Promise.allOf(chunkPromises);
         }
 
-        this.moveTable(
+        Promise<Void> storySentencesPromise = tempStorySentencesPromise;
+
+        Promise<Void> solrImportStoriesPromise = this.moveTable(
                 "unsharded_public.solr_import_stories",
                 "stories_id",
                 // Rather small table, can copy everything in one go; 3 chunks
@@ -497,7 +501,7 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
                             """, START_ID_MARKER, END_ID_MARKER))
         );
 
-        this.moveTable(
+        Promise<Void> solrImportedStoriesPromise = this.moveTable(
                 "unsharded_public.solr_imported_stories",
                 "stories_id",
                 // MAX(stories_id) = 2,119,343,981; 11 chunks
@@ -522,7 +526,7 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
                             """, START_ID_MARKER, END_ID_MARKER))
         );
 
-        this.moveTable(
+        Promise<Void> topicMergedStoriesMapPromise = this.moveTable(
                 "unsharded_public.topic_merged_stories_map",
                 "source_stories_id",
                 // Rather small table, can copy everything on one go; 3 chunks
@@ -547,7 +551,7 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
                             """, START_ID_MARKER, END_ID_MARKER))
         );
 
-        this.moveTable(
+        Promise<Void> storyStatisticsPromise = this.moveTable(
                 "unsharded_public.story_statistics",
                 "story_statistics_id",
                 // Rather small table, can copy everything on one go; 3 chunks
@@ -586,7 +590,7 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
                             """, START_ID_MARKER, END_ID_MARKER))
         );
 
-        this.moveTable(
+        Promise<Void> processedStoriesPromise = this.moveTable(
                 "unsharded_public.processed_stories",
                 "processed_stories_id",
                 // 2,518,182,153 in source table; 13 chunks
@@ -611,7 +615,7 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
                             """, START_ID_MARKER, END_ID_MARKER))
         );
 
-        this.moveTable(
+        Promise<Void> scrapedStoriesPromise = this.moveTable(
                 "unsharded_public.scraped_stories",
                 "scraped_stories_id",
                 // Rather small table, can copy everything on one go; 3 chunks
@@ -638,7 +642,7 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
                             """, START_ID_MARKER, END_ID_MARKER))
         );
 
-        this.moveTable(
+        Promise<Void> storyEnclosuresPromise = this.moveTable(
                 "unsharded_public.story_enclosures",
                 "story_enclosures_id",
                 // 153,858,997 in source table; 16 chunks
@@ -704,7 +708,7 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
                 extracted
                     """;
 
-        this.moveTable(
+        Promise<Void> downloadsErrorPromise = this.moveTable(
                 "unsharded_public.downloads_error",
                 "downloads_id",
                 // 114,330,304 in source table; 12 chunks
@@ -727,127 +731,123 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
                 "unsharded_public.downloads_success_content",
                 "downloads_id"
         );
+        Promise<Void> downloadsSuccessContentPromise = Async.procedure(minMaxTruncate::noOp, "downloads_success_content");
         if (downloadsSuccessContentMaxDownloadsId != null) {
-            List<Promise<Void>> downloadsSuccessContentMovePromises = new ArrayList<>();
-            List<Promise<Void>> downloadsSuccessContentTruncatePromises = new ArrayList<>();
+            List<Promise<Void>> chunkPromises = new ArrayList<>();
 
             // FIXME off by one?
             for (int partitionIndex = 0; partitionIndex <= downloadsSuccessContentMaxDownloadsId / downloadsIdChunkSize; ++partitionIndex) {
-                downloadsSuccessContentMovePromises.add(
-                        Async.procedure(
-                                moveRows::runQueriesInTransaction,
-                                List.of(prettifySqlQuery(String.format("""
-                                        WITH deleted_rows AS (
-                                            DELETE FROM unsharded_public.downloads_success_content_%1$02d
-                                            RETURNING %2$s
-                                        )
-                                        INSERT INTO sharded_public.downloads_success (%2$s)
-                                            SELECT %3$s
-                                            FROM deleted_rows
-                                            """, partitionIndex, downloadsIdSrcColumns, downloadsIdDstColumns)))
-                        )
+                Promise<Void> movePromise = Async.procedure(
+                        moveRows::runQueriesInTransaction,
+                        List.of(prettifySqlQuery(String.format("""
+                                WITH deleted_rows AS (
+                                    DELETE FROM unsharded_public.downloads_success_content_%1$02d
+                                    RETURNING %2$s
+                                )
+                                INSERT INTO sharded_public.downloads_success (%2$s)
+                                    SELECT %3$s
+                                    FROM deleted_rows
+                                    """, partitionIndex, downloadsIdSrcColumns, downloadsIdDstColumns)))
                 );
 
-                downloadsSuccessContentTruncatePromises.add(
-                        Async.procedure(
-                                minMaxTruncate::truncateIfEmpty,
-                                String.format("unsharded_public.downloads_success_content_%02d", partitionIndex)
-                        )
+                Promise<Void> truncatePromise = Async.procedure(
+                        minMaxTruncate::truncateIfEmpty,
+                        String.format("unsharded_public.downloads_success_content_%02d", partitionIndex)
                 );
+
+                Promise<Void> moveAndTruncatePromise = movePromise.thenCompose(Void -> truncatePromise);
+                chunkPromises.add(moveAndTruncatePromise);
             }
 
-            Promise.allOf(downloadsSuccessContentMovePromises).get();
-            Promise.allOf(downloadsSuccessContentTruncatePromises).get();
+            downloadsSuccessContentPromise = Promise.allOf(chunkPromises);
         }
 
         Integer downloadsSuccessFeedMaxDownloadsId = this.minMaxTruncate.maxColumnValue(
                 "unsharded_public.downloads_success_feed",
                 "downloads_id"
         );
+        Promise<Void> downloadsSuccessFeedPromise = Async.procedure(minMaxTruncate::noOp, "downloads_success_feed");
         if (downloadsSuccessFeedMaxDownloadsId != null) {
-            List<Promise<Void>> downloadsSuccessFeedMovePromises = new ArrayList<>();
-            List<Promise<Void>> downloadsSuccessFeedTruncatePromises = new ArrayList<>();
+            List<Promise<Void>> chunkPromises = new ArrayList<>();
 
             // FIXME off by one?
             for (int partitionIndex = 0; partitionIndex <= downloadsSuccessFeedMaxDownloadsId / downloadsIdChunkSize; ++partitionIndex) {
-                downloadsSuccessFeedMovePromises.add(
-                        Async.procedure(
-                                moveRows::runQueriesInTransaction,
-                                List.of(prettifySqlQuery(String.format("""
-                                        WITH deleted_rows AS (
-                                            DELETE FROM unsharded_public.downloads_success_feed_%1$02d
-                                            RETURNING %2$s
-                                        )
-                                        INSERT INTO sharded_public.downloads_success (%2$s)
-                                            SELECT %3$s
-                                            FROM deleted_rows
-                                            """, partitionIndex, downloadsIdSrcColumns, downloadsIdDstColumns)))
-                        )
+                Promise<Void> movePromise = Async.procedure(
+                        moveRows::runQueriesInTransaction,
+                        List.of(prettifySqlQuery(String.format("""
+                                WITH deleted_rows AS (
+                                    DELETE FROM unsharded_public.downloads_success_feed_%1$02d
+                                    RETURNING %2$s
+                                )
+                                INSERT INTO sharded_public.downloads_success (%2$s)
+                                    SELECT %3$s
+                                    FROM deleted_rows
+                                    """, partitionIndex, downloadsIdSrcColumns, downloadsIdDstColumns)))
                 );
 
-                downloadsSuccessFeedTruncatePromises.add(
-                        Async.procedure(
-                                minMaxTruncate::truncateIfEmpty,
-                                String.format("unsharded_public.downloads_success_feed_%02d", partitionIndex)
-                        )
+                Promise<Void> truncatePromise = Async.procedure(
+                        minMaxTruncate::truncateIfEmpty,
+                        String.format("unsharded_public.downloads_success_feed_%02d", partitionIndex)
                 );
+
+                Promise<Void> moveAndTruncatePromise = movePromise.thenCompose(Void -> truncatePromise);
+                chunkPromises.add(moveAndTruncatePromise);
             }
 
-            Promise.allOf(downloadsSuccessFeedMovePromises).get();
-            Promise.allOf(downloadsSuccessFeedTruncatePromises).get();
+            downloadsSuccessFeedPromise = Promise.allOf(chunkPromises);
         }
 
         Integer downloadTextsMaxDownloadsId = this.minMaxTruncate.maxColumnValue(
                 "unsharded_public.download_texts",
                 "downloads_id"
         );
+        Promise<Void> tempDownloadTextsPromise = Async.procedure(minMaxTruncate::noOp, "download_texts");
         if (downloadTextsMaxDownloadsId != null) {
-            List<Promise<Void>> downloadTextsMovePromises = new ArrayList<>();
-            List<Promise<Void>> downloadTextsTruncatePromises = new ArrayList<>();
+            List<Promise<Void>> chunkPromises = new ArrayList<>();
 
             // FIXME off by one?
             for (int partitionIndex = 0; partitionIndex <= downloadTextsMaxDownloadsId / downloadsIdChunkSize; ++partitionIndex) {
-                downloadTextsMovePromises.add(
-                        Async.procedure(
-                                moveRows::runQueriesInTransaction,
-                                List.of(prettifySqlQuery(String.format("""
-                                        WITH deleted_rows AS (
-                                            DELETE FROM unsharded_public.download_texts_%02d
-                                            RETURNING
-                                                download_texts_id,
-                                                downloads_id,
-                                                download_text,
-                                                download_text_length
-                                        )
-                                        INSERT INTO sharded_public.download_texts (
-                                            download_texts_id,
-                                            downloads_id,
-                                            download_text,
-                                            download_text_length
-                                        )
-                                            SELECT
-                                                download_texts_id,
-                                                downloads_id,
-                                                download_text,
-                                                download_text_length
-                                            FROM deleted_rows
-                                            """, partitionIndex)))
-                        )
+                Promise<Void> movePromise = Async.procedure(
+                        moveRows::runQueriesInTransaction,
+                        List.of(prettifySqlQuery(String.format("""
+                                WITH deleted_rows AS (
+                                    DELETE FROM unsharded_public.download_texts_%02d
+                                    RETURNING
+                                        download_texts_id,
+                                        downloads_id,
+                                        download_text,
+                                        download_text_length
+                                )
+                                INSERT INTO sharded_public.download_texts (
+                                    download_texts_id,
+                                    downloads_id,
+                                    download_text,
+                                    download_text_length
+                                )
+                                    SELECT
+                                        download_texts_id,
+                                        downloads_id,
+                                        download_text,
+                                        download_text_length
+                                    FROM deleted_rows
+                                    """, partitionIndex)))
                 );
 
-                downloadTextsTruncatePromises.add(
-                        Async.procedure(
-                                minMaxTruncate::truncateIfEmpty,
-                                String.format("unsharded_public.download_texts_%02d", partitionIndex)
-                        )
+                Promise<Void> truncatePromise = Async.procedure(
+                        minMaxTruncate::truncateIfEmpty,
+                        String.format("unsharded_public.download_texts_%02d", partitionIndex)
                 );
+
+                Promise<Void> moveAndTruncatePromise = movePromise.thenCompose(Void -> truncatePromise);
+                chunkPromises.add(moveAndTruncatePromise);
             }
 
-            Promise.allOf(downloadTextsMovePromises).get();
-            Promise.allOf(downloadTextsTruncatePromises).get();
+            tempDownloadTextsPromise = Promise.allOf(chunkPromises);
         }
 
-        this.moveTable(
+        Promise<Void> downloadTextsPromise = tempDownloadTextsPromise;
+
+        Promise<Void> topicStoriesPromise = this.moveTable(
                 "unsharded_public.topic_stories",
                 "topic_stories_id",
                 // 165,026,730 in source table; 9 chunks
@@ -892,7 +892,7 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
                             """, START_ID_MARKER, END_ID_MARKER))
         );
 
-        this.moveTable(
+        Promise<Void> topicLinksPromise = this.moveTable(
                 "unsharded_public.topic_links",
                 "topic_links_id",
                 // 1,433,314,412 in source table; 15 chunks
@@ -931,7 +931,7 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
                             """, START_ID_MARKER, END_ID_MARKER))
         );
 
-        this.moveTable(
+        Promise<Void> topicFetchUrlsPromise = this.moveTable(
                 "unsharded_public.topic_fetch_urls",
                 "topic_fetch_urls_id",
                 // 705,821,290 in source table; 8 chunks
@@ -979,7 +979,7 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
                             """, START_ID_MARKER, END_ID_MARKER))
         );
 
-        this.moveTable(
+        Promise<Void> topicPostsPromise = this.moveTable(
                 "unsharded_public.topic_posts",
                 "topic_posts_id",
                 // 95,486,494 in source table; 10 chunks
@@ -1049,7 +1049,7 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
                 )
         );
 
-        this.moveTable(
+        Promise<Void> topicPostUrlsPromise = this.moveTable(
                 "unsharded_public.topic_post_urls",
                 "topic_post_urls_id",
                 // 50,726,436 in source table; 11 chunks
@@ -1101,7 +1101,7 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
                 )
         );
 
-        this.moveTable(
+        Promise<Void> topicSeedUrlsPromise = this.moveTable(
                 "unsharded_public.topic_seed_urls",
                 "topic_seed_urls_id",
                 // 499,926,808 in source table; 50 chunks
@@ -1158,7 +1158,7 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
                         """, START_ID_MARKER, END_ID_MARKER))
         );
 
-        this.moveTable(
+        Promise<Void> snapStoriesPromise = this.moveTable(
                 "unsharded_snap.stories",
                 "snapshots_id",
                 // MAX(snapshots_id) = 7690 in source table; 8 chunks
@@ -1232,7 +1232,7 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
                 )
         );
 
-        this.moveTable(
+        Promise<Void> snapTopicStoriesPromise = this.moveTable(
                 "unsharded_snap.topic_stories",
                 "snapshots_id",
                 // MAX(snapshots_id) = 7690 in source table; 8 chunks
@@ -1278,7 +1278,7 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
                             """, START_ID_MARKER, END_ID_MARKER))
         );
 
-        this.moveTable(
+        Promise<Void> snapTopicLinksCrossMediaPromise = this.moveTable(
                 "unsharded_snap.topic_links_cross_media",
                 "snapshots_id",
                 // MAX(snapshots_id) = 7690 in source table; 8 chunks
@@ -1315,7 +1315,7 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
                             """, START_ID_MARKER, END_ID_MARKER))
         );
 
-        this.moveTable(
+        Promise<Void> snapMediaPromise = this.moveTable(
                 "unsharded_snap.media",
                 "snapshots_id",
                 // MAX(snapshots_id) = 7690 in source table; 8 chunks
@@ -1378,7 +1378,7 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
                 )
         );
 
-        this.moveTable(
+        Promise<Void> snapMediaTagsMapPromise = this.moveTable(
                 "unsharded_snap.media_tags_map",
                 "snapshots_id",
                 // MAX(snapshots_id) = 7690 in source table; 8 chunks
@@ -1429,7 +1429,7 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
                 )
         );
 
-        this.moveTable(
+        Promise<Void> snapStoriesTagsMapPromise = this.moveTable(
                 "unsharded_snap.stories_tags_map",
                 "snapshots_id",
                 // MAX(snapshots_id) = 7690 in source table; 8 chunks
@@ -1481,7 +1481,7 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
                 )
         );
 
-        this.moveTable(
+        Promise<Void> snapStoryLinksPromise = this.moveTable(
                 "unsharded_snap.story_links",
                 "timespans_id",
                 // MAX(timespans_id) = 1_362_209 in source table; 10 chunks
@@ -1529,7 +1529,7 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
                 )
         );
 
-        this.moveTable(
+        Promise<Void> snapStoryLinkCountsPromise = this.moveTable(
                 "unsharded_snap.story_link_counts",
                 "timespans_id",
                 // MAX(timespans_id) = 1_362_209 in source table; 10 chunks
@@ -1593,7 +1593,7 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
                 )
         );
 
-        this.moveTable(
+        Promise<Void> snapMediumLinkCountsPromise = this.moveTable(
                 "unsharded_snap.medium_link_counts",
                 "timespans_id",
                 // MAX(timespans_id) = 1_362_209 in source table; 10 chunks
@@ -1665,7 +1665,7 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
                 )
         );
 
-        this.moveTable(
+        Promise<Void> snapMediumLinksPromise = this.moveTable(
                 "unsharded_snap.medium_links",
                 "timespans_id",
                 // MAX(timespans_id) = 1_362_209 in source table; 10 chunks
@@ -1717,7 +1717,7 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
                 )
         );
 
-        this.moveTable(
+        Promise<Void> snapTimespanPostsPromise = this.moveTable(
                 "unsharded_snap.timespan_posts",
                 "timespans_id",
                 // MAX(timespans_id) = 1_362_209 in source table; 10 chunks
@@ -1762,7 +1762,7 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
                 )
         );
 
-        this.moveTable(
+        Promise<Void> snapLiveStoriesPromise = this.moveTable(
                 "unsharded_snap.live_stories",
                 "topic_stories_id",
                 // MAX(topic_stories_id) = 165_082_931 in source table; 17 chunks
@@ -1818,5 +1818,63 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
                             FROM deleted_rows
                             """, START_ID_MARKER, END_ID_MARKER))
         );
+
+        // Run the tree of all promises
+        Promise.allOf(
+                authUserRequestDailyCountsPromise,
+                mediaStatsPromise,
+                mediaCoverageGapsPromise,
+                storiesPromise.thenCompose(
+                        Void -> Promise.allOf(
+                                storiesApSyndicatedPromise,
+                                storyUrlsPromise,
+                                feedsStoriesMapPromise,
+                                storiesTagsMapPromise,
+                                storySentencesPromise,
+                                solrImportStoriesPromise,
+                                solrImportedStoriesPromise,
+                                topicMergedStoriesMapPromise,
+                                storyStatisticsPromise,
+                                processedStoriesPromise,
+                                scrapedStoriesPromise,
+                                storyEnclosuresPromise
+                        )
+                ),
+                Promise.allOf(
+                        downloadsErrorPromise,
+                        downloadsSuccessContentPromise,
+                        downloadsSuccessFeedPromise
+                ).thenCompose(
+                        Void -> downloadTextsPromise
+                ),
+                topicStoriesPromise.thenCompose(
+                        Void -> Promise.allOf(
+                                snapTopicStoriesPromise,
+                                snapLiveStoriesPromise
+                        )
+                ),
+                topicLinksPromise.thenCompose(
+                        Void -> Promise.allOf(
+                                topicFetchUrlsPromise,
+                                snapTopicLinksCrossMediaPromise
+                        )
+                ),
+                topicPostsPromise.thenCompose(
+                        Void -> Promise.allOf(
+                                topicPostUrlsPromise.thenCompose(
+                                        Void_ -> topicSeedUrlsPromise
+                                ),
+                                snapTimespanPostsPromise
+                        )
+                ),
+                snapStoriesPromise,
+                snapMediaPromise,
+                snapMediaTagsMapPromise,
+                snapStoriesTagsMapPromise,
+                snapStoryLinksPromise,
+                snapStoryLinkCountsPromise,
+                snapMediumLinkCountsPromise,
+                snapMediumLinksPromise
+        ).get();
     }
 }

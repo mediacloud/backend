@@ -116,4 +116,9 @@ public class MinMaxTruncateActivitiesImpl implements MinMaxTruncateActivities {
         }
         log.info("Truncated table '" + table + "'");
     }
+
+    @Override
+    public void noOp(String table) {
+        // no-op
+    }
 }
