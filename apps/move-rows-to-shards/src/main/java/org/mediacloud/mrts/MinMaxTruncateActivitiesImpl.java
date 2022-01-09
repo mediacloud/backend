@@ -25,7 +25,7 @@ public class MinMaxTruncateActivitiesImpl implements MinMaxTruncateActivities {
 
     @Nullable
     @Override
-    public Integer minColumnValue(String table, String idColumn) {
+    public Long minColumnValue(String table, String idColumn) {
         log.info("Getting min. value of " + table + " (" + idColumn + ")");
 
         this.testTableIdColumn(table, idColumn);
@@ -38,9 +38,9 @@ public class MinMaxTruncateActivitiesImpl implements MinMaxTruncateActivities {
             throw new RuntimeException("Unable to connect to database: " + e.getMessage());
         }
 
-        Integer minValue;
+        Long minValue;
         try {
-            minValue = db.queryInt("SELECT MIN(" + idColumn + ") FROM " + table);
+            minValue = db.queryLong("SELECT MIN(" + idColumn + ") FROM " + table);
         } catch (SQLException e) {
             e.printStackTrace();
             throw new RuntimeException("Unable to select min. value: " + e.getMessage());
@@ -53,7 +53,7 @@ public class MinMaxTruncateActivitiesImpl implements MinMaxTruncateActivities {
 
     @Nullable
     @Override
-    public Integer maxColumnValue(String table, String idColumn) {
+    public Long maxColumnValue(String table, String idColumn) {
         log.info("Getting max. value of " + table + " (" + idColumn + ")");
 
         this.testTableIdColumn(table, idColumn);
@@ -66,9 +66,9 @@ public class MinMaxTruncateActivitiesImpl implements MinMaxTruncateActivities {
             throw new RuntimeException("Unable to connect to database: " + e.getMessage());
         }
 
-        Integer maxValue;
+        Long maxValue;
         try {
-            maxValue = db.queryInt("SELECT MAX(" + idColumn + ") FROM " + table);
+            maxValue = db.queryLong("SELECT MAX(" + idColumn + ") FROM " + table);
         } catch (SQLException e) {
             e.printStackTrace();
             throw new RuntimeException("Unable to select max. value: " + e.getMessage());

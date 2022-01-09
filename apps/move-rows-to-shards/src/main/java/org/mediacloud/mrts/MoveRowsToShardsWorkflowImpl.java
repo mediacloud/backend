@@ -69,13 +69,13 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
             throw new RuntimeException("SQL queries don't contain end ID marker '" + END_ID_MARKER + "': " + sqlQueries);
         }
 
-        Integer minId = this.minMaxTruncate.minColumnValue(srcTable, srcIdColumn);
+        Long minId = this.minMaxTruncate.minColumnValue(srcTable, srcIdColumn);
         if (minId == null) {
             log.warn("Table '" + srcTable + "' seems to be empty.");
             return Async.procedure(minMaxTruncate::noOp, srcTable);
         }
 
-        Integer maxId = this.minMaxTruncate.maxColumnValue(srcTable, srcIdColumn);
+        Long maxId = this.minMaxTruncate.maxColumnValue(srcTable, srcIdColumn);
         if (maxId == null) {
             log.warn("Table '" + srcTable + "' seems to be empty.");
             return Async.procedure(minMaxTruncate::noOp, srcTable);
@@ -83,8 +83,8 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
 
         List<Promise<Void>> promises = new ArrayList<>();
 
-        for (int startId = minId; startId <= maxId; startId += chunkSize) {
-            int endId = startId + chunkSize - 1;
+        for (long startId = minId; startId <= maxId; startId += chunkSize) {
+            long endId = startId + chunkSize - 1;
 
             List<String> sqlQueriesWithIds = new ArrayList<>();
 
@@ -324,7 +324,7 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
 
         final int storiesIdChunkSize = 100_000_000;
 
-        Integer feedsStoriesMapMaxStoriesId = this.minMaxTruncate.maxColumnValue(
+        Long feedsStoriesMapMaxStoriesId = this.minMaxTruncate.maxColumnValue(
                 "unsharded_public.feeds_stories_map",
                 "stories_id"
         );
@@ -333,7 +333,7 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
             List<Promise<Void>> chunkPromises = new ArrayList<>();
 
             // FIXME off by one?
-            for (int partitionIndex = 0; partitionIndex <= feedsStoriesMapMaxStoriesId / storiesIdChunkSize; ++partitionIndex) {
+            for (long partitionIndex = 0; partitionIndex <= feedsStoriesMapMaxStoriesId / storiesIdChunkSize; ++partitionIndex) {
 
                 Promise<Void> movePromise = Async.procedure(
                         moveRows::runQueriesInTransaction,
@@ -372,7 +372,7 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
         }
         Promise<Void> feedsStoriesMapPromise = tempFeedsStoriesMapPromise;
 
-        Integer storiesTagsMapMaxStoriesId = this.minMaxTruncate.maxColumnValue(
+        Long storiesTagsMapMaxStoriesId = this.minMaxTruncate.maxColumnValue(
                 "unsharded_public.stories_tags_map",
                 "stories_id"
         );
@@ -381,7 +381,7 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
             List<Promise<Void>> chunkPromises = new ArrayList<>();
 
             // FIXME off by one?
-            for (int partitionIndex = 0; partitionIndex <= storiesTagsMapMaxStoriesId / storiesIdChunkSize; ++partitionIndex) {
+            for (long partitionIndex = 0; partitionIndex <= storiesTagsMapMaxStoriesId / storiesIdChunkSize; ++partitionIndex) {
                 Promise<Void> movePromise = Async.procedure(
                         moveRows::runQueriesInTransaction,
                         List.of(prettifySqlQuery(String.format("""
@@ -420,7 +420,7 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
 
         Promise<Void> storiesTagsMapPromise = tempStoriesTagsMapPromise;
 
-        Integer storySentencesMaxStoriesId = this.minMaxTruncate.maxColumnValue(
+        Long storySentencesMaxStoriesId = this.minMaxTruncate.maxColumnValue(
                 "unsharded_public.story_sentences",
                 "stories_id"
         );
@@ -429,7 +429,7 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
             List<Promise<Void>> chunkPromises = new ArrayList<>();
 
             // FIXME off by one?
-            for (int partitionIndex = 0; partitionIndex <= storySentencesMaxStoriesId / storiesIdChunkSize; ++partitionIndex) {
+            for (long partitionIndex = 0; partitionIndex <= storySentencesMaxStoriesId / storiesIdChunkSize; ++partitionIndex) {
                 Promise<Void> movePromise = Async.procedure(
                         moveRows::runQueriesInTransaction,
                         List.of(prettifySqlQuery(String.format("""
@@ -727,7 +727,7 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
 
         final int downloadsIdChunkSize = 100_000_000;
 
-        Integer downloadsSuccessContentMaxDownloadsId = this.minMaxTruncate.maxColumnValue(
+        Long downloadsSuccessContentMaxDownloadsId = this.minMaxTruncate.maxColumnValue(
                 "unsharded_public.downloads_success_content",
                 "downloads_id"
         );
@@ -736,7 +736,7 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
             List<Promise<Void>> chunkPromises = new ArrayList<>();
 
             // FIXME off by one?
-            for (int partitionIndex = 0; partitionIndex <= downloadsSuccessContentMaxDownloadsId / downloadsIdChunkSize; ++partitionIndex) {
+            for (long partitionIndex = 0; partitionIndex <= downloadsSuccessContentMaxDownloadsId / downloadsIdChunkSize; ++partitionIndex) {
                 Promise<Void> movePromise = Async.procedure(
                         moveRows::runQueriesInTransaction,
                         List.of(prettifySqlQuery(String.format("""
@@ -762,7 +762,7 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
             downloadsSuccessContentPromise = Promise.allOf(chunkPromises);
         }
 
-        Integer downloadsSuccessFeedMaxDownloadsId = this.minMaxTruncate.maxColumnValue(
+        Long downloadsSuccessFeedMaxDownloadsId = this.minMaxTruncate.maxColumnValue(
                 "unsharded_public.downloads_success_feed",
                 "downloads_id"
         );
@@ -771,7 +771,7 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
             List<Promise<Void>> chunkPromises = new ArrayList<>();
 
             // FIXME off by one?
-            for (int partitionIndex = 0; partitionIndex <= downloadsSuccessFeedMaxDownloadsId / downloadsIdChunkSize; ++partitionIndex) {
+            for (long partitionIndex = 0; partitionIndex <= downloadsSuccessFeedMaxDownloadsId / downloadsIdChunkSize; ++partitionIndex) {
                 Promise<Void> movePromise = Async.procedure(
                         moveRows::runQueriesInTransaction,
                         List.of(prettifySqlQuery(String.format("""
@@ -797,7 +797,7 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
             downloadsSuccessFeedPromise = Promise.allOf(chunkPromises);
         }
 
-        Integer downloadTextsMaxDownloadsId = this.minMaxTruncate.maxColumnValue(
+        Long downloadTextsMaxDownloadsId = this.minMaxTruncate.maxColumnValue(
                 "unsharded_public.download_texts",
                 "downloads_id"
         );
@@ -806,7 +806,7 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
             List<Promise<Void>> chunkPromises = new ArrayList<>();
 
             // FIXME off by one?
-            for (int partitionIndex = 0; partitionIndex <= downloadTextsMaxDownloadsId / downloadsIdChunkSize; ++partitionIndex) {
+            for (long partitionIndex = 0; partitionIndex <= downloadTextsMaxDownloadsId / downloadsIdChunkSize; ++partitionIndex) {
                 Promise<Void> movePromise = Async.procedure(
                         moveRows::runQueriesInTransaction,
                         List.of(prettifySqlQuery(String.format("""

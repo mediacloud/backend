@@ -74,13 +74,13 @@ public class Database {
     }
 
     public @Nullable
-    Integer queryInt(String sqlQuery) throws SQLException {
+    Long queryLong(String sqlQuery) throws SQLException {
         Statement stmt = this.conn.createStatement();
         ResultSet rs = stmt.executeQuery(sqlQuery);
         this.conn.commit();
 
         if (rs.next()) {
-            return rs.getInt(1);
+            return rs.getLong(1);
         } else {
             return null;
         }
