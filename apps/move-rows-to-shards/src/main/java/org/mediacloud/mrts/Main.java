@@ -9,6 +9,7 @@ import io.temporal.serviceclient.WorkflowServiceStubs;
 import io.temporal.serviceclient.WorkflowServiceStubsOptions;
 import io.temporal.worker.Worker;
 import io.temporal.worker.WorkerFactory;
+import io.temporal.worker.WorkerOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -81,7 +82,14 @@ public class Main {
 
         if (action == Action.WORKFLOW_WORKER || action == Action.ACTIVITIES_WORKER) {
             WorkerFactory factory = WorkerFactory.newInstance(client);
-            Worker worker = factory.newWorker(Shared.TASK_QUEUE);
+
+            // We'll start more workers if we need to parallelize things
+            WorkerOptions workerOptions = WorkerOptions.newBuilder()
+                    .setMaxConcurrentActivityExecutionSize(1)
+                    .setMaxConcurrentWorkflowTaskExecutionSize(1)
+                    .build();
+
+            Worker worker = factory.newWorker(Shared.TASK_QUEUE, workerOptions);
 
             if (action == Action.ACTIVITIES_WORKER) {
                 log.info("Starting activities worker...");
