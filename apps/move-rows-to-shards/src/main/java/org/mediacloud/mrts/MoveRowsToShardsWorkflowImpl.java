@@ -116,7 +116,7 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
                 if (copyAllChunksPromise == null) {
                     copyAllChunksPromise = promise;
                 } else {
-                    copyAllChunksPromise = copyAllChunksPromise.thenCompose(Void -> promise);
+                    copyAllChunksPromise = copyAllChunksPromise.thenApply((nil) -> promise.get());
                 }
             }
         } else {
@@ -129,7 +129,7 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
 
         Promise<Void> truncatePromise = Async.procedure(minMaxTruncate::truncateIfEmpty, srcTable);
 
-        return copyAllChunksPromise.thenCompose(Void -> truncatePromise);
+        return copyAllChunksPromise.thenApply((nil) -> truncatePromise.get());
     }
 
     @Override
@@ -388,7 +388,7 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
                         String.format("unsharded_public.feeds_stories_map_p_%02d", partitionIndex)
                 );
 
-                Promise<Void> moveAndTruncatePromise = movePromise.thenCompose(Void -> truncatePromise);
+                Promise<Void> moveAndTruncatePromise = movePromise.thenApply((nil) -> truncatePromise.get());
                 chunkPromises.add(moveAndTruncatePromise);
             }
 
@@ -435,7 +435,7 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
                         String.format("unsharded_public.stories_tags_map_p_%02d", partitionIndex)
                 );
 
-                Promise<Void> moveAndTruncatePromise = movePromise.thenCompose(Void -> truncatePromise);
+                Promise<Void> moveAndTruncatePromise = movePromise.thenApply((nil) -> truncatePromise.get());
                 chunkPromises.add(moveAndTruncatePromise);
             }
 
@@ -498,7 +498,7 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
                         String.format("unsharded_public.story_sentences_p_%02d", partitionIndex)
                 );
 
-                Promise<Void> moveAndTruncatePromise = movePromise.thenCompose(Void -> truncatePromise);
+                Promise<Void> moveAndTruncatePromise = movePromise.thenApply((nil) -> truncatePromise.get());
                 chunkPromises.add(moveAndTruncatePromise);
             }
 
@@ -779,7 +779,7 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
                         String.format("unsharded_public.downloads_success_content_%02d", partitionIndex)
                 );
 
-                Promise<Void> moveAndTruncatePromise = movePromise.thenCompose(Void -> truncatePromise);
+                Promise<Void> moveAndTruncatePromise = movePromise.thenApply((nil) -> truncatePromise.get());
                 chunkPromises.add(moveAndTruncatePromise);
             }
 
@@ -814,7 +814,7 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
                         String.format("unsharded_public.downloads_success_feed_%02d", partitionIndex)
                 );
 
-                Promise<Void> moveAndTruncatePromise = movePromise.thenCompose(Void -> truncatePromise);
+                Promise<Void> moveAndTruncatePromise = movePromise.thenApply((nil) -> truncatePromise.get());
                 chunkPromises.add(moveAndTruncatePromise);
             }
 
@@ -862,7 +862,7 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
                         String.format("unsharded_public.download_texts_%02d", partitionIndex)
                 );
 
-                Promise<Void> moveAndTruncatePromise = movePromise.thenCompose(Void -> truncatePromise);
+                Promise<Void> moveAndTruncatePromise = movePromise.thenApply((nil) -> truncatePromise.get());
                 chunkPromises.add(moveAndTruncatePromise);
             }
 
@@ -1848,7 +1848,7 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
                 authUserRequestDailyCountsPromise,
                 mediaStatsPromise,
                 mediaCoverageGapsPromise,
-                storiesPromise.thenCompose(
+                storiesPromise.thenApply(
                         Void -> Promise.allOf(
                                 storiesApSyndicatedPromise,
                                 storyUrlsPromise,
@@ -1868,24 +1868,24 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
                         downloadsErrorPromise,
                         downloadsSuccessContentPromise,
                         downloadsSuccessFeedPromise
-                ).thenCompose(
+                ).thenApply(
                         Void -> downloadTextsPromise
                 ),
-                topicStoriesPromise.thenCompose(
+                topicStoriesPromise.thenApply(
                         Void -> Promise.allOf(
                                 snapTopicStoriesPromise,
                                 snapLiveStoriesPromise
                         )
                 ),
-                topicLinksPromise.thenCompose(
+                topicLinksPromise.thenApply(
                         Void -> Promise.allOf(
                                 topicFetchUrlsPromise,
                                 snapTopicLinksCrossMediaPromise
                         )
                 ),
-                topicPostsPromise.thenCompose(
+                topicPostsPromise.thenApply(
                         Void -> Promise.allOf(
-                                topicPostUrlsPromise.thenCompose(
+                                topicPostUrlsPromise.thenApply(
                                         Void_ -> topicSeedUrlsPromise
                                 ),
                                 snapTimespanPostsPromise
