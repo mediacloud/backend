@@ -11,7 +11,6 @@ public class Database {
 
     public Database() throws SQLException {
         this.conn = DriverManager.getConnection("jdbc:postgresql://postgresql-pgbouncer:6432/mediacloud", "mediacloud", "mediacloud");
-        this.conn.setAutoCommit(false);
     }
 
     public void query(List<String> sqlQueries) throws SQLException {
@@ -69,7 +68,6 @@ public class Database {
             for (String query : sqlQueries) {
                 stmt.executeUpdate(query);
             }
-            this.conn.commit();
         }
     }
 
@@ -77,7 +75,6 @@ public class Database {
     Long queryLong(String sqlQuery) throws SQLException {
         Statement stmt = this.conn.createStatement();
         ResultSet rs = stmt.executeQuery(sqlQuery);
-        this.conn.commit();
 
         if (rs.next()) {
             return rs.getLong(1);
@@ -90,7 +87,6 @@ public class Database {
         Statement stmt = this.conn.createStatement();
         //noinspection SqlNoDataSourceInspection
         ResultSet rs = stmt.executeQuery("SELECT * FROM " + table + " LIMIT 1");
-        this.conn.commit();
         return !rs.next();
     }
 }
