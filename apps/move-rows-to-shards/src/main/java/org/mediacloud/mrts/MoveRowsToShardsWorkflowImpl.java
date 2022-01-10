@@ -127,7 +127,9 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
             throw new RuntimeException("No row moving queries");
         }
 
-        return copyAllChunksPromise;
+        Promise<Void> truncatePromise = Async.procedure(minMaxTruncate::truncateIfEmpty, srcTable);
+
+        return copyAllChunksPromise.thenApply((nil) -> truncatePromise.get());
     }
 
     @Override
@@ -331,7 +333,13 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
                         )))
                 );
 
-                chunkPromises.add(movePromise);
+                Promise<Void> truncatePromise = Async.procedure(
+                        minMaxTruncate::truncateIfEmpty,
+                        String.format("unsharded_public.feeds_stories_map_p_%02d", partitionIndex)
+                );
+
+                Promise<Void> moveAndTruncatePromise = movePromise.thenApply((nil) -> truncatePromise.get());
+                chunkPromises.add(moveAndTruncatePromise);
             }
 
             tempFeedsStoriesMapPromise = Promise.allOf(chunkPromises);
@@ -372,7 +380,13 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
                         )))
                 );
 
-                chunkPromises.add(movePromise);
+                Promise<Void> truncatePromise = Async.procedure(
+                        minMaxTruncate::truncateIfEmpty,
+                        String.format("unsharded_public.stories_tags_map_p_%02d", partitionIndex)
+                );
+
+                Promise<Void> moveAndTruncatePromise = movePromise.thenApply((nil) -> truncatePromise.get());
+                chunkPromises.add(moveAndTruncatePromise);
             }
 
             tempStoriesTagsMapPromise = Promise.allOf(chunkPromises);
@@ -429,7 +443,13 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
                         )))
                 );
 
-                chunkPromises.add(movePromise);
+                Promise<Void> truncatePromise = Async.procedure(
+                        minMaxTruncate::truncateIfEmpty,
+                        String.format("unsharded_public.story_sentences_p_%02d", partitionIndex)
+                );
+
+                Promise<Void> moveAndTruncatePromise = movePromise.thenApply((nil) -> truncatePromise.get());
+                chunkPromises.add(moveAndTruncatePromise);
             }
 
             tempStorySentencesPromise = Promise.allOf(chunkPromises);
@@ -704,7 +724,13 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
                                     """, partitionIndex, downloadsIdSrcColumns, downloadsIdDstColumns)))
                 );
 
-                chunkPromises.add(movePromise);
+                Promise<Void> truncatePromise = Async.procedure(
+                        minMaxTruncate::truncateIfEmpty,
+                        String.format("unsharded_public.downloads_success_content_%02d", partitionIndex)
+                );
+
+                Promise<Void> moveAndTruncatePromise = movePromise.thenApply((nil) -> truncatePromise.get());
+                chunkPromises.add(moveAndTruncatePromise);
             }
 
             downloadsSuccessContentPromise = Promise.allOf(chunkPromises);
@@ -733,7 +759,13 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
                                     """, partitionIndex, downloadsIdSrcColumns, downloadsIdDstColumns)))
                 );
 
-                chunkPromises.add(movePromise);
+                Promise<Void> truncatePromise = Async.procedure(
+                        minMaxTruncate::truncateIfEmpty,
+                        String.format("unsharded_public.downloads_success_feed_%02d", partitionIndex)
+                );
+
+                Promise<Void> moveAndTruncatePromise = movePromise.thenApply((nil) -> truncatePromise.get());
+                chunkPromises.add(moveAndTruncatePromise);
             }
 
             downloadsSuccessFeedPromise = Promise.allOf(chunkPromises);
