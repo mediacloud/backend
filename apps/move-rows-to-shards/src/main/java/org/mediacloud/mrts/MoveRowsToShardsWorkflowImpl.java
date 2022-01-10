@@ -239,6 +239,56 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
                             """, START_ID_MARKER, END_ID_MARKER))
         );
 
+        Promise<Void> storiesPromise = this.moveTable(
+                "unsharded_public.stories",
+                "stories_id",
+                // 2,119,319,121 in source table; 22 chunks
+                100_000_000,
+                List.of(String.format("""
+                        WITH deleted_rows AS (
+                            DELETE FROM unsharded_public.stories
+                            WHERE stories_id BETWEEN %s AND %s
+                            RETURNING
+                                stories_id,
+                                media_id,
+                                url,
+                                guid,
+                                title,
+                                normalized_title_hash,
+                                description,
+                                publish_date,
+                                collect_date,
+                                full_text_rss,
+                                language
+                        )
+                        INSERT INTO sharded_public.stories (
+                            stories_id,
+                            media_id,
+                            url,
+                            guid,
+                            title,
+                            normalized_title_hash,
+                            description,
+                            publish_date,
+                            collect_date,
+                            full_text_rss,
+                            language
+                        )
+                            SELECT
+                                stories_id::BIGINT,
+                                media_id::BIGINT,
+                                url::TEXT,
+                                guid::TEXT,
+                                title,
+                                normalized_title_hash,
+                                description,
+                                publish_date,
+                                collect_date,
+                                full_text_rss,
+                                language
+                            FROM deleted_rows
+                                """, START_ID_MARKER, END_ID_MARKER))
+        );
 
         Promise<Void> storiesApSyndicatedPromise = this.moveTable(
                 "unsharded_public.stories_ap_syndicated",
@@ -771,6 +821,56 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
             downloadsSuccessFeedPromise = Promise.allOf(chunkPromises);
         }
 
+        Long downloadTextsMaxDownloadsId = this.minMaxTruncate.maxColumnValue(
+                "unsharded_public.download_texts",
+                "downloads_id"
+        );
+        Promise<Void> tempDownloadTextsPromise = Async.procedure(minMaxTruncate::noOp, "download_texts");
+        if (downloadTextsMaxDownloadsId != null) {
+            List<Promise<Void>> chunkPromises = new ArrayList<>();
+
+            // FIXME off by one?
+            for (long partitionIndex = 0; partitionIndex <= downloadTextsMaxDownloadsId / downloadsIdChunkSize; ++partitionIndex) {
+                Promise<Void> movePromise = Async.procedure(
+                        moveRows::runQueriesInTransaction,
+                        List.of(prettifySqlQuery(String.format("""
+                                WITH deleted_rows AS (
+                                    DELETE FROM unsharded_public.download_texts_%02d
+                                    RETURNING
+                                        download_texts_id,
+                                        downloads_id,
+                                        download_text,
+                                        download_text_length
+                                )
+                                INSERT INTO sharded_public.download_texts (
+                                    download_texts_id,
+                                    downloads_id,
+                                    download_text,
+                                    download_text_length
+                                )
+                                    SELECT
+                                        download_texts_id,
+                                        downloads_id,
+                                        download_text,
+                                        download_text_length
+                                    FROM deleted_rows
+                                    """, partitionIndex)))
+                );
+
+                Promise<Void> truncatePromise = Async.procedure(
+                        minMaxTruncate::truncateIfEmpty,
+                        String.format("unsharded_public.download_texts_%02d", partitionIndex)
+                );
+
+                Promise<Void> moveAndTruncatePromise = movePromise.thenApply((nil) -> truncatePromise.get());
+                chunkPromises.add(moveAndTruncatePromise);
+            }
+
+            tempDownloadTextsPromise = Promise.allOf(chunkPromises);
+        }
+
+        Promise<Void> downloadTextsPromise = tempDownloadTextsPromise;
+
         Promise<Void> topicStoriesPromise = this.moveTable(
                 "unsharded_public.topic_stories",
                 "topic_stories_id",
@@ -855,6 +955,54 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
                             """, START_ID_MARKER, END_ID_MARKER))
         );
 
+        Promise<Void> topicFetchUrlsPromise = this.moveTable(
+                "unsharded_public.topic_fetch_urls",
+                "topic_fetch_urls_id",
+                // 705,821,290 in source table; 8 chunks
+                100_000_000,
+                List.of(String.format("""
+                        WITH deleted_rows AS (
+                            DELETE FROM unsharded_public.topic_fetch_urls
+                            WHERE topic_fetch_urls_id BETWEEN %s AND %s
+                            RETURNING
+                                topic_fetch_urls_id,
+                                topics_id,
+                                url,
+                                code,
+                                fetch_date,
+                                state,
+                                message,
+                                stories_id,
+                                assume_match,
+                                topic_links_id
+                        )
+                        INSERT INTO sharded_public.topic_fetch_urls (
+                            topic_fetch_urls_id,
+                            topics_id,
+                            url,
+                            code,
+                            fetch_date,
+                            state,
+                            message,
+                            stories_id,
+                            assume_match,
+                            topic_links_id
+                        )
+                            SELECT
+                                topic_fetch_urls_id::BIGINT,
+                                topics_id::BIGINT,
+                                url,
+                                code,
+                                fetch_date,
+                                state,
+                                message,
+                                stories_id::BIGINT,
+                                assume_match,
+                                topic_links_id::BIGINT
+                            FROM deleted_rows
+                            """, START_ID_MARKER, END_ID_MARKER))
+        );
+
         Promise<Void> topicPostsPromise = this.moveTable(
                 "unsharded_public.topic_posts",
                 "topic_posts_id",
@@ -923,6 +1071,115 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
                         "TRUNCATE temp_chunk_topic_post_days",
                         "DROP TABLE temp_chunk_topic_post_days"
                 )
+        );
+
+        Promise<Void> topicPostUrlsPromise = this.moveTable(
+                "unsharded_public.topic_post_urls",
+                "topic_post_urls_id",
+                // 50,726,436 in source table; 11 chunks
+                5_000_000,
+                Arrays.asList(
+                        // Citus doesn't like it when we join local (unsharded) and distributed tables in this case
+                        // therefore we create a temporary table first
+                        String.format("""
+                                CREATE TEMPORARY TABLE temp_chunk_topic_posts AS
+                                    SELECT
+                                        topic_posts_id::INT,
+                                        topics_id::INT
+                                    FROM sharded_public.topic_posts
+                                    WHERE topic_posts_id IN (
+                                        SELECT topic_posts_id
+                                        FROM unsharded_public.topic_post_urls
+                                        WHERE topic_post_urls_id BETWEEN %s AND %s
+                                    )
+                                """, START_ID_MARKER, END_ID_MARKER),
+                        String.format("""
+                                WITH deleted_rows AS (
+                                    DELETE FROM unsharded_public.topic_post_urls
+                                    USING temp_chunk_topic_posts
+                                    WHERE
+                                        unsharded_public.topic_post_urls.topic_posts_id
+                                            = temp_chunk_topic_posts.topic_posts_id AND
+                                        unsharded_public.topic_post_urls.topic_post_urls_id BETWEEN %s AND %s
+                                    RETURNING
+                                        unsharded_public.topic_post_urls.topic_post_urls_id,
+                                        temp_chunk_topic_posts.topics_id,
+                                        unsharded_public.topic_post_urls.topic_posts_id,
+                                        unsharded_public.topic_post_urls.url
+                                )
+                                INSERT INTO sharded_public.topic_post_urls (
+                                    topic_post_urls_id,
+                                    topics_id,
+                                    topic_posts_id,
+                                    url
+                                )
+                                    SELECT
+                                        topic_post_urls_id::BIGINT,
+                                        topics_id,
+                                        topic_posts_id::BIGINT,
+                                        url::TEXT
+                                    FROM deleted_rows
+                                """, START_ID_MARKER, END_ID_MARKER),
+                        "TRUNCATE temp_chunk_topic_posts",
+                        "DROP TABLE temp_chunk_topic_posts"
+                )
+        );
+
+        Promise<Void> topicSeedUrlsPromise = this.moveTable(
+                "unsharded_public.topic_seed_urls",
+                "topic_seed_urls_id",
+                // 499,926,808 in source table; 50 chunks
+                10_000_000,
+                List.of(String.format("""
+                        WITH deleted_rows AS (
+                            DELETE FROM unsharded_public.topic_seed_urls
+                            WHERE topic_seed_urls_id BETWEEN %s AND %s
+                            RETURNING
+                                topic_seed_urls_id,
+                                topics_id,
+                                url,
+                                source,
+                                stories_id,
+                                processed,
+                                assume_match,
+                                content,
+                                guid,
+                                title,
+                                publish_date,
+                                topic_seed_queries_id,
+                                topic_post_urls_id
+                        )
+                        INSERT INTO sharded_public.topic_seed_urls (
+                            topic_seed_urls_id,
+                            topics_id,
+                            url,
+                            source,
+                            stories_id,
+                            processed,
+                            assume_match,
+                            content,
+                            guid,
+                            title,
+                            publish_date,
+                            topic_seed_queries_id,
+                            topic_post_urls_id
+                        )
+                            SELECT
+                                topic_seed_urls_id::BIGINT,
+                                topics_id::BIGINT,
+                                url,
+                                source,
+                                stories_id::BIGINT,
+                                processed,
+                                assume_match,
+                                content,
+                                guid,
+                                title,
+                                publish_date,
+                                topic_seed_queries_id::BIGINT,
+                                topic_post_urls_id::BIGINT
+                            FROM deleted_rows
+                        """, START_ID_MARKER, END_ID_MARKER))
         );
 
         Promise<Void> snapStoriesPromise = this.moveTable(
@@ -997,6 +1254,89 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
                         "TRUNCATE temp_chunk_snapshots",
                         "DROP TABLE temp_chunk_snapshots"
                 )
+        );
+
+        Promise<Void> snapTopicStoriesPromise = this.moveTable(
+                "unsharded_snap.topic_stories",
+                "snapshots_id",
+                // MAX(snapshots_id) = 7690 in source table; 8 chunks
+                1000,
+                List.of(String.format("""
+                        WITH deleted_rows AS (
+                            DELETE FROM unsharded_snap.topic_stories
+                            WHERE snapshots_id BETWEEN %s AND %s
+                            RETURNING
+                                topics_id,
+                                snapshots_id,
+                                topic_stories_id,
+                                stories_id,
+                                link_mined,
+                                iteration,
+                                link_weight,
+                                redirect_url,
+                                valid_foreign_rss_story
+                        )
+                        INSERT INTO sharded_snap.topic_stories (
+                            topics_id,
+                            snapshots_id,
+                            topic_stories_id,
+                            stories_id,
+                            link_mined,
+                            iteration,
+                            link_weight,
+                            redirect_url,
+                            valid_foreign_rss_story
+                        )
+                            SELECT
+                                topics_id::BIGINT,
+                                snapshots_id::BIGINT,
+                                topic_stories_id::BIGINT,
+                                stories_id::BIGINT,
+                                link_mined,
+                                iteration::BIGINT,
+                                link_weight,
+                                redirect_url,
+                                valid_foreign_rss_story
+                            FROM deleted_rows
+                        ON CONFLICT (topics_id, snapshots_id, stories_id) DO NOTHING
+                            """, START_ID_MARKER, END_ID_MARKER))
+        );
+
+        Promise<Void> snapTopicLinksCrossMediaPromise = this.moveTable(
+                "unsharded_snap.topic_links_cross_media",
+                "snapshots_id",
+                // MAX(snapshots_id) = 7690 in source table; 8 chunks
+                1000,
+                List.of(String.format("""
+                        WITH deleted_rows AS (
+                            DELETE FROM unsharded_snap.topic_links_cross_media
+                            WHERE snapshots_id BETWEEN %s AND %s
+                            RETURNING
+                                topics_id,
+                                snapshots_id,
+                                topic_links_id,
+                                stories_id,
+                                url,
+                                ref_stories_id
+                        )
+                        INSERT INTO sharded_snap.topic_links_cross_media (
+                            topics_id,
+                            snapshots_id,
+                            topic_links_id,
+                            stories_id,
+                            url,
+                            ref_stories_id
+                        )
+                            SELECT
+                                topics_id::BIGINT,
+                                snapshots_id::BIGINT,
+                                topic_links_id::BIGINT,
+                                stories_id::BIGINT,
+                                url,
+                                ref_stories_id::BIGINT
+                            FROM deleted_rows
+                        ON CONFLICT (topics_id, snapshots_id, stories_id, ref_stories_id) DO NOTHING
+                            """, START_ID_MARKER, END_ID_MARKER))
         );
 
         Promise<Void> snapMediaPromise = this.moveTable(
@@ -1401,29 +1741,156 @@ public class MoveRowsToShardsWorkflowImpl implements MoveRowsToShardsWorkflow {
                 )
         );
 
+        Promise<Void> snapTimespanPostsPromise = this.moveTable(
+                "unsharded_snap.timespan_posts",
+                "timespans_id",
+                // MAX(timespans_id) = 1_362_209 in source table; 10 chunks
+                150_000,
+                Arrays.asList(
+                        // Citus doesn't like it when we join local (unsharded) and distributed tables in this case
+                        // therefore we create a temporary table first
+                        String.format("""
+                                CREATE TEMPORARY TABLE temp_chunk_timespans AS
+                                    SELECT
+                                        timespans_id::INT,
+                                        topics_id::INT
+                                    FROM public.timespans
+                                    WHERE timespans_id BETWEEN %s AND %s
+                                    """, START_ID_MARKER, END_ID_MARKER),
+                        String.format("""
+                                WITH deleted_rows AS (
+                                    DELETE FROM unsharded_snap.timespan_posts
+                                    USING temp_chunk_timespans
+                                    WHERE
+                                        unsharded_snap.timespan_posts.timespans_id
+                                            = temp_chunk_timespans.timespans_id AND
+                                        unsharded_snap.timespan_posts.timespans_id BETWEEN %s AND %s
+                                    RETURNING
+                                        temp_chunk_timespans.topics_id,
+                                        unsharded_snap.timespan_posts.timespans_id,
+                                        unsharded_snap.timespan_posts.topic_posts_id
+                                )
+                                INSERT INTO sharded_snap.timespan_posts (
+                                    topics_id,
+                                    timespans_id,
+                                    topic_posts_id
+                                )
+                                    SELECT
+                                        topics_id::BIGINT,
+                                        timespans_id::BIGINT,
+                                        topic_posts_id::BIGINT
+                                    FROM deleted_rows
+                                    """, START_ID_MARKER, END_ID_MARKER),
+                        "TRUNCATE temp_chunk_timespans",
+                        "DROP TABLE temp_chunk_timespans"
+                )
+        );
+
+        Promise<Void> snapLiveStoriesPromise = this.moveTable(
+                "unsharded_snap.live_stories",
+                "topic_stories_id",
+                // MAX(topic_stories_id) = 165_082_931 in source table; 17 chunks
+                10_000_000,
+                List.of(String.format("""
+                        WITH deleted_rows AS (
+                            DELETE FROM unsharded_snap.live_stories
+                            WHERE topic_stories_id BETWEEN %s AND %s
+                            RETURNING
+                                topics_id,
+                                topic_stories_id,
+                                stories_id,
+                                media_id,
+                                url,
+                                guid,
+                                title,
+                                normalized_title_hash,
+                                description,
+                                publish_date,
+                                collect_date,
+                                full_text_rss,
+                                language
+                        )
+                        INSERT INTO sharded_snap.live_stories (
+                            topics_id,
+                            topic_stories_id,
+                            stories_id,
+                            media_id,
+                            url,
+                            guid,
+                            title,
+                            normalized_title_hash,
+                            description,
+                            publish_date,
+                            collect_date,
+                            full_text_rss,
+                            language
+                        )
+                            SELECT
+                                topics_id::BIGINT,
+                                topic_stories_id::BIGINT,
+                                stories_id::BIGINT,
+                                media_id::BIGINT,
+                                url::TEXT,
+                                guid::TEXT,
+                                title,
+                                normalized_title_hash,
+                                description,
+                                publish_date,
+                                collect_date,
+                                full_text_rss,
+                                language
+                            FROM deleted_rows
+                            """, START_ID_MARKER, END_ID_MARKER))
+        );
+
         // Run the tree of all promises
         Promise.allOf(
                 authUserRequestDailyCountsPromise,
                 mediaStatsPromise,
                 mediaCoverageGapsPromise,
-                storiesApSyndicatedPromise,
-                storyUrlsPromise,
-                feedsStoriesMapPromise,
-                storiesTagsMapPromise,
-                storySentencesPromise,
-                solrImportStoriesPromise,
-                solrImportedStoriesPromise,
-                topicMergedStoriesMapPromise,
-                storyStatisticsPromise,
-                processedStoriesPromise,
-                scrapedStoriesPromise,
-                storyEnclosuresPromise,
-                downloadsErrorPromise,
-                downloadsSuccessContentPromise,
-                downloadsSuccessFeedPromise,
-                topicStoriesPromise,
-                topicLinksPromise,
-                topicPostsPromise,
+                storiesPromise.thenApply(
+                        Void -> Promise.allOf(
+                                storiesApSyndicatedPromise,
+                                storyUrlsPromise,
+                                feedsStoriesMapPromise,
+                                storiesTagsMapPromise,
+                                storySentencesPromise,
+                                solrImportStoriesPromise,
+                                solrImportedStoriesPromise,
+                                topicMergedStoriesMapPromise,
+                                storyStatisticsPromise,
+                                processedStoriesPromise,
+                                scrapedStoriesPromise,
+                                storyEnclosuresPromise
+                        )
+                ),
+                Promise.allOf(
+                        downloadsErrorPromise,
+                        downloadsSuccessContentPromise,
+                        downloadsSuccessFeedPromise
+                ).thenApply(
+                        Void -> downloadTextsPromise
+                ),
+                topicStoriesPromise.thenApply(
+                        Void -> Promise.allOf(
+                                snapTopicStoriesPromise,
+                                snapLiveStoriesPromise
+                        )
+                ),
+                topicLinksPromise.thenApply(
+                        Void -> Promise.allOf(
+                                topicFetchUrlsPromise,
+                                snapTopicLinksCrossMediaPromise
+                        )
+                ),
+                topicPostsPromise.thenApply(
+                        Void -> Promise.allOf(
+                                topicPostUrlsPromise.thenApply(
+                                        Void_ -> topicSeedUrlsPromise
+                                ),
+                                snapTimespanPostsPromise
+                        )
+                ),
                 snapStoriesPromise,
                 snapMediaPromise,
                 snapMediaTagsMapPromise,
